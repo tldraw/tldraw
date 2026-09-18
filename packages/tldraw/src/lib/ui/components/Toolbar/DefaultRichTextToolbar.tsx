@@ -24,7 +24,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 
 	const textEditor = useValue('textEditor', () => editor.getRichTextEditor(), [editor])
 
-	if (editor.getInstanceState().isCoarsePointer || !textEditor) return null
+	if (!textEditor) return null
 
 	return <ContextualToolbarInner textEditor={textEditor}>{children}</ContextualToolbarInner>
 })
@@ -37,17 +37,42 @@ function ContextualToolbarInner({
 	textEditor: TiptapEditor
 }) {
 	const editor = useEditor()
-	const { isEditingLink, onEditLinkStart, onEditLinkClose } = useEditingLinkBehavior(textEditor)
+	const {
+		isEditingLink,
+		onEditLinkStart: startEditingLink,
+		onEditLinkClose,
+	} = useEditingLinkBehavior(textEditor)
 	const [currentSelection, setCurrentSelection] = useState<Range | null>(null)
 	const previousSelectionBounds = useRef<Box | undefined>(undefined)
 	const isMousingDown = useIsMousingDownOnTextEditor(textEditor)
+	const isCoarsePointer = useValue(
+		'isCoarsePointer',
+		() => editor.getInstanceState().isCoarsePointer,
+		[editor]
+	)
 	const msg = useTranslation()
+
+	const onEditLinkStart = useCallback(() => {
+		// On touch the formatting toolbar never measures a selection, so a new link started from
+		// the Ctrl/Cmd+Shift+K shortcut would have nothing to anchor to: the link editor would stay
+		// at its hidden position while its input took focus and swallowed typing. Only an existing
+		// link (which anchors to the link mark) can open the editor there.
+		if (isCoarsePointer && !textEditor.isActive('link')) return
+		startEditingLink()
+	}, [isCoarsePointer, textEditor, startEditingLink])
 
 	const getSelectionBounds = useCallback(() => {
 		if (isEditingLink) {
-			// If we're editing a link we don't have selection bounds temporarily.
-			return previousSelectionBounds.current
+			// The link input takes focus, so the DOM selection is gone; anchor to the link itself.
+			// There is no link yet when creating one from a plain selection, so fall back to the
+			// bounds the toolbar had before the input took focus.
+			return getLinkBounds(textEditor) ?? previousSelectionBounds.current
 		}
+
+		// On touch, the floating toolbar competes with the native selection menu and handles,
+		// so it only appears for the link editor (reached by tapping a link).
+		if (isCoarsePointer) return
+
 		// Get the text selection rects as a box. This will be undefined if there are no selections.
 		const selection = editor.getContainerWindow().getSelection()
 
@@ -65,7 +90,7 @@ function ContextualToolbarInner({
 		const bounds = Box.Common(rangeBoxes)
 		previousSelectionBounds.current = bounds
 		return bounds
-	}, [editor, currentSelection, isEditingLink])
+	}, [editor, textEditor, currentSelection, isEditingLink, isCoarsePointer])
 
 	useEffect(() => {
 		const handleSelectionUpdate = ({ editor: textEditor }: TextEditorEvents['selectionUpdate']) =>
@@ -101,7 +126,28 @@ function ContextualToolbarInner({
 	)
 }
 
+function getLinkBounds(textEditor: TiptapEditor): Box | undefined {
+	const { state, view } = textEditor
+	try {
+		const range = getMarkRange(
+			state.doc.resolve(state.selection.from),
+			state.schema.marks.link as MarkType
+		)
+		if (!range) return
+		const start = view.coordsAtPos(range.from)
+		const end = view.coordsAtPos(range.to)
+		return Box.Common([
+			new Box(start.left, start.top, start.right - start.left, start.bottom - start.top),
+			new Box(end.left, end.top, end.right - end.left, end.bottom - end.top),
+		])
+	} catch {
+		// getMarkRange can throw when the selection spans the whole document.
+		return
+	}
+}
+
 function useEditingLinkBehavior(textEditor?: TiptapEditor) {
+	const editor = useEditor()
 	const [isEditingLink, setIsEditingLink] = useState(false)
 
 	// Set up text editor event listeners.
@@ -112,8 +158,13 @@ function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 		}
 
 		const handleClick = () => {
-			const isLinkActive = textEditor.isActive('link')
-			setIsEditingLink(isLinkActive)
+			// The browser places the caret as the click's default action and ProseMirror only
+			// reads it back on the following selectionchange task, so checking synchronously
+			// here sees the caret from before the click (and a tap on a link does nothing).
+			editor.timers.setTimeout(() => {
+				if (textEditor.isDestroyed) return
+				setIsEditingLink(textEditor.isActive('link'))
+			}, 0)
 		}
 
 		textEditor.view.dom.addEventListener('click', handleClick)
@@ -122,7 +173,7 @@ function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 				textEditor.view.dom.removeEventListener('click', handleClick)
 			}
 		}
-	}, [textEditor, isEditingLink])
+	}, [editor, textEditor, isEditingLink])
 
 	// If we're editing a link, select the entire link.
 	// This can happen via a click or via keyboarding over to the link and then
