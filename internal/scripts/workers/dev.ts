@@ -117,7 +117,7 @@ class SizeReporter {
 		console.log('Spawning size reporter...')
 		const proc = spawn('pnpm', [
 			'exec',
-			
+
 			'esbuild',
 			'src/worker.ts',
 			'--bundle',
