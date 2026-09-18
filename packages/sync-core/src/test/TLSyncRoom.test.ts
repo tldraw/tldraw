@@ -870,6 +870,36 @@ describe('23. Connect handshake (HS)', () => {
 		)
 	})
 
+	it('[HS3] rejects a v1 schema without recordVersions as CLIENT_TOO_OLD instead of throwing', () => {
+		// Sentry TLDRAW-SYNC-3VT: a malformed legacy schema used to throw inside upgradeSchema,
+		// which rejected the session with an unknown error rather than a version mismatch.
+		const { room } = makeRoom()
+		const socket = makeSocket()
+
+		room.handleNewSession({
+			sessionId: 'v1-client-session',
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		expect(() =>
+			room.handleMessage('v1-client-session', {
+				connectRequestId: 'connect-1',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: { schemaVersion: 1, storeVersion: 1 } as any,
+				type: 'connect',
+			})
+		).not.toThrow()
+
+		expect(room.sessions.get('v1-client-session')?.state).not.toBe(RoomSessionState.Connected)
+		expect(socket.close).toHaveBeenCalledWith(
+			TLSyncErrorCloseEventCode,
+			TLSyncErrorCloseEventReason.CLIENT_TOO_OLD
+		)
+	})
+
 	it('rejects a client running a newer schema with SERVER_TOO_OLD, not CLIENT_TOO_OLD', () => {
 		// Regression test for #6169
 		// A client running a newer SDK than the server: its schema has a sequence version higher
