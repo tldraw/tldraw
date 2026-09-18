@@ -52,6 +52,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **S8** `getStoreSnapshot(scope?)` is `{ store: serialize(scope), schema: schema.serialize() }`.
 - **S9** `loadStoreSnapshot(snapshot)` migrates the snapshot, replaces all current records with the result, and runs the integrity checker — all with side effects disabled (restoring the previous enabled state afterwards). It throws if migration fails, leaving the store unchanged.
 - **S10** `migrateSnapshot(snapshot)` returns the migrated snapshot stamped with the current serialized schema, and throws if migration fails.
+- **S12** When the same id appears more than once in one `put`, the history entry records it once: as an update whose `from` is the record as it was before the call, or as a single addition if the call also created it. A record changed and then changed back (by reference) within one call is not recorded at all.
 
 ## 6. Atomic operations and the side-effect flush (AO)
 
