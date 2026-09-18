@@ -704,7 +704,11 @@ export class TLFileDurableObject extends DurableObject {
 			const attachment = this.getSocketAttachment(ws)
 			if (!attachment?.sessionId) return
 
-			this.sessionIdToWs.delete(attachment.sessionId)
+			// only forget the mapping if it still points at this socket: a reconnect under the same
+			// session id may already have replaced it
+			if (this.sessionIdToWs.get(attachment.sessionId) === ws) {
+				this.sessionIdToWs.delete(attachment.sessionId)
+			}
 			if (!this._documentInfo) return
 			// A deleted room has nothing left to broadcast, and booting one here would resume the
 			// just-closed sessions onto storage the delete is wiping.
@@ -723,7 +727,8 @@ export class TLFileDurableObject extends DurableObject {
 				})
 			}
 
-			room[method](attachment.sessionId)
+			// pass the socket so a close from a superseded socket can't cancel a reconnected session
+			room[method](attachment.sessionId, ws)
 		} catch (e) {
 			if (e instanceof RoomNotFoundError) {
 				// The socket is already closing/closed; nothing left to clean up on the room side.
