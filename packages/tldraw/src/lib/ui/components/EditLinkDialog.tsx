@@ -1,8 +1,8 @@
-import { T, TLShape, track, useEditor } from '@tldraw/editor'
+import { defineMessages, T, TLShape, track, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { isShapeWithLink, TLShapeWithLink } from '../../utils/shapes/shapes'
 import { TLUiDialogProps } from '../context/dialogs'
-import { F, defineMessages } from '../context/i18n'
+import { F } from '../context/i18n'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
 import {

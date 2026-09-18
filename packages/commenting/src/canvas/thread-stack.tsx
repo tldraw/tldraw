@@ -8,7 +8,6 @@ import {
 } from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
 import { CountBadge } from '../ui/count-badge'
-import { UNKNOWN_AUTHOR } from './comment-render'
 import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { useCommentingOptions } from './options'
@@ -228,7 +227,7 @@ function StackThreadCard({
 				type="button"
 				className="tlui-cmt-button tlui-cmt-stack-list__card-action"
 				aria-label={msg(thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label', {
-					name: props.resolveAuthor(thread.createdBy)?.name ?? UNKNOWN_AUTHOR,
+					name: props.resolveAuthor(thread.createdBy)?.name ?? msg('comments.unknown-author'),
 				})}
 				onClick={open}
 			/>

@@ -1,11 +1,12 @@
 import { render, renderHook, screen } from '@testing-library/react'
+import { defineMessages, type TLI18nMessage } from '@tldraw/editor'
 import * as React from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { defaultUiAssetUrls } from '../assetUrls'
 import { DEFAULT_TRANSLATION } from '../hooks/useTranslation/defaultTranslation'
 import { TldrawUiTranslationProvider, useTranslation } from '../hooks/useTranslation/useTranslation'
 import { AssetUrlsProvider } from './asset-urls'
-import { F, defineMessages, isPseudoLocale, useMsg, type TLUiMessageDescriptor } from './i18n'
+import { F, isPseudoLocale, useMsg } from './i18n'
 
 vi.unmock('./useTranslation')
 vi.unmock('../hooks/useTranslation/useTranslation')
@@ -81,8 +82,8 @@ describe('isPseudoLocale', () => {
 
 describe('defineMessages', () => {
 	it('rejects a descriptor with no id, so nothing unextractable ships', () => {
-		expect(() =>
-			defineMessages({ bad: { defaultMessage: 'No id' } as TLUiMessageDescriptor })
-		).toThrow(/missing an id/)
+		expect(() => defineMessages({ bad: { defaultMessage: 'No id' } as TLI18nMessage })).toThrow(
+			/missing an id/
+		)
 	})
 })
