@@ -875,7 +875,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, licenseKey, }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -1357,6 +1357,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     getIsReadonly(): boolean;
     // @internal
+    getLicenseManager(): LicenseManager;
+    // @internal
     getMarkIdMatching(idSubstring: string): null | string;
     getNearestAdjacentShape(shapes: TLShape[], currentShapeId: TLShapeId, direction: 'down' | 'left' | 'right' | 'up'): TLShapeId;
     getNotVisibleShapes(): Set<TLShapeId>;
@@ -1481,6 +1483,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     isDisposed: boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
+    isLicensedFeatureEnabled(feature: LicenseFeatureName): boolean;
+    // @internal
+    isLicenseValidationPending(): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
         hitInside?: boolean;
         margin?: number;
@@ -1501,8 +1506,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeOfType<T extends TLShape = TLShape>(shapeId: TLShapeId, type: T['type']): boolean;
     isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
-    // @internal
-    licenseManager?: LicenseManager;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): this;
     markEventAsHandled(e: {
         nativeEvent: Event;
@@ -2427,7 +2430,7 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opt
 // @internal (undocumented)
 export const LICENSE_TIMEOUT = 5000;
 
-// @internal
+// @public
 export type LicenseFeatureName = 'collaboration' | 'commenting';
 
 // @internal (undocumented)
@@ -3041,6 +3044,9 @@ export type SelectionEdge = 'bottom' | 'left' | 'right' | 'top';
 
 // @public (undocumented)
 export type SelectionHandle = SelectionCorner | SelectionEdge;
+
+// @public
+export function setLicense({ licenseKey }: TLSetLicenseOptions): void;
 
 // @public (undocumented)
 export function setPointerCapture(element: Element, event: PointerEvent | React.PointerEvent<Element>): void;
@@ -3991,7 +3997,6 @@ export interface TLEditorOptions {
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
     initialState?: string;
     initialTheme?: TLThemeId;
-    // (undocumented)
     licenseKey?: string;
     options?: Partial<TldrawOptions>;
     overlayUtils?: readonly TLAnyOverlayUtilConstructor[];
@@ -4697,6 +4702,11 @@ export interface TLSessionStateSnapshot {
     }>;
     // (undocumented)
     version: number;
+}
+
+// @public
+export interface TLSetLicenseOptions {
+    licenseKey: string;
 }
 
 // @public (undocumented)
