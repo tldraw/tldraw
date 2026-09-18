@@ -46,3 +46,55 @@ export function defaultI18n(): TLI18n {
 		},
 	}
 }
+
+/**
+ * One translatable message: a stable `id` naming it in the catalog, and the English it falls back
+ * to. `defaultMessage` is required, because this package's strings have to read correctly with no
+ * translations loaded at all — `@tldraw/editor` can be used without any of tldraw's UI.
+ *
+ * @public
+ */
+export interface TLI18nMessage {
+	id: string
+	defaultMessage: string
+	description?: string
+}
+
+/**
+ * Declares messages so the extractor can find them. Returns them unchanged; the value is in
+ * naming the call, which is what `formatjs extract` looks for.
+ *
+ * @public
+ */
+export function defineMessages<Messages extends Record<string, TLI18nMessage>>(
+	msgs: Messages
+): Messages {
+	if (process.env.NODE_ENV !== 'production') {
+		for (const key in msgs) {
+			if (!msgs[key].id) throw new Error(`defineMessages: "${key}" is missing an id.`)
+		}
+	}
+	return msgs
+}
+
+/**
+ * Translates `message` through an editor's i18n, falling back to its English.
+ *
+ * Takes the editor's i18n rather than reading a context, so it works in the places this package
+ * has to keep working: a `ShapeUtil` with no hooks available, or an error fallback rendered
+ * outside the editor it's reporting on.
+ *
+ * @public
+ */
+export function translateMessage(
+	i18n: TLI18n | null | undefined,
+	message: TLI18nMessage,
+	values?: TLI18nValues
+): string {
+	if (!i18n) return message.defaultMessage
+	const translated = i18n.translate(message.id, values)
+	// `translate` hands an unknown key back unchanged, which is what happens both when no
+	// translations are loaded and before a newly added message has been through Lokalise. Either
+	// way the id is not something to show someone.
+	return translated === message.id ? message.defaultMessage : translated
+}

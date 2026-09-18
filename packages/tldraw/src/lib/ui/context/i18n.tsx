@@ -1,30 +1,14 @@
-import { TLI18n, TLI18nAdapter } from '@tldraw/editor'
+import { TLI18n, TLI18nAdapter, TLI18nMessage } from '@tldraw/editor'
 import { useCallback, useRef } from 'react'
-import { FormattedMessage, defineMessages as originalDefineMessages, useIntl } from 'react-intl'
+import { FormattedMessage, useIntl } from 'react-intl'
 import {
 	TLUiTranslationValues,
 	useCurrentTranslation,
 	useTranslation,
 } from '../hooks/useTranslation/useTranslation'
 
-/**
- * One translatable message: a stable `id` naming it in the catalog, and the English text it
- * defaults to. Declared through {@link defineMessages}.
- *
- * Deliberately tldraw's own type rather than react-intl's `MessageDescriptor`: which library
- * formats the message shouldn't be part of the SDK's public contract, and here `defaultMessage`
- * is required — a descriptor without one is invisible to the extractor.
- *
- * @public
- */
-export interface TLUiMessageDescriptor {
-	id: string
-	defaultMessage: string
-	description?: string
-}
-
 /** @public */
-export interface TLUiMessageProps extends TLUiMessageDescriptor {
+export interface TLUiMessageProps extends TLI18nMessage {
 	values?: TLUiTranslationValues
 }
 
@@ -70,7 +54,7 @@ function makeLong(str: string) {
  *
  * @public
  */
-export function useMsg(message: TLUiMessageDescriptor, values?: TLUiTranslationValues): string {
+export function useMsg(message: TLI18nMessage, values?: TLUiTranslationValues): string {
 	const intl = useIntl()
 	return intl.formatMessage(message, values)
 }
@@ -96,30 +80,6 @@ export function F({ values, ...descriptor }: TLUiMessageProps) {
 	// The rule can't see a spread; `F`'s own callers are what it needs to check.
 	// eslint-disable-next-line tldraw/enforce-default-message
 	return <FormattedMessage {...descriptor} values={values} />
-}
-
-/**
- * Declares messages for extraction. Every descriptor needs an explicit `id`: the SDK's ids are
- * stable names an app can override by key, not content hashes that change with the English text.
- *
- * This call is what the extractor reads, so declaring a message here is what puts it in the
- * catalog — whichever way it's consumed afterwards. That covers the labels the UI takes as data
- * rather than as elements (an action's `label`, a menu item's, an input's): declare the message
- * and pass `messages.x.id`, and the string is still extracted and still can't drift from its id.
- *
- * @public
- */
-export function defineMessages<Messages extends Record<string, TLUiMessageDescriptor>>(
-	msgs: Messages
-): Messages {
-	if (process.env.NODE_ENV !== 'production') {
-		for (const key in msgs) {
-			if (!msgs[key].id) {
-				throw new Error(`defineMessages: "${key}" is missing an id.`)
-			}
-		}
-	}
-	return originalDefineMessages(msgs)
 }
 
 /**

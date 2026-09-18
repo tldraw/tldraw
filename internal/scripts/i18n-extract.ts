@@ -14,6 +14,7 @@ import path from 'path'
 //
 //   yarn i18n-extract              # report coverage and drift
 //   yarn i18n-extract --check      # same, but exit non-zero on drift (for CI)
+//   yarn i18n-extract --add-new    # append ids that only exist in code; never removes anything
 //   yarn i18n-extract --write      # overwrite main.json; refuses while coverage is incomplete
 //
 // The SDK's ids are stable names, not content hashes, so there is deliberately no
@@ -24,7 +25,7 @@ const REPO_ROOT = path.resolve(__dirname, '../..')
 const MAIN_JSON = path.join(REPO_ROOT, 'assets/translations/main.json')
 
 /** Packages whose strings share the one SDK catalog. */
-const PACKAGES = ['tldraw', 'commenting', 'mentions']
+const PACKAGES = ['tldraw', 'commenting', 'mentions', 'editor']
 
 interface Extracted {
 	[id: string]: { defaultMessage: string; description?: string }
@@ -64,6 +65,7 @@ function main() {
 	const args = process.argv.slice(2)
 	const check = args.includes('--check')
 	const write = args.includes('--write')
+	const addNew = args.includes('--add-new')
 
 	const catalog: Record<string, string> = JSON.parse(readFileSync(MAIN_JSON, 'utf8'))
 	const extracted = extract()
@@ -101,6 +103,22 @@ function main() {
 		console.log('\nNew ids, would be added to the catalog:')
 		for (const id of newInCode.slice(0, 40)) console.log(`  ${id}`)
 		if (newInCode.length > 40) console.log(`  ... and ${newInCode.length - 40} more`)
+	}
+
+	// Additive counterpart to --write, for while the catalog is still the thing Lokalise uploads:
+	// a message declared in code has to reach main.json to reach a translator.
+	if (addNew) {
+		if (!newInCode.length) {
+			console.log('\nNothing to add.')
+			return
+		}
+		const raw = readFileSync(MAIN_JSON, 'utf8')
+		const tail = raw.slice(raw.lastIndexOf('}') + 1)
+		const next: Record<string, string> = { ...catalog }
+		for (const id of newInCode) next[id] = extracted[id].defaultMessage
+		writeFileSync(MAIN_JSON, JSON.stringify(next, null, '\t') + tail)
+		console.log(`\nAdded ${newInCode.length} keys to assets/translations/main.json`)
+		return
 	}
 
 	if (write) {

@@ -1,11 +1,12 @@
 import { useMemo } from 'react'
 import {
+	createCommentReaction,
+	createCommentReactionId,
 	Editor,
 	TLComment,
 	TLCommentReaction,
-	createCommentReaction,
-	createCommentReactionId,
 	useEditor,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { RenderReaction } from '../ui/reaction'
@@ -52,15 +53,18 @@ export interface ReactionSummaryInput {
  * Tally a comment's reactions into an entry per emoji, ordered by when that emoji was first used so
  * the row stays stable as later reactions arrive. `active` marks the current user's emoji and
  * `reactors` lists who reacted, in reaction order. `resolveName` names each reactor; an id it can't
- * name falls back to a generic "Someone", never the raw user id.
+ * name falls back to `unknownAuthorName`, never the raw user id. Pass a translated name for that:
+ * this is a plain function, so it can't reach the translations itself.
  *
  * @public
  */
 export function summarizeReactions(
 	reactions: readonly ReactionSummaryInput[],
 	currentUserId?: string | null,
-	resolveName?: (userId: string) => string | undefined
+	resolveName?: (userId: string) => string | undefined,
+	opts?: { unknownAuthorName?: string }
 ): ReactionSummary[] {
+	const unknownAuthorName = opts?.unknownAuthorName ?? UNKNOWN_AUTHOR
 	const groups = new Map<
 		string,
 		{ count: number; active: boolean; firstAt: number; reactors: ReactionSummary['reactors'] }
@@ -68,7 +72,7 @@ export function summarizeReactions(
 	for (const reaction of reactions) {
 		const mine = currentUserId != null && reaction.userId === currentUserId
 		// Fall back to a generic name, never the raw user id, when the id can't be resolved.
-		const reactor = { name: resolveName?.(reaction.userId) ?? UNKNOWN_AUTHOR, you: mine }
+		const reactor = { name: resolveName?.(reaction.userId) ?? unknownAuthorName, you: mine }
 		const group = groups.get(reaction.emoji)
 		if (group) {
 			group.count++
@@ -177,9 +181,11 @@ export function CommentReactions({ comment, currentUserId, resolveName }: Commen
 	const renderReaction = useReactionRenderer()
 	const { components } = useCommentingOptions()
 	const reactions = useCommentReactions(editor, comment.id)
+	const msg = useTranslation()
+	const unknownAuthorName = msg('comments.unknown-author')
 	const summaries = useMemo(
-		() => summarizeReactions(reactions, currentUserId, resolveName),
-		[reactions, currentUserId, resolveName]
+		() => summarizeReactions(reactions, currentUserId, resolveName, { unknownAuthorName }),
+		[reactions, currentUserId, resolveName, unknownAuthorName]
 	)
 	// Suppress the hover list while any menu is open (the reaction picker, an overflow menu…) so it
 	// doesn't compete with the menu the user is actually working in. Edit mode already hides the

@@ -823,6 +823,9 @@ export const defaultUserPreferences: Readonly<{
 export const defaultUserStore: TLUserStore;
 
 // @public
+export function defineMessages<Messages extends Record<string, TLI18nMessage>>(msgs: Messages): Messages;
+
+// @public
 export function degreesToRadians(d: number): number;
 
 // @public (undocumented)
@@ -4344,6 +4347,16 @@ export interface TLI18n {
 export type TLI18nAdapter = () => TLI18n;
 
 // @public
+export interface TLI18nMessage {
+    // (undocumented)
+    defaultMessage: string;
+    // (undocumented)
+    description?: string;
+    // (undocumented)
+    id: string;
+}
+
+// @public
 export type TLI18nValues = Record<string, bigint | boolean | Date | null | number | string | undefined>;
 
 // @public (undocumented)
@@ -5083,6 +5096,9 @@ export interface TransformedGeometry2dOptions {
     // (undocumented)
     isLabel?: boolean;
 }
+
+// @public
+export function translateMessage(i18n: null | TLI18n | undefined, message: TLI18nMessage, values?: TLI18nValues): string;
 
 // @public (undocumented)
 export type UiEvent = TLCancelEvent | TLClickEvent | TLCompleteEvent | TLKeyboardEvent | TLPinchEvent | TLPointerEvent;

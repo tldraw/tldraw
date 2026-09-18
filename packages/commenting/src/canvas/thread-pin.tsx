@@ -19,7 +19,7 @@ import {
 import { CommentPin } from '../ui/comment-pin'
 import { forwardPointerEventToCanvas, isCanvasPanGesture } from './canvas-events'
 import { commitCommentMutation } from './comment-mutations'
-import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
+import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { getCommentingOptions, useCanComment, useCommentingOptions } from './options'
@@ -195,7 +195,7 @@ export const ThreadPin = memo(function ThreadPin({
 		<Avatar author={threadAuthor ?? UNKNOWN_COMMENT_AUTHOR} />
 	)
 	const pinLabel = msg(thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label', {
-		name: threadAuthor?.name ?? UNKNOWN_AUTHOR,
+		name: threadAuthor?.name ?? msg('comments.unknown-author'),
 	})
 
 	// Drag the marker to move the thread: position is overridden locally while dragging, then re-anchored

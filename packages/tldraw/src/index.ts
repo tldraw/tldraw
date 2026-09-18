@@ -55,11 +55,9 @@ export { DefaultToasts } from './lib/ui/components/Toasts'
 export {
 	F,
 	PSEUDO_LOCALES,
-	defineMessages,
 	isPseudoLocale,
 	useMsg,
 	useTldrawI18n,
-	type TLUiMessageDescriptor,
 	type TLUiMessageProps,
 } from './lib/ui/context/i18n'
 export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
