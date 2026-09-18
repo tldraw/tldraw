@@ -51,6 +51,7 @@
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.5.0",
+		"@tldraw/editor": "workspace:*",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@types/uuid-readable": "^0.0.3",
