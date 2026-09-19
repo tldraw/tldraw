@@ -1,13 +1,7 @@
-import { T, useEditor } from 'tldraw'
+import { sleep, T, useEditor } from 'tldraw'
 import { MultiplyIcon } from '../../components/icons/MultiplyIcon'
-import {
-	NODE_HEADER_HEIGHT_PX,
-	NODE_ROW_HEADER_GAP_PX,
-	NODE_ROW_HEIGHT_PX,
-	NODE_WIDTH_PX,
-} from '../../constants'
+import { NODE_ROW_HEIGHT_PX } from '../../constants'
 import { ShapePort } from '../../ports/Port'
-import { sleep } from '../../utils/sleep'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
@@ -17,6 +11,8 @@ import {
 	NodeComponentProps,
 	NodeDefinition,
 	NodeInputRow,
+	outputPort,
+	rowPort,
 	updateNode,
 } from './shared'
 
@@ -50,28 +46,9 @@ export class MultiplyNodeDefinition extends NodeDefinition<MultiplyNode> {
 	}
 	getPorts(_shape: NodeShape, _node: MultiplyNode): Record<string, ShapePort> {
 		return {
-			output: {
-				id: 'output',
-				x: NODE_WIDTH_PX,
-				y: NODE_HEADER_HEIGHT_PX / 2,
-				terminal: 'start',
-			},
-			multiplicand: {
-				id: 'multiplicand',
-				x: 0,
-				y: NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX + NODE_ROW_HEIGHT_PX / 2,
-				terminal: 'end',
-			},
-			multiplier: {
-				id: 'multiplier',
-				x: 0,
-				y:
-					NODE_HEADER_HEIGHT_PX +
-					NODE_ROW_HEADER_GAP_PX +
-					NODE_ROW_HEIGHT_PX +
-					NODE_ROW_HEIGHT_PX / 2,
-				terminal: 'end',
-			},
+			output: outputPort,
+			multiplicand: rowPort('multiplicand', 0),
+			multiplier: rowPort('multiplier', 1),
 		}
 	}
 	async execute(
