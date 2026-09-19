@@ -17,29 +17,20 @@ import { buildRulesPromptSection } from './sections/rules-section'
  * @param opts.withSchema - Whether to include the JSON schema in the system prompt. Defaults to true.
  * @returns The system prompt string.
  */
-export function buildSystemPrompt(
-	prompt: AgentPrompt,
-	opts: { withSchema: boolean } = { withSchema: true }
-): string {
-	const { withSchema = true } = opts
-
+export function buildSystemPrompt(prompt: AgentPrompt, { withSchema = true } = {}): string {
 	const modePart = prompt.mode
 	if (!modePart) {
 		throw new Error('A mode part is always required.')
 	}
 
-	const { actionTypes, partTypes } = modePart
-	const flags = getSystemPromptFlags(actionTypes, partTypes)
-
+	const flags = getSystemPromptFlags(modePart.actionTypes, modePart.partTypes)
 	const lines = [buildIntroPromptSection(flags), buildRulesPromptSection(flags)]
 
 	if (withSchema) {
 		lines.push(buildSchemaPromptSection(modePart))
 	}
 
-	const result = normalizeNewlines(lines.join('\n'))
-
-	return result
+	return normalizeNewlines(lines.join('\n'))
 }
 
 function buildSchemaPromptSection(modePart: ModePart) {

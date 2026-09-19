@@ -26,26 +26,15 @@ export function convertFocusedFontSizeToTldrawFontSizeAndScale(
 	targetFontSize: number,
 	textProps?: Partial<TLTextShape['props']>
 ) {
-	const fontSizeEntries = TEXT_SIZE_STYLES.map(
-		(size) => [size, getTextShapeDisplayFontSize(editor, { ...textProps, size })] as const
-	)
-	let closestSize = fontSizeEntries[0]
-	let closestPixelSize = closestSize[1]
-	let minDifference = Math.abs(targetFontSize - closestPixelSize)
-
-	for (const [size, pixelSize] of fontSizeEntries) {
-		const difference = Math.abs(targetFontSize - pixelSize)
-		if (difference < minDifference) {
-			minDifference = difference
-			closestSize = [size, pixelSize]
-			closestPixelSize = pixelSize
+	let closest = { textSize: TEXT_SIZE_STYLES[0] as TLDefaultSizeStyle, pixelSize: Infinity }
+	for (const size of TEXT_SIZE_STYLES) {
+		const pixelSize = getTextShapeDisplayFontSize(editor, { ...textProps, size })
+		if (Math.abs(targetFontSize - pixelSize) < Math.abs(targetFontSize - closest.pixelSize)) {
+			closest = { textSize: size, pixelSize }
 		}
 	}
 
-	const textSize = closestSize[0] as TLDefaultSizeStyle
-	const scale = targetFontSize / closestPixelSize
-
-	return { textSize, scale }
+	return { textSize: closest.textSize, scale: targetFontSize / closest.pixelSize }
 }
 
 /**

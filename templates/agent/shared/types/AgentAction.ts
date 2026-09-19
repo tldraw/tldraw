@@ -42,23 +42,14 @@ import * as AllSchemas from '../schema/AgentActionSchemas'
 
 /** Type guard to check if a value is a Zod object schema with _type */
 function isActionSchema(value: unknown): value is z.ZodObject<{ _type: z.ZodLiteral<string> }> {
-	if (!(value instanceof z.ZodObject)) return false
-	const shape = (value as z.ZodObject<z.ZodRawShape>).shape
-	if (!('_type' in shape)) return false
-	const typeField = shape._type
-	return typeField instanceof z.ZodLiteral
-}
-
-/** Extract the _type literal value from a schema */
-function getSchemaType(schema: z.ZodObject<{ _type: z.ZodLiteral<string> }>): string {
-	return schema.shape._type.value
+	return value instanceof z.ZodObject && value.shape._type instanceof z.ZodLiteral
 }
 
 /** Build lookup object from all exported schemas and register them as defaults */
 const schemasByType: Record<string, AgentActionSchema> = {}
 for (const value of Object.values(AllSchemas)) {
 	if (!isActionSchema(value)) continue
-	const type = getSchemaType(value)
+	const type = value.shape._type.value
 	// Skip if a default schema is already registered for this type
 	// (handles cases where multiple schemas share the same _type, e.g., mode-specific variants)
 	if (hasDefaultActionSchema(type)) continue

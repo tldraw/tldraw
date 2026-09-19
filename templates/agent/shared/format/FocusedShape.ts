@@ -157,23 +157,10 @@ export type FocusedShapePartial = Partial<FocusedShape>
 /**
  * Extract all shape type names from the schema
  */
-export function getFocusedShapeSchemaNames() {
-	const typeNames: FocusedShape['_type'][] = []
-
-	for (const shapeSchema of FOCUSED_SHAPES) {
+export function getFocusedShapeSchemaNames(): FocusedShape['_type'][] {
+	return FOCUSED_SHAPES.flatMap((shapeSchema) => {
 		const typeField = shapeSchema.shape._type
-
-		if (typeField) {
-			// Handle ZodLiterals (like FocusedDrawShape)
-			if ('value' in typeField && typeof typeField.value === 'string') {
-				typeNames.push(typeField.value)
-			}
-			// Handle ZodEnums (like FocusedGeoShape)
-			else if ('options' in typeField && Array.isArray(typeField.options)) {
-				typeNames.push(...typeField.options)
-			}
-		}
-	}
-
-	return typeNames
+		// _type is a ZodLiteral for most shapes and a ZodEnum for geo shapes
+		return 'options' in typeField ? typeField.options : [typeField.value]
+	})
 }
