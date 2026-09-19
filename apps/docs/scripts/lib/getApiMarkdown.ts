@@ -6,6 +6,7 @@ import {
 	ApiDocumentedItem,
 	ApiEnum,
 	ApiFunction,
+	ApiIndexSignature,
 	ApiInterface,
 	ApiItem,
 	ApiItemKind,
@@ -29,7 +30,6 @@ import { MarkdownWriter, formatWithPrettier, getPath, getSlug } from './utils'
 
 interface Result {
 	markdown: string
-	keywords: string[]
 }
 
 const date = new Intl.DateTimeFormat('en-US', {
@@ -43,15 +43,20 @@ interface Member {
 	inheritedFrom: ApiItem | null
 }
 
+/**
+ * Markdown for one API item, split into the page frontmatter and the body so that items that
+ * share a page (overloads, a type and a value with the same name) can be concatenated after a
+ * single frontmatter block.
+ */
 export async function getApiMarkdown(
 	model: TldrawApiModel,
 	categoryName: string,
 	item: ApiItem,
-	j: number
+	order: number
 ) {
-	const result: Result = { markdown: '', keywords: [] }
-	const toc: Result = { markdown: '', keywords: [] }
-	const membersResult: Result = { markdown: '', keywords: [] }
+	const result: Result = { markdown: '' }
+	const toc: Result = { markdown: '' }
+	const membersResult: Result = { markdown: '' }
 
 	const isComponent = model.isComponent(item)
 	const componentProps = isComponent ? model.getReactPropsItem(item) : null
@@ -59,7 +64,7 @@ export async function getApiMarkdown(
 	const contents = collectMembersAndExtends(model, item)
 
 	if (contents.constructors.length) {
-		const constructorResult: Result = { markdown: '', keywords: [] }
+		const constructorResult: Result = { markdown: '' }
 		for (const member of contents.constructors) {
 			await addMarkdownForMember(model, constructorResult, member)
 			addHorizontalRule(constructorResult)
@@ -68,7 +73,7 @@ export async function getApiMarkdown(
 	}
 
 	if (contents.properties.length || isComponent) {
-		const propertiesResult: Result = { markdown: '', keywords: [] }
+		const propertiesResult: Result = { markdown: '' }
 		if (componentProps) addExtends(propertiesResult, item, contents.heritage)
 		for (const member of contents.properties) {
 			const slug = getSlug(member.item)
@@ -99,7 +104,7 @@ export async function getApiMarkdown(
 	}
 
 	if (contents.methods.length) {
-		const methodsResult: Result = { markdown: '', keywords: [] }
+		const methodsResult: Result = { markdown: '' }
 		addMarkdown(toc, `- [Methods](#methods)\n`)
 		addMarkdown(methodsResult, `## Methods\n\n`)
 		for (const member of contents.methods) {
@@ -111,7 +116,6 @@ export async function getApiMarkdown(
 		addMarkdown(membersResult, methodsResult.markdown)
 	}
 
-	await addFrontmatter(model, result, item, categoryName, j)
 	await addDeprecationNotice(result, item)
 
 	if (toc.markdown.length) {
@@ -131,7 +135,10 @@ export async function getApiMarkdown(
 		addMarkdown(result, membersResult.markdown)
 	}
 
-	return result
+	return {
+		frontmatter: getFrontmatter(model, item, categoryName, order),
+		markdown: result.markdown,
+	}
 }
 
 /* --------------------- Helpers -------------------- */
@@ -165,6 +172,7 @@ function collectMembersAndExtends(model: TldrawApiModel, item: ApiItem) {
 					case ApiItemKind.Variable:
 					case ApiItemKind.Property:
 					case ApiItemKind.PropertySignature:
+					case ApiItemKind.IndexSignature:
 						addMember(properties, member, inheritedFrom)
 						break
 					case ApiItemKind.Method:
@@ -254,23 +262,12 @@ async function addMarkdownForMember(
 	await addDocComment(model, result, item)
 }
 
-async function addFrontmatter(
+function getFrontmatter(
 	model: TldrawApiModel,
-	result: Result,
 	member: ApiItem,
 	categoryName: string,
 	order: number
-) {
-	let kw = ''
-
-	if (result.keywords.length) {
-		kw += `\nkeywords:`
-		for (const k of result.keywords) {
-			if (k.startsWith('_')) continue
-			kw += `\n  - ${k.trim().split('\n')[0]}`
-		}
-	}
-
+): string {
 	const frontmatter: Record<string, string> = {
 		title: member.displayName,
 		status: 'published',
@@ -285,10 +282,9 @@ async function addFrontmatter(
 		frontmatter.sourceUrl = member.sourceLocation.fileUrl
 	}
 
-	result.markdown += [
+	return [
 		'---',
 		...Object.entries(frontmatter).map(([key, value]) => `${key}: ${value}`),
-		kw,
 		'---',
 		'',
 	].join('\n')
@@ -359,6 +355,7 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 			member instanceof ApiTypeAlias ||
 			member instanceof ApiProperty ||
 			member instanceof ApiPropertySignature ||
+			member instanceof ApiIndexSignature ||
 			member instanceof ApiClass ||
 			member instanceof ApiFunction ||
 			member instanceof ApiInterface ||
@@ -441,6 +438,7 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 		member instanceof ApiTypeAlias ||
 		member instanceof ApiProperty ||
 		member instanceof ApiPropertySignature ||
+		member instanceof ApiIndexSignature ||
 		member instanceof ApiClass ||
 		member instanceof ApiInterface ||
 		member instanceof ApiEnum ||
