@@ -103,9 +103,9 @@ const extensions = getTipTapDefaultExtensions({ heading: false })
 
 ### Task lists
 
-Typing `[ ] ` or `[x] ` at the start of a line turns it into a task list, as does the checklist button in the rich text toolbar (cmd/ctrl+shift+9). Tab and Shift+Tab nest and un-nest items.
+Typing `[ ] ` or `[x] ` at the start of a line turns it into a task list, as do the markdown spellings `[] `, `-[ ] ` and `- [ ] ` (or `x` in place of the space), and the checklist button in the rich text toolbar (cmd/ctrl+shift+9). Tab and Shift+Tab nest and un-nest items.
 
-Checkboxes are only clickable while the shape is being edited. Outside of edit mode the text is static HTML, so a click there would tick the box without ever reaching the shape.
+With the select tool, clicking a checkbox ticks it in one click, whether or not the shape is being edited. Outside of edit mode the click toggles the item on the shape directly and doesn't select the shape or start a drag; hold Shift, Alt or cmd/ctrl to select it instead.
 
 `TaskList` and `TaskItem` aren't part of StarterKit, so unlike headings or lists you turn them off by filtering them out of the extension list rather than through StarterKit options:
 

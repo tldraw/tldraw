@@ -856,7 +856,8 @@ input,
 	/**
 	 * Outside of edit mode the rich text is static HTML with no ProseMirror node view behind it, so
 	 * a checkbox click would toggle the input without ever reaching the shape and then snap back on
-	 * the next render. Only the editing copy takes clicks; elsewhere they fall through to the canvas.
+	 * the next render. Only the editing copy takes clicks; elsewhere RichTextLabel hit-tests the
+	 * label's rect itself and writes the toggle to the shape.
 	 */
 	pointer-events: none;
 }

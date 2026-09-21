@@ -5,6 +5,7 @@ import {
 	generateHTML,
 	generateJSON,
 	generateText,
+	InputRule,
 	JSONContent,
 } from '@tiptap/core'
 import { Code } from '@tiptap/extension-code'
@@ -78,6 +79,38 @@ export const TaskItemToggleExtension = Extension.create({
 	},
 })
 
+/**
+ * TipTap's TaskItem, with a start-of-line shortcut that also takes the markdown spellings: `[ ] `,
+ * `[] ` and `[x] `, each optionally led by `-` as in `-[ ] ` or `- [x] `.
+ *
+ * `- ` makes a bullet list on its own before the brackets are typed, so `- [ ] ` arrives here inside
+ * a list item. That item is lifted out of its list first; otherwise the task list would nest inside
+ * the bullet, and the item would show both a bullet and a checkbox.
+ */
+const DefaultTaskItem = TaskItem.extend({
+	addInputRules() {
+		return [
+			new InputRule({
+				find: /^\s*-?\s?\[([ xX])?\]\s$/,
+				handler: ({ state, range, match, chain }) => {
+					const $from = state.doc.resolve(range.from)
+					// Inside a task item already: TipTap's rule would nest a second checkbox here.
+					for (let depth = $from.depth; depth > 0; depth--) {
+						if ($from.node(depth).type.name === this.name) return
+					}
+					const isInListItem = $from.depth > 1 && $from.node(-1).type.name === 'listItem'
+					const commands = chain().deleteRange(range)
+					if (isInListItem) commands.liftListItem('listItem')
+					commands
+						.toggleTaskList()
+						.updateAttributes(this.name, { checked: match[1]?.toLowerCase() === 'x' })
+						.run()
+				},
+			}),
+		]
+	},
+})
+
 // We change the default Code to override what's in the StarterKit.
 // It allows for other attributes/extensions.
 // @ts-ignore this is fine.
@@ -118,7 +151,7 @@ export function getTipTapDefaultExtensions(
 		}),
 		Highlight,
 		TaskList,
-		TaskItem.configure({ nested: true }),
+		DefaultTaskItem.configure({ nested: true }),
 		TaskItemToggleExtension,
 		KeyboardShiftEnterTweakExtension,
 
@@ -239,6 +272,23 @@ export function isEditingRichTextTaskItem(editor: Editor) {
 	return textEditor.extensionManager.extensions.some(
 		(extension) => extension.name === TaskItemToggleExtension.name
 	)
+}
+
+/**
+ * Flips the `index`th task item, counting in document order, which is also the order the rendered
+ * checkboxes appear in the DOM. Returns the rich text unchanged if there's no such item.
+ *
+ * @internal
+ */
+export function toggleTaskItemInRichText(richText: TLRichText, index: number): TLRichText {
+	let seen = 0
+	const visit = (node: JSONContent): JSONContent => {
+		if (node.type === 'taskItem' && seen++ === index) {
+			node = { ...node, attrs: { ...node.attrs, checked: !node.attrs?.checked } }
+		}
+		return node.content ? { ...node, content: node.content.map(visit) } : node
+	}
+	return visit(richText as JSONContent) as TLRichText
 }
 
 /**

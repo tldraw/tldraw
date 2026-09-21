@@ -188,6 +188,43 @@ test.describe('Rich text behaviour', () => {
 		expect(await checked()).toBe(false)
 	})
 
+	test('clicking a checkbox outside edit mode ticks it in one click', async ({
+		page,
+		isMobile,
+	}) => {
+		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
+		if (isMobile) return
+
+		await page.keyboard.type('- [ ] a task')
+		await page.keyboard.press('Escape')
+		await page.evaluate(() => editor.selectNone())
+		await sleep(150)
+
+		const checked = () =>
+			page.evaluate(
+				() =>
+					(editor.getCurrentPageShapes()[0].props as any).richText.content[0].content[0].attrs
+						.checked
+			)
+		expect(await checked()).toBe(false)
+
+		// The static label doesn't take pointer events, so this is a click at its position rather
+		// than on the element.
+		const label = page.locator('.tl-rich-text ul[data-type="taskList"] > li > label').first()
+		const box = (await label.boundingBox())!
+		await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+		await sleep(150)
+
+		expect(await checked()).toBe(true)
+		// The click belongs to the checkbox alone: no selecting, no editing.
+		expect(await page.evaluate(() => editor.getSelectedShapeIds())).toEqual([])
+		expect(await page.evaluate(() => editor.getEditingShapeId())).toBe(null)
+
+		await page.keyboard.press('ControlOrMeta+z')
+		await sleep(150)
+		expect(await checked()).toBe(false)
+	})
+
 	test('keeps text visible when ProseMirror hides the selection', async ({ page, isMobile }) => {
 		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
 		if (isMobile) return

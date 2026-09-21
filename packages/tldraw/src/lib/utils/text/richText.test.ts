@@ -7,6 +7,7 @@ import {
 	renderHtmlFromRichTextWithExtensions,
 	TaskItemToggleExtension,
 	tipTapDefaultExtensions,
+	toggleTaskItemInRichText,
 } from './richText'
 
 const render = (content: TLRichText['content']) =>
@@ -286,5 +287,104 @@ describe('TaskItemToggleExtension', () => {
 			['child', false],
 			['sibling', false],
 		])
+	})
+})
+
+describe('task item shortcut', () => {
+	function typeText(content: string, text: string) {
+		const textEditor = new TextEditor({
+			extensions: tipTapDefaultExtensions,
+			enableCoreExtensions: { textDirection: false },
+			content,
+		})
+		try {
+			textEditor.commands.focus('end')
+			for (const char of text) {
+				const { from, to } = textEditor.state.selection
+				const insert = () => textEditor.state.tr.insertText(char, from, to)
+				const handled = textEditor.view.someProp('handleTextInput', (handler) =>
+					handler(textEditor.view, from, to, char, insert)
+				)
+				if (!handled) textEditor.view.dispatch(insert())
+			}
+			return textEditor.getHTML()
+		} finally {
+			textEditor.destroy()
+		}
+	}
+
+	const taskList = (...items: [checked: boolean, text: string][]) =>
+		'<ul dir="auto" data-type="taskList">' +
+		items
+			.map(
+				([checked, text]) =>
+					`<li dir="auto" data-checked="${checked}" data-type="taskItem">` +
+					`<label><input type="checkbox"${checked ? ' checked="checked"' : ''}><span></span></label>` +
+					`<div><p dir="auto">${text}</p></div></li>`
+			)
+			.join('') +
+		'</ul>'
+
+	it.each(['[ ] a', '[] a', '-[ ] a', '-[] a', '- [ ] a', '- [] a'])(
+		'turns `%s` into an unchecked task',
+		(typed) => {
+			expect(typeText('<p></p>', typed)).toBe(taskList([false, 'a']))
+		}
+	)
+
+	it.each(['[x] a', '[X] a', '-[x] a', '- [x] a'])('turns `%s` into a checked task', (typed) => {
+		expect(typeText('<p></p>', typed)).toBe(taskList([true, 'a']))
+	})
+
+	it('only fires at the start of a line', () => {
+		expect(typeText('<p></p>', 'b [ ] a')).toBe('<p dir="auto">b [ ] a</p>')
+	})
+
+	it('joins the task list above', () => {
+		expect(typeText(taskList([true, 'a']) + '<p></p>', '[ ] b')).toBe(
+			taskList([true, 'a'], [false, 'b'])
+		)
+	})
+
+	it('lifts only the bulleted item it fires in out of its list', () => {
+		expect(typeText('<ul><li><p>a</p></li></ul><p></p>', '- [ ] b')).toBe(
+			'<ul dir="auto"><li dir="auto"><p dir="auto">a</p></li></ul>' + taskList([false, 'b'])
+		)
+	})
+
+	it('leaves the brackets as typed inside a task item', () => {
+		expect(typeText(taskList([false, '']), '[ ] a')).toBe(taskList([false, '[ ] a']))
+	})
+})
+
+describe('toggleTaskItemInRichText', () => {
+	const task = (text: string, checked: boolean, nested?: JSONContent): JSONContent => ({
+		type: 'taskItem',
+		attrs: { checked },
+		content: [
+			{ type: 'paragraph', content: [{ type: 'text', text }] },
+			...(nested ? [{ type: 'taskList', content: [nested] }] : []),
+		],
+	})
+	const doc = (parent: boolean, child: boolean, sibling: boolean) =>
+		({
+			type: 'doc',
+			content: [
+				{
+					type: 'taskList',
+					content: [task('parent', parent, task('child', child)), task('sibling', sibling)],
+				},
+			],
+		}) as TLRichText
+
+	it('counts items in document order, a parent before its children', () => {
+		// The same order the rendered checkboxes come in, which is how a click finds its item.
+		expect(toggleTaskItemInRichText(doc(false, false, false), 0)).toEqual(doc(true, false, false))
+		expect(toggleTaskItemInRichText(doc(false, false, false), 1)).toEqual(doc(false, true, false))
+		expect(toggleTaskItemInRichText(doc(false, false, true), 2)).toEqual(doc(false, false, false))
+	})
+
+	it('leaves the rich text alone for an index past the last item', () => {
+		expect(toggleTaskItemInRichText(doc(false, false, false), 3)).toEqual(doc(false, false, false))
 	})
 })
