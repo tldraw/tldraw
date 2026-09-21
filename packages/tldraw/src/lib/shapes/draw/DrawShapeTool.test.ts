@@ -187,3 +187,42 @@ describe('Close threshold with zoom', () => {
 		expect((shape as any).props.isClosed).toBeUndefined()
 	})
 })
+
+describe('Line length with straight segments', () => {
+	// size m stroke width is 3.5, so a stroke needs > 14 page units of length to close
+
+	it('Counts a dragged straight segment once, not once per pointer move', () => {
+		const shift = { shiftKey: true }
+		editor.setCurrentTool('draw')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(102, 100)
+		editor.keyDown('Shift')
+		for (let x = 103; x <= 120; x++) editor.pointerMove(x, 100, shift)
+		// 2 free + 18 straight
+		expect(getDrawingState().currentLineLength).toBeCloseTo(20)
+
+		// drag the straight segment back onto the start: 2 free + 2 straight
+		for (let x = 119; x >= 100; x--) editor.pointerMove(x, 100, shift)
+		expect(getDrawingState().currentLineLength).toBeCloseTo(4)
+		editor.pointerUp(100, 100, shift)
+
+		expect((editor.getCurrentPageShapes()[0] as TLDrawShape).props.isClosed).toBe(false)
+	})
+
+	it('Counts a dragged shift-click segment once, not once per pointer move', () => {
+		const shift = { shiftKey: true }
+		editor.setCurrentTool('draw')
+		editor.pointerDown(100, 100).pointerUp(100, 100)
+		editor.pointerDown(105, 100, shift)
+		for (let x = 106; x <= 120; x++) editor.pointerMove(x, 100, shift)
+		for (let x = 119; x >= 105; x--) editor.pointerMove(x, 100, shift)
+		editor.pointerUp(105, 100, shift)
+		expect(getDrawingState().currentLineLength).toBeCloseTo(5)
+
+		// shift-click back onto the start
+		editor.pointerDown(100, 100, shift).pointerUp(100, 100, shift)
+		expect(getDrawingState().currentLineLength).toBeCloseTo(10)
+
+		expect((editor.getCurrentPageShapes()[0] as TLDrawShape).props.isClosed).toBe(false)
+	})
+})
