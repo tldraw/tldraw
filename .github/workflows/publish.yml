@@ -293,9 +293,37 @@ jobs:
 
   deploy_templates:
     name: Deploys the template demos with the new SDK version
-    uses: tldraw/tldraw/.github/workflows/deploy-templates.yml@main
     if: needs.publish.outputs.mode == 'new' || ((needs.publish.outputs.mode == 'patch' || needs.publish.outputs.mode == 'manual') && needs.publish.outputs.is_latest_version == 'true')
-    secrets:
-      TEMPLATES_TLDRAW_LICENSE_KEY: ${{ secrets.TEMPLATES_TLDRAW_LICENSE_KEY }}
-      DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
     needs: publish
+    # CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID are secrets on this environment rather than on
+    # the repository, and a job has to select the environment to see them. Calling deploy-templates.yml
+    # as a reusable workflow doesn't do it: a called workflow only ever sees the secrets its caller
+    # hands it, so the v5.4.0 release reached the deploy with both empty (#10636) even though the
+    # called job selected deploy-production itself. The deploy runs here as a job of its own instead,
+    # sharing its steps with deploy-templates.yml through the composite action.
+    environment: deploy-production
+    timeout-minutes: 60
+    runs-on: ubuntu-latest-16-cores-arm-open
+    # same group as deploy-templates.yml: a release deploy and a template-change deploy can otherwise
+    # race each other onto the same custom domains, and the loser silently wins.
+    concurrency:
+      group: deploy-templates
+      cancel-in-progress: false
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/deploy-templates
+        with:
+          license-key: ${{ secrets.TEMPLATES_TLDRAW_LICENSE_KEY }}
+          cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Notify Discord on failure
+        if: failure()
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}

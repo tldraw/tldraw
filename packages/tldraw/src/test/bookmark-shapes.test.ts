@@ -3,6 +3,7 @@ import { vi } from 'vitest'
 import { defaultHandleExternalUrlAsset } from '../lib/defaultExternalContentHandlers'
 import {
 	createBookmarkFromUrl,
+	getBookmarkHeight,
 	getBookmarkShapeHeight,
 	getHumanReadableAddress,
 	getResolvedBookmarkAssetId,
@@ -481,6 +482,82 @@ describe('createBookmarkFromUrl', () => {
 		// resolved short bookmark, not the 320px placeholder.
 		expect(getBookmarkShapeHeight(editor, redone)).toBe(shortHeight)
 		expect(editor.getShapeGeometry(redone.id).bounds.height).toBe(shortHeight)
+	})
+})
+
+describe('changing a bookmark url', () => {
+	function createBookmarkAsset(url: string, description: string) {
+		const id = AssetRecordType.createId(getHashForString(url))
+		editor.createAssets([
+			{
+				id,
+				typeName: 'asset',
+				type: 'bookmark',
+				props: { src: url, title: url, description, image: '', favicon: '' },
+				meta: {},
+			},
+		])
+		return id
+	}
+
+	it('switches to the existing asset for the new url in the same update', () => {
+		const urlA = 'https://a.example.com'
+		const urlB = 'https://b.example.com'
+		const assetA = createBookmarkAsset(urlA, 'short')
+		const assetB = createBookmarkAsset(urlB, 'a much longer description for the second site')
+		const id = createShapeId()
+		editor.createShape<TLBookmarkShape>({
+			id,
+			type: 'bookmark',
+			props: { url: urlA, assetId: assetA },
+		})
+		const fetchSpy = vi.spyOn(editor, 'getAssetForExternalContent')
+
+		editor.updateShape<TLBookmarkShape>({ id, type: 'bookmark', props: { url: urlB } })
+
+		expect(editor.getShape<TLBookmarkShape>(id)!.props).toMatchObject({
+			url: urlB,
+			assetId: assetB,
+			h: getBookmarkHeight(editor, assetB),
+		})
+		expect(fetchSpy).not.toHaveBeenCalled()
+	})
+
+	it('drops the old asset while a new one is fetched for an unknown url', async () => {
+		vi.useFakeTimers()
+		try {
+			const urlA = 'https://a.example.com'
+			const urlC = 'https://c.example.com'
+			const assetA = createBookmarkAsset(urlA, 'short')
+			const id = createShapeId()
+			editor.createShape<TLBookmarkShape>({
+				id,
+				type: 'bookmark',
+				props: { url: urlA, assetId: assetA },
+			})
+			const assetC = AssetRecordType.createId(getHashForString(urlC))
+			const fetchSpy = vi.spyOn(editor, 'getAssetForExternalContent').mockResolvedValue({
+				id: assetC,
+				typeName: 'asset',
+				type: 'bookmark',
+				props: { src: urlC, title: urlC, description: '', image: '', favicon: '' },
+				meta: {},
+			})
+
+			editor.updateShape<TLBookmarkShape>({ id, type: 'bookmark', props: { url: urlC } })
+
+			expect(editor.getShape<TLBookmarkShape>(id)!.props).toMatchObject({
+				url: urlC,
+				assetId: null,
+				h: getBookmarkHeight(editor, null),
+			})
+
+			await vi.advanceTimersByTimeAsync(600)
+			expect(fetchSpy).toHaveBeenCalledWith({ type: 'url', url: urlC })
+			expect(editor.getShape<TLBookmarkShape>(id)!.props.assetId).toBe(assetC)
+		} finally {
+			vi.useRealTimers()
+		}
 	})
 })
 

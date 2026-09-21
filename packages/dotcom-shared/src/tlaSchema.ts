@@ -55,8 +55,6 @@ export const file_state = table('file_state')
 		lastEditAt: number().optional(),
 		lastSessionState: string().optional(),
 		lastVisitAt: number().optional(),
-		isFileOwner: boolean().optional(),
-		isPinned: boolean().optional(),
 	})
 	.primaryKey('userId', 'fileId')
 
@@ -82,10 +80,8 @@ export const file = table('file')
 	.columns({
 		id: string(),
 		name: string(),
-		ownerId: string().optional(),
 		owningGroupId: string().optional(),
 		ownerName: string(),
-		ownerAvatar: string(),
 		thumbnail: string(),
 		shared: boolean(),
 		sharedLinkType: string(),
@@ -229,12 +225,7 @@ export const comment_reaction = table('comment_reaction')
 	})
 	.primaryKey('id')
 
-const fileRelationships = relationships(file, ({ one, many }) => ({
-	owner: one({
-		sourceField: ['ownerId'],
-		destField: ['id'],
-		destSchema: user,
-	}),
+const fileRelationships = relationships(file, ({ many }) => ({
 	states: many({
 		sourceField: ['id'],
 		destField: ['fileId'],
@@ -350,10 +341,14 @@ const commentRelationships = relationships(comment, ({ one, many }) => ({
 		destField: ['commentId'],
 		destSchema: comment_mention,
 	}),
-	// every reaction to this comment, one row per reacting user
+	// every reaction to this comment, one row per reacting user. Joined on fileId too: a reaction's
+	// id is derived from (comment, user, emoji), so unlike a comment or a thread it carries no proof
+	// that its client-supplied commentId belongs to the file the reaction was written in. Matching
+	// fileId keeps a reaction written elsewhere off this comment, whatever its commentId claims —
+	// the reaction's own fileId is stamped by the owning room's drain, not by the client.
 	reactions: many({
-		sourceField: ['id'],
-		destField: ['commentId'],
+		sourceField: ['id', 'fileId'],
+		destField: ['commentId', 'fileId'],
 		destSchema: comment_reaction,
 	}),
 }))
@@ -421,17 +416,15 @@ export const immutableColumns = {
 	user: new Set<keyof TlaUser>(['email', 'createdAt', 'updatedAt', 'avatar']),
 	file: new Set<keyof TlaFile>([
 		'ownerName',
-		'ownerAvatar',
 		'owningGroupId',
 		'publishedSlug',
-		'ownerId',
 		'thumbnail',
 		'isDeleted',
 		'createSource',
 		'updatedAt',
 		'createdAt',
 	]),
-	file_state: new Set<keyof TlaFileState>(['firstVisitAt', 'isFileOwner']),
+	file_state: new Set<keyof TlaFileState>(['firstVisitAt']),
 } as const
 
 export function isColumnMutable(tableName: keyof typeof immutableColumns, column: string) {
@@ -454,6 +447,8 @@ export interface TlaEffectOutbox {
 	attempts: number
 	createdAt: Date
 	nextRetryAt: Date | null
+	/** Latest failed attempt's error text; survives an admin retry. */
+	lastError: string | null
 }
 
 /**

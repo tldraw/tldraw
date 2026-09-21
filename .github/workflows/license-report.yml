@@ -1,0 +1,52 @@
+name: Update license report
+
+# Skipped on PRs from forks: the push below needs write access to the head branch.
+
+permissions:
+  contents: write
+
+on:
+  pull_request:
+    paths:
+      - '**/package.json'
+      - 'yarn.lock'
+      - 'internal/scripts/license-report.ts'
+      - '.github/workflows/license-report.yml'
+
+env:
+  CI: 1
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  update:
+    name: 'Update license report'
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # `pull_request` checks out a detached merge commit, which we can't push back to.
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - uses: ./.github/actions/setup
+
+      - name: Configure Git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Generate license report
+        run: yarn license-report --prod
+
+      - name: Commit changes
+        run: |
+          git add apps/docs/content/community/dependencies.mdx
+          git diff --cached --quiet || git commit -m 'Update license report'
+          git push

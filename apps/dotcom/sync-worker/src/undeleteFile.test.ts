@@ -6,10 +6,8 @@ function makeFile(overrides: Partial<TlaFile> = {}): TlaFile {
 	return {
 		id: 'file-1',
 		name: 'My file',
-		ownerId: 'user-1',
-		owningGroupId: undefined,
+		owningGroupId: 'group-9',
 		ownerName: '',
-		ownerAvatar: '',
 		thumbnail: '',
 		shared: true,
 		sharedLinkType: 'edit',
@@ -104,30 +102,6 @@ describe('undeleteFile', () => {
 		expect(inserts).toEqual([])
 	})
 
-	it('clears the flag and restores the owner file_state', async () => {
-		const file = makeFile()
-		const { db, updates, inserts, getTransactionCount } = makeFakeDb(file)
-		expect(await undeleteFile(db, file.id)).toEqual({
-			result: 'restored',
-			file,
-		})
-		expect(getTransactionCount()).toBe(1)
-		expect(updates).toEqual([
-			{ table: 'file', values: { isDeleted: false, updatedAt: expect.any(Number) } },
-		])
-		expect(inserts).toEqual([
-			{
-				table: 'file_state',
-				values: {
-					userId: 'user-1',
-					fileId: 'file-1',
-					firstVisitAt: expect.any(Number),
-					isFileOwner: true,
-				},
-			},
-		])
-	})
-
 	it('bumps lastPublished when restoring a published file, to trigger a republish', async () => {
 		const file = makeFile({ published: true, lastPublished: 123 })
 		const { db, updates } = makeFakeDb(file)
@@ -146,7 +120,7 @@ describe('undeleteFile', () => {
 	})
 
 	it('restores the group_file link for a group-owned file', async () => {
-		const file = makeFile({ ownerId: undefined, owningGroupId: 'group-9' })
+		const file = makeFile()
 		const { db, inserts } = makeFakeDb(file, { groupRow: { isDeleted: false } })
 		const result = await undeleteFile(db, file.id)
 		expect(result.result).toBe('restored')
@@ -164,7 +138,7 @@ describe('undeleteFile', () => {
 	})
 
 	it('returns group_deleted and writes nothing when the owning group is soft-deleted', async () => {
-		const file = makeFile({ ownerId: undefined, owningGroupId: 'group-9' })
+		const file = makeFile()
 		const { db, updates, inserts } = makeFakeDb(file, {
 			groupRow: { isDeleted: true },
 		})
@@ -174,7 +148,7 @@ describe('undeleteFile', () => {
 	})
 
 	it('returns group_deleted and writes nothing when the owning group row is missing', async () => {
-		const file = makeFile({ ownerId: undefined, owningGroupId: 'group-9' })
+		const file = makeFile()
 		const { db, updates, inserts } = makeFakeDb(file, {
 			groupRow: 'none',
 		})

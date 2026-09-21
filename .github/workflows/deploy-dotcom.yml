@@ -162,7 +162,6 @@ jobs:
 
           ANALYTICS_API_URL: ${{ secrets.ANALYTICS_API_URL }}
           ANALYTICS_API_TOKEN: ${{ secrets.ANALYTICS_API_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ASSET_UPLOAD_SENTRY_DSN: ${{ secrets.ASSET_UPLOAD_SENTRY_DSN }}
           BOTCOM_POSTGRES_CONNECTION_STRING: ${{ env.POSTGRES_URL_NON_POOLING || secrets.BOTCOM_POSTGRES_CONNECTION_STRING }}
           BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: ${{ env.POSTGRES_URL || secrets.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING }}
@@ -201,3 +200,12 @@ jobs:
           ZERO_R2_SECRET_ACCESS_KEY: ${{ secrets.ZERO_R2_SECRET_ACCESS_KEY }}
           ZERO_OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.ZERO_OTEL_EXPORTER_OTLP_ENDPOINT }}
           ZERO_OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.ZERO_OTEL_EXPORTER_OTLP_HEADERS }}
+
+      # The deploy script posts its own "Deploy failed" message, but a job timeout
+      # kills it without running that handler, so cover the cancelled case here.
+      - name: Notify Discord on cancelled deploy
+        if: cancelled() && github.event_name == 'push'
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+          status: was cancelled (job timeout?)

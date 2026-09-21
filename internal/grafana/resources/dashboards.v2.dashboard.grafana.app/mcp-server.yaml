@@ -361,7 +361,7 @@ spec:
             transformations: []
         description: The raw clientInfo.name each caller reported, beside the User-Agent family
           it arrived with. This is where a client that currently lands in `other` gets identified
-          — add it to MCP_CLIENT_FAMILIES in sharedBoardScreenshotMcp.ts and it gets its own
+          — add it to MCP_CLIENT_FAMILIES in mcpServer.ts and it gets its own
           series in the panels above.
         id: 12
         links: []

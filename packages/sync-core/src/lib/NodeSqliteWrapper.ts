@@ -89,11 +89,14 @@ export class NodeSqliteWrapper implements TLSyncSqliteWrapper {
 		let result: T
 		try {
 			result = callback()
+			// COMMIT itself can fail (SQLITE_BUSY from another connection, I/O errors); without a
+			// ROLLBACK the connection would stay inside the transaction and every later BEGIN
+			// would throw "cannot start a transaction within a transaction"
+			this.db.exec('COMMIT')
 		} catch (e) {
 			this.db.exec('ROLLBACK')
 			throw e
 		}
-		this.db.exec('COMMIT')
 		return result
 	}
 }

@@ -3,6 +3,7 @@ import {
 	ShapeUtil,
 	TLArrowShape,
 	TLFrameShape,
+	TLGeoShape,
 	createShapeId,
 	toRichText,
 } from '@tldraw/editor'
@@ -47,6 +48,13 @@ describe('TLSelectTool.Idle', () => {
 		editor.expectToBeIn('select.pointing_canvas')
 	})
 
+	it('Returns to idle when a canvas press is cancelled', () => {
+		editor.pointerDown(10, 10, { target: 'canvas' })
+		editor.expectToBeIn('select.pointing_canvas')
+		editor.cancel()
+		editor.expectToBeIn('select.idle')
+	})
+
 	it('Nudges selected shapes on arrow key down', () => {
 		const shape = editor.getShape(ids.box1)!
 		editor.select(shape.id)
@@ -55,6 +63,64 @@ describe('TLSelectTool.Idle', () => {
 		const nudgedShape = editor.getShape(shape.id)
 		expect(nudgedShape).toBeDefined()
 		expect(nudgedShape?.x).toBe(101)
+	})
+
+	it('Does not nudge selected shapes on arrow key down while spacebar panning', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.select(shape.id)
+		editor.keyDown(' ')
+		expect(editor.inputs.getIsSpacebarPanning()).toBe(true)
+		editor.keyDown('ArrowRight')
+		editor.keyRepeat('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp(' ')
+		expect(editor.getShape(shape.id)).toMatchObject({ x: 100, y: 100 })
+	})
+
+	it('Does not nudge selected shapes on arrow key down while alt is held', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.select(shape.id)
+		editor.keyDown('Alt')
+		editor.keyDown('ArrowRight')
+		editor.keyRepeat('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp('Alt')
+		expect(editor.getShape(shape.id)).toMatchObject({ x: 100, y: 100 })
+	})
+
+	it('Makes a shape double click change its own undo step', () => {
+		const shape = editor.getShape<TLGeoShape>(ids.box1)!
+		expect(shape.props.geo).toBe('rectangle')
+
+		// Alt+double-click swaps a rectangle to a check-box via GeoShapeUtil.onDoubleClick
+		editor.keyDown('Alt')
+		editor.doubleClick(150, 150, { target: 'shape', shape }, { altKey: true })
+		editor.keyUp('Alt')
+
+		expect(editor.getShape<TLGeoShape>(ids.box1)!.props.geo).toBe('check-box')
+		expect(editor.getOnlySelectedShapeId()).toBe(ids.box1)
+
+		editor.undo()
+
+		expect(editor.getShape<TLGeoShape>(ids.box1)!.props.geo).toBe('rectangle')
+		expect(editor.getOnlySelectedShapeId()).toBe(ids.box1)
+	})
+
+	it('Nudges by the large step with either Shift key held', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.select(shape.id)
+
+		editor.keyDown('Shift', { code: 'ShiftLeft' })
+		editor.keyDown('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp('Shift', { code: 'ShiftLeft' })
+		expect(editor.getShape(shape.id)?.x).toBe(110)
+
+		editor.keyDown('Shift', { code: 'ShiftRight' })
+		editor.keyDown('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp('Shift', { code: 'ShiftRight' })
+		expect(editor.getShape(shape.id)?.x).toBe(120)
 	})
 })
 
@@ -157,6 +223,230 @@ describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () =>
 
 		expect(() => editor.pointerUp(shape.x + 10, shape.y + 10)).not.toThrow()
 		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not crash when dragging after a labelled arrow is deleted', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: { richText: toRichText('label'), start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.pointerDown(200, 100, { target: 'shape', shape })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.arrow1])
+
+		expect(() => editor.pointerMove(220, 120)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('returns to idle without reselecting a deleted shape on pointer move', () => {
+		editor.select(ids.box1)
+		const shape = editor.getShape(ids.box1)!
+		editor.pointerDown(150, 150, { target: 'shape', shape })
+
+		editor.deleteShapes([ids.box1])
+
+		editor.pointerMove(200, 200)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not reselect a deleted shape when a long press starts translating', () => {
+		editor.select(ids.box1)
+		const shape = editor.getShape(ids.box1)!
+		editor.pointerDown(150, 150, { target: 'shape', shape })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.box1])
+		editor.expectToBeIn('select.pointing_shape')
+
+		vi.advanceTimersByTime(editor.options.longPressDurationMs + 100)
+		editor.forceTick()
+
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.expectToBeIn('select.idle')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('still moves the label on ctrl-drag over a live arrow label', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: { richText: toRichText('label'), start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.pointerDown(200, 100, { target: 'shape', shape, accelKey: true })
+		editor.pointerMove(220, 120, { accelKey: true })
+		editor.expectToBeIn('select.pointing_arrow_label')
+	})
+
+	it('still brushes on ctrl-drag when the pointed shape is deleted', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.pointerDown(150, 150, { target: 'shape', shape, accelKey: true })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.box1])
+
+		editor.pointerMove(200, 200, { accelKey: true })
+		editor.expectToBeIn('select.brushing')
+	})
+})
+
+describe('TLSelectTool.PointingHandle when the shape is deleted before dragging', () => {
+	it('returns to idle without crashing when the pointed arrow is deleted', () => {
+		editor.createShape({ id: ids.arrow1, type: 'arrow', x: 100, y: 100 })
+		const shape = editor.getShape(ids.arrow1)!
+		const handle = editor.getShapeHandles(shape)!.find((handle) => handle.id === 'end')!
+		editor.select(shape.id).pointerDown(shape.x + handle.x, shape.y + handle.y, {
+			target: 'handle',
+			shape,
+			handle,
+		})
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.deleteShapes([shape.id])
+		editor.expectToBeIn('select.pointing_handle')
+
+		expect(() => editor.pointerMove(shape.x + handle.x + 50, shape.y + handle.y + 50)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getInstanceState().cursor.type).toBe('default')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not clone a deleted note when its clone handle is dragged', () => {
+		const noteId = createShapeId('note1')
+		editor.createShapes([{ id: noteId, type: 'note', x: 100, y: 100 }])
+		editor.select(noteId)
+		const shape = editor.getShape(noteId)!
+		const handle = editor.getShapeHandles(shape)!.find((h) => h.id === 'right')!
+		editor.pointerDown(300, 200, { target: 'handle', shape, handle })
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.deleteShapes([noteId])
+
+		editor.pointerMove(350, 200)
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'note')).toHaveLength(0)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
+	it('does not clone a deleted note when its clone handle is clicked', () => {
+		const noteId = createShapeId('note1')
+		editor.createShapes([{ id: noteId, type: 'note', x: 100, y: 100 }])
+		editor.select(noteId)
+		const shape = editor.getShape(noteId)!
+		const handle = editor.getShapeHandles(shape)!.find((h) => h.id === 'right')!
+		editor.pointerDown(300, 200, { target: 'handle', shape, handle })
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.deleteShapes([noteId])
+
+		editor.pointerUp(300, 200)
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'note')).toHaveLength(0)
+		expect(editor.getEditingShapeId()).toBeNull()
+	})
+})
+
+describe('TLSelectTool.PointingShape with selectLockedShapes', () => {
+	let editor: TestEditor
+
+	beforeEach(() => {
+		editor = new TestEditor({ options: { selectLockedShapes: true } })
+	})
+
+	it('keeps a selected locked shape selected when clicking it over another shape', () => {
+		const behind = createShapeId('behind')
+		const locked = createShapeId('locked')
+		editor.createShapes([
+			{ id: behind, type: 'geo', x: 0, y: 0, props: { w: 300, h: 300, fill: 'solid' } },
+			{
+				id: locked,
+				type: 'geo',
+				x: 100,
+				y: 100,
+				props: { w: 100, h: 100, fill: 'solid' },
+				isLocked: true,
+			},
+		])
+		editor.select(locked)
+		editor.pointerDown(150, 150).pointerUp(150, 150)
+		expect(editor.getSelectedShapeIds()).toEqual([locked])
+	})
+})
+
+describe('TLSelectTool.PointingShape with a rotated multi-selection', () => {
+	const a = createShapeId('a')
+	const b = createShapeId('b')
+	const c = createShapeId('c')
+
+	// Two boxes rotated 90 degrees as a group end up stacked, with the selection box standing
+	// on end at page x 350..450, y 150..550.
+	function setupRotatedPair() {
+		editor.deleteShapes([ids.box1]).createShapes([
+			{ id: a, type: 'geo', x: 200, y: 300, props: { w: 100, h: 100 } },
+			{ id: b, type: 'geo', x: 500, y: 300, props: { w: 100, h: 100 } },
+		])
+		editor.select(a, b)
+		editor.rotateShapesBy([a, b], Math.PI / 2)
+	}
+
+	function dragC() {
+		const aBefore = editor.getShapePageBounds(a)!.x
+		const cBefore = editor.getShapePageBounds(c)!.x
+		const p = editor.getShapePageBounds(c)!.center
+		editor
+			.pointerMove(p.x, p.y)
+			.pointerDown()
+			.pointerMove(p.x + 100, p.y)
+			.pointerUp()
+		return {
+			selection: [...editor.getSelectedShapeIds()],
+			pairMovedBy: Math.round(editor.getShapePageBounds(a)!.x - aBefore),
+			cMovedBy: Math.round(editor.getShapePageBounds(c)!.x - cBefore),
+		}
+	}
+
+	it('drags the selection when the pointed shape is inside the rotated bounds', () => {
+		setupRotatedPair()
+		// in the gap between a and b, inside the selection box
+		editor.createShape({
+			id: c,
+			type: 'geo',
+			x: 375,
+			y: 325,
+			props: { w: 50, h: 50, fill: 'solid' },
+		})
+		expect(dragC()).toEqual({ selection: [a, b], pairMovedBy: 100, cMovedBy: 0 })
+	})
+
+	it('drags the pointed shape when it is outside the rotated bounds', () => {
+		setupRotatedPair()
+		// getSelectionRotatedPageBounds returns the selection box with its rotation not yet
+		// applied, which for a 90 degree rotation does not overlap the box above. A shape here
+		// is outside the selection, however much the old containsPoint check disagreed.
+		const unrotated = editor.getSelectionRotatedPageBounds()!
+		editor.createShape({
+			id: c,
+			type: 'geo',
+			x: unrotated.center.x - 30,
+			y: unrotated.center.y - 30,
+			props: { w: 60, h: 60, fill: 'solid' },
+		})
+		expect(dragC()).toEqual({ selection: [c], pairMovedBy: 0, cMovedBy: 100 })
 	})
 })
 
@@ -501,6 +791,91 @@ describe('PointingLabel', () => {
 		editor.expectToBeIn('select.idle')
 	})
 
+	it('Keeps the dragged label position on complete', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
+		])
+		const shape = editor.getShape<TLArrowShape>(ids.arrow1)!
+		const initialLabelPosition = shape.props.labelPosition
+
+		editor.pointerDown(150, 100, {
+			target: 'shape',
+			shape,
+		})
+		editor.pointerMove(160, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+		editor.pointerMove(190, 100)
+
+		const draggedLabelPosition = editor.getShape<TLArrowShape>(ids.arrow1)!.props.labelPosition
+		expect(draggedLabelPosition).not.toBe(initialLabelPosition)
+
+		// A menu opening or an undo keypress mid-drag completes the interaction
+		editor.complete()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape<TLArrowShape>(ids.arrow1)!.props.labelPosition).toBe(
+			draggedLabelPosition
+		)
+	})
+
+	it('returns to idle on pointer up when the arrow was deleted', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.select(shape.id)
+		editor.pointerDown(150, 100, { target: 'shape', shape })
+		editor.pointerMove(160, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+		editor.deleteShapes([ids.arrow1])
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('returns to idle on pointer up when the arrow cannot be edited', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.select(shape.id)
+		editor.updateInstanceState({ isReadonly: true })
+		editor.setCurrentTool('hand').setCurrentTool('select')
+		editor.pointerDown(150, 100, { target: 'shape', shape })
+		editor.pointerMove(160, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+
 	it('Doesnt go into pointing_arrow_label mode if not selecting the arrow shape', () => {
 		editor.createShapes([
 			{
@@ -743,6 +1118,31 @@ describe('When double clicking a selection handle that registers as a canvas eve
 		overlayEditor.doubleClick(200, 200)
 
 		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
+	})
+
+	it('Undoes an arrowhead toggled by handle double-click without undoing the selection', () => {
+		const id = createShapeId()
+		overlayEditor
+			.createShapes([
+				{
+					id,
+					type: 'arrow',
+					x: 100,
+					y: 100,
+					props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } },
+				},
+			])
+			.selectNone()
+		overlayEditor.markHistoryStoppingPoint('before selecting arrow')
+		overlayEditor.select(id)
+
+		overlayEditor.doubleClick(200, 200)
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('none')
+
+		overlayEditor.undo()
+
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
+		expect(overlayEditor.getSelectedShapeIds()).toEqual([id])
 	})
 })
 

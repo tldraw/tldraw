@@ -10,7 +10,7 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { getAuth } from './tla/getAuth'
 
-function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
+function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
 	return {
 		rum_enabled: {
 			type: 'percentage',
@@ -31,6 +31,21 @@ function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagV
 			enabled: false,
 			description:
 				'Access to the board screenshot MCP server at /api/app/mcp. Off by default: the endpoint requires auth, so an unset flag denies everyone rather than leaving it open',
+		},
+		version_chain: {
+			type: 'percentage',
+			// Non-production environments exercise the new write path by default; production waits for
+			// an explicit flip. Replaces the old VERSION_CHAIN_MODE wrangler vars.
+			percentage: env.TLDRAW_ENV === 'production' ? 0 : 100,
+			enabled: env.TLDRAW_ENV !== 'production',
+			description:
+				'Version cache entries written as segmented delta chains. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless',
+		},
+		version_chain_legacy_writes: {
+			type: 'boolean',
+			enabled: true,
+			description:
+				'While a room is on version chains, also write legacy full copies (the dual-write bake). Evaluated per ROOM by the sync worker. Only consulted for rooms the version_chain rollout covers — rooms outside it always write legacy',
 		},
 	}
 }

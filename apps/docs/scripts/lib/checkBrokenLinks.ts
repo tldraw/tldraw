@@ -136,6 +136,12 @@ function tryRedirect(urlPath: string): string | null {
 	return null
 }
 
+function anchorNotFoundReason(fragment: string, path: string, slugs: Set<string> | undefined) {
+	const reason = `anchor #${fragment} not found in ${path}`
+	const caseMismatch = slugs && [...slugs].find((s) => s.toLowerCase() === fragment.toLowerCase())
+	return caseMismatch ? `${reason} (heading ids are case-sensitive, use #${caseMismatch})` : reason
+}
+
 export async function checkBrokenLinks(): Promise<number> {
 	const db = await connect({ mode: 'readonly' })
 
@@ -176,24 +182,25 @@ export async function checkBrokenLinks(): Promise<number> {
 		if (a.path) articlePathById.set(a.id, a.path)
 	}
 
+	// Rendered heading ids keep their case (rehype-slug runs with `maintainCase: true`), so
+	// `#custom-shapes` is a dead anchor on a page whose heading id is `Custom-shapes` (#10256).
 	for (const h of headings) {
 		const articlePath = articlePathById.get(h.articleId)
 		if (!articlePath) continue
-		const loweredSlug = h.slug.toLowerCase()
 		let slugs = headingMap.get(articlePath)
 		if (!slugs) {
 			slugs = new Set()
 			headingMap.set(articlePath, slugs)
 		}
-		slugs.add(loweredSlug)
-		// Also index by lowercase path for case-insensitive lookups
+		slugs.add(h.slug)
+		// Also index by lowercase path for case-insensitive path lookups
 		const lowerPath = articlePath.toLowerCase()
 		let lowerSlugs = headingMap.get(lowerPath)
 		if (!lowerSlugs) {
 			lowerSlugs = new Set()
 			headingMap.set(lowerPath, lowerSlugs)
 		}
-		lowerSlugs.add(loweredSlug)
+		lowerSlugs.add(h.slug)
 	}
 
 	// Also build heading map for rewrite destinations
@@ -218,7 +225,7 @@ export async function checkBrokenLinks(): Promise<number> {
 			// Split path and fragment
 			const hashIdx = url.indexOf('#')
 			const urlPath = hashIdx >= 0 ? url.slice(0, hashIdx) : url
-			const fragment = hashIdx >= 0 ? url.slice(hashIdx + 1).toLowerCase() : null
+			const fragment = hashIdx >= 0 ? url.slice(hashIdx + 1) : null
 
 			// Skip paths served by an external system (marketing site etc.)
 			// — they will never appear in the docs DB but are still valid in production.
@@ -232,7 +239,7 @@ export async function checkBrokenLinks(): Promise<number> {
 						articlePath: article.path,
 						line,
 						url,
-						reason: `anchor #${fragment} not found in ${article.path}`,
+						reason: anchorNotFoundReason(fragment, article.path, slugs),
 					})
 				}
 				continue
@@ -280,7 +287,7 @@ export async function checkBrokenLinks(): Promise<number> {
 						articlePath: article.path,
 						line,
 						url,
-						reason: `anchor #${fragment} not found in ${resolvedPath}`,
+						reason: anchorNotFoundReason(fragment, resolvedPath, slugs),
 					})
 				}
 			}

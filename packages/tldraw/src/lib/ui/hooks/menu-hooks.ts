@@ -2,18 +2,10 @@ import { Editor, useEditor, useValue } from '@tldraw/editor'
 import { getArrowBindings } from '../../shapes/arrow/shared'
 
 function shapesWithUnboundArrows(editor: Editor) {
-	const selectedShapeIds = editor.getSelectedShapeIds()
-	const selectedShapes = selectedShapeIds.map((id) => {
-		return editor.getShape(id)
-	})
-
-	return selectedShapes.filter((shape) => {
-		if (!shape) return false
-		if (editor.isShapeOfType(shape, 'arrow')) {
-			const bindings = getArrowBindings(editor, shape)
-			if (bindings.start || bindings.end) return false
-		}
-		return true
+	return editor.getSelectedShapes().filter((shape) => {
+		if (!editor.isShapeOfType(shape, 'arrow')) return true
+		const bindings = getArrowBindings(editor, shape)
+		return !bindings.start && !bindings.end
 	})
 }
 
@@ -42,21 +34,12 @@ export function useAllowGroup() {
 			if (selectedShapes.length < 2) return false
 
 			for (const shape of selectedShapes) {
-				if (editor.isShapeOfType(shape, 'arrow')) {
-					const bindings = getArrowBindings(editor, shape)
-					if (bindings.start) {
-						// if the other shape is not among the selected shapes...
-						if (!selectedShapes.some((s) => s.id === bindings.start!.toId)) {
-							return false
-						}
-					}
-					if (bindings.end) {
-						// if the other shape is not among the selected shapes...
-						if (!selectedShapes.some((s) => s.id === bindings.end!.toId)) {
-							return false
-						}
-					}
-				}
+				if (!editor.isShapeOfType(shape, 'arrow')) continue
+				const { start, end } = getArrowBindings(editor, shape)
+				// if the other shape is not among the selected shapes...
+				if (start && !selectedShapes.some((s) => s.id === start.toId)) return false
+				// if the other shape is not among the selected shapes...
+				if (end && !selectedShapes.some((s) => s.id === end.toId)) return false
 			}
 			return true
 		},
@@ -80,6 +63,11 @@ export const showMenuPaste =
 	Boolean(navigator.clipboard) &&
 	Boolean(navigator.clipboard.read)
 
+function countWithinBounds(len: number, min?: number, max?: number) {
+	if (min === undefined && max === undefined) return len
+	return (min === undefined || len >= min) && (max === undefined || len <= max)
+}
+
 /**
  * Returns true if the number of LOCKED OR UNLOCKED selected shapes is at least min or at most max.
  */
@@ -87,26 +75,7 @@ export function useAnySelectedShapesCount(min?: number, max?: number) {
 	const editor = useEditor()
 	return useValue(
 		'selectedShapes',
-		() => {
-			const len = editor.getSelectedShapes().length
-			if (min === undefined) {
-				if (max === undefined) {
-					// just length
-					return len
-				} else {
-					// max but no min
-					return len <= max
-				}
-			} else {
-				if (max === undefined) {
-					// min but no max
-					return len >= min
-				} else {
-					// max and min
-					return len >= min && len <= max
-				}
-			}
-		},
+		() => countWithinBounds(editor.getSelectedShapes().length, min, max),
 		[editor, min, max]
 	)
 }
@@ -123,25 +92,9 @@ export function useUnlockedSelectedShapesCount(min?: number, max?: number) {
 			const len = editor
 				.getSelectedShapes()
 				.filter((s) => !editor.isShapeOrAncestorLocked(s)).length
-			if (min === undefined) {
-				if (max === undefined) {
-					// just length
-					return len
-				} else {
-					// max but no min
-					return len <= max
-				}
-			} else {
-				if (max === undefined) {
-					// min but no max
-					return len >= min
-				} else {
-					// max and min
-					return len >= min && len <= max
-				}
-			}
+			return countWithinBounds(len, min, max)
 		},
-		[editor]
+		[editor, min, max]
 	)
 }
 

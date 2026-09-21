@@ -1,0 +1,85 @@
+apiVersion: rules.alerting.grafana.app/v0alpha1
+kind: AlertRule
+metadata:
+  annotations:
+    grafana.app/folder: dotcom
+    grafana.com/provenance: ''
+  labels:
+    grafana.app/folder: dotcom
+    grafana.com/group: version-chain-alerts
+    grafana.com/group-index: '2'
+  name: dotcom-version-chain-write-errors
+  namespace: stacks-890472
+spec:
+  annotations:
+    description: A chain write failed non-transiently in the last hour. These have
+      already retried three times and fallen back to writing a legacy full copy,
+      so no version is lost and boards are unaffected — but the chain is unhealthy
+      and the rollout should not advance while this fires. Check the "Chain write
+      errors" panel on the Dotcom events dashboard, then Sentry for the underlying
+      exception. Expected rate is zero.
+    summary: Version chain writes are failing and falling back to legacy copies
+  execErrState: Error
+  expressions:
+    A:
+      datasourceUID: bdgu7tk03irr4e
+      model:
+        dateTimeType: DATETIME
+        editorMode: code
+        extrapolate: true
+        format: table
+        formatAs: table
+        intervalFactor: 1
+        # See the verify-failures rule: rawQuery is the boolean, and the SQL lives
+        # only in `query`, or $from reaches the plugin uninterpolated.
+        query: |-
+          SELECT count() as errors
+          FROM 'MEASURE'
+          WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+          AND blob1 = 'version_chain_error'
+          AND blob2 = 'production-tldraw-multiplayer'
+        rawQuery: true
+        refId: A
+        round: 0s
+        skip_comments: true
+        step: ''
+      relativeTimeRange:
+        from: 1h0m0s
+        to: 0s
+    C:
+      model:
+        conditions:
+          - evaluator:
+              params:
+                - 0
+              type: gt
+            operator:
+              type: and
+            query:
+              params:
+                - C
+            reducer:
+              params: []
+              type: last
+            type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+      queryType: expression
+      source: true
+  for: 10m0s
+  labels:
+    service: dotcom
+    severity: warning
+  noDataState: Ok
+  notificationSettings:
+    receiver: Discord
+    type: SimplifiedRouting
+  title: Version chain write errors
+  trigger:
+    interval: 10m
