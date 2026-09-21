@@ -376,7 +376,7 @@ export function ThumbnailExportSignal({
 		;(async () => {
 			await Promise.race([
 				(async () => {
-					await waitForFonts()
+					await waitForFonts(editor)
 					// Fit before warming, not after: autosized text has re-measured by now so the
 					// bounds are final, and the export culls at this camera. Warming a set derived
 					// from the mount fit would skip the shapes this refit brings into view, and the
@@ -424,7 +424,7 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 		;(async () => {
 			// Fonts first, for the same reason the export waits: autosizing text has no correct size
 			// until the real web font has loaded, and its measured bounds are the whole point here.
-			await Promise.race([waitForFonts(), sleep(THUMBNAIL_SETTLE_TIMEOUT_MS)])
+			await Promise.race([waitForFonts(editor), sleep(THUMBNAIL_SETTLE_TIMEOUT_MS)])
 			if (cancelled) return
 
 			// Text comes from the shape's own util, which is the authoritative answer — a Worker
@@ -538,10 +538,17 @@ function makeBlankThumbnail(width: number, height: number, background: string): 
 	})
 }
 
-async function waitForFonts() {
-	if (!('fonts' in document)) return
+// `document.fonts.ready` is not a barrier on its own: the editor's FontManager adds a FontFace to
+// document.fonts only once its load resolves, so fonts still in flight are invisible to it. And
+// TldrawEditor's pre-render font gate covers only the page the snapshot opens to, while onMount
+// switches to the page the token asked for — that page's fonts can still be loading here. Waiting
+// on the editor's own loader (what toImage awaits internally) keeps autosized text from
+// re-measuring mid-export, after the camera fit: the capture would clip, and the shapes the wider
+// bounds reveal would be drawn unwarmed.
+async function waitForFonts(editor: Editor) {
 	try {
-		await document.fonts.ready
+		if ('fonts' in document) await document.fonts.ready
+		await editor.fonts.loadRequiredFontsForCurrentPage(editor.options.maxFontsToLoadBeforeRender)
 	} catch {
 		// capture with fallback fonts rather than never becoming ready
 	}
