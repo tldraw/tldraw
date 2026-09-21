@@ -23,6 +23,10 @@ import {
 	fetch,
 	sleep,
 	useEditor,
+	TLAssetId,
+	TLBookmarkShape,
+	AssetRecordType,
+	getHashForString,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { assetUrls } from '../utils/assetUrls'
@@ -318,6 +322,22 @@ function fitShapesCamera(editor: Editor, shapeIds: string[], width: number, heig
 	fitBoundsCamera(editor, bounds, width, height)
 }
 
+// The pre-export fit for either capture kind. An explicit viewport capture is deliberately left
+// alone: its camera is the one the token asked for, set on mount.
+function fitExportCamera(
+	editor: Editor,
+	shapeIds: string[] | undefined,
+	camera: 'content' | undefined,
+	width: number,
+	height: number
+) {
+	if (shapeIds?.length) {
+		fitShapesCamera(editor, shapeIds, width, height)
+	} else if (camera === 'content') {
+		fitContentCamera(editor, width, height)
+	}
+}
+
 // Produces a thumbnail of the editor's current page with editor.toImage once the scene has settled
 // — fonts loaded, image assets warm, and the editor's <img> elements stable — and hands the PNG blob
 // to `onImage`.
@@ -356,20 +376,21 @@ export function ThumbnailExportSignal({
 		;(async () => {
 			await Promise.race([
 				(async () => {
-					await waitForFonts()
-					await preloadImageAssets(editor, settleDeadline)
+					await waitForFonts(editor)
+					// Fit before warming, not after: autosized text has re-measured by now so the
+					// bounds are final, and the export culls at this camera. Warming a set derived
+					// from the mount fit would skip the shapes this refit brings into view, and the
+					// capture would draw them unloaded.
+					fitExportCamera(editor, shapeIds, camera, width, height)
+					await preloadImageAssets(editor, settleDeadline, shapeIds)
 					await waitForEditorImages(editor, settleDeadline)
 				})(),
 				sleep(settleTimeoutMs),
 			])
 			if (cancelled) return
-			// Re-fit content now that fonts and assets have settled: autosized text re-measures after
-			// the web font loads, so the fit computed in onMount (before fonts) is stale and would clip.
-			if (shapeIds?.length) {
-				fitShapesCamera(editor, shapeIds, width, height)
-			} else if (camera === 'content') {
-				fitContentCamera(editor, width, height)
-			}
+			// Runs again because the race may have timed out before the fit above: without this the
+			// export would fall back to onMount's pre-font camera and clip re-measured text.
+			fitExportCamera(editor, shapeIds, camera, width, height)
 			const blob = await exportThumbnailImage(editor, theme, width, height, shapeIds)
 			if (cancelled) return
 			await onImage(blob)
@@ -403,7 +424,7 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 		;(async () => {
 			// Fonts first, for the same reason the export waits: autosizing text has no correct size
 			// until the real web font has loaded, and its measured bounds are the whole point here.
-			await Promise.race([waitForFonts(), sleep(THUMBNAIL_SETTLE_TIMEOUT_MS)])
+			await Promise.race([waitForFonts(editor), sleep(THUMBNAIL_SETTLE_TIMEOUT_MS)])
 			if (cancelled) return
 
 			// Text comes from the shape's own util, which is the authoritative answer — a Worker
@@ -517,27 +538,51 @@ function makeBlankThumbnail(width: number, height: number, background: string): 
 	})
 }
 
-async function waitForFonts() {
-	if (!('fonts' in document)) return
+// `document.fonts.ready` is not a barrier on its own: the editor's FontManager adds a FontFace to
+// document.fonts only once its load resolves, so fonts still in flight are invisible to it. And
+// TldrawEditor's pre-render font gate covers only the page the snapshot opens to, while onMount
+// switches to the page the token asked for — that page's fonts can still be loading here. Waiting
+// on the editor's own loader (what toImage awaits internally) keeps autosized text from
+// re-measuring mid-export, after the camera fit: the capture would clip, and the shapes the wider
+// bounds reveal would be drawn unwarmed.
+async function waitForFonts(editor: Editor) {
 	try {
-		await document.fonts.ready
+		if ('fonts' in document) await document.fonts.ready
+		await editor.fonts.loadRequiredFontsForCurrentPage(editor.options.maxFontsToLoadBeforeRender)
 	} catch {
 		// capture with fallback fonts rather than never becoming ready
 	}
 }
 
-// Warm every image asset in the snapshot so the browser has the bytes before the shapes request
-// them. Failures resolve rather than reject: a broken asset should not block the capture.
-async function preloadImageAssets(editor: Editor, deadline: number) {
+// Warm the images the capture will draw, so the browser has the bytes before the shapes request
+// them. Only those: the store holds every asset on every page of the board, and the settle budget
+// is fixed, so a board with thousands of images elsewhere spent it fetching pictures the export
+// never shows and then timed out — production timeouts track the board's asset count, not the
+// page's. The drawn set is the export's own (see exportThumbnailImage): the requested shapes and
+// their descendants, or the page's shapes that survive culling at the camera the export will use —
+// so this must run after the pre-export fit, not before it.
+// Failures resolve rather than reject: a broken asset should not block the capture.
+async function preloadImageAssets(editor: Editor, deadline: number, requestedShapeIds?: string[]) {
+	const culled = editor.getCulledShapes()
+	const roots = requestedShapeIds?.length
+		? getRequestedShapeIds(editor, requestedShapeIds)
+		: [...editor.getCurrentPageShapeIds()].filter((id) => !culled.has(id))
 	const urls = new Set<string>()
-	for (const record of editor.store.allRecords()) {
-		if (record.typeName !== 'asset') continue
-		if (record.type === 'image' && record.props.src) {
-			urls.add(record.props.src)
-		}
-		if (record.type === 'bookmark' && record.props.image) {
-			urls.add(record.props.image)
-		}
+	for (const id of editor.getShapeAndDescendantIds(roots)) {
+		const shape = editor.getShape(id)
+		if (!shape) continue
+		// A bookmark with no assetId still shows the preview of the asset its url hashes to, which is
+		// how its shape util resolves one (getResolvedBookmarkAssetId in the SDK, not exported).
+		const named = (shape.props as { assetId?: TLAssetId | null }).assetId
+		const assetId =
+			named ??
+			(editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark') && shape.props.url
+				? AssetRecordType.createId(getHashForString(shape.props.url))
+				: null)
+		const asset = assetId ? editor.getAsset(assetId) : undefined
+		if (!asset) continue
+		if (asset.type === 'image' && asset.props.src) urls.add(asset.props.src)
+		if (asset.type === 'bookmark' && asset.props.image) urls.add(asset.props.image)
 	}
 	await Promise.all([...urls].map((url) => preloadImage(url, deadline)))
 }
