@@ -370,19 +370,16 @@ function fitContentCamera(editor: Editor, width: number, height: number) {
 	fitBoundsCamera(editor, editor.getCurrentPageBounds(), width, height)
 }
 
-// The shapes the token asked for, filtered to those actually present on the current page. The
-// snapshot endpoint already rejects a job whose shapes have gone, but the ids are resolved against
-// a live snapshot for shared files, so this stays defensive rather than throwing mid-render.
-function getRequestedShapeIds(editor: Editor, shapeIds: string[]): TLShapeId[] {
-	return shapeIds.filter((id): id is TLShapeId => Boolean(editor.getShape(id as TLShapeId)))
-}
+// What both capture paths refuse: a job whose shapes are no longer on the page it named. The
+// snapshot endpoint proves every requested id still exists *somewhere* on the board, which is all it
+// can see, so a live shared-file snapshot that moved them to another page since the mint gets here.
+export const SHAPES_NOT_ON_PAGE = 'requested shapes are not on the requested page'
 
-// The requested shapes that are on the page the job named, which is the set the live prune may
-// safely keep. `getRequestedShapeIds` asks the store, so a shape that has since moved to another
-// page still answers it; that is the wrong question here, where the answer decides what gets
-// deleted. Membership is read from the current page rather than from each shape's `parentId`, which
-// for a shape inside a frame names the frame instead of the page.
-function getRequestedShapeIdsOnCurrentPage(editor: Editor, shapeIds: string[]): TLShapeId[] {
+// The shapes the token asked for, filtered to those on the current page. Deliberately not a store
+// lookup: `editor.getShape` answers for a shape on any page, and both callers use this to decide
+// what to draw or delete on *this* one. Membership is read from the current page rather than from
+// each shape's `parentId`, which for a shape inside a frame names the frame instead of the page.
+function getRequestedShapeIds(editor: Editor, shapeIds: string[]): TLShapeId[] {
 	const onCurrentPage = editor.getCurrentPageShapeIds()
 	return shapeIds.filter((id): id is TLShapeId => onCurrentPage.has(id as TLShapeId))
 }
@@ -396,9 +393,9 @@ function getRequestedShapeIdsOnCurrentPage(editor: Editor, shapeIds: string[]): 
 // but existence is all it can check — the ids are resolved against a live shared-file snapshot, so
 // shapes that still exist and have moved to another page since the mint pass it and arrive here.
 export function prepareLiveCapture(editor: Editor, shapeIds: string[]): boolean {
-	const requested = getRequestedShapeIdsOnCurrentPage(editor, shapeIds)
+	const requested = getRequestedShapeIds(editor, shapeIds)
 	if (requested.length === 0) {
-		setThumbnailError('requested shapes are not on the requested page')
+		setThumbnailError(SHAPES_NOT_ON_PAGE)
 		return false
 	}
 	pruneToRequestedShapes(editor, requested)
@@ -587,7 +584,7 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 // space, scale is the camera zoom (so bounds.width * z lands back on the requested pixel width),
 // and pixelRatio 1 keeps the bitmap at CSS-pixel size. Shapes culled at the current viewport
 // cannot appear in that rectangle, so they are excluded to keep the export cheap on large boards.
-async function exportThumbnailImage(
+export async function exportThumbnailImage(
 	editor: Editor,
 	theme: 'light' | 'dark',
 	width: number,
@@ -604,6 +601,15 @@ async function exportThumbnailImage(
 		? getRequestedShapeIds(editor, requestedShapeIds)
 		: [...editor.getCurrentPageShapeIds()].filter((id) => !culled.has(id))
 
+	// A shapes request with nothing left on the page is a stale job, not an empty board, so it fails
+	// rather than falling through to the blank below — which would be returned, and cached, as a
+	// picture of the shapes that were asked for. The live path refuses the same case up front in
+	// prepareLiveCapture; here the throw becomes the error marker via the caller's catch.
+	if (requestedShapeIds?.length && shapeIds.length === 0) {
+		throw new Error(SHAPES_NOT_ON_PAGE)
+	}
+
+	// An empty page, by contrast, is a truthful picture of an empty board.
 	if (shapeIds.length === 0) {
 		return makeBlankThumbnail(width, height, editor.getCurrentTheme().colors[theme].background)
 	}

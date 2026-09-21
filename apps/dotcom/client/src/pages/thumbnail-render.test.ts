@@ -8,7 +8,7 @@ import {
 	defaultTldrawOptions,
 } from 'tldraw'
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { prepareLiveCapture } from './thumbnail-render'
+import { SHAPES_NOT_ON_PAGE, exportThumbnailImage, prepareLiveCapture } from './thumbnail-render'
 
 describe('MAX_THUMBNAIL_PAGES', () => {
 	// The MCP board-info tool enumerates a board's pages in the sync worker, which parses the room
@@ -22,47 +22,49 @@ describe('MAX_THUMBNAIL_PAGES', () => {
 	})
 })
 
+// jsdom has no ResizeObserver, which the editor's container measurement uses.
+beforeAll(() => {
+	globalThis.ResizeObserver ??= class {
+		observe() {}
+		unobserve() {}
+		disconnect() {}
+	} as unknown as typeof ResizeObserver
+})
+
+beforeEach(() => {
+	delete document.body.dataset.thumbnailError
+	delete document.documentElement.dataset.thumbnailError
+})
+
+// Two pages with one shape each, left on the first — which stands in for the page a job named. The
+// shape on the second page is the one a live snapshot moved away after the token was minted.
+function setupTwoPageEditor() {
+	const store = createTLStore({
+		shapeUtils: defaultShapeUtils,
+		bindingUtils: defaultBindingUtils,
+	})
+	const editor = new Editor({
+		store,
+		shapeUtils: defaultShapeUtils,
+		bindingUtils: defaultBindingUtils,
+		tools: [],
+		getContainer: () => document.createElement('div'),
+	})
+	const renderedPageId = editor.getCurrentPageId()
+	const renderedId = createShapeId('rendered')
+	editor.createShape({ id: renderedId, type: 'geo', x: 0, y: 0 })
+	editor.createPage({ name: 'elsewhere' })
+	const otherPageId = editor.getPages().find((page) => page.id !== renderedPageId)!.id
+	editor.setCurrentPage(otherPageId)
+	const movedId = createShapeId('moved')
+	editor.createShape({ id: movedId, type: 'geo', x: 0, y: 0 })
+	editor.setCurrentPage(renderedPageId)
+	return { editor, movedId, renderedId }
+}
+
 describe('prepareLiveCapture', () => {
-	// jsdom has no ResizeObserver, which the editor's container measurement uses.
-	beforeAll(() => {
-		globalThis.ResizeObserver ??= class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		} as unknown as typeof ResizeObserver
-	})
-
-	beforeEach(() => {
-		delete document.body.dataset.thumbnailError
-		delete document.documentElement.dataset.thumbnailError
-	})
-
-	// Two pages, one shape on each, current page is the first.
-	function setup() {
-		const store = createTLStore({
-			shapeUtils: defaultShapeUtils,
-			bindingUtils: defaultBindingUtils,
-		})
-		const editor = new Editor({
-			store,
-			shapeUtils: defaultShapeUtils,
-			bindingUtils: defaultBindingUtils,
-			tools: [],
-			getContainer: () => document.createElement('div'),
-		})
-		const renderedPageId = editor.getCurrentPageId()
-		editor.createShape({ id: createShapeId('rendered'), type: 'geo', x: 0, y: 0 })
-		editor.createPage({ name: 'elsewhere' })
-		const otherPageId = editor.getPages().find((page) => page.id !== renderedPageId)!.id
-		editor.setCurrentPage(otherPageId)
-		const movedId = createShapeId('moved')
-		editor.createShape({ id: movedId, type: 'geo', x: 0, y: 0 })
-		editor.setCurrentPage(renderedPageId)
-		return { editor, movedId, renderedId: createShapeId('rendered') }
-	}
-
 	it('prunes to the requested shapes when they are on the rendered page', () => {
-		const { editor, renderedId } = setup()
+		const { editor, renderedId } = setupTwoPageEditor()
 		expect(prepareLiveCapture(editor, [renderedId])).toBe(true)
 		expect([...editor.getCurrentPageShapeIds()]).toEqual([renderedId])
 		expect(document.body.dataset.thumbnailError).toBeUndefined()
@@ -75,20 +77,34 @@ describe('prepareLiveCapture', () => {
 	// screenshot a blank canvas, which the tool would return — and cache — as a picture of the
 	// shapes that were asked for. It has to fail instead.
 	it('refuses without touching the page when the requested shapes moved to another page', () => {
-		const { editor, movedId, renderedId } = setup()
+		const { editor, movedId, renderedId } = setupTwoPageEditor()
 		expect(prepareLiveCapture(editor, [movedId])).toBe(false)
 		expect([...editor.getCurrentPageShapeIds()]).toEqual([renderedId])
-		expect(document.body.dataset.thumbnailError).toBe(
-			'requested shapes are not on the requested page'
-		)
+		expect(document.body.dataset.thumbnailError).toBe(SHAPES_NOT_ON_PAGE)
 		editor.dispose()
 	})
 
 	it('keeps the on-page shapes when only some of the requested shapes moved away', () => {
-		const { editor, movedId, renderedId } = setup()
+		const { editor, movedId, renderedId } = setupTwoPageEditor()
 		expect(prepareLiveCapture(editor, [renderedId, movedId])).toBe(true)
 		expect([...editor.getCurrentPageShapeIds()]).toEqual([renderedId])
 		expect(document.body.dataset.thumbnailError).toBeUndefined()
 		editor.dispose()
 	})
+})
+
+describe('exportThumbnailImage', () => {
+	// The export path resolves the requested ids the same way the live path does, so a job whose
+	// shapes moved pages has to fail there too. Without the refusal it falls through to
+	// makeBlankThumbnail and that blank is returned — and cached — as a picture of the shapes that
+	// were asked for. The refusal lands before editor.toImage, so this needs no canvas; the short
+	// timeout is because the path it guards ends at canvas.toBlob, which jsdom never calls back, so
+	// a regression here would otherwise sit for the full default timeout.
+	it('refuses when the requested shapes are not on the rendered page', async () => {
+		const { editor, movedId } = setupTwoPageEditor()
+		await expect(exportThumbnailImage(editor, 'light', 500, 500, [movedId])).rejects.toThrow(
+			SHAPES_NOT_ON_PAGE
+		)
+		editor.dispose()
+	}, 5000)
 })
