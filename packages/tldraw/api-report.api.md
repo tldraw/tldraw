@@ -1328,8 +1328,9 @@ export function defaultHandleExternalTldrawContent(editor: Editor, { point, cont
 export function defaultHandleExternalUrlAsset(editor: Editor, { url }: TLUrlExternalAsset, { toasts, msg }: TLDefaultExternalContentHandlerOpts): Promise<TLBookmarkAsset>;
 
 // @public (undocumented)
-export function defaultHandleExternalUrlContent(editor: Editor, { point, url }: {
+export function defaultHandleExternalUrlContent(editor: Editor, { point, url, shapeId }: {
     point?: VecLike;
+    shapeId?: TLShapeId;
     url: string;
 }, { toasts, msg }: TLDefaultExternalContentHandlerOpts): Promise<void>;
 
