@@ -117,6 +117,13 @@ async function main() {
 					return
 			}
 		} catch (err) {
+			// Exit code 75 from the publish script means an earlier upload may have succeeded.
+			if ((err as { code?: number })?.code === 75) {
+				throw new Error(
+					`Publishing version ${version} stopped because an earlier Marketplace upload may have succeeded. Open VSX has not been attempted. Check Marketplace and complete this release at the same version; do not rerun the workflow blindly, as it computes a new version.`,
+					{ cause: err }
+				)
+			}
 			if (isVersionConflictError(err) && attempt < MAX_VERSION_CONFLICT_ATTEMPTS) {
 				conflictedVersion = version
 				nicelog(
