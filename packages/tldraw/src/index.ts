@@ -154,6 +154,7 @@ export {
 	type ArrowShapeOptions,
 	type ArrowShapeUtilDisplayValues,
 	type TLArcArrowInfo,
+	type TLSplineArrowInfo,
 	type TLArcInfo,
 	type TLArrowInfo,
 	type TLArrowPoint,

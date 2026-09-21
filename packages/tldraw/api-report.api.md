@@ -391,10 +391,25 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         type: "arrow";
     } | undefined;
     // (undocumented)
+    onHandleDragStart(shape: TLArrowShape, info: TLHandleDragInfo<TLArrowShape>): ({
+        id: TLShapeId_2;
+        meta?: Partial<JsonObject> | undefined;
+        props?: Partial<TLArrowShapeProps> | undefined;
+        type: "arrow";
+    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>) | undefined;
+    // (undocumented)
     onResize(shape: TLArrowShape, info: TLResizeInfo<TLArrowShape>): {
         props: {
             bend: number;
             end: VecModel_2;
+            points: {
+                [x: string]: {
+                    id: string;
+                    index: IndexKey_2;
+                    x: number;
+                    y: number;
+                };
+            };
             start: VecModel_2;
         };
     };
@@ -4018,7 +4033,7 @@ export interface TLArrowHintOverlay extends TLOverlay {
 }
 
 // @public (undocumented)
-export type TLArrowInfo = TLArcArrowInfo | TLElbowArrowInfo | TLStraightArrowInfo;
+export type TLArrowInfo = TLArcArrowInfo | TLElbowArrowInfo | TLSplineArrowInfo | TLStraightArrowInfo;
 
 // @public (undocumented)
 export interface TLArrowPoint {
@@ -4537,6 +4552,22 @@ export interface TLSnapIndicatorOverlay extends TLOverlay {
     props: {
         line: SnapIndicator;
     };
+}
+
+// @public (undocumented)
+export interface TLSplineArrowInfo {
+    // (undocumented)
+    bindings: TLArrowBindings;
+    // (undocumented)
+    end: TLArrowPoint;
+    // (undocumented)
+    isValid: boolean;
+    // (undocumented)
+    path: PathBuilder;
+    // (undocumented)
+    start: TLArrowPoint;
+    // (undocumented)
+    type: 'spline';
 }
 
 // @public (undocumented)

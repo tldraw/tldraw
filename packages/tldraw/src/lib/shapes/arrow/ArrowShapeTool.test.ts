@@ -4,6 +4,7 @@ import { TestEditor } from '../../../test/TestEditor'
 import { defaultShapeUtils } from '../../defaultShapeUtils'
 import { ArrowShapeUtil } from './ArrowShapeUtil'
 import { getArrowTargetState } from './arrowTargetState'
+import { getArrowInfo } from './getArrowInfo'
 import { getArrowBindings } from './shared'
 
 let editor: TestEditor
@@ -803,5 +804,160 @@ describe('line bug', () => {
 		expect(editor.getCurrentPageShapes().length).toBe(2)
 		const bindings = getArrowBindings(editor, editor.getCurrentPageShapes()[1] as TLArrowShape)
 		expect(bindings.end).toBeDefined()
+	})
+})
+
+describe('spline arrows', () => {
+	afterEach(() => editor.dispose())
+
+	function drawSpline() {
+		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerUp()
+		editor.keyDown('Shift').pointerDown(200, 0).pointerUp()
+		editor.pointerDown(250, 150).pointerUp()
+		return editor.getOnlySelectedShape() as TLArrowShape
+	}
+
+	it('extends the same arrow with shift clicks and adjusts the new point while pressed', () => {
+		const shape = drawSpline()
+		expect(Object.values(shape.props.points)).toMatchObject([{ x: 200, y: 0 }])
+		editor.pointerDown(500, 100).pointerMove(550, 170).pointerUp()
+		const next = editor.getShape<TLArrowShape>(shape.id)!
+		expect(Object.values(next.props.points)).toMatchObject([
+			{ x: 200, y: 0 },
+			{ x: 250, y: 150 },
+		])
+		expect(next.props.end).toEqual({ x: 550, y: 170 })
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'arrow')).toHaveLength(1)
+	})
+
+	it('cancels only the point being added and supports undo / redo', () => {
+		const shape = drawSpline()
+		editor.pointerDown(500, 0).pointerMove(550, 50).cancel()
+		expect(editor.getShape(shape.id)).toEqual(shape)
+		editor.pointerDown(600, 0).pointerUp().keyUp('Shift')
+		const extended = editor.getShape(shape.id)
+		editor.undo()
+		expect(editor.getShape(shape.id)).toEqual(shape)
+		editor.redo()
+		expect(editor.getShape(shape.id)).toEqual(extended)
+	})
+
+	it('moves a bound intermediate point while keeping the other anchors fixed', () => {
+		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerUp()
+		editor.keyDown('Shift').pointerDown(150, 150).pointerUp()
+		editor.pointerDown(250, 50).pointerUp().keyUp('Shift')
+		const arrow = editor.getOnlySelectedShape() as TLArrowShape
+		const before = editor.getShapeHandles(arrow)!.filter((h) => h.type === 'vertex')
+		editor.updateShape({ id: ids.box1, type: 'geo', x: 200, y: 180 })
+		const after = editor.getShapeHandles(arrow.id)!.filter((h) => h.type === 'vertex')
+		expect(after.filter((h) => h.id === 'start' || h.id === 'end')).toEqual(
+			before.filter((h) => h.id === 'start' || h.id === 'end')
+		)
+		expect(after[1]).toMatchObject({ x: before[1].x + 100, y: before[1].y + 80 })
+		editor.deleteShapes([ids.box1])
+		expect(editor.getShapeHandles(arrow.id)!.filter((h) => h.type === 'vertex')).toEqual(after)
+	})
+
+	it('does not leave a stub when starting with shift', () => {
+		editor.setCurrentTool('arrow').keyDown('Shift').pointerDown(30, 40).pointerUp()
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'arrow')).toHaveLength(0)
+		editor.pointerDown(250, 50).pointerUp()
+		expect(editor.getOnlySelectedShape()).toMatchObject({ type: 'arrow', x: 30, y: 40 })
+	})
+	it('keeps anchors fixed when a terminal target moves', () => {
+		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerUp()
+		editor.keyDown('Shift').pointerDown(220, 50).pointerUp()
+		editor.pointerDown(330, 330).pointerUp().keyUp('Shift')
+		const shape = editor.getOnlySelectedShape() as TLArrowShape
+		const before = editor.getShapeHandles(shape)!.filter((h) => h.type === 'vertex')
+		editor.updateShape({ id: ids.box2, type: 'geo', x: 500, y: 450 })
+		const after = editor.getShapeHandles(shape.id)!.filter((h) => h.type === 'vertex')
+		expect(after.slice(0, -1)).toEqual(before.slice(0, -1))
+		expect(after.at(-1)).toMatchObject({ x: before.at(-1)!.x + 200, y: before.at(-1)!.y + 150 })
+	})
+
+	it('inserts, drags, and removes intermediate handles', () => {
+		const shape = drawSpline()
+		editor.keyUp('Shift').setCurrentTool('select')
+		const util = editor.getShapeUtil(shape)
+		const handle = editor.getShapeHandles(shape)!.find((h) => h.type === 'create')!
+		const change = util.onHandleDragStart!(shape, {
+			handle,
+			isPrecise: true,
+			isCreatingShape: false,
+		})!
+		editor.updateShape(change)
+		const inserted = editor.getShape<TLArrowShape>(shape.id)!
+		expect(Object.keys(inserted.props.points)).toHaveLength(2)
+		const moved = util.onHandleDrag!(inserted, {
+			handle: { ...handle, type: 'vertex', x: 200, y: -100 },
+			isPrecise: true,
+			isCreatingShape: false,
+		})!
+		editor.updateShape(moved)
+		expect(editor.getShape<TLArrowShape>(shape.id)!.props.points[handle.id]).toMatchObject({
+			x: 200,
+			y: -100,
+		})
+		editor.updateShape(util.onDoubleClickHandle!(editor.getShape<TLArrowShape>(shape.id)!, handle)!)
+		expect(editor.getShape<TLArrowShape>(shape.id)!.props.points).toEqual(shape.props.points)
+	})
+
+	it('detaches a middle binding when moving the arrow on its own', () => {
+		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerUp()
+		editor.keyDown('Shift').pointerDown(150, 150).pointerUp()
+		editor.pointerDown(250, 50).pointerUp().keyUp('Shift')
+		const shape = editor.getOnlySelectedShape() as TLArrowShape
+		editor.setCurrentTool('select')
+		editor.getShapeUtil(shape).onTranslateStart!(shape)
+		expect(editor.getBindingsFromShape(shape, 'arrow')).toHaveLength(0)
+		expect(Object.values(editor.getShape<TLArrowShape>(shape.id)!.props.points)).toMatchObject([
+			{ x: 150, y: 150 },
+		])
+	})
+	it('uses the same cubic path as a spline line', () => {
+		const shape = drawSpline()
+		const lineId = createShapeId()
+		editor.createShape({
+			id: lineId,
+			type: 'line',
+			props: {
+				spline: 'cubic',
+				points: {
+					a1: { id: 'a1', index: 'a1' as IndexKey, ...shape.props.start },
+					a2: { id: 'a2', index: 'a2' as IndexKey, x: 200, y: 0 },
+					a3: { id: 'a3', index: 'a3' as IndexKey, ...shape.props.end },
+				},
+			},
+		})
+		const info = getArrowInfo(editor, shape)!
+		expect(info.type).toBe('spline')
+		if (info.type !== 'spline') throw Error('Expected spline')
+		expect(info.path.toGeometry().getSvgPathData()).toEqual(
+			editor.getShapeGeometry(lineId).getSvgPathData(true)
+		)
+	})
+
+	it('keeps the same anchors when switching between arc and elbow', () => {
+		const shape = drawSpline()
+		const handles = editor.getShapeHandles(shape)!.filter((h) => h.type === 'vertex')
+		editor.updateShape<TLArrowShape>({ id: shape.id, type: 'arrow', props: { kind: 'elbow' } })
+		const info = getArrowInfo(editor, shape.id)!
+		expect(editor.getShapeHandles(shape.id)!.filter((h) => h.type === 'vertex')).toEqual(handles)
+		if (info.type !== 'spline') throw Error('Expected spline')
+		const vertices = info.path.toGeometry().vertices
+		for (let i = 1; i < vertices.length; i++) {
+			expect(vertices[i].x === vertices[i - 1].x || vertices[i].y === vertices[i - 1].y).toBe(true)
+		}
+	})
+	it('starts a new arrow after clicking a new origin', () => {
+		const original = drawSpline()
+		editor.keyUp('Shift')
+		vi.advanceTimersByTime(200)
+		editor.pointerDown(500, 0).pointerUp()
+		editor.keyDown('Shift').pointerDown(600, 100).pointerUp()
+		expect(editor.getShape(original.id)).toEqual(original)
+		expect(editor.getOnlySelectedShape()).toMatchObject({ type: 'arrow', x: 500, y: 0 })
+		expect(editor.getOnlySelectedShapeId()).not.toEqual(original.id)
 	})
 })

@@ -1398,6 +1398,7 @@ describe('24. Push handling (RP)', () => {
 			opacity: 1,
 			props: {
 				kind: 'arc',
+				points: {},
 				elbowMidPoint: 0.5,
 				dash: 'draw',
 				size: 'm',

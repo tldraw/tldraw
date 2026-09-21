@@ -300,6 +300,7 @@ function convertArrowShapeToTldrawShape(
 			color: asColor(focusedShape.color ?? defaultArrowShape.props?.color ?? 'black'),
 			dash: defaultArrowShape.props?.dash ?? 'draw',
 			elbowMidPoint: defaultArrowShape.props?.elbowMidPoint ?? 0.5,
+			points: defaultArrowShape.props?.points ?? {},
 			end: { x: x2 - minX, y: y2 - minY },
 			fill: defaultArrowShape.props?.fill ?? 'none',
 			font: defaultArrowShape.props?.font ?? 'draw',

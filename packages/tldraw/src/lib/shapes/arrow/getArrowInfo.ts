@@ -11,6 +11,7 @@ import { TLArrowInfo } from './arrow-types'
 import { getCurvedArrowInfo } from './curved-arrow'
 import { getElbowArrowInfo } from './elbow/getElbowArrowInfo'
 import { getArrowBindings, getIsArrowStraight } from './shared'
+import { getSplineArrowInfo } from './spline-arrow'
 import { getStraightArrowInfo } from './straight-arrow'
 
 const arrowInfoCache = createComputedCache<Editor, TLArrowInfo, TLArrowShape>(
@@ -23,6 +24,9 @@ const arrowInfoCache = createComputedCache<Editor, TLArrowInfo, TLArrowShape>(
 			'getDefaultDisplayValues' in util.options && 'getCustomDisplayValues' in util.options
 				? (getDisplayValues(util as any, shape) as { strokeWidth: number }).strokeWidth
 				: editor.getCurrentTheme().strokeWidth * STROKE_SIZES[shape.props.size]
+
+		if (Object.keys(shape.props.points).length)
+			return getSplineArrowInfo(editor, shape, bindings, sw)
 
 		if (shape.props.kind === 'elbow') {
 			const elbowInfo = getElbowArrowInfo(editor, shape, bindings, sw)

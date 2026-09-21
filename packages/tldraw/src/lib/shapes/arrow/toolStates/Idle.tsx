@@ -1,4 +1,10 @@
-import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo, TLShapeId } from '@tldraw/editor'
+import {
+	StateNode,
+	TLKeyboardEventInfo,
+	TLPointerEventInfo,
+	TLShapeId,
+	VecLike,
+} from '@tldraw/editor'
 import { startEditingShape } from '../../../tools/SelectTool/selectHelpers'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetState'
@@ -6,6 +12,7 @@ import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetSta
 export class Idle extends StateNode {
 	static override id = 'idle'
 
+	private origin?: VecLike
 	isPrecise = false
 	isPreciseTimerId: number | null = null
 	preciseTargetId: TLShapeId | null = null
@@ -15,10 +22,16 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
+		if (this.editor.inputs.getShiftKey()) {
+			this.parent.transition('spline_pointing', { origin: this.origin })
+			return
+		}
+		this.origin = undefined
 		this.parent.transition('pointing', { ...info, isPrecise: this.isPrecise })
 	}
 
-	override onEnter() {
+	override onEnter(info: { origin?: VecLike } = {}) {
+		this.origin = info.origin
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 		this.update()
 	}

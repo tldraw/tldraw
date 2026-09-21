@@ -23,6 +23,13 @@ function getArrowPoints(
 	let int: VecLike
 
 	switch (info.type) {
+		case 'spline': {
+			const geometry = info.path.toGeometry()
+			const length = clamp(geometry.length / 5, strokeWidth, strokeWidth * 3)
+			const near = geometry.interpolateAlongEdge(side === 'start' ? 0.001 : 0.999)
+			int = Vec.Nudge(point, near, length)
+			break
+		}
 		case 'straight': {
 			const opposite = side === 'end' ? info.start.point : info.end.point
 			const compareLength = Vec.Dist(opposite, point)

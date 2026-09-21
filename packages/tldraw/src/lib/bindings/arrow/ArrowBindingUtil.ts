@@ -23,7 +23,11 @@ import {
 	intersectLineSegmentCircle,
 } from '@tldraw/editor'
 import { getArrowInfo } from '../../shapes/arrow/getArrowInfo'
-import { getArrowBindings, removeArrowBinding } from '../../shapes/arrow/shared'
+import {
+	getArrowBindings,
+	getArrowTerminalInArrowSpace,
+	removeArrowBinding,
+} from '../../shapes/arrow/shared'
 
 /**
  * @public
@@ -83,6 +87,13 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		shapeAfter,
 		reason,
 	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
+		if (
+			binding.props.pointId &&
+			this.editor.getAncestorPageId(binding.fromId) !== this.editor.getAncestorPageId(shapeAfter)
+		) {
+			this.editor.deleteBindings([binding], { isolateShapes: true })
+			return
+		}
 		// When a bound geo shape's geo type changes (e.g. rectangle to triangle) its outline can move
 		// out from under a precise anchor, leaving the arrow floating off the shape. Re-snap the anchor
 		// to the new geometry.
@@ -117,6 +128,28 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 
 		const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
 		if (!arrow) return
+		if (binding.props.pointId) {
+			const point = arrow.props.points[binding.props.pointId]
+			if (point) {
+				const position = getArrowTerminalInArrowSpace(
+					this.editor,
+					this.editor.getShapePageTransform(arrow)!,
+					binding,
+					true
+				)
+				this.editor.updateShape<TLArrowShape>({
+					id: arrow.id,
+					type: 'arrow',
+					props: {
+						points: {
+							...arrow.props.points,
+							[point.id]: { ...point, x: position.x, y: position.y },
+						},
+					},
+				})
+			}
+			return
+		}
 		updateArrowTerminal({
 			editor: this.editor,
 			arrow,
@@ -177,7 +210,10 @@ function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 	if (!parentPageId) return
 
 	let nextParentId: TLParentId
-	if (startShape && endShape) {
+	if (Object.keys(arrow.props.points).length) {
+		// Parenting to a bound frame would move every anchor when only that frame moves.
+		nextParentId = parentPageId
+	} else if (startShape && endShape) {
 		// If arrow has two bindings, parent it to the closest common ancestor of the
 		// bound shapes. When one bound shape is a frame-like ancestor-or-self of the
 		// other, use that frame-like shape itself instead of its parent.

@@ -6,6 +6,7 @@ import {
 	VecLike,
 } from '@tldraw/editor'
 import { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
+import { PathBuilder } from '../shared/PathBuilder'
 import { ElbowArrowInfo, ElbowArrowRoute } from './elbow/definitions'
 import { TLArrowBindings } from './shared'
 
@@ -175,4 +176,18 @@ export interface TLElbowArrowInfo {
 }
 
 /** @public */
-export type TLArrowInfo = TLArcArrowInfo | TLStraightArrowInfo | TLElbowArrowInfo
+export interface TLSplineArrowInfo {
+	type: 'spline'
+	bindings: TLArrowBindings
+	start: TLArrowPoint
+	end: TLArrowPoint
+	path: PathBuilder
+	isValid: boolean
+}
+
+/** @public */
+export type TLArrowInfo =
+	| TLSplineArrowInfo
+	| TLArcArrowInfo
+	| TLStraightArrowInfo
+	| TLElbowArrowInfo

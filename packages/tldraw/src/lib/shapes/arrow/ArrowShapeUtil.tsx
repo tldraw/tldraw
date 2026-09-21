@@ -80,6 +80,7 @@ import {
 	getArrowTerminalsInArrowSpace,
 	removeArrowBinding,
 } from './shared'
+import { dragSplineArrowPoint, getSplineArrowHandles, getSplineArrowPoints } from './spline-arrow'
 
 const ArrowHandles = {
 	Start: 'start',
@@ -241,6 +242,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override getDefaultProps(): TLArrowShape['props'] {
 		return {
+			points: {},
 			kind: 'arc',
 			elbowMidPoint: 0.5,
 			dash: 'draw',
@@ -267,20 +269,22 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const debugGeom: Geometry2d[] = []
 
 		const bodyGeom =
-			info.type === 'straight'
-				? new Edge2d({
-						start: Vec.From(info.start.point),
-						end: Vec.From(info.end.point),
-					})
-				: info.type === 'arc'
-					? new Arc2d({
-							center: Vec.Cast(info.handleArc.center),
-							start: Vec.Cast(info.start.point),
-							end: Vec.Cast(info.end.point),
-							sweepFlag: info.bodyArc.sweepFlag,
-							largeArcFlag: info.bodyArc.largeArcFlag,
+			info.type === 'spline'
+				? info.path.toGeometry()
+				: info.type === 'straight'
+					? new Edge2d({
+							start: Vec.From(info.start.point),
+							end: Vec.From(info.end.point),
 						})
-					: new Polyline2d({ points: info.route.points })
+					: info.type === 'arc'
+						? new Arc2d({
+								center: Vec.Cast(info.handleArc.center),
+								start: Vec.Cast(info.start.point),
+								end: Vec.Cast(info.end.point),
+								sweepFlag: info.bodyArc.sweepFlag,
+								largeArcFlag: info.bodyArc.largeArcFlag,
+							})
+						: new Polyline2d({ points: info.route.points })
 
 		let labelGeom
 		if (info.isValid && (isEditing || !isEmptyRichText(shape.props.richText))) {
@@ -305,6 +309,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override getHandles(shape: TLArrowShape): TLHandle[] {
 		const info = getArrowInfo(this.editor, shape)!
+
+		if (info.type === 'spline') return getSplineArrowHandles(this.editor, shape, info)
 
 		const handles: TLHandle[] = [
 			{
@@ -359,6 +365,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override onHandleDrag(shape: TLArrowShape, info: TLHandleDragInfo<TLArrowShape>) {
+		if (shape.props.points[info.handle.id] || info.handle.type === 'create')
+			return dragSplineArrowPoint(this.editor, shape, info.handle)
 		const handleId = info.handle.id as ArrowHandles
 		switch (handleId) {
 			case ArrowHandles.Middle:
@@ -556,6 +564,24 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override onTranslateStart(shape: TLArrowShape) {
+		const initialShape = shape
+		const pointBindings = this.editor
+			.getBindingsFromShape(shape, 'arrow')
+			.filter(
+				(binding) =>
+					binding.props.pointId &&
+					!this.editor.getSelectedShapeIds().includes(binding.toId) &&
+					!this.editor.isAncestorSelected(binding.toId)
+			)
+		if (pointBindings.length) {
+			const points = Object.fromEntries(
+				getSplineArrowPoints(this.editor, shape).map((point) => [point.id, point])
+			)
+			this.editor.updateShape<TLArrowShape>({ id: shape.id, type: 'arrow', props: { points } })
+			this.editor.deleteBindings(pointBindings)
+			shape = this.editor.getShape<TLArrowShape>(shape.id)!
+		}
+
 		const bindings = getArrowBindings(this.editor, shape)
 
 		// ...if the user is dragging ONLY this arrow, for elbow shapes, we can't maintain the bindings well just yet so we remove them entirely
@@ -595,7 +621,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// When we start translating shapes, record where their bindings were in page space so we
 		// can maintain them as we translate the arrow
-		shapeAtTranslationStart.set(shape, {
+		shapeAtTranslationStart.set(initialShape, {
 			pagePosition: shapePageTransform.applyToPoint(shape),
 			terminalBindings: mapObjectMapValues(terminalsInArrowSpace, (terminalName, point) => {
 				const binding = bindings[terminalName]
@@ -786,6 +812,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			props: {
 				start,
 				end,
+				points: mapObjectMapValues(shape.props.points, (_, point) => ({
+					...point,
+					x: point.x * scaleX,
+					y: point.y * scaleY,
+				})),
 				bend,
 			},
 		}
@@ -793,10 +824,25 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return next
 	}
 
+	override onHandleDragStart(shape: TLArrowShape, info: TLHandleDragInfo<TLArrowShape>) {
+		if (info.handle.type === 'create') return dragSplineArrowPoint(this.editor, shape, info.handle)
+		return
+	}
+
 	override onDoubleClickHandle(
 		shape: TLArrowShape,
 		handle: TLHandle
 	): TLShapePartial<TLArrowShape> | void {
+		if (shape.props.points[handle.id]) {
+			const points = { ...shape.props.points }
+			delete points[handle.id]
+			this.editor.deleteBindings(
+				this.editor
+					.getBindingsFromShape(shape, 'arrow')
+					.filter((binding) => binding.props.pointId === handle.id)
+			)
+			return { id: shape.id, type: 'arrow', props: { points } }
+		}
 		switch (handle.id) {
 			case ArrowHandles.Start: {
 				return {
@@ -1064,11 +1110,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 export function getArrowLength(editor: Editor, shape: TLArrowShape): number {
 	const info = getArrowInfo(editor, shape)!
 
-	return info.type === 'straight'
-		? Vec.Dist(info.start.handle, info.end.handle)
-		: info.type === 'arc'
-			? Math.abs(info.handleArc.length)
-			: info.route.distance
+	return info.type === 'spline'
+		? info.path.toGeometry().length
+		: info.type === 'straight'
+			? Vec.Dist(info.start.handle, info.end.handle)
+			: info.type === 'arc'
+				? Math.abs(info.handleArc.length)
+				: info.route.distance
 }
 
 const ArrowSvg = track(function ArrowSvg({

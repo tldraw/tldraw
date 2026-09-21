@@ -36,6 +36,8 @@ function getArrowDisplayValues(editor: Editor, shape: TLArrowShape): ArrowShapeU
 export function getArrowBodyGeometry(editor: Editor, shape: TLArrowShape) {
 	const info = getArrowInfo(editor, shape)!
 	switch (info.type) {
+		case 'spline':
+			return info.path.toGeometry()
 		case 'straight':
 			return new Edge2d({
 				start: Vec.From(info.start.point),
@@ -295,6 +297,7 @@ function furthest(from: VecLike, candidates: VecLike[]): VecLike | null {
 export function getArrowLabelDefaultPosition(editor: Editor, shape: TLArrowShape) {
 	const info = getArrowInfo(editor, shape)!
 	switch (info.type) {
+		case 'spline':
 		case 'straight':
 		case 'arc':
 			return 0.5

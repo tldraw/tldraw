@@ -17,6 +17,7 @@ import { DefaultFillStyle, TLDefaultFillStyle } from '../styles/TLFillStyle'
 import { DefaultFontStyle, TLDefaultFontStyle } from '../styles/TLFontStyle'
 import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
+import { TLLineShapePoint, lineShapeProps } from './TLLineShape'
 
 const arrowKinds = ['arc', 'elbow'] as const
 /**
@@ -156,7 +157,8 @@ export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStar
  *   richText: toRichText('Label'),
  *   labelPosition: 0.5,
  *   scale: 1,
- *   elbowMidPoint: 0.5
+ *   elbowMidPoint: 0.5,
+ *   points: {}
  * }
  * ```
  *
@@ -179,6 +181,8 @@ export interface TLArrowShapeProps {
 	labelPosition: number
 	scale: number
 	elbowMidPoint: number
+	/** Intermediate spline anchors in arrow space. Empty for two-point arrows. */
+	points: Record<string, TLLineShapePoint>
 }
 
 /**
@@ -251,6 +255,7 @@ export const arrowShapeProps: RecordProps<TLArrowShape> = {
 	labelPosition: T.number,
 	scale: T.nonZeroNumber,
 	elbowMidPoint: T.number,
+	points: lineShapeProps.points,
 }
 
 /**
@@ -278,6 +283,7 @@ export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddElbow: 6,
 	AddRichText: 7,
 	AddRichTextAttrs: 8,
+	AddPoints: 9,
 })
 
 function propsMigration(migration: TLPropsMigration) {
@@ -466,6 +472,15 @@ export const arrowShapeMigrations = createMigrationSequence({
 				if (props.richText && 'attrs' in props.richText) {
 					delete props.richText.attrs
 				}
+			},
+		}),
+		propsMigration({
+			id: arrowShapeVersions.AddPoints,
+			up: (props) => {
+				props.points = {}
+			},
+			down: (props) => {
+				delete props.points
 			},
 		}),
 	],

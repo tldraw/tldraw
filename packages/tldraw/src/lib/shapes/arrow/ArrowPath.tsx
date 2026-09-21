@@ -5,6 +5,8 @@ import { getRouteHandlePath } from './elbow/getElbowArrowInfo'
 
 export function getArrowBodyPathBuilder(info: TLArrowInfo): PathBuilder {
 	switch (info.type) {
+		case 'spline':
+			return info.path
 		case 'straight':
 			return new PathBuilder()
 				.moveTo(info.start.point.x, info.start.point.y, { offset: 0, roundness: 0 })
@@ -47,6 +49,8 @@ export function getArrowBodyPath(shape: TLArrowShape, info: TLArrowInfo, opts: P
 
 export function getArrowHandlePath(info: TLArrowInfo, opts: PathBuilderOpts) {
 	switch (info.type) {
+		case 'spline':
+			return info.path.toSvg(opts)
 		case 'straight':
 			return new PathBuilder()
 				.moveTo(info.start.handle.x, info.start.handle.y)

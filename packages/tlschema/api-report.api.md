@@ -33,6 +33,7 @@ export const arrowBindingProps: RecordProps<TLArrowBinding>;
 
 // @public
 export const arrowBindingVersions: {
+    AddPointId: `com.tldraw.binding.arrow/${number}`;
     AddSnap: `com.tldraw.binding.arrow/${number}`;
 };
 
@@ -57,6 +58,7 @@ export const arrowShapeVersions: {
     readonly AddIsPrecise: "com.tldraw.shape.arrow/2";
     readonly AddLabelColor: "com.tldraw.shape.arrow/1";
     readonly AddLabelPosition: "com.tldraw.shape.arrow/3";
+    readonly AddPoints: "com.tldraw.shape.arrow/9";
     readonly AddRichText: "com.tldraw.shape.arrow/7";
     readonly AddRichTextAttrs: "com.tldraw.shape.arrow/8";
     readonly AddScale: "com.tldraw.shape.arrow/5";
@@ -909,6 +911,7 @@ export interface TLArrowBindingProps {
     isExact: boolean;
     isPrecise: boolean;
     normalizedAnchor: VecModel;
+    pointId?: string;
     snap: ElbowArrowSnap;
     terminal: 'end' | 'start';
 }
@@ -948,6 +951,7 @@ export interface TLArrowShapeProps {
     labelColor: TLDefaultColorStyle;
     // (undocumented)
     labelPosition: number;
+    points: Record<string, TLLineShapePoint>;
     // (undocumented)
     richText: TLRichText;
     // (undocumented)

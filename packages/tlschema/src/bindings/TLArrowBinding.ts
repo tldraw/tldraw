@@ -56,6 +56,8 @@ export type ElbowArrowSnap = T.TypeOf<typeof ElbowArrowSnap>
  * @public
  */
 export interface TLArrowBindingProps {
+	/** Intermediate spline anchor; absent for start/end terminal bindings. */
+	pointId?: string
 	/** Which end of the arrow is bound - either 'start' or 'end' */
 	terminal: 'start' | 'end'
 	/**
@@ -99,6 +101,7 @@ export interface TLArrowBindingProps {
  * @public
  */
 export const arrowBindingProps: RecordProps<TLArrowBinding> = {
+	pointId: T.string.optional(),
 	terminal: T.literalEnum('start', 'end'),
 	normalizedAnchor: vecModelValidator,
 	isExact: T.boolean,
@@ -150,6 +153,7 @@ export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>
  */
 export const arrowBindingVersions = createBindingPropsMigrationIds('arrow', {
 	AddSnap: 1,
+	AddPointId: 2,
 })
 
 /**
@@ -181,5 +185,6 @@ export const arrowBindingMigrations = createBindingPropsMigrationSequence({
 				delete props.snap
 			},
 		},
+		{ id: arrowBindingVersions.AddPointId, up: () => {}, down: 'retired' },
 	],
 })

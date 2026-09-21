@@ -74,7 +74,7 @@ export class Pointing extends StateNode {
 	}
 
 	override onPointerUp() {
-		this.cancel()
+		this.parent.transition('idle', { origin: this.editor.inputs.getOriginPagePoint().clone() })
 	}
 
 	override onLongPress() {

@@ -30,6 +30,29 @@ import { textShapeVersions } from './shapes/TLTextShape'
 import { videoShapeVersions } from './shapes/TLVideoShape'
 import { storeVersions } from './store-migrations'
 
+describe('Add spline points to arrows', () => {
+	const { up, down } = getTestMigration(arrowShapeVersions.AddPoints)
+	test('preserves existing two-point arrow props', () => {
+		const props = { start: { x: 10, y: 20 }, end: { x: 50, y: 60 }, bend: 12 }
+		expect(up({ props })).toEqual({ props: { ...props, points: {} } })
+		expect(down({ props: { ...props, points: {} } })).toEqual({ props })
+	})
+})
+
+describe('Add spline point IDs to arrow bindings', () => {
+	const { up } = getTestMigration(arrowBindingVersions.AddPointId)
+	test('leaves terminal bindings unchanged', () => {
+		const props = {
+			terminal: 'end',
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			isExact: true,
+			isPrecise: true,
+			snap: 'none',
+		}
+		expect(up({ props })).toEqual({ props })
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS BELOW HERE --- */
 
 describe('TLVideoAsset AddIsAnimated', () => {
