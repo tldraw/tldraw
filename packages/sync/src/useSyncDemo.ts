@@ -121,9 +121,9 @@ export function useSyncDemo(
 		assets,
 		onMount: useCallback(
 			(editor: Editor) => {
-				editor.registerExternalAssetHandler('url', async ({ url }) => {
-					return await createAssetFromUrlUsingDemoServer(host, url)
-				})
+				editor.registerExternalAssetHandler('url', ({ url }) =>
+					createAssetFromUrlUsingDemoServer(host, url)
+				)
 			},
 			[host]
 		),
@@ -182,9 +182,7 @@ function createDemoAssetStore(host: string): TLAssetStore {
 				alert('Uploading images is disabled in this demo.')
 				throw new Error('Uploading images is disabled in this demo.')
 			}
-			const id = uniqueId()
-
-			const objectName = `${id}-${file.name}`.replace(/\W/g, '-')
+			const objectName = `${uniqueId()}-${file.name}`.replace(/\W/g, '-')
 			const url = `${host}/uploads/${objectName}`
 
 			const response = await fetch(url, {
@@ -201,34 +199,34 @@ function createDemoAssetStore(host: string): TLAssetStore {
 		},
 
 		resolve(asset, context) {
-			if (!asset.props.src) return null
+			const { src } = asset.props
+			if (!src) return null
 
 			// We don't deal with videos at the moment.
-			if (asset.type === 'video') return asset.props.src
+			if (asset.type === 'video') return src
 
 			// Assert it's an image to make TS happy.
 			if (asset.type !== 'image') return null
 
 			// Don't try to transform data: URLs, yikes.
-			if (!asset.props.src.startsWith('http:') && !asset.props.src.startsWith('https:'))
-				return asset.props.src
+			if (!src.startsWith('http:') && !src.startsWith('https:')) return src
 
-			if (context.shouldResolveToOriginal) return asset.props.src
+			if (context.shouldResolveToOriginal) return src
 
 			// Don't try to transform animated images.
-			if (MediaHelpers.isAnimatedImageType(asset?.props.mimeType) || asset.props.isAnimated)
-				return asset.props.src
+			if (MediaHelpers.isAnimatedImageType(asset.props.mimeType) || asset.props.isAnimated)
+				return src
 
 			// Don't try to transform vector images.
-			if (MediaHelpers.isVectorImageType(asset?.props.mimeType)) return asset.props.src
+			if (MediaHelpers.isVectorImageType(asset.props.mimeType)) return src
 
-			const url = new URL(asset.props.src)
+			const url = new URL(src)
 
 			// we only transform images that are hosted on domains we control
 			const isTldrawImage =
 				url.origin === host || /\.tldraw\.(?:com|xyz|dev|workers\.dev)$/.test(url.host)
 
-			if (!isTldrawImage) return asset.props.src
+			if (!isTldrawImage) return src
 
 			// Assets that are under a certain file size aren't worth transforming (and incurring cost).
 			// We still send them through the image worker to get them optimized though.
@@ -256,8 +254,7 @@ function createDemoAssetStore(host: string): TLAssetStore {
 				url.searchParams.set('w', width.toString())
 			}
 
-			const newUrl = `${IMAGE_WORKER}/${url.host}/${url.toString().slice(url.origin.length + 1)}`
-			return newUrl
+			return `${IMAGE_WORKER}/${url.host}/${url.toString().slice(url.origin.length + 1)}`
 		},
 	}
 }
@@ -285,47 +282,28 @@ function createDemoAssetStore(host: string): TLAssetStore {
  * @internal
  */
 async function createAssetFromUrlUsingDemoServer(host: string, url: string): Promise<TLAsset> {
-	const urlHash = getHashForString(url)
+	let meta: { description?: string; image?: string; favicon?: string; title?: string } | null = null
 	try {
 		// First, try to get the meta data from our endpoint
 		const fetchUrl = new URL(`${host}/bookmarks/unfurl`)
 		fetchUrl.searchParams.set('url', url)
-
-		const meta = (await (await fetch(fetchUrl, { method: 'POST' })).json()) as {
-			description?: string
-			image?: string
-			favicon?: string
-			title?: string
-		} | null
-
-		return {
-			id: AssetRecordType.createId(urlHash),
-			typeName: 'asset',
-			type: 'bookmark',
-			props: {
-				src: url,
-				description: meta?.description ?? '',
-				image: meta?.image ?? '',
-				favicon: meta?.favicon ?? '',
-				title: meta?.title ?? '',
-			},
-			meta: {},
-		}
+		meta = await (await fetch(fetchUrl, { method: 'POST' })).json()
 	} catch (error) {
-		// Otherwise, fallback to a blank bookmark
+		// Otherwise, fall back to a blank bookmark
 		console.error(error)
-		return {
-			id: AssetRecordType.createId(urlHash),
-			typeName: 'asset',
-			type: 'bookmark',
-			props: {
-				src: url,
-				description: '',
-				image: '',
-				favicon: '',
-				title: '',
-			},
-			meta: {},
-		}
+	}
+
+	return {
+		id: AssetRecordType.createId(getHashForString(url)),
+		typeName: 'asset',
+		type: 'bookmark',
+		props: {
+			src: url,
+			description: meta?.description ?? '',
+			image: meta?.image ?? '',
+			favicon: meta?.favicon ?? '',
+			title: meta?.title ?? '',
+		},
+		meta: {},
 	}
 }

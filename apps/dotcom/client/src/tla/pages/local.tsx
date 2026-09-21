@@ -1,10 +1,12 @@
-import { useEffect } from 'react'
+import { commentToolOverrides } from '@tldraw/commenting'
+import { useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { assert, getFromSessionStorage, omit, react } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaAnonDotDevLink } from '../components/TlaAnonDotDevLink/TlaAnonDotDevLink'
+import { useAnonCommentToolOverrides } from '../components/TlaEditor/CommentsOnCanvas'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from '../components/TlaEditor/sneaky/SneakyDebugModeToast'
 import { components } from '../components/TlaEditor/TlaEditor'
@@ -41,15 +43,11 @@ export function Component() {
 				const state = omit(location.state, ['importUrl'])
 				const result = await importFromUrl(app, pendingImportUrl)
 				if (result.ok) {
-					navigate(routes.tlaFile(result.fileId), {
-						replace: true,
-						state,
-					})
+					navigate(routes.tlaFile(result.fileId), { replace: true, state })
 					return
-				} else {
-					// just update the state without navigating anywhere
-					navigate('.', { replace: true, state })
 				}
+				// just update the state without navigating anywhere
+				navigate('.', { replace: true, state })
 				if (!result.toastAlreadyShown) {
 					app.toasts?.addToast({
 						severity: 'error',
@@ -63,17 +61,12 @@ export function Component() {
 
 			if (getShouldSlurpFile()) {
 				const res = await app.slurpFile()
+				// Fails when the user has too many files; leaving the local content
+				// unslurped means it's still there when they log out.
 				if (res.ok) {
 					clearShouldSlurpFile()
-					navigate(routes.tlaFile(res.value.fileId), {
-						replace: true,
-						state: location.state,
-					})
+					navigate(routes.tlaFile(res.value.fileId), { replace: true, state: location.state })
 					return
-				} else {
-					// if the user has too many files we end up here.
-					// don't slurp the file and when they log out they'll
-					// be able to see the same content that was there before
 				}
 			}
 
@@ -85,12 +78,7 @@ export function Component() {
 				assert(result.ok, 'Failed to create file')
 				// result is only false if the user reached their file limit so
 				// we don't need to handle that case here since they have no files
-				if (result.ok) {
-					navigate(routes.tlaFile(result.value.fileId), {
-						replace: true,
-						state: location.state,
-					})
-				}
+				navigate(routes.tlaFile(result.value.fileId), { replace: true, state: location.state })
 				return
 			}
 
@@ -107,11 +95,20 @@ export function Component() {
 }
 
 function LocalTldraw() {
+	// No comments exist on the scratch board — the button is only a sign-in prompt, so the tool
+	// itself stays unregistered and the anon override repoints its item at the sign-in dialog.
+	const anonCommentToolOverrides = useAnonCommentToolOverrides()
+	const commentToolItemOverrides = useMemo(
+		() => [commentToolOverrides, anonCommentToolOverrides],
+		[anonCommentToolOverrides]
+	)
+
 	return (
 		<TlaAnonLayout>
 			<LocalEditor
 				data-testid="tla-editor"
 				components={components}
+				overrides={commentToolItemOverrides}
 				onMount={(editor) => {
 					globalEditor.set(editor)
 					const shapes$ = editor.store.query.ids('shape')

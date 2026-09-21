@@ -4,6 +4,7 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import {
 	isMintedRenderToken,
+	markRenderTokenServed,
 	renderJobAccess,
 	renderParamsForJob,
 	verifyThumbnailRenderToken,
@@ -36,6 +37,12 @@ export async function getThumbnailSnapshot(
 	if (!(await isMintedRenderToken(env, job, token))) {
 		return json({ error: true, message: 'Invalid or expired render token' }, 403)
 	}
+
+	// The page has called home. Stamped here, before the read, so a session that later dies can be told
+	// apart from one whose page never ran at all (see wasRenderTokenServedSince). Awaited rather than
+	// deferred: a page that errors the instant it has its snapshot ends the session, whose cleanup
+	// deletes the stamp — a deferred write could land after that and stay behind.
+	await markRenderTokenServed(env, job, token)
 
 	// Read under the gate the job was signed with, not a fixed one, so an MCP token stays confined to
 	// what the MCP tool could resolve — including a board that has gone private since it was minted.
