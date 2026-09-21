@@ -25,6 +25,6 @@ Use the standard color, size, and fill controls to style the path. Open paths ha
 
 `PenShapeUtil.tsx` defines the point data, path geometry, handle overlay, rendering, resizing, and SVG export. Handle vectors are relative to each point. `PathBuilder` supplies the same path for rendering and hit testing, and `CubicBezier2d` helps locate an insertion on a segment. De Casteljau subdivision inserts the new point without deforming the curve.
 
-`PenToolExample.tsx` registers a `StateNode` tool with drawing and editing states. The shape's `onDoubleClick` enters the editing state, which handles point interactions without modifying the built-in select tool. The toolbar and instruction panel are optional UI you can replace in your own application.
+`PenToolExample.tsx` registers a `StateNode` tool with drawing and editing states. The shape's `onDoubleClick` enters the editing state, which handles point interactions without modifying the built-in select tool. The toolbar is optional UI you can replace in your own application.
 
 This is a starting point for a pen tool: each shape contains one path. Compound paths, joining separate paths, and multi-point selection are left for applications to add.

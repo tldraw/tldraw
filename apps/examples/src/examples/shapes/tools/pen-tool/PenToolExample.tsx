@@ -343,36 +343,7 @@ const overrides: TLUiOverrides = {
 	},
 }
 
-const Instructions = track(function Instructions() {
-	const editor = useEditor()
-	return (
-		<div className="tlui-menu" style={{ margin: 8, padding: '8px 12px', maxWidth: 460 }}>
-			{editor.isIn('pen.editing') ? (
-				<>
-					<strong>Edit points</strong>
-					<div>Drag points or handles. Double-click a segment to add a point.</div>
-					<div>
-						Cmd/Ctrl-click a point to remove it. Alt-click to toggle curves. Alt-drag a handle to
-						move it independently.
-					</div>
-					<div>Enter or Escape to finish.</div>
-				</>
-			) : (
-				<>
-					<strong>Pen tool · P</strong>
-					<div>
-						Click for corners, drag for curves. Click the first point to close and fill. Enter or
-						Escape to finish an open path.
-					</div>
-					<div>Double-click a path to edit its points.</div>
-				</>
-			)}
-		</div>
-	)
-})
-
 const components: TLComponents = {
-	TopPanel: Instructions,
 	Toolbar: track(function PenToolbar(props) {
 		const tools = useTools()
 		const editor = useEditor()
