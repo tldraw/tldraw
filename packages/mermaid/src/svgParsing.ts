@@ -1,4 +1,5 @@
-import { getArrowBend } from './utils'
+import { clamp } from 'tldraw'
+import { getSelfLoopBend } from './utils'
 
 export interface Vec2 {
 	x: number
@@ -20,9 +21,18 @@ export interface ParsedCluster {
 }
 
 export interface ParsedEdge {
+	/** Mermaid's `data-id` for the path, shared with the edge's label in the SVG. */
+	id: string
 	start: string
 	end: string
 	points: Vec2[]
+}
+
+export interface ParsedEdgeLabel {
+	x: number
+	y: number
+	w: number
+	h: number
 }
 
 /**
@@ -33,10 +43,12 @@ export interface ParsedDiagramLayout {
 	nodes: Map<string, ParsedNode>
 	clusters: Map<string, ParsedCluster>
 	edges: ParsedEdge[]
+	/** Label boxes keyed by the {@link ParsedEdge.id} of the edge they belong to. */
+	edgeLabels: Map<string, ParsedEdgeLabel>
 }
 
 type NodeIdParser = (domId: string) => string
-type EdgeIdParser = (dataId: string) => { start: string; end: string } | null
+type EdgeIdParser = (dataId: string, points: Vec2[]) => { start: string; end: string } | null
 
 // Mermaid >= 11.15 prefixes every rendered element id with the diagram id
 // (`mermaid-0-flowchart-A-0` instead of `flowchart-A-0`); older versions do not.
@@ -185,8 +197,6 @@ export function parseAllEdgePointsFromSvg(root: Element, parser: EdgeIdParser): 
 		const dataId = path.getAttribute('data-id') || path.getAttribute('id') || ''
 		const dataPoints = path.getAttribute('data-points')
 		if (!dataPoints) continue
-		const parsed = parser(dataId)
-		if (!parsed) continue
 		try {
 			const points = JSON.parse(atob(dataPoints))
 			const ancestor = getAccumulatedTranslate(path as Element)
@@ -194,12 +204,43 @@ export function parseAllEdgePointsFromSvg(root: Element, parser: EdgeIdParser): 
 				point.x += ancestor.x
 				point.y += ancestor.y
 			}
-			out.push({ start: parsed.start, end: parsed.end, points })
+			// Parsed after the points, which an id parser may need to place an ambiguous id.
+			const parsed = parser(dataId, points)
+			if (!parsed) continue
+			out.push({ id: dataId, start: parsed.start, end: parsed.end, points })
 		} catch {
 			/* ignore malformed data */
 		}
 	}
 	return out
+}
+
+/**
+ * Parse the box mermaid laid each edge label out in, keyed by the `data-id` it shares with its
+ * path. Edges without text still get an empty label group, which is skipped.
+ */
+export function parseEdgeLabelsFromSvg(root: Element): Map<string, ParsedEdgeLabel> {
+	const out = new Map<string, ParsedEdgeLabel>()
+	for (const label of root.querySelectorAll('.edgeLabel .label[data-id]')) {
+		const size = getBBoxSize(label) ?? getForeignObjectSize(label)
+		if (!size) continue
+		const ancestor = getAccumulatedTranslate(label)
+		const self = parseTranslate(label.getAttribute('transform'))
+		out.set(label.getAttribute('data-id')!, {
+			x: ancestor.x + self.x,
+			y: ancestor.y + self.y,
+			w: size.w,
+			h: size.h,
+		})
+	}
+	return out
+}
+
+function getForeignObjectSize(el: Element): { w: number; h: number } | undefined {
+	const foreignObject = el.querySelector('foreignObject')
+	const w = parseFloat(foreignObject?.getAttribute('width') || '0')
+	const h = parseFloat(foreignObject?.getAttribute('height') || '0')
+	return w > 0 && h > 0 ? { w, h } : undefined
 }
 
 /**
@@ -223,22 +264,41 @@ export function buildNodeCentersFromSvg(
 }
 
 /**
- * Claim the unclaimed SVG edge whose endpoints lie closest to the given node
- * centers and return its bend, or 0 when nothing matches. Each SVG edge is
- * claimed at most once so parallel edges get distinct paths.
+ * Claim the path mermaid drew for an edge between two nodes, or undefined when nothing matches.
+ * Each path is claimed at most once.
+ *
+ * Mermaid names a flowchart's paths after the two nodes they join and emits them in the order it
+ * drew them, so the nth edge between a pair of nodes is the nth unclaimed path carrying their ids.
+ * Paths with no ids to go on, such as a state diagram's `edge<N>`, fall back to whichever ends lie
+ * nearest the two node centers. That fallback picks the wrong path when several ends sit equally
+ * close, which is what parallel edges do (#10794).
  */
-export function claimNearestEdgeBend(
+export function claimEdge(
 	svgEdges: ParsedEdge[],
 	claimed: Set<number>,
-	startCenter: Vec2 | undefined,
-	endCenter: Vec2 | undefined
-): number {
-	if (!startCenter || !endCenter) return 0
+	edge: { startId: string; endId: string; startCenter?: Vec2; endCenter?: Vec2 }
+): ParsedEdge | undefined {
+	const usable = (svgEdge: ParsedEdge, index: number) =>
+		!claimed.has(index) && svgEdge.points.length >= 2
+
+	if (edge.startId && edge.endId) {
+		const byId = svgEdges.findIndex(
+			(svgEdge, index) =>
+				usable(svgEdge, index) && svgEdge.start === edge.startId && svgEdge.end === edge.endId
+		)
+		if (byId >= 0) {
+			claimed.add(byId)
+			return svgEdges[byId]
+		}
+	}
+
+	const { startCenter, endCenter } = edge
+	if (!startCenter || !endCenter) return undefined
 
 	let bestIndex = -1
 	let bestDistance = Infinity
 	for (let i = 0; i < svgEdges.length; i++) {
-		if (claimed.has(i) || svgEdges[i].points.length < 2) continue
+		if (!usable(svgEdges[i], i)) continue
 
 		const points = svgEdges[i].points
 		const last = points[points.length - 1]
@@ -250,22 +310,61 @@ export function claimNearestEdgeBend(
 			bestIndex = i
 		}
 	}
-	if (bestIndex < 0) return 0
+	if (bestIndex < 0) return undefined
 
 	claimed.add(bestIndex)
-	return getArrowBend(svgEdges[bestIndex])
+	return svgEdges[bestIndex]
+}
+
+/** How far either side of its middle a top or bottom self-loop's ends sit, as a fraction of the edge. */
+const SELF_LOOP_EDGE_SPREAD = 0.4
+
+/**
+ * Where a self-loop leaves and re-enters its node, and how far out it reaches. Mermaid loops out of
+ * the side facing the next rank (the bottom of a top-down chart, the right of a left-to-right one)
+ * with the label just beyond; anywhere else, loop and label land on the node.
+ */
+export function getSelfLoopEdgeLayout(
+	svgEdge: ParsedEdge,
+	node: ParsedNode,
+	edgeLabels: Map<string, ParsedEdgeLabel>
+) {
+	if (svgEdge.points.length < 2 || !(node.width > 0 && node.height > 0)) return undefined
+	const left = node.center.x - node.width / 2
+	const top = node.center.y - node.height / 2
+	const toAnchor = (point: Vec2) => ({
+		x: clamp((point.x - left) / node.width, 0, 1),
+		y: clamp((point.y - top) / node.height, 0, 1),
+	})
+	const start = toAnchor(svgEdge.points[0])
+	const end = toAnchor(svgEdge.points[svgEdge.points.length - 1])
+	// tldraw wraps an arrow's label to the arrow's width less 64px whenever it is wider than tall,
+	// as a loop on the top or bottom edge always is. Spread its ends across that edge to give the
+	// label room; the chord stays on the same line, so where the label lands is unchanged.
+	if (start.y === end.y && (start.y === 0 || start.y === 1)) {
+		const middle = (start.x + end.x) / 2
+		const halfSpan = Math.min(SELF_LOOP_EDGE_SPREAD, middle, 1 - middle)
+		const direction = Math.sign(end.x - start.x) || 1
+		start.x = middle - halfSpan * direction
+		end.x = middle + halfSpan * direction
+	}
+	const label = edgeLabels.get(svgEdge.id)
+	const labelCenter = label && { x: label.x + label.w / 2, y: label.y + label.h / 2 }
+	return {
+		bend: getSelfLoopBend(svgEdge, labelCenter),
+		anchorStartX: start.x,
+		anchorStartY: start.y,
+		anchorEndX: end.x,
+		anchorEndY: end.y,
+	}
 }
 
 // ---------------------------------------------------------------------------
 // Layout scaling and bounds
 // ---------------------------------------------------------------------------
 
-export function scaleLayout(
-	nodes: Map<string, ParsedNode>,
-	clusters: Map<string, ParsedCluster>,
-	edges: ParsedEdge[],
-	scale: number
-): void {
+export function scaleLayout(layout: ParsedDiagramLayout, scale: number): void {
+	const { nodes, clusters, edges, edgeLabels } = layout
 	for (const node of nodes.values()) {
 		node.center.x *= scale
 		node.center.y *= scale
@@ -283,5 +382,11 @@ export function scaleLayout(
 			point.x *= scale
 			point.y *= scale
 		}
+	}
+	for (const label of edgeLabels.values()) {
+		label.x *= scale
+		label.y *= scale
+		label.w *= scale
+		label.h *= scale
 	}
 }

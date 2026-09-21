@@ -14,7 +14,7 @@ jobs:
   publish:
     name: Publish VSCE/OVX
     environment: vsce publish
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -29,6 +29,7 @@ jobs:
           private-key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
 
       - name: Check out code
+        id: checkout
         uses: actions/checkout@v6
         with:
           persist-credentials: false
@@ -44,6 +45,7 @@ jobs:
         run: yarn build-types
 
       - name: Publish extension
+        timeout-minutes: 10
         run: yarn tsx ./internal/scripts/publish-editor-extensions.ts
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
@@ -51,9 +53,9 @@ jobs:
           TLDRAW_ENV: production
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
-      # Earlier steps run before checkout, so re-fetch the local action on failure.
+      # Preserve the setup action for post-job cleanup when checkout already succeeded.
       - name: Check out Discord notify action
-        if: failure()
+        if: failure() && steps.checkout.outcome != 'success'
         uses: actions/checkout@v6
         with:
           sparse-checkout: .github/actions/discord-fail-notify

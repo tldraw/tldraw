@@ -1,7 +1,7 @@
 import { atom, Atom } from '@tldraw/state'
 import { TLRecord } from '@tldraw/tlschema'
 import { assert, warnOnce } from '@tldraw/utils'
-import { chunk } from './chunk'
+import { chunk, MAX_ASSEMBLED_MESSAGE_CHARS } from './chunk'
 import { TLSocketClientSentEvent, TLSocketServerSentEvent } from './protocol'
 import {
 	TLPersistentClientSocket,
@@ -10,6 +10,16 @@ import {
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
 } from './TLSyncClient'
+
+// The ready states from the WebSocket spec, kept local instead of read off the global
+// constructor: an extension or page teardown can leave `WebSocket` undefined by the time a
+// window `online` or close handler fires, and `WebSocket.OPEN` then throws (#10106).
+const ReadyState = {
+	CONNECTING: 0,
+	OPEN: 1,
+	CLOSING: 2,
+	CLOSED: 3,
+} as const
 
 function listenTo<T extends EventTarget>(target: T, event: string, handler: () => void) {
 	target.addEventListener(event, handler)
@@ -176,8 +186,8 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 		assert(!this.isDisposed, 'Tried to set a new websocket on a disposed socket')
 		assert(
 			this._ws === null ||
-				this._ws.readyState === WebSocket.CLOSED ||
-				this._ws.readyState === WebSocket.CLOSING,
+				this._ws.readyState === ReadyState.CLOSED ||
+				this._ws.readyState === ReadyState.CLOSING,
 			`Tried to set a new websocket in when the existing one was ${this._ws?.readyState}`
 		)
 
@@ -280,7 +290,20 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 
 		if (!this._ws) return
 		if (this.connectionStatus === 'online') {
-			const chunks = chunk(JSON.stringify(msg))
+			const stringified = JSON.stringify(msg)
+			// The server rejects a session whose assembled message exceeds this, so sending would
+			// only earn a close and a reconnect that re-sends the same message. Fail here the way
+			// the server would, so onSyncError runs once instead of the client looping forever.
+			if (stringified.length > MAX_ASSEMBLED_MESSAGE_CHARS) {
+				this._handleDisconnect(
+					'closed',
+					TLSyncErrorCloseEventCode,
+					true,
+					TLSyncErrorCloseEventReason.MESSAGE_TOO_LARGE
+				)
+				return
+			}
+			const chunks = chunk(stringified)
 			for (const part of chunks) {
 				this._ws.send(part)
 			}
@@ -536,7 +559,7 @@ export class ReconnectManager {
 		// this can happen if the promise gets resolved too late
 		if (this.state !== 'pendingAttempt' || this.isDisposed) return
 		assert(
-			this.socketAdapter._ws?.readyState !== WebSocket.OPEN,
+			this.socketAdapter._ws?.readyState !== ReadyState.OPEN,
 			'There should be no connection attempts while already connected'
 		)
 
@@ -590,13 +613,13 @@ export class ReconnectManager {
 		this.clearRecheckConnectingTimeout()
 
 		// readyState can be CONNECTING, OPEN, CLOSING, CLOSED, or null (if getUri() is still pending)
-		if (this.socketAdapter._ws?.readyState === WebSocket.OPEN) {
+		if (this.socketAdapter._ws?.readyState === ReadyState.OPEN) {
 			debug('ReconnectManager.maybeReconnected: already connected')
 			// nothing to do, we're already OK
 			return
 		}
 
-		if (this.socketAdapter._ws?.readyState === WebSocket.CONNECTING) {
+		if (this.socketAdapter._ws?.readyState === ReadyState.CONNECTING) {
 			debug('ReconnectManager.maybeReconnected: connecting')
 			// We might be waiting for a TCP connection that sent SYN out and will never get it back,
 			// while a new connection appeared. On the other hand, we might have just started connecting
@@ -660,8 +683,8 @@ export class ReconnectManager {
 
 		// Guard against delayed notifications and recheck synchronously
 		if (
-			this.socketAdapter._ws?.readyState !== WebSocket.OPEN &&
-			this.socketAdapter._ws?.readyState !== WebSocket.CONNECTING
+			this.socketAdapter._ws?.readyState !== ReadyState.OPEN &&
+			this.socketAdapter._ws?.readyState !== ReadyState.CONNECTING
 		) {
 			debug('ReconnectManager.disconnected: websocket is not OPEN or CONNECTING')
 			this.clearReconnectTimeout()
@@ -718,7 +741,7 @@ export class ReconnectManager {
 	connected() {
 		debug('ReconnectManager.connected')
 		// this notification could've been delayed, recheck synchronously
-		if (this.socketAdapter._ws?.readyState === WebSocket.OPEN) {
+		if (this.socketAdapter._ws?.readyState === ReadyState.OPEN) {
 			debug('ReconnectManager.connected: websocket is OPEN')
 			this.state = 'connected'
 			this.clearReconnectTimeout()
