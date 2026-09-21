@@ -322,6 +322,22 @@ function fitShapesCamera(editor: Editor, shapeIds: string[], width: number, heig
 	}
 }
 
+// The pre-export fit for either capture kind. An explicit viewport capture is deliberately left
+// alone: its camera is the one the token asked for, set on mount.
+function fitExportCamera(
+	editor: Editor,
+	shapeIds: string[] | undefined,
+	camera: 'content' | undefined,
+	width: number,
+	height: number
+) {
+	if (shapeIds?.length) {
+		fitShapesCamera(editor, shapeIds, width, height)
+	} else if (camera === 'content') {
+		fitContentCamera(editor, width, height)
+	}
+}
+
 // Produces a thumbnail of the editor's current page with editor.toImage once the scene has settled
 // — fonts loaded, image assets warm, and the editor's <img> elements stable — and hands the PNG blob
 // to `onImage`.
@@ -361,19 +377,20 @@ export function ThumbnailExportSignal({
 			await Promise.race([
 				(async () => {
 					await waitForFonts()
+					// Fit before warming, not after: autosized text has re-measured by now so the
+					// bounds are final, and the export culls at this camera. Warming a set derived
+					// from the mount fit would skip the shapes this refit brings into view, and the
+					// capture would draw them unloaded.
+					fitExportCamera(editor, shapeIds, camera, width, height)
 					await preloadImageAssets(editor, settleDeadline, shapeIds)
 					await waitForEditorImages(editor, settleDeadline)
 				})(),
 				sleep(settleTimeoutMs),
 			])
 			if (cancelled) return
-			// Re-fit content now that fonts and assets have settled: autosized text re-measures after
-			// the web font loads, so the fit computed in onMount (before fonts) is stale and would clip.
-			if (shapeIds?.length) {
-				fitShapesCamera(editor, shapeIds, width, height)
-			} else if (camera === 'content') {
-				fitContentCamera(editor, width, height)
-			}
+			// Runs again because the race may have timed out before the fit above: without this the
+			// export would fall back to onMount's pre-font camera and clip re-measured text.
+			fitExportCamera(editor, shapeIds, camera, width, height)
 			const blob = await exportThumbnailImage(editor, theme, width, height, shapeIds)
 			if (cancelled) return
 			await onImage(blob)
@@ -535,7 +552,8 @@ async function waitForFonts() {
 // is fixed, so a board with thousands of images elsewhere spent it fetching pictures the export
 // never shows and then timed out — production timeouts track the board's asset count, not the
 // page's. The drawn set is the export's own (see exportThumbnailImage): the requested shapes and
-// their descendants, or the page's shapes that survive culling at the camera fitted on mount.
+// their descendants, or the page's shapes that survive culling at the camera the export will use —
+// so this must run after the pre-export fit, not before it.
 // Failures resolve rather than reject: a broken asset should not block the capture.
 async function preloadImageAssets(editor: Editor, deadline: number, requestedShapeIds?: string[]) {
 	const culled = editor.getCulledShapes()
