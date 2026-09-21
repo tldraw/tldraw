@@ -8,7 +8,13 @@ import {
 	defaultTldrawOptions,
 } from 'tldraw'
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { SHAPES_NOT_ON_PAGE, exportThumbnailImage, prepareLiveCapture } from './thumbnail-render'
+import {
+	SHAPES_NOT_ON_PAGE,
+	exportThumbnailImage,
+	prepareLiveCapture,
+	setThumbnailError,
+	signalThumbnailReady,
+} from './thumbnail-render'
 
 describe('MAX_THUMBNAIL_PAGES', () => {
 	// The MCP board-info tool enumerates a board's pages in the sync worker, which parses the room
@@ -34,6 +40,8 @@ beforeAll(() => {
 beforeEach(() => {
 	delete document.body.dataset.thumbnailError
 	delete document.documentElement.dataset.thumbnailError
+	delete document.body.dataset.thumbnailReady
+	delete document.documentElement.dataset.thumbnailReady
 })
 
 // Two pages with one shape each, left on the first — which stands in for the page a job named. The
@@ -107,4 +115,24 @@ describe('exportThumbnailImage', () => {
 		)
 		editor.dispose()
 	}, 5000)
+})
+
+describe('signalThumbnailReady', () => {
+	it('marks both elements ready on a clean render', () => {
+		signalThumbnailReady()
+		expect(document.body.dataset.thumbnailReady).toBe('true')
+		expect(document.documentElement.dataset.thumbnailReady).toBe('true')
+	})
+
+	// The worker captures on `body[data-thumbnail-ready="true"]` and does not look at the error
+	// marker, so a page carrying both hands back a screenshot of whatever is on screen and it gets
+	// cached as the real thing. prepareLiveCapture's refusal returns from onMount, but
+	// ThumbnailExportSignal keeps running and ends here, so the error has to win.
+	it('refuses to mark ready once an error is marked', () => {
+		setThumbnailError(SHAPES_NOT_ON_PAGE)
+		signalThumbnailReady()
+		expect(document.body.dataset.thumbnailReady).toBeUndefined()
+		expect(document.documentElement.dataset.thumbnailReady).toBeUndefined()
+		expect(document.body.dataset.thumbnailError).toBe(SHAPES_NOT_ON_PAGE)
+	})
 })

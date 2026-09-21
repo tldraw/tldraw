@@ -266,7 +266,14 @@ export function ThumbnailImage({
 	)
 }
 
-function signalThumbnailReady() {
+// Refuses to mark success once the page has failed. `setThumbnailError` is terminal, but the
+// worker's capture selector is `body[data-thumbnail-ready="true"]` and says nothing about an error,
+// so a path that marks an error and then goes on to mark ready hands back a screenshot of whatever
+// is on screen — and it gets cached as the real thing. Live capture reaches here exactly that way:
+// prepareLiveCapture's refusal returns from onMount, but ThumbnailExportSignal is a child of
+// <Tldraw> and runs its effect regardless, ending at signalThumbnailReady with the page unpruned.
+export function signalThumbnailReady() {
+	if (document.body.dataset.thumbnailError !== undefined) return
 	document.body.dataset.thumbnailReady = 'true'
 	document.documentElement.dataset.thumbnailReady = 'true'
 }
