@@ -1507,6 +1507,9 @@ export interface DefaultVideoToolbarContentProps {
     videoShapeId: TLVideoShape['id'];
 }
 
+// @public
+export const defaultWrappingPairs: Record<string, readonly [string, string]>;
+
 // @public (undocumented)
 export const DefaultZoomMenu: MemoExoticComponent<({ children }: TLUiZoomMenuProps) => JSX.Element>;
 
@@ -6665,6 +6668,14 @@ export interface VideoShapeUtilDisplayValues {
 
 // @public (undocumented)
 export function ViewSubmenu(): JSX.Element;
+
+// @public
+export const WrapSelectionExtension: Extension<WrapSelectionOptions, any>;
+
+// @public
+export interface WrapSelectionOptions {
+    pairs: Record<string, readonly [string, string]>;
+}
 
 // @public (undocumented)
 export function XBoxToolbarItem(): JSX.Element;
