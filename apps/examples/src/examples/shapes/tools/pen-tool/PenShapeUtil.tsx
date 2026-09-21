@@ -204,7 +204,7 @@ export class PenShapeUtil extends ShapeUtil<PenShape> {
 				handles.push({
 					...Vec.Add(node.point, node[part]).toJson(),
 					id: `${i}:${part}`,
-					type: 'virtual',
+					type: 'vertex',
 					index: indices[i * 3 + j + 1],
 				})
 			}
