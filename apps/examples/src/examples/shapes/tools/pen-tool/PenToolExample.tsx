@@ -49,13 +49,13 @@ class PenInteraction extends StateNode {
 		return this.editor.getPointInShapeSpace(shape, this.editor.inputs.getCurrentPagePoint())
 	}
 
-	getHandle(shape: PenShape) {
+	getHandleOverlay(shape: PenShape) {
 		const overlay = this.editor.overlays.getOverlayAtPoint(
 			this.editor.inputs.getCurrentPagePoint(),
 			this.editor.getHitTestMargin()
 		)
 		if (overlay?.type !== 'shape_handle' || overlay.props.shapeId !== shape.id) return
-		return (overlay as TLShapeHandleOverlay).props.handle
+		return overlay as TLShapeHandleOverlay
 	}
 
 	startDrag(shape: PenShape, index: number, part: HandlePart, mark: string, creating = false) {
@@ -198,11 +198,35 @@ class Editing extends PenInteraction {
 		this.finish()
 	}
 
+	override onPointerMove(info: TLPointerEventInfo) {
+		super.onPointerMove(info)
+		if (!this.drag) this.updateHoveredHandle()
+	}
+
+	override onPointerUp() {
+		super.onPointerUp()
+		this.updateHoveredHandle()
+	}
+
+	override onExit() {
+		super.onExit()
+		this.editor.overlays.setHoveredOverlay(null)
+	}
+
+	private updateHoveredHandle() {
+		const shape = this.shape
+		const overlay = shape && this.getHandleOverlay(shape)
+		this.editor.overlays.setHoveredOverlay(overlay?.id ?? null)
+		this.editor.setHoveredShape(null)
+		const cursor = overlay && this.editor.overlays.getOverlayUtil(overlay).getCursor(overlay)
+		this.editor.setCursor({ type: cursor ?? 'default', rotation: 0 })
+	}
+
 	override onPointerDown(info: TLPointerEventInfo) {
 		if (info.button !== 0) return
 		const shape = this.shape
 		if (!shape || this.editor.isShapeOrAncestorLocked(shape)) return this.finish()
-		const handle = this.getHandle(shape)
+		const handle = this.getHandleOverlay(shape)?.props.handle
 		if (!handle) {
 			if (
 				!this.editor.isPointInShape(shape, this.editor.inputs.getCurrentPagePoint(), {
@@ -246,7 +270,7 @@ class Editing extends PenInteraction {
 	override onDoubleClick(info: TLClickEventInfo) {
 		if (info.phase !== 'down') return
 		const shape = this.shape
-		if (!shape || this.getHandle(shape)) return
+		if (!shape || this.getHandleOverlay(shape)) return
 		const points = insertPenPoint(shape, this.getPoint(shape), 10 / this.editor.getZoomLevel())
 		if (!points) return
 		this.editor.markHistoryStoppingPoint('insert pen point')
