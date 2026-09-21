@@ -193,6 +193,11 @@ class Editing extends PenInteraction {
 		this.editor.select(shapeId).setCursor({ type: 'default', rotation: 0 })
 	}
 
+	override onCancel() {
+		if (this.drag) this.editor.bailToMark(this.drag.mark)
+		this.finish()
+	}
+
 	override onPointerDown(info: TLPointerEventInfo) {
 		if (info.button !== 0) return
 		const shape = this.shape

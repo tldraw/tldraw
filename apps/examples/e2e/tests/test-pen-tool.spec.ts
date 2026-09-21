@@ -117,9 +117,19 @@ test.describe('Pen tool', () => {
 		await expect(penPath(page)).toHaveAttribute('d', smooth!)
 	})
 
-	test('moves points, cancels a drag, and discards a single unfinished point', async ({ page }) => {
+	test('Escape exits editing, cancels a drag, and discards a single unfinished point', async ({
+		page,
+	}) => {
 		await drawCornerPath(page)
 		await page.keyboard.press('Enter')
+		await page.mouse.dblclick(300, 400)
+		await expect(page.getByText('Edit points', { exact: true })).toBeVisible()
+		await page.keyboard.press('Escape')
+		await expect(page.getByRole('button', { name: 'Select — V', exact: true })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		)
+		await expect(page.getByText('Edit points', { exact: true })).toBeHidden()
 		await page.mouse.dblclick(300, 400)
 		const original = await penPath(page).getAttribute('d')
 		await page.mouse.move(300, 300)
@@ -129,7 +139,11 @@ test.describe('Pen tool', () => {
 		await page.keyboard.press('Escape')
 		await page.mouse.up()
 		await expect(penPath(page)).toHaveAttribute('d', original!)
-		await page.keyboard.press('Escape')
+		await expect(page.getByRole('button', { name: 'Select — V', exact: true })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		)
+		await expect(page.getByText('Edit points', { exact: true })).toBeHidden()
 		await page.getByRole('button', { name: 'Pen — P', exact: true }).click()
 		await page.mouse.click(600, 300)
 		await page.keyboard.press('Escape')

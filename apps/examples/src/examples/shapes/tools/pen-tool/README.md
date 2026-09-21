@@ -19,7 +19,7 @@ Double-click a path to edit its points:
 - Double-click a segment to insert a point without changing the curve.
 - Cmd/Ctrl-click a point to remove it. Paths retain at least two points; removing a triangle's third point opens it.
 - Alt-click a point to toggle between a corner and a smooth point.
-- Press Enter or Escape, or click away, to finish editing. Escape during a drag cancels that gesture.
+- Press Enter or Escape, or click away, to finish editing. Escape during a drag cancels that gesture and exits editing.
 
 Use the standard color, size, and fill controls to style the path. Open paths have no fill. Undo and redo work for point creation and editing.
 
