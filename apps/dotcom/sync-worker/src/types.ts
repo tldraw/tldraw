@@ -100,6 +100,8 @@ export interface Environment {
 	MCP_SERVER_BOARD_RATE_LIMITER: RateLimit | undefined
 	/** Total Browser Run sessions the tools spend, captures and measures alike, on one shared key. */
 	MCP_SERVER_BROWSER_RATE_LIMITER: RateLimit | undefined
+	/** Per-account `search_boards` calls. Bounds Postgres, not Browser Run, which search never spends. */
+	MCP_SERVER_SEARCH_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
