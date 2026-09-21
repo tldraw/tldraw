@@ -199,7 +199,7 @@ function ThumbnailRenderPage({
 					}
 					// Before readonly, which the editor's own write guards honour.
 					if (renderParams.capture === 'live' && renderParams.shapeIds?.length) {
-						pruneToRequestedShapes(editor, getRequestedShapeIds(editor, renderParams.shapeIds))
+						if (!prepareLiveCapture(editor, renderParams.shapeIds)) return
 					}
 					editor.updateInstanceState({ isReadonly: true })
 					// `content` is what every surface asks for today; an explicit viewport is still honoured
@@ -375,6 +375,34 @@ function fitContentCamera(editor: Editor, width: number, height: number) {
 // a live snapshot for shared files, so this stays defensive rather than throwing mid-render.
 function getRequestedShapeIds(editor: Editor, shapeIds: string[]): TLShapeId[] {
 	return shapeIds.filter((id): id is TLShapeId => Boolean(editor.getShape(id as TLShapeId)))
+}
+
+// The requested shapes that are on the page the job named, which is the set the live prune may
+// safely keep. `getRequestedShapeIds` asks the store, so a shape that has since moved to another
+// page still answers it; that is the wrong question here, where the answer decides what gets
+// deleted. Membership is read from the current page rather than from each shape's `parentId`, which
+// for a shape inside a frame names the frame instead of the page.
+function getRequestedShapeIdsOnCurrentPage(editor: Editor, shapeIds: string[]): TLShapeId[] {
+	const onCurrentPage = editor.getCurrentPageShapeIds()
+	return shapeIds.filter((id): id is TLShapeId => onCurrentPage.has(id as TLShapeId))
+}
+
+// Readies the canvas for a live capture, or refuses the render. Returns false once the error marker
+// is set, which is terminal — the worker's screenshot wait resolves on it.
+//
+// The refusal is the point: pruning to an empty set deletes every shape on the page, and the
+// screenshot would hand back that blank canvas as a picture of the requested shapes, cached under
+// their key. The snapshot endpoint refuses a job whose shapes have gone for exactly this reason,
+// but existence is all it can check — the ids are resolved against a live shared-file snapshot, so
+// shapes that still exist and have moved to another page since the mint pass it and arrive here.
+export function prepareLiveCapture(editor: Editor, shapeIds: string[]): boolean {
+	const requested = getRequestedShapeIdsOnCurrentPage(editor, shapeIds)
+	if (requested.length === 0) {
+		setThumbnailError('requested shapes are not on the requested page')
+		return false
+	}
+	pruneToRequestedShapes(editor, requested)
+	return true
 }
 
 // Brings the live canvas to the picture the export draws: only the requested shapes and their
