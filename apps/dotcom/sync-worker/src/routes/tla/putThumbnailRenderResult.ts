@@ -5,7 +5,7 @@ import {
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
-import { isMintedRenderToken, verifyThumbnailRenderToken } from '../../utils/renderTokens'
+import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { ShapeMeasurement } from './boardTools'
 import { putRenderResult } from './thumbnailRender'
 
@@ -47,9 +47,16 @@ export async function putThumbnailRenderResult(
 				{ status: 400 }
 			)
 		}
-		// Minted, not merely signed — the same gate as the snapshot route (see isMintedRenderToken).
+		// Signed and unexpired, but deliberately *not* minted-checked, unlike the snapshot route. An
+		// MCP record is keyed per capture and deleted the moment the session returns (see
+		// deleteMintedRenderToken), while the page sends this beacon and signals ready in the next
+		// statement — so requiring the record would race the worker's own cleanup and lose the
+		// timings for precisely the fastest renders, which is the wrong end to go blind at. The
+		// signature is enough here because this branch hands back no board data and nothing waits on
+		// it: a forged token could only add noise to `render_page_timings`, which is already true of
+		// every `public` job, where the minted check passes vacuously anyway.
 		const job = await verifyThumbnailRenderToken(env, body.token)
-		if (!job || !(await isMintedRenderToken(env, job, body.token))) {
+		if (!job) {
 			return Response.json({ error: true, message: 'Invalid render token' }, { status: 403 })
 		}
 		const { bootAt, dataAt, mountAt, settledAt, exportedAt } = body.timings

@@ -71,28 +71,49 @@ describe('the timing beacon', () => {
 		expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
 	})
 
-	it('refuses a signed token that was never minted, and accepts one that was', async () => {
-		// The record lives in THUMBNAILS; without the bucket bound the check trusts the signature.
+	// Unlike the snapshot route, the beacon does not require the minted-token record. An MCP record
+	// is keyed per capture and deleted as soon as the session returns, and the page sends this beacon
+	// immediately before signalling ready — so a live capture's beacon regularly lands after its own
+	// record is gone. Requiring it would drop the timings for the fastest renders, which is the wrong
+	// end of the distribution to lose. Both a recorded and an unrecorded token are accepted.
+	it('accepts a signed token whose minted record has already been cleaned up', async () => {
 		const env = makeScreenshotTestEnv({
 			THUMBNAILS: makeFakeThumbnailsBucket(),
 		}) as unknown as Environment
 		const job: ThumbnailRenderJob = { ...JOB, access: 'render' }
 		const unrecorded = await mintThumbnailRenderToken(env, job)
 
-		const refused = await putThumbnailRenderResult(
+		const accepted = await putThumbnailRenderResult(
 			makeRequest({ token: unrecorded, timings: TIMINGS }),
 			env
 		)
-		expect(refused.status).toBe(403)
+		expect(accepted.status).toBe(200)
 
 		const recordedJob = { ...job, exp: job.exp + 1 }
 		const recorded = await mintThumbnailRenderToken(env, recordedJob)
 		await recordMintedRenderToken(env, recordedJob, recorded)
-		const accepted = await putThumbnailRenderResult(
+		const stillAccepted = await putThumbnailRenderResult(
 			makeRequest({ token: recorded, timings: TIMINGS }),
 			env
 		)
-		expect(accepted.status).toBe(200)
+		expect(stillAccepted.status).toBe(200)
+
+		expect((env.MEASURE as any).writeDataPoint).toHaveBeenCalledTimes(2)
+	})
+
+	// The signature stays the whole gate, so an expired token is still refused: nothing else bounds
+	// how long a leaked one could keep writing datapoints.
+	it('refuses an expired token', async () => {
+		const env = makeScreenshotTestEnv() as unknown as Environment
+		const expired = await mintThumbnailRenderToken(env, { ...JOB, exp: Date.now() - 1 })
+
+		const response = await putThumbnailRenderResult(
+			makeRequest({ token: expired, timings: TIMINGS }),
+			env
+		)
+
+		expect(response.status).toBe(403)
+		expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
 	})
 
 	it('refuses non-finite stamps rather than polluting the dataset', async () => {
