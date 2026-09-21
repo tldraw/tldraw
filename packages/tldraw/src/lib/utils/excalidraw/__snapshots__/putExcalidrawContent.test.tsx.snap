@@ -411,6 +411,7 @@ exports[`putExcalidrawContent test fixtures > image.json 1`] = `
     "props": {
       "altText": "",
       "assetId": "asset:5",
+      "border": "none",
       "crop": null,
       "flipX": false,
       "flipY": false,
