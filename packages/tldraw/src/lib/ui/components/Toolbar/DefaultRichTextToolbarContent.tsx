@@ -100,12 +100,16 @@ export function DefaultRichTextToolbarContent({
 					handleOp('bulletList', 'toggleBulletList')
 				},
 			},
-			{
-				name: 'taskList',
-				onSelect() {
-					handleOp('taskList', 'toggleTaskList')
-				},
-			},
+			// The docs suggest filtering task lists out of the extensions; without the command, a
+			// click would throw.
+			'toggleTaskList' in textEditor.commands
+				? {
+						name: 'taskList',
+						onSelect() {
+							handleOp('taskList', 'toggleTaskList')
+						},
+					}
+				: undefined,
 			{
 				name: 'highlight',
 				onSelect() {
