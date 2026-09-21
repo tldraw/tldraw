@@ -195,7 +195,6 @@ const DragAndDropTray = () => {
 					if (isInside) {
 						imageRef.style.display = 'none'
 					} else {
-						imageRef.style.display = 'block'
 						imageRef.style.position = 'absolute'
 						imageRef.style.pointerEvents = 'none'
 						imageRef.style.left = '0px'
@@ -251,68 +250,51 @@ export default function DragAndDropTrayExample() {
 }
 
 /*
-Introduction:
-
-This example demonstrates how to create a drag-and-drop tray component that allows users
-to drag items from a custom UI tray and drop them onto the canvas as tldraw shapes. The
-example uses a state machine pattern to manage the drag interaction states and creates
-a custom UI component that renders in front of the canvas.
+This example builds a tray of items that can be dragged onto the canvas to create shapes.
+The tray is a custom `InFrontOfTheCanvas` component, so it renders over the canvas but
+inside tldraw's UI layer, and it drives the interaction with its own small state machine.
 
 [1]
-We define a union type `DragState` to represent the different states of our drag interaction:
-- `idle`: Nothing is being dragged
-- `pointing_item`: User has pressed down on an item but hasn't started dragging yet
-- `dragging`: User is actively dragging an item
-
-This state machine pattern helps us handle the complex drag interaction logic cleanly.
+`DragState` is a discriminated union: `idle`, `pointing_item` (pointer is down but hasn't
+moved far enough to count as a drag), and `dragging`. Modelling it this way means each
+handler only has to deal with the transitions that are valid from its current state.
 
 [2]
-The main `DragAndDropTray` component uses two refs:
-- `rTrayContainer`: References the tray container div for bounds checking
-- `rDraggingImage`: References the dragging preview image that follows the cursor
-
-We also get access to the tldraw editor instance to create shapes and handle coordinate
-transformations.
+`rTrayContainer` is used for bounds checking (we hide the preview while the pointer is
+still over the tray) and `rDraggingImage` is the preview element that follows the cursor.
 
 [3]
-We use tldraw's `useAtom` hook to create reactive state that can be observed and updated.
-The `dragState` atom holds our current drag state and automatically triggers re-renders
-when it changes.
+`useAtom` gives us a reactive atom that both the memoized event handlers and the
+`useQuickReactor` below can read without being recreated when the state changes.
 
 [4]
-The event handlers are memoized using `useMemo` to avoid recreating them on every render.
-The main logic handles the drag interaction:
-
-	[a] When transitioning from `pointing_item` to `dragging`, we check if the user has
-	moved their pointer more than 10 pixels from the start position to avoid accidental
-	drags from simple clicks.
-
-	[b] During dragging, we continuously update the current position to track the cursor.
-
-	[c] When the drag ends (pointer up during dragging), we convert the screen coordinates
-	to page coordinates and create a new shape at that position using the editor API.
-
-	[d] When starting a drag (pointer down), we capture the pointer, get the item data
-	from the DOM, and transition to the `pointing_item` state.
+The handlers are created once in `useMemo` and read the atom directly, so they don't go
+stale.
+	[a] We only enter `dragging` after the pointer moves more than 10px, so a plain click
+	on a tray item doesn't accidentally create a shape.
+	[b] While dragging we just track the pointer position; the preview is positioned in [5].
+	[c] On pointer up while dragging, convert the screen point to page space with
+	`editor.screenToPage()` and create the shape there. `markHistoryStoppingPoint` makes
+	each drop its own undo step.
+	[d] On pointer down we capture the pointer on the item element, so we keep receiving
+	move/up events even when the pointer leaves it. The item index comes from a `data-`
+	attribute so one handler serves every item.
 
 [5]
-The `useQuickReactor` hook efficiently manages the drag preview image styling. It:
-- Hides the preview when not dragging
-- Shows/hides the preview based on whether the cursor is inside the tray bounds
-- Positions the preview image to follow the cursor during dragging
-- Applies appropriate styling for the drag preview
+`useQuickReactor` runs synchronously whenever `dragState` changes and writes styles to the
+preview element directly. Positioning via the DOM rather than React state avoids a React
+render on every pointer move. The offset by `getViewportScreenBounds()` converts the
+client coordinates to coordinates relative to the editor container, which is what an
+`InFrontOfTheCanvas` component is positioned against.
 
 [6]
-The tray UI renders each item from `TRAY_ITEMS` with pointer event handlers attached.
-We use `data-drag_item_index` to identify which item was clicked, allowing us to retrieve
-the correct item data during drag operations.
+Each tray item gets the shared pointer handlers and a `data-drag_item_index` attribute
+that [4d] reads back.
 
 [7]
-The drag preview image is a separate div that shows the emoji being dragged. It's only
-visible during the dragging state and follows the cursor position.
+The preview element only has content while dragging; [5] handles showing and hiding it.
 
 [8]
-We configure the tldraw editor to include our custom tray component using the `components`
-prop. The `InFrontOfTheCanvas` component renders on top of the canvas, making it perfect
-for UI elements like our drag tray.
+`components` is defined at module level so `<Tldraw>` doesn't see a new object on every
+render, which would remount the UI.
 */

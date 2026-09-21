@@ -83,7 +83,7 @@ export default function TldrawImageExample() {
 					/>
 				) : (
 					<TldrawImage
-						//[1]
+						// [1]
 						snapshot={snapshot}
 						// [2]
 						pageId={currentPageId}
@@ -102,17 +102,16 @@ export default function TldrawImageExample() {
 }
 
 /*
+[1]
+Pass a `TLStoreSnapshot` to the `snapshot` prop. When the user saves, we grab a fresh
+one from the editor with `getSnapshot(editor.store).document`.
 
-This example shows how to use the `TldrawImage` component to display a snapshot
-as an image. The example also allows you to toggle between editing the snapshot
-and viewing it.
+[2]
+`pageId` picks which page to render. It defaults to the first page, which is why we
+capture the editor's current page when leaving edit mode.
 
-[1] Pass your snapshot to the `snapshot` prop of the `TldrawImage` component.
-
-[2] You can specify which page to display by using the `pageId` prop. By
-    default, the first page is shown.
-
-[3] You can customize the appearance of the image by passing other props to the
-        `TldrawImage` component. For example, you can toggle the background, set
-        the dark mode, and specify the viewport bounds.
- */
+[3]
+The remaining props control appearance: `background` and `darkMode` match what the
+user was looking at, `bounds` renders just the region that was in the viewport, and
+`format` chooses between SVG and PNG output.
+*/

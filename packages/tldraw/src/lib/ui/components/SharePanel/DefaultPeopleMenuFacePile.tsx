@@ -1,4 +1,4 @@
-import { TLUserId } from '@tldraw/editor'
+import { getFirstCharacter, TLUserId } from '@tldraw/editor'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
@@ -34,12 +34,12 @@ export function DefaultPeopleMenuFacePile({
 						backgroundColor: userColor,
 					}}
 				>
-					{userName?.[0] ?? ''}
+					{getFirstCharacter(userName ?? '')}
 				</div>
 			)}
 			{userIds.length > maxAvatars && (
 				<div className="tlui-people-menu__avatar tlui-people-menu__more">
-					{Math.abs(userIds.length - maxAvatars)}
+					{userIds.length - maxAvatars}
 				</div>
 			)}
 		</div>

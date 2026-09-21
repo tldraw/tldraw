@@ -1,5 +1,5 @@
 ---
-title: Outlined text example
+title: Outlined text
 component: ./OutlinedTextExample.tsx
 priority: 21
 keywords:
@@ -15,8 +15,10 @@ keywords:
   ]
 ---
 
-Add outlined text styling to the TipTap text editor with a custom extension.
+Add an outlined text style with a custom TipTap mark and toolbar button.
 
 ---
 
-This example shows how to add a text outline effect by creating a custom TipTap extension that applies CSS text-stroke styling to selected text. The example includes a custom toolbar button to toggle the outline effect on and off.
+The `Outline` mark wraps selected text in a `<span class="outlined">`, and a few lines of CSS (`-webkit-text-stroke`) draw the outline. The mark is passed to the text editor through `options.text.tipTapConfig.extensions`, and a custom `RichTextToolbar` component adds a button that runs the mark's `toggleOutline` command.
+
+Try creating a text shape, selecting some text, and clicking the ⬜ button in the toolbar. See the "Rich text with custom extension and toolbar" example for the same pattern with a wavy underline.

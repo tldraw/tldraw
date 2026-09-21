@@ -79,7 +79,7 @@ function TldrawUIIconInner({
 			console.error(`Icon not found: ${icon}. Add it to the assetUrls.icons object.`)
 		}
 
-		if (ref?.current) {
+		if (ref.current) {
 			// HACK: Fix for <https://linear.app/tldraw/issue/TLD-1700/dragging-around-with-the-handtool-makes-lots-of-requests-for-icons>
 			// It seems that passing `WebkitMask` to react will cause a render on each call, no idea why... but this appears to be the fix.
 			// @ts-ignore

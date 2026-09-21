@@ -29,7 +29,11 @@ export function DefaultContextMenuContent() {
 
 	return (
 		<>
-			{showCollaborationUi && <CursorChatItem />}
+			{showCollaborationUi && (
+				<TldrawUiMenuGroup id="cursor-chat">
+					<CursorChatItem />
+				</TldrawUiMenuGroup>
+			)}
 			<TldrawUiMenuGroup id="modify">
 				<EditMenuSubmenu />
 				<ArrangeMenuSubmenu />

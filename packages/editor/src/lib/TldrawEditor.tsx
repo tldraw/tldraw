@@ -24,6 +24,7 @@ import React, {
 } from 'react'
 import { version } from '../version'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
+import { EditorPortalProvider } from './components/EditorPortal'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { createTLCurrentUser, TLCurrentUser } from './config/createTLCurrentUser'
 import { TLStoreBaseOptions } from './config/createTLStore'
@@ -45,16 +46,16 @@ import { EditorProvider, useEditor } from './hooks/useEditor'
 import { EditorComponentsProvider } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
-import { useShallowObjectIdentity } from './hooks/useIdentity'
+import { useDeepObjectIdentity, useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
 import { useStateAttribute } from './hooks/useStateAttribute'
 import { useZoomCss } from './hooks/useZoomCss'
-import { LicenseProvider } from './license/LicenseProvider'
+import { LicenseProvider, useLicenseContext } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import { TLDeepLinkOptions } from './utils/deepLinks'
-import { getGlobalDocument } from './utils/dom'
+import { getGlobalDocument, getGlobalWindow } from './utils/dom'
 import { TLTextOptions } from './utils/richText'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
@@ -105,11 +106,7 @@ export interface TldrawEditorWithoutStoreProps extends TLStoreBaseOptions {
 /** @public */
 export type TldrawEditorStoreProps = TldrawEditorWithStoreProps | TldrawEditorWithoutStoreProps
 
-/**
- * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.
- *
- * @public
- **/
+/** @public */
 export type TldrawEditorProps = TldrawEditorBaseProps & TldrawEditorStoreProps
 
 /**
@@ -283,7 +280,13 @@ const EMPTY_TOOLS_ARRAY = [] as const
 /** @internal */
 export const TL_CONTAINER_CLASS = 'tl-container'
 
-/** @public @react */
+/**
+ * The editor component without any of the default shapes, tools, or UI. It renders the canvas, or
+ * your own children in its place, with the shape utils, binding utils, tools, and components you
+ * pass in; the `Tldraw` component in the `tldraw` package wraps it with those defaults.
+ *
+ * @public @react
+ */
 export const TldrawEditor = memo(function TldrawEditor({
 	store,
 	components,
@@ -304,23 +307,30 @@ export const TldrawEditor = memo(function TldrawEditor({
 	registerFontsFromThemes(resolvedThemes)
 
 	const [container, setContainer] = useState<HTMLElement | null>(null)
+	const [portalHost, setPortalHost] = useState<HTMLElement | null>(null)
 	const user = useMemo(() => _user ?? createTLCurrentUser(), [_user])
 
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
 
-	// Merge deprecated props with options
-	// options values take precedence over the deprecated props
-	const mergedOptions = useMemo(() => {
-		let result = _options
-		if (_textOptions) {
-			result = { ...result, text: result?.text ?? _textOptions }
-		}
-		if (_deepLinks !== undefined) {
-			result = { ...result, deepLinks: result?.deepLinks ?? _deepLinks }
-		}
-		return result
-	}, [_options, _textOptions, _deepLinks])
+	// Merge deprecated props with options (options win). `options` is a dependency of the
+	// editor-creating effect, so it's shallow-stabilised below; the nested objects are
+	// deep-stabilised here first, or an inline `options={{ camera: { ... } }}` would still
+	// recreate the editor on every render. `text` needs the deep comparison as well: `<Tldraw>`
+	// builds a fresh `tipTapConfig` inside it whenever its own `options.text` is a new identity.
+	const camera = useDeepObjectIdentity(_options?.camera)
+	const gridSteps = useDeepObjectIdentity(_options?.gridSteps)
+	const text = useDeepObjectIdentity(_options?.text ?? _textOptions)
+	const mergedDeepLinks = _options?.deepLinks ?? _deepLinks
+	const deepLinkOptions = useDeepObjectIdentity(
+		mergedDeepLinks === true ? undefined : mergedDeepLinks
+	)
+	const deepLinks = mergedDeepLinks === true ? true : deepLinkOptions
+	let mergedOptions = _options
+	if (camera !== undefined) mergedOptions = { ...mergedOptions, camera }
+	if (gridSteps !== undefined) mergedOptions = { ...mergedOptions, gridSteps }
+	if (text !== undefined) mergedOptions = { ...mergedOptions, text }
+	if (deepLinks !== undefined) mergedOptions = { ...mergedOptions, deepLinks }
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
@@ -352,24 +362,30 @@ export const TldrawEditor = memo(function TldrawEditor({
 				{container && (
 					<LicenseProvider licenseKey={rest.licenseKey}>
 						<ContainerProvider container={container}>
-							<EditorComponentsProvider overrides={components}>
-								{store ? (
-									store instanceof Store ? (
-										// Store is ready to go, whether externally synced or not
-										<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
+							<EditorPortalProvider host={portalHost}>
+								<EditorComponentsProvider overrides={components}>
+									{store ? (
+										store instanceof Store ? (
+											// Store is ready to go, whether externally synced or not
+											<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
+										) : (
+											// Store is a synced store, so handle syncing stages internally
+											<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
+										)
 									) : (
-										// Store is a synced store, so handle syncing stages internally
-										<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
-									)
-								) : (
-									// We have no store (it's undefined) so create one and possibly sync it
-									<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
-								)}
-							</EditorComponentsProvider>
+										// We have no store (it's undefined) so create one and possibly sync it
+										<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
+									)}
+								</EditorComponentsProvider>
+							</EditorPortalProvider>
 						</ContainerProvider>
 					</LicenseProvider>
 				)}
 			</OptionalErrorBoundary>
+			{/* The host for <EditorPortal>, last among the container's children so that anything
+			    portaled through it lands after the canvas and the UI — behind the UI's "skip to main
+			    content" link in the tab order, which only works while nothing precedes it. */}
+			<div className="tl-portal-host" ref={setPortalHost} />
 		</div>
 	)
 })
@@ -425,11 +441,20 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	const container = useContainer()
 
 	useLayoutEffect(() => {
-		if (user.userPreferences.get().colorScheme === 'dark') {
+		// Resolve the scheme the same way UserPreferencesManager.getIsDarkMode will once the
+		// editor mounts, so a 'system' user on a dark OS doesn't get a light loading screen that
+		// flips dark on mount.
+		const scheme = user.userPreferences.get().colorScheme ?? rest.colorScheme ?? 'light'
+		const isDark =
+			scheme === 'dark' ||
+			(scheme === 'system' &&
+				typeof window !== 'undefined' &&
+				!!getGlobalWindow().matchMedia?.('(prefers-color-scheme: dark)').matches)
+		if (isDark) {
 			container.classList.remove('tl-theme__light')
 			container.classList.add('tl-theme__dark')
 		}
-	}, [container, user])
+	}, [container, user, rest.colorScheme])
 
 	const { LoadingScreen } = useEditorComponents()
 
@@ -489,6 +514,7 @@ function TldrawEditorWithReadyStore({
 >) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
+	const licenseManager = useLicenseContext()
 
 	const [editor, setEditor] = useRefState<Editor | null>(null)
 
@@ -555,6 +581,7 @@ function TldrawEditorWithReadyStore({
 				themes: themes,
 				initialTheme: initialTheme,
 			})
+			editor.licenseManager = licenseManager
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
 
@@ -590,6 +617,7 @@ function TldrawEditorWithReadyStore({
 			user,
 			setEditor,
 			licenseKey,
+			licenseManager,
 			getShapeVisibility,
 			assetUrls,
 		]
@@ -649,19 +677,25 @@ function TldrawEditorWithReadyStore({
 	useEffect(
 		function handleFocusOnPointerDownForPreserveFocusMode() {
 			if (!editor) return
+			const container = editor.getContainer()
 
 			function handleFocusOnPointerDown() {
 				if (!editor) return
 				editor.focus()
 			}
 
-			function handleBlurOnPointerDown() {
+			function handleBlurOnPointerDown(e: PointerEvent) {
 				if (!editor) return
+				// The same pointerdown bubbles from the container to the body; blurring here would
+				// cancel the interaction the container listener just focused for. Check the composed
+				// path rather than `e.target`: when the editor lives in an open shadow root the target
+				// is retargeted to the shadow host by the time the event reaches the body. (A closed
+				// shadow root truncates the path at the host, so those still blur.)
+				if (e.composedPath().includes(container)) return
 				editor.blur()
 			}
 
 			if (autoFocus && noAutoFocus()) {
-				const container = editor.getContainer()
 				container.addEventListener('pointerdown', handleFocusOnPointerDown)
 				container.ownerDocument.body.addEventListener('pointerdown', handleBlurOnPointerDown)
 

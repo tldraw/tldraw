@@ -6,6 +6,9 @@ import {
 	TLRichText,
 	TLShape,
 	TLShapeId,
+	Vec,
+	VecLike,
+	pointInPolygon,
 } from '@tldraw/editor'
 
 /** @internal */
@@ -47,4 +50,45 @@ export function startEditingShapeWithRichText(
 	if (options.selectAll) {
 		editor.emit('select-all-text', { shapeId: shape.id })
 	}
+}
+
+/**
+ * Start editing any editable shape. Shapes with rich text go through
+ * `startEditingShapeWithRichText`; editable shapes without it (frame, video, embed) would
+ * make that helper throw, so they enter the editing state directly.
+ *
+ * @internal
+ */
+export function startEditingShape(
+	editor: Editor,
+	shape: TLShape,
+	options: { selectAll?: boolean; info?: TLEventInfo } = {}
+) {
+	if (!editor.canEditShape(shape)) return
+	if (hasRichText(shape)) {
+		startEditingShapeWithRichText(editor, shape, options)
+		return
+	}
+	editor.setEditingShape(shape)
+	editor.setCurrentTool('select.editing_shape', { ...options.info, target: 'shape', shape })
+}
+
+/**
+ * Whether a page point is inside the selection's rotated bounding box. The box returned by
+ * `getSelectionRotatedPageBounds` is expressed in the rotated frame, so a plain `containsPoint`
+ * on it is only meaningful when the selection rotation is zero.
+ *
+ * @internal
+ */
+export function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) {
+	const selectionBounds = editor.getSelectionRotatedPageBounds()
+	if (!selectionBounds) return false
+
+	const selectionRotation = editor.getSelectionRotation()
+	if (!selectionRotation) return selectionBounds.containsPoint(point)
+
+	return pointInPolygon(
+		point,
+		selectionBounds.corners.map((c) => Vec.RotWith(c, selectionBounds.point, selectionRotation))
+	)
 }

@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	evaluateFlagForUser,
-	getFeatureFlagEnabled,
+	getAllFeatureFlagValues,
 	getFeatureFlagValue,
 	getFeatureFlags,
-	getFeatureFlagsAdmin,
 	hashToPercentage,
+	parseAllowlistEmails,
 	setFeatureFlag,
 } from './featureFlags'
 
@@ -38,7 +38,7 @@ describe('hashToPercentage', () => {
 	it('produces a reasonable spread across buckets', () => {
 		const buckets = new Set<number>()
 		for (let i = 0; i < 100; i++) {
-			buckets.add(hashToPercentage(`user-${i}`, 'zero_enabled'))
+			buckets.add(hashToPercentage(`user-${i}`, 'some_flag'))
 		}
 		expect(buckets.size).toBeGreaterThan(10)
 	})
@@ -87,7 +87,7 @@ describe('evaluateFlagForUser', () => {
 			expect(
 				evaluateFlagForUser(
 					{ type: 'percentage', enabled: true, percentage: 100, description: '' },
-					'zero_enabled',
+					'some_flag',
 					`user-${i}`
 				)
 			).toBe(true)
@@ -99,7 +99,7 @@ describe('evaluateFlagForUser', () => {
 			expect(
 				evaluateFlagForUser(
 					{ type: 'percentage', enabled: true, percentage: 0, description: '' },
-					'zero_enabled',
+					'some_flag',
 					`user-${i}`
 				)
 			).toBe(false)
@@ -113,7 +113,7 @@ describe('evaluateFlagForUser', () => {
 			if (
 				evaluateFlagForUser(
 					{ type: 'percentage', enabled: true, percentage: 50, description: '' },
-					'zero_enabled',
+					'some_flag',
 					`user-${i}`
 				)
 			) {
@@ -126,7 +126,7 @@ describe('evaluateFlagForUser', () => {
 	})
 
 	it('rollout is monotonic: increasing percentage never removes existing users', () => {
-		const flag = 'zero_enabled'
+		const flag = 'some_flag'
 		const users = Array.from({ length: 200 }, (_, i) => `user-${i}`)
 		const makeFlag = (pct: number) =>
 			({ type: 'percentage', enabled: true, percentage: pct, description: '' }) as const
@@ -143,18 +143,116 @@ describe('evaluateFlagForUser', () => {
 	})
 })
 
+// The type a percentage rollout cannot stand in for: a percentage buckets users by hash, so it gives
+// you *a* subset of the right size but never *the* subset you picked.
+describe('evaluateFlagForUser (allowlist)', () => {
+	const flag = (userIds: string[], enabled = true) =>
+		({
+			type: 'allowlist',
+			enabled,
+			users: userIds.map((userId) => ({ userId, email: `${userId}@example.com` })),
+			description: '',
+		}) as const
+
+	it('is on only for the named users', () => {
+		expect(evaluateFlagForUser(flag(['user-1', 'user-2']), 'test', 'user-1')).toBe(true)
+		expect(evaluateFlagForUser(flag(['user-1', 'user-2']), 'test', 'user-2')).toBe(true)
+		expect(evaluateFlagForUser(flag(['user-1', 'user-2']), 'test', 'user-3')).toBe(false)
+	})
+
+	it('is off for everyone when the master toggle is off', () => {
+		expect(evaluateFlagForUser(flag(['user-1'], false), 'test', 'user-1')).toBe(false)
+	})
+
+	it('is off for an anonymous caller', () => {
+		expect(evaluateFlagForUser(flag(['user-1']), 'test', null)).toBe(false)
+	})
+
+	it('is off for an empty list', () => {
+		expect(evaluateFlagForUser(flag([]), 'test', 'user-1')).toBe(false)
+	})
+
+	// The value comes from KV, where a hand-edited entry can arrive as anything. A malformed list must
+	// deny rather than admit — the alternative fails open on a flag whose whole job is to keep people
+	// out.
+	it('denies when users is missing or not an array of entries', () => {
+		expect(
+			evaluateFlagForUser({ type: 'allowlist', enabled: true, description: '' } as any, 't', 'u')
+		).toBe(false)
+		expect(
+			evaluateFlagForUser(
+				{ type: 'allowlist', enabled: true, users: 'user-1', description: '' } as any,
+				't',
+				'u'
+			)
+		).toBe(false)
+		expect(
+			evaluateFlagForUser(
+				{ type: 'allowlist', enabled: true, users: ['user-1'], description: '' } as any,
+				't',
+				'user-1'
+			)
+		).toBe(false)
+	})
+})
+
+// The admin edits an allowlist as emails; this is the input half of that. Resolution to user ids
+// happens against the database in the admin route.
+describe('parseAllowlistEmails', () => {
+	it('splits on newlines and commas, trims, lowercases, and drops blanks', () => {
+		expect(parseAllowlistEmails(' Friend@Example.com \n\nother@example.com, third@x.co ')).toEqual([
+			'friend@example.com',
+			'other@example.com',
+			'third@x.co',
+		])
+	})
+
+	it('accepts an array as well as a block of text', () => {
+		expect(parseAllowlistEmails(['a@example.com', 'b@example.org'])).toEqual([
+			'a@example.com',
+			'b@example.org',
+		])
+	})
+
+	it('drops duplicates that differ only in case or whitespace', () => {
+		expect(parseAllowlistEmails('a@example.com\nA@Example.com\n  a@example.com  ')).toEqual([
+			'a@example.com',
+		])
+	})
+
+	it('treats empty input as an empty list rather than an error', () => {
+		expect(parseAllowlistEmails('')).toEqual([])
+		expect(parseAllowlistEmails('\n\n,  ,\n')).toEqual([])
+		expect(parseAllowlistEmails(undefined)).toEqual([])
+	})
+
+	// Rejected before the lookup runs, so the admin gets "that isn't an email" rather than the
+	// blanker "no account for that".
+	it('rejects anything that is not an email address', () => {
+		expect(() => parseAllowlistEmails('tldraw.com')).toThrow('not an email address')
+		expect(() => parseAllowlistEmails('@tldraw.com')).toThrow('not an email address')
+		expect(() => parseAllowlistEmails('friend@localhost')).toThrow('not an email address')
+		expect(() => parseAllowlistEmails('a@b@example.com')).toThrow('not an email address')
+		expect(() => parseAllowlistEmails('friend @example.com')).toThrow('not an email address')
+	})
+
+	it('names the offending entry so the admin knows which line to fix', () => {
+		expect(() => parseAllowlistEmails('ok@example.com\ntldraw.com')).toThrow('"tldraw.com"')
+	})
+})
+
 describe('getFeatureFlagValue', () => {
 	it('returns defaults when KV has no value', async () => {
 		const env = makeEnv()
-		const value = await getFeatureFlagValue(env as any, 'zero_kill_switch')
-		expect(value).toMatchObject({ type: 'boolean', enabled: false })
+		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(value).toMatchObject({ type: 'percentage', enabled: false, percentage: 0 })
 	})
 
 	it('merges KV value over defaults', async () => {
 		const env = makeEnv({
-			zero_enabled: JSON.stringify({ enabled: true, percentage: 25 }),
+			rum_enabled: JSON.stringify({ enabled: true, percentage: 25 }),
 		})
-		const value = await getFeatureFlagValue(env as any, 'zero_enabled')
+		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
 		expect(value).toMatchObject({
 			type: 'percentage',
 			enabled: true,
@@ -164,42 +262,81 @@ describe('getFeatureFlagValue', () => {
 		expect(value.description).toBeTruthy()
 	})
 
+	// The defaults table is the schema and KV holds only state, so a stored `type` never gets a say.
+	// `"allowList"` — a capital L — used to reach evaluateFlagForUser as a type none of its arms
+	// matched, and the fall-through admitted everyone holding any token.
+	it('discards a stored type that disagrees with the default', async () => {
+		const env = makeEnv({
+			mcp_server_access: JSON.stringify({ type: 'allowList', enabled: true }),
+		})
+		const value = await getFeatureFlagValue(env as any, 'mcp_server_access')
+		expect(value.type).toBe('allowlist')
+		expect(evaluateFlagForUser(value, 'mcp_server_access', 'user-1')).toBe(false)
+	})
+
 	it('returns defaults on KV error', async () => {
 		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const env = makeEnv()
 		env.FEATURE_FLAGS.get = vi.fn(async () => {
 			throw new Error('KV down')
 		})
-		const value = await getFeatureFlagValue(env as any, 'zero_kill_switch')
-		expect(value).toMatchObject({ type: 'boolean', enabled: false })
+		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(value).toMatchObject({ type: 'percentage', enabled: false })
 		consoleSpy.mockRestore()
 	})
 })
 
 describe('setFeatureFlag', () => {
-	it('updates enabled on a boolean flag', async () => {
+	it('updates enabled', async () => {
 		const env = makeEnv()
-		await setFeatureFlag(env as any, 'zero_kill_switch', { enabled: true })
+		await setFeatureFlag(env as any, 'rum_enabled', { type: 'percentage', enabled: true })
 		expect(env.FEATURE_FLAGS.put).toHaveBeenCalledWith(
-			'zero_kill_switch',
+			'rum_enabled',
 			expect.stringContaining('"enabled":true')
 		)
 	})
 
-	it('updates percentage on a percentage flag', async () => {
+	it('updates percentage', async () => {
 		const env = makeEnv()
-		await setFeatureFlag(env as any, 'zero_enabled', { percentage: 42 })
+		await setFeatureFlag(env as any, 'rum_enabled', { type: 'percentage', percentage: 42 })
 		const putCall = env.FEATURE_FLAGS.put.mock.calls[0]
 		const stored = JSON.parse(putCall[1])
 		expect(stored.percentage).toBe(42)
 	})
 
-	it('ignores percentage on a boolean flag', async () => {
+	// Replaced rather than merged, so removing someone is an ordinary save.
+	it('replaces the allowlist wholesale', async () => {
+		const env = makeEnv({
+			mcp_server_access: JSON.stringify({
+				type: 'allowlist',
+				enabled: true,
+				users: [
+					{ userId: 'user-1', email: 'one@example.com' },
+					{ userId: 'user-2', email: 'two@example.com' },
+				],
+			}),
+		})
+		await setFeatureFlag(env as any, 'mcp_server_access', {
+			type: 'allowlist',
+			users: [{ userId: 'user-2', email: 'two@example.com' }],
+		})
+		expect(JSON.parse(env.FEATURE_FLAGS.put.mock.calls[0][1]).users).toEqual([
+			{ userId: 'user-2', email: 'two@example.com' },
+		])
+	})
+
+	// A field that means nothing for this flag's type is refused rather than dropped. It used to be
+	// dropped in silence, and the admin route still answered `{success: true, users: […]}` — so an
+	// allowlist sent to a percentage flag reported a save that stored nothing anywhere.
+	it('refuses an update naming a different type than the flag', async () => {
 		const env = makeEnv()
-		await setFeatureFlag(env as any, 'zero_kill_switch', { percentage: 50 })
-		const putCall = env.FEATURE_FLAGS.put.mock.calls[0]
-		const stored = JSON.parse(putCall[1])
-		expect(stored.percentage).toBeUndefined()
+		await expect(
+			setFeatureFlag(env as any, 'rum_enabled', {
+				type: 'allowlist',
+				users: [{ userId: 'user-1', email: 'one@example.com' }],
+			})
+		).rejects.toThrow('is a percentage flag')
+		expect(env.FEATURE_FLAGS.put).not.toHaveBeenCalled()
 	})
 })
 
@@ -214,14 +351,14 @@ describe('getFeatureFlags (route handler)', () => {
 		vi.mocked(getAuth).mockResolvedValue({ userId: 'user-abc' } as any)
 
 		const env = makeEnv({
-			zero_kill_switch: JSON.stringify({ enabled: true }),
+			rum_enabled: JSON.stringify({ enabled: true, percentage: 100 }),
 		})
 		const response = await getFeatureFlags({} as any, env as any)
 		const body: any = await response.json()
 
 		expect(response.headers.get('x-authenticated')).toBe('1')
-		// kill switch is a boolean flag, enabled=true → evaluates to true
-		expect(body.zero_kill_switch.enabled).toBe(true)
+		// percentage 100 includes every userId
+		expect(body.rum_enabled.enabled).toBe(true)
 	})
 
 	it('returns x-authenticated=0 for unauthenticated user', async () => {
@@ -239,50 +376,54 @@ describe('getFeatureFlags (route handler)', () => {
 		vi.mocked(getAuth).mockResolvedValue(null)
 
 		const env = makeEnv({
-			zero_enabled: JSON.stringify({ enabled: true, percentage: 100 }),
+			rum_enabled: JSON.stringify({ enabled: true, percentage: 100 }),
 		})
 		const response = await getFeatureFlags({} as any, env as any)
 		const body: any = await response.json()
 
 		// Percentage flags require a userId
-		expect(body.zero_enabled.enabled).toBe(false)
-	})
-})
-
-describe('getFeatureFlagEnabled', () => {
-	it('returns the enabled field for a boolean flag', async () => {
-		const env = makeEnv({ zero_kill_switch: JSON.stringify({ enabled: true }) })
-		expect(await getFeatureFlagEnabled(env as any, 'zero_kill_switch')).toBe(true)
+		expect(body.rum_enabled.enabled).toBe(false)
 	})
 
-	it('returns the master toggle for a percentage flag (ignores per-user rollout)', async () => {
-		const env = makeEnv({
-			zero_enabled: JSON.stringify({ enabled: true, percentage: 0 }),
-		})
-		// enabled=true even though percentage=0 would exclude all users
-		expect(await getFeatureFlagEnabled(env as any, 'zero_enabled')).toBe(true)
-	})
-})
+	it('forces legacy zero_enabled/zero_kill_switch flags on for old client bundles, even unauthenticated', async () => {
+		const { getAuth } = await import('./tla/getAuth')
+		vi.mocked(getAuth).mockResolvedValue(null)
 
-describe('getFeatureFlagsAdmin (route handler)', () => {
-	it('returns raw flag values including percentage and description', async () => {
-		const env = makeEnv({
-			zero_enabled: JSON.stringify({ enabled: true, percentage: 30 }),
-		})
-		const response = await getFeatureFlagsAdmin({} as any, env as any)
+		const env = makeEnv()
+		const response = await getFeatureFlags({} as any, env as any)
 		const body: any = await response.json()
 
-		expect(body.zero_enabled.percentage).toBe(30)
 		expect(body.zero_enabled.enabled).toBe(true)
-		expect(body.zero_enabled.type).toBe('percentage')
-		expect(body.zero_enabled.description).toBeTruthy()
+		expect(body.zero_kill_switch.enabled).toBe(false)
+		expect(body.rum_enabled).toBeDefined()
+	})
+})
+
+describe('getAllFeatureFlagValues', () => {
+	it('returns raw flag values including percentage and description', async () => {
+		const env = makeEnv({
+			rum_enabled: JSON.stringify({ enabled: true, percentage: 30 }),
+		})
+		const flags = await getAllFeatureFlagValues(env as any)
+
+		expect(flags.rum_enabled).toMatchObject({
+			type: 'percentage',
+			enabled: true,
+			percentage: 30,
+		})
+		expect(flags.rum_enabled.description).toBeTruthy()
 	})
 
 	it('returns all flags even when KV is empty', async () => {
 		const env = makeEnv()
-		const response = await getFeatureFlagsAdmin({} as any, env as any)
-		const body: any = await response.json()
+		const flags = await getAllFeatureFlagValues(env as any)
 
-		expect(Object.keys(body).sort()).toEqual(['rum_enabled', 'zero_enabled', 'zero_kill_switch'])
+		expect(Object.keys(flags).sort()).toEqual([
+			'commenting_enabled',
+			'mcp_server_access',
+			'rum_enabled',
+			'version_chain',
+			'version_chain_legacy_writes',
+		])
 	})
 })

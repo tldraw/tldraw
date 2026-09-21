@@ -5,8 +5,10 @@ import {
 	useIsInSelectState,
 	useUnlockedSelectedShapesCount,
 } from '../../hooks/menu-hooks'
+import { useCommentingEnabled } from '../../hooks/useCommentingEnabled'
 import { useReadonly } from '../../hooks/useReadonly'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
+import { TldrawUiMenuToolItem } from '../primitives/menus/TldrawUiMenuToolItem'
 
 /** @public @react */
 export function DefaultQuickActionsContent() {
@@ -26,6 +28,7 @@ export function DefaultQuickActionsContent() {
 		<>
 			<UndoRedoGroup />
 			<DeleteDuplicateGroup />
+			<CommentQuickAction />
 		</>
 	)
 }
@@ -40,6 +43,20 @@ function DeleteDuplicateGroup() {
 			<TldrawUiMenuActionItem actionId="duplicate" disabled={!selectDependentActionsEnabled} />
 		</>
 	)
+}
+
+function CommentQuickAction() {
+	const editor = useEditor()
+	const commentingEnabled = useCommentingEnabled()
+	const isCommentToolSelected = useValue(
+		'is comment tool selected',
+		() => editor.getCurrentToolId() === 'comment',
+		[editor]
+	)
+
+	if (!commentingEnabled) return null
+
+	return <TldrawUiMenuToolItem toolId="comment" isSelected={isCommentToolSelected} />
 }
 
 function UndoRedoGroup() {

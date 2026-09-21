@@ -1,0 +1,9 @@
+.theme-switcher {
+	position: absolute;
+	top: 60px;
+	left: 12px;
+	display: flex;
+	gap: 4px;
+	padding: 4px;
+	pointer-events: all;
+}

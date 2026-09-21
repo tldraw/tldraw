@@ -21,6 +21,7 @@
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitAny": true,
 		"noImplicitReturns": true,
+		"noUncheckedSideEffectImports": false,
 		"noUnusedLocals": false,
 		"noUnusedParameters": false,
 		"skipLibCheck": true,

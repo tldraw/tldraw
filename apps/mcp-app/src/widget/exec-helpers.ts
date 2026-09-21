@@ -161,6 +161,20 @@ const REAL_TIMERS = {
 	setInterval: typeof window !== 'undefined' ? window.setInterval : undefined,
 	setTimeout: typeof window !== 'undefined' ? window.setTimeout : undefined,
 }
+
+// Never invoke a captured timer as a method of the capture object: native
+// window functions brand-check `this`, so `REAL_TIMERS.setTimeout(...)`
+// throws "TypeError: Illegal invocation" in Chromium. That synchronous throw
+// rejects the exec timeout race immediately, so any exec code containing an
+// `await` loses the race and reports "Illegal invocation" while its shapes
+// keep appearing (fully synchronous scripts settle first, which is why this
+// only surfaces intermittently). Bind once at capture time for safe
+// invocation; the unbound originals above are only ever assigned back onto
+// window.
+const safeSetTimeout = REAL_TIMERS.setTimeout
+	? REAL_TIMERS.setTimeout.bind(window)
+	: (undefined as never)
+
 let execSandboxDepth = 0
 
 function enterExecSandbox() {
@@ -215,18 +229,25 @@ ${code}
 
 	const moduleUrl = URL.createObjectURL(new Blob([moduleSource], { type: 'text/javascript' }))
 	try {
-		return (await import(/* @vite-ignore */ moduleUrl)).default as (args: {
-			editor: Editor
-			helpers: ExecHelpers
-		}) => Promise<unknown>
+		return (await import(/* @vite-ignore */ moduleUrl)).default as ExecModule
 	} finally {
 		URL.revokeObjectURL(moduleUrl)
 	}
 }
 
+type ExecModule = (args: { editor: Editor; helpers: ExecHelpers }) => Promise<unknown>
+
 export async function executeCode(
 	editor: Editor,
-	code: string
+	code: string,
+	options?: {
+		/**
+		 * Test seam: the Blob-URL module loader cannot run under vitest (Node
+		 * cannot import blob: URLs), so tests inject a compiler here. Production
+		 * callers never pass this.
+		 */
+		loadModule?(code: string): Promise<ExecModule>
+	}
 ): Promise<{ success: boolean; result?: unknown; error?: string }> {
 	const focusedEditor = createFocusedEditorProxy(editor, getRequiredEmbeddedMethodMap())
 	const helpers = createExecHelpers(editor)
@@ -235,12 +256,13 @@ export async function executeCode(
 	enterExecSandbox()
 
 	try {
-		const runExec = await loadExecModule(code)
+		const runExec = await (options?.loadModule ?? loadExecModule)(code)
 		const result = await Promise.race([
 			runExec({ editor: focusedEditor, helpers }),
 			new Promise((_, reject) =>
-				// Use the pristine timer (not the sandboxed, possibly-undefined one).
-				REAL_TIMERS.setTimeout!(
+				// Use the pristine, window-bound timer (not the sandboxed,
+				// possibly-undefined one).
+				safeSetTimeout(
 					() => reject(new Error(`Execution timed out after ${EXEC_TIMEOUT_MS}ms`)),
 					EXEC_TIMEOUT_MS
 				)

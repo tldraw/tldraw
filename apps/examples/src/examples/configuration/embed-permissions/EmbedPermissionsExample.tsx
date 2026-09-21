@@ -118,15 +118,12 @@ export default function EmbedPermissionsExample() {
 }
 
 /*
-This example demonstrates advanced embed shape configuration: sandbox
-permission overrides, aspect ratio locking, and the visual options on embed
-definitions. It extends the custom embed example, which covers adding a
-provider in the first place.
-
 Embedded iframes are sandboxed. The defaults (embedShapePermissionDefaults
-in the tldraw package) are deliberately conservative — scripts, same-origin
-and forms allowed; modals, popups-to-escape-sandbox, top navigation, and
-presentation disabled. Each definition can override individual permissions.
+in the tldraw package) are deliberately conservative — scripts, same-origin,
+forms, and popups allowed; modals, popups-to-escape-sandbox, top navigation,
+and presentation disabled. Each definition can override individual
+permissions. The custom embed example covers adding a provider in the first
+place.
 
 [1]
 A customized YouTube definition:

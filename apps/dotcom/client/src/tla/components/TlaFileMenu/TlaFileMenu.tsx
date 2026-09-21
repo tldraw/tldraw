@@ -1,6 +1,6 @@
 /* ---------------------- Menu ---------------------- */
 
-import { FILE_PREFIX, TlaFile, ZErrorCode } from '@tldraw/dotcom-shared'
+import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -21,6 +21,7 @@ import {
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
+import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
@@ -119,8 +120,10 @@ export function FileItems({
 	const copiedMsg = useMsg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
 	const isPinned = useIsFilePinned(fileId, workspaceId ?? '')
+	const activeWorkspaceId = useActiveWorkspaceId()
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
+	const homeWorkspaceId = app.getHomeWorkspaceId()
 
 	// Get all workspace memberships (including the home workspace, filtered out below)
 	const workspaceMemberships = useValue(
@@ -130,15 +133,17 @@ export function FileItems({
 	)
 
 	// A file lives in exactly one workspace. The "Move to" menu is a checklist of every
-	// destination — the home workspace plus each non-home workspace — with the file's current
+	// destination — the home workspace plus each non-home workspace — with the file's own
 	// workspace checked. The home workspace is rendered separately (it's always the first item),
 	// labelled with its own name like any other workspace.
-	const currentWorkspaceId = file?.owningGroupId ?? app.getHomeWorkspaceId()
-	const homeWorkspaceName = workspaceMemberships.find((g) => g.groupId === app.getHomeWorkspaceId())
-		?.group?.name
+	// (This is the workspace the file belongs to, which is not necessarily one the current user
+	// can write to — for that, see activeWorkspaceId above.)
+	const fileWorkspaceId = file?.owningGroupId ?? homeWorkspaceId
+	const homeWorkspaceName = workspaceMemberships.find((g) => g.groupId === homeWorkspaceId)?.group
+		?.name
 	const moveToWorkspaces = workspaceMemberships.filter(
 		(g): g is typeof g & { group: NonNullable<(typeof g)['group']> } =>
-			g.groupId !== app.getHomeWorkspaceId() && !!g.group
+			g.groupId !== homeWorkspaceId && !!g.group
 	)
 
 	const handleCopyLinkClick = useCallback(() => {
@@ -161,14 +166,19 @@ export function FileItems({
 	}, [app, fileId, workspaceId])
 
 	const handleDuplicateClick = useCallback(async () => {
-		if (!workspaceId) return
+		// The sidebar passes the workspace the file is listed under; the file header doesn't, so
+		// fall back to the user's active workspace. This matches the sidebar (and unlike the file's
+		// own owning workspace, it's always one the user can write to — e.g. a guest duplicating a
+		// shared file gets the copy in their home workspace, not the owner's).
+		const targetWorkspaceId = workspaceId ?? activeWorkspaceId
+		if (!targetWorkspaceId) return
 		const newFileId = uniqueId()
 		const file = app.getFile(fileId)
 		if (!file) return
 		trackEvent('duplicate-file', { source })
 		const res = await app.createFile({
 			fileId: newFileId,
-			workspaceId,
+			workspaceId: targetWorkspaceId,
 			name: getDuplicateName(file, app),
 			createSource: `${FILE_PREFIX}/${fileId}`,
 		})
@@ -180,11 +190,11 @@ export function FileItems({
 		if (res.ok) {
 			app.sidebarState.update((prev) => ({
 				...prev,
-				renameState: { fileId: newFileId, workspaceId },
+				renameState: { fileId: newFileId, workspaceId: targetWorkspaceId },
 			}))
 			navigate(routes.tlaFile(newFileId))
 		}
-	}, [app, fileId, workspaceId, navigate, trackEvent, source])
+	}, [app, fileId, workspaceId, activeWorkspaceId, navigate, trackEvent, source])
 
 	const handleDeleteClick = useCallback(() => {
 		if (!workspaceId) return
@@ -223,15 +233,12 @@ export function FileItems({
 					<TldrawUiMenuItem label={renameMsg} id="rename" readonlyOk onSelect={onRenameAction} />
 				)}
 				{/* todo: in published rooms, support duplication / forking */}
-				{/* todo: requires a non-trivial refactor, quick fix is to just remove this menu item, it's available elsewhere */}
-				{source !== 'file-header' && (
-					<TldrawUiMenuItem
-						label={duplicateMsg}
-						id="duplicate"
-						readonlyOk
-						onSelect={handleDuplicateClick}
-					/>
-				)}
+				<TldrawUiMenuItem
+					label={duplicateMsg}
+					id="duplicate"
+					readonlyOk
+					onSelect={handleDuplicateClick}
+				/>
 				<TldrawUiMenuItem
 					label={downloadFile}
 					id="download-file"
@@ -256,13 +263,10 @@ export function FileItems({
 								label={homeWorkspaceName ?? myWorkspaceMsg}
 								id="my-files"
 								readonlyOk
-								checked={currentWorkspaceId === app.getHomeWorkspaceId()}
+								checked={fileWorkspaceId === homeWorkspaceId}
 								onSelect={() => {
-									if (currentWorkspaceId === app.getHomeWorkspaceId()) return
-									app.z.mutate.moveFileToWorkspace({
-										fileId,
-										workspaceId: app.getHomeWorkspaceId(),
-									})
+									if (fileWorkspaceId === homeWorkspaceId) return
+									app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: homeWorkspaceId })
 								}}
 							/>
 							{moveToWorkspaces.map((membership) => (
@@ -271,9 +275,9 @@ export function FileItems({
 									label={membership.group.name}
 									id={`workspace-${membership.groupId}`}
 									readonlyOk
-									checked={membership.groupId === currentWorkspaceId}
+									checked={membership.groupId === fileWorkspaceId}
 									onSelect={() => {
-										if (membership.groupId === currentWorkspaceId) return
+										if (membership.groupId === fileWorkspaceId) return
 										app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: membership.groupId })
 									}}
 								/>
@@ -292,19 +296,19 @@ export function FileItems({
 												onClose={onClose}
 												onCreate={async (name) => {
 													const id = uniqueId()
-													try {
-														await app.z.mutate.createWorkspace({ id, name }).client
-													} catch (e) {
-														app.showMutationRejectionToast((e as Error).message as ZErrorCode)
+													const createRes = await app.z.mutate.createWorkspace({ id, name }).client
+													if (createRes.type === 'error') {
+														app.showMutationRejectionToast(createRes.error)
 														return
 													}
 													trackEvent('create-workspace', { source })
-													try {
-														await app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: id })
-															.client
-													} catch (e) {
+													const moveRes = await app.z.mutate.moveFileToWorkspace({
+														fileId,
+														workspaceId: id,
+													}).client
+													if (moveRes.type === 'error') {
 														// the workspace was created; only the move failed
-														app.showMutationRejectionToast((e as Error).message as ZErrorCode)
+														app.showMutationRejectionToast(moveRes.error)
 													}
 												}}
 											/>

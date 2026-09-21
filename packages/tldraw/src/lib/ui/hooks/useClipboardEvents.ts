@@ -22,6 +22,9 @@ import { TLDRAW_CUSTOM_PNG_MIME_TYPE, getCanonicalClipboardReadType } from '../.
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { pasteFiles } from './clipboard/pasteFiles'
 import { pasteUrl } from './clipboard/pasteUrl'
+import { putPastedExternalContent } from './clipboard/putPastedContent'
+
+export { putPastedExternalContent } from './clipboard/putPastedContent'
 
 /**
  * Resolves paste modifier keys into plain-text and position behavior.
@@ -145,9 +148,6 @@ function areShortcutsDisabled(editor: Editor) {
 	)
 }
 
-import { putPastedExternalContent } from './clipboard/putPastedContent'
-export { putPastedExternalContent } from './clipboard/putPastedContent'
-
 /**
  * Handle text pasted into the editor.
  * @param editor - The editor instance.
@@ -236,11 +236,11 @@ type ClipboardThing =
  * @param point - The point to paste at
  * @internal
  */
-const handlePasteFromEventClipboardData = async (
+export async function handlePasteFromEventClipboardData(
 	editor: Editor,
 	clipboardData: DataTransfer,
 	point?: VecLike
-) => {
+) {
 	// Do not paste while in any editing state
 	if (editor.getEditingShapeId() !== null) return
 
@@ -262,26 +262,22 @@ const handlePasteFromEventClipboardData = async (
 			}
 			case 'string': {
 				// strings can be text or html
-				if (item.type === 'text/html') {
-					things.push({
-						type: 'html',
-						source: new Promise((r) => item.getAsString(r)) as Promise<string>,
-					})
-				} else if (item.type === 'text/plain') {
-					things.push({
-						type: 'text',
-						source: new Promise((r) => item.getAsString(r)) as Promise<string>,
-					})
-				} else {
-					things.push({ type: item.type, source: new Promise((r) => item.getAsString(r)) })
-				}
+				const type =
+					item.type === 'text/html' ? 'html' : item.type === 'text/plain' ? 'text' : item.type
+				things.push({ type, source: new Promise<string>((r) => item.getAsString(r)) })
 				break
 			}
 		}
 	}
 
-	handleClipboardThings(editor, things, point, 'native-event')
+	return await handleClipboardThings(editor, things, point, 'native-event')
 }
+
+const clipboardApiTextTypes = [
+	['text/html', 'html'],
+	['text/uri-list', 'url'],
+	['text/plain', 'text'],
+] as const
 
 /**
  * Handle a paste using items retrieved from the Clipboard API.
@@ -292,7 +288,7 @@ const handlePasteFromEventClipboardData = async (
  * @param point - The point to paste at
  * @internal
  */
-const handlePasteFromClipboardApi = async ({
+export async function handlePasteFromClipboardApi({
 	editor,
 	clipboardItems,
 	point,
@@ -304,7 +300,7 @@ const handlePasteFromClipboardApi = async ({
 	point?: VecLike
 	fallbackFiles?: File[]
 	clipboardPasteSource: 'native-event' | 'clipboard-read'
-}) => {
+}) {
 	// We need to populate the array of clipboard things
 	// based on the ClipboardItems from the Clipboard API.
 	// This is done in a different way than when using
@@ -338,52 +334,48 @@ const handlePasteFromClipboardApi = async ({
 			})
 		}
 
-		if (item.types.includes('text/html')) {
-			things.push({
-				type: 'html',
-				source: (async () => {
-					const blob = await item.getType('text/html')
-					return await FileHelpers.blobToText(blob)
-				})(),
-			})
-		}
-
-		if (item.types.includes('text/uri-list')) {
-			things.push({
-				type: 'url',
-				source: (async () => {
-					const blob = await item.getType('text/uri-list')
-					return await FileHelpers.blobToText(blob)
-				})(),
-			})
-		}
-
-		if (item.types.includes('text/plain')) {
-			things.push({
-				type: 'text',
-				source: (async () => {
-					const blob = await item.getType('text/plain')
-					return await FileHelpers.blobToText(blob)
-				})(),
-			})
+		for (const [mimeType, type] of clipboardApiTextTypes) {
+			if (item.types.includes(mimeType)) {
+				things.push({
+					type,
+					source: item.getType(mimeType).then((blob) => FileHelpers.blobToText(blob)),
+				})
+			}
 		}
 	}
 
-	if (fallbackFiles?.length && things.length === 1 && things[0].type === 'text') {
-		things.pop()
-		things.push(
-			...fallbackFiles.map((f): ClipboardThing => ({ type: 'file', source: Promise.resolve(f) }))
-		)
-	} else if (fallbackFiles?.length && things.length === 0) {
-		// Files pasted in Safari from your computer don't have types, so we need to use the fallback files directly
-		// if they're available. This only works if pasted keyboard shortcuts. Pasting from the menu in Safari seems to never
-		// let you access files that are copied from your computer.
-		things.push(
+	// Files pasted in Safari from your computer don't have types, so we need to use the fallback files directly
+	// if they're available. This only works if pasted keyboard shortcuts. Pasting from the menu in Safari seems to never
+	// let you access files that are copied from your computer.
+	if (
+		fallbackFiles?.length &&
+		(things.length === 0 || (things.length === 1 && things[0].type === 'text'))
+	) {
+		things.splice(
+			0,
+			things.length,
 			...fallbackFiles.map((f): ClipboardThing => ({ type: 'file', source: Promise.resolve(f) }))
 		)
 	}
 
 	return await handleClipboardThings(editor, things, point, clipboardPasteSource)
+}
+
+function pasteIframeEmbed(editor: Editor, html: string, point: VecLike | undefined) {
+	const iframeInfo = extractIframeFromHtml(html)
+	if (!iframeInfo) return false
+	editor.markHistoryStoppingPoint('paste')
+	editor.putExternalContent({
+		type: 'embed',
+		url: iframeInfo.src,
+		point,
+		embed: {
+			width: iframeInfo.width,
+			height: iframeInfo.height,
+			doesResize: true,
+		},
+	})
+	return true
 }
 
 async function handleClipboardThings(
@@ -392,25 +384,7 @@ async function handleClipboardThings(
 	point: VecLike | undefined,
 	clipboardPasteSource: 'native-event' | 'clipboard-read'
 ) {
-	// 1. Handle files
-	//
-	// We need to handle files separately because if we want them to
-	// be placed next to each other, we need to create them all at once.
-
-	const files = things.filter(
-		(t) => (t.type === 'file' || t.type === 'blob') && t.source !== null
-	) as Extract<ClipboardThing, { type: 'file' } | { type: 'blob' }>[]
-
-	// Just paste the files, nothing else
-	if (files.length) {
-		if (files.length > editor.options.maxFilesAtOnce) {
-			throw Error('Too many files')
-		}
-		const fileBlobs = compact(await Promise.all(files.map((t) => t.source)))
-		return await pasteFiles(editor, fileBlobs, point, undefined, clipboardPasteSource)
-	}
-
-	// 2. Generate clipboard results for non-file things
+	// 1. Generate clipboard results for non-file things
 	//
 	// Getting the source from the items is async, however they must be accessed syncronously;
 	// we can't await them in a loop. So we'll map them to promises and await them all at once,
@@ -418,18 +392,13 @@ async function handleClipboardThings(
 
 	const results = await Promise.all<TLExternalContentSource>(
 		things
-			.filter((t) => t.type !== 'file')
+			.filter((t) => t.type !== 'file' && t.type !== 'blob')
 			.map(
 				(t) =>
 					new Promise((r) => {
 						const thing = t as Exclude<ClipboardThing, { type: 'file' } | { type: 'blob' }>
 
-						if (thing.type === 'file') {
-							r({ type: 'error', data: null, reason: 'unexpected file' })
-							return
-						}
-
-						thing.source.then((text) => {
+						const parsed = thing.source.then((text) => {
 							// first, see if we can find tldraw content, which is JSON inside of an html comment
 							const tldrawHtmlComment = text.match(/<div data-tldraw[^>]*>(.*)<\/div>/)?.[1]
 
@@ -544,9 +513,38 @@ async function handleClipboardThings(
 
 							r({ type: 'error', data: text, reason: 'unhandled case' })
 						})
+
+						// If we can't read one of the clipboard items (e.g. the browser rejects a
+						// getType call), or the handler above throws, resolve this thing to an
+						// error source rather than hanging the whole paste.
+						parsed.catch((error) => {
+							r({ type: 'error', data: null, reason: `error reading clipboard data: ${error}` })
+						})
 					})
 			)
 	)
+
+	// 2. Handle files
+	//
+	// We need to handle files separately because if we want them to
+	// be placed next to each other, we need to create them all at once.
+	// We pass along the other clipboard sources (e.g. text and html found
+	// on the clipboard next to an image) so that external content handlers
+	// can make use of them.
+
+	const files = things.filter((t) => t.type === 'file' || t.type === 'blob') as Extract<
+		ClipboardThing,
+		{ type: 'file' } | { type: 'blob' }
+	>[]
+
+	// Paste the files, carrying the other sources along with them
+	if (files.length) {
+		if (files.length > editor.options.maxFilesAtOnce) {
+			throw Error('Too many files')
+		}
+		const fileBlobs = compact(await Promise.all(files.map((t) => t.source)))
+		return await pasteFiles(editor, fileBlobs, point, results, clipboardPasteSource)
+	}
 
 	// 3.
 	//
@@ -584,93 +582,52 @@ async function handleClipboardThings(
 	// Try to paste html content
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'html') {
-			const rootNode = new DOMParser().parseFromString(result.data, 'text/html')
-			const bodyNode = rootNode.querySelector('body')
-
 			// Check for iframe embeds in HTML before stripping content
-			const iframeInfo = extractIframeFromHtml(result.data)
-			if (iframeInfo) {
-				editor.markHistoryStoppingPoint('paste')
-				editor.putExternalContent({
-					type: 'embed',
-					url: iframeInfo.src,
-					point,
-					embed: {
-						width: iframeInfo.width,
-						height: iframeInfo.height,
-						doesResize: true,
-					},
-				})
-				return
-			}
+			if (pasteIframeEmbed(editor, result.data, point)) return
 
 			// try to find a link
 
 			// Edge on Windows 11 home appears to paste a link as a single <a/> in
 			// the HTML document. If we're pasting a single like tag we'll just
 			// assume the user meant to paste the URL.
-			const isHtmlSingleLink =
-				bodyNode &&
-				Array.from(bodyNode.children).filter((el) => el.nodeType === 1).length === 1 &&
-				bodyNode.firstElementChild &&
-				bodyNode.firstElementChild.tagName === 'A' &&
-				bodyNode.firstElementChild.hasAttribute('href') &&
-				bodyNode.firstElementChild.getAttribute('href') !== ''
-
-			if (isHtmlSingleLink) {
-				const href = bodyNode.firstElementChild.getAttribute('href')!
+			const bodyNode = new DOMParser().parseFromString(result.data, 'text/html').body
+			const href =
+				bodyNode.childElementCount === 1 && bodyNode.firstElementChild?.tagName === 'A'
+					? bodyNode.firstElementChild.getAttribute('href')
+					: null
+			if (href) {
 				handleText(editor, href, point, results, clipboardPasteSource)
 				return
 			}
 
-			// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
-			if (!results.some((r) => r.type === 'text' && r.subtype !== 'html') && result.data.trim()) {
-				const html = stripHtml(result.data) ?? ''
-				if (html) {
-					handleText(editor, stripHtml(result.data), point, results, clipboardPasteSource)
-					return
-				}
-			}
-
-			// If the html is NOT a link, and we have other texty content, then paste the html as a text shape
-			if (results.some((r) => r.type === 'text' && r.subtype !== 'html')) {
-				const html = stripHtml(result.data) ?? ''
-				if (html) {
+			const text = stripHtml(result.data)
+			if (text) {
+				// If the html is NOT a link, and we have other texty content, then paste the html as a text shape
+				if (results.some((r) => r.type === 'text' && r.subtype !== 'html')) {
 					editor.markHistoryStoppingPoint('paste')
 					putPastedExternalContent(
 						editor,
 						{
 							type: 'text',
-							text: html,
+							text,
 							html: result.data,
 							point,
 							sources: results,
 						},
 						{ source: clipboardPasteSource, point }
 					)
-					return
+				} else {
+					// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
+					handleText(editor, text, point, results, clipboardPasteSource)
 				}
+				return
 			}
 		}
 
 		// Allow pasting any <iframe> embed code onto the canvas.
 		// Extracts the iframe src and dimensions, then creates an embed shape.
 		if (result.type === 'text' && result.subtype === 'text') {
-			const iframeInfo = extractIframeFromHtml(result.data)
-			if (iframeInfo) {
-				editor.markHistoryStoppingPoint('paste')
-				editor.putExternalContent({
-					type: 'embed',
-					url: iframeInfo.src,
-					point,
-					embed: {
-						width: iframeInfo.width,
-						height: iframeInfo.height,
-						doesResize: true,
-					},
-				})
-				return
-			}
+			if (pasteIframeEmbed(editor, result.data, point)) return
 		}
 	}
 
@@ -772,6 +729,19 @@ export async function handleNativeOrMenuCopy(
 	return true
 }
 
+async function copyOrCutSelection(
+	editor: Editor,
+	operation: 'copy' | 'cut',
+	source: TLClipboardWriteInfo['source']
+) {
+	const didCopy = await handleNativeOrMenuCopy(editor, { operation, source })
+	if (didCopy && operation === 'cut') {
+		editor.markHistoryStoppingPoint('cut')
+		editor.deleteShapes(editor.getSelectedShapeIds())
+	}
+	return didCopy
+}
+
 /** @public */
 export function useMenuClipboardEvents() {
 	const editor = useMaybeEditor()
@@ -782,8 +752,7 @@ export function useMenuClipboardEvents() {
 			assert(editor, 'editor is required for copy')
 			if (editor.getSelectedShapeIds().length === 0) return
 
-			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'copy', source: 'menu' })
-			if (didCopy) {
+			if (await copyOrCutSelection(editor, 'copy', 'menu')) {
 				trackEvent('copy', { source })
 			}
 		},
@@ -795,9 +764,7 @@ export function useMenuClipboardEvents() {
 			if (!editor) return
 			if (editor.getSelectedShapeIds().length === 0) return
 
-			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'menu' })
-			if (didCopy) {
-				editor.deleteShapes(editor.getSelectedShapeIds())
+			if (await copyOrCutSelection(editor, 'cut', 'menu')) {
 				trackEvent('cut', { source })
 			}
 		},
@@ -865,36 +832,25 @@ export function useNativeClipboardEvents() {
 
 	useEffect(() => {
 		if (!appIsFocused) return
-		const copy = async (e: ClipboardEvent) => {
-			if (
-				editor.getSelectedShapeIds().length === 0 ||
-				editor.getEditingShapeId() !== null ||
-				areShortcutsDisabled(editor)
-			) {
-				return
-			}
+		const canCopyOrCut = () =>
+			editor.getSelectedShapeIds().length > 0 &&
+			editor.getEditingShapeId() === null &&
+			!areShortcutsDisabled(editor)
 
+		const copy = async (e: ClipboardEvent) => {
+			if (!canCopyOrCut()) return
 			preventDefault(e)
 
-			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'copy', source: 'native' })
-			if (didCopy) {
+			if (await copyOrCutSelection(editor, 'copy', 'native')) {
 				trackEvent('copy', { source: 'kbd' })
 			}
 		}
 
-		async function cut(e: ClipboardEvent) {
-			if (
-				editor.getSelectedShapeIds().length === 0 ||
-				editor.getEditingShapeId() !== null ||
-				areShortcutsDisabled(editor)
-			) {
-				return
-			}
+		const cut = async (e: ClipboardEvent) => {
+			if (!canCopyOrCut()) return
 			preventDefault(e)
 
-			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'native' })
-			if (didCopy) {
-				editor.deleteShapes(editor.getSelectedShapeIds())
+			if (await copyOrCutSelection(editor, 'cut', 'native')) {
 				trackEvent('cut', { source: 'kbd' })
 			}
 		}

@@ -364,7 +364,7 @@ export function StylePanelArrowKindPicker() {
 		<StylePanelDropdownPicker
 			id="arrow-kind"
 			type="menu"
-			label={'style-panel.arrow-kind'}
+			label="style-panel.arrow-kind"
 			uiType="arrow-kind"
 			stylePanelType="arrow-kind"
 			style={ArrowShapeKindStyle}
@@ -383,7 +383,7 @@ export function StylePanelArrowheadPicker() {
 
 	return (
 		<StylePanelDoubleDropdownPicker<TLArrowShapeArrowheadStyle>
-			label={'style-panel.arrowheads'}
+			label="style-panel.arrowheads"
 			uiTypeA="arrowheadStart"
 			styleA={ArrowShapeArrowheadStartStyle}
 			itemsA={STYLES.arrowheadStart}

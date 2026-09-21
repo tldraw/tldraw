@@ -1,0 +1,605 @@
+apiVersion: dashboard.grafana.app/v0alpha1
+kind: Dashboard
+metadata:
+  annotations:
+    grafana.app/message: Add qtype split, env toggle, deploy annotations and restart
+      panel
+    grafana.app/folder: f6hsw6
+  labels: {}
+  name: slow-queries
+  namespace: stacks-890472
+spec:
+  annotations:
+    list:
+      - datasource:
+          type: loki
+          uid: grafanacloud-logs
+        enable: true
+        expr: '{service_name=~"$service", deployment_environment="$env"} |= "OpenTelemetry
+          SDK started" | process_worker="reaper"'
+        hide: false
+        iconColor: red
+        name: Deploys (machine restarts)
+        target:
+          expr: '{service_name=~"$service", deployment_environment="$env"} |= "OpenTelemetry
+            SDK started" | process_worker="reaper"'
+          queryType: range
+          refId: Anno
+        textFormat: '{{host_name}}'
+        titleFormat: zero-cache restart
+  editable: true
+  graphTooltip: 1
+  panels:
+    - collapsed: false
+      gridPos:
+        h: 1
+        w: 24
+        x: 0
+        y: 0
+      id: 1
+      panels: []
+      title: Overview
+      type: row
+    - datasource:
+        type: loki
+        uid: grafanacloud-logs
+      description: Total "Slow SQLite query" log lines from zero-cache in the selected
+        time range.
+      fieldConfig:
+        defaults:
+          unit: short
+        overrides: []
+      gridPos:
+        h: 5
+        w: 4
+        x: 0
+        y: 1
+      id: 2
+      options:
+        colorMode: value
+        graphMode: none
+        reduceOptions:
+          calcs:
+            - lastNotNull
+      targets:
+        - datasource:
+            type: loki
+            uid: grafanacloud-logs
+          editorMode: code
+          expr: sum(count_over_time({service_name=~"$service", deployment_environment="$env"}
+            |~ "Slow SQLite query" | type=~"$qtype" [$__range]))
+          instant: true
+          queryType: instant
+          range: false
+          refId: A
+      title: Slow queries in range
+      type: stat
+    - datasource:
+        type: loki
+        uid: grafanacloud-logs
+      description: Longest slow query seen in the selected time range.
+      fieldConfig:
+        defaults:
+          unit: ms
+        overrides: []
+      gridPos:
+        h: 5
+        w: 4
+        x: 4
+        y: 1
+      id: 3
+      options:
+        colorMode: value
+        graphMode: none
+        reduceOptions:
+          calcs:
+            - lastNotNull
+      targets:
+        - datasource:
+            type: loki
+            uid: grafanacloud-logs
+          editorMode: code
+          expr: max(max_over_time({service_name=~"$service", deployment_environment="$env"}
+            |~ "Slow SQLite query" | type=~"$qtype" | regexp "Slow SQLite query (?P<duration_ms>[0-9.]+)"
+            | unwrap duration_ms [$__range]))
+          instant: true
+          queryType: instant
+          range: false
+          refId: A
+      title: Max duration in range
+      type: stat
+    - datasource:
+        type: loki
+        uid: grafanacloud-logs
+      description: Slow SQLite query log lines per interval, by Zero service (zero-vs
+        = view-syncer, zero-rm = replication-manager).
+      fieldConfig:
+        defaults:
+          custom:
+            fillOpacity: 8
+            lineWidth: 1
+            showPoints: never
+          unit: short
+        overrides: []
+      gridPos:
+        h: 10
+        w: 8
+        x: 8
+        y: 1
+      id: 4
+      options:
+        legend:
+          displayMode: list
+          placement: bottom
+          showLegend: true
+        tooltip:
+          mode: multi
+          sort: desc
+      targets:
+        - datasource:
+            type: loki
+            uid: grafanacloud-logs
+          editorMode: code
+          expr:
+            sum by (service_name) (count_over_time({service_name=~"$service", deployment_environment="$env"}
+            |~ "Slow SQLite query" | type=~"$qtype" [$__auto]))
+          legendFormat: '{{service_name}}'
+          queryType: range
+          refId: A
+      title: Slow query rate
+      type: timeseries
+    - datasource:
+        type: loki
+        uid: grafanacloud-logs
+      description: Duration parsed from the log line, in ms. Only queries over zero-cache's
+        slow threshold are logged, so these are percentiles of the slow tail, not of
+        all queries.
+      fieldConfig:
+        defaults:
+          custom:
+            fillOpacity: 8
+            lineWidth: 1
+            showPoints: never
+          unit: ms
+        overrides: []
+      gridPos:
+        h: 10
+        w: 8
+        x: 16
+        y: 1
+      id: 5
+      options:
+        legend:
+          displayMode: list
+          placement: bottom
+          showLegend: true
+        tooltip:
+          mode: multi
+          sort: desc
+      targets:
+        - datasource:
+            type: loki
+            uid: grafanacloud-logs
+          editorMode: code
+          expr: quantile_over_time(0.5, {service_name=~"$service", deployment_environment="$env"}
+            |~ "Slow SQLite query" | type=~"$qtype" | regexp "Slow SQLite query (?P<duration_ms>[0-9.]+)"
+            | unwrap duration_ms [$__auto]) by ()
+          legendFormat: p50
+          queryType: range
+          refId: A
+        - datasource:
+            type: loki
+            uid: grafanacloud-logs
+          editorMode: code
+          expr: quantile_over_time(0.95, {service_name=~"$service", deployment_environment="$env"}
+            |~ "Slow SQLite query" | type=~"$qtype" | regexp "Slow SQLite query (?P<duration_ms>[0-9.]+)"
+            | unwrap duration_ms [$__auto]) by ()
+          legendFormat: p95
+          queryType: range
+          refId: B
+        - datasource:
+            type: loki
+            uid: grafanacloud-logs
+          editorMode: code
+          expr: quantile_over_time(0.99, {service_name=~"$service", deployment_environment="$env"}
+            |~ "Slow SQLite query" | type=~"$qtype" | regexp "Slow SQLite query (?P<duration_ms>[0-9.]+)"
+            | unwrap duration_ms [$__auto]) by ()
+          legendFormat: p99
+          queryType: range
+          refId: C
+      title: Slow query duration percentiles
+      type: timeseries
+    - datasource:
+        type: loki
+        uid: grafanacloud-logs
+      description: Which Fly machines are producing slow queries.
+      fieldConfig:
+        defaults:
+          custom:
+            fillOpacity: 8
+            lineWidth: 1
+            showPoints: never
+          unit: short
+        overrides: []
+      gridPos:
+        h: 5
+        w: 8
+        x: 0
+        y: 6
+      id: 6
+      options:
+        legend:
+          displayMode: list
+          placement: bottom
+          showLegend: true
+        tooltip:
+          mode: multi
+          sort: desc
+      targets:
+        - datasource:
+            type: loki
+            uid: grafanacloud-logs
+          editorMode: code
+          expr:
+            sum by (host_name) (count_over_time({service_name=~"$service", deployment_environment="$env"}
+            |~ "Slow SQLite query" | type=~"$qtype" [$__auto]))
+          legendFormat: '{{host_name}}'
+          queryType: range
+          refId: A
+      title: Slow queries by worker host
+      type: timeseries
+    - datasource:
+        type: loki
+        uid: grafanacloud-logs
+      description: Worker restarts (every zero-cache process logs one line per worker
+        on boot; a fleet-wide burst = a deploy) and post-restart auth failures from
+        the custom-query transform endpoint. Slow-query storms almost always line up
+        with these.
+      fieldConfig:
+        defaults:
+          custom:
+            drawStyle: bars
+            fillOpacity: 15
+            lineWidth: 1
+            showPoints: never
+          unit: short
+        overrides: []
+      gridPos:
+        h: 5
+        w: 16
+        x: 8
+        y: 11
+      id: 15
+      options:
+        legend:
+          displayMode: list
+          placement: bottom
+          showLegend: true
+        tooltip:
+          mode: multi
+          sort: desc
+      targets:
+        - datasource:
+            type: loki
+            uid: grafanacloud-logs
+          editorMode: code
+          expr: sum(count_over_time({service_name=~"$service", deployment_environment="$env"}
+            |= "OpenTelemetry SDK started" [$__auto]))
+          legendFormat: worker restarts
+          queryType: range
+          refId: A
+        - datasource:
+            type: loki
+            uid: grafanacloud-logs
+          editorMode: code
+          expr: sum(count_over_time({service_name=~"$service", deployment_environment="$env"}
+            |= "Connection auth validation failed" [$__auto]))
+          legendFormat: auth 401s on reconnect
+          queryType: range
+          refId: B
+      title: Deploys and reconnect storms
+      type: timeseries
+    - collapsed: false
+      gridPos:
+        h: 1
+        w: 24
+        x: 0
+        y: 16
+      id: 7
+      panels: []
+      title: By statement
+      type: row
+    - datasource:
+        type: loki
+        uid: grafanacloud-logs
+      description: The sql field is attached as structured metadata on each slow query
+        log line.
+      fieldConfig:
+        defaults:
+          custom:
+            align: auto
+            filterable: false
+            inspect: true
+          unit: short
+        overrides: []
+      gridPos:
+        h: 11
+        w: 12
+        x: 0
+        y: 17
+      id: 8
+      options:
+        showHeader: true
+        sortBy:
+          - desc: true
+            displayName: slow queries
+      targets:
+        - datasource:
+            type: loki
+            uid: grafanacloud-logs
+          editorMode: code
+          expr:
+            topk(15, sum by (sql) (count_over_time({service_name=~"$service", deployment_environment="$env"}
+            |~ "Slow SQLite query" | type=~"$qtype" [$__range])))
+          instant: true
+          queryType: instant
+          range: false
+          refId: A
+      title: Top statements by slow query count
+      transformations:
+        - id: organize
+          options:
+            excludeByName:
+              Time: true
+            renameByName:
+              Value: slow queries
+              'Value #A': slow queries
+      type: table
+    - datasource:
+        type: loki
+        uid: grafanacloud-logs
+      description: p95 of parsed duration, grouped by statement.
+      fieldConfig:
+        defaults:
+          custom:
+            align: auto
+            filterable: false
+            inspect: true
+          unit: ms
+        overrides: []
+      gridPos:
+        h: 11
+        w: 12
+        x: 12
+        y: 17
+      id: 9
+      options:
+        showHeader: true
+        sortBy:
+          - desc: true
+            displayName: p95 ms
+      targets:
+        - datasource:
+            type: loki
+            uid: grafanacloud-logs
+          editorMode: code
+          expr:
+            topk(15, quantile_over_time(0.95, {service_name=~"$service", deployment_environment="$env"}
+            |~ "Slow SQLite query" | type=~"$qtype" | regexp "Slow SQLite query (?P<duration_ms>[0-9.]+)"
+            | unwrap duration_ms [$__range]) by (sql))
+          instant: true
+          queryType: instant
+          range: false
+          refId: A
+      title: Top statements by p95 duration (ms)
+      transformations:
+        - id: organize
+          options:
+            excludeByName:
+              Time: true
+            renameByName:
+              Value: p95 ms
+              'Value #A': p95 ms
+      type: table
+    - collapsed: false
+      gridPos:
+        h: 1
+        w: 24
+        x: 0
+        y: 28
+      id: 10
+      panels: []
+      title: By table
+      type: row
+    - datasource:
+        type: loki
+        uid: grafanacloud-logs
+      description: "Table name extracted from the sql structured-metadata field. (Per-client
+        breakdowns are not possible here: more than 500 distinct clientGroupID values
+        per query window exceeds Loki's series limit.)"
+      fieldConfig:
+        defaults:
+          custom:
+            fillOpacity: 8
+            lineWidth: 1
+            showPoints: never
+            stacking:
+              group: A
+              mode: normal
+          unit: short
+        overrides: []
+      gridPos:
+        h: 9
+        w: 12
+        x: 0
+        y: 29
+      id: 11
+      options:
+        legend:
+          displayMode: list
+          placement: bottom
+          showLegend: true
+        tooltip:
+          mode: multi
+          sort: desc
+      targets:
+        - datasource:
+            type: loki
+            uid: grafanacloud-logs
+          editorMode: code
+          expr:
+            sum by (tbl) (count_over_time({service_name=~"$service", deployment_environment="$env"}
+            |~ "Slow SQLite query" | type=~"$qtype" | label_format tbl=`{{ regexReplaceAll
+            "(?s).*FROM .([a-zA-Z0-9._]+).*" .sql "$1" }}` [$__auto]))
+          legendFormat: '{{tbl}}'
+          queryType: range
+          refId: A
+      title: Slow queries by table
+      type: timeseries
+    - datasource:
+        type: loki
+        uid: grafanacloud-logs
+      description: zero-cache tags each statement event with class/method/type (e.g.
+        Statement/iterate/total).
+      fieldConfig:
+        defaults:
+          custom:
+            fillOpacity: 8
+            lineWidth: 1
+            showPoints: never
+          unit: short
+        overrides: []
+      gridPos:
+        h: 9
+        w: 12
+        x: 12
+        y: 29
+      id: 12
+      options:
+        legend:
+          displayMode: list
+          placement: bottom
+          showLegend: true
+        tooltip:
+          mode: multi
+          sort: desc
+      targets:
+        - datasource:
+            type: loki
+            uid: grafanacloud-logs
+          editorMode: code
+          expr:
+            sum by (method, type) (count_over_time({service_name=~"$service", deployment_environment="$env"}
+            |~ "Slow SQLite query" | type=~"$qtype" [$__auto]))
+          legendFormat: '{{method}}/{{type}}'
+          queryType: range
+          refId: A
+      title: Slow queries by method / type
+      type: timeseries
+    - collapsed: false
+      gridPos:
+        h: 1
+        w: 24
+        x: 0
+        y: 38
+      id: 13
+      panels: []
+      title: Raw logs
+      type: row
+    - datasource:
+        type: loki
+        uid: grafanacloud-logs
+      gridPos:
+        h: 12
+        w: 24
+        x: 0
+        y: 39
+      id: 14
+      options:
+        dedupStrategy: none
+        enableLogDetails: true
+        showTime: true
+        sortOrder: Descending
+        wrapLogMessage: true
+      targets:
+        - datasource:
+            type: loki
+            uid: grafanacloud-logs
+          editorMode: code
+          expr: '{service_name=~"$service", deployment_environment="$env"} |~ "Slow SQLite
+            query" | type=~"$qtype"'
+          maxLines: 200
+          queryType: range
+          refId: A
+      title: Recent slow query logs
+      type: logs
+  refresh: ''
+  schemaVersion: 42
+  tags:
+    - zero
+    - loki
+    - slow-queries
+    - provisioned
+    - repo:tldraw/tldraw
+  templating:
+    list:
+      - allValue: zero-.+
+        current:
+          text:
+            - All
+          value:
+            - $__all
+        hide: 0
+        includeAll: true
+        label: Zero service
+        multi: true
+        name: service
+        options: []
+        query: zero-vs,zero-rm
+        type: custom
+      - current:
+          text: production
+          value: production
+        hide: 0
+        includeAll: false
+        label: Environment
+        multi: false
+        name: env
+        options:
+          - selected: true
+            text: production
+            value: production
+          - selected: false
+            text: staging
+            value: staging
+        query: production,staging
+        type: custom
+      - allValue: .*
+        current:
+          text: All
+          value: $__all
+        description: total = wall-clock across row iteration (includes syncer pipeline
+          stalls); sqlite = time inside the SQLite engine. Filter to sqlite to see whether
+          the database itself is slow.
+        hide: 0
+        includeAll: true
+        label: Query type
+        multi: false
+        name: qtype
+        options:
+          - selected: true
+            text: All
+            value: $__all
+          - selected: false
+            text: total
+            value: total
+          - selected: false
+            text: sqlite
+            value: sqlite
+        query: total,sqlite
+        type: custom
+  time:
+    from: now-6h
+    to: now
+  timezone: browser
+  title: Zero slow queries

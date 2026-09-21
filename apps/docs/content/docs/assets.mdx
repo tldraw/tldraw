@@ -19,16 +19,45 @@ For the complete guide to working with assets, see the [Assets](/sdk-features/as
 
 ## Default storage behavior
 
-[`TLAssetStore`](?) controls how assets are stored and retrieved. The default behavior depends on your store setup:
+[TLAssetStore](?) controls how assets are uploaded and resolved. The default depends on your store setup:
 
-- **In-memory only** (default): [`inlineBase64AssetStore`](?) converts images to data URLs
-- **With [`persistenceKey`](/sdk-features/persistence)**: Assets are stored in the browser's [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
-- **With a [sync server](/docs/sync)**: Implement `TLAssetStore` to upload to a storage service like S3
+| Setup                                         | Asset store                                  | Where files go                                                                            |
+| --------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| In-memory only (default)                      | [inlineBase64AssetStore](?)                  | Data URLs inside the document                                                             |
+| [`persistenceKey`](/sdk-features/persistence) | Built in, overridable with the `assets` prop | The browser's [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) |
+| [Sync server](/docs/sync)                     | Your own `TLAssetStore`, passed to `useSync` | A storage service like S3 or R2                                                           |
+
+To use your own storage, implement `upload` and `resolve` and pass the store to `<Tldraw>` (or to `useSync`):
+
+```tsx
+import { Tldraw, TLAssetStore } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+const myAssetStore: TLAssetStore = {
+	async upload(asset, file) {
+		const url = await uploadToMyServer(file)
+		return { src: url }
+	},
+	resolve(asset) {
+		return asset.props.src
+	},
+}
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw assets={myAssetStore} />
+		</div>
+	)
+}
+```
+
+`resolve` also receives a [TLAssetContext](?) with the current screen scale and DPR, so you can serve a resized image instead of the original. Pasted and dropped files go through the [external content](/sdk-features/external-content) handlers before they become assets.
 
 ## Examples
 
-- [Using hosted images](/examples/data/assets/hosted-images)
-- [Customizing default asset options](/examples/configuration/asset-props)
-- [Handling pasted/dropped external content](/examples/data/assets/external-content-sources)
-- [Simple asset store with server upload](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/client/App.tsx)
-- [Asset store with image optimization](https://github.com/tldraw/tldraw/blob/main/packages/sync/src/useSyncDemo.ts#L178-L256)
+- [Using hosted images](/examples/data/assets/hosted-images) — Reference images by URL without uploading them
+- [Customizing default asset options](/examples/configuration/asset-props) — Size and dimension limits for uploaded assets
+- [Handling pasted/dropped external content](/examples/data/assets/external-content-sources) — Turn pasted content into assets
+- [Simple asset store with server upload](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/client/App.tsx) — Upload files to a Node server
+- [Asset store with image optimization](https://github.com/tldraw/tldraw/blob/main/packages/sync/src/useSyncDemo.ts) — The demo server's `createDemoAssetStore`, which resolves resized images

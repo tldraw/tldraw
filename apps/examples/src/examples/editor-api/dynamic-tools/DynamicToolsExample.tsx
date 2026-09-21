@@ -1,8 +1,7 @@
-import { useMemo, useState } from 'react'
 import {
+	atom,
 	DefaultToolbar,
 	DefaultToolbarContent,
-	Editor,
 	StateNode,
 	TLComponents,
 	TLTextShape,
@@ -12,8 +11,10 @@ import {
 	TldrawUiButton,
 	TldrawUiMenuItem,
 	toRichText,
+	useEditor,
 	useIsToolSelected,
 	useTools,
+	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './dynamic-tools.css'
@@ -42,15 +43,19 @@ class HeartTool extends StateNode {
 }
 
 // [2]
+const isHeartToolEnabled$ = atom('isHeartToolEnabled', false)
+
+// [3]
 const uiOverrides: TLUiOverrides = {
 	tools(editor, tools) {
-		// Create a tool item in the ui's context.
 		tools.heart = {
 			id: 'heart',
 			icon: 'heart-icon',
 			label: 'Heart',
-			kbd: 'r',
+			kbd: 'y',
 			onSelect: () => {
+				// [4]
+				if (!isHeartToolEnabled$.get()) return
 				editor.setCurrentTool('heart')
 			},
 		}
@@ -58,114 +63,108 @@ const uiOverrides: TLUiOverrides = {
 	},
 }
 
-// [3]
-export const customAssetUrls: TLUiAssetUrlOverrides = {
+const customAssetUrls: TLUiAssetUrlOverrides = {
 	icons: {
 		'heart-icon': '/heart-icon.svg',
 	},
 }
 
-// [4]
-export default function DynamicToolsExample() {
-	const [editor, setEditor] = useState<Editor | null>(null)
-	const [isHeartToolEnabled, setIsHeartToolEnabled] = useState(false)
+// [5]
+const components: TLComponents = {
+	Toolbar: (props) => {
+		const tools = useTools()
+		const isHeartSelected = useIsToolSelected(tools['heart'])
+		const isHeartToolEnabled = useValue(isHeartToolEnabled$)
 
-	// [5]
-	const components: TLComponents = useMemo(
-		() => ({
-			Toolbar: (props) => {
-				const tools = useTools()
-				const isHeartSelected = useIsToolSelected(tools['heart'])
+		return (
+			<DefaultToolbar {...props}>
+				{isHeartToolEnabled && (
+					<TldrawUiMenuItem {...tools['heart']} isSelected={isHeartSelected} />
+				)}
+				<DefaultToolbarContent />
+			</DefaultToolbar>
+		)
+	},
+	InFrontOfTheCanvas: () => {
+		const editor = useEditor()
+		const isHeartToolEnabled = useValue(isHeartToolEnabled$)
 
-				return (
-					<DefaultToolbar {...props}>
-						{isHeartToolEnabled && (
-							<TldrawUiMenuItem {...tools['heart']} isSelected={isHeartSelected} />
-						)}
-						<DefaultToolbarContent />
-					</DefaultToolbar>
-				)
-			},
-			InFrontOfTheCanvas: () => {
-				const toggleHeartTool = () => {
-					if (!editor) return
-					if (isHeartToolEnabled) {
-						// [6]
-						editor.removeTool(HeartTool)
-						// Switch to select tool if we're currently on the heart tool
-						if (editor.getCurrentToolId() === 'heart') {
-							editor.setCurrentTool('select')
-						}
-					} else {
-						// [7]
-						editor.setTool(HeartTool)
-					}
-					setIsHeartToolEnabled(!isHeartToolEnabled)
+		const toggleHeartTool = () => {
+			if (isHeartToolEnabled) {
+				// [6]
+				if (editor.getCurrentToolId() === 'heart') {
+					editor.setCurrentTool('select')
 				}
+				editor.removeTool(HeartTool)
+			} else {
+				// [7]
+				editor.setTool(HeartTool)
+			}
+			isHeartToolEnabled$.set(!isHeartToolEnabled)
+		}
 
-				return (
-					<div className="toggle-button-container">
-						<TldrawUiButton onClick={toggleHeartTool} type="normal">
-							{isHeartToolEnabled ? '💔 Remove Heart Tool' : '💖 Add Heart Tool'}
-						</TldrawUiButton>
-					</div>
-				)
-			},
-		}),
-		[editor, isHeartToolEnabled]
-	)
+		return (
+			<div className="toggle-button-container">
+				<TldrawUiButton onClick={toggleHeartTool} type="normal">
+					{isHeartToolEnabled ? '💔 Remove heart tool' : '💖 Add heart tool'}
+				</TldrawUiButton>
+			</div>
+		)
+	},
+}
 
+export default function DynamicToolsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				overrides={uiOverrides}
 				components={components}
-				onMount={(editor) => setEditor(editor)}
-				// pass in our custom asset urls
 				assetUrls={customAssetUrls}
+				// [8]
+				onMount={() => {
+					isHeartToolEnabled$.set(false)
+				}}
 			/>
 		</div>
 	)
 }
 
 /*
-Introduction:
-
-This example demonstrates how to use the `setTool` and `removeTool` methods to dynamically
-add and remove tools from the editor's state chart after initialization. When the tool is
-added, it also appears in the toolbar dynamically. This is useful when you need to 
-conditionally enable or disable tools based on runtime conditions like user permissions, 
-feature flags, or application state.
+`editor.setTool` and `editor.removeTool` add and remove tools from the editor's state chart after
+it has been created. Use them when a tool's availability depends on runtime conditions such as
+permissions or feature flags.
 
 [1]
-We define a simple HeartTool that extends StateNode. It creates a heart emoji sticker 
-when you click on the canvas. This tool is NOT passed to the Tldraw component initially - 
-it will be added dynamically using setTool.
+A minimal tool that stamps a heart at the pointer. It is deliberately not passed to `<Tldraw>` via
+the `tools` prop; it is added later with `setTool`.
 
 [2]
-We define UI overrides to add the heart tool to the UI context. This makes it available
-for the toolbar component to reference, even if the tool hasn't been added to the state
-chart yet.
+Whether the tool is currently installed. Keeping this in an atom lets the toolbar and the toggle
+button share it without lifting state into the example component, which would force the
+`components` object to be recreated on every change.
 
 [3]
-We override the Toolbar component to conditionally show the heart tool. The tool only
-appears in the toolbar when it exists in the state chart (isHeartToolEnabled is true).
-This creates a nice dynamic behavior where the toolbar updates when you add/remove the tool.
+Register the tool with the UI so the toolbar knows its label, icon, and shortcut. This entry can
+exist even while the tool is absent from the state chart; the toolbar below decides whether to
+show it. The shortcut is `y` because `r` already belongs to the rectangle tool.
 
 [4]
-We pass the overrides and components to the Tldraw component. The toggle button will
-appear on top of the canvas, and clicking it will add/remove the heart tool dynamically.
-When added, the tool appears in the toolbar and can be used immediately.
+Keyboard shortcuts are registered from the `tools` override whether or not the toolbar shows the
+item, so pressing `y` while the tool is uninstalled would call `setCurrentTool` on a state that
+doesn't exist and throw. Guard on the atom instead.
 
 [5]
-We define the components object. We override the Toolbar component to conditionally show the heart tool. The tool only
-appears in the toolbar when it exists in the state chart (isHeartToolEnabled is true).
-This creates a nice dynamic behavior where the toolbar updates when you add/remove the tool.
+The toolbar reads the atom with `useValue` and only renders the heart item while the tool exists.
+The toggle button lives in `InFrontOfTheCanvas` and gets the editor from `useEditor`.
 
 [6]
-We remove the heart tool from the state chart if it exists, and adds it back if it doesn't.
+Removing a tool does not exit it if it's active, so switch to select first. `removeTool` is a
+no-op if the tool isn't in the state chart.
 
 [7]
-We add the heart tool to the state chart if it doesn't exist.
+`setTool` constructs the tool and attaches it to the root state. It throws if a tool with the
+same id already exists, so don't call it twice without removing first.
 
+[8]
+A fresh editor starts without the tool, so reset the flag in case the example remounts.
 */

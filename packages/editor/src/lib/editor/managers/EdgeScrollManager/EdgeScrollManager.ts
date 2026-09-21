@@ -1,3 +1,4 @@
+import { FRAME_MS_60HZ } from '../../../constants'
 import { EASINGS } from '../../../primitives/easings'
 import { Vec } from '../../../primitives/Vec'
 import type { Editor } from '../../Editor'
@@ -51,10 +52,13 @@ export class EdgeScrollManager {
 								)
 							)
 						: 1
-				this.moveCameraWhenCloseToEdge({
-					x: edgeScrollProximityFactor.x * eased,
-					y: edgeScrollProximityFactor.y * eased,
-				})
+				this.moveCameraWhenCloseToEdge(
+					{
+						x: edgeScrollProximityFactor.x * eased,
+						y: edgeScrollProximityFactor.y * eased,
+					},
+					elapsed
+				)
 			}
 		}
 	}
@@ -112,7 +116,7 @@ export class EdgeScrollManager {
 	 * Moves the camera when the mouse is close to the edge of the screen.
 	 * @public
 	 */
-	private moveCameraWhenCloseToEdge(proximityFactor: { x: number; y: number }) {
+	private moveCameraWhenCloseToEdge(proximityFactor: { x: number; y: number }, elapsed: number) {
 		if (proximityFactor.x === 0 && proximityFactor.y === 0) return
 		const { editor } = this
 
@@ -128,9 +132,11 @@ export class EdgeScrollManager {
 				? EDGE_SCROLL_SMALL_SCREEN_SPEED_FACTOR
 				: 1
 
-		// Determines the base speed of the scroll
+		// Determines the base speed of the scroll. edgeScrollSpeed is px per 60 Hz frame, so scale
+		// by elapsed time or a 120 Hz display scrolls twice as fast.
 		const zoomLevel = editor.getZoomLevel()
-		const pxSpeed = editor.user.getEdgeScrollSpeed() * editor.options.edgeScrollSpeed
+		const pxSpeed =
+			editor.user.getEdgeScrollSpeed() * editor.options.edgeScrollSpeed * (elapsed / FRAME_MS_60HZ)
 		const scrollDeltaX = (pxSpeed * proximityFactor.x * screenSizeFactorX) / zoomLevel
 		const scrollDeltaY = (pxSpeed * proximityFactor.y * screenSizeFactorY) / zoomLevel
 

@@ -80,7 +80,6 @@ function ControlsPanel({
 	)
 }
 
-// [3]
 function createDemoShapes(editor: Editor) {
 	// changing the options prop recreates the editor but keeps the store, so
 	// only create the demo shapes on the first mount
@@ -110,7 +109,7 @@ export default function EdgeScrollingExample() {
 
 	return (
 		<div className="tldraw__editor edge-scrolling">
-			{/* [4] */}
+			{/* [3] */}
 			<Tldraw options={values} onMount={createDemoShapes} />
 			<ControlsPanel values={values} onCommit={setValues} />
 		</div>
@@ -118,10 +117,6 @@ export default function EdgeScrollingExample() {
 }
 
 /*
-This example shows how to configure edge scrolling: the behavior that
-automatically pans the camera when you drag a shape (or a selection brush)
-close to the edge of the viewport.
-
 [1]
 Edge scrolling is configured through four editor options:
 
@@ -148,10 +143,6 @@ re-committing an unchanged value is harmless, since the Tldraw component
 shallow-compares its options.
 
 [3]
-A few shapes to drag around. Grab one and hold it near a window edge to see
-the camera start scrolling; adjust the sliders and try again.
-
-[4]
 Options are passed via the Tldraw component's options prop. Any option from
 TldrawOptions can be overridden this way; unspecified options keep their
 defaults.

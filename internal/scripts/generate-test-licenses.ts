@@ -144,6 +144,26 @@ async function main() {
 			),
 		},
 
+		// === FEATURE FLAGS ===
+		{
+			name: 'License with Commenting Feature',
+			info: createLicenseInfo(
+				'test-feat-commenting',
+				['localhost'],
+				FLAGS.ANNUAL_LICENSE | FLAGS.FEAT_COMMENTING,
+				getDateOffset(60) // 2 months future
+			),
+		},
+		{
+			name: 'License with Collaboration Feature (grants commenting)',
+			info: createLicenseInfo(
+				'test-feat-collaboration',
+				['localhost'],
+				FLAGS.ANNUAL_LICENSE | FLAGS.FEAT_COLLABORATION,
+				getDateOffset(60) // 2 months future
+			),
+		},
+
 		// === GRACE PERIOD TESTING ===
 		{
 			name: 'Annual License (expired 15 days - within grace period)',

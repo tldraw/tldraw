@@ -10,11 +10,12 @@ import {
 import 'tldraw/tldraw.css'
 import './shape-animation.css'
 
-// [1]
+// There's a guide at the bottom of this file!
+
 function AnimationControls() {
 	const editor = useEditor()
 
-	// [2]
+	// [1]
 	const animatePosition = () => {
 		const shape = editor.getOnlySelectedShape()
 		if (!shape) return
@@ -25,7 +26,6 @@ function AnimationControls() {
 		)
 	}
 
-	// [3]
 	const animateRotation = () => {
 		const shape = editor.getOnlySelectedShape()
 		if (!shape) return
@@ -36,7 +36,6 @@ function AnimationControls() {
 		)
 	}
 
-	// [4]
 	const animateFade = () => {
 		const shape = editor.getOnlySelectedShape()
 		if (!shape) return
@@ -47,7 +46,6 @@ function AnimationControls() {
 		)
 	}
 
-	// [5]
 	const animateAll = () => {
 		const shape = editor.getOnlySelectedShape()
 		if (!shape) return
@@ -64,42 +62,36 @@ function AnimationControls() {
 		)
 	}
 
-	// [6]
+	// [2]
 	const animateMultiple = () => {
-		const shapeIds = editor.getCurrentPageShapeIds()
-		const updates = Array.from(shapeIds).map((id) => {
-			const shape = editor.getShape(id)
-			if (!shape) return null
-
-			return {
-				...shape,
-				x: shape.x + (Math.random() - 0.5) * 200,
-				y: shape.y + (Math.random() - 0.5) * 200,
-				rotation: shape.rotation + (Math.random() - 0.5) * Math.PI,
-			}
-		})
+		const updates = editor.getCurrentPageShapes().map((shape) => ({
+			...shape,
+			x: shape.x + (Math.random() - 0.5) * 200,
+			y: shape.y + (Math.random() - 0.5) * 200,
+			rotation: shape.rotation + (Math.random() - 0.5) * Math.PI,
+		}))
 
 		editor.animateShapes(updates, { animation: { duration: 1000, easing: EASINGS.easeOutCubic } })
 	}
 
 	const hasOneSelected = useValue(
 		'has one selected',
-		() => editor.getSelectedShapeIds().length !== 1,
+		() => editor.getSelectedShapeIds().length === 1,
 		[editor]
 	)
 
 	return (
 		<div className="tlui-menu animation-controls">
-			<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animatePosition}>
+			<TldrawUiButton type="normal" disabled={!hasOneSelected} onClick={animatePosition}>
 				Animate position
 			</TldrawUiButton>
-			<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animateRotation}>
+			<TldrawUiButton type="normal" disabled={!hasOneSelected} onClick={animateRotation}>
 				Animate rotation
 			</TldrawUiButton>
-			<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animateFade}>
+			<TldrawUiButton type="normal" disabled={!hasOneSelected} onClick={animateFade}>
 				Fade in/out
 			</TldrawUiButton>
-			<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animateAll}>
+			<TldrawUiButton type="normal" disabled={!hasOneSelected} onClick={animateAll}>
 				Animate all
 			</TldrawUiButton>
 			<TldrawUiButton type="normal" onClick={animateMultiple}>
@@ -113,13 +105,12 @@ const components: TLComponents = {
 	TopPanel: AnimationControls,
 }
 
-export default function AnimationShapesExample() {
+export default function ShapeAnimationExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				components={components}
 				onMount={(editor) => {
-					// Create some initial shapes for the demo
 					const id = createShapeId()
 					editor.createShapes([
 						{
@@ -158,8 +149,6 @@ export default function AnimationShapesExample() {
 							},
 						},
 					])
-
-					// Select the first shape
 					editor.select(id)
 				}}
 			/>
@@ -169,28 +158,12 @@ export default function AnimationShapesExample() {
 
 /*
 [1]
-Create a component with buttons to trigger different animations. Use the `useEditor` hook to
-access the editor instance.
+`animateShape()` takes a shape partial (here the whole shape spread with new values) plus animation
+options, and interpolates `x`, `y`, `rotation`, and `opacity` from the shape's current values to the
+targets over `duration`. `easing` accepts any function from `EASINGS`, or your own `(t) => number`.
+Props are interpolated too when the shape util implements `getInterpolatedProps`.
 
 [2]
-`animateShape()` animates a single shape to new property values. Pass a partial shape with the
-target values and animation options. The `easing` property accepts functions from the `EASINGS`
-object. In this example, we move the shape to a new position with cubic easing.
-
-[3]
-Animate rotation by specifying a target rotation value in radians. Here we rotate the shape
-360 degrees (2π radians) with smooth easing.
-
-[4]
-Opacity can be animated between 0 and 1. This creates a fade effect. We toggle between
-low and high opacity values using quadratic easing.
-
-[5]
-Multiple properties can be animated simultaneously. This example combines position, rotation,
-and opacity changes in a single animation.
-
-[6]
-`animateShapes()` animates multiple shapes at once. Build an array of shape partials and
-pass them all together. All shapes will animate with the same duration and easing function.
-
+`animateShapes()` does the same for many partials at once, sharing one duration and easing. Starting a
+new animation on a shape that's already animating cancels the earlier one for that shape.
 */

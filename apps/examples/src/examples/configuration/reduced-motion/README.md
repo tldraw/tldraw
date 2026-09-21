@@ -18,18 +18,12 @@ keywords:
   ]
 ---
 
-Respecting user motion preferences in custom shapes.
+Respect the user's reduced motion preference in a custom shape with `usePrefersReducedMotion`.
 
 ---
 
-This example demonstrates how to build custom shapes that respect the user's reduced motion preferences using the `usePrefersReducedMotion()` hook.
+`usePrefersReducedMotion()` returns `true` when the user has turned on tldraw's "reduce motion" preference (`animationSpeed: 0` in user preferences) or, if no tldraw preference is set, when the operating system reports `prefers-reduced-motion: reduce`. Use it inside a shape's React component to swap animations for static alternatives.
 
-The hook checks both the user's tldraw preference (`animationSpeed: 0`) and the OS-level `prefers-reduced-motion` setting. When reduced motion is preferred, animations are replaced with static alternatives.
+The pulse shapes here animate normally and fall back to a still gray circle when reduced motion is preferred. The "Toggle" button in the top panel flips the tldraw preference with `editor.user.updateUserPreferences({ animationSpeed })`, so you can watch every shape switch at once. The same setting is available to users under Preferences > Accessibility > Reduce motion in the main menu.
 
-The example includes:
-
-- A custom shape with animated and static variants
-- A toggle button to switch between animation modes
-- CSS animations controlled by the motion preference
-
-This is particularly important for accessibility, ensuring users with vestibular disorders or motion sensitivities can use your application comfortably.
+Reduced motion matters for users with vestibular disorders and motion sensitivity, and honoring it is cheap once the check is in one place.

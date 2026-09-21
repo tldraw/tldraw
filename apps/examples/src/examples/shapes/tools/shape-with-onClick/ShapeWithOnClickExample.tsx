@@ -35,5 +35,5 @@ so there's something to interact with right away.
 Try it:
 - Click the shape to increment the counter
 - Drag the shape to move it
-- Both work on unselected and selected shapes
+- Both work whether or not the shape is selected
 */

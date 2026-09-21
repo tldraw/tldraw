@@ -1,0 +1,25 @@
+.custom-records-marker {
+	position: absolute;
+	transform: translate(-50%, -100%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	pointer-events: all;
+	cursor: pointer;
+}
+
+.custom-records-marker__icon {
+	font-size: 28px;
+}
+
+.custom-records-marker__label {
+	font-size: 11px;
+	background: white;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	padding: 1px 4px;
+	white-space: nowrap;
+	max-width: 120px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

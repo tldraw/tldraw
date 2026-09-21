@@ -11,6 +11,32 @@
       "value": "Terima undangan"
     }
   ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "Kami sedang mengerjakan dukungan untuk file dari "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +57,22 @@
     {
       "type": 0,
       "value": "Undang rekan satu tim"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " menyebut Anda"
     }
   ],
   "05f43078e9": [
@@ -61,6 +103,16 @@
     {
       "type": 0,
       "value": "Akun"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "Belum bisa membuka file "
+    },
+    {
+      "type": 1,
+      "value": "extension"
     }
   ],
   "0a91f7fa87": [
@@ -123,6 +175,12 @@
       "value": "Ekspor sebagai"
     }
   ],
+  "14b03eeeb5": [
+    {
+      "type": 0,
+      "value": "Opsi pemberitahuan"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -179,6 +237,28 @@
       "value": "Tentang tldraw"
     }
   ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " berkomentar di papan Anda"
+    }
+  ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Tidak dapat mengirimkan umpan balik."
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -195,6 +275,12 @@
     {
       "type": 0,
       "value": "Mencari..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Silakan coba lagi."
     }
   ],
   "2de510be71": [
@@ -331,16 +417,16 @@
       "value": "Terima kasih telah membantu kami meningkatkan tldraw!"
     }
   ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Setuju dengan ketentuan penggunaan"
+    }
+  ],
   "477df802ca": [
     {
       "type": 0,
       "value": "Untuk melanjutkan pengeditan, salin berkas ke berkas Anda."
-    }
-  ],
-  "47839e47a5": [
-    {
-      "type": 0,
-      "value": "tldraw"
     }
   ],
   "47f493a590": [
@@ -391,6 +477,12 @@
       "value": "Menu halaman"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "Belum dibaca"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -401,6 +493,22 @@
     {
       "type": 0,
       "value": "Batas kolaborator terpenuhi"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " belum dibaca"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Gambar lokal Anda tidak dapat dipulihkan. Coba muat ulang halaman ini."
     }
   ],
   "554a05155c": [
@@ -461,6 +569,22 @@
       "value": "Ruang kerja saya"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " bereaksi terhadap komentar Anda"
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -485,10 +609,43 @@
       "value": "Salin"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "Anda sudah mengetahui semuanya."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Masuk untuk berkomentar"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Nanti"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " orang-orang bereaksi terhadap komentar Anda"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -591,6 +748,12 @@
     {
       "type": 0,
       "value": "Anda telah mencapai jumlah file maksimum. Anda perlu menghapus file lama sebelum membuat file baru."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Tandai semua sebagai sudah dibaca"
     }
   ],
   "7573b8110a": [
@@ -749,6 +912,12 @@
       "value": "?"
     }
   ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Komentar"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -905,6 +1074,12 @@
       "value": "Hapus file"
     }
   ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Anda tampaknya sedang offline. Periksa koneksi Anda dan coba lagi."
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -979,6 +1154,12 @@
       "value": "Ekspor gambar"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Pemberitahuan"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1027,6 +1208,12 @@
       "value": "Buat ruang kerja"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Seseorang"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1049,6 +1236,28 @@
     {
       "type": 0,
       "value": "Pengguna tamu"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " membalas"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "Semua"
     }
   ],
   "b2326c3a34": [
@@ -1227,6 +1436,56 @@
       "value": "Pelajari lebih lanjut tentang penerbitan."
     }
   ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " dan "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " bereaksi terhadap komentar Anda"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1345,6 +1604,36 @@
       "value": "Ketentuan Layanan"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " dan "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " bereaksi terhadap komentar Anda"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1413,6 +1702,12 @@
       "value": " kami untuk mempelajari lebih lanjut."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "Komentar ini telah dihapus."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1449,10 +1744,98 @@
       "value": "Hapus"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " dan "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " bereaksi terhadap komentar Anda"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Pengaturan"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "Untuk saat ini, Anda dapat "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "mengekspor sebagai file "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " untuk menggunakannya di sini."
     }
   ],
   "fa2ead697d": [

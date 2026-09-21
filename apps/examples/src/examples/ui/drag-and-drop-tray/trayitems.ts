@@ -1,6 +1,6 @@
 import { TLShape, toRichText } from 'tldraw'
 
-// [1]
+// Distributes over the shape union so `props` is typed against the matching shape's props.
 export type TrayItem<T extends TLShape = TLShape> = T extends T
 	? {
 			id: string

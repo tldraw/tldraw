@@ -1,13 +1,34 @@
 import { useValue } from '@tldraw/state-react'
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+import { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useMaybeEditor } from '../hooks/useEditor'
 import { LicenseManager } from './LicenseManager'
 
 /** @internal */
-export const LicenseContext = createContext({} as LicenseManager)
+export const LicenseContext = createContext<LicenseManager | null>(null)
 
 /** @internal */
-export function useLicenseContext() {
-	return useContext(LicenseContext)
+export function useLicenseContext(): LicenseManager {
+	const licenseManager = useMaybeLicenseManager()
+	if (!licenseManager) {
+		throw new Error(
+			'useLicenseContext must be used inside of the <Tldraw /> or <TldrawEditor /> components, or inside an <EditorProvider /> wrapping an editor created by them'
+		)
+	}
+	return licenseManager
+}
+
+/**
+ * Returns the license manager for the current editor, or `null` if there is none. Reads the
+ * license context when inside `<TldrawEditor />`, and otherwise falls back to the license manager
+ * of the nearest editor, so UI mounted outside the editor tree (via `EditorProvider`) resolves the
+ * same license as the editor it belongs to.
+ *
+ * @internal
+ */
+export function useMaybeLicenseManager(): LicenseManager | null {
+	const licenseManager = useContext(LicenseContext)
+	const editor = useMaybeEditor()
+	return licenseManager ?? editor?.licenseManager ?? null
 }
 
 function shouldHideEditorAfterDelay(licenseState: string): boolean {
@@ -25,21 +46,35 @@ export function LicenseProvider({
 	licenseKey?: string
 	children: ReactNode
 }) {
-	const [licenseManager] = useState(() => new LicenseManager(licenseKey))
+	// Keyed on the license key: the editor is recreated when the key changes, and must not be
+	// handed a manager that validated the old key.
+	const licenseManager = useMemo(() => new LicenseManager(licenseKey), [licenseKey])
 	const licenseState = useValue(licenseManager.state)
-	const [showEditor, setShowEditor] = useState(true)
+	// The manager whose LICENSE_TIMEOUT elapsed; compared by identity so a new key un-gates the editor.
+	const [gatedManager, setGatedManager] = useState<LicenseManager | null>(null)
+	const showEditor = gatedManager !== licenseManager
+
+	// Dispose only the replaced manager, never on cleanup: strict mode re-runs effects with the
+	// same manager, and disposing it there would silence the live one.
+	const previousManager = useRef<LicenseManager | null>(null)
+	useEffect(() => {
+		if (previousManager.current && previousManager.current !== licenseManager) {
+			previousManager.current.dispose()
+		}
+		previousManager.current = licenseManager
+	}, [licenseManager])
 
 	// When license expires or no license in production, show for 5 seconds then hide
 	useEffect(() => {
 		if (shouldHideEditorAfterDelay(licenseState) && showEditor) {
 			// eslint-disable-next-line no-restricted-globals
 			const timer = setTimeout(() => {
-				setShowEditor(false)
+				setGatedManager(licenseManager)
 			}, LICENSE_TIMEOUT)
 
 			return () => clearTimeout(timer)
 		}
-	}, [licenseState, showEditor])
+	}, [licenseManager, licenseState, showEditor])
 
 	// If license is expired or no license in production and 5 seconds have passed, don't render anything (blank screen)
 	if (shouldHideEditorAfterDelay(licenseState) && !showEditor) {

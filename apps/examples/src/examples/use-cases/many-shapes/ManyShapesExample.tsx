@@ -1,5 +1,6 @@
 import {
 	Editor,
+	TLComponents,
 	TLCreateShapePartial,
 	Tldraw,
 	TldrawUiButton,
@@ -8,7 +9,6 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// [1]
 const GEO_TYPES = [
 	'rectangle',
 	'ellipse',
@@ -45,7 +45,7 @@ function pick<T>(arr: readonly T[]): T {
 	return arr[Math.floor(Math.random() * arr.length)]
 }
 
-// [2]
+// [1]
 function generateShapes(editor: Editor, count: number) {
 	const cols = Math.ceil(Math.sqrt(count * 1.5))
 	const cellW = 200
@@ -61,9 +61,7 @@ function generateShapes(editor: Editor, count: number) {
 		const w = cellW - padding * 2
 		const h = cellH - padding * 2
 
-		// Mix shape types: mostly geo, some notes
 		if (i % 7 === 0) {
-			// Every 7th shape is a sticky note
 			shapes.push({
 				id: createShapeId(),
 				type: 'note' as const,
@@ -93,12 +91,10 @@ function generateShapes(editor: Editor, count: number) {
 		}
 	}
 
-	editor.run(() => {
-		editor.createShapes(shapes)
-	})
+	// [2]
+	editor.createShapes(shapes)
 }
 
-// [3]
 function Controls() {
 	const editor = useEditor()
 
@@ -108,12 +104,7 @@ function Controls() {
 	}
 
 	const handleClear = () => {
-		editor.run(() => {
-			const ids = [...editor.getCurrentPageShapeIds()]
-			if (ids.length > 0) {
-				editor.deleteShapes(ids)
-			}
-		})
+		editor.deleteShapes([...editor.getCurrentPageShapeIds()])
 	}
 
 	return (
@@ -134,16 +125,17 @@ function Controls() {
 	)
 }
 
+const components: TLComponents = { TopPanel: Controls }
+
 export default function ManyShapesExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				onMount={(editor) => {
-					// Start with 500 shapes
 					generateShapes(editor, 500)
 					editor.zoomToFit({ animation: { duration: 0 } })
 				}}
-				components={{ TopPanel: Controls }}
+				components={components}
 			/>
 		</div>
 	)
@@ -151,20 +143,13 @@ export default function ManyShapesExample() {
 
 /*
 [1]
-Arrays of shape properties used to generate varied shapes. The mix of geo
-types, fills, dashes, and colors creates a visually diverse canvas that
-exercises many different rendering paths.
+Shapes are laid out in a grid with slight random offsets. Every 7th shape is a sticky note,
+whose shadow is dropped at low zoom; the rest are geo shapes with random fills, dashes, and
+sizes so that "draw" strokes and "pattern" fills get exercised too, since both simplify when
+zoomed out.
 
 [2]
-Shapes are laid out in a grid with slight random offsets for visual variety.
-Every 7th shape is a sticky note, which has box shadow LOD behavior—zoom out
-far enough and the shadows disappear. Geo shapes with "draw" dash style will
-also simplify to solid strokes at low zoom levels, and "pattern" fills will
-flatten to solid colors.
-
-[3]
-The control panel lets you add shapes in batches or clear the canvas. All
-shape creation is wrapped in editor.run() so observers receive a single
-batched update, which is one of the performance techniques described in the
-performance docs.
+One `createShapes` call with the whole array is a single store transaction, so observers get
+one batched update instead of one per shape. Wrapping many separate editor calls in
+`editor.run` achieves the same thing.
 */

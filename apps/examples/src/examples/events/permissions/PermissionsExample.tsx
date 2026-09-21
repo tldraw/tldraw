@@ -1,42 +1,27 @@
-import { Box, Editor, SVGContainer, TLGeoShape, Tldraw } from 'tldraw'
+import { Box, clamp, Editor, SVGContainer, TLGeoShape, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// [1]
+// There's a guide at the bottom of this file!
+
 const CONTAINER_BOUNDS = new Box(100, 100, 400, 300)
 
-// [2]
-function constrainShapeToBounds(editor: Editor, shape: TLGeoShape) {
-	const shapeGeometry = editor.getShapeGeometry(shape)
-	const shapeBounds = shapeGeometry.bounds
-
-	// Calculate the shape's world-space bounds
-	const shapeWorldBounds = Box.From({
-		x: shape.x + shapeBounds.x,
-		y: shape.y + shapeBounds.y,
-		w: shapeBounds.w,
-		h: shapeBounds.h,
-	})
-
-	// Check if the shape is completely within the container
-	if (CONTAINER_BOUNDS.contains(shapeWorldBounds)) {
-		return shape
-	}
-
-	// [3]
-	// Clamp the shape's position so it stays within bounds
-	const clampedX = Math.max(
-		CONTAINER_BOUNDS.x - shapeBounds.x,
-		Math.min(shape.x, CONTAINER_BOUNDS.maxX - shapeBounds.x - shapeBounds.w)
-	)
-	const clampedY = Math.max(
-		CONTAINER_BOUNDS.y - shapeBounds.y,
-		Math.min(shape.y, CONTAINER_BOUNDS.maxY - shapeBounds.y - shapeBounds.h)
+// [1]
+function constrainShapeToBounds(editor: Editor, shape: TLGeoShape): TLGeoShape {
+	const localBounds = editor.getShapeUtil(shape).getGeometry(shape).bounds
+	const pageBounds = new Box(
+		shape.x + localBounds.x,
+		shape.y + localBounds.y,
+		localBounds.w,
+		localBounds.h
 	)
 
+	if (CONTAINER_BOUNDS.contains(pageBounds)) return shape
+
+	// [2]
 	return {
 		...shape,
-		x: clampedX,
-		y: clampedY,
+		x: clamp(shape.x, CONTAINER_BOUNDS.x - localBounds.x, CONTAINER_BOUNDS.maxX - localBounds.maxX),
+		y: clamp(shape.y, CONTAINER_BOUNDS.y - localBounds.y, CONTAINER_BOUNDS.maxY - localBounds.maxY),
 	}
 }
 
@@ -45,33 +30,25 @@ export default function PermissionsExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				onMount={(editor) => {
-					// [4]
-					editor.sideEffects.registerBeforeChangeHandler('shape', (prevShape, nextShape) => {
-						// Only constrain geo shapes (our rectangle)
-						if (nextShape.type === 'geo') {
-							return constrainShapeToBounds(editor, nextShape as TLGeoShape)
+					// [3]
+					editor.sideEffects.registerBeforeChangeHandler('shape', (_prevShape, nextShape) => {
+						if (editor.isShapeOfType<TLGeoShape>(nextShape, 'geo')) {
+							return constrainShapeToBounds(editor, nextShape)
 						}
 						return nextShape
 					})
 
-					// [5]
-					// Create the constrained rectangle
-					editor.createShape({
+					editor.createShape<TLGeoShape>({
 						type: 'geo',
 						x: 250,
 						y: 200,
-						props: {
-							geo: 'rectangle',
-							w: 150,
-							h: 100,
-						},
+						props: { geo: 'rectangle', w: 150, h: 100 },
 					})
 
-					// Zoom to show the container area
 					editor.zoomToBounds(new Box(0, 0, 600, 500), { animation: { duration: 0 } })
 				}}
 				components={{
-					// [6]
+					// [4]
 					OnTheCanvas: () => (
 						<SVGContainer>
 							<rect
@@ -94,28 +71,22 @@ export default function PermissionsExample() {
 
 /*
 [1]
-Define the invisible container bounds that our shape will be constrained to. This is a box
-with top-left at (100, 100) and dimensions of 400x300.
+Work out where the *proposed* shape would sit on the page. Inside a before-change handler the
+new shape isn't in the store yet, so cached lookups like `editor.getShapeGeometry(shape)` or
+`editor.getShapePageBounds(shape)` would describe the old version. Calling the shape util's
+`getGeometry` directly computes from the record we were given.
 
 [2]
-This function checks if a shape's bounds extend outside the container and returns a modified
-shape with clamped position if needed. We use editor.getShapeGeometry() to get the shape's
-actual geometry including any padding or offsets.
+Clamp the shape's origin so its bounds stay inside the container. Geometry bounds are in the
+shape's local space (for a geo shape they start at 0,0), so we offset by them.
 
 [3]
-Clamp the shape's x and y coordinates so that the shape's bounds stay completely within
-the container bounds. We account for the shape's geometry offset and dimensions.
+Before-change handlers run for every shape update, whether it came from dragging, the arrow
+keys, alignment actions, or `editor.updateShapes` in your own code. Returning a modified record
+is what gets written, so the constraint holds regardless of how the change was made. We only
+apply it to geo shapes here.
 
 [4]
-Register a beforeChange handler that runs whenever any shape is about to be modified. We only
-apply the constraint to geo shapes (rectangles). This handler intercepts changes and returns
-a modified version of the shape with position clamped to the container.
-
-[5]
-Create a rectangle shape positioned inside our container bounds. Users can drag this shape,
-but it will be prevented from leaving the container area.
-
-[6]
-Draw a dashed rectangle on the canvas to visualize the container bounds. This uses SVGContainer
-to render directly on the canvas in world coordinates.
+Draw the container as a dashed rectangle in page coordinates so it's easy to see. It's purely
+visual and takes no part in the constraint.
 */

@@ -19,8 +19,10 @@ keywords:
   ]
 ---
 
-You can implement more complex behaviour in a custom tool by using child states
+Split a custom tool into idle, pointing, and dragging child states to tell clicks from drags.
 
 ---
 
-Tools are nodes in tldraw's state machine. They are responsible for handling user input. You can create custom tools by extending the StateNode class and overriding its methods. In this example we expand on the sticker tool from the [custom tool example](https://tldraw.dev/examples/custom-tool) to show how to create a tool that can handle more complex interactions by using child states.
+Tools are `StateNode`s in tldraw's state machine. Once a tool needs to distinguish a click from a drag, or a click on empty canvas from a click on a shape, giving it child states keeps each piece of behavior in the state that owns it: `Idle` decides what the user is doing, `Pointing` waits to see whether a drag starts, and `Dragging` updates the shape. `this.parent.transition()` moves between them and passes data to the next state's `onEnter`.
+
+This builds on the [custom tool example](https://tldraw.dev/examples/custom-tool). Instructions for what to try are drawn on the canvas.

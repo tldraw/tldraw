@@ -29,6 +29,7 @@ jobs:
           private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
 
       - name: Check out code
+        id: checkout
         uses: actions/checkout@v6
         with:
           persist-credentials: false
@@ -55,9 +56,9 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
-      # Earlier steps run before checkout, so re-fetch the local action on failure.
+      # Preserve the setup action for post-job cleanup when checkout already succeeded.
       - name: Check out Discord notify action
-        if: failure()
+        if: failure() && steps.checkout.outcome != 'success'
         uses: actions/checkout@v6
         with:
           sparse-checkout: .github/actions/discord-fail-notify

@@ -1,7 +1,9 @@
 import { AssetRecordType, TLBookmarkShape, createShapeId, getHashForString } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { defaultHandleExternalUrlAsset } from '../lib/defaultExternalContentHandlers'
 import {
 	createBookmarkFromUrl,
+	getBookmarkHeight,
 	getBookmarkShapeHeight,
 	getHumanReadableAddress,
 	getResolvedBookmarkAssetId,
@@ -480,5 +482,190 @@ describe('createBookmarkFromUrl', () => {
 		// resolved short bookmark, not the 320px placeholder.
 		expect(getBookmarkShapeHeight(editor, redone)).toBe(shortHeight)
 		expect(editor.getShapeGeometry(redone.id).bounds.height).toBe(shortHeight)
+	})
+})
+
+describe('changing a bookmark url', () => {
+	function createBookmarkAsset(url: string, description: string) {
+		const id = AssetRecordType.createId(getHashForString(url))
+		editor.createAssets([
+			{
+				id,
+				typeName: 'asset',
+				type: 'bookmark',
+				props: { src: url, title: url, description, image: '', favicon: '' },
+				meta: {},
+			},
+		])
+		return id
+	}
+
+	it('switches to the existing asset for the new url in the same update', () => {
+		const urlA = 'https://a.example.com'
+		const urlB = 'https://b.example.com'
+		const assetA = createBookmarkAsset(urlA, 'short')
+		const assetB = createBookmarkAsset(urlB, 'a much longer description for the second site')
+		const id = createShapeId()
+		editor.createShape<TLBookmarkShape>({
+			id,
+			type: 'bookmark',
+			props: { url: urlA, assetId: assetA },
+		})
+		const fetchSpy = vi.spyOn(editor, 'getAssetForExternalContent')
+
+		editor.updateShape<TLBookmarkShape>({ id, type: 'bookmark', props: { url: urlB } })
+
+		expect(editor.getShape<TLBookmarkShape>(id)!.props).toMatchObject({
+			url: urlB,
+			assetId: assetB,
+			h: getBookmarkHeight(editor, assetB),
+		})
+		expect(fetchSpy).not.toHaveBeenCalled()
+	})
+
+	it('drops the old asset while a new one is fetched for an unknown url', async () => {
+		vi.useFakeTimers()
+		try {
+			const urlA = 'https://a.example.com'
+			const urlC = 'https://c.example.com'
+			const assetA = createBookmarkAsset(urlA, 'short')
+			const id = createShapeId()
+			editor.createShape<TLBookmarkShape>({
+				id,
+				type: 'bookmark',
+				props: { url: urlA, assetId: assetA },
+			})
+			const assetC = AssetRecordType.createId(getHashForString(urlC))
+			const fetchSpy = vi.spyOn(editor, 'getAssetForExternalContent').mockResolvedValue({
+				id: assetC,
+				typeName: 'asset',
+				type: 'bookmark',
+				props: { src: urlC, title: urlC, description: '', image: '', favicon: '' },
+				meta: {},
+			})
+
+			editor.updateShape<TLBookmarkShape>({ id, type: 'bookmark', props: { url: urlC } })
+
+			expect(editor.getShape<TLBookmarkShape>(id)!.props).toMatchObject({
+				url: urlC,
+				assetId: null,
+				h: getBookmarkHeight(editor, null),
+			})
+
+			await vi.advanceTimersByTimeAsync(600)
+			expect(fetchSpy).toHaveBeenCalledWith({ type: 'url', url: urlC })
+			expect(editor.getShape<TLBookmarkShape>(id)!.props.assetId).toBe(assetC)
+		} finally {
+			vi.useRealTimers()
+		}
+	})
+})
+
+describe('defaultHandleExternalUrlAsset', () => {
+	const url = 'https://example.com/some/page'
+
+	let opts: any
+	let fetchMock: ReturnType<typeof vi.fn>
+
+	beforeEach(() => {
+		opts = {
+			toasts: { addToast: vi.fn(), removeToast: vi.fn(), clearToasts: vi.fn() },
+			msg: (id: string) => id,
+		}
+	})
+
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
+	function mockResponseBody(html: string) {
+		fetchMock = vi.fn().mockResolvedValue({ text: async () => html })
+		vi.stubGlobal('fetch', fetchMock)
+	}
+
+	function mockPageHead(head: string) {
+		mockResponseBody(`<html><head>${head}</head><body></body></html>`)
+	}
+
+	it('leaves the image and favicon empty when the page provides neither', async () => {
+		mockPageHead('<title>Example</title>')
+
+		const asset = await defaultHandleExternalUrlAsset(editor, { type: 'url', url }, opts)
+
+		expect(asset.props.image).toBe('')
+		expect(asset.props.favicon).toBe('')
+	})
+
+	it('resolves relative image and favicon urls against the page', async () => {
+		mockPageHead(
+			'<meta property="og:image" content="/img/preview.png" />' +
+				'<link rel="icon" href="favicon.ico" />'
+		)
+
+		const asset = await defaultHandleExternalUrlAsset(editor, { type: 'url', url }, opts)
+
+		expect(asset.props.image).toBe('https://example.com/img/preview.png')
+		expect(asset.props.favicon).toBe('https://example.com/some/favicon.ico')
+	})
+
+	it('leaves absolute image urls alone', async () => {
+		mockPageHead('<meta property="og:image" content="https://cdn.example.com/preview.png" />')
+
+		const asset = await defaultHandleExternalUrlAsset(editor, { type: 'url', url }, opts)
+
+		expect(asset.props.image).toBe('https://cdn.example.com/preview.png')
+	})
+
+	it('toasts and returns a blank bookmark when the fetch throws', async () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		fetchMock = vi.fn().mockRejectedValue(new Error('CORS'))
+		vi.stubGlobal('fetch', fetchMock)
+
+		const asset = await defaultHandleExternalUrlAsset(editor, { type: 'url', url }, opts)
+
+		expect(opts.toasts.addToast).toHaveBeenCalledWith(
+			expect.objectContaining({ severity: 'error' })
+		)
+		expect(asset.props.src).toBe(url)
+		expect(asset.props.image).toBe('')
+		expect(asset.props.title).toBe('')
+
+		consoleSpy.mockRestore()
+	})
+
+	// Pins behaviour we'd like to change, so that changing it is deliberate.
+	describe('behaviour to revisit', () => {
+		it('extracts nothing at all from a cross-origin page', async () => {
+			// `mode: 'no-cors'` makes the response opaque cross-origin, and an
+			// opaque body always reads as ''.
+			mockResponseBody('')
+
+			const asset = await defaultHandleExternalUrlAsset(editor, { type: 'url', url }, opts)
+
+			expect(fetchMock).toHaveBeenCalledWith(url, expect.objectContaining({ mode: 'no-cors' }))
+			expect(asset.props.image).toBe('')
+			expect(asset.props.favicon).toBe('')
+			expect(asset.props.description).toBe('')
+			expect(asset.props.title).toBe(url)
+			expect(opts.toasts.addToast).not.toHaveBeenCalled()
+		})
+
+		it('ignores twitter card tags, og:image:secure_url and <title>', async () => {
+			mockPageHead(
+				'<title>Example</title>' +
+					'<meta property="og:image:secure_url" content="https://cdn.example.com/secure.png" />' +
+					'<meta name="twitter:image" content="https://cdn.example.com/twitter.png" />' +
+					'<meta name="twitter:title" content="Example, from twitter" />' +
+					'<meta name="description" content="A plain meta description" />'
+			)
+
+			const asset = await defaultHandleExternalUrlAsset(editor, { type: 'url', url }, opts)
+
+			// cloudflare-workers-unfurl reads all four of these; this handler
+			// reads only the plain `og:` tags.
+			expect(asset.props.image).toBe('')
+			expect(asset.props.description).toBe('')
+			expect(asset.props.title).toBe(url)
+		})
 	})
 })

@@ -1,4 +1,13 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
+import {
+	FILE_PREFIX,
+	PUBLISH_PREFIX,
+	READ_ONLY_LEGACY_PREFIX,
+	READ_ONLY_PREFIX,
+	ROOM_PREFIX,
+	SNAPSHOT_PREFIX,
+	SOCIAL_PREVIEW_BYPASS_PARAM,
+} from '@tldraw/dotcom-shared'
 import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
 import json5 from 'json5'
@@ -6,6 +15,7 @@ import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
 import { csp } from '../src/utils/csp'
+import { reportBundleSize } from './measure-bundle-size'
 import { getMultiplayerServerURL } from './multiplayer-server-url'
 import { Config } from './vercel-output-config'
 
@@ -14,6 +24,79 @@ const commonSecurityHeaders = {
 	'X-Content-Type-Options': 'nosniff',
 	'Referrer-Policy': 'no-referrer-when-downgrade',
 	'Content-Security-Policy': csp,
+}
+
+// RFC 8288 links from the homepage to the discovery documents an agent would otherwise have to guess
+// at. Only the homepage carries these: an agent arriving anywhere else on tldraw.com is already
+// looking at a board, and repeating ~200 bytes on every SPA route and asset buys nothing.
+//
+// `api-catalog` (RFC 9727), `ai-catalog` and `service-doc` are all registered relations, and the
+// specific one matters: the AI Catalog spec has agents check for `rel="ai-catalog"` first and only
+// *optionally* fall back to the well-known path, so a catalog advertised under any other relation is
+// one a conformant client never sees.
+const agentDiscoveryLinkHeader = [
+	'</.well-known/api-catalog>; rel="api-catalog"',
+	'</.well-known/ai-catalog.json>; rel="ai-catalog"; type="application/ai-catalog+json"',
+	'<https://tldraw.dev>; rel="service-doc"; type="text/html"',
+].join(', ')
+
+// Regex fragments matched against the user-agent of requests to board URLs. Matching requests are
+// routed to the multiplayer worker, which renders the board name into the social preview metadata
+// for link-unfurling crawlers that don't run JavaScript and so never see the SPA's runtime title
+// updates.
+//
+// The generic `[Bb]ot` token catches the long tail of unfurlers (Twitterbot, Discordbot, Slackbot,
+// TelegramBot, LinkedInBot, redditbot, ...) including tldraw's own link-unfurl service
+// (`tldraw-bot/x.y.z`), so pasting a board link into a tldraw canvas shows the board name in the
+// bookmark. The named entries are unfurlers that don't say "bot". LINE and KakaoTalk are covered
+// too: their unfurlers identify as `facebookexternalhit`.
+//
+// Search-engine crawlers (Googlebot, bingbot) also match the generic token, but robots.txt already
+// disallows all board routes, so compliant search engines never request these URLs; a bot that
+// ignores robots.txt gets the preview stub, which is fine. Real people whose browser carries a
+// matching token — in-app browsers (WhatsApp, Pinterest) or the odd device name containing "bot" —
+// are bounced back to the app by the stub via the bypass param.
+const SOCIAL_CRAWLER_USER_AGENTS = [
+	'[Bb]ot',
+	'facebookexternalhit',
+	'Slack-ImgProxy',
+	'WhatsApp',
+	'Pinterest',
+	'Embedly',
+	'Iframely',
+	'vkShare',
+	'W3C_Validator',
+	'SkypeUriPreview',
+	'Mastodon',
+	'Bluesky',
+]
+
+// The board routes whose social preview should include the board name. Only the bare board route is
+// matched (not sub-routes like `/f/:slug/history`).
+const SOCIAL_PREVIEW_PREFIXES = [
+	FILE_PREFIX,
+	PUBLISH_PREFIX,
+	SNAPSHOT_PREFIX,
+	ROOM_PREFIX,
+	READ_ONLY_PREFIX,
+	READ_ONLY_LEGACY_PREFIX,
+]
+
+const userAgent = `.*(?:${SOCIAL_CRAWLER_USER_AGENTS.join('|')}).*`
+
+function socialPreviewRoute(multiplayerServerUrl: string) {
+	// Vercel matches `has.value` as `^value$`, so a bare `a|b|c` join anchors the first token to the
+	// start of the user-agent and the last token to the end. Wrap the alternation so every token is
+	// a substring match.
+	return {
+		src: `^/(${SOCIAL_PREVIEW_PREFIXES.join('|')})/([^/]+)/?$`,
+		has: [{ type: 'header' as const, key: 'user-agent', value: userAgent }],
+		// some in-app browsers used by real people carry a crawler token in their user-agent
+		// (WhatsApp, Pinterest). the stub page bounces those visitors back to the board with this
+		// param set, which makes this route not match so they fall through to the real app.
+		missing: [{ type: 'query' as const, key: SOCIAL_PREVIEW_BYPASS_PARAM }],
+		dest: `${multiplayerServerUrl}/app/social-preview/$1/$2`,
+	}
 }
 
 // We load the list of routes that should be forwarded to our SPA's index.html here.
@@ -109,12 +192,43 @@ async function build() {
 			{
 				version: 3,
 				routes: [
+					// redirect /offline to the offline version of tldraw
+					{
+						src: '^/offline/?$',
+						status: 307,
+						headers: { Location: 'https://offline.tldraw.com/' },
+					},
 					// rewrite api calls to the multiplayer server
 					{
 						src: '^/api(/(.*))?$',
 						dest: `${multiplayerServerUrl}$1`,
 						check: true,
 					},
+					// MCP OAuth discovery (RFC 9728) lives at the origin, outside /api, so the
+					// rewrite above misses it. staging and production reach the worker through
+					// Cloudflare zone routes for this prefix (see the sync worker's wrangler.toml);
+					// previews have no zone routes, so this rewrite is their only path to it. the
+					// path is passed through unstripped — the worker registers the full well-known
+					// path, /api included.
+					{
+						src: '^/\\.well-known/oauth-protected-resource(/(.*))?$',
+						dest: `${multiplayerServerUrl}/.well-known/oauth-protected-resource$1`,
+						check: true,
+					},
+					// The MCP Server Card's `.well-known` alias, for the same reason: the canonical
+					// card lives at /api/app/mcp/server-card, but scanners probe this path, and it
+					// sits outside the /api rewrite above.
+					{
+						src: '^/\\.well-known/mcp/(.*)$',
+						dest: `${multiplayerServerUrl}/.well-known/mcp/$1`,
+						check: true,
+					},
+					// route social/link-unfurling crawlers to the worker so board link previews
+					// include the board name. must come before the SPA routes below. set
+					// SOCIAL_PREVIEW_DISABLED=true to turn this off without a code change.
+					...(process.env.SOCIAL_PREVIEW_DISABLED === 'true'
+						? []
+						: [socialPreviewRoute(multiplayerServerUrl)]),
 					{
 						src: '^/assets/(.*)$',
 						// we need `continue: true` here because we also want to apply the headers
@@ -123,6 +237,31 @@ async function build() {
 						headers: {
 							'X-Content-Type-Options': 'nosniff',
 						},
+					},
+					// RFC 9727 requires the catalog to answer a HEAD request with an api-catalog Link
+					// header, so that a client can find where the catalog really lives without
+					// fetching it. Ours is at the well-known path, so the link points at itself; a
+					// publisher serving the document elsewhere would point there instead.
+					//
+					// Vercel matches routes by path, not method, so this lands on GET too. Harmless,
+					// and the RFC's own example shows the relation on a GET response.
+					//
+					// The catalogs are also stated to be readable cross-origin — a browser-context
+					// agent is a normal consumer, and ARD requires it. Vercel already serves static
+					// files with `Access-Control-Allow-Origin: *`, but that is a platform default
+					// rather than something the spec lets us assume.
+					{
+						src: '^/\\.well-known/api-catalog$',
+						continue: true,
+						headers: {
+							Link: '</.well-known/api-catalog>; rel="api-catalog"',
+							'Access-Control-Allow-Origin': '*',
+						},
+					},
+					{
+						src: '^/\\.well-known/ai-catalog\\.json$',
+						continue: true,
+						headers: { 'Access-Control-Allow-Origin': '*' },
 					},
 					// cache static assets immutably. we match by extension to avoid exceeding
 					// Vercel's 4096-char route limit (see #8286).
@@ -139,7 +278,7 @@ async function build() {
 						check: true,
 						src: '/',
 						dest: '/index.html',
-						headers: commonSecurityHeaders,
+						headers: { ...commonSecurityHeaders, Link: agentDiscoveryLinkHeader },
 					},
 					// serve static files
 					{
@@ -156,12 +295,24 @@ async function build() {
 						headers: commonSecurityHeaders,
 					},
 				],
-				overrides: {},
+				// Vercel types static files from their extension, which has nothing useful to say
+				// about `api-catalog` (extensionless, as RFC 9727 requires) and would serve
+				// `auth.md` as a download rather than something an agent reads.
+				overrides: {
+					'.well-known/api-catalog': {
+						contentType:
+							'application/linkset+json; profile="https://www.rfc-editor.org/info/rfc9727"',
+					},
+					'.well-known/ai-catalog.json': { contentType: 'application/ai-catalog+json' },
+					'auth.md': { contentType: 'text/markdown; charset=utf-8' },
+				},
 			} satisfies Config,
 			null,
 			2
 		)
 	)
+
+	await reportBundleSize('.vercel/output/static')
 }
 
 build()

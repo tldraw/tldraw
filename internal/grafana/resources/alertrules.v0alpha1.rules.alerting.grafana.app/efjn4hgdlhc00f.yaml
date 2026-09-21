@@ -1,0 +1,66 @@
+apiVersion: rules.alerting.grafana.app/v0alpha1
+kind: AlertRule
+metadata:
+  annotations:
+    grafana.app/folder: f6hsw6
+    grafana.com/provenance: ''
+    grafana.com/updateTimestamp: '2026-04-21T09:07:11Z'
+    grafana.com/updatedBy: ae5t47muqbegwf
+  labels:
+    grafana.app/folder: f6hsw6
+    grafana.com/group: zero-alerts-fast
+    grafana.com/group-index: '1'
+  name: efjn4hgdlhc00f
+  namespace: stacks-890472
+spec:
+  execErrState: Error
+  expressions:
+    A:
+      datasourceUID: grafanacloud-prom
+      model:
+        editorMode: code
+        expr: zero_replication_total_lag_millisecond{deployment_environment="production",
+          service_name="zero-rm"}
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+      relativeTimeRange:
+        from: 10m0s
+        to: 0s
+    C:
+      model:
+        conditions:
+          - evaluator:
+              params:
+                - 2000
+              type: gt
+            operator:
+              type: and
+            query:
+              params:
+                - C
+            reducer:
+              params: []
+              type: last
+            type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+      queryType: expression
+      source: true
+  for: 5m0s
+  labels:
+    service: zero
+    severity: critical
+  noDataState: NoData
+  title: Zero replication lag high
+  trigger:
+    interval: 5m

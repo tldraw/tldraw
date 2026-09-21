@@ -5,8 +5,10 @@ priority: 3
 keywords: [overlay, overlayutil, brush, selection, custom, render]
 ---
 
-Swap out a built-in overlay for a custom implementation.
+Replace the built-in selection brush by subclassing `BrushOverlayUtil` and overriding its `render` method.
 
 ---
 
-Every canvas overlay — the selection brush, scribble, snap indicators, shape handles — is an `OverlayUtil` subclass you can replace. This example extends the built-in `BrushOverlayUtil` and overrides its `render` method to draw a dashed purple rectangle in place of the default gray one. Drag-select on the canvas to see it.
+Every canvas overlay (the selection brush, scribble, snap indicators, shape handles) is an `OverlayUtil` subclass you can replace. This example extends the built-in `BrushOverlayUtil` and overrides `render` to draw a dashed purple rectangle instead of the default. Because the subclass inherits the `brush` type, passing it in `overlayUtils` replaces the default brush; `<Tldraw>` merges custom utils over the defaults by type.
+
+Drag-select on the canvas to see it.

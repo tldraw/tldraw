@@ -1,0 +1,57 @@
+name: Post release marketing summary to Discord
+
+# Every Wednesday at 07:07 UTC, post a plain-language summary of what's shipping in
+# this week's dotcom release to the marketing team's Discord channel. Same schedule as
+# post-release-crew.yml.
+# GitHub cron is UTC-only. We use a single fixed UTC time (no BST/GMT adjustment) so
+# the job never fires twice: 07:07 UTC is 07:07 in London during winter (GMT) and
+# 08:07 during summer (BST). GitHub often starts scheduled runs 15-60 minutes late,
+# so this is scheduled early (and off the congested :00/:30 slots) to land before
+# the working day ramps up. To change the day, edit the day-of-week field
+# (`3` = Wednesday) in the cron line.
+
+on:
+  schedule:
+    - cron: '7 7 * * 3' # Wednesday 07:07 UTC
+  workflow_dispatch: # allow manual runs
+
+concurrency:
+  group: post-release-marketing
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  post-release-marketing:
+    name: Post release marketing summary to Discord
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Fail fast if the Discord webhook is not configured
+        run: |
+          if [ -z "$DISCORD_MARKETING_WEBHOOK_URL" ]; then
+            echo "::error::DISCORD_MARKETING_WEBHOOK_URL secret is not set — the release marketing summary cannot be posted."
+            exit 1
+          fi
+        env:
+          DISCORD_MARKETING_WEBHOOK_URL: ${{ secrets.DISCORD_MARKETING_WEBHOOK_URL }}
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code@2.1.206
+
+      - name: Run dotcom-release-marketing skill
+        run: claude --dangerously-skip-permissions --print "/dotcom-release-marketing"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          DISCORD_MARKETING_WEBHOOK_URL: ${{ secrets.DISCORD_MARKETING_WEBHOOK_URL }}

@@ -168,7 +168,15 @@
 	font-weight: 500;
 }
 
-.clerkCaptcha:not(:empty) {
+/*
+ * Pad the CAPTCHA only when there's a visible, interactive challenge. By
+ * default Clerk runs an invisible ("smart") Turnstile challenge that mounts an
+ * off-screen iframe and sets `max-height: 0` inline on the mount point; the
+ * `:not([style*='max-height: 0'])` guard skips padding for that case, which
+ * would otherwise briefly reserve 32px and make the dialog grow then shrink as
+ * the challenge resolves.
+ */
+.clerkCaptcha:not(:empty):not([style*='max-height: 0']) {
 	padding: var(--tl-space-8);
 	margin-top: calc(-1 * var(--tl-space-8));
 }

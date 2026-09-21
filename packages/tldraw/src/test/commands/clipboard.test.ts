@@ -1,6 +1,9 @@
-import { createShapeId, TLArrowShape } from '@tldraw/editor'
+import { act, renderHook } from '@testing-library/react'
+import { createShapeId, EditorContext, TLArrowShape } from '@tldraw/editor'
+import { createElement } from 'react'
 import { vi } from 'vitest'
 import { getArrowBindings } from '../../lib/shapes/arrow/shared'
+import { useMenuClipboardEvents } from '../../lib/ui/hooks/useClipboardEvents'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -479,5 +482,37 @@ describe('When copying and pasting', () => {
 		const pastedPoint = { x: pastedShape.x, y: pastedShape.y }
 
 		expect(pastedPoint).toMatchObject({ x: 150, y: 150 }) // center of group
+	})
+})
+
+describe('When cutting', () => {
+	function renderCut() {
+		const { result } = renderHook(() => useMenuClipboardEvents(), {
+			wrapper: ({ children }) => createElement(EditorContext.Provider, { value: editor }, children),
+		})
+		return result.current.cut
+	}
+
+	it('marks a history stopping point so undo does not roll back earlier changes', async () => {
+		// the cut writes to the clipboard before it deletes anything
+		Object.assign(window.navigator, { clipboard: { write: vi.fn() } })
+		globalThis.ClipboardItem = class {} as any
+
+		const cut = renderCut()
+		editor.createShape({ id: ids.box1, type: 'geo', x: 0, y: 0 })
+		editor.markHistoryStoppingPoint('rename page')
+		editor.renamePage(editor.getCurrentPageId(), 'My page')
+		editor.select(ids.box1)
+
+		await act(async () => {
+			await cut('menu')
+		})
+		expect(editor.getShape(ids.box1)).toBeUndefined()
+
+		editor.undo()
+
+		// the cut is undone, but the page rename before it is not
+		expect(editor.getShape(ids.box1)).toBeDefined()
+		expect(editor.getCurrentPage().name).toBe('My page')
 	})
 })

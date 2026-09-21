@@ -37,6 +37,7 @@ import classNames from 'classnames'
 import { memo, useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { getUncroppedSize } from '../shared/crop'
+import { getFlipForResize } from '../shared/flip'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
@@ -169,15 +170,13 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
 		let resized: TLImageShape = resizeBox(shape, info)
-		const { flipX, flipY } = info.initialShape.props
 		const { scaleX, scaleY } = info
 
 		resized = {
 			...resized,
 			props: {
 				...resized.props,
-				flipX: scaleX < 0 !== flipX,
-				flipY: scaleY < 0 !== flipY,
+				...getFlipForResize(info.initialShape.props, info),
 			},
 		}
 		if (!shape.props.crop) return resized
@@ -232,7 +231,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const { w } = getUncroppedSize(shape.props, props.crop)
 
-		const src = await imageSvgExportCache.get(asset, async () => {
+		const promise = imageSvgExportCache.get(asset, async () => {
 			let src = await ctx.resolveAssetUrl(asset.id, w)
 			if (!src) return null
 			if (
@@ -251,6 +250,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				src = await promise
 			}
 			return src
+		})
+		const src = await promise.catch((error) => {
+			// A failure (e.g. a CORS-blocked fetch) must not stay memoized, or every later export of
+			// this asset fails too. Only evict our own entry: a concurrent export may have started a
+			// fresh one in the meantime. Skip the image rather than failing the whole export.
+			if (imageSvgExportCache.items.get(asset) === promise) imageSvgExportCache.items.delete(asset)
+			console.error(`Could not export image ${asset.id}`, error)
+			return null
 		})
 
 		if (!src) return null
@@ -343,10 +350,15 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 		if (url && isAnimated) {
 			const { promise, cancel } = getFirstFrameOfAnimatedImage(url)
 
-			promise.then((dataUrl) => {
-				setStaticFrameSrc(dataUrl)
-				setLoadedUrl(url)
-			})
+			promise.then(
+				(dataUrl) => {
+					setStaticFrameSrc(dataUrl)
+					setLoadedUrl(url)
+				},
+				() => {
+					// couldn't decode a first frame; keep showing the animated source
+				}
+			)
 
 			return () => {
 				cancel()
@@ -611,7 +623,9 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 function getFirstFrameOfAnimatedImage(url: string) {
 	let cancelled = false
 
-	const promise = new Promise<string>((resolve) => {
+	// Must settle on failure too: an image that never loads would otherwise leave the
+	// export awaiting this promise forever.
+	const promise = new Promise<string>((resolve, reject) => {
 		const image = Image()
 		image.onload = () => {
 			if (cancelled) return
@@ -621,10 +635,17 @@ function getFirstFrameOfAnimatedImage(url: string) {
 			canvas.height = image.height
 
 			const ctx = canvas.getContext('2d')
-			if (!ctx) return
+			if (!ctx) {
+				reject(new Error('Could not get a 2d canvas context'))
+				return
+			}
 
 			ctx.drawImage(image, 0, 0)
 			resolve(canvas.toDataURL())
+		}
+		image.onerror = () => {
+			if (cancelled) return
+			reject(new Error(`Could not load image: ${url}`))
 		}
 		image.crossOrigin = 'anonymous'
 		image.src = url

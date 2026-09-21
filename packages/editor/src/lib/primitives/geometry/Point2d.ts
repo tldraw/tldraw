@@ -28,6 +28,6 @@ export class Point2d extends Geometry2d {
 
 	getSvgPathData() {
 		const { _point: point } = this
-		return `M${point.toFixed()}`
+		return `M${point}`
 	}
 }

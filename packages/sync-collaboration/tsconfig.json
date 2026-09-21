@@ -1,0 +1,23 @@
+{
+	"extends": "../../internal/config/tsconfig.base.json",
+	"include": ["src"],
+	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*"],
+	"compilerOptions": {
+		"outDir": "./.tsbuild",
+		"rootDir": "src"
+	},
+	"references": [
+		{
+			"path": "../store"
+		},
+		{
+			"path": "../sync-core"
+		},
+		{
+			"path": "../tlschema"
+		},
+		{
+			"path": "../utils"
+		}
+	]
+}

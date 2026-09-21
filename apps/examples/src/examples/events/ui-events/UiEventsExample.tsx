@@ -1,46 +1,32 @@
-import { Fragment, useCallback, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { TLUiEventHandler, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { getCodeSnippet } from './codeSnippets'
+import './ui-events.css'
 
 // There's a guide at the bottom of this file!
 
 export default function UiEventsExample() {
 	const [uiEvents, setUiEvents] = useState<string[]>([])
 
-	const handleUiEvent = useCallback<TLUiEventHandler>((name, data: any) => {
+	// [1]
+	const handleUiEvent = useCallback<TLUiEventHandler>((name, data) => {
 		const codeSnippet = getCodeSnippet(name, data)
 		setUiEvents((events) => [
 			...events,
-			`event: ${name} ${JSON.stringify(data)}${codeSnippet && `\ncode:  ${codeSnippet}`}`,
+			`event: ${name} ${JSON.stringify(data)}${codeSnippet ? `\ncode:  ${codeSnippet}` : ''}`,
 		])
 	}, [])
 
 	return (
-		<div style={{ display: 'flex' }}>
-			<div style={{ width: '60%', height: '100vh' }}>
+		<div className="ui-events">
+			<div className="ui-events__editor">
+				{/* [2] */}
 				<Tldraw onUiEvent={handleUiEvent} />
 			</div>
-			<div
-				style={{
-					width: '40%',
-					height: '100vh',
-					padding: 8,
-					background: '#eee',
-					border: 'none',
-					fontFamily: 'monospace',
-					fontSize: 12,
-					borderLeft: 'solid 2px #333',
-					overflow: 'auto',
-				}}
-				onCopy={(event) => event.stopPropagation()}
-			>
+			<div className="ui-events__log" onCopy={(event) => event.stopPropagation()}>
 				{uiEvents.map((t, i) => (
-					<Fragment key={i}>
-						<pre style={{ borderBottom: '1px solid #000', marginBottom: 0, paddingBottom: '12px' }}>
-							{t}
-						</pre>
-					</Fragment>
+					<pre key={i}>{t}</pre>
 				))}
 			</div>
 		</div>
@@ -48,19 +34,21 @@ export default function UiEventsExample() {
 }
 
 /*
-This example shows how to listen to UI events. This includes includes things like selecting a tool,
-grouping shapes, zooming etc. Events are included even if they are triggered by a keyboard shortcut.
-However, interactions with the style panel are not included. For a full list of events and sources,
-check out the TLUiEventSource and TLUiEventMap types.
+UI events are the high-level actions the default UI performs: selecting a tool, grouping
+shapes, zooming, toggling grid mode, and so on. They fire whichever way the action was
+triggered (menu, toolbar, or keyboard shortcut) and each comes with a `source` telling you
+which. They don't fire when you call the same editor methods yourself. For the full list, see
+the `TLUiEventMap` type; for `source` values, see `TLUiEventSource`.
 
-It also shows the relevant code snippet for each event. This is useful for debugging and learning
-the tldraw SDK.
+[1]
+The handler receives the event name and its data. This example also shows the editor API call
+that the default UI made for the event (see `codeSnippets.ts`), which is a handy way to learn
+which method does what.
 
-We can pass a handler function to the onUiEvent prop of the Tldraw component. This handler function
-will be called with the name of the event and the data associated with the event. We're going to 
-display these events in a list on the right side of the screen.
+[2]
+Pass the handler to the `onUiEvent` prop of `<Tldraw>`. Since it's called for every UI action,
+this is a good hook for analytics.
 
-To listen to canvas events or changes to the store, check out the canvas events and store events 
+To listen to input events or document changes instead, see the canvas events and store events
 examples.
-
 */

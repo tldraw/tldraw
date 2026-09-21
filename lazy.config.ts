@@ -42,7 +42,7 @@ const config = {
 							'api/**/*',
 							'components/**/*',
 							'public/**/*',
-							'scrips/**/*',
+							'scripts/**/*',
 							'styles/**/*',
 							'types/**/*',
 							'utils/**/*',
@@ -58,6 +58,16 @@ const config = {
 			workspaceOverrides: {
 				'apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
 			},
+		},
+		// predev/prebuild are the css-copy scripts. They write generated, gitignored files
+		// (tldraw.css, commenting.css, ...) that lazy doesn't track as outputs, so a cache hit
+		// would skip regenerating a file that's missing on disk and vite would fail to resolve it.
+		// They're a few file copies, so just always run them.
+		predev: {
+			cache: 'none',
+		},
+		prebuild: {
+			cache: 'none',
 		},
 		e2e: {
 			cache: 'none',

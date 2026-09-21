@@ -16,18 +16,15 @@ keywords:
   ]
 ---
 
-Demonstrates using custom validators with `.check()` and `.refine()` methods to add validation constraints to shape props.
+Add constraints to shape props with the `.check()` and `.refine()` validator methods.
 
 ---
 
-This example shows how to create custom validators for shape properties using `@tldraw/validate`. It demonstrates:
+Shape props are validated whenever a shape record is written to the store. The validators from `T` (re-exported from `@tldraw/validate`) can be extended: `.check(name, fn)` adds a step that throws on invalid input without changing the value, and `.refine(fn)` returns a new value, so it can transform as well as validate.
 
-- Chaining `.check()` calls to add validation constraints without transforming values
-- Using `.refine()` to validate and transform values
+The example shape has two constrained props:
 
-The example creates a custom shape with two validated properties:
+- `percentage` chains two `.check()` calls so values below 0 or above 100 throw. The check name appears in the error message.
+- `rating` uses `.refine()` to clamp values into the 1-5 range instead of rejecting them.
 
-1. **Percentage** - Chains multiple `.check()` calls to validate that the value is between 0 and 100. Invalid values throw an error.
-2. **Rating** - Uses `.refine()` to clamp values to the 1-5 range. Invalid values are transformed rather than rejected.
-
-When the example loads, it demonstrates both behaviors: attempting to create a shape with percentage=150 throws an error, while creating a shape with rating=10 succeeds but the value is clamped to 5.
+On load, the example creates a valid shape, then tries to create one with `percentage: 150` (which throws; see the browser console), then creates one with `rating: 10` (which succeeds and is stored as 5).

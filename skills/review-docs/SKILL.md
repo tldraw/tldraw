@@ -1,6 +1,6 @@
 ---
 name: review-docs
-description: Review and improve documentation with parallel evaluation and iterative improvement loop.
+description: Review and improve tldraw SDK documentation against the voice and docs guides, scoring each article and iterating until it passes. Use when asked to review docs, audit an article in apps/docs/content, check whether documentation follows the style guide, or improve existing documentation.
 ---
 
 # Review documentation
@@ -99,7 +99,7 @@ Task(subagent_type="general-purpose", model="opus", prompt="Content evaluation..
 Evaluate documentation style for: $ARGUMENTS
 
 Read the shared guides relative to this skill directory, then read the target document:
-1. `../shared/writing-guide.md`
+1. `../../VOICE.md`
 2. `../shared/docs-guide.md`
 3. $ARGUMENTS
 
@@ -247,7 +247,7 @@ Fix ONLY these pending issues:
 [paste pending issues from state file]
 
 Instructions:
-1. Read `../shared/writing-guide.md` and `../shared/docs-guide.md` relative to this skill directory
+1. Read `../../VOICE.md` and `../shared/docs-guide.md` relative to this skill directory
 2. Read $ARGUMENTS
 
 3. For each accuracy fix:
@@ -305,7 +305,7 @@ Verify fixes and evaluate documentation: $ARGUMENTS
 Read the state file first: [path to state file]
 
 Then read the shared guides relative to this skill directory and the target document:
-1. `../shared/writing-guide.md`
+1. `../../VOICE.md`
 2. `../shared/docs-guide.md`
 3. $ARGUMENTS
 

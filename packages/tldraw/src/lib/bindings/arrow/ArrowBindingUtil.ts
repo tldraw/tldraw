@@ -5,6 +5,7 @@ import {
 	BindingOnShapeIsolateOptions,
 	BindingUtil,
 	Editor,
+	Geometry2dFilters,
 	IndexKey,
 	TLArrowBinding,
 	TLArrowBindingProps,
@@ -82,6 +83,20 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		shapeAfter,
 		reason,
 	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
+		// When a bound geo shape's geo type changes (e.g. rectangle to triangle) its outline can move
+		// out from under a precise anchor, leaving the arrow floating off the shape. Re-snap the anchor
+		// to the new geometry.
+		if (
+			binding.props.isPrecise &&
+			shapeBefore.type === 'geo' &&
+			shapeAfter.type === 'geo' &&
+			shapeBefore.props.geo !== shapeAfter.props.geo &&
+			this.editor.isIn('select.idle') &&
+			!this.editor.isReplayingHistory()
+		) {
+			updateBindingAnchorIfOutsideShape(this.editor, binding, shapeAfter)
+		}
+
 		if (
 			reason !== 'ancestry' &&
 			shapeBefore.parentId === shapeAfter.parentId &&
@@ -108,6 +123,46 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 			terminal: binding.props.terminal,
 		})
 	}
+}
+
+/**
+ * A precise arrow binding stores its anchor as a normalized point (0–1) within the bound shape's
+ * geometry bounds. If the shape's geometry changes (for example, when its geo type changes from a
+ * rectangle to a triangle) the anchor can end up outside the new outline, making the arrow appear to
+ * float off the shape. When that happens, move the anchor to the nearest point on the new geometry.
+ */
+function updateBindingAnchorIfOutsideShape(
+	editor: Editor,
+	binding: TLArrowBinding,
+	boundShape: TLShape
+) {
+	const geometry = editor.getShapeGeometry(boundShape)
+	// "Inside" only makes sense for closed geometry (e.g. an open line has no interior to fall out
+	// of), so leave those bindings alone.
+	if (!geometry.isClosed) return
+
+	const { point, size } = geometry.bounds
+	if (size.x === 0 || size.y === 0) return
+
+	// The anchor's current position in the bound shape's local geometry space.
+	const anchorPoint = Vec.Add(point, Vec.MulV(binding.props.normalizedAnchor, size))
+
+	// If the anchor still lands on or inside the shape, there's nothing to do.
+	if (geometry.hitTestPoint(anchorPoint, 0, true)) return
+
+	// Otherwise re-snap it to the closest point on the new outline and store it back as a normalized
+	// anchor.
+	const nearest = geometry.nearestPoint(anchorPoint, Geometry2dFilters.EXCLUDE_LABELS)
+	editor.updateBinding({
+		id: binding.id,
+		type: binding.type,
+		props: {
+			normalizedAnchor: {
+				x: (nearest.x - point.x) / size.x,
+				y: (nearest.y - point.y) / size.y,
+			},
+		},
+	})
 }
 
 function reparentArrow(editor: Editor, arrowId: TLShapeId) {

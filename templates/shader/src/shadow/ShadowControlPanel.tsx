@@ -19,12 +19,12 @@ export function ShadowControlPanel() {
 
 	return (
 		<ConfigPanel onReset={resetShaderConfig}>
-			{Object.entries(config).map(([prop, value], i) => {
+			{Object.entries(config).map(([prop, value]) => {
 				if (typeof value === 'number') {
 					const sliderConfig = SLIDER_CONFIGS[prop] || { min: 0, max: 1 }
 					return (
 						<ConfigPanelSlider
-							key={i}
+							key={prop}
 							prop={prop}
 							label={prop}
 							min={sliderConfig.min}
@@ -34,10 +34,11 @@ export function ShadowControlPanel() {
 							onChange={handleChange}
 						/>
 					)
-				} else if (typeof value === 'boolean') {
+				}
+				if (typeof value === 'boolean') {
 					return (
 						<ConfigPanelBooleanControl
-							key={i}
+							key={prop}
 							prop={prop}
 							label={prop}
 							value={value}

@@ -14,7 +14,7 @@ import {
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { devFreeze } from './devFreeze'
-import { hasAnyKey, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
+import { isRecordsDiffEmpty, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { RecordScope } from './RecordType'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
@@ -405,13 +405,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private historyReactor: Reactor
 
 	/**
-	 * Function to dispose of any in-flight timeouts.
+	 * Cancels the history flush scheduled for the next frame, if any.
 	 *
 	 * @internal
 	 */
-	private cancelHistoryReactor(): void {
-		/* noop */
-	}
+	private cancelHistoryReactor: null | (() => void) = null
 
 	/**
 	 * The schema that defines the structure and validation rules for records in this store.
@@ -504,61 +502,60 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			},
 			{ scheduleEffect: (cb) => (this.cancelHistoryReactor = throttleToNextFrame(cb)) }
 		)
-		this.scopedTypes = {
-			document: new Set(
-				objectMapValues(this.schema.types)
-					.filter((t) => t.scope === 'document')
-					.map((t) => t.typeName)
-			),
-			session: new Set(
-				objectMapValues(this.schema.types)
-					.filter((t) => t.scope === 'session')
-					.map((t) => t.typeName)
-			),
-			presence: new Set(
-				objectMapValues(this.schema.types)
-					.filter((t) => t.scope === 'presence')
-					.map((t) => t.typeName)
-			),
+		const scopedTypes: { [K in RecordScope]: Set<R['typeName']> } = {
+			document: new Set(),
+			session: new Set(),
+			presence: new Set(),
 		}
+		for (const type of objectMapValues(this.schema.types)) {
+			scopedTypes[type.scope].add(type.typeName)
+		}
+		this.scopedTypes = scopedTypes
 	}
 
 	public _flushHistory() {
 		// If we have accumulated history, flush it and update listeners
 		if (this.historyAccumulator.hasChanges()) {
 			const entries = this.historyAccumulator.flush()
+			const errors: unknown[] = []
 			for (const { changes, source } of entries) {
-				let instanceChanges = null as null | RecordsDiff<R>
-				let documentChanges = null as null | RecordsDiff<R>
-				let presenceChanges = null as null | RecordsDiff<R>
+				// Filtered diffs are computed at most once per scope per entry, and shared by every
+				// listener watching that scope.
+				const scopedChanges = new Map<RecordScope, RecordsDiff<R> | null>()
 				for (const { onHistory, filters } of this.listeners) {
 					if (filters.source !== 'all' && filters.source !== source) {
 						continue
 					}
+					let listenerChanges = changes
 					if (filters.scope !== 'all') {
-						if (filters.scope === 'document') {
-							documentChanges ??= this.filterChangesByScope(changes, 'document')
-							if (!documentChanges) continue
-							onHistory({ changes: documentChanges, source })
-						} else if (filters.scope === 'session') {
-							instanceChanges ??= this.filterChangesByScope(changes, 'session')
-							if (!instanceChanges) continue
-							onHistory({ changes: instanceChanges, source })
-						} else {
-							presenceChanges ??= this.filterChangesByScope(changes, 'presence')
-							if (!presenceChanges) continue
-							onHistory({ changes: presenceChanges, source })
+						if (!scopedChanges.has(filters.scope)) {
+							scopedChanges.set(filters.scope, this.filterChangesByScope(changes, filters.scope))
 						}
-					} else {
-						onHistory({ changes, source })
+						const filtered = scopedChanges.get(filters.scope)
+						if (!filtered) continue
+						listenerChanges = filtered
+					}
+					// The entries are already dequeued, so a listener that throws must not stop the others
+					// (e.g. a sync client) from receiving them: deliver to all, then rethrow the first error.
+					try {
+						onHistory({ changes: listenerChanges, source })
+					} catch (error) {
+						errors.push(error)
 					}
 				}
 			}
+			if (errors.length > 0) throw errors[0]
 		}
 	}
 
 	dispose() {
-		this.cancelHistoryReactor()
+		// Deliver what is still pending first: a change-set made in the same frame as the dispose
+		// would otherwise never reach the listeners (e.g. a sync client) still attached to the store.
+		try {
+			this._flushHistory()
+		} finally {
+			this.cancelHistoryReactor?.()
+		}
 	}
 
 	/**
@@ -573,7 +570,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			updated: filterEntries(change.updated, (_, r) => this.scopedTypes[scope].has(r[1].typeName)),
 			removed: filterEntries(change.removed, (_, r) => this.scopedTypes[scope].has(r.typeName)),
 		}
-		if (!hasAnyKey(result.added) && !hasAnyKey(result.updated) && !hasAnyKey(result.removed)) {
+		if (isRecordsDiffEmpty(result)) {
 			return null
 		}
 		return result
@@ -1094,6 +1091,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 						if (!changed) changed = { ...existing } as R
 						;(changed as any)[key] = value
 					}
+					// a key the update removed (present before, absent in `to`) is a change too
+					for (const key of Object.keys(existing)) {
+						if (type.ephemeralKeySet.has(key) || Object.hasOwn(to, key)) continue
+						if (!changed) changed = { ...existing } as R
+						delete (changed as any)[key]
+					}
 					if (changed) toPut.push(changed)
 				} else {
 					toPut.push(to)
@@ -1219,11 +1222,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			if (!this.pendingAfterEvents) {
 				this.sideEffects.handleOperationComplete(source)
-			} else {
-				// if the side effects triggered by a remote operation resulted in more effects,
-				// those extra effects should not be marked as originating remotely.
-				source = 'user'
 			}
+			// Whatever the after-handlers or the operation-complete handlers changed in response to
+			// a remote operation is not itself remote: later rounds are attributed to 'user'.
+			source = 'user'
 		}
 	}
 	private _isInAtomicOp = false

@@ -27,6 +27,11 @@ export async function getBookmarkPreview({ url }: { url: string }): Promise<TLAs
 		asset.props.image = data?.image ?? ''
 		asset.props.favicon = data?.favicon ?? ''
 		asset.props.title = data?.title ?? ''
+
+		// carry the social image's dimensions on `meta` so embeds (e.g. Vimeo/YouTube) can size
+		// themselves to the content's real aspect ratio instead of staying letterboxed
+		if (typeof data?.imageWidth === 'number') asset.meta.imageWidth = data.imageWidth
+		if (typeof data?.imageHeight === 'number') asset.meta.imageHeight = data.imageHeight
 	} catch (e) {
 		console.error(e)
 	}

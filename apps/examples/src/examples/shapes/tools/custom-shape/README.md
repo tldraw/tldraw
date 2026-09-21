@@ -17,9 +17,10 @@ keywords:
   ]
 ---
 
-A simple custom shape.
+Define a minimal custom shape with a `ShapeUtil` and add it to the editor.
 
 ---
 
-You can create custom shapes in tldraw by creating a shape util and passing it to the Tldraw component.
-In this example, we'll create a custom shape that is a simple rectangle with some text inside of it.
+A custom shape needs a `ShapeUtil` subclass that declares its `type` and prop validators, returns default props, provides geometry for hit-testing, and renders a React component. Pass the util class to `<Tldraw>` through the `shapeUtils` prop and the editor can create, select, resize, and persist the shape like any built-in one.
+
+This example's shape is a rectangle with some text inside. It extends `ShapeUtil` directly so you can see `getGeometry` and `onResize` written out; extending `BaseBoxShapeUtil` would provide both for a `w`/`h` shape. The shape is created in `onMount`. To add a toolbar tool for creating it, see the custom shape and tool example.

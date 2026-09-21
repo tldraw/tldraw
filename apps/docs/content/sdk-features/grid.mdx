@@ -58,12 +58,22 @@ When grid mode is on, the editor snaps positions to multiples of `gridSize` duri
 
 - Creating a shape by clicking or dragging with a box tool
 - Translating shapes with the select tool
-- Resizing shapes with the selection handles
+- Resizing and cropping shapes with the selection handles
+- Nudging shapes with the arrow keys (one grid unit per press, five with Shift)
+- Dragging unbound arrow and line handles
 - Dropping external content (like images) onto the canvas
 
-Holding Cmd (Ctrl on Windows) while translating or resizing bypasses grid snapping. During translation, grid snapping also yields to [shape snapping](/sdk-features/snapping): if the selection has snapped to another shape's alignment guides, the grid is ignored.
+Holding Cmd (Ctrl on Windows) while translating, resizing, or cropping bypasses grid snapping. During translation, grid snapping also yields to [shape snapping](/sdk-features/snapping): if the selection has snapped to another shape's alignment guides, the grid is ignored.
 
-To snap your own values to the grid, use [Vec#snapToGrid](?):
+To snap your own values to the grid, use [maybeSnapToGrid](?), which returns the point snapped when grid mode is on and unchanged otherwise:
+
+```tsx
+import { maybeSnapToGrid } from 'tldraw'
+
+const point = maybeSnapToGrid(editor.inputs.getCurrentPagePoint(), editor)
+```
+
+To snap regardless of grid mode, use [Vec#snapToGrid](?) with the size from [Editor#getDocumentSettings](?):
 
 ```tsx
 const gridSize = editor.getDocumentSettings().gridSize
@@ -77,10 +87,10 @@ The [DefaultGrid](?) component draws the grid as SVG dot patterns. It renders on
 | Field  | Description                                           |
 | ------ | ----------------------------------------------------- |
 | `step` | Dot spacing as a multiple of the document's grid size |
-| `min`  | Zoom level below which the dots are hidden            |
+| `min`  | Zoom level at which the dots start to fade in         |
 | `mid`  | Zoom level at which the dots reach full opacity       |
 
-The defaults show fine dots when zoomed in and progressively coarser dots when zoomed out, so the grid stays readable at any zoom level. You can change the steps through the `options` prop:
+The defaults show fine dots when zoomed in and progressively coarser dots when zoomed out, so the grid stays readable at any zoom level. Style the dots with the `.tl-grid-dot` CSS class. You can change the steps through the `options` prop:
 
 ```tsx
 <Tldraw

@@ -15,8 +15,15 @@ keywords:
   ]
 ---
 
-Prevent a change to the "instance" record that would turn off grid mode.
+Reject changes to the instance record that would turn grid mode off.
 
 ---
 
-You can use Editor's side effects API to prevent certain changes from occurring in the instance state. In this example, we prevent the user from changing the instance's `isGridMode` property.
+Side effects aren't just for shapes: you can register handlers for any record type in the store.
+This example registers a `registerBeforeChangeHandler` for the `instance` record and returns the
+previous record whenever the incoming change has `isGridMode: false`, which cancels the change.
+
+Try toggling the grid from the main menu or with the keyboard shortcut: it stays on. Rejecting a
+change this way is silent, so if the change came from a user action you may want to
+explain why nothing happened. To reject only some fields of a change while keeping the rest, return
+a merged record instead of `prev`.

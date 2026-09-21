@@ -14,10 +14,10 @@ keywords:
   ]
 ---
 
-Show a contextual toolbar above shapes when they are selected.
+Show a toolbar above the selected shapes using the `TldrawUiContextualToolbar` primitive.
 
 ---
 
-This is an example of how to show a contextual toolbar which appears on top of the selected shapes. It is displayed above the canvas, but below other UI elements.
+The toolbar is rendered in the `InFrontOfTheCanvas` slot, so it appears above the canvas but below the rest of the UI. It positions itself using the bounds returned from `getSelectionBounds`, and reads the shared size style of the selection with `editor.getSharedStyles()`.
 
-Select shapes of different types and adjust the size of the shapes - this works just like adjusting the size from the Style panel on the right side.
+Select shapes of different types and change their size from the toolbar; this works just like changing the size from the style panel on the right.

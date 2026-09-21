@@ -1,10 +1,4 @@
-/**
- * Flag to track whether the computed getter deprecation warning has already been shown.
- * Prevents the same warning from being logged multiple times during application runtime.
- *
- * @internal
- */
-let didWarnComputedGetter = false
+import { warnOnce } from '@tldraw/utils'
 
 /**
  * Logs a deprecation warning for the deprecated `@computed` getter decorator syntax.
@@ -37,9 +31,7 @@ let didWarnComputedGetter = false
  * @internal
  */
 export function logComputedGetterWarning() {
-	if (didWarnComputedGetter) return
-	didWarnComputedGetter = true
-	console.warn(
+	warnOnce(
 		`Using \`@computed\` as a decorator for getters is deprecated and will be removed in the near future. Please refactor to use \`@computed\` as a decorator for methods.
 
 // Before

@@ -21,6 +21,7 @@ import {
 	ZERO_INDEX_KEY,
 } from 'tldraw'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { MAX_ASSEMBLED_MESSAGE_CHARS } from '../lib/chunk'
 import { RecordOpType } from '../lib/diff'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from '../lib/InMemorySyncStorage'
 import { getTlsyncProtocolVersion } from '../lib/protocol'
@@ -48,8 +49,13 @@ function createMockSocket(overrides: Partial<WebSocketMinimal> = {}): WebSocketM
 }
 
 // Connect a session and complete the connect handshake
-function connectSession(room: TLSocketRoom<any, any>, sessionId: string, socket: WebSocketMinimal) {
-	room.handleSocketConnect({ sessionId, socket })
+function connectSession(
+	room: TLSocketRoom<any, any>,
+	sessionId: string,
+	socket: WebSocketMinimal,
+	opts: { objectAccess?: 'read' | 'write' } = {}
+) {
+	room.handleSocketConnect({ sessionId, socket, ...opts })
 	const connectRequest = {
 		type: 'connect' as const,
 		connectRequestId: `connect-${sessionId}`,
@@ -205,6 +211,45 @@ describe('28. TLSocketRoom (SR)', () => {
 			consoleSpy.mockRestore()
 		})
 
+		it('[SR3] the default logger also reaches TLSyncRoom, so authorizer failures are reported', () => {
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			try {
+				const room = new TLSocketRoom({
+					authorizeRecord: {
+						page: () => {
+							throw new Error('authorizer exploded')
+						},
+					},
+				})
+				const socket = createMockSocket()
+				connectSession(room, 'test-session', socket)
+
+				const pageId = PageRecordType.createId('new-page')
+				room.handleSocketMessage(
+					'test-session',
+					JSON.stringify({
+						type: 'push',
+						clientClock: 1,
+						diff: {
+							[pageId]: [
+								RecordOpType.Put,
+								PageRecordType.create({ id: pageId, name: 'New Page', index: 'a2' as any }),
+							],
+						},
+					})
+				)
+
+				// the authorizer threw, and the host heard about it without passing a logger
+				expect(room.getRecord(pageId)).toBeUndefined()
+				expect(consoleSpy).toHaveBeenCalledWith(
+					'record authorizer threw; rejecting the write',
+					expect.objectContaining({ message: 'authorizer exploded' })
+				)
+			} finally {
+				consoleSpy.mockRestore()
+			}
+		})
+
 		it('[SR3] uses custom logger when provided', () => {
 			const mockLog: TLSyncLog = {
 				warn: vi.fn(),
@@ -346,6 +391,29 @@ describe('28. TLSocketRoom (SR)', () => {
 			expect(socket.close).toHaveBeenCalled()
 			// the session enters the disconnect grace period rather than being rejected
 			expect(room.getSessions()[0].isConnected).toBe(false)
+		})
+
+		it('[SR5] rejects the session when an assembly exceeds the size cap', () => {
+			const log: TLSyncLog = { warn: vi.fn(), error: vi.fn() }
+			const room = new TLSocketRoom({ log })
+			const socket = createMockSocket()
+			connectSession(room, 'test-session', socket)
+
+			// A chunk stream that never sends its last chunk. Unlike the other assembly errors
+			// this one is fatal: a reconnecting client would re-send the same oversized message.
+			const body = 'x'.repeat(1024 * 1024)
+			const chunksNeeded = Math.ceil(MAX_ASSEMBLED_MESSAGE_CHARS / body.length) + 1
+			for (let i = 0; i < chunksNeeded; i++) {
+				room.handleSocketMessage('test-session', `${chunksNeeded - i}_${body}`)
+				if ((log.error as any).mock.calls.length) break
+			}
+
+			expect(log.error).toHaveBeenCalledWith('Error assembling message', expect.anything())
+			expect(socket.close).toHaveBeenCalledWith(
+				TLSyncErrorCloseEventCode,
+				TLSyncErrorCloseEventReason.MESSAGE_TOO_LARGE
+			)
+			expect(room.getSessions()).toHaveLength(0)
 		})
 
 		it('[SR5] rejects the session with UNKNOWN_ERROR when message handling throws', () => {
@@ -997,9 +1065,39 @@ describe('28. TLSocketRoom (SR)', () => {
 			expect(snapshot).not.toBeNull()
 			expect(snapshot!.serializedSchema).toBeDefined()
 			expect(snapshot!.isReadonly).toBe(false)
+			expect(snapshot!.objectAccess).toBe('write')
 			expect(snapshot!.presenceId).toBeDefined()
 			expect(snapshot!.requiresLegacyRejection).toBe(false)
 			expect(snapshot!.supportsStringAppend).toBe(true)
+		})
+
+		it('[SR13] round-trips objectAccess through snapshot and resume', () => {
+			const room = new TLSocketRoom({})
+			const socket = createMockSocket()
+			connectSession(room, 'test', socket, { objectAccess: 'read' })
+
+			const snapshot = room.getSessionSnapshot('test')!
+			expect(snapshot.objectAccess).toBe('read')
+
+			// Simulate hibernation: resume in a new room
+			const room2 = new TLSocketRoom({})
+			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
+			expect(room2.getSessions()[0].objectAccess).toBe('read')
+		})
+
+		it('[SR13] resumes legacy snapshots without objectAccess as read (fail closed)', () => {
+			const room = new TLSocketRoom({})
+			const socket = createMockSocket()
+			connectSession(room, 'test', socket)
+
+			const snapshot = room.getSessionSnapshot('test')!
+			// simulate a snapshot persisted before the objectAccess field existed
+			delete snapshot.objectAccess
+
+			const room2 = new TLSocketRoom({})
+			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
+			// such sessions predate the record types gated by objectAccess, so they have nothing to write anyway
+			expect(room2.getSessions()[0].objectAccess).toBe('read')
 		})
 
 		it('[SR13] includes presence record when present', () => {

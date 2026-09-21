@@ -1,3 +1,4 @@
+import { existsSync } from 'fs'
 import path, { join, relative } from 'path'
 import kleur from 'kleur'
 import {
@@ -6,8 +7,10 @@ import {
 	readJsonIfExists,
 	writeCodeFile,
 	writeJsonFile,
+	writeStringFile,
 } from './lib/file'
 import { nicelog } from './lib/nicelog'
+import { PRODUCT_CONFIG_KEY } from './lib/types'
 import { Package, getAllWorkspacePackages } from './lib/workspace'
 
 const packagesWithoutTSConfigs: ReadonlySet<string> = new Set(['config'])
@@ -337,6 +340,132 @@ async function checkLibraryContents({
 	return true
 }
 
+const LICENSE_POINTER_CONTENTS =
+	'This code is licensed under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md)\n'
+
+// The stable id convention is documented in internal/docs/product-stable-ids.md. Every published
+// package in packages/ must declare which commercial component it belongs to, and premium
+// components must name the license key flag that entitles them.
+async function checkProductMetadata({
+	packages,
+	fix,
+}: {
+	packages: Package[]
+	fix: boolean
+}): Promise<boolean> {
+	let errorCount = 0
+	const error = (name: string, message: string) => {
+		errorCount++
+		nicelog(['❌ ', kleur.red(`${name}: `), message].join(''))
+	}
+
+	const licenseManagerSource = await readFileIfExists(
+		join(REPO_ROOT, 'packages/editor/src/lib/license/LicenseManager.ts')
+	)
+	if (!licenseManagerSource) {
+		throw new Error('Could not read LicenseManager.ts to validate license flags')
+	}
+	const knownLicenseFlags = new Set(
+		[...licenseManagerSource.matchAll(/^\t(FEAT_[A-Z0-9_]+):/gm)].map((m) => m[1])
+	)
+
+	const byStableId = new Map<string, { name: string; config: string }[]>()
+
+	for (const { packageJson, name, relativePath, path: packageDir } of packages) {
+		if (!relativePath.startsWith('packages/') || packageJson.private) continue
+
+		// published packages that point at LICENSE.md must actually ship one, since npm only
+		// includes license files that exist inside the package directory
+		if (packageJson.license === 'SEE LICENSE IN LICENSE.md') {
+			const licensePath = join(packageDir, 'LICENSE.md')
+			if (!existsSync(licensePath)) {
+				if (fix) {
+					await writeStringFile(licensePath, LICENSE_POINTER_CONTENTS)
+					nicelog(['⚠️ ', kleur.yellow(`${name}: `), 'added missing LICENSE.md'].join(''))
+				} else {
+					error(name, 'is missing LICENSE.md (run `yarn check-packages --fix`)')
+				}
+			}
+		}
+
+		const product = packageJson[PRODUCT_CONFIG_KEY]
+		if (!product) {
+			error(
+				name,
+				`is missing the "${PRODUCT_CONFIG_KEY}" field in package.json. ` +
+					'See internal/docs/product-stable-ids.md for how to choose a stable id.'
+			)
+			continue
+		}
+
+		if (!/^tldraw:[a-z0-9-]+$/.test(product.stableId)) {
+			error(name, `has invalid stableId "${product.stableId}" (expected tldraw:<kebab-case>)`)
+		}
+		if (product.premium && !product.licenseFlag) {
+			error(name, 'is premium but has no licenseFlag')
+		}
+		if (!product.premium && product.licenseFlag) {
+			error(name, 'has a licenseFlag but is not premium')
+		}
+		if (product.licenseFlag && !knownLicenseFlags.has(product.licenseFlag)) {
+			error(
+				name,
+				`has licenseFlag "${product.licenseFlag}" which does not exist in LicenseManager FLAGS`
+			)
+		}
+
+		if (product.type === 'feature' && !product.parent) {
+			error(name, 'is a feature but has no parent component')
+		}
+		if (product.type === 'product' && product.parent) {
+			error(name, 'is a top-level product but declares a parent')
+		}
+		if (product.parent === product.stableId) {
+			error(name, 'is its own parent')
+		}
+
+		// all packages sharing a stable id must agree on the rest of the metadata, since they
+		// describe the same commercial component
+		const configKey = JSON.stringify([
+			product.name,
+			product.type,
+			product.parent ?? null,
+			product.premium,
+			product.licenseFlag ?? null,
+		])
+		const others = byStableId.get(product.stableId) ?? []
+		others.push({ name, config: configKey })
+		byStableId.set(product.stableId, others)
+	}
+
+	for (const [stableId, entries] of byStableId) {
+		if (new Set(entries.map((e) => e.config)).size > 1) {
+			error(
+				stableId,
+				`packages disagree on product metadata: ${entries.map((e) => e.name).join(', ')}`
+			)
+		}
+	}
+
+	// every parent must be a component that actually exists, or the order form would reference a
+	// line item nothing defines
+	for (const { packageJson, name, relativePath } of packages) {
+		if (!relativePath.startsWith('packages/') || packageJson.private) continue
+		const parent = packageJson[PRODUCT_CONFIG_KEY]?.parent
+		if (parent && !byStableId.has(parent)) {
+			error(name, `has parent "${parent}" which is not a known component`)
+		}
+	}
+
+	if (errorCount) {
+		nicelog(kleur.red(`Found ${errorCount} errors`))
+		return false
+	}
+
+	nicelog(['✅ ', kleur.green('product metadata ok')].join(''))
+	return true
+}
+
 async function group<T>(name: string, cb: () => Promise<T>) {
 	console.group(name)
 	try {
@@ -359,8 +488,11 @@ async function main({ fix }: { fix: boolean }) {
 	const libsOk = await group('Checking library source files...', () =>
 		checkLibraryContents({ packages, fix })
 	)
+	const productMetadataOk = await group('Checking product metadata...', () =>
+		checkProductMetadata({ packages, fix })
+	)
 
-	if (!scriptsOk || !tsConfigsOk || !libsOk) {
+	if (!scriptsOk || !tsConfigsOk || !libsOk || !productMetadataOk) {
 		process.exit(1)
 	}
 }

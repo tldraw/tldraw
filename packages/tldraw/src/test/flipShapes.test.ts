@@ -289,12 +289,17 @@ describe('When multiple shapes are selected', () => {
 })
 
 describe('When one shape is selected', () => {
-	it('Does nothing if the shape is not a group', () => {
+	it('Keeps position but toggles the flip prop if the shape is not a group', () => {
 		const before = editor.getShape(ids.boxA)!
 		editor.select(ids.boxA)
 		editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
 
-		expect(editor.getShape(ids.boxA)).toMatchObject(before)
+		// A lone geo shape stays in place, but records the flip on its flipX prop (like the image
+		// shape) so directional geometry mirrors even when the bounds are unchanged.
+		expect(editor.getShape(ids.boxA)).toMatchObject({
+			...before,
+			props: { ...before.props, flipX: true },
+		})
 	})
 
 	it('Flips the direct child shape positions if the shape is a group', async () => {

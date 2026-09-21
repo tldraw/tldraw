@@ -5,8 +5,8 @@ priority: 3
 keywords: [focus mode, isfocusmode, updateinstancestate, distraction free, hide ui, onmount]
 ---
 
-How to enable focus mode by using the editor API.
+Enable focus mode on mount with `updateInstanceState`.
 
 ---
 
-This example demonstrates how to enable focus mode when the editor mounts. Focus mode provides a distraction-free environment by hiding the UI elements and focusing on the canvas content.
+Focus mode hides the default UI so only the canvas is visible. It's a flag on the editor's instance state, so `editor.updateInstanceState({ isFocusMode: true })` turns it on and the UI responds. Users can toggle it themselves with `Cmd/Ctrl+.` or the exit button that focus mode leaves in the corner.

@@ -16,14 +16,10 @@ keywords:
   ]
 ---
 
-Add, remove and clear toasts and dialogs in your app using the `useToasts` and `useDialogs` hooks.
+Show toasts and dialogs from your own UI with the `useToasts` and `useDialogs` hooks.
 
 ---
 
-To control toasts and dialogs your app, you can use the `useToasts` and `useDialogs` hooks.
-These hooks give you access to functions which allow you to add, remove and clear toasts
-and dialogs.
+`useToasts()` returns `addToast`, `removeToast`, and `clearToasts`; `useDialogs()` returns `addDialog`, `removeDialog`, and `clearDialogs`. Both hooks work in any component rendered inside `<Tldraw />`. This example puts a row of launcher buttons in the `SharePanel` slot.
 
-Dialogs are especially customisable, allowing you to pass in a custom component to render
-as the dialog content. Alternatively, you can use the `ExampleDialog` component which is
-provided by the library.
+`addDialog` takes a component that receives an `onClose` prop. Build the content from tldraw's dialog primitives (`TldrawUiDialogHeader`, `TldrawUiDialogBody`, `TldrawUiDialogFooter`) to match the default UI, or render anything you want. The example also shows a dialog containing a select menu, and a dialog that opens a second one on top of itself. Try opening the select and clicking outside it: the select closes but the dialog stays.

@@ -4,6 +4,13 @@ const { defineConfig } = require(`@yarnpkg/types`)
 /**
  * @param {Context} context
  */
+// Templates are independently published starters, and mcp-app's
+// extract-editor-api.ts needs the TS 5 compiler API that TS 7 doesn't export,
+// so both stay on TypeScript 5 while the rest of the repo is on 7.
+function staysOnTypescript5(workspace) {
+	return workspace.cwd.startsWith('templates/') || workspace.cwd === 'apps/mcp-app'
+}
+
 function enforceConsistentDependenciesAcrossTheProject({ Yarn }) {
 	// check non-peer deps:
 	for (const dependency of Yarn.dependencies()) {
@@ -11,6 +18,13 @@ function enforceConsistentDependenciesAcrossTheProject({ Yarn }) {
 
 		for (const otherDependency of Yarn.dependencies({ ident: dependency.ident })) {
 			if (otherDependency.type === 'peerDependencies') continue
+
+			if (
+				dependency.ident === 'typescript' &&
+				staysOnTypescript5(dependency.workspace) !== staysOnTypescript5(otherDependency.workspace)
+			) {
+				continue
+			}
 
 			dependency.update(otherDependency.range)
 		}

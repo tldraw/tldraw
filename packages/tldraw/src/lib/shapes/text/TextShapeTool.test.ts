@@ -55,6 +55,24 @@ describe(TextShapeTool, () => {
 			props: { richText: toRichText('Hello') },
 		})
 	})
+
+	it('Records the deletion of an empty text shape so redo cannot resurrect it', () => {
+		editor.setCurrentTool('text')
+		editor.pointerDown(0, 0)
+		editor.pointerUp()
+		editor.expectToBeIn('select.editing_shape')
+		expect(editor.getCurrentPageShapes().length).toBe(1)
+
+		// Exiting without typing deletes the empty shape (TextShapeUtil.onEditEnd)
+		editor.cancel()
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+
+		// The creation and the deletion squash to nothing, so neither undo nor redo brings it back
+		editor.undo()
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+		editor.redo()
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+	})
 })
 
 describe('When selecting the tool', () => {
@@ -278,6 +296,21 @@ describe('When resizing', () => {
 		editor.expectToBeIn('select.resizing')
 		editor.interrupt()
 		expect(editor.getCurrentPageShapes().length).toBe(1)
+	})
+
+	it('removes the pending text shape when another tool is selected mid-drag', () => {
+		editor.setCurrentTool('text')
+		editor.pointerDown(0, 0)
+		vi.advanceTimersByTime(200)
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('select.resizing')
+		expect(editor.getCurrentPageShapes().length).toBe(1)
+		editor.setCurrentTool('geo')
+		editor.expectToBeIn('geo.idle')
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.pointerUp(100, 100)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 	})
 
 	it('preserves the top left when the text has a fixed width', () => {

@@ -17,6 +17,10 @@
 			"shortDescription": "Visual node-based builder for image pipelines.",
 			"order": 6
 		},
+		"deploy": {
+			"target": "cloudflare",
+			"host": "image-pipeline.templates.tldraw.dev"
+		},
 		"scripts": {
 			"lint": null
 		}

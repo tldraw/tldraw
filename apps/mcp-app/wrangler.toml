@@ -48,5 +48,15 @@ namespace_id = "2001"
 limit = 30
 period = 60
 
+#################### Observability ####################
 [observability]
 enabled = true
+
+# Invocation logs record every invocation, including ones that produce no output
+# of their own. The Agents SDK spends three Durable Object invocations per MCP
+# request on session routing before any work happens (a `set-name` fetch, plus
+# `getInitializeRequest` and `updateProps` RPCs), so those empty records were
+# roughly 80% of this worker's log volume. Turning them off keeps `console`
+# output — head sampling would drop real errors along with the noise.
+[observability.logs]
+invocation_logs = false

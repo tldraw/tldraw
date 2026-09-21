@@ -35,7 +35,7 @@ export function ImageExport({ result, onStartAgain }: { result: Blob; onStartAga
 				<button onClick={onCopy}>{didCopy ? 'Copied!' : 'Copy'}</button>
 				<button onClick={onDownload}>Download</button>
 			</div>
-			<button onClick={onStartAgain}>Start Again</button>
+			<button onClick={onStartAgain}>Start again</button>
 		</div>
 	)
 }

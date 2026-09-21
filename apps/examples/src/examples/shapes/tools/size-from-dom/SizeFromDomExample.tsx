@@ -102,14 +102,8 @@ export class DynamicSizeShapeUtil extends ShapeUtil<DynamicSizeShape> {
 	}
 
 	// [d]
-	override canEdit(shape: DynamicSizeShape) {
-		return false
-	}
 	override canResize(shape: DynamicSizeShape) {
 		return false
-	}
-	override isAspectRatioLocked() {
-		return true
 	}
 
 	// [e]
@@ -194,70 +188,66 @@ export default function SizeFromDomExample() {
 }
 
 /*
-Introduction:
-
-This example demonstrates how to create a shape whose size is determined by its DOM content rather than
-shape props. It showcases two potentially reusable utilities: ShapeSizes and useDynamicShapeSize, which
-can be adapted for other shapes that need DOM-driven sizing.
+Two pieces do the work and can be reused for other shapes: the ShapeSizes atom and the
+useDynamicShapeSize hook.
 
 [1]
-First, we need to extend TLGlobalShapePropsMap to add our shape's props to the global type system.
-This tells TypeScript about the shape's properties.
+Extend TLGlobalShapePropsMap to add our shape's props to the global type system.
 
 [2]
-Define the shape type. This shape only stores content data - its size is determined dynamically by
-measuring the DOM element that renders the content.
+The shape only stores content. Its size is measured from the DOM element that renders it.
 
 [3]
-ShapeSizes is a global EditorAtom that stores size information for shapes by their ID. This is the key
-piece that makes DOM-driven sizing work:
+ShapeSizes is an EditorAtom holding an AtomMap from shape id to measured size. Using an
+EditorAtom (rather than a module-level atom) scopes the sizes to one editor instance, and
+AtomMap makes each shape's entry its own signal, so getGeometry for one shape doesn't
+recompute when a different shape's size changes.
 
-	[a] We register a cleanup handler to remove size data when shapes are deleted, preventing memory leaks.
+	[a] Delete a shape's entry when the shape is deleted, so the map doesn't grow forever.
 
 [4]
-useDynamicShapeSize is a reusable hook that measures DOM elements and updates the shape size data:
+useDynamicShapeSize measures a DOM element and writes its size to ShapeSizes:
 
-	[a] We measure the actual DOM dimensions using offsetWidth/offsetHeight
+	[a] offsetWidth/offsetHeight report layout size and ignore CSS transforms, so they're already
+	    in shape space regardless of the camera zoom.
 
-	[b] We store these dimensions in our global ShapeSizes atom. The atom will trigger re-renders of
-	    components that depend on this data when the size changes.
+	[b] Writing to the atom invalidates getGeometry (see [e]) so selection bounds, hit testing,
+	    and the indicator all follow the new size. We bail if nothing changed to avoid a redundant
+	    store update.
 
-	[c] We measure immediately on every render to ensure we have current size data
+	[c] Measure on every render, so the first paint already has a real size rather than the fallback.
 
-	[d] We use ResizeObserver to watch for size changes and update accordingly. This is what makes
-	    the shape truly dynamic - it will update whenever the DOM content changes size.
+	[d] ResizeObserver catches changes that don't go through React, such as fonts loading.
 
 [5]
-The shape util defines how our dynamic-size shape behaves:
+The shape util:
 
-	[a] Standard shape type and props definition. Note we only store content, not size.
+	[a] Standard type and props. Note there is no w or h prop.
 
-	[b] Default props with some sample content
+	[b] Default props with some sample content.
 
-	[c] Prevent the shape from being culled when it's outside the viewport, which would break our measurements
+	[c] Never cull the shape. Culled shapes are hidden with display: none, so its element would
+	    measure 0×0 and the stored size would go stale until it scrolled back into view.
 
-	[d] Shape behavior: not editable, not resizable (since size comes from DOM), aspect ratio locked
+	[d] Resizing is disabled because the size is not something the user controls.
 
-	[e] getGeometry uses the size from our ShapeSizes atom. This is where the DOM-measured size gets
-	    used by the editor for hit-testing, selection bounds, etc.
+	[e] getGeometry reads from ShapeSizes. Because the read happens inside a computed, the geometry
+	    updates reactively when the measured size changes. Before the first measurement we fall back
+	    to a fixed height.
 
-	[f] The component renders the content and uses our hook to measure it:
+	[f] The component renders the content and attaches the ref from useDynamicShapeSize:
 
-		[i] We animate the text content to demonstrate the dynamic sizing in action
+		[i] The text is animated so you can watch the selection bounds track the DOM.
 
-		[ii] The ref from useDynamicShapeSize is attached to the DOM element we want to measure
+		[ii] The measured element is given the shape width explicitly; only the height is dynamic.
 
-	[g] Standard indicator for selection outline
+	[g] The indicator uses the shape's geometry bounds, so it matches the measured size.
 
 [6]
-Standard setup - pass our custom shape util to Tldraw and create an instance on mount.
+Standard setup: pass the shape util to Tldraw and create one shape on mount.
 
-Reusability:
-
-The ShapeSizes atom and useDynamicShapeSize hook are designed to be reusable. To use them with other
-shapes, you just need to:
-1. Call useDynamicShapeSize(shape) in your component and attach the returned ref
-2. Use ShapeSizes.get(editor).get(shapeId) in your getGeometry method
-3. Ensure your shape doesn't have conflicting size props (or handle the conflict appropriately)
-
+To reuse this in your own shape:
+1. Call useDynamicShapeSize(shape) in your component and attach the returned ref.
+2. Read ShapeSizes.get(this.editor).get(shape.id) in getGeometry.
+3. Don't also store w/h props for the same dimension, or decide which one wins.
 */

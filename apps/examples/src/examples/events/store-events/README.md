@@ -17,8 +17,16 @@ keywords:
   ]
 ---
 
-Listen to changes from tldraw's store.
+Listen to store changes and log shape creates, updates, deletes, and page switches.
 
 ---
 
-This example listens to changes from tldraw's store and shows them on the right-hand-side. Try creating & deleting shapes, or switching pages. The changes will be logged next to the canvas.
+`editor.store.listen` calls your handler once per transaction with a `HistoryEntry` describing the
+records that were added, updated, and removed. This example subscribes from `onMount`, filters to
+changes made by the local user, and turns the entries it cares about into readable lines in the
+panel on the right.
+
+Try creating and deleting shapes, changing their styles, or switching pages. Store events cover
+document changes, not input: for pointer and keyboard events see the canvas events example, and for
+high-level UI actions see the UI events example. To react to changes with side effects rather than
+just observe them, see the side effects examples.

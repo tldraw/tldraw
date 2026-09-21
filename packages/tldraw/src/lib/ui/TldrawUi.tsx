@@ -67,15 +67,12 @@ export const TldrawUi = React.memo(function TldrawUi({
 
 interface TldrawUiContentProps {
 	hideUi?: boolean
-	shareZone?: ReactNode
-	topZone?: ReactNode
 	renderDebugMenuItems?(): React.ReactNode
 }
 
 const TldrawUiInner = React.memo(function TldrawUiInner({
 	children,
 	hideUi,
-	...rest
 }: TldrawUiContentProps & { children: ReactNode }) {
 	// The hideUi prop should prevent the UI from mounting.
 	// If we ever need want the UI to mount and preserve state, then
@@ -89,7 +86,7 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 	return (
 		<>
 			{children}
-			{hideUi ? null : <TldrawUiContent {...rest} />}
+			{hideUi ? null : <TldrawUiContent />}
 		</>
 	)
 })
@@ -129,7 +126,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 	useEditorEvents()
 
 	const rIsEditingAnything = useRef(false)
-	const rHidingTimeout = useRef(-1 as any)
+	const rHidingTimeout = useRef(-1)
 	const [hideToolbarWhileEditing, setHideToolbarWhileEditing] = useState(false)
 
 	useReactor(
@@ -168,16 +165,11 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 	const { 'toggle-focus-mode': toggleFocus } = useActions()
 
 	const { breakpointsAbove, breakpointsBelow } = useMemo(() => {
-		const breakpointsAbove = []
-		const breakpointsBelow = []
-		for (let bp = 0; bp < PORTRAIT_BREAKPOINTS.length; bp++) {
-			if (bp <= breakpoint) {
-				breakpointsAbove.push(bp)
-			} else {
-				breakpointsBelow.push(bp)
-			}
+		const all = PORTRAIT_BREAKPOINTS.map((_, bp) => bp)
+		return {
+			breakpointsAbove: all.slice(0, breakpoint + 1).join(' '),
+			breakpointsBelow: all.slice(breakpoint + 1).join(' '),
 		}
-		return { breakpointsAbove, breakpointsBelow }
 	}, [breakpoint])
 
 	return (
@@ -195,8 +187,8 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			// But when the virtual keyboard is closing we want to wait a bit before showing it again.
 			data-iseditinganything={hideToolbarWhileEditing}
 			data-breakpoint={breakpoint}
-			data-breakpoints-above={breakpointsAbove.join(' ')}
-			data-breakpoints-below={breakpointsBelow.join(' ')}
+			data-breakpoints-above={breakpointsAbove}
+			data-breakpoints-below={breakpointsBelow}
 		>
 			<SkipToMainContent />
 			{isFocusMode ? (

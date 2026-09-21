@@ -8,8 +8,6 @@ import {
 	Tldraw,
 	TldrawUiMenuItem,
 	computed,
-	createShapeId,
-	track,
 	useIsToolSelected,
 	useTools,
 } from 'tldraw'
@@ -20,6 +18,7 @@ import { SlidesPanel } from './SlidesPanel'
 import './slides.css'
 import { $currentSlide, getSlides, moveToSlide } from './useSlides'
 
+// [1]
 const components: TLComponents = {
 	HelperButtons: SlidesPanel,
 	Minimap: null,
@@ -44,6 +43,7 @@ const components: TLComponents = {
 	},
 }
 
+// [2]
 const overrides: TLUiOverrides = {
 	actions(editor, actions) {
 		const $slides = computed('slides', () => getSlides(editor))
@@ -93,37 +93,39 @@ const overrides: TLUiOverrides = {
 	},
 }
 
-const SlidesExample = track(() => {
+const shapeUtils = [SlideShapeUtil]
+const tools = [SlideShapeTool]
+
+export default function SlidesExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="slideshow_example"
-				shapeUtils={[SlideShapeUtil]}
-				tools={[SlideShapeTool]}
+				shapeUtils={shapeUtils}
+				tools={tools}
 				components={components}
 				overrides={overrides}
 				onMount={(editor) => {
-					const existingSlides = getSlides(editor)
-					if (existingSlides.length === 0) {
-						editor.createShape({
-							id: createShapeId(),
-							type: 'slide',
-							x: 100,
-							y: 100,
-							props: { w: 720, h: 480 },
-						})
-						editor.createShape({
-							id: createShapeId(),
-							type: 'slide',
-							x: 900,
-							y: 100,
-							props: { w: 720, h: 480 },
-						})
+					if (getSlides(editor).length === 0) {
+						editor.createShapes([
+							{ type: 'slide', x: 100, y: 100, props: { w: 720, h: 480 } },
+							{ type: 'slide', x: 900, y: 100, props: { w: 720, h: 480 } },
+						])
 					}
 				}}
 			/>
 		</div>
 	)
-})
+}
 
-export default SlidesExample
+/*
+[1]
+The slide list lives in the `HelperButtons` slot (top left, under the menu panel). The toolbar
+and keyboard shortcuts dialog are replaced with versions that include the slide tool, since
+new tools are not added to them automatically.
+
+[2]
+Two UI actions bound to the arrow keys move the camera between slides in page order.
+`getSlides` is wrapped in a `computed` so the sorted list is only recomputed when shapes
+change, not on every keypress.
+*/

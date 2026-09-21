@@ -1,68 +1,61 @@
-import { useEffect, useState } from 'react'
-import { Tldraw, TLEditorComponents, track, useEditor } from 'tldraw'
+import { Tldraw, TLEditorComponents, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './coordinate-system.css'
 
+// There's a guide at the bottom of this file!
+
 // [1]
-const CoordinateDebugPanel = track(() => {
+function CoordinateDebugPanel() {
 	const editor = useEditor()
-	const [mouseScreen, setMouseScreen] = useState({ x: 0, y: 0 })
-	const [mousePage, setMousePage] = useState({ x: 0, y: 0 })
-	const [mouseViewport, setMouseViewport] = useState({ x: 0, y: 0 })
 
 	// [2]
-	useEffect(() => {
-		const handlePointerMove = (e: PointerEvent) => {
-			const screenPoint = { x: e.clientX, y: e.clientY }
-			const pagePoint = editor.screenToPage(screenPoint)
-			const viewportPoint = editor.pageToViewport(pagePoint)
-
-			setMouseScreen(screenPoint)
-			setMousePage(pagePoint)
-			setMouseViewport(viewportPoint)
-		}
-
-		const container = editor.getContainer()
-		container.addEventListener('pointermove', handlePointerMove)
-
-		return () => {
-			container.removeEventListener('pointermove', handlePointerMove)
-		}
-	}, [editor])
+	const mouse = useValue(
+		'mouse',
+		() => {
+			const page = editor.inputs.getCurrentPagePoint()
+			return {
+				page,
+				screen: editor.pageToScreen(page),
+				viewport: editor.pageToViewport(page),
+			}
+		},
+		[editor]
+	)
 
 	// [3]
-	const viewportScreenBounds = editor.getViewportScreenBounds()
-	const viewportPageBounds = editor.getViewportPageBounds()
+	const viewportScreenBounds = useValue('screen bounds', () => editor.getViewportScreenBounds(), [
+		editor,
+	])
+	const viewportPageBounds = useValue('page bounds', () => editor.getViewportPageBounds(), [editor])
 
 	return (
 		<div className="coordinate-debug-panel">
-			<h3>Coordinate Systems</h3>
+			<h3>Coordinate systems</h3>
 
 			<div className="coordinate-section">
-				<h4>Mouse Position</h4>
+				<h4>Mouse position</h4>
 				<div className="coordinate-row">
 					<span className="coordinate-label">Screen:</span>
 					<span className="coordinate-value">
-						({mouseScreen.x.toFixed(0)}, {mouseScreen.y.toFixed(0)})
+						({mouse.screen.x.toFixed(0)}, {mouse.screen.y.toFixed(0)})
 					</span>
 				</div>
 				<div className="coordinate-row">
 					<span className="coordinate-label">Page:</span>
 					<span className="coordinate-value">
-						({mousePage.x.toFixed(0)}, {mousePage.y.toFixed(0)})
+						({mouse.page.x.toFixed(0)}, {mouse.page.y.toFixed(0)})
 					</span>
 				</div>
 				<div className="coordinate-row">
 					<span className="coordinate-label">Viewport:</span>
 					<span className="coordinate-value">
-						({mouseViewport.x.toFixed(0)}, {mouseViewport.y.toFixed(0)})
+						({mouse.viewport.x.toFixed(0)}, {mouse.viewport.y.toFixed(0)})
 					</span>
 				</div>
 			</div>
 
-			{/* [4] */}
 			<div className="coordinate-section">
-				<h4>Viewport Bounds</h4>
+				<h4>Viewport bounds</h4>
 				<div className="coordinate-row">
 					<span className="coordinate-label">Screen:</span>
 					<span className="coordinate-value">
@@ -80,39 +73,41 @@ const CoordinateDebugPanel = track(() => {
 			</div>
 		</div>
 	)
-})
+}
 
-// [5]
-const SelectedShapeOverlay = track(() => {
+// [4]
+function SelectedShapeOverlay() {
 	const editor = useEditor()
-	const selectedShapeIds = editor.getSelectedShapeIds()
+	const overlay = useValue(
+		'selected shape overlay',
+		() => {
+			const selectedShapeId = editor.getOnlySelectedShapeId()
+			if (!selectedShapeId) return null
+			const pageBounds = editor.getShapePageBounds(selectedShapeId)
+			if (!pageBounds) return null
+			// [5]
+			const topLeft = editor.pageToViewport(pageBounds.point)
+			return { pageBounds, topLeft }
+		},
+		[editor]
+	)
 
-	if (selectedShapeIds.length !== 1) return null
-
-	const selectedShapeId = selectedShapeIds[0]
-	const shape = editor.getShape(selectedShapeId)
-	if (!shape) return null
-
-	const pageBounds = editor.getShapePageBounds(selectedShapeId)
-	if (!pageBounds) return null
-
-	// [6]
-	const topLeftViewport = editor.pageToViewport({ x: pageBounds.x, y: pageBounds.y })
+	if (!overlay) return null
 
 	return (
 		<div
 			className="shape-overlay"
 			style={{
-				left: topLeftViewport.x,
-				top: topLeftViewport.y - 32,
+				left: overlay.topLeft.x,
+				top: overlay.topLeft.y - 32,
 			}}
 		>
-			Page: ({pageBounds.x.toFixed(0)}, {pageBounds.y.toFixed(0)})
+			Page: ({overlay.pageBounds.x.toFixed(0)}, {overlay.pageBounds.y.toFixed(0)})
 		</div>
 	)
-})
+}
 
-// [7]
+// [6]
 const components: TLEditorComponents = {
 	InFrontOfTheCanvas: () => (
 		<>
@@ -122,7 +117,7 @@ const components: TLEditorComponents = {
 	),
 }
 
-export default function RequestCoordinateSystemTransformationsExample() {
+export default function CoordinateSystemExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw persistenceKey="coordinate-transformations" components={components} />
@@ -131,45 +126,42 @@ export default function RequestCoordinateSystemTransformationsExample() {
 }
 
 /*
-Introduction:
+The editor works with three coordinate systems:
 
-This example demonstrates tldraw's coordinate system transformations. The editor uses three
-coordinate systems: screen space (browser pixels), page space (infinite canvas), and viewport space
-(relative to the editor container). Understanding these transformations is essential for custom
-tools, UI overlays, and interactive features.
+- Screen space: browser pixels, as reported by DOM events (`clientX`, `clientY`).
+- Viewport space: pixels relative to the top-left of the editor's container. This is what
+  you use to position DOM elements inside the editor.
+- Page space: the infinite canvas that shapes live in. Panning and zooming change how page
+  space maps to the other two.
+
+`screenToPage`, `pageToScreen`, and `pageToViewport` convert between them.
 
 [1]
-The `CoordinateDebugPanel` displays real-time coordinate information. We use `track` to make it
-reactive to editor state changes, ensuring it updates when the camera moves or zooms.
+A panel that prints the pointer position in each system, plus the viewport bounds. It's rendered
+in the `InFrontOfTheCanvas` slot so it sits over the canvas but doesn't move with it.
 
 [2]
-We track mouse movement to demonstrate coordinate transformations. For each pointer move:
-- Screen coordinates come from the DOM event (clientX, clientY)
-- Page coordinates are computed using `screenToPage()` - accounting for pan and zoom
-- Viewport coordinates are computed using `pageToViewport()` - relative to the editor container
+`editor.inputs.getCurrentPagePoint()` is a reactive signal that updates on every pointer move, so
+reading it inside `useValue` keeps the readout live. We convert it back to the other two spaces
+with `pageToScreen` and `pageToViewport`. Going the other way, `screenToPage` turns a DOM event's
+`clientX`/`clientY` into a page point.
 
 [3]
-We also display the viewport bounds in both coordinate systems using `getViewportScreenBounds()`
-and `getViewportPageBounds()`. These methods show the visible area of the canvas in screen and
-page coordinates respectively. Watch how the screen bounds stay constant while page bounds change
-as you pan and zoom the canvas.
+`getViewportScreenBounds()` is the editor container's rectangle in screen space, so it only
+changes when the container moves or resizes. `getViewportPageBounds()` is the region of the page
+currently visible, so it changes whenever you pan or zoom.
 
 [4]
-The viewport bounds display shows position (x, y) and size (w×h) for both coordinate systems.
-This is useful for visibility checks, culling, and understanding what portion of the infinite
-canvas is currently visible.
+A label positioned above the selected shape. `getOnlySelectedShapeId()` returns null unless
+exactly one shape is selected.
 
 [5]
-The `SelectedShapeOverlay` demonstrates `pageToScreen()` by positioning a DOM element above
-the selected shape. This component tracks editor state to update when selection or camera changes.
+Elements inside `InFrontOfTheCanvas` are positioned relative to the editor container, so we use
+`pageToViewport`, not `pageToScreen`. `pageToScreen` includes the container's offset from the
+browser origin, which would push the label off target whenever the editor isn't at (0, 0), for
+example next to a sidebar.
 
 [6]
-We convert the shape's page position to viewport coordinates using `pageToViewport()`. This is the
-correct transformation for positioning DOM elements inside `InFrontOfTheCanvas`, which is positioned
-relative to the editor container (not the browser window). Using `pageToScreen()` here would cause
-the overlay to be displaced when the editor has an offset from the browser origin (e.g., a sidebar).
-
-[7]
-We use the `InFrontOfTheCanvas` component slot to render our UI. Components here are positioned
-in screen space - they don't scale with zoom but maintain their screen position.
+Define `components` outside the React component so the slot component identity is stable across
+renders.
 */

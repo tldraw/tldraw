@@ -1,0 +1,21 @@
+.store-events {
+	display: flex;
+}
+
+.store-events__editor {
+	width: 60%;
+	height: 100vh;
+}
+
+.store-events__log {
+	width: 40%;
+	height: 100vh;
+	padding: 8px;
+	background: #eee;
+	border-left: solid 2px #333;
+	font-family: monospace;
+	font-size: 12px;
+	display: flex;
+	flex-direction: column-reverse;
+	overflow: auto;
+}

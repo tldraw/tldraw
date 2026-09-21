@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-	experimental: {
-		serverComponentsExternalPackages: ['@tldraw/tldraw'],
-	},
+	serverExternalPackages: ['@tldraw/tldraw'],
 }
 
 export default nextConfig

@@ -19,7 +19,6 @@ import { StickerTool } from './sticker-tool-util'
 // [1]
 const uiOverrides: TLUiOverrides = {
 	tools(editor, tools) {
-		// Create a tool item in the ui's context.
 		tools.sticker = {
 			id: 'sticker',
 			icon: 'heart-icon',
@@ -45,6 +44,7 @@ const components: TLComponents = {
 			</DefaultToolbar>
 		)
 	},
+	// [3]
 	KeyboardShortcutsDialog: (props) => {
 		const tools = useTools()
 		return (
@@ -57,29 +57,24 @@ const components: TLComponents = {
 	},
 }
 
-// [3]
+// [4]
 export const customAssetUrls: TLUiAssetUrlOverrides = {
 	icons: {
 		'heart-icon': '/heart-icon.svg',
 	},
 }
 
-// [4]
+// [5]
 const customTools = [StickerTool]
 
 export default function ToolInToolbarExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				// Pass in the array of custom tool classes
 				tools={customTools}
-				// Set the initial state to the sticker tool
 				initialState="sticker"
-				// Pass in our ui overrides
 				overrides={uiOverrides}
-				// pass in our custom components
 				components={components}
-				// pass in our custom asset urls
 				assetUrls={customAssetUrls}
 			/>
 		</div>
@@ -88,36 +83,36 @@ export default function ToolInToolbarExample() {
 
 /*
 Introduction:
-You can make an icon for your custom tool appear on tldraw's toolbar. To do this 
-you will need to override the toolbar component, pass in a custom component for 
-the keyboard shortcuts dialog, and pass in an asset url for your icon. This 
-example shows how to do that. For more information on how to implement custom 
+You can make an icon for your custom tool appear on tldraw's toolbar. To do this
+you need to add the tool to the UI's tools context, override the toolbar
+component, optionally add the tool to the keyboard shortcuts dialog, and pass in
+an asset URL for its icon. For more information on how to implement custom
 tools, check out the custom tool example.
 
 [1]
-First, we define the uiOverrides object. We can override the tools function to
-add our custom tool to the ui's context. We can also override the toolbar function
-to add our custom tool to the toolbar. We are going to splice it into the toolbar
-so it appears in between the eraser and arrow tools.
+The `tools` override adds a tool item to the UI's tools context. The item
+describes how the tool appears in menus (icon, label, keyboard shortcut) and
+what happens when it's selected. This is separate from the `StateNode` class
+that implements the tool's behavior; the UI needs both.
 
 [2]
-Next, we want to override the default keyboard shortcuts dialog so that the 
-shortcut for our custom tool appears in the dialog. We don't want to change its 
-appearance very much, so we can use the DefaultKeyboardShortcutsDialog component 
-and pass in the DefaultKeyboardShortcutsDialogContent component. With the useTools 
-hook, we can get the tools from context and pass in the sticker tool to the keyboard 
-shortcuts dialog. This will make the keyboard shortcut for the sticker tool appear 
-in the dialog.
+Override the `Toolbar` component so we can place our tool in it. `DefaultToolbar`
+provides the toolbar chrome and `DefaultToolbarContent` renders the built-in
+tools, so we render our own `TldrawUiMenuItem` before it. `useIsToolSelected`
+lets the button show as active when the sticker tool is the current tool.
 
 [3]
-We need to make sure the editor knows where to find the icon for our custom tool.
-We do this by defining the customAssetUrls object and passing in the asset url for
-our icon.
+The keyboard shortcuts dialog doesn't know about custom tools, so we override
+it and append our tool after `DefaultKeyboardShortcutsDialogContent`. This makes
+the tool's shortcut show up in the dialog.
 
 [4]
-Finally, we define the customTools array. This array contains the custom tool
-class. We then pass the customTools array, the uiOverrides object, the
-components object, and the customAssetUrls object to the Tldraw component as
-props. This will make the icon for the custom tool appear on the toolbar.
+The tool item references an icon named `heart-icon`, so we tell the UI where to
+find that icon via the `assetUrls` prop. Any icon name that isn't a built-in
+tldraw icon needs an entry here.
 
+[5]
+Define the tools array outside the component so it's a stable reference. We
+pass the tools, overrides, components, and asset URLs to the `Tldraw` component,
+and set `initialState="sticker"` so the tool is selected on load.
 */

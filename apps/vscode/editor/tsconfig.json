@@ -13,6 +13,7 @@
 		"module": "ESNext",
 		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
+		"noUncheckedSideEffectImports": false,
 		"noEmit": true,
 		"jsx": "react-jsx",
 		"incremental": true,

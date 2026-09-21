@@ -1,0 +1,595 @@
+import { DB, extractMentionIds } from '@tldraw/dotcom-shared'
+import { RoomSnapshot } from '@tldraw/sync-core'
+import {
+	TLComment,
+	TLCommentAnchor,
+	TLCommentReaction,
+	TLCommentThread,
+	commentReactionRecordConfig,
+	commentRecordConfig,
+	commentThreadRecordConfig,
+	isCommentId,
+	isCommentReactionId,
+	isCommentThreadId,
+} from '@tldraw/tlschema'
+import { JsonObject } from '@tldraw/utils'
+import { Kysely } from 'kysely'
+
+/**
+ * Conversions between the room's comment records and their Postgres rows. Postgres is the sole
+ * durable store, so the columns carry every record field and the DO can rebuild records losslessly
+ * on cold start. Timestamps and clocks go through Number() in case the global int8-to-number parser
+ * in `postgres.ts` ever goes away.
+ */
+
+// A Postgres foreign-key violation (SQLSTATE 23503) on one of the named constraints.
+function isFkViolation(error: unknown, constraints: readonly string[]): boolean {
+	if (typeof error !== 'object' || error === null) return false
+	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
+	return code === '23503' && typeof constraint === 'string' && constraints.includes(constraint)
+}
+
+/**
+ * The author's user row is gone — deleting a user cascades their comment rows away, so a warm room
+ * is still holding records for a deleted author. Retrying can't succeed; the caller prunes.
+ */
+export function isCommentAuthorFkViolation(error: unknown): boolean {
+	return isFkViolation(error, ['comment_author_id_fkey'])
+}
+
+/**
+ * The thread's file row doesn't exist: the file was deleted, or a client pushed comments into a
+ * room whose slug was never a `file` row. Neither can succeed on retry, so the caller prunes.
+ */
+export function isCommentThreadFkViolation(error: unknown): boolean {
+	return isFkViolation(error, ['comment_thread_file_id_fkey'])
+}
+
+/** The comment's file row is gone, cascading every comment row with it. The caller prunes. */
+export function isCommentFileFkViolation(error: unknown): boolean {
+	return isFkViolation(error, ['comment_file_id_fkey'])
+}
+
+/**
+ * The comment's thread row doesn't exist. Unlike the other FK matchers this is NOT on its own
+ * sufficient to prune: threads upsert before comments in the same drain, so a thread whose own
+ * upsert just failed transiently also fails its comments' FK, and it's still queued to retry.
+ * The caller only prunes when the threadId is also absent from the room's lane.
+ */
+export function isCommentThreadIdFkViolation(error: unknown): boolean {
+	return isFkViolation(error, ['comment_thread_id_fkey'])
+}
+
+/**
+ * A `comment_mention` insert hit either of its foreign keys: the mentioned user is gone, or the
+ * comment was deleted between its upsert and the mention write. The caller skips the row.
+ */
+export function isCommentMentionFkViolation(error: unknown): boolean {
+	return isFkViolation(error, ['comment_mention_user_id_fkey', 'comment_mention_comment_id_fkey'])
+}
+
+/**
+ * A reaction's comment, thread, or user row is gone, cascading the reaction rows with it. The
+ * caller prunes.
+ */
+export function isCommentReactionFkViolation(error: unknown): boolean {
+	return isFkViolation(error, [
+		'comment_reaction_comment_id_fkey',
+		'comment_reaction_thread_id_fkey',
+		'comment_reaction_user_id_fkey',
+	])
+}
+
+/** One comment's desired `comment_mention` rows: the full set its body currently mentions. */
+export interface CommentMentionReconcile {
+	commentId: string
+	userIds: string[]
+}
+
+/**
+ * The desired end state of `comment_mention` for a drain's upserted comments. The caller
+ * reconciles Postgres to this (delete rows not in the set, insert the rest with ON CONFLICT DO
+ * NOTHING), so an at-least-once replay is a no-op rather than WAL churn for Zero.
+ */
+export function planMentionReconciles(commentRows: DB['comment'][]): CommentMentionReconcile[] {
+	return commentRows.map((row) => ({
+		commentId: row.id,
+		userIds: extractMentionIds(row.body),
+	}))
+}
+
+export function threadRecordToRow(
+	record: TLCommentThread,
+	fileId: string,
+	lastChangedClock: number
+): DB['comment_thread'] {
+	return {
+		id: record.id,
+		fileId,
+		pageId: record.pageId,
+		anchor: record.anchor,
+		shapeId: record.anchor.type === 'shape' ? record.anchor.shapeId : null,
+		resolvedAt: record.resolved?.at ?? null,
+		resolvedBy: record.resolved?.by ?? null,
+		isDeleted: record.isDeleted,
+		createdBy: record.createdBy,
+		createdAt: record.createdAt,
+		meta: record.meta,
+		lastChangedClock,
+	}
+}
+
+export function reactionRecordToRow(
+	record: TLCommentReaction,
+	fileId: string,
+	lastChangedClock: number
+): DB['comment_reaction'] {
+	return {
+		id: record.id,
+		fileId,
+		commentId: record.commentId,
+		threadId: record.threadId,
+		pageId: record.pageId,
+		userId: record.userId,
+		// stamped by Postgres (set_comment_reaction_user_name_trigger); value here is ignored
+		userName: '',
+		emoji: record.emoji,
+		// client-dated; clamp so it can't outrun the server-clamped comment_read.readAt watermark,
+		// which would make a "reacted to your comment" notification impossible to mark read
+		createdAt: Math.min(record.createdAt, Date.now()),
+		meta: record.meta,
+		lastChangedClock,
+	}
+}
+
+export function commentRecordToRow(
+	record: TLComment,
+	fileId: string,
+	lastChangedClock: number
+): DB['comment'] {
+	return {
+		id: record.id,
+		fileId,
+		threadId: record.threadId,
+		pageId: record.pageId,
+		authorId: record.authorId,
+		// placeholders — a Postgres trigger stamps the real values on insert (migration 040)
+		authorName: '',
+		authorColor: '',
+		authorAvatar: '',
+		// TLRichText's content is unknown[], not structurally a zero ReadonlyJSONValue
+		body: record.body as DB['comment']['body'],
+		// client-dated placeholder — a Postgres trigger re-stamps it with server arrival time on
+		// insert (migration 046), and the upsert's conflict branch never writes this column
+		createdAt: record.createdAt,
+		editedAt: record.editedAt,
+		isDeleted: record.isDeleted,
+		updatedAt: record.editedAt ?? record.createdAt,
+		meta: record.meta,
+		lastChangedClock,
+	}
+}
+
+export function rowToThreadRecord(row: DB['comment_thread']): TLCommentThread {
+	const record: TLCommentThread = {
+		id: row.id as TLCommentThread['id'],
+		typeName: 'comment-thread',
+		pageId: row.pageId as TLCommentThread['pageId'],
+		anchor: row.anchor as TLCommentAnchor,
+		createdBy: row.createdBy,
+		createdAt: Number(row.createdAt),
+		resolved: row.resolvedAt != null ? { at: Number(row.resolvedAt), by: row.resolvedBy! } : null,
+		isDeleted: row.isDeleted,
+		meta: (row.meta ?? {}) as JsonObject,
+	}
+	// The fields above are raw casts, so validate: a corrupt row should fail the room open rather
+	// than seed an invalid record.
+	return commentThreadRecordConfig.validator.validate(record) as TLCommentThread
+}
+
+export function rowToCommentRecord(row: DB['comment']): TLComment {
+	const record: TLComment = {
+		id: row.id as TLComment['id'],
+		typeName: 'comment',
+		threadId: row.threadId as TLComment['threadId'],
+		pageId: row.pageId as TLComment['pageId'],
+		authorId: row.authorId,
+		createdAt: Number(row.createdAt),
+		editedAt: row.editedAt != null ? Number(row.editedAt) : null,
+		body: row.body as TLComment['body'],
+		isDeleted: row.isDeleted,
+		meta: (row.meta ?? {}) as JsonObject,
+	}
+	// The fields above are raw casts, so validate: a corrupt row should fail the room open rather
+	// than seed an invalid record.
+	return commentRecordConfig.validator.validate(record) as TLComment
+}
+
+export function rowToReactionRecord(row: DB['comment_reaction']): TLCommentReaction {
+	const record: TLCommentReaction = {
+		id: row.id as TLCommentReaction['id'],
+		typeName: 'comment-reaction',
+		commentId: row.commentId as TLCommentReaction['commentId'],
+		threadId: row.threadId as TLCommentReaction['threadId'],
+		pageId: row.pageId as TLCommentReaction['pageId'],
+		userId: row.userId,
+		emoji: row.emoji,
+		createdAt: Number(row.createdAt),
+		meta: (row.meta ?? {}) as JsonObject,
+	}
+	// See rowToCommentRecord.
+	return commentReactionRecordConfig.validator.validate(record) as TLCommentReaction
+}
+
+/**
+ * Rebuild object-lane snapshot documents from Postgres rows, for merging into the room snapshot
+ * on load.
+ */
+export function rowsToSnapshotDocuments(
+	threadRows: DB['comment_thread'][],
+	commentRows: DB['comment'][],
+	reactionRows: DB['comment_reaction'][] = []
+): RoomSnapshot['documents'] {
+	return [
+		...threadRows.map((row) => ({
+			state: rowToThreadRecord(row),
+			lastChangedClock: Number(row.lastChangedClock),
+		})),
+		...commentRows.map((row) => ({
+			state: rowToCommentRecord(row),
+			lastChangedClock: Number(row.lastChangedClock),
+		})),
+		...reactionRows.map((row) => ({
+			state: rowToReactionRecord(row),
+			lastChangedClock: Number(row.lastChangedClock),
+		})),
+	]
+}
+
+/** The room-seedable subset of a file's comment rows; see {@link liveCommentDocuments}. */
+export interface CommentLoadResult {
+	documents: RoomSnapshot['documents']
+	/**
+	 * The highest `lastChangedClock` across ALL of the file's comment rows, including soft-deleted
+	 * ones dropped from `documents` — a dropped row can hold the file's highest clock, and seeding
+	 * the room below it would make future edits emit clocks the drain's guard rejects.
+	 */
+	clockFloor: number
+}
+
+/**
+ * Build the room-seedable comment documents from a file's Postgres rows. Soft-deleted records stay
+ * in Postgres for recovery and Zero-side filtering but never re-enter a room.
+ *
+ * A live thread whose comments are all soft-deleted is dropped too — the durable backstop for the
+ * drain's emptied-thread prune, whose isDeleted stamp rides an outbox entry in DO SQLite. A thread
+ * with no comment rows at all is kept: that's a new thread whose first comment hasn't drained.
+ */
+export function liveCommentDocuments(
+	threadRows: DB['comment_thread'][],
+	commentRows: DB['comment'][],
+	reactionRows: DB['comment_reaction'][] = []
+): CommentLoadResult {
+	const threadIdsWithComments = new Set(commentRows.map((row) => row.threadId))
+	const threadIdsWithLiveComments = new Set(
+		commentRows.filter((row) => !row.isDeleted).map((row) => row.threadId)
+	)
+	const liveThreadRows = threadRows.filter(
+		(row) =>
+			!row.isDeleted &&
+			(!threadIdsWithComments.has(row.id) || threadIdsWithLiveComments.has(row.id))
+	)
+	const liveThreadIds = new Set(liveThreadRows.map((row) => row.id))
+	const liveCommentRows = commentRows.filter(
+		(row) => !row.isDeleted && liveThreadIds.has(row.threadId)
+	)
+	const liveCommentIds = new Set(liveCommentRows.map((row) => row.id))
+	const liveReactionRows = reactionRows.filter((row) => liveCommentIds.has(row.commentId))
+	let clockFloor = 0
+	for (const row of threadRows) clockFloor = Math.max(clockFloor, Number(row.lastChangedClock))
+	for (const row of commentRows) clockFloor = Math.max(clockFloor, Number(row.lastChangedClock))
+	for (const row of reactionRows) clockFloor = Math.max(clockFloor, Number(row.lastChangedClock))
+	return {
+		documents: rowsToSnapshotDocuments(liveThreadRows, liveCommentRows, liveReactionRows),
+		clockFloor,
+	}
+}
+
+/**
+ * Load a file's comment rows over a single checked-out connection. Each `execute()` on the bare
+ * Kysely instance checks out its own connection, and `TLPostgresPool` dials a fresh socket per
+ * checkout, so three parallel-looking queries would otherwise cost three sequential dials.
+ */
+export async function loadCommentDocuments(
+	db: Kysely<DB>,
+	fileId: string
+): Promise<CommentLoadResult> {
+	const [threadRows, commentRows, reactionRows] = await db
+		.connection()
+		.execute((conn) =>
+			Promise.all([
+				conn.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll().execute(),
+				conn.selectFrom('comment').where('fileId', '=', fileId).selectAll().execute(),
+				conn.selectFrom('comment_reaction').where('fileId', '=', fileId).selectAll().execute(),
+			])
+		)
+	// Soft-deleted threads and their comments never re-enter a room, and neither do reactions
+	// whose comment doesn't; their rows stay in Postgres only (see liveCommentDocuments).
+	return liveCommentDocuments(threadRows, commentRows, reactionRows)
+}
+
+/** A row of the DO's `comment_outbox` table: a monotonic sequence number and the touched record id. */
+export interface CommentOutboxEntry {
+	seq: number
+	recordId: string
+}
+
+/**
+ * Postgres writes grouped by table and operation. The delete buckets carry lane-absent ids, and
+ * "delete" means stamping `isDeleted` — the drain never hard-deletes comment-lane rows.
+ */
+export interface CommentDrainPlan {
+	threadUpserts: DB['comment_thread'][]
+	commentUpserts: DB['comment'][]
+	reactionUpserts: DB['comment_reaction'][]
+	threadDeletes: string[]
+	commentDeletes: string[]
+	reactionDeletes: string[]
+	/** Ids of no known comment record type — a bug or a corrupted outbox row. */
+	unknownIds: string[]
+	/**
+	 * Reactions naming a parent comment this room doesn't have. A reaction is the one comment record
+	 * keyed to a parent it doesn't own — its id is derived from (comment, user, emoji), so a forged
+	 * `commentId` still mints a unique id and lands as a plain insert, where the upserts' `fileId`
+	 * conflict guard never fires. These prune rather than retry: the parent is either gone (a
+	 * reaction racing its comment's deletion) or was never here, and neither resolves on a retry.
+	 */
+	orphanedReactionIds: string[]
+}
+
+/**
+ * The pure planning half of the comment outbox drain (see drainCommentOutbox). The outbox stores
+ * only ids; upsert-vs-delete is decided by presence in the object `lane` at plan time, so multiple
+ * entries for one record coalesce into a single write and a create-then-prune nets out to a delete.
+ *
+ * `lane` must already carry the parent comment of every outboxed reaction — a reaction's parent is
+ * usually not outboxed alongside it, and an absent parent is read here as a foreign or orphaned
+ * `commentId` (see `orphanedReactionIds`). The caller seeds them.
+ */
+export function planCommentDrain(
+	entries: CommentOutboxEntry[],
+	lane: ReadonlyMap<string, { state: unknown; lastChangedClock: number }>,
+	fileId: string
+): CommentDrainPlan {
+	const plan: CommentDrainPlan = {
+		threadUpserts: [],
+		commentUpserts: [],
+		reactionUpserts: [],
+		threadDeletes: [],
+		commentDeletes: [],
+		reactionDeletes: [],
+		unknownIds: [],
+		orphanedReactionIds: [],
+	}
+	const pendingIds = new Set(entries.map((e) => e.recordId))
+	for (const id of pendingIds) {
+		const doc = lane.get(id)
+		if (isCommentThreadId(id)) {
+			if (doc) {
+				plan.threadUpserts.push(
+					threadRecordToRow(doc.state as TLCommentThread, fileId, doc.lastChangedClock)
+				)
+			} else {
+				plan.threadDeletes.push(id)
+			}
+		} else if (isCommentReactionId(id)) {
+			if (doc) {
+				const reaction = doc.state as TLCommentReaction
+				if (lane.has(reaction.commentId)) {
+					plan.reactionUpserts.push(reactionRecordToRow(reaction, fileId, doc.lastChangedClock))
+				} else {
+					plan.orphanedReactionIds.push(id)
+				}
+			} else {
+				plan.reactionDeletes.push(id)
+			}
+		} else if (isCommentId(id)) {
+			if (doc) {
+				plan.commentUpserts.push(
+					commentRecordToRow(doc.state as TLComment, fileId, doc.lastChangedClock)
+				)
+			} else {
+				plan.commentDeletes.push(id)
+			}
+		} else {
+			plan.unknownIds.push(id)
+		}
+	}
+	return plan
+}
+
+/**
+ * The drain's three comment upserts, as query builders.
+ *
+ * Every one conflicts on the primary key and is guarded on `fileId`. A comment record id is only
+ * addressable from the room that owns it, so a Postgres row carrying that id under a different
+ * `fileId` is a row this room has no business writing — without the guard, a client that learned
+ * another file's record ids could push records under them and have that file's drain overwrite the
+ * original rows. The conflict target has to be the primary key (it's the unique index the upsert
+ * needs), so the ownership check rides along in the update predicate instead: a mismatch updates
+ * nothing rather than rewriting the row. The `lastChangedClock` guard alone doesn't cover this — a
+ * forged record just carries a higher clock.
+ *
+ * They live here rather than inline in the drain so the guard can be asserted against the compiled
+ * SQL without a database (see commentRows.test.ts).
+ */
+export function upsertCommentThreadRows(db: Kysely<DB>, rows: DB['comment_thread'][]) {
+	return db
+		.insertInto('comment_thread')
+		.values(rows)
+		.onConflict((oc) =>
+			oc
+				.column('id')
+				.doUpdateSet((eb) => ({
+					pageId: eb.ref('excluded.pageId'),
+					anchor: eb.ref('excluded.anchor'),
+					shapeId: eb.ref('excluded.shapeId'),
+					resolvedAt: eb.ref('excluded.resolvedAt'),
+					resolvedBy: eb.ref('excluded.resolvedBy'),
+					isDeleted: eb.ref('excluded.isDeleted'),
+					meta: eb.ref('excluded.meta'),
+					lastChangedClock: eb.ref('excluded.lastChangedClock'),
+				}))
+				.whereRef('comment_thread.fileId', '=', 'excluded.fileId')
+				.whereRef('comment_thread.lastChangedClock', '<', 'excluded.lastChangedClock')
+		)
+}
+
+/**
+ * "createdAt" is deliberately absent from the update set: Postgres stamps it on first insert
+ * (migration 046) and the stamp must survive at-least-once replays and edits. The trigger side of
+ * that is covered by zero-cache/stamp_comment_created_at.test.ts, against a fixture table with no
+ * fileId column — so it exercises the createdAt behavior, not this builder's ownership guard.
+ */
+export function upsertCommentRows(db: Kysely<DB>, rows: DB['comment'][]) {
+	return db
+		.insertInto('comment')
+		.values(rows)
+		.onConflict((oc) =>
+			oc
+				.column('id')
+				.doUpdateSet((eb) => ({
+					threadId: eb.ref('excluded.threadId'),
+					pageId: eb.ref('excluded.pageId'),
+					body: eb.ref('excluded.body'),
+					editedAt: eb.ref('excluded.editedAt'),
+					isDeleted: eb.ref('excluded.isDeleted'),
+					// excluded.* has been through the BEFORE INSERT stamp trigger, which
+					// lifts updatedAt to the (server) attempt stamp — so this can never
+					// regress updatedAt below the row's createdAt
+					updatedAt: eb.ref('excluded.updatedAt'),
+					meta: eb.ref('excluded.meta'),
+					lastChangedClock: eb.ref('excluded.lastChangedClock'),
+				}))
+				.whereRef('comment.fileId', '=', 'excluded.fileId')
+				.whereRef('comment.lastChangedClock', '<', 'excluded.lastChangedClock')
+		)
+}
+
+/**
+ * A reaction's id is derived from its whole (comment, user, emoji) triple, so reacting with a
+ * different emoji mints a different id and arrives as a plain insert — a conflict here is a replay
+ * of the same triple, not an edit. The update set still lists every mutable column so a replay
+ * carrying a corrected denormalized field (pageId follows its thread between pages) lands rather
+ * than being silently dropped.
+ */
+export function upsertCommentReactionRows(db: Kysely<DB>, rows: DB['comment_reaction'][]) {
+	return db
+		.insertInto('comment_reaction')
+		.values(rows)
+		.onConflict((oc) =>
+			oc
+				.column('id')
+				.doUpdateSet((eb) => ({
+					commentId: eb.ref('excluded.commentId'),
+					threadId: eb.ref('excluded.threadId'),
+					pageId: eb.ref('excluded.pageId'),
+					emoji: eb.ref('excluded.emoji'),
+					createdAt: eb.ref('excluded.createdAt'),
+					meta: eb.ref('excluded.meta'),
+					lastChangedClock: eb.ref('excluded.lastChangedClock'),
+				}))
+				.whereRef('comment_reaction.fileId', '=', 'excluded.fileId')
+				.whereRef('comment_reaction.lastChangedClock', '<', 'excluded.lastChangedClock')
+		)
+}
+
+/**
+ * Which outbox entries a finished drain may delete. `failedIds` stay queued for the next drain;
+ * everything else clears. `clearAll` is the fast path when nothing failed.
+ */
+export function outboxEntriesToClear(
+	entries: CommentOutboxEntry[],
+	failedIds: ReadonlySet<string>
+): { clearAll: boolean; seqs: number[] } {
+	if (failedIds.size === 0) {
+		return { clearAll: true, seqs: [] }
+	}
+	return {
+		clearAll: false,
+		seqs: entries.filter((e) => !failedIds.has(e.recordId)).map((e) => e.seq),
+	}
+}
+
+/**
+ * Of the just-pruned comments' threads, which no longer have any comments. Callers delete those
+ * threads in the same transaction: an emptied thread never renders, and no client may delete a
+ * thread it didn't create, so the ordinary "delete the last comment" path needs this prune.
+ *
+ * `remaining` must be transaction-time, not an earlier lane snapshot — a reply committed in
+ * between has to keep its thread alive.
+ */
+export function findEmptiedCommentThreads(
+	candidateThreadIds: ReadonlySet<string>,
+	remaining: { keys(): Iterable<string>; get(id: string): unknown }
+): string[] {
+	if (candidateThreadIds.size === 0) return []
+	const emptied = new Set(candidateThreadIds)
+	for (const id of remaining.keys()) {
+		if (!isCommentId(id)) continue
+		const threadId = (remaining.get(id) as TLComment | undefined)?.threadId
+		if (threadId !== undefined && emptied.delete(threadId) && emptied.size === 0) break
+	}
+	return [...emptied]
+}
+
+/**
+ * Reactions pointing at just-pruned comments. Postgres already cascaded these rows away, so this
+ * only catches the warm room's SQLite up.
+ */
+export function findOrphanedReactions(
+	prunedCommentIds: ReadonlySet<string>,
+	remaining: { keys(): Iterable<string>; get(id: string): unknown }
+): string[] {
+	if (prunedCommentIds.size === 0) return []
+	const orphaned: string[] = []
+	for (const id of remaining.keys()) {
+		if (!isCommentReactionId(id)) continue
+		const commentId = (remaining.get(id) as TLCommentReaction | undefined)?.commentId
+		if (commentId !== undefined && prunedCommentIds.has(commentId)) orphaned.push(id)
+	}
+	return orphaned
+}
+
+/**
+ * Merge rehydrated comment documents into a room snapshot, clamping the snapshot's clocks up to
+ * the load's `clockFloor`. Comments push to Postgres per-commit while the snapshot persists on a
+ * throttle, so after a storage loss the comment clocks can be ahead — seeding the room below them
+ * would make future edits emit clocks the drain's guard silently rejects.
+ *
+ * The clamp works off `documentClock ?? clock ?? 0`, matching how `SQLiteSyncStorage` seeds.
+ * `tombstoneHistoryStartsAtClock` rises with it: the tombstone history for that range lived only
+ * in the lost SQLite, so reconnecting clients must full-resync rather than take a partial diff.
+ */
+export function mergeCommentDocumentsIntoSnapshot(
+	snapshot: RoomSnapshot,
+	load: CommentLoadResult
+): void {
+	const { documents: commentDocs, clockFloor } = load
+	if (commentDocs.length === 0 && clockFloor === 0) return
+	if (commentDocs.length > 0) {
+		snapshot.documents = [...snapshot.documents, ...commentDocs]
+	}
+	// a loop rather than `Math.max(clockFloor, ...clocks)`, which overflows the stack past ~100k docs
+	let maxClock = clockFloor
+	for (const doc of commentDocs) {
+		if (doc.lastChangedClock > maxClock) maxClock = doc.lastChangedClock
+	}
+	const effectiveClock = snapshot.documentClock ?? snapshot.clock ?? 0
+	if (effectiveClock >= maxClock) return
+	snapshot.documentClock = maxClock
+	if (snapshot.clock !== undefined && snapshot.clock < maxClock) {
+		snapshot.clock = maxClock
+	}
+	snapshot.tombstoneHistoryStartsAtClock = maxClock
+}

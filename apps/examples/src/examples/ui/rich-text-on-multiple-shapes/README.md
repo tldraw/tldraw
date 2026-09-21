@@ -17,14 +17,12 @@ keywords:
   ]
 ---
 
-Add a toggle button to the style panel that allows you to make all text bold (or remove bold) from multiple selected shapes at once.
+Add a style panel button that bolds (or unbolds) all the text in every selected shape at once.
 
 ---
 
-This example demonstrates how to work with rich text formatting programmatically so that you can apply formatting changes to multiple shapes simultaneously.
+Rich text in tldraw is a TipTap (ProseMirror) JSON document stored in `shape.props.richText`. Each text node can carry a `marks` array, and bold is represented as `{ type: 'bold' }`. This example walks that document with three small helpers, `makeAllTextBold`, `removeBoldFromAllText`, and `isAllTextBold`, and writes the result back with `editor.updateShapes`.
 
-Rich text in tldraw uses TipTap's document structure. Text nodes can have `marks` array that contains formatting information like `{ type: 'bold' }`. The example includes helper functions to:
+The button lives in a custom `StylePanel` that wraps `DefaultStylePanel`. It reads the selection with `useValue`, so it enables itself whenever any selected shape has rich text and shows as active when every text node is already bold. Try selecting a mix of text, geo, and note shapes and toggling the button.
 
-- `makeAllTextBold()`: Recursively traverses the rich text document and adds bold marks to all text nodes
-- `removeBoldFromAllText()`: Recursively removes bold marks from all text nodes
-- `isAllTextBold()`: Checks if all text nodes in a rich text document have bold marks
+For the same idea built on ProseMirror's `Node` API (bold, italic, and highlight, including shapes nested inside frames and groups), see the [text mass style updates](https://tldraw.dev/examples/text-mass-style-updates) example.

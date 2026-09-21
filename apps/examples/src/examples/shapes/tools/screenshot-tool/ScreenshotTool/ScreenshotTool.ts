@@ -37,16 +37,14 @@ export class ScreenshotTool extends StateNode {
 }
 
 /*
-This file contains our screenshot tool. The tool is a StateNode with the `id` "screenshot".
-
 [1]
-It has three child state nodes, ScreenshotIdle, ScreenshotPointing, and ScreenshotDragging. 
-Its initial state is `idle`.
+The tool is a `StateNode` with the id "screenshot" and three child states: idle, pointing, and
+dragging. `initial` names the child state to enter when the tool is selected.
 
 [2]
-When the screenshot tool is entered, we set the cursor to a crosshair. When it is exited, we
-set the cursor back to the default cursor. 
+Set a crosshair cursor while the tool is active and restore the default on exit.
 
 [3]
-When the screenshot tool is interrupted or cancelled, we transition back to the select tool.
+Interrupt (e.g. a pinch gesture starts) and cancel (escape) both bail out to the select tool.
+`this.parent` is the root state, whose children are the tools.
 */

@@ -19,7 +19,7 @@ export const uiOverrides: TLUiOverrides = {
 		tools.speech = {
 			id: 'speech-bubble',
 			icon: 'speech-bubble',
-			label: 'Speech Bubble',
+			label: 'Speech bubble',
 			kbd: 's',
 			onSelect: () => {
 				editor.setCurrentTool('speech-bubble')
@@ -36,6 +36,7 @@ export const customAssetUrls: TLUiAssetUrlOverrides = {
 	},
 }
 
+// [3]
 export const components: TLComponents = {
 	Toolbar: (props) => {
 		const tools = useTools()
@@ -59,27 +60,18 @@ export const components: TLComponents = {
 }
 
 /*
-
-This file contains overrides for the Tldraw UI. These overrides are used to add your custom tools
-to the toolbar and the keyboard shortcuts menu.
+This file adds the speech bubble tool to the toolbar and the keyboard shortcuts dialog.
 
 [1]
-Here we add our new tool to the UI's tools object in the tools override. This is where we define
-all the basic information about our new tool - its icon, label, keyboard shortcut, what happens when
-we select it, etc.
-
+The `tools` override registers the tool item with the UI: its icon, label, keyboard shortcut,
+and what happens when it's selected.
 
 [2]
-Our toolbar item is using a custom icon, so we need to provide the asset url for it. 
-We do this by providing a custom assetUrls object to the Tldraw component. 
-This object is a map of icon ids to their urls. The icon ids are the same as the 
-icon prop on the toolbar item. We'll pass our assetUrls object into the Tldraw
-component's `assetUrls` prop.
+The tool item uses a custom icon, so we provide its url through the Tldraw component's
+`assetUrls` prop. The key must match the `icon` on the tool item.
 
 [3]
-We replace the UI components for the toolbar and keyboard shortcut dialog with our own, that
-add our new tool to the existing default content. Ideally, we'd interleave our new tool into the
-ideal place among the default tools, but for now we're just adding it at the start to keep things
-simple.
-
+We replace the toolbar and keyboard shortcuts dialog with versions that render our tool item
+alongside the default content. Here it's added at the start; you can place it anywhere among
+the default items instead.
 */

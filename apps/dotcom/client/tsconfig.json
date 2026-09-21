@@ -11,6 +11,7 @@
 		"module": "esnext",
 		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
+		"noUncheckedSideEffectImports": false,
 		"isolatedModules": true,
 		"jsx": "preserve",
 		"jsxImportSource": "react",
@@ -22,6 +23,7 @@
 	"exclude": ["node_modules", "_archive"],
 	"references": [
 		{ "path": "../../../packages/assets" },
+		{ "path": "../../../packages/commenting" },
 		{ "path": "../../../packages/dotcom-shared" },
 		{ "path": "../../../packages/mermaid" },
 		{ "path": "../../../packages/sync" },

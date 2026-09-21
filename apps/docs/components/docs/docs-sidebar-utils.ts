@@ -13,6 +13,10 @@ function hasChildren(
 	return 'children' in link
 }
 
+// Examples duplicated into the examples sidebar's "Getting started" category. Matched by url,
+// not article id: ids (`examples/collaboration/sync-demo`) change when an example moves category.
+const EXAMPLES_ALSO_IN_GETTING_STARTED = ['/examples/sync-demo', '/examples/api']
+
 /**
  * Processes sidebar content by extracting elements and handling special cases
  * like copying examples to the getting-started category.
@@ -25,30 +29,23 @@ export function processSidebarContent(
 	const elements =
 		skipFirstLevel && hasChildren(sidebar.links[0]) ? sidebar.links[0].children : sidebar.links
 
-	// Manually copy the sync example and the editor API example to the getting started category
 	if (sectionId === 'examples') {
-		const gettingStartedCategory = elements.find(
-			(v: any) => v?.url === '/examples/getting-started'
-		) as SidebarContentCategoryLink
-		const collaborationCategory = elements.find(
-			(v: any) => v?.url === '/examples/collaboration'
-		) as SidebarContentCategoryLink
-		const editorApiCategory = elements.find(
-			(v: any) => v?.url === '/examples/editor-api'
-		) as SidebarContentCategoryLink
-		const syncDemoExample = collaborationCategory.children.find(
-			(v: any) => v?.articleId === 'sync-demo'
-		) as SidebarContentArticleLink
-		const editorApiExample = editorApiCategory.children.find(
-			(v: any) => v?.articleId === 'api'
-		) as SidebarContentArticleLink
+		const categories = elements.filter(
+			(v): v is SidebarContentCategoryLink => v.type === 'category'
+		)
+		const gettingStartedCategory = categories.find((v) => v.url === '/examples/getting-started')
 
-		if (!gettingStartedCategory.children.includes(syncDemoExample)) {
-			gettingStartedCategory.children.push(syncDemoExample)
-		}
-
-		if (!gettingStartedCategory.children.includes(editorApiExample)) {
-			gettingStartedCategory.children.push(editorApiExample)
+		// An example that's been renamed or moved won't be found. Pushing `undefined` would crash
+		// the sidebar, which renders every entry. The cached link tree is shared between renders,
+		// so don't push the same example twice either.
+		if (gettingStartedCategory) {
+			for (const url of EXAMPLES_ALSO_IN_GETTING_STARTED) {
+				if (gettingStartedCategory.children.some((v) => v.url === url)) continue
+				const example = categories
+					.flatMap((category) => category.children)
+					.find((v): v is SidebarContentArticleLink => v.type === 'article' && v.url === url)
+				if (example) gettingStartedCategory.children.push(example)
+			}
 		}
 	}
 
