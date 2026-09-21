@@ -112,7 +112,12 @@ import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
-import { getAuth, requireAdminAccess, requireAdminAccessToRequest } from './utils/tla/getAuth'
+import {
+	getAuth,
+	getMcpTokenAuth,
+	requireAdminAccess,
+	requireAdminAccessToRequest,
+} from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
@@ -204,6 +209,15 @@ interface SocketAttachment {
 	// Absent for bundles that predate the param, or when the param didn't validate.
 	clientBuildTimestamp?: string
 	snapshot: SessionStateSnapshot | null
+}
+
+/** The user behind an MCP access token, in the shape the file checks already take. */
+async function getMcpTokenUser(
+	req: IRequest,
+	env: Environment
+): Promise<{ userId: string } | null> {
+	const result = await getMcpTokenAuth(req, env)
+	return result.ok ? { userId: result.userId } : null
 }
 
 async function canAccessTestProductionFile(
@@ -1177,7 +1191,13 @@ export class TLFileDurableObject extends DurableObject {
 			return new Response('Not found', { status: 404 })
 		}
 
-		const auth = await getAuth(req, this.env)
+		// An MCP client — Claude, ChatGPT, Cursor — cannot hold a tldraw.com session, so an OAuth access
+		// token is the only sign-in it has, and without this a user's own boards are unreachable to the
+		// agent they just signed in to. Accepted only as a fallback, and it widens nothing: the
+		// group-role and link-sharing checks below are the same either way, so a token reaches exactly
+		// the files its user could already download from the website.
+		const auth: { userId: string } | null =
+			(await getAuth(req, this.env)) ?? (await getMcpTokenUser(req, this.env))
 		const file = await this.getAppFileRecord()
 		if (!file || file.isDeleted) {
 			return new Response('Not found', { status: 404 })

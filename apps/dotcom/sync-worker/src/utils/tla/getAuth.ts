@@ -3,6 +3,7 @@ import { can } from '@tldraw/dotcom-shared'
 import { IRequest, StatusError } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
+import { isFeatureFlagEnabledForUser } from '../featureFlags'
 import { getRole } from './getRole'
 
 export async function requireAuth(request: IRequest, env: Environment): Promise<SignedInAuth> {
@@ -126,6 +127,103 @@ export async function getZeroAuth(
 }
 
 export type SignedInAuth = Extract<SessionAuthObject, { isAuthenticated: true }>
+
+/**
+ * Why an access token was refused, as a closed vocabulary, so a caller can tell "presented nothing"
+ * from "presented something bad" from "signed in and still not allowed" — three refusals that call
+ * for entirely different answers, and that the MCP endpoint reports separately during the rollout.
+ */
+export type McpTokenRefusal = 'no_token' | 'invalid_token' | 'unconfigured' | 'not_allowlisted'
+
+export type McpTokenAuth = { ok: true; userId: string } | { ok: false; reason: McpTokenRefusal }
+
+/**
+ * The user behind an OAuth access token this Clerk instance issued, for a user the
+ * `mcp_server_access` flag names.
+ *
+ * Separate from {@link getAuth} rather than folded into it, and opted into one route at a time: a
+ * session token is a credential the user's browser holds for tldraw.com itself, while this is one
+ * the user handed to somebody else's software — Claude, ChatGPT, Cursor — for a stated purpose.
+ * Accepting both everywhere would silently let every endpoint that takes a session token be driven
+ * by an agent, which is a decision each route should make on its own.
+ *
+ * Verified by @clerk/backend against the Clerk instance the secret key names: signature (against a
+ * JWKS the SDK fetches from the Backend API once and caches), `sub`, lifetime and token type. Not
+ * `verifyToken`, which is for *session* tokens and refuses an access token on its header alone;
+ * `acceptsToken: 'oauth_token'` is the path that expects RFC 9068's `at+jwt`.
+ *
+ * `typ` is load-bearing rather than pedantry, and is the only thing separating an OAuth access token
+ * from a Clerk *session* JWT. Clerk stamps no `aud` on either, so nothing here can tell them apart by
+ * audience, and a session token — `typ: JWT` — would otherwise be a valid bearer token. That would
+ * make an ordinary tldraw.com website credential enough to drive an agent-facing endpoint, and the
+ * consent step an agent walks the user through decoration. The SDK answers one with
+ * `token-type-mismatch`.
+ *
+ * No `iss` check, where the jose verifier this replaced pinned one: the key set is the accepting
+ * instance's own, so a token any other issuer signed fails on signature.
+ *
+ * There is deliberately no check that the token was issued for the resource being called, and its
+ * absence is the part of this function most likely to look like an oversight.
+ *
+ * RFC 8707 would bind a token to the resource it was minted for, via `aud`, so a token the user
+ * granted to somebody else's MCP server could not be replayed against ours. Clerk does not implement
+ * it: it stamps no `aud` on an access token whether or not the client sends a `resource` parameter,
+ * so there is nothing here to compare. An earlier version of this check did it anyway and, because
+ * production enforced unconditionally, would have refused every token ever issued.
+ *
+ * What closes the hole instead lives on the authorization server, where the client registry is:
+ * Clerk's `client_id_metadata_documents_only_allow_pre_registered_clients` refuses to issue tokens to
+ * CIMD clients nobody approved, so a client we have never heard of cannot obtain a token for our
+ * users in the first place. Approving one is a Clerk dashboard action, not a deploy.
+ *
+ * The consequence to keep in mind: that setting is the whole of the protection, and it is invisible
+ * from this repository. If it is ever turned off, every self-registered client in the world can call
+ * these endpoints with a token its user consented to for something else entirely. A `client_id`
+ * allowlist here would be the belt to that setting's braces if we ever want one — the claim is on
+ * every token.
+ */
+export async function getMcpTokenAuth(request: IRequest, env: Environment): Promise<McpTokenAuth> {
+	const token = getBearerToken(request)
+	if (!token) return { ok: false, reason: 'no_token' }
+
+	if (!env.CLERK_SECRET_KEY) {
+		// Our misconfiguration rather than a bad token, so it is logged as one. Callers still answer it
+		// like any other refusal: naming the difference would describe the deployment to someone
+		// guessing at it.
+		console.error('MCP token verification is unconfigured: no Clerk instance to verify against')
+		return { ok: false, reason: 'unconfigured' }
+	}
+
+	const state = await getClerkClient(env).authenticateRequest(
+		// The SDK parses `Authorization` itself and only strips an exact `Bearer ` prefix; handing it the
+		// token getBearerToken already accepted keeps a lowercase or padded scheme working, and keeps the
+		// body and every other header out of its hands.
+		new Request(request.url, { headers: { authorization: `Bearer ${token}` } }),
+		{ acceptsToken: 'oauth_token' }
+	)
+	if (!state.isAuthenticated) {
+		// The SDK's reason and message only, never the token or its decoded payload: `sub`, `client_id`,
+		// `scope` and `jti` are every one of the things a refusal is careful not to disclose, written to
+		// a log with a wider audience than the caller.
+		console.error('MCP token verification failed:', state.reason, state.message)
+		return { ok: false, reason: 'invalid_token' }
+	}
+
+	const userId = state.toAuth().userId
+	if (!(await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId))) {
+		return { ok: false, reason: 'not_allowlisted' }
+	}
+
+	return { ok: true, userId }
+}
+
+/** The bearer token on a request, if it carries one. */
+export function getBearerToken(request: Request): string | null {
+	const header = request.headers.get('authorization')
+	if (!header) return null
+	const match = /^Bearer\s+(.+)$/i.exec(header.trim())
+	return match ? match[1].trim() : null
+}
 
 /**
  * Whether a user may *view* a file: they can reach it through the group that owns it, or it is
