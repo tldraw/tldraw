@@ -45,6 +45,7 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
+import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { maybeSlurp } from '../../utils/slurping'
@@ -113,7 +114,7 @@ export function TlaEditor(props: TlaEditorProps) {
 	)
 }
 
-function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
+function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
 
@@ -155,12 +156,14 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
+	const trackShareLinkOpen = useShareLinkOpenTracking()
 	const trackPerformance = usePerformanceTracking()
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
+			trackShareLinkOpen(app, fileId, isEmbed)
 			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
@@ -236,9 +239,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			addDialog,
 			trackRoomLoaded,
 			trackNewRoomCreation,
+			trackShareLinkOpen,
 			trackPerformance,
 			app,
 			fileId,
+			isEmbed,
 			remountImageShapes,
 			setIsReady,
 			showSlurpFailure,
@@ -254,9 +259,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return multiplayerAssetStore({ getFileId: () => fileId, getToken: getUserToken })
 	}, [fileId, getUserToken])
 
-	const users: TLUserStore | undefined = useMemo(() => {
+	const users: TLUserStore = useMemo(() => {
 		const prefs = app?.tlUser.userPreferences
-		if (!prefs) return undefined
+		// Signed out, attribute nothing: useSync's default store would stamp the local preferences id,
+		// which authorizeFileRecord rejects for a guest session, rolling back note edits and duplicates.
+		if (!prefs) return { currentUser: computed('currentUser', () => null) }
 		const currentUser = computed('currentUser', () => {
 			const p = prefs.get()
 			return UserRecordType.create({

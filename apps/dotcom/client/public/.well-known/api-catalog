@@ -1,0 +1,28 @@
+{
+	"linkset": [
+		{
+			"anchor": "https://www.tldraw.com/api/app/mcp",
+			"service-desc": [
+				{
+					"href": "https://www.tldraw.com/api/app/mcp/server-card",
+					"type": "application/mcp-server-card+json",
+					"title": "tldraw board screenshots MCP Server Card"
+				}
+			],
+			"service-doc": [
+				{
+					"href": "https://www.tldraw.com/auth.md",
+					"type": "text/markdown",
+					"title": "How an agent authenticates to the tldraw.com MCP server"
+				}
+			],
+			"describedby": [
+				{
+					"href": "https://www.tldraw.com/.well-known/oauth-protected-resource/api/app/mcp",
+					"type": "application/json",
+					"title": "OAuth 2.0 protected resource metadata"
+				}
+			]
+		}
+	]
+}
