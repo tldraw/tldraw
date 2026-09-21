@@ -21,7 +21,7 @@ import {
 	WeakCache,
 } from '@tldraw/editor'
 import { DefaultFontFaces } from '../../shapes/shared/defaultFonts'
-import { LiteralCodeSpanExtension } from './literalCodeSpan'
+import { LiteralTypingExtension } from './literalTyping'
 import { WrapSelectionExtension } from './wrapSelection'
 
 /** @public */
@@ -74,7 +74,7 @@ export function getTipTapDefaultExtensions(
 		}),
 		Highlight,
 		Typography,
-		LiteralCodeSpanExtension,
+		LiteralTypingExtension,
 		WrapSelectionExtension,
 		KeyboardShiftEnterTweakExtension,
 

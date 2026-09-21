@@ -10,6 +10,7 @@ import {
 	Transaction,
 } from '@tiptap/pm/state'
 import { getOwnProperty } from '@tldraw/editor'
+import { isMonospace, isStraightQuote } from './literalTyping'
 
 // The pairs we know how to wrap a selection in, as `[opening, closing]`.
 const WRAPPING_PAIRS = [
@@ -49,8 +50,9 @@ const WRAPPING_PAIRS = [
  * layouts, so typing the `!` or `?` that closes them has to work too.
  *
  * A straight quote wraps in the curly pair, because {@link https://tiptap.dev/docs/editor/extensions/functionality/typography | Typography}
- * turns a typed `"` into `“` or `”` anyway. Pass your own `pairs` to {@link WrapSelectionExtension}
- * to wrap in straight quotes instead, or to add pairs of your own.
+ * turns a typed `"` into `“` or `”` anyway. Inside code or monospace text it wraps in straight
+ * quotes. Pass your own `pairs` to {@link WrapSelectionExtension} to wrap in straight quotes
+ * everywhere, or to add pairs of your own.
  *
  * @public
  */
@@ -81,8 +83,8 @@ export interface WrapSelectionOptions {
  * The marks every inline node in the range carries, or null if the range holds no inline content at
  * all — a selection of nothing but a block boundary, which there is no sense wrapping.
  */
-function getMarksSpanningRange(doc: Node, from: number, to: number) {
-	let marks: readonly Mark[] | null = null
+function getMarksSpanningRange(doc: Node, from: number, to: number): readonly Mark[] | null {
+	let marks: readonly Mark[] | null = null as readonly Mark[] | null
 	doc.nodesBetween(from, to, (node) => {
 		if (!node.isInline) return
 		marks = marks ? marks.filter((mark) => mark.isInSet(node.marks)) : node.marks
@@ -103,7 +105,8 @@ function getWrapSelectionTransaction(
 	from: number,
 	to: number,
 	text: string,
-	pairs: WrapSelectionOptions['pairs']
+	pairs: WrapSelectionOptions['pairs'],
+	isMonospace: boolean
 ): Transaction | null {
 	if (from === to) return null
 
@@ -129,9 +132,14 @@ function getWrapSelectionTransaction(
 	const $to = state.doc.resolve(to)
 	if (!$from.parent.isTextblock || !$to.parent.isTextblock) return null
 
+	// Marks common to the whole selection, so wrapping a bold word gives bold brackets while a
+	// selection that starts bold and ends plain gets plain ones. Taking the marks at `from` alone
+	// (what `marksAcross` returns) would leave a stray bold — or, worse, separately linked —
+	// closing character at the end.
+	const marks = getMarksSpanningRange(state.doc, from, to)
+	if (!marks) return null
+
 	if (codeMark) {
-		const marks = getMarksSpanningRange(state.doc, from, to)
-		if (!marks) return null
 		// Toggles, so a backtick over code that's all code turns it back into plain text.
 		const tr = codeMark.isInSet(marks)
 			? state.tr.removeMark(from, to, codeMark)
@@ -139,21 +147,24 @@ function getWrapSelectionTransaction(
 		return tr.scrollIntoView()
 	}
 	if (!pair) return null
-	const [opening, closing] = pair
 
-	// Inside code every character is literal: typing over a selection should replace it, and a
-	// curly quote would be wrong. TipTap's input rules bail on code for the same reason. Both ends
-	// have to be clear — a selection running from plain text into code would drop an unmarked
-	// closing character inside the code run, splitting it in two.
-	if ($from.parent.type.spec.code || $to.parent.type.spec.code) return null
-	if ($from.nodeAfter?.marks.some(isCodeMark) || $to.nodeBefore?.marks.some(isCodeMark)) return null
+	const isCode =
+		marks.some(isCodeMark) || ($from.parent === $to.parent && !!$from.parent.type.spec.code)
+	// A selection running from plain text into code, or out of it, would drop an unmarked delimiter
+	// inside the code run and split it in two, so it's replaced as usual instead.
+	if (
+		!isCode &&
+		($from.parent.type.spec.code ||
+			$to.parent.type.spec.code ||
+			$from.nodeAfter?.marks.some(isCodeMark) ||
+			$to.nodeBefore?.marks.some(isCodeMark))
+	) {
+		return null
+	}
 
-	// Marks common to the whole selection, so wrapping a bold word gives bold brackets while a
-	// selection that starts bold and ends plain gets plain ones. Taking the marks at `from` alone
-	// (what `marksAcross` returns) would leave a stray bold — or, worse, separately linked —
-	// closing character at the end.
-	const marks = getMarksSpanningRange(state.doc, from, to)
-	if (!marks) return null
+	// Code is literal and curly quotes look out of place in monospace text, so there a straight quote
+	// wraps in straight quotes.
+	const [opening, closing] = (isCode || isMonospace) && isStraightQuote(text) ? [text, text] : pair
 
 	const tr = state.tr
 	// Closing first: inserting at `from` would shift `to` out from under us.
@@ -196,7 +207,14 @@ export const WrapSelectionExtension = Extension.create<WrapSelectionOptions>({
 					handleTextInput(view, from, to, text) {
 						// Mid-composition the range is the IME's own text, not something the user selected.
 						if (view.composing) return false
-						const tr = getWrapSelectionTransaction(view.state, from, to, text, pairs)
+						const tr = getWrapSelectionTransaction(
+							view.state,
+							from,
+							to,
+							text,
+							pairs,
+							from !== to && isStraightQuote(text) && isMonospace(view)
+						)
 						if (!tr) return false
 						view.dispatch(tr)
 						return true

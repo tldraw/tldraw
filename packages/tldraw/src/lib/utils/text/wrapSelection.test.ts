@@ -2,13 +2,25 @@ import { Editor as TextEditor, Extensions } from '@tiptap/core'
 import { getTipTapDefaultExtensions } from './richText'
 import { defaultWrappingPairs, WrapSelectionExtension } from './wrapSelection'
 
+// The test DOM doesn't compute font-family, which is how monospace text is detected.
+function mockFontFamily(fontFamily: string) {
+	vi.spyOn(window, 'getComputedStyle').mockReturnValue({ fontFamily } as CSSStyleDeclaration)
+}
+
+afterEach(() => {
+	vi.restoreAllMocks()
+})
+
 // Drives the real editor rather than the plugin in isolation, so that the ordering against
 // Typography's input rules — which fire on a non-empty selection too — is covered.
 function typeCharacter(
 	content: string,
 	selection: { from: number; to: number } | 'all',
 	text: string,
-	extensions: Extensions = getTipTapDefaultExtensions()
+	{
+		extensions = getTipTapDefaultExtensions(),
+		fontFamily,
+	}: { extensions?: Extensions; fontFamily?: string } = {}
 ) {
 	const textEditor = new TextEditor({
 		extensions,
@@ -16,6 +28,7 @@ function typeCharacter(
 		enableCoreExtensions: { textDirection: false },
 		content,
 	})
+	if (fontFamily) mockFontFamily(fontFamily)
 
 	try {
 		if (selection === 'all') {
@@ -145,9 +158,25 @@ describe('WrapSelectionExtension', () => {
 		)
 	})
 
-	it('replaces the selection inside code, where characters are literal', () => {
+	it('wraps code in straight quotes, since characters in code are literal', () => {
 		expect(typeCharacter('<p><code>hello</code></p>', selectHello, '"').html).toBe(
-			'<p dir="auto"><code>"</code></p>'
+			'<p dir="auto"><code>"hello"</code></p>'
+		)
+		expect(typeCharacter('<p><code>hello</code></p>', selectHello, "'").html).toBe(
+			'<p dir="auto"><code>\'hello\'</code></p>'
+		)
+		expect(typeCharacter('<p><code>hello</code></p>', selectHello, '(').html).toBe(
+			'<p dir="auto"><code>(hello)</code></p>'
+		)
+	})
+
+	it('wraps monospace text in straight quotes', () => {
+		const mono = { fontFamily: "'tldraw_mono', monospace" }
+		expect(typeCharacter('<p>hello</p>', selectHello, '"', mono).html).toBe(
+			'<p dir="auto">"hello"</p>'
+		)
+		expect(typeCharacter('<p>hello</p>', selectHello, '(', mono).html).toBe(
+			'<p dir="auto">(hello)</p>'
 		)
 	})
 
@@ -182,7 +211,7 @@ describe('WrapSelectionExtension', () => {
 				pairs: { ...defaultWrappingPairs, '"': ['"', '"'] },
 			}),
 		]
-		expect(typeCharacter('<p>hello</p>', selectHello, '"', extensions).html).toBe(
+		expect(typeCharacter('<p>hello</p>', selectHello, '"', { extensions }).html).toBe(
 			'<p dir="auto">"hello"</p>'
 		)
 	})
@@ -200,13 +229,14 @@ describe('Typography', () => {
 	})
 })
 
-describe('LiteralCodeSpanExtension', () => {
-	function typeText(content: string, at: number, text: string) {
+describe('LiteralTypingExtension', () => {
+	function typeText(content: string, at: number, text: string, fontFamily?: string) {
 		const textEditor = new TextEditor({
 			extensions: getTipTapDefaultExtensions(),
 			enableCoreExtensions: { textDirection: false },
 			content,
 		})
+		if (fontFamily) mockFontFamily(fontFamily)
 		try {
 			textEditor.commands.setTextSelection(at)
 			for (const char of text) {
@@ -237,6 +267,15 @@ describe('LiteralCodeSpanExtension', () => {
 	it('does not count a backtick inside existing code as opening a span', () => {
 		expect(typeText('<p><code>a`b</code> say</p>', 8, ' "hi"')).toBe(
 			'<p dir="auto"><code>a`b</code> say “hi”</p>'
+		)
+	})
+
+	it('keeps quotes straight in monospace text, but still applies the other rules', () => {
+		expect(typeText('<p></p>', 1, `"it's" -- ok`, "'tldraw_mono', monospace")).toBe(
+			`<p dir="auto">"it's" — ok</p>`
+		)
+		expect(typeText('<p></p>', 1, '"hi"', "'tldraw_draw', sans-serif")).toBe(
+			'<p dir="auto">“hi”</p>'
 		)
 	})
 
