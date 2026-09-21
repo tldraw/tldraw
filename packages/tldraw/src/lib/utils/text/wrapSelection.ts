@@ -107,9 +107,11 @@ function getWrapSelectionTransaction(
 ): Transaction | null {
 	if (from === to) return null
 
+	// A backtick marks the selection as code, the way a closing backtick does to typed text, rather
+	// than wrapping it in literal backticks. A schema without a code mark falls back to `pairs`.
+	const codeMark = text === '`' ? state.schema.marks.code : undefined
 	const pair = getOwnProperty(pairs, text)
-	if (!pair) return null
-	const [opening, closing] = pair
+	if (!codeMark && !pair) return null
 
 	// Retyping a character over a selection of that same character leaves the DOM untouched, which
 	// prosemirror-view reports as an input of the selected text itself. Wrapping it would turn a
@@ -126,6 +128,18 @@ function getWrapSelectionTransaction(
 	const $from = state.doc.resolve(from)
 	const $to = state.doc.resolve(to)
 	if (!$from.parent.isTextblock || !$to.parent.isTextblock) return null
+
+	if (codeMark) {
+		const marks = getMarksSpanningRange(state.doc, from, to)
+		if (!marks) return null
+		// Toggles, so a backtick over code that's all code turns it back into plain text.
+		const tr = codeMark.isInSet(marks)
+			? state.tr.removeMark(from, to, codeMark)
+			: state.tr.addMark(from, to, codeMark.create())
+		return tr.scrollIntoView()
+	}
+	if (!pair) return null
+	const [opening, closing] = pair
 
 	// Inside code every character is literal: typing over a selection should replace it, and a
 	// curly quote would be wrong. TipTap's input rules bail on code for the same reason. Both ends
@@ -155,6 +169,9 @@ function getWrapSelectionTransaction(
  * Wraps the selected text in a pair of matching characters instead of replacing it: select `hello`,
  * press `¡` or `!`, and you get `¡hello!`. See {@link defaultWrappingPairs} for the pairs, which
  * can be replaced or extended through the extension's `pairs` option.
+ *
+ * A backtick is the exception: it toggles the `code` mark on the selection instead, when the schema
+ * has one.
  *
  * @public
  */

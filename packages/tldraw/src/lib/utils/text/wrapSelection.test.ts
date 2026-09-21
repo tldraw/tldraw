@@ -151,6 +151,24 @@ describe('WrapSelectionExtension', () => {
 		)
 	})
 
+	it('marks the selection as code when a backtick is typed', () => {
+		expect(typeCharacter('<p>hello world</p>', selectHello, '`')).toEqual({
+			html: '<p dir="auto"><code>hello</code> world</p>',
+			selectedText: 'hello',
+			htmlAfterUndo: '<p dir="auto">hello world</p>',
+		})
+		// Code is all-or-nothing on a selection running from plain text into code.
+		expect(typeCharacter('<p>say <code>hello</code></p>', { from: 1, to: 8 }, '`').html).toBe(
+			'<p dir="auto"><code>say hello</code></p>'
+		)
+	})
+
+	it('turns code back into plain text when a backtick is typed over it', () => {
+		expect(typeCharacter('<p><code>hello</code></p>', selectHello, '`').html).toBe(
+			'<p dir="auto">hello</p>'
+		)
+	})
+
 	it('wraps in one undo step', () => {
 		expect(typeCharacter('<p>hello</p>', selectHello, '(').htmlAfterUndo).toBe(
 			'<p dir="auto">hello</p>'
@@ -179,5 +197,50 @@ describe('WrapSelectionExtension', () => {
 describe('Typography', () => {
 	it('converts a typed straight quote into a curly one', () => {
 		expect(typeCharacter('<p></p>', { from: 1, to: 1 }, '"').html).toBe('<p dir="auto">“</p>')
+	})
+})
+
+describe('LiteralCodeSpanExtension', () => {
+	function typeText(content: string, at: number, text: string) {
+		const textEditor = new TextEditor({
+			extensions: getTipTapDefaultExtensions(),
+			enableCoreExtensions: { textDirection: false },
+			content,
+		})
+		try {
+			textEditor.commands.setTextSelection(at)
+			for (const char of text) {
+				const { from, to } = textEditor.state.selection
+				const insert = () => textEditor.state.tr.insertText(char, from, to)
+				const handled = textEditor.view.someProp('handleTextInput', (handler) =>
+					handler(textEditor.view, from, to, char, insert)
+				)
+				if (!handled) textEditor.view.dispatch(insert())
+			}
+			return textEditor.getHTML()
+		} finally {
+			textEditor.destroy()
+		}
+	}
+
+	it('keeps typed punctuation literal until the closing backtick makes it code', () => {
+		expect(typeText('<p></p>', 1, '`say "hi"`')).toBe('<p dir="auto"><code>say "hi"</code></p>')
+		expect(typeText('<p></p>', 1, "`...args -> it's`")).toBe(
+			'<p dir="auto"><code>...args -&gt; it\'s</code></p>'
+		)
+	})
+
+	it('goes back to typography once the span is closed', () => {
+		expect(typeText('<p></p>', 1, '`x` "hi"')).toBe('<p dir="auto"><code>x</code> “hi”</p>')
+	})
+
+	it('does not count a backtick inside existing code as opening a span', () => {
+		expect(typeText('<p><code>a`b</code> say</p>', 8, ' "hi"')).toBe(
+			'<p dir="auto"><code>a`b</code> say “hi”</p>'
+		)
+	})
+
+	it('keeps quotes typed into existing code straight', () => {
+		expect(typeText('<p><code>hi</code></p>', 2, '"')).toBe('<p dir="auto"><code>h"i</code></p>')
 	})
 })
