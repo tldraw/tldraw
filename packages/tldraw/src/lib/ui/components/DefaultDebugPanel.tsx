@@ -24,11 +24,6 @@ const CurrentState = track(function CurrentState() {
 	return <div className="tlui-debug-panel__current-state">{`${path}`}</div>
 })
 
-// Fixed rather than relative to the highest rate seen: displays with adaptive refresh (and
-// browsers that switch rAF cadence) can peak at 120 Hz and then settle at a healthy 60, which a
-// relative threshold would flag as slow.
-const SLOW_FPS = 60 * 0.75
-
 function FPS() {
 	const editor = useEditor()
 	const showFps = useValue('show_fps', () => debugFlags.showFps.get(), [debugFlags])
@@ -71,7 +66,8 @@ function FPS() {
 					maxKnownFps = fps
 				}
 
-				if ((fps < SLOW_FPS && !isSlow) || (fps >= SLOW_FPS && isSlow)) {
+				const slowFps = maxKnownFps * 0.75
+				if ((fps < slowFps && !isSlow) || (fps >= slowFps && isSlow)) {
 					isSlow = !isSlow
 				}
 

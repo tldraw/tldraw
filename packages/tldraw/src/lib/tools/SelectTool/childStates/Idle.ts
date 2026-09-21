@@ -24,16 +24,8 @@ import {
 } from '../../selection-logic/updateHoveredShapeId'
 import { hasRichText, startEditingShapeWithRichText } from '../selectHelpers'
 
-const SKIPPED_KEYS_FOR_AUTO_EDITING = [
-	'Delete',
-	'Backspace',
-	'[',
-	']',
-	'Enter',
-	' ',
-	'Shift',
-	'Tab',
-]
+// Named keys (Enter, Tab, Delete, ...) are already excluded by the single-character check below.
+const SKIPPED_KEYS_FOR_AUTO_EDITING = ['[', ']', ' ']
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -599,9 +591,10 @@ export class Idle extends StateNode {
 			// We exclude certain keys to avoid conflicting with modifiers, but there are conflicts
 			// with other action kbds, hence why this is kept behind a feature flag.
 			// Only printable single characters count: named keys (F1, CapsLock, Escape, ...) have
-			// multi-character `key` values and must not start editing.
+			// multi-character `key` values and must not start editing. Count code points, not
+			// UTF-16 units, or emoji and other astral characters would be rejected too.
 			if (
-				info.key.length === 1 &&
+				[...info.key].length === 1 &&
 				!SKIPPED_KEYS_FOR_AUTO_EDITING.includes(info.key) &&
 				!info.altKey &&
 				!info.ctrlKey &&

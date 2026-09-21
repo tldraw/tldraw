@@ -59,7 +59,6 @@ describe('TLSelectTool.Idle', () => {
 	})
 })
 
-// todo: turn on feature flag for these tests or remove them
 describe('Edit on type', () => {
 	beforeEach(() => {
 		debugFlags.editOnType.set(true)
@@ -93,7 +92,7 @@ describe('Edit on type', () => {
 		expect(editor.getEditingShapeId()).not.toBe(shape.id)
 	})
 
-	it('Does not start editing on excluded keys', () => {
+	it.each(['[', ']', ' '])('Does not start editing on excluded key %j', (key) => {
 		const id = createShapeId()
 		editor.createShapes([
 			{
@@ -106,11 +105,13 @@ describe('Edit on type', () => {
 		])!
 		const shape = editor.getShape(id)!
 		editor.select(shape.id)
-		editor.keyDown('Enter') // Press an excluded key
-		expect(editor.getEditingShapeId()).not.toBe(shape.id)
+		editor.keyDown(key)
+		expect(editor.getEditingShapeId()).toBe(null)
 	})
 
-	it('Ignores key down if altKey or ctrlKey is pressed', () => {
+	// One modifier per test: the driver ORs held modifiers into later key events, so pressing them
+	// in sequence would hide a missing check for any but the first.
+	it.each(['altKey', 'ctrlKey', 'metaKey'])('Ignores key down if %s is pressed', (modifier) => {
 		const id = createShapeId()
 		editor.createShapes([
 			{
@@ -123,16 +124,28 @@ describe('Edit on type', () => {
 		])!
 		const shape = editor.getShape(id)!
 		editor.select(shape.id)
-		// Simulate altKey being pressed
-		editor.keyDown('a', { altKey: true })
-		// Simulate ctrlKey being pressed
-		editor.keyDown('a', { ctrlKey: true })
-		// Simulate metaKey being pressed
-		editor.keyDown('a', { metaKey: true })
-		expect(editor.getEditingShapeId()).not.toBe(shape.id)
+		editor.keyDown('a', { [modifier]: true })
+		expect(editor.getEditingShapeId()).toBe(null)
 	})
 
-	it.each(['F1', 'CapsLock', 'Escape', 'ArrowLeft', 'Home'])(
+	it('Starts editing on a printable character outside the BMP', () => {
+		const id = createShapeId()
+		editor.createShapes([
+			{
+				id,
+				type: 'note',
+				x: 100,
+				y: 100,
+				props: { richText: toRichText('hello') },
+			},
+		])!
+		const shape = editor.getShape(id)!
+		editor.select(shape.id)
+		editor.keyDown('😀')
+		expect(editor.getEditingShapeId()).toBe(shape.id)
+	})
+
+	it.each(['F1', 'CapsLock', 'Escape', 'Home'])(
 		'Does not start editing on non-printable key %s',
 		(key) => {
 			const id = createShapeId()
