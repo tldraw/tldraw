@@ -101,11 +101,11 @@ test.describe('Pen tool', () => {
 		await page.keyboard.down('Alt')
 		await page.mouse.click(300, 300)
 		await page.keyboard.up('Alt')
-		const smooth = await penPath(page).getAttribute('d')
 		await expect(penPath(page)).toHaveAttribute(
 			'd',
 			/166\.6667 -33\.3333 200 0 C 233\.3333 33\.3333/
 		)
+		const smooth = await penPath(page).getAttribute('d')
 		await page.keyboard.down('Alt')
 		await page.mouse.move(333.3333, 333.3333)
 		await page.mouse.down()
