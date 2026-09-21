@@ -1486,6 +1486,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return bindingUtil
 	}
 
+	/**
+	 * Returns true if the editor has a binding util for the given binding / binding type.
+	 *
+	 * @param binding - A binding, or a binding type.
+	 */
+	hasBindingUtil(binding: TLBinding | { type: string }): boolean
+	hasBindingUtil(type: TLBinding['type']): boolean
+	hasBindingUtil<T extends BindingUtil>(
+		type: T extends BindingUtil<infer R> ? R['type'] : string
+	): boolean
+	hasBindingUtil(arg: string | { type: string }): boolean {
+		const type = typeof arg === 'string' ? arg : arg.type
+		return hasOwnProperty(this.bindingUtils, type)
+	}
+
 	/* ------------------- Asset Utils ------------------ */
 
 	/**
@@ -9725,12 +9740,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// decide on a parent for the put shapes; if the parent is among the put shapes(?) then use its parent
 
 		const currentPageId = this.getCurrentPageId()
-		const { rootShapeIds } = content
+		// copied because we push to it below; content is caller-owned and gets reused
+		const rootShapeIds = [...content.rootShapeIds]
 
 		// We need to collect the migrated records
 		const assets: TLAsset[] = []
-		const shapes: TLShape[] = []
-		const bindings: TLBinding[] = []
+		let shapes: TLShape[] = []
+		let bindings: TLBinding[] = []
 		const users: TLUser[] = []
 
 		// Let's treat the content as a store, and then migrate that store.
@@ -9769,6 +9785,137 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 		}
+
+		// Pasted content can carry custom shapes this editor has no util for. Creating one
+		// throws, so drop them instead — and lift their children to the nearest surviving
+		// ancestor, since dropping a container shouldn't destroy the contents we can create.
+		// See https://github.com/tldraw/tldraw/issues/10127
+		const unsupportedShapeIds = new Set(
+			shapes.filter((shape) => !this.hasShapeUtil(shape)).map((shape) => shape.id as string)
+		)
+		let unsupportedShapeTypes: string[] = []
+
+		if (unsupportedShapeIds.size > 0) {
+			const sourceShapesById = new Map(shapes.map((shape) => [shape.id as string, shape]))
+			// The index each lifted shape had within the dropped subtree, outermost dropped
+			// ancestor first, so lifted shapes can be restacked in the order they were drawn in.
+			const liftedIndexPaths = new Map<string, IndexKey[]>()
+
+			shapes = shapes
+				.filter((shape) => !unsupportedShapeIds.has(shape.id))
+				.map((shape) => {
+					if (!unsupportedShapeIds.has(shape.parentId)) return shape
+
+					// Without the dropped ancestors' transforms baked in, the shape would jump
+					// by their combined offset and rotation.
+					let transform = Mat.Identity()
+					let rotation = 0
+					let parentId: TLParentId = shape.parentId
+					const indexPath: IndexKey[] = [shape.index]
+					// Content is arbitrary JSON off the clipboard, so the parent chain can be
+					// cyclic. Nothing upstream rejects that, and walking it unguarded hangs the
+					// whole thread — no error boundary, just a frozen tab.
+					const seenParentIds = new Set<string>()
+					while (unsupportedShapeIds.has(parentId) && !seenParentIds.has(parentId)) {
+						seenParentIds.add(parentId)
+						const dropped = sourceShapesById.get(parentId)!
+						transform = Mat.Compose(
+							Mat.Translate(dropped.x, dropped.y),
+							Mat.Rotate(dropped.rotation),
+							transform
+						)
+						rotation += dropped.rotation
+						parentId = dropped.parentId
+						indexPath.unshift(dropped.index)
+					}
+
+					// A cycle leaves us on a dropped shape with no real ancestor to lift into,
+					// so treat the shape as top level rather than parenting it to a shape that
+					// will never exist.
+					if (unsupportedShapeIds.has(parentId)) parentId = currentPageId
+
+					// Nothing survived above it, so it's a root shape now — otherwise it's
+					// neither positioned nor selected with the rest of the paste.
+					if (!sourceShapesById.has(parentId) && !rootShapeIds.includes(shape.id)) {
+						rootShapeIds.push(shape.id)
+					}
+
+					liftedIndexPaths.set(shape.id, indexPath)
+					const { x, y } = Mat.applyToPoint(transform, shape)
+					return { ...shape, x, y, rotation: shape.rotation + rotation, parentId }
+				})
+
+			// A lifted shape's index came from the sibling set it was lifted out of, so
+			// keeping it can collide with a sibling in the set it lands in — leaving their
+			// z-order decided by array order rather than by the index.
+			if (liftedIndexPaths.size > 0) {
+				const highestIndexByParent = new Map<TLParentId, IndexKey>()
+				for (const shape of shapes) {
+					if (liftedIndexPaths.has(shape.id)) continue
+					const highest = highestIndexByParent.get(shape.parentId)
+					if (!highest || shape.index > highest) {
+						highestIndexByParent.set(shape.parentId, shape.index)
+					}
+				}
+
+				// Stack them by where they sat in the dropped subtree rather than by their
+				// position in the content array: content is arbitrary JSON off the clipboard
+				// and doesn't have to list siblings in z-order, so array order would restack
+				// them arbitrarily. Only shapes landing under the same parent can be compared:
+				// a path starts in its destination's child space, so mixing destinations would
+				// shuffle shapes across parents. Everything headed for the page is one group,
+				// because it's all re-indexed together further down.
+				const liftedByDestination = new Map<string, TLShape[]>()
+				const destinationOf = (shape: TLShape) =>
+					sourceShapesById.has(shape.parentId) ? shape.parentId : currentPageId
+				for (const shape of shapes) {
+					if (!liftedIndexPaths.has(shape.id)) continue
+					const group = liftedByDestination.get(destinationOf(shape))
+					if (group) group.push(shape)
+					else liftedByDestination.set(destinationOf(shape), [shape])
+				}
+				for (const group of liftedByDestination.values()) {
+					group.sort((a, b) =>
+						compareIndexPaths(liftedIndexPaths.get(a.id)!, liftedIndexPaths.get(b.id)!)
+					)
+					for (let i = 0; i < group.length; i++) {
+						const index = getIndexAbove(highestIndexByParent.get(group[i].parentId))
+						highestIndexByParent.set(group[i].parentId, index)
+						group[i] = { ...group[i], index }
+					}
+				}
+
+				// They take each other's places in the array as well, because a shape lifted all
+				// the way to the page is re-indexed in array order further down — which would
+				// otherwise undo the stacking we just gave it. Swapping only within a group keeps
+				// every shape after its parent, and page-bound shapes in their slots among the
+				// surviving roots.
+				const nextInGroup = new Map<string, number>()
+				shapes = shapes.map((shape) => {
+					if (!liftedIndexPaths.has(shape.id)) return shape
+					const destination = destinationOf(shape)
+					const next = nextInGroup.get(destination) ?? 0
+					nextInGroup.set(destination, next + 1)
+					return liftedByDestination.get(destination)![next]
+				})
+			}
+
+			unsupportedShapeTypes = [
+				...new Set([...unsupportedShapeIds].map((id) => sourceShapesById.get(id)!.type)),
+			]
+		}
+
+		// Custom bindings travel with custom shapes, so a paste can carry binding types we have
+		// no util for; and a binding whose ends aren't both among the shapes we're about to
+		// create would fail the assertExists below — whether the shape was dropped just now or
+		// was never in the content. The bound shapes still paste, just unlinked.
+		const shapeIdsToCreate = new Set<string>(shapes.map((shape) => shape.id))
+		bindings = bindings.filter(
+			(binding) =>
+				this.hasBindingUtil(binding) &&
+				shapeIdsToCreate.has(binding.fromId) &&
+				shapeIdsToCreate.has(binding.toId)
+		)
 
 		if (users.length > 0) {
 			const existingUserIds = new Set(
@@ -10093,6 +10240,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 				kickoutOccludedShapes(this, shapesToKickout)
 			}
 		})
+
+		// Only once the paste has landed: the max shapes check above returns early, and there's
+		// nothing to report about a paste that never happened. pastedCount separates "we left
+		// some out" from "none of this could be pasted", which read very differently.
+		if (unsupportedShapeTypes.length > 0) {
+			this.emit('unsupported-shapes', {
+				types: unsupportedShapeTypes,
+				droppedCount: unsupportedShapeIds.size,
+				pastedCount: newShapes.length,
+			})
+		}
 
 		return this
 	}
@@ -11599,6 +11757,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
 	editor.emit('max-shapes', { name, pageId, count: editor.options.maxShapesPerPage })
+}
+
+/**
+ * Order two shapes by their indices within a subtree, outermost ancestor first, so that a shape
+ * lifted out of a container stays below the contents of any container that sat above it. Where
+ * one path runs out, the shallower shape goes first: it sat at that level itself.
+ */
+function compareIndexPaths(a: IndexKey[], b: IndexKey[]) {
+	for (let i = 0; i < Math.min(a.length, b.length); i++) {
+		if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1
+	}
+	return a.length - b.length
 }
 
 function applyPartialToRecordWithProps<
