@@ -2505,8 +2505,9 @@ export class LocalIndexedDb {
         sessionStateSnapshot: TLSessionStateSnapshot | undefined;
     }>;
     pending(): Promise<void>;
-    // (undocumented)
-    pruneSessions(): Promise<void>;
+    pruneSessions({ keepSessionId }?: {
+        keepSessionId?: string;
+    }): Promise<void>;
     // (undocumented)
     removeAssets(assetId: string[]): Promise<void>;
     // (undocumented)
