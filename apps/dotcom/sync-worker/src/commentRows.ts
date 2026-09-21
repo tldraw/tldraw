@@ -557,7 +557,11 @@ export function mergeCommentDocumentsIntoSnapshot(
 	if (commentDocs.length > 0) {
 		snapshot.documents = [...snapshot.documents, ...commentDocs]
 	}
-	const maxClock = Math.max(clockFloor, ...commentDocs.map((d) => d.lastChangedClock))
+	// a loop rather than `Math.max(clockFloor, ...clocks)`, which overflows the stack past ~100k docs
+	let maxClock = clockFloor
+	for (const doc of commentDocs) {
+		if (doc.lastChangedClock > maxClock) maxClock = doc.lastChangedClock
+	}
 	const effectiveClock = snapshot.documentClock ?? snapshot.clock ?? 0
 	if (effectiveClock >= maxClock) return
 	snapshot.documentClock = maxClock
