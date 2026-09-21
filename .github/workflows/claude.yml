@@ -10,6 +10,9 @@ on:
   pull_request_review:
     types: [submitted]
 
+permissions:
+  contents: read
+
 jobs:
   claude:
     if: |

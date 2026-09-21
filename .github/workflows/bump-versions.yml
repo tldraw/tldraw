@@ -13,6 +13,9 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+
 jobs:
   bump_versions:
     name: 'Bump package versions to latest tldraw version'
