@@ -15,7 +15,10 @@ const SKIP = [
 	/^apps\/docs\/content\//,
 	/^packages\/create-tldraw\/(src|README)/,
 	/^skills\/tldraw-migrate\//,
-	/^internal\/scripts\/migrate-to-pnpm\.mjs$/,
+	/^internal\/scripts\/(migrate-to-pnpm|compare-lockfiles)\.mjs$/,
+	/^pnpm-lock\.yaml$/,
+	// data files (e.g. Moby Dick's chapters.json) mention yarn as a word, not a tool
+	/^apps\/examples\/.*\.json$/,
 	/\.(png|jpg|jpeg|gif|webp|ico|woff2?|ttf|otf|pdf|zip|tldr|tldraw|snap|patch)$/,
 ]
 
