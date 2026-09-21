@@ -10,7 +10,7 @@ Draw and edit a path made of cubic Bézier segments.
 
 ---
 
-Select **Pen** (P). Click to add a corner, or drag to add a smooth point with two Bézier handles. Click the first point after placing at least three points to close and fill the path. Press Enter or Escape to finish an open path. A single unfinished point is discarded.
+Select **Pen** (P). Click to add a corner, or drag to add a smooth point with two Bézier handles. Click the first point after placing at least three points to close and fill the path. A hover halo highlights the first point when clicking will close the path. Press Enter or Escape to finish an open path. A single unfinished point is discarded.
 
 Double-click a path to edit its points:
 

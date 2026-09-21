@@ -131,15 +131,42 @@ class Drawing extends PenInteraction {
 		this.editor.selectNone().setCursor({ type: 'cross', rotation: 0 })
 	}
 
+	private canClose(shape: PenShape) {
+		return (
+			shape.props.points.length >= 3 &&
+			Vec.Dist(this.getPoint(shape), shape.props.points[0].point) < 10 / this.editor.getZoomLevel()
+		)
+	}
+
+	private updateClosingHandle() {
+		const shape = this.shape
+		const overlay =
+			!this.drag && shape && this.canClose(shape)
+				? this.editor.overlays
+						.getOverlayUtil<PenHandleOverlayUtil>('shape_handle')
+						.getOverlays()
+						.find((overlay) => overlay.props.handle.id === '0:point')
+				: undefined
+		this.editor.overlays.setHoveredOverlay(overlay?.id ?? null)
+	}
+
+	override onPointerMove(info: TLPointerEventInfo) {
+		super.onPointerMove(info)
+		this.updateClosingHandle()
+	}
+
+	override onPointerUp() {
+		super.onPointerUp()
+		this.updateClosingHandle()
+	}
+
 	override onPointerDown(info: TLPointerEventInfo) {
 		if (info.button !== 0) return
+		this.editor.overlays.setHoveredOverlay(null)
 		let shape = this.shape
 		if (shape) {
 			const point = this.getPoint(shape)
-			if (
-				shape.props.points.length >= 3 &&
-				Vec.Dist(point, shape.props.points[0].point) < 10 / this.editor.getZoomLevel()
-			) {
+			if (this.canClose(shape)) {
 				this.editor.markHistoryStoppingPoint('close pen path')
 				this.editor.updateShape<PenShape>({
 					id: shape.id,
@@ -179,6 +206,7 @@ class Drawing extends PenInteraction {
 
 	override onExit() {
 		super.onExit()
+		this.editor.overlays.setHoveredOverlay(null)
 		const shape = this.shape
 		if (shape && shape.props.points.length < 2) this.editor.deleteShape(shape.id)
 		this.shapeId = null
@@ -292,7 +320,22 @@ const overrides: TLUiOverrides = {
 		tools.pen = {
 			id: 'pen',
 			label: 'Pen',
-			icon: 'spline-cubic',
+			icon: (
+				<svg
+					width="30"
+					height="30"
+					viewBox="0 0 30 30"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="1.5"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+				>
+					<path d="M5 3 17 6C24 8 26 13 24 19L19 24C13 26 8 24 6 17L3 5Z" />
+					<path d="m24 19 4 4-5 5-4-4M4 4l8 8" />
+					<circle cx="14.5" cy="14.5" r="3.5" />
+				</svg>
+			),
 			kbd: 'p',
 			onSelect: () => editor.setCurrentTool('pen.drawing'),
 		}
