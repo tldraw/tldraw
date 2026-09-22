@@ -137,9 +137,12 @@ describe('feed query shape', () => {
 
 	// a tab still running the previous bundle asks the query endpoint for this name; an unknown
 	// name is a per-query error that leaves its feed empty with nothing prompting a reload
-	it('keeps the previous feed name resolvable for tabs open across the deploy', () => {
-		expect(() => mustGetQuery(queries, 'comments')).not.toThrow()
-	})
+	it.each([['comments'], ['replyComments']])(
+		'keeps the previous feed name resolvable for tabs open across the deploy: %s',
+		(name) => {
+			expect(() => mustGetQuery(queries, name)).not.toThrow()
+		}
+	)
 
 	it('roots the reactions feed at comment, not comment_reaction', () => {
 		expect(astOf('reactions').table).toBe('comment')

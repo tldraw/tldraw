@@ -354,6 +354,29 @@ export const queries = defineQueries({
 			.orderBy('createdAt', 'desc')
 			.limit(RECENT_COMMENTS_LIMIT)
 	),
+
+	/**
+	 * The reply feed as the bundle between the per-reason split and this one requests it. Kept for
+	 * the same reason as {@link comments}: a tab open across the deploy would otherwise get a
+	 * per-query error and an empty feed.
+	 *
+	 * @deprecated Remove in the release after the one that ships the started/participated split.
+	 */
+	replyComments: defineQuery(({ ctx }) =>
+		withFeedRelations(
+			feedComments(ctx.userId, (t) =>
+				t.where(({ cmp, or, exists }) =>
+					or(
+						cmp('createdBy', '=', ctx.userId),
+						exists('comments', (c) =>
+							c.where('authorId', '=', ctx.userId).where('isDeleted', '=', false)
+						)
+					)
+				)
+			),
+			ctx.userId
+		)
+	),
 })
 
 export type TlaQueries = typeof queries
