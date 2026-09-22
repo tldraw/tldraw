@@ -61,10 +61,13 @@ describe('dockerfileCopySources', () => {
 		expect(dockerfileCopySources(dockerfile)).toEqual(['start.sh', 'b'])
 	})
 
-	it('throws on an instruction it cannot split into sources and a destination', () => {
-		const dockerfile = ['FROM x', 'COPY ["a","/b"]'].join('\n')
-		expect(() => dockerfileCopySources(dockerfile)).toThrow(/only plain paths are supported/i)
-	})
+	it.each([['COPY ["a","/b"]'], ['COPY ["a", "/b"]'], ['COPY --chown=1:1 ["a", "/b"]']])(
+		'throws on the JSON-array form: %s',
+		(instruction) => {
+			const dockerfile = ['FROM x', instruction].join('\n')
+			expect(() => dockerfileCopySources(dockerfile)).toThrow(/only plain paths are supported/i)
+		}
+	)
 })
 
 describe('hashFlyDeployInputs', () => {

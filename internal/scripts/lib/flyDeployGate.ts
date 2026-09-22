@@ -80,11 +80,13 @@ export function dockerfileCopySources(dockerfile: string): string[] {
 		// `--from` copies from another build stage, not from the context.
 		if (tokens.some((token) => token.startsWith('--from'))) continue
 		const operands = tokens.filter((token) => !token.startsWith('--'))
-		// Anything the whitespace split can't separate into sources and a destination, such as the
-		// JSON-array form, would otherwise contribute nothing to the hash and never be missed.
-		if (operands.length < 2) {
+		// Anything the whitespace split can't separate into sources and a destination would otherwise
+		// contribute nothing to the hash, or a token that is no path at all, and never be missed. The
+		// JSON-array form does both: `["a","/b"]` is one token, `["a", "/b"]` is two that look like a
+		// source and a destination.
+		if (operands.length < 2 || operands[0].startsWith('[')) {
 			throw new Error(
-				`Dockerfile instruction \`${line.trim()}\` does not split into sources and a destination. ` +
+				`Dockerfile instruction \`${line.trim()}\` is not a plain \`COPY <src>... <dest>\`. ` +
 					`Only plain paths are supported: no JSON-array COPY.`
 			)
 		}
