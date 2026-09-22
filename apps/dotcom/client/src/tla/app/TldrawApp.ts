@@ -575,9 +575,13 @@ export class TldrawApp {
 	 * call after dispose(): delete() closes the instance first, and close() is idempotent.
 	 */
 	async deleteLocalData() {
-		const { errors } = await this.z.delete()
-		if (errors.length) {
-			console.warn('Failed to delete some local Zero data:', errors)
+		try {
+			const { errors } = await this.z.delete()
+			for (const error of errors) {
+				captureException(error)
+			}
+		} catch (error) {
+			captureException(error)
 		}
 	}
 
