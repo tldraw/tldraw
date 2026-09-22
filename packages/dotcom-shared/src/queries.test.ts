@@ -69,12 +69,13 @@ describe('feed query shape', () => {
 	// accessGateDepth. A query that reaches `file` more than one hop from its root is the shape
 	// that took production down, however small the table it is rooted at.
 	it.each([
-		['comments', {}],
-		['reactions', {}],
-		['fileComments', { fileId: 'file:1' }],
-	])('keeps the file access gate one hop from the root: %s', (name, args) => {
+		['comments', {}, 1],
+		// reactions no longer consults `file` at all: the gate reads file_state / group_file directly
+		['reactions', {}, 0],
+		['fileComments', { fileId: 'file:1' }, 1],
+	])('keeps the file access gate one hop from the root: %s', (name, args, depth) => {
 		const ast = astOf(name as keyof typeof queries, args)
-		expect(accessGateDepth(ast, 'file')).toBeLessThanOrEqual(1)
+		expect(accessGateDepth(ast, 'file')).toBe(depth)
 	})
 
 	// The gate has to sit on relations correlated straight on the comment's fileId (file_state,
