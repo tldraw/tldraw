@@ -449,9 +449,15 @@ const rules = {
 				const name = getImportedPackageName(specifier)
 				if (!name || name === owner.name) return
 				if (owner.declared.has(name)) return
-				// Types-only packages (`mdast`) and host-provided modules (`vscode`) exist
-				// only as their `@types/*` declaration.
-				if (owner.declared.has(`@types/${name.replace(/^@/, '').replace('/', '__')}`)) return
+				// Types-only packages (`mdast`) and host-provided modules (`vscode`) exist only as
+				// their `@types/*` declaration. Only honor that when no runtime package of the name is
+				// installed, so `@types/react` can't stand in for an undeclared `react`.
+				if (
+					owner.declared.has(`@types/${name.replace(/^@/, '').replace('/', '__')}`) &&
+					!existsSync(join(REPO_ROOT, 'node_modules', name, 'package.json'))
+				) {
+					return
+				}
 
 				context.report({ node, messageId: 'undeclared', data: { name, owner: owner.name } })
 			}
