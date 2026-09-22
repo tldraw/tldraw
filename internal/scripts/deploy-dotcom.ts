@@ -291,14 +291,15 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // fail with "invalid stop_config.timeout, cannot exceed 5 minutes").
 const zeroVmSizes = {
 	staging: {
-		rm: { cpus: 1, memory: '2gb', cpuKind: 'shared' },
-		vs: { cpus: 2, memory: '4gb' },
+		rm: { cpus: 1, memory: '1gb', cpuKind: 'shared' },
+		vs: { cpus: 2, memory: '1gb' },
 		volumeSize: '1gb',
 		vsMinMachines: 1,
 		killTimeout: '5m',
 	},
 	production: {
-		rm: { cpus: 2, memory: '4gb', cpuKind: 'performance' },
+		// Fly floors performance VMs at 2gb per CPU, so vs can't drop below 8gb without losing cores it uses at peak
+		rm: { cpus: 1, memory: '2gb', cpuKind: 'performance' },
 		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
 		vsMinMachines: 9,
