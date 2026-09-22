@@ -4,7 +4,7 @@ This file provides guidance to AI coding agents working in this repository.
 
 ## Core rules
 
-- Use `pnpm`, not `npm`, for repo commands. This repo uses pnpm workspaces.
+- Use `pnpm`, not `npm` or `yarn`, for repo commands. This repo uses pnpm workspaces; `yarn …` fails at install and is blocked for agents by a hook.
 - Run commands from the repo root unless a command explicitly says to run from a workspace.
 - Never run bare `tsc`; use `pnpm typecheck` from the repo root.
 - Prefer targeted checks first. Avoid repo-wide test or e2e runs unless the change needs them.

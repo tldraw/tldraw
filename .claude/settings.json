@@ -47,6 +47,17 @@
 					}
 				]
 			}
+		],
+		"PreToolUse": [
+			{
+				"matcher": "Bash",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "cmd=$(node -p \"JSON.parse(require('fs').readFileSync(0,'utf8')).tool_input?.command ?? ''\"); if printf '%s' \"$cmd\" | grep -Eq '(^|[;&|(])[[:space:]]*yarn([[:space:]]|$)'; then echo 'This repo uses pnpm, not yarn: pnpm <script>, pnpm exec <bin> instead of yarn run -T <bin>, pnpm --filter <pkg> instead of yarn workspace <pkg>.' >&2; exit 2; fi"
+					}
+				]
+			}
 		]
 	},
 	"enabledPlugins": {}
