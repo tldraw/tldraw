@@ -896,15 +896,16 @@ input,
  * pseudo-element each: a mask clips everything its element paints, pseudo-elements included, so
  * masking the span with the box would erase the tick sitting inside it.
  *
- * Stroke widths are a fraction of the artwork's 100-unit viewBox, so they scale with the box and
- * stay near the stem weight of the text beside them.
+ * The box is the path of a small draw-dash rectangle taken off the canvas: two passes around the
+ * same box, which is where its uneven weight comes from. Both strokes are sized in their artwork's
+ * own viewBox, so they scale with the box and stay near the stem weight of the text beside them.
  */
 .tl-rich-text ul[data-type='taskList'] > li > label > span::before {
 	content: '';
 	position: absolute;
 	inset: 0;
 	background-color: currentColor;
-	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M17 16C13.5 38 13 61 16 85C39 88.5 63 88.5 85 85C88 62 88 38 85 15.5C62 12 39 12 14 16.5' fill='none' stroke='%23000' stroke-width='9.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-2.52 -3.68 33.47 33.47'%3E%3Cpath d='M 7.4082 -0.5405 L 20.5696 -0.1871 Q 27.5696 -0.1871 27.5696 6.2556 L 27.4919 18.8763 Q 27.4919 25.319 20.4919 25.319 L 7.5191 26.1584 Q 0.5191 26.1584 0.5191 19.7158 L 0.4082 5.9022 Q 0.4082 -0.5405 7.4082 -0.5405 M 7.7321 -0.28 L 20.5291 0.3516 Q 27.5291 0.3516 27.5291 6.7943 L 29.1984 20.2087 Q 29.1984 26.6513 22.1984 26.6513 L 6.228 26.0505 Q -0.772 26.0505 -0.772 19.6078 L 0.7321 6.1626 Q 0.7321 -0.28 7.7321 -0.28' fill='none' stroke='%23000' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 	mask-size: 100% 100%;
 	mask-repeat: no-repeat;
 }
@@ -912,8 +913,8 @@ input,
 .tl-rich-text ul[data-type='taskList'] > li > label > input:checked + span::after {
 	content: '';
 	position: absolute;
-	/* Bigger than the box, and offset up and to the right, so the tick overshoots its top corner. */
-	inset: -0.1em -0.26em 0 0.14em;
+	/* Bigger than the box, so the tick overshoots its top corner and crosses the bottom edge. */
+	inset: -0.12em -0.26em -0.06em 0.14em;
 	background-color: currentColor;
 	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M10 50C20 58 29 70 37 88C50 58 70 27 93 4' fill='none' stroke='%23000' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 	mask-size: 100% 100%;
