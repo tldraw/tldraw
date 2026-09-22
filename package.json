@@ -29,7 +29,7 @@
 		"aws-login": "aws sso login --sso-session=tldraw",
 		"clean": "internal/scripts/clean.sh",
 		"extract-draft-changelog": "tsx internal/scripts/extract-draft-changelog.tsx",
-		"preinstall": "node -e \"process.env.npm_config_user_agent?.startsWith('pnpm/') || (console.error('This repo uses pnpm. Run `npm i -g corepack && pnpm install`.'), process.exit(1))\"",
+		"preinstall": "node -e \"if (!process.env.npm_config_user_agent?.startsWith('pnpm/')) { console.error('This repo uses pnpm, not yarn or npm. Run: npm i -g corepack && pnpm install'); process.exit(1) }\"",
 		"postinstall": "husky install && pnpm refresh-assets",
 		"refresh-assets": "lazy refresh-assets",
 		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw' --filter='apps/bemo-worker' --filter='apps/dotcom/image-resize-worker'",
