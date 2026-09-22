@@ -21,6 +21,7 @@ import {
 } from '../../selection-logic/updateHoveredShapeId'
 import {
 	hasRichText,
+	isPlainDoubleClickDown,
 	isPointInRotatedSelectionBounds,
 	startEditingShapeWithRichText,
 } from '../selectHelpers'
@@ -253,10 +254,7 @@ export class Idle extends StateNode {
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (this.editor.inputs.getShiftKey() || info.phase !== 'down') return
-
-		// We don't want to double click while toggling shapes
-		if (info.ctrlKey || info.shiftKey) return
+		if (!isPlainDoubleClickDown(this.editor, info)) return
 
 		switch (info.target) {
 			case 'canvas': {

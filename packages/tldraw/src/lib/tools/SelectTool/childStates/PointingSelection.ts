@@ -1,5 +1,6 @@
 import { StateNode, TLClickEventInfo, TLPointerEventInfo } from '@tldraw/editor'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
+import { isPlainDoubleClickDown } from '../selectHelpers'
 
 export class PointingSelection extends StateNode {
 	static override id = 'pointing_selection'
@@ -33,14 +34,7 @@ export class PointingSelection extends StateNode {
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (
-			this.editor.inputs.getShiftKey() ||
-			info.phase !== 'down' ||
-			info.ctrlKey ||
-			info.shiftKey
-		) {
-			return
-		}
+		if (!isPlainDoubleClickDown(this.editor, info)) return
 
 		const hoveredShape = this.editor.getHoveredShape()
 		const hitShape =
