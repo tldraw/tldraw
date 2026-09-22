@@ -11763,6 +11763,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/extension-typography@npm:3.13.0":
+  version: 3.13.0
+  resolution: "@tiptap/extension-typography@npm:3.13.0"
+  peerDependencies:
+    "@tiptap/core": ^3.13.0
+  checksum: 10/858377db5f037b70ed311b351616a828897e94ec992797dbb731f0186d92a1cc246e994b2793fcaef9b66b1082fbaace8f787be4a887332afaeb93d153262892
+  languageName: node
+  linkType: hard
+
 "@tiptap/extension-underline@npm:^3.13.0":
   version: 3.13.0
   resolution: "@tiptap/extension-underline@npm:3.13.0"
@@ -11983,7 +11992,7 @@ __metadata:
     "@headlessui/react": "npm:^2.2.0"
     "@heroicons/react": "npm:^2.2.0"
     "@microsoft/api-extractor-model": "npm:^7.30.2"
-    "@microsoft/tsdoc": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch"
+    "@microsoft/tsdoc": "npm:0.15.1"
     "@shikijs/engine-javascript": "npm:^1.29.1"
     "@shikijs/rehype": "npm:^1.29.1"
     "@tailwindcss/typography": "npm:^0.5.16"
@@ -12170,6 +12179,7 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     lazyrepo: "npm:0.0.0-alpha.27"
     mermaid: "npm:11.16.1"
+    tldraw: "workspace:*"
     vitest: "npm:^5.0.0"
   peerDependencies:
     react: ^18.2.0 || ^19.2.1
@@ -12196,7 +12206,6 @@ __metadata:
     "@types/semver": "npm:^7.5.8"
     "@vitest/coverage-v8": "npm:^5.0.0"
     "@vitest/ui": "npm:^5.0.0"
-    "@yarnpkg/types": "npm:^4.0.0"
     adm-zip: "npm:^0.6.0"
     cross-env: "npm:^7.0.3"
     esbuild: "npm:^0.28.0"
@@ -12422,6 +12431,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/sync-core@workspace:packages/sync-core"
   dependencies:
+    "@peculiar/webcrypto": "npm:^1.5.0"
+    "@tldraw/editor": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -12429,9 +12440,11 @@ __metadata:
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@types/uuid-readable": "npm:^0.0.3"
+    fake-indexeddb: "npm:^4.0.2"
     nanoevents: "npm:^7.0.1"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
+    resize-observer-polyfill: "npm:^1.5.1"
     tldraw: "workspace:*"
     typescript: "npm:^7.0.2"
     uuid-by-string: "npm:^4.0.0"
@@ -13287,6 +13300,13 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 10/48493129464b88b8ab3c3be7931d41da3ffba6efe97fc138b2b5aa42141725dd9086b0494cc069abd5c41ed7ca86d3cfd8efb256cec063853313c75f6179d066
+  languageName: node
+  linkType: hard
+
+"@types/katex@npm:^0.16.8":
+  version: 0.16.8
+  resolution: "@types/katex@npm:0.16.8"
+  checksum: 10/4bf5d83d2430bc04c183765c5916c21180a75cb0181172a0aac7350943507679ceb79bfd13e394cf7c101b7417564d14c0c660baa93b16f2f42baef22a99435c
   languageName: node
   linkType: hard
 
@@ -15458,15 +15478,6 @@ __metadata:
     js-yaml: "npm:^3.10.0"
     tslib: "npm:^2.4.0"
   checksum: 10/379f7ff8fc1b37d3818dfeba4e18a72f8e9817bb41aab9332b50bbc843e45c9bf135563a7a06882ffb50e4cdd29c8da33c8e4f3739201de2fbcd38ecb59e3a8e
-  languageName: node
-  linkType: hard
-
-"@yarnpkg/types@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@yarnpkg/types@npm:4.0.0"
-  dependencies:
-    tslib: "npm:^2.4.0"
-  checksum: 10/f9670e120761a4d17461df2f01aa4b92213fbdd063501a36145d11ea01bd87ba01d44615cba3d6bc8f9bfc39a03a9a6452bf0436c7fb0c9c5311352b975349e6
   languageName: node
   linkType: hard
 
@@ -18927,6 +18938,7 @@ __metadata:
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@types/regexgen": "npm:^1"
+    "@vercel/build-utils": "npm:13.20.0"
     "@vitejs/plugin-react": "npm:^6.0.1"
     axe-core: "npm:^4.10.3"
     browser-fs-access: "npm:^0.35.0"
@@ -18955,6 +18967,7 @@ __metadata:
     vite: "npm:^8.0.16"
     vitest: "npm:^5.0.0"
     ws: "npm:^8.18.0"
+    zod: "npm:^4.1.8"
   languageName: unknown
   linkType: soft
 
@@ -20246,7 +20259,9 @@ __metadata:
     "@tldraw/mermaid": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/sync": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
     "@types/d3-geo": "npm:^3.1.0"
+    "@types/katex": "npm:^0.16.8"
     "@types/lodash": "npm:^4.17.14"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
@@ -20268,6 +20283,7 @@ __metadata:
     d3-geo: "npm:^3.1.1"
     dotenv: "npm:^16.4.7"
     expect-webdriverio: "npm:^5.6.8"
+    katex: "npm:^0.18.1"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash: "npm:^4.17.21"
     mermaid: "npm:11.16.1"
@@ -23555,6 +23571,17 @@ __metadata:
   bin:
     katex: cli.js
   checksum: 10/e0286b45d9e0c8443cf0381205619ecbab3919ea5fb6616408f46f0cb471ce2222e83f46aef52cdaacdcbfd4485e00fcfbcf36bd85a8a9a81e22b45827c27ced
+  languageName: node
+  linkType: hard
+
+"katex@npm:^0.18.1":
+  version: 0.18.1
+  resolution: "katex@npm:0.18.1"
+  dependencies:
+    commander: "npm:^8.3.0"
+  bin:
+    katex: cli.js
+  checksum: 10/57c8832760a3466e84bd3d01f409fb3149c0450f156de24ddd447a414b309a286980a4a3cfcd41c8f7179ea3c49bd5a04d3c7ffb6ea14a68aa965a9f5dcf061d
   languageName: node
   linkType: hard
 
@@ -31852,6 +31879,7 @@ __metadata:
     "@tiptap/extension-code": "npm:^3.12.1"
     "@tiptap/extension-highlight": "npm:^3.12.1"
     "@tiptap/extension-list": "npm:^3.12.1"
+    "@tiptap/extension-typography": "npm:3.13.0"
     "@tiptap/pm": "npm:^3.12.1"
     "@tiptap/react": "npm:^3.12.1"
     "@tiptap/starter-kit": "npm:^3.12.1"
@@ -31866,6 +31894,7 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.5.1"
+    fake-indexeddb: "npm:^4.0.2"
     idb: "npm:^7.1.1"
     jest-diff: "npm:^30.4.1"
     lazyrepo: "npm:0.0.0-alpha.27"

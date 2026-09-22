@@ -38,6 +38,13 @@ import { assetUrls } from '../../../utils/assetUrls'
 import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
+import {
+	getFirstLoadId,
+	hasFirstLoadStep,
+	markFirstLoad,
+	reportFirstLoad,
+	setFirstLoadServerTimings,
+} from '../../../utils/firstLoad'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
@@ -115,6 +122,7 @@ export function TlaEditor(props: TlaEditorProps) {
 }
 
 function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps) {
+	markFirstLoad('editor-rendered')
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
 
@@ -161,6 +169,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
+			markFirstLoad('editor-mounted')
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
 			trackShareLinkOpen(app, fileId, isEmbed)
@@ -175,6 +184,9 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 			if (!app) {
 				setIsReady()
+				// Signed-out loads record every step too; the report itself is gated on the account.
+				markFirstLoad('board-visible')
+				reportFirstLoad({ email: null, flagEnabled: false, trackEvent })
 				return
 			}
 
@@ -227,7 +239,18 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 					})
 					if (!abortController.signal.aborted) showSlurpFailure()
 				})
-				.then(setIsReady)
+				.then(() => {
+					// A restore aborted by navigating away still resolves; the board it belonged to never
+					// showed, so it must not take the one-shot report from the next one.
+					if (abortController.signal.aborted) return
+					setIsReady()
+					markFirstLoad('board-visible')
+					reportFirstLoad({
+						email: app?.email,
+						flagEnabled: app?.isFirstLoadRumEnabled ?? false,
+						trackEvent,
+					})
+				})
 
 			return () => {
 				cleanupPerf()
@@ -281,8 +304,12 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
 			url.searchParams.set('v', CLIENT_BUILD_TIMESTAMP)
+			// Only the first connect belongs to the load; a reconnect carrying the id would make the
+			// server park and send an echo the client already has, and tag its timers as first-load.
+			if (!hasFirstLoadStep('sync-connected')) url.searchParams.set('loadId', getFirstLoadId())
 			if (hasUser) {
 				url.searchParams.set('accessToken', await getUserToken())
+				markFirstLoad('sync-token-fetched')
 			}
 			return url.toString()
 		}, [fileSlug, hasUser, getUserToken]),
@@ -292,6 +319,10 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
 		records: commentSchemaRecords,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
+			if (message.type === 'first_load_server') {
+				setFirstLoadServerTimings(message)
+				return
+			}
 			trackEvent(message.type)
 		}, []),
 	})
@@ -303,6 +334,10 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	}
 
 	// Handle entering and exiting the file, with some protection against rapid enters/exits
+	useEffect(() => {
+		if (store.status === 'synced-remote') markFirstLoad('sync-connected')
+	}, [store.status])
+
 	useEffect(() => {
 		if (!app) return
 		if (store.status !== 'synced-remote') return
@@ -339,6 +374,10 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 	const anonCommentToolOverrides = useAnonCommentToolOverrides()
 	const commentingEnabled = useIsCommentingEnabled()
+	// Signed-out visitors get the toolbar button but not the comments layer: with no app there's no
+	// Zero query behind it, so there'd be no threads to show and nothing to write to. Their button
+	// opens the sign-in dialog instead of entering the tool — see `useAnonCommentToolOverrides`.
+	const commentToolItemEnabled = commentingEnabled || !app
 
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
@@ -356,10 +395,10 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	// gated by the tool's `canComment`.
 	const editorOverrides = useMemo(
 		() =>
-			commentingEnabled
+			commentToolItemEnabled
 				? [overrides, extraDragIconOverrides, commentToolOverrides, anonCommentToolOverrides]
 				: [overrides, extraDragIconOverrides],
-		[commentingEnabled, overrides, extraDragIconOverrides, anonCommentToolOverrides]
+		[commentToolItemEnabled, overrides, extraDragIconOverrides, anonCommentToolOverrides]
 	)
 
 	return (

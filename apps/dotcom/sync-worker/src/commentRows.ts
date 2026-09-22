@@ -295,6 +295,29 @@ export function liveCommentDocuments(
 	}
 }
 
+/**
+ * Load a file's comment rows over a single checked-out connection. Each `execute()` on the bare
+ * Kysely instance checks out its own connection, and `TLPostgresPool` dials a fresh socket per
+ * checkout, so three parallel-looking queries would otherwise cost three sequential dials.
+ */
+export async function loadCommentDocuments(
+	db: Kysely<DB>,
+	fileId: string
+): Promise<CommentLoadResult> {
+	const [threadRows, commentRows, reactionRows] = await db
+		.connection()
+		.execute((conn) =>
+			Promise.all([
+				conn.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll().execute(),
+				conn.selectFrom('comment').where('fileId', '=', fileId).selectAll().execute(),
+				conn.selectFrom('comment_reaction').where('fileId', '=', fileId).selectAll().execute(),
+			])
+		)
+	// Soft-deleted threads and their comments never re-enter a room, and neither do reactions
+	// whose comment doesn't; their rows stay in Postgres only (see liveCommentDocuments).
+	return liveCommentDocuments(threadRows, commentRows, reactionRows)
+}
+
 /** A row of the DO's `comment_outbox` table: a monotonic sequence number and the touched record id. */
 export interface CommentOutboxEntry {
 	seq: number
@@ -557,7 +580,11 @@ export function mergeCommentDocumentsIntoSnapshot(
 	if (commentDocs.length > 0) {
 		snapshot.documents = [...snapshot.documents, ...commentDocs]
 	}
-	const maxClock = Math.max(clockFloor, ...commentDocs.map((d) => d.lastChangedClock))
+	// a loop rather than `Math.max(clockFloor, ...clocks)`, which overflows the stack past ~100k docs
+	let maxClock = clockFloor
+	for (const doc of commentDocs) {
+		if (doc.lastChangedClock > maxClock) maxClock = doc.lastChangedClock
+	}
 	const effectiveClock = snapshot.documentClock ?? snapshot.clock ?? 0
 	if (effectiveClock >= maxClock) return
 	snapshot.documentClock = maxClock

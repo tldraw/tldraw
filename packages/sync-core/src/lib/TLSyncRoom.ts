@@ -1023,6 +1023,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private forceAllReconnect() {
 		for (const session of this.sessions.values()) {
+			// Only connected clients hold state at a clock we can no longer diff from. A session
+			// mid-handshake gets hydrated from its own lastServerClock in the same transaction, so
+			// removing it would close its socket and then re-add it as Connected (resurrected).
+			if (session.state !== RoomSessionState.Connected) continue
 			this.removeSession(session.sessionId)
 		}
 	}
@@ -1116,7 +1120,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		const requiresDownMigrations = migrations.value.length > 0
 
-		const connect = async (msg: Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>) => {
+		const connect = (msg: Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>) => {
 			this.sessions.set(session.sessionId, {
 				state: RoomSessionState.Connected,
 				sessionId: session.sessionId,
