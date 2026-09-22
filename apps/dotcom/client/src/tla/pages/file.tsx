@@ -1,6 +1,7 @@
 import { captureException } from '@sentry/react'
 import { useEffect } from 'react'
 import { useParams, useRouteError } from 'react-router-dom'
+import { markFirstLoad } from '../../utils/firstLoad'
 import { TlaEditor } from '../components/TlaEditor/TlaEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
@@ -8,6 +9,8 @@ import { ReadyWrapper } from '../hooks/useIsReady'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
 import { toggleSidebar } from '../utils/local-session-state'
+
+markFirstLoad('file-chunk-loaded')
 
 export function ErrorBoundary() {
 	const error = useRouteError()

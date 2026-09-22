@@ -163,6 +163,10 @@ MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
 MCP_SERVER_URL = "https://staging.tldraw.com/api/app/mcp"
 MCP_SERVER_ENABLED = "true"
 MCP_SEARCH_NAME_MATCHING_ENABLED = "true"
+# Staging joins previews in trialling live-canvas capture (see THUMBNAIL_RENDER_LIVE_CAPTURE in
+# types.ts). Previews are too short-lived and too lightly used to produce the render_page_timings
+# volume the trial is judged on; production stays on the export until it is.
+THUMBNAIL_RENDER_LIVE_CAPTURE = "true"
 
 # production gets the proper name
 [env.production]

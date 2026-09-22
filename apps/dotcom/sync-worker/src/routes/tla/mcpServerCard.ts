@@ -39,11 +39,11 @@ const SERVER_CARD_SCHEMA_URL =
 
 /**
  * Reverse-DNS with exactly one slash, which the card schema requires and the runtime
- * `serverInfo.name` (`tldraw-shared-board-screenshot`) does not satisfy — the two identify the same
- * server in two namespaces that cannot be made textually equal. The human-readable identity travels
- * in `title` and `description`, which do match.
+ * `serverInfo.name` (`tldraw-boards`) does not satisfy — the two identify the same server in two
+ * namespaces that cannot be made textually equal. The human-readable identity travels in `title`
+ * and `description`, which do match.
  */
-const SERVER_CARD_NAME = 'com.tldraw/board-screenshots'
+const SERVER_CARD_NAME = 'com.tldraw/boards'
 
 /**
  * The media type a Server Card is served with, which is not `application/json`.
@@ -63,7 +63,7 @@ export function getMcpServerCard(request: IRequest, env: Environment): Response 
 			version: MCP_SERVER_INFO.version,
 			title: MCP_SERVER_INFO.title,
 			// The schema caps this at 100 characters.
-			description: 'Screenshots and structure of tldraw.com boards you have access to.',
+			description: 'Search, inspect and screenshot the tldraw.com boards you have access to.',
 			websiteUrl: 'https://tldraw.dev',
 			repository: {
 				url: 'https://github.com/tldraw/tldraw',

@@ -420,6 +420,7 @@ describe('getAllFeatureFlagValues', () => {
 
 		expect(Object.keys(flags).sort()).toEqual([
 			'commenting_enabled',
+			'first_load_rum',
 			'mcp_server_access',
 			'rum_enabled',
 			'version_chain',
