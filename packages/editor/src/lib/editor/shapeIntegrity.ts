@@ -13,10 +13,35 @@ import { BindingOnDeleteOptions } from './bindings/BindingUtil'
 import { Editor } from './Editor'
 
 /**
+ * Work that store side effects queue up during an operation, flushed once when the operation
+ * completes. Handlers run against the store and queue more work as they go, so a batch is
+ * detached from the queue before it is processed. Processing in place instead lets a flush
+ * consume entries belonging to the next operation, or spin on its own output.
+ */
+interface PendingIntegrityWork {
+	createdShapes: Set<TLShapeId>
+	deletedShapeIds: Set<TLShapeId>
+	invalidParents: Set<TLShapeId>
+	invalidBindingTypes: Set<TLBinding['type']>
+	deletedBindings: Map<TLBindingId, BindingOnDeleteOptions<any>>
+}
+
+/** Detach everything queued under `key`, leaving an empty collection behind. Null when empty. */
+function take<K extends keyof PendingIntegrityWork>(
+	work: PendingIntegrityWork,
+	key: K
+): PendingIntegrityWork[K] | null {
+	const taken = work[key]
+	if (taken.size === 0) return null
+	work[key] = (taken instanceof Map ? new Map() : new Set()) as PendingIntegrityWork[K]
+	return taken
+}
+
+/**
  * Strip ids that are no longer on the page out of a page state, returning null when nothing
  * changed so callers can skip the write.
  */
-function cleanupInstancePageState(
+export function cleanupInstancePageState(
 	prevPageState: TLInstancePageState,
 	shapesNoLongerInPage: Set<TLShapeId>
 ): TLInstancePageState | null {
@@ -77,19 +102,17 @@ function cleanupInstancePageState(
  * @internal
  */
 export function registerShapeIntegritySideEffects(editor: Editor) {
-	let deletedBindings = new Map<TLBindingId, BindingOnDeleteOptions<any>>()
-	const deletedShapeIds = new Set<TLShapeId>()
-	const invalidParents = new Set<TLShapeId>()
-	const createdShapes = new Set<TLShapeId>()
-	let invalidBindingTypes = new Set<TLBinding['type']>()
+	const work: PendingIntegrityWork = {
+		createdShapes: new Set(),
+		deletedShapeIds: new Set(),
+		invalidParents: new Set(),
+		invalidBindingTypes: new Set(),
+		deletedBindings: new Map(),
+	}
 
 	editor.disposables.add(
 		editor.sideEffects.registerOperationCompleteHandler(() => {
-			// this needs to be cleared here because further effects may delete more shapes
-			// and we want the next invocation of this handler to handle those separately
-			const deletedIds = deletedShapeIds.size ? new Set(deletedShapeIds) : null
-			deletedShapeIds.clear()
-
+			const deletedIds = take(work, 'deletedShapeIds')
 			if (deletedIds) {
 				const updates = compact(
 					editor.getPageStates().map((pageState) => {
@@ -102,12 +125,14 @@ export function registerShapeIntegritySideEffects(editor: Editor) {
 				}
 			}
 
-			const justCreatedShapeIds = new Set(createdShapes)
-			createdShapes.clear()
+			const justCreatedShapeIds = take(work, 'createdShapes')
 
-			for (const parentId of invalidParents) {
-				invalidParents.delete(parentId)
-				if (justCreatedShapeIds.has(parentId)) continue
+			// Drained in place rather than taken: onChildrenChange updates shapes, which invalidates
+			// further parents, and a Set visits entries added while it is being iterated. Taking a
+			// batch here would defer those to the next operation and leave the tree stale until then.
+			for (const parentId of work.invalidParents) {
+				work.invalidParents.delete(parentId)
+				if (justCreatedShapeIds?.has(parentId)) continue
 				const parent = editor.getShape(parentId)
 				if (!parent) continue
 
@@ -119,19 +144,16 @@ export function registerShapeIntegritySideEffects(editor: Editor) {
 				}
 			}
 
-			if (invalidBindingTypes.size) {
-				const t = invalidBindingTypes
-				invalidBindingTypes = new Set()
-				for (const type of t) {
-					const util = editor.getBindingUtil(type)
-					util.onOperationComplete?.()
+			const invalidBindingTypes = take(work, 'invalidBindingTypes')
+			if (invalidBindingTypes) {
+				for (const type of invalidBindingTypes) {
+					editor.getBindingUtil(type).onOperationComplete?.()
 				}
 			}
 
-			if (deletedBindings.size) {
-				const t = deletedBindings
-				deletedBindings = new Map()
-				for (const opts of t.values()) {
+			const deletedBindings = take(work, 'deletedBindings')
+			if (deletedBindings) {
+				for (const opts of deletedBindings.values()) {
 					editor.getBindingUtil(opts.binding).onAfterDelete?.(opts)
 				}
 			}
@@ -144,14 +166,14 @@ export function registerShapeIntegritySideEffects(editor: Editor) {
 		editor.sideEffects.register({
 			shape: {
 				afterCreate: (shape) => {
-					createdShapes.add(shape.id)
+					work.createdShapes.add(shape.id)
 					if (shape.parentId && isShapeId(shape.parentId)) {
-						invalidParents.add(shape.parentId)
+						work.invalidParents.add(shape.parentId)
 					}
 				},
 				afterChange: (shapeBefore, shapeAfter) => {
 					for (const binding of editor.getBindingsInvolvingShape(shapeAfter)) {
-						invalidBindingTypes.add(binding.type)
+						work.invalidBindingTypes.add(binding.type)
 						if (binding.fromId === shapeAfter.id) {
 							editor.getBindingUtil(binding).onAfterChangeFromShape?.({
 								binding,
@@ -177,7 +199,7 @@ export function registerShapeIntegritySideEffects(editor: Editor) {
 							if (!descendantShape) return
 
 							for (const binding of editor.getBindingsInvolvingShape(descendantShape)) {
-								invalidBindingTypes.add(binding.type)
+								work.invalidBindingTypes.add(binding.type)
 
 								if (binding.fromId === descendantShape.id) {
 									editor.getBindingUtil(binding).onAfterChangeFromShape?.({
@@ -219,26 +241,26 @@ export function registerShapeIntegritySideEffects(editor: Editor) {
 					}
 
 					if (shapeBefore.parentId && isShapeId(shapeBefore.parentId)) {
-						invalidParents.add(shapeBefore.parentId)
+						work.invalidParents.add(shapeBefore.parentId)
 					}
 
 					if (shapeAfter.parentId !== shapeBefore.parentId && isShapeId(shapeAfter.parentId)) {
-						invalidParents.add(shapeAfter.parentId)
+						work.invalidParents.add(shapeAfter.parentId)
 					}
 				},
 				beforeDelete: (shape) => {
 					// if we triggered this delete with a recursive call, don't do anything
-					if (deletedShapeIds.has(shape.id)) return
+					if (work.deletedShapeIds.has(shape.id)) return
 					// if the deleted shape has a parent shape make sure we call it's onChildrenChange callback
 					if (shape.parentId && isShapeId(shape.parentId)) {
-						invalidParents.add(shape.parentId)
+						work.invalidParents.add(shape.parentId)
 					}
 
-					deletedShapeIds.add(shape.id)
+					work.deletedShapeIds.add(shape.id)
 
 					const deleteBindingIds: TLBindingId[] = []
 					for (const binding of editor.getBindingsInvolvingShape(shape)) {
-						invalidBindingTypes.add(binding.type)
+						work.invalidBindingTypes.add(binding.type)
 						deleteBindingIds.push(binding.id)
 						const util = editor.getBindingUtil(binding)
 						if (binding.fromId === shape.id) {
@@ -264,7 +286,7 @@ export function registerShapeIntegritySideEffects(editor: Editor) {
 					return binding
 				},
 				afterCreate: (binding) => {
-					invalidBindingTypes.add(binding.type)
+					work.invalidBindingTypes.add(binding.type)
 					editor.getBindingUtil(binding).onAfterCreate?.({ binding })
 				},
 				beforeChange: (bindingBefore, bindingAfter) => {
@@ -276,7 +298,7 @@ export function registerShapeIntegritySideEffects(editor: Editor) {
 					return bindingAfter
 				},
 				afterChange: (bindingBefore, bindingAfter) => {
-					invalidBindingTypes.add(bindingAfter.type)
+					work.invalidBindingTypes.add(bindingAfter.type)
 					editor.getBindingUtil(bindingAfter).onAfterChange?.({ bindingBefore, bindingAfter })
 				},
 				beforeDelete: (binding) => {
@@ -284,7 +306,7 @@ export function registerShapeIntegritySideEffects(editor: Editor) {
 				},
 				afterDelete: (binding) => {
 					editor.getBindingUtil(binding).onAfterDelete?.({ binding })
-					invalidBindingTypes.add(binding.type)
+					work.invalidBindingTypes.add(binding.type)
 				},
 			},
 			page: {
