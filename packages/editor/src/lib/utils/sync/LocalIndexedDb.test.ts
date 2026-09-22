@@ -336,6 +336,7 @@ describe('LocalIndexedDb', () => {
 	})
 
 	it('closes its connection so another tab can delete the database', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 		const db = new LocalIndexedDb('test-0')
 		await db.storeSnapshot({ schema, snapshot: {} })
 
@@ -350,6 +351,10 @@ describe('LocalIndexedDb', () => {
 		])
 		clearTimeout(timeout!)
 		expect(result).toBe('deleted')
+		expect(warn).toHaveBeenCalledWith(
+			'Closing TLDRAW_DOCUMENT_v2test-0 so another tab can delete or upgrade it'
+		)
+		warn.mockRestore()
 
 		// the next write on the closed connection surfaces as an error rather than hanging
 		await expect(db.storeSnapshot({ schema, snapshot: {} })).rejects.toThrow()

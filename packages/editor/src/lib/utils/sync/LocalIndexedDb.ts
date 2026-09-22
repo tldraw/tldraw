@@ -48,6 +48,7 @@ async function openLocalDb(persistenceKey: string) {
 		// Closing here lets it proceed; this tab's next write then fails and goes through
 		// the write-failure alert-and-reload path.
 		blocking() {
+			console.warn(`Closing ${storeId} so another tab can delete or upgrade it`)
 			db.close()
 		},
 	})
