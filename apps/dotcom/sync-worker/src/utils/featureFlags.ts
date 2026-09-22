@@ -19,6 +19,15 @@ function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagVa
 			enabled: false,
 			description: 'Real User Monitoring for editor performance metrics',
 		},
+		first_load_rum: {
+			type: 'percentage',
+			// Master toggle on, 0%: turning it on for a debugging session is one percentage change in
+			// the admin panel, no deploy. Users with a @tldraw.com email send it regardless.
+			percentage: 0,
+			enabled: true,
+			description:
+				'Send the per-step first_load timing event (client marks + sync server echo) to PostHog. Users with a @tldraw.com email always send it, regardless of this flag',
+		},
 		commenting_enabled: {
 			type: 'percentage',
 			percentage: 0,

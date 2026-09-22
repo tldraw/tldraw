@@ -9,6 +9,9 @@ import { Head } from './components/Head/Head'
 import { routes } from './routeDefs'
 import { router } from './routes'
 import { showConsoleBranding } from './utils/consoleBranding'
+import { markFirstLoad } from './utils/firstLoad'
+
+markFirstLoad('js-started')
 
 const TOP_LEVEL_ERROR_MESSAGES = {
 	header: 'Unable to connect',

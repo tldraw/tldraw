@@ -136,6 +136,14 @@ export interface ThumbnailRenderParams {
 	 * drawn, so neighbouring shapes never leak into the frame. When omitted the whole page renders.
 	 */
 	shapeIds?: string[]
+	/**
+	 * `live` means: prune the page to `shapeIds`, settle and fit as normal, then signal ready
+	 * without running `editor.toImage` — the screenshotting browser rasterizes the live canvas
+	 * instead of the page rasterizing itself. Skips the export phase (the expensive part on heavy
+	 * boards) at the cost of the export path's pixel-exact sizing, so only agent-facing surfaces
+	 * opt in. Absent means export as always.
+	 */
+	capture?: 'live'
 	/** `measure` means: skip the export, POST the page's measured geometry back, then signal ready. */
 	mode?: 'screenshot' | 'measure'
 	x: number
@@ -158,6 +166,24 @@ export interface ThumbnailShapeMeasurement {
 	h: number
 	/** `ShapeUtil.getText(shape)`, absent when the shape has no text. */
 	text?: string
+}
+
+/**
+ * The render page's phase timings, POSTed to the result route as a fire-and-forget beacon once the
+ * page is ready. All values are `performance.now()` stamps (ms since navigation start), so the
+ * deltas between them are the phase costs a worker-side clock cannot see: script boot, snapshot
+ * fetch, editor mount, the settle wait, and the export itself (on a `live` capture there is no
+ * export, and `exportedAt` is the ready stamp).
+ */
+export interface ThumbnailRenderTimingsRequestBody {
+	token: string
+	timings: {
+		bootAt: number
+		dataAt: number
+		mountAt: number
+		settledAt: number
+		exportedAt: number
+	}
 }
 
 /** Body of POST /app/thumbnail-render/result — `shapeId -> measurement`, as the editor measured it. */
@@ -218,12 +244,29 @@ export interface SubmitFeedbackRequestBody {
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 
-export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persistence_bad' }
+export type TLCustomServerEvent =
+	| { type: 'persistence_good' }
+	| { type: 'persistence_bad' }
+	// Sent once to a session that connected with a `loadId`, so the client's first_load report
+	// can show the server side of that same load. All durations in ms; boot fields only on a cold boot.
+	| {
+			type: 'first_load_server'
+			loadId: string
+			cold: boolean
+			auth_ms?: number
+			file_record_ms?: number
+			get_room_ms: number
+			total_ms: number
+			boot_r2_ms?: number
+			boot_comments_ms?: number
+			boot_total_ms?: number
+	  }
 
 /* ----------------------- Feature Flags ---------------------- */
 
 export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
+	'first_load_rum',
 	'commenting_enabled',
 	'mcp_server_enabled',
 	'mcp_server_access',

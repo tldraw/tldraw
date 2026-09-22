@@ -486,7 +486,7 @@ describe('protocol versions', () => {
 			capabilities: { tools: {} },
 			cacheScope: 'public',
 			_meta: {
-				'io.modelcontextprotocol/serverInfo': { name: 'tldraw-shared-board-screenshot' },
+				'io.modelcontextprotocol/serverInfo': { name: 'tldraw-boards' },
 			},
 		})
 	})
