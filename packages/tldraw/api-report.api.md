@@ -5135,6 +5135,10 @@ export interface TLUiEventMap {
     // (undocumented)
     'pack-shapes': null;
     // (undocumented)
+    'paste-link': {
+        target: 'shape' | 'text';
+    };
+    // (undocumented)
     'remove-frame': null;
     // (undocumented)
     'rename-document': null;
