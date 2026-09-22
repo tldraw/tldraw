@@ -152,10 +152,14 @@ function areShortcutsDisabled(editor: Editor) {
  * Whether a paste event just turned the rich text selection into a link. The editing shape's
  * TipTap editor handles the paste before it bubbles to the document: it links a selection when the
  * pasted text is a single url, and otherwise replaces the selection, collapsing it.
+ *
+ * The rich text toolbar's link input keeps the linked selection while it has focus, so a url
+ * pasted there would count too unless the paste has to come from inside the TipTap editor.
  */
 function didPasteLinkOntoRichTextSelection(editor: Editor, e: ClipboardEvent) {
 	const richTextEditor = editor.getRichTextEditor()
 	if (!richTextEditor || richTextEditor.state.selection.empty) return false
+	if (!richTextEditor.view.dom.contains(e.target as Node | null)) return false
 	if (!richTextEditor.isActive('link')) return false
 	return isValidHttpURL(e.clipboardData?.getData('text/plain').trim() ?? '')
 }
