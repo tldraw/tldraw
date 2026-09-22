@@ -6,6 +6,17 @@ import { Environment } from '../../types'
 // the OG route, and the OG queue consumer). This module imports nothing from those files so it can
 // be depended on from any of them without creating an import cycle.
 
+// A rate limit binding could not be consulted. Distinct from every other failure on these routes
+// because nothing the caller did caused it and nothing they can do fixes it: the work was never
+// attempted, so telling them the database or the renderer failed sends them, and whoever reads the
+// dashboard, at a subsystem that is fine.
+export class RateLimiterUnavailableError extends Error {
+	constructor(cause: unknown) {
+		super('Rate limiter unavailable', { cause })
+		this.name = 'RateLimiterUnavailableError'
+	}
+}
+
 // A board's snapshot could not be read: Postgres, R2, or a malformed payload. Distinct from a render
 // failure so telemetry can tell "the database is down" apart from "Chrome fell over".
 export class BoardSnapshotReadError extends Error {
@@ -55,6 +66,7 @@ export class BrowserRenderError extends Error {
 // `snapshot_read_error` with everything else the readers throw. That race is a few milliseconds wide,
 // so separating it out isn't worth a dedicated error type threaded through every reporting path.
 export function classifyScreenshotFailure(error: unknown): string {
+	if (error instanceof RateLimiterUnavailableError) return 'rate_limiter_unavailable'
 	if (error instanceof BoardSnapshotReadError) return 'snapshot_read_error'
 	if (error instanceof BrowserRenderError) return classifyBrowserRenderFailure(error)
 	const message = error instanceof Error ? error.message : String(error)
@@ -92,6 +104,14 @@ export function describeThumbnailFailure(reason: string): string {
 			return 'rendering is not configured'
 		case 'browser_timeout':
 			return 'rendering timed out'
+		case 'board_lookup_error':
+			// The tools that fail this way start no render, so the default 'the render failed' would
+			// be a plainly wrong thing to tell a caller.
+			return 'the board database could not be reached'
+		case 'rate_limiter_unavailable':
+			// Deliberately not phrased as being rate limited: the caller is inside their budget, and a
+			// message saying otherwise would have them back off for a minute that would not help.
+			return 'a rate limit could not be checked'
 		default:
 			return 'the render failed'
 	}
@@ -104,6 +124,7 @@ export type ThumbnailErrorSurface =
 	| 'og_queue'
 	| 'thumbnail_snapshot'
 	| 'mcp_board_info'
+	| 'mcp_board_search'
 	| 'mcp_screenshot'
 	// Kept apart from 'mcp_screenshot': the render succeeded and the caller still got their PNG, so
 	// this never means "screenshots are broken" — it means the cache isn't absorbing them and every

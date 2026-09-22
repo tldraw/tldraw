@@ -668,7 +668,6 @@ export interface DebugFlagDefaults<T> {
 // @internal (undocumented)
 export const debugFlags: {
     readonly a11y: DebugFlag<boolean>;
-    readonly debugCursors: DebugFlag<boolean>;
     readonly debugElbowArrows: DebugFlag<boolean>;
     readonly debugGeometry: DebugFlag<boolean>;
     readonly debugSvg: DebugFlag<boolean>;
@@ -679,7 +678,6 @@ export const debugFlags: {
     readonly logPointerCaptures: DebugFlag<boolean>;
     readonly logPreventDefaults: DebugFlag<boolean>;
     readonly measurePerformance: DebugFlag<boolean>;
-    readonly reconnectOnPing: DebugFlag<boolean>;
     readonly showFps: DebugFlag<boolean>;
     readonly throwToBlob: DebugFlag<boolean>;
 };
@@ -2507,8 +2505,9 @@ export class LocalIndexedDb {
         sessionStateSnapshot: TLSessionStateSnapshot | undefined;
     }>;
     pending(): Promise<void>;
-    // (undocumented)
-    pruneSessions(): Promise<void>;
+    pruneSessions({ keepSessionId }?: {
+        keepSessionId?: string;
+    }): Promise<void>;
     // (undocumented)
     removeAssets(assetId: string[]): Promise<void>;
     // (undocumented)
@@ -4959,6 +4958,7 @@ export interface TLUrlExternalAsset {
 
 // @public (undocumented)
 export interface TLUrlExternalContent extends TLBaseExternalContent {
+    shapeId?: TLShapeId;
     // (undocumented)
     type: 'url';
     // (undocumented)
