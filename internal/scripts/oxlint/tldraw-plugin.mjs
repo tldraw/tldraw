@@ -276,6 +276,12 @@ function getAssignableIdentifier(node) {
 // Rules ported from the legacy ESLint plugin
 // ---------------------------------------------------------------------------
 
+// Packages that exist only as their `@types/*` declaration: type-only specs (`mdast`,
+// `topojson-specification`) and modules the host provides at runtime (`vscode`). Kept as an explicit
+// list rather than honoring any declared `@types/*`, so `@types/react` can't stand in for an
+// undeclared `react`. A new type-only import fails lint until it is added here.
+const TYPES_ONLY_PACKAGES = new Set(['mdast', 'topojson-specification', 'vscode'])
+
 const rules = {
 	'no-whilst': {
 		meta: {
@@ -449,15 +455,7 @@ const rules = {
 				const name = getImportedPackageName(specifier)
 				if (!name || name === owner.name) return
 				if (owner.declared.has(name)) return
-				// Types-only packages (`mdast`) and host-provided modules (`vscode`) exist only as
-				// their `@types/*` declaration. Only honor that when no runtime package of the name is
-				// installed, so `@types/react` can't stand in for an undeclared `react`.
-				if (
-					owner.declared.has(`@types/${name.replace(/^@/, '').replace('/', '__')}`) &&
-					!existsSync(join(REPO_ROOT, 'node_modules', name, 'package.json'))
-				) {
-					return
-				}
+				if (TYPES_ONLY_PACKAGES.has(name) && owner.declared.has(`@types/${name}`)) return
 
 				context.report({ node, messageId: 'undeclared', data: { name, owner: owner.name } })
 			}
