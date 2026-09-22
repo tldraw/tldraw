@@ -253,7 +253,7 @@ export type TLCustomServerEvent =
 			type: 'first_load_server'
 			loadId: string
 			cold: boolean
-			auth_ms: number
+			auth_ms?: number
 			file_record_ms?: number
 			get_room_ms: number
 			total_ms: number

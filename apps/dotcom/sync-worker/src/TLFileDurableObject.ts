@@ -1187,7 +1187,7 @@ export class TLFileDurableObject extends DurableObject {
 					type: 'first_load_server',
 					loadId,
 					cold: isNewSession,
-					auth_ms: echoTimings.auth ?? 0,
+					auth_ms: echoTimings.auth,
 					file_record_ms: echoTimings.fileRecord,
 					get_room_ms: getRoomMs,
 					total_ms: totalMs,
