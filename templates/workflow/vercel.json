@@ -1,5 +1,6 @@
 {
 	"installCommand": "yarn",
 	"buildCommand": "yarn run -T lazy build",
+	"outputDirectory": "dist",
 	"ignoreCommand": "bash ../../internal/scripts/vercel/should-build-template.sh workflow"
 }
