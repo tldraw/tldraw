@@ -17,6 +17,9 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+
 jobs:
   check:
     name: 'Check for relevant changes'

@@ -127,8 +127,13 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  * mcpServer.ts. The MCP endpoint is the one Browser Run-spending surface an outside
  * caller can drive directly, so a rogue or looping agent is the threat being bounded, and only the
  * calls that actually spend Browser Run are limited — `get_board_info` does the same work the
- * ordinary board routes do for anyone. The global limit is applied per Cloudflare location, so it
- * bounds a caller rather than the account. See "Request limits" in browser-run-thumbnails.md.
+ * ordinary board routes do for anyone. `search_boards` has its own budget, bounding a different
+ * resource: it spends no Browser Run, but it drives the Postgres that serves all of dotcom, and
+ * its matching is the one part no index reaches — `name ILIKE '%term%'` over the caller's whole
+ * in-scope set, so a query matching nothing costs the most. See "MCP tools" in
+ * browser-run-thumbnails.md for the measured query plans.
+ * The global limit is applied per Cloudflare location, so it bounds a caller rather than the
+ * account. See "Request limits" in browser-run-thumbnails.md.
  *
  * These constants are only the isolate-local fallback for local dev and tests. Deployed environments
  * are governed by the Cloudflare rate limit bindings in wrangler.toml, so changing a number here
@@ -138,6 +143,7 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  *   MCP_PER_USER_RATE_LIMIT            ->  MCP_SCREENSHOT_RATE_LIMITER      (limit = 10)
  *   MCP_PER_BOARD_RATE_LIMIT           ->  MCP_SERVER_BOARD_RATE_LIMITER    (limit = 2)
  *   MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT  ->  MCP_SERVER_BROWSER_RATE_LIMITER  (limit = 20)
+ *   MCP_SEARCH_PER_USER_RATE_LIMIT     ->  MCP_SERVER_SEARCH_RATE_LIMITER   (limit = 60)
  *
  * The first of these keyed on client IP until the endpoint required authentication. An account is
  * the better key in both directions: a proxy pool no longer buys a caller more budget, and everyone
@@ -160,6 +166,24 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  * The window matches the period configured on the Cloudflare bindings, which only support 60s (or
  * 10s) periods — this is the one number here that is Cloudflare's rather than ours.
  */
+/**
+ * The `search_boards` budget, separate from the Browser Run one above because it bounds a different
+ * cost and deserves its own number rather than a Browser Run number inherited.
+ *
+ * Set where a legitimate caller never meets it and a runaway loop is still capped. Paging is what
+ * spends this, not abuse: the page size is fixed at 20, so a caller in an 8000-board workspace needs
+ * 400 calls to walk it, and an agent that reformulates a failed query spends a few more. A refusal
+ * mid-page has no good recovery either — a model cannot wait, so it retries or reports a partial
+ * answer as a complete one, which is worse than the load it would have prevented. Against that, the
+ * worst measured call is ~9ms of database time (30,000 rows over three 10k-board workspaces), so 60
+ * a minute is well under a second of database time per caller per minute.
+ *
+ * Per account, and only per account. It does not bound many accounts looping at once; that would
+ * need a global search limiter alongside it, the way MCP_SERVER_BROWSER_RATE_LIMITER sits under the
+ * per-user screenshot budget. Deliberately left until there is real traffic to size it against.
+ */
+export const MCP_SEARCH_PER_USER_RATE_LIMIT = 60
+
 export const MCP_PER_USER_RATE_LIMIT = 10
 export const MCP_PER_BOARD_RATE_LIMIT = 2
 export const MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT = 20
