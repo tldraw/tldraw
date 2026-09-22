@@ -71,7 +71,8 @@ describe('feed query shape', () => {
 	it.each([
 		['homeBoardComments', {}, 1],
 		// these gate on file_state / group_file directly and never consult `file` in their where
-		['replyComments', {}, 0],
+		['threadStarterComments', {}, 0],
+		['threadParticipantComments', {}, 0],
 		['mentionComments', {}, 0],
 		['reactions', {}, 0],
 		['fileComments', { fileId: 'file:1' }, 1],
@@ -90,7 +91,13 @@ describe('feed query shape', () => {
 	// union fan-in (used once the planner flips a branch) drops a comment that qualifies only when
 	// a later row lands, such as its comment_mention row, so mentions reached the feed only on
 	// reload. One feed per reason keeps every root a plain AND chain.
-	it.each([['homeBoardComments'], ['replyComments'], ['mentionComments'], ['reactions']])(
+	it.each([
+		['homeBoardComments'],
+		['threadStarterComments'],
+		['threadParticipantComments'],
+		['mentionComments'],
+		['reactions'],
+	])(
 		'gates access directly on the comment fileId, once, at the root, with no other OR: %s',
 		(name) => {
 			const ast = astOf(name as keyof typeof queries)
@@ -117,7 +124,8 @@ describe('feed query shape', () => {
 	// so the cheap gate above is worthless (tldraw-internal#2032)
 	it.each([
 		['homeBoardComments', {}],
-		['replyComments', {}],
+		['threadStarterComments', {}],
+		['threadParticipantComments', {}],
 		['mentionComments', {}],
 		['reactions', {}],
 		['fileComments', { fileId: 'file:1' }],

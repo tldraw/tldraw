@@ -61,15 +61,24 @@ export const REACTED_COMMENTS_LIMIT = 200
  * the caller can currently access. Access first and once — see {@link canAccessCommentFile}. It
  * also covers soft-deleted boards without a separate `file.isDeleted` check: deleting a file drops
  * its file_state and group_file rows (cleanup_deleted_file, migration 023).
+ *
+ * A feed whose reason lives on the thread passes it as `thread`, so it shares the one thread
+ * EXISTS instead of adding a second: every EXISTS doubles the plans costed per hydration.
  */
-const feedComments = (userId: string) =>
+const feedComments = (
+	userId: string,
+	thread?: (t: Query<'comment_thread', TlaSchema>) => Query<'comment_thread', TlaSchema>
+) =>
 	zql.comment
 		.where('authorId', '!=', userId)
 		// soft-deleted comments and comments of soft-deleted threads stay in Postgres (see
 		// TLComment.isDeleted) but must never surface as notifications
 		.where('isDeleted', '=', false)
 		.where(canAccessCommentFile(userId))
-		.whereExists('thread', (t) => t.where('isDeleted', '=', false))
+		.whereExists('thread', (t) => {
+			const live = t.where('isDeleted', '=', false)
+			return thread ? thread(live) : live
+		})
 
 /** What a notification row needs alongside the comment, plus the feed's ordering and bound. */
 const withFeedRelations = (query: ReturnType<typeof feedComments>, userId: string) =>
@@ -124,12 +133,13 @@ export const queries = defineQueries({
 	),
 
 	/**
-	 * Recent comments that concern the current user, for the app-level notifications feed, in three
-	 * feeds the client merges ({@link homeBoardComments}, {@link replyComments},
-	 * {@link mentionComments}). Each takes someone else's live comment on a board the user can
-	 * currently access ({@link canAccessCommentFile}: opened it, or a member of its workspace, home
-	 * included) and adds one reason it concerns them. The gate is what keeps stale participation
-	 * out: having replied in a thread, or been mentioned, doesn't outlive losing access to the board.
+	 * Recent comments that concern the current user, for the app-level notifications feed, in four
+	 * feeds the client merges ({@link homeBoardComments}, {@link threadStarterComments},
+	 * {@link threadParticipantComments}, {@link mentionComments}). Each takes someone else's live
+	 * comment on a board the user can currently access ({@link canAccessCommentFile}: opened it, or
+	 * a member of its workspace, home included) and adds one reason it concerns them. The gate is
+	 * what keeps stale participation out: having replied in a thread, or been mentioned, doesn't
+	 * outlive losing access to the board.
 	 *
 	 * One feed per reason rather than one query with an OR of reasons: a comment that qualifies only
 	 * once a later row lands (its `comment_mention` row is written after the comment itself) is
@@ -158,19 +168,31 @@ export const queries = defineQueries({
 		)
 	),
 
-	/** A reply: in a thread the user started or has commented in. See {@link homeBoardComments}. */
-	replyComments: defineQuery(({ ctx }) =>
+	/**
+	 * A reply in a thread the user started. See {@link homeBoardComments}. Started and commented-in
+	 * are two feeds rather than one OR inside the thread subquery: an OR there has no single seek,
+	 * so the planner's cheapest plan walks every comment_thread row and the cost tracks total thread
+	 * volume. Each half seeks from the caller's side: comment_thread(createdBy) via
+	 * comment_thread_created_by_idx (migration 053) here, comment(authorId) via
+	 * comment_author_id_idx in {@link threadParticipantComments}.
+	 */
+	threadStarterComments: defineQuery(({ ctx }) =>
 		withFeedRelations(
-			feedComments(ctx.userId).whereExists('thread', (t) =>
-				t.where(({ cmp, or, exists }) =>
-					or(
-						cmp('createdBy', '=', ctx.userId),
-						// live comments only: soft-deleted rows persist, and deleting your last comment
-						// in a thread must end the reply subscription with it
-						exists('comments', (c) =>
-							c.where('authorId', '=', ctx.userId).where('isDeleted', '=', false)
-						)
-					)
+			feedComments(ctx.userId, (t) => t.where('createdBy', '=', ctx.userId)),
+			ctx.userId
+		)
+	),
+
+	/**
+	 * A reply in a thread the user has commented in. See {@link threadStarterComments}. Live
+	 * comments only: soft-deleted rows persist, and deleting your last comment in a thread must
+	 * end the reply subscription with it.
+	 */
+	threadParticipantComments: defineQuery(({ ctx }) =>
+		withFeedRelations(
+			feedComments(ctx.userId, (t) =>
+				t.whereExists('comments', (c) =>
+					c.where('authorId', '=', ctx.userId).where('isDeleted', '=', false)
 				)
 			),
 			ctx.userId
@@ -191,15 +213,15 @@ export const queries = defineQueries({
 
 	/**
 	 * The caller's own comments that someone else has reacted to, for the notifications feed's
-	 * "reacted to your comment" entries. Uses the same access building blocks as {@link homeBoardComments}
-	 * (file state, group membership). Ordering by reaction time is client-side:
-	 * `buildReactionNotifications` stamps each entry with its newest foreign reaction and
-	 * `mergeNotifications` sorts on it.
+	 * "reacted to your comment" entries. Uses the same access building blocks as
+	 * {@link homeBoardComments} (file state, group membership). Ordering by reaction time is
+	 * client-side: `buildReactionNotifications` stamps each entry with its newest foreign reaction
+	 * and `mergeNotifications` sorts on it.
 	 *
 	 * Rooted at `comment`, *not* at `comment_reaction`, so the file-access gate sits one level from
-	 * the root exactly as it does in {@link homeBoardComments}. Rooting at the reaction put that gate behind
-	 * a second correlated subquery, and the fileId correlation then stopped being pushed down into
-	 * `file`'s `states`/`groupFiles` relations: the query traversed those tables — hundreds of
+	 * the root exactly as it does in {@link homeBoardComments}. Rooting at the reaction put that gate
+	 * behind a second correlated subquery, and the fileId correlation then stopped being pushed down
+	 * into `file`'s `states`/`groupFiles` relations: the query traversed those tables — hundreds of
 	 * thousands of rows — rather than the handful of files it actually concerned. It materialized in
 	 * ~150s against production data while `comment_reaction` held ~50 rows, which outran the sync
 	 * connection's 60s auth token and left every client unable to finish a first sync. The cost of
@@ -238,7 +260,8 @@ export const queries = defineQueries({
 	 * Every comment on a single file, for the canvas comment layer's read receipts and author-name
 	 * resolution. Scoped to the file the user is viewing and access-checked against their file_state,
 	 * and deliberately unbounded — one file's comments are naturally finite, and the canvas must
-	 * resolve an unread pin for every comment however old. The cross-file feeds are {@link homeBoardComments} and siblings.
+	 * resolve an unread pin for every comment however old. The cross-file feeds are
+	 * {@link homeBoardComments} and siblings.
 	 */
 	fileComments: defineQuery(({ ctx, args }: { ctx: ZeroContext; args: { fileId: string } }) =>
 		zql.comment
