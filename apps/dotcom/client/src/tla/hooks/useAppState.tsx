@@ -4,6 +4,7 @@ import { ReactNode, createContext, useContext, useEffect, useState } from 'react
 import { useNavigate } from 'react-router-dom'
 import { assertExists, atom } from 'tldraw'
 import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
+import { enableFirstLoadLiveLog, isFirstLoadStaff, markFirstLoad } from '../../utils/firstLoad'
 import { TldrawApp, getPreloadDiagnostics } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
 import {
@@ -34,6 +35,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		throw new Error('should have redirected in TlaRootProviders')
 	}
 	const navigate = useNavigate()
+	const email = user.primaryEmailAddress?.emailAddress
+	if (isFirstLoadStaff(email)) enableFirstLoadLiveLog()
 
 	useEffect(() => {
 		let _app: TldrawApp
@@ -52,18 +55,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		}
 
 		;(async () => {
-			// Nothing here reads the flags. The awaits make sure the authenticated evaluation has
-			// replaced the anonymous one before the editor mounts: usePerformanceTracking fetches once
-			// and would otherwise inherit the pending anonymous request, with rum_enabled false.
-			await fetchFlagsWithTimeout()
+			let flags = await fetchFlagsWithTimeout()
 			if (!wasAuthenticated()) {
-				await fetchFlagsWithTimeout()
+				flags = await fetchFlagsWithTimeout()
 			}
+			markFirstLoad('flags-loaded')
+			// Flagged users get the live lines too: a load that hangs never reaches the summary tables.
+			if (flags.first_load_rum?.enabled) enableFirstLoadLiveLog()
 			if (didCancel) return
 			const token = await auth.getToken()
 			if (!token) throw new Error('no token')
 			const { app } = await TldrawApp.create({
 				userId: auth.userId,
+				email,
+				flags,
 				getToken: async () => {
 					const token = await auth.getToken()
 					return token || undefined

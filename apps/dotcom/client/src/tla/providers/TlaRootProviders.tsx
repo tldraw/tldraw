@@ -27,6 +27,7 @@ import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/Erro
 import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
 import { assetUrls } from '../../utils/assetUrls'
 import { reportError } from '../../utils/errorReporting'
+import { markFirstLoad } from '../../utils/firstLoad'
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
@@ -45,6 +46,8 @@ import {
 	resetLocalSessionStateButKeepTheme,
 	updateLocalSessionState,
 } from '../utils/local-session-state'
+
+markFirstLoad('root-chunk-loaded')
 
 function getTextDirection(locale: string): 'ltr' | 'rtl' {
 	const [language] = locale.toLowerCase().split('-')
@@ -256,6 +259,10 @@ function SignedInProvider({
 	useEffect(() => {
 		onLocaleChange(locale)
 	}, [locale, onLocaleChange])
+
+	useEffect(() => {
+		if (auth.isLoaded) markFirstLoad('clerk-loaded')
+	}, [auth.isLoaded])
 
 	useEffect(() => {
 		if (auth.isSignedIn && auth.userId) {

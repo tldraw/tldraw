@@ -6,7 +6,7 @@
 				{
 					"href": "https://www.tldraw.com/api/app/mcp/server-card",
 					"type": "application/mcp-server-card+json",
-					"title": "tldraw board screenshots MCP Server Card"
+					"title": "tldraw boards MCP Server Card"
 				}
 			],
 			"service-doc": [

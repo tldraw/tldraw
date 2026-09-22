@@ -291,14 +291,15 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // fail with "invalid stop_config.timeout, cannot exceed 5 minutes").
 const zeroVmSizes = {
 	staging: {
-		rm: { cpus: 1, memory: '2gb', cpuKind: 'shared' },
-		vs: { cpus: 2, memory: '4gb' },
+		rm: { cpus: 1, memory: '1gb', cpuKind: 'shared' },
+		vs: { cpus: 2, memory: '1gb' },
 		volumeSize: '1gb',
 		vsMinMachines: 1,
 		killTimeout: '5m',
 	},
 	production: {
-		rm: { cpus: 2, memory: '4gb', cpuKind: 'performance' },
+		// Fly floors performance VMs at 2gb per CPU, so vs can't drop below 8gb without losing cores it uses at peak
+		rm: { cpus: 1, memory: '2gb', cpuKind: 'performance' },
 		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
 		vsMinMachines: 9,
@@ -606,6 +607,9 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			...(previewId
 				? {
 						MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com`,
+						// Previews trial live-canvas capture (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts);
+						// staging and production stay on the export until it is judged.
+						THUMBNAIL_RENDER_LIVE_CAPTURE: 'true',
 						// Previews advertise and verify against their own public URL like every other
 						// deployed environment — the Host-derived fallback in getMcpResourceUrl is for
 						// local dev and tests only. Injected here because previews have no wrangler.toml

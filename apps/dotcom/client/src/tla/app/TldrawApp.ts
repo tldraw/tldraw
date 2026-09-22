@@ -61,11 +61,13 @@ import {
 import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
 import { ZERO_SERVER } from '../../utils/config'
+import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
 import { getDateFormat } from '../utils/dates'
+import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 import { ZeroLogBuffer, formatLogArg, redactTokens } from './ZeroLogBuffer'
@@ -169,6 +171,9 @@ export class TldrawApp {
 	>
 	private readonly comments$: Signal<QueryResultType<typeof queries.comments>>
 	private readonly reactions$: Signal<QueryResultType<typeof queries.reactions>>
+	/** The signed-in account's email, for the first-load report gate. */
+	readonly email: string | null
+	readonly isFirstLoadRumEnabled: boolean
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -229,11 +234,15 @@ export class TldrawApp {
 		getZeroToken: () => Promise<string | undefined>,
 		onClientTooOld: () => void,
 		trackEvent: TLAppUiContextType,
-		navigate: ReturnType<typeof useNavigate>
+		navigate: ReturnType<typeof useNavigate>,
+		flags: FeatureFlags,
+		email?: string | null
 	) {
 		this.navigate = navigate
 		this.trackEvent = trackEvent
 		this.getToken = getToken
+		this.email = email ?? null
+		this.isFirstLoadRumEnabled = flags.first_load_rum?.enabled ?? false
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
 		if (window.navigator.webdriver) {
@@ -366,8 +375,9 @@ export class TldrawApp {
 		if (!token) throw new Error('No auth token available for init')
 		const res = await fetch(`/api/app/${this.userId}/init`, {
 			method: 'POST',
-			headers: { Authorization: `Bearer ${token}` },
+			headers: { Authorization: `Bearer ${token}`, 'x-tldraw-load-id': getFirstLoadId() },
 		})
+		markFirstLoad('init-done')
 		// A failed init only matters if the user row never shows up: returning users whose row
 		// already exists should still load through a transient worker error.
 		const initError = res.ok ? undefined : new Error(`Init failed: ${res.status}`)
@@ -441,6 +451,7 @@ export class TldrawApp {
 				if (this.user$.get()) userLoaded.resolve()
 			})
 			await Promise.race([userLoaded, timedOut])
+			markFirstLoad('zero-user-synced')
 		} finally {
 			signal?.removeEventListener('abort', onAbort)
 			document.removeEventListener('visibilitychange', onVisibilityChange)
@@ -451,6 +462,7 @@ export class TldrawApp {
 			this.z.preload(queries.fileStates()).complete,
 			this.z.preload(queries.workspaceMemberships()).complete,
 		])
+		markFirstLoad('zero-preloaded')
 	}
 
 	messages = defineMessages({
@@ -1028,6 +1040,8 @@ export class TldrawApp {
 
 	static async create(opts: {
 		userId: string
+		email?: string | null
+		flags: FeatureFlags
 		/** Clerk session token, for this app's own REST endpoints. */
 		getToken(): Promise<string | undefined>
 		/** Token for the Zero connection — see {@link getZeroAuth} on the worker for why it differs. */
@@ -1052,7 +1066,9 @@ export class TldrawApp {
 			opts.getZeroToken,
 			opts.onClientTooOld,
 			opts.trackEvent,
-			opts.navigate
+			opts.navigate,
+			opts.flags,
+			opts.email
 		)
 		// @ts-expect-error
 		window.app = app

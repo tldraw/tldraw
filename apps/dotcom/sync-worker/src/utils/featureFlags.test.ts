@@ -420,6 +420,7 @@ describe('getAllFeatureFlagValues', () => {
 		const flags = await getAllFeatureFlagValues(env as any)
 
 		expect(Object.keys(flags).sort()).toEqual([
+			'first_load_rum',
 			'mcp_server_access',
 			'rum_enabled',
 			'version_chain',
