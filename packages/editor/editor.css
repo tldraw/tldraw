@@ -896,11 +896,12 @@ input,
  * pseudo-element each: a mask clips everything its element paints, pseudo-elements included, so
  * masking the span with the box would erase the tick sitting inside it.
  *
- * The boxes are the paths of six draw-dash rectangles taken off the canvas, cycled by position so
- * a list doesn't read as one box stamped out repeatedly. Each is two passes around the same
- * rectangle, which is where the uneven weight comes from; they share a viewBox so only the wobble
- * differs between them and not the stroke weight. Both strokes are sized in their artwork's own
- * viewBox, so they scale with the box and stay near the stem weight of the text beside them.
+ * Both are paths taken off the canvas. The boxes are six draw-dash rectangles, cycled by position
+ * so a list doesn't read as one box stamped out repeatedly; each is two passes around the same
+ * rectangle, which is where its uneven weight comes from, and they share a viewBox so only the
+ * wobble differs between them and not the stroke weight. The tick is a freehand stroke, filled
+ * rather than stroked, so it tapers at both ends instead of ending in round caps. Everything is
+ * sized against the box, which is sized in `em`, so a checkbox scales with the text beside it.
  */
 .tl-rich-text ul[data-type='taskList'] > li > label > span::before {
 	content: '';
@@ -939,9 +940,9 @@ input,
 	content: '';
 	position: absolute;
 	/* Bigger than the box, so the tick overshoots its top corner and crosses the bottom edge. */
-	inset: -0.12em -0.26em -0.06em 0.14em;
+	inset: -0.13em -0.24em -0.02em 0.14em;
 	background-color: currentColor;
-	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M10 50C20 58 29 70 37 88C50 58 70 27 93 4' fill='none' stroke='%23000' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-3.39 -5.05 36.5 35.65'%3E%3Cpath d='M2.69,12.93 t4.7,5.96 4.69,5.96 a3.57,3.57 0 0 1 -5.66,4.36 t-4.55,-6.07 -4.56,-6.07 a3.39,3.39 0 0 1 5.38,-4.14 ZM7.1,24.18 t.79,-.58 10.12,-13.98 9.33,-13.39 a3.2,3.2 0 0 1 5.32,3.54 t-4.43,6.79 -9.44,14.13 -6.2,8.28 -1.19,.91 a3.57,3.57 0 0 1 -4.3,-5.7 Z' fill='%23000'/%3E%3C/svg%3E");
 	mask-size: 100% 100%;
 	mask-repeat: no-repeat;
 }
