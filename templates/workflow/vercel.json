@@ -1,5 +1,6 @@
 {
 	"installCommand": "pnpm install",
 	"buildCommand": "pnpm exec lazy build",
+	"outputDirectory": "dist",
 	"ignoreCommand": "bash ../../internal/scripts/vercel/should-build-template.sh workflow"
 }
