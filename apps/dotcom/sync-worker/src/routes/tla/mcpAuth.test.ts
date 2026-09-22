@@ -1,16 +1,9 @@
-import {
-	JWTPayload,
-	SignJWT,
-	createLocalJWKSet,
-	createRemoteJWKSet,
-	exportJWK,
-	generateKeyPair,
-	jwtVerify,
-} from 'jose'
+import { signJwt } from '@clerk/backend/jwt'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
 import { isFeatureFlagEnabledForUser } from '../../utils/featureFlags'
 import {
+	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
 	McpAuthResult,
 	authenticateMcpRequest,
@@ -21,22 +14,15 @@ import {
 	withMcpCors,
 } from './mcpAuth'
 
-// `createRemoteJWKSet` is the only thing mocked here, and only because there is no Clerk instance to
-// fetch keys from: it is pointed at a local key set built from a generated pair instead. Everything
-// jose then does with those keys — signature, `iss`, `typ`, `exp` — runs for real.
+// Nothing in @clerk/backend is mocked. The one thing stubbed is global `fetch`, and only because
+// there is no Clerk instance to fetch signing keys from: the SDK's JWKS request is answered with a key
+// set built from a generated pair. Everything the SDK then does with those keys — signature, `typ`,
+// `exp`, `sub` — runs for real.
 //
-// It used to be the whole module, and the two tests that looked like verification coverage were
-// assertions about what the mock had been *called with*. Nothing showed that an expired token, one
-// signed by another key, one from another issuer, or a Clerk *session* JWT was actually refused — and
-// "`typ: at+jwt` is the only thing separating an access token from a session token" is the
-// load-bearing claim of the file under test. A mocked verifier cannot demonstrate it at all.
-//
-// `jwtVerify` is still wrapped in a spy so the call-shape assertions below can coexist with the real
-// verification; the spy delegates to jose's own implementation.
-vi.mock('jose', async (importOriginal) => {
-	const actual = await importOriginal<typeof import('jose')>()
-	return { ...actual, jwtVerify: vi.fn(actual.jwtVerify), createRemoteJWKSet: vi.fn() }
-})
+// That matters because "`typ: at+jwt` is the only thing separating an access token from a session
+// token" is the load-bearing claim of the file under test, and a mocked verifier cannot demonstrate
+// it at all: an earlier version of this file mocked the whole verifier and its two "verification"
+// tests were assertions about what the mock had been *called with*.
 vi.mock('../../utils/featureFlags', () => ({ isFeatureFlagEnabledForUser: vi.fn() }))
 
 const RESOURCE = 'https://www.tldraw.com/api/app/mcp'
@@ -44,28 +30,39 @@ const RESOURCE = 'https://www.tldraw.com/api/app/mcp'
 // pk_test_<base64 of "clerk.tldraw.com$">, which is the shape Clerk publishable keys take.
 const PUBLISHABLE_KEY = `pk_test_${btoa('clerk.tldraw.com$')}`
 
-// The Clerk instance the publishable key above names, which is both the issuer tokens are checked
-// against and the origin their signing keys are fetched from.
+// The Clerk instance the publishable key above names, and so the `iss` a real token carries.
 const ISSUER = 'https://clerk.tldraw.com'
 
 const KEY_ID = 'test-signing-key'
 
-// Inferred rather than named: jose exports no key type of its own, and what generateKeyPair hands
-// back differs between the Web Crypto and Node builds.
-type SigningKey = Awaited<ReturnType<typeof generateKeyPair>>['privateKey']
+// The instance's signing key, a second pair that stands for anybody else's, and the JWKS document the
+// stubbed fetch hands the SDK.
+let signingKey: JsonWebKey
+let foreignKey: JsonWebKey
+let jwks: { keys: (JsonWebKey & { kid: string })[] }
 
-// The instance's signing key, and a second pair that stands for anybody else's.
-let signingKey: SigningKey
-let foreignKey: SigningKey
-let keySet: ReturnType<typeof createLocalJWKSet>
+async function generateRsaPair() {
+	const pair = await crypto.subtle.generateKey(
+		{
+			name: 'RSASSA-PKCS1-v1_5',
+			modulusLength: 2048,
+			publicExponent: new Uint8Array([1, 0, 1]),
+			hash: 'SHA-256',
+		},
+		true,
+		['sign', 'verify']
+	)
+	return {
+		privateJwk: await crypto.subtle.exportKey('jwk', pair.privateKey),
+		publicJwk: await crypto.subtle.exportKey('jwk', pair.publicKey),
+	}
+}
 
 beforeAll(async () => {
-	const pair = await generateKeyPair('RS256', { extractable: true })
-	signingKey = pair.privateKey
-	foreignKey = (await generateKeyPair('RS256', { extractable: true })).privateKey
-	keySet = createLocalJWKSet({
-		keys: [{ ...(await exportJWK(pair.publicKey)), kid: KEY_ID, alg: 'RS256', use: 'sig' }],
-	})
+	const instance = await generateRsaPair()
+	signingKey = instance.privateJwk
+	foreignKey = (await generateRsaPair()).privateJwk
+	jwks = { keys: [{ ...instance.publicJwk, kid: KEY_ID, alg: 'RS256', use: 'sig' }] }
 })
 
 /**
@@ -78,32 +75,31 @@ beforeAll(async () => {
  */
 async function signToken({
 	key,
-	issuer = ISSUER,
 	typ = 'at+jwt',
 	// `null` omits the claim entirely, which `undefined` could not: it would fall through to the
 	// default here and quietly sign a perfectly good token.
 	sub = 'user_123' as string | null,
 	exp = (Math.floor(Date.now() / 1000) + 300) as number | null,
-	claims = {} as JWTPayload,
+	claims = {} as Record<string, unknown>,
 }: {
-	key?: SigningKey
-	issuer?: string
+	key?: JsonWebKey
 	typ?: string
 	sub?: string | null
 	exp?: number | null
-	claims?: JWTPayload
+	claims?: Record<string, unknown>
 } = {}) {
-	let jwt = new SignJWT(claims)
-		.setProtectedHeader({ alg: 'RS256', typ, kid: KEY_ID })
-		.setIssuer(issuer)
-		.setIssuedAt()
-	if (sub !== null) jwt = jwt.setSubject(sub)
-	if (exp !== null) jwt = jwt.setExpirationTime(exp)
-	return jwt.sign(key ?? signingKey)
+	const payload: Record<string, unknown> = { iss: ISSUER, ...claims }
+	if (sub !== null) payload.sub = sub
+	if (exp !== null) payload.exp = exp
+	return await signJwt(payload, key ?? signingKey, {
+		algorithm: 'RS256',
+		header: { typ, kid: KEY_ID },
+	})
 }
 
-// Hands the key-set test an issuer nothing else has cached. See its comment.
-let jwksTestCounter = 0
+// The SDK caches a fetched key set per secret key for five minutes at module scope, which outlives
+// `clearAllMocks`. A test that counts JWKS fetches needs a secret key nothing else has warmed.
+let secretKeyCounter = 0
 
 function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	return {
@@ -126,9 +122,15 @@ function responseOf(result: McpAuthResult) {
 	return (result as Extract<McpAuthResult, { ok: false }>).response
 }
 
+const fetchMock = vi.fn(async (input: string | URL | Request, _init?: RequestInit) => {
+	const url = input instanceof Request ? input.url : String(input)
+	if (url.endsWith('/jwks')) return Response.json(jwks)
+	throw new Error(`unexpected fetch during MCP auth: ${url}`)
+})
+
 beforeEach(() => {
 	vi.clearAllMocks()
-	vi.mocked(createRemoteJWKSet).mockReturnValue(keySet as any)
+	vi.stubGlobal('fetch', fetchMock)
 	vi.mocked(isFeatureFlagEnabledForUser).mockResolvedValue(true)
 	// The refusal cases below are the expected way to see these logged, and a test run that prints them
 	// reads like a failure. Tests that care which branch refused a token assert on the spy.
@@ -136,6 +138,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+	vi.unstubAllGlobals()
 	vi.restoreAllMocks()
 })
 
@@ -185,6 +188,21 @@ describe('getMcpProtectedResourceMetadata', () => {
 			scopes_supported: ['openid', 'profile', 'email', 'offline_access'],
 			bearer_methods_supported: ['header'],
 		})
+	})
+
+	// The fallback URL clients try when the path-derived one 404s. Both paths answer with the same
+	// document on purpose: the resource stays the MCP endpoint rather than becoming the origin, which
+	// is not protected and which no token is ever minted for.
+	it('names the MCP endpoint, not the origin, on the path-less fallback URL', async () => {
+		expect(MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH).toBe(
+			'/.well-known/oauth-protected-resource'
+		)
+		expect(
+			MCP_PROTECTED_RESOURCE_METADATA_PATH.startsWith(MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH)
+		).toBe(true)
+
+		const response = getMcpProtectedResourceMetadata(makeRequest(), makeEnv())
+		expect(await response.json()).toMatchObject({ resource: RESOURCE })
 	})
 
 	// Advertising a resource with no authorization server would push the failure further along, into
@@ -272,78 +290,67 @@ describe('authenticateMcpRequest', () => {
 		expect(result).toEqual({ ok: true, userId: 'user_123' })
 	})
 
-	// Verification is asked about the signature, the issuer, the lifetime and the token type, and
-	// nothing else. No `audience` option in particular: Clerk stamps no `aud`, so requiring one would
-	// refuse every token it issues — see authenticateMcpRequest for what stands in for that binding.
-	it('verifies against the issuer without requiring an audience', async () => {
-		const token = await signToken()
+	// The signing keys are the accepting instance's own, fetched from Clerk's Backend API with the
+	// secret key — which is what binds a token to that instance without an `iss` check, and what keeps
+	// the advertised authorization server (derived from the same instance's publishable key) and the
+	// accepted issuer from drifting apart. Fetched once and reused: rebuilt per request it would put a
+	// round trip to Clerk in front of every MCP call, so the second request here must not fetch again.
+	it('fetches the signing keys from the Backend API once and reuses them', async () => {
+		const secretKey = `sk_test_jwks_${secretKeyCounter++}`
+		const env = makeEnv({ CLERK_SECRET_KEY: secretKey })
 
-		await authenticateMcpRequest(bearer(token), makeEnv())
+		await authenticateMcpRequest(bearer(await signToken()), env)
+		await authenticateMcpRequest(bearer(await signToken()), env)
 
-		expect(jwtVerify).toHaveBeenCalledWith(token, keySet, {
-			issuer: ISSUER,
-			typ: 'at+jwt',
-			requiredClaims: ['exp'],
-			clockTolerance: 5,
-		})
+		expect(fetchMock).toHaveBeenCalledTimes(1)
+		const [url, init] = fetchMock.mock.calls[0]
+		expect(String(url)).toBe('https://api.clerk.com/v1/jwks')
+		expect(init?.headers).toMatchObject({ Authorization: `Bearer ${secretKey}` })
 	})
 
-	// The signing keys come from the same Clerk instance the publishable key names, so the authorization
-	// server clients are sent to and the keys their tokens are checked against cannot drift apart. Held
-	// per issuer at module scope: rebuilt per request it would fetch JWKS in front of every MCP call,
-	// so the second request here must reuse the first one's key set.
-	//
-	// Its own issuer, because that module-scope cache outlives `clearAllMocks` — a shared one would
-	// make this pass or fail on whether another test happened to warm it first.
-	it('fetches signing keys from the issuer once and reuses them', async () => {
-		const host = `clerk.jwks-${jwksTestCounter++}.example`
-		const env = makeEnv({ CLERK_PUBLISHABLE_KEY: `pk_test_${btoa(`${host}$`)}` })
+	// Without a secret key there is nothing to verify against, and without a derivable authorization
+	// server no client could have been sent anywhere to get a token. Either is our misconfiguration
+	// rather than a bad token, so it is logged as one — but answered like every other refusal, since
+	// naming the difference would describe the deployment to someone guessing at it.
+	it.each([
+		['no secret key', { CLERK_SECRET_KEY: undefined }],
+		['no derivable authorization server', { CLERK_PUBLISHABLE_KEY: undefined }],
+	])('refuses as unconfigured with %s', async (_name, overrides) => {
+		const result = await authenticateMcpRequest(bearer(await signToken()), makeEnv(overrides))
 
-		await authenticateMcpRequest(bearer(await signToken({ issuer: `https://${host}` })), env)
-		await authenticateMcpRequest(bearer(await signToken({ issuer: `https://${host}` })), env)
-
-		expect(createRemoteJWKSet).toHaveBeenCalledTimes(1)
-		expect(createRemoteJWKSet).toHaveBeenCalledWith(
-			new URL(`https://${host}/.well-known/jwks.json`)
-		)
-	})
-
-	// Without a derivable authorization server there is nothing to verify against. That is our
-	// misconfiguration rather than a bad token, so it is logged as one — but answered like every other
-	// refusal, since naming the difference would describe the deployment to someone guessing at it.
-	it('refuses when no authorization server can be derived', async () => {
-		const result = await authenticateMcpRequest(
-			bearer(await signToken()),
-			makeEnv({ CLERK_PUBLISHABLE_KEY: undefined })
-		)
-
+		expect(result).toMatchObject({ ok: false, reason: 'unconfigured' })
 		expect(responseOf(result).status).toBe(401)
-		expect(jwtVerify).not.toHaveBeenCalled()
+		expect(fetchMock).not.toHaveBeenCalled()
 		expect(console.error).toHaveBeenCalledWith(
-			'MCP token verification is unconfigured: no authorization server to verify against'
+			'MCP token verification is unconfigured: no Clerk instance to verify against'
 		)
 	})
 
-	// The four ways a token can be wrong, each signed for real and each refused by jose rather than by
-	// a mock returning what the test wanted. `typ` is the one that matters most: Clerk stamps no `aud`
-	// on either kind of token, so the token type is the *only* thing separating an OAuth access token
-	// from an ordinary tldraw.com session JWT. Accepting a session token would make a website
-	// credential enough to drive this server, and the consent step an agent walks a user through
-	// decoration.
+	// The ways a token can be wrong, each signed for real and each refused by the SDK's verifier rather
+	// than by a mock returning what the test wanted. `typ` is the one that matters most: Clerk stamps
+	// no `aud` on either kind of token, so the token type is the *only* thing separating an OAuth
+	// access token from an ordinary tldraw.com session JWT. Accepting a session token would make a
+	// website credential enough to drive this server, and the consent step an agent walks a user
+	// through decoration.
+	//
+	// "Another issuer" is not a case of its own any more: with no `iss` check, what refuses a token
+	// from another Clerk instance is that it is signed with a key that is not in our instance's key
+	// set, which is the foreign-key case.
 	describe.each([
 		['a Clerk session JWT rather than an access token', () => signToken({ typ: 'JWT' })],
-		['a token signed by another key', () => signToken({ key: foreignKey })],
-		['a token from another issuer', () => signToken({ issuer: 'https://clerk.evil.example' })],
+		[
+			"a token signed with a key that is not in the instance's key set",
+			() => signToken({ key: foreignKey }),
+		],
 		['an expired token', () => signToken({ exp: Math.floor(Date.now() / 1000) - 3600 })],
-		// jose requires only the claims it is told to require, so without `requiredClaims: ['exp']` a
-		// token minted without one would verify here and then never expire.
+		// A token minted without `exp` would otherwise never expire; the SDK requires the claim.
 		['a token with no expiry at all', () => signToken({ exp: null })],
 		['a token with no subject', () => signToken({ sub: null })],
 	])('refuses %s', (_name, makeToken) => {
 		it('with a 401 that says invalid_token and no detail', async () => {
 			const result = await authenticateMcpRequest(bearer(await makeToken()), makeEnv())
 
-			expect(result.ok).toBe(false)
+			expect(result).toMatchObject({ ok: false, reason: 'invalid_token' })
 			const response = responseOf(result)
 			expect(response.status).toBe(401)
 			expect(response.headers.get('WWW-Authenticate')).toContain('error="invalid_token"')
@@ -359,7 +366,7 @@ describe('authenticateMcpRequest', () => {
 
 	it('accepts a token whose expiry is inside the clock tolerance', async () => {
 		// Two seconds past, which a worker whose clock runs slightly fast would produce. Inside the 5s
-		// tolerance @clerk/backend allowed by default, kept so swapping the verifier changed nothing.
+		// skew @clerk/backend allows by default.
 		const result = await authenticateMcpRequest(
 			bearer(await signToken({ exp: Math.floor(Date.now() / 1000) - 2 })),
 			makeEnv()
@@ -368,10 +375,10 @@ describe('authenticateMcpRequest', () => {
 		expect(result).toEqual({ ok: true, userId: 'user_123' })
 	})
 
-	// jose hangs the decoded payload off its errors, so logging the error object would write `sub`,
-	// `client_id`, `scope` and `jti` — every one of the things the response above refuses to disclose —
+	// Only the SDK's reason and message are logged. The token itself, or a decoded payload, would put
+	// `sub`, `client_id`, `scope` and `jti` — every one of the things the response refuses to disclose —
 	// into a log with a wider audience than the caller.
-	it('logs why verification failed without logging the token payload', async () => {
+	it('logs why verification failed without logging the token or its claims', async () => {
 		const token = await signToken({
 			typ: 'JWT',
 			claims: { client_id: 'client_secretive', scope: 'profile email', jti: 'jti_secretive' },
@@ -381,6 +388,7 @@ describe('authenticateMcpRequest', () => {
 
 		const logged = vi.mocked(console.error).mock.calls.flat().join(' ')
 		expect(logged).toContain('MCP token verification failed:')
+		expect(logged).toContain('token-type-mismatch')
 		expect(logged).not.toContain('client_secretive')
 		expect(logged).not.toContain('jti_secretive')
 		expect(logged).not.toContain(token)
@@ -393,7 +401,7 @@ describe('authenticateMcpRequest', () => {
 
 		const result = await authenticateMcpRequest(bearer(await signToken()), makeEnv())
 
-		expect(result.ok).toBe(false)
+		expect(result).toMatchObject({ ok: false, reason: 'not_allowlisted' })
 		const response = responseOf(result)
 		expect(response.status).toBe(403)
 		expect(response.headers.get('WWW-Authenticate')).toBe(null)
@@ -407,24 +415,14 @@ describe('authenticateMcpRequest', () => {
 	// The reason rides on the refusal so the route can put it on a datapoint: during a flag-gated
 	// rollout, "not signed in" and "signed in and not on the list" are the two numbers worth watching
 	// and they call for entirely different responses.
-	it('names why it refused, distinctly per reason', async () => {
+	it('names no_token distinctly from the other refusals', async () => {
 		const noToken = await authenticateMcpRequest(makeRequest(), makeEnv())
+
 		expect(noToken).toMatchObject({ ok: false, reason: 'no_token' })
-
-		const bad = await authenticateMcpRequest(bearer(await signToken({ typ: 'JWT' })), makeEnv())
-		expect(bad).toMatchObject({ ok: false, reason: 'invalid_token' })
-
-		const unconfigured = await authenticateMcpRequest(
-			bearer(await signToken()),
-			makeEnv({ CLERK_PUBLISHABLE_KEY: undefined })
-		)
-		expect(unconfigured).toMatchObject({ ok: false, reason: 'unconfigured' })
-
-		vi.mocked(isFeatureFlagEnabledForUser).mockResolvedValue(false)
-		const refused = await authenticateMcpRequest(bearer(await signToken()), makeEnv())
-		expect(refused).toMatchObject({ ok: false, reason: 'not_allowlisted' })
 	})
 
+	// The SDK only strips an exact `Bearer ` prefix, so the token is parsed here first and handed to it
+	// re-wrapped; a client sending a lowercase or padded scheme must not be told its credential is bad.
 	it('accepts the bearer scheme case-insensitively and ignores surrounding space', async () => {
 		const token = await signToken()
 
@@ -447,6 +445,6 @@ describe('authenticateMcpRequest', () => {
 		const response = responseOf(result)
 		expect(response.status).toBe(401)
 		expect(response.headers.get('WWW-Authenticate')).not.toContain('error=')
-		expect(jwtVerify).not.toHaveBeenCalled()
+		expect(fetchMock).not.toHaveBeenCalled()
 	})
 })

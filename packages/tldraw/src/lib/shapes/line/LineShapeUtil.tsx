@@ -167,13 +167,23 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			return point.x === firstPoint.x && point.y === firstPoint.y
 		})
 		if (allSame) {
+			// Copy rather than mutate: createShapes spreads the partial's props shallowly, so
+			// `points` is the caller's object — on duplicate, the frozen source record's.
 			const lastKey = pointKeys[pointKeys.length - 1]
-			points[lastKey] = {
-				...points[lastKey],
-				x: points[lastKey].x + 0.1,
-				y: points[lastKey].y + 0.1,
+			return {
+				...next,
+				props: {
+					...next.props,
+					points: {
+						...points,
+						[lastKey]: {
+							...points[lastKey],
+							x: points[lastKey].x + 0.1,
+							y: points[lastKey].y + 0.1,
+						},
+					},
+				},
 			}
-			return next
 		}
 		return
 	}
@@ -305,16 +315,18 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				index = getIndexAbove(index)
 			}
 		} else if (endPoints.length > startPoints.length) {
-			// we'll need to converge points
+			// we'll need to converge points. Clones of the last start point would share its index
+			// and get dropped by linePointsToArray, so hand out fresh indices to every start point.
 			for (let i = 0; i < endPoints.length; i++) {
 				pointsToUseEnd[i] = { ...endPoints[i] }
 				if (startPoints[i] === undefined) {
 					pointsToUseStart[i] = {
 						...startPoints[startPoints.length - 1],
 						id: index,
+						index,
 					}
 				} else {
-					pointsToUseStart[i] = { ...startPoints[i], id: index }
+					pointsToUseStart[i] = { ...startPoints[i], id: index, index }
 				}
 				index = getIndexAbove(index)
 			}

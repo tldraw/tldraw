@@ -1039,6 +1039,43 @@ sequenceDiagram
     Worker->>Worker: parse chunk 2
     Worker->>Worker: parse chunk 3 with a suspiciously long status label for layout testing
     deactivate Worker`,
+		`sequenceDiagram
+    actor User
+    box Aqua Frontend
+        participant Web as Web app
+        participant SW as Service worker
+    end
+    box Backend
+        participant API
+        participant DB as Database
+    end
+
+    User->>Web: Open dashboard
+    Web->>SW: fetch /dashboard
+    SW->>API: GET /dashboard
+    loop Each widget
+        API->>DB: Load widget
+        DB-->>API: Rows
+    end
+    API-->>SW: 200 OK
+    SW-->>Web: Cached response
+    Web-->>User: Render`,
+		`sequenceDiagram
+    participant C as Customer
+    box Services
+        participant S as Somewhat Overengineered Backend Service
+        participant Q as Fulfilment Queue Worker
+    end
+    participant DB as Database
+
+    C->>S: Place order
+    Note right of S: MMMMMMMMMMMMMMMMMMMMMMM
+    S->>Q: Enqueue fulfilment
+    Note over Q,DB: Retries with exponential backoff, capped at five attempts
+    Q->>DB: Write order
+    DB-->>Q: OK
+    Q-->>S: Done
+    S-->>C: Order confirmed`,
 	],
 	[
 		`mindmap

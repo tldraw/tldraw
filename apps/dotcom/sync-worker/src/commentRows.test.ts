@@ -1,3 +1,4 @@
+import { DB } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import {
 	createComment,
@@ -8,6 +9,13 @@ import {
 	TLRichText,
 	TLShapeId,
 } from '@tldraw/tlschema'
+import {
+	DummyDriver,
+	Kysely,
+	PostgresAdapter,
+	PostgresIntrospector,
+	PostgresQueryCompiler,
+} from 'kysely'
 import { describe, expect, it } from 'vitest'
 import {
 	CommentLoadResult,
@@ -20,6 +28,7 @@ import {
 	isCommentThreadIdFkViolation,
 	isCommentThreadFkViolation,
 	liveCommentDocuments,
+	loadCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
 	planCommentDrain,
@@ -32,6 +41,9 @@ import {
 	planMentionReconciles,
 	rowToThreadRecord,
 	threadRecordToRow,
+	upsertCommentReactionRows,
+	upsertCommentRows,
+	upsertCommentThreadRows,
 } from './commentRows'
 
 const pageId = 'page:page1' as TLPageId
@@ -557,6 +569,7 @@ describe('planCommentDrain', () => {
 			commentDeletes: [],
 			reactionDeletes: [],
 			unknownIds: [],
+			orphanedReactionIds: [],
 		})
 	})
 
@@ -574,15 +587,40 @@ describe('planCommentDrain', () => {
 		// present in the lane → upsert; absent → delete
 		const upsertPlan = planCommentDrain(
 			entriesOf(reaction.id),
-			laneOf({ state: reaction, lastChangedClock: 44 }),
+			laneOf({ state: reaction, lastChangedClock: 44 }, { state: comment, lastChangedClock: 43 }),
 			'file1'
 		)
 		expect(upsertPlan.reactionUpserts).toEqual([reactionRecordToRow(reaction, 'file1', 44)])
 		expect(upsertPlan.reactionDeletes).toEqual([])
+		expect(upsertPlan.orphanedReactionIds).toEqual([])
 
 		const deletePlan = planCommentDrain(entriesOf(reaction.id), new Map(), 'file1')
 		expect(deletePlan.reactionUpserts).toEqual([])
 		expect(deletePlan.reactionDeletes).toEqual([reaction.id])
+	})
+
+	it('refuses a reaction whose parent comment is absent from the lane', () => {
+		// The id is derived from (comment, user, emoji), so a forged commentId still mints a unique
+		// id: the row lands as a plain insert and never meets the upserts' fileId conflict guard.
+		// Unchecked, it would carry this file's fileId while naming another file's comment — and
+		// comment_reaction is joined to a comment by commentId, so it would surface over there.
+		const foreignComment = makeComment(makeThread().id)
+		const reaction = createCommentReaction({
+			commentId: foreignComment.id,
+			threadId: makeThread().id,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now: 1700,
+		})
+		const plan = planCommentDrain(
+			entriesOf(reaction.id),
+			laneOf({ state: reaction, lastChangedClock: 44 }),
+			'file1'
+		)
+		expect(plan.reactionUpserts).toEqual([])
+		expect(plan.reactionDeletes).toEqual([])
+		expect(plan.orphanedReactionIds).toEqual([reaction.id])
 	})
 
 	it('coalesces duplicate entries for one id into a single write', () => {
@@ -608,6 +646,7 @@ describe('planCommentDrain', () => {
 			commentDeletes: [comment.id],
 			reactionDeletes: [],
 			unknownIds: [],
+			orphanedReactionIds: [],
 		})
 	})
 
@@ -636,6 +675,7 @@ describe('planCommentDrain', () => {
 			commentDeletes: [],
 			reactionDeletes: [],
 			unknownIds: ['shape:oops'],
+			orphanedReactionIds: [],
 		})
 	})
 })
@@ -818,6 +858,15 @@ describe('mergeCommentDocumentsIntoSnapshot', () => {
 		expect(snapshot.documentClock).toBe(42)
 		expect(snapshot.documents).toHaveLength(3)
 		expect(snapshot.documents.slice(1)).toEqual(docs)
+	})
+
+	it('handles more comment docs than fit in a spread call', () => {
+		const state = makeThread()
+		const docs: RoomSnapshot['documents'] = []
+		for (let i = 1; i <= 150_000; i++) docs.push({ state, lastChangedClock: i })
+		const snapshot = makeSnapshot({ documentClock: 10 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(docs))
+		expect(snapshot.documentClock).toBe(150_000)
 	})
 
 	it('leaves documentClock alone when all comment clocks are at or below it', () => {
@@ -1012,5 +1061,143 @@ describe('liveCommentDocuments', () => {
 
 	it('empty rows produce an empty, zero-floor load', () => {
 		expect(liveCommentDocuments([], [])).toEqual({ documents: [], clockFloor: 0 })
+	})
+})
+
+describe('loadCommentDocuments', () => {
+	function makeFakeDb(rows: {
+		comment_thread: unknown[]
+		comment: unknown[]
+		comment_reaction: unknown[]
+	}) {
+		const outerSelects: string[] = []
+		const boundSelects: string[] = []
+		let connectionCount = 0
+		const makeSelectFrom = (log: string[]) => (table: keyof typeof rows) => {
+			log.push(table)
+			return {
+				where: () => ({ selectAll: () => ({ execute: async () => rows[table] }) }),
+			}
+		}
+		const boundDb = { selectFrom: makeSelectFrom(boundSelects) }
+		const db: any = {
+			selectFrom: makeSelectFrom(outerSelects),
+			connection: () => ({
+				execute: async (cb: (conn: any) => Promise<any>) => {
+					connectionCount++
+					return cb(boundDb)
+				},
+			}),
+		}
+		return {
+			db,
+			outerSelects,
+			boundSelects,
+			get connectionCount() {
+				return connectionCount
+			},
+		}
+	}
+
+	it('runs all three queries on one checked-out connection', async () => {
+		const fake = makeFakeDb({ comment_thread: [], comment: [], comment_reaction: [] })
+		await loadCommentDocuments(fake.db, 'file1')
+		expect(fake.connectionCount).toBe(1)
+		expect(fake.boundSelects.sort()).toEqual(['comment', 'comment_reaction', 'comment_thread'])
+		expect(fake.outerSelects).toEqual([])
+	})
+
+	it('returns the live documents and clock floor for the rows', async () => {
+		const thread = makeThread()
+		const comment = createComment({
+			threadId: thread.id,
+			pageId,
+			authorId: 'user1',
+			body,
+			now: 1500,
+		})
+		const reaction = createCommentReaction({
+			commentId: comment.id,
+			threadId: thread.id,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now: 1700,
+		})
+		const deletedThread = { ...makeThread(), isDeleted: true }
+		const deletedThreadComment = createComment({
+			threadId: deletedThread.id,
+			pageId,
+			authorId: 'user1',
+			body,
+			now: 1600,
+		})
+		const threadRows = [
+			threadRecordToRow(thread, 'file1', 42),
+			threadRecordToRow(deletedThread, 'file1', 50),
+		]
+		const commentRows = [
+			commentRecordToRow(comment, 'file1', 43),
+			commentRecordToRow(deletedThreadComment, 'file1', 51),
+		]
+		const reactionRows = [reactionRecordToRow(reaction, 'file1', 45)]
+		const fake = makeFakeDb({
+			comment_thread: threadRows,
+			comment: commentRows,
+			comment_reaction: reactionRows,
+		})
+		const expected = liveCommentDocuments(threadRows, commentRows, reactionRows)
+		expect(await loadCommentDocuments(fake.db, 'file1')).toEqual(expected)
+		expect(expected.documents.map((d) => d.state.id)).toEqual([thread.id, comment.id, reaction.id])
+		expect(expected.clockFloor).toBe(51)
+	})
+})
+
+// Compiles queries without connecting; only the SQL text is under test here.
+const compileOnlyDb = new Kysely<DB>({
+	dialect: {
+		createAdapter: () => new PostgresAdapter(),
+		createDriver: () => new DummyDriver(),
+		createIntrospector: (db) => new PostgresIntrospector(db),
+		createQueryCompiler: () => new PostgresQueryCompiler(),
+	},
+})
+
+describe('comment upsert file scoping', () => {
+	const thread = makeThread()
+	const comment = createComment({
+		threadId: thread.id,
+		pageId,
+		authorId: 'user1',
+		body,
+		now: 1000,
+	})
+	const reaction = createCommentReaction({
+		commentId: comment.id,
+		threadId: thread.id,
+		pageId,
+		userId: 'user1',
+		emoji: '👍',
+		now: 1000,
+	})
+
+	// A record id is only addressable from the room that owns it, so a row already in Postgres
+	// under a different fileId belongs to another file. The conflict target has to be the primary
+	// key, so the ownership check has to sit in the DO UPDATE predicate — a client that learned
+	// another file's record ids could otherwise push records under them and have this drain
+	// rewrite that file's rows. The lastChangedClock guard does not cover this on its own: a
+	// forged record simply carries a higher clock.
+	it.each([
+		[
+			'comment_thread',
+			upsertCommentThreadRows(compileOnlyDb, [threadRecordToRow(thread, 'file1', 1)]),
+		],
+		['comment', upsertCommentRows(compileOnlyDb, [commentRecordToRow(comment, 'file1', 1)])],
+		[
+			'comment_reaction',
+			upsertCommentReactionRows(compileOnlyDb, [reactionRecordToRow(reaction, 'file1', 1)]),
+		],
+	])('%s upsert only updates a row whose fileId matches', (table, query) => {
+		expect(query.compile().sql).toContain(`"${table}"."fileId" = "excluded"."fileId"`)
 	})
 })

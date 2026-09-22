@@ -3,6 +3,7 @@ import { existsSync, readFileSync, readdirSync } from 'fs'
 import { createServer } from 'http'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
+import { hasTransactionBlock } from './migrationSql'
 
 const postgresConnectionString =
 	process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING ||
@@ -119,6 +120,13 @@ async function migrate(summary: string[]) {
 			)
 		}
 
+		// DDL on a replicated table takes ACCESS EXCLUSIVE. Without a lock timeout, one long-running
+		// reader makes the deploy hang while every room persist queues behind the waiting DDL.
+		// Failing here aborts the deploy before Zero and the sync-worker roll, and a rerun picks up
+		// where it left off. SET LOCAL is transaction-scoped, so it holds through a
+		// transaction-mode pooler.
+		await sql`SET LOCAL lock_timeout = '10s'`.execute(tx)
+
 		let appliedNewMigration = false
 		for (const migration of migrations) {
 			if (appliedMigrations.rows.some((m) => m.filename === migration)) {
@@ -128,7 +136,7 @@ async function migrate(summary: string[]) {
 
 			try {
 				const migrationSql = readFileSync(`${migrationsPath}/${migration}`, 'utf8')
-				if (migrationSql.match(/(BEGIN|COMMIT);/)) {
+				if (hasTransactionBlock(migrationSql)) {
 					throw new Error(
 						`Migration ${migration} contains a transaction block. Migrations run in transactions, so you don't need to include them in the migration file.`
 					)

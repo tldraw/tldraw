@@ -47,16 +47,14 @@ export class Translating extends StateNode {
 
 	isCloning = false
 	isCreating = false
-	onCreate(_shape: TLShape | null): void {
-		return
-	}
+	onCreate?: (shape: TLShape | null) => void
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
 
 	private changeTracker = new GestureShapeChangeTracker(this.editor)
 
 	override onEnter(info: TranslatingInfo) {
-		const { isCreating = false, creatingMarkId, onCreate = () => void null } = info
+		const { isCreating = false, creatingMarkId, onCreate } = info
 
 		if (!this.editor.getSelectedShapeIds()?.length) {
 			this.parent.transition('idle')
@@ -227,11 +225,13 @@ export class Translating extends StateNode {
 			}
 		}
 
-		if (this.isCreating) {
-			this.onCreate?.(this.editor.getOnlySelectedShape())
-		} else {
-			this.parent.transition('idle')
+		// A creating tool that passes no onCreate still needs the interaction to end
+		if (this.isCreating && this.onCreate) {
+			this.onCreate(this.editor.getOnlySelectedShape())
+			return
 		}
+
+		this.parent.transition('idle')
 	}
 
 	private cancel() {
@@ -311,7 +311,8 @@ export class Translating extends StateNode {
 			const changes: TLShapePartial[] = []
 
 			movingShapes.forEach((shape) => {
-				const current = this.editor.getShape(shape.id)!
+				const current = this.editor.getShape(shape.id)
+				if (!current) return
 				const util = this.editor.getShapeUtil(shape)
 				const change = util.onTranslateEnd?.(shape, current)
 				if (change) {
@@ -331,6 +332,8 @@ export class Translating extends StateNode {
 
 	@bind
 	private updateShapesIgnoringExternalChanges() {
+		this.rescueShapesWithDeletedParents()
+
 		// Otherwise the stale translation snapshot would overwrite an external change.
 		if (this.changeTracker.getAndClearChanged()) {
 			this.foldExternalChangesIntoSnapshot()
@@ -355,7 +358,9 @@ export class Translating extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		movingShapes.forEach((shape) => {
-			const current = this.editor.getShape(shape.id)!
+			// Shapes can be deleted mid-drag (remote user, undo)
+			const current = this.editor.getShape(shape.id)
+			if (!current) return
 			const util = this.editor.getShapeUtil(shape)
 			const change = util.onTranslate?.(shape, current)
 			if (change) {
@@ -392,8 +397,42 @@ export class Translating extends StateNode {
 		}
 	}
 
+	// A shape's x/y are relative to its parent, so a parent that disappears mid-drag
+	// (a remote user or an undo deletes the frame we're dragging over) leaves the shape
+	// describing its position in a space that no longer exists. Nothing downstream can
+	// tell: `getShapePageTransform` falls back to the identity matrix for a missing
+	// parent, so the frame-local x/y get read as page coordinates and the shape jumps by
+	// the frame's offset. The snapshot still holds the parent's last transform, so use it
+	// to put the shape back on the page exactly where it was.
+	private rescueShapesWithDeletedParents() {
+		const { editor } = this
+
+		for (const shapeSnapshot of this.snapshot.shapeSnapshots) {
+			const shape = editor.getShape(shapeSnapshot.shape.id)
+			if (!shape || isPageId(shape.parentId) || editor.getShape(shape.parentId)) continue
+
+			// Inverse, because the snapshot stores the parent's transform already inverted
+			const parentPageTransform = shapeSnapshot.parentTransform
+				? Mat.From(Mat.Inverse(shapeSnapshot.parentTransform))
+				: Mat.Identity()
+			const pagePoint = parentPageTransform.applyToPoint(shape)
+
+			editor.reparentShapes([shape], editor.getCurrentPageId())
+			editor.updateShape({
+				id: shape.id,
+				type: shape.type,
+				x: pagePoint.x,
+				y: pagePoint.y,
+				rotation: shape.rotation + parentPageTransform.rotation(),
+			})
+			shapeSnapshot.parentTransform = null
+		}
+	}
+
 	@bind
 	protected updateParentTransforms() {
+		this.rescueShapesWithDeletedParents()
+
 		const {
 			editor,
 			snapshot: { shapeSnapshots },

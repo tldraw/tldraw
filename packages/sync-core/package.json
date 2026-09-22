@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync-core",
 	"description": "tldraw infinite canvas SDK (multiplayer sync).",
-	"version": "5.4.0",
+	"version": "5.4.2",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -50,16 +50,20 @@
 		"pack-tarball": "yarn pack"
 	},
 	"devDependencies": {
+		"@peculiar/webcrypto": "^1.5.0",
+		"@tldraw/editor": "workspace:*",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@types/uuid-readable": "^0.0.3",
+		"fake-indexeddb": "^4.0.2",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
+		"resize-observer-polyfill": "^1.5.1",
 		"tldraw": "workspace:*",
 		"typescript": "^7.0.2",
 		"uuid-by-string": "^4.0.0",
 		"uuid-readable": "^0.0.2",
-		"vitest": "^4.1.7"
+		"vitest": "^5.0.0"
 	},
 	"dependencies": {
 		"@tldraw/state": "workspace:*",

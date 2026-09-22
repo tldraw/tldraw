@@ -46,6 +46,9 @@ describe('agents SDK assumptions behind session idle expiry', () => {
 	it('_scheduleNextAlarmBody short-circuits to setAlarm(now) when the destroy marker is set (so the condemn setAlarm cannot be clobbered)', () => {
 		const body = between(agentsDist, 'async _scheduleNextAlarmBody() {', 'const nowMs = Date.now()')
 		expect(body).toContain('_hasPendingDestroy()')
+		// setAlarm(Date.now()) can equal the running alarm's own time and get
+		// dropped; TldrawMCP.alarm() moves it. If the SDK starts adding its
+		// DESTROY_ALARM_DELAY_MS here, that override can go.
 		expect(body).toContain('setAlarm(Date.now())')
 	})
 
