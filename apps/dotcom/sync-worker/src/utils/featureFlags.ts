@@ -41,7 +41,7 @@ function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagVa
 			allowEveryone: false,
 			enabled: false,
 			description:
-				'Who may drive the MCP server at /api/app/mcp. Off by default: the endpoint requires auth, so an unset flag denies everyone rather than leaving it open. Anyone with a verified @tldraw.com email is admitted whatever the list says. Allow everyone opens it to every signed-in account',
+				'Who may drive the MCP server at /api/app/mcp. Off by default: the endpoint requires auth, so an unset flag denies everyone rather than leaving it open. Anyone with a verified @tldraw.com email is admitted whatever the list says. Allow all opens it to every signed-in account',
 		},
 		version_chain: {
 			type: 'percentage',
@@ -95,7 +95,16 @@ export async function getFeatureFlagValue(
 		// rather than spread over the default one: `{"type":"allowList"}` — a capital L, or any other
 		// typo — would otherwise reach `evaluateFlagForUser` as a shape none of its arms recognise, and
 		// the value it lands on decides who is let in.
-		return { ...defaults, ...JSON.parse(value), type: defaults.type } as FeatureFlagValue
+		//
+		// `description` is discarded on the same grounds. A save writes the whole value back, so the
+		// text a flag was first saved with otherwise outlives every later edit to this table — the
+		// panel goes on describing a control by a name the code no longer uses.
+		return {
+			...defaults,
+			...JSON.parse(value),
+			type: defaults.type,
+			description: defaults.description,
+		} as FeatureFlagValue
 	} catch (e) {
 		console.error(`Failed to get feature flag ${flag}:`, e)
 		return defaults

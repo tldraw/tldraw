@@ -293,6 +293,22 @@ describe('getFeatureFlagValue', () => {
 		expect(evaluateFlagForUser(value, 'mcp_server_access', 'user-1')).toBe(false)
 	})
 
+	// Same rule as `type`: a save writes the whole value back, so the description a flag was first
+	// stored with would otherwise outlive every later edit to the defaults table, and the admin panel
+	// would go on describing a control by a name the code had already renamed.
+	it('discards a stored description in favour of the current default', async () => {
+		const env = makeEnv({
+			mcp_server_access: JSON.stringify({
+				type: 'allowlist',
+				enabled: true,
+				description: 'Allow everyone opens it to every signed-in account',
+			}),
+		})
+		const value = await getFeatureFlagValue(env as any, 'mcp_server_access')
+		expect(value.description).toContain('Allow all')
+		expect(value.description).not.toContain('Allow everyone')
+	})
+
 	it('returns defaults on KV error', async () => {
 		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const env = makeEnv()

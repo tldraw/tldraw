@@ -19,6 +19,14 @@ const FLAG_LABELS: Record<string, string> = {
 	mcp_server_access: 'MCP server access',
 }
 
+// Access a flag grants on top of whatever the panel is showing. Kept per flag rather than written
+// into AllowlistFlag: the staff bypass belongs to `canUseMcpServer`, not to allowlists in general,
+// and a second allowlist flag inheriting this sentence would be the panel stating an access rule
+// that does not hold for it.
+const FLAG_IMPLICIT_ACCESS: Record<string, string> = {
+	mcp_server_access: '@tldraw.com accounts have access either way.',
+}
+
 // Rendered above the rest rather than interleaved alphabetically with commenting and version
 // chains: this is the one flag that decides whether an outside caller can drive the product at all,
 // and it is the one an operator comes to this page to find.
@@ -113,9 +121,7 @@ function FeatureFlags() {
 					)
 				} else if (update.allowEveryone !== undefined) {
 					setSuccessMessage(
-						update.allowEveryone
-							? `${flag} allowed for everyone`
-							: `${flag} allowed for its list again`
+						update.allowEveryone ? `${flag} set to allow all` : `${flag} set to user list`
 					)
 				} else {
 					setSuccessMessage(`${flag} ${update.enabled ? 'enabled' : 'disabled'}`)
@@ -166,11 +172,12 @@ function FeatureFlags() {
 						if (!window.confirm(`${action} "${flagName}"?`)) return
 						saveFlag(flagName, { enabled })
 					}}
-					onToggleAllowEveryone={(allowEveryone) => {
+					implicitAccess={FLAG_IMPLICIT_ACCESS[flagName]}
+					onSetAllowEveryone={(allowEveryone) => {
 						if (
 							allowEveryone &&
 							!window.confirm(
-								`Open "${flagName}" to EVERY signed-in account? The list below is kept, and applies again when you turn this off.`
+								`Open "${flagName}" to EVERY signed-in account? The list below is kept, and applies again on "User list".`
 							)
 						) {
 							return
@@ -276,17 +283,19 @@ function AllowlistFlag({
 	label,
 	flagValue,
 	isSaving,
+	implicitAccess,
 	onToggle,
 	onSaveEmails,
-	onToggleAllowEveryone,
+	onSetAllowEveryone,
 }: {
 	flagName: string
 	label: string
 	flagValue: AllowlistFeatureFlag
 	isSaving: boolean
+	implicitAccess: string | undefined
 	onToggle(enabled: boolean): void
 	onSaveEmails(emails: string[]): void
-	onToggleAllowEveryone(allowEveryone: boolean): void
+	onSetAllowEveryone(allowEveryone: boolean): void
 }) {
 	const currentEmails = (flagValue.users ?? []).map((entry) => entry.email)
 	const [text, setText] = useState(() => currentEmails.join('\n'))
@@ -335,23 +344,38 @@ function AllowlistFlag({
 						<strong>{label}</strong>
 					</span>
 				</label>
-				<label
-					style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}
+				{/* A mode rather than a checkbox because the two are exclusive: "allow everyone" reads as
+				    something that stacks on the list, when it in fact replaces it. Naming the other
+				    option makes the list a mode you are *not* in rather than a thing silently ignored. */}
+				<div
+					role="radiogroup"
+					aria-label={`${label} mode`}
+					style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}
 				>
-					<input
-						type="checkbox"
-						checked={flagValue.allowEveryone === true}
-						onChange={(e) => onToggleAllowEveryone(e.target.checked)}
-						disabled={isSaving || !flagValue.enabled}
-					/>
-					<span>
-						Allow everyone
-						<span style={{ opacity: 0.7 }}>
-							{' '}
-							— ignores the list below. Needs the flag itself enabled.
-						</span>
-					</span>
-				</label>
+					<span style={{ opacity: 0.7 }}>Mode:</span>
+					{(
+						[
+							{ value: false, label: 'User list' },
+							{ value: true, label: 'Allow all' },
+						] as const
+					).map((mode) => (
+						<label
+							key={String(mode.value)}
+							style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+						>
+							<input
+								type="radio"
+								name={`${flagName}-mode`}
+								checked={(flagValue.allowEveryone === true) === mode.value}
+								onChange={() => onSetAllowEveryone(mode.value)}
+								disabled={isSaving || !flagValue.enabled}
+								style={{ cursor: 'pointer' }}
+							/>
+							<span>{mode.label}</span>
+						</label>
+					))}
+					{implicitAccess && <span style={{ opacity: 0.7 }}>{implicitAccess}</span>}
+				</div>
 				<span className={!flagValue.enabled ? styles.featureFlagDisabled : ''}>
 					{currentEmails.length} user(s)
 				</span>
