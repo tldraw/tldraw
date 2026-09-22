@@ -77,9 +77,9 @@ describe('requireAdminAccessToRequest', () => {
 })
 
 describe('getMcpTokenAuth', () => {
-	function requestWith(headers: Record<string, string>) {
+	function requestWith(headers: Record<string, string>, query = '') {
 		return {
-			url: 'https://www.tldraw.com/api/app/file/abc/download',
+			url: `https://www.tldraw.com/api/app/file/abc/download${query}`,
 			headers: new Headers(headers),
 		} as any
 	}
@@ -152,5 +152,45 @@ describe('getMcpTokenAuth', () => {
 			getMcpTokenAuth(requestWith({ authorization: 'Bearer tok' }), env)
 		).resolves.toEqual({ ok: true, userId: 'user_1' })
 		expect(isFeatureFlagEnabledForUser).toHaveBeenCalledWith(env, 'mcp_server_access', 'user_1')
+	})
+
+	// The websocket handshake's only way to present anything, and how the MCP token reaches the file
+	// room. Verified exactly as a header token is: the param is a route into the same check, not a
+	// weaker one.
+	it('takes the token from the accessToken param when the caller opts in', async () => {
+		signedInAs('user_1')
+		vi.mocked(isFeatureFlagEnabledForUser).mockResolvedValue(true)
+
+		await expect(
+			getMcpTokenAuth(requestWith({}, '?accessToken=tok'), env, { allowQueryParamToken: true })
+		).resolves.toEqual({ ok: true, userId: 'user_1' })
+		expect(authenticateRequest.mock.calls[0][0].headers.get('authorization')).toBe('Bearer tok')
+	})
+
+	// Off unless asked for, so the MCP endpoint keeps the header-only promise its discovery metadata
+	// makes and no token of ours ends up in an access log that didn't have to hold one.
+	it('ignores the accessToken param by default', async () => {
+		await expect(getMcpTokenAuth(requestWith({}, '?accessToken=tok'), env)).resolves.toEqual({
+			ok: false,
+			reason: 'no_token',
+		})
+		expect(authenticateRequest).not.toHaveBeenCalled()
+	})
+
+	it('prefers the header when a request carries both', async () => {
+		signedInAs('user_1')
+		vi.mocked(isFeatureFlagEnabledForUser).mockResolvedValue(true)
+
+		await getMcpTokenAuth(
+			requestWith({ authorization: 'Bearer header-tok' }, '?accessToken=tok'),
+			env,
+			{
+				allowQueryParamToken: true,
+			}
+		)
+
+		expect(authenticateRequest.mock.calls[0][0].headers.get('authorization')).toBe(
+			'Bearer header-tok'
+		)
 	})
 })

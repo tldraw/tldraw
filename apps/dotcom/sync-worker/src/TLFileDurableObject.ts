@@ -117,6 +117,7 @@ import {
 	getMcpTokenAuth,
 	requireAdminAccess,
 	requireAdminAccessToRequest,
+	type McpTokenOptions,
 } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getRole } from './utils/tla/getRole'
@@ -214,9 +215,10 @@ interface SocketAttachment {
 /** The user behind an MCP access token, in the shape the file checks already take. */
 async function getMcpTokenUser(
 	req: IRequest,
-	env: Environment
+	env: Environment,
+	options?: McpTokenOptions
 ): Promise<{ userId: string } | null> {
-	const result = await getMcpTokenAuth(req, env)
+	const result = await getMcpTokenAuth(req, env, options)
 	return result.ok ? { userId: result.userId } : null
 }
 
@@ -1030,14 +1032,23 @@ export class TLFileDurableObject extends DurableObject {
 		// now that those failures bubble instead of being swallowed. An uncaught throw here would
 		// 500 with the accepted server socket leaked in the hibernation set, so catch broadly and
 		// close it instead.
-		let auth: Awaited<ReturnType<typeof getAuth>>
+		let auth: { userId: string } | null
 		try {
 			if (this.documentInfo.deleted) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 			}
 
 			const authTimer = this.timer()
-			auth = await getAuth(req, this.env)
+			// An MCP client — Claude, ChatGPT, Cursor — cannot hold a tldraw.com session, so an OAuth
+			// access token is the only sign-in it has, and without this a user's own boards are
+			// unreachable over sync to the agent they just signed in to. Accepted only as a fallback,
+			// and it widens nothing: every check below is the same either way, so a token joins
+			// exactly the rooms, at exactly the open mode — write included — its user would get from
+			// the website. It rides in the `accessToken` query param because a websocket handshake
+			// carries no header a client can set, which is the same reason session tokens do.
+			auth =
+				(await getAuth(req, this.env)) ??
+				(await getMcpTokenUser(req, this.env, { allowQueryParamToken: true }))
 			authTimer.report('on_request_auth')
 
 			if (this.documentInfo.isApp) {

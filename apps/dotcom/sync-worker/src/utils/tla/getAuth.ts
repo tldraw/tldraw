@@ -137,6 +137,20 @@ export type McpTokenRefusal = 'no_token' | 'invalid_token' | 'unconfigured' | 'n
 
 export type McpTokenAuth = { ok: true; userId: string } | { ok: false; reason: McpTokenRefusal }
 
+export interface McpTokenOptions {
+	/**
+	 * Also accept the token from the `accessToken` query param, not the `Authorization` header alone.
+	 *
+	 * Opt-in per call site because a token in a URL is a token in access logs, proxy logs and
+	 * anything that keeps a `Referer`, which is a real cost to pay for one caller's benefit. The
+	 * websocket handshake is the one place worth paying it: a browser cannot set a header on it, so
+	 * the query param is the only way a client presents anything at all — which is why session
+	 * tokens already arrive that way (see {@link getAuth}). The MCP endpoint itself stays header-only,
+	 * and its discovery metadata says so with `bearer_methods_supported: ['header']`.
+	 */
+	allowQueryParamToken?: boolean
+}
+
 /**
  * The user behind an OAuth access token this Clerk instance issued, for a user the
  * `mcp_server_access` flag names.
@@ -182,8 +196,12 @@ export type McpTokenAuth = { ok: true; userId: string } | { ok: false; reason: M
  * allowlist here would be the belt to that setting's braces if we ever want one — the claim is on
  * every token.
  */
-export async function getMcpTokenAuth(request: IRequest, env: Environment): Promise<McpTokenAuth> {
-	const token = getBearerToken(request)
+export async function getMcpTokenAuth(
+	request: IRequest,
+	env: Environment,
+	{ allowQueryParamToken = false }: McpTokenOptions = {}
+): Promise<McpTokenAuth> {
+	const token = getBearerToken(request) ?? (allowQueryParamToken ? getQueryToken(request) : null)
 	if (!token) return { ok: false, reason: 'no_token' }
 
 	if (!env.CLERK_SECRET_KEY) {
@@ -223,6 +241,15 @@ export function getBearerToken(request: Request): string | null {
 	if (!header) return null
 	const match = /^Bearer\s+(.+)$/i.exec(header.trim())
 	return match ? match[1].trim() : null
+}
+
+/**
+ * The token in the `accessToken` query param — the same param a session token rides in on a
+ * websocket URL, since a handshake carries no header a client can set.
+ */
+function getQueryToken(request: IRequest): string | null {
+	const token = new URL(request.url).searchParams.get('accessToken')?.trim()
+	return token ? token : null
 }
 
 /**
