@@ -14,8 +14,8 @@ export default defineConfig({
 		globals: true,
 		testTimeout: 30000,
 		include: ['**/*.{test,spec}.{js,ts,jsx,tsx}'],
-		// Extend rather than replace the defaults: `node_modules` here holds symlinks to every
-		// workspace package, so dropping `**/node_modules/**` runs their tests too.
+		// Extend the defaults rather than replace them: dropping `**/node_modules/**` runs the tests
+		// of every workspace package linked into this app's node_modules (pnpm's linker does that).
 		exclude: [...configDefaults.exclude, '**/e2e/**'],
 	},
 	resolve: {
