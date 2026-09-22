@@ -383,8 +383,9 @@ function paintTiming() {
 }
 
 /**
- * Sends the `first_load` event once, if this account is in the gate. Staff accounts also get the
- * same tables in the console so a load can be read without waiting for PostHog.
+ * Sends the `first_load` event once, if this account is in the gate, and prints the same tables
+ * to the console: a flagged user can paste them into a support thread, and staff can read a load
+ * without waiting for PostHog.
  */
 const SERVER_ECHO_DEADLINE_MS = 3000
 
@@ -395,7 +396,6 @@ export function reportFirstLoad(opts: {
 }) {
 	if (!shouldReportFirstLoad(opts)) return
 	// One report per load, so wait briefly for the server echo rather than dropping the srv_ fields.
-	const toConsole = isFirstLoadStaff(opts.email)
 	// Snapshot the page-side numbers now: by the time the echo wait ends, images the board loads
 	// after it became visible would otherwise be counted as first-load resources.
 	const snapshot = {
@@ -405,13 +405,12 @@ export function reportFirstLoad(opts: {
 	}
 	void firstLoad
 		.whenServerTimings(SERVER_ECHO_DEADLINE_MS)
-		.then((gotEcho) => sendFirstLoadReport(opts, gotEcho, toConsole, snapshot))
+		.then((gotEcho) => sendFirstLoadReport(opts, gotEcho, snapshot))
 }
 
 function sendFirstLoadReport(
 	opts: { trackEvent(name: string, data: Record<string, unknown>): void },
 	gotEcho: boolean,
-	toConsole: boolean,
 	snapshot: {
 		entries: PerformanceResourceTiming[]
 		nav: ReturnType<typeof navigationTiming>
@@ -432,7 +431,6 @@ function sendFirstLoadReport(
 		...resources,
 	}
 	opts.trackEvent('first_load', event)
-	if (!toConsole) return event
 	const server = Object.fromEntries(Object.entries(event).filter(([k]) => k.startsWith('srv_')))
 	/* eslint-disable no-console */
 	console.log(`[first-load] ${report.load_id} total ${report.total_ms}ms`)

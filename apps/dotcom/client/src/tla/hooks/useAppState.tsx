@@ -60,6 +60,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				flags = await fetchFlagsWithTimeout()
 			}
 			markFirstLoad('flags-loaded')
+			// Flagged users get the live lines too: a load that hangs never reaches the summary tables.
+			if (flags.first_load_rum?.enabled) enableFirstLoadLiveLog()
 			if (didCancel) return
 			const token = await auth.getToken()
 			if (!token) throw new Error('no token')
