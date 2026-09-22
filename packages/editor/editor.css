@@ -887,19 +887,17 @@ input,
 .tl-rich-text ul[data-type='taskList'] > li > label > span {
 	position: relative;
 	display: block;
-	box-sizing: border-box;
 	width: 0.95em;
 	height: 0.95em;
 }
 
 /**
- * The box and the tick are drawn as masks rather than a border and an icon: the strokes taper and
- * wobble like a drawn line, and the tick can break out past the box the way a hand-drawn one does.
- * They sit on two pseudo-elements because a mask clips everything its element paints, pseudo-
- * elements included — masking the span with the box would erase the tick inside it.
+ * The box and the tick are drawn strokes rather than a border and an icon, and they take a
+ * pseudo-element each: a mask clips everything its element paints, pseudo-elements included, so
+ * masking the span with the box would erase the tick sitting inside it.
  *
  * Stroke widths are a fraction of the artwork's 100-unit viewBox, so they scale with the box and
- * stay close to the stem weight of the text beside them.
+ * stay near the stem weight of the text beside them.
  */
 .tl-rich-text ul[data-type='taskList'] > li > label > span::before {
 	content: '';
