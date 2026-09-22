@@ -896,18 +896,43 @@ input,
  * pseudo-element each: a mask clips everything its element paints, pseudo-elements included, so
  * masking the span with the box would erase the tick sitting inside it.
  *
- * The box is the path of a small draw-dash rectangle taken off the canvas: two passes around the
- * same box, which is where its uneven weight comes from. Both strokes are sized in their artwork's
- * own viewBox, so they scale with the box and stay near the stem weight of the text beside them.
+ * The boxes are the paths of six draw-dash rectangles taken off the canvas, cycled by position so
+ * a list doesn't read as one box stamped out repeatedly. Each is two passes around the same
+ * rectangle, which is where the uneven weight comes from; they share a viewBox so only the wobble
+ * differs between them and not the stroke weight. Both strokes are sized in their artwork's own
+ * viewBox, so they scale with the box and stay near the stem weight of the text beside them.
  */
 .tl-rich-text ul[data-type='taskList'] > li > label > span::before {
 	content: '';
 	position: absolute;
 	inset: 0;
 	background-color: currentColor;
-	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-2.52 -3.68 33.47 33.47'%3E%3Cpath d='M 7.4082 -0.5405 L 20.5696 -0.1871 Q 27.5696 -0.1871 27.5696 6.2556 L 27.4919 18.8763 Q 27.4919 25.319 20.4919 25.319 L 7.5191 26.1584 Q 0.5191 26.1584 0.5191 19.7158 L 0.4082 5.9022 Q 0.4082 -0.5405 7.4082 -0.5405 M 7.7321 -0.28 L 20.5291 0.3516 Q 27.5291 0.3516 27.5291 6.7943 L 29.1984 20.2087 Q 29.1984 26.6513 22.1984 26.6513 L 6.228 26.0505 Q -0.772 26.0505 -0.772 19.6078 L 0.7321 6.1626 Q 0.7321 -0.28 7.7321 -0.28' fill='none' stroke='%23000' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 	mask-size: 100% 100%;
 	mask-repeat: no-repeat;
+}
+
+.tl-rich-text ul[data-type='taskList'] > li:nth-child(6n + 1) > label > span::before {
+	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-2.82 -3.88 33.53 33.53'%3E%3Cpath d='M 7.7942 -0.7977 L 20.9303 0.1728 Q 27.9303 0.1728 27.9303 6.6728 L 27.563 18.8742 Q 27.563 25.3742 20.563 25.3742 L 6.7319 25.3957 Q -0.2681 25.3957 -0.2681 18.8957 L 0.7942 5.7023 Q 0.7942 -0.7977 7.7942 -0.7977 M 8.032 -0.1323 L 20.7344 -0.3169 Q 27.7344 -0.3169 27.7344 6.1831 L 28.1662 20.0728 Q 28.1662 26.5728 21.1662 26.5728 L 7.689 25.7836 Q 0.689 25.7836 0.689 19.2836 L 1.032 6.3677 Q 1.032 -0.1323 8.032 -0.1323' fill='none' stroke='%23000' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.tl-rich-text ul[data-type='taskList'] > li:nth-child(6n + 2) > label > span::before {
+	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-2.95 -3.81 33.53 33.53'%3E%3Cpath d='M 6.2504 0.4966 L 21.5032 -0.5973 Q 28.5032 -0.5973 28.5032 5.9027 L 27.5021 19.2322 Q 27.5021 25.7322 20.5021 25.7322 L 8.1299 26.0094 Q 1.1299 26.0094 1.1299 19.5094 L -0.7496 6.9966 Q -0.7496 0.4966 6.2504 0.4966 M 6.4494 0.8401 L 21.4457 0.4984 Q 28.4457 0.4984 28.4457 6.9984 L 28.2656 19.6803 Q 28.2656 26.1803 21.2656 26.1803 L 6.1284 26.511 Q -0.8716 26.511 -0.8716 20.011 L -0.5506 7.3401 Q -0.5506 0.8401 6.4494 0.8401' fill='none' stroke='%23000' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.tl-rich-text ul[data-type='taskList'] > li:nth-child(6n + 3) > label > span::before {
+	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-2.6 -3.86 33.53 33.53'%3E%3Cpath d='M 7.6462 0.7616 L 19.9118 0.0937 Q 26.9118 0.0937 26.9118 6.5937 L 27.233 19.5467 Q 27.233 26.0467 20.233 26.0467 L 7.4038 26.3203 Q 0.4038 26.3203 0.4038 19.8203 L 0.6462 7.2616 Q 0.6462 0.7616 7.6462 0.7616 M 7.1783 0.9003 L 20.1038 -0.5038 Q 27.1038 -0.5038 27.1038 5.9962 L 28.409 19.0812 Q 28.409 25.5812 21.409 25.5812 L 6.9218 26.062 Q -0.0782 26.062 -0.0782 19.562 L 0.1783 7.4003 Q 0.1783 0.9003 7.1783 0.9003' fill='none' stroke='%23000' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.tl-rich-text ul[data-type='taskList'] > li:nth-child(6n + 4) > label > span::before {
+	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-2.62 -3.36 33.53 33.53'%3E%3Cpath d='M 6.4356 0.5013 L 21.8359 0.6755 Q 28.8359 0.6755 28.8359 7.1755 L 28.1881 18.6065 Q 28.1881 25.1065 21.1881 25.1065 L 8.1605 25.8971 Q 1.1605 25.8971 1.1605 19.3971 L -0.5644 7.0013 Q -0.5644 0.5013 6.4356 0.5013 M 6.6292 0.531 L 22.1652 -0.0355 Q 29.1652 -0.0355 29.1652 6.4645 L 27.4982 20.3388 Q 27.4982 26.8388 20.4982 26.8388 L 6.1336 25.4065 Q -0.8664 25.4065 -0.8664 18.9065 L -0.3708 7.031 Q -0.3708 0.531 6.6292 0.531' fill='none' stroke='%23000' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.tl-rich-text ul[data-type='taskList'] > li:nth-child(6n + 5) > label > span::before {
+	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-2.58 -3.98 33.53 33.53'%3E%3Cpath d='M 7.4122 -1.0816 L 20.5836 -0.3961 Q 27.5836 -0.3961 27.5836 6.1039 L 28.6339 20.1467 Q 28.6339 26.6467 21.6339 26.6467 L 6.717 26.007 Q -0.283 26.007 -0.283 19.507 L 0.4122 5.4184 Q 0.4122 -1.0816 7.4122 -1.0816 M 7.8241 -0.7087 L 20.7916 0.2964 Q 27.7916 0.2964 27.7916 6.7964 L 27.0591 19.2197 Q 27.0591 25.7197 20.0591 25.7197 L 7.4822 26.3218 Q 0.4822 26.3218 0.4822 19.8218 L 0.8241 5.7913 Q 0.8241 -0.7087 7.8241 -0.7087' fill='none' stroke='%23000' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.tl-rich-text ul[data-type='taskList'] > li:nth-child(6n) > label > span::before {
+	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-2.94 -3.81 33.53 33.53'%3E%3Cpath d='M 6.1214 -0.381 L 21.2459 0.7554 Q 28.2459 0.7554 28.2459 7.2554 L 28.5419 18.8817 Q 28.5419 25.3817 21.5419 25.3817 L 8.1179 26.2372 Q 1.1179 26.2372 1.1179 19.7372 L -0.8786 6.119 Q -0.8786 -0.381 6.1214 -0.381 M 6.3687 -0.5776 L 21.2599 -0.5987 Q 28.2599 -0.5987 28.2599 5.9013 L 27.3476 19.5423 Q 27.3476 26.0423 20.3476 26.0423 L 6.1089 26.506 Q -0.8911 26.506 -0.8911 20.006 L -0.6313 5.9224 Q -0.6313 -0.5776 6.3687 -0.5776' fill='none' stroke='%23000' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 .tl-rich-text ul[data-type='taskList'] > li > label > input:checked + span::after {
