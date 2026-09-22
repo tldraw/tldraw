@@ -35,8 +35,23 @@ export const MCP_SERVER_INFO = {
 	version: '3.1.0',
 }
 
-export const MCP_SERVER_INSTRUCTIONS =
+/**
+ * What the handshake tells a model this server is for.
+ *
+ * Two versions, because `initialize` is read before any tool is called: told to "find a board by
+ * name" on a deployment that cannot, a model calls the listing tool and reads whatever comes back as
+ * matches. That is the same failure the tool definition already guards against, arriving one step
+ * earlier — see `getSearchBoardsToolDefinition`.
+ */
+export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
+	return nameMatchingEnabled ? SEARCHING_INSTRUCTIONS : LISTING_INSTRUCTIONS
+}
+
+const SEARCHING_INSTRUCTIONS =
 	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
+
+const LISTING_INSTRUCTIONS =
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
 
 export const SEARCH_BOARDS_TOOL_NAME = 'search_boards'
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
@@ -1028,7 +1043,7 @@ export async function handleMcpJsonRpc(
 					protocolVersion: MCP_PROTOCOL_VERSION,
 					capabilities: { tools: {} },
 					serverInfo: MCP_SERVER_INFO,
-					instructions: MCP_SERVER_INSTRUCTIONS,
+					instructions: getMcpServerInstructions(nameMatchingEnabled),
 				},
 			}
 		case 'ping':

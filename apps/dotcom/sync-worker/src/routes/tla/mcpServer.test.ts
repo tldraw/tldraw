@@ -14,7 +14,7 @@ import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFi
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import { authenticateMcpRequest } from './mcpAuth'
 import {
-	isMcpScreenshotEnabled,
+	isMcpServerEnabled,
 	normalizeMcpClient,
 	resetRateLimitFallbackForTests,
 	mcpServer,
@@ -395,20 +395,20 @@ describe('authentication', () => {
 	})
 })
 
-describe('MCP_SCREENSHOT_ENABLED', () => {
+describe('MCP_SERVER_ENABLED', () => {
 	// The switch is read per request rather than baked in at build time, so flipping the var takes
 	// the server down without a rebuild.
 	it('serves the server when unset or "true"', () => {
-		expect(isMcpScreenshotEnabled(makeEnv())).toBe(true)
-		expect(isMcpScreenshotEnabled(makeEnv({ MCP_SCREENSHOT_ENABLED: 'true' }))).toBe(true)
-		expect(isMcpScreenshotEnabled(makeEnv({ MCP_SCREENSHOT_ENABLED: ' TRUE ' }))).toBe(true)
+		expect(isMcpServerEnabled(makeEnv())).toBe(true)
+		expect(isMcpServerEnabled(makeEnv({ MCP_SERVER_ENABLED: 'true' }))).toBe(true)
+		expect(isMcpServerEnabled(makeEnv({ MCP_SERVER_ENABLED: ' TRUE ' }))).toBe(true)
 	})
 
 	// Anything unrecognized disables: someone reaching for the kill switch under pressure and typing
 	// `0` or `off` should get a disabled server, not a silently still-running one.
 	it('disables the server for "false" and for any unrecognized value', () => {
 		for (const value of ['false', '0', 'off', 'no', 'disabled']) {
-			expect(isMcpScreenshotEnabled(makeEnv({ MCP_SCREENSHOT_ENABLED: value }))).toBe(false)
+			expect(isMcpServerEnabled(makeEnv({ MCP_SERVER_ENABLED: value }))).toBe(false)
 		}
 	})
 
@@ -416,7 +416,7 @@ describe('MCP_SCREENSHOT_ENABLED', () => {
 		// A board that would otherwise render, so the untouched screenshot binding below means the
 		// switch stopped the request rather than the board simply not resolving.
 		mockPublishedBoard()
-		const env = makeEnv({ MCP_SCREENSHOT_ENABLED: 'false' })
+		const env = makeEnv({ MCP_SERVER_ENABLED: 'false' })
 
 		const response = await mcpServer(
 			makeToolCall(
@@ -437,7 +437,7 @@ describe('MCP_SCREENSHOT_ENABLED', () => {
 	it('hides the protocol handshake while disabled', async () => {
 		const response = await mcpServer(
 			makeRpcRequest('initialize', undefined, { userId: 'user_41' }),
-			makeEnv({ MCP_SCREENSHOT_ENABLED: 'false' })
+			makeEnv({ MCP_SERVER_ENABLED: 'false' })
 		)
 
 		expect(response.status).toBe(404)
@@ -644,6 +644,22 @@ describe('search_boards', () => {
 		const result = await callTool('search_boards', { cursor: 'not-a-cursor' })
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('cursor is not valid')
+	})
+
+	// initialize is read before any tool call, so instructions promising name search are acted on
+	// before the tool definition can correct them — the same failure one step earlier.
+	it('tells the handshake that name search is unavailable when it is', async () => {
+		const off = await rpcResult(
+			await mcpServer(
+				makeRpcRequest('initialize'),
+				makeEnv({ MCP_SEARCH_NAME_MATCHING_ENABLED: 'false' })
+			)
+		)
+		expect(off.instructions).toContain('not available on this deployment')
+		expect(off.instructions).not.toContain('find a board by name')
+
+		const on = await rpcResult(await mcpServer(makeRpcRequest('initialize'), makeEnv()))
+		expect(on.instructions).toContain('find a board by name')
 	})
 
 	// Production runs with name matching off while the unindexed ILIKE scan is being watched. The

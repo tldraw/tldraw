@@ -132,7 +132,7 @@ export interface Environment {
 	// than 'true' turns the endpoint off, so a typo fails in the safe direction. Editing this var in
 	// the Cloudflare dashboard takes the server down without a rebuild or a code deploy — but the
 	// next deploy restores the wrangler.toml value, so follow an emergency flip with a config change.
-	MCP_SCREENSHOT_ENABLED: string | undefined
+	MCP_SERVER_ENABLED: string | undefined
 	/**
 	 * Whether `search_boards` will match on board names. Unset means yes, so previews, local dev and
 	 * tests keep working; production sets it to "false" while the unindexed `ILIKE` scan it drives is
@@ -168,7 +168,7 @@ export function isDebugLogging(env: Environment) {
 
 /**
  * The word a boolean-ish env var holds: trimmed, lowercased, with unset and empty folded together.
- * Used by MCP_SCREENSHOT_ENABLED. Kept as a shared helper rather than inlined so a second
+ * Used by MCP_SERVER_ENABLED. Kept as a shared helper rather than inlined so a second
  * boolean-ish var cannot arrive parsing its value differently — each call site keeps its own
  * fail-safe direction, this owns what a value *is*.
  */
