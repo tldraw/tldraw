@@ -133,6 +133,12 @@ export interface Environment {
 	// the Cloudflare dashboard takes the server down without a rebuild or a code deploy — but the
 	// next deploy restores the wrangler.toml value, so follow an emergency flip with a config change.
 	MCP_SCREENSHOT_ENABLED: string | undefined
+	/**
+	 * Whether `search_boards` will match on board names. Unset means yes, so previews, local dev and
+	 * tests keep working; production sets it to "false" while the unindexed `ILIKE` scan it drives is
+	 * still being watched.
+	 */
+	MCP_SEARCH_NAME_MATCHING_ENABLED: string | undefined
 	// Origin serving the client thumbnail render page (THUMBNAIL_RENDER_PATH). Set per
 	// environment in wrangler.toml.
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined

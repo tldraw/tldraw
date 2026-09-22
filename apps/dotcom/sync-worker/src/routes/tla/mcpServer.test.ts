@@ -646,6 +646,44 @@ describe('search_boards', () => {
 		expect(result.content[0].text).toContain('cursor is not valid')
 	})
 
+	// Production runs with name matching off while the unindexed ILIKE scan is being watched. The
+	// terms have to be refused rather than dropped: a model that asked for "roadmap" and got this
+	// account's twenty most recent boards would read them as twenty matches.
+	it('refuses a name query when name matching is disabled', async () => {
+		vi.mocked(searchAccessibleBoards).mockResolvedValue([])
+		const env = makeEnv({ MCP_SEARCH_NAME_MATCHING_ENABLED: 'false' })
+		const result = await callTool('search_boards', { query: 'roadmap' }, env)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('not available on this deployment')
+		expect(searchAccessibleBoards).not.toHaveBeenCalled()
+	})
+
+	it('still lists boards when name matching is disabled', async () => {
+		vi.mocked(searchAccessibleBoards).mockResolvedValue([ROW])
+		const env = makeEnv({ MCP_SEARCH_NAME_MATCHING_ENABLED: 'false' })
+		const result = await callTool('search_boards', {}, env)
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text).boardCount).toBe(1)
+	})
+
+	// A query the caller must not send has no business in the schema — offer it and a model will use
+	// it, then be refused.
+	it('advertises no query argument when name matching is disabled', async () => {
+		const off = await rpcResult(
+			await mcpServer(
+				makeRpcRequest('tools/list'),
+				makeEnv({ MCP_SEARCH_NAME_MATCHING_ENABLED: 'false' })
+			)
+		)
+		const search = off.tools.find((tool: any) => tool.name === 'search_boards')
+		expect(Object.keys(search.inputSchema.properties)).toEqual(['cursor'])
+		expect(search.description).toContain('not available on this deployment')
+
+		const on = await rpcResult(await mcpServer(makeRpcRequest('tools/list'), makeEnv()))
+		const searchOn = on.tools.find((tool: any) => tool.name === 'search_boards')
+		expect(Object.keys(searchOn.inputSchema.properties)).toEqual(['query', 'cursor'])
+	})
+
 	// Matching nothing is a normal answer. Flagged as an error, a model retries it.
 	it('answers an empty search without isError', async () => {
 		vi.mocked(searchAccessibleBoards).mockResolvedValue([])

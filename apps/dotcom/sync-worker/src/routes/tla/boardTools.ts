@@ -142,12 +142,23 @@ export interface BoardSearchCursor {
 // why `arguments` being wire-optional never mattered before. Its own description tells a model to
 // omit the query to list its newest boards, so a call with no `arguments` key at all is a legitimate
 // "list my newest boards", not a malformed one, and must not hit `requireArgumentsObject(undefined)`.
-export function parseSearchBoardsInput(input: unknown): {
+export function parseSearchBoardsInput(
+	input: unknown,
+	nameMatchingEnabled = true
+): {
 	terms: string[]
 	cursor: BoardSearchCursor | null
 } {
 	const value = requireArgumentsObject(input ?? {})
 	const terms = parseSearchTerms(value.query)
+	// Refused, never quietly dropped. A model that asked for "roadmap" and got this account's twenty
+	// most recent boards would read them as twenty matches and act on one — worse than being told the
+	// search is unavailable, which it can recover from by listing instead.
+	if (terms.length && !nameMatchingEnabled) {
+		throw new Error(
+			'Searching by name is not available on this deployment. Omit the query to list boards instead.'
+		)
+	}
 	return { terms, cursor: parseBoardSearchCursor(value.cursor, terms) }
 }
 
@@ -786,9 +797,14 @@ function toReadableShape(shape: TLShapeWithPlainText) {
 
 // --- Tool definitions ---------------------------------------------------------------------------
 
-export function getToolDefinitions() {
+/**
+ * @param nameMatchingEnabled - Whether this deployment will match on board names. When it will not,
+ *   `search_boards` advertises no `query` argument and says so, rather than offering a search that
+ *   would be refused. Read from the environment by the route; this layer stays free of it.
+ */
+export function getToolDefinitions(nameMatchingEnabled: boolean) {
 	return [
-		getSearchBoardsToolDefinition(),
+		getSearchBoardsToolDefinition(nameMatchingEnabled),
 		getBoardInfoToolDefinition(),
 		getPageInfoToolDefinition(),
 		getClusterInfoToolDefinition(),
@@ -815,7 +831,36 @@ const READ_ONLY_ANNOTATIONS = {
 	destructiveHint: false,
 }
 
-function getSearchBoardsToolDefinition() {
+/**
+ * The same tool with name matching turned off: it lists, and takes no `query`.
+ *
+ * A separate definition rather than the other one with a sentence appended, because a `query` the
+ * caller must not send has no business in the schema — a model handed the argument will use it, and
+ * be refused. The scope, ordering and paging wording is the same, since none of that changes.
+ */
+function getListBoardsToolDefinition() {
+	return {
+		name: SEARCH_BOARDS_TOOL_NAME,
+		title: 'List tldraw boards',
+		description: `List tldraw.com boards this account can reach: the boards in its own workspace, the boards owned by the workspaces it belongs to, and the boards shared with it by link that it has opened. Searching by name is not available on this deployment, so this tool takes no query and lists boards in order instead. Results are ordered by addedAt — when a board joined this account's boards, which is when it was created for its own boards and when the share link was first opened for shared ones — so a board shared this morning leads the list however old it is. createdAt is when the board itself was made, and updatedAt when it last changed, by anyone. Each board's source says how you reach it: owned for your own, workspace for one owned by a workspace you belong to, and shared for one somebody sent you a link to. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId that get_board_info and the other tools take. If the result carries a nextCursor there are more boards: call again with that cursor to get the next page. An empty result is a normal result, not an error.`,
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				cursor: {
+					type: 'string',
+					description:
+						'The nextCursor from a previous result, to get the next page. Omit for the first page.',
+				},
+			},
+			required: [],
+		},
+		annotations: READ_ONLY_ANNOTATIONS,
+	} as const
+}
+
+function getSearchBoardsToolDefinition(nameMatchingEnabled: boolean) {
+	if (!nameMatchingEnabled) return getListBoardsToolDefinition()
 	return {
 		name: SEARCH_BOARDS_TOOL_NAME,
 		title: 'Search tldraw boards',
@@ -964,7 +1009,10 @@ export type McpReply =
  */
 export async function handleMcpJsonRpc(
 	rpcRequest: JsonRpcRequest,
-	callTool: (name: string, args: unknown) => Promise<ToolResult>
+	callTool: (name: string, args: unknown) => Promise<ToolResult>,
+	// Defaulted the way an unset MCP_SEARCH_NAME_MATCHING_ENABLED reads, so the eval harness and
+	// tests exercise the full tool unless they say otherwise.
+	nameMatchingEnabled = true
 ): Promise<McpReply> {
 	if (rpcRequest.id === undefined) {
 		return { kind: 'accepted' }
@@ -986,7 +1034,7 @@ export async function handleMcpJsonRpc(
 		case 'ping':
 			return { kind: 'result', id, result: {} }
 		case 'tools/list':
-			return { kind: 'result', id, result: { tools: getToolDefinitions() } }
+			return { kind: 'result', id, result: { tools: getToolDefinitions(nameMatchingEnabled) } }
 		case 'tools/call': {
 			const name = rpcRequest.params?.name
 			if (!name || !(TOOL_NAMES as readonly string[]).includes(name)) {

@@ -223,6 +223,19 @@ export function isMcpScreenshotEnabled(env: Environment) {
 	return word === undefined || word === 'true'
 }
 
+// Whether search_boards will match on board names. Same shape as the switch above, and the same
+// reason for its default: unset means enabled, so previews, local dev and tests keep working, while
+// a set value must say 'true' so a stray one turns matching off rather than leaving it on.
+//
+// It gates the one part of the search no index reaches — `name ILIKE '%term%'`, which reads every
+// board in the caller's scope when a term matches nothing. Turning it off does not silently drop the
+// terms: a query with them is refused, and the tool stops advertising `query` at all. Serving
+// unfiltered boards to a model that asked for "roadmap" would be read as twenty matches.
+export function isMcpSearchNameMatchingEnabled(env: Environment) {
+	const word = envFlagWord(env.MCP_SEARCH_NAME_MATCHING_ENABLED)
+	return word === undefined || word === 'true'
+}
+
 // --- MCP protocol telemetry ---
 
 // Known MCP client families, matched as case-insensitive substrings against the User-Agent header
@@ -420,7 +433,7 @@ export async function mcpServer(
 				rpcRequest.id,
 				withResultEnvelope(
 					{
-						tools: getToolDefinitions(),
+						tools: getToolDefinitions(isMcpSearchNameMatchingEnabled(env)),
 						...(era === 'modern'
 							? { ttlMs: TOOLS_LIST_TTL_MS, cacheScope: TOOLS_LIST_CACHE_SCOPE }
 							: {}),
@@ -622,7 +635,9 @@ async function callSearchBoardsTool(
 	userId: string,
 	ctx?: ExecutionContext
 ) {
-	const parsed = parseToolInput(() => parseSearchBoardsInput(argumentsValue))
+	const parsed = parseToolInput(() =>
+		parseSearchBoardsInput(argumentsValue, isMcpSearchNameMatchingEnabled(env))
+	)
 	if (!parsed.ok) return parsed.result
 	const input = parsed.input
 
