@@ -126,8 +126,9 @@ export const queries = defineQueries({
 	 * feeds the client merges ({@link homeBoardComments}, {@link threadStarterComments},
 	 * {@link threadParticipantComments}, {@link mentionComments}). Each takes someone else's live
 	 * comment on a board the user can currently access ({@link canAccessCommentFile}: opened it, or
-	 * a member of its workspace, home included) and adds one reason it concerns them. The gate is what keeps stale participation
-	 * out: having replied in a thread, or been mentioned, doesn't outlive losing access to the board.
+	 * a member of its workspace, home included) and adds one reason it concerns them. The gate is
+	 * what keeps stale participation out: having replied in a thread, or been mentioned, doesn't
+	 * outlive losing access to the board.
 	 *
 	 * One feed per reason rather than one query with an OR of reasons: a comment that qualifies only
 	 * once a later row lands (its `comment_mention` row is written after the comment itself) is
