@@ -52,8 +52,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		}
 
 		;(async () => {
-			// Nothing here reads the flags: the awaits only make sure the first per-user evaluation
-			// (rum_enabled for analytics) lands before the app mounts.
+			// Nothing here reads the flags. The awaits make sure the authenticated evaluation has
+			// replaced the anonymous one before the editor mounts: usePerformanceTracking fetches once
+			// and would otherwise inherit the pending anonymous request, with rum_enabled false.
 			await fetchFlagsWithTimeout()
 			if (!wasAuthenticated()) {
 				await fetchFlagsWithTimeout()
