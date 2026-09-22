@@ -2,7 +2,7 @@ import { safeParseUrl } from '@tldraw/utils'
 
 export interface ParsedFontFace {
 	fontFace: string
-	urls: { original: string; resolved: string | null; embedded?: Promise<string | null> }[]
+	urls: { original: string; resolved: string | null }[]
 	fontFamilies: Set<string>
 }
 
@@ -18,7 +18,7 @@ export interface ParsedFontFace {
 // Parse @import declarations:
 // https://developer.mozilla.org/en-US/docs/Web/CSS/@import#formal_syntax
 const importsRegex =
-	/@import\s+(?:"([^"]+)"|'([^']+)'|url\s*\(\s*(?:"([^"]+)"|'([^']+)'|([^'")]+))\s*\))([^;]+);/gi
+	/@import\s+(?:"([^"]+)"|'([^']+)'|url\s*\(\s*(?:"([^"]+)"|'([^']+)'|([^'")]+))\s*\))([^;]*);/gi
 
 // Locate @font-face declarations:
 const fontFaceRegex = /@font-face\s*{([^}]+)}/gi

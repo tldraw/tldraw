@@ -14,8 +14,9 @@ metadata:
   namespace: stacks-890472
 spec:
   annotations:
-    description: 'Daily cost has increased by {{ $value | humanizePercentage }} compared
-      to yesterday. Current cost increase: ${{ $value | humanize }}.'
+    description: 'The last completed day cost ${{ $value | humanize }}, more than
+      1.5x the day before. The cost metric updates once a day at about 03:00 UTC,
+      so this describes yesterday.'
     summary: Anthropic API daily cost spike detected.
   execErrState: Ok
   expressions:
@@ -53,9 +54,14 @@ spec:
         datasource:
           type: prometheus
           uid: grafanacloud-prom
-        expr: "(\n  sum(gen_ai_cost{job=~\"integrations/anthropic/.*\"}) \n  - \n
-          \ sum(gen_ai_cost{job=~\"integrations/anthropic/.*\"} offset 1d)\n) / sum(gen_ai_cost{job=~\"integrations/anthropic/.*\"}
-          offset 1d) > 0.5\n"
+        expr: |
+          (
+            sum(increase(gen_ai_cost{job=~"integrations/anthropic/.*"}[1d])) / 100
+            >
+            1.5 * sum(increase(gen_ai_cost{job=~"integrations/anthropic/.*"}[1d] offset 1d)) / 100
+          )
+          and
+          sum(increase(gen_ai_cost{job=~"integrations/anthropic/.*"}[1d])) / 100 > 50
         instant: true
         intervalMs: 1000
         maxDataPoints: 43200
@@ -103,7 +109,7 @@ spec:
   labels:
     __converted_prometheus_rule__: 'true'
     severity: warning
-  missingSeriesEvalsToResolve: 1
+  missingSeriesEvalsToResolve: 10
   noDataState: Ok
   title: AnthropicDailyCostSpike
   trigger:

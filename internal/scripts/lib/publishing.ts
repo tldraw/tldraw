@@ -150,7 +150,14 @@ export async function publish(distTag?: string) {
 
 	const publishOrder = topologicalSortPackages(packages)
 
+	// npm can take several minutes before a published version is readable. Waiting only
+	// on a package's own dependencies keeps a newly visible package installable, without
+	// making the run wait for every package's delay in turn.
+	const readable = new Map<string, Promise<void>>()
+
 	for (const packageDetails of publishOrder) {
+		await Promise.all(packageDetails.localDeps.map((dep) => readable.get(dep)))
+
 		const tag = distTag ?? parse(packageDetails.version)?.prerelease[0] ?? 'latest'
 		nicelog(
 			`Publishing ${packageDetails.name} with version ${packageDetails.version} under tag @${tag}`
@@ -189,12 +196,15 @@ export async function publish(distTag?: string) {
 						}
 					)
 				} catch (e) {
+					// A retry after a publish that actually landed is rejected as "published",
+					// or as "staged" (409) while npm is still processing the first attempt.
+					const lowerOutput = output.toLowerCase()
 					if (
-						output.includes('cannot publish over the previously published versions') ||
-						output.includes('You cannot publish over the previously published versions')
+						lowerOutput.includes('cannot publish over the previously published versions') ||
+						lowerOutput.includes('cannot publish over previously staged version')
 					) {
 						nicelog(
-							`[publish] ${packageDetails.name}@${packageDetails.version} already published, skipping`
+							`[publish] ${packageDetails.name}@${packageDetails.version} already published or staged, skipping`
 						)
 						return
 					}
@@ -211,27 +221,35 @@ export async function publish(distTag?: string) {
 			}
 		)
 
-		await retry(
-			async ({ attempt, total }) => {
-				nicelog('Waiting for package to be published... attempt', attempt, 'of', total)
-				// fetch the new package directly from the npm registry
-				const newVersion = packageDetails.version
-
-				const url = `https://registry.npmjs.org/${packageDetails.name}/${newVersion}`
-				nicelog('looking for package at url: ', url)
-				const res = await fetch(url, {
-					method: 'HEAD',
-				})
-				if (res.status >= 400) {
-					throw new Error(`Package not found: ${res.status}`)
-				}
-			},
-			{
-				delay: 10000,
-				numAttempts: 50,
-			}
-		)
+		const whenReadable = waitUntilReadable(packageDetails)
+		// Rejections surface when awaited below; without this, one arriving mid-loop would
+		// kill the process in the middle of another package's publish.
+		whenReadable.catch(() => {})
+		readable.set(packageDetails.name, whenReadable)
 	}
+
+	await Promise.all(readable.values())
+}
+
+function waitUntilReadable(packageDetails: PackageDetails) {
+	const url = `https://registry.npmjs.org/${packageDetails.name}/${packageDetails.version}`
+	return retry(
+		async ({ attempt, total }) => {
+			const res = await fetch(url, { method: 'HEAD' })
+			if (res.status >= 400) {
+				nicelog(
+					`[verify] ${packageDetails.name}@${packageDetails.version} not readable yet (${res.status}), attempt ${attempt + 1} of ${total}`
+				)
+				throw new Error(`Package not found: ${url} (${res.status})`)
+			}
+			nicelog(`[verify] ${packageDetails.name}@${packageDetails.version} is readable`)
+		},
+		{
+			delay: 10_000,
+			// 15 minutes; the slowest package took over 8 minutes in September 2026.
+			numAttempts: 90,
+		}
+	)
 }
 
 function retry(

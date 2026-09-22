@@ -668,7 +668,6 @@ export interface DebugFlagDefaults<T> {
 // @internal (undocumented)
 export const debugFlags: {
     readonly a11y: DebugFlag<boolean>;
-    readonly debugCursors: DebugFlag<boolean>;
     readonly debugElbowArrows: DebugFlag<boolean>;
     readonly debugGeometry: DebugFlag<boolean>;
     readonly debugSvg: DebugFlag<boolean>;
@@ -679,7 +678,6 @@ export const debugFlags: {
     readonly logPointerCaptures: DebugFlag<boolean>;
     readonly logPreventDefaults: DebugFlag<boolean>;
     readonly measurePerformance: DebugFlag<boolean>;
-    readonly reconnectOnPing: DebugFlag<boolean>;
     readonly showFps: DebugFlag<boolean>;
     readonly throwToBlob: DebugFlag<boolean>;
 };
@@ -706,7 +704,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX.Elemen
 export const DefaultCursor: MemoExoticComponent<({ className, zoom, point, color, name, chatMessage, }: TLCursorProps) => JSX.Element | null>;
 
 // @public (undocumented)
-export const DefaultErrorFallback: TLErrorFallbackComponent;
+export function DefaultErrorFallback({ error, editor }: TLErrorFallbackProps): JSX.Element;
 
 // @public (undocumented)
 export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX.Element;
@@ -715,7 +713,7 @@ export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX.Element;
 export const DefaultShapeWrapper: ForwardRefExoticComponent<TLShapeWrapperProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
-export function DefaultSpinner(props: React.SVGProps<SVGSVGElement>): JSX.Element;
+export function DefaultSpinner(props: TLSpinnerProps): JSX.Element;
 
 // @public (undocumented)
 export function DefaultSvgDefs(): null;
@@ -1210,6 +1208,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]): this;
     deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
+        isolateShapes?: boolean | undefined;
+    }): this;
+    // @internal
+    _deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
         isolateShapes?: boolean | undefined;
     }): this;
     deletePage(page: TLPage | TLPageId): this;
@@ -2105,7 +2107,7 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
-    transform(transform: Mat): Geometry2d;
+    transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d;
     // (undocumented)
     uninterpolateAlongEdge(point: VecLike, filters?: Geometry2dFilters): number;
 }
@@ -2446,6 +2448,7 @@ export class LicenseManager {
     constructor(licenseKey: string | undefined, testPublicKey?: string);
     // (undocumented)
     static className: string;
+    dispose(): void;
     // (undocumented)
     featureFlags: Atom<Record<LicenseFeatureName, boolean>, unknown>;
     // (undocumented)
@@ -2502,8 +2505,9 @@ export class LocalIndexedDb {
         sessionStateSnapshot: TLSessionStateSnapshot | undefined;
     }>;
     pending(): Promise<void>;
-    // (undocumented)
-    pruneSessions(): Promise<void>;
+    pruneSessions({ keepSessionId }?: {
+        keepSessionId?: string;
+    }): Promise<void>;
     // (undocumented)
     removeAssets(assetId: string[]): Promise<void>;
     // (undocumented)
@@ -3757,7 +3761,7 @@ export interface TLDragShapesOverInfo {
     initialParentIds: Map<TLShapeId, TLParentId>;
 }
 
-// @public (undocumented)
+// @public
 export const TldrawEditor: React_3.MemoExoticComponent<({ store, components, className, user: _user, options: _options, textOptions: _textOptions, deepLinks: _deepLinks, ...rest }: TldrawEditorProps) => JSX.Element>;
 
 // @public
@@ -3793,7 +3797,7 @@ export interface TldrawEditorBaseProps {
     user?: TLCurrentUser;
 }
 
-// @public
+// @public (undocumented)
 export type TldrawEditorProps = TldrawEditorBaseProps & TldrawEditorStoreProps;
 
 // @public (undocumented)
@@ -3965,7 +3969,7 @@ export interface TLEditorComponents {
     // (undocumented)
     ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null;
     // (undocumented)
-    Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null;
+    Spinner?: ComponentType<TLSpinnerProps> | null;
     // (undocumented)
     SvgDefs?: ComponentType | null;
 }
@@ -4078,10 +4082,13 @@ export interface TLErrorExternalContentSource {
 }
 
 // @public (undocumented)
-export type TLErrorFallbackComponent = ComponentType<{
+export type TLErrorFallbackComponent = ComponentType<TLErrorFallbackProps>;
+
+// @public (undocumented)
+export interface TLErrorFallbackProps {
     editor?: Editor;
     error: unknown;
-}>;
+}
 
 // @public (undocumented)
 export interface TLEventHandlers {
@@ -4755,6 +4762,9 @@ export interface TLShapeWrapperProps extends React.HTMLAttributes<HTMLDivElement
 }
 
 // @public (undocumented)
+export type TLSpinnerProps = React.SVGProps<SVGSVGElement>;
+
+// @public (undocumented)
 export interface TLStateNodeConstructor {
     // (undocumented)
     new (editor: Editor, parent?: StateNode): StateNode;
@@ -4948,6 +4958,7 @@ export interface TLUrlExternalAsset {
 
 // @public (undocumented)
 export interface TLUrlExternalContent extends TLBaseExternalContent {
+    shapeId?: TLShapeId;
     // (undocumented)
     type: 'url';
     // (undocumented)

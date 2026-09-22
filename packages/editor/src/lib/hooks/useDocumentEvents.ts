@@ -1,5 +1,5 @@
 import { useValue } from '@tldraw/state-react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Editor } from '../editor/Editor'
 import { TLKeyboardEventInfo } from '../editor/types/event-types'
 import { activeElementShouldCaptureKeys, preventDefault } from '../utils/dom'
@@ -13,6 +13,10 @@ export function useDocumentEvents() {
 
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId(), [editor])
 	const isAppFocused = useValue('isFocused', () => editor.getIsFocused(), [editor])
+
+	// `inputs.keys` only stores codes, but tools match `onKeyUp` on `info.key`, so the window
+	// blur release below needs the key remembered per code.
+	const heldKeysRef = useRef(new Map<string, string>())
 
 	// Prevent the browser's default drag and drop behavior on our container (UI, etc)
 	useEffect(() => {
@@ -212,6 +216,7 @@ export function useDocumentEvents() {
 				accelKey: isAccelKey(e),
 			}
 
+			heldKeysRef.current.set(e.code, e.key)
 			editor.dispatch(info)
 		}
 
@@ -239,6 +244,7 @@ export function useDocumentEvents() {
 				accelKey: isAccelKey(e),
 			}
 
+			heldKeysRef.current.delete(e.code)
 			editor.dispatch(info)
 		}
 
@@ -305,6 +311,36 @@ export function useDocumentEvents() {
 			container.removeEventListener('keyup', handleKeyUp)
 		}
 	}, [editor, container, isAppFocused, isEditing])
+
+	// Alt+Tab / Cmd+Tab away while holding a key delivers the keyup to the other app, so without
+	// this Space-panning (grab cursor, drags pan) stuck until the key was pressed again (#10442).
+	// Replaying a key_up per held key runs the normal release path, including tool onKeyUp.
+	useEffect(() => {
+		const win = editor.getContainerWindow()
+
+		const handleWindowBlur = () => {
+			const heldKeys = heldKeysRef.current
+			for (const code of [...editor.inputs.keys]) {
+				editor.dispatch({
+					type: 'keyboard',
+					name: 'key_up',
+					key: heldKeys.get(code) ?? code,
+					code,
+					shiftKey: false,
+					altKey: false,
+					ctrlKey: false,
+					metaKey: false,
+					accelKey: false,
+				})
+			}
+			heldKeys.clear()
+		}
+
+		win.addEventListener('blur', handleWindowBlur)
+		return () => {
+			win.removeEventListener('blur', handleWindowBlur)
+		}
+	}, [editor])
 }
 
 function areShortcutsDisabled(editor: Editor) {

@@ -1,4 +1,4 @@
-import { ClerkClient, createClerkClient, verifyToken } from '@clerk/backend'
+import { createClerkClient, SessionAuthObject, verifyToken } from '@clerk/backend'
 import { can } from '@tldraw/dotcom-shared'
 import { IRequest, StatusError } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
@@ -41,7 +41,7 @@ export async function getAuth(request: IRequest, env: Environment): Promise<Sign
 	const authorizedParties = getAuthorizedParties(env)
 
 	const state = await clerk.authenticateRequest(request, { authorizedParties })
-	if (state.isSignedIn) return state.toAuth() as SignedInAuth
+	if (state.isAuthenticated) return state.toAuth()
 
 	// we can't send headers with websockets, so for those connections we need to pass the token in
 	// the query string. `authenticateRequest` only works with headers/cookies though, so we need to
@@ -57,11 +57,11 @@ export async function getAuth(request: IRequest, env: Environment): Promise<Sign
 	}
 
 	const res = await clerk.authenticateRequest(cloned, { authorizedParties })
-	if (!res.isSignedIn) {
+	if (!res.isAuthenticated) {
 		return null
 	}
 
-	return res.toAuth() as SignedInAuth
+	return res.toAuth()
 }
 
 /**
@@ -106,9 +106,10 @@ export async function getZeroAuth(
 			// included. The `zero` template mints `purpose: 'zero'`; nothing else does.
 			const claims = await verifyToken(token, {
 				secretKey: env.CLERK_SECRET_KEY,
-				// holds the token to the same origin allowlist as a session token when it carries an
-				// `azp`; Clerk skips the check entirely on a token without one, so this narrows the
-				// door rather than closing it — the `purpose` check below is what actually gates.
+				// holds the token to the same origin allowlist as a session token. The template stamps
+				// `azp` as a default claim, and since @clerk/backend 3.11 a token without one is rejected
+				// outright when `authorizedParties` is set — but this says nothing about *which* template
+				// minted the token; the `purpose` check below is what gates.
 				authorizedParties: getAuthorizedParties(env),
 			})
 			if (claims.purpose !== ZERO_TOKEN_PURPOSE) {
@@ -124,75 +125,17 @@ export async function getZeroAuth(
 	return getAuth(request, env)
 }
 
-export type SignedInAuth = ReturnType<
-	Extract<Awaited<ReturnType<ClerkClient['authenticateRequest']>>, { isSignedIn: true }>['toAuth']
-> & { userId: string }
-
-export async function requireWriteAccessToFile(
-	request: IRequest,
-	env: Environment,
-	roomId: string
-) {
-	const auth = await requireAuth(request, env)
-
-	const db = createPostgresConnectionPool(env, 'sync-worker/hasWriteAccessToFile')
-
-	try {
-		const file = await db
-			.selectFrom('file')
-			.select('ownerId')
-			.select('owningGroupId')
-			.select('shared')
-			.select('sharedLinkType')
-			.where('id', '=', roomId)
-			.executeTakeFirst()
-
-		if (!file) {
-			throw new StatusError(404, 'File not found')
-		}
-
-		// If the user is the owner of the file, they have write access
-		if (file.ownerId === auth.userId) {
-			return
-		}
-
-		// If the file is owned by a group, check the user can access its files
-		if (file.owningGroupId) {
-			const role = await getRole(db, auth.userId, file.owningGroupId)
-			if (can(role, 'accessFiles')) {
-				return
-			}
-		}
-
-		// If the file is not shared, the user does not have write access
-		if (!file.shared) {
-			throw new StatusError(403, 'File is not shared')
-		}
-
-		// If the file is shared but not for editing, deny access
-		if (file.sharedLinkType !== 'edit') {
-			throw new StatusError(403, 'File is shared but not for editing')
-		}
-
-		// file is shared and for editing, allow access
-		return
-	} finally {
-		// Ensure database connection is properly closed
-		await db.destroy()
-	}
-}
+export type SignedInAuth = Extract<SessionAuthObject, { isAuthenticated: true }>
 
 /**
- * Whether a user may *view* a file: they own it, they can reach it through the group that owns it, or
- * it is shared via link — in which case `sharedLinkType` is irrelevant, since a link shared for
+ * Whether a user may *view* a file: they can reach it through the group that owns it, or it is
+ * shared via link — in which case `sharedLinkType` is irrelevant, since a link shared for
  * editing is also one that can be viewed.
  *
- * The read-side counterpart of `requireWriteAccessToFile`, which is the same three checks plus a
- * `sharedLinkType === 'edit'` requirement. Kept as a separate function rather than a parameter on
- * that one, because the two differ in how they answer as well as what they ask: this returns a
- * boolean where that throws a `StatusError` naming the reason. A caller that must not reveal whether
- * a file exists — the MCP server, where the caller supplies the id — cannot use a helper that
- * distinguishes 404 from 403 for it.
+ * The read-side counterpart of `hasWriteAccessToFile`, which is the same three checks plus a
+ * `sharedLinkType === 'edit'` requirement. Both answer with a boolean and never distinguish "no such
+ * file" from "not yours": a caller that supplies the id — the MCP server, the upload routes — must
+ * not be able to probe for existence.
  *
  * Says nothing about whether the file exists, is deleted, or is a test file: a missing file is simply
  * not accessible, and callers that need to tell those apart do so through their own resolution step.
@@ -217,7 +160,7 @@ export async function hasReadAccessToFile(
 	try {
 		const file = await db
 			.selectFrom('file')
-			.select(['id', 'ownerId', 'owningGroupId', 'shared', 'isDeleted'])
+			.select(['id', 'owningGroupId', 'shared', 'isDeleted'])
 			.where('id', '=', fileId)
 			.executeTakeFirst()
 
@@ -226,7 +169,6 @@ export async function hasReadAccessToFile(
 			ok: true,
 			file: { id: file.id, shared: file.shared, isDeleted: false },
 		} as const
-		if (file.ownerId === userId) return granted
 		if (file.owningGroupId) {
 			const role = await getRole(db, userId, file.owningGroupId)
 			if (can(role, 'accessFiles')) return granted

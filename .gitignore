@@ -38,6 +38,9 @@ dist-ssr
 
 coverage
 
+# vitest reports, attachments and blob output
+.vitest
+
 **/*.env
 **/*.tsbuildinfo
 
@@ -110,9 +113,9 @@ apps/docs/api
 
 .wrangler
 /vercel.json
-license-report-prod.html
-license-report.html
-license-report.md
+license-report*.html
+license-report*.md
+license-report*.pdf
 
 .bundle-meta.json
 .zed
