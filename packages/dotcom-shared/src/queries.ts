@@ -112,9 +112,9 @@ export const queries = defineQueries({
 	),
 
 	/**
-	 * Recent comments that concern the current user, for the app-level notifications feed, in three
-	 * feeds the client merges ({@link homeBoardComments}, {@link replyComments},
-	 * {@link mentionComments}). Each takes someone else's live comment on a board the user can
+	 * Recent comments that concern the current user, for the app-level notifications feed, in four
+	 * feeds the client merges ({@link homeBoardComments}, {@link threadStarterComments},
+	 * {@link threadParticipantComments}, {@link mentionComments}). Each takes someone else's live comment on a board the user can
 	 * currently access ({@link canAccessCommentFile}: opened it, or a member of its workspace, home
 	 * included) and adds one reason it concerns them. The gate is what keeps stale participation
 	 * out: having replied in a thread, or been mentioned, doesn't outlive losing access to the board.
@@ -146,19 +146,29 @@ export const queries = defineQueries({
 		)
 	),
 
-	/** A reply: in a thread the user started or has commented in. See {@link homeBoardComments}. */
-	replyComments: defineQuery(({ ctx }) =>
+	/**
+	 * A reply in a thread the user started. See {@link homeBoardComments}. Started and commented-in
+	 * are two feeds rather than one OR inside the thread subquery: with the OR, the planner's only
+	 * way to start from the caller's side is a walk of every comment_thread row, so the cost grew
+	 * with total thread volume. Each half has a seek: comment_thread(createdBy) and comment(authorId).
+	 */
+	threadStarterComments: defineQuery(({ ctx }) =>
+		withFeedRelations(
+			feedComments(ctx.userId).whereExists('thread', (t) => t.where('createdBy', '=', ctx.userId)),
+			ctx.userId
+		)
+	),
+
+	/**
+	 * A reply in a thread the user has commented in. See {@link threadStarterComments}. Live
+	 * comments only: soft-deleted rows persist, and deleting your last comment in a thread must
+	 * end the reply subscription with it.
+	 */
+	threadParticipantComments: defineQuery(({ ctx }) =>
 		withFeedRelations(
 			feedComments(ctx.userId).whereExists('thread', (t) =>
-				t.where(({ cmp, or, exists }) =>
-					or(
-						cmp('createdBy', '=', ctx.userId),
-						// live comments only: soft-deleted rows persist, and deleting your last comment
-						// in a thread must end the reply subscription with it
-						exists('comments', (c) =>
-							c.where('authorId', '=', ctx.userId).where('isDeleted', '=', false)
-						)
-					)
+				t.whereExists('comments', (c) =>
+					c.where('authorId', '=', ctx.userId).where('isDeleted', '=', false)
 				)
 			),
 			ctx.userId

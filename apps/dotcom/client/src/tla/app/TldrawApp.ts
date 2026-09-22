@@ -192,7 +192,12 @@ export class TldrawApp {
 	 * not just hide the UI that reads them.
 	 */
 	private readonly homeBoardComments$: Atom<QueryResultType<typeof queries.homeBoardComments>>
-	private readonly replyComments$: Atom<QueryResultType<typeof queries.replyComments>>
+	private readonly threadStarterComments$: Atom<
+		QueryResultType<typeof queries.threadStarterComments>
+	>
+	private readonly threadParticipantComments$: Atom<
+		QueryResultType<typeof queries.threadParticipantComments>
+	>
 	private readonly mentionComments$: Atom<QueryResultType<typeof queries.mentionComments>>
 	/** The feeds merged, deduped by comment id (a comment can qualify for several reasons). */
 	private readonly comments$: Signal<QueryResultType<typeof queries.homeBoardComments>>
@@ -374,12 +379,18 @@ export class TldrawApp {
 			queries.workspaceMemberships()
 		)
 		this.homeBoardComments$ = atom('home board comments signal', [], { isEqual })
-		this.replyComments$ = atom('reply comments signal', [], { isEqual })
+		this.threadStarterComments$ = atom('thread starter comments signal', [], { isEqual })
+		this.threadParticipantComments$ = atom('thread participant comments signal', [], { isEqual })
 		this.mentionComments$ = atom('mention comments signal', [], { isEqual })
 		this.comments$ = computed('comments signal', () => {
 			const seen = new Set<string>()
 			const merged: QueryResultType<typeof queries.homeBoardComments> = []
-			for (const feed of [this.homeBoardComments$, this.replyComments$, this.mentionComments$]) {
+			for (const feed of [
+				this.homeBoardComments$,
+				this.threadStarterComments$,
+				this.threadParticipantComments$,
+				this.mentionComments$,
+			]) {
 				for (const comment of feed.get()) {
 					if (seen.has(comment.id)) continue
 					seen.add(comment.id)
@@ -405,8 +416,16 @@ export class TldrawApp {
 			)
 		)
 		this.bindQuery(
-			this.replyComments$,
-			this.materializeQuery<QueryResultType<typeof queries.replyComments>>(queries.replyComments())
+			this.threadStarterComments$,
+			this.materializeQuery<QueryResultType<typeof queries.threadStarterComments>>(
+				queries.threadStarterComments()
+			)
+		)
+		this.bindQuery(
+			this.threadParticipantComments$,
+			this.materializeQuery<QueryResultType<typeof queries.threadParticipantComments>>(
+				queries.threadParticipantComments()
+			)
 		)
 		this.bindQuery(
 			this.mentionComments$,
