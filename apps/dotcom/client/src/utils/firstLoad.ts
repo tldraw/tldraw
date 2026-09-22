@@ -383,8 +383,8 @@ function paintTiming() {
 }
 
 /**
- * Sends the `first_load` event once, if this account is in the gate, and prints the same
- * table to the console so a load can be read without waiting for PostHog.
+ * Sends the `first_load` event once, if this account is in the gate. Staff accounts also get the
+ * same tables in the console so a load can be read without waiting for PostHog.
  */
 const SERVER_ECHO_DEADLINE_MS = 3000
 
@@ -395,14 +395,16 @@ export function reportFirstLoad(opts: {
 }) {
 	if (!shouldReportFirstLoad(opts)) return
 	// One report per load, so wait briefly for the server echo rather than dropping the srv_ fields.
+	const toConsole = isFirstLoadStaff(opts.email)
 	void firstLoad
 		.whenServerTimings(SERVER_ECHO_DEADLINE_MS)
-		.then((gotEcho) => sendFirstLoadReport(opts, gotEcho))
+		.then((gotEcho) => sendFirstLoadReport(opts, gotEcho, toConsole))
 }
 
 function sendFirstLoadReport(
 	opts: { trackEvent(name: string, data: Record<string, unknown>): void },
-	gotEcho: boolean
+	gotEcho: boolean,
+	toConsole: boolean
 ) {
 	const report = firstLoad.takeReport()
 	if (!report) return null
@@ -419,6 +421,7 @@ function sendFirstLoadReport(
 		...resources,
 	}
 	opts.trackEvent('first_load', event)
+	if (!toConsole) return event
 	const server = Object.fromEntries(Object.entries(event).filter(([k]) => k.startsWith('srv_')))
 	/* eslint-disable no-console */
 	console.log(`[first-load] ${report.load_id} total ${report.total_ms}ms`)
