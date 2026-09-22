@@ -37,16 +37,10 @@ import { clearLastVisitedFile, setLastVisitedFile } from '../../utils/local-sess
 
 type FileSyncStore = ReturnType<typeof useSync>
 
-interface FileSync {
-	store: FileSyncStore
-	/** `Date.now()` when the host mounted and the socket began connecting. */
-	startedAt: number
-}
+const FileSyncStoreContext = createContext<FileSyncStore | null>(null)
 
-const FileSyncContext = createContext<FileSync | null>(null)
-
-export function useFileSync(): FileSync {
-	return assertExists(useContext(FileSyncContext), 'TlaFileSyncHost is missing above')
+export function useFileSyncStore(): FileSyncStore {
+	return assertExists(useContext(FileSyncStoreContext), 'TlaFileSyncHost is missing above')
 }
 
 /** Set on the `/f/:slug` location state by the `/` redirect that came from the local cache. */
@@ -85,10 +79,8 @@ function isCachedFileGone(error: unknown) {
  * needs the app (the editor, session restore, slurping) mounts below, once it exists.
  */
 export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; children: ReactNode }) {
-	const startedAt = useRef(Date.now())
 	const user = useTldrawCurrentUser()
 	const userId = user?.id
-	const hasUser = !!user
 	const getUserToken = useEvent(async () => {
 		return (await user?.getToken()) ?? 'not-logged-in'
 	})
@@ -104,12 +96,12 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 			// Only the first connect belongs to the load; a reconnect carrying the id would make the
 			// server park and send an echo the client already has, and tag its timers as first-load.
 			if (!hasFirstLoadStep('sync-connected')) url.searchParams.set('loadId', getFirstLoadId())
-			if (hasUser) {
+			if (userId) {
 				url.searchParams.set('accessToken', await getUserToken())
 				markFirstLoad('sync-token-fetched')
 			}
 			return url.toString()
-		}, [fileSlug, hasUser, getUserToken]),
+		}, [fileSlug, userId, getUserToken]),
 		assets,
 		users,
 		// Register the opt-in `comment` record type so comment records sync through the file room.
@@ -124,8 +116,10 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		}, []),
 	})
 
+	const hasSynced = useRef(false)
 	useEffect(() => {
 		if (store.status !== 'synced-remote') return
+		hasSynced.current = true
 		markFirstLoad('sync-connected')
 		// Written only once the room accepted us, so the cache never points at a file this account
 		// cannot open.
@@ -136,10 +130,12 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	const location = useLocation()
 	// A cached id can be stale (file deleted, sharing revoked). Fall back to the Zero-derived
 	// choice on `/` without ever handing the errored store to the editor, which would throw it into
-	// the route error page. The flag lives in history state, so a reload of the same URL after the
-	// file is gone falls back too rather than showing "not found".
+	// the route error page. Only for a room that never accepted us: the flag lives in history
+	// state for as long as the user stays on this file, and losing access mid-session must show
+	// the error page like any other visit would. A reload after the file is gone falls back too.
 	const fallBackToRoot =
 		!!location.state?.[VIA_LAST_FILE_CACHE] &&
+		!hasSynced.current &&
 		store.status === 'error' &&
 		isCachedFileGone(store.error)
 	useEffect(() => {
@@ -148,9 +144,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		navigate(routes.tlaRoot(), { replace: true })
 	}, [fallBackToRoot, navigate])
 
-	const value = useMemo(() => ({ store, startedAt: startedAt.current }), [store])
-
 	if (fallBackToRoot) return null
 
-	return <FileSyncContext.Provider value={value}>{children}</FileSyncContext.Provider>
+	return <FileSyncStoreContext.Provider value={store}>{children}</FileSyncStoreContext.Provider>
 }

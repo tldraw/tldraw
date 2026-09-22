@@ -41,7 +41,7 @@ export function Component({ error }: { error?: unknown }) {
 	// view rather than a link follow, so it has to reach the editor on the anonymous path too.
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
-	if (!userId && !isAppLoading) {
+	if (!app && !isAppLoading) {
 		return (
 			// Override TlaEditor's internal ReadyWrapper. This prevents the anon layout chrome from rendering
 			// before the editor is ready.

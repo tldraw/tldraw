@@ -57,7 +57,7 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
-import { useFileSync } from './TlaFileSyncHost'
+import { useFileSyncStore } from './TlaFileSyncHost'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
@@ -149,10 +149,9 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		})
 	}, [hideAllShapes])
 
-	// Opened by TlaFileSyncHost, possibly before the app existed.
-	const { store, startedAt: syncStartedAt } = useFileSync()
+	const store = useFileSyncStore()
 
-	const trackRoomLoaded = useRoomLoadTracking(syncStartedAt)
+	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
 	const trackShareLinkOpen = useShareLinkOpenTracking()
 	const trackPerformance = usePerformanceTracking()

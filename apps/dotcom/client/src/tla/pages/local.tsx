@@ -17,7 +17,6 @@ import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { importFromUrl } from '../utils/importFromUrl'
 import { getLastVisitedFileId } from '../utils/local-session-state'
 import { clearRedirectOnSignIn } from '../utils/redirect'
-import { resolveRootRedirect } from '../utils/rootRedirect'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
 
@@ -29,30 +28,19 @@ export function Component() {
 	const location = useLocation()
 
 	// Signed in, Zero still preloading: go straight to the file this browser last synced to so its
-	// socket opens in parallel with the preload. Anything that needs the app waits for the effect
-	// below; a stale cached id is handled by the file page, which comes back here with it cleared.
+	// socket opens in parallel with the preload. Anything the app must handle (OAuth redirect,
+	// import, slurp) waits for the effect below, so the cache never preempts a file the user is
+	// mid-way through creating. A stale cached id comes back here from the file page, cleared.
 	useEffect(() => {
 		if (app || !isAppLoading || !userId) return
-		const decision = resolveRootRedirect({
-			redirectTo: getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT),
-			hasPendingImport: !!location.state?.importUrl,
-			shouldSlurp: !!getShouldSlurpFile(),
-			cachedFileId: getLastVisitedFileId(userId),
+		if (getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)) return
+		if (location.state?.importUrl || getShouldSlurpFile()) return
+		const cachedFileId = getLastVisitedFileId(userId)
+		if (!cachedFileId) return
+		navigate(routes.tlaFile(cachedFileId), {
+			replace: true,
+			state: { ...location.state, [VIA_LAST_FILE_CACHE]: true },
 		})
-		switch (decision.kind) {
-			case 'redirect-to':
-				clearRedirectOnSignIn()
-				navigate(decision.to, { replace: true })
-				return
-			case 'cached-file':
-				navigate(routes.tlaFile(decision.fileId), {
-					replace: true,
-					state: { ...location.state, [VIA_LAST_FILE_CACHE]: true },
-				})
-				return
-			case 'wait-for-app':
-				return
-		}
 	}, [app, isAppLoading, userId, navigate, location])
 
 	useEffect(() => {

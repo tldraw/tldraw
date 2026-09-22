@@ -242,9 +242,9 @@ function PutToastsInApp() {
 	return null
 }
 
-// Holds routes back until the app resolves, as the app state provider itself used to. The root
-// and file routes opt out: they open the file's sync socket while Zero is still preloading and
-// handle a null app themselves. Anything else calling `useApp()` would otherwise throw.
+// Holds routes back until the app resolves. The root and file routes opt out: they open the
+// file's sync socket while Zero is still preloading and handle a null app themselves. Anything
+// else calling `useApp()` would otherwise throw.
 function AppGate({ children }: { children: ReactNode }) {
 	const isAppLoading = useIsAppLoading()
 	const isRoot = useMatch(ROUTES.tlaRoot)
