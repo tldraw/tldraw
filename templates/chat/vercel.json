@@ -1,0 +1,6 @@
+{
+	"framework": "nextjs",
+	"installCommand": "yarn",
+	"buildCommand": "yarn run -T lazy build",
+	"ignoreCommand": "bash ../../internal/scripts/vercel/should-build-template.sh chat"
+}

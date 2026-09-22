@@ -1,4 +1,4 @@
-import { createShapeId, TLImageShape } from '@tldraw/editor'
+import { createShapeId, TLImageShape, TLSelectionHandle, TLShape } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { MIN_CROP_SIZE } from '../lib/shapes/shared/crop'
 import { defaultHandleOverlays, TestEditor } from './TestEditor'
@@ -1538,5 +1538,66 @@ describe('Cropping an image inside a rotated parent', () => {
 			topLeft: { x: 0.2525, y: 0.25 },
 			bottomRight: { x: 0.7525, y: 0.75 },
 		})
+	})
+})
+
+describe('When a second press in crop mode arrives as a double click', () => {
+	// TestEditor stubs the click manager, so the double_click 'down' it would report for a second
+	// press inside the double-click window is dispatched by hand
+	function pressAgain(
+		x: number,
+		y: number,
+		target: { target: 'selection'; handle: TLSelectionHandle } | { target: 'shape'; shape: TLShape }
+	) {
+		editor.pointerDown(x, y, target)
+		editor.dispatch({
+			type: 'click',
+			name: 'double_click',
+			phase: 'down',
+			point: { x, y },
+			pointerId: 1,
+			button: 0,
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+			...target,
+		})
+	}
+
+	it('still crops when a press on a crop handle becomes a drag instead of resetting the crop', () => {
+		editor.doubleClick(550, 550, ids.imageB).expectToBeIn('select.crop.idle')
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		editor.pointerDown(500, 600, { target: 'selection', handle: 'bottom' }).pointerUp()
+		editor.expectToBeIn('select.crop.idle')
+		pressAgain(500, 600, { target: 'selection', handle: 'bottom' })
+		editor.expectToBeIn('select.crop.pointing_crop_handle')
+		editor.pointerMove(510, 590)
+		editor.expectToBeIn('select.crop.cropping')
+		editor.pointerUp()
+
+		const after = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+		expect(after).not.toMatchObject(before)
+		expect(after.bottomRight.y).toBeLessThan(before.bottomRight.y)
+	})
+
+	it('still moves the crop when a press on the image becomes a drag', () => {
+		editor.doubleClick(550, 550, ids.imageB).expectToBeIn('select.crop.idle')
+		const shape = editor.getShape<TLImageShape>(ids.imageB)!
+		const before = shape.props.crop!
+
+		editor.pointerDown(550, 550, { target: 'shape', shape }).pointerUp()
+		editor.expectToBeIn('select.crop.idle')
+		pressAgain(550, 550, { target: 'shape', shape })
+		editor.expectToBeIn('select.crop.pointing_crop')
+		editor.pointerMove(500, 500)
+		editor.expectToBeIn('select.crop.translating_crop')
+		editor.pointerUp()
+
+		const after = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+		expect(after.topLeft.x).toBeGreaterThan(before.topLeft.x)
+		expect(after.topLeft.y).toBeGreaterThan(before.topLeft.y)
 	})
 })

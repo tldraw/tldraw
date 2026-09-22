@@ -87,6 +87,7 @@ This release is a broad reliability pass over the SDK. Shapes keep changes made 
 
 ### Editor
 
+- Fix keyboard shortcuts being unable to bind the `+` key (`cmd++` was silently dropped and rendered as a bare modifier) and `shift+<glyph>` shortcuts such as `shift+:` never firing when the browser reports `:` with shift held. ([#10512](https://github.com/tldraw/tldraw/pull/10512))
 - Fix undo after switching pages from the page menu or with Alt+arrow also reverting the edit made before the switch. Switching pages is now its own undo step, matching the "Go back" button on the move-to-page toast. ([#10472](https://github.com/tldraw/tldraw/pull/10472))
 - Fix `TldrawEditor` recreating the editor when it re-renders with inline nested `camera`, `deepLinks`, `text`, or `gridSteps` options. ([#10373](https://github.com/tldraw/tldraw/pull/10373))
 - Fix preserve-focus mode blurring the editor on canvas clicks. ([#10374](https://github.com/tldraw/tldraw/pull/10374))
