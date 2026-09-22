@@ -108,12 +108,12 @@ async function main() {
 			switch (env.TLDRAW_ENV) {
 				case 'production':
 					await exec('pnpm', ['package'], { pwd: EXTENSION_DIR })
-					await exec('pnpm', ['publish'], { pwd: EXTENSION_DIR })
+					await exec('pnpm', ['run', 'publish'], { pwd: EXTENSION_DIR })
 					await copyExtensionToReleaseFolder(version)
 					return
 				case 'staging':
 					await exec('pnpm', ['package', '--pre-release'], { pwd: EXTENSION_DIR })
-					await exec('pnpm', ['publish', '--pre-release'], { pwd: EXTENSION_DIR })
+					await exec('pnpm', ['run', 'publish', '--pre-release'], { pwd: EXTENSION_DIR })
 					return
 			}
 		} catch (err) {
