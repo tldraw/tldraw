@@ -167,11 +167,6 @@ function FeatureFlags() {
 					label={label}
 					flagValue={flagValue}
 					isSaving={isSaving}
-					onToggle={(enabled) => {
-						const action = enabled ? 'Enable' : 'Disable'
-						if (!window.confirm(`${action} "${flagName}"?`)) return
-						saveFlag(flagName, { enabled })
-					}}
 					implicitAccess={FLAG_IMPLICIT_ACCESS[flagName]}
 					onSetAllowEveryone={(allowEveryone) => {
 						if (
@@ -284,7 +279,6 @@ function AllowlistFlag({
 	flagValue,
 	isSaving,
 	implicitAccess,
-	onToggle,
 	onSaveEmails,
 	onSetAllowEveryone,
 }: {
@@ -293,7 +287,6 @@ function AllowlistFlag({
 	flagValue: AllowlistFeatureFlag
 	isSaving: boolean
 	implicitAccess: string | undefined
-	onToggle(enabled: boolean): void
 	onSaveEmails(emails: string[]): void
 	onSetAllowEveryone(allowEveryone: boolean): void
 }) {
@@ -328,25 +321,12 @@ function AllowlistFlag({
 		// flex item among many and shrinks to nothing beside the description.
 		<div className={`${styles.featureFlagItem} ${styles.featureFlagItemColumn}`}>
 			<div className={styles.featureFlagLabel}>
-				<label
-					htmlFor={flagName}
-					style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
-				>
-					<input
-						id={flagName}
-						type="checkbox"
-						checked={flagValue.enabled}
-						onChange={(e) => onToggle(e.target.checked)}
-						disabled={isSaving}
-						style={{ cursor: 'pointer' }}
-					/>
-					<span>
-						<strong>{label}</strong>
-					</span>
-				</label>
-				{/* A mode rather than a checkbox because the two are exclusive: "allow everyone" reads as
-				    something that stacks on the list, when it in fact replaces it. Naming the other
-				    option makes the list a mode you are *not* in rather than a thing silently ignored. */}
+				<span>
+					<strong>{label}</strong>
+				</span>
+				{/* No master toggle: an empty list already admits nobody, so an "off" beside it would be
+				    a second way to say the same thing — and on mcp_server_access it could not say it at
+				    all, since the staff bypass never consults this flag. The mode is the whole control. */}
 				<div
 					role="radiogroup"
 					aria-label={`${label} mode`}
@@ -368,7 +348,7 @@ function AllowlistFlag({
 								name={`${flagName}-mode`}
 								checked={(flagValue.allowEveryone === true) === mode.value}
 								onChange={() => onSetAllowEveryone(mode.value)}
-								disabled={isSaving || !flagValue.enabled}
+								disabled={isSaving}
 								style={{ cursor: 'pointer' }}
 							/>
 							<span>{mode.label}</span>
@@ -376,12 +356,9 @@ function AllowlistFlag({
 					))}
 					{implicitAccess && <span style={{ opacity: 0.7 }}>{implicitAccess}</span>}
 				</div>
-				<span className={!flagValue.enabled ? styles.featureFlagDisabled : ''}>
+				<span className={flagValue.allowEveryone === true ? styles.featureFlagDisabled : ''}>
 					{currentEmails.length} user(s)
 				</span>
-				{/* Editable while the flag is off, deliberately: an empty enabled allowlist admits nobody,
-				    so staging the list first and then enabling is the calm order. Requiring the flag on
-				    first forces the alarming one — enable for a list that is still empty, then fill it. */}
 				<AdminButton
 					onClick={() => onSaveEmails(parsed)}
 					variant="primary"
@@ -396,7 +373,7 @@ function AllowlistFlag({
 				disabled={isSaving}
 				className={styles.searchInput}
 				rows={4}
-				// The label above is spent on the checkbox, so the textarea names itself.
+				// The label above is not tied to a control, so the textarea names itself.
 				aria-label={`${label} allowlist, one email per line`}
 				aria-invalid={!!parseError}
 				placeholder={'One email per line, e.g. someone@tldraw.com'}

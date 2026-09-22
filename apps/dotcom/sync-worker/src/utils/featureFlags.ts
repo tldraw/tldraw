@@ -39,9 +39,8 @@ function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagVa
 			type: 'allowlist',
 			users: [],
 			allowEveryone: false,
-			enabled: false,
 			description:
-				'Who may drive the MCP server at /api/app/mcp. Off by default: the endpoint requires auth, so an unset flag denies everyone rather than leaving it open. Anyone with a verified @tldraw.com email is admitted whatever the list says. Allow all opens it to every signed-in account',
+				'Who may drive the MCP server at /api/app/mcp. The list starts empty, so an unconfigured flag names nobody. Anyone with a verified @tldraw.com email is admitted whatever the list says. Allow all opens it to every signed-in account',
 		},
 		version_chain: {
 			type: 'percentage',
@@ -133,18 +132,20 @@ export function evaluateFlagForUser(
 	flagName: string,
 	userId: string | null
 ): boolean {
-	if (!flag.enabled) return false
 	// Switched exhaustively rather than ending in a fall-through, so a fourth flag type is a compile
 	// error here instead of a flag that quietly evaluates true for everyone. The type itself can only
 	// be one the defaults table names — see getFeatureFlagValue.
 	switch (flag.type) {
 		case 'boolean':
-			// `enabled` is the whole evaluation, and it was checked above.
-			return true
+			// `enabled` is the whole evaluation.
+			return flag.enabled
 		case 'percentage':
+			if (!flag.enabled) return false
 			if (!userId) return false
 			return hashToPercentage(userId, flagName) < flag.percentage
 		case 'allowlist':
+			// No master toggle to check: an allowlist says who is on, and an empty one is the off state.
+			// A stored `enabled` from before that was true is therefore ignored rather than obeyed.
 			// An anonymous caller is never on a list of users. Stated rather than left to `some`, which
 			// would also be false but only by accident of `null` matching nobody.
 			if (!userId) return false
@@ -224,7 +225,7 @@ export async function isFeatureFlagEnabledForUser(
 export type FeatureFlagUpdate =
 	| { type: 'boolean'; enabled?: boolean }
 	| { type: 'percentage'; enabled?: boolean; percentage?: number }
-	| { type: 'allowlist'; enabled?: boolean; users?: AllowlistEntry[]; allowEveryone?: boolean }
+	| { type: 'allowlist'; users?: AllowlistEntry[]; allowEveryone?: boolean }
 
 /** Thrown when an update names a different type than the flag it addresses. */
 export class FeatureFlagTypeError extends Error {}
@@ -270,7 +271,6 @@ export async function setFeatureFlag(
 			const value = expectFlagType(flag, current, 'allowlist')
 			return put({
 				...value,
-				enabled: update.enabled ?? value.enabled,
 				// Replaces the list rather than merging into it, so removing someone is a normal save and
 				// not a separate operation the admin UI would have to model.
 				users: update.users ?? value.users,

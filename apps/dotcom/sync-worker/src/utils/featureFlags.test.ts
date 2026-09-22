@@ -179,8 +179,11 @@ describe('evaluateFlagForUser (allowlist)', () => {
 		expect(evaluateFlagForUser(flag(['user-1', 'user-2']), 'test', 'user-3')).toBe(false)
 	})
 
-	it('is off for everyone when the master toggle is off', () => {
-		expect(evaluateFlagForUser(flag(['user-1'], false), 'test', 'user-1')).toBe(false)
+	// Allowlists have no master toggle — the list is the control. Values stored while they did still
+	// carry `enabled`, and obeying a stale `false` would lock out a list that reads as granting.
+	it('ignores a stored enabled from before the toggle was removed', () => {
+		const stale = { ...flag(['user-1']), enabled: false } as any
+		expect(evaluateFlagForUser(stale, 'test', 'user-1')).toBe(true)
 	})
 
 	it('is off for an anonymous caller', () => {
@@ -478,9 +481,8 @@ describe('allowEveryone', () => {
 		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'not-on-the-list')).toBe(true)
 	})
 
-	// It is not a second master toggle: `enabled: false` still means off for everybody, so the two
-	// cannot be confused for one another.
-	it('does not revive a disabled flag', () => {
+	// Same as above from the other side: a stale `enabled: false` does not hold back allow all either.
+	it('admits everyone despite a stored enabled from before the toggle was removed', () => {
 		const flag = {
 			type: 'allowlist' as const,
 			users: [],
@@ -488,7 +490,7 @@ describe('allowEveryone', () => {
 			enabled: false,
 			description: '',
 		}
-		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'anyone')).toBe(false)
+		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'anyone')).toBe(true)
 	})
 
 	// Absent reads as false: a value stored before this field existed must not start admitting
