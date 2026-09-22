@@ -344,6 +344,10 @@ export function getFirstLoadId() {
 	return firstLoad.loadId
 }
 
+export function hasFirstLoadStep(step: FirstLoadStep) {
+	return firstLoad.getMarks()[step] !== undefined
+}
+
 function navigationTiming() {
 	const nav = performance.getEntriesByType('navigation')[0] as
 		| PerformanceNavigationTiming

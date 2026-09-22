@@ -40,6 +40,7 @@ import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import {
 	getFirstLoadId,
+	hasFirstLoadStep,
 	markFirstLoad,
 	reportFirstLoad,
 	setFirstLoadServerTimings,
@@ -303,7 +304,9 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
 			url.searchParams.set('v', CLIENT_BUILD_TIMESTAMP)
-			url.searchParams.set('loadId', getFirstLoadId())
+			// Only the first connect belongs to the load; a reconnect carrying the id would make the
+			// server park and send an echo the client already has, and tag its timers as first-load.
+			if (!hasFirstLoadStep('sync-connected')) url.searchParams.set('loadId', getFirstLoadId())
 			if (hasUser) {
 				url.searchParams.set('accessToken', await getUserToken())
 				markFirstLoad('sync-token-fetched')
