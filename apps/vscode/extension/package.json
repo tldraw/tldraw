@@ -137,7 +137,7 @@
 		"package": "pnpm build && tsx scripts/package.ts",
 		"publish": "tsx scripts/publish.ts",
 		"lint": "pnpm exec tsx ../../../internal/scripts/lint.ts",
-		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp & pnpm",
+		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp && pnpm install",
 		"test": "pnpm exec vitest --passWithNoTests",
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
 		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
