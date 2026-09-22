@@ -115,10 +115,15 @@ function notificationsButton(page: Page) {
 	return page.getByTestId('tla-notifications-button')
 }
 
+/** The open panel's list, opening it if needed: the bell toggles, so a second click would close it. */
 async function openNotifications(actor: DotcomActor): Promise<Locator> {
 	await actor.editor.ensureSidebarOpen()
-	await notificationsButton(actor.page).click()
-	return actor.page.locator('.tlui-cmt-list__item')
+	const list = actor.page.locator('.tlui-cmt-list')
+	if (!(await list.isVisible().catch(() => false))) {
+		await notificationsButton(actor.page).click()
+	}
+	await expect(list).toBeVisible()
+	return list.locator('.tlui-cmt-list__item')
 }
 
 async function closeNotifications(actor: DotcomActor) {
