@@ -7,10 +7,9 @@ export type FirstLoadServerTimings = Extract<TLCustomServerEvent, { type: 'first
  * Per-step timing for the first load of a page, from navigation start to the board being visible.
  *
  * Every step names the event that just completed, in past tense; its span is the time since the
- * previous step. Steps become `performance.mark`s (`tla:<step>`), labeled spans on a "First load"
- * track in the DevTools Performance panel, `t_<step>` / `d_<step>` properties on the `first_load`
- * analytics event, and console lines. The report sorts by
- * when each step actually happened, since route chunks load in parallel.
+ * previous step. Steps become `performance.mark`s (`tla:<step>`) and measures, `t_<step>` /
+ * `d_<step>` properties on the `first_load` analytics event, and console lines. The report sorts
+ * by when each step actually happened, since route chunks load in parallel.
  *
  * | step                 | the moment it marks                                                   |
  * |----------------------|-----------------------------------------------------------------------|
@@ -51,7 +50,6 @@ export type FirstLoadStep = (typeof FIRST_LOAD_STEPS)[number]
 export interface FirstLoadDeps {
 	now(): number
 	mark(name: string): void
-	/** A span from the previous step to this one; drawn as a labeled bar in the Performance panel. */
 	measure(step: FirstLoadStep, start: number, end: number): void
 	log(line: string): void
 	initialPath: string

@@ -429,8 +429,8 @@ export class TLFileDurableObject extends DurableObject {
 								const echo = this._pendingFirstLoadEchoes.get(sessionId)
 								if (echo) {
 									this._pendingFirstLoadEchoes.delete(sessionId)
-									// After the connect response, not before it: this hook runs prior to the
-									// send, and the client expects connect first.
+									// Deferred: this hook runs before the connect response goes out, and sending
+									// here would put the echo ahead of it on the wire.
 									setTimeout(() => room.sendCustomMessage(sessionId, echo), 0)
 								}
 							}
@@ -1032,7 +1032,6 @@ export class TLFileDurableObject extends DurableObject {
 		// now that those failures bubble instead of being swallowed. An uncaught throw here would
 		// 500 with the accepted server socket leaked in the hibernation set, so catch broadly and
 		// close it instead.
-		// Collected across the two try blocks for the first_load_server echo at the end.
 		const echoTimings: { auth?: number; fileRecord?: number } = {}
 		let auth: Awaited<ReturnType<typeof getAuth>>
 		try {
