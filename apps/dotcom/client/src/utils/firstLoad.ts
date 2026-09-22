@@ -396,28 +396,39 @@ export function reportFirstLoad(opts: {
 	if (!shouldReportFirstLoad(opts)) return
 	// One report per load, so wait briefly for the server echo rather than dropping the srv_ fields.
 	const toConsole = isFirstLoadStaff(opts.email)
+	// Snapshot the page-side numbers now: by the time the echo wait ends, images the board loads
+	// after it became visible would otherwise be counted as first-load resources.
+	const snapshot = {
+		entries: (performance.getEntriesByType('resource') as PerformanceResourceTiming[]).slice(),
+		nav: navigationTiming(),
+		paint: paintTiming(),
+	}
 	void firstLoad
 		.whenServerTimings(SERVER_ECHO_DEADLINE_MS)
-		.then((gotEcho) => sendFirstLoadReport(opts, gotEcho, toConsole))
+		.then((gotEcho) => sendFirstLoadReport(opts, gotEcho, toConsole, snapshot))
 }
 
 function sendFirstLoadReport(
 	opts: { trackEvent(name: string, data: Record<string, unknown>): void },
 	gotEcho: boolean,
-	toConsole: boolean
+	toConsole: boolean,
+	snapshot: {
+		entries: PerformanceResourceTiming[]
+		nav: ReturnType<typeof navigationTiming>
+		paint: ReturnType<typeof paintTiming>
+	}
 ) {
 	const report = firstLoad.takeReport()
 	if (!report) return null
-	const entries = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
-	const resources = summarizeResources(entries)
+	const resources = summarizeResources(snapshot.entries)
 	const { steps, ...flat } = report
 	const event = {
 		...flat,
 		// false = deadline passed with no echo, which separates a slow server from a rejected id
 		srv_echo: gotEcho,
-		...initServerTiming(entries),
-		...navigationTiming(),
-		...paintTiming(),
+		...initServerTiming(snapshot.entries),
+		...snapshot.nav,
+		...snapshot.paint,
 		...resources,
 	}
 	opts.trackEvent('first_load', event)
