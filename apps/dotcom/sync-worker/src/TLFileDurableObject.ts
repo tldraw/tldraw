@@ -481,8 +481,10 @@ export class TLFileDurableObject extends DurableObject {
 				.catch((error) => {
 					// Never cache a rejection: the condition may heal, and a cached rejection
 					// makes every later retry fail instantly.
-					if (this._room === promise) this._room = null
-					this.dropBootTimings()
+					if (this._room === promise) {
+						this._room = null
+						this.dropBootTimings()
+					}
 					this.setBootStage(null)
 					throw error
 				})
