@@ -174,6 +174,35 @@ describe('server timings', () => {
 		expect(tracker.buildReport()).not.toHaveProperty('srv_total_ms')
 	})
 
+	it('resolves the wait as soon as the echo lands, or at the deadline without it', async () => {
+		vi.useFakeTimers()
+		try {
+			const { deps } = makeDeps()
+			const tracker = createFirstLoadTracker(deps)
+			const early = vi.fn()
+			void tracker.whenServerTimings(3000).then(early)
+			tracker.setServerTimings({
+				type: 'first_load_server',
+				loadId: tracker.loadId,
+				cold: false,
+				auth_ms: 1,
+				get_room_ms: 1,
+				total_ms: 1,
+			})
+			await vi.advanceTimersByTimeAsync(0)
+			expect(early).toHaveBeenCalledWith(true)
+
+			const late = vi.fn()
+			void createFirstLoadTracker(makeDeps().deps).whenServerTimings(3000).then(late)
+			await vi.advanceTimersByTimeAsync(2999)
+			expect(late).not.toHaveBeenCalled()
+			await vi.advanceTimersByTimeAsync(1)
+			expect(late).toHaveBeenCalledWith(false)
+		} finally {
+			vi.useRealTimers()
+		}
+	})
+
 	it('reads the init request duration from its Server-Timing entry', () => {
 		const entries = [
 			{

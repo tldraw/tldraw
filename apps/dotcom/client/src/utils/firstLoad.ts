@@ -79,6 +79,7 @@ export function createFirstLoadTracker(deps: FirstLoadDeps) {
 	let lastT = 0
 	let reported = false
 	let server: FirstLoadServerTimings | null = null
+	const serverWaiters: Array<() => void> = []
 	// Live lines are buffered until enableLiveLog(): the gate (a @tldraw.com account) is only
 	// known once Clerk has loaded, well after the first steps.
 	let live = false
@@ -142,10 +143,26 @@ export function createFirstLoadTracker(deps: FirstLoadDeps) {
 	function setServerTimings(msg: FirstLoadServerTimings) {
 		if (msg.loadId !== loadId) return
 		server = msg
+		for (const wake of serverWaiters.splice(0)) wake()
 		say(
 			`[first-load] server: ${msg.cold ? 'cold' : 'warm'} room, request ${msg.total_ms}ms` +
 				(msg.boot_total_ms !== undefined ? `, boot ${msg.boot_total_ms}ms` : '')
 		)
+	}
+
+	/**
+	 * Resolves true once the sync server's echo is in, or false at the deadline. The echo is sent
+	 * just after the connect handshake, so on a warm load it can trail board-visible by a few ms.
+	 */
+	function whenServerTimings(timeoutMs: number): Promise<boolean> {
+		if (server) return Promise.resolve(true)
+		return new Promise((resolve) => {
+			const timer = setTimeout(() => resolve(false), timeoutMs)
+			serverWaiters.push(() => {
+				clearTimeout(timer)
+				resolve(true)
+			})
+		})
 	}
 
 	/** Start printing steps as they happen, after replaying the ones already recorded. */
@@ -168,6 +185,7 @@ export function createFirstLoadTracker(deps: FirstLoadDeps) {
 		buildReport,
 		takeReport,
 		setServerTimings,
+		whenServerTimings,
 		enableLiveLog,
 	}
 }
@@ -347,12 +365,21 @@ function paintTiming() {
  * Sends the `first_load` event once, if this account is in the gate, and prints the same
  * table to the console so a load can be read without waiting for PostHog.
  */
+const SERVER_ECHO_DEADLINE_MS = 3000
+
 export function reportFirstLoad(opts: {
 	email: string | null | undefined
 	flagEnabled: boolean
 	trackEvent(name: string, data: Record<string, unknown>): void
 }) {
-	if (!shouldReportFirstLoad(opts)) return null
+	if (!shouldReportFirstLoad(opts)) return
+	// One report per load, so wait briefly for the server echo rather than dropping the srv_ fields.
+	void firstLoad.whenServerTimings(SERVER_ECHO_DEADLINE_MS).then(() => sendFirstLoadReport(opts))
+}
+
+function sendFirstLoadReport(opts: {
+	trackEvent(name: string, data: Record<string, unknown>): void
+}) {
 	const report = firstLoad.takeReport()
 	if (!report) return null
 	const entries = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
