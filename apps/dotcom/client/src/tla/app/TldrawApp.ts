@@ -185,13 +185,18 @@ export class TldrawApp {
 		QueryResultType<typeof queries.workspaceMemberships>
 	>
 	/**
-	 * Empty until {@link startNotificationFeeds} subscribes it, and forever when commenting is
-	 * disabled for this user: the notifications feed is the most expensive query in the schema
-	 * (nested EXISTS over comment/thread/file/group), so a closed flag has to keep it off the wire
-	 * entirely, not just hide the UI that reads it.
+	 * The three comment feeds (one per reason — see `homeBoardComments` in dotcom-shared), each
+	 * empty until {@link startNotificationFeeds} subscribes it, and forever when commenting is
+	 * disabled for this user: these are the most expensive queries in the schema (nested EXISTS
+	 * over comment/thread/file/group), so a closed flag has to keep them off the wire entirely,
+	 * not just hide the UI that reads them.
 	 */
-	private readonly comments$: Atom<QueryResultType<typeof queries.comments>>
-	/** Like {@link comments$}. */
+	private readonly homeBoardComments$: Atom<QueryResultType<typeof queries.homeBoardComments>>
+	private readonly replyComments$: Atom<QueryResultType<typeof queries.replyComments>>
+	private readonly mentionComments$: Atom<QueryResultType<typeof queries.mentionComments>>
+	/** The feeds merged, deduped by comment id (a comment can qualify for several reasons). */
+	private readonly comments$: Signal<QueryResultType<typeof queries.homeBoardComments>>
+	/** Like the comment feeds. */
 	private readonly reactions$: Atom<QueryResultType<typeof queries.reactions>>
 
 	/** Whether this user gets the commenting UI — see {@link shouldEnableCommenting}. */
@@ -368,7 +373,21 @@ export class TldrawApp {
 			'workspace memberships signal',
 			queries.workspaceMemberships()
 		)
-		this.comments$ = atom('comments signal', [], { isEqual })
+		this.homeBoardComments$ = atom('home board comments signal', [], { isEqual })
+		this.replyComments$ = atom('reply comments signal', [], { isEqual })
+		this.mentionComments$ = atom('mention comments signal', [], { isEqual })
+		this.comments$ = computed('comments signal', () => {
+			const seen = new Set<string>()
+			const merged: QueryResultType<typeof queries.homeBoardComments> = []
+			for (const feed of [this.homeBoardComments$, this.replyComments$, this.mentionComments$]) {
+				for (const comment of feed.get()) {
+					if (seen.has(comment.id)) continue
+					seen.add(comment.id)
+					merged.push(comment)
+				}
+			}
+			return merged
+		})
 		this.reactions$ = atom('reactions signal', [], { isEqual })
 	}
 
@@ -380,8 +399,20 @@ export class TldrawApp {
 	startNotificationFeeds() {
 		if (!this.isCommentingEnabled) return
 		this.bindQuery(
-			this.comments$,
-			this.materializeQuery<QueryResultType<typeof queries.comments>>(queries.comments())
+			this.homeBoardComments$,
+			this.materializeQuery<QueryResultType<typeof queries.homeBoardComments>>(
+				queries.homeBoardComments()
+			)
+		)
+		this.bindQuery(
+			this.replyComments$,
+			this.materializeQuery<QueryResultType<typeof queries.replyComments>>(queries.replyComments())
+		)
+		this.bindQuery(
+			this.mentionComments$,
+			this.materializeQuery<QueryResultType<typeof queries.mentionComments>>(
+				queries.mentionComments()
+			)
 		)
 		this.bindQuery(
 			this.reactions$,
@@ -390,11 +421,11 @@ export class TldrawApp {
 	}
 
 	/**
-	 * Recent comments across the user's files, for the notifications feed (bounded, cross-file).
-	 * Empty until {@link startNotificationFeeds}, and when commenting is disabled for this user —
-	 * the query isn't subscribed at all.
+	 * Recent comments across the user's files, for the notifications feed (bounded per reason,
+	 * cross-file, unordered). Empty until {@link startNotificationFeeds}, and when commenting is
+	 * disabled for this user — the queries aren't subscribed at all.
 	 */
-	getComments(): QueryResultType<typeof queries.comments> {
+	getComments(): QueryResultType<typeof queries.homeBoardComments> {
 		return this.comments$.get()
 	}
 

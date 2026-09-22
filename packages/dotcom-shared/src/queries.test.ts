@@ -69,8 +69,10 @@ describe('feed query shape', () => {
 	// accessGateDepth. A query that reaches `file` more than one hop from its root is the shape
 	// that took production down, however small the table it is rooted at.
 	it.each([
-		['comments', {}, 1],
-		// reactions no longer consults `file` at all: the gate reads file_state / group_file directly
+		['homeBoardComments', {}, 1],
+		// these gate on file_state / group_file directly and never consult `file` in their where
+		['replyComments', {}, 0],
+		['mentionComments', {}, 0],
 		['reactions', {}, 0],
 		['fileComments', { fileId: 'file:1' }, 1],
 	])('keeps the file access gate one hop from the root: %s', (name, args, depth) => {
@@ -83,28 +85,26 @@ describe('feed query shape', () => {
 	// each notification category. That is the shape Zero's planner can flip: start from the
 	// caller's own file_state / group_user rows and join comments in, so reads scale with the
 	// caller's data instead of every comment in the database (tldraw-internal#2032).
-	it.each([['comments'], ['reactions']])(
-		'gates access directly on the comment fileId, once, at the root: %s',
+	//
+	// It must also be the only OR at the root. With an OR of notification reasons, zero 1.9's
+	// union fan-in (used once the planner flips a branch) drops a comment that qualifies only when
+	// a later row lands, such as its comment_mention row, so mentions reached the feed only on
+	// reload. One feed per reason keeps every root a plain AND chain.
+	it.each([['homeBoardComments'], ['replyComments'], ['mentionComments'], ['reactions']])(
+		'gates access directly on the comment fileId, once, at the root, with no other OR: %s',
 		(name) => {
 			const ast = astOf(name as keyof typeof queries)
 			expect(accessGateDepth(ast, 'file_state')).toBe(1)
 			expect(accessGateDepth(ast, 'group_file')).toBe(1)
 			expect(ast.where.type).toBe('and')
-			const gates = ast.where.conditions.filter(
-				(c: any) =>
-					c.type === 'or' &&
-					c.conditions.every(
-						(b: any) =>
-							b.type === 'correlatedSubquery' &&
-							['file_state', 'group_file'].includes(b.related.subquery.table)
-					)
-			)
-			expect(gates).toHaveLength(1)
-			// the categories don't re-check access: `file` is only consulted for its own columns
-			const fileGates = ast.where.conditions.flatMap((c: any) =>
-				c.type === 'or' ? c.conditions : [c]
-			)
-			for (const c of fileGates) {
+			const ors = ast.where.conditions.filter((c: any) => c.type === 'or')
+			expect(ors).toHaveLength(1)
+			expect(ors[0].conditions.map((b: any) => [b.type, b.related?.subquery.table])).toEqual([
+				['correlatedSubquery', 'file_state'],
+				['correlatedSubquery', 'group_file'],
+			])
+			// the reasons don't re-check access: `file` is only consulted for its own columns
+			for (const c of ast.where.conditions) {
 				if (c.type === 'correlatedSubquery' && c.related.subquery.table === 'file') {
 					expect(accessGateDepth(c.related.subquery, 'file_state')).toBe(0)
 					expect(accessGateDepth(c.related.subquery, 'group_file')).toBe(0)
@@ -116,7 +116,9 @@ describe('feed query shape', () => {
 	// Over the limit the planner doesn't run at all and the query runs verbatim, comment-first,
 	// so the cheap gate above is worthless (tldraw-internal#2032)
 	it.each([
-		['comments', {}],
+		['homeBoardComments', {}],
+		['replyComments', {}],
+		['mentionComments', {}],
 		['reactions', {}],
 		['fileComments', { fileId: 'file:1' }],
 	])('stays within the planner EXISTS limit: %s', (name, args) => {
