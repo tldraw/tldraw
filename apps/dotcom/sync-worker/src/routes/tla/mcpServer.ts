@@ -14,7 +14,6 @@ import {
 import { Environment, envFlagWord } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
-import { getFeatureFlagValue } from '../../utils/featureFlags'
 import { sha256 } from '../../utils/hash'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
@@ -215,22 +214,6 @@ interface JsonRpcRequest {
 	}
 }
 
-/**
- * The kill switch for the whole MCP server, read per request from the `mcp_server_enabled` flag.
- *
- * A flag rather than a wrangler var so it can be flipped from the admin panel during an incident
- * instead of waiting on a deploy — which is most of what a kill switch is for. The cost is that KV
- * is eventually consistent, so a flip reaches every location in tens of seconds rather than at once.
- *
- * It defaults on, and a failed read lands on that default (see `getFeatureFlagValue`). That is the
- * only sane direction: a switch that trips when its own storage is briefly unavailable would take
- * the product down for a fault that has nothing to do with it.
- */
-export async function isMcpServerEnabled(env: Environment) {
-	const flag = await getFeatureFlagValue(env, 'mcp_server_enabled')
-	return flag.enabled
-}
-
 // Whether search_boards will match on board names. Same shape as the switch above, and the same
 // reason for its default: unset means enabled, so previews, local dev and tests keep working, while
 // a set value must say 'true' so a stray one turns matching off rather than leaving it on.
@@ -355,12 +338,6 @@ export async function mcpServer(
 	env: Environment,
 	ctx?: ExecutionContext
 ): Promise<Response> {
-	// Checked before anything else, including the method check, so a disabled server looks like it
-	// isn't there at all rather than like a route that exists but rejects everything.
-	if (!(await isMcpServerEnabled(env))) {
-		return new Response('Not Found', { status: 404 })
-	}
-
 	// new MCP spec (2026-07-28 onwards) no longer allows get or delete requests
 	if (request.method !== 'POST') {
 		return new Response('MCP screenshot server expects POST', { status: 405 })

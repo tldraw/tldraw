@@ -441,7 +441,6 @@ describe('getAllFeatureFlagValues', () => {
 			'commenting_enabled',
 			'first_load_rum',
 			'mcp_server_access',
-			'mcp_server_enabled',
 			'rum_enabled',
 			'version_chain',
 			'version_chain_legacy_writes',

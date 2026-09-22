@@ -410,8 +410,8 @@
 	margin-top: 8px;
 }
 
-/* Separates the MCP server's own flags — the kill switch and who is let through it — from the rest,
-   which are unrelated to each other and to it. */
+/* Separates the MCP server's access flag from the rest, which are unrelated to it and to each
+   other. */
 .featureFlagsDivider {
 	border: none;
 	border-top: 1px solid var(--color-divider, #e8e8e8);

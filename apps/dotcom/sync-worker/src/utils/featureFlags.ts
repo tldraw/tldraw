@@ -35,15 +35,6 @@ function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagVa
 			description:
 				'Commenting on files (tool, pins, threads, sidebar, notifications). Users with a @tldraw.com email always have it, regardless of this flag',
 		},
-		mcp_server_enabled: {
-			type: 'boolean',
-			// On unless somebody turns it off. A KV read that fails lands on this default, and the
-			// failure direction has to be "the server keeps working" — a kill switch that trips on its
-			// own storage being unavailable takes the product down for an unrelated fault.
-			enabled: true,
-			description:
-				'MCP server kill switch. Off takes /api/app/mcp down for everyone, allowlist and @tldraw.com included, without a deploy',
-		},
 		mcp_server_access: {
 			type: 'allowlist',
 			users: [],

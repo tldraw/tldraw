@@ -16,14 +16,13 @@ const FLAG_TYPE_ORDER: FeatureFlagValue['type'][] = ['boolean', 'percentage', 'a
 // capability toggle; it is the switch that takes the whole server down, and somebody reaching for it
 // under pressure should not have to infer that.
 const FLAG_LABELS: Record<string, string> = {
-	mcp_server_enabled: 'MCP server kill switch',
 	mcp_server_access: 'MCP server access',
 }
 
-// Rendered as their own group, above the rest. They gate a single product surface and are operated
-// together — the kill switch and who is let through it — so they read badly interleaved
-// alphabetically with commenting and version chains.
-const MCP_FLAGS = ['mcp_server_enabled', 'mcp_server_access']
+// Rendered above the rest rather than interleaved alphabetically with commenting and version
+// chains: this is the one flag that decides whether an outside caller can drive the product at all,
+// and it is the one an operator comes to this page to find.
+const MCP_FLAGS = ['mcp_server_access']
 
 function flagLabel(flagName: string) {
 	return (
