@@ -379,8 +379,14 @@ export class TldrawApp {
 	 */
 	startNotificationFeeds() {
 		if (!this.isCommentingEnabled) return
-		this.bindQuery(this.comments$, this.z.materialize(queries.comments()) as any)
-		this.bindQuery(this.reactions$, this.z.materialize(queries.reactions()) as any)
+		this.bindQuery(
+			this.comments$,
+			this.materializeQuery<QueryResultType<typeof queries.comments>>(queries.comments())
+		)
+		this.bindQuery(
+			this.reactions$,
+			this.materializeQuery<QueryResultType<typeof queries.reactions>>(queries.reactions())
+		)
 	}
 
 	/**
