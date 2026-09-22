@@ -214,9 +214,9 @@ interface JsonRpcRequest {
 	}
 }
 
-// Whether search_boards will match on board names. Same shape as the switch above, and the same
-// reason for its default: unset means enabled, so previews, local dev and tests keep working, while
-// a set value must say 'true' so a stray one turns matching off rather than leaving it on.
+// Whether search_boards will match on board names. Unset means enabled, so previews, local dev and
+// tests keep working, while a set value must say 'true' so a stray one turns matching off rather
+// than leaving it on.
 //
 // It gates the one part of the search no index reaches — `name ILIKE '%term%'`, which reads every
 // board in the caller's scope when a term matches nothing. Turning it off does not silently drop the
