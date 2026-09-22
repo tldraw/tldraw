@@ -210,11 +210,30 @@ export function shouldReportFirstLoad({
 }
 
 const kb = (bytes: number) => Math.round(bytes / 1024)
-const shortName = (url: string) =>
-	url
-		.replace(/^https?:\/\//, '')
-		.replace(/\?.*$/, '')
-		.replace(/^www\.tldraw\.com\//, '')
+
+/**
+ * What the report may call a resource. Our own build assets and the app's API/auth hosts are
+ * named by path; anything else, notably user uploads on tldrawusercontent.com whose keys carry the
+ * original filename, collapses to its host so no user content reaches analytics.
+ */
+function shortName(url: string) {
+	let parsed: URL
+	try {
+		parsed = new URL(url)
+	} catch {
+		return 'unknown'
+	}
+	const { host, pathname } = parsed
+	const isOwnApp =
+		host === 'www.tldraw.com' || host === 'tldraw.com' || host.startsWith('localhost')
+	if (isOwnApp && (pathname.startsWith('/assets/') || pathname.startsWith('/api/'))) {
+		return pathname.replace(/^\//, '').replace(/\/user_[^/]+/, '/user_x')
+	}
+	if (host.startsWith('clerk.') || host.endsWith('.clerk.accounts.dev')) {
+		return `${host}${pathname.replace(/\/sess_[^/]+/, '/sess_x')}`
+	}
+	return host
+}
 
 export function summarizeResources(entries: readonly PerformanceResourceTiming[]) {
 	let total = 0

@@ -284,6 +284,20 @@ describe('summarizeResources', () => {
 		})
 	})
 
+	it('never names a user-content asset, only its host', () => {
+		const summary = summarizeResources([
+			entry('https://www.tldraw.com/assets/index-abc.js', { transferSize: 10 * 1024 }),
+			entry(
+				'https://tldrawusercontent.com/cdn-cgi/image/format=auto/yU-ezq-xjZQ8dJfgUkaGV-Screenshot-2025-08-29-at-10-26-30-png',
+				{ initiatorType: 'img', transferSize: 900 * 1024, duration: 4000 }
+			),
+			entry('https://clerk.tldraw.com/v1/client', { initiatorType: 'fetch', duration: 250 }),
+		])
+		expect(summary.res_largest).toBe('tldrawusercontent.com')
+		expect(summary.res_slowest).toBe('tldrawusercontent.com')
+		expect(JSON.stringify(summary)).not.toContain('Screenshot')
+	})
+
 	it('handles an empty list', () => {
 		expect(summarizeResources([])).toMatchObject({ res_count: 0, res_kb: 0, clerk_script_ms: null })
 	})
