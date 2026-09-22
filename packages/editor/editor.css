@@ -887,8 +887,8 @@ input,
 .tl-rich-text ul[data-type='taskList'] > li > label > span {
 	position: relative;
 	display: block;
-	width: 0.95em;
-	height: 0.95em;
+	width: 1.08em;
+	height: 1.08em;
 }
 
 /**
@@ -906,7 +906,8 @@ input,
 .tl-rich-text ul[data-type='taskList'] > li > label > span::before {
 	content: '';
 	position: absolute;
-	inset: 0;
+	/* Drawn smaller than the span: the tick needs the room above and to the right to break out. */
+	inset: 20% 4% 0 0;
 	background-color: currentColor;
 	mask-size: 100% 100%;
 	mask-repeat: no-repeat;
@@ -939,10 +940,11 @@ input,
 .tl-rich-text ul[data-type='taskList'] > li > label > input:checked + span::after {
 	content: '';
 	position: absolute;
-	/* Bigger than the box, so the tick overshoots its top corner and crosses the bottom edge. */
-	inset: -0.13em -0.24em -0.02em 0.14em;
+	/* Placed against the box rather than the span: the tip clears its top edge by about a quarter
+	   of the box's height and stops just short of its right edge. */
+	inset: 4% 7% 27% 32%;
 	background-color: currentColor;
-	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-3.39 -5.05 36.5 35.65'%3E%3Cpath d='M2.69,12.93 t4.7,5.96 4.69,5.96 a3.57,3.57 0 0 1 -5.66,4.36 t-4.55,-6.07 -4.56,-6.07 a3.39,3.39 0 0 1 5.38,-4.14 ZM7.1,24.18 t.79,-.58 10.12,-13.98 9.33,-13.39 a3.2,3.2 0 0 1 5.32,3.54 t-4.43,6.79 -9.44,14.13 -6.2,8.28 -1.19,.91 a3.57,3.57 0 0 1 -4.3,-5.7 Z' fill='%23000'/%3E%3C/svg%3E");
+	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-3.29 -17.7 24.09 27.72'%3E%3Cpath d='M2.1,-2.73 t3.82,3.1 3.82,3.11 a3.64,3.64 0 0 1 -4.41,5.8 t-3.71,-3.27 -3.72,-3.28 a3.45,3.45 0 0 1 4.2,-5.46 ZM4.11,5.13 t1.42,-4.26 4.91,-10.45 3.49,-6.19 a3.65,3.65 0 0 1 6.48,3.36 t-2.27,3.91 -3.86,7.17 -2.45,6.11 -.87,2.85 a3.64,3.64 0 0 1 -6.85,-2.5 Z' fill='%23000'/%3E%3C/svg%3E");
 	mask-size: 100% 100%;
 	mask-repeat: no-repeat;
 }
