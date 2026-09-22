@@ -186,10 +186,10 @@ export class TldrawApp {
 	>
 	/**
 	 * The comment feeds (one per reason for a notification — see `homeBoardComments` in
-	 * dotcom-shared), each empty until {@link startNotificationFeeds} subscribes it, and forever when commenting is
-	 * disabled for this user: these are the most expensive queries in the schema (nested EXISTS
-	 * over comment/thread/file/group), so a closed flag has to keep them off the wire entirely,
-	 * not just hide the UI that reads them.
+	 * dotcom-shared), each empty until {@link startNotificationFeeds} subscribes it, and forever
+	 * when commenting is disabled for this user: these are the most expensive queries in the
+	 * schema (nested EXISTS over comment/thread/file/group), so a closed flag has to keep them off
+	 * the wire entirely, not just hide the UI that reads them.
 	 */
 	private readonly homeBoardComments$: Atom<QueryResultType<typeof queries.homeBoardComments>>
 	private readonly threadStarterComments$: Atom<
