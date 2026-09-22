@@ -38,6 +38,27 @@ export function accessGateDepth(ast: any, table: string): number {
 	return deepest
 }
 
+/**
+ * Zero's planner refuses to plan a query with more EXISTS checks than this (MAX_FLIPPABLE_JOINS in
+ * zql/src/planner/planner-graph.ts, 2^n candidate plans) and runs it exactly as written. Counted
+ * over the whole root `where` tree, nested subqueries included.
+ */
+const MAX_PLANNABLE_EXISTS = 9
+
+export function countExists(ast: any): number {
+	let n = 0
+	const visit = (condition: any) => {
+		if (!condition || typeof condition !== 'object') return
+		if (condition.type === 'correlatedSubquery' && condition.related?.subquery) {
+			n++
+			visit(condition.related.subquery.where)
+		}
+		for (const nested of condition.conditions ?? []) visit(nested)
+	}
+	visit(ast.where)
+	return n
+}
+
 function astOf(name: keyof typeof queries, args: object = {}) {
 	const query = (queries as any)[name].fn({ ctx, args })
 	return JSON.parse(JSON.stringify(query.ast ?? query))
@@ -53,7 +74,55 @@ describe('feed query shape', () => {
 		['fileComments', { fileId: 'file:1' }],
 	])('keeps the file access gate one hop from the root: %s', (name, args) => {
 		const ast = astOf(name as keyof typeof queries, args)
-		expect(accessGateDepth(ast, 'file')).toBe(1)
+		expect(accessGateDepth(ast, 'file')).toBeLessThanOrEqual(1)
+	})
+
+	// The gate has to sit on relations correlated straight on the comment's fileId (file_state,
+	// group_file) — not behind `file` — and as one top-level conjunct rather than repeated inside
+	// each notification category. That is the shape Zero's planner can flip: start from the
+	// caller's own file_state / group_user rows and join comments in, so reads scale with the
+	// caller's data instead of every comment in the database (tldraw-internal#2032: 9.9k rows
+	// read to sync 51).
+	it.each([['comments'], ['reactions']])(
+		'gates access directly on the comment fileId, once, at the root: %s',
+		(name) => {
+			const ast = astOf(name as keyof typeof queries)
+			expect(accessGateDepth(ast, 'file_state')).toBe(1)
+			expect(accessGateDepth(ast, 'group_file')).toBe(1)
+			expect(ast.where.type).toBe('and')
+			const gates = ast.where.conditions.filter(
+				(c: any) =>
+					c.type === 'or' &&
+					c.conditions.every(
+						(b: any) =>
+							b.type === 'correlatedSubquery' &&
+							['file_state', 'group_file'].includes(b.related.subquery.table)
+					)
+			)
+			expect(gates).toHaveLength(1)
+			// the categories don't re-check access: `file` is only consulted for its own columns
+			const fileGates = ast.where.conditions.flatMap((c: any) =>
+				c.type === 'or' ? c.conditions : [c]
+			)
+			for (const c of fileGates) {
+				if (c.type === 'correlatedSubquery' && c.related.subquery.table === 'file') {
+					expect(accessGateDepth(c.related.subquery, 'file_state')).toBe(0)
+					expect(accessGateDepth(c.related.subquery, 'group_file')).toBe(0)
+				}
+			}
+		}
+	)
+
+	// Over the limit the planner doesn't run at all, and the cheap gate above is worthless: the
+	// pre-fix `comments` query had 13 and was executed verbatim, comment-first (tldraw-internal#2032)
+	it.each([
+		['comments', {}],
+		['reactions', {}],
+		['fileComments', { fileId: 'file:1' }],
+	])('stays within the planner EXISTS limit: %s', (name, args) => {
+		expect(countExists(astOf(name as keyof typeof queries, args))).toBeLessThanOrEqual(
+			MAX_PLANNABLE_EXISTS
+		)
 	})
 
 	it('roots the reactions feed at comment, not comment_reaction', () => {

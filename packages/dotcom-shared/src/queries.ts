@@ -1,4 +1,9 @@
-import { createBuilder, defineQueriesWithType, defineQueryWithType, Query } from '@rocicorp/zero'
+import {
+	createBuilder,
+	defineQueriesWithType,
+	defineQueryWithType,
+	ExpressionBuilder,
+} from '@rocicorp/zero'
 import { schema, TlaSchema } from './tlaSchema'
 
 const zql = createBuilder(schema)
@@ -15,19 +20,23 @@ const defineQuery = defineQueryWithType<TlaSchema, ZeroContext>()
 const defineQueries = defineQueriesWithType<TlaSchema>()
 
 /**
- * The file-access gate: the user has opened the file (has a file_state) or belongs to a workspace
- * it's in. Ownership is checked separately by callers. Always applied directly under `exists('file')`
- * from the query root — see the depth note on the `reactions` query.
+ * The file-access gate for comment-rooted queries: the caller has opened the comment's file
+ * (file_state) or is in a workspace it belongs to (group_file → group_user; a home board's owner is
+ * a member of their home group). Correlated straight on the comment's fileId, not via `file`, and
+ * applied once at the root, so Zero's planner can flip it and start from the caller's own rows.
+ * Behind `file` and repeated per category the query held 13 EXISTS, over the planner's limit of 9
+ * (MAX_FLIPPABLE_JOINS): it ran unplanned, comment-first, reading 9.9k rows to sync 51
+ * (tldraw-internal#2032). Each EXISTS also doubles the plans costed per hydration.
  */
-const canAccessFile = (userId: string) => (file: Query<'file', TlaSchema>) =>
-	file.where(({ or, exists }) =>
+const canAccessCommentFile =
+	(userId: string) =>
+	({ or, exists }: ExpressionBuilder<'comment', TlaSchema>) =>
 		or(
-			exists('states', (s) => s.where('userId', '=', userId)),
+			exists('fileStates', (s) => s.where('userId', '=', userId)),
 			exists('groupFiles', (gf) =>
 				gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', userId))
 			)
 		)
-	)
 
 /** Upper bound on the comments notifications feed, so the synced set stays finite as files accrue. */
 const RECENT_COMMENTS_LIMIT = 50
@@ -99,36 +108,31 @@ export const queries = defineQueries({
 			// soft-deleted comments and comments of soft-deleted threads stay in Postgres (see
 			// TLComment.isDeleted) but must never surface as notifications
 			.where('isDeleted', '=', false)
+			// access first and once — see canAccessCommentFile. Every category needs it: a home
+			// board's owner is a member of their home group, so the group path covers that too.
+			// It also covers soft-deleted boards without a separate `file.isDeleted` check: deleting
+			// a file drops its file_state and group_file rows (cleanup_deleted_file, migration 023)
+			.where(canAccessCommentFile(ctx.userId))
 			.whereExists('thread', (t) => t.where('isDeleted', '=', false))
-			// same for soft-deleted boards: their comment rows persist, but a notification would
-			// navigate to a file the user can no longer open
-			.whereExists('file', (f) => f.where('isDeleted', '=', false))
-			.where(({ and, or, exists }) =>
+			.where(({ or, exists }) =>
 				or(
 					// on a board in the user's own home workspace (home group id === user id)
 					exists('file', (f) => f.where('owningGroupId', '=', ctx.userId)),
-					// a reply: in a thread the user started or has commented in, on a file they
-					// can still access
-					and(
-						exists('thread', (t) =>
-							t.where(({ cmp, or, exists }) =>
-								or(
-									cmp('createdBy', '=', ctx.userId),
-									// live comments only: soft-deleted rows persist, and deleting your
-									// last comment in a thread must end the reply subscription with it
-									exists('comments', (c) =>
-										c.where('authorId', '=', ctx.userId).where('isDeleted', '=', false)
-									)
+					// a reply: in a thread the user started or has commented in
+					exists('thread', (t) =>
+						t.where(({ cmp, or, exists }) =>
+							or(
+								cmp('createdBy', '=', ctx.userId),
+								// live comments only: soft-deleted rows persist, and deleting your
+								// last comment in a thread must end the reply subscription with it
+								exists('comments', (c) =>
+									c.where('authorId', '=', ctx.userId).where('isDeleted', '=', false)
 								)
 							)
-						),
-						exists('file', canAccessFile(ctx.userId))
+						)
 					),
-					// @-mentions the user, on a file they can access (opened it, or workspace member)
-					and(
-						exists('mentions', (m) => m.where('userId', '=', ctx.userId)),
-						exists('file', canAccessFile(ctx.userId))
-					)
+					// @-mentions the user
+					exists('mentions', (m) => m.where('userId', '=', ctx.userId))
 				)
 			)
 			.related('file', (file) => file.one())
@@ -181,25 +185,12 @@ export const queries = defineQueries({
 			// never surface as notifications, same as in `comments`
 			.where('isDeleted', '=', false)
 			.whereExists('thread', (t) => t.where('isDeleted', '=', false))
-			.whereExists('file', (f) => f.where('isDeleted', '=', false))
 			// somebody else reacted — the entry's whole reason for existing. Without this the feed
 			// would sync the caller's most recent comments whether or not anyone reacted
 			.whereExists('reactions', (r) => r.where('userId', '!=', ctx.userId))
-			// having authored a comment doesn't outlive access to the board it's on
-			.where(({ or, exists }) =>
-				or(
-					exists('file', (f) =>
-						f.where(({ or, exists }) =>
-							or(
-								exists('states', (s) => s.where('userId', '=', ctx.userId)),
-								exists('groupFiles', (gf) =>
-									gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
-								)
-							)
-						)
-					)
-				)
-			)
+			// having authored a comment doesn't outlive access to the board it's on; soft-deleted
+			// boards drop out here too, as in `comments`
+			.where(canAccessCommentFile(ctx.userId))
 			.related('file', (file) => file.one())
 			.related('thread', (thread) => thread.one())
 			.related('read', (read) => read.where('userId', '=', ctx.userId).one())

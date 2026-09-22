@@ -185,13 +185,14 @@ export class TldrawApp {
 		QueryResultType<typeof queries.workspaceMemberships>
 	>
 	/**
-	 * Null when commenting is disabled for this user: the notifications feed is the most expensive
-	 * query in the schema (nested EXISTS over comment/thread/file/group), so a closed flag has to
-	 * keep it off the wire entirely, not just hide the UI that reads it.
+	 * Empty until {@link startNotificationFeeds} subscribes it, and forever when commenting is
+	 * disabled for this user: the notifications feed is the most expensive query in the schema
+	 * (nested EXISTS over comment/thread/file/group), so a closed flag has to keep it off the wire
+	 * entirely, not just hide the UI that reads it.
 	 */
-	private readonly comments$: Signal<QueryResultType<typeof queries.comments>> | null
-	/** Null when commenting is disabled for this user, like {@link comments$}. */
-	private readonly reactions$: Signal<QueryResultType<typeof queries.reactions>> | null
+	private readonly comments$: Atom<QueryResultType<typeof queries.comments>>
+	/** Like {@link comments$}. */
+	private readonly reactions$: Atom<QueryResultType<typeof queries.reactions>>
 
 	/** Whether this user gets the commenting UI — see {@link shouldEnableCommenting}. */
 	readonly isCommentingEnabled: boolean
@@ -215,6 +216,15 @@ export class TldrawApp {
 			destroy(): void
 		}
 		const val$ = atom(name, view.data, { isEqual })
+		this.bindQuery(val$, view)
+		return val$
+	}
+
+	/** Feed a materialized Zero view into an atom for its lifetime, batched like every other signal. */
+	private bindQuery<TReturn>(
+		val$: Atom<TReturn>,
+		view: { addListener(cb: (data: TReturn) => void): () => void; destroy(): void }
+	) {
 		view.addListener((res) => {
 			this.changes.set(val$, structuredClone(res))
 			if (!this.changesFlushed) {
@@ -234,7 +244,6 @@ export class TldrawApp {
 		this.disposables.push(() => {
 			view.destroy()
 		})
-		return val$
 	}
 
 	toasts: TLUiToastsContextType | null = null
@@ -359,29 +368,37 @@ export class TldrawApp {
 			'workspace memberships signal',
 			queries.workspaceMemberships()
 		)
-		this.comments$ = this.isCommentingEnabled
-			? this.signalizeQuery('comments signal', queries.comments())
-			: null
-		this.reactions$ = this.isCommentingEnabled
-			? this.signalizeQuery('reactions signal', queries.reactions())
-			: null
+		this.comments$ = atom('comments signal', [], { isEqual })
+		this.reactions$ = atom('reactions signal', [], { isEqual })
+	}
+
+	/**
+	 * Subscribe the notifications feeds. Called once {@link preload} has resolved rather than from
+	 * the constructor: nothing awaits these, but a query the view-syncer is hydrating still
+	 * delays the bootstrap queries the app does wait on (tldraw-internal#2032).
+	 */
+	startNotificationFeeds() {
+		if (!this.isCommentingEnabled) return
+		this.bindQuery(this.comments$, this.z.materialize(queries.comments()) as any)
+		this.bindQuery(this.reactions$, this.z.materialize(queries.reactions()) as any)
 	}
 
 	/**
 	 * Recent comments across the user's files, for the notifications feed (bounded, cross-file).
-	 * Empty when commenting is disabled for this user — the query isn't subscribed at all.
+	 * Empty until {@link startNotificationFeeds}, and when commenting is disabled for this user —
+	 * the query isn't subscribed at all.
 	 */
 	getComments(): QueryResultType<typeof queries.comments> {
-		return this.comments$?.get() ?? []
+		return this.comments$.get()
 	}
 
 	/**
 	 * Recent reactions to the user's comments across their files, for the notifications feed
-	 * (bounded, cross-file). Empty when commenting is disabled for this user — the query isn't
-	 * subscribed at all.
+	 * (bounded, cross-file). Empty until {@link startNotificationFeeds}, and when commenting is
+	 * disabled for this user — the query isn't subscribed at all.
 	 */
 	getReactions(): QueryResultType<typeof queries.reactions> {
-		return this.reactions$?.get() ?? []
+		return this.reactions$.get()
 	}
 
 	/**
@@ -1105,6 +1122,7 @@ export class TldrawApp {
 			app.dispose()
 			throw e
 		}
+		app.startNotificationFeeds()
 		const user = app.getUser()
 		if (user.color === '___INIT___') {
 			app.updateUser({

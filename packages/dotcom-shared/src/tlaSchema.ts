@@ -351,6 +351,20 @@ const commentRelationships = relationships(comment, ({ one, many }) => ({
 		destField: ['commentId', 'fileId'],
 		destSchema: comment_reaction,
 	}),
+	// the file's access rows, correlated straight on fileId rather than through `file`, so the
+	// feed queries can gate access one hop from the root — Zero's planner then starts from the
+	// caller's own file_state / group_user rows instead of scanning every comment (see the
+	// `comments` query). Never synced as related row sets: only used under whereExists
+	fileStates: many({
+		sourceField: ['fileId'],
+		destField: ['fileId'],
+		destSchema: file_state,
+	}),
+	groupFiles: many({
+		sourceField: ['fileId'],
+		destField: ['fileId'],
+		destSchema: group_file,
+	}),
 }))
 
 const commentThreadRelationships = relationships(comment_thread, ({ one, many }) => ({
