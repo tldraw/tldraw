@@ -142,6 +142,8 @@ export function createFirstLoadTracker(deps: FirstLoadDeps) {
 	/** The sync server's side of this load, sent once after the socket connects. */
 	function setServerTimings(msg: FirstLoadServerTimings) {
 		if (msg.loadId !== loadId) return
+		// A reconnect inside the report window sends a second, warm echo; the first one is the load.
+		if (server) return
 		server = msg
 		for (const wake of serverWaiters.splice(0)) wake()
 		say(

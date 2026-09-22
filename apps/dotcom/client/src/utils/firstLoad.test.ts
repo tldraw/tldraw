@@ -160,6 +160,22 @@ describe('server timings', () => {
 		})
 	})
 
+	it('keeps the first echo when a reconnect sends a second one', () => {
+		const { deps } = makeDeps()
+		const tracker = createFirstLoadTracker(deps)
+		const echo = (cold: boolean) => ({
+			type: 'first_load_server' as const,
+			loadId: tracker.loadId,
+			cold,
+			auth_ms: 1,
+			get_room_ms: 1,
+			total_ms: 1,
+		})
+		tracker.setServerTimings(echo(true))
+		tracker.setServerTimings(echo(false))
+		expect(tracker.buildReport().srv_cold).toBe(true)
+	})
+
 	it('ignores an echo for a different load', () => {
 		const { deps } = makeDeps()
 		const tracker = createFirstLoadTracker(deps)
