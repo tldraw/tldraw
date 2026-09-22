@@ -1426,7 +1426,7 @@ export class TLFileDurableObject extends DurableObject {
 				if (event.name === 'room_start') {
 					this.writeEvent(event.name, {
 						doubles: [event.resumedSockets],
-						blobs: this.loadIdBlobs(),
+						blobs: this.bootLoadIdBlobs(),
 					})
 				} else {
 					this.writeEvent(event.name, {})
@@ -1629,7 +1629,7 @@ export class TLFileDurableObject extends DurableObject {
 			const r2FetchTimer = this.timer()
 			this.setBootStage('storage-load:r2')
 			const roomFromBucket = await this.r2.rooms.get(key)
-			this._bootTimings.r2 = r2FetchTimer.report('db_load_r2_fetch', this.loadIdBlobs())
+			this._bootTimings.r2 = r2FetchTimer.report('db_load_r2_fetch', this.bootLoadIdBlobs())
 
 			if (roomFromBucket) {
 				const snapshot = (await roomFromBucket.json()) as RoomSnapshot
@@ -1643,7 +1643,7 @@ export class TLFileDurableObject extends DurableObject {
 					mergeCommentDocumentsIntoSnapshot(snapshot, await this.awaitComments(commentsPromise))
 				}
 
-				this._bootTimings.total = loadTimer.report('db_load_total', this.loadIdBlobs())
+				this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 
 				return {
 					snapshot,
@@ -1653,7 +1653,7 @@ export class TLFileDurableObject extends DurableObject {
 
 			if (this._fileRecordCache?.createSource) {
 				const res = await this.loadFromCreateSource(commentsPromise)
-				this._bootTimings.total = loadTimer.report('db_load_total', this.loadIdBlobs())
+				this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 				return res
 			}
 
@@ -1663,7 +1663,7 @@ export class TLFileDurableObject extends DurableObject {
 				const file = await this.getAppFileRecord()
 
 				if (!file) {
-					this._bootTimings.total = loadTimer.report('db_load_total', this.loadIdBlobs())
+					this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 					throw new RoomNotFoundError(slug)
 				}
 
@@ -1673,7 +1673,7 @@ export class TLFileDurableObject extends DurableObject {
 				// and the R2 blob then means `createSource` is never consulted again.
 				if (file.createSource) {
 					const res = await this.loadFromCreateSource(commentsPromise)
-					this._bootTimings.total = loadTimer.report('db_load_total', this.loadIdBlobs())
+					this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 					return res
 				}
 
@@ -1685,7 +1685,7 @@ export class TLFileDurableObject extends DurableObject {
 				const comments = await this.awaitComments(assertExists(commentsPromise))
 				mergeCommentDocumentsIntoSnapshot(snapshot, comments)
 
-				this._bootTimings.total = loadTimer.report('db_load_total', this.loadIdBlobs())
+				this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 
 				return {
 					snapshot,
@@ -1711,19 +1711,19 @@ export class TLFileDurableObject extends DurableObject {
 			if (error) {
 				this.logEvent({ type: 'room', name: 'failed_load_from_db' })
 
-				this._bootTimings.total = loadTimer.report('db_load_total', this.loadIdBlobs())
+				this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 
 				console.error('failed to retrieve document', slug, error)
 				throw new Error(error.message)
 			}
 			// if it didn't find a document, data will be an empty array
 			if (data.length === 0) {
-				this._bootTimings.total = loadTimer.report('db_load_total', this.loadIdBlobs())
+				this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 				throw new RoomNotFoundError(slug)
 			}
 
 			const roomFromSupabase = data[0] as PersistedRoomSnapshotForSupabase
-			this._bootTimings.total = loadTimer.report('db_load_total', this.loadIdBlobs())
+			this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 
 			return {
 				snapshot: roomFromSupabase.drawing,
@@ -1732,7 +1732,7 @@ export class TLFileDurableObject extends DurableObject {
 		} catch (error) {
 			this.logEvent({ type: 'room', name: 'failed_load_from_db' })
 
-			loadTimer.report('db_load_total_error', this.loadIdBlobs())
+			loadTimer.report('db_load_total_error', this.bootLoadIdBlobs())
 
 			console.error('failed to fetch doc', slug, error)
 			throw error
@@ -1744,7 +1744,7 @@ export class TLFileDurableObject extends DurableObject {
 		// residual wait after the overlapping R2 fetch (which would read ~0 whenever R2 is slower).
 		const commentsTimer = this.timer()
 		const result = await loadCommentDocuments(this.db, this.documentInfo.slug)
-		this._bootTimings.comments = commentsTimer.report('db_load_comments', this.loadIdBlobs())
+		this._bootTimings.comments = commentsTimer.report('db_load_comments', this.bootLoadIdBlobs())
 		return result
 	}
 
@@ -1752,8 +1752,15 @@ export class TLFileDurableObject extends DurableObject {
 	// room_start) can be joined to that client's first_load event. Later connects don't boot.
 	private _bootLoadId: string | undefined
 
-	private loadIdBlobs(loadId = this._bootLoadId): string[] | undefined {
+	// Request timers take the connecting client's own id; boot timers take the id of the client
+	// whose connect booted the room. Kept separate on purpose: a request without an id must not
+	// borrow the booting visitor's.
+	private loadIdBlobs(loadId: string | undefined): string[] | undefined {
 		return loadId ? [loadId] : undefined
+	}
+
+	private bootLoadIdBlobs(): string[] | undefined {
+		return this.loadIdBlobs(this._bootLoadId)
 	}
 
 	timer() {
