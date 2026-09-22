@@ -160,6 +160,7 @@ import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
+import { clampCameraZoom, constrainCamera, getFitZoom } from './kernels/camera'
 import { ClickManager } from './managers/ClickManager/ClickManager'
 import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
@@ -3290,40 +3291,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _getFitZoom(fit: TLCameraConstraints['initialZoom']): number {
-		const cameraOptions = this.getCameraOptions()
-		if (!cameraOptions.constraints || fit === 'default') return 1
-
-		const { zx, zy } = getCameraFitXFitY(this, cameraOptions)
-
-		switch (fit) {
-			case 'fit-min': {
-				return Math.max(zx, zy)
-			}
-			case 'fit-max': {
-				return Math.min(zx, zy)
-			}
-			case 'fit-x': {
-				return zx
-			}
-			case 'fit-y': {
-				return zy
-			}
-			case 'fit-min-100': {
-				return Math.min(1, Math.max(zx, zy))
-			}
-			case 'fit-max-100': {
-				return Math.min(1, Math.min(zx, zy))
-			}
-			case 'fit-x-100': {
-				return Math.min(1, zx)
-			}
-			case 'fit-y-100': {
-				return Math.min(1, zy)
-			}
-			default: {
-				throw exhaustiveSwitchError(fit)
-			}
-		}
+		const { constraints } = this.getCameraOptions()
+		if (!constraints || fit === 'default') return 1
+		return getFitZoom(fit, constraints, this.getViewportScreenBounds())
 	}
 
 	private _cameraOptions = atom('camera options', DEFAULT_CAMERA_OPTIONS)
@@ -3375,168 +3345,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 		y: number
 		z: number
 	} {
-		const currentCamera = this.getCamera()
-
-		let { x, y, z = currentCamera.z } = point
-
-		// `requested` kept the caller's focal point (e.g. the cursor) fixed at
-		// zoom `rz`. When `rz` gets clamped, keep that same focal point fixed at
-		// the clamped zoom `z` rather than snapping to the viewport center.
-		const preserveFocalPoint = (current: number, requested: number, rz: number, z: number) => {
-			const cz = currentCamera.z
-			if (rz === cz) return current
-			return current + ((requested - current) * (1 / z - 1 / cz)) / (1 / rz - 1 / cz)
-		}
+		const current = this.getCamera()
+		const requested = { x: point.x, y: point.y, z: point.z === undefined ? current.z : point.z }
 
 		// If force is true, then we'll set the camera to the point regardless of
 		// the camera options, so that we can handle gestures that permit elasticity
 		// or decay, or animations that occur while the camera is locked.
-		if (!opts?.force) {
-			// Apply any adjustments based on the camera options
+		if (opts?.force) return requested
 
-			const cameraOptions = this.getCameraOptions()
+		// Reads stay in this order, and each only on the branch that needs it, so subclass overrides
+		// and reactive dependencies see the same calls as before (see cameraConstraintReads.test.ts).
+		const { zoomSteps, constraints } = this.getCameraOptions()
+		const viewport = this.getViewportScreenBounds()
+		if (!constraints) return clampCameraZoom(current, requested, zoomSteps)
 
-			const zoomMin = cameraOptions.zoomSteps[0]
-			const zoomMax = last(cameraOptions.zoomSteps)!
-
-			const vsb = this.getViewportScreenBounds()
-
-			// If bounds are provided, then we'll keep those bounds on screen
-			if (cameraOptions.constraints) {
-				const { constraints } = cameraOptions
-
-				// Clamp padding to half the viewport size on either dimension
-				const px = Math.min(constraints.padding.x, vsb.w / 2)
-				const py = Math.min(constraints.padding.y, vsb.h / 2)
-
-				// Expand the bounds by the padding
-				const bounds = Box.From(cameraOptions.constraints.bounds)
-
-				// For each axis, the "natural zoom" is the zoom at
-				// which the expanded bounds (with padding) would fit
-				// the current viewport screen bounds. Paddings are
-				// equal to screen pixels at 100%
-				// The min and max zooms are factors of the smaller natural zoom axis
-
-				const zx = (vsb.w - px * 2) / bounds.w
-				const zy = (vsb.h - py * 2) / bounds.h
-
-				const baseZoom = this.getBaseZoom()
-				const maxZ = zoomMax * baseZoom
-				const minZ = zoomMin * baseZoom
-
-				if (opts?.reset) {
-					z = this.getInitialZoom()
-				}
-
-				if (z < minZ || z > maxZ) {
-					// We're trying to zoom out past the minimum zoom level, or in
-					// past the maximum zoom level, so clamp the zoom while keeping
-					// the caller's focal point fixed. Axis constraints below still
-					// apply on top of this.
-					const rz = z
-					z = clamp(z, minZ, maxZ)
-					x = preserveFocalPoint(currentCamera.x, x, rz, z)
-					y = preserveFocalPoint(currentCamera.y, y, rz, z)
-				}
-
-				// Calculate available space
-				const minX = px / z - bounds.x
-				const minY = py / z - bounds.y
-				const freeW = (vsb.w - px * 2) / z - bounds.w
-				const freeH = (vsb.h - py * 2) / z - bounds.h
-				const originX = minX + freeW * constraints.origin.x
-				const originY = minY + freeH * constraints.origin.y
-
-				const behaviorX =
-					typeof constraints.behavior === 'string' ? constraints.behavior : constraints.behavior.x
-				const behaviorY =
-					typeof constraints.behavior === 'string' ? constraints.behavior : constraints.behavior.y
-
-				// x axis
-
-				if (opts?.reset) {
-					// Reset the camera according to the origin
-					x = originX
-					y = originY
-				} else {
-					// Apply constraints to the camera
-					switch (behaviorX) {
-						case 'fixed': {
-							// Center according to the origin
-							x = originX
-							break
-						}
-						case 'contain': {
-							// When below fit zoom, center the camera
-							if (z < zx) x = originX
-							// When above fit zoom, keep the bounds within padding distance of the viewport edge
-							else x = clamp(x, minX + freeW, minX)
-							break
-						}
-						case 'inside': {
-							// When below fit zoom, constrain the camera so that the bounds stay completely within the viewport
-							if (z < zx) x = clamp(x, minX, (vsb.w - px) / z - bounds.w - bounds.x)
-							// When above fit zoom, keep the bounds within padding distance of the viewport edge
-							else x = clamp(x, minX + freeW, minX)
-							break
-						}
-						case 'outside': {
-							// Constrain the camera so that the bounds never leaves the viewport
-							x = clamp(x, px / z - bounds.w - bounds.x, (vsb.w - px) / z - bounds.x)
-							break
-						}
-						case 'free': {
-							// noop, use whatever x is provided
-							break
-						}
-						default: {
-							throw exhaustiveSwitchError(behaviorX)
-						}
-					}
-
-					// y axis
-
-					switch (behaviorY) {
-						case 'fixed': {
-							y = originY
-							break
-						}
-						case 'contain': {
-							if (z < zy) y = originY
-							else y = clamp(y, minY + freeH, minY)
-							break
-						}
-						case 'inside': {
-							if (z < zy) y = clamp(y, minY, (vsb.h - py) / z - bounds.h - bounds.y)
-							else y = clamp(y, minY + freeH, minY)
-							break
-						}
-						case 'outside': {
-							y = clamp(y, py / z - bounds.h - bounds.y, (vsb.h - py) / z - bounds.y)
-							break
-						}
-						case 'free': {
-							// noop, use whatever x is provided
-							break
-						}
-						default: {
-							throw exhaustiveSwitchError(behaviorY)
-						}
-					}
-				}
-			} else {
-				// constrain the zoom, keeping the caller's focal point fixed
-				if (z > zoomMax || z < zoomMin) {
-					const rz = z
-					z = clamp(z, zoomMin, zoomMax)
-					x = preserveFocalPoint(currentCamera.x, x, rz, z)
-					y = preserveFocalPoint(currentCamera.y, y, rz, z)
-				}
-			}
-		}
-
-		return { x, y, z }
+		return constrainCamera({
+			current,
+			requested,
+			zoomSteps,
+			constraints,
+			viewport,
+			baseZoom: this.getBaseZoom(),
+			resetZoom: opts?.reset ? this.getInitialZoom() : null,
+		})
 	}
 
 	/** @internal */
@@ -11715,16 +11546,4 @@ function withIsolatedShapes<T>(
 	} else {
 		throw result.error
 	}
-}
-
-function getCameraFitXFitY(editor: Editor, cameraOptions: TLCameraOptions) {
-	if (!cameraOptions.constraints) throw Error('Should have constraints here')
-	const vsb = editor.getViewportScreenBounds()
-	// Clamp padding to half the viewport size on either dimension, as getConstrainedCamera does
-	const px = Math.min(cameraOptions.constraints.padding.x, vsb.w / 2)
-	const py = Math.min(cameraOptions.constraints.padding.y, vsb.h / 2)
-	const bounds = Box.From(cameraOptions.constraints.bounds)
-	const zx = (vsb.w - px * 2) / bounds.w
-	const zy = (vsb.h - py * 2) / bounds.h
-	return { zx, zy }
 }
