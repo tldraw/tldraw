@@ -1,4 +1,4 @@
-import { createBuilder } from '@rocicorp/zero'
+import { createBuilder, mustGetQuery } from '@rocicorp/zero'
 import { describe, expect, it } from 'vitest'
 import { queries, ZeroContext } from './queries'
 import { schema } from './tlaSchema'
@@ -125,6 +125,12 @@ describe('feed query shape', () => {
 		expect(countExists(astOf(name as keyof typeof queries, args))).toBeLessThanOrEqual(
 			MAX_PLANNABLE_EXISTS
 		)
+	})
+
+	// a tab still running the previous bundle asks the query endpoint for this name; an unknown
+	// name is a per-query error that leaves its feed empty with nothing prompting a reload
+	it('keeps the previous feed name resolvable for tabs open across the deploy', () => {
+		expect(() => mustGetQuery(queries, 'comments')).not.toThrow()
 	})
 
 	it('roots the reactions feed at comment, not comment_reaction', () => {

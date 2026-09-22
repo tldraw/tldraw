@@ -3,6 +3,7 @@ import {
 	defineQueriesWithType,
 	defineQueryWithType,
 	ExpressionBuilder,
+	Query,
 } from '@rocicorp/zero'
 import { schema, TlaSchema } from './tlaSchema'
 
@@ -36,6 +37,17 @@ const canAccessCommentFile =
 				gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', userId))
 			)
 		)
+
+/** The access gate as the deprecated `comments` query reaches it, through `file`. */
+const legacyCanAccessFile = (userId: string) => (file: Query<'file', TlaSchema>) =>
+	file.where(({ or, exists }) =>
+		or(
+			exists('states', (s) => s.where('userId', '=', userId)),
+			exists('groupFiles', (gf) =>
+				gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', userId))
+			)
+		)
+	)
 
 /** Upper bound on the comments notifications feed, so the synced set stays finite as files accrue. */
 const RECENT_COMMENTS_LIMIT = 50
@@ -267,6 +279,57 @@ export const queries = defineQueries({
 			)
 			.orderBy('lastVisitAt', 'desc')
 			.limit(MENTIONABLE_VISITORS_LIMIT)
+	),
+
+	/**
+	 * The notifications feed as the previous client bundle requests it, by this name. A tab that
+	 * was open across the deploy keeps asking for `comments`; an unknown name is a per-query error
+	 * on the server, which leaves that tab's feed empty with nothing prompting a reload. Kept for
+	 * one release so those tabs behave exactly as before until they refresh. Not planned (14
+	 * EXISTS), so excluded from the shape guards in queries.test.ts.
+	 *
+	 * @deprecated Remove in the release after the one that ships the per-reason feeds.
+	 */
+	comments: defineQuery(({ ctx }) =>
+		zql.comment
+			.where('authorId', '!=', ctx.userId)
+			.where('isDeleted', '=', false)
+			.whereExists('thread', (t) => t.where('isDeleted', '=', false))
+			.whereExists('file', (f) => f.where('isDeleted', '=', false))
+			.where(({ and, or, exists }) =>
+				or(
+					exists('file', (f) => f.where('owningGroupId', '=', ctx.userId)),
+					and(
+						exists('thread', (t) =>
+							t.where(({ cmp, or, exists }) =>
+								or(
+									cmp('createdBy', '=', ctx.userId),
+									exists('comments', (c) =>
+										c.where('authorId', '=', ctx.userId).where('isDeleted', '=', false)
+									)
+								)
+							)
+						),
+						exists('file', legacyCanAccessFile(ctx.userId))
+					),
+					and(
+						exists('mentions', (m) => m.where('userId', '=', ctx.userId)),
+						exists('file', legacyCanAccessFile(ctx.userId))
+					)
+				)
+			)
+			.related('file', (file) => file.one())
+			.related('thread', (thread) =>
+				thread
+					.one()
+					.related('comments', (c) =>
+						c.where('authorId', '=', ctx.userId).where('isDeleted', '=', false)
+					)
+			)
+			.related('read', (read) => read.where('userId', '=', ctx.userId).one())
+			.related('reactions')
+			.orderBy('createdAt', 'desc')
+			.limit(RECENT_COMMENTS_LIMIT)
 	),
 })
 
