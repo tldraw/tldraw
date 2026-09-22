@@ -38,6 +38,12 @@ import { assetUrls } from '../../../utils/assetUrls'
 import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
+import {
+	getFirstLoadId,
+	markFirstLoad,
+	reportFirstLoad,
+	setFirstLoadServerTimings,
+} from '../../../utils/firstLoad'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
@@ -115,6 +121,7 @@ export function TlaEditor(props: TlaEditorProps) {
 }
 
 function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps) {
+	markFirstLoad('editor-rendered')
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
 
@@ -161,6 +168,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
+			markFirstLoad('editor-mounted')
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
 			trackShareLinkOpen(app, fileId, isEmbed)
@@ -227,7 +235,15 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 					})
 					if (!abortController.signal.aborted) showSlurpFailure()
 				})
-				.then(setIsReady)
+				.then(() => {
+					setIsReady()
+					markFirstLoad('board-visible')
+					reportFirstLoad({
+						email: app?.email,
+						flagEnabled: app?.isFirstLoadRumEnabled ?? false,
+						trackEvent,
+					})
+				})
 
 			return () => {
 				cleanupPerf()
@@ -281,8 +297,10 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
 			url.searchParams.set('v', CLIENT_BUILD_TIMESTAMP)
+			url.searchParams.set('loadId', getFirstLoadId())
 			if (hasUser) {
 				url.searchParams.set('accessToken', await getUserToken())
+				markFirstLoad('sync-token-fetched')
 			}
 			return url.toString()
 		}, [fileSlug, hasUser, getUserToken]),
@@ -292,6 +310,10 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
 		records: commentSchemaRecords,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
+			if (message.type === 'first_load_server') {
+				setFirstLoadServerTimings(message)
+				return
+			}
 			trackEvent(message.type)
 		}, []),
 	})
@@ -303,6 +325,10 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	}
 
 	// Handle entering and exiting the file, with some protection against rapid enters/exits
+	useEffect(() => {
+		if (store.status === 'synced-remote') markFirstLoad('sync-connected')
+	}, [store.status])
+
 	useEffect(() => {
 		if (!app) return
 		if (store.status !== 'synced-remote') return

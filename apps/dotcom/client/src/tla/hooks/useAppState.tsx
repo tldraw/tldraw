@@ -4,6 +4,7 @@ import { ReactNode, createContext, useContext, useEffect, useState } from 'react
 import { useNavigate } from 'react-router-dom'
 import { assertExists, atom } from 'tldraw'
 import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
+import { enableFirstLoadLiveLog, isFirstLoadStaff, markFirstLoad } from '../../utils/firstLoad'
 import { TldrawApp, getPreloadDiagnostics } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
 import {
@@ -34,6 +35,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		throw new Error('should have redirected in TlaRootProviders')
 	}
 	const navigate = useNavigate()
+	const email = user.primaryEmailAddress?.emailAddress
+	if (isFirstLoadStaff(email)) enableFirstLoadLiveLog()
 
 	useEffect(() => {
 		let _app: TldrawApp
@@ -56,6 +59,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			if (!wasAuthenticated()) {
 				flags = await fetchFlagsWithTimeout()
 			}
+			markFirstLoad('flags-loaded')
 			if (didCancel) return
 			const token = await auth.getToken()
 			if (!token) throw new Error('no token')
