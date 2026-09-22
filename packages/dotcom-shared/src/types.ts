@@ -244,12 +244,29 @@ export interface SubmitFeedbackRequestBody {
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 
-export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persistence_bad' }
+export type TLCustomServerEvent =
+	| { type: 'persistence_good' }
+	| { type: 'persistence_bad' }
+	// Sent once to a session that connected with a `loadId`, so the client's first_load report
+	// can show the server side of that same load. All durations in ms; boot fields only on a cold boot.
+	| {
+			type: 'first_load_server'
+			loadId: string
+			cold: boolean
+			auth_ms?: number
+			file_record_ms?: number
+			get_room_ms: number
+			total_ms: number
+			boot_r2_ms?: number
+			boot_comments_ms?: number
+			boot_total_ms?: number
+	  }
 
 /* ----------------------- Feature Flags ---------------------- */
 
 export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
+	'first_load_rum',
 	'commenting_enabled',
 	'mcp_server_access',
 	'version_chain',
