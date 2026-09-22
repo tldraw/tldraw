@@ -81,8 +81,7 @@ describe('feed query shape', () => {
 	// group_file) — not behind `file` — and as one top-level conjunct rather than repeated inside
 	// each notification category. That is the shape Zero's planner can flip: start from the
 	// caller's own file_state / group_user rows and join comments in, so reads scale with the
-	// caller's data instead of every comment in the database (tldraw-internal#2032: 9.9k rows
-	// read to sync 51).
+	// caller's data instead of every comment in the database (tldraw-internal#2032).
 	it.each([['comments'], ['reactions']])(
 		'gates access directly on the comment fileId, once, at the root: %s',
 		(name) => {
@@ -113,8 +112,8 @@ describe('feed query shape', () => {
 		}
 	)
 
-	// Over the limit the planner doesn't run at all, and the cheap gate above is worthless: the
-	// pre-fix `comments` query had 13 and was executed verbatim, comment-first (tldraw-internal#2032)
+	// Over the limit the planner doesn't run at all and the query runs verbatim, comment-first,
+	// so the cheap gate above is worthless (tldraw-internal#2032)
 	it.each([
 		['comments', {}],
 		['reactions', {}],

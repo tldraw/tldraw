@@ -21,12 +21,11 @@ const defineQueries = defineQueriesWithType<TlaSchema>()
 
 /**
  * The file-access gate for comment-rooted queries: the caller has opened the comment's file
- * (file_state) or is in a workspace it belongs to (group_file → group_user; a home board's owner is
- * a member of their home group). Correlated straight on the comment's fileId, not via `file`, and
- * applied once at the root, so Zero's planner can flip it and start from the caller's own rows.
- * Behind `file` and repeated per category the query held 13 EXISTS, over the planner's limit of 9
- * (MAX_FLIPPABLE_JOINS): it ran unplanned, comment-first, reading 9.9k rows to sync 51
- * (tldraw-internal#2032). Each EXISTS also doubles the plans costed per hydration.
+ * (file_state) or is in a workspace it belongs to (group_file → group_user; home included).
+ * Correlated straight on the comment's fileId, not via `file`, and applied once at the root, so
+ * Zero's planner can flip it and start from the caller's own rows. Over 9 EXISTS in a query
+ * (MAX_FLIPPABLE_JOINS) the planner bails and it runs comment-first over every comment in the
+ * database (tldraw-internal#2032); each EXISTS also doubles the plans costed per hydration.
  */
 const canAccessCommentFile =
 	(userId: string) =>
