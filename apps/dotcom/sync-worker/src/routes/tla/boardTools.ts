@@ -30,8 +30,8 @@ import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 export const MCP_PROTOCOL_VERSION = '2025-11-25'
 
 export const MCP_SERVER_INFO = {
-	name: 'tldraw-shared-board-screenshot',
-	title: 'tldraw board screenshots',
+	name: 'tldraw-boards',
+	title: 'tldraw boards',
 	version: '3.1.0',
 }
 
