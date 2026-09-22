@@ -4507,7 +4507,7 @@ export interface TLExternalContentProps {
 // @public
 export type TLNoteShapeAttributionComponent = ComponentType<TLNoteShapeAttributionProps> | null;
 
-// @public
+// @public (undocumented)
 export interface TLNoteShapeAttributionProps {
     color: string;
     firstName: string;
