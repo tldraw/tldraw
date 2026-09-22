@@ -4358,7 +4358,7 @@ spec:
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
-                        AND (blob3 = '${load_id}' OR blob4 = '${load_id}')
+                        AND '${load_id}' != '' AND (blob3 = '${load_id}' OR blob4 = '${load_id}')
 
                         ORDER BY timestamp ASC"
                       rawQuery:
@@ -4370,7 +4370,7 @@ spec:
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
-                        AND (blob3 = '${load_id}' OR blob4 = '${load_id}')
+                        AND '${load_id}' != '' AND (blob3 = '${load_id}' OR blob4 = '${load_id}')
 
                         ORDER BY timestamp ASC"
                       round: 0s
@@ -4545,6 +4545,15 @@ spec:
                       width: 12
                       x: 12
                       y: 9
+                  - kind: GridLayoutItem
+                    spec:
+                      element:
+                        kind: ElementReference
+                        name: panel-55
+                      height: 8
+                      width: 24
+                      x: 0
+                      y: 17
             title: Room and connect latency
         - kind: RowsLayoutRow
           spec:
@@ -4597,15 +4606,6 @@ spec:
                       height: 4
                       width: 6
                       x: 0
-                      y: 16
-                  - kind: GridLayoutItem
-                    spec:
-                      element:
-                        kind: ElementReference
-                        name: panel-55
-                      height: 8
-                      width: 18
-                      x: 6
                       y: 16
             title: Version chains
         - kind: RowsLayoutRow
