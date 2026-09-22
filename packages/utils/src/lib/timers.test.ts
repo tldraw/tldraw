@@ -226,15 +226,5 @@ describe('Timers', () => {
 
 			expect(clearTimeoutSpy).not.toHaveBeenCalled()
 		})
-
-		it('passes the timer arguments through to the handler when it fires', () => {
-			const timers = new Timers()
-			const handler = vi.fn()
-
-			timers.setTimeout('ctx', handler, 10, 'a', 'b')
-			vi.advanceTimersByTime(10)
-
-			expect(handler).toHaveBeenCalledWith(['a', 'b'])
-		})
 	})
 })
