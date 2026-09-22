@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+	canUseMcpServer,
 	evaluateFlagForUser,
 	getAllFeatureFlagValues,
 	getFeatureFlagValue,
@@ -11,6 +12,24 @@ import {
 
 vi.mock('./tla/getAuth', () => ({
 	getAuth: vi.fn(),
+}))
+
+// canUseMcpServer reads the account's email from Postgres when the flag does not cover them.
+const userEmail = vi.fn<() => string | undefined>(() => undefined)
+vi.mock('../postgres', () => ({
+	createPostgresConnectionPool: () => ({
+		selectFrom: () => ({
+			select: () => ({
+				where: () => ({
+					executeTakeFirst: async () => {
+						const email = userEmail()
+						return email === undefined ? undefined : { email }
+					},
+				}),
+			}),
+		}),
+		destroy: async () => {},
+	}),
 }))
 
 function makeEnv(
@@ -421,9 +440,93 @@ describe('getAllFeatureFlagValues', () => {
 		expect(Object.keys(flags).sort()).toEqual([
 			'commenting_enabled',
 			'mcp_server_access',
+			'mcp_server_enabled',
 			'rum_enabled',
 			'version_chain',
 			'version_chain_legacy_writes',
 		])
+	})
+})
+
+describe('allowEveryone', () => {
+	// Checked ahead of the list so a flag can be opened to everyone without first emptying a list the
+	// operator will want back when they close it again.
+	it('admits anyone when set, whatever the list holds', () => {
+		const flag = {
+			type: 'allowlist' as const,
+			users: [{ userId: 'someone-else', email: 'x@example.com' }],
+			allowEveryone: true,
+			enabled: true,
+			description: '',
+		}
+		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'not-on-the-list')).toBe(true)
+	})
+
+	// It is not a second master toggle: `enabled: false` still means off for everybody, so the two
+	// cannot be confused for one another.
+	it('does not revive a disabled flag', () => {
+		const flag = {
+			type: 'allowlist' as const,
+			users: [],
+			allowEveryone: true,
+			enabled: false,
+			description: '',
+		}
+		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'anyone')).toBe(false)
+	})
+
+	// Absent reads as false: a value stored before this field existed must not start admitting
+	// everyone the moment the code that understands it is deployed.
+	it('treats a stored value without the field as closed', () => {
+		const flag = {
+			type: 'allowlist' as const,
+			users: [],
+			enabled: true,
+			description: '',
+		}
+		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'anyone')).toBe(false)
+	})
+})
+
+describe('canUseMcpServer', () => {
+	beforeEach(() => userEmail.mockReturnValue(undefined))
+
+	it('admits a verified @tldraw.com account the flag does not name', async () => {
+		userEmail.mockReturnValue('someone@tldraw.com')
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
+	})
+
+	it('is case-insensitive about the domain', async () => {
+		userEmail.mockReturnValue('Someone@TLDRAW.com')
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
+	})
+
+	// The obvious near-miss: a domain that merely ends the same way is a different company.
+	it('refuses a lookalike domain', async () => {
+		userEmail.mockReturnValue('someone@nottldraw.com')
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
+	})
+
+	it('refuses everyone else', async () => {
+		userEmail.mockReturnValue('someone@example.com')
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
+	})
+
+	// A token whose account no longer exists is refused, not turned into a 500.
+	it('refuses when the account has no row', async () => {
+		userEmail.mockReturnValue(undefined)
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
+	})
+
+	// The flag still comes first, and it is what keeps the database read off the granted path.
+	it('admits an allowlisted account without reading their email', async () => {
+		const env = makeEnv({
+			mcp_server_access: JSON.stringify({
+				enabled: true,
+				users: [{ userId: 'user-1', email: 'someone@example.com' }],
+			}),
+		})
+		expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+		expect(userEmail).not.toHaveBeenCalled()
 	})
 })

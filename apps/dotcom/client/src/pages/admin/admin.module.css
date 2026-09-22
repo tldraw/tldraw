@@ -410,6 +410,15 @@
 	margin-top: 8px;
 }
 
+/* Separates the MCP server's own flags — the kill switch and who is let through it — from the rest,
+   which are unrelated to each other and to it. */
+.featureFlagsDivider {
+	border: none;
+	border-top: 1px solid var(--color-divider, #e8e8e8);
+	margin: 8px 0;
+	width: 100%;
+}
+
 .featureFlagItem {
 	display: flex;
 	align-items: center;

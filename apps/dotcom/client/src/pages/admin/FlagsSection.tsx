@@ -12,6 +12,29 @@ import styles from './admin.module.css'
 
 const FLAG_TYPE_ORDER: FeatureFlagValue['type'][] = ['boolean', 'percentage', 'allowlist']
 
+// Flags whose name title-cased does not say what they do. `Mcp Server Enabled` reads like a
+// capability toggle; it is the switch that takes the whole server down, and somebody reaching for it
+// under pressure should not have to infer that.
+const FLAG_LABELS: Record<string, string> = {
+	mcp_server_enabled: 'MCP server kill switch',
+	mcp_server_access: 'MCP server access',
+}
+
+// Rendered as their own group, above the rest. They gate a single product surface and are operated
+// together — the kill switch and who is let through it — so they read badly interleaved
+// alphabetically with commenting and version chains.
+const MCP_FLAGS = ['mcp_server_enabled', 'mcp_server_access']
+
+function flagLabel(flagName: string) {
+	return (
+		FLAG_LABELS[flagName] ??
+		flagName
+			.split('_')
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+			.join(' ')
+	)
+}
+
 export function FlagsSection() {
 	return (
 		<section className={styles.adminSection}>
@@ -51,7 +74,15 @@ function FeatureFlags() {
 	}, [loadFlags])
 
 	const saveFlag = useCallback(
-		async (flag: string, update: { enabled?: boolean; percentage?: number; emails?: string[] }) => {
+		async (
+			flag: string,
+			update: {
+				enabled?: boolean
+				percentage?: number
+				emails?: string[]
+				allowEveryone?: boolean
+			}
+		) => {
 			setIsSaving(true)
 			setError(null)
 			setSuccessMessage(null)
@@ -93,6 +124,98 @@ function FeatureFlags() {
 		[setSuccessMessage]
 	)
 
+	const renderFlag = (flagName: string, flagValue: FeatureFlagValue) => {
+		const label = flagLabel(flagName)
+
+		if (flagValue.type === 'percentage') {
+			return (
+				<PercentageFlag
+					key={flagName}
+					flagName={flagName}
+					label={label}
+					flagValue={flagValue}
+					isSaving={isSaving}
+					onToggle={(enabled) => {
+						const action = enabled ? 'Enable' : 'Disable'
+						if (!window.confirm(`${action} "${flagName}"?`)) return
+						saveFlag(flagName, { enabled })
+					}}
+					onSavePercentage={(pct) => {
+						if (!window.confirm(`Set "${flagName}" to ${pct}% of users?`)) return
+						saveFlag(flagName, { percentage: pct })
+					}}
+				/>
+			)
+		}
+
+		if (flagValue.type === 'allowlist') {
+			return (
+				<AllowlistFlag
+					key={flagName}
+					flagName={flagName}
+					label={label}
+					flagValue={flagValue}
+					isSaving={isSaving}
+					onToggle={(enabled) => {
+						const action = enabled ? 'Enable' : 'Disable'
+						if (!window.confirm(`${action} "${flagName}"?`)) return
+						saveFlag(flagName, { enabled })
+					}}
+					onToggleAllowEveryone={(allowEveryone) => {
+						if (
+							allowEveryone &&
+							!window.confirm(
+								`Open "${flagName}" to EVERY signed-in account? The list below is kept, and applies again when you turn this off.`
+							)
+						) {
+							return
+						}
+						saveFlag(flagName, { allowEveryone })
+					}}
+					onSaveEmails={(emails) => {
+						if (
+							!window.confirm(
+								`Set "${flagName}" to these ${emails.length} address(es)? This replaces the current list.`
+							)
+						) {
+							return
+						}
+						saveFlag(flagName, { emails })
+					}}
+				/>
+			)
+		}
+
+		return (
+			<div key={flagName} className={styles.featureFlagItem}>
+				<label htmlFor={flagName} className={styles.featureFlagLabel}>
+					<input
+						id={flagName}
+						type="checkbox"
+						checked={flagValue.enabled}
+						onChange={(e) => {
+							const enabled = e.target.checked
+							const action = enabled ? 'enable' : 'disable'
+							if (
+								!window.confirm(`Are you sure you want to ${action} "${flagName}" for ALL users?`)
+							) {
+								return
+							}
+							saveFlag(flagName, { enabled })
+						}}
+						disabled={isSaving}
+					/>
+					<span>
+						<strong>{label}</strong>
+					</span>
+				</label>
+				{flagValue.description && (
+					<span className={styles.featureFlagsDescription}>{flagValue.description}</span>
+				)}
+			</div>
+		)
+	}
+
 	return (
 		<div className={styles.fileOperation}>
 			{error && (
@@ -120,7 +243,10 @@ function FeatureFlags() {
 				<p>Loading flags...</p>
 			) : (
 				<div className={styles.featureFlagsContainer}>
+					{MCP_FLAGS.filter((name) => flags[name]).map((name) => renderFlag(name, flags[name]))}
+					{MCP_FLAGS.some((name) => flags[name]) && <hr className={styles.featureFlagsDivider} />}
 					{Object.entries(flags)
+						.filter(([name]) => !MCP_FLAGS.includes(name))
 						.sort(([a], [b]) => {
 							// Grouped by type — boolean, then percentage, then allowlist — and alphabetical
 							// within a group. Ranked rather than compared pairwise so the ordering stays a
@@ -128,91 +254,7 @@ function FeatureFlags() {
 							const rank = (name: string) => FLAG_TYPE_ORDER.indexOf(flags[name].type ?? 'boolean')
 							return rank(a) - rank(b) || a.localeCompare(b)
 						})
-						.map(([flagName, flagValue]) => {
-							const label = flagName
-								.split('_')
-								.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-								.join(' ')
-
-							if (flagValue.type === 'percentage') {
-								return (
-									<PercentageFlag
-										key={flagName}
-										flagName={flagName}
-										label={label}
-										flagValue={flagValue}
-										isSaving={isSaving}
-										onToggle={(enabled) => {
-											const action = enabled ? 'Enable' : 'Disable'
-											if (!window.confirm(`${action} "${flagName}"?`)) return
-											saveFlag(flagName, { enabled })
-										}}
-										onSavePercentage={(pct) => {
-											if (!window.confirm(`Set "${flagName}" to ${pct}% of users?`)) return
-											saveFlag(flagName, { percentage: pct })
-										}}
-									/>
-								)
-							}
-
-							if (flagValue.type === 'allowlist') {
-								return (
-									<AllowlistFlag
-										key={flagName}
-										flagName={flagName}
-										label={label}
-										flagValue={flagValue}
-										isSaving={isSaving}
-										onToggle={(enabled) => {
-											const action = enabled ? 'Enable' : 'Disable'
-											if (!window.confirm(`${action} "${flagName}"?`)) return
-											saveFlag(flagName, { enabled })
-										}}
-										onSaveEmails={(emails) => {
-											if (
-												!window.confirm(
-													`Set "${flagName}" to these ${emails.length} address(es)? This replaces the current list.`
-												)
-											) {
-												return
-											}
-											saveFlag(flagName, { emails })
-										}}
-									/>
-								)
-							}
-
-							return (
-								<div key={flagName} className={styles.featureFlagItem}>
-									<label htmlFor={flagName} className={styles.featureFlagLabel}>
-										<input
-											id={flagName}
-											type="checkbox"
-											checked={flagValue.enabled}
-											onChange={(e) => {
-												const enabled = e.target.checked
-												const action = enabled ? 'enable' : 'disable'
-												if (
-													!window.confirm(
-														`Are you sure you want to ${action} "${flagName}" for ALL users?`
-													)
-												) {
-													return
-												}
-												saveFlag(flagName, { enabled })
-											}}
-											disabled={isSaving}
-										/>
-										<span>
-											<strong>{label}</strong>
-										</span>
-									</label>
-									{flagValue.description && (
-										<span className={styles.featureFlagsDescription}>{flagValue.description}</span>
-									)}
-								</div>
-							)
-						})}
+						.map(([flagName, flagValue]) => renderFlag(flagName, flagValue))}
 				</div>
 			)}
 		</div>
@@ -231,6 +273,7 @@ function AllowlistFlag({
 	isSaving,
 	onToggle,
 	onSaveEmails,
+	onToggleAllowEveryone,
 }: {
 	flagName: string
 	label: string
@@ -238,6 +281,7 @@ function AllowlistFlag({
 	isSaving: boolean
 	onToggle(enabled: boolean): void
 	onSaveEmails(emails: string[]): void
+	onToggleAllowEveryone(allowEveryone: boolean): void
 }) {
 	const currentEmails = (flagValue.users ?? []).map((entry) => entry.email)
 	const [text, setText] = useState(() => currentEmails.join('\n'))
@@ -284,6 +328,23 @@ function AllowlistFlag({
 					/>
 					<span>
 						<strong>{label}</strong>
+					</span>
+				</label>
+				<label
+					style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}
+				>
+					<input
+						type="checkbox"
+						checked={flagValue.allowEveryone === true}
+						onChange={(e) => onToggleAllowEveryone(e.target.checked)}
+						disabled={isSaving || !flagValue.enabled}
+					/>
+					<span>
+						Allow everyone
+						<span style={{ opacity: 0.7 }}>
+							{' '}
+							— ignores the list below. Needs the flag itself enabled.
+						</span>
 					</span>
 				</label>
 				<span className={!flagValue.enabled ? styles.featureFlagDisabled : ''}>

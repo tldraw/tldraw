@@ -7,6 +7,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { exhaustiveSwitchError } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
+import { createPostgresConnectionPool } from '../postgres'
 import { Environment } from '../types'
 import { getAuth } from './tla/getAuth'
 
@@ -25,12 +26,22 @@ function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagVa
 			description:
 				'Commenting on files (tool, pins, threads, sidebar, notifications). Users with a @tldraw.com email always have it, regardless of this flag',
 		},
+		mcp_server_enabled: {
+			type: 'boolean',
+			// On unless somebody turns it off. A KV read that fails lands on this default, and the
+			// failure direction has to be "the server keeps working" — a kill switch that trips on its
+			// own storage being unavailable takes the product down for an unrelated fault.
+			enabled: true,
+			description:
+				'MCP server kill switch. Off takes /api/app/mcp down for everyone, allowlist and @tldraw.com included, without a deploy',
+		},
 		mcp_server_access: {
 			type: 'allowlist',
 			users: [],
+			allowEveryone: false,
 			enabled: false,
 			description:
-				'Access to the board screenshot MCP server at /api/app/mcp. Off by default: the endpoint requires auth, so an unset flag denies everyone rather than leaving it open',
+				'Who may drive the MCP server at /api/app/mcp. Off by default: the endpoint requires auth, so an unset flag denies everyone rather than leaving it open. Anyone with a verified @tldraw.com email is admitted whatever the list says. Allow everyone opens it to every signed-in account',
 		},
 		version_chain: {
 			type: 'percentage',
@@ -128,6 +139,9 @@ export function evaluateFlagForUser(
 			// An anonymous caller is never on a list of users. Stated rather than left to `some`, which
 			// would also be false but only by accident of `null` matching nobody.
 			if (!userId) return false
+			// Checked before the list rather than folded into it, so an operator can open a flag to
+			// everyone without first emptying a list they will want back when they close it again.
+			if (flag.allowEveryone === true) return true
 			// Missing or malformed `users` denies rather than admits: this is read from KV, where a
 			// hand-edited value can arrive as anything, and the failure mode of the alternative is a flag
 			// that silently opens to everyone.
@@ -143,6 +157,44 @@ export function evaluateFlagForUser(
  * Whether a flag is on for one user, server-side. The counterpart to `getFeatureFlags` (which
  * evaluates every flag for a browser) for a route that gates itself on a single one.
  */
+/**
+ * Whether a caller may drive the MCP server: the `mcp_server_access` flag, or a verified
+ * @tldraw.com email.
+ *
+ * The domain check is second on purpose. It needs the account's email, which is a Postgres read the
+ * flag evaluation does not otherwise make, so putting it after the flag means anybody already
+ * granted pays nothing for it — and the only requests that take the extra read are ones that were
+ * about to be refused anyway.
+ *
+ * Read from our own `user` row rather than Clerk: the address is already replicated here, and a
+ * Clerk round trip on every refused request is a worse thing to add to an auth path.
+ */
+export async function canUseMcpServer(env: Environment, userId: string): Promise<boolean> {
+	if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId)) return true
+	return await hasTldrawEmail(env, userId)
+}
+
+async function hasTldrawEmail(env: Environment, userId: string): Promise<boolean> {
+	const db = createPostgresConnectionPool(env, 'sync-worker/hasTldrawEmail')
+	try {
+		const user = await db
+			.selectFrom('user')
+			.select('email')
+			.where('id', '=', userId)
+			.executeTakeFirst()
+		// Lowercased because the column stores whatever the account signed up with, and a capitalised
+		// domain is the same domain. Denies on a missing row rather than throwing: a token whose user
+		// is gone should be refused, not turned into a 500.
+		return user?.email?.toLowerCase().endsWith('@tldraw.com') === true
+	} catch (e) {
+		// An access check that fails open on a database blip would be the wrong direction entirely.
+		console.error('Failed to read user email for MCP access:', e)
+		return false
+	} finally {
+		await db.destroy()
+	}
+}
+
 export async function isFeatureFlagEnabledForUser(
 	env: Environment,
 	flag: FeatureFlagKey,
@@ -163,7 +215,7 @@ export async function isFeatureFlagEnabledForUser(
 export type FeatureFlagUpdate =
 	| { type: 'boolean'; enabled?: boolean }
 	| { type: 'percentage'; enabled?: boolean; percentage?: number }
-	| { type: 'allowlist'; enabled?: boolean; users?: AllowlistEntry[] }
+	| { type: 'allowlist'; enabled?: boolean; users?: AllowlistEntry[]; allowEveryone?: boolean }
 
 /** Thrown when an update names a different type than the flag it addresses. */
 export class FeatureFlagTypeError extends Error {}
@@ -213,6 +265,7 @@ export async function setFeatureFlag(
 				// Replaces the list rather than merging into it, so removing someone is a normal save and
 				// not a separate operation the admin UI would have to model.
 				users: update.users ?? value.users,
+				allowEveryone: update.allowEveryone ?? value.allowEveryone ?? false,
 			})
 		}
 		default:

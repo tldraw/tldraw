@@ -225,6 +225,7 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
 	'commenting_enabled',
+	'mcp_server_enabled',
 	'mcp_server_access',
 	'version_chain',
 	'version_chain_legacy_writes',
@@ -265,6 +266,15 @@ export interface AllowlistFeatureFlag {
 	type: 'allowlist'
 	/** The users the flag is on for. Anyone not named here evaluates false. */
 	users: AllowlistEntry[]
+	/**
+	 * Skips the list and admits everybody. Separate from `enabled`, which still has to be true — the
+	 * master toggle keeps meaning "off for everyone", so the two cannot be confused for each other,
+	 * and turning this on never makes a disabled flag live.
+	 *
+	 * Optional because stored values predate it, and absent reads as false: a KV value written before
+	 * this existed must not start admitting everyone when the code that reads it is deployed.
+	 */
+	allowEveryone?: boolean
 	/** Master toggle — when false, disabled for everyone regardless of the list. */
 	enabled: boolean
 	description: string

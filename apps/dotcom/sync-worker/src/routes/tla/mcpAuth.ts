@@ -1,6 +1,6 @@
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
-import { isFeatureFlagEnabledForUser } from '../../utils/featureFlags'
+import { canUseMcpServer } from '../../utils/featureFlags'
 import { getClerkClient } from '../../utils/tla/getAuth'
 
 // The OAuth 2.1 resource-server half of the board screenshot MCP server: discovery metadata, bearer
@@ -336,7 +336,7 @@ export async function authenticateMcpRequest(
 
 	const userId = state.toAuth().userId
 
-	if (!(await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId))) {
+	if (!(await canUseMcpServer(env, userId))) {
 		// Deliberately not a 404. The endpoint's existence is already public — it is in the discovery
 		// metadata this same server serves — so hiding it here would cost a legible error and conceal
 		// nothing.

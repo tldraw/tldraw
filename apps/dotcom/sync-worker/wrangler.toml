@@ -140,7 +140,6 @@ MCP_SERVER_URL = "http://localhost:3000/api/app/mcp"
 # Kill switch for the MCP screenshot server (POST /app/mcp). Read per request, so setting it to
 # anything but "true" — here or straight in the Cloudflare dashboard — takes the endpoint down
 # without a rebuild. A dashboard edit lasts until the next deploy overwrites it from this file.
-MCP_SERVER_ENABLED = "true"
 # local-only signing secret; deployments get a real one via deploy vars
 MCP_SCREENSHOT_TOKEN_SECRET = "local-dev-thumbnail-render-secret"
 # Browser Run is unreachable from local dev (see the BROWSER binding note below), so screenshots go
@@ -161,7 +160,6 @@ HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
 MCP_SERVER_URL = "https://staging.tldraw.com/api/app/mcp"
-MCP_SERVER_ENABLED = "true"
 MCP_SEARCH_NAME_MATCHING_ENABLED = "true"
 
 # production gets the proper name
@@ -175,7 +173,6 @@ HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://www.tldraw.com"
 MCP_SERVER_URL = "https://www.tldraw.com/api/app/mcp"
-MCP_SERVER_ENABLED = "true"
 # Off while the unindexed `name ILIKE '%term%'` scan it drives is still being watched: it is the one
 # part of search no index reaches, so a term matching nothing reads every board in the caller's
 # scope. Off, the tool lists rather than searches and advertises no query — it does not accept a

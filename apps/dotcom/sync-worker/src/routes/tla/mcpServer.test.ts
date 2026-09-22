@@ -395,28 +395,50 @@ describe('authentication', () => {
 	})
 })
 
-describe('MCP_SERVER_ENABLED', () => {
-	// The switch is read per request rather than baked in at build time, so flipping the var takes
-	// the server down without a rebuild.
-	it('serves the server when unset or "true"', () => {
-		expect(isMcpServerEnabled(makeEnv())).toBe(true)
-		expect(isMcpServerEnabled(makeEnv({ MCP_SERVER_ENABLED: 'true' }))).toBe(true)
-		expect(isMcpServerEnabled(makeEnv({ MCP_SERVER_ENABLED: ' TRUE ' }))).toBe(true)
+// A KV namespace holding just the feature flags a test sets. getFeatureFlagValue falls back to the
+// defaults table when a key is absent, so an env without this reads the kill switch as on — which is
+// what every other test in this file relies on.
+function makeFlagsKv(flags: Record<string, unknown>) {
+	return {
+		get: async (key: string) => (key in flags ? JSON.stringify(flags[key]) : null),
+	} as unknown as KVNamespace
+}
+
+function envWithServerDisabled() {
+	return makeEnv({ FEATURE_FLAGS: makeFlagsKv({ mcp_server_enabled: { enabled: false } }) })
+}
+
+describe('the mcp_server_enabled kill switch', () => {
+	// A flag rather than a wrangler var, so it can be flipped from the admin panel during an incident
+	// rather than waiting on a deploy.
+	it('serves the server unless the flag turns it off', async () => {
+		expect(await isMcpServerEnabled(makeEnv())).toBe(true)
+		expect(
+			await isMcpServerEnabled(
+				makeEnv({ FEATURE_FLAGS: makeFlagsKv({ mcp_server_enabled: { enabled: true } }) })
+			)
+		).toBe(true)
+		expect(await isMcpServerEnabled(envWithServerDisabled())).toBe(false)
 	})
 
-	// Anything unrecognized disables: someone reaching for the kill switch under pressure and typing
-	// `0` or `off` should get a disabled server, not a silently still-running one.
-	it('disables the server for "false" and for any unrecognized value', () => {
-		for (const value of ['false', '0', 'off', 'no', 'disabled']) {
-			expect(isMcpServerEnabled(makeEnv({ MCP_SERVER_ENABLED: value }))).toBe(false)
-		}
+	// The failure direction that matters: a KV namespace that throws is an outage of the switch's own
+	// storage, and must not take the product down with it.
+	it('stays on when the flag store cannot be read', async () => {
+		const broken = makeEnv({
+			FEATURE_FLAGS: {
+				get: async () => {
+					throw new Error('KV unavailable')
+				},
+			} as unknown as KVNamespace,
+		})
+		expect(await isMcpServerEnabled(broken)).toBe(true)
 	})
 
 	it('answers every request with 404 while disabled, without touching the board', async () => {
 		// A board that would otherwise render, so the untouched screenshot binding below means the
 		// switch stopped the request rather than the board simply not resolving.
 		mockPublishedBoard()
-		const env = makeEnv({ MCP_SERVER_ENABLED: 'false' })
+		const env = envWithServerDisabled()
 
 		const response = await mcpServer(
 			makeToolCall(
@@ -437,7 +459,7 @@ describe('MCP_SERVER_ENABLED', () => {
 	it('hides the protocol handshake while disabled', async () => {
 		const response = await mcpServer(
 			makeRpcRequest('initialize', undefined, { userId: 'user_41' }),
-			makeEnv({ MCP_SERVER_ENABLED: 'false' })
+			envWithServerDisabled()
 		)
 
 		expect(response.status).toBe(404)
