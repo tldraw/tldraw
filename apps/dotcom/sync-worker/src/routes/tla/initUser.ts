@@ -15,9 +15,10 @@ type InitOutcome = 'existing' | 'created' | 'rate_limited' | 'no_clerk_user' | '
 export async function initUser(req: IRequest, env: Environment): Promise<Response> {
 	const start = Date.now()
 	const loadId = parseLoadId(req.headers.get(LOAD_ID_HEADER))
-	// Timed into Analytics Engine (joinable on the load id). Success responses also carry it as a
-	// Server-Timing header for the client's first_load report; errors bubble to the shared handler
-	// and lose the header, which is fine since the report is not the place to learn about a 500.
+	// Timed into Analytics Engine (joinable on the load id). Every response built here also carries
+	// it as a Server-Timing header for the client's first_load report; a thrown error bubbles to
+	// the shared handler and loses the header, which is fine since the report is not the place to
+	// learn about a 500.
 	const record = (outcome: InitOutcome) => {
 		const ms = Date.now() - start
 		writeDataPoint(undefined, env.MEASURE, env, 'init_user', {
