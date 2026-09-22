@@ -13,6 +13,62 @@ import { BindingOnDeleteOptions } from './bindings/BindingUtil'
 import { Editor } from './Editor'
 
 /**
+ * Strip ids that are no longer on the page out of a page state, returning null when nothing
+ * changed so callers can skip the write.
+ */
+function cleanupInstancePageState(
+	prevPageState: TLInstancePageState,
+	shapesNoLongerInPage: Set<TLShapeId>
+): TLInstancePageState | null {
+	let nextPageState = null as null | TLInstancePageState
+
+	const selectedShapeIds = prevPageState.selectedShapeIds.filter(
+		(id) => !shapesNoLongerInPage.has(id)
+	)
+	if (selectedShapeIds.length !== prevPageState.selectedShapeIds.length) {
+		if (!nextPageState) nextPageState = { ...prevPageState }
+		nextPageState.selectedShapeIds = selectedShapeIds
+	}
+
+	const erasingShapeIds = prevPageState.erasingShapeIds.filter(
+		(id) => !shapesNoLongerInPage.has(id)
+	)
+	if (erasingShapeIds.length !== prevPageState.erasingShapeIds.length) {
+		if (!nextPageState) nextPageState = { ...prevPageState }
+		nextPageState.erasingShapeIds = erasingShapeIds
+	}
+
+	if (prevPageState.hoveredShapeId && shapesNoLongerInPage.has(prevPageState.hoveredShapeId)) {
+		if (!nextPageState) nextPageState = { ...prevPageState }
+		nextPageState.hoveredShapeId = null
+	}
+
+	if (prevPageState.editingShapeId && shapesNoLongerInPage.has(prevPageState.editingShapeId)) {
+		if (!nextPageState) nextPageState = { ...prevPageState }
+		nextPageState.editingShapeId = null
+	}
+
+	if (prevPageState.croppingShapeId && shapesNoLongerInPage.has(prevPageState.croppingShapeId)) {
+		if (!nextPageState) nextPageState = { ...prevPageState }
+		nextPageState.croppingShapeId = null
+	}
+
+	const hintingShapeIds = prevPageState.hintingShapeIds.filter(
+		(id) => !shapesNoLongerInPage.has(id)
+	)
+	if (hintingShapeIds.length !== prevPageState.hintingShapeIds.length) {
+		if (!nextPageState) nextPageState = { ...prevPageState }
+		nextPageState.hintingShapeIds = hintingShapeIds
+	}
+
+	if (prevPageState.focusedGroupId && shapesNoLongerInPage.has(prevPageState.focusedGroupId)) {
+		if (!nextPageState) nextPageState = { ...prevPageState }
+		nextPageState.focusedGroupId = null
+	}
+	return nextPageState
+}
+
+/**
  * Registers the store side effects that keep shapes, bindings and page state mutually consistent:
  * reparenting orphans, running binding lifecycle hooks, and pruning deleted ids out of every page
  * state. The work is queued during an operation and flushed once on completion, so a single user
@@ -21,58 +77,6 @@ import { Editor } from './Editor'
  * @internal
  */
 export function registerShapeIntegritySideEffects(editor: Editor) {
-	const cleanupInstancePageState = (
-		prevPageState: TLInstancePageState,
-		shapesNoLongerInPage: Set<TLShapeId>
-	) => {
-		let nextPageState = null as null | TLInstancePageState
-
-		const selectedShapeIds = prevPageState.selectedShapeIds.filter(
-			(id) => !shapesNoLongerInPage.has(id)
-		)
-		if (selectedShapeIds.length !== prevPageState.selectedShapeIds.length) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.selectedShapeIds = selectedShapeIds
-		}
-
-		const erasingShapeIds = prevPageState.erasingShapeIds.filter(
-			(id) => !shapesNoLongerInPage.has(id)
-		)
-		if (erasingShapeIds.length !== prevPageState.erasingShapeIds.length) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.erasingShapeIds = erasingShapeIds
-		}
-
-		if (prevPageState.hoveredShapeId && shapesNoLongerInPage.has(prevPageState.hoveredShapeId)) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.hoveredShapeId = null
-		}
-
-		if (prevPageState.editingShapeId && shapesNoLongerInPage.has(prevPageState.editingShapeId)) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.editingShapeId = null
-		}
-
-		if (prevPageState.croppingShapeId && shapesNoLongerInPage.has(prevPageState.croppingShapeId)) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.croppingShapeId = null
-		}
-
-		const hintingShapeIds = prevPageState.hintingShapeIds.filter(
-			(id) => !shapesNoLongerInPage.has(id)
-		)
-		if (hintingShapeIds.length !== prevPageState.hintingShapeIds.length) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.hintingShapeIds = hintingShapeIds
-		}
-
-		if (prevPageState.focusedGroupId && shapesNoLongerInPage.has(prevPageState.focusedGroupId)) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.focusedGroupId = null
-		}
-		return nextPageState
-	}
-
 	let deletedBindings = new Map<TLBindingId, BindingOnDeleteOptions<any>>()
 	const deletedShapeIds = new Set<TLShapeId>()
 	const invalidParents = new Set<TLShapeId>()
