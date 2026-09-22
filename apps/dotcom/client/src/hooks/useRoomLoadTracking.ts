@@ -10,8 +10,12 @@ function getFileSizeBucket(sizeMB: number): string {
 	return '10+ MB'
 }
 
-export function useRoomLoadTracking() {
-	const loadStartTime = useRef(Date.now())
+/**
+ * @param startedAt - When the room's sync store started connecting, if that was before this hook
+ * mounted. Keeps `room_load_duration` measuring the full room boot rather than just the editor.
+ */
+export function useRoomLoadTracking(startedAt?: number) {
+	const loadStartTime = useRef(startedAt ?? Date.now())
 
 	return (editor: Editor) => {
 		const loadTime = Date.now() - loadStartTime.current

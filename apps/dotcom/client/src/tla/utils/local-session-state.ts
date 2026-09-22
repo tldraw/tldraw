@@ -41,6 +41,9 @@ export interface TldrawAppSessionState {
 	>
 	sidebarWidth?: number
 	shouldShowWelcomeDialog?: boolean
+	// The file this browser last synced to, keyed by account so a different sign-in on the same
+	// browser never lands on someone else's board. Only a hint: Zero's file_state is authoritative.
+	lastVisitedFile?: { userId: string; fileId: string }
 }
 
 const defaultSessionState: TldrawAppSessionState = {
@@ -158,6 +161,19 @@ export function toggleMobileSidebar(open: boolean = !getIsSidebarOpenMobile()) {
 	updateLocalSessionState(() => {
 		return { isSidebarOpenMobile: open }
 	})
+}
+
+export function getLastVisitedFileId(userId: string): string | null {
+	const cached = getLocalSessionStateUnsafe().lastVisitedFile
+	return cached?.userId === userId ? cached.fileId : null
+}
+
+export function setLastVisitedFile(userId: string, fileId: string) {
+	updateLocalSessionState(() => ({ lastVisitedFile: { userId, fileId } }))
+}
+
+export function clearLastVisitedFile() {
+	updateLocalSessionState(() => ({ lastVisitedFile: undefined }))
 }
 
 export function updateLocalSessionState(

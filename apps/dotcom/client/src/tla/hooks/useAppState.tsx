@@ -15,8 +15,14 @@ import {
 } from '../utils/FeatureFlagPoller'
 
 const appContext = createContext<TldrawApp | null>(null)
+// Anonymous trees never mount the provider, so they read the default: not loading.
+const appLoadingContext = createContext(false)
 
 export const isClientTooOld$ = atom('isClientTooOld', false)
+
+// Signal twin of the context for code that runs before the app exists but must pick it up when it
+// arrives without remounting, e.g. the presence user store behind the sync socket.
+export const currentApp$ = atom<TldrawApp | null>('currentApp', null)
 
 const APP_LOAD_ERROR_MESSAGES = {
 	header: 'Something went wrong',
@@ -93,6 +99,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				return
 			}
 			_app = app
+			currentApp$.set(app)
 			setApp(app)
 		})().catch((err) => {
 			if (didCancel) return
@@ -112,6 +119,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			didCancel = true
 			abort.abort()
 			if (_app) {
+				if (currentApp$.get() === _app) currentApp$.set(null)
 				_app.dispose()
 			}
 		}
@@ -133,16 +141,26 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		)
 	}
 
-	if (!app) {
-		// We used to show a Loading... here but it was causing too much flickering.
-		return null
-	}
-
-	return <appContext.Provider value={app}>{children}</appContext.Provider>
+	// Children render while the app loads so the file route can open its sync socket in parallel
+	// with the Zero preload. Routes that cannot cope with a null app are held back by the
+	// `AppGate` in `TlaRootProviders`, not here.
+	return (
+		<appLoadingContext.Provider value={!app}>
+			<appContext.Provider value={app}>{children}</appContext.Provider>
+		</appLoadingContext.Provider>
+	)
 }
 
 export function useMaybeApp() {
 	return useContext(appContext)
+}
+
+/**
+ * True between mount and the app resolving for a signed-in user. `useMaybeApp()` alone cannot
+ * tell a signed-out visitor from a signed-in user whose Zero preload is still running.
+ */
+export function useIsAppLoading() {
+	return useContext(appLoadingContext)
 }
 export function useApp(): TldrawApp {
 	return assertExists(useContext(appContext), 'useApp must be used within AppStateProvider')
