@@ -185,8 +185,8 @@ export class TldrawApp {
 		QueryResultType<typeof queries.workspaceMemberships>
 	>
 	/**
-	 * The three comment feeds (one per reason — see `homeBoardComments` in dotcom-shared), each
-	 * empty until {@link startNotificationFeeds} subscribes it, and forever when commenting is
+	 * The comment feeds (one per reason for a notification — see `homeBoardComments` in
+	 * dotcom-shared), each empty until {@link startNotificationFeeds} subscribes it, and forever when commenting is
 	 * disabled for this user: these are the most expensive queries in the schema (nested EXISTS
 	 * over comment/thread/file/group), so a closed flag has to keep them off the wire entirely,
 	 * not just hide the UI that reads them.
@@ -440,7 +440,7 @@ export class TldrawApp {
 	}
 
 	/**
-	 * Recent comments across the user's files, for the notifications feed (bounded per reason,
+	 * Recent comments across the user's files, for the notifications feed (bounded per feed,
 	 * cross-file, unordered). Empty until {@link startNotificationFeeds}, and when commenting is
 	 * disabled for this user — the queries aren't subscribed at all.
 	 */
