@@ -28,7 +28,7 @@ export type FirstLoadServerTimings = Extract<TLCustomServerEvent, { type: 'first
  * | editor-mounted       | the editor's `onMount` ran                                            |
  * | board-visible        | the ready shroud lifted; the board is on screen                       |
  *
- * See apps/dotcom/first-load-improvements.md for how to read the output.
+ * How to read the output: tldraw-internal #2026.
  */
 export const FIRST_LOAD_STEPS = [
 	'js-started',
