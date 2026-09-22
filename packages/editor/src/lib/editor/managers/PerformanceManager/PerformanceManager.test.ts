@@ -38,6 +38,7 @@ function createMockEditor() {
 		getViewportScreenBounds: () => ({ w: 1920, h: 1080 }),
 		timers: {
 			setTimeout: (fn: () => void, ms: number) => setTimeout(fn, ms),
+			clearTimeout: (id: number) => clearTimeout(id),
 		},
 		_listeners: listeners,
 	} as any
