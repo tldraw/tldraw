@@ -183,6 +183,9 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 			if (!app) {
 				setIsReady()
+				// Signed-out loads record every step too; the report itself is gated on the account.
+				markFirstLoad('board-visible')
+				reportFirstLoad({ email: null, flagEnabled: false, trackEvent })
 				return
 			}
 
