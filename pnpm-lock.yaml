@@ -725,7 +725,7 @@ importers:
         version: 13.20.0
       '@vitejs/plugin-react':
         specifier: ^6.0.1
-        version: 6.0.1(@rolldown/plugin-babel@0.2.3(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)))(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
+        version: 6.0.1(@rolldown/plugin-babel@0.2.3(@babel/runtime@7.28.6)(rolldown@1.2.4)(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)))(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
@@ -973,6 +973,9 @@ importers:
       d3-geo:
         specifier: ^3.1.1
         version: 3.1.1
+      katex:
+        specifier: ^0.18.1
+        version: 0.18.1
       lazyrepo:
         specifier: 0.0.0-alpha.27
         version: 0.0.0-alpha.27
@@ -1019,6 +1022,9 @@ importers:
       '@types/d3-geo':
         specifier: ^3.1.0
         version: 3.1.0
+      '@types/katex':
+        specifier: ^0.16.8
+        version: 0.16.8
       '@types/lodash':
         specifier: ^4.17.14
         version: 4.17.25
@@ -1036,7 +1042,7 @@ importers:
         version: 1.0.5
       '@vitejs/plugin-react':
         specifier: ^6.0.1
-        version: 6.0.1(@rolldown/plugin-babel@0.2.3(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)))(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
+        version: 6.0.1(@rolldown/plugin-babel@0.2.3(@babel/runtime@7.28.6)(rolldown@1.2.4)(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)))(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
       '@wdio/appium-service':
         specifier: ^9.0.0
         version: 9.27.2(supports-color@10.2.2)
@@ -1112,7 +1118,7 @@ importers:
         version: 19.2.3(@types/react@19.2.7)
       '@vitejs/plugin-react':
         specifier: ^6.0.1
-        version: 6.0.1(@rolldown/plugin-babel@0.2.3(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)))(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
+        version: 6.0.1(@rolldown/plugin-babel@0.2.3(@babel/runtime@7.28.6)(rolldown@1.2.4)(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)))(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
       react:
         specifier: ^19.2.1
         version: 19.2.1
@@ -2508,7 +2514,7 @@ importers:
         version: link:../../packages/sync-core
       '@vitejs/plugin-react':
         specifier: ^6.0.1
-        version: 6.0.1(@rolldown/plugin-babel@0.2.3(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)))(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
+        version: 6.0.1(@rolldown/plugin-babel@0.2.3(@babel/runtime@7.28.6)(rolldown@1.2.4)(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)))(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
       better-sqlite3:
         specifier: ^12.10.0
         version: 12.10.0
@@ -2670,7 +2676,7 @@ importers:
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: ^1.29.1
-        version: 1.30.0(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(workerd@1.20260317.1)(wrangler@4.76.0(@cloudflare/workers-types@4.20260317.1))
+        version: 1.30.0(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(workerd@1.20260317.1)(wrangler@4.76.0)
       '@types/react':
         specifier: ^19.2.7
         version: 19.2.7
@@ -9189,6 +9195,9 @@ packages:
   '@types/jsonwebtoken@9.0.5':
     resolution: {integrity: sha512-VRLSGzik+Unrup6BsouBeHsf4d1hOEgYWTm/7Nmw1sXoN1+tRly/Gy/po3yeahnP4jfnQWWAhQAqcNfH7ngOkA==}
 
+  '@types/katex@0.16.8':
+    resolution: {integrity: sha512-trgaNyfU+Xh2Tc+ABIb44a5AYUpicB3uwirOioeOkNPPbmgRNtcWyDeeFRzjPZENO9Vq8gvVqfhaaXWLlevVwg==}
+
   '@types/linkify-it@5.0.0':
     resolution: {integrity: sha512-sVDA58zAw4eWAffKOaQH5/5j3XeayukzDk+ewSsnv3p4yJEZHCCzMDiZM8e0OUrRvmpGZ85jf4yDHkHsgBNr9Q==}
 
@@ -13036,6 +13045,10 @@ packages:
     resolution: {integrity: sha512-Eeo8Ys1doU1z+x8AZsPpQu+p/QcZBI5PeOo7QGQdy2x2m0MU/hYagBbGOmXwr5KVbEfVuWv9LpnQWeehogurjg==}
     hasBin: true
 
+  katex@0.18.1:
+    resolution: {integrity: sha512-Td8GCYSxDAoMhHOlKmCFMJ/hz5qlAAb71n66Dryw9nfCVfumLo7nhuotbvKom/XPADmrYC3O5QR71EPq4DarJQ==}
+    hasBin: true
+
   keytar@7.9.0:
     resolution: {integrity: sha512-VPD8mtVtm5JNtA2AErl6Chp06JBfy7diFQ7TQQhdpWOl6MrCRB+eRbvAZUsbGQS9kiMq0coJsy0W0vHpDCkWsQ==}
 
@@ -14869,8 +14882,8 @@ packages:
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
 
-  react-is@19.2.6:
-    resolution: {integrity: sha512-XjBR15BhXuylgWGuslhDKqlSayuqvqBX91BP8pauG8kd1zY8kotkNWbXksTCNRarse4kuGbe2kIY05ARtwNIvw==}
+  react-is@19.3.0:
+    resolution: {integrity: sha512-UpMYezM4v5/18F28aC66AEsjXIgE02kyEMH6yLdgLXu/UTfa1Ntwck/nNLrbqJsEXW7gPb0coNO9FQse9WTovA==}
 
   react-markdown@10.1.0:
     resolution: {integrity: sha512-qKxVopLT/TyA6BX3Ue5NwabOsAzm0Q7kAPwq6L+wWDwisYs7R8vZ0nRXqq6rkueboxpkjvLGU9fWifiX/ZZFxQ==}
@@ -18100,6 +18113,19 @@ snapshots:
       - utf-8-validate
       - workerd
 
+  '@cloudflare/vite-plugin@1.30.0(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(workerd@1.20260317.1)(wrangler@4.76.0)':
+    dependencies:
+      '@cloudflare/unenv-preset': 2.16.0(unenv@2.0.0-rc.24)(workerd@1.20260317.1)
+      miniflare: 4.20260317.1
+      unenv: 2.0.0-rc.24
+      vite: 8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)
+      wrangler: 4.76.0(@cloudflare/workers-types@4.20260317.1)
+      ws: 8.21.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+      - workerd
+
   '@cloudflare/workerd-darwin-64@1.20260317.1':
     optional: true
 
@@ -19878,7 +19904,7 @@ snapshots:
       '@octokit/core': 5.2.0
       '@octokit/oauth-authorization-url': 6.0.2
       '@octokit/oauth-methods': 4.0.1
-      '@types/aws-lambda': 8.10.148
+      '@types/aws-lambda': 8.10.162
       universal-user-agent: 6.0.1
 
   '@octokit/oauth-authorization-url@6.0.2': {}
@@ -23448,6 +23474,8 @@ snapshots:
     dependencies:
       '@types/node': 22.16.0
 
+  '@types/katex@0.16.8': {}
+
   '@types/linkify-it@5.0.0': {}
 
   '@types/lodash.isequal@4.5.8':
@@ -24041,6 +24069,13 @@ snapshots:
       ajv: 8.6.3
       json-schema-to-ts: 1.6.4
       ts-morph: 12.0.0
+
+  '@vitejs/plugin-react@6.0.1(@rolldown/plugin-babel@0.2.3(@babel/runtime@7.28.6)(rolldown@1.2.4)(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)))(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))':
+    dependencies:
+      '@rolldown/pluginutils': 1.0.0-rc.7
+      vite: 8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)
+    optionalDependencies:
+      '@rolldown/plugin-babel': 0.2.3(@babel/core@7.29.7(supports-color@10.2.2))(@babel/runtime@7.28.6)(rolldown@1.2.4)(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
 
   '@vitejs/plugin-react@6.0.1(@rolldown/plugin-babel@0.2.3(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)))(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))':
     dependencies:
@@ -28086,6 +28121,10 @@ snapshots:
     dependencies:
       commander: 8.3.0
 
+  katex@0.18.1:
+    dependencies:
+      commander: 8.3.0
+
   keytar@7.9.0:
     dependencies:
       node-addon-api: 4.3.0
@@ -30062,7 +30101,7 @@ snapshots:
       '@jest/schemas': 30.4.1
       ansi-styles: 5.2.0
       react-is-18: react-is@18.3.1
-      react-is-19: react-is@19.2.6
+      react-is-19: react-is@19.3.0
 
   pretty-ms@7.0.1:
     dependencies:
@@ -30481,7 +30520,7 @@ snapshots:
 
   react-is@18.3.1: {}
 
-  react-is@19.2.6: {}
+  react-is@19.3.0: {}
 
   react-markdown@10.1.0(@types/react@19.2.7)(react@19.2.1)(supports-color@10.2.2):
     dependencies:
