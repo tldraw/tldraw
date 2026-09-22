@@ -111,6 +111,12 @@ function FeatureFlags() {
 							? `${flag} allowlist cleared`
 							: `${flag} allowed for ${update.emails.length} user(s)`
 					)
+				} else if (update.allowEveryone !== undefined) {
+					setSuccessMessage(
+						update.allowEveryone
+							? `${flag} allowed for everyone`
+							: `${flag} allowed for its list again`
+					)
 				} else {
 					setSuccessMessage(`${flag} ${update.enabled ? 'enabled' : 'disabled'}`)
 				}
