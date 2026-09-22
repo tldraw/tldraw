@@ -214,14 +214,14 @@ export const queries = defineQueries({
 	/**
 	 * The caller's own comments that someone else has reacted to, for the notifications feed's
 	 * "reacted to your comment" entries. Uses the same access building blocks as
-	 * {@link homeBoardComments} (file state, group membership). Ordering by reaction time is client-side:
-	 * `buildReactionNotifications` stamps each entry with its newest foreign reaction and
-	 * `mergeNotifications` sorts on it.
+	 * {@link homeBoardComments} (file state, group membership). Ordering by reaction time is
+	 * client-side: `buildReactionNotifications` stamps each entry with its newest foreign reaction
+	 * and `mergeNotifications` sorts on it.
 	 *
 	 * Rooted at `comment`, *not* at `comment_reaction`, so the file-access gate sits one level from
 	 * the root exactly as it does in {@link homeBoardComments}. Rooting at the reaction put that gate
-	 * behind a second correlated subquery, and the fileId correlation then stopped being pushed down into
-	 * `file`'s `states`/`groupFiles` relations: the query traversed those tables — hundreds of
+	 * behind a second correlated subquery, and the fileId correlation then stopped being pushed down
+	 * into `file`'s `states`/`groupFiles` relations: the query traversed those tables — hundreds of
 	 * thousands of rows — rather than the handful of files it actually concerned. It materialized in
 	 * ~150s against production data while `comment_reaction` held ~50 rows, which outran the sync
 	 * connection's 60s auth token and left every client unable to finish a first sync. The cost of
