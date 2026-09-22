@@ -239,6 +239,9 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 					if (!abortController.signal.aborted) showSlurpFailure()
 				})
 				.then(() => {
+					// A restore aborted by navigating away still resolves; the board it belonged to never
+					// showed, so it must not take the one-shot report from the next one.
+					if (abortController.signal.aborted) return
 					setIsReady()
 					markFirstLoad('board-visible')
 					reportFirstLoad({
