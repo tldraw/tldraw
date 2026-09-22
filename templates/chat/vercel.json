@@ -1,5 +1,0 @@
-{
-	"installCommand": "pnpm install",
-	"buildCommand": "pnpm exec lazy build",
-	"ignoreCommand": "bash ../../internal/scripts/vercel/should-build-template.sh chat"
-}
