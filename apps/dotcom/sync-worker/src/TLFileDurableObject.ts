@@ -412,6 +412,7 @@ export class TLFileDurableObject extends DurableObject {
 							// make sure nobody joined the room while we were persisting
 							if (room.getNumActiveSessions() > 0) return
 							this._room = null
+							this.dropBootTimings()
 							room.close()
 							this.logEvent({ type: 'room', name: 'room_empty' })
 							await this._pool?.end()
@@ -481,6 +482,7 @@ export class TLFileDurableObject extends DurableObject {
 					// Never cache a rejection: the condition may heal, and a cached rejection
 					// makes every later retry fail instantly.
 					if (this._room === promise) this._room = null
+					this.dropBootTimings()
 					this.setBootStage(null)
 					throw error
 				})
@@ -1781,6 +1783,13 @@ export class TLFileDurableObject extends DurableObject {
 
 	// first_load_server messages waiting for their session's connect handshake to complete.
 	private _pendingFirstLoadEchoes = new Map<string, TLCustomServerEvent>()
+
+	// Called wherever the room is dropped. A reopen from retained storage skips loadFromDatabase
+	// (the only writer), so without this the next booting client would be echoed the old numbers.
+	private dropBootTimings() {
+		this._bootTimings = {}
+		this._bootLoadId = undefined
+	}
 
 	_lastPersistedClock: number | null = null
 
@@ -3238,6 +3247,7 @@ export class TLFileDurableObject extends DurableObject {
 			await this.closeAllSocketsForDelete()
 			// setting _room to null will prevent any further persists from going through
 			this._room = null
+			this.dropBootTimings()
 			// The cached storage handle points at SQLite that deleteAll() drops below.
 			this._storage = null
 			// delete should be handled by the delete endpoint now
@@ -3481,6 +3491,7 @@ export class TLFileDurableObject extends DurableObject {
 			// Without this the closing sessions' last-out persist re-uploads the snapshot to the keys
 			// deleted below.
 			this._room = null
+			this.dropBootTimings()
 			const slug = this.documentInfo.slug
 			const roomKey = getR2KeyForRoom({ slug, isApp: false })
 
