@@ -12431,6 +12431,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/sync-core@workspace:packages/sync-core"
   dependencies:
+    "@peculiar/webcrypto": "npm:^1.5.0"
     "@tldraw/editor": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
@@ -12439,9 +12440,11 @@ __metadata:
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@types/uuid-readable": "npm:^0.0.3"
+    fake-indexeddb: "npm:^4.0.2"
     nanoevents: "npm:^7.0.1"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
+    resize-observer-polyfill: "npm:^1.5.1"
     tldraw: "workspace:*"
     typescript: "npm:^7.0.2"
     uuid-by-string: "npm:^4.0.0"
@@ -18928,6 +18931,7 @@ __metadata:
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@types/regexgen": "npm:^1"
+    "@vercel/build-utils": "npm:13.20.0"
     "@vitejs/plugin-react": "npm:^6.0.1"
     axe-core: "npm:^4.10.3"
     browser-fs-access: "npm:^0.35.0"
@@ -18956,6 +18960,7 @@ __metadata:
     vite: "npm:^8.0.16"
     vitest: "npm:^5.0.0"
     ws: "npm:^8.18.0"
+    zod: "npm:^4.1.8"
   languageName: unknown
   linkType: soft
 
@@ -31869,6 +31874,7 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.5.1"
+    fake-indexeddb: "npm:^4.0.2"
     idb: "npm:^7.1.1"
     jest-diff: "npm:^30.4.1"
     lazyrepo: "npm:0.0.0-alpha.27"
