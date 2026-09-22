@@ -197,7 +197,9 @@ test.describe('comment notifications', () => {
 		await closeNotifications(member)
 
 		// removal only drops the ex-member's file_state for unshared files (migration 023), so unshare
-		// first; then the group_user delete takes the last access row the feed's gate can find
+		// first; then the group_user delete takes the last access row the feed's gate can find.
+		// Asserted live, without a reload: a remounted app starts with empty feeds, which would
+		// satisfy the count before the gate had been applied
 		await scenario.setSharedLinkType(owner, 'no-access')
 		await owner.page.keyboard.press('Escape')
 		await scenario.removeWorkspaceMember({
@@ -205,7 +207,6 @@ test.describe('comment notifications', () => {
 			workspaceName: workspace.workspaceName,
 			memberUserId: workspace.memberUserId,
 		})
-		await member.goto()
 		await expectNoNotification(member, ownerReply)
 	})
 
