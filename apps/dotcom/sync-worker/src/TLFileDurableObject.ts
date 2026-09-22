@@ -116,6 +116,7 @@ import { throttle } from './utils/throttle'
 import {
 	getAuth,
 	getMcpTokenAuth,
+	MCP_SOCKET_SUBPROTOCOL,
 	requireAdminAccess,
 	requireAdminAccessToRequest,
 	type McpTokenOptions,
@@ -1032,9 +1033,25 @@ export class TLFileDurableObject extends DurableObject {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		this.state.acceptWebSocket(serverWebSocket)
 
+		// A browser closes a connection whose offered subprotocol the server did not select, so a
+		// handshake carrying an MCP token has to be answered with the same value back. Every 101 out
+		// of here goes through this, the two that close the socket immediately included: the client
+		// still has to finish the handshake to receive the close reason, and one that never completes
+		// reports a failed connection instead of the reason it failed.
+		const offeredSubprotocol = req.headers.get('sec-websocket-protocol')?.split(',')[0].trim()
+		const acceptSocket = () =>
+			new Response(null, {
+				status: 101,
+				webSocket: clientWebSocket,
+				headers:
+					offeredSubprotocol === MCP_SOCKET_SUBPROTOCOL
+						? { 'sec-websocket-protocol': MCP_SOCKET_SUBPROTOCOL }
+						: undefined,
+			})
+
 		const closeSocket = (reason: TLSyncErrorCloseEventReason) => {
 			serverWebSocket.close(TLSyncErrorCloseEventCode, reason)
-			return new Response(null, { status: 101, webSocket: clientWebSocket })
+			return acceptSocket()
 		}
 		// For infra failures (Postgres, rate limiter, etc.): a TLSyncErrorCloseEventCode close is
 		// terminal on the client (error screen, no reconnect), which would strand every connecting
@@ -1043,7 +1060,7 @@ export class TLFileDurableObject extends DurableObject {
 		// do. Workers only allow 1000 or 3000-4999 here.
 		const closeSocketRetryable = () => {
 			serverWebSocket.close(1000, 'transient_error')
-			return new Response(null, { status: 101, webSocket: clientWebSocket })
+			return acceptSocket()
 		}
 
 		// Everything from here through the permission checks below can throw on an infra failure
@@ -1063,11 +1080,12 @@ export class TLFileDurableObject extends DurableObject {
 			// unreachable over sync to the agent they just signed in to. Accepted only as a fallback,
 			// and it widens nothing: every check below is the same either way, so a token joins
 			// exactly the rooms, at exactly the open mode — write included — its user would get from
-			// the website. It rides in the `accessToken` query param because a websocket handshake
-			// carries no header a client can set, which is the same reason session tokens do.
+			// the website. It rides in the handshake's `Sec-WebSocket-Protocol` header, the one field
+			// a browser lets a client set there, which keeps it out of the URL that session tokens
+			// still use.
 			auth =
 				(await getAuth(req, this.env)) ??
-				(await getMcpTokenUser(req, this.env, { allowQueryParamToken: true }))
+				(await getMcpTokenUser(req, this.env, { allowSubprotocolToken: true }))
 			echoTimings.auth = authTimer.report('on_request_auth', loadIdBlobs)
 
 			if (this.documentInfo.isApp) {
@@ -1223,7 +1241,7 @@ export class TLFileDurableObject extends DurableObject {
 				})
 			}
 
-			return new Response(null, { status: 101, webSocket: clientWebSocket })
+			return acceptSocket()
 		} catch (e) {
 			if (e instanceof RoomNotFoundError) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)

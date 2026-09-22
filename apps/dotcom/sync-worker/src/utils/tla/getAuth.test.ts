@@ -154,39 +154,70 @@ describe('getMcpTokenAuth', () => {
 		expect(isFeatureFlagEnabledForUser).toHaveBeenCalledWith(env, 'mcp_server_access', 'user_1')
 	})
 
-	// The websocket handshake's only way to present anything, and how the MCP token reaches the file
-	// room. Verified exactly as a header token is: the param is a route into the same check, not a
-	// weaker one.
-	it('takes the token from the accessToken param when the caller opts in', async () => {
+	// The one header a browser lets a client set on a handshake, and how the MCP token reaches the
+	// file room. Verified exactly as an `Authorization` token is: the subprotocol is a route into the
+	// same check, not a weaker one.
+	it('takes the token from the subprotocol when the caller opts in', async () => {
 		signedInAs('user_1')
 		vi.mocked(isFeatureFlagEnabledForUser).mockResolvedValue(true)
 
 		await expect(
-			getMcpTokenAuth(requestWith({}, '?accessToken=tok'), env, { allowQueryParamToken: true })
+			getMcpTokenAuth(requestWith({ 'sec-websocket-protocol': 'tldraw.bearer, tok' }), env, {
+				allowSubprotocolToken: true,
+			})
 		).resolves.toEqual({ ok: true, userId: 'user_1' })
 		expect(authenticateRequest.mock.calls[0][0].headers.get('authorization')).toBe('Bearer tok')
 	})
 
 	// Off unless asked for, so the MCP endpoint keeps the header-only promise its discovery metadata
-	// makes and no token of ours ends up in an access log that didn't have to hold one.
-	it('ignores the accessToken param by default', async () => {
-		await expect(getMcpTokenAuth(requestWith({}, '?accessToken=tok'), env)).resolves.toEqual({
+	// makes.
+	it('ignores the subprotocol by default', async () => {
+		await expect(
+			getMcpTokenAuth(requestWith({ 'sec-websocket-protocol': 'tldraw.bearer, tok' }), env)
+		).resolves.toEqual({
 			ok: false,
 			reason: 'no_token',
 		})
 		expect(authenticateRequest).not.toHaveBeenCalled()
 	})
 
-	it('prefers the header when a request carries both', async () => {
+	// A client naming some other subprotocol is not making a failed attempt at ours, so it reads as
+	// no token rather than a bad one — which is the difference between a 401 that says "sign in" and
+	// one that says "your token is broken".
+	it('ignores a subprotocol that is not ours', async () => {
+		await expect(
+			getMcpTokenAuth(requestWith({ 'sec-websocket-protocol': 'graphql-ws' }), env, {
+				allowSubprotocolToken: true,
+			})
+		).resolves.toEqual({ ok: false, reason: 'no_token' })
+		expect(authenticateRequest).not.toHaveBeenCalled()
+	})
+
+	// The token must survive the field unencoded: a JWT's characters are all legal in it, dots and
+	// dashes included, and nothing here should be mangling them.
+	it('keeps a JWT intact through the subprotocol', async () => {
+		signedInAs('user_1')
+		vi.mocked(isFeatureFlagEnabledForUser).mockResolvedValue(true)
+		const jwt = 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyXzEifQ.sig-with_chars'
+
+		await getMcpTokenAuth(requestWith({ 'sec-websocket-protocol': `tldraw.bearer, ${jwt}` }), env, {
+			allowSubprotocolToken: true,
+		})
+
+		expect(authenticateRequest.mock.calls[0][0].headers.get('authorization')).toBe(`Bearer ${jwt}`)
+	})
+
+	it('prefers the authorization header when a request carries both', async () => {
 		signedInAs('user_1')
 		vi.mocked(isFeatureFlagEnabledForUser).mockResolvedValue(true)
 
 		await getMcpTokenAuth(
-			requestWith({ authorization: 'Bearer header-tok' }, '?accessToken=tok'),
+			requestWith({
+				authorization: 'Bearer header-tok',
+				'sec-websocket-protocol': 'tldraw.bearer, tok',
+			}),
 			env,
-			{
-				allowQueryParamToken: true,
-			}
+			{ allowSubprotocolToken: true }
 		)
 
 		expect(authenticateRequest.mock.calls[0][0].headers.get('authorization')).toBe(

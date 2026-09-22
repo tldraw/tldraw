@@ -139,16 +139,24 @@ export type McpTokenAuth = { ok: true; userId: string } | { ok: false; reason: M
 
 export interface McpTokenOptions {
 	/**
-	 * Also accept the token from the `accessToken` query param, not the `Authorization` header alone.
+	 * Also accept the token offered as a websocket subprotocol, not the `Authorization` header alone.
 	 *
-	 * Opt-in per call site because a token in a URL is a token in access logs, proxy logs and
-	 * anything that keeps a `Referer`, which is a real cost to pay for one caller's benefit. The
-	 * websocket handshake is the one place worth paying it: a browser cannot set a header on it, so
-	 * the query param is the only way a client presents anything at all — which is why session
-	 * tokens already arrive that way (see {@link getAuth}). The MCP endpoint itself stays header-only,
-	 * and its discovery metadata says so with `bearer_methods_supported: ['header']`.
+	 * Opt-in per call site, because it is a credential arriving somewhere no other endpoint looks for
+	 * one. The websocket handshake is the one place worth it: the browser's `WebSocket` constructor
+	 * sets no request header except `Sec-WebSocket-Protocol`, so that field is the only way a client
+	 * presents anything at all without putting the token in the URL — where session tokens still ride
+	 * (see {@link getAuth}) and where it would land in access logs, proxy logs and anything keeping a
+	 * `Referer`. The MCP endpoint itself stays header-only, and its discovery metadata says so with
+	 * `bearer_methods_supported: ['header']`.
+	 *
+	 * This is not what a subprotocol is for, and it has a sharp edge: the server must echo the value
+	 * on the 101 or the browser drops the connection (see {@link MCP_SOCKET_SUBPROTOCOL}). The
+	 * cleaner answer is a ticket — POST the access token to an endpoint with a real `Authorization`
+	 * header, get back a single-use ticket good for seconds, and connect with that. Nothing durable
+	 * in a URL, and no field used for something it does not mean. It wants an endpoint and somewhere
+	 * to keep tickets, which is the whole reason it is not what this does yet.
 	 */
-	allowQueryParamToken?: boolean
+	allowSubprotocolToken?: boolean
 }
 
 /**
@@ -199,9 +207,10 @@ export interface McpTokenOptions {
 export async function getMcpTokenAuth(
 	request: IRequest,
 	env: Environment,
-	{ allowQueryParamToken = false }: McpTokenOptions = {}
+	{ allowSubprotocolToken = false }: McpTokenOptions = {}
 ): Promise<McpTokenAuth> {
-	const token = getBearerToken(request) ?? (allowQueryParamToken ? getQueryToken(request) : null)
+	const token =
+		getBearerToken(request) ?? (allowSubprotocolToken ? getSubprotocolToken(request) : null)
 	if (!token) return { ok: false, reason: 'no_token' }
 
 	if (!env.CLERK_SECRET_KEY) {
@@ -244,12 +253,27 @@ export function getBearerToken(request: Request): string | null {
 }
 
 /**
- * The token in the `accessToken` query param — the same param a session token rides in on a
- * websocket URL, since a handshake carries no header a client can set.
+ * The subprotocol an MCP client offers to carry its access token, and the value the server echoes to
+ * accept it.
+ *
+ * The echo is not optional: a browser closes a connection whose offered subprotocol the server did
+ * not select, so every 101 answering such a handshake has to name this back — including the ones
+ * that close the socket immediately, since the client still completes the handshake to read why.
  */
-function getQueryToken(request: IRequest): string | null {
-	const token = new URL(request.url).searchParams.get('accessToken')?.trim()
-	return token ? token : null
+export const MCP_SOCKET_SUBPROTOCOL = 'tldraw.bearer'
+
+/**
+ * The token offered as `Sec-WebSocket-Protocol: tldraw.bearer, <token>`.
+ *
+ * A Clerk access token is a JWT, and every character a JWT uses is legal in this field, so it
+ * survives unencoded. Anything that is not our two-part offer reads as no token rather than a bad
+ * one: a client naming some other subprotocol is not making a failed attempt at this.
+ */
+function getSubprotocolToken(request: IRequest): string | null {
+	const offered = request.headers.get('sec-websocket-protocol')
+	if (!offered) return null
+	const [name, token] = offered.split(',', 2).map((part) => part.trim())
+	return name === MCP_SOCKET_SUBPROTOCOL && token ? token : null
 }
 
 /**
