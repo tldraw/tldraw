@@ -184,7 +184,7 @@ This was written up as the flag work's problem rather than this one's, and it la
 Two related findings about what the allowlist can key on:
 
 - **`evaluateFlagForUser` takes `userId` only — there is no `email` parameter.** Server-side flag evaluation has no access to email today.
-- **Our previous email-based override was client-side.** `commenting_enabled` (since removed) granted access to `@tldraw.com` emails regardless of the flag, and that check lived in the client (`TldrawApp.ts`, `useUser.tsx`), not in `featureFlags.ts`. Noted as prior art for _how_ email overrides have been done, not as a model for this gate: MCP callers are Claude and ChatGPT rather than our React app, so anything enforced there isn't enforced at all.
+- **Our previous email-based override was client-side.** `commenting_enabled` (since removed) granted access to `@tldraw.com` emails regardless of the flag, and that check lived in the client (`TldrawApp.ts`), not in `featureFlags.ts`. Noted as prior art for _how_ email overrides have been done, not as a model for this gate: MCP callers are Claude and ChatGPT rather than our React app, so anything enforced there isn't enforced at all.
 
 So the flag work picks a key:
 
