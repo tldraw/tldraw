@@ -13,14 +13,19 @@ import { getClerkClient } from '../../utils/tla/getAuth'
 export async function initUser(req: IRequest, env: Environment): Promise<Response> {
 	const start = Date.now()
 	const loadId = parseLoadId(req.headers.get(LOAD_ID_HEADER))
-	// Timed both into Analytics Engine (joinable on the load id) and onto the response as a
-	// Server-Timing header, which the client reads off the resource timing entry.
-	const respond = (body: string, status: number, outcome: 'existing' | 'created' | 'error') => {
+	// Timed into Analytics Engine (joinable on the load id). Success responses also carry it as a
+	// Server-Timing header for the client's first_load report; errors bubble to the shared handler
+	// and lose the header, which is fine since the report is not the place to learn about a 500.
+	const record = (outcome: 'existing' | 'created' | 'error') => {
 		const ms = Date.now() - start
 		writeDataPoint(undefined, env.MEASURE, env, 'init_user', {
 			blobs: [outcome, ...(loadId ? [loadId] : [])],
 			doubles: [ms],
 		})
+		return ms
+	}
+	const respond = (body: string, status: number, outcome: 'existing' | 'created') => {
+		const ms = record(outcome)
 		return new Response(body, {
 			status,
 			headers: { 'Server-Timing': `init;dur=${ms};desc=${outcome}` },
@@ -104,7 +109,7 @@ export async function initUser(req: IRequest, env: Environment): Promise<Respons
 		})
 		return respond('ok', 200, 'created')
 	} catch (e) {
-		respond('', 500, 'error')
+		record('error')
 		throw e
 	} finally {
 		await db.destroy()
