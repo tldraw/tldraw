@@ -1,5 +1,11 @@
 import { assert } from 'tldraw'
-import { JsonChunkAssembler, chunk } from './chunk'
+import {
+	JsonChunkAssembler,
+	MAX_ASSEMBLED_MESSAGE_CHARS,
+	MAX_CHUNK_COUNT,
+	MessageTooLargeError,
+	chunk,
+} from './chunk'
 
 describe('chunk (CH1–CH3)', () => {
 	describe('size boundary (CH1)', () => {
@@ -132,6 +138,40 @@ describe('chunk (CH1–CH3)', () => {
 			  "0_e",
 			]
 		`)
+		})
+	})
+
+	describe('surrogate pairs (CH9)', () => {
+		it('[CH9] never splits a surrogate pair across two chunks', () => {
+			// WebSocket.send converts each chunk to a USVString, so a lone surrogate would arrive
+			// as U+FFFD and the reassembled message would carry corrupted text
+			const emoji = '\u{1F600}'
+			const isHigh = (code: number) => code >= 0xd800 && code <= 0xdbff
+			const isLow = (code: number) => code >= 0xdc00 && code <= 0xdfff
+			const msgs = [
+				...Array.from(
+					{ length: 8 },
+					(_, padding) => 'x'.repeat(padding) + emoji + 'y'.repeat(6) + emoji
+				),
+				// adjacent pairs: after a nudge the next boundary lands on another pair
+				'x' + emoji.repeat(3),
+			]
+			for (const msg of msgs) {
+				for (const maxSize of [3, 4, 5, 6, 7, 8]) {
+					const chunks = chunk(msg, maxSize)
+					const bodies = chunks.map((c) => c.slice(c.indexOf('_') + 1))
+					expect(bodies.join('')).toBe(msg)
+					for (const [i, body] of bodies.entries()) {
+						expect(body.length).toBeGreaterThan(0)
+						expect(isHigh(body.charCodeAt(body.length - 1))).toBe(false)
+						expect(isLow(body.charCodeAt(0))).toBe(false)
+						// keeping a pair whole may cost one character over the CH3 bound, never more
+						expect(chunks[i].length).toBeLessThanOrEqual(
+							Math.max(maxSize, chunks[i].indexOf('_') + 2) + 1
+						)
+					}
+				}
+			}
 		})
 	})
 })
@@ -367,6 +407,53 @@ describe('JsonChunkAssembler (CH4–CH8)', () => {
 			expect(unchunker.handleMessage(chunks[chunks.length - 1])).toMatchObject({
 				data: { text: 'hello\u2028world\u2029end' },
 			})
+		})
+	})
+
+	describe('assembly bounds (CH10)', () => {
+		it('[CH10] rejects a first chunk declaring more than MAX_CHUNK_COUNT chunks', () => {
+			const unchunker = new JsonChunkAssembler()
+
+			const result = unchunker.handleMessage(`${MAX_CHUNK_COUNT}_{"a":`)
+			expect(result).toMatchObject({
+				error: expect.objectContaining({ message: `Too many chunks: ${MAX_CHUNK_COUNT + 1}` }),
+			})
+			expect(unchunker.state).toBe('idle')
+		})
+
+		it('[CH10] accepts a declared count at the limit', () => {
+			const unchunker = new JsonChunkAssembler()
+
+			expect(unchunker.handleMessage(`${MAX_CHUNK_COUNT - 1}_{"a":`)).toBeNull()
+			expect(unchunker.state).not.toBe('idle')
+		})
+
+		it('[CH10] rejects an assembly once its accumulated bodies pass MAX_ASSEMBLED_MESSAGE_CHARS', () => {
+			const unchunker = new JsonChunkAssembler()
+			// A chunk stream that never sends its final chunk. Before CH10 this accumulated
+			// without limit for as long as the sender kept sending.
+			const body = 'x'.repeat(1024 * 1024)
+			const chunksNeeded = Math.ceil(MAX_ASSEMBLED_MESSAGE_CHARS / body.length) + 1
+
+			let result = null
+			for (let i = 0; i < chunksNeeded; i++) {
+				result = unchunker.handleMessage(`${chunksNeeded - i}_${body}`)
+				if (result) break
+			}
+
+			expect(result).toMatchObject({ error: expect.any(MessageTooLargeError) })
+			expect(unchunker.state).toBe('idle')
+		})
+
+		it('[CH10] leaves the assembler usable after rejecting an oversized assembly', () => {
+			const unchunker = new JsonChunkAssembler()
+			const body = 'x'.repeat(1024 * 1024)
+			const chunksNeeded = Math.ceil(MAX_ASSEMBLED_MESSAGE_CHARS / body.length) + 1
+			for (let i = 0; i < chunksNeeded; i++) {
+				if (unchunker.handleMessage(`${chunksNeeded - i}_${body}`)) break
+			}
+
+			expect(unchunker.handleMessage('{"test": true}')).toMatchObject({ data: { test: true } })
 		})
 	})
 })

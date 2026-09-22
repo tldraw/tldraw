@@ -394,7 +394,6 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 			const documentClock = snapshot.documentClock ?? snapshot.clock ?? 0
 			const tombstoneHistoryStartsAtClock = snapshot.tombstoneHistoryStartsAtClock ?? documentClock
 
-			// Clear existing data
 			this.sql.exec(`
 				DELETE FROM ${documentsTable};
 				DELETE FROM ${objectsTable};
@@ -410,14 +409,12 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 				table.insert.run(doc.state.id, encodeState(doc.state), doc.lastChangedClock)
 			}
 
-			// Insert tombstones
 			if (snapshot.tombstones) {
 				for (const [id, clock] of objectMapEntries(snapshot.tombstones)) {
 					this.stmts.insertTombstone.run(id, clock)
 				}
 			}
 
-			// Insert metadata row
 			this.stmts.updateMetadata.run(
 				documentClock,
 				tombstoneHistoryStartsAtClock,
@@ -513,18 +510,29 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 	/** @internal */
 	pruneTombstones = throttle(
 		() => {
-			const tombstoneCount = this.stmts.countTombstones.all()[0].count as number
-			if (tombstoneCount > MAX_TOMBSTONES) {
-				// Get all tombstones sorted by clock ascending (oldest first)
-				const tombstones = this.stmts.iterateTombstones.all()
+			// Runs from a timer, so a host that closed the database right after the last delete
+			// (e.g. `room.close(); db.close()` in onSessionRemoved) would otherwise get an uncaught
+			// throw from here; pruning is best-effort and simply runs again on the next delete.
+			try {
+				const tombstoneCount = this.stmts.countTombstones.all()[0].count as number
+				if (tombstoneCount > MAX_TOMBSTONES) {
+					// Get all tombstones sorted by clock ascending (oldest first)
+					const tombstones = this.stmts.iterateTombstones.all()
 
-				const result = computeTombstonePruning({ tombstones, documentClock: this.getClock() })
-				if (result) {
-					this.stmts.setTombstoneHistoryStartsAtClock.run(result.newTombstoneHistoryStartsAtClock)
-					// Delete all tombstones with clock < newTombstoneHistoryStartsAtClock in one operation.
-					// This works because computeTombstonePruning ensures we never split a clock value.
-					this.stmts.deleteTombstonesBefore.run(result.newTombstoneHistoryStartsAtClock)
+					const result = computeTombstonePruning({ tombstones, documentClock: this.getClock() })
+					if (result) {
+						this.sql.transaction(() => {
+							this.stmts.setTombstoneHistoryStartsAtClock.run(
+								result.newTombstoneHistoryStartsAtClock
+							)
+							// Delete all tombstones with clock < newTombstoneHistoryStartsAtClock in one operation.
+							// This works because computeTombstonePruning ensures we never split a clock value.
+							this.stmts.deleteTombstonesBefore.run(result.newTombstoneHistoryStartsAtClock)
+						})
+					}
 				}
+			} catch (e) {
+				console.error('Failed to prune tombstones', e)
 			}
 		},
 		1000,

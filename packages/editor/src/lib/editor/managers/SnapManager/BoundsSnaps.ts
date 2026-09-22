@@ -206,12 +206,10 @@ export class BoundsSnaps {
 		const { editor } = this
 		return editor.store.createComputedCache<BoundsSnapPoint[], TLShape>('snapPoints', (shape) => {
 			const pageTransform = editor.getShapePageTransform(shape.id)
-			if (!pageTransform) return undefined
 			const boundsSnapGeometry = editor.getShapeUtil(shape).getBoundsSnapGeometry(shape)
 			const snapPoints =
 				boundsSnapGeometry.points ?? editor.getShapeGeometry(shape).bounds.cornersAndCenter
 
-			if (!pageTransform || !snapPoints) return undefined
 			return snapPoints.map((point, i) => {
 				const { x, y } = Mat.applyToPoint(pageTransform, point)
 				return { x, y, id: `${shape.id}:${i}` }

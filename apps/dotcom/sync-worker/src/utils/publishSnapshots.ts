@@ -1,5 +1,5 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
-import { getR2KeyForRoom, listAllObjectKeys } from '../r2'
+import { deleteAllObjectsWithPrefix, getR2KeyForRoom } from '../r2'
 import { deleteOgImage, enqueuePublishThumbnailRender } from '../routes/tla/ogImageQueue'
 import { Environment } from '../types'
 import { getRoomDurableObject } from './durableObjects'
@@ -12,8 +12,8 @@ export async function publishSnapshot(
 ) {
 	// Nothing can be published without a slug.
 	if (!file.publishedSlug) return
-	// make sure the room's snapshot is up to date
-	await getRoomDurableObject(env, file.id).awaitPersist()
+	// make sure the room's snapshot is up to date; a stale/missing snapshot must not get published
+	await getRoomDurableObject(env, file.id).awaitPersist({ throwOnFailure: true })
 	// and that it exists
 	const snapshot = await env.ROOMS.get(getR2KeyForRoom({ slug: file.id, isApp: true }))
 
@@ -47,13 +47,10 @@ export async function unpublishSnapshot(env: Environment, file: TlaFile) {
 	if (!file.publishedSlug) return
 	await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(file.publishedSlug)
 	// The current snapshot plus every `|timestamp` history entry written by republishes.
-	const publishedKeys = await listAllObjectKeys(
+	await deleteAllObjectsWithPrefix(
 		env.ROOM_SNAPSHOTS,
 		getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
 	)
-	if (publishedKeys.length > 0) {
-		await env.ROOM_SNAPSHOTS.delete(publishedKeys)
-	}
 	// The published thumbnail goes with the published snapshot it depicts. Scoped to
 	// `kind: 'published'`, so the board's own file-keyed image is untouched. See deleteOgImage.
 	await deleteOgImage(env, { kind: 'published', slug: file.publishedSlug })

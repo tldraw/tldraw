@@ -44,6 +44,9 @@ concurrency:
   group: e2e-device-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   ios:
     name: iOS Safari

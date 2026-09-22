@@ -630,3 +630,34 @@ describe('AtomMap', () => {
 		expect(Object.prototype.toString.call(map)).toBe('[object AtomMap]')
 	})
 })
+
+describe('AtomMap: Map parity (AM)', () => {
+	it('[AM6] an entry deleted before iteration reaches it is skipped, like Map', () => {
+		const map = new AtomMap('test', [
+			['a', 1],
+			['b', 2],
+			['c', 3],
+		])
+		const visited: string[] = []
+		for (const [key] of map) {
+			visited.push(key)
+			if (key === visited[0]) {
+				// delete the two keys we have not reached yet
+				for (const other of ['a', 'b', 'c']) if (other !== key) map.delete(other)
+			}
+		}
+		expect(visited).toHaveLength(1)
+		expect(Array.from(map.keys())).toEqual(visited)
+
+		const cleared = new AtomMap('test2', [
+			['a', 1],
+			['b', 2],
+		])
+		const seen: string[] = []
+		for (const key of cleared.keys()) {
+			seen.push(key)
+			cleared.clear()
+		}
+		expect(seen).toHaveLength(1)
+	})
+})

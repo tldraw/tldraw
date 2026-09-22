@@ -55,7 +55,6 @@ const { previewId, sha } = getDeployInfo()
 const env = makeEnv([
 	'ANALYTICS_API_TOKEN',
 	'ANALYTICS_API_URL',
-	'ANTHROPIC_API_KEY',
 	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_UPLOAD',
 	'CLERK_SECRET_KEY',
@@ -302,7 +301,7 @@ const zeroVmSizes = {
 		rm: { cpus: 2, memory: '4gb', cpuKind: 'performance' },
 		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
-		vsMinMachines: 7,
+		vsMinMachines: 9,
 		killTimeout: '5m',
 	},
 	preview: { single: { cpus: 2, memory: '2gb' } },
@@ -607,6 +606,9 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			...(previewId
 				? {
 						MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com`,
+						// Previews trial live-canvas capture (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts);
+						// staging and production stay on the export until it is judged.
+						THUMBNAIL_RENDER_LIVE_CAPTURE: 'true',
 						// Previews advertise and verify against their own public URL like every other
 						// deployed environment — the Host-derived fallback in getMcpResourceUrl is for
 						// local dev and tests only. Injected here because previews have no wrangler.toml

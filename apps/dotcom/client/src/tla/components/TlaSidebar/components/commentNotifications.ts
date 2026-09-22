@@ -6,7 +6,7 @@ import { extractMentionIds } from '@tldraw/dotcom-shared'
  * - `mention` — the comment `@`-mentions the user
  * - `reply` — the comment is in a thread the user is a part of (started, or has commented in),
  *   posted after they joined it
- * - `owned-board` — the comment is on a file the user owns
+ * - `owned-board` — the comment is on a board in the user's own home workspace
  * - `reaction` — the user's own comment, reacted to by someone else. The only reason about the
  *   user's own comments, so it never combines with the others
  *
@@ -37,7 +37,7 @@ export interface CommentNotificationInput {
 	/** The caller's read receipt — a related row when present, absent (falsy) when unread. Its
 	 *  `readAt` dates the receipt, which is what lets a reaction newer than it re-unread the entry. */
 	read?: { readAt?: number | null } | null
-	file?: { ownerId?: string | null; name?: string | null } | null
+	file?: { owningGroupId?: string | null; name?: string | null } | null
 	thread?: {
 		createdBy?: string | null
 		shapeId?: string | null
@@ -100,7 +100,7 @@ export function categorizeCommentNotifications<T extends CommentNotificationInpu
 		const reasons: CommentNotificationReason[] = []
 		if (extractMentionIds(comment.body).includes(userId)) reasons.push('mention')
 		if (comment.createdAt > joinedThreadAt(comment.thread, userId)) reasons.push('reply')
-		if (comment.file?.ownerId === userId) reasons.push('owned-board')
+		if (comment.file?.owningGroupId === userId) reasons.push('owned-board')
 		if (reasons.length === 0) continue
 
 		const primaryReason = REASON_PRIORITY.find((r) => reasons.includes(r))!

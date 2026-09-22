@@ -460,3 +460,57 @@ describe('applying diffs (H)', () => {
 		})
 	})
 })
+
+describe('applying diffs with ignoreEphemeralKeys (H)', () => {
+	it('[H10] ignoreEphemeralKeys also applies the removal of a non-ephemeral key', () => {
+		const visitId = Visit.createId('jane')
+		const visit = Visit.create({ id: visitId, visitorName: 'Jane', lastActive: 100 })
+		store.put([visit])
+
+		const { visitorName: _dropped, ...withoutName } = visit
+		store.applyDiff(
+			{
+				added: {},
+				updated: { [visitId]: [visit, withoutName as Visit] },
+				removed: {},
+			} as RecordsDiff<LibraryType>,
+			{ ignoreEphemeralKeys: true }
+		)
+
+		const result = store.get(visitId) as Visit
+		expect('visitorName' in result).toBe(false)
+		expect(result.lastActive).toBe(100)
+	})
+})
+
+describe('listeners: a throwing listener (H)', () => {
+	it('[H13] a listener that throws does not stop the others from receiving the flush', () => {
+		const received = vi.fn()
+		store.listen(() => {
+			throw new Error('listener failed')
+		})
+		store.listen(received)
+
+		expect(() => store.put([tolkein()])).toThrow('listener failed')
+		expect(received).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('listeners: dispose (H)', () => {
+	it('[H12] dispose delivers pending change-sets to listeners before cancelling the flush', () => {
+		try {
+			// @ts-expect-error - test-only escape hatch
+			globalThis.__FORCE_RAF_IN_TESTS__ = true
+			const listener = vi.fn()
+			store.listen(listener)
+			store.put([tolkein()])
+			expect(listener).not.toHaveBeenCalled()
+
+			store.dispose()
+			expect(listener).toHaveBeenCalledTimes(1)
+		} finally {
+			// @ts-expect-error - test-only escape hatch
+			globalThis.__FORCE_RAF_IN_TESTS__ = false
+		}
+	})
+})

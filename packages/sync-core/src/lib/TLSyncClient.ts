@@ -122,6 +122,8 @@ export const TLSyncErrorCloseEventReason = {
 	RATE_LIMITED: 'RATE_LIMITED',
 	/** Room has reached maximum capacity */
 	ROOM_FULL: 'ROOM_FULL',
+	/** A single message exceeded the size the server will assemble */
+	MESSAGE_TOO_LARGE: 'MESSAGE_TOO_LARGE',
 } as const
 
 /**
