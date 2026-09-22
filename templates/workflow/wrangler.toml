@@ -1,0 +1,14 @@
+name = "workflow-template"
+compatibility_date = "2025-05-08"
+preview_urls = true
+
+[[routes]]
+pattern = "workflow.templates.tldraw.dev"
+custom_domain = true
+
+[observability]
+enabled = true
+
+[assets]
+not_found_handling = "single-page-application"
+directory = "./dist"

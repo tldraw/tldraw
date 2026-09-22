@@ -31734,6 +31734,7 @@ __metadata:
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
     vite: "npm:^8.0.16"
+    wrangler: "npm:^4.75.0"
   languageName: unknown
   linkType: soft
 
@@ -31845,6 +31846,7 @@ __metadata:
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
     vite: "npm:^8.0.16"
+    wrangler: "npm:^4.75.0"
   languageName: unknown
   linkType: soft
 
