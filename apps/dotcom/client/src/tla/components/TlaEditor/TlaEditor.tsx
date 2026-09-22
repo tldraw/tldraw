@@ -338,11 +338,10 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 	const anonCommentToolOverrides = useAnonCommentToolOverrides()
-	const commentingEnabled = useIsCommentingEnabled()
 	// Signed-out visitors get the toolbar button but not the comments layer: with no app there's no
 	// Zero query behind it, so there'd be no threads to show and nothing to write to. Their button
 	// opens the sign-in dialog instead of entering the tool — see `useAnonCommentToolOverrides`.
-	const commentToolItemEnabled = commentingEnabled || !app
+	const commentingEnabled = useIsCommentingEnabled()
 
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
@@ -354,16 +353,11 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		}
 	}, [fileId, commentingEnabled])
 
-	// Without the tool and its overrides there's no comment button in Quick Actions and no `c`
-	// shortcut, so commenting is fully absent for users the flag doesn't cover. On read-only
-	// canvases the button and shortcut hide via the UI's readonly handling, and composing is
-	// gated by the tool's `canComment`.
+	// On read-only canvases the comment button and `c` shortcut hide via the UI's readonly
+	// handling, and composing is gated by the tool's `canComment`.
 	const editorOverrides = useMemo(
-		() =>
-			commentToolItemEnabled
-				? [overrides, extraDragIconOverrides, commentToolOverrides, anonCommentToolOverrides]
-				: [overrides, extraDragIconOverrides],
-		[commentToolItemEnabled, overrides, extraDragIconOverrides, anonCommentToolOverrides]
+		() => [overrides, extraDragIconOverrides, commentToolOverrides, anonCommentToolOverrides],
+		[overrides, extraDragIconOverrides, anonCommentToolOverrides]
 	)
 
 	return (

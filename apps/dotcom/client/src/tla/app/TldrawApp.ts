@@ -66,7 +66,6 @@ import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
 import { getDateFormat } from '../utils/dates'
-import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 import { ZeroLogBuffer, formatLogArg, redactTokens } from './ZeroLogBuffer'
@@ -93,22 +92,6 @@ export function getPreloadDiagnostics(error: unknown): PreloadDiagnostics | unde
 }
 
 let appId = 0
-
-/**
- * Whether commenting is available to this user. While commenting is being built out it's staff-only:
- * anyone with a @tldraw.com email gets it, everyone else waits on the `commenting_enabled` flag
- * (off by default, with a percentage rollout knob on the admin page). Signed-out viewers have no
- * email and no flags, so they don't see comments at all.
- */
-export function shouldEnableCommenting(
-	flags: FeatureFlags,
-	email?: string | null
-): { value: boolean; reason: string } {
-	if (email?.endsWith('@tldraw.com')) {
-		return { value: true, reason: '@tldraw.com email' }
-	}
-	return { value: flags.commenting_enabled?.enabled ?? false, reason: 'server feature flag' }
-}
 
 /** When the user last opened the file (visit, else edit, else first visit), or undefined if never. */
 export function getFileVisitDate(state: TlaFileState | undefined): number | undefined {
@@ -184,17 +167,8 @@ export class TldrawApp {
 	private readonly workspaceMemberships$: Signal<
 		QueryResultType<typeof queries.workspaceMemberships>
 	>
-	/**
-	 * Null when commenting is disabled for this user: the notifications feed is the most expensive
-	 * query in the schema (nested EXISTS over comment/thread/file/group), so a closed flag has to
-	 * keep it off the wire entirely, not just hide the UI that reads it.
-	 */
-	private readonly comments$: Signal<QueryResultType<typeof queries.comments>> | null
-	/** Null when commenting is disabled for this user, like {@link comments$}. */
-	private readonly reactions$: Signal<QueryResultType<typeof queries.reactions>> | null
-
-	/** Whether this user gets the commenting UI — see {@link shouldEnableCommenting}. */
-	readonly isCommentingEnabled: boolean
+	private readonly comments$: Signal<QueryResultType<typeof queries.comments>>
+	private readonly reactions$: Signal<QueryResultType<typeof queries.reactions>>
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -255,14 +229,11 @@ export class TldrawApp {
 		getZeroToken: () => Promise<string | undefined>,
 		onClientTooOld: () => void,
 		trackEvent: TLAppUiContextType,
-		navigate: ReturnType<typeof useNavigate>,
-		flags: FeatureFlags,
-		email?: string | null
+		navigate: ReturnType<typeof useNavigate>
 	) {
 		this.navigate = navigate
 		this.trackEvent = trackEvent
 		this.getToken = getToken
-		this.isCommentingEnabled = shouldEnableCommenting(flags, email).value
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
 		if (window.navigator.webdriver) {
@@ -359,29 +330,21 @@ export class TldrawApp {
 			'workspace memberships signal',
 			queries.workspaceMemberships()
 		)
-		this.comments$ = this.isCommentingEnabled
-			? this.signalizeQuery('comments signal', queries.comments())
-			: null
-		this.reactions$ = this.isCommentingEnabled
-			? this.signalizeQuery('reactions signal', queries.reactions())
-			: null
+		this.comments$ = this.signalizeQuery('comments signal', queries.comments())
+		this.reactions$ = this.signalizeQuery('reactions signal', queries.reactions())
 	}
 
-	/**
-	 * Recent comments across the user's files, for the notifications feed (bounded, cross-file).
-	 * Empty when commenting is disabled for this user — the query isn't subscribed at all.
-	 */
+	/** Recent comments across the user's files, for the notifications feed (bounded, cross-file). */
 	getComments(): QueryResultType<typeof queries.comments> {
-		return this.comments$?.get() ?? []
+		return this.comments$.get()
 	}
 
 	/**
 	 * Recent reactions to the user's comments across their files, for the notifications feed
-	 * (bounded, cross-file). Empty when commenting is disabled for this user — the query isn't
-	 * subscribed at all.
+	 * (bounded, cross-file).
 	 */
 	getReactions(): QueryResultType<typeof queries.reactions> {
-		return this.reactions$?.get() ?? []
+		return this.reactions$.get()
 	}
 
 	/**
@@ -1065,8 +1028,6 @@ export class TldrawApp {
 
 	static async create(opts: {
 		userId: string
-		email?: string | null
-		flags: FeatureFlags
 		/** Clerk session token, for this app's own REST endpoints. */
 		getToken(): Promise<string | undefined>
 		/** Token for the Zero connection — see {@link getZeroAuth} on the worker for why it differs. */
@@ -1091,9 +1052,7 @@ export class TldrawApp {
 			opts.getZeroToken,
 			opts.onClientTooOld,
 			opts.trackEvent,
-			opts.navigate,
-			opts.flags,
-			opts.email
+			opts.navigate
 		)
 		// @ts-expect-error
 		window.app = app
