@@ -2,8 +2,7 @@ import { decodeJwt } from '@clerk/backend/jwt'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { isRoomIdTooLong } from '../../utils/roomIdIsTooLong'
-import { getAuth } from '../../utils/tla/getAuth'
-import { authenticateMcpRequest } from './mcpAuth'
+import { getAuth, getMcpTokenAuth } from '../../utils/tla/getAuth'
 import { resolveSharedBoardForUser, writeMcpAuthRefusalTelemetry } from './mcpServer'
 import { getOgImageCacheKey } from './ogImageQueue'
 import { writeScreenshotTelemetry } from './thumbnailRender'
@@ -110,11 +109,12 @@ function notFound() {
 type Authenticated = { ok: true; userId: string } | { ok: false; response: Response }
 
 /**
- * An OAuth access token goes to the MCP verifier; everything else — the session cookie, or the
+ * An OAuth access token goes to `getMcpTokenAuth`; everything else — the session cookie, or the
  * Clerk session JWT the web client sends as a bearer — goes to `getAuth`. Routed on the token's
- * `typ` rather than by trying one verifier and falling back to the other, so each request is
- * verified once, and an expired web session gets a plain 401 instead of an MCP challenge it cannot
- * act on.
+ * `typ` rather than trying one and falling back to the other, so each request is verified once.
+ *
+ * Refusals are plain 401s and 403s, not the MCP endpoint's challenge: its `WWW-Authenticate` points
+ * at the MCP resource metadata, which describes that endpoint rather than this one.
  */
 async function authenticate(
 	request: IRequest,
@@ -123,10 +123,12 @@ async function authenticate(
 ): Promise<Authenticated> {
 	if (isOAuthAccessToken(request)) {
 		try {
-			const bearer = await authenticateMcpRequest(request, env)
+			const bearer = await getMcpTokenAuth(request, env)
 			if (bearer.ok) return { ok: true, userId: bearer.userId }
 			writeMcpAuthRefusalTelemetry(env, request, bearer.reason, 'thumbnail')
-			return { ok: false, response: bearer.response }
+			// A valid token for a user outside the mcp_server_access flag: signing in again won't help.
+			const status = bearer.reason === 'not_allowlisted' ? 403 : 401
+			return { ok: false, response: new Response(null, { status }) }
 		} catch (error) {
 			reportThumbnailError(error, { ctx, env, request, surface: 'board_view', extras: {} })
 			return { ok: false, response: new Response(null, { status: 500 }) }

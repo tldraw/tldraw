@@ -6,15 +6,14 @@ import { makeFakeThumbnailsBucket, makeScreenshotTestEnv } from './screenshotTes
 vi.mock('../../utils/tla/getAuth', async (importOriginal) => ({
 	...(await importOriginal<typeof import('../../utils/tla/getAuth')>()),
 	getAuth: vi.fn(),
+	getMcpTokenAuth: vi.fn(),
 }))
-vi.mock('./mcpAuth', () => ({ authenticateMcpRequest: vi.fn() }))
 vi.mock('./mcpServer', () => ({
 	resolveSharedBoardForUser: vi.fn(),
 	writeMcpAuthRefusalTelemetry: vi.fn(),
 }))
 
-const { getAuth } = await import('../../utils/tla/getAuth')
-const { authenticateMcpRequest } = await import('./mcpAuth')
+const { getAuth, getMcpTokenAuth } = await import('../../utils/tla/getAuth')
 const { resolveSharedBoardForUser, writeMcpAuthRefusalTelemetry } = await import('./mcpServer')
 
 // Unsigned: the route only reads `typ` to pick a verifier, and the verifiers themselves are mocked.
@@ -163,11 +162,11 @@ describe('getBoardThumbnail', () => {
 
 			expect(response.status).toBe(401)
 			expect(response.headers.get('www-authenticate')).toBeNull()
-			expect(authenticateMcpRequest).not.toHaveBeenCalled()
+			expect(getMcpTokenAuth).not.toHaveBeenCalled()
 			expect(resolveSharedBoardForUser).not.toHaveBeenCalled()
 		})
 
-		it('answers an expired web session with a plain 401, not the MCP challenge', async () => {
+		it('sends an expired web session to the session check, not the OAuth one', async () => {
 			vi.mocked(getAuth).mockResolvedValue(null)
 
 			const response = await getBoardThumbnail(
@@ -177,18 +176,11 @@ describe('getBoardThumbnail', () => {
 
 			expect(response.status).toBe(401)
 			expect(response.headers.get('www-authenticate')).toBeNull()
-			expect(authenticateMcpRequest).not.toHaveBeenCalled()
+			expect(getMcpTokenAuth).not.toHaveBeenCalled()
 		})
 
-		it('returns the MCP challenge when an OAuth token is refused', async () => {
-			vi.mocked(authenticateMcpRequest).mockResolvedValue({
-				ok: false,
-				reason: 'invalid_token',
-				response: new Response(null, {
-					status: 401,
-					headers: { 'www-authenticate': 'Bearer resource_metadata="x"' },
-				}),
-			})
+		it('answers a plain 401 when an OAuth token is refused', async () => {
+			vi.mocked(getMcpTokenAuth).mockResolvedValue({ ok: false, reason: 'invalid_token' })
 
 			const response = await getBoardThumbnail(
 				makeRequest('file-ok', { authorization: `Bearer ${OAUTH_TOKEN}` }),
@@ -196,7 +188,7 @@ describe('getBoardThumbnail', () => {
 			)
 
 			expect(response.status).toBe(401)
-			expect(response.headers.get('www-authenticate')).toContain('resource_metadata')
+			expect(response.headers.get('www-authenticate')).toBeNull()
 			expect(getAuth).not.toHaveBeenCalled()
 			expect(writeMcpAuthRefusalTelemetry).toHaveBeenCalledWith(
 				expect.anything(),
@@ -206,8 +198,21 @@ describe('getBoardThumbnail', () => {
 			)
 		})
 
+		// Signing in again can't help a user the flag doesn't name, so it isn't a 401.
+		it('answers 403 for a valid OAuth token outside the access flag', async () => {
+			vi.mocked(getMcpTokenAuth).mockResolvedValue({ ok: false, reason: 'not_allowlisted' })
+
+			const response = await getBoardThumbnail(
+				makeRequest('file-ok', { authorization: `Bearer ${OAUTH_TOKEN}` }),
+				makeScreenshotTestEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+			)
+
+			expect(response.status).toBe(403)
+			expect(resolveSharedBoardForUser).not.toHaveBeenCalled()
+		})
+
 		it('resolves against the OAuth token’s user', async () => {
-			vi.mocked(authenticateMcpRequest).mockResolvedValue({ ok: true, userId: 'user-2' })
+			vi.mocked(getMcpTokenAuth).mockResolvedValue({ ok: true, userId: 'user-2' })
 			const bucket = makeFakeThumbnailsBucket()
 			await storeThumbnail(bucket)
 
