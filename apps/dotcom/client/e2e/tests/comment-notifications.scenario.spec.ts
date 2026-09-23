@@ -3,7 +3,7 @@ import { expect, test } from '../fixtures/scenario-test'
 import type { DotcomActor } from '../fixtures/scenario-test'
 
 // Comment notifications feed scenarios: the sidebar bell, its unread badge, and the entries the
-// `comments` / `reactions` synced queries produce. Comments are written straight into the file's
+// comment feed and `reactions` synced queries produce. Comments are written straight into the file's
 // store (same records the composer builds) so each test exercises the sync path — room → Durable
 // Object drain → Postgres → Zero → the other user's feed — rather than the comment tool's UI.
 //
@@ -255,6 +255,32 @@ test.describe('comment notifications', () => {
 
 		await expectNotification(member, visible, /mentioned you/)
 		await expectNoNotification(member, hidden)
+	})
+
+	test('a comment in several feeds shows up once', async ({ owner, member, scenario }) => {
+		const file = await scenario.createSharedFile(owner, 'edit', scenario.name('dedupe board'))
+		await member.goto(file.sharedUrl)
+		const text = scenario.name('home board mention')
+		const posted = await postComment(member, text, { mentionUserId: await userIdOf(owner) })
+
+		// both feeds have delivered it, so a missing dedupe would show by now
+		await expect
+			.poll(
+				() =>
+					owner.page.evaluate(
+						(commentId) =>
+							[(window as any).app.homeBoardComments$, (window as any).app.mentionComments$].every(
+								(feed) => feed.get().some((c: any) => c.id === commentId)
+							),
+						posted.commentId
+					),
+				{ timeout: FEED_TIMEOUT }
+			)
+			.toBe(true)
+		await expectNotification(owner, text, /mentioned you/)
+		await expect((await openNotifications(owner)).filter({ hasText: text })).toHaveCount(1)
+		await closeNotifications(owner)
+		await expectUnreadBadge(owner, 1)
 	})
 
 	test('a reaction to your comment shows up in the feed', async ({ owner, member, scenario }) => {

@@ -10,9 +10,9 @@ const ctx: ZeroContext = { userId: 'user_test' }
  * How many correlated-subquery hops it takes to reach `table` from the query root — the property
  * that decides what one of these queries costs.
  *
- * The file-access gate (`file` and its `states`/`groupFiles` relations) is the expensive part of
- * every feed query: `file`, `file_state` and `group_file` each hold hundreds of thousands of rows.
- * At depth 1 the fileId correlation is pushed into those relations and the gate touches only the
+ * The file-access gate (`file_state` / `group_file`, correlated on the comment's fileId) is the
+ * expensive part of every feed query: those tables, like `file`, each hold hundreds of thousands
+ * of rows. At depth 1 the fileId correlation is pushed into the gate and it touches only the
  * handful of files the query concerns. Deeper, it isn't, and the query traverses them wholesale —
  * `reactions` rooted at `comment_reaction` put the gate at depth 2 and took ~150s to materialize
  * in production (while `comment_reaction` held ~50 rows), outrunning the sync connection's 60s
@@ -40,8 +40,8 @@ export function accessGateDepth(ast: any, table: string): number {
 
 /**
  * Zero's planner refuses to plan a query with more EXISTS checks than this (MAX_FLIPPABLE_JOINS in
- * zql/src/planner/planner-graph.ts, 2^n candidate plans) and runs it exactly as written. Counted
- * over the whole root `where` tree, nested subqueries included.
+ * zql/src/planner/planner-graph.ts) and runs it exactly as written. Counted over the whole root
+ * `where` tree, nested subqueries included.
  */
 const MAX_PLANNABLE_EXISTS = 9
 
@@ -87,10 +87,7 @@ describe('feed query shape', () => {
 	// caller's own file_state / group_user rows and join comments in, so reads scale with the
 	// caller's data instead of every comment in the database (tldraw-internal#2032).
 	//
-	// It must also be the only OR at the root. With an OR of notification reasons, zero 1.9's
-	// union fan-in (used once the planner flips a branch) drops a comment that qualifies only when
-	// a later row lands, such as its comment_mention row, so mentions reached the feed only on
-	// reload. One feed per reason keeps every root a plain AND chain.
+	// It must also be the only OR at the root: see why on `homeBoardComments`.
 	it.each([
 		['homeBoardComments'],
 		['threadStarterComments'],

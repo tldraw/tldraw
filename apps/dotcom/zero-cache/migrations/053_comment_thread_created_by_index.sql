@@ -1,4 +1,4 @@
--- The thread-starter notifications feed is rooted at the caller's own threads. Without this the
+-- The thread-starter notifications feed can start from the caller's own threads. Without this the
 -- planner's cheapest plan is a walk of every comment_thread row.
 --
 -- A plain build, so it runs inside the runner's transaction and takes SHARE on comment_thread for
@@ -9,5 +9,4 @@
 -- "file" in its transaction, bumpFileUpdatedAt runs on its own connection (TLFileDurableObject),
 -- and the comment_thread -> file foreign key check takes a row KEY SHARE, which SHARE doesn't
 -- block.
--- Ships after 052 regardless: #10878 is stacked on #10872.
 CREATE INDEX comment_thread_created_by_idx ON comment_thread("createdBy");

@@ -26,7 +26,7 @@ const defineQueries = defineQueriesWithType<TlaSchema>()
  * Correlated straight on the comment's fileId, not via `file`, and applied once at the root, so
  * Zero's planner can flip it and start from the caller's own rows. Over 9 EXISTS in a query
  * (MAX_FLIPPABLE_JOINS) the planner bails and it runs comment-first over every comment in the
- * database (tldraw-internal#2032); each EXISTS also doubles the plans costed per hydration.
+ * database (tldraw-internal#2032).
  */
 const canAccessCommentFile =
 	(userId: string) =>
@@ -218,15 +218,10 @@ export const queries = defineQueries({
 	 * client-side: `buildReactionNotifications` stamps each entry with its newest foreign reaction
 	 * and `mergeNotifications` sorts on it.
 	 *
-	 * Rooted at `comment`, *not* at `comment_reaction`, so the file-access gate sits one level from
-	 * the root exactly as it does in {@link homeBoardComments}. Rooting at the reaction put that gate
-	 * behind a second correlated subquery, and the fileId correlation then stopped being pushed down
-	 * into `file`'s `states`/`groupFiles` relations: the query traversed those tables — hundreds of
-	 * thousands of rows — rather than the handful of files it actually concerned. It materialized in
-	 * ~150s against production data while `comment_reaction` held ~50 rows, which outran the sync
-	 * connection's 60s auth token and left every client unable to finish a first sync. The cost of
-	 * one of these queries is set by how deep the file gate sits, not by how much comment data
-	 * exists, so keep it at depth 1.
+	 * Rooted at `comment`, *not* at `comment_reaction`, so the access gate sits one hop from the
+	 * root as in {@link feedComments}, where the fileId correlation is pushed into it. Any deeper and
+	 * the gate walks file_state / group_file wholesale (hundreds of thousands of rows) however few
+	 * reactions exist.
 	 *
 	 * Bounded to {@link REACTED_COMMENTS_LIMIT} by comment recency rather than reaction recency, so
 	 * a reaction on a comment older than the window doesn't surface. The window counts only the
@@ -244,7 +239,7 @@ export const queries = defineQueries({
 			// would sync the caller's most recent comments whether or not anyone reacted
 			.whereExists('reactions', (r) => r.where('userId', '!=', ctx.userId))
 			// having authored a comment doesn't outlive access to the board it's on; soft-deleted
-			// boards drop out here too, as in `comments`
+			// boards drop out here too, as in `feedComments`
 			.where(canAccessCommentFile(ctx.userId))
 			.related('file', (file) => file.one())
 			.related('thread', (thread) => thread.one())

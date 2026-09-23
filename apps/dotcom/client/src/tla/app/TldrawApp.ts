@@ -1,4 +1,10 @@
-import { MutatorResultErrorDetails, QueryResultType, Zero } from '@rocicorp/zero'
+import {
+	ErroredQuery,
+	MutatorResultErrorDetails,
+	QueryResultType,
+	ResultType,
+	Zero,
+} from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	AcceptInviteResponseBody,
@@ -187,9 +193,8 @@ export class TldrawApp {
 	/**
 	 * The comment feeds (one per reason for a notification — see `homeBoardComments` in
 	 * dotcom-shared), each empty until {@link startNotificationFeeds} subscribes it, and forever
-	 * when commenting is disabled for this user: these are the most expensive queries in the
-	 * schema (nested EXISTS over comment/thread/file/group), so a closed flag has to keep them off
-	 * the wire entirely, not just hide the UI that reads them.
+	 * when commenting is disabled for this user: a closed flag keeps them off the wire entirely, not
+	 * just hides the UI that reads them.
 	 */
 	private readonly homeBoardComments$: Atom<QueryResultType<typeof queries.homeBoardComments>>
 	private readonly threadStarterComments$: Atom<
@@ -222,7 +227,9 @@ export class TldrawApp {
 		// fail if closed?
 		const view = this.z.materialize(query) as unknown as {
 			data: TReturn
-			addListener(cb: (data: TReturn) => void): () => void
+			addListener(
+				cb: (data: TReturn, resultType: ResultType, error?: ErroredQuery) => void
+			): () => void
 			destroy(): void
 		}
 		const val$ = atom(name, view.data, { isEqual })
@@ -233,9 +240,20 @@ export class TldrawApp {
 	/** Feed a materialized Zero view into an atom for its lifetime, batched like every other signal. */
 	private bindQuery<TReturn>(
 		val$: Atom<TReturn>,
-		view: { addListener(cb: (data: TReturn) => void): () => void; destroy(): void }
+		view: {
+			addListener(
+				cb: (data: TReturn, resultType: ResultType, error?: ErroredQuery) => void
+			): () => void
+			destroy(): void
+		}
 	) {
-		view.addListener((res) => {
+		let reportedError = false
+		view.addListener((res, resultType, error) => {
+			// a failed query just leaves its signal empty, which looks like no data rather than broken
+			if (resultType === 'error' && !reportedError) {
+				reportedError = true
+				captureException(new Error(`Query failed: ${val$.name}`), { extra: { error } })
+			}
 			this.changes.set(val$, structuredClone(res))
 			if (!this.changesFlushed) {
 				this.changesFlushed = promiseWithResolve()
@@ -465,7 +483,9 @@ export class TldrawApp {
 	materializeQuery<TReturn>(query: unknown) {
 		return this.z.materialize(query as any) as unknown as {
 			readonly data: TReturn
-			addListener(cb: (data: TReturn) => void): () => void
+			addListener(
+				cb: (data: TReturn, resultType: ResultType, error?: ErroredQuery) => void
+			): () => void
 			destroy(): void
 		}
 	}
@@ -1172,13 +1192,13 @@ export class TldrawApp {
 		window.app = app
 		try {
 			await app.preload(opts.signal)
+			app.startNotificationFeeds()
 		} catch (e) {
 			// Don't leave the half-built app's Zero connection and timers running behind the
 			// error page the caller shows for this.
 			app.dispose()
 			throw e
 		}
-		app.startNotificationFeeds()
 		const user = app.getUser()
 		if (user.color === '___INIT___') {
 			app.updateUser({
