@@ -367,8 +367,9 @@ function LegalTermsAcceptance() {
 	const { user } = useClerkUser()
 	const { addDialog } = useDialogs()
 	const userRef = useRef(user)
-	// Accepting calls user.update, which changes the Clerk user identity and re-runs the app
-	// bootstrap. Shown during the preload, that would abort and restart it.
+	// Accepting calls user.update and user.reload, which change the Clerk user identity, a dep of
+	// AppStateProvider's bootstrap effect. Shown during the preload, accepting would abort and
+	// restart the preload, so the dialog waits for the app.
 	const isAppLoading = useIsAppLoading()
 
 	// Keep the ref updated with the latest user
