@@ -1,6 +1,7 @@
 import { exhaustiveSwitchError, last } from '@tldraw/utils'
 import { Box } from '../../primitives/Box'
 import { clamp } from '../../primitives/utils'
+import type { VecLike } from '../../primitives/Vec'
 import type { TLCameraConstraints } from '../types/misc-types'
 
 // Pure camera math. Editor gathers every input through its own (overridable, reactive) methods at
@@ -214,4 +215,50 @@ function getPaddedFit(constraints: TLCameraConstraints, vsb: ViewportSize) {
 function preserveFocalPoint(cz: number, current: number, requested: number, rz: number, z: number) {
 	if (rz === cz) return current
 	return current + ((requested - current) * (1 / z - 1 / cz)) / (1 / rz - 1 / cz)
+}
+
+/**
+ * The camera that zooms to `zoom` while keeping the page point under `screenPoint` in place.
+ *
+ * The arithmetic is written the long way round — `(p / zoom - p) - (p / current.z - p)` rather
+ * than the algebraically equal `p / zoom - p / current.z` — so that it matches the camera
+ * positions the editor produced before this was shared, down to the floating point.
+ */
+export function getCameraZoomedAboutPoint(
+	current: CameraXYZ,
+	screenPoint: VecLike,
+	zoom: number
+): CameraXYZ {
+	const { x, y } = screenPoint
+	return {
+		x: current.x + (x / zoom - x) - (x / current.z - x),
+		y: current.y + (y / zoom - y) - (y / current.z - y),
+		z: zoom,
+	}
+}
+
+/**
+ * The zoom step to move to from `currentZoom`. A step is skipped while the camera is closer to
+ * it than halfway, so zooming in from just under a step lands on the one beyond it. Zooming past
+ * either end stays at that end.
+ */
+export function getNextZoomStep(
+	zoomSteps: number[],
+	baseZoom: number,
+	currentZoom: number,
+	direction: 'in' | 'out'
+): number {
+	const steps = zoomSteps.map((step) => step * baseZoom)
+
+	if (direction === 'in') {
+		for (let i = 1; i < steps.length; i++) {
+			if (steps[i] - currentZoom > (steps[i] - steps[i - 1]) / 2) return steps[i]
+		}
+		return last(steps)!
+	}
+
+	for (let i = steps.length - 1; i > 0; i--) {
+		if (steps[i] - currentZoom < (steps[i] - steps[i - 1]) / 2) return steps[i - 1]
+	}
+	return steps[0]
 }

@@ -160,7 +160,13 @@ import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
-import { clampCameraZoom, constrainCamera, getFitZoom } from './kernels/camera'
+import {
+	clampCameraZoom,
+	constrainCamera,
+	getCameraZoomedAboutPoint,
+	getFitZoom,
+	getNextZoomStep,
+} from './kernels/camera'
 import { getCulledShapeIds } from './kernels/culling'
 import {
 	classifyClosedShapeHit,
@@ -375,6 +381,65 @@ export interface TLRenderingShape {
 }
 
 const RENDERING_SHAPES_SORT_CACHE_THRESHOLD = 100
+
+/**
+ * The four debounced modifier keys, each paired with the way Editor reads, writes, releases and
+ * recognises it. A modifier's release is dispatched through its own `Editor` method so a subclass
+ * override still runs.
+ */
+interface ModifierKey {
+	key: 'Shift' | 'Alt' | 'Ctrl' | 'Meta'
+	code: string
+	flag: 'shiftKey' | 'altKey' | 'ctrlKey' | 'metaKey'
+	/**
+	 * Whether a `key_up` that still reports the modifier as pressed should be taken as a release.
+	 * The native `metaKey` property stays true on its own keyup, so without this the meta key would
+	 * be left held with no release timer.
+	 */
+	ignoresKeyUp?: boolean
+	get(inputs: InputsManager): boolean
+	set(inputs: InputsManager, value: boolean): void
+	release(editor: Editor): void
+}
+
+const SHIFT_KEY: ModifierKey = {
+	key: 'Shift',
+	code: 'ShiftLeft',
+	flag: 'shiftKey',
+	get: (inputs) => inputs.getShiftKey(),
+	set: (inputs, value) => inputs.setShiftKey(value),
+	release: (editor) => editor._releaseShiftKey(),
+}
+
+const ALT_KEY: ModifierKey = {
+	key: 'Alt',
+	code: 'AltLeft',
+	flag: 'altKey',
+	get: (inputs) => inputs.getAltKey(),
+	set: (inputs, value) => inputs.setAltKey(value),
+	release: (editor) => editor._releaseAltKey(),
+}
+
+const CTRL_KEY: ModifierKey = {
+	key: 'Ctrl',
+	code: 'ControlLeft',
+	flag: 'ctrlKey',
+	get: (inputs) => inputs.getCtrlKey(),
+	set: (inputs, value) => inputs.setCtrlKey(value),
+	release: (editor) => editor._releaseCtrlKey(),
+}
+
+const META_KEY: ModifierKey = {
+	key: 'Meta',
+	code: 'MetaLeft',
+	flag: 'metaKey',
+	ignoresKeyUp: true,
+	get: (inputs) => inputs.getMetaKey(),
+	set: (inputs, value) => inputs.setMetaKey(value),
+	release: (editor) => editor._releaseMetaKey(),
+}
+
+const MODIFIER_KEYS = [SHIFT_KEY, ALT_KEY, CTRL_KEY, META_KEY]
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
@@ -1285,12 +1350,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// threw or was removed, so a disposed editor never lingers in `tleditors`.
 		unregisterMountedEditor(this)
 
-		// Stop any in-progress camera animations and following before
-		// running disposables, so their cleanup listeners fire first
-		this.stopCameraAnimation()
-		if (this.getInstanceState().followingUserId) {
-			this.stopFollowingUser()
-		}
+		// Take the camera back before running disposables, so their cleanup listeners fire first
+		this._takeCameraControl()
 
 		this.disposables.forEach((dispose) => dispose())
 		this.disposables.clear()
@@ -3360,13 +3421,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 
-		// Stop any camera animations
-		this.stopCameraAnimation()
-
-		// Stop following any user
-		if (this.getInstanceState().followingUserId) {
-			this.stopFollowingUser()
-		}
+		this._takeCameraControl()
 
 		const camera = this.getConstrainedCamera(_point, opts)
 
@@ -3451,8 +3506,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (isLocked && !opts?.force) return this
 
 		const currentCamera = this.getCamera()
-		const { x: cx, y: cy, z: cz } = currentCamera
-		const { x, y } = point
 
 		let z = 1
 
@@ -3460,15 +3513,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// For non-infinite fit, we'll set the camera to the natural zoom level...
 			// unless it's already there, in which case we'll set zoom to 100%
 			const initialZoom = this.getInitialZoom()
-			if (cz !== initialZoom) {
+			if (currentCamera.z !== initialZoom) {
 				z = initialZoom
 			}
 		}
 
-		this.setCamera(
-			new Vec(cx + (x / z - x) - (x / cz - x), cy + (y / z - y) - (y / cz - y), z),
-			opts
-		)
+		this.setCamera(getCameraZoomedAboutPoint(currentCamera, point, z), opts)
 		return this
 	}
 
@@ -3491,27 +3541,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { isLocked } = this.getCameraOptions()
 		if (isLocked && !opts?.force) return this
 
-		const { x: cx, y: cy, z: cz } = this.getCamera()
+		const camera = this.getCamera()
 
 		const { zoomSteps } = this.getCameraOptions()
 		if (zoomSteps !== null && zoomSteps.length > 1) {
-			const baseZoom = this.getBaseZoom()
-			let zoom = last(zoomSteps)! * baseZoom
-			for (let i = 1; i < zoomSteps.length; i++) {
-				const z1 = zoomSteps[i - 1] * baseZoom
-				const z2 = zoomSteps[i] * baseZoom
-				if (z2 - cz <= (z2 - z1) / 2) continue
-				zoom = z2
-				break
-			}
-			this.setCamera(
-				new Vec(
-					cx + (point.x / zoom - point.x) - (point.x / cz - point.x),
-					cy + (point.y / zoom - point.y) - (point.y / cz - point.y),
-					zoom
-				),
-				opts
-			)
+			const zoom = getNextZoomStep(zoomSteps, this.getBaseZoom(), camera.z, 'in')
+			this.setCamera(getCameraZoomedAboutPoint(camera, point, zoom), opts)
 		}
 
 		return this
@@ -3539,24 +3574,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { zoomSteps } = this.getCameraOptions()
 		if (zoomSteps !== null && zoomSteps.length > 1) {
 			const baseZoom = this.getBaseZoom()
-			const { x: cx, y: cy, z: cz } = this.getCamera()
-			// start at the max
-			let zoom = zoomSteps[0] * baseZoom
-			for (let i = zoomSteps.length - 1; i > 0; i--) {
-				const z1 = zoomSteps[i - 1] * baseZoom
-				const z2 = zoomSteps[i] * baseZoom
-				if (z2 - cz >= (z2 - z1) / 2) continue
-				zoom = z1
-				break
-			}
-			this.setCamera(
-				new Vec(
-					cx + (point.x / zoom - point.x) - (point.x / cz - point.x),
-					cy + (point.y / zoom - point.y) - (point.y / cz - point.y),
-					zoom
-				),
-				opts
-			)
+			const camera = this.getCamera()
+			const zoom = getNextZoomStep(zoomSteps, baseZoom, camera.z, 'out')
+			this.setCamera(getCameraZoomedAboutPoint(camera, point, zoom), opts)
 		}
 
 		return this
@@ -3695,6 +3715,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/**
+	 * Stop everything else that drives the camera — a running animation, and any user we're
+	 * following — so that whatever moves the camera next isn't fighting them for it.
+	 *
+	 * @internal
+	 */
+	private _takeCameraControl() {
+		this.stopCameraAnimation()
+		if (this.getInstanceState().followingUserId) {
+			this.stopFollowingUser()
+		}
+	}
+
 	/** @internal */
 	private _viewportAnimation = null as null | {
 		elapsed: number
@@ -3748,13 +3781,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const animationSpeed = this.user.getAnimationSpeed()
 		const viewportPageBounds = this.getViewportPageBounds()
 
-		// If we have an existing animation, then stop it
-		this.stopCameraAnimation()
-
-		// also stop following any user
-		if (this.getInstanceState().followingUserId) {
-			this.stopFollowingUser()
-		}
+		this._takeCameraControl()
 
 		if (duration === 0 || animationSpeed === 0) {
 			// If we have no animation, then skip the animation and just set the camera
@@ -10032,101 +10059,64 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _prevCursor: TLCursorType = 'default'
 
 	/** @internal */
-	private _shiftKeyTimeout = -1 as any
+	private _modifierKeyTimeouts = new Map<ModifierKey['key'], any>()
 
 	/**
-	 * Release the shift modifier: clear its debounce timer id, drop the atom, and
-	 * dispatch a synthetic `key_up` so `inputs.keys` and tool `onKeyUp` handlers update.
-	 * Runs both as the 150ms debounce timer callback and when a pointer down flushes it.
+	 * Release a modifier: clear its debounce timer id, drop the atom, and dispatch a synthetic
+	 * `key_up` so `inputs.keys` and tool `onKeyUp` handlers update. Runs both as the 150ms
+	 * debounce timer callback and when a pointer down flushes it.
+	 * @internal
+	 */
+	private _releaseModifierKey(modifier: ModifierKey) {
+		this._modifierKeyTimeouts.delete(modifier.key)
+		modifier.set(this.inputs, false)
+		this.dispatch({
+			type: 'keyboard',
+			name: 'key_up',
+			key: modifier.key,
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
+			accelKey: this.inputs.getAccelKey(),
+			code: modifier.code,
+		})
+	}
+
+	/**
+	 * Release the shift modifier. See {@link Editor._releaseModifierKey}.
 	 * @internal
 	 */
 	@bind
 	_releaseShiftKey() {
-		this._shiftKeyTimeout = -1
-		this.inputs.setShiftKey(false)
-		this.dispatch({
-			type: 'keyboard',
-			name: 'key_up',
-			key: 'Shift',
-			shiftKey: this.inputs.getShiftKey(),
-			ctrlKey: this.inputs.getCtrlKey(),
-			altKey: this.inputs.getAltKey(),
-			metaKey: this.inputs.getMetaKey(),
-			accelKey: this.inputs.getAccelKey(),
-			code: 'ShiftLeft',
-		})
+		this._releaseModifierKey(SHIFT_KEY)
 	}
 
-	/** @internal */
-	private _altKeyTimeout = -1 as any
-
 	/**
-	 * Release the alt modifier. See {@link Editor._releaseShiftKey}.
+	 * Release the alt modifier. See {@link Editor._releaseModifierKey}.
 	 * @internal
 	 */
 	@bind
 	_releaseAltKey() {
-		this._altKeyTimeout = -1
-		this.inputs.setAltKey(false)
-		this.dispatch({
-			type: 'keyboard',
-			name: 'key_up',
-			key: 'Alt',
-			shiftKey: this.inputs.getShiftKey(),
-			ctrlKey: this.inputs.getCtrlKey(),
-			altKey: this.inputs.getAltKey(),
-			metaKey: this.inputs.getMetaKey(),
-			accelKey: this.inputs.getAccelKey(),
-			code: 'AltLeft',
-		})
+		this._releaseModifierKey(ALT_KEY)
 	}
 
-	/** @internal */
-	private _ctrlKeyTimeout = -1 as any
-
 	/**
-	 * Release the ctrl modifier. See {@link Editor._releaseShiftKey}.
+	 * Release the ctrl modifier. See {@link Editor._releaseModifierKey}.
 	 * @internal
 	 */
 	@bind
 	_releaseCtrlKey() {
-		this._ctrlKeyTimeout = -1
-		this.inputs.setCtrlKey(false)
-		this.dispatch({
-			type: 'keyboard',
-			name: 'key_up',
-			key: 'Ctrl',
-			shiftKey: this.inputs.getShiftKey(),
-			ctrlKey: this.inputs.getCtrlKey(),
-			altKey: this.inputs.getAltKey(),
-			metaKey: this.inputs.getMetaKey(),
-			accelKey: this.inputs.getAccelKey(),
-			code: 'ControlLeft',
-		})
+		this._releaseModifierKey(CTRL_KEY)
 	}
 
-	/** @internal */
-	private _metaKeyTimeout = -1 as any
-
 	/**
-	 * Release the meta modifier. See {@link Editor._releaseShiftKey}.
+	 * Release the meta modifier. See {@link Editor._releaseModifierKey}.
 	 * @internal
 	 */
 	@bind
 	_releaseMetaKey() {
-		this._metaKeyTimeout = -1
-		this.inputs.setMetaKey(false)
-		this.dispatch({
-			type: 'keyboard',
-			name: 'key_up',
-			key: 'Meta',
-			shiftKey: this.inputs.getShiftKey(),
-			ctrlKey: this.inputs.getCtrlKey(),
-			altKey: this.inputs.getAltKey(),
-			metaKey: this.inputs.getMetaKey(),
-			accelKey: this.inputs.getAccelKey(),
-			code: 'MetaLeft',
-		})
+		this._releaseModifierKey(META_KEY)
 	}
 
 	/**
@@ -10134,49 +10124,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * interaction (a pointer down) starts with correct modifier state instead of a
 	 * just-released key still being counted as held. A pending timer is exactly
 	 * "released but still counted as held"; a genuinely-held modifier has no timer
-	 * (-1) and is left alone.
+	 * and is left alone.
 	 *
-	 * Each modifier is released through the same path its timer would have taken
-	 * (`_releaseShiftKey` and friends), which dispatches the synthetic `key_up` so
-	 * stale codes (e.g. `ShiftLeft`) leave `inputs.keys` and tool `onKeyUp` handlers run.
-	 * We clear every pending modifier atom and timer *first*, then dispatch: a synthetic
-	 * `key_up` reports all currently-held modifiers, so releasing them one at a time
-	 * would make each event re-confirm the not-yet-released ones and cancel their flush.
+	 * Each modifier is released through the same path its timer would have taken, which
+	 * dispatches the synthetic `key_up` so stale codes (e.g. `ShiftLeft`) leave
+	 * `inputs.keys` and tool `onKeyUp` handlers run. We clear every pending modifier atom
+	 * and timer *first*, then dispatch: a synthetic `key_up` reports all currently-held
+	 * modifiers, so releasing them one at a time would make each event re-confirm the
+	 * not-yet-released ones and cancel their flush.
 	 * @internal
 	 */
 	private _releaseDebouncedModifiers() {
-		const releaseShift = this._shiftKeyTimeout !== -1
-		const releaseAlt = this._altKeyTimeout !== -1
-		const releaseCtrl = this._ctrlKeyTimeout !== -1
-		const releaseMeta = this._metaKeyTimeout !== -1
+		const pending = MODIFIER_KEYS.filter((modifier) => this._modifierKeyTimeouts.has(modifier.key))
 
-		if (releaseShift) {
-			clearTimeout(this._shiftKeyTimeout)
-			this._shiftKeyTimeout = -1
-			this.inputs.setShiftKey(false)
-		}
-		if (releaseAlt) {
-			clearTimeout(this._altKeyTimeout)
-			this._altKeyTimeout = -1
-			this.inputs.setAltKey(false)
-		}
-		if (releaseCtrl) {
-			clearTimeout(this._ctrlKeyTimeout)
-			this._ctrlKeyTimeout = -1
-			this.inputs.setCtrlKey(false)
-		}
-		if (releaseMeta) {
-			clearTimeout(this._metaKeyTimeout)
-			this._metaKeyTimeout = -1
-			this.inputs.setMetaKey(false)
+		for (const modifier of pending) {
+			clearTimeout(this._modifierKeyTimeouts.get(modifier.key))
+			this._modifierKeyTimeouts.delete(modifier.key)
+			modifier.set(this.inputs, false)
 		}
 
-		// Dispatch the synthetic key_up for each flushed modifier (same path its 150ms
-		// timer would run): clears stale codes from inputs.keys and fires tool onKeyUp.
-		if (releaseShift) this._releaseShiftKey()
-		if (releaseAlt) this._releaseAltKey()
-		if (releaseCtrl) this._releaseCtrlKey()
-		if (releaseMeta) this._releaseMetaKey()
+		for (const modifier of pending) {
+			modifier.release(this)
+		}
 	}
 
 	/** @internal */
@@ -10315,38 +10284,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return
 		}
 
-		if (info.shiftKey) {
-			clearTimeout(this._shiftKeyTimeout)
-			this._shiftKeyTimeout = -1
-			inputs.setShiftKey(true)
-		} else if (!info.shiftKey && inputs.getShiftKey() && this._shiftKeyTimeout === -1) {
-			this._shiftKeyTimeout = this.timers.setTimeout(this._releaseShiftKey, 150)
-		}
-
-		if (info.altKey) {
-			clearTimeout(this._altKeyTimeout)
-			this._altKeyTimeout = -1
-			inputs.setAltKey(true)
-		} else if (!info.altKey && inputs.getAltKey() && this._altKeyTimeout === -1) {
-			this._altKeyTimeout = this.timers.setTimeout(this._releaseAltKey, 150)
-		}
-
-		if (info.ctrlKey) {
-			clearTimeout(this._ctrlKeyTimeout)
-			this._ctrlKeyTimeout = -1
-			inputs.setCtrlKey(true)
-		} else if (!info.ctrlKey && inputs.getCtrlKey() && this._ctrlKeyTimeout === -1) {
-			this._ctrlKeyTimeout = this.timers.setTimeout(this._releaseCtrlKey, 150)
-		}
-
-		if (info.metaKey && info.name !== 'key_up') {
-			// Unlike the other modifiers, the native metaKey property is still true on keyup.
-			// If we don't have this guard, then the metakey will be left true without the timeout.
-			clearTimeout(this._metaKeyTimeout)
-			this._metaKeyTimeout = -1
-			inputs.setMetaKey(true)
-		} else if (!info.metaKey && inputs.getMetaKey() && this._metaKeyTimeout === -1) {
-			this._metaKeyTimeout = this.timers.setTimeout(this._releaseMetaKey, 150)
+		for (const modifier of MODIFIER_KEYS) {
+			const timeout = this._modifierKeyTimeouts.get(modifier.key)
+			const isPressed = info[modifier.flag]
+			if (isPressed && !(modifier.ignoresKeyUp && info.name === 'key_up')) {
+				clearTimeout(timeout)
+				this._modifierKeyTimeouts.delete(modifier.key)
+				modifier.set(inputs, true)
+			} else if (!isPressed && modifier.get(inputs) && timeout === undefined) {
+				this._modifierKeyTimeouts.set(
+					modifier.key,
+					this.timers.setTimeout(() => modifier.release(this), 150)
+				)
+			}
 		}
 
 		if (!inputs.getIsPointing()) {

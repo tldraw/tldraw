@@ -1,5 +1,12 @@
 import type { TLCameraConstraints } from '../types/misc-types'
-import { clampCameraZoom, constrainCamera, ConstrainCameraInput, getFitZoom } from './camera'
+import {
+	clampCameraZoom,
+	constrainCamera,
+	ConstrainCameraInput,
+	getCameraZoomedAboutPoint,
+	getFitZoom,
+	getNextZoomStep,
+} from './camera'
 
 const viewport = { w: 1000, h: 500 }
 const zoomSteps = [0.1, 0.5, 1, 2, 4]
@@ -149,5 +156,55 @@ describe('constrainCamera', () => {
 			input({ constraints: c, requested: once, current: { x: once.x, y: once.y, z: once.z } })
 		)
 		expect(twice).toEqual(once)
+	})
+})
+
+describe('getCameraZoomedAboutPoint', () => {
+	it('keeps the page point under the screen point in place', () => {
+		const camera = { x: 100, y: 50, z: 2 }
+		const screenPoint = { x: 300, y: 120 }
+		const pageBefore = {
+			x: screenPoint.x / camera.z - camera.x,
+			y: screenPoint.y / camera.z - camera.y,
+		}
+
+		const next = getCameraZoomedAboutPoint(camera, screenPoint, 0.5)
+
+		expect(next.z).toBe(0.5)
+		expect(screenPoint.x / next.z - next.x).toBeCloseTo(pageBefore.x)
+		expect(screenPoint.y / next.z - next.y).toBeCloseTo(pageBefore.y)
+	})
+
+	it('only changes zoom when the screen point is the origin', () => {
+		expect(getCameraZoomedAboutPoint({ x: 10, y: 20, z: 1 }, { x: 0, y: 0 }, 4)).toMatchObject({
+			x: 10,
+			y: 20,
+			z: 4,
+		})
+	})
+})
+
+describe('getNextZoomStep', () => {
+	it('steps up and down through the steps', () => {
+		expect(getNextZoomStep(zoomSteps, 1, 1, 'in')).toBe(2)
+		expect(getNextZoomStep(zoomSteps, 1, 1, 'out')).toBe(0.5)
+	})
+
+	it('skips a step the camera is already more than halfway towards', () => {
+		// 1.6 is past the midpoint of 1 and 2, so zooming in lands on 4 rather than 2
+		expect(getNextZoomStep(zoomSteps, 1, 1.6, 'in')).toBe(4)
+		expect(getNextZoomStep(zoomSteps, 1, 1.4, 'in')).toBe(2)
+	})
+
+	it('stays at the ends', () => {
+		expect(getNextZoomStep(zoomSteps, 1, 4, 'in')).toBe(4)
+		expect(getNextZoomStep(zoomSteps, 1, 8, 'in')).toBe(4)
+		expect(getNextZoomStep(zoomSteps, 1, 0.1, 'out')).toBe(0.1)
+		expect(getNextZoomStep(zoomSteps, 1, 0.01, 'out')).toBe(0.1)
+	})
+
+	it('scales the steps by the base zoom', () => {
+		expect(getNextZoomStep(zoomSteps, 3, 3, 'in')).toBe(6)
+		expect(getNextZoomStep(zoomSteps, 3, 3, 'out')).toBe(1.5)
 	})
 })
