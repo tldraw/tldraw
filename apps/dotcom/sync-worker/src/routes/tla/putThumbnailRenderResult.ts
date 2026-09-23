@@ -1,0 +1,111 @@
+import {
+	ThumbnailRenderResultRequestBody,
+	ThumbnailRenderTimingsRequestBody,
+} from '@tldraw/dotcom-shared'
+import { IRequest } from 'itty-router'
+import { Environment } from '../../types'
+import { writeDataPoint } from '../../utils/analytics'
+import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
+import { ShapeMeasurement } from './boardTools'
+import { putRenderResult } from './thumbnailRender'
+
+// How measurements get out of the browser.
+//
+// Browser Rendering hands the Worker pixels, not JSON, so a render page asked to measure a page has
+// to push its answer back. It POSTs here before signalling ready, and the Worker — still blocked on
+// its own screenshot call — picks the result up as soon as that returns.
+//
+// Scoped to the signed job: the storage key is the token, so a result can only ever reach the render
+// that asked for it.
+export async function putThumbnailRenderResult(
+	request: IRequest,
+	env: Environment
+): Promise<Response> {
+	let body: ThumbnailRenderResultRequestBody | ThumbnailRenderTimingsRequestBody
+	try {
+		body = (await request.json()) as
+			| ThumbnailRenderResultRequestBody
+			| ThumbnailRenderTimingsRequestBody
+	} catch {
+		return Response.json({ error: true, message: 'Invalid JSON body' }, { status: 400 })
+	}
+
+	// `null`, numbers and strings are valid JSON too; refused as the caller's mistake here, where
+	// the `in` and property checks below would throw on them and escape as a worker 500.
+	if (!body || typeof body !== 'object') {
+		return Response.json({ error: true, message: 'Invalid JSON body' }, { status: 400 })
+	}
+
+	// The render page's phase-timing beacon, sharing this route because it shares the route's
+	// auth story: a signed token proves the POST comes from a render we asked for. Telemetry only —
+	// nothing downstream waits on it, so it is accepted for any valid token, screenshot or measure.
+	if ('timings' in body) {
+		// `typeof null` is 'object', and these timings get destructured below.
+		if (!body.token || !body.timings || typeof body.timings !== 'object') {
+			return Response.json(
+				{ error: true, message: 'token and timings are required' },
+				{ status: 400 }
+			)
+		}
+		// Signed and unexpired, but deliberately *not* minted-checked, unlike the snapshot route. An
+		// MCP record is keyed per capture and deleted the moment the session returns (see
+		// deleteMintedRenderToken), while the page sends this beacon and signals ready in the next
+		// statement — so requiring the record would race the worker's own cleanup and lose the
+		// timings for precisely the fastest renders, which is the wrong end to go blind at. The
+		// signature is enough here because this branch hands back no board data and nothing waits on
+		// it: a forged token could only add noise to `render_page_timings`, which is already true of
+		// every `public` job, where the minted check passes vacuously anyway.
+		const job = await verifyThumbnailRenderToken(env, body.token)
+		if (!job) {
+			return Response.json({ error: true, message: 'Invalid render token' }, { status: 403 })
+		}
+		const { bootAt, dataAt, mountAt, settledAt, exportedAt } = body.timings
+		const stamps = [bootAt, dataAt, mountAt, settledAt, exportedAt]
+		if (!stamps.every(Number.isFinite)) {
+			return Response.json({ error: true, message: 'timings must be finite' }, { status: 400 })
+		}
+		// One datapoint per completed export: where the in-browser time went. browser_run_session
+		// prices the whole session; this decomposes it into boot / acquire / mount / settle / export,
+		// which is what ranks the render page's optimisations against each other.
+		writeDataPoint(undefined, env.MEASURE, env, 'render_page_timings', {
+			blobs: [`surface:${job.surface ?? 'og'}`],
+			doubles: stamps,
+		})
+		return Response.json({ error: false })
+	}
+
+	if (!body?.token || !body.bounds || typeof body.bounds !== 'object') {
+		return Response.json({ error: true, message: 'token and bounds are required' }, { status: 400 })
+	}
+
+	const job = await verifyThumbnailRenderToken(env, body.token)
+	// The mode is inside the signed payload, so a screenshot token can't be replayed to post a result.
+	if (!job || job.mode !== 'measure') {
+		return Response.json({ error: true, message: 'Invalid render token' }, { status: 403 })
+	}
+
+	const bounds: Record<string, ShapeMeasurement> = {}
+	for (const [shapeId, box] of Object.entries(body.bounds)) {
+		// A non-finite value would produce NaN distances and silently detach that shape from the
+		// minimum spanning tree, so anything malformed is dropped rather than stored.
+		if (
+			!Number.isFinite(box?.x) ||
+			!Number.isFinite(box?.y) ||
+			!Number.isFinite(box?.w) ||
+			!Number.isFinite(box?.h)
+		) {
+			continue
+		}
+		bounds[shapeId] = {
+			minX: box.x,
+			minY: box.y,
+			maxX: box.x + box.w,
+			maxY: box.y + box.h,
+			// Only an editor can answer getText, so whatever it said is kept verbatim.
+			...(typeof box.text === 'string' && box.text ? { text: box.text } : null),
+		}
+	}
+
+	await putRenderResult(env, body.token, bounds)
+	return Response.json({ error: false, stored: Object.keys(bounds).length })
+}

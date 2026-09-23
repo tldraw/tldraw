@@ -1,0 +1,2334 @@
+apiVersion: dashboard.grafana.app/v1
+kind: Dashboard
+metadata:
+  annotations:
+    grafana.app/folder: ''
+    grafana.app/message: |
+      convert to v2
+    grafana.app/saved-from-ui: Grafana Cloud
+  labels: {}
+  name: nivs2rl
+  namespace: stacks-890472
+spec:
+  annotations:
+    list:
+      - builtIn: 1
+        datasource:
+          type: grafana
+          uid: -- Grafana --
+        enable: true
+        hide: true
+        iconColor: rgba(0, 211, 255, 1)
+        name: Annotations & Alerts
+        type: dashboard
+  editable: true
+  fiscalYearStartMonth: 0
+  graphTooltip: 1
+  links: []
+  liveNow: false
+  panels:
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: Requests per worker script across the whole account — covers the
+        missing HTTP traffic metrics for every worker, including asset-upload and tldrawusercontent
+        which emit no app metrics.
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: line
+            fillOpacity: 12
+            gradientMode: opacity
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 1.5
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: none
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+        overrides: []
+      gridPos:
+        h: 8
+        w: 12
+        x: 0
+        'y': 0
+      id: 2
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeFifteenMinutes
+              text: time
+              type: timestamp
+            - selector: dimensions.scriptName
+              text: worker
+              type: string
+            - selector: sum.requests
+              text: requests
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].workersInvocationsAdaptive
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    workersInvocationsAdaptive(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      sum { requests }
+                      dimensions { datetimeFifteenMinutes scriptName }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: Worker requests
+      transformations:
+        - id: partitionByValues
+          options:
+            fields:
+              - worker
+            keepFields: false
+            naming:
+              asLabels: true
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: Uncaught-exception error counts per worker script — the free version
+        of the missing exception-rate metric (no per-event labels).
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: bars
+            fillOpacity: 80
+            gradientMode: none
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 0
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: normal
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+        overrides: []
+      gridPos:
+        h: 8
+        w: 12
+        x: 12
+        'y': 0
+      id: 3
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeFifteenMinutes
+              text: time
+              type: timestamp
+            - selector: dimensions.scriptName
+              text: worker
+              type: string
+            - selector: sum.errors
+              text: errors
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].workersInvocationsAdaptive
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    workersInvocationsAdaptive(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      sum { errors }
+                      dimensions { datetimeFifteenMinutes scriptName }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: Worker errors
+      transformations:
+        - id: partitionByValues
+          options:
+            fields:
+              - worker
+            keepFields: false
+            naming:
+              asLabels: true
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: 'Requests by invocation status: success, scriptThrewException, exceededResources,
+        clientDisconnected, internalError.'
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: bars
+            fillOpacity: 80
+            gradientMode: none
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 0
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: normal
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+        overrides: []
+      gridPos:
+        h: 8
+        w: 8
+        x: 0
+        'y': 8
+      id: 4
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeFifteenMinutes
+              text: time
+              type: timestamp
+            - selector: dimensions.status
+              text: status
+              type: string
+            - selector: sum.requests
+              text: requests
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].workersInvocationsAdaptive
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    workersInvocationsAdaptive(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      sum { requests }
+                      dimensions { datetimeFifteenMinutes status }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: Invocation outcomes
+      transformations:
+        - id: partitionByValues
+          options:
+            fields:
+              - status
+            keepFields: false
+            naming:
+              asLabels: true
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: CPU time percentiles per worker (microseconds) — the platform-side
+        saturation signal for compute.
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: line
+            fillOpacity: 12
+            gradientMode: opacity
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 1.5
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: none
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+          unit: µs
+        overrides: []
+      gridPos:
+        h: 8
+        w: 8
+        x: 8
+        'y': 8
+      id: 5
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeFifteenMinutes
+              text: time
+              type: timestamp
+            - selector: dimensions.scriptName
+              text: worker
+              type: string
+            - selector: quantiles.cpuTimeP50
+              text: p50
+              type: number
+            - selector: quantiles.cpuTimeP99
+              text: p99
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].workersInvocationsAdaptive
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    workersInvocationsAdaptive(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      quantiles { cpuTimeP50 cpuTimeP99 }
+                      dimensions { datetimeFifteenMinutes scriptName }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: Worker CPU time p50 / p99
+      transformations:
+        - id: partitionByValues
+          options:
+            fields:
+              - worker
+            keepFields: false
+            naming:
+              asLabels: true
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: Subrequests (fetch calls to R2, Postgres-over-HTTP, other services)
+        per worker — a proxy for downstream pressure.
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: line
+            fillOpacity: 12
+            gradientMode: opacity
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 1.5
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: none
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+        overrides: []
+      gridPos:
+        h: 8
+        w: 8
+        x: 16
+        'y': 8
+      id: 6
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeFifteenMinutes
+              text: time
+              type: timestamp
+            - selector: dimensions.scriptName
+              text: worker
+              type: string
+            - selector: sum.subrequests
+              text: subrequests
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].workersInvocationsAdaptive
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    workersInvocationsAdaptive(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      sum { subrequests }
+                      dimensions { datetimeFifteenMinutes scriptName }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: Worker subrequests
+      transformations:
+        - id: partitionByValues
+          options:
+            fields:
+              - worker
+            keepFields: false
+            naming:
+              asLabels: true
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: DO invocations per script. Each incoming WebSocket message bills
+        as a request, so for the sync-worker this approximates the missing receive_message
+        metric (aggregate only). The scriptName dimension is inferred from Cloudflare
+        dashboards — verify via the schema explorer if it errors.
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: line
+            fillOpacity: 12
+            gradientMode: opacity
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 1.5
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: none
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+        overrides: []
+      gridPos:
+        h: 8
+        w: 12
+        x: 0
+        'y': 16
+      id: 7
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeFifteenMinutes
+              text: time
+              type: timestamp
+            - selector: dimensions.scriptName
+              text: script
+              type: string
+            - selector: sum.requests
+              text: requests
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].durableObjectsInvocationsAdaptiveGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    durableObjectsInvocationsAdaptiveGroups(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      sum { requests }
+                      dimensions { datetimeFifteenMinutes scriptName }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: Durable Object requests
+      transformations:
+        - id: partitionByValues
+          options:
+            fields:
+              - script
+            keepFields: false
+            naming:
+              asLabels: true
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: DO requests by invocation status — surfaces DO-side exceptions and
+        resource limits. The status dimension is inferred from Cloudflare dashboards
+        — verify via the schema explorer if it errors.
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: bars
+            fillOpacity: 80
+            gradientMode: none
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 0
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: normal
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+        overrides: []
+      gridPos:
+        h: 8
+        w: 12
+        x: 12
+        'y': 16
+      id: 8
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeFifteenMinutes
+              text: time
+              type: timestamp
+            - selector: dimensions.status
+              text: status
+              type: string
+            - selector: sum.requests
+              text: requests
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].durableObjectsInvocationsAdaptiveGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    durableObjectsInvocationsAdaptiveGroups(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      sum { requests }
+                      dimensions { datetimeFifteenMinutes status }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: Durable Object invocation outcomes
+      transformations:
+        - id: partitionByValues
+          options:
+            fields:
+              - status
+            keepFields: false
+            naming:
+              asLabels: true
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: Total DO CPU time per interval across the account (rooms, bemo, MCP
+        sessions combined).
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: line
+            fillOpacity: 25
+            gradientMode: opacity
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 1.5
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: none
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+          unit: µs
+        overrides: []
+      gridPos:
+        h: 8
+        w: 12
+        x: 0
+        'y': 24
+      id: 9
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeFifteenMinutes
+              text: time
+              type: timestamp
+            - selector: sum.cpuTime
+              text: cpu time
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: timeseries
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].durableObjectsPeriodicGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    durableObjectsPeriodicGroups(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      sum { cpuTime }
+                      dimensions { datetimeFifteenMinutes }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: Durable Object CPU time
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: Total bytes stored in DO storage across the account — namespace-level
+        saturation for room SQLite/KV state.
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: line
+            fillOpacity: 25
+            gradientMode: opacity
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 1.5
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: none
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+          unit: decbytes
+        overrides: []
+      gridPos:
+        h: 8
+        w: 12
+        x: 12
+        'y': 24
+      id: 10
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeHour
+              text: time
+              type: timestamp
+            - selector: max.storedBytes
+              text: stored bytes
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: timeseries
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].durableObjectsStorageGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    durableObjectsStorageGroups(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      max { storedBytes }
+                      dimensions { datetimeHour }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: Durable Object stored bytes
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: Billed DO duration summed per namespace over the selected range —
+        where the cost actually sits. TLDR_DOC / TLFileDurableObject (file rooms) is
+        5864db4344ac4c55bfd94e81dd25a043 and normally carries ~98% of the total. Shown
+        as a ranked total rather than a time series because Infinity's backend parser
+        does not pivot a dimension column into separate series.
+      fieldConfig:
+        defaults:
+          color:
+            mode: continuous-GrYlRd
+          min: 0
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+          unit: short
+        overrides: []
+      gridPos:
+        h: 8
+        w: 12
+        x: 0
+        'y': 32
+      id: 19
+      options:
+        displayMode: gradient
+        legend:
+          calcs: []
+          displayMode: list
+          overflow: ellipsis
+          placement: bottom
+          showLegend: false
+        maxVizHeight: 300
+        minVizHeight: 16
+        minVizWidth: 8
+        namePlacement: auto
+        orientation: horizontal
+        reduceOptions:
+          calcs:
+            - lastNotNull
+          fields: ''
+          values: true
+        showUnfilled: true
+        sizing: auto
+        valueMode: color
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.namespaceId
+              text: namespace
+              type: string
+            - selector: sum.duration
+              text: duration
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].durableObjectsPeriodicGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    durableObjectsPeriodicGroups(limit: 30, orderBy: [sum_duration_DESC], filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      sum { duration }
+                      dimensions { namespaceId }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: DO duration by namespace (GB·s, over range)
+      type: bargauge
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: "Billed duration for TLDR_DOC / TLFileDurableObject only (namespace
+        5864db4344ac4c55bfd94e81dd25a043, ids from idFromName('/r/' + slug)). This
+        is the line PR #9964 targets: parked background tabs reconnect-looping keep
+        file rooms resident instead of letting them hibernate. Client-side fix deployed
+        2026-08-12 09:24 UTC — it only takes effect as browsers pick up the new bundle,
+        so expect a gradual decline, clearest in the overnight trough."
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: GB·s
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: line
+            fillOpacity: 25
+            gradientMode: opacity
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 1.5
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: none
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+          unit: short
+        overrides: []
+      gridPos:
+        h: 8
+        w: 12
+        x: 12
+        'y': 32
+      id: 20
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeFifteenMinutes
+              text: time
+              type: timestamp
+            - selector: sum.duration
+              text: duration
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: timeseries
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].durableObjectsPeriodicGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    durableObjectsPeriodicGroups(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}", namespaceId: "5864db4344ac4c55bfd94e81dd25a043"}) {
+                      sum { duration activeTime }
+                      dimensions { datetimeFifteenMinutes }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: File room DO duration (GB·s)
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: "Top 50 file room DO instances by active time over the selected range.
+        A room at ~1 hour per hour of range (e.g. ~24h over a 1-day range) is pinned
+        permanently awake rather than hibernating — the signature of the reconnect loop
+        PR #9964 fixes. Identified by Durable Object objectId, never the room slug:
+        idFromName('/r/' + slug) is one-way, so the slug is never sent to Grafana.
+        This matches the sync worker's own policy — every MEASURE event indexes on
+        the DO id for the same reason. Do not reintroduce the `name` dimension: a room
+        slug is the access credential for that board."
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+          unit: µs
+        overrides: []
+      gridPos:
+        h: 10
+        w: 24
+        x: 0
+        'y': 40
+      id: 21
+      options:
+        cellHeight: sm
+        footer:
+          countRows: false
+          fields: ''
+          reducer:
+            - sum
+          show: false
+        showHeader: true
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.objectId
+              text: object id
+              type: string
+            - selector: sum.activeTime
+              text: active time
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].durableObjectsPeriodicGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    durableObjectsPeriodicGroups(limit: 50, orderBy: [sum_activeTime_DESC], filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}", namespaceId: "5864db4344ac4c55bfd94e81dd25a043"}) {
+                      sum { activeTime }
+                      dimensions { objectId }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: Longest-resident file rooms
+      type: table
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: 'scriptThrewException split out by namespace. The account total is
+        dominated by 164dab144e614bb9ac54367e0ffaf56c, which throws ~21k/day on its
+        own and is chronic, so anything else is invisible in the aggregate above —
+        including file rooms, at ~3k/day. TLDR_DOC / TLFileDurableObject (file rooms)
+        is 5864db4344ac4c55bfd94e81dd25a043; it went from ~67/day to 7.2k on
+        2026-08-13, the day #9978 stopped the Supabase client blocking hibernation
+        and so let the file DO evict for the first time. Cold-start paths that had
+        never run while every object stayed resident now do.'
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: bars
+            fillOpacity: 80
+            gradientMode: none
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 0
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: normal
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+        overrides: []
+      gridPos:
+        h: 8
+        w: 24
+        x: 0
+        'y': 50
+      id: 22
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeFifteenMinutes
+              text: time
+              type: timestamp
+            - selector: dimensions.namespaceId
+              text: namespace
+              type: string
+            - selector: sum.requests
+              text: exceptions
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].durableObjectsInvocationsAdaptiveGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    durableObjectsInvocationsAdaptiveGroups(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}", status: "scriptThrewException"}) {
+                      sum { requests }
+                      dimensions { datetimeFifteenMinutes namespaceId }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: DO exceptions by namespace
+      transformations:
+        - id: partitionByValues
+          options:
+            fields:
+              - namespace
+            keepFields: false
+            naming:
+              asLabels: true
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: Requests per R2 bucket over time — covers the missing asset traffic
+        metrics (ROOMS snapshots, UPLOADS assets, etc.) at bucket granularity.
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: line
+            fillOpacity: 12
+            gradientMode: opacity
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 1.5
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: none
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+        overrides: []
+      gridPos:
+        h: 8
+        w: 12
+        x: 0
+        'y': 58
+      id: 11
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetime
+              text: time
+              type: timestamp
+            - selector: dimensions.bucketName
+              text: bucket
+              type: string
+            - selector: sum.requests
+              text: requests
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].r2OperationsAdaptiveGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    r2OperationsAdaptiveGroups(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      sum { requests }
+                      dimensions { datetime bucketName }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: R2 operations by bucket
+      transformations:
+        - id: partitionByValues
+          options:
+            fields:
+              - bucket
+            keepFields: false
+            naming:
+              asLabels: true
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: Operation counts by bucket and action type (GetObject, PutObject,
+        …) over the selected range.
+      fieldConfig:
+        defaults:
+          color:
+            mode: continuous-BlPu
+          min: 0
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+        overrides: []
+      gridPos:
+        h: 8
+        w: 6
+        x: 12
+        'y': 58
+      id: 12
+      options:
+        displayMode: gradient
+        legend:
+          calcs: []
+          displayMode: list
+          overflow: ellipsis
+          placement: bottom
+          showLegend: false
+        maxVizHeight: 300
+        minVizHeight: 16
+        minVizWidth: 8
+        namePlacement: auto
+        orientation: horizontal
+        reduceOptions:
+          calcs:
+            - lastNotNull
+          fields: ''
+          values: true
+        showUnfilled: true
+        sizing: auto
+        valueMode: color
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.bucketName
+              text: bucket
+              type: string
+            - selector: dimensions.actionType
+              text: action
+              type: string
+            - selector: sum.requests
+              text: requests
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].r2OperationsAdaptiveGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    r2OperationsAdaptiveGroups(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      sum { requests }
+                      dimensions { bucketName actionType }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: R2 operations by action
+      type: bargauge
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: Stored payload bytes per bucket (max over range) — trend this over
+        days to see room-snapshot and upload growth.
+      fieldConfig:
+        defaults:
+          color:
+            mode: continuous-GrYlRd
+          min: 0
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+          unit: decbytes
+        overrides: []
+      gridPos:
+        h: 8
+        w: 6
+        x: 18
+        'y': 58
+      id: 13
+      options:
+        displayMode: gradient
+        legend:
+          calcs: []
+          displayMode: list
+          overflow: ellipsis
+          placement: bottom
+          showLegend: false
+        maxVizHeight: 300
+        minVizHeight: 16
+        minVizWidth: 8
+        namePlacement: auto
+        orientation: horizontal
+        reduceOptions:
+          calcs:
+            - lastNotNull
+          fields: ''
+          values: true
+        showUnfilled: true
+        sizing: auto
+        valueMode: color
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.bucketName
+              text: bucket
+              type: string
+            - selector: max.payloadSize
+              text: bytes
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].r2StorageAdaptiveGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    r2StorageAdaptiveGroups(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      max { payloadSize }
+                      dimensions { bucketName }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: R2 storage by bucket
+      type: bargauge
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: Average backlog depth (messages) per queue — the saturation signal
+        application code cannot produce. Covers the sync-worker asset-upload queue.
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: line
+            fillOpacity: 25
+            gradientMode: opacity
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 1.5
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: none
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+        overrides: []
+      gridPos:
+        h: 8
+        w: 8
+        x: 0
+        'y': 66
+      id: 14
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeMinute
+              text: time
+              type: timestamp
+            - selector: dimensions.queueId
+              text: queue
+              type: string
+            - selector: avg.messages
+              text: messages
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].queueBacklogAdaptiveGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    queueBacklogAdaptiveGroups(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      avg { messages bytes }
+                      dimensions { datetimeMinute queueId }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: Queue backlog
+      transformations:
+        - id: partitionByValues
+          options:
+            fields:
+              - queue
+            keepFields: false
+            naming:
+              asLabels: true
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: Average concurrent consumer invocations per queue.
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: line
+            fillOpacity: 12
+            gradientMode: opacity
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 1.5
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: none
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+        overrides: []
+      gridPos:
+        h: 8
+        w: 8
+        x: 8
+        'y': 66
+      id: 15
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeMinute
+              text: time
+              type: timestamp
+            - selector: dimensions.queueId
+              text: queue
+              type: string
+            - selector: avg.concurrency
+              text: concurrency
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].queueConsumerMetricsAdaptiveGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    queueConsumerMetricsAdaptiveGroups(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      avg { concurrency }
+                      dimensions { datetimeMinute queueId }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: Queue consumer concurrency
+      transformations:
+        - id: partitionByValues
+          options:
+            fields:
+              - queue
+            keepFields: false
+            naming:
+              asLabels: true
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: Billable message operations by action type and outcome — write/read/ack
+        throughput and failure outcomes per queue.
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: bars
+            fillOpacity: 80
+            gradientMode: none
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 0
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: normal
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+        overrides: []
+      gridPos:
+        h: 8
+        w: 8
+        x: 16
+        'y': 66
+      id: 16
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeMinute
+              text: time
+              type: timestamp
+            - selector: dimensions.actionType
+              text: action
+              type: string
+            - selector: dimensions.outcome
+              text: outcome
+              type: string
+            - selector: sum.billableOperations
+              text: operations
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.accounts[0].queueMessageOperationsAdaptiveGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  accounts(filter: {accountTag: "${account_id}"}) {
+                    queueMessageOperationsAdaptiveGroups(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      sum { billableOperations }
+                      dimensions { datetimeMinute actionType outcome }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: Queue message operations
+      transformations:
+        - id: partitionByValues
+          options:
+            fields:
+              - action
+              - outcome
+            keepFields: false
+            naming:
+              asLabels: true
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: Edge response status codes for the tldraw.com zone — the free version
+        of the missing per-route error-rate metric (sampled, edge view).
+      fieldConfig:
+        defaults:
+          color:
+            mode: palette-classic
+          custom:
+            axisBorderShow: false
+            axisCenteredZero: false
+            axisColorMode: text
+            axisLabel: ''
+            axisPlacement: auto
+            barAlignment: 0
+            barWidthFactor: 0.6
+            drawStyle: bars
+            fillOpacity: 80
+            gradientMode: none
+            hideFrom:
+              legend: false
+              tooltip: false
+              viz: false
+            insertNulls: false
+            lineInterpolation: linear
+            lineWidth: 0
+            pointSize: 5
+            scaleDistribution:
+              type: linear
+            showPoints: never
+            showValues: false
+            spanNulls: false
+            stacking:
+              group: A
+              mode: normal
+            thresholdsStyle:
+              mode: 'off'
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+        overrides: []
+      gridPos:
+        h: 8
+        w: 12
+        x: 0
+        'y': 74
+      id: 17
+      options:
+        annotations:
+          clustering: -1
+          multiLane: false
+        legend:
+          calcs: []
+          displayMode: list
+          enableFacetedFilter: false
+          overflow: ellipsis
+          placement: bottom
+          showLegend: true
+        tooltip:
+          hideZeros: false
+          mode: multi
+          sort: desc
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.datetimeFifteenMinutes
+              text: time
+              type: timestamp
+            - selector: dimensions.edgeResponseStatus
+              text: status
+              type: string
+            - selector: count
+              text: requests
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.zones[0].httpRequestsAdaptiveGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  zones(filter: {zoneTag: "${zone_id}"}) {
+                    httpRequestsAdaptiveGroups(limit: 10000, filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}"}) {
+                      count
+                      dimensions { datetimeFifteenMinutes edgeResponseStatus }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: Zone responses by status code
+      transformations:
+        - id: partitionByValues
+          options:
+            fields:
+              - status
+            keepFields: false
+            naming:
+              asLabels: true
+      type: timeseries
+    - datasource:
+        type: yesoreyeram-infinity-datasource
+        uid: ffuyblsuemj28b
+      description: "Server errors grouped by request host and edge status over the selected
+        range. Deliberately does NOT group by clientRequestPath: Cloudflare groups server-side,
+        so a path dimension would put full board slugs into the API response, and a
+        display-level mask cannot remove them. Route-level attribution lives in the
+        sync-worker's own events instead."
+      fieldConfig:
+        defaults:
+          color:
+            mode: thresholds
+          custom:
+            align: auto
+            cellOptions:
+              type: auto
+            footer:
+              reducers: []
+            inspect: false
+          thresholds:
+            mode: absolute
+            steps:
+              - color: green
+                value: 0
+        overrides: []
+      gridPos:
+        h: 8
+        w: 12
+        x: 12
+        'y': 74
+      id: 18
+      options:
+        cellHeight: sm
+        showHeader: true
+        sortBy:
+          - desc: true
+            displayName: errors
+      pluginVersion: 13.2.0-28926505616
+      targets:
+        - columns:
+            - selector: dimensions.clientRequestHTTPHost
+              text: host
+              type: string
+            - selector: dimensions.edgeResponseStatus
+              text: status
+              type: string
+            - selector: count
+              text: errors
+              type: number
+          datasource:
+            type: yesoreyeram-infinity-datasource
+            uid: ffuyblsuemj28b
+          filters: []
+          format: table
+          global_query_id: ''
+          parser: backend
+          refId: A
+          root_selector: data.viewer.zones[0].httpRequestsAdaptiveGroups
+          source: url
+          type: graphql
+          url: https://api.cloudflare.com/client/v4/graphql
+          url_options:
+            body_content_type: application/json
+            body_graphql_query: |-
+              query {
+                viewer {
+                  zones(filter: {zoneTag: "${zone_id}"}) {
+                    httpRequestsAdaptiveGroups(limit: 100, orderBy: [count_DESC], filter: {datetime_geq: "${__from:date:iso}", datetime_leq: "${__to:date:iso}", edgeResponseStatus_geq: 500}) {
+                      count
+                      dimensions { clientRequestHTTPHost edgeResponseStatus }
+                    }
+                  }
+                }
+              }
+            body_type: graphql
+            method: POST
+      title: 5xx responses by host and status
+      type: table
+  preload: false
+  refresh: 5m
+  schemaVersion: 42
+  tags:
+    - tldraw
+    - cloudflare
+    - platform
+    - provisioned
+    - repo:tldraw/tldraw
+  templating:
+    list:
+      - current:
+          selected: true
+          text: tldraw
+          value: c34edc4e76350954b63adebde86d5eb1
+        description: Aliased for legibility only — the ID is stored in this dashboard's
+          JSON and is not secret.
+        hide: 0
+        includeAll: false
+        label: Cloudflare account
+        multi: false
+        name: account_id
+        options:
+          - selected: true
+            text: tldraw
+            value: c34edc4e76350954b63adebde86d5eb1
+        query: 'tldraw : c34edc4e76350954b63adebde86d5eb1'
+        skipUrlSync: false
+        type: custom
+      - current:
+          selected: false
+          text: tldraw.com
+          value: e7567c58962361a2bb9d802f858f5da3
+        datasource:
+          type: yesoreyeram-infinity-datasource
+          uid: ffuyblsuemj28b
+        definition: Cloudflare zones visible to the datasource's API token
+        description: Listed from the Cloudflare API rather than hardcoded, so a zone
+          added to the account shows up without a dashboard edit. The token behind this
+          datasource currently sees one zone.
+        hide: 0
+        includeAll: false
+        label: Cloudflare zone
+        multi: false
+        name: zone_id
+        options: []
+        query:
+          infinityQuery:
+            columns:
+              - selector: name
+                text: __text
+                type: string
+              - selector: id
+                text: __value
+                type: string
+            filters: []
+            format: table
+            parser: backend
+            refId: variable
+            root_selector: result
+            source: url
+            type: json
+            url: https://api.cloudflare.com/client/v4/zones
+            url_options:
+              method: GET
+          queryType: infinity
+        refresh: 1
+        regex: ''
+        skipUrlSync: false
+        sort: 1
+        type: query
+  time:
+    from: now-6h
+    to: now
+  timepicker:
+    refresh_intervals:
+      - 1m
+      - 5m
+      - 15m
+      - 30m
+      - 1h
+      - 2h
+      - 1d
+  timezone: browser
+  title: Cloudflare platform metrics
+  weekStart: ''

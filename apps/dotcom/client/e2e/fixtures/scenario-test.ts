@@ -110,7 +110,6 @@ export class DotcomActor {
 		await this.waitForAppStoreHydrated()
 		await this.waitForFileRoomConnected()
 		await this.waitForVisitorAccessMetadata()
-		await this.waitForMutationResolution()
 	}
 
 	async waitForAuthLoaded() {
@@ -204,12 +203,6 @@ export class DotcomActor {
 				{ timeout }
 			)
 			.toBe(0)
-	}
-
-	async waitForMutationResolution() {
-		await this.page.evaluate(async () => {
-			await (window as any).app?.z?.__e2e__waitForMutationResolution?.()
-		})
 	}
 
 	async getCollaboratorCount() {
@@ -345,7 +338,6 @@ class DotcomScenario {
 		await actor.page.getByTestId('tools.rectangle').click()
 		await actor.page.locator('.tl-background').click()
 		await actor.editor.expectShapesCount(1)
-		await actor.waitForMutationResolution()
 	}
 
 	async shareFile(actor: DotcomActor, linkType: Exclude<SharedLinkType, 'no-access'> = 'edit') {
@@ -364,7 +356,6 @@ class DotcomScenario {
 
 		if (linkType === 'no-access') {
 			await actor.page.getByRole('switch').uncheck()
-			await actor.waitForMutationResolution()
 			return
 		}
 
@@ -375,7 +366,6 @@ class DotcomScenario {
 			await selectTlaMenuOption(actor.page, select, expectedLabel)
 		}
 		await expect(select).toHaveText(expectedLabel)
-		await actor.waitForMutationResolution()
 	}
 
 	async publishFile(actor: DotcomActor) {
@@ -383,7 +373,6 @@ class DotcomScenario {
 		await actor.shareMenu.publishFile()
 		const url = await actor.shareMenu.copyLink()
 		await actor.page.keyboard.press('Escape')
-		await actor.waitForMutationResolution()
 		return url
 	}
 
@@ -418,7 +407,6 @@ class DotcomScenario {
 		}
 		await actor.shareMenu.publishChanges()
 		await actor.page.keyboard.press('Escape')
-		await actor.waitForMutationResolution()
 	}
 
 	async createLegacyRouteFixture(actor: DotcomActor): Promise<LegacyRouteFixture> {
@@ -471,7 +459,6 @@ class DotcomScenario {
 		await opts.member.goto(invite.inviteUrl)
 		await opts.member.editor.ensureSidebarOpen()
 		await opts.member.workspaceInviteDialog.acceptInvitation()
-		await opts.member.waitForMutationResolution()
 		await opts.member.sidebar.expectWorkspaceVisible(invite.workspaceName)
 		await opts.member.sidebar.switchToWorkspace(invite.workspaceName)
 		await opts.member.sidebar.expectFileVisible(invite.fileName)
@@ -527,15 +514,27 @@ class DotcomScenario {
 				}
 				const workspaceId = uniqueId()
 				const fileId = uniqueId()
-				await app.z.mutate.createWorkspace({ id: workspaceId, name: workspaceName }).client
-				await app.z.mutate.createFile({
+				// Await server acknowledgement (not just optimistic apply) so the file exists
+				// server-side before we navigate to it. These promises never reject — a rejected
+				// mutation resolves with {type: 'error'} — so check the result or a failure
+				// surfaces later as an unrelated timeout.
+				const workspaceRes = await app.z.mutate.createWorkspace({
+					id: workspaceId,
+					name: workspaceName,
+				}).server
+				if (workspaceRes.type !== 'success') {
+					throw new Error(`createWorkspace rejected: ${JSON.stringify(workspaceRes)}`)
+				}
+				const fileRes = await app.z.mutate.createFile({
 					fileId,
 					workspaceId,
 					name: fileName,
 					createSource: null,
 					time: Date.now(),
-				}).client
-				await app.z.__e2e__waitForMutationResolution?.()
+				}).server
+				if (fileRes.type !== 'success') {
+					throw new Error(`createFile rejected: ${JSON.stringify(fileRes)}`)
+				}
 				return { fileId }
 			},
 			{ workspaceName, fileName }
@@ -561,7 +560,6 @@ class DotcomScenario {
 		)
 		// The remove confirmation dialog's button is just "Remove".
 		await opts.owner.page.getByRole('button', { name: 'Remove', exact: true }).click()
-		await opts.owner.waitForMutationResolution()
 		await opts.owner.page.keyboard.press('Escape')
 	}
 
@@ -578,22 +576,7 @@ class DotcomScenario {
 		const roleLabel = opts.role === 'owner' ? 'Owner' : 'Member'
 		await selectTlaMenuOption(opts.owner.page, memberRoleSelect, roleLabel)
 		await expect(memberRoleSelect).toHaveText(roleLabel)
-		await opts.owner.waitForMutationResolution()
 		await opts.owner.page.keyboard.press('Escape')
-	}
-
-	async downgradeClient(actor: DotcomActor) {
-		const userId = await this.getSignedInActorUserId(actor)
-		await actor.page.request.get(
-			`http://localhost:3000/api/app/__test__/user/${userId}/downgrade-client`
-		)
-	}
-
-	async upgradeClient(actor: DotcomActor) {
-		const userId = await this.getSignedInActorUserId(actor)
-		await actor.page.request.get(
-			`http://localhost:3000/api/app/__test__/user/${userId}/upgrade-client`
-		)
 	}
 
 	async goToAndOpenSidebar(actor: DotcomActor) {
@@ -601,13 +584,6 @@ class DotcomScenario {
 
 		await actor.goto()
 		await actor.editor.ensureSidebarOpen()
-	}
-
-	private async getSignedInActorUserId(actor: DotcomActor) {
-		if (!actor.email) throw new Error(`Actor ${actor.name} is not signed in`)
-		const userId = await this.database.getUserIdByEmail(actor.email)
-		if (!userId) throw new Error(`User not found: ${actor.email}`)
-		return userId
 	}
 
 	private async switchToHomeIfAvailable(actor: DotcomActor) {

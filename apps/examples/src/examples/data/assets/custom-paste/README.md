@@ -5,8 +5,10 @@ priority: 3
 keywords: [paste, clipboard, external content, handler]
 ---
 
-Change how pasting works by registering an external content handler.
+Replace the built-in paste handler so a copied frame lands in free space beside the original.
 
 ---
 
-This example adds a special rule for pasting single frame shapes, so they'll try to find an empty space instead of always pasting in the location they were copied from.
+Pasted tldraw content goes through the `'tldraw'` external content handler. This example overrides it with `editor.registerExternalContentHandler('tldraw', ...)` to add one rule: when the clipboard holds a single page-level frame, place the pasted copy to the right of the original (and past any other frames in the way), the way Figma does. Everything else falls through to `defaultHandleExternalTldrawContent`.
+
+Try creating a frame, then pressing `Cmd + C`, `Cmd + V` a few times.

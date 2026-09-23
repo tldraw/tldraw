@@ -1,57 +1,28 @@
 import { ArrowShapeUtil, GeoShapeUtil, TextShapeUtil, Tldraw, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// Configure the geo shape to disable outline
-const CustomGeoShapeUtil = GeoShapeUtil.configure({
-	showTextOutline: false,
-})
-
-// Configure the arrow shape to disable text outline
-const CustomArrowShapeUtil = ArrowShapeUtil.configure({
-	showTextOutline: false,
-})
-
-// Configure the text shape to disable outline
-const CustomTextShapeUtil = TextShapeUtil.configure({
-	showTextOutline: false,
-})
-
-// Use the configured shape utilities
-const customShapeUtils = [CustomArrowShapeUtil, CustomTextShapeUtil, CustomGeoShapeUtil]
+// [1]
+const shapeUtils = [
+	ArrowShapeUtil.configure({ showTextOutline: false }),
+	TextShapeUtil.configure({ showTextOutline: false }),
+	GeoShapeUtil.configure({ showTextOutline: false }),
+]
 
 export default function CustomTextOutlineExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				// Use our custom shape utilities that have text outlines disabled
-				shapeUtils={customShapeUtils}
-				// Use a persistence key to save the state
+				shapeUtils={shapeUtils}
 				persistenceKey="custom-text-outline-example"
 				onMount={(editor) => {
 					if (editor.getCurrentPageShapeIds().size > 0) return
 
+					// [2]
 					const message = toRichText('very good whiteboard')
-
-					// Lots of overlapping text shapes. These would normally be differentiated a bit using the text outline!
 					editor.createShapes([
-						{
-							type: 'text',
-							x: 100,
-							y: 100,
-							props: { richText: message },
-						},
-						{
-							type: 'text',
-							x: 110,
-							y: 110,
-							props: { richText: message },
-						},
-						{
-							type: 'text',
-							x: 120,
-							y: 120,
-							props: { richText: message },
-						},
+						{ type: 'text', x: 100, y: 100, props: { richText: message } },
+						{ type: 'text', x: 110, y: 110, props: { richText: message } },
+						{ type: 'text', x: 120, y: 120, props: { richText: message } },
 						{
 							type: 'arrow',
 							x: 0,
@@ -68,3 +39,13 @@ export default function CustomTextOutlineExample() {
 		</div>
 	)
 }
+
+/*
+[1]
+Text outlines are an option on each shape util that renders text labels, so each one has to
+be configured separately. Passing the configured utils in `shapeUtils` replaces the defaults.
+
+[2]
+Overlapping text shapes and an arrow with a label. With outlines on, each label would get a
+halo in the background color that separates it from the text behind it; here they run together.
+*/

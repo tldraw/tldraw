@@ -1,4 +1,4 @@
-import { AgentModelName, DEFAULT_MODEL_NAME } from '../../shared/models'
+import { AgentModelName, DEFAULT_MODEL_NAME, isValidModelName } from '../../shared/models'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { getPromptPartDefinition } from '../../shared/types/PromptPart'
 
@@ -12,7 +12,10 @@ export function getModelName(prompt: AgentPrompt): AgentModelName {
 		// Check if this definition provides a model name
 		if (definition.getModelName) {
 			const modelName = definition.getModelName(part)
-			if (modelName) return modelName
+			// Ignore unknown model names (e.g. from an older client whose stored
+			// selection no longer exists) and fall through to the default so the
+			// request doesn't throw.
+			if (modelName && isValidModelName(modelName)) return modelName
 		}
 	}
 

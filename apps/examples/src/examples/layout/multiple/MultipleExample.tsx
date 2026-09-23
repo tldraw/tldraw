@@ -8,7 +8,7 @@ import 'tldraw/tldraw.css'
 const focusedEditorContext = createContext(
 	{} as {
 		focusedEditor: Editor | null
-		setFocusedEditor(id: Editor | null): void
+		setFocusedEditor(editor: Editor | null): void
 	}
 )
 
@@ -45,7 +45,7 @@ export default function MultipleExample() {
 			style={{
 				padding: 32,
 			}}
-			// Sorry you need to do this yourself
+			// Clicking anywhere on the page outside an editor blurs the focused one
 			onPointerDown={() => setFocusedEditor(null)}
 		>
 			<focusedEditorContext.Provider value={{ focusedEditor, setFocusedEditor }}>
@@ -84,7 +84,7 @@ function EditorA() {
 				tabIndex={-1}
 				onFocus={() => setFocusedEditor((window as any).EDITOR_A)}
 				style={{ height: 600 }}
-				// Capture pointer down events that happen within the editor
+				// Keep pointer downs inside the editor from reaching the page-level blur handler
 				onPointerDown={(e) => e.stopPropagation()}
 			>
 				<Tldraw
@@ -194,29 +194,28 @@ function ABunchOfText() {
 }
 
 /*
-This example shows how to use multiple editors on the same page. When doing this, you'll
-need to make sure that only one editor is focused at a time. We can manage this using 
-the autofocus prop on the tldraw component, along with React's context and set state 
-APIs.
+With several editors on one page, only one should own keyboard focus at a time. Every
+editor here has `autoFocus={false}`, and we manage focus ourselves with a context.
+
+The editors are also stashed on `window` (`EDITOR_A`, `EDITOR_B`, `EDITOR_C`) so the
+e2e tests can reach them; a real app would keep them in state or refs.
 
 [1]
-We first create a context that will hold the focused editor id and a setter for that id. 
-We'll use this to keep track of which editor is focused.
+A context holding the focused editor and a setter.
 
 [2]
-Wrap the editors in the context provider. This will make the context available to all
-of the editors.
+The setter blurs the previously focused editor and focuses the new one before
+updating state, so exactly one editor has `isFocused` at any time.
 
-[3]	
-Get the focused editor id and the setter from the context. We'll use these to determine
-if the editor should be focused or not. We wrap the Tldraw component in a div and use 
-the onFocus event to set the focused editor id. 
+[3]
+Each editor is wrapped in a focusable div (`tabIndex={-1}`). When it receives DOM
+focus, we mark its editor as the focused one. Editor A focuses itself on mount.
 
 [4]
-Same again, but we're using the same persistence key for editors B and C. This means
-that they will share a document. 
+Editors B and C share a persistence key, so they display the same locally
+synchronized document.
 
 [5]
-A long story that doesn't really go anywhere, clearly written by a computer. But it's	
-a good way to test the scroll behavior of the page.
+A long story that doesn't go anywhere, but it's a good way to test that scrolling
+the page doesn't get captured by an unfocused editor.
 */

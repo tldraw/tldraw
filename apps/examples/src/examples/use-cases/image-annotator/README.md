@@ -18,8 +18,12 @@ keywords:
   ]
 ---
 
-An image annotator built with tldraw.
+Annotate an image on a constrained canvas and export the result as a PNG.
 
 ---
 
-This example shows how you might want to configure `cameraOptions` to make an image annotation app.
+The chosen image is placed as a locked image shape. Store side effects keep it locked and at the bottom of the page, and camera constraints (`editor.setCameraOptions` with `contain` behavior and a `fit-min-100` base zoom) stop you from panning or zooming away from it. An `InFrontOfTheCanvas` overlay dims everything outside the image so it's clear what will be exported.
+
+Press "Done" to export with `editor.toImage`, cropped to the image bounds, then copy or download the result.
+
+Try picking a very long, thin image to see how the camera constraints behave.

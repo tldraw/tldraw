@@ -1,11 +1,10 @@
 import { type UIMessage } from '@ai-sdk/react'
 import { memo } from 'react'
-import { ChatMessage } from './ChatMessage'
-import { TldrawProviderMetadata } from './WhiteboardModal'
+import { ChatMessage, ImageClickTarget } from './ChatMessage'
 
 interface MessageListProps {
 	messages: UIMessage[]
-	onImageClick: (tldrawMetadata: TldrawProviderMetadata | { uploadedFile: File }) => void
+	onImageClick: (target: ImageClickTarget) => void
 }
 
 export const MessageList = memo(function MessageList({ messages, onImageClick }: MessageListProps) {

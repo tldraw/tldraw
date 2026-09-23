@@ -5,10 +5,10 @@ priority: 6
 keywords: [identity, user, attribution, TLUserStore]
 ---
 
-Providing a custom `TLUserStore` to connect tldraw to your auth system.
+Connect tldraw to your user system with a `TLUserStore` and record who created each shape.
 
 ---
 
-The `TLUserStore` interface tells the editor "who is the current user?" and "how do I look up a user by ID?". The editor uses it to track the current user for attribution — for example, note shapes display who first edited their text.
+The `TLUserStore` passed to the `users` prop answers two questions for the editor: who is the current user, and how to look up a user by id. Both are reactive signals, so display names and colors update live. The editor uses it for built-in attribution such as `textLastEditedBy` on note shapes, and `editor.getAttributionUserId()` gives you the same id to stamp onto your own data. This example adds a `beforeCreate` side effect that writes it to `meta.createdBy` on every new shape.
 
-In this example we define a custom `TLUserStore` backed by a fake user directory. Buttons at the top let you switch users. Draw shapes as different users, then select them to inspect attribution metadata in the panel on the right.
+Use the buttons at the top to switch between Alice, Bob, and Carol. Draw shapes as different users, then select one to see who created it in the panel on the right. Rename the active user in the text field and watch the attribution update.

@@ -1,4 +1,3 @@
-import { useCallback, useMemo } from 'react'
 import {
 	DEFAULT_THEME,
 	Editor,
@@ -14,6 +13,7 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import './multiple-themes.css'
 
 // There's a guide at the bottom of this file!
 
@@ -98,38 +98,19 @@ function ThemeSwitcher() {
 	const editor = useEditor()
 	const currentThemeId = useValue('themeId', () => editor.getCurrentThemeId(), [editor])
 
-	const handleClick = useCallback(
-		(id: TLThemeId) => {
-			editor.setCurrentTheme(id)
-		},
-		[editor]
-	)
-
 	return (
-		<div style={useMemo(() => styles.container, [])}>
+		<div className="tlui-menu theme-switcher">
 			{(Object.keys(THEME_LABELS) as TLThemeId[]).map((id) => (
 				<TldrawUiButton
 					key={id}
 					type={currentThemeId === id ? 'primary' : 'normal'}
-					onClick={() => handleClick(id)}
+					onClick={() => editor.setCurrentTheme(id)}
 				>
 					<TldrawUiButtonLabel>{THEME_LABELS[id]}</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			))}
 		</div>
 	)
-}
-
-const styles = {
-	container: {
-		position: 'absolute' as const,
-		top: 60,
-		left: 12,
-		display: 'flex',
-		gap: 4,
-		zIndex: 1000,
-		pointerEvents: 'all' as const,
-	},
 }
 
 /*
@@ -144,15 +125,16 @@ Define theme objects by cloning `DEFAULT_THEME` and overriding just the colors
 you want to change. Each theme contains both `light` and `dark` color palettes.
 
 [3]
-Pass the custom themes via `themes`. The `default` theme is always
-available, so you only need to register additional themes here.
+Collect the themes in a `Partial<TLThemes>`. The `default` theme is always registered,
+so only the additional themes need to be listed. Keep this object at module level: it's
+a prop of `<Tldraw>`, and a new object each render would re-register the themes.
 
 [4]
-The `<Tldraw>` component accepts `themes` to register themes at
-mount time. You can also register themes later via `editor.updateTheme()`.
+`<Tldraw>` registers the `themes` at mount time and keeps them updated if the prop
+changes. You can also register or update themes later with `editor.updateTheme()`.
 
 [5]
-A simple UI to switch between themes at runtime using `editor.setCurrentTheme()`.
-The current theme ID is reactive — `editor.getCurrentThemeId()` updates automatically.
+`editor.setCurrentTheme(id)` switches theme at runtime and `editor.getCurrentThemeId()`
+is reactive, so reading it in `useValue` keeps the active button highlighted.
 
 */

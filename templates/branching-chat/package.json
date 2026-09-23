@@ -17,6 +17,10 @@
 			"shortDescription": "A branching chat interface.",
 			"order": 7
 		},
+		"deploy": {
+			"target": "cloudflare",
+			"host": "branching-chat.templates.tldraw.dev"
+		},
 		"scripts": {
 			"lint": null
 		}
@@ -28,9 +32,9 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
-		"@ai-sdk/google": "^2.0.14",
+		"@ai-sdk/google": "^2.0.74",
 		"@cloudflare/vite-plugin": "^1.29.1",
-		"ai": "^5.0.63",
+		"ai": "^5.0.194",
 		"classnames": "^2.5.1",
 		"itty-router": "^5.0.18",
 		"radix-ui": "^1.4.2",

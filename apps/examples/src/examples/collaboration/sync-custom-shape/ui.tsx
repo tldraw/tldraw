@@ -10,11 +10,10 @@ import {
 
 export const uiOverrides: TLUiOverrides = {
 	tools(editor, tools) {
-		// Create a tool item in the ui's context.
 		tools.counter = {
 			id: 'counter',
 			icon: 'color',
-			label: 'counter',
+			label: 'Counter',
 			kbd: 'c',
 			onSelect: () => {
 				editor.setCurrentTool('counter')

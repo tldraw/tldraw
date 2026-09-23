@@ -1,0 +1,116 @@
+.tlui-cmt-drawing-palette {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 6px;
+	color: var(--tl-color-text-1);
+	font-size: 12px;
+}
+.tlui-cmt-drawing-palette__reuse {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2px;
+	padding-bottom: 2px;
+	border-bottom: 1px solid var(--tl-color-divider);
+}
+.tlui-cmt-drawing-palette__reuse-item {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	border: none;
+	border-radius: var(--tl-radius-2);
+	background: none;
+	color: inherit;
+	font: inherit;
+	font-size: 21px;
+	line-height: 1;
+	cursor: pointer;
+}
+.tlui-cmt-drawing-palette__reuse-item:hover {
+	background: var(--tl-color-muted-2);
+}
+.tlui-cmt-drawing-palette__reuse-item--active {
+	background: color-mix(in srgb, var(--tl-color-selected) 28%, var(--tl-color-panel));
+}
+.tlui-cmt-drawing-palette__canvas {
+	position: relative;
+	overflow: hidden;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
+}
+/* Sits over the bottom of the drawing box. The z-index is what keeps it above the canvas — it's a
+   sibling of the canvas inside the editor's container, not a panel the editor knows about. */
+.tlui-cmt-drawing-palette__toolbar {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	z-index: var(--tl-layer-panels, 300);
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	padding: 3px;
+	border-top: 1px solid var(--tl-color-divider);
+	background: var(--tl-color-panel);
+}
+.tlui-cmt-drawing-palette__spacer {
+	flex: 1;
+}
+.tlui-cmt-drawing-palette__tool {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border: none;
+	border-radius: var(--tl-radius-2);
+	background: none;
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+}
+.tlui-cmt-drawing-palette__tool:hover {
+	background: var(--tl-color-muted-2);
+}
+.tlui-cmt-drawing-palette__tool--active {
+	background: color-mix(in srgb, var(--tl-color-selected) 28%, var(--tl-color-panel));
+}
+.tlui-cmt-drawing-palette__text-button,
+.tlui-cmt-drawing-palette__submit {
+	height: 28px;
+	padding: 0 10px;
+	border: none;
+	border-radius: var(--tl-radius-2);
+	background: none;
+	color: var(--tl-color-text-1);
+	font: inherit;
+	cursor: pointer;
+}
+.tlui-cmt-drawing-palette__text-button:hover:not(:disabled) {
+	background: var(--tl-color-muted-2);
+}
+.tlui-cmt-drawing-palette__submit {
+	background: var(--tl-color-selected);
+	color: var(--tl-color-selected-contrast, #fff);
+	font-weight: 500;
+}
+.tlui-cmt-drawing-palette__submit:hover:not(:disabled) {
+	filter: brightness(1.08);
+}
+.tlui-cmt-drawing-palette__text-button:disabled,
+.tlui-cmt-drawing-palette__submit:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+.tlui-cmt-drawing-palette__error {
+	position: absolute;
+	bottom: 34px;
+	left: 0;
+	right: 0;
+	z-index: var(--tl-layer-panels, 300);
+	padding: 4px 6px;
+	background: var(--tl-color-panel);
+	color: var(--tl-color-danger);
+	text-align: center;
+}

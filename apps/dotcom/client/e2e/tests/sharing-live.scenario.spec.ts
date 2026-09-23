@@ -106,7 +106,6 @@ test.describe('live sharing scenarios', () => {
 		await member.goto(inviteUrl)
 		await member.editor.ensureSidebarOpen()
 		await member.workspaceInviteDialog.acceptInvitation()
-		await member.waitForMutationResolution()
 		await member.sidebar.expectWorkspaceVisible(workspaceName)
 
 		// Now switching to the home workspace must stay there. The file is owned by a workspace the
@@ -206,7 +205,6 @@ test.describe('live sharing scenarios', () => {
 		await member.editor.ensureSidebarOpen()
 		await member.workspaceInviteDialog.expectIsVisible()
 		await member.workspaceInviteDialog.acceptInvitation()
-		await member.waitForMutationResolution()
 		await member.sidebar.expectWorkspaceVisible(workspaceName)
 		await member.sidebar.expectFileVisible(fileName)
 

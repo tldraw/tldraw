@@ -118,6 +118,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'chevrons-sw': iconsIcon0MergedSvg + '#chevrons-sw',
 			'clipboard-copied': iconsIcon0MergedSvg + '#clipboard-copied',
 			'clipboard-copy': iconsIcon0MergedSvg + '#clipboard-copy',
+			closed: iconsIcon0MergedSvg + '#closed',
 			code: iconsIcon0MergedSvg + '#code',
 			color: iconsIcon0MergedSvg + '#color',
 			comment: iconsIcon0MergedSvg + '#comment',

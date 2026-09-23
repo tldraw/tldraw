@@ -1,14 +1,13 @@
-import { Tldraw, createShapeId, toRichText } from 'tldraw'
+import { Tldraw, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-export default function ProgrammaticTextShapeCreationAndConfigurationExample() {
+export default function TextShapeConfigurationExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				onMount={(editor) => {
 					// [1]
 					editor.createShape({
-						id: createShapeId(),
 						type: 'text',
 						x: 100,
 						y: 100,
@@ -22,7 +21,6 @@ export default function ProgrammaticTextShapeCreationAndConfigurationExample() {
 
 					// [2]
 					editor.createShape({
-						id: createShapeId(),
 						type: 'text',
 						x: 100,
 						y: 200,
@@ -39,7 +37,6 @@ export default function ProgrammaticTextShapeCreationAndConfigurationExample() {
 
 					// [3]
 					editor.createShape({
-						id: createShapeId(),
 						type: 'text',
 						x: 100,
 						y: 400,
@@ -55,12 +52,10 @@ export default function ProgrammaticTextShapeCreationAndConfigurationExample() {
 
 					// [4]
 					editor.createShape({
-						id: createShapeId(),
 						type: 'text',
 						x: 100,
 						y: 500,
 						props: {
-							// Rich text with bold formatting using marks
 							richText: {
 								type: 'doc',
 								content: [
@@ -78,7 +73,6 @@ export default function ProgrammaticTextShapeCreationAndConfigurationExample() {
 
 					// [5]
 					editor.createShape({
-						id: createShapeId(),
 						type: 'text',
 						x: 100,
 						y: 600,
@@ -99,32 +93,30 @@ export default function ProgrammaticTextShapeCreationAndConfigurationExample() {
 }
 
 /*
+Text shapes store their content as rich text (a TipTap/ProseMirror document), so the
+`richText` prop takes a TLRichText object rather than a string. `toRichText()` converts
+a plain string; for formatting, build the document yourself as in [4].
+
 [1]
-Create an auto-sized text shape. When autoSize is true, the text shape automatically
-adjusts its width to fit the content. This is the default behavior for text shapes.
-Use toRichText() to convert plain text strings to the required rich text format.
+An auto-sized text shape (autoSize: true, the default) grows its width to fit the content.
+Any `w` you pass is ignored.
 
 [2]
-Create a fixed-width text shape by setting autoSize to false and specifying a width.
-The text will wrap when it reaches the specified width. This is useful for creating
-text blocks with consistent formatting.
+With autoSize: false the shape keeps the given `w` and wraps text inside it. There is no
+`h` prop; the height is measured from the wrapped content.
 
 [3]
-Create a text shape with center alignment. The textAlign property controls horizontal
-text alignment within the shape: 'start' (left), 'middle' (center), or 'end' (right).
+textAlign controls horizontal alignment within the shape's width: 'start', 'middle', or
+'end'. It only has a visible effect on fixed-width shapes, since an auto-sized shape is
+exactly as wide as its text.
 
 [4]
-Create a text shape with bold formatting. To apply formatting like bold, italic, or
-code, you need to construct the rich text document manually with marks. The marks array
-on a text node specifies which formatting to apply. Available marks include 'bold',
-'italic', 'code', 'link', and 'highlight'.
+Formatting is expressed with marks on text nodes. Marks available in the default rich text
+extensions include 'bold', 'italic', 'code', 'strike', 'underline', 'link', and
+'highlight'.
 
 [5]
-Create a text shape with a specific font. The font property supports 'draw' (handdrawn),
-'sans' (sans-serif), 'serif' (serif), and 'mono' (monospace). The size property controls
-the font size: 's', 'm', 'l', or 'xl'.
-
-Note: The richText property requires a TLRichText object. Use toRichText('your text')
-to convert plain text strings. For rich formatting with marks, construct the document
-structure directly as shown in example [4].
+The font style is 'draw', 'sans', 'serif', or 'mono'; size is 's', 'm', 'l', or 'xl'.
+These are tldraw's default style props, so the style panel shows and edits them when the
+shape is selected.
 */

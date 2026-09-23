@@ -1,11 +1,4 @@
-import {
-	BaseBoxShapeUtil,
-	HTMLContainer,
-	RecordProps,
-	T,
-	TLBaseBoxShape,
-	TLShapePartial,
-} from 'tldraw'
+import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLShape, TLShapePartial } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 
@@ -18,9 +11,7 @@ declare module 'tldraw' {
 	}
 }
 
-type ResizableShape = TLBaseBoxShape & {
-	type: typeof RESIZABLE_SHAPE_TYPE
-}
+type ResizableShape = TLShape<typeof RESIZABLE_SHAPE_TYPE>
 
 export class ResizableShapeUtil extends BaseBoxShapeUtil<ResizableShape> {
 	static override type = RESIZABLE_SHAPE_TYPE
@@ -34,10 +25,6 @@ export class ResizableShapeUtil extends BaseBoxShapeUtil<ResizableShape> {
 			w: 400,
 			h: 320,
 		}
-	}
-
-	override canEdit() {
-		return false
 	}
 
 	// [2]
@@ -87,9 +74,10 @@ Extend TLGlobalShapePropsMap to register the shape's props. We just need width
 and height for this example.
 
 [2]
-The onDoubleClickEdge handler runs when the user double-clicks one of the
-shape's resize edges (top, right, bottom, left). We return a shape partial that
-toggles the shape between two preset sizes: if the shape is currently 200×200
-we expand it to 400×320, otherwise we reset it to 200×200. The editor applies
-the returned partial automatically.
+The select tool calls onDoubleClickEdge when the user double-clicks one of the
+selected shape's edge resize handles (top, right, bottom, left); corners go to
+onDoubleClickCorner instead. We return a shape partial that toggles the shape
+between two preset sizes. The editor marks a history stopping point and applies
+the partial, so the toggle is a single undo step. Return nothing to fall through
+to the default double-click behavior (starting to edit, if the shape allows it).
 */

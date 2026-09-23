@@ -57,37 +57,32 @@ export default function CustomErrorCaptureExample() {
 /*
 [1]
 Define your component overrides outside of the React component so that they're static. If you must
-define them inside of the component, be sure to use a `useMemo` hook to prevent them from being
-re-created on every component update.
+define them inside the component, wrap them in `useMemo` so they aren't recreated on every render.
 
 [2]
-The ErrorFallback component is displayed when a critical error occurs in the editor that would
-otherwise crash the entire application. This is different from ShapeErrorFallback, which handles
-errors in individual shapes only.
-
-The ErrorFallback component receives an error prop that contains information about what went wrong.
-You can customize this component to match your app's design and provide helpful recovery options to
-your users.
+`ErrorFallback` is displayed when a critical error occurs in the editor that would otherwise crash
+the entire application. This is different from `ShapeErrorFallback`, which handles errors in
+individual shapes. The component receives the error, so you can match it to your app's design and
+offer recovery options.
 
 [3]
-Use getErrorAnnotations to retrieve additional debugging information that tldraw attaches to errors.
-These annotations include tags (key-value pairs for categorization) and extras (additional context
-data). This is particularly useful for error reporting services like Sentry.
+`getErrorAnnotations` retrieves the debugging information tldraw attaches to errors: tags
+(key-value pairs for categorization) and extras (additional context data such as the current tool
+or the selected shapes). This is what you'd forward to an error reporting service like Sentry.
 
 [4]
-Display the annotations in a scrollable pre element so developers can see the additional context.
-In production, you might want to send these annotations to your error tracking service (like Sentry)
-instead of displaying them to users.
+Here we show the annotations on screen so you can see what's captured. In production you'd send
+them to your error tracking service instead of displaying them to users.
 
 [5]
-For this example, we've added a button using the InFrontOfTheCanvas component that intentionally
-triggers an error so you can see the custom ErrorFallback in action. In a real application, you
-wouldn't need this - the ErrorFallback would only appear when genuine errors occur.
+For this example, we've added a button in the `InFrontOfTheCanvas` slot that intentionally
+triggers an error so you can see the custom `ErrorFallback` in action. In a real application the
+fallback only appears when genuine errors occur.
 
 [6]
-We trigger an error by attempting to create a shape with an invalid type. This simulates what would
-happen if there was a critical error in the editor.
+Creating a shape with an unknown type throws inside the editor, which is enough to trip the error
+boundary. The `@ts-expect-error` is there because TypeScript rightly rejects the bad type.
 
 [7]
-Pass your custom components to the Tldraw component via the components prop.
+Pass the components to the `Tldraw` component via the `components` prop.
 */

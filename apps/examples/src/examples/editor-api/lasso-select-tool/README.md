@@ -13,15 +13,17 @@ keywords:
     atom,
     statenode,
     getstrokepoints,
-    getsupathfromstrokepoints,
-    usevalue,
+    getsvgpathfromstrokepoints,
+    overlayutil,
   ]
 ---
 
-Add a lasso select tool to tldraw.
+Select shapes by drawing a freehand lasso around them with a custom tool and a canvas overlay.
 
 ---
 
-You can build different types of selection tools in tldraw. This example creates a lasso select tool that lets you freehand draw to select shapes on the canvas. It uses a reactive `atom` to reactively store the lasso points, and an `Overlay` to draw the lasso onto the canvas.
+The tool is a `StateNode` with an `idle` child and a `lassoing` child. While lassoing, the tool stores the pointer's page-space points in an `atom`, so anything that reads them re-renders as they change. A custom `OverlayUtil` reads that atom, smooths the points with `getStrokePoints`, converts them to an SVG path with `getSvgPathFromStrokePoints`, and draws the result onto the canvas overlay with `Path2D`.
 
-Only shapes that are fully enclosed in the lasso will be selected.
+On pointer up, the tool selects every shape whose page-space vertices are all inside the lasso polygon (`pointInPolygon`) and whose outline does not cross the lasso (`polygonsIntersect`), then switches back to the select tool.
+
+Press `W` or pick the lasso from the toolbar, then drag a loop around some shapes. Only shapes fully enclosed by the loop are selected.

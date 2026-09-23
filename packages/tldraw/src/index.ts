@@ -73,6 +73,15 @@ export {
 export { ZoomBrushOverlayUtil, type TLZoomBrushOverlay } from './lib/overlays/ZoomBrushOverlayUtil'
 export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
 export {
+	CollaboratorHintOverlayUtil,
+	type TLCollaboratorHintOverlay,
+} from './lib/overlays/CollaboratorHintOverlayUtil'
+// Deprecated, but still exported so apps that customized canvas-drawn cursors keep working.
+// oxlint-disable-next-line typescript/no-deprecated
+export { CollaboratorCursorOverlayUtil } from './lib/overlays/CollaboratorCursorOverlayUtil'
+// oxlint-disable-next-line typescript/no-deprecated
+export type { TLCollaboratorCursorOverlay } from './lib/overlays/CollaboratorCursorOverlayUtil'
+export {
 	CollaboratorBrushOverlayUtil,
 	type TLCollaboratorBrushOverlay,
 } from './lib/overlays/CollaboratorBrushOverlayUtil'
@@ -80,14 +89,6 @@ export {
 	CollaboratorScribbleOverlayUtil,
 	type TLCollaboratorScribbleOverlay,
 } from './lib/overlays/CollaboratorScribbleOverlayUtil'
-export {
-	CollaboratorHintOverlayUtil,
-	type TLCollaboratorHintOverlay,
-} from './lib/overlays/CollaboratorHintOverlayUtil'
-export {
-	CollaboratorCursorOverlayUtil,
-	type TLCollaboratorCursorOverlay,
-} from './lib/overlays/CollaboratorCursorOverlayUtil'
 export {
 	CollaboratorShapeIndicatorOverlayUtil,
 	type TLCollaboratorShapeIndicatorOverlay,
@@ -240,6 +241,11 @@ export {
 	type LineShapeOptions,
 	type LineShapeUtilDisplayValues,
 } from './lib/shapes/line/LineShapeUtil'
+export {
+	DefaultNoteShapeAttribution,
+	type TLNoteShapeAttributionComponent,
+	type TLNoteShapeAttributionProps,
+} from './lib/shapes/note/DefaultNoteShapeAttribution'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export {
 	NoteShapeUtil,
@@ -395,6 +401,7 @@ export {
 	DuplicateMenuItem,
 	EditLinkMenuItem,
 	EditMenuSubmenu,
+	ExportAsMenuGroup,
 	FitFrameToContentMenuItem,
 	GroupMenuItem,
 	MoveToPageMenu,
@@ -659,6 +666,7 @@ export {
 	AssetToolbarItem,
 	CheckBoxToolbarItem,
 	CloudToolbarItem,
+	CommentToolbarItem,
 	DefaultToolbarContent,
 	DiamondToolbarItem,
 	DrawToolbarItem,
@@ -808,6 +816,7 @@ export { RTL_LANGUAGES, type TLUiTranslation } from './lib/ui/hooks/useTranslati
 export {
 	useCurrentTranslation,
 	useDirection,
+	useMaybeCurrentTranslation,
 	useTranslation,
 	type TLUiTranslationContextType,
 	type TLUiTranslationProviderProps,
@@ -830,14 +839,34 @@ export {
 export { sanitizeSvg } from './lib/utils/svg/sanitizeSvg'
 export {
 	defaultAddFontsFromNode,
+	getTipTapDefaultExtensions,
 	KeyboardShiftEnterTweakExtension,
 	renderHtmlFromRichText,
 	renderHtmlFromRichTextForMeasurement,
+	renderHtmlFromRichTextWithExtensions,
 	renderPlaintextFromRichText,
 	renderRichTextFromHTML,
 	tipTapDefaultExtensions,
 } from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
+export {
+	Extension,
+	getSchema,
+	Mark,
+	mergeAttributes,
+	Node,
+	TaskItem,
+	TaskList,
+	type Extensions,
+	type JSONContent,
+	type TaskItemOptions,
+	type TaskListOptions,
+} from './lib/utils/text/tiptap'
+export {
+	defaultWrappingPairs,
+	WrapSelectionExtension,
+	type WrapSelectionOptions,
+} from './lib/utils/text/wrapSelection'
 export {
 	buildFromV1Document,
 	TLV1AlignStyle,

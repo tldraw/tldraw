@@ -180,6 +180,57 @@ describe('Resizing geo shapes with labels', () => {
 		expect(geo.props.w).toBeLessThan(50)
 		expect(geo.props.h).toBeLessThan(50)
 	})
+
+	describe.each([1, 2, 0.5])('when the label stops the shrink at scale %s', (scale) => {
+		const w = 300 * scale
+		const h = 100 * scale
+
+		beforeEach(() => {
+			editor.createShapes([
+				{
+					id: geoId,
+					type: 'geo',
+					props: { w, h, scale, richText: toRichText('Hello World'), geo: 'rectangle' },
+				},
+			])
+			editor.select(geoId)
+		})
+
+		function getEdges() {
+			const { minX, minY, maxX, maxY } = editor.getShapePageBounds(geoId)!
+			return { minX, minY, maxX, maxY }
+		}
+
+		test('dragging the top-left handle keeps the bottom-right corner fixed', () => {
+			const before = getEdges()
+
+			editor
+				.pointerDown(0, 0, { target: 'selection', handle: 'top_left' })
+				.pointerMove(w - 10 * scale, h - 2 * scale)
+				.pointerUp()
+
+			const after = getEdges()
+			// the label must have stopped the shrink, or the corner check proves nothing
+			expect(after.maxX - after.minX).toBeGreaterThan(10 * scale)
+			expect(after.maxY - after.minY).toBeGreaterThan(2 * scale)
+			expect({ maxX: after.maxX, maxY: after.maxY }).toEqual({
+				maxX: before.maxX,
+				maxY: before.maxY,
+			})
+		})
+
+		test('flipping over the right edge with the left handle keeps that edge fixed', () => {
+			const before = getEdges()
+
+			editor
+				.pointerDown(0, h / 2, { target: 'selection', handle: 'left' })
+				.pointerMove(w + 10 * scale, h / 2)
+				.pointerUp()
+
+			expect(getGeo().props.flipX).toBe(true)
+			expect(getEdges().minX).toBe(before.maxX)
+		})
+	})
 })
 
 describe('Geo shapes with programmatically-authored empty rich text', () => {
@@ -226,6 +277,71 @@ describe('Geo shapes with programmatically-authored empty rich text', () => {
 			expect(geo.props.growY).toBe(0)
 		})
 	}
+})
+
+describe('Flipping geo shapes', () => {
+	const geoId = createShapeId('geo')
+
+	function getGeo() {
+		return editor.getShape<TLGeoShape>(geoId)!
+	}
+
+	beforeEach(() => {
+		editor.createShapes([
+			{ id: geoId, type: 'geo', x: 0, y: 0, props: { geo: 'arrow-left', w: 100, h: 80 } },
+		])
+	})
+
+	test('flip command toggles flipX / flipY like the image shape', () => {
+		expect(getGeo().props.flipX).toBe(false)
+
+		editor.flipShapes([geoId], 'horizontal')
+		expect(getGeo().props).toMatchObject({ flipX: true, flipY: false })
+
+		editor.flipShapes([geoId], 'vertical')
+		expect(getGeo().props).toMatchObject({ flipX: true, flipY: true })
+
+		// flipping again on the same axis restores the original state
+		editor.flipShapes([geoId], 'horizontal')
+		expect(getGeo().props).toMatchObject({ flipX: false, flipY: true })
+	})
+
+	test('flipping a lone geo shape keeps its position and size', () => {
+		const before = getGeo()
+		editor.flipShapes([geoId], 'horizontal')
+		const after = getGeo()
+		expect(after).toMatchObject({
+			x: before.x,
+			y: before.y,
+			props: { w: before.props.w, h: before.props.h, flipX: true },
+		})
+	})
+
+	test('mirrors the geometry when flipped, keeping the bounds unchanged', () => {
+		const util = editor.getShapeUtil('geo')
+		const outlineBefore = (util.getGeometry(getGeo()) as Group2d).children[0]
+		const vertsBefore = outlineBefore.vertices.map((v) => ({ x: v.x, y: v.y }))
+
+		editor.updateShape({ id: geoId, type: 'geo', props: { flipX: true } })
+
+		const outlineAfter = (util.getGeometry(getGeo()) as Group2d).children[0]
+
+		// bounds are unchanged: we mirror geometry within the shape's box, not its w/h
+		expect(outlineAfter.bounds.width).toBeCloseTo(outlineBefore.bounds.width)
+		expect(outlineAfter.bounds.height).toBeCloseTo(outlineBefore.bounds.height)
+
+		// every vertex is mirrored around the horizontal center (w = 100)
+		const vertsAfter = outlineAfter.vertices
+		expect(vertsAfter).toHaveLength(vertsBefore.length)
+		for (const v of vertsBefore) {
+			const mirrored = { x: 100 - v.x, y: v.y }
+			expect(
+				vertsAfter.some(
+					(a) => Math.abs(a.x - mirrored.x) < 0.01 && Math.abs(a.y - mirrored.y) < 0.01
+				)
+			).toBe(true)
+		}
+	})
 })
 
 describe('GeoShapeUtil.configure with customGeoTypes', () => {

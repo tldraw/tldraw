@@ -1,5 +1,4 @@
-import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
-import { ReactNode, memo, useRef } from 'react'
+import { ReactNode, memo } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useReadonly } from '../../hooks/useReadonly'
@@ -29,22 +28,10 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	const isReadonlyMode = useReadonly()
 	const { orientation } = useTldrawUiOrientation()
 
-	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref)
-
-	const editor = useEditor()
-	const isInAcceptableReadonlyState = useValue(
-		'should display quick actions when in readonly',
-		() => editor.isInAny('hand', 'zoom'),
-		[editor]
-	)
-
-	// Get the actions menu content, either the default component or the user's
-	// override. If there's no menu content, then the user has set it to null,
-	// so skip rendering the menu.
-
 	const content = children ?? <DefaultActionsMenuContent />
-	if (isReadonlyMode && !isInAcceptableReadonlyState) return
+
+	// Every default action edits shapes, so in readonly mode the menu would open empty
+	if (isReadonlyMode) return
 
 	return (
 		<TldrawUiPopover id="actions-menu">
@@ -71,7 +58,6 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				sideOffset={6}
 			>
 				<TldrawUiToolbar
-					ref={ref}
 					label={msg('actions-menu.title')}
 					className="tlui-actions-menu"
 					data-testid="actions-menu.content"

@@ -5,12 +5,12 @@ priority: 3
 keywords: [culling, canCull, viewport, performance, glow, shadow, overflow, custom shape]
 ---
 
-Prevent shapes with overflow effects from being culled when off-screen.
+Keep shapes with overflow effects rendered off-screen by overriding `canCull()`.
 
 ---
 
-Culling is an optimization that hides shapes when they're outside the viewport. However, shapes with visual effects that extend beyond their bounds (like glows or shadows) can appear to "pop" when scrolled on/off screen.
+Culling is an optimization that hides shapes with `display: none` once their bounds leave the viewport. Shapes with visuals that extend beyond their bounds, like glows or drop shadows, pop in and out at the viewport edge when they're culled.
 
-Override the `canCull()` method in your ShapeUtil to conditionally prevent culling. In this example, both shapes have a glow effect, but only one has culling disabled via the checkbox.
+Override `canCull()` on your `ShapeUtil` to opt individual shapes out. In this example both shapes have the same glow, and each has a checkbox that toggles a `preventCulling` prop read by `canCull()`.
 
-Try panning the canvas horizontally - notice how the shape with "Prevent culling" checked stays visible while the other disappears abruptly at the viewport edge.
+Try panning the canvas horizontally: the shape with "Prevent culling" checked stays visible as it slides off-screen, while the other disappears abruptly once its bounds leave the viewport.

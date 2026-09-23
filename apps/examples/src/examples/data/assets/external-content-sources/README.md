@@ -17,8 +17,10 @@ keywords:
   ]
 ---
 
-Handle different types of content when pasting into tldraw.
+Turn pasted `text/html` into a custom shape by overriding the text external content handler.
 
 ---
 
-In this example, we register a special handler for when the user pastes in `'text/html'` content. We add it to a special shape type that renders the HTML content directly. Try copying and pasting some code from a VSCode file.
+Content pasted or dropped into the editor is dispatched to a handler by type: text, files, url, svg-text, embed, or tldraw. This example calls `editor.registerExternalContentHandler('text', ...)` to replace the text handler. When the pasted text has an HTML source among its `sources`, it creates a `dangerous-html` shape that renders the markup with `dangerouslySetInnerHTML`; plain text falls back to `defaultHandleExternalTextContent`.
+
+Try copying a few lines of code from VS Code, or some formatted text from a web page, and pasting them onto the canvas. Rendering arbitrary pasted HTML is unsafe outside of a demo, which is why the shape is named the way it is.

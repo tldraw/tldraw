@@ -1,7 +1,6 @@
 ---
 title: Page panel
 component: ./PagePanelExample.tsx
-category: ui
 priority: 5
 keywords: [pages, page menu, sidebar, thumbnails, previews, external ui, page list]
 ---

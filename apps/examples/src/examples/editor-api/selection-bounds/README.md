@@ -14,8 +14,10 @@ keywords:
   ]
 ---
 
-Compare axis-aligned and rotated selection bounds for the current selection.
+Visualize the difference between `getSelectionPageBounds()` and `getSelectionRotatedPageBounds()` for the current selection.
 
 ---
 
-This example shows how to read the current selection's axis-aligned bounds with `getSelectionPageBounds()` and its rotated bounds with `getSelectionRotatedPageBounds()`. Here we highlight both types of selection box so you can compare how the axis-aligned and rotated measurements behave for (1) a single rotated shape, (2) a grouped selection with a shared rotation, and (3) shapes with mixed rotations.
+`getSelectionPageBounds()` returns the smallest upright rectangle around the selection; `getSelectionRotatedPageBounds()` returns a box aligned to the selection's shared rotation, which is what the visible selection handles use. This example draws both over the canvas with an `InFrontOfTheCanvas` component that converts page bounds to viewport pixels using `pageToViewport()` and the zoom level.
+
+Select the single rotated shape, the group with a shared rotation, and the two ungrouped shapes with different rotations to see when the two boxes differ and when the rotated box falls back to axis-aligned.

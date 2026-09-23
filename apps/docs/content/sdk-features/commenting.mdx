@@ -1,0 +1,715 @@
+---
+title: Commenting
+created_at: 7/27/2026
+updated_at: 7/27/2026
+keywords:
+  - comment
+  - comments
+  - commenting
+  - thread
+  - annotation
+  - review
+  - feedback
+  - mention
+  - reaction
+  - collaboration
+status: published
+date: 7/27/2026
+---
+
+In tldraw, a comment is a message pinned to a place on the canvas. Comments group into threads, one conversation per pin. Every comment records who wrote it and comments can mention other people.
+
+The `@tldraw/commenting` package works at two levels. `CanvasComments` is a comments layer you render in front of the canvas: it draws the pins, opens the threads, and reads and writes the records itself. The parts it's built from are exported too, so you can replace any of them or assemble your own layer from the pieces.
+
+Commenting is a licensed feature. It runs in development without a key. In production it needs a tldraw license that includes commenting.
+
+## Setup
+
+There are three pieces: register the comment record types with your store, register the comment tool, and render the comments layer.
+
+```tsx
+import {
+	CanvasComments,
+	CommentAuthor,
+	commentTools,
+	commentToolOverrides,
+} from '@tldraw/commenting'
+import { useMemo } from 'react'
+import { commentSchemaRecords, createTLSchema, createTLStore, TLComponents, Tldraw } from 'tldraw'
+import '@tldraw/commenting/commenting.css'
+import 'tldraw/tldraw.css'
+
+// In production, a tldraw license key that includes commenting. Not needed in development.
+const YOUR_LICENSE_KEY = undefined
+
+// Your app's user directory. Any id you can't resolve renders as an anonymous user.
+const AUTHORS: Record<string, CommentAuthor> = {
+	me: { name: 'You', color: '#EC5E41' },
+	ada: { name: 'Ada Lovelace', color: '#0E9F6E' },
+}
+const resolveAuthor = (id: string) => AUTHORS[id]
+
+const components: TLComponents = {
+	InFrontOfTheCanvas: () => <CanvasComments currentUserId="me" resolveAuthor={resolveAuthor} />,
+}
+
+export default function App() {
+	const store = useMemo(
+		() => createTLStore({ schema: createTLSchema({ records: commentSchemaRecords }) }),
+		[]
+	)
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				licenseKey={YOUR_LICENSE_KEY}
+				store={store}
+				tools={commentTools}
+				overrides={[commentToolOverrides]}
+				components={components}
+			/>
+		</div>
+	)
+}
+```
+
+Comments are records in the editor's store, exactly like shapes. [commentSchemaRecords](?) registers the `comment-thread`, `comment`, and `comment-reaction` types, which aren't in the default schema. Once they're registered, comments persist and sync however your document already does: add a `persistenceKey` or a sync backend and they come along with it.
+
+`CanvasComments` needs two things, and both are about identity. `currentUserId` is the id of the person commenting, or `null` for a viewer who can read comments but not post them. `resolveAuthor` maps an author id to a `CommentAuthor`: a `name`, an optional `color` for their avatar and pin, and an optional `image`. Return `undefined` for an id you can't resolve and the layer falls back to an anonymous user.
+
+These two props, plus the read-status and mention callbacks below, make up the `CommentingContext`. The sidebar takes the same context, so a host mounting both surfaces builds one object and spreads it into each.
+
+Mount the layer through the `InFrontOfTheCanvas` component slot so it sits above the canvas but below the UI, and import `commenting.css` alongside `tldraw.css`.
+
+<Callout type="warning">
+	Without a license key that includes commenting, every commenting component renders nothing in
+	production. The feature is fully enabled in development, so a missing key shows up as a blank
+	canvas after you deploy. See [License key](/sdk-features/license-key).
+</Callout>
+
+## Placing comments
+
+`commentToolOverrides` puts the comment tool in Quick Actions with the `C` shortcut. With the tool active, clicking empty canvas starts a thread anchored to that point, and clicking a shape anchors a comment to the shape. You can also turn on region comments, where dragging the tool out covers an area. Either way the click only opens a composer: nothing is written to the store until the comment is posted.
+
+Once a comment thread exists, its pin is the handle for everything else.
+
+| Input       | Result                                                               |
+| ----------- | -------------------------------------------------------------------- |
+| Click a pin | Opens the thread, with its replies and a reply composer.             |
+| Drag a pin  | Re-anchors the thread. Drop it on a shape to attach it to the shape. |
+| `Escape`    | Closes the open thread.                                              |
+| `Shift+C`   | Hides and shows the pins on the canvas.                              |
+
+In the built-in layer, resolve and delete-thread sit in the thread's header, and the edit and delete controls for a single comment appear only on the author's own comments by default. [`canModifyComment`](#who-can-edit-and-delete) changes who gets those controls, and [Syncing comments](#syncing-comments) covers enforcing the same rules on the server.
+
+To put the show and hide toggle in a menu of your own, use `CommentsMenuItem`. It's a checkbox item wired to the same state as the `Shift+C` shortcut.
+
+```tsx
+import { CommentsMenuItem } from '@tldraw/commenting'
+import { DefaultMainMenu, TldrawUiMenuGroup } from 'tldraw'
+
+function MainMenu() {
+	return (
+		<DefaultMainMenu>
+			<TldrawUiMenuGroup id="comments">
+				<CommentsMenuItem />
+			</TldrawUiMenuGroup>
+		</DefaultMainMenu>
+	)
+}
+```
+
+## Configuring the tool
+
+Commenting options live on the comment tool. Set them with `CommentTool.configure()`, which mirrors `ShapeUtil.configure` and returns a configured subclass to register:
+
+```tsx
+import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
+import { Tldraw } from 'tldraw'
+
+const tools = [CommentTool.configure({ enableRegions: true })]
+
+function App() {
+	return <Tldraw tools={tools} overrides={[commentToolOverrides]} components={components} />
+}
+```
+
+Options are fixed once the tool is registered, so this is static configuration only. Live values, like the current user and the author resolver, are the `CommentingContext` instead, passed as props to each surface. Calls to `configure` can be chained, and each one layers over the last.
+
+The sections below introduce the relevant comment options, and [All options](#all-options) lists every one together.
+
+## Anchors
+
+A thread's `anchor` says where it lives. It's a discriminated union, so new anchor kinds can arrive without breaking existing threads.
+
+| Anchor   | Description                                                                                                              |
+| -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `point`  | A fixed page point. What a click on empty canvas produces.                                                               |
+| `shape`  | A shape, with `x`/`y` as a normalized (0–1) offset in its bounds. The pin keeps its spot as the shape moves and resizes. |
+| `region` | A rectangular area of the page, with the pin on one corner.                                                              |
+| `page`   | The page itself, with no spatial anchor. These threads have no pin and surface in a list instead.                        |
+
+Shape-anchored threads outlive their shape. Delete the shape and the thread converts to a `point` anchor where its pin last sat, so the conversation doesn't vanish with the thing it was about. Bring the shape back, whether by undoing the delete or by a page move that re-creates it, and the shape anchor is restored. The exception is a pin someone moved by hand in the meantime: a manual placement wins over the restore.
+
+Threads follow their shape across pages too. Move the shape to another page and the thread's `pageId`, along with the denormalized `pageId` on each of its comments, updates to match. Comments do not move when you cut or copy a shape.
+
+### Shape anchor precision
+
+A comment that lands on a shape anchors in one of two ways. A **precise** anchor pins to the exact clicked spot. An **imprecise** one addresses the shape as a whole and renders its pin at a spot you choose, the `impreciseShapeAnchor`, which is the shape's top-right corner by default. Both track the shape as it moves and resizes, and both store the clicked `x`/`y`, so precision governs rendering rather than data.
+
+Shape comments are precise by default. `shouldBePrecise` makes the call, and it receives the gesture: the target shape, the release point, and whether Alt was held.
+
+```tsx
+// Precise on notes, shape-level everywhere else
+const tools = [
+	CommentTool.configure({
+		shouldBePrecise: (editor, { shapeId }) => editor.getShape(shapeId)?.type === 'note',
+	}),
+]
+```
+
+Return `() => false` for shape-level anchoring throughout, or `(editor, { altKey }) => altKey` to make precision a per-placement choice the user holds Alt for. The predicate governs new placements only. Anchors already stored render the way they were made.
+
+## Comments and undo
+
+Comment writes are not undoable by default. The `history` option governs all of them, including posting, replying, editing and resolving, and it defaults to `'ignore'`. It covers your own writes too: a record you write with `putCommentRecords` lands on the undo stack, or doesn't, exactly like one the built-in UI writes.
+
+In a shared document an undoable delete resurrects a thread a collaborator already removed, and an undoable resolve reverts their newer state. `'record'` is safe in a single-player app, or when the comment store isn't synced.
+
+Deleting is the one write `history` doesn't reach. It's never undoable, because of how deletes work: see [Deleting is a soft delete](#deleting-is-a-soft-delete).
+
+Pin drags are the exception worth configuring separately. Re-anchoring a comment is a spatial edit that may reasonably undo alongside the shape move that prompted it, so `dragHistory` overrides `history` for drags alone:
+
+```tsx
+CommentTool.configure({ dragHistory: 'record' })
+```
+
+The [comments and undo example](/examples/collaboration/comment-history) lets you feel the difference: post a comment, press undo, and watch whether the thread count moves.
+
+## Who can comment
+
+Left unset, `canComment` allows participation whenever `currentUserId` is set. Participation covers composing threads and replies, editing and deleting your own comments, resolving threads, and moving pins. Pass a callback to decide for yourself:
+
+```tsx
+CommentTool.configure({
+	canComment: ({ currentUserId }) => currentUserId !== null && getRole() !== 'viewer',
+	components: {
+		ComposerFallback: ({ context }) => (context === 'thread' ? <SignInPrompt /> : null),
+	},
+})
+```
+
+When `canComment` returns false, composers give way to the `ComposerFallback` slot and the action affordances hide. That slot's `context` says which surface is asking: the bottom of an open thread (`'thread'`), or the placement popover the tool opens (`'pending'`). Leave the slot unset and those surfaces render nothing.
+
+`canComment` is read during render through `useCanComment`, so a callback that reads signals re-evaluates when they change.
+
+## Who can edit and delete
+
+`canComment` is about the viewer; `canModifyComment` is about the viewer and one particular record. It's asked for three writes: editing a comment, deleting a comment, and deleting a thread. Where it returns false, that affordance isn't rendered.
+
+By default, only a comment's author can edit or delete it, and only a thread's creator can delete the thread. Pass a callback to widen that, composing with `defaultCanModifyComment` so the owner keeps what they already had:
+
+```tsx
+import { CommentTool, defaultCanModifyComment } from '@tldraw/commenting'
+
+CommentTool.configure({
+	canModifyComment: (ctx) =>
+		// Moderators may remove anything. Editing stays the author's, whoever you are.
+		(ctx.action !== 'edit-comment' && isModerator(ctx.currentUserId)) ||
+		defaultCanModifyComment(ctx),
+})
+```
+
+The `ctx` carries the editor, the viewer's `currentUserId`, and the write itself as a discriminated union: `{ action: 'edit-comment' | 'delete-comment', comment }` or `{ action: 'delete-thread', thread }`. Narrowing works too — return false to close edits after an hour, or on a resolved thread.
+
+Resolving, reopening, reacting, and moving a pin aren't asked about: none of them is anyone's in particular, so `canComment` is the only gate on them. `canModifyComment` is checked after `canComment`, so a viewer who may not participate gets no action affordances whatever it returns. Like `canComment`, it's read during render (through `useCanModifyComment`), so a callback that reads signals re-evaluates when they change.
+
+Enforce the same rule on the server: `createCommentAuthorizers` takes a `canModifyComment` of its own, and that one is authoritative. See [Syncing comments](#syncing-comments).
+
+<Callout type="warning">
+	`canComment` and `canModifyComment` hide UI. They don't enforce anything. Comment records carry a
+	client-supplied `createdBy` and `authorId`, and a client can write whatever your sync server
+	accepts. Enforce permissions in your server's record authorization, and verify author ids against
+	the session's authenticated identity. See [Syncing comments](#syncing-comments).
+</Callout>
+
+## Mentions
+
+Composers support `@`-mentions. Supply the roster with `getMentionSuggestions`, which can be synchronous or async:
+
+```tsx
+import { CanvasComments, filterMentionMembers, MentionMember } from '@tldraw/commenting'
+
+const MEMBERS: MentionMember[] = [
+	{ id: 'me', name: 'You', color: '#EC5E41', you: true },
+	{ id: 'ada', name: 'Ada Lovelace', color: '#0E9F6E' },
+	{ id: 'grace', name: 'Grace Hopper', color: '#4465E9', secondary: 'grace@example.com' },
+]
+
+function Comments() {
+	return (
+		<CanvasComments
+			currentUserId="me"
+			resolveAuthor={resolveAuthor}
+			getMentionSuggestions={(query) => filterMentionMembers(MEMBERS, query)}
+		/>
+	)
+}
+```
+
+A `MentionMember` is a `CommentAuthor` plus an `id`, an optional `secondary` line for the picker, and `you` to mark the current user. `filterMentionMembers` does the matching; supply your own filter to query a server instead. To change how a row looks, pass `renderMentionSuggestion`.
+
+A mention is a node in the body rather than text in it, so you can't find one by searching the string. To detect a mention, look for `{ type: 'mention', attrs: { id } }` in the body's `content` tree.
+
+The mention components come from `@tldraw/mentions` and are re-exported here. That package also powers mentions in shape rich text. See [Rich text](/sdk-features/rich-text).
+
+## Reactions
+
+Hover a comment and open the picker to react with an emoji. A pill appears with a live count, and hovering it names who reacted.
+
+Each reaction is its own `comment-reaction` record, one per (comment, user, emoji), rather than a field on the comment. Two people reacting at once therefore write different records and neither can clobber the other. The record id is derived from the triple, so re-picking an emoji toggles it. Registering `commentSchemaRecords` registers the reaction type along with the rest.
+
+Reactions are multi-select by default, where each emoji toggles independently. Set `allowMultipleReactions: false` for single-select, where a new emoji replaces your existing one.
+
+The palette is pluggable. A reaction's emoji is treated as an opaque token: the layer stores it, syncs it, and hands it to a renderer, and never assumes it's a glyph. So you can swap in tokens of your own.
+
+```tsx
+CommentTool.configure({
+	components: {
+		ReactionContent: MyTokenRenderer, // how a token is drawn
+		ReactionPalette: MyPalette, // what the add-reaction button opens
+	},
+	isAllowedReaction: (token) => isMyToken(token) || isAllowedReactionEmoji(token),
+})
+```
+
+`isAllowedReaction` is enforced client-side. If arbitrary tokens would be a problem for you, validate them on your server too.
+
+## Region comments
+
+A region thread covers a rectangular area rather than a point. Regions are off by default, so the tool stays click-only until you turn them on:
+
+```tsx
+CommentTool.configure({ enableRegions: true })
+```
+
+That's the whole configuration. A region reveals its dashed box and resize handles while the pointer is inside it, moves by its pin, and resizes from its corners. The pin sits on whichever corner the creating drag was released on, which the anchor remembers.
+
+## The sidebar
+
+`CanvasCommentsSidebar` lists comment threads in a panel beside the canvas. Clicking a row brings that thread's pin into view and opens it.
+
+Its open state is a signal you drive, so the toggle lives wherever your app wants it. `useCommentsSidebarOpen` reads it and `toggleCommentsSidebar` flips it; the underlying `commentsSidebarOpen` atom is exported too, for code that has an editor but no React context:
+
+```tsx
+import {
+	CanvasComments,
+	CanvasCommentsSidebar,
+	CommentingContext,
+	toggleCommentsSidebar,
+	useCommentsSidebarOpen,
+} from '@tldraw/commenting'
+import { TldrawUiButton, TldrawUiButtonLabel, useEditor } from 'tldraw'
+
+function SidebarToggle() {
+	const editor = useEditor()
+	const open = useCommentsSidebarOpen()
+	return (
+		<TldrawUiButton type="normal" onClick={() => toggleCommentsSidebar(editor)}>
+			<TldrawUiButtonLabel>{open ? 'Hide comments' : 'Comments'}</TldrawUiButtonLabel>
+		</TldrawUiButton>
+	)
+}
+
+// Both surfaces read the same context, so build it once and spread it into each.
+const commenting: CommentingContext = { currentUserId: 'me', resolveAuthor }
+
+const components: TLComponents = {
+	InFrontOfTheCanvas: () => (
+		<>
+			<CanvasComments {...commenting} />
+			<CanvasCommentsSidebar {...commenting} />
+		</>
+	),
+	SharePanel: SidebarToggle,
+}
+```
+
+The sidebar's filters cover resolved threads, only comments you made, only unread comments, and only the current page. They're held per editor, so a user's choices survive the panel closing. Pass `header` and `empty` to replace the chrome around the list.
+
+## Unread state
+
+The layer doesn't track who has read what. That data lives in your app. Supply it as two callbacks. `isCommentUnread` reports whether a comment is unread, and `onCommentsRead` fires once per report with every unread comment the user actually sees in an open thread, so you can record read receipts in one write.
+
+```tsx
+<CanvasComments
+	currentUserId="me"
+	resolveAuthor={resolveAuthor}
+	isCommentUnread={(commentId) => !readReceipts.has(commentId)}
+	onCommentsRead={(commentIds) => markCommentsRead(commentIds)}
+	onPostComment={(comment) => notifyMentionedUsers(comment)}
+/>
+```
+
+Unread state drives the sidebar's unread filter and the receipts reported through `onCommentsRead`. Without `isCommentUnread`, the filter is hidden and nothing is reported. `onPostComment` fires when this user posts a comment through one of the built-in composers, whether a new thread or a reply. This is where notifications and mention emails belong. It does not fire for comments arriving over sync, so the sender is the one who notifies. See the [comment notifications example](/examples/collaboration/comment-notifications).
+
+## Custom components
+
+Every visible piece of the layer is a slot. Set them through the `components` option, and leave a slot unset to keep its default.
+
+| Slot               | Replaces                                                               |
+| ------------------ | ---------------------------------------------------------------------- |
+| `CommentBody`      | A comment's body, normally the rich-text renderer.                     |
+| `PinContent`       | A pin's inner content, normally the author's initial.                  |
+| `ThreadPreview`    | A sidebar row's preview, normally the body as plain text.              |
+| `ThreadRow`        | A whole sidebar row, normally `CommentListItem`.                       |
+| `ThreadActions`    | Adds controls to an open thread's header. Additive, not a replacement. |
+| `ComposerFallback` | What shows where a composer would sit when the viewer can't comment.   |
+| `ReactionContent`  | How a reaction token is drawn.                                         |
+| `ReactionPalette`  | What the add-reaction button opens.                                    |
+| `ReactionTooltip`  | The list of who reacted, shown on a reaction pill.                     |
+
+```tsx
+import { CommentTool, richTextToPlaintext } from '@tldraw/commenting'
+import { TLComment } from 'tldraw'
+
+function PriorityBody({ comment }: { comment: TLComment }) {
+	const urgent = comment.meta.priority === 'urgent'
+	return (
+		<div className={urgent ? 'urgent-comment' : 'comment'}>{richTextToPlaintext(comment.body)}</div>
+	)
+}
+
+const tools = [CommentTool.configure({ components: { CommentBody: PriorityBody } })]
+```
+
+Every comment record type carries a `meta` field the layer never reads. Use it for priorities, categories, external ticket ids, or anything else your app tracks alongside a comment.
+
+`ThreadRow` and `ThreadActions` are the two slots that add to a surface rather than replace a piece of it, so they get the records behind what's on screen.
+
+`ThreadRow` receives the summarized row along with the thread record, and the default row is exported. A row that only adds something can spread the props into `CommentListItem` rather than start over:
+
+```tsx
+import { CommentListItem, CommentListItemRenderProps, CommentTool } from '@tldraw/commenting'
+import { TLCommentThread } from 'tldraw'
+
+function StatusRow({ thread, ...row }: CommentListItemRenderProps & { thread: TLCommentThread }) {
+	return (
+		<div className="status-row">
+			<CommentListItem {...row} />
+			{thread.meta.status === 'blocked' && <span className="blocked">Blocked</span>}
+		</div>
+	)
+}
+
+const tools = [CommentTool.configure({ components: { ThreadRow: StatusRow } })]
+```
+
+`ThreadActions` adds controls to an open thread's header, ahead of the built-in resolve and dismiss buttons. This is where host verbs go: assign a thread, link it to a ticket, mark it as a to-do. It adds alongside the built-in actions rather than replacing them, so a thread never loses the ability to be resolved.
+
+```tsx
+import { CommentTool } from '@tldraw/commenting'
+import { TLCommentThread } from 'tldraw'
+
+function AssignAction({ thread }: { thread: TLCommentThread }) {
+	return (
+		<button type="button" className="tlui-cmt-thread__action" onClick={() => assign(thread.id)}>
+			Assign
+		</button>
+	)
+}
+
+const tools = [CommentTool.configure({ components: { ThreadActions: AssignAction } })]
+```
+
+A link affordance doesn't need this slot: see [Linking to a thread](#linking-to-a-thread).
+
+## Working with comment records
+
+Comment records aren't part of the `TLRecord` union, so `editor.store` doesn't know their types statically. These helpers own that reinterpretation and keep your call sites typed.
+
+| Helper                  | Description                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| `getLiveCommentThreads` | The threads that render.                                                             |
+| `getLiveComments`       | The comments that render.                                                            |
+| `getCommentThreads`     | Every thread in the store, including deleted ones.                                   |
+| `getComments`           | Every comment in the store, including deleted ones.                                  |
+| `getCommentRecord`      | One record by id, or `undefined`.                                                    |
+| `putCommentRecords`     | Write threads and comments.                                                          |
+| `removeCommentRecords`  | Remove them by id. Rarely what you want — see [Writing comments](#writing-comments). |
+
+Prefer the live reads. Deleting a comment doesn't remove its record: it flags it and lets the server prune it, as [Writing comments](#writing-comments) explains. So the unfiltered reads include records that nothing renders. `getLiveCommentThreads` also drops threads whose comments have all gone, which have no surface left.
+
+Those reads are non-reactive. In React use the hooks instead, which read the live set: `useCommentThreads`, `useComments`, and `useThreadComments` for one thread's replies, oldest first.
+
+```tsx
+import { useCommentThreads } from '@tldraw/commenting'
+import { useEditor } from 'tldraw'
+
+function OpenThreadCount() {
+	const editor = useEditor()
+	const threads = useCommentThreads(editor)
+	const open = threads.filter((thread) => !thread.resolved)
+	return <div>{open.length} open threads</div>
+}
+```
+
+## Writing comments
+
+To post a thread yourself, whether you're seeding a document with review notes or importing comments from another system, build the records and write them:
+
+```tsx
+import { putCommentRecords } from '@tldraw/commenting'
+import { createComment, createCommentThread, toRichText } from 'tldraw'
+
+const thread = createCommentThread({
+	pageId: editor.getCurrentPageId(),
+	anchor: { type: 'point', x: 120, y: 240 },
+	createdBy: 'ada',
+})
+
+const comment = createComment({
+	threadId: thread.id,
+	pageId: thread.pageId,
+	authorId: 'ada',
+	body: toRichText('Can we make this arrow dashed?'),
+})
+
+putCommentRecords(editor, [thread, comment])
+```
+
+The other writes each have a rule attached (a timestamp to stamp, or the delete protocol below), so they come as functions. The built-in thread view calls exactly these, so a UI of your own behaves like the one in the box.
+
+| Helper                          | Description                                            |
+| ------------------------------- | ------------------------------------------------------ |
+| `editComment`                   | Replace a comment's body and mark it edited.           |
+| `resolveThread`, `reopenThread` | Resolve a thread, stamping who and when, or reopen it. |
+| `deleteComment`                 | Delete a comment.                                      |
+| `deleteThread`                  | Delete a thread and its whole conversation.            |
+
+```tsx
+import { deleteComment, resolveThread } from '@tldraw/commenting'
+
+resolveThread(editor, thread, currentUserId)
+deleteComment(editor, comment)
+```
+
+The record you pass says which comment or thread to act on; the change itself lands on the version currently in the store. So a record you took a copy of earlier is safe to pass. It won't put back a field that has moved since, such as a thread's anchor after its pinned shape moved, or a comment's body after its author edited it elsewhere. And it won't re-create a record that has already been deleted, which a plain `putCommentRecords` of a stale copy would. If the record is gone, the call does nothing.
+
+### Deleting is a soft delete
+
+`deleteComment` and `deleteThread` don't remove records. They set an `isDeleted` flag and leave the pruning to the server, which then removes the thread, its comments, and their reactions.
+
+That indirection is what makes deleting safe in a shared document. A reaction belongs to whoever left it, not to whoever is deleting the comment underneath it, so no client should be removing it. And a server enforcing per-record permissions gets a write it can check against the session's identity rather than a deletion it can only refuse. `removeCommentRecords` is a hard delete, and such a server rejects it. Reach for it on a local, unsynced comment store.
+
+The flag is write-once server-side, so deletes are never undoable, whatever `history` says: an undo clearing the flag would be vetoed and rebased rather than bring the comment back.
+
+Deleting a thread's last comment leaves the thread with nothing to render. The record stays for the server to prune, since whoever deleted the comment may not be the thread's creator.
+
+## Revealing a thread
+
+To open a thread from outside the canvas, whether from a notification, a shared link, or a list of your own, call `revealThread` with a thread or comment id. `CanvasComments` serves the request: it waits for the records to arrive, switches pages if it needs to, zooms in if the pin is inside a cluster, then opens the thread.
+
+```tsx
+import { revealThread } from '@tldraw/commenting'
+
+// e.g. from a ?comment=<id> search param
+revealThread(editor, commentId)
+```
+
+An unserved request is inert, so it's safe to call before the records have synced in. `useRevealThreadPending` returns the id of a request that hasn't been served yet, which is how you notice a deep link to a comment that no longer exists. Give it a grace period first, since a request also sits there while its records are still arriving. When the grace period elapses, re-check with `getRevealThreadPending(editor)` so you don't act on a request that cleared inside it.
+
+For a thread you already hold, `focusThread(editor, thread)` centers and opens it directly.
+
+## Linking to a thread
+
+The other half of a deep link is producing one. Give the commenting context a `getThreadHref` and every surface that can link to a thread does:
+
+```tsx
+<CanvasComments
+	currentUserId="me"
+	resolveAuthor={resolveAuthor}
+	getThreadHref={(threadId) => `/file/${fileId}?comment=${encodeURIComponent(threadId)}`}
+/>
+```
+
+Sidebar rows become anchors, so ctrl/cmd-click and middle-click open a thread in a new tab, and an open thread's header menu offers **Copy link**. A relative href is resolved against the current document before it reaches the clipboard, so what gets pasted is a whole URL.
+
+Without `getThreadHref`, neither appears.
+
+## Pin clustering
+
+Zoom out far enough and pins pile on top of each other. Clustering folds nearby pins into a count badge as you zoom out, then splits them apart as you zoom back in. Splits happen at a wider spacing than merges, so pins don't flicker at the boundary. Clicking a badge zooms to just past the point where that cluster breaks up.
+
+Clustering is on by default. Turn it off with `enableClustering: false`.
+
+The work is precomputed once per comment add, remove, or move, so per-frame camera changes cost a single walk over a sorted event table. See the [comment clustering example](/examples/collaboration/comment-clustering).
+
+## Syncing comments
+
+Comment records don't ship in the default schema, so both ends of the connection have to register them, and they have to match. A client with the types talking to a server without them will fail schema validation.
+
+On the client, pass `records` to the sync hook:
+
+```tsx
+const store = useSync({
+	uri: `wss://your-server.com/sync/${roomId}`,
+	assets: myAssetStore,
+	records: commentSchemaRecords,
+})
+```
+
+On the server, pass the same map to [createTLSchema](?):
+
+```ts
+import { TLSocketRoom } from '@tldraw/sync-core'
+import { commentSchemaRecords, createTLSchema } from '@tldraw/tlschema'
+
+const schema = createTLSchema({ records: commentSchemaRecords })
+
+const room = new TLSocketRoom({
+	schema,
+	// Serve comments through the object-store lane rather than the document
+	objectTypes: ['comment', 'comment-thread', 'comment-reaction'],
+})
+```
+
+`objectTypes` moves those record types onto a separate lane. Lane records are stored apart from the document and left out of document snapshots. More usefully, they're gated by their own per-session permission rather than by `isReadonly`, so a session can be allowed to comment without being allowed to edit:
+
+```ts
+room.handleSocketConnect({
+	sessionId,
+	socket,
+	isReadonly: true, // can't touch the document
+	objectAccess: 'write', // but can still comment
+})
+```
+
+`objectAccess` is `'read'` or `'write'` and defaults to `'write'`. To persist the lane separately, read it with [TLSocketRoom#getCurrentObjectsSnapshot](?). To mirror comments into your own database as they commit, use the room's `onCommittedChanges` callback:
+
+```ts
+const room = new TLSocketRoom({
+	schema,
+	objectTypes: ['comment', 'comment-thread', 'comment-reaction'],
+	onCommittedChanges({ diff }) {
+		// Project comment records into Postgres for notifications and search
+		projectComments(diff)
+	},
+})
+```
+
+`onCommittedChanges` only fires for client pushes. Server-initiated writes don't trigger it, including `updateStore`, `loadSnapshot`, and writing to storage directly, so anything mirroring room state has to handle those paths itself.
+
+This is also where per-record permissions belong. The lane's write access is all or nothing, so rules like "only the author may edit a comment" or "only the thread's creator may delete it" are enforced as your server validates each incoming record against the session's identity. `createCommentAuthorizers` is that validation, ready-made — pass it to the room's `authorizeRecord`:
+
+```ts
+import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
+
+const room = new TLSocketRoom({
+	schema,
+	objectTypes: ['comment', 'comment-thread', 'comment-reaction'],
+	authorizeRecord: {
+		...createCommentAuthorizers<SessionMeta>({
+			getUserId: (session) => session.meta.userId,
+			// Moderators may take anything down. Editing stays the author's, whoever you are.
+			canModifyComment: (ctx) =>
+				(ctx.action !== 'edit-comment' && isModerator(ctx.session.meta)) ||
+				ctx.userId === ctx.ownerId,
+		}),
+	},
+})
+```
+
+It stamps authorship from the session so nothing can be posted or resolved in someone else's name, keeps `isDeleted` write-once, and, through `canModifyComment`, decides who may edit a comment, delete a comment, or delete a thread. Left unset, `canModifyComment` defaults to the record's owner, matching the client. It's asked after the structural rules, so widening it grants those three writes and nothing else: attribution stays immutable, a soft delete stays write-once, and clients still can't hard-delete a record.
+
+This is the same question the client's [`canModifyComment`](#who-can-edit-and-delete) answers, and the server's answer is the one that counts: the client's only decides which affordances the UI offers. Widen the two together. A moderator offered a delete the server then rejects sees the comment disappear and come back, with nothing to explain it.
+
+`createCommentAuthorizers` also takes a `canComment` callback, checked before every comment write. It defaults to `({ isReadonly }) => !isReadonly`, so a read-only session can't post even with `objectAccess: 'write'`. To let read-only viewers comment, as in the `handleSocketConnect` example above, pass `canComment: () => true` (or a rule based on the session's `meta`).
+
+## Building your own comments UI
+
+`CanvasComments` is one way to assemble the parts, and every part it uses is exported. You can rebuild it, or build something quite different, from the same pieces.
+
+| Export                                   | Description                                                 |
+| ---------------------------------------- | ----------------------------------------------------------- |
+| `CommentTool`, `commentToolOverrides`    | Placement: the tool state machine and its toolbar entry.    |
+| `CommentPin`, `CountBadge`               | The pin marker and the clustered-count badge.               |
+| `CommentThread`, `CommentCard`, `Byline` | A thread and its comments.                                  |
+| `CommentComposer`, `SendButton`          | The composer and its send control.                          |
+| `CommentsList`, `CommentListItem`        | A list of threads and one row of it.                        |
+| `EmptyState`, `sortSidebarRows`          | The list's empty state, and the sidebar's ordering.         |
+| `Avatar`, `Mention`, `MentionList`       | Author avatars and the mention picker.                      |
+| `Reaction`, `Reactions`                  | A reaction pill and a comment's row of them.                |
+| `anchorPagePoint`, `shapeAnchorAt`       | Anchor math: page position from an anchor, and the reverse. |
+| `editComment`, `deleteComment`           | The write verbs. See [Writing comments](#writing-comments). |
+| `registerCommentAnchorLifecycle`         | Keeps shape-anchored threads alive across shape deletion.   |
+
+The presentational components take plain props and know nothing about the editor. The canvas layer, the tool, and the hooks build on them. `CanvasComments` registers the anchor lifecycle for you, so call `registerCommentAnchorLifecycle` yourself only if you're replacing the layer wholesale.
+
+## All options
+
+Every option below is set with `CommentTool.configure()`. Anything you leave unset falls back to `defaultCommentingOptions`.
+
+### History
+
+| Option        | Default     | Description                                                             |
+| ------------- | ----------- | ----------------------------------------------------------------------- |
+| `history`     | `'ignore'`  | How comment writes interact with the undo stack.                        |
+| `dragHistory` | `undefined` | History mode for pin drags specifically. Unset, drags follow `history`. |
+
+### Anchoring
+
+| Option                 | Default        | Description                                               |
+| ---------------------- | -------------- | --------------------------------------------------------- |
+| `shouldBePrecise`      | `() => true`   | Whether a shape placement anchors precisely.              |
+| `impreciseShapeAnchor` | `{x: 1, y: 0}` | Where imprecise shape pins sit within the shape's bounds. |
+
+### Permissions
+
+| Option             | Default     | Description                                                                         |
+| ------------------ | ----------- | ----------------------------------------------------------------------------------- |
+| `canComment`       | `undefined` | Whether the viewer may participate. Unset, allowed whenever `currentUserId` is set. |
+| `canModifyComment` | `undefined` | Whether the viewer may edit or delete a record. Unset, each is its owner's to make. |
+
+### Reactions
+
+| Option                   | Default       | Description                                                  |
+| ------------------------ | ------------- | ------------------------------------------------------------ |
+| `allowMultipleReactions` | `true`        | Whether a user can hold more than one reaction on a comment. |
+| `isAllowedReaction`      | emoji palette | Which reaction tokens may be written.                        |
+
+### Regions
+
+| Option          | Default | Description                                                |
+| --------------- | ------- | ---------------------------------------------------------- |
+| `enableRegions` | `false` | Whether dragging the comment tool creates a region anchor. |
+
+### Clustering
+
+| Option             | Default | Description                                                 |
+| ------------------ | ------- | ----------------------------------------------------------- |
+| `enableClustering` | `true`  | Fold nearby pins into count badges as the camera zooms out. |
+
+### Components
+
+| Option       | Default | Description                                                       |
+| ------------ | ------- | ----------------------------------------------------------------- |
+| `components` | `{}`    | Component overrides. See [Custom components](#custom-components). |
+
+## Related articles
+
+- [Commenting](/docs/commenting) — A shorter introduction to the feature
+- [Collaboration](/sdk-features/collaboration) — Presence, sync hooks, and custom sync
+- [tldraw sync](/docs/sync) — Running a sync server
+- [Rich text](/sdk-features/rich-text) — The `TLRichText` format comment bodies use
+- [License key](/sdk-features/license-key) — Enabling licensed features in production
+
+## Related examples
+
+- [Commenting](/examples/collaboration/commenting) — The full flow: tool, pins, threads, mentions
+- [Commenting sidebar](/examples/collaboration/commenting-sidebar) — A thread list panel beside the canvas
+- [Comment clustering](/examples/collaboration/comment-clustering) — Merging pins into count badges as you zoom out
+- [Comment anchors](/examples/collaboration/comment-anchors) — The ways a comment can attach to the canvas
+- [Shape comment precision](/examples/collaboration/comment-shape-precision) — Precise, shape-level, and Alt-gated anchoring
+- [Comments and undo](/examples/collaboration/comment-history) — How comment writes interact with the undo stack
+- [Region comments](/examples/collaboration/comment-regions) — Commenting on an area, and tuning the interaction

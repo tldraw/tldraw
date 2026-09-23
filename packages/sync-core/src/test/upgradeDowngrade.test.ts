@@ -2,6 +2,7 @@ import { computed } from '@tldraw/state'
 import {
 	BaseRecord,
 	RecordId,
+	SerializedSchema,
 	Store,
 	StoreSchema,
 	UnknownRecord,
@@ -10,6 +11,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
+import { commentSchemaRecords, createTLSchema } from '@tldraw/tlschema'
 import { vi, type Mock } from 'vitest'
 import { RecordOpType, ValueOpType } from '../lib/diff'
 import { TLSocketServerSentEvent, getTlsyncProtocolVersion } from '../lib/protocol'
@@ -171,8 +173,13 @@ class TestInstance {
 
 	hasLoaded = false
 
-	constructor(snapshot?: RoomSnapshot, oldSchema = schemaV1, newSchema = schemaV2) {
-		this.server = new TestServer(newSchema, snapshot)
+	constructor(
+		snapshot?: RoomSnapshot,
+		oldSchema = schemaV1,
+		newSchema = schemaV2,
+		roomOpts?: ConstructorParameters<typeof TestServer<RV2>>[2]
+	) {
+		this.server = new TestServer(newSchema, snapshot, roomOpts)
 		this.oldSocketPair = new TestSocketPair('test_upgrade_old', this.server)
 		this.newSocketPair = new TestSocketPair('test_upgrade_new', this.server)
 
@@ -217,6 +224,47 @@ class TestInstance {
 		}
 	}
 }
+
+describe('record types unknown to older clients', () => {
+	// Mirrors a deploy that adds the comment record types: stale tabs still run a schema
+	// without them, while the server registers them and serves rooms that may contain them. The
+	// comment types ship guard migrations (retroactive, no `down`), so the server must reject
+	// stale sessions with CLIENT_TOO_OLD (prompting a refresh) rather than sending them record
+	// types their store cannot represent.
+	const schemaWithComments = createTLSchema({ records: commentSchemaRecords })
+	const schemaWithoutComments = createTLSchema()
+
+	function connectWith(server: TestServer<any>, schema: SerializedSchema) {
+		const id = 'stale-tab'
+		const socket = mockSocket()
+		server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+		server.room.handleMessage(id, {
+			type: 'connect',
+			connectRequestId: 'test',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema,
+		})
+		return socket
+	}
+
+	it('[HS3] rejects sessions whose schema predates the comment types', () => {
+		const server = new TestServer(schemaWithComments as any, undefined, {
+			objectTypes: ['comment', 'comment-thread'],
+		})
+		const socket = connectWith(server, schemaWithoutComments.serialize())
+		expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+	})
+
+	it('[HS3] accepts sessions whose schema registers the comment types', () => {
+		const server = new TestServer(schemaWithComments as any, undefined, {
+			objectTypes: ['comment', 'comment-thread'],
+		})
+		const socket = connectWith(server, schemaWithComments.serialize())
+		expect(socket.close).not.toHaveBeenCalled()
+		expect((socket.sendMessage as Mock).mock.calls[0][0]).toMatchObject({ type: 'connect' })
+	})
+})
 
 it('[MG2] the server can handle receiving v1 stuff from the client', () => {
 	const t = new TestInstance()
@@ -568,6 +616,7 @@ describe('when the client is too old', () => {
 			schema: schemaV2.serialize(),
 			serverClock: 10,
 			isReadonly: false,
+			objectAccess: 'write',
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(v1SendMessage).toHaveBeenCalledWith({
@@ -579,6 +628,7 @@ describe('when the client is too old', () => {
 			schema: schemaV2.serialize(),
 			serverClock: 10,
 			isReadonly: false,
+			objectAccess: 'write',
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		v2SendMessage.mockClear()
@@ -1100,6 +1150,7 @@ describe('when the client is the same version', () => {
 			schema: schemaV2.serialize(),
 			serverClock: 10,
 			isReadonly: false,
+			objectAccess: 'write',
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(bSocket.sendMessage).toHaveBeenCalledWith({
@@ -1111,6 +1162,7 @@ describe('when the client is the same version', () => {
 			schema: schemaV2.serialize(),
 			serverClock: 10,
 			isReadonly: false,
+			objectAccess: 'write',
 		} satisfies TLSocketServerSentEvent<RV2>)
 		;(aSocket.sendMessage as Mock).mockClear()
 		;(bSocket.sendMessage as Mock).mockClear()
@@ -1183,5 +1235,95 @@ describe('when the client is the same version', () => {
 				},
 			],
 		} satisfies TLSocketServerSentEvent<RV2>)
+	})
+})
+
+describe('record authorizers see server-schema records', () => {
+	function makeInstance(authorizeUser: (args: any) => any) {
+		return new TestInstance(undefined, schemaV1, schemaV2, {
+			authorizeRecord: { user: authorizeUser },
+		})
+	}
+
+	it('a put from an old client reaches the authorizer up-migrated', () => {
+		const seen: any[] = []
+		const t = makeInstance((args: any) => {
+			seen.push(structuredClone({ type: args.type, prev: args.prev, next: args.next }))
+			return args.next
+		})
+		t.oldSocketPair.connect()
+		t.flush()
+
+		const user = UserV1.create({ name: 'bob', age: 10 })
+		t.oldClient.store.put([user])
+		t.flush()
+
+		expect(seen).toHaveLength(1)
+		expect(seen[0].type).toBe('create')
+		expect(seen[0].next).toMatchObject({ name: 'bob', birthdate: null })
+		expect(seen[0].next).not.toHaveProperty('age')
+	})
+
+	it('a stamp applied on create survives — no migration runs after the authorizer', () => {
+		const t = makeInstance((args: any) =>
+			args.type === 'create' ? { ...args.next, birthdate: '2001-02-03' } : args.next
+		)
+		t.oldSocketPair.connect()
+		t.flush()
+
+		const user = UserV1.create({ name: 'bob', age: 10 })
+		t.oldClient.store.put([user])
+		t.flush()
+
+		expect(t.server.storage.documents.get(user.id)?.state).toMatchObject({
+			name: 'bob',
+			birthdate: '2001-02-03',
+		})
+	})
+
+	it('a patch from an old client reaches the authorizer as the upgraded committed candidate', () => {
+		const seen: any[] = []
+		const t = makeInstance((args: any) => {
+			seen.push(structuredClone({ type: args.type, prev: args.prev, next: args.next }))
+			return args.next
+		})
+		t.oldSocketPair.connect()
+		t.newSocketPair.connect()
+		t.flush()
+
+		const user = UserV2.create({ name: 'bob', birthdate: '2022-01-09' })
+		t.newClient.store.put([user])
+		t.flush()
+		seen.length = 0
+
+		t.oldClient.store.update(user.id as any, (u: any) => ({ ...u, name: 'bobby' }))
+		t.flush()
+
+		expect(seen).toHaveLength(1)
+		expect(seen[0].type).toBe('update')
+		expect(seen[0].prev).toMatchObject({ name: 'bob', birthdate: '2022-01-09' })
+		// The down→patch→up round-trip through the lossy v1 schema resets birthdate to null.
+		// The authorizer must see exactly what will be committed — not a preview mixing the
+		// server record with the raw v1 diff (which would still show the old birthdate).
+		expect(seen[0].next).toMatchObject({ name: 'bobby', birthdate: null })
+		expect(seen[0].next).not.toHaveProperty('age')
+	})
+
+	it('vetoes based on the server-schema record', () => {
+		const t = makeInstance((args: any) =>
+			args.type === 'update' && args.next.name === 'forged' ? null : args.next
+		)
+		t.oldSocketPair.connect()
+		t.newSocketPair.connect()
+		t.flush()
+
+		const user = UserV2.create({ name: 'bob', birthdate: '2022-01-09' })
+		t.newClient.store.put([user])
+		t.flush()
+
+		t.oldClient.store.update(user.id as any, (u: any) => ({ ...u, name: 'forged' }))
+		t.flush()
+
+		expect(t.server.storage.documents.get(user.id)?.state).toMatchObject({ name: 'bob' })
 	})
 })

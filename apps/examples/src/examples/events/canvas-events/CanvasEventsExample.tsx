@@ -1,16 +1,17 @@
 import { useCallback, useState } from 'react'
 import { TLEventInfo, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
+import './canvas-events.css'
 
 // There's a guide at the bottom of this file!
+
 type TimedEvent = TLEventInfo & { lastUpdated: number }
 
 export default function CanvasEventsExample() {
 	const [events, setEvents] = useState<Record<string, TimedEvent>>({})
 
+	// [1]
 	const handleEvent = useCallback((data: TLEventInfo) => {
-		// Update the event entry for this event type with new data
-		// This replaces previous event data of this type completely, keeping one per type
 		setEvents((prevEvents) => ({
 			...prevEvents,
 			[data.type]: {
@@ -20,35 +21,22 @@ export default function CanvasEventsExample() {
 		}))
 	}, [])
 
-	// Convert events to array and sort by lastUpdated ascending (newest at bottom)
 	const eventsArray = Object.values(events).sort((a, b) => a.lastUpdated - b.lastUpdated)
 
 	return (
-		<div style={{ display: 'flex' }}>
-			<div style={{ width: '50%', height: '100vh' }}>
+		<div className="canvas-events">
+			<div className="canvas-events__editor">
 				<Tldraw
 					onMount={(editor) => {
-						editor.on('event', (event) => handleEvent(event))
+						// [2]
+						editor.on('event', handleEvent)
+						return () => {
+							editor.off('event', handleEvent)
+						}
 					}}
 				/>
 			</div>
-			<div
-				style={{
-					width: '50%',
-					height: '100vh',
-					padding: 8,
-					background: '#eee',
-					border: 'none',
-					fontFamily: 'monospace',
-					fontSize: 12,
-					borderLeft: 'solid 2px #333',
-					display: 'flex',
-					flexDirection: 'column-reverse',
-					overflow: 'auto',
-					whiteSpace: 'pre-wrap',
-				}}
-				onCopy={(event) => event.stopPropagation()}
-			>
+			<div className="canvas-events__log" onCopy={(event) => event.stopPropagation()}>
 				<pre>{JSON.stringify(eventsArray, undefined, 2)}</pre>
 			</div>
 		</div>
@@ -56,8 +44,18 @@ export default function CanvasEventsExample() {
 }
 
 /*
-This example shows how to listen to canvas events. This includes things like pointer and 
-keyboard events, but not things such as undo/redo, create/delete shapes, etc. Those are store events.
+Canvas events are the low-level input events the editor dispatches to its tools: pointer,
+keyboard, wheel, pinch, tick and so on. They don't cover document changes like creating or
+deleting shapes; for those, see the store events example. For higher-level UI actions like
+"zoom in" or "select tool", see the UI events example.
 
-To listen to changes to the store, check out the store events example.
+[1]
+Pointer moves and ticks fire many times a second, so logging every event would be unreadable.
+Instead we keep the latest event of each type, keyed by `type`, and show them ordered by when
+they last fired.
+
+[2]
+`Editor` is an event emitter. Subscribing to `'event'` gives you every `TLEventInfo` the editor
+handles, after its own processing. `onMount` can return a cleanup function, which is the right
+place to unsubscribe.
 */

@@ -20,8 +20,10 @@ keywords:
 priority: 10
 ---
 
-How to constrain shapes to a layout using bindings.
+Lay out shapes in a row using bindings that hold each shape's position in a container.
 
 ---
 
-You can use bindings to make shapes respond to changes to other shapes. This is useful for enforcing layout constraints
+Bindings let one shape respond to changes in another. Here a container shape and its element shapes are related by `layout` bindings, each carrying a fractional `index`. `LayoutBindingUtil` re-runs the layout whenever a binding is created, changed, or deleted, or the container moves: elements snap into their slots and the container resizes to fit. The element shape util's `onTranslateStart`, `onTranslate`, and `onTranslateEnd` create and move a placeholder binding while dragging so the row makes room before the drop.
+
+Try dragging an element to a different slot in the container, or out onto the page and back in.

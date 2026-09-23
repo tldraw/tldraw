@@ -17,8 +17,8 @@ keywords:
   ]
 ---
 
-Replace tldraw's on-canvas UI with your own.
+Replace tldraw's on-canvas components, such as the background, with your own.
 
 ---
 
-tldraw's on-canvas UI is built from replaceable React components. This example shows how to replace default components with your own — in this case, changing the canvas background to a custom color.
+tldraw's on-canvas UI is built from replaceable React components: the background, grid, cursors, shape indicators, and more. Pass your own via the `components` prop, or pass `null` to hide one. This example replaces the `Background` component with a light blue div. See `TLEditorComponents` for the full list of slots.

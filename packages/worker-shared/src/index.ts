@@ -12,10 +12,11 @@ export {
 	type ApiRouter,
 } from './handleRequest'
 export { blockUnknownOrigins, isAllowedOrigin } from './origins'
-export { createSentry } from './sentry'
+export { createSentry, type SentryEnvironment } from './sentry'
 export {
 	TRANSIENT_RETRY_OPTIONS,
 	handleUserAssetGet,
 	handleUserAssetUpload,
+	isValidR2ObjectName,
 	type R2BucketLike,
 } from './userAssetUploads'

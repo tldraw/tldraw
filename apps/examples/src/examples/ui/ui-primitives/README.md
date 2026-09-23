@@ -5,22 +5,18 @@ priority: 1
 keywords: [button, dropdown, select, input, slider, popover, icon, tooltip, menu, ui]
 ---
 
-Showcase of tldraw's UI primitive components.
+Tour the UI primitives tldraw exports for building panels, menus, and dialogs that match its look.
 
 ---
 
-This example demonstrates the various UI primitive components available in the tldraw SDK.
-These components can be used to build custom panels, dialogs, and interfaces that match
-tldraw's design system.
+Everything in tldraw's default UI is built from a small set of exported primitives, and you can use the same ones in your own components. This example renders them all in an `OnTheCanvas` panel so you can zoom in and inspect them:
 
-The primitives shown include:
+- `TldrawUiButton` with `TldrawUiButtonLabel` and `TldrawUiButtonIcon`, in its normal, primary, danger, icon, and menu types
+- `TldrawUiDropdownMenu*` for menus with groups, checkbox items, and submenus
+- `TldrawUiSelect*` for a select control, with and without item icons
+- `TldrawUiInput` and `TldrawUiSlider`
+- `TldrawUiPopover*` for floating content
+- `TldrawUiIcon` for every icon in `iconTypes`
+- `TldrawUiTooltip` and `TldrawUiKbd`
 
-- **Buttons**: `TldrawUiButton` with various types (normal, primary, danger, icon)
-- **Dropdown menus**: `TldrawUiDropdownMenu*` components for menus with items and submenus
-- **Select**: `TldrawUiSelect` for dropdown selection
-- **Input**: `TldrawUiInput` for text input
-- **Slider**: `TldrawUiSlider` for numeric values
-- **Popover**: `TldrawUiPopover` for floating content
-- **Icons**: `TldrawUiIcon` for displaying icons
-- **Tooltips**: `TldrawUiTooltip` for hover hints
-- **Keyboard shortcuts**: `TldrawUiKbd` for displaying key combinations
+The primitives read tldraw's UI context and CSS variables, so they must be rendered inside `<Tldraw />` (in a `components` slot or as children) and they follow the editor's light or dark mode automatically.

@@ -1,13 +1,14 @@
 ---
 title: Portal shapes
 component: ./PortalShapesExample.tsx
-category: shapes/tools
 priority: 6
 keywords: [frame, portal, BaseFrameLikeShapeUtil, reparent, drag]
 ---
 
-Custom frame-like shapes that teleport children between each other, inspired by Portal.
+Frame-like shapes built on `BaseFrameLikeShapeUtil` that teleport dropped shapes to a linked portal.
 
 ---
 
-This example shows how to extend `BaseFrameLikeShapeUtil` to create custom shapes that behave like frames — they accept children via drag-and-drop and clip their contents. Two portal shapes (blue and orange) are linked: dragging a shape into one teleports it into the other.
+`BaseFrameLikeShapeUtil` gives a custom box shape everything the built-in frame does: it clips children to the shape's geometry, accepts shapes dragged into it, and releases shapes dragged out. Here the geometry is an ellipse, so children clip to an oval, and `onDropShapesOver` is overridden so that dropping shapes into one portal reparents them into the other portal at the same local offset.
+
+Try dragging the companion cube into the blue portal and watch it come out of the orange one. Resize a portal to see its children clip to the new oval.

@@ -1,7 +1,6 @@
 ---
 title: Escape shape focus trap
 component: ./EscapeShapeFocusTrap.tsx
-category: ui
 priority: 3
 keywords:
   [
@@ -16,20 +15,15 @@ keywords:
   ]
 ---
 
-Tab from a selected shape to a custom contextual toolbar using keyboard navigation.
+Tab from a selected shape into a custom contextual toolbar instead of cycling to the next shape.
 
 ---
 
-This example demonstrates how to intercept tldraw's built-in Tab-based shape navigation so that pressing Tab while a shape is selected moves focus to a custom toolbar instead of cycling to the next shape.
+By default tldraw traps the Tab key while shapes are selected and uses it to move between shapes. This example intercepts that with a capture-phase `keydown` listener registered in `onMount`, so it runs before tldraw's own handler and can call `stopImmediatePropagation()`.
 
-By default, tldraw traps the Tab key when shapes are selected and uses it to navigate between shapes. This example shows how to break out of that cycle using a capture-phase event listener registered in `onMount`.
+- Tab with a shape selected and focus on the canvas moves focus to the first toolbar button.
+- Tab and Shift+Tab inside the toolbar cycle between its buttons.
+- Tab on the last button (or Shift+Tab on the first) returns focus to the canvas and restores shape navigation.
+- Escape inside the toolbar also returns focus to the canvas.
 
-## How it works
-
-1. A capture-phase `keydown` listener intercepts Tab before tldraw's own handler sees it
-2. When a shape is selected and focus is on the canvas, Tab moves focus to the first toolbar button
-3. While focus is inside the toolbar, Tab and Shift+Tab are handled manually to cycle between toolbar buttons
-4. Tab on the last button (or Shift+Tab on the first) returns focus to the canvas and restores shape navigation
-5. Pressing Escape while focused in the toolbar also returns focus to the canvas
-
-Try it: click a shape, then press Tab to focus the toolbar. Use Tab/Shift+Tab to move between buttons. Press Escape to return to the canvas.
+Try it: click a shape, then press Tab to focus the toolbar. Use Tab and Shift+Tab to move between buttons, and Escape to return to the canvas.

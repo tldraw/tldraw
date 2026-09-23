@@ -47,7 +47,7 @@ function buildSchemaPromptSection(modePart: ModePart) {
 
 	return `## JSON schema
 
-This is the JSON schema for the events you can return. You must conform to this schema.
+This is the JSON schema for the events you can return. You must conform to this schema. You must only return things in this format, otherwise your response will error. Output ONLY the JSON itself — do not add any preamble, explanation, or commentary before or after it, and do NOT wrap your response in a markdown code block (e.g. \`\`\`json). Just the raw JSON object.
 
 ${JSON.stringify(schema, null, 2)}
 `

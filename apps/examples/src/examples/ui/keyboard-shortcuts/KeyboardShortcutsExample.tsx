@@ -1,69 +1,51 @@
-import { TLUiActionsContextType, TLUiOverrides, TLUiToolsContextType, Tldraw } from 'tldraw'
+import { TLUiOverrides, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
 // [1]
 const overrides: TLUiOverrides = {
-	//[a]
-	actions(_editor, actions): TLUiActionsContextType {
-		const newActions = {
+	// [a]
+	actions(_editor, actions) {
+		return {
 			...actions,
 			'toggle-grid': { ...actions['toggle-grid'], kbd: 'x' },
 			'copy-as-png': { ...actions['copy-as-png'], kbd: 'cmd+1,ctrl+1' },
 		}
-
-		return newActions
 	},
-	//[b]
-	tools(_editor, tools): TLUiToolsContextType {
-		const newTools = { ...tools, draw: { ...tools.draw, kbd: 'p' } }
-		return newTools
+	// [b]
+	tools(_editor, tools) {
+		return { ...tools, draw: { ...tools.draw, kbd: 'p' } }
 	},
 }
 
-// [2]
-export default function KeyboardShortcuts() {
+export default function KeyboardShortcutsExample() {
 	return (
 		<div className="tldraw__editor">
+			{/* [2] */}
 			<Tldraw overrides={overrides} />
 		</div>
 	)
 }
 
 /*
-This example shows how you can replace tldraw's default keyboard shortcuts with your own,
-or add a shortcut for an action that doesn't have one. An example of how to add shortcuts
-for custom tools can be found in the custom-config example.
+Keyboard shortcuts belong to either tools (draw, eraser, ...) or actions (undo, group,
+toggle grid, ...). Both are described by objects with a `kbd` string, so changing a
+shortcut is a matter of returning a copy of the object with a different `kbd`.
 
-In this case we are overriding the toggle grid and draw tool shortcuts, and creating a 
-shortcut for copy-as-png. An override of an existing shortcut will automatically update 
-the keyboard shortcuts dialog. However, adding a new shortcut won't, we'll need to add it 
-ourselves.
-
-You can describe modifier keys with the following syntax:
-	
-	shift: !
- ctrl/cmd: $
-	  alt: ?
+The `kbd` syntax is a comma-separated list of key combos, e.g. `'x'`, `'shift+x'`,
+`'cmd+1,ctrl+1'` (the second combo covers Windows and Linux). The keyboard shortcuts
+dialog reads the same `kbd` strings, so it stays in sync with your overrides.
 
 [1]
-We start by defining our overrides, this is an object with functions that we can use to 
-change the ui. Keyboard shortcuts are associated with either tools (draw, eraser, etc) or 
-actions (group, undo/redo etc). We're going to override two actions [a], one tool [b], and 
-add a new shortcut to the keyboard shortcuts dialog [c].
-
-[a] actions
-	There are two actions we're modifying here, copy-as-png and toggle-grid. copy-as-png
-	doesn't have an existing shortcut, but we can still add the property and later add it
-	to the keyboard shortcuts dialog [c].
-
-[b] tools
-	We're overriding the draw tool's shortcut to 'p', maybe we want to rename it to the pen
-	tool or something.
+`overrides` is a `TLUiOverrides` object. Each function receives the defaults and returns
+the replacements. It's defined at module level so `<Tldraw>` doesn't see a new object on
+every render.
+	[a] `toggle-grid` moves from cmd+' to `x`, and `copy-as-png` moves from cmd+shift+c
+	to cmd+1. The override replaces the default shortcut rather than adding to it.
+	[b] The draw tool moves from `d` to `p`.
 
 [2]
-Finally, we pass our overrides object into the Tldraw component's overrides prop. Now when
-the component mounts, our overrides will be applied. If you open the keyboard shortcuts 
-dialog, you'll see the changes we made.
+Pass the overrides to `<Tldraw>`. Open the keyboard shortcuts dialog from the help menu
+to see the new bindings. For shortcuts on custom tools, see the custom config example.
 */

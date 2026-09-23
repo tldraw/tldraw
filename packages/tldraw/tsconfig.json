@@ -7,5 +7,11 @@
 		"noImplicitReturns": false,
 		"rootDir": "src"
 	},
-	"references": [{ "path": "../editor" }, { "path": "../driver" }, { "path": "../store" }]
+	"references": [
+		{ "path": "../driver" },
+		{ "path": "../editor" },
+		{ "path": "../state" },
+		{ "path": "../store" },
+		{ "path": "../tlschema" }
+	]
 }

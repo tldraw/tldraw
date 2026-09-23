@@ -5,6 +5,10 @@ import react from '@vitejs/plugin-react'
 import { config } from 'dotenv'
 import { defineConfig, Plugin } from 'vite'
 import { getMultiplayerServerURL } from './scripts/multiplayer-server-url'
+import {
+	thumbnailRenderEntryPlugin,
+	thumbnailScreenshotPlugin,
+} from './scripts/vite-thumbnail-screenshot-plugin'
 import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
 
 export { getMultiplayerServerURL }
@@ -12,6 +16,8 @@ export { getMultiplayerServerURL }
 config({
 	path: './.env.local',
 })
+
+const multiplayerServerProxyTarget = getMultiplayerServerURL() || 'http://127.0.0.1:8787'
 
 /**
  * Plugin to enable SPA fallback for vite preview.
@@ -30,8 +36,13 @@ function spaFallbackPlugin(): Plugin {
 				const ext = path.extname(pathname)
 
 				// If this looks like a page request (no file extension, not an api call),
-				// rewrite to index.html so sirv serves the SPA
-				if (!pathname.startsWith('/api') && !ext) {
+				// rewrite to index.html so sirv serves the SPA.
+				//
+				// The well-known exclusion is not cosmetic: this middleware runs ahead of the proxy, so
+				// without it the MCP server's OAuth metadata URL — extensionless, and not under /api —
+				// would be answered with the SPA's index.html. A client would parse that as a failed
+				// discovery and never find the authorization server, with nothing logged either side.
+				if (!pathname.startsWith('/api') && !pathname.startsWith('/.well-known/') && !ext) {
 					req.url = '/index.html' + (url.includes('?') ? url.substring(url.indexOf('?')) : '')
 				}
 				next()
@@ -58,7 +69,14 @@ function urlOrLocalFallback(mode: string, url: string | undefined, localFallback
 // https://vitejs.dev/config/
 export default defineConfig((env) => ({
 	plugins: [
+		// Ahead of spaFallbackPlugin, and the order is load-bearing: middleware registers in plugin
+		// order, so this rewrites the extensionless /__thumbnail-render to its .html entry before the
+		// preview server's SPA fallback can rewrite it to /index.html — which would leave every
+		// preview-server capture (including the e2e webServer) hanging on a page that never marks
+		// itself ready.
+		thumbnailRenderEntryPlugin(),
 		spaFallbackPlugin(),
+		thumbnailScreenshotPlugin(),
 		zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
 		react(),
 		formatjs({
@@ -80,6 +98,14 @@ export default defineConfig((env) => ({
 
 		// our svg icons break if we use data urls, so disable inline assets for now
 		assetsInlineLimit: 0,
+
+		rollupOptions: {
+			input: {
+				index: fileURLToPath(new URL('./index.html', import.meta.url)),
+				// See pages/thumbnail-render.tsx.
+				'thumbnail-render': fileURLToPath(new URL('./thumbnail-render.html', import.meta.url)),
+			},
+		},
 	},
 	// add backwards-compatible support for NEXT_PUBLIC_ env vars
 	define: {
@@ -96,6 +122,10 @@ export default defineConfig((env) => ({
 			8789
 		),
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
+		// A monotonic build identifier (epoch ms at build time). Sent as `?v=` on sync websocket
+		// connections so the server can tell how old a client bundle is — parked background tabs
+		// keep running whatever bundle they loaded, potentially for weeks.
+		'process.env.CLIENT_BUILD_TIMESTAMP': JSON.stringify(Date.now().toString()),
 		'process.env.TLDRAW_LICENSE': JSON.stringify(process.env.TLDRAW_LICENSE ?? ''),
 		// Fall back to staging DSN for local develeopment, although you still need to
 		// modify the env check in 'sentry.client.config.ts' to get it reporting errors
@@ -105,9 +135,17 @@ export default defineConfig((env) => ({
 		),
 	},
 	server: {
+		allowedHosts: process.env.VITE_ALLOWED_HOSTS?.split(',').filter(Boolean),
 		proxy: {
+			// OAuth protected resource metadata for the MCP server. Served by the sync worker but
+			// addressed at this origin, because RFC 9728 puts it at the resource's own origin rather than
+			// under its path — the deployed equivalent is the extra route in the worker's wrangler.toml.
+			// Not rewritten: the worker matches this path as-is.
+			'/.well-known/oauth-protected-resource': {
+				target: multiplayerServerProxyTarget,
+			},
 			'/api': {
-				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
+				target: multiplayerServerProxyTarget,
 				rewrite: (path) => path.replace(/^\/api/, ''),
 				ws: false, // we talk to the websocket directly via workers.dev
 				// Useful for debugging proxy issues
@@ -134,8 +172,12 @@ export default defineConfig((env) => ({
 	},
 	preview: {
 		proxy: {
+			// See the dev server proxy above.
+			'/.well-known/oauth-protected-resource': {
+				target: multiplayerServerProxyTarget,
+			},
 			'/api': {
-				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
+				target: multiplayerServerProxyTarget,
 				rewrite: (path) => path.replace(/^\/api/, ''),
 			},
 		},

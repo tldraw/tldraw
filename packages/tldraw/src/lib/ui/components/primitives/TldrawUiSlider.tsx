@@ -5,6 +5,17 @@ import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKe
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { hideAllTooltips, TldrawUiTooltip } from './TldrawUiTooltip'
 
+const SLIDER_VALUE_KEYS = new Set([
+	'ArrowUp',
+	'ArrowDown',
+	'ArrowLeft',
+	'ArrowRight',
+	'PageUp',
+	'PageDown',
+	'Home',
+	'End',
+])
+
 /** @public */
 export interface TLUiSliderProps {
 	min?: number
@@ -64,9 +75,7 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 	useEffect(() => {
 		const timeout = tltime.setTimeout(
 			'set title and label',
-			() => {
-				setTitleAndLabel(title + ' — ' + msg(label as TLUiTranslationKey))
-			},
+			() => setTitleAndLabel(title + ' — ' + msg(label as TLUiTranslationKey)),
 			0
 		)
 		return () => clearTimeout(timeout)
@@ -82,6 +91,19 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 		}
 	}, [])
 
+	// Capture phase so the mark lands before Radix's bubble-phase onKeyDown changes the value;
+	// otherwise keyboard changes squash into the preceding history entry and undo skips past them.
+	// Repeats from a held key are skipped so the run is one undo step, like a pointer drag.
+	const handleKeyDown = useCallback(
+		(event: React.KeyboardEvent) => {
+			handleKeyEvent(event)
+			if (SLIDER_VALUE_KEYS.has(event.key) && !event.repeat) {
+				onHistoryMark?.('keyboard slider')
+			}
+		},
+		[handleKeyEvent, onHistoryMark]
+	)
+
 	return (
 		<div className="tlui-slider__container">
 			<TldrawUiTooltip content={titleAndLabel}>
@@ -95,7 +117,7 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 					value={value !== null ? [value] : undefined}
 					onPointerDown={handlePointerDown}
 					onValueChange={handleValueChange}
-					onKeyDownCapture={handleKeyEvent}
+					onKeyDownCapture={handleKeyDown}
 					onKeyUpCapture={handleKeyEvent}
 				>
 					<_Slider.Track className="tlui-slider__track" dir={dir}>

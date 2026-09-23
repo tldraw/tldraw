@@ -5,7 +5,6 @@ export function getHitShapeOnCanvasPointerDown(
 	editor: Editor,
 	hitLabels = false
 ): TLShape | undefined {
-	const zoomLevel = editor.getZoomLevel()
 	const currentPagePoint = editor.inputs.getCurrentPagePoint()
 
 	return (
@@ -14,7 +13,7 @@ export function getHitShapeOnCanvasPointerDown(
 			hitInside: false,
 			hitLabels,
 			hitLocked: editor.options.selectLockedShapes,
-			margin: editor.options.hitTestMargin / zoomLevel,
+			margin: editor.getHitTestMargin(),
 			renderingOnly: true,
 		}) ??
 		// selected shape at point

@@ -37,6 +37,11 @@ export type TLExternalContentSource =
 
 /** @public */
 export interface TLBaseExternalContent {
+	/**
+	 * The other content sources found on the clipboard alongside this content. For example, when
+	 * pasting an image copied together with HTML and plain text, the `files` content will have
+	 * text sources for the HTML and plain text parts.
+	 */
 	sources?: TLExternalContentSource[]
 	point?: VecLike
 }
@@ -68,6 +73,11 @@ export interface TLFileReplaceExternalContent extends TLBaseExternalContent {
 export interface TLUrlExternalContent extends TLBaseExternalContent {
 	type: 'url'
 	url: string
+	/**
+	 * A shape to set the url on, instead of creating a bookmark or an embed. The shape must have a
+	 * `url` prop; the clipboard sets this when a link is pasted with one such shape selected.
+	 */
+	shapeId?: TLShapeId
 }
 
 /** @public */

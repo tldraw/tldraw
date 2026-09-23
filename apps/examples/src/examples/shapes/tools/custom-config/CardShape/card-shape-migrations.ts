@@ -4,7 +4,7 @@ const versions = createShapePropsMigrationIds(
 	// this must match the shape type in the shape definition
 	'card',
 	{
-		AddSomeProperty: 1,
+		AddColor: 1,
 	}
 )
 
@@ -12,13 +12,13 @@ const versions = createShapePropsMigrationIds(
 export const cardShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
-			id: versions.AddSomeProperty,
+			id: versions.AddColor,
 			up(props) {
 				// it is safe to mutate the props object here
-				props.someProperty = 'some value'
+				props.color = 'black'
 			},
 			down(props) {
-				delete props.someProperty
+				delete props.color
 			},
 		},
 	],

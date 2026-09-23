@@ -7,6 +7,7 @@ import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 import { getPrDetailsAndCommitSha, labelPresent, PullRequest } from './lib/pr-info'
+import { stripSkipCiMarkers } from './lib/skip-ci'
 import { getAllWorkspacePackages } from './lib/workspace'
 
 function getEnv() {
@@ -88,6 +89,15 @@ async function main() {
 			await exec('git', ['reset', `origin/${latestReleaseBranch}`, '--hard'])
 			await exec('git', ['log', '-1', '--oneline'])
 			await exec('git', ['cherry-pick', commitSha])
+
+			// the push to the release branch below must trigger publish.yml, but some
+			// merge commits (e.g. release-notes updates) carry `[skip ci]`, which would
+			// suppress it. strip skip-ci markers from the cherry-picked commit message.
+			const message = (await exec('git', ['log', '-1', '--format=%B'])).trim()
+			const cleanedMessage = stripSkipCiMarkers(message)
+			if (cleanedMessage !== message) {
+				await exec('git', ['commit', '--amend', '-m', cleanedMessage])
+			}
 		}
 	)
 

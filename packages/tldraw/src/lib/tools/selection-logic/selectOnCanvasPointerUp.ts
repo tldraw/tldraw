@@ -12,7 +12,7 @@ export function selectOnCanvasPointerUp(
 	const selectLockedShapes = editor.options.selectLockedShapes
 	const hitShape = editor.getShapeAtPoint(currentPagePoint, {
 		hitInside: false,
-		margin: editor.options.hitTestMargin / editor.getZoomLevel(),
+		margin: editor.getHitTestMargin(),
 		hitLabels: true,
 		hitLocked: selectLockedShapes,
 		renderingOnly: true,

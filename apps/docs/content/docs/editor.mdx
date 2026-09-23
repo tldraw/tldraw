@@ -13,7 +13,7 @@ keywords:
 
 The [Editor](?) class is the main way of controlling tldraw's editor. You can use it to manage the editor's internal state, make changes to the document, or respond to changes that have occurred.
 
-By design, the [Editor](?)'s surface area is very large. Almost everything is available through it. Need to create some shapes? Use [Editor#createShapes](?). Need to delete them? Use [Editor#deleteShapes](?). Need a sorted array of every shape on the current page? Use [Editor#getCurrentPageShapesSorted](?).
+By design, the editor's surface area is very large. Almost everything is available through it. Need to create some shapes? Use [Editor#createShapes](?). Need to delete them? Use [Editor#deleteShapes](?). Need a sorted array of every shape on the current page? Use [Editor#getCurrentPageShapesSorted](?).
 
 ## Accessing the editor
 
@@ -37,7 +37,7 @@ function App() {
 
 ### The useEditor hook
 
-The [useEditor](?) hook returns the editor instance. It must be called from within the JSX of the [Tldraw](?) component.
+The [useEditor](?) hook returns the editor instance. Call it from a component rendered inside [Tldraw](?) (or [TldrawEditor](?)).
 
 ```tsx
 function InsideOfContext() {
@@ -59,32 +59,39 @@ function App() {
 
 ## Reactive state
 
-The editor's state is reactive. Methods like [Editor#getSelectedShapeIds](?) or [Editor#getCurrentPageShapes](?) return values that automatically update when the underlying data changes. You can use these values directly in React components with the `track` wrapper or [useValue](?) hook.
+The editor's state is reactive. Methods like [Editor#getSelectedShapeIds](?) or [Editor#getCurrentPageShapes](?) return values that automatically update when the underlying data changes. You can use these values directly in React components with the [track](?) wrapper or [useValue](?) hook.
 
 ```tsx
-import { track, useEditor } from 'tldraw'
+import { track, useEditor, useValue } from 'tldraw'
 
 export const SelectedShapeIdsCount = track(() => {
 	const editor = useEditor()
 	return <div>{editor.getSelectedShapeIds().length}</div>
 })
+
+export function CurrentTool() {
+	const editor = useEditor()
+	const toolId = useValue('current tool', () => editor.getCurrentToolId(), [editor])
+	return <div>{toolId}</div>
+}
 ```
 
 See the [Signals](/sdk-features/signals) article for more on tldraw's reactive state system.
 
 ## Batching changes
 
-Each change to the editor happens within a transaction. You can batch multiple changes into a single transaction using the [Editor#run](?) method. Batching improves performance and reduces overhead for persisting or distributing changes.
+Each change to the editor happens within a transaction. You can batch multiple changes into a single transaction using the [Editor#run](?) method. Batching groups the changes into a single undo step and reduces overhead for persisting or distributing changes.
 
 ```ts
+// myShapes is an array of shape partials, each with an id from createShapeId()
 editor.run(() => {
 	editor.createShapes(myShapes)
-	editor.sendToBack(myShapes)
+	editor.sendToBack(myShapes.map((shape) => shape.id))
 	editor.selectNone()
 })
 ```
 
-The `run` method also accepts options to control history and locked shape behavior:
+The `run` method also accepts options to control history and locked shape behavior. Set `history` to `'ignore'` to leave undo/redo alone, or `'record-preserveRedoStack'` to record without clearing the redo stack:
 
 ```ts
 // Make changes without affecting undo/redo history
@@ -106,46 +113,29 @@ editor.run(
 
 ## Capabilities
 
-The editor provides methods and properties organized around these areas:
+The editor's methods and properties are organized around these areas:
 
-### Data
-
-- **[Signals](/sdk-features/signals)** — Reactive state primitives
-- **[Store](/sdk-features/store)** — The reactive database holding all records
-- **[Shapes](/sdk-features/shapes)** — Create, read, update, and delete shapes
-- **[Bindings](/sdk-features/bindings)** — Relationships between shapes
-- **[Pages](/sdk-features/pages)** — Manage document pages
-- **[Assets](/sdk-features/assets)** — Images, videos, and other media
-
-### Interaction
-
-- **[Tools](/sdk-features/tools)** — The state machine that handles user input
-- **[Selection](/sdk-features/selection)** — Manage which shapes are selected
-- **[Input handling](/sdk-features/input-handling)** — Pointer and keyboard state
-- **[Events](/sdk-features/events)** — Subscribe to user interactions and state changes
-
-### View
-
-- **[Camera](/sdk-features/camera)** — Control viewport position and zoom
-- **[Coordinates](/sdk-features/coordinates)** — Convert between screen and page space
-
-### State management
-
-- **[Instance state](/sdk-features/instance-state)** — Per-editor settings like current tool and focus
-- **[Visibility](/sdk-features/visibility)** — Control which shapes are shown
-- **[History](/sdk-features/history)** — Undo, redo, and history management
-- **[Side effects](/sdk-features/side-effects)** — React to record lifecycle changes
-
-### Configuration
-
-- **[User preferences](/sdk-features/user-preferences)** — Cross-instance settings like dark mode
-- **[Readonly mode](/sdk-features/readonly)** — Disable editing
-- **[Locked shapes](/sdk-features/locked-shapes)** — Prevent changes to specific shapes
-
-### Output
-
-- **[Image export](/sdk-features/image-export)** — Export to SVG, PNG, and other formats
-
----
+| Area          | Topic                                              | Description                                      |
+| ------------- | -------------------------------------------------- | ------------------------------------------------ |
+| Data          | [Signals](/sdk-features/signals)                   | Reactive state primitives                        |
+|               | [Store](/sdk-features/store)                       | The reactive database holding all records        |
+|               | [Shapes](/sdk-features/shapes)                     | Create, read, update, and delete shapes          |
+|               | [Bindings](/sdk-features/bindings)                 | Relationships between shapes                     |
+|               | [Pages](/sdk-features/pages)                       | Manage document pages                            |
+|               | [Assets](/sdk-features/assets)                     | Images, videos, and other media                  |
+| Interaction   | [Tools](/sdk-features/tools)                       | The state machine that handles user input        |
+|               | [Selection](/sdk-features/selection)               | Manage which shapes are selected                 |
+|               | [Input handling](/sdk-features/input-handling)     | Pointer and keyboard state                       |
+|               | [Events](/sdk-features/events)                     | Subscribe to user interactions and state changes |
+| View          | [Camera](/sdk-features/camera)                     | Control viewport position and zoom               |
+|               | [Coordinates](/sdk-features/coordinates)           | Convert between screen and page space            |
+| State         | [Instance state](/sdk-features/instance-state)     | Per-editor settings like current tool and focus  |
+|               | [Visibility](/sdk-features/visibility)             | Control which shapes are shown                   |
+|               | [History](/sdk-features/history)                   | Undo, redo, and history management               |
+|               | [Side effects](/sdk-features/side-effects)         | React to record lifecycle changes                |
+| Configuration | [User preferences](/sdk-features/user-preferences) | Cross-instance settings like dark mode           |
+|               | [Readonly mode](/sdk-features/readonly)            | Disable editing                                  |
+|               | [Locked shapes](/sdk-features/locked-shapes)       | Prevent changes to specific shapes               |
+| Output        | [Image export](/sdk-features/image-export)         | Export to SVG, PNG, and other formats            |
 
 See the [Editor](?) API reference for the complete list of methods and properties.

@@ -31,6 +31,10 @@ export function ExamplePage({
 	const categories = examples.map((e) => e.id)
 	const [filterValue, setFilterValue] = useState('')
 	const searchTerms = getSearchTerms(filterValue)
+	const isSearching = filterValue.trim().length > 0
+	const hasResults = examples.some((category) =>
+		category.value.some((example) => exampleMatchesSearch(example, searchTerms))
+	)
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
 		history.replaceState(
@@ -38,6 +42,10 @@ export function ExamplePage({
 			'',
 			e.target.value ? `/?filter=${encodeURIComponent(e.target.value)}` : '/'
 		)
+	}
+	const handleClearFilter = () => {
+		setFilterValue('')
+		history.replaceState({}, '', '/')
 	}
 
 	useEffect(() => {
@@ -79,6 +87,17 @@ export function ExamplePage({
 									value={filterValue}
 									onChange={handleFilterChange}
 								/>
+								{filterValue.length > 0 && (
+									<button
+										type="button"
+										className="example__sidebar__search__clear"
+										onClick={handleClearFilter}
+										title="Clear search"
+										aria-label="Clear search"
+									>
+										<CloseIcon />
+									</button>
+								)}
 							</label>
 							<a className="example__sidebar__action-row hoverable" href="/develop">
 								<CodeIcon />
@@ -108,6 +127,23 @@ export function ExamplePage({
 								</ul>
 							</li>
 						))}
+						{isSearching && !hasResults && (
+							<li className="example__sidebar__search-empty">No examples found</li>
+						)}
+						{isSearching && (
+							/* The same section wrapper as the action rows above, so the
+							   button gets the same full width and vertical rhythm. The gap
+							   above comes from the categories' own bottom margin. */
+							<li className="example__sidebar__section">
+								<button
+									type="button"
+									className="example__sidebar__action-row hoverable"
+									onClick={handleClearFilter}
+								>
+									<span>Clear search</span>
+								</button>
+							</li>
+						)}
 					</ul>
 					<div className="example__sidebar__footer-links">
 						<a className="example__sidebar__footer-link hoverable" href="/develop">

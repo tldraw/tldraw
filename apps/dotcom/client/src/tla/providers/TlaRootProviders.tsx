@@ -1,5 +1,4 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
-import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -26,6 +25,9 @@ import {
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/ErrorPage'
 import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
+import { assetUrls } from '../../utils/assetUrls'
+import { reportError } from '../../utils/errorReporting'
+import { markFirstLoad } from '../../utils/firstLoad'
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
@@ -45,7 +47,7 @@ import {
 	updateLocalSessionState,
 } from '../utils/local-session-state'
 
-const assetUrls = getAssetUrlsByImport()
+markFirstLoad('root-chunk-loaded')
 
 function getTextDirection(locale: string): 'ltr' | 'rtl' {
 	const [language] = locale.toLowerCase().split('-')
@@ -109,12 +111,11 @@ export function Component() {
 		() => getLocalSessionState().theme
 	)
 	const dir = getTextDirection(locale)
-	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
-	const handleLocaleChange = (locale: string) => {
+	const handleLocaleChange = useCallback((locale: string) => {
 		setLocale(locale)
 		document.documentElement.lang = locale
 		document.documentElement.dir = getTextDirection(locale)
-	}
+	}, [])
 	const isFocusMode = useValue(
 		'isFocusMode',
 		() => !!globalEditor.get()?.getInstanceState().isFocusMode,
@@ -144,7 +145,7 @@ export function Component() {
 			<RefreshErrorBoundary messages={CLERK_ERROR_MESSAGES}>
 				<IntlWrapper locale={locale}>
 					<MaybeForceUserRefresh>
-						<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
+						<SignedInProvider onThemeChange={setTheme} onLocaleChange={handleLocaleChange}>
 							{container && (
 								<ContainerProvider container={container}>
 									<InsideOfContainerContext>
@@ -166,6 +167,9 @@ function IntlWrapper({ children, locale }: { children: ReactNode; locale: string
 	const [messages, setMessages] = useState(translationsEnJson)
 
 	useEffect(() => {
+		// Guard against a slower fetch for a previous locale landing after this one's and
+		// overwriting it, and against a missing/invalid locale file becoming an unhandled rejection.
+		let cancelled = false
 		async function fetchMessages() {
 			if (locale === 'en') {
 				setMessages(translationsEnJson)
@@ -173,13 +177,21 @@ function IntlWrapper({ children, locale }: { children: ReactNode; locale: string
 			}
 
 			const res = await fetch(`/tla/locales-compiled/${locale}.json`)
+			if (!res.ok) throw new Error(`Failed to load locale ${locale}: ${res.status}`)
 			const messages = await res.json()
+			if (cancelled) return
 			setMessages({
 				...translationsEnJson,
 				...messages,
 			})
 		}
-		fetchMessages()
+		fetchMessages().catch((e) => {
+			reportError(e)
+			if (!cancelled) setMessages(translationsEnJson)
+		})
+		return () => {
+			cancelled = true
+		}
 	}, [locale])
 
 	const defaultLocale = 'en'
@@ -239,19 +251,18 @@ function SignedInProvider({
 	const auth = useAuth()
 	const intl = useIntl()
 	const { user, isLoaded: isUserLoaded } = useClerkUser()
-	const [currentLocale, setCurrentLocale] = useState<string>(
-		globalEditor.get()?.user.getUserPreferences().locale ?? 'en'
-	)
 	const locale = useValue(
 		'locale',
 		() => globalEditor.get()?.user.getUserPreferences().locale ?? 'en',
 		[]
 	)
 	useEffect(() => {
-		if (locale === currentLocale) return
 		onLocaleChange(locale)
-		setCurrentLocale(locale)
-	}, [currentLocale, locale, onLocaleChange])
+	}, [locale, onLocaleChange])
+
+	useEffect(() => {
+		if (auth.isLoaded) markFirstLoad('clerk-loaded')
+	}, [auth.isLoaded])
 
 	useEffect(() => {
 		if (auth.isSignedIn && auth.userId) {
@@ -346,10 +357,8 @@ function LegalTermsAcceptance() {
 			if (hasNotAcceptedLegal(currentUser)) {
 				addDialog({
 					component: TlaLegalAcceptance,
-					onClose: () => {
-						// If the user closes the dialog and it's not accepted, show it again
-						maybeShowDialog()
-					},
+					// If the user closes the dialog and it's not accepted, show it again
+					onClose: maybeShowDialog,
 				})
 			}
 		}

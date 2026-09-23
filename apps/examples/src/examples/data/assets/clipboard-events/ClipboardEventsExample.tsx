@@ -57,11 +57,11 @@ function addLog(entry: ClipboardLog) {
 	]
 }
 
-// [2]
 function delay(ms: number) {
 	return new Promise<void>((resolve) => setTimeout(resolve, ms))
 }
 
+// [2]
 const options: Partial<TldrawOptions> = {
 	onClipboardPasteRaw(info) {
 		if (!state.handleRawPaste) return
@@ -244,26 +244,32 @@ export default function ClipboardEventsExample() {
 
 /*
 [1]
-State is stored outside React so the clipboard callbacks (which are defined once as a
-stable options object) can always read the latest values.
+The toggles live in a plain module-level object rather than React state. The clipboard
+callbacks are defined once in a stable `options` object, so if they closed over React
+state they'd see stale values. `useSyncExternalStore` lets the panel re-render when it
+changes.
 
 [2]
-The options object is created once and the callbacks read from the shared state module.
-This avoids issues with stale closures.
+The `options` object must be stable across renders (changing it recreates the editor),
+which is why it's module-level and reads from the shared state.
 
-onBeforeCopyToClipboard runs for both copy and cut; use `operation` to tell them apart.
-Return `false` to cancel the clipboard write. For cut, cancelling also keeps the selection.
+`onClipboardPasteRaw` runs first, before tldraw parses the clipboard. `source` is
+`native-event` (paste event with a DataTransfer) or `clipboard-read` (ClipboardItem[]
+from the async clipboard API). Return `false` to cancel tldraw's default handling for
+that gesture. This one is synchronous: it must decide immediately whether to take over,
+so the "async" toggle only delays the logging here.
 
-onBeforePasteFromClipboard runs when pasted content is about to be applied. Return
-`false` to cancel. `source` is `native-event` (keyboard paste event) or `clipboard-read`.
+`onBeforeCopyToClipboard` runs for both copy and cut; use `operation` to tell them
+apart. Return a modified `TLContent` to change what's written, or `false` to cancel
+(for cut, the selection is kept).
 
-onClipboardPasteRaw runs first. `source` is `native-event` (paste event + DataTransfer) or
-`clipboard-read` (ClipboardItem[] from the clipboard API). Return `false` to cancel tldraw's default
-paste handling for that gesture (same as other clipboard `onBefore*` hooks).
+`onBeforePasteFromClipboard` runs when parsed content is about to be applied. Return a
+modified `TLExternalContent` or `false` to cancel.
 
-All three callbacks support async (returning a Promise). The "Async callbacks" toggle adds a
-500ms delay to each callback to verify that async resolution works on all platforms.
+The two `onBefore*` hooks may return a Promise. The "Async callbacks" toggle adds a
+500ms delay so you can check that a slow hook still works, including on Safari where
+the clipboard write must stay within the user gesture.
 
 [3]
-State and updater are exposed on window for E2E testing.
+State and updater are exposed on window for the e2e tests.
 */

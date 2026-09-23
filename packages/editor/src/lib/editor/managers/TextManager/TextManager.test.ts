@@ -307,6 +307,80 @@ describe('TextManager', () => {
 			expect(result.spans[0].text).toBe(`a${family}b`)
 		})
 
+		it('should measure each text node with its own offsets', () => {
+			const starts: [unknown, number][] = []
+			const RangeMock = global.Range as unknown as ReturnType<typeof vi.fn>
+			RangeMock.mockImplementationOnce(function () {
+				return {
+					setStart: vi.fn((node: unknown, offset: number) => starts.push([node, offset])),
+					setEnd: vi.fn(),
+					getClientRects: vi.fn(() => [
+						{ width: 10, height: 16, left: 0, top: 0, right: 10, bottom: 16 },
+					]),
+				}
+			})
+
+			const first = { nodeType: 3, textContent: 'ab' }
+			const second = { nodeType: 3, textContent: 'cd' }
+			const mockElementWithText = {
+				childNodes: [first, { nodeType: 1 }, second],
+				getBoundingClientRect: () => ({ left: 0, top: 0 }),
+			}
+
+			textManager.measureElementTextNodeSpans(mockElementWithText as any)
+
+			// the range must be placed in the node being measured, not the first one
+			expect(starts).toEqual([
+				[first, 0],
+				[first, 1],
+				[second, 0],
+				[second, 1],
+			])
+		})
+
+		it('should stop measuring later text nodes once the first line is truncated', () => {
+			const starts: [unknown, number][] = []
+			let current: { textContent: string } | null = null
+			const RangeMock = global.Range as unknown as ReturnType<typeof vi.fn>
+			RangeMock.mockImplementationOnce(function () {
+				return {
+					setStart: vi.fn((node: { textContent: string }, offset: number) => {
+						current = node
+						starts.push([node, offset])
+					}),
+					setEnd: vi.fn(),
+					// the second node sits on a new line
+					getClientRects: vi.fn(() => {
+						const top = current?.textContent === 'cd' ? 16 : 0
+						return [{ width: 10, height: 16, left: 0, top, right: 10, bottom: top + 16 }]
+					}),
+				}
+			})
+
+			const first = { nodeType: 3, textContent: 'ab' }
+			const second = { nodeType: 3, textContent: 'cd' }
+			const third = { nodeType: 3, textContent: 'ef' }
+			const mockElementWithText = {
+				childNodes: [first, second, third],
+				getBoundingClientRect: () => ({ left: 0, top: 0 }),
+			}
+
+			const result = textManager.measureElementTextNodeSpans(mockElementWithText as any, {
+				shouldTruncateToFirstLine: true,
+			})
+
+			expect(result).toEqual({
+				spans: [{ box: { x: 0, y: 0, w: 10, h: 16 }, text: 'ab' }],
+				didTruncate: true,
+			})
+			// the third node must never be measured
+			expect(starts).toEqual([
+				[first, 0],
+				[first, 1],
+				[second, 0],
+			])
+		})
+
 		it('should handle truncation option', () => {
 			const mockTextNode = {
 				nodeType: 3, // TEXT_NODE
@@ -418,6 +492,48 @@ describe('TextManager', () => {
 			const result = textManager.measureTextSpans('Hello World', opts)
 
 			expect(Array.isArray(result)).toBe(true)
+		})
+
+		it('should not throw when the truncated remeasure yields no spans', () => {
+			// The text truncates on the first pass, but once we narrow the width
+			// to make room for the ellipsis, nothing measurable remains (e.g. the
+			// measurement element can't be laid out). This must not crash.
+			vi.spyOn(textManager, 'measureElementTextNodeSpans')
+				.mockReturnValueOnce({
+					spans: [{ text: 'Hello Wo', box: { x: 0, y: 0, w: 80, h: 16 } }],
+					didTruncate: true,
+				})
+				.mockReturnValueOnce({
+					spans: [{ text: '…', box: { x: 0, y: 0, w: 10, h: 16 } }],
+					didTruncate: false,
+				})
+				.mockReturnValueOnce({
+					spans: [],
+					didTruncate: false,
+				})
+
+			const opts = { ...defaultOpts, overflow: 'truncate-ellipsis' as const }
+			let result: ReturnType<typeof textManager.measureTextSpans> | undefined
+			expect(() => (result = textManager.measureTextSpans('Hello World', opts))).not.toThrow()
+			expect(result).toEqual([])
+		})
+
+		it('should not throw when the ellipsis itself cannot be measured', () => {
+			// If measuring the ellipsis returns no spans, fall back to a zero width
+			// rather than dereferencing a missing span.
+			vi.spyOn(textManager, 'measureElementTextNodeSpans')
+				.mockReturnValueOnce({
+					spans: [{ text: 'Hello Wo', box: { x: 0, y: 0, w: 80, h: 16 } }],
+					didTruncate: true,
+				})
+				.mockReturnValueOnce({ spans: [], didTruncate: false })
+				.mockReturnValueOnce({
+					spans: [{ text: 'Hello Wo', box: { x: 0, y: 0, w: 80, h: 16 } }],
+					didTruncate: false,
+				})
+
+			const opts = { ...defaultOpts, overflow: 'truncate-ellipsis' as const }
+			expect(() => textManager.measureTextSpans('Hello World', opts)).not.toThrow()
 		})
 
 		it('should handle truncate-clip overflow', () => {

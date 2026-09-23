@@ -17,7 +17,7 @@ accuracy: 10
 notes: Could add a simpler opening hook per voice guide ("Have five minutes?"-style).
 ---
 
-In tldraw, the click detection system turns a pair of nearby clicks into a `double_click` event. The [ClickManager](?) tracks consecutive pointer down events using a state machine, dispatching a double-click event when timing and distance thresholds are met.
+In tldraw, the click detection system turns a pair of nearby clicks into a `double_click` event. The [ClickManager](?) tracks consecutive pointer downs with a small state machine and emits `double_click` when the timing and distance thresholds are met.
 
 After a double-click, extra nearby clicks are treated as overflow. Overflow clicks do not dispatch additional click events; they suppress the sequence long enough to prevent a rapid double-double-click from becoming two double-clicks.
 
@@ -25,7 +25,7 @@ After a double-click, extra nearby clicks are treated as overflow. Overflow clic
 
 When a pointer down event occurs, the manager either starts a new sequence, detects a double-click, or moves the sequence into overflow. Each state has a timeout that determines how long to wait before returning to idle.
 
-Two timeout durations control the detection speed. The first click uses `doubleClickDurationMs` (450ms by default), giving users time to initiate a double-click sequence. After a double-click, `multiClickDurationMs` (200ms by default) controls both the settle delay and the overflow suppression window. The option name is historical; it now controls only the post-double-click window.
+Two timeout durations control the detection speed. The first click uses `doubleClickDurationMs` (450ms by default), which is how long the user has to make the second click. After a double-click, `multiClickDurationMs` (200ms by default) controls both the settle delay and the overflow suppression window. The option name is historical; it now controls only the post-double-click window.
 
 ### State transitions
 
@@ -38,7 +38,7 @@ The click state machine progresses through these states:
 | `pendingOverflow` | Double-click registered, waiting for overflow |
 | `overflow`        | Extra clicks detected after the double-click  |
 
-The second pointer down dispatches a `double_click` event immediately and starts waiting for overflow. If the timeout expires before another click, the manager dispatches a double-click settle event and returns to idle. If another pointer down arrives first, the sequence moves to overflow and no further click events are dispatched until the overflow timeout expires.
+The second pointer down still reaches the state chart as a `pointer_down`, followed immediately by a `double_click` event, and the manager starts waiting for overflow. If the timeout expires before another click, the manager dispatches a double-click settle event and returns to idle. If another pointer down arrives first, the sequence moves to overflow and no further click events are dispatched until the overflow timeout expires.
 
 ### Distance validation
 
@@ -46,7 +46,7 @@ Consecutive clicks must occur within a maximum distance of 40 pixels (screen spa
 
 ### Click event phases
 
-Click events are dispatched with a `phase` property indicating when in the sequence the event fired:
+Each click event carries a `phase` that says when in the sequence it fired:
 
 | Phase         | When it fires                                                       |
 | ------------- | ------------------------------------------------------------------- |
@@ -59,7 +59,9 @@ The phase system lets tools respond at different points in the click sequence. M
 
 ### Movement cancellation
 
-If the pointer moves too far during a pending click sequence, the system cancels the sequence and returns to idle. This prevents double-click detection during click-drag operations. The movement threshold differs for coarse pointers (touchscreens) and fine pointers (mouse, stylus).
+If the pointer moves too far during a pending click sequence, the system cancels the sequence and returns to idle. This prevents double-click detection during click-drag operations. The movement threshold is `dragDistanceSquared` for fine pointers (mouse, stylus) and `coarseDragDistanceSquared` for coarse pointers (touchscreens), both editor [options](/sdk-features/options).
+
+The manager only sees pointer events that match the current pen mode: in pen mode, finger taps don't produce double-clicks, and outside pen mode, pen taps don't.
 
 ## Handling click events
 
@@ -74,7 +76,9 @@ class ZoomTool extends StateNode {
 
 	override onDoubleClick(info: TLClickEventInfo) {
 		if (info.phase !== 'down') return
-		this.editor.zoomIn(info.point, { animation: { duration: 200 } })
+		// info.point is in client space; zoomIn wants a point relative to the viewport
+		const screenPoint = this.editor.inputs.getCurrentScreenPoint()
+		this.editor.zoomIn(screenPoint, { animation: { duration: 200 } })
 	}
 }
 
@@ -94,9 +98,9 @@ export default function App() {
 }
 ```
 
-Tools can handle [StateNode#onDoubleClick](?) events. The handler receives a [TLClickEventInfo](?) object with details about the click. Use `phase: 'down'` for behavior that should start on the second pointer down, or a settle phase for behavior that should wait until the overflow window has passed.
+Use `phase: 'down'` for behavior that should start on the second pointer down, or a settle phase for behavior that should wait until the overflow window has passed.
 
-The select tool routes shape double-clicks to [ShapeUtil#onDoubleClick](?). Return a partial shape object to apply changes:
+The select tool routes shape double-clicks to [ShapeUtil#onDoubleClick](?), and double-clicks on handles, edges, and corners to [ShapeUtil#onDoubleClickHandle](?), [ShapeUtil#onDoubleClickEdge](?), and [ShapeUtil#onDoubleClickCorner](?). Return a partial shape object to apply changes:
 
 ```tsx
 override onDoubleClick(shape: MyShape) {
@@ -110,22 +114,23 @@ override onDoubleClick(shape: MyShape) {
 
 The [TLClickEventInfo](?) type includes these properties:
 
-| Property    | Type                                             | Description                                            |
-| ----------- | ------------------------------------------------ | ------------------------------------------------------ |
-| `type`      | `'click'`                                        | Event type identifier                                  |
-| `name`      | `'double_click'`                                 | Which click event this is                              |
-| `point`     | `VecLike`                                        | Pointer position in client space                       |
-| `pointerId` | `number`                                         | Unique identifier for the pointer                      |
-| `button`    | `number`                                         | Mouse button (0 = left, 1 = middle, 2 = right)         |
-| `phase`     | `'down' \| 'up' \| 'settle-down' \| 'settle-up'` | When in the click sequence this fired                  |
-| `target`    | `'canvas' \| 'selection' \| 'shape' \| 'handle'` | What was clicked                                       |
-| `shape`     | `TLShape \| undefined`                           | The shape, when target is `'shape'` or `'handle'`      |
-| `handle`    | `TLHandle \| undefined`                          | The handle, when target is `'handle'`                  |
-| `shiftKey`  | `boolean`                                        | Whether Shift was held                                 |
-| `altKey`    | `boolean`                                        | Whether Alt/Option was held                            |
-| `ctrlKey`   | `boolean`                                        | Whether Control was held                               |
-| `metaKey`   | `boolean`                                        | Whether Meta/Command was held                          |
-| `accelKey`  | `boolean`                                        | Platform accelerator key (Cmd on Mac, Ctrl on Windows) |
+| Property    | Type                                                          | Description                                            |
+| ----------- | ------------------------------------------------------------- | ------------------------------------------------------ |
+| `type`      | `'click'`                                                     | Event type identifier                                  |
+| `name`      | `'double_click'`                                              | Which click event this is                              |
+| `point`     | `VecLike`                                                     | Pointer position in client space                       |
+| `pointerId` | `number`                                                      | Unique identifier for the pointer                      |
+| `button`    | `number`                                                      | Mouse button (0 = left, 1 = middle, 2 = right)         |
+| `phase`     | `'down' \| 'up' \| 'settle-down' \| 'settle-up'`              | When in the click sequence this fired                  |
+| `target`    | `'canvas' \| 'selection' \| 'shape' \| 'handle' \| 'overlay'` | What was clicked                                       |
+| `shape`     | `TLShape \| undefined`                                        | The shape, when target is `'shape'` or `'handle'`      |
+| `handle`    | `TLHandle \| TLSelectionHandle \| undefined`                  | The handle, when target is `'handle'` or `'selection'` |
+| `overlay`   | `TLOverlay \| undefined`                                      | The overlay, when target is `'overlay'`                |
+| `shiftKey`  | `boolean`                                                     | Whether Shift was held                                 |
+| `altKey`    | `boolean`                                                     | Whether Alt/Option was held                            |
+| `ctrlKey`   | `boolean`                                                     | Whether Control (or Command) was held                  |
+| `metaKey`   | `boolean`                                                     | Whether Meta/Command was held                          |
+| `accelKey`  | `boolean`                                                     | Platform accelerator key (Cmd on Mac, Ctrl on Windows) |
 
 ## Timing configuration
 
@@ -138,6 +143,6 @@ Click timing is configured through the editor's [options](/sdk-features/options)
 
 ## Related examples
 
-- [Canvas events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/events/canvas-events) — logs pointer events including click sequences to understand the event flow
-- [Custom double-click behavior](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/events/custom-double-click-behavior) — overrides the default double-click handler in the SelectTool
-- [Custom shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/custom-shape) — implements `onDoubleClick` and other click handlers in custom shapes
+- [Canvas events](/examples/events/canvas-events) — logs pointer events including click sequences to understand the event flow
+- [Custom double-click behavior](/examples/events/custom-double-click-behavior) — overrides the default double-click handler in the SelectTool
+- [Shape with onDoubleClickEdge](/examples/shapes/tools/shape-with-onDoubleClickEdge) — implements `onDoubleClickEdge` in a custom shape

@@ -10,10 +10,20 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import 'tldraw/tldraw.css'
+import './hundred-mermaids.css'
 import mermaidDefinitions from './mermaids'
 
 const GAP = 100
 const PAIR_GAP = 40
+
+// [1]
+const MERMAID_CONFIG = {
+	flowchart: { useMaxWidth: false },
+	state: { useMaxWidth: false },
+	mindmap: { useMaxWidth: false },
+	sequence: { useMaxWidth: false },
+}
 
 const components: TLComponents = {
 	TopPanel: TopPanel,
@@ -57,34 +67,28 @@ function TopPanel() {
 	const isGenerating = useValue(isGeneratingAtom)
 	const countAtom = useAtom<number>('mermaidCount', 0)
 	const count = useValue(countAtom)
+
 	const handleClick = useCallback(async () => {
 		if (isGeneratingAtom.get()) {
 			return
 		}
 		countAtom.set(0)
 		isGeneratingAtom.set(true)
+
+		// [2]
 		const [{ createMermaidDiagram }, { default: mermaid }] = await Promise.all([
 			import('@tldraw/mermaid'),
 			import('mermaid'),
 		])
-		const FONT_INFLATE = 1.4
-		mermaid.initialize({
-			startOnLoad: false,
-			flowchart: { useMaxWidth: false, nodeSpacing: 80, rankSpacing: 80, padding: 20 },
-			state: { useMaxWidth: false, nodeSpacing: 80, rankSpacing: 80, padding: 20 },
-			mindmap: { useMaxWidth: false, padding: 20 },
-			sequence: { useMaxWidth: false, actorMargin: 50, noteMargin: 20 },
-			themeVariables: { fontSize: `${18 * FONT_INFLATE}px` },
-		})
 
 		const offscreen = document.createElement('div')
 		offscreen.style.cssText = 'position:absolute;left:-9999px;top:-9999px;overflow:hidden'
 		document.body.appendChild(offscreen)
 
-		await deleteShapes(editor)
+		editor.deleteShapes([...editor.getCurrentPageShapeIds()])
 
-		let currentX = 0,
-			currentY = 0
+		let currentX = 0
+		let currentY = 0
 
 		try {
 			for (const group of mermaidDefinitions) {
@@ -95,8 +99,10 @@ function TopPanel() {
 					const shapesBefore = new Set(editor.getCurrentPageShapeIds())
 					let nativeSize = { w: 0, h: 0 }
 
+					// [3]
 					try {
 						await createMermaidDiagram(editor, def, {
+							mermaidConfig: MERMAID_CONFIG,
 							blueprintRender: {
 								position: { x: currentX, y: currentY },
 								centerOnPosition: false,
@@ -113,6 +119,7 @@ function TopPanel() {
 						console.warn('[mermaid] blueprint failed:', e, '\n---\n' + def)
 					}
 
+					// [4]
 					try {
 						const { svg } = await mermaid.render(
 							`mmd-svg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -130,12 +137,11 @@ function TopPanel() {
 							file: new File([svg], 'diagram.svg', { type: 'image/svg+xml' }),
 						})
 						if (asset) {
-							const shapeId = createShapeId()
 							if (!editor.getAsset(asset.id)) {
 								editor.createAssets([asset])
 							}
 							editor.createShape({
-								id: shapeId,
+								id: createShapeId(),
 								type: 'image',
 								x: currentX,
 								y: currentY,
@@ -165,21 +171,7 @@ function TopPanel() {
 	}, [editor, isGeneratingAtom, countAtom])
 
 	return (
-		<div
-			style={{
-				position: 'fixed',
-				top: 0,
-				left: '50%',
-				transform: 'translateX(-50%)',
-				padding: '8px',
-				background: '#eee',
-				borderRadius: '0 0 8px 8px',
-				display: 'flex',
-				gap: '8px',
-				zIndex: 1000,
-				opacity: isGenerating ? 0 : 1,
-			}}
-		>
+		<div className="hundred-mermaids-panel" style={{ opacity: isGenerating ? 0 : 1 }}>
 			<TldrawUiButton type="low" onClick={handleClick}>
 				Click to see a thousand mermaids
 				{count > 0 && <>({count} actually…)</>}
@@ -188,18 +180,22 @@ function TopPanel() {
 	)
 }
 
-async function deleteShapes(editor: Editor): Promise<void> {
-	editor.selectAll()
-	editor.deleteShapes(editor.getSelectedShapes())
+/*
+[1]
+Mermaid's `useMaxWidth` makes rendered SVGs stretch to their container. We turn it off so
+the SVG we render for comparison has an intrinsic size we can read back. `createMermaidDiagram`
+merges `mermaidConfig` over its own defaults and calls `mermaid.initialize` for us.
 
-	return new Promise((resolve) =>
-		setTimeout(function check() {
-			editor.selectAll()
-			if (editor.getSelectedShapes().length == 0) {
-				resolve()
-				return
-			}
-			setTimeout(check, 500)
-		}, 500)
-	)
-}
+[2]
+Both `@tldraw/mermaid` and mermaid itself are large, so they are loaded on first click rather
+than on page load.
+
+[3]
+`createMermaidDiagram` parses the Mermaid source and creates native tldraw shapes (geo shapes,
+arrows, text) at the given position. We diff the page's shape ids before and after to find what
+it created so we can measure it and lay out the next diagram.
+
+[4]
+For comparison, the same source is also rendered by Mermaid to an SVG, which is turned into an
+image asset and placed next to the native version at the same height.
+*/

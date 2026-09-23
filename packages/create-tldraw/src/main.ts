@@ -1,14 +1,16 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
 import process from 'node:process'
 import { Readable } from 'node:stream'
-import { parse as parseArgs } from '@bomb.sh/args'
-import { outro, spinner, text } from '@clack/prompts'
+import { outro, select, spinner, text } from '@clack/prompts'
 import picocolors from 'picocolors'
 import * as tar from 'tar'
 import { groupSelect, GroupSelectOption } from './group-select'
 import { Template, TEMPLATES } from './templates'
 import {
+	cancel,
+	CliArgs,
+	emptyDir,
 	formatTargetDir,
 	getInstallCommand,
 	getPackageManager,
@@ -17,35 +19,40 @@ import {
 	isDirEmpty,
 	isValidPackageName,
 	nicelog,
+	parseCliArgs,
 	pathToName,
 } from './utils'
 import { wrapAnsi } from './wrap-ansi'
 
 const DEBUG = !!process.env.DEBUG
 
+const TELEMETRY_URLS = [
+	'https://dashboard.tldraw.pro/api/starter-kit-choice',
+	'https://teamldraw.com/api/starter-kit-choice',
+]
+
 async function main() {
-	const args = parseArgs(process.argv.slice(2), {
-		alias: {
-			h: 'help',
-			t: 'template',
-		},
-		boolean: ['help', 'no-telemetry'],
-		string: ['template'],
-	})
+	const args = parseCliArgs(process.argv.slice(2))
 
 	if (args.help) {
 		nicelog(getHelp())
 		process.exit(0)
 	}
 
-	const maybeTargetDir = args._[0] ? formatTargetDir(resolve(String(args._[0]))) : undefined
+	const maybeTargetDir = args.targetDir ? formatTargetDir(resolve(args.targetDir)) : undefined
 
-	const template = await templatePicker(args.template, args['no-telemetry'])
+	// Settle the directory before anything else so a cancel here doesn't waste a template pick.
+	const dirAction = maybeTargetDir ? await prepareRequestedDir(maybeTargetDir) : undefined
+
+	const template = await templatePicker(args)
 	const name = await namePicker(maybeTargetDir)
 
-	const requestedDir = maybeTargetDir ?? resolve(process.cwd(), name)
-	const targetDir = findAvailableDir(requestedDir)
+	const targetDir = maybeTargetDir ?? findAvailableDir(resolve(process.cwd(), name))
 	mkdirSync(targetDir, { recursive: true })
+
+	// Only destroy existing files once every prompt has passed; a cancel or bad -t after the
+	// "remove" choice must leave the directory untouched.
+	if (dirAction === 'empty') emptyDir(targetDir)
 
 	await downloadTemplate(template, targetDir)
 	await renameTemplate(name, targetDir)
@@ -63,67 +70,48 @@ async function main() {
 	outro(doneMessage.join('\n'))
 }
 
-main().catch((err) => {
-	if (DEBUG) console.error(err)
-	outro(`it's bad`)
-	process.exit(1)
-})
-
-async function templatePicker(argOption?: string, noTelemetry?: boolean) {
-	if (argOption) {
-		const template = TEMPLATES.find((t) => formatTemplateId(t) === argOption.toLowerCase().trim())
-
-		if (!template) {
-			outro(`Template ${argOption} not found`)
+async function templatePicker(args: CliArgs) {
+	let template: Template
+	if (args.template) {
+		const templateId = args.template.toLowerCase().trim()
+		const found = TEMPLATES.find((t) => formatTemplateId(t) === templateId)
+		if (!found) {
+			outro(`Template ${args.template} not found`)
 			process.exit(1)
 		}
-
-		trackStarterKitChoice(template.name, noTelemetry)
-		return template
+		template = found
+	} else {
+		template = await handleCancel(
+			groupSelect({
+				message: 'Select a tldraw starter kit:',
+				options: TEMPLATES.map(
+					(template): GroupSelectOption<Template> => ({
+						label: template.name,
+						hint: template.description,
+						value: template,
+					})
+				),
+			})
+		)
 	}
 
-	const template = await handleCancel(
-		groupSelect({
-			message: 'Select a tldraw starter kit:',
-			options: TEMPLATES.map(
-				(template): GroupSelectOption<Template> => ({
-					label: template.name,
-					hint: template.description,
-					value: template,
-				})
-			),
-		})
-	)
-
-	trackStarterKitChoice(template.name, noTelemetry)
+	trackStarterKitChoice(template.name, args.telemetry)
 	return template
 }
 
-function trackStarterKitChoice(templateId: string, noTelemetry?: boolean) {
-	// Skip tracking if --no-telemetry flag is set
-	if (noTelemetry) return
+function trackStarterKitChoice(templateId: string, telemetry: boolean) {
+	if (!telemetry) return
 
-	// Fire and forget - don't block on this request
-	fetch('https://dashboard.tldraw.pro/api/starter-kit-choice', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ id: templateId }),
-	}).catch(() => {
-		// Silently ignore errors
-	})
-
-	// Fire and forget - don't block on this request
-	fetch('https://teamldraw.com/api/starter-kit-choice', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ id: templateId }),
-	}).catch(() => {
-		// Silently ignore errors
-	})
+	for (const url of TELEMETRY_URLS) {
+		// Fire and forget - don't block on this request
+		fetch(url, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id: templateId }),
+		}).catch(() => {
+			// Silently ignore errors
+		})
+	}
 }
 
 async function namePicker(argOption?: string) {
@@ -149,6 +137,47 @@ async function namePicker(argOption?: string) {
 
 	if (!name.trim()) return defaultName
 	return pathToName(name)
+}
+
+type RequestedDirAction = 'ignore' | 'empty'
+
+// A directory the user named explicitly (e.g. `.`) must not be swapped for a suffixed sibling, so ask
+// what to do with its existing contents instead. Returns the choice rather than acting on it so the
+// caller can defer any deletion until the rest of the setup has succeeded.
+async function prepareRequestedDir(targetDir: string): Promise<RequestedDirAction | undefined> {
+	if (isDirEmpty(targetDir)) return undefined
+
+	// Show the full path for anything outside the cwd so "remove existing files" on `..` isn't a surprise.
+	const relativeName = relative(process.cwd(), targetDir)
+	const displayName = !relativeName ? '.' : relativeName.startsWith('..') ? targetDir : relativeName
+	if (!statSync(targetDir).isDirectory()) {
+		outro(`${displayName} exists and is not a directory.`)
+		process.exit(1)
+	}
+
+	const action = await handleCancel(
+		select<RequestedDirAction | 'cancel'>({
+			message: picocolors.bold(
+				`${displayName === '.' ? 'The current directory' : displayName} is not empty. How would you like to proceed?`
+			),
+			options: [
+				{
+					value: 'ignore',
+					label: 'Ignore existing files and continue',
+					hint: 'template files overwrite any that conflict',
+				},
+				{
+					value: 'empty',
+					label: 'Remove existing files and continue',
+					hint: 'keeps .git',
+				},
+				{ value: 'cancel', label: 'Cancel' },
+			],
+		})
+	)
+
+	if (action === 'cancel') cancel()
+	return action
 }
 
 function findAvailableDir(targetDir: string): string {
@@ -219,76 +248,63 @@ function getHelp() {
 		{ flags: '-t, --template NAME', description: 'Use a specific template.' },
 		{ flags: '--no-telemetry', description: 'Disable anonymous usage tracking.' },
 	]
+	const templates = TEMPLATES.map((t) => ({
+		name: formatTemplateId(t),
+		description: t.shortDescription ?? t.description,
+	}))
 
 	const GAP_SIZE = 2
 	const optionPrefix = '   '
 	const templatePrefix = ' • '
 
 	const idealIndentSize =
-		Math.max(
-			...options.map((o) => o.flags.length),
-			...TEMPLATES.map((t) => formatTemplateId(t).length)
-		) +
+		Math.max(...options.map((o) => o.flags.length), ...templates.map((t) => t.name.length)) +
 		GAP_SIZE +
 		templatePrefix.length
 
-	const isNarrow = process.stdout.columns < idealIndentSize + 50
+	const columns = process.stdout.columns
+	const isNarrow = columns < idealIndentSize + 50
 
-	const lines = [
+	// Wide terminals get a two-column table; narrow ones put each description on its own wrapped line.
+	function formatRows(prefix: string, rows: { name: string; description: string }[]) {
+		if (isNarrow) {
+			const indent = ' '.repeat(prefix.length + GAP_SIZE)
+			return rows.flatMap((row) => [
+				`${prefix}${row.name}`,
+				wrapAnsi(`${indent}${row.description}`, columns, { indent }),
+			])
+		}
+		const indent = ' '.repeat(idealIndentSize)
+		return rows.map((row) => {
+			const start = `${prefix}${row.name}`.padEnd(idealIndentSize, ' ')
+			return wrapAnsi(`${start}${row.description}`, columns, { indent })
+		})
+	}
+
+	return [
 		picocolors.bold('Usage: create-tldraw [OPTION]... [DIRECTORY]'),
 		'',
 		'Create a new tldraw project from a starter kit.',
 		"With no arguments, you'll be guided through an interactive setup.",
+		'Pass . as the directory to create the project in the current directory.',
 		'',
 		picocolors.bold('Options:'),
-	]
-
-	if (isNarrow) {
-		const indent = ' '.repeat(optionPrefix.length + GAP_SIZE)
-		for (const option of options) {
-			lines.push(`${optionPrefix}${option.flags}`)
-			lines.push(wrapAnsi(`${indent}${option.description}`, process.stdout.columns, { indent }))
-		}
-	} else {
-		const indent = ' '.repeat(idealIndentSize)
-		for (const option of options) {
-			const start = `${optionPrefix}${option.flags}`.padEnd(idealIndentSize, ' ')
-			lines.push(wrapAnsi(`${start}${option.description}`, process.stdout.columns, { indent }))
-		}
-	}
-
-	lines.push('')
-	lines.push(picocolors.bold('Available starter kits:'))
-
-	if (isNarrow) {
-		const indent = ' '.repeat(templatePrefix.length + GAP_SIZE)
-		for (const template of TEMPLATES) {
-			lines.push(`${templatePrefix}${formatTemplateId(template)}`)
-			lines.push(
-				wrapAnsi(
-					`${indent}${template.shortDescription ?? template.description}`,
-					process.stdout.columns,
-					{ indent }
-				)
-			)
-		}
-	} else {
-		const indent = ' '.repeat(idealIndentSize)
-		for (const template of TEMPLATES) {
-			const start = `${templatePrefix}${formatTemplateId(template)}`.padEnd(idealIndentSize, ' ')
-			lines.push(
-				wrapAnsi(
-					`${start}${template.shortDescription ?? template.description}`,
-					process.stdout.columns,
-					{
-						indent,
-					}
-				)
-			)
-		}
-	}
-
-	lines.push('')
-
-	return lines.join('\n')
+		...formatRows(
+			optionPrefix,
+			options.map((o) => ({ name: o.flags, description: o.description }))
+		),
+		'',
+		picocolors.bold('Available starter kits:'),
+		...formatRows(templatePrefix, templates),
+		'',
+	].join('\n')
 }
+
+// Keep this last, and keep module-level constants above main(). With -t, main() runs all the way to
+// trackStarterKitChoice without ever awaiting, so a constant declared below it is still in its
+// temporal dead zone when it's read: that shipped as "TELEMETRY_URLS is not iterable" (#10745).
+main().catch((err) => {
+	if (DEBUG) console.error(err)
+	outro(`it's bad`)
+	process.exit(1)
+})

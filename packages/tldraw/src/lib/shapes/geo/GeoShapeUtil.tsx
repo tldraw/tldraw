@@ -50,6 +50,7 @@ import {
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getThemeFontFaces } from '../shared/defaultFonts'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import { getFlipForResize } from '../shared/flip'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
@@ -239,6 +240,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			growY: 0,
 			url: '',
 			scale: 1,
+			flipX: false,
+			flipY: false,
 
 			// Text properties
 			color: 'black',
@@ -556,6 +559,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		const scaledW = unscaledW * shape.props.scale
 		const scaledH = unscaledH * shape.props.scale
+		// the offset is in the shape's (scaled) units, so the label over-shrink must be scaled too
+		const scaledOverShrinkX = overShrinkX * shape.props.scale
+		const scaledOverShrinkY = overShrinkY * shape.props.scale
 
 		const offset = new Vec(0, 0)
 
@@ -566,7 +572,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		if (handle === 'left' || handle === 'top_left' || handle === 'bottom_left') {
-			offset.x += scaleX < 0 ? overShrinkX : -overShrinkX
+			offset.x += scaleX < 0 ? scaledOverShrinkX : -scaledOverShrinkX
 		}
 
 		// y offsets
@@ -576,7 +582,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		if (handle === 'top' || handle === 'top_left' || handle === 'top_right') {
-			offset.y += scaleY < 0 ? overShrinkY : -overShrinkY
+			offset.y += scaleY < 0 ? scaledOverShrinkY : -scaledOverShrinkY
 		}
 
 		const { x, y } = offset.rot(shape.rotation).add(newPoint)
@@ -588,6 +594,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				w: Math.max(Math.abs(scaledW), 1),
 				h: Math.max(Math.abs(scaledH), 1),
 				growY: 0,
+				...getFlipForResize(initialShape.props, { scaleX, scaleY }),
 			},
 		}
 	}

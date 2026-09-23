@@ -11,7 +11,7 @@ export function updateHoveredOverlayId(editor: Editor): boolean {
 	if (editor.isDisposed) return false
 
 	const currentPagePoint = editor.inputs.getCurrentPagePoint()
-	const margin = editor.options.hitTestMargin / editor.getZoomLevel()
+	const margin = editor.getHitTestMargin()
 	const overlay = editor.overlays.getOverlayAtPoint(currentPagePoint, margin)
 
 	const previousOverlayId = editor.overlays.getHoveredOverlayId()

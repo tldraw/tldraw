@@ -1,6 +1,12 @@
+// This file implements the deprecated canvas cursor overlay, so it references its own deprecated types.
+// oxlint-disable typescript/no-deprecated
 import { OverlayUtil, PI2, TLOverlay } from '@tldraw/editor'
 
-/** @public */
+/**
+ * @public
+ * @deprecated Collaborator cursors are rendered as DOM elements rather than drawn to the overlay
+ * canvas. Use `TLCursorProps`, the props of the `CollaboratorCursor` editor component.
+ */
 export interface TLCollaboratorCursorOverlay extends TLOverlay {
 	props: {
 		x: number
@@ -61,6 +67,11 @@ function getLabelFontFamily(editorContainer: HTMLElement, editorWindow: Window):
  * Overlay util for collaborator cursors (arrow + name tag + chat message).
  *
  * @public
+ * @deprecated Collaborator cursors are no longer drawn to the overlay canvas, so this util is no
+ * longer part of `defaultOverlayUtils`. They render as DOM elements instead, customizable through
+ * the `CollaboratorCursor` editor component. To keep drawing cursors to the canvas, pass this util
+ * (or a subclass of it) to `overlayUtils` and set `components={{ CollaboratorCursor: null }}` so the
+ * DOM layer doesn't draw them a second time.
  */
 export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCursorOverlay> {
 	static override type = 'collaborator_cursor'

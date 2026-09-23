@@ -3,6 +3,7 @@ import { resolve } from 'path'
 import kleur from 'kleur'
 import minimist from 'minimist'
 import { exec } from './lib/exec'
+import { WORKER_EXTERNAL_DEPS } from './lib/worker-externals'
 
 const args = minimist(process.argv.slice(2))
 const sizeLimit = Number(args['size-limit-bytes'])
@@ -29,28 +30,6 @@ interface Meta {
 	}
 }
 
-const EXTERNAL_DEPS = [
-	'cloudflare:*',
-	'crypto',
-	'tls',
-	'net',
-	'stream',
-	'fs',
-	'os',
-	'perf_hooks',
-	'path',
-	'dns',
-	'util',
-	'util/types',
-	'node:child_process',
-	'node:events',
-	'node:path',
-	'node:process',
-	'node:os',
-	'node:timers',
-	'node:util',
-]
-
 async function checkBundleSize() {
 	rmSync(bundleMetaFileName, { force: true })
 
@@ -62,7 +41,7 @@ async function checkBundleSize() {
 		'--outfile=/dev/null',
 		'--minify',
 		'--metafile=' + bundleMetaFileName,
-		...EXTERNAL_DEPS.map((dep) => '--external:' + dep),
+		...WORKER_EXTERNAL_DEPS.map((dep) => '--external:' + dep),
 	])
 
 	console.log(kleur.cyan().bold('Checking bundle size'), 'of', resolve(entry) + '\n')

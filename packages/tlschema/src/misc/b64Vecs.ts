@@ -43,15 +43,6 @@ for (let i = 0; i < 1024; i++) {
 	MANTISSA[i] = 1 + i / 1024
 }
 
-declare global {
-	interface Uint8Array {
-		toBase64?(): string
-	}
-	interface Uint8ArrayConstructor {
-		fromBase64?(base64: string): Uint8Array
-	}
-}
-
 function nativeGetFloat16(dataView: DataView, offset: number): number {
 	return (dataView as any).getFloat16(offset, true)
 }
@@ -77,7 +68,7 @@ const setFloat16 =
 		: fallbackSetFloat16
 
 function nativeBase64ToUint8Array(base64: string): Uint8Array {
-	return Uint8Array.fromBase64!(base64)
+	return Uint8Array.fromBase64(base64)
 }
 
 /** @internal */
@@ -132,7 +123,7 @@ export function fallbackBase64ToUint8Array(base64: string): Uint8Array {
 }
 
 function nativeUint8ArrayToBase64(uint8Array: Uint8Array): string {
-	return uint8Array.toBase64!()
+	return uint8Array.toBase64()
 }
 
 /** @internal */

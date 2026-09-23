@@ -1,5 +1,5 @@
 import { createRecordType } from '@tldraw/store'
-import { getTestMigration, testSchema } from './__tests__/migrationTestUtils'
+import { getTestMigration, testSchema, wasMigratorCalled } from './__tests__/migrationTestUtils'
 import { bookmarkAssetVersions } from './assets/TLBookmarkAsset'
 import { imageAssetVersions } from './assets/TLImageAsset'
 import { videoAssetVersions } from './assets/TLVideoAsset'
@@ -2152,6 +2152,18 @@ describe('Add flipX, flipY to image shape', () => {
 	})
 })
 
+describe('Add flipX, flipY to geo shape', () => {
+	const { up, down } = getTestMigration(geoShapeVersions.AddFlipProps)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { flipX: false, flipY: false } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { flipX: false, flipY: false } })).toEqual({ props: {} })
+	})
+})
+
 describe('Add alt text to image shape', () => {
 	const { up, down } = getTestMigration(imageShapeVersions.AddAltText)
 
@@ -2788,9 +2800,9 @@ describe('DrawShapeSegment dim validation', () => {
 describe('all migrator fns were called at least once', () => {
 	for (const migration of testSchema.sortedMigrations) {
 		it(`migration ${migration.id}`, () => {
-			expect((migration as any).up).toHaveBeenCalled()
+			expect(wasMigratorCalled(migration.id, 'up')).toBe(true)
 			if (typeof migration.down === 'function') {
-				expect((migration as any).down).toHaveBeenCalled()
+				expect(wasMigratorCalled(migration.id, 'down')).toBe(true)
 			}
 		})
 	}

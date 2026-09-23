@@ -6,7 +6,7 @@ keywords:
   [z-order, index, stacking, layers, reorder, sendToBack, bringToFront, sendBackward, bringForward]
 ---
 
-Reorder shapes programmatically using the editor's z-order methods.
+Reorder shapes with `sendToBack`, `sendBackward`, `bringForward`, and `bringToFront`.
 
 ---
 

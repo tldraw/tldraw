@@ -13,10 +13,14 @@ import {
 	assert,
 	compact,
 	createShapeId,
+	Geometry2d,
+	Group2d,
+	TLGeometryOpts,
 	mockUniqueId,
 	sortByIndex,
 	toRichText,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 
@@ -31,6 +35,8 @@ const ids = {
 	boxE: createShapeId('boxE'),
 	boxF: createShapeId('boxF'),
 	boxX: createShapeId('boxX'),
+	boxY: createShapeId('boxY'),
+	boxZ: createShapeId('boxZ'),
 	lineA: createShapeId('lineA'),
 	groupA: createShapeId('groupA'),
 }
@@ -294,6 +300,28 @@ describe('creating groups', () => {
 		editor.groupShapes(editor.getSelectedShapeIds())
 		expect(editor.getSelectedShapeIds().length).toBe(3)
 	})
+	it('works while a tool other than select is active', () => {
+		// e.g. importing content while drawing; the select tool gate belongs to the UI action
+		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0)])
+		editor.setCurrentTool('draw')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(120, 120)
+		editor.expectToBeIn('draw.drawing')
+		editor.groupShapes([ids.boxA, ids.boxB])
+		const group = editor.getShape(ids.boxA)!.parentId
+		expect(editor.getShape(group)!.type).toBe('group')
+		expect(editor.getShape(ids.boxB)!.parentId).toBe(group)
+		// the in-progress interaction of a non-select tool is left alone
+		editor.expectToBeIn('draw.drawing')
+	})
+	it('does nothing when every shape is locked', () => {
+		editor.createShapes([
+			{ ...box(ids.boxA, 0, 0), isLocked: true },
+			{ ...box(ids.boxB, 20, 0), isLocked: true },
+		])
+		expect(() => editor.groupShapes([ids.boxA, ids.boxB])).not.toThrow()
+		expect(editor.getCurrentPageShapes().length).toBe(2)
+	})
 	it('keeps order correct simple', () => {
 		// 0   10  20  30  40  50  60  70
 		// ┌───┐   ┌───┐   ┌───┐   ┌───┐
@@ -490,6 +518,24 @@ describe('ungrouping shapes', () => {
 		expect(editor.getSelectedShapeIds().length).toBe(2)
 		expect(editor.getShape(groupAId)).not.toBe(undefined)
 		expect(editor.getShape(groupBId)).not.toBe(undefined)
+	})
+	it('ungroups an outer group and its inner group in one call without losing the inner children', () => {
+		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0), box(ids.boxC, 40, 0)])
+		editor.groupShapes([ids.boxA, ids.boxB])
+		const innerId = onlySelectedId()
+		editor.groupShapes([innerId, ids.boxC])
+		const outerId = onlySelectedId()
+
+		// outer first: its ungrouping reparents inner, so inner's children must follow the live
+		// record rather than inner's stale parentId (the about-to-be-deleted outer)
+		editor.ungroupShapes([outerId, innerId])
+
+		const pageId = editor.getCurrentPageId()
+		expect(editor.getShape(ids.boxA)?.parentId).toBe(pageId)
+		expect(editor.getShape(ids.boxB)?.parentId).toBe(pageId)
+		expect(editor.getShape(ids.boxC)?.parentId).toBe(pageId)
+		expect(editor.getShape(innerId)).toBeUndefined()
+		expect(editor.getShape(outerId)).toBeUndefined()
 	})
 	it('does not work if the scene is in readonly mode', () => {
 		// 0   10  20  30  40  50
@@ -1158,6 +1204,64 @@ describe("when a group's children are deleted", () => {
 		expect(editor.getShape(groupAId)).not.toBeUndefined()
 	})
 
+	it('reports the extent of the children that still resolve', () => {
+		editor.createShapes([box(ids.boxX, 80, 0), box(ids.boxY, 100, 0), box(ids.boxZ, 120, 0)])
+		editor.select(ids.boxX, ids.boxY, ids.boxZ)
+		editor.groupShapes(editor.getSelectedShapeIds())
+		const groupId = onlySelectedId()
+		editor.selectNone()
+
+		const intact = editor.getShapeGeometry(groupId).bounds.width
+
+		// A child id that outlives its record: the children index still names it while the geometry
+		// cache answers nothing. `getShapeGeometry`'s signature hides this — it asserts non-undefined
+		// over a cache lookup that misses for a record the store no longer holds.
+		const realGetShapeGeometry = editor.getShapeGeometry.bind(editor)
+		const spy = vi
+			.spyOn(editor, 'getShapeGeometry')
+			.mockImplementation((shape: TLShape | TLShapeId, opts?: TLGeometryOpts) => {
+				const id = typeof shape === 'string' ? shape : shape.id
+				if (id === ids.boxZ) return undefined as unknown as Geometry2d
+				return realGetShapeGeometry(shape, opts)
+			})
+
+		try {
+			const geometry = editor
+				.getShapeUtil<TLGroupShape>('group')
+				.getGeometry(editor.getShape<TLGroupShape>(groupId)!)
+			// The two surviving boxes still bound the group; the missing one is skipped rather than
+			// taking the whole recompute down with it.
+			expect(geometry.bounds.width).toBeLessThan(intact)
+			expect(geometry).toBeInstanceOf(Group2d)
+		} finally {
+			spy.mockRestore()
+		}
+	})
+
+	it('falls back to a unit box when no child resolves', () => {
+		editor.createShapes([box(ids.boxX, 80, 0), box(ids.boxY, 100, 0)])
+		editor.select(ids.boxX, ids.boxY)
+		editor.groupShapes(editor.getSelectedShapeIds())
+		const groupId = onlySelectedId()
+		editor.selectNone()
+
+		const spy = vi
+			.spyOn(editor, 'getShapeGeometry')
+			.mockImplementation(() => undefined as unknown as Geometry2d)
+
+		try {
+			const geometry = editor
+				.getShapeUtil<TLGroupShape>('group')
+				.getGeometry(editor.getShape<TLGroupShape>(groupId)!)
+			// The same answer as a group with no children at all, rather than an empty `Group2d`
+			// whose bounds come back NaN and poison every measurement downstream.
+			expect(geometry.bounds.width).toBe(1)
+			expect(geometry.bounds.height).toBe(1)
+		} finally {
+			spy.mockRestore()
+		}
+	})
+
 	it('preserves the collapsed group z-index when reparenting the last child', () => {
 		// Page contains: groupC (lower) then boxX (on top). Deleting boxA collapses
 		// groupA inside groupC, so boxB should take groupA's z-index in groupC and
@@ -1584,7 +1688,8 @@ describe('erasing', () => {
 		expect(editor.getCurrentPageState().erasingShapeIds.length).toBe(1)
 		expect(editor.getCurrentPageState().erasingShapeIds[0]).toBe(ids.boxE)
 
-		// move to group B
+		// move across box B (inside the focus layer) and into group B (outside it)
+		editor.pointerMove(25, 5)
 		editor.pointerMove(65, 5)
 
 		expect(editor.getErasingShapeIds().length).toBe(3)

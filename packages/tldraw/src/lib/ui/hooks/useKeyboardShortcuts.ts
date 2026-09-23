@@ -1,7 +1,6 @@
 /*!
- * The kbd-string splitter (`getKeys`) and the form-input filter pattern in `shouldSkipEvent`
- * (including its list of non-text INPUT types) are adapted from hotkeys-js, which this hook
- * previously depended on.
+ * The form-input filter pattern in `shouldSkipEvent` (including its list of non-text INPUT
+ * types) is adapted from hotkeys-js, which this hook previously depended on.
  *
  * MIT License: https://github.com/jaywcjlove/hotkeys-js/blob/master/LICENSE
  * Copyright (c) 2015-present, Kenny Wong
@@ -19,6 +18,8 @@ import {
 } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { useActions } from '../context/actions'
+import { splitKbd } from '../kbd-utils'
+import { useCommentingEnabled } from './useCommentingEnabled'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
@@ -38,6 +39,8 @@ export function useKeyboardShortcuts() {
 	const isReadonlyMode = useReadonly()
 	const actions = useActions()
 	const tools = useTools()
+	// The comment tool's shortcut is gated by the same license as its toolbar button.
+	const commentingEnabled = useCommentingEnabled()
 	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
 	useEffect(() => {
 		if (!isFocused) return
@@ -71,6 +74,9 @@ export function useKeyboardShortcuts() {
 
 			if (SKIP_KBDS.includes(tool.id)) continue
 
+			// The comment tool is a licensed feature; skip its shortcut when commenting isn't enabled.
+			if (tool.id === 'comment' && !commentingEnabled) continue
+
 			register(getHotkeysStringFromKbd(tool.kbd), (event) => {
 				if (areShortcutsDisabled(editor)) return
 				preventDefault(event)
@@ -91,51 +97,14 @@ export function useKeyboardShortcuts() {
 				editor.focus() // Focus if not already focused
 
 				editor.inputs.keys.add('Comma')
-
-				const { x, y, z } = editor.inputs.getCurrentPagePoint()
-				const screenpoints = editor.pageToScreen({ x, y })
-
-				const info: TLPointerEventInfo = {
-					type: 'pointer',
-					name: 'pointer_down',
-					point: { x: screenpoints.x, y: screenpoints.y, z },
-					shiftKey: e.shiftKey,
-					altKey: e.altKey,
-					ctrlKey: e.metaKey || e.ctrlKey,
-					metaKey: e.metaKey,
-					accelKey: isAccelKey(e),
-					pointerId: 0,
-					button: 0,
-					isPen: editor.getInstanceState().isPenMode,
-					target: 'canvas',
-				}
-
-				editor.dispatch(info)
+				dispatchCommaPointerEvent(editor, e, 'pointer_down')
 			},
 			(e) => {
 				if (areShortcutsDisabled(editor)) return
 				if (!editor.inputs.keys.has('Comma')) return
 
 				editor.inputs.keys.delete('Comma')
-
-				const { x, y, z } = editor.inputs.getCurrentPagePoint()
-				const screenPoint = editor.pageToScreen({ x, y })
-				const info: TLPointerEventInfo = {
-					type: 'pointer',
-					name: 'pointer_up',
-					point: { x: screenPoint.x, y: screenPoint.y, z },
-					shiftKey: e.shiftKey,
-					altKey: e.altKey,
-					ctrlKey: e.metaKey || e.ctrlKey,
-					metaKey: e.metaKey,
-					accelKey: isAccelKey(e),
-					pointerId: 0,
-					button: 0,
-					isPen: editor.getInstanceState().isPenMode,
-					target: 'canvas',
-				}
-
-				editor.dispatch(info)
+				dispatchCommaPointerEvent(editor, e, 'pointer_up')
 			}
 		)
 
@@ -201,7 +170,30 @@ export function useKeyboardShortcuts() {
 			body.removeEventListener('keydown', handleKeyDown)
 			body.removeEventListener('keyup', handleKeyUp)
 		}
-	}, [actions, tools, isReadonlyMode, editor, isFocused])
+	}, [actions, tools, isReadonlyMode, editor, isFocused, commentingEnabled])
+}
+
+function dispatchCommaPointerEvent(
+	editor: Editor,
+	e: KeyboardEvent,
+	name: 'pointer_down' | 'pointer_up'
+) {
+	const { x, y, z } = editor.inputs.getCurrentPagePoint()
+	const screenPoint = editor.pageToScreen({ x, y })
+	editor.dispatch({
+		type: 'pointer',
+		name,
+		point: { x: screenPoint.x, y: screenPoint.y, z },
+		shiftKey: e.shiftKey,
+		altKey: e.altKey,
+		ctrlKey: e.metaKey || e.ctrlKey,
+		metaKey: e.metaKey,
+		accelKey: isAccelKey(e),
+		pointerId: 0,
+		button: 0,
+		isPen: editor.getInstanceState().isPenMode,
+		target: 'canvas',
+	} satisfies TLPointerEventInfo)
 }
 
 export function areShortcutsDisabled(editor: Editor) {
@@ -354,7 +346,7 @@ const PHYSICAL_KEY_MAP: Record<string, string> = {
  */
 export function parseKbd(kbd: string): ParsedKbd[] {
 	const out: ParsedKbd[] = []
-	for (const shortcut of getKeys(kbd)) {
+	for (const shortcut of splitKbd(kbd.replace(/\s/g, ''))) {
 		const parsed = parseShortcut(shortcut)
 		if (parsed) out.push(parsed)
 	}
@@ -362,7 +354,6 @@ export function parseKbd(kbd: string): ParsedKbd[] {
 }
 
 function parseShortcut(shortcut: string): ParsedKbd | null {
-	const parts = shortcut.split('+')
 	const result: ParsedKbd = {
 		key: '',
 		shift: false,
@@ -371,23 +362,41 @@ function parseShortcut(shortcut: string): ParsedKbd | null {
 		meta: false,
 	}
 
-	let keyPart = ''
-	for (let i = 0; i < parts.length; i++) {
-		const part = parts[i]
-		const isLast = i === parts.length - 1
-		if (!isLast) {
-			const modAlias = MODIFIER_ALIASES[part.toLowerCase()]
-			if (modAlias) result[modAlias] = true
-			// silently drop unknown leading parts
-		} else {
-			keyPart = part
-		}
+	let modifierParts: string[]
+	let keyPart: string
+	// Only a single-character token binds (`[[+]]`). Longer ones like `[[Tab]]` are display-only
+	// labels in the shortcuts dialog and must not start capturing real keys. Prefix must be empty
+	// or end in `+` so `cmd[[+]]` stays malformed.
+	const atomic = /^(?:(.*)\+)?\[\[([^\]])\]\]$/.exec(shortcut)
+	if (atomic) {
+		modifierParts = atomic[1] ? atomic[1].split('+') : []
+		keyPart = atomic[2]
+	} else if (shortcut.includes('[[')) {
+		// Anything else containing `[[` is a malformed atomic token; never let it become a junk key.
+		return null
+	} else if (shortcut === '+' || shortcut.endsWith('++')) {
+		// `cmd++` is the `+` key. A single trailing `+` (`alt+shift+`, what the legacy `?`
+		// marker leaves behind) must stay unregistered, so only a doubled `+` counts.
+		modifierParts = shortcut.slice(0, -2).split('+')
+		keyPart = '+'
+	} else {
+		modifierParts = shortcut.split('+')
+		keyPart = modifierParts.pop() ?? ''
+	}
+
+	for (const part of modifierParts) {
+		const modAlias = MODIFIER_ALIASES[part.toLowerCase()]
+		if (modAlias) result[modAlias] = true
+		// silently drop unknown leading parts
 	}
 
 	if (!keyPart) return null
 
 	let key = keyPart.toLowerCase()
 	if (KEY_ALIASES[key]) key = KEY_ALIASES[key]
+	// getEventKey normalizes a shifted event through the same table, so `shift+:` can only ever
+	// match if it is stored as `shift+;`.
+	if (result.shift && SHIFT_KEY_TO_BASE[key]) key = SHIFT_KEY_TO_BASE[key]
 	result.key = key
 	return result
 }
@@ -405,6 +414,18 @@ function matchesEvent(e: KeyboardEvent, parsed: ParsedKbd): boolean {
 	if (e.altKey !== parsed.alt) return false
 	if (e.ctrlKey !== parsed.ctrl) return false
 	if (e.metaKey !== parsed.meta) return false
+
+	// With shift held, match number-row digits by physical position rather than the typed glyph: the
+	// digit keys sit in the same place on every Latin layout, but their shifted glyph varies
+	// (shift+2 is '@' on US, '"' on British PC and German), so glyph matching misses them. Returning
+	// here also stops a digit press from matching a symbol shortcut that shares its glyph — on
+	// German, shift+0 types '=', which must run zoom-to-100, not the '=' zoom-in shortcut it would
+	// otherwise alias to. Unshifted presses keep glyph matching, because layouts put real symbol
+	// shortcuts on the number row: AZERTY types '-' on Digit6, and that must still zoom out.
+	if (e.shiftKey) {
+		const digitCode = /^Digit([0-9])$/.exec(e.code)
+		if (digitCode) return parsed.key === digitCode[1]
+	}
 
 	const eventKey = getEventKey(e)
 	if (eventKey === parsed.key) return true
@@ -454,54 +475,19 @@ function shouldSkipEvent(e: KeyboardEvent): boolean {
  * @internal
  */
 export function getHotkeysStringFromKbd(kbd: string) {
-	return getKeys(kbd)
+	return splitKbd(kbd.replace(/\s/g, ''))
 		.map((kbd) => {
-			let str = ''
-
 			const shift = kbd.includes('!')
 			const alt = kbd.includes('?')
 			const cmd = kbd.includes('$')
 
-			// remove the modifiers; the remaining string are the actual key
 			const k = kbd.replace(/[!?$]/g, '')
 
-			if (shift && alt && cmd) {
-				str = `cmd+shift+alt+${k},ctrl+shift+alt+${k}`
-			} else if (shift && cmd) {
-				str = `cmd+shift+${k},ctrl+shift+${k}`
-			} else if (alt && cmd) {
-				str = `cmd+alt+${k},ctrl+alt+${k}`
-			} else if (alt && shift) {
-				str = `shift+alt+${k}`
-			} else if (shift) {
-				str = `shift+${k}`
-			} else if (alt) {
-				str = `alt+${k}`
-			} else if (cmd) {
-				str = `cmd+${k},ctrl+${k}`
-			} else {
-				str = k
-			}
-
-			return str
+			const mods: string[] = []
+			if (shift) mods.push('shift')
+			if (alt) mods.push('alt')
+			const rest = [...mods, k].join('+')
+			return cmd ? `cmd+${rest},ctrl+${rest}` : rest
 		})
 		.join(',')
-}
-
-// Split a kbd string on commas, treating an empty entry produced by "x,," as a literal
-// trailing comma on the previous entry. Verbatim port of the splitter from hotkeys-js
-// (MIT, see top-of-file attribution).
-function getKeys(key: string) {
-	if (typeof key !== 'string') key = ''
-	key = key.replace(/\s/g, '')
-	const keys = key.split(',')
-	let index = keys.lastIndexOf('')
-
-	for (; index >= 0; ) {
-		keys[index - 1] += ','
-		keys.splice(index, 1)
-		index = keys.lastIndexOf('')
-	}
-
-	return keys
 }

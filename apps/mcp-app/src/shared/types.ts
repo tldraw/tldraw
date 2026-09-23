@@ -8,6 +8,20 @@ export interface PendingBootstrap {
 	checkpointId: string | null
 }
 
+/** Result of executing code in the widget, as reported via `_exec_callback`. */
+export interface ExecResultPayload {
+	success: boolean
+	result?: unknown
+	error?: string
+	/**
+	 * The canvasId the widget ran this code against, set only when the model
+	 * supplied a canvasId in the tool args. The waiting exec cross-checks it
+	 * against its own invocation so a rendezvous-key collision (identical code
+	 * from a different invocation) can't hand back another canvas's result.
+	 */
+	canvasId?: string
+}
+
 export interface ServerDeps {
 	saveCheckpoint(id: string, shapes: TLShape[], assets?: unknown[], bindings?: unknown[]): void
 	loadCheckpoint(id: string): { shapes: unknown[]; assets: unknown[]; bindings: unknown[] } | null
@@ -22,6 +36,18 @@ export interface ServerDeps {
 	loadWidgetHtml(): Promise<string>
 	loadEditorApiSpec(): Promise<EditorApiSpec>
 	loadMethodMap(): Promise<MethodMap>
+	/** Hand an exec result to the rendezvous DO. Returns true if a waiter received it. */
+	putExecResult(execKey: string, payload: ExecResultPayload): Promise<boolean>
+	/**
+	 * Wait on the rendezvous DO for an exec result; null on timeout. `notBefore`
+	 * is the caller's start time — stashed results produced before it (a prior
+	 * invocation sharing this execKey) are discarded rather than returned.
+	 */
+	waitExecResult(
+		execKey: string,
+		timeoutMs: number,
+		notBefore: number
+	): Promise<ExecResultPayload | null>
 }
 
 export interface RegisterToolsOptions {
@@ -66,11 +92,39 @@ export const MCP_SERVER_WEBSITE_URL = 'https://www.tldraw.com'
 export const MCP_SERVER_INSTRUCTIONS =
 	'Use `search` to query the tldraw Editor API spec (e.g. search for methods by category or name). Use `exec` to run JavaScript on the canvas — your code receives `editor` (the tldraw Editor instance) and helpers like toRichText, createShapeId, createArrowBetweenShapes. The current canvas state is kept in model context as raw TLShape, asset, and binding data.'
 
+// This URI must stay STABLE across deploys: hosts bind the app widget to it at
+// connector registration and cache the widget HTML served here, so a stale
+// widget build can stay in use after a deploy. Keep the widget↔server protocol
+// backward compatible with older widgets (new `_exec_callback` fields optional).
 export const CANVAS_RESOURCE_URI = 'ui://show-canvas/mcp-app.html'
 
 /** Must match `compatibility_date` in wrangler.toml. */
 export const WORKER_COMPATIBILITY_DATE = '2025-03-10'
 
-export const MAX_CHECKPOINTS = 200
+/** Snapshots retained per session. The widget only ever shows the latest; lowered from 200 purely for storage. */
+export const MAX_CHECKPOINTS = 50
+
+/** A session DO destroys itself after this long without a checkpoint save. */
+export const IDLE_TTL_MS = 7 * 24 * 60 * 60 * 1000
+
+/**
+ * When the next `expireIfIdle` alarm should fire. Split out of the DO so the
+ * failure branch is unit-testable.
+ *
+ * `failed` short-circuits: a check that threw has no usable `lastActivity`, so
+ * the normal `lastActivity + ttl` would schedule a full TTL out and swallow the
+ * backoff. Otherwise the floor keeps a legacy DO (whose `lastActivity + ttl` is
+ * already in the past) from re-firing in a tight loop.
+ */
+export function nextExpiryTime(args: {
+	failed: boolean
+	lastActivity: number | null
+	now: number
+	ttlMs: number
+}): number {
+	const { failed, lastActivity, now, ttlMs } = args
+	if (failed) return now + 60 * 60_000
+	return Math.max((lastActivity ?? now) + ttlMs, now + 60_000)
+}
 
 export type MCP_APP_HOST_NAMES = 'cursor' | 'vscode' | 'claude' | 'chatgpt'

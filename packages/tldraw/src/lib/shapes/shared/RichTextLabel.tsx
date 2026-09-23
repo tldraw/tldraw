@@ -160,15 +160,19 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		>
 			<div
 				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
-				style={{
-					fontSize,
-					lineHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
-					minHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
-					minWidth: Math.ceil(textWidth || 0),
-					color: labelColor,
-					width: textWidth ? Math.ceil(textWidth) : undefined,
-					height: textHeight ? Math.ceil(textHeight) : undefined,
-				}}
+				style={
+					{
+						fontSize,
+						lineHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
+						minHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
+						// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css).
+						'--tl-rich-text-heading-line-height': lineHeight,
+						minWidth: Math.ceil(textWidth || 0),
+						color: labelColor,
+						width: textWidth ? Math.ceil(textWidth) : undefined,
+						height: textHeight ? Math.ceil(textHeight) : undefined,
+					} as React.CSSProperties
+				}
 			>
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
 					{richText && (
@@ -256,6 +260,8 @@ export function RichTextSVG({
 		wrap: wrap ? 'wrap' : 'nowrap',
 		color: labelColor,
 		lineHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
+		// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css).
+		'--tl-rich-text-heading-line-height': lineHeight,
 		textAlign,
 		width: '100%',
 		wordWrap: 'break-word' as const,
