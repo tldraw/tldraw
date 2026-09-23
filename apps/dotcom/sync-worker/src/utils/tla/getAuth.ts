@@ -191,6 +191,15 @@ export interface McpTokenOptions {
 	 * to keep tickets, which is the whole reason it is not what this does yet.
 	 */
 	allowSubprotocolToken?: boolean
+	/**
+	 * Also accept the token as `?accessToken=` in the URL, where {@link getAuth} already takes a
+	 * session token for the same reason: the browser's `WebSocket` sets no headers. Opt-in per call
+	 * site, like the subprotocol, and for the socket alone. The subprotocol is the better field —
+	 * nothing in a URL, nothing in a log — but tldraw's own sync client (`useSync`) opens
+	 * `new WebSocket(url)` with no protocols, so a client built on it, such as the tldraw plugin for
+	 * ChatGPT, has only the URL to present a token in.
+	 */
+	allowQueryToken?: boolean
 }
 
 /**
@@ -241,10 +250,12 @@ export interface McpTokenOptions {
 export async function getMcpTokenAuth(
 	request: IRequest,
 	env: Environment,
-	{ allowSubprotocolToken = false }: McpTokenOptions = {}
+	{ allowSubprotocolToken = false, allowQueryToken = false }: McpTokenOptions = {}
 ): Promise<McpTokenAuth> {
 	const token =
-		getBearerToken(request) ?? (allowSubprotocolToken ? getSubprotocolToken(request) : null)
+		getBearerToken(request) ??
+		(allowSubprotocolToken ? getSubprotocolToken(request) : null) ??
+		(allowQueryToken ? getQueryToken(request) : null)
 	if (!token) return { ok: false, reason: 'no_token' }
 
 	if (!env.CLERK_SECRET_KEY) {
@@ -303,6 +314,12 @@ export const MCP_SOCKET_SUBPROTOCOL = 'tldraw.bearer'
  * survives unencoded. Anything that is not our two-part offer reads as no token rather than a bad
  * one: a client naming some other subprotocol is not making a failed attempt at this.
  */
+/** The token as `?accessToken=`, the field {@link getAuth} reads a session token from. */
+function getQueryToken(request: IRequest): string | null {
+	const token = new URL(request.url).searchParams.get('accessToken')?.trim()
+	return token || null
+}
+
 function getSubprotocolToken(request: IRequest): string | null {
 	const offered = request.headers.get('sec-websocket-protocol')
 	if (!offered) return null

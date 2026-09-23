@@ -215,6 +215,28 @@ describe('getMcpTokenAuth', () => {
 		expect(authenticateRequest.mock.calls[0][0].headers.get('authorization')).toBe(`Bearer ${jwt}`)
 	})
 
+	// Where tldraw's own sync client can put a token, and the only place a client built on it can:
+	// `useSync` opens the socket with no protocols. Same check as the header, opted into per route.
+	it('takes the token from ?accessToken= when the caller opts in', async () => {
+		signedInAs('user_1')
+		vi.mocked(canUseMcpServer).mockResolvedValue(true)
+
+		await expect(
+			getMcpTokenAuth(requestWith({}, '?accessToken=tok&sessionId=s'), env, {
+				allowQueryToken: true,
+			})
+		).resolves.toEqual({ ok: true, userId: 'user_1' })
+		expect(authenticateRequest.mock.calls[0][0].headers.get('authorization')).toBe('Bearer tok')
+	})
+
+	it('ignores ?accessToken= by default', async () => {
+		await expect(getMcpTokenAuth(requestWith({}, '?accessToken=tok'), env)).resolves.toEqual({
+			ok: false,
+			reason: 'no_token',
+		})
+		expect(authenticateRequest).not.toHaveBeenCalled()
+	})
+
 	it('prefers the authorization header when a request carries both', async () => {
 		signedInAs('user_1')
 		vi.mocked(canUseMcpServer).mockResolvedValue(true)
