@@ -70,6 +70,37 @@ export async function listAllObjects(
 }
 
 /**
+ * The objects under `prefix` whose keys fall in (`after`, `through`], with custom metadata, plus the
+ * number of list calls spent. R2 has no end key, so the walk stops at the first page that reaches
+ * past `through` rather than running to the end of the prefix.
+ */
+export async function listObjectsInRange(
+	bucket: R2Bucket,
+	prefix: string,
+	{ after, through }: { after?: string; through: string },
+	schedule: R2ReadScheduler = runInline
+): Promise<{ objects: R2Object[]; ops: number }> {
+	const objects: R2Object[] = []
+	let cursor: string | undefined
+	let ops = 0
+
+	do {
+		const options: R2ListOptionsWithInclude = cursor
+			? { prefix, cursor, include: ['customMetadata'] }
+			: { prefix, startAfter: after, include: ['customMetadata'] }
+		const page = await schedule(() => bucket.list(options as R2ListOptions))
+		ops++
+		for (const object of page.objects) {
+			if (object.key > through) return { objects, ops }
+			objects.push(object)
+		}
+		cursor = page.truncated ? page.cursor : undefined
+	} while (cursor)
+
+	return { objects, ops }
+}
+
+/**
  * Every key under `prefix`, or the first `limit` of them. The limit is passed to R2 too, so a
  * capped listing is a single page rather than a full walk sliced afterwards.
  */

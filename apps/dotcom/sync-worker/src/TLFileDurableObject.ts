@@ -132,11 +132,15 @@ import {
 } from './versionChainConfig'
 import {
 	deleteAllVersions,
-	loadChainIndex,
+	loadChainIndexForVersion,
 	openWholeVersionStream,
 	reconstructVersion,
 } from './versionChainRead'
-import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
+import {
+	readOpenSegment,
+	VERSION_CHAIN_R2_RETRY,
+	writeVersionChainEntry,
+} from './versionChainWrite'
 import { chainHeadHash } from './versionDelta'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
@@ -815,11 +819,7 @@ export class TLFileDurableObject extends DurableObject {
 		// promises. The caller starts a fresh chain on null.
 		const segmentKey = chain.openSegment.key
 		const deltas = await this.addR2Operation('version_chain_write', () =>
-			retry(() => readOpenSegment(this.r2.versionChain, segmentKey), {
-				attempts: 3,
-				waitDuration: 500,
-				matchError: isTransientConnectionError,
-			})
+			retry(() => readOpenSegment(this.r2.versionChain, segmentKey), VERSION_CHAIN_R2_RETRY)
 		)
 		if (deltas) this._pendingDeltas = deltas
 		return deltas
@@ -851,14 +851,17 @@ export class TLFileDurableObject extends DurableObject {
 				// fans out to the keyframe plus every segment (see _verifyRetiredChain). Every read
 				// is one idempotent get or list, so each retries transient errors on its own.
 				const schedule: R2ReadScheduler = (read) =>
-					this.addR2Operation('version_chain_read', () =>
-						retry(read, { attempts: 3, waitDuration: 500, matchError: isTransientConnectionError })
-					)
+					this.addR2Operation('version_chain_read', () => retry(read, VERSION_CHAIN_R2_RETRY))
 				const buckets = {
 					chainBucket: this.r2.versionChain,
 					legacyBucket: this.r2.versionCache,
 				}
-				const { entries: index } = await loadChainIndex(this.r2.versionChain, roomKey, schedule)
+				const { entries: index } = await loadChainIndexForVersion(
+					this.r2.versionChain,
+					roomKey,
+					timestamp,
+					schedule
+				)
 				const whole = await openWholeVersionStream({
 					...buckets,
 					roomKey,
@@ -2247,16 +2250,15 @@ export class TLFileDurableObject extends DurableObject {
 
 		const mode = resolveVersionChainMode(await this.versionChainRollout(), key)
 
-		// A non-transient chain failure (corrupt segment, a 4xx, DO storage) must be a metric, not
-		// a failed persist: the outer retry would otherwise re-upload the rooms object 100 times,
-		// raise persistence_bad, and record no version at all. In dual mode the legacy write below
-		// runs regardless; in chain mode it runs as the fallback, so the version still exists as
-		// a full copy the read paths already know how to serve.
-		let chainWritten = false
+		// A chain failure that outlasted its retries must be a metric, not a failed persist: the outer
+		// retry would otherwise re-upload the rooms object 100 times and raise persistence_bad. In
+		// chain mode that persist records no version and there is no legacy copy to fall back to. The
+		// chain state is untouched, so the next persist's delta is diffed from the last version
+		// written and carries this one's changes too; only when no edit follows does history lack
+		// the board's current state.
 		if (mode !== 'off') {
 			try {
 				iso = await this._writeVersionChainEntry(snapshot, key, iso)
-				chainWritten = true
 			} catch (error) {
 				this.logEvent({ type: 'version_chain_error' })
 				this.reportError(error)
@@ -2264,11 +2266,11 @@ export class TLFileDurableObject extends DurableObject {
 		}
 		// Dual-write keeps the legacy full copy as the independent record the read-path verifier
 		// checks chain reconstructions against. (_verifyRetiredChain only compares against what this
-		// DO last persisted.) Stage 3 of the rollout flips this to 'chain'.
+		// DO last persisted.)
 		// Nothing dedupes this write the way the version check in persistToDatabase does: a retry
 		// that got here has already set _lastPersistedFingerprint and takes the skip path instead
 		// (the chain write above carries its own re-entry guard for the same reason).
-		if (mode !== 'chain' || !chainWritten) {
+		if (mode !== 'chain') {
 			await this._uploadSnapshotToBucket(
 				this.r2.versionCache,
 				snapshot,
@@ -2315,9 +2317,9 @@ export class TLFileDurableObject extends DurableObject {
 				pending = rehydrated
 			}
 		}
-		// R2 persist flakiness is a known quantity (see the multipart/fallback machinery on the
-		// snapshot uploads). A chain write is one idempotent PUT for a fixed iso, so retrying the
-		// whole call is safe.
+		// A chain write is one idempotent PUT for a fixed iso, so retrying the whole call is safe.
+		// In chain mode a write that still fails records no version at all, so it gets the longer
+		// policy that outlasts R2's per-key write limit.
 		const result = await this.addR2Operation('version_chain_write', () =>
 			retry(
 				() =>
@@ -2333,7 +2335,7 @@ export class TLFileDurableObject extends DurableObject {
 						next: snapshot,
 						now: Date.now(),
 					}),
-				{ attempts: 3, waitDuration: 500, matchError: isTransientConnectionError }
+				VERSION_CHAIN_R2_RETRY
 			)
 		)
 		this._versionChain = result.chain

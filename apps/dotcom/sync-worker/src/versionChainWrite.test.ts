@@ -5,7 +5,7 @@ import { SEGMENT_CAP } from './config'
 import { createFakeR2 } from './test/fakeR2'
 import { ChainState, PendingDelta } from './versionChain'
 import { reconstructVersion } from './versionChainRead'
-import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
+import { isRetryableR2Error, readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
 import { chainHeadHash, SNAPSHOT_DELTA_VERSION } from './versionDelta'
 
 const roomKey = 'app_rooms/slug'
@@ -424,5 +424,26 @@ describe('readOpenSegment', () => {
 		await expect(readOpenSegment(bucket, `${roomKey}/blip.s`)).rejects.toThrow(
 			'Network connection lost.'
 		)
+	})
+})
+
+describe('isRetryableR2Error', () => {
+	it('retries the errors R2 documents as retryable, and dropped connections', () => {
+		for (const message of [
+			'put: We encountered an internal error. Please try again. (10001)',
+			'put: Reduce your concurrent request rate for the same object. (10058)',
+			'list: Reduce your concurrent request rate for the same object. (10058)',
+			'get: The service is unavailable. (10043)',
+			'Network connection lost.',
+		]) {
+			expect(isRetryableR2Error(new Error(message))).toBe(true)
+		}
+	})
+
+	it('does not retry a permanent error', () => {
+		expect(isRetryableR2Error(new Error('put: The specified bucket does not exist. (10006)'))).toBe(
+			false
+		)
+		expect(isRetryableR2Error(new Error('unknown version segment format 2'))).toBe(false)
 	})
 })

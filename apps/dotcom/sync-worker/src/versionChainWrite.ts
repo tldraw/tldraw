@@ -28,6 +28,29 @@ export type VersionChainWriteResult =
 	| (VersionChainWriteResultBase & { wrote: 'keyframe'; reason: KeyframeReason })
 	| (VersionChainWriteResultBase & { wrote: 'delta' })
 
+/**
+ * Whether a chain R2 call is worth repeating. Beyond dropped connections, R2 documents three
+ * errors as retryable, and every chain write error seen in production has been one of them: 10001
+ * InternalError, 10043 ServiceUnavailable and 10058 TooManyRequests.
+ */
+export function isRetryableR2Error(error: unknown): boolean {
+	const message = error instanceof Error ? error.message : String(error)
+	return (
+		/network|connection|closed|reset|timeout/i.test(message) ||
+		/\((10001|10043|10058)\)/.test(message)
+	)
+}
+
+/**
+ * Every wait clears a second because 10058 is R2's one-write-per-second limit on a key, and the open
+ * segment's key is rewritten by every delta. Worst case adds under six seconds to a persist.
+ */
+export const VERSION_CHAIN_R2_RETRY = {
+	attempts: 5,
+	waitDuration: 1100,
+	matchError: isRetryableR2Error,
+}
+
 export async function writeVersionChainEntry({
 	bucket,
 	roomKey,
