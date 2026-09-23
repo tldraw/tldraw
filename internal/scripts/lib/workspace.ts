@@ -53,7 +53,10 @@ async function getChildWorkspaces(parent: Package): Promise<Package[]> {
 	return foundPackages
 }
 
+export async function getRootPackage() {
+	return await readPackage(path.join(REPO_ROOT, 'package.json'))
+}
+
 export async function getAllWorkspacePackages() {
-	const rootWorkspace = await readPackage(path.join(REPO_ROOT, 'package.json'))
-	return await getChildWorkspaces(rootWorkspace)
+	return await getChildWorkspaces(await getRootPackage())
 }

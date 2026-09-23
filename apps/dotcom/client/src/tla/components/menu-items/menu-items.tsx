@@ -66,6 +66,7 @@ const messages = defineMessages({
 
 export function SignOutMenuItem() {
 	const auth = useAuth()
+	const app = useMaybeApp()
 
 	const trackEvent = useTldrawAppUiEvents()
 
@@ -73,9 +74,17 @@ export function SignOutMenuItem() {
 
 	const handleSignout = useCallback(() => {
 		signoutAnalytics()
-		auth.signOut().then(resetLocalSessionStateButKeepTheme)
+		auth
+			.signOut()
+			.then(async () => {
+				resetLocalSessionStateButKeepTheme()
+				// After sign-out rather than before: an IndexedDB delete waits for every connection to
+				// the database to close, and other tabs only drop theirs once Clerk propagates sign-out.
+				await app?.deleteLocalData()
+			})
+			.catch((err) => console.error('Sign out failed:', err))
 		trackEvent('sign-out-clicked', { source: 'sidebar' })
-	}, [auth, trackEvent])
+	}, [auth, app, trackEvent])
 
 	if (!auth.isSignedIn) return
 	return (

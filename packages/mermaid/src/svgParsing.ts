@@ -48,7 +48,7 @@ export interface ParsedDiagramLayout {
 }
 
 type NodeIdParser = (domId: string) => string
-type EdgeIdParser = (dataId: string) => { start: string; end: string } | null
+type EdgeIdParser = (dataId: string, points: Vec2[]) => { start: string; end: string } | null
 
 // Mermaid >= 11.15 prefixes every rendered element id with the diagram id
 // (`mermaid-0-flowchart-A-0` instead of `flowchart-A-0`); older versions do not.
@@ -197,8 +197,6 @@ export function parseAllEdgePointsFromSvg(root: Element, parser: EdgeIdParser): 
 		const dataId = path.getAttribute('data-id') || path.getAttribute('id') || ''
 		const dataPoints = path.getAttribute('data-points')
 		if (!dataPoints) continue
-		const parsed = parser(dataId)
-		if (!parsed) continue
 		try {
 			const points = JSON.parse(atob(dataPoints))
 			const ancestor = getAccumulatedTranslate(path as Element)
@@ -206,6 +204,9 @@ export function parseAllEdgePointsFromSvg(root: Element, parser: EdgeIdParser): 
 				point.x += ancestor.x
 				point.y += ancestor.y
 			}
+			// Parsed after the points, which an id parser may need to place an ambiguous id.
+			const parsed = parser(dataId, points)
+			if (!parsed) continue
 			out.push({ id: dataId, start: parsed.start, end: parsed.end, points })
 		} catch {
 			/* ignore malformed data */
@@ -263,22 +264,41 @@ export function buildNodeCentersFromSvg(
 }
 
 /**
- * Claim the unclaimed SVG edge whose endpoints lie closest to the given node
- * centers, or undefined when nothing matches. Each SVG edge is claimed at most
- * once so parallel edges get distinct paths.
+ * Claim the path mermaid drew for an edge between two nodes, or undefined when nothing matches.
+ * Each path is claimed at most once.
+ *
+ * Mermaid names a flowchart's paths after the two nodes they join and emits them in the order it
+ * drew them, so the nth edge between a pair of nodes is the nth unclaimed path carrying their ids.
+ * Paths with no ids to go on, such as a state diagram's `edge<N>`, fall back to whichever ends lie
+ * nearest the two node centers. That fallback picks the wrong path when several ends sit equally
+ * close, which is what parallel edges do (#10794).
  */
-export function claimNearestEdge(
+export function claimEdge(
 	svgEdges: ParsedEdge[],
 	claimed: Set<number>,
-	startCenter: Vec2 | undefined,
-	endCenter: Vec2 | undefined
+	edge: { startId: string; endId: string; startCenter?: Vec2; endCenter?: Vec2 }
 ): ParsedEdge | undefined {
+	const usable = (svgEdge: ParsedEdge, index: number) =>
+		!claimed.has(index) && svgEdge.points.length >= 2
+
+	if (edge.startId && edge.endId) {
+		const byId = svgEdges.findIndex(
+			(svgEdge, index) =>
+				usable(svgEdge, index) && svgEdge.start === edge.startId && svgEdge.end === edge.endId
+		)
+		if (byId >= 0) {
+			claimed.add(byId)
+			return svgEdges[byId]
+		}
+	}
+
+	const { startCenter, endCenter } = edge
 	if (!startCenter || !endCenter) return undefined
 
 	let bestIndex = -1
 	let bestDistance = Infinity
 	for (let i = 0; i < svgEdges.length; i++) {
-		if (claimed.has(i) || svgEdges[i].points.length < 2) continue
+		if (!usable(svgEdges[i], i)) continue
 
 		const points = svgEdges[i].points
 		const last = points[points.length - 1]

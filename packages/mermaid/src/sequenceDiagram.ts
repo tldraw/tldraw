@@ -9,6 +9,7 @@ import type {
 	MermaidBlueprintLineNode,
 } from './blueprint'
 import { parseRgbToTldrawColor } from './colors'
+import type { MeasureLabelWidth } from './mermaidNodeCreateShape'
 import { getAccumulatedTranslate } from './svgParsing'
 
 export interface SvgRect {
@@ -191,13 +192,6 @@ const FALLBACK_EVENT_SPACING = 80
 const FALLBACK_NOTE_WIDTH = 120
 const FALLBACK_NOTE_HEIGHT = 50
 const NOTE_PADDING = 5
-// tldraw's hand-drawn font is wider than Mermaid's default, so we estimate the minimum note
-// width from the label text to prevent wrapping. Mermaid breaks notes on `<br/>`, and the
-// estimate is a single line's worth: measuring the whole label would size a three-line note
-// as though it ran on one line.
-const NOTE_CHAR_WIDTH = 11
-const NOTE_TEXT_PADDING = 40
-const NOTE_LINE_BREAK = /<br\s*\/?>|\n/i
 const FRAGMENT_PADDING_X = 30
 const FRAGMENT_PADDING_TOP = 50
 const FRAGMENT_PADDING_BOTTOM = 25
@@ -391,16 +385,16 @@ function computeActorLayouts(
 		const xCenters = svgCenters.map((c) => (c - svgCenters[0]) * scale)
 		const totalSpan = xCenters.length > 1 ? xCenters[xCenters.length - 1] : 0
 
-		const topRowBottom = Math.max(...top.map((r) => r.y + r.h))
-		const bottomRowTop = Math.min(...bottom.map((r) => r.y))
-		const yStretch = Math.max(0, MIN_VERTICAL_GAP - (bottomRowTop - topRowBottom))
+		// A created participant's top box and a destroyed one's bottom box sit mid-diagram, so
+		// neither marks a row edge. Measuring the gap from one reports the diagram as far shorter
+		// than it is, inflating the stretch below and leaving the whole diagram too tall.
+		const headerBottom = Math.min(...top.map((r) => r.y + r.h))
+		const footerTop = Math.max(...bottom.map((r) => r.y))
+		const yStretch = Math.max(0, MIN_VERTICAL_GAP - (footerTop - headerBottom))
 		const topMinY = Math.min(...top.map((r) => r.y))
 		const bottomMaxY = Math.max(...bottom.map((r) => r.y + r.h))
 		const originY = -(bottomMaxY + yStretch + topMinY) / 2
-		// The stretch pushes the footer down, so spread it over the rows between the header and the
-		// footer. A created or destroyed participant's box sits mid-diagram, so it can't mark either.
-		const headerBottom = Math.min(...top.map((r) => r.y + r.h))
-		const footerTop = Math.max(...bottom.map((r) => r.y))
+		// The stretch pushes the footer down, so spread it over the rows between header and footer.
 		const toLayoutY = (svgY: number) =>
 			originY +
 			svgY +
@@ -413,10 +407,12 @@ function computeActorLayouts(
 			const h = topRect.h + ACTOR_PADDING_HEIGHT
 			return {
 				x: xCenters[i] - totalSpan / 2 - w / 2,
-				y: originY + topRect.y,
+				// Through `toLayoutY` so a created or destroyed participant's mid-diagram box takes
+				// the same share of the stretch as the row it sits on, rather than all of it or none.
+				y: toLayoutY(topRect.y),
 				w,
 				h,
-				bottomY: originY + bottom[i].y + yStretch,
+				bottomY: toLayoutY(bottom[i].y),
 			}
 		})
 		return { actorLayouts, toLayoutY }
@@ -517,6 +513,31 @@ function parseFragmentFrames(
 	return frames
 }
 
+function getActorLabel(actors: Map<string, Actor>, key: string): string {
+	const actor = actors.get(key)
+	return actor?.description || actor?.name || key
+}
+
+/**
+ * Widen each actor box to fit its label, moving the actors to its right along by as much: widening in
+ * place would eat the gap mermaid left between neighbors, and long names would overlap.
+ */
+function fitActorsToLabels(
+	layouts: ActorLayout[],
+	labels: string[],
+	measureLabelWidth: MeasureLabelWidth
+): ActorLayout[] {
+	let shift = 0
+	let previousGrowth = 0
+	return layouts.map((layout, i) => {
+		const w = Math.max(layout.w, measureLabelWidth(labels[i], 's'))
+		const growth = w - layout.w
+		shift += (previousGrowth + growth) / 2
+		previousGrowth = growth
+		return { ...layout, x: layout.x + shift - growth / 2, w }
+	})
+}
+
 function getMessageLabel(msg: Message): string | undefined {
 	return typeof msg.message === 'string' ? msg.message : undefined
 }
@@ -551,7 +572,8 @@ export function sequenceToBlueprint(
 	actorKeys: string[],
 	messages: Message[],
 	createdActors: Map<string, number> = new Map(),
-	destroyedActors: Map<string, number> = new Map()
+	destroyedActors: Map<string, number> = new Map(),
+	measureLabelWidth: MeasureLabelWidth = () => 0
 ): DiagramMermaidBlueprint {
 	const actorCount = actorKeys.length
 	if (actorCount === 0)
@@ -686,7 +708,11 @@ export function sequenceToBlueprint(
 		if (isSignal) autonumber = Math.round((autonumber + autonumberStep) * 100) / 100
 	}
 
-	const layouts = layout.actorLayouts
+	const layouts = fitActorsToLabels(
+		layout.actorLayouts,
+		actorKeys.map((key) => getActorLabel(actors, key)),
+		measureLabelWidth
+	)
 
 	// Build blueprint
 	const svgNoteRects = layout.noteRects
@@ -896,7 +922,7 @@ export function sequenceToBlueprint(
 		const { topBoxY, bottomBoxY } = lifecycles[i]
 		const shared = {
 			kind: actor.type,
-			label: actor.description || actor.name || key,
+			label: getActorLabel(actors, key),
 			x,
 			w,
 			h,
@@ -999,11 +1025,10 @@ export function sequenceToBlueprint(
 
 			const svgNote = svgNoteRects[svgNoteIndex++]
 			const noteHeight = svgNote?.h ?? FALLBACK_NOTE_HEIGHT
-			const longestLine = label
-				? Math.max(...label.split(NOTE_LINE_BREAK).map((line) => line.trim().length))
-				: 0
-			const textWidth = longestLine ? longestLine * NOTE_CHAR_WIDTH + NOTE_TEXT_PADDING : 0
-			const baseWidth = Math.max(svgNote?.w ?? FALLBACK_NOTE_WIDTH, textWidth)
+			const baseWidth = Math.max(
+				svgNote?.w ?? FALLBACK_NOTE_WIDTH,
+				label ? measureLabelWidth(label, 's') : 0
+			)
 			const noteWidth = isSpanning
 				? Math.max(baseWidth, Math.abs(toCenterX - fromCenterX) + NOTE_PADDING)
 				: baseWidth

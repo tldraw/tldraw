@@ -63,6 +63,69 @@ describe('layout parsing tolerates mermaid >= 11.15 prefixed ids', () => {
 		expect(layout.edges).toHaveLength(1)
 	})
 
+	it("splits an edge id at the underscore that names two of the diagram's nodes", () => {
+		// `L_my_node_other_node_0` could start at `my` or `my_node`; only the nodes say which. Getting
+		// it wrong leaves the edge without usable ids, and parallel edges back on proximity (#10794).
+		const svg = svgFromString(`
+			<svg id="mermaid-0">
+				${nodeMarkup('mermaid-0-flowchart-my_node-0')}
+				${nodeMarkup('mermaid-0-flowchart-other_node-1')}
+				${edgeMarkup('L_my_node_other_node_0', [
+					[0, 0],
+					[100, 0],
+				])}
+			</svg>
+		`)
+		const layout = parseFlowchartLayout(svg)
+		expect(layout.edges.map((e) => [e.start, e.end])).toEqual([['my_node', 'other_node']])
+	})
+
+	it('splits an ambiguous edge id by which pair of nodes the path runs between', () => {
+		// With all four of these nodes, `L_a_b_c_0` could join `a` to `b_c` or `a_b` to `c`. Picking
+		// whichever comes first hands the path to the wrong edge, the mix-up this matching exists to
+		// avoid (#10794).
+		const positioned = (domId: string, x: number, y: number) =>
+			`<g class="node" id="${domId}" transform="translate(${x},${y})"><rect width="80" height="40" /></g>`
+		const svg = svgFromString(`
+			<svg id="mermaid-0">
+				${positioned('mermaid-0-flowchart-a-0', 0, 0)}
+				${positioned('mermaid-0-flowchart-b_c-1', 300, 0)}
+				${positioned('mermaid-0-flowchart-a_b-2', 0, 200)}
+				${positioned('mermaid-0-flowchart-c-3', 300, 200)}
+				${edgeMarkup('L_a_b_c_0', [
+					[20, 200],
+					[280, 200],
+				])}
+			</svg>
+		`)
+		const layout = parseFlowchartLayout(svg)
+		expect(layout.edges.map((e) => [e.start, e.end])).toEqual([['a_b', 'c']])
+	})
+
+	it('splits an edge id onto a subgraph, which an edge can end on too', () => {
+		// Mermaid links subgraphs as well as nodes (`L_A_grp_0`), so a split naming one is as real as a
+		// split naming two nodes. Skipping them hands the path to whichever pair of nodes also splits
+		// the id, which is the mix-up this matching exists to avoid (#10794).
+		const positioned = (domId: string, x: number, y: number) =>
+			`<g class="node" id="${domId}" transform="translate(${x},${y})"><rect width="80" height="40" /></g>`
+		const svg = svgFromString(`
+			<svg id="mermaid-0">
+				<g class="cluster" id="mermaid-0-a_b" transform="translate(0,0)">
+					<rect x="0" y="180" width="80" height="40" />
+				</g>
+				${positioned('mermaid-0-flowchart-a-0', 0, 0)}
+				${positioned('mermaid-0-flowchart-b_c-1', 300, 0)}
+				${positioned('mermaid-0-flowchart-c-2', 300, 200)}
+				${edgeMarkup('L_a_b_c_0', [
+					[40, 200],
+					[280, 200],
+				])}
+			</svg>
+		`)
+		const layout = parseFlowchartLayout(svg)
+		expect(layout.edges.map((e) => [e.start, e.end])).toEqual([['a_b', 'c']])
+	})
+
 	it('still parses bare ids from older mermaid versions', () => {
 		const svg = svgFromString(`
 			<svg>
@@ -177,6 +240,50 @@ describe('sequence row parsing', () => {
 		// Halfway between the header and the footer before stretching, and after it too.
 		const headerBottom = actorLayouts[0].y + 65
 		expect(rowYs.get(0)).toBeCloseTo((headerBottom + actorLayouts[0].bottomY) / 2)
+	})
+
+	it('measures the diagram past a created or destroyed participant', () => {
+		// mermaid draws a destroyed participant's bottom box on its destruction row and a created
+		// participant's top box on its creation row, both mid-diagram. Measuring the header-to-footer
+		// gap from one of those reports a far shorter diagram than mermaid drew, and the stretch that
+		// compensates then leaves every surviving lifeline too long.
+		function layoutFor(topYs: number[], bottomYs: number[]) {
+			const actors = topYs
+				.map(
+					(topY, i) =>
+						`<rect class="actor actor-top" x="${i * 200}" y="${topY}" width="150" height="65" />
+						<rect class="actor actor-bottom" x="${i * 200}" y="${bottomYs[i]}" width="150" height="65" />`
+				)
+				.join('')
+			const svg = svgFromString(`
+				<svg>
+					${actors}
+					<line data-et="message" data-id="i0" x1="75" y1="182.5" x2="275" y2="182.5" />
+				</svg>
+			`)
+			return parseSequenceLayout(svg, 3, 1)
+		}
+		function lifelineLengths(topYs: number[], bottomYs: number[]) {
+			return layoutFor(topYs, bottomYs).actorLayouts.map((l) => l.bottomY - (l.y + l.h))
+		}
+
+		// 500 - 65 clears MIN_VERTICAL_GAP, so nothing is stretched and each lifeline runs the
+		// diagram's full height less the header box and its padding.
+		const full = 500 - 65 - 10
+		expect(lifelineLengths([0, 0, 0], [500, 500, 500])).toEqual([full, full, full])
+
+		// A participant destroyed on row 150 keeps its own short lifeline; the others are untouched.
+		expect(lifelineLengths([0, 0, 0], [500, 150, 500])).toEqual([full, 150 - 65 - 10, full])
+
+		// A participant created on row 150 starts late, and again the others are untouched.
+		expect(lifelineLengths([0, 150, 0], [500, 500, 500])).toEqual([full, 500 - 150 - 65 - 10, full])
+
+		// 300 - 65 falls short of MIN_VERTICAL_GAP, so this one is stretched. The mid-diagram boxes
+		// take the same share of that stretch as the row they sit on, which is the message at 182.5.
+		const destroyed = layoutFor([0, 0, 0], [300, 182.5, 300])
+		expect(destroyed.actorLayouts[1].bottomY).toBeCloseTo(destroyed.rowYs.get(0)!)
+		const created = layoutFor([0, 182.5, 0], [300, 300, 300])
+		expect(created.actorLayouts[1].y).toBeCloseTo(created.rowYs.get(0)!)
 	})
 
 	it("reads every row and frame from the installed mermaid's own rendering", async () => {

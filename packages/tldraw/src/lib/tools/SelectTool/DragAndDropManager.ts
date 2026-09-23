@@ -131,7 +131,7 @@ export class DragAndDropManager {
 	}
 
 	clear() {
-		clearInterval(this.intervalTimerId)
+		this.editor.timers.clearInterval(this.intervalTimerId)
 		this.intervalTimerId = -1
 
 		this.initialParentIds.clear()

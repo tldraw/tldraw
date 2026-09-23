@@ -66,7 +66,7 @@ import {
 	isCommentReactionFkViolation,
 	isCommentThreadFkViolation,
 	isCommentThreadIdFkViolation,
-	liveCommentDocuments,
+	loadCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
 	planCommentDrain,
@@ -108,6 +108,7 @@ import { EventData, writeDataPoint } from './utils/analytics'
 import { arrayBufferToBase64 } from './utils/base64'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
+import { LOAD_ID_PARAM, parseLoadId } from './utils/loadId'
 import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
@@ -389,6 +390,7 @@ export class TLFileDurableObject extends DurableObject {
 							ws.serializeAttachment({ ...attachment, snapshot })
 						},
 						onSessionRemoved: async (room, args) => {
+							this._pendingFirstLoadEchoes.delete(args.sessionId)
 							this.logEvent({
 								type: 'client',
 								name: 'leave',
@@ -410,18 +412,28 @@ export class TLFileDurableObject extends DurableObject {
 							// make sure nobody joined the room while we were persisting
 							if (room.getNumActiveSessions() > 0) return
 							this._room = null
+							this.dropBootTimings()
 							room.close()
 							this.logEvent({ type: 'room', name: 'room_empty' })
 							await this._pool?.end()
 							this._pool = null
 							this._db = null
 						},
-						onBeforeSendMessage: ({ message, stringified }) => {
+						onBeforeSendMessage: ({ sessionId, message, stringified }) => {
 							this.logEvent({
 								type: 'send_message',
 								messageType: message.type,
 								messageLength: stringified.length,
 							})
+							if (message.type === 'connect') {
+								const echo = this._pendingFirstLoadEchoes.get(sessionId)
+								if (echo) {
+									this._pendingFirstLoadEchoes.delete(sessionId)
+									// Deferred: this hook runs before the connect response goes out, and sending
+									// here would put the echo ahead of it on the wire.
+									setTimeout(() => room.sendCustomMessage(sessionId, echo), 0)
+								}
+							}
 						},
 						// Record object-lane (comment) changes in the durable outbox as soon as they
 						// commit and push them to Postgres (not on the throttled R2 persist) so Zero
@@ -469,7 +481,10 @@ export class TLFileDurableObject extends DurableObject {
 				.catch((error) => {
 					// Never cache a rejection: the condition may heal, and a cached rejection
 					// makes every later retry fail instantly.
-					if (this._room === promise) this._room = null
+					if (this._room === promise) {
+						this._room = null
+						this.dropBootTimings()
+					}
 					this.setBootStage(null)
 					throw error
 				})
@@ -939,7 +954,7 @@ export class TLFileDurableObject extends DurableObject {
 
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
 	_fileRecordCache: TlaFile | null = null
-	async getAppFileRecord(): Promise<TlaFile | null> {
+	async getAppFileRecord(loadIdBlobs?: string[]): Promise<TlaFile | null> {
 		const timer = this.timer()
 		try {
 			const result = await retry(
@@ -966,10 +981,10 @@ export class TLFileDurableObject extends DurableObject {
 				{ attempts: 20, waitDuration: 100 }
 			)
 
-			timer.report('get_file_record')
+			timer.report('get_file_record', loadIdBlobs)
 			return result
 		} catch (e) {
-			timer.report('get_file_record_error')
+			timer.report('get_file_record_error', loadIdBlobs)
 			if (e instanceof FileRecordNotFoundError) return null
 			// Query errors are infra failures, not absence: bubble so callers retry
 			// instead of treating the room as nonexistent.
@@ -992,7 +1007,10 @@ export class TLFileDurableObject extends DurableObject {
 		// only accept a plain epoch-ms number — anything else (empty, non-numeric, absurdly long)
 		// is treated the same as an absent param rather than recorded verbatim.
 		const clientBuildTimestamp = /^\d{1,16}$/.test(params.v ?? '') ? params.v : undefined
+		const loadId = parseLoadId(params[LOAD_ID_PARAM])
+		const loadIdBlobs = this.loadIdBlobs(loadId)
 		const isNewSession = !this._room
+		if (isNewSession) this._bootLoadId = loadId
 
 		// Create the websocket pair for the client; use hibernation API
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
@@ -1016,6 +1034,7 @@ export class TLFileDurableObject extends DurableObject {
 		// now that those failures bubble instead of being swallowed. An uncaught throw here would
 		// 500 with the accepted server socket leaked in the hibernation set, so catch broadly and
 		// close it instead.
+		const echoTimings: { auth?: number; fileRecord?: number } = {}
 		let auth: Awaited<ReturnType<typeof getAuth>>
 		try {
 			if (this.documentInfo.deleted) {
@@ -1024,11 +1043,13 @@ export class TLFileDurableObject extends DurableObject {
 
 			const authTimer = this.timer()
 			auth = await getAuth(req, this.env)
-			authTimer.report('on_request_auth')
+			echoTimings.auth = authTimer.report('on_request_auth', loadIdBlobs)
 
 			if (this.documentInfo.isApp) {
 				openMode = ROOM_OPEN_MODE.READ_WRITE
-				const file = await this.getAppFileRecord()
+				const fileRecordStart = Date.now()
+				const file = await this.getAppFileRecord(loadIdBlobs)
+				echoTimings.fileRecord = Date.now() - fileRecordStart
 
 				if (file) {
 					if (file.isDeleted) {
@@ -1065,7 +1086,7 @@ export class TLFileDurableObject extends DurableObject {
 							return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
 						}
 					}
-					rateLimitTimer.report('on_request_rate_limit')
+					rateLimitTimer.report('on_request_rate_limit', loadIdBlobs)
 
 					// Check if user has owner access (directly or via group membership)
 					let hasOwnerAccess = false
@@ -1076,7 +1097,7 @@ export class TLFileDurableObject extends DurableObject {
 						if (can(role, 'accessFiles')) {
 							hasOwnerAccess = true
 						}
-						groupCheckTimer.report('on_request_group_check')
+						groupCheckTimer.report('on_request_group_check', loadIdBlobs)
 					}
 
 					if (!hasOwnerAccess && !file.shared) {
@@ -1127,7 +1148,7 @@ export class TLFileDurableObject extends DurableObject {
 
 			const getRoomTimer = this.timer()
 			const room = await this.getRoom()
-			getRoomTimer.report('on_request_get_room')
+			const getRoomMs = getRoomTimer.report('on_request_get_room', loadIdBlobs)
 
 			// Don't connect if we're already at max connections
 			if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
@@ -1156,7 +1177,26 @@ export class TLFileDurableObject extends DurableObject {
 				clientBuildTimestamp,
 			})
 
-			requestTimer.report('on_request_total')
+			const totalMs = requestTimer.report('on_request_total', loadIdBlobs)
+
+			if (loadId) {
+				const boot = isNewSession ? this._bootTimings : {}
+				// Parked, not sent: the session is still awaiting its connect handshake here, and the
+				// room drops messages to sessions that are not yet Connected. onBeforeSendMessage
+				// releases it when the connect response goes out.
+				this._pendingFirstLoadEchoes.set(sessionId, {
+					type: 'first_load_server',
+					loadId,
+					cold: isNewSession,
+					auth_ms: echoTimings.auth,
+					file_record_ms: echoTimings.fileRecord,
+					get_room_ms: getRoomMs,
+					total_ms: totalMs,
+					boot_r2_ms: boot.r2,
+					boot_comments_ms: boot.comments,
+					boot_total_ms: boot.total,
+				})
+			}
 
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		} catch (e) {
@@ -1387,7 +1427,10 @@ export class TLFileDurableObject extends DurableObject {
 			}
 			case 'room': {
 				if (event.name === 'room_start') {
-					this.writeEvent(event.name, { doubles: [event.resumedSockets] })
+					this.writeEvent(event.name, {
+						doubles: [event.resumedSockets],
+						blobs: this.bootLoadIdBlobs(),
+					})
 				} else {
 					this.writeEvent(event.name, {})
 				}
@@ -1573,6 +1616,7 @@ export class TLFileDurableObject extends DurableObject {
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
 	async loadFromDatabase(slug: string): Promise<DBLoadResult> {
 		const loadTimer = this.timer()
+		this._bootTimings = {}
 		try {
 			const key = getR2KeyForRoom({ slug, isApp: this.documentInfo.isApp })
 
@@ -1588,7 +1632,7 @@ export class TLFileDurableObject extends DurableObject {
 			const r2FetchTimer = this.timer()
 			this.setBootStage('storage-load:r2')
 			const roomFromBucket = await this.r2.rooms.get(key)
-			r2FetchTimer.report('db_load_r2_fetch')
+			this._bootTimings.r2 = r2FetchTimer.report('db_load_r2_fetch', this.bootLoadIdBlobs())
 
 			if (roomFromBucket) {
 				const snapshot = (await roomFromBucket.json()) as RoomSnapshot
@@ -1602,7 +1646,7 @@ export class TLFileDurableObject extends DurableObject {
 					mergeCommentDocumentsIntoSnapshot(snapshot, await this.awaitComments(commentsPromise))
 				}
 
-				loadTimer.report('db_load_total')
+				this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 
 				return {
 					snapshot,
@@ -1612,7 +1656,7 @@ export class TLFileDurableObject extends DurableObject {
 
 			if (this._fileRecordCache?.createSource) {
 				const res = await this.loadFromCreateSource(commentsPromise)
-				loadTimer.report('db_load_total')
+				this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 				return res
 			}
 
@@ -1622,7 +1666,7 @@ export class TLFileDurableObject extends DurableObject {
 				const file = await this.getAppFileRecord()
 
 				if (!file) {
-					loadTimer.report('db_load_total')
+					this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 					throw new RoomNotFoundError(slug)
 				}
 
@@ -1632,7 +1676,7 @@ export class TLFileDurableObject extends DurableObject {
 				// and the R2 blob then means `createSource` is never consulted again.
 				if (file.createSource) {
 					const res = await this.loadFromCreateSource(commentsPromise)
-					loadTimer.report('db_load_total')
+					this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 					return res
 				}
 
@@ -1644,7 +1688,7 @@ export class TLFileDurableObject extends DurableObject {
 				const comments = await this.awaitComments(assertExists(commentsPromise))
 				mergeCommentDocumentsIntoSnapshot(snapshot, comments)
 
-				loadTimer.report('db_load_total')
+				this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 
 				return {
 					snapshot,
@@ -1670,19 +1714,19 @@ export class TLFileDurableObject extends DurableObject {
 			if (error) {
 				this.logEvent({ type: 'room', name: 'failed_load_from_db' })
 
-				loadTimer.report('db_load_total')
+				this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 
 				console.error('failed to retrieve document', slug, error)
 				throw new Error(error.message)
 			}
 			// if it didn't find a document, data will be an empty array
 			if (data.length === 0) {
-				loadTimer.report('db_load_total')
+				this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 				throw new RoomNotFoundError(slug)
 			}
 
 			const roomFromSupabase = data[0] as PersistedRoomSnapshotForSupabase
-			loadTimer.report('db_load_total')
+			this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
 
 			return {
 				snapshot: roomFromSupabase.drawing,
@@ -1691,7 +1735,7 @@ export class TLFileDurableObject extends DurableObject {
 		} catch (error) {
 			this.logEvent({ type: 'room', name: 'failed_load_from_db' })
 
-			loadTimer.report('db_load_total_error')
+			loadTimer.report('db_load_total_error', this.bootLoadIdBlobs())
 
 			console.error('failed to fetch doc', slug, error)
 			throw error
@@ -1699,30 +1743,53 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	private async loadCommentsFromPostgres(): Promise<CommentLoadResult> {
-		const fileId = this.documentInfo.slug
 		// Timed here rather than at the merge-point await so the event is query latency, not the
 		// residual wait after the overlapping R2 fetch (which would read ~0 whenever R2 is slower).
 		const commentsTimer = this.timer()
-		const [threadRows, commentRows, reactionRows] = await Promise.all([
-			this.db.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll().execute(),
-			this.db.selectFrom('comment').where('fileId', '=', fileId).selectAll().execute(),
-			this.db.selectFrom('comment_reaction').where('fileId', '=', fileId).selectAll().execute(),
-		])
-		commentsTimer.report('db_load_comments')
-		// Soft-deleted threads and their comments never re-enter a room, and neither do reactions
-		// whose comment doesn't; their rows stay in Postgres only (see liveCommentDocuments).
-		return liveCommentDocuments(threadRows, commentRows, reactionRows)
+		const result = await loadCommentDocuments(this.db, this.documentInfo.slug)
+		this._bootTimings.comments = commentsTimer.report('db_load_comments', this.bootLoadIdBlobs())
+		return result
+	}
+
+	// The load id of the request that booted this room, so the boot-time timers (db_load_*,
+	// room_start) can be joined to that client's first_load event. Later connects don't boot.
+	private _bootLoadId: string | undefined
+
+	// Request timers take the connecting client's own id; boot timers take the id of the client
+	// whose connect booted the room. Kept separate on purpose: a request without an id must not
+	// borrow the booting visitor's.
+	private loadIdBlobs(loadId: string | undefined): string[] | undefined {
+		return loadId ? [loadId] : undefined
+	}
+
+	private bootLoadIdBlobs(): string[] | undefined {
+		return this.loadIdBlobs(this._bootLoadId)
 	}
 
 	timer() {
 		const start = Date.now()
 		return {
-			report: (name: string) => {
-				this.writeEvent(name, {
-					doubles: [Date.now() - start],
-				})
+			// blobs are appended after the event name and worker name; each timer event's positional
+			// layout is otherwise unchanged, so a load id in blob3 is safe for existing queries.
+			report: (name: string, blobs?: string[]) => {
+				const ms = Date.now() - start
+				this.writeEvent(name, { doubles: [ms], blobs })
+				return ms
 			},
 		}
+	}
+
+	// Stage durations of the most recent storage load, echoed to the client that booted the room.
+	private _bootTimings: { r2?: number; comments?: number; total?: number } = {}
+
+	// first_load_server messages waiting for their session's connect handshake to complete.
+	private _pendingFirstLoadEchoes = new Map<string, TLCustomServerEvent>()
+
+	// Called wherever the room is dropped. A reopen from retained storage skips loadFromDatabase
+	// (the only writer), so without this the next booting client would be echoed the old numbers.
+	private dropBootTimings() {
+		this._bootTimings = {}
+		this._bootLoadId = undefined
 	}
 
 	_lastPersistedClock: number | null = null
@@ -3181,6 +3248,7 @@ export class TLFileDurableObject extends DurableObject {
 			await this.closeAllSocketsForDelete()
 			// setting _room to null will prevent any further persists from going through
 			this._room = null
+			this.dropBootTimings()
 			// The cached storage handle points at SQLite that deleteAll() drops below.
 			this._storage = null
 			// delete should be handled by the delete endpoint now
@@ -3424,6 +3492,7 @@ export class TLFileDurableObject extends DurableObject {
 			// Without this the closing sessions' last-out persist re-uploads the snapshot to the keys
 			// deleted below.
 			this._room = null
+			this.dropBootTimings()
 			const slug = this.documentInfo.slug
 			const roomKey = getR2KeyForRoom({ slug, isApp: false })
 

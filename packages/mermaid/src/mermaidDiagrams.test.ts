@@ -8,7 +8,7 @@ import {
 	defaultMermaidNodeRenderSpec,
 	resolveMermaidNodeRender,
 } from './defaultMermaidNodeRenderSpec'
-import { flowchartToBlueprint } from './flowchartDiagram'
+import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
 import {
 	MERMAID_MINDMAP_NODE_TYPE,
 	mindmapToBlueprint,
@@ -133,6 +133,88 @@ function expectResolvedRender(
 // ---------------------------------------------------------------------------
 
 describe('flowchartToBlueprint', () => {
+	it('gives each edge between the same two nodes the path mermaid drew for it', () => {
+		// Mermaid fans parallel edges out and draws them in source order. Their ends all sit on the
+		// same two nodes, so matching by proximity gave the first edge the middle path, whose ends lie
+		// nearest both centers, and pushed the rest along (#10794).
+		const layout = diagramLayout(
+			[node('A', 20, 20, 40, 40), node('B', 220, 20, 40, 40)],
+			[],
+			[
+				edge('A', 'B', [
+					[40, 2],
+					[120, -30],
+					[200, 2],
+				]),
+				edge('A', 'B', [
+					[40, 20],
+					[120, 20],
+					[200, 20],
+				]),
+				edge('A', 'B', [
+					[40, 38],
+					[120, 70],
+					[200, 38],
+				]),
+			]
+		)
+		const vertices = new Map([vertex('A'), vertex('B')])
+
+		const bp = flowchartToBlueprint(layout, vertices, [
+			flowEdge('A', 'B', { text: 'one' }),
+			flowEdge('A', 'B', { text: 'two' }),
+			flowEdge('A', 'B', { text: 'three' }),
+		])
+
+		const bends = bp.edges.map((e) => Math.round(e.bend ?? 0))
+		expect(bends[1]).toBeCloseTo(0)
+		expect(bends[0]).toBeLessThan(0)
+		expect(bends[2]).toBeCloseTo(-bends[0])
+	})
+
+	it('names each path after the nodes it joins, in source order, in the installed mermaid', async () => {
+		// What the test above relies on to claim the right path. A mermaid upgrade that renames paths
+		// or reorders them leaves that test green while every parallel edge takes someone else's curve
+		// again, because the ids stop matching and claiming falls back to proximity.
+		const svgPrototype = SVGElement.prototype as any
+		// jsdom lays out no text; mermaid only needs some size for it to render.
+		svgPrototype.getBBox = function () {
+			return { x: 0, y: 0, width: (this.textContent ?? '').length * 8, height: 16 }
+		}
+		svgPrototype.getComputedTextLength = function () {
+			return (this.textContent ?? '').length * 8
+		}
+		try {
+			const mermaid = (await import('mermaid')).default
+			mermaid.initialize({ startOnLoad: false })
+			const source = `flowchart LR
+    A -->|one| B
+    A -->|two| B
+    A -->|three| B`
+			// The id shape a conversion renders with: mermaid prefixes every element id with it, and
+			// the parsers only strip a `mermaid-<n>-` prefix.
+			const { svg } = await mermaid.render('mermaid-0', source)
+			const container = document.createElement('div')
+			container.innerHTML = svg
+
+			const layout = parseFlowchartLayout(container.querySelector('svg')!)
+
+			expect(layout.edges.map((e) => [e.start, e.end])).toEqual([
+				['A', 'B'],
+				['A', 'B'],
+				['A', 'B'],
+			])
+			// Each path's label names the edge it was drawn for, so labels in path order are source order.
+			const labelledInPathOrder = layout.edges.map(
+				(e) => container.querySelector(`.edgeLabel .label[data-id="${e.id}"]`)?.textContent
+			)
+			expect(labelledInPathOrder).toEqual(['one', 'two', 'three'])
+		} finally {
+			delete svgPrototype.getBBox
+			delete svgPrototype.getComputedTextLength
+		}
+	})
+
 	it('maps nodes with correct id, label, default geo render spec, and positions', () => {
 		const layout = diagramLayout([node('A', 100, 50, 80, 40), node('B', 100, 150, 60, 60)])
 		const vertices = new Map([
@@ -403,6 +485,23 @@ describe('flowchartToBlueprint', () => {
 
 		const bp = flowchartToBlueprint(layout, vertices, edges)
 		expect(bp.edges[0].dash).toBe('dotted')
+	})
+
+	it('sizes edges like their nodes, heavier only when thick or styled 2px or wider', () => {
+		const layout = twoNodeLayout()
+		const vertices = new Map([vertex('A'), vertex('B')])
+		const blueprint = (opts: Partial<FlowEdge> = {}) =>
+			flowchartToBlueprint(layout, vertices, [flowEdge('A', 'B', opts)])
+		const edgeSize = (opts: Partial<FlowEdge>) => blueprint(opts).edges[0].size
+
+		expect({
+			node: findNode(blueprint(), 'A')!.size,
+			normal: edgeSize({}),
+			thick: edgeSize({ stroke: 'thick' }),
+			'0.5px': edgeSize({ style: ['stroke-width: 0.5px'] }),
+			'1px': edgeSize({ style: ['stroke-width: 1px'] }),
+			'2px': edgeSize({ style: ['stroke-width: 2px'] }),
+		}).toEqual({ node: 'm', normal: 'm', thick: 'l', '0.5px': 's', '1px': 'm', '2px': 'l' })
 	})
 
 	it('maps double_arrow edge type to bidirectional arrowheads', () => {
@@ -862,25 +961,57 @@ describe('sequenceToBlueprint', () => {
 		})
 	})
 
-	it('sizes a multi-line note from its longest line', () => {
-		// Mermaid's own rect is narrow enough that the text estimate decides the width.
-		const widthOf = (message: string) => {
-			const layout = actorLayout([-150, 150], [{ x: 10, y: 50, w: 40, h: 40 }])
+	// Stands in for tldraw's text measurement, which jsdom can't do.
+	const measureWidths =
+		(widths: Record<string, number>) =>
+		(label: string): number =>
+			widths[label] ?? 0
+
+	it("widens a note to fit its label in tldraw's font, against its lifeline", () => {
+		const noteOf = (width: number) => {
+			const layout = actorLayout([-150, 150], [{ x: 10, y: 50, w: 120, h: 40 }])
 			const actors = new Map([actor('Alice'), actor('John')])
 			const bp = sequenceToBlueprint(
 				layout,
 				actors,
 				['Alice', 'John'],
-				[noteMsg('Alice', message, PLACEMENT.RIGHTOF)]
+				[noteMsg('Alice', 'A note', PLACEMENT.RIGHTOF)],
+				new Map(),
+				new Map(),
+				measureWidths({ 'A note': width })
 			)
-			return bp.nodes.find((n) => n.id.startsWith('note-'))!.w
+			const { x, w } = bp.nodes.find((n) => n.id.startsWith('note-'))!
+			return { x, w }
 		}
 
-		// Same longest line, split three ways: measuring the whole label instead would size
-		// the second note as though all three lines ran end to end.
-		expect(widthOf('short<br/>the longest line in the note<br/>tiny')).toBe(
-			widthOf('the longest line in the note')
+		// Alice's lifeline is at -100; a right-of note starts just past it however wide it grows.
+		expect(noteOf(400)).toEqual({ x: -95, w: 400 })
+		expect(noteOf(80)).toEqual({ x: -95, w: 120 })
+	})
+
+	it("widens an actor to fit its label in tldraw's font, keeping the gaps beside it", () => {
+		const layout = actorLayout([-300, 0, 300])
+		const actors = new Map([actor('A'), actor('Long name'), actor('C')])
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['A', 'Long name', 'C'],
+			[msg(LINETYPE.SOLID, 'A', 'C', 'Hi')],
+			new Map(),
+			new Map(),
+			measureWidths({ 'Long name': 300 })
 		)
+
+		const boxes = ['A', 'Long name', 'C'].map((key) => {
+			const { x, w } = findNode(bp, `actor-top-${key}`)!
+			return { x, w }
+		})
+		// Each box was 100 wide with 200 between neighbors.
+		expect(boxes).toEqual([
+			{ x: -300, w: 100 },
+			{ x: 0, w: 300 },
+			{ x: 500, w: 100 },
+		])
 	})
 
 	it('creates note nodes with yellow color and correct labels', () => {
