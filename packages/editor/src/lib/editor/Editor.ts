@@ -168,6 +168,16 @@ import {
 } from './kernels/content'
 import { getCulledShapeIds } from './kernels/culling'
 import {
+	classifyClosedShapeHit,
+	classifyFrameLikeHit,
+	createHitRanking,
+	getBestHit,
+	getBestOpenShapeHit,
+	getDistanceToGeometry,
+	offerHollowHit,
+	offerMarginHit,
+} from './kernels/hitTest'
+import {
 	getAlignLayout,
 	getDistributeLayout,
 	getPackLayout,
@@ -5625,11 +5635,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const [innerMargin, outerMargin] = Array.isArray(margin) ? margin : [margin, margin]
 
-		let inHollowSmallestArea = Infinity
-		let inHollowSmallestAreaHit: TLShape | null = null
-
-		let inMarginClosestToEdgeDistance = Infinity
-		let inMarginClosestToEdgeHit: TLShape | null = null
+		const ranking = createHitRanking<TLShape>()
 
 		// Use larger margin for spatial search to account for edge distance checks
 		const searchMargin = Math.max(innerMargin, outerMargin, this.getHitTestMargin())
@@ -5681,120 +5687,67 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (isShapeFrameLike) {
 				// On the rare case that we've hit a frame-like shape (not its label), test again hitInside to be forced true;
 				// this prevents clicks from passing through the body of a frame to shapes behind it.
+				const frameHit = classifyFrameLikeHit(geometry, pointInShapeSpace, {
+					innerMargin,
+					outerMargin,
+					hitFrameInside,
+				})
 
 				// If the hit is within the frame's outer margin, then select the frame
-				const distance = geometry.distanceToPoint(pointInShapeSpace, hitFrameInside)
-				if (
-					hitFrameInside
-						? (distance > 0 && distance <= outerMargin) ||
-							(distance <= 0 && distance > -innerMargin)
-						: distance > 0 && distance <= outerMargin
-				) {
-					return inMarginClosestToEdgeHit || shape
-				}
+				if (frameHit === 'in-margin') return ranking.marginHit || shape
 
-				if (geometry.hitTestPoint(pointInShapeSpace, 0, true)) {
+				if (frameHit === 'body') {
 					// Once we've hit a frame, we want to end the search. If we have hit a shape
 					// already, then this would either be above the frame or a child of the frame,
 					// so we want to return that. Otherwise, the point is in the empty space of the
 					// frame. If `hitFrameInside` is true (e.g. used drawing an arrow into the
 					// frame) we the frame itself; other wise, (e.g. when hovering or pointing)
 					// we would want to return null.
-					return (
-						inMarginClosestToEdgeHit ||
-						inHollowSmallestAreaHit ||
-						(hitFrameInside ? shape : undefined)
-					)
+					return getBestHit(ranking) || (hitFrameInside ? shape : undefined)
 				}
+
 				continue
 			}
 
-			let distance: number
-
-			if (isGroup) {
-				let minDistance = Infinity
-				for (const childGeometry of geometry.children) {
-					if (childGeometry.isLabel && !hitLabels) continue
-
-					// hit test the all of the child geometries that aren't labels
-					const tDistance = childGeometry.distanceToPoint(pointInShapeSpace, hitInside)
-					if (tDistance < minDistance) {
-						minDistance = tDistance
-					}
-				}
-
-				distance = minDistance
-			} else {
-				// If the margin is zero and the geometry has a very small width or height,
-				// then check the actual distance. This is to prevent a bug where straight
-				// lines would never pass the broad phase (point-in-bounds) check.
-				if (outerMargin === 0 && (geometry.bounds.w < 1 || geometry.bounds.h < 1)) {
-					distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
-				} else {
-					// Broad phase
-					if (geometry.bounds.containsPoint(pointInShapeSpace, outerMargin)) {
-						// Narrow phase (actual distance)
-						distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
-					} else {
-						// Failed the broad phase, geddafugaotta'ere!
-						distance = Infinity
-					}
-				}
-			}
+			const distance = getDistanceToGeometry(geometry, pointInShapeSpace, {
+				isGroup,
+				hitLabels,
+				hitInside,
+				outerMargin,
+			})
 
 			if (geometry.isClosed) {
-				// For closed shapes, the distance will be positive if outside of
-				// the shape or negative if inside of the shape. If the distance
-				// is greater than the margin, then it's a miss. Otherwise...
+				const hit = classifyClosedShapeHit(geometry, pointInShapeSpace, distance, {
+					innerMargin,
+					outerMargin,
+					hitInside,
+					isGroup,
+					hasMarginHit: !!ranking.marginHit,
+				})
 
-				// Are we close to the shape's edge?
-				if (distance <= outerMargin || (hitInside && distance <= 0 && distance > -innerMargin)) {
-					if (geometry.isFilled || (isGroup && geometry.children[0].isFilled)) {
-						// If the geometry rejects this hit (e.g. transparent image pixel),
-						// skip this shape and check shapes behind it.
-						if (geometry.ignoreHit(pointInShapeSpace)) {
-							continue
-						}
-						// If the shape is filled, then it's a hit. Remember, we're
-						// starting from the TOP-MOST shape in z-index order, so any
-						// other hits would be occluded by the shape.
-						return inMarginClosestToEdgeHit || shape
-					} else {
-						// If we're close to the edge of the shape, and if it's the closest edge among
-						// all the edges that we've gotten close to so far, then we will want to hit the
-						// shape unless we hit something else or closer in later iterations.
-						if (
-							hitInside
-								? // On hitInside, the distance will be negative for hits inside
-									// If the distance is positive, check against the outer margin
-									(distance > 0 && distance <= outerMargin) ||
-									// If the distance is negative, check against the inner margin
-									(distance <= 0 && distance > -innerMargin)
-								: // If hitInside is false, then sadly _we do not know_ whether the
-									// point is inside or outside of the shape, so we check against
-									// the max of the two margins
-									Math.abs(distance) <= Math.max(innerMargin, outerMargin)
-						) {
-							if (Math.abs(distance) < inMarginClosestToEdgeDistance) {
-								inMarginClosestToEdgeDistance = Math.abs(distance)
-								inMarginClosestToEdgeHit = shape
-							}
-						} else if (!inMarginClosestToEdgeHit) {
-							// If the shape is bigger than the viewport, then skip it. (Only here: its
-							// edges should still be hittable within the margin.)
-							if (this.getShapePageBounds(shape)!.contains(viewportPageBounds)) continue
-
-							// If we're not within margin distance to any edge, and if the
-							// shape is hollow, then we want to hit the shape with the
-							// smallest area. (There's a bug here with self-intersecting
-							// shapes, like a closed drawing of an "8", but that's a bigger
-							// problem to solve.)
-							const { area } = geometry
-							if (area < inHollowSmallestArea) {
-								inHollowSmallestArea = area
-								inHollowSmallestAreaHit = shape
-							}
-						}
+				switch (hit.type) {
+					case 'filled': {
+						return ranking.marginHit || shape
+					}
+					case 'ignored': {
+						continue
+					}
+					case 'in-margin': {
+						offerMarginHit(ranking, shape, hit.distance)
+						break
+					}
+					case 'hollow': {
+						// If the shape is bigger than the viewport, then skip it. (Only here: its
+						// edges should still be hittable within the margin.)
+						if (this.getShapePageBounds(shape)!.contains(viewportPageBounds)) continue
+						offerHollowHit(ranking, shape, geometry.area)
+						break
+					}
+					case 'miss': {
+						break
+					}
+					default: {
+						throw exhaustiveSwitchError(hit, 'type')
 					}
 				}
 			} else {
@@ -5802,22 +5755,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the distance is less than the margin, return the shape as the hit.
 				// Use the editor's configurable hit test margin.
 				if (distance < this.getHitTestMargin()) {
-					// An edge we already hit (above this shape) that is at least as close still wins,
-					// matching the closest-edge rule used for hollow shapes
-					if (inMarginClosestToEdgeHit && inMarginClosestToEdgeDistance <= distance) {
-						return inMarginClosestToEdgeHit
-					}
-					return shape
+					return getBestOpenShapeHit(ranking, shape, distance)
 				}
 			}
 		}
 
-		// If we haven't hit any filled shapes or frames, then return either
-		// the shape who we hit within the margin (and of those, the one that
-		// had the shortest distance between the point and the shape edge),
-		// or else the hollow shape with the smallest area—or if we didn't hit
-		// any margins or any hollow shapes, then null.
-		return inMarginClosestToEdgeHit || inHollowSmallestAreaHit || undefined
+		return getBestHit(ranking)
 	}
 
 	/**
