@@ -130,7 +130,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 				latestWorkspaceName !== null &&
 				latestWorkspaceName !== initialWorkspaceName
 			) {
-				trackEventRef.current('rename-workspace', { source: 'workspace-settings' })
+				trackEventRef.current('rename-workspace', { source: 'workspace-settings', workspaceId })
 			}
 		}
 		// We intentionally capture the workspace name from the dialog's initial render.
@@ -177,7 +177,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 			app.showMutationRejectionToast(res.error)
 			return
 		}
-		trackEvent('set-workspace-invite-link-enabled', { source: 'workspace-settings', enabled })
+		trackEvent('set-workspace-invite-link-enabled', { source: 'workspace-settings', workspaceId, enabled })
 	}
 
 	const handleRegenerateInviteLink = async () => {
@@ -186,7 +186,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 			app.showMutationRejectionToast(res.error)
 			return
 		}
-		trackEvent('regenerate-workspace-invite-secret', { source: 'workspace-settings' })
+		trackEvent('regenerate-workspace-invite-secret', { source: 'workspace-settings', workspaceId })
 	}
 
 	// Read before the mutation: afterwards the file may already be gone from the local store.
@@ -208,7 +208,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 			app.showMutationRejectionToast(serverRes.error)
 			return
 		}
-		trackEvent('leave-workspace', { source: 'workspace-settings' })
+		trackEvent('leave-workspace', { source: 'workspace-settings', workspaceId })
 		onClose()
 		if (isCurrentlyOnAFileInThisWorkspace) {
 			navigate('/')
@@ -222,7 +222,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 			app.showMutationRejectionToast(res.error)
 			return
 		}
-		trackEvent('delete-workspace', { source: 'workspace-settings' })
+		trackEvent('delete-workspace', { source: 'workspace-settings', workspaceId })
 		onClose()
 		if (isCurrentlyOnAFileInThisWorkspace) {
 			navigate('/')
@@ -235,7 +235,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 			app.showMutationRejectionToast(res.error)
 			return
 		}
-		trackEvent('remove-workspace-member', { source: 'workspace-settings' })
+		trackEvent('remove-workspace-member', { source: 'workspace-settings', workspaceId })
 	}
 
 	const openRegenerateConfirmDialog = () => {
@@ -484,6 +484,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 																}
 																trackEvent('set-workspace-member-role', {
 																	source: 'workspace-settings',
+																	workspaceId,
 																	role: value,
 																})
 															}}

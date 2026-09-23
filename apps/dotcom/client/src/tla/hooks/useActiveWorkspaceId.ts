@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useValue } from 'tldraw'
+import { getActiveWorkspaceId } from '../../utils/analyticsWorkspace'
 import { useApp } from './useAppState'
 
 /**
@@ -13,17 +14,5 @@ import { useApp } from './useAppState'
 export function useActiveWorkspaceId() {
 	const app = useApp()
 	const { fileSlug } = useParams<{ fileSlug: string }>()
-	return useValue(
-		'activeWorkspaceId',
-		() => {
-			if (fileSlug) {
-				const file = app.getFile(fileSlug)
-				if (file?.owningGroupId && app.getWorkspaceMembership(file.owningGroupId)) {
-					return file.owningGroupId
-				}
-			}
-			return app.getHomeWorkspaceId()
-		},
-		[app, fileSlug]
-	)
+	return useValue('activeWorkspaceId', () => getActiveWorkspaceId(app, fileSlug), [app, fileSlug])
 }
