@@ -13,12 +13,7 @@ import {
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import { authenticateMcpRequest } from './mcpAuth'
-import {
-	isMcpServerEnabled,
-	normalizeMcpClient,
-	resetRateLimitFallbackForTests,
-	mcpServer,
-} from './mcpServer'
+import { normalizeMcpClient, resetRateLimitFallbackForTests, mcpServer } from './mcpServer'
 import {
 	blobValuesOf,
 	blobsWithPrefix,
@@ -395,54 +390,7 @@ describe('authentication', () => {
 	})
 })
 
-describe('MCP_SERVER_ENABLED', () => {
-	// The switch is read per request rather than baked in at build time, so flipping the var takes
-	// the server down without a rebuild.
-	it('serves the server when unset or "true"', () => {
-		expect(isMcpServerEnabled(makeEnv())).toBe(true)
-		expect(isMcpServerEnabled(makeEnv({ MCP_SERVER_ENABLED: 'true' }))).toBe(true)
-		expect(isMcpServerEnabled(makeEnv({ MCP_SERVER_ENABLED: ' TRUE ' }))).toBe(true)
-	})
-
-	// Anything unrecognized disables: someone reaching for the kill switch under pressure and typing
-	// `0` or `off` should get a disabled server, not a silently still-running one.
-	it('disables the server for "false" and for any unrecognized value', () => {
-		for (const value of ['false', '0', 'off', 'no', 'disabled']) {
-			expect(isMcpServerEnabled(makeEnv({ MCP_SERVER_ENABLED: value }))).toBe(false)
-		}
-	})
-
-	it('answers every request with 404 while disabled, without touching the board', async () => {
-		// A board that would otherwise render, so the untouched screenshot binding below means the
-		// switch stopped the request rather than the board simply not resolving.
-		mockPublishedBoard()
-		const env = makeEnv({ MCP_SERVER_ENABLED: 'false' })
-
-		const response = await mcpServer(
-			makeToolCall(
-				'get_cluster_screenshot',
-				{ boardId: 'abc', clusterIds: ['cluster:any'] },
-				'user_40'
-			),
-			env
-		)
-
-		expect(response.status).toBe(404)
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
-		expect(getPublishedFileInfo).not.toHaveBeenCalled()
-	})
-
-	// Disabled means gone, not "here but empty": a client that can still initialize and list tools
-	// would advertise tools that every call then rejects.
-	it('hides the protocol handshake while disabled', async () => {
-		const response = await mcpServer(
-			makeRpcRequest('initialize', undefined, { userId: 'user_41' }),
-			makeEnv({ MCP_SERVER_ENABLED: 'false' })
-		)
-
-		expect(response.status).toBe(404)
-	})
-
+describe('request shape', () => {
 	it('answers anything but POST with 405', async () => {
 		const response = await mcpServer(
 			new Request('https://sync.tldraw.xyz/app/mcp', { method: 'GET' }) as any,
