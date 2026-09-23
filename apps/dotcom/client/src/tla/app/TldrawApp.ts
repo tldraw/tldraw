@@ -662,13 +662,22 @@ export class TldrawApp {
 		return this.userId
 	}
 
+	/**
+	 * A membership whose group row is missing is stale, not real. The comment feeds' access gate can
+	 * keep the caller's group_user row in the client store after they leave a workspace (Zero 1.9's
+	 * union fan-in drops the remove), while the group row, synced only by this query, is gone.
+	 * Counting it would block rejoining by invite and pass client-side role checks.
+	 */
 	@computed({ isEqual })
 	getWorkspaceMemberships() {
-		return this.workspaceMemberships$.get().slice(0).sort(sortByIndex)
+		return this.workspaceMemberships$
+			.get()
+			.filter((g) => g.group)
+			.sort(sortByIndex)
 	}
 
 	getWorkspaceMembership(workspaceId: string) {
-		return this.workspaceMemberships$.get().find((g) => g.groupId === workspaceId)
+		return this.getWorkspaceMemberships().find((g) => g.groupId === workspaceId)
 	}
 
 	getWorkspaceFilesSorted(workspaceId: string) {
