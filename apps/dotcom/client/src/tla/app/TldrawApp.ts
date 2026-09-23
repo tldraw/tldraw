@@ -459,7 +459,7 @@ export class TldrawApp {
 	/**
 	 * Materialize an ad-hoc Zero query into a live view the caller owns and must `destroy()`. For
 	 * parameterized, component-scoped queries (e.g. one file's comments) that shouldn't be
-	 * app-lifetime signals like {@link comments$}.
+	 * app-lifetime signals like {@link fileStates$}.
 	 */
 	materializeQuery<TReturn>(query: unknown) {
 		return this.z.materialize(query as any) as unknown as TypedView<TReturn>
