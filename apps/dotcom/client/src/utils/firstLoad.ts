@@ -369,7 +369,6 @@ export function summarizeNavigation(nav: PerformanceNavigationTiming) {
 		nav_protocol: nav.nextHopProtocol,
 		nav_redirect_count: nav.redirectCount,
 		nav_fetch_start: Math.round(nav.fetchStart),
-		nav_worker_ms: span(nav.workerStart, nav.fetchStart),
 		nav_dns_ms: span(nav.domainLookupStart, nav.domainLookupEnd),
 		nav_connect_ms: span(nav.connectStart, nav.connectEnd),
 		nav_server_ms: span(nav.requestStart, nav.responseStart),

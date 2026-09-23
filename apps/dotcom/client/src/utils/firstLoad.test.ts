@@ -327,7 +327,6 @@ describe('summarizeNavigation', () => {
 			nextHopProtocol: 'h3',
 			redirectCount: 0,
 			activationStart: 0,
-			workerStart: 0,
 			fetchStart: 5,
 			domainLookupStart: 5,
 			domainLookupEnd: 5,
@@ -360,17 +359,11 @@ describe('summarizeNavigation', () => {
 			nav_protocol: 'h3',
 			nav_redirect_count: 0,
 			nav_fetch_start: 120,
-			nav_worker_ms: 0,
 			nav_dns_ms: 30,
 			nav_connect_ms: 60,
 			nav_server_ms: 1501,
 			nav_activation_start: 0,
 		})
-	})
-
-	it('reports service worker startup only when a worker handled the navigation', () => {
-		expect(summarizeNavigation(nav()).nav_worker_ms).toBe(0)
-		expect(summarizeNavigation(nav({ workerStart: 10, fetchStart: 410 })).nav_worker_ms).toBe(400)
 	})
 
 	it('reports zero for phases the browser skipped or hid', () => {

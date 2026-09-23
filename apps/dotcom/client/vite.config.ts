@@ -67,12 +67,12 @@ function clerkJsPreloadPlugin(): Plugin {
 				{
 					tag: 'link',
 					attrs: { rel: 'preconnect', href: new URL(url).origin },
-					injectTo: 'head-prepend',
+					injectTo: 'head',
 				},
 				{
 					tag: 'link',
 					attrs: { rel: 'preload', as: 'script', href: url, crossorigin: 'anonymous' },
-					injectTo: 'head-prepend',
+					injectTo: 'head',
 				},
 			]
 		},
