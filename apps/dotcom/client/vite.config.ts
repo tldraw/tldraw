@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 import { config } from 'dotenv'
 import { defineConfig, Plugin } from 'vite'
 import { getMultiplayerServerURL } from './scripts/multiplayer-server-url'
+import { routePreloadPlugin } from './scripts/vite-route-preload-plugin'
 import {
 	thumbnailRenderEntryPlugin,
 	thumbnailScreenshotPlugin,
@@ -84,6 +85,13 @@ export default defineConfig((env) => ({
 			additionalComponentNames: ['F'],
 			ast: true,
 		}),
+		routePreloadPlugin(
+			[
+				'./src/tla/providers/TlaRootProviders.tsx',
+				'./src/tla/pages/file.tsx',
+				'./src/tla/pages/local.tsx',
+			].map((p) => fileURLToPath(new URL(p, import.meta.url)))
+		),
 	],
 	publicDir: './public',
 	resolve: {
