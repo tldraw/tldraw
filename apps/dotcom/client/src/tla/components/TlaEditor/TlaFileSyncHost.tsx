@@ -109,14 +109,6 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		}, []),
 	})
 
-	useEffect(() => {
-		if (store.status !== 'synced-remote') return
-		markFirstLoad('sync-connected')
-		// Written only once the room accepted us, so the cache never points at a file this account
-		// cannot open.
-		if (userId) setLastVisitedFile(userId, fileSlug)
-	}, [store.status, userId, fileSlug])
-
 	const navigate = useNavigate()
 	const location = useLocation()
 	const viaCache = !!location.state?.[VIA_LAST_FILE_CACHE]
@@ -131,6 +123,15 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	// A stale cached id falls back to the Zero-derived choice on `/`, without handing the errored
 	// store to the editor (it would throw into the route error page).
 	const fallBackToRoot = viaCache && (rejected || forgotten)
+
+	useEffect(() => {
+		if (store.status !== 'synced-remote') return
+		markFirstLoad('sync-connected')
+		// Written only once the room accepted us, so the cache never points at a file this account
+		// cannot open. A room that syncs while a fallback is already clearing it must not re-add it.
+		if (userId && !fallBackToRoot) setLastVisitedFile(userId, fileSlug)
+	}, [store.status, userId, fileSlug, fallBackToRoot])
+
 	useEffect(() => {
 		if (!fallBackToRoot) return
 		clearLastVisitedFile()
