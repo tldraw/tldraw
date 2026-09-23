@@ -87,10 +87,10 @@ import {
 	getIndicesAbove,
 	getIndicesBetween,
 	getOwnProperty,
+	groupBy,
 	hasOwnProperty,
 	last,
 	lerp,
-	minBy,
 	sortById,
 	sortByIndex,
 	structuredClone,
@@ -160,6 +160,41 @@ import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
+import { clampCameraZoom, constrainCamera, getFitZoom } from './kernels/camera'
+import { getCulledShapeIds } from './kernels/culling'
+import {
+	classifyClosedShapeHit,
+	classifyFrameLikeHit,
+	createHitRanking,
+	getBestHit,
+	getBestOpenShapeHit,
+	getDistanceToGeometry,
+	offerHollowHit,
+	offerMarginHit,
+} from './kernels/hitTest'
+import {
+	getAlignLayout,
+	getDistributeLayout,
+	getPackLayout,
+	getResizeToBoundsLayout,
+	getStackLayout,
+	getStretchLayout,
+} from './kernels/layout'
+import {
+	findNearestItemInDirection,
+	getAdjacentIndex,
+	sortIntoReadingOrder,
+} from './kernels/readingOrder'
+import {
+	getFiniteScale,
+	getLocalScale,
+	getMirroredRotation,
+	getPagePointForCenter,
+	isMirroredInOneAxis,
+	lockScaleToLargerAxis,
+	lockScaleToSmallerAxis,
+	scalePagePoint,
+} from './kernels/resize'
 import { ClickManager } from './managers/ClickManager/ClickManager'
 import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
@@ -340,11 +375,6 @@ export interface TLRenderingShape {
 }
 
 const RENDERING_SHAPES_SORT_CACHE_THRESHOLD = 100
-
-const AXIS = {
-	horizontal: { val: 'x', min: 'minX', max: 'maxX', dim: 'width' },
-	vertical: { val: 'y', min: 'minY', max: 'maxY', dim: 'height' },
-} as const
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
@@ -2306,18 +2336,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		let adjacentShapeId: TLShapeId
 		if (direction === 'next' || direction === 'prev') {
-			const shapeIds = readingOrderShapes.map((shape) => shape.id)
-			// Every candidate can be filtered out (e.g. a locked shape is selected and nothing
-			// else is unlocked); indexing an empty list would hand getShape undefined
-			if (shapeIds.length === 0) return
-
-			const currentIndex = currentShapeId ? shapeIds.indexOf(currentShapeId) : -1
-			// With no current index, stepping from -1 makes 'prev' land one shape
-			// before the last; seed it from 0 so it wraps to the last shape. See #10559.
-			const startIndex = currentIndex === -1 && direction === 'prev' ? 0 : currentIndex
-			const adjacentIndex =
-				(startIndex + (direction === 'next' ? 1 : -1) + shapeIds.length) % shapeIds.length
-			adjacentShapeId = shapeIds[adjacentIndex]
+			const currentIndex = currentShapeId
+				? readingOrderShapes.findIndex((shape) => shape.id === currentShapeId)
+				: -1
+			const adjacentIndex = getAdjacentIndex(readingOrderShapes.length, currentIndex, direction)
+			if (adjacentIndex === null) return
+			adjacentShapeId = readingOrderShapes[adjacentIndex].id
 		} else {
 			if (!currentShapeId) return
 			adjacentShapeId = this.getNearestAdjacentShape(filteredShapes, currentShapeId, direction)
@@ -2341,76 +2365,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _getShapesInReadingOrder(shapes: TLShape[]): TLShape[] {
-		const SHALLOW_ANGLE = 20
-		const ROW_THRESHOLD = 100
-
 		const tabbableShapes = shapes.filter((shape) => this.getShapeUtil(shape).canTabTo(shape))
 
 		if (tabbableShapes.length <= 1) return tabbableShapes
 
-		const shapesWithCenters = tabbableShapes.map((shape) => ({
-			shape,
-			center: this.getShapePageBounds(shape)!.center,
-		}))
-		shapesWithCenters.sort((a, b) => a.center.y - b.center.y)
-
-		const rows: Array<typeof shapesWithCenters> = []
-
-		// First, group shapes into rows based on y-coordinates.
-		for (const shapeWithCenter of shapesWithCenters) {
-			let rowIndex = -1
-			for (let i = rows.length - 1; i >= 0; i--) {
-				const row = rows[i]
-				const lastShapeInRow = row[row.length - 1]
-
-				// If the shape is close enough vertically to the last shape in this row.
-				if (Math.abs(shapeWithCenter.center.y - lastShapeInRow.center.y) < ROW_THRESHOLD) {
-					rowIndex = i
-					break
-				}
-			}
-
-			// If no suitable row found, create a new row.
-			if (rowIndex === -1) {
-				rows.push([shapeWithCenter])
-			} else {
-				rows[rowIndex].push(shapeWithCenter)
-			}
-		}
-
-		// Then, sort each row by x-coordinate (left-to-right).
-		for (const row of rows) {
-			row.sort((a, b) => a.center.x - b.center.x)
-		}
-
-		// Finally, apply angle/distance weight adjustments within rows for closely positioned shapes.
-		for (const row of rows) {
-			if (row.length <= 2) continue
-
-			for (let i = 0; i < row.length - 2; i++) {
-				const currentShape = row[i]
-				const nextShape = row[i + 1]
-				const nextNextShape = row[i + 2]
-
-				// Only consider adjustment if the next two shapes are relatively close to each other.
-				const dist1 = Vec.Dist2(currentShape.center, nextShape.center)
-				const dist2 = Vec.Dist2(currentShape.center, nextNextShape.center)
-
-				// Check if the 2nd shape is actually closer to the current shape.
-				if (dist2 < dist1 * 0.9) {
-					// Check if it's a shallow enough angle.
-					const angle = Math.abs(
-						Vec.Angle(currentShape.center, nextNextShape.center) * (180 / Math.PI)
-					)
-					if (angle <= SHALLOW_ANGLE) {
-						// Swap swap.
-						;[row[i + 1], row[i + 2]] = [row[i + 2], row[i + 1]]
-					}
-				}
-			}
-		}
-
-		return rows.flat().map((item) => item.shape)
+		return sortIntoReadingOrder(
+			tabbableShapes.map((shape) => ({
+				payload: shape,
+				center: this.getShapePageBounds(shape)!.center,
+			}))
+		)
 	}
 
 	/**
@@ -2423,7 +2387,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		currentShapeId: TLShapeId,
 		direction: 'left' | 'right' | 'up' | 'down'
 	): TLShapeId {
-		const directionToAngle = { right: 0, left: 180, down: 90, up: 270 }
 		const currentShape = this.getShape(currentShapeId)
 		if (!currentShape) return currentShapeId
 
@@ -2433,63 +2396,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!tabbableShapes.length) return currentShapeId
 
 		const currentCenter = this.getShapePageBounds(currentShape)!.center
-		const shapesWithCenters = tabbableShapes.map((shape) => ({
-			shape,
-			center: this.getShapePageBounds(shape)!.center,
-		}))
+		const nearest = findNearestItemInDirection(
+			tabbableShapes.map((shape) => ({
+				payload: shape,
+				center: this.getShapePageBounds(shape)!.center,
+			})),
+			currentCenter,
+			direction
+		)
 
-		// Filter shapes that are in the same direction.
-		const shapesInDirection = shapesWithCenters.filter(({ center }) => {
-			const isRight = center.x > currentCenter.x
-			const isDown = center.y > currentCenter.y
-			const xDist = center.x - currentCenter.x
-			const yDist = center.y - currentCenter.y
-			const isInXDirection = Math.abs(yDist) < Math.abs(xDist) * 2
-			const isInYDirection = Math.abs(xDist) < Math.abs(yDist) * 2
-			if (direction === 'left' || direction === 'right') {
-				return isInXDirection && (direction === 'right' ? isRight : !isRight)
-			}
-			if (direction === 'up' || direction === 'down') {
-				return isInYDirection && (direction === 'down' ? isDown : !isDown)
-			}
-		})
-
-		if (shapesInDirection.length === 0) return currentShapeId
-
-		// Ok, now score that subset of shapes.
-		const lowestScoringShape = minBy(shapesInDirection, ({ center }) => {
-			// Linear, not squared: the off-axis and diagonal penalties below are page units too, and
-			// squared distance swamps them, so a nearer diagonal shape beats an aligned one.
-			const distance = Vec.Dist(currentCenter, center)
-
-			// Distance along the primary axis.
-			const dirProp = ['left', 'right'].includes(direction) ? 'x' : 'y'
-			const directionalDistance = Math.abs(center[dirProp] - currentCenter[dirProp])
-
-			// Distance off the perpendicular to the primary axis.
-			const offProp = ['left', 'right'].includes(direction) ? 'y' : 'x'
-			const offAxisDeviation = Math.abs(center[offProp] - currentCenter[offProp])
-
-			// atan2 gives -180..180, so 'up' is -90; normalize to 0..360 to match 270, and wrap the
-			// deviation so that 350 is 10 away from 'right' (0), not 350.
-			const angle = (Vec.Angle(currentCenter, center) * (180 / Math.PI) + 360) % 360
-			const rawAngleDeviation = Math.abs(angle - directionToAngle[direction])
-			const angleDeviation = Math.min(rawAngleDeviation, 360 - rawAngleDeviation)
-
-			// Calculate final score (lower is better).
-			// Weight factors to prioritize:
-			// 1. Shapes directly in line with the current shape
-			// 2. Shapes closer to the current shape
-			// 3. Shapes with less angular deviation from the primary direction
-			return (
-				distance * 1.0 + // Base distance
-				offAxisDeviation * 2.0 + // Heavy penalty for off-axis deviation
-				(distance - directionalDistance) * 1.5 + // Penalty for diagonal distance
-				angleDeviation * 0.5
-			) // Slight penalty for angular deviation
-		})
-
-		return lowestScoringShape!.shape.id
+		return nearest ? nearest.id : currentShapeId
 	}
 
 	selectParentShape() {
@@ -3290,40 +3206,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _getFitZoom(fit: TLCameraConstraints['initialZoom']): number {
-		const cameraOptions = this.getCameraOptions()
-		if (!cameraOptions.constraints || fit === 'default') return 1
-
-		const { zx, zy } = getCameraFitXFitY(this, cameraOptions)
-
-		switch (fit) {
-			case 'fit-min': {
-				return Math.max(zx, zy)
-			}
-			case 'fit-max': {
-				return Math.min(zx, zy)
-			}
-			case 'fit-x': {
-				return zx
-			}
-			case 'fit-y': {
-				return zy
-			}
-			case 'fit-min-100': {
-				return Math.min(1, Math.max(zx, zy))
-			}
-			case 'fit-max-100': {
-				return Math.min(1, Math.min(zx, zy))
-			}
-			case 'fit-x-100': {
-				return Math.min(1, zx)
-			}
-			case 'fit-y-100': {
-				return Math.min(1, zy)
-			}
-			default: {
-				throw exhaustiveSwitchError(fit)
-			}
-		}
+		const { constraints } = this.getCameraOptions()
+		if (!constraints || fit === 'default') return 1
+		return getFitZoom(fit, constraints, this.getViewportScreenBounds())
 	}
 
 	private _cameraOptions = atom('camera options', DEFAULT_CAMERA_OPTIONS)
@@ -3375,168 +3260,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 		y: number
 		z: number
 	} {
-		const currentCamera = this.getCamera()
-
-		let { x, y, z = currentCamera.z } = point
-
-		// `requested` kept the caller's focal point (e.g. the cursor) fixed at
-		// zoom `rz`. When `rz` gets clamped, keep that same focal point fixed at
-		// the clamped zoom `z` rather than snapping to the viewport center.
-		const preserveFocalPoint = (current: number, requested: number, rz: number, z: number) => {
-			const cz = currentCamera.z
-			if (rz === cz) return current
-			return current + ((requested - current) * (1 / z - 1 / cz)) / (1 / rz - 1 / cz)
-		}
+		const current = this.getCamera()
+		const requested = { x: point.x, y: point.y, z: point.z === undefined ? current.z : point.z }
 
 		// If force is true, then we'll set the camera to the point regardless of
 		// the camera options, so that we can handle gestures that permit elasticity
 		// or decay, or animations that occur while the camera is locked.
-		if (!opts?.force) {
-			// Apply any adjustments based on the camera options
+		if (opts?.force) return requested
 
-			const cameraOptions = this.getCameraOptions()
+		// Reads stay in this order, and each only on the branch that needs it, so subclass overrides
+		// and reactive dependencies see the same calls as before (see cameraConstraintReads.test.ts).
+		const { zoomSteps, constraints } = this.getCameraOptions()
+		const viewport = this.getViewportScreenBounds()
+		if (!constraints) return clampCameraZoom(current, requested, zoomSteps)
 
-			const zoomMin = cameraOptions.zoomSteps[0]
-			const zoomMax = last(cameraOptions.zoomSteps)!
-
-			const vsb = this.getViewportScreenBounds()
-
-			// If bounds are provided, then we'll keep those bounds on screen
-			if (cameraOptions.constraints) {
-				const { constraints } = cameraOptions
-
-				// Clamp padding to half the viewport size on either dimension
-				const px = Math.min(constraints.padding.x, vsb.w / 2)
-				const py = Math.min(constraints.padding.y, vsb.h / 2)
-
-				// Expand the bounds by the padding
-				const bounds = Box.From(cameraOptions.constraints.bounds)
-
-				// For each axis, the "natural zoom" is the zoom at
-				// which the expanded bounds (with padding) would fit
-				// the current viewport screen bounds. Paddings are
-				// equal to screen pixels at 100%
-				// The min and max zooms are factors of the smaller natural zoom axis
-
-				const zx = (vsb.w - px * 2) / bounds.w
-				const zy = (vsb.h - py * 2) / bounds.h
-
-				const baseZoom = this.getBaseZoom()
-				const maxZ = zoomMax * baseZoom
-				const minZ = zoomMin * baseZoom
-
-				if (opts?.reset) {
-					z = this.getInitialZoom()
-				}
-
-				if (z < minZ || z > maxZ) {
-					// We're trying to zoom out past the minimum zoom level, or in
-					// past the maximum zoom level, so clamp the zoom while keeping
-					// the caller's focal point fixed. Axis constraints below still
-					// apply on top of this.
-					const rz = z
-					z = clamp(z, minZ, maxZ)
-					x = preserveFocalPoint(currentCamera.x, x, rz, z)
-					y = preserveFocalPoint(currentCamera.y, y, rz, z)
-				}
-
-				// Calculate available space
-				const minX = px / z - bounds.x
-				const minY = py / z - bounds.y
-				const freeW = (vsb.w - px * 2) / z - bounds.w
-				const freeH = (vsb.h - py * 2) / z - bounds.h
-				const originX = minX + freeW * constraints.origin.x
-				const originY = minY + freeH * constraints.origin.y
-
-				const behaviorX =
-					typeof constraints.behavior === 'string' ? constraints.behavior : constraints.behavior.x
-				const behaviorY =
-					typeof constraints.behavior === 'string' ? constraints.behavior : constraints.behavior.y
-
-				// x axis
-
-				if (opts?.reset) {
-					// Reset the camera according to the origin
-					x = originX
-					y = originY
-				} else {
-					// Apply constraints to the camera
-					switch (behaviorX) {
-						case 'fixed': {
-							// Center according to the origin
-							x = originX
-							break
-						}
-						case 'contain': {
-							// When below fit zoom, center the camera
-							if (z < zx) x = originX
-							// When above fit zoom, keep the bounds within padding distance of the viewport edge
-							else x = clamp(x, minX + freeW, minX)
-							break
-						}
-						case 'inside': {
-							// When below fit zoom, constrain the camera so that the bounds stay completely within the viewport
-							if (z < zx) x = clamp(x, minX, (vsb.w - px) / z - bounds.w - bounds.x)
-							// When above fit zoom, keep the bounds within padding distance of the viewport edge
-							else x = clamp(x, minX + freeW, minX)
-							break
-						}
-						case 'outside': {
-							// Constrain the camera so that the bounds never leaves the viewport
-							x = clamp(x, px / z - bounds.w - bounds.x, (vsb.w - px) / z - bounds.x)
-							break
-						}
-						case 'free': {
-							// noop, use whatever x is provided
-							break
-						}
-						default: {
-							throw exhaustiveSwitchError(behaviorX)
-						}
-					}
-
-					// y axis
-
-					switch (behaviorY) {
-						case 'fixed': {
-							y = originY
-							break
-						}
-						case 'contain': {
-							if (z < zy) y = originY
-							else y = clamp(y, minY + freeH, minY)
-							break
-						}
-						case 'inside': {
-							if (z < zy) y = clamp(y, minY, (vsb.h - py) / z - bounds.h - bounds.y)
-							else y = clamp(y, minY + freeH, minY)
-							break
-						}
-						case 'outside': {
-							y = clamp(y, py / z - bounds.h - bounds.y, (vsb.h - py) / z - bounds.y)
-							break
-						}
-						case 'free': {
-							// noop, use whatever x is provided
-							break
-						}
-						default: {
-							throw exhaustiveSwitchError(behaviorY)
-						}
-					}
-				}
-			} else {
-				// constrain the zoom, keeping the caller's focal point fixed
-				if (z > zoomMax || z < zoomMin) {
-					const rz = z
-					z = clamp(z, zoomMin, zoomMax)
-					x = preserveFocalPoint(currentCamera.x, x, rz, z)
-					y = preserveFocalPoint(currentCamera.y, y, rz, z)
-				}
-			}
-		}
-
-		return { x, y, z }
+		return constrainCamera({
+			current,
+			requested,
+			zoomSteps,
+			constraints,
+			viewport,
+			baseZoom: this.getBaseZoom(),
+			resetZoom: opts?.reset ? this.getInitialZoom() : null,
+		})
 	}
 
 	/** @internal */
@@ -5781,41 +5527,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const notVisibleShapes = this.getNotVisibleShapes()
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const editingId = this.getEditingShapeId()
-		const nextValue = new Set<TLShapeId>(notVisibleShapes)
-		// we don't cull the shape we are editing
-		if (editingId) {
-			nextValue.delete(editingId)
-		}
-		// we also don't cull selected shapes
-		selectedShapeIds.forEach((id) => {
-			nextValue.delete(id)
-		})
 
-		// Cache optimization: return same Set object if contents unchanged
-		// This allows consumers to use === comparison and prevents unnecessary re-renders
-		const prevValue = this._culledShapesCache
-		if (prevValue) {
-			// If sizes differ, contents must differ
-			if (prevValue.size !== nextValue.size) {
-				this._culledShapesCache = nextValue
-				return nextValue
-			}
-
-			// Check if all elements are the same
-			for (const id of prevValue) {
-				if (!nextValue.has(id)) {
-					// Found a difference, update cache and return new set
-					this._culledShapesCache = nextValue
-					return nextValue
-				}
-			}
-
-			// Loop completed without finding differences - contents identical
-			return prevValue
-		}
-
-		this._culledShapesCache = nextValue
-		return nextValue
+		const culled = getCulledShapeIds(
+			notVisibleShapes,
+			selectedShapeIds,
+			editingId,
+			this._culledShapesCache
+		)
+		this._culledShapesCache = culled
+		return culled
 	}
 
 	/**
@@ -5910,11 +5630,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const [innerMargin, outerMargin] = Array.isArray(margin) ? margin : [margin, margin]
 
-		let inHollowSmallestArea = Infinity
-		let inHollowSmallestAreaHit: TLShape | null = null
-
-		let inMarginClosestToEdgeDistance = Infinity
-		let inMarginClosestToEdgeHit: TLShape | null = null
+		const ranking = createHitRanking<TLShape>()
 
 		// Use larger margin for spatial search to account for edge distance checks
 		const searchMargin = Math.max(innerMargin, outerMargin, this.getHitTestMargin())
@@ -5966,120 +5682,67 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (isShapeFrameLike) {
 				// On the rare case that we've hit a frame-like shape (not its label), test again hitInside to be forced true;
 				// this prevents clicks from passing through the body of a frame to shapes behind it.
+				const frameHit = classifyFrameLikeHit(geometry, pointInShapeSpace, {
+					innerMargin,
+					outerMargin,
+					hitFrameInside,
+				})
 
 				// If the hit is within the frame's outer margin, then select the frame
-				const distance = geometry.distanceToPoint(pointInShapeSpace, hitFrameInside)
-				if (
-					hitFrameInside
-						? (distance > 0 && distance <= outerMargin) ||
-							(distance <= 0 && distance > -innerMargin)
-						: distance > 0 && distance <= outerMargin
-				) {
-					return inMarginClosestToEdgeHit || shape
-				}
+				if (frameHit === 'in-margin') return ranking.marginHit || shape
 
-				if (geometry.hitTestPoint(pointInShapeSpace, 0, true)) {
+				if (frameHit === 'body') {
 					// Once we've hit a frame, we want to end the search. If we have hit a shape
 					// already, then this would either be above the frame or a child of the frame,
 					// so we want to return that. Otherwise, the point is in the empty space of the
 					// frame. If `hitFrameInside` is true (e.g. used drawing an arrow into the
 					// frame) we the frame itself; other wise, (e.g. when hovering or pointing)
 					// we would want to return null.
-					return (
-						inMarginClosestToEdgeHit ||
-						inHollowSmallestAreaHit ||
-						(hitFrameInside ? shape : undefined)
-					)
+					return getBestHit(ranking) || (hitFrameInside ? shape : undefined)
 				}
+
 				continue
 			}
 
-			let distance: number
-
-			if (isGroup) {
-				let minDistance = Infinity
-				for (const childGeometry of geometry.children) {
-					if (childGeometry.isLabel && !hitLabels) continue
-
-					// hit test the all of the child geometries that aren't labels
-					const tDistance = childGeometry.distanceToPoint(pointInShapeSpace, hitInside)
-					if (tDistance < minDistance) {
-						minDistance = tDistance
-					}
-				}
-
-				distance = minDistance
-			} else {
-				// If the margin is zero and the geometry has a very small width or height,
-				// then check the actual distance. This is to prevent a bug where straight
-				// lines would never pass the broad phase (point-in-bounds) check.
-				if (outerMargin === 0 && (geometry.bounds.w < 1 || geometry.bounds.h < 1)) {
-					distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
-				} else {
-					// Broad phase
-					if (geometry.bounds.containsPoint(pointInShapeSpace, outerMargin)) {
-						// Narrow phase (actual distance)
-						distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
-					} else {
-						// Failed the broad phase, geddafugaotta'ere!
-						distance = Infinity
-					}
-				}
-			}
+			const distance = getDistanceToGeometry(geometry, pointInShapeSpace, {
+				isGroup,
+				hitLabels,
+				hitInside,
+				outerMargin,
+			})
 
 			if (geometry.isClosed) {
-				// For closed shapes, the distance will be positive if outside of
-				// the shape or negative if inside of the shape. If the distance
-				// is greater than the margin, then it's a miss. Otherwise...
+				const hit = classifyClosedShapeHit(geometry, pointInShapeSpace, distance, {
+					innerMargin,
+					outerMargin,
+					hitInside,
+					isGroup,
+					hasMarginHit: !!ranking.marginHit,
+				})
 
-				// Are we close to the shape's edge?
-				if (distance <= outerMargin || (hitInside && distance <= 0 && distance > -innerMargin)) {
-					if (geometry.isFilled || (isGroup && geometry.children[0].isFilled)) {
-						// If the geometry rejects this hit (e.g. transparent image pixel),
-						// skip this shape and check shapes behind it.
-						if (geometry.ignoreHit(pointInShapeSpace)) {
-							continue
-						}
-						// If the shape is filled, then it's a hit. Remember, we're
-						// starting from the TOP-MOST shape in z-index order, so any
-						// other hits would be occluded by the shape.
-						return inMarginClosestToEdgeHit || shape
-					} else {
-						// If we're close to the edge of the shape, and if it's the closest edge among
-						// all the edges that we've gotten close to so far, then we will want to hit the
-						// shape unless we hit something else or closer in later iterations.
-						if (
-							hitInside
-								? // On hitInside, the distance will be negative for hits inside
-									// If the distance is positive, check against the outer margin
-									(distance > 0 && distance <= outerMargin) ||
-									// If the distance is negative, check against the inner margin
-									(distance <= 0 && distance > -innerMargin)
-								: // If hitInside is false, then sadly _we do not know_ whether the
-									// point is inside or outside of the shape, so we check against
-									// the max of the two margins
-									Math.abs(distance) <= Math.max(innerMargin, outerMargin)
-						) {
-							if (Math.abs(distance) < inMarginClosestToEdgeDistance) {
-								inMarginClosestToEdgeDistance = Math.abs(distance)
-								inMarginClosestToEdgeHit = shape
-							}
-						} else if (!inMarginClosestToEdgeHit) {
-							// If the shape is bigger than the viewport, then skip it. (Only here: its
-							// edges should still be hittable within the margin.)
-							if (this.getShapePageBounds(shape)!.contains(viewportPageBounds)) continue
-
-							// If we're not within margin distance to any edge, and if the
-							// shape is hollow, then we want to hit the shape with the
-							// smallest area. (There's a bug here with self-intersecting
-							// shapes, like a closed drawing of an "8", but that's a bigger
-							// problem to solve.)
-							const { area } = geometry
-							if (area < inHollowSmallestArea) {
-								inHollowSmallestArea = area
-								inHollowSmallestAreaHit = shape
-							}
-						}
+				switch (hit.type) {
+					case 'filled': {
+						return ranking.marginHit || shape
+					}
+					case 'ignored': {
+						continue
+					}
+					case 'in-margin': {
+						offerMarginHit(ranking, shape, hit.distance)
+						break
+					}
+					case 'hollow': {
+						// If the shape is bigger than the viewport, then skip it. (Only here: its
+						// edges should still be hittable within the margin.)
+						if (this.getShapePageBounds(shape)!.contains(viewportPageBounds)) continue
+						offerHollowHit(ranking, shape, geometry.area)
+						break
+					}
+					case 'miss': {
+						break
+					}
+					default: {
+						throw exhaustiveSwitchError(hit, 'type')
 					}
 				}
 			} else {
@@ -6087,22 +5750,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the distance is less than the margin, return the shape as the hit.
 				// Use the editor's configurable hit test margin.
 				if (distance < this.getHitTestMargin()) {
-					// An edge we already hit (above this shape) that is at least as close still wins,
-					// matching the closest-edge rule used for hollow shapes
-					if (inMarginClosestToEdgeHit && inMarginClosestToEdgeDistance <= distance) {
-						return inMarginClosestToEdgeHit
-					}
-					return shape
+					return getBestOpenShapeHit(ranking, shape, distance)
 				}
 			}
 		}
 
-		// If we haven't hit any filled shapes or frames, then return either
-		// the shape who we hit within the margin (and of those, the one that
-		// had the shortest distance between the point and the shape edge),
-		// or else the hollow shape with the smallest area—or if we didn't hit
-		// any margins or any hollow shapes, then null.
-		return inMarginClosestToEdgeHit || inHollowSmallestAreaHit || undefined
+		return getBestHit(ranking)
 	}
 
 	/**
@@ -7407,11 +7060,50 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
+	/** Layout kernels return a move per cluster; every shape in the cluster shifts by that delta. */
+	private getChangesToApplyLayoutMoves(
+		moves: { item: { shapes: TLShape[] }; delta: VecLike }[]
+	): TLShapePartial[] {
+		const changes: TLShapePartial[] = []
+		for (const { item, delta } of moves) {
+			for (const shape of item.shapes) {
+				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
+			}
+		}
+		return changes
+	}
+
+	/**
+	 * Layout kernels return a translation and a scale per cluster. Each shape moves before it
+	 * resizes, so the resize measures geometry that is already in place.
+	 */
+	private applyLayoutTransforms(
+		transforms: {
+			item: { shapes: TLShape[] }
+			pageOffset: VecLike
+			scaleOrigin: VecLike
+			scale: VecLike
+		}[]
+	) {
+		for (const { item, pageOffset, scaleOrigin, scale } of transforms) {
+			for (const shape of item.shapes) {
+				this.updateShape(this.getChangesToTranslateShapeByPageDelta(shape, pageOffset))
+
+				this.resizeShape(shape.id, scale, {
+					initialBounds: this.getShapeGeometry(shape).bounds,
+					scaleOrigin,
+					isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
+					scaleAxisRotation: 0,
+				})
+			}
+		}
+	}
+
 	private getShapeClusters(
 		shapes: TLShapeId[] | TLShape[],
 		type: TLShapeUtilCanBeLaidOutOpts['type'],
 		opts?: { filterAxisAligned?: boolean }
-	): { clusters: { shapes: TLShape[]; pageBounds: Box }[]; allBounds: Box[] } {
+	): { clusters: { shapes: TLShape[]; pageBounds: Box }[] } {
 		const ids = toShapeIds(shapes)
 
 		// always fresh shapes
@@ -7428,7 +7120,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		const clusters: { shapes: TLShape[]; pageBounds: Box }[] = []
-		const allBounds: Box[] = []
 		const visited = new Set<TLShapeId>()
 
 		for (const shape of freshShapes) {
@@ -7467,11 +7158,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shapes: shapesMovingTogether,
 				pageBounds: commonPageBounds,
 			})
-
-			allBounds.push(commonPageBounds)
 		}
 
-		return { clusters, allBounds }
+		return { clusters }
 	}
 
 	/**
@@ -7625,69 +7314,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const len = shapeClustersToStack.length
 		if ((_gap === 0 && len < 3) || len < 2) return this
 
-		const { val, min, max, dim } = AXIS[operation]
-
-		let shapeGap: number = 0
-
-		// Stack in spatial order rather than input (z) order, otherwise shapes swap places
-		shapeClustersToStack.sort((a, b) => a.pageBounds[min] - b.pageBounds[min])
-
-		if (_gap === 0) {
-			// note: this is not used in the current tldraw.com; there we use a specified stack
-
-			const gaps: Record<number, number> = {}
-
-			// Collect all of the gaps between shapes. We want to find
-			// patterns (equal gaps between shapes) and use the most common
-			// one as the gap for all of the shapes.
-			for (let i = 0; i < len - 1; i++) {
-				const currCluster = shapeClustersToStack[i]
-				const nextCluster = shapeClustersToStack[i + 1]
-				const gap = nextCluster.pageBounds[min] - currCluster.pageBounds[max]
-				if (!gaps[gap]) {
-					gaps[gap] = 0
-				}
-				gaps[gap]++
-			}
-
-			// Which gap is the most common?
-			let maxCount = 1
-			for (const [gap, count] of Object.entries(gaps)) {
-				if (count > maxCount) {
-					maxCount = count
-					shapeGap = parseFloat(gap)
-				}
-			}
-
-			// If there is no most-common gap, use the average gap.
-			if (maxCount === 1) {
-				let totalCount = 0
-				for (const [gap, count] of Object.entries(gaps)) {
-					shapeGap += parseFloat(gap) * count
-					totalCount += count
-				}
-				shapeGap /= totalCount
-			}
-		} else {
-			// If a gap was provided, then use that instead.
-			shapeGap = _gap
-		}
-
-		const changes: TLShapePartial[] = []
-
-		let v = shapeClustersToStack[0].pageBounds[max]
-
-		for (let i = 1; i < shapeClustersToStack.length; i++) {
-			const { shapes, pageBounds } = shapeClustersToStack[i]
-			const delta = new Vec()
-			delta[val] = v + shapeGap - pageBounds[val]
-
-			for (const shape of shapes) {
-				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
-			}
-
-			v += pageBounds[dim] + shapeGap
-		}
+		const changes = this.getChangesToApplyLayoutMoves(
+			getStackLayout(shapeClustersToStack, operation, _gap)
+		)
 
 		this.updateShapes(changes)
 		return this
@@ -7711,97 +7340,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const gap = _gap ?? this.options.adjacentShapeMargin
 
-		const { clusters, allBounds } = this.getShapeClusters(shapes, 'pack')
+		const { clusters } = this.getShapeClusters(shapes, 'pack')
 
-		const shapeClustersToPack = clusters.map((cluster) => ({
-			...cluster,
-			nextPageBounds: cluster.pageBounds.clone(),
-		}))
+		if (clusters.length < 2) return this
 
-		if (shapeClustersToPack.length < 2) return this
-
-		let area = 0
-		for (const { pageBounds } of shapeClustersToPack) {
-			area += pageBounds.width * pageBounds.height
-		}
-
-		const commonBounds = Box.Common(allBounds)
-
-		const maxWidth = commonBounds.width
-
-		// sort the shape clusters by width and then height, descending: potpack fills each row's
-		// right-hand space with the shapes that follow, so they must be no taller than the row
-		shapeClustersToPack
-			.sort((a, b) => b.pageBounds.width - a.pageBounds.width)
-			.sort((a, b) => b.pageBounds.height - a.pageBounds.height)
-
-		// Start with is (sort of) the square of the area
-		const startWidth = Math.max(Math.ceil(Math.sqrt(area / 0.95)), maxWidth)
-
-		// first shape fills the width and is infinitely tall
-		const spaces: Box[] = [new Box(commonBounds.x, commonBounds.y, startWidth, Infinity)]
-
-		let width = 0
-		let height = 0
-		let space: Box
-		let last: Box
-
-		for (const { nextPageBounds } of shapeClustersToPack) {
-			// starting at the back (smaller shapes)
-			for (let i = spaces.length - 1; i >= 0; i--) {
-				space = spaces[i]
-
-				// find a space that is big enough to contain the shape
-				if (nextPageBounds.width > space.width || nextPageBounds.height > space.height) continue
-
-				// add the shape to its top-left corner
-				nextPageBounds.x = space.x
-				nextPageBounds.y = space.y
-
-				height = Math.max(height, nextPageBounds.maxY)
-				width = Math.max(width, nextPageBounds.maxX)
-
-				if (nextPageBounds.width === space.width && nextPageBounds.height === space.height) {
-					// remove the space on a perfect fit
-					last = spaces.pop()!
-					if (i < spaces.length) spaces[i] = last
-				} else if (nextPageBounds.height === space.height) {
-					// fit the shape into the space (width)
-					space.x += nextPageBounds.width + gap
-					space.width -= nextPageBounds.width + gap
-				} else if (nextPageBounds.width === space.width) {
-					// fit the shape into the space (height)
-					space.y += nextPageBounds.height + gap
-					space.height -= nextPageBounds.height + gap
-				} else {
-					// split the space into two spaces
-					spaces.push(
-						new Box(
-							space.x + (nextPageBounds.width + gap),
-							space.y,
-							space.width - (nextPageBounds.width + gap),
-							nextPageBounds.height
-						)
-					)
-					space.y += nextPageBounds.height + gap
-					space.height -= nextPageBounds.height + gap
-				}
-				break
-			}
-		}
-
-		const commonAfter = Box.Common(shapeClustersToPack.map((s) => s.nextPageBounds))
-		const centerDelta = Vec.Sub(commonBounds.center, commonAfter.center)
-
-		const changes: TLShapePartial<any>[] = []
-
-		for (const { shapes, pageBounds, nextPageBounds } of shapeClustersToPack) {
-			const delta = Vec.Sub(nextPageBounds.point, pageBounds.point).add(centerDelta)
-
-			for (const shape of shapes) {
-				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
-			}
-		}
+		const changes = this.getChangesToApplyLayoutMoves(getPackLayout(clusters, gap))
 
 		if (changes.length) {
 			this.updateShapes(changes)
@@ -7840,48 +7383,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this.alignShapes(shapes, 'center-horizontal').alignShapes(shapes, 'center-vertical')
 		}
 
-		const { clusters: shapeClustersToAlign, allBounds } = this.getShapeClusters(shapes, 'align')
+		const { clusters: shapeClustersToAlign } = this.getShapeClusters(shapes, 'align')
 
 		if (shapeClustersToAlign.length < 2) return this
 
-		const commonBounds = Box.Common(allBounds)
-
-		const changes: TLShapePartial[] = []
-
-		shapeClustersToAlign.forEach(({ shapes, pageBounds }) => {
-			const delta = new Vec()
-
-			switch (operation) {
-				case 'top': {
-					delta.y = commonBounds.minY - pageBounds.minY
-					break
-				}
-				case 'center-vertical': {
-					delta.y = commonBounds.midY - pageBounds.minY - pageBounds.height / 2
-					break
-				}
-				case 'bottom': {
-					delta.y = commonBounds.maxY - pageBounds.minY - pageBounds.height
-					break
-				}
-				case 'left': {
-					delta.x = commonBounds.minX - pageBounds.minX
-					break
-				}
-				case 'center-horizontal': {
-					delta.x = commonBounds.midX - pageBounds.minX - pageBounds.width / 2
-					break
-				}
-				case 'right': {
-					delta.x = commonBounds.maxX - pageBounds.minX - pageBounds.width
-					break
-				}
-			}
-
-			for (const shape of shapes) {
-				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
-			}
-		})
+		const changes = this.getChangesToApplyLayoutMoves(
+			getAlignLayout(shapeClustersToAlign, operation)
+		)
 
 		this.updateShapes(changes)
 		return this
@@ -7908,15 +7416,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (shapeClustersToDistribute.length < 3) return this
 
-		const { val, min, max, dim } = AXIS[operation]
-		const changes: TLShapePartial[] = []
-
-		const first = shapeClustersToDistribute.sort((a, b) => a.pageBounds[min] - b.pageBounds[min])[0]
-		const last = shapeClustersToDistribute.sort((a, b) => b.pageBounds[max] - a.pageBounds[max])[0]
+		const layout = getDistributeLayout(
+			shapeClustersToDistribute,
+			operation,
+			(cluster) => cluster.shapes[0].id
+		)
 
 		// If the first shape group is also the last shape group, distribute without it
-		if (first === last) {
-			const excludedShapeIds = new Set(first.shapes.map((s) => s.id))
+		if (layout.type === 'excludes') {
+			const excludedShapeIds = new Set(layout.excluded.shapes.map((s) => s.id))
 			const ids = toShapeIds(shapes)
 			return this.distributeShapes(
 				ids.filter((id) => !excludedShapeIds.has(id)),
@@ -7924,38 +7432,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 
-		const shapeClustersToMove = shapeClustersToDistribute
-			.filter((shape) => shape !== first && shape !== last)
-			.sort((a, b) => {
-				if (a.pageBounds[min] === b.pageBounds[min]) {
-					return a.shapes[0].id < b.shapes[0].id ? -1 : 1
-				}
-				return a.pageBounds[min] - b.pageBounds[min]
-			})
-
-		// The gap is the amount of space "left over" between the first and last shape. This can be a negative number if the shapes are overlapping.
-		const maxFirst = first.pageBounds[max]
-		const range = last.pageBounds[min] - maxFirst
-		const summedShapeDimensions = shapeClustersToMove.reduce((acc, s) => acc + s.pageBounds[dim], 0)
-		const gap = (range - summedShapeDimensions) / (shapeClustersToMove.length + 1)
-
-		for (let v = maxFirst + gap, i = 0; i < shapeClustersToMove.length; i++) {
-			const { shapes, pageBounds } = shapeClustersToMove[i]
-			const delta = new Vec()
-			delta[val] = v - pageBounds[val]
-
-			// If for some reason the new position would be more than the maximum, we need to adjust the delta
-			// This will likely throw off some of the other placements but hey, it's better than changing the common bounds
-			if (v + pageBounds[dim] > last.pageBounds[max] - 1) {
-				delta[val] = last.pageBounds[max] - pageBounds[max] - 1
-			}
-
-			for (const shape of shapes) {
-				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
-			}
-
-			v += pageBounds[dim] + gap
-		}
+		const changes = this.getChangesToApplyLayoutMoves(layout.moves)
 
 		this.updateShapes(changes)
 		return this
@@ -7978,41 +7455,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	stretchShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
 		if (this.getIsReadonly()) return this
 
-		const { clusters: shapeClustersToStretch, allBounds } = this.getShapeClusters(
-			shapes,
-			'stretch',
-			{ filterAxisAligned: true }
-		)
+		const { clusters: shapeClustersToStretch } = this.getShapeClusters(shapes, 'stretch', {
+			filterAxisAligned: true,
+		})
 
 		if (shapeClustersToStretch.length < 2) return this
 
-		const commonBounds = Box.Common(allBounds)
-		const { val, min, dim } = AXIS[operation]
-
 		this.run(() => {
-			shapeClustersToStretch.forEach(({ shapes, pageBounds }) => {
-				const pageOffset = new Vec()
-				pageOffset[val] = commonBounds[min] - pageBounds[min]
-
-				const scaleOrigin = pageBounds.center.clone()
-				scaleOrigin[val] = commonBounds[min]
-
-				const scale = new Vec(1, 1)
-				scale[val] = commonBounds[dim] / pageBounds[dim]
-
-				for (const shape of shapes) {
-					// First translate
-					this.updateShape(this.getChangesToTranslateShapeByPageDelta(shape, pageOffset))
-
-					// Then resize
-					this.resizeShape(shape.id, scale, {
-						initialBounds: this.getShapeGeometry(shape).bounds,
-						scaleOrigin,
-						isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
-						scaleAxisRotation: 0,
-					})
-				}
-			})
+			this.applyLayoutTransforms(getStretchLayout(shapeClustersToStretch, operation))
 		})
 
 		return this
@@ -8038,48 +7488,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const targetBounds = Box.From(bounds)
 
-		const { clusters: shapeClusters, allBounds } = this.getShapeClusters(
-			shapes,
-			'resize_to_bounds',
-			{ filterAxisAligned: true }
-		)
+		const { clusters: shapeClusters } = this.getShapeClusters(shapes, 'resize_to_bounds', {
+			filterAxisAligned: true,
+		})
 
 		if (shapeClusters.length === 0) return this
 
-		const commonBounds = Box.Common(allBounds)
-		if (!commonBounds) return this
-		if (commonBounds.width === 0 || commonBounds.height === 0) return this
+		const transforms = getResizeToBoundsLayout(shapeClusters, targetBounds)
+		if (!transforms) return this
 
-		const scaleX = targetBounds.width / commonBounds.width
-		const scaleY = targetBounds.height / commonBounds.height
-		const scale = new Vec(scaleX, scaleY)
-
-		shapeClusters.forEach(({ shapes, pageBounds }) => {
-			const pageOffset = new Vec(
-				targetBounds.minX -
-					commonBounds.minX +
-					(pageBounds.minX - commonBounds.minX) * (scaleX - 1),
-				targetBounds.minY - commonBounds.minY + (pageBounds.minY - commonBounds.minY) * (scaleY - 1)
-			)
-
-			const scaleOrigin = new Vec(
-				targetBounds.minX + (pageBounds.minX - commonBounds.minX) * scaleX,
-				targetBounds.minY + (pageBounds.minY - commonBounds.minY) * scaleY
-			)
-
-			for (const shape of shapes) {
-				// First translate
-				this.updateShape(this.getChangesToTranslateShapeByPageDelta(shape, pageOffset))
-
-				// Then resize
-				this.resizeShape(shape.id, scale, {
-					initialBounds: this.getShapeGeometry(shape).bounds,
-					scaleOrigin,
-					isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
-					scaleAxisRotation: 0,
-				})
-			}
-		})
+		this.applyLayoutTransforms(transforms)
 
 		return this
 	}
@@ -8118,8 +7536,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const id = typeof shape === 'string' ? shape : shape.id
 		if (this.getIsReadonly()) return null
 
-		if (!Number.isFinite(scale.x)) scale = new Vec(1, scale.y)
-		if (!Number.isFinite(scale.y)) scale = new Vec(scale.x, 1)
+		scale = getFiniteScale(scale)
 
 		const initialShape = opts.initialShape ?? this.getShape(id)
 		if (!initialShape) return null
@@ -8161,13 +7578,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const util = this.getShapeUtil(initialShape)
 
-		if (isAspectRatioLocked) {
-			if (Math.abs(scale.x) > Math.abs(scale.y)) {
-				scale = new Vec(scale.x, Math.sign(scale.y) * Math.abs(scale.x))
-			} else {
-				scale = new Vec(Math.sign(scale.x) * Math.abs(scale.y), scale.y)
-			}
-		}
+		if (isAspectRatioLocked) scale = lockScaleToLargerAxis(scale)
 
 		let workingShape: TLShape | null = null
 
@@ -8183,16 +7594,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const newLocalPoint = this.getPointInParentSpace(initialShape.id, newPagePoint)
 
 			// resize the shape's local bounding box
-			const myScale = new Vec(scale.x, scale.y)
-			// the shape is aligned with the rest of the shapes in the selection, but may be
-			// 90deg offset from the main rotation of the selection, in which case
-			// we need to flip the width and height scale factors
-			const areWidthAndHeightAlignedWithCorrectAxis = approximately(
-				(pageRotation - scaleAxisRotation) % Math.PI,
-				0
-			)
-			myScale.x = areWidthAndHeightAlignedWithCorrectAxis ? scale.x : scale.y
-			myScale.y = areWidthAndHeightAlignedWithCorrectAxis ? scale.y : scale.x
+			const myScale = getLocalScale(scale, pageRotation, scaleAxisRotation)
 
 			// adjust initial model for situations where the parent has moved during the resize
 			// e.g. groups
@@ -8288,18 +7690,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		scale: VecLike,
 		scaleAxisRotation: number
 	) {
-		const relativePoint = Vec.RotWith(point, scaleOrigin, -scaleAxisRotation).sub(scaleOrigin)
-
-		// calculate the new point position relative to the scale origin
-		const newRelativePagePoint = Vec.MulV(relativePoint, scale)
-
-		// and rotate it back to page coords to get the new page point of the resized shape
-		const destination = Vec.Add(newRelativePagePoint, scaleOrigin).rotWith(
-			scaleOrigin,
-			scaleAxisRotation
-		)
-
-		return destination
+		return scalePagePoint(point, scaleOrigin, scale, scaleAxisRotation)
 	}
 
 	/** @internal */
@@ -8321,15 +7712,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// and then after applying the scale to the shape we also rotate it if required and translate it so that it's center
 		// point ends up in the right place.
 
-		const shapeScale = new Vec(scale.x, scale.y)
-
-		// // make sure we are constraining aspect ratio, and using the smallest scale axis to avoid shapes getting bigger
-		// // than the selection bounding box
-		if (Math.abs(scale.x) > Math.abs(scale.y)) {
-			shapeScale.x = Math.sign(scale.x) * Math.abs(scale.y)
-		} else {
-			shapeScale.y = Math.sign(scale.y) * Math.abs(scale.x)
-		}
+		const shapeScale = lockScaleToSmallerAxis(scale)
 
 		// first we can scale the shape about its center point
 		this.resizeShape(id, shapeScale, {
@@ -8341,15 +7724,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// then if the shape is flipped in one axis only, we need to apply an extra rotation
 		// to make sure the shape is mirrored correctly
-		if (Math.sign(scale.x) * Math.sign(scale.y) < 0) {
-			// We need to compute the new local rotation that will result in the negated page rotation.
-			// For a shape with local rotation `localRot` and parent page rotation `parentRot`:
-			// - pageRot = parentRot + localRot
-			// - newPageRot = -pageRot (we want to negate the page rotation)
-			// - newPageRot = parentRot + newLocalRot (parent hasn't changed)
-			// - Therefore: newLocalRot = -pageRot - parentRot = -(parentRot + localRot) - parentRot = -localRot - 2*parentRot
+		if (isMirroredInOneAxis(scale)) {
 			const parentRotation = this.getShapeParentTransform(id).rotation()
-			const rotation = -options.initialShape.rotation - 2 * parentRotation
+			const rotation = getMirroredRotation(options.initialShape.rotation, parentRotation)
 			this.updateShapes([{ id, type, rotation }])
 		}
 
@@ -8370,17 +7747,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// now calculate how far away the shape is from where it needs to be
 		const pageTransform = this.getShapePageTransform(id)
-		// We need to use the local bounds center transformed to page space, not the axis-aligned
-		// page bounds center. This is because the page bounds are axis-aligned and their center
-		// changes when the rotation changes, but we want to use the same reference point as
-		// preScaleShapePageCenter (which used initialBounds.center transformed by the page transform).
 		const currentLocalBounds = this.getShapeGeometry(id).bounds
-		const currentPageCenter = Mat.applyToPoint(pageTransform, currentLocalBounds.center)
-		const shapePageTransformOrigin = pageTransform.point()
-		const pageDelta = Vec.Sub(postScaleShapePageCenter, currentPageCenter)
-
-		// and finally figure out what the shape's new position should be
-		const postScaleShapePagePoint = Vec.Add(shapePageTransformOrigin, pageDelta)
+		const postScaleShapePagePoint = getPagePointForCenter(
+			pageTransform,
+			currentLocalBounds,
+			postScaleShapePageCenter
+		)
 		const { x, y } = this.getPointInParentSpace(id, postScaleShapePagePoint)
 
 		this.updateShapes([{ id, type, x, y }])
@@ -9727,12 +9099,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const currentPageId = this.getCurrentPageId()
 		const { rootShapeIds } = content
 
-		// We need to collect the migrated records
-		const assets: TLAsset[] = []
-		const shapes: TLShape[] = []
-		const bindings: TLBinding[] = []
-		const users: TLUser[] = []
-
 		// Let's treat the content as a store, and then migrate that store.
 		const store: StoreSnapshot<TLRecord> = {
 			store: {
@@ -9749,25 +9115,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (result.type === 'error') {
 			throw Error('Could not put content: could not migrate content')
 		}
-		for (const record of Object.values(result.value)) {
-			switch (record.typeName) {
-				case 'asset': {
-					assets.push(record)
-					break
-				}
-				case 'shape': {
-					shapes.push(record)
-					break
-				}
-				case 'binding': {
-					bindings.push(record)
-					break
-				}
-				case 'user': {
-					users.push(record)
-					break
-				}
-			}
+		const {
+			asset: assets = [],
+			shape: shapes = [],
+			binding: bindings = [],
+			user: users = [],
+		} = groupBy(Object.values(result.value), (record) => record.typeName) as {
+			asset?: TLAsset[]
+			shape?: TLShape[]
+			binding?: TLBinding[]
+			user?: TLUser[]
 		}
 
 		if (users.length > 0) {
@@ -9783,16 +9140,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		// Ok, we've got our migrated records, now we can continue!
+		// Ok, we've got our migrated records, now we can continue! When ids are preserved a shape
+		// keeps its identity, so the maps are the identity too.
 		const shapeIdMap = new Map<string, TLShapeId>(
-			preserveIds
-				? shapes.map((shape) => [shape.id, shape.id])
-				: shapes.map((shape) => [shape.id, createShapeId()])
+			shapes.map((shape) => [shape.id, preserveIds ? shape.id : createShapeId()])
 		)
 		const bindingIdMap = new Map<string, TLBindingId>(
-			preserveIds
-				? bindings.map((binding) => [binding.id, binding.id])
-				: bindings.map((binding) => [binding.id, createBindingId()])
+			bindings.map((binding) => [binding.id, preserveIds ? binding.id : createBindingId()])
 		)
 
 		let pasteParentId: TLPageId | TLShapeId = currentPageId
@@ -11720,16 +11074,4 @@ function withIsolatedShapes<T>(
 	} else {
 		throw result.error
 	}
-}
-
-function getCameraFitXFitY(editor: Editor, cameraOptions: TLCameraOptions) {
-	if (!cameraOptions.constraints) throw Error('Should have constraints here')
-	const vsb = editor.getViewportScreenBounds()
-	// Clamp padding to half the viewport size on either dimension, as getConstrainedCamera does
-	const px = Math.min(cameraOptions.constraints.padding.x, vsb.w / 2)
-	const py = Math.min(cameraOptions.constraints.padding.y, vsb.h / 2)
-	const bounds = Box.From(cameraOptions.constraints.bounds)
-	const zx = (vsb.w - px * 2) / bounds.w
-	const zy = (vsb.h - py * 2) / bounds.h
-	return { zx, zy }
 }
