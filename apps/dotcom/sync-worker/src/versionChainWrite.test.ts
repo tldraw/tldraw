@@ -92,6 +92,54 @@ describe('writeVersionChainEntry', () => {
 		expect(result).toMatchObject({ wrote: 'keyframe', reason: 'segment-lost' })
 	})
 
+	it('writes a keyframe for every version in keyframes-only mode, and a later delta continues from it', async () => {
+		const bucket = createFakeR2()
+		const versions = [snapshot(1, ['shape:a']), snapshot(2, ['shape:a', 'shape:b'])]
+
+		const first = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(0),
+			chain: null,
+			pending: [],
+			previous: null,
+			next: versions[0],
+			now: 0,
+			keyframesOnly: true,
+		})
+		const second = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(1),
+			chain: first.chain,
+			pending: first.pending,
+			previous: versions[0],
+			next: versions[1],
+			now: 1000,
+			keyframesOnly: true,
+		})
+
+		expect(first).toMatchObject({ wrote: 'keyframe', reason: 'keyframes-only' })
+		expect(second).toMatchObject({ wrote: 'keyframe', reason: 'keyframes-only' })
+		expect((await bucket.list({ prefix: roomKey })).objects.map((o) => o.key)).toEqual([
+			`${roomKey}/${isoAt(0)}.k`,
+			`${roomKey}/${isoAt(1)}.k`,
+		])
+
+		// Switching the room back to chain mode appends to the last keyframe rather than cutting one.
+		const third = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(2),
+			chain: second.chain,
+			pending: second.pending,
+			previous: versions[1],
+			next: snapshot(3, ['shape:b']),
+			now: 2000,
+		})
+		expect(third.wrote).toBe('delta')
+	})
+
 	it('packs deltas into one segment object that reconstructs exactly', async () => {
 		const bucket = createFakeR2()
 		const legacyBucket = createFakeR2()

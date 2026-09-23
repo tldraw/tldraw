@@ -10,7 +10,7 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { getAuth } from './tla/getAuth'
 
-function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
+function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 	return {
 		rum_enabled: {
 			type: 'percentage',
@@ -43,18 +43,12 @@ function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagVa
 		},
 		version_chain: {
 			type: 'percentage',
-			// Non-production environments exercise the new write path by default; production waits for
-			// an explicit flip. Replaces the old VERSION_CHAIN_MODE wrangler vars.
-			percentage: env.TLDRAW_ENV === 'production' ? 0 : 100,
-			enabled: env.TLDRAW_ENV !== 'production',
-			description:
-				'Version cache entries written as segmented delta chains. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless',
-		},
-		version_chain_legacy_writes: {
-			type: 'boolean',
+			// On by default everywhere, production included: a durable object whose KV read fails lands
+			// here, and `off` would have it write a whole keyframe on every save for its lifetime.
+			percentage: 100,
 			enabled: true,
 			description:
-				'While a room is on version chains, also write legacy full copies (the dual-write bake). Evaluated per ROOM by the sync worker. Only consulted for rooms the version_chain rollout covers — rooms outside it always write legacy',
+				'Version history written as delta chains; rooms outside it write every version as a whole keyframe. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless',
 		},
 	}
 }
@@ -83,7 +77,7 @@ export async function getFeatureFlagValue(
 	env: Environment,
 	flag: FeatureFlagKey
 ): Promise<FeatureFlagValue> {
-	const defaults = getFlagDefaults(env)[flag]
+	const defaults = getFlagDefaults()[flag]
 	try {
 		const value = await env.FEATURE_FLAGS.get(flag)
 		if (!value) {
@@ -109,7 +103,7 @@ export function getFeatureFlagType(
 	env: Environment,
 	flag: FeatureFlagKey
 ): FeatureFlagValue['type'] {
-	return getFlagDefaults(env)[flag].type
+	return getFlagDefaults()[flag].type
 }
 
 /**

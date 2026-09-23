@@ -270,7 +270,6 @@ export const FEATURE_FLAG_KEYS = [
 	'commenting_enabled',
 	'mcp_server_access',
 	'version_chain',
-	'version_chain_legacy_writes',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 

@@ -17,6 +17,7 @@ import {
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	can,
+	type FeatureFlagValue,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -130,11 +131,7 @@ import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
 import { ChainState, isChainHead, PendingDelta } from './versionChain'
-import {
-	loadVersionChainRollout,
-	resolveVersionChainMode,
-	VersionChainRollout,
-} from './versionChainConfig'
+import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
 import {
 	deleteAllVersions,
 	loadChainIndexForVersion,
@@ -783,15 +780,11 @@ export class TLFileDurableObject extends DurableObject {
 	// The open segment's deltas. Null means "not known here yet" — after an eviction they are
 	// refetched from the segment object in R2, which is the durable copy.
 	_pendingDeltas: PendingDelta[] | null = null
-	// The version key the chain head was written under, so a retried persist can put the legacy
-	// copy of the same content under the same key.
-	_versionChainHeadIso: string | null = null
-
-	_versionChainRollout: Promise<VersionChainRollout> | null = null
+	_versionChainRollout: Promise<FeatureFlagValue> | null = null
 
 	// One KV read per incarnation, by design: the rollout is config, not room state, and a KV flip
 	// landing as objects wake is the contract (see loadVersionChainRollout).
-	private versionChainRollout(): Promise<VersionChainRollout> {
+	private versionChainRollout(): Promise<FeatureFlagValue> {
 		this._versionChainRollout ??= loadVersionChainRollout(this.env)
 		return this._versionChainRollout
 	}
@@ -909,7 +902,6 @@ export class TLFileDurableObject extends DurableObject {
 				this._versionChain = null
 				this._versionChainLoaded = true
 				this._pendingDeltas = null
-				this._versionChainHeadIso = null
 				await this.storage.delete(VERSION_CHAIN_STORAGE_KEY)
 			})
 
@@ -2232,11 +2224,6 @@ export class TLFileDurableObject extends DurableObject {
 
 	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
 		const customMetadata = getSnapshotMetadata(snapshot)
-		// Per attempt, not per persist: the retry loop re-reads the snapshot, so a retry may carry
-		// newer content that deserves its own version. When the chain already holds THIS content
-		// from an earlier attempt, _writeVersionChainEntry hands back the key it used, and the
-		// legacy copy lands under that same key — the two buckets must agree on when a version is.
-		let iso = new Date().toISOString()
 		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(
 			this.r2.rooms,
@@ -2252,56 +2239,38 @@ export class TLFileDurableObject extends DurableObject {
 		const mode = resolveVersionChainMode(await this.versionChainRollout(), key)
 
 		// A chain failure that outlasted its retries is a metric, not a failed persist: the outer retry
-		// would re-upload the rooms object 100 times and raise persistence_bad. In chain mode this
-		// persist records no version, but the chain is untouched and the next persist's delta carries
-		// its changes; only when no edit follows does history lack the board's current state.
-		if (mode !== 'off') {
-			try {
-				iso = await this._writeVersionChainEntry(snapshot, key, iso)
-			} catch (error) {
-				this.logEvent({ type: 'version_chain_error' })
-				this.reportError(error)
-			}
-		}
-		// Dual-write keeps the legacy full copy as the independent record the read-path verifier
-		// checks chain reconstructions against. (_verifyRetiredChain only compares against what this
-		// DO last persisted.)
-		// Nothing dedupes this write the way the version check in persistToDatabase does: a retry
-		// that got here has already set _lastPersistedFingerprint and takes the skip path instead
-		// (the chain write above carries its own re-entry guard for the same reason).
-		if (mode !== 'chain') {
-			await this._uploadSnapshotToBucket(
-				this.r2.versionCache,
-				snapshot,
-				`${key}/${iso}`,
-				customMetadata
-			)
+		// would re-upload the rooms object 100 times and raise persistence_bad. This persist records no
+		// version, but the chain is untouched and the next persist's delta carries its changes; only
+		// when no edit follows does history lack the board's current state.
+		try {
+			// Per attempt, not per persist: the retry loop re-reads the snapshot, so a retry may carry
+			// newer content that deserves its own version.
+			await this._writeVersionChainEntry(snapshot, key, new Date().toISOString(), mode === 'off')
+		} catch (error) {
+			this.logEvent({ type: 'version_chain_error' })
+			this.reportError(error)
 		}
 	}
 
 	/**
-	 * Writes this snapshot into the chain and returns the version key (ISO timestamp) it lives under
-	 * — `iso` when written now, or the key from an earlier attempt when the chain already holds
-	 * exactly this content.
+	 * Writes this snapshot into the chain under `iso`: as a delta where the chain allows one, or
+	 * always as a keyframe when `keyframesOnly` (the `off` mode).
 	 */
 	private async _writeVersionChainEntry(
 		snapshot: RoomSnapshot,
 		key: string,
-		iso: string
-	): Promise<string> {
+		iso: string,
+		keyframesOnly: boolean
+	): Promise<void> {
 		let chain = await this.getVersionChain()
-		// Re-entry guard: a dual-write persist that failed on the legacy upload retries this whole
-		// method with the chain already holding this exact version. Without it, every such retry
-		// appends a no-op delta at a fresh timestamp — the duplicate class #10571 exists to kill.
-		// Head identity, not just the fingerprint: a tombstone prune between attempts keeps the
-		// fingerprint but changes content, and the legacy copy must not land under a key the chain
-		// holds other content at.
-		if (chain && isChainHead(chain, snapshot)) {
-			return this._versionChainHeadIso ?? iso
-		}
+		// A persist retried after the chain already took this exact version must not write it again
+		// at a fresh timestamp — the duplicate class #10571 exists to kill. Head identity, not just
+		// the fingerprint: a tombstone prune between attempts keeps the fingerprint but changes content.
+		if (chain && isChainHead(chain, snapshot)) return
 		let pending: PendingDelta[] = []
 		let noChainReason: 'segment-lost' | undefined
-		if (chain) {
+		// A keyframe discards the open segment, so there is nothing to rehydrate.
+		if (chain && !keyframesOnly) {
 			const rehydrated = await this.getPendingDeltas(chain)
 			// The chain said a segment was open but R2 no longer has it. Appending would rewrite the
 			// segment without the deltas its metadata still promises, so start a fresh chain instead.
@@ -2332,17 +2301,19 @@ export class TLFileDurableObject extends DurableObject {
 						previousHeadHash: this._lastPersistedHeadHash ?? undefined,
 						next: snapshot,
 						now: Date.now(),
+						keyframesOnly,
 					})
 				),
 			VERSION_CHAIN_R2_RETRY
 		)
 		this._versionChain = result.chain
 		this._pendingDeltas = result.pending
-		this._versionChainHeadIso = iso
 		await this.storage.put(VERSION_CHAIN_STORAGE_KEY, result.chain)
 		const previous = this._lastPersistedSnapshot
-		this._lastPersistedSnapshot = snapshot
-		this._lastPersistedHeadHash = result.chain.headHash
+		// Only a delta needs the diff base; in `off` mode it would pin a decoded copy of the board
+		// for nothing, as the wake seed gate says.
+		this._lastPersistedSnapshot = keyframesOnly ? null : snapshot
+		this._lastPersistedHeadHash = keyframesOnly ? null : result.chain.headHash
 		this.logEvent({
 			type: 'version_chain_write',
 			bytes: result.bytes,
@@ -2376,7 +2347,6 @@ export class TLFileDurableObject extends DurableObject {
 				this.ctx.waitUntil(this._verifyRetiredChain(pending[pending.length - 1].t, previous))
 			}
 		}
-		return iso
 	}
 
 	private async _verifyRetiredChain(lastDeltaTimestamp: string, expected: RoomSnapshot) {

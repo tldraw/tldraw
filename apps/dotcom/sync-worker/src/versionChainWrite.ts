@@ -9,6 +9,7 @@ import {
 	SegmentBody,
 	segmentCustomMetadata,
 	versionKey,
+	VersionWriteDecision,
 } from './versionChain'
 import { decodeVersionBody, encodeVersionBody } from './versionChainCodec'
 import {
@@ -61,6 +62,7 @@ export async function writeVersionChainEntry({
 	previousHeadHash,
 	next,
 	now,
+	keyframesOnly = false,
 }: {
 	bucket: R2Bucket
 	roomKey: string
@@ -77,6 +79,8 @@ export async function writeVersionChainEntry({
 	previousHeadHash?: string
 	next: RoomSnapshot
 	now: number
+	/** Write `next` as a keyframe without diffing it: the `off` mode. */
+	keyframesOnly?: boolean
 }): Promise<VersionChainWriteResult> {
 	const nextFingerprint = getSnapshotFingerprint(next)
 	const customMetadata = getSnapshotMetadata(next)
@@ -84,25 +88,28 @@ export async function writeVersionChainEntry({
 	// records the head hash, and on a large board each pass is a canonicalization of every record.
 	const nextHashes = snapshotHashes(next)
 
-	const delta = previous
-		? buildSnapshotDelta(previous, next, { envelopeHash: nextHashes.envelope })
-		: null
+	const delta =
+		previous && !keyframesOnly
+			? buildSnapshotDelta(previous, next, { envelopeHash: nextHashes.envelope })
+			: null
 	// Compressed on both sides of the size rule: comparing a raw delta against a compressed
 	// keyframe would trip the ratio on boards that simply compress well.
 	const encodedDelta = delta ? await encodeVersionBody(delta) : null
-	const decision = decideVersionWrite({
-		roomKey,
-		iso,
-		chain: previous && encodedDelta ? chain : null,
-		noChainReason,
-		previousFingerprint: previous ? getSnapshotFingerprint(previous) : nextFingerprint,
-		// The hash is what actually pins the diff base: tombstone pruning can change content
-		// without moving the fingerprint.
-		previousHash: previous ? (previousHeadHash ?? chainHeadHash(previous)) : '',
-		nextFingerprint,
-		deltaBytes: encodedDelta?.body.byteLength ?? 0,
-		now,
-	})
+	const decision: VersionWriteDecision = keyframesOnly
+		? { kind: 'keyframe', reason: 'keyframes-only' }
+		: decideVersionWrite({
+				roomKey,
+				iso,
+				chain: previous && encodedDelta ? chain : null,
+				noChainReason,
+				previousFingerprint: previous ? getSnapshotFingerprint(previous) : nextFingerprint,
+				// The hash is what actually pins the diff base: tombstone pruning can change content
+				// without moving the fingerprint.
+				previousHash: previous ? (previousHeadHash ?? chainHeadHash(previous)) : '',
+				nextFingerprint,
+				deltaBytes: encodedDelta?.body.byteLength ?? 0,
+				now,
+			})
 
 	if (decision.kind === 'keyframe') {
 		const key = versionKey(roomKey, iso, 'keyframe')
