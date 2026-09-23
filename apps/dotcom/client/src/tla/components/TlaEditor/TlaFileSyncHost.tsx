@@ -48,12 +48,11 @@ function createPresenceUserStore(userId: string | undefined): TLUserStore {
 		currentUser: computed('currentUser', () => {
 			// The socket opens before Zero has the user row. The id must be right from the first
 			// frame (the server authorizes records against it); name and color may catch up later.
-			const prefs = currentApp$.get()?.tlUser.userPreferences.get()
-			const local = getUserPreferences()
+			const prefs = currentApp$.get()?.tlUser.userPreferences.get() ?? getUserPreferences()
 			return UserRecordType.create({
 				id: createUserId(userId),
-				name: prefs?.name ?? local.name ?? '',
-				color: prefs?.color ?? local.color ?? '',
+				name: prefs.name ?? '',
+				color: prefs.color ?? '',
 			})
 		}),
 	}
