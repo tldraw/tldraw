@@ -4,7 +4,7 @@ import formatjs from '@formatjs/unplugin/vite'
 import react from '@vitejs/plugin-react'
 import { config } from 'dotenv'
 import { defineConfig, Plugin } from 'vite'
-import { getClerkJsUrl, resolveClerkJsVersion } from './scripts/clerk-js'
+import { resolveClerkJs } from './scripts/clerk-js'
 import { getMultiplayerServerURL } from './scripts/multiplayer-server-url'
 import {
 	thumbnailRenderEntryPlugin,
@@ -57,17 +57,19 @@ function spaFallbackPlugin(): Plugin {
 // tag or it is fetched twice. The preconnect has none on purpose: Clerk's API calls send cookies,
 // and credentialed requests don't share connections with anonymous ones.
 function clerkJsPlugin(): Plugin {
-	const publishableKey = process.env.VITE_CLERK_PUBLISHABLE_KEY
-	let version = '5'
+	let clerkJs: Awaited<ReturnType<typeof resolveClerkJs>> = null
 	return {
 		name: 'clerk-js',
 		async config() {
-			version = await resolveClerkJsVersion(publishableKey)
-			return { define: { 'process.env.CLERK_JS_VERSION': JSON.stringify(version) } }
+			clerkJs = await resolveClerkJs(process.env.VITE_CLERK_PUBLISHABLE_KEY)
+			// `undefined` leaves ClerkProvider on its default, unpinned major. It must be the string: an
+			// undefined define is skipped, leaving `process.env` in the bundle to throw in the browser.
+			const version = clerkJs ? JSON.stringify(clerkJs.version) : 'undefined'
+			return { define: { 'process.env.CLERK_JS_VERSION': version } }
 		},
 		transformIndexHtml(html, ctx) {
-			if (!publishableKey || !ctx.path.endsWith('/index.html')) return html
-			const url = getClerkJsUrl(publishableKey, version)
+			if (!clerkJs || !ctx.path.endsWith('/index.html')) return html
+			const { url } = clerkJs
 			return [
 				{
 					tag: 'link',
