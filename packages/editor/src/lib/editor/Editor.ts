@@ -11,7 +11,6 @@ import {
 	ComputedCache,
 	RecordType,
 	StoreSideEffects,
-	StoreSnapshot,
 	UnknownRecord,
 	reverseRecordsDiff,
 } from '@tldraw/store'
@@ -161,6 +160,13 @@ import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { clampCameraZoom, constrainCamera, getFitZoom } from './kernels/camera'
+import {
+	createContentIdMaps,
+	partitionContentRecords,
+	remapContentBindings,
+	toContentStoreSnapshot,
+	triageContentAssets,
+} from './kernels/content'
 import { ClickManager } from './managers/ClickManager/ClickManager'
 import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
@@ -9558,48 +9564,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const currentPageId = this.getCurrentPageId()
 		const { rootShapeIds } = content
 
-		// We need to collect the migrated records
-		const assets: TLAsset[] = []
-		const shapes: TLShape[] = []
-		const bindings: TLBinding[] = []
-		const users: TLUser[] = []
-
 		// Let's treat the content as a store, and then migrate that store.
-		const store: StoreSnapshot<TLRecord> = {
-			store: {
-				...Object.fromEntries(content.assets.map((asset) => [asset.id, asset] as const)),
-				...Object.fromEntries(content.shapes.map((shape) => [shape.id, shape] as const)),
-				...Object.fromEntries(
-					content.bindings?.map((bindings) => [bindings.id, bindings] as const) ?? []
-				),
-				...Object.fromEntries(content.users?.map((user) => [user.id, user] as const) ?? []),
-			},
-			schema: content.schema,
-		}
-		const result = this.store.schema.migrateStoreSnapshot(store)
+		const result = this.store.schema.migrateStoreSnapshot(toContentStoreSnapshot(content))
 		if (result.type === 'error') {
 			throw Error('Could not put content: could not migrate content')
 		}
-		for (const record of Object.values(result.value)) {
-			switch (record.typeName) {
-				case 'asset': {
-					assets.push(record)
-					break
-				}
-				case 'shape': {
-					shapes.push(record)
-					break
-				}
-				case 'binding': {
-					bindings.push(record)
-					break
-				}
-				case 'user': {
-					users.push(record)
-					break
-				}
-			}
-		}
+		const { assets, shapes, bindings, users } = partitionContentRecords(Object.values(result.value))
 
 		if (users.length > 0) {
 			const existingUserIds = new Set(
@@ -9615,16 +9585,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		// Ok, we've got our migrated records, now we can continue!
-		const shapeIdMap = new Map<string, TLShapeId>(
-			preserveIds
-				? shapes.map((shape) => [shape.id, shape.id])
-				: shapes.map((shape) => [shape.id, createShapeId()])
-		)
-		const bindingIdMap = new Map<string, TLBindingId>(
-			preserveIds
-				? bindings.map((binding) => [binding.id, binding.id])
-				: bindings.map((binding) => [binding.id, createBindingId()])
-		)
+		const { shapeIdMap, bindingIdMap } = createContentIdMaps(shapes, bindings, preserveIds)
 
 		let pasteParentId: TLPageId | TLShapeId = currentPageId
 
@@ -9754,45 +9715,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this
 		}
 
-		const newBindings = bindings.map(
-			(oldBinding): TLBinding => ({
-				...oldBinding,
-				id: assertExists(bindingIdMap.get(oldBinding.id)),
-				fromId: assertExists(shapeIdMap.get(oldBinding.fromId)),
-				toId: assertExists(shapeIdMap.get(oldBinding.toId)),
-			})
+		const newBindings = remapContentBindings(bindings, shapeIdMap, bindingIdMap)
+
+		const { assetsToCreate, assetsToUpdate } = triageContentAssets(
+			assets,
+			new Set(assets.filter((asset) => this.store.has(asset.id)).map((asset) => asset.id))
 		)
-
-		// These are all the assets we need to create
-		const assetsToCreate: TLAsset[] = []
-
-		// These assets have base64 data that may need to be hosted
-		const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
-
-		for (const asset of assets) {
-			if (this.store.has(asset.id)) {
-				// We already have this asset
-				continue
-			}
-
-			if (
-				(asset.type === 'image' && asset.props.src?.startsWith('data:image')) ||
-				(asset.type === 'video' && asset.props.src?.startsWith('data:video'))
-			) {
-				// it's src is a base64 image or video; we need to create a new asset without the src,
-				// then create a new asset from the original src. So we keep the original asset for the
-				// upload and create a copy with its src removed. Copy rather than mutate: when no
-				// migration applies, migrateStoreSnapshot hands back the caller's own record objects.
-				assetsToUpdate.push(asset as TLImageAsset | TLVideoAsset)
-				const assetWithoutSrc = structuredClone(asset as TLImageAsset | TLVideoAsset)
-				assetWithoutSrc.props.src = null
-				assetsToCreate.push(assetWithoutSrc)
-				continue
-			}
-
-			// Add the asset to the list of assets to create
-			assetsToCreate.push(asset)
-		}
 
 		// Start loading the new assets, order does not matter
 		Promise.allSettled(
