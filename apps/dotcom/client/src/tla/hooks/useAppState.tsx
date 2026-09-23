@@ -2,7 +2,7 @@ import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { captureException } from '@sentry/react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { assertExists, atom } from 'tldraw'
+import { assertExists, atom, useValue } from 'tldraw'
 import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
 import { enableFirstLoadLiveLog, isFirstLoadStaff, markFirstLoad } from '../../utils/firstLoad'
 import { TldrawApp, getPreloadDiagnostics } from '../app/TldrawApp'
@@ -20,8 +20,9 @@ const appLoadingContext = createContext(false)
 
 export const isClientTooOld$ = atom('isClientTooOld', false)
 
-// Signal twin of the context for code that runs before the app exists but must pick it up when it
-// arrives without remounting, e.g. the presence user store behind the sync socket.
+// The one source for the app; the React context below is derived from it. Code that runs before
+// the app exists but must pick it up without remounting (the presence user store behind the sync
+// socket) reads this directly.
 export const currentApp$ = atom<TldrawApp | null>('currentApp', null)
 
 const APP_LOAD_ERROR_MESSAGES = {
@@ -31,7 +32,7 @@ const APP_LOAD_ERROR_MESSAGES = {
 }
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
-	const [app, setApp] = useState(null as TldrawApp | null)
+	const app = useValue(currentApp$)
 	const [error, setError] = useState<unknown>(null)
 	const auth = useAuth()
 	const { user, isLoaded } = useClerkUser()
@@ -100,7 +101,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			}
 			_app = app
 			currentApp$.set(app)
-			setApp(app)
 		})().catch((err) => {
 			if (didCancel) return
 			console.error('[AppState] Failed to initialize:', err)
