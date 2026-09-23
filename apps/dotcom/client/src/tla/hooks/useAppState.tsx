@@ -45,6 +45,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	const email = user.primaryEmailAddress?.emailAddress
 	if (isFirstLoadStaff(email)) enableFirstLoadLiveLog()
 
+	// Cleared on unmount only. A Clerk user change (accepting the legal terms updates the user)
+	// re-runs the bootstrap below; nulling the atom there would blank every gated route for the
+	// whole preload, so the old app stays in place until the new one replaces it.
+	useEffect(() => {
+		return () => {
+			currentApp$.set(null)
+		}
+	}, [])
+
 	useEffect(() => {
 		let _app: TldrawApp
 		let didCancel = false
@@ -119,7 +128,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			didCancel = true
 			abort.abort()
 			if (_app) {
-				if (currentApp$.get() === _app) currentApp$.set(null)
 				_app.dispose()
 			}
 		}
