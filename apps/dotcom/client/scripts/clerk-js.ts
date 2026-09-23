@@ -10,6 +10,8 @@ export async function resolveClerkJs(
 	if (!publishableKey) return null
 	try {
 		const clerkReact = createRequire(import.meta.url).resolve('@clerk/clerk-react/package.json')
+		// Assumes ClerkProvider sets none of proxyUrl/domain/clerkJSVariant/clerkJSUrl; pass them here
+		// if it ever does, or the preload misses and the script downloads twice.
 		const { clerkJsScriptUrl } = createRequire(clerkReact)('@clerk/shared/loadClerkJsScript')
 		// Build-time Node code: @tldraw/utils' fetch wrapper is for the browser.
 		// eslint-disable-next-line no-restricted-globals

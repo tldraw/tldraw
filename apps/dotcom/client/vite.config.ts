@@ -62,10 +62,8 @@ function clerkJsPlugin(): Plugin {
 		name: 'clerk-js',
 		async config() {
 			clerkJs = await resolveClerkJs(process.env.VITE_CLERK_PUBLISHABLE_KEY)
-			// `undefined` leaves ClerkProvider on its default, unpinned major. It must be the string: an
-			// undefined define is skipped, leaving `process.env` in the bundle to throw in the browser.
-			const version = clerkJs ? JSON.stringify(clerkJs.version) : 'undefined'
-			return { define: { 'process.env.CLERK_JS_VERSION': version } }
+			if (!clerkJs) return
+			return { define: { 'process.env.CLERK_JS_VERSION': JSON.stringify(clerkJs.version) } }
 		},
 		transformIndexHtml(html, ctx) {
 			if (!clerkJs || !ctx.path.endsWith('/index.html')) return html
