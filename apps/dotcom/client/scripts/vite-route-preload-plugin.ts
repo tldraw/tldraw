@@ -1,16 +1,13 @@
 import type { HtmlTagDescriptor, Plugin, Rollup } from 'vite'
 
+const ENTRY_FORBIDDEN_MODULES = /\/packages\/(tldraw|editor|sync-core|store|tlschema)\/src\//
+
 // Route chunks are lazy, so without hints the browser only discovers them once the entry chunk has
-// downloaded and run, a serial round trip before any app code. The editor lives in the root
-// providers' static graph, so that wave is most of the bytes on every tla route.
+// downloaded and run, a serial round trip before any app code.
 export function routePreloadPlugin(routeModules: string[]): Plugin {
-	let base = '/'
 	return {
 		name: 'route-preload',
 		apply: 'build',
-		configResolved(config) {
-			base = config.base
-		},
 		transformIndexHtml: {
 			order: 'post',
 			handler(_html, { bundle, chunk: entryChunk, filename }) {
@@ -27,8 +24,19 @@ export function routePreloadPlugin(routeModules: string[]): Plugin {
 					for (const imported of chunks.get(fileName)?.imports ?? []) collect(imported, into)
 				}
 
-				const alreadyLoaded = new Set<string>()
-				collect(entryChunk.fileName, alreadyLoaded)
+				const entryGraph = new Set<string>()
+				collect(entryChunk.fileName, entryGraph)
+
+				// One barrel import of the SDK here puts the whole editor back in front of first paint
+				// (tldraw-internal#2034).
+				for (const fileName of entryGraph) {
+					const sdkModule = chunks
+						.get(fileName)
+						?.moduleIds.find((id) => ENTRY_FORBIDDEN_MODULES.test(id))
+					if (sdkModule) {
+						throw new Error(`route-preload: ${sdkModule} is in the entry chunk graph`)
+					}
+				}
 
 				const preload = new Set<string>()
 				for (const moduleId of routeModules) {
@@ -40,10 +48,10 @@ export function routePreloadPlugin(routeModules: string[]): Plugin {
 				const tags: HtmlTagDescriptor[] = []
 				const css = new Set<string>()
 				for (const fileName of preload) {
-					if (alreadyLoaded.has(fileName)) continue
+					if (entryGraph.has(fileName)) continue
 					tags.push({
 						tag: 'link',
-						attrs: { rel: 'modulepreload', crossorigin: true, href: base + fileName },
+						attrs: { rel: 'modulepreload', crossorigin: true, href: '/' + fileName },
 						injectTo: 'head',
 					})
 					for (const cssFile of chunks.get(fileName)?.viteMetadata?.importedCss ?? []) {
@@ -53,7 +61,7 @@ export function routePreloadPlugin(routeModules: string[]): Plugin {
 				for (const cssFile of css) {
 					tags.push({
 						tag: 'link',
-						attrs: { rel: 'preload', as: 'style', crossorigin: true, href: base + cssFile },
+						attrs: { rel: 'preload', as: 'style', crossorigin: true, href: '/' + cssFile },
 						injectTo: 'head',
 					})
 				}

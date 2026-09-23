@@ -9,6 +9,7 @@ import { RefreshErrorBoundary } from './components/ErrorPage/ErrorPage'
 import { Head } from './components/Head/Head'
 import { routes } from './routeDefs'
 import { router } from './routes'
+import { SESSION_STORAGE_KEYS } from './tla/utils/session-storage'
 import { CLIENT_BUILD_TIMESTAMP } from './utils/config'
 import { showConsoleBranding } from './utils/consoleBranding'
 import { markFirstLoad } from './utils/firstLoad'
@@ -19,7 +20,7 @@ markFirstLoad('js-started')
 // up the new index.html; a second failure on the same build is real and should surface.
 window.addEventListener('vite:preloadError', (event) => {
 	if (!navigator.onLine) return
-	const key = 'tldraw_stale_chunk_reload'
+	const key = SESSION_STORAGE_KEYS.STALE_CHUNK_RELOAD
 	if (getFromSessionStorage(key) === CLIENT_BUILD_TIMESTAMP) return
 	setInSessionStorage(key, CLIENT_BUILD_TIMESTAMP)
 	// Without storage the guard can't hold, and reloading would loop.

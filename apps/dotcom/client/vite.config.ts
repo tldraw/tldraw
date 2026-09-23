@@ -85,6 +85,8 @@ export default defineConfig((env) => ({
 			additionalComponentNames: ['F'],
 			ast: true,
 		}),
+		// The editor sits in the root providers' static graph, so their wave is most of the bytes on
+		// every tla route.
 		routePreloadPlugin(
 			[
 				'./src/tla/providers/TlaRootProviders.tsx',
