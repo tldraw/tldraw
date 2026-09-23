@@ -40,15 +40,15 @@ describe('resolveCachedFileVisit', () => {
 	it('still falls back on a forgotten file even if Zero names a most recent one', () => {
 		expect(
 			resolveCachedFileVisit({ ...known, hasFileState: false, mostRecentFileId: 'file-b' })
-		).toEqual({ kind: 'fall-back' })
+		).toEqual({ kind: 'fallback' })
 	})
 
 	it('falls back as soon as the room says the file is gone, without waiting for Zero', () => {
 		expect(resolveCachedFileVisit({ ...base, status: 'error', error: notFound })).toEqual({
-			kind: 'fall-back',
+			kind: 'fallback',
 		})
 		expect(resolveCachedFileVisit({ ...base, status: 'error', error: forbidden })).toEqual({
-			kind: 'fall-back',
+			kind: 'fallback',
 		})
 	})
 
@@ -60,7 +60,7 @@ describe('resolveCachedFileVisit', () => {
 				appLoaded: true,
 				hasFileState: false,
 			})
-		).toEqual({ kind: 'fall-back' })
+		).toEqual({ kind: 'fallback' })
 	})
 
 	it('leaves other room errors to the normal error page', () => {

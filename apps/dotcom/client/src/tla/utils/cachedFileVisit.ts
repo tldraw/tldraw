@@ -19,7 +19,7 @@ export type CachedFileVisit =
 	/** Both the room and Zero accepted the file: the visit is a normal one from here on. */
 	| { kind: 'accepted' }
 	/** The cache was stale: clear it and let `/` pick from Zero. */
-	| { kind: 'fall-back' }
+	| { kind: 'fallback' }
 	/** Another device visited a newer file: `/` must land there, as it did before the cache. */
 	| { kind: 'redirect'; fileId: string }
 
@@ -30,9 +30,9 @@ export type CachedFileVisit =
  * would re-add it. Other room errors are left to the normal error page.
  */
 export function resolveCachedFileVisit(input: CachedFileVisitInput): CachedFileVisit {
-	if (input.status === 'error' && isFileGone(input.error)) return { kind: 'fall-back' }
+	if (input.status === 'error' && isFileGone(input.error)) return { kind: 'fallback' }
 	if (!input.appLoaded) return { kind: 'pending' }
-	if (!input.hasFileState) return { kind: 'fall-back' }
+	if (!input.hasFileState) return { kind: 'fallback' }
 	if (input.mostRecentFileId && input.mostRecentFileId !== input.fileId) {
 		return { kind: 'redirect', fileId: input.mostRecentFileId }
 	}

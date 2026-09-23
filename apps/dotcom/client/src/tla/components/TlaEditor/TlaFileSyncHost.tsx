@@ -133,7 +133,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	const redirectFileId = visit?.kind === 'redirect' ? visit.fileId : null
 	// Leaving must not hand the store to the editor (an errored one would throw into the route
 	// error page), nor let a late sync write this file into the cache.
-	const leaving = visitKind === 'fall-back' || visitKind === 'redirect'
+	const leaving = visitKind === 'fallback' || visitKind === 'redirect'
 
 	useEffect(() => {
 		if (store.status !== 'synced-remote') return
@@ -149,7 +149,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 			trackEvent('cached-file-visit', { outcome: visitKind })
 		}
 		switch (visitKind) {
-			case 'fall-back':
+			case 'fallback':
 				clearLastVisitedFile()
 				navigate(routes.tlaRoot(), { replace: true })
 				return
