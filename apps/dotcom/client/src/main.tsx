@@ -8,7 +8,6 @@ import { RefreshErrorBoundary } from './components/ErrorPage/ErrorPage'
 import { Head } from './components/Head/Head'
 import { routes } from './routeDefs'
 import { router } from './routes'
-import { CLERK_JS_VERSION } from './utils/clerkJs'
 import { showConsoleBranding } from './utils/consoleBranding'
 import { markFirstLoad } from './utils/firstLoad'
 
@@ -34,7 +33,7 @@ createRoot(document.getElementById('root')!).render(
 	<RefreshErrorBoundary messages={TOP_LEVEL_ERROR_MESSAGES}>
 		<ClerkProvider
 			publishableKey={PUBLISHABLE_KEY}
-			clerkJSVersion={CLERK_JS_VERSION}
+			clerkJSVersion={process.env.CLERK_JS_VERSION}
 			afterSignOutUrl={routes.tlaRoot()}
 			signInUrl="/"
 			signInFallbackRedirectUrl={routes.tlaRoot()}

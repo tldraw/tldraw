@@ -4,13 +4,13 @@ import formatjs from '@formatjs/unplugin/vite'
 import react from '@vitejs/plugin-react'
 import { config } from 'dotenv'
 import { defineConfig, Plugin } from 'vite'
+import { getClerkJsUrl, resolveClerkJsVersion } from './scripts/clerk-js'
 import { getMultiplayerServerURL } from './scripts/multiplayer-server-url'
 import {
 	thumbnailRenderEntryPlugin,
 	thumbnailScreenshotPlugin,
 } from './scripts/vite-thumbnail-screenshot-plugin'
 import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
-import { getClerkJsUrl } from './src/utils/clerkJs'
 
 export { getMultiplayerServerURL }
 
@@ -52,17 +52,22 @@ function spaFallbackPlugin(): Plugin {
 	}
 }
 
-// Starts the Clerk script fetch while the HTML parses instead of after the entry bundle has run and
-// ClerkProvider mounted. The preload's crossorigin must match Clerk's own script tag or it is fetched
-// twice. The preconnect has none on purpose: Clerk's API calls send cookies, and credentialed
-// requests don't share connections with anonymous ones.
-function clerkJsPreloadPlugin(): Plugin {
+// Pins ClerkProvider to the exact clerk-js version and starts fetching it while the HTML parses,
+// instead of after the entry bundle has run. The preload's crossorigin must match Clerk's own script
+// tag or it is fetched twice. The preconnect has none on purpose: Clerk's API calls send cookies,
+// and credentialed requests don't share connections with anonymous ones.
+function clerkJsPlugin(): Plugin {
+	const publishableKey = process.env.VITE_CLERK_PUBLISHABLE_KEY
+	let version = '5'
 	return {
-		name: 'clerk-js-preload',
+		name: 'clerk-js',
+		async config() {
+			version = await resolveClerkJsVersion(publishableKey)
+			return { define: { 'process.env.CLERK_JS_VERSION': JSON.stringify(version) } }
+		},
 		transformIndexHtml(html, ctx) {
-			const publishableKey = process.env.VITE_CLERK_PUBLISHABLE_KEY
 			if (!publishableKey || !ctx.path.endsWith('/index.html')) return html
-			const url = getClerkJsUrl(publishableKey)
+			const url = getClerkJsUrl(publishableKey, version)
 			return [
 				{
 					tag: 'link',
@@ -104,7 +109,7 @@ export default defineConfig((env) => ({
 		// itself ready.
 		thumbnailRenderEntryPlugin(),
 		spaFallbackPlugin(),
-		clerkJsPreloadPlugin(),
+		clerkJsPlugin(),
 		thumbnailScreenshotPlugin(),
 		zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
 		react(),
