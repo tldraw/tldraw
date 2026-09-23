@@ -128,9 +128,12 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 				fileId: fileSlug,
 			})
 		: null
+	// Primitives, so the effects below do not re-run on every render until the navigation commits.
+	const visitKind = visit?.kind ?? null
+	const redirectFileId = visit?.kind === 'redirect' ? visit.fileId : null
 	// Leaving must not hand the store to the editor (an errored one would throw into the route
 	// error page), nor let a late sync write this file into the cache.
-	const leaving = visit?.kind === 'fall-back' || visit?.kind === 'redirect'
+	const leaving = visitKind === 'fall-back' || visitKind === 'redirect'
 
 	useEffect(() => {
 		if (store.status !== 'synced-remote') return
@@ -141,13 +144,13 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	}, [store.status, userId, fileSlug, leaving])
 
 	useEffect(() => {
-		switch (visit?.kind) {
+		switch (visitKind) {
 			case 'fall-back':
 				clearLastVisitedFile()
 				navigate(routes.tlaRoot(), { replace: true })
 				return
 			case 'redirect':
-				navigate(routes.tlaFile(visit.fileId), {
+				navigate(routes.tlaFile(redirectFileId!), {
 					replace: true,
 					state: omit(location.state, [VIA_LAST_FILE_CACHE]),
 				})
@@ -161,7 +164,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 				)
 				return
 		}
-	}, [visit, location, navigate])
+	}, [visitKind, redirectFileId, location, navigate])
 
 	if (leaving) return null
 
