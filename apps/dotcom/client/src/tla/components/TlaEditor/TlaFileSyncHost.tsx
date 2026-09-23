@@ -13,6 +13,7 @@ import {
 	getUserPreferences,
 	omit,
 	useEvent,
+	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { trackEvent } from '../../../utils/analytics'
@@ -24,7 +25,7 @@ import {
 	setFirstLoadServerTimings,
 } from '../../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
-import { currentApp$ } from '../../hooks/useAppState'
+import { currentApp$, useMaybeApp } from '../../hooks/useAppState'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { clearLastVisitedFile, setLastVisitedFile } from '../../utils/local-session-state'
 
@@ -120,9 +121,17 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	const navigate = useNavigate()
 	const location = useLocation()
 	const viaCache = !!location.state?.[VIA_LAST_FILE_CACHE]
+	const app = useMaybeApp()
+	// A cache hit means a prior visit, so no file_state means the file was forgotten elsewhere.
+	// The room would still admit a link-shared file and onFileEnter would re-add it.
+	const forgotten = useValue('cached file forgotten', () => !!app && !app.getFileState(fileSlug), [
+		app,
+		fileSlug,
+	])
+	const rejected = store.status === 'error' && isCachedFileGone(store.error)
 	// A stale cached id falls back to the Zero-derived choice on `/`, without handing the errored
 	// store to the editor (it would throw into the route error page).
-	const fallBackToRoot = viaCache && store.status === 'error' && isCachedFileGone(store.error)
+	const fallBackToRoot = viaCache && (rejected || forgotten)
 	useEffect(() => {
 		if (!fallBackToRoot) return
 		clearLastVisitedFile()
@@ -131,13 +140,14 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 
 	// The flag lives in history state, so left in place a reload after access was revoked would
 	// bounce home instead of showing the error page. Keep the search: `?d=` is read at mount.
+	const accepted = !fallBackToRoot && store.status === 'synced-remote' && !!app
 	useEffect(() => {
-		if (!viaCache || store.status !== 'synced-remote') return
+		if (!viaCache || !accepted) return
 		navigate(
 			{ pathname: location.pathname, search: location.search, hash: location.hash },
 			{ replace: true, state: omit(location.state, [VIA_LAST_FILE_CACHE]) }
 		)
-	}, [viaCache, store.status, location, navigate])
+	}, [viaCache, accepted, location, navigate])
 
 	if (fallBackToRoot) return null
 

@@ -69,7 +69,11 @@ import { copyTextToClipboard } from '../utils/copy'
 import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
-import { updateLocalSessionState } from '../utils/local-session-state'
+import {
+	clearLastVisitedFile,
+	getLastVisitedFileId,
+	updateLocalSessionState,
+} from '../utils/local-session-state'
 import { ZeroLogBuffer, formatLogArg, redactTokens } from './ZeroLogBuffer'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -1016,6 +1020,8 @@ export class TldrawApp {
 			this.showMutationRejectionToast(res.error)
 			return false
 		}
+		// Otherwise the next `/` load would walk straight back into the room and re-add the file.
+		if (getLastVisitedFileId(this.userId) === fileId) clearLastVisitedFile()
 		return true
 	}
 
