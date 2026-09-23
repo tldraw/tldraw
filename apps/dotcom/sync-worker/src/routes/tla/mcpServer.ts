@@ -214,18 +214,9 @@ interface JsonRpcRequest {
 	}
 }
 
-// Runtime kill switch for the whole MCP server, read per request so flipping MCP_SERVER_ENABLED
-// takes effect on the next request rather than the next build. An unset var means enabled, so
-// environments that never configure it (previews, local dev, tests) keep working; a var that is set
-// must say 'true', so a stray value disables rather than silently leaving the endpoint up.
-export function isMcpServerEnabled(env: Environment) {
-	const word = envFlagWord(env.MCP_SERVER_ENABLED)
-	return word === undefined || word === 'true'
-}
-
-// Whether search_boards will match on board names. Same shape as the switch above, and the same
-// reason for its default: unset means enabled, so previews, local dev and tests keep working, while
-// a set value must say 'true' so a stray one turns matching off rather than leaving it on.
+// Whether search_boards will match on board names. Unset means enabled, so previews, local dev and
+// tests keep working, while a set value must say 'true' so a stray one turns matching off rather
+// than leaving it on.
 //
 // It gates the one part of the search no index reaches — `name ILIKE '%term%'`, which reads every
 // board in the caller's scope when a term matches nothing. Turning it off does not silently drop the
@@ -359,12 +350,6 @@ export async function mcpServer(
 	env: Environment,
 	ctx?: ExecutionContext
 ): Promise<Response> {
-	// Checked before anything else, including the method check, so a disabled server looks like it
-	// isn't there at all rather than like a route that exists but rejects everything.
-	if (!isMcpServerEnabled(env)) {
-		return new Response('Not Found', { status: 404 })
-	}
-
 	// new MCP spec (2026-07-28 onwards) no longer allows get or delete requests
 	if (request.method !== 'POST') {
 		return new Response('MCP screenshot server expects POST', { status: 405 })

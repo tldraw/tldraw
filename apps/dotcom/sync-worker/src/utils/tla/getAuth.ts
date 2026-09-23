@@ -3,7 +3,7 @@ import { can } from '@tldraw/dotcom-shared'
 import { IRequest, StatusError } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
-import { isFeatureFlagEnabledForUser } from '../featureFlags'
+import { canUseMcpServer } from '../featureFlags'
 import { getRole } from './getRole'
 
 export async function requireAuth(request: IRequest, env: Environment): Promise<SignedInAuth> {
@@ -160,8 +160,8 @@ export interface McpTokenOptions {
 }
 
 /**
- * The user behind an OAuth access token this Clerk instance issued, for a user the
- * `mcp_server_access` flag names.
+ * The user behind an OAuth access token this Clerk instance issued, for a user `canUseMcpServer`
+ * admits: one the `mcp_server_access` flag names, or a `@tldraw.com` account.
  *
  * Separate from {@link getAuth} rather than folded into it, and opted into one route at a time: a
  * session token is a credential the user's browser holds for tldraw.com itself, while this is one
@@ -237,7 +237,7 @@ export async function getMcpTokenAuth(
 	}
 
 	const userId = state.toAuth().userId
-	if (!(await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId))) {
+	if (!(await canUseMcpServer(env, userId))) {
 		return { ok: false, reason: 'not_allowlisted' }
 	}
 
