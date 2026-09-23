@@ -48,7 +48,7 @@ export function Component({ error }: { error?: unknown }) {
 			<ReadyWrapper>
 				{errorElem ?? (
 					<TlaAnonLayout>
-						<TlaFileSyncHost fileSlug={fileSlug}>
+						<TlaFileSyncHost key={fileSlug} fileSlug={fileSlug}>
 							<TlaEditor fileSlug={fileSlug} deepLinks isEmbed={isEmbed} />
 						</TlaFileSyncHost>
 					</TlaAnonLayout>
@@ -67,10 +67,11 @@ export function Component({ error }: { error?: unknown }) {
 		)
 	}
 
-	// The host sits at the same position before and after the app resolves so React keeps it
-	// mounted: remounting it would drop the socket the whole point is to open early.
+	// Same position before and after the app resolves so React keeps the host (and its socket)
+	// mounted. Keyed by slug because useSync keeps reporting the old room's store as synced
+	// while a changed uri is still connecting.
 	return (
-		<TlaFileSyncHost fileSlug={fileSlug}>
+		<TlaFileSyncHost key={fileSlug} fileSlug={fileSlug}>
 			{app && (
 				<TlaSidebarLayout collapsible isEmbed={isEmbed}>
 					<TlaEditor fileSlug={fileSlug} deepLinks isEmbed={isEmbed} />
