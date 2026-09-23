@@ -6,7 +6,10 @@ const base: CachedFileVisitInput = {
 	status: 'loading',
 	appLoaded: false,
 	hasFileState: false,
+	mostRecentFileId: null,
+	fileId: 'file-a',
 }
+const known = { ...base, appLoaded: true, hasFileState: true, mostRecentFileId: 'file-a' }
 
 const notFound = new TLRemoteSyncError(TLSyncErrorCloseEventReason.NOT_FOUND)
 const forbidden = new TLRemoteSyncError(TLSyncErrorCloseEventReason.FORBIDDEN)
@@ -24,9 +27,20 @@ describe('resolveCachedFileVisit', () => {
 	})
 
 	it('waits for the room once Zero has the file', () => {
-		expect(resolveCachedFileVisit({ ...base, appLoaded: true, hasFileState: true })).toEqual({
-			kind: 'pending',
+		expect(resolveCachedFileVisit(known)).toEqual({ kind: 'pending' })
+	})
+
+	it('redirects to a newer file from another device without waiting for the room', () => {
+		expect(resolveCachedFileVisit({ ...known, mostRecentFileId: 'file-b' })).toEqual({
+			kind: 'redirect',
+			fileId: 'file-b',
 		})
+	})
+
+	it('still falls back on a forgotten file even if Zero names a most recent one', () => {
+		expect(
+			resolveCachedFileVisit({ ...known, hasFileState: false, mostRecentFileId: 'file-b' })
+		).toEqual({ kind: 'fall-back' })
 	})
 
 	it('falls back as soon as the room says the file is gone, without waiting for Zero', () => {
@@ -50,25 +64,14 @@ describe('resolveCachedFileVisit', () => {
 	})
 
 	it('leaves other room errors to the normal error page', () => {
-		expect(
-			resolveCachedFileVisit({
-				...base,
-				status: 'error',
-				error: rateLimited,
-				appLoaded: true,
-				hasFileState: true,
-			})
-		).toEqual({ kind: 'pending' })
+		expect(resolveCachedFileVisit({ ...known, status: 'error', error: rateLimited })).toEqual({
+			kind: 'pending',
+		})
 	})
 
-	it('accepts once both the room and Zero have the file', () => {
-		expect(
-			resolveCachedFileVisit({
-				...base,
-				status: 'synced-remote',
-				appLoaded: true,
-				hasFileState: true,
-			})
-		).toEqual({ kind: 'accepted' })
+	it('accepts once both the room and Zero have the file and it is the most recent', () => {
+		expect(resolveCachedFileVisit({ ...known, status: 'synced-remote' })).toEqual({
+			kind: 'accepted',
+		})
 	})
 })

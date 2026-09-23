@@ -105,47 +105,61 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	const location = useLocation()
 	const viaCache = !!location.state?.[VIA_LAST_FILE_CACHE]
 	const app = useMaybeApp()
-	const hasFileState = useValue('has file state', () => !!app?.getFileState(fileSlug), [
-		app,
-		fileSlug,
-	])
+	const zero = useValue(
+		'zero facts for the cached visit',
+		() =>
+			app && {
+				hasFileState: !!app.getFileState(fileSlug),
+				mostRecentFileId: app.getMostRecentFileId(),
+			},
+		[app, fileSlug]
+	)
 	const visit = viaCache
 		? resolveCachedFileVisit({
 				status: store.status,
 				error: store.status === 'error' ? store.error : undefined,
-				appLoaded: !!app,
-				hasFileState,
-			}).kind
+				appLoaded: !!zero,
+				hasFileState: zero?.hasFileState ?? false,
+				mostRecentFileId: zero?.mostRecentFileId ?? null,
+				fileId: fileSlug,
+			})
 		: null
-	// Falling back must not hand the errored store to the editor (it would throw into the route
-	// error page), nor let a late sync write the file back into the cache.
-	const fallingBack = visit === 'fall-back'
+	// Leaving must not hand the store to the editor (an errored one would throw into the route
+	// error page), nor let a late sync write this file into the cache.
+	const leaving = visit?.kind === 'fall-back' || visit?.kind === 'redirect'
 
 	useEffect(() => {
 		if (store.status !== 'synced-remote') return
 		markFirstLoad('sync-connected')
 		// Written only once the room accepted us, so the cache never points at a file this account
 		// cannot open.
-		if (userId && !fallingBack) setLastVisitedFile(userId, fileSlug)
-	}, [store.status, userId, fileSlug, fallingBack])
+		if (userId && !leaving) setLastVisitedFile(userId, fileSlug)
+	}, [store.status, userId, fileSlug, leaving])
 
 	useEffect(() => {
-		if (!fallingBack) return
-		clearLastVisitedFile()
-		navigate(routes.tlaRoot(), { replace: true })
-	}, [fallingBack, navigate])
-
-	// Drop the flag from history state so a later reload is an ordinary visit. Keep the search:
-	// `?d=` is read at mount.
-	useEffect(() => {
-		if (visit !== 'accepted') return
-		navigate(
-			{ pathname: location.pathname, search: location.search, hash: location.hash },
-			{ replace: true, state: omit(location.state, [VIA_LAST_FILE_CACHE]) }
-		)
+		switch (visit?.kind) {
+			case 'fall-back':
+				clearLastVisitedFile()
+				navigate(routes.tlaRoot(), { replace: true })
+				return
+			case 'redirect':
+				navigate(routes.tlaFile(visit.fileId), {
+					replace: true,
+					state: omit(location.state, [VIA_LAST_FILE_CACHE]),
+				})
+				return
+			case 'accepted':
+				// Drop the flag from history state so a later reload is an ordinary visit. Keep the
+				// search: `?d=` is read at mount.
+				navigate(
+					{ pathname: location.pathname, search: location.search, hash: location.hash },
+					{ replace: true, state: omit(location.state, [VIA_LAST_FILE_CACHE]) }
+				)
+				return
+		}
 	}, [visit, location, navigate])
 
-	if (fallingBack) return null
+	if (leaving) return null
 
 	return <FileSyncStoreContext.Provider value={store}>{children}</FileSyncStoreContext.Provider>
 }
