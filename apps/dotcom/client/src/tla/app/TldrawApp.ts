@@ -1,10 +1,4 @@
-import {
-	ErroredQuery,
-	MutatorResultErrorDetails,
-	QueryResultType,
-	ResultType,
-	Zero,
-} from '@rocicorp/zero'
+import { MutatorResultErrorDetails, QueryResultType, TypedView, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	AcceptInviteResponseBody,
@@ -225,32 +219,19 @@ export class TldrawApp {
 
 	private signalizeQuery<TReturn>(name: string, query: any): Signal<TReturn> {
 		// fail if closed?
-		const view = this.z.materialize(query) as unknown as {
-			data: TReturn
-			addListener(
-				cb: (data: TReturn, resultType: ResultType, error?: ErroredQuery) => void
-			): () => void
-			destroy(): void
-		}
+		const view = this.z.materialize(query) as unknown as TypedView<TReturn>
 		const val$ = atom(name, view.data, { isEqual })
 		this.bindQuery(val$, view)
 		return val$
 	}
 
 	/** Feed a materialized Zero view into an atom for its lifetime, batched like every other signal. */
-	private bindQuery<TReturn>(
-		val$: Atom<TReturn>,
-		view: {
-			addListener(
-				cb: (data: TReturn, resultType: ResultType, error?: ErroredQuery) => void
-			): () => void
-			destroy(): void
-		}
-	) {
+	private bindQuery<TReturn>(val$: Atom<TReturn>, view: TypedView<TReturn>) {
 		let reportedError = false
 		view.addListener((res, resultType, error) => {
-			// a failed query just leaves its signal empty, which looks like no data rather than broken
-			if (resultType === 'error' && !reportedError) {
+			// a failed query just leaves its signal empty, which looks like no data rather than broken.
+			// Closing Zero fails every query still hydrating, which is teardown, not a failure
+			if (resultType === 'error' && !reportedError && !this.z.closed) {
 				reportedError = true
 				captureException(new Error(`Query failed: ${val$.name}`), { extra: { error } })
 			}
@@ -481,13 +462,7 @@ export class TldrawApp {
 	 * app-lifetime signals like {@link comments$}.
 	 */
 	materializeQuery<TReturn>(query: unknown) {
-		return this.z.materialize(query as any) as unknown as {
-			readonly data: TReturn
-			addListener(
-				cb: (data: TReturn, resultType: ResultType, error?: ErroredQuery) => void
-			): () => void
-			destroy(): void
-		}
+		return this.z.materialize(query as any) as unknown as TypedView<TReturn>
 	}
 
 	async preload(signal?: AbortSignal) {
