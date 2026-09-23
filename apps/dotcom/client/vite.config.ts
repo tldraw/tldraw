@@ -10,6 +10,7 @@ import {
 	thumbnailScreenshotPlugin,
 } from './scripts/vite-thumbnail-screenshot-plugin'
 import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
+import { getClerkJsUrl } from './src/utils/clerkJs'
 
 export { getMultiplayerServerURL }
 
@@ -51,6 +52,33 @@ function spaFallbackPlugin(): Plugin {
 	}
 }
 
+// Starts the Clerk script fetch while the HTML parses instead of after the entry bundle has run and
+// ClerkProvider mounted. The preload's crossorigin must match Clerk's own script tag or it is fetched
+// twice. The preconnect has none on purpose: Clerk's API calls send cookies, and credentialed
+// requests don't share connections with anonymous ones.
+function clerkJsPreloadPlugin(): Plugin {
+	return {
+		name: 'clerk-js-preload',
+		transformIndexHtml(html, ctx) {
+			const publishableKey = process.env.VITE_CLERK_PUBLISHABLE_KEY
+			if (!publishableKey || !ctx.path.endsWith('/index.html')) return html
+			const url = getClerkJsUrl(publishableKey)
+			return [
+				{
+					tag: 'link',
+					attrs: { rel: 'preconnect', href: new URL(url).origin },
+					injectTo: 'head-prepend',
+				},
+				{
+					tag: 'link',
+					attrs: { rel: 'preload', as: 'script', href: url, crossorigin: 'anonymous' },
+					injectTo: 'head-prepend',
+				},
+			]
+		},
+	}
+}
+
 function urlOrLocalFallback(mode: string, url: string | undefined, localFallbackPort: number) {
 	if (url) {
 		return JSON.stringify(url)
@@ -76,6 +104,7 @@ export default defineConfig((env) => ({
 		// itself ready.
 		thumbnailRenderEntryPlugin(),
 		spaFallbackPlugin(),
+		clerkJsPreloadPlugin(),
 		thumbnailScreenshotPlugin(),
 		zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
 		react(),

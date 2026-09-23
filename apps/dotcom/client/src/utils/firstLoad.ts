@@ -352,12 +352,31 @@ function navigationTiming() {
 	const nav = performance.getEntriesByType('navigation')[0] as
 		| PerformanceNavigationTiming
 		| undefined
-	if (!nav) return {}
+	return nav ? summarizeNavigation(nav) : {}
+}
+
+/**
+ * Splits `nav_ttfb` into the phases that can make it slow. `nav_fetch_start` covers everything
+ * before the request, including cross-origin redirects (tldraw.com → www) that `nav_redirect_count`
+ * can't see.
+ */
+export function summarizeNavigation(nav: PerformanceNavigationTiming) {
+	const span = (from: number, to: number) => (from > 0 ? Math.round(to - from) : 0)
 	return {
 		nav_type: nav.type,
 		nav_ttfb: Math.round(nav.responseStart),
 		nav_dom_content_loaded: Math.round(nav.domContentLoadedEventEnd),
 		nav_protocol: nav.nextHopProtocol,
+		nav_redirect_count: nav.redirectCount,
+		nav_fetch_start: Math.round(nav.fetchStart),
+		nav_worker_ms: span(nav.workerStart, nav.fetchStart),
+		nav_dns_ms: span(nav.domainLookupStart, nav.domainLookupEnd),
+		nav_connect_ms: span(nav.connectStart, nav.connectEnd),
+		nav_server_ms: span(nav.requestStart, nav.responseStart),
+		// Prerender only, and missing from the DOM lib types.
+		nav_activation_start: Math.round(
+			(nav as PerformanceNavigationTiming & { activationStart?: number }).activationStart ?? 0
+		),
 	}
 }
 
