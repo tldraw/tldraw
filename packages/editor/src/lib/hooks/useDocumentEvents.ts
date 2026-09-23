@@ -14,8 +14,7 @@ export function useDocumentEvents() {
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId(), [editor])
 	const isAppFocused = useValue('isFocused', () => editor.getIsFocused(), [editor])
 
-	// `inputs.keys` only stores codes, but tools match `onKeyUp` on `info.key`, so the window
-	// blur release below needs the key remembered per code.
+	// code -> key, for the synthetic releases in `releaseHeldKeys`
 	const heldKeysRef = useRef(new Map<string, string>())
 
 	// Prevent the browser's default drag and drop behavior on our container (UI, etc)
@@ -246,6 +245,14 @@ export function useDocumentEvents() {
 
 			heldKeysRef.current.delete(e.code)
 			editor.dispatch(info)
+
+			// macOS never delivers keyup for a non-modifier key while Meta is held, so anything
+			// pressed during a Cmd shortcut stays in `inputs.keys` for good. A stuck ArrowUp from
+			// Cmd+ArrowUp made every later arrow press nudge diagonally, since the nudge sums all
+			// held arrows. A key that really is still down re-reports itself on its next repeat.
+			if (e.code === 'MetaLeft' || e.code === 'MetaRight') {
+				releaseHeldKeys(editor, heldKeysRef.current, (code) => !MODIFIER_CODES.has(code))
+			}
 		}
 
 		function handleTouchStart(e: TouchEvent) {
@@ -314,26 +321,12 @@ export function useDocumentEvents() {
 
 	// Alt+Tab / Cmd+Tab away while holding a key delivers the keyup to the other app, so without
 	// this Space-panning (grab cursor, drags pan) stuck until the key was pressed again (#10442).
-	// Replaying a key_up per held key runs the normal release path, including tool onKeyUp.
 	useEffect(() => {
 		const win = editor.getContainerWindow()
 
 		const handleWindowBlur = () => {
-			const heldKeys = heldKeysRef.current
-			for (const code of [...editor.inputs.keys]) {
-				editor.dispatch({
-					type: 'keyboard',
-					name: 'key_up',
-					key: heldKeys.get(code) ?? code,
-					code,
-					shiftKey: false,
-					altKey: false,
-					ctrlKey: false,
-					metaKey: false,
-					accelKey: false,
-				})
-			}
-			heldKeys.clear()
+			releaseHeldKeys(editor, heldKeysRef.current)
+			heldKeysRef.current.clear()
 		}
 
 		win.addEventListener('blur', handleWindowBlur)
@@ -341,6 +334,43 @@ export function useDocumentEvents() {
 			win.removeEventListener('blur', handleWindowBlur)
 		}
 	}, [editor])
+}
+
+const MODIFIER_CODES = new Set([
+	'ShiftLeft',
+	'ShiftRight',
+	'AltLeft',
+	'AltRight',
+	'ControlLeft',
+	'ControlRight',
+	'MetaLeft',
+	'MetaRight',
+])
+
+/**
+ * Replay a `key_up` for each held key so it runs the normal release path, including tool
+ * `onKeyUp`. `inputs.keys` stores codes but tools match on `info.key`, hence `heldKeys`.
+ */
+function releaseHeldKeys(
+	editor: Editor,
+	heldKeys: Map<string, string>,
+	shouldRelease?: (code: string) => boolean
+) {
+	for (const code of [...editor.inputs.keys]) {
+		if (shouldRelease && !shouldRelease(code)) continue
+		editor.dispatch({
+			type: 'keyboard',
+			name: 'key_up',
+			key: heldKeys.get(code) ?? code,
+			code,
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+		})
+		heldKeys.delete(code)
+	}
 }
 
 function areShortcutsDisabled(editor: Editor) {
