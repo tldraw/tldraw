@@ -68,6 +68,7 @@ import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, getZeroAuth, requireAuth, getMcpTokenAuth } from './utils/tla/getAuth'
 import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
+import { createMcpMutators } from './utils/tla/mcpMutators'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -245,7 +246,10 @@ const router = createRouter<Environment>()
 			undefined,
 			'debug'
 		)
-		const result = await processor.process(createMutators(auth.userId), req)
+		const result = await processor.process(
+			auth.mcp ? createMcpMutators(auth.userId) : createMutators(auth.userId),
+			req
+		)
 		// Wake the outbox consumer without blocking the response: a poke failure must not 500 a
 		// mutation that already committed, and the singleton DO shouldn't sit on the hot path.
 		ctx.waitUntil(
@@ -270,6 +274,24 @@ const router = createRouter<Environment>()
 			userID: auth.userId,
 		})
 		return json(result)
+	})
+	// What a Zero client needs to connect that it cannot carry itself: the tables and relationships
+	// as this deployment defines them, and which zero-cache serves it. For an agent's app (the tldraw
+	// plugin for ChatGPT), which cannot depend on dotcom-shared: the schema is plain data, and read
+	// from here it cannot drift from what the query and mutate endpoints run against. MCP tokens
+	// only, since that is the only caller with nowhere else to get it.
+	.get('/app/zero/schema', async (req, env) => {
+		const auth = await getMcpTokenAuth(req, env)
+		if (!auth.ok) {
+			return Response.json(
+				{ error: 'Unauthorized' },
+				{ status: auth.reason === 'not_allowlisted' ? 403 : 401 }
+			)
+		}
+		if (!env.ZERO_SERVER) {
+			return Response.json({ error: 'Zero is not deployed here' }, { status: 503 })
+		}
+		return json({ cacheURL: env.ZERO_SERVER, schema })
 	})
 	.all('*', notFound)
 

@@ -79,6 +79,8 @@ export interface Environment {
 	ASSET_UPLOAD_ORIGIN: string | undefined
 	USER_CONTENT_URL: string | undefined
 	MULTIPLAYER_SERVER: string | undefined
+	/** The zero-cache clients of this deployment connect to; what `/app/zero/schema` hands out. */
+	ZERO_SERVER: string | undefined
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 	HEALTH_CHECK_DB_SIZE_THRESHOLD_GB: string | undefined
