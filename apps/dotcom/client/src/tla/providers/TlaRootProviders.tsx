@@ -365,6 +365,9 @@ function LegalTermsAcceptance() {
 	const { user } = useClerkUser()
 	const { addDialog } = useDialogs()
 	const userRef = useRef(user)
+	// Accepting calls user.update, which changes the Clerk user identity and re-runs the app
+	// bootstrap. Shown during the preload, that would abort and restart it.
+	const isAppLoading = useIsAppLoading()
 
 	// Keep the ref updated with the latest user
 	useEffect(() => {
@@ -383,8 +386,9 @@ function LegalTermsAcceptance() {
 			}
 		}
 
+		if (isAppLoading) return
 		maybeShowDialog()
-	}, [addDialog, user?.id])
+	}, [addDialog, user?.id, isAppLoading])
 
 	return null
 }
