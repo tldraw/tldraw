@@ -1,4 +1,4 @@
-import { assert } from 'tldraw'
+import { assert } from '@tldraw/utils'
 
 export const ROUTES = {
 	tlaOptIn: '/preview',

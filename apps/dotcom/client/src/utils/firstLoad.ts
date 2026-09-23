@@ -1,5 +1,5 @@
 import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
-import { uniqueId } from 'tldraw'
+import { uniqueId } from '@tldraw/utils'
 
 export type FirstLoadServerTimings = Extract<TLCustomServerEvent, { type: 'first_load_server' }>
 
