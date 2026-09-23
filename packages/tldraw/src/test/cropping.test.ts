@@ -1,6 +1,8 @@
 import {
 	createShapeId,
 	MediaHelpers,
+	TldrawOptions,
+	TLExternalContent,
 	TLImageShape,
 	TLSelectionHandle,
 	TLShape,
@@ -1461,6 +1463,40 @@ describe('Pasting an image while cropping', () => {
 		expect(replaceSpy).not.toHaveBeenCalled()
 		expect(putSpy).toHaveBeenCalledTimes(1)
 		expect(putSpy.mock.calls[0][0]).toMatchObject({ type: 'files' })
+	})
+
+	function makeCroppingEditor(
+		onBeforePasteFromClipboard: NonNullable<TldrawOptions['onBeforePasteFromClipboard']>
+	) {
+		editor.dispose()
+		editor = new TestEditor({ options: { onBeforePasteFromClipboard } })
+		editor.createShapes([{ id: ids.imageA, type: 'image', x: 100, y: 100, props: imageProps }])
+		editor.select(ids.imageA)
+		editor.setCroppingShape(ids.imageA)
+	}
+
+	it('does not replace the image when onBeforePasteFromClipboard cancels the paste', async () => {
+		makeCroppingEditor(() => false)
+		const replaceSpy = vi.spyOn(editor, 'replaceExternalContent').mockResolvedValue()
+		const putSpy = vi.spyOn(editor, 'putExternalContent').mockResolvedValue()
+
+		await pasteFiles(editor, [makeImageFile()])
+
+		expect(replaceSpy).not.toHaveBeenCalled()
+		expect(putSpy).not.toHaveBeenCalled()
+	})
+
+	it('replaces the image with the file returned by onBeforePasteFromClipboard', async () => {
+		const swapped = new File(['other'], 'swapped.png', { type: 'image/png' })
+		makeCroppingEditor(
+			({ content }) => ({ ...content, files: [swapped] }) as TLExternalContent<unknown>
+		)
+		const replaceSpy = vi.spyOn(editor, 'replaceExternalContent').mockResolvedValue()
+
+		await pasteFiles(editor, [makeImageFile()])
+
+		expect(replaceSpy).toHaveBeenCalledTimes(1)
+		expect(replaceSpy.mock.calls[0][0]).toMatchObject({ type: 'file-replace', file: swapped })
 	})
 
 	it('swaps the asset and keeps the crop and crop mode with the real replace handler', async () => {
