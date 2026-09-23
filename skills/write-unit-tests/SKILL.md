@@ -26,7 +26,7 @@ Each package has its own `TestEditor`, and they are not interchangeable: `packag
 
 ```bash
 cd packages/tldraw && yarn test run
-cd packages/tldraw && yarn test run --grep "SelectTool"
+cd packages/tldraw && yarn test run -t "SelectTool"
 cd packages/tldraw && yarn test          # watch mode
 ```
 
