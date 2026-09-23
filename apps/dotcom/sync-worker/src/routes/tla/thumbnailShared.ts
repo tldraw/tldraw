@@ -108,6 +108,8 @@ export function describeThumbnailFailure(reason: string): string {
 			// The tools that fail this way start no render, so the default 'the render failed' would
 			// be a plainly wrong thing to tell a caller.
 			return 'the board database could not be reached'
+		case 'board_create_error':
+			return 'the board could not be saved'
 		case 'rate_limiter_unavailable':
 			// Deliberately not phrased as being rate limited: the caller is inside their budget, and a
 			// message saying otherwise would have them back off for a minute that would not help.
@@ -125,6 +127,7 @@ export type ThumbnailErrorSurface =
 	| 'thumbnail_snapshot'
 	| 'mcp_board_info'
 	| 'mcp_board_search'
+	| 'mcp_board_create'
 	| 'mcp_screenshot'
 	// Kept apart from 'mcp_screenshot': the render succeeded and the caller still got their PNG, so
 	// this never means "screenshots are broken" — it means the cache isn't absorbing them and every
