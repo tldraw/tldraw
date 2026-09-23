@@ -665,8 +665,8 @@ export class TldrawApp {
 	/**
 	 * A membership whose group row is missing is stale, not real. The comment feeds' access gate can
 	 * keep the caller's group_user row in the client store after they leave a workspace (Zero 1.9's
-	 * union fan-in drops the remove), while the group row, synced only by this query, is gone.
-	 * Counting it would block rejoining by invite and pass client-side role checks.
+	 * union fan-in drops the remove, rocicorp/mono#6636), while the group row, synced only by this
+	 * query, is gone. Counting it would block rejoining by invite and pass client-side role checks.
 	 */
 	@computed({ isEqual })
 	getWorkspaceMemberships() {

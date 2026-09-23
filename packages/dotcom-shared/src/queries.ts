@@ -27,6 +27,10 @@ const defineQueries = defineQueriesWithType<TlaSchema>()
  * Zero's planner can flip it and start from the caller's own rows. Over 9 EXISTS in a query
  * (MAX_FLIPPABLE_JOINS) the planner bails and it runs comment-first over every comment in the
  * database (tldraw-internal#2032).
+ *
+ * Being an OR the planner flips, it goes through zero's union fan-in, which on 1.9 can drop a live
+ * add when access appears (rocicorp/mono#6380, fixed in 1.11) and leak the refcount of an access
+ * row a branch loses, leaving it in the client store (rocicorp/mono#6636, open).
  */
 const canAccessCommentFile =
 	(userId: string) =>
@@ -144,7 +148,8 @@ export const queries = defineQueries({
 	 * One feed per reason rather than one query with an OR of reasons: a comment that qualifies only
 	 * once a later row lands (its `comment_mention` row is written after the comment itself) is
 	 * dropped by zero 1.9's union fan-in when the planner has flipped a branch of that OR, so it
-	 * reached the feed only on reload. Each feed is a plain AND chain, which delivers it live.
+	 * reached the feed only on reload (rocicorp/mono#6380, fixed in 1.11). Each feed is a plain AND
+	 * chain, which delivers it live.
 	 *
 	 * "Reacted to your comment" entries come from the separate {@link reactions} query, not here.
 	 *
