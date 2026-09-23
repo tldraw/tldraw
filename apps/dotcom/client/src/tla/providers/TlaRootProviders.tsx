@@ -2,7 +2,7 @@ import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Outlet, useMatch } from 'react-router-dom'
+import { Outlet, useMatches } from 'react-router-dom'
 import {
 	ContainerProvider,
 	DefaultA11yAnnouncer,
@@ -24,7 +24,7 @@ import {
 } from 'tldraw'
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/ErrorPage'
-import { ROUTES } from '../../routeDefs'
+import { TlaRouteHandle } from '../../routeDefs'
 import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
 import { assetUrls } from '../../utils/assetUrls'
 import { reportError } from '../../utils/errorReporting'
@@ -242,14 +242,16 @@ function PutToastsInApp() {
 	return null
 }
 
-// Holds routes back until the app resolves. The root and file routes opt out: they open the
-// file's sync socket while Zero is still preloading and handle a null app themselves. Anything
-// else calling `useApp()` would otherwise throw.
+// Holds routes back until the app resolves unless the matched route opts in via its `handle`
+// (the root and file routes: they open the sync socket while Zero is still preloading and cope
+// with a null app). Anything else calling `useApp()` would otherwise throw.
 function AppGate({ children }: { children: ReactNode }) {
 	const isAppLoading = useIsAppLoading()
-	const isRoot = useMatch(ROUTES.tlaRoot)
-	const isFile = useMatch(ROUTES.tlaFile)
-	if (isAppLoading && !isRoot && !isFile) return null
+	const matches = useMatches()
+	const rendersWhileAppLoads = matches.some(
+		(m) => (m.handle as TlaRouteHandle | undefined)?.rendersWhileAppLoads
+	)
+	if (isAppLoading && !rendersWhileAppLoads) return null
 	return children
 }
 

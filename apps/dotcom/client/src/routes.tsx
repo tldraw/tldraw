@@ -5,7 +5,7 @@ import { Helmet } from 'react-helmet-async'
 import { Outlet, Route, createRoutesFromElements, redirect, useRouteError } from 'react-router-dom'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
-import { ROUTES, routes } from './routeDefs'
+import { ROUTES, routes, TlaRouteHandle } from './routeDefs'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
 
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
@@ -86,7 +86,11 @@ export function createAppRouter({
 				</>
 			)}
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
-				<Route path={ROUTES.tlaRoot} lazy={() => import('./tla/pages/local')} />
+				<Route
+					path={ROUTES.tlaRoot}
+					lazy={() => import('./tla/pages/local')}
+					handle={{ rendersWhileAppLoads: true } satisfies TlaRouteHandle}
+				/>
 				<Route element={<NoIndex />}>
 					<Route path={ROUTES.tlaNew} lazy={() => import('./pages/tla-new')} />
 					<Route path={ROUTES.tlaOptIn} loader={() => redirect(routes.tlaRoot())} />
@@ -96,7 +100,11 @@ export function createAppRouter({
 						lazy={() => import('./tla/pages/local-file-index')}
 					/>
 					{/* File view */}
-					<Route path={ROUTES.tlaFile} lazy={() => import('./tla/pages/file')} />
+					<Route
+						path={ROUTES.tlaFile}
+						lazy={() => import('./tla/pages/file')}
+						handle={{ rendersWhileAppLoads: true } satisfies TlaRouteHandle}
+					/>
 					<Route lazy={() => import('./tla/providers/RequireTldrawStaff')}>
 						<Route path={ROUTES.tlaFileHistory} lazy={() => import('./tla/pages/file-history')} />
 						<Route
