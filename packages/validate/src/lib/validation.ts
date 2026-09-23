@@ -1879,15 +1879,39 @@ function parseUrl(str: string) {
 }
 
 const validLinkProtocols = new Set(['http:', 'https:', 'mailto:'])
+// Never links, even written as `scheme://`: they run script or reach local content.
+// (`javascript://%0aalert(1)` is valid script.)
+const unsafeLinkProtocols = new Set([
+	'javascript:',
+	'vbscript:',
+	'data:',
+	'blob:',
+	'file:',
+	'filesystem:',
+	'about:',
+])
+
+function isValidLinkProtocol(value: string, protocol: string) {
+	if (validLinkProtocols.has(protocol)) return true
+	// An app deep link, like `vscode://file/…` or `slack://open`. Requiring the `//` keeps
+	// `localhost:3000` from reading as a scheme, so the link dialog still prefixes https:// to it.
+	return (
+		!unsafeLinkProtocols.has(protocol) &&
+		value.startsWith('//', protocol.length) &&
+		value.slice(0, protocol.length).toLowerCase() === protocol
+	)
+}
 
 /**
- * Validator for URLs that are safe to use as user-facing links. Accepts http, https, and mailto protocols.
+ * Validator for URLs that are safe to use as user-facing links. Accepts http, https, and mailto
+ * protocols, and app deep links written as `scheme://…` (such as `vscode://file/…`).
  * This validator provides security by rejecting potentially dangerous protocols like javascript:.
  *
  * @example
  * ```ts
  * const link = T.linkUrl.validate("https://example.com") // Valid
  * const email = T.linkUrl.validate("mailto:user@example.com") // Valid
+ * const deepLink = T.linkUrl.validate("vscode://file/src/index.ts") // Valid
  * T.linkUrl.validate("") // Valid (empty string allowed)
  * T.linkUrl.validate("javascript:alert(1)") // Throws ValidationError (unsafe protocol)
  * ```
@@ -1897,7 +1921,7 @@ export const linkUrl = string.check((value) => {
 	if (value === '') return
 	const url = parseUrl(value)
 
-	if (!validLinkProtocols.has(url.protocol.toLowerCase())) {
+	if (!isValidLinkProtocol(value, url.protocol.toLowerCase())) {
 		throw new ValidationError(
 			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
 		)
