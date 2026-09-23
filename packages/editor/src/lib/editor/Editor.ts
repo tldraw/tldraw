@@ -11,6 +11,7 @@ import {
 	ComputedCache,
 	RecordType,
 	StoreSideEffects,
+	StoreSnapshot,
 	UnknownRecord,
 	reverseRecordsDiff,
 } from '@tldraw/store'
@@ -86,6 +87,7 @@ import {
 	getIndicesAbove,
 	getIndicesBetween,
 	getOwnProperty,
+	groupBy,
 	hasOwnProperty,
 	last,
 	lerp,
@@ -159,13 +161,6 @@ import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { clampCameraZoom, constrainCamera, getFitZoom } from './kernels/camera'
-import {
-	createContentIdMaps,
-	partitionContentRecords,
-	remapContentBindings,
-	toContentStoreSnapshot,
-	triageContentAssets,
-} from './kernels/content'
 import { getCulledShapeIds } from './kernels/culling'
 import {
 	classifyClosedShapeHit,
@@ -7065,6 +7060,45 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
+	/** Layout kernels return a move per cluster; every shape in the cluster shifts by that delta. */
+	private getChangesToApplyLayoutMoves(
+		moves: { item: { shapes: TLShape[] }; delta: VecLike }[]
+	): TLShapePartial[] {
+		const changes: TLShapePartial[] = []
+		for (const { item, delta } of moves) {
+			for (const shape of item.shapes) {
+				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
+			}
+		}
+		return changes
+	}
+
+	/**
+	 * Layout kernels return a translation and a scale per cluster. Each shape moves before it
+	 * resizes, so the resize measures geometry that is already in place.
+	 */
+	private applyLayoutTransforms(
+		transforms: {
+			item: { shapes: TLShape[] }
+			pageOffset: VecLike
+			scaleOrigin: VecLike
+			scale: VecLike
+		}[]
+	) {
+		for (const { item, pageOffset, scaleOrigin, scale } of transforms) {
+			for (const shape of item.shapes) {
+				this.updateShape(this.getChangesToTranslateShapeByPageDelta(shape, pageOffset))
+
+				this.resizeShape(shape.id, scale, {
+					initialBounds: this.getShapeGeometry(shape).bounds,
+					scaleOrigin,
+					isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
+					scaleAxisRotation: 0,
+				})
+			}
+		}
+	}
+
 	private getShapeClusters(
 		shapes: TLShapeId[] | TLShape[],
 		type: TLShapeUtilCanBeLaidOutOpts['type'],
@@ -7280,12 +7314,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const len = shapeClustersToStack.length
 		if ((_gap === 0 && len < 3) || len < 2) return this
 
-		const changes: TLShapePartial[] = []
-		for (const { item, delta } of getStackLayout(shapeClustersToStack, operation, _gap)) {
-			for (const shape of item.shapes) {
-				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
-			}
-		}
+		const changes = this.getChangesToApplyLayoutMoves(
+			getStackLayout(shapeClustersToStack, operation, _gap)
+		)
 
 		this.updateShapes(changes)
 		return this
@@ -7313,13 +7344,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (clusters.length < 2) return this
 
-		const changes: TLShapePartial<any>[] = []
-
-		for (const { item, delta } of getPackLayout(clusters, gap)) {
-			for (const shape of item.shapes) {
-				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
-			}
-		}
+		const changes = this.getChangesToApplyLayoutMoves(getPackLayout(clusters, gap))
 
 		if (changes.length) {
 			this.updateShapes(changes)
@@ -7362,13 +7387,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (shapeClustersToAlign.length < 2) return this
 
-		const changes: TLShapePartial[] = []
-
-		for (const { item, delta } of getAlignLayout(shapeClustersToAlign, operation)) {
-			for (const shape of item.shapes) {
-				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
-			}
-		}
+		const changes = this.getChangesToApplyLayoutMoves(
+			getAlignLayout(shapeClustersToAlign, operation)
+		)
 
 		this.updateShapes(changes)
 		return this
@@ -7411,13 +7432,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 
-		const changes: TLShapePartial[] = []
-
-		for (const { item, delta } of layout.moves) {
-			for (const shape of item.shapes) {
-				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
-			}
-		}
+		const changes = this.getChangesToApplyLayoutMoves(layout.moves)
 
 		this.updateShapes(changes)
 		return this
@@ -7447,23 +7462,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (shapeClustersToStretch.length < 2) return this
 
 		this.run(() => {
-			for (const { item, pageOffset, scaleOrigin, scale } of getStretchLayout(
-				shapeClustersToStretch,
-				operation
-			)) {
-				for (const shape of item.shapes) {
-					// First translate
-					this.updateShape(this.getChangesToTranslateShapeByPageDelta(shape, pageOffset))
-
-					// Then resize
-					this.resizeShape(shape.id, scale, {
-						initialBounds: this.getShapeGeometry(shape).bounds,
-						scaleOrigin,
-						isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
-						scaleAxisRotation: 0,
-					})
-				}
-			}
+			this.applyLayoutTransforms(getStretchLayout(shapeClustersToStretch, operation))
 		})
 
 		return this
@@ -7498,20 +7497,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const transforms = getResizeToBoundsLayout(shapeClusters, targetBounds)
 		if (!transforms) return this
 
-		for (const { item, pageOffset, scaleOrigin, scale } of transforms) {
-			for (const shape of item.shapes) {
-				// First translate
-				this.updateShape(this.getChangesToTranslateShapeByPageDelta(shape, pageOffset))
-
-				// Then resize
-				this.resizeShape(shape.id, scale, {
-					initialBounds: this.getShapeGeometry(shape).bounds,
-					scaleOrigin,
-					isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
-					scaleAxisRotation: 0,
-				})
-			}
-		}
+		this.applyLayoutTransforms(transforms)
 
 		return this
 	}
@@ -9114,11 +9100,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { rootShapeIds } = content
 
 		// Let's treat the content as a store, and then migrate that store.
-		const result = this.store.schema.migrateStoreSnapshot(toContentStoreSnapshot(content))
+		const store: StoreSnapshot<TLRecord> = {
+			store: {
+				...Object.fromEntries(content.assets.map((asset) => [asset.id, asset] as const)),
+				...Object.fromEntries(content.shapes.map((shape) => [shape.id, shape] as const)),
+				...Object.fromEntries(
+					content.bindings?.map((bindings) => [bindings.id, bindings] as const) ?? []
+				),
+				...Object.fromEntries(content.users?.map((user) => [user.id, user] as const) ?? []),
+			},
+			schema: content.schema,
+		}
+		const result = this.store.schema.migrateStoreSnapshot(store)
 		if (result.type === 'error') {
 			throw Error('Could not put content: could not migrate content')
 		}
-		const { assets, shapes, bindings, users } = partitionContentRecords(Object.values(result.value))
+		const {
+			asset: assets = [],
+			shape: shapes = [],
+			binding: bindings = [],
+			user: users = [],
+		} = groupBy(Object.values(result.value), (record) => record.typeName) as {
+			asset?: TLAsset[]
+			shape?: TLShape[]
+			binding?: TLBinding[]
+			user?: TLUser[]
+		}
 
 		if (users.length > 0) {
 			const existingUserIds = new Set(
@@ -9133,8 +9140,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		// Ok, we've got our migrated records, now we can continue!
-		const { shapeIdMap, bindingIdMap } = createContentIdMaps(shapes, bindings, preserveIds)
+		// Ok, we've got our migrated records, now we can continue! When ids are preserved a shape
+		// keeps its identity, so the maps are the identity too.
+		const shapeIdMap = new Map<string, TLShapeId>(
+			shapes.map((shape) => [shape.id, preserveIds ? shape.id : createShapeId()])
+		)
+		const bindingIdMap = new Map<string, TLBindingId>(
+			bindings.map((binding) => [binding.id, preserveIds ? binding.id : createBindingId()])
+		)
 
 		let pasteParentId: TLPageId | TLShapeId = currentPageId
 
@@ -9264,12 +9277,45 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this
 		}
 
-		const newBindings = remapContentBindings(bindings, shapeIdMap, bindingIdMap)
-
-		const { assetsToCreate, assetsToUpdate } = triageContentAssets(
-			assets,
-			new Set(assets.filter((asset) => this.store.has(asset.id)).map((asset) => asset.id))
+		const newBindings = bindings.map(
+			(oldBinding): TLBinding => ({
+				...oldBinding,
+				id: assertExists(bindingIdMap.get(oldBinding.id)),
+				fromId: assertExists(shapeIdMap.get(oldBinding.fromId)),
+				toId: assertExists(shapeIdMap.get(oldBinding.toId)),
+			})
 		)
+
+		// These are all the assets we need to create
+		const assetsToCreate: TLAsset[] = []
+
+		// These assets have base64 data that may need to be hosted
+		const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
+
+		for (const asset of assets) {
+			if (this.store.has(asset.id)) {
+				// We already have this asset
+				continue
+			}
+
+			if (
+				(asset.type === 'image' && asset.props.src?.startsWith('data:image')) ||
+				(asset.type === 'video' && asset.props.src?.startsWith('data:video'))
+			) {
+				// it's src is a base64 image or video; we need to create a new asset without the src,
+				// then create a new asset from the original src. So we keep the original asset for the
+				// upload and create a copy with its src removed. Copy rather than mutate: when no
+				// migration applies, migrateStoreSnapshot hands back the caller's own record objects.
+				assetsToUpdate.push(asset as TLImageAsset | TLVideoAsset)
+				const assetWithoutSrc = structuredClone(asset as TLImageAsset | TLVideoAsset)
+				assetWithoutSrc.props.src = null
+				assetsToCreate.push(assetWithoutSrc)
+				continue
+			}
+
+			// Add the asset to the list of assets to create
+			assetsToCreate.push(asset)
+		}
 
 		// Start loading the new assets, order does not matter
 		Promise.allSettled(
