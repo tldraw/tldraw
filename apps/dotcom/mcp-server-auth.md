@@ -50,7 +50,7 @@ The flag stages the rollout: required auth goes on for the flagged population fi
 `mcpServer.ts` is a hand-rolled JSON-RPC handler on a single route, not an MCP SDK server. There are no sessions, no Durable Objects, and no per-caller state. What the starting point looked like:
 
 - **The protocol version was pinned to `2024-11-05`** (`MCP_PROTOCOL_VERSION`). This predates MCP authorization entirely — auth was introduced in `2025-03-26` and reworked in `2025-06-18`. **Upgrading the advertised protocol version was a prerequisite**, not a follow-up: there is no conformant way to bolt auth onto `2024-11-05`, and clients keying off the advertised version won't attempt a flow the server claims not to support.
-- **Abuse control already existed and was not naive.** Three tiers of rate limit (per-IP, per-board, global Browser Run cap), a kill switch (`MCP_SERVER_ENABLED`), and telemetry with deliberately bounded cardinality. [#9667](https://github.com/tldraw/tldraw/pull/9667) confines rate limiting to this endpoint — the one Browser Run-spending surface an outside caller drives directly — and splits it across three bindings so the tiers can hold different numbers. Auth was never going to be the first line of defence here; it's a better key for a defence that was already built.
+- **Abuse control already existed and was not naive.** Three tiers of rate limit (per-IP, per-board, global Browser Run cap), a kill switch (since removed — see mcp_server_access), and telemetry with deliberately bounded cardinality. [#9667](https://github.com/tldraw/tldraw/pull/9667) confines rate limiting to this endpoint — the one Browser Run-spending surface an outside caller drives directly — and splits it across three bindings so the tiers can hold different numbers. Auth was never going to be the first line of defence here; it's a better key for a defence that was already built.
 - **sync-worker was already a Clerk consumer.** `@clerk/backend` ^1.23.7 is a dependency, `CLERK_SECRET_KEY` / `CLERK_PUBLISHABLE_KEY` are in `Environment`, and `utils/tla/getAuth.ts` has `getAuth`/`requireAuth` with an `authorizedParties` allowlist. A much shorter path than starting cold — and the reason for the Option A recommendation below.
 - **There were no `.well-known` routes on the worker**, and no OAuth dependency anywhere in the repo. There is still no OAuth dependency: the resource-server side needs none.
 
@@ -161,7 +161,7 @@ Two consequences worth designing around now:
 
 ## How it was built
 
-The auth check sits inside `mcpServer`, after the `isMcpServerEnabled` kill switch (so a disabled server still looks absent rather than unauthorized) and before the JSON-RPC body is read.
+The auth check sits inside `mcpServer`, before the JSON-RPC body is read. It is the first thing that can refuse a caller: there is no kill switch ahead of it.
 
 - The advertised protocol version is `2025-11-25`, `initialize` echoes the client's when we speak it, and `2025-06-18` and `2025-03-26` stay accepted. `2024-11-05` is not in the supported list, which is the point: it predates MCP authorization, so advertising it would leave a client unable to obtain a token but convinced the server was behaving to spec.
 - Protected resource metadata at `/.well-known/oauth-protected-resource/api/app/mcp`, and `401` + `WWW-Authenticate` from the route when no valid token is present. Every call needs one.
