@@ -58,7 +58,8 @@
 	},
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27",
-		"vitest": "^4.1.7"
+		"tldraw": "workspace:*",
+		"vitest": "^5.0.0"
 	},
 	"engines": {
 		"node": ">=22.12.0"

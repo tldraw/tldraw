@@ -42,7 +42,7 @@ const parseNodeId = (domId: string) => parseDomId(domId, NODE_ID)
 /** Parse mindmap-specific SVG layout data for use by {@link mindmapToBlueprint}. */
 export function parseMindmapLayout(root: Element): ParsedMindmapLayout {
 	const nodes = parseNodesFromSvg(root, '.node', parseNodeId)
-	scaleLayout(nodes, new Map(), [], LAYOUT_SCALE)
+	scaleLayout({ nodes, clusters: new Map(), edges: [], edgeLabels: new Map() }, LAYOUT_SCALE)
 	return { nodes }
 }
 

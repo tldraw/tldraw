@@ -7,6 +7,7 @@ import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 import { getPrDetailsAndCommitSha, labelPresent, PullRequest } from './lib/pr-info'
+import { stripSkipCiMarkers } from './lib/skip-ci'
 import { getAllWorkspacePackages } from './lib/workspace'
 
 function getEnv() {
@@ -93,9 +94,7 @@ async function main() {
 			// merge commits (e.g. release-notes updates) carry `[skip ci]`, which would
 			// suppress it. strip skip-ci markers from the cherry-picked commit message.
 			const message = (await exec('git', ['log', '-1', '--format=%B'])).trim()
-			const cleanedMessage = message
-				.replace(/ *\[(?:skip ci|ci skip|no ci|skip actions|actions skip)\]/gi, '')
-				.trim()
+			const cleanedMessage = stripSkipCiMarkers(message)
 			if (cleanedMessage !== message) {
 				await exec('git', ['commit', '--amend', '-m', cleanedMessage])
 			}

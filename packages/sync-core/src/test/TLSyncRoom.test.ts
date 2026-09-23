@@ -1019,6 +1019,52 @@ describe('23. Connect handshake (HS)', () => {
 		expect(room.sessions.get('current-client-session')?.state).toBe(RoomSessionState.Connected)
 		expect(socket.__lastMessage?.type).toBe('connect')
 	})
+
+	it('[RC5][HS6] a wipeAll during a handshake closes connected sessions but hydrates the connecting one', async () => {
+		const { room, storage } = makeRoom()
+		const socketA = connectSession(room, 'a')
+		const removed = vi.fn()
+		room.events.on('session_removed', removed)
+
+		// 'b' has opened its socket but not yet sent its connect message
+		const socketB = makeSocket()
+		room.handleNewSession({ sessionId: 'b', socket: socketB, meta: undefined, isReadonly: false })
+
+		// the room hasn't seen this change yet because the storage notifies on a microtask
+		const newPage = makePage('wipe_page', 'Wipe Page')
+		storage.transaction((txn) => {
+			txn.set(newPage.id, newPage)
+		})
+		storage.tombstoneHistoryStartsAtClock.set(storage.getClock())
+
+		// the handshake's own transaction runs broadcastChanges first and hits the wipeAll
+		room.handleMessage('b', {
+			type: 'connect',
+			connectRequestId: 'connect-b',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+		} satisfies TLConnectRequest)
+
+		expect(socketA.close).toHaveBeenCalled()
+		expect(room.sessions.has('a')).toBe(false)
+
+		expect(socketB.close).not.toHaveBeenCalled()
+		expect(room.sessions.get('b')?.state).toBe(RoomSessionState.Connected)
+		expect(socketB.__messages).toHaveLength(1)
+		const connectMessage = socketB.__lastMessage as Extract<
+			TLSocketServerSentEvent<any>,
+			{ type: 'connect' }
+		>
+		expect(connectMessage.type).toBe('connect')
+		expect(connectMessage.hydrationType).toBe('wipe_all')
+		expect(connectMessage.diff[newPage.id]).toEqual(['put', newPage])
+
+		await Promise.resolve()
+		await Promise.resolve()
+		expect(removed.mock.calls.map(([e]) => e.sessionId)).toEqual(['a'])
+		expect(room.sessions.has('b')).toBe(true)
+	})
 })
 
 describe('24. Push handling (RP)', () => {
@@ -2336,6 +2382,31 @@ describe('26. Session lifecycle (SES)', () => {
 		expect(socket.close).toHaveBeenCalledWith(
 			TLSyncErrorCloseEventCode,
 			TLSyncErrorCloseEventReason.FORBIDDEN
+		)
+		expect(room.sessions.size).toBe(0)
+	})
+
+	it('[SES4] a reason longer than 123 UTF-8 bytes is truncated on a code-point boundary with a dropped-bytes suffix', () => {
+		const { room } = makeRoom()
+
+		const exact = connectSession(room, 'exact')
+		room.rejectSession('exact', 'x'.repeat(123))
+		expect(exact.close).toHaveBeenCalledWith(TLSyncErrorCloseEventCode, 'x'.repeat(123))
+
+		// '... (+200 bytes)' reserves 16 bytes, leaving 107 for the reason
+		const ascii = connectSession(room, 'ascii')
+		room.rejectSession('ascii', 'x'.repeat(200))
+		expect(ascii.close).toHaveBeenCalledWith(
+			TLSyncErrorCloseEventCode,
+			'x'.repeat(107) + '... (+93 bytes)'
+		)
+
+		// 161 bytes in, 107 to fill: 1 + 26 × 4 = 105, and a 27th 4-byte character is dropped whole
+		const emoji = connectSession(room, 'emoji')
+		room.rejectSession('emoji', 'x' + '\u{1F600}'.repeat(40))
+		expect(emoji.close).toHaveBeenCalledWith(
+			TLSyncErrorCloseEventCode,
+			'x' + '\u{1F600}'.repeat(26) + '... (+56 bytes)'
 		)
 		expect(room.sessions.size).toBe(0)
 	})

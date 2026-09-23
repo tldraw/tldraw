@@ -20,7 +20,7 @@ const env = {
 
 function signedInAs(userId: string | null) {
 	authenticateRequest.mockResolvedValue({
-		isSignedIn: !!userId,
+		isAuthenticated: !!userId,
 		toAuth: () => (userId ? { userId } : null),
 	})
 }

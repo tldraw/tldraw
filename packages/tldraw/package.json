@@ -62,6 +62,7 @@
 		"@tiptap/extension-code": "^3.12.1",
 		"@tiptap/extension-highlight": "^3.12.1",
 		"@tiptap/extension-list": "^3.12.1",
+		"@tiptap/extension-typography": "3.13.0",
 		"@tiptap/pm": "^3.12.1",
 		"@tiptap/react": "^3.12.1",
 		"@tiptap/starter-kit": "^3.12.1",
@@ -88,12 +89,13 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"chokidar-cli": "^3.0.0",
+		"fake-indexeddb": "^4.0.2",
 		"jest-diff": "^30.4.1",
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"resize-observer-polyfill": "^1.5.1",
-		"vitest": "^4.1.7"
+		"vitest": "^5.0.0"
 	},
 	"engines": {
 		"node": ">=22.12.0"

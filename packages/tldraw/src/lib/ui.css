@@ -1891,6 +1891,14 @@ tldraw? probably.
 	border-bottom: 1px solid var(--tl-color-divider);
 }
 
+.tlui-shortcuts-dialog__disabled-notice {
+	flex: 0 0 auto;
+	padding: var(--tl-space-3) var(--tl-space-4);
+	border-bottom: 1px solid var(--tl-color-divider);
+	background-color: var(--tl-color-muted-2);
+	color: var(--tl-color-text-1);
+}
+
 .tlui-shortcuts-dialog__body {
 	position: relative;
 	columns: 3;

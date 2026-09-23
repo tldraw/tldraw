@@ -98,7 +98,7 @@ Write a `narration.json` file, then run the `generate-audio.sh` CLI tool:
 #### How it works
 
 1. For each segment, the script builds a prompt: style preamble + segment text.
-2. One API call to `gemini-2.5-pro-tts` per segment generates a WAV clip directly.
+2. One API call to `gemini-3.1-flash-tts-preview` per segment generates a WAV clip directly.
 3. Each clip is validated (duration sanity check vs word count) and retried automatically if the output is bad.
 4. Leading/trailing silence is trimmed from each clip.
 
@@ -176,7 +176,7 @@ pr-walkthrough/
 ## API configuration
 
 - **Gemini API key:** Stored as `GEMINI_API_KEY` in the project root `.env` file. Used for TTS and audio alignment.
-- **TTS model:** `gemini-2.5-pro-tts`
+- **TTS model:** `gemini-3.1-flash-tts-preview`
 - **TTS voice:** `Iapetus` (always)
 
 ## Script structure

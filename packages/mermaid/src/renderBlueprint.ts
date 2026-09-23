@@ -79,9 +79,11 @@ export function renderBlueprint(
 		})
 	}
 
+	const backgroundIds: TLShapeId[] = []
 	for (const node of ordered) {
 		const shapeId = createShapeId()
 		shapeIds.set(node.id, shapeId)
+		if (node.background) backgroundIds.push(shapeId)
 
 		const parent = node.parentId ? nodeById.get(node.parentId) : undefined
 		const parentShapeId = node.parentId ? shapeIds.get(node.parentId) : undefined
@@ -97,6 +99,9 @@ export function renderBlueprint(
 			render: resolveMermaidNodeRender(diagramKind, node, mapper),
 		})
 	}
+
+	// One call, so the background nodes keep the blueprint's order among themselves.
+	if (backgroundIds.length > 0) editor.sendToBack(backgroundIds)
 
 	const arrowIds: TLShapeId[] = []
 	for (const edge of edges) {
@@ -187,7 +192,9 @@ function createArrowFromEdge(
 
 	const baseProps = {
 		dash: edge.dash ?? ('solid' as const),
-		size: edge.size ?? ('s' as const),
+		// Match the node default: an arrow's size also sets its label font, so a smaller edge labels
+		// itself in smaller text than the boxes it joins.
+		size: edge.size ?? ('m' as const),
 		arrowheadEnd: edge.arrowheadEnd ?? ('arrow' as const),
 		...(edge.arrowheadStart && { arrowheadStart: edge.arrowheadStart }),
 		color: edge.color ?? ('black' as const),
@@ -199,20 +206,31 @@ function createArrowFromEdge(
 	let end: ArrowTerminal
 	let bend = edge.bend
 
-	if (edge.anchorStartY !== undefined || edge.anchorEndY !== undefined) {
-		const startAnchorY = edge.anchorStartY ?? 0.5
-		const endAnchorY = edge.anchorEndY ?? 0.5
+	if (
+		edge.anchorStartX !== undefined ||
+		edge.anchorStartY !== undefined ||
+		edge.anchorEndX !== undefined ||
+		edge.anchorEndY !== undefined
+	) {
+		const startAnchor = { x: edge.anchorStartX ?? 0.5, y: edge.anchorStartY ?? 0.5 }
+		const endAnchor = { x: edge.anchorEndX ?? 0.5, y: edge.anchorEndY ?? 0.5 }
 		const isExact = edge.isExact ?? true
 		const isPrecise = edge.isPrecise ?? true
 		start = {
-			point: { x: startBounds.midX, y: startBounds.y + startBounds.h * startAnchorY },
-			anchor: { x: 0.5, y: startAnchorY },
+			point: {
+				x: startBounds.x + startBounds.w * startAnchor.x,
+				y: startBounds.y + startBounds.h * startAnchor.y,
+			},
+			anchor: startAnchor,
 			isExact,
 			isPrecise,
 		}
 		end = {
-			point: { x: endBounds.midX, y: endBounds.y + endBounds.h * endAnchorY },
-			anchor: { x: 0.5, y: endAnchorY },
+			point: {
+				x: endBounds.x + endBounds.w * endAnchor.x,
+				y: endBounds.y + endBounds.h * endAnchor.y,
+			},
+			anchor: endAnchor,
 			isExact: edge.isExactEnd ?? isExact,
 			isPrecise: edge.isPreciseEnd ?? isPrecise,
 		}
