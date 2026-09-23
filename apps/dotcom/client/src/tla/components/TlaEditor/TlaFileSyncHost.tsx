@@ -1,6 +1,5 @@
 import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
@@ -27,6 +26,7 @@ import {
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { currentApp$, useMaybeApp } from '../../hooks/useAppState'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
+import { resolveCachedFileVisit } from '../../utils/cachedFileVisit'
 import { clearLastVisitedFile, setLastVisitedFile } from '../../utils/local-session-state'
 
 type FileSyncStore = ReturnType<typeof useSync>
@@ -56,14 +56,6 @@ function createPresenceUserStore(userId: string | undefined): TLUserStore {
 			})
 		}),
 	}
-}
-
-function isCachedFileGone(error: unknown) {
-	return (
-		error instanceof TLRemoteSyncError &&
-		(error.reason === TLSyncErrorCloseEventReason.NOT_FOUND ||
-			error.reason === TLSyncErrorCloseEventReason.FORBIDDEN)
-	)
 }
 
 /**
@@ -113,43 +105,47 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	const location = useLocation()
 	const viaCache = !!location.state?.[VIA_LAST_FILE_CACHE]
 	const app = useMaybeApp()
-	// A cache hit means a prior visit, so no file_state means the file was forgotten elsewhere.
-	// The room would still admit a link-shared file and onFileEnter would re-add it.
-	const forgotten = useValue('cached file forgotten', () => !!app && !app.getFileState(fileSlug), [
+	const hasFileState = useValue('has file state', () => !!app?.getFileState(fileSlug), [
 		app,
 		fileSlug,
 	])
-	const rejected = store.status === 'error' && isCachedFileGone(store.error)
-	// A stale cached id falls back to the Zero-derived choice on `/`, without handing the errored
-	// store to the editor (it would throw into the route error page).
-	const fallBackToRoot = viaCache && (rejected || forgotten)
+	const visit = viaCache
+		? resolveCachedFileVisit({
+				status: store.status,
+				error: store.status === 'error' ? store.error : undefined,
+				appLoaded: !!app,
+				hasFileState,
+			}).kind
+		: null
+	// Falling back must not hand the errored store to the editor (it would throw into the route
+	// error page), nor let a late sync write the file back into the cache.
+	const fallingBack = visit === 'fall-back'
 
 	useEffect(() => {
 		if (store.status !== 'synced-remote') return
 		markFirstLoad('sync-connected')
 		// Written only once the room accepted us, so the cache never points at a file this account
-		// cannot open. A room that syncs while a fallback is already clearing it must not re-add it.
-		if (userId && !fallBackToRoot) setLastVisitedFile(userId, fileSlug)
-	}, [store.status, userId, fileSlug, fallBackToRoot])
+		// cannot open.
+		if (userId && !fallingBack) setLastVisitedFile(userId, fileSlug)
+	}, [store.status, userId, fileSlug, fallingBack])
 
 	useEffect(() => {
-		if (!fallBackToRoot) return
+		if (!fallingBack) return
 		clearLastVisitedFile()
 		navigate(routes.tlaRoot(), { replace: true })
-	}, [fallBackToRoot, navigate])
+	}, [fallingBack, navigate])
 
-	// The flag lives in history state, so left in place a reload after access was revoked would
-	// bounce home instead of showing the error page. Keep the search: `?d=` is read at mount.
-	const accepted = !fallBackToRoot && store.status === 'synced-remote' && !!app
+	// Drop the flag from history state so a later reload is an ordinary visit. Keep the search:
+	// `?d=` is read at mount.
 	useEffect(() => {
-		if (!viaCache || !accepted) return
+		if (visit !== 'accepted') return
 		navigate(
 			{ pathname: location.pathname, search: location.search, hash: location.hash },
 			{ replace: true, state: omit(location.state, [VIA_LAST_FILE_CACHE]) }
 		)
-	}, [viaCache, accepted, location, navigate])
+	}, [visit, location, navigate])
 
-	if (fallBackToRoot) return null
+	if (fallingBack) return null
 
 	return <FileSyncStoreContext.Provider value={store}>{children}</FileSyncStoreContext.Provider>
 }
