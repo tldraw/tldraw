@@ -58,8 +58,6 @@ export function Component({ error }: { error?: unknown }) {
 	}
 
 	if (errorElem) {
-		// The sidebar needs the app; an error that lands before it has resolved shows bare.
-		if (!app) return errorElem
 		return (
 			<TlaSidebarLayout collapsible isEmbed={isEmbed}>
 				{errorElem}
@@ -67,16 +65,14 @@ export function Component({ error }: { error?: unknown }) {
 		)
 	}
 
-	// Same position before and after the app resolves so React keeps the host (and its socket)
-	// mounted. Keyed by slug because useSync keeps reporting the old room's store as synced
-	// while a changed uri is still connecting.
+	// The layout is the stable ancestor: it survives both the app arriving and a file switch, so
+	// the sidebar is not rebuilt per file. The host is keyed by slug because useSync keeps
+	// reporting the old room's store as synced while a changed uri is still connecting.
 	return (
-		<TlaFileSyncHost key={fileSlug} fileSlug={fileSlug}>
-			{app && (
-				<TlaSidebarLayout collapsible isEmbed={isEmbed}>
-					<TlaEditor fileSlug={fileSlug} deepLinks isEmbed={isEmbed} />
-				</TlaSidebarLayout>
-			)}
-		</TlaFileSyncHost>
+		<TlaSidebarLayout collapsible isEmbed={isEmbed}>
+			<TlaFileSyncHost key={fileSlug} fileSlug={fileSlug}>
+				{app && <TlaEditor fileSlug={fileSlug} deepLinks isEmbed={isEmbed} />}
+			</TlaFileSyncHost>
+		</TlaSidebarLayout>
 	)
 }
