@@ -171,6 +171,16 @@ import {
 	getAdjacentIndex,
 	sortIntoReadingOrder,
 } from './kernels/readingOrder'
+import {
+	getFiniteScale,
+	getLocalScale,
+	getMirroredRotation,
+	getPagePointForCenter,
+	isMirroredInOneAxis,
+	lockScaleToLargerAxis,
+	lockScaleToSmallerAxis,
+	scalePagePoint,
+} from './kernels/resize'
 import { ClickManager } from './managers/ClickManager/ClickManager'
 import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
@@ -7845,8 +7855,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const id = typeof shape === 'string' ? shape : shape.id
 		if (this.getIsReadonly()) return null
 
-		if (!Number.isFinite(scale.x)) scale = new Vec(1, scale.y)
-		if (!Number.isFinite(scale.y)) scale = new Vec(scale.x, 1)
+		scale = getFiniteScale(scale)
 
 		const initialShape = opts.initialShape ?? this.getShape(id)
 		if (!initialShape) return null
@@ -7888,13 +7897,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const util = this.getShapeUtil(initialShape)
 
-		if (isAspectRatioLocked) {
-			if (Math.abs(scale.x) > Math.abs(scale.y)) {
-				scale = new Vec(scale.x, Math.sign(scale.y) * Math.abs(scale.x))
-			} else {
-				scale = new Vec(Math.sign(scale.x) * Math.abs(scale.y), scale.y)
-			}
-		}
+		if (isAspectRatioLocked) scale = lockScaleToLargerAxis(scale)
 
 		let workingShape: TLShape | null = null
 
@@ -7910,16 +7913,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const newLocalPoint = this.getPointInParentSpace(initialShape.id, newPagePoint)
 
 			// resize the shape's local bounding box
-			const myScale = new Vec(scale.x, scale.y)
-			// the shape is aligned with the rest of the shapes in the selection, but may be
-			// 90deg offset from the main rotation of the selection, in which case
-			// we need to flip the width and height scale factors
-			const areWidthAndHeightAlignedWithCorrectAxis = approximately(
-				(pageRotation - scaleAxisRotation) % Math.PI,
-				0
-			)
-			myScale.x = areWidthAndHeightAlignedWithCorrectAxis ? scale.x : scale.y
-			myScale.y = areWidthAndHeightAlignedWithCorrectAxis ? scale.y : scale.x
+			const myScale = getLocalScale(scale, pageRotation, scaleAxisRotation)
 
 			// adjust initial model for situations where the parent has moved during the resize
 			// e.g. groups
@@ -8015,18 +8009,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		scale: VecLike,
 		scaleAxisRotation: number
 	) {
-		const relativePoint = Vec.RotWith(point, scaleOrigin, -scaleAxisRotation).sub(scaleOrigin)
-
-		// calculate the new point position relative to the scale origin
-		const newRelativePagePoint = Vec.MulV(relativePoint, scale)
-
-		// and rotate it back to page coords to get the new page point of the resized shape
-		const destination = Vec.Add(newRelativePagePoint, scaleOrigin).rotWith(
-			scaleOrigin,
-			scaleAxisRotation
-		)
-
-		return destination
+		return scalePagePoint(point, scaleOrigin, scale, scaleAxisRotation)
 	}
 
 	/** @internal */
@@ -8048,15 +8031,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// and then after applying the scale to the shape we also rotate it if required and translate it so that it's center
 		// point ends up in the right place.
 
-		const shapeScale = new Vec(scale.x, scale.y)
-
-		// // make sure we are constraining aspect ratio, and using the smallest scale axis to avoid shapes getting bigger
-		// // than the selection bounding box
-		if (Math.abs(scale.x) > Math.abs(scale.y)) {
-			shapeScale.x = Math.sign(scale.x) * Math.abs(scale.y)
-		} else {
-			shapeScale.y = Math.sign(scale.y) * Math.abs(scale.x)
-		}
+		const shapeScale = lockScaleToSmallerAxis(scale)
 
 		// first we can scale the shape about its center point
 		this.resizeShape(id, shapeScale, {
@@ -8068,15 +8043,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// then if the shape is flipped in one axis only, we need to apply an extra rotation
 		// to make sure the shape is mirrored correctly
-		if (Math.sign(scale.x) * Math.sign(scale.y) < 0) {
-			// We need to compute the new local rotation that will result in the negated page rotation.
-			// For a shape with local rotation `localRot` and parent page rotation `parentRot`:
-			// - pageRot = parentRot + localRot
-			// - newPageRot = -pageRot (we want to negate the page rotation)
-			// - newPageRot = parentRot + newLocalRot (parent hasn't changed)
-			// - Therefore: newLocalRot = -pageRot - parentRot = -(parentRot + localRot) - parentRot = -localRot - 2*parentRot
+		if (isMirroredInOneAxis(scale)) {
 			const parentRotation = this.getShapeParentTransform(id).rotation()
-			const rotation = -options.initialShape.rotation - 2 * parentRotation
+			const rotation = getMirroredRotation(options.initialShape.rotation, parentRotation)
 			this.updateShapes([{ id, type, rotation }])
 		}
 
@@ -8097,17 +8066,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// now calculate how far away the shape is from where it needs to be
 		const pageTransform = this.getShapePageTransform(id)
-		// We need to use the local bounds center transformed to page space, not the axis-aligned
-		// page bounds center. This is because the page bounds are axis-aligned and their center
-		// changes when the rotation changes, but we want to use the same reference point as
-		// preScaleShapePageCenter (which used initialBounds.center transformed by the page transform).
 		const currentLocalBounds = this.getShapeGeometry(id).bounds
-		const currentPageCenter = Mat.applyToPoint(pageTransform, currentLocalBounds.center)
-		const shapePageTransformOrigin = pageTransform.point()
-		const pageDelta = Vec.Sub(postScaleShapePageCenter, currentPageCenter)
-
-		// and finally figure out what the shape's new position should be
-		const postScaleShapePagePoint = Vec.Add(shapePageTransformOrigin, pageDelta)
+		const postScaleShapePagePoint = getPagePointForCenter(
+			pageTransform,
+			currentLocalBounds,
+			postScaleShapePageCenter
+		)
 		const { x, y } = this.getPointInParentSpace(id, postScaleShapePagePoint)
 
 		this.updateShapes([{ id, type, x, y }])
