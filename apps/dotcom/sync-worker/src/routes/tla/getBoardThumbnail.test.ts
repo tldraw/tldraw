@@ -8,11 +8,14 @@ vi.mock('../../utils/tla/getAuth', async (importOriginal) => ({
 	getAuth: vi.fn(),
 }))
 vi.mock('./mcpAuth', () => ({ authenticateMcpRequest: vi.fn() }))
-vi.mock('./mcpServer', () => ({ resolveSharedBoardForUser: vi.fn() }))
+vi.mock('./mcpServer', () => ({
+	resolveSharedBoardForUser: vi.fn(),
+	writeMcpAuthRefusalTelemetry: vi.fn(),
+}))
 
 const { getAuth } = await import('../../utils/tla/getAuth')
 const { authenticateMcpRequest } = await import('./mcpAuth')
-const { resolveSharedBoardForUser } = await import('./mcpServer')
+const { resolveSharedBoardForUser, writeMcpAuthRefusalTelemetry } = await import('./mcpServer')
 
 // Unsigned: the route only reads `typ` to pick a verifier, and the verifiers themselves are mocked.
 function jwtWithTyp(typ: string) {
@@ -195,6 +198,12 @@ describe('getBoardThumbnail', () => {
 			expect(response.status).toBe(401)
 			expect(response.headers.get('www-authenticate')).toContain('resource_metadata')
 			expect(getAuth).not.toHaveBeenCalled()
+			expect(writeMcpAuthRefusalTelemetry).toHaveBeenCalledWith(
+				expect.anything(),
+				expect.anything(),
+				'invalid_token',
+				'thumbnail'
+			)
 		})
 
 		it('resolves against the OAuth token’s user', async () => {

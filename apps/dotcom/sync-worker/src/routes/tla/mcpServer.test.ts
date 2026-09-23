@@ -391,6 +391,7 @@ describe('authentication', () => {
 		await mcpServer(makeRpcRequest('tools/list'), env)
 
 		expect(blobValuesOf(env, 'mcp_server_auth_refusal', 'reason')).toEqual(['not_allowlisted'])
+		expect(blobValuesOf(env, 'mcp_server_auth_refusal', 'route')).toEqual(['mcp'])
 		expect(datapointsNamed(env, TOOL_CALL_EVENT)).toEqual([])
 	})
 })

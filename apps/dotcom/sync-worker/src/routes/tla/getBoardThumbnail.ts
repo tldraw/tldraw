@@ -4,7 +4,7 @@ import { Environment } from '../../types'
 import { isRoomIdTooLong } from '../../utils/roomIdIsTooLong'
 import { getAuth } from '../../utils/tla/getAuth'
 import { authenticateMcpRequest } from './mcpAuth'
-import { resolveSharedBoardForUser } from './mcpServer'
+import { resolveSharedBoardForUser, writeMcpAuthRefusalTelemetry } from './mcpServer'
 import { getOgImageCacheKey } from './ogImageQueue'
 import { writeScreenshotTelemetry } from './thumbnailRender'
 import { cacheStatusOf, etagMatches, reportThumbnailError } from './thumbnailShared'
@@ -124,9 +124,9 @@ async function authenticate(
 	if (isOAuthAccessToken(request)) {
 		try {
 			const bearer = await authenticateMcpRequest(request, env)
-			return bearer.ok
-				? { ok: true, userId: bearer.userId }
-				: { ok: false, response: bearer.response }
+			if (bearer.ok) return { ok: true, userId: bearer.userId }
+			writeMcpAuthRefusalTelemetry(env, request, bearer.reason, 'thumbnail')
+			return { ok: false, response: bearer.response }
 		} catch (error) {
 			reportThumbnailError(error, { ctx, env, request, surface: 'board_view', extras: {} })
 			return { ok: false, response: new Response(null, { status: 500 }) }
