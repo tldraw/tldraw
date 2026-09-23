@@ -1055,6 +1055,12 @@ export class TldrawApp {
 		return this.getUserFileStates().find((f) => f.fileId === fileId)
 	}
 
+	/** Same test getMostRecentFileId applies: a visit whose file is gone (moved, revoked, deleted) doesn't count. */
+	isFileVisitable(fileId: string) {
+		const file = this.getFileState(fileId)?.file
+		return !!file && !file.isDeleted
+	}
+
 	updateFileState(fileId: string, partial: Omit<TlaFileStatePartial, 'fileId' | 'userId'>) {
 		const file = this.getFile(fileId)
 		if (!file || file.isDeleted) return

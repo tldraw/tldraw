@@ -112,7 +112,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		() =>
 			viaCache && app
 				? {
-						hasFileState: !!app.getFileState(fileSlug),
+						hasFileState: app.isFileVisitable(fileSlug),
 						mostRecentFileId: app.getMostRecentFileId(),
 					}
 				: null,
