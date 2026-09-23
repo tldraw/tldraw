@@ -33,6 +33,7 @@ createRoot(document.getElementById('root')!).render(
 	<RefreshErrorBoundary messages={TOP_LEVEL_ERROR_MESSAGES}>
 		<ClerkProvider
 			publishableKey={PUBLISHABLE_KEY}
+			clerkJSVersion={process.env.CLERK_JS_VERSION}
 			afterSignOutUrl={routes.tlaRoot()}
 			signInUrl="/"
 			signInFallbackRedirectUrl={routes.tlaRoot()}
