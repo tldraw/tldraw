@@ -9,4 +9,4 @@
 -- "file" in its transaction, bumpFileUpdatedAt runs on its own connection (TLFileDurableObject),
 -- and the comment_thread -> file foreign key check takes a row KEY SHARE, which SHARE doesn't
 -- block.
-CREATE INDEX comment_thread_created_by_idx ON comment_thread("createdBy");
+CREATE INDEX IF NOT EXISTS comment_thread_created_by_idx ON comment_thread("createdBy");
