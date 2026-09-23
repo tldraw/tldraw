@@ -10,7 +10,7 @@
 	"license": "MIT",
 	"main": "./src/server/server.ts",
 	"scripts": {
-		"dev": "concurrently -n server,client -c red,blue \"yarn dev-server\" \"yarn dev-client\"",
+		"dev": "concurrently -n server,client -c red,blue \"npm run dev-server\" \"npm run dev-client\"",
 		"dev-server": "pnpm exec tsx watch ./src/server/server.ts",
 		"dev-client": "vite dev --host",
 		"test-ci": "echo 'No tests yet'",
