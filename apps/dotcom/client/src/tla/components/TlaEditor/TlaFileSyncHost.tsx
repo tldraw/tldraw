@@ -105,14 +105,18 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	const location = useLocation()
 	const viaCache = !!location.state?.[VIA_LAST_FILE_CACHE]
 	const app = useMaybeApp()
+	// Only while the flag is set: getMostRecentFileId reads every file_state, so an ungated read
+	// would re-render the host on each throttled lastVisitAt write for the whole session.
 	const zero = useValue(
 		'zero facts for the cached visit',
 		() =>
-			app && {
-				hasFileState: !!app.getFileState(fileSlug),
-				mostRecentFileId: app.getMostRecentFileId(),
-			},
-		[app, fileSlug]
+			viaCache && app
+				? {
+						hasFileState: !!app.getFileState(fileSlug),
+						mostRecentFileId: app.getMostRecentFileId(),
+					}
+				: null,
+		[viaCache, app, fileSlug]
 	)
 	const visit = viaCache
 		? resolveCachedFileVisit({
