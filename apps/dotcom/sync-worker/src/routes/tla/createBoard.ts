@@ -1,7 +1,7 @@
 import { zeroKysely } from '@rocicorp/zero/server/adapters/kysely'
 import { DB, MAX_NUMBER_OF_FILES, can, createMutators, schema } from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
-import { Kysely } from 'kysely'
+import { Kysely, sql } from 'kysely'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { getFileEffectProcessor } from '../../utils/durableObjects'
@@ -93,24 +93,35 @@ export async function createBoardForUser(
 	}
 }
 
-// Every workspace the caller may add boards to. The home workspace is admitted on its id alone, the
-// way the mutator's getRole does, because it can exist without a group_user row.
+// Every workspace the caller may add boards to. The home workspace is read by its id as well, and as
+// its owner, the way the mutator's getRole treats it, because it can exist without a group_user row.
+//
+// Two index-served arms rather than one join filtered on `group_user."userId" = $1 OR "group".id = $1`:
+// an OR across both sides of a left join can only be applied after the join, which walks every row of
+// `group` — one per user. The home workspace usually comes back from both arms, so rows are deduped.
 async function getCreatableWorkspaces(
 	db: Kysely<DB>,
 	userId: string
 ): Promise<CreatableWorkspace[]> {
 	const rows = await db
-		.selectFrom('group')
-		.leftJoin('group_user', (join) =>
-			join.onRef('group_user.groupId', '=', 'group.id').on('group_user.userId', '=', userId)
-		)
+		.selectFrom('group_user')
+		.innerJoin('group', 'group.id', 'group_user.groupId')
 		.select(['group.id', 'group.name', 'group_user.role'])
+		.where('group_user.userId', '=', userId)
 		.where('group.isDeleted', '=', false)
-		.where((eb) => eb.or([eb('group_user.userId', '=', userId), eb('group.id', '=', userId)]))
+		.unionAll(
+			db
+				.selectFrom('group')
+				.select(['group.id', 'group.name', sql<'owner'>`'owner'`.as('role')])
+				.where('group.id', '=', userId)
+				.where('group.isDeleted', '=', false)
+		)
 		.execute()
 
+	const seen = new Set<string>()
 	return rows
-		.filter((row) => row.id === userId || can(row.role, 'addFiles'))
+		.filter((row) => !seen.has(row.id) && seen.add(row.id))
+		.filter((row) => can(row.role, 'addFiles'))
 		.map((row) => ({ id: row.id, name: row.name, personal: row.id === userId }))
 		.sort((a, b) => Number(b.personal) - Number(a.personal) || a.name.localeCompare(b.name))
 }

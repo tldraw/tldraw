@@ -98,8 +98,8 @@ const USER_ID = 'user_2abcdefghijklmno'
 const DESIGN_ID = 'group_design_000001'
 
 const WORKSPACE_ROWS = [
-	// The home workspace can come back with no group_user row, hence no role.
-	{ id: USER_ID, name: 'My workspace', role: null },
+	// The home workspace's own read reports it as owner, with or without a group_user row.
+	{ id: USER_ID, name: 'My workspace', role: 'owner' },
 	{ id: DESIGN_ID, name: 'Design', role: 'member' },
 	// A role string the roles table does not know grants nothing, `addFiles` included.
 	{ id: 'group_legacy_000001', name: 'Legacy', role: 'viewer' },
@@ -155,6 +155,19 @@ describe('createBoardForUser', () => {
 		expect(inserts[0].row).toMatchObject({ owningGroupId: DESIGN_ID })
 	})
 
+	// The home workspace comes back from both arms when it has a group_user row.
+	it('lists the personal workspace once when both reads return it', async () => {
+		mockPool([
+			[{ id: USER_ID, name: 'My workspace', role: 'owner' }, ...WORKSPACE_ROWS],
+			[],
+			[{ count: '0' }],
+		])
+		const created = await createBoardForUser(env, USER_ID, { name: 'Roadmap', workspace: 'Nope' })
+		if (created.ok) throw new Error('Expected a refusal')
+		const block = created.result.content[0]
+		expect(block.type === 'text' && block.text.match(/My workspace/g)?.length).toBe(1)
+	})
+
 	it('refuses a workspace the caller cannot add boards to', async () => {
 		mockPool([WORKSPACE_ROWS])
 		const created = await createBoardForUser(env, USER_ID, {
@@ -185,8 +198,10 @@ describe('createBoardForUser', () => {
 			'commit',
 		])
 		const [, workspaces, lock, count] = queries
-		expect(workspaces.sql).toContain('"group"."isDeleted" = $')
-		expect(workspaces.parameters).toEqual([USER_ID, false, USER_ID, USER_ID])
+		// Two index-served arms, never an OR across the join, which would walk every group.
+		expect(workspaces.sql).toContain(' union all ')
+		expect(workspaces.sql).not.toContain(' or ')
+		expect(workspaces.parameters).toEqual([USER_ID, false, USER_ID, false])
 		expect(lock.sql).toMatch(/for no key update$/)
 		expect(lock.parameters).toEqual([USER_ID])
 		expect(count.sql).toContain('"file"."owningGroupId" = $')
