@@ -107,6 +107,19 @@ async function react(actor: DotcomActor, comment: PostedComment, emoji: string) 
 	)
 }
 
+/**
+ * Wait until another user's record has synced into the actor's room. A reply or reaction that
+ * reaches the file's Durable Object before its thread or comment fails the Postgres foreign key,
+ * and the drain prunes it from the room without a trace.
+ */
+async function waitForRecord(actor: DotcomActor, id: string) {
+	await expect
+		.poll(() => actor.page.evaluate((id) => !!(window as any).editor.store.get(id), id), {
+			timeout: FEED_TIMEOUT,
+		})
+		.toBe(true)
+}
+
 async function userIdOf(actor: DotcomActor): Promise<string> {
 	return await actor.page.evaluate(() => (window as any).app.userId)
 }
@@ -191,6 +204,7 @@ test.describe('comment notifications', () => {
 		await member.goto(fileUrl)
 
 		const root = await postComment(owner, scenario.name('ws root'))
+		await waitForRecord(member, root.threadId)
 		const memberReply = scenario.name('ws reply by member')
 		await postComment(member, memberReply, { threadId: root.threadId })
 		await expectNotification(owner, memberReply, /replied/)
@@ -207,6 +221,17 @@ test.describe('comment notifications', () => {
 		// satisfy the count before the gate had been applied
 		await scenario.setSharedLinkType(owner, 'no-access')
 		await owner.page.keyboard.press('Escape')
+		// the removal trigger reads file.shared, so the unshare has to reach Postgres first
+		await expect
+			.poll(
+				() =>
+					member.page.evaluate(
+						(fileId) => (window as any).app.getFile(fileId)?.shared,
+						root.fileId
+					),
+				{ timeout: FEED_TIMEOUT }
+			)
+			.toBe(false)
 		await scenario.removeWorkspaceMember({
 			owner,
 			workspaceName: workspace.workspaceName,
@@ -288,6 +313,7 @@ test.describe('comment notifications', () => {
 		const text = scenario.name('reacted comment')
 		const posted = await postComment(owner, text)
 		await member.goto(file.sharedUrl)
+		await waitForRecord(member, posted.commentId)
 		await react(member, posted, '👍')
 
 		const item = await expectNotification(owner, text, /reacted to your comment/)
