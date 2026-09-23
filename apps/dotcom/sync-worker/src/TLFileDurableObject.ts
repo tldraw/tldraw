@@ -84,7 +84,12 @@ import {
 	writeMcpClusterIndexRow,
 } from './mcpClusterIndexStorage'
 import { TLPostgresPool } from './postgres'
-import { deleteAllObjectsWithPrefix, getR2KeyForRoom, R2ReadScheduler } from './r2'
+import {
+	deleteAllObjectsWithPrefix,
+	getR2KeyForRoom,
+	isTransientConnectionError,
+	R2ReadScheduler,
+} from './r2'
 import {
 	BootStage,
 	FileEffectStallError,
@@ -176,14 +181,6 @@ type R2OperationType =
 	| 'version_chain_read'
 	| 'version_chain_verify'
 	| 'version_chain_delete'
-
-// Transient R2 failures worth retrying — dropped connections and the connection-limit error the
-// shared budget exists to avoid. Anything else (a bad request, missing object, etc.) is permanent,
-// so retrying only wastes time before the simple-PUT fallback runs.
-function isTransientConnectionError(error: unknown): boolean {
-	const message = error instanceof Error ? error.message : String(error)
-	return /network|connection|closed|reset|timeout/i.test(message)
-}
 
 // Where the chain state lives in durable object storage; see getVersionChain.
 const VERSION_CHAIN_STORAGE_KEY = 'versionChain'
@@ -818,8 +815,12 @@ export class TLFileDurableObject extends DurableObject {
 		// rewriting it from an empty buffer would silently erase the deltas its metadata still
 		// promises. The caller starts a fresh chain on null.
 		const segmentKey = chain.openSegment.key
-		const deltas = await this.addR2Operation('version_chain_write', () =>
-			retry(() => readOpenSegment(this.r2.versionChain, segmentKey), VERSION_CHAIN_R2_RETRY)
+		const deltas = await retry(
+			() =>
+				this.addR2Operation('version_chain_write', () =>
+					readOpenSegment(this.r2.versionChain, segmentKey)
+				),
+			VERSION_CHAIN_R2_RETRY
 		)
 		if (deltas) this._pendingDeltas = deltas
 		return deltas
@@ -851,7 +852,7 @@ export class TLFileDurableObject extends DurableObject {
 				// fans out to the keyframe plus every segment (see _verifyRetiredChain). Every read
 				// is one idempotent get or list, so each retries transient errors on its own.
 				const schedule: R2ReadScheduler = (read) =>
-					this.addR2Operation('version_chain_read', () => retry(read, VERSION_CHAIN_R2_RETRY))
+					retry(() => this.addR2Operation('version_chain_read', read), VERSION_CHAIN_R2_RETRY)
 				const buckets = {
 					chainBucket: this.r2.versionChain,
 					legacyBucket: this.r2.versionCache,
@@ -2250,12 +2251,10 @@ export class TLFileDurableObject extends DurableObject {
 
 		const mode = resolveVersionChainMode(await this.versionChainRollout(), key)
 
-		// A chain failure that outlasted its retries must be a metric, not a failed persist: the outer
-		// retry would otherwise re-upload the rooms object 100 times and raise persistence_bad. In
-		// chain mode that persist records no version and there is no legacy copy to fall back to. The
-		// chain state is untouched, so the next persist's delta is diffed from the last version
-		// written and carries this one's changes too; only when no edit follows does history lack
-		// the board's current state.
+		// A chain failure that outlasted its retries is a metric, not a failed persist: the outer retry
+		// would re-upload the rooms object 100 times and raise persistence_bad. In chain mode this
+		// persist records no version, but the chain is untouched and the next persist's delta carries
+		// its changes; only when no edit follows does history lack the board's current state.
 		if (mode !== 'off') {
 			try {
 				iso = await this._writeVersionChainEntry(snapshot, key, iso)
@@ -2317,12 +2316,11 @@ export class TLFileDurableObject extends DurableObject {
 				pending = rehydrated
 			}
 		}
-		// A chain write is one idempotent PUT for a fixed iso, so retrying the whole call is safe.
-		// In chain mode a write that still fails records no version at all, so it gets the longer
-		// policy that outlasts R2's per-key write limit.
-		const result = await this.addR2Operation('version_chain_write', () =>
-			retry(
-				() =>
+		// One idempotent PUT for a fixed iso, so retrying the whole call is safe. The retry wraps the
+		// queued operation so a wait between attempts does not hold one of the two R2 slots.
+		const result = await retry(
+			() =>
+				this.addR2Operation('version_chain_write', () =>
 					writeVersionChainEntry({
 						bucket: this.r2.versionChain,
 						roomKey: key,
@@ -2334,9 +2332,9 @@ export class TLFileDurableObject extends DurableObject {
 						previousHeadHash: this._lastPersistedHeadHash ?? undefined,
 						next: snapshot,
 						now: Date.now(),
-					}),
-				VERSION_CHAIN_R2_RETRY
-			)
+					})
+				),
+			VERSION_CHAIN_R2_RETRY
 		)
 		this._versionChain = result.chain
 		this._pendingDeltas = result.pending

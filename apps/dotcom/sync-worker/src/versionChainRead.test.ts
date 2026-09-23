@@ -537,17 +537,58 @@ describe('loadChainIndexForVersion', () => {
 		expect(result?.snapshot).toEqual(versions[4])
 	})
 
-	it('widens the look-back for a version in a room whose last write was months earlier', async () => {
+	it('widens the look-back for a version whose segment opened hours before it', async () => {
 		const bucket = createFakeR2()
-		const times = ['2026-05-01T00:00:00.000Z', '2026-05-01T00:00:10.000Z']
+		const times = [
+			'2026-09-01T00:00:00.000Z',
+			'2026-09-01T00:01:00.000Z',
+			'2026-09-01T05:00:00.000Z',
+		]
 		await putChain(bucket, times)
+		const lists = countLists(bucket)
 
-		const { entries } = await loadChainIndexForVersion(bucket, roomKey, times[1])
+		const { entries } = await loadChainIndexForVersion(bucket, roomKey, times[2])
 
 		expect(entries.map((e) => e.key)).toEqual([
 			versionKey(roomKey, times[0], 'keyframe'),
 			versionKey(roomKey, times[1], 'segment'),
 		])
+		// The hour window finds nothing; the day window finds the segment and its keyframe.
+		expect(lists).toHaveLength(2)
+	})
+
+	it('walks every window for a version only the legacy bucket holds', async () => {
+		const bucket = createFakeR2()
+		await putChain(bucket, ['2026-09-01T12:00:00.000Z', '2026-09-01T12:00:10.000Z'])
+		const lists = countLists(bucket)
+
+		const { entries, ops } = await loadChainIndexForVersion(
+			bucket,
+			roomKey,
+			'2026-08-01T00:00:00.000Z'
+		)
+
+		expect(entries).toEqual([])
+		expect(ops).toBe(5)
+		expect(lists).toHaveLength(5)
+	})
+
+	it('pages through a window holding more objects than one listing returns', async () => {
+		const bucket = createFakeR2()
+		// 1,100 keyframes in the half hour before the version, more than the fake's 1,000-key page.
+		const start = Date.parse('2026-09-01T11:30:00.000Z')
+		for (let i = 0; i < 1100; i++) {
+			const iso = new Date(start + i * 1000).toISOString()
+			await bucket.put(versionKey(roomKey, iso, 'keyframe'), '{}')
+		}
+		const times = ['2026-09-01T12:00:00.000Z', '2026-09-01T12:00:10.000Z']
+		await putChain(bucket, times)
+
+		const { entries, ops } = await loadChainIndexForVersion(bucket, roomKey, times[1])
+
+		expect(entries.some((e) => e.timestamps.includes(times[1]))).toBe(true)
+		expect(entries).toHaveLength(1102)
+		expect(ops).toBe(2)
 	})
 
 	it('stops at the first object older than a version the chain does not hold', async () => {
@@ -568,10 +609,17 @@ describe('loadChainIndexForVersion', () => {
 	it('lists nothing for a timestamp no chain key could carry', async () => {
 		const bucket = createFakeR2()
 		const lists = countLists(bucket)
-		expect(await loadChainIndexForVersion(bucket, roomKey, 'not-a-date')).toEqual({
-			entries: [],
-			ops: 0,
-		})
+		for (const timestamp of [
+			'not-a-date',
+			'+275760-09-13T00:00:00.000Z',
+			'1970-01-01T00:00:00.000Z',
+			new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+		]) {
+			expect(await loadChainIndexForVersion(bucket, roomKey, timestamp)).toEqual({
+				entries: [],
+				ops: 0,
+			})
+		}
 		expect(lists).toHaveLength(0)
 	})
 })

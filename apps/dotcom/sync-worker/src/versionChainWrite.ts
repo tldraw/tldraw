@@ -1,4 +1,5 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { isTransientConnectionError } from './r2'
 import { getSnapshotFingerprint, getSnapshotMetadata } from './snapshotUtils'
 import {
 	ChainState,
@@ -34,16 +35,14 @@ export type VersionChainWriteResult =
  * InternalError, 10043 ServiceUnavailable and 10058 TooManyRequests.
  */
 export function isRetryableR2Error(error: unknown): boolean {
+	if (isTransientConnectionError(error)) return true
 	const message = error instanceof Error ? error.message : String(error)
-	return (
-		/network|connection|closed|reset|timeout/i.test(message) ||
-		/\((10001|10043|10058)\)/.test(message)
-	)
+	return /\((10001|10043|10058)\)/.test(message)
 }
 
 /**
- * Every wait clears a second because 10058 is R2's one-write-per-second limit on a key, and the open
- * segment's key is rewritten by every delta. Worst case adds under six seconds to a persist.
+ * Waits exceed a second because 10058 is R2's one-write-per-second-per-key limit, and every delta
+ * rewrites the open segment's key.
  */
 export const VERSION_CHAIN_R2_RETRY = {
 	attempts: 5,
@@ -176,7 +175,7 @@ export async function writeVersionChainEntry({
  * Null means the segment is unusable and the caller starts a fresh chain, which costs one keyframe.
  * A failed `get` throws instead: the segment may be intact and only the network was not, and null
  * here would silently discard it on every blip. The caller retries transient errors and lets a
- * persistent failure fail the chain write, which has its own fallback. (A blip while reading the
+ * persistent failure fail the chain write. (A blip while reading the
  * body still decodes as null — rare enough that the keyframe is fine.)
  */
 export async function readOpenSegment(

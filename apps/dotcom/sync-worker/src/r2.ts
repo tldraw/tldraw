@@ -25,6 +25,14 @@ export function getR2KeyForSnapshot({
 	return getR2KeyForRoom({ slug, isApp })
 }
 
+// Dropped connections and the connection-limit error the shared R2 budget exists to avoid. Anything
+// else (a bad request, missing object) is permanent, and retrying it only delays the caller's
+// fallback.
+export function isTransientConnectionError(error: unknown): boolean {
+	const message = error instanceof Error ? error.message : String(error)
+	return /network|connection|closed|reset|timeout/i.test(message)
+}
+
 /**
  * Runs one R2 operation. Operations default to running inline; a caller inside a shared connection
  * budget (the durable object's R2 queue) passes its queue, so each operation is one budgeted slot

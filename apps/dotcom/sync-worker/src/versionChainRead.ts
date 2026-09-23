@@ -111,6 +111,8 @@ function indexChainObjects(objects: R2Object[]): {
 // clock runs behind can key a later object earlier (see reconstructVersion).
 const CHAIN_KEY_CLOCK_SKEW_MS = 10 * 60 * 1000
 const HOUR_MS = 60 * 60 * 1000
+// Before tldraw.com existed, so no version can be older.
+const CHAIN_EPOCH_MS = Date.UTC(2020, 0, 1)
 // Widening look-back windows, then the rest of the prefix. Most versions sit in a chain opened
 // within the hour; the tail only runs for a room whose chain is sparse around `timestamp`.
 const INDEX_WINDOWS_MS = [HOUR_MS, 24 * HOUR_MS, 30 * 24 * HOUR_MS, 365 * 24 * HOUR_MS, Infinity]
@@ -134,8 +136,12 @@ export async function loadChainIndexForVersion(
 	schedule: R2ReadScheduler = runInline
 ): Promise<{ entries: ChainIndexEntry[]; ops: number }> {
 	const time = Date.parse(timestamp)
-	// Not a timestamp any chain key could carry; the legacy lookup still gets its say.
-	if (Number.isNaN(time)) return { entries: [], ops: 0 }
+	// Not a timestamp any chain key could carry; the legacy lookup still gets its say. A future one
+	// matters beyond the wasted lookup: no window would find an object before it, so the walk would
+	// fall through to listing the whole prefix. Bounding the past keeps every window a valid Date.
+	if (Number.isNaN(time) || time < CHAIN_EPOCH_MS || time > Date.now() + CHAIN_KEY_CLOCK_SKEW_MS) {
+		return { entries: [], ops: 0 }
+	}
 
 	const prefix = `${roomKey}/`
 	const keyAt = (ms: number) => `${prefix}${new Date(ms).toISOString()}`
@@ -194,10 +200,7 @@ export async function reconstructVersion({
 	legacyBucket: R2Bucket
 	roomKey: string
 	timestamp: string
-	/**
-	 * A chain index the caller already loaded — the whole room's, or loadChainIndexForVersion's for
-	 * this timestamp — so one request does not list twice.
-	 */
+	/** A chain index the caller already loaded (whole room or loadChainIndexForVersion's), so one request does not list twice. */
 	index?: ChainIndexEntry[]
 	schedule?: R2ReadScheduler
 }): Promise<VersionReconstruction | null> {
