@@ -187,7 +187,7 @@ describe('createBoardForUser', () => {
 		const [, workspaces, lock, count] = queries
 		expect(workspaces.sql).toContain('"group"."isDeleted" = $')
 		expect(workspaces.parameters).toEqual([USER_ID, false, USER_ID, USER_ID])
-		expect(lock.sql).toMatch(/for update$/)
+		expect(lock.sql).toMatch(/for no key update$/)
 		expect(lock.parameters).toEqual([USER_ID])
 		expect(count.sql).toContain('"file"."owningGroupId" = $')
 		expect(count.parameters).toEqual([USER_ID, false])

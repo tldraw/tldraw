@@ -47,12 +47,13 @@ export async function createBoardForUser(
 				// The createFile mutator has no file limit — the client enforces it before calling — so
 				// without this an agent in a loop could fill a workspace past what the UI lets anyone
 				// manage. The row lock serializes concurrent creates into one workspace; without it two
-				// could both count 199.
+				// could both count 199. NO KEY so it doesn't block inserts whose foreign keys reference
+				// the group (file, group_file, group_user), which FOR UPDATE would.
 				await trx
 					.selectFrom('group')
 					.select('group.id')
 					.where('group.id', '=', target.id)
-					.forUpdate()
+					.forNoKeyUpdate()
 					.execute()
 				if ((await countWorkspaceBoards(trx, target.id)) >= MAX_NUMBER_OF_FILES) {
 					return {
