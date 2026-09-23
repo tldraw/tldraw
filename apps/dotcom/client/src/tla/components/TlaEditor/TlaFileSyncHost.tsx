@@ -1,15 +1,7 @@
 import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import {
-	ReactNode,
-	createContext,
-	useCallback,
-	useContext,
-	useEffect,
-	useMemo,
-	useRef,
-} from 'react'
+import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
 	TLUserStore,
@@ -19,6 +11,7 @@ import {
 	computed,
 	createUserId,
 	getUserPreferences,
+	omit,
 	useEvent,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
@@ -116,10 +109,8 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		}, []),
 	})
 
-	const hasSynced = useRef(false)
 	useEffect(() => {
 		if (store.status !== 'synced-remote') return
-		hasSynced.current = true
 		markFirstLoad('sync-connected')
 		// Written only once the room accepted us, so the cache never points at a file this account
 		// cannot open.
@@ -128,21 +119,25 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 
 	const navigate = useNavigate()
 	const location = useLocation()
-	// A cached id can be stale (file deleted, sharing revoked). Fall back to the Zero-derived
-	// choice on `/` without ever handing the errored store to the editor, which would throw it into
-	// the route error page. Only for a room that never accepted us: the flag lives in history
-	// state for as long as the user stays on this file, and losing access mid-session must show
-	// the error page like any other visit would. A reload after the file is gone falls back too.
-	const fallBackToRoot =
-		!!location.state?.[VIA_LAST_FILE_CACHE] &&
-		!hasSynced.current &&
-		store.status === 'error' &&
-		isCachedFileGone(store.error)
+	const viaCache = !!location.state?.[VIA_LAST_FILE_CACHE]
+	// A stale cached id falls back to the Zero-derived choice on `/`, without handing the errored
+	// store to the editor (it would throw into the route error page).
+	const fallBackToRoot = viaCache && store.status === 'error' && isCachedFileGone(store.error)
 	useEffect(() => {
 		if (!fallBackToRoot) return
 		clearLastVisitedFile()
 		navigate(routes.tlaRoot(), { replace: true })
 	}, [fallBackToRoot, navigate])
+
+	// The flag lives in history state, so left in place a reload after access was revoked would
+	// bounce home instead of showing the error page. Keep the search: `?d=` is read at mount.
+	useEffect(() => {
+		if (!viaCache || store.status !== 'synced-remote') return
+		navigate(
+			{ pathname: location.pathname, search: location.search, hash: location.hash },
+			{ replace: true, state: omit(location.state, [VIA_LAST_FILE_CACHE]) }
+		)
+	}, [viaCache, store.status, location, navigate])
 
 	if (fallBackToRoot) return null
 
