@@ -166,6 +166,7 @@ import {
 	toContentStoreSnapshot,
 	triageContentAssets,
 } from './kernels/content'
+import { getCulledShapeIds } from './kernels/culling'
 import {
 	getAlignLayout,
 	getDistributeLayout,
@@ -5521,41 +5522,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const notVisibleShapes = this.getNotVisibleShapes()
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const editingId = this.getEditingShapeId()
-		const nextValue = new Set<TLShapeId>(notVisibleShapes)
-		// we don't cull the shape we are editing
-		if (editingId) {
-			nextValue.delete(editingId)
-		}
-		// we also don't cull selected shapes
-		selectedShapeIds.forEach((id) => {
-			nextValue.delete(id)
-		})
 
-		// Cache optimization: return same Set object if contents unchanged
-		// This allows consumers to use === comparison and prevents unnecessary re-renders
-		const prevValue = this._culledShapesCache
-		if (prevValue) {
-			// If sizes differ, contents must differ
-			if (prevValue.size !== nextValue.size) {
-				this._culledShapesCache = nextValue
-				return nextValue
-			}
-
-			// Check if all elements are the same
-			for (const id of prevValue) {
-				if (!nextValue.has(id)) {
-					// Found a difference, update cache and return new set
-					this._culledShapesCache = nextValue
-					return nextValue
-				}
-			}
-
-			// Loop completed without finding differences - contents identical
-			return prevValue
-		}
-
-		this._culledShapesCache = nextValue
-		return nextValue
+		const culled = getCulledShapeIds(
+			notVisibleShapes,
+			selectedShapeIds,
+			editingId,
+			this._culledShapesCache
+		)
+		this._culledShapesCache = culled
+		return culled
 	}
 
 	/**
