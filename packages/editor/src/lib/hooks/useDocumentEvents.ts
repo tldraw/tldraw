@@ -246,12 +246,23 @@ export function useDocumentEvents() {
 			heldKeysRef.current.delete(e.code)
 			editor.dispatch(info)
 
-			// macOS never delivers keyup for a non-modifier key while Meta is held, so anything
-			// pressed during a Cmd shortcut stays in `inputs.keys` for good. A stuck ArrowUp from
-			// Cmd+ArrowUp made every later arrow press nudge diagonally, since the nudge sums all
-			// held arrows. A key that really is still down re-reports itself on its next repeat.
+			// macOS swallows the keyup of a non-modifier key pressed while Meta is held, so a
+			// stuck ArrowUp from Cmd+ArrowUp made every later arrow nudge diagonally. We can't
+			// tell that from a key still down, so we release both; a real hold needs a re-press.
 			if (e.code === 'MetaLeft' || e.code === 'MetaRight') {
-				releaseHeldKeys(editor, heldKeysRef.current, (code) => !MODIFIER_CODES.has(code))
+				releaseHeldKeys(editor, heldKeysRef.current, {
+					shouldRelease: (code) => !MODIFIER_CODES.has(code),
+					// Reporting a still-held modifier as up starts its 150ms release debounce,
+					// which drops `ShiftLeft` from `inputs.keys` and shrinks the shift-nudge
+					// step. `ctrlKey` folds Meta in elsewhere; with Meta up it's plain ctrl.
+					modifiers: {
+						shiftKey: e.shiftKey,
+						altKey: e.altKey,
+						ctrlKey: e.ctrlKey,
+						metaKey: false,
+						accelKey: isAccelKey({ ctrlKey: e.ctrlKey, metaKey: false }),
+					},
+				})
 			}
 		}
 
@@ -325,7 +336,7 @@ export function useDocumentEvents() {
 		const win = editor.getContainerWindow()
 
 		const handleWindowBlur = () => {
-			releaseHeldKeys(editor, heldKeysRef.current)
+			releaseHeldKeys(editor, heldKeysRef.current, { modifiers: NO_MODIFIERS })
 			heldKeysRef.current.clear()
 		}
 
@@ -347,14 +358,30 @@ const MODIFIER_CODES = new Set([
 	'MetaRight',
 ])
 
+type ModifierState = Pick<
+	TLKeyboardEventInfo,
+	'shiftKey' | 'altKey' | 'ctrlKey' | 'metaKey' | 'accelKey'
+>
+
+const NO_MODIFIERS: ModifierState = {
+	shiftKey: false,
+	altKey: false,
+	ctrlKey: false,
+	metaKey: false,
+	accelKey: false,
+}
+
 /**
  * Replay a `key_up` for each held key so it runs the normal release path, including tool
  * `onKeyUp`. `inputs.keys` stores codes but tools match on `info.key`, hence `heldKeys`.
+ *
+ * `modifiers` is the state these synthetic events report. The editor releases a modifier 150ms
+ * after an event says it's up, so a caller with modifiers still held must say so.
  */
 function releaseHeldKeys(
 	editor: Editor,
 	heldKeys: Map<string, string>,
-	shouldRelease?: (code: string) => boolean
+	{ modifiers, shouldRelease }: { modifiers: ModifierState; shouldRelease?(code: string): boolean }
 ) {
 	for (const code of [...editor.inputs.keys]) {
 		if (shouldRelease && !shouldRelease(code)) continue
@@ -363,11 +390,7 @@ function releaseHeldKeys(
 			name: 'key_up',
 			key: heldKeys.get(code) ?? code,
 			code,
-			shiftKey: false,
-			altKey: false,
-			ctrlKey: false,
-			metaKey: false,
-			accelKey: false,
+			...modifiers,
 		})
 		heldKeys.delete(code)
 	}

@@ -117,6 +117,17 @@ describe('useDocumentEvents meta release', () => {
 		cleanup()
 	})
 
+	// Browsers report `metaKey: true` on the Meta keyup itself, so the tests below send it that
+	// way: with `metaKey: false` the editor's modifier debounce takes a different path.
+	const metaKeyUp = { key: 'Meta', code: 'MetaLeft', metaKey: true }
+
+	// The editor releases a modifier 150ms after an event reports it up.
+	async function waitForModifierDebounce() {
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 200))
+		})
+	}
+
 	// macOS swallows the keyup of every non-modifier key pressed while Meta is held, so the
 	// arrow from a Cmd+Arrow shortcut stayed held and the next plain arrow nudged diagonally.
 	it('releases keys whose keyup macOS swallowed while Meta was held', async () => {
@@ -127,7 +138,7 @@ describe('useDocumentEvents meta release', () => {
 		expect([...editor.inputs.keys]).toEqual(['MetaLeft', 'ArrowUp'])
 
 		// no keyup for ArrowUp ever arrives
-		keyUp(container, { key: 'Meta', code: 'MetaLeft' })
+		keyUp(container, metaKeyUp)
 		expect([...editor.inputs.keys]).toEqual([])
 	})
 
@@ -140,7 +151,7 @@ describe('useDocumentEvents meta release', () => {
 
 		keyDown(container, { key: 'Meta', code: 'MetaLeft', metaKey: true })
 		keyDown(container, { key: 'a', code: 'KeyA', metaKey: true })
-		keyUp(container, { key: 'Meta', code: 'MetaLeft' })
+		keyUp(container, metaKeyUp)
 
 		expect(keyUps.map((info) => [info.key, info.code])).toEqual([
 			['Meta', 'MetaLeft'],
@@ -148,14 +159,34 @@ describe('useDocumentEvents meta release', () => {
 		])
 	})
 
-	it('leaves other modifiers held, since their keyup is still delivered', async () => {
+	// The synthetic releases used to report every modifier as up, which started the editor's
+	// 150ms release debounce for a shift that was still held: `ShiftLeft` left `inputs.keys`
+	// and the nudge (which reads the set) dropped back to its smaller step.
+	it('leaves a still-held modifier alone, through the release debounce', async () => {
 		const { editor, container } = await renderEditor()
 
 		keyDown(container, { key: 'Shift', code: 'ShiftLeft', shiftKey: true })
 		keyDown(container, { key: 'Meta', code: 'MetaLeft', shiftKey: true, metaKey: true })
-		keyUp(container, { key: 'Meta', code: 'MetaLeft', shiftKey: true })
+		keyDown(container, { key: 'ArrowUp', code: 'ArrowUp', shiftKey: true, metaKey: true })
 
+		// shift is still down when cmd comes up
+		keyUp(container, { ...metaKeyUp, shiftKey: true })
 		expect([...editor.inputs.keys]).toEqual(['ShiftLeft'])
+
+		await waitForModifierDebounce()
+		expect([...editor.inputs.keys]).toEqual(['ShiftLeft'])
+		expect(editor.inputs.getShiftKey()).toBe(true)
+	})
+
+	it('releases meta itself, since its keyup reports metaKey as still down', async () => {
+		const { editor, container } = await renderEditor()
+
+		keyDown(container, { key: 'Meta', code: 'MetaLeft', metaKey: true })
+		keyDown(container, { key: 'ArrowUp', code: 'ArrowUp', metaKey: true })
+		keyUp(container, metaKeyUp)
+
+		await waitForModifierDebounce()
+		expect(editor.inputs.getMetaKey()).toBe(false)
 	})
 
 	it('does not disturb keys held without Meta', async () => {
