@@ -1,4 +1,5 @@
 import { T } from '@tldraw/validate'
+import { isPreDeepLinkUrl } from '../misc/linkUrl'
 import { TLRichText, richTextValidator, toRichText } from '../misc/TLRichText'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
@@ -149,6 +150,7 @@ const Versions = createShapePropsMigrationIds('note', {
 	AddFirstEditedBy: 11,
 	MakeFontSizeAdjustmentRatio: 12,
 	RenameFirstEditedByToLast: 13,
+	AllowDeepLinkUrls: 14,
 })
 
 /**
@@ -302,6 +304,17 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 			down: (props) => {
 				props.textFirstEditedBy = props.textLastEditedBy ?? null
 				delete props.textLastEditedBy
+			},
+		},
+		{
+			id: Versions.AllowDeepLinkUrls,
+			up: (_props) => {
+				// noop: every url valid before is still valid
+			},
+			down: (props) => {
+				if (!isPreDeepLinkUrl(props.url)) {
+					props.url = ''
+				}
 			},
 		},
 	],
