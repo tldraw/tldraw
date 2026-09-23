@@ -159,6 +159,18 @@ export async function publish(distTag?: string) {
 		await Promise.all(packageDetails.localDeps.map((dep) => readable.get(dep)))
 
 		const tag = distTag ?? parse(packageDetails.version)?.prerelease[0] ?? 'latest'
+
+		// Yarn's --tolerate-republish looked the version up and exited 0 if it already
+		// existed; pnpm has no equivalent (its --force is the opposite), it just uploads
+		// and gets a 403. Re-running a partly successful release depends on this skip.
+		if (await isPublished(packageDetails)) {
+			nicelog(
+				`[publish] ${packageDetails.name}@${packageDetails.version} already published, skipping`
+			)
+			readable.set(packageDetails.name, Promise.resolve())
+			continue
+		}
+
 		nicelog(
 			`Publishing ${packageDetails.name} with version ${packageDetails.version} under tag @${tag}`
 		)
@@ -199,7 +211,12 @@ export async function publish(distTag?: string) {
 				} catch (e) {
 					// A retry after a publish that actually landed is rejected as "published",
 					// or as "staged" (409) while npm is still processing the first attempt.
-					const lowerOutput = output.toLowerCase()
+					// pnpm wraps its error at ~80 columns and prefixes wrapped lines with `│`,
+					// so the phrase can straddle a line break depending on the name's length.
+					const lowerOutput = output
+						.toLowerCase()
+						.replace(/[│╰─▶×]/g, ' ')
+						.replace(/\s+/g, ' ')
 					if (
 						lowerOutput.includes('cannot publish over the previously published versions') ||
 						lowerOutput.includes('cannot publish over previously staged version')
@@ -232,8 +249,17 @@ export async function publish(distTag?: string) {
 	await Promise.all(readable.values())
 }
 
+function registryUrl(packageDetails: PackageDetails) {
+	return `https://registry.npmjs.org/${packageDetails.name}/${packageDetails.version}`
+}
+
+async function isPublished(packageDetails: PackageDetails) {
+	const res = await fetch(registryUrl(packageDetails), { method: 'HEAD' })
+	return res.status < 400
+}
+
 function waitUntilReadable(packageDetails: PackageDetails) {
-	const url = `https://registry.npmjs.org/${packageDetails.name}/${packageDetails.version}`
+	const url = registryUrl(packageDetails)
 	return retry(
 		async ({ attempt, total }) => {
 			const res = await fetch(url, { method: 'HEAD' })
