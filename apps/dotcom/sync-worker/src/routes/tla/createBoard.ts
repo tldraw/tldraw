@@ -1,4 +1,4 @@
-import { zeroPostgresJS } from '@rocicorp/zero/server/adapters/postgresjs'
+import { zeroKysely } from '@rocicorp/zero/server/adapters/kysely'
 import { DB, MAX_NUMBER_OF_FILES, can, createMutators, schema } from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
 import { Kysely } from 'kysely'
@@ -31,50 +31,65 @@ export async function createBoardForUser(
 	ctx?: ExecutionContext
 ): Promise<CreateBoardOutcome> {
 	const db = createPostgresConnectionPool(env, 'sync-worker/createBoardForUser')
-	let target: CreatableWorkspace
 	try {
-		const resolved = resolveCreateBoardWorkspace(
-			await getCreatableWorkspaces(db, userId),
-			workspace
-		)
-		if (!resolved.ok) return resolved
-		target = resolved.workspace
+		// One transaction on the pool's one connection, so every read below must go through `trx`:
+		// a query on `db` would wait for the connection this transaction is holding.
+		const outcome = await zeroKysely(schema, db).transaction(
+			async (tx): Promise<CreateBoardOutcome> => {
+				const trx = tx.dbTransaction.wrappedTransaction
+				const resolved = resolveCreateBoardWorkspace(
+					await getCreatableWorkspaces(trx, userId),
+					workspace
+				)
+				if (!resolved.ok) return resolved
+				const target = resolved.workspace
 
-		// The createFile mutator has no file limit — the client enforces it before calling — so without
-		// this an agent in a loop could fill a workspace past what the UI lets anyone manage.
-		if ((await countWorkspaceBoards(db, target.id)) >= MAX_NUMBER_OF_FILES) {
-			return {
-				ok: false,
-				reason: 'workspace_full',
-				result: toolError(getWorkspaceFullMessage(target, MAX_NUMBER_OF_FILES)),
+				// The createFile mutator has no file limit — the client enforces it before calling — so
+				// without this an agent in a loop could fill a workspace past what the UI lets anyone
+				// manage. The row lock serializes concurrent creates into one workspace; without it two
+				// could both count 199.
+				await trx
+					.selectFrom('group')
+					.select('group.id')
+					.where('group.id', '=', target.id)
+					.forUpdate()
+					.execute()
+				if ((await countWorkspaceBoards(trx, target.id)) >= MAX_NUMBER_OF_FILES) {
+					return {
+						ok: false,
+						reason: 'workspace_full',
+						result: toolError(getWorkspaceFullMessage(target, MAX_NUMBER_OF_FILES)),
+					}
+				}
+
+				// The same mutator the client pushes, so the role check, id validation and the rows it
+				// writes (file, group_file, file_state) cannot drift from a board created on tldraw.com.
+				const boardId = uniqueId()
+				await createMutators(userId).createFile(tx, {
+					fileId: boardId,
+					workspaceId: target.id,
+					name,
+					time: Date.now(),
+					createSource: null,
+				})
+				return { ok: true, boardId, workspace: target }
 			}
+		)
+
+		if (outcome.ok) {
+			// The insert queued an outbox row; wake its consumer the way /app/zero/mutate does. A poke
+			// failure must not fail a create that already committed — the consumer drains on its own
+			// schedule too.
+			ctx?.waitUntil(
+				getFileEffectProcessor(env)
+					.poke()
+					.catch((e) => console.error('outbox poke failed', e))
+			)
 		}
+		return outcome
 	} finally {
 		await db.destroy()
 	}
-
-	// Through the same mutator the client pushes, so the role check, id validation and the rows it
-	// writes (file, group_file, file_state) cannot drift from a board created on tldraw.com.
-	const boardId = uniqueId()
-	await zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING).transaction((tx) =>
-		createMutators(userId).createFile(tx, {
-			fileId: boardId,
-			workspaceId: target.id,
-			name,
-			time: Date.now(),
-			createSource: null,
-		})
-	)
-
-	// The insert queued an outbox row; wake its consumer the way /app/zero/mutate does. A poke failure
-	// must not fail a create that already committed — the consumer drains on its own schedule too.
-	ctx?.waitUntil(
-		getFileEffectProcessor(env)
-			.poke()
-			.catch((e) => console.error('outbox poke failed', e))
-	)
-
-	return { ok: true, boardId, workspace: target }
 }
 
 // Every workspace the caller may add boards to. The home workspace is admitted on its id alone, the
