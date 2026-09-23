@@ -144,6 +144,10 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	}, [store.status, userId, fileSlug, leaving])
 
 	useEffect(() => {
+		// The hit rate of the cached redirect: a miss costs a wasted room boot on top of main's path.
+		if (visitKind && visitKind !== 'pending') {
+			trackEvent('cached-file-visit', { outcome: visitKind })
+		}
 		switch (visitKind) {
 			case 'fall-back':
 				clearLastVisitedFile()
