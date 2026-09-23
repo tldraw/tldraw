@@ -67,7 +67,7 @@ import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
-import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
+import { getAuth, getZeroAuth, requireAuth, getMcpTokenAuth } from './utils/tla/getAuth'
 import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
@@ -338,8 +338,15 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				const fakeReq = new Request('https://internal', {
 					headers: { Authorization: authorizationHeader },
 				}) as unknown as IRequest
+				// A session token first, then an MCP access token: the same fallback the download and
+				// the sync socket take, so an agent's user can add files to boards they can edit.
 				const auth = await getAuth(fakeReq, this.env)
-				userId = auth?.userId ?? null
+				if (auth) {
+					userId = auth.userId
+				} else {
+					const mcp = await getMcpTokenAuth(fakeReq, this.env)
+					userId = mcp.ok ? mcp.userId : null
+				}
 			}
 			if (!(await hasWriteAccessToFile(db, fileId, userId))) {
 				return { ok: false, error: 'Forbidden' }
