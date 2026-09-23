@@ -894,12 +894,15 @@ export function useNativeClipboardEvents() {
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content.
-			// While cropping, the crop zoom slider holds keyboard focus; don't let
+			// While cropping, the crop zoom slider grabs keyboard focus; don't let
 			// that suppress paste, so pasting an image can replace the cropped image.
-			const isCroppingImage = editor.getCroppingShapeId() !== null
+			// Any other focused input (e.g. a host app text field) still gets the paste.
+			const isCropSliderFocused =
+				editor.getCroppingShapeId() !== null &&
+				!!editor.getContainerDocument().activeElement?.classList.contains('tlui-slider__thumb')
 			if (
 				editor.getEditingShapeId() !== null ||
-				areShortcutsDisabled(editor, { ignoreFocusedElement: isCroppingImage })
+				areShortcutsDisabled(editor, { ignoreFocusedElement: isCropSliderFocused })
 			)
 				return
 

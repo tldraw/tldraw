@@ -1,5 +1,13 @@
-import { createShapeId, TLImageShape, TLSelectionHandle, TLShape } from '@tldraw/editor'
+import {
+	createShapeId,
+	MediaHelpers,
+	TLImageShape,
+	TLSelectionHandle,
+	TLShape,
+} from '@tldraw/editor'
 import { vi } from 'vitest'
+import { defaultAssetUtils } from '../lib/defaultAssetUtils'
+import { registerDefaultExternalContentHandlers } from '../lib/defaultExternalContentHandlers'
 import { MIN_CROP_SIZE } from '../lib/shapes/shared/crop'
 import { pasteFiles } from '../lib/ui/hooks/clipboard/pasteFiles'
 import { defaultHandleOverlays, TestEditor } from './TestEditor'
@@ -1453,6 +1461,35 @@ describe('Pasting an image while cropping', () => {
 		expect(replaceSpy).not.toHaveBeenCalled()
 		expect(putSpy).toHaveBeenCalledTimes(1)
 		expect(putSpy.mock.calls[0][0]).toMatchObject({ type: 'files' })
+	})
+
+	it('swaps the asset and keeps the crop and crop mode with the real replace handler', async () => {
+		editor.dispose()
+		editor = new TestEditor({ assetUtils: defaultAssetUtils, overlayUtils: defaultHandleOverlays })
+		registerDefaultExternalContentHandlers(editor, {
+			toasts: { addToast: vi.fn() } as any,
+			msg: ((key: string) => key) as any,
+		})
+		vi.spyOn(MediaHelpers, 'isAnimated').mockResolvedValue(false)
+		vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 1200, h: 800, pixelRatio: 1 })
+		vi.spyOn(editor, 'createTemporaryAssetPreview').mockReturnValue(undefined)
+
+		const crop = { topLeft: { x: 0.25, y: 0.25 }, bottomRight: { x: 0.75, y: 0.75 } }
+		editor.createShapes([
+			{ id: ids.imageA, type: 'image', x: 100, y: 100, props: { ...imageProps, crop } },
+		])
+		editor.select(ids.imageA)
+		editor.setCroppingShape(ids.imageA)
+		editor.setCurrentTool('select.crop.idle')
+
+		await pasteFiles(editor, [makeImageFile()])
+
+		const shape = editor.getShape<TLImageShape>(ids.imageA)!
+		expect(editor.getAsset(shape.props.assetId!)).toMatchObject({ type: 'image' })
+		expect(shape.props.crop).toEqual(crop)
+		expect(editor.getCurrentPageShapes()).toHaveLength(1)
+		expect(editor.getCroppingShapeId()).toBe(ids.imageA)
+		expect(editor.isIn('select.crop.idle')).toBe(true)
 	})
 })
 
