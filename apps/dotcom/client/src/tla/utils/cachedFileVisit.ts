@@ -24,13 +24,10 @@ export type CachedFileVisit =
 	| { kind: 'redirect'; fileId: string }
 
 /**
- * What to do with a `/f/:slug` visit that `/` redirected to from the local last-file cache, as the
- * room and Zero answer. The cache is only a hint: the room may reject the file (deleted, sharing
- * revoked), or Zero may have no file_state for it (a cache hit means a prior visit, so a missing
- * row means the file was forgotten elsewhere; the room would still admit a link-shared file and
- * `onFileEnter` would re-add it). Zero's recency also follows the user across devices where the
- * cache cannot, so a newer file elsewhere wins; the editor has not mounted yet, so nothing is
- * shown and then switched. Other room errors are left to the normal error page.
+ * What to do with a `/f/:slug` visit that `/` redirected to from the local last-file cache, as
+ * the room and Zero answer. A cache hit means a prior visit, so a missing file_state means the
+ * file was forgotten elsewhere: the room would still admit a link-shared file and `onFileEnter`
+ * would re-add it. Other room errors are left to the normal error page.
  */
 export function resolveCachedFileVisit(input: CachedFileVisitInput): CachedFileVisit {
 	if (input.status === 'error' && isFileGone(input.error)) return { kind: 'fall-back' }
