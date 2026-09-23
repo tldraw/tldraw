@@ -1,7 +1,6 @@
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
-import { canUseMcpServer } from '../../utils/featureFlags'
-import { getClerkClient } from '../../utils/tla/getAuth'
+import { getMcpTokenAuth, type McpTokenRefusal } from '../../utils/tla/getAuth'
 
 // The OAuth 2.1 resource-server half of the board screenshot MCP server: discovery metadata, bearer
 // token verification, and the feature flag gate that decides which authenticated users are let in.
@@ -231,7 +230,7 @@ export function mcpUnauthorized(
  * Written by the route rather than here, which is where every other MCP datapoint is written and
  * which keeps this module free of a dependency on the one that imports it.
  */
-export type McpAuthRefusal = 'no_token' | 'invalid_token' | 'unconfigured' | 'not_allowlisted'
+export type McpAuthRefusal = McpTokenRefusal
 
 export type McpAuthResult =
 	| { ok: true; userId: string }
@@ -265,27 +264,6 @@ export async function authenticateMcpRequest(
 		}),
 	})
 
-	const token = getBearerToken(request)
-	if (!token) {
-		// No `error` parameter: nothing was presented, so there is nothing to call invalid, and a bare
-		// challenge is what tells a first-contact client to go and authenticate.
-		return { ok: false, reason: 'no_token', response: mcpUnauthorized(request, env) }
-	}
-
-	// Verified by @clerk/backend against the Clerk instance the secret key names: signature (against a
-	// JWKS the SDK fetches from the Backend API once and caches), `sub`, lifetime and token type. Not
-	// `verifyToken`, which is for *session* tokens and refuses an access token on its header alone;
-	// `acceptsToken: 'oauth_token'` is the path that expects RFC 9068's `at+jwt`.
-	//
-	// `typ` is load-bearing rather than pedantry, and is the only thing separating an OAuth access token
-	// from a Clerk *session* JWT. Clerk stamps no `aud` on either, so nothing here can tell them apart
-	// by audience, and a session token — `typ: JWT` — would otherwise be a valid bearer token. That
-	// would make an ordinary tldraw.com website credential enough to drive this server, and the consent
-	// step an agent walks the user through decoration. The SDK answers one with `token-type-mismatch`.
-	//
-	// No `iss` check, where the jose verifier this replaced pinned one: the key set is the accepting
-	// instance's own, so a token any other issuer signed fails on signature, and the authorization
-	// server clients are sent to is derived from the same instance's publishable key.
 	if (!env.CLERK_SECRET_KEY || !getMcpAuthorizationServer(env)) {
 		// Nothing to verify against, or nothing a client could have been sent to. This is our
 		// misconfiguration rather than a bad token, so it is logged as one — but the caller is told only
@@ -295,65 +273,40 @@ export async function authenticateMcpRequest(
 		return invalidToken('unconfigured')
 	}
 
-	const state = await getClerkClient(env).authenticateRequest(
-		// The SDK parses `Authorization` itself and only strips an exact `Bearer ` prefix; handing it the
-		// token getBearerToken already accepted keeps a lowercase or padded scheme working, and keeps the
-		// body and every other header out of its hands.
-		new Request(request.url, { headers: { authorization: `Bearer ${token}` } }),
-		{ acceptsToken: 'oauth_token' }
-	)
-	if (!state.isAuthenticated) {
-		// The reason a token failed is not the caller's business — an expired token and one minted for
-		// somebody else's resource answer the same thing — but a client does need to know it should
-		// re-authenticate rather than give up, which is what `invalid_token` says.
-		//
-		// The SDK's reason and message only, never the token or its decoded payload: `sub`, `client_id`,
-		// `scope` and `jti` are every one of the things the response above is careful not to disclose,
-		// written to a log with a wider audience than the caller.
-		console.error('MCP token verification failed:', state.reason, state.message)
-		return invalidToken('invalid_token')
+	const result = await getMcpTokenAuth(request, env)
+	if (result.ok) return { ok: true, userId: result.userId }
+
+	switch (result.reason) {
+		case 'no_token':
+			// No `error` parameter: nothing was presented, so there is nothing to call invalid, and a
+			// bare challenge is what tells a first-contact client to go and authenticate.
+			return { ok: false, reason: 'no_token', response: mcpUnauthorized(request, env) }
+		case 'not_allowlisted':
+			// Deliberately not a 404. The endpoint's existence is already public — it is in the discovery
+			// metadata this same server serves — so hiding it here would cost a legible error and conceal
+			// nothing.
+			//
+			// And deliberately not a 401: `403` says "you did authenticate and you still may not", which
+			// a client cannot act on, where retrying the sign-in flow would loop.
+			return {
+				ok: false,
+				reason: 'not_allowlisted',
+				response: Response.json(
+					{
+						error: 'forbidden',
+						error_description: 'This account does not have access to the tldraw MCP server yet.',
+					},
+					{ status: 403 }
+				),
+			}
+		default:
+			// The reason a token failed is not the caller's business — an expired token and one minted
+			// for somebody else's resource answer the same thing — but a client does need to know it
+			// should re-authenticate rather than give up, which is what `invalid_token` says. The
+			// reason it carries is for telemetry, and separates a bad token from our own
+			// misconfiguration.
+			return invalidToken(result.reason)
 	}
-
-	// There is deliberately no check here that this token was issued for *this* resource, and its
-	// absence is the part of this file most likely to look like an oversight.
-	//
-	// RFC 8707 would bind a token to the resource it was minted for, via `aud`, so a token the user
-	// granted to somebody else's MCP server could not be replayed against ours. Clerk does not
-	// implement it: it stamps no `aud` on an access token whether or not the client sends a `resource`
-	// parameter, so there is nothing here to compare. An earlier version of this file checked anyway
-	// and, because production enforced unconditionally, would have refused every token ever issued.
-	//
-	// What closes the hole instead lives on the authorization server, where the client registry is:
-	// Clerk's `client_id_metadata_documents_only_allow_pre_registered_clients` refuses to issue tokens
-	// to CIMD clients nobody approved, so a client we have never heard of cannot obtain a token for our
-	// users in the first place. Approving one is a Clerk dashboard action, not a deploy.
-	//
-	// The consequence to keep in mind: that setting is the whole of the protection, and it is invisible
-	// from this repository. If it is ever turned off, every self-registered client in the world can
-	// call this endpoint with a token its user consented to for something else entirely. A `client_id`
-	// allowlist here would be the belt to that setting's braces if we ever want one — the claim is on
-	// every token.
-
-	const userId = state.toAuth().userId
-
-	if (!(await canUseMcpServer(env, userId))) {
-		// Deliberately not a 404. The endpoint's existence is already public — it is in the discovery
-		// metadata this same server serves — so hiding it here would cost a legible error and conceal
-		// nothing.
-		return {
-			ok: false,
-			reason: 'not_allowlisted',
-			response: Response.json(
-				{
-					error: 'forbidden',
-					error_description: 'This account does not have access to the tldraw MCP server yet.',
-				},
-				{ status: 403 }
-			),
-		}
-	}
-
-	return { ok: true, userId }
 }
 
 /**
@@ -364,10 +317,3 @@ export async function authenticateMcpRequest(
  */
 const INVALID_TOKEN_DESCRIPTION =
 	'The access token is expired, revoked, or issued for another resource'
-
-function getBearerToken(request: Request): string | null {
-	const header = request.headers.get('authorization')
-	if (!header) return null
-	const match = /^Bearer\s+(.+)$/i.exec(header.trim())
-	return match ? match[1].trim() : null
-}

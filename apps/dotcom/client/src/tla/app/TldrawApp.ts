@@ -578,6 +578,22 @@ export class TldrawApp {
 		// this.store.dispose()
 	}
 
+	/**
+	 * Drops this user's Zero replica from IndexedDB. Zero keeps synced data on disk across sign-out
+	 * so the next sign-in is fast, which leaks the previous user's files on shared machines. Safe to
+	 * call after dispose(): delete() closes the instance first, and close() is idempotent.
+	 */
+	async deleteLocalData() {
+		try {
+			const { errors } = await this.z.delete()
+			for (const error of errors) {
+				captureException(error)
+			}
+		} catch (error) {
+			captureException(error)
+		}
+	}
+
 	getUser() {
 		return assertExists(this.user$.get(), 'no user')
 	}
