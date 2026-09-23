@@ -177,7 +177,11 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 			app.showMutationRejectionToast(res.error)
 			return
 		}
-		trackEvent('set-workspace-invite-link-enabled', { source: 'workspace-settings', workspaceId, enabled })
+		trackEvent('set-workspace-invite-link-enabled', {
+			source: 'workspace-settings',
+			workspaceId,
+			enabled,
+		})
 	}
 
 	const handleRegenerateInviteLink = async () => {

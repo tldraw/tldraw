@@ -55,7 +55,10 @@ export interface ActiveWorkspaceSource {
  * when the user is a member of it, otherwise the home workspace. A guest viewing a shared file
  * is therefore "in" their home workspace, matching what the sidebar shows them.
  */
-export function getActiveWorkspaceId(app: ActiveWorkspaceSource, fileSlug: string | undefined): string {
+export function getActiveWorkspaceId(
+	app: ActiveWorkspaceSource,
+	fileSlug: string | undefined
+): string {
 	if (fileSlug) {
 		const file = app.getFile(fileSlug)
 		if (file?.owningGroupId && app.getWorkspaceMembership(file.owningGroupId)) {
