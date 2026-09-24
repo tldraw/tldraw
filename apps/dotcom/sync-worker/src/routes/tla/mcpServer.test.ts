@@ -1,6 +1,10 @@
 import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { MCP_PER_USER_RATE_LIMIT, MCP_SEARCH_PER_USER_RATE_LIMIT } from '../../config'
+import {
+	MCP_CREATE_PER_USER_RATE_LIMIT,
+	MCP_PER_USER_RATE_LIMIT,
+	MCP_SEARCH_PER_USER_RATE_LIMIT,
+} from '../../config'
 import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
@@ -10,6 +14,7 @@ import {
 	parseClusterScreenshotInput,
 	parsePageInfoInput,
 } from './boardTools'
+import { createBoardForUser } from './createBoard'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import { authenticateMcpRequest } from './mcpAuth'
@@ -70,6 +75,9 @@ function denyReadAccess() {
 vi.mock('./mcpAuth', () => ({ authenticateMcpRequest: vi.fn() }))
 
 vi.mock('./searchBoards', () => ({ searchAccessibleBoards: vi.fn() }))
+
+// The database half is covered in createBoard.test.ts; these tests are about the dispatch around it.
+vi.mock('./createBoard', () => ({ createBoardForUser: vi.fn() }))
 
 beforeEach(() => {
 	vi.mocked(authenticateMcpRequest).mockImplementation(async (request: any) => ({
@@ -314,6 +322,7 @@ describe('MCP server', () => {
 		)
 		expect(result.tools.map((tool: any) => tool.name)).toEqual([
 			'search_boards',
+			'create_board',
 			'get_board_info',
 			'get_page_info',
 			'get_cluster_info',
@@ -460,7 +469,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.1.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.2.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -692,6 +701,85 @@ describe('search_boards', () => {
 		expect(result.content[0].text).toBe(
 			'Could not search boards: the board database could not be reached.'
 		)
+	})
+})
+
+describe('create_board', () => {
+	const PERSONAL = { id: 'user_abc', name: 'My workspace', personal: true }
+
+	it('creates a board and links to it on the client origin', async () => {
+		vi.mocked(createBoardForUser).mockResolvedValue({
+			ok: true,
+			boardId: 'board_new',
+			workspace: PERSONAL,
+		})
+		const env = makeEnv()
+		const result = await callTool('create_board', { name: ' Roadmap ' }, env, 'user_abc')
+
+		expect(createBoardForUser).toHaveBeenCalledWith(
+			env,
+			'user_abc',
+			{ name: 'Roadmap', workspace: null },
+			undefined
+		)
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			boardId: 'board_new',
+			name: 'Roadmap',
+			url: 'https://render.example/f/board_new',
+			workspace: PERSONAL,
+		})
+	})
+
+	it('passes a workspace refusal through with its own telemetry reason', async () => {
+		vi.mocked(createBoardForUser).mockResolvedValue({
+			ok: false,
+			reason: 'workspace_not_found',
+			result: { content: [{ type: 'text', text: 'No workspace matches' }], isError: true },
+		})
+		const env = makeEnv()
+		const result = await callTool('create_board', { name: 'Roadmap', workspace: 'Nope' }, env)
+		expect(result).toEqual({
+			content: [{ type: 'text', text: 'No workspace matches' }],
+			isError: true,
+		})
+		expect(blobValuesOf(env, 'mcp_server_tool_call', 'reason')).toEqual(['workspace_not_found'])
+	})
+
+	it('rejects a call with no name before touching the database', async () => {
+		const result = await callTool('create_board', {})
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('name is required')
+		expect(createBoardForUser).not.toHaveBeenCalled()
+	})
+
+	// Must reach the caller as MCP rather than a 500, without Postgres detail.
+	it('reports a failed write as a tool error', async () => {
+		vi.mocked(createBoardForUser).mockRejectedValue(new Error('connection refused'))
+		const result = await callTool('create_board', { name: 'Roadmap' })
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toBe('Could not create the board: the board could not be saved.')
+	})
+
+	it(`allows ${MCP_CREATE_PER_USER_RATE_LIMIT} creates per account per minute, then rate limits`, async () => {
+		vi.mocked(createBoardForUser).mockResolvedValue({
+			ok: true,
+			boardId: 'board_new',
+			workspace: PERSONAL,
+		})
+		const env = makeEnv()
+		const results = []
+		for (let i = 0; i <= MCP_CREATE_PER_USER_RATE_LIMIT; i++) {
+			results.push(await callTool('create_board', { name: 'Roadmap' }, env, 'user_create'))
+		}
+		expect(results.slice(0, MCP_CREATE_PER_USER_RATE_LIMIT).map((r) => r.isError)).toEqual(
+			Array(MCP_CREATE_PER_USER_RATE_LIMIT).fill(undefined)
+		)
+		const blocked = results[MCP_CREATE_PER_USER_RATE_LIMIT]
+		expect(blocked.isError).toBe(true)
+		expect(blocked.content[0].text).toContain('Board creation is limited')
+		expect(createBoardForUser).toHaveBeenCalledTimes(MCP_CREATE_PER_USER_RATE_LIMIT)
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_create')
 	})
 })
 
