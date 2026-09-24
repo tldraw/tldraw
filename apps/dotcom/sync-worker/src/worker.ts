@@ -28,7 +28,7 @@ import { IRequest, cors, json } from 'itty-router'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
-import { createPostgresConnectionPool } from './postgres'
+import { createPostgresConnectionPool, getPostgresConnection } from './postgres'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
@@ -243,7 +243,7 @@ const router = createRouter<Environment>()
 		}
 		// (db, mutatorContext, logLevel): mutators close over userId, so no context.
 		const processor = new PushProcessor(
-			zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING),
+			zeroPostgresJS(schema, getPostgresConnection(env).connectionString),
 			undefined,
 			'debug'
 		)

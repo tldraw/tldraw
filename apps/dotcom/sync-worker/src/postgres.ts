@@ -13,7 +13,19 @@ pg.types.setTypeParser(int8TypeId, (val) => {
 
 const CONNECT_TIMEOUT_MS = 10_000
 
+/**
+ * Hyperdrive, where bound, ends the dial at a nearby Cloudflare pool instead of Supabase in
+ * Frankfurt. `postgres_client_connect_done` then times only that local hop: origin trouble
+ * surfaces as query errors, after Hyperdrive's own 15s origin connect timeout.
+ */
+export function getPostgresConnection(env: Environment) {
+	return env.HYPERDRIVE
+		? { connectionString: env.HYPERDRIVE.connectionString, via: 'hyperdrive' }
+		: { connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING, via: 'pooler' }
+}
+
 export function createPostgresConnectionPool(env: Environment, name: string, max: number = 1) {
+	const { connectionString, via } = getPostgresConnection(env)
 	class LoggingClient extends pg.Client {
 		constructor(config?: string | pg.ClientConfig) {
 			super(config)
@@ -42,7 +54,7 @@ export function createPostgresConnectionPool(env: Environment, name: string, max
 			const dialStart = Date.now()
 			const done = (outcome: 'ok' | 'error') => {
 				writeDataPoint(undefined, env.MEASURE, env, 'postgres_client_connect_done', {
-					blobs: [name, outcome],
+					blobs: [name, outcome, via],
 					doubles: [Date.now() - dialStart],
 				})
 			}
@@ -61,7 +73,7 @@ export function createPostgresConnectionPool(env: Environment, name: string, max
 		}
 	}
 	const pool = new pg.Pool({
-		connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+		connectionString,
 		application_name: name,
 		idleTimeoutMillis: 5_000,
 		max,
@@ -119,8 +131,9 @@ export class TLPostgresPool implements PostgresPool {
 
 		await prevLock
 
+		const { connectionString, via } = getPostgresConnection(this.env)
 		const client = new pg.Client({
-			connectionString: this.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			connectionString,
 			application_name: 'user-do',
 			keepAlive: false,
 			// pg waits forever by default. Checkouts here are serialized behind one lock, so a
@@ -153,7 +166,7 @@ export class TLPostgresPool implements PostgresPool {
 			await client.connect()
 		} catch (e) {
 			writeDataPoint(undefined, this.env.MEASURE, this.env, 'postgres_client_connect_done', {
-				blobs: ['user-do', 'error'],
+				blobs: ['user-do', 'error', via],
 				doubles: [Date.now() - dialStart],
 			})
 			// A failed dial is also a failed checkout, matching the pool wrapper above — without
@@ -166,7 +179,7 @@ export class TLPostgresPool implements PostgresPool {
 			throw e
 		}
 		writeDataPoint(undefined, this.env.MEASURE, this.env, 'postgres_client_connect_done', {
-			blobs: ['user-do', 'ok'],
+			blobs: ['user-do', 'ok', via],
 			doubles: [Date.now() - dialStart],
 		})
 		// Lock wait + dial together: this pool serializes checkouts, so a slow holder shows up
