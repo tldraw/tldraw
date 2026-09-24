@@ -1081,7 +1081,10 @@ export class TLFileDurableObject extends DurableObject {
 			// still use.
 			auth =
 				(await getAuth(req, this.env)) ??
-				(await getMcpTokenUser(req, this.env, { allowSubprotocolToken: true }))
+				(await getMcpTokenUser(req, this.env, {
+					allowSubprotocolToken: true,
+					allowQueryToken: true,
+				}))
 			echoTimings.auth = authTimer.report('on_request_auth', loadIdBlobs)
 
 			if (this.documentInfo.isApp) {

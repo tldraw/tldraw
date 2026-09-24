@@ -93,12 +93,20 @@ const ZERO_TOKEN_PURPOSE = 'zero'
  * Falls back to {@link getAuth} so a client running an older bundle, which still sends a session
  * token, keeps working across the deploy.
  */
-export async function getZeroAuth(
-	request: IRequest,
-	env: Environment
-): Promise<{ userId: string } | null> {
+export async function getZeroAuth(request: IRequest, env: Environment): Promise<ZeroAuth | null> {
 	const header = request.headers.get('Authorization')
 	const token = header?.startsWith('Bearer ') ? header.slice('Bearer '.length) : null
+	if (token && isOAuthAccessToken(token)) {
+		// An agent's user, on the token the host handed it, rather than a website session. Decided
+		// off the token's own `typ` so a website user never pays a second Clerk round trip, and an
+		// access token never reaches `verifyToken`, which would refuse it and log it as a bad template
+		// token. No fallback to `getAuth` from here: an access token is not a session token, and a
+		// refused one should read as refused.
+		const result = await getMcpTokenAuth(request, env)
+		if (result.ok) return { userId: result.userId, mcp: true }
+		console.error('[zero-auth] MCP access token rejected:', result.reason)
+		return null
+	}
 	if (token) {
 		try {
 			// `verifyToken` accepts anything our Clerk instance signed, which is a wider door than we
@@ -124,6 +132,32 @@ export async function getZeroAuth(
 		}
 	}
 	return getAuth(request, env)
+}
+
+/**
+ * Who is behind a Zero connection. `mcp` marks a user who arrived on an OAuth access token — an
+ * agent's software acting for them — which the mutate endpoint uses to hand out the narrower set of
+ * mutators such a caller may run (see mcpMutators).
+ */
+export interface ZeroAuth {
+	userId: string
+	mcp?: true
+}
+
+/**
+ * Whether a bearer token is an OAuth access token by its own JOSE header: RFC 9068 stamps
+ * `typ: at+jwt`, and Clerk follows it, where a session or template token wears `typ: JWT`. Read
+ * before verification only to pick which verifier to hand the token to; nothing here is trusted.
+ */
+export function isOAuthAccessToken(token: string): boolean {
+	const header = token.split('.')[0]
+	if (!header) return false
+	try {
+		const decoded = JSON.parse(atob(header.replace(/-/g, '+').replace(/_/g, '/')))
+		return decoded?.typ?.toLowerCase() === 'at+jwt'
+	} catch {
+		return false
+	}
 }
 
 export type SignedInAuth = Extract<SessionAuthObject, { isAuthenticated: true }>
@@ -157,6 +191,15 @@ export interface McpTokenOptions {
 	 * to keep tickets, which is the whole reason it is not what this does yet.
 	 */
 	allowSubprotocolToken?: boolean
+	/**
+	 * Also accept the token as `?accessToken=` in the URL, where {@link getAuth} already takes a
+	 * session token for the same reason: the browser's `WebSocket` sets no headers. Opt-in per call
+	 * site, like the subprotocol, and for the socket alone. The subprotocol is the better field —
+	 * nothing in a URL, nothing in a log — but tldraw's own sync client (`useSync`) opens
+	 * `new WebSocket(url)` with no protocols, so a client built on it, such as the tldraw plugin for
+	 * ChatGPT, has only the URL to present a token in.
+	 */
+	allowQueryToken?: boolean
 }
 
 /**
@@ -207,10 +250,12 @@ export interface McpTokenOptions {
 export async function getMcpTokenAuth(
 	request: IRequest,
 	env: Environment,
-	{ allowSubprotocolToken = false }: McpTokenOptions = {}
+	{ allowSubprotocolToken = false, allowQueryToken = false }: McpTokenOptions = {}
 ): Promise<McpTokenAuth> {
 	const token =
-		getBearerToken(request) ?? (allowSubprotocolToken ? getSubprotocolToken(request) : null)
+		getBearerToken(request) ??
+		(allowSubprotocolToken ? getSubprotocolToken(request) : null) ??
+		(allowQueryToken ? getQueryToken(request) : null)
 	if (!token) return { ok: false, reason: 'no_token' }
 
 	if (!env.CLERK_SECRET_KEY) {
@@ -269,6 +314,12 @@ export const MCP_SOCKET_SUBPROTOCOL = 'tldraw.bearer'
  * survives unencoded. Anything that is not our two-part offer reads as no token rather than a bad
  * one: a client naming some other subprotocol is not making a failed attempt at this.
  */
+/** The token as `?accessToken=`, the field {@link getAuth} reads a session token from. */
+function getQueryToken(request: IRequest): string | null {
+	const token = new URL(request.url).searchParams.get('accessToken')?.trim()
+	return token || null
+}
+
 function getSubprotocolToken(request: IRequest): string | null {
 	const offered = request.headers.get('sec-websocket-protocol')
 	if (!offered) return null

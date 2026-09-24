@@ -131,6 +131,7 @@ BOTCOM_POSTGRES_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/p
 BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6432/postgres"
 TLDRAW_ENV = "development"
 MULTIPLAYER_SERVER = "http://localhost:3000"
+ZERO_SERVER = "http://localhost:4848/"
 MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
 # The MCP server's public URL, and the resource identifier it advertises in protected resource
 # metadata and in the WWW-Authenticate challenge. Not compared against an incoming token: Clerk stamps
