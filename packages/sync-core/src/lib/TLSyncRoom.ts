@@ -1056,7 +1056,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			return TLSyncErrorCloseEventReason.SERVER_TOO_OLD
 		}
 
-		if (theirSchema.schemaVersion === 2 && ourSchema.schemaVersion === 2) {
+		if (
+			theirSchema.schemaVersion === 2 &&
+			ourSchema.schemaVersion === 2 &&
+			// a malformed client schema must reject the session, not throw
+			typeof theirSchema.sequences === 'object' &&
+			theirSchema.sequences !== null
+		) {
 			for (const [sequenceId, theirVersion] of Object.entries(theirSchema.sequences)) {
 				const ourVersion = ourSchema.sequences[sequenceId]
 				if (ourVersion === undefined || theirVersion > ourVersion) {
