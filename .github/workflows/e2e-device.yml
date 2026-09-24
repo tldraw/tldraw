@@ -44,6 +44,9 @@ concurrency:
   group: e2e-device-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   ios:
     name: iOS Safari
@@ -61,7 +64,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build examples
-        run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && cd apps/examples && yarn build
+        run: pnpm exec lazy refresh-assets && pnpm exec lazy run prebuild && cd apps/examples && pnpm build
 
       - name: Install Appium and the XCUITest driver
         run: |
@@ -115,14 +118,14 @@ jobs:
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
 
       - name: Serve built examples
-        run: yarn preview --port "$EXAMPLES_PORT" &
+        run: pnpm preview --port "$EXAMPLES_PORT" &
         working-directory: apps/examples
 
       - name: Wait for examples server
         run: npx --yes wait-on "http://localhost:$EXAMPLES_PORT/end-to-end" -t 120000
 
       - name: Run device tests (iOS)
-        run: yarn e2e-device-ios
+        run: pnpm e2e-device-ios
         working-directory: apps/examples
         env:
           APPIUM_DEVICE_NAME: ${{ steps.sim.outputs.name }}
@@ -153,7 +156,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Build examples
-        run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && cd apps/examples && yarn build
+        run: pnpm exec lazy refresh-assets && pnpm exec lazy run prebuild && cd apps/examples && pnpm build
 
       - name: Install Appium and the UiAutomator2 driver
         run: |
@@ -161,7 +164,7 @@ jobs:
           appium driver install uiautomator2
 
       - name: Serve built examples
-        run: yarn preview --port "$EXAMPLES_PORT" &
+        run: pnpm preview --port "$EXAMPLES_PORT" &
         working-directory: apps/examples
 
       - name: Wait for examples server
@@ -177,4 +180,4 @@ jobs:
           # dev server into it before running the tests.
           script: |
             adb reverse tcp:${{ env.EXAMPLES_PORT }} tcp:${{ env.EXAMPLES_PORT }}
-            cd apps/examples && yarn e2e-device-android
+            cd apps/examples && pnpm e2e-device-android

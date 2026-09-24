@@ -4203,3 +4203,62 @@ describe('cancelling a resize operation', () => {
 		expect(editor.getShape(shape.id)).toBeUndefined()
 	})
 })
+
+describe('When resizing shapes are changed externally mid-resize...', () => {
+	it('keeps an external nudge applied during the resize', () => {
+		const id = createShapeId('lonelyBox')
+		editor.createShape(box(id, 0, 0, 100, 100))
+		editor.select(id)
+
+		editor
+			.pointerDownOnHandle('bottom_right')
+			.pointerMoveBy(100, 100)
+			.expectToBeIn('select.resizing')
+		expect(editor.getShapePageBounds(id)).toMatchObject({ x: 0, y: 0, w: 200, h: 200 })
+
+		// Nudge the shape from outside the interaction, as a keyboard shortcut would
+		editor.nudgeShapes([id], { x: 0, y: 50 })
+		expect(editor.getShape(id)!.y).toBeCloseTo(50, 5)
+
+		// An update without pointer movement must not stomp the nudge
+		editor.pointerMoveBy(0, 0)
+		expect(editor.getShape(id)!.y).toBeCloseTo(50, 5)
+		expect(editor.getShapePageBounds(id)).toMatchObject({ x: 0, y: 50, w: 200, h: 200 })
+
+		// Continuing the resize grows from the nudged position
+		editor.pointerMoveBy(50, 50).pointerUp()
+		const bounds = editor.getShapePageBounds(id)!
+		expect(bounds.w).toBeGreaterThan(200)
+		expect(bounds.h).toBeGreaterThan(200)
+		expect(bounds.x).toBeCloseTo(0, 5)
+		expect(bounds.y).toBeCloseTo(50, 5)
+	})
+})
+
+describe('entering the resizing state with nothing selected', () => {
+	it('returns to idle without touching earlier history', () => {
+		// A completed resize leaves a mark behind; a later failed entry must not bail to it
+		editor.select(ids.boxA)
+		editor.pointerDownOnHandle('bottom_right')
+		editor.pointerMoveBy(50, 50)
+		editor.pointerUp()
+		expect(editor.getShape<TLGeoShape>(ids.boxA)!.props).toMatchObject({ w: 150, h: 150 })
+		editor.updateShape({ id: ids.boxA, type: 'geo', x: 500 })
+		editor.selectNone()
+
+		// e.g. the pointed shape was deleted remotely between pointer down and the drag
+		expect(() =>
+			editor.setCurrentTool('select.resizing', { target: 'selection', handle: 'bottom_right' })
+		).not.toThrow()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape<TLGeoShape>(ids.boxA)).toMatchObject({ x: 500, props: { w: 150 } })
+	})
+
+	it('does not crash on the first ever entry', () => {
+		editor.selectNone()
+		expect(() =>
+			editor.setCurrentTool('select.resizing', { target: 'selection', handle: 'bottom_right' })
+		).not.toThrow()
+		editor.expectToBeIn('select.idle')
+	})
+})

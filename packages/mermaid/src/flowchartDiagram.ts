@@ -4,41 +4,43 @@ import type {
 	FlowSubGraph,
 	FlowVertex,
 } from 'mermaid/dist/diagrams/flowchart/types.js'
-import { TLArrowShapeArrowheadStyle, TLDefaultDashStyle } from 'tldraw'
+import { TLArrowShapeArrowheadStyle } from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
 	MermaidBlueprintNode,
 } from './blueprint'
-import { buildClassDefColorMap, parseCssStyles, parseNodeInlineColor } from './colors'
+import {
+	buildClassDefColorMap,
+	parseCssStyles,
+	parseNodeInlineColor,
+	toNodeColorProps,
+} from './colors'
 import {
 	buildNodeCentersFromSvg,
+	claimEdge,
+	getSelfLoopEdgeLayout,
 	parseAllEdgePointsFromSvg,
 	parseClustersFromSvg,
+	parseDomId,
+	parseEdgeLabelsFromSvg,
 	type ParsedDiagramLayout,
 	parseNodesFromSvg,
 	scaleLayout,
+	stripDiagramIdPrefix,
+	type Vec2,
 } from './svgParsing'
-import { getArrowBend, LAYOUT_SCALE, orderTopDown } from './utils'
+import { dropDanglingEdges, getArrowBend, LAYOUT_SCALE, orderTopDown } from './utils'
 
 function mapEdgeTypeToArrowhead(type: string | undefined): TLArrowShapeArrowheadStyle {
-	if (!type) return 'arrow'
-
-	if (type.includes('point')) return 'arrow'
-	if (type.includes('circle')) return 'dot'
-	if (type.includes('cross')) return 'bar'
-	if (type.includes('open')) return 'none'
-
+	if (type?.includes('circle')) return 'dot'
+	if (type?.includes('cross')) return 'bar'
+	if (type?.includes('open')) return 'none'
 	return 'arrow'
 }
 
-function mapEdgeStrokeToDash(stroke: string | undefined): TLDefaultDashStyle {
-	if (!stroke) return 'solid'
-	if (stroke === 'dotted') return 'dotted'
-	return 'solid'
-}
-
 const FRAME_TOP_PAD = 14
+const NODE_ID = /^flowchart-(.+)-\d+$/
 
 function buildHierarchy(subGraphs: FlowSubGraph[]) {
 	const subGraphIds = new Set(subGraphs.map((subGraph) => subGraph.id))
@@ -56,24 +58,57 @@ function buildHierarchy(subGraphs: FlowSubGraph[]) {
 	return { nodeToSubGraph, subGraphParent }
 }
 
+/**
+ * Split mermaid's edge id, `L_<start>_<end>_<n>`, back into the two ids it joins. Node ids can
+ * contain underscores themselves, so the split is ambiguous: `L_a_b_c_0` joins `a` to `b_c` in a
+ * diagram with those, and `a_b` to `c` in one with those. A diagram with all four settles it the
+ * only way left, by which pair the path was actually drawn between. `centers` holds everything an
+ * edge can end on, subgraphs as well as nodes, since mermaid links those too.
+ */
+function parseEdgeId(dataId: string, points: Vec2[], centers: Map<string, Vec2>) {
+	const match = dataId.match(/(?:^|-)L_(.+)_\d+$/)
+	if (!match) return null
+
+	const joined = match[1]
+	const last = points[points.length - 1]
+	let best: { start: string; end: string } | undefined
+	let bestDistance = Infinity
+	for (let at = joined.indexOf('_'); at > 0; at = joined.indexOf('_', at + 1)) {
+		const start = joined.slice(0, at)
+		const end = joined.slice(at + 1)
+		const startCenter = centers.get(start)
+		const endCenter = centers.get(end)
+		if (!startCenter || !endCenter) continue
+
+		const distance = last
+			? Math.hypot(points[0].x - startCenter.x, points[0].y - startCenter.y) +
+				Math.hypot(last.x - endCenter.x, last.y - endCenter.y)
+			: 0
+		if (distance < bestDistance) {
+			bestDistance = distance
+			best = { start, end }
+		}
+	}
+	if (best) return best
+
+	// An id naming no pair the diagram drew, such as an edge to a node mermaid left out. Splitting at
+	// the last underscore is right whenever the end id has none, and leaves the edge to be matched by
+	// proximity when it isn't.
+	const at = joined.lastIndexOf('_')
+	return at > 0 ? { start: joined.slice(0, at), end: joined.slice(at + 1) } : null
+}
+
 /** Parse flowchart-specific SVG layout data for use by {@link flowchartToBlueprint}. */
 export function parseFlowchartLayout(root: Element): ParsedDiagramLayout {
-	// Mermaid 11.15 prefixes node and cluster dom ids with the diagram id (e.g.
-	// `mermaid-0-flowchart-s1-0` instead of `flowchart-s1-0`), so tolerate that
-	// optional `mermaid-<n>-` prefix when reading the clean id.
-	const nodes = parseNodesFromSvg(root, '.node', (domId) => {
-		const match = domId.match(/^(?:mermaid-\d+-)?flowchart-(.+)-\d+$/)
-		return match ? match[1] : domId
-	})
-	const clusters = parseClustersFromSvg(root, '.cluster', (domId) =>
-		domId.replace(/^mermaid-\d+-/, '')
+	const nodes = parseNodesFromSvg(root, '.node', (domId) => parseDomId(domId, NODE_ID))
+	const clusters = parseClustersFromSvg(root, '.cluster', stripDiagramIdPrefix)
+	const centers = buildNodeCentersFromSvg(nodes, clusters)
+	const edges = parseAllEdgePointsFromSvg(root, (dataId, points) =>
+		parseEdgeId(dataId, points, centers)
 	)
-	const edges = parseAllEdgePointsFromSvg(root, (dataId) => {
-		const match = dataId.match(/(?:^|-)L_(.+)_([^_]+)_\d+$/)
-		return match ? { start: match[1], end: match[2] } : null
-	})
-	scaleLayout(nodes, clusters, edges, LAYOUT_SCALE)
-	return { nodes, clusters, edges }
+	const layout = { nodes, clusters, edges, edgeLabels: parseEdgeLabelsFromSvg(root) }
+	scaleLayout(layout, LAYOUT_SCALE)
+	return layout
 }
 
 /** Convert a parsed Mermaid flowchart into a tldraw blueprint of nodes and edges. */
@@ -84,7 +119,7 @@ export function flowchartToBlueprint(
 	subGraphs?: FlowSubGraph[],
 	classDefs?: Map<string, FlowClass>
 ): DiagramMermaidBlueprint {
-	const nodeColorMap = classDefs ? buildClassDefColorMap(classDefs, vertices) : new Map()
+	const nodeColorMap = buildClassDefColorMap(classDefs ?? new Map(), vertices)
 	const { nodes: svgNodes, clusters: svgClusters, edges: svgEdges } = layout
 	const nodeCenters = buildNodeCentersFromSvg(svgNodes, svgClusters)
 
@@ -103,11 +138,9 @@ export function flowchartToBlueprint(
 		const cluster = svgClusters.get(subGraph.id)
 		if (!cluster) continue
 
-		const id = subGraph.id
-		const kind = 'subgraph'
 		nodes.push({
-			id,
-			kind,
+			id: subGraph.id,
+			kind: 'subgraph',
 			x: cluster.topLeft.x,
 			y: cluster.topLeft.y - FRAME_TOP_PAD,
 			w: cluster.width,
@@ -128,9 +161,6 @@ export function flowchartToBlueprint(
 		const svgNode = svgNodes.get(id)
 		if (!svgNode) continue
 
-		const kind = vertex.type ?? 'rect'
-		const colors = nodeColorMap.get(id) ?? parseNodeInlineColor(vertex.styles)
-
 		let { width: w, height: h } = svgNode
 		if (vertex.type === 'circle' || vertex.type === 'doublecircle') {
 			w = h = Math.max(w, h)
@@ -138,73 +168,50 @@ export function flowchartToBlueprint(
 
 		nodes.push({
 			id,
-			kind,
+			kind: vertex.type ?? 'rect',
 			x: svgNode.center.x - w / 2,
 			y: svgNode.center.y - h / 2,
 			w,
 			h,
 			parentId: nodeToSubGraph.get(id),
 			label: vertex.text || undefined,
-			...(colors?.fillColor && { fill: 'solid' as const }),
-			...(colors && { color: colors.strokeColor ?? colors.fillColor }),
+			...toNodeColorProps(nodeColorMap.get(id) ?? parseNodeInlineColor(vertex.styles)),
 			align: 'middle',
 			verticalAlign: 'middle',
 			size: 'm',
 		})
 	}
 
-	// Edges: match DB edges to SVG edges by proximity, compute bends
+	// Edges: match DB edges to the paths mermaid drew for them, and take each one's bend
 	const claimed = new Set<number>()
 	for (const edge of edges) {
-		const startCenter = nodeCenters.get(edge.start)
-		const endCenter = nodeCenters.get(edge.end)
-
-		let bend = 0
-		if (startCenter && endCenter) {
-			let bestIndex = -1
-			let bestDist = Infinity
-			for (let i = 0; i < svgEdges.length; i++) {
-				if (claimed.has(i) || svgEdges[i].points.length < 2) continue
-
-				const points = svgEdges[i].points
-				const distance =
-					Math.hypot(points[0].x - startCenter.x, points[0].y - startCenter.y) +
-					Math.hypot(
-						points[points.length - 1].x - endCenter.x,
-						points[points.length - 1].y - endCenter.y
-					)
-				if (distance < bestDist) {
-					bestDist = distance
-					bestIndex = i
-				}
-			}
-			if (bestIndex >= 0) {
-				claimed.add(bestIndex)
-				bend = getArrowBend(svgEdges[bestIndex])
-			}
-		}
-
-		const cssOverrides = edge.style ? parseCssStyles(edge.style) : undefined
+		const svgEdge = claimEdge(svgEdges, claimed, {
+			startId: edge.start,
+			endId: edge.end,
+			startCenter: nodeCenters.get(edge.start),
+			endCenter: nodeCenters.get(edge.end),
+		})
+		const svgNode = svgNodes.get(edge.start)
+		const selfLoop =
+			edge.start === edge.end && svgEdge && svgNode
+				? getSelfLoopEdgeLayout(svgEdge, svgNode, layout.edgeLabels)
+				: undefined
+		const cssOverrides = parseCssStyles(edge.style)
 		const arrowheadEnd = mapEdgeTypeToArrowhead(edge.type)
-		const dash = cssOverrides?.dashOverride ?? mapEdgeStrokeToDash(edge.stroke)
-		const size = cssOverrides?.sizeOverride ?? (edge.stroke === 'thick' ? 'l' : 's')
 
 		blueprintEdges.push({
 			startNodeId: edge.start,
 			endNodeId: edge.end,
 			label: edge.text,
-			bend,
+			bend: svgEdge ? getArrowBend(svgEdge) : 0,
+			...selfLoop,
 			arrowheadEnd,
 			arrowheadStart: edge.type?.includes('double_arrow') ? arrowheadEnd : undefined,
-			dash,
-			size,
-			color: cssOverrides?.color,
+			dash: cssOverrides.dashOverride ?? (edge.stroke === 'dotted' ? 'dotted' : 'solid'),
+			size: cssOverrides.sizeOverride ?? (edge.stroke === 'thick' ? 'l' : 'm'),
+			color: cssOverrides.color,
 		})
 	}
 
-	const nodeIds = new Set(nodes.map((n) => n.id))
-	const validEdges = blueprintEdges.filter(
-		(e) => nodeIds.has(e.startNodeId) && nodeIds.has(e.endNodeId)
-	)
-	return { diagramKind: 'flowchart', nodes, edges: validEdges }
+	return { diagramKind: 'flowchart', nodes, edges: dropDanglingEdges(nodes, blueprintEdges) }
 }

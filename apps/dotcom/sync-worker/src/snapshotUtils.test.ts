@@ -2,6 +2,7 @@ import { SerializedSchema } from '@tldraw/store'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { createTLSchema } from '@tldraw/tlschema'
 import {
+	canonicalJson,
 	generateSnapshotChunks,
 	getLastDocumentChangeClock,
 	getSnapshotFingerprint,
@@ -325,5 +326,36 @@ describe('readPersistedFingerprint', () => {
 				'key'
 			)
 		).toBe(null)
+	})
+})
+
+describe('canonicalJson', () => {
+	it('produces the same string for a live value and for its JSON round-trip', () => {
+		const live = {
+			b: undefined,
+			a: 1,
+			// Index 2 is a hole, which JSON writes as null just like the explicit undefined.
+			nested: {
+				z: undefined,
+				y: Object.assign([1, undefined], { 3: 3 }),
+				x: { fn: () => 1, ok: 'yes' },
+			},
+			when: new Date(0),
+			nan: NaN,
+			list: [{ q: undefined, p: 2 }],
+		}
+		const roundTripped = JSON.parse(JSON.stringify(live))
+
+		expect(canonicalJson(live)).toBe(canonicalJson(roundTripped))
+		expect(canonicalJson(live)).toBe(
+			'{"a":1,"list":[{"p":2}],"nan":null,"nested":{"x":{"ok":"yes"},"y":[1,null,null,3]},"when":"1970-01-01T00:00:00.000Z"}'
+		)
+	})
+
+	it('sorts keys at every depth and leaves clean JSON otherwise untouched', () => {
+		const value = { b: { d: 1, c: [3, 2] }, a: null }
+
+		expect(canonicalJson(value)).toBe('{"a":null,"b":{"c":[3,2],"d":1}}')
+		expect(canonicalJson(value)).toBe(JSON.stringify({ a: null, b: { c: [3, 2], d: 1 } }))
 	})
 })

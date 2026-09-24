@@ -5,6 +5,7 @@ import type { TLErrorFallbackComponent } from '../components/default-components/
 import type { TLGridProps } from '../components/default-components/DefaultGrid'
 import type { TLShapeErrorFallbackComponent } from '../components/default-components/DefaultShapeErrorFallback'
 import type { TLShapeWrapperProps } from '../components/default-components/DefaultShapeWrapper'
+import type { TLSpinnerProps } from '../components/default-components/DefaultSpinner'
 
 /** @public */
 export interface TLEditorComponents {
@@ -16,7 +17,7 @@ export interface TLEditorComponents {
 	LoadingScreen?: ComponentType | null
 	OnTheCanvas?: ComponentType | null
 	ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null
-	Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null
+	Spinner?: ComponentType<TLSpinnerProps> | null
 	SvgDefs?: ComponentType | null
 
 	// These will always have defaults

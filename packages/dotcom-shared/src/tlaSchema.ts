@@ -341,10 +341,14 @@ const commentRelationships = relationships(comment, ({ one, many }) => ({
 		destField: ['commentId'],
 		destSchema: comment_mention,
 	}),
-	// every reaction to this comment, one row per reacting user
+	// every reaction to this comment, one row per reacting user. Joined on fileId too: a reaction's
+	// id is derived from (comment, user, emoji), so unlike a comment or a thread it carries no proof
+	// that its client-supplied commentId belongs to the file the reaction was written in. Matching
+	// fileId keeps a reaction written elsewhere off this comment, whatever its commentId claims —
+	// the reaction's own fileId is stamped by the owning room's drain, not by the client.
 	reactions: many({
-		sourceField: ['id'],
-		destField: ['commentId'],
+		sourceField: ['id', 'fileId'],
+		destField: ['commentId', 'fileId'],
 		destSchema: comment_reaction,
 	}),
 }))
@@ -443,6 +447,8 @@ export interface TlaEffectOutbox {
 	attempts: number
 	createdAt: Date
 	nextRetryAt: Date | null
+	/** Latest failed attempt's error text; survives an admin retry. */
+	lastError: string | null
 }
 
 /**

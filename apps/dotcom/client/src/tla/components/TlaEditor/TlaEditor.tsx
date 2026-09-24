@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/react'
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
@@ -17,7 +18,6 @@ import {
 	computed,
 	createSessionStateSnapshotSignal,
 	createUserId,
-	parseDeepLinkString,
 	react,
 	throttle,
 	tltime,
@@ -25,6 +25,7 @@ import {
 	useDialogs,
 	useEditor,
 	useEvent,
+	useToasts,
 	useValue,
 } from 'tldraw'
 import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
@@ -37,6 +38,13 @@ import { assetUrls } from '../../../utils/assetUrls'
 import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
+import {
+	getFirstLoadId,
+	hasFirstLoadStep,
+	markFirstLoad,
+	reportFirstLoad,
+	setFirstLoadServerTimings,
+} from '../../../utils/firstLoad'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
@@ -44,7 +52,9 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
+import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
+import { defineMessages, useMsg } from '../../utils/i18n'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
@@ -63,6 +73,12 @@ import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+
+const messages = defineMessages({
+	slurpFailed: {
+		defaultMessage: 'Could not restore your local drawing. Try reloading this page.',
+	},
+})
 
 // Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
 // editable canvas get a sign-in prompt where the composers would be; view-only sessions
@@ -105,13 +121,24 @@ export function TlaEditor(props: TlaEditorProps) {
 	)
 }
 
-function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
+function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps) {
+	markFirstLoad('editor-rendered')
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
 
 	const fileId = fileSlug
 
 	const setIsReady = useSetIsReady()
+	const { addToast } = useToasts()
+	const slurpFailedMsg = useMsg(messages.slurpFailed)
+	const showSlurpFailure = useEvent(() => {
+		addToast({
+			id: 'local-file-restore-failed',
+			severity: 'warning',
+			title: slurpFailedMsg,
+			keepOpen: true,
+		})
+	})
 
 	const dialogs = useDialogs()
 	// need to wrap this in a useEvent to prevent the context id from changing on us
@@ -137,12 +164,15 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
+	const trackShareLinkOpen = useShareLinkOpenTracking()
 	const trackPerformance = usePerformanceTracking()
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
+			markFirstLoad('editor-mounted')
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
+			trackShareLinkOpen(app, fileId, isEmbed)
 			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
@@ -154,27 +184,39 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 			if (!app) {
 				setIsReady()
+				// Signed-out loads record every step too; the report itself is gated on the account.
+				markFirstLoad('board-visible')
+				reportFirstLoad({ email: null, flagEnabled: false, trackEvent })
 				return
 			}
 
 			const fileState = app.getFileState(fileId)
 			const deepLink = new URLSearchParams(window.location.search).get('d')
+			let sessionState: TLSessionStateSnapshot | null = null
 			if (fileState?.lastSessionState) {
-				const sessionState = JSON.parse(fileState.lastSessionState.trim() || 'null')
-				if (sessionState && deepLink) {
-					// When using a deep link, only load preferences (not camera/page states)
-					// since the deep link will control navigation
-					const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
-					editor.loadSnapshot({ session: preferencesOnly }, { forceOverwriteSessionState: true })
-					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
-				} else if (sessionState) {
-					// No deep link - load the full session state including camera position
-					editor.loadSnapshot({ session: sessionState }, { forceOverwriteSessionState: true })
-				} else if (deepLink) {
-					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
+				try {
+					sessionState = JSON.parse(fileState.lastSessionState.trim() || 'null')
+				} catch (err) {
+					// A corrupt stored session state must not take the whole board down with it.
+					captureException(err, {
+						tags: { operation: 'parse-session-state' },
+						extra: { fileId },
+					})
 				}
-			} else if (deepLink) {
-				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
+			}
+			if (sessionState && deepLink) {
+				// When using a deep link, only load preferences (not camera/page states)
+				// since the deep link will control navigation
+				const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
+				editor.loadSnapshot({ session: preferencesOnly }, { forceOverwriteSessionState: true })
+			} else if (sessionState) {
+				// No deep link - load the full session state including camera position
+				editor.loadSnapshot({ session: sessionState }, { forceOverwriteSessionState: true })
+			}
+			if (deepLink) {
+				// Let the SDK parse the link: a malformed `?d=` then zooms to fit instead of
+				// throwing out of onMount and replacing the board with an error page.
+				editor.navigateToDeepLink()
 			}
 			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)
 
@@ -186,7 +228,29 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				abortSignal: abortController.signal,
 				addDialog,
 				remountImageShapes,
-			}).then(setIsReady)
+			})
+				.catch((err) => {
+					// ReadyWrapper keeps the editor invisible and inert until setIsReady runs, so a
+					// failed slurp must not stop it from running.
+					console.error('Failed to slurp local file', err)
+					captureException(err, {
+						tags: { operation: 'slurp-local-file' },
+						extra: { fileId },
+					})
+					if (!abortController.signal.aborted) showSlurpFailure()
+				})
+				.then(() => {
+					// A restore aborted by navigating away still resolves; the board it belonged to never
+					// showed, so it must not take the one-shot report from the next one.
+					if (abortController.signal.aborted) return
+					setIsReady()
+					markFirstLoad('board-visible')
+					reportFirstLoad({
+						email: app?.email,
+						flagEnabled: app?.isFirstLoadRumEnabled ?? false,
+						trackEvent,
+					})
+				})
 
 			return () => {
 				cleanupPerf()
@@ -198,11 +262,14 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			addDialog,
 			trackRoomLoaded,
 			trackNewRoomCreation,
+			trackShareLinkOpen,
 			trackPerformance,
 			app,
 			fileId,
+			isEmbed,
 			remountImageShapes,
 			setIsReady,
+			showSlurpFailure,
 		]
 	)
 
@@ -215,9 +282,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return multiplayerAssetStore({ getFileId: () => fileId, getToken: getUserToken })
 	}, [fileId, getUserToken])
 
-	const users: TLUserStore | undefined = useMemo(() => {
+	const users: TLUserStore = useMemo(() => {
 		const prefs = app?.tlUser.userPreferences
-		if (!prefs) return undefined
+		// Signed out, attribute nothing: useSync's default store would stamp the local preferences id,
+		// which authorizeFileRecord rejects for a guest session, rolling back note edits and duplicates.
+		if (!prefs) return { currentUser: computed('currentUser', () => null) }
 		const currentUser = computed('currentUser', () => {
 			const p = prefs.get()
 			return UserRecordType.create({
@@ -235,8 +304,12 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
 			url.searchParams.set('v', CLIENT_BUILD_TIMESTAMP)
+			// Only the first connect belongs to the load; a reconnect carrying the id would make the
+			// server park and send an echo the client already has, and tag its timers as first-load.
+			if (!hasFirstLoadStep('sync-connected')) url.searchParams.set('loadId', getFirstLoadId())
 			if (hasUser) {
 				url.searchParams.set('accessToken', await getUserToken())
+				markFirstLoad('sync-token-fetched')
 			}
 			return url.toString()
 		}, [fileSlug, hasUser, getUserToken]),
@@ -246,17 +319,25 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
 		records: commentSchemaRecords,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
+			if (message.type === 'first_load_server') {
+				setFirstLoadServerTimings(message)
+				return
+			}
 			trackEvent(message.type)
 		}, []),
 	})
 
-	// we need to prevent calling onFileExit if the store is in an error state
+	// we need to prevent recording the file exit if the store is in an error state
 	const storeError = useRef(false)
 	if (store.status === 'error') {
 		storeError.current = true
 	}
 
 	// Handle entering and exiting the file, with some protection against rapid enters/exits
+	useEffect(() => {
+		if (store.status === 'synced-remote') markFirstLoad('sync-connected')
+	}, [store.status])
+
 	useEffect(() => {
 		if (!app) return
 		if (store.status !== 'synced-remote') return
@@ -304,16 +385,12 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}
 	}, [fileId, commentingEnabled])
 
-	// Without the tool and its overrides there's no comment button in Quick Actions and no `c`
-	// shortcut, so commenting is fully absent for users the flag doesn't cover. On read-only
-	// canvases the button and shortcut hide via the UI's readonly handling, and composing is
-	// gated by the tool's `canComment`.
+	// The comment tool overrides stay in for signed-out visitors too: `anonCommentToolOverrides`
+	// turns their button into the sign-in dialog. On read-only canvases the button and `c` shortcut
+	// hide via the UI's readonly handling, and composing is gated by the tool's `canComment`.
 	const editorOverrides = useMemo(
-		() =>
-			commentingEnabled
-				? [overrides, extraDragIconOverrides, commentToolOverrides, anonCommentToolOverrides]
-				: [overrides, extraDragIconOverrides],
-		[commentingEnabled, overrides, extraDragIconOverrides, anonCommentToolOverrides]
+		() => [overrides, extraDragIconOverrides, commentToolOverrides, anonCommentToolOverrides],
+		[overrides, extraDragIconOverrides, anonCommentToolOverrides]
 	)
 
 	return (

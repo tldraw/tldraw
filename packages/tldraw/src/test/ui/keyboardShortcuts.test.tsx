@@ -1,10 +1,11 @@
-import { act } from '@testing-library/react'
-import { createShapeId, Editor } from '@tldraw/editor'
+import { act, screen } from '@testing-library/react'
+import { createShapeId, Editor, TLShapeId } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { Tldraw } from '../../lib/Tldraw'
 import { DefaultKeyboardShortcutsDialogContent } from '../../lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 import { TldrawUiMenuContextProvider } from '../../lib/ui/components/primitives/menus/TldrawUiMenuContext'
 import { useActions } from '../../lib/ui/context/actions'
+import { useDialogs } from '../../lib/ui/context/dialogs'
 import {
 	getHotkeysStringFromKbd,
 	ParsedKbd,
@@ -150,6 +151,61 @@ describe('default keyboard shortcuts', () => {
 	})
 })
 
+describe('keyboard shortcuts dialog with shortcuts turned off', () => {
+	// Opens the real dialog through the action, so the header/body primitives get the Radix
+	// dialog context they need. The open dialog is registered in the global `tlmenus`, which
+	// survives unmount, so each test closes it again to avoid disabling later tests' shortcuts.
+	let clearDialogs: (() => void) | null = null
+	function OpenShortcutsDialog() {
+		const dialogs = useDialogs()
+		const actions = useActions()
+		useEffect(() => {
+			clearDialogs = dialogs.clearDialogs
+			actions['open-kbd-shortcuts'].onSelect('kbd')
+		}, [dialogs, actions])
+		return null
+	}
+
+	afterEach(() => {
+		act(() => clearDialogs?.())
+		clearDialogs = null
+	})
+
+	async function renderDialog() {
+		const { editor, rendered } = await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<Tldraw onMount={onMount}>
+					<OpenShortcutsDialog />
+				</Tldraw>
+			),
+			{ waitForPatterns: false }
+		)
+		await rendered.findByTestId('kbd.select')
+		return { editor, rendered }
+	}
+
+	it('shows no notice while shortcuts are enabled', async () => {
+		const { rendered } = await renderDialog()
+		expect(rendered.queryByTestId('kbd.disabled-notice')).toBeNull()
+	})
+
+	it('shows a notice that shortcuts are turned off, and hides it again when they are re-enabled', async () => {
+		const { editor, rendered } = await renderDialog()
+
+		act(() => {
+			editor.user.updateUserPreferences({ areKeyboardShortcutsEnabled: false })
+		})
+		expect(rendered.getByTestId('kbd.disabled-notice')).toBeTruthy()
+		// The shortcut rows still render so the user can see what the preference turns back on.
+		expect(rendered.getByTestId('kbd.select')).toBeTruthy()
+
+		act(() => {
+			editor.user.updateUserPreferences({ areKeyboardShortcutsEnabled: true })
+		})
+		expect(rendered.queryByTestId('kbd.disabled-notice')).toBeNull()
+	})
+})
+
 async function setupFocusedEditor() {
 	const { editor } = await renderTldrawComponentWithEditor(
 		(onMount) => <Tldraw onMount={onMount} />,
@@ -164,19 +220,46 @@ async function setupFocusedEditor() {
 	return { editor }
 }
 
-function keydown(editor: Editor, init: KeyboardEventInit) {
+async function setupEditorWithKbd(kbd: string) {
+	const onSelect = vi.fn()
+	const { editor } = await renderTldrawComponentWithEditor(
+		(onMount) => (
+			<Tldraw
+				onMount={onMount}
+				overrides={{
+					actions: (_editor, actions) => ({
+						...actions,
+						'test-kbd': { id: 'test-kbd', label: 'Test kbd', kbd, onSelect },
+					}),
+				}}
+			/>
+		),
+		{ waitForPatterns: false }
+	)
 	act(() => {
-		editor
-			.getContainerDocument()
-			.body.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, ...init }))
+		editor.updateInstanceState({ isFocused: true })
 	})
+	return { editor, onSelect }
 }
 
-function keyup(editor: Editor, init: KeyboardEventInit) {
+// The UI's shortcut listeners sit on the body, the editor's own on the container. Pass a target
+// inside the container to reach both.
+function keydown(editor: Editor, init: KeyboardEventInit, target?: Element) {
+	dispatchKey(editor, 'keydown', init, target)
+}
+
+function keyup(editor: Editor, init: KeyboardEventInit, target?: Element) {
+	dispatchKey(editor, 'keyup', init, target)
+}
+
+function dispatchKey(
+	editor: Editor,
+	type: 'keydown' | 'keyup',
+	init: KeyboardEventInit,
+	target: Element = editor.getContainerDocument().body
+) {
 	act(() => {
-		editor
-			.getContainerDocument()
-			.body.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, ...init }))
+		target.dispatchEvent(new KeyboardEvent(type, { bubbles: true, ...init }))
 	})
 }
 
@@ -263,6 +346,33 @@ describe('keyboard shortcuts with a held key', () => {
 		keydown(editor, { key: 'z', code: 'KeyZ', metaKey: true, shiftKey: true })
 		expect(editor.getCurrentPageShapeIds().has(id)).toBe(true)
 	})
+
+	it('leaves the zoom tool when z is released', async () => {
+		const { editor } = await setupFocusedEditor()
+		editor.setCurrentTool('draw')
+
+		keydown(editor, { key: 'z', code: 'KeyZ' }, editor.getContainer())
+		expect(editor.getPath()).toBe('zoom.idle')
+		keyup(editor, { key: 'z', code: 'KeyZ' }, editor.getContainer())
+		expect(editor.getPath()).toBe('draw.idle')
+	})
+
+	// The shortcut fires whatever holds focus; the editor's key events don't follow it there
+	it('leaves the zoom tool when z is released after a toolbar click', async () => {
+		const { editor } = await setupFocusedEditor()
+		const drawButton = screen.getByTestId('tools.draw')
+		act(() => {
+			drawButton.focus()
+			drawButton.click()
+		})
+		expect(editor.getCurrentToolId()).toBe('draw')
+		expect(editor.getContainerDocument().activeElement).toBe(drawButton)
+
+		keydown(editor, { key: 'z', code: 'KeyZ' }, drawButton)
+		expect(editor.getPath()).toBe('zoom.idle')
+		keyup(editor, { key: 'z', code: 'KeyZ' }, drawButton)
+		expect(editor.getPath()).toBe('draw.idle')
+	})
 })
 
 // Regression tests for shift+<digit> shortcuts across keyboard layouts. The physical number-row
@@ -315,9 +425,174 @@ describe('shifted number-row shortcuts across keyboard layouts', () => {
 	})
 })
 
+const NO_MODS = { shift: false, alt: false, ctrl: false, meta: false }
+
+describe('parseKbd literal plus key', () => {
+	it('parses a doubled trailing + as the + key', () => {
+		expect(parseKbd('cmd++')).toEqual([{ ...NO_MODS, meta: true, key: '+' }])
+		expect(parseKbd('+')).toEqual([{ ...NO_MODS, key: '+' }])
+		expect(parseKbd('cmd++,ctrl++,+')).toEqual([
+			{ ...NO_MODS, meta: true, key: '+' },
+			{ ...NO_MODS, ctrl: true, key: '+' },
+			{ ...NO_MODS, key: '+' },
+		])
+	})
+
+	it('tolerates extra plus signs before the literal plus key', () => {
+		expect(parseKbd('cmd+++')).toEqual([{ ...NO_MODS, meta: true, key: '+' }])
+		expect(parseKbd('++')).toEqual([{ ...NO_MODS, key: '+' }])
+	})
+
+	it('parses an atomic [[+]] token as the + key', () => {
+		expect(parseKbd('cmd+[[+]]')).toEqual([{ ...NO_MODS, meta: true, key: '+' }])
+		expect(parseKbd('[[+]]')).toEqual([{ ...NO_MODS, key: '+' }])
+	})
+
+	it('rejects an atomic token without a + separator before it', () => {
+		expect(parseKbd('cmd[[+]]')).toEqual([])
+		expect(parseKbd('cmd+foo[[+]]')).toEqual([])
+		expect(parseKbd('[[foo]]++')).toEqual([])
+		expect(parseKbd('[[]]')).toEqual([])
+	})
+
+	it('keeps multi-character atomic tokens display-only', () => {
+		expect(parseKbd('[[Tab]]')).toEqual([])
+		expect(parseKbd('cmd+[[Enter]]')).toEqual([])
+	})
+
+	it('still drops a single trailing + so legacy markers cannot become a plus binding', () => {
+		// getHotkeysStringFromKbd treats ? as the legacy alt marker and strips it, leaving 'alt+shift+'.
+		expect(getHotkeysStringFromKbd('shift+?')).toBe('alt+shift+')
+		expect(parseKbd('alt+shift+')).toEqual([])
+		expect(parseKbd(getHotkeysStringFromKbd('shift+?'))).toEqual([])
+	})
+})
+
+describe('parseKbd canonicalizes shifted glyphs', () => {
+	it('maps a shifted glyph to its US base key so it matches the normalized event key', () => {
+		expect(parseKbd('shift+:')).toEqual([{ ...NO_MODS, shift: true, key: ';' }])
+		expect(parseKbd('shift+^')).toEqual([{ ...NO_MODS, shift: true, key: '6' }])
+		expect(parseKbd('shift+cmd+^')).toEqual([{ ...NO_MODS, shift: true, meta: true, key: '6' }])
+	})
+
+	it('treats the shifted and unshifted spellings as the same binding', () => {
+		expect(parseKbd('shift+:')).toEqual(parseKbd('shift+;'))
+		expect(parseKbd('shift+{')).toEqual(parseKbd('shift+['))
+	})
+
+	it('leaves an unshifted glyph alone', () => {
+		expect(parseKbd(':')).toEqual([{ ...NO_MODS, key: ':' }])
+	})
+
+	it('canonicalizes a shifted literal plus to =', () => {
+		expect(parseKbd('shift+cmd++')).toEqual([{ ...NO_MODS, shift: true, meta: true, key: '=' }])
+		expect(parseKbd('cmd+alt+shift++')).toEqual([
+			{ ...NO_MODS, shift: true, meta: true, alt: true, key: '=' },
+		])
+	})
+})
+
+describe('literal plus key shortcuts', () => {
+	it.each([
+		['cmd++', { key: '+', code: 'BracketRight', metaKey: true }],
+		['cmd+[[+]]', { key: '+', code: 'BracketRight', metaKey: true }],
+		['+', { key: '+', code: 'BracketRight' }],
+		['shift+cmd++', { key: '+', code: 'Equal', metaKey: true, shiftKey: true }],
+		['cmd+alt+shift++', { key: '+', code: 'Equal', metaKey: true, altKey: true, shiftKey: true }],
+		['shift+[[+]]', { key: '+', code: 'Equal', shiftKey: true }],
+	])('fires %s on the + key', async (kbd, init) => {
+		const { editor, onSelect } = await setupEditorWithKbd(kbd)
+		keydown(editor, init)
+		expect(onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	it('does not fire shift++ on an unshifted + press', async () => {
+		const { editor, onSelect } = await setupEditorWithKbd('shift++')
+		keydown(editor, { key: '+', code: 'BracketRight' })
+		expect(onSelect).not.toHaveBeenCalled()
+	})
+
+	it('does not fire cmd++ on cmd+=', async () => {
+		const { editor, onSelect } = await setupEditorWithKbd('cmd++')
+		keydown(editor, { key: '=', code: 'Equal', metaKey: true })
+		expect(onSelect).not.toHaveBeenCalled()
+	})
+})
+
+describe('shifted glyph shortcuts', () => {
+	it('fires shift+: when the browser reports : with shift held', async () => {
+		const { editor, onSelect } = await setupEditorWithKbd('shift+:')
+		keydown(editor, { key: ':', code: 'Semicolon', shiftKey: true })
+		expect(onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	it.each([
+		['Digit6 code', 'Digit6'],
+		['non-digit code', 'Equal'],
+	])('fires shift+^ when the browser reports ^ with shift held (%s)', async (_name, code) => {
+		const { editor, onSelect } = await setupEditorWithKbd('shift+^')
+		keydown(editor, { key: '^', code, shiftKey: true })
+		expect(onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	// Shortcuts bind the glyph the browser reports, so on hardware where the keycap differs from
+	// the shifted output (#10067) the emitted glyph is the one to bind: AZERTY shift+`:` (on the
+	// Period position) emits `/`, JIS shift+`^` (on Equal) emits `~`.
+	it('fires shift+/ on a real AZERTY shift+: key press', async () => {
+		const { editor, onSelect } = await setupEditorWithKbd('shift+/')
+		keydown(editor, { key: '/', code: 'Period', shiftKey: true })
+		expect(onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	it('fires shift+~ on a real JIS shift+^ key press', async () => {
+		const { editor, onSelect } = await setupEditorWithKbd('shift+~')
+		keydown(editor, { key: '~', code: 'Equal', shiftKey: true })
+		expect(onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	it('keeps the shifted number row positional: shift+& does not fire on German Digit6, shift+6 does', async () => {
+		const amp = await setupEditorWithKbd('shift+&')
+		keydown(amp.editor, { key: '&', code: 'Digit6', shiftKey: true })
+		expect(amp.onSelect).not.toHaveBeenCalled()
+
+		const six = await setupEditorWithKbd('shift+6')
+		keydown(six.editor, { key: '&', code: 'Digit6', shiftKey: true })
+		expect(six.onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	it('still fires shift+/ on a US ? event', async () => {
+		const { editor, onSelect } = await setupEditorWithKbd('shift+/')
+		keydown(editor, { key: '?', code: 'Slash', shiftKey: true })
+		expect(onSelect).toHaveBeenCalledTimes(1)
+	})
+
+	it('still fires shift+1 on a US ! event', async () => {
+		const { editor, onSelect } = await setupEditorWithKbd('shift+1')
+		keydown(editor, { key: '!', code: 'Digit1', shiftKey: true })
+		expect(onSelect).toHaveBeenCalledTimes(1)
+	})
+})
+
 // Regression test for #10422: frame-selection was the only cmd shortcut without a ctrl twin,
 // so Ctrl+Alt+G did nothing on Windows and Linux even though the shortcuts dialog listed it.
 describe('frame selection shortcut', () => {
+	function createArrowBoundTo(editor: Editor, arrow: TLShapeId, target: TLShapeId) {
+		editor.createShapes([{ id: arrow, type: 'arrow', x: 0, y: 0 }])
+		editor.createBindings([
+			{
+				fromId: arrow,
+				toId: target,
+				type: 'arrow',
+				props: {
+					terminal: 'end',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				},
+			},
+		])
+	}
+
 	it.each([
 		['cmd+alt+g (macOS)', { metaKey: true }],
 		['ctrl+alt+g (Windows / Linux)', { ctrlKey: true }],
@@ -340,4 +615,177 @@ describe('frame selection shortcut', () => {
 		expect(editor.getShape(a)?.parentId).toBe(frame!.id)
 		expect(editor.getShape(b)?.parentId).toBe(frame!.id)
 	})
+
+	it('wraps a single selected shape in a frame', async () => {
+		const { editor } = await setupFocusedEditor()
+		const a = createShapeId()
+		act(() => {
+			editor.createShapes([{ id: a, type: 'geo', x: 0, y: 0 }])
+			editor.select(a)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(a)?.parentId).toBe(frame!.id)
+		expect(editor.getSelectedShapeIds()).toEqual([frame!.id])
+	})
+
+	it('frames a single shape with no height, like a horizontal arrow', async () => {
+		const { editor } = await setupFocusedEditor()
+		const arrow = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{
+					id: arrow,
+					type: 'arrow',
+					x: 0,
+					y: 0,
+					props: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
+				},
+			])
+			editor.select(arrow)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(arrow)?.parentId).toBe(frame!.id)
+	})
+
+	it('removes the frame when a single frame is selected', async () => {
+		const { editor } = await setupFocusedEditor()
+		const frameId = createShapeId()
+		const a = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } },
+				{ id: a, type: 'geo', parentId: frameId, x: 10, y: 10 },
+			])
+			editor.select(frameId)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(a)?.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('leaves locked shapes out of the frame and in place', async () => {
+		const { editor } = await setupFocusedEditor()
+		const locked = createShapeId()
+		const a = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{ id: locked, type: 'geo', x: 0, y: 0, isLocked: true },
+				{ id: a, type: 'geo', x: 200, y: 200 },
+			])
+			editor.select(locked, a)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(a)?.parentId).toBe(frame!.id)
+		expect(editor.getShape(locked)).toMatchObject({
+			parentId: editor.getCurrentPageId(),
+			x: 0,
+			y: 0,
+		})
+	})
+
+	it('does nothing for a lone arrow bound to a shape outside the selection', async () => {
+		const { editor } = await setupFocusedEditor()
+		const target = createShapeId()
+		const arrow = createShapeId()
+		act(() => {
+			editor.createShapes([{ id: target, type: 'geo', x: 400, y: 400 }])
+			createArrowBoundTo(editor, arrow, target)
+			editor.select(arrow)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		expect(editor.getCurrentPageShapes().some((s) => editor.isShapeOfType(s, 'frame'))).toBe(false)
+		expect(editor.getShape(arrow)?.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('does nothing for an arrow bound to a selected locked shape', async () => {
+		const { editor } = await setupFocusedEditor()
+		const target = createShapeId()
+		const arrow = createShapeId()
+		act(() => {
+			editor.createShapes([{ id: target, type: 'geo', x: 400, y: 400, isLocked: true }])
+			createArrowBoundTo(editor, arrow, target)
+			editor.select(target, arrow)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		expect(editor.getCurrentPageShapes().some((s) => editor.isShapeOfType(s, 'frame'))).toBe(false)
+		expect(editor.getShape(arrow)?.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('frames an arrow together with the shape it is bound to', async () => {
+		const { editor } = await setupFocusedEditor()
+		const target = createShapeId()
+		const arrow = createShapeId()
+		act(() => {
+			editor.createShapes([{ id: target, type: 'geo', x: 400, y: 400 }])
+			createArrowBoundTo(editor, arrow, target)
+			editor.select(arrow, target)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		const frame = editor.getCurrentPageShapes().find((s) => editor.isShapeOfType(s, 'frame'))
+		expect(frame).toBeDefined()
+		expect(editor.getShape(arrow)?.parentId).toBe(frame!.id)
+		expect(editor.getShape(target)?.parentId).toBe(frame!.id)
+	})
+})
+
+describe('scale selection shortcuts', () => {
+	it.each([
+		['enlarge', '=', 'Equal', 1.1],
+		['shrink', '-', 'Minus', 1 / 1.1],
+	] as const)(
+		'%s scales every shape about the original selection center and undoes together',
+		async (_label, key, code, factor) => {
+			const { editor } = await setupFocusedEditor()
+			const a = createShapeId()
+			const b = createShapeId()
+			act(() => {
+				editor.createShapes([
+					{ id: a, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+					{ id: b, type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+				])
+				editor.select(a, b)
+			})
+			const originalShapes = editor.getSelectedShapes()
+
+			keydown(editor, { key, code, metaKey: true, altKey: true, shiftKey: true })
+
+			expect([editor.getShape(a), editor.getShape(b)]).toMatchObject([
+				{
+					x: expect.closeTo(150 - 150 * factor),
+					y: expect.closeTo(150 - 150 * factor),
+					props: { w: expect.closeTo(100 * factor), h: expect.closeTo(100 * factor) },
+				},
+				{
+					x: expect.closeTo(150 + 50 * factor),
+					y: expect.closeTo(150 + 50 * factor),
+					props: { w: expect.closeTo(100 * factor), h: expect.closeTo(100 * factor) },
+				},
+			])
+
+			act(() => {
+				editor.undo()
+			})
+			expect(editor.getSelectedShapes()).toEqual(originalShapes)
+		}
+	)
 })

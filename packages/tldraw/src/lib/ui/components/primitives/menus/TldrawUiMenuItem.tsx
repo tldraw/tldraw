@@ -9,7 +9,7 @@ import {
 	VecModel,
 } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
@@ -103,8 +103,6 @@ export function TldrawUiMenuItem<
 	const msg = useTranslation()
 	const dir = useDirection()
 
-	const [disableClicks, setDisableClicks] = useState(false)
-
 	const isReadonlyMode = useReadonly()
 	if (isReadonlyMode && !readonlyOk) return null
 
@@ -113,6 +111,7 @@ export function TldrawUiMenuItem<
 
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 	const titleStr = labelStr && kbdToUse ? `${labelStr} ${kbdToUse}` : labelStr
+	const testId = `${sourceId}.${id}`
 
 	switch (menuType) {
 		case 'menu': {
@@ -120,17 +119,11 @@ export function TldrawUiMenuItem<
 				<TldrawUiDropdownMenuItem>
 					<TldrawUiButton
 						type="menu"
-						data-testid={`${sourceId}.${id}`}
+						data-testid={testId}
 						disabled={disabled}
 						onClick={(e) => {
-							if (noClose) {
-								preventDefault(e)
-							}
-							if (disableClicks) {
-								setDisableClicks(false)
-							} else {
-								onSelect(sourceId)
-							}
+							if (noClose) preventDefault(e)
+							onSelect(sourceId)
 						}}
 					>
 						{iconLeft && <TldrawUiButtonIcon icon={iconLeft} small />}
@@ -149,7 +142,7 @@ export function TldrawUiMenuItem<
 					dir={dir}
 					draggable={false}
 					className="tlui-button tlui-button__menu"
-					data-testid={`${sourceId}.${id}`}
+					data-testid={testId}
 					onPointerUp={(e) => {
 						// Prevent right-click pointerup from triggering item selection.
 						// Radix calls click() on pointerup when the pointer wasn't pressed
@@ -161,11 +154,7 @@ export function TldrawUiMenuItem<
 					}}
 					onSelect={(e) => {
 						if (noClose) preventDefault(e)
-						if (disableClicks) {
-							setDisableClicks(false)
-						} else {
-							onSelect(sourceId)
-						}
+						onSelect(sourceId)
 					}}
 				>
 					<span className="tlui-button__label" draggable={false}>
@@ -182,7 +171,7 @@ export function TldrawUiMenuItem<
 			return (
 				<TldrawUiToolbarButton
 					aria-pressed={isSelected === undefined ? undefined : isSelected ? 'true' : 'false'}
-					data-testid={`${sourceId}.${id}`}
+					data-testid={testId}
 					isActive={isSelected}
 					type="icon"
 					title={titleStr}
@@ -202,7 +191,7 @@ export function TldrawUiMenuItem<
 			}
 
 			return (
-				<div className="tlui-shortcuts-dialog__key-pair" data-testid={`${sourceId}.${id}`}>
+				<div className="tlui-shortcuts-dialog__key-pair" data-testid={testId}>
 					<div className="tlui-shortcuts-dialog__key-pair__key">{labelStr}</div>
 					<div className="tlui-shortcuts-dialog__key-pair__value">
 						<TldrawUiKbd visibleOnMobileLayout>{kbd}</TldrawUiKbd>
@@ -212,11 +201,7 @@ export function TldrawUiMenuItem<
 		}
 		case 'helper-buttons': {
 			return (
-				<TldrawUiButton
-					type="low"
-					data-testid={`${sourceId}.${id}`}
-					onClick={() => onSelect(sourceId)}
-				>
+				<TldrawUiButton type="low" data-testid={testId} onClick={() => onSelect(sourceId)}>
 					<TldrawUiButtonIcon icon={icon!} />
 					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
 				</TldrawUiButton>
