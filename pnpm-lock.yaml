@@ -846,7 +846,7 @@ importers:
         specifier: ^4.20260302.0
         version: 4.20260317.1
       '@types/pg':
-        specifier: ^8.11.11
+        specifier: ^8.16.0
         version: 8.16.0
       esbuild:
         specifier: ^0.28.0
@@ -1433,7 +1433,7 @@ importers:
         specifier: ^22.15.31
         version: 22.16.0
       '@types/pg':
-        specifier: ^8.11.11
+        specifier: ^8.16.0
         version: 8.16.0
       '@types/semver':
         specifier: ^7.5.8

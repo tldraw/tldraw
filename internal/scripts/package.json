@@ -36,7 +36,7 @@
 		"@types/diff": "^7.0.1",
 		"@types/is-ci": "^3.0.4",
 		"@types/node": "^22.15.31",
-		"@types/pg": "^8.11.11",
+		"@types/pg": "^8.16.0",
 		"@types/semver": "^7.5.8",
 		"ast-types": "^0.14.2",
 		"cross-fetch": "^3.2.0",
