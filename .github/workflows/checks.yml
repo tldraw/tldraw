@@ -43,11 +43,17 @@ jobs:
       - name: Restore build tool caches
         uses: actions/cache@v5
         with:
+          # Workspace depths only: a `**` glob follows the workspace symlinks in
+          # each package's node_modules and never finishes saving.
           path: |
             .lazy
-            **/.lazy
-            **/.tsbuild
-            **/*.tsbuildinfo
+            */*/.lazy
+            apps/*/*/.lazy
+            */*/.tsbuild
+            apps/*/*/.tsbuild
+            *.tsbuildinfo
+            */*/*.tsbuildinfo
+            apps/*/*/*.tsbuildinfo
           key: test-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.oxlintrc.json', '.oxfmtrc.json', 'lazy.config.ts') }}
 
       - name: Typecheck
@@ -99,11 +105,17 @@ jobs:
       - name: Restore build tool caches
         uses: actions/cache@v5
         with:
+          # Workspace depths only: a `**` glob follows the workspace symlinks in
+          # each package's node_modules and never finishes saving.
           path: |
             .lazy
-            **/.lazy
-            **/.tsbuild
-            **/*.tsbuildinfo
+            */*/.lazy
+            apps/*/*/.lazy
+            */*/.tsbuild
+            apps/*/*/.tsbuild
+            *.tsbuildinfo
+            */*/*.tsbuildinfo
+            apps/*/*/*.tsbuildinfo
           key: build-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'lazy.config.ts') }}
 
       - name: Build packages
