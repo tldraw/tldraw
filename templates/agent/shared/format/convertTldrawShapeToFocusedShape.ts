@@ -108,11 +108,11 @@ function convertDrawShapeToFocused(shape: TLDrawShape): FocusedDrawShape {
 
 const TEXT_ALIGN_TO_ANCHOR: Record<
 	TLTextShape['props']['textAlign'],
-	(bounds: Box) => { anchor: FocusedTextAnchor; x: number }
+	(bounds: Box) => { anchor: FocusedTextAnchor; x: number; y: number }
 > = {
-	start: (bounds) => ({ anchor: 'top-left', x: bounds.left }),
-	middle: (bounds) => ({ anchor: 'top-center', x: bounds.center.x }),
-	end: (bounds) => ({ anchor: 'top-right', x: bounds.right }),
+	start: (bounds) => ({ anchor: 'top-left', x: bounds.left, y: bounds.top }),
+	middle: (bounds) => ({ anchor: 'top-center', x: bounds.center.x, y: bounds.top }),
+	end: (bounds) => ({ anchor: 'top-right', x: bounds.right, y: bounds.top }),
 }
 
 function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedTextShape {
@@ -120,7 +120,9 @@ function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedT
 	const text = util.getText(shape) ?? ''
 	const bounds = getSimpleBounds(editor, shape)
 
-	const { anchor, x } = TEXT_ALIGN_TO_ANCHOR[shape.props.textAlign](bounds)
+	const { anchor, x, y } = Object.hasOwn(TEXT_ALIGN_TO_ANCHOR, shape.props.textAlign)
+		? TEXT_ALIGN_TO_ANCHOR[shape.props.textAlign](bounds)
+		: { anchor: 'top-left' as const, x: 0, y: 0 }
 
 	return {
 		_type: 'text',
@@ -132,7 +134,7 @@ function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedT
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text,
 		x,
-		y: bounds.top,
+		y,
 	}
 }
 

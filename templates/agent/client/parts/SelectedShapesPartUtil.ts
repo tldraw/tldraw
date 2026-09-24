@@ -10,7 +10,9 @@ export const SelectedShapesPartUtil = registerPromptPartUtil(
 		override getPart(_request: AgentRequest): SelectedShapesPart {
 			return {
 				type: 'selectedShapes',
-				shapeIds: this.editor.getSelectedShapeIds().map(convertTldrawIdToSimpleId),
+				shapeIds: this.editor
+					.getSelectedShapes()
+					.map((shape) => convertTldrawIdToSimpleId(shape.id)),
 			}
 		}
 	}

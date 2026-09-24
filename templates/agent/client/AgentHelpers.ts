@@ -5,9 +5,6 @@ import { ContextItem } from '../shared/types/ContextItem'
 import { SimpleShapeId } from '../shared/types/ids-schema'
 import { TldrawAgent } from './agent/TldrawAgent'
 
-const SHAPE_POSITION_PROPS = ['x', 'y', 'x1', 'y1', 'x2', 'y2'] as const
-const SHAPE_NUMBER_PROPS = [...SHAPE_POSITION_PROPS, 'w', 'h'] as const
-
 /**
  * This class contains handles the transformations that happen throughout a
  * request. It contains helpers that can be used to change prompt parts
@@ -77,14 +74,14 @@ export class AgentHelpers {
 	 * Apply the offset of this request to a box.
 	 */
 	applyOffsetToBox(box: BoxModel): BoxModel {
-		return { ...box, x: box.x + this.offset.x, y: box.y + this.offset.y }
+		return { x: box.x + this.offset.x, y: box.y + this.offset.y, w: box.w, h: box.h }
 	}
 
 	/**
 	 * Remove the offset of this request from a box.
 	 */
 	removeOffsetFromBox(box: BoxModel): BoxModel {
-		return { ...box, x: box.x - this.offset.x, y: box.y - this.offset.y }
+		return { x: box.x - this.offset.x, y: box.y - this.offset.y, w: box.w, h: box.h }
 	}
 
 	/**
@@ -117,9 +114,9 @@ export class AgentHelpers {
 
 	private offsetShapePartial(shape: Partial<FocusedShape>, sign: 1 | -1): Partial<FocusedShape> {
 		const result: Record<string, any> = { ...shape }
-		for (const prop of SHAPE_POSITION_PROPS) {
-			if (typeof result[prop] !== 'number') continue
-			result[prop] += sign * (prop.startsWith('x') ? this.offset.x : this.offset.y)
+		for (const prop of ['x', 'y', 'x1', 'y1', 'x2', 'y2'] as const) {
+			if (result[prop] == null) continue
+			result[prop] = shift(result[prop], prop.startsWith('x') ? this.offset.x : this.offset.y, sign)
 		}
 		return result as Partial<FocusedShape>
 	}
@@ -232,7 +229,10 @@ export class AgentHelpers {
 	 * @returns The rounded shape.
 	 */
 	roundShape(shape: FocusedShape): FocusedShape {
-		return this.roundShapePartial(shape) as FocusedShape
+		for (const prop of getShapeNumberProps(shape)) {
+			shape = this.roundProperty(shape, prop as keyof FocusedShape)
+		}
+		return shape
 	}
 
 	/**
@@ -242,7 +242,7 @@ export class AgentHelpers {
 	 * @returns The rounded shape partial.
 	 */
 	roundShapePartial(shape: Partial<FocusedShape>): Partial<FocusedShape> {
-		for (const prop of SHAPE_NUMBER_PROPS) {
+		for (const prop of ['x1', 'y1', 'x2', 'y2', 'x', 'y', 'w', 'h'] as const) {
 			if (prop in shape) {
 				shape = this.roundProperty(shape, prop as keyof Partial<FocusedShape>)
 			}
@@ -257,10 +257,8 @@ export class AgentHelpers {
 	 * @returns The unrounded shape.
 	 */
 	unroundShape(shape: FocusedShape): FocusedShape {
-		for (const prop of SHAPE_NUMBER_PROPS) {
-			if (prop in shape) {
-				shape = this.unroundProperty(shape, prop as keyof FocusedShape)
-			}
+		for (const prop of getShapeNumberProps(shape)) {
+			shape = this.unroundProperty(shape, prop as keyof FocusedShape)
 		}
 		return shape
 	}
@@ -390,4 +388,14 @@ export class AgentHelpers {
 		vecModel.y = Math.round(vecModel.y)
 		return vecModel
 	}
+}
+
+// Unvalidated streamed values can be strings, so keep `+`/`-` rather than folding the sign in
+function shift(value: any, delta: number, sign: 1 | -1) {
+	return sign === 1 ? value + delta : value - delta
+}
+
+function getShapeNumberProps(shape: FocusedShape): string[] {
+	const props = 'x1' in shape ? ['x1', 'y1', 'x2', 'y2'] : 'x' in shape ? ['x', 'y'] : []
+	return 'w' in shape ? [...props, 'w', 'h'] : props
 }

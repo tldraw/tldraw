@@ -29,7 +29,9 @@ const STATUS_ICONS: Record<TodoItem['status'], string> = {
 function TodoListItem({ item, agent }: { item: TodoItem; agent: TldrawAgent }) {
 	return (
 		<div className={`todo-item todo-item-${item.status}`}>
-			<span className="todo-item-icon">{STATUS_ICONS[item.status]}</span>
+			<span className="todo-item-icon">
+				{Object.hasOwn(STATUS_ICONS, item.status) ? STATUS_ICONS[item.status] : undefined}
+			</span>
 			<span className="todo-item-text">{item.text}</span>
 			<button className="todo-item-delete" onClick={() => agent.todos.delete([item.id])}>
 				×

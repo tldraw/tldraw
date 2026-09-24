@@ -32,7 +32,9 @@ function buildMessagesFromPart(part: PromptPart): AgentMessage[] {
 
 	// Convert content strings to message content (handling images)
 	const messageContent: AgentMessageContent[] = content.map((item) =>
-		item.startsWith('data:image/') ? { type: 'image', image: item } : { type: 'text', text: item }
+		typeof item === 'string' && item.startsWith('data:image/')
+			? { type: 'image', image: item }
+			: { type: 'text', text: item }
 	)
 
 	// Get priority from definition (default to 0)

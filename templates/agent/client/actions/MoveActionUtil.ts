@@ -49,7 +49,9 @@ export const MoveActionUtil = registerActionUtil(
 
 			// The target is where the anchor point should end up, so shift back to the bounds
 			// origin, then from the bounds origin to the shape origin.
-			const [anchorX, anchorY] = ANCHOR_OFFSETS[action.anchor]
+			const [anchorX, anchorY] = Object.hasOwn(ANCHOR_OFFSETS, action.anchor)
+				? ANCHOR_OFFSETS[action.anchor]
+				: [0, 0]
 			const anchorOffset = new Vec(shapeBounds.w * anchorX, shapeBounds.h * anchorY)
 			const shapeOriginDelta = new Vec(shape.x, shape.y).sub(shapeBounds.point)
 			const newTarget = moveTarget.sub(anchorOffset).add(shapeOriginDelta)

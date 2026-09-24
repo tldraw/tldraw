@@ -63,12 +63,17 @@ export class AgentTodoManager extends BaseAgentManager {
 	 * Update a todo item's status and optionally its text.
 	 * @param params - The update parameters
 	 */
-	update({ id, status, text }: { id: number; status: TodoItem['status']; text?: string }) {
-		this.$todoList.update((todoItems) =>
-			todoItems.map((item) =>
-				item.id === id ? { ...item, status, ...(text !== undefined && { text }) } : item
-			)
-		)
+	update(params: { id: number; status: TodoItem['status']; text?: string }) {
+		const { id, status, text } = params
+		this.$todoList.update((todoItems) => {
+			const index = todoItems.findIndex((item) => item.id === id)
+			if (index === -1) return todoItems
+			return [
+				...todoItems.slice(0, index),
+				{ ...todoItems[index], status, ...(text !== undefined && { text }) },
+				...todoItems.slice(index + 1),
+			]
+		})
 	}
 
 	/**

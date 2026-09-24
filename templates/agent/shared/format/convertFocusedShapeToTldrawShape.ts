@@ -61,6 +61,28 @@ export function convertFocusedShapeToTldrawShape(
 		case 'arrow': {
 			return convertArrowShapeToTldrawShape(editor, focusedShape, { defaultShape })
 		}
+		case 'cloud':
+		case 'rectangle':
+		case 'triangle':
+		case 'diamond':
+		case 'hexagon':
+		case 'pill':
+		case 'x-box':
+		case 'pentagon':
+		case 'octagon':
+		case 'star':
+		case 'parallelogram-right':
+		case 'parallelogram-left':
+		case 'trapezoid':
+		case 'fat-arrow-right':
+		case 'fat-arrow-left':
+		case 'fat-arrow-up':
+		case 'fat-arrow-down':
+		case 'check-box':
+		case 'heart':
+		case 'ellipse': {
+			return convertGeoShapeToTldrawShape(editor, focusedShape, { defaultShape })
+		}
 		case 'note': {
 			return convertNoteShapeToTldrawShape(editor, focusedShape, { defaultShape })
 		}
@@ -69,9 +91,6 @@ export function convertFocusedShapeToTldrawShape(
 		}
 		case 'unknown': {
 			return convertUnknownShapeToTldrawShape(editor, focusedShape, { defaultShape })
-		}
-		default: {
-			return convertGeoShapeToTldrawShape(editor, focusedShape, { defaultShape })
 		}
 	}
 }
@@ -103,29 +122,34 @@ export const FOCUSED_TO_GEO_TYPES: Record<FocusedGeoShapeType, TLGeoShapeGeoStyl
 	'fat-arrow-down': 'arrow-down',
 } as const
 
-/** Record fields shared by every converted shape: id, meta, and the non-prop defaults. */
-function getBaseShape(
+/** Build a shape record, filling id, meta, and the non-prop fields from the defaults. */
+function createShapeRecord<T extends TLShape>(
 	editor: Editor,
 	focusedShape: { shapeId: string; note?: string },
-	defaultShape: Partial<TLShape>
-) {
+	defaultShape: Partial<TLShape>,
+	{ type, x, y, props }: Pick<T, 'type' | 'x' | 'y' | 'props'>
+): T {
 	return {
 		id: convertSimpleIdToTldrawId(focusedShape.shapeId),
-		typeName: 'shape' as const,
+		type,
+		typeName: 'shape',
+		x,
+		y,
 		rotation: defaultShape.rotation ?? 0,
 		index: defaultShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 		parentId: defaultShape.parentId ?? editor.getCurrentPageId(),
 		isLocked: defaultShape.isLocked ?? false,
 		opacity: defaultShape.opacity ?? 1,
+		props,
 		meta: {
 			note: focusedShape.note ?? defaultShape.meta?.note ?? '',
 		},
-	}
+	} as TLShape as T
 }
 
 function resolveRichText(text: string | undefined, defaultRichText: TLRichText | undefined) {
 	if (text !== undefined) return toRichText(text)
-	return defaultRichText ?? toRichText('')
+	return defaultRichText || toRichText('')
 }
 
 function resolveFill(
@@ -133,7 +157,7 @@ function resolveFill(
 	defaultFill: TLDefaultFillStyle | undefined
 ): TLDefaultFillStyle {
 	if (fill !== undefined) return convertFocusedFillToTldrawFill(fill) ?? 'none'
-	return defaultFill ?? 'none'
+	return defaultFill || 'none'
 }
 
 const TEXT_ANCHOR_ALIGN: Record<FocusedTextAnchor, TLTextShape['props']['textAlign']> = {
@@ -195,8 +219,7 @@ function convertTextShapeToTldrawShape(
 	const autoSize =
 		focusedShape.maxWidth != null ? false : (defaultTextShape.props?.autoSize ?? true)
 
-	const unpositionedShape: TLTextShape = {
-		...getBaseShape(editor, focusedShape, defaultShape),
+	const unpositionedShape = createShapeRecord<TLTextShape>(editor, focusedShape, defaultShape, {
 		type: 'text',
 		x: 0,
 		y: 0,
@@ -205,24 +228,27 @@ function convertTextShapeToTldrawShape(
 			scale,
 			richText: resolveRichText(focusedShape.text, defaultTextShape.props?.richText),
 			color: asColor(focusedShape.color ?? defaultTextShape.props?.color ?? 'black'),
-			textAlign:
-				TEXT_ANCHOR_ALIGN[focusedShape.anchor] ?? defaultTextShape.props?.textAlign ?? 'start',
+			textAlign: Object.hasOwn(TEXT_ANCHOR_ALIGN, focusedShape.anchor)
+				? TEXT_ANCHOR_ALIGN[focusedShape.anchor]
+				: (defaultTextShape.props?.textAlign ?? 'start'),
 			autoSize,
 			w: focusedShape.maxWidth ?? defaultTextShape.props?.w ?? 100,
 			font,
 		},
-	}
+	})
 
-	const bounds = getDummyBounds(editor, unpositionedShape)
+	const { w, h } = getDummyBounds(editor, unpositionedShape)
 	const x = focusedShape.x ?? defaultTextShape.x ?? 0
 	const y = focusedShape.y ?? defaultTextShape.y ?? 0
-	const offset = TEXT_ANCHOR_OFFSET[focusedShape.anchor]
-	const position = offset
-		? { x: x - bounds.w * offset.x, y: y - bounds.h * offset.y }
+	const position = Object.hasOwn(TEXT_ANCHOR_OFFSET, focusedShape.anchor)
+		? {
+				x: x - w * TEXT_ANCHOR_OFFSET[focusedShape.anchor].x,
+				y: y - h * TEXT_ANCHOR_OFFSET[focusedShape.anchor].y,
+			}
 		: { x: defaultTextShape.x ?? 0, y: defaultTextShape.y ?? 0 }
 
 	return {
-		shape: { ...unpositionedShape, ...position },
+		shape: { ...unpositionedShape, x: position.x, y: position.y },
 	}
 }
 
@@ -241,8 +267,7 @@ function convertLineShapeToTldrawShape(
 	const minY = Math.min(y1, y2)
 
 	return {
-		shape: {
-			...getBaseShape(editor, focusedShape, defaultShape),
+		shape: createShapeRecord<TLLineShape>(editor, focusedShape, defaultShape, {
 			type: 'line',
 			x: minX,
 			y: minY,
@@ -267,7 +292,7 @@ function convertLineShapeToTldrawShape(
 				scale: defaultLineShape.props?.scale ?? 1,
 				spline: defaultLineShape.props?.spline ?? 'line',
 			},
-		},
+		}),
 	}
 }
 
@@ -285,8 +310,7 @@ function convertArrowShapeToTldrawShape(
 	const minX = Math.min(x1, x2)
 	const minY = Math.min(y1, y2)
 
-	const shape: TLArrowShape = {
-		...getBaseShape(editor, focusedShape, defaultShape),
+	const shape: TLArrowShape = createShapeRecord<TLArrowShape>(editor, focusedShape, defaultShape, {
 		type: 'arrow',
 		x: minX,
 		y: minY,
@@ -308,7 +332,7 @@ function convertArrowShapeToTldrawShape(
 			size: defaultArrowShape.props?.size ?? 's',
 			start: { x: x1 - minX, y: y1 - minY },
 		},
-	}
+	})
 
 	// Handle arrow bindings if fromId or toId are provided
 	const bindings = [
@@ -355,8 +379,7 @@ function convertGeoShapeToTldrawShape(
 	const defaultGeoShape = defaultShape as TLGeoShape
 
 	return {
-		shape: {
-			...getBaseShape(editor, focusedShape, defaultShape),
+		shape: createShapeRecord<TLGeoShape>(editor, focusedShape, defaultShape, {
 			type: 'geo',
 			x: focusedShape.x ?? defaultGeoShape.x ?? 0,
 			y: focusedShape.y ?? defaultGeoShape.y ?? 0,
@@ -379,7 +402,7 @@ function convertGeoShapeToTldrawShape(
 				flipX: defaultGeoShape.props?.flipX ?? false,
 				flipY: defaultGeoShape.props?.flipY ?? false,
 			},
-		},
+		}),
 	}
 }
 
@@ -391,8 +414,7 @@ function convertNoteShapeToTldrawShape(
 	const defaultNoteShape = defaultShape as TLNoteShape
 
 	return {
-		shape: {
-			...getBaseShape(editor, focusedShape, defaultShape),
+		shape: createShapeRecord<TLNoteShape>(editor, focusedShape, defaultShape, {
 			type: 'note',
 			x: focusedShape.x ?? defaultNoteShape.x ?? 0,
 			y: focusedShape.y ?? defaultNoteShape.y ?? 0,
@@ -410,7 +432,7 @@ function convertNoteShapeToTldrawShape(
 				verticalAlign: defaultNoteShape.props?.verticalAlign ?? 'middle',
 				textLastEditedBy: defaultNoteShape.props?.textLastEditedBy ?? null,
 			},
-		},
+		}),
 	}
 }
 
@@ -422,8 +444,7 @@ function convertDrawShapeToTldrawShape(
 	const defaultDrawShape = defaultShape as TLDrawShape
 
 	return {
-		shape: {
-			...getBaseShape(editor, focusedShape, defaultShape),
+		shape: createShapeRecord<TLDrawShape>(editor, focusedShape, defaultShape, {
 			type: 'draw',
 			x: defaultDrawShape.x ?? 0,
 			y: defaultDrawShape.y ?? 0,
@@ -432,7 +453,7 @@ function convertDrawShapeToTldrawShape(
 				color: asColor(focusedShape.color ?? defaultDrawShape.props?.color ?? 'black'),
 				fill: resolveFill(focusedShape.fill, defaultDrawShape.props?.fill),
 			},
-		},
+		}),
 	}
 }
 
@@ -442,13 +463,12 @@ function convertUnknownShapeToTldrawShape(
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
 ): { shape: TLShape } {
 	return {
-		shape: {
-			...getBaseShape(editor, focusedShape, defaultShape),
+		shape: createShapeRecord<TLShape>(editor, focusedShape, defaultShape, {
 			type: defaultShape.type ?? 'geo',
 			x: focusedShape.x ?? defaultShape.x ?? 0,
 			y: focusedShape.y ?? defaultShape.y ?? 0,
 			props: defaultShape.props ?? ({} as any),
-		},
+		}),
 	}
 }
 

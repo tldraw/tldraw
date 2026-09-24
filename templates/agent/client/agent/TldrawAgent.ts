@@ -105,10 +105,7 @@ export class TldrawAgent {
 
 	// ==================== Prompt Part Utils ====================
 
-	/**
-	 * A record of the agent's prompt part util instances.
-	 * Used by the `getPromptPartUtil` method.
-	 */
+	/** A record of the agent's prompt part util instances, keyed by part type. */
 	promptPartUtils: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 
 	/**
@@ -638,11 +635,15 @@ export class TldrawAgent {
 				for (const action of actions) {
 					const match = action.match(/^data: (.+)$/m)
 					if (!match) continue
-					const data = JSON.parse(match[1])
+					try {
+						const data = JSON.parse(match[1])
 
-					// If the response contains an error, throw it
-					if ('error' in data) throw new Error(data.error)
-					yield data as Streaming<AgentAction>
+						// If the response contains an error, throw it
+						if ('error' in data) throw new Error(data.error)
+						yield data as Streaming<AgentAction>
+					} catch (err: any) {
+						throw new Error(err.message)
+					}
 				}
 			}
 		} finally {

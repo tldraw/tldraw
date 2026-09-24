@@ -41,6 +41,10 @@ export const PlaceActionUtil = registerActionUtil(
 			const referenceShape = editor.getShape(referenceShapeId)
 			if (!shape || !referenceShape) return
 
+			// Streamed actions aren't validated: an unknown side or align leaves the shape in place
+			if (side !== 'top' && side !== 'bottom' && side !== 'left' && side !== 'right') return
+			if (align !== 'start' && align !== 'center' && align !== 'end') return
+
 			const bbA = editor.getShapePageBounds(shape)!
 			const bbR = editor.getShapePageBounds(referenceShape)!
 
@@ -54,7 +58,6 @@ export const PlaceActionUtil = registerActionUtil(
 				left: { x: bbR.minX - bbA.width - sideOffset, y: alignY },
 				right: { x: bbR.maxX + sideOffset, y: alignY },
 			}[side]
-			if (!position) return
 
 			editor.updateShape({ id: shapeId, type: shape.type, ...position })
 		}
