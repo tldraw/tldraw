@@ -482,8 +482,13 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		const allMigrationsToInclude = new Set<MigrationId>()
 		for (const sequenceId of sequenceIdsToInclude) {
 			const theirVersion = schema.sequences[sequenceId]
+			// Only a missing version means "never applied"; rerunning migrations on data that may
+			// already be migrated would corrupt it.
+			if (theirVersion !== undefined && typeof theirVersion !== 'number') {
+				return Result.err('Incompatible schema?')
+			}
 			if (
-				(typeof theirVersion !== 'number' && this.migrations[sequenceId].retroactive) ||
+				(theirVersion === undefined && this.migrations[sequenceId].retroactive) ||
 				theirVersion === 0
 			) {
 				for (const migration of this.migrations[sequenceId].sequence) {
