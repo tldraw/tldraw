@@ -272,8 +272,9 @@ bindings = [
 ]
 
 #################### Hyperdrive ####################
-# Postgres through Hyperdrive; code falls back to the pooled connection string when unbound, which
-# is what previews get. Configs are managed by hand in the Cloudflare dashboard:
+# Postgres through Hyperdrive; code falls back to the pooled connection string when unbound. Previews
+# stay unbound: each gets its own Supabase branch, and Hyperdrive configs are capped at 25 per
+# account. Configs are managed by hand in the Cloudflare dashboard:
 # - Origin is the direct connection, with the same credentials as BOTCOM_POSTGRES_CONNECTION_STRING.
 #   Rotating the database password breaks Hyperdrive until the config is updated too.
 # - Caching stays disabled: role and file-record reads must never be stale.
@@ -288,11 +289,11 @@ localConnectionString = "postgresql://user:password@127.0.0.1:6432/postgres"
 
 [[env.staging.hyperdrive]]
 binding = "HYPERDRIVE"
-id = "e47f149b12874bea9dd9418803952966"
+id = "e47f149b12874bea9dd9418803952966" # main-tldraw-multiplayer-postgres
 
 [[env.production.hyperdrive]]
 binding = "HYPERDRIVE"
-id = "3b4fea5a6921430bb7db39ed2e7ec72e"
+id = "3b4fea5a6921430bb7db39ed2e7ec72e" # tldraw-multiplayer-postgres
 
 #################### Analytics engine ####################
 # durable objects have the same configuration in all environments:
