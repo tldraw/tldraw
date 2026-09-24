@@ -45,6 +45,7 @@ export class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
 		return {}
 	}
 
+	// A connection can't outlive either of the nodes it's bound to
 	onBeforeIsolateToShape({ binding }: BindingOnShapeIsolateOptions<ConnectionBinding>): void {
 		// When we're duplicating a node but not its connection, delete the connection
 		this.editor.deleteShapes([binding.fromId])
@@ -57,37 +58,34 @@ export class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
 
 	onAfterCreate({ binding }: BindingOnCreateOptions<ConnectionBinding>): void {
 		// Our ports system has an `onConnect` callback - call it when we create a connection
-		const node = this.editor.getShape(binding.toId)
-		if (!node || !this.editor.isShapeOfType(node, 'node')) return
-		onNodePortConnect(this.editor, node, binding.props.portId)
+		const node = this.getBoundNode(binding)
+		if (node) onNodePortConnect(this.editor, node, binding.props.portId)
 	}
 
 	onAfterChange({ bindingBefore, bindingAfter }: BindingOnChangeOptions<ConnectionBinding>): void {
 		// We also might need to call the connection callbacks if we change the thing this connection is binding to.
 		if (
-			bindingBefore.props.portId !== bindingAfter.props.portId ||
-			bindingBefore.toId !== bindingAfter.toId
+			bindingBefore.props.portId === bindingAfter.props.portId &&
+			bindingBefore.toId === bindingAfter.toId
 		) {
-			const nodeBefore = this.editor.getShape(bindingBefore.toId)
-			const nodeAfter = this.editor.getShape(bindingAfter.toId)
-			if (
-				!nodeBefore ||
-				!nodeAfter ||
-				!this.editor.isShapeOfType(nodeBefore, 'node') ||
-				!this.editor.isShapeOfType(nodeAfter, 'node')
-			) {
-				return
-			}
-			onNodePortDisconnect(this.editor, nodeBefore, bindingBefore.props.portId)
-			onNodePortConnect(this.editor, nodeAfter, bindingAfter.props.portId)
+			return
 		}
+		const nodeBefore = this.getBoundNode(bindingBefore)
+		const nodeAfter = this.getBoundNode(bindingAfter)
+		if (!nodeBefore || !nodeAfter) return
+		onNodePortDisconnect(this.editor, nodeBefore, bindingBefore.props.portId)
+		onNodePortConnect(this.editor, nodeAfter, bindingAfter.props.portId)
 	}
 
 	onAfterDelete({ binding }: BindingOnDeleteOptions<ConnectionBinding>): void {
 		// When we're deleting a connection, we need to call the node's port disconnect callback
+		const node = this.getBoundNode(binding)
+		if (node) onNodePortDisconnect(this.editor, node, binding.props.portId)
+	}
+
+	private getBoundNode(binding: ConnectionBinding): NodeShape | undefined {
 		const node = this.editor.getShape(binding.toId)
-		if (!node || !this.editor.isShapeOfType(node, 'node')) return
-		onNodePortDisconnect(this.editor, node, binding.props.portId)
+		return node && this.editor.isShapeOfType(node, 'node') ? node : undefined
 	}
 }
 
@@ -138,7 +136,7 @@ export function getConnectionBindingPositionInPageSpace(
 	if (!targetShape || !editor.isShapeOfType(targetShape, 'node')) return null
 
 	// Find the port in the shape that the connection is bound to
-	const port = getNodePorts(editor, targetShape)?.[binding.props.portId]
+	const port = getNodePorts(editor, targetShape)[binding.props.portId]
 	if (!port) return null
 
 	// Transform the port position from shape space to page space

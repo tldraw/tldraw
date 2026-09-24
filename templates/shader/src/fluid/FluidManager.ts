@@ -240,16 +240,6 @@ export class FluidManager {
 	}
 
 	/**
-	 * Create random splats in the fluid simulation.
-	 * @param count - Number of random splats to create. If not provided, uses randomSplatsRange from config.
-	 */
-	createRandomSplats = (count?: number): void => {
-		if (!this.fluidSim) return
-		const splatCount = count ?? Math.floor(Math.random() * 20) + 5
-		this.fluidSim.addRandomSplats(splatCount)
-	}
-
-	/**
 	 * Clean up resources and dispose of the fluid simulation.
 	 * Destroys the fluid simulation instance and clears all registered disposables.
 	 */
@@ -315,74 +305,35 @@ export class FluidManager {
 		if (!this.fluidSim) return
 		const vsb = this.editor.getViewportScreenBounds()
 
-		created.forEach((shape) => {
-			if (shape.type === 'group') {
-				const children = this.editor.getSortedChildIdsForParent(shape.id)
-				children.forEach((childId) => {
-					const child = this.editor.getShape(childId)
-					if (!child) return
-					this.handleNewShape(child, vsb)
-				})
-				return
-			}
-			this.handleNewShape(shape, vsb)
-		})
+		for (const shape of created) {
+			this.splatShapeOrGroup(shape, vsb, { x: 0, y: 0 })
+		}
 
-		updated.forEach(([prevShape, shape]) => {
-			if (shape.type === 'group') {
-				const children = this.editor.getSortedChildIdsForParent(shape.id)
-				children.forEach((childId) => {
-					const child = this.editor.getShape(childId)
-					if (!child) return
-					this.handleNewShape(child, vsb)
-				})
-			} else {
-				this.handleShapeChange(shape, prevShape, vsb)
-			}
-		})
+		const { velocityScale } = this.config
+		for (const [prevShape, shape] of updated) {
+			this.splatShapeOrGroup(shape, vsb, {
+				x: (shape.x - prevShape.x) * velocityScale,
+				y: (shape.y - prevShape.y) * velocityScale - 0.05,
+			})
+		}
 	}, 32)
 
-	/**
-	 * Handle a newly created shape by extracting its geometry and creating fluid splats.
-	 * @param shape - The newly created shape
-	 * @param vsb - The viewport screen bounds
-	 */
-	private handleNewShape = (shape: TLShape, vsb: Box): void => {
-		const geometryData = this.extractShapeGeometry(shape, vsb)
-		const color = this.getShapeColor(shape)
-		if (geometryData.points.length > 0) {
-			this.fluidSim!.createSplatsFromGeometry(
-				geometryData.points,
-				{ x: 0, y: 0 },
-				geometryData.isClosed,
-				color
-			)
+	private splatShapeOrGroup(shape: TLShape, vsb: Box, velocity: { x: number; y: number }) {
+		if (shape.type !== 'group') {
+			this.splatShape(shape, vsb, velocity)
+			return
+		}
+		// Group children always splat without velocity, matching how a new group is handled
+		for (const childId of this.editor.getSortedChildIdsForParent(shape.id)) {
+			const child = this.editor.getShape(childId)
+			if (child) this.splatShape(child, vsb, { x: 0, y: 0 })
 		}
 	}
 
-	/**
-	 * Handle a shape update by calculating velocity from position change and creating fluid splats.
-	 * @param shape - The current state of the shape
-	 * @param prevShape - The previous state of the shape
-	 * @param vsb - The viewport screen bounds
-	 */
-	private handleShapeChange = (shape: TLShape, prevShape: TLShape, vsb: Box): void => {
-		const geometryData = this.extractShapeGeometry(shape, vsb)
-		const color = this.getShapeColor(shape)
-		const { velocityScale } = this.config
-		if (geometryData.points.length > 0) {
-			// Calculate velocity based on position change
-			const velocity = {
-				x: (shape.x - prevShape.x) * velocityScale,
-				y: (shape.y - prevShape.y) * velocityScale - 0.05,
-			}
-			this.fluidSim!.createSplatsFromGeometry(
-				geometryData.points,
-				velocity,
-				geometryData.isClosed,
-				color
-			)
-		}
+	private splatShape(shape: TLShape, vsb: Box, velocity: { x: number; y: number }) {
+		const { points, isClosed } = this.extractShapeGeometry(shape, vsb)
+		if (points.length === 0) return
+		this.fluidSim!.createSplatsFromGeometry(points, velocity, isClosed, this.getShapeColor(shape))
 	}
 
 	/**
@@ -392,18 +343,8 @@ export class FluidManager {
 	 * @param cameraVelocity - The velocity of the camera movement
 	 */
 	private handleViewportChange = throttle((vsb: Box, cameraVelocity: Vec): void => {
-		const renderingShape = this.editor.getRenderingShapes()
-		for (const { shape } of renderingShape) {
-			const geometryData = this.extractShapeGeometry(shape, vsb)
-			const color = this.getShapeColor(shape)
-			if (geometryData.points.length > 0) {
-				this.fluidSim!.createSplatsFromGeometry(
-					geometryData.points,
-					cameraVelocity,
-					geometryData.isClosed,
-					color
-				)
-			}
+		for (const { shape } of this.editor.getRenderingShapes()) {
+			this.splatShape(shape, vsb, cameraVelocity)
 		}
 	}, 32)
 
@@ -414,35 +355,9 @@ export class FluidManager {
 	 * @returns RGB color values in the range [0, 1]
 	 */
 	private getShapeColor(shape: TLShape): [number, number, number] {
-		try {
-			// Try to get color from shape props
-			let colorValue = 'black' // Default
-			if (this.hasStringColorProp(shape)) {
-				colorValue = (shape.props as any).color
-			}
-
-			// Convert tldraw color names to RGB values
-			const colorMap = this.darkMode ? this.config.darkModeColorMap : this.config.lightModeColorMap
-			const color = colorMap[colorValue] || colorMap.blue
-			return color
-		} catch (error) {
-			console.warn('Failed to extract color for shape:', shape.type, error)
-			return this.darkMode ? DEFAULT_DARK_MODE_COLOR_MAP.blue : DEFAULT_LIGHT_MODE_COLOR_MAP.blue // Default color
-		}
-	}
-
-	/**
-	 * Check if a shape has a valid string color property.
-	 * @param shape - The shape to check
-	 * @returns True if the shape has a string color property
-	 */
-	private hasStringColorProp(shape: TLShape): boolean {
-		return (
-			shape &&
-			shape.props &&
-			Object.prototype.hasOwnProperty.call(shape.props, 'color') &&
-			typeof (shape.props as any).color === 'string'
-		)
+		const colorMap = this.darkMode ? this.config.darkModeColorMap : this.config.lightModeColorMap
+		const color = (shape.props as { color?: unknown }).color
+		return colorMap[typeof color === 'string' ? color : 'black'] || colorMap.blue
 	}
 
 	/**
@@ -457,61 +372,44 @@ export class FluidManager {
 		isClosed: boolean
 	} => {
 		// Convert page coordinates to normalized coordinates
-		const toNormalized = (pageX: number, pageY: number) => {
-			const screenPoint = this.editor.pageToScreen({ x: pageX, y: pageY })
+		const toNormalized = (pagePoint: { x: number; y: number }) => {
+			const screenPoint = this.editor.pageToScreen(pagePoint)
 			return {
 				x: (screenPoint.x - vsb.x) / vsb.w,
 				y: ((screenPoint.y - vsb.y) / vsb.h) * -1 + 1,
 			}
 		}
 
-		const transformAndNormalize = (
-			vertex: { x: number; y: number },
-			transform: { a: number; b: number; c: number; d: number; e: number; f: number }
-		) => {
-			const transformedX = transform.a * vertex.x + transform.c * vertex.y + transform.e
-			const transformedY = transform.b * vertex.x + transform.d * vertex.y + transform.f
-			return toNormalized(transformedX, transformedY)
-		}
+		const isOpenShapeType = shape.type === 'arrow' || shape.type === 'line'
 
 		try {
 			// Get the shape's geometry using tldraw's built-in helpers
 			const geometry = this.editor.getShapeGeometry(shape)
 
-			const points: Array<{ x: number; y: number }> = []
-			let isClosed = true // Default to closed
-
 			// Get the shape's transform
 			const transform = this.editor.getShapePageTransform(shape)
 			if (!transform) return { points: [], isClosed: false }
 
+			const points: Array<{ x: number; y: number }> = []
+
 			// Check if geometry has isClosed property
-			if (shape.type === 'arrow' || shape.type === 'line') {
-				isClosed = false
-			} else {
-				if ('isClosed' in geometry && typeof geometry.isClosed === 'boolean') {
-					isClosed = geometry.isClosed
-				}
-			}
+			let isClosed = isOpenShapeType ? false : geometry.isClosed
 
 			// Sample points along the geometry
 			// Use the vertices property directly
-			if (geometry.vertices && geometry.vertices.length > 0) {
-				geometry.vertices.forEach((vertex) => {
-					points.push(transformAndNormalize(vertex, transform))
-				})
-			} else if ('bounds' in geometry) {
+			if (geometry.vertices.length > 0) {
+				for (const vertex of geometry.vertices) {
+					points.push(toNormalized(transform.applyToPoint(vertex)))
+				}
+			} else {
 				// Sample points around the perimeter using bounds
-				const bounds = geometry.bounds
-				const sampleCount = this.config.boundsSampleCount
-				const corners = bounds.corners
-				const pointsPerEdge = Math.ceil(sampleCount / 4)
+				const corners = geometry.bounds.corners
+				const pointsPerEdge = Math.ceil(this.config.boundsSampleCount / 4)
 				for (let j = 0; j < 4; j++) {
 					for (let i = 0; i < pointsPerEdge; i++) {
 						points.push(
-							transformAndNormalize(
-								Vec.Lrp(corners[j], corners[(j + 1) % 4], i / pointsPerEdge),
-								transform
+							toNormalized(
+								transform.applyToPoint(Vec.Lrp(corners[j], corners[(j + 1) % 4], i / pointsPerEdge))
 							)
 						)
 					}
@@ -530,17 +428,14 @@ export class FluidManager {
 			if (!bounds) return { points: [], isClosed: false }
 
 			const { x, y, w, h } = bounds
-			const fallbackIsClosed =
-				!this.editor.isShapeOfType(shape, 'arrow') && !this.editor.isShapeOfType(shape, 'line')
-
 			return {
 				points: [
-					toNormalized(x, y),
-					toNormalized(x + w, y),
-					toNormalized(x + w, y + h),
-					toNormalized(x, y + h),
+					toNormalized({ x, y }),
+					toNormalized({ x: x + w, y }),
+					toNormalized({ x: x + w, y: y + h }),
+					toNormalized({ x, y: y + h }),
 				],
-				isClosed: fallbackIsClosed,
+				isClosed: !isOpenShapeType,
 			}
 		}
 	}

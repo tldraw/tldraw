@@ -25,6 +25,9 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+
 jobs:
   update_snapshots:
     name: 'Run'
@@ -58,10 +61,10 @@ jobs:
         uses: ./.github/actions/setup-playwright
 
       - name: Build examples
-        run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && cd apps/examples && yarn build
+        run: pnpm exec lazy refresh-assets && pnpm exec lazy run prebuild && cd apps/examples && pnpm build
 
       - name: Run Playwright tests & update snapshots
-        run: 'yarn e2e --update-snapshots'
+        run: 'pnpm e2e --update-snapshots'
         working-directory: 'apps/examples'
 
       - name: Commit and push changes

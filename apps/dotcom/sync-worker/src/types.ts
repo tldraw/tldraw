@@ -5,6 +5,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLFileDurableObject } from './TLFileDurableObject'
 import type { TLFileEffectProcessor } from './TLFileEffectProcessor'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
+import type { KeyframeReason } from './versionChain'
 
 // The Browser Rendering binding's Quick Actions method. Cloudflare exposes `env.BROWSER.quickAction`
 // so a Worker can call the Quick Actions endpoints (`screenshot`, `pdf`, …) straight through the
@@ -47,6 +48,9 @@ export interface Environment {
 
 	ROOMS: R2Bucket
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket
+	// Delta chains. ROOMS_HISTORY_EPHEMERAL keeps every version written before cut-over, so both
+	// buckets stay on the read path until the standing history is compacted.
+	ROOMS_HISTORY: R2Bucket
 
 	ROOM_SNAPSHOTS: R2Bucket
 	SNAPSHOT_SLUG_TO_PARENT_SLUG: KVNamespace
@@ -96,6 +100,8 @@ export interface Environment {
 	MCP_SERVER_BOARD_RATE_LIMITER: RateLimit | undefined
 	/** Total Browser Run sessions the tools spend, captures and measures alike, on one shared key. */
 	MCP_SERVER_BROWSER_RATE_LIMITER: RateLimit | undefined
+	/** Per-account `search_boards` calls. Bounds Postgres, not Browser Run, which search never spends. */
+	MCP_SERVER_SEARCH_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
@@ -121,15 +127,20 @@ export interface Environment {
 	// non-functional local binding and the render path fails closed; real local captures need
 	// `wrangler dev --remote` with credentials or a preview deploy. Undefined in tests.
 	BROWSER: BrowserBinding | undefined
-	// Kill switch for the MCP screenshot server (POST /app/mcp). Absent means enabled, so an
-	// environment that never configured it behaves as it did before the flag existed. Anything other
-	// than 'true' turns the endpoint off, so a typo fails in the safe direction. Editing this var in
-	// the Cloudflare dashboard takes the server down without a rebuild or a code deploy — but the
-	// next deploy restores the wrangler.toml value, so follow an emergency flip with a config change.
-	MCP_SCREENSHOT_ENABLED: string | undefined
+	/**
+	 * Whether `search_boards` will match on board names. Unset means yes, so previews, local dev and
+	 * tests keep working; production sets it to "false" while the unindexed `ILIKE` scan it drives is
+	 * still being watched.
+	 */
+	MCP_SEARCH_NAME_MATCHING_ENABLED: string | undefined
 	// Origin serving the client thumbnail render page (THUMBNAIL_RENDER_PATH). Set per
 	// environment in wrangler.toml.
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
+	// 'true' opts MCP screenshots into live-canvas capture: the page prunes the canvas to the
+	// requested shapes, settles and fits, and the screenshotting browser rasterizes it instead of
+	// the page exporting itself. Skips the export phase, the expensive part on heavy boards, at the
+	// cost of the export path's pixel-exact sizing. Off everywhere it is unset.
+	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected
@@ -156,7 +167,7 @@ export function isDebugLogging(env: Environment) {
 
 /**
  * The word a boolean-ish env var holds: trimmed, lowercased, with unset and empty folded together.
- * Used by MCP_SCREENSHOT_ENABLED. Kept as a shared helper rather than inlined so a second
+ * Used by MCP_SEARCH_NAME_MATCHING_ENABLED. Kept as a shared helper rather than inlined so a second
  * boolean-ish var cannot arrive parsing its value differently — each call site keeps its own
  * fail-safe direction, this owns what a value *is*.
  */
@@ -201,7 +212,37 @@ export type TLServerEvent =
 				| 'comment_reaction_orphan_prune'
 				| 'room_empty'
 				| 'fail_persist'
-				| 'room_start'
+	  }
+	| {
+			type: 'room'
+			name: 'room_start'
+			/**
+			 * How many hibernated sockets this boot resumed. Zero means a cold boot, and anything
+			 * higher means the durable object woke with clients still attached — which nothing else
+			 * in the dataset distinguishes, since both emit the same `room_start`.
+			 */
+			resumedSockets: number
+	  }
+	// Discriminated on `wrote`: only a keyframe carries the reason that forced it.
+	| ({
+			type: 'version_chain_write'
+			bytes: number
+			depth: number
+	  } & ({ wrote: 'keyframe'; reason: KeyframeReason } | { wrote: 'delta' }))
+	// Discriminated on `outcome`: only a failure or a skip carries a reason.
+	| ({
+			/** A cadence keyframe retired a chain; did that chain reconstruct the state it claims? */
+			type: 'version_chain_verify'
+	  } & (
+			| { outcome: 'ok' }
+			| { outcome: 'fail'; reason: 'missing' | 'legacy-fallback' | 'head-mismatch' | 'error' }
+			// Not a failure: the chain was left unchecked because reconstructing it here would risk
+			// the isolate's memory. Carries the keyframe size so the threshold can be tuned.
+			| { outcome: 'skipped'; reason: 'keyframe-size'; keyframeBytes: number }
+	  ))
+	| {
+			/** A chain write outlasted its retries and was swallowed so the persist could complete. */
+			type: 'version_chain_error'
 	  }
 	| {
 			type: 'send_message'
@@ -247,6 +288,17 @@ export type ThumbnailBoardKind = 'published' | 'shared_file'
 export interface ThumbnailBoardRef {
 	kind: ThumbnailBoardKind
 	slug: string
+}
+
+/**
+ * Which page of which board a stored MCP cluster index belongs to. The object it is stored in is
+ * already the board's file, so this addresses a page within that. See mcpClusterIndexStorage.ts.
+ */
+export interface McpClusterIndexKey {
+	kind: ThumbnailBoardKind
+	pageId: string
+	/** The board's content version, so an index is only read back for the content it was built from. */
+	version: string
 }
 
 /**

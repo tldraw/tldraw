@@ -167,13 +167,23 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			return point.x === firstPoint.x && point.y === firstPoint.y
 		})
 		if (allSame) {
+			// Copy rather than mutate: createShapes spreads the partial's props shallowly, so
+			// `points` is the caller's object — on duplicate, the frozen source record's.
 			const lastKey = pointKeys[pointKeys.length - 1]
-			points[lastKey] = {
-				...points[lastKey],
-				x: points[lastKey].x + 0.1,
-				y: points[lastKey].y + 0.1,
+			return {
+				...next,
+				props: {
+					...next.props,
+					points: {
+						...points,
+						[lastKey]: {
+							...points[lastKey],
+							x: points[lastKey].x + 0.1,
+							y: points[lastKey].y + 0.1,
+						},
+					},
+				},
 			}
-			return next
 		}
 		return
 	}
@@ -305,16 +315,18 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				index = getIndexAbove(index)
 			}
 		} else if (endPoints.length > startPoints.length) {
-			// we'll need to converge points
+			// we'll need to converge points. Clones of the last start point would share its index
+			// and get dropped by linePointsToArray, so hand out fresh indices to every start point.
 			for (let i = 0; i < endPoints.length; i++) {
 				pointsToUseEnd[i] = { ...endPoints[i] }
 				if (startPoints[i] === undefined) {
 					pointsToUseStart[i] = {
 						...startPoints[startPoints.length - 1],
 						id: index,
+						index,
 					}
 				} else {
-					pointsToUseStart[i] = { ...startPoints[i], id: index }
+					pointsToUseStart[i] = { ...startPoints[i], id: index, index }
 				}
 				index = getIndexAbove(index)
 			}
@@ -358,6 +370,12 @@ const pathCache = new WeakCache<TLLineShape, PathBuilder>()
 function getPathForLineShape(shape: TLLineShape): PathBuilder {
 	return pathCache.get(shape, () => {
 		const points = linePointsToArray(shape).map(Vec.From)
+
+		// A line needs two points to have a path. onBeforeCreate lets 0/1-point lines through
+		// (they can also arrive via updateShape or a file), and without this every geometry
+		// lookup on the page would throw — getShapeAtPoint included.
+		if (points.length === 0) points.push(new Vec(0, 0))
+		if (points.length === 1) points.push(points[0].clone().addXY(0.1, 0.1))
 
 		switch (shape.props.spline) {
 			case 'cubic': {

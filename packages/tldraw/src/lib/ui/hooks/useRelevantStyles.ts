@@ -25,9 +25,10 @@ export function useRelevantStyles(stylesToCheck = selectToolStyles): ReadonlySha
 		() => {
 			const styles = new SharedStyleMap(editor.getSharedStyles())
 			const isInShapeSpecificTool = !!editor.root.getCurrent()?.shapeType
-			const hasShapesSelected = editor.isIn('select') && editor.getSelectedShapeIds().length > 0
+			const isInSelect = editor.isIn('select')
+			const hasShapesSelected = isInSelect && editor.getSelectedShapeIds().length > 0
 
-			if (styles.size === 0 && editor.isIn('select') && editor.getSelectedShapeIds().length === 0) {
+			if (styles.size === 0 && isInSelect && !hasShapesSelected) {
 				for (const style of stylesToCheck) {
 					styles.applyValue(style, editor.getStyleForNextShape(style))
 				}

@@ -43,12 +43,6 @@ export const debugFlags = {
 	throwToBlob: createDebugValue('throwToBlob', {
 		defaults: { all: false },
 	}),
-	reconnectOnPing: createDebugValue('reconnectOnPing', {
-		defaults: { all: false },
-	}),
-	debugCursors: createDebugValue('debugCursors', {
-		defaults: { all: false },
-	}),
 	forceSrgb: createDebugValue('forceSrgbColors', { defaults: { all: false } }),
 	debugGeometry: createDebugValue('debugGeometry', { defaults: { all: false } }),
 	hideShapes: createDebugValue('hideShapes', { defaults: { all: false } }),

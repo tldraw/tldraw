@@ -99,7 +99,7 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 }
 ```
 
-Shapes whose util overrides `canCull` are subscribed to individually inside the culling derivation, so a `canCull` that reads many props re-runs the derivation more often. Shapes using the default fast path don't pay this cost. Disable culling only for shapes that need it: visual effects that extend past the bounds, shapes that measure their DOM, or animations that should keep running off-screen. See [Performance](/sdk-features/performance#disable-culling-only-when-necessary) for guidance.
+Shapes whose util overrides `canCull` are subscribed to individually inside the culling derivation, so a `canCull` that reads many props re-runs the derivation more often. Shapes using the default fast path don't pay this cost. Disable culling only for shapes that need it: visual effects that extend past the bounds, shapes that measure their DOM, or animations that should keep running off-screen. See [Performance](/sdk-features/performance#Disable-culling-only-when-necessary) for guidance.
 
 ## Related examples
 

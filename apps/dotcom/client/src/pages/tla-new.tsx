@@ -9,12 +9,15 @@ export function Component() {
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
 	useEffect(() => {
+		// A user who leaves /new before the mutation settles must not be yanked to the new file.
+		let cancelled = false
 		const createFile = async () => {
 			if (!app) {
 				navigate(routes.tlaRoot(), { replace: true })
 				return
 			}
 			const res = await app.createFile()
+			if (cancelled) return
 			if (res.ok) {
 				const { fileId } = res.value
 				navigate(routes.tlaFile(fileId), { replace: true })
@@ -24,6 +27,9 @@ export function Component() {
 			}
 		}
 		createFile()
+		return () => {
+			cancelled = true
+		}
 	}, [app, navigate, trackEvent])
 	return null
 }

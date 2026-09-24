@@ -29,10 +29,8 @@ export function ChatInput({
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 
 	useEffect(() => {
-		if (!disabled && textareaRef.current) {
-			// focus the textarea when the input is enabled
-			textareaRef.current.focus()
-		}
+		// focus the textarea when the input is enabled
+		if (!disabled) textareaRef.current?.focus()
 	}, [disabled])
 
 	// Auto-resize textarea and scroll to bottom when content changes.
@@ -47,37 +45,30 @@ export function ChatInput({
 
 	// Scroll to bottom when images are added.
 	useLayoutEffect(() => {
-		if (scrollToBottom) {
-			scrollToBottom('instant')
-		}
+		scrollToBottom('instant')
 	}, [images, scrollToBottom])
 
 	// the user can only send a message if the input is not disabled and there are either images or
 	// text ready to send
 	const canSend = !disabled && (images.length > 0 || input.trim())
 
+	const send = () => {
+		if (canSend) onSendMessage(input, images)
+	}
+
 	// when the user submits the form, we send the message.
 	const handleSubmit = (e: FormEvent) => {
 		e.preventDefault()
-		if (canSend) {
-			onSendMessage(input, images)
-		}
+		send()
 	}
 
 	// when the user presses enter, we send the message.
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		if (e.key === 'Enter') {
-			if (e.shiftKey) {
-				// Shift+Enter: allow default behavior (insert newline)
-				return
-			} else {
-				// Enter: submit form
-				e.preventDefault()
-				if (canSend) {
-					onSendMessage(input, images)
-				}
-			}
-		}
+		// Shift+Enter: allow default behavior (insert newline)
+		if (e.key !== 'Enter' || e.shiftKey) return
+		// Enter: submit form
+		e.preventDefault()
+		send()
 	}
 
 	// when the user clicks the image upload button, we open a file input to allow them to select an
@@ -87,16 +78,11 @@ export function ChatInput({
 		input.type = 'file'
 		input.accept = 'image/*'
 		input.onchange = (e: Event) => {
-			const target = e.target as HTMLInputElement
-			const file = target.files?.[0]
+			const file = (e.target as HTMLInputElement).files?.[0]
 			if (!file || !file.type.startsWith('image/')) return
 
 			// Open whiteboard with the uploaded file
-			dispatch({
-				type: 'openWhiteboard',
-				uploadedFile: file,
-				imageName: file.name,
-			})
+			dispatch({ type: 'openWhiteboard', uploadedFile: file, imageName: file.name })
 		}
 		input.click()
 	}, [dispatch])
@@ -112,9 +98,7 @@ export function ChatInput({
 			dispatch({ type: 'closeWhiteboard' })
 			dispatch({ type: 'setImage', image })
 			// Re-focus the input after adding an image
-			if (textareaRef.current) {
-				textareaRef.current.focus()
-			}
+			textareaRef.current?.focus()
 		},
 		[dispatch]
 	)

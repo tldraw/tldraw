@@ -4,9 +4,9 @@ This file provides guidance to AI coding agents working in this repository.
 
 ## Core rules
 
-- Use `yarn`, not `npm`, for repo commands. This repo uses Yarn workspaces and Yarn 4.
+- Use `pnpm`, not `npm` or `yarn`, for repo commands. This repo uses pnpm workspaces; `yarn …` fails at install and is blocked for agents by a hook.
 - Run commands from the repo root unless a command explicitly says to run from a workspace.
-- Never run bare `tsc`; use `yarn typecheck` from the repo root.
+- Never run bare `tsc`; use `pnpm typecheck` from the repo root.
 - Prefer targeted checks first. Avoid repo-wide test or e2e runs unless the change needs them.
 - Keep changes scoped to the request and the affected package. Do not refactor unrelated code.
 - Respect existing worktree changes. Do not revert user changes unless explicitly asked.
@@ -15,7 +15,7 @@ This file provides guidance to AI coding agents working in this repository.
 
 ## Repo overview
 
-This is the tldraw monorepo, an infinite canvas SDK for React applications. It is organized with Yarn workspaces.
+This is the tldraw monorepo, an infinite canvas SDK for React applications. It is organized with pnpm workspaces (see `pnpm-workspace.yaml`).
 
 Core packages:
 
@@ -41,52 +41,58 @@ Apps and examples:
 Requires Node `>=22.12.0`. Enable Corepack before installing dependencies:
 
 ```bash
-npm i -g corepack && yarn
+npm i -g corepack && pnpm install
 ```
+
+Coming from Yarn (a checkout, worktree or branch from before the pnpm switch):
+
+- If an install stops with "This repo uses pnpm. Run:", run the commands it lists, in order. They clear out Yarn's install (every `node_modules`, `.yarn` and `yarn.lock`), set up pnpm if needed, and reinstall.
+- When merging main into an older branch: delete `yarn.lock` if it conflicts (`git rm yarn.lock`). If `pnpm-lock.yaml` conflicts, take main's copy (`git checkout origin/main -- pnpm-lock.yaml`) and run `pnpm install` to add the branch's dependency changes. Never hand-edit the lockfile.
+- Replace `yarn <script>` with `pnpm <script>`, and `yarn workspace <pkg> <script>` with `pnpm --filter <pkg> <script>`.
 
 ## Common commands
 
 Development:
 
-- `yarn dev` - start the examples app at localhost:5420
-- `yarn dev-app` - start the tldraw.com client app
-- `yarn dev-docs` - start the docs site
-- `yarn dev-vscode` - start VS Code extension development
-- `yarn dev-template <template name>` - run a template
+- `pnpm dev` - start the examples app at localhost:5420
+- `pnpm dev-app` - start the tldraw.com client app
+- `pnpm dev-docs` - start the docs site
+- `pnpm dev-vscode` - start VS Code extension development
+- `pnpm dev-template <template name>` - run a template
 
-Always run dev commands from the repo root. The root `yarn dev` runs each package's `predev` step, which generates build artifacts like `packages/tldraw/tldraw.css`. Running a per-workspace command (`yarn workspace examples.tldraw.com dev`) skips `predev`, so imports such as `tldraw/tldraw.css` fail to resolve. In a fresh git worktree, run `yarn install` first since worktrees start without `node_modules`.
+Always run dev commands from the repo root. The root `pnpm dev` runs each package's `predev` step, which generates build artifacts like `packages/tldraw/tldraw.css`. Running a per-workspace command (`pnpm --filter examples.tldraw.com dev`) skips `predev`, so imports such as `tldraw/tldraw.css` fail to resolve. In a fresh git worktree, run `pnpm install` first since worktrees start without `node_modules`.
 
 Build:
 
-- `yarn build` - build all changed packages incrementally
-- `yarn build-package` - build SDK packages only
-- `yarn build-app` - build the tldraw.com client app
-- `yarn build-docs` - build the docs site
+- `pnpm build` - build all changed packages incrementally
+- `pnpm build-package` - build SDK packages only
+- `pnpm build-app` - build the tldraw.com client app
+- `pnpm build-docs` - build the docs site
 
 Testing:
 
-- `yarn test` in a workspace - run tests in watch mode
-- `yarn test run` in a workspace - run tests once
-- `yarn test run --grep "pattern"` in a workspace - run matching tests
-- `yarn vitest` - run all tests across the repo; slow, avoid unless necessary
-- `yarn e2e` - run examples e2e tests
-- `yarn e2e-dotcom` - run tldraw.com e2e tests
+- `pnpm test` in a workspace - run tests in watch mode
+- `pnpm test run` in a workspace - run tests once
+- `pnpm test run --grep "pattern"` in a workspace - run matching tests
+- `pnpm exec vitest` - run all tests across the repo; slow, avoid unless necessary
+- `pnpm e2e` - run examples e2e tests
+- `pnpm e2e-dotcom` - run tldraw.com e2e tests
 
 Code quality:
 
-- `yarn lint` - lint the package or workspace
-- `yarn lint-current` - lint changed files
-- `yarn typecheck` - type check all packages and refresh assets
-- `yarn format` - format the repo
-- `yarn format-current` - format changed files
-- `yarn api-check` - validate public API reports
+- `pnpm lint` - lint the package or workspace
+- `pnpm lint-current` - lint changed files
+- `pnpm typecheck` - type check all packages and refresh assets
+- `pnpm format` - format the repo
+- `pnpm format-current` - format changed files
+- `pnpm api-check` - validate public API reports
 
 ## Validation workflow
 
-- For narrow package changes, run the relevant workspace test first, for example `cd packages/tldraw && yarn test run --grep "SelectTool"`.
-- For changes that affect shared types, migrations, editor behavior, or cross-package contracts, run `yarn typecheck` from the repo root.
-- For public API changes, run `yarn api-check` and include intentional API report updates.
-- For asset changes, run `yarn refresh-assets` or `yarn typecheck` so generated assets stay current.
+- For narrow package changes, run the relevant workspace test first, for example `cd packages/tldraw && pnpm test run --grep "SelectTool"`.
+- For changes that affect shared types, migrations, editor behavior, or cross-package contracts, run `pnpm typecheck` from the repo root.
+- For public API changes, run `pnpm api-check` and include intentional API report updates.
+- For asset changes, run `pnpm refresh-assets` or `pnpm typecheck` so generated assets stay current.
 - For docs changes, run the narrow docs checks or docs build only when the change affects generated content, MDX behavior, or site structure.
 - For e2e behavior changes, run the smallest relevant e2e suite and update snapshots only when behavior intentionally changed.
 
@@ -190,41 +196,22 @@ Dependencies:
 
 - Keep dependencies workspace-appropriate.
 - If changing dependency manifests or lockfiles, make sure the lockfile update is intentional and included.
-- Every package a file imports must be declared in the owning workspace's own `package.json`. Yarn's `node-modules` linker hoists everything to the repo root, so an undeclared import still resolves here but breaks consumers on pnpm or Yarn PnP. The `tldraw/no-undeclared-dependencies` lint rule enforces this across `packages/*`; adding a workspace dependency also needs a matching `references` entry in that package's `tsconfig.json` (`yarn check-packages --fix`).
-- Dependency install/build scripts are off by default (`enableScripts: false` in `.yarnrc.yml`), which closes the main supply-chain `postinstall` code-execution path. Packages that genuinely need to build (native/napi modules, binary downloaders) are allowlisted with `built: true` under `dependenciesMeta` in the root `package.json`. When adding a dependency that ships a native addon or downloads a platform binary, add an allowlist entry — Yarn silently skips unlisted scripts, so a missing entry shows up as a runtime or build failure, not an install error.
+- Every package a file imports must be declared in the owning workspace's own `package.json`. pnpm's `hoisted` linker puts everything in the root `node_modules`, so an undeclared import still resolves here but breaks consumers with strict isolation. The `tldraw/no-undeclared-dependencies` lint rule enforces this across `packages/*`, `apps/*`, `internal/*`, and `templates/*`. Shared dev tooling that every workspace runs (`vitest`, `tsx`, `typescript`, `lazyrepo`) may live only in the root `package.json`: the root `node_modules` is reachable from every workspace under any linker. Anything a published package's source imports must be declared by that package. Adding a workspace dependency also needs a matching `references` entry in that package's `tsconfig.json` (`pnpm check-packages --fix`).
+- Dependency install/build scripts are off by default, which closes the main supply-chain `postinstall` code-execution path. Every package that ships a build script must be listed under `allowBuilds` in `pnpm-workspace.yaml`: `true` for packages that genuinely need to build (native/napi modules, binary downloaders), `false` for everything else. pnpm fails the install when a package with a build script isn't listed, so a new one shows up at install time; decide whether it needs to run before adding it.
 
 ## Comments
 
-A comment earns its place by saying something the code cannot: why this way, what breaks otherwise, which bug it guards. Everything else is noise a reader wades through to reach the code — and enough of it teaches people to skip comments entirely, including the load-bearing ones.
+A comment earns its place by saying something the code cannot: why this way, what breaks otherwise, which bug it guards. The litmus: a good comment names a failure mode, not a mechanism.
 
-Delete on sight:
+Scope: these rules apply to comments you write — new code, and lines you are already changing. Do not sweep existing comments while fixing a bug or refactoring; that buries a small change in a large diff. Leave an existing comment alone unless your change makes it inaccurate, you are rewriting the lines it is attached to, or the user asked for a cleanup. If you notice comments worth cleaning up, mention it or do it in a separate PR.
 
-- **Restatement.** `/** Get the toolbar element */` above `getToolbar()`. The name already said it.
-- **Narration.** `// Check if the shape is already selected` above the line that checks. `// Delete the shapes` above `editor.deleteShapes()`.
-- **Section banners.** `// ===== Locators =====`, `// --- internals ---`. A file that needs signposting needs splitting. Judge the label like any other comment once the rule is off it — `// Bug 3: arrow binding survives rotation` above `test('bug 3: arrow binding survives rotation')` is restatement wearing decoration.
-- **`@param` / `@returns` that restate the signature.** The types carry it. Keep the tag only for what the type can't say — units, a caller precondition, `0 = first button`.
-- **Rationale copy-pasted across sibling call sites.** State it once where the shared thing lives and point at it. Three copies become three subtly different claims, and then nobody knows which is current.
-- **Call-site lists.** `Used by: SelectTool, DrawTool, EraserTool…`. Find-references gives this for free and it rots on the next caller.
+When writing comments:
 
-Trim, rather than delete, when the reason is real but overlong. The test is whether a reviewer reads it or skips past it to get at the code: **once a comment is longer than the code it explains, it has stopped working.** A twenty-line rationale block is usually three good lines plus seventeen restating them — keep the three. One orienting header per file is fine; one per method is not.
-
-**Narrative belongs in a doc; the comment keeps the local fact and points at it.** Ask: does this knowledge span more than one file, and would you read it _before_ starting rather than while typing? Then it is narrative — put it in the project's doc (a `README.md` beside the code, a `SPEC.md`, an article in `apps/docs/content/`) and leave a header of a few lines carrying what this file's own reader needs, plus the reference. A guard comment fails that test and must stay at the line: it is read _during_ an edit, by the person about to delete the thing it guards, and nobody consults a doc before deleting a line.
-
-The pointer is the deliverable, not the leftover — extraction without one is deletion with extra steps. And extract, never copy: a duplicated narrative is the thing that rots, because each copy drifts into a slightly different claim and the stalest one is indistinguishable from the current one.
-
-**The litmus, in one line: a good comment names a failure mode, not a mechanism.** The mechanism is on screen. What is not on screen is what goes wrong without it — "otherwise the binding updates before the shape has its new page transform". Write the "otherwise" and the mechanism explains itself. Expect length, not category, to be the usual defect: most blocks worth editing already name a real force, and then say it three more times.
-
-What earns real length, and should not be trimmed for being long:
-
-- **A diagram.** Twenty lines of box-drawing beat any prose about geometry.
-- **An enumerated set of cases** the code must not break — the list is the specification.
-- **Provenance.** An issue number, "we tried X and it did Y", "modified from the upstream version to…".
-
-Keep, always: the non-obvious invariant, the bug or issue number, the constant nobody should tune blindly.
-
-**Application code is not library code.** In `packages/*`, doc comments on the `@public` surface are a deliverable — they become the API reference on tldraw.dev and land in `api-report.md`, and density there is expected. In `apps/*` and `templates/*` almost nothing is a published surface, so comment lines are explanation prose and cost reading time. App code carrying library-grade comment density, with no `@public` surface to justify it, is over-commented by definition.
-
-Applies to code you write **and** code you touch. Prior art: [#9824](https://github.com/tldraw/tldraw/pull/9824).
+- Don't restate the code (`/** Get the toolbar */` above `getToolbar()`), narrate it (`// Delete the shapes` above `editor.deleteShapes()`), add section banners, list call sites, or write `@param`/`@returns` that only repeat the signature.
+- State a rationale once where the shared thing lives; don't copy it across sibling call sites.
+- Keep comments shorter than the code they explain. Narrative that spans files belongs in a doc (`README.md`, `SPEC.md`, `apps/docs/content/`) with a short pointer from the code.
+- Always keep: non-obvious invariants, issue numbers and provenance, constants nobody should tune blindly, diagrams, and enumerated cases the code must not break.
+- In `packages/*`, doc comments on the `@public` surface become the API reference; density there is expected. In `apps/*` and `templates/*`, keep comments sparse.
 
 ## Writing style
 
