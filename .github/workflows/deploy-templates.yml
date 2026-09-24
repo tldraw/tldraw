@@ -7,8 +7,7 @@ name: Deploy templates
 # covers the first; publish.yml covers the second with a job of its own, using the same
 # .github/actions/deploy-templates steps.
 #
-# The vercel-hosted demos (chat, shader, workflow) deploy through vercel's own git integration and
-# aren't handled here.
+# The vercel-hosted chat demo deploys through vercel's own git integration and isn't handled here.
 on:
   push:
     branches:
