@@ -10,5 +10,4 @@ custom_domain = true
 enabled = true
 
 [assets]
-not_found_handling = "single-page-application"
 directory = "./dist"
