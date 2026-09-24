@@ -9,11 +9,13 @@ import {
 	MCP_PER_BOARD_RATE_LIMIT,
 	MCP_PER_USER_RATE_LIMIT,
 	MCP_RATE_LIMIT_WINDOW_MS,
+	MCP_CREATE_PER_USER_RATE_LIMIT,
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
 } from '../../config'
 import { Environment, envFlagWord } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
+import { getPublicOrigin } from '../../utils/getPublicOrigin'
 import { sha256 } from '../../utils/hash'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
@@ -22,6 +24,7 @@ import {
 	BOARD_NOT_FOUND_MESSAGE,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
+	CREATE_BOARD_TOOL_NAME,
 	MCP_SERVER_INFO,
 	getMcpServerInstructions,
 	PAGE_INFO_TOOL_NAME,
@@ -35,11 +38,13 @@ import {
 	getBoardInfo,
 	getBoardSearchResults,
 	getClusterInfo,
+	getCreatedBoardResult,
 	getPageInfo,
 	getToolDefinitions,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
+	parseCreateBoardInput,
 	parsePageInfoInput,
 	parseSearchBoardsInput,
 	pickClusterShapes,
@@ -47,6 +52,7 @@ import {
 	toolError as modelToolError,
 	toolPageResult,
 } from './boardTools'
+import { createBoardForUser } from './createBoard'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import { readPageClusters, writePageClusterIndex } from './mcpClusterIndex'
 import { searchAccessibleBoards } from './searchBoards'
@@ -146,6 +152,10 @@ function perUserRateLimitKey(userId: string) {
  */
 function searchRateLimitKey(userId: string) {
 	return `search:${userId}`
+}
+
+function createRateLimitKey(userId: string) {
+	return `create:${userId}`
 }
 
 async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
@@ -339,6 +349,7 @@ const TOOL_HANDLERS = new Map<
 	) => Promise<ToolCallResult>
 >([
 	[SEARCH_BOARDS_TOOL_NAME, callSearchBoardsTool],
+	[CREATE_BOARD_TOOL_NAME, callCreateBoardTool],
 	[BOARD_INFO_TOOL_NAME, callBoardInfoTool],
 	[PAGE_INFO_TOOL_NAME, callPageInfoTool],
 	[CLUSTER_INFO_TOOL_NAME, callClusterInfoTool],
@@ -671,6 +682,43 @@ async function callSearchBoardsTool(
 	}
 }
 
+async function callCreateBoardTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseCreateBoardInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const refusal = await checkCreateRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		const created = await createBoardForUser(env, userId, input, ctx)
+		if (!created.ok) return withTelemetryReason(created.result, created.reason)
+		return getCreatedBoardResult({
+			boardId: created.boardId,
+			name: input.name,
+			url: `${getPublicOrigin(request as IRequest, env)}/f/${created.boardId}`,
+			workspace: created.workspace,
+		})
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_board_create',
+			// The board name is something the caller typed, so it stays off the Sentry event.
+			extras: { namedWorkspace: input.workspace !== null },
+			summary: 'Could not create the board',
+			recordAs: () => 'board_create_error',
+		})
+	}
+}
+
 async function callBoardInfoTool(
 	argumentsValue: unknown,
 	request: Request,
@@ -952,6 +1000,35 @@ async function checkSearchRateLimit(
 	return toolError(
 		`Rate limited. Searches are limited to about ${MCP_SEARCH_PER_USER_RATE_LIMIT} per minute per account.`,
 		'rate_limited_search'
+	)
+}
+
+/**
+ * The per-caller ceiling on `create_board`. Its own binding because it bounds writes, which neither
+ * the Browser Run budget nor the search one is sized for. MAX_NUMBER_OF_FILES caps what a runaway
+ * loop can leave behind; this caps how fast it gets there.
+ */
+async function checkCreateRateLimit(
+	env: Environment,
+	userId: string,
+	telemetry: McpTelemetryWriter
+): Promise<ToolCallResult | undefined> {
+	if (
+		!(await isRateLimited(env.MCP_SERVER_CREATE_RATE_LIMITER, createRateLimitKey(userId), {
+			fallbackLimit: MCP_CREATE_PER_USER_RATE_LIMIT,
+		}))
+	) {
+		return undefined
+	}
+	telemetry({
+		cacheStatus: 'none',
+		rateLimitAllowed: false,
+		failureReason: 'rate_limited_create',
+		callerHash: await sha256(userId),
+	})
+	return toolError(
+		`Rate limited. Board creation is limited to about ${MCP_CREATE_PER_USER_RATE_LIMIT} per minute per account.`,
+		'rate_limited_create'
 	)
 }
 
