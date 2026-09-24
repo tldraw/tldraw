@@ -25,6 +25,7 @@ export {
 export {
 	DefaultErrorFallback,
 	type TLErrorFallbackComponent,
+	type TLErrorFallbackProps,
 } from './lib/components/default-components/DefaultErrorFallback'
 export { DefaultGrid, type TLGridProps } from './lib/components/default-components/DefaultGrid'
 export { type TLShapeErrorFallbackComponent } from './lib/components/default-components/DefaultShapeErrorFallback'
@@ -32,7 +33,10 @@ export {
 	DefaultShapeWrapper,
 	type TLShapeWrapperProps,
 } from './lib/components/default-components/DefaultShapeWrapper'
-export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
+export {
+	DefaultSpinner,
+	type TLSpinnerProps,
+} from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
 export {
 	EditorPortal,

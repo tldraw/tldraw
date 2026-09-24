@@ -1,6 +1,11 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { RoomNotFoundError, settleWithin, shouldSkipMissingRoomEffect } from './roomEffectHelpers'
+import {
+	FileEffectStallError,
+	RoomNotFoundError,
+	settleWithin,
+	shouldSkipMissingRoomEffect,
+} from './roomEffectHelpers'
 
 function file(partial: Partial<TlaFile>): TlaFile {
 	return {
@@ -76,5 +81,27 @@ describe('settleWithin', () => {
 		reject(new Error('late'))
 		// A late rejection must not become an unhandled rejection.
 		await vi.runAllTimersAsync()
+	})
+})
+
+describe('FileEffectStallError', () => {
+	it('names the boot sub-stage and its age when the boot is still in progress', () => {
+		const error = new FileEffectStallError(
+			'slug-1',
+			'insert',
+			'storage-load:comments',
+			25000,
+			30000
+		)
+		expect(error.message).toBe(
+			'file insert effect for slug-1 still pending after 30000ms at boot stage storage-load:comments (25000ms in stage)'
+		)
+	})
+
+	it('reports post-boot work when there is no boot stage', () => {
+		const error = new FileEffectStallError('slug-1', 'update', null, null, 30000)
+		expect(error.message).toBe(
+			'file update effect for slug-1 still pending after 30000ms in post-boot work'
+		)
 	})
 })

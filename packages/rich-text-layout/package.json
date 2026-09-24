@@ -37,16 +37,16 @@
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
-		"test-ci": "yarn run -T vitest run --passWithNoTests",
-		"test": "yarn run -T vitest --passWithNoTests",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
-		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
-		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
-		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build": "pnpm exec tsx ../../internal/scripts/build-package.ts",
+		"build-api": "pnpm exec tsx ../../internal/scripts/build-api.ts",
+		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
-		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"golden": "yarn run -T tsx ./golden/run.ts"
+		"pack-tarball": "pnpm pack",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"golden": "pnpm exec tsx ./golden/run.ts"
 	},
 	"dependencies": {
 		"@chenglou/pretext": "0.0.8",
@@ -66,7 +66,7 @@
 		"@resvg/resvg-js": "^2.6.2",
 		"jsdom": "^29.1.1",
 		"lazyrepo": "0.0.0-alpha.27",
-		"vitest": "^4.1.7",
+		"vitest": "^5.0.0",
 		"wawoff2": "^2.0.1"
 	},
 	"engines": {

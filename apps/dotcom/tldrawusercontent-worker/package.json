@@ -9,11 +9,11 @@
 	},
 	"main": "src/index.ts",
 	"scripts": {
-		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --inspector-port 9450",
-		"test": "yarn run -T vitest --passWithNoTests",
-		"test-ci": "yarn run -T vitest run --passWithNoTests",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
+		"dev": "pnpm exec tsx ../../../internal/scripts/workers/dev.ts --inspector-port 9450",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"lint": "pnpm exec tsx ../../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
 		"@tldraw/worker-shared": "workspace:*",

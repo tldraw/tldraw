@@ -61,6 +61,7 @@ import {
 import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
 import { ZERO_SERVER } from '../../utils/config'
+import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
@@ -69,11 +70,28 @@ import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
+import { ZeroLogBuffer, formatLogArg, redactTokens } from './ZeroLogBuffer'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 const USER_PRELOAD_TIMEOUT_MS = 30_000
+
+export interface PreloadDiagnostics {
+	stage: string
+	connection: string
+	connectionReason: string | undefined
+	visibilityState: DocumentVisibilityState
+	hiddenMs: number
+	online: boolean
+	msSinceNavigation: number
+	msSinceInit: number
+	zeroLog: string[]
+}
+
+export function getPreloadDiagnostics(error: unknown): PreloadDiagnostics | undefined {
+	return (error as { diagnostics?: PreloadDiagnostics } | null)?.diagnostics
+}
 
 let appId = 0
 
@@ -178,6 +196,9 @@ export class TldrawApp {
 
 	/** Whether this user gets the commenting UI — see {@link shouldEnableCommenting}. */
 	readonly isCommentingEnabled: boolean
+	/** The signed-in account's email, for the first-load report gate. */
+	readonly email: string | null
+	readonly isFirstLoadRumEnabled: boolean
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -185,6 +206,7 @@ export class TldrawApp {
 
 	changes: Map<Atom<any, unknown>, any> = new Map()
 	changesFlushed = null as null | ReturnType<typeof promiseWithResolve>
+	private readonly zeroLog = new ZeroLogBuffer()
 
 	// Track new room creation timestamps and sources
 	private newRoomCreationStartTimes: Map<string, { startTime: number; source: string }> = new Map()
@@ -244,6 +266,8 @@ export class TldrawApp {
 		this.navigate = navigate
 		this.trackEvent = trackEvent
 		this.getToken = getToken
+		this.email = email ?? null
+		this.isFirstLoadRumEnabled = flags.first_load_rum?.enabled ?? false
 		this.isCommentingEnabled = shouldEnableCommenting(flags, email).value
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
@@ -257,6 +281,8 @@ export class TldrawApp {
 			cacheURL: ZERO_SERVER,
 			mutators: createMutators(userId),
 			context: { userId } satisfies ZeroContext,
+			logLevel: 'info',
+			logSink: this.zeroLog,
 			onUpdateNeeded(reason) {
 				console.error('update needed', reason)
 				onClientTooOld()
@@ -377,14 +403,15 @@ export class TldrawApp {
 		}
 	}
 
-	async preload() {
+	async preload(signal?: AbortSignal) {
 		// Ensure user exists in DB before Zero can query
 		const token = await this.getToken()
 		if (!token) throw new Error('No auth token available for init')
 		const res = await fetch(`/api/app/${this.userId}/init`, {
 			method: 'POST',
-			headers: { Authorization: `Bearer ${token}` },
+			headers: { Authorization: `Bearer ${token}`, 'x-tldraw-load-id': getFirstLoadId() },
 		})
+		markFirstLoad('init-done')
 		// A failed init only matters if the user row never shows up: returning users whose row
 		// already exists should still load through a transient worker error.
 		const initError = res.ok ? undefined : new Error(`Init failed: ${res.status}`)
@@ -393,11 +420,61 @@ export class TldrawApp {
 		let stage: 'zero query' | 'state flush' | 'user record' = 'zero query'
 		const timedOut = promiseWithResolve<never>()
 		let stopWaiting: (() => void) | undefined
-		const timeout = setTimeout(
-			() =>
-				timedOut.reject(initError ?? new Error(`Timed out waiting for the ${stage} after init`)),
-			USER_PRELOAD_TIMEOUT_MS
-		)
+		const initReturnedAt = Date.now()
+		let hiddenMs = 0
+		const fail = () => {
+			const error = initError ?? new Error(`Timed out waiting for the ${stage} after init`)
+			try {
+				const connection = this.z.connection.state.current
+				// Sentry's ExtraErrorData integration copies this onto the event.
+				Object.assign(error, {
+					diagnostics: {
+						stage,
+						connection: connection.name,
+						connectionReason:
+							'reason' in connection ? redactTokens(formatLogArg(connection.reason)) : undefined,
+						visibilityState: document.visibilityState,
+						hiddenMs,
+						online: navigator.onLine,
+						msSinceNavigation: Math.round(performance.now()),
+						msSinceInit: Date.now() - initReturnedAt,
+						zeroLog: this.zeroLog.recent(),
+					} satisfies PreloadDiagnostics,
+				})
+			} finally {
+				timedOut.reject(error)
+			}
+		}
+		// Zero built in a hidden tab waits for visibility before connecting, so a restored or
+		// cmd-clicked tab would burn the deadline before it gets a chance. Only count visible time,
+		// and start over on return: Zero drops the socket after five minutes hidden, so whatever was
+		// left of the budget would cover a cold reconnect only by luck.
+		let timeout: ReturnType<typeof setTimeout> | undefined
+		let hiddenSince = 0
+		const resumeDeadline = () => {
+			if (timeout !== undefined) return
+			if (hiddenSince) {
+				hiddenMs += Date.now() - hiddenSince
+				hiddenSince = 0
+			}
+			timeout = setTimeout(fail, USER_PRELOAD_TIMEOUT_MS)
+		}
+		const pauseDeadline = () => {
+			if (timeout === undefined) return
+			clearTimeout(timeout)
+			timeout = undefined
+			hiddenSince = Date.now()
+		}
+		const onVisibilityChange = () =>
+			document.visibilityState === 'visible' ? resumeDeadline() : pauseDeadline()
+		document.addEventListener('visibilitychange', onVisibilityChange)
+		if (document.visibilityState === 'visible') resumeDeadline()
+		else hiddenSince = Date.now()
+		// A hidden tab can sit here indefinitely, so the caller needs a way to settle this and let
+		// create() dispose the half-built app when it gives up on it.
+		const onAbort = () => timedOut.reject(new DOMException('Bootstrap cancelled', 'AbortError'))
+		signal?.addEventListener('abort', onAbort)
+		if (signal?.aborted) onAbort()
 		try {
 			await Promise.race([this.z.preload(queries.user()).complete, timedOut])
 			stage = 'state flush'
@@ -408,7 +485,10 @@ export class TldrawApp {
 				if (this.user$.get()) userLoaded.resolve()
 			})
 			await Promise.race([userLoaded, timedOut])
+			markFirstLoad('zero-user-synced')
 		} finally {
+			signal?.removeEventListener('abort', onAbort)
+			document.removeEventListener('visibilitychange', onVisibilityChange)
 			clearTimeout(timeout)
 			stopWaiting?.()
 		}
@@ -416,6 +496,7 @@ export class TldrawApp {
 			this.z.preload(queries.fileStates()).complete,
 			this.z.preload(queries.workspaceMemberships()).complete,
 		])
+		markFirstLoad('zero-preloaded')
 	}
 
 	messages = defineMessages({
@@ -495,6 +576,22 @@ export class TldrawApp {
 	dispose() {
 		this.disposables.forEach((d) => d())
 		// this.store.dispose()
+	}
+
+	/**
+	 * Drops this user's Zero replica from IndexedDB. Zero keeps synced data on disk across sign-out
+	 * so the next sign-in is fast, which leaks the previous user's files on shared machines. Safe to
+	 * call after dispose(): delete() closes the instance first, and close() is idempotent.
+	 */
+	async deleteLocalData() {
+		try {
+			const { errors } = await this.z.delete()
+			for (const error of errors) {
+				captureException(error)
+			}
+		} catch (error) {
+			captureException(error)
+		}
 	}
 
 	getUser() {
@@ -1002,6 +1099,8 @@ export class TldrawApp {
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
 		navigate: ReturnType<typeof useNavigate>
+		/** Settles a bootstrap the caller no longer wants, e.g. a tab that never became visible. */
+		signal?: AbortSignal
 	}) {
 		// This is an issue: we may have a user record but not in the store.
 		// Could be just old accounts since before the server had a version
@@ -1024,7 +1123,7 @@ export class TldrawApp {
 		// @ts-expect-error
 		window.app = app
 		try {
-			await app.preload()
+			await app.preload(opts.signal)
 		} catch (e) {
 			// Don't leave the half-built app's Zero connection and timers running behind the
 			// error page the caller shows for this.

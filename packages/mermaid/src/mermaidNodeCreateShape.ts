@@ -1,5 +1,10 @@
-import type { Editor, TLShape, TLShapeId } from 'tldraw'
-import { toRichText } from 'tldraw'
+import type { Editor, TLDefaultSizeStyle, TLGeoShape, TLShape, TLShapeId } from 'tldraw'
+import {
+	GeoShapeUtil,
+	getDisplayValues,
+	renderHtmlFromRichTextForMeasurement,
+	toRichText,
+} from 'tldraw'
 import type {
 	MermaidBlueprintNode,
 	MermaidBlueprintNodeRenderSpec,
@@ -57,4 +62,35 @@ export function defaultCreateMermaidNodeFromBlueprint(
 		props: { ...baseProps, ...props },
 	})
 	return editor.getShape(shapeId)!
+}
+
+/** The width a geo shape needs to hold a label without wrapping any of its lines. */
+export type MeasureLabelWidth = (label: string, size: TLDefaultSizeStyle) => number
+
+/**
+ * Measures labels the way {@link defaultCreateMermaidNodeFromBlueprint} draws them: in a geo shape,
+ * in tldraw's font. Mermaid measures its own font, so a box sized from mermaid's layout alone can be
+ * too narrow for the same text.
+ */
+export function createLabelWidthMeasurer(editor: Editor): MeasureLabelWidth {
+	const util = editor.getShapeUtil<GeoShapeUtil>('geo')
+	const defaultProps = util.getDefaultProps()
+	return (label, size) => {
+		const shape = { type: 'geo', props: { ...defaultProps, size } } as TLGeoShape
+		const dv = getDisplayValues(util, shape)
+		const richText = toRichText(sanitizeDiagramText(label))
+		const { w } = editor.textMeasure.measureHtml(
+			renderHtmlFromRichTextForMeasurement(editor, richText),
+			{
+				fontStyle: 'normal',
+				fontWeight: 'normal',
+				padding: '0px',
+				fontFamily: dv.labelFontFamily,
+				fontSize: dv.labelFontSize,
+				lineHeight: dv.labelLineHeight,
+				maxWidth: null,
+			}
+		)
+		return Math.ceil(w + dv.labelPadding * 2)
+	}
 }

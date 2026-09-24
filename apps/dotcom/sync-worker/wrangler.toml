@@ -140,7 +140,6 @@ MCP_SERVER_URL = "http://localhost:3000/api/app/mcp"
 # Kill switch for the MCP screenshot server (POST /app/mcp). Read per request, so setting it to
 # anything but "true" — here or straight in the Cloudflare dashboard — takes the endpoint down
 # without a rebuild. A dashboard edit lasts until the next deploy overwrites it from this file.
-MCP_SCREENSHOT_ENABLED = "true"
 # local-only signing secret; deployments get a real one via deploy vars
 MCP_SCREENSHOT_TOKEN_SECRET = "local-dev-thumbnail-render-secret"
 # Browser Run is unreachable from local dev (see the BROWSER binding note below), so screenshots go
@@ -161,7 +160,11 @@ HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
 MCP_SERVER_URL = "https://staging.tldraw.com/api/app/mcp"
-MCP_SCREENSHOT_ENABLED = "true"
+MCP_SEARCH_NAME_MATCHING_ENABLED = "true"
+# Staging joins previews in trialling live-canvas capture (see THUMBNAIL_RENDER_LIVE_CAPTURE in
+# types.ts). Previews are too short-lived and too lightly used to produce the render_page_timings
+# volume the trial is judged on; production stays on the export until it is.
+THUMBNAIL_RENDER_LIVE_CAPTURE = "true"
 
 # production gets the proper name
 [env.production]
@@ -174,7 +177,11 @@ HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://www.tldraw.com"
 MCP_SERVER_URL = "https://www.tldraw.com/api/app/mcp"
-MCP_SCREENSHOT_ENABLED = "true"
+# Off while the unindexed `name ILIKE '%term%'` scan it drives is still being watched: it is the one
+# part of search no index reaches, so a term matching nothing reads every board in the caller's
+# scope. Off, the tool lists rather than searches and advertises no query — it does not accept a
+# query and ignore it. Unset reads as on, which is what previews and local dev get.
+MCP_SEARCH_NAME_MATCHING_ENABLED = "false"
 
 #################### Routing ####################
 # no custom routes for previews and development
@@ -191,6 +198,17 @@ pattern = "staging.tldraw.com/api/*"
 zone_name = "tldraw.com"
 pattern = "staging.tldraw.com/.well-known/oauth-protected-resource/*"
 
+# The same path without the trailing slash, which the pattern above does not match. Clients fall back
+# to the bare URL when the path-derived one 404s, so without this the fallback lands on the SPA.
+[[env.staging.routes]]
+zone_name = "tldraw.com"
+pattern = "staging.tldraw.com/.well-known/oauth-protected-resource"
+
+# The MCP Server Card's `.well-known` alias, outside /api/* for the same reason as the metadata above.
+[[env.staging.routes]]
+zone_name = "tldraw.com"
+pattern = "staging.tldraw.com/.well-known/mcp/*"
+
 [[env.staging.routes]]
 custom_domain = true
 pattern = "staging-sync.tldraw.xyz"
@@ -203,6 +221,14 @@ pattern = "www.tldraw.com/api/*"
 [[env.production.routes]]
 zone_name = "tldraw.com"
 pattern = "www.tldraw.com/.well-known/oauth-protected-resource/*"
+
+[[env.production.routes]]
+zone_name = "tldraw.com"
+pattern = "www.tldraw.com/.well-known/oauth-protected-resource"
+
+[[env.production.routes]]
+zone_name = "tldraw.com"
+pattern = "www.tldraw.com/.well-known/mcp/*"
 
 [[env.production.routes]]
 custom_domain = true
@@ -625,6 +651,34 @@ name = "MCP_SERVER_BROWSER_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1012"
 simple = { limit = 20, period = 60 }
+
+# MCP server per-account `search_boards` guard. Bounds Postgres rather than Browser Run, which search
+# never spends, so it is a separate budget from MCP_SCREENSHOT_RATE_LIMITER and a much larger number:
+# paging is what spends it, at a fixed 20 boards a page — see MCP_SEARCH_PER_USER_RATE_LIMIT in
+# config.ts before changing this.
+[[env.dev.unsafe.bindings]]
+name = "MCP_SERVER_SEARCH_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1017"
+simple = { limit = 60, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SERVER_SEARCH_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1018"
+simple = { limit = 60, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SERVER_SEARCH_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1019"
+simple = { limit = 60, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SERVER_SEARCH_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1020"
+simple = { limit = 60, period = 60 }
 
 #################### Queues ####################
 [[env.dev.queues.producers]]
