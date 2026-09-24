@@ -124,11 +124,16 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
 
 /**
  * MCP rate limits: the only rate limiting anywhere in the thumbnail pipeline, applied in
- * sharedBoardScreenshotMcp.ts. The MCP endpoint is the one Browser Run-spending surface an outside
+ * mcpServer.ts. The MCP endpoint is the one Browser Run-spending surface an outside
  * caller can drive directly, so a rogue or looping agent is the threat being bounded, and only the
  * calls that actually spend Browser Run are limited — `get_board_info` does the same work the
- * ordinary board routes do for anyone. The global limit is applied per Cloudflare location, so it
- * bounds a caller rather than the account. See "Request limits" in browser-run-thumbnails.md.
+ * ordinary board routes do for anyone. `search_boards` has its own budget, bounding a different
+ * resource: it spends no Browser Run, but it drives the Postgres that serves all of dotcom, and
+ * its matching is the one part no index reaches — `name ILIKE '%term%'` over the caller's whole
+ * in-scope set, so a query matching nothing costs the most. See "MCP tools" in
+ * browser-run-thumbnails.md for the measured query plans.
+ * The global limit is applied per Cloudflare location, so it bounds a caller rather than the
+ * account. See "Request limits" in browser-run-thumbnails.md.
  *
  * These constants are only the isolate-local fallback for local dev and tests. Deployed environments
  * are governed by the Cloudflare rate limit bindings in wrangler.toml, so changing a number here
@@ -138,6 +143,7 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  *   MCP_PER_USER_RATE_LIMIT            ->  MCP_SCREENSHOT_RATE_LIMITER      (limit = 10)
  *   MCP_PER_BOARD_RATE_LIMIT           ->  MCP_SERVER_BOARD_RATE_LIMITER    (limit = 2)
  *   MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT  ->  MCP_SERVER_BROWSER_RATE_LIMITER  (limit = 20)
+ *   MCP_SEARCH_PER_USER_RATE_LIMIT     ->  MCP_SERVER_SEARCH_RATE_LIMITER   (limit = 60)
  *
  * The first of these keyed on client IP until the endpoint required authentication. An account is
  * the better key in both directions: a proxy pool no longer buys a caller more budget, and everyone
@@ -160,10 +166,99 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  * The window matches the period configured on the Cloudflare bindings, which only support 60s (or
  * 10s) periods — this is the one number here that is Cloudflare's rather than ours.
  */
+/**
+ * The `search_boards` budget, separate from the Browser Run one above because it bounds a different
+ * cost and deserves its own number rather than a Browser Run number inherited.
+ *
+ * Set where a legitimate caller never meets it and a runaway loop is still capped. Paging is what
+ * spends this, not abuse: the page size is fixed at 20, so a caller in an 8000-board workspace needs
+ * 400 calls to walk it, and an agent that reformulates a failed query spends a few more. A refusal
+ * mid-page has no good recovery either — a model cannot wait, so it retries or reports a partial
+ * answer as a complete one, which is worse than the load it would have prevented. Against that, the
+ * worst measured call is ~9ms of database time (30,000 rows over three 10k-board workspaces), so 60
+ * a minute is well under a second of database time per caller per minute.
+ *
+ * Per account, and only per account. It does not bound many accounts looping at once; that would
+ * need a global search limiter alongside it, the way MCP_SERVER_BROWSER_RATE_LIMITER sits under the
+ * per-user screenshot budget. Deliberately left until there is real traffic to size it against.
+ */
+export const MCP_SEARCH_PER_USER_RATE_LIMIT = 60
+
 export const MCP_PER_USER_RATE_LIMIT = 10
 export const MCP_PER_BOARD_RATE_LIMIT = 2
 export const MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT = 20
 export const MCP_RATE_LIMIT_WINDOW_MS = 60_000
+
+/**
+ * Version-chain tuning. The version cache stores a full keyframe, then deltas until one of these
+ * limits cuts the next keyframe. All three trade storage against restore latency, and the numbers
+ * come from the 2026-08-25 measurement over 16 production rooms (1,661 versions).
+ *
+ * Keyframe every 64 deltas: the measured knee. 16 gives up ~3.5x of storage for little latency
+ * gain; 256 buys ~15% more compression while quadrupling worst-case replay. Count matters because
+ * time alone fails hot boards — at the ~39s mean persist gap an active day is ~2,000 versions.
+ */
+export const MAX_DELTAS_PER_CHAIN = 64
+
+/**
+ * Keyframe at least daily. Time matters because count alone leaves a cold board's chain open
+ * indefinitely, so a single lost keyframe would strand an unbounded run of deltas.
+ */
+export const MAX_CHAIN_AGE_MS = 24 * 60 * 60 * 1000
+
+/**
+ * A delta larger than this fraction of its keyframe cuts a keyframe instead: it is a mass rewrite
+ * (a wipe, a paste of a whole board) and not worth chaining from. Compared compressed against
+ * compressed — a raw delta against a gzipped keyframe would trip on boards that simply compress well.
+ */
+export const MAX_DELTA_SIZE_RATIO = 0.5
+
+/**
+ * An open segment that would grow past this fraction of its keyframe cuts a keyframe instead. The
+ * delta rule above bounds one write; this bounds what accumulates: a run of edits each just under
+ * half the board packs up to `SEGMENT_CAP / 2` keyframes' worth into one segment, all of it decoded
+ * in the durable object's memory and re-serialized on every persist — past the isolate's 128MB on
+ * a board near the room size limit. A segment worth more than its keyframe is worth a keyframe.
+ */
+export const MAX_SEGMENT_SIZE_RATIO = 1
+
+/**
+ * The size rules only fire above this. Gzip's fixed overhead makes a tiny delta comparable to a
+ * tiny keyframe, so without a floor a near-empty board cuts a keyframe on every persist — and a
+ * sub-4KB delta or segment is never the mass rewrite or the memory hazard the rules exist to catch.
+ */
+export const MIN_SIZE_RULE_DELTA_BYTES = 4096
+
+/**
+ * A retired chain is only verified when its keyframe is at most this many (gzipped) bytes.
+ *
+ * Verification reconstructs the whole chain inside the live durable object: the keyframe decoded,
+ * every segment decoded, and the replayed snapshot, all held alongside the SQLite board, the live
+ * room, and the two persisted snapshots the write already keeps. That is four or five board-sized
+ * copies at once, and the segment size rule bounds only the open segment, not this. Gzip takes
+ * tldraw JSON down roughly 5-10x and the decoded objects are a few times the JSON again, so a 1MB
+ * keyframe is tens of MB per copy — comfortably inside the isolate's 128MB with room for the rest,
+ * where a keyframe near the 25MB room limit would not be. The chain itself is still cut and served
+ * as usual; only the check is skipped, and it says so (`version_chain_verify` with outcome
+ * `skipped`) so the threshold can be tuned against how many boards it excludes.
+ */
+export const MAX_VERIFY_KEYFRAME_BYTES = 1024 * 1024
+
+/**
+ * Deltas per segment object. Bounds three things at once: how much the durable object rewrites on
+ * each persist (~140KB worst case at this cap), how many GETs a restore costs (1 keyframe + 4
+ * segments at kf64), and how many ISO timestamps have to fit in the segment's R2 custom metadata
+ * (~400 bytes at 16). Much above 32 and the metadata budget starts to bind.
+ *
+ * Restore fetches the keyframe and every segment in parallel, and a Worker may have six
+ * connections waiting for headers at once; a seventh queues. `1 + MAX_DELTAS_PER_CHAIN /
+ * SEGMENT_CAP` must stay at or under six or restores start serializing — a test in
+ * versionChain.test.ts pins it.
+ */
+export const SEGMENT_CAP = 16
+
+/** Cloudflare's per-invocation ceiling on connections simultaneously waiting for headers. */
+export const WORKER_MAX_SIMULTANEOUS_CONNECTIONS = 6
 
 /**
  * The URL of the PostHog instance to use.

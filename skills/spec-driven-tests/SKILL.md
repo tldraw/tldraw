@@ -15,7 +15,7 @@ The models are PR #9158 (`packages/state`, spec at `packages/state/SPEC.md`) and
 
 If the working tree has uncommitted changes that aren't yours, stop and ask before branching — never stash or carry someone else's work silently.
 
-Create a branch. Run `yarn test run` in the package and record the file and test counts, noting how many belong to fuzz suites — fuzz suites stay untouched and their (often large) generated counts are excluded from every count you report later. Map the existing test files and note any duplicated or parallel suites that should merge (the store package had two whole generations of tests).
+Create a branch. Run `pnpm test run` in the package and record the file and test counts, noting how many belong to fuzz suites — fuzz suites stay untouched and their (often large) generated counts are excluded from every count you report later. Map the existing test files and note any duplicated or parallel suites that should merge (the store package had two whole generations of tests).
 
 ### 2. Read the implementation
 
@@ -80,7 +80,7 @@ If a spec rule exists but the implementation contradicts it, update the spec (no
 
 ### 8. Verify
 
-Run, in order: the package tests, `yarn format-current` then `yarn lint`, `yarn typecheck` from the repo root, `yarn api-check`, and the dependent package suites from step 7.
+Run, in order: the package tests, `pnpm format-current` then `pnpm lint`, `pnpm typecheck` from the repo root, `pnpm api-check`, and the dependent package suites from step 7.
 
 ### 9. PR
 

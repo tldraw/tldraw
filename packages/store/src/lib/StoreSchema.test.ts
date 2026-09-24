@@ -993,6 +993,51 @@ describe('migrateStorage (MA)', () => {
 		expect(storage.setCalls).toEqual([])
 	})
 
+	it('[MA7] removes non-document records without deleting during its own entries() iteration', () => {
+		// better-sqlite3 throws on any write while a statement iterator is still open, so a delete
+		// issued from inside `for (const [id] of storage.entries())` fails on that backend
+		const SessionRecordType = createRecordType<BaseRecord<'sess', RecordId<any>>>('sess', {
+			scope: 'session',
+		})
+		// the cleanup only runs when there is something to migrate
+		const migrations = [
+			createMigrationSequence({
+				sequenceId: 'foo',
+				sequence: [{ id: 'foo/1', scope: 'record', up: () => {} }],
+			}),
+		]
+		const schema = StoreSchema.create(
+			{ test: TestRecordType, sess: SessionRecordType },
+			{ migrations }
+		)
+		const doc = makeTestRecord({ schemaVersion: 2, sequences: {} })
+		const sess = SessionRecordType.create({})
+		const storage = makeStorage<any>(
+			[
+				[doc.id, doc],
+				[sess.id, sess],
+			],
+			schema.serializeEarliestVersion()
+		)
+		let openIterators = 0
+		storage.entries = function* () {
+			openIterators++
+			try {
+				yield* Array.from(storage.map.entries())
+			} finally {
+				openIterators--
+			}
+		}
+		storage.delete = (id) => {
+			if (openIterators > 0) throw new Error('This database connection is busy executing a query')
+			storage.map.delete(id)
+		}
+
+		schema.migrateStorage(storage as any)
+
+		expect([...storage.map.keys()]).toEqual([doc.id])
+	})
+
 	it('[MA4] storage-scope migrations receive the storage and may read and write records', () => {
 		// exercised end-to-end via Store.loadStoreSnapshot in Store.test.ts; here we check the
 		// storage object passed to the migrator is the one we provided
@@ -1060,5 +1105,67 @@ describe('migrateStorage (MA)', () => {
 		expect(result.value[recordA.id as keyof typeof result.value]).toBeUndefined()
 		expect((result.value[recordB.id as keyof typeof result.value] as any).renamed).toBe(true)
 		expect(result.value[newRecord.id as keyof typeof result.value]).toMatchObject({ name: 'new' })
+	})
+})
+
+describe('malformed persisted schemas (SC, MA)', () => {
+	const schema = StoreSchema.create<Book>(
+		{ book: Book },
+		{
+			migrations: [
+				createMigrationSequence({
+					sequenceId: 'com.tldraw.book',
+					sequence: [{ id: 'com.tldraw.book/1', scope: 'record', up: () => {} }],
+				}),
+			],
+		}
+	)
+
+	it('[SC5] schemas with a missing version or collections produce an error result, not a throw', () => {
+		expect(upgradeSchema({} as any).ok).toBe(false)
+		expect(upgradeSchema({ schemaVersion: 2 } as any).ok).toBe(false)
+		expect(upgradeSchema({ schemaVersion: 1 } as any).ok).toBe(false)
+		expect(upgradeSchema(null as any).ok).toBe(false)
+	})
+
+	it('[MA6] migrateStoreSnapshot reports malformed schemas as a migration error', () => {
+		for (const bad of [{}, { schemaVersion: 2 }, { schemaVersion: 1, recordVersions: null }]) {
+			expect(schema.migrateStoreSnapshot({ store: {}, schema: bad as any })).toEqual({
+				type: 'error',
+				reason: 'migration-error',
+			})
+		}
+	})
+
+	it('[MG3] a persisted sequence named after an Object.prototype member is just unknown', () => {
+		const persisted = { schemaVersion: 2, sequences: { constructor: 1, 'com.tldraw.book': 1 } }
+		expect(schema.getMigrationsSince(persisted as any)).toEqual({ ok: true, value: [] })
+	})
+})
+
+describe('malformed v1 schemas (SC)', () => {
+	it('[SC5] a v1 schema with a malformed record entry produces an error result', () => {
+		expect(
+			upgradeSchema({ schemaVersion: 1, storeVersion: 1, recordVersions: { book: null } } as any).ok
+		).toBe(false)
+		expect(
+			upgradeSchema({
+				schemaVersion: 1,
+				storeVersion: 1,
+				recordVersions: { book: { version: 1, subTypeKey: 'type', subTypeVersions: null } },
+			} as any).ok
+		).toBe(false)
+	})
+})
+
+describe('non-object persisted schemas (MA)', () => {
+	it('[MA6] a missing schema is a migration error, not a throw', () => {
+		const schema = StoreSchema.create<Book>({ book: Book })
+		for (const bad of [undefined, null, 'v2', 3]) {
+			expect(schema.migrateStoreSnapshot({ store: {}, schema: bad as any })).toEqual({
+				type: 'error',
+				reason: 'migration-error',
+			})
+		}
 	})
 })

@@ -36,8 +36,8 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 	orientation = 'horizontal',
 	minItems = 4,
 	minSizePx = 310,
-	maxItems,
-	maxSizePx,
+	maxItems = 8,
+	maxSizePx = 470,
 }: DefaultToolbarProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -87,9 +87,9 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 							orientation={orientation}
 							sizingParentClassName="tlui-main-toolbar"
 							minItems={minItems}
-							maxItems={maxItems ?? 8}
+							maxItems={maxItems}
 							minSizePx={minSizePx}
-							maxSizePx={maxSizePx ?? 470}
+							maxSizePx={maxSizePx}
 						>
 							{children ?? <DefaultToolbarContent />}
 						</OverflowingToolbar>

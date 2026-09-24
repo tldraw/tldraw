@@ -19,15 +19,13 @@ export function ErrorBoundary() {
 	return <Component error={error} />
 }
 
-const { loader, useData } = defineLoader(async (args) => {
+const { loader, useMaybeData } = defineLoader(async (args) => {
 	const roomId = args.params.boardId
 	const timestamp = args.params.timestamp
 
 	if (!roomId) return null
 
-	const result = await fetch(`/api/${ROOM_PREFIX}/${roomId}/history/${timestamp}`, {
-		headers: {},
-	})
+	const result = await fetch(`/api/${ROOM_PREFIX}/${roomId}/history/${timestamp}`)
 	if (!result.ok) return null
 	const data = (await result.json()) as RoomSnapshot
 
@@ -39,7 +37,7 @@ export { loader }
 export function Component({ error: _error }: { error?: unknown }) {
 	const userId = useMaybeApp()?.userId
 
-	const result = useData()
+	const result = useMaybeData()
 
 	const snapshot = useMemo(() => {
 		if (!result) {
@@ -64,30 +62,26 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
-	return (
-		<>
-			{error ? (
-				<TlaFileError error={error} />
-			) : (
-				<TlaAnonLayout>
-					<TlaHistorySnapshotEditor
-						fileSlug={result.roomId}
-						snapshot={snapshot}
-						onRestore={async () => {
-							const res = await fetch(`/api/r/${result.roomId}/restore`, {
-								method: 'POST',
-								headers: {
-									'Content-Type': 'application/json',
-								},
-								body: JSON.stringify({ timestamp: ts }),
-							})
-							if (!res.ok) {
-								throw new Error('Failed to restore version: ' + (await res.text()))
-							}
-						}}
-					/>
-				</TlaAnonLayout>
-			)}
-		</>
+	return error ? (
+		<TlaFileError error={error} />
+	) : (
+		<TlaAnonLayout>
+			<TlaHistorySnapshotEditor
+				fileSlug={result.roomId}
+				snapshot={snapshot}
+				onRestore={async () => {
+					const res = await fetch(`/api/r/${result.roomId}/restore`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({ timestamp: ts }),
+					})
+					if (!res.ok) {
+						throw new Error('Failed to restore version: ' + (await res.text()))
+					}
+				}}
+			/>
+		</TlaAnonLayout>
 	)
 }
