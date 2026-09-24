@@ -26,13 +26,18 @@ export function useChatMessageStorage(): [UIMessage[] | null, (messages: UIMessa
 				if (isCancelled) return
 
 				const messages = JSON.parse(fileContents)
-				const validatedMessages = await validateUIMessages({ messages })
+				const validatedMessages =
+					Array.isArray(messages) && messages.length === 0
+						? []
+						: await validateUIMessages({ messages })
 				if (isCancelled) return
 
 				setInitialMessages(validatedMessages)
 			} catch (err) {
 				if (isCancelled) return
-				console.error('Error loading chat messages from storage', err)
+				if (!(err instanceof DOMException && err.name === 'NotFoundError')) {
+					console.error('Error loading chat messages from storage', err)
+				}
 				setInitialMessages([])
 			}
 		})()
