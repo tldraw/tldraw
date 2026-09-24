@@ -1,7 +1,8 @@
-import { sleep, T } from 'tldraw'
+import { T } from 'tldraw'
 import { EarthquakeIcon } from '../../components/icons/EarthquakeIcon'
 import { NODE_ROW_HEIGHT_PX } from '../../constants'
 import { ShapePort } from '../../ports/Port'
+import { sleep } from '../../utils/sleep'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	ExecutionResult,
@@ -89,6 +90,8 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 
 			// Pick a random earthquake
 			const earthquake = data.features[Math.floor(Math.random() * data.features.length)]
+			console.log(data.features)
+
 			const earthquakeData = {
 				magnitude: earthquake.properties.mag,
 				location: earthquake.properties.place,

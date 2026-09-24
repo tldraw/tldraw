@@ -1,7 +1,8 @@
-import { sleep, T, useEditor } from 'tldraw'
+import { T, useEditor } from 'tldraw'
 import { ConditionalIcon } from '../../components/icons/ConditionalIcon'
 import { NODE_ROW_BOTTOM_PADDING_PX, NODE_ROW_HEIGHT_PX } from '../../constants'
 import { Port, ShapePort } from '../../ports/Port'
+import { sleep } from '../../utils/sleep'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,

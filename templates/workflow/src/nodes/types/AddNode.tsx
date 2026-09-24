@@ -1,8 +1,9 @@
-import { Editor, getIndexAbove, getIndicesBetween, IndexKey, sleep, T, useEditor } from 'tldraw'
+import { Editor, getIndexAbove, getIndicesBetween, IndexKey, T, useEditor } from 'tldraw'
 import { AddIcon } from '../../components/icons/AddIcon'
 import { NODE_ROW_HEIGHT_PX } from '../../constants'
 import { ShapePort } from '../../ports/Port'
 import { indexList, indexListEntries, indexListLength } from '../../utils'
+import { sleep } from '../../utils/sleep'
 import { getNodePortConnections } from '../nodePorts'
 import { NodeShape } from '../NodeShapeUtil'
 import {
