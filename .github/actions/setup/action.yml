@@ -10,24 +10,14 @@ runs:
       run: npm i -g corepack
       shell: bash
 
+    # Caches pnpm's content-addressed store keyed on the lockfile; install links node_modules
+    # from it each run, so the tree always matches the current linker and lockfile.
     - name: Setup Node.js Environment
       id: setup-node
       uses: actions/setup-node@v6
       with:
         node-version: 24.17.0
-
-    # With the hoisted linker node_modules is a plain tree, so caching it directly (as with
-    # Yarn) skips both the fetch and the link step on a hit.
-    - name: Restore node_modules cache
-      uses: actions/cache@v5
-      id: node-modules-cache
-      with:
-        path: |
-          node_modules
-          **/node_modules
-        key: ${{ runner.os }}-${{ runner.arch }}-node-${{ steps.setup-node.outputs.node-version }}-pnpm-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'patches/*') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ runner.arch }}-node-${{ steps.setup-node.outputs.node-version }}-pnpm-
+        cache: pnpm
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
