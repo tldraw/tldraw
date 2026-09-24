@@ -2,10 +2,12 @@ import {
 	Box,
 	HALF_PI,
 	Mat,
+	RecordsDiff,
 	SelectionCorner,
 	SelectionEdge,
 	StateNode,
 	TLPointerEventInfo,
+	TLRecord,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
@@ -16,8 +18,12 @@ import {
 	bind,
 	compact,
 	isAccelKey,
+	isRecordsDiffEmpty,
+	isShape,
 	isShapeId,
 	kickoutOccludedShapes,
+	objectMapValues,
+	reverseRecordsDiff,
 	rotateSelectionHandle,
 } from '@tldraw/editor'
 import { getEnclosedShapeIds } from '../../../shapes/frame/FrameShapeTool'
@@ -57,8 +63,8 @@ export class Resizing extends StateNode {
 
 	private changeTracker = new GestureShapeChangeTracker(this.editor)
 
-	// Shapes that previewKickout moved out of their parents, mapped to their snapshot records
-	private kickedOutShapes = new Map<TLShapeId, TLShape>()
+	// The store changes made by the last previewKickout, which the next update rolls back
+	private kickoutPreviewDiff: RecordsDiff<TLRecord> | null = null
 
 	override onEnter(info: ResizingInfo) {
 		const { isCreating = false, creatingMarkId, creationCursorOffset = { x: 0, y: 0 } } = info
@@ -246,10 +252,11 @@ export class Resizing extends StateNode {
 
 	@bind
 	private _updateShapes() {
-		this.restoreKickedOutShapes()
+		// The snapshot's record of a shape that can't go back names a deleted parent
+		const didStrandShapes = this.rollBackKickoutPreview()
 
 		// Otherwise the stale resize snapshot would overwrite an external change.
-		if (this.changeTracker.getAndClearChanged()) {
+		if (this.changeTracker.getAndClearChanged() || didStrandShapes) {
 			const snapshot = this._createSnapshot(this.editor.inputs.getCurrentPagePoint())
 			// The external change may have deleted every shape we were resizing
 			if (!snapshot) {
@@ -522,60 +529,55 @@ export class Resizing extends StateNode {
 		this.updateEnclosureHints()
 	}
 
-	// Kick out shapes that no longer overlap their parent now, as pointer up would, rather than
-	// leaving them clipped out of sight by a frame until then. Translating shows the same thing
-	// by reparenting as the pointer leaves the frame.
+	// Otherwise a shape resized out of a frame stays clipped out of sight until pointer up
 	private previewKickout() {
-		const { editor, kickedOutShapes } = this
-		const { kickoutPreviewShapeIds, shapeSnapshots, frames } = this.snapshot
+		const { editor } = this
+		const { kickoutPreviewShapeIds } = this.snapshot
 		if (kickoutPreviewShapeIds.length === 0) return
 
-		// A shape that something else has moved out of its parent isn't ours to put back
-		const shapesInInitialParent: TLShape[] = []
-		const collect = (initial: TLShape) => {
-			if (editor.getShape(initial.id)?.parentId === initial.parentId) {
-				shapesInInitialParent.push(initial)
-			}
-		}
-		for (const { shape } of shapeSnapshots.values()) collect(shape)
-		for (const { children } of frames) children.forEach(collect)
-
-		kickoutOccludedShapes(editor, kickoutPreviewShapeIds)
-
-		for (const initial of shapesInInitialParent) {
-			const current = editor.getShape(initial.id)
-			if (current && current.parentId !== initial.parentId) {
-				kickedOutShapes.set(initial.id, initial)
-			}
-		}
+		const diff = editor.store.extractingChanges(() =>
+			kickoutOccludedShapes(editor, kickoutPreviewShapeIds)
+		)
+		this.kickoutPreviewDiff = isRecordsDiffEmpty(diff) ? null : diff
 	}
 
-	// Undo previewKickout before each update, so that the resize is computed against the tree it
-	// was snapshotted in and a shape resized back over its parent stays in it. The parent hasn't
-	// moved since the last update kicked the shape out, so keeping the page position puts the shape
-	// back where it was, plus any external change (e.g. a nudge) made to it since.
-	private restoreKickedOutShapes() {
-		const { editor, kickedOutShapes } = this
-		if (kickedOutShapes.size === 0) return
+	// Otherwise resize partials, built from snapshot records, drop a kicked-out shape back into its
+	// frame offset by the frame's position, and a kicked-out frame child never comes back. The diff
+	// includes what the kickout's side effects changed, like an arrow bound to the shape.
+	private rollBackKickoutPreview() {
+		const { editor, kickoutPreviewDiff } = this
+		if (!kickoutPreviewDiff) return false
+		this.kickoutPreviewDiff = null
 
-		editor.run(
-			() => {
-				for (const { id, type, parentId, index } of kickedOutShapes.values()) {
-					// The parent may have been deleted while the shape was outside of it
-					if (!editor.getShape(id) || !editor.getShape(parentId)) continue
+		const { store } = editor
+		const rollback = reverseRecordsDiff(kickoutPreviewDiff)
+		const shapesChangedSince: TLShape[] = []
+		let didStrandShapes = false
 
-					editor.reparentShapes([id], parentId, index)
-					const isIndexTaken = editor
-						.getSortedChildIdsForParent(parentId)
-						.some((childId) => editor.getShape(childId)?.index === index)
-					if (!isIndexTaken) editor.updateShape({ id, type, index })
-				}
-			},
-			// kickoutOccludedShapes moves locked shapes too
-			{ ignoreShapeLock: true }
-		)
+		for (const [after, before] of objectMapValues(rollback.updated)) {
+			const current = store.get(after.id)
+			// Its parent may have been deleted while the shape was outside of it
+			const canReturn =
+				!isShape(before) || !isShapeId(before.parentId) || store.has(before.parentId)
+			if (current === after && canReturn) continue
 
-		kickedOutShapes.clear()
+			delete rollback.updated[after.id]
+			if (!current || !isShape(before) || before.parentId === after.parentId) continue
+			if (canReturn) {
+				// Something else changed it since (e.g. a nudge), so keep that and only undo the reparent
+				shapesChangedSince.push(before)
+			} else {
+				didStrandShapes = true
+			}
+		}
+
+		store.applyDiff(rollback, { runCallbacks: false })
+
+		for (const { id, parentId, index } of shapesChangedSince) {
+			editor.reparentShapes([id], parentId, index)
+		}
+
+		return didStrandShapes
 	}
 
 	// While drag-creating a frame, hint the sibling shapes that would become its children on pointer up
@@ -638,7 +640,7 @@ export class Resizing extends StateNode {
 
 	override onExit() {
 		this.changeTracker.stop()
-		this.kickedOutShapes.clear()
+		this.kickoutPreviewDiff = null
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.snaps.clearIndicators()
@@ -763,13 +765,11 @@ export class Resizing extends StateNode {
 			resizeLevels[level].push(id)
 		}
 
-		// Only where the kickout would be hidden until pointer up: shapes clipped by their parent,
-		// and shapes that clip their children (e.g. a frame being made smaller)
+		// Elsewhere a resized-out shape stays visible, so its kickout can wait for pointer up
 		const kickoutPreviewShapeIds = selectedShapeIds.filter((id) => {
 			const shape = editor.getShape(id)
-			return !!(
-				shape &&
-				(editor.getShapeMask(shape) || editor.getShapeUtil(shape).getClipPath?.(shape))
+			return (
+				shape && (editor.getShapeMask(shape) || editor.getShapeUtil(shape).getClipPath?.(shape))
 			)
 		})
 

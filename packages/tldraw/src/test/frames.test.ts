@@ -2010,63 +2010,121 @@ describe('When resizing a shape out of a frame', () => {
 
 	beforeEach(() => {
 		editor.createShapes([
-			{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: frameId, type: 'frame', x: 100, y: 100, props: { w: 100, h: 100 } },
 			// Sticks out of the right side of the frame, so it can be resized out of it
 			{ id: boxId, type: 'geo', parentId: frameId, x: 50, y: 10, props: { w: 100, h: 20 } },
 			{ id: otherId, type: 'geo', parentId: frameId, x: 10, y: 50, props: { w: 20, h: 20 } },
 		])
 		editor.select(boxId)
-		editor.pointerDown(50, 20, { target: 'selection', handle: 'left' })
 	})
 
+	function grabLeftEdge() {
+		editor.pointerDown(150, 120, { target: 'selection', handle: 'left' })
+	}
+
 	it('unparents the shape during the resize, so the frame no longer clips it', () => {
-		editor.pointerMove(120, 20)
+		grabLeftEdge()
+		editor.pointerMove(220, 120)
 		expect(editor.getShape(boxId)!.parentId).toBe(editor.getCurrentPageId())
 		expect(editor.getShapeMask(boxId)).toBeUndefined()
-		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 120, y: 10, w: 30, h: 20 })
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 220, y: 110, w: 30, h: 20 })
 
-		editor.pointerUp(120, 20)
+		editor.pointerMove(230, 120)
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 230, y: 110, w: 20, h: 20 })
+
+		editor.pointerUp(230, 120)
 		expect(editor.getShape(boxId)!.parentId).toBe(editor.getCurrentPageId())
 	})
 
 	it('puts the shape back in the frame when it is resized back over it', () => {
-		editor.pointerMove(120, 20)
-		editor.pointerMove(60, 20)
+		grabLeftEdge()
+		editor.pointerMove(220, 120)
+		editor.pointerMove(160, 120)
 		expect(editor.getShape(boxId)).toMatchObject({ parentId: frameId, x: 60, y: 10 })
 		expect(editor.getSortedChildIdsForParent(frameId)).toEqual([boxId, otherId])
 
-		editor.pointerUp(60, 20)
+		editor.pointerUp(160, 120)
 		expect(editor.getShape(boxId)!.parentId).toBe(frameId)
 	})
 
 	it('puts the shape back in the frame when the resize is cancelled', () => {
-		editor.pointerMove(120, 20)
+		grabLeftEdge()
+		editor.pointerMove(220, 120)
 		editor.cancel()
 		expect(editor.getShape(boxId)).toMatchObject({ parentId: frameId, x: 50, props: { w: 100 } })
 		expect(editor.getSortedChildIdsForParent(frameId)).toEqual([boxId, otherId])
 	})
 
-	it('keeps an external nudge of the shape while it is outside the frame', () => {
-		editor.pointerMove(120, 20)
+	it('keeps a nudge made while the shape is outside the frame', () => {
+		grabLeftEdge()
+		editor.pointerMove(220, 120)
 		editor.nudgeShapes([boxId], { x: 0, y: 50 })
 
 		editor.pointerMoveBy(0, 0)
 		expect(editor.getShape(boxId)!.parentId).toBe(editor.getCurrentPageId())
-		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 120, y: 60, w: 30, h: 20 })
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 220, y: 160, w: 30, h: 20 })
 
-		editor.pointerMove(60, 20)
+		editor.pointerMove(160, 120)
 		expect(editor.getShape(boxId)!.parentId).toBe(frameId)
-		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 60, y: 60, w: 90, h: 20 })
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 160, y: 160, w: 90, h: 20 })
+	})
+
+	it('leaves the shape on the page if the frame is deleted while the shape is outside it', () => {
+		grabLeftEdge()
+		editor.pointerMove(220, 120)
+		editor.deleteShapes([frameId])
+
+		editor.pointerMoveBy(0, 0)
+		editor.pointerMove(160, 120)
+		editor.pointerUp(160, 120)
+		expect(editor.getShape(boxId)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 160, y: 110, w: 90, h: 20 })
+	})
+
+	it('keeps an arrow bound to the shape in the frame when the shape comes back', () => {
+		const arrowId = createShapeId('arrow')
+		editor.createShapes([
+			{
+				id: arrowId,
+				type: 'arrow',
+				parentId: frameId,
+				x: 20,
+				y: 80,
+				props: { start: { x: 0, y: 0 }, end: { x: 60, y: -60 } },
+			},
+		])
+		editor.createBindings([
+			{
+				type: 'arrow',
+				fromId: arrowId,
+				toId: boxId,
+				props: {
+					terminal: 'end',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				},
+			},
+		])
+		editor.select(boxId)
+		expect(editor.getShape(arrowId)!.parentId).toBe(frameId)
+
+		grabLeftEdge()
+		editor.pointerMove(220, 120)
+		editor.pointerMove(160, 120)
+		editor.pointerUp(160, 120)
+		expect(editor.getShape(arrowId)!.parentId).toBe(frameId)
 	})
 })
 
 describe('When resizing a frame so that a child is outside of it', () => {
-	it('unparents the child during the resize, and puts it back when the frame is resized over it again', () => {
-		const frameId = createShapeId('frame')
-		const childId = createShapeId('child')
+	const frameId = createShapeId('frame')
+	const childId = createShapeId('child')
+
+	beforeEach(() => {
 		editor.createShapes([
 			{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 100, h: 100 } },
-			// Locked children are unparented too, so they have to be put back too
+			// Locked children are kicked out too, and must come back at their old index
 			{
 				id: childId,
 				type: 'geo',
@@ -2077,24 +2135,36 @@ describe('When resizing a frame so that a child is outside of it', () => {
 				props: { w: 10, h: 10 },
 			},
 		])
-		const childBefore = editor.getShape(childId)!
 		editor.select(frameId)
+	})
+
+	it('unparents the child during the resize and puts it back when the frame covers it again', () => {
+		const childBefore = editor.getShape(childId)!
 		editor.pointerDown(0, 50, { target: 'selection', handle: 'left' })
 
-		// The children move with the frame's left edge, which pushes this one out past its right edge
+		// Children keep their offset from the frame's left edge, so this one ends up past the
+		// frame's right edge
 		editor.pointerMove(30, 50)
 		expect(editor.getShape(childId)!.parentId).toBe(editor.getCurrentPageId())
 		expect(editor.getShapePageBounds(childId)).toMatchObject({ x: 110, y: 10 })
 
 		editor.pointerMove(0, 50)
-		expect(editor.getShape(childId)).toMatchObject({
-			parentId: frameId,
-			index: childBefore.index,
-			x: 80,
-			y: 10,
-		})
+		expect(editor.getShape(childId)).toEqual(childBefore)
 
 		editor.pointerUp(0, 50)
 		expect(editor.getShape(childId)!.parentId).toBe(frameId)
+	})
+
+	it('puts the child back where it was when the frame is rotated during the resize', () => {
+		const childBefore = editor.getShape(childId)!
+		editor.pointerDown(100, 50, { target: 'selection', handle: 'right' })
+		editor.pointerMove(50, 50)
+		expect(editor.getShape(childId)!.parentId).toBe(editor.getCurrentPageId())
+
+		editor.rotateShapesBy([frameId], Math.PI / 12)
+		editor.pointerMoveBy(0, 0)
+		editor.pointerMove(100, 50)
+		editor.pointerUp(100, 50)
+		expect(editor.getShape(childId)).toEqual(childBefore)
 	})
 })

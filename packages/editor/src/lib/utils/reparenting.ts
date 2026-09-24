@@ -57,7 +57,6 @@ export function kickoutOccludedShapes(
 		}
 	}
 
-	// Resizing calls this on every pointer move, and listing the page's shapes in order is O(n)
 	if (parentsToLostChildren.size === 0) return
 
 	// Get all of the shapes on the current page, sorted by their index
