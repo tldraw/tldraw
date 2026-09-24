@@ -631,6 +631,10 @@ export function getWorkspaceFullMessage(workspace: CreatableWorkspace, maxBoards
 	return `The workspace "${workspace.name}" already has the maximum of ${maxBoards} boards. Delete boards there or choose a different workspace.`
 }
 
+export function getWorkspaceGoneMessage(workspace: CreatableWorkspace) {
+	return `The workspace "${workspace.name}" was deleted. Choose a different workspace, or omit workspace to use your personal one.`
+}
+
 export function getCreatedBoardResult({
 	boardId,
 	name,

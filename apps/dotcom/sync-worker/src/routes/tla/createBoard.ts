@@ -10,6 +10,7 @@ import {
 	CreatableWorkspace,
 	ToolResult,
 	getWorkspaceFullMessage,
+	getWorkspaceGoneMessage,
 	resolveCreateBoardWorkspace,
 	toolError,
 } from './boardTools'
@@ -50,12 +51,24 @@ export async function createBoardForUser(
 				// manage. The row lock serializes concurrent creates into one workspace; without it two
 				// could both count 199. NO KEY so it doesn't block inserts whose foreign keys reference
 				// the group (file, group_file, group_user), which FOR UPDATE would.
-				await trx
+				//
+				// It re-checks isDeleted because the list read above takes no lock: a locking read's
+				// WHERE is re-evaluated against the newest committed row, so a workspace deleted in the
+				// gap is caught here, and a delete that starts later waits for this transaction.
+				const locked = await trx
 					.selectFrom('group')
 					.select('group.id')
 					.where('group.id', '=', target.id)
+					.where('group.isDeleted', '=', false)
 					.forNoKeyUpdate()
 					.execute()
+				if (!locked.length) {
+					return {
+						ok: false,
+						reason: 'workspace_not_found',
+						result: toolError(getWorkspaceGoneMessage(target)),
+					}
+				}
 				if ((await countWorkspaceBoards(trx, target.id)) >= MAX_NUMBER_OF_FILES) {
 					return {
 						ok: false,

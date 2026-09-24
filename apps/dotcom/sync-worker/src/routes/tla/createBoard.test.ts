@@ -118,7 +118,7 @@ afterEach(() => vi.clearAllMocks())
 
 describe('createBoardForUser', () => {
 	it('creates the board in the personal workspace when none is named', async () => {
-		mockPool([WORKSPACE_ROWS, [], [{ count: '3' }]])
+		mockPool([WORKSPACE_ROWS, [{ id: USER_ID }], [{ count: '3' }]])
 		const { ctx, waitUntil } = makeCtx()
 
 		const created = await createBoardForUser(
@@ -146,7 +146,7 @@ describe('createBoardForUser', () => {
 	})
 
 	it('creates the board in a named workspace the caller can add to', async () => {
-		mockPool([WORKSPACE_ROWS, [], [{ count: '0' }]])
+		mockPool([WORKSPACE_ROWS, [{ id: DESIGN_ID }], [{ count: '0' }]])
 		const created = await createBoardForUser(env, USER_ID, {
 			name: 'Roadmap',
 			workspace: 'design',
@@ -178,15 +178,23 @@ describe('createBoardForUser', () => {
 		expect(inserts).toEqual([])
 	})
 
+	// The list read takes no lock, so the workspace can be deleted before the row lock is taken.
+	it('refuses a workspace deleted after the list was read', async () => {
+		mockPool([WORKSPACE_ROWS, [], [{ count: '0' }]])
+		const created = await createBoardForUser(env, USER_ID, { name: 'Roadmap', workspace: 'Design' })
+		expect(created).toMatchObject({ ok: false, reason: 'workspace_not_found' })
+		expect(inserts).toEqual([])
+	})
+
 	it('refuses a workspace that is already at the file limit', async () => {
-		mockPool([WORKSPACE_ROWS, [], [{ count: String(MAX_NUMBER_OF_FILES) }]])
+		mockPool([WORKSPACE_ROWS, [{ id: USER_ID }], [{ count: String(MAX_NUMBER_OF_FILES) }]])
 		const created = await createBoardForUser(env, USER_ID, { name: 'Roadmap', workspace: null })
 		expect(created).toMatchObject({ ok: false, reason: 'workspace_full' })
 		expect(inserts).toEqual([])
 	})
 
 	it('reads, locks and counts inside one transaction on one pool, then closes it', async () => {
-		const { queries, destroy } = mockPool([WORKSPACE_ROWS, [], [{ count: '0' }]])
+		const { queries, destroy } = mockPool([WORKSPACE_ROWS, [{ id: USER_ID }], [{ count: '0' }]])
 		await createBoardForUser(env, USER_ID, { name: 'Roadmap', workspace: null })
 
 		expect(createPostgresConnectionPool).toHaveBeenCalledTimes(1)
@@ -203,7 +211,8 @@ describe('createBoardForUser', () => {
 		expect(workspaces.sql).not.toContain(' or ')
 		expect(workspaces.parameters).toEqual([USER_ID, false, USER_ID, false])
 		expect(lock.sql).toMatch(/for no key update$/)
-		expect(lock.parameters).toEqual([USER_ID])
+		expect(lock.sql).toContain('"group"."isDeleted" = $')
+		expect(lock.parameters).toEqual([USER_ID, false])
 		expect(count.sql).toContain('"file"."owningGroupId" = $')
 		expect(count.parameters).toEqual([USER_ID, false])
 		expect(destroy).toHaveBeenCalledTimes(1)
