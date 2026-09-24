@@ -114,8 +114,7 @@ export function CommentComposer({
 			if (!expandedRef.current) setExpanded(true)
 			return
 		}
-		const field = wrap.parentElement
-		const send = field ? field.querySelector<HTMLElement>('.tlui-cmt-send') : null
+		const send = wrap.parentElement?.querySelector<HTMLElement>('.tlui-cmt-send')
 		const input = wrap.querySelector('.tlui-cmt-input')
 		if (!send || !input) return
 		mirror.innerHTML = input.innerHTML
@@ -263,8 +262,7 @@ export function CommentComposer({
 	// space beside/below a short line) focuses the editor rather than only the text glyphs being
 	// clickable. The input (caret placement) and the send button keep their own click handling.
 	const focusEditorFromField = (e: ReactMouseEvent<HTMLDivElement>) => {
-		const target = e.target as HTMLElement
-		if (target.closest('.tlui-cmt-input') || target.closest('.tlui-cmt-send')) return
+		if ((e.target as HTMLElement).closest('.tlui-cmt-input, .tlui-cmt-send')) return
 		e.preventDefault()
 		editor?.commands.focus('end')
 	}

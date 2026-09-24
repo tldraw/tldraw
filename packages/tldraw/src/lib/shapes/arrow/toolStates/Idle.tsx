@@ -1,5 +1,5 @@
 import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo, TLShapeId } from '@tldraw/editor'
-import { startEditingShapeWithRichText } from '../../../tools/SelectTool/selectHelpers'
+import { startEditingShape } from '../../../tools/SelectTool/selectHelpers'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetState'
 
@@ -30,7 +30,7 @@ export class Idle extends StateNode {
 	override onExit() {
 		clearArrowTargetState(this.editor)
 		if (this.isPreciseTimerId !== null) {
-			clearTimeout(this.isPreciseTimerId)
+			this.editor.timers.clearTimeout(this.isPreciseTimerId)
 		}
 	}
 
@@ -42,9 +42,8 @@ export class Idle extends StateNode {
 		this.update()
 		if (info.key === 'Enter') {
 			const onlySelectedShape = this.editor.getOnlySelectedShape()
-			if (this.editor.canEditShape(onlySelectedShape)) {
-				startEditingShapeWithRichText(this.editor, onlySelectedShape, { selectAll: true })
-			}
+			if (!this.editor.canEditShape(onlySelectedShape)) return
+			startEditingShape(this.editor, onlySelectedShape, { selectAll: true })
 		}
 	}
 
@@ -62,7 +61,7 @@ export class Idle extends StateNode {
 
 		if (targetState && targetState.target.id !== this.preciseTargetId) {
 			if (this.isPreciseTimerId !== null) {
-				clearTimeout(this.isPreciseTimerId)
+				this.editor.timers.clearTimeout(this.isPreciseTimerId)
 			}
 
 			this.preciseTargetId = targetState.target.id
@@ -74,7 +73,7 @@ export class Idle extends StateNode {
 			this.isPrecise = false
 			this.preciseTargetId = null
 			if (this.isPreciseTimerId !== null) {
-				clearTimeout(this.isPreciseTimerId)
+				this.editor.timers.clearTimeout(this.isPreciseTimerId)
 			}
 		}
 	}

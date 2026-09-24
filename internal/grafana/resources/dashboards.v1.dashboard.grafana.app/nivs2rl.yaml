@@ -836,8 +836,8 @@ spec:
     - datasource:
         type: yesoreyeram-infinity-datasource
         uid: ffuyblsuemj28b
-      description: Total DO CPU time per interval across the account (rooms, user DOs,
-        replicator, bemo, MCP sessions combined).
+      description: Total DO CPU time per interval across the account (rooms, bemo, MCP
+        sessions combined).
       fieldConfig:
         defaults:
           color:
@@ -2276,23 +2276,47 @@ spec:
         skipUrlSync: false
         type: custom
       - current:
-          selected: true
+          selected: false
           text: tldraw.com
           value: e7567c58962361a2bb9d802f858f5da3
-        description: Aliased for legibility only — the ID is stored in this dashboard's
-          JSON and is not secret.
+        datasource:
+          type: yesoreyeram-infinity-datasource
+          uid: ffuyblsuemj28b
+        definition: Cloudflare zones visible to the datasource's API token
+        description: Listed from the Cloudflare API rather than hardcoded, so a zone
+          added to the account shows up without a dashboard edit. The token behind this
+          datasource currently sees one zone.
         hide: 0
         includeAll: false
         label: Cloudflare zone
         multi: false
         name: zone_id
-        options:
-          - selected: true
-            text: tldraw.com
-            value: e7567c58962361a2bb9d802f858f5da3
-        query: 'tldraw.com : e7567c58962361a2bb9d802f858f5da3'
+        options: []
+        query:
+          infinityQuery:
+            columns:
+              - selector: name
+                text: __text
+                type: string
+              - selector: id
+                text: __value
+                type: string
+            filters: []
+            format: table
+            parser: backend
+            refId: variable
+            root_selector: result
+            source: url
+            type: json
+            url: https://api.cloudflare.com/client/v4/zones
+            url_options:
+              method: GET
+          queryType: infinity
+        refresh: 1
+        regex: ''
         skipUrlSync: false
-        type: custom
+        sort: 1
+        type: query
   time:
     from: now-6h
     to: now

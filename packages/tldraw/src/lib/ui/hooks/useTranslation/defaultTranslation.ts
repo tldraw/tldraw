@@ -414,6 +414,8 @@ export const DEFAULT_TRANSLATION = {
 	'shortcuts-dialog.collaboration': 'Collaboration',
 	'shortcuts-dialog.a11y': 'Accessibility',
 	'shortcuts-dialog.text-formatting': 'Text formatting',
+	'shortcuts-dialog.disabled-notice':
+		'Keyboard shortcuts are turned off. Turn them back on under Preferences > Accessibility.',
 	'style-panel.title': 'Styles',
 	'style-panel.align': 'Align',
 	'style-panel.label-align': 'Label align',

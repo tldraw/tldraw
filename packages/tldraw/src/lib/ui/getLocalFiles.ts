@@ -14,7 +14,7 @@ export function getLocalFiles(options?: {
 
 		const input = doc.createElement('input')
 		input.type = 'file'
-		input.accept = mimeTypes?.join(',')
+		input.accept = mimeTypes.join(',')
 		input.multiple = allowMultiple
 		input.style.display = 'none'
 
@@ -45,6 +45,6 @@ export function getLocalFiles(options?: {
 		doc.body.appendChild(input)
 		input.addEventListener('cancel', oncancel)
 		input.addEventListener('change', onchange)
-		input?.click()
+		input.click()
 	})
 }

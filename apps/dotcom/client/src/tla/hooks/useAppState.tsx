@@ -1,8 +1,11 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
+import { captureException } from '@sentry/react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { assertExists, atom } from 'tldraw'
-import { TldrawApp } from '../app/TldrawApp'
+import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
+import { enableFirstLoadLiveLog, isFirstLoadStaff, markFirstLoad } from '../../utils/firstLoad'
+import { TldrawApp, getPreloadDiagnostics } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
 import {
 	DEFAULT_FLAGS,
@@ -15,26 +18,31 @@ const appContext = createContext<TldrawApp | null>(null)
 
 export const isClientTooOld$ = atom('isClientTooOld', false)
 
+const APP_LOAD_ERROR_MESSAGES = {
+	header: 'Something went wrong',
+	para1: 'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.',
+	cta: 'Refresh',
+}
+
 export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [app, setApp] = useState(null as TldrawApp | null)
+	const [error, setError] = useState<unknown>(null)
 	const auth = useAuth()
 	const { user, isLoaded } = useClerkUser()
-
-	useEffect(() => {
-		if (!auth.isSignedIn || !user || !isLoaded) {
-			return
-		}
-	})
 	const trackEvent = useTldrawAppUiEvents()
 
 	if (!auth.isSignedIn || !user || !isLoaded) {
 		throw new Error('should have redirected in TlaRootProviders')
 	}
 	const navigate = useNavigate()
+	const email = user.primaryEmailAddress?.emailAddress
+	if (isFirstLoadStaff(email)) enableFirstLoadLiveLog()
 
 	useEffect(() => {
 		let _app: TldrawApp
 		let didCancel = false
+		const abort = new AbortController()
+		setError(null)
 
 		const FETCH_TIMEOUT = 5000
 		function fetchFlagsWithTimeout(): Promise<FeatureFlags> {
@@ -51,12 +59,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			if (!wasAuthenticated()) {
 				flags = await fetchFlagsWithTimeout()
 			}
+			markFirstLoad('flags-loaded')
+			// Flagged users get the live lines too: a load that hangs never reaches the summary tables.
+			if (flags.first_load_rum?.enabled) enableFirstLoadLiveLog()
 			if (didCancel) return
 			const token = await auth.getToken()
 			if (!token) throw new Error('no token')
 			const { app } = await TldrawApp.create({
 				userId: auth.userId,
-				email: user.primaryEmailAddress?.emailAddress,
+				email,
 				flags,
 				getToken: async () => {
 					const token = await auth.getToken()
@@ -75,6 +86,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				},
 				trackEvent,
 				navigate,
+				signal: abort.signal,
 			})
 			if (didCancel) {
 				app.dispose()
@@ -83,17 +95,43 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			_app = app
 			setApp(app)
 		})().catch((err) => {
+			if (didCancel) return
 			console.error('[AppState] Failed to initialize:', err)
+			// Default grouping keys on the stack, which every preload timeout shares; the message
+			// carries the stalled stage or init status, so group on it. The Zero connection state
+			// goes on a tag rather than the fingerprint so one stage stays one issue.
+			const diagnostics = getPreloadDiagnostics(err)
+			captureException(err, {
+				fingerprint: ['{{ default }}', err instanceof Error ? err.message : String(err)],
+				tags: diagnostics && { zero_connection: diagnostics.connection },
+			})
+			setError(err)
 		})
 
 		return () => {
 			didCancel = true
+			abort.abort()
 			if (_app) {
 				_app.dispose()
 			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [auth.userId, user])
+
+	if (error) {
+		// A swallowed bootstrap failure would leave the blank loading state below up for the
+		// whole session.
+		return (
+			<ErrorPage
+				messages={APP_LOAD_ERROR_MESSAGES}
+				cta={
+					<button type="button" onClick={() => window.location.reload()}>
+						{APP_LOAD_ERROR_MESSAGES.cta}
+					</button>
+				}
+			/>
+		)
+	}
 
 	if (!app) {
 		// We used to show a Loading... here but it was causing too much flickering.

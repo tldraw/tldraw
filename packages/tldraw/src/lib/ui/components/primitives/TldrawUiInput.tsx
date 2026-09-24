@@ -1,4 +1,4 @@
-import { tlenv, tltime, useMaybeEditor } from '@tldraw/editor'
+import { Editor, tlenv, tltime, useMaybeEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -40,6 +40,14 @@ export interface TLUiInputProps {
 	'aria-label'?: string
 }
 
+function requestFrame(editor: Editor | null, fn: () => void) {
+	if (editor) {
+		editor.timers.requestAnimationFrame(fn)
+	} else {
+		tltime.requestAnimationFrame('anon', fn)
+	}
+}
+
 /** @public @react */
 export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 	function TldrawUiInput(
@@ -76,7 +84,6 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 
 		const msg = useTranslation()
 		const rInitialValue = React.useRef<string>(defaultValue ?? '')
-		const rCurrentValue = React.useRef<string>(defaultValue ?? '')
 
 		const isComposing = React.useRef(false)
 
@@ -84,20 +91,9 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 		const handleFocus = React.useCallback(
 			(e: React.FocusEvent<HTMLInputElement>) => {
 				setIsFocused(true)
-				const elm = e.currentTarget as HTMLInputElement
-				rCurrentValue.current = elm.value
-				if (editor) {
-					editor.timers.requestAnimationFrame(() => {
-						if (autoSelect) {
-							elm.select()
-						}
-					})
-				} else {
-					tltime.requestAnimationFrame('anon', () => {
-						if (autoSelect) {
-							elm.select()
-						}
-					})
+				const elm = e.currentTarget
+				if (autoSelect) {
+					requestFrame(editor, () => elm.select())
 				}
 				onFocus?.()
 			},
@@ -106,9 +102,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 
 		const handleChange = React.useCallback(
 			(e: React.ChangeEvent<HTMLInputElement>) => {
-				const value = e.currentTarget.value
-				rCurrentValue.current = value
-				onValueChange?.(value)
+				onValueChange?.(e.currentTarget.value)
 			},
 			[onValueChange]
 		)
@@ -142,8 +136,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 		const handleBlur = React.useCallback(
 			(e: React.FocusEvent<HTMLInputElement>) => {
 				setIsFocused(false)
-				const value = e.currentTarget.value
-				onBlur?.(value)
+				onBlur?.(e.currentTarget.value)
 			},
 			[onBlur]
 		)
@@ -162,16 +155,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 				}
 				visualViewport.addEventListener('resize', onViewportChange)
 				visualViewport.addEventListener('scroll', onViewportChange)
-
-				if (editor) {
-					editor.timers.requestAnimationFrame(() => {
-						rInputRef.current?.scrollIntoView({ block: 'center' })
-					})
-				} else {
-					tltime.requestAnimationFrame('anon', () => {
-						rInputRef.current?.scrollIntoView({ block: 'center' })
-					})
-				}
+				requestFrame(editor, onViewportChange)
 
 				return () => {
 					visualViewport.removeEventListener('resize', onViewportChange)

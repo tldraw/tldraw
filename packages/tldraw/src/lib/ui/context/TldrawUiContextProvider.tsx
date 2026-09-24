@@ -102,7 +102,7 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 function InternalProviders({
 	overrides,
 	children,
-}: Omit<TLUiContextProviderProps, 'assetBaseUrl'>) {
+}: Pick<TLUiContextProviderProps, 'overrides' | 'children'>) {
 	const mergedOverrides = useMergedOverrides(overrides)
 	return (
 		<ActionsProvider overrides={mergedOverrides.actions}>
