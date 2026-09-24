@@ -55,6 +55,7 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@types/uuid-readable": "^0.0.3",
+		"@types/ws": "^8.18.1",
 		"fake-indexeddb": "^4.0.2",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",

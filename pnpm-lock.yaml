@@ -277,6 +277,12 @@ importers:
       vercel:
         specifier: ^52.0.0
         version: 52.2.1(@emnapi/core@1.10.0)(@emnapi/runtime@1.11.3)(encoding@0.1.13)(supports-color@10.2.2)(typescript@7.0.2)
+      vite:
+        specifier: ^8.0.16
+        version: 8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)
+      vite-plugin-circular-dependency:
+        specifier: ^0.5.0
+        version: 0.5.0
       vitest:
         specifier: ^5.0.0
         version: 5.0.0(@edge-runtime/vm@3.2.0)(@opentelemetry/api@1.9.0)(@types/node@22.16.0)(@vitest/coverage-v8@5.0.0)(@vitest/ui@5.0.0)(jsdom@29.1.1)(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
@@ -708,6 +714,9 @@ importers:
       '@types/node':
         specifier: ^22.15.31
         version: 22.16.0
+      '@types/pg':
+        specifier: ^8.16.0
+        version: 8.16.0
       '@types/qrcode':
         specifier: ^1.5.5
         version: 1.5.5
@@ -843,7 +852,7 @@ importers:
         specifier: ^4.20260302.0
         version: 4.20260317.1
       '@types/pg':
-        specifier: ^8.11.11
+        specifier: ^8.16.0
         version: 8.16.0
       esbuild:
         specifier: ^0.28.0
@@ -895,6 +904,9 @@ importers:
         specifier: ^8.16.3
         version: 8.22.0
     devDependencies:
+      '@types/pg':
+        specifier: ^8.16.0
+        version: 8.16.0
       concurrently:
         specifier: ^9.1.2
         version: 9.2.0
@@ -1132,8 +1144,11 @@ importers:
         specifier: ^4.19.2
         version: 4.22.4
       typescript:
-        specifier: ^5.8.3
-        version: 5.9.3
+        specifier: ^7.0.2
+        version: 7.0.2
+      typescript5:
+        specifier: npm:typescript@^5.8.3
+        version: typescript@5.9.3
       vite:
         specifier: ^8.0.16
         version: 8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -1427,8 +1442,11 @@ importers:
         specifier: ^22.15.31
         version: 22.16.0
       '@types/pg':
-        specifier: ^8.11.11
+        specifier: ^8.16.0
         version: 8.16.0
+      '@types/semver':
+        specifier: ^7.5.8
+        version: 7.5.8
       ast-types:
         specifier: ^0.14.2
         version: 0.14.2
@@ -1474,12 +1492,6 @@ importers:
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
-      vite:
-        specifier: ^8.0.16
-        version: 8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0)
-      vite-plugin-circular-dependency:
-        specifier: ^0.5.0
-        version: 0.5.0
 
   packages/assets:
     dependencies:
@@ -1999,6 +2011,9 @@ importers:
       '@types/uuid-readable':
         specifier: ^0.0.3
         version: 0.0.3
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
       fake-indexeddb:
         specifier: ^4.0.2
         version: 4.0.2
