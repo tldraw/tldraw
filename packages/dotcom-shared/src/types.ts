@@ -269,7 +269,6 @@ export const FEATURE_FLAG_KEYS = [
 	'first_load_rum',
 	'mcp_server_access',
 	'version_chain',
-	'version_chain_legacy_writes',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
