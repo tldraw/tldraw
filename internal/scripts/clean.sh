@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eux
 
-yarn run lazy run clean || true
+pnpm exec lazy run clean || true
 
 # a function called 'goodbye' that takes a string as an argument
 function goodbye() {
@@ -38,4 +38,4 @@ rm -rf apps/docs/content.json
 rm -rf apps/dotcom/client/e2e/.auth
 
 npm i -g corepack
-yarn
+pnpm install

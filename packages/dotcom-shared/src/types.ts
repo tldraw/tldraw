@@ -244,13 +244,29 @@ export interface SubmitFeedbackRequestBody {
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 
-export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persistence_bad' }
+export type TLCustomServerEvent =
+	| { type: 'persistence_good' }
+	| { type: 'persistence_bad' }
+	// Sent once to a session that connected with a `loadId`, so the client's first_load report
+	// can show the server side of that same load. All durations in ms; boot fields only on a cold boot.
+	| {
+			type: 'first_load_server'
+			loadId: string
+			cold: boolean
+			auth_ms?: number
+			file_record_ms?: number
+			get_room_ms: number
+			total_ms: number
+			boot_r2_ms?: number
+			boot_comments_ms?: number
+			boot_total_ms?: number
+	  }
 
 /* ----------------------- Feature Flags ---------------------- */
 
 export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
-	'commenting_enabled',
+	'first_load_rum',
 	'mcp_server_access',
 	'version_chain',
 	'version_chain_legacy_writes',
@@ -289,10 +305,18 @@ export interface PercentageFeatureFlag {
  */
 export interface AllowlistFeatureFlag {
 	type: 'allowlist'
+	// No master toggle, unlike the other two. An empty list already admits nobody, so a separate
+	// "off" would only be a second way to say the same thing — and on `mcp_server_access` it could
+	// not even say it, since the staff bypass in `canUseMcpServer` does not consult this flag.
 	/** The users the flag is on for. Anyone not named here evaluates false. */
 	users: AllowlistEntry[]
-	/** Master toggle — when false, disabled for everyone regardless of the list. */
-	enabled: boolean
+	/**
+	 * Skips the list and admits everybody.
+	 *
+	 * Optional because stored values predate it, and absent reads as false: a KV value written before
+	 * this existed must not start admitting everyone when the code that reads it is deployed.
+	 */
+	allowEveryone?: boolean
 	description: string
 }
 

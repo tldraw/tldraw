@@ -13,12 +13,7 @@ import {
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import { authenticateMcpRequest } from './mcpAuth'
-import {
-	isMcpScreenshotEnabled,
-	normalizeMcpClient,
-	resetRateLimitFallbackForTests,
-	mcpServer,
-} from './mcpServer'
+import { normalizeMcpClient, resetRateLimitFallbackForTests, mcpServer } from './mcpServer'
 import {
 	blobValuesOf,
 	blobsWithPrefix,
@@ -391,58 +386,12 @@ describe('authentication', () => {
 		await mcpServer(makeRpcRequest('tools/list'), env)
 
 		expect(blobValuesOf(env, 'mcp_server_auth_refusal', 'reason')).toEqual(['not_allowlisted'])
+		expect(blobValuesOf(env, 'mcp_server_auth_refusal', 'route')).toEqual(['mcp'])
 		expect(datapointsNamed(env, TOOL_CALL_EVENT)).toEqual([])
 	})
 })
 
-describe('MCP_SCREENSHOT_ENABLED', () => {
-	// The switch is read per request rather than baked in at build time, so flipping the var takes
-	// the server down without a rebuild.
-	it('serves the server when unset or "true"', () => {
-		expect(isMcpScreenshotEnabled(makeEnv())).toBe(true)
-		expect(isMcpScreenshotEnabled(makeEnv({ MCP_SCREENSHOT_ENABLED: 'true' }))).toBe(true)
-		expect(isMcpScreenshotEnabled(makeEnv({ MCP_SCREENSHOT_ENABLED: ' TRUE ' }))).toBe(true)
-	})
-
-	// Anything unrecognized disables: someone reaching for the kill switch under pressure and typing
-	// `0` or `off` should get a disabled server, not a silently still-running one.
-	it('disables the server for "false" and for any unrecognized value', () => {
-		for (const value of ['false', '0', 'off', 'no', 'disabled']) {
-			expect(isMcpScreenshotEnabled(makeEnv({ MCP_SCREENSHOT_ENABLED: value }))).toBe(false)
-		}
-	})
-
-	it('answers every request with 404 while disabled, without touching the board', async () => {
-		// A board that would otherwise render, so the untouched screenshot binding below means the
-		// switch stopped the request rather than the board simply not resolving.
-		mockPublishedBoard()
-		const env = makeEnv({ MCP_SCREENSHOT_ENABLED: 'false' })
-
-		const response = await mcpServer(
-			makeToolCall(
-				'get_cluster_screenshot',
-				{ boardId: 'abc', clusterIds: ['cluster:any'] },
-				'user_40'
-			),
-			env
-		)
-
-		expect(response.status).toBe(404)
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
-		expect(getPublishedFileInfo).not.toHaveBeenCalled()
-	})
-
-	// Disabled means gone, not "here but empty": a client that can still initialize and list tools
-	// would advertise tools that every call then rejects.
-	it('hides the protocol handshake while disabled', async () => {
-		const response = await mcpServer(
-			makeRpcRequest('initialize', undefined, { userId: 'user_41' }),
-			makeEnv({ MCP_SCREENSHOT_ENABLED: 'false' })
-		)
-
-		expect(response.status).toBe(404)
-	})
-
+describe('request shape', () => {
 	it('answers anything but POST with 405', async () => {
 		const response = await mcpServer(
 			new Request('https://sync.tldraw.xyz/app/mcp', { method: 'GET' }) as any,
@@ -644,6 +593,60 @@ describe('search_boards', () => {
 		const result = await callTool('search_boards', { cursor: 'not-a-cursor' })
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('cursor is not valid')
+	})
+
+	// initialize is read before any tool call, so instructions promising name search are acted on
+	// before the tool definition can correct them — the same failure one step earlier.
+	it('tells the handshake that name search is unavailable when it is', async () => {
+		const off = await rpcResult(
+			await mcpServer(
+				makeRpcRequest('initialize'),
+				makeEnv({ MCP_SEARCH_NAME_MATCHING_ENABLED: 'false' })
+			)
+		)
+		expect(off.instructions).toContain('not available on this deployment')
+		expect(off.instructions).not.toContain('find a board by name')
+
+		const on = await rpcResult(await mcpServer(makeRpcRequest('initialize'), makeEnv()))
+		expect(on.instructions).toContain('find a board by name')
+	})
+
+	// Production runs with name matching off while the unindexed ILIKE scan is being watched. The
+	// terms have to be refused rather than dropped: a model that asked for "roadmap" and got this
+	// account's twenty most recent boards would read them as twenty matches.
+	it('refuses a name query when name matching is disabled', async () => {
+		vi.mocked(searchAccessibleBoards).mockResolvedValue([])
+		const env = makeEnv({ MCP_SEARCH_NAME_MATCHING_ENABLED: 'false' })
+		const result = await callTool('search_boards', { query: 'roadmap' }, env)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('not available on this deployment')
+		expect(searchAccessibleBoards).not.toHaveBeenCalled()
+	})
+
+	it('still lists boards when name matching is disabled', async () => {
+		vi.mocked(searchAccessibleBoards).mockResolvedValue([ROW])
+		const env = makeEnv({ MCP_SEARCH_NAME_MATCHING_ENABLED: 'false' })
+		const result = await callTool('search_boards', {}, env)
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text).boardCount).toBe(1)
+	})
+
+	// A query the caller must not send has no business in the schema — offer it and a model will use
+	// it, then be refused.
+	it('advertises no query argument when name matching is disabled', async () => {
+		const off = await rpcResult(
+			await mcpServer(
+				makeRpcRequest('tools/list'),
+				makeEnv({ MCP_SEARCH_NAME_MATCHING_ENABLED: 'false' })
+			)
+		)
+		const search = off.tools.find((tool: any) => tool.name === 'search_boards')
+		expect(Object.keys(search.inputSchema.properties)).toEqual(['cursor'])
+		expect(search.description).toContain('not available on this deployment')
+
+		const on = await rpcResult(await mcpServer(makeRpcRequest('tools/list'), makeEnv()))
+		const searchOn = on.tools.find((tool: any) => tool.name === 'search_boards')
+		expect(Object.keys(searchOn.inputSchema.properties)).toEqual(['query', 'cursor'])
 	})
 
 	// Matching nothing is a normal answer. Flagged as an error, a model retries it.
