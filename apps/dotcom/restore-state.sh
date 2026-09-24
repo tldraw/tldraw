@@ -63,7 +63,7 @@ echo "Checking if dev-app is running..."
 if curl -s -f http://localhost:3000 > /dev/null 2>&1; then
   echo "  ❌ ERROR: dev-app is running on port 3000"
   echo "  Please stop the dev-app before restoring state:"
-  echo "    - Press Ctrl+C in the terminal running 'yarn dev-app'"
+  echo "    - Press Ctrl+C in the terminal running 'pnpm dev-app'"
   echo "    - Or run 'pkill -f \"vite.*3000\"' to kill the process"
   echo ""
   echo "  This prevents data corruption during the restore process."

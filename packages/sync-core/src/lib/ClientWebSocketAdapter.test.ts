@@ -909,6 +909,37 @@ describe('ReconnectManager', () => {
 		// closing again is safe
 		expect(() => manager.close()).not.toThrow()
 	})
+
+	it('[RM4] reconnect hints and the disconnect handler survive an undefined WebSocket global', async () => {
+		// Regression test for the undefined-WebSocket crash guarded in ClientWebSocketAdapter.ts (#10106).
+		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+		const manager = adapter._reconnectManager
+		// jsdom reports a throwing event listener on window instead of from dispatchEvent
+		const listenerErrors: unknown[] = []
+		const onError = (event: ErrorEvent) => {
+			event.preventDefault()
+			listenerErrors.push(event.error)
+		}
+		window.addEventListener('error', onError)
+		const originalWebSocket = globalThis.WebSocket
+		try {
+			;(globalThis as any).WebSocket = undefined
+
+			window.dispatchEvent(new Event('online'))
+			expect(() => manager.maybeReconnected()).not.toThrow()
+			expect(() => manager.connected()).not.toThrow()
+			expect(adapter.connectionStatus).toBe('online')
+
+			window.dispatchEvent(new Event('offline'))
+			expect(() => manager.disconnected()).not.toThrow()
+			expect(listenerErrors).toEqual([])
+			expect(adapter.connectionStatus).toBe('offline')
+			expect(adapter._ws).toBeNull()
+		} finally {
+			globalThis.WebSocket = originalWebSocket
+			window.removeEventListener('error', onError)
+		}
+	})
 })
 
 describe('URI failure boundaries', () => {
