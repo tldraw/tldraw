@@ -1,6 +1,7 @@
 name = "shader-template"
 compatibility_date = "2025-05-08"
 preview_urls = true
+workers_dev = true
 
 [[routes]]
 pattern = "shader.templates.tldraw.dev"
