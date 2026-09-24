@@ -130,7 +130,7 @@ async function build() {
 	// make sure we have the latest routes
 	await exec('pnpm', ['test', 'src/routes.test.tsx'])
 	const spaRoutes = loadSpaRoutes()
-	await exec('../../../node_modules/.bin/vite', ['build', '--emptyOutDir'])
+	await exec('pnpm', ['exec', 'vite', 'build', '--emptyOutDir'])
 	await exec('pnpm', ['exec', 'sentry-cli', 'sourcemaps', 'inject', 'dist/assets'])
 	// Clear output static folder (in case we are running locally and have already built the app once before)
 	await exec('rm', ['-rf', '.vercel/output'])

@@ -247,7 +247,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	}
 
 	/** @internal */
-	pruneTombstones = throttle(
+	pruneTombstones: ReturnType<typeof throttle<() => void>> = throttle(
 		() => {
 			if (this.tombstones.size > MAX_TOMBSTONES) {
 				// Convert to array and sort by clock ascending (oldest first)
