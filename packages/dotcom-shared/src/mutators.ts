@@ -630,6 +630,9 @@ export function createMutators(userId: string) {
 
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			assert(file, ZErrorCode.bad_request)
+			// a fresh group_file row would re-grant access to a trashed board, bringing its
+			// comment notifications back for the target workspace
+			assert(!file.isDeleted, ZErrorCode.bad_request)
 
 			// No-op if file is already in the target workspace
 			if (file.owningGroupId === workspaceId) return

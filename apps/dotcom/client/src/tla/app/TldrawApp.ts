@@ -1,4 +1,4 @@
-import { MutatorResultErrorDetails, QueryResultType, Zero } from '@rocicorp/zero'
+import { MutatorResultErrorDetails, QueryResultType, TypedView, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	AcceptInviteResponseBody,
@@ -169,8 +169,22 @@ export class TldrawApp {
 	private readonly workspaceMemberships$: Signal<
 		QueryResultType<typeof queries.workspaceMemberships>
 	>
-	private readonly comments$: Signal<QueryResultType<typeof queries.comments>>
-	private readonly reactions$: Signal<QueryResultType<typeof queries.reactions>>
+	/**
+	 * The comment feeds (one per reason for a notification — see `homeBoardComments` in
+	 * dotcom-shared), each empty until {@link startNotificationFeeds} subscribes it.
+	 */
+	private readonly homeBoardComments$: Atom<QueryResultType<typeof queries.homeBoardComments>>
+	private readonly threadStarterComments$: Atom<
+		QueryResultType<typeof queries.threadStarterComments>
+	>
+	private readonly threadParticipantComments$: Atom<
+		QueryResultType<typeof queries.threadParticipantComments>
+	>
+	private readonly mentionComments$: Atom<QueryResultType<typeof queries.mentionComments>>
+	/** The feeds merged, deduped by comment id (a comment can qualify for several reasons). */
+	private readonly comments$: Signal<QueryResultType<typeof queries.homeBoardComments>>
+	/** Like the comment feeds. */
+	private readonly reactions$: Atom<QueryResultType<typeof queries.reactions>>
 	/** The signed-in account's email, for the first-load report gate. */
 	readonly email: string | null
 	readonly isFirstLoadRumEnabled: boolean
@@ -188,13 +202,22 @@ export class TldrawApp {
 
 	private signalizeQuery<TReturn>(name: string, query: any): Signal<TReturn> {
 		// fail if closed?
-		const view = this.z.materialize(query) as unknown as {
-			data: TReturn
-			addListener(cb: (data: TReturn) => void): () => void
-			destroy(): void
-		}
+		const view = this.z.materialize(query) as unknown as TypedView<TReturn>
 		const val$ = atom(name, view.data, { isEqual })
-		view.addListener((res) => {
+		this.bindQuery(val$, view)
+		return val$
+	}
+
+	/** Feed a materialized Zero view into an atom for its lifetime, batched like every other signal. */
+	private bindQuery<TReturn>(val$: Atom<TReturn>, view: TypedView<TReturn>) {
+		let reportedError = false
+		view.addListener((res, resultType, error) => {
+			// a failed query just leaves its signal empty, which looks like no data rather than broken.
+			// Closing Zero fails every query still hydrating, which is teardown, not a failure
+			if (resultType === 'error' && !reportedError && !this.z.closed) {
+				reportedError = true
+				captureException(new Error(`Query failed: ${val$.name}`), { extra: { error } })
+			}
 			this.changes.set(val$, structuredClone(res))
 			if (!this.changesFlushed) {
 				this.changesFlushed = promiseWithResolve()
@@ -213,7 +236,6 @@ export class TldrawApp {
 		this.disposables.push(() => {
 			view.destroy()
 		})
-		return val$
 	}
 
 	toasts: TLUiToastsContextType | null = null
@@ -339,18 +361,77 @@ export class TldrawApp {
 			'workspace memberships signal',
 			queries.workspaceMemberships()
 		)
-		this.comments$ = this.signalizeQuery('comments signal', queries.comments())
-		this.reactions$ = this.signalizeQuery('reactions signal', queries.reactions())
+		this.homeBoardComments$ = atom('home board comments signal', [], { isEqual })
+		this.threadStarterComments$ = atom('thread starter comments signal', [], { isEqual })
+		this.threadParticipantComments$ = atom('thread participant comments signal', [], { isEqual })
+		this.mentionComments$ = atom('mention comments signal', [], { isEqual })
+		this.comments$ = computed('comments signal', () => {
+			const seen = new Set<string>()
+			const merged: QueryResultType<typeof queries.homeBoardComments> = []
+			for (const feed of [
+				this.homeBoardComments$,
+				this.threadStarterComments$,
+				this.threadParticipantComments$,
+				this.mentionComments$,
+			]) {
+				for (const comment of feed.get()) {
+					if (seen.has(comment.id)) continue
+					seen.add(comment.id)
+					merged.push(comment)
+				}
+			}
+			return merged
+		})
+		this.reactions$ = atom('reactions signal', [], { isEqual })
 	}
 
-	/** Recent comments across the user's files, for the notifications feed (bounded, cross-file). */
-	getComments(): QueryResultType<typeof queries.comments> {
+	/**
+	 * Subscribe the notifications feeds. Called once {@link preload} has resolved rather than from
+	 * the constructor: nothing awaits these, but a query the view-syncer is hydrating still
+	 * delays the bootstrap queries the app does wait on (tldraw-internal#2032).
+	 */
+	startNotificationFeeds() {
+		this.bindQuery(
+			this.homeBoardComments$,
+			this.materializeQuery<QueryResultType<typeof queries.homeBoardComments>>(
+				queries.homeBoardComments()
+			)
+		)
+		this.bindQuery(
+			this.threadStarterComments$,
+			this.materializeQuery<QueryResultType<typeof queries.threadStarterComments>>(
+				queries.threadStarterComments()
+			)
+		)
+		this.bindQuery(
+			this.threadParticipantComments$,
+			this.materializeQuery<QueryResultType<typeof queries.threadParticipantComments>>(
+				queries.threadParticipantComments()
+			)
+		)
+		this.bindQuery(
+			this.mentionComments$,
+			this.materializeQuery<QueryResultType<typeof queries.mentionComments>>(
+				queries.mentionComments()
+			)
+		)
+		this.bindQuery(
+			this.reactions$,
+			this.materializeQuery<QueryResultType<typeof queries.reactions>>(queries.reactions())
+		)
+	}
+
+	/**
+	 * Recent comments across the user's files, for the notifications feed (bounded per feed,
+	 * cross-file, unordered). Empty until {@link startNotificationFeeds}.
+	 */
+	getComments(): QueryResultType<typeof queries.homeBoardComments> {
 		return this.comments$.get()
 	}
 
 	/**
 	 * Recent reactions to the user's comments across their files, for the notifications feed
-	 * (bounded, cross-file).
+	 * (bounded, cross-file). Empty until {@link startNotificationFeeds}.
 	 */
 	getReactions(): QueryResultType<typeof queries.reactions> {
 		return this.reactions$.get()
@@ -359,14 +440,10 @@ export class TldrawApp {
 	/**
 	 * Materialize an ad-hoc Zero query into a live view the caller owns and must `destroy()`. For
 	 * parameterized, component-scoped queries (e.g. one file's comments) that shouldn't be
-	 * app-lifetime signals like {@link comments$}.
+	 * app-lifetime signals like {@link fileStates$}.
 	 */
 	materializeQuery<TReturn>(query: unknown) {
-		return this.z.materialize(query as any) as unknown as {
-			readonly data: TReturn
-			addListener(cb: (data: TReturn) => void): () => void
-			destroy(): void
-		}
+		return this.z.materialize(query as any) as unknown as TypedView<TReturn>
 	}
 
 	async preload(signal?: AbortSignal) {
@@ -585,13 +662,22 @@ export class TldrawApp {
 		return this.userId
 	}
 
+	/**
+	 * A membership whose group row is missing is stale, not real. The comment feeds' access gate can
+	 * keep the caller's group_user row in the client store after they leave a workspace (Zero 1.9's
+	 * union fan-in drops the remove, rocicorp/mono#6636), while the group row, synced only by this
+	 * query, is gone. Counting it would block rejoining by invite and pass client-side role checks.
+	 */
 	@computed({ isEqual })
 	getWorkspaceMemberships() {
-		return this.workspaceMemberships$.get().slice(0).sort(sortByIndex)
+		return this.workspaceMemberships$
+			.get()
+			.filter((g) => g.group)
+			.sort(sortByIndex)
 	}
 
 	getWorkspaceMembership(workspaceId: string) {
-		return this.workspaceMemberships$.get().find((g) => g.groupId === workspaceId)
+		return this.getWorkspaceMemberships().find((g) => g.groupId === workspaceId)
 	}
 
 	getWorkspaceFilesSorted(workspaceId: string) {
@@ -1090,6 +1176,7 @@ export class TldrawApp {
 		window.app = app
 		try {
 			await app.preload(opts.signal)
+			app.startNotificationFeeds()
 		} catch (e) {
 			// Don't leave the half-built app's Zero connection and timers running behind the
 			// error page the caller shows for this.
