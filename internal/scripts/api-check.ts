@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'fs'
+import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { join, resolve } from 'path'
 import { exec } from './lib/exec'
 import { readFileIfExists } from './lib/file'
@@ -30,9 +30,15 @@ const pinnedPackages = [
 	'@tiptap/suggestion',
 ]
 
+// Under pnpm's isolated linker these live in the declaring package's node_modules, not the root's.
+const pinnedPackageOwners = ['packages/tldraw', 'packages/mentions']
+
 function getPinnedVersions(): string[] {
 	return pinnedPackages.map((pkg) => {
-		const pkgJsonPath = resolve(`./node_modules/${pkg}/package.json`)
+		const pkgJsonPath = pinnedPackageOwners
+			.map((owner) => resolve(owner, 'node_modules', pkg, 'package.json'))
+			.find((path) => existsSync(path))
+		if (!pkgJsonPath) throw new Error(`Can't find ${pkg} in ${pinnedPackageOwners.join(' or ')}`)
 		const { version } = JSON.parse(readFileSync(pkgJsonPath, 'utf8'))
 		return `${pkg}@${version}`
 	})

@@ -508,7 +508,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 	}
 
 	/** @internal */
-	pruneTombstones = throttle(
+	pruneTombstones: ReturnType<typeof throttle<() => void>> = throttle(
 		() => {
 			// Runs from a timer, so a host that closed the database right after the last delete
 			// (e.g. `room.close(); db.close()` in onSessionRemoved) would otherwise get an uncaught
