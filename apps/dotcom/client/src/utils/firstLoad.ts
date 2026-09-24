@@ -1,5 +1,6 @@
 import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
+import { createDebugValue } from 'tldraw'
 
 export type FirstLoadServerTimings = Extract<TLCustomServerEvent, { type: 'first_load_server' }>
 
@@ -81,7 +82,13 @@ function describeFields(fields: Record<string, unknown>) {
 }
 
 export const FIRST_LOAD_LOG_HEADER =
-	'[first-load] page load timings, logged for tldraw staff and first_load_rum users only'
+	'[first-load] page load timings, printed because the logFirstLoad debug flag is on'
+
+/**
+ * Prints the load to the console; sending to PostHog is gated separately (shouldReportFirstLoad).
+ * Stored in sessionStorage and read at module load, so it applies from the next load in this tab.
+ */
+export const firstLoadDebugFlag = createDebugValue('logFirstLoad', { defaults: { all: false } })
 
 export interface FirstLoadDeps {
 	now(): number
@@ -358,14 +365,7 @@ if (typeof window !== 'undefined') {
 	} catch {
 		// best effort
 	}
-	// Anonymous or non-staff sessions can opt in per load; staff accounts are enabled from
-	// useAppState as soon as Clerk says who they are.
-	if (window.location.search.includes('firstLoadDebug')) firstLoad.enableLiveLog()
-}
-
-/** Live console lines for this load, replaying the steps already recorded. */
-export function enableFirstLoadLiveLog() {
-	firstLoad.enableLiveLog()
+	if (firstLoadDebugFlag.get()) firstLoad.enableLiveLog()
 }
 
 export function isFirstLoadStaff(email: string | null | undefined) {
@@ -440,9 +440,8 @@ function paintTiming() {
 }
 
 /**
- * Sends the `first_load` event once, if this account is in the gate, and prints the same tables
- * to the console: a flagged user can paste them into a support thread, and staff can read a load
- * without waiting for PostHog.
+ * Builds the report once: sent to PostHog if this account is in the gate, printed to the console if
+ * the debug flag is on.
  */
 const SERVER_ECHO_DEADLINE_MS = 3000
 
@@ -451,7 +450,9 @@ export function reportFirstLoad(opts: {
 	flagEnabled: boolean
 	trackEvent(name: string, data: Record<string, unknown>): void
 }) {
-	if (!shouldReportFirstLoad(opts)) return
+	const send = shouldReportFirstLoad(opts)
+	const print = firstLoadDebugFlag.get()
+	if (!send && !print) return
 	// One report per load, so wait briefly for the server echo rather than dropping the srv_ fields.
 	// Snapshot the page-side numbers now: by the time the echo wait ends, images the board loads
 	// after it became visible would otherwise be counted as first-load resources.
@@ -464,7 +465,7 @@ export function reportFirstLoad(opts: {
 		.whenServerTimings(SERVER_ECHO_DEADLINE_MS)
 		.then((gotEcho) =>
 			sendFirstLoadReport(
-				{ staff: isFirstLoadStaff(opts.email), trackEvent: opts.trackEvent },
+				{ send, print, staff: isFirstLoadStaff(opts.email), trackEvent: opts.trackEvent },
 				gotEcho,
 				snapshot
 			)
@@ -472,7 +473,12 @@ export function reportFirstLoad(opts: {
 }
 
 function sendFirstLoadReport(
-	opts: { staff: boolean; trackEvent(name: string, data: Record<string, unknown>): void },
+	opts: {
+		send: boolean
+		print: boolean
+		staff: boolean
+		trackEvent(name: string, data: Record<string, unknown>): void
+	},
 	gotEcho: boolean,
 	snapshot: {
 		entries: PerformanceResourceTiming[]
@@ -493,7 +499,8 @@ function sendFirstLoadReport(
 		...snapshot.paint,
 		...resources,
 	}
-	opts.trackEvent('first_load', event)
+	if (opts.send) opts.trackEvent('first_load', event)
+	if (!opts.print) return event
 	const server = Object.fromEntries(Object.entries(event).filter(([k]) => k.startsWith('srv_')))
 	/* eslint-disable no-console */
 	console.groupCollapsed(

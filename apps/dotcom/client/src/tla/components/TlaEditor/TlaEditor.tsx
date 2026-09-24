@@ -12,6 +12,7 @@ import {
 	TLUiDialogsContextType,
 	TLUserStore,
 	Tldraw,
+	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuItem,
 	UserRecordType,
 	commentSchemaRecords,
@@ -39,6 +40,7 @@ import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/confi
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import {
+	firstLoadDebugFlag,
 	getFirstLoadId,
 	hasFirstLoadStep,
 	markFirstLoad,
@@ -433,9 +435,19 @@ function CustomDebugMenu() {
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
 	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
+	const logFirstLoad = useValue(firstLoadDebugFlag)
 	return (
 		<DefaultDebugMenu>
 			<A11yAudit />
+			<TldrawUiMenuCheckboxItem
+				id="log-first-load"
+				label="Log first load (applies on reload)"
+				checked={logFirstLoad}
+				readonlyOk
+				onSelect={() => {
+					firstLoadDebugFlag.set(!logFirstLoad)
+				}}
+			/>
 			{!isReadOnly && app && user?.isTldraw && (
 				<TldrawUiMenuItem
 					id="user-manual"
