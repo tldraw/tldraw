@@ -481,10 +481,8 @@ async function group<T>(name: string, cb: () => Promise<T>) {
 // they must agree with each other, and everything else must agree with everything else.
 const ALLOWED_VERSION_DIVERGENCE: Record<string, { workspaces: string[]; reason: string }> = {
 	typescript: {
-		workspaces: ['templates/', 'apps/mcp-app'],
-		reason:
-			"templates are independently published starters, and mcp-app's extract-editor-api.ts " +
-			"needs the TS 5 compiler API that TS 7 doesn't export",
+		workspaces: ['templates/'],
+		reason: 'templates are independently published starters',
 	},
 }
 
