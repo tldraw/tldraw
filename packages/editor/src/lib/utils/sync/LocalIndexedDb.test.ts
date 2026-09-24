@@ -1,5 +1,5 @@
 import { createTLSchema } from '@tldraw/tlschema'
-import { openDB } from 'idb'
+import { deleteDB, openDB } from 'idb'
 import { vi } from 'vitest'
 import { hardReset } from './hardReset'
 import { getAllIndexDbNames, LocalIndexedDb } from './LocalIndexedDb'
@@ -10,6 +10,7 @@ describe('LocalIndexedDb', () => {
 		vi.useRealTimers()
 	})
 	afterEach(async () => {
+		vi.restoreAllMocks()
 		await hardReset({ shouldReload: false })
 	})
 	describe('#storeSnapshot', () => {
@@ -202,6 +203,72 @@ describe('LocalIndexedDb', () => {
 		})
 	})
 
+	describe('#pruneSessions', () => {
+		it('keeps the 10 most recent session rows and the current session', async () => {
+			const db = new LocalIndexedDb('test-0')
+			let now = 1000
+			vi.spyOn(Date, 'now').mockImplementation(() => now++)
+
+			// the current session is the oldest row of 14
+			const sessionIds = ['current', ...Array.from({ length: 13 }, (_, i) => `other-${i}`)]
+			for (const sessionId of sessionIds) {
+				await db.storeChanges({
+					schema,
+					changes: { added: {}, updated: {}, removed: {} },
+					sessionId,
+					sessionStateSnapshot: { sessionId } as any,
+				})
+			}
+
+			await db.pruneSessions({ keepSessionId: 'current' })
+
+			const remaining = await Promise.all(
+				sessionIds.map(async (sessionId) => [
+					sessionId,
+					((await db.load({ sessionId })).sessionStateSnapshot as any)?.sessionId === sessionId,
+				])
+			)
+			expect(Object.fromEntries(remaining)).toEqual({
+				current: true,
+				'other-0': false,
+				'other-1': false,
+				'other-2': false,
+				'other-3': true,
+				'other-4': true,
+				'other-5': true,
+				'other-6': true,
+				'other-7': true,
+				'other-8': true,
+				'other-9': true,
+				'other-10': true,
+				'other-11': true,
+				'other-12': true,
+			})
+
+			await db.close()
+		})
+
+		it('is a no-op when there are at most 10 rows', async () => {
+			const db = new LocalIndexedDb('test-0')
+			for (let i = 0; i < 10; i++) {
+				await db.storeChanges({
+					schema,
+					changes: { added: {}, updated: {}, removed: {} },
+					sessionId: `session-${i}`,
+					sessionStateSnapshot: { i } as any,
+				})
+			}
+
+			await db.pruneSessions()
+
+			for (let i = 0; i < 10; i++) {
+				expect((await db.load({ sessionId: `session-${i}` })).sessionStateSnapshot).toEqual({ i })
+			}
+
+			await db.close()
+		})
+	})
+
 	it('migrates legacy asset storage into the new format', async () => {
 		const legacyAssetsDb = await openDB('TLDRAW_ASSET_STORE_v1test-0', 1, {
 			upgrade(database) {
@@ -266,5 +333,30 @@ describe('LocalIndexedDb', () => {
 		expect(
 			(await window.indexedDB.databases()).find((db) => db.name === 'TLDRAW_ASSET_STORE_v1test-0')
 		).toBeUndefined()
+	})
+
+	it('closes its connection so another tab can delete the database', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		const db = new LocalIndexedDb('test-0')
+		await db.storeSnapshot({ schema, snapshot: {} })
+
+		// Simulates a hard reset from another tab. Without the blocking handler this never
+		// resolves because our open connection blocks the delete.
+		let timeout: ReturnType<typeof setTimeout>
+		const result = await Promise.race([
+			deleteDB('TLDRAW_DOCUMENT_v2test-0').then(() => 'deleted'),
+			new Promise<string>((resolve) => {
+				timeout = setTimeout(() => resolve('blocked'), 1000)
+			}),
+		])
+		clearTimeout(timeout!)
+		expect(result).toBe('deleted')
+		expect(warn).toHaveBeenCalledWith(
+			'Closing TLDRAW_DOCUMENT_v2test-0 so another tab can delete or upgrade it'
+		)
+		warn.mockRestore()
+
+		// the next write on the closed connection surfaces as an error rather than hanging
+		await expect(db.storeSnapshot({ schema, snapshot: {} })).rejects.toThrow()
 	})
 })

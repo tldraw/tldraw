@@ -87,6 +87,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **H10** `applyDiff` with `ignoreEphemeralKeys: true` ignores changes to keys in the type's `ephemeralKeySet` when applying updates to existing records: non-ephemeral changed keys are merged onto the stored record (including the removal of a non-ephemeral key that the update leaves out), and an update touching only ephemeral keys is dropped. Updates for records that don't exist are applied in full, as are records in `added`.
 - **H12** `dispose()` delivers any pending change-sets to the attached listeners and then cancels the scheduled flush; it does not remove listeners.
 - **H13** A listener that throws does not prevent the other listeners from receiving the same flush; the first error is rethrown once every listener has been called.
+- **H14** The remover returned by `listen` flushes pending change-sets to the attached listeners, including the one being removed, and then removes it. The remover never throws: an error a listener raises during that flush is logged with `console.error`, so teardown code that calls removers in sequence runs to completion. Called from inside a flush, it removes the listener without flushing, so the other listeners keep receiving entries in order.
 
 ## 9. Validation (V)
 

@@ -185,7 +185,7 @@ export class BemoDO extends DurableObject<Environment> {
 		return this._room
 	}
 
-	triggerPersistSchedule = throttle(() => {
+	triggerPersistSchedule: ReturnType<typeof throttle<() => void>> = throttle(() => {
 		this.schedulePersist()
 	}, 2000)
 

@@ -14,6 +14,7 @@ import {
 } from '@tldraw/tlschema'
 import { JsonObject } from '@tldraw/utils'
 import { Kysely } from 'kysely'
+import { jsonArrayFrom } from 'kysely/helpers/postgres'
 
 /**
  * Conversions between the room's comment records and their Postgres rows. Postgres is the sole
@@ -295,6 +296,33 @@ export function liveCommentDocuments(
 	}
 }
 
+/**
+ * Load a file's comment rows in one statement. `TLPostgresPool` dials a fresh socket per checkout
+ * and pg runs a client's queries one round trip at a time, so separate selects would cost a dial
+ * or a round trip each on the room-open path.
+ */
+export async function loadCommentDocuments(
+	db: Kysely<DB>,
+	fileId: string
+): Promise<CommentLoadResult> {
+	const { threadRows, commentRows, reactionRows } = await db
+		.selectNoFrom((eb) => [
+			jsonArrayFrom(eb.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll()).as(
+				'threadRows'
+			),
+			jsonArrayFrom(eb.selectFrom('comment').where('fileId', '=', fileId).selectAll()).as(
+				'commentRows'
+			),
+			jsonArrayFrom(eb.selectFrom('comment_reaction').where('fileId', '=', fileId).selectAll()).as(
+				'reactionRows'
+			),
+		])
+		.executeTakeFirstOrThrow()
+	// Soft-deleted threads and their comments never re-enter a room, and neither do reactions
+	// whose comment doesn't; their rows stay in Postgres only (see liveCommentDocuments).
+	return liveCommentDocuments(threadRows, commentRows, reactionRows)
+}
+
 /** A row of the DO's `comment_outbox` table: a monotonic sequence number and the touched record id. */
 export interface CommentOutboxEntry {
 	seq: number
@@ -557,7 +585,11 @@ export function mergeCommentDocumentsIntoSnapshot(
 	if (commentDocs.length > 0) {
 		snapshot.documents = [...snapshot.documents, ...commentDocs]
 	}
-	const maxClock = Math.max(clockFloor, ...commentDocs.map((d) => d.lastChangedClock))
+	// a loop rather than `Math.max(clockFloor, ...clocks)`, which overflows the stack past ~100k docs
+	let maxClock = clockFloor
+	for (const doc of commentDocs) {
+		if (doc.lastChangedClock > maxClock) maxClock = doc.lastChangedClock
+	}
 	const effectiveClock = snapshot.documentClock ?? snapshot.clock ?? 0
 	if (effectiveClock >= maxClock) return
 	snapshot.documentClock = maxClock
