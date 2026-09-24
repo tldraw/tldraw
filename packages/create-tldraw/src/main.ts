@@ -2,7 +2,6 @@ import { mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
 import process from 'node:process'
 import { Readable } from 'node:stream'
-import { parse as parseArgs } from '@bomb.sh/args'
 import { outro, select, spinner, text } from '@clack/prompts'
 import picocolors from 'picocolors'
 import * as tar from 'tar'
@@ -10,6 +9,7 @@ import { groupSelect, GroupSelectOption } from './group-select'
 import { Template, TEMPLATES } from './templates'
 import {
 	cancel,
+	CliArgs,
 	emptyDir,
 	formatTargetDir,
 	getInstallCommand,
@@ -19,33 +19,32 @@ import {
 	isDirEmpty,
 	isValidPackageName,
 	nicelog,
+	parseCliArgs,
 	pathToName,
 } from './utils'
 import { wrapAnsi } from './wrap-ansi'
 
 const DEBUG = !!process.env.DEBUG
 
+const TELEMETRY_URLS = [
+	'https://dashboard.tldraw.pro/api/starter-kit-choice',
+	'https://teamldraw.com/api/starter-kit-choice',
+]
+
 async function main() {
-	const args = parseArgs(process.argv.slice(2), {
-		alias: {
-			h: 'help',
-			t: 'template',
-		},
-		boolean: ['help', 'no-telemetry'],
-		string: ['template'],
-	})
+	const args = parseCliArgs(process.argv.slice(2))
 
 	if (args.help) {
 		nicelog(getHelp())
 		process.exit(0)
 	}
 
-	const maybeTargetDir = args._[0] ? formatTargetDir(resolve(String(args._[0]))) : undefined
+	const maybeTargetDir = args.targetDir ? formatTargetDir(resolve(args.targetDir)) : undefined
 
 	// Settle the directory before anything else so a cancel here doesn't waste a template pick.
 	const dirAction = maybeTargetDir ? await prepareRequestedDir(maybeTargetDir) : undefined
 
-	const template = await templatePicker(args.template, args['no-telemetry'])
+	const template = await templatePicker(args)
 	const name = await namePicker(maybeTargetDir)
 
 	const targetDir = maybeTargetDir ?? findAvailableDir(resolve(process.cwd(), name))
@@ -71,12 +70,13 @@ async function main() {
 	outro(doneMessage.join('\n'))
 }
 
-async function templatePicker(argOption?: string, noTelemetry?: boolean) {
+async function templatePicker(args: CliArgs) {
 	let template: Template
-	if (argOption) {
-		const found = TEMPLATES.find((t) => formatTemplateId(t) === argOption.toLowerCase().trim())
+	if (args.template) {
+		const templateId = args.template.toLowerCase().trim()
+		const found = TEMPLATES.find((t) => formatTemplateId(t) === templateId)
 		if (!found) {
-			outro(`Template ${argOption} not found`)
+			outro(`Template ${args.template} not found`)
 			process.exit(1)
 		}
 		template = found
@@ -95,18 +95,12 @@ async function templatePicker(argOption?: string, noTelemetry?: boolean) {
 		)
 	}
 
-	trackStarterKitChoice(template.name, noTelemetry)
+	trackStarterKitChoice(template.name, args.telemetry)
 	return template
 }
 
-const TELEMETRY_URLS = [
-	'https://dashboard.tldraw.pro/api/starter-kit-choice',
-	'https://teamldraw.com/api/starter-kit-choice',
-]
-
-function trackStarterKitChoice(templateId: string, noTelemetry?: boolean) {
-	// Skip tracking if --no-telemetry flag is set
-	if (noTelemetry) return
+function trackStarterKitChoice(templateId: string, telemetry: boolean) {
+	if (!telemetry) return
 
 	for (const url of TELEMETRY_URLS) {
 		// Fire and forget - don't block on this request
@@ -306,8 +300,9 @@ function getHelp() {
 	].join('\n')
 }
 
-// Runs last: with -t, templatePicker reaches TELEMETRY_URLS synchronously, so calling main() above
-// that declaration throws a temporal dead zone ReferenceError.
+// Keep this last, and keep module-level constants above main(). With -t, main() runs all the way to
+// trackStarterKitChoice without ever awaiting, so a constant declared below it is still in its
+// temporal dead zone when it's read: that shipped as "TELEMETRY_URLS is not iterable" (#10745).
 main().catch((err) => {
 	if (DEBUG) console.error(err)
 	outro(`it's bad`)

@@ -7,6 +7,7 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 	SOCIAL_PREVIEW_BYPASS_PARAM,
+	THUMBNAIL_RENDER_PATH,
 } from '@tldraw/dotcom-shared'
 import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
@@ -127,10 +128,10 @@ nicelog('The multiplayer server is', process.env.MULTIPLAYER_SERVER)
 
 async function build() {
 	// make sure we have the latest routes
-	await exec('yarn', ['test', 'src/routes.test.tsx'])
+	await exec('pnpm', ['test', 'src/routes.test.tsx'])
 	const spaRoutes = loadSpaRoutes()
 	await exec('../../../node_modules/.bin/vite', ['build', '--emptyOutDir'])
-	await exec('yarn', ['run', '-T', 'sentry-cli', 'sourcemaps', 'inject', 'dist/assets'])
+	await exec('pnpm', ['exec', 'sentry-cli', 'sourcemaps', 'inject', 'dist/assets'])
 	// Clear output static folder (in case we are running locally and have already built the app once before)
 	await exec('rm', ['-rf', '.vercel/output'])
 	mkdirSync('.vercel/output', { recursive: true })
@@ -174,6 +175,14 @@ async function build() {
 		.replace('<!-- $PRELOADED_SPRITES -->', spritePreload)
 
 	writeFileSync('.vercel/output/static/index.html', newIndex)
+
+	// The thumbnail render entry waits on these same faces during its settle phase, so it preloads
+	// them too — otherwise their fetch starts only after the SDK has booted and the editor mounted.
+	const thumbnailHtml = readFileSync('.vercel/output/static/thumbnail-render.html', 'utf8')
+	writeFileSync(
+		'.vercel/output/static/thumbnail-render.html',
+		thumbnailHtml.replace('<!-- $PRELOADED_FONTS -->', () => fontPreloads)
+	)
 
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
 
@@ -279,6 +288,15 @@ async function build() {
 						src: '/',
 						dest: '/index.html',
 						headers: { ...commonSecurityHeaders, Link: agentDiscoveryLinkHeader },
+					},
+					// The render page's own entry (see pages/thumbnail-render.tsx), rewritten so the URL
+					// the sync-worker renders never moves. Must come before the SPA fallback below,
+					// which would otherwise answer with index.html.
+					{
+						check: true,
+						src: `^${THUMBNAIL_RENDER_PATH}$`,
+						dest: '/thumbnail-render.html',
+						headers: commonSecurityHeaders,
 					},
 					// serve static files
 					{

@@ -5,6 +5,7 @@ import {
 	TLFrameShape,
 	TLGeoShape,
 	createShapeId,
+	debugFlags,
 	toRichText,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
@@ -124,8 +125,15 @@ describe('TLSelectTool.Idle', () => {
 	})
 })
 
-// todo: turn on feature flag for these tests or remove them
-describe.skip('Edit on type', () => {
+describe('Edit on type', () => {
+	beforeEach(() => {
+		debugFlags.editOnType.set(true)
+	})
+
+	afterEach(() => {
+		debugFlags.editOnType.reset()
+	})
+
 	it('Starts editing shape on key down if shape does auto-edit on key stroke', () => {
 		const id = createShapeId()
 		editor.createShapes([
@@ -150,7 +158,7 @@ describe.skip('Edit on type', () => {
 		expect(editor.getEditingShapeId()).not.toBe(shape.id)
 	})
 
-	it('Does not start editing on excluded keys', () => {
+	it.each(['[', ']', ' '])('Does not start editing on excluded key %j', (key) => {
 		const id = createShapeId()
 		editor.createShapes([
 			{
@@ -163,11 +171,13 @@ describe.skip('Edit on type', () => {
 		])!
 		const shape = editor.getShape(id)!
 		editor.select(shape.id)
-		editor.keyDown('Enter') // Press an excluded key
-		expect(editor.getEditingShapeId()).not.toBe(shape.id)
+		editor.keyDown(key)
+		expect(editor.getEditingShapeId()).toBe(null)
 	})
 
-	it('Ignores key down if altKey or ctrlKey is pressed', () => {
+	// One modifier per test: the driver ORs held modifiers into later key events, so pressing them
+	// in sequence would hide a missing check for any but the first.
+	it.each(['altKey', 'ctrlKey', 'metaKey'])('Ignores key down if %s is pressed', (modifier) => {
 		const id = createShapeId()
 		editor.createShapes([
 			{
@@ -180,12 +190,46 @@ describe.skip('Edit on type', () => {
 		])!
 		const shape = editor.getShape(id)!
 		editor.select(shape.id)
-		// Simulate altKey being pressed
-		editor.keyDown('a', { altKey: true })
-		// Simulate ctrlKey being pressed
-		editor.keyDown('a', { ctrlKey: true })
-		expect(editor.getEditingShapeId()).not.toBe(shape.id)
+		editor.keyDown('a', { [modifier]: true })
+		expect(editor.getEditingShapeId()).toBe(null)
 	})
+
+	it('Starts editing on a printable character outside the BMP', () => {
+		const id = createShapeId()
+		editor.createShapes([
+			{
+				id,
+				type: 'note',
+				x: 100,
+				y: 100,
+				props: { richText: toRichText('hello') },
+			},
+		])!
+		const shape = editor.getShape(id)!
+		editor.select(shape.id)
+		editor.keyDown('😀')
+		expect(editor.getEditingShapeId()).toBe(shape.id)
+	})
+
+	it.each(['F1', 'CapsLock', 'Escape', 'Home'])(
+		'Does not start editing on non-printable key %s',
+		(key) => {
+			const id = createShapeId()
+			editor.createShapes([
+				{
+					id,
+					type: 'note',
+					x: 100,
+					y: 100,
+					props: { richText: toRichText('hello') },
+				},
+			])!
+			const shape = editor.getShape(id)!
+			editor.select(shape.id)
+			editor.keyDown(key)
+			expect(editor.getEditingShapeId()).toBe(null)
+		}
+	)
 })
 
 describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () => {
@@ -1044,6 +1088,66 @@ describe('When double clicking the selection edge', () => {
 
 		expect(editor.getEditingShapeId()).toBe(id)
 		expect(editor.getInstanceState().cursor.type).toBe('default')
+	})
+})
+
+describe('When a second press on a resize handle arrives as a double click', () => {
+	// The click manager reports a second press inside the double-click window as a pointer down
+	// followed by a double_click 'down'. The double click must not steal a press that becomes a
+	// drag (#9499 fixed the same thing for shape handles).
+	function pressAgain(handle: 'bottom_right' | 'bottom_right_rotate') {
+		editor.pointerDown(200, 200, { target: 'selection', handle })
+		editor.dispatch({
+			type: 'click',
+			name: 'double_click',
+			phase: 'down',
+			point: { x: 200, y: 200 },
+			pointerId: 1,
+			button: 0,
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+			target: 'selection',
+			handle,
+		})
+	}
+
+	it('still resizes when the second press becomes a drag', () => {
+		editor.select(ids.box1)
+		editor
+			.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right' })
+			.pointerUp(200, 200)
+		pressAgain('bottom_right')
+		editor.expectToBeIn('select.pointing_resize_handle')
+		editor.pointerMove(250, 250)
+		editor.expectToBeIn('select.resizing')
+		editor.pointerUp(250, 250)
+		expect(editor.getShape(ids.box1)!.props).toMatchObject({ w: 150, h: 150 })
+	})
+
+	it('still rotates when the second press on a rotate handle becomes a drag', () => {
+		editor.select(ids.box1)
+		editor
+			.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right_rotate' })
+			.pointerUp(200, 200)
+		pressAgain('bottom_right_rotate')
+		editor.expectToBeIn('select.pointing_rotate_handle')
+		editor.pointerMove(250, 100)
+		editor.expectToBeIn('select.rotating')
+	})
+
+	it('acts on the double click on pointer up when the second press is released in place', () => {
+		editor.select(ids.box1)
+		editor
+			.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right' })
+			.pointerUp(200, 200)
+		pressAgain('bottom_right')
+		editor.expectToBeIn('select.pointing_resize_handle')
+		editor.pointerUp(200, 200)
+		editor.expectToBeIn('select.editing_shape')
+		expect(editor.getEditingShapeId()).toBe(ids.box1)
 	})
 })
 

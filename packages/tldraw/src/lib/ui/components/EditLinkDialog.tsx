@@ -1,5 +1,6 @@
-import { defineMessages, ExtractShapeByProps, T, TLShape, track, useEditor } from '@tldraw/editor'
+import { defineMessages, T, TLShape, track, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { isShapeWithLink, TLShapeWithLink } from '../../utils/shapes/shapes'
 import { TLUiDialogProps } from '../context/dialogs'
 import { F } from '../context/i18n'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
@@ -31,15 +32,9 @@ function getUrlInputState(url: string) {
 	return { actual: url, safe, valid: isValid }
 }
 
-type ShapeWithUrl = ExtractShapeByProps<{ url: string }>
-
-function isShapeWithUrl(shape: TLShape | null | undefined): shape is ShapeWithUrl {
-	return !!(shape && 'url' in shape.props && typeof shape.props.url === 'string')
-}
-
-function assertShapeWithUrl(shape: TLShape | null | undefined): asserts shape is ShapeWithUrl {
-	if (!isShapeWithUrl(shape)) {
-		throw new Error('Shape is not a valid ShapeWithUrl')
+function assertShapeWithLink(shape: TLShape | null | undefined): asserts shape is TLShapeWithLink {
+	if (!isShapeWithLink(shape)) {
+		throw new Error('Shape is not a valid TLShapeWithLink')
 	}
 }
 
@@ -57,15 +52,15 @@ export const EditLinkDialog = track(function EditLinkDialog({ onClose }: TLUiDia
 	const editor = useEditor()
 
 	const selectedShape = editor.getOnlySelectedShape()
-	const hasShapeWithUrl = isShapeWithUrl(selectedShape)
+	const hasShapeWithLink = isShapeWithLink(selectedShape)
 
 	// The shape can be deleted or deselected from under the open dialog (a collaborator, or a
 	// keypress reaching the canvas). Returning null on its own would leave an empty dialog frame.
 	useEffect(() => {
-		if (!hasShapeWithUrl) onClose()
-	}, [hasShapeWithUrl, onClose])
+		if (!hasShapeWithLink) onClose()
+	}, [hasShapeWithLink, onClose])
 
-	if (!hasShapeWithUrl) {
+	if (!hasShapeWithLink) {
 		return null
 	}
 
@@ -75,7 +70,7 @@ export const EditLinkDialog = track(function EditLinkDialog({ onClose }: TLUiDia
 export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	onClose,
 	selectedShape,
-}: TLUiDialogProps & { selectedShape: ShapeWithUrl }) {
+}: TLUiDialogProps & { selectedShape: TLShapeWithLink }) {
 	const editor = useEditor()
 
 	const rInput = useRef<HTMLInputElement>(null)
@@ -100,7 +95,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	const handleClear = useCallback(() => {
 		const onlySelectedShape = editor.getOnlySelectedShape()
 		if (!onlySelectedShape) return
-		assertShapeWithUrl(onlySelectedShape)
+		assertShapeWithLink(onlySelectedShape)
 		editor.updateShapes([
 			{ id: onlySelectedShape.id, type: onlySelectedShape.type, props: { url: '' } },
 		])
@@ -111,7 +106,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 		const onlySelectedShape = editor.getOnlySelectedShape()
 
 		if (!onlySelectedShape) return
-		assertShapeWithUrl(onlySelectedShape)
+		assertShapeWithLink(onlySelectedShape)
 
 		// Here would be a good place to validate the next shape—would setting the empty
 		if (onlySelectedShape.props.url !== urlInputState.safe) {

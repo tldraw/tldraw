@@ -5,6 +5,7 @@ import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
 import type { StateDB } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
 import { Editor } from 'tldraw'
 import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
+import { createLabelWidthMeasurer } from './mermaidNodeCreateShape'
 import { mindmapToBlueprint, parseMindmapLayout } from './mindmapDiagram'
 import { BlueprintRenderingOptions, renderBlueprint } from './renderBlueprint'
 import { countSequenceEvents, parseSequenceLayout, sequenceToBlueprint } from './sequenceDiagram'
@@ -136,7 +137,8 @@ export async function createMermaidDiagram(
 					actorKeys,
 					messages,
 					db.getCreatedActors(),
-					db.getDestroyedActors()
+					db.getDestroyedActors(),
+					createLabelWidthMeasurer(editor)
 				)
 				break
 			}

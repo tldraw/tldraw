@@ -12,10 +12,10 @@ import path from 'path'
 // absent from the output, and silently dropping it would take that string's 49 translations with
 // it — along with any override an app has keyed to it.
 //
-//   yarn i18n-extract              # report coverage and drift
-//   yarn i18n-extract --check      # same, but exit non-zero on drift (for CI)
-//   yarn i18n-extract --add-new    # append ids that only exist in code; never removes anything
-//   yarn i18n-extract --write      # overwrite main.json; refuses while coverage is incomplete
+//   pnpm i18n-extract              # report coverage and drift
+//   pnpm i18n-extract --check      # same, but exit non-zero on drift (for CI)
+//   pnpm i18n-extract --add-new    # append ids that only exist in code; never removes anything
+//   pnpm i18n-extract --write      # overwrite main.json; refuses while coverage is incomplete
 //
 // The SDK's ids are stable names, not content hashes, so there is deliberately no
 // --id-interpolation-pattern here: a descriptor without an id is an error, not something to

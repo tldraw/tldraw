@@ -412,7 +412,7 @@ export const adminRoutes = createRouter<Environment>()
 	})
 	.post('/app/admin/feature-flags', async (req, env) => {
 		const body: any = await req.json()
-		const { flag, enabled, percentage, emails } = body
+		const { flag, enabled, percentage, emails, allowEveryone } = body
 
 		if (typeof flag !== 'string') {
 			throw new StatusError(400, 'flag (string) is required')
@@ -425,6 +425,9 @@ export const adminRoutes = createRouter<Environment>()
 			(typeof percentage !== 'number' || percentage < 0 || percentage > 100)
 		) {
 			throw new StatusError(400, 'percentage must be a number between 0 and 100')
+		}
+		if (allowEveryone !== undefined && typeof allowEveryone !== 'boolean') {
+			throw new StatusError(400, 'allowEveryone must be a boolean')
 		}
 
 		if (!FEATURE_FLAG_KEYS.includes(flag as FeatureFlagKey)) {
@@ -441,6 +444,21 @@ export const adminRoutes = createRouter<Environment>()
 		}
 		if (emails !== undefined && type !== 'allowlist') {
 			throw new StatusError(400, `"${flagKey}" is a ${type} flag; emails do not apply to it`)
+		}
+		if (allowEveryone !== undefined && type !== 'allowlist') {
+			throw new StatusError(
+				400,
+				`"${flagKey}" is a ${type} flag; allowEveryone does not apply to it`
+			)
+		}
+		// Allowlists have no master toggle — the list is the control. Refused rather than dropped, on
+		// the same grounds as the checks above: a caller that thinks it is closing a flag should not be
+		// told the save succeeded.
+		if (enabled !== undefined && type === 'allowlist') {
+			throw new StatusError(
+				400,
+				`"${flagKey}" is an allowlist flag; enabled does not apply to it — edit the list or allowEveryone`
+			)
 		}
 
 		let update: FeatureFlagUpdate
@@ -460,7 +478,7 @@ export const adminRoutes = createRouter<Environment>()
 				}
 				users = await resolveAllowlistUsers(env, parsed)
 			}
-			update = { type, enabled, users }
+			update = { type, users, allowEveryone }
 		} else if (type === 'percentage') {
 			update = { type, enabled, percentage }
 		} else {
@@ -574,7 +592,11 @@ export const adminRoutes = createRouter<Environment>()
 
 		return new Response('User deleted', { status: 200 })
 	})
-	.get('/app/admin/delete_user_sse', async (res, env) => {
+	// POST, not GET: this permanently deletes a user and authenticates with the session cookie, so
+	// it must not be reachable by navigating to a URL. A link anywhere the admin's browser will
+	// follow — including one placed on a board, which is same-origin with this route — would
+	// otherwise be enough to trigger it.
+	.post('/app/admin/delete_user_sse', async (res, env) => {
 		const q = res.query['q']
 		if (typeof q !== 'string') {
 			return new Response('Missing query param', { status: 400 })
