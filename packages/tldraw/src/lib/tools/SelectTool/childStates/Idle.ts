@@ -735,12 +735,9 @@ export const GRID_INCREMENT = 5
 
 function isPointInSelectionBoundsBg(editor: Editor, point: VecLike) {
 	const onlySelectedShape = editor.getOnlySelectedShape()
-	if (onlySelectedShape) {
-		if (editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
-			return false
-	} else if (editor.getSelectedShapeIds().length <= 1) {
-		return false
-	}
-
-	return isPointInRotatedSelectionBounds(editor, point)
+	const hasSelectionBoundsBg =
+		editor.getSelectedShapeIds().length > 1 ||
+		(onlySelectedShape &&
+			!editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
+	return !!hasSelectionBoundsBg && isPointInRotatedSelectionBounds(editor, point)
 }

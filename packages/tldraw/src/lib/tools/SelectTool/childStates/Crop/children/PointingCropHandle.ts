@@ -44,7 +44,7 @@ export class PointingCropHandle extends StateNode {
 
 	private startCropping() {
 		if (this.editor.getIsReadonly()) return
-		this.parent.transition('cropping', this.info)
+		this.parent.transition('cropping', { ...this.info })
 	}
 
 	override onPointerUp() {

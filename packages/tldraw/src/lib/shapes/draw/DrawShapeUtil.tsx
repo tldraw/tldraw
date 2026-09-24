@@ -342,7 +342,7 @@ function DrawShapeSvg({
 				: null
 		return (
 			<>
-				{fillPath &&
+				{fillPath !== null &&
 					(shape.props.fill === 'pattern' ? (
 						<PatternFill
 							d={fillPath}

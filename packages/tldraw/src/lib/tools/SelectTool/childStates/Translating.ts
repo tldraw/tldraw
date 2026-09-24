@@ -171,7 +171,7 @@ export class Translating extends StateNode {
 		this.reset()
 		this.markId = this.editor.markHistoryStoppingPoint('translate cloning')
 
-		this.editor.duplicateShapes(shapeIds)
+		this.editor.duplicateShapes(Array.from(this.editor.getSelectedShapeIds()))
 
 		this.snapshot = getTranslatingSnapshot(this.editor)
 		this.changeTracker.setTrackedShapeIds(this.snapshot.shapeSnapshots.map((s) => s.shape.id))
