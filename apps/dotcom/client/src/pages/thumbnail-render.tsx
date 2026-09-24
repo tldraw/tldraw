@@ -5,6 +5,7 @@ import {
 	THUMBNAIL_SETTLE_TIMEOUT_MS,
 	ThumbnailRenderParams,
 	ThumbnailShapeMeasurement,
+	ThumbnailRenderTimingsRequestBody,
 	ThumbnailSnapshotResponseBody,
 	getLicenseKey,
 } from '@tldraw/dotcom-shared'
@@ -12,7 +13,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	Box,
 	Editor,
-	FileHelpers,
 	Image,
 	SerializedSchema,
 	TLPageId,
@@ -23,16 +23,67 @@ import {
 	fetch,
 	sleep,
 	useEditor,
+	TLAssetId,
+	TLBookmarkShape,
+	AssetRecordType,
+	getHashForString,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { assetUrls } from '../utils/assetUrls'
-import { defineLoader } from '../utils/defineLoader'
 import { embedShapeUtils } from '../utils/embedShapeUtil'
+
+// The thumbnail render page: a real editor, loaded with one board's records, that exports itself
+// and displays the export for Browser Run to screenshot. Served as its own Vite entry
+// (thumbnail-render.html + thumbnail-render-main.tsx) rather than as an SPA route, so a capture
+// boots the SDK and nothing else — no router, no Clerk, no service worker. /__thumbnail-render is
+// rewritten to that entry at the edge (scripts/build.ts) and in dev
+// (vite-thumbnail-screenshot-plugin.ts), so the URL the sync-worker renders never moves.
 
 const THUMBNAIL_SNAPSHOT_ENDPOINT = '/api/app/thumbnail-render/snapshot'
 const THUMBNAIL_RESULT_ENDPOINT = '/api/app/thumbnail-render/result'
 
-type LoaderData =
+// Phase stamps for the timing beacon, module-scoped because the page renders exactly once. Each is
+// performance.now() at the moment the phase completed; the beacon ships them after the export so
+// the deltas — boot, acquire, mount, settle, export — can be read per render from telemetry
+// (`render_page_timings`). Worker-side timing can only see the session total; this is what ranks
+// the page's own phases against each other.
+const pageTimings: {
+	/** Authorises the beacon. Never set on the dev fixture page, which therefore sends none. */
+	token?: string
+	bootAt?: number
+	dataAt?: number
+	mountAt?: number
+	settledAt?: number
+} = {}
+
+// Fire-and-forget: nothing waits on this, and `keepalive` lets the request outlive the page —
+// which it must, because the screenshot (and the session's teardown) follows the ready marker
+// almost immediately.
+function sendTimingsBeacon(exportedAt: number) {
+	const { token, bootAt, dataAt, mountAt, settledAt } = pageTimings
+	if (
+		!token ||
+		bootAt === undefined ||
+		dataAt === undefined ||
+		mountAt === undefined ||
+		settledAt === undefined
+	) {
+		return
+	}
+	const body: ThumbnailRenderTimingsRequestBody = {
+		token,
+		timings: { bootAt, dataAt, mountAt, settledAt, exportedAt },
+	}
+	// A plain same-origin fetch: forcing it into no-cors mode turned out to stop delivery entirely.
+	fetch(THUMBNAIL_RESULT_ENDPOINT, {
+		method: 'POST',
+		keepalive: true,
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(body),
+	}).catch(() => {})
+}
+
+export type ThumbnailRenderData =
 	| {
 			ok: true
 			token: string
@@ -45,8 +96,12 @@ type LoaderData =
 			message: string
 	  }
 
-const { loader, useData } = defineLoader(async (args): Promise<LoaderData> => {
-	const token = new URL(args.request.url).searchParams.get('token')
+/** Fetches the render job the URL's token names: the records to draw and how to draw them. */
+export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRenderData> {
+	pageTimings.bootAt = performance.now()
+	const token = url.searchParams.get('token')
+	pageTimings.token = token ?? undefined
+
 	if (!token) {
 		return { ok: false, message: 'Missing render token' }
 	}
@@ -63,6 +118,7 @@ const { loader, useData } = defineLoader(async (args): Promise<LoaderData> => {
 		return { ok: false, message: data.message }
 	}
 
+	pageTimings.dataAt = performance.now()
 	return {
 		ok: true,
 		token,
@@ -70,12 +126,9 @@ const { loader, useData } = defineLoader(async (args): Promise<LoaderData> => {
 		schema: data.schema,
 		renderParams: data.renderParams,
 	}
-})
+}
 
-export { loader }
-
-export function Component() {
-	const data = useData()
+export function ThumbnailRenderView({ data }: { data: ThumbnailRenderData }) {
 	if (!data.ok) return <ThumbnailRenderError message={data.message} />
 	return (
 		<ThumbnailRenderPage
@@ -113,13 +166,16 @@ function ThumbnailRenderPage({
 	)
 
 	// Once the export is ready it's shown as a full-viewport <img>, so the worker's Browser Rendering
-	// screenshot captures the exact editor.toImage output rather than the live editor canvas.
-	const [dataUrl, setDataUrl] = useState<string | null>(null)
+	// screenshot captures the exact editor.toImage output rather than the live editor canvas. An
+	// object URL, not a data URL: blobToDataUrl base64-encodes the whole PNG on the main thread,
+	// which on a heavy board is megabytes of string work standing between the export and the ready
+	// marker. Never revoked — the page exists for exactly one render.
+	const [imageUrl, setImageUrl] = useState<string | null>(null)
 	const handleImage = useCallback(async (blob: Blob) => {
-		setDataUrl(await FileHelpers.blobToDataUrl(blob))
+		setImageUrl(URL.createObjectURL(blob))
 	}, [])
 
-	if (dataUrl) return <ThumbnailImage dataUrl={dataUrl} width={width} height={height} />
+	if (imageUrl) return <ThumbnailImage src={imageUrl} width={width} height={height} />
 
 	return (
 		<div
@@ -135,15 +191,21 @@ function ThumbnailRenderPage({
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
+				components={{ ErrorFallback: ThumbnailRenderCrash }}
 				snapshot={snapshot}
 				onMount={(editor) => {
+					pageTimings.mountAt = performance.now()
 					editor.user.updateUserPreferences({ colorScheme: theme })
-					editor.updateInstanceState({ isReadonly: true })
 					// Render the specific page the token asked for; without one, keep the page the
 					// snapshot opens to (used by OG images).
 					if (renderParams.pageId && editor.getPage(renderParams.pageId as TLPageId)) {
 						editor.setCurrentPage(renderParams.pageId as TLPageId)
 					}
+					// Before readonly, which the editor's own write guards honour.
+					if (renderParams.capture === 'live' && renderParams.shapeIds?.length) {
+						if (!prepareLiveCapture(editor, renderParams.shapeIds)) return
+					}
+					editor.updateInstanceState({ isReadonly: true })
 					// `content` is what every surface asks for today; an explicit viewport is still honoured
 					// (see ThumbnailRenderParams) so the worker can start sending one without waiting on a
 					// separate client deploy to teach this page how to handle it. A shape set overrides
@@ -169,6 +231,7 @@ function ThumbnailRenderPage({
 						height={height}
 						camera={renderParams.camera}
 						shapeIds={renderParams.shapeIds}
+						capture={renderParams.capture}
 						onImage={handleImage}
 					/>
 				)}
@@ -183,18 +246,18 @@ function ThumbnailRenderPage({
 // page is quiescent when the screenshot is taken. Also used by the dev fixture page
 // (dev-browser-run-thumbnail.tsx), so its ready/error markers stay identical to production's.
 export function ThumbnailImage({
-	dataUrl,
+	src,
 	width,
 	height,
 }: {
-	dataUrl: string
+	src: string
 	width: number
 	height: number
 }) {
 	return (
 		<img
 			ref={signalThumbnailReadyIfComplete}
-			src={dataUrl}
+			src={src}
 			alt=""
 			style={{ display: 'block', width, height }}
 			onLoad={signalThumbnailReady}
@@ -203,14 +266,21 @@ export function ThumbnailImage({
 	)
 }
 
-function signalThumbnailReady() {
+// Refuses to mark success once the page has failed. `setThumbnailError` is terminal, but the
+// worker's capture selector is `body[data-thumbnail-ready="true"]` and says nothing about an error,
+// so a path that marks an error and then goes on to mark ready hands back a screenshot of whatever
+// is on screen — and it gets cached as the real thing. Live capture reaches here exactly that way:
+// prepareLiveCapture's refusal returns from onMount, but ThumbnailExportSignal is a child of
+// <Tldraw> and runs its effect regardless, ending at signalThumbnailReady with the page unpruned.
+export function signalThumbnailReady() {
+	if (document.body.dataset.thumbnailError !== undefined) return
 	document.body.dataset.thumbnailReady = 'true'
 	document.documentElement.dataset.thumbnailReady = 'true'
 }
 
 // Marks the terminal failure state on both <html> and <body>: the worker's screenshot wait resolves
 // on either marker, and success marks both, so failure does too.
-function setThumbnailError(message: string) {
+export function setThumbnailError(message: string) {
 	document.body.dataset.thumbnailError = message
 	document.documentElement.dataset.thumbnailError = message
 }
@@ -220,6 +290,17 @@ function setThumbnailError(message: string) {
 // signal readiness directly; otherwise onLoad handles it once decoding finishes.
 function signalThumbnailReadyIfComplete(img: HTMLImageElement | null) {
 	if (img?.complete && img.naturalWidth > 0) signalThumbnailReady()
+}
+
+// Stands in for the SDK's crash screen inside <Tldraw>. Without it a throw during the editor's own
+// render — a snapshot at a schema this bundle cannot migrate, across a client deploy — shows the
+// SDK's fallback with neither marker set, and the capture burns the whole Browser Run timeout
+// instead of failing in milliseconds.
+function ThumbnailRenderCrash({ error }: { error: unknown }) {
+	useEffect(() => {
+		setThumbnailError(error instanceof Error ? error.message : String(error))
+	}, [error])
+	return null
 }
 
 function ThumbnailRenderError({ message }: { message: string }) {
@@ -300,11 +381,63 @@ function fitContentCamera(editor: Editor, width: number, height: number) {
 	fitBoundsCamera(editor, editor.getCurrentPageBounds(), width, height)
 }
 
-// The shapes the token asked for, filtered to those actually present on the current page. The
-// snapshot endpoint already rejects a job whose shapes have gone, but the ids are resolved against
-// a live snapshot for shared files, so this stays defensive rather than throwing mid-render.
+// What both capture paths refuse: a job whose shapes are no longer on the page it named. The
+// snapshot endpoint proves every requested id still exists *somewhere* on the board, which is all it
+// can see, so a live shared-file snapshot that moved them to another page since the mint gets here.
+export const SHAPES_NOT_ON_PAGE = 'requested shapes are not on the requested page'
+
+// The shapes the token asked for, filtered to those on the current page. Deliberately not a store
+// lookup: `editor.getShape` answers for a shape on any page, and both callers use this to decide
+// what to draw or delete on *this* one. Membership is read from the current page rather than from
+// each shape's `parentId`, which for a shape inside a frame names the frame instead of the page.
 function getRequestedShapeIds(editor: Editor, shapeIds: string[]): TLShapeId[] {
-	return shapeIds.filter((id): id is TLShapeId => Boolean(editor.getShape(id as TLShapeId)))
+	const onCurrentPage = editor.getCurrentPageShapeIds()
+	return shapeIds.filter((id): id is TLShapeId => onCurrentPage.has(id as TLShapeId))
+}
+
+// Readies the canvas for a live capture, or refuses the render. Returns false once the error marker
+// is set, which is terminal — the worker's screenshot wait resolves on it.
+//
+// The refusal is the point: pruning to an empty set deletes every shape on the page, and the
+// screenshot would hand back that blank canvas as a picture of the requested shapes, cached under
+// their key. The snapshot endpoint refuses a job whose shapes have gone for exactly this reason,
+// but existence is all it can check — the ids are resolved against a live shared-file snapshot, so
+// shapes that still exist and have moved to another page since the mint pass it and arrive here.
+export function prepareLiveCapture(editor: Editor, shapeIds: string[]): boolean {
+	const requested = getRequestedShapeIds(editor, shapeIds)
+	if (requested.length === 0) {
+		setThumbnailError(SHAPES_NOT_ON_PAGE)
+		return false
+	}
+	pruneToRequestedShapes(editor, requested)
+	return true
+}
+
+// Brings the live canvas to the picture the export draws: only the requested shapes and their
+// descendants. The store holds the whole board, and a live capture would rasterize everything in
+// the fitted viewport — a frame's fill, label and clipping across the cluster, every neighbour at
+// the edge. Reparenting the roots to the page keeps their page position while freeing them from
+// any frame; deleting the rest is the unbind that moves each arrow's stored terminal to where its
+// neighbour actually sat, which is why the neighbours are deleted rather than never loaded.
+function pruneToRequestedShapes(editor: Editor, requestedIds: TLShapeId[]) {
+	const keep = editor.getShapeAndDescendantIds(requestedIds)
+	const requested = new Set(requestedIds)
+	// Roots in page rendering order, reparented one at a time: each lands above the page's current
+	// children, so two roots from different parents keep the stacking the export would draw. A
+	// single reparentShapes call orders by the roots' own indices, which are only comparable
+	// between siblings.
+	const roots = editor
+		.getCurrentPageShapesSorted()
+		.filter((shape) => requested.has(shape.id) && !keep.has(shape.parentId as TLShapeId))
+	// Locked shapes are otherwise skipped by deleteShapes, and a locked background is exactly the
+	// kind of neighbour that must not end up in the picture.
+	editor.run(
+		() => {
+			for (const root of roots) editor.reparentShapes([root.id], editor.getCurrentPageId())
+			editor.deleteShapes([...editor.getCurrentPageShapeIds()].filter((id) => !keep.has(id)))
+		},
+		{ ignoreShapeLock: true }
+	)
 }
 
 // Like fitContentCamera, but framed on a subset of the page. Uses the same inset so a shapes
@@ -316,6 +449,22 @@ function fitShapesCamera(editor: Editor, shapeIds: string[], width: number, heig
 		? Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
 		: null
 	fitBoundsCamera(editor, bounds, width, height)
+}
+
+// The pre-export fit for either capture kind. An explicit viewport capture is deliberately left
+// alone: its camera is the one the token asked for, set on mount.
+function fitExportCamera(
+	editor: Editor,
+	shapeIds: string[] | undefined,
+	camera: 'content' | undefined,
+	width: number,
+	height: number
+) {
+	if (shapeIds?.length) {
+		fitShapesCamera(editor, shapeIds, width, height)
+	} else if (camera === 'content') {
+		fitContentCamera(editor, width, height)
+	}
 }
 
 // Produces a thumbnail of the editor's current page with editor.toImage once the scene has settled
@@ -337,6 +486,7 @@ export function ThumbnailExportSignal({
 	camera,
 	shapeIds,
 	settleTimeoutMs = THUMBNAIL_SETTLE_TIMEOUT_MS,
+	capture,
 	onImage,
 }: {
 	theme: 'light' | 'dark'
@@ -345,6 +495,8 @@ export function ThumbnailExportSignal({
 	camera?: 'content'
 	shapeIds?: string[]
 	settleTimeoutMs?: number
+	/** `live`: signal ready after settle and fit, without exporting — see ThumbnailRenderParams. */
+	capture?: 'live'
 	onImage(blob: Blob): void | Promise<void>
 }) {
 	const editor = useEditor()
@@ -356,26 +508,45 @@ export function ThumbnailExportSignal({
 		;(async () => {
 			await Promise.race([
 				(async () => {
-					await waitForFonts()
-					await preloadImageAssets(editor, settleDeadline)
+					await waitForFonts(editor)
+					// Fit before warming, not after: autosized text has re-measured by now so the
+					// bounds are final, and the export culls at this camera. Warming a set derived
+					// from the mount fit would skip the shapes this refit brings into view, and the
+					// capture would draw them unloaded.
+					fitExportCamera(editor, shapeIds, camera, width, height)
+					await preloadImageAssets(editor, settleDeadline, shapeIds)
 					await waitForEditorImages(editor, settleDeadline)
 				})(),
 				sleep(settleTimeoutMs),
 			])
 			if (cancelled) return
-			// Re-fit content now that fonts and assets have settled: autosized text re-measures after
-			// the web font loads, so the fit computed in onMount (before fonts) is stale and would clip.
-			if (shapeIds?.length) {
-				fitShapesCamera(editor, shapeIds, width, height)
-			} else if (camera === 'content') {
-				fitContentCamera(editor, width, height)
+			pageTimings.settledAt = performance.now()
+			// Runs again because the race may have timed out before the fit above: without this the
+			// export would fall back to onMount's pre-font camera and clip re-measured text.
+			fitExportCamera(editor, shapeIds, camera, width, height)
+			// Live capture: the settled, fitted canvas is the picture — the screenshotting browser
+			// rasterizes it, so the export (and the paint of its result) has nothing left to do.
+			// The beacon's exportedAt stamp doubles as ready here; the deltas still read correctly.
+			if (capture === 'live') {
+				// The refit above is a store write the canvas catches up with on a later commit, and
+				// shapes culled at the pre-fit camera have no DOM yet. Two animation frames guarantee a
+				// commit and a paint at the fitted camera land before the marker; without them the
+				// screenshot can race the paint and capture a mis-framed or incomplete canvas.
+				await nextAnimationFrame()
+				await nextAnimationFrame()
+				if (cancelled) return
+				sendTimingsBeacon(performance.now())
+				signalThumbnailReady()
+				return
 			}
 			const blob = await exportThumbnailImage(editor, theme, width, height, shapeIds)
 			if (cancelled) return
+			// Before onImage: the ready marker (and the session's teardown) follows the image paint.
+			sendTimingsBeacon(performance.now())
 			await onImage(blob)
 		})().catch((error) => {
 			if (cancelled) return
-			// FileHelpers.blobToDataUrl rejects with the FileReader's ProgressEvent rather than an
+			// Some browser APIs reject with an Event (e.g. FileReader's ProgressEvent) rather than an
 			// Error; don't let that stringify to "[object ProgressEvent]" in the error marker.
 			if (error instanceof Event) {
 				setThumbnailError('Could not read thumbnail blob')
@@ -387,7 +558,7 @@ export function ThumbnailExportSignal({
 		return () => {
 			cancelled = true
 		}
-	}, [editor, theme, width, height, camera, shapeIds, settleTimeoutMs, onImage])
+	}, [editor, theme, width, height, camera, shapeIds, settleTimeoutMs, capture, onImage])
 
 	return null
 }
@@ -403,7 +574,7 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 		;(async () => {
 			// Fonts first, for the same reason the export waits: autosizing text has no correct size
 			// until the real web font has loaded, and its measured bounds are the whole point here.
-			await Promise.race([waitForFonts(), sleep(THUMBNAIL_SETTLE_TIMEOUT_MS)])
+			await Promise.race([waitForFonts(editor), sleep(THUMBNAIL_SETTLE_TIMEOUT_MS)])
 			if (cancelled) return
 
 			// Text comes from the shape's own util, which is the authoritative answer — a Worker
@@ -440,7 +611,7 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 // space, scale is the camera zoom (so bounds.width * z lands back on the requested pixel width),
 // and pixelRatio 1 keeps the bitmap at CSS-pixel size. Shapes culled at the current viewport
 // cannot appear in that rectangle, so they are excluded to keep the export cheap on large boards.
-async function exportThumbnailImage(
+export async function exportThumbnailImage(
 	editor: Editor,
 	theme: 'light' | 'dark',
 	width: number,
@@ -457,6 +628,15 @@ async function exportThumbnailImage(
 		? getRequestedShapeIds(editor, requestedShapeIds)
 		: [...editor.getCurrentPageShapeIds()].filter((id) => !culled.has(id))
 
+	// A shapes request with nothing left on the page is a stale job, not an empty board, so it fails
+	// rather than falling through to the blank below — which would be returned, and cached, as a
+	// picture of the shapes that were asked for. The live path refuses the same case up front in
+	// prepareLiveCapture; here the throw becomes the error marker via the caller's catch.
+	if (requestedShapeIds?.length && shapeIds.length === 0) {
+		throw new Error(SHAPES_NOT_ON_PAGE)
+	}
+
+	// An empty page, by contrast, is a truthful picture of an empty board.
 	if (shapeIds.length === 0) {
 		return makeBlankThumbnail(width, height, editor.getCurrentTheme().colors[theme].background)
 	}
@@ -517,27 +697,55 @@ function makeBlankThumbnail(width: number, height: number, background: string): 
 	})
 }
 
-async function waitForFonts() {
-	if (!('fonts' in document)) return
+function nextAnimationFrame() {
+	return new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+}
+
+// `document.fonts.ready` is not a barrier on its own: the editor's FontManager adds a FontFace to
+// document.fonts only once its load resolves, so fonts still in flight are invisible to it. And
+// TldrawEditor's pre-render font gate covers only the page the snapshot opens to, while onMount
+// switches to the page the token asked for — that page's fonts can still be loading here. Waiting
+// on the editor's own loader (what toImage awaits internally) keeps autosized text from
+// re-measuring mid-export, after the camera fit: the capture would clip, and the shapes the wider
+// bounds reveal would be drawn unwarmed.
+async function waitForFonts(editor: Editor) {
 	try {
-		await document.fonts.ready
+		if ('fonts' in document) await document.fonts.ready
+		await editor.fonts.loadRequiredFontsForCurrentPage(editor.options.maxFontsToLoadBeforeRender)
 	} catch {
 		// capture with fallback fonts rather than never becoming ready
 	}
 }
 
-// Warm every image asset in the snapshot so the browser has the bytes before the shapes request
-// them. Failures resolve rather than reject: a broken asset should not block the capture.
-async function preloadImageAssets(editor: Editor, deadline: number) {
+// Warm the images the capture will draw, so the browser has the bytes before the shapes request
+// them. Only those: the store holds every asset on every page of the board, and the settle budget
+// is fixed, so a board with thousands of images elsewhere spent it fetching pictures the export
+// never shows and then timed out — production timeouts track the board's asset count, not the
+// page's. The drawn set is the export's own (see exportThumbnailImage): the requested shapes and
+// their descendants, or the page's shapes that survive culling at the camera the export will use —
+// so this must run after the pre-export fit, not before it.
+// Failures resolve rather than reject: a broken asset should not block the capture.
+async function preloadImageAssets(editor: Editor, deadline: number, requestedShapeIds?: string[]) {
+	const culled = editor.getCulledShapes()
+	const roots = requestedShapeIds?.length
+		? getRequestedShapeIds(editor, requestedShapeIds)
+		: [...editor.getCurrentPageShapeIds()].filter((id) => !culled.has(id))
 	const urls = new Set<string>()
-	for (const record of editor.store.allRecords()) {
-		if (record.typeName !== 'asset') continue
-		if (record.type === 'image' && record.props.src) {
-			urls.add(record.props.src)
-		}
-		if (record.type === 'bookmark' && record.props.image) {
-			urls.add(record.props.image)
-		}
+	for (const id of editor.getShapeAndDescendantIds(roots)) {
+		const shape = editor.getShape(id)
+		if (!shape) continue
+		// A bookmark with no assetId still shows the preview of the asset its url hashes to, which is
+		// how its shape util resolves one (getResolvedBookmarkAssetId in the SDK, not exported).
+		const named = (shape.props as { assetId?: TLAssetId | null }).assetId
+		const assetId =
+			named ??
+			(editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark') && shape.props.url
+				? AssetRecordType.createId(getHashForString(shape.props.url))
+				: null)
+		const asset = assetId ? editor.getAsset(assetId) : undefined
+		if (!asset) continue
+		if (asset.type === 'image' && asset.props.src) urls.add(asset.props.src)
+		if (asset.type === 'bookmark' && asset.props.image) urls.add(asset.props.image)
 	}
 	await Promise.all([...urls].map((url) => preloadImage(url, deadline)))
 }
@@ -560,9 +768,13 @@ function preloadImage(url: string, deadline: number) {
 // mount. Wait until the set of images inside the editor is fully loaded and stable across a few
 // consecutive checks.
 async function waitForEditorImages(editor: Editor, deadline: number) {
+	// Every <img> the canvas creates is backed by an asset record, so a board with none has nothing
+	// to wait for — and the stability poll below would otherwise idle for several hundred ms.
+	if (editor.getAssets().length === 0) return
 	let stableChecks = 0
-	let lastCount = -1
-	while (Date.now() < deadline && stableChecks < 3) {
+	// Seeded from a real count, so the first check can already count toward stability.
+	let lastCount = editor.getContainer().querySelectorAll('img').length
+	while (Date.now() < deadline) {
 		const images = Array.from(editor.getContainer().querySelectorAll('img'))
 		if (images.every((img) => img.complete) && images.length === lastCount) {
 			stableChecks++
@@ -570,6 +782,8 @@ async function waitForEditorImages(editor: Editor, deadline: number) {
 			stableChecks = 0
 		}
 		lastCount = images.length
+		// Settled: don't pay one more poll interval just to notice.
+		if (stableChecks >= 3) return
 		await sleep(100)
 	}
 }

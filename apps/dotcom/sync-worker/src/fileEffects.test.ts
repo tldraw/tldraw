@@ -103,6 +103,7 @@ function effectRow(partial: Partial<TlaEffectOutbox>): TlaEffectOutbox {
 		attempts: 0,
 		createdAt: new Date(0),
 		nextRetryAt: null,
+		lastError: null,
 		...partial,
 	}
 }

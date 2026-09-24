@@ -40,18 +40,25 @@ import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
+import { getBoardThumbnail } from './routes/tla/getBoardThumbnail'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { initUser } from './routes/tla/initUser'
 import {
+	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
 	getMcpProtectedResourceMetadata,
 	mcpCorsPreflight,
 	withMcpCors,
 } from './routes/tla/mcpAuth'
 import { mcpServer } from './routes/tla/mcpServer'
+import {
+	MCP_SERVER_CARD_PATH,
+	MCP_SERVER_CARD_WELL_KNOWN_PATH,
+	getMcpServerCard,
+} from './routes/tla/mcpServerCard'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import { upload } from './routes/tla/uploads'
@@ -60,7 +67,7 @@ import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
-import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
+import { getAuth, getZeroAuth, requireAuth, getMcpTokenAuth } from './utils/tla/getAuth'
 import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
@@ -99,6 +106,9 @@ const router = createRouter<Environment>()
 	// `.options` before `.all` so the preflight is answered rather than dispatched into the handler.
 	.options('/app/mcp', mcpCorsPreflight)
 	.options(MCP_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
+	.options(MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH, mcpCorsPreflight)
+	.options(MCP_SERVER_CARD_PATH, mcpCorsPreflight)
+	.options(MCP_SERVER_CARD_WELL_KNOWN_PATH, mcpCorsPreflight)
 	// .all so MCP server can correctly respond to non-post requests with 405
 	.all('/app/mcp', async (req, env, ctx) => withMcpCors(await mcpServer(req, env, ctx)))
 	// Registered at the origin rather than under /app, because RFC 9728 puts protected resource
@@ -108,6 +118,13 @@ const router = createRouter<Environment>()
 	.get(MCP_PROTECTED_RESOURCE_METADATA_PATH, (req, env) =>
 		withMcpCors(getMcpProtectedResourceMetadata(req, env))
 	)
+	.get(MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH, (req, env) =>
+		withMcpCors(getMcpProtectedResourceMetadata(req, env))
+	)
+	// Unauthenticated on purpose: a Server Card is what a client reads *before* it has a token, and
+	// it carries nothing the MCP endpoint's own 401 challenge doesn't already give away.
+	.get(MCP_SERVER_CARD_PATH, (req, env) => withMcpCors(getMcpServerCard(req, env)))
+	.get(MCP_SERVER_CARD_WELL_KNOWN_PATH, (req, env) => withMcpCors(getMcpServerCard(req, env)))
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
 	.get('/snapshot/:roomId', getRoomSnapshot)
@@ -170,6 +187,7 @@ const router = createRouter<Environment>()
 		return notFound()
 	})
 	.get('/app/file/:roomId/download', forwardRoomRequest)
+	.get('/app/file/:boardId/thumbnail', getBoardThumbnail)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({
@@ -320,8 +338,15 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				const fakeReq = new Request('https://internal', {
 					headers: { Authorization: authorizationHeader },
 				}) as unknown as IRequest
+				// A session token first, then an MCP access token: the same fallback the download and
+				// the sync socket take, so an agent's user can add files to boards they can edit.
 				const auth = await getAuth(fakeReq, this.env)
-				userId = auth?.userId ?? null
+				if (auth) {
+					userId = auth.userId
+				} else {
+					const mcp = await getMcpTokenAuth(fakeReq, this.env)
+					userId = mcp.ok ? mcp.userId : null
+				}
 			}
 			if (!(await hasWriteAccessToFile(db, fileId, userId))) {
 				return { ok: false, error: 'Forbidden' }

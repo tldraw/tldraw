@@ -814,4 +814,79 @@ describe('queries across rolled-back transactions (QH, QQ)', () => {
 		ids.get()
 		for (const call of args) expect(call).toEqual([])
 	})
+
+	// `read` stands in for a side effect that queries the store mid-operation.
+	function readDuringRolledBackPut(read: () => void) {
+		const phantom = Book.create({ title: 'Phantom', authorId: authors.tolkein.id })
+		expect(() =>
+			store.atomic(() => {
+				store.put([phantom])
+				read()
+				throw new Error('abort')
+			})
+		).toThrow('abort')
+		expect(store.get(phantom.id)).toBeUndefined()
+	}
+
+	const initialBookIds = Object.values(books).map((book) => book.id)
+
+	it('[QH4] the filtered history value strictly increases across a rolled-back transaction', () => {
+		const bookHistory = store.query.filterHistory('book')
+		const values = [bookHistory.get()]
+
+		readDuringRolledBackPut(() => values.push(bookHistory.get()))
+		store.put([Book.create({ title: 'First', authorId: authors.bradbury.id })])
+		values.push(bookHistory.get())
+		store.put([Book.create({ title: 'Second', authorId: authors.bradbury.id })])
+		values.push(bookHistory.get())
+
+		expect(values.slice(1).map((value, i) => value > values[i])).toEqual([true, true, true])
+	})
+
+	it('[QH4] indexes and queries read during a rolled-back transaction are rebuilt afterwards', () => {
+		const bookIds = store.query.ids('book')
+		const booksByAuthor = store.query.index('book', 'authorId')
+		let counterSeenByQueries = -1
+
+		readDuringRolledBackPut(() => {
+			expect(bookIds.get().size).toBe(5)
+			booksByAuthor.get()
+			counterSeenByQueries = store.history.get()
+		})
+
+		const real = Book.create({ title: 'Real', authorId: authors.bradbury.id })
+		store.put([real])
+		// a stale cache only goes unnoticed when the counter lands on the value the queries last saw
+		expect(store.history.get()).toBe(counterSeenByQueries)
+
+		expect(bookIds.get()).toEqual(new Set([...initialBookIds, real.id]))
+		expect(booksByAuthor.get().get(authors.tolkein.id)).toEqual(new Set([books.lotr.id]))
+		expect(booksByAuthor.get().get(authors.bradbury.id)).toEqual(
+			new Set([books.farenheit.id, real.id])
+		)
+	})
+
+	it('[QH4] indexes and queries keep picking up changes after being rebuilt', () => {
+		const bookIds = store.query.ids('book')
+		const booksByAuthor = store.query.index('book', 'authorId')
+
+		readDuringRolledBackPut(() => {
+			bookIds.get()
+			booksByAuthor.get()
+		})
+		const first = Book.create({ title: 'First', authorId: authors.bradbury.id })
+		store.put([first])
+		bookIds.get()
+		booksByAuthor.get()
+
+		// the rebuild left the filtered history ahead of the store's counter, so this change lands
+		// on the value it last reported
+		const second = Book.create({ title: 'Second', authorId: authors.bradbury.id })
+		store.put([second])
+
+		expect(bookIds.get()).toEqual(new Set([...initialBookIds, first.id, second.id]))
+		expect(booksByAuthor.get().get(authors.bradbury.id)).toEqual(
+			new Set([books.farenheit.id, first.id, second.id])
+		)
+	})
 })

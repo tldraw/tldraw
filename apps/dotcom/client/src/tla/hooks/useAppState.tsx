@@ -4,7 +4,8 @@ import { ReactNode, createContext, useContext, useEffect, useState } from 'react
 import { useNavigate } from 'react-router-dom'
 import { assertExists, atom } from 'tldraw'
 import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
-import { TldrawApp } from '../app/TldrawApp'
+import { enableFirstLoadLiveLog, isFirstLoadStaff, markFirstLoad } from '../../utils/firstLoad'
+import { TldrawApp, getPreloadDiagnostics } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
 import {
 	DEFAULT_FLAGS,
@@ -34,10 +35,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		throw new Error('should have redirected in TlaRootProviders')
 	}
 	const navigate = useNavigate()
+	const email = user.primaryEmailAddress?.emailAddress
+	if (isFirstLoadStaff(email)) enableFirstLoadLiveLog()
 
 	useEffect(() => {
 		let _app: TldrawApp
 		let didCancel = false
+		const abort = new AbortController()
 		setError(null)
 
 		const FETCH_TIMEOUT = 5000
@@ -55,6 +59,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			if (!wasAuthenticated()) {
 				flags = await fetchFlagsWithTimeout()
 			}
+			markFirstLoad('flags-loaded')
+			// Flagged users get the live lines too: a load that hangs never reaches the summary tables.
+			if (flags.first_load_rum?.enabled) enableFirstLoadLiveLog()
 			if (didCancel) return
 			const token = await auth.getToken()
 			if (!token) throw new Error('no token')
@@ -79,6 +86,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				},
 				trackEvent,
 				navigate,
+				signal: abort.signal,
 			})
 			if (didCancel) {
 				app.dispose()
@@ -90,15 +98,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			if (didCancel) return
 			console.error('[AppState] Failed to initialize:', err)
 			// Default grouping keys on the stack, which every preload timeout shares; the message
-			// carries the stalled stage or init status, so group on it.
+			// carries the stalled stage or init status, so group on it. The Zero connection state
+			// goes on a tag rather than the fingerprint so one stage stays one issue.
+			const diagnostics = getPreloadDiagnostics(err)
 			captureException(err, {
 				fingerprint: ['{{ default }}', err instanceof Error ? err.message : String(err)],
+				tags: diagnostics && { zero_connection: diagnostics.connection },
 			})
 			setError(err)
 		})
 
 		return () => {
 			didCancel = true
+			abort.abort()
 			if (_app) {
 				_app.dispose()
 			}

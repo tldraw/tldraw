@@ -5,6 +5,7 @@ import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
 import type { StateDB } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
 import { Editor } from 'tldraw'
 import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
+import { createLabelWidthMeasurer } from './mermaidNodeCreateShape'
 import { mindmapToBlueprint, parseMindmapLayout } from './mindmapDiagram'
 import { BlueprintRenderingOptions, renderBlueprint } from './renderBlueprint'
 import { countSequenceEvents, parseSequenceLayout, sequenceToBlueprint } from './sequenceDiagram'
@@ -70,6 +71,11 @@ export async function createMermaidDiagram(
 		mindmap: { ...MERMAID_CONFIG.mindmap, ...options.mermaidConfig?.mindmap },
 		sequence: { ...MERMAID_CONFIG.sequence, ...options.mermaidConfig?.sequence },
 		themeVariables: { ...MERMAID_CONFIG.themeVariables, ...options.mermaidConfig?.themeVariables },
+		// A diagram's own `%%{init}%%` or frontmatter config outranks `initialize`, so one that sets
+		// `fontSize` undoes FONT_INFLATE: every box is measured small while tldraw still draws its
+		// wider face, and labels break mid-word. Mermaid strips `secure` keys from in-diagram config
+		// at any depth, and keeps its own defaults alongside the ones listed here.
+		secure: [...(options.mermaidConfig?.secure ?? []), 'fontSize'],
 	})
 
 	const parsedResult = await mermaid.parse(text, { suppressErrors: true })
@@ -131,7 +137,8 @@ export async function createMermaidDiagram(
 					actorKeys,
 					messages,
 					db.getCreatedActors(),
-					db.getDestroyedActors()
+					db.getDestroyedActors(),
+					createLabelWidthMeasurer(editor)
 				)
 				break
 			}

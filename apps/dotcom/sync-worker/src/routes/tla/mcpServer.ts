@@ -9,6 +9,7 @@ import {
 	MCP_PER_BOARD_RATE_LIMIT,
 	MCP_PER_USER_RATE_LIMIT,
 	MCP_RATE_LIMIT_WINDOW_MS,
+	MCP_SEARCH_PER_USER_RATE_LIMIT,
 } from '../../config'
 import { Environment, envFlagWord } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
@@ -22,15 +23,17 @@ import {
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	MCP_SERVER_INFO,
-	MCP_SERVER_INSTRUCTIONS,
+	getMcpServerInstructions,
 	PAGE_INFO_TOOL_NAME,
 	PageSelector,
 	ResolvedPageOk,
+	SEARCH_BOARDS_TOOL_NAME,
 	ToolResult,
 	buildClusterIndex,
 	clusterPage,
 	describePageSelector,
 	getBoardInfo,
+	getBoardSearchResults,
 	getClusterInfo,
 	getPageInfo,
 	getToolDefinitions,
@@ -38,6 +41,7 @@ import {
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	parsePageInfoInput,
+	parseSearchBoardsInput,
 	pickClusterShapes,
 	resolvePage,
 	toolError as modelToolError,
@@ -45,6 +49,7 @@ import {
 } from './boardTools'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import { readPageClusters, writePageClusterIndex } from './mcpClusterIndex'
+import { searchAccessibleBoards } from './searchBoards'
 import {
 	ResolveThumbnailBoardResult,
 	ResolvedThumbnailBoard,
@@ -60,6 +65,7 @@ import {
 	ThumbnailErrorSurface,
 	classifyScreenshotFailure,
 	describeThumbnailFailure,
+	RateLimiterUnavailableError,
 	reportThumbnailError,
 } from './thumbnailShared'
 
@@ -85,7 +91,10 @@ import {
 // will be met with this version.
 const MCP_PROTOCOL_VERSION_MODERN = '2026-07-28'
 const MCP_PROTOCOL_VERSION_LEGACY = '2025-11-25'
-const SUPPORTED_PROTOCOL_VERSIONS = [MCP_PROTOCOL_VERSION_MODERN, MCP_PROTOCOL_VERSION_LEGACY]
+export const SUPPORTED_PROTOCOL_VERSIONS = [
+	MCP_PROTOCOL_VERSION_MODERN,
+	MCP_PROTOCOL_VERSION_LEGACY,
+]
 
 type ProtocolEra = 'modern' | 'legacy'
 
@@ -129,6 +138,16 @@ function perUserRateLimitKey(userId: string) {
 	return `user:${userId}`
 }
 
+/**
+ * The `search_boards` budget's key. A separate binding, not a separate prefix: `isRateLimited`'s
+ * `mcp-shared-board-screenshot:` prefix is what the deployed buckets count against and cannot move,
+ * so what keeps this budget apart from the Browser Run one is the binding it is checked against, not
+ * the string. The `search:` segment only keeps the two readable in a dump.
+ */
+function searchRateLimitKey(userId: string) {
+	return `search:${userId}`
+}
+
 async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
 	return isRateLimited(env.MCP_SERVER_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
 		fallbackLimit: MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
@@ -144,8 +163,14 @@ async function isRateLimited(
 	// counted against, so changing it resets every configured bucket.
 	const rateLimitKey = `mcp-shared-board-screenshot:${key}`
 	if (limiter) {
-		const { success } = await limiter.limit({ key: rateLimitKey })
-		return !success
+		try {
+			const { success } = await limiter.limit({ key: rateLimitKey })
+			return !success
+		} catch (error) {
+			// Tagged rather than left raw, so the tools' catch blocks record a binding outage as itself
+			// instead of as whatever their own failures usually are — see toolFailure.
+			throw new RateLimiterUnavailableError(error)
+		}
 	}
 
 	// Isolate-local fallback for local dev and tests; deployments configure the Cloudflare rate
@@ -189,12 +214,16 @@ interface JsonRpcRequest {
 	}
 }
 
-// Runtime kill switch for the whole MCP server, read per request so flipping MCP_SCREENSHOT_ENABLED
-// takes effect on the next request rather than the next build. An unset var means enabled, so
-// environments that never configure it (previews, local dev, tests) keep working; a var that is set
-// must say 'true', so a stray value disables rather than silently leaving the endpoint up.
-export function isMcpScreenshotEnabled(env: Environment) {
-	const word = envFlagWord(env.MCP_SCREENSHOT_ENABLED)
+// Whether search_boards will match on board names. Unset means enabled, so previews, local dev and
+// tests keep working, while a set value must say 'true' so a stray one turns matching off rather
+// than leaving it on.
+//
+// It gates the one part of the search no index reaches — `name ILIKE '%term%'`, which reads every
+// board in the caller's scope when a term matches nothing. Turning it off does not silently drop the
+// terms: a query with them is refused, and the tool stops advertising `query` at all. Serving
+// unfiltered boards to a model that asked for "roadmap" would be read as twenty matches.
+export function isMcpSearchNameMatchingEnabled(env: Environment) {
+	const word = envFlagWord(env.MCP_SEARCH_NAME_MATCHING_ENABLED)
 	return word === undefined || word === 'true'
 }
 
@@ -259,9 +288,21 @@ function writeMcpToolCallTelemetry(
 //
 // Reason and client are both closed vocabularies (see McpAuthRefusal and MCP_CLIENT_FAMILIES). No
 // token, subject, client id or board identity goes near this, in keeping with every other event here.
-function writeMcpAuthRefusalTelemetry(env: Environment, request: Request, reason: McpAuthRefusal) {
+//
+// `route` separates the MCP endpoint from the board thumbnail route, which accepts the same OAuth
+// tokens: without it a burst of refused thumbnail requests would read as MCP clients being turned away.
+export function writeMcpAuthRefusalTelemetry(
+	env: Environment,
+	request: Request,
+	reason: McpAuthRefusal,
+	route: 'mcp' | 'thumbnail'
+) {
 	writeDataPoint(undefined, env.MEASURE, env, 'mcp_server_auth_refusal', {
-		blobs: [`reason:${reason}`, `client:${normalizeMcpClient(request.headers.get('user-agent'))}`],
+		blobs: [
+			`reason:${reason}`,
+			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
+			`route:${route}`,
+		],
 	})
 }
 
@@ -297,6 +338,7 @@ const TOOL_HANDLERS = new Map<
 		ctx?: ExecutionContext
 	) => Promise<ToolCallResult>
 >([
+	[SEARCH_BOARDS_TOOL_NAME, callSearchBoardsTool],
 	[BOARD_INFO_TOOL_NAME, callBoardInfoTool],
 	[PAGE_INFO_TOOL_NAME, callPageInfoTool],
 	[CLUSTER_INFO_TOOL_NAME, callClusterInfoTool],
@@ -308,12 +350,6 @@ export async function mcpServer(
 	env: Environment,
 	ctx?: ExecutionContext
 ): Promise<Response> {
-	// Checked before anything else, including the method check, so a disabled server looks like it
-	// isn't there at all rather than like a route that exists but rejects everything.
-	if (!isMcpScreenshotEnabled(env)) {
-		return new Response('Not Found', { status: 404 })
-	}
-
 	// new MCP spec (2026-07-28 onwards) no longer allows get or delete requests
 	if (request.method !== 'POST') {
 		return new Response('MCP screenshot server expects POST', { status: 405 })
@@ -325,7 +361,7 @@ export async function mcpServer(
 	// naming a public board, and requiring a token retires that deliberately.
 	const auth = await authenticateMcpRequest(request, env)
 	if (!auth.ok) {
-		writeMcpAuthRefusalTelemetry(env, request, auth.reason)
+		writeMcpAuthRefusalTelemetry(env, request, auth.reason, 'mcp')
 		return auth.response
 	}
 
@@ -347,7 +383,7 @@ export async function mcpServer(
 			protocolVersion: MCP_PROTOCOL_VERSION_LEGACY,
 			capabilities: { tools: {} },
 			serverInfo: MCP_SERVER_INFO,
-			instructions: MCP_SERVER_INSTRUCTIONS,
+			instructions: getMcpServerInstructions(isMcpSearchNameMatchingEnabled(env)),
 		})
 	}
 
@@ -365,7 +401,7 @@ export async function mcpServer(
 			resultType: 'complete',
 			supportedVersions: SUPPORTED_PROTOCOL_VERSIONS,
 			capabilities: { tools: {} },
-			instructions: MCP_SERVER_INSTRUCTIONS,
+			instructions: getMcpServerInstructions(isMcpSearchNameMatchingEnabled(env)),
 			ttlMs: TOOLS_LIST_TTL_MS,
 			cacheScope: TOOLS_LIST_CACHE_SCOPE,
 			_meta: { [META_SERVER_INFO]: MCP_SERVER_INFO },
@@ -394,7 +430,7 @@ export async function mcpServer(
 				rpcRequest.id,
 				withResultEnvelope(
 					{
-						tools: getToolDefinitions(),
+						tools: getToolDefinitions(isMcpSearchNameMatchingEnabled(env)),
 						...(era === 'modern'
 							? { ttlMs: TOOLS_LIST_TTL_MS, cacheScope: TOOLS_LIST_CACHE_SCOPE }
 							: {}),
@@ -587,6 +623,52 @@ export async function getShapesCacheKey(
 ) {
 	const digest = await sha256([...shapeIds].sort().join(','))
 	return `mcp/${board.kind}/${board.slug}/${board.version}/${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT}/${theme}/shapes-${digest}.png`
+}
+
+async function callSearchBoardsTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() =>
+		parseSearchBoardsInput(argumentsValue, isMcpSearchNameMatchingEnabled(env))
+	)
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	// Its own budget, not the Browser Run one: this call spends no Browser Run, and counting it
+	// against that limiter would make the per-account number config.ts documents untrue. What it does
+	// spend is Postgres, and paging is index-bounded (see searchBoards.ts) while matching is not — a
+	// query that matches nothing still reads every board the caller can see. See "MCP tools" in
+	// browser-run-thumbnails.md.
+	try {
+		// Inside the try for the reason spelled out on callPageInfoTool: a limiter that *throws* is a
+		// binding outage, not a caller over budget, and outside the try it escapes as a 500 the client
+		// cannot parse as MCP.
+		const refusal = await checkSearchRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		return getBoardSearchResults(await searchAccessibleBoards(env, userId, input), input.terms)
+	} catch (error) {
+		// No `telemetry`: like get_board_info, this spends no Browser Run and so writes nothing to
+		// the screenshot ledger, which is the one that answers cache and refusal questions.
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_board_search',
+			// The query is board names the caller typed, so it stays off the Sentry event too — the
+			// shape of the call is what is diagnostic here, not its content.
+			extras: { termCount: input.terms.length, paged: input.cursor !== null },
+			summary: 'Could not search boards',
+			// Every failure this can narrow is a Postgres one, and the classifier reads render
+			// failures, so a pool timeout would otherwise be recorded as `browser_timeout`. A limiter
+			// outage never reaches here — toolFailure keeps that reason as itself.
+			recordAs: () => 'board_lookup_error',
+		})
+	}
 }
 
 async function callBoardInfoTool(
@@ -836,6 +918,40 @@ async function checkPerUserRateLimit(
 	return toolError(
 		`Rate limited. Requests are limited to about ${MCP_PER_USER_RATE_LIMIT} per minute per account.`,
 		'rate_limited_user'
+	)
+}
+
+/**
+ * The per-caller ceiling on `search_boards`, which the Browser Run budget deliberately does not
+ * cover: search spends no Browser Run, and counting it there would make the number config.ts
+ * documents untrue again.
+ *
+ * The refusal is written to the screenshot ledger even though a successful search is not. That
+ * ledger is the one panel answering "who is being turned away", and a limit nobody can see firing
+ * is the mistake `checkPerUserRateLimit` already documents having made once; its own reason code so
+ * the two budgets stay legible apart.
+ */
+async function checkSearchRateLimit(
+	env: Environment,
+	userId: string,
+	telemetry: McpTelemetryWriter
+): Promise<ToolCallResult | undefined> {
+	if (
+		!(await isRateLimited(env.MCP_SERVER_SEARCH_RATE_LIMITER, searchRateLimitKey(userId), {
+			fallbackLimit: MCP_SEARCH_PER_USER_RATE_LIMIT,
+		}))
+	) {
+		return undefined
+	}
+	telemetry({
+		cacheStatus: 'none',
+		rateLimitAllowed: false,
+		failureReason: 'rate_limited_search',
+		callerHash: await sha256(userId),
+	})
+	return toolError(
+		`Rate limited. Searches are limited to about ${MCP_SEARCH_PER_USER_RATE_LIMIT} per minute per account.`,
+		'rate_limited_search'
 	)
 }
 
@@ -1104,6 +1220,12 @@ async function renderShapeSetScreenshot(
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			telemetry: { source: 'mcp' },
 			content: summarizeSnapshotContent(resolved.snapshot, resolved.page.pageId),
+			// Preview trial (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts): let the screenshot
+			// rasterize the live canvas instead of running editor.toImage in the page. Agent-facing
+			// only — the OG surface keeps the export path's pixel-exact sizing.
+			...(envFlagWord(env.THUMBNAIL_RENDER_LIVE_CAPTURE) === 'true'
+				? { capture: 'live' as const }
+				: null),
 		})
 
 		// The render is already paid for and the PNG in hand is what the caller asked for, so a failed
@@ -1232,10 +1354,10 @@ function parseToolInput<T>(parse: () => T, telemetry?: McpTelemetryWriter): Pars
  * bounded reason code, file that on the request ledger, and answer the caller with a message that
  * names the failure class and nothing else.
  *
- * One copy rather than four. The rule it encodes is the same at every site and worth stating once:
+ * One copy rather than five. The rule it encodes is the same at every site and worth stating once:
  * the caller's message and the telemetry blob both come from a closed vocabulary, because internal
  * Postgres and R2 detail must reach neither an outside caller nor a dimension whose cardinality it
- * would blow up. Sentry gets the original, with the unbounded context. The four copies had already
+ * would blow up. Sentry gets the original, with the unbounded context. Those copies had already
  * drifted — that rationale was written out at one of them and nowhere else.
  */
 function toolFailure(
@@ -1262,8 +1384,8 @@ function toolFailure(
 		/** Prefixes the caller's message: `${summary}: ${failure class}.` */
 		summary: string
 		/**
-		 * The request ledger writer. Omitted by `get_board_info` alone, which spends no Browser Run and
-		 * so does not appear on that ledger at all.
+		 * The request ledger writer. Omitted only by `search_boards` and `get_board_info`, which spend
+		 * no Browser Run and so do not appear on that ledger at all.
 		 */
 		telemetry?: McpTelemetryWriter
 		/** What the cache had done by the time this failed. See `consultedCache`. */
@@ -1271,17 +1393,26 @@ function toolFailure(
 		/** The same, for the cluster index cache. See `clusterCacheStatus`. */
 		clusterCacheStatus?: 'hit' | 'miss' | 'none'
 		/**
-		 * Narrows the code that gets *recorded*, leaving the caller's message on the classifier's own
-		 * verdict. For the one tool whose failures the classifier can misread — see `get_board_info`.
+		 * Narrows the classifier's verdict for a tool whose failures it can misread — search_boards and
+		 * get_board_info spend no Browser Run, so a raw Postgres error the classifier would otherwise
+		 * default to a render failure is corrected here, for the caller's message and telemetry alike.
 		 */
 		recordAs?(failureReason: string): string
 	}
 ): ToolCallResult {
 	reportThumbnailError(error, { ctx, env, request, surface, extras })
 	const failureReason = classifyScreenshotFailure(error)
-	const recorded = recordAs ? recordAs(failureReason) : failureReason
+	// `recordAs` exists to correct the classifier's reading of a tool's *own* failures, and a limiter
+	// binding outage is nobody's own: left to it, every tool would file one as the thing it usually
+	// fails at — a board lookup — and send a dashboard reader to a database that is fine.
+	const recorded =
+		failureReason === 'rate_limiter_unavailable'
+			? failureReason
+			: recordAs
+				? recordAs(failureReason)
+				: failureReason
 	telemetry?.({ cacheStatus, clusterCacheStatus, failureReason: recorded })
-	return toolError(`${summary}: ${describeThumbnailFailure(failureReason)}.`, recorded)
+	return toolError(`${summary}: ${describeThumbnailFailure(recorded)}.`, recorded)
 }
 
 function decodeThumbnailPageName(value: string | undefined): string {
