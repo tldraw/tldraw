@@ -484,7 +484,7 @@ const ALLOWED_VERSION_DIVERGENCE: Record<string, { workspaces: string[]; reason:
 		workspaces: ['templates/', 'apps/mcp-app'],
 		reason:
 			"templates are independently published starters, and mcp-app's extract-editor-api.ts " +
-			"needs the TS 5 compiler API that TS 7 doesn't export",
+			"needs the classic compiler API (TS 6), which TS 7 doesn't export",
 	},
 }
 
@@ -523,11 +523,12 @@ async function checkDependencyVersions({
 	for (const pkg of [root, ...packages]) {
 		for (const field of DEPENDENCY_FIELDS) {
 			for (const [dep, range] of Object.entries(pkg.packageJson[field] ?? {})) {
-				const diverges = ALLOWED_VERSION_DIVERGENCE[dep]?.workspaces.some((prefix) =>
+				// Each allowed prefix is its own group, so templates and mcp-app aren't held to one range.
+				const divergedPrefix = ALLOWED_VERSION_DIVERGENCE[dep]?.workspaces.find((prefix) =>
 					pkg.relativePath.startsWith(prefix)
 				)
 				const kind = field === 'peerDependencies' ? 'peer' : 'installed'
-				const key = `${dep}\0${kind}\0${diverges ? 'diverged' : 'shared'}`
+				const key = `${dep}\0${kind}\0${divergedPrefix ?? 'shared'}`
 				if (!usages.has(key)) usages.set(key, [])
 				usages.get(key)!.push({ pkg, field, range })
 			}
