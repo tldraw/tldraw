@@ -30,7 +30,6 @@ const pinnedPackages = [
 	'@tiptap/suggestion',
 ]
 
-// Under pnpm's isolated linker these live in the declaring package's node_modules, not the root's.
 const pinnedPackageOwners = ['packages/tldraw', 'packages/mentions']
 
 function getPinnedVersions(): string[] {

@@ -10,8 +10,6 @@ runs:
       run: npm i -g corepack
       shell: bash
 
-    # Caches pnpm's content-addressed store keyed on the lockfile; install links node_modules
-    # from it each run, so the tree always matches the current linker and lockfile.
     - name: Setup Node.js Environment
       id: setup-node
       uses: actions/setup-node@v6
