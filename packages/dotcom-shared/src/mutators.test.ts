@@ -914,6 +914,22 @@ describe('file operations across workspaces', () => {
 		expect(s.file[0]?.owningGroupId).toBe(groupB)
 	})
 
+	it('cannot move a deleted file', async () => {
+		const s = makeStore({
+			user: [makeUser({ id: userId })],
+			file: [makeFile({ id: fileId, owningGroupId: groupA, isDeleted: true })],
+			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
+			group_user: [
+				makeGroupUser({ userId, groupId: groupA }),
+				makeGroupUser({ userId, groupId: groupB }),
+			],
+		})
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectBadRequest(() => m.moveFileToWorkspace(tx, { fileId, workspaceId: groupB }))
+		expect(s.group_file).toEqual([])
+	})
+
 	it('member of source workspace only cannot move file to other workspace', async () => {
 		const s = makeStore({
 			user: [makeUser({ id: userId })],

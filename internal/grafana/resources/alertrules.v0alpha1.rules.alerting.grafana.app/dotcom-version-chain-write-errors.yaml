@@ -12,13 +12,12 @@ metadata:
   namespace: stacks-890472
 spec:
   annotations:
-    description: A chain write failed non-transiently in the last hour. These have
-      already retried three times and fallen back to writing a legacy full copy,
-      so no version is lost and boards are unaffected — but the chain is unhealthy
-      and the rollout should not advance while this fires. Check the "Chain write
-      errors" panel on the Dotcom events dashboard, then Sentry for the underlying
-      exception. Expected rate is zero.
-    summary: Version chain writes are failing and falling back to legacy copies
+    description: A chain write failed in the last hour after retrying R2's retryable
+      errors five times. Boards are unaffected, but that persist recorded no version
+      (there is no legacy fallback); the next persist's delta carries its changes.
+      Check the "Chain write errors" panel on the Dotcom events dashboard, then Sentry
+      for the underlying exception. Expected rate is zero.
+    summary: Version chain writes are failing and recording no version
   execErrState: Error
   expressions:
     A:
