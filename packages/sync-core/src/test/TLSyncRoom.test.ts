@@ -2482,6 +2482,82 @@ describe('26. Session lifecycle (SES)', () => {
 		expect(socket.__lastMessage).toEqual({ type: 'pong' })
 	})
 
+	it('[SES6] handleResumedSession rejects a session whose schema the server can no longer reconcile', () => {
+		const { room } = makeRoom()
+		const socket = makeSocket()
+		const newerSchema: SerializedSchemaV2 = {
+			schemaVersion: 2,
+			sequences: {
+				...(room.serializedSchema as SerializedSchemaV2).sequences,
+				'com.tldraw.store': 999,
+			},
+		}
+
+		room.handleResumedSession({
+			sessionId: 'resumed',
+			socket,
+			meta: undefined,
+			isReadonly: false,
+			serializedSchema: newerSchema,
+			presenceId: null,
+			presenceRecord: null,
+			requiresLegacyRejection: false,
+			supportsStringAppend: true,
+		})
+
+		expect(room.sessions.has('resumed')).toBe(false)
+		expect(socket.close).toHaveBeenCalledWith(
+			TLSyncErrorCloseEventCode,
+			TLSyncErrorCloseEventReason.SERVER_TOO_OLD
+		)
+	})
+
+	it('[SES6] rejecting a resumed session removes its restored presence for other sessions', () => {
+		vi.useFakeTimers()
+		const { room } = makeRoom()
+		const makePresence = (name: string) =>
+			InstancePresenceRecordType.create({
+				id: InstancePresenceRecordType.createId(name),
+				currentPageId: pageRecord.id,
+				userId: createUserId(name),
+				userName: name,
+			})
+		const resume = (sessionId: string, serializedSchema: SerializedSchema) => {
+			const socket = makeSocket()
+			const presenceRecord = makePresence(sessionId)
+			room.handleResumedSession({
+				sessionId,
+				socket,
+				meta: undefined,
+				isReadonly: false,
+				serializedSchema,
+				presenceId: presenceRecord.id,
+				presenceRecord,
+				requiresLegacyRejection: false,
+				supportsStringAppend: true,
+			})
+			return { socket, presenceId: presenceRecord.id }
+		}
+
+		const other = resume('other', room.serializedSchema)
+		const rejected = resume('rejected', {
+			schemaVersion: 2,
+			sequences: {
+				...(room.serializedSchema as SerializedSchemaV2).sequences,
+				'com.tldraw.store': 999,
+			},
+		})
+		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL * 2)
+
+		expect(room.sessions.has('rejected')).toBe(false)
+		expect(room.presenceStore.get(rejected.presenceId)).toBeUndefined()
+		// other clients still hold this presence from before the socket slept
+		expect(sentDataMessages(other.socket).at(-1)).toMatchObject({
+			type: 'patch',
+			diff: { [rejected.presenceId]: [RecordOpType.Remove] },
+		})
+	})
+
 	it('[SES7] a message from an unknown session id logs a warning and is ignored', () => {
 		const warn = vi.fn()
 		const { room } = makeRoom({ log: { warn } })

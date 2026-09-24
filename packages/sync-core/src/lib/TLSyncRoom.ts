@@ -821,8 +821,21 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			supportsStringAppend,
 		})
 
+		// Restore presence before the schema checks: other clients still hold it from before the
+		// socket slept, and a rejection only broadcasts its removal if it's in the store
 		if (presenceRecord && presenceId) {
 			this.presenceStore.set(presenceId, presenceRecord as R)
+		}
+
+		// The server may have changed builds while the socket slept, so re-run the handshake's
+		// schema checks (HS3): a schema we can no longer reconcile must not be served raw diffs.
+		if (!migrations.ok) {
+			this.rejectSession(sessionId, this.getVersionMismatchReason(serializedSchema))
+			return
+		}
+		if (migrations.value.some((m) => m.scope !== 'record' || !m.down)) {
+			this.rejectSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+			return
 		}
 	}
 
