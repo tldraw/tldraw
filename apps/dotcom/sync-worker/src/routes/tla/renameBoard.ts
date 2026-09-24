@@ -5,13 +5,11 @@ import { Environment } from '../../types'
 import { getFileEffectProcessor } from '../../utils/durableObjects'
 import { createMcpMutators } from '../../utils/tla/mcpMutators'
 import {
-	BOARD_NOT_FOUND_MESSAGE,
 	RENAME_BOARD_FORBIDDEN_MESSAGE,
+	RENAME_BOARD_NOT_FOUND_MESSAGE,
 	ToolResult,
 	toolError,
 } from './boardTools'
-
-// The database half of rename_board. The model-facing half lives in boardTools.ts.
 
 export type RenameBoardOutcome =
 	| { ok: true; previousName: string }
@@ -47,7 +45,7 @@ export async function renameBoardForUser(
 					return {
 						ok: false,
 						reason: 'board_not_found',
-						result: toolError(BOARD_NOT_FOUND_MESSAGE),
+						result: toolError(RENAME_BOARD_NOT_FOUND_MESSAGE),
 					}
 				}
 				// The home workspace can have no group_user row; the mutator's getRole treats its owner
@@ -60,7 +58,11 @@ export async function renameBoardForUser(
 								reason: 'rename_forbidden',
 								result: toolError(RENAME_BOARD_FORBIDDEN_MESSAGE),
 							}
-						: { ok: false, reason: 'board_not_found', result: toolError(BOARD_NOT_FOUND_MESSAGE) }
+						: {
+								ok: false,
+								reason: 'board_not_found',
+								result: toolError(RENAME_BOARD_NOT_FOUND_MESSAGE),
+							}
 				}
 
 				// The mutator the app's rename pushes, so the access check and immutable-column guard
@@ -71,8 +73,7 @@ export async function renameBoardForUser(
 		)
 
 		if (outcome.ok) {
-			// A name change queues an outbox row, whose effect copies the name into the room's
-			// document record. A poke failure must not fail a rename that already committed.
+			// A poke failure must not fail a rename that already committed.
 			ctx?.waitUntil(
 				getFileEffectProcessor(env)
 					.poke()

@@ -81,6 +81,11 @@ export const TOOL_NAMES = [
 // it, since the caller may simply be signed in as the wrong account.
 export const BOARD_NOT_FOUND_MESSAGE =
 	'No board was found with this id, or this account does not have access to it. Boards in your own workspace, boards owned by a workspace you belong to, boards shared with you via link, and published boards are supported.'
+// BOARD_NOT_FOUND_MESSAGE ends by inviting published boards, which a rename cannot take: a /p/ slug
+// names a published copy, not the file. Still one message for missing and inaccessible alike.
+export const RENAME_BOARD_NOT_FOUND_MESSAGE =
+	'No board was found with this id, or this account does not have access to it. Pass the id from the board’s tldraw.com/f/ URL or from search_boards; a published tldraw.com/p/ board cannot be renamed.'
+
 // Only a board the caller can already see gets this: one shared with them by link, which they may
 // open and edit but whose name belongs to the workspace that owns it.
 export const RENAME_BOARD_FORBIDDEN_MESSAGE =
@@ -671,15 +676,6 @@ export function getCreatedBoardResult({
 		url,
 		workspace: { id: workspace.id, name: workspace.name, personal: workspace.personal },
 	})
-}
-
-export function getRenamedBoardResult(result: {
-	boardId: string
-	name: string
-	previousName: string
-	url: string
-}): ToolResult {
-	return toolJsonResult(result)
 }
 
 // Every page-scoped tool needs the same steps before it can do anything: validate the page selector

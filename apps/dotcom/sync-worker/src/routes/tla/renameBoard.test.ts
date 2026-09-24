@@ -10,7 +10,7 @@ import {
 } from 'kysely'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
-import { BOARD_NOT_FOUND_MESSAGE, RENAME_BOARD_FORBIDDEN_MESSAGE } from './boardTools'
+import { RENAME_BOARD_FORBIDDEN_MESSAGE, RENAME_BOARD_NOT_FOUND_MESSAGE } from './boardTools'
 
 vi.mock('../../postgres', () => ({ createPostgresConnectionPool: vi.fn() }))
 
@@ -146,7 +146,7 @@ describe('renameBoardForUser', () => {
 		mockPool([[]])
 		const renamed = await renameBoardForUser(env, USER_ID, { boardId: BOARD_ID, name: 'Roadmap' })
 		expect(renamed).toMatchObject({ ok: false, reason: 'board_not_found' })
-		expect(errorText(renamed)).toBe(BOARD_NOT_FOUND_MESSAGE)
+		expect(errorText(renamed)).toBe(RENAME_BOARD_NOT_FOUND_MESSAGE)
 		expect(updates).toEqual([])
 	})
 

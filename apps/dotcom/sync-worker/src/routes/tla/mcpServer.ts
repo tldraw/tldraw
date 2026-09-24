@@ -42,7 +42,6 @@ import {
 	getClusterInfo,
 	getCreatedBoardResult,
 	getPageInfo,
-	getRenamedBoardResult,
 	getToolDefinitions,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
@@ -54,6 +53,7 @@ import {
 	pickClusterShapes,
 	resolvePage,
 	toolError as modelToolError,
+	toolJsonResult,
 	toolPageResult,
 } from './boardTools'
 import { createBoardForUser } from './createBoard'
@@ -746,7 +746,7 @@ async function callRenameBoardTool(
 
 		const renamed = await renameBoardForUser(env, userId, input, ctx)
 		if (!renamed.ok) return withTelemetryReason(renamed.result, renamed.reason)
-		return getRenamedBoardResult({
+		return toolJsonResult({
 			boardId: input.boardId,
 			name: input.name,
 			previousName: renamed.previousName,
@@ -1079,7 +1079,6 @@ async function checkCreateRateLimit(
 	)
 }
 
-/** The per-caller ceiling on `rename_board`. Its own binding for the same reason as create's. */
 async function checkRenameRateLimit(
 	env: Environment,
 	userId: string,
