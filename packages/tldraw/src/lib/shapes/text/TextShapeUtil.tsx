@@ -23,7 +23,7 @@ import {
 } from '@tldraw/editor'
 import { useCallback } from 'react'
 import {
-	renderHtmlFromRichTextForMeasurement,
+	createRichTextMeasurementRequest,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
 import { FONT_SIZES, TEXT_PROPS, getFontFamily } from '../shared/default-shape-constants'
@@ -368,8 +368,8 @@ function getTextSize(editor: Editor, props: TLTextShape['props'], dv: TextShapeU
 
 	const maybeFixedWidth = props.autoSize ? null : Math.max(minWidth, Math.floor(w))
 
-	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
-	const result = editor.textMeasure.measureHtml(html, {
+	const request = createRichTextMeasurementRequest(editor, richText)
+	const result = editor.textMeasure.measureRichText(request, {
 		lineHeight: dv.lineHeight,
 		fontWeight: dv.fontWeight,
 		fontStyle: dv.fontStyle,

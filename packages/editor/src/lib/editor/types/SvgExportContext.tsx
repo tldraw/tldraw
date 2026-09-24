@@ -5,6 +5,7 @@ import { ContainerProvider } from '../../hooks/useContainer'
 import { EditorProvider } from '../../hooks/useEditor'
 import { useEvent } from '../../hooks/useEvent'
 import type { Editor } from '../Editor'
+import type { TLSvgExportTextMode } from './misc-types'
 
 /** @public */
 export interface SvgExportDef {
@@ -51,6 +52,11 @@ export interface SvgExportContext {
 	 * The scale of the export - how much CSS pixels will be scaled up/down by.
 	 */
 	readonly scale: number
+
+	/**
+	 * How text should be written into the SVG; see {@link TLSvgExportOptions.text}.
+	 */
+	readonly text: TLSvgExportTextMode
 
 	/**
 	 * Use this value to optionally downscale images in the export. If we're exporting directly to

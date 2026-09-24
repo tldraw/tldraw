@@ -821,6 +821,30 @@ export const defaultUserStore: TLUserStore;
 export function degreesToRadians(d: number): number;
 
 // @public (undocumented)
+export class DomTextMeasurer extends EditorManager implements TLTextMeasurer {
+    constructor(editor: Editor);
+    measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
+        shouldTruncateToFirstLine?: boolean;
+    }): {
+        didTruncate: boolean;
+        spans: {
+            box: BoxModel;
+            text: string;
+        }[];
+    };
+    // (undocumented)
+    measureHtml(html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
+    // (undocumented)
+    measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[];
+    // (undocumented)
+    measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
+    measureTextSpans(textToMeasure: string, opts: TLMeasureTextSpanOpts): {
+        box: BoxModel;
+        text: string;
+    }[];
+}
+
+// @public (undocumented)
 export const EASINGS: {
     readonly easeInCubic: (t: number) => number;
     readonly easeInExpo: (t: number) => number;
@@ -873,7 +897,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, textMeasurer, }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -3371,6 +3395,7 @@ export interface SvgExportContext {
     readonly pixelRatio: null | number;
     resolveAssetUrl(assetId: TLAssetId, width: number): Promise<null | string>;
     readonly scale: number;
+    readonly text: TLSvgExportTextMode;
     waitUntil(promise: Promise<void>): void;
 }
 
@@ -3395,8 +3420,9 @@ export const Table: {
 
 // @public (undocumented)
 export class TextManager extends EditorManager {
-    constructor(editor: Editor);
-    measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
+    constructor(editor: Editor, injected?: null | TLTextMeasurer);
+    readonly injected: null | TLTextMeasurer;
+    measureElementTextNodeSpans(element: HTMLElement, opts?: {
         shouldTruncateToFirstLine?: boolean;
     }): {
         didTruncate: boolean;
@@ -3410,8 +3436,13 @@ export class TextManager extends EditorManager {
     // (undocumented)
     measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[];
     // (undocumented)
-    measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
-    measureTextSpans(textToMeasure: string, opts: TLMeasureTextSpanOpts): {
+    measureRichText(request: TLMeasureRichTextRequest, opts: TLMeasureTextOpts): TLMeasuredTextSize;
+    // (undocumented)
+    measureRichTextBatch(requests: TLBatchRichTextMeasurementRequest[]): TLMeasuredTextSize[];
+    // (undocumented)
+    measureText(text: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
+    // (undocumented)
+    measureTextSpans(text: string, opts: TLMeasureTextSpanOpts): {
         box: BoxModel;
         text: string;
     }[];
@@ -3512,6 +3543,14 @@ export interface TLBaseExternalContent {
     // (undocumented)
     point?: VecLike;
     sources?: TLExternalContentSource[];
+}
+
+// @public (undocumented)
+export interface TLBatchRichTextMeasurementRequest {
+    // (undocumented)
+    opts: TLMeasureTextOpts;
+    // (undocumented)
+    request: TLMeasureRichTextRequest;
 }
 
 // @public (undocumented)
@@ -3793,6 +3832,7 @@ export interface TldrawEditorBaseProps {
     options?: Partial<TldrawOptions>;
     overlayUtils?: readonly TLAnyOverlayUtilConstructor[];
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    textMeasurer?: TLEditorOptions['textMeasurer'];
     // @deprecated
     textOptions?: TLTextOptions;
     themes?: Partial<TLThemes>;
@@ -3999,6 +4039,7 @@ export interface TLEditorOptions {
     overlayUtils?: readonly TLAnyOverlayUtilConstructor[];
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
+    textMeasurer?: 'dom' | TLTextMeasurer | TLTextMeasurerFactory;
     // @deprecated
     textOptions?: TLTextOptions;
     themes?: Partial<TLThemes>;
@@ -4400,6 +4441,13 @@ export type TLMeasuredTextSize = BoxModel & {
 };
 
 // @public (undocumented)
+export interface TLMeasureRichTextRequest {
+    html: (() => string) | string;
+    // (undocumented)
+    richText: TLRichText;
+}
+
+// @public (undocumented)
 export interface TLMeasureTextOpts {
     // (undocumented)
     disableOverflowWrapBreaking?: boolean;
@@ -4421,6 +4469,7 @@ export interface TLMeasureTextOpts {
     otherStyles?: Record<string, string>;
     // (undocumented)
     padding: string;
+    richText?: TLRichText;
 }
 
 // @public (undocumented)
@@ -4852,7 +4901,11 @@ export interface TLSvgExportOptions {
     pixelRatio?: number;
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     scale?: number;
+    text?: TLSvgExportTextMode;
 }
+
+// @public
+export type TLSvgExportTextMode = 'foreignObject' | 'native';
 
 // @public (undocumented)
 export interface TLSvgTextExternalContent extends TLBaseExternalContent {
@@ -4881,6 +4934,23 @@ export interface TLTextExternalContentSource {
     // (undocumented)
     type: 'text';
 }
+
+// @public
+export interface TLTextMeasurer {
+    dispose?(): void;
+    measureHtml(html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
+    measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[];
+    measureRichText?(request: TLMeasureRichTextRequest, opts: TLMeasureTextOpts): TLMeasuredTextSize;
+    measureRichTextBatch?(requests: TLBatchRichTextMeasurementRequest[]): TLMeasuredTextSize[];
+    measureText(text: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
+    measureTextSpans(text: string, opts: TLMeasureTextSpanOpts): {
+        box: BoxModel;
+        text: string;
+    }[];
+}
+
+// @public
+export type TLTextMeasurerFactory = (editor: Editor) => TLTextMeasurer;
 
 // @public (undocumented)
 export interface TLTextOptions {

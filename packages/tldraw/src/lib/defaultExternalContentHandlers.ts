@@ -36,7 +36,7 @@ import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
 import { isShapeWithLink } from './utils/shapes/shapes'
-import { renderHtmlFromRichTextForMeasurement, renderRichTextFromHTML } from './utils/text/richText'
+import { createRichTextMeasurementRequest, renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
 /**
@@ -516,7 +516,7 @@ export async function defaultHandleExternalTextContent(
 	let autoSize: boolean
 	let align = 'middle' as TLTextShapeProps['textAlign']
 
-	const htmlToMeasure = renderHtmlFromRichTextForMeasurement(editor, richTextToPaste)
+	const request = createRichTextMeasurementRequest(editor, richTextToPaste)
 	const isMultiLine = richTextToPaste.content.length > 1
 
 	// check whether the text contains the most common characters in RTL languages
@@ -528,7 +528,7 @@ export async function defaultHandleExternalTextContent(
 
 	const theme = editor.getCurrentTheme()
 
-	const rawSize = editor.textMeasure.measureHtml(htmlToMeasure, {
+	const rawSize = editor.textMeasure.measureRichText(request, {
 		...TEXT_PROPS,
 		lineHeight: theme.lineHeight,
 		fontFamily: getFontFamily(theme, defaultProps.font),
@@ -542,7 +542,7 @@ export async function defaultHandleExternalTextContent(
 	)
 
 	if (rawSize.w > minWidth) {
-		const shrunkSize = editor.textMeasure.measureHtml(htmlToMeasure, {
+		const shrunkSize = editor.textMeasure.measureRichText(request, {
 			...TEXT_PROPS,
 			lineHeight: theme.lineHeight,
 			fontFamily: getFontFamily(theme, defaultProps.font),

@@ -1,0 +1,75 @@
+{
+	"name": "@tldraw/rich-text-layout",
+	"description": "DOM-free rich text layout for ProseMirror documents, by tldraw.",
+	"version": "5.3.2",
+	"author": {
+		"name": "tldraw Inc.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"tldraw_product": {
+		"stableId": "tldraw:sdk-core",
+		"name": "SDK",
+		"type": "product",
+		"premium": false
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": [
+		"tldraw",
+		"sdk",
+		"text",
+		"layout",
+		"prosemirror",
+		"svg",
+		"canvas"
+	],
+	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
+	"main": "./src/index.ts",
+	"types": "./.tsbuild/index.d.ts",
+	"type": "module",
+	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
+	"files": [],
+	"scripts": {
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build": "pnpm exec tsx ../../internal/scripts/build-package.ts",
+		"build-api": "pnpm exec tsx ../../internal/scripts/build-api.ts",
+		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
+		"postpack": "../../internal/scripts/postpack.sh",
+		"pack-tarball": "pnpm pack",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"golden": "pnpm exec tsx ./golden/run.ts"
+	},
+	"dependencies": {
+		"@chenglou/pretext": "0.0.8",
+		"@tldraw/utils": "workspace:*"
+	},
+	"peerDependencies": {
+		"@napi-rs/canvas": "^0.1.65"
+	},
+	"peerDependenciesMeta": {
+		"@napi-rs/canvas": {
+			"optional": true
+		}
+	},
+	"devDependencies": {
+		"@napi-rs/canvas": "^0.1.65",
+		"@playwright/test": "^1.61.0",
+		"@resvg/resvg-js": "^2.6.2",
+		"jsdom": "^29.1.1",
+		"lazyrepo": "0.0.0-alpha.27",
+		"vitest": "^5.0.0",
+		"wawoff2": "^2.0.1"
+	},
+	"engines": {
+		"node": ">=22.12.0"
+	}
+}

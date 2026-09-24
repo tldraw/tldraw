@@ -143,6 +143,10 @@ export {
 	type TLMeasuredTextSize,
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
+	type TLTextMeasurer,
+	type TLMeasureRichTextRequest,
+	type TLBatchRichTextMeasurementRequest,
+	type TLTextMeasurerFactory,
 } from './lib/editor/managers/TextManager/TextManager'
 export { DEFAULT_THEME } from './lib/editor/managers/ThemeManager/defaultThemes'
 export { ThemeManager, resolveThemes } from './lib/editor/managers/ThemeManager/ThemeManager'
@@ -278,6 +282,7 @@ export {
 	type TLGetShapeAtPointOptions,
 	type TLImageExportOptions,
 	type TLSvgExportOptions,
+	type TLSvgExportTextMode,
 	type TLUpdatePointerOptions,
 } from './lib/editor/types/misc-types'
 export {
@@ -524,3 +529,5 @@ registerTldrawLibraryVersion(
 )
 
 export { getColorValue } from './lib/editor/managers/ThemeManager/defaultThemes'
+
+export { DomTextMeasurer } from './lib/editor/managers/TextManager/DomTextMeasurer'

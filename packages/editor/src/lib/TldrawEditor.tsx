@@ -32,7 +32,7 @@ import { TLAnyAssetUtilConstructor } from './config/defaultAssets'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
-import { Editor } from './editor/Editor'
+import { Editor, TLEditorOptions } from './editor/Editor'
 import { resolveThemes } from './editor/managers/ThemeManager/ThemeManager'
 import { TLAnyOverlayUtilConstructor } from './editor/overlays/OverlayUtil'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
@@ -115,6 +115,12 @@ export type TldrawEditorProps = TldrawEditorBaseProps & TldrawEditorStoreProps
  * @public
  */
 export interface TldrawEditorBaseProps {
+	/**
+	 * Overrides text measurement; use `'dom'` to force DOM measurement. Keep the instance or
+	 * factory stable to avoid recreating the editor.
+	 */
+	textMeasurer?: TLEditorOptions['textMeasurer']
+
 	/**
 	 * The component's children.
 	 */
@@ -485,6 +491,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 const noAutoFocus = () => getGlobalDocument().location.search.includes('tldraw_preserve_focus')
 
 function TldrawEditorWithReadyStore({
+	textMeasurer,
 	onMount,
 	children,
 	store,
@@ -561,6 +568,7 @@ function TldrawEditorWithReadyStore({
 				initialTheme,
 			} = editorOptionsRef.current
 			const editor = new Editor({
+				textMeasurer,
 				store,
 				shapeUtils,
 				bindingUtils,
@@ -605,6 +613,7 @@ function TldrawEditorWithReadyStore({
 		},
 		// if any of these change, we need to recreate the editor.
 		[
+			textMeasurer,
 			assetUtils,
 			bindingUtils,
 			colorScheme,
