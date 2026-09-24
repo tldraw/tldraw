@@ -56,11 +56,8 @@ export class CollaboratorsManager {
 		if (!allPresenceRecords.length) return EMPTY_ARRAY
 		const latestByUserId = new Map<string, TLInstancePresence>()
 		for (const presence of allPresenceRecords) {
-			const existing = latestByUserId.get(presence.userId)
-			if (
-				!existing ||
-				(presence.lastActivityTimestamp ?? 0) > (existing.lastActivityTimestamp ?? 0)
-			) {
+			const latest = latestByUserId.get(presence.userId)
+			if (!latest || (presence.lastActivityTimestamp ?? 0) > (latest.lastActivityTimestamp ?? 0)) {
 				latestByUserId.set(presence.userId, presence)
 			}
 		}

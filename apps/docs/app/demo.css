@@ -1,7 +1,0 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
-@import url('tldraw/tldraw.css');
-
-.tl-container {
-	/* need to set up a stacking context within the editor to avoid the docs header being underneath the radix menus */
-	z-index: 1;
-}

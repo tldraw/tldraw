@@ -16,7 +16,6 @@ import {
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
-import { useIsFilePinned } from '../../../hooks/useIsFilePinned'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useIntl } from '../../../utils/i18n'
@@ -32,17 +31,16 @@ const ACTIVE_FILE_LINK_ID = 'tla-active-file-link'
 let preventScrollOnNavigation = false
 
 function scrollActiveFileLinkIntoView() {
-	const el = document.getElementById(ACTIVE_FILE_LINK_ID)
-	if (el) {
-		// Check if we should prevent scrolling due to sidebar click
-		if (preventScrollOnNavigation) {
-			return
-		}
-		el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-	}
+	// Check if we should prevent scrolling due to sidebar click
+	if (preventScrollOnNavigation) return
+	document
+		.getElementById(ACTIVE_FILE_LINK_ID)
+		?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
 }
 
-export function setPreventScrollOnNavigation(value: boolean) {
+// Suppresses the scroll-into-view for the navigation a sidebar click itself triggers; the flag
+// self-clears so a later external navigation (e.g. create/delete) still scrolls.
+function setPreventScrollOnNavigation(value: boolean) {
 	preventScrollOnNavigation = value
 	if (value) {
 		// Clear the flag after a short delay to allow for immediate navigation
@@ -79,10 +77,12 @@ export function TlaSidebarFileLink({
 	const isRenaming = useValue(
 		'shouldRename',
 		() => isEqual(app.sidebarState.get().renameState, { fileId, workspaceId }),
-		[fileId, app]
+		[fileId, workspaceId, app]
 	)
 
-	const isPinned = useIsFilePinned(fileId, workspaceId)
+	// The parent's single getWorkspaceFilesSorted pass already decided this; recomputing it per
+	// link (useIsFilePinned) repeats that whole sort for every row on each membership change.
+	const isPinned = item.isPinned
 
 	const handleRenameAction = () => {
 		if (isMobile) {
@@ -200,10 +200,7 @@ export function TlaSidebarFileLinkInner({
 	const hasAdminRights = useHasFileAdminRights(fileId)
 
 	// disable dragging on mobile
-	const isCoarsePointer = getIsCoarsePointer()
-
-	const wrapperRef = useRef<HTMLDivElement>(null)
-	const isDragEnabled = !isCoarsePointer
+	const isDragEnabled = !getIsCoarsePointer()
 
 	if (!file) return null
 
@@ -222,7 +219,6 @@ export function TlaSidebarFileLinkInner({
 		<div
 			className={classNames(styles.sidebarFileListItem, styles.hoverable, className)}
 			data-enhanced-a11y-mode={enhancedA11yMode}
-			ref={wrapperRef}
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}

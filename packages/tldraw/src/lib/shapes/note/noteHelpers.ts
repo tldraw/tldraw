@@ -3,11 +3,13 @@ import {
 	IndexKey,
 	TLNoteShape,
 	TLShape,
+	TLShapeId,
 	Vec,
 	compact,
 	createShapeId,
 	toRichText,
 } from '@tldraw/editor'
+import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
 
 /** @internal */
 export const CLONE_HANDLE_MARGIN = 0
@@ -94,29 +96,34 @@ export interface AvailableNoteAdjacentPositionsOpts {
 	extraHeight: number
 	noteWidth: number
 	noteHeight: number
+	/**
+	 * Notes whose adjacent positions should not be offered, e.g. the notes being dragged,
+	 * which would otherwise snap to their own slots.
+	 */
+	excludeShapeIds?: TLShapeId[]
 }
 
 /**
- * Get all of the available note adjacent positions, excluding the selected shapes.
+ * Get all of the available note adjacent positions, excluding those around `excludeShapeIds`.
  *
  * @internal */
 export function getAvailableNoteAdjacentPositions(
 	editor: Editor,
 	opts: AvailableNoteAdjacentPositionsOpts
 ) {
-	const { rotation, scale, extraHeight, noteWidth, noteHeight } = opts
-	const selectedShapeIds = new Set(editor.getSelectedShapeIds())
+	const { rotation, scale, extraHeight, noteWidth, noteHeight, excludeShapeIds = [] } = opts
+	const excludedShapeIds = new Set(excludeShapeIds)
 	const minSize =
 		(Math.max(noteWidth, noteHeight) + editor.options.adjacentShapeMargin + extraHeight) ** 2
 	const allCenters = new Map<TLNoteShape, Vec>()
 	const positions: (Vec | undefined)[] = []
 
-	// Get all the positions that are adjacent to the selected note shapes
+	// Get all the positions that are adjacent to the candidate note shapes
 	for (const shape of editor.getCurrentPageShapes()) {
 		if (
 			!editor.isShapeOfType(shape, 'note') ||
 			scale !== shape.props.scale ||
-			selectedShapeIds.has(shape.id)
+			excludedShapeIds.has(shape.id)
 		) {
 			continue
 		}
@@ -126,7 +133,7 @@ export function getAvailableNoteAdjacentPositions(
 		// If the note has a different rotation, we can't use its adjacent positions
 		if (rotation !== transform.rotation()) continue
 
-		// Save the unselected note shape's center
+		// Save the candidate note shape's center
 		allCenters.set(shape, editor.getShapePageBounds(shape)!.center)
 
 		// And push its position to the positions array
@@ -135,7 +142,8 @@ export function getAvailableNoteAdjacentPositions(
 				getNoteAdjacentPositions(editor, {
 					pagePoint: transform.point(),
 					pageRotation: rotation,
-					growY: shape.props.growY,
+					// page units, like the base positions (see PointingHandle)
+					growY: shape.props.growY * shape.props.scale,
 					extraHeight,
 					scale,
 					noteWidth,
@@ -191,8 +199,11 @@ export function getNoteShapeForAdjacentPosition(
 	// Start from the top of the stack, and work our way down
 	const allShapesOnPage = editor.getCurrentPageShapesSorted()
 
+	// Squared, in page units, to compare against Dist2 below. A neighbour that has grown
+	// (growY) sits further from the ideal slot centre, so the radius is a full note plus margin.
 	const minDistance =
-		(Math.max(noteWidth, noteHeight) + editor.options.adjacentShapeMargin ** 2) ** shape.props.scale
+		((Math.max(noteWidth, noteHeight) + editor.options.adjacentShapeMargin) * shape.props.scale) **
+		2
 
 	for (let i = allShapesOnPage.length - 1; i >= 0; i--) {
 		const otherNote = allShapesOnPage[i]
@@ -260,11 +271,21 @@ export function getNoteShapeForAdjacentPosition(
 		nextNote = editor.getShape(id)!
 	}
 
+	return nextNote
+}
+
+/**
+ * Start editing a note reached via Tab, Ctrl/Cmd+Enter, or a clone handle, and bring it on
+ * screen if it landed outside the viewport.
+ *
+ * @internal */
+export function startEditingAdjacentNote(editor: Editor, note: TLShape) {
+	startEditingShapeWithRichText(editor, note, { selectAll: true })
+	// Zooming before the note is selected pans to the source note instead (#10428).
 	editor.zoomToSelectionIfOffscreen(16, {
 		animation: {
 			duration: editor.options.animationMediumMs,
 		},
 		inset: 0,
 	})
-	return nextNote
 }

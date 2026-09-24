@@ -195,9 +195,9 @@ function migrateUserPreferences(userData: unknown): TLUserPreferences {
 
 	const snapshot = structuredClone(userData) as any
 
-	migrateSnapshot(snapshot)
-
 	try {
+		// migration dereferences `user`, which malformed stored data may not have as an object
+		migrateSnapshot(snapshot)
 		return userTypeValidator.validate(snapshot.user)
 	} catch {
 		return getFreshUserPreferences()
@@ -205,7 +205,14 @@ function migrateUserPreferences(userData: unknown): TLUserPreferences {
 }
 
 function loadUserPreferences(): TLUserPreferences {
-	return migrateUserPreferences(JSON.parse(getFromLocalStorage(USER_DATA_KEY) || 'null'))
+	let userData: unknown = null
+	try {
+		userData = JSON.parse(getFromLocalStorage(USER_DATA_KEY) || 'null')
+	} catch {
+		// corrupt stored data is treated as absent rather than blocking the editor from mounting
+	}
+
+	return migrateUserPreferences(userData)
 }
 
 const globalUserPreferences = atom<TLUserPreferences | null>('globalUserData', null)

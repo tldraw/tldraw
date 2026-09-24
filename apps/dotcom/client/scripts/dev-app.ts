@@ -30,7 +30,7 @@ export async function assertPortFree(
 		} catch (error: any) {
 			if (error?.code === 'EADDRINUSE') {
 				throw new Error(
-					`Port ${port} is already in use. Stop the process using port ${port} before running yarn dev-app.`
+					`Port ${port} is already in use. Stop the process using port ${port} before running pnpm dev-app.`
 				)
 			}
 			if (SKIPPABLE_PROBE_ERROR_CODES.has(error?.code)) {

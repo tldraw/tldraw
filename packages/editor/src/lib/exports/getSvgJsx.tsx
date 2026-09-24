@@ -1,5 +1,5 @@
 import { useAtom, useValue } from '@tldraw/state-react'
-import { TLFontFace, TLFrameShape, TLShape, TLShapeId } from '@tldraw/tlschema'
+import { DefaultColorStyle, TLFontFace, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { hasOwnProperty, promiseWithResolve, uniqueId } from '@tldraw/utils'
 import {
 	ComponentType,
@@ -114,6 +114,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 			colorMode={colorMode}
 			renderingShapes={renderingShapes}
 			onMount={initialEffectPromise.resolve}
+			onError={exportDelay.fail}
 			waitUntil={exportDelay.waitUntil}
 		/>
 	)
@@ -202,6 +203,7 @@ function SvgExport({
 	colorMode,
 	renderingShapes,
 	onMount,
+	onError,
 	waitUntil,
 }: {
 	editor: Editor
@@ -214,6 +216,7 @@ function SvgExport({
 	colorMode: 'light' | 'dark'
 	renderingShapes: TLRenderingShape[]
 	onMount(): void
+	onError(error: unknown): void
 	waitUntil(promise: Promise<void>): void
 }) {
 	const masksId = useUniqueSafeId()
@@ -277,6 +280,8 @@ function SvgExport({
 			throw new Error('SvgExport should only render once - do not use with react strict mode')
 		}
 		didRenderRef.current = true
+		// the promise is caught at the end: a throwing `toSvg` would otherwise leave `onMount`
+		// pending forever, so the export would wait out its max delay and snapshot an empty svg
 		;(async () => {
 			const shapeDefs: Record<string, { pending: false; element: ReactElement }> = {}
 
@@ -409,8 +414,17 @@ function SvgExport({
 					defsById: { ...state.defsById, ...shapeDefs },
 				}))
 			})
-		})()
-	}, [bbox, editor, exportContext, masksId, renderingShapes, singleFrameShapeId, stateAtom])
+		})().catch(onError)
+	}, [
+		bbox,
+		editor,
+		exportContext,
+		masksId,
+		onError,
+		renderingShapes,
+		singleFrameShapeId,
+		stateAtom,
+	])
 
 	useEffect(() => {
 		const fontsInUse = new Set<TLFontFace>()
@@ -440,19 +454,17 @@ function SvgExport({
 	let backgroundColor = background ? colors.background : 'transparent'
 
 	if (singleFrameShapeId && background) {
-		const frameShapeUtil = editor.getShapeUtil('frame') as any as
-			| undefined
-			| {
-					options: {
-						showColors: boolean
-					}
-			  }
-		if (frameShapeUtil?.options.showColors) {
-			const shape = editor.getShape(singleFrameShapeId)! as TLFrameShape
-			backgroundColor = getColorValue(colors, shape.props.color, 'frameFill')
-		} else {
-			backgroundColor = colors.solid
-		}
+		// the frame-like shape's own util decides this - it may not be the default 'frame' util
+		const shape = editor.getShape(singleFrameShapeId)!
+		const { showColors } = editor.getShapeUtil(shape).options as { showColors?: boolean }
+		// the color style may live under any prop key, so look it up through the style map and
+		// fall back to a literal `color` prop for frame-like shapes that don't use the style
+		const color = showColors
+			? (editor.getShapeStyleIfExists(shape, DefaultColorStyle) ??
+				('color' in shape.props ? shape.props.color : null))
+			: null
+		backgroundColor =
+			typeof color === 'string' ? getColorValue(colors, color, 'frameFill') : colors.solid
 	}
 
 	return (

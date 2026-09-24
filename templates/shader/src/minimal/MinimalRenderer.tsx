@@ -7,12 +7,9 @@ import { MinimalShaderManager } from './MinimalShaderManager'
 export const MinimalRenderer = memo(() => {
 	const editor = useEditor()
 	const rCanvas = useRef<HTMLCanvasElement>(null)
-	const rShaderManager = useRef<MinimalShaderManager | null>(null)
 
 	useLayoutEffect(() => {
-		const canvas = rCanvas.current!
-		const manager = new MinimalShaderManager(editor, canvas, shaderConfig)
-		rShaderManager.current = manager
+		const manager = new MinimalShaderManager(editor, rCanvas.current!, shaderConfig)
 
 		const handlePointerMove = (e: PointerEvent) => manager.pointerMove(e.clientX, e.clientY)
 
@@ -21,7 +18,6 @@ export const MinimalRenderer = memo(() => {
 		return () => {
 			window.removeEventListener('pointermove', handlePointerMove)
 			manager.dispose()
-			rShaderManager.current = null
 		}
 	}, [editor])
 

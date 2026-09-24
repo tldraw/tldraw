@@ -2,10 +2,7 @@ import { readFileSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-const packageDir = join(__dirname, '..')
+const packageDir = join(dirname(fileURLToPath(import.meta.url)), '..')
 const commentingDir = join(packageDir, '..', 'commenting')
 
 // Generate commenting.css first, so the list of source stylesheets lives in one place (the

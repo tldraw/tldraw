@@ -9,6 +9,9 @@ const STORE_PREFIX = 'TLDRAW_DOCUMENT_v2'
 const LEGACY_ASSET_STORE_PREFIX = 'TLDRAW_ASSET_STORE_v1'
 const dbNameIndexKey = 'TLDRAW_DB_NAME_INDEX_v2'
 
+/** How many session state rows (one per tab) to keep per document when pruning. */
+const MAX_SESSION_STATE_ROWS = 10
+
 /** @internal */
 export const Table = {
 	Records: 'records',
@@ -25,7 +28,7 @@ async function openLocalDb(persistenceKey: string) {
 
 	addDbName(storeId)
 
-	return await openDB<StoreName>(storeId, 4, {
+	const db = await openDB<StoreName>(storeId, 4, {
 		upgrade(database) {
 			for (const name of Object.values(Table)) {
 				if (!database.objectStoreNames.contains(name)) {
@@ -33,7 +36,16 @@ async function openLocalDb(persistenceKey: string) {
 				}
 			}
 		},
+		// Another tab is deleting (hard reset) or upgrading this database. Its request waits
+		// until every open connection closes, so holding ours would stall it indefinitely.
+		// Closing here lets it proceed; this tab's next write then fails and goes through
+		// the write-failure alert-and-reload path.
+		blocking() {
+			console.warn(`Closing ${storeId} so another tab can delete or upgrade it`)
+			db.close()
+		},
 	})
+	return db
 }
 
 async function migrateLegacyAssetDbIfNeeded(persistenceKey: string) {
@@ -148,26 +160,22 @@ export class LocalIndexedDb {
 			assert(!this.isClosed, 'db is closed')
 			const db = await this.getDbPromise
 			const tx = db.transaction(names, mode)
-			// need to add a catch here early to prevent unhandled promise rejection
-			// during react-strict-mode where this tx.done promise can be rejected
-			// before we have a chance to await on it
-			const done = tx.done.catch((e: unknown) => {
-				if (!this.isClosed) {
-					throw e
-				}
-			})
+			// Commit failures may arrive before the callback finishes; observe them immediately
+			// while preserving the rejection for the await below.
+			const done = tx.done
+			done.catch(noop)
 			try {
 				return await cb(tx)
 			} finally {
-				if (!this.isClosed) {
-					await done
-				} else {
-					tx.abort()
-				}
+				// let the transaction commit even if close() was called meanwhile, otherwise a
+				// persist racing an unmount is silently rolled back
+				await done
 			}
 		})()
 		this.pendingTransactionSet.add(txPromise)
-		txPromise.finally(() => this.pendingTransactionSet.delete(txPromise))
+		// not `.finally()`: the promise it returns would re-reject with nobody observing it
+		const cleanup = () => this.pendingTransactionSet.delete(txPromise)
+		txPromise.then(cleanup, cleanup)
 		return txPromise
 	}
 
@@ -213,17 +221,19 @@ export class LocalIndexedDb {
 			const schemaStore = tx.objectStore(Table.Schema)
 			const sessionStateStore = tx.objectStore(Table.SessionState)
 
+			const requests: Promise<unknown>[] = []
 			for (const [id, record] of Object.entries(changes.added)) {
-				await recordsStore.put(record, id)
+				requests.push(recordsStore.put(record, id))
 			}
 
 			for (const [_prev, updated] of Object.values(changes.updated)) {
-				await recordsStore.put(updated, updated.id)
+				requests.push(recordsStore.put(updated, updated.id))
 			}
 
 			for (const id of Object.keys(changes.removed)) {
-				await recordsStore.delete(id)
+				requests.push(recordsStore.delete(id))
 			}
+			await Promise.all(requests)
 
 			schemaStore.put(schema.serialize(), Table.Schema)
 			putSessionState(sessionStateStore, sessionId, sessionStateSnapshot)
@@ -248,21 +258,27 @@ export class LocalIndexedDb {
 
 			await recordsStore.clear()
 
-			for (const [id, record] of Object.entries(snapshot)) {
-				await recordsStore.put(record, id)
-			}
+			await Promise.all(
+				Object.entries(snapshot).map(([id, record]) => recordsStore.put(record, id))
+			)
 
 			schemaStore.put(schema.serialize(), Table.Schema)
 			putSessionState(sessionStateStore, sessionId, sessionStateSnapshot)
 		})
 	}
 
-	async pruneSessions() {
+	/**
+	 * Drop all but the most recently updated session state rows. The row for `keepSessionId` is never
+	 * deleted: it may be an old row that this tab restored its state from and has not rewritten yet,
+	 * and deleting it would make a later reload fall back to another tab's session state.
+	 */
+	async pruneSessions({ keepSessionId }: { keepSessionId?: string } = {}) {
 		await this.tx('readwrite', [Table.SessionState], async (tx) => {
 			const sessionStateStore = tx.objectStore(Table.SessionState)
-			const all = (await sessionStateStore.getAll()).sort((a, b) => a.updatedAt - b.updatedAt)
-			if (all.length < 10) return
-			const toDelete = all.slice(0, all.length - 10)
+			const all = ((await sessionStateStore.getAll()) as SessionStateSnapshotRow[])
+				.filter((row) => row.id !== keepSessionId)
+				.sort((a, b) => a.updatedAt - b.updatedAt)
+			const toDelete = all.slice(0, Math.max(0, all.length - MAX_SESSION_STATE_ROWS))
 			for (const { id } of toDelete) {
 				await sessionStateStore.delete(id)
 			}

@@ -94,7 +94,9 @@ export abstract class BaseFrameLikeShapeUtil<
 					(c) => c.index
 				)
 			)
-			canRestoreOriginalIndices = previousChildren.every((s) => !currentIndices.has(s.index))
+			canRestoreOriginalIndices = previousChildren.every(
+				(s) => !currentIndices.has(initialIndices.get(s.id) as IndexKey)
+			)
 		}
 
 		editor.reparentShapes(draggingShapes, shape.id)

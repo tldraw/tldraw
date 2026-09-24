@@ -4,15 +4,23 @@ import { EditorManager } from './EditorManager'
 
 class TestManager extends EditorManager {
 	onTestEvent = vi.fn()
+	removeTestEvent: () => void
 
 	constructor(editor: Editor) {
 		super(editor)
-		this.addEditorEvent('frame', this.onTestEvent)
+		this.removeTestEvent = this.addEditorEvent('frame', this.onTestEvent)
+	}
+
+	detachTestEvent() {
+		this.unregister(this.removeTestEvent)
 	}
 
 	cancelRaf = vi.fn()
 	startRaf() {
 		this.register(this.cancelRaf)
+	}
+	stopRaf() {
+		this.unregister(this.cancelRaf)
 	}
 }
 
@@ -47,5 +55,28 @@ describe('EditorManager', () => {
 	it('dispose is safe to call twice', () => {
 		manager.dispose()
 		expect(() => manager.dispose()).not.toThrow()
+	})
+
+	it('unregister runs the disposable now and drops it from dispose', () => {
+		manager.startRaf()
+		manager.stopRaf()
+		expect(manager.cancelRaf).toHaveBeenCalledTimes(1)
+		manager.dispose()
+		expect(manager.cancelRaf).toHaveBeenCalledTimes(1)
+	})
+
+	it('unregister ignores a disposable that already ran', () => {
+		manager.startRaf()
+		manager.dispose()
+		manager.stopRaf()
+		expect(manager.cancelRaf).toHaveBeenCalledTimes(1)
+	})
+
+	it('addEditorEvent returns the registered unsubscribe so it can be detached early', () => {
+		manager.detachTestEvent()
+		expect(off).toHaveBeenCalledTimes(1)
+		expect(off).toHaveBeenCalledWith('frame', manager.onTestEvent)
+		manager.dispose()
+		expect(off).toHaveBeenCalledTimes(1)
 	})
 })

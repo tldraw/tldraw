@@ -14,9 +14,10 @@ metadata:
   namespace: stacks-890472
 spec:
   annotations:
-    description: Token processing rate of {{ $value | humanize }} tokens/sec is 3x
-      higher than the 7-day average for job {{ $labels.job }}.
-    summary: Anthropic API token rate anomaly detected.
+    description: 'Anthropic API usage over the last hour averaged {{ $value | humanize }}
+      tokens/sec excluding cache reads, above the 1000 tokens/sec floor (about 3.6M
+      tokens/hour). Check the scrape overview dashboard for which key and model.'
+    summary: Anthropic API token burst detected.
   execErrState: Ok
   expressions:
     prometheus_math:
@@ -54,11 +55,9 @@ spec:
           type: prometheus
           uid: grafanacloud-prom
         expr: |
-          (
-            rate(gen_ai_usage_tokens_total{job=~"integrations/anthropic/.*"}[1h])
-            >
-            3 * avg_over_time(rate(gen_ai_usage_tokens_total{job=~"integrations/anthropic/.*"}[1h])[7d:1h])
-          )
+          sum(
+            rate(gen_ai_usage_tokens_total{job=~"integrations/anthropic/.*", gen_ai_token_type!="input_cache_read"}[1h])
+          ) > 1000
         instant: true
         intervalMs: 1000
         maxDataPoints: 43200
@@ -106,8 +105,8 @@ spec:
   labels:
     __converted_prometheus_rule__: 'true'
     severity: warning
-  missingSeriesEvalsToResolve: 1
+  missingSeriesEvalsToResolve: 10
   noDataState: Ok
-  title: AnthropicTokenRateAnomaly
+  title: AnthropicTokenBurst
   trigger:
     interval: 1m

@@ -6,7 +6,7 @@ import { extractMentionIds } from '@tldraw/dotcom-shared'
  * - `mention` — the comment `@`-mentions the user
  * - `reply` — the comment is in a thread the user is a part of (started, or has commented in),
  *   posted after they joined it
- * - `owned-board` — the comment is on a file the user owns
+ * - `owned-board` — the comment is on a board in the user's own home workspace
  * - `reaction` — the user's own comment, reacted to by someone else. The only reason about the
  *   user's own comments, so it never combines with the others
  *
@@ -20,8 +20,9 @@ const REASON_PRIORITY: CommentNotificationReason[] = ['mention', 'reply', 'owned
 
 /**
  * The comment fields the notifications feed needs — a structural subset of the Zero row so this
- * is unit-testable without Zero types. Both feeds yield comment rows: `comments` carries other
- * people's comments that concern the caller, `reactions` the caller's own that were reacted to.
+ * is unit-testable without Zero types. Both sources yield comment rows: the merged comment feeds
+ * carry other people's comments that concern the caller, `reactions` the caller's own that were
+ * reacted to.
  */
 export interface CommentNotificationInput {
 	id: string
@@ -37,7 +38,7 @@ export interface CommentNotificationInput {
 	/** The caller's read receipt — a related row when present, absent (falsy) when unread. Its
 	 *  `readAt` dates the receipt, which is what lets a reaction newer than it re-unread the entry. */
 	read?: { readAt?: number | null } | null
-	file?: { ownerId?: string | null; name?: string | null } | null
+	file?: { owningGroupId?: string | null; name?: string | null } | null
 	thread?: {
 		createdBy?: string | null
 		shapeId?: string | null
@@ -73,10 +74,10 @@ export interface CommentNotification<
 /**
  * Tags each comment in the notifications feed with why it's there, newest first.
  *
- * Stricter than the `comments` synced query, whose reply category has no timing condition (ZQL
- * can't compare `createdAt` across correlated rows): the reply reason only applies to comments
- * from strictly after the user joined the thread — earlier ones are context they saw when
- * joining, not notifications. The strict compare leans on Postgres stamping `createdAt`
+ * Stricter than the thread feeds (`threadStarterComments`, `threadParticipantComments`), which
+ * have no timing condition (ZQL can't compare `createdAt` across correlated rows): the reply
+ * reason only applies to comments from strictly after the user joined the thread — earlier ones
+ * are context they saw when joining, not notifications. The strict compare leans on Postgres stamping `createdAt`
  * monotonically per thread on insert (migration 046): every new comment lands strictly after the
  * thread's max, so it can never tie with or fall behind the reader's join and get dropped. Rows
  * from before that migration keep their client stamps, so in an old thread a pre-migration reply
@@ -100,7 +101,7 @@ export function categorizeCommentNotifications<T extends CommentNotificationInpu
 		const reasons: CommentNotificationReason[] = []
 		if (extractMentionIds(comment.body).includes(userId)) reasons.push('mention')
 		if (comment.createdAt > joinedThreadAt(comment.thread, userId)) reasons.push('reply')
-		if (comment.file?.ownerId === userId) reasons.push('owned-board')
+		if (comment.file?.owningGroupId === userId) reasons.push('owned-board')
 		if (reasons.length === 0) continue
 
 		const primaryReason = REASON_PRIORITY.find((r) => reasons.includes(r))!

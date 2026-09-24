@@ -8,6 +8,7 @@ import {
 	mapObjectMapValues,
 	objectMapEntries,
 } from '@tldraw/utils'
+import { areShapesContentEqual } from '../../../utils/areShapesContentEqual'
 import type { Editor } from '../../Editor'
 
 interface FontState {
@@ -41,7 +42,7 @@ export class FontManager {
 			},
 			{
 				areResultsEqual: areArraysShallowEqual,
-				areRecordsEqual: (a, b) => a.props === b.props && a.meta === b.meta,
+				areRecordsEqual: areShapesContentEqual,
 			}
 		)
 

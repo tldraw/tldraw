@@ -1,4 +1,4 @@
-import { Box } from './Box'
+import { Box, rotateSelectionHandle } from './Box'
 import { Vec } from './Vec'
 
 describe('Box', () => {
@@ -757,5 +757,13 @@ describe('Box', () => {
 		it('returns true for zero-sized box', () => {
 			expect(new Box(0, 0, 0, 0).isValid()).toBe(true)
 		})
+	})
+})
+
+describe('rotateSelectionHandle', () => {
+	it('wraps around for negative rotations', () => {
+		expect(rotateSelectionHandle('top', Math.PI / 2)).toBe('right')
+		expect(rotateSelectionHandle('top', -Math.PI / 2)).toBe('left')
+		expect(rotateSelectionHandle('top_left', -Math.PI)).toBe('bottom_right')
 	})
 })

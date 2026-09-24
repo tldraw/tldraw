@@ -63,6 +63,49 @@ describe('When in the idle state', () => {
 		editor.cancel()
 		editor.expectToBeIn('select.idle')
 	})
+
+	it('drops the precise hint when hovering a new target', () => {
+		editor.setCurrentTool('arrow')
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
+		editor.pointerMove(150, 150)
+		expect(getArrowTargetState(editor)).toMatchObject({
+			target: { id: ids.box1 },
+			isPrecise: false,
+		})
+
+		vi.advanceTimersByTime(1000)
+		expect(getArrowTargetState(editor)).toMatchObject({ target: { id: ids.box1 }, isPrecise: true })
+
+		// Moving quickly onto another target should publish an imprecise hint for it without
+		// waiting for another pointer event
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
+		editor.pointerMove(320, 320)
+		expect(getArrowTargetState(editor)).toMatchObject({
+			target: { id: ids.box2 },
+			isPrecise: false,
+		})
+
+		editor.pointerDown(320, 320).pointerMove(330, 330)
+		const arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+		expect(bindings(arrow.id)).toMatchObject({
+			start: { toId: ids.box2, props: { isPrecise: false } },
+		})
+	})
+
+	it('does not carry precise mode to a target pressed without a move first', () => {
+		editor.setCurrentTool('arrow')
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
+		editor.pointerMove(150, 150)
+		vi.advanceTimersByTime(1000)
+		expect(getArrowTargetState(editor)).toMatchObject({ target: { id: ids.box1 }, isPrecise: true })
+
+		// Touch input can press on a new target without a hover move in between
+		editor.pointerDown(320, 320).pointerMove(330, 330)
+		const arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+		expect(bindings(arrow.id)).toMatchObject({
+			start: { toId: ids.box2, props: { isPrecise: false } },
+		})
+	})
 })
 
 describe('When in the pointing state', () => {
@@ -87,6 +130,23 @@ describe('When in the pointing state', () => {
 	it('enters the dragging state on pointer move', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10)
 		editor.expectToBeIn('select.dragging_handle')
+	})
+
+	it('removes the pressed arrow when switching tools before dragging', () => {
+		const shapesBefore = editor.getCurrentPageShapes().length
+		editor.setCurrentTool('arrow').pointerDown(0, 0)
+		expect(editor.getCurrentPageShapes().length).toBe(shapesBefore + 1)
+		editor.setCurrentTool('geo')
+		expect(editor.getCurrentPageShapes().length).toBe(shapesBefore)
+		editor.expectToBeIn('geo.idle')
+	})
+
+	it('removes the pressed arrow when switching to the select tool before dragging', () => {
+		const shapesBefore = editor.getCurrentPageShapes().length
+		editor.setCurrentTool('arrow').pointerDown(0, 0)
+		editor.setCurrentTool('select')
+		expect(editor.getCurrentPageShapes().length).toBe(shapesBefore)
+		editor.expectToBeIn('select.idle')
 	})
 })
 

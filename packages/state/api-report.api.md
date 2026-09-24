@@ -121,7 +121,7 @@ export interface EffectSchedulerOptions {
 export const EMPTY_ARRAY: [];
 
 // @public
-export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(obj: Obj, propertyName: Prop): Computed<Obj[Prop]>;
+export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(obj: Obj, propertyName: Prop): Computed<Obj[Prop] extends () => infer Value ? Value : Obj[Prop]>;
 
 // @public
 export function isAtom(value: unknown): value is Atom<unknown>;

@@ -72,7 +72,7 @@ export class SnapManager {
 		const collectSnappableShapesFromParent = (parentId: TLParentId) => {
 			if (isShapeId(parentId)) {
 				const parent = editor.getShape(parentId)
-				if (parent && editor.isShapeFrameLike(parent)) {
+				if (parent && editor.isShapeFrameLike(parent) && !editor.isShapeHidden(parent)) {
 					snappableShapes.add(parentId)
 				}
 			}
@@ -88,11 +88,13 @@ export class SnapManager {
 				// Only consider shapes if they're inside of the viewport page bounds
 				const pageBounds = editor.getShapePageBounds(childId)
 				if (!(pageBounds && renderingBounds.includes(pageBounds))) continue
-				// Snap to children of groups but not group itself
+				// Snap to children of groups but not group itself. A hidden group's
+				// children may still override to visible, so recurse before the check.
 				if (editor.isShapeOfType(childShape, 'group')) {
 					collectSnappableShapesFromParent(childId)
 					continue
 				}
+				if (editor.isShapeHidden(childShape)) continue
 				snappableShapes.add(childId)
 			}
 		}

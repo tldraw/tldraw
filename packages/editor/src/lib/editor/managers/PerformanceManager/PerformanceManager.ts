@@ -1,8 +1,7 @@
 import { isShape, type TLRecord, type TLShape, type TLShapeId } from '@tldraw/tlschema'
 import { bind } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
-import type { Editor } from '../../Editor'
-import type { TLEventMap, TLEventMapHandler } from '../../types/emit-types'
+import { EditorManager } from '../EditorManager'
 import type {
 	TLCameraEndPerfEvent,
 	TLCameraStartPerfEvent,
@@ -21,6 +20,9 @@ interface PerfSession {
 	frameTimes: number[]
 	loafEntries: TLPerfLongAnimationFrame[]
 }
+
+// The editor listeners and observer that are attached only while a subscriber needs them
+type LazyListener = 'frame' | 'loaf' | 'shapes-created' | 'shapes-updated' | 'shapes-deleted'
 
 function percentile(sorted: number[], p: number): number {
 	const idx = Math.ceil(p * sorted.length) - 1
@@ -85,13 +87,7 @@ function toLoafEntry(entry: PerformanceEntry): TLPerfLongAnimationFrame | null {
 	}
 }
 
-const SHAPE_PERF_EVENTS = ['shapes-created', 'shapes-updated', 'shapes-deleted'] as const
-
-type ShapePerfEvent = (typeof SHAPE_PERF_EVENTS)[number]
-
-function isShapePerfEvent(event: keyof TLPerfEventMap): event is ShapePerfEvent {
-	return (SHAPE_PERF_EVENTS as readonly string[]).includes(event)
-}
+type ShapePerfEvent = 'shapes-created' | 'shapes-updated' | 'shapes-deleted'
 
 /**
  * Manages performance event subscriptions for the editor. Available as `editor.performance`.
@@ -108,11 +104,9 @@ function isShapePerfEvent(event: keyof TLPerfEventMap): event is ShapePerfEvent 
  *
  * @public
  */
-export class PerformanceManager {
+export class PerformanceManager extends EditorManager {
 	/** @internal */
 	readonly emitter = new EventEmitter<TLPerfEventMap>()
-
-	private editor: Editor
 
 	// Active interaction tracking
 	private activeInteraction:
@@ -131,16 +125,8 @@ export class PerformanceManager {
 		  })
 		| null = null
 
-	// Lazy listener cleanup functions
-	private frameCleanup: (() => void) | null = null
-	private shapeEventCleanups: { [K in ShapePerfEvent]?: () => void } = {}
-
-	// LoAF observer
-	private loafObserver: PerformanceObserver | null = null
-
-	constructor(editor: Editor) {
-		this.editor = editor
-	}
+	// Cleanups for whatever is currently attached, keyed so a detach unregisters only its own
+	private readonly lazyCleanups = new Map<LazyListener, () => void>()
 
 	/**
 	 * Subscribe to a performance event. Returns an unsubscribe function.
@@ -191,17 +177,12 @@ export class PerformanceManager {
 
 	/** @internal */
 	dispose() {
-		if (this.activeCamera?.timeout) clearTimeout(this.activeCamera.timeout)
+		if (this.activeCamera?.timeout) this.editor.timers.clearTimeout(this.activeCamera.timeout)
 		this.activeInteraction = null
 		this.activeCamera = null
-		this.frameCleanup?.()
-		this.frameCleanup = null
-		for (const event of SHAPE_PERF_EVENTS) {
-			this.shapeEventCleanups[event]?.()
-			delete this.shapeEventCleanups[event]
-		}
-		this._stopLoafObserver()
+		this.lazyCleanups.clear()
 		this.emitter.removeAllListeners()
+		super.dispose()
 	}
 
 	// --- Internal notification methods ---
@@ -273,7 +254,7 @@ export class PerformanceManager {
 		}
 
 		// Extend existing camera session
-		if (this.activeCamera.timeout) clearTimeout(this.activeCamera.timeout)
+		if (this.activeCamera.timeout) this.editor.timers.clearTimeout(this.activeCamera.timeout)
 		// If type changed, end old and start new
 		if (this.activeCamera.type !== type) {
 			this._endCameraSession()
@@ -324,7 +305,7 @@ export class PerformanceManager {
 		const camera = this.activeCamera
 		if (!camera) return
 		this.activeCamera = null
-		if (camera.timeout) clearTimeout(camera.timeout)
+		if (camera.timeout) this.editor.timers.clearTimeout(camera.timeout)
 
 		if (this.emitter.listenerCount('camera-end') === 0) return
 
@@ -425,7 +406,7 @@ export class PerformanceManager {
 			return
 		}
 
-		this.loafObserver = new PerformanceObserver((list) => {
+		const observer = new PerformanceObserver((list) => {
 			const { activeInteraction, activeCamera } = this
 			if (!activeInteraction && !activeCamera) return
 
@@ -437,14 +418,11 @@ export class PerformanceManager {
 			}
 		})
 
-		this.loafObserver.observe({ type: 'long-animation-frame', buffered: false })
-	}
-
-	private _stopLoafObserver() {
-		if (this.loafObserver) {
-			this.loafObserver.disconnect()
-			this.loafObserver = null
-		}
+		observer.observe({ type: 'long-animation-frame', buffered: false })
+		this.lazyCleanups.set(
+			'loaf',
+			this.register(() => observer.disconnect())
+		)
 	}
 
 	// --- Lazy listener management ---
@@ -466,56 +444,84 @@ export class PerformanceManager {
 		)
 	}
 
-	private _listen<K extends keyof TLEventMap>(event: K, fn: TLEventMapHandler<K>) {
-		this.editor.on(event, fn)
-		return () => this.editor.off(event, fn)
-	}
-
-	private _attachShapeListener(event: ShapePerfEvent) {
-		switch (event) {
-			case 'shapes-created':
-				return this._listen('created-shapes', this._onShapesCreated)
-			case 'shapes-updated':
-				return this._listen('edited-shapes', this._onShapesEdited)
-			case 'shapes-deleted':
-				return this._listen('deleted-shapes', this._onShapesDeleted)
-		}
-	}
-
 	private _maybeAttachLazyListeners(event: keyof TLPerfEventMap) {
 		// Frame listener needed for frame event + interaction/camera frame time tracking
-		if (!this.frameCleanup && this._needsFrameListener()) {
-			this.frameCleanup = this._listen('frame', this._onFrame)
+		if (
+			!this.lazyCleanups.has('frame') &&
+			(event === 'frame' ||
+				event === 'interaction-start' ||
+				event === 'interaction-end' ||
+				event === 'camera-start' ||
+				event === 'camera-end')
+		) {
+			if (this._needsFrameListener()) {
+				this.lazyCleanups.set('frame', this.addEditorEvent('frame', this._onFrame))
+			}
 		}
 
 		// LoAF observer needed when interaction-end or camera-end listeners exist
-		if (!this.loafObserver && this._needsLoafObserver()) {
-			this._startLoafObserver()
+		if (!this.lazyCleanups.has('loaf') && (event === 'interaction-end' || event === 'camera-end')) {
+			if (this._needsLoafObserver()) {
+				this._startLoafObserver()
+			}
 		}
 
-		if (isShapePerfEvent(event) && !this.shapeEventCleanups[event]) {
-			this.shapeEventCleanups[event] = this._attachShapeListener(event)
+		if (!this.lazyCleanups.has('shapes-created') && event === 'shapes-created') {
+			this.lazyCleanups.set(
+				'shapes-created',
+				this.addEditorEvent('created-shapes', this._onShapesCreated)
+			)
+		}
+
+		if (!this.lazyCleanups.has('shapes-updated') && event === 'shapes-updated') {
+			this.lazyCleanups.set(
+				'shapes-updated',
+				this.addEditorEvent('edited-shapes', this._onShapesEdited)
+			)
+		}
+
+		if (!this.lazyCleanups.has('shapes-deleted') && event === 'shapes-deleted') {
+			this.lazyCleanups.set(
+				'shapes-deleted',
+				this.addEditorEvent('deleted-shapes', this._onShapesDeleted)
+			)
 		}
 	}
 
 	private _maybeDetachLazyListeners(event: keyof TLPerfEventMap) {
-		if (this.frameCleanup && !this._needsFrameListener()) {
-			this.frameCleanup()
-			this.frameCleanup = null
+		if (
+			(event === 'frame' ||
+				event === 'interaction-start' ||
+				event === 'interaction-end' ||
+				event === 'camera-start' ||
+				event === 'camera-end') &&
+			!this._needsFrameListener()
+		) {
+			this._detachLazy('frame')
 		}
 
 		// Stop LoAF observer when no longer needed
-		if (this.loafObserver && !this._needsLoafObserver()) {
-			this._stopLoafObserver()
+		if ((event === 'interaction-end' || event === 'camera-end') && !this._needsLoafObserver()) {
+			this._detachLazy('loaf')
 		}
 
-		if (
-			isShapePerfEvent(event) &&
-			this.shapeEventCleanups[event] &&
-			this.emitter.listenerCount(event) === 0
-		) {
-			this.shapeEventCleanups[event]!()
-			delete this.shapeEventCleanups[event]
+		if (event === 'shapes-created' && this.emitter.listenerCount('shapes-created') === 0) {
+			this._detachLazy('shapes-created')
 		}
+
+		if (event === 'shapes-updated' && this.emitter.listenerCount('shapes-updated') === 0) {
+			this._detachLazy('shapes-updated')
+		}
+
+		if (event === 'shapes-deleted' && this.emitter.listenerCount('shapes-deleted') === 0) {
+			this._detachLazy('shapes-deleted')
+		}
+	}
+
+	private _detachLazy(key: LazyListener) {
+		const cleanup = this.lazyCleanups.get(key)
+		if (!cleanup) return
+		this.unregister(cleanup)
+		this.lazyCleanups.delete(key)
 	}
 }

@@ -11,13 +11,21 @@ import { hardResetEditor, refreshPage } from '../../utils/runtime'
 import { ErrorBoundary } from '../ErrorBoundary'
 
 /** @public */
-export type TLErrorFallbackComponent = ComponentType<{ error: unknown; editor?: Editor }>
+export interface TLErrorFallbackProps {
+	/** The error that was caught. */
+	error: unknown
+	/**
+	 * Only set when the caller renders the fallback with an editor; the editor's own error
+	 * boundaries pass just `error`.
+	 */
+	editor?: Editor
+}
+
+/** @public */
+export type TLErrorFallbackComponent = ComponentType<TLErrorFallbackProps>
 
 /** @public @react */
-export const DefaultErrorFallback: TLErrorFallbackComponent = function DefaultErrorFallback({
-	error,
-	editor,
-}) {
+export function DefaultErrorFallback({ error, editor }: TLErrorFallbackProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [shouldShowError, setShouldShowError] = useState(process.env.NODE_ENV === 'development')
 	const [didCopy, setDidCopy] = useState(false)
@@ -196,7 +204,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = function DefaultEr
 									Reset data
 								</button>
 								<button className="tlui-button tl-error-boundary__refresh" onClick={refreshPage}>
-									Refresh Page
+									Refresh page
 								</button>
 							</div>
 						</div>
