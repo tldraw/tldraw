@@ -57,6 +57,9 @@ export class Resizing extends StateNode {
 
 	private changeTracker = new GestureShapeChangeTracker(this.editor)
 
+	// Shapes that previewKickout moved out of their parents, mapped to their snapshot records
+	private kickedOutShapes = new Map<TLShapeId, TLShape>()
+
 	override onEnter(info: ResizingInfo) {
 		const { isCreating = false, creatingMarkId, creationCursorOffset = { x: 0, y: 0 } } = info
 
@@ -243,6 +246,8 @@ export class Resizing extends StateNode {
 
 	@bind
 	private _updateShapes() {
+		this.restoreKickedOutShapes()
+
 		// Otherwise the stale resize snapshot would overwrite an external change.
 		if (this.changeTracker.getAndClearChanged()) {
 			const snapshot = this._createSnapshot(this.editor.inputs.getCurrentPagePoint())
@@ -513,7 +518,64 @@ export class Resizing extends StateNode {
 			}
 		}
 
+		this.previewKickout()
 		this.updateEnclosureHints()
+	}
+
+	// Kick out shapes that no longer overlap their parent now, as pointer up would, rather than
+	// leaving them clipped out of sight by a frame until then. Translating shows the same thing
+	// by reparenting as the pointer leaves the frame.
+	private previewKickout() {
+		const { editor, kickedOutShapes } = this
+		const { kickoutPreviewShapeIds, shapeSnapshots, frames } = this.snapshot
+		if (kickoutPreviewShapeIds.length === 0) return
+
+		// A shape that something else has moved out of its parent isn't ours to put back
+		const shapesInInitialParent: TLShape[] = []
+		const collect = (initial: TLShape) => {
+			if (editor.getShape(initial.id)?.parentId === initial.parentId) {
+				shapesInInitialParent.push(initial)
+			}
+		}
+		for (const { shape } of shapeSnapshots.values()) collect(shape)
+		for (const { children } of frames) children.forEach(collect)
+
+		kickoutOccludedShapes(editor, kickoutPreviewShapeIds)
+
+		for (const initial of shapesInInitialParent) {
+			const current = editor.getShape(initial.id)
+			if (current && current.parentId !== initial.parentId) {
+				kickedOutShapes.set(initial.id, initial)
+			}
+		}
+	}
+
+	// Undo previewKickout before each update, so that the resize is computed against the tree it
+	// was snapshotted in and a shape resized back over its parent stays in it. The parent hasn't
+	// moved since the last update kicked the shape out, so keeping the page position puts the shape
+	// back where it was, plus any external change (e.g. a nudge) made to it since.
+	private restoreKickedOutShapes() {
+		const { editor, kickedOutShapes } = this
+		if (kickedOutShapes.size === 0) return
+
+		editor.run(
+			() => {
+				for (const { id, type, parentId, index } of kickedOutShapes.values()) {
+					// The parent may have been deleted while the shape was outside of it
+					if (!editor.getShape(id) || !editor.getShape(parentId)) continue
+
+					editor.reparentShapes([id], parentId, index)
+					const isIndexTaken = editor
+						.getSortedChildIdsForParent(parentId)
+						.some((childId) => editor.getShape(childId)?.index === index)
+					if (!isIndexTaken) editor.updateShape({ id, type, index })
+				}
+			},
+			// kickoutOccludedShapes moves locked shapes too
+			{ ignoreShapeLock: true }
+		)
+
+		kickedOutShapes.clear()
 	}
 
 	// While drag-creating a frame, hint the sibling shapes that would become its children on pointer up
@@ -576,6 +638,7 @@ export class Resizing extends StateNode {
 
 	override onExit() {
 		this.changeTracker.stop()
+		this.kickedOutShapes.clear()
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.snaps.clearIndicators()
@@ -700,6 +763,16 @@ export class Resizing extends StateNode {
 			resizeLevels[level].push(id)
 		}
 
+		// Only where the kickout would be hidden until pointer up: shapes clipped by their parent,
+		// and shapes that clip their children (e.g. a frame being made smaller)
+		const kickoutPreviewShapeIds = selectedShapeIds.filter((id) => {
+			const shape = editor.getShape(id)
+			return !!(
+				shape &&
+				(editor.getShapeMask(shape) || editor.getShapeUtil(shape).getClipPath?.(shape))
+			)
+		})
+
 		return {
 			shapeSnapshots,
 			selectionBounds,
@@ -714,6 +787,7 @@ export class Resizing extends StateNode {
 			initialSelectionPageBounds: this.editor.getSelectionPageBounds()!,
 			frames,
 			resizeLevels,
+			kickoutPreviewShapeIds,
 		}
 	}
 }

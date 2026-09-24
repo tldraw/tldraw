@@ -1479,7 +1479,7 @@ describe('Unparenting behavior', () => {
 		expect(editor.getShape(rect.id)!.parentId).toBe(editor.getCurrentPageId())
 	})
 
-	it("unparents shapes if they're resized out of a frame", () => {
+	it("unparents shapes as soon as they're resized out of a frame", () => {
 		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
 		dragCreateRect({ down: [10, 10], move: [20, 20], up: [20, 20] })
 		dragCreateRect({ down: [80, 80], move: [90, 90], up: [90, 90] })
@@ -1489,7 +1489,7 @@ describe('Unparenting behavior', () => {
 		editor.pointerDown(90, 90, { target: 'selection', handle: 'top_right' })
 		expect(editor.getShape(rect2.id)!.parentId).toBe(frame.id)
 		editor.pointerMove(200, 200)
-		expect(editor.getShape(rect2.id)!.parentId).toBe(frame.id)
+		expect(editor.getShape(rect2.id)!.parentId).toBe(editor.getCurrentPageId())
 		editor.pointerUp(200, 200)
 		expect(editor.getShape(rect2.id)!.parentId).toBe(editor.getCurrentPageId())
 	})
@@ -1506,28 +1506,12 @@ describe('Unparenting behavior', () => {
 
 		const [frame, triangle] = editor.getLastCreatedShapes(2)
 
-		// still a child of the frame because we're creating the shape
-		expect(editor.getShape(triangle.id)!.parentId).toBe(frame.id)
-		editor.pointerUp(185, 185)
-		// But after pointer up, the triangle is reparented because it's not overlapping
+		// The bounds overlap the frame but the geometry doesn't, so it's unparented while creating
 		expect(editor.getShape(triangle.id)!.parentId).toBe(editor.getCurrentPageId())
-	})
-
-	it("only parents on pointer up if the shape's geometry overlaps with the frame", () => {
-		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
-
-		editor.setStyleForNextShapes(GeoShapeGeoStyle, 'triangle')
-		editor.setCurrentTool('geo')
-
-		editor.pointerMove(85, 85)
-		editor.pointerDown(85, 85)
-		editor.pointerMove(185, 185)
-
-		const [frame, triangle] = editor.getLastCreatedShapes(2)
-		// still a child of the frame because we're crating the shape
+		editor.pointerMove(90, 90)
 		expect(editor.getShape(triangle.id)!.parentId).toBe(frame.id)
+		editor.pointerMove(185, 185)
 		editor.pointerUp(185, 185)
-		// But after pointer up, the triangle is reparented because it's not overlapping
 		expect(editor.getShape(triangle.id)!.parentId).toBe(editor.getCurrentPageId())
 	})
 
@@ -2016,5 +2000,101 @@ describe('When double-clicking a frame edge', () => {
 		const boxPageBoundsAfter = editor.getShapePageBounds(boxId)!
 		expect(boxPageBoundsAfter.x).toBeCloseTo(boxPageBoundsBefore.x)
 		expect(boxPageBoundsAfter.y).toBeCloseTo(boxPageBoundsBefore.y)
+	})
+})
+
+describe('When resizing a shape out of a frame', () => {
+	const frameId = createShapeId('frame')
+	const boxId = createShapeId('box')
+	const otherId = createShapeId('other')
+
+	beforeEach(() => {
+		editor.createShapes([
+			{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 100, h: 100 } },
+			// Sticks out of the right side of the frame, so it can be resized out of it
+			{ id: boxId, type: 'geo', parentId: frameId, x: 50, y: 10, props: { w: 100, h: 20 } },
+			{ id: otherId, type: 'geo', parentId: frameId, x: 10, y: 50, props: { w: 20, h: 20 } },
+		])
+		editor.select(boxId)
+		editor.pointerDown(50, 20, { target: 'selection', handle: 'left' })
+	})
+
+	it('unparents the shape during the resize, so the frame no longer clips it', () => {
+		editor.pointerMove(120, 20)
+		expect(editor.getShape(boxId)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShapeMask(boxId)).toBeUndefined()
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 120, y: 10, w: 30, h: 20 })
+
+		editor.pointerUp(120, 20)
+		expect(editor.getShape(boxId)!.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('puts the shape back in the frame when it is resized back over it', () => {
+		editor.pointerMove(120, 20)
+		editor.pointerMove(60, 20)
+		expect(editor.getShape(boxId)).toMatchObject({ parentId: frameId, x: 60, y: 10 })
+		expect(editor.getSortedChildIdsForParent(frameId)).toEqual([boxId, otherId])
+
+		editor.pointerUp(60, 20)
+		expect(editor.getShape(boxId)!.parentId).toBe(frameId)
+	})
+
+	it('puts the shape back in the frame when the resize is cancelled', () => {
+		editor.pointerMove(120, 20)
+		editor.cancel()
+		expect(editor.getShape(boxId)).toMatchObject({ parentId: frameId, x: 50, props: { w: 100 } })
+		expect(editor.getSortedChildIdsForParent(frameId)).toEqual([boxId, otherId])
+	})
+
+	it('keeps an external nudge of the shape while it is outside the frame', () => {
+		editor.pointerMove(120, 20)
+		editor.nudgeShapes([boxId], { x: 0, y: 50 })
+
+		editor.pointerMoveBy(0, 0)
+		expect(editor.getShape(boxId)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 120, y: 60, w: 30, h: 20 })
+
+		editor.pointerMove(60, 20)
+		expect(editor.getShape(boxId)!.parentId).toBe(frameId)
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 60, y: 60, w: 90, h: 20 })
+	})
+})
+
+describe('When resizing a frame so that a child is outside of it', () => {
+	it('unparents the child during the resize, and puts it back when the frame is resized over it again', () => {
+		const frameId = createShapeId('frame')
+		const childId = createShapeId('child')
+		editor.createShapes([
+			{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 100, h: 100 } },
+			// Locked children are unparented too, so they have to be put back too
+			{
+				id: childId,
+				type: 'geo',
+				parentId: frameId,
+				x: 80,
+				y: 10,
+				isLocked: true,
+				props: { w: 10, h: 10 },
+			},
+		])
+		const childBefore = editor.getShape(childId)!
+		editor.select(frameId)
+		editor.pointerDown(0, 50, { target: 'selection', handle: 'left' })
+
+		// The children move with the frame's left edge, which pushes this one out past its right edge
+		editor.pointerMove(30, 50)
+		expect(editor.getShape(childId)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShapePageBounds(childId)).toMatchObject({ x: 110, y: 10 })
+
+		editor.pointerMove(0, 50)
+		expect(editor.getShape(childId)).toMatchObject({
+			parentId: frameId,
+			index: childBefore.index,
+			x: 80,
+			y: 10,
+		})
+
+		editor.pointerUp(0, 50)
+		expect(editor.getShape(childId)!.parentId).toBe(frameId)
 	})
 })
