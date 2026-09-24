@@ -22,7 +22,7 @@ function createAppStub({
 	Object.assign(app, {
 		userId: homeId,
 		config: { maxNumberOfFiles },
-		workspaceMemberships$: { get: () => [{ groupId: homeId, groupFiles }] },
+		workspaceMemberships$: { get: () => [{ groupId: homeId, group: { id: homeId }, groupFiles }] },
 		abortController: new AbortController(),
 		toasts: { addToast, removeToast: vi.fn(), toasts: { update: vi.fn() } },
 		messages: {},
