@@ -16,8 +16,10 @@ runs:
       with:
         node-version: 24.17.0
 
-    # With the hoisted linker node_modules is a plain tree, so caching it directly (as with
-    # Yarn) skips both the fetch and the link step on a hit.
+    # Caching node_modules directly skips both the fetch and the link step on a hit. The key
+    # names the linker layout: restore-keys falls back to the newest cache with the prefix, and
+    # installing over a tree from a different layout leaves stale packages that mask missing
+    # dependencies.
     - name: Restore node_modules cache
       uses: actions/cache@v5
       id: node-modules-cache
@@ -25,9 +27,9 @@ runs:
         path: |
           node_modules
           **/node_modules
-        key: ${{ runner.os }}-${{ runner.arch }}-node-${{ steps.setup-node.outputs.node-version }}-pnpm-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'patches/*') }}
+        key: ${{ runner.os }}-${{ runner.arch }}-node-${{ steps.setup-node.outputs.node-version }}-pnpm-isolated-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'patches/*') }}
         restore-keys: |
-          ${{ runner.os }}-${{ runner.arch }}-node-${{ steps.setup-node.outputs.node-version }}-pnpm-
+          ${{ runner.os }}-${{ runner.arch }}-node-${{ steps.setup-node.outputs.node-version }}-pnpm-isolated-
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile

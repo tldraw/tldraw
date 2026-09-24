@@ -24,6 +24,7 @@
 		"pg": "^8.16.3"
 	},
 	"devDependencies": {
+		"@types/pg": "^8.16.0",
 		"concurrently": "^9.1.2",
 		"dotenv": "^16.4.7",
 		"lazyrepo": "0.0.0-alpha.27",

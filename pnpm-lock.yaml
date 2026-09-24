@@ -708,6 +708,9 @@ importers:
       '@types/node':
         specifier: ^22.15.31
         version: 22.16.0
+      '@types/pg':
+        specifier: ^8.16.0
+        version: 8.16.0
       '@types/qrcode':
         specifier: ^1.5.5
         version: 1.5.5
@@ -843,7 +846,7 @@ importers:
         specifier: ^4.20260302.0
         version: 4.20260317.1
       '@types/pg':
-        specifier: ^8.11.11
+        specifier: ^8.16.0
         version: 8.16.0
       esbuild:
         specifier: ^0.28.0
@@ -895,6 +898,9 @@ importers:
         specifier: ^8.16.3
         version: 8.22.0
     devDependencies:
+      '@types/pg':
+        specifier: ^8.16.0
+        version: 8.16.0
       concurrently:
         specifier: ^9.1.2
         version: 9.2.0
@@ -1427,8 +1433,11 @@ importers:
         specifier: ^22.15.31
         version: 22.16.0
       '@types/pg':
-        specifier: ^8.11.11
+        specifier: ^8.16.0
         version: 8.16.0
+      '@types/semver':
+        specifier: ^7.5.8
+        version: 7.5.8
       ast-types:
         specifier: ^0.14.2
         version: 0.14.2
@@ -1999,6 +2008,9 @@ importers:
       '@types/uuid-readable':
         specifier: ^0.0.3
         version: 0.0.3
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
       fake-indexeddb:
         specifier: ^4.0.2
         version: 4.0.2
