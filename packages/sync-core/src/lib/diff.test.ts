@@ -75,6 +75,16 @@ describe('computing diffs (D)', () => {
 				],
 			})
 		})
+
+		it('[D2] ignores __proto__ keys, which applyObjectDiff would drop (AD8)', () => {
+			// JSON.parse creates '__proto__' as an own key; diffing it would store it on the server
+			// while peers receive an op they drop
+			const polluted = JSON.parse('{"__proto__":{"evil":1},"meta":{"__proto__":{"evil":1}}}')
+			const clean = { meta: {} }
+
+			expect(diffRecord(clean, polluted)).toBeNull()
+			expect(diffRecord(polluted, clean)).toBeNull()
+		})
 	})
 
 	describe('top-level keys vs props/meta (D3)', () => {

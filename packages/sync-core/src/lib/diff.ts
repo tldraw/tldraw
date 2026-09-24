@@ -205,6 +205,8 @@ function diffObject(
 	// is treated as absent: `undefined` doesn't survive JSON, so `['put', undefined]` would arrive
 	// as `['put', null]` and fail validators that accept only the missing key.
 	for (const key of Object.keys(prev)) {
+		// `result['__proto__'] = op` would set the diff's prototype, and applyObjectDiff drops the key (AD8)
+		if (key === '__proto__') continue
 		const prevValue = (prev as any)[key]
 		if (prevValue === undefined) continue
 		const nextValue = hasOwnProperty(next, key) ? (next as any)[key] : undefined
@@ -230,6 +232,7 @@ function diffObject(
 		}
 	}
 	for (const key of Object.keys(next)) {
+		if (key === '__proto__') continue
 		const nextValue = (next as any)[key]
 		if (nextValue === undefined) continue
 		// if key is in next but not in prev then it was added
