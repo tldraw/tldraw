@@ -311,3 +311,20 @@ it('Resets when the focus layer changes', () => {
 	expect(events).toMatchObject([{ name: 'pointer_down' }])
 	expect(events).toHaveLength(1)
 })
+
+it('Emits double click events for an indirect pen outside pen mode', () => {
+	const events: any[] = []
+	editor.addListener('event', (info) => events.push(info))
+
+	// An indirect desktop tablet stylus reports as a pen but never enables pen mode, so
+	// its clicks still have to reach the click manager to produce double-click events.
+	const pen = { isPen: true, isPenDirect: false }
+	editor.pointerDown(0, 0, pen).pointerUp(0, 0, pen).pointerDown(0, 0, pen)
+	expect(editor.getInstanceState().isPenMode).toBe(false)
+	expect(events).toMatchObject([
+		{ name: 'pointer_down' },
+		{ name: 'pointer_up' },
+		{ name: 'pointer_down' },
+		{ name: 'double_click', type: 'click', phase: 'down' },
+	])
+})

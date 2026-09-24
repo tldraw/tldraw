@@ -8,7 +8,7 @@ node_modules
 **/api-report.api.md
 **/_archive
 **/*.tsbuildinfo
-yarn.lock
+pnpm-lock.yaml
 **/*.tldr
 **/*.d.ts
 **/*.d.ts.map

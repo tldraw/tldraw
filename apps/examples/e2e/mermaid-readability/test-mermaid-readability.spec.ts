@@ -5,9 +5,9 @@ import test from '../fixtures/fixtures'
 import { setupPage } from '../shared-e2e'
 
 // Converts every diagram in the "Hundreds of Mermaid diagrams" example and compares the result with
-// mermaid's own rendering (see `src/misc/mermaidReadability.ts`). Not part of `yarn e2e`: CI runs it
+// mermaid's own rendering (see `src/misc/mermaidReadability.ts`). Not part of `pnpm e2e`: CI runs it
 // only when mermaid conversion changes (`.github/workflows/playwright-mermaid.yml`), and locally it
-// is `yarn e2e-mermaid-readability` from `apps/examples`.
+// is `pnpm e2e-mermaid-readability` from `apps/examples`.
 
 // `mermaids.ts` groups its definitions by diagram type, in this order.
 const DIAGRAM_TYPES = ['flowchart', 'state', 'sequence', 'mindmap'] as const
