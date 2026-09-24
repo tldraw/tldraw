@@ -51,6 +51,9 @@ jobs:
             apps/*/*/.lazy
             */*/.tsbuild
             apps/*/*/.tsbuild
+            *.tsbuildinfo
+            */*/*.tsbuildinfo
+            apps/*/*/*.tsbuildinfo
           key: test-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.oxlintrc.json', '.oxfmtrc.json', 'lazy.config.ts') }}
 
       - name: Typecheck
@@ -110,6 +113,9 @@ jobs:
             apps/*/*/.lazy
             */*/.tsbuild
             apps/*/*/.tsbuild
+            *.tsbuildinfo
+            */*/*.tsbuildinfo
+            apps/*/*/*.tsbuildinfo
           key: build-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'lazy.config.ts') }}
 
       - name: Build packages
