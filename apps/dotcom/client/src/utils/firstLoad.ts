@@ -362,6 +362,10 @@ export const firstLoad = createFirstLoadTracker({
 	initialPath: typeof window === 'undefined' ? '' : window.location.pathname,
 })
 
+// Background tabs throttle timers and Zero, so a load that was hidden at any point can take minutes
+// and says nothing about load speed. Such loads still print but are not sent.
+let hiddenDuringLoad = false
+
 if (typeof window !== 'undefined') {
 	;(window as any).__firstLoad = firstLoad
 	// The default buffer holds 250 resource entries; a board load is ~180 in production and far
@@ -372,6 +376,10 @@ if (typeof window !== 'undefined') {
 		// best effort
 	}
 	if (printFirstLoad) firstLoad.enableLiveLog()
+	if (document.visibilityState === 'hidden') hiddenDuringLoad = true
+	document.addEventListener('visibilitychange', () => {
+		if (document.visibilityState === 'hidden') hiddenDuringLoad = true
+	})
 }
 
 export function isFirstLoadStaff(email: string | null | undefined) {
@@ -456,7 +464,8 @@ export function reportFirstLoad(opts: {
 	flagEnabled: boolean
 	trackEvent(name: string, data: Record<string, unknown>): void
 }) {
-	const send = shouldReportFirstLoad(opts)
+	const hidden = hiddenDuringLoad
+	const send = shouldReportFirstLoad(opts) && !hidden
 	const print = printFirstLoad
 	if (!send && !print) return
 	// One report per load, so wait briefly for the server echo rather than dropping the srv_ fields.
@@ -471,7 +480,7 @@ export function reportFirstLoad(opts: {
 		.whenServerTimings(SERVER_ECHO_DEADLINE_MS)
 		.then((gotEcho) =>
 			sendFirstLoadReport(
-				{ send, print, staff: isFirstLoadStaff(opts.email), trackEvent: opts.trackEvent },
+				{ send, print, hidden, staff: isFirstLoadStaff(opts.email), trackEvent: opts.trackEvent },
 				gotEcho,
 				snapshot
 			)
@@ -482,6 +491,7 @@ function sendFirstLoadReport(
 	opts: {
 		send: boolean
 		print: boolean
+		hidden: boolean
 		staff: boolean
 		trackEvent(name: string, data: Record<string, unknown>): void
 	},
@@ -510,7 +520,9 @@ function sendFirstLoadReport(
 	const server = Object.fromEntries(Object.entries(event).filter(([k]) => k.startsWith('srv_')))
 	/* eslint-disable no-console */
 	console.groupCollapsed(
-		`[first-load] ${report.load_id} total ${report.total_ms}ms (expand for steps, server, resources)`
+		`[first-load] ${report.load_id} total ${report.total_ms}ms` +
+			(opts.hidden ? ', tab was hidden so not sent' : '') +
+			' (expand for steps, server, resources)'
 	)
 	console.table(
 		steps.map((s) => ({
