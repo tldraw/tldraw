@@ -33,19 +33,28 @@ interface ReplicateOutput {
 	seed?: number
 }
 
+function labeledError(label: string) {
+	return (status: number, text: string) => `${label} error ${status}: ${text}`
+}
+
+/** Error format used by the `/api/*` route handlers that call Replicate directly. */
+export function routeError(status: number, text: string) {
+	return `Replicate error: ${status} ${text}`
+}
+
 /**
  * Run a Replicate prediction synchronously (`Prefer: wait`) and return the parsed response.
- * `target` is either an official model path (`owner/name`) or a `{ version }` hash.
+ * `target` is either an official model path (`{ model: 'owner/name' }`) or a `{ version }` hash.
  */
 export async function replicatePredict(
-	target: string | { version: string },
+	target: { model: string } | { version: string },
 	input: Record<string, unknown>,
 	apiToken: string,
-	label = 'Replicate'
+	formatError = labeledError('Replicate')
 ): Promise<ReplicateOutput> {
 	const url =
-		typeof target === 'string'
-			? `https://api.replicate.com/v1/models/${target}/predictions`
+		'model' in target
+			? `https://api.replicate.com/v1/models/${target.model}/predictions`
 			: 'https://api.replicate.com/v1/predictions'
 	const response = await fetch(url, {
 		method: 'POST',
@@ -54,12 +63,12 @@ export async function replicatePredict(
 			Authorization: `Bearer ${apiToken}`,
 			Prefer: 'wait',
 		},
-		body: JSON.stringify(typeof target === 'string' ? { input } : { ...target, input }),
+		body: JSON.stringify('model' in target ? { input } : { version: target.version, input }),
 	})
 
 	if (!response.ok) {
 		const text = await response.text()
-		throw new Error(`${label} error ${response.status}: ${text}`)
+		throw new Error(formatError(response.status, text))
 	}
 
 	return (await response.json()) as ReplicateOutput
@@ -94,10 +103,10 @@ export const replicate: ImageProvider = {
 
 	async upscale(params: UpscaleParams, env: Env): Promise<UpscaleResult> {
 		const data = await replicatePredict(
-			'nightmareai/real-esrgan',
+			{ model: 'nightmareai/real-esrgan' },
 			{ image: params.imageUrl, scale: params.scale },
 			requireApiToken(env),
-			'Replicate upscale'
+			labeledError('Replicate upscale')
 		)
 		return { imageUrl: data.output as string }
 	},
@@ -109,7 +118,11 @@ function toGenerateResult(data: ReplicateOutput, params: GenerateParams): Genera
 
 async function generateWithFlux(params: GenerateParams, apiToken: string): Promise<GenerateResult> {
 	const data = await replicatePredict(
-		FLUX_MODELS[params.modelId] ?? FLUX_MODELS['flux-dev'],
+		{
+			model: Object.hasOwn(FLUX_MODELS, params.modelId)
+				? FLUX_MODELS[params.modelId]
+				: FLUX_MODELS['flux-dev'],
+		},
 		{
 			prompt: params.prompt,
 			num_inference_steps: params.steps ?? 20,
@@ -135,14 +148,14 @@ async function generateWithGoogle(
 	apiToken: string
 ): Promise<GenerateResult> {
 	const data = await replicatePredict(
-		GOOGLE_MODELS[params.modelId],
+		{ model: GOOGLE_MODELS[params.modelId] },
 		{
 			prompt: params.prompt,
 			aspect_ratio: '1:1',
 			...(params.referenceImageUrl ? { image_input: [params.referenceImageUrl] } : {}),
 		},
 		apiToken,
-		'Replicate Google model'
+		labeledError('Replicate Google model')
 	)
 	return toGenerateResult(data, params)
 }
@@ -167,7 +180,7 @@ async function generateWithControlNet(
 	}
 
 	const data = await replicatePredict(
-		model,
+		{ model },
 		{
 			control_image: controlImage,
 			prompt: params.prompt,
@@ -178,7 +191,7 @@ async function generateWithControlNet(
 			disable_safety_checker: false,
 		},
 		apiToken,
-		'Replicate ControlNet'
+		labeledError('Replicate ControlNet')
 	)
 	return toGenerateResult(data, params)
 }

@@ -21,7 +21,6 @@ import {
 	NodePortRow,
 	NodeSelectRow,
 	NodeSliderRow,
-	NodeTruncatedText,
 	updateNode,
 } from './shared'
 
@@ -149,7 +148,9 @@ function StyleTransferNodeComponent({ shape, node }: NodeComponentProps<StyleTra
 				label="Prompt"
 				disconnectedLabel="optional"
 				renderValue={(input) =>
-					typeof input.value === 'string' ? <NodeTruncatedText text={input.value} /> : 'connected'
+					typeof input.value === 'string'
+						? input.value.slice(0, 15) + (input.value.length > 15 ? '...' : '')
+						: 'connected'
 				}
 			/>
 			<NodeSelectRow

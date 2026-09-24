@@ -48,8 +48,12 @@ export function insertNodeWithinConnection(editor: Editor, connection: Connectio
 			)
 
 			const ports = Object.values(getNodePorts(editor, newNodeId))
-			const firstCompatibleInputPort = findFirstCompatiblePort(ports, 'end', sourceType ?? 'any')
-			const firstCompatibleOutputPort = findFirstCompatiblePort(ports, 'start', targetType ?? 'any')
+			const firstCompatibleInputPort = sourceType
+				? findFirstCompatiblePort(ports, 'end', sourceType)
+				: ports.find((p) => p.terminal === 'end')
+			const firstCompatibleOutputPort = targetType
+				? findFirstCompatiblePort(ports, 'start', targetType)
+				: ports.find((p) => p.terminal === 'start')
 
 			if (!firstCompatibleInputPort || !firstCompatibleOutputPort) {
 				editor.bailToMark(mark)

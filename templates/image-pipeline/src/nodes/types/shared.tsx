@@ -176,6 +176,7 @@ export function NodePortRow({
 	dataType,
 	label,
 	disconnectedLabel = 'not connected',
+	placeholder = 'out-of-date-or-stopped',
 	renderValue,
 }: {
 	shapeId: TLShapeId
@@ -183,22 +184,21 @@ export function NodePortRow({
 	dataType: PortDataType
 	label: ReactNode
 	disconnectedLabel?: string
+	placeholder?: 'out-of-date-or-stopped' | 'out-of-date' | 'never'
 	renderValue?: (input: InfoValue) => ReactNode
 }) {
 	const input = useNodeInput(shapeId, portId)
+	const showPlaceholder =
+		placeholder !== 'never' &&
+		(input?.isOutOfDate ||
+			(placeholder === 'out-of-date-or-stopped' && input?.value === STOP_EXECUTION))
 	return (
 		<NodeRow>
 			<Port shapeId={shapeId} portId={portId} />
 			<NodePortLabel dataType={dataType}>{label}</NodePortLabel>
 			{input ? (
 				<span className="NodeRow-connected-value">
-					{input.isOutOfDate || input.value === STOP_EXECUTION ? (
-						<NodePlaceholder />
-					) : renderValue ? (
-						renderValue(input)
-					) : (
-						'connected'
-					)}
+					{showPlaceholder ? <NodePlaceholder /> : renderValue ? renderValue(input) : 'connected'}
 				</span>
 			) : (
 				<span className="NodeRow-disconnected">{disconnectedLabel}</span>
@@ -207,9 +207,17 @@ export function NodePortRow({
 	)
 }
 
-export function NodeTruncatedText({ text, max = 20 }: { text: string; max?: number }) {
+export function NodeTruncatedText({
+	text,
+	title = text,
+	max = 20,
+}: {
+	text: string
+	title?: string
+	max?: number
+}) {
 	return (
-		<span title={text}>
+		<span title={title}>
 			{text.slice(0, max)}
 			{text.length > max ? '...' : ''}
 		</span>

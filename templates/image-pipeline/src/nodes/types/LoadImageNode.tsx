@@ -11,7 +11,6 @@ import { ShapePort } from '../../ports/Port'
 import { sleep } from '../../utils/sleep'
 import { NodeShape } from '../NodeShapeUtil'
 import {
-	blobToDataUrl,
 	ExecutionResult,
 	InfoValues,
 	NodeComponentProps,
@@ -70,6 +69,16 @@ export class LoadImageNodeDefinition extends NodeDefinition<LoadImageNode> {
 	Component = LoadImageNodeComponent
 }
 
+/** Read a File as a data URL. */
+function readFileAsDataUrl(file: File): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader()
+		reader.onload = () => resolve(reader.result as string)
+		reader.onerror = () => reject(reader.error)
+		reader.readAsDataURL(file)
+	})
+}
+
 /** Open the native file picker for an image file. */
 function selectImageFile(): Promise<File | null> {
 	return new Promise((resolve) => {
@@ -108,7 +117,7 @@ function LoadImageNodeComponent({ shape, node }: NodeComponentProps<LoadImageNod
 
 	const handleFile = async (file: File) => {
 		if (!file.type.startsWith('image/')) return
-		const dataUrl = await blobToDataUrl(file)
+		const dataUrl = await readFileAsDataUrl(file)
 		updateNode<LoadImageNode>(editor, shape, (n) => ({ ...n, imageUrl: dataUrl }))
 	}
 

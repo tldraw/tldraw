@@ -1,4 +1,5 @@
-import { error, IRequest, json } from 'itty-router'
+import { IRequest } from 'itty-router'
+import { jsonResponse } from '../jsonResponse'
 import { getProvider } from '../providers'
 import type { GenerateParams } from '../providers'
 import { resolveImage } from '../providers/types'
@@ -38,32 +39,38 @@ interface GenerateRequest {
 export async function handleGenerate(request: IRequest, env: Env) {
 	const body = (await request.json()) as GenerateRequest
 
-	if (!body.prompt) return error(400, 'prompt is required')
+	if (!body.prompt) return jsonResponse({ error: 'prompt is required' }, 400)
 
 	const [providerName, modelId] = (body.model ?? 'flux:flux-dev').split(':')
-	const params: GenerateParams = {
-		modelId: modelId ?? '',
-		prompt: body.prompt,
-		negativePrompt: body.negativePrompt,
-		steps: body.steps ?? 20,
-		cfgScale: body.cfgScale ?? 7,
-		seed: body.seed ?? null,
-		controlNetMode: body.controlNetMode,
-		controlNetStrength: body.controlNetStrength,
-		referenceImageUrl: body.referenceImageUrl,
+
+	try {
+		const params: GenerateParams = {
+			modelId: modelId ?? '',
+			prompt: body.prompt,
+			negativePrompt: body.negativePrompt,
+			steps: body.steps ?? 20,
+			cfgScale: body.cfgScale ?? 7,
+			seed: body.seed ?? null,
+			controlNetMode: body.controlNetMode,
+			controlNetStrength: body.controlNetStrength,
+			referenceImageUrl: body.referenceImageUrl,
+		}
+
+		let result = await getProvider(providerName).generate(params, env)
+
+		// Optionally persist the image to R2.
+		if (env.IMAGE_BUCKET && result.imageUrl?.startsWith('data:')) {
+			const imageId = `gen_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+			const { blob } = await resolveImage(result.imageUrl, env)
+			await env.IMAGE_BUCKET.put(imageId, blob, {
+				httpMetadata: { contentType: 'image/png' },
+			})
+			result = { ...result, imageUrl: `/api/images/${imageId}` }
+		}
+
+		return jsonResponse(result)
+	} catch (e: any) {
+		console.error('Generate error:', e)
+		return jsonResponse({ error: e.message ?? 'Generation failed' }, 500)
 	}
-
-	let result = await getProvider(providerName).generate(params, env)
-
-	// Optionally persist the image to R2.
-	if (env.IMAGE_BUCKET && result.imageUrl?.startsWith('data:')) {
-		const imageId = `gen_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-		const { blob } = await resolveImage(result.imageUrl, env)
-		await env.IMAGE_BUCKET.put(imageId, blob, {
-			httpMetadata: { contentType: 'image/png' },
-		})
-		result = { ...result, imageUrl: `/api/images/${imageId}` }
-	}
-
-	return json(result)
 }

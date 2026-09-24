@@ -155,6 +155,7 @@ function IteratorNodeComponent({ shape, node }: NodeComponentProps<IteratorNode>
 				dataType="any"
 				label="Template"
 				disconnectedLabel="optional"
+				placeholder="never"
 			/>
 			<NodeRow className="PromptNode-row">
 				<textarea

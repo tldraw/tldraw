@@ -15,7 +15,6 @@ const DRAG_DISTANCE_SQ = 36 // 6px
 
 export function createNodeAtCenter(editor: Editor, node: NodeType) {
 	const shapeId = createShapeId()
-	editor.markHistoryStoppingPoint('create node')
 	editor.run(() => {
 		editor.createShape({
 			id: shapeId,

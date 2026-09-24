@@ -139,6 +139,7 @@ function PromptConcatNodeComponent({ shape, node }: NodeComponentProps<PromptCon
 				portId="prefix"
 				dataType="text"
 				label="Prefix"
+				placeholder="never"
 				renderValue={renderText}
 			/>
 			<NodePortRow
@@ -146,6 +147,7 @@ function PromptConcatNodeComponent({ shape, node }: NodeComponentProps<PromptCon
 				portId="main"
 				dataType="text"
 				label="Main"
+				placeholder="never"
 				renderValue={renderText}
 			/>
 			<NodePortRow
@@ -153,6 +155,7 @@ function PromptConcatNodeComponent({ shape, node }: NodeComponentProps<PromptCon
 				portId="suffix"
 				dataType="text"
 				label="Suffix"
+				placeholder="never"
 				renderValue={renderText}
 			/>
 			<NodeSelectRow

@@ -84,7 +84,13 @@ function PreviewNodeComponent({ shape, node }: NodeComponentProps<PreviewNode>) 
 
 	return (
 		<>
-			<NodePortRow shapeId={shape.id} portId="image" dataType="image" label="Image" />
+			<NodePortRow
+				shapeId={shape.id}
+				portId="image"
+				dataType="image"
+				label="Image"
+				placeholder="never"
+			/>
 			<NodeImagePreview
 				src={displayUrl}
 				alt="Preview"

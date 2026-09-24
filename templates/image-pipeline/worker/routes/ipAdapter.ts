@@ -1,5 +1,6 @@
-import { error, IRequest, json } from 'itty-router'
-import { firstOutput, replicatePredict } from '../providers/replicate'
+import { IRequest } from 'itty-router'
+import { jsonResponse } from '../jsonResponse'
+import { firstOutput, replicatePredict, routeError } from '../providers/replicate'
 import { persistImage, placeholderImage, resolveImage } from '../providers/types'
 
 interface IPAdapterRequest {
@@ -18,31 +19,41 @@ interface IPAdapterRequest {
 export async function handleIPAdapter(request: IRequest, env: Env) {
 	const body = (await request.json()) as IPAdapterRequest
 
-	if (!body.imageUrl) return error(400, 'imageUrl is required')
+	if (!body.imageUrl) return jsonResponse({ error: 'imageUrl is required' }, 400)
 
 	const apiKey = env.REPLICATE_API_TOKEN
 	if (!apiKey) {
 		const prompt = (body.prompt || 'IP-Adapter').slice(0, 30)
-		return json({
-			imageUrl: placeholderImage(prompt, `IP-Adapter · scale ${body.scale} · placeholder`),
+		return jsonResponse({
+			imageUrl: placeholderImage(
+				prompt,
+				`IP-Adapter · scale ${body.scale} · placeholder`,
+				(hue) => [`hsl(${hue},50%,40%)`, `hsl(${(hue + 80) % 360},45%,55%)`]
+			),
 		})
 	}
 
-	const { dataUrl } = await resolveImage(body.imageUrl, env)
-	const result = await replicatePredict(
-		{ version: '904dc004af1dba5c9b13fc9e41635aeb2f9a177896a396ab3393f3f6493dbdd4' },
-		{
-			image: dataUrl,
-			prompt: body.prompt || 'best quality, high quality',
-			scale: body.scale ?? 0.6,
-			num_inference_steps: body.steps ?? 30,
-		},
-		apiKey
-	)
-	const outputUrl = firstOutput(result)
-	if (!outputUrl) throw new Error('No output from IP-Adapter')
+	try {
+		const { dataUrl } = await resolveImage(body.imageUrl, env)
+		const result = await replicatePredict(
+			{ version: '904dc004af1dba5c9b13fc9e41635aeb2f9a177896a396ab3393f3f6493dbdd4' },
+			{
+				image: dataUrl,
+				prompt: body.prompt || 'best quality, high quality',
+				scale: body.scale ?? 0.6,
+				num_inference_steps: body.steps ?? 30,
+			},
+			apiKey,
+			routeError
+		)
+		const outputUrl = firstOutput(result)
+		if (!outputUrl) throw new Error('No output from IP-Adapter')
 
-	// Persist to R2 if available
-	const imageUrl = env.IMAGE_BUCKET ? await persistImage(outputUrl, env) : outputUrl
-	return json({ imageUrl })
+		// Persist to R2 if available
+		const imageUrl = env.IMAGE_BUCKET ? await persistImage(outputUrl, env) : outputUrl
+		return jsonResponse({ imageUrl })
+	} catch (e: any) {
+		console.error('IP-Adapter error:', e)
+		return jsonResponse({ error: e.message ?? 'IP-Adapter failed' }, 500)
+	}
 }

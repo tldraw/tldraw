@@ -1,5 +1,6 @@
-import { error, IRequest, json } from 'itty-router'
-import { replicatePredict } from '../providers/replicate'
+import { IRequest } from 'itty-router'
+import { jsonResponse } from '../jsonResponse'
+import { replicatePredict, routeError } from '../providers/replicate'
 import { resolveImage } from '../providers/types'
 
 interface GenerateTextRequest {
@@ -30,7 +31,7 @@ function truncate(text: string, max: number) {
 export async function handleGenerateText(request: IRequest, env: Env) {
 	const body = (await request.json()) as GenerateTextRequest
 
-	if (!body.prompt) return error(400, 'prompt is required')
+	if (!body.prompt) return jsonResponse({ error: 'prompt is required' }, 400)
 
 	// Coerce input to string so downstream .startsWith() never crashes
 	const inputStr = body.input != null ? String(body.input) : null
@@ -45,24 +46,34 @@ export async function handleGenerateText(request: IRequest, env: Env) {
 				? '[image provided]'
 				: `[text: "${truncate(inputStr, 40)}"]`
 			: '[no input]'
-		return json({
+		return jsonResponse({
 			text: `[Placeholder] Prompt: "${truncate(body.prompt, 60)}" | Input: ${inputDesc} — Set REPLICATE_API_TOKEN for real text generation.`,
 		})
 	}
 
-	// Build the prompt — if input is text, prepend it to the prompt
-	const input: Record<string, unknown> = {
-		prompt: inputStr && !isImage ? `Context:\n${inputStr}\n\n${body.prompt}` : body.prompt,
-		max_output_tokens: 1024,
-	}
-	// Build the images array if we have an image input
-	if (inputStr && isImage) {
-		input.images = [(await resolveImage(inputStr, env)).dataUrl]
-	}
+	try {
+		// Build the prompt — if input is text, prepend it to the prompt
+		const input: Record<string, unknown> = {
+			prompt: inputStr && !isImage ? `Context:\n${inputStr}\n\n${body.prompt}` : body.prompt,
+			max_output_tokens: 1024,
+		}
+		// Build the images array if we have an image input
+		if (inputStr && isImage) {
+			input.images = [(await resolveImage(inputStr, env)).dataUrl]
+		}
 
-	const result = await replicatePredict('google/gemini-3.5-flash', input, apiToken)
-	const output = Array.isArray(result.output) ? result.output.join('') : result.output
-	if (!output) throw new Error('No output from text generation')
+		const result = await replicatePredict(
+			{ model: 'google/gemini-3.5-flash' },
+			input,
+			apiToken,
+			routeError
+		)
+		const output = Array.isArray(result.output) ? result.output.join('') : result.output
+		if (!output) throw new Error('No output from text generation')
 
-	return json({ text: output })
+		return jsonResponse({ text: output })
+	} catch (e: any) {
+		console.error('Generate text error:', e)
+		return jsonResponse({ error: e.message ?? 'Text generation failed' }, 500)
+	}
 }

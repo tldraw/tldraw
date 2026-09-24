@@ -27,7 +27,10 @@ export const overrides: TLUiOverrides = {
 				id: `node-${nodeDef.type}`,
 				label: nodeDef.title,
 				icon: nodeDef.icon,
-				onSelect: () => createNodeAtCenter(editor, nodeDef.getDefault()),
+				onSelect: () => {
+					editor.markHistoryStoppingPoint('create node')
+					createNodeAtCenter(editor, nodeDef.getDefault())
+				},
 				onDragStart: (_, info) => {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {

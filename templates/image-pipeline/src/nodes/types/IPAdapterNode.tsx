@@ -20,7 +20,6 @@ import {
 	NodeImagePreview,
 	NodePortRow,
 	NodeSliderRow,
-	NodeTruncatedText,
 	updateNode,
 } from './shared'
 
@@ -124,7 +123,9 @@ function IPAdapterNodeComponent({ shape, node }: NodeComponentProps<IPAdapterNod
 				dataType="text"
 				label="Prompt"
 				renderValue={(input) =>
-					typeof input.value === 'string' ? <NodeTruncatedText text={input.value} /> : 'connected'
+					typeof input.value === 'string'
+						? input.value.slice(0, 15) + (input.value.length > 15 ? '...' : '')
+						: 'connected'
 				}
 			/>
 			<NodeSliderRow

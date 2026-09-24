@@ -73,12 +73,17 @@ export async function persistImage(url: string, env: Env): Promise<string> {
 }
 
 /** Gradient SVG data URL used in place of a real result when no API token is configured. */
-export function placeholderImage(title: string, subtitle: string): string {
+export function placeholderImage(
+	title: string,
+	subtitle: string,
+	gradient: (hue: number) => [from: string, to: string]
+): string {
 	const hue = Math.floor(Math.random() * 360)
+	const [from, to] = gradient(hue)
 	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">
 		<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-			<stop offset="0%" stop-color="hsl(${hue},50%,40%)"/>
-			<stop offset="100%" stop-color="hsl(${(hue + 100) % 360},45%,55%)"/>
+			<stop offset="0%" stop-color="${from}"/>
+			<stop offset="100%" stop-color="${to}"/>
 		</linearGradient></defs>
 		<rect width="1024" height="1024" fill="url(#bg)"/>
 		<text x="512" y="490" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="sans-serif" font-size="22">${title}</text>

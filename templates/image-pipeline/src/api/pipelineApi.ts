@@ -114,7 +114,7 @@ export interface GenerateTextResult {
  * Call the /api/generate-text endpoint to generate text from a multimodal AI model.
  * Falls back to a local placeholder if the worker is not available.
  */
-export function apiGenerateText(params: GenerateTextParams) {
+export async function apiGenerateText(params: GenerateTextParams) {
 	// Coerce input to string so the worker always receives a string
 	const body = { ...params, input: params.input != null ? String(params.input) : undefined }
 	return postJson<GenerateTextResult>('/api/generate-text', body, 'Text generation failed')

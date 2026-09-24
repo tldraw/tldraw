@@ -115,7 +115,10 @@ function GenerateTextNodeComponent({ shape, node }: NodeComponentProps<GenerateT
 				portId="input"
 				dataType="any"
 				label="Input"
-				renderValue={(input) => <NodeTruncatedText text={String(input.value ?? '')} />}
+				placeholder="out-of-date"
+				renderValue={(input) => (
+					<NodeTruncatedText text={String(input.value ?? '')} title={String(input.value)} />
+				)}
 			/>
 			<NodePortRow
 				shapeId={shape.id}
@@ -123,7 +126,10 @@ function GenerateTextNodeComponent({ shape, node }: NodeComponentProps<GenerateT
 				dataType="text"
 				label="Prompt"
 				disconnectedLabel="optional"
-				renderValue={(input) => <NodeTruncatedText text={String(input.value ?? '')} />}
+				placeholder="out-of-date"
+				renderValue={(input) => (
+					<NodeTruncatedText text={String(input.value ?? '')} title={String(input.value)} />
+				)}
 			/>
 			<div
 				className={classNames('GenerateTextNode-result', {

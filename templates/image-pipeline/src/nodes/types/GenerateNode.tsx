@@ -151,6 +151,7 @@ function GenerateNodeComponent({ shape, node }: NodeComponentProps<GenerateNode>
 				portId="model"
 				dataType="model"
 				label="Model"
+				placeholder="out-of-date"
 				renderValue={(input) => String(input.value)}
 			/>
 			<NodePortRow
@@ -158,6 +159,7 @@ function GenerateNodeComponent({ shape, node }: NodeComponentProps<GenerateNode>
 				portId="prompt"
 				dataType="text"
 				label="Prompt"
+				placeholder="out-of-date"
 				renderValue={(input) => (
 					<NodeTruncatedText
 						text={
@@ -174,7 +176,9 @@ function GenerateNodeComponent({ shape, node }: NodeComponentProps<GenerateNode>
 				dataType="text"
 				label="Negative"
 				disconnectedLabel="optional"
-				renderValue={(input) => <NodeTruncatedText text={String(input.value ?? '')} />}
+				renderValue={(input) => (
+					<span title={String(input.value)}>{String(input.value ?? '').slice(0, 20)}</span>
+				)}
 			/>
 			<NodePortRow
 				shapeId={shape.id}
@@ -182,6 +186,7 @@ function GenerateNodeComponent({ shape, node }: NodeComponentProps<GenerateNode>
 				dataType="image"
 				label="Ref image"
 				disconnectedLabel="optional"
+				placeholder="out-of-date"
 			/>
 			<NodeImagePreview
 				src={node.lastResultUrl}

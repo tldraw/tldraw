@@ -1,4 +1,5 @@
-import { error, IRequest, json } from 'itty-router'
+import { IRequest } from 'itty-router'
+import { jsonResponse } from '../jsonResponse'
 
 /**
  * POST /api/images/:imageId
@@ -9,14 +10,14 @@ export async function handleImageUpload(request: IRequest, env: Env) {
 	const { imageId } = request.params
 	const contentType = request.headers.get('content-type') ?? 'image/png'
 
-	if (!contentType.startsWith('image/')) return error(400, 'Invalid content type')
+	if (!contentType.startsWith('image/')) return jsonResponse({ error: 'Invalid content type' }, 400)
 
 	// Don't overwrite existing images.
 	if (!(await env.IMAGE_BUCKET.head(imageId))) {
 		await env.IMAGE_BUCKET.put(imageId, request.body, { httpMetadata: { contentType } })
 	}
 
-	return json({ ok: true })
+	return jsonResponse({ ok: true })
 }
 
 /**
