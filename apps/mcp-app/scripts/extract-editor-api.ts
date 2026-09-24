@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import ts from 'typescript'
+import ts from 'typescript5'
 
 const scriptPath = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(scriptPath)
