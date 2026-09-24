@@ -6,6 +6,7 @@ import { config } from 'dotenv'
 import { defineConfig, Plugin } from 'vite'
 import { resolveClerkJs } from './scripts/clerk-js'
 import { getMultiplayerServerURL } from './scripts/multiplayer-server-url'
+import { routePreloadPlugin } from './scripts/vite-route-preload-plugin'
 import {
 	thumbnailRenderEntryPlugin,
 	thumbnailScreenshotPlugin,
@@ -118,6 +119,15 @@ export default defineConfig((env) => ({
 			additionalComponentNames: ['F'],
 			ast: true,
 		}),
+		// The editor sits in the root providers' static graph, so their wave is most of the bytes on
+		// every tla route.
+		routePreloadPlugin(
+			[
+				'./src/tla/providers/TlaRootProviders.tsx',
+				'./src/tla/pages/file.tsx',
+				'./src/tla/pages/local.tsx',
+			].map((p) => fileURLToPath(new URL(p, import.meta.url)))
+		),
 	],
 	publicDir: './public',
 	resolve: {
