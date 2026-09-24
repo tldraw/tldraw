@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { ApiItem } from '@microsoft/api-extractor-model'
+import { ApiItem, ApiItemKind } from '@microsoft/api-extractor-model'
 import { APIGroup, InputSection } from '@/types/content-types'
 import { nicelog } from '@/utils/nicelog'
 import { TldrawApiModel } from '@/utils/TldrawApiModel'
@@ -86,20 +86,28 @@ export async function createApiMarkdown() {
 		for (const [slug, items] of membersBySlug) {
 			const outputFileName = `${slug}.mdx`
 
+			// Users look up `typeof X` pairs as values, so the value decides the sidebar group and tags
+			const frontmatterItem = items.find(isValueItem) ?? items[0]
+			const headings = getDeclarationHeadings(items)
+
 			let frontmatter = ''
 			const bodies: string[] = []
-			for (const item of items) {
+			for (let i = 0; i < items.length; i++) {
+				const item = items[i]
 				const result = await getApiMarkdown(model, categoryName, item, order)
-				frontmatter ||= result.frontmatter
-				bodies.push(result.markdown)
+				if (item === frontmatterItem) frontmatter = result.frontmatter
+				// Reference pages hide `hr`, so merged declarations need their own headings or they
+				// read as part of the previous declaration's last section
+				bodies.push(
+					items.length === 1
+						? result.markdown
+						: `## ${headings[i]}\n\n${demoteHeadings(result.markdown)}`
+				)
 			}
 			order++
 
 			nicelog(`✎ ${outputFileName}`)
-			fs.writeFileSync(
-				path.join(OUTPUT_DIR, outputFileName),
-				frontmatter + bodies.join('\n---\n\n')
-			)
+			fs.writeFileSync(path.join(OUTPUT_DIR, outputFileName), frontmatter + bodies.join('\n'))
 		}
 	}
 
@@ -115,4 +123,42 @@ export async function createApiMarkdown() {
 	fs.writeFileSync(sectionsJsonPath, JSON.stringify(sectionsJson, null, '\t') + '\n')
 
 	model.throwEncounteredErrors()
+}
+
+function isValueItem(item: ApiItem) {
+	return item.kind === ApiItemKind.Variable || item.kind === ApiItemKind.Function
+}
+
+const DECLARATION_LABELS: Partial<Record<ApiItemKind, string>> = {
+	[ApiItemKind.Class]: 'Class',
+	[ApiItemKind.Enum]: 'Enum',
+	[ApiItemKind.Function]: 'Function',
+	[ApiItemKind.Interface]: 'Interface',
+	[ApiItemKind.Namespace]: 'Namespace',
+	[ApiItemKind.TypeAlias]: 'Type',
+	[ApiItemKind.Variable]: 'Value',
+}
+
+function getDeclarationHeadings(items: ApiItem[]) {
+	const labels = items.map((item) => DECLARATION_LABELS[item.kind] ?? item.kind)
+	if (items.every((item) => item.kind === ApiItemKind.Function)) {
+		return items.map((_, i) => `Overload ${i + 1}`)
+	}
+	return labels.map((label, i) =>
+		labels.indexOf(label) === labels.lastIndexOf(label)
+			? label
+			: `${label} ${labels.slice(0, i + 1).filter((l) => l === label).length}`
+	)
+}
+
+/** Push a declaration's headings one level down so they nest under its declaration heading. */
+function demoteHeadings(markdown: string) {
+	let inCodeBlock = false
+	return markdown
+		.split('\n')
+		.map((line) => {
+			if (line.startsWith('```')) inCodeBlock = !inCodeBlock
+			return !inCodeBlock && /^#{1,5} /.test(line) ? `#${line}` : line
+		})
+		.join('\n')
 }
