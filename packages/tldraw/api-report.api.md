@@ -32,10 +32,9 @@ import { getSchema } from '@tiptap/core';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
 import { HTMLAttributes } from 'react';
-import { IndexKey } from '@tldraw/utils';
-import { IndexKey as IndexKey_2 } from '@tldraw/editor';
+import { IndexKey } from '@tldraw/editor';
 import { JSONContent } from '@tiptap/core';
-import { JsonObject } from '@tldraw/utils';
+import { JsonObject } from '@tldraw/editor';
 import { JSX } from 'react/jsx-runtime';
 import { JSXElementConstructor } from 'react';
 import { LANGUAGES } from '@tldraw/editor';
@@ -180,7 +179,7 @@ import { TLUserId } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
-import { Validator } from '@tldraw/validate';
+import { Validator } from '@tldraw/editor';
 import { Vec } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
 import { VecModel } from '@tldraw/editor';
@@ -2890,7 +2889,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     onBeforeCreate(next: TLNoteShape): {
         id: TLShapeId;
-        index: IndexKey_2;
+        index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
         opacity: TLOpacityType;
@@ -4507,7 +4506,7 @@ export interface TLExternalContentProps {
 // @public
 export type TLNoteShapeAttributionComponent = ComponentType<TLNoteShapeAttributionProps> | null;
 
-// @public
+// @public (undocumented)
 export interface TLNoteShapeAttributionProps {
     color: string;
     firstName: string;

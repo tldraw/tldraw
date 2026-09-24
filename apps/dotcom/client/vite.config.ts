@@ -4,8 +4,13 @@ import formatjs from '@formatjs/unplugin/vite'
 import react from '@vitejs/plugin-react'
 import { config } from 'dotenv'
 import { defineConfig, Plugin } from 'vite'
+import { resolveClerkJs } from './scripts/clerk-js'
 import { getMultiplayerServerURL } from './scripts/multiplayer-server-url'
-import { thumbnailScreenshotPlugin } from './scripts/vite-thumbnail-screenshot-plugin'
+import { routePreloadPlugin } from './scripts/vite-route-preload-plugin'
+import {
+	thumbnailRenderEntryPlugin,
+	thumbnailScreenshotPlugin,
+} from './scripts/vite-thumbnail-screenshot-plugin'
 import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
 
 export { getMultiplayerServerURL }
@@ -48,6 +53,38 @@ function spaFallbackPlugin(): Plugin {
 	}
 }
 
+// Pins ClerkProvider to the exact clerk-js version and starts fetching it while the HTML parses,
+// instead of after the entry bundle has run. The preload's crossorigin must match Clerk's own script
+// tag or it is fetched twice. The preconnect has none on purpose: Clerk's API calls send cookies,
+// and credentialed requests don't share connections with anonymous ones.
+function clerkJsPlugin(): Plugin {
+	let clerkJs: Awaited<ReturnType<typeof resolveClerkJs>> = null
+	return {
+		name: 'clerk-js',
+		async config() {
+			clerkJs = await resolveClerkJs(process.env.VITE_CLERK_PUBLISHABLE_KEY)
+			if (!clerkJs) return
+			return { define: { 'process.env.CLERK_JS_VERSION': JSON.stringify(clerkJs.version) } }
+		},
+		transformIndexHtml(html, ctx) {
+			if (!clerkJs || !ctx.path.endsWith('/index.html')) return html
+			const { url } = clerkJs
+			return [
+				{
+					tag: 'link',
+					attrs: { rel: 'preconnect', href: new URL(url).origin },
+					injectTo: 'head',
+				},
+				{
+					tag: 'link',
+					attrs: { rel: 'preload', as: 'script', href: url, crossorigin: 'anonymous' },
+					injectTo: 'head',
+				},
+			]
+		},
+	}
+}
+
 function urlOrLocalFallback(mode: string, url: string | undefined, localFallbackPort: number) {
 	if (url) {
 		return JSON.stringify(url)
@@ -66,7 +103,14 @@ function urlOrLocalFallback(mode: string, url: string | undefined, localFallback
 // https://vitejs.dev/config/
 export default defineConfig((env) => ({
 	plugins: [
+		// Ahead of spaFallbackPlugin, and the order is load-bearing: middleware registers in plugin
+		// order, so this rewrites the extensionless /__thumbnail-render to its .html entry before the
+		// preview server's SPA fallback can rewrite it to /index.html — which would leave every
+		// preview-server capture (including the e2e webServer) hanging on a page that never marks
+		// itself ready.
+		thumbnailRenderEntryPlugin(),
 		spaFallbackPlugin(),
+		clerkJsPlugin(),
 		thumbnailScreenshotPlugin(),
 		zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
 		react(),
@@ -75,6 +119,15 @@ export default defineConfig((env) => ({
 			additionalComponentNames: ['F'],
 			ast: true,
 		}),
+		// The editor sits in the root providers' static graph, so their wave is most of the bytes on
+		// every tla route.
+		routePreloadPlugin(
+			[
+				'./src/tla/providers/TlaRootProviders.tsx',
+				'./src/tla/pages/file.tsx',
+				'./src/tla/pages/local.tsx',
+			].map((p) => fileURLToPath(new URL(p, import.meta.url)))
+		),
 	],
 	publicDir: './public',
 	resolve: {
@@ -89,6 +142,14 @@ export default defineConfig((env) => ({
 
 		// our svg icons break if we use data urls, so disable inline assets for now
 		assetsInlineLimit: 0,
+
+		rollupOptions: {
+			input: {
+				index: fileURLToPath(new URL('./index.html', import.meta.url)),
+				// See pages/thumbnail-render.tsx.
+				'thumbnail-render': fileURLToPath(new URL('./thumbnail-render.html', import.meta.url)),
+			},
+		},
 	},
 	// add backwards-compatible support for NEXT_PUBLIC_ env vars
 	define: {

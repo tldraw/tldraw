@@ -240,7 +240,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private pruneTimer: ReturnType<typeof setTimeout> | null = null
 
-	pruneSessions = throttle(() => {
+	pruneSessions: ReturnType<typeof throttle<() => void>> = throttle(() => {
 		if (this.pruneTimer) {
 			clearTimeout(this.pruneTimer)
 			this.pruneTimer = null
