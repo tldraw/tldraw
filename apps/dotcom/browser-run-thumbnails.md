@@ -392,7 +392,7 @@ Third migration note: the MCP buckets were originally named `mcp-screenshots-pre
 Start the dotcom app from the repo root:
 
 ```bash
-yarn dev-app
+pnpm dev-app
 ```
 
 The dev-only fixture page renders allowlisted example snapshots without a worker, published file, or token:
@@ -404,7 +404,7 @@ The dev-only fixture page renders allowlisted example snapshots without a worker
 Capture it locally without Cloudflare credentials:
 
 ```bash
-yarn workspace dotcom browser-run-thumbnail \
+pnpm --filter dotcom browser-run-thumbnail \
   --mode local \
   --base-url http://127.0.0.1:3000 \
   --fixture snapshot-example \
@@ -416,7 +416,7 @@ To capture through real Browser Run, use a preview/dev deployment or a tunnel (B
 ```bash
 CLOUDFLARE_ACCOUNT_ID=... \
 CLOUDFLARE_API_TOKEN=... \
-yarn workspace dotcom browser-run-thumbnail \
+pnpm --filter dotcom browser-run-thumbnail \
   --mode browser-run \
   --base-url https://your-dev-or-preview-origin.example \
   --fixture layer-panel \
@@ -426,12 +426,12 @@ yarn workspace dotcom browser-run-thumbnail \
 When tunnelling with Vite's host checks, start the client with:
 
 ```bash
-VITE_ALLOWED_HOSTS=your-tunnel-host.example yarn workspace dotcom exec vite dev --host 127.0.0.1 --port 3000 --strictPort
+VITE_ALLOWED_HOSTS=your-tunnel-host.example pnpm --filter dotcom exec vite dev --host 127.0.0.1 --port 3000 --strictPort
 ```
 
 ### The local screenshot service
 
-The full worker render path works under `yarn dev-app`: `POST /app/mcp` with `tools/call` returns a real PNG, and the OG image route renders through its queue consumer the same way. Both go through the render page and the token-gated snapshot endpoint exactly as production does — the only substitution is the browser.
+The full worker render path works under `pnpm dev-app`: `POST /app/mcp` with `tools/call` returns a real PNG, and the OG image route renders through its queue consumer the same way. Both go through the render page and the token-gated snapshot endpoint exactly as production does — the only substitution is the browser.
 
 Local dev cannot reach Browser Run for two independent reasons. `[env.dev.browser]` is deliberately NOT marked `remote = true`, because a remote binding makes plain `wrangler dev` require a `CLOUDFLARE_API_TOKEN` that the credential-free process-compose stack does not have; and `[env.dev]` pins `compatibility_date` to `2025-06-05`, older than the `2026-03-24` `quickAction` needs, because that date is newer than the workerd bundled with our pinned wrangler. The second reason applies to `wrangler dev --remote` too, since it deploys with the same `[env.dev]` config, and dev's `MCP_SCREENSHOT_RENDER_ORIGIN` is unreachable from Cloudflare regardless.
 

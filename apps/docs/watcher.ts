@@ -19,7 +19,7 @@ function queueRefresh(reason: string) {
 			await refreshContent({ silent: true })
 			clients.forEach((ws) => ws.send('refresh'))
 		} catch (e: any) {
-			// an unhandled rejection would take down `yarn dev` (concurrently --kill-others)
+			// an unhandled rejection would take down `pnpm dev` (concurrently --kill-others)
 			nicelog(`x Could not refresh content: ${e.message}`)
 		}
 	})

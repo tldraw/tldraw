@@ -27,13 +27,13 @@
 		"infinite"
 	],
 	"scripts": {
-		"build": "yarn run -T tsx scripts/build.ts",
-		"dev": "yarn run -T tsx scripts/dev.ts",
+		"build": "pnpm exec tsx scripts/build.ts",
+		"dev": "pnpm exec tsx scripts/dev.ts",
 		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
-		"test": "yarn run -T vitest --passWithNoTests",
-		"test-ci": "yarn run -T vitest run --passWithNoTests",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
+		"lint": "pnpm exec tsx ../../../internal/scripts/lint.ts",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
 	},
 	"devDependencies": {
 		"@tldraw/assets": "workspace:*",

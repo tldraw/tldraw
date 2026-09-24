@@ -1,0 +1,58 @@
+packages:
+  - packages/*
+  - apps/*
+  - apps/vscode/*
+  - apps/dotcom/*
+  - internal/*
+  - templates/*
+
+# Flat node_modules, matching what Yarn's node-modules linker produced. Switching to pnpm's
+# isolated layout is a separate step so the package manager swap changes nothing about how
+# modules resolve.
+nodeLinker: hoisted
+
+# Yarn didn't install missing peers; keep the dependency graph identical across the migration.
+autoInstallPeers: false
+
+# Don't run third-party dependency build/install scripts by default. Packages that genuinely
+# need to build are listed under allowBuilds. This closes the postinstall code-execution vector;
+# see the note in AGENTS.md.
+allowBuilds:
+  '@clerk/shared': false
+  '@modelcontextprotocol/ext-apps': false
+  '@rocicorp/zero-sqlite3': true
+  '@sentry/cli': true
+  '@swc/core': true
+  '@vscode/vsce-sign': true
+  better-sqlite3: true
+  core-js: false
+  core-js-pure: false
+  edgedriver: true
+  esbuild: true
+  geckodriver: true
+  keytar: true
+  postinstall-postinstall: false
+  protobufjs: false
+  sharp: true
+  sqlite3: true
+  # workerd's postinstall runs the native binary to self-check it, which fails on CI images
+  # without GLIBC 2.35+ (e.g. Vercel, which builds the docs site). Skipping it doesn't affect
+  # wrangler at dev time.
+  workerd: false
+
+# Newly published versions must be at least 7 days old before pnpm will pick them (minutes).
+minimumReleaseAge: 10080
+
+overrides:
+  '@types/node': ^22.15.31
+  ws: 8.21.0
+  js-cookie: 3.0.7
+  postcss: 8.5.23
+  react-router: 6.30.4
+  '@remix-run/router': 1.23.2
+  '@octokit/plugin-paginate-rest@11.3.1': 11.4.1
+  'undici@7.24.4': 7.28.0
+  'ip-address@10.1.0': 10.2.0
+
+patchedDependencies:
+  '@microsoft/tsdoc@0.15.1': patches/@microsoft__tsdoc@0.15.1.patch
