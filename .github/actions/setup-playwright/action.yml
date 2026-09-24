@@ -12,9 +12,8 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    # @playwright/test isn't a root dependency, so resolve it from an e2e workspace (the e2e
-    # workspaces pin the same version). We also derive a key-safe browser token (spaces -> dashes)
-    # so multi-browser values like "chromium firefox" don't put a space in the cache key.
+    # Derive a key-safe browser token (spaces -> dashes) so multi-browser values like
+    # "chromium firefox" don't put a space in the cache key.
     - name: Resolve Playwright version and browsers
       shell: bash
       env:
