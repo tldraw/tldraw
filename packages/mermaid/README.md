@@ -57,12 +57,12 @@ When `centerOnPosition` is `true` (the default), the diagram's center aligns wit
 
 ## Supported diagram types
 
-| Diagram type     | Mermaid keyword      | What you get                                                        |
-| ---------------- | -------------------- | ------------------------------------------------------------------- |
-| Flowchart        | `flowchart`, `graph` | Geo shapes, arrows, subgraph frames                                 |
-| Sequence diagram | `sequenceDiagram`    | Actor shapes, lifelines, signal arrows, fragment frames             |
-| State diagram    | `stateDiagram-v2`    | State shapes, transitions, compound state frames, fork/join, choice |
-| Mindmap          | `mindmap`            | Colored geo shapes, parent-child edges, tree hierarchy              |
+| Diagram type     | Mermaid keyword      | What you get                                                               |
+| ---------------- | -------------------- | -------------------------------------------------------------------------- |
+| Flowchart        | `flowchart`, `graph` | Geo shapes, arrows, subgraph frames                                        |
+| Sequence diagram | `sequenceDiagram`    | Actor shapes, lifelines, signal arrows, fragment frames, participant boxes |
+| State diagram    | `stateDiagram-v2`    | State shapes, transitions, compound state frames, fork/join, choice        |
+| Mindmap          | `mindmap`            | Colored geo shapes, parent-child edges, tree hierarchy                     |
 
 Unsupported diagram types (pie, gantt, class, ER, etc.) can be handled with the `onUnsupportedDiagram` callback — for example, to fall back to SVG import:
 
@@ -181,7 +181,7 @@ The `mermaid` dependency is roughly 2 MB. The paste handler above already lazy-l
 
 ## Examples
 
-See the [Mermaid diagrams example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/use-cases/hundred-mermaids) in the examples app for a runnable demo that renders many diagram types at once. Run it locally with `yarn dev` from the repo root and visit `localhost:5420`.
+See the [Mermaid diagrams example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/use-cases/hundred-mermaids) in the examples app for a runnable demo that renders many diagram types at once. Run it locally with `pnpm dev` from the repo root and visit `localhost:5420`.
 
 ## Documentation
 

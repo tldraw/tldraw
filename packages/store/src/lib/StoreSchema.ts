@@ -626,10 +626,15 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 		// Clean up by filtering out any non-document records.
 		// This is mainly legacy support for extremely early days tldraw.
+		// Collect first: as above, deleting during a live iterator can throw on SQLite backends.
+		const idsToDelete: string[] = []
 		for (const [id, state] of storage.entries()) {
 			if (this.getType(state.typeName).scope !== 'document') {
-				storage.delete(id)
+				idsToDelete.push(id)
 			}
+		}
+		for (const id of idsToDelete) {
+			storage.delete(id)
 		}
 	}
 

@@ -6,8 +6,6 @@
 
 import { Atom } from '@tldraw/state';
 import { AtomMap } from '@tldraw/store';
-import { DebouncedFunc } from 'lodash';
-import { DebouncedFuncLeading } from 'lodash';
 import { Emitter } from 'nanoevents';
 import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
@@ -18,6 +16,7 @@ import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { SynchronousStorage } from '@tldraw/store';
+import { throttle } from '@tldraw/utils';
 import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
@@ -134,7 +133,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
     // @internal (undocumented)
-    pruneTombstones: DebouncedFunc<() => void>;
+    pruneTombstones: ReturnType<typeof throttle<() => void>>;
     // @internal (undocumented)
     schema: Atom<SerializedSchema>;
     // @internal (undocumented)
@@ -154,6 +153,7 @@ export class JsonChunkAssembler {
         error: Error;
     } | null;
     state: 'idle' | {
+        charsReceived: number;
         chunksReceived: string[];
         totalChunks: number;
     };
@@ -357,7 +357,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => void): () => void;
     // @internal (undocumented)
-    pruneTombstones: DebouncedFunc<() => void>;
+    pruneTombstones: ReturnType<typeof throttle<() => void>>;
     // @internal (undocumented)
     _setSchema(schema: SerializedSchema): void;
     // (undocumented)
@@ -684,6 +684,7 @@ export const TLSyncErrorCloseEventCode: 4099;
 
 // @public
 export const TLSyncErrorCloseEventReason: {
+    readonly MESSAGE_TOO_LARGE: 'MESSAGE_TOO_LARGE';
     readonly RATE_LIMITED: 'RATE_LIMITED';
     readonly CLIENT_TOO_OLD: 'CLIENT_TOO_OLD';
     readonly INVALID_RECORD: 'INVALID_RECORD';
@@ -771,7 +772,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     readonly presenceType: null | RecordType<R, any>;
     // (undocumented)
-    pruneSessions: DebouncedFuncLeading<() => void>;
+    pruneSessions: ReturnType<typeof throttle<() => void>>;
     rejectSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     // (undocumented)
     readonly schema: StoreSchema<R, any>;

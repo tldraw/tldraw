@@ -27,8 +27,10 @@ async function getMarkdownForOverview(db: DbType) {
 	let result = `# tldraw SDK\n\n`
 
 	const features = await db.all('SELECT * FROM articles WHERE sectionId = "sdk-features"')
+	// sectionIndex carries the version order generateSection worked out for the sidebar; sorting
+	// by id would be a string sort that puts v3.9.0 above v3.10.0
 	const releases = await db.all(
-		`SELECT * FROM articles WHERE sectionId = "releases" AND id NOT LIKE '%/next' ORDER BY id DESC`
+		`SELECT * FROM articles WHERE sectionId = "releases" AND id NOT LIKE '%/next' ORDER BY sectionIndex ASC`
 	)
 	const examples = await db.all('SELECT * FROM articles WHERE sectionId = "examples"')
 
@@ -71,7 +73,7 @@ async function getMarkdownForDocs(db: DbType) {
 async function getMarkdownForReleases(db: DbType) {
 	let result = `# tldraw SDK releases\n`
 	const releases = await db.all(
-		`SELECT * FROM articles WHERE sectionId = "releases" AND id NOT LIKE '%/next' ORDER BY id DESC`
+		`SELECT * FROM articles WHERE sectionId = "releases" AND id NOT LIKE '%/next' ORDER BY sectionIndex ASC`
 	)
 
 	for (const release of releases) {
@@ -124,9 +126,9 @@ const ALLOWED_FILE_TYPES = ['tsx', 'ts', 'js', 'jsx', 'md', 'css', 'html']
 function getMarkdownForFile(fileName: string, fileContent: string) {
 	const type = fileName.split('.').pop()
 
-	// Skip non-code files, eg: PDFs, PNGs
+	// Skip non-code files, eg: PDFs, PNGs, SVGs (which generateSection does collect)
 	if (!ALLOWED_FILE_TYPES.includes(type ?? '')) {
-		return
+		return ''
 	}
 
 	let result = `\n\n## ${fileName}`

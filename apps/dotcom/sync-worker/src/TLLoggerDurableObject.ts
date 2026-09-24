@@ -31,12 +31,10 @@ export class TLLoggerDurableObject extends DurableObject<Environment> {
 			this.db.exec(`INSERT INTO logs (message) VALUES (?)`, message)
 		}
 
-		const sockets = Array.from(this.sockets)
-		if (this.sockets.size === 0) return
 		for (const message of messages) {
-			sockets.forEach((socket) => {
+			for (const socket of this.sockets) {
 				socket.send(message + '\n')
-			})
+			}
 		}
 	}
 

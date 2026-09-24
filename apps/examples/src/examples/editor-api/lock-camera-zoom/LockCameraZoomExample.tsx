@@ -24,7 +24,7 @@ const overrides: TLUiOverrides = {
 export default function LockCameraZoomExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="example" overrides={overrides} />
+			<Tldraw persistenceKey="lock-camera-zoom-example" overrides={overrides} />
 		</div>
 	)
 }
