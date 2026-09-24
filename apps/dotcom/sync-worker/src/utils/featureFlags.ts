@@ -27,13 +27,6 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'Send the per-step first_load timing event (client marks + sync server echo) to PostHog. Users with a @tldraw.com email always send it, regardless of this flag',
 		},
-		commenting_enabled: {
-			type: 'percentage',
-			percentage: 0,
-			enabled: false,
-			description:
-				'Commenting on files (tool, pins, threads, sidebar, notifications). Users with a @tldraw.com email always have it, regardless of this flag',
-		},
 		mcp_server_access: {
 			type: 'allowlist',
 			users: [],
@@ -249,6 +242,9 @@ export async function getFeatureFlags(request: IRequest, env: Environment): Prom
 	// bundles have aged out.
 	flags.zero_enabled = { enabled: true }
 	flags.zero_kill_switch = { enabled: false }
+	// Same for commenting_enabled: bundles from before the flag was removed gate every comments
+	// surface on it, and a missing key reads as off.
+	flags.commenting_enabled = { enabled: true }
 
 	return new Response(JSON.stringify(flags), {
 		headers: {

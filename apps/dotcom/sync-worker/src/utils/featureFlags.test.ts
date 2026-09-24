@@ -385,7 +385,7 @@ describe('getFeatureFlags (route handler)', () => {
 		expect(body.rum_enabled.enabled).toBe(false)
 	})
 
-	it('forces legacy zero_enabled/zero_kill_switch flags on for old client bundles, even unauthenticated', async () => {
+	it('forces legacy zero_enabled/zero_kill_switch/commenting_enabled flags for old client bundles, even unauthenticated', async () => {
 		const { getAuth } = await import('./tla/getAuth')
 		vi.mocked(getAuth).mockResolvedValue(null)
 
@@ -395,6 +395,7 @@ describe('getFeatureFlags (route handler)', () => {
 
 		expect(body.zero_enabled.enabled).toBe(true)
 		expect(body.zero_kill_switch.enabled).toBe(false)
+		expect(body.commenting_enabled.enabled).toBe(true)
 		expect(body.rum_enabled).toBeDefined()
 	})
 })
@@ -419,7 +420,6 @@ describe('getAllFeatureFlagValues', () => {
 		const flags = await getAllFeatureFlagValues(env as any)
 
 		expect(Object.keys(flags).sort()).toEqual([
-			'commenting_enabled',
 			'first_load_rum',
 			'mcp_server_access',
 			'rum_enabled',
