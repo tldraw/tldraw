@@ -1,6 +1,5 @@
 import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
-import { uniqueId } from '@tldraw/utils'
-import { createDebugValue } from 'tldraw'
+import { getFromSessionStorage, uniqueId } from '@tldraw/utils'
 
 export type FirstLoadServerTimings = Extract<TLCustomServerEvent, { type: 'first_load_server' }>
 
@@ -85,10 +84,18 @@ export const FIRST_LOAD_LOG_HEADER =
 	'[first-load] page load timings, printed because the logFirstLoad debug flag is on'
 
 /**
- * Prints the load to the console; sending to PostHog is gated separately (shouldReportFirstLoad).
- * Stored in sessionStorage and read at module load, so it applies from the next load in this tab.
+ * The debug flag that prints the load to the console; sending to PostHog is gated separately
+ * (shouldReportFirstLoad). The flag itself is created in TlaEditor: importing `tldraw` here would
+ * pull the SDK into the entry chunk. Read once at module load, so a toggle applies from the next load.
  */
-export const firstLoadDebugFlag = createDebugValue('logFirstLoad', { defaults: { all: false } })
+export const FIRST_LOAD_DEBUG_FLAG = 'logFirstLoad'
+const printFirstLoad = (() => {
+	try {
+		return getFromSessionStorage(`tldraw_debug:${FIRST_LOAD_DEBUG_FLAG}`) === 'true'
+	} catch {
+		return false
+	}
+})()
 
 export interface FirstLoadDeps {
 	now(): number
@@ -121,8 +128,7 @@ export function createFirstLoadTracker(deps: FirstLoadDeps) {
 	let reported = false
 	let server: FirstLoadServerTimings | null = null
 	const serverWaiters: Array<() => void> = []
-	// Live lines are buffered until enableLiveLog(): the gate (a @tldraw.com account) is only
-	// known once Clerk has loaded, well after the first steps.
+	// Buffered until enableLiveLog(), which replays the steps recorded before it.
 	let live = false
 	const lines: string[] = []
 
@@ -365,7 +371,7 @@ if (typeof window !== 'undefined') {
 	} catch {
 		// best effort
 	}
-	if (firstLoadDebugFlag.get()) firstLoad.enableLiveLog()
+	if (printFirstLoad) firstLoad.enableLiveLog()
 }
 
 export function isFirstLoadStaff(email: string | null | undefined) {
@@ -439,19 +445,19 @@ function paintTiming() {
 	return out
 }
 
+const SERVER_ECHO_DEADLINE_MS = 3000
+
 /**
  * Builds the report once: sent to PostHog if this account is in the gate, printed to the console if
  * the debug flag is on.
  */
-const SERVER_ECHO_DEADLINE_MS = 3000
-
 export function reportFirstLoad(opts: {
 	email: string | null | undefined
 	flagEnabled: boolean
 	trackEvent(name: string, data: Record<string, unknown>): void
 }) {
 	const send = shouldReportFirstLoad(opts)
-	const print = firstLoadDebugFlag.get()
+	const print = printFirstLoad
 	if (!send && !print) return
 	// One report per load, so wait briefly for the server echo rather than dropping the srv_ fields.
 	// Snapshot the page-side numbers now: by the time the echo wait ends, images the board loads

@@ -17,6 +17,7 @@ import {
 	commentSchemaRecords,
 	computed,
 	createSessionStateSnapshotSignal,
+	createDebugValue,
 	createUserId,
 	debugFlags,
 	react,
@@ -40,7 +41,7 @@ import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/confi
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import {
-	firstLoadDebugFlag,
+	FIRST_LOAD_DEBUG_FLAG,
 	getFirstLoadId,
 	hasFirstLoadStep,
 	markFirstLoad,
@@ -186,7 +187,6 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 			if (!app) {
 				setIsReady()
-				// Signed-out loads record every step too; the report itself is gated on the account.
 				markFirstLoad('board-visible')
 				reportFirstLoad({ email: null, flagEnabled: false, trackEvent })
 				return
@@ -429,7 +429,10 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	)
 }
 
-const DOTCOM_DEBUG_FLAGS = { ...debugFlags, logFirstLoad: firstLoadDebugFlag }
+const DOTCOM_DEBUG_FLAGS = {
+	...debugFlags,
+	logFirstLoad: createDebugValue(FIRST_LOAD_DEBUG_FLAG, { defaults: { all: false } }),
+}
 
 function CustomDebugMenu() {
 	const app = useMaybeApp()
