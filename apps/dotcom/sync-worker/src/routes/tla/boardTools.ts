@@ -32,7 +32,7 @@ export const MCP_PROTOCOL_VERSION = '2025-11-25'
 export const MCP_SERVER_INFO = {
 	name: 'tldraw-boards',
 	title: 'tldraw boards',
-	version: '3.2.0',
+	version: '3.3.0',
 }
 
 /**
@@ -48,10 +48,10 @@ export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
 }
 
 const SEARCHING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. create_board makes a new, empty board in your personal workspace or in a workspace you name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
 
 const LISTING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. create_board makes a new, empty board in your personal workspace or in a workspace you name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
 
 export const SEARCH_BOARDS_TOOL_NAME = 'search_boards'
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
@@ -59,10 +59,12 @@ export const PAGE_INFO_TOOL_NAME = 'get_page_info'
 export const CLUSTER_INFO_TOOL_NAME = 'get_cluster_info'
 export const CLUSTER_SCREENSHOT_TOOL_NAME = 'get_cluster_screenshot'
 export const CREATE_BOARD_TOOL_NAME = 'create_board'
+export const RENAME_BOARD_TOOL_NAME = 'rename_board'
 
 export const TOOL_NAMES = [
 	SEARCH_BOARDS_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
+	RENAME_BOARD_TOOL_NAME,
 	BOARD_INFO_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
@@ -79,6 +81,10 @@ export const TOOL_NAMES = [
 // it, since the caller may simply be signed in as the wrong account.
 export const BOARD_NOT_FOUND_MESSAGE =
 	'No board was found with this id, or this account does not have access to it. Boards in your own workspace, boards owned by a workspace you belong to, boards shared with you via link, and published boards are supported.'
+// Only a board the caller can already see gets this: one shared with them by link, which they may
+// open and edit but whose name belongs to the workspace that owns it.
+export const RENAME_BOARD_FORBIDDEN_MESSAGE =
+	'This board is shared with you by link, but only members of the workspace that owns it can rename it.'
 export const BOARD_EMPTY_MESSAGE = 'This board has no saved content yet.'
 
 // --- Reading a snapshot -------------------------------------------------------------------------
@@ -319,20 +325,14 @@ export function parseClusterScreenshotInput(input: unknown): {
 	}
 }
 
-export const CREATE_BOARD_MAX_NAME_LENGTH = 200
+export const BOARD_NAME_MAX_LENGTH = 200
 
 // A null workspace means the caller's personal workspace. A blank string is treated the same way
 // rather than as a name to match: a model that fills every field in the schema sends "" for the one
 // it meant to leave out.
 export function parseCreateBoardInput(input: unknown): { name: string; workspace: string | null } {
 	const value = requireArgumentsObject(input)
-	if (typeof value.name !== 'string' || !value.name.trim()) {
-		throw new Error('name is required: the title for the new board')
-	}
-	const name = value.name.trim()
-	if (name.length > CREATE_BOARD_MAX_NAME_LENGTH) {
-		throw new Error(`name must be at most ${CREATE_BOARD_MAX_NAME_LENGTH} characters`)
-	}
+	const name = parseBoardName(value.name, 'the title for the new board')
 	if (value.workspace !== undefined && value.workspace !== null) {
 		if (typeof value.workspace !== 'string') {
 			throw new Error('workspace must be a workspace name or id')
@@ -340,6 +340,25 @@ export function parseCreateBoardInput(input: unknown): { name: string; workspace
 	}
 	const workspace = typeof value.workspace === 'string' ? value.workspace.trim() : ''
 	return { name, workspace: workspace || null }
+}
+
+export function parseRenameBoardInput(input: unknown): { boardId: string; name: string } {
+	const value = requireArgumentsObject(input)
+	return {
+		boardId: parseBoardId(value.boardId),
+		name: parseBoardName(value.name, 'the new title for the board'),
+	}
+}
+
+function parseBoardName(value: unknown, purpose: string): string {
+	if (typeof value !== 'string' || !value.trim()) {
+		throw new Error(`name is required: ${purpose}`)
+	}
+	const name = value.trim()
+	if (name.length > BOARD_NAME_MAX_LENGTH) {
+		throw new Error(`name must be at most ${BOARD_NAME_MAX_LENGTH} characters`)
+	}
+	return name
 }
 
 // Accepts one id or several. A single string is allowed because asking for one cluster is the common
@@ -654,6 +673,15 @@ export function getCreatedBoardResult({
 	})
 }
 
+export function getRenamedBoardResult(result: {
+	boardId: string
+	name: string
+	previousName: string
+	url: string
+}): ToolResult {
+	return toolJsonResult(result)
+}
+
 // Every page-scoped tool needs the same steps before it can do anything: validate the page selector
 // and pull that page's shapes. Returning the tool's own error shape on failure keeps the wording
 // identical across tools.
@@ -942,6 +970,7 @@ export function getToolDefinitions(nameMatchingEnabled: boolean) {
 	return [
 		getSearchBoardsToolDefinition(nameMatchingEnabled),
 		getCreateBoardToolDefinition(),
+		getRenameBoardToolDefinition(),
 		getBoardInfoToolDefinition(),
 		getPageInfoToolDefinition(),
 		getClusterInfoToolDefinition(),
@@ -1035,7 +1064,7 @@ function getCreateBoardToolDefinition() {
 			properties: {
 				name: {
 					type: 'string',
-					maxLength: CREATE_BOARD_MAX_NAME_LENGTH,
+					maxLength: BOARD_NAME_MAX_LENGTH,
 					description: 'The title for the new board.',
 				},
 				workspace: {
@@ -1049,6 +1078,40 @@ function getCreateBoardToolDefinition() {
 		annotations: {
 			readOnlyHint: false,
 			idempotentHint: false,
+			openWorldHint: false,
+			destructiveHint: false,
+		},
+	}
+}
+
+function getRenameBoardToolDefinition() {
+	return {
+		name: RENAME_BOARD_TOOL_NAME,
+		title: 'Rename tldraw board',
+		description:
+			'Rename a tldraw.com board and return its new and previous names. You can rename boards in your own workspace and boards owned by a workspace you belong to; a board only shared with you by link cannot be renamed.',
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				// Not BOARD_ID_PROPERTY: a published /p/ slug is a copy's id, not the file's, so it
+				// cannot name the board to rename.
+				boardId: {
+					type: 'string',
+					description:
+						'The id of the board to rename: a boardId from search_boards or create_board, or the :slug of a file URL (https://www.tldraw.com/f/:slug).',
+				},
+				name: {
+					type: 'string',
+					maxLength: BOARD_NAME_MAX_LENGTH,
+					description: 'The new title for the board.',
+				},
+			},
+			required: ['boardId', 'name'],
+		},
+		annotations: {
+			readOnlyHint: false,
+			idempotentHint: true,
 			openWorldHint: false,
 			destructiveHint: false,
 		},

@@ -10,6 +10,7 @@ import {
 	MCP_PER_USER_RATE_LIMIT,
 	MCP_RATE_LIMIT_WINDOW_MS,
 	MCP_CREATE_PER_USER_RATE_LIMIT,
+	MCP_RENAME_PER_USER_RATE_LIMIT,
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
 } from '../../config'
 import { Environment, envFlagWord } from '../../types'
@@ -28,6 +29,7 @@ import {
 	MCP_SERVER_INFO,
 	getMcpServerInstructions,
 	PAGE_INFO_TOOL_NAME,
+	RENAME_BOARD_TOOL_NAME,
 	PageSelector,
 	ResolvedPageOk,
 	SEARCH_BOARDS_TOOL_NAME,
@@ -40,12 +42,14 @@ import {
 	getClusterInfo,
 	getCreatedBoardResult,
 	getPageInfo,
+	getRenamedBoardResult,
 	getToolDefinitions,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	parseCreateBoardInput,
 	parsePageInfoInput,
+	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	pickClusterShapes,
 	resolvePage,
@@ -55,6 +59,7 @@ import {
 import { createBoardForUser } from './createBoard'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import { readPageClusters, writePageClusterIndex } from './mcpClusterIndex'
+import { renameBoardForUser } from './renameBoard'
 import { searchAccessibleBoards } from './searchBoards'
 import {
 	ResolveThumbnailBoardResult,
@@ -156,6 +161,10 @@ function searchRateLimitKey(userId: string) {
 
 function createRateLimitKey(userId: string) {
 	return `create:${userId}`
+}
+
+function renameRateLimitKey(userId: string) {
+	return `rename:${userId}`
 }
 
 async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
@@ -350,6 +359,7 @@ const TOOL_HANDLERS = new Map<
 >([
 	[SEARCH_BOARDS_TOOL_NAME, callSearchBoardsTool],
 	[CREATE_BOARD_TOOL_NAME, callCreateBoardTool],
+	[RENAME_BOARD_TOOL_NAME, callRenameBoardTool],
 	[BOARD_INFO_TOOL_NAME, callBoardInfoTool],
 	[PAGE_INFO_TOOL_NAME, callPageInfoTool],
 	[CLUSTER_INFO_TOOL_NAME, callClusterInfoTool],
@@ -719,6 +729,43 @@ async function callCreateBoardTool(
 	}
 }
 
+async function callRenameBoardTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseRenameBoardInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const refusal = await checkRenameRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		const renamed = await renameBoardForUser(env, userId, input, ctx)
+		if (!renamed.ok) return withTelemetryReason(renamed.result, renamed.reason)
+		return getRenamedBoardResult({
+			boardId: input.boardId,
+			name: input.name,
+			previousName: renamed.previousName,
+			url: `${getPublicOrigin(request as IRequest, env)}/f/${input.boardId}`,
+		})
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_board_rename',
+			// The new name is something the caller typed, so it stays off the Sentry event.
+			extras: { boardId: input.boardId },
+			summary: 'Could not rename the board',
+			recordAs: () => 'board_rename_error',
+		})
+	}
+}
+
 async function callBoardInfoTool(
 	argumentsValue: unknown,
 	request: Request,
@@ -1029,6 +1076,31 @@ async function checkCreateRateLimit(
 	return toolError(
 		`Rate limited. Board creation is limited to about ${MCP_CREATE_PER_USER_RATE_LIMIT} per minute per account.`,
 		'rate_limited_create'
+	)
+}
+
+/** The per-caller ceiling on `rename_board`. Its own binding for the same reason as create's. */
+async function checkRenameRateLimit(
+	env: Environment,
+	userId: string,
+	telemetry: McpTelemetryWriter
+): Promise<ToolCallResult | undefined> {
+	if (
+		!(await isRateLimited(env.MCP_SERVER_RENAME_RATE_LIMITER, renameRateLimitKey(userId), {
+			fallbackLimit: MCP_RENAME_PER_USER_RATE_LIMIT,
+		}))
+	) {
+		return undefined
+	}
+	telemetry({
+		cacheStatus: 'none',
+		rateLimitAllowed: false,
+		failureReason: 'rate_limited_rename',
+		callerHash: await sha256(userId),
+	})
+	return toolError(
+		`Rate limited. Renaming boards is limited to about ${MCP_RENAME_PER_USER_RATE_LIMIT} per minute per account.`,
+		'rate_limited_rename'
 	)
 }
 

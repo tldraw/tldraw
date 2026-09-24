@@ -735,6 +735,32 @@ type = "ratelimit"
 namespace_id = "1024"
 simple = { limit = 10, period = 60 }
 
+# MCP server per-account `rename_board` guard. Bounds writes, so it is its own budget and smaller than
+# search's — see MCP_RENAME_PER_USER_RATE_LIMIT in config.ts before changing this.
+[[env.dev.unsafe.bindings]]
+name = "MCP_SERVER_RENAME_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1025"
+simple = { limit = 10, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SERVER_RENAME_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1026"
+simple = { limit = 10, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SERVER_RENAME_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1027"
+simple = { limit = 10, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SERVER_RENAME_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1028"
+simple = { limit = 10, period = 60 }
+
 #################### Queues ####################
 [[env.dev.queues.producers]]
 queue = "tldraw-multiplayer-queue-dev"
