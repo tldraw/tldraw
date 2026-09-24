@@ -52,6 +52,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **S8** `getStoreSnapshot(scope?)` is `{ store: serialize(scope), schema: schema.serialize() }`.
 - **S9** `loadStoreSnapshot(snapshot)` migrates the snapshot, replaces all current records with the result, and runs the integrity checker — all with side effects disabled (restoring the previous enabled state afterwards). It throws if migration fails, leaving the store unchanged.
 - **S10** `migrateSnapshot(snapshot)` returns the migrated snapshot stamped with the current serialized schema, and throws if migration fails.
+- **S12** When the same id appears more than once in one `put`, the history entry records it once: as an update whose `from` is the record as it was before the call, or as a single addition if the call also created it. A record changed and then changed back (by reference) within one call is not recorded at all.
 
 ## 6. Atomic operations and the side-effect flush (AO)
 
@@ -87,6 +88,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **H10** `applyDiff` with `ignoreEphemeralKeys: true` ignores changes to keys in the type's `ephemeralKeySet` when applying updates to existing records: non-ephemeral changed keys are merged onto the stored record (including the removal of a non-ephemeral key that the update leaves out), and an update touching only ephemeral keys is dropped. Updates for records that don't exist are applied in full, as are records in `added`.
 - **H12** `dispose()` delivers any pending change-sets to the attached listeners and then cancels the scheduled flush; it does not remove listeners.
 - **H13** A listener that throws does not prevent the other listeners from receiving the same flush; the first error is rethrown once every listener has been called.
+- **H14** The remover returned by `listen` flushes pending change-sets to the attached listeners, including the one being removed, and then removes it. The remover never throws: an error a listener raises during that flush is logged with `console.error`, so teardown code that calls removers in sequence runs to completion. Called from inside a flush, it removes the listener without flushing, so the other listeners keep receiving entries in order.
 
 ## 9. Validation (V)
 
@@ -142,7 +144,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **SC2** `serialize()` returns `{ schemaVersion: 2, sequences }` mapping each sequence id to the version of its last migration (0 for an empty sequence).
 - **SC3** `serializeEarliestVersion()` maps every sequence to version 0.
 - **SC4** `getType(typeName)` returns the RecordType and throws for unknown type names.
-- **SC5** `upgradeSchema` converts a v1 serialized schema to v2: `storeVersion` becomes `com.tldraw.store`, each record version becomes `com.tldraw.<typeName>`, and each subtype version becomes `com.tldraw.<typeName>.<subType>`. v2 schemas pass through unchanged; schema versions other than 1 or 2 produce an error result.
+- **SC5** `upgradeSchema` converts a v1 serialized schema to v2: `storeVersion` becomes `com.tldraw.store`, each record version becomes `com.tldraw.<typeName>`, and each subtype version becomes `com.tldraw.<typeName>.<subType>`. v2 schemas pass through unchanged; schema versions other than 1 or 2, and schemas missing their `sequences` (v2) or `recordVersions` (v1) object, produce an error result rather than throwing.
 
 ## 16. Migrations: authoring (M)
 
@@ -188,7 +190,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **MA3** Store-scope migrations receive the whole record map and may add, change, and delete records.
 - **MA4** Storage-scope migrations receive a `SynchronousStorage` (get/set/delete/keys/values/entries) and may use it to read and write records directly.
 - **MA5** When migrations are applied, records whose type's scope is not `'document'` are removed from the result (legacy cleanup). A snapshot needing no migrations keeps such records.
-- **MA6** An unknown record type encountered during migration, or a migrator that throws, produces a `migration-error` result.
+- **MA6** An unknown record type encountered during migration, a migrator that throws, or a malformed persisted schema produces a `migration-error` result.
 - **MA7** `migrateStorage(storage)` applies the same process to external storage, writing the current serialized schema via `setSchema` and updating only records that actually changed (deep equality).
 
 ## 21. Integrity (IC)

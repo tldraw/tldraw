@@ -34,7 +34,7 @@ runs:
         # exits 1 on any change to a committed asset instead of writing it, which would fail the
         # deploy on a release ref whose generated files aren't already in sync.
         ALLOW_REFRESH_ASSETS_CHANGES: 1
-      run: yarn build-types
+      run: pnpm build-types
 
     - name: Deploy templates
       shell: bash
@@ -47,7 +47,7 @@ runs:
         CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare-account-id }}
       run: |
         # the templates import tldraw/tldraw.css, which is generated and gitignored
-        yarn lazy prebuild
+        pnpm exec lazy prebuild
 
         cd templates
         all_templates=$(ls -d */ | cut -f1 -d'/')
@@ -59,7 +59,7 @@ runs:
         failed=""
         for template in $all_templates; do
           echo "::group::Deploying $template"
-          yarn tsx ./internal/scripts/deploy-template.ts $template || failed="$failed $template"
+          pnpm exec tsx ./internal/scripts/deploy-template.ts $template || failed="$failed $template"
           echo "::endgroup::"
         done
 

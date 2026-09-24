@@ -33,8 +33,8 @@ async function main() {
 
 	if (!existsSync(join(workspacePath, 'tsconfig.json'))) {
 		console.error(`❌ No tsconfig.json found in ${targetWorkspace}`)
-		console.error(`Usage: yarn profile-tsserver [workspace-path]`)
-		console.error(`Example: yarn profile-tsserver packages/editor`)
+		console.error(`Usage: pnpm profile-tsserver [workspace-path]`)
+		console.error(`Example: pnpm profile-tsserver packages/editor`)
 		process.exit(1)
 	}
 
@@ -436,7 +436,7 @@ function generateReport(
 	lines.push('')
 	lines.push('**Fix:** Ensure project references are built:')
 	lines.push('```bash')
-	lines.push('yarn typecheck  # or yarn build')
+	lines.push('pnpm typecheck  # or pnpm build')
 	lines.push('```')
 	lines.push('')
 
@@ -458,7 +458,7 @@ function generateReport(
 		'For **batch compilation** performance (not language server), use the other profiling script:'
 	)
 	lines.push('```bash')
-	lines.push('yarn profile-typescript apps/dotcom/client')
+	lines.push('pnpm profile-typescript apps/dotcom/client')
 	lines.push('```')
 	lines.push('')
 

@@ -1,7 +1,8 @@
 {
-	"installCommand": "yarn workspaces focus examples.tldraw.com @tldraw/monorepo config",
-	"buildCommand": "cd ../../packages/tldraw && yarn prebuild && cd ../../packages/commenting && yarn prebuild && cd ../../apps/examples && yarn build",
+	"installCommand": "pnpm install --filter examples.tldraw.com... --filter @tldraw/monorepo... --filter config...",
+	"buildCommand": "cd ../../packages/tldraw && pnpm prebuild && cd ../../packages/commenting && pnpm prebuild && cd ../../apps/examples && pnpm build",
 	"outputDirectory": "dist",
+	"ignoreCommand": "bash ../../internal/scripts/vercel/should-build-examples.sh",
 	"headers": [
 		{
 			"source": "/assets/(.*)",

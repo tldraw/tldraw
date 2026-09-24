@@ -40,6 +40,7 @@ import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
+import { getBoardThumbnail } from './routes/tla/getBoardThumbnail'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
@@ -66,7 +67,7 @@ import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
-import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
+import { getAuth, getZeroAuth, requireAuth, getMcpTokenAuth } from './utils/tla/getAuth'
 import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
@@ -141,7 +142,7 @@ const router = createRouter<Environment>()
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY)
 	)
 	.get(`/${ROOM_PREFIX}/:roomId/history`, (req, env) => getRoomHistory(req, env, false))
-	// Legacy rooms dual-write chains too; without this the rollout gate has a blind spot.
+	// Legacy rooms write chains too; without this the verifier has a blind spot.
 	.get(`/${ROOM_PREFIX}/:roomId/history/verify`, (req, env) =>
 		verifyVersionChainRoute(req, env, false)
 	)
@@ -186,6 +187,7 @@ const router = createRouter<Environment>()
 		return notFound()
 	})
 	.get('/app/file/:roomId/download', forwardRoomRequest)
+	.get('/app/file/:boardId/thumbnail', getBoardThumbnail)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({
@@ -336,8 +338,15 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				const fakeReq = new Request('https://internal', {
 					headers: { Authorization: authorizationHeader },
 				}) as unknown as IRequest
+				// A session token first, then an MCP access token: the same fallback the download and
+				// the sync socket take, so an agent's user can add files to boards they can edit.
 				const auth = await getAuth(fakeReq, this.env)
-				userId = auth?.userId ?? null
+				if (auth) {
+					userId = auth.userId
+				} else {
+					const mcp = await getMcpTokenAuth(fakeReq, this.env)
+					userId = mcp.ok ? mcp.userId : null
+				}
 			}
 			if (!(await hasWriteAccessToFile(db, fileId, userId))) {
 				return { ok: false, error: 'Forbidden' }
