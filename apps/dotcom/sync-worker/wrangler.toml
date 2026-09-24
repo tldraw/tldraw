@@ -131,6 +131,7 @@ BOTCOM_POSTGRES_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/p
 BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6432/postgres"
 TLDRAW_ENV = "development"
 MULTIPLAYER_SERVER = "http://localhost:3000"
+ZERO_SERVER = "http://localhost:4848/"
 MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
 # The MCP server's public URL, and the resource identifier it advertises in protected resource
 # metadata and in the WWW-Authenticate challenge. Not compared against an incoming token: Clerk stamps
@@ -270,6 +271,34 @@ bindings = [
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
 ]
+
+#################### Hyperdrive ####################
+# Postgres through Hyperdrive; code falls back to the pooled connection string when unbound. Previews
+# stay unbound: each gets its own Supabase branch, and Hyperdrive configs are capped at 25 per
+# account. Configs are managed by hand in the Cloudflare dashboard:
+# - Origin is the direct connection, with the same credentials as BOTCOM_POSTGRES_CONNECTION_STRING.
+#   Rotating the database password breaks Hyperdrive until the config is updated too.
+# - Caching stays disabled: role and file-record reads must never be stale.
+# - Origin connection limit shares max_connections with Zero and Supabase's own backends. Sized
+#   from their 30-day peaks (Supabase metrics in Grafana, 2026-09-24) with 25% headroom, plus 15
+#   for pgbouncer: production 240 - (95 + 38) * 1.25 - 15 = 58, staging 60 - (9 + 9) * 1.25 - 15 = 22.
+#   The limit is soft, and a full pool doesn't queue for long: queries fail with "Failed to acquire
+#   a connection from the pool".
+# - Hyperdrive kills queries after 60s, which now bounds the admin paths too (delete_user,
+#   hard_delete_file, file-stats, version-chain sweep).
+# Dev emulates it locally: no pooling, just a straight connection to the local pgbouncer.
+[[env.dev.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "local"
+localConnectionString = "postgresql://user:password@127.0.0.1:6432/postgres"
+
+[[env.staging.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "e47f149b12874bea9dd9418803952966" # main-tldraw-multiplayer-postgres
+
+[[env.production.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "3b4fea5a6921430bb7db39ed2e7ec72e" # tldraw-multiplayer-postgres
 
 #################### Analytics engine ####################
 # durable objects have the same configuration in all environments:

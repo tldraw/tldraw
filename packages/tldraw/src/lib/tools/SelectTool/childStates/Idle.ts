@@ -12,7 +12,6 @@ import {
 	toRichText,
 	unsafe__withoutCapture,
 } from '@tldraw/editor'
-import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredOverlayId } from '../../selection-logic/updateHoveredOverlayId'
 import {
@@ -139,22 +138,8 @@ export class Idle extends StateNode {
 					}
 				} else {
 					switch (overlayType) {
-						case 'rotate_handle': {
-							this.onPointerDown({
-								...info,
-								target: 'selection',
-								handle: overlay.props.handle as any,
-							})
-							break
-						}
-						case 'mobile_rotate': {
-							this.onPointerDown({
-								...info,
-								target: 'selection',
-								handle: overlay.props.handle as any,
-							})
-							break
-						}
+						case 'rotate_handle':
+						case 'mobile_rotate':
 						case 'resize_handle': {
 							this.onPointerDown({
 								...info,
@@ -540,9 +525,7 @@ export class Idle extends StateNode {
 
 				if (
 					!selectedShapeIds.includes(targetShape.id) &&
-					!this.editor.findShapeAncestor(targetShape, (shape) =>
-						selectedShapeIds.includes(shape.id)
-					)
+					!this.editor.isAncestorSelected(targetShape)
 				) {
 					this.editor.markHistoryStoppingPoint('selecting shape')
 					this.editor.setSelectedShapes([targetShape.id])
@@ -710,12 +693,6 @@ export class Idle extends StateNode {
 			editor.setEditingShape(shape)
 		}
 		this.parent.transition('editing_shape', info)
-	}
-
-	isOverArrowLabelTest(shape: TLShape | undefined) {
-		if (!shape) return false
-
-		return isOverArrowLabel(this.editor, shape)
 	}
 
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {

@@ -28,7 +28,7 @@ import { IRequest, cors, json } from 'itty-router'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
-import { createPostgresConnectionPool } from './postgres'
+import { createPostgresConnectionPool, getPostgresConnection } from './postgres'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
@@ -40,6 +40,7 @@ import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
+import { getBoardThumbnail } from './routes/tla/getBoardThumbnail'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
@@ -68,6 +69,7 @@ import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, getZeroAuth, requireAuth, getMcpTokenAuth } from './utils/tla/getAuth'
 import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
+import { createMcpMutators } from './utils/tla/mcpMutators'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -141,7 +143,7 @@ const router = createRouter<Environment>()
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY)
 	)
 	.get(`/${ROOM_PREFIX}/:roomId/history`, (req, env) => getRoomHistory(req, env, false))
-	// Legacy rooms dual-write chains too; without this the rollout gate has a blind spot.
+	// Legacy rooms write chains too; without this the verifier has a blind spot.
 	.get(`/${ROOM_PREFIX}/:roomId/history/verify`, (req, env) =>
 		verifyVersionChainRoute(req, env, false)
 	)
@@ -186,6 +188,7 @@ const router = createRouter<Environment>()
 		return notFound()
 	})
 	.get('/app/file/:roomId/download', forwardRoomRequest)
+	.get('/app/file/:boardId/thumbnail', getBoardThumbnail)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({
@@ -241,11 +244,14 @@ const router = createRouter<Environment>()
 		}
 		// (db, mutatorContext, logLevel): mutators close over userId, so no context.
 		const processor = new PushProcessor(
-			zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING),
+			zeroPostgresJS(schema, getPostgresConnection(env).connectionString),
 			undefined,
 			'debug'
 		)
-		const result = await processor.process(createMutators(auth.userId), req)
+		const result = await processor.process(
+			auth.mcp ? createMcpMutators(auth.userId) : createMutators(auth.userId),
+			req
+		)
 		// Wake the outbox consumer without blocking the response: a poke failure must not 500 a
 		// mutation that already committed, and the singleton DO shouldn't sit on the hot path.
 		ctx.waitUntil(
@@ -270,6 +276,24 @@ const router = createRouter<Environment>()
 			userID: auth.userId,
 		})
 		return json(result)
+	})
+	// What a Zero client needs to connect that it cannot carry itself: the tables and relationships
+	// as this deployment defines them, and which zero-cache serves it. For an agent's app (the tldraw
+	// plugin for ChatGPT), which cannot depend on dotcom-shared: the schema is plain data, and read
+	// from here it cannot drift from what the query and mutate endpoints run against. MCP tokens
+	// only, since that is the only caller with nowhere else to get it.
+	.get('/app/zero/schema', async (req, env) => {
+		const auth = await getMcpTokenAuth(req, env)
+		if (!auth.ok) {
+			return Response.json(
+				{ error: 'Unauthorized' },
+				{ status: auth.reason === 'not_allowlisted' ? 403 : 401 }
+			)
+		}
+		if (!env.ZERO_SERVER) {
+			return Response.json({ error: 'Zero is not deployed here' }, { status: 503 })
+		}
+		return json({ cacheURL: env.ZERO_SERVER, schema })
 	})
 	.all('*', notFound)
 

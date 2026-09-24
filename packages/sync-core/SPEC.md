@@ -25,11 +25,11 @@ Sections marked **internal** describe supporting machinery that has its own cont
 ## 3. Computing diffs: `diffRecord` (D)
 
 - **D1** `diffRecord(prev, next)` returns an `ObjectDiff` describing how to turn `prev` into `next`, or `null` when there is nothing to change (including when `prev === next`).
-- **D2** A key present in `prev` but missing from `next` produces `['delete']`. A key present in `next` but missing from `prev` produces `['put', value]`.
+- **D2** A key present in `prev` but missing from `next` produces `['delete']`. A key present in `next` but missing from `prev` produces `['put', value]`. Only own keys count (inherited `Object.prototype` members are never consulted), and a key whose value is `undefined` is treated as absent on both sides — `undefined` does not survive JSON, so it is never put. `__proto__` keys are ignored, matching AD8.
 - **D3** `props` and `meta` are the only nested keys at the top level: changes inside them are expressed as `['patch', ...]` ops. Any other top-level key whose values are not both arrays or both strings is compared with deep equality and produces a whole-value `['put', next]` on change — even when both values are plain objects.
 - **D4** Inside a nested diff (within `props`/`meta` or deeper), object values are recursively patched; `null` and primitive values are put.
 - **D5** When both values are strings (at any level, including top-level keys) and `next` starts with `prev`, the diff is `['append', addedSuffix, prev.length]`. Other string changes are puts. With `legacyAppendMode` enabled, string appends become puts instead; array appends (D7) are unaffected by `legacyAppendMode`.
-- **D6** Same-length arrays: if no items changed, no op. If at most `max(length/5, 1)` items changed, the op is `['patch', { [index]: op }]` where each changed index gets a recursive diff when both old and new items are truthy objects, and a put otherwise. If more items changed, the whole array is put.
+- **D6** Same-length arrays: if no items changed, no op. If at most `max(length/5, 1)` items changed, the op is `['patch', { [index]: op }]` where each changed index gets a recursive diff when both old and new items are truthy objects of the same kind (both arrays or both plain objects), and a put otherwise. If more items changed, the whole array is put.
 - **D7** Different-length arrays: when the shared prefix is unchanged and the array grew, the op is `['append', addedItems, prev.length]`. Any change in the shared prefix (including truncation) puts the whole array.
 
 ## 4. Applying diffs: `applyObjectDiff` (AD)
@@ -38,9 +38,10 @@ Sections marked **internal** describe supporting machinery that has its own cont
 - **AD2** A `put` is applied only when the new value is not deep-equal to the current value.
 - **AD3** An `append` is applied only when the current value is an array/string of the matching type whose length equals the op's offset. On any mismatch the op is silently ignored.
 - **AD4** A `patch` is applied only when the current value is a truthy object; it recurses with AD1 semantics. Patching a missing or primitive value is silently ignored.
-- **AD5** A `delete` removes the key when present.
+- **AD5** A `delete` removes the key when it is an own key of the object.
 - **AD6** Patching a non-object (`null`, primitives) returns the input unchanged.
 - **AD7** Arrays are cloned as arrays; ops keyed by numeric strings index into them.
+- **AD8** Ops keyed `__proto__` are ignored: diffs arrive from untrusted peers and assigning that key would change the target's prototype.
 
 ## 5. Converting diffs (ND)
 
@@ -251,8 +252,8 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **SES2** Cancelling (also via `handleClose`) moves the session to `AwaitingRemoval` — keeping its presence id and meta for a quick reconnect — closes the socket, and schedules a follow-up prune.
 - **SES3** Removal deletes the session, closes the socket (with code 4099 and the reason when fatal), deletes the session's presence record and broadcasts that deletion to everyone, emits `session_removed`, and emits `room_became_empty` when it was the last session.
 - **SES4** `rejectSession` with a reason: legacy sessions (protocol ≤ 6) receive a deprecated `incompatibility_error` message (reason mapped: `CLIENT_TOO_OLD` → `clientTooOld`, `SERVER_TOO_OLD` → `serverTooOld`, `INVALID_RECORD` → `invalidRecord`, anything else → `invalidOperation`) and are then removed without a close code; modern sessions are closed with code 4099 and the reason string, truncated on a code-point boundary and ended with `... (+N bytes)` (N being the bytes dropped) to fit the 123 UTF-8 bytes a close frame allows, so the socket's `close()` does not throw. Without a reason it is a plain removal.
-- **SES5** `getCanEmitStringAppend()` is false when any connected session has `supportsStringAppend: false`; pushes handled in that state use legacy append mode (D5) so broadcast diffs avoid string-append ops.
-- **SES6** `handleResumedSession` registers a session directly in `Connected` state (no handshake): `requiresDownMigrations` is recomputed from the supplied schema, and a supplied presence record is restored into the presence store.
+- **SES5** `getCanEmitStringAppend()` is false when any connected session has `supportsStringAppend: false`; pushes handled in that state use legacy append mode (D5) on every diff the room emits — the pusher's push result, the broadcast to other sessions (including the down-migrated variant, MG1), and puts over existing records — so no session receives a string-append op.
+- **SES6** `handleResumedSession` registers a session directly in `Connected` state (no handshake): `requiresDownMigrations` is recomputed from the supplied schema, and a supplied presence record is restored into the presence store. The handshake's schema checks (HS3) are re-applied — a schema the server can no longer reconcile rejects the resumed session instead of being served unmigrated diffs.
 - **SES7** A message from an unknown session id logs a warning and is ignored.
 
 ## 27. Migrations over the wire (MG)

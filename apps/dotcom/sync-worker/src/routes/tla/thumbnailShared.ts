@@ -6,6 +6,25 @@ import { Environment } from '../../types'
 // the OG route, and the OG queue consumer). This module imports nothing from those files so it can
 // be depended on from any of them without creating an import cycle.
 
+// Shared by the OG route and the board view read. `if-none-match` is a list, each entry optionally weak-prefixed and quoted; R2's `etag` is the bare
+// value, so both sides are normalised before comparing.
+export function etagMatches(ifNoneMatch: string, etag: string) {
+	return ifNoneMatch
+		.split(',')
+		.map((candidate) => candidate.trim().replace(/^W\//, '').replace(/^"|"$/g, ''))
+		.some((candidate) => candidate === '*' || candidate === etag)
+}
+
+// Whether a stored image still depicts the board's current content, which every surface serving one
+// records as its `cacheStatus` telemetry dimension: a hit-rate panel that always read 100% hit could
+// not tell a healthy cache from one serving years-old tiles.
+//
+// Takes the version rather than the resolved board so this module keeps importing nothing from the
+// render modules.
+export function cacheStatusOf(cached: R2Object, version: string | number): 'hit' | 'stale' {
+	return cached.customMetadata?.version === String(version) ? 'hit' : 'stale'
+}
+
 // A rate limit binding could not be consulted. Distinct from every other failure on these routes
 // because nothing the caller did caused it and nothing they can do fixes it: the work was never
 // attempted, so telling them the database or the renderer failed sends them, and whoever reads the
@@ -94,7 +113,7 @@ function classifyBrowserRenderFailure(error: BrowserRenderError): string {
 // Caller-facing explanation for a classified failure, as a clause to follow a tool's own prefix.
 // Derived from the bounded reason code and never from `error.message`: these tools answer anonymous,
 // unauthenticated callers, and Postgres and R2 errors carry internal hostnames, ports, and database
-// usernames (the pool is built from BOTCOM_POSTGRES_POOLED_CONNECTION_STRING). The unbounded
+// usernames (from the pool's connection string). The unbounded
 // original still reaches Sentry through reportThumbnailError, which is where it is useful.
 export function describeThumbnailFailure(reason: string): string {
 	switch (reason) {
@@ -138,6 +157,8 @@ export type ThumbnailErrorSurface =
 	// for a browser session per call again, which is the thing that cache exists to stop.
 	| 'mcp_cluster_index_read'
 	| 'mcp_cluster_index_write'
+	// The authenticated owner-facing thumbnail route (getBoardThumbnail.ts).
+	| 'board_view'
 
 // Every thumbnail/OG surface swallows its own errors — the OG route falls back to the default image,
 // the snapshot route 404s, the MCP tools return a tool error, the queue retries or drops. Right for

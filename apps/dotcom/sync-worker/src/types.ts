@@ -33,6 +33,7 @@ export interface Environment {
 
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
+	HYPERDRIVE?: Hyperdrive
 
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
 	PLAIN_API_KEY?: string
@@ -79,6 +80,8 @@ export interface Environment {
 	ASSET_UPLOAD_ORIGIN: string | undefined
 	USER_CONTENT_URL: string | undefined
 	MULTIPLAYER_SERVER: string | undefined
+	/** The zero-cache clients of this deployment connect to; what `/app/zero/schema` hands out. */
+	ZERO_SERVER: string | undefined
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 	HEALTH_CHECK_DB_SIZE_THRESHOLD_GB: string | undefined
@@ -243,7 +246,7 @@ export type TLServerEvent =
 			| { outcome: 'skipped'; reason: 'keyframe-size'; keyframeBytes: number }
 	  ))
 	| {
-			/** A chain write failed in dual mode and was swallowed so the persist could complete. */
+			/** A chain write outlasted its retries and was swallowed so the persist could complete. */
 			type: 'version_chain_error'
 	  }
 	| {

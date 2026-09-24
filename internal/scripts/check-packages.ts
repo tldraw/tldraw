@@ -21,9 +21,9 @@ const expectedPackageJsonScriptsForAll = {
 }
 
 const expectedTestScripts = {
-	test: () => 'yarn run -T vitest --passWithNoTests',
-	'test-ci': () => 'yarn run -T vitest run --passWithNoTests',
-	'test-coverage': () => 'yarn run -T vitest run --coverage --passWithNoTests',
+	test: () => 'pnpm exec vitest --passWithNoTests',
+	'test-ci': () => 'pnpm exec vitest run --passWithNoTests',
+	'test-coverage': () => 'pnpm exec vitest run --coverage --passWithNoTests',
 }
 
 // packages (in packages/) should have these scripts
@@ -44,7 +44,7 @@ const expectedPackageJsonScriptsForPublishedLibraries = {
 	'build-api': tsScript('build-api.ts'),
 	prepack: tsScript('prepack.ts'),
 	postpack: (packageDir: string) => scriptPath(packageDir, 'postpack.sh'),
-	'pack-tarball': () => 'yarn pack',
+	'pack-tarball': () => 'pnpm pack',
 }
 
 // individual packages can have different scripts than the above if needed
@@ -69,7 +69,7 @@ const packageJsonScriptExceptions: Record<string, Record<string, () => string | 
 	'create-tldraw': {
 		build: () => './scripts/build.sh',
 		'build-api': () => undefined,
-		prepack: () => 'yarn build',
+		prepack: () => 'pnpm build',
 		postpack: () => undefined,
 	},
 }
@@ -113,7 +113,7 @@ async function checkPackageJsonScripts({
 					[
 						'❌ ',
 						kleur.red(`${name}: `),
-						kleur.blue(`$ yarn ${scriptName}`),
+						kleur.blue(`$ pnpm ${scriptName}`),
 						kleur.grey(' -> '),
 						kleur.red(actualScript ?? '<missing>'),
 						kleur.gray(' (expected: '),
@@ -129,7 +129,7 @@ async function checkPackageJsonScripts({
 					[
 						'✅ ',
 						kleur.green(`${name}: `),
-						kleur.blue(`$ yarn ${scriptName}`),
+						kleur.blue(`$ pnpm ${scriptName}`),
 						kleur.grey(' -> '),
 						kleur.green(actualScript ?? '<missing>'),
 					].join('')
@@ -246,7 +246,7 @@ async function checkTsConfigs({
 		}
 	}
 	if (numErrors > 0) {
-		nicelog('Run `yarn check-tsconfigs --fix` to fix these problems')
+		nicelog('Run `pnpm check-packages --fix` to fix these problems')
 		return false
 	}
 
@@ -258,7 +258,7 @@ function scriptPath(packageDir: string, scriptName: string) {
 }
 
 function tsScript(scriptName: string) {
-	return (packageDir: string) => `yarn run -T tsx ${scriptPath(packageDir, scriptName)}`
+	return (packageDir: string) => `pnpm exec tsx ${scriptPath(packageDir, scriptName)}`
 }
 
 async function checkLibraryContents({
@@ -383,7 +383,7 @@ async function checkProductMetadata({
 					await writeStringFile(licensePath, LICENSE_POINTER_CONTENTS)
 					nicelog(['⚠️ ', kleur.yellow(`${name}: `), 'added missing LICENSE.md'].join(''))
 				} else {
-					error(name, 'is missing LICENSE.md (run `yarn check-packages --fix`)')
+					error(name, 'is missing LICENSE.md (run `pnpm check-packages --fix`)')
 				}
 			}
 		}
@@ -481,10 +481,8 @@ async function group<T>(name: string, cb: () => Promise<T>) {
 // they must agree with each other, and everything else must agree with everything else.
 const ALLOWED_VERSION_DIVERGENCE: Record<string, { workspaces: string[]; reason: string }> = {
 	typescript: {
-		workspaces: ['templates/', 'apps/mcp-app'],
-		reason:
-			"templates are independently published starters, and mcp-app's extract-editor-api.ts " +
-			"needs the TS 5 compiler API that TS 7 doesn't export",
+		workspaces: ['templates/'],
+		reason: 'templates are independently published starters',
 	},
 }
 
@@ -578,8 +576,8 @@ async function checkDependencyVersions({
 	if (errorCount) {
 		nicelog(
 			fix
-				? kleur.yellow(`Fixed ${errorCount} errors. Run \`yarn\` to update the lockfile.`)
-				: kleur.red(`Found ${errorCount} errors. Run \`yarn check-packages --fix\` to fix them.`)
+				? kleur.yellow(`Fixed ${errorCount} errors. Run \`pnpm\` to update the lockfile.`)
+				: kleur.red(`Found ${errorCount} errors. Run \`pnpm check-packages --fix\` to fix them.`)
 		)
 		return fix
 	}

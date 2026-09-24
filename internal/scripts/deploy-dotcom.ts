@@ -367,7 +367,7 @@ async function main() {
 
 	await discord.step('setting up deploy', async () => {
 		// make sure the tldraw .css files are built:
-		await withTiming('prebuild assets', () => exec('yarn', ['lazy', 'prebuild']))
+		await withTiming('prebuild assets', () => exec('pnpm', ['exec', 'lazy', 'prebuild']))
 
 		// link to vercel and supabase projects:
 		await withTiming('vercel link', () =>
@@ -474,7 +474,7 @@ function getZeroUrl() {
 
 async function prepareDotcomApp() {
 	// pre-build the app:
-	await exec('yarn', ['build-app'], {
+	await exec('pnpm', ['build-app'], {
 		env: {
 			// the build script measures the finished bundle and sends the numbers to PostHog, so we
 			// can see the client's size over time. every deploy reports; the events carry
@@ -561,13 +561,13 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 		}
 		if (!dryRun) {
 			try {
-				await exec('yarn', ['wrangler', 'queues', 'info', queueName], { pwd: worker })
+				await exec('pnpm', ['exec', 'wrangler', 'queues', 'info', queueName], { pwd: worker })
 			} catch (_e) {
-				await exec('yarn', ['wrangler', 'queues', 'create', queueName], { pwd: worker })
+				await exec('pnpm', ['exec', 'wrangler', 'queues', 'create', queueName], { pwd: worker })
 			}
 		}
 	}
-	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
+	await exec('pnpm', ['--filter', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
 		env: {
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
@@ -593,6 +593,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			BOTCOM_POSTGRES_CONNECTION_STRING: env.BOTCOM_POSTGRES_CONNECTION_STRING,
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
+			ZERO_SERVER: getZeroUrl(),
 			DISCORD_FEEDBACK_WEBHOOK_URL: env.DISCORD_FEEDBACK_WEBHOOK_URL,
 			PLAIN_API_KEY: env.PLAIN_API_KEY,
 			PLAIN_LABEL_TYPE_ID: env.PLAIN_LABEL_TYPE_ID,
@@ -682,18 +683,8 @@ type ExecOpts = NonNullable<Parameters<typeof exec>[2]>
 // they want the non-interactive prompt skip.
 async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	return exec(
-		'yarn',
-		[
-			'run',
-			'-T',
-			'vercel',
-			command,
-			'--token',
-			env.VERCEL_TOKEN,
-			'--scope',
-			env.VERCEL_ORG_ID,
-			...args,
-		],
+		'pnpm',
+		['exec', 'vercel', command, '--token', env.VERCEL_TOKEN, '--scope', env.VERCEL_ORG_ID, ...args],
 		{
 			...opts,
 			env: {
@@ -959,7 +950,7 @@ const sentryEnv = {
 }
 
 const execSentry = (command: string, args: string[]) =>
-	exec(`yarn`, ['run', '-T', 'sentry-cli', command, ...args], { env: sentryEnv })
+	exec(`pnpm`, ['exec', 'sentry-cli', command, ...args], { env: sentryEnv })
 
 async function createSentryRelease() {
 	await execSentry('releases', ['new', sentryReleaseName])

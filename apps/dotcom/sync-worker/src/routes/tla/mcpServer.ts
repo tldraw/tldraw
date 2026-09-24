@@ -298,9 +298,21 @@ function writeMcpToolCallTelemetry(
 //
 // Reason and client are both closed vocabularies (see McpAuthRefusal and MCP_CLIENT_FAMILIES). No
 // token, subject, client id or board identity goes near this, in keeping with every other event here.
-function writeMcpAuthRefusalTelemetry(env: Environment, request: Request, reason: McpAuthRefusal) {
+//
+// `route` separates the MCP endpoint from the board thumbnail route, which accepts the same OAuth
+// tokens: without it a burst of refused thumbnail requests would read as MCP clients being turned away.
+export function writeMcpAuthRefusalTelemetry(
+	env: Environment,
+	request: Request,
+	reason: McpAuthRefusal,
+	route: 'mcp' | 'thumbnail'
+) {
 	writeDataPoint(undefined, env.MEASURE, env, 'mcp_server_auth_refusal', {
-		blobs: [`reason:${reason}`, `client:${normalizeMcpClient(request.headers.get('user-agent'))}`],
+		blobs: [
+			`reason:${reason}`,
+			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
+			`route:${route}`,
+		],
 	})
 }
 
@@ -360,7 +372,7 @@ export async function mcpServer(
 	// naming a public board, and requiring a token retires that deliberately.
 	const auth = await authenticateMcpRequest(request, env)
 	if (!auth.ok) {
-		writeMcpAuthRefusalTelemetry(env, request, auth.reason)
+		writeMcpAuthRefusalTelemetry(env, request, auth.reason, 'mcp')
 		return auth.response
 	}
 
