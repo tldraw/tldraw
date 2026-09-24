@@ -61,6 +61,7 @@ import {
 import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
 import { ZERO_SERVER } from '../../utils/config'
+import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
@@ -195,6 +196,9 @@ export class TldrawApp {
 
 	/** Whether this user gets the commenting UI — see {@link shouldEnableCommenting}. */
 	readonly isCommentingEnabled: boolean
+	/** The signed-in account's email, for the first-load report gate. */
+	readonly email: string | null
+	readonly isFirstLoadRumEnabled: boolean
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -262,6 +266,8 @@ export class TldrawApp {
 		this.navigate = navigate
 		this.trackEvent = trackEvent
 		this.getToken = getToken
+		this.email = email ?? null
+		this.isFirstLoadRumEnabled = flags.first_load_rum?.enabled ?? false
 		this.isCommentingEnabled = shouldEnableCommenting(flags, email).value
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
@@ -403,8 +409,9 @@ export class TldrawApp {
 		if (!token) throw new Error('No auth token available for init')
 		const res = await fetch(`/api/app/${this.userId}/init`, {
 			method: 'POST',
-			headers: { Authorization: `Bearer ${token}` },
+			headers: { Authorization: `Bearer ${token}`, 'x-tldraw-load-id': getFirstLoadId() },
 		})
+		markFirstLoad('init-done')
 		// A failed init only matters if the user row never shows up: returning users whose row
 		// already exists should still load through a transient worker error.
 		const initError = res.ok ? undefined : new Error(`Init failed: ${res.status}`)
@@ -478,6 +485,7 @@ export class TldrawApp {
 				if (this.user$.get()) userLoaded.resolve()
 			})
 			await Promise.race([userLoaded, timedOut])
+			markFirstLoad('zero-user-synced')
 		} finally {
 			signal?.removeEventListener('abort', onAbort)
 			document.removeEventListener('visibilitychange', onVisibilityChange)
@@ -488,6 +496,7 @@ export class TldrawApp {
 			this.z.preload(queries.fileStates()).complete,
 			this.z.preload(queries.workspaceMemberships()).complete,
 		])
+		markFirstLoad('zero-preloaded')
 	}
 
 	messages = defineMessages({
@@ -567,6 +576,22 @@ export class TldrawApp {
 	dispose() {
 		this.disposables.forEach((d) => d())
 		// this.store.dispose()
+	}
+
+	/**
+	 * Drops this user's Zero replica from IndexedDB. Zero keeps synced data on disk across sign-out
+	 * so the next sign-in is fast, which leaks the previous user's files on shared machines. Safe to
+	 * call after dispose(): delete() closes the instance first, and close() is idempotent.
+	 */
+	async deleteLocalData() {
+		try {
+			const { errors } = await this.z.delete()
+			for (const error of errors) {
+				captureException(error)
+			}
+		} catch (error) {
+			captureException(error)
+		}
 	}
 
 	getUser() {

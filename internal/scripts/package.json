@@ -36,7 +36,8 @@
 		"@types/diff": "^7.0.1",
 		"@types/is-ci": "^3.0.4",
 		"@types/node": "^22.15.31",
-		"@types/pg": "^8.11.11",
+		"@types/pg": "^8.16.0",
+		"@types/semver": "^7.5.8",
 		"ast-types": "^0.14.2",
 		"cross-fetch": "^3.2.0",
 		"esbuild": "^0.28.0",
@@ -51,12 +52,10 @@
 		"rimraf": "^4.4.1",
 		"semver": "^7.6.3",
 		"svgo": "^3.3.3",
-		"typescript": "^7.0.2",
-		"vite": "^8.0.16",
-		"vite-plugin-circular-dependency": "^0.5.0"
+		"typescript": "^7.0.2"
 	},
 	"scripts": {
-		"lint": "yarn run -T tsx lint.ts"
+		"lint": "pnpm exec tsx lint.ts"
 	},
 	"dependencies": {
 		"@lokalise/node-api": "^12.8.0",

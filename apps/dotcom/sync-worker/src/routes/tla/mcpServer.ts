@@ -23,7 +23,7 @@ import {
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	MCP_SERVER_INFO,
-	MCP_SERVER_INSTRUCTIONS,
+	getMcpServerInstructions,
 	PAGE_INFO_TOOL_NAME,
 	PageSelector,
 	ResolvedPageOk,
@@ -214,12 +214,16 @@ interface JsonRpcRequest {
 	}
 }
 
-// Runtime kill switch for the whole MCP server, read per request so flipping MCP_SCREENSHOT_ENABLED
-// takes effect on the next request rather than the next build. An unset var means enabled, so
-// environments that never configure it (previews, local dev, tests) keep working; a var that is set
-// must say 'true', so a stray value disables rather than silently leaving the endpoint up.
-export function isMcpScreenshotEnabled(env: Environment) {
-	const word = envFlagWord(env.MCP_SCREENSHOT_ENABLED)
+// Whether search_boards will match on board names. Unset means enabled, so previews, local dev and
+// tests keep working, while a set value must say 'true' so a stray one turns matching off rather
+// than leaving it on.
+//
+// It gates the one part of the search no index reaches — `name ILIKE '%term%'`, which reads every
+// board in the caller's scope when a term matches nothing. Turning it off does not silently drop the
+// terms: a query with them is refused, and the tool stops advertising `query` at all. Serving
+// unfiltered boards to a model that asked for "roadmap" would be read as twenty matches.
+export function isMcpSearchNameMatchingEnabled(env: Environment) {
+	const word = envFlagWord(env.MCP_SEARCH_NAME_MATCHING_ENABLED)
 	return word === undefined || word === 'true'
 }
 
@@ -284,9 +288,21 @@ function writeMcpToolCallTelemetry(
 //
 // Reason and client are both closed vocabularies (see McpAuthRefusal and MCP_CLIENT_FAMILIES). No
 // token, subject, client id or board identity goes near this, in keeping with every other event here.
-function writeMcpAuthRefusalTelemetry(env: Environment, request: Request, reason: McpAuthRefusal) {
+//
+// `route` separates the MCP endpoint from the board thumbnail route, which accepts the same OAuth
+// tokens: without it a burst of refused thumbnail requests would read as MCP clients being turned away.
+export function writeMcpAuthRefusalTelemetry(
+	env: Environment,
+	request: Request,
+	reason: McpAuthRefusal,
+	route: 'mcp' | 'thumbnail'
+) {
 	writeDataPoint(undefined, env.MEASURE, env, 'mcp_server_auth_refusal', {
-		blobs: [`reason:${reason}`, `client:${normalizeMcpClient(request.headers.get('user-agent'))}`],
+		blobs: [
+			`reason:${reason}`,
+			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
+			`route:${route}`,
+		],
 	})
 }
 
@@ -334,12 +350,6 @@ export async function mcpServer(
 	env: Environment,
 	ctx?: ExecutionContext
 ): Promise<Response> {
-	// Checked before anything else, including the method check, so a disabled server looks like it
-	// isn't there at all rather than like a route that exists but rejects everything.
-	if (!isMcpScreenshotEnabled(env)) {
-		return new Response('Not Found', { status: 404 })
-	}
-
 	// new MCP spec (2026-07-28 onwards) no longer allows get or delete requests
 	if (request.method !== 'POST') {
 		return new Response('MCP screenshot server expects POST', { status: 405 })
@@ -351,7 +361,7 @@ export async function mcpServer(
 	// naming a public board, and requiring a token retires that deliberately.
 	const auth = await authenticateMcpRequest(request, env)
 	if (!auth.ok) {
-		writeMcpAuthRefusalTelemetry(env, request, auth.reason)
+		writeMcpAuthRefusalTelemetry(env, request, auth.reason, 'mcp')
 		return auth.response
 	}
 
@@ -373,7 +383,7 @@ export async function mcpServer(
 			protocolVersion: MCP_PROTOCOL_VERSION_LEGACY,
 			capabilities: { tools: {} },
 			serverInfo: MCP_SERVER_INFO,
-			instructions: MCP_SERVER_INSTRUCTIONS,
+			instructions: getMcpServerInstructions(isMcpSearchNameMatchingEnabled(env)),
 		})
 	}
 
@@ -391,7 +401,7 @@ export async function mcpServer(
 			resultType: 'complete',
 			supportedVersions: SUPPORTED_PROTOCOL_VERSIONS,
 			capabilities: { tools: {} },
-			instructions: MCP_SERVER_INSTRUCTIONS,
+			instructions: getMcpServerInstructions(isMcpSearchNameMatchingEnabled(env)),
 			ttlMs: TOOLS_LIST_TTL_MS,
 			cacheScope: TOOLS_LIST_CACHE_SCOPE,
 			_meta: { [META_SERVER_INFO]: MCP_SERVER_INFO },
@@ -420,7 +430,7 @@ export async function mcpServer(
 				rpcRequest.id,
 				withResultEnvelope(
 					{
-						tools: getToolDefinitions(),
+						tools: getToolDefinitions(isMcpSearchNameMatchingEnabled(env)),
 						...(era === 'modern'
 							? { ttlMs: TOOLS_LIST_TTL_MS, cacheScope: TOOLS_LIST_CACHE_SCOPE }
 							: {}),
@@ -622,7 +632,9 @@ async function callSearchBoardsTool(
 	userId: string,
 	ctx?: ExecutionContext
 ) {
-	const parsed = parseToolInput(() => parseSearchBoardsInput(argumentsValue))
+	const parsed = parseToolInput(() =>
+		parseSearchBoardsInput(argumentsValue, isMcpSearchNameMatchingEnabled(env))
+	)
 	if (!parsed.ok) return parsed.result
 	const input = parsed.input
 
@@ -1208,6 +1220,12 @@ async function renderShapeSetScreenshot(
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			telemetry: { source: 'mcp' },
 			content: summarizeSnapshotContent(resolved.snapshot, resolved.page.pageId),
+			// Preview trial (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts): let the screenshot
+			// rasterize the live canvas instead of running editor.toImage in the page. Agent-facing
+			// only — the OG surface keeps the export path's pixel-exact sizing.
+			...(envFlagWord(env.THUMBNAIL_RENDER_LIVE_CAPTURE) === 'true'
+				? { capture: 'live' as const }
+				: null),
 		})
 
 		// The render is already paid for and the PNG in hand is what the caller asked for, so a failed

@@ -127,15 +127,20 @@ export interface Environment {
 	// non-functional local binding and the render path fails closed; real local captures need
 	// `wrangler dev --remote` with credentials or a preview deploy. Undefined in tests.
 	BROWSER: BrowserBinding | undefined
-	// Kill switch for the MCP screenshot server (POST /app/mcp). Absent means enabled, so an
-	// environment that never configured it behaves as it did before the flag existed. Anything other
-	// than 'true' turns the endpoint off, so a typo fails in the safe direction. Editing this var in
-	// the Cloudflare dashboard takes the server down without a rebuild or a code deploy — but the
-	// next deploy restores the wrangler.toml value, so follow an emergency flip with a config change.
-	MCP_SCREENSHOT_ENABLED: string | undefined
+	/**
+	 * Whether `search_boards` will match on board names. Unset means yes, so previews, local dev and
+	 * tests keep working; production sets it to "false" while the unindexed `ILIKE` scan it drives is
+	 * still being watched.
+	 */
+	MCP_SEARCH_NAME_MATCHING_ENABLED: string | undefined
 	// Origin serving the client thumbnail render page (THUMBNAIL_RENDER_PATH). Set per
 	// environment in wrangler.toml.
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
+	// 'true' opts MCP screenshots into live-canvas capture: the page prunes the canvas to the
+	// requested shapes, settles and fits, and the screenshotting browser rasterizes it instead of
+	// the page exporting itself. Skips the export phase, the expensive part on heavy boards, at the
+	// cost of the export path's pixel-exact sizing. Off everywhere it is unset.
+	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected
@@ -162,7 +167,7 @@ export function isDebugLogging(env: Environment) {
 
 /**
  * The word a boolean-ish env var holds: trimmed, lowercased, with unset and empty folded together.
- * Used by MCP_SCREENSHOT_ENABLED. Kept as a shared helper rather than inlined so a second
+ * Used by MCP_SEARCH_NAME_MATCHING_ENABLED. Kept as a shared helper rather than inlined so a second
  * boolean-ish var cannot arrive parsing its value differently — each call site keeps its own
  * fail-safe direction, this owns what a value *is*.
  */

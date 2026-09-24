@@ -10,6 +10,7 @@ import {
 	TLShapeId,
 } from '@tldraw/tlschema'
 import {
+	CompiledQuery,
 	DummyDriver,
 	Kysely,
 	PostgresAdapter,
@@ -1065,46 +1066,47 @@ describe('liveCommentDocuments', () => {
 })
 
 describe('loadCommentDocuments', () => {
-	function makeFakeDb(rows: {
-		comment_thread: unknown[]
-		comment: unknown[]
-		comment_reaction: unknown[]
+	// Answers every query with `row` and records the SQL, standing in for a real connection.
+	function makeFakeDb(row: {
+		threadRows: unknown[]
+		commentRows: unknown[]
+		reactionRows: unknown[]
 	}) {
-		const outerSelects: string[] = []
-		const boundSelects: string[] = []
-		let connectionCount = 0
-		const makeSelectFrom = (log: string[]) => (table: keyof typeof rows) => {
-			log.push(table)
-			return {
-				where: () => ({ selectAll: () => ({ execute: async () => rows[table] }) }),
-			}
-		}
-		const boundDb = { selectFrom: makeSelectFrom(boundSelects) }
-		const db: any = {
-			selectFrom: makeSelectFrom(outerSelects),
-			connection: () => ({
-				execute: async (cb: (conn: any) => Promise<any>) => {
-					connectionCount++
-					return cb(boundDb)
-				},
-			}),
-		}
-		return {
-			db,
-			outerSelects,
-			boundSelects,
-			get connectionCount() {
-				return connectionCount
+		const queries: string[] = []
+		const db = new Kysely<DB>({
+			dialect: {
+				createAdapter: () => new PostgresAdapter(),
+				createDriver: () => ({
+					init: async () => {},
+					acquireConnection: async () => ({
+						executeQuery: async (query: CompiledQuery) => {
+							queries.push(query.sql)
+							return { rows: [row] as any[] }
+						},
+						streamQuery: () => {
+							throw new Error('not supported')
+						},
+					}),
+					beginTransaction: async () => {},
+					commitTransaction: async () => {},
+					rollbackTransaction: async () => {},
+					releaseConnection: async () => {},
+					destroy: async () => {},
+				}),
+				createIntrospector: (db) => new PostgresIntrospector(db),
+				createQueryCompiler: () => new PostgresQueryCompiler(),
 			},
-		}
+		})
+		return { db, queries }
 	}
 
-	it('runs all three queries on one checked-out connection', async () => {
-		const fake = makeFakeDb({ comment_thread: [], comment: [], comment_reaction: [] })
+	it('loads all three tables in one statement', async () => {
+		const fake = makeFakeDb({ threadRows: [], commentRows: [], reactionRows: [] })
 		await loadCommentDocuments(fake.db, 'file1')
-		expect(fake.connectionCount).toBe(1)
-		expect(fake.boundSelects.sort()).toEqual(['comment', 'comment_reaction', 'comment_thread'])
-		expect(fake.outerSelects).toEqual([])
+		expect(fake.queries).toHaveLength(1)
+		for (const table of ['comment_thread', 'comment', 'comment_reaction']) {
+			expect(fake.queries[0]).toContain(`from "${table}" where "fileId" = $`)
+		}
 	})
 
 	it('returns the live documents and clock floor for the rows', async () => {
@@ -1141,11 +1143,7 @@ describe('loadCommentDocuments', () => {
 			commentRecordToRow(deletedThreadComment, 'file1', 51),
 		]
 		const reactionRows = [reactionRecordToRow(reaction, 'file1', 45)]
-		const fake = makeFakeDb({
-			comment_thread: threadRows,
-			comment: commentRows,
-			comment_reaction: reactionRows,
-		})
+		const fake = makeFakeDb({ threadRows, commentRows, reactionRows })
 		const expected = liveCommentDocuments(threadRows, commentRows, reactionRows)
 		expect(await loadCommentDocuments(fake.db, 'file1')).toEqual(expected)
 		expect(expected.documents.map((d) => d.state.id)).toEqual([thread.id, comment.id, reaction.id])

@@ -2,7 +2,7 @@
  * Benchmark script for @tldraw/validate number validators
  *
  * Usage:
- *   yarn tsx internal/scripts/benchmark-validators.ts
+ *   pnpm exec tsx internal/scripts/benchmark-validators.ts
  *
  * This script measures the performance of the numeric validators in @tldraw/validate.
  * It runs multiple iterations to get stable measurements after JIT warmup.

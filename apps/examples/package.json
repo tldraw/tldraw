@@ -30,7 +30,7 @@
 		"dev": "vite --host",
 		"preview": "vite preview --host",
 		"build": "vite build",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
 		"e2e": "NODE_OPTIONS='--no-strip-types' playwright test -c ./e2e/playwright.config.ts ./e2e/tests/",
 		"e2e-ui": "NODE_OPTIONS='--no-strip-types' playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/",
 		"e2e-perf": "NODE_OPTIONS='--no-strip-types' playwright test -c ./e2e/playwright.config.ts ./e2e/perf/",
@@ -38,9 +38,9 @@
 		"e2e-mermaid-readability": "NODE_OPTIONS='--no-strip-types' playwright test -c ./e2e/playwright.config.ts ./e2e/mermaid-readability/ --project=chromium",
 		"e2e-device-ios": "wdio run ./e2e-device/wdio.ios.conf.ts",
 		"e2e-device-android": "wdio run ./e2e-device/wdio.android.conf.ts",
-		"test": "yarn run -T vitest --passWithNoTests",
-		"test-ci": "yarn run -T vitest run --passWithNoTests",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
 		"@dimforge/rapier2d-compat": "^0.19.3",
@@ -63,6 +63,7 @@
 		"axe-core": "^4.10.3",
 		"classnames": "^2.5.1",
 		"d3-geo": "^3.1.1",
+		"katex": "^0.18.1",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
 		"mermaid": "11.16.1",
@@ -80,6 +81,7 @@
 	},
 	"devDependencies": {
 		"@types/d3-geo": "^3.1.0",
+		"@types/katex": "^0.16.8",
 		"@types/lodash": "^4.17.14",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",

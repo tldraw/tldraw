@@ -15,7 +15,7 @@
 // shared between rooms.
 //
 // Schema migrations are handled for you: welcome.test.ts keeps the JSON baked at the current
-// schema, so when a migration touches these records the test fails and `yarn test -u` re-bakes
+// schema, so when a migration touches these records the test fails and `pnpm test -u` re-bakes
 // `assets/welcome-snapshot.json`. Only redesigning the default canvas needs a manual
 // re-export: open a file in the app, build the content, and rebuild the RoomSnapshot JSON
 // ({ documentClock: 0, tombstoneHistoryStartsAtClock: 0, schema, documents: records.map(
