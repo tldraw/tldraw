@@ -12,13 +12,13 @@ import {
 	TLUiDialogsContextType,
 	TLUserStore,
 	Tldraw,
-	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuItem,
 	UserRecordType,
 	commentSchemaRecords,
 	computed,
 	createSessionStateSnapshotSignal,
 	createUserId,
+	debugFlags,
 	react,
 	throttle,
 	tltime,
@@ -429,25 +429,17 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	)
 }
 
+const DOTCOM_DEBUG_FLAGS = { ...debugFlags, logFirstLoad: firstLoadDebugFlag }
+
 function CustomDebugMenu() {
 	const app = useMaybeApp()
 	const user = useTldrawCurrentUser()
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
 	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
-	const logFirstLoad = useValue(firstLoadDebugFlag)
 	return (
 		<DefaultDebugMenu>
 			<A11yAudit />
-			<TldrawUiMenuCheckboxItem
-				id="log-first-load"
-				label="Log first load (applies on reload)"
-				checked={logFirstLoad}
-				readonlyOk
-				onSelect={() => {
-					firstLoadDebugFlag.set(!logFirstLoad)
-				}}
-			/>
 			{!isReadOnly && app && user?.isTldraw && (
 				<TldrawUiMenuItem
 					id="user-manual"
@@ -460,7 +452,7 @@ function CustomDebugMenu() {
 					}}
 				/>
 			)}
-			<DefaultDebugMenuContent />
+			<DefaultDebugMenuContent customDebugFlags={DOTCOM_DEBUG_FLAGS} />
 		</DefaultDebugMenu>
 	)
 }
