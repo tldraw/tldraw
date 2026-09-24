@@ -46,7 +46,7 @@ npm i -g corepack && pnpm install
 
 Coming from Yarn (a checkout, worktree or branch from before the pnpm switch):
 
-- If `pnpm install` stops with "Found a node_modules installed by Yarn", run the command it prints. It deletes every `node_modules` and `.yarn`, then reinstalls.
+- If an install stops with "This repo uses pnpm. Run:", run the commands it lists, in order. They clear out Yarn's install (every `node_modules` and `.yarn`), set up pnpm if needed, and reinstall.
 - When merging main into an older branch: delete `yarn.lock` if it conflicts (`git rm yarn.lock`). If `pnpm-lock.yaml` conflicts, take main's copy (`git checkout origin/main -- pnpm-lock.yaml`) and run `pnpm install` to add the branch's dependency changes. Never hand-edit the lockfile.
 - Replace `yarn <script>` with `pnpm <script>`, and `yarn workspace <pkg> <script>` with `pnpm --filter <pkg> <script>`.
 
