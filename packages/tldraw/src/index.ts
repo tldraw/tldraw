@@ -52,6 +52,14 @@ export {
 	type TLUiMenuToolItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
 export { DefaultToasts } from './lib/ui/components/Toasts'
+export {
+	F,
+	PSEUDO_LOCALES,
+	isPseudoLocale,
+	useMsg,
+	useTldrawI18n,
+	type TLUiMessageProps,
+} from './lib/ui/context/i18n'
 export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
 // eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/editor'
@@ -820,6 +828,7 @@ export {
 	useTranslation,
 	type TLUiTranslationContextType,
 	type TLUiTranslationProviderProps,
+	type TLUiTranslationValues,
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { iconTypes, type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrideHelpers, type TLUiOverrides } from './lib/ui/overrides'

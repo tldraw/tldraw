@@ -38,7 +38,7 @@ import {
 	resolveThread,
 } from './comment-mutations'
 import { CommentReactionPicker, CommentReactions } from './comment-reactions'
-import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
+import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { useIsMobileCommenting, useMobilePlacement } from './mobile-placement'
@@ -568,10 +568,9 @@ export const ThreadView = memo(function ThreadView({
 			comments={cards}
 			resolvedBanner={
 				thread.resolved
-					? msg('comments.resolved-by').replace(
-							'{name}',
-							resolveAuthor(thread.resolved.by)?.name ?? UNKNOWN_AUTHOR
-						)
+					? msg('comments.resolved-by', {
+							name: resolveAuthor(thread.resolved.by)?.name ?? msg('comments.unknown-author'),
+						})
 					: undefined
 			}
 			composer={

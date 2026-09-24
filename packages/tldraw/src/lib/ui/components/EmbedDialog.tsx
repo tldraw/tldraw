@@ -96,7 +96,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 											href={embedDefinition.instructionLink}
 											className="tlui-embed-dialog__instruction__link"
 										>
-											Learn more
+											{msg('embed-dialog.learn-more')}
 										</a>
 										.
 									</>

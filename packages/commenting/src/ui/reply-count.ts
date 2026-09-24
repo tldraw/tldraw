@@ -11,6 +11,5 @@ export function replyCountLabel(
 	replyCount: number
 ): string | null {
 	if (replyCount <= 0) return null
-	const key = replyCount === 1 ? 'comments.replies-one' : 'comments.replies'
-	return msg(key).replace('{count}', String(replyCount))
+	return msg('comments.replies', { count: replyCount })
 }

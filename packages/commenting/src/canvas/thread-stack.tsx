@@ -8,7 +8,6 @@ import {
 } from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
 import { CountBadge } from '../ui/count-badge'
-import { UNKNOWN_AUTHOR } from './comment-render'
 import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { useCommentingOptions } from './options'
@@ -137,7 +136,7 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 					ref={badgeRef}
 					type="button"
 					className="tlui-cmt-button tlui-cmt-canvas-stack-badge"
-					aria-label={msg('comments.stack-label').replace('{count}', String(threads.length))}
+					aria-label={msg('comments.stack-label', { count: threads.length })}
 					aria-expanded={open}
 					onPointerDown={(e) => e.stopPropagation()}
 					onClick={(e) => {
@@ -227,9 +226,9 @@ function StackThreadCard({
 			<button
 				type="button"
 				className="tlui-cmt-button tlui-cmt-stack-list__card-action"
-				aria-label={msg(
-					thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label'
-				).replace('{name}', props.resolveAuthor(thread.createdBy)?.name ?? UNKNOWN_AUTHOR)}
+				aria-label={msg(thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label', {
+					name: props.resolveAuthor(thread.createdBy)?.name ?? msg('comments.unknown-author'),
+				})}
 				onClick={open}
 			/>
 			<CommentCard {...toCardProps(first, props, options.components, resolveName)} />

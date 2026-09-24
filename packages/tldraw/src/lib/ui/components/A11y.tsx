@@ -97,7 +97,7 @@ export function generateShapeAnnouncementMessage(args: {
 	const numShapes = selectedShapeIds.length
 
 	if (numShapes > 1) {
-		return msg('a11y.multiple-shapes').replace('{num}', numShapes.toString())
+		return msg('a11y.multiple-shapes', { num: numShapes })
 	}
 	if (numShapes !== 1) return ''
 
@@ -107,20 +107,22 @@ export function generateShapeAnnouncementMessage(args: {
 
 	const shapeUtil = editor.getShapeUtil(shape.type)
 
-	// Yeah, yeah this is a bit of a hack, we should get better translations.
+	// A shape util can name itself via an ICU message; otherwise fall back to the key lookup.
 	const shapeType =
-		shape.type === 'geo'
+		shapeUtil.getShapeName(shape) ??
+		(shape.type === 'geo'
 			? msg(`geo-style.${(shape as TLGeoShape).props.geo}`)
 			: shape.type === 'image' || shape.type === 'video'
 				? msg(`a11y.shape-${shape.type}`)
-				: msg(`tool.${shape.type}`)
+				: msg(`tool.${shape.type}`))
 
 	// Get shape index in reading order
 	const readingOrderShapes = editor.getCurrentPageShapesInReadingOrder()
-	const currentShapeIndex = (readingOrderShapes.findIndex((s) => s.id === shapeId) + 1).toString()
-	const shapeIndex = msg('a11y.shape-index')
-		.replace('{num}', currentShapeIndex)
-		.replace('{total}', readingOrderShapes.length.toString())
+	const currentShapeIndex = readingOrderShapes.findIndex((s) => s.id === shapeId) + 1
+	const shapeIndex = msg('a11y.shape-index', {
+		num: currentShapeIndex,
+		total: readingOrderShapes.length,
+	})
 
 	// Get describing text (alt text or shape text)
 	const describingText = shapeUtil.getAriaDescriptor(shape) || shapeUtil.getText(shape) || ''
