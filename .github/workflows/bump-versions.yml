@@ -13,6 +13,9 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+
 jobs:
   bump_versions:
     name: 'Bump package versions to latest tldraw version'
@@ -29,6 +32,7 @@ jobs:
           private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
 
       - name: Check out code
+        id: checkout
         uses: actions/checkout@v6
         with:
           persist-credentials: false
@@ -51,13 +55,13 @@ jobs:
         run: |
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
-          yarn tsx ./internal/scripts/bump-versions.ts
+          pnpm exec tsx ./internal/scripts/bump-versions.ts
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
-      # Earlier steps run before checkout, so re-fetch the local action on failure.
+      # Preserve the setup action for post-job cleanup when checkout already succeeded.
       - name: Check out Discord notify action
-        if: failure()
+        if: failure() && steps.checkout.outcome != 'success'
         uses: actions/checkout@v6
         with:
           sparse-checkout: .github/actions/discord-fail-notify

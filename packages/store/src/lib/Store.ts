@@ -405,13 +405,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private historyReactor: Reactor
 
 	/**
-	 * Function to dispose of any in-flight timeouts.
+	 * Cancels the history flush scheduled for the next frame, if any.
 	 *
 	 * @internal
 	 */
-	private cancelHistoryReactor(): void {
-		/* noop */
-	}
+	private cancelHistoryReactor: null | (() => void) = null
 
 	/**
 	 * The schema that defines the structure and validation rules for records in this store.
@@ -519,6 +517,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		// If we have accumulated history, flush it and update listeners
 		if (this.historyAccumulator.hasChanges()) {
 			const entries = this.historyAccumulator.flush()
+			const errors: unknown[] = []
 			for (const { changes, source } of entries) {
 				// Filtered diffs are computed at most once per scope per entry, and shared by every
 				// listener watching that scope.
@@ -527,23 +526,36 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					if (filters.source !== 'all' && filters.source !== source) {
 						continue
 					}
-					if (filters.scope === 'all') {
-						onHistory({ changes, source })
-						continue
+					let listenerChanges = changes
+					if (filters.scope !== 'all') {
+						if (!scopedChanges.has(filters.scope)) {
+							scopedChanges.set(filters.scope, this.filterChangesByScope(changes, filters.scope))
+						}
+						const filtered = scopedChanges.get(filters.scope)
+						if (!filtered) continue
+						listenerChanges = filtered
 					}
-					if (!scopedChanges.has(filters.scope)) {
-						scopedChanges.set(filters.scope, this.filterChangesByScope(changes, filters.scope))
+					// The entries are already dequeued, so a listener that throws must not stop the others
+					// (e.g. a sync client) from receiving them: deliver to all, then rethrow the first error.
+					try {
+						onHistory({ changes: listenerChanges, source })
+					} catch (error) {
+						errors.push(error)
 					}
-					const filtered = scopedChanges.get(filters.scope)
-					if (!filtered) continue
-					onHistory({ changes: filtered, source })
 				}
 			}
+			if (errors.length > 0) throw errors[0]
 		}
 	}
 
 	dispose() {
-		this.cancelHistoryReactor()
+		// Deliver what is still pending first: a change-set made in the same frame as the dispose
+		// would otherwise never reach the listeners (e.g. a sync client) still attached to the store.
+		try {
+			this._flushHistory()
+		} finally {
+			this.cancelHistoryReactor?.()
+		}
 	}
 
 	/**

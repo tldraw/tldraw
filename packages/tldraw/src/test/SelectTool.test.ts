@@ -5,6 +5,7 @@ import {
 	TLFrameShape,
 	TLGeoShape,
 	createShapeId,
+	debugFlags,
 	toRichText,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
@@ -105,10 +106,34 @@ describe('TLSelectTool.Idle', () => {
 		expect(editor.getShape<TLGeoShape>(ids.box1)!.props.geo).toBe('rectangle')
 		expect(editor.getOnlySelectedShapeId()).toBe(ids.box1)
 	})
+
+	it('Nudges by the large step with either Shift key held', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.select(shape.id)
+
+		editor.keyDown('Shift', { code: 'ShiftLeft' })
+		editor.keyDown('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp('Shift', { code: 'ShiftLeft' })
+		expect(editor.getShape(shape.id)?.x).toBe(110)
+
+		editor.keyDown('Shift', { code: 'ShiftRight' })
+		editor.keyDown('ArrowRight')
+		editor.keyUp('ArrowRight')
+		editor.keyUp('Shift', { code: 'ShiftRight' })
+		expect(editor.getShape(shape.id)?.x).toBe(120)
+	})
 })
 
-// todo: turn on feature flag for these tests or remove them
-describe.skip('Edit on type', () => {
+describe('Edit on type', () => {
+	beforeEach(() => {
+		debugFlags.editOnType.set(true)
+	})
+
+	afterEach(() => {
+		debugFlags.editOnType.reset()
+	})
+
 	it('Starts editing shape on key down if shape does auto-edit on key stroke', () => {
 		const id = createShapeId()
 		editor.createShapes([
@@ -133,7 +158,7 @@ describe.skip('Edit on type', () => {
 		expect(editor.getEditingShapeId()).not.toBe(shape.id)
 	})
 
-	it('Does not start editing on excluded keys', () => {
+	it.each(['[', ']', ' '])('Does not start editing on excluded key %j', (key) => {
 		const id = createShapeId()
 		editor.createShapes([
 			{
@@ -146,11 +171,13 @@ describe.skip('Edit on type', () => {
 		])!
 		const shape = editor.getShape(id)!
 		editor.select(shape.id)
-		editor.keyDown('Enter') // Press an excluded key
-		expect(editor.getEditingShapeId()).not.toBe(shape.id)
+		editor.keyDown(key)
+		expect(editor.getEditingShapeId()).toBe(null)
 	})
 
-	it('Ignores key down if altKey or ctrlKey is pressed', () => {
+	// One modifier per test: the driver ORs held modifiers into later key events, so pressing them
+	// in sequence would hide a missing check for any but the first.
+	it.each(['altKey', 'ctrlKey', 'metaKey'])('Ignores key down if %s is pressed', (modifier) => {
 		const id = createShapeId()
 		editor.createShapes([
 			{
@@ -163,12 +190,46 @@ describe.skip('Edit on type', () => {
 		])!
 		const shape = editor.getShape(id)!
 		editor.select(shape.id)
-		// Simulate altKey being pressed
-		editor.keyDown('a', { altKey: true })
-		// Simulate ctrlKey being pressed
-		editor.keyDown('a', { ctrlKey: true })
-		expect(editor.getEditingShapeId()).not.toBe(shape.id)
+		editor.keyDown('a', { [modifier]: true })
+		expect(editor.getEditingShapeId()).toBe(null)
 	})
+
+	it('Starts editing on a printable character outside the BMP', () => {
+		const id = createShapeId()
+		editor.createShapes([
+			{
+				id,
+				type: 'note',
+				x: 100,
+				y: 100,
+				props: { richText: toRichText('hello') },
+			},
+		])!
+		const shape = editor.getShape(id)!
+		editor.select(shape.id)
+		editor.keyDown('😀')
+		expect(editor.getEditingShapeId()).toBe(shape.id)
+	})
+
+	it.each(['F1', 'CapsLock', 'Escape', 'Home'])(
+		'Does not start editing on non-printable key %s',
+		(key) => {
+			const id = createShapeId()
+			editor.createShapes([
+				{
+					id,
+					type: 'note',
+					x: 100,
+					y: 100,
+					props: { richText: toRichText('hello') },
+				},
+			])!
+			const shape = editor.getShape(id)!
+			editor.select(shape.id)
+			editor.keyDown(key)
+			expect(editor.getEditingShapeId()).toBe(null)
+		}
+	)
 })
 
 describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () => {
@@ -206,6 +267,230 @@ describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () =>
 
 		expect(() => editor.pointerUp(shape.x + 10, shape.y + 10)).not.toThrow()
 		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not crash when dragging after a labelled arrow is deleted', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: { richText: toRichText('label'), start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.pointerDown(200, 100, { target: 'shape', shape })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.arrow1])
+
+		expect(() => editor.pointerMove(220, 120)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('returns to idle without reselecting a deleted shape on pointer move', () => {
+		editor.select(ids.box1)
+		const shape = editor.getShape(ids.box1)!
+		editor.pointerDown(150, 150, { target: 'shape', shape })
+
+		editor.deleteShapes([ids.box1])
+
+		editor.pointerMove(200, 200)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not reselect a deleted shape when a long press starts translating', () => {
+		editor.select(ids.box1)
+		const shape = editor.getShape(ids.box1)!
+		editor.pointerDown(150, 150, { target: 'shape', shape })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.box1])
+		editor.expectToBeIn('select.pointing_shape')
+
+		vi.advanceTimersByTime(editor.options.longPressDurationMs + 100)
+		editor.forceTick()
+
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.expectToBeIn('select.idle')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('still moves the label on ctrl-drag over a live arrow label', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: { richText: toRichText('label'), start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.pointerDown(200, 100, { target: 'shape', shape, accelKey: true })
+		editor.pointerMove(220, 120, { accelKey: true })
+		editor.expectToBeIn('select.pointing_arrow_label')
+	})
+
+	it('still brushes on ctrl-drag when the pointed shape is deleted', () => {
+		const shape = editor.getShape(ids.box1)!
+		editor.pointerDown(150, 150, { target: 'shape', shape, accelKey: true })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.box1])
+
+		editor.pointerMove(200, 200, { accelKey: true })
+		editor.expectToBeIn('select.brushing')
+	})
+})
+
+describe('TLSelectTool.PointingHandle when the shape is deleted before dragging', () => {
+	it('returns to idle without crashing when the pointed arrow is deleted', () => {
+		editor.createShape({ id: ids.arrow1, type: 'arrow', x: 100, y: 100 })
+		const shape = editor.getShape(ids.arrow1)!
+		const handle = editor.getShapeHandles(shape)!.find((handle) => handle.id === 'end')!
+		editor.select(shape.id).pointerDown(shape.x + handle.x, shape.y + handle.y, {
+			target: 'handle',
+			shape,
+			handle,
+		})
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.deleteShapes([shape.id])
+		editor.expectToBeIn('select.pointing_handle')
+
+		expect(() => editor.pointerMove(shape.x + handle.x + 50, shape.y + handle.y + 50)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getInstanceState().cursor.type).toBe('default')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not clone a deleted note when its clone handle is dragged', () => {
+		const noteId = createShapeId('note1')
+		editor.createShapes([{ id: noteId, type: 'note', x: 100, y: 100 }])
+		editor.select(noteId)
+		const shape = editor.getShape(noteId)!
+		const handle = editor.getShapeHandles(shape)!.find((h) => h.id === 'right')!
+		editor.pointerDown(300, 200, { target: 'handle', shape, handle })
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.deleteShapes([noteId])
+
+		editor.pointerMove(350, 200)
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'note')).toHaveLength(0)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
+	it('does not clone a deleted note when its clone handle is clicked', () => {
+		const noteId = createShapeId('note1')
+		editor.createShapes([{ id: noteId, type: 'note', x: 100, y: 100 }])
+		editor.select(noteId)
+		const shape = editor.getShape(noteId)!
+		const handle = editor.getShapeHandles(shape)!.find((h) => h.id === 'right')!
+		editor.pointerDown(300, 200, { target: 'handle', shape, handle })
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.deleteShapes([noteId])
+
+		editor.pointerUp(300, 200)
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'note')).toHaveLength(0)
+		expect(editor.getEditingShapeId()).toBeNull()
+	})
+})
+
+describe('TLSelectTool.PointingShape with selectLockedShapes', () => {
+	let editor: TestEditor
+
+	beforeEach(() => {
+		editor = new TestEditor({ options: { selectLockedShapes: true } })
+	})
+
+	it('keeps a selected locked shape selected when clicking it over another shape', () => {
+		const behind = createShapeId('behind')
+		const locked = createShapeId('locked')
+		editor.createShapes([
+			{ id: behind, type: 'geo', x: 0, y: 0, props: { w: 300, h: 300, fill: 'solid' } },
+			{
+				id: locked,
+				type: 'geo',
+				x: 100,
+				y: 100,
+				props: { w: 100, h: 100, fill: 'solid' },
+				isLocked: true,
+			},
+		])
+		editor.select(locked)
+		editor.pointerDown(150, 150).pointerUp(150, 150)
+		expect(editor.getSelectedShapeIds()).toEqual([locked])
+	})
+})
+
+describe('TLSelectTool.PointingShape with a rotated multi-selection', () => {
+	const a = createShapeId('a')
+	const b = createShapeId('b')
+	const c = createShapeId('c')
+
+	// Two boxes rotated 90 degrees as a group end up stacked, with the selection box standing
+	// on end at page x 350..450, y 150..550.
+	function setupRotatedPair() {
+		editor.deleteShapes([ids.box1]).createShapes([
+			{ id: a, type: 'geo', x: 200, y: 300, props: { w: 100, h: 100 } },
+			{ id: b, type: 'geo', x: 500, y: 300, props: { w: 100, h: 100 } },
+		])
+		editor.select(a, b)
+		editor.rotateShapesBy([a, b], Math.PI / 2)
+	}
+
+	function dragC() {
+		const aBefore = editor.getShapePageBounds(a)!.x
+		const cBefore = editor.getShapePageBounds(c)!.x
+		const p = editor.getShapePageBounds(c)!.center
+		editor
+			.pointerMove(p.x, p.y)
+			.pointerDown()
+			.pointerMove(p.x + 100, p.y)
+			.pointerUp()
+		return {
+			selection: [...editor.getSelectedShapeIds()],
+			pairMovedBy: Math.round(editor.getShapePageBounds(a)!.x - aBefore),
+			cMovedBy: Math.round(editor.getShapePageBounds(c)!.x - cBefore),
+		}
+	}
+
+	it('drags the selection when the pointed shape is inside the rotated bounds', () => {
+		setupRotatedPair()
+		// in the gap between a and b, inside the selection box
+		editor.createShape({
+			id: c,
+			type: 'geo',
+			x: 375,
+			y: 325,
+			props: { w: 50, h: 50, fill: 'solid' },
+		})
+		expect(dragC()).toEqual({ selection: [a, b], pairMovedBy: 100, cMovedBy: 0 })
+	})
+
+	it('drags the pointed shape when it is outside the rotated bounds', () => {
+		setupRotatedPair()
+		// getSelectionRotatedPageBounds returns the selection box with its rotation not yet
+		// applied, which for a 90 degree rotation does not overlap the box above. A shape here
+		// is outside the selection, however much the old containsPoint check disagreed.
+		const unrotated = editor.getSelectionRotatedPageBounds()!
+		editor.createShape({
+			id: c,
+			type: 'geo',
+			x: unrotated.center.x - 30,
+			y: unrotated.center.y - 30,
+			props: { w: 60, h: 60, fill: 'solid' },
+		})
+		expect(dragC()).toEqual({ selection: [c], pairMovedBy: 0, cMovedBy: 100 })
 	})
 })
 
@@ -586,6 +871,55 @@ describe('PointingLabel', () => {
 		)
 	})
 
+	it('returns to idle on pointer up when the arrow was deleted', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.select(shape.id)
+		editor.pointerDown(150, 100, { target: 'shape', shape })
+		editor.pointerMove(160, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+		editor.deleteShapes([ids.arrow1])
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('returns to idle on pointer up when the arrow cannot be edited', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
+		])
+		const shape = editor.getShape(ids.arrow1)!
+		editor.select(shape.id)
+		editor.updateInstanceState({ isReadonly: true })
+		editor.setCurrentTool('hand').setCurrentTool('select')
+		editor.pointerDown(150, 100, { target: 'shape', shape })
+		editor.pointerMove(160, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+
 	it('Doesnt go into pointing_arrow_label mode if not selecting the arrow shape', () => {
 		editor.createShapes([
 			{
@@ -754,6 +1088,66 @@ describe('When double clicking the selection edge', () => {
 
 		expect(editor.getEditingShapeId()).toBe(id)
 		expect(editor.getInstanceState().cursor.type).toBe('default')
+	})
+})
+
+describe('When a second press on a resize handle arrives as a double click', () => {
+	// The click manager reports a second press inside the double-click window as a pointer down
+	// followed by a double_click 'down'. The double click must not steal a press that becomes a
+	// drag (#9499 fixed the same thing for shape handles).
+	function pressAgain(handle: 'bottom_right' | 'bottom_right_rotate') {
+		editor.pointerDown(200, 200, { target: 'selection', handle })
+		editor.dispatch({
+			type: 'click',
+			name: 'double_click',
+			phase: 'down',
+			point: { x: 200, y: 200 },
+			pointerId: 1,
+			button: 0,
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+			target: 'selection',
+			handle,
+		})
+	}
+
+	it('still resizes when the second press becomes a drag', () => {
+		editor.select(ids.box1)
+		editor
+			.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right' })
+			.pointerUp(200, 200)
+		pressAgain('bottom_right')
+		editor.expectToBeIn('select.pointing_resize_handle')
+		editor.pointerMove(250, 250)
+		editor.expectToBeIn('select.resizing')
+		editor.pointerUp(250, 250)
+		expect(editor.getShape(ids.box1)!.props).toMatchObject({ w: 150, h: 150 })
+	})
+
+	it('still rotates when the second press on a rotate handle becomes a drag', () => {
+		editor.select(ids.box1)
+		editor
+			.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right_rotate' })
+			.pointerUp(200, 200)
+		pressAgain('bottom_right_rotate')
+		editor.expectToBeIn('select.pointing_rotate_handle')
+		editor.pointerMove(250, 100)
+		editor.expectToBeIn('select.rotating')
+	})
+
+	it('acts on the double click on pointer up when the second press is released in place', () => {
+		editor.select(ids.box1)
+		editor
+			.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right' })
+			.pointerUp(200, 200)
+		pressAgain('bottom_right')
+		editor.expectToBeIn('select.pointing_resize_handle')
+		editor.pointerUp(200, 200)
+		editor.expectToBeIn('select.editing_shape')
+		expect(editor.getEditingShapeId()).toBe(ids.box1)
 	})
 })
 

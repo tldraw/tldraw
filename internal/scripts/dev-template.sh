@@ -6,7 +6,7 @@ vite_args=("$@")
 workspace_root="$(git rev-parse --show-toplevel)"
 
 if [ -z "$template_name" ]; then
-    echo "Usage: yarn dev-template <template_name>"
+    echo "Usage: pnpm dev-template <template_name>"
     echo "Available templates: $(ls templates | awk 'ORS=", "' | sed 's/, $//')"
     exit 1
 fi
@@ -42,4 +42,4 @@ trap cleanup EXIT INT TERM
 cd "$workspace_root/templates/$template_name" || exit 1
 # Args are appended to the template's `dev` script, so they only reach vite for plain-vite templates.
 # For concurrently-wrapped or next.js templates they hit the wrapper/next instead.
-yarn dev "${vite_args[@]}"
+pnpm dev "${vite_args[@]}"

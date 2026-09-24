@@ -126,13 +126,13 @@ export class Brushing extends StateNode {
 		const originPagePoint = editor.inputs.getOriginPagePoint()
 		const currentPagePoint = editor.inputs.getCurrentPagePoint()
 		const shiftKey = editor.inputs.getShiftKey()
-		const ctrlKey = editor.inputs.getCtrlKey()
+		const accelKey = editor.inputs.getAccelKey()
 
 		// We'll be collecting shape ids of selected shapes; if we're holding shift key, we start from our initial shapes
 		const results = new Set(shiftKey ? this.initialSelectedShapeIds : [])
 
 		// In wrap mode, we need to completely enclose a shape to select it
-		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
+		const isWrapping = isWrapMode ? !accelKey : accelKey
 
 		// Set the brush to contain the current and origin points
 		const brush = Box.FromPoints([originPagePoint, currentPagePoint])

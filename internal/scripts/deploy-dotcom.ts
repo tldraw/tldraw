@@ -291,17 +291,18 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // fail with "invalid stop_config.timeout, cannot exceed 5 minutes").
 const zeroVmSizes = {
 	staging: {
-		rm: { cpus: 1, memory: '2gb', cpuKind: 'shared' },
-		vs: { cpus: 2, memory: '4gb' },
+		rm: { cpus: 1, memory: '1gb', cpuKind: 'shared' },
+		vs: { cpus: 2, memory: '1gb' },
 		volumeSize: '1gb',
 		vsMinMachines: 1,
 		killTimeout: '5m',
 	},
 	production: {
-		rm: { cpus: 2, memory: '4gb', cpuKind: 'performance' },
+		// Fly floors performance VMs at 2gb per CPU, so vs can't drop below 8gb without losing cores it uses at peak
+		rm: { cpus: 1, memory: '2gb', cpuKind: 'performance' },
 		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
-		vsMinMachines: 7,
+		vsMinMachines: 9,
 		killTimeout: '5m',
 	},
 	preview: { single: { cpus: 2, memory: '2gb' } },
@@ -366,7 +367,7 @@ async function main() {
 
 	await discord.step('setting up deploy', async () => {
 		// make sure the tldraw .css files are built:
-		await withTiming('prebuild assets', () => exec('yarn', ['lazy', 'prebuild']))
+		await withTiming('prebuild assets', () => exec('pnpm', ['exec', 'lazy', 'prebuild']))
 
 		// link to vercel and supabase projects:
 		await withTiming('vercel link', () =>
@@ -473,7 +474,7 @@ function getZeroUrl() {
 
 async function prepareDotcomApp() {
 	// pre-build the app:
-	await exec('yarn', ['build-app'], {
+	await exec('pnpm', ['build-app'], {
 		env: {
 			// the build script measures the finished bundle and sends the numbers to PostHog, so we
 			// can see the client's size over time. every deploy reports; the events carry
@@ -560,13 +561,13 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 		}
 		if (!dryRun) {
 			try {
-				await exec('yarn', ['wrangler', 'queues', 'info', queueName], { pwd: worker })
+				await exec('pnpm', ['exec', 'wrangler', 'queues', 'info', queueName], { pwd: worker })
 			} catch (_e) {
-				await exec('yarn', ['wrangler', 'queues', 'create', queueName], { pwd: worker })
+				await exec('pnpm', ['exec', 'wrangler', 'queues', 'create', queueName], { pwd: worker })
 			}
 		}
 	}
-	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
+	await exec('pnpm', ['--filter', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
 		env: {
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
@@ -606,6 +607,10 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			...(previewId
 				? {
 						MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com`,
+						// Previews trial live-canvas capture (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts).
+						// Staging opts in through its own wrangler.toml vars block; production stays on the
+						// export until the trial is judged. Injected here because previews have no such block.
+						THUMBNAIL_RENDER_LIVE_CAPTURE: 'true',
 						// Previews advertise and verify against their own public URL like every other
 						// deployed environment — the Host-derived fallback in getMcpResourceUrl is for
 						// local dev and tests only. Injected here because previews have no wrangler.toml
@@ -677,18 +682,8 @@ type ExecOpts = NonNullable<Parameters<typeof exec>[2]>
 // they want the non-interactive prompt skip.
 async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	return exec(
-		'yarn',
-		[
-			'run',
-			'-T',
-			'vercel',
-			command,
-			'--token',
-			env.VERCEL_TOKEN,
-			'--scope',
-			env.VERCEL_ORG_ID,
-			...args,
-		],
+		'pnpm',
+		['exec', 'vercel', command, '--token', env.VERCEL_TOKEN, '--scope', env.VERCEL_ORG_ID, ...args],
 		{
 			...opts,
 			env: {
@@ -954,7 +949,7 @@ const sentryEnv = {
 }
 
 const execSentry = (command: string, args: string[]) =>
-	exec(`yarn`, ['run', '-T', 'sentry-cli', command, ...args], { env: sentryEnv })
+	exec(`pnpm`, ['exec', 'sentry-cli', command, ...args], { env: sentryEnv })
 
 async function createSentryRelease() {
 	await execSentry('releases', ['new', sentryReleaseName])

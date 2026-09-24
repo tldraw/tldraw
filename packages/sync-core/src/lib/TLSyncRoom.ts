@@ -88,6 +88,29 @@ export const DATA_MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
 
 const timeSince = (time: number) => Date.now() - time
 
+// WebSocket close frames cap the reason at 123 UTF-8 bytes; a longer one makes `close()` throw
+const MAX_CLOSE_REASON_BYTES = 123
+const closeReasonEncoder = new TextEncoder()
+
+const truncatedSuffix = (droppedBytes: number) => `... (+${droppedBytes} bytes)`
+
+function truncateCloseReason(reason: string) {
+	const totalBytes = closeReasonEncoder.encode(reason).length
+	if (totalBytes <= MAX_CLOSE_REASON_BYTES) return reason
+	// the dropped count can't have more digits than the total, so reserving room for it always fits
+	const budget = MAX_CLOSE_REASON_BYTES - truncatedSuffix(totalBytes).length
+	let out = ''
+	let outBytes = 0
+	// step by code point so a multi-byte character is never cut in half
+	for (const char of reason) {
+		const charBytes = closeReasonEncoder.encode(char).length
+		if (outBytes + charBytes > budget) break
+		out += char
+		outBytes += charBytes
+	}
+	return out + truncatedSuffix(totalBytes - outBytes)
+}
+
 /**
  * Snapshot of a room's complete state that can be persisted and restored.
  * Contains all documents, tombstones, and metadata needed to reconstruct the room.
@@ -258,7 +281,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}, 1000)
 
 	private scheduleFollowUpPrune() {
-		if (this.pruneTimer) return
+		// don't leave a stray timer on a room the host has already torn down
+		if (this._isClosed || this.pruneTimer) return
 		this.pruneTimer = setTimeout(this.pruneSessions, SESSION_REMOVAL_WAIT_TIME + 100)
 	}
 
@@ -273,11 +297,27 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * and stops background processes.
 	 */
 	close() {
+		this._isClosed = true
 		this.disposables.forEach((d) => d())
 		this.sessions.forEach((session) => {
-			session.socket.close()
+			this.clearDebounceTimer(session)
+			try {
+				session.socket.close()
+			} catch {
+				// noop, one bad socket must not leave the rest open
+			}
 		})
-		this._isClosed = true
+		// forgetting the sessions is what makes late socket close/error events no-ops, so
+		// nothing can emit session_removed / room_became_empty on a closed room
+		this.sessions.clear()
+	}
+
+	private clearDebounceTimer(session: RoomSession<R, SessionMeta>) {
+		if (session.state === RoomSessionState.Connected && session.debounceTimer !== null) {
+			clearTimeout(session.debounceTimer)
+			session.debounceTimer = null
+			session.outstandingDataMessages = []
+		}
 	}
 
 	/**
@@ -519,6 +559,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			// place, so sockets that defer serialization don't see an emptied array
 			const data = session.outstandingDataMessages
 			session.outstandingDataMessages = []
+			if (!session.socket.isOpen) {
+				// same as the immediate-send path: send() into a closed socket throws on
+				// some runtimes (Cloudflare), and here that would be from inside a timer
+				this.cancelSession(sessionId)
+				return
+			}
 			session.socket.sendMessage({ type: 'data', data })
 		}
 	}
@@ -532,10 +578,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		this.sessions.delete(sessionId)
+		this.clearDebounceTimer(session)
 
 		try {
 			if (fatalReason) {
-				session.socket.close(TLSyncErrorCloseEventCode, fatalReason)
+				// the session is already gone, so a throwing close() would leave its socket open
+				session.socket.close(TLSyncErrorCloseEventCode, truncateCloseReason(fatalReason))
 			} else {
 				session.socket.close()
 			}
@@ -570,6 +618,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			return
 		}
 
+		this.clearDebounceTimer(session)
 		this.sessions.set(sessionId, {
 			state: RoomSessionState.AwaitingRemoval,
 			sessionId,
@@ -692,7 +741,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		objectAccess?: TLObjectStoreAccess
 	}) {
 		const { sessionId, socket, meta, isReadonly, objectAccess } = opts
+		// a connect racing close() would otherwise create a session nothing ever prunes
+		if (this._isClosed) {
+			socket.close()
+			return this
+		}
 		const existing = this.sessions.get(sessionId)
+		if (existing) this.clearDebounceTimer(existing)
 		this.sessions.set(sessionId, {
 			state: RoomSessionState.AwaitingConnectMessage,
 			sessionId,
@@ -740,6 +795,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			requiresLegacyRejection,
 			supportsStringAppend,
 		} = opts
+
+		if (this._isClosed) {
+			socket.close()
+			return
+		}
 
 		const migrations = this.schema.getMigrationsSince(serializedSchema)
 		const requiresDownMigrations = migrations.ok ? migrations.value.length > 0 : false
@@ -905,7 +965,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * Sends appropriate error messages before closing the connection.
 	 *
 	 * @param sessionId - The session to reject
-	 * @param fatalReason - The reason for rejection (optional)
+	 * @param fatalReason - The reason for rejection (optional). WebSocket close reasons are capped
+	 * at 123 UTF-8 bytes, so a longer reason is truncated and ends with `... (+N bytes)`.
 	 * @example
 	 * ```ts
 	 * // Reject due to version mismatch
@@ -962,6 +1023,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private forceAllReconnect() {
 		for (const session of this.sessions.values()) {
+			// Only connected clients hold state at a clock we can no longer diff from. A session
+			// mid-handshake gets hydrated from its own lastServerClock in the same transaction, so
+			// removing it would close its socket and then re-add it as Connected (resurrected).
+			if (session.state !== RoomSessionState.Connected) continue
 			this.removeSession(session.sessionId)
 		}
 	}
@@ -1055,7 +1120,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		const requiresDownMigrations = migrations.value.length > 0
 
-		const connect = async (msg: Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>) => {
+		const connect = (msg: Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>) => {
 			this.sessions.set(session.sessionId, {
 				state: RoomSessionState.Connected,
 				sessionId: session.sessionId,

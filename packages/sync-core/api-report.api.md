@@ -153,6 +153,7 @@ export class JsonChunkAssembler {
         error: Error;
     } | null;
     state: 'idle' | {
+        charsReceived: number;
         chunksReceived: string[];
         totalChunks: number;
     };
@@ -683,6 +684,7 @@ export const TLSyncErrorCloseEventCode: 4099;
 
 // @public
 export const TLSyncErrorCloseEventReason: {
+    readonly MESSAGE_TOO_LARGE: 'MESSAGE_TOO_LARGE';
     readonly RATE_LIMITED: 'RATE_LIMITED';
     readonly CLIENT_TOO_OLD: 'CLIENT_TOO_OLD';
     readonly INVALID_RECORD: 'INVALID_RECORD';

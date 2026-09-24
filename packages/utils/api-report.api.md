@@ -274,6 +274,8 @@ export function lns(str: string): string;
 export class LruCache<K, V> {
     constructor(maxSize: number);
     // (undocumented)
+    delete(key: K): boolean;
+    // (undocumented)
     get(key: K): undefined | V;
     // (undocumented)
     has(key: K): boolean;
@@ -538,9 +540,15 @@ export function throttleToNextFrame(fn: () => void): () => void;
 // @public
 export class Timers {
     constructor();
+    cancelAnimationFrame(contextId: string, id: number | undefined): void;
+    clearInterval(contextId: string, id: number | undefined): void;
+    clearTimeout(contextId: string, id: number | undefined): void;
     dispose(contextId: string): void;
     disposeAll(): void;
     forContext(contextId: string): {
+        cancelAnimationFrame: (id: number | undefined) => void;
+        clearInterval: (id: number | undefined) => void;
+        clearTimeout: (id: number | undefined) => void;
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
         setInterval: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
