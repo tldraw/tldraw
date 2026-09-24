@@ -129,3 +129,7 @@ skills/pr-walkthrough/video/dist
 skills/pr-walkthrough/video/public/audio-*
 skills/pr-walkthrough/video/public/manifest.json
 todo.md
+
+# Yarn leftovers from before the pnpm switch
+yarn.lock
+.yarn/
