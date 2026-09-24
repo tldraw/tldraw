@@ -1,0 +1,26 @@
+{
+	"name": "@tldraw/dotcom-tail-worker",
+	"description": "Tail consumer for the tldraw.com sync worker: errors to Loki, invocation tallies to Analytics Engine.",
+	"version": "0.0.0",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"main": "./src/worker.ts",
+	"type": "module",
+	"files": [],
+	"scripts": {
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
+		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20260302.0",
+		"lazyrepo": "0.0.0-alpha.27",
+		"typescript": "^7.0.2",
+		"vitest": "^4.1.7",
+		"wrangler": "^4.75.0"
+	}
+}
