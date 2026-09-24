@@ -404,8 +404,8 @@ export class ScribbleManager {
 	}
 
 	private resetIdleTimeout(session: Session): void {
+		if (!(session.options.idleTimeoutMs > 0)) return
 		this.clearIdleTimeout(session)
-		if (session.options.idleTimeoutMs <= 0) return
 		session.idleTimeoutHandle = this.editor.timers.setTimeout(() => {
 			this.stopSession(session.id)
 		}, session.options.idleTimeoutMs)

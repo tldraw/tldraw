@@ -1,5 +1,4 @@
 import { EffectScheduler, computed } from '@tldraw/state'
-import { areObjectsShallowEqual } from '@tldraw/utils'
 import { memo, useEffect, useRef } from 'react'
 import { useEditor } from '../../hooks/useEditor'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
@@ -41,7 +40,15 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 					zoom: camera.z,
 				}
 			},
-			{ isEqual: areObjectsShallowEqual }
+			{
+				isEqual: (a, b) =>
+					a.dpr === b.dpr &&
+					a.w === b.w &&
+					a.h === b.h &&
+					a.cx === b.cx &&
+					a.cy === b.cy &&
+					a.zoom === b.zoom,
+			}
 		)
 
 		const scheduler = new EffectScheduler('canvas overlays render', () => {

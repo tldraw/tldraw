@@ -29,8 +29,10 @@ function percentile(sorted: number[], p: number): number {
 	return sorted[Math.max(0, idx)]
 }
 
-function computeFrameTimeStats(session: PerfSession): TLPerfFrameTimeStats {
-	const { frameTimes, loafEntries } = session
+function computeFrameTimeStats(
+	session: PerfSession
+): Omit<TLPerfFrameTimeStats, 'longAnimationFrames'> {
+	const { frameTimes } = session
 	const duration = performance.now() - session.startTime
 	const sorted = [...frameTimes].sort((a, b) => a - b)
 	const n = sorted.length
@@ -46,7 +48,6 @@ function computeFrameTimeStats(session: PerfSession): TLPerfFrameTimeStats {
 		minFrameTime: n > 0 ? sorted[0] : 0,
 		maxFrameTime: n > 0 ? sorted[n - 1] : 0,
 		frameTimes,
-		longAnimationFrames: loafEntries.length > 0 ? loafEntries : undefined,
 	}
 }
 
@@ -202,12 +203,14 @@ export class PerformanceManager extends EditorManager {
 			)
 		}
 
+		const selectedShapeTypes = countShapeTypes(this.editor.getSelectedShapes())
+
 		this.activeInteraction = {
 			name,
 			path,
 			startTime: performance.now(),
 			frameTimes: [],
-			selectedShapeTypes: countShapeTypes(this.editor.getSelectedShapes()),
+			selectedShapeTypes,
 			loafEntries: [],
 		}
 
@@ -233,6 +236,7 @@ export class PerformanceManager extends EditorManager {
 			...computeFrameTimeStats(interaction),
 			shapeCount: this.editor.getCurrentPageShapeIds().size,
 			selectedShapeTypes: interaction.selectedShapeTypes,
+			longAnimationFrames: interaction.loafEntries.length > 0 ? interaction.loafEntries : undefined,
 			zoomLevel: this.editor.getCamera().z,
 			timestamp: performance.now(),
 		}
@@ -309,16 +313,18 @@ export class PerformanceManager extends EditorManager {
 
 		if (this.emitter.listenerCount('camera-end') === 0) return
 
+		const stats = computeFrameTimeStats(camera)
 		const viewportBounds = this.editor.getViewportScreenBounds()
 		const totalShapes = this.editor.getCurrentPageShapeIds().size
 		const culledShapeCount = this.editor.getCulledShapes().size
 
 		const event: TLCameraEndPerfEvent = {
 			type: camera.type,
-			...computeFrameTimeStats(camera),
+			...stats,
 			shapeCount: totalShapes,
 			viewportWidth: viewportBounds.w,
 			viewportHeight: viewportBounds.h,
+			longAnimationFrames: camera.loafEntries.length > 0 ? camera.loafEntries : undefined,
 			visibleShapeCount: totalShapes - culledShapeCount,
 			culledShapeCount,
 			zoomLevel: this.editor.getCamera().z,

@@ -174,7 +174,7 @@ function edgesEqual(a: [VecModel, VecModel], b: [VecModel, VecModel]) {
  */
 function acceptNudge(nearestSnaps: NearestSnap[], minOffset: Vec, axis: 'x' | 'y', nudge: number) {
 	const offset = Math.abs(nudge)
-	if (round(offset) > round(minOffset[axis])) return false
+	if (!(round(offset) <= round(minOffset[axis]))) return false
 	// we found a point that is significantly closer than all previous points
 	// so wipe the slate clean and start over
 	if (round(offset) < round(minOffset[axis])) nearestSnaps.length = 0

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { TLWheelEventInfo } from '../editor/types/event-types'
 import { tlenv } from '../globals/environment'
-import { clamp } from '../primitives/utils'
 import { Vec } from '../primitives/Vec'
 import { preventDefault } from '../utils/dom'
 import { isAccelKey } from '../utils/keyboard'
@@ -252,7 +251,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			// very unstable zooming behavior.
 			const bounds = getScaleBounds()
 			const rawScale = initScaleFrom * (distance / initDistanceBetweenFingers)
-			scaleOffset = clamp(rawScale, bounds.min, bounds.max)
+			scaleOffset = Math.min(bounds.max, Math.max(bounds.min, rawScale))
 
 			switch (pinchState) {
 				case 'zooming': {
@@ -331,7 +330,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			// Safari GestureEvent.scale is a multiplier relative to gesture start
 			const bounds = getScaleBounds()
 			const rawScale = safariGestureInitialScale * e.scale
-			scaleOffset = clamp(rawScale, bounds.min, bounds.max)
+			scaleOffset = Math.min(bounds.max, Math.max(bounds.min, rawScale))
 
 			// Update distance tracking for pinch state (treat scale change as distance change)
 			currDistanceBetweenFingers = e.scale * initDistanceBetweenFingers
