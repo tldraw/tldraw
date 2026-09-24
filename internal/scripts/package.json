@@ -52,9 +52,7 @@
 		"rimraf": "^4.4.1",
 		"semver": "^7.6.3",
 		"svgo": "^3.3.3",
-		"typescript": "^7.0.2",
-		"vite": "^8.0.16",
-		"vite-plugin-circular-dependency": "^0.5.0"
+		"typescript": "^7.0.2"
 	},
 	"scripts": {
 		"lint": "pnpm exec tsx lint.ts"
