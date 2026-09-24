@@ -444,6 +444,22 @@ describe('getMigrationsSince (MG)', () => {
 		expect(result.error).toBe('Incompatible schema?')
 	})
 
+	it('[MG5] a persisted version that is present but not a number is an error', () => {
+		for (const retroactive of [true, false]) {
+			const foo = mockSequence({ id: 'foo', retroactive, versions: 2 })
+			const schema = StoreSchema.create({}, { migrations: [foo] })
+
+			for (const version of [null, '2', '0']) {
+				const result = schema.getMigrationsSince({
+					schemaVersion: 2,
+					sequences: { foo: version as any },
+				})
+				assert(!result.ok)
+				expect(result.error).toBe('Incompatible schema?')
+			}
+		}
+	})
+
 	it('[MG6] results are cached per persisted-schema object identity', () => {
 		const schema = makeSchema([mockSequence({ id: 'foo', retroactive: true, versions: 2 })])
 		const oldSchema = schema.serializeEarliestVersion()

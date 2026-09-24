@@ -166,7 +166,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **MG2** A sequence already at the current version contributes nothing; if no sequence contributes anything the result is the empty array.
 - **MG3** Sequences in the persisted schema that the current schema does not know are ignored.
 - **MG4** A sequence missing from the persisted schema is included in full if it is `retroactive`, and skipped entirely if not.
-- **MG5** A persisted version that does not exist in the current sequence produces an error result (`Incompatible schema?`).
+- **MG5** A persisted version that does not exist in the current sequence produces an error result (`Incompatible schema?`). So does a version that is present but not a number, even for a `retroactive` sequence: only a missing version means "never applied".
 - **MG6** Results (success or error) are cached per persisted-schema object identity: calling again with the same object returns the same array instance.
 - **MG7** v1 persisted schemas are upgraded (SC5) before comparison.
 
