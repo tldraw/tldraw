@@ -15,6 +15,8 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
+		// A touch press arrives without a hover move, so the stored flag may belong to another target
+		this.update()
 		this.parent.transition('pointing', { ...info, isPrecise: this.isPrecise })
 	}
 
