@@ -1154,9 +1154,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * need more precise control over intermediate values.
 	 *
 	 * After the record is deleted the record signal holds `UNINITIALIZED` rather than a record, and
-	 * a signal that a reader still depends on can be re-derived once more in that state; guard with
-	 * `isUninitialized` when your derivation cannot tolerate it. {@link Store.createComputedCache}
-	 * handles this for you.
+	 * a signal that a reader still depends on can be re-derived once more in that state. Guard with
+	 * `isUninitialized` and return a value no live record can produce: returning the same value the
+	 * record last had (e.g. `undefined`) leaves readers stale if a record with that id comes back.
+	 * {@link Store.createComputedCache} handles this for you.
 	 */
 	createCache<Result, Record extends R = R>(
 		create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>

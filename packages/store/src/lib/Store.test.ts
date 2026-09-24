@@ -869,18 +869,19 @@ describe('computed caches after deletion (CC)', () => {
 	})
 
 	it('[CC6] a reader sees a re-created record even when derive gave the same value before deletion', () => {
-		const author = Author.create({ name: 'Short' })
+		const author = Author.create({ name: 'Real name' })
 		store.put([author])
-		// returns undefined for the live record, which is also what a deleted record yields
-		const cache = store.createComputedCache('long-names', (record: Author) =>
-			record.name.length > 10 ? record.name : undefined
+		// undefined for the live record, and must not throw on the deleted state, or the error
+		// itself counts as a change and hides the bug
+		const cache = store.createComputedCache('pen-names', (record: Author) =>
+			record.isPseudonym ? record.name : undefined
 		)
 		const seen: (string | undefined)[] = []
 		react('reader', () => seen.push(cache.get(author.id)))
 		expect(seen).toEqual([undefined])
 
 		store.remove([author.id])
-		store.put([{ ...author, name: 'A much longer name' }])
-		expect(seen.at(-1)).toBe('A much longer name')
+		store.put([{ ...author, name: 'Pen name', isPseudonym: true }])
+		expect(seen.at(-1)).toBe('Pen name')
 	})
 })
