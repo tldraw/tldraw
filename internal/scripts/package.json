@@ -57,9 +57,9 @@
 		"vitest": "^5.0.0"
 	},
 	"scripts": {
-		"lint": "yarn run -T tsx lint.ts",
-		"test": "yarn run -T vitest --passWithNoTests",
-		"test-ci": "yarn run -T vitest run --passWithNoTests"
+		"lint": "pnpm exec tsx lint.ts",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-ci": "pnpm exec vitest run --passWithNoTests"
 	},
 	"dependencies": {
 		"@lokalise/node-api": "^12.8.0",

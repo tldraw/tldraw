@@ -113,7 +113,14 @@ import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
-import { getAuth, requireAdminAccess, requireAdminAccessToRequest } from './utils/tla/getAuth'
+import {
+	getAuth,
+	getMcpTokenAuth,
+	MCP_SOCKET_SUBPROTOCOL,
+	requireAdminAccess,
+	requireAdminAccessToRequest,
+	type McpTokenOptions,
+} from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
@@ -205,6 +212,16 @@ interface SocketAttachment {
 	// Absent for bundles that predate the param, or when the param didn't validate.
 	clientBuildTimestamp?: string
 	snapshot: SessionStateSnapshot | null
+}
+
+/** The user behind an MCP access token, in the shape the file checks already take. */
+async function getMcpTokenUser(
+	req: IRequest,
+	env: Environment,
+	options?: McpTokenOptions
+): Promise<{ userId: string } | null> {
+	const result = await getMcpTokenAuth(req, env, options)
+	return result.ok ? { userId: result.userId } : null
 }
 
 async function canAccessTestProductionFile(
@@ -1016,9 +1033,25 @@ export class TLFileDurableObject extends DurableObject {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		this.state.acceptWebSocket(serverWebSocket)
 
+		// A browser closes a connection whose offered subprotocol the server did not select, so a
+		// handshake carrying an MCP token has to be answered with the same value back. Every 101 out
+		// of here goes through this, the two that close the socket immediately included: the client
+		// still has to finish the handshake to receive the close reason, and one that never completes
+		// reports a failed connection instead of the reason it failed.
+		const offeredSubprotocol = req.headers.get('sec-websocket-protocol')?.split(',')[0].trim()
+		const acceptSocket = () =>
+			new Response(null, {
+				status: 101,
+				webSocket: clientWebSocket,
+				headers:
+					offeredSubprotocol === MCP_SOCKET_SUBPROTOCOL
+						? { 'sec-websocket-protocol': MCP_SOCKET_SUBPROTOCOL }
+						: undefined,
+			})
+
 		const closeSocket = (reason: TLSyncErrorCloseEventReason) => {
 			serverWebSocket.close(TLSyncErrorCloseEventCode, reason)
-			return new Response(null, { status: 101, webSocket: clientWebSocket })
+			return acceptSocket()
 		}
 		// For infra failures (Postgres, rate limiter, etc.): a TLSyncErrorCloseEventCode close is
 		// terminal on the client (error screen, no reconnect), which would strand every connecting
@@ -1027,7 +1060,7 @@ export class TLFileDurableObject extends DurableObject {
 		// do. Workers only allow 1000 or 3000-4999 here.
 		const closeSocketRetryable = () => {
 			serverWebSocket.close(1000, 'transient_error')
-			return new Response(null, { status: 101, webSocket: clientWebSocket })
+			return acceptSocket()
 		}
 
 		// Everything from here through the permission checks below can throw on an infra failure
@@ -1035,14 +1068,24 @@ export class TLFileDurableObject extends DurableObject {
 		// 500 with the accepted server socket leaked in the hibernation set, so catch broadly and
 		// close it instead.
 		const echoTimings: { auth?: number; fileRecord?: number } = {}
-		let auth: Awaited<ReturnType<typeof getAuth>>
+		let auth: { userId: string } | null
 		try {
 			if (this.documentInfo.deleted) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 			}
 
 			const authTimer = this.timer()
-			auth = await getAuth(req, this.env)
+			// An MCP client — Claude, ChatGPT, Cursor — cannot hold a tldraw.com session, so an OAuth
+			// access token is the only sign-in it has, and without this a user's own boards are
+			// unreachable over sync to the agent they just signed in to. Accepted only as a fallback,
+			// and it widens nothing: every check below is the same either way, so a token joins
+			// exactly the rooms, at exactly the open mode — write included — its user would get from
+			// the website. It rides in the handshake's `Sec-WebSocket-Protocol` header, the one field
+			// a browser lets a client set there, which keeps it out of the URL that session tokens
+			// still use.
+			auth =
+				(await getAuth(req, this.env)) ??
+				(await getMcpTokenUser(req, this.env, { allowSubprotocolToken: true }))
 			echoTimings.auth = authTimer.report('on_request_auth', loadIdBlobs)
 
 			if (this.documentInfo.isApp) {
@@ -1198,7 +1241,7 @@ export class TLFileDurableObject extends DurableObject {
 				})
 			}
 
-			return new Response(null, { status: 101, webSocket: clientWebSocket })
+			return acceptSocket()
 		} catch (e) {
 			if (e instanceof RoomNotFoundError) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
@@ -1217,7 +1260,13 @@ export class TLFileDurableObject extends DurableObject {
 			return new Response('Not found', { status: 404 })
 		}
 
-		const auth = await getAuth(req, this.env)
+		// An MCP client — Claude, ChatGPT, Cursor — cannot hold a tldraw.com session, so an OAuth access
+		// token is the only sign-in it has, and without this a user's own boards are unreachable to the
+		// agent they just signed in to. Accepted only as a fallback, and it widens nothing: the
+		// group-role and link-sharing checks below are the same either way, so a token reaches exactly
+		// the files its user could already download from the website.
+		const auth: { userId: string } | null =
+			(await getAuth(req, this.env)) ?? (await getMcpTokenUser(req, this.env))
 		const file = await this.getAppFileRecord()
 		if (!file || file.isDeleted) {
 			return new Response('Not found', { status: 404 })
