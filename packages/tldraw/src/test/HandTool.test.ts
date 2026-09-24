@@ -39,6 +39,27 @@ describe(HandTool, () => {
 		expect(editor.getCamera().z).toBeGreaterThan(before)
 	})
 
+	it('Ends one-finger zoom when a second touch starts, instead of jumping the zoom', () => {
+		editor.setCurrentTool('hand')
+		editor.updateInstanceState({ isCoarsePointer: true })
+
+		editor.pointerDown(100, 100).pointerUp(100, 100)
+		editor.pointerDown(100, 100)
+		vi.advanceTimersByTime(editor.options.multiClickDurationMs)
+		editor.expectToBeIn('hand.one_finger_zooming')
+
+		editor.pointerMove(100, 120)
+		const zoomBeforeSecondTouch = editor.getCamera().z
+		expect(zoomBeforeSecondTouch).toBeGreaterThan(1)
+
+		// A second finger lands far away and moves; the pan/zoom must yield rather than
+		// treat the new pointer as a continuation of the first one.
+		editor.pointerDown(300, 400, { pointerId: 2 })
+		editor.expectToBeIn('hand.idle')
+		editor.pointerMove(300, 420, { pointerId: 2 })
+		expect(editor.getCamera().z).toBe(zoomBeforeSecondTouch)
+	})
+
 	it('Zooms in (not one-finger zoom) when a coarse pointer double-taps and releases', () => {
 		editor.setCurrentTool('hand')
 		editor.updateInstanceState({ isCoarsePointer: true })

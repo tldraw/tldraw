@@ -7,14 +7,9 @@ import { RainbowShaderManager } from './RainbowShaderManager'
 export const RainbowRenderer = memo(() => {
 	const editor = useEditor()
 	const rCanvas = useRef<HTMLCanvasElement>(null)
-	const rShaderManager = useRef<RainbowShaderManager | null>(null)
 
 	useLayoutEffect(() => {
-		const canvas = rCanvas.current!
-		const manager = new RainbowShaderManager(editor, canvas, shaderConfig)
-		rShaderManager.current = manager
-
-		manager.refresh()
+		const manager = new RainbowShaderManager(editor, rCanvas.current!, shaderConfig)
 
 		const handlePointerMove = (e: PointerEvent) => manager.pointerMove(e.clientX, e.clientY)
 
@@ -23,7 +18,6 @@ export const RainbowRenderer = memo(() => {
 		return () => {
 			window.removeEventListener('pointermove', handlePointerMove)
 			manager.dispose()
-			rShaderManager.current = null
 		}
 	}, [editor])
 

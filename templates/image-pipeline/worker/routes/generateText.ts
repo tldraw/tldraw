@@ -24,7 +24,7 @@ function truncate(text: string, max: number) {
  * POST /api/generate-text
  *
  * Takes an optional input (image or text) and a prompt, then calls
- * google/gemini-3-flash on Replicate to generate text.
+ * google/gemini-3.5-flash on Replicate to generate text.
  * Falls back to a placeholder if no API token is configured.
  */
 export async function handleGenerateText(request: IRequest, env: Env) {
@@ -60,7 +60,7 @@ export async function handleGenerateText(request: IRequest, env: Env) {
 		input.images = [(await resolveImage(inputStr, env)).dataUrl]
 	}
 
-	const result = await replicatePredict('google/gemini-3-flash', input, apiToken)
+	const result = await replicatePredict('google/gemini-3.5-flash', input, apiToken)
 	const output = Array.isArray(result.output) ? result.output.join('') : result.output
 	if (!output) throw new Error('No output from text generation')
 

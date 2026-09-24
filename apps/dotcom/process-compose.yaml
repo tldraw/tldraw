@@ -1,4 +1,4 @@
-# Dotcom dev stack, brought up by `yarn dev-app`. Usage notes in apps/dotcom/README.md.
+# Dotcom dev stack, brought up by `pnpm dev-app`. Usage notes in apps/dotcom/README.md.
 
 version: '0.5'
 
@@ -20,7 +20,7 @@ processes:
 
   # migrations — one-shot; gates zero-cache
   migrate:
-    command: yarn workspace @tldraw/zero-cache migrate
+    command: pnpm --filter @tldraw/zero-cache migrate
     depends_on:
       postgres:
         condition: process_healthy
@@ -30,7 +30,7 @@ processes:
   # zero-cache — replicates from postgres. Runs directly: nothing reads .schema.js, so there's no
   # schema rebuild/restart watch.
   zero-cache:
-    command: yarn workspace @tldraw/zero-cache exec zero-cache
+    command: pnpm --filter @tldraw/zero-cache exec zero-cache
     environment:
       - NODE_ENV=development
       - ZERO_UPSTREAM_DB=postgresql://user:password@127.0.0.1:6543/postgres
@@ -59,7 +59,7 @@ processes:
 
   # workers — wrangler dev / workerd on the host
   sync-worker:
-    command: yarn workspace @tldraw/dotcom-worker dev
+    command: pnpm --filter @tldraw/dotcom-worker dev
     depends_on:
       zero-cache:
         condition: process_healthy
@@ -82,17 +82,17 @@ processes:
       restart: 'no'
 
   asset-upload-worker:
-    command: yarn workspace dotcom-asset-upload dev
+    command: pnpm --filter dotcom-asset-upload dev
 
   # image-resize + usercontent bind sync-worker by name, so it must come up first
   image-resize-worker:
-    command: yarn workspace images.tldraw.com dev
+    command: pnpm --filter images.tldraw.com dev
     depends_on:
       sync-worker:
         condition: process_healthy
 
   tldrawusercontent-worker:
-    command: yarn workspace dotcom-tldrawusercontent dev
+    command: pnpm --filter dotcom-tldrawusercontent dev
     depends_on:
       sync-worker:
         condition: process_healthy
@@ -101,7 +101,7 @@ processes:
   # them once, then its `dev` watches the source css and re-copies. The client @imports both, so it
   # waits for the files to exist.
   css:
-    command: LAZYREPO_PRETTY_OUTPUT=0 yarn lazy run dev --filter='packages/tldraw' --filter='packages/commenting'
+    command: LAZYREPO_PRETTY_OUTPUT=0 pnpm exec lazy run dev --filter='packages/tldraw' --filter='packages/commenting'
     readiness_probe:
       exec:
         command: node -e "require('fs').accessSync('packages/tldraw/tldraw.css');require('fs').accessSync('packages/commenting/commenting.css')"
@@ -111,7 +111,7 @@ processes:
 
   # client — vite dev server
   client:
-    command: yarn workspace dotcom dev
+    command: pnpm --filter dotcom dev
     depends_on:
       sync-worker:
         condition: process_healthy

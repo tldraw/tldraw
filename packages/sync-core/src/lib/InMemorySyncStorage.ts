@@ -153,27 +153,27 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 		onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown
 	} = {}) {
 		this.objectTypes = new Set(objectTypes ?? [])
-		const maxClockValue = Math.max(
-			0,
-			...Object.values(snapshot.tombstones ?? {}),
-			...Object.values(snapshot.documents.map((d) => d.lastChangedClock))
-		)
+		// a loop rather than `Math.max(0, ...clocks)`: spreading a large room's clocks as call
+		// arguments overflows the stack at roughly 100k+ records/tombstones
+		let maxClockValue = 0
 		// route snapshot entries into their partitions (a seed snapshot may carry object-lane
 		// records merged in, e.g. loaded from a separate persistence lane)
-		const toEntry = (
-			d: RoomSnapshot['documents'][number]
-		): [string, { state: R; lastChangedClock: number }] => [
-			d.state.id,
-			{ state: devFreeze(d.state) as R, lastChangedClock: d.lastChangedClock },
-		]
-		this.documents = new AtomMap(
-			'room documents',
-			snapshot.documents.filter((d) => !this.objectTypes.has(d.state.typeName)).map(toEntry)
-		)
-		this.objects = new AtomMap(
-			'room objects',
-			snapshot.documents.filter((d) => this.objectTypes.has(d.state.typeName)).map(toEntry)
-		)
+		const documentEntries: [string, { state: R; lastChangedClock: number }][] = []
+		const objectEntries: [string, { state: R; lastChangedClock: number }][] = []
+		for (const d of snapshot.documents) {
+			if (d.lastChangedClock > maxClockValue) maxClockValue = d.lastChangedClock
+			const entries = this.objectTypes.has(d.state.typeName) ? objectEntries : documentEntries
+			entries.push([
+				d.state.id,
+				{ state: devFreeze(d.state) as R, lastChangedClock: d.lastChangedClock },
+			])
+		}
+		const tombstoneEntries = objectMapEntries(snapshot.tombstones ?? {})
+		for (const [, clock] of tombstoneEntries) {
+			if (clock > maxClockValue) maxClockValue = clock
+		}
+		this.documents = new AtomMap('room documents', documentEntries)
+		this.objects = new AtomMap('room objects', objectEntries)
 		const documentClock = Math.max(maxClockValue, snapshot.documentClock ?? snapshot.clock ?? 0)
 
 		this.documentClock = atom('document clock', documentClock)
@@ -192,9 +192,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 			'room tombstones',
 			// If the tombstone history starts now (or we didn't have the
 			// tombstoneHistoryStartsAtClock) then there are no tombstones
-			tombstoneHistoryStartsAtClock === documentClock
-				? []
-				: objectMapEntries(snapshot.tombstones ?? {})
+			tombstoneHistoryStartsAtClock === documentClock ? [] : tombstoneEntries
 		)
 		if (onChange) {
 			this.onChange(onChange)
@@ -249,7 +247,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	}
 
 	/** @internal */
-	pruneTombstones = throttle(
+	pruneTombstones: ReturnType<typeof throttle<() => void>> = throttle(
 		() => {
 			if (this.tombstones.size > MAX_TOMBSTONES) {
 				// Convert to array and sort by clock ascending (oldest first)

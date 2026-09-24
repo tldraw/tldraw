@@ -8,7 +8,11 @@ on:
       - main
       - production
 
-permissions: write-all
+permissions:
+  contents: read
+  # createGithubDeployment (internal/scripts/lib/deploy.ts) registers the deployment that
+  # renders the 'View Deployment' button on the PR.
+  deployments: write
 
 env:
   CI: 1
@@ -40,9 +44,10 @@ jobs:
 
       - name: Check out code
         uses: actions/checkout@v6
-        with:
-          submodules: true
-          fetch-depth: 0
+        env:
+          # Abort a stalled fetch so checkout's retry kicks in instead of hanging until the job timeout
+          GIT_HTTP_LOW_SPEED_LIMIT: 1000
+          GIT_HTTP_LOW_SPEED_TIME: 60
 
       - uses: ./.github/actions/setup
 
@@ -61,7 +66,7 @@ jobs:
 
       - name: Install Supabase CLI
         if: github.event_name == 'pull_request'
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1
         with:
           # Pinned: v2.112.0 rejects the Management API's own timestamps, which
           # breaks `branches get` and `branches delete`. See supabase/cli#6115.
@@ -136,14 +141,14 @@ jobs:
           echo "POSTGRES_URL_NON_POOLING=$POSTGRES_URL_NON_POOLING" >> "$GITHUB_ENV"
 
       - name: Build types
-        run: yarn build-types
+        run: pnpm build-types
 
       - name: Setup Fly cli
         if: env.DEPLOY_ZERO == 'flyio' || env.DEPLOY_ZERO == 'flyio-multinode'
         uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # 1.6
 
       - name: Deploy
-        run: yarn tsx internal/scripts/deploy-dotcom.ts
+        run: pnpm exec tsx internal/scripts/deploy-dotcom.ts
         env:
           RELEASE_COMMIT_HASH: ${{ github.sha }}
           GH_TOKEN: ${{ github.token }}
@@ -161,7 +166,6 @@ jobs:
 
           ANALYTICS_API_URL: ${{ secrets.ANALYTICS_API_URL }}
           ANALYTICS_API_TOKEN: ${{ secrets.ANALYTICS_API_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ASSET_UPLOAD_SENTRY_DSN: ${{ secrets.ASSET_UPLOAD_SENTRY_DSN }}
           BOTCOM_POSTGRES_CONNECTION_STRING: ${{ env.POSTGRES_URL_NON_POOLING || secrets.BOTCOM_POSTGRES_CONNECTION_STRING }}
           BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: ${{ env.POSTGRES_URL || secrets.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING }}
@@ -200,3 +204,12 @@ jobs:
           ZERO_R2_SECRET_ACCESS_KEY: ${{ secrets.ZERO_R2_SECRET_ACCESS_KEY }}
           ZERO_OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.ZERO_OTEL_EXPORTER_OTLP_ENDPOINT }}
           ZERO_OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.ZERO_OTEL_EXPORTER_OTLP_HEADERS }}
+
+      # The deploy script posts its own "Deploy failed" message, but a job timeout
+      # kills it without running that handler, so cover the cancelled case here.
+      - name: Notify Discord on cancelled deploy
+        if: cancelled() && github.event_name == 'push'
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+          status: was cancelled (job timeout?)

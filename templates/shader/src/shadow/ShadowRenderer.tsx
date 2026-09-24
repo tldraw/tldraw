@@ -7,12 +7,9 @@ import { ShadowShaderManager } from './ShadowShaderManager'
 export const ShadowRenderer = memo(() => {
 	const editor = useEditor()
 	const rCanvas = useRef<HTMLCanvasElement>(null)
-	const rShaderManager = useRef<ShadowShaderManager | null>(null)
 
 	useLayoutEffect(() => {
-		const canvas = rCanvas.current!
-		const manager = new ShadowShaderManager(editor, canvas, shaderConfig)
-		rShaderManager.current = manager
+		const manager = new ShadowShaderManager(editor, rCanvas.current!, shaderConfig)
 
 		const handlePointerMove = (e: PointerEvent) => manager.pointerMove(e.clientX, e.clientY)
 
@@ -21,7 +18,6 @@ export const ShadowRenderer = memo(() => {
 		return () => {
 			window.removeEventListener('pointermove', handlePointerMove)
 			manager.dispose()
-			rShaderManager.current = null
 		}
 	}, [editor])
 
