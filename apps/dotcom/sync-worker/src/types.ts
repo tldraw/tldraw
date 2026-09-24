@@ -33,6 +33,9 @@ export interface Environment {
 
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
+	// Staging, production and dev only. Previews each get their own Supabase branch, which a
+	// per-account-capped Hyperdrive config can't follow, so they dial the pooled string instead.
+	HYPERDRIVE?: Hyperdrive
 
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
 	PLAIN_API_KEY?: string

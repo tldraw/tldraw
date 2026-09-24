@@ -271,6 +271,29 @@ bindings = [
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
 ]
 
+#################### Hyperdrive ####################
+# Postgres through Hyperdrive; code falls back to the pooled connection string when unbound, which
+# is what previews get. Configs are managed by hand in the Cloudflare dashboard:
+# - Origin is the direct connection, with the same credentials as BOTCOM_POSTGRES_CONNECTION_STRING.
+#   Rotating the database password breaks Hyperdrive until the config is updated too.
+# - Caching stays disabled: role and file-record reads must never be stale.
+# - Origin connection limit shares max_connections with Zero and Supabase's own backends. Sized
+#   from their 30-day peaks (Supabase metrics in Grafana, 2026-09-24) with 25% headroom, plus 15
+#   for pgbouncer: production 240 - (95 + 38) * 1.25 - 15 = 58, staging 60 - (9 + 9) * 1.25 - 15 = 22.
+# Dev emulates it locally: no pooling, just a straight connection to the local pgbouncer.
+[[env.dev.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "local"
+localConnectionString = "postgresql://user:password@127.0.0.1:6432/postgres"
+
+[[env.staging.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "e47f149b12874bea9dd9418803952966"
+
+[[env.production.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "3b4fea5a6921430bb7db39ed2e7ec72e"
+
 #################### Analytics engine ####################
 # durable objects have the same configuration in all environments:
 [[env.dev.analytics_engine_datasets]]
