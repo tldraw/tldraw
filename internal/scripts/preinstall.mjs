@@ -15,9 +15,11 @@ const steps = []
 // from the Yarn era could still restore these files.
 // TODO: remove the Yarn checks once everyone has moved off Yarn (#10903).
 const hasYarnInstall =
-	existsSync('node_modules/.yarn-state.yml') || existsSync('.yarn/install-state.gz')
+	existsSync('node_modules/.yarn-state.yml') ||
+	existsSync('.yarn/install-state.gz') ||
+	existsSync('yarn.lock')
 if (!process.env.CI && hasYarnInstall) {
-	steps.push('find . -name node_modules -type d -prune -exec rm -rf {} + && rm -rf .yarn')
+	steps.push('find . -name node_modules -type d -prune -exec rm -rf {} + && rm -rf .yarn yarn.lock')
 }
 
 const isPnpm = process.env.npm_config_user_agent?.startsWith('pnpm/')
