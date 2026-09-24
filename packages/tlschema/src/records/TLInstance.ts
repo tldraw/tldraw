@@ -296,7 +296,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 				rotation: 0,
 			},
 			isFocusMode: false,
-			exportBackground: false,
+			exportBackground: true,
 			isDebugMode: false,
 			isToolLocked: false,
 			screenBounds: { x: 0, y: 0, w: 1080, h: 720 },

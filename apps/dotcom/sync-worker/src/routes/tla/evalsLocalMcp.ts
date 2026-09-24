@@ -1,22 +1,29 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
+import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 import {
 	BOARD_INFO_TOOL_NAME,
 	BOARD_NOT_FOUND_MESSAGE,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
+	SEARCH_BOARDS_TOOL_NAME,
 	ShapeMeasurement,
 	ToolResult,
+	compareBoardSearchOrder,
 	getBoardInfo,
+	getBoardSearchResults,
+	clusterPage,
 	getClusterInfo,
 	getPageInfo,
 	handleMcpJsonRpc,
+	isAfterBoardSearchCursor,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	parsePageInfoInput,
+	parseSearchBoardsInput,
 	pickClusterShapes,
 	resolvePage,
 	toolError,
@@ -24,6 +31,17 @@ import {
 } from './boardTools'
 
 const HARNESS_GAP_MARKER = '[harness-gap]'
+
+// Insertion order is the fixture stand-in for creation time, but a bare index would have every eval
+// board report a 1970 timestamp — and a model reasoning about "my newest board" reads those. Spaced
+// an hour apart from a fixed date rather than from `Date.now()`, so two runs over the same fixtures
+// produce byte-identical results.
+const FIXTURE_CREATED_AT_BASE_MS = Date.UTC(2026, 0, 5, 9, 0, 0)
+const FIXTURE_CREATED_AT_STEP_MS = 60 * 60 * 1000
+
+function fixtureTimestamp(index: number): number {
+	return FIXTURE_CREATED_AT_BASE_MS + index * FIXTURE_CREATED_AT_STEP_MS
+}
 
 interface FixtureBoard {
 	snapshot: RoomSnapshot
@@ -69,13 +87,14 @@ export function getEvalsFixtureScreenshotPlan(
 		const selector = { kind: 'id', id: page.id } as const
 		const resolved = resolvePage(snapshot, selector)
 		if (!resolved.ok) continue
-		const info = JSON.parse(textOf(getPageInfo(resolved, measurements))) as {
+		const clusters = clusterPage(resolved, measurements)
+		const info = JSON.parse(textOf(getPageInfo(resolved, clusters))) as {
 			clusters: Array<{ id: string }>
 		}
 		const clusterIds = info.clusters.map((cluster) => cluster.id)
 		const sets = [...clusterIds.map((id) => [id]), ...(clusterIds.length > 1 ? [clusterIds] : [])]
 		for (const set of sets) {
-			const picked = pickClusterShapes(resolved, measurements, set, selector)
+			const picked = pickClusterShapes(clusters, set, selector)
 			if (!picked.ok || picked.shapeIds.length === 0) continue
 			plan.push({ pageId: page.id, clusterIds: set, shapeIds: picked.shapeIds })
 		}
@@ -123,6 +142,32 @@ async function callFixtureTool(
 ): Promise<ToolResult> {
 	try {
 		switch (name) {
+			case SEARCH_BOARDS_TOOL_NAME: {
+				const { terms, cursor } = parseSearchBoardsInput(args)
+				// The session is the whole "account": every board in it is one the caller owns. Names
+				// come from the snapshot, since a fixture has no `file` row to carry one, and
+				// insertion order stands in for creation order — so ordering and paging behave the
+				// way they do in production without fixtures needing timestamps.
+				const rows = [...boards.entries()]
+					.map(([id, board], index) => ({
+						id,
+						name: getDocumentNameFromSnapshot(board.snapshot) ?? '',
+						// A fixture session is the caller's own account, so every board arrived by being
+						// made here — the two timestamps are the same value, exactly as `createFile` writes
+						// them in production.
+						arrivedAt: fixtureTimestamp(index),
+						createdAt: fixtureTimestamp(index),
+						updatedAt: fixtureTimestamp(index),
+						workspaceName: '',
+						source: 'owned' as const,
+					}))
+					.filter((row) =>
+						terms.every((term) => row.name.toLowerCase().includes(term.toLowerCase()))
+					)
+					.sort(compareBoardSearchOrder)
+					.filter((row) => !cursor || isAfterBoardSearchCursor(row, cursor))
+				return getBoardSearchResults(rows, terms)
+			}
 			case BOARD_INFO_TOOL_NAME: {
 				const { boardId } = parseBoardInfoInput(args)
 				const board = boards.get(boardId)
@@ -133,7 +178,9 @@ async function callFixtureTool(
 				const board = boards.get(boardId)
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const resolved = resolvePage(board.snapshot, page)
-				return resolved.ok ? getPageInfo(resolved, board.measurements) : resolved.result
+				return resolved.ok
+					? getPageInfo(resolved, clusterPage(resolved, board.measurements))
+					: resolved.result
 			}
 			case CLUSTER_INFO_TOOL_NAME: {
 				const { boardId, page, clusterId } = parseClusterInfoInput(args)
@@ -141,7 +188,7 @@ async function callFixtureTool(
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const resolved = resolvePage(board.snapshot, page)
 				return resolved.ok
-					? getClusterInfo(resolved, board.measurements, clusterId, page)
+					? getClusterInfo(resolved, clusterPage(resolved, board.measurements), clusterId, page)
 					: resolved.result
 			}
 			case CLUSTER_SCREENSHOT_TOOL_NAME: {
@@ -150,7 +197,11 @@ async function callFixtureTool(
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const resolved = resolvePage(board.snapshot, page)
 				if (!resolved.ok) return resolved.result
-				const picked = pickClusterShapes(resolved, board.measurements, clusterIds, page)
+				const picked = pickClusterShapes(
+					clusterPage(resolved, board.measurements),
+					clusterIds,
+					page
+				)
 				if (!picked.ok) return picked.result
 				const png = board.shots[screenshotFileName(clusterIds, theme)]
 				return png

@@ -405,13 +405,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private historyReactor: Reactor
 
 	/**
-	 * Function to dispose of any in-flight timeouts.
+	 * Cancels the history flush scheduled for the next frame, if any.
 	 *
 	 * @internal
 	 */
-	private cancelHistoryReactor(): void {
-		/* noop */
-	}
+	private cancelHistoryReactor: null | (() => void) = null
 
 	/**
 	 * The schema that defines the structure and validation rules for records in this store.
@@ -519,6 +517,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		// If we have accumulated history, flush it and update listeners
 		if (this.historyAccumulator.hasChanges()) {
 			const entries = this.historyAccumulator.flush()
+			const errors: unknown[] = []
 			for (const { changes, source } of entries) {
 				// Filtered diffs are computed at most once per scope per entry, and shared by every
 				// listener watching that scope.
@@ -527,23 +526,36 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					if (filters.source !== 'all' && filters.source !== source) {
 						continue
 					}
-					if (filters.scope === 'all') {
-						onHistory({ changes, source })
-						continue
+					let listenerChanges = changes
+					if (filters.scope !== 'all') {
+						if (!scopedChanges.has(filters.scope)) {
+							scopedChanges.set(filters.scope, this.filterChangesByScope(changes, filters.scope))
+						}
+						const filtered = scopedChanges.get(filters.scope)
+						if (!filtered) continue
+						listenerChanges = filtered
 					}
-					if (!scopedChanges.has(filters.scope)) {
-						scopedChanges.set(filters.scope, this.filterChangesByScope(changes, filters.scope))
+					// The entries are already dequeued, so a listener that throws must not stop the others
+					// (e.g. a sync client) from receiving them: deliver to all, then rethrow the first error.
+					try {
+						onHistory({ changes: listenerChanges, source })
+					} catch (error) {
+						errors.push(error)
 					}
-					const filtered = scopedChanges.get(filters.scope)
-					if (!filtered) continue
-					onHistory({ changes: filtered, source })
 				}
 			}
+			if (errors.length > 0) throw errors[0]
 		}
 	}
 
 	dispose() {
-		this.cancelHistoryReactor()
+		// Deliver what is still pending first: a change-set made in the same frame as the dispose
+		// would otherwise never reach the listeners (e.g. a sync client) still attached to the store.
+		try {
+			this._flushHistory()
+		} finally {
+			this.cancelHistoryReactor?.()
+		}
 	}
 
 	/**
@@ -1079,6 +1091,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 						if (!changed) changed = { ...existing } as R
 						;(changed as any)[key] = value
 					}
+					// a key the update removed (present before, absent in `to`) is a change too
+					for (const key of Object.keys(existing)) {
+						if (type.ephemeralKeySet.has(key) || Object.hasOwn(to, key)) continue
+						if (!changed) changed = { ...existing } as R
+						delete (changed as any)[key]
+					}
 					if (changed) toPut.push(changed)
 				} else {
 					toPut.push(to)
@@ -1204,11 +1222,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			if (!this.pendingAfterEvents) {
 				this.sideEffects.handleOperationComplete(source)
-			} else {
-				// if the side effects triggered by a remote operation resulted in more effects,
-				// those extra effects should not be marked as originating remotely.
-				source = 'user'
 			}
+			// Whatever the after-handlers or the operation-complete handlers changed in response to
+			// a remote operation is not itself remote: later rounds are attributed to 'user'.
+			source = 'user'
 		}
 	}
 	private _isInAtomicOp = false

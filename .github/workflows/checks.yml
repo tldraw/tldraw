@@ -14,6 +14,11 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+  # update-pr-template reads the repo's label list (octo.issues.listLabelsForRepo).
+  issues: read
+
 jobs:
   test:
     name: 'Tests & checks'
@@ -26,52 +31,64 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Check version constraints
-        run: yarn constraints
-
       - name: Check for duplicate dependencies
-        run: yarn dedupe --check
+        run: pnpm dedupe --check
 
       - name: Check packages
-        run: yarn check-packages
+        run: pnpm check-packages
 
       - name: Check circular dependencies
-        run: yarn check-circular-deps
+        run: pnpm check-circular-deps
 
       - name: Restore build tool caches
         uses: actions/cache@v5
         with:
+          # No `**`: it follows workspace symlinks through node_modules and the save times out.
           path: |
             .lazy
-            **/.lazy
-            **/.tsbuild
-            **/*.tsbuildinfo
-          key: test-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', '.oxlintrc.json', '.oxfmtrc.json', 'lazy.config.ts') }}
+            */*/.lazy
+            apps/*/*/.lazy
+            */*/.tsbuild
+            apps/*/*/.tsbuild
+            *.tsbuildinfo
+            */*/*.tsbuildinfo
+            apps/*/*/*.tsbuildinfo
+          key: test-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.oxlintrc.json', '.oxfmtrc.json', 'lazy.config.ts') }}
 
       - name: Typecheck
-        run: yarn build-types
+        run: pnpm build-types
 
       - name: Check bundle sizes
-        run: yarn lazy check-bundle-size
+        run: pnpm exec lazy check-bundle-size
 
       - name: Check PR template
-        run: yarn update-pr-template --check
+        run: pnpm update-pr-template --check
         env:
           GH_TOKEN: ${{ github.token }}
 
       - name: Check API declarations and docs work as intended
-        run: yarn api-check
+        run: pnpm api-check
 
       - name: Lint
-        run: yarn lint
+        run: pnpm lint
 
       - name: Check dotcom localizations
         run: |
-          yarn build-i18n 
-          git diff --exit-code --quiet ./apps/dotcom/client/public/tla/locales/ ./apps/dotcom/client/public/tla/locales-compiled/ || (echo "Please run yarn build-i18n and commit the changes" && exit 1)
+          pnpm build-i18n 
+          git diff --exit-code --quiet ./apps/dotcom/client/public/tla/locales/ ./apps/dotcom/client/public/tla/locales-compiled/ || (echo "Please run pnpm build-i18n and commit the changes" && exit 1)
+
+      # vitest's fsModuleCache (~54MB gzipped). Entries are content-hashed, so a stale
+      # restore is safe - unmatched modules are just re-transformed. Keyed on pnpm-lock.yaml so
+      # one entry is reused across commits instead of saving a new copy on every run.
+      - name: Restore vitest module cache
+        uses: actions/cache@v5
+        with:
+          path: node_modules/.vitest-cache
+          key: vitest-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: vitest-cache-${{ runner.os }}-
 
       - name: Test
-        run: yarn test-ci
+        run: pnpm test-ci
 
   build:
     name: 'Build all projects'
@@ -87,14 +104,19 @@ jobs:
       - name: Restore build tool caches
         uses: actions/cache@v5
         with:
+          # No `**`: it follows workspace symlinks through node_modules and the save times out.
           path: |
             .lazy
-            **/.lazy
-            **/.tsbuild
-            **/*.tsbuildinfo
-          key: build-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', 'lazy.config.ts') }}
+            */*/.lazy
+            apps/*/*/.lazy
+            */*/.tsbuild
+            apps/*/*/.tsbuild
+            *.tsbuildinfo
+            */*/*.tsbuildinfo
+            apps/*/*/*.tsbuildinfo
+          key: build-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'lazy.config.ts') }}
 
       - name: Build packages
         # the sed pipe makes sure that github annotations come through without
         # turbo's prefix
-        run: "yarn build-package | sed -E 's/^.*? ::/::/'"
+        run: "pnpm build-package | sed -E 's/^.*? ::/::/'"

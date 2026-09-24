@@ -76,7 +76,7 @@ describe('setting atoms during the reaction phase (P)', () => {
 		expect(b.get()).toBe(1)
 	})
 
-	it('[P5] throws an error if it gets into a loop', () => {
+	it('[P5][P8] throws an error if it gets into a loop', () => {
 		expect(() => {
 			const a = atom('', 0)
 
@@ -378,5 +378,100 @@ describe('actively-listening computeds stay fresh (C2)', () => {
 
 		deferred.forEach((execute) => execute())
 		expect(c.get()).toBe(1)
+	})
+})
+
+describe('effects that set atoms outside the reaction phase (P8)', () => {
+	// Regression: a first run happens outside a reaction phase, so a set inside it flushed
+	// synchronously and re-entered execute() for the same scheduler. The nested capture frame then
+	// truncated the parents captured by the outer run — `b` was dropped while `b.children` still
+	// held the effect, so `b.set()` never reached the effect again.
+	it.each([
+		['react()', (fn: () => void) => react('r', fn)],
+		['reactor.start()', (fn: () => void) => reactor('r', fn).start()],
+		[
+			'execute()',
+			(fn: () => void) => {
+				const scheduler = new EffectScheduler('r', fn)
+				scheduler.attach()
+				scheduler.execute()
+			},
+		],
+	])(
+		'[P8] a first run via %s that sets one of its own parents re-runs after it instead of nesting',
+		(_, start) => {
+			const initialized = atom('initialized', false)
+			const b = atom('b', 0)
+			const log: string[] = []
+
+			start(() => {
+				log.push('start')
+				if (!initialized.get()) initialized.set(true)
+				log.push(`b=${b.get()}`)
+				log.push('end')
+			})
+
+			// the set changed a parent read before it, so the effect runs once more, sequentially
+			expect(log).toEqual(['start', 'b=0', 'end', 'start', 'b=0', 'end'])
+
+			b.set(1)
+			expect(log.slice(6)).toEqual(['start', 'b=1', 'end'])
+		}
+	)
+
+	it('[P8][E4] skips the extra run when none of the parents it captured have changed', () => {
+		const a = atom('a', 0)
+		let readsA = true
+		let runs = 0
+
+		const scheduler = new EffectScheduler('r', () => {
+			runs++
+			if (readsA) {
+				a.get()
+			} else {
+				a.set(1)
+			}
+		})
+		scheduler.attach()
+		scheduler.execute()
+
+		// `a` is a parent from the first run, so this run's set schedules the effect. But the run
+		// drops `a` instead of reading it, so by the time it finishes nothing it depends on changed.
+		readsA = false
+		scheduler.execute()
+		expect(scheduler.scheduleCount).toBe(1)
+		expect(runs).toBe(2)
+	})
+
+	it('[P8][E7] does not re-run an effect that was detached during its first run', () => {
+		const a = atom('a', 0)
+		let runs = 0
+
+		const scheduler = new EffectScheduler('r', () => {
+			runs++
+			a.set(a.get() + 1)
+			scheduler.detach()
+		})
+		scheduler.attach()
+		scheduler.execute()
+
+		expect(scheduler.scheduleCount).toBe(1)
+		expect(runs).toBe(1)
+	})
+
+	it('[P8] a first run that throws is not re-entered by its own set', () => {
+		const a = atom('a', 0)
+		let runs = 0
+
+		const scheduler = new EffectScheduler('r', () => {
+			runs++
+			a.set(a.get() + 1)
+			throw new Error('boom')
+		})
+		scheduler.attach()
+
+		expect(() => scheduler.execute()).toThrow('boom')
+		expect(scheduler.scheduleCount).toBe(1)
+		expect(runs).toBe(1)
 	})
 })
