@@ -1999,6 +1999,9 @@ importers:
       '@types/uuid-readable':
         specifier: ^0.0.3
         version: 0.0.3
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
       fake-indexeddb:
         specifier: ^4.0.2
         version: 4.0.2
