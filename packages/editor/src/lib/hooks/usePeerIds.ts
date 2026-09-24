@@ -1,6 +1,5 @@
 import { useComputed, useValue } from '@tldraw/state-react'
-import { areArraysShallowEqual } from '@tldraw/utils'
-import { uniq } from '../utils/uniq'
+import { areArraysShallowEqual, uniq } from '@tldraw/utils'
 import { useEditor } from './useEditor'
 
 /**
