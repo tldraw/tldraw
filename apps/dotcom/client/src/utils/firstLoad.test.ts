@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
 	createFirstLoadTracker,
+	FIRST_LOAD_LOG_HEADER,
 	initServerTiming,
 	shouldReportFirstLoad,
 	summarizeNavigation,
@@ -118,6 +119,7 @@ describe('createFirstLoadTracker', () => {
 		expect(log).not.toHaveBeenCalled()
 		tracker.enableLiveLog()
 		expect(log.mock.calls.map((c) => c[0])).toEqual([
+			FIRST_LOAD_LOG_HEADER,
 			'[first-load] js-started +50ms (+50)',
 			'[first-load] clerk-loaded +250ms (+200)',
 		])

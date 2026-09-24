@@ -9,23 +9,8 @@ export type FirstLoadServerTimings = Extract<TLCustomServerEvent, { type: 'first
  * Every step names the event that just completed, in past tense; its span is the time since the
  * previous step. Steps become `performance.mark`s (`tla:<step>`) and measures, `t_<step>` /
  * `d_<step>` properties on the `first_load` analytics event, and console lines. The report sorts
- * by when each step actually happened, since route chunks load in parallel.
- *
- * | step                 | the moment it marks                                                   |
- * |----------------------|-----------------------------------------------------------------------|
- * | js-started           | main.tsx began executing (HTML + entry bundle done)                   |
- * | root-chunk-loaded    | the TlaRootProviders route chunk was evaluated                        |
- * | clerk-loaded         | Clerk reported `isLoaded` (session known)                             |
- * | flags-loaded         | feature flags resolved, or timed out to defaults                      |
- * | init-done            | `POST /api/app/:id/init` returned                                     |
- * | zero-user-synced     | Zero confirmed the user row from the server                           |
- * | zero-preloaded       | Zero confirmed file states + workspace memberships; app state unblocks|
- * | file-chunk-loaded    | the file route chunk was evaluated                                    |
- * | editor-rendered      | TlaEditorInner rendered for the first time (`room_load_duration` t0)  |
- * | sync-token-fetched   | Clerk token for the sync socket obtained                              |
- * | sync-connected       | the sync store reached `synced-remote`                                |
- * | editor-mounted       | the editor's `onMount` ran                                            |
- * | board-visible        | the ready shroud lifted; the board is on screen                       |
+ * by when each step actually happened, since route chunks load in parallel. What each step marks
+ * is in FIRST_LOAD_STEP_INFO.
  *
  * How to read the output: tldraw/tldraw-internal#2026.
  */
@@ -46,6 +31,57 @@ export const FIRST_LOAD_STEPS = [
 ] as const
 
 export type FirstLoadStep = (typeof FIRST_LOAD_STEPS)[number]
+
+const FIRST_LOAD_STEP_INFO: Record<FirstLoadStep, string> = {
+	'js-started': 'main.tsx began executing (HTML + entry bundle done)',
+	'root-chunk-loaded': 'TlaRootProviders route chunk evaluated',
+	'clerk-loaded': 'Clerk reported isLoaded (session known)',
+	'flags-loaded': 'feature flags resolved, or timed out to defaults',
+	'init-done': 'POST /api/app/:userId/init returned (user row + home workspace ensured)',
+	'zero-user-synced': 'Zero confirmed the user row from the server',
+	'zero-preloaded': 'Zero confirmed file states + workspace memberships; app state unblocks',
+	'file-chunk-loaded': 'file route chunk evaluated',
+	'editor-rendered': 'TlaEditorInner first render (room_load_duration t0)',
+	'sync-token-fetched': 'Clerk token for the sync socket obtained',
+	'sync-connected': 'sync socket open, server checks done, snapshot received (synced-remote)',
+	'editor-mounted': "editor's onMount ran",
+	'board-visible': 'ready shroud lifted; board on screen',
+}
+
+const FIRST_LOAD_FIELD_INFO: Record<string, string> = {
+	srv_cold: 'no live room in the DO; true alone does not mean an R2/Postgres load (see boot_*)',
+	srv_auth_ms: 'sync worker: verify the Clerk token',
+	srv_file_record_ms: 'sync worker: file row lookup (Postgres; ~0 when the DO has it cached)',
+	srv_get_room_ms: 'sync worker: get or create the room; long only when storage loads',
+	srv_total_ms: 'sync worker: whole connect request, incl. rate limit + group check (Postgres)',
+	srv_boot_r2_ms: 'room boot from empty SQLite: R2 snapshot fetch',
+	srv_boot_comments_ms: 'room boot from empty SQLite: comments from Postgres',
+	srv_boot_total_ms: 'room boot from empty SQLite: whole storage load',
+	srv_echo: 'server timings arrived; false = none within 3s',
+	srv_init_ms: 'sync worker: user init request (Server-Timing)',
+	srv_init_outcome: 'existing = user already set up, created = first sign-in',
+	res_count: 'resources loaded so far',
+	res_kb: 'total transferred',
+	res_js_kb: 'JS transferred',
+	res_css_kb: 'CSS transferred',
+	res_font_kb: 'fonts transferred',
+	res_fetch_kb: 'fetch/XHR transferred',
+	res_cached: 'resources with 0 bytes transferred (cache hits, or opaque cross-origin)',
+	res_largest: 'largest resource by transfer size',
+	res_largest_kb: 'its size',
+	res_slowest: 'slowest resource by duration',
+	res_slowest_ms: 'its duration',
+	clerk_script_ms: 'clerk.browser.js download time',
+}
+
+function describeFields(fields: Record<string, unknown>) {
+	return Object.fromEntries(
+		Object.entries(fields).map(([k, value]) => [k, { value, what: FIRST_LOAD_FIELD_INFO[k] ?? '' }])
+	)
+}
+
+export const FIRST_LOAD_LOG_HEADER =
+	'[first-load] page load timings, logged for tldraw staff and first_load_rum users only'
 
 export interface FirstLoadDeps {
 	now(): number
@@ -169,6 +205,7 @@ export function createFirstLoadTracker(deps: FirstLoadDeps) {
 	function enableLiveLog() {
 		if (live) return
 		live = true
+		deps.log(FIRST_LOAD_LOG_HEADER)
 		for (const line of lines.splice(0)) deps.log(line)
 	}
 
@@ -425,11 +462,17 @@ export function reportFirstLoad(opts: {
 	}
 	void firstLoad
 		.whenServerTimings(SERVER_ECHO_DEADLINE_MS)
-		.then((gotEcho) => sendFirstLoadReport(opts, gotEcho, snapshot))
+		.then((gotEcho) =>
+			sendFirstLoadReport(
+				{ staff: isFirstLoadStaff(opts.email), trackEvent: opts.trackEvent },
+				gotEcho,
+				snapshot
+			)
+		)
 }
 
 function sendFirstLoadReport(
-	opts: { trackEvent(name: string, data: Record<string, unknown>): void },
+	opts: { staff: boolean; trackEvent(name: string, data: Record<string, unknown>): void },
 	gotEcho: boolean,
 	snapshot: {
 		entries: PerformanceResourceTiming[]
@@ -453,10 +496,20 @@ function sendFirstLoadReport(
 	opts.trackEvent('first_load', event)
 	const server = Object.fromEntries(Object.entries(event).filter(([k]) => k.startsWith('srv_')))
 	/* eslint-disable no-console */
-	console.log(`[first-load] ${report.load_id} total ${report.total_ms}ms`)
-	console.table(steps.map((s) => ({ step: s.step, 'ms since nav': s.t, 'delta ms': s.delta })))
-	console.table(server)
-	console.table(resources)
+	console.groupCollapsed(
+		`[first-load] ${report.load_id} total ${report.total_ms}ms (expand for steps, server, resources)`
+	)
+	console.table(
+		steps.map((s) => ({
+			step: s.step,
+			'ms since nav': s.t,
+			'delta ms': s.delta,
+			...(opts.staff && { what: FIRST_LOAD_STEP_INFO[s.step] }),
+		}))
+	)
+	console.table(opts.staff ? describeFields(server) : server)
+	console.table(opts.staff ? describeFields(resources) : resources)
+	console.groupEnd()
 	/* eslint-enable no-console */
 	return event
 }
