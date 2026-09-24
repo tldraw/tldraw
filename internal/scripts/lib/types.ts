@@ -55,7 +55,6 @@ export type ProductConfig = T.TypeOf<typeof ProductConfig>
 export const PackageJson = T.object({
 	name: T.string,
 	private: T.boolean.optional(),
-	workspaces: T.arrayOf(T.string).optional(),
 	[EXPORT_CONFIG_KEY]: TemplateConfig.optional(),
 	[PRODUCT_CONFIG_KEY]: ProductConfig.optional(),
 	license: T.string.optional(),

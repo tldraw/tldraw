@@ -267,7 +267,6 @@ export type TLCustomServerEvent =
 export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
 	'first_load_rum',
-	'commenting_enabled',
 	'mcp_server_access',
 	'version_chain',
 ] as const
@@ -305,10 +304,18 @@ export interface PercentageFeatureFlag {
  */
 export interface AllowlistFeatureFlag {
 	type: 'allowlist'
+	// No master toggle, unlike the other two. An empty list already admits nobody, so a separate
+	// "off" would only be a second way to say the same thing — and on `mcp_server_access` it could
+	// not even say it, since the staff bypass in `canUseMcpServer` does not consult this flag.
 	/** The users the flag is on for. Anyone not named here evaluates false. */
 	users: AllowlistEntry[]
-	/** Master toggle — when false, disabled for everyone regardless of the list. */
-	enabled: boolean
+	/**
+	 * Skips the list and admits everybody.
+	 *
+	 * Optional because stored values predate it, and absent reads as false: a KV value written before
+	 * this existed must not start admitting everyone when the code that reads it is deployed.
+	 */
+	allowEveryone?: boolean
 	description: string
 }
 

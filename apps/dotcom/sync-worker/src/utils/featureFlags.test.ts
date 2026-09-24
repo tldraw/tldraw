@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+	canUseMcpServer,
 	evaluateFlagForUser,
 	getAllFeatureFlagValues,
 	getFeatureFlagValue,
@@ -11,6 +12,24 @@ import {
 
 vi.mock('./tla/getAuth', () => ({
 	getAuth: vi.fn(),
+}))
+
+// canUseMcpServer reads the account's email from Postgres when the flag does not cover them.
+const userEmail = vi.fn<() => string | undefined>(() => undefined)
+vi.mock('../postgres', () => ({
+	createPostgresConnectionPool: () => ({
+		selectFrom: () => ({
+			select: () => ({
+				where: () => ({
+					executeTakeFirst: async () => {
+						const email = userEmail()
+						return email === undefined ? undefined : { email }
+					},
+				}),
+			}),
+		}),
+		destroy: async () => {},
+	}),
 }))
 
 function makeEnv(
@@ -160,8 +179,11 @@ describe('evaluateFlagForUser (allowlist)', () => {
 		expect(evaluateFlagForUser(flag(['user-1', 'user-2']), 'test', 'user-3')).toBe(false)
 	})
 
-	it('is off for everyone when the master toggle is off', () => {
-		expect(evaluateFlagForUser(flag(['user-1'], false), 'test', 'user-1')).toBe(false)
+	// Allowlists have no master toggle — the list is the control. Values stored while they did still
+	// carry `enabled`, and obeying a stale `false` would lock out a list that reads as granting.
+	it('ignores a stored enabled from before the toggle was removed', () => {
+		const stale = { ...flag(['user-1']), enabled: false } as any
+		expect(evaluateFlagForUser(stale, 'test', 'user-1')).toBe(true)
 	})
 
 	it('is off for an anonymous caller', () => {
@@ -272,6 +294,22 @@ describe('getFeatureFlagValue', () => {
 		const value = await getFeatureFlagValue(env as any, 'mcp_server_access')
 		expect(value.type).toBe('allowlist')
 		expect(evaluateFlagForUser(value, 'mcp_server_access', 'user-1')).toBe(false)
+	})
+
+	// Same rule as `type`: a save writes the whole value back, so the description a flag was first
+	// stored with would otherwise outlive every later edit to the defaults table, and the admin panel
+	// would go on describing a control by a name the code had already renamed.
+	it('discards a stored description in favour of the current default', async () => {
+		const env = makeEnv({
+			mcp_server_access: JSON.stringify({
+				type: 'allowlist',
+				enabled: true,
+				description: 'Allow everyone opens it to every signed-in account',
+			}),
+		})
+		const value = await getFeatureFlagValue(env as any, 'mcp_server_access')
+		expect(value.description).toContain('Allow all')
+		expect(value.description).not.toContain('Allow everyone')
 	})
 
 	it('returns defaults on KV error', async () => {
@@ -385,7 +423,7 @@ describe('getFeatureFlags (route handler)', () => {
 		expect(body.rum_enabled.enabled).toBe(false)
 	})
 
-	it('forces legacy zero_enabled/zero_kill_switch flags on for old client bundles, even unauthenticated', async () => {
+	it('forces legacy zero_enabled/zero_kill_switch/commenting_enabled flags for old client bundles, even unauthenticated', async () => {
 		const { getAuth } = await import('./tla/getAuth')
 		vi.mocked(getAuth).mockResolvedValue(null)
 
@@ -395,6 +433,7 @@ describe('getFeatureFlags (route handler)', () => {
 
 		expect(body.zero_enabled.enabled).toBe(true)
 		expect(body.zero_kill_switch.enabled).toBe(false)
+		expect(body.commenting_enabled.enabled).toBe(true)
 		expect(body.rum_enabled).toBeDefined()
 	})
 })
@@ -419,11 +458,92 @@ describe('getAllFeatureFlagValues', () => {
 		const flags = await getAllFeatureFlagValues(env as any)
 
 		expect(Object.keys(flags).sort()).toEqual([
-			'commenting_enabled',
 			'first_load_rum',
 			'mcp_server_access',
 			'rum_enabled',
 			'version_chain',
 		])
+	})
+})
+
+describe('allowEveryone', () => {
+	// Checked ahead of the list so a flag can be opened to everyone without first emptying a list the
+	// operator will want back when they close it again.
+	it('admits anyone when set, whatever the list holds', () => {
+		const flag = {
+			type: 'allowlist' as const,
+			users: [{ userId: 'someone-else', email: 'x@example.com' }],
+			allowEveryone: true,
+			enabled: true,
+			description: '',
+		}
+		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'not-on-the-list')).toBe(true)
+	})
+
+	// Same as above from the other side: a stale `enabled: false` does not hold back allow all either.
+	it('admits everyone despite a stored enabled from before the toggle was removed', () => {
+		const flag = {
+			type: 'allowlist' as const,
+			users: [],
+			allowEveryone: true,
+			enabled: false,
+			description: '',
+		}
+		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'anyone')).toBe(true)
+	})
+
+	// Absent reads as false: a value stored before this field existed must not start admitting
+	// everyone the moment the code that understands it is deployed.
+	it('treats a stored value without the field as closed', () => {
+		const flag = {
+			type: 'allowlist' as const,
+			users: [],
+			enabled: true,
+			description: '',
+		}
+		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'anyone')).toBe(false)
+	})
+})
+
+describe('canUseMcpServer', () => {
+	beforeEach(() => userEmail.mockReturnValue(undefined))
+
+	it('admits a verified @tldraw.com account the flag does not name', async () => {
+		userEmail.mockReturnValue('someone@tldraw.com')
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
+	})
+
+	it('is case-insensitive about the domain', async () => {
+		userEmail.mockReturnValue('Someone@TLDRAW.com')
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
+	})
+
+	// The obvious near-miss: a domain that merely ends the same way is a different company.
+	it('refuses a lookalike domain', async () => {
+		userEmail.mockReturnValue('someone@nottldraw.com')
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
+	})
+
+	it('refuses everyone else', async () => {
+		userEmail.mockReturnValue('someone@example.com')
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
+	})
+
+	// A token whose account no longer exists is refused, not turned into a 500.
+	it('refuses when the account has no row', async () => {
+		userEmail.mockReturnValue(undefined)
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
+	})
+
+	// The flag still comes first, and it is what keeps the database read off the granted path.
+	it('admits an allowlisted account without reading their email', async () => {
+		const env = makeEnv({
+			mcp_server_access: JSON.stringify({
+				enabled: true,
+				users: [{ userId: 'user-1', email: 'someone@example.com' }],
+			}),
+		})
+		expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+		expect(userEmail).not.toHaveBeenCalled()
 	})
 })

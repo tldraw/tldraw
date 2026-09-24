@@ -67,7 +67,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			if (!token) throw new Error('no token')
 			const { app } = await TldrawApp.create({
 				userId: auth.userId,
-				email: user.primaryEmailAddress?.emailAddress,
+				email,
 				flags,
 				getToken: async () => {
 					const token = await auth.getToken()

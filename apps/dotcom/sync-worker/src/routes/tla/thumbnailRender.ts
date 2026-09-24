@@ -847,7 +847,10 @@ export async function putThumbnailPng(
 export function writeScreenshotTelemetry(
 	env: Environment,
 	data: {
-		source: 'mcp' | 'og' | 'queue'
+		// 'board_view' is the authenticated owner-facing thumbnail route (getBoardThumbnail.ts): kept
+		// apart from 'og' because the two surfaces have different cache populations and different
+		// callers, and folding them together would make the OG hit-rate panel unreadable.
+		source: 'mcp' | 'og' | 'queue' | 'board_view'
 		/**
 		 * Which trigger asked for this render — what attributes a render to publishing or editing.
 		 * Only meaningful on queue datapoints; the request paths have no trigger and record `none`.

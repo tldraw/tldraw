@@ -121,7 +121,7 @@ export function TlaEditorTopRightPanel({
  * Toggles the comments sidebar (the thread list) open and closed. Lives next to Share as an opt-in
  * entry point, decoupled from the comment tool: the tool places comments on the canvas, this button
  * reveals the list. Hidden entirely when commenting isn't licensed for this editor, or when the
- * user isn't covered by dotcom's commenting flag.
+ * viewer is signed out.
  */
 function CommentsSidebarButton() {
 	const editor = useEditor()
