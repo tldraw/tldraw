@@ -484,6 +484,15 @@ const ALLOWED_VERSION_DIVERGENCE: Record<string, { workspaces: string[]; reason:
 		workspaces: ['templates/'],
 		reason: 'templates are independently published starters',
 	},
+	// TODO: drop these once the rest of the repo is bumped to match (#10903).
+	next: {
+		workspaces: ['templates/chat'],
+		reason: '@opennextjs/cloudflare needs next >=16.3.3',
+	},
+	wrangler: {
+		workspaces: ['templates/chat'],
+		reason: '@opennextjs/cloudflare needs wrangler ^4.125.0',
+	},
 }
 
 // Node 22.12 is the first version where `require()` of an ES module works unflagged, so
