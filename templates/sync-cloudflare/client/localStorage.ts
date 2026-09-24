@@ -19,11 +19,3 @@ export function setLocalStorageItem(key: string, value: string): void {
 		console.warn('Failed to set localStorage item:', error)
 	}
 }
-
-export function removeLocalStorageItem(key: string): void {
-	try {
-		localStorage.removeItem(key)
-	} catch (error) {
-		console.warn('Failed to remove localStorage item:', error)
-	}
-}

@@ -3,6 +3,7 @@ import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_PAGES,
+	ShapeCluster,
 	getShapeClusters,
 	getShapeText,
 	type TLShapeWithPlainText,
@@ -18,7 +19,7 @@ import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 //
 // Deliberately pure. It takes a room snapshot and a table of shape measurements — data — and returns
 // tool results. It knows nothing about Postgres, R2, Browser Rendering, rate limits, caching or
-// telemetry; sharedBoardScreenshotMcp.ts owns all of that and calls in here.
+// telemetry; mcpServer.ts owns all of that and calls in here.
 //
 // The split is what makes this server evaluable. The private eval harness sends checked-in board
 // fixtures to the local-only route in evalsLocalMcp.ts, which serves these exact functions. A run
@@ -29,20 +30,37 @@ import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 export const MCP_PROTOCOL_VERSION = '2025-11-25'
 
 export const MCP_SERVER_INFO = {
-	name: 'tldraw-shared-board-screenshot',
-	title: 'tldraw board screenshots',
-	version: '3.0.0',
+	name: 'tldraw-boards',
+	title: 'tldraw boards',
+	version: '3.1.0',
 }
 
-export const MCP_SERVER_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Drill down in order: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job.'
+/**
+ * What the handshake tells a model this server is for.
+ *
+ * Two versions, because `initialize` is read before any tool is called: told to "find a board by
+ * name" on a deployment that cannot, a model calls the listing tool and reads whatever comes back as
+ * matches. That is the same failure the tool definition already guards against, arriving one step
+ * earlier — see `getSearchBoardsToolDefinition`.
+ */
+export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
+	return nameMatchingEnabled ? SEARCHING_INSTRUCTIONS : LISTING_INSTRUCTIONS
+}
 
+const SEARCHING_INSTRUCTIONS =
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
+
+const LISTING_INSTRUCTIONS =
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
+
+export const SEARCH_BOARDS_TOOL_NAME = 'search_boards'
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
 export const PAGE_INFO_TOOL_NAME = 'get_page_info'
 export const CLUSTER_INFO_TOOL_NAME = 'get_cluster_info'
 export const CLUSTER_SCREENSHOT_TOOL_NAME = 'get_cluster_screenshot'
 
 export const TOOL_NAMES = [
+	SEARCH_BOARDS_TOOL_NAME,
 	BOARD_INFO_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
@@ -58,7 +76,7 @@ export const TOOL_NAMES = [
 // does not exist" would let anyone test file ids for existence. It also cannot name what would fix
 // it, since the caller may simply be signed in as the wrong account.
 export const BOARD_NOT_FOUND_MESSAGE =
-	'No board was found with this id, or this account does not have access to it. Boards you own, boards shared with you via link, and published boards are supported.'
+	'No board was found with this id, or this account does not have access to it. Boards in your own workspace, boards owned by a workspace you belong to, boards shared with you via link, and published boards are supported.'
 export const BOARD_EMPTY_MESSAGE = 'This board has no saved content yet.'
 
 // --- Reading a snapshot -------------------------------------------------------------------------
@@ -111,6 +129,155 @@ export function getShapesOnPage(snapshot: RoomSnapshot, pageId: string): TLShape
 }
 
 // --- Input parsing ------------------------------------------------------------------------------
+
+// One page of search results. Fixed rather than caller-settable: the cursor is how a caller reaches
+// more, and a page size that varies per call would have to be carried inside the cursor for the next
+// page to mean anything.
+export const BOARD_SEARCH_PAGE_SIZE = 20
+export const BOARD_SEARCH_MAX_QUERY_LENGTH = 200
+export const BOARD_SEARCH_MAX_TERMS = 8
+
+/**
+ * Where a page of search results ended: the sort key of its last row.
+ *
+ * Both halves are needed. `arrivedAt` is not unique — boards created in one batch share one — so
+ * `id` is the tiebreaker that makes "where the page ended" a single point rather than a range.
+ */
+export interface BoardSearchCursor {
+	/**
+	 * When the board entered this caller's list: created in one of their workspaces, moved into one,
+	 * or opened by them through a share link. Immutable whichever way it arrived, which is what a
+	 * keyset cursor needs; `searchBoards.ts` says why, and reads it from a different column per case.
+	 */
+	arrivedAt: number
+	id: string
+}
+
+// search_boards is the only tool with `required: []` — the other four all mandate boardId, which is
+// why `arguments` being wire-optional never mattered before. Its own description tells a model to
+// omit the query to list its newest boards, so a call with no `arguments` key at all is a legitimate
+// "list my newest boards", not a malformed one, and must not hit `requireArgumentsObject(undefined)`.
+export function parseSearchBoardsInput(
+	input: unknown,
+	nameMatchingEnabled = true
+): {
+	terms: string[]
+	cursor: BoardSearchCursor | null
+} {
+	const value = requireArgumentsObject(input ?? {})
+	const terms = parseSearchTerms(value.query)
+	// Refused, never quietly dropped. A model that asked for "roadmap" and got this account's twenty
+	// most recent boards would read them as twenty matches and act on one — worse than being told the
+	// search is unavailable, which it can recover from by listing instead.
+	if (terms.length && !nameMatchingEnabled) {
+		throw new Error(
+			'Searching by name is not available on this deployment. Omit the query to list boards instead.'
+		)
+	}
+	return { terms, cursor: parseBoardSearchCursor(value.cursor, terms) }
+}
+
+// Terms are ANDed, so "design system" finds "System design v2" whatever the order they were typed
+// in. A query of only whitespace means the same as no query: list the caller's newest boards.
+function parseSearchTerms(value: unknown): string[] {
+	if (value === undefined || value === null) return []
+	if (typeof value !== 'string') {
+		throw new Error('query must be a string')
+	}
+	if (value.length > BOARD_SEARCH_MAX_QUERY_LENGTH) {
+		throw new Error(`query must be ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters or fewer`)
+	}
+	const terms = value.split(/\s+/).filter((term) => term.length > 0)
+	// Each term becomes its own ILIKE, unindexable, over a scan that is already unbounded (see
+	// searchBoards.ts) — a query length limit alone does not bound term count, since whitespace is
+	// cheap. Thrown rather than truncated: silently dropping terms would change what was searched for
+	// without telling the caller.
+	if (terms.length > BOARD_SEARCH_MAX_TERMS) {
+		throw new Error(`query must be ${BOARD_SEARCH_MAX_TERMS} words or fewer`)
+	}
+	return terms
+}
+
+/**
+ * Reads back a cursor this server issued.
+ *
+ * Refuses anything it cannot decode rather than falling back to the first page: a model that has
+ * paged three times and is silently returned to the start sees its own last page repeating, with no
+ * signal that its cursor was the problem.
+ */
+function parseBoardSearchCursor(value: unknown, terms: string[]): BoardSearchCursor | null {
+	if (value === undefined || value === null) return null
+	if (typeof value !== 'string') {
+		throw new Error('cursor must be a string: the nextCursor from a previous search_boards result')
+	}
+	const invalid = new Error(
+		'cursor is not valid. Omit it to start from the first page, or pass the nextCursor from a previous search_boards result.'
+	)
+	let decoded: string
+	try {
+		decoded = atob(value)
+	} catch {
+		throw invalid
+	}
+	// The encoder percent-escapes both the id and the query, and percent-escaping covers the colon,
+	// so these are the only three unescaped ones.
+	const parts = decoded.split(':')
+	if (parts.length !== 3) throw invalid
+	const [timestampPart, idPart, queryPart] = parts
+	// `Number()` accepts far more than a timestamp can legitimately be: '' -> 0, '1e3' -> 1000,
+	// ' 5' -> 5, '+5' -> 5, 'Infinity' -> Infinity. Requiring plain digits first catches all of
+	// these, including the empty-prefix forgery `btoa(":id")`, which would otherwise pass
+	// `Number.isSafeInteger(0) && 0 >= 0` and seek strictly below epoch — an empty page with no
+	// nextCursor, forever, and no signal that the cursor was the problem. `encodeBoardSearchCursor`
+	// only ever writes a non-negative safe integer's `toString()`, which is always plain digits, so
+	// this cannot reject a cursor this server minted.
+	if (!/^\d+$/.test(timestampPart)) throw invalid
+	const arrivedAt = Number(timestampPart)
+	let id: string
+	let query: string
+	try {
+		id = decodeURIComponent(idPart)
+		query = decodeURIComponent(queryPart)
+	} catch {
+		throw invalid
+	}
+	// A cursor is a position in one query's results and means nothing in another's. Without this a
+	// model that pages, then narrows its query while passing the cursor on, silently continues from
+	// row 20 of a set it never saw the start of — and has no way to tell that is what happened.
+	if (query !== normalizeSearchQuery(terms)) {
+		throw new Error(
+			'cursor is from a different query. Repeat the query it came from, or omit the cursor to start this one from its first page.'
+		)
+	}
+	// `Number.isSafeInteger`, not `Number.isInteger`: an all-digit timestamp past MAX_SAFE_INTEGER
+	// passes the check above, then binds as an out-of-range int8 and makes Postgres throw, so caller
+	// garbage would reach a model as "the board database could not be reached" rather than as a bad
+	// cursor. An empty id is refused here too: it would seek on `arrivedAt` alone, re-serving or
+	// skipping every board that shares it.
+	if (!Number.isSafeInteger(arrivedAt) || id.length === 0) throw invalid
+	return { arrivedAt, id }
+}
+
+// Opaque on purpose: a model should only ever hand back a cursor it was given, which leaves the
+// encoding free to change without every client having to.
+//
+// The id and the query are percent-escaped because `btoa` throws on anything outside Latin-1 and
+// this runs inside the route's `try`, so anything it choked on would be reported as a database
+// failure. Real file ids are URL-safe ASCII, which percent-encoding leaves byte for byte; fixture
+// ids and search terms are arbitrary strings — a query in any non-Latin script would otherwise
+// throw here — and this is what keeps them round-tripping.
+function encodeBoardSearchCursor(cursor: BoardSearchCursor, terms: string[]): string {
+	return btoa(
+		`${cursor.arrivedAt}:${encodeURIComponent(cursor.id)}:${encodeURIComponent(normalizeSearchQuery(terms))}`
+	)
+}
+
+// What makes two searches "the same query" for the purposes of continuing a cursor. Lowercased
+// because the matching is `ilike`, so case never changed which boards the cursor was pointing into;
+// joined on single spaces because `parseSearchTerms` has already split the caller's whitespace away.
+function normalizeSearchQuery(terms: string[]): string {
+	return terms.map((term) => term.toLowerCase()).join(' ')
+}
 
 export function parseBoardInfoInput(input: unknown): { boardId: string } {
 	const value = requireArgumentsObject(input)
@@ -252,6 +419,104 @@ export function toolJsonResult(value: unknown): ToolResult {
 
 // --- The tools ----------------------------------------------------------------------------------
 
+/** One board as the search query returns it, before it is shaped for the model. */
+export interface BoardSearchRow extends BoardSearchCursor {
+	name: string
+	/** When the board itself was made. Reported to the model, but never the sort key — see `arrivedAt`. */
+	createdAt: number
+	/** When the board's row last changed, by anyone — not per-caller, and not the sort key. */
+	updatedAt: number
+	/**
+	 * The name of the workspace that owns the board. Only reported for `workspace` boards — see
+	 * `getBoardSearchResults`.
+	 */
+	workspaceName: string
+	/**
+	 * How the caller reaches this board, which is also which read found it.
+	 *
+	 * `shared` is not a flavour of `workspace`: the caller is not a member of the workspace that owns
+	 * a link-shared board, so reporting it as one would tell a model it has standing there that it
+	 * does not have — and would put another organisation's workspace name in front of somebody who
+	 * was only ever given a link.
+	 */
+	source: 'owned' | 'workspace' | 'shared'
+}
+
+/**
+ * The order search results come back in: most recently arrived board first, `id` descending to break
+ * the ties `arrivedAt` leaves.
+ *
+ * "Arrived", not "created", so a board somebody shared with you this morning leads the list rather
+ * than sorting by when its owner happened to make it — which for a long-lived board buries it under
+ * everything you have made since.
+ *
+ * The single statement of that rule. `searchBoards.ts` mirrors it in SQL because Postgres does the
+ * real ordering, and the eval harness pages through fixtures with this one — if the two disagree,
+ * the harness stops being evidence about the deployed server. Ids compare by UTF-16 code unit here,
+ * which is why the SQL declares `COLLATE "C"`: an ICU or glibc collation orders the mixed case, `_`
+ * and `-` of a tldraw id differently, and the two mirrors would silently part company.
+ */
+export function compareBoardSearchOrder(a: BoardSearchCursor, b: BoardSearchCursor): number {
+	if (a.arrivedAt !== b.arrivedAt) return b.arrivedAt - a.arrivedAt
+	return a.id < b.id ? 1 : a.id > b.id ? -1 : 0
+}
+
+/**
+ * Whether a row belongs on a page after the one the cursor ended.
+ *
+ * Descending order means "after the cursor" is "sorts lower than the cursor", and the cursor's own
+ * row is excluded — reverse either and a caller is served the page it just read, forever.
+ */
+export function isAfterBoardSearchCursor(
+	row: BoardSearchCursor,
+	cursor: BoardSearchCursor
+): boolean {
+	return compareBoardSearchOrder(row, cursor) > 0
+}
+
+/**
+ * One page of search results.
+ *
+ * Takes one row more than a page and reports the surplus as `nextCursor` rather than returning it —
+ * that is what lets the query answer "there is another page" without a second count. `nextCursor` is
+ * absent on the last page, so a caller never fetches an empty page to discover it had finished.
+ *
+ * An empty result is a normal result, never `isError`: a model treats `isError` as a failure to
+ * recover from and will retry a search that simply matched nothing.
+ */
+export function getBoardSearchResults(rows: BoardSearchRow[], terms: string[]): ToolResult {
+	const boards = rows.slice(0, BOARD_SEARCH_PAGE_SIZE)
+	const lastBoard = boards.at(-1)
+	const hasMore = rows.length > boards.length
+	return toolJsonResult({
+		boardCount: boards.length,
+		...(hasMore && lastBoard ? { nextCursor: encodeBoardSearchCursor(lastBoard, terms) } : {}),
+		boards: boards.map((row) => ({
+			boardId: row.id,
+			// Reported blank rather than given a stand-in title. tldraw.com shows an unnamed board by
+			// its creation date, formatted in the viewer's locale and timezone — which this worker has
+			// neither of — so any name invented here is one the caller cannot see on their own screen,
+			// and one no query can match, since what the column holds is ''. Trimmed so that a name of
+			// only spaces reads as the absence it is.
+			name: row.name.trim(),
+			// The key the results are sorted by, so a model can see the order rather than guess at it.
+			// Equal to createdAt for a board this account made, and later for one it was shared.
+			addedAt: new Date(row.arrivedAt).toISOString(),
+			createdAt: new Date(row.createdAt).toISOString(),
+			updatedAt: new Date(row.updatedAt).toISOString(),
+			source: row.source,
+			// Only where it identifies something the caller can act on. On their own board the
+			// workspace adds nothing `source: 'owned'` has not already said, so it would be noise on
+			// every row — the cost being that a caller who renamed their home workspace
+			// (`036_home_group_renameable.sql` made it renameable, "My workspace" being only the
+			// default) will not see that name here. On a link-shared board it is withheld for a
+			// different reason: it names a workspace the caller is not in, to someone who was given a
+			// link rather than a seat.
+			...(row.source === 'workspace' ? { workspaceName: row.workspaceName } : {}),
+		})),
+	})
+}
+
 export function getBoardInfo(snapshot: RoomSnapshot): ToolResult {
 	const pages = enumerateBoardPages(snapshot)
 	return toolJsonResult({
@@ -275,7 +540,18 @@ export function getBoardInfo(snapshot: RoomSnapshot): ToolResult {
 // Separate from the tools below because the caller has to know the page id before it can measure the
 // page, and measuring is what produces the `measurements` those tools need.
 export type ResolvedPage =
-	| { ok: true; pageId: string; pageName: string; shapes: TLShape[] }
+	| {
+			ok: true
+			pageId: string
+			pageName: string
+			shapes: TLShape[]
+			/**
+			 * Every page this board currently has, in board order. Carried because the cluster index is
+			 * stored per page and nothing else would ever tell it a page had been deleted — see
+			 * `pruneMcpClusterIndexRows`.
+			 */
+			pageIds: string[]
+	  }
 	| { ok: false; reason: 'no_pages' | 'page_out_of_range'; result: ToolResult }
 
 export function resolvePage(snapshot: RoomSnapshot, page: PageSelector): ResolvedPage {
@@ -301,6 +577,7 @@ export function resolvePage(snapshot: RoomSnapshot, page: PageSelector): Resolve
 		pageId: targetPage.id,
 		pageName: targetPage.name,
 		shapes: getShapesOnPage(snapshot, targetPage.id),
+		pageIds: pages.map((page) => page.id),
 	}
 }
 
@@ -309,7 +586,7 @@ export type ResolvedPageOk = Extract<ResolvedPage, { ok: true }>
 // The measure render answers two things a Worker cannot: where each shape sits, and what
 // ShapeUtil.getText says it holds. Bounds drive the linkage; the text is attached to the shapes so
 // labelling reads the editor's answer rather than re-deriving one from props.
-function clusterPage(page: ResolvedPageOk, measurements: Record<string, ShapeMeasurement>) {
+export function clusterPage(page: ResolvedPageOk, measurements: Record<string, ShapeMeasurement>) {
 	const shapes: TLShapeWithPlainText[] = page.shapes.map((shape) => {
 		const text = measurements[shape.id as string]?.text
 		return text ? { ...shape, plainText: text } : shape
@@ -318,14 +595,132 @@ function clusterPage(page: ResolvedPageOk, measurements: Record<string, ShapeMea
 	return getShapeClusters(shapes, page.pageId, measurements)
 }
 
-export function getPageInfo(
+// --- The cluster index --------------------------------------------------------------------------
+//
+// What a measure render is worth keeping. Clustering a page needs two things only an editor can
+// answer — where each shape sits, and what its ShapeUtil.getText reports — and both cost a full
+// Browser Run session. The *answer* is small and stays true for as long as the board's content does,
+// so it is reduced to this once and stored (mcpClusterIndex.ts), and the three tools that cluster
+// read it back instead of measuring again.
+//
+// Bounds are deliberately not kept: they decide which atoms merge, and that decision is already in
+// `clusters`. The text is, because it is not derivable — `getShapeText` can approximate it from the
+// stored record, but only the editor knows what a shape renders, so dropping it would quietly change
+// what get_cluster_info reports for exactly the shapes a fallback handles worst.
+
+/**
+ * A page's clustering, reduced to what survives a round trip through storage.
+ *
+ * Bump `CLUSTER_INDEX_FORMAT_VERSION` whenever this shape changes, or whenever clustering or
+ * labelling changes in a way that would make a stored index disagree with a fresh measure — the
+ * content version in the cache key rotates on edits, not on deploys, so nothing else invalidates a
+ * stored index when the code that produced it moves.
+ */
+export interface PageClusterIndex {
+	v: number
+	/** `shapeIds` are in `getShapeClusters` order, so a rehydrated cluster reads the same. */
+	clusters: { id: string; label: string; keywords: string[]; shapeIds: string[] }[]
+	/** The text the measure render's editor reported, by shape id. Absent for shapes with none. */
+	text: Record<string, string>
+}
+
+export const CLUSTER_INDEX_FORMAT_VERSION = 1
+
+/** Reduces a page's clusters to the form that is stored. */
+export function buildClusterIndex(clusters: ShapeCluster[]): PageClusterIndex {
+	const text: Record<string, string> = {}
+	for (const cluster of clusters) {
+		for (const shape of cluster.shapes) {
+			if (shape.plainText) text[shape.id] = shape.plainText
+		}
+	}
+
+	return {
+		v: CLUSTER_INDEX_FORMAT_VERSION,
+		clusters: clusters.map((cluster) => ({
+			id: cluster.id,
+			label: cluster.label,
+			keywords: cluster.keywords,
+			shapeIds: cluster.shapes.map((shape) => shape.id),
+		})),
+		text,
+	}
+}
+
+/**
+ * Reads an index back out of storage, or null if it is anything other than one this build wrote.
+ *
+ * The version check is the load-bearing one: rows outlive deploys, and the content version in the
+ * cache key rotates on edits rather than on releases, so nothing else catches a row written by a
+ * build whose format has since moved. A null is a cache miss, which costs one render and is safe.
+ */
+export function parseClusterIndex(json: string): PageClusterIndex | null {
+	let value: unknown
+	try {
+		value = JSON.parse(json)
+	} catch {
+		return null
+	}
+	const candidate = value as PageClusterIndex | null
+	if (!candidate || candidate.v !== CLUSTER_INDEX_FORMAT_VERSION) return null
+	if (!Array.isArray(candidate.clusters) || !candidate.text) return null
+	return candidate
+}
+
+/**
+ * Rebuilds full clusters from a stored index and the page it was built for, or null when the two
+ * disagree. A null costs one render; serving a mismatch costs a wrong answer that no uncached path
+ * could produce, so the check runs in both directions.
+ *
+ * Clustering partitions a page — every shape lands in exactly one cluster — so the index and the page
+ * agree only if they name the same shapes *and* the same number of them. Naming one the page lacks is
+ * the obvious half. The other half is what catches a page that has *gained* shapes since it was
+ * indexed, which a stored index cannot otherwise notice: it would rebuild cleanly and answer short,
+ * and an index built when the page was empty would report a full page as having no clusters at all.
+ *
+ * The storage key is a digest of the snapshot actually read, so normal content changes cannot
+ * produce this skew. This remains a cheap integrity check for malformed or corrupted rows, where
+ * falling back to one render is safer than serving a plausible partial answer.
+ *
+ * A malformed row throws instead, from reading a field the format promised; the cache read treats
+ * that as a miss too.
+ */
+export function clustersFromIndex(
 	page: ResolvedPageOk,
-	measurements: Record<string, ShapeMeasurement>
-): ToolResult {
+	index: PageClusterIndex
+): ShapeCluster[] | null {
+	const byId = new Map(page.shapes.map((shape) => [shape.id as string, shape]))
+	const clusters: ShapeCluster[] = []
+	let named = 0
+
+	for (const cluster of index.clusters) {
+		const shapes: TLShapeWithPlainText[] = []
+		for (const shapeId of cluster.shapeIds) {
+			const shape = byId.get(shapeId)
+			if (!shape) return null
+			const text = index.text[shapeId]
+			shapes.push(text ? { ...shape, plainText: text } : shape)
+		}
+		named += shapes.length
+		clusters.push({
+			id: cluster.id,
+			label: cluster.label,
+			keywords: cluster.keywords,
+			numberOfShapes: shapes.length,
+			shapes,
+		})
+	}
+
+	return named === page.shapes.length ? clusters : null
+}
+
+// The three clustering tools take clusters, not measurements: a call served from a stored index and
+// a call served from a fresh render hand in the same thing, and everything from here on is identical.
+
+export function getPageInfo(page: ResolvedPageOk, clusters: ShapeCluster[]): ToolResult {
 	// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve cluster
 	// ids against a single page, so listing every shape on the board here would hand out ids that
 	// neither of them can look up.
-	const clusters = clusterPage(page, measurements)
 	return toolJsonResult({
 		name: page.pageName,
 		clusterCount: clusters.length,
@@ -340,11 +735,11 @@ export function getPageInfo(
 
 export function getClusterInfo(
 	page: ResolvedPageOk,
-	measurements: Record<string, ShapeMeasurement>,
+	clusters: ShapeCluster[],
 	clusterId: string,
 	selector: PageSelector
 ): ToolResult {
-	const cluster = clusterPage(page, measurements).find((c) => c.id === clusterId)
+	const cluster = clusters.find((c) => c.id === clusterId)
 	if (!cluster) {
 		return toolError(
 			`No cluster with id "${clusterId}" on page ${describePageSelector(selector)}. Call get_page_info to list this page's clusters.`
@@ -368,12 +763,10 @@ export type PickedShapes = { ok: true; shapeIds: string[] } | { ok: false; resul
  * the route's job: this only says *which* shapes, from ids the model supplied.
  */
 export function pickClusterShapes(
-	page: ResolvedPageOk,
-	measurements: Record<string, ShapeMeasurement>,
+	clusters: ShapeCluster[],
 	clusterIds: string[],
 	selector: PageSelector
 ): PickedShapes {
-	const clusters = clusterPage(page, measurements)
 	const byId = new Map(clusters.map((cluster) => [cluster.id, cluster]))
 
 	// Reject unknown ids rather than quietly rendering the subset that resolved — a caller asking for
@@ -393,9 +786,7 @@ export function pickClusterShapes(
 	return {
 		ok: true,
 		shapeIds: [
-			...new Set(
-				clusterIds.flatMap((id) => byId.get(id)!.shapes.map((shape) => shape.id as string))
-			),
+			...new Set(clusterIds.flatMap((id) => byId.get(id)!.shapes.map((shape) => shape.id))),
 		],
 	}
 }
@@ -421,8 +812,14 @@ function toReadableShape(shape: TLShapeWithPlainText) {
 
 // --- Tool definitions ---------------------------------------------------------------------------
 
-export function getToolDefinitions() {
+/**
+ * @param nameMatchingEnabled - Whether this deployment will match on board names. When it will not,
+ *   `search_boards` advertises no `query` argument and says so, rather than offering a search that
+ *   would be refused. Read from the environment by the route; this layer stays free of it.
+ */
+export function getToolDefinitions(nameMatchingEnabled: boolean) {
 	return [
+		getSearchBoardsToolDefinition(nameMatchingEnabled),
 		getBoardInfoToolDefinition(),
 		getPageInfoToolDefinition(),
 		getClusterInfoToolDefinition(),
@@ -436,11 +833,72 @@ const BOARD_ID_PROPERTY = {
 		'The id of a tldraw.com board: the :slug of a file URL (https://www.tldraw.com/f/:slug) you own or that was shared with you, or of a published board URL (https://www.tldraw.com/p/:slug).',
 }
 
+const PAGE_PROPERTY = {
+	type: ['number', 'string'],
+	description: 'The page id or 0-based index from get_board_info. Defaults to 0, the first page.',
+	default: 0,
+}
+
 const READ_ONLY_ANNOTATIONS = {
 	readOnlyHint: true,
 	idempotentHint: true,
 	openWorldHint: false,
 	destructiveHint: false,
+}
+
+/**
+ * The same tool with name matching turned off: it lists, and takes no `query`.
+ *
+ * A separate definition rather than the other one with a sentence appended, because a `query` the
+ * caller must not send has no business in the schema — a model handed the argument will use it, and
+ * be refused. The scope, ordering and paging wording is the same, since none of that changes.
+ */
+function getListBoardsToolDefinition() {
+	return {
+		name: SEARCH_BOARDS_TOOL_NAME,
+		title: 'List tldraw boards',
+		description: `List tldraw.com boards this account can reach: the boards in its own workspace, the boards owned by the workspaces it belongs to, and the boards shared with it by link that it has opened. Searching by name is not available on this deployment, so this tool takes no query and lists boards in order instead. Results are ordered by addedAt — when a board joined this account's boards, which is when it was created for its own boards and when the share link was first opened for shared ones — so a board shared this morning leads the list however old it is. createdAt is when the board itself was made, and updatedAt when it last changed, by anyone. Each board's source says how you reach it: owned for your own, workspace for one owned by a workspace you belong to, and shared for one somebody sent you a link to. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId that get_board_info and the other tools take. If the result carries a nextCursor there are more boards: call again with that cursor to get the next page. An empty result is a normal result, not an error.`,
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				cursor: {
+					type: 'string',
+					description:
+						'The nextCursor from a previous result, to get the next page. Omit for the first page.',
+				},
+			},
+			required: [],
+		},
+		annotations: READ_ONLY_ANNOTATIONS,
+	} as const
+}
+
+function getSearchBoardsToolDefinition(nameMatchingEnabled: boolean) {
+	if (!nameMatchingEnabled) return getListBoardsToolDefinition()
+	return {
+		name: SEARCH_BOARDS_TOOL_NAME,
+		title: 'Search tldraw boards',
+		description: `Find tldraw.com boards by name: the boards in this account's own workspace, the boards owned by the workspaces it belongs to, and the boards shared with it by link that it has opened. Every term in the query must appear somewhere in the board name, in any order, ignoring case. Search for the distinctive words, not a whole title: a query of more than ${BOARD_SEARCH_MAX_TERMS} words, or longer than ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters, is rejected. Omit the query to list the boards that reached you most recently. Results are ordered by addedAt — when a board joined this account's boards, which is when it was created for its own boards and when the share link was first opened for shared ones — so a board shared this morning leads the list however old it is. createdAt is when the board itself was made, and updatedAt when it last changed, by anyone: an old board can have been edited today, and a board created today may never have been touched since. Each board's source says how you reach it: owned for your own, workspace for one owned by a workspace you belong to, and shared for one somebody sent you a link to. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId that get_board_info and the other tools take. If the result carries a nextCursor there are more boards: call again with the same query and that cursor to get the next page — a cursor only continues the query that produced it. A board with no name comes back with name empty: tldraw.com titles those by their creation date, so no name query can find them — reach them by listing with no query. Matching no boards is a normal empty result, not an error.`,
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				query: {
+					type: 'string',
+					maxLength: BOARD_SEARCH_MAX_QUERY_LENGTH,
+					description: `Up to ${BOARD_SEARCH_MAX_TERMS} words to match against board names, at most ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters. Every word must appear in the name, in any order. Omit to list your newest boards.`,
+				},
+				cursor: {
+					type: 'string',
+					description:
+						'The nextCursor from a previous search_boards result, to get the next page. Omit for the first page. Keep the query the same across pages; changing it invalidates where you were.',
+				},
+			},
+			required: [],
+		},
+		annotations: READ_ONLY_ANNOTATIONS,
+	}
 }
 
 function getBoardInfoToolDefinition() {
@@ -472,12 +930,7 @@ function getPageInfoToolDefinition() {
 			additionalProperties: false,
 			properties: {
 				boardId: BOARD_ID_PROPERTY,
-				page: {
-					type: ['number', 'string'],
-					description:
-						'The page id or 0-based index from get_board_info. Defaults to 0, the first page.',
-					default: 0,
-				},
+				page: PAGE_PROPERTY,
 			},
 			required: ['boardId'],
 		},
@@ -496,12 +949,7 @@ function getClusterInfoToolDefinition() {
 			additionalProperties: false,
 			properties: {
 				boardId: BOARD_ID_PROPERTY,
-				page: {
-					type: ['number', 'string'],
-					description:
-						'The page id or 0-based index from get_board_info. Defaults to 0, the first page.',
-					default: 0,
-				},
+				page: PAGE_PROPERTY,
 				clusterId: {
 					type: 'string',
 					description: 'The id of the cluster to get info for.',
@@ -576,7 +1024,10 @@ export type McpReply =
  */
 export async function handleMcpJsonRpc(
 	rpcRequest: JsonRpcRequest,
-	callTool: (name: string, args: unknown) => Promise<ToolResult>
+	callTool: (name: string, args: unknown) => Promise<ToolResult>,
+	// Defaulted the way an unset MCP_SEARCH_NAME_MATCHING_ENABLED reads, so the eval harness and
+	// tests exercise the full tool unless they say otherwise.
+	nameMatchingEnabled = true
 ): Promise<McpReply> {
 	if (rpcRequest.id === undefined) {
 		return { kind: 'accepted' }
@@ -592,13 +1043,13 @@ export async function handleMcpJsonRpc(
 					protocolVersion: MCP_PROTOCOL_VERSION,
 					capabilities: { tools: {} },
 					serverInfo: MCP_SERVER_INFO,
-					instructions: MCP_SERVER_INSTRUCTIONS,
+					instructions: getMcpServerInstructions(nameMatchingEnabled),
 				},
 			}
 		case 'ping':
 			return { kind: 'result', id, result: {} }
 		case 'tools/list':
-			return { kind: 'result', id, result: { tools: getToolDefinitions() } }
+			return { kind: 'result', id, result: { tools: getToolDefinitions(nameMatchingEnabled) } }
 		case 'tools/call': {
 			const name = rpcRequest.params?.name
 			if (!name || !(TOOL_NAMES as readonly string[]).includes(name)) {

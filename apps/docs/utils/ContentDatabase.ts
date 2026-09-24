@@ -52,20 +52,6 @@ export class ContentDatabase {
 		return undefined
 	}
 
-	async getSection(sectionId: string, opts = {} as { optional?: boolean }) {
-		const db = await this.getDb()
-		const section = await db.get('SELECT * FROM sections WHERE id = ?', sectionId)
-		if (!opts.optional) assert(section, `Could not find a section with sectionId ${sectionId}`)
-		return section
-	}
-
-	async getCategory(categoryId: string, opts = {} as { optional?: boolean }): Promise<Category> {
-		const db = await this.getDb()
-		const category = await db.get('SELECT * FROM categories WHERE id = ?', categoryId)
-		if (!opts.optional) assert(category, `Could not find a category with categoryId ${categoryId}`)
-		return category
-	}
-
 	async getArticleHeadings(articleId: string): Promise<ArticleHeading[]> {
 		const db = await this.getDb()
 
@@ -75,27 +61,6 @@ export class ContentDatabase {
 		)
 		assert(headings, `Could not find headings for an article with articleId ${articleId}`)
 		return headings
-	}
-
-	async getCategoriesForSection(sectionId: string, opts = {} as { optional?: boolean }) {
-		const db = await this.getDb()
-		const categories = await db.all<Category[]>(
-			'SELECT * FROM categories WHERE sectionId = ?',
-			sectionId
-		)
-		if (!opts.optional) assert(categories, `Could not find categories for sectionId ${sectionId}`)
-		return categories
-	}
-
-	async getCategoryArticles(sectionId: string, categoryId: string) {
-		const db = await this.getDb()
-		const articles = await db.all<Article[]>(
-			'SELECT id, title, description, sectionId, categoryId, authorId, priority, hero, thumbnail, socialImage, date, path FROM articles WHERE sectionId = ? AND categoryId = ?',
-			sectionId,
-			categoryId
-		)
-		assert(articles, `Could not find articles for category with categoryId ${categoryId}`)
-		return articles
 	}
 
 	async getArticleLinks(article: Article): Promise<ArticleLinks> {
@@ -177,10 +142,7 @@ export class ContentDatabase {
 	}
 
 	// TODO(mime): make this more generic, not per docs area
-	private _sidebarContentLinks: SidebarContentLink[] | undefined
-	private _sidebarReferenceContentLinks: SidebarContentLink[] | undefined
-	private _sidebarExamplesContentLinks: SidebarContentLink[] | undefined
-	private _sidebarStarterKitsContentLinks: SidebarContentLink[] | undefined
+	private _sidebarLinksBySidebar = new Map<string, SidebarContentLink[]>()
 
 	async getSidebarContentList({
 		sectionId,
@@ -193,14 +155,8 @@ export class ContentDatabase {
 	}): Promise<SidebarContentList> {
 		let links: SidebarContentLink[]
 
-		const cachedLinks =
-			sectionId === 'examples'
-				? this._sidebarExamplesContentLinks
-				: sectionId === 'reference'
-					? this._sidebarReferenceContentLinks
-					: sectionId === 'starter-kits'
-						? this._sidebarStarterKitsContentLinks
-						: this._sidebarContentLinks
+		const sidebar = getSidebarForSection(sectionId)
+		const cachedLinks = this._sidebarLinksBySidebar.get(sidebar)
 		if (cachedLinks && process.env.NODE_ENV !== 'development') {
 			// Use the previously cached sidebar links
 			links = cachedLinks
@@ -220,24 +176,7 @@ export class ContentDatabase {
 					continue
 				}
 
-				if (
-					(sectionId === 'reference' && section.id !== 'reference') ||
-					(sectionId !== 'reference' && section.id === 'reference')
-				) {
-					continue
-				}
-
-				if (
-					(sectionId === 'examples' && section.id !== 'examples') ||
-					(sectionId !== 'examples' && section.id === 'examples')
-				) {
-					continue
-				}
-
-				if (
-					(sectionId === 'starter-kits' && section.id !== 'starter-kits') ||
-					(sectionId !== 'starter-kits' && section.id === 'starter-kits')
-				) {
+				if (getSidebarForSection(section.id) !== sidebar) {
 					continue
 				}
 
@@ -319,18 +258,12 @@ export class ContentDatabase {
 					url: section.path,
 					children,
 				})
-
-				// Cache the links structure for next time
-				if (sectionId === 'examples') {
-					this._sidebarExamplesContentLinks = links
-				} else if (sectionId === 'reference') {
-					this._sidebarReferenceContentLinks = links
-				} else if (sectionId === 'starter-kits') {
-					this._sidebarStarterKitsContentLinks = links
-				} else {
-					this._sidebarContentLinks = links
-				}
 			}
+
+			// Only publish the cache once the walk is complete: concurrent callers (the
+			// force-dynamic /search route, static generation) would otherwise pick up the
+			// half-built array and render a sidebar missing its later sections.
+			this._sidebarLinksBySidebar.set(sidebar, links)
 		}
 
 		return {
@@ -340,6 +273,13 @@ export class ContentDatabase {
 			links,
 		}
 	}
+}
+
+// These sections each get a sidebar of their own; everything else shares the docs sidebar.
+const STANDALONE_SIDEBAR_SECTIONS = new Set(['reference', 'examples', 'starter-kits'])
+
+function getSidebarForSection(sectionId: string | undefined) {
+	return sectionId && STANDALONE_SIDEBAR_SECTIONS.has(sectionId) ? sectionId : 'docs'
 }
 
 export const db = new ContentDatabase()

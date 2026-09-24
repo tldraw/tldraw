@@ -73,9 +73,20 @@ export function parseDeepLinkString(deepLinkString: string): TLDeepLink {
 		}
 		case 'v': {
 			const [x, y, w, h, pageId] = deepLinkString.slice(1).split('.')
+			const bounds = new Box(Number(x), Number(y), Number(w), Number(h))
+			// Number('abc') is NaN rather than an error, and a box with no area parses cleanly but
+			// can only be zoomed to by clamping to max zoom at its corner. Both bypass the caller's
+			// fallback and park the camera at the origin, so both count as an invalid link here.
+			const isUsableViewport =
+				[bounds.x, bounds.y, bounds.w, bounds.h].every(Number.isFinite) &&
+				bounds.w > 0 &&
+				bounds.h > 0
+			if (!isUsableViewport) {
+				throw Error('Invalid deep link string')
+			}
 			return {
 				type: 'viewport',
-				bounds: new Box(Number(x), Number(y), Number(w), Number(h)),
+				bounds,
 				pageId: pageId ? PageRecordType.createId(decodeURIComponent(pageId)) : undefined,
 			}
 		}

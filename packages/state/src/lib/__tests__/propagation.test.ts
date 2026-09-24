@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 import { atom } from '../Atom'
 import { computed } from '../Computed'
-import { react, reactor } from '../EffectScheduler'
+import { EffectScheduler, react, reactor } from '../EffectScheduler'
 import { transact, transaction } from '../transactions'
 
 // Tests for SPEC.md §10 (change propagation and the reaction phase).
@@ -76,7 +76,7 @@ describe('setting atoms during the reaction phase (P)', () => {
 		expect(b.get()).toBe(1)
 	})
 
-	it('[P5] throws an error if it gets into a loop', () => {
+	it('[P5][P8] throws an error if it gets into a loop', () => {
 		expect(() => {
 			const a = atom('', 0)
 
@@ -275,5 +275,203 @@ describe('transactions during the reaction phase (P6)', () => {
 
 		expect(a.__unsafe__getWithoutCapture()).toBe(3)
 		expect(cChanged).toHaveBeenCalledTimes(2)
+	})
+
+	it('[P6][T2][P7] an actively-listening computed read inside a transaction during a reaction sees in-transaction values', () => {
+		// Regression: Computed's cache shortcut for actively-listening computeds ("not traversed this
+		// reaction, so unchanged") ignored that in-transaction changes are only traversed at commit,
+		// and served the pre-transaction value.
+		const a = atom('', 0)
+		const c = computed('', () => a.get() * 2)
+		react('listener', () => {
+			c.get()
+		})
+
+		const trigger = atom('', 0)
+		const seen: number[] = []
+		react('', () => {
+			if (trigger.get() === 0) return
+			transact(() => {
+				a.set(5)
+				seen.push(c.get())
+			})
+		})
+		trigger.set(1)
+
+		expect(seen).toEqual([10])
+		expect(c.get()).toBe(10)
+	})
+
+	it('[P6][T2] an incremental computed read inside a transaction during a reaction is not corrupted', () => {
+		// The stale read above also stamped the computed as checked at the current epoch, so an
+		// incremental computed would later ask for diffs since an epoch that skipped the change.
+		const log = atom<number[], number[]>('log', [], {
+			historyLength: 10,
+			computeDiff: (prev, next) => next.slice(prev.length),
+		})
+		const sum = computed<number>('sum', (prev, lastComputedEpoch) => {
+			if (typeof prev !== 'number') return log.get().reduce((a, b) => a + b, 0)
+			const diffs = log.getDiffSince(lastComputedEpoch)
+			if (typeof diffs === 'symbol') return log.get().reduce((a, b) => a + b, 0)
+			let s = prev
+			for (const diff of diffs) for (const n of diff) s += n
+			return s
+		})
+		react('listener', () => {
+			sum.get()
+		})
+
+		const trigger = atom('', 0)
+		const seen: number[] = []
+		let done = false
+		react('', () => {
+			if (trigger.get() === 0 || done) return
+			done = true
+			transact(() => {
+				log.update((l) => [...l, 10])
+				seen.push(sum.get())
+			})
+		})
+		trigger.set(1)
+		expect(seen).toEqual([10])
+
+		log.update((l) => [...l, 5])
+		expect(sum.get()).toBe(15)
+	})
+})
+
+describe('actively-listening computeds stay fresh (C2)', () => {
+	it('[C2][E6] a computed traversed for a deferred effect but not re-checked is not served stale', () => {
+		// Regression: with deferred scheduling (as in state-react), haveParentsChanged returns at the
+		// first changed parent, so a later computed parent is traversed but never re-checked; a read
+		// during a subsequent reaction then took the "not traversed this reaction" shortcut.
+		const a = atom('', 0)
+		const b = atom('', 0)
+		const c = computed('', () => a.get())
+		const deferred: (() => void)[] = []
+		const scheduler = new EffectScheduler(
+			'',
+			() => {
+				b.get()
+				c.get()
+			},
+			{ scheduleEffect: (execute) => deferred.push(execute) }
+		)
+		scheduler.attach()
+		scheduler.execute()
+
+		// b is checked first, changed, so c is traversed but not re-checked; the run is deferred
+		transact(() => {
+			b.set(1)
+			a.set(1)
+		})
+
+		const z = atom('', 0)
+		const seen: number[] = []
+		react('', () => {
+			if (z.get() > 0) seen.push(c.get())
+		})
+		z.set(1)
+
+		expect(seen).toEqual([1])
+		expect(c.get()).toBe(1)
+
+		deferred.forEach((execute) => execute())
+		expect(c.get()).toBe(1)
+	})
+})
+
+describe('effects that set atoms outside the reaction phase (P8)', () => {
+	// Regression: a first run happens outside a reaction phase, so a set inside it flushed
+	// synchronously and re-entered execute() for the same scheduler. The nested capture frame then
+	// truncated the parents captured by the outer run — `b` was dropped while `b.children` still
+	// held the effect, so `b.set()` never reached the effect again.
+	it.each([
+		['react()', (fn: () => void) => react('r', fn)],
+		['reactor.start()', (fn: () => void) => reactor('r', fn).start()],
+		[
+			'execute()',
+			(fn: () => void) => {
+				const scheduler = new EffectScheduler('r', fn)
+				scheduler.attach()
+				scheduler.execute()
+			},
+		],
+	])(
+		'[P8] a first run via %s that sets one of its own parents re-runs after it instead of nesting',
+		(_, start) => {
+			const initialized = atom('initialized', false)
+			const b = atom('b', 0)
+			const log: string[] = []
+
+			start(() => {
+				log.push('start')
+				if (!initialized.get()) initialized.set(true)
+				log.push(`b=${b.get()}`)
+				log.push('end')
+			})
+
+			// the set changed a parent read before it, so the effect runs once more, sequentially
+			expect(log).toEqual(['start', 'b=0', 'end', 'start', 'b=0', 'end'])
+
+			b.set(1)
+			expect(log.slice(6)).toEqual(['start', 'b=1', 'end'])
+		}
+	)
+
+	it('[P8][E4] skips the extra run when none of the parents it captured have changed', () => {
+		const a = atom('a', 0)
+		let readsA = true
+		let runs = 0
+
+		const scheduler = new EffectScheduler('r', () => {
+			runs++
+			if (readsA) {
+				a.get()
+			} else {
+				a.set(1)
+			}
+		})
+		scheduler.attach()
+		scheduler.execute()
+
+		// `a` is a parent from the first run, so this run's set schedules the effect. But the run
+		// drops `a` instead of reading it, so by the time it finishes nothing it depends on changed.
+		readsA = false
+		scheduler.execute()
+		expect(scheduler.scheduleCount).toBe(1)
+		expect(runs).toBe(2)
+	})
+
+	it('[P8][E7] does not re-run an effect that was detached during its first run', () => {
+		const a = atom('a', 0)
+		let runs = 0
+
+		const scheduler = new EffectScheduler('r', () => {
+			runs++
+			a.set(a.get() + 1)
+			scheduler.detach()
+		})
+		scheduler.attach()
+		scheduler.execute()
+
+		expect(scheduler.scheduleCount).toBe(1)
+		expect(runs).toBe(1)
+	})
+
+	it('[P8] a first run that throws is not re-entered by its own set', () => {
+		const a = atom('a', 0)
+		let runs = 0
+
+		const scheduler = new EffectScheduler('r', () => {
+			runs++
+			a.set(a.get() + 1)
+			throw new Error('boom')
+		})
+		scheduler.attach()
+
+		expect(() => scheduler.execute()).toThrow('boom')
+		expect(scheduler.scheduleCount).toBe(1)
+		expect(runs).toBe(1)
 	})
 })

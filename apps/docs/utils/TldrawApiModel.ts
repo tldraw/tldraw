@@ -20,7 +20,6 @@ export class TldrawApiModel extends ApiModel {
 	async preprocessReactComponents() {
 		for (const packageModel of this.members) {
 			assert(packageModel instanceof ApiPackage)
-			if (packageModel.name !== 'tldraw') continue
 
 			const entrypoint = packageModel.entryPoints[0]
 			for (const member of entrypoint.members) {

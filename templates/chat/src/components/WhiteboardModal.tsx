@@ -68,20 +68,15 @@ export function WhiteboardModal({
 		}
 
 		// when the user clicks save, we convert the current whiteboard to an image:
-		const image = await editor.toImageDataUrl(shapes, {
-			format: 'png',
-		})
+		const image = await editor.toImageDataUrl(shapes, { format: 'png' })
 
 		// we also take a snapshot of the editor state, so we can still edit
-		// it if we open it up again later:
-		const snapshot = editor.getSnapshot()
-
-		// we pass the image data and the snapshot to the parent component, so it
-		// can add it to the chat input:
+		// it if we open it up again later, and we pass the image data and the
+		// snapshot to the parent component, so it can add it to the chat input:
 		onAccept({
 			id: imageId ?? crypto.randomUUID(),
 			name: imageName ?? 'tldraw whiteboard.png',
-			snapshot,
+			snapshot: editor.getSnapshot(),
 			type: 'image/png',
 			...image,
 		})
@@ -93,18 +88,16 @@ export function WhiteboardModal({
 		(): TLComponents => ({
 			// The "SharePanel" is in the top-right of the editor. Here we want it to show our save
 			// and cancel buttons:
-			SharePanel: () => {
-				return (
-					<TldrawUiRow className="whiteboard-actions">
-						<TldrawUiButton type="normal" onClick={onCancel}>
-							Cancel
-						</TldrawUiButton>
-						<TldrawUiButton type="primary" onClick={handleSave}>
-							{imageId ? 'Save' : 'Add'}
-						</TldrawUiButton>
-					</TldrawUiRow>
-				)
-			},
+			SharePanel: () => (
+				<TldrawUiRow className="whiteboard-actions">
+					<TldrawUiButton type="normal" onClick={onCancel}>
+						Cancel
+					</TldrawUiButton>
+					<TldrawUiButton type="primary" onClick={handleSave}>
+						{imageId ? 'Save' : 'Add'}
+					</TldrawUiButton>
+				</TldrawUiRow>
+			),
 		}),
 		[onCancel, handleSave, imageId]
 	)
@@ -154,11 +147,7 @@ function InsideOfTldrawContext({ uploadedFile }: { uploadedFile?: File }) {
 		;(uploadedFile as any).didUpload = true
 		;(async () => {
 			// we check if the file is allowed to be uploaded:
-			const isOk = notifyIfFileNotAllowed(editor, uploadedFile, {
-				toasts,
-				msg,
-			})
-			if (!isOk) return
+			if (!notifyIfFileNotAllowed(editor, uploadedFile, { toasts, msg })) return
 
 			// we get the asset for the uploaded file:
 			const asset = await editor.getAssetForExternalContent({

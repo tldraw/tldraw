@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import ts from 'typescript'
+import ts from 'typescript5'
 
 const scriptPath = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(scriptPath)
@@ -27,7 +27,7 @@ const tlschemaDtsPath = path.join(repoRoot, 'packages', 'tlschema', '.tsbuild', 
 
 for (const p of [editorDtsPath, storeDtsPath, tlschemaDtsPath]) {
 	if (!fs.existsSync(p)) {
-		console.error(`Missing: ${p}\nRun 'yarn lazy build' first to generate .d.ts files.`)
+		console.error(`Missing: ${p}\nRun 'pnpm exec lazy build' first to generate .d.ts files.`)
 		process.exit(1)
 	}
 }
