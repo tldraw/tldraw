@@ -119,7 +119,13 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 		[editor]
 	)
 
-	const hideShapes = useValue('debug_shapes', () => debugFlags.hideShapes.get(), [debugFlags])
+	// Gated on debug mode so a flag left on can't strand the user on a blank canvas with no
+	// debug menu to turn it back off.
+	const hideShapes = useValue(
+		'debug_shapes',
+		() => debugFlags.hideShapes.get() && editor.getInstanceState().isDebugMode,
+		[editor]
+	)
 
 	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
 	const { Grid } = useEditorComponents()

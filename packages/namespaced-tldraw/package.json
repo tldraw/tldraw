@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "5.3.2",
+	"version": "5.4.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -36,18 +36,18 @@
 	"types": "./.tsbuild/index.d.ts",
 	"type": "module",
 	"scripts": {
-		"test-ci": "yarn run -T vitest run --passWithNoTests",
-		"test": "yarn run -T vitest --passWithNoTests",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
 		"predev": "node ./scripts/copy-css-files.mjs",
 		"dev": "chokidar '../tldraw/tldraw.css' -c 'node ./scripts/copy-css-files.mjs'",
 		"prebuild": "node ./scripts/copy-css-files.mjs",
-		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
-		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
-		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"build": "pnpm exec tsx ../../internal/scripts/build-package.ts",
+		"build-api": "pnpm exec tsx ../../internal/scripts/build-api.ts",
+		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
-		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"pack-tarball": "pnpm pack",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
 	},
 	"files": [
 		"tldraw.css"

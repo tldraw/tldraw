@@ -11,6 +11,7 @@ import {
 	TLFrameShape,
 	TLFrameShapeProps,
 	TLShapeUtilConstructor,
+	Vec,
 	clamp,
 	compact,
 	frameShapeMigrations,
@@ -384,9 +385,15 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 			}))
 		)
 
+		// The children were shifted by (dx, dy) in frame space; move the frame the opposite way
+		// (in its parent's space) so they keep their canvas positions, as fitFrameToContent does.
+		const diff = new Vec(isHorizontalEdge ? dx : 0, isVerticalEdge ? dy : 0).rot(shape.rotation)
+
 		return {
 			id: shape.id,
 			type: shape.type,
+			x: shape.x - diff.x,
+			y: shape.y - diff.y,
 			props: {
 				w: isHorizontalEdge ? w : shape.props.w,
 				h: isVerticalEdge ? h : shape.props.h,

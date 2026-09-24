@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -eux
 
-yarn run -T lazy build-api
-yarn run -T lazy refresh-everything  --filter=apps/docs
-yarn run -T lazy build --filter=apps/docs
+pnpm exec lazy build-api
+pnpm exec lazy refresh-everything  --filter=apps/docs
+pnpm exec lazy build --filter=apps/docs

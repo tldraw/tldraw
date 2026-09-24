@@ -2,8 +2,6 @@
 logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 /worktrees
@@ -37,6 +35,9 @@ dist-ssr
 .turbo
 
 coverage
+
+# vitest reports, attachments and blob output
+.vitest
 
 **/*.env
 **/*.tsbuildinfo
@@ -72,14 +73,6 @@ apps/examples/www/fonts
 apps/examples/www/icons
 apps/examples/www/translations
 
-# yarn v2
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
 
 packages/*/api/temp
 packages/*/api/api.json
@@ -110,9 +103,9 @@ apps/docs/api
 
 .wrangler
 /vercel.json
-license-report-prod.html
-license-report.html
-license-report.md
+license-report*.html
+license-report*.md
+license-report*.pdf
 
 .bundle-meta.json
 .zed
@@ -136,3 +129,7 @@ skills/pr-walkthrough/video/dist
 skills/pr-walkthrough/video/public/audio-*
 skills/pr-walkthrough/video/public/manifest.json
 todo.md
+
+# Yarn leftovers from before the pnpm switch
+yarn.lock
+.yarn/

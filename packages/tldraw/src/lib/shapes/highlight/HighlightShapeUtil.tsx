@@ -103,7 +103,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	getGeometry(shape: TLHighlightShape) {
 		const dv = getDisplayValues(this, shape)
 		const strokeWidth = dv.strokeWidth * shape.props.scale
-		if (getIsDot(shape)) {
+		// No segments yet (the default props): treat it as a dot so geometry lookups don't throw.
+		if (getIsDot(shape) || shape.props.segments.length === 0) {
 			return new Circle2d({
 				x: -strokeWidth / 2,
 				y: -strokeWidth / 2,
@@ -176,7 +177,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 		const strokePath =
 			strokePoints.length < 2
-				? getSvgDotPath(allPointsFromSegments[0], sw / 2)
+				? getSvgDotPath(allPointsFromSegments[0] ?? { x: 0, y: 0 }, sw / 2)
 				: getSvgPathFromStrokePoints(strokePoints, false)
 
 		return new Path2D(strokePath)
@@ -237,7 +238,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	): TLHighlightShapeProps {
 		return {
 			...(t > 0.5 ? endShape.props : startShape.props),
-			...endShape.props,
 			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, t),
 			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
@@ -300,7 +300,7 @@ function HighlightRenderer({
 	const solidStrokePath =
 		strokePoints.length > 1
 			? getSvgPathFromStrokePoints(strokePoints, false)
-			: getSvgDotPath(allPointsFromSegments[0], 0.1)
+			: getSvgDotPath(allPointsFromSegments[0] ?? { x: 0, y: 0 }, 0.1)
 
 	return (
 		<path

@@ -133,7 +133,7 @@ export async function putExcalidrawContent(
 						url: element.link ?? '',
 						w: element.width,
 						h: element.height,
-						size: strokeWidthsToSizes[element.strokeWidth] ?? 'draw',
+						size: getSizeFromStrokeWidth(element.strokeWidth),
 						color: colorsToColors[colorToUse] ?? 'black',
 						richText: toRichText(text),
 						align,
@@ -157,7 +157,7 @@ export async function putExcalidrawContent(
 					props: {
 						...editor.getShapeUtil('draw').getDefaultProps(),
 						dash: getDash(element),
-						size: strokeWidthsToSizes[element.strokeWidth],
+						size: getSizeFromStrokeWidth(element.strokeWidth),
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						segments: [
 							{
@@ -181,7 +181,7 @@ export async function putExcalidrawContent(
 					props: {
 						...editor.getShapeUtil('line').getDefaultProps(),
 						dash: getDash(element),
-						size: strokeWidthsToSizes[element.strokeWidth],
+						size: getSizeFromStrokeWidth(element.strokeWidth),
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						spline: element.roundness ? 'cubic' : 'line',
 						points: {
@@ -215,7 +215,7 @@ export async function putExcalidrawContent(
 						kind: element.elbowed ? 'elbow' : 'arc',
 						bend: getBend(element, start, end),
 						dash: getDash(element),
-						size: strokeWidthsToSizes[element.strokeWidth] ?? 'm',
+						size: getSizeFromStrokeWidth(element.strokeWidth),
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						start: { x: start[0], y: start[1] },
 						end: { x: end[0], y: end[1] },
@@ -379,6 +379,21 @@ const strokeWidthsToSizes: Record<number, TLDefaultSizeStyle> = {
 	2: 'm',
 	3: 'l',
 	4: 'xl',
+}
+
+// Stroke widths outside Excalidraw's presets (hand-edited files, other tools)
+// would otherwise map to an undefined size and fail store validation (#10129).
+// Snap them to the nearest preset instead.
+function getSizeFromStrokeWidth(strokeWidth: number): TLDefaultSizeStyle {
+	const size = strokeWidthsToSizes[strokeWidth]
+	if (size) {
+		return size
+	}
+	if (!Number.isFinite(strokeWidth)) {
+		return 'm'
+	}
+	const nearest = Math.min(4, Math.max(1, Math.round(strokeWidth)))
+	return strokeWidthsToSizes[nearest]
 }
 
 const fontSizesToSizes: Record<number, TLDefaultSizeStyle> = {

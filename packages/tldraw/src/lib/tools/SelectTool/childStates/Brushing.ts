@@ -18,20 +18,25 @@ export class Brushing extends StateNode {
 	static override id = 'brushing'
 	static override trackPerformance = true
 
-	info = {} as TLPointerEventInfo & { target: 'canvas' }
-
 	initialSelectedShapeIds: TLShapeId[] = []
 	excludedShapeIds = new Set<TLShapeId>()
 	isWrapMode = false
 
 	viewportDidChange = false
-	cleanupViewportChangeReactor?: () => void // cleanup function for the viewport reactor
+	// No-op until onEnter installs the reactor, so onExit can always call it
+	cleanupViewportChangeReactor() {
+		void null
+	}
 
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
 		const { editor } = this
 		const altKey = editor.inputs.getAltKey()
 
 		this.isWrapMode = editor.user.getIsWrapMode()
+
+		// Accel-pressing a resize or rotate handle brushes instead of resizing or rotating,
+		// and the handle's hover cursor would otherwise stay up for the whole brush.
+		editor.setCursor({ type: 'default', rotation: 0 })
 
 		this.viewportDidChange = false
 
@@ -61,7 +66,6 @@ export class Brushing extends StateNode {
 				.map((shape) => shape.id)
 		)
 
-		this.info = info
 		this.initialSelectedShapeIds = editor.getSelectedShapeIds().slice()
 		this.hitTestShapes()
 		isInitialCheck = false
@@ -71,7 +75,7 @@ export class Brushing extends StateNode {
 		this.initialSelectedShapeIds = []
 		this.editor.updateInstanceState({ brush: null })
 
-		this.cleanupViewportChangeReactor?.()
+		this.cleanupViewportChangeReactor()
 	}
 
 	override onTick({ elapsed }: TLTickEventInfo) {
@@ -119,13 +123,13 @@ export class Brushing extends StateNode {
 		const originPagePoint = editor.inputs.getOriginPagePoint()
 		const currentPagePoint = editor.inputs.getCurrentPagePoint()
 		const shiftKey = editor.inputs.getShiftKey()
-		const ctrlKey = editor.inputs.getCtrlKey()
+		const accelKey = editor.inputs.getAccelKey()
 
 		// We'll be collecting shape ids of selected shapes; if we're holding shift key, we start from our initial shapes
 		const results = new Set(shiftKey ? this.initialSelectedShapeIds : [])
 
 		// In wrap mode, we need to completely enclose a shape to select it
-		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
+		const isWrapping = isWrapMode ? !accelKey : accelKey
 
 		// Set the brush to contain the current and origin points
 		const brush = Box.FromPoints([originPagePoint, currentPagePoint])

@@ -13,6 +13,7 @@ import {
 	Vec,
 	VecLike,
 	areAnglesCompatible,
+	bind,
 	compact,
 	isAccelKey,
 	isShapeId,
@@ -21,6 +22,7 @@ import {
 } from '@tldraw/editor'
 import { getEnclosedShapeIds } from '../../../shapes/frame/FrameShapeTool'
 import { batchMeasureGeoLabels, setBatchLabelSizeCache } from '../../../shapes/geo/GeoShapeUtil'
+import { GestureShapeChangeTracker } from '../GestureShapeChangeTracker'
 import { returnToInteractionEnd } from '../selectHelpers'
 
 export type ResizingInfo = TLPointerEventInfo & {
@@ -44,6 +46,9 @@ export class Resizing extends StateNode {
 	// A switch to detect when the user is holding ctrl
 	private didHoldCommand = false
 
+	// Set by complete() and cancel(); see onExit for what happens when neither ran
+	private didFinish = false
+
 	// we transition into the resizing state from the geo pointing state, which starts with a shape of size w: 1, h: 1,
 	// so if the user drags x: +50, y: +50 after mouseDown, the shape will be w: 51, h: 51, which is too many pixels, alas
 	// so we allow passing a further offset into this state to negate such issues
@@ -51,27 +56,29 @@ export class Resizing extends StateNode {
 
 	private snapshot = {} as any as Snapshot
 
+	private changeTracker = new GestureShapeChangeTracker(this.editor)
+
 	override onEnter(info: ResizingInfo) {
 		const { isCreating = false, creatingMarkId, creationCursorOffset = { x: 0, y: 0 } } = info
 
 		this.info = info
 		this.didHoldCommand = false
+		this.didFinish = false
+		this.markId = ''
 
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
 		this.creationCursorOffset = creationCursorOffset
 
-		try {
-			// On rare and mysterious occasions, the user can enter the resizing state with no shapes selected
-			this.snapshot = this._createSnapshot()
-		} catch (e) {
-			console.error(e)
-			this.cancel()
+		// The selection can be empty here, e.g. when the pointed shape was deleted remotely between
+		// pointer down and the drag. Nothing has been marked or changed yet, so just leave.
+		const snapshot = this._createSnapshot()
+		if (!snapshot) {
+			this.parent.transition('idle')
 			return
 		}
-
-		this.markId = ''
+		this.snapshot = snapshot
 
 		if (isCreating) {
 			if (creatingMarkId) {
@@ -89,6 +96,9 @@ export class Resizing extends StateNode {
 		} else {
 			this.markId = this.editor.markHistoryStoppingPoint('starting resizing')
 		}
+
+		// Watch for changes made to the resizing shapes from outside this interaction.
+		this.changeTracker.start(this.snapshot.shapeSnapshots.keys())
 
 		this.handleResizeStart()
 		this.updateShapes()
@@ -124,6 +134,8 @@ export class Resizing extends StateNode {
 	}
 
 	private cancel() {
+		this.didFinish = true
+
 		// Call onResizeCancel callback before resetting
 		const { shapeSnapshots } = this.snapshot
 
@@ -131,6 +143,7 @@ export class Resizing extends StateNode {
 			const current = this.editor.getShape(shape.id)
 			if (current) {
 				const util = this.editor.getShapeUtil(shape)
+				if (!util.canResize(shape)) return
 				util.onResizeCancel?.(shape, current)
 			}
 		})
@@ -142,6 +155,8 @@ export class Resizing extends StateNode {
 	}
 
 	private complete() {
+		this.didFinish = true
+
 		kickoutOccludedShapes(this.editor, this.snapshot.selectedShapeIds)
 
 		this.handleResizeEnd()
@@ -165,43 +180,68 @@ export class Resizing extends StateNode {
 	}
 
 	private handleResizeStart() {
-		const { shapeSnapshots } = this.snapshot
+		this.changeTracker.ignoreChanges(() => {
+			// Non-resizable shapes are in the snapshot only to be repositioned, so they don't get the
+			// resize lifecycle callbacks (matching Editor.resizeShape).
+			const { shapeSnapshots } = this.snapshot
 
-		const changes: TLShapePartial[] = []
+			const changes: TLShapePartial[] = []
 
-		shapeSnapshots.forEach(({ shape }) => {
-			const util = this.editor.getShapeUtil(shape)
-			const change = util.onResizeStart?.(shape)
-			if (change) {
-				changes.push(change)
+			shapeSnapshots.forEach(({ shape }) => {
+				const util = this.editor.getShapeUtil(shape)
+				if (!util.canResize(shape)) return
+				const change = util.onResizeStart?.(shape)
+				if (change) {
+					changes.push(change)
+				}
+			})
+
+			if (changes.length > 0) {
+				this.editor.updateShapes(changes)
 			}
 		})
-
-		if (changes.length > 0) {
-			this.editor.updateShapes(changes)
-		}
 	}
 
 	private handleResizeEnd() {
-		const { shapeSnapshots } = this.snapshot
+		this.changeTracker.ignoreChanges(() => {
+			const { shapeSnapshots } = this.snapshot
 
-		const changes: TLShapePartial[] = []
+			const changes: TLShapePartial[] = []
+			shapeSnapshots.forEach(({ shape }) => {
+				const current = this.editor.getShape(shape.id)
+				if (!current) return
+				const util = this.editor.getShapeUtil(shape)
+				if (!util.canResize(shape)) return
+				const change = util.onResizeEnd?.(shape, current)
+				if (change) {
+					changes.push(change)
+				}
+			})
 
-		shapeSnapshots.forEach(({ shape }) => {
-			const current = this.editor.getShape(shape.id)!
-			const util = this.editor.getShapeUtil(shape)
-			const change = util.onResizeEnd?.(shape, current)
-			if (change) {
-				changes.push(change)
+			if (changes.length > 0) {
+				this.editor.updateShapes(changes)
 			}
 		})
-
-		if (changes.length > 0) {
-			this.editor.updateShapes(changes)
-		}
 	}
 
 	private updateShapes() {
+		this.changeTracker.ignoreChanges(this._updateShapes)
+	}
+
+	@bind
+	private _updateShapes() {
+		// Otherwise the stale resize snapshot would overwrite an external change.
+		if (this.changeTracker.getAndClearChanged()) {
+			const snapshot = this._createSnapshot(this.editor.inputs.getCurrentPagePoint())
+			// The external change may have deleted every shape we were resizing
+			if (!snapshot) {
+				this.parent.transition('idle')
+				return
+			}
+			this.snapshot = snapshot
+			this.changeTracker.setTrackedShapeIds(this.snapshot.shapeSnapshots.keys())
+		}
+
 		const {
 			editor,
 			info,
@@ -210,6 +250,7 @@ export class Resizing extends StateNode {
 				shapeSnapshots,
 				selectionBounds,
 				cursorHandleOffset,
+				originPagePoint: snapshotOriginPagePoint,
 				selectedShapeIds,
 				selectionRotation,
 				canShapesDeform,
@@ -270,7 +311,7 @@ export class Resizing extends StateNode {
 			.sub(cursorHandleOffset)
 			.sub(this.creationCursorOffset)
 
-		const originPagePoint = editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
+		const originPagePoint = snapshotOriginPagePoint.clone().sub(cursorHandleOffset)
 
 		if (editor.getInstanceState().isGridMode && !isHoldingAccel) {
 			const { gridSize } = editor.getDocumentSettings()
@@ -306,8 +347,6 @@ export class Resizing extends StateNode {
 
 		// calculate the scale by measuring the current distance between the drag handle and the scale origin
 		// and dividing by the original distance between the drag handle and the scale origin
-
-		// bug: for edges, the page point doesn't matter, the
 
 		const distanceFromScaleOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage).rot(
 			-selectionRotation
@@ -414,8 +453,9 @@ export class Resizing extends StateNode {
 
 			for (const { id, children } of frames) {
 				if (!children.length) continue
-				const initial = shapeSnapshots.get(id)!.shape
-				const current = this.editor.getShape(id)!
+				// The frame may have been deleted mid-resize
+				const initial = shapeSnapshots.get(id)?.shape
+				const current = this.editor.getShape(id)
 				if (!(initial && current)) continue
 
 				const dx = current.x - initial.x
@@ -482,8 +522,6 @@ export class Resizing extends StateNode {
 		this.editor.setHintingShapes(hintingShapeIds)
 	}
 
-	// ---
-
 	private updateCursor({
 		dragHandle,
 		isFlippedX,
@@ -524,6 +562,7 @@ export class Resizing extends StateNode {
 	}
 
 	override onExit() {
+		this.changeTracker.stop()
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.snaps.clearIndicators()
@@ -531,16 +570,24 @@ export class Resizing extends StateNode {
 		if (this.info.isCreating && this.editor.getHintingShapeIds().length > 0) {
 			this.editor.setHintingShapes([])
 		}
+		// Exited mid-creation without complete() or cancel(), e.g. a tool shortcut pressed while
+		// dragging out a text box: the shape created at the drag threshold was never committed and
+		// would otherwise be left behind, empty and invisible (#10401)
+		if (this.info.isCreating && !this.didFinish) {
+			this.editor.bailToMark(this.markId)
+		}
+		// Don't keep the last resize's shapes, transforms and callbacks alive until the next one
+		this.snapshot = {} as any as Snapshot
+		this.info = {} as ResizingInfo
 	}
 
-	private _createSnapshot() {
+	private _createSnapshot(originPagePoint = this.editor.inputs.getOriginPagePoint()) {
 		const { editor } = this
 		const selectedShapeIds = editor.getSelectedShapeIds()
 		const selectionRotation = editor.getSelectionRotation()
-		const originPagePoint = editor.inputs.getOriginPagePoint()
 
 		const selectionBounds = editor.getSelectionRotatedPageBounds()
-		if (!selectionBounds) throw Error('Resizing but nothing is selected')
+		if (!selectionBounds) return null
 
 		const dragHandlePoint = Vec.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),
@@ -569,17 +616,16 @@ export class Resizing extends StateNode {
 
 			const util = editor.getShapeUtil(shape)
 
-			// If the shape can resize, add it to the resizing shapes snapshots
-			if (util.canResize(shape)) {
-				const pageTransform = editor.getShapePageTransform(shape)!
-				shapeSnapshots.set(shape.id, {
-					shape,
-					bounds: editor.getShapeGeometry(shape).bounds,
-					pageTransform,
-					pageRotation: Mat.Decompose(pageTransform).rotation,
-					isAspectRatioLocked: util.isAspectRatioLocked(shape),
-				})
-			}
+			// Shapes that can't resize are snapshotted too: getResizeShapePartial repositions them
+			// so they keep their place in the selection instead of being left behind.
+			const pageTransform = editor.getShapePageTransform(shape)!
+			shapeSnapshots.set(shape.id, {
+				shape,
+				bounds: editor.getShapeGeometry(shape).bounds,
+				pageTransform,
+				pageRotation: Mat.Decompose(pageTransform).rotation,
+				isAspectRatioLocked: util.isAspectRatioLocked(shape),
+			})
 
 			// Special case:
 			// For frames, we don't want to resize children but we DO want to get a snapshot of their children so that we can restore their
@@ -645,6 +691,10 @@ export class Resizing extends StateNode {
 			shapeSnapshots,
 			selectionBounds,
 			cursorHandleOffset,
+			// The page point the gesture is measured from. Normally the drag origin,
+			// but reset to the current pointer when the snapshot is re-anchored after
+			// an external change, so the scale resolves to 1 there and doesn't jump.
+			originPagePoint,
 			selectionRotation,
 			selectedShapeIds,
 			canShapesDeform,
@@ -655,4 +705,4 @@ export class Resizing extends StateNode {
 	}
 }
 
-type Snapshot = ReturnType<Resizing['_createSnapshot']>
+type Snapshot = NonNullable<ReturnType<Resizing['_createSnapshot']>>

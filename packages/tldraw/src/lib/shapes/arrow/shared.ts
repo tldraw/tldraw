@@ -83,7 +83,9 @@ export function getBoundShapeStrokeOffset(
 ) {
 	return (
 		arrowStrokeWidth / 2 +
-		('size' in info.shape.props ? (theme.strokeWidth * STROKE_SIZES[info.shape.props.size]) / 2 : 0)
+		('size' in info.shape.props
+			? (theme.strokeWidth * (STROKE_SIZES[info.shape.props.size] ?? 0)) / 2
+			: 0)
 	)
 }
 

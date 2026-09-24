@@ -4,12 +4,14 @@ import {
 	TLPointerEventInfo,
 	TLRotationSnapshot,
 	applyRotationToSnapshotShapes,
+	bind,
 	degreesToRadians,
 	getRotationSnapshot,
 	kickoutOccludedShapes,
 	shortAngleDist,
 	snapAngle,
 } from '@tldraw/editor'
+import { GestureShapeChangeTracker } from '../GestureShapeChangeTracker'
 import { returnToInteractionEnd } from '../selectHelpers'
 import { CursorTypeMap } from './PointingResizeHandle'
 
@@ -28,6 +30,8 @@ export class Rotating extends StateNode {
 	info = {} as RotatingInfo
 
 	markId = ''
+
+	private changeTracker = new GestureShapeChangeTracker(this.editor)
 
 	override onEnter(info: RotatingInfo) {
 		// Store the event information
@@ -48,11 +52,31 @@ export class Rotating extends StateNode {
 		}
 		this.snapshot = snapshot
 
-		// Trigger a pointer move
-		this.applyRotation('start')
+		// Watch for changes made to the rotating shapes from outside this interaction.
+		this.changeTracker.start(snapshot.shapeSnapshots.map((s) => s.shape.id))
+
+		const newSelectionRotation = this._getRotationFromPointerPosition({
+			snapToNearestDegree: false,
+		})
+
+		this.changeTracker.ignoreChanges(() => {
+			applyRotationToSnapshotShapes({
+				editor: this.editor,
+				delta: newSelectionRotation,
+				snapshot: this.snapshot,
+				stage: 'start',
+			})
+		})
+
+		// Update cursor
+		this.editor.setCursor({
+			type: CursorTypeMap[this.info.handle as RotateCorner],
+			rotation: newSelectionRotation + this.snapshot.initialShapesRotation,
+		})
 	}
 
 	override onExit() {
+		this.changeTracker.stop()
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.parent.setCurrentToolIdMask(undefined)
 
@@ -60,15 +84,15 @@ export class Rotating extends StateNode {
 	}
 
 	override onPointerMove() {
-		this.applyRotation('update')
+		this.update()
 	}
 
 	override onKeyDown() {
-		this.applyRotation('update')
+		this.update()
 	}
 
 	override onKeyUp() {
-		this.applyRotation('update')
+		this.update()
 	}
 
 	override onPointerUp() {
@@ -83,9 +107,17 @@ export class Rotating extends StateNode {
 		this.cancel()
 	}
 
-	// ---
+	private update() {
+		this.changeTracker.ignoreChanges(this.updateShapes)
+	}
 
-	private applyRotation(stage: 'start' | 'update') {
+	@bind
+	private updateShapes() {
+		// Otherwise the stale rotation snapshot would overwrite an external change.
+		if (this.changeTracker.getAndClearChanged()) {
+			this.reanchorSnapshot()
+		}
+
 		const newSelectionRotation = this._getRotationFromPointerPosition({
 			snapToNearestDegree: false,
 		})
@@ -94,14 +126,29 @@ export class Rotating extends StateNode {
 			editor: this.editor,
 			delta: newSelectionRotation,
 			snapshot: this.snapshot,
-			stage,
+			stage: 'update',
 		})
 
-		// Update cursor
 		this.editor.setCursor({
 			type: CursorTypeMap[this.info.handle as RotateCorner],
 			rotation: newSelectionRotation + this.snapshot.initialShapesRotation,
 		})
+	}
+
+	// Rebuild the rotation snapshot from the current shapes after an external
+	// change, resetting the cursor-angle baseline to the current pointer so the
+	// in-progress rotation continues from the changed shapes without jumping.
+	private reanchorSnapshot() {
+		const snapshot = getRotationSnapshot({
+			editor: this.editor,
+			ids: this.editor.getSelectedShapeIds(),
+		})
+		if (!snapshot) return
+		snapshot.initialCursorAngle = snapshot.initialPageCenter.angle(
+			this.editor.inputs.getCurrentPagePoint()
+		)
+		this.snapshot = snapshot
+		this.changeTracker.setTrackedShapeIds(snapshot.shapeSnapshots.map((s) => s.shape.id))
 	}
 
 	private cancel() {
@@ -122,11 +169,16 @@ export class Rotating extends StateNode {
 	}
 
 	private complete() {
-		applyRotationToSnapshotShapes({
-			editor: this.editor,
-			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: true }),
-			snapshot: this.snapshot,
-			stage: 'end',
+		this.changeTracker.ignoreChanges(() => {
+			if (this.changeTracker.getAndClearChanged()) {
+				this.reanchorSnapshot()
+			}
+			applyRotationToSnapshotShapes({
+				editor: this.editor,
+				delta: this._getRotationFromPointerPosition({ snapToNearestDegree: true }),
+				snapshot: this.snapshot,
+				stage: 'end',
+			})
 		})
 		kickoutOccludedShapes(
 			this.editor,

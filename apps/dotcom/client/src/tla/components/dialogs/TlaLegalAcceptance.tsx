@@ -32,8 +32,7 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 			await user.reload()
 
 			onClose()
-		} catch (_e: any) {
-			const e = _e as any
+		} catch (e: any) {
 			setError(
 				e?.errors?.[0]?.longMessage ||
 					e?.errors?.[0]?.message ||

@@ -130,8 +130,17 @@ export class Drawing extends StateNode {
 					break
 				}
 				case 'starting_straight': {
-					this.pagePointWhereNextSegmentChanged = null
-					this.segmentMode = 'free'
+					// Entered from 'starting_free' the last segment is still straight. A straight
+					// segment renders only its first two points, so writing free points into it
+					// freezes the stroke: go back to 'starting_free' instead of 'free'.
+					const shape =
+						this.initialShape && this.editor.getShape<DrawableShape>(this.initialShape.id)
+					if (shape && last(shape.props.segments)?.type === 'straight') {
+						this.segmentMode = 'starting_free'
+					} else {
+						this.pagePointWhereNextSegmentChanged = null
+						this.segmentMode = 'free'
+					}
 					break
 				}
 			}
@@ -178,7 +187,6 @@ export class Drawing extends StateNode {
 		return (
 			firstPoint !== null &&
 			lastPoint !== null &&
-			firstPoint !== lastPoint &&
 			this.currentLineLength > strokeWidth * 4 * scale &&
 			Vec.DistMin(firstPoint, lastPoint, threshold)
 		)
@@ -207,7 +215,6 @@ export class Drawing extends StateNode {
 	private updateShapeSegments(
 		id: DrawableShape['id'],
 		segments: TLDrawShapeSegment[],
-		segmentsForClose: TLDrawShapeSegment[],
 		size: TLDefaultSizeStyle,
 		scale: number
 	) {
@@ -219,7 +226,7 @@ export class Drawing extends StateNode {
 
 		if (this.canClose()) {
 			;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
-				segmentsForClose,
+				segments,
 				size,
 				scale
 			)
@@ -265,7 +272,9 @@ export class Drawing extends StateNode {
 		if (this.initialShape) {
 			const shape = this.editor.getShape<DrawableShape>(this.initialShape.id)
 
-			if (shape && this.segmentMode === 'straight') {
+			// The remembered shape survives a page change; extending it from another
+			// page would silently append a segment to content the user can't see (#10400)
+			if (shape && this.segmentMode === 'straight' && this.editor.isShapeInPage(shape)) {
 				// Connect dots
 
 				this.didJustShiftClickToExtendPreviousShapeLine = true
@@ -291,7 +300,7 @@ export class Drawing extends StateNode {
 				const segments = [...shape.props.segments, newSegment]
 
 				this.refreshLineLengthIfShort(shape, segments)
-				this.updateShapeSegments(shape.id, segments, segments, shape.props.size, shape.props.scale)
+				this.updateShapeSegments(shape.id, segments, shape.props.size, shape.props.scale)
 
 				return
 			}
@@ -357,8 +366,10 @@ export class Drawing extends StateNode {
 					throw Error('We should have a point where the segment changed')
 				}
 
+				// page-space distance against a screen-space threshold, so scale by the zoom
+				const zoom = this.editor.getZoomLevel()
 				const hasMovedFarEnough =
-					Vec.Dist2(pagePointWhereNextSegmentChanged, currentPagePoint) >
+					Vec.Dist2(pagePointWhereNextSegmentChanged, currentPagePoint) * zoom * zoom >
 					this.editor.options.dragDistanceSquared
 
 				// Find the distance from where the pointer was when shift was released and
@@ -394,10 +405,13 @@ export class Drawing extends StateNode {
 
 						this.pagePointWhereCurrentSegmentChanged = Mat.applyToPoint(transform, prevLastPoint)
 					} else {
+						this.currentLineLength += Vec.Dist(newLastPoint, newPoint)
+
 						newSegment = this.makeSegment('straight', [newLastPoint, newPoint])
 					}
 
-					this.updateShapeSegments(id, [...segments, newSegment], segments, size, scale)
+					const nextSegments = [...segments, newSegment]
+					this.updateShapeSegments(id, nextSegments, size, scale)
 				}
 				break
 			}
@@ -408,8 +422,10 @@ export class Drawing extends StateNode {
 					throw Error('We should have a point where the segment changed')
 				}
 
+				// page-space distance against a screen-space threshold, so scale by the zoom
+				const zoom = this.editor.getZoomLevel()
 				const hasMovedFarEnough =
-					Vec.Dist2(pagePointWhereNextSegmentChanged, currentPagePoint) >
+					Vec.Dist2(pagePointWhereNextSegmentChanged, currentPagePoint) * zoom * zoom >
 					this.editor.options.dragDistanceSquared
 
 				// Find the distance from where the pointer was when shift was released and
@@ -444,7 +460,7 @@ export class Drawing extends StateNode {
 					const finalSegments = [...segments, this.makeSegment('free', interpolatedPoints)]
 
 					this.refreshLineLengthIfShort(shape, finalSegments)
-					this.updateShapeSegments(id, finalSegments, finalSegments, size, scale)
+					this.updateShapeSegments(id, finalSegments, size, scale)
 				}
 
 				break
@@ -560,16 +576,20 @@ export class Drawing extends StateNode {
 				// then the user just did a click-and-immediately-press-shift to create a new straight line
 				// without continuing the previous line. In this case, we want to remove the previous segment.
 
-				const segmentFirstPoint = b64Vecs.decodeFirstPoint(newSegment.path, newSegment.dim)
-				this.currentLineLength += segmentFirstPoint ? Vec.Dist(segmentFirstPoint, newPoint) : 0
+				// A straight segment is just [first, last]; swap its previous length for the new one
+				// (adding the whole length on every move would let tiny strokes close as if long).
+				const firstPoint = b64Vecs.decodeFirstPoint(newSegment.path, newSegment.dim)!
+				const prevLastPoint = b64Vecs.decodeLastPoint(newSegment.path, newSegment.dim)!
+				this.currentLineLength +=
+					Vec.Dist(firstPoint, Vec.From(newPoint)) - Vec.Dist(firstPoint, prevLastPoint)
 
 				newSegments[newSegments.length - 1] = {
 					...newSegment,
 					type: 'straight',
-					path: b64Vecs.encodePoints([segmentFirstPoint!, Vec.From(newPoint)], newSegment.dim),
+					path: b64Vecs.encodePoints([firstPoint, Vec.From(newPoint)], newSegment.dim),
 				}
 
-				this.updateShapeSegments(id, newSegments, segments, size, scale)
+				this.updateShapeSegments(id, newSegments, size, scale)
 
 				break
 			}
@@ -599,7 +619,7 @@ export class Drawing extends StateNode {
 				}
 
 				this.refreshLineLengthIfShort(shape, newSegments)
-				this.updateShapeSegments(id, newSegments, newSegments, size, scale)
+				this.updateShapeSegments(id, newSegments, size, scale)
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
 				if (cachedPoints.length > this.util.options.maxPointsPerShape) {
@@ -613,7 +633,7 @@ export class Drawing extends StateNode {
 					const currentPagePoint = inputs.getCurrentPagePoint()
 
 					// Reset cache for the new shape's segment
-					const initialPoint = new Vec(0, 0, this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5)
+					const initialPoint = new Vec(0, 0, this.isPenOrStylus ? +(z! * 1.25).toFixed(2) : 0.5)
 					this.currentSegmentPoints = [initialPoint]
 
 					this.editor.createShape({

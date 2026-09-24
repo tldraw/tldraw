@@ -14,7 +14,7 @@ import {
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { devFreeze } from './devFreeze'
-import { isRecordsDiffEmpty, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
+import { hasAnyKey, isRecordsDiffEmpty, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { RecordScope } from './RecordType'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
@@ -405,13 +405,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private historyReactor: Reactor
 
 	/**
-	 * Function to dispose of any in-flight timeouts.
+	 * Cancels the history flush scheduled for the next frame, if any.
 	 *
 	 * @internal
 	 */
-	private cancelHistoryReactor(): void {
-		/* noop */
-	}
+	private cancelHistoryReactor: null | (() => void) = null
 
 	/**
 	 * The schema that defines the structure and validation rules for records in this store.
@@ -515,10 +513,15 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		this.scopedTypes = scopedTypes
 	}
 
+	private isFlushingHistory = false
+
 	public _flushHistory() {
 		// If we have accumulated history, flush it and update listeners
 		if (this.historyAccumulator.hasChanges()) {
 			const entries = this.historyAccumulator.flush()
+			const errors: unknown[] = []
+			const wasFlushingHistory = this.isFlushingHistory
+			this.isFlushingHistory = true
 			for (const { changes, source } of entries) {
 				// Filtered diffs are computed at most once per scope per entry, and shared by every
 				// listener watching that scope.
@@ -527,23 +530,37 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					if (filters.source !== 'all' && filters.source !== source) {
 						continue
 					}
-					if (filters.scope === 'all') {
-						onHistory({ changes, source })
-						continue
+					let listenerChanges = changes
+					if (filters.scope !== 'all') {
+						if (!scopedChanges.has(filters.scope)) {
+							scopedChanges.set(filters.scope, this.filterChangesByScope(changes, filters.scope))
+						}
+						const filtered = scopedChanges.get(filters.scope)
+						if (!filtered) continue
+						listenerChanges = filtered
 					}
-					if (!scopedChanges.has(filters.scope)) {
-						scopedChanges.set(filters.scope, this.filterChangesByScope(changes, filters.scope))
+					// The entries are already dequeued, so a listener that throws must not stop the others
+					// (e.g. a sync client) from receiving them: deliver to all, then rethrow the first error.
+					try {
+						onHistory({ changes: listenerChanges, source })
+					} catch (error) {
+						errors.push(error)
 					}
-					const filtered = scopedChanges.get(filters.scope)
-					if (!filtered) continue
-					onHistory({ changes: filtered, source })
 				}
 			}
+			this.isFlushingHistory = wasFlushingHistory
+			if (errors.length > 0) throw errors[0]
 		}
 	}
 
 	dispose() {
-		this.cancelHistoryReactor()
+		// Deliver what is still pending first: a change-set made in the same frame as the dispose
+		// would otherwise never reach the listeners (e.g. a sync client) still attached to the store.
+		try {
+			this._flushHistory()
+		} finally {
+			this.cancelHistoryReactor?.()
+		}
 	}
 
 	/**
@@ -610,12 +627,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			// Iterate through all records, creating, updating or removing as needed
 			let record: R
 
-			// There's a chance that, despite having records, all of the values are
-			// identical to what they were before; and so we'd end up with an "empty"
-			// history entry. Let's keep track of whether we've actually made any
-			// changes (e.g. additions, deletions, or updates that produce a new value).
-			let didChange = false
-
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
 
 			for (let i = 0, n = records.length; i < n; i++) {
@@ -640,13 +651,22 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					record = devFreeze(validated)
 					this.records.set(record.id, record)
 
-					didChange = true
-					updates[record.id] = [initialValue, record]
+					if (additions[record.id]) {
+						// the same record was created earlier in this call: fold the update into it
+						additions[record.id] = record
+					} else {
+						// an earlier update to the same record in this call owns the `from`
+						const from = updates[record.id]?.[0] ?? initialValue
+						if (from === record) {
+							// back to where it started within this call: nothing to record
+							delete updates[record.id]
+						} else {
+							updates[record.id] = [from, record]
+						}
+					}
 					this.addDiffForAfterEvent(initialValue, record)
 				} else {
 					record = this.sideEffects.handleBeforeCreate(record, source)
-
-					didChange = true
 
 					// If we don't have an atom, create one.
 
@@ -669,8 +689,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				}
 			}
 
-			// If we did change, update the history
-			if (!didChange) return
+			// Validation may have left every record identical to before, in which case there is no
+			// change-set to record.
+			if (!hasAnyKey(additions) && !hasAnyKey(updates)) return
 			this.updateHistory({
 				added: additions,
 				updated: updates,
@@ -996,6 +1017,18 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		this.listeners.add(listener)
 
 		return () => {
+			// Flush so this listener's history ends at exactly now, but not from inside a flush:
+			// the other listeners would then receive changes made during that flush before the
+			// entry they are still being handed.
+			if (!this.isFlushingHistory) {
+				try {
+					this._flushHistory()
+				} catch (error) {
+					// Removers run in teardown loops (Editor.dispose, TLSyncClient.close); throwing here
+					// would skip the cleanups that follow.
+					console.error(error)
+				}
+			}
 			this.listeners.delete(listener)
 
 			if (this.listeners.size === 0) {
@@ -1078,6 +1111,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 						if (!changed) changed = { ...existing } as R
 						;(changed as any)[key] = value
+					}
+					// a key the update removed (present before, absent in `to`) is a change too
+					for (const key of Object.keys(existing)) {
+						if (type.ephemeralKeySet.has(key) || Object.hasOwn(to, key)) continue
+						if (!changed) changed = { ...existing } as R
+						delete (changed as any)[key]
 					}
 					if (changed) toPut.push(changed)
 				} else {
@@ -1204,11 +1243,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			if (!this.pendingAfterEvents) {
 				this.sideEffects.handleOperationComplete(source)
-			} else {
-				// if the side effects triggered by a remote operation resulted in more effects,
-				// those extra effects should not be marked as originating remotely.
-				source = 'user'
 			}
+			// Whatever the after-handlers or the operation-complete handlers changed in response to
+			// a remote operation is not itself remote: later rounds are attributed to 'user'.
+			source = 'user'
 		}
 	}
 	private _isInAtomicOp = false

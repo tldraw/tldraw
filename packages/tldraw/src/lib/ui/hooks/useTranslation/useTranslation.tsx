@@ -60,40 +60,26 @@ export function TldrawUiTranslationProvider({
 }: TLUiTranslationProviderProps) {
 	const getAssetUrl = useAssetUrls()
 
-	const [currentTranslation, setCurrentTranslation] = React.useState<TLUiTranslation>(() => {
-		if (overrides && overrides['en']) {
-			return {
-				locale: 'en',
-				label: 'English',
-				dir: 'ltr',
-				messages: { ...DEFAULT_TRANSLATION, ...overrides['en'] },
-			}
-		}
-
-		return {
-			locale: 'en',
-			label: 'English',
-			dir: 'ltr',
-			messages: DEFAULT_TRANSLATION,
-		}
-	})
+	const [currentTranslation, setCurrentTranslation] = React.useState<TLUiTranslation>(() => ({
+		locale: 'en',
+		label: 'English',
+		dir: 'ltr',
+		messages: overrides?.en ? { ...DEFAULT_TRANSLATION, ...overrides.en } : DEFAULT_TRANSLATION,
+	}))
 
 	React.useEffect(() => {
 		let isCancelled = false
 
 		async function loadTranslation() {
 			const translation = await fetchTranslation(locale, getAssetUrl)
+			if (isCancelled) return
 
-			if (translation && !isCancelled) {
-				if (overrides && overrides[locale]) {
-					setCurrentTranslation({
-						...translation,
-						messages: { ...translation.messages, ...overrides[locale] },
-					})
-				} else {
-					setCurrentTranslation(translation)
-				}
-			}
+			const localeOverrides = overrides?.[locale]
+			setCurrentTranslation(
+				localeOverrides
+					? { ...translation, messages: { ...translation.messages, ...localeOverrides } }
+					: translation
+			)
 		}
 
 		loadTranslation()

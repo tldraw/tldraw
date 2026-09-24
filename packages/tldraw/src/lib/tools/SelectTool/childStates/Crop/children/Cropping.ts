@@ -6,11 +6,13 @@ import {
 	StateNode,
 	TLPointerEventInfo,
 	Vec,
+	bind,
 	isAccelKey,
 	kickoutOccludedShapes,
 	rotateSelectionHandle,
 } from '@tldraw/editor'
 import { getCropBox, getDefaultCrop, getUncroppedSize } from '../../../../../shapes/shared/crop'
+import { GestureShapeChangeTracker } from '../../../GestureShapeChangeTracker'
 import { returnToInteractionEnd } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
@@ -32,6 +34,8 @@ export class Cropping extends StateNode {
 
 	private snapshot = {} as any as Snapshot
 
+	private changeTracker = new GestureShapeChangeTracker(this.editor)
+
 	override onEnter(info: CroppingInfo) {
 		this.info = info
 		if (typeof info.onInteractionEnd === 'string') {
@@ -39,6 +43,10 @@ export class Cropping extends StateNode {
 		}
 		this.markId = this.editor.markHistoryStoppingPoint('cropping')
 		this.snapshot = this.createSnapshot()
+
+		// Watch for changes made to the cropping shape from outside this interaction.
+		this.changeTracker.start(this.snapshot.shape ? [this.snapshot.shape.id] : [])
+
 		this.updateShapes()
 	}
 
@@ -67,6 +75,7 @@ export class Cropping extends StateNode {
 	}
 
 	override onExit() {
+		this.changeTracker.stop()
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.snaps.clearIndicators()
 	}
@@ -80,9 +89,26 @@ export class Cropping extends StateNode {
 	}
 
 	private updateShapes() {
+		this.changeTracker.ignoreChanges(this.updateShapesIgnoringExternalChanges)
+	}
+
+	@bind
+	private updateShapesIgnoringExternalChanges() {
 		const { editor } = this
-		const { shape, cursorHandleOffset, initialSelectionPageBounds, selectionRotation } =
-			this.snapshot
+
+		// Otherwise the stale crop snapshot would overwrite an external change.
+		if (this.changeTracker.getAndClearChanged()) {
+			this.snapshot = this.createSnapshot(editor.inputs.getCurrentPagePoint())
+			this.changeTracker.setTrackedShapeIds(this.snapshot.shape ? [this.snapshot.shape.id] : [])
+		}
+
+		const {
+			shape,
+			cursorHandleOffset,
+			originPagePoint: snapshotOriginPagePoint,
+			initialSelectionPageBounds,
+			selectionRotation,
+		} = this.snapshot
 
 		if (!shape) return
 		const util = editor.getShapeUtil<ShapeWithCrop>(shape.type)
@@ -93,7 +119,7 @@ export class Cropping extends StateNode {
 		const isHoldingAccel = isAccelKey(editor.inputs)
 
 		const currentPagePoint = editor.inputs.getCurrentPagePoint().clone().sub(cursorHandleOffset)
-		const originPagePoint = editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
+		const originPagePoint = snapshotOriginPagePoint.clone().sub(cursorHandleOffset)
 
 		// Grid snapping (matches resize): snap the cropped frame to the grid.
 		if (editor.getInstanceState().isGridMode && !isHoldingAccel) {
@@ -119,7 +145,9 @@ export class Cropping extends StateNode {
 			didSnap = true
 		}
 
-		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
+		// The crop lives in the shape's own space, so the page-space drag comes off by the shape's
+		// page rotation; its local rotation alone is wrong inside a rotated frame or group
+		const change = currentPagePoint.clone().sub(originPagePoint).rot(-selectionRotation)
 
 		const crop = shape.props.crop ?? getDefaultCrop()
 		const uncroppedSize = getUncroppedSize(shape.props, crop)
@@ -200,6 +228,7 @@ export class Cropping extends StateNode {
 
 	private cancel() {
 		this.editor.bailToMark(this.markId)
+		this.changeTracker.clear()
 		this.exitToPreviousTool()
 	}
 
@@ -209,9 +238,8 @@ export class Cropping extends StateNode {
 		this.editor.setCurrentTool('select.idle')
 	}
 
-	private createSnapshot() {
+	private createSnapshot(originPagePoint = this.editor.inputs.getOriginPagePoint()) {
 		const selectionRotation = this.editor.getSelectionRotation()
-		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
 		const shape = this.editor.getOnlySelectedShape() as ShapeWithCrop
 
@@ -234,6 +262,10 @@ export class Cropping extends StateNode {
 			cursorHandleOffset,
 			initialSelectionPageBounds,
 			selectionRotation,
+			// The page point the gesture is measured from. Normally the drag origin,
+			// but reset to the current pointer when the snapshot is re-anchored after
+			// an external change, so the change resolves to 0 there and doesn't jump.
+			originPagePoint,
 		}
 	}
 }

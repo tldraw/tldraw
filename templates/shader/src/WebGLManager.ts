@@ -23,12 +23,12 @@ export interface WebGLManagerConfig {
  * 6. onDispose() - Hook for subclass cleanup
  */
 export abstract class WebGLManager<T extends WebGLManagerConfig> {
-	gl: WebGLRenderingContext | WebGL2RenderingContext | null = null
+	gl: WebGL2RenderingContext | null = null
 	animationFrameId: number | null = null
-	lastFrameTime: number = 0
-	isInitialized: boolean = false
-	isDisposed: boolean = false
-	private _needsFirstRender: boolean = true
+	lastFrameTime = 0
+	isInitialized = false
+	isDisposed = false
+	private _needsFirstRender = true
 
 	disposables = new Set<() => void>()
 
@@ -72,13 +72,7 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 			return
 		}
 
-		// Create WebGL2 context with optional attributes
-		const contextType = 'webgl2'
-
-		this.gl = this.canvas.getContext(contextType, contextAttributes) as
-			| WebGLRenderingContext
-			| WebGL2RenderingContext
-			| null
+		this.gl = this.canvas.getContext('webgl2', contextAttributes)
 
 		if (!this.gl) {
 			throw Error('WebGL2 not available')
@@ -192,10 +186,7 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 		}
 
 		// Cancel any pending animation frame
-		if (this.animationFrameId !== null) {
-			cancelAnimationFrame(this.animationFrameId)
-			this.animationFrameId = null
-		}
+		this.pause()
 
 		// Execute subclass cleanup hook
 		this.onDispose()
@@ -208,47 +199,16 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	}
 
 	/**
-	 * Returns true if initialize() has been called successfully.
-	 */
-	getIsInitialized = (): boolean => {
-		return this.isInitialized
-	}
-
-	/**
-	 * Returns true if dispose() has been called.
-	 */
-	getIsDisposed = (): boolean => {
-		return this.isDisposed
-	}
-
-	/**
-	 * Returns the WebGL rendering context, or null if not initialized or disposed.
-	 */
-	getGL = (): WebGLRenderingContext | WebGL2RenderingContext | null => {
-		return this.gl
-	}
-
-	/**
-	 * Returns the HTMLCanvasElement this manager is rendering to.
-	 */
-	getCanvas = (): HTMLCanvasElement => {
-		return this.canvas
-	}
-
-	/**
 	 * Updates canvas dimensions and WebGL viewport based on current bounding rect and quality setting.
 	 * Automatically called when viewport bounds or quality changes via reactive dependency.
 	 * Triggers onFirstRender() and a single frame if animation loop is paused.
 	 */
 	resize = (): void => {
-		const { width, height } = this.canvas.getBoundingClientRect()
 		if (!this.isInitialized || this.isDisposed || !this.gl) {
 			return
 		}
 
-		const { quality } = this.getConfig()
-		this.canvas.width = Math.floor(width * quality)
-		this.canvas.height = Math.floor(height * quality)
+		this.updateCanvasSize()
 
 		// Update WebGL viewport to match new canvas resolution
 		this.gl.viewport(0, 0, this.canvas.width, this.canvas.height)
@@ -260,6 +220,13 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 		if (!this.isRunning()) {
 			this.tick()
 		}
+	}
+
+	private updateCanvasSize() {
+		const { width, height } = this.canvas.getBoundingClientRect()
+		const { quality } = this.getConfig()
+		this.canvas.width = Math.floor(width * quality)
+		this.canvas.height = Math.floor(height * quality)
 	}
 
 	/**
@@ -278,6 +245,7 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	 */
 	resume = (): void => {
 		if (this.animationFrameId === null && this.isInitialized && !this.isDisposed) {
+			// Reset so the first frame after resuming doesn't see a huge deltaTime
 			this.lastFrameTime = performance.now()
 			this.startAnimationLoop()
 		}
@@ -300,10 +268,7 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 
 		if (this._needsFirstRender) {
 			// Ensure canvas has correct dimensions before first render
-			const { width, height } = this.canvas.getBoundingClientRect()
-			const { quality } = this.getConfig()
-			this.canvas.width = Math.floor(width * quality)
-			this.canvas.height = Math.floor(height * quality)
+			this.updateCanvasSize()
 
 			this.onFirstRender()
 			this._needsFirstRender = false

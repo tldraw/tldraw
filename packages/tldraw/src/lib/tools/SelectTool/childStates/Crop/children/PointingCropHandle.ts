@@ -11,9 +11,11 @@ export class PointingCropHandle extends StateNode {
 	static override id = 'pointing_crop_handle'
 
 	private info = {} as TLPointingCropHandleInfo
+	private pendingDoubleClick: TLClickEventInfo | null = null
 
 	override onEnter(info: TLPointingCropHandleInfo) {
 		this.info = info
+		this.pendingDoubleClick = null
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
@@ -46,9 +48,16 @@ export class PointingCropHandle extends StateNode {
 	}
 
 	override onPointerUp() {
+		if (this.pendingDoubleClick) {
+			this.parent.transition('idle')
+			this.parent.getCurrent()?.handleEvent(this.pendingDoubleClick)
+			return
+		}
+
 		this.exitToPreviousTool()
 	}
 
+	// See PointingResizeHandle.onDoubleClick
 	override onDoubleClick(info: TLClickEventInfo) {
 		if (
 			this.editor.inputs.getShiftKey() ||
@@ -59,8 +68,7 @@ export class PointingCropHandle extends StateNode {
 			return
 		}
 
-		this.parent.transition('idle')
-		this.parent.getCurrent()?.handleEvent(info)
+		this.pendingDoubleClick = info
 	}
 
 	override onCancel() {

@@ -561,6 +561,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		const scaledW = unscaledW * shape.props.scale
 		const scaledH = unscaledH * shape.props.scale
+		// the offset is in the shape's (scaled) units, so the label over-shrink must be scaled too
+		const scaledOverShrinkX = overShrinkX * shape.props.scale
+		const scaledOverShrinkY = overShrinkY * shape.props.scale
 
 		const offset = new Vec(0, 0)
 
@@ -571,7 +574,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		if (handle === 'left' || handle === 'top_left' || handle === 'bottom_left') {
-			offset.x += scaleX < 0 ? overShrinkX : -overShrinkX
+			offset.x += scaleX < 0 ? scaledOverShrinkX : -scaledOverShrinkX
 		}
 
 		// y offsets
@@ -581,7 +584,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		if (handle === 'top' || handle === 'top_left' || handle === 'top_right') {
-			offset.y += scaleY < 0 ? overShrinkY : -overShrinkY
+			offset.y += scaleY < 0 ? scaledOverShrinkY : -scaledOverShrinkY
 		}
 
 		const { x, y } = offset.rot(shape.rotation).add(newPoint)

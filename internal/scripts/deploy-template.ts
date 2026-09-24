@@ -75,7 +75,7 @@ async function deployToCloudflare(templateName: string, templateDir: string) {
 	const cloudflareEnv = requireEnv(['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN'])
 
 	nicelog(`Building ${templateName}...`)
-	await exec('yarn', ['run', 'build'], {
+	await exec('pnpm', ['run', 'build'], {
 		pwd: templateDir,
 		env: { ...licenseEnv, NODE_ENV: 'production' },
 	})
@@ -83,7 +83,7 @@ async function deployToCloudflare(templateName: string, templateDir: string) {
 	// The route (including the custom domain) comes from the template's own wrangler.toml, which
 	// ships to users too — so the deploy target is described in one place rather than here.
 	nicelog(`Deploying ${templateName} to cloudflare...`)
-	await exec('yarn', ['wrangler', 'deploy'], {
+	await exec('pnpm', ['exec', 'wrangler', 'deploy'], {
 		pwd: templateDir,
 		env: {
 			...cloudflareEnv,
