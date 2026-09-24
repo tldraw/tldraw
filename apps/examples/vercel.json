@@ -2,6 +2,7 @@
 	"installCommand": "pnpm install --filter examples.tldraw.com... --filter @tldraw/monorepo... --filter config...",
 	"buildCommand": "cd ../../packages/tldraw && pnpm prebuild && cd ../../packages/commenting && pnpm prebuild && cd ../../apps/examples && pnpm build",
 	"outputDirectory": "dist",
+	"ignoreCommand": "bash ../../internal/scripts/vercel/should-build-examples.sh",
 	"headers": [
 		{
 			"source": "/assets/(.*)",
