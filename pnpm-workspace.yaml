@@ -6,11 +6,6 @@ packages:
   - internal/*
   - templates/*
 
-# Flat node_modules, matching what Yarn's node-modules linker produced. Switching to pnpm's
-# isolated layout is a separate step so the package manager swap changes nothing about how
-# modules resolve.
-nodeLinker: hoisted
-
 # Yarn didn't install missing peers; keep the dependency graph identical across the migration.
 autoInstallPeers: false
 
