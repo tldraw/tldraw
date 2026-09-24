@@ -1,10 +1,11 @@
 import { zeroKysely } from '@rocicorp/zero/server/adapters/kysely'
-import { DB, MAX_NUMBER_OF_FILES, can, createMutators, schema } from '@tldraw/dotcom-shared'
+import { DB, MAX_NUMBER_OF_FILES, can, schema } from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
 import { Kysely, sql } from 'kysely'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { getFileEffectProcessor } from '../../utils/durableObjects'
+import { createMcpMutators } from '../../utils/tla/mcpMutators'
 import {
 	CreatableWorkspace,
 	ToolResult,
@@ -65,8 +66,9 @@ export async function createBoardForUser(
 
 				// The same mutator the client pushes, so the role check, id validation and the rows it
 				// writes (file, group_file, file_state) cannot drift from a board created on tldraw.com.
+				// Taken from the MCP set so a tool can only run what an MCP token may push.
 				const boardId = uniqueId()
-				await createMutators(userId).createFile(tx, {
+				await createMcpMutators(userId).createFile(tx, {
 					fileId: boardId,
 					workspaceId: target.id,
 					name,
