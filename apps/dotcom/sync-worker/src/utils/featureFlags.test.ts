@@ -462,7 +462,6 @@ describe('getAllFeatureFlagValues', () => {
 			'mcp_server_access',
 			'rum_enabled',
 			'version_chain',
-			'version_chain_legacy_writes',
 		])
 	})
 })

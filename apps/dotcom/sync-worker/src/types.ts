@@ -241,7 +241,7 @@ export type TLServerEvent =
 			| { outcome: 'skipped'; reason: 'keyframe-size'; keyframeBytes: number }
 	  ))
 	| {
-			/** A chain write failed in dual mode and was swallowed so the persist could complete. */
+			/** A chain write outlasted its retries and was swallowed so the persist could complete. */
 			type: 'version_chain_error'
 	  }
 	| {

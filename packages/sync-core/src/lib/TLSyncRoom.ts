@@ -821,8 +821,21 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			supportsStringAppend,
 		})
 
+		// Restore presence before the schema checks: other clients still hold it from before the
+		// socket slept, and a rejection only broadcasts its removal if it's in the store
 		if (presenceRecord && presenceId) {
 			this.presenceStore.set(presenceId, presenceRecord as R)
+		}
+
+		// The server may have changed builds while the socket slept, so re-run the handshake's
+		// schema checks (HS3): a schema we can no longer reconcile must not be served raw diffs.
+		if (!migrations.ok) {
+			this.rejectSession(sessionId, this.getVersionMismatchReason(serializedSchema))
+			return
+		}
+		if (migrations.value.some((m) => m.scope !== 'record' || !m.down)) {
+			this.rejectSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+			return
 		}
 	}
 
@@ -1056,7 +1069,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			return TLSyncErrorCloseEventReason.SERVER_TOO_OLD
 		}
 
-		if (theirSchema.schemaVersion === 2 && ourSchema.schemaVersion === 2) {
+		if (
+			theirSchema.schemaVersion === 2 &&
+			ourSchema.schemaVersion === 2 &&
+			// a malformed client schema must reject the session, not throw
+			typeof theirSchema.sequences === 'object' &&
+			theirSchema.sequences !== null
+		) {
 			for (const [sequenceId, theirVersion] of Object.entries(theirSchema.sequences)) {
 				const ourVersion = ourSchema.sequences[sequenceId]
 				if (ourVersion === undefined || theirVersion > ourVersion) {
