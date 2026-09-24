@@ -2,18 +2,26 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const authenticateRequest = vi.fn()
 const getUser = vi.fn()
+const verifyToken = vi.fn()
 
 vi.mock('@clerk/backend', () => ({
 	createClerkClient: () => ({
 		authenticateRequest,
 		users: { getUser },
 	}),
+	// Called through, not referenced: the factory is hoisted above the `const`.
+	verifyToken: (...args: unknown[]) => verifyToken(...args),
 }))
 vi.mock('../featureFlags', () => ({ canUseMcpServer: vi.fn() }))
 
 // Import after the mocks are registered.
 import { canUseMcpServer } from '../featureFlags'
-import { getMcpTokenAuth, requireAdminAccessToRequest } from './getAuth'
+import {
+	getMcpTokenAuth,
+	getZeroAuth,
+	isOAuthAccessToken,
+	requireAdminAccessToRequest,
+} from './getAuth'
 
 const env = {
 	CLERK_SECRET_KEY: 'sk',
@@ -207,6 +215,28 @@ describe('getMcpTokenAuth', () => {
 		expect(authenticateRequest.mock.calls[0][0].headers.get('authorization')).toBe(`Bearer ${jwt}`)
 	})
 
+	// Where tldraw's own sync client can put a token, and the only place a client built on it can:
+	// `useSync` opens the socket with no protocols. Same check as the header, opted into per route.
+	it('takes the token from ?accessToken= when the caller opts in', async () => {
+		signedInAs('user_1')
+		vi.mocked(canUseMcpServer).mockResolvedValue(true)
+
+		await expect(
+			getMcpTokenAuth(requestWith({}, '?accessToken=tok&sessionId=s'), env, {
+				allowQueryToken: true,
+			})
+		).resolves.toEqual({ ok: true, userId: 'user_1' })
+		expect(authenticateRequest.mock.calls[0][0].headers.get('authorization')).toBe('Bearer tok')
+	})
+
+	it('ignores ?accessToken= by default', async () => {
+		await expect(getMcpTokenAuth(requestWith({}, '?accessToken=tok'), env)).resolves.toEqual({
+			ok: false,
+			reason: 'no_token',
+		})
+		expect(authenticateRequest).not.toHaveBeenCalled()
+	})
+
 	it('prefers the authorization header when a request carries both', async () => {
 		signedInAs('user_1')
 		vi.mocked(canUseMcpServer).mockResolvedValue(true)
@@ -223,5 +253,72 @@ describe('getMcpTokenAuth', () => {
 		expect(authenticateRequest.mock.calls[0][0].headers.get('authorization')).toBe(
 			'Bearer header-tok'
 		)
+	})
+})
+
+/** A JWT with the given header, unsigned: only the header is read before verification. */
+function jwtWithHeader(header: object) {
+	const b64 = (o: object) => Buffer.from(JSON.stringify(o)).toString('base64url')
+	return `${b64(header)}.${b64({ sub: 'user_1' })}.sig`
+}
+
+describe('isOAuthAccessToken', () => {
+	it('reads at+jwt off the header, case-insensitively', () => {
+		expect(isOAuthAccessToken(jwtWithHeader({ alg: 'RS256', typ: 'at+jwt' }))).toBe(true)
+		expect(isOAuthAccessToken(jwtWithHeader({ alg: 'RS256', typ: 'AT+JWT' }))).toBe(true)
+		expect(isOAuthAccessToken(jwtWithHeader({ alg: 'RS256', typ: 'JWT' }))).toBe(false)
+		expect(isOAuthAccessToken(jwtWithHeader({ alg: 'RS256' }))).toBe(false)
+	})
+
+	it('reads garbage as not one', () => {
+		expect(isOAuthAccessToken('')).toBe(false)
+		expect(isOAuthAccessToken('not.a.jwt')).toBe(false)
+		expect(isOAuthAccessToken('%%%.x.y')).toBe(false)
+	})
+})
+
+describe('getZeroAuth', () => {
+	const request = (token: string) =>
+		({
+			url: 'https://www.tldraw.com/api/app/zero/query',
+			headers: new Headers({ authorization: `Bearer ${token}` }),
+		}) as any
+	const accessToken = jwtWithHeader({ alg: 'RS256', typ: 'at+jwt' })
+	const templateToken = jwtWithHeader({ alg: 'RS256', typ: 'JWT' })
+
+	beforeEach(() => {
+		authenticateRequest.mockReset()
+		verifyToken.mockReset()
+		vi.mocked(canUseMcpServer).mockReset()
+	})
+
+	// The plugin's user: an agent's software holding an OAuth token, for whom the template token
+	// never existed. Verified the way every other MCP-token route verifies it, flag check included.
+	it('admits an OAuth access token through the MCP check, and says so', async () => {
+		signedInAs('user_1')
+		vi.mocked(canUseMcpServer).mockResolvedValue(true)
+
+		await expect(getZeroAuth(request(accessToken), env)).resolves.toEqual({
+			userId: 'user_1',
+			mcp: true,
+		})
+		expect(authenticateRequest.mock.calls[0][1]).toEqual({ acceptsToken: 'oauth_token' })
+		expect(verifyToken).not.toHaveBeenCalled()
+	})
+
+	it('refuses an OAuth access token the flag does not admit, with no session fallback', async () => {
+		signedInAs('user_1')
+		vi.mocked(canUseMcpServer).mockResolvedValue(false)
+
+		await expect(getZeroAuth(request(accessToken), env)).resolves.toBeNull()
+		// Only the OAuth check ran: getAuth would have been a second authenticateRequest.
+		expect(authenticateRequest).toHaveBeenCalledTimes(1)
+	})
+
+	it('still takes a zero-template token the way it always has', async () => {
+		verifyToken.mockResolvedValue({ purpose: 'zero', sub: 'user_2' })
+
+		await expect(getZeroAuth(request(templateToken), env)).resolves.toEqual({ userId: 'user_2' })
+		expect(authenticateRequest).not.toHaveBeenCalled()
 	})
 })
