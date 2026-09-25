@@ -136,8 +136,7 @@
 	text-decoration: underline;
 }
 
-/* Avatar and mention styles live in @tldraw/mentions (src/mention.css) and are bundled into
-   commenting.css by copy-css-files.mjs. */
+/* Avatar and mention styles live in @tldraw/mentions and are imported by commenting.css. */
 
 /* composer — an avatar beside a rounded-rect field holding the rich-text input and the send button.
    Formatting is applied via markdown and keyboard shortcuts (no toolbar). The avatar aligns to the

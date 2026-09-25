@@ -46,9 +46,6 @@ runs:
         CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare-api-token }}
         CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare-account-id }}
       run: |
-        # the templates import tldraw/tldraw.css, which is generated and gitignored
-        pnpm exec lazy prebuild
-
         cd templates
         all_templates=$(ls -d */ | cut -f1 -d'/')
         cd ..

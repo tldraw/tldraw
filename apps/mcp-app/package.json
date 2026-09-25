@@ -7,7 +7,7 @@
 	"scripts": {
 		"extract-api": "tsx scripts/extract-editor-api.ts",
 		"generate-agent-sdk-docs": "pnpm exec tsc --build ../../packages/editor/tsconfig.json ../../packages/store/tsconfig.json ../../packages/tlschema/tsconfig.json && pnpm extract-api",
-		"build:widget": "pnpm generate-agent-sdk-docs && node ../../packages/tldraw/scripts/copy-css-files.mjs && vite build && mv dist/index.html dist/mcp-app.html",
+		"build:widget": "pnpm generate-agent-sdk-docs && vite build && mv dist/index.html dist/mcp-app.html",
 		"build": "pnpm build:widget",
 		"dev": "pnpm dev:http",
 		"dev:http": "pnpm build && wrangler dev --var \"MCP_IS_DEV:true\" --var \"WORKER_ORIGIN:http://localhost:8787\"",
