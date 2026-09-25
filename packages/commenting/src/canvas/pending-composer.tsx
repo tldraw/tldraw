@@ -104,6 +104,8 @@ export function PendingComposer({
 			put([thread, comment])
 			return comment
 		})
+		// The write was refused (unlicensed): keep the draft, don't tell the host.
+		if (!comment) return
 		setText(EMPTY_COMMENT)
 		clearCommentDraft(NEW_COMMENT_DRAFT)
 		pendingComment.set(editor, null)

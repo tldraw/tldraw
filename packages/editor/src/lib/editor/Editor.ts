@@ -123,7 +123,8 @@ import { getSvgAsImageWithOptions, trimSvgToContent } from '../exports/getSvgAsI
 import { registerMountedEditor, unregisterMountedEditor } from '../globals/editors'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
-import { LicenseManager } from '../license/LicenseManager'
+import { LicenseFeatureName, LicenseManager } from '../license/LicenseManager'
+import { getDefaultLicenseKey, getSharedLicenseManager } from '../license/setLicense'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
 import { EASINGS } from '../primitives/easings'
@@ -259,6 +260,10 @@ export interface TLEditorOptions {
 	 * Whether to automatically focus the editor when it mounts.
 	 */
 	autoFocus?: boolean
+	/**
+	 * A license key issued by tldraw. Wins over a key set with `setLicense()`, so editors on the
+	 * same page can hold different licenses.
+	 */
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
@@ -373,10 +378,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		fontAssetUrls,
 		themes,
 		initialTheme,
+		licenseKey,
 	}: TLEditorOptions) {
 		super()
 
 		this._getShapeVisibility = getShapeVisibility
+
+		this._licenseKey = licenseKey
 
 		// Merge deprecated textOptions prop with options.text
 		// options.text takes precedence over the deprecated textOptions prop
@@ -1007,14 +1015,48 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	readonly options: TldrawOptions
 
+	private readonly _licenseKey: string | undefined
+
 	/**
-	 * The license manager whose feature flags apply to this editor. Assigned by `<TldrawEditor />`
-	 * when it creates the editor, so that UI rendered outside the editor tree can resolve the
-	 * editor's license through the editor instance. Undefined for editors created directly.
+	 * The license manager whose feature flags apply to this editor.
+	 *
+	 * Managers are shared per key, so this is the same one the React tree above the editor resolves
+	 * — and with it one validation and one tracking request. Resolved on read rather than at
+	 * construction, so a `setLicense()` call that lands after the editor exists still applies to it.
 	 *
 	 * @internal
 	 */
-	licenseManager?: LicenseManager
+	getLicenseManager(): LicenseManager {
+		return getSharedLicenseManager(this._licenseKey ?? getDefaultLicenseKey())
+	}
+
+	/**
+	 * Whether a licensed product feature is available to this editor. Enabled in development; in
+	 * production it needs a tldraw license that includes the feature. Reactive: reading this inside
+	 * a signal recomputes when license validation resolves.
+	 *
+	 * Validation is asynchronous and fails closed while it runs, so this is `false` for the first
+	 * moments of a licensed editor's life. That suits UI, which re-renders when the answer arrives.
+	 * A one-shot imperative call has no such second chance — see
+	 * {@link Editor.isLicenseValidationPending}.
+	 *
+	 * @public
+	 */
+	isLicensedFeatureEnabled(feature: LicenseFeatureName): boolean {
+		return this.getLicenseManager().isFeatureEnabled(feature)
+	}
+
+	/**
+	 * Whether license validation is still in flight, which in production is when
+	 * {@link Editor.isLicensedFeatureEnabled} reports every feature as disabled whatever the license
+	 * turns out to say. A gate that can't wait for the answer — an imperative call, as opposed to a
+	 * render — should let the action through while this is true and enforce once it resolves.
+	 *
+	 * @internal
+	 */
+	isLicenseValidationPending(): boolean {
+		return this.getLicenseManager().state.get() === 'pending'
+	}
 
 	readonly contextId = uniqueId()
 
