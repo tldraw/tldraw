@@ -19,6 +19,7 @@ import {
 	TlaFileStatePartial,
 	TlaFlags,
 	TlaSchema,
+	TlaUser,
 	TlaUserPartial,
 } from './tlaSchema'
 import { ZErrorCode } from './types'
