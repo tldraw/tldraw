@@ -160,10 +160,10 @@ async function deletePreviewWorkerRoute(pattern: string) {
 	}
 }
 
-// wrangler is declared by @tldraw/scripts, not the root, so npx must run from here to find its bin
+// wrangler is declared by @tldraw/scripts, not the root, so run it from here
 async function deleteQueue(queueName: string) {
 	nicelog('Deleting queue:', queueName)
-	await exec('npx', ['wrangler', 'queues', 'delete', queueName], {
+	await exec('pnpm', ['exec', 'wrangler', 'queues', 'delete', queueName], {
 		pwd: __dirname,
 		env: { CI: '1' },
 	})
@@ -171,15 +171,19 @@ async function deleteQueue(queueName: string) {
 
 async function deleteQueueConsumer(queueName: string, scriptName: string) {
 	nicelog('Deleting queue consumer:', scriptName, 'from queue:', queueName)
-	await exec('npx', ['wrangler', 'queues', 'consumer', 'worker', 'remove', queueName, scriptName], {
-		pwd: __dirname,
-		env: { CI: '1' },
-	})
+	await exec(
+		'pnpm',
+		['exec', 'wrangler', 'queues', 'consumer', 'worker', 'remove', queueName, scriptName],
+		{
+			pwd: __dirname,
+			env: { CI: '1' },
+		}
+	)
 }
 
 async function deletePreviewWorker(workerName: string) {
 	nicelog('Deleting worker:', workerName)
-	await exec('npx', ['wrangler', 'delete', '--name', workerName], {
+	await exec('pnpm', ['exec', 'wrangler', 'delete', '--name', workerName], {
 		pwd: __dirname,
 		env: { CI: '1' },
 	})
