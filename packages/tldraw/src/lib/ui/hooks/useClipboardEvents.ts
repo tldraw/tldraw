@@ -15,6 +15,7 @@ import {
 	useMaybeEditor,
 	useValue,
 } from '@tldraw/editor'
+import { find } from 'linkifyjs'
 import lz from 'lz-string'
 import { useCallback, useEffect } from 'react'
 import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
@@ -161,7 +162,9 @@ function didPasteLinkOntoRichTextSelection(editor: Editor, e: ClipboardEvent) {
 	if (!richTextEditor || richTextEditor.state.selection.empty) return false
 	if (!richTextEditor.view.dom.contains(e.target as Node | null)) return false
 	if (!richTextEditor.isActive('link')) return false
-	return isValidHttpURL(e.clipboardData?.getData('text/plain').trim() ?? '')
+	// Match TipTap's link paste handler, which also links bare domains like `tldraw.com`.
+	const text = e.clipboardData?.getData('text/plain').trim() ?? ''
+	return find(text, { defaultProtocol: 'http' }).some((link) => link.isLink && link.value === text)
 }
 
 /**
