@@ -1,5 +1,5 @@
 import { FILE_PREFIX, type HistoryResponseBody } from '@tldraw/dotcom-shared'
-import { clerkAuthFetch } from './clerkAuthFetch'
+import { fetch } from 'tldraw'
 
 // Helper function to fetch history data
 export async function fetchHistory(
@@ -11,7 +11,7 @@ export async function fetchHistory(
 			? `/api/${FILE_PREFIX}/${fileSlug}/history?offset=${offset}`
 			: `/api/${FILE_PREFIX}/${fileSlug}/history`
 
-		const result = await clerkAuthFetch(url)
+		const result = await fetch(url)
 
 		if (!result.ok) return null
 

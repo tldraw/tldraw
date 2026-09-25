@@ -2,13 +2,12 @@ import { captureException } from '@sentry/react'
 import { FILE_PREFIX } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { useEffect, useMemo } from 'react'
-import { useRouteError } from 'react-router-dom'
+import { useParams, useRouteError } from 'react-router-dom'
 import { TLStoreSnapshot, fetch } from 'tldraw'
-import { clerkAuthFetch } from '../../utils/clerkAuthFetch'
-import { defineLoader } from '../../utils/defineLoader'
 import { TlaHistorySnapshotEditor } from '../components/TlaEditor/TlaHistorySnapshotEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
+import { useStaffApiJson } from '../hooks/useStaffApiJson'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { toggleSidebar } from '../utils/local-session-state'
 
@@ -20,41 +19,24 @@ export function ErrorBoundary() {
 	return <Component error={error} />
 }
 
-const { loader, useMaybeData } = defineLoader(async (args) => {
-	const fileSlug = args.params.fileSlug
-	const timestamp = args.params.timestamp
-
-	if (!fileSlug) return null
-
-	const result = await clerkAuthFetch(`/api/${FILE_PREFIX}/${fileSlug}/history/${timestamp}`)
-	if (!result.ok) return null
-	const data = (await result.json()) as RoomSnapshot
-
-	return { data, fileSlug, timestamp }
-})
-
-export { loader }
-
 export function Component({ error: _error }: { error?: unknown }) {
 	const userId = useMaybeApp()?.userId
 
-	const result = useMaybeData()
+	const { fileSlug, timestamp } = useParams<{ fileSlug: string; timestamp: string }>()
+	const data = useStaffApiJson<RoomSnapshot>(`/api/${FILE_PREFIX}/${fileSlug}/history/${timestamp}`)
 
 	const snapshot = useMemo(() => {
-		if (!result) {
+		if (!data) {
 			return null
 		}
 
 		return {
-			schema: result.data.schema,
-			store: Object.fromEntries(
-				result.data.documents.map((record) => [record.state.id, record.state])
-			),
+			schema: data.schema,
+			store: Object.fromEntries(data.documents.map((record) => [record.state.id, record.state])),
 		} as TLStoreSnapshot
-	}, [result])
+	}, [data])
 
-	const ts = result?.timestamp
-	const error = _error || !result || !ts || !snapshot
+	const error = _error || data === null || !fileSlug || !timestamp
 
 	useEffect(() => {
 		if (error && userId) {
@@ -63,20 +45,21 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
-	return error ? (
-		<TlaFileError error={error} />
-	) : (
+	if (error) return <TlaFileError error={error} />
+	if (!snapshot) return null
+
+	return (
 		<TlaAnonLayout>
 			<TlaHistorySnapshotEditor
-				fileSlug={result.fileSlug}
+				fileSlug={fileSlug}
 				snapshot={snapshot}
 				onRestore={async () => {
-					const res = await fetch(`/api/app/file/${result.fileSlug}/restore`, {
+					const res = await fetch(`/api/app/file/${fileSlug}/restore`, {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json',
 						},
-						body: JSON.stringify({ timestamp: ts }),
+						body: JSON.stringify({ timestamp }),
 					})
 					if (!res.ok) {
 						throw new Error('Failed to restore version: ' + (await res.text()))
