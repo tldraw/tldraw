@@ -17,7 +17,7 @@
 		"test": "pnpm exec vitest run --passWithNoTests",
 		"test-coverage": "pnpm exec vitest run --coverage && open-cli coverage/index.html",
 		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
-		"build-types": "tsc --noEmit"
+		"build-types": "tsc"
 	},
 	"devDependencies": {
 		"@types/better-sqlite3": "^7.6.12",

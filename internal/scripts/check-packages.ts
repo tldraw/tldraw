@@ -21,7 +21,7 @@ const expectedPackageJsonScriptsForAll = {
 	// Templates type-check with their own pinned TypeScript, as a user's copy would. `--build` would
 	// follow their references and rebuild the workspace packages with that older compiler.
 	'build-types': (packageDir: string) =>
-		relative(REPO_ROOT, packageDir).startsWith('templates/') ? 'tsc --noEmit' : 'tsc --build',
+		relative(REPO_ROOT, packageDir).startsWith('templates/') ? 'tsc' : 'tsc --build',
 }
 
 const expectedTestScripts = {

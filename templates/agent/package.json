@@ -30,7 +30,7 @@
 		"dev": "vite --host",
 		"preview": "vite preview",
 		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
-		"build-types": "tsc --noEmit"
+		"build-types": "tsc"
 	},
 	"dependencies": {
 		"@ai-sdk/anthropic": "^2.0.80",
