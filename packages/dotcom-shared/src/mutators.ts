@@ -152,25 +152,28 @@ async function assertUserCanAccessFileById(tx: Tx, userId: string, fileId: strin
 const isBoolean = (value: unknown) => typeof value === 'boolean'
 const isNumber = (value: unknown) => typeof value === 'number' && Number.isFinite(value)
 const isShortString = (value: unknown) => typeof value === 'string' && value.length <= 64
+/** For an optional column, where null unsets the preference and the editor's default applies. */
+const orNull = (check: (value: unknown) => boolean) => (value: unknown) =>
+	value === null || check(value)
 
 /**
- * The user preferences `updateUserPreferences` may change, with what each accepts besides null
- * (unset: the editor's default). The editor preferences in UserPreferencesKeys, less colorScheme
- * (an app embedding the editor owns its theme) and name (so an agent's token cannot rename its
- * user).
+ * The user preferences `updateUserPreferences` may change, and what each accepts. The editor
+ * preferences in UserPreferencesKeys, less colorScheme (an app embedding the editor owns its
+ * theme) and name (so an agent's token cannot rename its user).
  */
 const USER_PREFERENCE_VALIDATORS = {
-	locale: isShortString,
-	animationSpeed: isNumber,
-	areKeyboardShortcutsEnabled: isBoolean,
-	edgeScrollSpeed: isNumber,
-	isSnapMode: isBoolean,
-	isWrapMode: isBoolean,
-	isDynamicSizeMode: isBoolean,
-	isPasteAtCursorMode: isBoolean,
-	enhancedA11yMode: isBoolean,
-	inputMode: (value: unknown) => value === 'trackpad' || value === 'mouse',
-	isZoomDirectionInverted: isBoolean,
+	locale: orNull(isShortString),
+	animationSpeed: orNull(isNumber),
+	areKeyboardShortcutsEnabled: orNull(isBoolean),
+	edgeScrollSpeed: orNull(isNumber),
+	isSnapMode: orNull(isBoolean),
+	isWrapMode: orNull(isBoolean),
+	isDynamicSizeMode: orNull(isBoolean),
+	isPasteAtCursorMode: orNull(isBoolean),
+	enhancedA11yMode: orNull(isBoolean),
+	inputMode: orNull((value) => value === 'trackpad' || value === 'mouse'),
+	isZoomDirectionInverted: orNull(isBoolean),
+	// Not null: the column is required.
 	color: isShortString,
 } satisfies Partial<Record<keyof TlaUser, (value: unknown) => boolean>>
 
@@ -199,7 +202,7 @@ export function createMutators(userId: string) {
 			for (const [key, value] of entries) {
 				assert(Object.hasOwn(USER_PREFERENCE_VALIDATORS, key), ZErrorCode.forbidden)
 				assert(
-					value === null || USER_PREFERENCE_VALIDATORS[key as TlaUserPreferenceKey](value),
+					USER_PREFERENCE_VALIDATORS[key as TlaUserPreferenceKey](value),
 					ZErrorCode.bad_request
 				)
 			}

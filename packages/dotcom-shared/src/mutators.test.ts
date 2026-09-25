@@ -413,6 +413,8 @@ describe('updateUserPreferences', () => {
 		await expectBadRequest(() => m.updateUserPreferences(tx, { isSnapMode: 'yes' as any }))
 		await expectBadRequest(() => m.updateUserPreferences(tx, { inputMode: 'pen' as any }))
 		await expectBadRequest(() => m.updateUserPreferences(tx, { animationSpeed: Infinity }))
+		// The color column is required, so it cannot be unset.
+		await expectBadRequest(() => m.updateUserPreferences(tx, { color: null as any }))
 	})
 })
 
