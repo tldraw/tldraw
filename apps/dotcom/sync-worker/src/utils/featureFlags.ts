@@ -48,7 +48,7 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			type: 'boolean',
 			enabled: false,
 			description:
-				'Route sync worker Postgres through Hyperdrive where the HYPERDRIVE binding exists; off falls back to the pooled connection string. Takes up to ~1 min to apply (KV edge cache + in-isolate cache)',
+				'Kill switch for Hyperdrive: on routes sync worker Postgres through the HYPERDRIVE binding where bound, off uses the pooled connection string. Reaches new connections within ~70s',
 		},
 	}
 }

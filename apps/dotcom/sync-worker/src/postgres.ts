@@ -14,20 +14,20 @@ pg.types.setTypeParser(int8TypeId, (val) => {
 
 const CONNECT_TIMEOUT_MS = 10_000
 
-// Every checkout asks, so without this each one pays a KV read.
+// Every checkout asks, so without this each one pays a KV read. Caches the value, not the pending
+// read: a promise owned by one request can be cancelled when it ends, hanging every other waiter.
 const HYPERDRIVE_FLAG_TTL_MS = 10_000
-let hyperdriveFlag: { value: Promise<boolean>; expiresAt: number } | null = null
+let hyperdriveFlag: { enabled: boolean; expiresAt: number } | null = null
 
-function isHyperdriveEnabled(env: Environment): Promise<boolean> {
+async function isHyperdriveEnabled(env: Environment): Promise<boolean> {
 	if (!hyperdriveFlag || hyperdriveFlag.expiresAt < Date.now()) {
+		const flag = await getFeatureFlagValue(env, 'hyperdrive_enabled')
 		hyperdriveFlag = {
-			value: getFeatureFlagValue(env, 'hyperdrive_enabled').then((flag) =>
-				evaluateFlagForUser(flag, 'hyperdrive_enabled', null)
-			),
+			enabled: evaluateFlagForUser(flag, 'hyperdrive_enabled', null),
 			expiresAt: Date.now() + HYPERDRIVE_FLAG_TTL_MS,
 		}
 	}
-	return hyperdriveFlag.value
+	return hyperdriveFlag.enabled
 }
 
 /**
@@ -43,10 +43,8 @@ export async function getPostgresConnection(env: Environment) {
 }
 
 export function createPostgresConnectionPool(env: Environment, name: string, max: number = 1) {
-	// Kysely calls the pool factory on first query, so the flag read stays off this sync path.
-	const dialect = new PostgresDialect({
-		pool: async () => createPgPool(env, name, max, await getPostgresConnection(env)),
-	})
+	// Lazy, so the async flag read doesn't make this and all its callers async.
+	const dialect = new PostgresDialect({ pool: () => createPgPool(env, name, max) })
 
 	const db = new Kysely<DB>({
 		dialect,
@@ -55,12 +53,8 @@ export function createPostgresConnectionPool(env: Environment, name: string, max
 	return db
 }
 
-function createPgPool(
-	env: Environment,
-	name: string,
-	max: number,
-	{ connectionString, via }: Awaited<ReturnType<typeof getPostgresConnection>>
-) {
+async function createPgPool(env: Environment, name: string, max: number) {
+	const { connectionString, via } = await getPostgresConnection(env)
 	class LoggingClient extends pg.Client {
 		constructor(config?: string | pg.ClientConfig) {
 			super(config)
