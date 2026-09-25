@@ -1467,7 +1467,10 @@ export class TldrawApp {
 			return
 		}
 
-		this.trackEvent('accept-workspace-invite', { source: 'sidebar' })
+		this.trackEvent('accept-workspace-invite', {
+			source: 'sidebar',
+			workspaceId: payload.workspaceId,
+		})
 
 		// wait for the workspace to appear in the store, but not forever
 		let attempts = 0
