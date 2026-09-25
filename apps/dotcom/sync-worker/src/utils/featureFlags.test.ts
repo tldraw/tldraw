@@ -459,6 +459,7 @@ describe('getAllFeatureFlagValues', () => {
 
 		expect(Object.keys(flags).sort()).toEqual([
 			'first_load_rum',
+			'hyperdrive_enabled',
 			'mcp_server_access',
 			'rum_enabled',
 			'version_chain',

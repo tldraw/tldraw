@@ -269,6 +269,7 @@ export const FEATURE_FLAG_KEYS = [
 	'first_load_rum',
 	'mcp_server_access',
 	'version_chain',
+	'hyperdrive_enabled',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 

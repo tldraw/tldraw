@@ -14,6 +14,8 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 	// Server-side only: the sync worker evaluates this per room to pick the version write mode. The
 	// per-user value here means nothing to the client.
 	version_chain: { enabled: false },
+	// Server-side only: picks the sync worker's Postgres route.
+	hyperdrive_enabled: { enabled: false },
 }
 
 let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }

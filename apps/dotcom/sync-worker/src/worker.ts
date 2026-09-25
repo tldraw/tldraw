@@ -244,7 +244,7 @@ const router = createRouter<Environment>()
 		}
 		// (db, mutatorContext, logLevel): mutators close over userId, so no context.
 		const processor = new PushProcessor(
-			zeroPostgresJS(schema, getPostgresConnection(env).connectionString),
+			zeroPostgresJS(schema, (await getPostgresConnection(env)).connectionString),
 			undefined,
 			'debug'
 		)

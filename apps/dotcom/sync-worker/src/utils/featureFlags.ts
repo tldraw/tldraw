@@ -44,6 +44,12 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'Version history written as delta chains; rooms outside it write every version as a whole keyframe. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless',
 		},
+		hyperdrive_enabled: {
+			type: 'boolean',
+			enabled: false,
+			description:
+				'Route sync worker Postgres through Hyperdrive where the HYPERDRIVE binding exists; off falls back to the pooled connection string. Takes up to ~1 min to apply (KV edge cache + in-isolate cache)',
+		},
 	}
 }
 

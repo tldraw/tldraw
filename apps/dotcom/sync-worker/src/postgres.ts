@@ -5,6 +5,7 @@ import * as pg from 'pg'
 import { Logger } from './Logger'
 import { Environment } from './types'
 import { writeDataPoint } from './utils/analytics'
+import { evaluateFlagForUser, getFeatureFlagValue } from './utils/featureFlags'
 
 const int8TypeId = 20
 pg.types.setTypeParser(int8TypeId, (val) => {
@@ -13,19 +14,53 @@ pg.types.setTypeParser(int8TypeId, (val) => {
 
 const CONNECT_TIMEOUT_MS = 10_000
 
+// Every checkout asks, so without this each one pays a KV read.
+const HYPERDRIVE_FLAG_TTL_MS = 10_000
+let hyperdriveFlag: { value: Promise<boolean>; expiresAt: number } | null = null
+
+function isHyperdriveEnabled(env: Environment): Promise<boolean> {
+	if (!hyperdriveFlag || hyperdriveFlag.expiresAt < Date.now()) {
+		hyperdriveFlag = {
+			value: getFeatureFlagValue(env, 'hyperdrive_enabled').then((flag) =>
+				evaluateFlagForUser(flag, 'hyperdrive_enabled', null)
+			),
+			expiresAt: Date.now() + HYPERDRIVE_FLAG_TTL_MS,
+		}
+	}
+	return hyperdriveFlag.value
+}
+
 /**
- * Hyperdrive, where bound, ends the dial at a nearby Cloudflare pool instead of Supabase in
- * Frankfurt. `postgres_client_connect_done` then times only that local hop: origin trouble
- * surfaces as query errors, after Hyperdrive's own 15s origin connect timeout.
+ * Hyperdrive, where bound and the `hyperdrive_enabled` flag is on, ends the dial at a nearby
+ * Cloudflare pool instead of Supabase in Frankfurt. `postgres_client_connect_done` then times only
+ * that local hop: origin trouble surfaces as query errors, after Hyperdrive's own 15s origin
+ * connect timeout.
  */
-export function getPostgresConnection(env: Environment) {
-	return env.HYPERDRIVE
+export async function getPostgresConnection(env: Environment) {
+	return env.HYPERDRIVE && (await isHyperdriveEnabled(env))
 		? { connectionString: env.HYPERDRIVE.connectionString, via: 'hyperdrive' }
 		: { connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING, via: 'pooler' }
 }
 
 export function createPostgresConnectionPool(env: Environment, name: string, max: number = 1) {
-	const { connectionString, via } = getPostgresConnection(env)
+	// Kysely calls the pool factory on first query, so the flag read stays off this sync path.
+	const dialect = new PostgresDialect({
+		pool: async () => createPgPool(env, name, max, await getPostgresConnection(env)),
+	})
+
+	const db = new Kysely<DB>({
+		dialect,
+		log: ['error'],
+	})
+	return db
+}
+
+function createPgPool(
+	env: Environment,
+	name: string,
+	max: number,
+	{ connectionString, via }: Awaited<ReturnType<typeof getPostgresConnection>>
+) {
 	class LoggingClient extends pg.Client {
 		constructor(config?: string | pg.ClientConfig) {
 			super(config)
@@ -101,13 +136,7 @@ export function createPostgresConnectionPool(env: Environment, name: string, max
 		return promise
 	} as typeof pool.connect
 
-	const dialect = new PostgresDialect({ pool })
-
-	const db = new Kysely<DB>({
-		dialect,
-		log: ['error'],
-	})
-	return db
+	return pool
 }
 
 /**
@@ -131,7 +160,7 @@ export class TLPostgresPool implements PostgresPool {
 
 		await prevLock
 
-		const { connectionString, via } = getPostgresConnection(this.env)
+		const { connectionString, via } = await getPostgresConnection(this.env)
 		const client = new pg.Client({
 			connectionString,
 			application_name: 'user-do',
