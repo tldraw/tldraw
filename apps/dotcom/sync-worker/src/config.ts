@@ -145,6 +145,7 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  *   MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT  ->  MCP_SERVER_BROWSER_RATE_LIMITER  (limit = 20)
  *   MCP_SEARCH_PER_USER_RATE_LIMIT     ->  MCP_SERVER_SEARCH_RATE_LIMITER   (limit = 60)
  *   MCP_CREATE_PER_USER_RATE_LIMIT     ->  MCP_SERVER_CREATE_RATE_LIMITER   (limit = 10)
+ *   MCP_RENAME_PER_USER_RATE_LIMIT     ->  MCP_SERVER_RENAME_RATE_LIMITER   (limit = 10)
  *
  * The first of these keyed on client IP until the endpoint required authentication. An account is
  * the better key in both directions: a proxy pool no longer buys a caller more budget, and everyone
@@ -187,6 +188,9 @@ export const MCP_SEARCH_PER_USER_RATE_LIMIT = 60
 
 /** The `create_board` budget. Each call writes rows, so it sits well below the search budget. */
 export const MCP_CREATE_PER_USER_RATE_LIMIT = 10
+
+/** The `rename_board` budget. A write, like create, so the same size and well below search. */
+export const MCP_RENAME_PER_USER_RATE_LIMIT = 10
 
 export const MCP_PER_USER_RATE_LIMIT = 10
 export const MCP_PER_BOARD_RATE_LIMIT = 2
