@@ -1480,6 +1480,9 @@ importers:
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
+      wrangler:
+        specifier: ^4.75.0
+        version: 4.76.0(@cloudflare/workers-types@4.20260317.1)
 
   packages/assets:
     dependencies:
