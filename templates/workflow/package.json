@@ -18,7 +18,8 @@
 			"order": 4
 		},
 		"scripts": {
-			"lint": null
+			"lint": null,
+			"build-types": null
 		}
 	},
 	"scripts": {

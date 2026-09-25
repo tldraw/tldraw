@@ -11,7 +11,8 @@
 	"tldraw_template": {
 		"repo": "tldraw/nextjs-template",
 		"scripts": {
-			"lint": null
+			"lint": null,
+			"build-types": null
 		}
 	},
 	"scripts": {

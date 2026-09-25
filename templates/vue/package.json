@@ -12,7 +12,8 @@
 	"tldraw_template": {
 		"repo": "tldraw/vue-template",
 		"scripts": {
-			"lint": null
+			"lint": null,
+			"build-types": null
 		}
 	},
 	"scripts": {

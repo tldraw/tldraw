@@ -22,7 +22,8 @@
 			"host": "image-pipeline.templates.tldraw.dev"
 		},
 		"scripts": {
-			"lint": null
+			"lint": null,
+			"build-types": null
 		}
 	},
 	"scripts": {
