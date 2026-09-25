@@ -189,7 +189,7 @@ function drawGeometryStroke(ctx: CanvasRenderingContext2D, geometry: Geometry2d)
 	if (tracePolyline(ctx, geometry.vertices, geometry.isClosed)) ctx.stroke()
 }
 
-/** Begins a path through `vertices`; returns false (leaving no path) when there are fewer than two. */
+/** Begins a path through `vertices`, closed if `isClosed`; returns false (leaving no path) when there are fewer than two. */
 function tracePolyline(ctx: CanvasRenderingContext2D, vertices: VecLike[], isClosed: boolean) {
 	if (vertices.length < 2) return false
 	ctx.beginPath()

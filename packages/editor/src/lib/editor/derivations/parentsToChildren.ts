@@ -78,7 +78,7 @@ export function parentsToChildren(store: TLStore) {
 						newValue![to.parentId].push(to.id)
 						toSort.add(newValue![to.parentId])
 					} else if (from.index !== to.index) {
-						// If the parent is the same but the index has changed (e.g. if they've been reordered), update the parent's array at the new index
+						// Same parent, new index (e.g. reordered): just re-sort the parent's array
 						ensureNewArray(to.parentId)
 						toSort.add(newValue![to.parentId])
 					}

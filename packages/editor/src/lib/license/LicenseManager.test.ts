@@ -902,6 +902,17 @@ describe('LicenseManager', () => {
 			expect(result.isPerpetualLicenseExpired).toBe(true)
 		})
 
+		it('Fails for perpetual license expiring between the major and minor release', async () => {
+			// Expiry + grace lands on 2024-07-01: after the mocked major, before the mocked minor
+			const expiryDate = new Date(Date.UTC(2024, 4, 31))
+			const perpetualLicenseInfo = ['id', ['www.example.com'], FLAGS.PERPETUAL_LICENSE, expiryDate]
+			const licenseKey = await generateLicenseKey(JSON.stringify(perpetualLicenseInfo), keyPair)
+
+			const result = (await licenseManager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
+			expect(result.isPerpetualLicense).toBe(true)
+			expect(result.isPerpetualLicenseExpired).toBe(true)
+		})
+
 		it('Reports daysSinceExpiry as 0 for a perpetual license past its calendar expiry but still on a covered version', async () => {
 			// Calendar expiry was 10 days ago, but the installed version (publishDates.minor)
 			// was released before the expiry date, so the perpetual license still covers it.

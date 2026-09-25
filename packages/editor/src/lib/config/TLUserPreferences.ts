@@ -235,7 +235,12 @@ export function setUserPreferences(user: TLUserPreferences) {
 	broadcastUserPreferencesChange()
 }
 
-const broadcastOrigin = uniqueId()
+// Lazy: Cloudflare Workers reject crypto.getRandomValues in global scope
+let _broadcastOrigin: string | null = null
+function getBroadcastOrigin() {
+	_broadcastOrigin ??= uniqueId()
+	return _broadcastOrigin
+}
 const broadcastEventKey = 'tldraw-user-preferences-change' as const
 
 const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
@@ -247,7 +252,7 @@ const channel =
 
 channel?.addEventListener('message', (e) => {
 	const data = e.data as undefined | UserChangeBroadcastMessage
-	if (data?.type === broadcastEventKey && data?.origin !== broadcastOrigin) {
+	if (data?.type === broadcastEventKey && data?.origin !== getBroadcastOrigin()) {
 		globalUserPreferences.set(migrateUserPreferences(data.data))
 	}
 })
@@ -255,7 +260,7 @@ channel?.addEventListener('message', (e) => {
 function broadcastUserPreferencesChange() {
 	channel?.postMessage({
 		type: broadcastEventKey,
-		origin: broadcastOrigin,
+		origin: getBroadcastOrigin(),
 		data: {
 			user: getUserPreferences(),
 			version: CURRENT_VERSION,
