@@ -10,21 +10,14 @@ import {
 } from '@tldraw/tlschema'
 import { getHashForString } from '@tldraw/utils'
 
-// Narrows a board's document records to just what one render actually draws, so the render page
-// loads one page (or one cluster) rather than the whole board. Pure: no env, no I/O, no editor.
-//
-// The size win is the reason this exists, but correctness is the reason it is written this way. A
-// slice that drops a record something surviving still points at renders a *plausible* image —
-// a board missing its arrows, a frame with no contents — which the pipeline would then cache as if
-// it were right. That is worse than any slower path, so the slice verifies its own closure and
-// returns nothing rather than a set it cannot vouch for. Callers turn that into sending the whole
-// board, which cannot be wrong this way.
+// Narrows a board's records to what one render draws. A slice missing a record that something kept
+// still points at renders a plausible but wrong image — arrows gone, an empty frame — which then
+// gets cached. So the slice checks its own closure and returns null instead, and callers send the
+// whole board.
 
-// Every record id a value points at, found by walking the value rather than by naming the fields
-// that hold ids. An allowlist (`props.assetId`, `fromId`, `toId`) would silently miss any shape type
-// whose props reference a record some other way — custom and embed shapes included, which this
-// pipeline renders and which are exactly the content nobody tests a slice against. Over-keeping a
-// record costs bytes, under-keeping one costs a wrong picture.
+// Walks the whole value for ids rather than naming the fields that hold them: an allowlist would
+// miss custom and embed shapes that reference records some other way. Over-keeping costs bytes;
+// under-keeping costs a wrong picture.
 function collectReferencedIds(value: unknown, into: Set<string>) {
 	if (typeof value === 'string') {
 		if (isShapeId(value) || isBindingId(value) || isPageId(value) || AssetRecordType.isId(value)) {
@@ -41,20 +34,13 @@ function collectReferencedIds(value: unknown, into: Set<string>) {
 	}
 }
 
-/**
- * Returns the records needed to render `pageId` — or, when `shapeIds` is given, just those shapes
- * and their descendants — closed over the bindings and assets they reference.
- *
- * Returns `null` when the slice cannot vouch for its output: a requested shape is not in the
- * snapshot, or a surviving record references a record that exists in `records` but did not make it
- * into the slice. A reference that is already dangling in the source is left alone, since sending
- * everything would render it identically.
- */
+// The records needed to render `pageId`, or just `shapeIds` and their descendants, closed over
+// their ancestors, bindings, bound neighbours and assets. Null when a requested shape is missing or
+// the output references a source record it dropped.
 export function sliceSnapshotForRender(
 	records: TLRecord[],
 	{ pageId, shapeIds }: { pageId?: string; shapeIds?: string[] }
 ): TLRecord[] | null {
-	// Nothing to narrow to: the caller wants the whole board, which is what it already has.
 	if (!pageId && !shapeIds?.length) return records
 
 	const byId = new Map<string, TLRecord>()
@@ -68,14 +54,11 @@ export function sliceSnapshotForRender(
 		else childrenByParent.set(record.parentId, [record])
 	}
 
-	// Roots: the named shapes, or every shape sitting directly on the page.
 	const roots: TLShape[] = []
 	if (shapeIds?.length) {
 		for (const id of shapeIds) {
 			const shape = byId.get(id)
-			// A requested shape that is gone is the caller's problem to report, not something to
-			// paper over by rendering the rest — the MCP tool would label the result with a cluster
-			// it did not draw. getThumbnailSnapshot refuses the same case with a 404.
+			// Rendering the rest would label the result with a cluster it did not draw.
 			if (!isShape(shape)) return null
 			roots.push(shape)
 		}
@@ -94,8 +77,7 @@ export function sliceSnapshotForRender(
 		if (children) queue.push(...children)
 	}
 
-	// Ancestors of the kept shapes, so a cluster inside a frame keeps the frame it is positioned
-	// against — shape coordinates are parent-relative, so dropping a parent moves its children.
+	// Coordinates are parent-relative, so dropping a frame would move its children.
 	const keepAncestors = (shape: TLShape) => {
 		let parentId: string = shape.parentId
 		while (!kept.has(parentId)) {
@@ -107,18 +89,14 @@ export function sliceSnapshotForRender(
 	}
 	for (const shape of [...kept.values()]) keepAncestors(shape)
 
-	// Bindings with at least one end in the slice, and whatever shape sits at the other end. An
-	// arrow's stored terminal is only refreshed when it is unbound in an editor, so an arrow whose
-	// binding is dropped draws to wherever its handle was last dropped, not to the shape it points
-	// at. Keeping the bound neighbour keeps the terminal honest: the export draws only the requested
-	// shapes regardless, and a live capture deletes the neighbour in the page, which is the unbind
-	// that moves the terminal. Bindings between two neighbours are not chased: nothing references a
-	// binding, so leaving them out cannot break the closure.
-	const bindings = records.filter(
-		(record) => isBinding(record) && (kept.has(record.fromId) || kept.has(record.toId))
-	)
+	// An arrow's stored terminal only moves when it is unbound in an editor, so an arrow whose binding
+	// is dropped draws to a stale point. Keeping the bound neighbour lets the export draw it right, and
+	// live capture's prune does the unbind. Neighbour-to-neighbour bindings aren't needed: nothing
+	// references a binding.
+	const bindings = records
+		.filter(isBinding)
+		.filter((record) => kept.has(record.fromId) || kept.has(record.toId))
 	for (const record of bindings) {
-		if (!isBinding(record)) continue
 		for (const id of [record.fromId, record.toId]) {
 			if (kept.has(id)) continue
 			const neighbour = byId.get(id)
@@ -129,12 +107,10 @@ export function sliceSnapshotForRender(
 	}
 	const keptBindings = new Set(bindings.map((record) => record.id))
 
-	// Assets referenced by anything kept so far.
 	const referenced = new Set<string>()
 	for (const record of [...kept.values(), ...bindings]) collectReferencedIds(record, referenced)
-	// A bookmark with no assetId still draws the preview of the asset its url hashes to
-	// (getResolvedBookmarkAssetId in the SDK), a reference no id walk can see. Without this, older
-	// bookmarks render as bare cards.
+	// A bookmark with no assetId still draws the asset its url hashes to (getResolvedBookmarkAssetId),
+	// which the id walk can't see. Without this, those bookmarks render as bare cards.
 	for (const shape of kept.values()) {
 		const props = shape.props as { assetId?: unknown; url?: unknown }
 		if (shape.type === 'bookmark' && !props.assetId && typeof props.url === 'string' && props.url) {
@@ -142,22 +118,9 @@ export function sliceSnapshotForRender(
 		}
 	}
 
-	// Everything the walk above did not decide gets KEPT, in source order. The types the slice
-	// reasons about are dropped-by-default and earned their way back in (shapes via the walk,
-	// bindings via an end, assets via a reference); every other type is kept-by-default, because
-	// dropping a type this code has never heard of is exactly how a record that matters goes missing.
-	// The concrete case that proved it: `user` records carry note-shape attribution, and the shape's
-	// reference to one is a *bare* string (`textLastEditedBy`, no `user:` prefix) — invisible to the
-	// reference walk and to assertClosed, so an enumerate-what-to-keep filter here lost the
-	// attribution line with no error anywhere. Small types cost bytes to over-keep; the win lives in
-	// shapes and assets.
-	//
-	// The one deliberate drop besides shapes/pages: comment records. They anchor to shapes by id, so
-	// keeping them while slicing shapes would fail the closure check on any board with comments
-	// outside the slice — and they contribute nothing to the export: comments are not shapes,
-	// `editor.toImage` draws only shapes, and the render page mounts no comment UI. Pixel-identical
-	// to sending the whole board, which includes them and renders them exactly as invisibly.
-	const COMMENT_TYPES = new Set(['comment-thread', 'comment', 'comment-reaction'])
+	// Types not decided above are kept: dropping an unknown type is how a record that matters goes
+	// missing. Note attribution reads `user` records through a bare `textLastEditedBy` string that
+	// neither the walk nor isClosed can see.
 	const sliced = records.filter((record) => {
 		switch (record.typeName) {
 			case 'shape':
@@ -169,17 +132,15 @@ export function sliceSnapshotForRender(
 			case 'page':
 				return pageId ? record.id === pageId : true
 			default:
-				return !COMMENT_TYPES.has(record.typeName)
+				return true
 		}
 	})
 
 	return isClosed(sliced, byId) ? sliced : null
 }
 
-// Verifies the slice references nothing it dropped. Deliberately independent of the collection
-// above: it re-derives the references from the output rather than trusting the bookkeeping that
-// produced it, so a bug in that bookkeeping surfaces here as a refusal instead of as a quietly
-// incomplete picture.
+// Re-derives references from the output rather than trusting the bookkeeping above, so a bug there
+// becomes a refusal instead of an incomplete picture.
 function isClosed(sliced: TLRecord[], sourceById: Map<string, TLRecord>) {
 	const slicedIds = new Set<string>(sliced.map((record) => record.id))
 	const referenced = new Set<string>()
@@ -187,8 +148,7 @@ function isClosed(sliced: TLRecord[], sourceById: Map<string, TLRecord>) {
 
 	for (const id of referenced) {
 		if (slicedIds.has(id)) continue
-		// Absent from the source too: already dangling before the slice touched it, so sending
-		// everything would render exactly the same. Not ours to fail on.
+		// Already dangling in the source; the whole board renders the same.
 		if (!sourceById.has(id)) continue
 		return false
 	}

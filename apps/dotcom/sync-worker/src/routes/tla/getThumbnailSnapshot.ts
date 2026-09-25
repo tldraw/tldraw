@@ -99,9 +99,7 @@ export async function getThumbnailSnapshot(
 	const records = snapshot.documents.map((d) => d.state) as TLRecord[]
 	return json({
 		error: false,
-		// Only what this render draws: other pages' shapes and unused assets cost the render page
-		// parsing, migration and store load inside the Browser Run budget. A slice that cannot vouch
-		// for itself sends the whole board, which renders the same picture.
+		// The rest of the board costs parse, migration and store load inside the Browser Run budget.
 		records: sliceSnapshotForRender(records, job) ?? records,
 		schema: snapshot.schema,
 		renderParams: renderParamsForJob(job),

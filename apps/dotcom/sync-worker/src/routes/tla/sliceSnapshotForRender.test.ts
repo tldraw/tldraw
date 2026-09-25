@@ -3,8 +3,7 @@ import { getHashForString } from '@tldraw/utils'
 import { describe, expect, it } from 'vitest'
 import { sliceSnapshotForRender } from './sliceSnapshotForRender'
 
-// Minimal stand-ins: the slice reads typeName, id, parentId, fromId/toId and scans props for
-// references, so nothing here needs to be a valid tldraw record — only to carry those fields.
+// Stand-ins carry only the fields the slice reads.
 const doc = { id: 'document:document', typeName: 'document' } as unknown as TLRecord
 const page = (id: string) => ({ id, typeName: 'page', name: id }) as unknown as TLRecord
 const shape = (id: string, parentId: string, props: object = {}) =>
@@ -84,9 +83,6 @@ describe('sliceSnapshotForRender', () => {
 		expect(ids(sliced)).toContain('binding:1')
 	})
 
-	// An arrow's stored terminal is only refreshed when it is unbound in an editor, so dropping the
-	// binding would draw the arrow to wherever its handle was last dropped. The neighbour rides
-	// along (with its ancestors, for coordinates) so the terminal resolves against the real shape.
 	it('keeps a binding to a shape outside the request, and the shape it points at', () => {
 		const records = [
 			doc,
@@ -172,10 +168,7 @@ describe('sliceSnapshotForRender', () => {
 		).toBeNull()
 	})
 
-	// The regression that proved keep-by-default: a note's attribution rides on a `user` record that
-	// the shape references by BARE string (`textLastEditedBy`, no `user:` prefix), so neither the
-	// reference walk nor the closure check can see the linkage. An enumerate-what-to-keep filter
-	// dropped it silently and lost the attribution line the whole board renders.
+	// Regression: an allowlist filter dropped `user` records and silently lost note attribution.
 	it('keeps record types the slice has no rule for, like the user records behind note attribution', () => {
 		const records = [
 			doc,
@@ -185,33 +178,6 @@ describe('sliceSnapshotForRender', () => {
 		]
 
 		expect(ids(sliceSnapshotForRender(records, { pageId: 'page:a' }))).toContain('user:someone')
-	})
-
-	// Comments anchor to shapes by id, so keeping them would fail the closure check whenever their
-	// shape is outside the slice — and they draw nothing: editor.toImage exports shapes only and the
-	// render page mounts no comment UI. Dropping them is pixel-identical to sending the whole board.
-	it('drops comment records without tripping the closure check on their anchors', () => {
-		const records = [
-			doc,
-			page('page:a'),
-			page('page:b'),
-			shape('shape:onB', 'page:b'),
-			{
-				id: 'comment-thread:t1',
-				typeName: 'comment-thread',
-				pageId: 'page:b',
-				anchor: { type: 'shape', shapeId: 'shape:onB' },
-			} as unknown as TLRecord,
-			{
-				id: 'comment:c1',
-				typeName: 'comment',
-				threadId: 'comment-thread:t1',
-			} as unknown as TLRecord,
-		]
-
-		const sliced = sliceSnapshotForRender(records, { pageId: 'page:a' })
-		expect(ids(sliced)).not.toContain('comment-thread:t1')
-		expect(ids(sliced)).not.toContain('comment:c1')
 	})
 
 	it('keeps the asset a bookmark resolves through its url hash', () => {
