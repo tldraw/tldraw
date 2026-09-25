@@ -1476,6 +1476,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.7)
+      chokidar-cli:
+        specifier: ^3.0.0
+        version: 3.0.0
       react:
         specifier: ^19.2.1
         version: 19.2.1
@@ -1513,6 +1516,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.7)
+      chokidar-cli:
+        specifier: ^3.0.0
+        version: 3.0.0
       react:
         specifier: ^19.2.1
         version: 19.2.1

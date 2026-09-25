@@ -40,7 +40,14 @@
 			"cache": false
 		},
 		"build": {
-			"dependsOn": ["prebuild", "^prebuild", "build-i18n", "^build-i18n", "//#refresh-assets"],
+			"dependsOn": [
+				"^build-types",
+				"prebuild",
+				"^prebuild",
+				"build-i18n",
+				"^build-i18n",
+				"//#refresh-assets"
+			],
 			"outputs": ["dist/**", "dist-*/**", ".next/**", "!.next/cache/**"]
 		},
 		"dev": {
