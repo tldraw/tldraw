@@ -47,7 +47,7 @@ git diff main..HEAD --stat
 - `**/api-report.md`, `**/api-report.api.md` — generated API surface reports
 - `**/*.api.json`, `**/temp/*.api.json` — API extractor output
 - `apps/docs/content/reference/**` — generated reference docs
-- `yarn.lock`, `package-lock.json` — lockfiles
+- `pnpm-lock.yaml`, `package-lock.json` — lockfiles
 - `**/CHANGELOG.md` — auto-generated changelogs
 - Any file the repo's tooling regenerates (snapshots, schema dumps, bundled assets)
 

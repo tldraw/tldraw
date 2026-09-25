@@ -6,8 +6,7 @@ import { exec } from './lib/exec'
 import { sortUnions } from './lib/sort-unions'
 
 async function buildApi(sourcePackageDir: string) {
-	// this depends on `build-types` being run first, but we'll rely on turbo to
-	// make that happen.
+	// lazy runs `build-types` before this (see lazy.config.ts).
 
 	const relativeSourcePackageDir = path.relative(path.resolve(__dirname, '../..'), sourcePackageDir)
 
@@ -21,7 +20,7 @@ async function buildApi(sourcePackageDir: string) {
 	rimraf.sync(glob.sync(path.join(sourcePackageDir, 'api')))
 	// extract public api
 	try {
-		await exec('yarn', ['run', '-T', 'api-extractor', 'run', isCI ? null : '--local'], {
+		await exec('pnpm', ['exec', 'api-extractor', 'run', isCI ? null : '--local'], {
 			pwd: sourcePackageDir,
 			processStderrLine: (line) => {
 				process.stderr.write(`${line}\n`)

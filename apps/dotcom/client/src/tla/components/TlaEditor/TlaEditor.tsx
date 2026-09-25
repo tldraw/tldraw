@@ -12,6 +12,8 @@ import {
 	Tldraw,
 	TldrawUiMenuItem,
 	createSessionStateSnapshotSignal,
+	createDebugValue,
+	debugFlags,
 	react,
 	throttle,
 	tltime,
@@ -31,7 +33,7 @@ import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
-import { markFirstLoad, reportFirstLoad } from '../../../utils/firstLoad'
+import { FIRST_LOAD_DEBUG_FLAG, markFirstLoad, reportFirstLoad } from '../../../utils/firstLoad'
 import { globalEditor } from '../../../utils/globalEditor'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -173,7 +175,6 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 			if (!app) {
 				setIsReady()
-				// Signed-out loads record every step too; the report itself is gated on the account.
 				markFirstLoad('board-visible')
 				reportFirstLoad({ email: null, flagEnabled: false, trackEvent })
 				return
@@ -305,10 +306,6 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 	const anonCommentToolOverrides = useAnonCommentToolOverrides()
 	const commentingEnabled = useIsCommentingEnabled()
-	// Signed-out visitors get the toolbar button but not the comments layer: with no app there's no
-	// Zero query behind it, so there'd be no threads to show and nothing to write to. Their button
-	// opens the sign-in dialog instead of entering the tool — see `useAnonCommentToolOverrides`.
-	const commentToolItemEnabled = commentingEnabled || !app
 
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
@@ -320,16 +317,12 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		}
 	}, [fileId, commentingEnabled])
 
-	// Without the tool and its overrides there's no comment button in Quick Actions and no `c`
-	// shortcut, so commenting is fully absent for users the flag doesn't cover. On read-only
-	// canvases the button and shortcut hide via the UI's readonly handling, and composing is
-	// gated by the tool's `canComment`.
+	// The comment tool overrides stay in for signed-out visitors too: `anonCommentToolOverrides`
+	// turns their button into the sign-in dialog. On read-only canvases the button and `c` shortcut
+	// hide via the UI's readonly handling, and composing is gated by the tool's `canComment`.
 	const editorOverrides = useMemo(
-		() =>
-			commentToolItemEnabled
-				? [overrides, extraDragIconOverrides, commentToolOverrides, anonCommentToolOverrides]
-				: [overrides, extraDragIconOverrides],
-		[commentToolItemEnabled, overrides, extraDragIconOverrides, anonCommentToolOverrides]
+		() => [overrides, extraDragIconOverrides, commentToolOverrides, anonCommentToolOverrides],
+		[overrides, extraDragIconOverrides, anonCommentToolOverrides]
 	)
 
 	return (
@@ -366,6 +359,11 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	)
 }
 
+const DOTCOM_DEBUG_FLAGS = {
+	...debugFlags,
+	logFirstLoad: createDebugValue(FIRST_LOAD_DEBUG_FLAG, { defaults: { all: false } }),
+}
+
 function CustomDebugMenu() {
 	const app = useMaybeApp()
 	const user = useTldrawCurrentUser()
@@ -387,7 +385,7 @@ function CustomDebugMenu() {
 					}}
 				/>
 			)}
-			<DefaultDebugMenuContent />
+			<DefaultDebugMenuContent customDebugFlags={DOTCOM_DEBUG_FLAGS} />
 		</DefaultDebugMenu>
 	)
 }

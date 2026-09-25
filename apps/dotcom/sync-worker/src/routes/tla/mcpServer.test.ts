@@ -1,6 +1,11 @@
 import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { MCP_PER_USER_RATE_LIMIT, MCP_SEARCH_PER_USER_RATE_LIMIT } from '../../config'
+import {
+	MCP_CREATE_PER_USER_RATE_LIMIT,
+	MCP_PER_USER_RATE_LIMIT,
+	MCP_RENAME_PER_USER_RATE_LIMIT,
+	MCP_SEARCH_PER_USER_RATE_LIMIT,
+} from '../../config'
 import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
@@ -10,15 +15,12 @@ import {
 	parseClusterScreenshotInput,
 	parsePageInfoInput,
 } from './boardTools'
+import { createBoardForUser } from './createBoard'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import { authenticateMcpRequest } from './mcpAuth'
-import {
-	isMcpServerEnabled,
-	normalizeMcpClient,
-	resetRateLimitFallbackForTests,
-	mcpServer,
-} from './mcpServer'
+import { normalizeMcpClient, resetRateLimitFallbackForTests, mcpServer } from './mcpServer'
+import { renameBoardForUser } from './renameBoard'
 import {
 	blobValuesOf,
 	blobsWithPrefix,
@@ -75,6 +77,10 @@ function denyReadAccess() {
 vi.mock('./mcpAuth', () => ({ authenticateMcpRequest: vi.fn() }))
 
 vi.mock('./searchBoards', () => ({ searchAccessibleBoards: vi.fn() }))
+
+// The database half is covered in createBoard.test.ts; these tests are about the dispatch around it.
+vi.mock('./createBoard', () => ({ createBoardForUser: vi.fn() }))
+vi.mock('./renameBoard', () => ({ renameBoardForUser: vi.fn() }))
 
 beforeEach(() => {
 	vi.mocked(authenticateMcpRequest).mockImplementation(async (request: any) => ({
@@ -319,6 +325,8 @@ describe('MCP server', () => {
 		)
 		expect(result.tools.map((tool: any) => tool.name)).toEqual([
 			'search_boards',
+			'create_board',
+			'rename_board',
 			'get_board_info',
 			'get_page_info',
 			'get_cluster_info',
@@ -391,58 +399,12 @@ describe('authentication', () => {
 		await mcpServer(makeRpcRequest('tools/list'), env)
 
 		expect(blobValuesOf(env, 'mcp_server_auth_refusal', 'reason')).toEqual(['not_allowlisted'])
+		expect(blobValuesOf(env, 'mcp_server_auth_refusal', 'route')).toEqual(['mcp'])
 		expect(datapointsNamed(env, TOOL_CALL_EVENT)).toEqual([])
 	})
 })
 
-describe('MCP_SERVER_ENABLED', () => {
-	// The switch is read per request rather than baked in at build time, so flipping the var takes
-	// the server down without a rebuild.
-	it('serves the server when unset or "true"', () => {
-		expect(isMcpServerEnabled(makeEnv())).toBe(true)
-		expect(isMcpServerEnabled(makeEnv({ MCP_SERVER_ENABLED: 'true' }))).toBe(true)
-		expect(isMcpServerEnabled(makeEnv({ MCP_SERVER_ENABLED: ' TRUE ' }))).toBe(true)
-	})
-
-	// Anything unrecognized disables: someone reaching for the kill switch under pressure and typing
-	// `0` or `off` should get a disabled server, not a silently still-running one.
-	it('disables the server for "false" and for any unrecognized value', () => {
-		for (const value of ['false', '0', 'off', 'no', 'disabled']) {
-			expect(isMcpServerEnabled(makeEnv({ MCP_SERVER_ENABLED: value }))).toBe(false)
-		}
-	})
-
-	it('answers every request with 404 while disabled, without touching the board', async () => {
-		// A board that would otherwise render, so the untouched screenshot binding below means the
-		// switch stopped the request rather than the board simply not resolving.
-		mockPublishedBoard()
-		const env = makeEnv({ MCP_SERVER_ENABLED: 'false' })
-
-		const response = await mcpServer(
-			makeToolCall(
-				'get_cluster_screenshot',
-				{ boardId: 'abc', clusterIds: ['cluster:any'] },
-				'user_40'
-			),
-			env
-		)
-
-		expect(response.status).toBe(404)
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
-		expect(getPublishedFileInfo).not.toHaveBeenCalled()
-	})
-
-	// Disabled means gone, not "here but empty": a client that can still initialize and list tools
-	// would advertise tools that every call then rejects.
-	it('hides the protocol handshake while disabled', async () => {
-		const response = await mcpServer(
-			makeRpcRequest('initialize', undefined, { userId: 'user_41' }),
-			makeEnv({ MCP_SERVER_ENABLED: 'false' })
-		)
-
-		expect(response.status).toBe(404)
-	})
-
+describe('request shape', () => {
 	it('answers anything but POST with 405', async () => {
 		const response = await mcpServer(
 			new Request('https://sync.tldraw.xyz/app/mcp', { method: 'GET' }) as any,
@@ -511,7 +473,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.1.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.3.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -743,6 +705,165 @@ describe('search_boards', () => {
 		expect(result.content[0].text).toBe(
 			'Could not search boards: the board database could not be reached.'
 		)
+	})
+})
+
+describe('create_board', () => {
+	const PERSONAL = { id: 'user_abc', name: 'My workspace', personal: true }
+
+	it('creates a board and links to it on the client origin', async () => {
+		vi.mocked(createBoardForUser).mockResolvedValue({
+			ok: true,
+			boardId: 'board_new',
+			workspace: PERSONAL,
+		})
+		const env = makeEnv()
+		const result = await callTool('create_board', { name: ' Roadmap ' }, env, 'user_abc')
+
+		expect(createBoardForUser).toHaveBeenCalledWith(
+			env,
+			'user_abc',
+			{ name: 'Roadmap', workspace: null },
+			undefined
+		)
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			boardId: 'board_new',
+			name: 'Roadmap',
+			url: 'https://render.example/f/board_new',
+			workspace: PERSONAL,
+		})
+	})
+
+	it('passes a workspace refusal through with its own telemetry reason', async () => {
+		vi.mocked(createBoardForUser).mockResolvedValue({
+			ok: false,
+			reason: 'workspace_not_found',
+			result: { content: [{ type: 'text', text: 'No workspace matches' }], isError: true },
+		})
+		const env = makeEnv()
+		const result = await callTool('create_board', { name: 'Roadmap', workspace: 'Nope' }, env)
+		expect(result).toEqual({
+			content: [{ type: 'text', text: 'No workspace matches' }],
+			isError: true,
+		})
+		expect(blobValuesOf(env, 'mcp_server_tool_call', 'reason')).toEqual(['workspace_not_found'])
+	})
+
+	it('rejects a call with no name before touching the database', async () => {
+		const result = await callTool('create_board', {})
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('name is required')
+		expect(createBoardForUser).not.toHaveBeenCalled()
+	})
+
+	// Must reach the caller as MCP rather than a 500, without Postgres detail.
+	it('reports a failed write as a tool error', async () => {
+		vi.mocked(createBoardForUser).mockRejectedValue(new Error('connection refused'))
+		const result = await callTool('create_board', { name: 'Roadmap' })
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toBe('Could not create the board: the board could not be saved.')
+	})
+
+	it(`allows ${MCP_CREATE_PER_USER_RATE_LIMIT} creates per account per minute, then rate limits`, async () => {
+		vi.mocked(createBoardForUser).mockResolvedValue({
+			ok: true,
+			boardId: 'board_new',
+			workspace: PERSONAL,
+		})
+		const env = makeEnv()
+		const results = []
+		for (let i = 0; i <= MCP_CREATE_PER_USER_RATE_LIMIT; i++) {
+			results.push(await callTool('create_board', { name: 'Roadmap' }, env, 'user_create'))
+		}
+		expect(results.slice(0, MCP_CREATE_PER_USER_RATE_LIMIT).map((r) => r.isError)).toEqual(
+			Array(MCP_CREATE_PER_USER_RATE_LIMIT).fill(undefined)
+		)
+		const blocked = results[MCP_CREATE_PER_USER_RATE_LIMIT]
+		expect(blocked.isError).toBe(true)
+		expect(blocked.content[0].text).toContain('Board creation is limited')
+		expect(createBoardForUser).toHaveBeenCalledTimes(MCP_CREATE_PER_USER_RATE_LIMIT)
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_create')
+	})
+})
+
+describe('rename_board', () => {
+	it('renames the board and links to it on the client origin', async () => {
+		vi.mocked(renameBoardForUser).mockResolvedValue({ ok: true, previousName: 'Old' })
+		const env = makeEnv()
+		const result = await callTool(
+			'rename_board',
+			{ boardId: 'board_abc', name: ' Roadmap ' },
+			env,
+			'user_abc'
+		)
+
+		expect(renameBoardForUser).toHaveBeenCalledWith(
+			env,
+			'user_abc',
+			{ boardId: 'board_abc', name: 'Roadmap' },
+			undefined
+		)
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			boardId: 'board_abc',
+			name: 'Roadmap',
+			previousName: 'Old',
+			url: 'https://render.example/f/board_abc',
+		})
+	})
+
+	it('passes a refusal through with its own telemetry reason', async () => {
+		vi.mocked(renameBoardForUser).mockResolvedValue({
+			ok: false,
+			reason: 'rename_forbidden',
+			result: { content: [{ type: 'text', text: 'Not yours to rename' }], isError: true },
+		})
+		const env = makeEnv()
+		const result = await callTool('rename_board', { boardId: 'board_abc', name: 'Roadmap' }, env)
+		expect(result).toEqual({
+			content: [{ type: 'text', text: 'Not yours to rename' }],
+			isError: true,
+		})
+		expect(blobValuesOf(env, 'mcp_server_tool_call', 'reason')).toEqual(['rename_forbidden'])
+	})
+
+	it('rejects a call with no name or board id before touching the database', async () => {
+		const noName = await callTool('rename_board', { boardId: 'board_abc' })
+		expect(noName.isError).toBe(true)
+		expect(noName.content[0].text).toContain('name is required')
+		const noBoard = await callTool('rename_board', { name: 'Roadmap' })
+		expect(noBoard.isError).toBe(true)
+		expect(noBoard.content[0].text).toContain('boardId is required')
+		expect(renameBoardForUser).not.toHaveBeenCalled()
+	})
+
+	it('reports a failed write as a tool error', async () => {
+		vi.mocked(renameBoardForUser).mockRejectedValue(new Error('connection refused'))
+		const result = await callTool('rename_board', { boardId: 'board_abc', name: 'Roadmap' })
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toBe(
+			'Could not rename the board: the new name could not be saved.'
+		)
+	})
+
+	it(`allows ${MCP_RENAME_PER_USER_RATE_LIMIT} renames per account per minute, then rate limits`, async () => {
+		vi.mocked(renameBoardForUser).mockResolvedValue({ ok: true, previousName: 'Old' })
+		const env = makeEnv()
+		const results = []
+		for (let i = 0; i <= MCP_RENAME_PER_USER_RATE_LIMIT; i++) {
+			results.push(
+				await callTool('rename_board', { boardId: 'board_abc', name: 'Roadmap' }, env, 'user_rn')
+			)
+		}
+		expect(results.slice(0, MCP_RENAME_PER_USER_RATE_LIMIT).map((r) => r.isError)).toEqual(
+			Array(MCP_RENAME_PER_USER_RATE_LIMIT).fill(undefined)
+		)
+		const blocked = results[MCP_RENAME_PER_USER_RATE_LIMIT]
+		expect(blocked.isError).toBe(true)
+		expect(blocked.content[0].text).toContain('Renaming boards is limited')
+		expect(renameBoardForUser).toHaveBeenCalledTimes(MCP_RENAME_PER_USER_RATE_LIMIT)
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_rename')
 	})
 })
 

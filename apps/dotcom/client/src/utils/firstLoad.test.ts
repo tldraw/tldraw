@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
 	createFirstLoadTracker,
+	FIRST_LOAD_LOG_HEADER,
 	initServerTiming,
 	shouldReportFirstLoad,
+	summarizeNavigation,
 	summarizeResources,
 	type FirstLoadDeps,
 } from './firstLoad'
@@ -117,6 +119,7 @@ describe('createFirstLoadTracker', () => {
 		expect(log).not.toHaveBeenCalled()
 		tracker.enableLiveLog()
 		expect(log.mock.calls.map((c) => c[0])).toEqual([
+			FIRST_LOAD_LOG_HEADER,
 			'[first-load] js-started +50ms (+50)',
 			'[first-load] clerk-loaded +250ms (+200)',
 		])
@@ -316,5 +319,67 @@ describe('summarizeResources', () => {
 
 	it('handles an empty list', () => {
 		expect(summarizeResources([])).toMatchObject({ res_count: 0, res_kb: 0, clerk_script_ms: null })
+	})
+})
+
+describe('summarizeNavigation', () => {
+	function nav(overrides: Partial<PerformanceNavigationTiming> = {}) {
+		return {
+			type: 'navigate',
+			nextHopProtocol: 'h3',
+			redirectCount: 0,
+			activationStart: 0,
+			fetchStart: 5,
+			domainLookupStart: 5,
+			domainLookupEnd: 5,
+			connectStart: 5,
+			connectEnd: 5,
+			requestStart: 6,
+			responseStart: 90.4,
+			domContentLoadedEventEnd: 300,
+			...overrides,
+		} as PerformanceNavigationTiming
+	}
+
+	it('splits time to first byte into its phases', () => {
+		expect(
+			summarizeNavigation(
+				nav({
+					fetchStart: 120,
+					domainLookupStart: 121,
+					domainLookupEnd: 151,
+					connectStart: 151,
+					connectEnd: 211,
+					requestStart: 212,
+					responseStart: 1712.6,
+				})
+			)
+		).toEqual({
+			nav_type: 'navigate',
+			nav_ttfb: 1713,
+			nav_dom_content_loaded: 300,
+			nav_protocol: 'h3',
+			nav_redirect_count: 0,
+			nav_fetch_start: 120,
+			nav_dns_ms: 30,
+			nav_connect_ms: 60,
+			nav_server_ms: 1501,
+			nav_activation_start: 0,
+		})
+	})
+
+	it('reports zero for phases the browser skipped or hid', () => {
+		expect(
+			summarizeNavigation(
+				nav({
+					domainLookupStart: 0,
+					domainLookupEnd: 0,
+					connectStart: 0,
+					connectEnd: 0,
+					requestStart: 0,
+					responseStart: 0,
+				})
+			)
+		).toMatchObject({ nav_dns_ms: 0, nav_connect_ms: 0, nav_server_ms: 0 })
 	})
 })

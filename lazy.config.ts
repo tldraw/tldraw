@@ -4,7 +4,7 @@ const config = {
 	baseCacheConfig: {
 		include: [
 			'<rootDir>/package.json',
-			'<rootDir>/yarn.lock',
+			'<rootDir>/pnpm-lock.yaml',
 			'<rootDir>/lazy.config.ts',
 			'<rootDir>/internal/config/**/*',
 			'<rootDir>/internal/scripts/**/*',
@@ -69,19 +69,6 @@ const config = {
 		prebuild: {
 			cache: 'none',
 		},
-		e2e: {
-			cache: 'none',
-		},
-		'e2e-x10': {
-			cache: 'none',
-		},
-		context: {
-			execution: 'independent',
-			cache: 'none',
-		},
-		'pack-tarball': {
-			parallel: false,
-		},
 		'refresh-assets': {
 			execution: 'top-level',
 			baseCommand: `tsx <rootDir>/internal/scripts/refresh-assets.ts`,
@@ -107,7 +94,6 @@ const config = {
 			},
 			runsAfter: {
 				'refresh-assets': {},
-				'maybe-clean-tsbuildinfo': {},
 			},
 		},
 		'build-api': {
@@ -129,7 +115,11 @@ const config = {
 		'build-i18n': {
 			execution: 'independent',
 			cache: {
-				inputs: ['<rootDir>/apps/dotcom/client/public/tla/locales/*.json'],
+				inputs: [
+					// i18n:extract reads the messages out of these sources
+					'<rootDir>/apps/dotcom/client/src/{tla,pages,components}/**/*.{ts,tsx}',
+					'<rootDir>/apps/dotcom/client/public/tla/locales/*.json',
+				],
 				outputs: ['<rootDir>/apps/dotcom/client/public/tla/locales-compiled/*.json'],
 			},
 		},

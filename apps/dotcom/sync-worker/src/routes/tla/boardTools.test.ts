@@ -1,12 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import {
 	BOARD_SEARCH_MAX_TERMS,
+	BOARD_NAME_MAX_LENGTH,
+	CreatableWorkspace,
 	BOARD_SEARCH_PAGE_SIZE,
 	BoardSearchRow,
 	compareBoardSearchOrder,
 	getBoardSearchResults,
 	isAfterBoardSearchCursor,
+	parseCreateBoardInput,
+	parseRenameBoardInput,
 	parseSearchBoardsInput,
+	resolveCreateBoardWorkspace,
 } from './boardTools'
 
 function parsedJson(result: ReturnType<typeof getBoardSearchResults>) {
@@ -327,5 +332,103 @@ describe('getBoardSearchResults', () => {
 		const result = getBoardSearchResults([], [])
 		expect(result.isError).toBeUndefined()
 		expect(parsedJson(result)).toEqual({ boardCount: 0, boards: [] })
+	})
+})
+
+describe('parseCreateBoardInput', () => {
+	it('trims the name and treats a missing or blank workspace as the personal one', () => {
+		expect(parseCreateBoardInput({ name: '  Roadmap  ' })).toEqual({
+			name: 'Roadmap',
+			workspace: null,
+		})
+		expect(parseCreateBoardInput({ name: 'Roadmap', workspace: '  ' })).toEqual({
+			name: 'Roadmap',
+			workspace: null,
+		})
+		expect(parseCreateBoardInput({ name: 'Roadmap', workspace: ' Design ' })).toEqual({
+			name: 'Roadmap',
+			workspace: 'Design',
+		})
+	})
+
+	it('rejects a missing, blank, overlong or non-string name, and a non-string workspace', () => {
+		expect(() => parseCreateBoardInput({})).toThrow('name is required')
+		expect(() => parseCreateBoardInput({ name: '   ' })).toThrow('name is required')
+		expect(() => parseCreateBoardInput({ name: 'x'.repeat(BOARD_NAME_MAX_LENGTH + 1) })).toThrow(
+			`at most ${BOARD_NAME_MAX_LENGTH}`
+		)
+		expect(() => parseCreateBoardInput({ name: 'Roadmap', workspace: 3 })).toThrow(
+			'workspace must be'
+		)
+	})
+})
+
+describe('parseRenameBoardInput', () => {
+	it('trims the name', () => {
+		expect(parseRenameBoardInput({ boardId: 'board_abc', name: '  Roadmap ' })).toEqual({
+			boardId: 'board_abc',
+			name: 'Roadmap',
+		})
+	})
+
+	it('rejects a missing board id, a URL, and a missing, blank or overlong name', () => {
+		expect(() => parseRenameBoardInput({ name: 'Roadmap' })).toThrow('boardId is required')
+		expect(() =>
+			parseRenameBoardInput({ boardId: 'https://www.tldraw.com/f/abc', name: 'Roadmap' })
+		).toThrow('not a URL')
+		expect(() => parseRenameBoardInput({ boardId: 'board_abc' })).toThrow('name is required')
+		expect(() => parseRenameBoardInput({ boardId: 'board_abc', name: ' ' })).toThrow(
+			'name is required'
+		)
+		expect(() =>
+			parseRenameBoardInput({ boardId: 'board_abc', name: 'x'.repeat(BOARD_NAME_MAX_LENGTH + 1) })
+		).toThrow(`at most ${BOARD_NAME_MAX_LENGTH}`)
+	})
+})
+
+describe('resolveCreateBoardWorkspace', () => {
+	const PERSONAL: CreatableWorkspace = { id: 'user-1', name: 'My workspace', personal: true }
+	const DESIGN: CreatableWorkspace = { id: 'group-design', name: 'Design', personal: false }
+	const DESIGN_TOO: CreatableWorkspace = { id: 'group-design-2', name: 'design', personal: false }
+
+	function errorText(result: ReturnType<typeof resolveCreateBoardWorkspace>) {
+		if (result.ok) throw new Error('Expected a refusal')
+		const block = result.result.content[0]
+		if (block.type !== 'text') throw new Error('Expected a text block')
+		return block.text
+	}
+
+	it('uses the personal workspace when none is named', () => {
+		expect(resolveCreateBoardWorkspace([DESIGN, PERSONAL], null)).toEqual({
+			ok: true,
+			workspace: PERSONAL,
+		})
+	})
+
+	it('matches a name case-insensitively, or an exact id', () => {
+		expect(resolveCreateBoardWorkspace([PERSONAL, DESIGN], 'DESIGN')).toEqual({
+			ok: true,
+			workspace: DESIGN,
+		})
+		expect(resolveCreateBoardWorkspace([PERSONAL, DESIGN, DESIGN_TOO], 'group-design-2')).toEqual({
+			ok: true,
+			workspace: DESIGN_TOO,
+		})
+	})
+
+	// A name two workspaces share cannot be guessed at: the board would land somewhere the caller
+	// did not mean, so the refusal hands back the ids that tell them apart.
+	it('refuses an ambiguous name and names the ids to choose between', () => {
+		const result = resolveCreateBoardWorkspace([PERSONAL, DESIGN, DESIGN_TOO], 'Design')
+		expect(result).toMatchObject({ ok: false, reason: 'workspace_ambiguous' })
+		expect(errorText(result)).toContain('group-design')
+		expect(errorText(result)).toContain('group-design-2')
+	})
+
+	it('refuses an unknown workspace and lists the ones that would work', () => {
+		const result = resolveCreateBoardWorkspace([PERSONAL, DESIGN], 'Marketing')
+		expect(result).toMatchObject({ ok: false, reason: 'workspace_not_found' })
+		expect(errorText(result)).toContain('"Design" (id: group-design)')
+		expect(errorText(result)).toContain('"My workspace" (id: user-1, personal)')
 	})
 })

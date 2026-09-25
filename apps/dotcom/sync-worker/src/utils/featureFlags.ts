@@ -7,10 +7,11 @@ import {
 } from '@tldraw/dotcom-shared'
 import { exhaustiveSwitchError } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
+import { createPostgresConnectionPool } from '../postgres'
 import { Environment } from '../types'
 import { getAuth } from './tla/getAuth'
 
-function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
+function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 	return {
 		rum_enabled: {
 			type: 'percentage',
@@ -27,34 +28,21 @@ function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagVa
 			description:
 				'Send the per-step first_load timing event (client marks + sync server echo) to PostHog. Users with a @tldraw.com email always send it, regardless of this flag',
 		},
-		commenting_enabled: {
-			type: 'percentage',
-			percentage: 0,
-			enabled: false,
-			description:
-				'Commenting on files (tool, pins, threads, sidebar, notifications). Users with a @tldraw.com email always have it, regardless of this flag',
-		},
 		mcp_server_access: {
 			type: 'allowlist',
 			users: [],
-			enabled: false,
+			allowEveryone: false,
 			description:
-				'Access to the board screenshot MCP server at /api/app/mcp. Off by default: the endpoint requires auth, so an unset flag denies everyone rather than leaving it open',
+				'Who may drive the MCP server at /api/app/mcp. The list starts empty, so an unconfigured flag names nobody. Anyone with a verified @tldraw.com email is admitted whatever the list says. Allow all opens it to every signed-in account',
 		},
 		version_chain: {
 			type: 'percentage',
-			// Non-production environments exercise the new write path by default; production waits for
-			// an explicit flip. Replaces the old VERSION_CHAIN_MODE wrangler vars.
-			percentage: env.TLDRAW_ENV === 'production' ? 0 : 100,
-			enabled: env.TLDRAW_ENV !== 'production',
-			description:
-				'Version cache entries written as segmented delta chains. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless',
-		},
-		version_chain_legacy_writes: {
-			type: 'boolean',
+			// On by default everywhere, production included: a durable object whose KV read fails lands
+			// here, and `off` would have it write a whole keyframe on every save for its lifetime.
+			percentage: 100,
 			enabled: true,
 			description:
-				'While a room is on version chains, also write legacy full copies (the dual-write bake). Evaluated per ROOM by the sync worker. Only consulted for rooms the version_chain rollout covers — rooms outside it always write legacy',
+				'Version history written as delta chains; rooms outside it write every version as a whole keyframe. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless',
 		},
 	}
 }
@@ -83,7 +71,7 @@ export async function getFeatureFlagValue(
 	env: Environment,
 	flag: FeatureFlagKey
 ): Promise<FeatureFlagValue> {
-	const defaults = getFlagDefaults(env)[flag]
+	const defaults = getFlagDefaults()[flag]
 	try {
 		const value = await env.FEATURE_FLAGS.get(flag)
 		if (!value) {
@@ -93,7 +81,16 @@ export async function getFeatureFlagValue(
 		// rather than spread over the default one: `{"type":"allowList"}` — a capital L, or any other
 		// typo — would otherwise reach `evaluateFlagForUser` as a shape none of its arms recognise, and
 		// the value it lands on decides who is let in.
-		return { ...defaults, ...JSON.parse(value), type: defaults.type } as FeatureFlagValue
+		//
+		// `description` is discarded on the same grounds. A save writes the whole value back, so the
+		// text a flag was first saved with otherwise outlives every later edit to this table — the
+		// panel goes on describing a control by a name the code no longer uses.
+		return {
+			...defaults,
+			...JSON.parse(value),
+			type: defaults.type,
+			description: defaults.description,
+		} as FeatureFlagValue
 	} catch (e) {
 		console.error(`Failed to get feature flag ${flag}:`, e)
 		return defaults
@@ -109,7 +106,7 @@ export function getFeatureFlagType(
 	env: Environment,
 	flag: FeatureFlagKey
 ): FeatureFlagValue['type'] {
-	return getFlagDefaults(env)[flag].type
+	return getFlagDefaults()[flag].type
 }
 
 /**
@@ -122,21 +119,26 @@ export function evaluateFlagForUser(
 	flagName: string,
 	userId: string | null
 ): boolean {
-	if (!flag.enabled) return false
 	// Switched exhaustively rather than ending in a fall-through, so a fourth flag type is a compile
 	// error here instead of a flag that quietly evaluates true for everyone. The type itself can only
 	// be one the defaults table names — see getFeatureFlagValue.
 	switch (flag.type) {
 		case 'boolean':
-			// `enabled` is the whole evaluation, and it was checked above.
-			return true
+			// `enabled` is the whole evaluation.
+			return flag.enabled
 		case 'percentage':
+			if (!flag.enabled) return false
 			if (!userId) return false
 			return hashToPercentage(userId, flagName) < flag.percentage
 		case 'allowlist':
+			// No master toggle to check: an allowlist says who is on, and an empty one is the off state.
+			// A stored `enabled` from before that was true is therefore ignored rather than obeyed.
 			// An anonymous caller is never on a list of users. Stated rather than left to `some`, which
 			// would also be false but only by accident of `null` matching nobody.
 			if (!userId) return false
+			// Checked before the list rather than folded into it, so an operator can open a flag to
+			// everyone without first emptying a list they will want back when they close it again.
+			if (flag.allowEveryone === true) return true
 			// Missing or malformed `users` denies rather than admits: this is read from KV, where a
 			// hand-edited value can arrive as anything, and the failure mode of the alternative is a flag
 			// that silently opens to everyone.
@@ -152,6 +154,44 @@ export function evaluateFlagForUser(
  * Whether a flag is on for one user, server-side. The counterpart to `getFeatureFlags` (which
  * evaluates every flag for a browser) for a route that gates itself on a single one.
  */
+/**
+ * Whether a caller may drive the MCP server: the `mcp_server_access` flag, or a verified
+ * @tldraw.com email.
+ *
+ * The domain check is second on purpose. It needs the account's email, which is a Postgres read the
+ * flag evaluation does not otherwise make, so putting it after the flag means anybody already
+ * granted pays nothing for it — and the only requests that take the extra read are ones that were
+ * about to be refused anyway.
+ *
+ * Read from our own `user` row rather than Clerk: the address is already replicated here, and a
+ * Clerk round trip on every refused request is a worse thing to add to an auth path.
+ */
+export async function canUseMcpServer(env: Environment, userId: string): Promise<boolean> {
+	if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId)) return true
+	return await hasTldrawEmail(env, userId)
+}
+
+async function hasTldrawEmail(env: Environment, userId: string): Promise<boolean> {
+	const db = createPostgresConnectionPool(env, 'sync-worker/hasTldrawEmail')
+	try {
+		const user = await db
+			.selectFrom('user')
+			.select('email')
+			.where('id', '=', userId)
+			.executeTakeFirst()
+		// Lowercased because the column stores whatever the account signed up with, and a capitalised
+		// domain is the same domain. Denies on a missing row rather than throwing: a token whose user
+		// is gone should be refused, not turned into a 500.
+		return user?.email?.toLowerCase().endsWith('@tldraw.com') === true
+	} catch (e) {
+		// An access check that fails open on a database blip would be the wrong direction entirely.
+		console.error('Failed to read user email for MCP access:', e)
+		return false
+	} finally {
+		await db.destroy()
+	}
+}
+
 export async function isFeatureFlagEnabledForUser(
 	env: Environment,
 	flag: FeatureFlagKey,
@@ -172,7 +212,7 @@ export async function isFeatureFlagEnabledForUser(
 export type FeatureFlagUpdate =
 	| { type: 'boolean'; enabled?: boolean }
 	| { type: 'percentage'; enabled?: boolean; percentage?: number }
-	| { type: 'allowlist'; enabled?: boolean; users?: AllowlistEntry[] }
+	| { type: 'allowlist'; users?: AllowlistEntry[]; allowEveryone?: boolean }
 
 /** Thrown when an update names a different type than the flag it addresses. */
 export class FeatureFlagTypeError extends Error {}
@@ -218,10 +258,10 @@ export async function setFeatureFlag(
 			const value = expectFlagType(flag, current, 'allowlist')
 			return put({
 				...value,
-				enabled: update.enabled ?? value.enabled,
 				// Replaces the list rather than merging into it, so removing someone is a normal save and
 				// not a separate operation the admin UI would have to model.
 				users: update.users ?? value.users,
+				allowEveryone: update.allowEveryone ?? value.allowEveryone ?? false,
 			})
 		}
 		default:
@@ -255,6 +295,9 @@ export async function getFeatureFlags(request: IRequest, env: Environment): Prom
 	// bundles have aged out.
 	flags.zero_enabled = { enabled: true }
 	flags.zero_kill_switch = { enabled: false }
+	// Same for commenting_enabled: bundles from before the flag was removed gate every comments
+	// surface on it, and a missing key reads as off.
+	flags.commenting_enabled = { enabled: true }
 
 	return new Response(JSON.stringify(flags), {
 		headers: {

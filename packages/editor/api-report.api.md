@@ -1725,7 +1725,7 @@ export const EditorContext: React_3.Context<Editor | null>;
 // @public
 export abstract class EditorManager {
     constructor(editor: Editor);
-    protected addEditorEvent<E extends keyof TLEventMap>(event: E, fn: (...args: TLEventMap[E]) => void): void;
+    protected addEditorEvent<E extends keyof TLEventMap>(event: E, fn: (...args: TLEventMap[E]) => void): () => void;
     // (undocumented)
     protected readonly disposables: Set<() => void>;
     // @internal (undocumented)
@@ -1733,6 +1733,7 @@ export abstract class EditorManager {
     // (undocumented)
     protected readonly editor: Editor;
     protected register(dispose: () => void): () => void;
+    protected unregister(dispose: () => void): void;
 }
 
 // @public
@@ -2758,8 +2759,7 @@ export class PerformanceApiAdapter {
 }
 
 // @public
-export class PerformanceManager {
-    constructor(editor: Editor);
+export class PerformanceManager extends EditorManager {
     // @internal (undocumented)
     dispose(): void;
     // @internal (undocumented)

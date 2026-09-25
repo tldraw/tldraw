@@ -32,7 +32,7 @@ export const MCP_PROTOCOL_VERSION = '2025-11-25'
 export const MCP_SERVER_INFO = {
 	name: 'tldraw-boards',
 	title: 'tldraw boards',
-	version: '3.1.0',
+	version: '3.3.0',
 }
 
 /**
@@ -48,19 +48,23 @@ export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
 }
 
 const SEARCHING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
 
 const LISTING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
 
 export const SEARCH_BOARDS_TOOL_NAME = 'search_boards'
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
 export const PAGE_INFO_TOOL_NAME = 'get_page_info'
 export const CLUSTER_INFO_TOOL_NAME = 'get_cluster_info'
 export const CLUSTER_SCREENSHOT_TOOL_NAME = 'get_cluster_screenshot'
+export const CREATE_BOARD_TOOL_NAME = 'create_board'
+export const RENAME_BOARD_TOOL_NAME = 'rename_board'
 
 export const TOOL_NAMES = [
 	SEARCH_BOARDS_TOOL_NAME,
+	CREATE_BOARD_TOOL_NAME,
+	RENAME_BOARD_TOOL_NAME,
 	BOARD_INFO_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
@@ -77,6 +81,15 @@ export const TOOL_NAMES = [
 // it, since the caller may simply be signed in as the wrong account.
 export const BOARD_NOT_FOUND_MESSAGE =
 	'No board was found with this id, or this account does not have access to it. Boards in your own workspace, boards owned by a workspace you belong to, boards shared with you via link, and published boards are supported.'
+// BOARD_NOT_FOUND_MESSAGE ends by inviting published boards, which a rename cannot take: a /p/ slug
+// names a published copy, not the file. Still one message for missing and inaccessible alike.
+export const RENAME_BOARD_NOT_FOUND_MESSAGE =
+	'No board was found with this id, or this account does not have access to it. Pass the id from the board’s tldraw.com/f/ URL or from search_boards; a published tldraw.com/p/ board cannot be renamed.'
+
+// Only a board the caller can already see gets this: one shared with them by link, which they may
+// open and edit but whose name belongs to the workspace that owns it.
+export const RENAME_BOARD_FORBIDDEN_MESSAGE =
+	'This board is shared with you by link, but only members of the workspace that owns it can rename it.'
 export const BOARD_EMPTY_MESSAGE = 'This board has no saved content yet.'
 
 // --- Reading a snapshot -------------------------------------------------------------------------
@@ -317,6 +330,42 @@ export function parseClusterScreenshotInput(input: unknown): {
 	}
 }
 
+export const BOARD_NAME_MAX_LENGTH = 200
+
+// A null workspace means the caller's personal workspace. A blank string is treated the same way
+// rather than as a name to match: a model that fills every field in the schema sends "" for the one
+// it meant to leave out.
+export function parseCreateBoardInput(input: unknown): { name: string; workspace: string | null } {
+	const value = requireArgumentsObject(input)
+	const name = parseBoardName(value.name, 'the title for the new board')
+	if (value.workspace !== undefined && value.workspace !== null) {
+		if (typeof value.workspace !== 'string') {
+			throw new Error('workspace must be a workspace name or id')
+		}
+	}
+	const workspace = typeof value.workspace === 'string' ? value.workspace.trim() : ''
+	return { name, workspace: workspace || null }
+}
+
+export function parseRenameBoardInput(input: unknown): { boardId: string; name: string } {
+	const value = requireArgumentsObject(input)
+	return {
+		boardId: parseBoardId(value.boardId),
+		name: parseBoardName(value.name, 'the new title for the board'),
+	}
+}
+
+function parseBoardName(value: unknown, purpose: string): string {
+	if (typeof value !== 'string' || !value.trim()) {
+		throw new Error(`name is required: ${purpose}`)
+	}
+	const name = value.trim()
+	if (name.length > BOARD_NAME_MAX_LENGTH) {
+		throw new Error(`name must be at most ${BOARD_NAME_MAX_LENGTH} characters`)
+	}
+	return name
+}
+
 // Accepts one id or several. A single string is allowed because asking for one cluster is the common
 // case and making callers wrap it in an array is friction for nothing.
 export function parseClusterIds(value: unknown): string[] {
@@ -530,6 +579,102 @@ export function getBoardInfo(snapshot: RoomSnapshot): ToolResult {
 			name: p.name,
 			hasContent: p.hasContent,
 		})),
+	})
+}
+
+/** A workspace the caller may add boards to, as `createBoard.ts` reads it. */
+export interface CreatableWorkspace {
+	id: string
+	name: string
+	/** The caller's own home workspace, whose id is their user id. */
+	personal: boolean
+}
+
+export type ResolvedCreateBoardWorkspace =
+	| { ok: true; workspace: CreatableWorkspace }
+	| { ok: false; reason: 'workspace_not_found' | 'workspace_ambiguous'; result: ToolResult }
+
+/**
+ * Picks the workspace a new board goes into. Omitted means the personal one. Otherwise an exact id
+ * wins, then a case-insensitive name: a model only ever sees workspace *names* (search_boards reports
+ * nothing else), so an id-only argument would be one it cannot fill.
+ *
+ * Only workspaces the caller can add boards to are candidates, so a workspace they can see but not
+ * add to reads as not found, and the refusal lists the ones that would work.
+ */
+export function resolveCreateBoardWorkspace(
+	workspaces: CreatableWorkspace[],
+	requested: string | null
+): ResolvedCreateBoardWorkspace {
+	if (requested === null) {
+		const personal = workspaces.find((w) => w.personal)
+		if (personal) return { ok: true, workspace: personal }
+		return {
+			ok: false,
+			reason: 'workspace_not_found',
+			result: toolError(
+				`Your personal workspace could not be found. ${describeCreatableWorkspaces(workspaces)}`
+			),
+		}
+	}
+
+	const byId = workspaces.find((w) => w.id === requested)
+	if (byId) return { ok: true, workspace: byId }
+
+	const wanted = requested.toLowerCase()
+	const byName = workspaces.filter((w) => w.name.trim().toLowerCase() === wanted)
+	if (byName.length === 1) return { ok: true, workspace: byName[0] }
+	if (byName.length > 1) {
+		return {
+			ok: false,
+			reason: 'workspace_ambiguous',
+			result: toolError(
+				`More than one of your workspaces is named "${requested}". Pass the id of the one you mean as workspace: ${byName.map(formatWorkspace).join(', ')}.`
+			),
+		}
+	}
+	return {
+		ok: false,
+		reason: 'workspace_not_found',
+		result: toolError(
+			`No workspace you can create boards in matches "${requested}". ${describeCreatableWorkspaces(workspaces)}`
+		),
+	}
+}
+
+function describeCreatableWorkspaces(workspaces: CreatableWorkspace[]) {
+	if (!workspaces.length) return 'This account has no workspaces it can create boards in.'
+	return `Workspaces you can create boards in: ${workspaces.map(formatWorkspace).join(', ')}. Pass one of these as workspace, or omit it to use your personal workspace.`
+}
+
+function formatWorkspace(workspace: CreatableWorkspace) {
+	return `"${workspace.name}" (id: ${workspace.id}${workspace.personal ? ', personal' : ''})`
+}
+
+export function getWorkspaceFullMessage(workspace: CreatableWorkspace, maxBoards: number) {
+	return `The workspace "${workspace.name}" already has the maximum of ${maxBoards} boards. Delete boards there or choose a different workspace.`
+}
+
+export function getWorkspaceGoneMessage(workspace: CreatableWorkspace) {
+	return `The workspace "${workspace.name}" was deleted. Choose a different workspace, or omit workspace to use your personal one.`
+}
+
+export function getCreatedBoardResult({
+	boardId,
+	name,
+	url,
+	workspace,
+}: {
+	boardId: string
+	name: string
+	url: string
+	workspace: CreatableWorkspace
+}): ToolResult {
+	return toolJsonResult({
+		boardId,
+		name,
+		url,
+		workspace: { id: workspace.id, name: workspace.name, personal: workspace.personal },
 	})
 }
 
@@ -820,6 +965,8 @@ function toReadableShape(shape: TLShapeWithPlainText) {
 export function getToolDefinitions(nameMatchingEnabled: boolean) {
 	return [
 		getSearchBoardsToolDefinition(nameMatchingEnabled),
+		getCreateBoardToolDefinition(),
+		getRenameBoardToolDefinition(),
 		getBoardInfoToolDefinition(),
 		getPageInfoToolDefinition(),
 		getClusterInfoToolDefinition(),
@@ -898,6 +1045,72 @@ function getSearchBoardsToolDefinition(nameMatchingEnabled: boolean) {
 			required: [],
 		},
 		annotations: READ_ONLY_ANNOTATIONS,
+	}
+}
+
+function getCreateBoardToolDefinition() {
+	return {
+		name: CREATE_BOARD_TOOL_NAME,
+		title: 'Create tldraw board',
+		description:
+			'Create a new, empty tldraw.com board and return its boardId and url. The board goes in your personal workspace unless you name another workspace you belong to and can add boards to — the workspaceName search_boards reports, or a workspace id. If the workspace you name is not one of those, the error lists the ones you can use. The new board is shared by link for editing, the same as a board created on tldraw.com.',
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				name: {
+					type: 'string',
+					maxLength: BOARD_NAME_MAX_LENGTH,
+					description: 'The title for the new board.',
+				},
+				workspace: {
+					type: 'string',
+					description:
+						'The name or id of the workspace to create the board in. Omit to use your personal workspace.',
+				},
+			},
+			required: ['name'],
+		},
+		annotations: {
+			readOnlyHint: false,
+			idempotentHint: false,
+			openWorldHint: false,
+			destructiveHint: false,
+		},
+	}
+}
+
+function getRenameBoardToolDefinition() {
+	return {
+		name: RENAME_BOARD_TOOL_NAME,
+		title: 'Rename tldraw board',
+		description:
+			'Rename a tldraw.com board and return its new and previous names. You can rename boards in your own workspace and boards owned by a workspace you belong to; a board only shared with you by link cannot be renamed.',
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				// Not BOARD_ID_PROPERTY: a published /p/ slug is a copy's id, not the file's, so it
+				// cannot name the board to rename.
+				boardId: {
+					type: 'string',
+					description:
+						'The id of the board to rename: a boardId from search_boards or create_board, or the :slug of a file URL (https://www.tldraw.com/f/:slug).',
+				},
+				name: {
+					type: 'string',
+					maxLength: BOARD_NAME_MAX_LENGTH,
+					description: 'The new title for the board.',
+				},
+			},
+			required: ['boardId', 'name'],
+		},
+		annotations: {
+			readOnlyHint: false,
+			idempotentHint: true,
+			openWorldHint: false,
+			destructiveHint: false,
+		},
 	}
 }
 

@@ -33,6 +33,8 @@ export interface Environment {
 
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
+	HYPERDRIVE?: Hyperdrive
+	HYPERDRIVE_DISABLED?: string
 
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
 	PLAIN_API_KEY?: string
@@ -79,6 +81,8 @@ export interface Environment {
 	ASSET_UPLOAD_ORIGIN: string | undefined
 	USER_CONTENT_URL: string | undefined
 	MULTIPLAYER_SERVER: string | undefined
+	/** The zero-cache clients of this deployment connect to; what `/app/zero/schema` hands out. */
+	ZERO_SERVER: string | undefined
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 	HEALTH_CHECK_DB_SIZE_THRESHOLD_GB: string | undefined
@@ -102,6 +106,10 @@ export interface Environment {
 	MCP_SERVER_BROWSER_RATE_LIMITER: RateLimit | undefined
 	/** Per-account `search_boards` calls. Bounds Postgres, not Browser Run, which search never spends. */
 	MCP_SERVER_SEARCH_RATE_LIMITER: RateLimit | undefined
+	/** Per-account `create_board` calls. Bounds writes. */
+	MCP_SERVER_CREATE_RATE_LIMITER: RateLimit | undefined
+	/** Per-account `rename_board` calls. Bounds writes. */
+	MCP_SERVER_RENAME_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
@@ -127,12 +135,6 @@ export interface Environment {
 	// non-functional local binding and the render path fails closed; real local captures need
 	// `wrangler dev --remote` with credentials or a preview deploy. Undefined in tests.
 	BROWSER: BrowserBinding | undefined
-	// Kill switch for the MCP screenshot server (POST /app/mcp). Absent means enabled, so an
-	// environment that never configured it behaves as it did before the flag existed. Anything other
-	// than 'true' turns the endpoint off, so a typo fails in the safe direction. Editing this var in
-	// the Cloudflare dashboard takes the server down without a rebuild or a code deploy — but the
-	// next deploy restores the wrangler.toml value, so follow an emergency flip with a config change.
-	MCP_SERVER_ENABLED: string | undefined
 	/**
 	 * Whether `search_boards` will match on board names. Unset means yes, so previews, local dev and
 	 * tests keep working; production sets it to "false" while the unindexed `ILIKE` scan it drives is
@@ -173,7 +175,7 @@ export function isDebugLogging(env: Environment) {
 
 /**
  * The word a boolean-ish env var holds: trimmed, lowercased, with unset and empty folded together.
- * Used by MCP_SERVER_ENABLED. Kept as a shared helper rather than inlined so a second
+ * Used by MCP_SEARCH_NAME_MATCHING_ENABLED. Kept as a shared helper rather than inlined so a second
  * boolean-ish var cannot arrive parsing its value differently — each call site keeps its own
  * fail-safe direction, this owns what a value *is*.
  */
@@ -247,7 +249,7 @@ export type TLServerEvent =
 			| { outcome: 'skipped'; reason: 'keyframe-size'; keyframeBytes: number }
 	  ))
 	| {
-			/** A chain write failed in dual mode and was swallowed so the persist could complete. */
+			/** A chain write outlasted its retries and was swallowed so the persist could complete. */
 			type: 'version_chain_error'
 	  }
 	| {

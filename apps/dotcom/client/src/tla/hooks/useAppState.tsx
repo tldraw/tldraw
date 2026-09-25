@@ -4,7 +4,7 @@ import { ReactNode, createContext, useContext, useEffect, useState } from 'react
 import { useNavigate } from 'react-router-dom'
 import { assertExists, atom, useValue } from 'tldraw'
 import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
-import { enableFirstLoadLiveLog, isFirstLoadStaff, markFirstLoad } from '../../utils/firstLoad'
+import { markFirstLoad } from '../../utils/firstLoad'
 import { TldrawApp, getPreloadDiagnostics } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
 import {
@@ -43,7 +43,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	}
 	const navigate = useNavigate()
 	const email = user.primaryEmailAddress?.emailAddress
-	if (isFirstLoadStaff(email)) enableFirstLoadLiveLog()
 
 	// Cleared on unmount only. A Clerk user change (accepting the legal terms updates the user)
 	// re-runs the bootstrap below; nulling the atom there would blank every gated route for the
@@ -76,14 +75,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				flags = await fetchFlagsWithTimeout()
 			}
 			markFirstLoad('flags-loaded')
-			// Flagged users get the live lines too: a load that hangs never reaches the summary tables.
-			if (flags.first_load_rum?.enabled) enableFirstLoadLiveLog()
 			if (didCancel) return
 			const token = await auth.getToken()
 			if (!token) throw new Error('no token')
 			const { app } = await TldrawApp.create({
 				userId: auth.userId,
-				email: user.primaryEmailAddress?.emailAddress,
+				email,
 				flags,
 				getToken: async () => {
 					const token = await auth.getToken()

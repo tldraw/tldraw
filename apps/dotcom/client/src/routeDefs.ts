@@ -1,4 +1,4 @@
-import { assert } from 'tldraw'
+import { assert } from '@tldraw/utils'
 
 /** Route `handle` metadata read by the tla layout. */
 export interface TlaRouteHandle {

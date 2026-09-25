@@ -1,5 +1,5 @@
 import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
-import { uniqueId } from 'tldraw'
+import { getFromSessionStorage, uniqueId } from '@tldraw/utils'
 
 export type FirstLoadServerTimings = Extract<TLCustomServerEvent, { type: 'first_load_server' }>
 
@@ -9,23 +9,8 @@ export type FirstLoadServerTimings = Extract<TLCustomServerEvent, { type: 'first
  * Every step names the event that just completed, in past tense; its span is the time since the
  * previous step. Steps become `performance.mark`s (`tla:<step>`) and measures, `t_<step>` /
  * `d_<step>` properties on the `first_load` analytics event, and console lines. The report sorts
- * by when each step actually happened, since route chunks load in parallel.
- *
- * | step                 | the moment it marks                                                   |
- * |----------------------|-----------------------------------------------------------------------|
- * | js-started           | main.tsx began executing (HTML + entry bundle done)                   |
- * | root-chunk-loaded    | the TlaRootProviders route chunk was evaluated                        |
- * | clerk-loaded         | Clerk reported `isLoaded` (session known)                             |
- * | flags-loaded         | feature flags resolved, or timed out to defaults                      |
- * | init-done            | `POST /api/app/:id/init` returned                                     |
- * | zero-user-synced     | Zero confirmed the user row from the server                           |
- * | zero-preloaded       | Zero confirmed file states + workspace memberships; app state unblocks|
- * | file-chunk-loaded    | the file route chunk was evaluated                                    |
- * | editor-rendered      | TlaEditorInner rendered for the first time (`room_load_duration` t0)  |
- * | sync-token-fetched   | Clerk token for the sync socket obtained                              |
- * | sync-connected       | the sync store reached `synced-remote`                                |
- * | editor-mounted       | the editor's `onMount` ran                                            |
- * | board-visible        | the ready shroud lifted; the board is on screen                       |
+ * by when each step actually happened, since route chunks load in parallel. What each step marks
+ * is in FIRST_LOAD_STEP_INFO.
  *
  * How to read the output: tldraw/tldraw-internal#2026.
  */
@@ -46,6 +31,68 @@ export const FIRST_LOAD_STEPS = [
 ] as const
 
 export type FirstLoadStep = (typeof FIRST_LOAD_STEPS)[number]
+
+const FIRST_LOAD_STEP_INFO: Record<FirstLoadStep, string> = {
+	'js-started': 'main.tsx began executing (HTML + entry bundle done)',
+	'root-chunk-loaded': 'TlaRootProviders route chunk evaluated',
+	'clerk-loaded': 'Clerk reported isLoaded (session known)',
+	'flags-loaded': 'feature flags resolved, or timed out to defaults',
+	'init-done': 'POST /api/app/:userId/init returned (see srv_init_outcome)',
+	'zero-user-synced': 'Zero confirmed the user row from the server',
+	'zero-preloaded': 'Zero confirmed file states + workspace memberships; app state unblocks',
+	'file-chunk-loaded': 'file route chunk evaluated',
+	'editor-rendered': 'TlaEditorInner first render (room_load_duration t0)',
+	'sync-token-fetched': 'Clerk token for the sync socket obtained',
+	'sync-connected': 'sync socket open, server checks done, snapshot received (synced-remote)',
+	'editor-mounted': "editor's onMount ran",
+	'board-visible': 'ready shroud lifted; board on screen',
+}
+
+const FIRST_LOAD_FIELD_INFO: Record<string, string> = {
+	srv_cold: 'no live room in the DO; true alone does not mean an R2/Postgres load (see srv_boot_*)',
+	srv_auth_ms: 'sync worker: verify the Clerk token',
+	srv_file_record_ms: 'sync worker: file row lookup (Postgres; ~0 when the DO has it cached)',
+	srv_get_room_ms: 'sync worker: get or create the room; long only when storage loads',
+	srv_total_ms: 'sync worker: whole connect request, incl. rate limit + group check (Postgres)',
+	srv_boot_r2_ms: 'room boot from empty SQLite: R2 snapshot fetch',
+	srv_boot_comments_ms:
+		'room boot from empty SQLite: comments from Postgres (parallel with the R2 fetch)',
+	srv_boot_total_ms: 'room boot from empty SQLite: whole storage load',
+	srv_echo: 'server timings arrived; false = none within 3s of board-visible',
+	srv_init_ms: 'sync worker: user init request (Server-Timing)',
+	srv_init_outcome:
+		'existing (user already set up), created (first sign-in), or a failure: rate_limited, no_clerk_user, no_email; absent if init threw',
+	res_count: 'resources loaded by board-visible',
+	res_kb: 'total transferred',
+	res_js_kb: 'JS transferred',
+	res_css_kb: 'CSS transferred',
+	res_font_kb: 'fonts transferred',
+	res_fetch_kb: 'fetch/XHR transferred',
+	res_cached: 'resources with 0 bytes transferred (cache hits, or opaque cross-origin)',
+	res_largest: 'largest resource by transfer size',
+	res_largest_kb: 'its size',
+	res_slowest: 'slowest resource by duration',
+	res_slowest_ms: 'its duration',
+	clerk_script_ms: 'clerk.browser.js fetch duration',
+}
+
+function describeFields(fields: Record<string, unknown>) {
+	return Object.fromEntries(
+		Object.entries(fields).map(([k, value]) => [k, { value, what: FIRST_LOAD_FIELD_INFO[k] ?? '' }])
+	)
+}
+
+export const FIRST_LOAD_LOG_HEADER =
+	'[first-load] page load timings, printed because the logFirstLoad debug flag is on'
+
+/**
+ * The debug flag that prints the load to the console; sending to PostHog is gated separately
+ * (shouldReportFirstLoad). The flag itself is created in TlaEditor: importing `tldraw` here would
+ * pull the SDK into the entry chunk. Read once at module load, so a toggle applies from the next
+ * load in this tab.
+ */
+export const FIRST_LOAD_DEBUG_FLAG = 'logFirstLoad'
+const printFirstLoad = getFromSessionStorage(`tldraw_debug:${FIRST_LOAD_DEBUG_FLAG}`) === 'true'
 
 export interface FirstLoadDeps {
 	now(): number
@@ -78,8 +125,7 @@ export function createFirstLoadTracker(deps: FirstLoadDeps) {
 	let reported = false
 	let server: FirstLoadServerTimings | null = null
 	const serverWaiters: Array<() => void> = []
-	// Live lines are buffered until enableLiveLog(): the gate (a @tldraw.com account) is only
-	// known once Clerk has loaded, well after the first steps.
+	// Buffered until enableLiveLog(), which replays the steps recorded before it.
 	let live = false
 	const lines: string[] = []
 
@@ -169,6 +215,7 @@ export function createFirstLoadTracker(deps: FirstLoadDeps) {
 	function enableLiveLog() {
 		if (live) return
 		live = true
+		deps.log(FIRST_LOAD_LOG_HEADER)
 		for (const line of lines.splice(0)) deps.log(line)
 	}
 
@@ -312,6 +359,10 @@ export const firstLoad = createFirstLoadTracker({
 	initialPath: typeof window === 'undefined' ? '' : window.location.pathname,
 })
 
+// Background tabs throttle timers and Zero, so a load that was hidden at any point can take minutes
+// and says nothing about load speed. Such loads still print but are not sent.
+let hiddenDuringLoad = false
+
 if (typeof window !== 'undefined') {
 	;(window as any).__firstLoad = firstLoad
 	// The default buffer holds 250 resource entries; a board load is ~180 in production and far
@@ -321,14 +372,11 @@ if (typeof window !== 'undefined') {
 	} catch {
 		// best effort
 	}
-	// Anonymous or non-staff sessions can opt in per load; staff accounts are enabled from
-	// useAppState as soon as Clerk says who they are.
-	if (window.location.search.includes('firstLoadDebug')) firstLoad.enableLiveLog()
-}
-
-/** Live console lines for this load, replaying the steps already recorded. */
-export function enableFirstLoadLiveLog() {
-	firstLoad.enableLiveLog()
+	if (printFirstLoad) firstLoad.enableLiveLog()
+	if (document.visibilityState === 'hidden') hiddenDuringLoad = true
+	document.addEventListener('visibilitychange', () => {
+		if (document.visibilityState === 'hidden') hiddenDuringLoad = true
+	})
 }
 
 export function isFirstLoadStaff(email: string | null | undefined) {
@@ -352,12 +400,30 @@ function navigationTiming() {
 	const nav = performance.getEntriesByType('navigation')[0] as
 		| PerformanceNavigationTiming
 		| undefined
-	if (!nav) return {}
+	return nav ? summarizeNavigation(nav) : {}
+}
+
+/**
+ * Splits `nav_ttfb` into the phases that can make it slow. `nav_fetch_start` covers everything
+ * before the request, including cross-origin redirects (tldraw.com → www) that `nav_redirect_count`
+ * can't see.
+ */
+export function summarizeNavigation(nav: PerformanceNavigationTiming) {
+	const span = (from: number, to: number) => (from > 0 ? Math.round(to - from) : 0)
 	return {
 		nav_type: nav.type,
 		nav_ttfb: Math.round(nav.responseStart),
 		nav_dom_content_loaded: Math.round(nav.domContentLoadedEventEnd),
 		nav_protocol: nav.nextHopProtocol,
+		nav_redirect_count: nav.redirectCount,
+		nav_fetch_start: Math.round(nav.fetchStart),
+		nav_dns_ms: span(nav.domainLookupStart, nav.domainLookupEnd),
+		nav_connect_ms: span(nav.connectStart, nav.connectEnd),
+		nav_server_ms: span(nav.requestStart, nav.responseStart),
+		// Prerender only, and missing from the DOM lib types.
+		nav_activation_start: Math.round(
+			(nav as PerformanceNavigationTiming & { activationStart?: number }).activationStart ?? 0
+		),
 	}
 }
 
@@ -384,19 +450,22 @@ function paintTiming() {
 	return out
 }
 
-/**
- * Sends the `first_load` event once, if this account is in the gate, and prints the same tables
- * to the console: a flagged user can paste them into a support thread, and staff can read a load
- * without waiting for PostHog.
- */
 const SERVER_ECHO_DEADLINE_MS = 3000
 
+/**
+ * Builds the report once: sent to PostHog if this account is in the gate, printed to the console if
+ * the debug flag is on.
+ */
 export function reportFirstLoad(opts: {
 	email: string | null | undefined
 	flagEnabled: boolean
 	trackEvent(name: string, data: Record<string, unknown>): void
 }) {
-	if (!shouldReportFirstLoad(opts)) return
+	const inGate = shouldReportFirstLoad(opts)
+	const hidden = hiddenDuringLoad && inGate
+	const send = inGate && !hiddenDuringLoad
+	const print = printFirstLoad
+	if (!send && !print) return
 	// One report per load, so wait briefly for the server echo rather than dropping the srv_ fields.
 	// Snapshot the page-side numbers now: by the time the echo wait ends, images the board loads
 	// after it became visible would otherwise be counted as first-load resources.
@@ -407,11 +476,23 @@ export function reportFirstLoad(opts: {
 	}
 	void firstLoad
 		.whenServerTimings(SERVER_ECHO_DEADLINE_MS)
-		.then((gotEcho) => sendFirstLoadReport(opts, gotEcho, snapshot))
+		.then((gotEcho) =>
+			sendFirstLoadReport(
+				{ send, print, hidden, staff: isFirstLoadStaff(opts.email), trackEvent: opts.trackEvent },
+				gotEcho,
+				snapshot
+			)
+		)
 }
 
 function sendFirstLoadReport(
-	opts: { trackEvent(name: string, data: Record<string, unknown>): void },
+	opts: {
+		send: boolean
+		print: boolean
+		hidden: boolean
+		staff: boolean
+		trackEvent(name: string, data: Record<string, unknown>): void
+	},
 	gotEcho: boolean,
 	snapshot: {
 		entries: PerformanceResourceTiming[]
@@ -432,13 +513,26 @@ function sendFirstLoadReport(
 		...snapshot.paint,
 		...resources,
 	}
-	opts.trackEvent('first_load', event)
+	if (opts.send) opts.trackEvent('first_load', event)
+	if (!opts.print) return event
 	const server = Object.fromEntries(Object.entries(event).filter(([k]) => k.startsWith('srv_')))
 	/* eslint-disable no-console */
-	console.log(`[first-load] ${report.load_id} total ${report.total_ms}ms`)
-	console.table(steps.map((s) => ({ step: s.step, 'ms since nav': s.t, 'delta ms': s.delta })))
-	console.table(server)
-	console.table(resources)
+	console.groupCollapsed(
+		`[first-load] ${report.load_id} total ${report.total_ms}ms` +
+			(opts.hidden ? ', tab was hidden so not sent' : '') +
+			' (expand for steps, server, resources)'
+	)
+	console.table(
+		steps.map((s) => ({
+			step: s.step,
+			'ms since nav': s.t,
+			'delta ms': s.delta,
+			...(opts.staff && { what: FIRST_LOAD_STEP_INFO[s.step] }),
+		}))
+	)
+	console.table(opts.staff ? describeFields(server) : server)
+	console.table(opts.staff ? describeFields(resources) : resources)
+	console.groupEnd()
 	/* eslint-enable no-console */
 	return event
 }

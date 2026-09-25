@@ -9,7 +9,6 @@
 		"allowSyntheticDefaultImports": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
-		"importHelpers": true,
 		"resolveJsonModule": true,
 		"incremental": true,
 		"jsx": "react-jsx",

@@ -1,26 +1,14 @@
 import { captureException } from '@sentry/react'
+import { FILE_PREFIX, type HistoryResponseBody } from '@tldraw/dotcom-shared'
 import { useEffect, useState } from 'react'
-import { useRouteError } from 'react-router-dom'
+import { useParams, useRouteError } from 'react-router-dom'
 import { BoardHistoryLog } from '../../components/BoardHistoryLog/BoardHistoryLog'
-import { defineLoader } from '../../utils/defineLoader'
 import { fetchHistory } from '../../utils/fetchHistory'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
+import { useFetchJson } from '../hooks/useFetchJson'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { toggleSidebar } from '../utils/local-session-state'
-
-const { loader, useMaybeData } = defineLoader(async (args) => {
-	const fileSlug = args.params.fileSlug
-
-	if (!fileSlug) return null
-
-	const data = await fetchHistory(fileSlug)
-	if (!data) return null
-
-	return { data, fileSlug }
-})
-
-export { loader }
 
 export function ErrorBoundary() {
 	const error = useRouteError()
@@ -31,14 +19,14 @@ export function ErrorBoundary() {
 }
 
 export function Component({ error: _error }: { error?: unknown }) {
-	const data = useMaybeData()
-	const [allTimestamps, setAllTimestamps] = useState<string[]>([])
-	const [hasMore, setHasMore] = useState(false)
+	const { fileSlug } = useParams<{ fileSlug: string }>()
+	const data = useFetchJson<HistoryResponseBody>(`/api/${FILE_PREFIX}/${fileSlug}/history`)
+	const [olderPages, setOlderPages] = useState<HistoryResponseBody[]>([])
 	const [isLoading, setIsLoading] = useState(false)
 
 	const userId = useMaybeApp()?.userId
 
-	const error = _error || !data
+	const error = _error || data === null
 
 	useEffect(() => {
 		if (error && userId) {
@@ -47,35 +35,28 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
-	// Initialize with first batch of data
-	useEffect(() => {
-		if (data?.data) {
-			setAllTimestamps(data.data.timestamps)
-			setHasMore(data.data.hasMore)
-		}
-	}, [data?.data])
+	const pages = data ? [data, ...olderPages] : []
+	// Pages can overlap at their boundaries, so dedupe.
+	const allTimestamps = [...new Set(pages.flatMap((page) => page.timestamps))]
+	const hasMore = pages.at(-1)?.hasMore ?? false
 
 	const handleLoadMore = async () => {
-		if (!data?.fileSlug || isLoading) return
+		if (!fileSlug || isLoading) return
 
 		setIsLoading(true)
 		try {
 			// Get the earliest timestamp from the current list
 			const earliestTimestamp = allTimestamps[allTimestamps.length - 1]
-			const newData = await fetchHistory(data.fileSlug, earliestTimestamp)
-			if (newData) {
-				// Filter out any timestamps that already exist to prevent duplicates
-				const seen = new Set(allTimestamps)
-				const uniqueNewTimestamps = newData.timestamps.filter((timestamp) => !seen.has(timestamp))
-				setAllTimestamps((prev) => [...prev, ...uniqueNewTimestamps])
-				setHasMore(newData.hasMore)
-			}
+			const newData = await fetchHistory(fileSlug, earliestTimestamp)
+			if (newData) setOlderPages((prev) => [...prev, newData])
 		} catch (err) {
 			console.error('Failed to load more history:', err)
 		} finally {
 			setIsLoading(false)
 		}
 	}
+
+	if (!error && !data) return null
 
 	return (
 		<div>

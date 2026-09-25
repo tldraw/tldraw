@@ -14,7 +14,7 @@ import {
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { devFreeze } from './devFreeze'
-import { isRecordsDiffEmpty, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
+import { hasAnyKey, isRecordsDiffEmpty, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { RecordScope } from './RecordType'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
@@ -513,11 +513,15 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		this.scopedTypes = scopedTypes
 	}
 
+	private isFlushingHistory = false
+
 	public _flushHistory() {
 		// If we have accumulated history, flush it and update listeners
 		if (this.historyAccumulator.hasChanges()) {
 			const entries = this.historyAccumulator.flush()
 			const errors: unknown[] = []
+			const wasFlushingHistory = this.isFlushingHistory
+			this.isFlushingHistory = true
 			for (const { changes, source } of entries) {
 				// Filtered diffs are computed at most once per scope per entry, and shared by every
 				// listener watching that scope.
@@ -544,6 +548,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					}
 				}
 			}
+			this.isFlushingHistory = wasFlushingHistory
 			if (errors.length > 0) throw errors[0]
 		}
 	}
@@ -622,12 +627,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			// Iterate through all records, creating, updating or removing as needed
 			let record: R
 
-			// There's a chance that, despite having records, all of the values are
-			// identical to what they were before; and so we'd end up with an "empty"
-			// history entry. Let's keep track of whether we've actually made any
-			// changes (e.g. additions, deletions, or updates that produce a new value).
-			let didChange = false
-
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
 
 			for (let i = 0, n = records.length; i < n; i++) {
@@ -652,13 +651,22 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					record = devFreeze(validated)
 					this.records.set(record.id, record)
 
-					didChange = true
-					updates[record.id] = [initialValue, record]
+					if (additions[record.id]) {
+						// the same record was created earlier in this call: fold the update into it
+						additions[record.id] = record
+					} else {
+						// an earlier update to the same record in this call owns the `from`
+						const from = updates[record.id]?.[0] ?? initialValue
+						if (from === record) {
+							// back to where it started within this call: nothing to record
+							delete updates[record.id]
+						} else {
+							updates[record.id] = [from, record]
+						}
+					}
 					this.addDiffForAfterEvent(initialValue, record)
 				} else {
 					record = this.sideEffects.handleBeforeCreate(record, source)
-
-					didChange = true
 
 					// If we don't have an atom, create one.
 
@@ -681,8 +689,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				}
 			}
 
-			// If we did change, update the history
-			if (!didChange) return
+			// Validation may have left every record identical to before, in which case there is no
+			// change-set to record.
+			if (!hasAnyKey(additions) && !hasAnyKey(updates)) return
 			this.updateHistory({
 				added: additions,
 				updated: updates,
@@ -1008,6 +1017,18 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		this.listeners.add(listener)
 
 		return () => {
+			// Flush so this listener's history ends at exactly now, but not from inside a flush:
+			// the other listeners would then receive changes made during that flush before the
+			// entry they are still being handed.
+			if (!this.isFlushingHistory) {
+				try {
+					this._flushHistory()
+				} catch (error) {
+					// Removers run in teardown loops (Editor.dispose, TLSyncClient.close); throwing here
+					// would skip the cleanups that follow.
+					console.error(error)
+				}
+			}
 			this.listeners.delete(listener)
 
 			if (this.listeners.size === 0) {
