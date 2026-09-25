@@ -106,6 +106,8 @@ export interface Environment {
 	MCP_SERVER_SEARCH_RATE_LIMITER: RateLimit | undefined
 	/** Per-account `create_board` calls. Bounds writes. */
 	MCP_SERVER_CREATE_RATE_LIMITER: RateLimit | undefined
+	/** Per-account `rename_board` calls. Bounds writes. */
+	MCP_SERVER_RENAME_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 

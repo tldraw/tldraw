@@ -9,6 +9,7 @@ import {
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
+	RENAME_BOARD_TOOL_NAME,
 	SEARCH_BOARDS_TOOL_NAME,
 	ShapeMeasurement,
 	ToolResult,
@@ -25,6 +26,7 @@ import {
 	parseClusterScreenshotInput,
 	parseCreateBoardInput,
 	parsePageInfoInput,
+	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	pickClusterShapes,
 	resolvePage,
@@ -218,6 +220,12 @@ async function callFixtureTool(
 				parseCreateBoardInput(args)
 				return toolError(
 					`${HARNESS_GAP_MARKER} Boards cannot be created against fixtures. Run against staging or production to create one.`
+				)
+			}
+			case RENAME_BOARD_TOOL_NAME: {
+				parseRenameBoardInput(args)
+				return toolError(
+					`${HARNESS_GAP_MARKER} Boards cannot be renamed against fixtures. Run against staging or production to rename one.`
 				)
 			}
 			default:
