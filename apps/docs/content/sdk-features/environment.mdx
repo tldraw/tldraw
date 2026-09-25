@@ -100,7 +100,7 @@ function TouchFriendlyButton() {
 
 ### Coarse pointer detection
 
-The `isCoarsePointer` value tracks whether the user is currently using touch input. We detect this two ways: by listening to the `(any-pointer: coarse)` media query, and by checking `pointerType` on each pointer down event. Any pointer that isn't a mouse counts as coarse, so pen input switches to coarse mode too. Laptops with touchscreens can switch input methods mid-session; the pointer down check catches that.
+The `isCoarsePointer` value tracks whether the user is currently using touch input. We detect this two ways: by listening to the `(any-pointer: coarse)` media query, and by checking `pointerType` on each pointer down event. Only touch input counts as coarse: a mouse or a pen (such as an Apple Pencil) switches back to fine mode, since a pen is at least as precise as a mouse. Laptops with touchscreens can switch input methods mid-session; the pointer down check catches that.
 
 ```typescript
 import { tlenvReactive, react } from 'tldraw'

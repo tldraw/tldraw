@@ -14,8 +14,8 @@ import { tlenv } from '../globals/environment'
  * direct-display pen.
  *
  * Note this uses {@link tlenv.isTouchDevice} — the device's fixed touch capability — not the
- * editor's dynamic `isCoarsePointer` state, which a pen `pointerdown` flips to coarse regardless
- * of device.
+ * editor's dynamic `isCoarsePointer` state, which a pen `pointerdown` leaves fine regardless of
+ * device.
  *
  * @internal
  */

@@ -95,9 +95,9 @@ if (typeof window !== 'undefined' && !isForcedFinePointer) {
 	getGlobalWindow().addEventListener(
 		'pointerdown',
 		(e: PointerEvent) => {
-			// when the user interacts with a mouse, we assume they have a fine pointer.
-			// otherwise, we assume they have a coarse pointer.
-			const isCoarseEvent = e.pointerType !== 'mouse'
+			// Only a finger is coarse. A pen is at least as precise as a mouse, so treating it as
+			// coarse would give stylus users the touch hit margins, drag threshold, and handles.
+			const isCoarseEvent = e.pointerType === 'touch'
 			if (isCoarseEvent !== isCurrentCoarsePointer()) {
 				tlenvReactive.update((prev) => ({ ...prev, isCoarsePointer: isCoarseEvent }))
 			}
