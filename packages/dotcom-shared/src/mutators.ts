@@ -19,7 +19,6 @@ import {
 	TlaFileStatePartial,
 	TlaFlags,
 	TlaSchema,
-	TlaUser,
 	TlaUserPartial,
 } from './tlaSchema'
 import { ZErrorCode } from './types'
@@ -152,11 +151,6 @@ async function assertUserCanAccessFileById(tx: Tx, userId: string, fileId: strin
 export function createMutators(userId: string) {
 	const mutators = {
 		user: {
-			/** @deprecated */
-			insert: async (tx: Tx, user: TlaUser) => {
-				assert(userId === user.id, ZErrorCode.forbidden)
-				await tx.mutate.user.insert(user)
-			},
 			update: async (tx: Tx, user: TlaUserPartial) => {
 				assert(userId === user.id, ZErrorCode.forbidden)
 				disallowImmutableMutations(user, immutableColumns.user)
