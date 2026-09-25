@@ -149,6 +149,33 @@ async function assertUserCanAccessFileById(tx: Tx, userId: string, fileId: strin
 	await assertUserCanAccessFile(tx, userId, file!)
 }
 
+const isBoolean = (value: unknown) => typeof value === 'boolean'
+const isNumber = (value: unknown) => typeof value === 'number' && Number.isFinite(value)
+const isShortString = (value: unknown) => typeof value === 'string' && value.length <= 64
+
+/**
+ * The user preferences `updateUserPreferences` may change, with what each accepts besides null
+ * (unset: the editor's default). The editor preferences in UserPreferencesKeys, less colorScheme
+ * (an app embedding the editor owns its theme) and name (so an agent's token cannot rename its
+ * user).
+ */
+const USER_PREFERENCE_VALIDATORS = {
+	locale: isShortString,
+	animationSpeed: isNumber,
+	areKeyboardShortcutsEnabled: isBoolean,
+	edgeScrollSpeed: isNumber,
+	isSnapMode: isBoolean,
+	isWrapMode: isBoolean,
+	isDynamicSizeMode: isBoolean,
+	isPasteAtCursorMode: isBoolean,
+	enhancedA11yMode: isBoolean,
+	inputMode: (value: unknown) => value === 'trackpad' || value === 'mouse',
+	isZoomDirectionInverted: isBoolean,
+	color: isShortString,
+} satisfies Partial<Record<keyof TlaUser, (value: unknown) => boolean>>
+
+export type TlaUserPreferenceKey = keyof typeof USER_PREFERENCE_VALIDATORS
+
 export function createMutators(userId: string) {
 	const mutators = {
 		user: {
@@ -162,6 +189,22 @@ export function createMutators(userId: string) {
 				disallowImmutableMutations(user, immutableColumns.user)
 				await tx.mutate.user.update(user)
 			},
+		},
+		/** Sets the caller's own editor preferences, and nothing else on their user row. */
+		updateUserPreferences: async (
+			tx: Tx,
+			preferences: Partial<Pick<TlaUser, TlaUserPreferenceKey>>
+		) => {
+			const entries = Object.entries(preferences)
+			for (const [key, value] of entries) {
+				assert(Object.hasOwn(USER_PREFERENCE_VALIDATORS, key), ZErrorCode.forbidden)
+				assert(
+					value === null || USER_PREFERENCE_VALIDATORS[key as TlaUserPreferenceKey](value),
+					ZErrorCode.bad_request
+				)
+			}
+			if (entries.length === 0) return
+			await tx.mutate.user.update({ ...preferences, id: userId })
 		},
 		file: {
 			update: async (tx: Tx, _file: TlaFilePartial) => {
