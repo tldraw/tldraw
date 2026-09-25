@@ -45,7 +45,8 @@
 		"build": "./scripts/build.sh",
 		"prepack": "pnpm build",
 		"pack-tarball": "pnpm pack",
-		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc --build"
 	},
 	"devDependencies": {
 		"@bomb.sh/args": "^0.3.1",

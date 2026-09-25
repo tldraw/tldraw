@@ -54,7 +54,8 @@
 		"typescript": "^7.0.2"
 	},
 	"scripts": {
-		"lint": "pnpm exec tsx lint.ts"
+		"lint": "pnpm exec tsx lint.ts",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"@lokalise/node-api": "^12.8.0",

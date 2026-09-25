@@ -140,7 +140,8 @@
 		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp && pnpm install",
 		"test": "pnpm exec vitest --passWithNoTests",
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
-		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
 	},
 	"devDependencies": {
 		"@tldraw/editor": "workspace:*",

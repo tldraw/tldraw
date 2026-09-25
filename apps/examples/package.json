@@ -40,7 +40,8 @@
 		"e2e-device-android": "wdio run ./e2e-device/wdio.android.conf.ts",
 		"test": "pnpm exec vitest --passWithNoTests",
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
-		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"@dimforge/rapier2d-compat": "^0.19.3",

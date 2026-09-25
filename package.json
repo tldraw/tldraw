@@ -43,7 +43,7 @@
 		"build": "turbo run build",
 		"build-app": "turbo run build --filter='./apps/dotcom/client'",
 		"build-docs": "turbo run build --filter='./apps/docs'",
-		"build-types": "tsx internal/scripts/typecheck.ts",
+		"build-types": "turbo run build-types",
 		"build-api": "turbo run build-api",
 		"build-i18n": "turbo run build-i18n",
 		"build-package": "turbo run build --filter='./packages/*'",

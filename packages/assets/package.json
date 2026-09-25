@@ -51,7 +51,8 @@
 	"scripts": {
 		"pack-tarball": "pnpm pack",
 		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
-		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"

@@ -13,7 +13,8 @@
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
 		"test": "pnpm exec vitest --passWithNoTests",
 		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
-		"lint": "pnpm exec tsx ../../../internal/scripts/lint.ts"
+		"lint": "pnpm exec tsx ../../../internal/scripts/lint.ts",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"@tldraw/dotcom-shared": "workspace:*",

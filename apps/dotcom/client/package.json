@@ -34,7 +34,8 @@
 		"e2e-all-ui": "NODE_OPTIONS='--no-strip-types' pnpm exec playwright test --project=chromium --project=chromium-scenarios --ui",
 		"e2e-staging": "NODE_OPTIONS='--no-strip-types' pnpm exec playwright test --project=staging",
 		"e2e-both-modes": "./e2e/run-both-modes.sh",
-		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"@clerk/clerk-react": "^5.53.3",

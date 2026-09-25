@@ -46,7 +46,8 @@
 		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "pnpm pack",
-		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"@tldraw/state": "workspace:*",

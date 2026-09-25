@@ -10,5 +10,8 @@
 		"jest-matcher-utils": "^30.0.5",
 		"vitest": "^5.0.0",
 		"vitest-canvas-mock": "^1.1.3"
+	},
+	"scripts": {
+		"build-types": "tsc --build"
 	}
 }

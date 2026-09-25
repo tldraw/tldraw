@@ -2,7 +2,14 @@
 	"$schema": "https://turborepo.com/schema.json",
 	"envMode": "loose",
 	"ui": "stream",
-	"globalDependencies": ["internal/config/**", "internal/scripts/**"],
+	"globalDependencies": [
+		"internal/config/**",
+		"internal/scripts/**",
+		"!internal/**/*.tsbuildinfo",
+		"!internal/**/.tsbuild*/**",
+		"!internal/**/.turbo/**",
+		"!internal/**/node_modules/**"
+	],
 	"tasks": {
 		"//#refresh-assets": {
 			"inputs": [
@@ -14,17 +21,12 @@
 			],
 			"outputs": []
 		},
-		"//#build-types": {
-			"dependsOn": ["//#refresh-assets"],
-			"inputs": [
-				"{apps,packages,templates,internal}/**/*.{ts,tsx}",
-				"{apps,packages,templates,internal}/**/tsconfig*.json",
-				"!**/{dist,dist-*,api,.tsbuild*,node_modules}/**"
-			],
-			"outputs": ["**/.tsbuild/**", "**/*.tsbuildinfo", "!node_modules/**"]
+		"build-types": {
+			"dependsOn": ["^build-types", "//#refresh-assets"],
+			"outputs": [".tsbuild/**", "*.tsbuildinfo"]
 		},
 		"build-api": {
-			"dependsOn": ["//#build-types"],
+			"dependsOn": ["build-types"],
 			"inputs": ["src/**", "tsconfig.json", "api-extractor.json"],
 			"outputs": ["api/**", "api-report.api.md"]
 		},

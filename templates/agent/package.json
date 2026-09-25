@@ -29,7 +29,8 @@
 		"build": "vite build",
 		"dev": "vite --host",
 		"preview": "vite preview",
-		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@ai-sdk/anthropic": "^2.0.80",

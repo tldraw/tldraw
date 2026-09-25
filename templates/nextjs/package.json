@@ -18,7 +18,8 @@
 		"dev": "next dev -H 0.0.0.0",
 		"build": "next build",
 		"start": "next start",
-		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@types/node": "^22.15.31",
