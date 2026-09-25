@@ -57,7 +57,6 @@
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.27",
 		"tldraw": "workspace:*",
 		"vitest": "^5.0.0"
 	},

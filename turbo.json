@@ -1,0 +1,53 @@
+{
+	"$schema": "https://turborepo.com/schema.json",
+	"envMode": "loose",
+	"ui": "stream",
+	"globalDependencies": ["internal/config/**", "internal/scripts/**"],
+	"tasks": {
+		"//#refresh-assets": {
+			"inputs": [
+				"package.json",
+				"internal/scripts/refresh-assets.ts",
+				"assets/**",
+				"apps/dotcom/client/assets/**",
+				"packages/*/package.json"
+			],
+			"outputs": []
+		},
+		"//#build-types": {
+			"dependsOn": ["//#refresh-assets"],
+			"inputs": [
+				"{apps,packages,templates,internal}/**/*.{ts,tsx}",
+				"{apps,packages,templates,internal}/**/tsconfig*.json",
+				"!**/{dist,dist-*,api,.tsbuild*,node_modules}/**"
+			],
+			"outputs": ["**/.tsbuild/**", "**/*.tsbuildinfo", "!node_modules/**"]
+		},
+		"build-api": {
+			"dependsOn": ["//#build-types"],
+			"inputs": ["src/**", "tsconfig.json", "api-extractor.json"],
+			"outputs": ["api/**", "api-report.api.md"]
+		},
+		"build-i18n": {
+			"outputs": ["public/tla/locales/en.json", "public/tla/locales-compiled/**"]
+		},
+		"prebuild": {
+			"cache": false
+		},
+		"predev": {
+			"cache": false
+		},
+		"build": {
+			"dependsOn": ["prebuild", "^prebuild", "build-i18n", "^build-i18n", "//#refresh-assets"],
+			"outputs": ["dist/**", "dist-*/**", ".next/**", "!.next/cache/**"]
+		},
+		"dev": {
+			"dependsOn": ["predev", "^predev", "build-i18n", "^build-i18n", "//#refresh-assets"],
+			"cache": false,
+			"persistent": true
+		},
+		"check-bundle-size": {
+			"outputs": []
+		}
+	}
+}

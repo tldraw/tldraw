@@ -367,7 +367,7 @@ async function main() {
 
 	await discord.step('setting up deploy', async () => {
 		// make sure the tldraw .css files are built:
-		await withTiming('prebuild assets', () => exec('pnpm', ['exec', 'lazy', 'prebuild']))
+		await withTiming('prebuild assets', () => exec('pnpm', ['exec', 'turbo', 'run', 'prebuild']))
 
 		// link to vercel and supabase projects:
 		await withTiming('vercel link', () =>

@@ -15,7 +15,7 @@
 		"dev-client": "vite dev --host",
 		"test-ci": "echo 'No tests yet'",
 		"test": "pnpm exec vitest run --passWithNoTests",
-		"test-coverage": "lazy inherit",
+		"test-coverage": "pnpm exec vitest run --coverage && open-cli coverage/index.html",
 		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
 	},
 	"devDependencies": {
@@ -25,7 +25,6 @@
 		"@types/react-dom": "^19.2.3",
 		"@types/ws": "^8.18.1",
 		"concurrently": "^9.1.2",
-		"lazyrepo": "0.0.0-alpha.27",
 		"tsx": "^4.19.2",
 		"typescript": "^5.8.3"
 	},

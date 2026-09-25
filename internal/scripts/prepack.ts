@@ -26,7 +26,7 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 	const startTime = Date.now()
 	nicelog(`[prepack] ${packageName} starting...`)
 
-	execSync('pnpm exec lazy build', { cwd: sourcePackageDir, stdio: 'inherit' })
+	execSync('pnpm exec turbo run build', { cwd: sourcePackageDir, stdio: 'inherit' })
 
 	// save package.json and reinstate it in postpack
 	copyFileSync(

@@ -101,7 +101,7 @@ processes:
   # them once, then its `dev` watches the source css and re-copies. The client @imports both, so it
   # waits for the files to exist.
   css:
-    command: LAZYREPO_PRETTY_OUTPUT=0 pnpm exec lazy run dev --filter='packages/tldraw' --filter='packages/commenting'
+    command: pnpm exec turbo run dev --filter=./packages/tldraw --filter=./packages/commenting
     readiness_probe:
       exec:
         command: node -e "require('fs').accessSync('packages/tldraw/tldraw.css');require('fs').accessSync('packages/commenting/commenting.css')"

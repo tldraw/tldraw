@@ -76,7 +76,7 @@ jobs:
         uses: ./.github/actions/setup-playwright
 
       - name: Build dotcom client
-        run: pnpm exec lazy refresh-assets && pnpm exec lazy run prebuild && pnpm exec lazy run build-i18n && cd apps/dotcom/client && pnpm build
+        run: pnpm exec turbo run refresh-assets prebuild build-i18n && cd apps/dotcom/client && pnpm build
         env:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
 

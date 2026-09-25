@@ -57,7 +57,6 @@
 		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.27",
 		"ts-node-dev": "^1.1.8",
 		"typescript": "^7.0.2"
 	},

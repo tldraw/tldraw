@@ -1,6 +1,6 @@
 {
 	"framework": "vite",
 	"installCommand": "pnpm install",
-	"buildCommand": "pnpm exec lazy build",
+	"buildCommand": "pnpm exec turbo run build",
 	"ignoreCommand": "bash ../../internal/scripts/vercel/should-build-template.sh workflow"
 }
