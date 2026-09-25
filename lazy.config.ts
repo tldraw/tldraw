@@ -69,19 +69,6 @@ const config = {
 		prebuild: {
 			cache: 'none',
 		},
-		e2e: {
-			cache: 'none',
-		},
-		'e2e-x10': {
-			cache: 'none',
-		},
-		context: {
-			execution: 'independent',
-			cache: 'none',
-		},
-		'pack-tarball': {
-			parallel: false,
-		},
 		'refresh-assets': {
 			execution: 'top-level',
 			baseCommand: `tsx <rootDir>/internal/scripts/refresh-assets.ts`,
@@ -107,7 +94,6 @@ const config = {
 			},
 			runsAfter: {
 				'refresh-assets': {},
-				'maybe-clean-tsbuildinfo': {},
 			},
 		},
 		'build-api': {
