@@ -37,7 +37,7 @@ const FIRST_LOAD_STEP_INFO: Record<FirstLoadStep, string> = {
 	'root-chunk-loaded': 'TlaRootProviders route chunk evaluated',
 	'clerk-loaded': 'Clerk reported isLoaded (session known)',
 	'flags-loaded': 'feature flags resolved, or timed out to defaults',
-	'init-done': 'POST /api/app/:userId/init returned (user row + home workspace ensured)',
+	'init-done': 'POST /api/app/:userId/init returned (see srv_init_outcome)',
 	'zero-user-synced': 'Zero confirmed the user row from the server',
 	'zero-preloaded': 'Zero confirmed file states + workspace memberships; app state unblocks',
 	'file-chunk-loaded': 'file route chunk evaluated',
@@ -49,18 +49,20 @@ const FIRST_LOAD_STEP_INFO: Record<FirstLoadStep, string> = {
 }
 
 const FIRST_LOAD_FIELD_INFO: Record<string, string> = {
-	srv_cold: 'no live room in the DO; true alone does not mean an R2/Postgres load (see boot_*)',
+	srv_cold: 'no live room in the DO; true alone does not mean an R2/Postgres load (see srv_boot_*)',
 	srv_auth_ms: 'sync worker: verify the Clerk token',
 	srv_file_record_ms: 'sync worker: file row lookup (Postgres; ~0 when the DO has it cached)',
 	srv_get_room_ms: 'sync worker: get or create the room; long only when storage loads',
 	srv_total_ms: 'sync worker: whole connect request, incl. rate limit + group check (Postgres)',
 	srv_boot_r2_ms: 'room boot from empty SQLite: R2 snapshot fetch',
-	srv_boot_comments_ms: 'room boot from empty SQLite: comments from Postgres',
+	srv_boot_comments_ms:
+		'room boot from empty SQLite: comments from Postgres (parallel with the R2 fetch)',
 	srv_boot_total_ms: 'room boot from empty SQLite: whole storage load',
-	srv_echo: 'server timings arrived; false = none within 3s',
+	srv_echo: 'server timings arrived; false = none within 3s of board-visible',
 	srv_init_ms: 'sync worker: user init request (Server-Timing)',
-	srv_init_outcome: 'existing = user already set up, created = first sign-in',
-	res_count: 'resources loaded so far',
+	srv_init_outcome:
+		'existing (user already set up), created (first sign-in), or a failure: rate_limited, no_clerk_user, no_email, error',
+	res_count: 'resources loaded by board-visible',
 	res_kb: 'total transferred',
 	res_js_kb: 'JS transferred',
 	res_css_kb: 'CSS transferred',
@@ -71,7 +73,7 @@ const FIRST_LOAD_FIELD_INFO: Record<string, string> = {
 	res_largest_kb: 'its size',
 	res_slowest: 'slowest resource by duration',
 	res_slowest_ms: 'its duration',
-	clerk_script_ms: 'clerk.browser.js download time',
+	clerk_script_ms: 'clerk.browser.js fetch duration',
 }
 
 function describeFields(fields: Record<string, unknown>) {
@@ -86,16 +88,11 @@ export const FIRST_LOAD_LOG_HEADER =
 /**
  * The debug flag that prints the load to the console; sending to PostHog is gated separately
  * (shouldReportFirstLoad). The flag itself is created in TlaEditor: importing `tldraw` here would
- * pull the SDK into the entry chunk. Read once at module load, so a toggle applies from the next load.
+ * pull the SDK into the entry chunk. Read once at module load, so a toggle applies from the next
+ * load in this tab.
  */
 export const FIRST_LOAD_DEBUG_FLAG = 'logFirstLoad'
-const printFirstLoad = (() => {
-	try {
-		return getFromSessionStorage(`tldraw_debug:${FIRST_LOAD_DEBUG_FLAG}`) === 'true'
-	} catch {
-		return false
-	}
-})()
+const printFirstLoad = getFromSessionStorage(`tldraw_debug:${FIRST_LOAD_DEBUG_FLAG}`) === 'true'
 
 export interface FirstLoadDeps {
 	now(): number
@@ -464,8 +461,9 @@ export function reportFirstLoad(opts: {
 	flagEnabled: boolean
 	trackEvent(name: string, data: Record<string, unknown>): void
 }) {
-	const hidden = hiddenDuringLoad
-	const send = shouldReportFirstLoad(opts) && !hidden
+	const inGate = shouldReportFirstLoad(opts)
+	const hidden = hiddenDuringLoad && inGate
+	const send = inGate && !hiddenDuringLoad
 	const print = printFirstLoad
 	if (!send && !print) return
 	// One report per load, so wait briefly for the server echo rather than dropping the srv_ fields.
