@@ -19,7 +19,7 @@ const CONNECT_TIMEOUT_MS = 10_000
  * surfaces as query errors, after Hyperdrive's own 15s origin connect timeout.
  */
 export function getPostgresConnection(env: Environment) {
-	return env.HYPERDRIVE
+	return env.HYPERDRIVE && env.HYPERDRIVE_DISABLED !== 'true'
 		? { connectionString: env.HYPERDRIVE.connectionString, via: 'hyperdrive' }
 		: { connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING, via: 'pooler' }
 }
