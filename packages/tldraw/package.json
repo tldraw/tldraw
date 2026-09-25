@@ -73,6 +73,7 @@
 		"@tldraw/tlschema": "workspace:*",
 		"classnames": "^2.5.1",
 		"idb": "^7.1.1",
+		"linkifyjs": "^4.3.2",
 		"lz-string": "^1.5.0",
 		"radix-ui": "^1.4.2"
 	},
