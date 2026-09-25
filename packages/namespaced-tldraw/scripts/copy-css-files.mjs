@@ -8,8 +8,8 @@ const __dirname = dirname(__filename)
 const packageDir = join(__dirname, '..')
 
 // Generate CSS from source files directly (same sources as packages/tldraw)
-// to avoid depending on tldraw's generated tldraw.css which may not exist
-// when lazyrepo caching skips the prebuild step.
+// to avoid depending on tldraw's generated tldraw.css, which may not exist yet:
+// nothing orders this prebuild after tldraw's.
 let combinedContent = [
 	join(packageDir, '..', 'editor', 'editor.css'),
 	join(packageDir, '..', 'tldraw', 'src', 'lib', 'ui.css'),
