@@ -19,7 +19,17 @@ runs:
       env:
         BROWSERS: ${{ inputs.browsers }}
       run: |
-        echo "PLAYWRIGHT_VERSION=$(pnpm --dir apps/examples exec node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_ENV"
+        # A single version keeps the browser cache and the installed browsers matching every
+        # workspace's test runner. Two versions would leave one of them without its browsers.
+        versions=$(pnpm ls -r --depth 0 --json @playwright/test \
+          | jq -r '[.[] | (.dependencies, .devDependencies, .optionalDependencies) | objects | .["@playwright/test"].version | strings] | unique | .[]')
+        count=$(echo "$versions" | grep -c . || true)
+        if [ "$count" -ne 1 ]; then
+          echo "::error::Expected exactly one @playwright/test version across the workspace, found $count: $(echo $versions)"
+          pnpm ls -r --depth 0 @playwright/test
+          exit 1
+        fi
+        echo "PLAYWRIGHT_VERSION=$versions" >> "$GITHUB_ENV"
         echo "PLAYWRIGHT_BROWSERS_KEY=$(echo "$BROWSERS" | tr ' ' '-')" >> "$GITHUB_ENV"
 
     # Keyed on os + arch + version + browsers. The arch matters (ARM vs x64 need different
@@ -33,12 +43,13 @@ runs:
           ~/.cache/ms-playwright
         key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ env.PLAYWRIGHT_BROWSERS_KEY }}
 
-    # Cache miss only. `--with-deps` also installs the OS libraries the browsers need — a no-op for
-    # Chromium on GitHub's runner images, but it means adding webkit/firefox via `browsers` later
-    # just works without extra setup.
+    # Cache miss only. `dlx` runs the `playwright` CLI (released in lockstep with `@playwright/test`)
+    # without a workspace: the isolated linker gives the root no `playwright` bin. `--with-deps`
+    # also installs the OS libraries the browsers need — a no-op for Chromium on GitHub's runner
+    # images, but it means adding webkit/firefox via `browsers` later just works without extra setup.
     - name: Install Playwright browsers
       if: steps.playwright-cache.outputs.cache-hit != 'true'
       shell: bash
       env:
         BROWSERS: ${{ inputs.browsers }}
-      run: pnpm --dir apps/examples exec playwright install --with-deps $BROWSERS
+      run: pnpm dlx "playwright@$PLAYWRIGHT_VERSION" install --with-deps $BROWSERS
