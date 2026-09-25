@@ -152,13 +152,8 @@ export class Vec {
 	}
 
 	nudge(B: VecLike, distance: number) {
-		const dx = B.x - this.x
-		const dy = B.y - this.y
-		const l = (dx * dx + dy * dy) ** 0.5
-		if (l === 0) return this
-		this.x += (dx / l) * distance
-		this.y += (dy / l) * distance
-		return this
+		const tan = Vec.Tan(B, this)
+		return this.add(tan.mul(distance))
 	}
 
 	neg() {
@@ -587,11 +582,7 @@ export class Vec {
 	}
 
 	static Nudge(A: VecLike, B: VecLike, distance: number) {
-		const dx = B.x - A.x
-		const dy = B.y - A.y
-		const l = (dx * dx + dy * dy) ** 0.5
-		if (l === 0) return new Vec(A.x, A.y)
-		return new Vec(A.x + (dx / l) * distance, A.y + (dy / l) * distance)
+		return Vec.Add(A, Vec.Tan(B, A).mul(distance))
 	}
 
 	static ToString(A: VecLike) {

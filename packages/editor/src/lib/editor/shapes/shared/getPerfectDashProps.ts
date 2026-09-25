@@ -39,7 +39,7 @@ export function getPerfectDashProps(
 
 	let dashLength = 0
 	let dashCount = 0
-	let ratio = 1
+	let ratio: number
 	let gapLength = 0
 	let strokeDashoffset = 0
 
