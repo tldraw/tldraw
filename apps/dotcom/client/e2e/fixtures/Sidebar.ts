@@ -482,7 +482,10 @@ export class Sidebar {
 		let inviteUrl = ''
 		await expect(async () => {
 			await dialog.getByRole('button', { name: 'Copy invite link' }).click()
-			inviteUrl = await this.readClipboardUrl(/^\/invite\//)
+			// Read once rather than via readClipboardUrl: its own polling would use up this
+			// loop's budget, so Copy would never be clicked again after the secret arrives.
+			inviteUrl = await this.page.evaluate(() => navigator.clipboard.readText())
+			expect(new URL(inviteUrl).pathname).toMatch(/^\/invite\//)
 		}).toPass({ timeout: 10000 })
 		await this.page.getByRole('button', { name: 'Close' }).click()
 		return inviteUrl

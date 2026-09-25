@@ -21,8 +21,7 @@ export function ErrorBoundary() {
 export function Component({ error: _error }: { error?: unknown }) {
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const data = useFetchJson<HistoryResponseBody>(`/api/${FILE_PREFIX}/${fileSlug}/history`)
-	const [allTimestamps, setAllTimestamps] = useState<string[]>([])
-	const [hasMore, setHasMore] = useState(false)
+	const [olderPages, setOlderPages] = useState<HistoryResponseBody[]>([])
 	const [isLoading, setIsLoading] = useState(false)
 
 	const userId = useMaybeApp()?.userId
@@ -36,13 +35,10 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
-	// Initialize with first batch of data
-	useEffect(() => {
-		if (data) {
-			setAllTimestamps(data.timestamps)
-			setHasMore(data.hasMore)
-		}
-	}, [data])
+	const pages = data ? [data, ...olderPages] : []
+	// Pages can overlap at their boundaries, so dedupe.
+	const allTimestamps = [...new Set(pages.flatMap((page) => page.timestamps))]
+	const hasMore = pages.at(-1)?.hasMore ?? false
 
 	const handleLoadMore = async () => {
 		if (!fileSlug || isLoading) return
@@ -52,13 +48,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 			// Get the earliest timestamp from the current list
 			const earliestTimestamp = allTimestamps[allTimestamps.length - 1]
 			const newData = await fetchHistory(fileSlug, earliestTimestamp)
-			if (newData) {
-				// Filter out any timestamps that already exist to prevent duplicates
-				const seen = new Set(allTimestamps)
-				const uniqueNewTimestamps = newData.timestamps.filter((timestamp) => !seen.has(timestamp))
-				setAllTimestamps((prev) => [...prev, ...uniqueNewTimestamps])
-				setHasMore(newData.hasMore)
-			}
+			if (newData) setOlderPages((prev) => [...prev, newData])
 		} catch (err) {
 			console.error('Failed to load more history:', err)
 		} finally {
