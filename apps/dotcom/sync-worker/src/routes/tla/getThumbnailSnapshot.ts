@@ -11,6 +11,7 @@ import {
 } from '../../utils/renderTokens'
 import { getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileRoomSnapshot } from './getSharedFile'
+import { sliceSnapshotForRender } from './sliceSnapshotForRender'
 import { reportThumbnailError } from './thumbnailShared'
 
 // Serves snapshot data to the thumbnail render page. Only accepts short-lived render tokens
@@ -95,9 +96,13 @@ export async function getThumbnailSnapshot(
 		}
 	}
 
+	const records = snapshot.documents.map((d) => d.state) as TLRecord[]
 	return json({
 		error: false,
-		records: snapshot.documents.map((d) => d.state) as TLRecord[],
+		// Only what this render draws: other pages' shapes and unused assets cost the render page
+		// parsing, migration and store load inside the Browser Run budget. A slice that cannot vouch
+		// for itself sends the whole board, which renders the same picture.
+		records: sliceSnapshotForRender(records, job) ?? records,
 		schema: snapshot.schema,
 		renderParams: renderParamsForJob(job),
 	})
