@@ -2,8 +2,8 @@ import { captureException } from '@sentry/react'
 import { ROOM_PREFIX, type HistoryResponseBody } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useRouteError } from 'react-router-dom'
-import { fetch } from 'tldraw'
 import { BoardHistoryLog } from '../../components/BoardHistoryLog/BoardHistoryLog'
+import { clerkAuthFetch } from '../../utils/clerkAuthFetch'
 import { defineLoader } from '../../utils/defineLoader'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
@@ -21,7 +21,7 @@ const { loader, useMaybeData } = defineLoader(async (args) => {
 
 	if (!boardId) return null
 
-	const result = await fetch(`/api/${ROOM_PREFIX}/${boardId}/history`)
+	const result = await clerkAuthFetch(`/api/${ROOM_PREFIX}/${boardId}/history`)
 	if (!result.ok) return null
 	const data = await result.json()
 

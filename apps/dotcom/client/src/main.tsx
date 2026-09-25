@@ -8,6 +8,7 @@ import { RefreshErrorBoundary } from './components/ErrorPage/ErrorPage'
 import { Head } from './components/Head/Head'
 import { routes } from './routeDefs'
 import { router } from './routes'
+import { ClerkAuthFetchBridge } from './utils/clerkAuthFetch'
 import { showConsoleBranding } from './utils/consoleBranding'
 import { markFirstLoad } from './utils/firstLoad'
 
@@ -39,6 +40,7 @@ createRoot(document.getElementById('root')!).render(
 			signInFallbackRedirectUrl={routes.tlaRoot()}
 			signUpFallbackRedirectUrl={routes.tlaRoot()}
 		>
+			<ClerkAuthFetchBridge />
 			<HelmetProvider>
 				<Head />
 				<RouterProvider router={browserRouter} />

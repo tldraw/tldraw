@@ -4,6 +4,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import { useEffect, useMemo } from 'react'
 import { useRouteError } from 'react-router-dom'
 import { TLStoreSnapshot, fetch } from 'tldraw'
+import { clerkAuthFetch } from '../../utils/clerkAuthFetch'
 import { defineLoader } from '../../utils/defineLoader'
 import { TlaHistorySnapshotEditor } from '../components/TlaEditor/TlaHistorySnapshotEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
@@ -25,7 +26,7 @@ const { loader, useMaybeData } = defineLoader(async (args) => {
 
 	if (!fileSlug) return null
 
-	const result = await fetch(`/api/${FILE_PREFIX}/${fileSlug}/history/${timestamp}`)
+	const result = await clerkAuthFetch(`/api/${FILE_PREFIX}/${fileSlug}/history/${timestamp}`)
 	if (!result.ok) return null
 	const data = (await result.json()) as RoomSnapshot
 
