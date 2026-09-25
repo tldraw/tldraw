@@ -7,7 +7,7 @@ import { TLStoreSnapshot, fetch } from 'tldraw'
 import { TlaHistorySnapshotEditor } from '../components/TlaEditor/TlaHistorySnapshotEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
-import { useStaffApiJson } from '../hooks/useStaffApiJson'
+import { useFetchJson } from '../hooks/useFetchJson'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { toggleSidebar } from '../utils/local-session-state'
 
@@ -23,7 +23,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 	const userId = useMaybeApp()?.userId
 
 	const { fileSlug, timestamp } = useParams<{ fileSlug: string; timestamp: string }>()
-	const data = useStaffApiJson<RoomSnapshot>(`/api/${FILE_PREFIX}/${fileSlug}/history/${timestamp}`)
+	const data = useFetchJson<RoomSnapshot>(`/api/${FILE_PREFIX}/${fileSlug}/history/${timestamp}`)
 
 	const snapshot = useMemo(() => {
 		if (!data) {

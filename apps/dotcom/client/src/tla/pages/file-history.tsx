@@ -6,7 +6,7 @@ import { BoardHistoryLog } from '../../components/BoardHistoryLog/BoardHistoryLo
 import { fetchHistory } from '../../utils/fetchHistory'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
-import { useStaffApiJson } from '../hooks/useStaffApiJson'
+import { useFetchJson } from '../hooks/useFetchJson'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { toggleSidebar } from '../utils/local-session-state'
 
@@ -20,7 +20,7 @@ export function ErrorBoundary() {
 
 export function Component({ error: _error }: { error?: unknown }) {
 	const { fileSlug } = useParams<{ fileSlug: string }>()
-	const data = useStaffApiJson<HistoryResponseBody>(`/api/${FILE_PREFIX}/${fileSlug}/history`)
+	const data = useFetchJson<HistoryResponseBody>(`/api/${FILE_PREFIX}/${fileSlug}/history`)
 	const [allTimestamps, setAllTimestamps] = useState<string[]>([])
 	const [hasMore, setHasMore] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
