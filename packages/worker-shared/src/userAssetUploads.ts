@@ -4,6 +4,74 @@ import { notFound } from './errors'
 
 export const MAX_R2_OBJECT_NAME_BYTES = 1024
 
+// These objects are served back from the app's own origin, so the Content-Type an upload arrives
+// with decides what kind of document lives at that URL. The uploader picks it, which means without
+// a check here an upload is a way to publish arbitrary content under a tldraw domain.
+//
+// Images and videos are stored and served as declared: no browser renders one as a document, and
+// the CSP and nosniff headers set on the GET below keep that true for types it doesn't recognise.
+// The whole image/* and video/* range is allowed rather than DEFAULT_SUPPORTED_MEDIA_TYPES because
+// bookmark unfurls store whatever the remote site sends: favicons are routinely image/x-icon, and
+// rewriting one to a download type stops it rendering in the bookmark shape.
+//
+// Everything else is stored as an opaque download: the type is replaced and the GET below marks it
+// `content-disposition: attachment`, so a browser saves it instead of rendering it. An app whose
+// assets fall outside that range (a PDF, say) names those types in extraInlineContentTypes.
+const INLINE_CONTENT_TYPE_PREFIXES = ['image/', 'video/']
+const DOWNLOAD_CONTENT_TYPE = 'application/octet-stream'
+
+// R2 has no size limit of its own and the upload routes are open, so the body is bounded here.
+// Comfortably above DEFAULT_MAX_ASSET_SIZE (10MB), which is what the editor allows a user to place.
+export const MAX_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024
+
+// A media type without its parameters (charset, codecs), so a type can't be smuggled past the
+// inline check by appending one.
+function contentTypeEssence(contentType: string | null): string {
+	return (contentType ?? '').split(';')[0].trim().toLowerCase()
+}
+
+function isInlineContentType(
+	essence: string,
+	extraInlineContentTypes?: readonly string[]
+): boolean {
+	if (INLINE_CONTENT_TYPE_PREFIXES.some((prefix) => essence.startsWith(prefix))) return true
+	return !!extraInlineContentTypes?.some((type) => contentTypeEssence(type) === essence)
+}
+
+/**
+ * The stored content type for an upload: the declared one when a browser can safely render it, and
+ * an opaque download type otherwise.
+ */
+function storedContentType(declared: string | null, extraInlineContentTypes?: readonly string[]) {
+	const essence = contentTypeEssence(declared)
+	return isInlineContentType(essence, extraInlineContentTypes) ? essence : DOWNLOAD_CONTENT_TYPE
+}
+
+function assetTooLarge() {
+	return Response.json({ error: 'Asset too large' }, { status: 413 })
+}
+
+// The edge cache holds responses written before any of this existed, under `immutable` for a year,
+// so a cache hit gets the same treatment as a fresh read rather than being served as it was stored.
+function withContentDisposition(
+	response: Response,
+	extraInlineContentTypes?: readonly string[]
+): Response {
+	if (response.headers.has('content-disposition')) return response
+	const essence = contentTypeEssence(response.headers.get('content-type'))
+	if (isInlineContentType(essence, extraInlineContentTypes)) return response
+
+	const headers = new Headers(response.headers)
+	headers.set('content-disposition', 'attachment')
+	// A 304 carries no body, and constructing one with a body throws.
+	const body = response.status === 304 || response.status === 204 ? null : response.body
+	return new Response(body as BodyInit | null, {
+		status: response.status,
+		statusText: response.statusText,
+		headers,
+	})
+}
+
 function isTransientWorkerError(error: unknown): boolean {
 	const msg = String(error)
 	return /internal error|connectivity|network connection lost|service temporarily unavailable|proxy request failed|unspecified error|connection (refused|reset|timed?\s?out)/i.test(
@@ -58,8 +126,12 @@ declare const caches: {
  *   - objectName - Unique identifier for the asset in R2 storage
  *   - bucket - Cloudflare R2 bucket instance for storage
  *   - body - ReadableStream containing the asset data to upload
- *   - headers - HTTP headers to store as metadata with the asset
- * @returns Promise resolving to JSON response with object name and ETag, or 409 if exists
+ *   - headers - HTTP headers of the upload request. Only `content-type` is kept, and only when it
+ *     names a type safe to serve inline; anything else is stored as an opaque download.
+ *   - extraInlineContentTypes - media types to serve inline on top of image/* and video/*, for
+ *     apps that accept assets the editor doesn't render itself
+ * @returns Promise resolving to JSON response with object name and ETag, 409 if exists, or 413 if
+ * the body is over MAX_UPLOAD_SIZE_BYTES
  *
  * @example
  * ```ts
@@ -82,13 +154,23 @@ export async function handleUserAssetUpload({
 	headers,
 	bucket,
 	objectName,
+	extraInlineContentTypes,
 }: {
 	objectName: string
 	bucket: R2BucketLike
 	body: ReadableStream | null
 	headers: Headers
+	extraInlineContentTypes?: readonly string[]
 }): Promise<Response> {
 	if (!isValidR2ObjectName(objectName)) return invalidObjectNameResponse()
+
+	// The buffering below puts the whole body in the isolate, which a body well over the worker's
+	// memory limit doesn't survive, so an upload that declares its size is turned away before it's
+	// read. The check after buffering is the backstop for one that doesn't declare it.
+	const declaredSize = Number(headers.get('content-length'))
+	if (Number.isFinite(declaredSize) && declaredSize > MAX_UPLOAD_SIZE_BYTES) {
+		return assetTooLarge()
+	}
 
 	try {
 		const existing = await retry(() => bucket.head(objectName), TRANSIENT_RETRY_OPTIONS)
@@ -99,8 +181,20 @@ export async function handleUserAssetUpload({
 		// Buffer body so retries can re-send (ReadableStream is single-use)
 		const buffer = body ? await new Response(body).arrayBuffer() : null
 
+		if (buffer && buffer.byteLength > MAX_UPLOAD_SIZE_BYTES) {
+			return assetTooLarge()
+		}
+
+		// Only the content type is carried over, and only after storedContentType has vetted it.
+		// Passing the request's headers straight through let the uploader set contentDisposition,
+		// contentEncoding and cacheControl on an object this worker serves from its own origin.
 		const object = await retry(
-			() => bucket.put(objectName, buffer, { httpMetadata: headers }),
+			() =>
+				bucket.put(objectName, buffer, {
+					httpMetadata: {
+						contentType: storedContentType(headers.get('content-type'), extraInlineContentTypes),
+					},
+				}),
 			TRANSIENT_RETRY_OPTIONS
 		)
 
@@ -122,6 +216,8 @@ export async function handleUserAssetUpload({
  *   - bucket - Cloudflare R2 bucket instance containing the asset
  *   - objectName - Unique identifier of the asset to retrieve
  *   - context - Execution context for background caching operations
+ *   - extraInlineContentTypes - media types to serve inline on top of image/* and video/*, matching
+ *     what the upload handler was given
  * @returns Promise resolving to the asset response with appropriate headers and caching
  *
  * @example
@@ -145,11 +241,13 @@ export async function handleUserAssetGet({
 	bucket,
 	objectName,
 	context,
+	extraInlineContentTypes,
 }: {
 	request: IRequest
 	bucket: R2BucketLike
 	objectName: string
 	context: ExecutionContext
+	extraInlineContentTypes?: readonly string[]
 }): Promise<Response> {
 	if (!isValidR2ObjectName(objectName)) return invalidObjectNameResponse()
 
@@ -157,7 +255,7 @@ export async function handleUserAssetGet({
 	const cacheKey = new Request(request.url, { headers: request.headers })
 	const cachedResponse = await caches.default.match(cacheKey)
 	if (cachedResponse) {
-		return cachedResponse
+		return withContentDisposition(cachedResponse, extraInlineContentTypes)
 	}
 
 	let object
@@ -191,6 +289,15 @@ export async function handleUserAssetGet({
 	// This is critical when assets are served from the same origin as the app.
 	headers.set('content-security-policy', "default-src 'none'")
 	headers.set('x-content-type-options', 'nosniff')
+
+	// Uploads predating storedContentType carry whatever type they were sent with, so the check has
+	// to happen on the way out as well as the way in. A non-media type is served as a download, not
+	// as a document rendered under this origin.
+	if (
+		!isInlineContentType(contentTypeEssence(headers.get('content-type')), extraInlineContentTypes)
+	) {
+		headers.set('content-disposition', 'attachment')
+	}
 
 	// cloudflare doesn't set the content-range header automatically in writeHttpMetadata, so we
 	// need to do it ourselves.
