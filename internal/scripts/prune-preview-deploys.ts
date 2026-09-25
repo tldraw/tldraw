@@ -1,8 +1,13 @@
+import { join } from 'path'
 import * as github from '@actions/github'
 import { DeleteObjectsCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3'
 import { exec } from './lib/exec'
+import { REPO_ROOT } from './lib/file'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
+
+// wrangler is declared by @tldraw/scripts, not the root, so npx must run from here to find its bin
+const SCRIPTS_DIR = join(REPO_ROOT, 'internal/scripts')
 
 // Do not use `process.env` directly in this script. Add your variable to `makeEnv` and use it via
 // `env` instead. This makes sure that all required env vars are present.
@@ -163,6 +168,7 @@ async function deletePreviewWorkerRoute(pattern: string) {
 async function deleteQueue(queueName: string) {
 	nicelog('Deleting queue:', queueName)
 	await exec('npx', ['wrangler', 'queues', 'delete', queueName], {
+		pwd: SCRIPTS_DIR,
 		env: { CI: '1' },
 	})
 }
@@ -170,6 +176,7 @@ async function deleteQueue(queueName: string) {
 async function deleteQueueConsumer(queueName: string, scriptName: string) {
 	nicelog('Deleting queue consumer:', scriptName, 'from queue:', queueName)
 	await exec('npx', ['wrangler', 'queues', 'consumer', 'worker', 'remove', queueName, scriptName], {
+		pwd: SCRIPTS_DIR,
 		env: { CI: '1' },
 	})
 }
@@ -177,6 +184,7 @@ async function deleteQueueConsumer(queueName: string, scriptName: string) {
 async function deletePreviewWorker(workerName: string) {
 	nicelog('Deleting worker:', workerName)
 	await exec('npx', ['wrangler', 'delete', '--name', workerName], {
+		pwd: SCRIPTS_DIR,
 		env: { CI: '1' },
 	})
 }
