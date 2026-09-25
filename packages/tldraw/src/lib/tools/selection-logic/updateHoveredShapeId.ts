@@ -1,4 +1,4 @@
-import { Editor, TLShape, TLShapeId, throttle } from '@tldraw/editor'
+import { Editor, TLShape, TLShapeId, throttle, type ThrottledFunction } from '@tldraw/editor'
 
 /*
 Perf optimization: Skip hover updates while panning.
@@ -85,10 +85,7 @@ function _updateHoveredShapeId(editor: Editor) {
 }
 
 const THROTTLE_MS = process.env.NODE_ENV === 'test' ? 0 : 32
-const editorThrottles = new WeakMap<
-	Editor,
-	ReturnType<typeof throttle<typeof _updateHoveredShapeId>>
->()
+const editorThrottles = new WeakMap<Editor, ThrottledFunction<typeof _updateHoveredShapeId>>()
 
 function getThrottled(editor: Editor) {
 	let throttled = editorThrottles.get(editor)

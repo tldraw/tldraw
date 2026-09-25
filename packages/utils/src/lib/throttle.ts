@@ -225,3 +225,27 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 export function throttleToNextFrame(fn: () => void): () => void {
 	return defaultScheduler.throttleToNextFrame(fn)
 }
+
+/**
+ * The function returned by `throttle`. Call it like the original function; it returns the
+ * result of the last invocation, or `undefined` if the original hasn't run yet.
+ *
+ * Declared here rather than re-exported from `@types/lodash`, so code can name a throttled
+ * function's type without depending on lodash's type packages.
+ *
+ * @example
+ * ```ts
+ * class Saver {
+ *   save: ThrottledFunction<() => void> = throttle(() => this.persist(), 1000)
+ * }
+ * ```
+ *
+ * @public
+ */
+export interface ThrottledFunction<T extends (...args: any[]) => any> {
+	(...args: Parameters<T>): ReturnType<T> | undefined
+	/** Cancels any pending invocation. */
+	cancel(): void
+	/** Immediately runs any pending invocation and returns its result. */
+	flush(): ReturnType<T> | undefined
+}

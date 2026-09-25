@@ -520,6 +520,14 @@ export { structuredClone_2 as structuredClone }
 
 export { throttle }
 
+// @public
+export interface ThrottledFunction<T extends (...args: any[]) => any> {
+    // (undocumented)
+    (...args: Parameters<T>): ReturnType<T> | undefined;
+    cancel(): void;
+    flush(): ReturnType<T> | undefined;
+}
+
 // @internal
 export function throttleToNextFrame(fn: () => void): () => void;
 
