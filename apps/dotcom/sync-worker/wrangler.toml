@@ -274,9 +274,8 @@ bindings = [
 
 #################### Hyperdrive ####################
 # Postgres through Hyperdrive when bound and the `hyperdrive_enabled` flag is on; otherwise the pooled
-# connection string. Previews
-# stay unbound: each gets its own Supabase branch, and Hyperdrive configs are capped at 25 per
-# account. Configs are managed by hand in the Cloudflare dashboard:
+# connection string. Previews stay unbound: each gets its own Supabase branch, and Hyperdrive configs
+# are capped at 25 per account. Configs are managed by hand in the Cloudflare dashboard:
 # - Origin is the direct connection, with the same credentials as BOTCOM_POSTGRES_CONNECTION_STRING.
 #   Rotating the database password breaks Hyperdrive until the config is updated too.
 # - Caching stays disabled: role and file-record reads must never be stale.
