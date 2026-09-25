@@ -136,6 +136,7 @@ export type TLUiIconType =
 	| 'stretch-horizontal'
 	| 'stretch-vertical'
 	| 'strike'
+	| 'taskList'
 	| 'text-align-center'
 	| 'text-align-left'
 	| 'text-align-right'
@@ -302,6 +303,7 @@ export const iconTypes = [
 	'stretch-horizontal',
 	'stretch-vertical',
 	'strike',
+	'taskList',
 	'text-align-center',
 	'text-align-left',
 	'text-align-right',

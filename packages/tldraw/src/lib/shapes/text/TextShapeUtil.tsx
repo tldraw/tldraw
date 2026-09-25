@@ -23,6 +23,7 @@ import {
 } from '@tldraw/editor'
 import { useCallback } from 'react'
 import {
+	isEditingRichTextTaskItem,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
@@ -397,7 +398,8 @@ function useTextShapeKeydownHandler(id: TLShapeId) {
 
 			switch (e.key) {
 				case 'Enter': {
-					if (e.ctrlKey || e.metaKey) {
+					// Cmd+Enter ticks the item off instead; completing would tear the editor down first.
+					if ((e.ctrlKey || e.metaKey) && !isEditingRichTextTaskItem(editor)) {
 						editor.complete()
 					}
 					break

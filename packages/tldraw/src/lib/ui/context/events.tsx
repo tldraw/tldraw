@@ -144,6 +144,7 @@ export interface TLUiEventMap {
 			| 'link-remove'
 			| 'heading'
 			| 'bulletList'
+			| 'taskList'
 	}
 	edit: null
 	'copy-hovered-styles': null

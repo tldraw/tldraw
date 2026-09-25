@@ -1,6 +1,6 @@
 import { ExtractShapeByProps, TLRichText, TLShapeId, isAccelKey, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
-import { isEmptyRichText } from '../../utils/text/richText'
+import { isEditingRichTextTaskItem, isEmptyRichText } from '../../utils/text/richText'
 import { useEditableTextCommon } from './useEditablePlainText'
 
 /** @public */
@@ -33,7 +33,11 @@ export function useEditableRichText(
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
 			if (editor.getEditingShapeId() !== shapeId) return
-			if (e.key === 'Enter' && isAccelKey(e)) editor.complete()
+			if (e.key === 'Enter' && isAccelKey(e)) {
+				// Cmd+Enter ticks the item off instead; completing would tear the editor down first.
+				if (isEditingRichTextTaskItem(editor)) return
+				editor.complete()
+			}
 		},
 		[editor, shapeId]
 	)

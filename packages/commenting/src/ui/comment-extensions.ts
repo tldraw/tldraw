@@ -1,12 +1,25 @@
-import { getTipTapDefaultExtensions, TLRichText, toRichText } from 'tldraw'
+import {
+	getTipTapDefaultExtensions,
+	TaskItem,
+	TaskItemToggleExtension,
+	TaskList,
+	TLRichText,
+	toRichText,
+} from 'tldraw'
+
+// A posted comment is static HTML with nothing to write a click back to, so a checkbox there would
+// toggle on screen and snap back.
+const TASK_EXTENSION_NAMES = new Set([TaskList.name, TaskItem.name, TaskItemToggleExtension.name])
 
 /**
- * tldraw's default rich-text extension set, minus headings — the deliberately limited set used for
- * both the comment composer and comment display. Comments support paragraphs, bold, italic, lists,
- * links, code, and highlight, but not headings. Built from tldraw's shared factory so the config
+ * tldraw's default rich-text extension set, minus headings and task lists — the deliberately
+ * limited set used for both the comment composer and comment display. Comments support paragraphs,
+ * bold, italic, lists, links, code, and highlight. Built from tldraw's shared factory so the config
  * stays in lockstep with the text shape's defaults rather than drifting from a copy.
  */
-export const commentTipTapExtensions = getTipTapDefaultExtensions({ heading: false })
+export const commentTipTapExtensions = getTipTapDefaultExtensions({ heading: false }).filter(
+	(extension) => !TASK_EXTENSION_NAMES.has(extension.name)
+)
 
 /** An empty comment document — the seed value for a fresh composer and its post-submit reset. */
 export const EMPTY_COMMENT: TLRichText = toRichText('')
