@@ -131,6 +131,7 @@ BOTCOM_POSTGRES_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/p
 BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6432/postgres"
 TLDRAW_ENV = "development"
 MULTIPLAYER_SERVER = "http://localhost:3000"
+ZERO_SERVER = "http://localhost:4848/"
 MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
 # The MCP server's public URL, and the resource identifier it advertises in protected resource
 # metadata and in the WWW-Authenticate challenge. Not compared against an incoming token: Clerk stamps
@@ -140,7 +141,6 @@ MCP_SERVER_URL = "http://localhost:3000/api/app/mcp"
 # Kill switch for the MCP screenshot server (POST /app/mcp). Read per request, so setting it to
 # anything but "true" — here or straight in the Cloudflare dashboard — takes the endpoint down
 # without a rebuild. A dashboard edit lasts until the next deploy overwrites it from this file.
-MCP_SERVER_ENABLED = "true"
 # local-only signing secret; deployments get a real one via deploy vars
 MCP_SCREENSHOT_TOKEN_SECRET = "local-dev-thumbnail-render-secret"
 # Browser Run is unreachable from local dev (see the BROWSER binding note below), so screenshots go
@@ -161,7 +161,6 @@ HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
 MCP_SERVER_URL = "https://staging.tldraw.com/api/app/mcp"
-MCP_SERVER_ENABLED = "true"
 MCP_SEARCH_NAME_MATCHING_ENABLED = "true"
 # Staging joins previews in trialling live-canvas capture (see THUMBNAIL_RENDER_LIVE_CAPTURE in
 # types.ts). Previews are too short-lived and too lightly used to produce the render_page_timings
@@ -179,7 +178,6 @@ HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://www.tldraw.com"
 MCP_SERVER_URL = "https://www.tldraw.com/api/app/mcp"
-MCP_SERVER_ENABLED = "true"
 # Off while the unindexed `name ILIKE '%term%'` scan it drives is still being watched: it is the one
 # part of search no index reaches, so a term matching nothing reads every board in the caller's
 # scope. Off, the tool lists rather than searches and advertises no query — it does not accept a
@@ -682,6 +680,58 @@ name = "MCP_SERVER_SEARCH_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1020"
 simple = { limit = 60, period = 60 }
+
+# MCP server per-account `create_board` guard. Bounds writes, so it is its own budget and smaller than
+# search's — see MCP_CREATE_PER_USER_RATE_LIMIT in config.ts before changing this.
+[[env.dev.unsafe.bindings]]
+name = "MCP_SERVER_CREATE_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1021"
+simple = { limit = 10, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SERVER_CREATE_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1022"
+simple = { limit = 10, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SERVER_CREATE_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1023"
+simple = { limit = 10, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SERVER_CREATE_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1024"
+simple = { limit = 10, period = 60 }
+
+# MCP server per-account `rename_board` guard. Bounds writes, so it is its own budget and smaller than
+# search's — see MCP_RENAME_PER_USER_RATE_LIMIT in config.ts before changing this.
+[[env.dev.unsafe.bindings]]
+name = "MCP_SERVER_RENAME_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1025"
+simple = { limit = 10, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SERVER_RENAME_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1026"
+simple = { limit = 10, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SERVER_RENAME_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1027"
+simple = { limit = 10, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SERVER_RENAME_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1028"
+simple = { limit = 10, period = 60 }
 
 #################### Queues ####################
 [[env.dev.queues.producers]]

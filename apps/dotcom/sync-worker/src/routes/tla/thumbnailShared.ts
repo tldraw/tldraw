@@ -6,6 +6,25 @@ import { Environment } from '../../types'
 // the OG route, and the OG queue consumer). This module imports nothing from those files so it can
 // be depended on from any of them without creating an import cycle.
 
+// Shared by the OG route and the board view read. `if-none-match` is a list, each entry optionally weak-prefixed and quoted; R2's `etag` is the bare
+// value, so both sides are normalised before comparing.
+export function etagMatches(ifNoneMatch: string, etag: string) {
+	return ifNoneMatch
+		.split(',')
+		.map((candidate) => candidate.trim().replace(/^W\//, '').replace(/^"|"$/g, ''))
+		.some((candidate) => candidate === '*' || candidate === etag)
+}
+
+// Whether a stored image still depicts the board's current content, which every surface serving one
+// records as its `cacheStatus` telemetry dimension: a hit-rate panel that always read 100% hit could
+// not tell a healthy cache from one serving years-old tiles.
+//
+// Takes the version rather than the resolved board so this module keeps importing nothing from the
+// render modules.
+export function cacheStatusOf(cached: R2Object, version: string | number): 'hit' | 'stale' {
+	return cached.customMetadata?.version === String(version) ? 'hit' : 'stale'
+}
+
 // A rate limit binding could not be consulted. Distinct from every other failure on these routes
 // because nothing the caller did caused it and nothing they can do fixes it: the work was never
 // attempted, so telling them the database or the renderer failed sends them, and whoever reads the
@@ -108,6 +127,10 @@ export function describeThumbnailFailure(reason: string): string {
 			// The tools that fail this way start no render, so the default 'the render failed' would
 			// be a plainly wrong thing to tell a caller.
 			return 'the board database could not be reached'
+		case 'board_create_error':
+			return 'the board could not be saved'
+		case 'board_rename_error':
+			return 'the new name could not be saved'
 		case 'rate_limiter_unavailable':
 			// Deliberately not phrased as being rate limited: the caller is inside their budget, and a
 			// message saying otherwise would have them back off for a minute that would not help.
@@ -125,6 +148,8 @@ export type ThumbnailErrorSurface =
 	| 'thumbnail_snapshot'
 	| 'mcp_board_info'
 	| 'mcp_board_search'
+	| 'mcp_board_create'
+	| 'mcp_board_rename'
 	| 'mcp_screenshot'
 	// Kept apart from 'mcp_screenshot': the render succeeded and the caller still got their PNG, so
 	// this never means "screenshots are broken" — it means the cache isn't absorbing them and every
@@ -135,6 +160,8 @@ export type ThumbnailErrorSurface =
 	// for a browser session per call again, which is the thing that cache exists to stop.
 	| 'mcp_cluster_index_read'
 	| 'mcp_cluster_index_write'
+	// The authenticated owner-facing thumbnail route (getBoardThumbnail.ts).
+	| 'board_view'
 
 // Every thumbnail/OG surface swallows its own errors — the OG route falls back to the default image,
 // the snapshot route 404s, the MCP tools return a tool error, the queue retries or drops. Right for
