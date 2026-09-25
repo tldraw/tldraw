@@ -1209,9 +1209,6 @@ importers:
       tldraw:
         specifier: workspace:*
         version: link:../../../packages/tldraw
-      tslib:
-        specifier: ^2.8.1
-        version: 2.8.1
 
   apps/vscode/extension:
     dependencies:
@@ -1279,9 +1276,6 @@ importers:
       ts-loader:
         specifier: ^9.5.2
         version: 9.5.2(typescript@7.0.2)(webpack@5.105.2(@swc/core@1.15.18(@swc/helpers@0.5.23))(esbuild@0.28.2))
-      tslib:
-        specifier: ^2.8.1
-        version: 2.8.1
       tsx:
         specifier: ^4.19.2
         version: 4.22.4
