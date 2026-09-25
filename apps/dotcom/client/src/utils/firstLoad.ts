@@ -61,7 +61,7 @@ const FIRST_LOAD_FIELD_INFO: Record<string, string> = {
 	srv_echo: 'server timings arrived; false = none within 3s of board-visible',
 	srv_init_ms: 'sync worker: user init request (Server-Timing)',
 	srv_init_outcome:
-		'existing (user already set up), created (first sign-in), or a failure: rate_limited, no_clerk_user, no_email, error',
+		'existing (user already set up), created (first sign-in), or a failure: rate_limited, no_clerk_user, no_email; absent if init threw',
 	res_count: 'resources loaded by board-visible',
 	res_kb: 'total transferred',
 	res_js_kb: 'JS transferred',
