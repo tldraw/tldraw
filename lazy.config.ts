@@ -129,7 +129,11 @@ const config = {
 		'build-i18n': {
 			execution: 'independent',
 			cache: {
-				inputs: ['<rootDir>/apps/dotcom/client/public/tla/locales/*.json'],
+				inputs: [
+					// i18n:extract reads the messages out of these sources
+					'<rootDir>/apps/dotcom/client/src/{tla,pages,components}/**/*.{ts,tsx}',
+					'<rootDir>/apps/dotcom/client/public/tla/locales/*.json',
+				],
 				outputs: ['<rootDir>/apps/dotcom/client/public/tla/locales-compiled/*.json'],
 			},
 		},
