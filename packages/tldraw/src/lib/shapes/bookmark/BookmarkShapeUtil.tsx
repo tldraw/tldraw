@@ -195,8 +195,8 @@ export function BookmarkShapeComponent({
 								className="tl-bookmark__image"
 								draggable={false}
 								referrerPolicy="strict-origin-when-cross-origin"
-								src={asset?.props.image}
-								alt={asset?.props.title || ''}
+								src={asset.props.image}
+								alt={asset.props.title || ''}
 							/>
 						) : (
 							<div className="tl-bookmark__placeholder" />
@@ -208,7 +208,7 @@ export function BookmarkShapeComponent({
 					{asset?.props.title ? (
 						<a
 							className="tl-bookmark__link"
-							href={url || ''}
+							href={url}
 							target="_blank"
 							rel="noopener noreferrer"
 							draggable={false}
@@ -225,7 +225,7 @@ export function BookmarkShapeComponent({
 					) : null}
 					<a
 						className="tl-bookmark__link"
-						href={url || ''}
+						href={url}
 						target="_blank"
 						rel="noopener noreferrer"
 						draggable={false}

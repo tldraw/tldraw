@@ -518,9 +518,7 @@ export class PathBuilder {
 			const command = this.commands[i]
 			switch (command.type) {
 				case 'move': {
-					const isFilled =
-						command.opts?.geometry === false ? false : (command.opts?.geometry?.isFilled ?? false)
-					if (onlyFilled && !isFilled) {
+					if (onlyFilled && !isMoveFilled(command)) {
 						isSkippingCurrentLine = true
 					} else {
 						isSkippingCurrentLine = false
@@ -572,10 +570,8 @@ export class PathBuilder {
 			case 'dashed':
 			case 'dotted':
 				return this.toDashedSvg(opts)
-			case 'draw': {
-				const d = this.toDrawSvg(opts)
-				return d
-			}
+			case 'draw':
+				return this.toDrawSvg(opts)
 			default:
 				exhaustiveSwitchError(opts, 'style')
 		}
@@ -585,56 +581,38 @@ export class PathBuilder {
 		if (opts.style === 'none') {
 			return new Path2D()
 		}
-		if (opts.forceSolid || opts.style === 'solid') {
-			return new Path2D(this.toD({ onlyFilled: opts.onlyFilled }))
-		}
-		if (opts.style === 'draw') {
+		if (opts.style === 'draw' && !opts.forceSolid) {
 			return new Path2D(this.toDrawD(opts))
 		}
-
 		return new Path2D(this.toD({ onlyFilled: opts.onlyFilled }))
 	}
 
 	toGeometry(): PathBuilderGeometry2d | Group2d {
-		const geometries = []
+		const geometries: PathBuilderGeometry2d[] = []
 
-		let current: null | {
-			startIdx: number
-			moveCommand: MoveToPathBuilderCommand
-			isClosed: boolean
-			opts?: PathBuilderLineOpts
-		} = null
-		for (let i = 0; i < this.commands.length; i++) {
-			const command = this.commands[i]
-
-			if (command.type === 'move') {
-				if (current && current.opts?.geometry !== false) {
-					geometries.push(
-						new PathBuilderGeometry2d(this, current.startIdx, i, {
-							...current.opts?.geometry,
-							isFilled: current.opts?.geometry?.isFilled ?? false,
-							isClosed: current.moveCommand.closeIdx !== null,
-						})
-					)
-				}
-				current = { startIdx: i, moveCommand: command, opts: command.opts, isClosed: false }
-			}
-
-			if (command.isClose) {
-				assert(current, 'No current move command')
-				current.isClosed = true
-			}
-		}
-
-		if (current && current.opts?.geometry !== false) {
+		let current: { startIdx: number; moveCommand: MoveToPathBuilderCommand } | null = null
+		const flushCurrent = (endIdx: number) => {
+			if (!current) return
+			const { startIdx, moveCommand } = current
+			const geometry = moveCommand.opts?.geometry
+			if (geometry === false) return
 			geometries.push(
-				new PathBuilderGeometry2d(this, current.startIdx, this.commands.length, {
-					...current.opts?.geometry,
-					isFilled: current.opts?.geometry?.isFilled ?? false,
-					isClosed: current.moveCommand.closeIdx !== null,
+				new PathBuilderGeometry2d(this, startIdx, endIdx, {
+					...geometry,
+					isFilled: geometry?.isFilled ?? false,
+					isClosed: moveCommand.closeIdx !== null,
 				})
 			)
 		}
+
+		for (let i = 0; i < this.commands.length; i++) {
+			const command = this.commands[i]
+			if (command.type === 'move') {
+				flushCurrent(i)
+				current = { startIdx: i, moveCommand: command }
+			}
+		}
+		flushCurrent(this.commands.length)
 
 		assert(geometries.length > 0)
 		if (geometries.length === 1) return geometries[0]
@@ -709,9 +687,7 @@ export class PathBuilder {
 			const lastCommand = this.commands[i - 1]
 			if (command.type === 'move') {
 				isCurrentPathClosed = command.closeIdx !== null
-				const isFilled =
-					command.opts?.geometry === false ? false : (command.opts?.geometry?.isFilled ?? false)
-				if (opts.onlyFilled && !isFilled) {
+				if (opts.onlyFilled && !isMoveFilled(command)) {
 					isSkippingCurrentLine = true
 				} else {
 					isSkippingCurrentLine = false
@@ -841,19 +817,14 @@ export class PathBuilder {
 				offsetAmount,
 				roundnessBefore: roundnessBeforeClampedForLength,
 				roundnessAfter: roundnessAfterClampedForLength,
-				tangentToPrev: commandInfo[i]?.tangentEnd,
-				tangentToNext: nextInfo?.tangentStart,
-				moveDidClose: false,
+				tangentToPrev,
+				tangentToNext,
 			}
 
 			drawCommands.push(drawCommand)
 
 			if (command.isClose && lastMoveCommandIdx !== null) {
-				const lastMoveCommand = drawCommands[lastMoveCommandIdx]
-				lastMoveCommand.moveDidClose = true
-				lastMoveCommand.roundnessAfter = roundnessAfterClampedForLength
-			} else if (command.type === 'move') {
-				lastMoveCommandIdx = i
+				drawCommands[lastMoveCommandIdx].roundnessAfter = roundnessAfterClampedForLength
 			}
 		}
 
@@ -881,13 +852,7 @@ export class PathBuilder {
 
 				if (command.type === 'move') {
 					lastMoveToOffset = offset
-					const isFilled =
-						command.opts?.geometry === false ? false : (command.opts?.geometry?.isFilled ?? false)
-					if (onlyFilled && !isFilled) {
-						isSkippingCurrentLine = true
-					} else {
-						isSkippingCurrentLine = false
-					}
+					isSkippingCurrentLine = onlyFilled && !isMoveFilled(command)
 				}
 
 				if (isSkippingCurrentLine) continue
@@ -1046,6 +1011,11 @@ const commandsSupportingRoundness = {
 	cubic: false,
 } as const satisfies Record<PathBuilderCommand['type'], boolean>
 
+function isMoveFilled(command: MoveToPathBuilderCommand) {
+	const geometry = command.opts?.geometry
+	return geometry === false ? false : (geometry?.isFilled ?? false)
+}
+
 /** @public */
 export class PathBuilderGeometry2d extends Geometry2d {
 	constructor(
@@ -1176,7 +1146,6 @@ const CubicBezier = {
 		const n = 12
 
 		let sum = 0
-		sum = 0
 		for (let i = 0; i < n; i++) {
 			const ct = z2 * CubicBezier.Tvalues[i] + z2
 			const xbase = CubicBezier.base3(ct, x1, x2, x3, x4)

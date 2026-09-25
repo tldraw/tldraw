@@ -186,11 +186,7 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 				}
 			} else {
 				pathLength = dist - markerRadius
-				const t = markerRadius / dist
-				const trimmedHandle = {
-					x: handle.x + (point.x - handle.x) * t,
-					y: handle.y + (point.y - handle.y) * t,
-				}
+				const trimmedHandle = Vec.Lrp(handle, point, markerRadius / dist)
 				ctx.moveTo(trimmedHandle.x, trimmedHandle.y)
 				ctx.lineTo(point.x, point.y)
 			}

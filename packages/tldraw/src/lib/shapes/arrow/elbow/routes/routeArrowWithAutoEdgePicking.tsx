@@ -26,46 +26,16 @@ export function routeArrowWithAutoEdgePicking(
 		} else {
 			idealRoute = tryRouteArrow(info, 'left', 'right')
 		}
+	} else if (info.A.isPoint && info.B.isPoint) {
+		if (info.gapY > 0) {
+			idealRoute = tryRouteArrow(info, 'bottom', 'top')
+		} else {
+			idealRoute = tryRouteArrow(info, 'top', 'bottom')
+		}
 	} else {
-		const aRight = info.A.edges.right
-		const aLeft = info.A.edges.left
-		const bTop = info.B.edges.top
-		const bBottom = info.B.edges.bottom
-
-		if (info.A.isPoint && info.B.isPoint) {
-			if (info.gapY > 0) {
-				idealRoute = tryRouteArrow(info, 'bottom', 'top')
-			} else {
-				idealRoute = tryRouteArrow(info, 'top', 'bottom')
-			}
-		} else if (
-			aRight &&
-			bTop &&
-			(aRight.expanded ?? aRight.value) <= bTop.crossTarget &&
-			aRight.crossTarget <= (bTop.expanded ?? bTop.value)
-		) {
-			idealRoute = tryRouteArrow(info, 'right', 'top')
-		} else if (
-			aRight &&
-			bBottom &&
-			(aRight.expanded ?? aRight.value) <= bBottom.crossTarget &&
-			aRight.crossTarget >= (bBottom.expanded ?? bBottom.value)
-		) {
-			idealRoute = tryRouteArrow(info, 'right', 'bottom')
-		} else if (
-			aLeft &&
-			bTop &&
-			(aLeft.expanded ?? aLeft.value) >= bTop.crossTarget &&
-			aLeft.crossTarget <= (bTop.expanded ?? bTop.value)
-		) {
-			idealRoute = tryRouteArrow(info, 'left', 'top')
-		} else if (
-			aLeft &&
-			bBottom &&
-			(aLeft.expanded ?? aLeft.value) >= bBottom.crossTarget &&
-			aLeft.crossTarget >= (bBottom.expanded ?? bBottom.value)
-		) {
-			idealRoute = tryRouteArrow(info, 'left', 'bottom')
+		const cornerSides = pickCornerSides(info, ['right', 'left'])
+		if (cornerSides) {
+			idealRoute = tryRouteArrow(info, cornerSides[0], cornerSides[1])
 		} else if (info.gapY > 0 && info.midY !== null) {
 			idealRoute = tryRouteArrow(info, 'bottom', 'top')
 		} else if (info.gapY < 0 && info.midY !== null) {
@@ -95,50 +65,24 @@ export function routeArrowWithPartialEdgePicking(
 ) {
 	let idealRoute = null
 
-	const aRight = info.A.edges.right
-	const aLeft = info.A.edges.left
-	const bTop = info.B.edges.top
-	const bBottom = info.B.edges.bottom
-
 	switch (aSide) {
 		case 'right':
-			if (info.gapX > 0 && info.gapX > Math.abs(info.gapY) && info.midX !== null) {
-				idealRoute = tryRouteArrow(info, 'right', 'left')
-			} else if (
-				aRight &&
-				bTop &&
-				(aRight.expanded ?? aRight.value) <= bTop.crossTarget &&
-				aRight.crossTarget <= (bTop.expanded ?? bTop.value)
+		case 'left': {
+			const isRight = aSide === 'right'
+			if (
+				(isRight ? info.gapX > 0 : info.gapX < 0) &&
+				Math.abs(info.gapX) > Math.abs(info.gapY) &&
+				info.midX !== null
 			) {
-				idealRoute = tryRouteArrow(info, 'right', 'top')
-			} else if (
-				aRight &&
-				bBottom &&
-				(aRight.expanded ?? aRight.value) <= bBottom.crossTarget &&
-				aRight.crossTarget >= (bBottom.expanded ?? bBottom.value)
-			) {
-				idealRoute = tryRouteArrow(info, 'right', 'bottom')
+				idealRoute = tryRouteArrow(info, aSide, isRight ? 'left' : 'right')
+			} else {
+				const cornerSides = pickCornerSides(info, [aSide])
+				if (cornerSides) {
+					idealRoute = tryRouteArrow(info, cornerSides[0], cornerSides[1])
+				}
 			}
 			break
-		case 'left':
-			if (info.gapX < 0 && Math.abs(info.gapX) > Math.abs(info.gapY) && info.midX !== null) {
-				idealRoute = tryRouteArrow(info, 'left', 'right')
-			} else if (
-				aLeft &&
-				bTop &&
-				(aLeft.expanded ?? aLeft.value) >= bTop.crossTarget &&
-				aLeft.crossTarget <= (bTop.expanded ?? bTop.value)
-			) {
-				idealRoute = tryRouteArrow(info, 'left', 'top')
-			} else if (
-				aLeft &&
-				bBottom &&
-				(aLeft.expanded ?? aLeft.value) >= bBottom.crossTarget &&
-				aLeft.crossTarget >= (bBottom.expanded ?? bBottom.value)
-			) {
-				idealRoute = tryRouteArrow(info, 'left', 'bottom')
-			}
-			break
+		}
 		case 'top':
 		case 'bottom':
 			// top and bottom are handled by the pickShortest approach below - it automatically
@@ -208,6 +152,32 @@ export function routeArrowWithManualEdgePicking(
 
 	return null
 }
+/**
+ * Find the first horizontal side of A that can turn a corner into the top or bottom of B without
+ * doubling back on itself. Returns the pair of sides, or null if no corner works.
+ */
+function pickCornerSides(
+	info: ElbowArrowWorkingInfo,
+	aSides: ReadonlyArray<'right' | 'left'>
+): [ElbowArrowSide, ElbowArrowSide] | null {
+	for (const aSide of aSides) {
+		const aEdge = info.A.edges[aSide]
+		if (!aEdge) continue
+		const aExpanded = aEdge.expanded ?? aEdge.value
+		for (const bSide of ['top', 'bottom'] as const) {
+			const bEdge = info.B.edges[bSide]
+			if (!bEdge) continue
+			const bExpanded = bEdge.expanded ?? bEdge.value
+			const aClearsB =
+				aSide === 'right' ? aExpanded <= bEdge.crossTarget : aExpanded >= bEdge.crossTarget
+			const bClearsA =
+				bSide === 'top' ? aEdge.crossTarget <= bExpanded : aEdge.crossTarget >= bExpanded
+			if (aClearsB && bClearsA) return [aSide, bSide]
+		}
+	}
+	return null
+}
+
 function pickBest(
 	info: ElbowArrowWorkingInfo,
 	edges: ReadonlyArray<

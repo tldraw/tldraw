@@ -104,494 +104,397 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 		// Create pages
 
 		const v1PageIdsToV2PageIds = new Map<string, TLPageId>()
+		const v1Pages = Object.values(document.pages ?? {}).sort((a, b) =>
+			(a.childIndex ?? 1) < (b.childIndex ?? 1) ? -1 : 1
+		)
 
-		Object.values(document.pages ?? {})
-			.sort((a, b) => ((a.childIndex ?? 1) < (b.childIndex ?? 1) ? -1 : 1))
-			.forEach((v1Page, i) => {
-				if (i === 0) {
-					v1PageIdsToV2PageIds.set(v1Page.id, editor.getCurrentPageId())
-				} else {
-					const pageId = PageRecordType.createId()
-					v1PageIdsToV2PageIds.set(v1Page.id, pageId)
-					editor.createPage({ name: v1Page.name ?? 'Page', id: pageId })
+		v1Pages.forEach((v1Page, i) => {
+			if (i === 0) {
+				v1PageIdsToV2PageIds.set(v1Page.id, editor.getCurrentPageId())
+			} else {
+				const pageId = PageRecordType.createId()
+				v1PageIdsToV2PageIds.set(v1Page.id, pageId)
+				editor.createPage({ name: v1Page.name ?? 'Page', id: pageId })
+			}
+		})
+
+		v1Pages.forEach((v1Page) => {
+			// Set the current page id to the current page
+			editor.setCurrentPage(v1PageIdsToV2PageIds.get(v1Page.id)!)
+
+			const v1ShapeIdsToV2ShapeIds = new Map<string, TLShapeId>()
+			const v1GroupShapeIdsToV1ChildIds = new Map<string, string[]>()
+
+			const v1Shapes = Object.values(v1Page.shapes ?? {})
+				.sort((a, b) => (a.childIndex < b.childIndex ? -1 : 1))
+				.slice(0, editor.options.maxShapesPerPage)
+
+			// Groups only
+			v1Shapes.forEach((v1Shape) => {
+				if (v1Shape.type !== TLV1ShapeType.Group) return
+
+				const shapeId = createShapeId()
+				v1ShapeIdsToV2ShapeIds.set(v1Shape.id, shapeId)
+				v1GroupShapeIdsToV1ChildIds.set(v1Shape.id, [])
+			})
+
+			function decideNotToCreateShape(v1Shape: TLV1Shape) {
+				v1ShapeIdsToV2ShapeIds.delete(v1Shape.id)
+				const v1GroupParent = v1GroupShapeIdsToV1ChildIds.has(v1Shape.parentId)
+				if (v1GroupParent) {
+					const ids = v1GroupShapeIdsToV1ChildIds
+						.get(v1Shape.parentId)!
+						.filter((id) => id !== v1Shape.id)
+					v1GroupShapeIdsToV1ChildIds.set(v1Shape.parentId, ids)
+				}
+			}
+
+			// Non-groups only
+			v1Shapes.forEach((v1Shape) => {
+				// Skip groups for now, we'll create groups via the app's API
+				if (v1Shape.type === TLV1ShapeType.Group) {
+					return
+				}
+
+				const shapeId = createShapeId()
+				v1ShapeIdsToV2ShapeIds.set(v1Shape.id, shapeId)
+
+				if (v1Shape.parentId !== v1Page.id) {
+					// If the parent is a group, then add the shape to the group's children
+					if (v1GroupShapeIdsToV1ChildIds.has(v1Shape.parentId)) {
+						v1GroupShapeIdsToV1ChildIds.get(v1Shape.parentId)!.push(v1Shape.id)
+					} else {
+						console.warn('parent does not exist', v1Shape)
+					}
+				}
+
+				// First, try to find the shape's parent among the existing groups
+				const parentId = v1PageIdsToV2PageIds.get(v1Page.id)!
+
+				const inCommon = {
+					id: shapeId,
+					parentId,
+					x: coerceNumber(v1Shape.point[0]),
+					y: coerceNumber(v1Shape.point[1]),
+					rotation: 0,
+					isLocked: !!v1Shape.isLocked,
+				}
+
+				switch (v1Shape.type) {
+					case TLV1ShapeType.Sticky: {
+						editor.createShapes([
+							{
+								...inCommon,
+								type: 'note',
+								props: {
+									richText: toRichText(v1Shape.text ?? ''),
+									color: getV2Color(v1Shape.style.color),
+									size: getV2Size(v1Shape.style.size),
+									font: getV2Font(v1Shape.style.font),
+									align: getV2Align(v1Shape.style.textAlign),
+								},
+							},
+						])
+						break
+					}
+					case TLV1ShapeType.Rectangle: {
+						editor.createShapes([
+							{
+								...inCommon,
+								type: 'geo',
+								props: {
+									geo: 'rectangle',
+									w: coerceDimension(v1Shape.size[0]),
+									h: coerceDimension(v1Shape.size[1]),
+									richText: toRichText(v1Shape.label ?? ''),
+									fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
+									labelColor: getV2Color(v1Shape.style.color),
+									color: getV2Color(v1Shape.style.color),
+									size: getV2Size(v1Shape.style.size),
+									font: getV2Font(v1Shape.style.font),
+									dash: getV2Dash(v1Shape.style.dash),
+									align: 'middle',
+								},
+							},
+						])
+
+						applyV1GeoLabel(editor, inCommon.id, v1Shape.label)
+						break
+					}
+					case TLV1ShapeType.Triangle: {
+						editor.createShapes([
+							{
+								...inCommon,
+								type: 'geo',
+								props: {
+									geo: 'triangle',
+									w: coerceDimension(v1Shape.size[0]),
+									h: coerceDimension(v1Shape.size[1]),
+									fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
+									labelColor: getV2Color(v1Shape.style.color),
+									color: getV2Color(v1Shape.style.color),
+									size: getV2Size(v1Shape.style.size),
+									font: getV2Font(v1Shape.style.font),
+									dash: getV2Dash(v1Shape.style.dash),
+									align: 'middle',
+								},
+							},
+						])
+
+						applyV1GeoLabel(editor, inCommon.id, v1Shape.label)
+						break
+					}
+					case TLV1ShapeType.Ellipse: {
+						editor.createShapes([
+							{
+								...inCommon,
+								type: 'geo',
+								props: {
+									geo: 'ellipse',
+									w: coerceDimension(v1Shape.radius[0]) * 2,
+									h: coerceDimension(v1Shape.radius[1]) * 2,
+									fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
+									labelColor: getV2Color(v1Shape.style.color),
+									color: getV2Color(v1Shape.style.color),
+									size: getV2Size(v1Shape.style.size),
+									font: getV2Font(v1Shape.style.font),
+									dash: getV2Dash(v1Shape.style.dash),
+									align: 'middle',
+								},
+							},
+						])
+
+						applyV1GeoLabel(editor, inCommon.id, v1Shape.label)
+
+						break
+					}
+					case TLV1ShapeType.Draw: {
+						if (v1Shape.points.length === 0) {
+							decideNotToCreateShape(v1Shape)
+							break
+						}
+
+						const points = v1Shape.points.map(getV2Point)
+						const base64Points = b64Vecs.encodePoints(points)
+
+						editor.createShapes([
+							{
+								...inCommon,
+								type: 'draw',
+								props: {
+									fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
+									color: getV2Color(v1Shape.style.color),
+									size: getV2Size(v1Shape.style.size),
+									dash: getV2Dash(v1Shape.style.dash),
+									isPen: false,
+									isComplete: v1Shape.isComplete,
+									segments: [{ type: 'free', path: base64Points }],
+									scale: 1,
+									scaleX: 1,
+									scaleY: 1,
+								},
+							},
+						])
+						break
+					}
+					case TLV1ShapeType.Arrow: {
+						const v1Bend = coerceNumber(v1Shape.bend)
+						const v1Start = getV2Point(v1Shape.handles.start.point)
+						const v1End = getV2Point(v1Shape.handles.end.point)
+						const dist = Vec.Dist(v1Start, v1End)
+						const v2Bend = (dist * -v1Bend) / 2
+
+						// Could also be a line... but we'll use it as an arrow anyway
+						editor.createShapes([
+							{
+								...inCommon,
+								type: 'arrow',
+								props: {
+									richText: toRichText(v1Shape.label ?? ''),
+									color: getV2Color(v1Shape.style.color),
+									labelColor: getV2Color(v1Shape.style.color),
+									size: getV2Size(v1Shape.style.size),
+									font: getV2Font(v1Shape.style.font),
+									dash: getV2Dash(v1Shape.style.dash),
+									arrowheadStart: getV2Arrowhead(v1Shape.decorations?.start),
+									arrowheadEnd: getV2Arrowhead(v1Shape.decorations?.end),
+									start: {
+										x: coerceNumber(v1Shape.handles.start.point[0]),
+										y: coerceNumber(v1Shape.handles.start.point[1]),
+									},
+									end: {
+										x: coerceNumber(v1Shape.handles.end.point[0]),
+										y: coerceNumber(v1Shape.handles.end.point[1]),
+									},
+									bend: v2Bend,
+								},
+							},
+						])
+
+						break
+					}
+					case TLV1ShapeType.Text: {
+						editor.createShapes([
+							{
+								...inCommon,
+								type: 'text',
+								props: {
+									richText: toRichText(v1Shape.text ?? ' '),
+									color: getV2Color(v1Shape.style.color),
+									size: getV2TextSize(v1Shape.style.size),
+									font: getV2Font(v1Shape.style.font),
+									textAlign: getV2TextAlign(v1Shape.style.textAlign),
+									scale: v1Shape.style.scale ?? 1,
+								},
+							},
+						])
+						break
+					}
+					case TLV1ShapeType.Image: {
+						const assetId = v1AssetIdsToV2AssetIds.get(v1Shape.assetId)
+
+						if (!assetId) {
+							console.warn('Could not find asset id', v1Shape.assetId)
+							return
+						}
+
+						editor.createShapes([
+							{
+								...inCommon,
+								type: 'image',
+								props: {
+									w: coerceDimension(v1Shape.size[0]),
+									h: coerceDimension(v1Shape.size[1]),
+									assetId,
+								},
+							},
+						])
+						break
+					}
+					case TLV1ShapeType.Video: {
+						const assetId = v1AssetIdsToV2AssetIds.get(v1Shape.assetId)
+
+						if (!assetId) {
+							console.warn('Could not find asset id', v1Shape.assetId)
+							return
+						}
+
+						editor.createShapes([
+							{
+								...inCommon,
+								type: 'video',
+								props: {
+									w: coerceDimension(v1Shape.size[0]),
+									h: coerceDimension(v1Shape.size[1]),
+									assetId,
+								},
+							},
+						])
+						break
+					}
+				}
+
+				const rotation = coerceNumber(v1Shape.rotation)
+
+				if (rotation !== 0) {
+					editor.select(shapeId)
+					editor.rotateShapesBy([shapeId], rotation)
 				}
 			})
 
-		Object.values(document.pages ?? {})
-			.sort((a, b) => ((a.childIndex ?? 1) < (b.childIndex ?? 1) ? -1 : 1))
-			.forEach((v1Page) => {
-				// Set the current page id to the current page
-				editor.setCurrentPage(v1PageIdsToV2PageIds.get(v1Page.id)!)
+			// Create groups
+			v1GroupShapeIdsToV1ChildIds.forEach((v1ChildIds, v1GroupId) => {
+				const v2ChildShapeIds = v1ChildIds.map((id) => v1ShapeIdsToV2ShapeIds.get(id)!)
+				const v2GroupId = v1ShapeIdsToV2ShapeIds.get(v1GroupId)!
+				editor.groupShapes(v2ChildShapeIds, { groupId: v2GroupId })
 
-				const v1ShapeIdsToV2ShapeIds = new Map<string, TLShapeId>()
-				const v1GroupShapeIdsToV1ChildIds = new Map<string, string[]>()
+				const v1Group = v1Page.shapes[v1GroupId]
+				const rotation = coerceNumber(v1Group.rotation)
 
-				const v1Shapes = Object.values(v1Page.shapes ?? {})
-					.sort((a, b) => (a.childIndex < b.childIndex ? -1 : 1))
-					.slice(0, editor.options.maxShapesPerPage)
+				if (rotation !== 0) {
+					editor.select(v2GroupId)
+					editor.rotateShapesBy([v2GroupId], rotation)
+				}
+			})
 
-				// Groups only
-				v1Shapes.forEach((v1Shape) => {
-					if (v1Shape.type !== TLV1ShapeType.Group) return
+			// Bind arrows to shapes
 
-					const shapeId = createShapeId()
-					v1ShapeIdsToV2ShapeIds.set(v1Shape.id, shapeId)
-					v1GroupShapeIdsToV1ChildIds.set(v1Shape.id, [])
-				})
-
-				function decideNotToCreateShape(v1Shape: TLV1Shape) {
-					v1ShapeIdsToV2ShapeIds.delete(v1Shape.id)
-					const v1GroupParent = v1GroupShapeIdsToV1ChildIds.has(v1Shape.parentId)
-					if (v1GroupParent) {
-						const ids = v1GroupShapeIdsToV1ChildIds
-							.get(v1Shape.parentId)!
-							.filter((id) => id !== v1Shape.id)
-						v1GroupShapeIdsToV1ChildIds.set(v1Shape.parentId, ids)
-					}
+			v1Shapes.forEach((v1Shape) => {
+				if (v1Shape.type !== TLV1ShapeType.Arrow) {
+					return
 				}
 
-				// Non-groups only
-				v1Shapes.forEach((v1Shape) => {
-					// Skip groups for now, we'll create groups via the app's API
-					if (v1Shape.type === TLV1ShapeType.Group) {
-						return
-					}
+				const v2ShapeId = v1ShapeIdsToV2ShapeIds.get(v1Shape.id)!
+				const util = editor.getShapeUtil<TLArrowShape>('arrow')
 
-					const shapeId = createShapeId()
-					v1ShapeIdsToV2ShapeIds.set(v1Shape.id, shapeId)
+				// dumb but necessary
+				editor.inputs.setCtrlKey(false)
 
-					if (v1Shape.parentId !== v1Page.id) {
-						// If the parent is a group, then add the shape to the group's children
-						if (v1GroupShapeIdsToV1ChildIds.has(v1Shape.parentId)) {
-							v1GroupShapeIdsToV1ChildIds.get(v1Shape.parentId)!.push(v1Shape.id)
-						} else {
-							console.warn('parent does not exist', v1Shape)
+				for (const handleId of ['start', 'end'] as const) {
+					const bindingId = v1Shape.handles[handleId].bindingId
+					if (bindingId) {
+						const binding = v1Page.bindings[bindingId]
+						if (!binding) {
+							// arrow has a reference to a binding that no longer exists
+							continue
 						}
-					}
 
-					// First, try to find the shape's parent among the existing groups
-					const parentId = v1PageIdsToV2PageIds.get(v1Page.id)!
+						const targetId = v1ShapeIdsToV2ShapeIds.get(binding.toId)!
 
-					const inCommon = {
-						id: shapeId,
-						parentId,
-						x: coerceNumber(v1Shape.point[0]),
-						y: coerceNumber(v1Shape.point[1]),
-						rotation: 0,
-						isLocked: !!v1Shape.isLocked,
-					}
+						const targetShape = editor.getShape(targetId)!
 
-					switch (v1Shape.type) {
-						case TLV1ShapeType.Sticky: {
-							editor.createShapes([
-								{
-									...inCommon,
-									type: 'note',
-									props: {
-										richText: toRichText(v1Shape.text ?? ''),
-										color: getV2Color(v1Shape.style.color),
-										size: getV2Size(v1Shape.style.size),
-										font: getV2Font(v1Shape.style.font),
-										align: getV2Align(v1Shape.style.textAlign),
-									},
+						// (unexpected) We didn't create the target shape
+						if (!targetShape) continue
+
+						if (targetId) {
+							const bounds = editor.getShapePageBounds(targetId)!
+
+							const v2ShapeFresh = editor.getShape<TLArrowShape>(v2ShapeId)!
+
+							const nx = clamp((coerceNumber(binding.point[0]) + 0.5) / 2, 0.2, 0.8)
+							const ny = clamp((coerceNumber(binding.point[1]) + 0.5) / 2, 0.2, 0.8)
+
+							const point = editor.getPointInShapeSpace(v2ShapeFresh, {
+								x: bounds.minX + bounds.width * nx,
+								y: bounds.minY + bounds.height * ny,
+							})
+
+							const handles = editor.getShapeHandles(v2ShapeFresh)!
+							const change = util.onHandleDrag!(v2ShapeFresh, {
+								handle: {
+									...handles.find((h) => h.id === handleId)!,
+									x: point.x,
+									y: point.y,
 								},
-							])
-							break
-						}
-						case TLV1ShapeType.Rectangle: {
-							editor.createShapes([
-								{
-									...inCommon,
-									type: 'geo',
-									props: {
-										geo: 'rectangle',
-										w: coerceDimension(v1Shape.size[0]),
-										h: coerceDimension(v1Shape.size[1]),
-										richText: toRichText(v1Shape.label ?? ''),
-										fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
-										labelColor: getV2Color(v1Shape.style.color),
-										color: getV2Color(v1Shape.style.color),
-										size: getV2Size(v1Shape.style.size),
-										font: getV2Font(v1Shape.style.font),
-										dash: getV2Dash(v1Shape.style.dash),
-										align: 'middle',
-									},
-								},
-							])
+								isPrecise: point.x !== 0.5 || point.y !== 0.5,
+								isCreatingShape: true,
+							})
 
-							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
-
-							editor.updateShapes([
-								{
-									id: inCommon.id,
-									type: 'geo',
-									props: {
-										richText: toRichText(v1Shape.label ?? ''),
-									},
-								},
-							])
-
-							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
-								const { growY } = shape.props
-								const w = coerceDimension(shape.props.w)
-								const h = coerceDimension(shape.props.h)
-								const newW = w + growY / 2
-								const newH = h + growY / 2
-
-								editor.updateShapes([
-									{
-										id: inCommon.id,
-										type: 'geo',
-										x: coerceNumber(shape.x) - (newW - w) / 2,
-										y: coerceNumber(shape.y) - (newH - h) / 2,
-										props: {
-											w: newW,
-											h: newH,
-										},
-									},
-								])
-							}
-							break
-						}
-						case TLV1ShapeType.Triangle: {
-							editor.createShapes([
-								{
-									...inCommon,
-									type: 'geo',
-									props: {
-										geo: 'triangle',
-										w: coerceDimension(v1Shape.size[0]),
-										h: coerceDimension(v1Shape.size[1]),
-										fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
-										labelColor: getV2Color(v1Shape.style.color),
-										color: getV2Color(v1Shape.style.color),
-										size: getV2Size(v1Shape.style.size),
-										font: getV2Font(v1Shape.style.font),
-										dash: getV2Dash(v1Shape.style.dash),
-										align: 'middle',
-									},
-								},
-							])
-
-							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
-
-							editor.updateShapes([
-								{
-									id: inCommon.id,
-									type: 'geo',
-									props: {
-										richText: toRichText(v1Shape.label ?? ''),
-									},
-								},
-							])
-
-							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
-								const { growY } = shape.props
-								const w = coerceDimension(shape.props.w)
-								const h = coerceDimension(shape.props.h)
-								const newW = w + growY / 2
-								const newH = h + growY / 2
-
-								editor.updateShapes([
-									{
-										id: inCommon.id,
-										type: 'geo',
-										x: coerceNumber(shape.x) - (newW - w) / 2,
-										y: coerceNumber(shape.y) - (newH - h) / 2,
-										props: {
-											w: newW,
-											h: newH,
-										},
-									},
-								])
-							}
-							break
-						}
-						case TLV1ShapeType.Ellipse: {
-							editor.createShapes([
-								{
-									...inCommon,
-									type: 'geo',
-									props: {
-										geo: 'ellipse',
-										w: coerceDimension(v1Shape.radius[0]) * 2,
-										h: coerceDimension(v1Shape.radius[1]) * 2,
-										fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
-										labelColor: getV2Color(v1Shape.style.color),
-										color: getV2Color(v1Shape.style.color),
-										size: getV2Size(v1Shape.style.size),
-										font: getV2Font(v1Shape.style.font),
-										dash: getV2Dash(v1Shape.style.dash),
-										align: 'middle',
-									},
-								},
-							])
-
-							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
-
-							editor.updateShapes([
-								{
-									id: inCommon.id,
-									type: 'geo',
-									props: {
-										richText: toRichText(v1Shape.label ?? ''),
-									},
-								},
-							])
-
-							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
-								const { growY } = shape.props
-								const w = coerceDimension(shape.props.w)
-								const h = coerceDimension(shape.props.h)
-								const newW = w + growY / 2
-								const newH = h + growY / 2
-
-								editor.updateShapes([
-									{
-										id: inCommon.id,
-										type: 'geo',
-										x: coerceNumber(shape.x) - (newW - w) / 2,
-										y: coerceNumber(shape.y) - (newH - h) / 2,
-										props: {
-											w: newW,
-											h: newH,
-										},
-									},
-								])
+							if (change) {
+								editor.updateShape(change)
 							}
 
-							break
-						}
-						case TLV1ShapeType.Draw: {
-							if (v1Shape.points.length === 0) {
-								decideNotToCreateShape(v1Shape)
-								break
-							}
-
-							const points = v1Shape.points.map(getV2Point)
-							const base64Points = b64Vecs.encodePoints(points)
-
-							editor.createShapes([
-								{
-									...inCommon,
-									type: 'draw',
-									props: {
-										fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
-										color: getV2Color(v1Shape.style.color),
-										size: getV2Size(v1Shape.style.size),
-										dash: getV2Dash(v1Shape.style.dash),
-										isPen: false,
-										isComplete: v1Shape.isComplete,
-										segments: [{ type: 'free', path: base64Points }],
-										scale: 1,
-										scaleX: 1,
-										scaleY: 1,
-									},
-								},
-							])
-							break
-						}
-						case TLV1ShapeType.Arrow: {
-							const v1Bend = coerceNumber(v1Shape.bend)
-							const v1Start = getV2Point(v1Shape.handles.start.point)
-							const v1End = getV2Point(v1Shape.handles.end.point)
-							const dist = Vec.Dist(v1Start, v1End)
-							const v2Bend = (dist * -v1Bend) / 2
-
-							// Could also be a line... but we'll use it as an arrow anyway
-							editor.createShapes([
-								{
-									...inCommon,
-									type: 'arrow',
-									props: {
-										richText: toRichText(v1Shape.label ?? ''),
-										color: getV2Color(v1Shape.style.color),
-										labelColor: getV2Color(v1Shape.style.color),
-										size: getV2Size(v1Shape.style.size),
-										font: getV2Font(v1Shape.style.font),
-										dash: getV2Dash(v1Shape.style.dash),
-										arrowheadStart: getV2Arrowhead(v1Shape.decorations?.start),
-										arrowheadEnd: getV2Arrowhead(v1Shape.decorations?.end),
-										start: {
-											x: coerceNumber(v1Shape.handles.start.point[0]),
-											y: coerceNumber(v1Shape.handles.start.point[1]),
-										},
-										end: {
-											x: coerceNumber(v1Shape.handles.end.point[0]),
-											y: coerceNumber(v1Shape.handles.end.point[1]),
-										},
-										bend: v2Bend,
-									},
-								},
-							])
-
-							break
-						}
-						case TLV1ShapeType.Text: {
-							editor.createShapes([
-								{
-									...inCommon,
-									type: 'text',
-									props: {
-										richText: toRichText(v1Shape.text ?? ' '),
-										color: getV2Color(v1Shape.style.color),
-										size: getV2TextSize(v1Shape.style.size),
-										font: getV2Font(v1Shape.style.font),
-										textAlign: getV2TextAlign(v1Shape.style.textAlign),
-										scale: v1Shape.style.scale ?? 1,
-									},
-								},
-							])
-							break
-						}
-						case TLV1ShapeType.Image: {
-							const assetId = v1AssetIdsToV2AssetIds.get(v1Shape.assetId)
-
-							if (!assetId) {
-								console.warn('Could not find asset id', v1Shape.assetId)
-								return
-							}
-
-							editor.createShapes([
-								{
-									...inCommon,
-									type: 'image',
-									props: {
-										w: coerceDimension(v1Shape.size[0]),
-										h: coerceDimension(v1Shape.size[1]),
-										assetId,
-									},
-								},
-							])
-							break
-						}
-						case TLV1ShapeType.Video: {
-							const assetId = v1AssetIdsToV2AssetIds.get(v1Shape.assetId)
-
-							if (!assetId) {
-								console.warn('Could not find asset id', v1Shape.assetId)
-								return
-							}
-
-							editor.createShapes([
-								{
-									...inCommon,
-									type: 'video',
-									props: {
-										w: coerceDimension(v1Shape.size[0]),
-										h: coerceDimension(v1Shape.size[1]),
-										assetId,
-									},
-								},
-							])
-							break
-						}
-					}
-
-					const rotation = coerceNumber(v1Shape.rotation)
-
-					if (rotation !== 0) {
-						editor.select(shapeId)
-						editor.rotateShapesBy([shapeId], rotation)
-					}
-				})
-
-				// Create groups
-				v1GroupShapeIdsToV1ChildIds.forEach((v1ChildIds, v1GroupId) => {
-					const v2ChildShapeIds = v1ChildIds.map((id) => v1ShapeIdsToV2ShapeIds.get(id)!)
-					const v2GroupId = v1ShapeIdsToV2ShapeIds.get(v1GroupId)!
-					editor.groupShapes(v2ChildShapeIds, { groupId: v2GroupId })
-
-					const v1Group = v1Page.shapes[v1GroupId]
-					const rotation = coerceNumber(v1Group.rotation)
-
-					if (rotation !== 0) {
-						editor.select(v2GroupId)
-						editor.rotateShapesBy([v2GroupId], rotation)
-					}
-				})
-
-				// Bind arrows to shapes
-
-				v1Shapes.forEach((v1Shape) => {
-					if (v1Shape.type !== TLV1ShapeType.Arrow) {
-						return
-					}
-
-					const v2ShapeId = v1ShapeIdsToV2ShapeIds.get(v1Shape.id)!
-					const util = editor.getShapeUtil<TLArrowShape>('arrow')
-
-					// dumb but necessary
-					editor.inputs.setCtrlKey(false)
-
-					for (const handleId of ['start', 'end'] as const) {
-						const bindingId = v1Shape.handles[handleId].bindingId
-						if (bindingId) {
-							const binding = v1Page.bindings[bindingId]
-							if (!binding) {
-								// arrow has a reference to a binding that no longer exists
-								continue
-							}
-
-							const targetId = v1ShapeIdsToV2ShapeIds.get(binding.toId)!
-
-							const targetShape = editor.getShape(targetId)!
-
-							// (unexpected) We didn't create the target shape
-							if (!targetShape) continue
-
-							if (targetId) {
-								const bounds = editor.getShapePageBounds(targetId)!
-
-								const v2ShapeFresh = editor.getShape<TLArrowShape>(v2ShapeId)!
-
-								const nx = clamp((coerceNumber(binding.point[0]) + 0.5) / 2, 0.2, 0.8)
-								const ny = clamp((coerceNumber(binding.point[1]) + 0.5) / 2, 0.2, 0.8)
-
-								const point = editor.getPointInShapeSpace(v2ShapeFresh, {
-									x: bounds.minX + bounds.width * nx,
-									y: bounds.minY + bounds.height * ny,
-								})
-
-								const handles = editor.getShapeHandles(v2ShapeFresh)!
-								const change = util.onHandleDrag!(v2ShapeFresh, {
-									handle: {
-										...handles.find((h) => h.id === handleId)!,
-										x: point.x,
-										y: point.y,
-									},
-									isPrecise: point.x !== 0.5 || point.y !== 0.5,
-									isCreatingShape: true,
-								})
-
-								if (change) {
-									editor.updateShape(change)
+							const freshBinding = getArrowBindings(
+								editor,
+								editor.getShape<TLArrowShape>(v2ShapeId)!
+							)[handleId]
+							if (freshBinding) {
+								const updatedFreshBinding = structuredClone(freshBinding)
+								if (binding.distance === 0) {
+									updatedFreshBinding.props.isExact = true
+								}
+								if (updatedFreshBinding.toId !== targetId) {
+									updatedFreshBinding.toId = targetId
+									updatedFreshBinding.props.normalizedAnchor = { x: nx, y: ny }
 								}
 
-								const freshBinding = getArrowBindings(
-									editor,
-									editor.getShape<TLArrowShape>(v2ShapeId)!
-								)[handleId]
-								if (freshBinding) {
-									const updatedFreshBinding = structuredClone(freshBinding)
-									if (binding.distance === 0) {
-										updatedFreshBinding.props.isExact = true
-									}
-									if (updatedFreshBinding.toId !== targetId) {
-										updatedFreshBinding.toId = targetId
-										updatedFreshBinding.props.normalizedAnchor = { x: nx, y: ny }
-									}
-
-									editor.updateBinding(updatedFreshBinding)
-								}
+								editor.updateBinding(updatedFreshBinding)
 							}
 						}
 					}
-				})
+				}
 			})
+		})
 
 		// Set the current page to the first page again
 		editor.setCurrentPage(firstPageId)
@@ -604,6 +507,31 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 			editor.zoomToBounds(bounds, { targetZoom: 1 })
 		}
 	})
+}
+
+function applyV1GeoLabel(editor: Editor, id: TLShapeId, label: string | undefined) {
+	const pageBoundsBeforeLabel = editor.getShapePageBounds(id)!
+
+	editor.updateShapes([{ id, type: 'geo', props: { richText: toRichText(label ?? '') } }])
+
+	if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
+		const shape = editor.getShape<TLGeoShape>(id)!
+		const { growY } = shape.props
+		const w = coerceDimension(shape.props.w)
+		const h = coerceDimension(shape.props.h)
+		const newW = w + growY / 2
+		const newH = h + growY / 2
+
+		editor.updateShapes([
+			{
+				id,
+				type: 'geo',
+				x: coerceNumber(shape.x) - (newW - w) / 2,
+				y: coerceNumber(shape.y) - (newH - h) / 2,
+				props: { w: newW, h: newH },
+			},
+		])
+	}
 }
 
 function coerceNumber(n: unknown): number {

@@ -156,9 +156,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 
 	const [isLoaded, setIsLoaded] = useState(false)
 
-	const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>((e) => {
-		const video = e.currentTarget
-		if (!video) return
+	const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>(() => {
 		setIsLoaded(true)
 	}, [])
 
@@ -175,12 +173,8 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 	// Focus the video when editing
 	useEffect(() => {
 		const video = rVideo.current
-		if (!video) return
-
-		if (isEditing) {
-			if (video.ownerDocument.activeElement !== video) {
-				video.focus()
-			}
+		if (isEditing && video && video.ownerDocument.activeElement !== video) {
+			video.focus()
 		}
 	}, [isEditing, isLoaded])
 
@@ -239,7 +233,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 					</div>
 				</div>
 			</HTMLContainer>
-			{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
+			{shape.props.url && <HyperlinkButton url={shape.props.url} />}
 		</>
 	)
 })

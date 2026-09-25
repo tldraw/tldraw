@@ -3,6 +3,7 @@ import {
 	Geometry2d,
 	HALF_PI,
 	Mat,
+	PI2,
 	OverlayUtil,
 	Polygon2d,
 	Rectangle2d,
@@ -251,12 +252,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 	): Geometry2d {
 		if (handle === 'top' || handle === 'bottom' || handle === 'left' || handle === 'right') {
 			const rect = this._getEdgeLocalRect(handle, state)
-			return new Polygon2d({
-				points: this._localRectToPoints(rect.x, rect.y, rect.w, rect.h).map((p) =>
-					Mat.applyToPoint(transform, p)
-				),
-				isFilled: true,
-			})
+			return this._localRectToPolygon(rect.x, rect.y, rect.w, rect.h, transform)
 		}
 
 		const cornerPoint = this._getCornerLocalPoint(
@@ -265,15 +261,13 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			state.height
 		)
 		const cornerHitHalfSize = Math.max(state.hitTargetSizeX, state.hitTargetSizeY) * 1.5
-		return new Polygon2d({
-			points: this._localRectToPoints(
-				cornerPoint.x - cornerHitHalfSize,
-				cornerPoint.y - cornerHitHalfSize,
-				cornerHitHalfSize * 2,
-				cornerHitHalfSize * 2
-			).map((p) => Mat.applyToPoint(transform, p)),
-			isFilled: true,
-		})
+		return this._localRectToPolygon(
+			cornerPoint.x - cornerHitHalfSize,
+			cornerPoint.y - cornerHitHalfSize,
+			cornerHitHalfSize * 2,
+			cornerHitHalfSize * 2,
+			transform
+		)
 	}
 
 	private _getRotateHandleGeometry(
@@ -294,14 +288,15 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 	}
 
 	private _getMobileRotateGeometry(state: SelectionState, transform: Mat): Geometry2d {
-		const bgRadius = Math.max(14 * (1 / state.zoom), 20 / Math.max(1, state.zoom))
+		const bgRadius = Math.max(14 / state.zoom, 20 / Math.max(1, state.zoom))
 		const { cx, cy } = this._getMobileRotateCenter(state)
-		return new Polygon2d({
-			points: this._localRectToPoints(cx - bgRadius, cy - bgRadius, bgRadius * 2, bgRadius * 2).map(
-				(p) => Mat.applyToPoint(transform, p)
-			),
-			isFilled: true,
-		})
+		return this._localRectToPolygon(
+			cx - bgRadius,
+			cy - bgRadius,
+			bgRadius * 2,
+			bgRadius * 2,
+			transform
+		)
 	}
 
 	// --- Rendering (all helpers assume ctx is in local selection space) ---
@@ -414,7 +409,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		ctx.strokeStyle = colors.strokeColor
 		ctx.lineWidth = this.options.lineWidth / state.zoom
 		ctx.beginPath()
-		ctx.arc(cx, cy, fgRadius, 0, Math.PI * 2)
+		ctx.arc(cx, cy, fgRadius, 0, PI2)
 		ctx.fill()
 		ctx.stroke()
 	}
@@ -559,23 +554,22 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		const showSelectionBounds = !hideOnlyShapeSelectionBounds && !isChangingStyle
 
 		const shouldDisplayBox =
-			(showSelectionBounds &&
-				editor.isInAny(
-					'select.idle',
-					'select.brushing',
-					'select.scribble_brushing',
-					'select.pointing_canvas',
-					'select.pointing_selection',
-					'select.pointing_shape',
-					'select.crop.idle',
-					'select.crop.pointing_crop',
-					'select.crop.pointing_crop_handle',
-					'select.pointing_resize_handle',
-					'select.pointing_rotate_handle'
-				)) ||
-			(showSelectionBounds &&
-				editor.isIn('select.resizing') &&
-				!!(onlyShape && editor.isShapeOfType(onlyShape, 'text')))
+			showSelectionBounds &&
+			(editor.isInAny(
+				'select.idle',
+				'select.brushing',
+				'select.scribble_brushing',
+				'select.pointing_canvas',
+				'select.pointing_selection',
+				'select.pointing_shape',
+				'select.crop.idle',
+				'select.crop.pointing_crop',
+				'select.crop.pointing_crop_handle',
+				'select.pointing_resize_handle',
+				'select.pointing_rotate_handle'
+			) ||
+				(editor.isIn('select.resizing') &&
+					!!(onlyShape && editor.isShapeOfType(onlyShape, 'text'))))
 
 		return {
 			bounds,
@@ -694,7 +688,10 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		}
 	}
 
-	private _localRectToPoints(x: number, y: number, w: number, h: number): Vec[] {
-		return [new Vec(x, y), new Vec(x + w, y), new Vec(x + w, y + h), new Vec(x, y + h)]
+	private _localRectToPolygon(x: number, y: number, w: number, h: number, transform: Mat) {
+		return new Polygon2d({
+			points: Mat.applyToPoints(transform, new Box(x, y, w, h).corners),
+			isFilled: true,
+		})
 	}
 }

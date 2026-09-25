@@ -10,14 +10,16 @@ import { getTranslateCroppedImageChange } from './crop_helpers'
 
 type Snapshot = ReturnType<TranslatingCrop['createSnapshot']>
 
+type TranslatingCropInfo = TLPointerEventInfo & {
+	target: 'shape'
+	isCreating?: boolean
+	onInteractionEnd?: string
+}
+
 export class TranslatingCrop extends StateNode {
 	static override id = 'translating_crop'
 
-	info = {} as TLPointerEventInfo & {
-		target: 'shape'
-		isCreating?: boolean
-		onInteractionEnd?: string
-	}
+	info = {} as TranslatingCropInfo
 
 	markId = ''
 
@@ -25,13 +27,7 @@ export class TranslatingCrop extends StateNode {
 
 	private changeTracker = new GestureShapeChangeTracker(this.editor)
 
-	override onEnter(
-		info: TLPointerEventInfo & {
-			target: 'shape'
-			isCreating?: boolean
-			onInteractionEnd?: string
-		}
-	) {
+	override onEnter(info: TranslatingCropInfo) {
 		this.info = info
 		this.snapshot = this.createSnapshot()
 
@@ -119,7 +115,7 @@ export class TranslatingCrop extends StateNode {
 			this.changeTracker.setTrackedShapeIds(this.snapshot.shape ? [this.snapshot.shape.id] : [])
 		}
 
-		const shape = this.snapshot.shape as ShapeWithCrop
+		const { shape } = this.snapshot
 
 		if (!shape) return
 

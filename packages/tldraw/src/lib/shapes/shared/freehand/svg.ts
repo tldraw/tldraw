@@ -1,3 +1,4 @@
+import { VecLike } from '@tldraw/editor'
 import { finishPath, resetPath, toCenti, writeCPair, writeStr } from './fmt'
 import { StrokePoint } from './types'
 
@@ -98,4 +99,11 @@ export function getSvgPathFromStrokePoints(points: StrokePoint[], closed = false
 	}
 
 	return finishPath()
+}
+
+/** SVG path for a filled circle of radius `r` centred on `point`; the "dot" a single-point stroke renders as. */
+export function getSvgDotPath(point: VecLike, r: number): string {
+	return `M ${point.x} ${point.y} m -${r}, 0 a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 -${
+		r * 2
+	},0`
 }

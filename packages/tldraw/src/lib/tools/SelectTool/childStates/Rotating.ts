@@ -12,9 +12,14 @@ import {
 	snapAngle,
 } from '@tldraw/editor'
 import { GestureShapeChangeTracker } from '../GestureShapeChangeTracker'
+import { returnToInteractionEnd } from '../selectHelpers'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 const ONE_DEGREE = Math.PI / 180
+
+type RotatingInfo = Extract<TLPointerEventInfo, { target: 'selection' }> & {
+	onInteractionEnd?: string | (() => void)
+}
 
 export class Rotating extends StateNode {
 	static override id = 'rotating'
@@ -22,17 +27,13 @@ export class Rotating extends StateNode {
 
 	snapshot = {} as TLRotationSnapshot
 
-	info = {} as Extract<TLPointerEventInfo, { target: 'selection' }> & {
-		onInteractionEnd?: string | (() => void)
-	}
+	info = {} as RotatingInfo
 
 	markId = ''
 
 	private changeTracker = new GestureShapeChangeTracker(this.editor)
 
-	override onEnter(
-		info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string | (() => void) }
-	) {
+	override onEnter(info: RotatingInfo) {
 		// Store the event information
 		this.info = info
 		if (typeof info.onInteractionEnd === 'string') {
@@ -163,15 +164,7 @@ export class Rotating extends StateNode {
 		})
 
 		this.editor.bailToMark(this.markId)
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, this.info)
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd, this.info)) return
 		this.parent.transition('idle', this.info)
 	}
 
@@ -191,15 +184,7 @@ export class Rotating extends StateNode {
 			this.editor,
 			this.snapshot.shapeSnapshots.map((s) => s.shape.id)
 		)
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd, this.info)
-			} else {
-				onInteractionEnd()
-			}
-			return
-		}
+		if (returnToInteractionEnd(this.editor, this.info.onInteractionEnd, this.info)) return
 		this.parent.transition('idle', this.info)
 	}
 

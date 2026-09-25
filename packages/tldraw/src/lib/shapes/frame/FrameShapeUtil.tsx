@@ -10,7 +10,6 @@ import {
 	TLEditStartInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
-	TLShapePartial,
 	TLShapeUtilConstructor,
 	Vec,
 	clamp,
@@ -31,11 +30,11 @@ import {
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { FrameHeading } from './components/FrameHeading'
 import {
-	defaultEmptyAs,
 	getFrameHeadingOpts,
 	getFrameHeadingSide,
 	getFrameHeadingSize,
 	getFrameHeadingTranslation,
+	getFrameTitle,
 } from './frameHelpers'
 
 // Some of these values are repeated in CSS and need to match
@@ -282,8 +281,8 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 						color={showFrameColors ? dv.showColorsHeadingTextColor : dv.headingTextColor}
 						width={shape.props.w}
 						height={shape.props.h}
-						offsetX={showFrameColors ? -1 : -7}
-						showColors={this.options.showColors}
+						offsetX={showFrameColors ? -1 : FRAME_HEADING_NOCOLORS_OFFSET_X}
+						showColors={showFrameColors}
 					/>
 				)}
 			</>
@@ -302,9 +301,8 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 		// Truncate with ellipsis
 		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(rotatedTopEdgeWidth - 12, true)
 
-		const frameTitle = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
 		const labelBounds = getFrameHeadingSize(this.editor, shape, opts)
-		const spans = this.editor.textMeasure.measureTextSpans(frameTitle, opts)
+		const spans = this.editor.textMeasure.measureTextSpans(getFrameTitle(shape.props.name), opts)
 		const text = createTextJsxFromSpans(this.editor, spans, opts)
 
 		const showFrameColors = this.options.showColors
@@ -371,25 +369,21 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 		const isHorizontalEdge = handle === 'left' || handle === 'right'
 		const isVerticalEdge = handle === 'top' || handle === 'bottom'
 
-		const childIds = this.editor.getSortedChildIdsForParent(shape.id)
-		const children = compact(childIds.map((id) => this.editor.getShape(id)))
+		const children = compact(
+			this.editor.getSortedChildIdsForParent(shape.id).map((id) => this.editor.getShape(id))
+		)
 		if (!children.length) return
 
 		const { dx, dy, w, h } = getFrameChildrenBounds(children, this.editor, { padding: 10 })
 
-		this.editor.run(() => {
-			const changes: TLShapePartial[] = childIds.map((childId) => {
-				const childShape = this.editor.getShape(childId)!
-				return {
-					id: childShape.id,
-					type: childShape.type,
-					x: isHorizontalEdge ? childShape.x + dx : childShape.x,
-					y: isVerticalEdge ? childShape.y + dy : childShape.y,
-				}
-			})
-
-			this.editor.updateShapes(changes)
-		})
+		this.editor.updateShapes(
+			children.map((childShape) => ({
+				id: childShape.id,
+				type: childShape.type,
+				x: isHorizontalEdge ? childShape.x + dx : childShape.x,
+				y: isVerticalEdge ? childShape.y + dy : childShape.y,
+			}))
+		)
 
 		// The children were shifted by (dx, dy) in frame space; move the frame the opposite way
 		// (in its parent's space) so they keep their canvas positions, as fitFrameToContent does.

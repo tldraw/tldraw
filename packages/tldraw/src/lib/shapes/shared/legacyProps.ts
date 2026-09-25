@@ -11,11 +11,8 @@ export function getLegacyOffsetX(
 		for (const { box } of spans) {
 			spansBounds.union(box)
 		}
-		if (align === 'start-legacy') {
-			return (totalWidth - 2 * padding - spansBounds.width) / 2
-		} else if (align === 'end-legacy') {
-			return -(totalWidth - 2 * padding - spansBounds.width) / 2
-		}
+		const offset = (totalWidth - 2 * padding - spansBounds.width) / 2
+		return align === 'start-legacy' ? offset : -offset
 	}
 	return undefined
 }

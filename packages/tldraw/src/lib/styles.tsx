@@ -34,10 +34,10 @@ export function getColorStyleItems(colors: TLThemeColors): StyleValuesForUi<stri
 
 	// First, add colors in the preferred order from DefaultColorStyle
 	for (const name of DefaultColorStyle.values) {
-		if (name in colors && isPaletteColor(colors[name as keyof typeof colors])) {
-			// we remove white here temporarily, it's an easter egg color that the panel does not yet account for
-			if (name === 'white') continue
-			result.push({ value: name, icon: 'color' as const })
+		// we remove white here temporarily, it's an easter egg color that the panel does not yet account for
+		if (name === 'white') continue
+		if (isPaletteColor(colors[name as keyof typeof colors])) {
+			result.push({ value: name, icon: 'color' })
 			seen.add(name)
 		}
 	}
@@ -45,7 +45,7 @@ export function getColorStyleItems(colors: TLThemeColors): StyleValuesForUi<stri
 	// Then, append any remaining palette colors from the theme
 	for (const [key, value] of Object.entries(colors)) {
 		if (!seen.has(key) && key !== 'white' && isPaletteColor(value)) {
-			result.push({ value: key, icon: 'color' as const })
+			result.push({ value: key, icon: 'color' })
 		}
 	}
 
@@ -74,7 +74,7 @@ export function getFontStyleItems(theme: TLTheme): StyleValuesForUi<string> {
 
 	for (const name of DefaultFontStyle.values) {
 		const entry = theme.fonts[name as keyof typeof theme.fonts]
-		if (name in theme.fonts && isFontEntry(entry)) {
+		if (isFontEntry(entry)) {
 			result.push({ value: name, icon: fontIcon(entry, name) })
 			seen.add(name)
 		}

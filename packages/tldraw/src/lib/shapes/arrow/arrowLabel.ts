@@ -60,33 +60,25 @@ const labelSizeCache = createComputedCache(
 	'arrow label size',
 	(editor: Editor, shape: TLArrowShape) => {
 		editor.fonts.trackFontsForShape(shape)
-		let width = 0
-		let height = 0
 
-		const bodyGeom = getArrowBodyGeometry(editor, shape)
+		const bodyBounds = getArrowBodyGeometry(editor, shape).bounds
 		// We use 'i' as a default label to measure against as a minimum width.
-		const isEmpty = isEmptyRichText(shape.props.richText)
 		const html = renderHtmlFromRichTextForMeasurement(
 			editor,
-			isEmpty ? toRichText('i') : shape.props.richText
+			isEmptyRichText(shape.props.richText) ? toRichText('i') : shape.props.richText
 		)
-
-		const bodyBounds = bodyGeom.bounds
 
 		const dv = getArrowDisplayValues(editor, shape)
 		const fontSize = dv.labelFontSize * shape.props.scale
 
 		// First we measure the text with no constraints
-		const { w, h } = editor.textMeasure.measureHtml(html, {
+		let { w: width, h: height } = editor.textMeasure.measureHtml(html, {
 			...TEXT_PROPS,
 			lineHeight: dv.labelLineHeight,
 			fontFamily: dv.labelFontFamily,
 			fontSize,
 			maxWidth: null,
 		})
-
-		width = w
-		height = h
 
 		let shouldSquish = false
 
@@ -100,7 +92,7 @@ const labelSizeCache = createComputedCache(
 				: 64
 
 		if (bodyBounds.width > bodyBounds.height) {
-			width = Math.max(Math.min(w, margin), Math.min(bodyBounds.width - margin, w))
+			width = Math.max(Math.min(width, margin), Math.min(bodyBounds.width - margin, width))
 			shouldSquish = true
 		} else if (width > 16 * fontSize) {
 			width = 16 * fontSize
@@ -141,13 +133,12 @@ function getLabelToArrowPadding(shape: TLArrowShape, theme: TLTheme) {
 	const strokeWidth = theme.strokeWidth * STROKE_SIZES[shape.props.size]
 	const smallStrokeWidth = theme.strokeWidth * STROKE_SIZES.s
 	const xlStrokeWidth = theme.strokeWidth * STROKE_SIZES.xl
-	const labelToArrowPadding =
+	return (
 		(LABEL_TO_ARROW_PADDING +
 			(strokeWidth - smallStrokeWidth) * 2 +
 			(strokeWidth >= xlStrokeWidth ? 20 : 0)) *
 		shape.props.scale
-
-	return labelToArrowPadding
+	)
 }
 
 /**
@@ -227,54 +218,27 @@ function getArrowLabelRange(editor: Editor, shape: TLArrowShape, info: TLArrowIn
 	return { start: startRelative, end: endRelative, dbg }
 }
 
-interface ArrowheadInfo {
-	hasStartBinding: boolean
-	hasEndBinding: boolean
-	hasStartArrowhead: boolean
-	hasEndArrowhead: boolean
-}
 export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape, isEditing: boolean) {
+	const bodyGeom = getArrowBodyGeometry(editor, shape)
+
 	if (!isEditing && isEmptyRichText(shape.props.richText)) {
 		// Short-circuit for empty labels.
-		const bodyGeom = getArrowBodyGeometry(editor, shape)
 		const labelCenter = bodyGeom.interpolateAlongEdge(0.5)
 		return { box: Box.FromCenter(labelCenter, new Vec(0, 0)), debugGeom: [] }
 	}
 
-	const debugGeom: Geometry2d[] = []
 	const info = getArrowInfo(editor, shape)!
-
-	const arrowheadInfo: ArrowheadInfo = {
-		hasStartBinding: !!info.bindings.start,
-		hasEndBinding: !!info.bindings.end,
-		hasStartArrowhead: info.start.arrowhead !== 'none',
-		hasEndArrowhead: info.end.arrowhead !== 'none',
-	}
-
 	const range = getArrowLabelRange(editor, shape, info)
-	if (range.dbg) debugGeom.push(...range.dbg)
 
-	const clampedPosition = getClampedPosition(shape, range, arrowheadInfo)
-	const bodyGeom = getArrowBodyGeometry(editor, shape)
+	const clampedPosition = clamp(
+		shape.props.labelPosition,
+		info.start.arrowhead !== 'none' || info.bindings.start ? range.start : 0,
+		info.end.arrowhead !== 'none' || info.bindings.end ? range.end : 1
+	)
 	const labelCenter = bodyGeom.interpolateAlongEdge(clampedPosition)
 	const labelSize = getArrowLabelSize(editor, shape)
 
-	return { box: Box.FromCenter(labelCenter, labelSize), debugGeom }
-}
-
-function getClampedPosition(
-	shape: TLArrowShape,
-	range: { start: number; end: number },
-	arrowheadInfo: ArrowheadInfo
-) {
-	const { hasEndArrowhead, hasEndBinding, hasStartBinding, hasStartArrowhead } = arrowheadInfo
-	const clampedPosition = clamp(
-		shape.props.labelPosition,
-		hasStartArrowhead || hasStartBinding ? range.start : 0,
-		hasEndArrowhead || hasEndBinding ? range.end : 1
-	)
-
-	return clampedPosition
+	return { box: Box.FromCenter(labelCenter, labelSize), debugGeom: range.dbg }
 }
 
 function furthest(from: VecLike, candidates: VecLike[]): VecLike | null {
@@ -300,11 +264,8 @@ export function getArrowLabelDefaultPosition(editor: Editor, shape: TLArrowShape
 			return 0.5
 		case 'elbow': {
 			const midpointHandle = info.route.midpointHandle
-			const bodyGeom = getArrowBodyGeometry(editor, shape)
-			if (midpointHandle && bodyGeom) {
-				return bodyGeom.uninterpolateAlongEdge(midpointHandle.point)
-			}
-			return 0.5
+			if (!midpointHandle) return 0.5
+			return getArrowBodyGeometry(editor, shape).uninterpolateAlongEdge(midpointHandle.point)
 		}
 		default:
 			exhaustiveSwitchError(info, 'type')

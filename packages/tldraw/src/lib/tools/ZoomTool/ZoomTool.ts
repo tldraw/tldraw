@@ -24,8 +24,7 @@ export class ZoomTool extends StateNode {
 		this.info = info
 		// onInteractionEnd is a path like 'select.idle', extract just the tool ID for the mask
 		// getCurrentToolId reads the mask off the current tool, so a mask on the parent is never seen
-		const toolId = info.onInteractionEnd?.split('.')[0]
-		this.setCurrentToolIdMask(toolId)
+		this.setCurrentToolIdMask(this.getOriginatingToolId())
 		this.updateCursor()
 	}
 
@@ -53,8 +52,12 @@ export class ZoomTool extends StateNode {
 
 	private complete() {
 		// onInteractionEnd is a path like 'select.idle', extract just the tool ID
-		const toolId = this.info.onInteractionEnd?.split('.')[0] ?? 'select'
-		this.editor.setCurrentTool(toolId)
+		this.editor.setCurrentTool(this.getOriginatingToolId() ?? 'select')
+	}
+
+	// onInteractionEnd is a path like 'select.idle'; the tool id is the first segment
+	private getOriginatingToolId() {
+		return this.info.onInteractionEnd?.split('.')[0]
 	}
 
 	private updateCursor() {

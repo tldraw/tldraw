@@ -43,9 +43,7 @@ export class DragAndDropManager {
 		for (const shape of shapesToActuallyMove) {
 			const parent = editor.getShapeParent(shape)
 			if (parent && editor.isShapeOfType(parent, 'group')) {
-				if (!movingGroups.has(parent)) {
-					movingGroups.add(parent)
-				}
+				movingGroups.add(parent)
 			}
 		}
 

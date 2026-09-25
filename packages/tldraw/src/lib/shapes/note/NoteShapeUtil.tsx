@@ -323,7 +323,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override getFontFaces(shape: TLNoteShape) {
-		const fonts = isEmptyRichText(shape.props.richText)
+		const isEmpty = isEmptyRichText(shape.props.richText)
+		const fonts = isEmpty
 			? []
 			: getFontsFromRichText(this.editor, shape.props.richText, {
 					family: `tldraw_${shape.props.font}`,
@@ -336,7 +337,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		// The attribution line renders in the default sans face regardless of the note's font.
 		// Theme faces come first so an attributed note keeps its custom font (export included).
-		if (shape.props.textLastEditedBy && !isEmptyRichText(shape.props.richText)) {
+		if (shape.props.textLastEditedBy && !isEmpty) {
 			return [...textFaces, DefaultFontFaces.tldraw_sans.normal.normal]
 		}
 
@@ -436,7 +437,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						/>
 					)}
 				</div>
-				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
+				{props.url && <HyperlinkButton url={props.url} />}
 			</>
 		)
 	}
@@ -656,10 +657,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		// of give.
 		const FUZZ = 1
 
+		const html = renderHtmlFromRichTextForMeasurement(this.editor, richText)
+
 		// We slightly make the font smaller if the text is too big for the note, width-wise.
 		do {
 			fontSizeAdjustment = Math.min(unadjustedFontSize, unadjustedFontSize - iterations)
-			const html = renderHtmlFromRichTextForMeasurement(this.editor, richText)
 			const nextTextSize = this.editor.textMeasure.measureHtml(html, {
 				...TEXT_PROPS,
 				lineHeight: dv.labelLineHeight,
@@ -676,7 +678,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			if (fontSizeAdjustment <= 14) {
 				// Too small, just rely now on CSS `overflow-wrap: break-word`
 				// We need to recalculate the text measurement here with break-word enabled.
-				const html = renderHtmlFromRichTextForMeasurement(this.editor, richText)
 				const nextTextSizeWithOverflowBreak = this.editor.textMeasure.measureHtml(html, {
 					...TEXT_PROPS,
 					lineHeight: dv.labelLineHeight,
@@ -695,8 +696,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		} while (iterations++ < 50)
 
 		return {
-			labelHeight: labelHeight,
-			labelWidth: labelWidth,
+			labelHeight,
+			labelWidth,
 			fontSizeAdjustment:
 				fontSizeAdjustment === unadjustedFontSize ? 1 : fontSizeAdjustment / unadjustedFontSize,
 		}

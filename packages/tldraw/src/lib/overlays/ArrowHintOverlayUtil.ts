@@ -1,6 +1,13 @@
-import { OverlayUtil, TLOverlay, TLShape, TLShapeId, createComputedCache } from '@tldraw/editor'
-import type { Editor } from '@tldraw/editor'
-import { TLIndicatorPath } from '@tldraw/editor'
+import {
+	Editor,
+	OverlayUtil,
+	PI2,
+	TLIndicatorPath,
+	TLOverlay,
+	TLShape,
+	TLShapeId,
+	createComputedCache,
+} from '@tldraw/editor'
 import { getArrowTargetState } from '../shapes/arrow/arrowTargetState'
 import { DraggingHandle } from '../tools/SelectTool/childStates/DraggingHandle'
 import { PointingHandle } from '../tools/SelectTool/childStates/PointingHandle'
@@ -57,18 +64,9 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 		const editor = this.editor
 		if (editor.isInAny('arrow.idle', 'arrow.pointing')) return true
 
-		if (editor.isIn('select.pointing_handle')) {
-			const node: PointingHandle = editor.getStateDescendant('select.pointing_handle')!
-			if (
-				node.info.shape.type === 'arrow' &&
-				(node.info.handle.id === 'start' || node.info.handle.id === 'end')
-			) {
-				return true
-			}
-		}
-
-		if (editor.isIn('select.dragging_handle')) {
-			const node: DraggingHandle = editor.getStateDescendant('select.dragging_handle')!
+		for (const path of ['select.pointing_handle', 'select.dragging_handle'] as const) {
+			if (!editor.isIn(path)) continue
+			const node: PointingHandle | DraggingHandle = editor.getStateDescendant(path)!
 			if (
 				node.info.shape.type === 'arrow' &&
 				(node.info.handle.id === 'start' || node.info.handle.id === 'end')
@@ -168,7 +166,7 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 			const snapRadius =
 				(snap === 'edge-point' ? this.options.edgePointRadius : this.options.edgeRadius) / zoom
 			ctx.beginPath()
-			ctx.arc(anchorX, anchorY, snapRadius, 0, Math.PI * 2)
+			ctx.arc(anchorX, anchorY, snapRadius, 0, PI2)
 			ctx.fillStyle = colors.selectionFill
 			ctx.fill()
 		}
@@ -183,7 +181,7 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 			if (!handle.isEnabled) continue
 			// Separate subpath for each circle
 			ctx.moveTo(handle.x + handleRadius, handle.y)
-			ctx.arc(handle.x, handle.y, handleRadius, 0, Math.PI * 2)
+			ctx.arc(handle.x, handle.y, handleRadius, 0, PI2)
 		}
 		ctx.fill()
 		ctx.stroke()

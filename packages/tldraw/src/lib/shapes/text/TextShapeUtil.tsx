@@ -116,19 +116,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	getGeometry(shape: TLTextShape, opts: TLGeometryOpts) {
 		const { scale } = shape.props
-		const { width, height } = this.getMinDimensions(shape)!
-		const context = opts?.context ?? 'none'
+		const { width, height } = this.getMinDimensions(shape)
+		const isArrowContext = opts?.context === '@tldraw/arrow-without-arrowhead'
+		const arrowPadding = this.options.extraArrowHorizontalPadding
 		return new Rectangle2d({
-			x:
-				(context === '@tldraw/arrow-without-arrowhead'
-					? -this.options.extraArrowHorizontalPadding
-					: 0) * scale,
-			width:
-				(width +
-					(context === '@tldraw/arrow-without-arrowhead'
-						? this.options.extraArrowHorizontalPadding * 2
-						: 0)) *
-				scale,
+			x: isArrowContext ? -arrowPadding * scale : 0,
+			width: (width + (isArrowContext ? arrowPadding * 2 : 0)) * scale,
 			height: height * scale,
 			isFilled: true,
 			isLabel: true,
@@ -205,8 +198,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
-		const width = bounds.width / (shape.props.scale ?? 1)
-		const height = bounds.height / (shape.props.scale ?? 1)
+		const width = bounds.width / shape.props.scale
+		const height = bounds.height / shape.props.scale
 
 		const dv = getDisplayValues(this, shape, ctx.colorMode)
 
@@ -316,22 +309,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			}
 		}
 
-		if (delta) {
-			// account for shape rotation when writing text:
-			delta.rot(next.rotation)
-			const { x, y } = next
-			return {
-				...next,
-				x: x - delta.x,
-				y: y - delta.y,
-				props: { ...next.props, w: wB },
-			}
-		} else {
-			return {
-				...next,
-				props: { ...next.props, w: wB },
-			}
-		}
+		const props = { ...next.props, w: wB }
+		if (!delta) return { ...next, props }
+
+		// account for shape rotation when writing text:
+		delta.rot(next.rotation)
+		return { ...next, x: next.x - delta.x, y: next.y - delta.y, props }
 	}
 
 	// 	todo: The edge doubleclicking feels like a mistake more often than
@@ -395,13 +378,8 @@ function useTextShapeKeydownHandler(id: TLShapeId) {
 		(e: KeyboardEvent) => {
 			if (editor.getEditingShapeId() !== id) return
 
-			switch (e.key) {
-				case 'Enter': {
-					if (e.ctrlKey || e.metaKey) {
-						editor.complete()
-					}
-					break
-				}
+			if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+				editor.complete()
 			}
 		},
 		[editor, id]

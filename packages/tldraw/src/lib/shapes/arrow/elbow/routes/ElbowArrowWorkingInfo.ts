@@ -212,12 +212,8 @@ export class ElbowArrowWorkingInfo {
 		}
 
 		if (transform.transpose) {
-			let temp = this.midX
-			this.midX = this.midY
-			this.midY = temp
-			temp = this.gapX
-			this.gapX = this.gapY
-			this.gapY = temp
+			swap(this, 'midX', 'midY')
+			swap(this, 'gapX', 'gapY')
 		}
 	}
 

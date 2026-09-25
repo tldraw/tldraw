@@ -41,20 +41,7 @@ export class ZoomBrushOverlayUtil extends OverlayUtil<TLZoomBrushOverlay> {
 	}
 
 	override render(ctx: CanvasRenderingContext2D, overlays: TLZoomBrushOverlay[]): void {
-		const overlay = overlays[0]
-		if (!overlay) return
-
-		const { x, y, w, h } = overlay.props
-		const zoom = this.editor.getZoomLevel()
-		const colors = this.editor.getCurrentTheme().colors[this.editor.getColorMode()]
-
-		// Use fillRect / strokeRect to avoid path construction overhead
-		ctx.fillStyle = colors.brushFill
-		ctx.fillRect(x, y, w, h)
-
-		ctx.lineWidth = this.options.lineWidth / zoom
-		ctx.strokeStyle = colors.brushStroke
-		ctx.strokeRect(x, y, w, h)
+		this._draw(ctx, overlays[0], this.editor.getZoomLevel())
 	}
 
 	override renderMinimap(
@@ -62,12 +49,22 @@ export class ZoomBrushOverlayUtil extends OverlayUtil<TLZoomBrushOverlay> {
 		overlays: TLZoomBrushOverlay[],
 		zoom: number
 	): void {
-		const overlay = overlays[0]
+		this._draw(ctx, overlays[0], zoom)
+	}
+
+	private _draw(
+		ctx: CanvasRenderingContext2D,
+		overlay: TLZoomBrushOverlay | undefined,
+		zoom: number
+	) {
 		if (!overlay) return
 		const { x, y, w, h } = overlay.props
 		const colors = this.editor.getCurrentTheme().colors[this.editor.getColorMode()]
+
+		// Use fillRect / strokeRect to avoid path construction overhead
 		ctx.fillStyle = colors.brushFill
 		ctx.fillRect(x, y, w, h)
+
 		ctx.lineWidth = this.options.lineWidth / zoom
 		ctx.strokeStyle = colors.brushStroke
 		ctx.strokeRect(x, y, w, h)

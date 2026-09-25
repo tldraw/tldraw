@@ -303,13 +303,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			typeof window !== 'undefined' && (window !== window.top || window.self !== window.parent)
 		if (isIframe && embedInfo?.definition.type === 'tldraw') return null
 
-		const sandbox = getSandboxPermissions({
-			...embedShapePermissionDefaults,
-			...(embedInfo
-				? (embedInfo.definition.overridePermissions ?? {})
-				: unknownEmbedShapePermissionOverrides),
-		})
-
 		if (embedInfo?.definition.type === 'github_gist') {
 			const idFromGistUrl = embedInfo.url.split('/').pop()
 			if (!idFromGistUrl) throw Error('No gist id!')
@@ -318,7 +311,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			// the embedded script shares the parent's origin and can escape the sandbox.
 			const gistSandbox = getSandboxPermissions({
 				...embedShapePermissionDefaults,
-				...(embedInfo?.definition?.overridePermissions ?? {}),
+				...embedInfo.definition.overridePermissions,
 				'allow-same-origin': false,
 			})
 
@@ -336,6 +329,13 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 				</HTMLContainer>
 			)
 		}
+
+		const sandbox = getSandboxPermissions({
+			...embedShapePermissionDefaults,
+			...(embedInfo
+				? embedInfo.definition.overridePermissions
+				: unknownEmbedShapePermissionOverrides),
+		})
 
 		const iframeSrc = embedInfo?.embedUrl ?? url
 

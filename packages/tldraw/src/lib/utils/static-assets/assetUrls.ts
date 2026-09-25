@@ -24,25 +24,27 @@ export interface TLEditorAssetUrls {
 	}
 }
 
+const cdn = getDefaultCdnBaseUrl()
+
 /** @public */
 export let defaultEditorAssetUrls: TLEditorAssetUrls = {
 	fonts: {
-		tldraw_mono: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexMono-Medium.woff2`,
-		tldraw_mono_italic: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexMono-MediumItalic.woff2`,
-		tldraw_mono_bold: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexMono-Bold.woff2`,
-		tldraw_mono_italic_bold: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexMono-BoldItalic.woff2`,
-		tldraw_serif: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexSerif-Medium.woff2`,
-		tldraw_serif_italic: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexSerif-MediumItalic.woff2`,
-		tldraw_serif_bold: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexSerif-Bold.woff2`,
-		tldraw_serif_italic_bold: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexSerif-BoldItalic.woff2`,
-		tldraw_sans: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexSans-Medium.woff2`,
-		tldraw_sans_italic: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexSans-MediumItalic.woff2`,
-		tldraw_sans_bold: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexSans-Bold.woff2`,
-		tldraw_sans_italic_bold: `${getDefaultCdnBaseUrl()}/fonts/IBMPlexSans-BoldItalic.woff2`,
-		tldraw_draw: `${getDefaultCdnBaseUrl()}/fonts/Shantell_Sans-Informal_Regular.woff2`,
-		tldraw_draw_italic: `${getDefaultCdnBaseUrl()}/fonts/Shantell_Sans-Informal_Regular_Italic.woff2`,
-		tldraw_draw_bold: `${getDefaultCdnBaseUrl()}/fonts/Shantell_Sans-Informal_Bold.woff2`,
-		tldraw_draw_italic_bold: `${getDefaultCdnBaseUrl()}/fonts/Shantell_Sans-Informal_Bold_Italic.woff2`,
+		tldraw_mono: `${cdn}/fonts/IBMPlexMono-Medium.woff2`,
+		tldraw_mono_italic: `${cdn}/fonts/IBMPlexMono-MediumItalic.woff2`,
+		tldraw_mono_bold: `${cdn}/fonts/IBMPlexMono-Bold.woff2`,
+		tldraw_mono_italic_bold: `${cdn}/fonts/IBMPlexMono-BoldItalic.woff2`,
+		tldraw_serif: `${cdn}/fonts/IBMPlexSerif-Medium.woff2`,
+		tldraw_serif_italic: `${cdn}/fonts/IBMPlexSerif-MediumItalic.woff2`,
+		tldraw_serif_bold: `${cdn}/fonts/IBMPlexSerif-Bold.woff2`,
+		tldraw_serif_italic_bold: `${cdn}/fonts/IBMPlexSerif-BoldItalic.woff2`,
+		tldraw_sans: `${cdn}/fonts/IBMPlexSans-Medium.woff2`,
+		tldraw_sans_italic: `${cdn}/fonts/IBMPlexSans-MediumItalic.woff2`,
+		tldraw_sans_bold: `${cdn}/fonts/IBMPlexSans-Bold.woff2`,
+		tldraw_sans_italic_bold: `${cdn}/fonts/IBMPlexSans-BoldItalic.woff2`,
+		tldraw_draw: `${cdn}/fonts/Shantell_Sans-Informal_Regular.woff2`,
+		tldraw_draw_italic: `${cdn}/fonts/Shantell_Sans-Informal_Regular_Italic.woff2`,
+		tldraw_draw_bold: `${cdn}/fonts/Shantell_Sans-Informal_Bold.woff2`,
+		tldraw_draw_italic_bold: `${cdn}/fonts/Shantell_Sans-Informal_Bold_Italic.woff2`,
 	},
 }
 
@@ -59,7 +61,7 @@ export function useDefaultEditorAssetsWithOverrides(
 		if (!overrides) return defaultEditorAssetUrls
 
 		return {
-			fonts: { ...defaultEditorAssetUrls.fonts, ...overrides?.fonts },
+			fonts: { ...defaultEditorAssetUrls.fonts, ...overrides.fonts },
 		}
 	}, [overrides])
 }

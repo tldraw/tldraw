@@ -74,20 +74,7 @@ export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
 	}
 
 	override render(ctx: CanvasRenderingContext2D, overlays: TLBrushOverlay[]): void {
-		const overlay = overlays[0]
-		if (!overlay) return
-
-		const { x, y, w, h } = overlay.props
-		const zoom = this.editor.getZoomLevel()
-		const dv = getOverlayDisplayValues(this, overlay)
-
-		// Use fillRect / strokeRect to avoid path construction overhead
-		ctx.fillStyle = dv.fillColor
-		ctx.fillRect(x, y, w, h)
-
-		ctx.lineWidth = dv.lineWidth / zoom
-		ctx.strokeStyle = dv.strokeColor
-		ctx.strokeRect(x, y, w, h)
+		this._draw(ctx, overlays[0], this.editor.getZoomLevel())
 	}
 
 	override renderMinimap(
@@ -95,12 +82,18 @@ export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
 		overlays: TLBrushOverlay[],
 		zoom: number
 	): void {
-		const overlay = overlays[0]
+		this._draw(ctx, overlays[0], zoom)
+	}
+
+	private _draw(ctx: CanvasRenderingContext2D, overlay: TLBrushOverlay | undefined, zoom: number) {
 		if (!overlay) return
 		const { x, y, w, h } = overlay.props
 		const dv = getOverlayDisplayValues(this, overlay)
+
+		// Use fillRect / strokeRect to avoid path construction overhead
 		ctx.fillStyle = dv.fillColor
 		ctx.fillRect(x, y, w, h)
+
 		ctx.lineWidth = dv.lineWidth / zoom
 		ctx.strokeStyle = dv.strokeColor
 		ctx.strokeRect(x, y, w, h)

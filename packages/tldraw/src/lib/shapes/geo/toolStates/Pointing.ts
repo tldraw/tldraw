@@ -99,15 +99,11 @@ export class Pointing extends StateNode {
 				type: 'geo',
 				x: originPagePoint.x,
 				y: originPagePoint.y,
-				props: {
-					geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
-					scale,
-					...size,
-				},
+				props: { geo, scale, ...size },
 			},
 		])
 
-		const shape = this.editor.getShape<TLGeoShape>(id)!
+		const shape = this.editor.getShape<TLGeoShape>(id)
 		if (!shape) {
 			this.cancel()
 			return
@@ -125,11 +121,7 @@ export class Pointing extends StateNode {
 			type: 'geo',
 			x: newPoint.x,
 			y: newPoint.y,
-			props: {
-				geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
-				w: w * scale,
-				h: h * scale,
-			},
+			props: { geo, w: w * scale, h: h * scale },
 		})
 
 		if (this.editor.getInstanceState().isToolLocked) {

@@ -59,15 +59,7 @@ export function useEditablePlainText(
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
 			if (editor.getEditingShapeId() !== shapeId) return
-
-			switch (e.key) {
-				case 'Enter': {
-					if (e.ctrlKey || e.metaKey) {
-						editor.complete()
-					}
-					break
-				}
-			}
+			if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) editor.complete()
 		},
 		[editor, shapeId]
 	)
@@ -146,20 +138,15 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 	const handlePaste = useCallback(
 		(e: ClipboardEvent | React.ClipboardEvent<HTMLTextAreaElement>) => {
 			if (editor.getEditingShapeId() !== shapeId) return
-			if (e.clipboardData) {
-				// find html in the clipboard and look for the tldraw data
-				const html = e.clipboardData.getData('text/html')
-				if (html) {
-					if (html.includes('<div data-tldraw')) {
-						// Paste the plain text data instead of the tldraw data
-						const plainText = e.clipboardData.getData('text/plain')
-						preventDefault(e)
-						if (plainText) {
-							// eslint-disable-next-line @typescript-eslint/no-deprecated -- best way to insert text with undo support
-							editor.getContainerDocument().execCommand('insertText', false, plainText)
-						}
-					}
-				}
+			if (!e.clipboardData) return
+			// find html in the clipboard and look for the tldraw data
+			if (!e.clipboardData.getData('text/html').includes('<div data-tldraw')) return
+			// Paste the plain text data instead of the tldraw data
+			const plainText = e.clipboardData.getData('text/plain')
+			preventDefault(e)
+			if (plainText) {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated -- best way to insert text with undo support
+				editor.getContainerDocument().execCommand('insertText', false, plainText)
 			}
 		},
 		[editor, shapeId]

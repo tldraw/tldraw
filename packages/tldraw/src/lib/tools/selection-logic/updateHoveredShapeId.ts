@@ -1,4 +1,5 @@
-import { Editor, TLShape, TLShapeId, throttle } from '@tldraw/editor'
+import { Editor, TLShapeId, throttle } from '@tldraw/editor'
+import { getShapeToSelectForHit } from './selectOnCanvasPointerUp'
 
 /*
 Perf optimization: Skip hover updates while panning.
@@ -19,7 +20,7 @@ the camera stops.
 */
 
 // Track per-editor state for hover updates during camera movement
-const hoverLockedEditors = new WeakMap<Editor, boolean>()
+const hoverLockedEditors = new WeakSet<Editor>()
 
 function getShapeToHover(editor: Editor): TLShapeId | null {
 	const hitShape = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
@@ -32,56 +33,30 @@ function getShapeToHover(editor: Editor): TLShapeId | null {
 
 	if (!hitShape) return null
 
-	let shapeToHover: TLShape | undefined = undefined
-
-	const outermostShape = editor.getOutermostSelectableShape(hitShape)
-
-	if (outermostShape === hitShape) {
-		shapeToHover = hitShape
-	} else {
-		if (
-			outermostShape.id === editor.getFocusedGroupId() ||
-			editor.getSelectedShapeIds().includes(outermostShape.id)
-		) {
-			shapeToHover = hitShape
-		} else {
-			shapeToHover = outermostShape
-		}
-	}
-
-	return shapeToHover.id
+	return getShapeToSelectForHit(editor, hitShape).id
 }
 
 function _updateHoveredShapeId(editor: Editor) {
 	if (editor.isDisposed) return
 
-	const cameraMoving = editor.getCameraState() === 'moving'
-
-	if (!cameraMoving) {
-		hoverLockedEditors.set(editor, false)
-		const nextHoveredId = getShapeToHover(editor)
-		return editor.setHoveredShape(nextHoveredId)
+	if (editor.getCameraState() !== 'moving') {
+		hoverLockedEditors.delete(editor)
+		editor.setHoveredShape(getShapeToHover(editor))
+		return
 	}
 
-	if (hoverLockedEditors.get(editor)) {
-		return undefined
-	}
+	if (hoverLockedEditors.has(editor)) return
 
 	const currentHoveredId = editor.getHoveredShapeId()
-
 	if (!currentHoveredId) {
-		hoverLockedEditors.set(editor, true)
-		return undefined
+		hoverLockedEditors.add(editor)
+		return
 	}
 
-	const nextHoveredId = getShapeToHover(editor)
-	if (nextHoveredId === currentHoveredId) {
-		return undefined
-	}
+	if (getShapeToHover(editor) === currentHoveredId) return
 
 	editor.setHoveredShape(null)
-	hoverLockedEditors.set(editor, true)
-	return undefined
+	hoverLockedEditors.add(editor)
 }
 
 const THROTTLE_MS = process.env.NODE_ENV === 'test' ? 0 : 32

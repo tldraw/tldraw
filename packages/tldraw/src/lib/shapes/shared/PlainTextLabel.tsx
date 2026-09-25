@@ -60,13 +60,13 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 		useEditablePlainText(shapeId, type, plaintext)
 
 	const finalPlainText = TextHelpers.normalizeTextForDom(plaintext || '')
-	const hasText = finalPlainText.length > 0
-
 	const legacyAlign = isLegacyAlign(textAlign)
 
-	if (!isEditing && !hasText) {
+	if (!isEditing && finalPlainText.length === 0) {
 		return null
 	}
+
+	const lineHeightPx = `${resolveLineHeightPx(fontSize, lineHeight)}px`
 
 	// TODO: probably combine tl-text and tl-arrow eventually
 	// In case you're grepping for this, it breaks down as follows:
@@ -105,8 +105,8 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
 				style={{
 					fontSize,
-					lineHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
-					minHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
+					lineHeight: lineHeightPx,
+					minHeight: lineHeightPx,
 					minWidth: Math.ceil(textWidth || 0),
 					color: labelColor,
 					width: textWidth ? Math.ceil(textWidth) : undefined,

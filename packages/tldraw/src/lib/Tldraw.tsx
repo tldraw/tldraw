@@ -1,6 +1,7 @@
 import {
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
+	TLAnyAssetUtilConstructor,
 	TLEditorComponents,
 	TLOnMountHandler,
 	TLTextOptions,
@@ -15,7 +16,6 @@ import {
 	useShallowArrayIdentity,
 	useShallowObjectIdentity,
 } from '@tldraw/editor'
-import { TLAnyAssetUtilConstructor } from '@tldraw/editor'
 import { useMemo } from 'react'
 import { ImageAssetUtil } from './assets/ImageAssetUtil'
 import { VideoAssetUtil } from './assets/VideoAssetUtil'
@@ -336,8 +336,7 @@ function InsideOfEditorAndUiContext({
 		editor.fonts.requestFonts(allDefaultFontFaces)
 
 		// Also preload any custom font faces defined in themes
-		const themes = editor.getThemes()
-		for (const theme of Object.values(themes)) {
+		for (const theme of Object.values(editor.getThemes())) {
 			for (const key of Object.keys(theme.fonts)) {
 				const font = theme.fonts[key as keyof typeof theme.fonts]
 				if (font.faces?.length) {

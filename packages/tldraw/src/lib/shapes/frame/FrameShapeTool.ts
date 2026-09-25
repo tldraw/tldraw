@@ -28,39 +28,22 @@ export function getEnclosedShapeIds(editor: Editor, shape: TLShape): TLShapeId[]
 	const bounds = editor.getShapePageBounds(shape)
 	if (!bounds) return []
 
-	const enclosedShapeIds: TLShapeId[] = []
-	const ancestorIds = editor.getShapeAncestors(shape).map((shape) => shape.id)
+	// We don't want to pull in shapes that are ancestors of the frame (can create a cycle)
+	const ancestorIds = new Set(editor.getShapeAncestors(shape).map((shape) => shape.id))
 
-	editor.getSortedChildIdsForParent(shape.parentId).map((siblingShapeId) => {
-		const siblingShape = editor.getShape(siblingShapeId)
-		if (!siblingShape) return
+	const enclosedShapeIds: TLShapeId[] = []
+	for (const siblingShapeId of editor.getSortedChildIdsForParent(shape.parentId)) {
 		// We don't want to frame the frame itself
-		if (siblingShape.id === shape.id) return
-		if (siblingShape.isLocked) return
+		if (siblingShapeId === shape.id || ancestorIds.has(siblingShapeId)) continue
+		const siblingShape = editor.getShape(siblingShapeId)
+		if (!siblingShape || siblingShape.isLocked) continue
 
 		const pageShapeBounds = editor.getShapePageBounds(siblingShape)
-		if (!pageShapeBounds) return
-
 		// Frame shape encloses page shape
-		if (bounds.contains(pageShapeBounds)) {
-			if (canEnclose(siblingShape, ancestorIds, shape)) {
-				enclosedShapeIds.push(siblingShape.id)
-			}
+		if (pageShapeBounds && bounds.contains(pageShapeBounds)) {
+			enclosedShapeIds.push(siblingShape.id)
 		}
-	})
+	}
 
 	return enclosedShapeIds
-}
-
-/** @internal */
-function canEnclose(shape: TLShape, ancestorIds: TLShapeId[], frame: TLShape): boolean {
-	// We don't want to pull in shapes that are ancestors of the frame (can create a cycle)
-	if (ancestorIds.includes(shape.id)) {
-		return false
-	}
-	// We only want to pull in shapes that are siblings of the frame
-	if (shape.parentId === frame.parentId) {
-		return true
-	}
-	return false
 }

@@ -31,7 +31,7 @@ export class Lasering extends StateNode {
 	}
 
 	override onCancel() {
-		this.onComplete()
+		this.complete()
 	}
 
 	override onComplete() {
