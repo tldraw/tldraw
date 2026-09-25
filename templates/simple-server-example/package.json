@@ -15,7 +15,7 @@
 		"dev-client": "vite dev --host",
 		"test-ci": "echo 'No tests yet'",
 		"test": "pnpm exec vitest run --passWithNoTests",
-		"test-coverage": "pnpm exec vitest run --coverage && open-cli coverage/index.html",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
 		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
 		"build-types": "tsc"
 	},

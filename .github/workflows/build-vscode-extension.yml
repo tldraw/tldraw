@@ -1,0 +1,62 @@
+name: Build VS Code extension
+
+on:
+  pull_request:
+  merge_group:
+
+env:
+  CI: 1
+  PRINT_GITHUB_ANNOTATIONS: 1
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: 'Check for relevant changes'
+    runs-on: ubuntu-latest
+    outputs:
+      relevant: ${{ steps.includes.outputs.match == 'true' }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Check for changes to relevant paths
+        uses: dorny/paths-filter@v3
+        id: includes
+        with:
+          # The extension bundles packages/* from source, so SDK changes can break it too.
+          filters: |
+            match:
+              - 'apps/vscode/**'
+              - 'packages/**'
+              - '.github/workflows/build-vscode-extension.yml'
+              - '.github/actions/**'
+              - 'pnpm-lock.yaml'
+
+  build:
+    name: 'Build VS Code extension'
+    needs: check
+    if: needs.check.outputs.relevant == 'true'
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup
+
+      - name: Generate tldraw.css
+        run: pnpm --filter tldraw prebuild
+
+      - name: Build and package extension
+        run: pnpm package
+        working-directory: apps/vscode/extension
+
+      - name: Check the .vsix was produced
+        run: ls apps/vscode/extension/temp/*.vsix
