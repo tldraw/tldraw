@@ -31,7 +31,7 @@ interface RelevantInstanceFlags {
  */
 export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverlay> {
 	static override type = 'shape_indicator'
-	override options = { zIndex: 50, lineWidth: 1.5, hintedLineWidth: 2.5 }
+	override options = { zIndex: 50, lineWidth: 1.5, hintedLineWidth: 2 }
 
 	// Narrow projection of instance state. Reading the full record would
 	// re-fire getOverlays on every cursor move / brush update; gating on these
