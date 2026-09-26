@@ -45,21 +45,19 @@ jobs:
         with:
           # No `**`: it follows workspace symlinks through node_modules and the save times out.
           path: |
-            .lazy
-            */*/.lazy
-            apps/*/*/.lazy
+            .turbo
             */*/.tsbuild
             apps/*/*/.tsbuild
             *.tsbuildinfo
             */*/*.tsbuildinfo
             apps/*/*/*.tsbuildinfo
-          key: test-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.oxlintrc.json', '.oxfmtrc.json', 'lazy.config.ts') }}
+          key: test-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.oxlintrc.json', '.oxfmtrc.json', 'turbo.json') }}
 
       - name: Typecheck
-        run: pnpm build-types
+        run: pnpm typecheck
 
       - name: Check bundle sizes
-        run: pnpm exec lazy check-bundle-size
+        run: pnpm exec turbo run check-bundle-size
 
       - name: Check PR template
         run: pnpm update-pr-template --check
@@ -106,15 +104,13 @@ jobs:
         with:
           # No `**`: it follows workspace symlinks through node_modules and the save times out.
           path: |
-            .lazy
-            */*/.lazy
-            apps/*/*/.lazy
+            .turbo
             */*/.tsbuild
             apps/*/*/.tsbuild
             *.tsbuildinfo
             */*/*.tsbuildinfo
             apps/*/*/*.tsbuildinfo
-          key: build-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'lazy.config.ts') }}
+          key: build-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'turbo.json') }}
 
       - name: Build packages
         # the sed pipe makes sure that github annotations come through without

@@ -15,7 +15,8 @@
 		"lint": "pnpm exec tsx ../../../internal/scripts/lint.ts",
 		"test": "pnpm exec vitest --passWithNoTests",
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
-		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
 	},
 	"type": "module",
 	"dependencies": {
@@ -27,7 +28,6 @@
 		"@types/pg": "^8.16.0",
 		"concurrently": "^9.1.2",
 		"dotenv": "^16.4.7",
-		"lazyrepo": "0.0.0-alpha.27",
 		"tsx": "^4.19.2",
 		"vitest": "^5.0.0"
 	}

@@ -46,7 +46,8 @@
 		"watch-content": "tsx ./watcher.ts",
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
 		"test": "pnpm exec vitest --passWithNoTests",
-		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"@ariakit/react": "^0.4.15",

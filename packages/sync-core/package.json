@@ -47,7 +47,8 @@
 		"build-api": "pnpm exec tsx ../../internal/scripts/build-api.ts",
 		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
-		"pack-tarball": "pnpm pack"
+		"pack-tarball": "pnpm pack",
+		"build-types": "tsc --build"
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.5.0",

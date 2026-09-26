@@ -49,7 +49,8 @@
 		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "pnpm pack",
-		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"@tiptap/core": "^3.12.1",
@@ -80,7 +81,6 @@
 		"@types/react-dom": "^19.2.3",
 		"@types/wicg-file-system-access": "^2020.9.8",
 		"fake-indexeddb": "^4.0.2",
-		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"resize-observer-polyfill": "^1.5.1",

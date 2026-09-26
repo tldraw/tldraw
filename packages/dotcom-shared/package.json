@@ -32,7 +32,8 @@
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
 		"test": "pnpm exec vitest --passWithNoTests",
 		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
-		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
 	},
 	"engines": {
 		"node": ">=22.12.0"

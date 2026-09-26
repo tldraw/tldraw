@@ -47,7 +47,7 @@ runs:
         CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare-account-id }}
       run: |
         # the templates import tldraw/tldraw.css, which is generated and gitignored
-        pnpm exec lazy prebuild
+        pnpm exec turbo run prebuild
 
         cd templates
         all_templates=$(ls -d */ | cut -f1 -d'/')

@@ -140,7 +140,8 @@
 		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp && pnpm install",
 		"test": "pnpm exec vitest --passWithNoTests",
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
-		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
 	},
 	"devDependencies": {
 		"@tldraw/editor": "workspace:*",
@@ -153,7 +154,6 @@
 		"assert": "^2.1.0",
 		"esbuild": "^0.28.0",
 		"fs-extra": "^11.3.0",
-		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
 		"mocha": "^9.2.2",
 		"ovsx": "^0.10.7",

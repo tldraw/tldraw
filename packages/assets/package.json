@@ -51,13 +51,13 @@
 	"scripts": {
 		"pack-tarball": "pnpm pack",
 		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
-		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.27",
 		"ts-node-dev": "^1.1.8",
 		"typescript": "^7.0.2"
 	},

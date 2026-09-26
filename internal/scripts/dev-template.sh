@@ -18,24 +18,24 @@ if [ ! -d "templates/$template_name" ]; then
 fi
 
 if [ ${#vite_args[@]} -eq 0 ]; then
-    LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter="templates/$template_name" --filter='packages/tldraw' --filter='apps/bemo-worker'
+    pnpm exec turbo run dev --filter="./templates/$template_name" --filter='./packages/tldraw' --filter='./apps/bemo-worker'
     exit $?
 fi
 
-# Running vite directly skips lazy's `dev` prerequisites. Only refresh-assets feeds templates, so
-# run it here first (usually a cache hit) and bail on failure like the normal `lazy run dev` path.
-LAZYREPO_PRETTY_OUTPUT=0 lazy run refresh-assets || exit 1
+# Running vite directly skips turbo's `dev` prerequisites. Only refresh-assets feeds templates, so
+# run it here first and bail on failure like the normal `turbo run dev` path.
+pnpm refresh-assets || exit 1
 
-# lazy doesn't forward extra args, so run vite directly in the template below. Run the shared deps
-# in their own process group (set -m) so cleanup can kill lazy and its watchers, which lazy itself
-# won't (it installs no signal handlers, so killing just its pid would orphan them).
+# turbo would forward extra args to every task in the run, so run vite directly in the template
+# below. Run the shared deps in their own process group (set -m) so cleanup kills turbo and its
+# watchers together.
 set -m
-LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='packages/tldraw' --filter='apps/bemo-worker' &
-lazy_pid=$!
+pnpm exec turbo run dev --filter='./packages/tldraw' --filter='./apps/bemo-worker' &
+turbo_pid=$!
 disown
 cleanup() {
     # negative pid signals the whole process group
-    kill -- "-$lazy_pid" 2>/dev/null
+    kill -- "-$turbo_pid" 2>/dev/null
 }
 trap cleanup EXIT INT TERM
 

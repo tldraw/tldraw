@@ -22,14 +22,16 @@
 			"host": "branching-chat.templates.tldraw.dev"
 		},
 		"scripts": {
-			"lint": null
+			"lint": null,
+			"build-types": null
 		}
 	},
 	"scripts": {
 		"build": "tsc && vite build",
 		"dev": "vite --host",
 		"preview": "vite preview",
-		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc"
 	},
 	"dependencies": {
 		"@ai-sdk/google": "^2.0.74",

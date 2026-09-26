@@ -34,7 +34,8 @@
 		"e2e-all-ui": "NODE_OPTIONS='--no-strip-types' pnpm exec playwright test --project=chromium --project=chromium-scenarios --ui",
 		"e2e-staging": "NODE_OPTIONS='--no-strip-types' pnpm exec playwright test --project=staging",
 		"e2e-both-modes": "./e2e/run-both-modes.sh",
-		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"@clerk/clerk-react": "^5.53.3",
@@ -89,7 +90,6 @@
 		"identity-obj-proxy": "^3.0.0",
 		"json5": "^2.2.3",
 		"kysely": "^0.28.12",
-		"lazyrepo": "0.0.0-alpha.27",
 		"pg": "^8.16.3",
 		"regexgen": "^1.3.0",
 		"vite": "^8.0.16",

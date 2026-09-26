@@ -84,7 +84,7 @@ const tlschemaDtsPath = path.join(repoRoot, 'packages', 'tlschema', '.tsbuild', 
 
 for (const p of [editorDtsPath, storeDtsPath, tlschemaDtsPath]) {
 	if (!fs.existsSync(p)) {
-		console.error(`Missing: ${p}\nRun 'pnpm exec lazy build' first to generate .d.ts files.`)
+		console.error(`Missing: ${p}\nRun 'pnpm build' first to generate .d.ts files.`)
 		process.exit(1)
 	}
 }

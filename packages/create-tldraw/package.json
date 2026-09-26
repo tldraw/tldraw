@@ -45,7 +45,8 @@
 		"build": "./scripts/build.sh",
 		"prepack": "pnpm build",
 		"pack-tarball": "pnpm pack",
-		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc --build"
 	},
 	"devDependencies": {
 		"@bomb.sh/args": "^0.3.1",
@@ -55,7 +56,6 @@
 		"ansi-regex": "^6.1.0",
 		"ansi-styles": "^6.2.1",
 		"esbuild": "^0.28.0",
-		"lazyrepo": "0.0.0-alpha.27",
 		"picocolors": "^1.1.1",
 		"string-width": "^7.2.0",
 		"strip-ansi": "^7.1.0",

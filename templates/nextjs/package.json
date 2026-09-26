@@ -11,14 +11,16 @@
 	"tldraw_template": {
 		"repo": "tldraw/nextjs-template",
 		"scripts": {
-			"lint": null
+			"lint": null,
+			"build-types": null
 		}
 	},
 	"scripts": {
 		"dev": "next dev -H 0.0.0.0",
 		"build": "next build",
 		"start": "next start",
-		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc"
 	},
 	"dependencies": {
 		"@types/node": "^22.15.31",
