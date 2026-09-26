@@ -1,5 +1,5 @@
 import { Editor, TLExternalContentSource, VecLike } from '@tldraw/editor'
-import { putPastedExternalContent } from './putPastedContent'
+import { runBeforePasteFromClipboard } from './putPastedContent'
 
 /**
  * When the clipboard has a file, create an image/video shape from the file and paste it into the scene.
@@ -22,14 +22,32 @@ export async function pasteFiles(
 
 	editor.markHistoryStoppingPoint('paste')
 
-	await putPastedExternalContent(
+	const content = await runBeforePasteFromClipboard(
 		editor,
-		{
-			type: 'files',
-			files,
-			point,
-			sources,
-		},
+		{ type: 'files', files, point, sources },
 		{ source: clipboardPasteSource, point }
 	)
+	if (!content) return
+
+	// When a single image is pasted while an image is being cropped, replace the
+	// cropped image in place instead of creating a new shape. This matches the
+	// "replace image" action, preserving the crop transform across the swap.
+	const croppingShapeId = editor.getCroppingShapeId()
+	if (
+		croppingShapeId &&
+		editor.getShape(croppingShapeId)?.type === 'image' &&
+		content.type === 'files' &&
+		content.files.length === 1 &&
+		content.files[0].type.startsWith('image/')
+	) {
+		await editor.replaceExternalContent({
+			type: 'file-replace',
+			file: content.files[0],
+			shapeId: croppingShapeId,
+			isImage: true,
+		})
+		return
+	}
+
+	await editor.putExternalContent(content)
 }
