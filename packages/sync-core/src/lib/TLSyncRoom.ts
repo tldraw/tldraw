@@ -16,6 +16,7 @@ import {
 	objectMapEntriesIterable,
 	Result,
 	throttle,
+	type ThrottledFunction,
 } from '@tldraw/utils'
 import { createNanoEvents } from 'nanoevents'
 import {
@@ -240,7 +241,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private pruneTimer: ReturnType<typeof setTimeout> | null = null
 
-	pruneSessions: ReturnType<typeof throttle<() => void>> = throttle(() => {
+	pruneSessions: ThrottledFunction<() => void> = throttle(() => {
 		if (this.pruneTimer) {
 			clearTimeout(this.pruneTimer)
 			this.pruneTimer = null
