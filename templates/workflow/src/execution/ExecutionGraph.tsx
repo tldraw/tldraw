@@ -47,16 +47,11 @@ export class ExecutionGraph {
 			const connections = getNodePortConnections(this.editor, node)
 
 			// Add the node to the execution graph
-			this.nodesById.set(nodeId, {
-				state: 'waiting',
-				shape: node,
-				connections,
-			})
+			this.nodesById.set(nodeId, { state: 'waiting', shape: node, connections })
 
 			// Add all upstream nodes (connected to start ports) to the visit list
-			for (const connection of Object.values(connections)) {
-				if (!connection || connection.terminal !== 'start') continue
-
+			for (const connection of connections) {
+				if (connection.terminal !== 'start') continue
 				toVisit.push(connection.connectedShapeId)
 			}
 		}
@@ -73,11 +68,9 @@ export class ExecutionGraph {
 		this.state = 'executing'
 		try {
 			// Start execution from all starting nodes in parallel
-			const promises = []
-			for (const nodeId of this.startingNodeIds) {
-				promises.push(this.executeNodeIfReady(nodeId))
-			}
-			await Promise.all(promises)
+			await Promise.all(
+				Array.from(this.startingNodeIds, (nodeId) => this.executeNodeIfReady(nodeId))
+			)
 		} finally {
 			this.state = 'stopped'
 		}
@@ -98,21 +91,17 @@ export class ExecutionGraph {
 
 		// Check all input connections (end ports) to see if dependencies are ready
 		for (const connection of node.connections) {
-			if (!connection || connection.terminal !== 'end') continue
+			if (connection.terminal !== 'end') continue
 
 			const dependency = this.nodesById.get(connection.connectedShapeId)
 			if (dependency) {
 				// If the dependency hasn't executed yet, we can't execute this node
-				if (dependency.state !== 'executed') {
-					return
-				}
+				if (dependency.state !== 'executed') return
 
 				const output = dependency.outputs[connection.connectedPortId]
-				if (output === STOP_EXECUTION) {
-					// STOP_EXECUTION is used for conditional execution
-					// It means this branch should not continue
-					return
-				}
+				// STOP_EXECUTION is used for conditional execution
+				// It means this branch should not continue
+				if (output === STOP_EXECUTION) return
 
 				inputs[connection.ownPortId] = output
 			} else {
@@ -121,20 +110,15 @@ export class ExecutionGraph {
 				const outputs = getNodeOutputPortInfo(this.editor, connection.connectedShapeId)
 				const output = outputs[connection.connectedPortId]
 
-				if (output.value === STOP_EXECUTION) {
-					// It still might be conditional though, and this branch may be disabled
-					return
-				}
+				// It still might be conditional though, and this branch may be disabled
+				if (output.value === STOP_EXECUTION) return
 
 				inputs[connection.ownPortId] = output.value
 			}
 		}
 
 		// All dependencies are ready and we have their outputs! Start executing this node.
-		this.nodesById.set(nodeId, {
-			...node,
-			state: 'executing',
-		})
+		this.nodesById.set(nodeId, { ...node, state: 'executing' })
 
 		this.editor.updateShape({
 			id: nodeId,
@@ -149,21 +133,14 @@ export class ExecutionGraph {
 		})
 
 		// Mark the node as executed with its outputs
-		this.nodesById.set(nodeId, {
-			...node,
-			state: 'executed',
-			outputs,
-		})
+		this.nodesById.set(nodeId, { ...node, state: 'executed', outputs })
 
 		// Now that we've executed this node, we can see if any of its dependents are ready
-		const executingDependentPromises = []
-		for (const connection of Object.values(node.connections)) {
-			if (!connection || connection.terminal !== 'start') continue
-
-			executingDependentPromises.push(this.executeNodeIfReady(connection.connectedShapeId))
-		}
-
-		await Promise.all(executingDependentPromises)
+		await Promise.all(
+			node.connections
+				.filter((connection) => connection.terminal === 'start')
+				.map((connection) => this.executeNodeIfReady(connection.connectedShapeId))
+		)
 	}
 
 	getNodeStatus(nodeId: TLShapeId) {

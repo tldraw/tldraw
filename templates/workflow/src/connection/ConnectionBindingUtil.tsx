@@ -45,6 +45,8 @@ export class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
 		return {}
 	}
 
+	// A connection can't outlive either of the nodes it's bound to: when a node is deleted, or
+	// duplicated without its connection, delete the connection.
 	onBeforeIsolateToShape({ binding }: BindingOnShapeIsolateOptions<ConnectionBinding>): void {
 		// When we're duplicating a node but not its connection, delete the connection
 		this.editor.deleteShapes([binding.fromId])
@@ -65,22 +67,23 @@ export class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
 	onAfterChange({ bindingBefore, bindingAfter }: BindingOnChangeOptions<ConnectionBinding>): void {
 		// We also might need to call the connection callbacks if we change the thing this connection is binding to.
 		if (
-			bindingBefore.props.portId !== bindingAfter.props.portId ||
-			bindingBefore.toId !== bindingAfter.toId
+			bindingBefore.props.portId === bindingAfter.props.portId &&
+			bindingBefore.toId === bindingAfter.toId
 		) {
-			const nodeBefore = this.editor.getShape(bindingBefore.toId)
-			const nodeAfter = this.editor.getShape(bindingAfter.toId)
-			if (
-				!nodeBefore ||
-				!nodeAfter ||
-				!this.editor.isShapeOfType(nodeBefore, 'node') ||
-				!this.editor.isShapeOfType(nodeAfter, 'node')
-			) {
-				return
-			}
-			onNodePortDisconnect(this.editor, nodeBefore, bindingBefore.props.portId)
-			onNodePortConnect(this.editor, nodeAfter, bindingAfter.props.portId)
+			return
 		}
+		const nodeBefore = this.editor.getShape(bindingBefore.toId)
+		const nodeAfter = this.editor.getShape(bindingAfter.toId)
+		if (
+			!nodeBefore ||
+			!nodeAfter ||
+			!this.editor.isShapeOfType(nodeBefore, 'node') ||
+			!this.editor.isShapeOfType(nodeAfter, 'node')
+		) {
+			return
+		}
+		onNodePortDisconnect(this.editor, nodeBefore, bindingBefore.props.portId)
+		onNodePortConnect(this.editor, nodeAfter, bindingAfter.props.portId)
 	}
 
 	onAfterDelete({ binding }: BindingOnDeleteOptions<ConnectionBinding>): void {
@@ -110,15 +113,11 @@ const connectionBindingsCache = createComputedCache(
 	'connection bindings',
 	(editor: Editor, connection: ConnectionShape) => {
 		const bindings = editor.getBindingsFromShape(connection.id, CONNECTION_TYPE)
-		let start, end
+		const result: ConnectionBindings = {}
 		for (const binding of bindings) {
-			if (binding.props.terminal === 'start') {
-				start = binding
-			} else if (binding.props.terminal === 'end') {
-				end = binding
-			}
+			result[binding.props.terminal] = binding
 		}
-		return { start, end }
+		return result
 	},
 	{
 		// we only look at the arrow IDs:
