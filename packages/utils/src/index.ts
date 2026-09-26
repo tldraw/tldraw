@@ -2,7 +2,6 @@ import { registerTldrawLibraryVersion } from './lib/version'
 
 export { default as isEqual } from 'lodash.isequal'
 export { default as isEqualWith } from 'lodash.isequalwith'
-export { default as throttle } from 'lodash.throttle'
 export { default as uniq } from 'lodash.uniq'
 export {
 	areArraysShallowEqual,
@@ -96,6 +95,7 @@ export { stringEnum } from './lib/stringEnum'
 export {
 	FpsScheduler,
 	fpsThrottle,
+	throttle,
 	throttleToNextFrame,
 	type ThrottledFunction,
 } from './lib/throttle'

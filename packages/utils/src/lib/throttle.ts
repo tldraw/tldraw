@@ -1,3 +1,5 @@
+import _throttle from 'lodash.throttle'
+
 const isTest = () =>
 	typeof process !== 'undefined' &&
 	process.env.NODE_ENV === 'test' &&
@@ -249,3 +251,23 @@ export interface ThrottledFunction<T extends (...args: any[]) => any> {
 	/** Immediately runs any pending invocation and returns its result. */
 	flush(): ReturnType<T> | undefined
 }
+
+/**
+ * Creates a throttled function that invokes `fn` at most once per `wait` milliseconds. Wraps
+ * lodash's `throttle`, typed with {@link ThrottledFunction} so the published types don't depend
+ * on lodash's type packages.
+ *
+ * @example
+ * ```ts
+ * const save = throttle(() => persist(), 1000, { leading: false })
+ * save()
+ * save.flush()
+ * ```
+ *
+ * @public
+ */
+export const throttle: <T extends (...args: any[]) => any>(
+	fn: T,
+	wait?: number,
+	options?: { leading?: boolean; trailing?: boolean }
+) => ThrottledFunction<T> = _throttle

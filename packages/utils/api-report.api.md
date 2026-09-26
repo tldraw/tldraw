@@ -6,7 +6,6 @@
 
 import { default as isEqual } from 'lodash.isequal';
 import { default as isEqualWith } from 'lodash.isequalwith';
-import { default as throttle } from 'lodash.throttle';
 import { default as uniq } from 'lodash.uniq';
 
 // @internal
@@ -518,7 +517,11 @@ export const STRUCTURED_CLONE_OBJECT_PROTOTYPE: any;
 const structuredClone_2: <T>(i: T) => T;
 export { structuredClone_2 as structuredClone }
 
-export { throttle }
+// @public
+export const throttle: <T extends (...args: any[]) => any>(fn: T, wait?: number, options?: {
+    leading?: boolean;
+    trailing?: boolean;
+}) => ThrottledFunction<T>;
 
 // @public
 export interface ThrottledFunction<T extends (...args: any[]) => any> {
