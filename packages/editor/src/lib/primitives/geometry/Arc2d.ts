@@ -1,8 +1,11 @@
 import { intersectLineSegmentCircle } from '../intersect'
-import { getArcMeasure, getPointInArcT, getPointOnCircle } from '../utils'
+import { PI2, getArcMeasure, getPointInArcT, getPointOnCircle } from '../utils'
 import { Vec, VecLike } from '../Vec'
 import { getVerticesCountForArcLength } from './geometry-constants'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
+
+// Angular tolerance so that intersections landing exactly on an arc's endpoint still hit
+const ARC_HIT_EPSILON = 1e-9
 
 /** @public */
 export class Arc2d extends Geometry2d {
@@ -69,20 +72,22 @@ export class Arc2d extends Geometry2d {
 		return new Vec(_center.x + dx * scale, _center.y + dy * scale)
 	}
 
-	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
-		const {
-			_center,
-			_radius: radius,
-			_measure: measure,
-			_angleStart: angleStart,
-			_angleEnd: angleEnd,
-		} = this
+	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0): boolean {
+		// The circle intersection below has no notion of a margin, so a margin
+		// falls back to the vertex-based test.
+		if (distance > 0) return super.hitTestLineSegment(A, B, distance)
+
+		const { _center, _radius: radius, _measure: measure, _angleStart: angleStart } = this
 		const intersection = intersectLineSegmentCircle(A, B, _center, radius)
 		if (intersection === null) return false
 
 		return intersection.some((p) => {
-			const result = getPointInArcT(measure, angleStart, angleEnd, _center.angle(p))
-			return result >= 0 && result <= 1
+			// Measure the sweep from the start to p along the arc's direction rather than
+			// using getPointInArcT, which clamps points in the arc's gap to t = 0 or 1 and
+			// would count them as hits.
+			let sweep = ((_center.angle(p) - angleStart) * Math.sign(measure)) % PI2
+			if (sweep < -ARC_HIT_EPSILON) sweep += PI2
+			return sweep <= Math.abs(measure) + ARC_HIT_EPSILON
 		})
 	}
 
