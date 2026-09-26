@@ -52,6 +52,7 @@ interface Session {
 	state: 'active' | 'stopping' | 'complete'
 	options: Required<Omit<ScribbleSessionOptions, 'id'>>
 	idleTimeoutHandle?: number
+	idleDeadline: number
 	fadeElapsed: number
 	totalPointsAtFadeStart: number
 }
@@ -86,6 +87,7 @@ export class ScribbleManager {
 				fadeEasing: options.fadeEasing ?? (options.fadeMode === 'grouped' ? 'ease-in' : 'linear'),
 				fadeDurationMs: options.fadeDurationMs ?? this.editor.options.laserFadeoutMs,
 			},
+			idleDeadline: 0,
 			fadeElapsed: 0,
 			totalPointsAtFadeStart: 0,
 		}
@@ -400,11 +402,24 @@ export class ScribbleManager {
 
 	// ==================== PRIVATE HELPERS ====================
 
+	// Called every laser frame. A new timer per call would leak its id in editor.timers.
 	private resetIdleTimeout(session: Session): void {
-		this.clearIdleTimeout(session)
+		session.idleDeadline = Date.now() + session.options.idleTimeoutMs
+		if (session.idleTimeoutHandle === undefined) {
+			this.armIdleTimeout(session, session.options.idleTimeoutMs)
+		}
+	}
+
+	private armIdleTimeout(session: Session, delay: number): void {
 		session.idleTimeoutHandle = this.editor.timers.setTimeout(() => {
-			this.stopSession(session.id)
-		}, session.options.idleTimeoutMs)
+			session.idleTimeoutHandle = undefined
+			const remaining = session.idleDeadline - Date.now()
+			if (remaining > 0) {
+				this.armIdleTimeout(session, remaining)
+			} else {
+				this.stopSession(session.id)
+			}
+		}, delay)
 	}
 
 	private clearIdleTimeout(session: Session): void {
@@ -444,13 +459,11 @@ export class ScribbleManager {
 			}
 		}
 
-		// Remove completed items in individual fade mode
+		// Keep starting scribbles with no point yet, or addPoint can't find them (#7681).
 		if (session.options.fadeMode === 'individual') {
-			for (let i = session.items.length - 1; i >= 0; i--) {
-				if (session.items[i].scribble.points.length === 0) {
-					session.items.splice(i, 1)
-				}
-			}
+			session.items = session.items.filter(
+				({ scribble }) => scribble.points.length > 0 || scribble.state === 'starting'
+			)
 		}
 	}
 
