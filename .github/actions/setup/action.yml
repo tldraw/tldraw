@@ -15,8 +15,28 @@ runs:
       uses: actions/setup-node@v6
       with:
         node-version: 24.17.0
-        cache: pnpm
+
+    - name: Get pnpm store path
+      id: pnpm-store
+      run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      shell: bash
+
+    - name: Restore pnpm store
+      id: restore-pnpm-store
+      uses: actions/cache/restore@v5
+      with:
+        path: ${{ steps.pnpm-store.outputs.path }}
+        key: pnpm-store-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
       shell: bash
+
+    # Caches saved from a merge queue ref can't be restored by any other ref, so they only take
+    # space and push useful caches out.
+    - name: Save pnpm store
+      if: github.event_name != 'merge_group' && steps.restore-pnpm-store.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v5
+      with:
+        path: ${{ steps.pnpm-store.outputs.path }}
+        key: ${{ steps.restore-pnpm-store.outputs.cache-primary-key }}

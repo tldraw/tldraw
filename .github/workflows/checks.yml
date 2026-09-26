@@ -9,6 +9,16 @@ on:
 env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
+  # No `**`: it follows workspace symlinks through node_modules and the save times out.
+  BUILD_TOOL_CACHE_PATHS: |
+    .lazy
+    */*/.lazy
+    apps/*/*/.lazy
+    */*/.tsbuild
+    apps/*/*/.tsbuild
+    *.tsbuildinfo
+    */*/*.tsbuildinfo
+    apps/*/*/*.tsbuildinfo
 
 defaults:
   run:
@@ -41,18 +51,10 @@ jobs:
         run: pnpm check-circular-deps
 
       - name: Restore build tool caches
-        uses: actions/cache@v5
+        id: restore-test-tools
+        uses: actions/cache/restore@v5
         with:
-          # No `**`: it follows workspace symlinks through node_modules and the save times out.
-          path: |
-            .lazy
-            */*/.lazy
-            apps/*/*/.lazy
-            */*/.tsbuild
-            apps/*/*/.tsbuild
-            *.tsbuildinfo
-            */*/*.tsbuildinfo
-            apps/*/*/*.tsbuildinfo
+          path: ${{ env.BUILD_TOOL_CACHE_PATHS }}
           key: test-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.oxlintrc.json', '.oxfmtrc.json', 'lazy.config.ts') }}
 
       - name: Typecheck
@@ -81,7 +83,8 @@ jobs:
       # restore is safe - unmatched modules are just re-transformed. Keyed on pnpm-lock.yaml so
       # one entry is reused across commits instead of saving a new copy on every run.
       - name: Restore vitest module cache
-        uses: actions/cache@v5
+        id: restore-vitest-cache
+        uses: actions/cache/restore@v5
         with:
           path: node_modules/.vitest-cache
           key: vitest-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -89,6 +92,22 @@ jobs:
 
       - name: Test
         run: pnpm test-ci
+
+      # Caches saved from a merge queue ref can't be restored by any other ref, so they only take
+      # space and push useful caches out.
+      - name: Save vitest module cache
+        if: github.event_name != 'merge_group' && steps.restore-vitest-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: node_modules/.vitest-cache
+          key: ${{ steps.restore-vitest-cache.outputs.cache-primary-key }}
+
+      - name: Save build tool caches
+        if: github.event_name != 'merge_group' && steps.restore-test-tools.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ env.BUILD_TOOL_CACHE_PATHS }}
+          key: ${{ steps.restore-test-tools.outputs.cache-primary-key }}
 
   build:
     name: 'Build all projects'
@@ -102,21 +121,20 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Restore build tool caches
-        uses: actions/cache@v5
+        id: restore-build-tools
+        uses: actions/cache/restore@v5
         with:
-          # No `**`: it follows workspace symlinks through node_modules and the save times out.
-          path: |
-            .lazy
-            */*/.lazy
-            apps/*/*/.lazy
-            */*/.tsbuild
-            apps/*/*/.tsbuild
-            *.tsbuildinfo
-            */*/*.tsbuildinfo
-            apps/*/*/*.tsbuildinfo
+          path: ${{ env.BUILD_TOOL_CACHE_PATHS }}
           key: build-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'lazy.config.ts') }}
 
       - name: Build packages
         # the sed pipe makes sure that github annotations come through without
         # turbo's prefix
         run: "pnpm build-package | sed -E 's/^.*? ::/::/'"
+
+      - name: Save build tool caches
+        if: github.event_name != 'merge_group' && steps.restore-build-tools.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ env.BUILD_TOOL_CACHE_PATHS }}
+          key: ${{ steps.restore-build-tools.outputs.cache-primary-key }}
