@@ -824,3 +824,64 @@ describe('Store: repeated ids in one put (S)', () => {
 		expect(store.get(author.id)).toBe(stored)
 	})
 })
+
+describe('computed caches after deletion (CC)', () => {
+	let store: Store<LibraryType>
+	beforeEach(() => {
+		store = new Store({ props: {}, schema: schema() })
+	})
+	afterEach(() => {
+		store.dispose()
+	})
+
+	it('[CC6] derive and areRecordsEqual are never called with a deleted record', () => {
+		const author = Author.create({ name: 'A' })
+		store.put([author])
+		const deriveArgs: unknown[] = []
+		const equalArgs: unknown[] = []
+		const cache = store.createComputedCache(
+			'names',
+			(record: Author) => {
+				deriveArgs.push(record)
+				return record.name
+			},
+			{
+				areRecordsEqual: (a, b) => {
+					equalArgs.push(a, b)
+					return a.name === b.name
+				},
+			}
+		)
+		const seen: (string | undefined)[] = []
+		react('reader', () => seen.push(cache.get(author.id)))
+		expect(seen).toEqual(['A'])
+
+		store.remove([author.id])
+		expect(seen).toEqual(['A', undefined])
+
+		// and the record can come back with the same id
+		store.put([{ ...author, name: 'B' }])
+		expect(seen).toEqual(['A', undefined, 'B'])
+
+		for (const arg of [...deriveArgs, ...equalArgs]) {
+			expect(typeof arg).toBe('object')
+		}
+	})
+
+	it('[CC6] a reader sees a re-created record even when derive gave the same value before deletion', () => {
+		const author = Author.create({ name: 'Real name' })
+		store.put([author])
+		// undefined for the live record, and must not throw on the deleted state, or the error
+		// itself counts as a change and hides the bug
+		const cache = store.createComputedCache('pen-names', (record: Author) =>
+			record.isPseudonym ? record.name : undefined
+		)
+		const seen: (string | undefined)[] = []
+		react('reader', () => seen.push(cache.get(author.id)))
+		expect(seen).toEqual([undefined])
+
+		store.remove([author.id])
+		store.put([{ ...author, name: 'Pen name', isPseudonym: true }])
+		expect(seen.at(-1)).toBe('Pen name')
+	})
+})
