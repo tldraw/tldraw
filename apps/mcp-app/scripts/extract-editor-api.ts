@@ -1,7 +1,64 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import ts from 'typescript5'
+import {
+	type ArrowFunction,
+	type ClassDeclaration,
+	type FunctionDeclaration,
+	type InterfaceDeclaration,
+	type Node,
+	type ObjectLiteralExpression,
+	type PropertyName,
+	type BindingName,
+	type ReturnStatement,
+	type SourceFile,
+	type TypeAliasDeclaration,
+	type VariableDeclaration,
+	SyntaxKind,
+	getLeadingCommentRanges,
+	isArrowFunction,
+	isAsExpression,
+	isCallExpression,
+	isClassDeclaration,
+	isConstructorDeclaration,
+	isFunctionDeclaration,
+	isGetAccessorDeclaration,
+	isIdentifier,
+	isImportDeclaration,
+	isInterfaceDeclaration,
+	isMethodDeclaration,
+	isMethodSignatureDeclaration,
+	isNamedImports,
+	isNumericLiteral,
+	isObjectLiteralExpression,
+	isParameterDeclaration,
+	isPropertyAssignment,
+	isPropertyDeclaration,
+	isPropertySignatureDeclaration,
+	isReturnStatement,
+	isShorthandPropertyAssignment,
+	isSpreadAssignment,
+	isStringLiteral,
+	isTypeAliasDeclaration,
+	isTypeReferenceNode,
+	isVariableDeclaration,
+	isVariableStatement,
+} from 'typescript/unstable/ast'
+import {
+	API,
+	type Checker,
+	NodeBuilderFlags,
+	type Project,
+	SignatureKind,
+	SymbolFlags,
+	type Symbol as TsSymbol,
+	type Type,
+} from 'typescript/unstable/sync'
+
+// TypeFormatFlags isn't exported by the TS 7 API.
+const NoTruncation = 1
+const WriteArrowStyleSignature = 1 << 18
+const InTypeAlias = 1 << 23
 
 const scriptPath = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(scriptPath)
@@ -112,17 +169,24 @@ interface ExtractedExecSection {
 }
 
 type NamedDeclaration =
-	| ts.ClassDeclaration
-	| ts.InterfaceDeclaration
-	| ts.TypeAliasDeclaration
-	| ts.FunctionDeclaration
-	| ts.VariableDeclaration
+	| ClassDeclaration
+	| InterfaceDeclaration
+	| TypeAliasDeclaration
+	| FunctionDeclaration
+	| VariableDeclaration
+
+// Class and interface members, read through the node's generic child accessors.
+type MemberNode = Node & {
+	readonly name?: PropertyName
+	readonly type?: Node
+	readonly modifiers?: readonly Node[]
+	readonly postfixToken?: Node
+}
 
 interface DeclarationContext {
-	program: ts.Program
-	checker: ts.TypeChecker
+	project: Project
+	checker: Checker
 	declarations: Map<string, NamedDeclaration>
-	sourceFiles: Map<string, ts.SourceFile>
 }
 
 // --- Helpers ---
@@ -169,12 +233,12 @@ function categorize(name: string): string {
 }
 
 function extractJsDoc(
-	member: ts.Node,
-	sourceFile: ts.SourceFile
+	member: Node,
+	sourceFile: SourceFile
 ): { description: string; params: ExtractedParam[]; examples: string[] } {
 	const empty = { description: '', params: [], examples: [] }
 
-	const ranges = ts.getLeadingCommentRanges(sourceFile.text, member.getFullStart())
+	const ranges = getLeadingCommentRanges(sourceFile.text, member.getFullStart())
 	if (!ranges) return empty
 
 	const jsdocRanges = ranges.filter((r) => sourceFile.text.slice(r.pos, r.pos + 3) === '/**')
@@ -229,16 +293,24 @@ function extractJsDoc(
 	return { description, params, examples }
 }
 
-function getPropertyName(name: ts.PropertyName | ts.BindingName | undefined): string | undefined {
+function getPropertyName(name: PropertyName | BindingName | undefined): string | undefined {
 	if (!name) return undefined
-	if (ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name)) {
+	if (isIdentifier(name) || isStringLiteral(name) || isNumericLiteral(name)) {
 		return name.text
 	}
 	return undefined
 }
 
-function isExcludedComment(member: ts.Node, sourceFile: ts.SourceFile): boolean {
-	const ranges = ts.getLeadingCommentRanges(sourceFile.text, member.getFullStart())
+function hasModifier(member: MemberNode, ...kinds: SyntaxKind[]): boolean {
+	return member.modifiers?.some((modifier) => kinds.includes(modifier.kind)) === true
+}
+
+function hasQuestionToken(member: MemberNode): boolean {
+	return member.postfixToken?.kind === SyntaxKind.QuestionToken
+}
+
+function isExcludedComment(member: Node, sourceFile: SourceFile): boolean {
+	const ranges = getLeadingCommentRanges(sourceFile.text, member.getFullStart())
 	if (!ranges) return false
 	const lastRange = ranges[ranges.length - 1]
 	return sourceFile.text
@@ -246,42 +318,88 @@ function isExcludedComment(member: ts.Node, sourceFile: ts.SourceFile): boolean 
 		.includes('Excluded from this release type')
 }
 
+// --- Projects ---
+
+// Configs and example snippets are served to tsgo from memory; every other path
+// falls through to the real filesystem.
+const virtualFiles = new Map<string, string>()
+
+const projectCompilerOptions = {
+	target: 'es2020',
+	module: 'esnext',
+	// TS 7 dropped Node10 resolution. Ignoring `exports` keeps resolution on each
+	// package's `types` field (the built .d.ts), as Node10 did.
+	moduleResolution: 'bundler',
+	resolvePackageJsonExports: false,
+	resolvePackageJsonImports: false,
+	jsx: 'react-jsx',
+}
+
+function createApi(): API {
+	return new API({
+		cwd: repoRoot,
+		fs: {
+			readFile: (fileName) => virtualFiles.get(fileName),
+			fileExists: (fileName) => (virtualFiles.has(fileName) ? true : undefined),
+		},
+	})
+}
+
+function openProjects(
+	api: API,
+	rootFilesByName: Record<string, string[]>
+): Record<string, Project> {
+	const configPaths: Record<string, string> = {}
+	for (const [name, files] of Object.entries(rootFilesByName)) {
+		const configPath = path.join(__dirname, `tsconfig.extract-${name}.json`)
+		virtualFiles.set(configPath, JSON.stringify({ compilerOptions: projectCompilerOptions, files }))
+		configPaths[name] = configPath
+	}
+	const snapshot = api.updateSnapshot({ openProjects: Object.values(configPaths) })
+	const projects: Record<string, Project> = {}
+	for (const [name, configPath] of Object.entries(configPaths)) {
+		const project = snapshot.getProject(configPath)
+		if (!project) throw new Error(`Could not open project: ${configPath}`)
+		projects[name] = project
+	}
+	return projects
+}
+
+function getSourceFile(project: Project, fileName: string): SourceFile {
+	const sourceFile = project.program.getSourceFile(fileName)
+	if (!sourceFile) throw new Error(`Could not load source file: ${fileName}`)
+	return sourceFile
+}
+
 // --- Declaration context ---
 
-function createDeclarationContext(entryPaths: string[]): DeclarationContext {
-	const program = ts.createProgram(entryPaths, {
-		target: ts.ScriptTarget.ES2020,
-		jsx: ts.JsxEmit.ReactJSX,
-		moduleResolution: ts.ModuleResolutionKind.Node10,
-	})
+function createDeclarationContext(project: Project, entryPaths: string[]): DeclarationContext {
 	const declarations = new Map<string, NamedDeclaration>()
-	const sourceFiles = new Map<string, ts.SourceFile>()
 	const indexedSourceFiles = new Set(entryPaths.map((entryPath) => path.resolve(entryPath)))
 
-	for (const sourceFile of program.getSourceFiles()) {
-		sourceFiles.set(sourceFile.fileName, sourceFile)
+	for (const fileName of project.program.getSourceFileNames()) {
 		const shouldIndex =
-			indexedSourceFiles.has(path.resolve(sourceFile.fileName)) ||
-			sourceFile.fileName.includes('/packages/') ||
-			sourceFile.fileName.includes('/node_modules/@tldraw/') ||
-			sourceFile.fileName.includes('/node_modules/tldraw/')
+			indexedSourceFiles.has(path.resolve(fileName)) ||
+			fileName.includes('/packages/') ||
+			fileName.includes('/node_modules/@tldraw/') ||
+			fileName.includes('/node_modules/tldraw/')
 		if (!shouldIndex) continue
 
-		ts.forEachChild(sourceFile, (node) => {
+		getSourceFile(project, fileName).forEachChild((node) => {
 			if (
-				(ts.isClassDeclaration(node) ||
-					ts.isInterfaceDeclaration(node) ||
-					ts.isTypeAliasDeclaration(node) ||
-					ts.isFunctionDeclaration(node)) &&
+				(isClassDeclaration(node) ||
+					isInterfaceDeclaration(node) ||
+					isTypeAliasDeclaration(node) ||
+					isFunctionDeclaration(node)) &&
 				node.name
 			) {
 				declarations.set(node.name.text, node)
 				return
 			}
 
-			if (ts.isVariableStatement(node)) {
+			if (isVariableStatement(node)) {
 				for (const declaration of node.declarationList.declarations) {
-					if (ts.isIdentifier(declaration.name)) {
+					if (isIdentifier(declaration.name)) {
 						declarations.set(declaration.name.text, declaration)
 					}
 				}
@@ -290,62 +408,66 @@ function createDeclarationContext(entryPaths: string[]): DeclarationContext {
 	}
 
 	return {
-		program,
-		checker: program.getTypeChecker(),
+		project,
+		checker: project.checker,
 		declarations,
-		sourceFiles,
 	}
 }
 
-function getDeclarationSourceFile(declaration: NamedDeclaration): ts.SourceFile {
+function getDeclarationSourceFile(declaration: NamedDeclaration): SourceFile {
 	return declaration.getSourceFile()
 }
 
 function getDeclarationKind(declaration: NamedDeclaration): ExtractedNamedType['kind'] {
-	if (ts.isClassDeclaration(declaration)) return 'class'
-	if (ts.isInterfaceDeclaration(declaration)) return 'interface'
-	if (ts.isFunctionDeclaration(declaration)) return 'function'
-	if (ts.isVariableDeclaration(declaration)) return 'const'
+	if (isClassDeclaration(declaration)) return 'class'
+	if (isInterfaceDeclaration(declaration)) return 'interface'
+	if (isFunctionDeclaration(declaration)) return 'function'
+	if (isVariableDeclaration(declaration)) return 'const'
 	return 'type'
+}
+
+function typeToString(checker: Checker, node: Node, flags: number): string {
+	const type = checker.getTypeAtLocation(node)
+	if (!type) throw new Error('No type at location')
+	return checker.typeToString(type, node, flags)
 }
 
 function getDeclarationSignature(
 	declaration: NamedDeclaration,
-	sourceFile: ts.SourceFile,
-	checker: ts.TypeChecker
+	sourceFile: SourceFile,
+	project: Project
 ): string {
-	if (ts.isTypeAliasDeclaration(declaration)) {
+	const checker = project.checker
+	if (isTypeAliasDeclaration(declaration)) {
 		return declaration.type.getText(sourceFile)
 	}
 
-	if (ts.isFunctionDeclaration(declaration)) {
+	if (isFunctionDeclaration(declaration)) {
 		try {
+			// Print only this overload's signature, like TS 6's `signatureToString`.
 			const signature = checker.getSignatureFromDeclaration(declaration)
-			if (signature) {
-				return checker.signatureToString(
+			const signatureNode =
+				signature &&
+				checker.signatureToSignatureDeclaration(
 					signature,
+					SyntaxKind.FunctionType,
 					declaration,
-					ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.WriteArrowStyleSignature
+					NodeBuilderFlags.NoTruncation |
+						NodeBuilderFlags.IgnoreErrors |
+						NodeBuilderFlags.WriteTypeParametersInQualifiedName
 				)
-			}
-			return checker.typeToString(
-				checker.getTypeAtLocation(declaration),
-				declaration,
-				ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.WriteArrowStyleSignature
-			)
+			// printNode keeps multi-line type literals; TS 6 wrote signatures on one line.
+			if (signatureNode) return project.emitter.printNode(signatureNode).replace(/\n\s*/g, ' ')
+			return typeToString(checker, declaration, NoTruncation | WriteArrowStyleSignature)
 		} catch {
 			return '(unknown)'
 		}
 	}
 
-	if (ts.isVariableDeclaration(declaration)) {
+	if (isVariableDeclaration(declaration)) {
 		try {
 			if (declaration.type) return declaration.type.getText(sourceFile)
-			return checker.typeToString(
-				checker.getTypeAtLocation(declaration),
-				declaration,
-				ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.WriteArrowStyleSignature
-			)
+			return typeToString(checker, declaration, NoTruncation | WriteArrowStyleSignature)
 		} catch {
 			return '(unknown)'
 		}
@@ -356,12 +478,8 @@ function getDeclarationSignature(
 		.filter(Boolean)
 		.join(' ')
 
-	if (ts.isClassDeclaration(declaration)) {
-		const abstractPrefix = declaration.modifiers?.some(
-			(modifier) => modifier.kind === ts.SyntaxKind.AbstractKeyword
-		)
-			? 'abstract '
-			: ''
+	if (isClassDeclaration(declaration)) {
+		const abstractPrefix = hasModifier(declaration, SyntaxKind.AbstractKeyword) ? 'abstract ' : ''
 		return `${abstractPrefix}class ${declaration.name?.text ?? '(anonymous)'}${
 			heritage ? ` ${heritage}` : ''
 		}`
@@ -370,27 +488,19 @@ function getDeclarationSignature(
 	return `interface ${declaration.name.text}${heritage ? ` ${heritage}` : ''}`
 }
 
-function getMemberSignature(
-	member: ts.ClassElement | ts.TypeElement,
-	sourceFile: ts.SourceFile,
-	checker: ts.TypeChecker
-): string {
+function getMemberSignature(member: MemberNode, sourceFile: SourceFile, checker: Checker): string {
 	let signature = '(unknown)'
 	try {
 		if (
-			(ts.isPropertyDeclaration(member) ||
-				ts.isPropertySignature(member) ||
-				ts.isMethodDeclaration(member) ||
-				ts.isMethodSignature(member)) &&
+			(isPropertyDeclaration(member) ||
+				isPropertySignatureDeclaration(member) ||
+				isMethodDeclaration(member) ||
+				isMethodSignatureDeclaration(member)) &&
 			member.type
 		) {
 			signature = member.type.getText(sourceFile)
 		} else {
-			signature = checker.typeToString(
-				checker.getTypeAtLocation(member),
-				member,
-				ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.WriteArrowStyleSignature
-			)
+			signature = typeToString(checker, member, NoTruncation | WriteArrowStyleSignature)
 		}
 	} catch {
 		// keep fallback
@@ -399,39 +509,33 @@ function getMemberSignature(
 }
 
 function extractTypeMembers(
-	declaration: ts.ClassDeclaration | ts.InterfaceDeclaration,
+	declaration: ClassDeclaration | InterfaceDeclaration,
 	context: DeclarationContext
 ): ExtractedTypeMember[] {
 	const sourceFile = getDeclarationSourceFile(declaration)
 	const members: ExtractedTypeMember[] = []
 
-	for (const member of declaration.members) {
+	for (const member of declaration.members as readonly MemberNode[]) {
 		if (isExcludedComment(member, sourceFile)) continue
 
-		if (ts.isClassDeclaration(declaration)) {
-			const modifiers = ts.canHaveModifiers(member) ? ts.getModifiers(member) : undefined
-			if (
-				modifiers?.some(
-					(modifier) =>
-						modifier.kind === ts.SyntaxKind.PrivateKeyword ||
-						modifier.kind === ts.SyntaxKind.ProtectedKeyword
-				)
-			) {
-				continue
-			}
+		if (
+			isClassDeclaration(declaration) &&
+			hasModifier(member, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword)
+		) {
+			continue
 		}
 
-		if (ts.isConstructorDeclaration(member)) continue
+		if (isConstructorDeclaration(member)) continue
 
-		const name = 'name' in member ? getPropertyName(member.name) : undefined
+		const name = getPropertyName(member.name)
 		if (!name || name.startsWith('_')) continue
 
 		let kind: ExtractedTypeMember['kind']
-		if (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) {
+		if (isMethodDeclaration(member) || isMethodSignatureDeclaration(member)) {
 			kind = 'method'
-		} else if (ts.isGetAccessorDeclaration(member) || ts.isGetAccessor(member)) {
+		} else if (isGetAccessorDeclaration(member)) {
 			kind = 'getter'
-		} else if (ts.isPropertyDeclaration(member) || ts.isPropertySignature(member)) {
+		} else if (isPropertyDeclaration(member) || isPropertySignatureDeclaration(member)) {
 			kind = 'property'
 		} else {
 			continue
@@ -447,12 +551,8 @@ function extractTypeMembers(
 			description: jsdoc.description,
 			params: jsdoc.params,
 			examples: jsdoc.examples,
-			optional: 'questionToken' in member && !!member.questionToken,
-			static:
-				ts.isClassDeclaration(declaration) &&
-				(ts.canHaveModifiers(member) ? ts.getModifiers(member) : undefined)?.some(
-					(modifier) => modifier.kind === ts.SyntaxKind.StaticKeyword
-				) === true,
+			optional: hasQuestionToken(member),
+			static: isClassDeclaration(declaration) && hasModifier(member, SyntaxKind.StaticKeyword),
 		})
 	}
 
@@ -474,36 +574,36 @@ function extractNamedType(
 	const result: ExtractedNamedType = {
 		name,
 		kind: getDeclarationKind(declaration),
-		signature: getDeclarationSignature(declaration, sourceFile, context.checker),
+		signature: getDeclarationSignature(declaration, sourceFile, context.project),
 		description: extractJsDoc(declaration, sourceFile).description,
 		params: extractJsDoc(declaration, sourceFile).params,
 		examples: extractJsDoc(declaration, sourceFile).examples,
 	}
 
-	if (ts.isClassDeclaration(declaration) || ts.isInterfaceDeclaration(declaration)) {
+	if (isClassDeclaration(declaration) || isInterfaceDeclaration(declaration)) {
 		result.members = extractTypeMembers(declaration, context)
 		return result
 	}
 
-	if (ts.isFunctionDeclaration(declaration) || ts.isVariableDeclaration(declaration)) {
+	if (isFunctionDeclaration(declaration) || isVariableDeclaration(declaration)) {
 		return result
 	}
 
 	result.aliasedTo = declaration.type.getText(sourceFile)
 
-	if (ts.isTypeReferenceNode(declaration.type)) {
+	if (isTypeReferenceNode(declaration.type)) {
 		const baseTypeName = declaration.type.typeName.getText(sourceFile)
 		if (baseTypeName !== name) {
 			result.resolvedType = extractNamedType(baseTypeName, context, visited)
 		}
 
 		const relatedTypeNames = (declaration.type.typeArguments ?? [])
-			.filter((arg): arg is ts.TypeReferenceNode => ts.isTypeReferenceNode(arg))
+			.filter((arg) => isTypeReferenceNode(arg))
 			.map((arg) => arg.getText(sourceFile))
 			.filter((typeName) => {
 				if (typeName === baseTypeName) return false
 				const relatedDeclaration = context.declarations.get(typeName)
-				return !!relatedDeclaration && ts.isInterfaceDeclaration(relatedDeclaration)
+				return !!relatedDeclaration && isInterfaceDeclaration(relatedDeclaration)
 			})
 
 		const relatedTypes = relatedTypeNames
@@ -519,29 +619,34 @@ function extractNamedType(
 }
 
 function getSymbolDeclaration(
-	symbol: ts.Symbol | undefined,
-	checker: ts.TypeChecker
+	symbol: TsSymbol | undefined,
+	checker: Checker
 ): NamedDeclaration | undefined {
 	if (!symbol) return undefined
 	const resolvedSymbol =
-		symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
-	const declaration = resolvedSymbol.declarations?.find(
-		(declaration): declaration is NamedDeclaration =>
-			ts.isClassDeclaration(declaration) ||
-			ts.isInterfaceDeclaration(declaration) ||
-			ts.isTypeAliasDeclaration(declaration) ||
-			ts.isFunctionDeclaration(declaration) ||
-			ts.isVariableDeclaration(declaration)
-	)
-	return declaration
+		symbol.flags & SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
+	for (const handle of resolvedSymbol.declarations) {
+		const declaration = handle.resolve()
+		if (
+			declaration &&
+			(isClassDeclaration(declaration) ||
+				isInterfaceDeclaration(declaration) ||
+				isTypeAliasDeclaration(declaration) ||
+				isFunctionDeclaration(declaration) ||
+				isVariableDeclaration(declaration))
+		) {
+			return declaration
+		}
+	}
+	return undefined
 }
 
 function extractNamedTypeFromDeclaration(
 	declaration: NamedDeclaration,
 	context: DeclarationContext
 ): ExtractedNamedType | undefined {
-	const name = ts.isVariableDeclaration(declaration)
-		? ts.isIdentifier(declaration.name)
+	const name = isVariableDeclaration(declaration)
+		? isIdentifier(declaration.name)
 			? declaration.name.text
 			: undefined
 		: declaration.name?.text
@@ -552,18 +657,15 @@ function extractNamedTypeFromDeclaration(
 	return extractNamedType(name, context)
 }
 
-function findNode<T extends ts.Node>(
-	root: ts.Node,
-	predicate: (node: ts.Node) => node is T
-): T | undefined {
+function findNode<T extends Node>(root: Node, predicate: (node: Node) => node is T): T | undefined {
 	let result: T | undefined
-	const visit = (node: ts.Node) => {
+	const visit = (node: Node) => {
 		if (result) return
 		if (predicate(node)) {
 			result = node
 			return
 		}
-		ts.forEachChild(node, visit)
+		node.forEachChild(visit)
 	}
 	visit(root)
 	return result
@@ -571,33 +673,30 @@ function findNode<T extends ts.Node>(
 
 // --- Extract exec helpers from exec-helpers.ts ---
 
-function extractExecHelpers(): ExtractedExecSection {
-	const context = createDeclarationContext([
+function extractExecHelpers(project: Project): ExtractedExecSection {
+	const context = createDeclarationContext(project, [
 		execHelpersPath,
 		editorDtsPath,
 		storeDtsPath,
 		tlschemaDtsPath,
 	])
-	const sourceFile = context.sourceFiles.get(execHelpersPath)
-	if (!sourceFile) {
-		throw new Error(`Could not load source file: ${execHelpersPath}`)
-	}
+	const sourceFile = getSourceFile(project, execHelpersPath)
 
 	// Find the helpers object inside createExecHelpers function
 	const helpersDeclaration = findNode(
 		sourceFile,
-		(node): node is ts.VariableDeclaration =>
-			ts.isVariableDeclaration(node) &&
-			ts.isIdentifier(node.name) &&
+		(node): node is VariableDeclaration =>
+			isVariableDeclaration(node) &&
+			isIdentifier(node.name) &&
 			node.name.text === 'helpers' &&
 			!!node.initializer &&
-			ts.isObjectLiteralExpression(node.initializer)
+			isObjectLiteralExpression(node.initializer)
 	)
 
 	if (
 		!helpersDeclaration ||
 		!helpersDeclaration.initializer ||
-		!ts.isObjectLiteralExpression(helpersDeclaration.initializer)
+		!isObjectLiteralExpression(helpersDeclaration.initializer)
 	) {
 		throw new Error('Could not find helpers object in exec-helpers.ts')
 	}
@@ -605,15 +704,12 @@ function extractExecHelpers(): ExtractedExecSection {
 	// Collect tldraw imports
 	const tldrawImports = new Map<string, string>()
 	for (const statement of sourceFile.statements) {
-		if (!ts.isImportDeclaration(statement)) continue
-		if (
-			!ts.isStringLiteral(statement.moduleSpecifier) ||
-			statement.moduleSpecifier.text !== 'tldraw'
-		)
+		if (!isImportDeclaration(statement)) continue
+		if (!isStringLiteral(statement.moduleSpecifier) || statement.moduleSpecifier.text !== 'tldraw')
 			continue
 		if (
 			!statement.importClause?.namedBindings ||
-			!ts.isNamedImports(statement.importClause.namedBindings)
+			!isNamedImports(statement.importClause.namedBindings)
 		) {
 			continue
 		}
@@ -628,17 +724,17 @@ function extractExecHelpers(): ExtractedExecSection {
 	const helpers: ExtractedExecHelper[] = []
 
 	for (const property of helpersDeclaration.initializer.properties) {
-		if (!ts.isPropertyAssignment(property) && !ts.isShorthandPropertyAssignment(property)) continue
+		if (!isPropertyAssignment(property) && !isShorthandPropertyAssignment(property)) continue
 
 		const helperName = getPropertyName(property.name)
 		if (!helperName) continue
 
-		const initializer = ts.isPropertyAssignment(property) ? property.initializer : property.name
+		const initializer = isPropertyAssignment(property) ? property.initializer : property.name
 		let typeInfo: ExtractedNamedType | undefined
 		let source: ExtractedExecHelper['source'] = 'local'
 		let origin = helperName
 
-		if (ts.isIdentifier(initializer)) {
+		if (isIdentifier(initializer)) {
 			const importedName = tldrawImports.get(initializer.text)
 			if (importedName) {
 				source = 'tldraw'
@@ -652,33 +748,33 @@ function extractExecHelpers(): ExtractedExecSection {
 				typeInfo = declaration ? extractNamedTypeFromDeclaration(declaration, context) : undefined
 				if (declaration && declaration.getSourceFile().fileName.includes('/packages/')) {
 					source = 'tldraw'
-					origin = ts.isVariableDeclaration(declaration)
-						? ts.isIdentifier(declaration.name)
+					origin = isVariableDeclaration(declaration)
+						? isIdentifier(declaration.name)
 							? declaration.name.text
 							: 'tldraw'
 						: (declaration.name?.text ?? 'tldraw')
 				}
 			}
-		} else if (ts.isCallExpression(initializer) && ts.isIdentifier(initializer.expression)) {
+		} else if (isCallExpression(initializer) && isIdentifier(initializer.expression)) {
 			// Factory function pattern: someFn(editor) — resolve the inner return type
 			const factoryName = initializer.expression.text
 			const declaration = context.declarations.get(factoryName)
-			if (declaration && ts.isFunctionDeclaration(declaration)) {
+			if (declaration && isFunctionDeclaration(declaration)) {
 				const returnStatement = findNode(
 					declaration,
-					(node): node is ts.ReturnStatement =>
-						ts.isReturnStatement(node) && !!node.expression && ts.isArrowFunction(node.expression)
+					(node): node is ReturnStatement & { expression: ArrowFunction } =>
+						isReturnStatement(node) && !!node.expression && isArrowFunction(node.expression)
 				)
-				if (returnStatement?.expression && ts.isArrowFunction(returnStatement.expression)) {
+				if (returnStatement) {
 					const returnJsDoc = extractJsDoc(returnStatement, sourceFile)
 					const declarationJsDoc = extractJsDoc(declaration, sourceFile)
 					typeInfo = {
 						name: helperName,
 						kind: 'function',
-						signature: context.checker.typeToString(
-							context.checker.getTypeAtLocation(returnStatement.expression),
+						signature: typeToString(
+							context.checker,
 							returnStatement.expression,
-							ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.WriteArrowStyleSignature
+							NoTruncation | WriteArrowStyleSignature
 						),
 						description: returnJsDoc.description || declarationJsDoc.description,
 						params: returnJsDoc.params.length > 0 ? returnJsDoc.params : declarationJsDoc.params,
@@ -711,66 +807,52 @@ function extractExecHelpers(): ExtractedExecSection {
 
 // --- Extract Editor members ---
 
-function extract(): ExtractedMember[] {
-	const program = ts.createProgram([editorDtsPath, storeDtsPath, tlschemaDtsPath], {
-		target: ts.ScriptTarget.ES2020,
-		moduleResolution: ts.ModuleResolutionKind.Node10,
-	})
-	const checker = program.getTypeChecker()
-	const sourceFile = program.getSourceFile(editorDtsPath)
-	if (!sourceFile) {
-		throw new Error(`Could not load source file: ${editorDtsPath}`)
-	}
-
-	let editorClass: ts.ClassDeclaration | undefined
-	ts.forEachChild(sourceFile, (node) => {
-		if (ts.isClassDeclaration(node) && node.name?.text === 'Editor') {
+function findEditorClass(project: Project): ClassDeclaration {
+	let editorClass: ClassDeclaration | undefined
+	getSourceFile(project, editorDtsPath).forEachChild((node) => {
+		if (isClassDeclaration(node) && node.name?.text === 'Editor') {
 			editorClass = node
 		}
 	})
-
 	if (!editorClass) {
 		throw new Error('Could not find Editor class in .d.ts file')
 	}
+	return editorClass
+}
+
+function extract(project: Project): ExtractedMember[] {
+	const checker = project.checker
+	const sourceFile = getSourceFile(project, editorDtsPath)
+	const editorClass = findEditorClass(project)
 
 	const members: ExtractedMember[] = []
 
-	for (const member of editorClass.members) {
-		const modifiers = ts.canHaveModifiers(member) ? ts.getModifiers(member) : undefined
-		if (
-			modifiers?.some(
-				(m) => m.kind === ts.SyntaxKind.PrivateKeyword || m.kind === ts.SyntaxKind.ProtectedKeyword
-			)
-		) {
+	for (const member of editorClass.members as readonly MemberNode[]) {
+		if (hasModifier(member, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword)) {
 			continue
 		}
 
 		if (isExcludedComment(member, sourceFile)) continue
 
-		const name = member.name && ts.isIdentifier(member.name) ? member.name.text : undefined
+		const name = member.name && isIdentifier(member.name) ? member.name.text : undefined
 		if (!name) continue
 		if (name.startsWith('_')) continue
-		if (ts.isConstructorDeclaration(member)) continue
+		if (isConstructorDeclaration(member)) continue
 
 		let kind: 'method' | 'property' | 'getter'
-		if (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) {
+		if (isMethodDeclaration(member) || isMethodSignatureDeclaration(member)) {
 			kind = 'method'
-		} else if (ts.isGetAccessorDeclaration(member) || ts.isGetAccessor(member)) {
+		} else if (isGetAccessorDeclaration(member)) {
 			kind = 'getter'
-		} else if (ts.isPropertyDeclaration(member) || ts.isPropertySignature(member)) {
+		} else if (isPropertyDeclaration(member) || isPropertySignatureDeclaration(member)) {
 			kind = 'property'
 		} else {
 			continue
 		}
 
-		const type = checker.getTypeAtLocation(member)
 		let signature: string
 		try {
-			signature = checker.typeToString(
-				type,
-				member,
-				ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.WriteArrowStyleSignature
-			)
+			signature = typeToString(checker, member, NoTruncation | WriteArrowStyleSignature)
 		} catch {
 			signature = '(unknown)'
 		}
@@ -811,19 +893,15 @@ function toPascalCase(value: string) {
 		.join('')
 }
 
-function extractFocusedShapeTypes(): ExtractedTypesSection {
-	const context = createDeclarationContext([formatTsPath, editorDtsPath, tlschemaDtsPath])
-	const sourceFile = context.sourceFiles.get(formatTsPath)
-	if (!sourceFile) {
-		throw new Error(`Could not load source file: ${formatTsPath}`)
-	}
+function extractFocusedShapeTypes(project: Project): ExtractedTypesSection {
+	const context = createDeclarationContext(project, [formatTsPath, editorDtsPath, tlschemaDtsPath])
 
 	const allShapeTypes: string[] = []
 	const shapes: ExtractedShapeType[] = []
 
 	for (const ifaceName of FOCUSED_SHAPE_INTERFACES) {
 		const declaration = context.declarations.get(ifaceName)
-		if (!declaration || !ts.isInterfaceDeclaration(declaration)) {
+		if (!declaration || !isInterfaceDeclaration(declaration)) {
 			console.error(`Warning: could not find interface ${ifaceName} in format.ts`)
 			continue
 		}
@@ -835,19 +913,14 @@ function extractFocusedShapeTypes(): ExtractedTypesSection {
 		let shapeType = ''
 		const unionShapeTypes: string[] = []
 
-		for (const member of declaration.members) {
-			if (!ts.isPropertySignature(member) && !ts.isPropertyDeclaration(member)) continue
+		for (const member of declaration.members as readonly MemberNode[]) {
+			if (!isPropertySignatureDeclaration(member) && !isPropertyDeclaration(member)) continue
 			const propName = getPropertyName(member.name)
 			if (!propName) continue
 
 			let signature = '(unknown)'
 			try {
-				const memberType = context.checker.getTypeAtLocation(member)
-				signature = context.checker.typeToString(
-					memberType,
-					member,
-					ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.InTypeAlias
-				)
+				signature = typeToString(context.checker, member, NoTruncation | InTypeAlias)
 			} catch {
 				if (member.type) signature = member.type.getText(ifaceSourceFile)
 			}
@@ -856,11 +929,11 @@ function extractFocusedShapeTypes(): ExtractedTypesSection {
 
 			if (propName === '_type') {
 				const memberType = context.checker.getTypeAtLocation(member)
-				if (memberType.isStringLiteral()) {
+				if (memberType?.isStringLiteralType()) {
 					shapeType = memberType.value
-				} else if (memberType.isUnion()) {
-					for (const t of memberType.types) {
-						if (t.isStringLiteral()) {
+				} else if (memberType?.isUnionType()) {
+					for (const t of memberType.getTypes() ?? []) {
+						if (t.isStringLiteralType()) {
 							allShapeTypes.push(t.value)
 							unionShapeTypes.push(t.value)
 						}
@@ -872,7 +945,7 @@ function extractFocusedShapeTypes(): ExtractedTypesSection {
 				name: propName,
 				signature,
 				description: propJsdoc.description,
-				optional: !!member.questionToken,
+				optional: hasQuestionToken(member),
 			})
 		}
 
@@ -950,44 +1023,34 @@ interface MethodMapEntry {
 	ret: RetKind
 }
 
-function generateMethodMap(
-	editorClass: ts.ClassDeclaration,
-	context: DeclarationContext
-): Record<string, MethodMapEntry> {
+function generateMethodMap(project: Project): Record<string, MethodMapEntry> {
+	const checker = project.checker
 	const map: Record<string, MethodMapEntry> = {}
 
-	for (const member of editorClass.members) {
-		const modifiers = ts.canHaveModifiers(member) ? ts.getModifiers(member) : undefined
-		if (
-			modifiers?.some(
-				(m) => m.kind === ts.SyntaxKind.PrivateKeyword || m.kind === ts.SyntaxKind.ProtectedKeyword
-			)
-		)
-			continue
+	for (const member of findEditorClass(project).members as readonly MemberNode[]) {
+		if (hasModifier(member, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword)) continue
 
-		const name = member.name && ts.isIdentifier(member.name) ? member.name.text : undefined
+		const name = member.name && isIdentifier(member.name) ? member.name.text : undefined
 		if (!name || name.startsWith('_')) continue
 
-		const memberType = context.checker.getTypeAtLocation(member)
-		const signatures = memberType.getCallSignatures()
+		const memberType = checker.getTypeAtLocation(member)
+		const signatures = memberType ? checker.getSignaturesOfType(memberType, SignatureKind.Call) : []
 		if (signatures.length === 0) continue
 
 		const args: ArgKind[] = []
 		let ret: RetKind | null = null
 
 		for (const sig of signatures) {
-			for (let i = 0; i < sig.parameters.length; i++) {
-				const param = sig.parameters[i]
-				const paramType = context.checker.getTypeOfSymbolAtLocation(param, member)
-				const paramStr = context.checker.typeToString(
-					paramType,
-					member,
-					ts.TypeFormatFlags.NoTruncation
-				)
+			const parameters = sig.getParameters()
+			for (let i = 0; i < parameters.length; i++) {
+				const param = parameters[i]
+				const paramType = checker.getTypeOfSymbolAtLocation(param, member)
+				const paramStr = checker.typeToString(paramType, member, NoTruncation)
+				const paramDeclaration = param.declarations[0]?.resolve()
 				const isRest = !!(
-					param.declarations?.[0] &&
-					ts.isParameter(param.declarations[0]) &&
-					param.declarations[0].dotDotDotToken
+					paramDeclaration &&
+					isParameterDeclaration(paramDeclaration) &&
+					paramDeclaration.dotDotDotToken
 				)
 
 				if (args[i]) continue
@@ -1000,13 +1063,11 @@ function generateMethodMap(
 			}
 
 			if (!ret) {
-				const retType = sig.getReturnType()
-				const retStr = context.checker.typeToString(
-					retType,
-					member,
-					ts.TypeFormatFlags.NoTruncation
-				)
-				ret = classifyReturnType(retType, retStr, context.checker, member)
+				const retType = checker.getReturnTypeOfSignature(sig)
+				if (retType) {
+					const retStr = checker.typeToString(retType, member, NoTruncation)
+					ret = classifyReturnType(retType, retStr, checker, member)
+				}
 			}
 		}
 
@@ -1046,10 +1107,10 @@ function classifyParamType(typeStr: string, isRest: boolean): ArgKind | null {
 }
 
 function classifyReturnType(
-	retType: ts.Type,
+	retType: Type,
 	typeStr: string,
-	checker: ts.TypeChecker,
-	member: ts.ClassElement
+	checker: Checker,
+	member: Node
 ): RetKind | null {
 	if (typeStr === 'this') return 'this'
 
@@ -1057,20 +1118,20 @@ function classifyReturnType(
 
 	let resolvedStr = typeStr
 	if (retType.isTypeParameter()) {
-		const constraint = retType.getConstraint()
+		const constraint = checker.getBaseConstraintOfType(retType)
 		if (constraint) {
-			resolvedStr = checker.typeToString(constraint, member, ts.TypeFormatFlags.NoTruncation)
+			resolvedStr = checker.typeToString(constraint, member, NoTruncation)
 		}
 	}
 
-	if (retType.isUnion()) {
+	if (retType.isUnionType()) {
 		let hasShapeType = false
 		let hasShapeIdType = false
 		let hasNullish = false
-		for (const t of retType.types) {
+		for (const t of retType.getTypes() ?? []) {
 			let resolved = t
 			if (t.isTypeParameter()) {
-				const c = t.getConstraint()
+				const c = checker.getBaseConstraintOfType(t)
 				if (c) resolved = c
 			}
 			const s = checker.typeToString(resolved)
@@ -1115,17 +1176,17 @@ function writeMethodMap(map: Record<string, MethodMapEntry>) {
  * Read a Record<string, string> from an object literal in a source file,
  * unwrapping `as const` if present.
  */
-function readStringRecord(sourceFile: ts.SourceFile, varName: string): Record<string, string> {
+function readStringRecord(sourceFile: SourceFile, varName: string): Record<string, string> {
 	const entries: Record<string, string> = {}
-	ts.forEachChild(sourceFile, (node) => {
-		if (!ts.isVariableStatement(node)) return
+	sourceFile.forEachChild((node) => {
+		if (!isVariableStatement(node)) return
 		for (const decl of node.declarationList.declarations) {
-			if (!ts.isIdentifier(decl.name) || decl.name.text !== varName) continue
+			if (!isIdentifier(decl.name) || decl.name.text !== varName) continue
 			let init = decl.initializer
-			if (init && ts.isAsExpression(init)) init = init.expression
-			if (!init || !ts.isObjectLiteralExpression(init)) continue
+			if (init && isAsExpression(init)) init = init.expression
+			if (!init || !isObjectLiteralExpression(init)) continue
 			for (const prop of init.properties) {
-				if (!ts.isPropertyAssignment(prop)) continue
+				if (!isPropertyAssignment(prop)) continue
 				const key = getPropertyName(prop.name)
 				if (!key) continue
 				entries[key] = prop.initializer.getText(sourceFile).replace(/['"]/g, '')
@@ -1163,26 +1224,23 @@ const INTERNAL_PROPS = new Set([
 	'spline',
 ])
 
-function convertOldFormatExample(example: string): string {
-	if (!example.includes('props:') && !(example.includes('type:') && !example.includes('_type'))) {
-		return example
-	}
+function isOldFormatExample(example: string): boolean {
+	return example.includes('props:') || (example.includes('type:') && !example.includes('_type'))
+}
 
+function wrapExample(example: string): string {
+	return `const __ex = ${example.includes(';') ? `(() => { ${example} })()` : example}`
+}
+
+function convertOldFormatExample(example: string, sf: SourceFile): string {
 	try {
-		const wrapped = `const __ex = ${example.includes(';') ? `(() => { ${example} })()` : example}`
-		const sf = ts.createSourceFile(
-			'example.ts',
-			wrapped,
-			ts.ScriptTarget.Latest,
-			false,
-			ts.ScriptKind.TS
-		)
+		const wrapped = sf.text
 
 		let result = example
 		const replacements: Array<{ start: number; end: number; text: string }> = []
 
-		function visitNode(node: ts.Node) {
-			if (ts.isObjectLiteralExpression(node)) {
+		function visitNode(node: Node) {
+			if (isObjectLiteralExpression(node)) {
 				const converted = tryConvertShapeObject(node, sf)
 				if (converted) {
 					const prefixLen = wrapped.indexOf(example)
@@ -1193,10 +1251,10 @@ function convertOldFormatExample(example: string): string {
 					}
 				}
 			}
-			ts.forEachChild(node, visitNode)
+			node.forEachChild(visitNode)
 		}
 
-		ts.forEachChild(sf, visitNode)
+		sf.forEachChild(visitNode)
 
 		replacements.sort((a, b) => b.start - a.start)
 		for (const rep of replacements) {
@@ -1208,24 +1266,24 @@ function convertOldFormatExample(example: string): string {
 	}
 }
 
-function tryConvertShapeObject(node: ts.ObjectLiteralExpression, sf: ts.SourceFile): string | null {
+function tryConvertShapeObject(node: ObjectLiteralExpression, sf: SourceFile): string | null {
 	const props = new Map<string, string>()
 	let nestedProps: Map<string, string> | null = null
 	let hasSpread = false
 
 	for (const prop of node.properties) {
-		if (ts.isSpreadAssignment(prop)) {
+		if (isSpreadAssignment(prop)) {
 			hasSpread = true
 			continue
 		}
-		if (!ts.isPropertyAssignment(prop)) continue
+		if (!isPropertyAssignment(prop)) continue
 		const name = getPropertyName(prop.name)
 		if (!name) continue
 
-		if (name === 'props' && ts.isObjectLiteralExpression(prop.initializer)) {
+		if (name === 'props' && isObjectLiteralExpression(prop.initializer)) {
 			nestedProps = new Map()
 			for (const inner of prop.initializer.properties) {
-				if (!ts.isPropertyAssignment(inner)) continue
+				if (!isPropertyAssignment(inner)) continue
 				const innerName = getPropertyName(inner.name)
 				if (innerName) nestedProps.set(innerName, inner.initializer.getText(sf))
 			}
@@ -1306,11 +1364,28 @@ function rewriteSignature(sig: string): string {
 		.replace(/TLParentId/g, 'string')
 }
 
-function postProcessMembers(members: ExtractedMember[]): ExtractedMember[] {
+function postProcessMembers(api: API, members: ExtractedMember[]): ExtractedMember[] {
+	// The TS 7 API has no standalone parser, so examples are parsed as virtual files.
+	const oldFormatExamples = [
+		...new Set(members.flatMap((m) => m.examples).filter(isOldFormatExample)),
+	]
+	const exampleFiles = oldFormatExamples.map((example, i) => {
+		const fileName = path.join(__dirname, `__example-${i}.ts`)
+		virtualFiles.set(fileName, wrapExample(example))
+		return fileName
+	})
+	const { examples: project } = openProjects(api, { examples: exampleFiles })
+	const converted = new Map(
+		oldFormatExamples.map((example, i) => [
+			example,
+			convertOldFormatExample(example, getSourceFile(project, exampleFiles[i])),
+		])
+	)
+
 	return members.map((m) => ({
 		...m,
 		signature: rewriteSignature(m.signature),
-		examples: m.examples.map(convertOldFormatExample),
+		examples: m.examples.map((example) => converted.get(example) ?? example),
 	}))
 }
 
@@ -1322,53 +1397,49 @@ function main() {
 	)
 	fs.mkdirSync(distDir, { recursive: true })
 
-	// Read conversion maps from format.ts via AST
-	const formatSf = ts.createSourceFile(
-		formatTsPath,
-		fs.readFileSync(formatTsPath, 'utf-8'),
-		ts.ScriptTarget.Latest
-	)
-	GEO_TO_FOCUSED = readStringRecord(formatSf, 'GEO_TO_FOCUSED_TYPES')
-	TLDRAW_TO_FOCUSED_FILL = readStringRecord(formatSf, 'SHAPE_TO_FOCUSED_FILLS')
-
-	const members = extract()
-	const types = extractFocusedShapeTypes()
-	const exec = extractExecHelpers()
-	const categories = [...new Set(members.map((m) => m.category))].sort()
-
-	// Generate METHOD_MAP
-	const editorContext = createDeclarationContext([editorDtsPath, storeDtsPath, tlschemaDtsPath])
-	const editorSourceFile = editorContext.sourceFiles.get(editorDtsPath)
-	let editorClass: ts.ClassDeclaration | undefined
-	if (editorSourceFile) {
-		ts.forEachChild(editorSourceFile, (node) => {
-			if (ts.isClassDeclaration(node) && node.name?.text === 'Editor') {
-				editorClass = node
-			}
+	const api = createApi()
+	try {
+		// Default shapes augment tlschema through 'tldraw', which format.ts and
+		// exec-helpers.ts import, so the Editor-only project must stay separate.
+		const projects = openProjects(api, {
+			editor: [editorDtsPath, storeDtsPath, tlschemaDtsPath],
+			focused: [formatTsPath, editorDtsPath, tlschemaDtsPath],
+			exec: [execHelpersPath, editorDtsPath, storeDtsPath, tlschemaDtsPath],
 		})
-	}
-	if (editorClass) {
-		const methodMap = generateMethodMap(editorClass, editorContext)
+
+		// Read conversion maps from format.ts via AST
+		const formatSf = getSourceFile(projects.focused, formatTsPath)
+		GEO_TO_FOCUSED = readStringRecord(formatSf, 'GEO_TO_FOCUSED_TYPES')
+		TLDRAW_TO_FOCUSED_FILL = readStringRecord(formatSf, 'SHAPE_TO_FOCUSED_FILLS')
+
+		const members = extract(projects.editor)
+		const types = extractFocusedShapeTypes(projects.focused)
+		const exec = extractExecHelpers(projects.exec)
+		const categories = [...new Set(members.map((m) => m.category))].sort()
+
+		const methodMap = generateMethodMap(projects.editor)
 		writeMethodMap(methodMap)
 		console.error(
 			`Wrote ${Object.keys(methodMap).length} method map entries to dist/method-map.json`
 		)
-	}
 
-	const output = {
-		extractedAt: new Date().toISOString(),
-		memberCount: members.length,
-		categories,
-		members: postProcessMembers(members),
-		types,
-		helperCount: exec.helperCount,
-		helpers: exec.helpers,
-	}
+		const output = {
+			extractedAt: new Date().toISOString(),
+			memberCount: members.length,
+			categories,
+			members: postProcessMembers(api, members),
+			types,
+			helperCount: exec.helperCount,
+			helpers: exec.helpers,
+		}
 
-	fs.writeFileSync(outPath, JSON.stringify(output, null, 2))
-	console.error(
-		`Wrote ${members.length} members (${categories.length} categories), ${types.shapes.length} shape types, and ${exec.helperCount} exec helpers to dist/editor-api.json`
-	)
+		fs.writeFileSync(outPath, JSON.stringify(output, null, 2))
+		console.error(
+			`Wrote ${members.length} members (${categories.length} categories), ${types.shapes.length} shape types, and ${exec.helperCount} exec helpers to dist/editor-api.json`
+		)
+	} finally {
+		api.close()
+	}
 }
 
 main()
