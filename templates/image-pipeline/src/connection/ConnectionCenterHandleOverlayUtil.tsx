@@ -1,12 +1,4 @@
-import {
-	Circle2d,
-	Geometry2d,
-	OverlayUtil,
-	TLCursorType,
-	TLOverlay,
-	TLPointerEventInfo,
-	TLShapeId,
-} from 'tldraw'
+import { Circle2d, Geometry2d, OverlayUtil, TLCursorType, TLOverlay, TLShapeId } from 'tldraw'
 import {
 	CONNECTION_CENTER_HANDLE_HOVER_SIZE_PX,
 	CONNECTION_CENTER_HANDLE_SIZE_PX,
@@ -66,10 +58,10 @@ export class ConnectionCenterHandleOverlayUtil extends OverlayUtil<TLConnectionC
 	}
 
 	override getCursor(): TLCursorType {
-		return 'pointer' as TLCursorType
+		return 'pointer'
 	}
 
-	override onPointerDown(overlay: TLConnectionCenterHandleOverlay, _info: TLPointerEventInfo) {
+	override onPointerDown(overlay: TLConnectionCenterHandleOverlay) {
 		const connection = this.editor.getShape<ConnectionShape>(overlay.props.shapeId)
 		if (!connection) return false
 		insertNodeWithinConnection(this.editor, connection)

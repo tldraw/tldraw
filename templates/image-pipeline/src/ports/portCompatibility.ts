@@ -16,7 +16,7 @@ export function findFirstCompatiblePort(
 	})
 	return (
 		candidates.find((port) => port.dataType === dataType) ??
-		candidates.find((port) => port.dataType === 'any' || dataType === 'any') ??
+		candidates.find((port) => port.dataType === 'any') ??
 		candidates[0]
 	)
 }

@@ -24,12 +24,8 @@ export function saveSelectionAsTemplate(
 	if (nodeShapes.length < 2) return null
 
 	// Compute bounding box for relative positioning.
-	let minX = Infinity
-	let minY = Infinity
-	for (const s of nodeShapes) {
-		minX = Math.min(minX, s.x)
-		minY = Math.min(minY, s.y)
-	}
+	const minX = Math.min(...nodeShapes.map((s) => s.x))
+	const minY = Math.min(...nodeShapes.map((s) => s.y))
 
 	const selectedIds = new Set<TLShapeId>(nodeShapes.map((s) => s.id))
 
