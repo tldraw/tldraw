@@ -64,7 +64,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build examples
-        run: pnpm exec lazy refresh-assets && pnpm exec lazy run prebuild && cd apps/examples && pnpm build
+        run: pnpm exec lazy refresh-assets && cd apps/examples && pnpm build
 
       - name: Install Appium and the XCUITest driver
         run: |
@@ -156,7 +156,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Build examples
-        run: pnpm exec lazy refresh-assets && pnpm exec lazy run prebuild && cd apps/examples && pnpm build
+        run: pnpm exec lazy refresh-assets && cd apps/examples && pnpm build
 
       - name: Install Appium and the UiAutomator2 driver
         run: |

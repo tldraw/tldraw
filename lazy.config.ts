@@ -22,14 +22,13 @@ const config = {
 		build: {
 			baseCommand: 'exit 0',
 			runsAfter: {
-				prebuild: {},
 				'refresh-assets': {},
 				'build-i18n': {},
 			},
 			workspaceOverrides: {
 				'apps/vscode/*': { runsAfter: { 'refresh-assets': {} } },
 				'packages/*': {
-					runsAfter: { 'build-api': { in: 'self-only' }, prebuild: { in: 'self-only' } },
+					runsAfter: { 'build-api': { in: 'self-only' } },
 					cache: {
 						inputs: ['api/**/*', 'src/**/*'],
 					},
@@ -53,21 +52,11 @@ const config = {
 		},
 		dev: {
 			execution: 'independent',
-			runsAfter: { predev: {}, 'refresh-assets': {}, 'build-i18n': {} },
+			runsAfter: { 'refresh-assets': {}, 'build-i18n': {} },
 			cache: 'none',
 			workspaceOverrides: {
 				'apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
 			},
-		},
-		// predev/prebuild are the css-copy scripts. They write generated, gitignored files
-		// (tldraw.css, commenting.css, ...) that lazy doesn't track as outputs, so a cache hit
-		// would skip regenerating a file that's missing on disk and vite would fail to resolve it.
-		// They're a few file copies, so just always run them.
-		predev: {
-			cache: 'none',
-		},
-		prebuild: {
-			cache: 'none',
 		},
 		'refresh-assets': {
 			execution: 'top-level',
