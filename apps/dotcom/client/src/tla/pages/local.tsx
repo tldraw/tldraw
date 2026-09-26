@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/clerk-react'
 import { commentToolOverrides } from '@tldraw/commenting'
 import { useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -10,17 +11,37 @@ import { useAnonCommentToolOverrides } from '../components/TlaEditor/CommentsOnC
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from '../components/TlaEditor/sneaky/SneakyDebugModeToast'
 import { components } from '../components/TlaEditor/TlaEditor'
-import { useMaybeApp } from '../hooks/useAppState'
+import { VIA_LAST_FILE_CACHE } from '../components/TlaEditor/TlaFileSyncHost'
+import { useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { importFromUrl } from '../utils/importFromUrl'
+import { getLastVisitedFileId } from '../utils/local-session-state'
 import { clearRedirectOnSignIn } from '../utils/redirect'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
 
 export function Component() {
 	const app = useMaybeApp()
+	const isAppLoading = useIsAppLoading()
+	const { userId } = useAuth()
 	const navigate = useNavigate()
 	const location = useLocation()
+
+	// Signed in, Zero still preloading: go straight to the file this browser last synced to so its
+	// socket opens in parallel with the preload. Anything the app must handle (OAuth redirect,
+	// import, slurp) waits for the effect below, so the cache never preempts a file the user is
+	// mid-way through creating. A stale cached id comes back here from the file page, cleared.
+	useEffect(() => {
+		if (app || !isAppLoading || !userId) return
+		if (getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)) return
+		if (location.state?.importUrl || getShouldSlurpFile()) return
+		const cachedFileId = getLastVisitedFileId(userId)
+		if (!cachedFileId) return
+		navigate(routes.tlaFile(cachedFileId), {
+			replace: true,
+			state: { ...location.state, [VIA_LAST_FILE_CACHE]: true },
+		})
+	}, [app, isAppLoading, userId, navigate, location])
 
 	useEffect(() => {
 		const handleFileOperations = async () => {
@@ -88,7 +109,9 @@ export function Component() {
 		handleFileOperations()
 	}, [app, navigate, location])
 
-	if (!app) return <LocalTldraw />
+	// A signed-in user must never see the scratch editor: it would start slurp detection on
+	// whatever is in the local doc.
+	if (!app) return isAppLoading ? null : <LocalTldraw />
 
 	// navigation will be handled by the useEffect above
 	return null

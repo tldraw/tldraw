@@ -3,6 +3,7 @@ import { clamp, tltime, useGlobalMenuIsOpen, useQuickReactor } from 'tldraw'
 import { TlaSidebarToggle } from '../../components/TlaSidebar/components/TlaSidebarToggle'
 import { TlaSidebarToggleMobile } from '../../components/TlaSidebar/components/TlaSidebarToggleMobile'
 import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
+import { useMaybeApp } from '../../hooks/useAppState'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import {
 	getLocalSessionState,
@@ -28,6 +29,10 @@ export function TlaSidebarLayout({
 }) {
 	const isSidebarOpen = useIsSidebarOpen()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
+	// The layout mounts while the app is still preloading so the file sync host under it keeps
+	// its socket across the app arriving; the sidebar itself needs Zero data, so its column stays
+	// empty until then.
+	const app = useMaybeApp()
 	// Must match the stable id used by TlaSidebarWorkspaceSwitcher (see note there).
 	const [isWorkspaceSwitcherOpen] = useGlobalMenuIsOpen('sidebar-workspace-switcher')
 
@@ -173,7 +178,7 @@ export function TlaSidebarLayout({
 				children
 			) : (
 				<>
-					<TlaSidebar />
+					{app && <TlaSidebar />}
 					{children}
 					<div className={styles.toggleContainer}>
 						<TlaSidebarToggle />

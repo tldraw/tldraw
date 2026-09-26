@@ -2,7 +2,7 @@ import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useMatches } from 'react-router-dom'
 import {
 	ContainerProvider,
 	DefaultA11yAnnouncer,
@@ -24,6 +24,7 @@ import {
 } from 'tldraw'
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/ErrorPage'
+import { TlaRouteHandle } from '../../routeDefs'
 import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
 import { assetUrls } from '../../utils/assetUrls'
 import { reportError } from '../../utils/errorReporting'
@@ -34,7 +35,7 @@ import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { WorkspaceInviteHandler } from '../components/WorkspaceInviteHandler'
-import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
+import { AppStateProvider, useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
 import { useUITheme } from '../hooks/useUITheme'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
@@ -149,7 +150,9 @@ export function Component() {
 							{container && (
 								<ContainerProvider container={container}>
 									<InsideOfContainerContext>
-										<Outlet />
+										<AppGate>
+											<Outlet />
+										</AppGate>
 										<LegalTermsAcceptance />
 									</InsideOfContainerContext>
 								</ContainerProvider>
@@ -237,6 +240,23 @@ function PutToastsInApp() {
 	const app = useMaybeApp()
 	if (app) app.toasts = toasts
 	return null
+}
+
+// Holds routes back until the app resolves unless the matched route opts in via its `handle`
+// (the root and file routes: they open the sync socket while Zero is still preloading and cope
+// with a null app). Anything else calling `useApp()` would otherwise throw.
+function AppGate({ children }: { children: ReactNode }) {
+	const isAppLoading = useIsAppLoading()
+	const matches = useMatches()
+	const rendersWhileAppLoads = matches.some(
+		(m) => (m.handle as TlaRouteHandle | undefined)?.rendersWhileAppLoads
+	)
+	if (isAppLoading && !rendersWhileAppLoads) return null
+	return children
+}
+
+function WhenAppReady({ children }: { children: ReactNode }) {
+	return useMaybeApp() ? children : null
 }
 
 function SignedInProvider({
@@ -332,7 +352,9 @@ function SignedInProvider({
 			<AppStateProvider>
 				<UserProvider>
 					<ThemeContainer onThemeChange={onThemeChange}>
-						<SignedInAnalytics />
+						<WhenAppReady>
+							<SignedInAnalytics />
+						</WhenAppReady>
 						{children}
 					</ThemeContainer>
 				</UserProvider>
@@ -345,6 +367,10 @@ function LegalTermsAcceptance() {
 	const { user } = useClerkUser()
 	const { addDialog } = useDialogs()
 	const userRef = useRef(user)
+	// Accepting calls user.update and user.reload, which change the Clerk user identity, a dep of
+	// AppStateProvider's bootstrap effect. Shown during the preload, accepting would abort and
+	// restart the preload, so the dialog waits for the app.
+	const isAppLoading = useIsAppLoading()
 
 	// Keep the ref updated with the latest user
 	useEffect(() => {
@@ -363,8 +389,9 @@ function LegalTermsAcceptance() {
 			}
 		}
 
+		if (isAppLoading) return
 		maybeShowDialog()
-	}, [addDialog, user?.id])
+	}, [addDialog, user?.id, isAppLoading])
 
 	return null
 }
