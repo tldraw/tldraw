@@ -1812,6 +1812,20 @@ export function ErrorScreen({ children }: LoadingScreenProps): JSX.Element;
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
 
+// @public
+export class ExportStyleCache {
+    disabled: boolean;
+    // @internal
+    readonly entries: Map<string, object>;
+    // @internal
+    readonly keys: WeakMap<Element, string>;
+    mismatches: number;
+    // @internal
+    reuseCount: number;
+    // @internal
+    readonly verified: Set<string>;
+}
+
 // @internal (undocumented)
 export function extractSessionStateFromLegacySnapshot(store: Record<string, UnknownRecord>): null | TLSessionStateSnapshot;
 
@@ -4852,6 +4866,7 @@ export interface TLSvgExportOptions {
     pixelRatio?: number;
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     scale?: number;
+    styleCache?: ExportStyleCache;
 }
 
 // @public (undocumented)

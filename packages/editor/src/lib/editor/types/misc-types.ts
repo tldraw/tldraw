@@ -1,4 +1,5 @@
 import { BoxModel, TLShape } from '@tldraw/tlschema'
+import type { ExportStyleCache } from '../../exports/StyleEmbedder'
 import { Box } from '../../primitives/Box'
 import { VecLike } from '../../primitives/Vec'
 
@@ -62,6 +63,19 @@ export interface TLSvgExportOptions {
 	 * attribute of the SVG element.
 	 */
 	preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
+
+	/**
+	 * A cache of read element styles, shared with other exports.
+	 *
+	 * Reading styles is most of the cost of exporting anything containing text, and the answers
+	 * repeat between exports of the same page. Pass an {@link ExportStyleCache} here to reuse
+	 * them across a run of exports — rendering video frames, drawing a strip of thumbnails.
+	 *
+	 * Leave it unset for a one-off export, which has nothing to reuse, and read that class's
+	 * notes before opting in: the cache cannot see a stylesheet that selects on document
+	 * structure.
+	 */
+	styleCache?: ExportStyleCache
 }
 
 /** @public */
