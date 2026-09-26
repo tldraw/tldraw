@@ -1,4 +1,5 @@
 import { StateNode, TLClickEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import { DeferredDoubleClick } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type TLPointingCropHandleInfo = TLPointerEventInfo & {
@@ -11,11 +12,11 @@ export class PointingCropHandle extends StateNode {
 	static override id = 'pointing_crop_handle'
 
 	private info = {} as TLPointingCropHandleInfo
-	private pendingDoubleClick: TLClickEventInfo | null = null
+	private doubleClick = new DeferredDoubleClick(this)
 
 	override onEnter(info: TLPointingCropHandleInfo) {
 		this.info = info
-		this.pendingDoubleClick = null
+		this.doubleClick.start(info)
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
@@ -51,11 +52,7 @@ export class PointingCropHandle extends StateNode {
 	}
 
 	override onPointerUp() {
-		if (this.pendingDoubleClick) {
-			this.parent.transition('idle')
-			this.parent.getCurrent()?.handleEvent(this.pendingDoubleClick)
-			return
-		}
+		if (this.doubleClick.replay()) return
 
 		const { onInteractionEnd } = this.info
 		if (onInteractionEnd) {
@@ -70,18 +67,8 @@ export class PointingCropHandle extends StateNode {
 		this.editor.setCurrentTool('select.idle')
 	}
 
-	// See PointingResizeHandle.onDoubleClick
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (
-			this.editor.inputs.getShiftKey() ||
-			info.phase !== 'down' ||
-			info.ctrlKey ||
-			info.shiftKey
-		) {
-			return
-		}
-
-		this.pendingDoubleClick = info
+		this.doubleClick.defer(info)
 	}
 
 	override onCancel() {

@@ -19,7 +19,7 @@ import {
 } from '../../../shapes/note/noteHelpers'
 import type { NoteShapeUtil } from '../../../shapes/note/NoteShapeUtil'
 import { getDisplayValues } from '../../../shapes/shared/getDisplayValues'
-import { startEditingShapeWithRichText } from '../selectHelpers'
+import { DeferredDoubleClick, startEditingShapeWithRichText } from '../selectHelpers'
 
 export class PointingHandle extends StateNode {
 	static override id = 'pointing_handle'
@@ -27,11 +27,11 @@ export class PointingHandle extends StateNode {
 	didCtrlOnEnter = false
 
 	info = {} as TLPointerEventInfo & { target: 'handle' }
-	isDoubleClick = false
+	private doubleClick = new DeferredDoubleClick(this)
 
 	override onEnter(info: TLPointerEventInfo & { target: 'handle' }) {
 		this.info = info
-		this.isDoubleClick = false
+		this.doubleClick.start(info)
 
 		this.didCtrlOnEnter = info.accelKey
 
@@ -74,16 +74,7 @@ export class PointingHandle extends StateNode {
 			return
 		}
 
-		if (this.isDoubleClick) {
-			this.parent.transition('idle')
-			this.parent.getCurrent()?.handleEvent({
-				...this.info,
-				type: 'click',
-				name: 'double_click',
-				phase: 'down',
-			})
-			return
-		}
+		if (this.doubleClick.replay()) return
 
 		if (this.editor.isShapeOfType(shape, 'note')) {
 			const { editor } = this
@@ -98,16 +89,7 @@ export class PointingHandle extends StateNode {
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (
-			this.editor.inputs.getShiftKey() ||
-			info.phase !== 'down' ||
-			info.ctrlKey ||
-			info.shiftKey
-		) {
-			return
-		}
-
-		this.isDoubleClick = true
+		this.doubleClick.defer(info)
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {

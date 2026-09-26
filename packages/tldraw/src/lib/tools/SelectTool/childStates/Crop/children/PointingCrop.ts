@@ -1,12 +1,13 @@
 import { StateNode, TLClickEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import { DeferredDoubleClick } from '../../../selectHelpers'
 
 export class PointingCrop extends StateNode {
 	static override id = 'pointing_crop'
 
-	private pendingDoubleClick: TLClickEventInfo | null = null
+	private doubleClick = new DeferredDoubleClick(this)
 
-	override onEnter() {
-		this.pendingDoubleClick = null
+	override onEnter(info: TLPointerEventInfo) {
+		this.doubleClick.start(info)
 	}
 
 	override onCancel() {
@@ -23,26 +24,12 @@ export class PointingCrop extends StateNode {
 	}
 
 	override onPointerUp(info: TLPointerEventInfo) {
-		if (this.pendingDoubleClick) {
-			this.parent.transition('idle')
-			this.parent.getCurrent()?.handleEvent(this.pendingDoubleClick)
-			return
-		}
+		if (this.doubleClick.replay()) return
 		this.editor.setCurrentTool('select.crop.idle', info)
 	}
 
-	// See PointingResizeHandle.onDoubleClick
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (
-			this.editor.inputs.getShiftKey() ||
-			info.phase !== 'down' ||
-			info.ctrlKey ||
-			info.shiftKey
-		) {
-			return
-		}
-
-		this.pendingDoubleClick = info
+		this.doubleClick.defer(info)
 	}
 
 	startDragging(info: TLPointerEventInfo) {
