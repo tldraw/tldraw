@@ -507,7 +507,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
 		// "baked in" tools, select and zoom.
-		for (const Tool of [...tools]) {
+		for (const Tool of tools) {
 			if (hasOwnProperty(this.root.children!, Tool.id)) {
 				throw Error(`Can't override tool with id "${Tool.id}"`)
 			}
@@ -591,6 +591,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const createdShapes = new Set<TLShapeId>()
 		let invalidBindingTypes = new Set<TLBinding['type']>()
 
+		const notifyBindingsOfShapeChange = (
+			shapeBefore: TLShape,
+			shapeAfter: TLShape,
+			reason: 'self' | 'ancestry'
+		) => {
+			for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
+				invalidBindingTypes.add(binding.type)
+				if (binding.fromId === shapeAfter.id) {
+					this.getBindingUtil(binding).onAfterChangeFromShape?.({
+						binding,
+						shapeBefore,
+						shapeAfter,
+						reason,
+					})
+				}
+				if (binding.toId === shapeAfter.id) {
+					this.getBindingUtil(binding).onAfterChangeToShape?.({
+						binding,
+						shapeBefore,
+						shapeAfter,
+						reason,
+					})
+				}
+			}
+		}
+
 		this.disposables.add(
 			this.sideEffects.registerOperationCompleteHandler(() => {
 				// this needs to be cleared here because further effects may delete more shapes
@@ -658,52 +684,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 					},
 					afterChange: (shapeBefore, shapeAfter) => {
-						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
-							invalidBindingTypes.add(binding.type)
-							if (binding.fromId === shapeAfter.id) {
-								this.getBindingUtil(binding).onAfterChangeFromShape?.({
-									binding,
-									shapeBefore,
-									shapeAfter,
-									reason: 'self',
-								})
-							}
-							if (binding.toId === shapeAfter.id) {
-								this.getBindingUtil(binding).onAfterChangeToShape?.({
-									binding,
-									shapeBefore,
-									shapeAfter,
-									reason: 'self',
-								})
-							}
-						}
+						notifyBindingsOfShapeChange(shapeBefore, shapeAfter, 'self')
 
 						// if the shape's parent changed and it has a binding, update the binding
 						if (shapeBefore.parentId !== shapeAfter.parentId) {
 							const notifyBindingAncestryChange = (id: TLShapeId) => {
 								const descendantShape = this.getShape(id)
 								if (!descendantShape) return
-
-								for (const binding of this.getBindingsInvolvingShape(descendantShape)) {
-									invalidBindingTypes.add(binding.type)
-
-									if (binding.fromId === descendantShape.id) {
-										this.getBindingUtil(binding).onAfterChangeFromShape?.({
-											binding,
-											shapeBefore: descendantShape,
-											shapeAfter: descendantShape,
-											reason: 'ancestry',
-										})
-									}
-									if (binding.toId === descendantShape.id) {
-										this.getBindingUtil(binding).onAfterChangeToShape?.({
-											binding,
-											shapeBefore: descendantShape,
-											shapeAfter: descendantShape,
-											reason: 'ancestry',
-										})
-									}
-								}
+								notifyBindingsOfShapeChange(descendantShape, descendantShape, 'ancestry')
 							}
 							notifyBindingAncestryChange(shapeAfter.id)
 							this.visitDescendants(shapeAfter.id, notifyBindingAncestryChange)
@@ -4243,24 +4231,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this
 		}
 
+		// When centering, capture the page center before the change so it can be restored after
+		const centerBefore =
+			center && !this.getInstanceState().followingUserId
+				? this.getViewportPageBounds().center
+				: null
+
+		this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
+		this.emit('resize', screenBounds.toJson())
+
 		if (_willSetInitialBounds) {
 			// If we have just received the initial bounds, don't center the camera.
-			this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
-			this.emit('resize', screenBounds.toJson())
 			this.setCamera(this.getCamera())
+		} else if (centerBefore) {
+			this.centerOnPoint(centerBefore)
 		} else {
-			if (center && !this.getInstanceState().followingUserId) {
-				// Get the page center before the change, make the change, and restore it
-				const before = this.getViewportPageBounds().center
-				this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
-				this.emit('resize', screenBounds.toJson())
-				this.centerOnPoint(before)
-			} else {
-				// Otherwise,
-				this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
-				this.emit('resize', screenBounds.toJson())
-				this._setCamera(Vec.From({ ...this.getCamera() }))
-			}
+			this._setCamera(Vec.From({ ...this.getCamera() }))
 		}
 
 		return this
@@ -5553,15 +5539,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 			if (clipPaths.length === 0) return undefined
 
-			const pageMask = clipPaths.reduce((acc, b) => {
+			return clipPaths.reduce((acc, b) => {
 				const intersection = intersectPolygonPolygon(acc, b)
 				if (intersection) {
 					return intersection.map(Vec.Cast)
 				}
 				return []
 			})
-
-			return pageMask
 		})
 	}
 
@@ -9598,7 +9582,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// todo: make this work with any page, not just the current page
 		const ids = toShapeIds(shapes)
 
-		if (!ids) return
 		if (ids.length === 0) return
 
 		const shapeIds = this.getShapeAndDescendantIds(ids)
@@ -10056,10 +10039,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			// Apply offset to move shapes to target point
-			const pageCenter = Box.Common(
-				compact(rootShapes.map(({ id }) => this.getShapePageBounds(id)))
-			).center
-			const offset = Vec.Sub(point, pageCenter)
+			const offset = Vec.Sub(point, rootBounds.center)
 
 			if (offset.x !== 0 || offset.y !== 0) {
 				this.updateShapes(
@@ -10714,16 +10694,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	_releaseShiftKey() {
 		this._shiftKeyTimeout = -1
 		this.inputs.setShiftKey(false)
+		this._dispatchModifierKeyUp('Shift', 'ShiftLeft')
+	}
+
+	private _dispatchModifierKeyUp(key: string, code: string) {
 		this.dispatch({
 			type: 'keyboard',
 			name: 'key_up',
-			key: 'Shift',
+			key,
 			shiftKey: this.inputs.getShiftKey(),
 			ctrlKey: this.inputs.getCtrlKey(),
 			altKey: this.inputs.getAltKey(),
 			metaKey: this.inputs.getMetaKey(),
 			accelKey: this.inputs.getAccelKey(),
-			code: 'ShiftLeft',
+			code,
 		})
 	}
 
@@ -10738,17 +10722,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	_releaseAltKey() {
 		this._altKeyTimeout = -1
 		this.inputs.setAltKey(false)
-		this.dispatch({
-			type: 'keyboard',
-			name: 'key_up',
-			key: 'Alt',
-			shiftKey: this.inputs.getShiftKey(),
-			ctrlKey: this.inputs.getCtrlKey(),
-			altKey: this.inputs.getAltKey(),
-			metaKey: this.inputs.getMetaKey(),
-			accelKey: this.inputs.getAccelKey(),
-			code: 'AltLeft',
-		})
+		this._dispatchModifierKeyUp('Alt', 'AltLeft')
 	}
 
 	/** @internal */
@@ -10762,17 +10736,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	_releaseCtrlKey() {
 		this._ctrlKeyTimeout = -1
 		this.inputs.setCtrlKey(false)
-		this.dispatch({
-			type: 'keyboard',
-			name: 'key_up',
-			key: 'Ctrl',
-			shiftKey: this.inputs.getShiftKey(),
-			ctrlKey: this.inputs.getCtrlKey(),
-			altKey: this.inputs.getAltKey(),
-			metaKey: this.inputs.getMetaKey(),
-			accelKey: this.inputs.getAccelKey(),
-			code: 'ControlLeft',
-		})
+		this._dispatchModifierKeyUp('Ctrl', 'ControlLeft')
 	}
 
 	/** @internal */
@@ -10786,17 +10750,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	_releaseMetaKey() {
 		this._metaKeyTimeout = -1
 		this.inputs.setMetaKey(false)
-		this.dispatch({
-			type: 'keyboard',
-			name: 'key_up',
-			key: 'Meta',
-			shiftKey: this.inputs.getShiftKey(),
-			ctrlKey: this.inputs.getCtrlKey(),
-			altKey: this.inputs.getAltKey(),
-			metaKey: this.inputs.getMetaKey(),
-			accelKey: this.inputs.getAccelKey(),
-			code: 'MetaLeft',
-		})
+		this._dispatchModifierKeyUp('Meta', 'MetaLeft')
 	}
 
 	/**
@@ -11717,9 +11671,7 @@ function withIsolatedShapes<T>(
 						const hasTo = shapeIds.has(binding.toId)
 						if (hasFrom && hasTo) {
 							bindingsWithBoth.add(binding.id)
-							continue
-						}
-						if (!hasFrom || !hasTo) {
+						} else {
 							bindingsToRemove.add(binding.id)
 						}
 					}

@@ -93,9 +93,7 @@ export class ScribbleManager {
 		this.sessions.set(id, session)
 
 		// Set up idle timeout if configured
-		if (session.options.idleTimeoutMs > 0) {
-			this.resetIdleTimeout(session)
-		}
+		this.resetIdleTimeout(session)
 
 		return id
 	}
@@ -139,9 +137,7 @@ export class ScribbleManager {
 		session.items.push(item)
 
 		// Reset idle timeout on activity
-		if (session.options.idleTimeoutMs > 0) {
-			this.resetIdleTimeout(session)
-		}
+		this.resetIdleTimeout(session)
 
 		return item
 	}
@@ -169,17 +165,7 @@ export class ScribbleManager {
 		const item = session.items.find((i) => i.id === scribbleId)
 		if (!item) throw Error(`Scribble ${scribbleId} not found in session ${sessionId}`)
 
-		const point = { x, y, z }
-		if (!item.prev || Vec.Dist(item.prev, point) >= 1) {
-			item.next = point
-		}
-
-		// Reset idle timeout on activity
-		if (session.options.idleTimeoutMs > 0) {
-			this.resetIdleTimeout(session)
-		}
-
-		return item
+		return this.setNextPoint(session, item, x, y, z)
 	}
 
 	/**
@@ -190,11 +176,7 @@ export class ScribbleManager {
 	 */
 	extendSession(sessionId: string): void {
 		const session = this.sessions.get(sessionId)
-		if (!session) return
-
-		if (session.options.idleTimeoutMs > 0) {
-			this.resetIdleTimeout(session)
-		}
+		if (session) this.resetIdleTimeout(session)
 	}
 
 	/**
@@ -221,8 +203,7 @@ export class ScribbleManager {
 			}
 		} else {
 			for (const item of session.items) {
-				item.delayRemaining = Math.min(item.delayRemaining, 200)
-				item.scribble.state = 'stopping'
+				this.stopItem(item)
 			}
 		}
 	}
@@ -281,18 +262,10 @@ export class ScribbleManager {
 	 * @public
 	 */
 	addPoint(id: string, x: number, y: number, z = 0.5): ScribbleItem {
+		// Runs on every pointer move, so search inline rather than allocating a {session, item} pair.
 		for (const session of this.sessions.values()) {
 			const item = session.items.find((i) => i.id === id)
-			if (item) {
-				const point = { x, y, z }
-				if (!item.prev || Vec.Dist(item.prev, point) >= 1) {
-					item.next = point
-				}
-				if (session.options.idleTimeoutMs > 0) {
-					this.resetIdleTimeout(session)
-				}
-				return item
-			}
+			if (item) return this.setNextPoint(session, item, x, y, z)
 		}
 		throw Error(`Scribble with id ${id} not found`)
 	}
@@ -305,16 +278,11 @@ export class ScribbleManager {
 	 * @public
 	 */
 	complete(id: string): ScribbleItem {
-		for (const session of this.sessions.values()) {
-			const item = session.items.find((i) => i.id === id)
-			if (item) {
-				if (item.scribble.state === 'starting' || item.scribble.state === 'active') {
-					item.scribble.state = 'complete'
-				}
-				return item
-			}
+		const item = this.findItem(id)
+		if (item.scribble.state === 'starting' || item.scribble.state === 'active') {
+			item.scribble.state = 'complete'
 		}
-		throw Error(`Scribble with id ${id} not found`)
+		return item
 	}
 
 	/**
@@ -324,15 +292,9 @@ export class ScribbleManager {
 	 * @public
 	 */
 	stop(id: string): ScribbleItem {
-		for (const session of this.sessions.values()) {
-			const item = session.items.find((i) => i.id === id)
-			if (item) {
-				item.delayRemaining = Math.min(item.delayRemaining, 200)
-				item.scribble.state = 'stopping'
-				return item
-			}
-		}
-		throw Error(`Scribble with id ${id} not found`)
+		const item = this.findItem(id)
+		this.stopItem(item)
+		return item
 	}
 
 	/**
@@ -400,7 +362,49 @@ export class ScribbleManager {
 
 	// ==================== PRIVATE HELPERS ====================
 
+	private findItem(id: string): ScribbleItem {
+		for (const session of this.sessions.values()) {
+			const item = session.items.find((i) => i.id === id)
+			if (item) return item
+		}
+		throw Error(`Scribble with id ${id} not found`)
+	}
+
+	private setNextPoint(session: Session, item: ScribbleItem, x: number, y: number, z: number) {
+		const point = { x, y, z }
+		if (!item.prev || Vec.Dist(item.prev, point) >= 1) {
+			item.next = point
+		}
+
+		// Reset idle timeout on activity
+		this.resetIdleTimeout(session)
+
+		return item
+	}
+
+	private stopItem(item: ScribbleItem): void {
+		item.delayRemaining = Math.min(item.delayRemaining, 200)
+		item.scribble.state = 'stopping'
+	}
+
+	/** Push the pending `next` point onto the scribble, if there is a new one. */
+	private consumeNextPoint(item: ScribbleItem): boolean {
+		const { next, prev } = item
+		if (!next || next === prev) return false
+		item.prev = next
+		item.scribble.points.push(next)
+		return true
+	}
+
+	private tickStartingItem(item: ScribbleItem): void {
+		this.consumeNextPoint(item)
+		if (item.scribble.points.length > 8) {
+			item.scribble.state = 'active'
+		}
+	}
+
 	private resetIdleTimeout(session: Session): void {
+		if (!(session.options.idleTimeoutMs > 0)) return
 		this.clearIdleTimeout(session)
 		session.idleTimeoutHandle = this.editor.timers.setTimeout(() => {
 			this.stopSession(session.id)
@@ -456,25 +460,10 @@ export class ScribbleManager {
 
 	private tickPersistentItem(item: ScribbleItem): void {
 		const { scribble } = item
-
 		if (scribble.state === 'starting') {
-			const { next, prev } = item
-			if (next && next !== prev) {
-				item.prev = next
-				scribble.points.push(next)
-			}
-			if (scribble.points.length > 8) {
-				scribble.state = 'active'
-			}
-			return
-		}
-
-		if (scribble.state === 'active') {
-			const { next, prev } = item
-			if (next && next !== prev) {
-				item.prev = next
-				scribble.points.push(next)
-			}
+			this.tickStartingItem(item)
+		} else if (scribble.state === 'active') {
+			this.consumeNextPoint(item)
 		}
 	}
 
@@ -482,14 +471,7 @@ export class ScribbleManager {
 		const { scribble } = item
 
 		if (scribble.state === 'starting') {
-			const { next, prev } = item
-			if (next && next !== prev) {
-				item.prev = next
-				scribble.points.push(next)
-			}
-			if (scribble.points.length > 8) {
-				scribble.state = 'active'
-			}
+			this.tickStartingItem(item)
 			return
 		}
 
@@ -502,23 +484,19 @@ export class ScribbleManager {
 			item.timeoutMs = 0
 		}
 
-		const { delayRemaining, timeoutMs, prev, next } = item
+		const { delayRemaining, timeoutMs } = item
 
 		switch (scribble.state) {
 			case 'active': {
-				if (next && next !== prev) {
-					item.prev = next
-					scribble.points.push(next)
+				if (this.consumeNextPoint(item)) {
 					if (delayRemaining === 0 && scribble.points.length > 8) {
 						scribble.points.shift()
 					}
-				} else {
-					if (timeoutMs === 0) {
-						if (scribble.points.length > 1) {
-							scribble.points.shift()
-						} else {
-							item.delayRemaining = scribble.delay
-						}
+				} else if (timeoutMs === 0) {
+					if (scribble.points.length > 1) {
+						scribble.points.shift()
+					} else {
+						item.delayRemaining = scribble.delay
 					}
 				}
 				break
@@ -545,11 +523,10 @@ export class ScribbleManager {
 	private tickGroupedFade(session: Session, elapsed: number): void {
 		session.fadeElapsed += elapsed
 
-		let remainingPoints = 0
-		for (const item of session.items) {
-			remainingPoints += item.scribble.points.length
-		}
-
+		const remainingPoints = session.items.reduce(
+			(sum, item) => sum + item.scribble.points.length,
+			0
+		)
 		if (remainingPoints === 0) return
 
 		if (session.fadeElapsed >= session.options.fadeDurationMs) {

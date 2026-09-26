@@ -4,6 +4,7 @@ import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
 import {
 	RecordProps,
 	TLAsset,
+	TLFontFace,
 	TLHandle,
 	TLParentId,
 	TLPropsMigrations,
@@ -14,7 +15,6 @@ import {
 	TLUnknownShape,
 	VecModel,
 } from '@tldraw/tlschema'
-import { TLFontFace } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
 import { ReactElement } from 'react'
 import { Box, SelectionHandle } from '../../primitives/Box'

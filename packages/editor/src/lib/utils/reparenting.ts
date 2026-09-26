@@ -57,8 +57,9 @@ export function kickoutOccludedShapes(
 		}
 	}
 
-	// Get all of the shapes on the current page, sorted by their index
-	const sortedShapeIds = editor.getCurrentPageShapesSorted().map((s) => s.id)
+	// Position of each shape in the page's absolute (sorted) order, for ordering lookups below
+	const pageOrder = new Map(editor.getCurrentPageShapesSorted().map((s, i) => [s.id, i] as const))
+	const getPageOrder = (id: TLShapeId) => pageOrder.get(id) ?? -1
 
 	const parentsToNewChildren: Record<
 		TLParentId,
@@ -78,7 +79,7 @@ export function kickoutOccludedShapes(
 				if (opts?.filter && !opts.filter(maybeNewParent)) return false
 				return (
 					maybeNewParent.id !== prevParent.id &&
-					sortedShapeIds.indexOf(maybeNewParent.id) < sortedShapeIds.indexOf(shape.id)
+					getPageOrder(maybeNewParent.id) < getPageOrder(shape.id)
 				)
 			}
 		)
@@ -139,7 +140,7 @@ export function kickoutOccludedShapes(
 		Object.values(parentsToNewChildren).forEach(({ parentId, shapeIds, index }) => {
 			if (shapeIds.length === 0) return
 			// Before we reparent, sort the new shape ids by their place in the original absolute order on the page
-			shapeIds.sort((a, b) => (sortedShapeIds.indexOf(a) < sortedShapeIds.indexOf(b) ? -1 : 1))
+			shapeIds.sort((a, b) => (getPageOrder(a) < getPageOrder(b) ? -1 : 1))
 			editor.reparentShapes(shapeIds, parentId, index)
 		})
 	})
@@ -218,9 +219,7 @@ export function getDroppedShapesToNewParents(
 	for (const shape of shapes) {
 		const parent = editor.getShapeParent(shape)
 		if (parent && editor.isShapeOfType(parent, 'group')) {
-			if (!movingGroups.has(parent)) {
-				movingGroups.add(parent)
-			}
+			movingGroups.add(parent)
 		}
 	}
 
@@ -308,9 +307,7 @@ export function getDroppedShapesToNewParents(
 			// If the shape overlaps the parent polygon, reparent it to that parent
 			if (editor.getShapeGeometry(shape).overlapsPolygon(parentPolygonInShapeSpace)) {
 				// Use the util to check if the shape can be reparented to the parent
-				if (
-					!editor.getShapeUtil(parentShape).canReceiveNewChildrenOfType?.(parentShape, shape.type)
-				)
+				if (!editor.getShapeUtil(parentShape).canReceiveNewChildrenOfType(parentShape, shape.type))
 					continue shapeCheck
 
 				if (shape.parentId !== parentShape.id) {

@@ -10,8 +10,6 @@ import { getGlobalWindow } from '../../utils/dom'
 import { hardResetEditor, refreshPage } from '../../utils/runtime'
 import { ErrorBoundary } from '../ErrorBoundary'
 
-const BASE_ERROR_URL = 'https://github.com/tldraw/tldraw/issues/new'
-
 /** @public */
 export interface TLErrorFallbackProps {
 	/** The error that was caught. */
@@ -114,28 +112,6 @@ export function DefaultErrorFallback({ error, editor }: TLErrorFallbackProps) {
 		setDidCopy(true)
 	}
 
-	const refresh = () => {
-		refreshPage()
-	}
-
-	const resetLocalState = async () => {
-		hardResetEditor()
-	}
-
-	const url = new URL(BASE_ERROR_URL)
-	url.searchParams.set('title', errorMessage)
-	url.searchParams.set('labels', `bug`)
-	url.searchParams.set(
-		'body',
-		`Hey, I ran into an error while using tldraw:
-
-\`\`\`js
-${errorStack ?? errorMessage}
-\`\`\`
-
-My browser: ${navigator.userAgent}`
-	)
-
 	return (
 		<div
 			ref={containerRef}
@@ -174,7 +150,7 @@ My browser: ${navigator.userAgent}`
 							<button className="tlui-button" onClick={() => setShouldShowResetConfirmation(false)}>
 								Cancel
 							</button>
-							<button className="tlui-button tl-error-boundary__reset" onClick={resetLocalState}>
+							<button className="tlui-button tl-error-boundary__reset" onClick={hardResetEditor}>
 								Reset data
 							</button>
 						</div>
@@ -227,7 +203,7 @@ My browser: ${navigator.userAgent}`
 								>
 									Reset data
 								</button>
-								<button className="tlui-button tl-error-boundary__refresh" onClick={refresh}>
+								<button className="tlui-button tl-error-boundary__refresh" onClick={refreshPage}>
 									Refresh page
 								</button>
 							</div>

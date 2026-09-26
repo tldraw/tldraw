@@ -60,14 +60,13 @@ export class Mat {
 	}
 
 	multiply(m: Mat | MatModel) {
-		const m2: MatModel = m
 		const { a, b, c, d, e, f } = this
-		this.a = a * m2.a + c * m2.b
-		this.c = a * m2.c + c * m2.d
-		this.e = a * m2.e + c * m2.f + e
-		this.b = b * m2.a + d * m2.b
-		this.d = b * m2.c + d * m2.d
-		this.f = b * m2.e + d * m2.f + f
+		this.a = a * m.a + c * m.b
+		this.c = a * m.c + c * m.d
+		this.e = a * m.e + c * m.f + e
+		this.b = b * m.a + d * m.b
+		this.d = b * m.c + d * m.d
+		this.f = b * m.e + d * m.f + f
 		return this
 	}
 
@@ -78,7 +77,7 @@ export class Mat {
 	}
 
 	translate(x: number, y: number): Mat {
-		return this.multiply(Mat.Translate(x, y!))
+		return this.multiply(Mat.Translate(x, y))
 	}
 
 	scale(x: number, y: number) {
@@ -154,7 +153,7 @@ export class Mat {
 
 		if (cx === undefined) return rotationMatrix
 
-		return Mat.Compose(Mat.Translate(cx, cy!), rotationMatrix, Mat.Translate(-cx, -cy!))
+		return Mat.Translate(cx, cy!).multiply(rotationMatrix).translate(-cx, -cy!)
 	}
 
 	static Scale(x: number, y: number): Mat

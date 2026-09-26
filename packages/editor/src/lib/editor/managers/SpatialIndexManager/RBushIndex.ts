@@ -15,35 +15,19 @@ export interface SpatialElement {
 }
 
 /**
- * Custom RBush class for tldraw shapes.
- */
-class TldrawRBush extends RBush<SpatialElement> {}
-
-/**
  * Wrapper around RBush R-tree for efficient spatial queries.
  * Maintains a map of elements currently in the tree for efficient updates.
  */
 export class RBushIndex {
-	private rBush: TldrawRBush
-	private elementsInTree: Map<TLShapeId, SpatialElement>
-
-	constructor() {
-		this.rBush = new TldrawRBush()
-		this.elementsInTree = new Map()
-	}
+	private rBush = new RBush<SpatialElement>()
+	private elementsInTree = new Map<TLShapeId, SpatialElement>()
 
 	/**
 	 * Search for shapes within the given bounds.
 	 * Returns set of shape IDs that intersect with the bounds.
 	 */
 	search(bounds: Box): Set<TLShapeId> {
-		const results = this.rBush.search({
-			minX: bounds.minX,
-			minY: bounds.minY,
-			maxX: bounds.maxX,
-			maxY: bounds.maxY,
-		})
-		return new Set(results.map((e: SpatialElement) => e.id))
+		return new Set(this.rBush.search(bounds).map((e) => e.id))
 	}
 
 	/**
@@ -100,13 +84,6 @@ export class RBushIndex {
 	 */
 	has(id: TLShapeId): boolean {
 		return this.elementsInTree.has(id)
-	}
-
-	/**
-	 * Get the number of elements in the spatial index.
-	 */
-	getSize(): number {
-		return this.elementsInTree.size
 	}
 
 	/**

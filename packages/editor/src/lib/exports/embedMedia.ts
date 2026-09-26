@@ -14,6 +14,19 @@ function replace(original: HTMLElement, replacement: HTMLElement) {
 	return replacement
 }
 
+async function setImageSrc(image: HTMLImageElement, dataUrl: string | null) {
+	image.setAttribute('src', dataUrl ?? 'data:')
+	image.setAttribute('decoding', 'sync')
+	image.setAttribute('loading', 'eager')
+
+	try {
+		await image.decode()
+	} catch {
+		// this is fine
+	}
+	return image
+}
+
 async function createImage(
 	doc: Document,
 	dataUrl: string | null,
@@ -25,16 +38,7 @@ async function createImage(
 		copyAttrs(cloneAttributesFrom, image)
 	}
 
-	image.setAttribute('src', dataUrl ?? 'data:')
-	image.setAttribute('decoding', 'sync')
-	image.setAttribute('loading', 'eager')
-
-	try {
-		await image.decode()
-	} catch {
-		// this is fine
-	}
-	return image
+	return setImageSrc(image, dataUrl)
 }
 
 async function getCanvasReplacement(canvas: HTMLCanvasElement) {
@@ -71,21 +75,11 @@ export async function embedMedia(node: HTMLElement) {
 	} else if (node instanceof win.HTMLVideoElement) {
 		return replace(node, await getVideoReplacement(node))
 	} else if (node instanceof win.HTMLImageElement) {
-		const src = node.currentSrc || node.src
-		const dataUrl = await resourceToDataUrl(src)
-		node.setAttribute('src', dataUrl ?? 'data:')
-		node.setAttribute('decoding', 'sync')
-		node.setAttribute('loading', 'eager')
-		try {
-			await (node as HTMLImageElement).decode()
-		} catch {
-			// this is fine
-		}
-		return node
+		return setImageSrc(node, await resourceToDataUrl(node.currentSrc || node.src))
 	} else if (node instanceof win.HTMLInputElement) {
-		node.setAttribute('value', (node as HTMLInputElement).value)
+		node.setAttribute('value', node.value)
 	} else if (node instanceof win.HTMLTextAreaElement) {
-		node.textContent = (node as HTMLTextAreaElement).value
+		node.textContent = node.value
 	}
 
 	await Promise.all(

@@ -306,63 +306,7 @@ export class Box {
 	}
 
 	resize(handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number) {
-		const { minX: a0x, minY: a0y, maxX: a1x, maxY: a1y } = this
-		let { minX: b0x, minY: b0y, maxX: b1x, maxY: b1y } = this
-
-		// Use the delta to adjust the new box by changing its corners.
-		// The dragging handle (corner or edge) will determine which
-		// corners should change.
-		switch (handle) {
-			case 'left':
-			case 'top_left':
-			case 'bottom_left': {
-				b0x += dx
-				break
-			}
-			case 'right':
-			case 'top_right':
-			case 'bottom_right': {
-				b1x += dx
-				break
-			}
-		}
-		switch (handle) {
-			case 'top':
-			case 'top_left':
-			case 'top_right': {
-				b0y += dy
-				break
-			}
-			case 'bottom':
-			case 'bottom_left':
-			case 'bottom_right': {
-				b1y += dy
-				break
-			}
-		}
-
-		const scaleX = (b1x - b0x) / (a1x - a0x)
-		const scaleY = (b1y - b0y) / (a1y - a0y)
-
-		const flipX = scaleX < 0
-		const flipY = scaleY < 0
-
-		if (flipX) {
-			const t = b1x
-			b1x = b0x
-			b0x = t
-		}
-
-		if (flipY) {
-			const t = b1y
-			b1y = b0y
-			b0y = t
-		}
-
-		this.minX = b0x
-		this.minY = b0y
-		this.width = Math.abs(b1x - b0x)
-		this.height = Math.abs(b1y - b0y)
+		this.setTo(Box.Resize(this, handle, dx, dy).box)
 	}
 
 	union(box: BoxModel) {
