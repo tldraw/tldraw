@@ -15,23 +15,25 @@ export default class extends WorkerEntrypoint<Environment> {
 			return error(e)
 		},
 	})
-		.post('/generate', (request, env) => this.generate(request, env))
-		.post('/stream', (request, env) => this.stream(request, env))
+		.post('/generate', (request) => this.generate(request))
+		.post('/stream', (request) => this.stream(request))
 
 	override fetch(request: IRequest): Promise<Response> {
 		return this.router.fetch(request, this.env, this.ctx)
 	}
 
-	private getModel(env: Environment) {
-		return createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY })(MODEL_ID)
+	private getModel(apiKey: string) {
+		return createGoogleGenerativeAI({ apiKey })(MODEL_ID)
 	}
 
 	// Generate a new response from the model
-	private async generate(request: IRequest, env: Environment) {
+	private async generate(request: IRequest) {
+		const apiKey = request.headers.get('x-ai-api-key')?.trim()
+		if (!apiKey) return new Response('A Google API key is required.', { status: 401 })
 		try {
 			const prompt = (await request.json()) as Array<ModelMessage>
 			const { text } = await generateText({
-				model: this.getModel(env),
+				model: this.getModel(apiKey),
 				messages: prompt,
 			})
 
@@ -48,12 +50,14 @@ export default class extends WorkerEntrypoint<Environment> {
 	}
 
 	// Stream a new response from the model
-	private async stream(request: IRequest, env: Environment): Promise<Response> {
+	private async stream(request: IRequest): Promise<Response> {
+		const apiKey = request.headers.get('x-ai-api-key')?.trim()
+		if (!apiKey) return new Response('A Google API key is required.', { status: 401 })
 		try {
 			const prompt = (await request.json()) as Array<ModelMessage>
 
 			const result = streamText({
-				model: this.getModel(env),
+				model: this.getModel(apiKey),
 				messages: prompt,
 				experimental_transform: smoothStream(),
 			})

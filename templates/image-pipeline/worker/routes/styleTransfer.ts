@@ -14,21 +14,16 @@ interface StyleTransferRequest {
  *
  * Transfers the style of one image onto another (or generates a new image
  * in that style) using fofr/style-transfer on Replicate.
- * Falls back to a placeholder if no API key.
  */
 export async function handleStyleTransfer(request: IRequest, env: Env) {
+	const apiKey = request.headers.get('x-ai-api-key')?.trim()
+	if (!apiKey) return Response.json({ error: 'A Replicate API key is required.' }, { status: 401 })
+
 	const body = (await request.json()) as StyleTransferRequest
 
 	if (!body.styleImageUrl) {
 		return new Response(JSON.stringify({ error: 'styleImageUrl is required' }), {
 			status: 400,
-			headers: { 'Content-Type': 'application/json' },
-		})
-	}
-
-	const apiKey = env.REPLICATE_API_TOKEN
-	if (!apiKey) {
-		return new Response(JSON.stringify(styleTransferPlaceholder(body)), {
 			headers: { 'Content-Type': 'application/json' },
 		})
 	}
@@ -101,19 +96,4 @@ export async function handleStyleTransfer(request: IRequest, env: Env) {
 			headers: { 'Content-Type': 'application/json' },
 		})
 	}
-}
-
-function styleTransferPlaceholder(params: StyleTransferRequest) {
-	const hue = Math.floor(Math.random() * 360)
-	const model = params.model || 'fast'
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">
-		<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-			<stop offset="0%" stop-color="hsl(${hue},55%,35%)"/>
-			<stop offset="100%" stop-color="hsl(${(hue + 120) % 360},50%,50%)"/>
-		</linearGradient></defs>
-		<rect width="1024" height="1024" fill="url(#bg)"/>
-		<text x="512" y="490" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="sans-serif" font-size="22">Style Transfer</text>
-		<text x="512" y="530" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-family="sans-serif" font-size="14">${model} · strength ${params.strength} · placeholder</text>
-	</svg>`
-	return { imageUrl: `data:image/svg+xml,${encodeURIComponent(svg)}` }
 }

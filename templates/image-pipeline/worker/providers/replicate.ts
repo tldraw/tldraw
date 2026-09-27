@@ -19,12 +19,7 @@ const CONTROLNET_MODELS: Record<string, string> = {
 export const replicate: ImageProvider = {
 	name: 'replicate',
 
-	async generate(params: GenerateParams, env: Env): Promise<GenerateResult> {
-		const apiToken = env.REPLICATE_API_TOKEN
-		if (!apiToken) {
-			throw new Error('REPLICATE_API_TOKEN is not configured')
-		}
-
+	async generate(params: GenerateParams, env: Env, apiToken: string): Promise<GenerateResult> {
 		// Use a ControlNet model when ControlNet params are present
 		if (params.controlNetMode && params.referenceImageUrl) {
 			return generateWithControlNet(params, apiToken, env)
@@ -42,12 +37,7 @@ export const replicate: ImageProvider = {
 		return generateWithFlux(params, apiToken)
 	},
 
-	async upscale(params: UpscaleParams, env: Env): Promise<UpscaleResult> {
-		const apiToken = env.REPLICATE_API_TOKEN
-		if (!apiToken) {
-			throw new Error('REPLICATE_API_TOKEN is not configured')
-		}
-
+	async upscale(params: UpscaleParams, _env: Env, apiToken: string): Promise<UpscaleResult> {
 		const response = await fetch(
 			'https://api.replicate.com/v1/models/nightmareai/real-esrgan/predictions',
 			{

@@ -1,9 +1,9 @@
 import { GoogleGenAI } from '@google/genai'
 
 export async function POST(req: Request) {
-	const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
+	const apiKey = req.headers.get('x-ai-api-key')?.trim()
 	if (!apiKey) {
-		return new Response('GOOGLE_GENERATIVE_AI_API_KEY is not set', { status: 500 })
+		return new Response('A Google API key is required.', { status: 401 })
 	}
 
 	const contentType = req.headers.get('content-type')
