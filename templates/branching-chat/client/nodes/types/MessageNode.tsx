@@ -127,7 +127,16 @@ function MessageNodeComponent({ node, shape }: NodeComponentProps<MessageNode>) 
 						assistantMessage: accumulatedText,
 					}))
 				}
+				if (!accumulatedText)
+					throw new Error(
+						'No response received. Check your Google API key in Settings and try again.'
+					)
 			} catch (e) {
+				updateNode<MessageNode>(editor, shape, (node) => ({
+					...node,
+					assistantMessage:
+						e instanceof Error ? e.message : 'Could not generate a response. Try again.',
+				}))
 				console.error(e)
 			}
 		})()
