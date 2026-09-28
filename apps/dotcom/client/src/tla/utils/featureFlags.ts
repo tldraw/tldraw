@@ -17,9 +17,6 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 
 let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }
 let _wasAuthenticated = false
-// The user the latest fetch is for, so an account switch without a reload refetches. Null until the
-// signed-in boot claims the page-load fetch, which carries whatever session the cookie had.
-let flagsUserId: string | null = null
 let _hasResolvedOnce = false
 // Whether `flagsPromise` has settled; stops concurrent callers each starting a refetch.
 let settled = false
@@ -52,19 +49,12 @@ export function getFeatureFlags(): Promise<FeatureFlags> {
 }
 
 /**
- * `userId`'s flags, refetched when the last request failed, had no session (Clerk cookie not ready
- * yet) or was for another account. Signed-in boot only, so signed-out pages don't send a request per
- * caller.
+ * Refetches when the last request failed or had no session (Clerk cookie not ready yet). Signed-in
+ * boot only, so signed-out pages don't send a request per caller. Sign-in and sign-out are full page
+ * loads, so cached flags never belong to another account.
  */
-export function fetchFeatureFlags(userId: string): Promise<FeatureFlags> {
-	const otherUser = flagsUserId !== null && flagsUserId !== userId
-	if (!settled && otherUser) {
-		// The fetch in flight carries the previous account's session; queue this user's behind it.
-		flagsPromise = flagsPromise.then(() => loadFlags())
-	} else if (settled && (!_wasAuthenticated || otherUser)) {
-		flagsPromise = loadFlags()
-	}
-	flagsUserId = userId
+export function fetchFeatureFlags(): Promise<FeatureFlags> {
+	if (settled && !_wasAuthenticated) flagsPromise = loadFlags()
 	return flagsPromise
 }
 

@@ -71,7 +71,7 @@ describe('feature flags', () => {
 	it('fetchFeatureFlags reuses an authenticated page-load response', async () => {
 		const mod = await load(() => mockFetchResponse(makeFlags(), true))
 
-		await mod.fetchFeatureFlags('user-a')
+		await mod.fetchFeatureFlags()
 
 		expect(mockFetch).toHaveBeenCalledTimes(1)
 		expect(mod.wasAuthenticated()).toBe(true)
@@ -82,51 +82,13 @@ describe('feature flags', () => {
 		expect(mod.wasAuthenticated()).toBe(false)
 
 		mockFetchResponse(makeFlags({ first_load_rum: { enabled: true } }), true)
-		const [a, b] = await Promise.all([
-			mod.fetchFeatureFlags('user-a'),
-			mod.fetchFeatureFlags('user-a'),
-		])
+		const [a, b] = await Promise.all([mod.fetchFeatureFlags(), mod.fetchFeatureFlags()])
 
 		expect(a).toBe(b)
 		expect(a.first_load_rum.enabled).toBe(true)
 		expect(mockFetch).toHaveBeenCalledTimes(2)
 		expect(mod.wasAuthenticated()).toBe(true)
 		expect(await mod.getFeatureFlags()).toBe(a)
-	})
-
-	it('fetchFeatureFlags refetches when a different account signs in without a reload', async () => {
-		const mod = await load(() => mockFetchResponse(makeFlags(), true))
-		await mod.fetchFeatureFlags('user-a')
-		expect(mockFetch).toHaveBeenCalledTimes(1)
-
-		mockFetchResponse(makeFlags({ rum_enabled: { enabled: true } }), true)
-		const flags = await mod.fetchFeatureFlags('user-b')
-
-		expect(flags.rum_enabled.enabled).toBe(true)
-		expect(mockFetch).toHaveBeenCalledTimes(2)
-		await mod.fetchFeatureFlags('user-b')
-		expect(mockFetch).toHaveBeenCalledTimes(2)
-	})
-
-	it('fetchFeatureFlags queues a refetch when the account switches mid-fetch', async () => {
-		vi.resetModules()
-		mockFetch.mockReset()
-		let resolvePageLoad!: (r: unknown) => void
-		mockFetch.mockReturnValueOnce(new Promise((resolve) => (resolvePageLoad = resolve)))
-		const mod = await import('./featureFlags')
-
-		const forA = mod.fetchFeatureFlags('user-a')
-		mockFetchResponse(makeFlags({ rum_enabled: { enabled: true } }), true)
-		const forB = mod.fetchFeatureFlags('user-b')
-		resolvePageLoad({
-			ok: true,
-			headers: { get: () => '1' },
-			json: async () => makeFlags(),
-		})
-
-		expect((await forA).rum_enabled.enabled).toBe(false)
-		expect((await forB).rum_enabled.enabled).toBe(true)
-		expect(mockFetch).toHaveBeenCalledTimes(2)
 	})
 
 	it('falls back to defaults on a network error, and fetchFeatureFlags retries', async () => {
@@ -137,7 +99,7 @@ describe('feature flags', () => {
 		expect(mod.hasResolvedFlagsOnce()).toBe(true)
 
 		mockFetchResponse(makeFlags({ rum_enabled: { enabled: true } }), true)
-		const flags = await mod.fetchFeatureFlags('user-a')
+		const flags = await mod.fetchFeatureFlags()
 
 		expect(flags.rum_enabled.enabled).toBe(true)
 		expect(mockFetch).toHaveBeenCalledTimes(2)
