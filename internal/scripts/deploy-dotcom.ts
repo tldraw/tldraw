@@ -614,6 +614,9 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 						// local dev and tests only. Injected here because previews have no wrangler.toml
 						// vars block at all.
 						MCP_SERVER_URL: `https://${previewId}-preview-deploy.tldraw.com/api/app/mcp`,
+						// Previews sign in against the staging Clerk instance, which stamps `aud`, so they
+						// match staging's MCP_TOKEN_AUDIENCE_CHECK.
+						MCP_TOKEN_AUDIENCE_CHECK: 'report',
 					}
 				: {}),
 		},

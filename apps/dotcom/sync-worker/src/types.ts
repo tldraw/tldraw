@@ -152,13 +152,17 @@ export interface Environment {
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected
-	// resource metadata and in the `WWW-Authenticate` challenge. Not compared against anything on an
-	// incoming token: Clerk stamps no `aud`, so there is no audience binding to check — see
-	// authenticateMcpRequest for what stands in for one. Set per environment in wrangler.toml;
+	// resource metadata and in the `WWW-Authenticate` challenge, and the `aud` an access token must
+	// carry where MCP_TOKEN_AUDIENCE_CHECK is on. Set per environment in wrangler.toml;
 	// previews have no vars block there, so deploy-dotcom.ts injects it as a deploy var. Left unset,
 	// it is derived from the request's own origin, which is fine locally and wrong anywhere a Host
 	// header can be forged — see getMcpResourceUrl.
 	MCP_SERVER_URL: string | undefined
+	// 'report' or 'enforce' to check an MCP access token's `aud` against MCP_SERVER_URL; anything else
+	// is off. Only for environments whose Clerk instance stamps `aud` from the RFC 8707 `resource`
+	// parameter, which is Clerk configuration — turning it on anywhere else refuses every token. See
+	// checkMcpTokenAudience.
+	MCP_TOKEN_AUDIENCE_CHECK: string | undefined
 	// Overrides the OAuth authorization server advertised to MCP clients. Normally unset: the value is
 	// derived from CLERK_PUBLISHABLE_KEY so it cannot drift from the instance whose tokens we verify.
 	MCP_OAUTH_AUTHORIZATION_SERVER: string | undefined

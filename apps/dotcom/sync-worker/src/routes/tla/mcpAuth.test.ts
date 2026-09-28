@@ -70,8 +70,8 @@ beforeAll(async () => {
  * instance as `iss`, a subject, a live `exp` — so each test overrides exactly the one thing it is
  * about, and no test can pass because two things were wrong at once.
  *
- * No `aud`: Clerk stamps none, so its absence here is the shape of a real token rather than an
- * omission. See authenticateMcpRequest for what stands in for that binding.
+ * No `aud` unless a test asks for one: it is the shape of a real token from a client that sends no
+ * RFC 8707 `resource`, and the audience check is off unless `MCP_TOKEN_AUDIENCE_CHECK` turns it on.
  */
 async function signToken({
 	key,
@@ -327,9 +327,9 @@ describe('authenticateMcpRequest', () => {
 	})
 
 	// The ways a token can be wrong, each signed for real and each refused by the SDK's verifier rather
-	// than by a mock returning what the test wanted. `typ` is the one that matters most: Clerk stamps
-	// no `aud` on either kind of token, so the token type is the *only* thing separating an OAuth
-	// access token from an ordinary tldraw.com session JWT. Accepting a session token would make a
+	// than by a mock returning what the test wanted. `typ` is the one that matters most: a session JWT
+	// carries no `aud`, so wherever the audience check is off, the token type is the *only* thing
+	// separating an OAuth access token from an ordinary tldraw.com session JWT. Accepting a session token would make a
 	// website credential enough to drive this server, and the consent step an agent walks a user
 	// through decoration.
 	//
@@ -444,5 +444,99 @@ describe('authenticateMcpRequest', () => {
 		expect(response.status).toBe(401)
 		expect(response.headers.get('WWW-Authenticate')).not.toContain('error=')
 		expect(fetchMock).not.toHaveBeenCalled()
+	})
+})
+
+describe('the MCP token audience check', () => {
+	const measure = { writeDataPoint: vi.fn() }
+
+	beforeEach(() => {
+		measure.writeDataPoint.mockReset()
+		vi.mocked(canUseMcpServer).mockResolvedValue(true)
+	})
+
+	function audienceEnv(mode: string | undefined) {
+		return makeEnv({ MCP_TOKEN_AUDIENCE_CHECK: mode, MEASURE: measure })
+	}
+
+	const recorded = () =>
+		measure.writeDataPoint.mock.calls
+			.map(([point]) => point.blobs)
+			.filter((blobs: string[]) => blobs[0] === 'mcp_token_audience')
+			.map((blobs: string[]) => blobs.slice(2))
+
+	describe.each([
+		['a token naming this server', { aud: RESOURCE }, 'match'],
+		[
+			'a token naming this server among others',
+			{ aud: ['https://other.example', RESOURCE] },
+			'match',
+		],
+		// What Clerk issues to a client that sends no `resource`. The SDK's own `audience` option lets
+		// this through, which is why the check reads the claim itself.
+		['a token with no audience', {}, 'no_audience'],
+		['a token naming another server', { aud: 'https://other.example/mcp' }, 'wrong_audience'],
+	])('with %s', (_name, claims, outcome) => {
+		it('refuses anything but a match when enforcing, as invalid_token', async () => {
+			const result = await authenticateMcpRequest(
+				bearer(await signToken({ claims: { client_id: 'client_abc', ...claims } })),
+				audienceEnv('enforce')
+			)
+
+			if (outcome === 'match') {
+				expect(result).toEqual({ ok: true, userId: 'user_123' })
+			} else {
+				expect(result).toMatchObject({ ok: false, reason: outcome })
+				const response = responseOf(result)
+				expect(response.status).toBe(401)
+				expect(response.headers.get('WWW-Authenticate')).toContain('error="invalid_token"')
+			}
+			expect(recorded()).toEqual([[`outcome:${outcome}`, 'mode:enforce', 'client_id:client_abc']])
+		})
+
+		it('lets it through when reporting, and records the outcome', async () => {
+			const result = await authenticateMcpRequest(
+				bearer(await signToken({ claims: { client_id: 'client_abc', ...claims } })),
+				audienceEnv('report')
+			)
+
+			expect(result).toEqual({ ok: true, userId: 'user_123' })
+			expect(recorded()).toEqual([[`outcome:${outcome}`, 'mode:report', 'client_id:client_abc']])
+		})
+	})
+
+	// Production until its Clerk instance stamps `aud`: turning the check on there would refuse every
+	// token ever issued.
+	it.each([undefined, '', 'off', 'enforced'])('does nothing when the mode is %j', async (mode) => {
+		const result = await authenticateMcpRequest(bearer(await signToken()), audienceEnv(mode))
+
+		expect(result).toEqual({ ok: true, userId: 'user_123' })
+		expect(recorded()).toEqual([])
+	})
+
+	// Checked before the flag, so a token minted for another server says so rather than reading as a
+	// user who is not on the list.
+	it('refuses a wrong audience before asking whether the user may use the server', async () => {
+		vi.mocked(canUseMcpServer).mockResolvedValue(false)
+
+		const result = await authenticateMcpRequest(
+			bearer(await signToken({ claims: { aud: 'https://other.example/mcp' } })),
+			audienceEnv('enforce')
+		)
+
+		expect(result).toMatchObject({ ok: false, reason: 'wrong_audience' })
+		expect(canUseMcpServer).not.toHaveBeenCalled()
+	})
+
+	it('refuses as unconfigured when enforcing with no MCP_SERVER_URL to compare against', async () => {
+		const result = await authenticateMcpRequest(
+			bearer(await signToken({ claims: { aud: RESOURCE } })),
+			makeEnv({ MCP_TOKEN_AUDIENCE_CHECK: 'enforce', MCP_SERVER_URL: undefined })
+		)
+
+		expect(result).toMatchObject({ ok: false, reason: 'unconfigured' })
+		expect(console.error).toHaveBeenCalledWith(
+			'MCP token audience check is on but MCP_SERVER_URL is unset'
+		)
 	})
 })
