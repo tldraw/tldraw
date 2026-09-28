@@ -113,7 +113,14 @@ export function createFileLoads(deps: FileLoadsDeps) {
 	return {
 		/** Called from the router, before React renders the new route. */
 		noteNavigation(pathname: string) {
-			if (!pathname.startsWith('/f/')) return
+			if (!pathname.startsWith('/f/')) {
+				// Leaving the file: a later return must not resume this load with its old t0 and marks.
+				if (current && current.tracker.getMarks()['board-visible'] === undefined)
+					current.supersede()
+				current = null
+				navigation = null
+				return
+			}
 			if (navigation?.pathname === pathname) return
 			// A router update for the file already open is not a navigation to it; treating it as one
 			// would give a later remount of this same file a stale t0.

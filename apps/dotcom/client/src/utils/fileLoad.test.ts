@@ -123,6 +123,23 @@ describe('file loads', () => {
 		expect(remount.buildEvent(false, {})).toMatchObject({ t_editor_rendered: 20 })
 	})
 
+	it('starts fresh when the user left for another page before the board showed and came back', () => {
+		const { loads, advance } = setup()
+		const abandoned = loads.begin('abc')
+		abandoned.mark('sync-connected')
+		loads.noteNavigation('/')
+		advance(5000)
+		loads.noteNavigation('/f/abc')
+		advance(20)
+		const back = loads.begin('abc')
+		back.mark('editor-rendered')
+		expect(abandoned.isSuperseded()).toBe(true)
+		expect(back).not.toBe(abandoned)
+		expect(back.loadId).not.toBe(abandoned.loadId)
+		expect(back.connectLoadId()).toBe(back.loadId)
+		expect(back.buildEvent(false, {})).toMatchObject({ load_kind: 'switch', t_editor_rendered: 20 })
+	})
+
 	it('returns the same load when the same file begins twice (StrictMode double render)', () => {
 		const { loads } = setup()
 		expect(loads.begin('abc')).toBe(loads.begin('abc'))
