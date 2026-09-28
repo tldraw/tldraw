@@ -23,6 +23,7 @@ import {
  * compared with a cold page load.
  */
 export const FILE_LOAD_STEPS = [
+	'file-started',
 	'editor-rendered',
 	'sync-token-fetched',
 	'sync-connected',
@@ -94,15 +95,16 @@ export function createFileLoads(deps: FileLoadsDeps) {
 				const report = tracker.takeReport()
 				if (!report) return null
 				const { steps: _steps, ...flat } = report
-				const rendered = report.t_editor_rendered
+				const started = report.t_file_started
 				const visible = report.t_board_visible
 				return {
 					...flat,
 					load_kind: kind,
 					// Filters out first opens reached from another page, whose total_ms includes time there.
 					...(kind === 'first' && { route_kind: deps.firstRouteKind() }),
-					// Comparable across kinds: a first open's clock starts at navigation.
-					file_ms: rendered !== undefined && visible !== undefined ? visible - rendered : undefined,
+					// Comparable across kinds: a first open's clock starts at navigation, and its socket can
+					// connect before the editor renders, so measure from the sync host mounting.
+					file_ms: started !== undefined && visible !== undefined ? visible - started : undefined,
 					srv_echo: gotEcho,
 					...extra,
 				}

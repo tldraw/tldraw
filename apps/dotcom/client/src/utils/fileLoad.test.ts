@@ -66,16 +66,22 @@ describe('file loads', () => {
 		const { loads, advance } = setup()
 		advance(2000)
 		const load = loads.begin('abc')
+		load.mark('file-started')
+		advance(300)
+		// The socket opens before the app gate, so a first open can connect before the editor renders.
+		load.mark('sync-connected')
+		advance(300)
 		load.mark('editor-rendered')
-		advance(500)
+		advance(300)
 		load.mark('board-visible')
 		expect(load).toMatchObject({ kind: 'first', loadId: FIRST_ID })
 		expect(load.buildEvent(false, {})).toMatchObject({
 			load_kind: 'first',
-			t_editor_rendered: 2000,
-			t_board_visible: 2500,
-			file_ms: 500,
-			total_ms: 2500,
+			t_file_started: 2000,
+			t_editor_rendered: 2600,
+			t_board_visible: 2900,
+			file_ms: 900,
+			total_ms: 2900,
 		})
 	})
 
@@ -86,6 +92,7 @@ describe('file loads', () => {
 		loads.noteNavigation('/f/def')
 		advance(30)
 		const load = loads.begin('def')
+		load.mark('file-started')
 		load.mark('editor-rendered')
 		advance(400)
 		load.mark('board-visible')
