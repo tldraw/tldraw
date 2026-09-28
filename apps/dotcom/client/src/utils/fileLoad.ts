@@ -44,6 +44,11 @@ export interface FileLoadsDeps extends LoadTrackerDeps<FileLoadStep> {
 
 export type FileLoad = ReturnType<ReturnType<typeof createFileLoads>['begin']>
 
+// first_load already prints the first open; printing it twice is noise.
+function printsLoad(load: { kind: FileLoadKind }) {
+	return load.kind === 'switch' && shouldPrintLoads()
+}
+
 export function createFileLoads(deps: FileLoadsDeps) {
 	let navigation: { pathname: string; at: number } | null = null
 	let current: ReturnType<typeof open> | null = null
@@ -125,7 +130,7 @@ export function createFileLoads(deps: FileLoadsDeps) {
 			if (current?.slug === slug && unfinished && !current.isSuperseded()) return current
 			if (current && unfinished) current.supersede()
 			current = open(slug)
-			if (shouldPrintLoads()) current.tracker.enableLiveLog()
+			if (printsLoad(current)) current.tracker.enableLiveLog()
 			return current
 		},
 		current: () => current,
@@ -172,7 +177,7 @@ export function reportFileLoad(
 	if (load.isSuperseded()) return
 	const inGate = shouldReportLoad(opts)
 	const send = inGate && !load.isHidden()
-	const print = shouldPrintLoads()
+	const print = printsLoad(load)
 	if (!send && !print) return
 	void load.whenServerTimings(SERVER_ECHO_DEADLINE_MS).then((gotEcho) => {
 		const event = load.buildEvent(gotEcho, opts.extra)

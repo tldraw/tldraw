@@ -1,5 +1,6 @@
+import { deleteFromSessionStorage, setInSessionStorage } from '@tldraw/utils'
 import { describe, expect, it, vi } from 'vitest'
-import { createFileLoads, type FileLoadsDeps } from './fileLoad'
+import { createFileLoads, reportFileLoad, type FileLoadsDeps } from './fileLoad'
 
 const FIRST_ID = 'FirstLoadId_0123456789'
 
@@ -34,6 +35,33 @@ const echo = (loadId: string, t_handshake = 300) => ({
 })
 
 describe('file loads', () => {
+	it('prints only switches, since first_load already prints the first open', async () => {
+		setInSessionStorage('tldraw_debug:logLoads', 'true')
+		const group = vi.spyOn(console, 'groupCollapsed').mockImplementation(() => {})
+		vi.spyOn(console, 'table').mockImplementation(() => {})
+		vi.spyOn(console, 'groupEnd').mockImplementation(() => {})
+		try {
+			const { loads, deps } = setup()
+			const report = async (load: ReturnType<typeof loads.begin>) => {
+				load.mark('editor-rendered')
+				load.mark('board-visible')
+				load.setServerTimings(echo(load.loadId))
+				reportFileLoad(load, { email: null, flagEnabled: false, trackEvent: vi.fn(), extra: {} })
+				await new Promise((resolve) => setTimeout(resolve, 0))
+			}
+			await report(loads.begin('abc'))
+			expect(deps.log).not.toHaveBeenCalled()
+			expect(group).not.toHaveBeenCalled()
+			await report(loads.begin('def'))
+			expect(deps.log).toHaveBeenCalled()
+			expect(group).toHaveBeenCalledTimes(1)
+			expect(group.mock.calls[0][0]).toContain('switch')
+		} finally {
+			deleteFromSessionStorage('tldraw_debug:logLoads')
+			vi.restoreAllMocks()
+		}
+	})
+
 	it('treats the first open as the first load: same id, navigation-start clock', () => {
 		const { loads, advance } = setup()
 		advance(2000)
