@@ -64,9 +64,9 @@ export function hashToPercentage(userId: string, flagName: string): number {
 	return (hash >>> 0) % 100
 }
 
-// Per-isolate cache of stored values. Every page load fetches all flags and every MCP request checks
-// one, so without it each costs a KV read per flag. A flip lands within this TTL plus KV's own edge
-// cache (~60s).
+// Per-isolate cache of stored values. Every page load fetches all flags and every MCP request
+// checks one, so without it each costs a KV read per flag. A flip lands within this TTL plus KV's
+// own edge cache (~60s).
 const FLAG_CACHE_TTL_MS = 30_000
 const flagCache = new Map<FeatureFlagKey, { value: FeatureFlagValue; readAt: number }>()
 
@@ -75,8 +75,9 @@ export function resetFeatureFlagCacheForTests() {
 }
 
 /**
- * The stored value, skipping the isolate cache (KV's own edge cache still applies). Throws when KV does; a stored value that doesn't parse reads as
- * the defaults instead, so the admin panel can still overwrite it.
+ * The stored value, skipping the isolate cache (KV's own edge cache still applies). Throws when
+ * KV does; a stored value that doesn't parse reads as the defaults instead, so the admin panel
+ * can still overwrite it.
  */
 async function readFeatureFlag(env: Environment, flag: FeatureFlagKey): Promise<FeatureFlagValue> {
 	const defaults = getFlagDefaults()[flag]
@@ -210,7 +211,7 @@ export async function canUseMcpServer(env: Environment, userId: string): Promise
 		const opts = { staleOnError: false }
 		if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId, opts)) return true
 	} catch (e) {
-		// Unreadable flag names nobody; the staff check below still runs.
+		// An unreadable flag admits nobody; the staff check below still runs.
 		console.error('Failed to read mcp_server_access:', e)
 	}
 	return await hasTldrawEmail(env, userId)
