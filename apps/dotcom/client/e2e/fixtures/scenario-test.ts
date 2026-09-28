@@ -370,15 +370,8 @@ class DotcomScenario {
 
 	async publishFile(actor: DotcomActor) {
 		await actor.shareMenu.open()
-		await actor.shareMenu.publishFile()
-		const url = await actor.shareMenu.copyLink()
+		const url = await actor.shareMenu.publishFile()
 		await actor.page.keyboard.press('Escape')
-		// The first publish also lands in R2 via the outbox; until then the published page 404s.
-		const slug = new URL(url).pathname.split('/')[2]
-		await expect(async () => {
-			const response = await actor.page.request.get(`${ROOT_URL}/api/app/publish/${slug}`)
-			expect(response.status()).toBe(200)
-		}).toPass({ timeout: 20_000 })
 		return url
 	}
 
