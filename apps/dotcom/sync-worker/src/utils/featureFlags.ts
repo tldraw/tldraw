@@ -109,10 +109,14 @@ async function readFeatureFlag(env: Environment, flag: FeatureFlagKey): Promise<
  * A flag's stored value, cached per isolate. When KV fails it serves the last value this isolate
  * read, however old, and throws if there is none: falling back to the defaults would pass a KV blip
  * off as the real value. Callers that need an answer regardless pick their own fallback.
+ *
+ * `staleOnError: false` throws instead of serving a stale value, for access checks: a cached grant
+ * would otherwise outlive its revocation for as long as KV stays down.
  */
 export async function getFeatureFlagValue(
 	env: Environment,
-	flag: FeatureFlagKey
+	flag: FeatureFlagKey,
+	{ staleOnError = true }: { staleOnError?: boolean } = {}
 ): Promise<FeatureFlagValue> {
 	const cached = flagCache.get(flag)
 	if (cached && Date.now() - cached.readAt < FLAG_CACHE_TTL_MS) return cached.value
@@ -121,7 +125,7 @@ export async function getFeatureFlagValue(
 		flagCache.set(flag, { value, readAt: Date.now() })
 		return value
 	} catch (e) {
-		if (!cached) throw e
+		if (!cached || !staleOnError) throw e
 		console.error(`Failed to read feature flag ${flag}, serving the cached value:`, e)
 		return cached.value
 	}
@@ -203,7 +207,8 @@ export function evaluateFlagForUser(
  */
 export async function canUseMcpServer(env: Environment, userId: string): Promise<boolean> {
 	try {
-		if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId)) return true
+		const opts = { staleOnError: false }
+		if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId, opts)) return true
 	} catch (e) {
 		// Unreadable flag names nobody; the staff check below still runs.
 		console.error('Failed to read mcp_server_access:', e)
@@ -235,9 +240,10 @@ async function hasTldrawEmail(env: Environment, userId: string): Promise<boolean
 export async function isFeatureFlagEnabledForUser(
 	env: Environment,
 	flag: FeatureFlagKey,
-	userId: string
+	userId: string,
+	opts?: { staleOnError?: boolean }
 ): Promise<boolean> {
-	return evaluateFlagForUser(await getFeatureFlagValue(env, flag), flag, userId)
+	return evaluateFlagForUser(await getFeatureFlagValue(env, flag, opts), flag, userId)
 }
 
 /**

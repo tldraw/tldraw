@@ -636,6 +636,41 @@ describe('canUseMcpServer', () => {
 		consoleSpy.mockRestore()
 	})
 
+	describe('when KV fails after the flag was cached', () => {
+		let consoleSpy: ReturnType<typeof vi.spyOn>
+		beforeEach(() => {
+			consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			vi.useFakeTimers()
+		})
+		afterEach(() => {
+			consoleSpy.mockRestore()
+			vi.useRealTimers()
+		})
+
+		async function warmThenBreak(stored: object) {
+			const env = makeEnv({ mcp_server_access: JSON.stringify(stored) })
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+			vi.advanceTimersByTime(30_000)
+			env.FEATURE_FLAGS.get = kvDown()
+			return env
+		}
+
+		it.each([
+			['an individual grant', { users: [{ userId: 'user-1', email: 'someone@example.com' }] }],
+			['allowEveryone', { users: [], allowEveryone: true }],
+		])('does not keep admitting through %s', async (_, stored) => {
+			const env = await warmThenBreak(stored)
+			userEmail.mockReturnValue('someone@example.com')
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
+		})
+
+		it('still admits staff', async () => {
+			const env = await warmThenBreak({ users: [], allowEveryone: true })
+			userEmail.mockReturnValue('someone@tldraw.com')
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+		})
+	})
+
 	// The flag still comes first, and it is what keeps the database read off the granted path.
 	it('admits an allowlisted account without reading their email', async () => {
 		const env = makeEnv({
