@@ -39,6 +39,8 @@ function CommentMenuItem() {
 	return (
 		<TldrawUiMenuItem
 			{...commentTool}
+			// `c` enters the tool rather than opening a composer here, so don't advertise it.
+			kbd={undefined}
 			// Signed-out visitors fall through to the tool's own onSelect, which opens sign-in.
 			onSelect={(source) =>
 				canComment ? startCommentAt(editor, point) : commentTool.onSelect(source)

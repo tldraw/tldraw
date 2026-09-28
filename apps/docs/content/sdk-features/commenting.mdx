@@ -91,6 +91,8 @@ Mount the layer through the `InFrontOfTheCanvas` component slot so it sits above
 
 `commentToolOverrides` puts the comment tool in Quick Actions with the `C` shortcut. With the tool active, clicking empty canvas starts a thread anchored to that point, and clicking a shape anchors a comment to the shape. You can also turn on region comments, where dragging the tool out covers an area. Either way the click only opens a composer: nothing is written to the store until the comment is posted.
 
+To start a comment from somewhere other than the tool, such as a context menu item, call `startCommentAt(editor, point)` with a page point. It enters the comment tool and opens the composer there, anchored the same way a click would be.
+
 Once a comment thread exists, its pin is the handle for everything else.
 
 | Input       | Result                                                               |
@@ -630,19 +632,19 @@ This is the same question the client's [`canModifyComment`](#who-can-edit-and-de
 
 `CanvasComments` is one way to assemble the parts, and every part it uses is exported. You can rebuild it, or build something quite different, from the same pieces.
 
-| Export                                   | Description                                                 |
-| ---------------------------------------- | ----------------------------------------------------------- |
-| `CommentTool`, `commentToolOverrides`    | Placement: the tool state machine and its toolbar entry.    |
-| `CommentPin`, `CountBadge`               | The pin marker and the clustered-count badge.               |
-| `CommentThread`, `CommentCard`, `Byline` | A thread and its comments.                                  |
-| `CommentComposer`, `SendButton`          | The composer and its send control.                          |
-| `CommentsList`, `CommentListItem`        | A list of threads and one row of it.                        |
-| `EmptyState`, `sortSidebarRows`          | The list's empty state, and the sidebar's ordering.         |
-| `Avatar`, `Mention`, `MentionList`       | Author avatars and the mention picker.                      |
-| `Reaction`, `Reactions`                  | A reaction pill and a comment's row of them.                |
-| `anchorPagePoint`, `shapeAnchorAt`       | Anchor math: page position from an anchor, and the reverse. |
-| `editComment`, `deleteComment`           | The write verbs. See [Writing comments](#writing-comments). |
-| `registerCommentAnchorLifecycle`         | Keeps shape-anchored threads alive across shape deletion.   |
+| Export                                                  | Description                                                                              |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `CommentTool`, `commentToolOverrides`, `startCommentAt` | Placement: the tool state machine, its toolbar entry, and starting a comment at a point. |
+| `CommentPin`, `CountBadge`                              | The pin marker and the clustered-count badge.                                            |
+| `CommentThread`, `CommentCard`, `Byline`                | A thread and its comments.                                                               |
+| `CommentComposer`, `SendButton`                         | The composer and its send control.                                                       |
+| `CommentsList`, `CommentListItem`                       | A list of threads and one row of it.                                                     |
+| `EmptyState`, `sortSidebarRows`                         | The list's empty state, and the sidebar's ordering.                                      |
+| `Avatar`, `Mention`, `MentionList`                      | Author avatars and the mention picker.                                                   |
+| `Reaction`, `Reactions`                                 | A reaction pill and a comment's row of them.                                             |
+| `anchorPagePoint`, `shapeAnchorAt`                      | Anchor math: page position from an anchor, and the reverse.                              |
+| `editComment`, `deleteComment`                          | The write verbs. See [Writing comments](#writing-comments).                              |
+| `registerCommentAnchorLifecycle`                        | Keeps shape-anchored threads alive across shape deletion.                                |
 
 The presentational components take plain props and know nothing about the editor. The canvas layer, the tool, and the hooks build on them. `CanvasComments` registers the anchor lifecycle for you, so call `registerCommentAnchorLifecycle` yourself only if you're replacing the layer wholesale.
 

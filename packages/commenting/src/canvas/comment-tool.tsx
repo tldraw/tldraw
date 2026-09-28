@@ -113,34 +113,42 @@ export class CommentTool extends StateNode {
 	}
 }
 
-/** The anchor a comment placed at `point` gets: the shape under it, or a bare point. */
-function commentAnchorAt(editor: Editor, point: VecLike): TLCommentAnchor {
+function pendingCommentAt(editor: Editor, point: VecLike): PendingComment {
 	const hit = commentTargetShapeAt(editor, point)
-	if (!hit) return { type: 'point', x: point.x, y: point.y }
-	return shapeAnchorAt(
-		editor,
-		hit.id,
-		point,
-		getCommentingOptions(editor).shouldBePrecise(editor, {
-			shapeId: hit.id,
-			point,
-			altKey: editor.inputs.getAltKey(),
-		})
-	)
+	const anchor: TLCommentAnchor = hit
+		? shapeAnchorAt(
+				editor,
+				hit.id,
+				point,
+				getCommentingOptions(editor).shouldBePrecise(editor, {
+					shapeId: hit.id,
+					point,
+					altKey: editor.inputs.getAltKey(),
+				})
+			)
+		: { type: 'point', x: point.x, y: point.y }
+	return { anchor, point: { x: point.x, y: point.y } }
 }
 
 /**
- * Open the comment composer at a page point, anchored the same way a click with the comment tool
- * would anchor it. Use it to start a comment from outside the tool, such as a context menu item.
- * Switches to the comment tool, since the draft composer belongs to the tool and closes with it.
+ * Open the comment composer at a page point, anchored as a comment tool click there would be. Use
+ * it to start a comment from outside the tool, such as a context menu item. Enters the comment tool
+ * (which must be registered), since the draft composer closes when the tool exits. It doesn't check
+ * `canComment`: a viewer who can't comment sees the `ComposerFallback` slot instead.
+ *
+ * @example
+ * ```tsx
+ * <TldrawUiMenuItem id="comment" label="Comment" onSelect={() => startCommentAt(editor, point)} />
+ * ```
  * @public
  */
 export function startCommentAt(editor: Editor, point: VecLike) {
 	editor.setCurrentTool('comment')
-	pendingComment.set(editor, {
-		anchor: commentAnchorAt(editor, point),
-		point: { x: point.x, y: point.y },
-	})
+	const pending = pendingCommentAt(editor, point)
+	pendingComment.set(editor, pending)
+	// Entering the tool hints the shape under the live pointer, which is wherever the caller's UI
+	// was (a menu item), not `point`.
+	editor.setHintingShapes(pending.anchor.type === 'shape' ? [pending.anchor.shapeId] : [])
 }
 
 /** Hint the shape a comment placed at the pointer would anchor to, using the same hit-test as the
@@ -213,10 +221,7 @@ class CommentPointing extends StateNode {
 	override onPointerUp() {
 		const { editor } = this
 		const point = editor.inputs.getCurrentPagePoint()
-		pendingComment.set(editor, {
-			anchor: commentAnchorAt(editor, point),
-			point: { x: point.x, y: point.y },
-		})
+		pendingComment.set(editor, pendingCommentAt(editor, point))
 		// Stay in the tool while the composer is open — the interaction isn't over until the
 		// comment is posted or dismissed, and staying keeps the surrounding UI (style panel,
 		// sidebar) from churning mid-placement.
