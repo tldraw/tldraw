@@ -12,10 +12,13 @@ vi.mock('@clerk/backend', () => ({
 	// Called through, not referenced: the factory is hoisted above the `const`.
 	verifyToken: (...args: unknown[]) => verifyToken(...args),
 }))
-vi.mock('../featureFlags', () => ({ canUseMcpServer: vi.fn() }))
+vi.mock('../featureFlags', () => ({
+	canUseMcpServer: vi.fn(),
+	hasTldrawAccount: vi.fn(async () => true),
+}))
 
 // Import after the mocks are registered.
-import { canUseMcpServer } from '../featureFlags'
+import { canUseMcpServer, hasTldrawAccount } from '../featureFlags'
 import {
 	getMcpTokenAuth,
 	getZeroAuth,
@@ -141,6 +144,17 @@ describe('getMcpTokenAuth', () => {
 			})
 		).resolves.toEqual({ ok: false, reason: 'unconfigured' })
 		expect(authenticateRequest).not.toHaveBeenCalled()
+	})
+
+	it('answers no_tldraw_account for a verified user with no tldraw.com rows', async () => {
+		signedInAs('user_1')
+		vi.mocked(hasTldrawAccount).mockResolvedValueOnce(false)
+		vi.mocked(canUseMcpServer).mockResolvedValue(true)
+
+		await expect(
+			getMcpTokenAuth(requestWith({ authorization: 'Bearer tok' }), env)
+		).resolves.toEqual({ ok: false, reason: 'no_tldraw_account' })
+		expect(canUseMcpServer).not.toHaveBeenCalled()
 	})
 
 	it('answers not_allowlisted for a verified user canUseMcpServer refuses', async () => {

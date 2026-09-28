@@ -1,7 +1,7 @@
 import { signJwt } from '@clerk/backend/jwt'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
-import { canUseMcpServer } from '../../utils/featureFlags'
+import { canUseMcpServer, hasTldrawAccount } from '../../utils/featureFlags'
 import {
 	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
@@ -23,7 +23,10 @@ import {
 // token" is the load-bearing claim of the file under test, and a mocked verifier cannot demonstrate
 // it at all: an earlier version of this file mocked the whole verifier and its two "verification"
 // tests were assertions about what the mock had been *called with*.
-vi.mock('../../utils/featureFlags', () => ({ canUseMcpServer: vi.fn() }))
+vi.mock('../../utils/featureFlags', () => ({
+	canUseMcpServer: vi.fn(),
+	hasTldrawAccount: vi.fn(async () => true),
+}))
 
 const RESOURCE = 'https://www.tldraw.com/api/app/mcp'
 
@@ -408,6 +411,21 @@ describe('authenticateMcpRequest', () => {
 		// The flag name is no longer an argument: canUseMcpServer owns which flag it consults, and the
 		// @tldraw.com fallback behind it.
 		expect(canUseMcpServer).toHaveBeenCalledWith(expect.anything(), 'user_123')
+	})
+
+	it('answers 403 telling a user with no tldraw.com account to open tldraw.com first', async () => {
+		vi.mocked(hasTldrawAccount).mockResolvedValueOnce(false)
+
+		const result = await authenticateMcpRequest(bearer(await signToken()), makeEnv())
+
+		expect(result).toMatchObject({ ok: false, reason: 'no_tldraw_account' })
+		const response = responseOf(result)
+		expect(response.status).toBe(403)
+		expect(await response.json()).toEqual({
+			error: 'forbidden',
+			error_description:
+				'Open tldraw.com and sign in once to finish setting up your account, then reconnect.',
+		})
 	})
 
 	// The reason rides on the refusal so the route can put it on a datapoint: during a flag-gated

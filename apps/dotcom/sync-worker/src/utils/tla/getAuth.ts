@@ -3,7 +3,7 @@ import { can } from '@tldraw/dotcom-shared'
 import { IRequest, StatusError } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
-import { canUseMcpServer } from '../featureFlags'
+import { canUseMcpServer, hasTldrawAccount } from '../featureFlags'
 import { getRole } from './getRole'
 
 export async function requireAuth(request: IRequest, env: Environment): Promise<SignedInAuth> {
@@ -167,7 +167,17 @@ export type SignedInAuth = Extract<SessionAuthObject, { isAuthenticated: true }>
  * from "presented something bad" from "signed in and still not allowed" — three refusals that call
  * for entirely different answers, and that the MCP endpoint reports separately during the rollout.
  */
-export type McpTokenRefusal = 'no_token' | 'invalid_token' | 'unconfigured' | 'not_allowlisted'
+export type McpTokenRefusal =
+	| 'no_token'
+	| 'invalid_token'
+	| 'unconfigured'
+	| 'no_tldraw_account'
+	| 'not_allowlisted'
+
+/** Refusals for a caller who did authenticate, where signing in again would only loop. */
+export function isMcpForbidden(reason: McpTokenRefusal): boolean {
+	return reason === 'no_tldraw_account' || reason === 'not_allowlisted'
+}
 
 export type McpTokenAuth = { ok: true; userId: string } | { ok: false; reason: McpTokenRefusal }
 
@@ -282,6 +292,11 @@ export async function getMcpTokenAuth(
 	}
 
 	const userId = state.toAuth().userId
+	// Signing up on the consent screen makes a Clerk account but no tldraw.com rows; we refuse rather
+	// than create them, so the account starts the way every other one does, on tldraw.com.
+	if (!(await hasTldrawAccount(env, userId))) {
+		return { ok: false, reason: 'no_tldraw_account' }
+	}
 	if (!(await canUseMcpServer(env, userId))) {
 		return { ok: false, reason: 'not_allowlisted' }
 	}

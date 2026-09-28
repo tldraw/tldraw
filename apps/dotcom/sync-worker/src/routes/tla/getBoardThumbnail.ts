@@ -2,7 +2,7 @@ import { decodeJwt } from '@clerk/backend/jwt'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { isRoomIdTooLong } from '../../utils/roomIdIsTooLong'
-import { getAuth, getMcpTokenAuth } from '../../utils/tla/getAuth'
+import { getAuth, getMcpTokenAuth, isMcpForbidden } from '../../utils/tla/getAuth'
 import { resolveSharedBoardForUser, writeMcpAuthRefusalTelemetry } from './mcpServer'
 import { getOgImageCacheKey } from './ogImageQueue'
 import { writeScreenshotTelemetry } from './thumbnailRender'
@@ -127,7 +127,7 @@ async function authenticate(
 			if (bearer.ok) return { ok: true, userId: bearer.userId }
 			writeMcpAuthRefusalTelemetry(env, request, bearer.reason, 'thumbnail')
 			// A valid token for a user outside the mcp_server_access flag: signing in again won't help.
-			const status = bearer.reason === 'not_allowlisted' ? 403 : 401
+			const status = isMcpForbidden(bearer.reason) ? 403 : 401
 			return { ok: false, response: new Response(null, { status }) }
 		} catch (error) {
 			reportThumbnailError(error, { ctx, env, request, surface: 'board_view', extras: {} })

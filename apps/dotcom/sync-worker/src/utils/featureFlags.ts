@@ -171,6 +171,20 @@ export async function canUseMcpServer(env: Environment, userId: string): Promise
 	return await hasTldrawEmail(env, userId)
 }
 
+export async function hasTldrawAccount(env: Environment, userId: string): Promise<boolean> {
+	const db = createPostgresConnectionPool(env, 'sync-worker/hasTldrawAccount')
+	try {
+		const user = await db
+			.selectFrom('user')
+			.select('id')
+			.where('id', '=', userId)
+			.executeTakeFirst()
+		return !!user
+	} finally {
+		await db.destroy()
+	}
+}
+
 async function hasTldrawEmail(env: Environment, userId: string): Promise<boolean> {
 	const db = createPostgresConnectionPool(env, 'sync-worker/hasTldrawEmail')
 	try {

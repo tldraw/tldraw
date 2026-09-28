@@ -299,6 +299,19 @@ export async function authenticateMcpRequest(
 					{ status: 403 }
 				),
 			}
+		case 'no_tldraw_account':
+			return {
+				ok: false,
+				reason: 'no_tldraw_account',
+				response: Response.json(
+					{
+						error: 'forbidden',
+						error_description:
+							'Open tldraw.com and sign in once to finish setting up your account, then reconnect.',
+					},
+					{ status: 403 }
+				),
+			}
 		default:
 			// The reason a token failed is not the caller's business — an expired token and one minted
 			// for somebody else's resource answer the same thing — but a client does need to know it

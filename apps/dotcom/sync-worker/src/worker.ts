@@ -67,7 +67,13 @@ import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
-import { getAuth, getZeroAuth, requireAuth, getMcpTokenAuth } from './utils/tla/getAuth'
+import {
+	getAuth,
+	getZeroAuth,
+	requireAuth,
+	getMcpTokenAuth,
+	isMcpForbidden,
+} from './utils/tla/getAuth'
 import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
 import { createMcpMutators } from './utils/tla/mcpMutators'
 export { TLFileDurableObject } from './TLFileDurableObject'
@@ -287,7 +293,7 @@ const router = createRouter<Environment>()
 		if (!auth.ok) {
 			return Response.json(
 				{ error: 'Unauthorized' },
-				{ status: auth.reason === 'not_allowlisted' ? 403 : 401 }
+				{ status: isMcpForbidden(auth.reason) ? 403 : 401 }
 			)
 		}
 		if (!env.ZERO_SERVER) {
