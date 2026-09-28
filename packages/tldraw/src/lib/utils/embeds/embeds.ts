@@ -41,7 +41,10 @@ const globlikeRegExp = (input: string) => {
 
 const checkHostnames = (hostnames: readonly string[], targetHostname: string) => {
 	return !!hostnames.find((hostname) => {
-		const re = new RegExp(globlikeRegExp(hostname))
+		// The host must be the pattern or a subdomain of it. Unanchored, `tldraw.com` would
+		// also match `tldraw.com.evil.io`, which would then inherit that definition's relaxed
+		// iframe sandbox permissions.
+		const re = new RegExp(`^(?:.+\\.)?${globlikeRegExp(hostname)}$`)
 		return targetHostname.match(re)
 	})
 }

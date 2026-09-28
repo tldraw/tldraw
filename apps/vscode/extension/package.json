@@ -132,15 +132,15 @@
 	},
 	"scripts": {
 		"dev": "tsx scripts/dev.ts",
-		"build": "cd ../editor && yarn build && cd ../extension && tsx scripts/build.ts",
+		"build": "cd ../editor && pnpm build && cd ../extension && tsx scripts/build.ts",
 		"get-info": "vsce show tldraw-org.tldraw-vscode --json > extension.json",
-		"package": "yarn build && tsx scripts/package.ts",
+		"package": "pnpm build && tsx scripts/package.ts",
 		"publish": "tsx scripts/publish.ts",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
-		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp & yarn",
-		"test": "yarn run -T vitest --passWithNoTests",
-		"test-ci": "yarn run -T vitest run --passWithNoTests",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
+		"lint": "pnpm exec tsx ../../../internal/scripts/lint.ts",
+		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp && pnpm install",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
 	},
 	"devDependencies": {
 		"@tldraw/editor": "workspace:*",
@@ -161,12 +161,9 @@
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*",
-		"ts-loader": "^9.5.2",
-		"tslib": "^2.8.1",
 		"tsx": "^4.19.2",
 		"typescript": "^7.0.2",
-		"vsce": "^2.15.0",
-		"webpack": "^5.97.1"
+		"vsce": "^2.15.0"
 	},
 	"gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296",
 	"dependencies": {

@@ -271,10 +271,10 @@ test.skip('known issue', async () => {})
 ## Running E2E tests
 
 ```bash
-yarn e2e                    # Examples E2E
-yarn e2e-dotcom            # Dotcom E2E
-yarn e2e-ui                # With Playwright UI
-yarn e2e -- --grep "toolbar"  # Filter by pattern
+pnpm e2e                    # Examples E2E
+pnpm e2e-dotcom            # Dotcom E2E
+pnpm e2e-ui                # With Playwright UI
+pnpm e2e -- --grep "toolbar"  # Filter by pattern
 ```
 
 ## Key patterns summary

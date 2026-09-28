@@ -1,0 +1,74 @@
+---
+title: Zoom into Moby Dick
+component: ./ZoomIntoMobyDickExample.tsx
+priority: 2
+keywords:
+  [semantic zoom, level of detail, lod, camera, zoom steps, text, reading, summary, deep zoom]
+---
+
+Semantic zoom over a whole novel: one sentence zooms out to the whole book and in to Melville's own text.
+
+---
+
+Fully zoomed out, the canvas holds a single sentence summarising _Moby Dick_. Zoom in and it becomes a
+paragraph, then a page, then a chapter-by-chapter outline, then the book itself — about 208,000 words
+of it. Zooming into one corner of the paragraph opens that part of the story
+rather than the next level of the book as a whole.
+
+### The tree does the work
+
+The obvious implementation reads `editor.getZoomLevel()` and swaps a shape's text. That can't give you
+the second half of the behaviour, because there is no "this" to zoom into.
+
+Instead the work is a tree, and every node's children subdivide its rectangle. The root sentence owns a
+1000-unit rect; its six children each own part of that rect; their children own parts of those, down
+to 136 chapters. Drilling into a passage then falls out for free, because the passage's children are
+simply the nodes that grow first when you zoom there.
+
+### Handing off between levels
+
+A level takes over when its **parent's** text has grown to `HANDOFF_PX` on screen, and hands on when its
+own text reaches that same size. Because both sides of a handoff are the same zoom, one level is always
+leaving exactly as the next arrives.
+
+Deriving the entry from the parent rather than from the level itself matters more than it looks. Running
+a level until its _child_ became readable let a level whose child is much denser grow without bound — the
+chapter summaries reached 110px before the full text took over, most of an octave in which nothing
+happened but text getting larger. Giving entry and exit independent pixel thresholds capped the size but
+pulled the two boundaries apart, so the book sentence and the act summaries sat on top of one another at
+full strength instead of crossfading.
+
+### Finding your way
+
+Zooming by hand is not the only way in, and for most visitors it isn't the first.
+
+- **The zoom slider** spans the whole range in one control, logarithmically, so each equal step along it
+  is an equal multiple of zoom and the levels come past at an even rate.
+- **Clicking any passage** frames it, which reveals its children — but only while the select tool is
+  active. Pick up the draw tool and the layer stops taking pointer events, so the whole book stays a
+  surface you can annotate.
+- **The breadcrumb** names where you are and zooms back out to any ancestor. It stops at the level you
+  are actually reading, not at the leaf under the centre of the screen.
+- **Search** runs over every level at once and marks hits where they sit on the map, so "where does
+  Queequeg appear" gets a spatial answer.
+
+### Cost
+
+Reading the whole book end to end takes about 200x of zoom. The default `zoomSteps` top out at 8x, so
+the range is widened in `options.camera` — the camera clamps to the first and last step.
+
+Every node at a given depth shares that depth's opacity, so the crossfade is published as a handful of
+CSS custom properties (`--lod-0`, `--lod-1`, …) written by one `react()` side-effect per camera frame.
+The 161 summary nodes then render once and never re-render while you pan or zoom. Only the chapter text
+is reactive, and only the chapters actually on screen are mounted; `chapters.json` is dynamically
+imported the first time you zoom deep enough to need it.
+
+The book isn't in the store. 208,000 words have no business being records with migrations and undo
+history, and keeping them out of it means every tldraw tool still works normally on top of the text.
+
+### Reusing it
+
+Only `summaries.ts` knows this is a novel. `layout.ts`, `ContentLayer.tsx` and `SemanticZoom.tsx` take a
+tree of strings and an optional loader for deeper text, so the same code renders a codebase, a spec or a
+contract — the one thing a corpus has to get right is that each level says several times more than the
+one above it, since that is what makes its type smaller and its handoff land.

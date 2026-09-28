@@ -11,41 +11,6 @@ if (typeof window !== 'undefined') {
 	await import('vitest-canvas-mock')
 }
 
-// Web storage polyfill. vitest 4's jsdom environment no longer exposes
-// `localStorage`/`sessionStorage`, so provide a minimal in-memory implementation
-// for code that touches web storage (e.g. LocalIndexedDb's db-name registry).
-if (typeof window !== 'undefined' && typeof window.localStorage === 'undefined') {
-	class MemoryStorage implements Storage {
-		private store = new Map<string, string>()
-		// eslint-disable-next-line tldraw/no-setter-getter
-		get length() {
-			return this.store.size
-		}
-		clear() {
-			this.store.clear()
-		}
-		getItem(key: string) {
-			return this.store.has(key) ? this.store.get(key)! : null
-		}
-		key(index: number) {
-			return Array.from(this.store.keys())[index] ?? null
-		}
-		removeItem(key: string) {
-			this.store.delete(key)
-		}
-		setItem(key: string, value: string) {
-			this.store.set(key, String(value))
-		}
-	}
-	for (const name of ['localStorage', 'sessionStorage'] as const) {
-		const storage = new MemoryStorage()
-		// writable so tests can reassign global.localStorage to their own mocks
-		const descriptor = { value: storage, configurable: true, writable: true }
-		Object.defineProperty(window, name, descriptor)
-		Object.defineProperty(globalThis, name, descriptor)
-	}
-}
-
 // Crypto fallback for environments without a native WebCrypto implementation (e.g. the ai package).
 // jsdom provides window.crypto with subtle crypto, so this only kicks in elsewhere.
 if (typeof globalThis.crypto === 'undefined') {
@@ -93,6 +58,24 @@ if (typeof Element !== 'undefined') {
 	Element.prototype.hasPointerCapture ??= function () {
 		return false
 	}
+}
+
+// Captured before any test file installs fake timers.
+const realSetTimeout = globalThis.setTimeout
+const realSetImmediate = globalThis.setImmediate
+
+// Drain deferred React work before vitest tears down jsdom: exportToSvg unmounts its root in a
+// setTimeout(0) and every react-dom commit schedules a setImmediate that reads `window.event`.
+// Landing after teardown, those throw "window is not defined" as an unhandled error (flaky CI).
+if (typeof window !== 'undefined') {
+	afterAll(async () => {
+		// two passes: pass 1 fires pending timeouts and the setImmediate they enqueue; pass 2 covers
+		// the scheduler re-arming itself when it yields mid-work
+		for (let i = 0; i < 2; i++) {
+			await new Promise((resolve) => realSetTimeout(resolve, 0))
+			await new Promise((resolve) => realSetImmediate(resolve))
+		}
+	})
 }
 
 function convertNumbersInObject(obj: any, roundToNearest: number): any {

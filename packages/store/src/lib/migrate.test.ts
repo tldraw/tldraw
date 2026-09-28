@@ -375,3 +375,18 @@ describe('sortMigrations (MS)', () => {
 		).toThrowErrorMatchingInlineSnapshot(`[Error: Circular dependency in migrations: bar/1]`)
 	})
 })
+
+describe('sortMigrations: redundant dependencies (MS)', () => {
+	const sort = (migrations: Migration[]) => sortMigrations(migrations).map((mig) => mig.id)
+
+	it('[MS2] an explicit dependency on the implicit predecessor is not a cycle', () => {
+		expect(sort([m('foo/2', { dependsOn: ['foo/1'] }), m('foo/1')])).toEqual(['foo/1', 'foo/2'])
+	})
+
+	it('[MS2] a dependency listed twice counts once', () => {
+		expect(sort([m('bar/1', { dependsOn: ['foo/1', 'foo/1'] }), m('foo/1')])).toEqual([
+			'foo/1',
+			'bar/1',
+		])
+	})
+})

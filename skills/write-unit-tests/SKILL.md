@@ -25,9 +25,9 @@ For the available `TestEditor` methods, read the class itself rather than a list
 Each package has its own `TestEditor`, and they are not interchangeable: `packages/editor/src/lib/test/TestEditor.ts` has no default shapes or tools, `packages/tldraw/src/test/TestEditor.ts` wires up the full SDK. Import from the package you're testing in.
 
 ```bash
-cd packages/tldraw && yarn test run
-cd packages/tldraw && yarn test run --grep "SelectTool"
-cd packages/tldraw && yarn test          # watch mode
+cd packages/tldraw && pnpm test run
+cd packages/tldraw && pnpm test run --grep "SelectTool"
+cd packages/tldraw && pnpm test          # watch mode
 ```
 
 ## Placement

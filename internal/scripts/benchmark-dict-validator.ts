@@ -2,7 +2,7 @@
  * Benchmark script for @tldraw/validate DictValidator
  *
  * Usage:
- *   yarn tsx internal/scripts/benchmark-dict-validator.ts
+ *   pnpm exec tsx internal/scripts/benchmark-dict-validator.ts
  *
  * This script measures the performance of the DictValidator in @tldraw/validate.
  * It tests both fresh validation and validateUsingKnownGoodVersion scenarios.

@@ -18,7 +18,7 @@
 		"dev": "next dev -H 0.0.0.0",
 		"build": "next build",
 		"start": "next start",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
 		"@types/node": "^22.15.31",

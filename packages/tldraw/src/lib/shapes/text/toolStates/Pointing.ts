@@ -21,6 +21,9 @@ export class Pointing extends StateNode {
 	enterTime = 0
 	override onEnter(): void {
 		this.enterTime = Date.now()
+		// Only the drag-to-create path sets a mark. Without this reset, a later cancel
+		// would bail to a mark left over from a previous text shape and undo unrelated work.
+		this.markId = ''
 	}
 
 	override onExit() {

@@ -106,10 +106,12 @@ export const tlmenus = {
 	 * @public
 	 */
 	hideOpenMenus(contextId?: string) {
+		// ids read back from the store already carry their context suffix, so they are deleted
+		// (and later re-added) as-is rather than suffixed again
 		this._hiddenMenus = [...this.getOpenMenus(contextId)]
 		if (this._hiddenMenus.length === 0) return
 		for (const menu of this._hiddenMenus) {
-			this.deleteOpenMenu(menu, contextId)
+			this.deleteOpenMenu(menu)
 		}
 	},
 
@@ -128,10 +130,15 @@ export const tlmenus = {
 	 */
 	showOpenMenus(contextId?: string) {
 		if (this._hiddenMenus.length === 0) return
+		const stillHidden: string[] = []
 		for (const menu of this._hiddenMenus) {
-			this.addOpenMenu(menu, contextId)
+			if (!contextId || menu.endsWith('-' + contextId)) {
+				this.addOpenMenu(menu)
+			} else {
+				stillHidden.push(menu)
+			}
 		}
-		this._hiddenMenus = []
+		this._hiddenMenus = stillHidden
 	},
 
 	/**
@@ -148,7 +155,7 @@ export const tlmenus = {
 	 * @public
 	 */
 	isMenuOpen(id: string, contextId?: string): boolean {
-		return this.getOpenMenus(contextId).includes(`${id}-${contextId}`)
+		return this.getOpenMenus(contextId).includes(contextId ? `${id}-${contextId}` : id)
 	},
 
 	/**

@@ -19,10 +19,6 @@ export default mergeConfig(baseConfig, {
 		// Pool configuration for experimental Node.js features
 		pool: 'forks',
 		// Add Node.js flags for experimental SQLite support
-		poolOptions: {
-			forks: {
-				execArgv: ['--experimental-sqlite'],
-			},
-		},
+		execArgv: ['--experimental-sqlite'],
 	},
 })

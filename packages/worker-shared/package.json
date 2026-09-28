@@ -19,13 +19,13 @@
 		"@cloudflare/workers-types": "^4.20260302.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^7.0.2",
-		"vitest": "^4.1.7"
+		"vitest": "^5.0.0"
 	},
 	"scripts": {
-		"test-ci": "yarn run -T vitest run --passWithNoTests",
-		"test": "yarn run -T vitest --passWithNoTests",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
 	},
 	"engines": {
 		"node": ">=22.12.0"

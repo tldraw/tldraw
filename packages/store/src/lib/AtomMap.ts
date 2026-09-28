@@ -275,11 +275,11 @@ export class AtomMap<K, V> implements Map<K, V> {
 	deleteMany(keys: Iterable<K>): [K, V][] {
 		return transact(() => {
 			const deleted: [K, V][] = []
-			const newAtoms = this.atoms.get().withMutations((atoms) => {
+			const newAtoms = this.atoms.__unsafe__getWithoutCapture().withMutations((atoms) => {
 				for (const key of keys) {
 					const valueAtom = atoms.get(key)
 					if (!valueAtom) continue
-					const oldValue = valueAtom.get()
+					const oldValue = valueAtom.__unsafe__getWithoutCapture()
 					assert(oldValue !== UNINITIALIZED)
 
 					deleted.push([key, oldValue])
@@ -334,7 +334,9 @@ export class AtomMap<K, V> implements Map<K, V> {
 	*entries(): Generator<[K, V], undefined, unknown> {
 		for (const [key, valueAtom] of this.atoms.get()) {
 			const value = valueAtom.get()
-			assert(value !== UNINITIALIZED)
+			// The key set is a snapshot taken when iteration started, so a key deleted mid-iteration
+			// still appears in it; skip it, as `Map` skips entries deleted before they are visited.
+			if (value === UNINITIALIZED) continue
 			yield [key, value]
 		}
 	}
@@ -354,7 +356,9 @@ export class AtomMap<K, V> implements Map<K, V> {
 	 * ```
 	 */
 	*keys(): Generator<K, undefined, unknown> {
-		for (const key of this.atoms.get().keys()) {
+		for (const [key, valueAtom] of this.atoms.get()) {
+			// see entries(): skip keys deleted mid-iteration
+			if (valueAtom.__unsafe__getWithoutCapture() === UNINITIALIZED) continue
 			yield key
 		}
 	}
@@ -376,7 +380,8 @@ export class AtomMap<K, V> implements Map<K, V> {
 	*values(): Generator<V, undefined, unknown> {
 		for (const valueAtom of this.atoms.get().values()) {
 			const value = valueAtom.get()
-			assert(value !== UNINITIALIZED)
+			// see entries(): skip keys deleted mid-iteration
+			if (value === UNINITIALIZED) continue
 			yield value
 		}
 	}

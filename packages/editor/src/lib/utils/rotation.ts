@@ -1,7 +1,6 @@
-import { isShapeId, TLShape, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
+import { TLShape, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { compact } from '@tldraw/utils'
 import type { Editor } from '../editor/Editor'
-import { Mat } from '../primitives/Mat'
 import { canonicalizeRotation } from '../primitives/utils'
 import { Vec, VecLike } from '../primitives/Vec'
 
@@ -75,18 +74,11 @@ export function applyRotationToSnapshotShapes({
 			// We need to both rotate each shape individually and rotate the shapes
 			// around the pivot point (the average center of all rotating shapes.)
 
-			const parentTransform = isShapeId(shape.parentId)
-				? editor.getShapePageTransform(shape.parentId)!
-				: Mat.Identity()
-
 			const newPagePoint = Vec.RotWith(initialPagePoint, centerOverride ?? initialPageCenter, delta)
 
-			const newLocalPoint = Mat.applyToPoint(
-				// use the current parent transform in case it has moved/resized since the start
-				// (e.g. if rotating a shape at the edge of a group)
-				Mat.Inverse(parentTransform),
-				newPagePoint
-			)
+			// uses the current parent transform in case it has moved/resized since the start
+			// (e.g. if rotating a shape at the edge of a group)
+			const newLocalPoint = editor.getPointInParentSpace(shape.id, newPagePoint)
 			const newRotation = canonicalizeRotation(shape.rotation + delta)
 
 			return {

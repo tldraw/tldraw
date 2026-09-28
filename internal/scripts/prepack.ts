@@ -6,6 +6,16 @@ import { glob } from 'glob'
 import { generateTldrawPackageDocs } from './generate-tldraw-package-docs'
 import { nicelog } from './lib/nicelog'
 
+// Workspace consumers resolve the relative `@import`s in a package's root stylesheet, but the
+// sibling packages they point at aren't in the tarball, so the published file inlines them.
+function flattenCssImports(filePath: string): string {
+	return readFileSync(filePath, 'utf8').replace(
+		/^@import ['"](\.{1,2}\/[^'"]+)['"];\n?/gm,
+		(_, importPath: string) =>
+			flattenCssImports(path.resolve(path.dirname(filePath), importPath)) + '\n'
+	)
+}
+
 function markGeneratedFile(sourcePackageDir: string, fileName: string) {
 	const filePath = path.join(sourcePackageDir, fileName)
 	if (existsSync(filePath)) {
@@ -26,7 +36,7 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 	const startTime = Date.now()
 	nicelog(`[prepack] ${packageName} starting...`)
 
-	execSync('yarn run -T lazy build', { cwd: sourcePackageDir, stdio: 'inherit' })
+	execSync('pnpm exec lazy build', { cwd: sourcePackageDir, stdio: 'inherit' })
 
 	// save package.json and reinstate it in postpack
 	copyFileSync(
@@ -35,6 +45,10 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 	)
 
 	const cssFiles = glob.sync(path.join(sourcePackageDir, '*.css'))
+	for (const cssFile of cssFiles) {
+		markGeneratedFile(sourcePackageDir, path.basename(cssFile))
+		writeFileSync(cssFile, flattenCssImports(cssFile))
+	}
 
 	// Include DOCS.md in the published tarball when present. npm auto-includes
 	// README.md and LICENSE but not DOCS.md, so we have to add it explicitly.
@@ -78,7 +92,7 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 		JSON.stringify(newManifest, null, `\t`)
 	)
 
-	// GOTCHA: Yarn's pack command seems to have a race condition where it doesn't reliably pick up
+	// GOTCHA: Yarn's pack command seemed to have a race condition where it doesn't reliably pick up
 	// files, adding a tiny delay seems to fix it, but we make the delay extra long here just to be
 	// safe.
 	await new Promise((resolve) => setTimeout(resolve, 1000))

@@ -9,7 +9,7 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import {
 	ASPECT_RATIO_OPTION,
 	ASPECT_RATIO_OPTIONS,
@@ -42,6 +42,15 @@ export interface DefaultImageToolbarContentProps {
 	onManipulatingEnd(): void
 }
 
+const MAX_RATIO_CONVERSION = MAX_ZOOM / (MAX_ZOOM - 1)
+
+// Apply an easing function to smooth out the zoom curve,
+// otherwise the zoom slider has a cubic drag feel to it which feels off.
+function easeZoom(value: number, maxValue: number): number {
+	// Use an easing function for a more natural zoom feel
+	return Math.pow(value / maxValue, MAX_RATIO_CONVERSION) * maxValue
+}
+
 /** @public @react */
 export const DefaultImageToolbarContent = track(function DefaultImageToolbarContent({
 	imageShapeId,
@@ -64,34 +73,19 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const zoom = crop
 		? Math.min(1 - (crop.bottomRight.x - crop.topLeft.x), 1 - (crop.bottomRight.y - crop.topLeft.y))
 		: 0
-	const [maxZoom, setMaxZoom] = useState<number | undefined>(
-		crop ? Math.max(zoom, 1 - 1 / MAX_ZOOM) : MAX_ZOOM
-	)
-	const actions = useActions()
-
 	// So, we set a maxZoom here in case there's been a manual crop applied.
 	// Typically, you can zoom 3x into the image size (MAX_ZOOM's value).
 	// If you go deeper than that zoom level, we need to set that as the new 100%
 	// value on the zoom slider (otherwise you could zoom into infinity).
 	// This balances usage of the zoom slider with manual cropping.
-	useEffect(() => {
-		setMaxZoom(crop ? Math.max(zoom, 1 - 1 / MAX_ZOOM) : MAX_ZOOM)
-	}, [crop, zoom, maxZoom])
+	const maxZoom = crop ? Math.max(zoom, 1 - 1 / MAX_ZOOM) : MAX_ZOOM
+	const actions = useActions()
 
 	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
 
-	// Apply an easing function to smooth out the zoom curve,
-	// otherwise the zoom slider has a cubic drag feel to it which feels off.
-	const easeZoom = useCallback((value: number, maxValue: number): number => {
-		const maxRatioConversion = MAX_ZOOM / (MAX_ZOOM - 1)
-		// Use an easing function for a more natural zoom feel
-		return Math.pow(value / maxValue, maxRatioConversion) * maxValue
-	}, [])
-
-	const displayValue =
-		crop && maxZoom
-			? modulate(easeZoom(zoom, maxZoom), [0, maxZoom], [0, 100], true /* clamp */)
-			: 0
+	const displayValue = crop
+		? modulate(easeZoom(zoom, maxZoom), [0, maxZoom], [0, 100], true /* clamp */)
+		: 0
 
 	const handleZoomChange = useCallback(
 		(value: number) => {
@@ -108,9 +102,8 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			//    Solving for z_in gives:
 			//        z_in = z_out / (2 * (1 - z_out))
 			const maxDimension = 1 - 1 / MAX_ZOOM
-			const clampedMaxZoom = Math.min(maxDimension, maxZoom ?? maxDimension)
-			const maxRatioConversion = MAX_ZOOM / (MAX_ZOOM - 1)
-			const zOut = Math.pow(sliderPercent, 1 / maxRatioConversion) * clampedMaxZoom
+			const clampedMaxZoom = Math.min(maxDimension, maxZoom)
+			const zOut = Math.pow(sliderPercent, 1 / MAX_RATIO_CONVERSION) * clampedMaxZoom
 			const zoom = zOut >= 1 ? 1 : zOut / (2 * (1 - zOut))
 			const imageShape = editor.getShape<TLImageShape>(imageShapeId)
 			if (!imageShape) return
@@ -189,25 +182,25 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 
 	useEffect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
-			if (isManipulating) {
-				if (e.key === 'Escape') {
-					editor.cancel()
-					onManipulatingEnd()
-				} else if (e.key === 'Enter') {
-					editor.complete()
-					onManipulatingEnd()
-				}
+			if (!isManipulating) return
+			if (e.key === 'Escape') {
+				editor.cancel()
+			} else if (e.key === 'Enter') {
+				editor.complete()
+			} else {
+				return
 			}
+			onManipulatingEnd()
+			// Otherwise the keydown bubbles to the container's handler, which cancels again
+			// against select.idle and clears the selection (#10405). Leaving crop mode also
+			// unmounts the slider, so refocus the container to keep shortcuts working.
+			e.stopPropagation()
+			editor.getContainer().focus()
 		}
 		const elm = sliderRef.current
-		if (elm) {
-			elm.addEventListener('keydown', handleKeyDown)
-		}
-		return () => {
-			if (elm) {
-				elm.removeEventListener('keydown', handleKeyDown)
-			}
-		}
+		if (!elm) return
+		elm.addEventListener('keydown', handleKeyDown)
+		return () => elm.removeEventListener('keydown', handleKeyDown)
 	}, [editor, isManipulating, onManipulatingEnd])
 
 	if (isManipulating) {
@@ -238,23 +231,15 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 						{ASPECT_RATIO_OPTIONS.map((aspectRatio) => {
 							let checked = false
 							if (isOriginalCrop) {
-								if (aspectRatio === 'original') {
-									checked = true
-								}
-							} else {
-								if (aspectRatio === 'circle') {
-									checked = !!crop.isCircle
-								} else if (aspectRatio === 'square') {
-									checked =
-										!crop?.isCircle &&
-										approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.1)
-								} else if (aspectRatio === 'original') {
-									checked = false
-								} else {
-									checked =
-										!isOriginalCrop &&
-										approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.01)
-								}
+								checked = aspectRatio === 'original'
+							} else if (aspectRatio === 'circle') {
+								checked = !!crop.isCircle
+							} else if (aspectRatio === 'square') {
+								checked =
+									!crop.isCircle &&
+									approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.1)
+							} else if (aspectRatio !== 'original') {
+								checked = approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.01)
 							}
 
 							return (
@@ -288,24 +273,24 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	return (
 		<>
 			{!isReadonly && (
-				<TldrawUiToolbarButton
-					type="icon"
-					data-testid="tool.image-replace"
-					onClick={handleImageReplace}
-					title={msg('tool.replace-media')}
-				>
-					<TldrawUiButtonIcon small icon="tool-media" />
-				</TldrawUiToolbarButton>
-			)}
-			{!isReadonly && (
-				<TldrawUiToolbarButton
-					type="icon"
-					title={msg('tool.image-crop')}
-					onClick={onManipulatingStart}
-					data-testid="tool.image-crop"
-				>
-					<TldrawUiButtonIcon small icon="crop" />
-				</TldrawUiToolbarButton>
+				<>
+					<TldrawUiToolbarButton
+						type="icon"
+						data-testid="tool.image-replace"
+						onClick={handleImageReplace}
+						title={msg('tool.replace-media')}
+					>
+						<TldrawUiButtonIcon small icon="tool-media" />
+					</TldrawUiToolbarButton>
+					<TldrawUiToolbarButton
+						type="icon"
+						title={msg('tool.image-crop')}
+						onClick={onManipulatingStart}
+						data-testid="tool.image-crop"
+					>
+						<TldrawUiButtonIcon small icon="crop" />
+					</TldrawUiToolbarButton>
+				</>
 			)}
 			<TldrawUiToolbarButton
 				type="icon"

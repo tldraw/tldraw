@@ -1,6 +1,6 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
-import { ReactNode } from 'react'
-import { Editor, TLComponents, Tldraw, TldrawOptions, useEvent } from 'tldraw'
+import { ReactNode, useMemo } from 'react'
+import { Editor, TLComponents, Tldraw, TldrawOptions, TLUiOverrides, useEvent } from 'tldraw'
 import { SneakyToolSwitcher } from '../tla/components/TlaEditor/sneaky/SneakyToolSwitcher'
 import { useExtraDragIconOverrides } from '../tla/components/TlaEditor/useExtraToolDragIcons'
 import { useFileEditorOverrides } from '../tla/components/TlaEditor/useFileEditorOverrides'
@@ -19,6 +19,7 @@ export function LocalEditor({
 	persistenceKey,
 	'data-testid': dataTestId,
 	options,
+	overrides,
 }: {
 	components: TLComponents
 	onMount?(editor: Editor): void
@@ -26,10 +27,16 @@ export function LocalEditor({
 	persistenceKey?: string
 	'data-testid'?: string
 	options?: Partial<TldrawOptions>
+	/** Composed after the file-system and drag-icon overrides every local editor gets. */
+	overrides?: TLUiOverrides[]
 }) {
 	const handleUiEvent = useHandleUiEvents()
 	const fileSystemUiOverrides = useFileEditorOverrides({})
 	const extraDragIconOverrides = useExtraDragIconOverrides()
+	const editorOverrides = useMemo(
+		() => [fileSystemUiOverrides, extraDragIconOverrides, ...(overrides ?? [])],
+		[fileSystemUiOverrides, extraDragIconOverrides, overrides]
+	)
 
 	const handleMount = useEvent((editor: Editor) => {
 		;(window as any).app = editor
@@ -45,7 +52,7 @@ export function LocalEditor({
 				assetUrls={assetUrls}
 				persistenceKey={persistenceKey ?? getScratchPersistenceKey()}
 				onMount={handleMount}
-				overrides={[fileSystemUiOverrides, extraDragIconOverrides]}
+				overrides={editorOverrides}
 				onUiEvent={handleUiEvent}
 				components={components}
 				options={options}

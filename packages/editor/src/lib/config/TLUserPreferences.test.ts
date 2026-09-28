@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { deleteFromLocalStorage, setInLocalStorage } from '@tldraw/utils'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defaultUserPreferences, userTypeValidator } from './TLUserPreferences'
 
 describe('TLUserPreferences consistency', () => {
@@ -37,5 +38,21 @@ describe('TLUserPreferences consistency', () => {
 		const expected = ['id', ...interfaceKeys].sort()
 
 		expect(validatorKeys).toEqual(expected)
+	})
+})
+
+describe('loading stored preferences', () => {
+	afterEach(() => {
+		deleteFromLocalStorage('TLDRAW_USER_DATA_v3')
+		vi.resetModules()
+	})
+
+	it.each([
+		['corrupt json', '{not json'],
+		['a snapshot whose user is not an object', JSON.stringify({ version: 1, user: null })],
+	])('falls back to fresh preferences for %s', async (_label, stored) => {
+		setInLocalStorage('TLDRAW_USER_DATA_v3', stored)
+		const { getUserPreferences } = await import('./TLUserPreferences')
+		expect(getUserPreferences().id).toEqual(expect.any(String))
 	})
 })

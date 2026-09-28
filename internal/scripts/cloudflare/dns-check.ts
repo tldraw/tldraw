@@ -3,7 +3,7 @@ import { makeEnv } from '../lib/makeEnv'
 import { nicelog } from '../lib/nicelog'
 
 // Check DNS records in a zone: what's there already, and which pr-NNNN-* records are orphaned.
-// Read-only. Usage: CLOUDFLARE_API_TOKEN=xxx yarn tsx internal/scripts/cloudflare/dns-check.ts <zone_name>
+// Read-only. Usage: CLOUDFLARE_API_TOKEN=xxx pnpm exec tsx internal/scripts/cloudflare/dns-check.ts <zone_name>
 // Token needs "Zone: Read" + "DNS: Read"; gh CLI must be authed for tldraw/tldraw.
 
 const env = makeEnv(['CLOUDFLARE_API_TOKEN'])

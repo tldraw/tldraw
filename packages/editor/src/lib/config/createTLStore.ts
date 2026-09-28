@@ -181,7 +181,7 @@ export function createTLStore({
 			},
 			onMount: (editor) => {
 				assert(editor instanceof Editor)
-				onMount?.(editor)
+				return onMount?.(editor)
 			},
 			collaboration,
 		},

@@ -231,6 +231,13 @@ export class Sidebar {
 		await this.page.getByRole('menuitem', { name: 'Copy link' }).click()
 	}
 
+	// The clipboard belongs to the browser, which outlives each test in a worker, so it can still
+	// hold a URL copied by an earlier test. Clear it before copying, or a copy that hasn't landed
+	// yet (or was a no-op) reads back as that stale URL.
+	private async clearClipboard() {
+		await this.page.evaluate(() => navigator.clipboard.writeText(''))
+	}
+
 	// The app writes to the clipboard asynchronously after the copy action, so reading it once can
 	// return a stale or empty value. Poll until the clipboard holds a valid URL (optionally matching
 	// an expected path) to avoid races.
@@ -248,6 +255,7 @@ export class Sidebar {
 	async copyFileLink(index: number) {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
+		await this.clearClipboard()
 		await this.copyFileLinkFromFileMenu()
 		return await this.readClipboardUrl(/^\/f\//)
 	}
@@ -256,6 +264,7 @@ export class Sidebar {
 	async copyFileLinkByName(name: string): Promise<string> {
 		const fileLink = this.getFileByName(name)
 		await this.openFileMenu(fileLink)
+		await this.clearClipboard()
 		await this.copyFileLinkFromFileMenu()
 		return await this.readClipboardUrl(/^\/f\//)
 	}
@@ -465,13 +474,18 @@ export class Sidebar {
 	async copyWorkspaceInviteLink(name: string): Promise<string> {
 		// The invite link lives in the Manage workspace dialog and is only exposed via
 		// the Copy button (no visible URL field), so copy it and read it back from the
-		// clipboard. The invite secret can load asynchronously, so poll until valid.
+		// clipboard. A new workspace's invite secret is minted server-side and arrives via sync, and
+		// until it does Copy writes nothing, so poll until the clipboard holds an invite URL.
 		await this.openWorkspaceSettings(name)
+		await this.clearClipboard()
 		const dialog = this.page.getByRole('dialog', { name: 'Manage workspace' })
 		let inviteUrl = ''
 		await expect(async () => {
 			await dialog.getByRole('button', { name: 'Copy invite link' }).click()
-			inviteUrl = await this.readClipboardUrl(/^\/invite\//)
+			// Read once rather than via readClipboardUrl: its own polling would use up this
+			// loop's budget, so Copy would never be clicked again after the secret arrives.
+			inviteUrl = await this.page.evaluate(() => navigator.clipboard.readText())
+			expect(new URL(inviteUrl).pathname).toMatch(/^\/invite\//)
 		}).toPass({ timeout: 10000 })
 		await this.page.getByRole('button', { name: 'Close' }).click()
 		return inviteUrl

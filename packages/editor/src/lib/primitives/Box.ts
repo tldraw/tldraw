@@ -678,7 +678,9 @@ export function rotateSelectionHandle(handle: SelectionHandle, rotation: number)
 	const numSteps = Math.round(rotation / (PI / 4))
 
 	const currentIndex = ORDERED_SELECTION_HANDLES.indexOf(handle)
-	return ORDERED_SELECTION_HANDLES[(currentIndex + numSteps) % ORDERED_SELECTION_HANDLES.length]
+	// numSteps is negative for negative rotations, so wrap the index into range
+	const n = ORDERED_SELECTION_HANDLES.length
+	return ORDERED_SELECTION_HANDLES[(((currentIndex + numSteps) % n) + n) % n]
 }
 
 /** @public */

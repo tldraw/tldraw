@@ -10,6 +10,9 @@ on:
         required: true
         type: number
 
+permissions:
+  contents: read
+
 jobs:
   triage:
     runs-on: ubuntu-latest

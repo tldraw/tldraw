@@ -1,10 +1,10 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Only run yarn if package.json files have changed
+# Only run pnpm install if package.json files have changed
 CHANGED_PACKAGE_JSON_FILES=$(git diff --cached --name-only -- ':(glob)**/package.json')
 if [ -n "$CHANGED_PACKAGE_JSON_FILES" ]; then
-	yarn install --immutable
+	pnpm install --frozen-lockfile
 fi
 
 # Only run build-api for packages with staged changes
@@ -28,4 +28,4 @@ if [ -n "$CHANGED_DOTCOM_CLIENT" ]; then
 	git add apps/dotcom/client/public/tla/locales-compiled
 fi
 
-yarn lint-staged
+pnpm exec lint-staged

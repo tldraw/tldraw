@@ -3462,6 +3462,77 @@ describe('resizing a selection of mixed rotations', () => {
 		editor.pointerDownOnHandle('bottom_right').pointerMove(100, 25)
 		expect(roundedPageBounds(ids.boxA, 0.5)).toMatchObject({ x: 0, y: 0, w: 20, h: 20 })
 	})
+
+	it('mirrors an unaligned shape across the rotated selection axis when flipping', () => {
+		// C is rotated 0.3 inside a group that is then rotated by 0.5, so C's page rotation (0.8)
+		// is out of alignment with the selection axes and takes the unaligned resize path
+		const alignedId = createShapeId('aligned')
+		const unalignedId = createShapeId('unaligned')
+		editor.createShapes([
+			box(alignedId, 0, 0, 100, 50),
+			{ ...box(unalignedId, 200, 0, 100, 50), rotation: 0.3 },
+		])
+		editor.groupShapes([alignedId, unalignedId])
+		const groupId = editor.getOnlySelectedShapeId()!
+		editor.rotateShapesBy([groupId], 0.5)
+		editor.select(groupId)
+
+		const selectionBounds = editor.getSelectionRotatedPageBounds()!
+		const centerBefore = editor.getShapePageBounds(unalignedId)!.center
+		// mirror across the selection's left edge, which is where the right handle ends up
+		const expectedCenter = Vec.RotWith(centerBefore, selectionBounds.point, -0.5)
+		expectedCenter.x = selectionBounds.point.x - (expectedCenter.x - selectionBounds.point.x)
+		expectedCenter.rotWith(selectionBounds.point, 0.5)
+
+		editor.resizeSelection({ scaleX: -1 }, 'right')
+
+		// a flip across an axis at angle θ maps a page rotation r to 2θ - r; negating the rotation
+		// (as if θ were 0) leaves the shape off by 2θ
+		expect(editor.getShapePageTransform(unalignedId).rotation()).toBeCloseTo(2 * 0.5 - 0.8)
+		const centerAfter = editor.getShapePageBounds(unalignedId)!.center
+		expect(centerAfter.x).toBeCloseTo(expectedCenter.x)
+		expect(centerAfter.y).toBeCloseTo(expectedCenter.y)
+	})
+
+	it('mirrors an unaligned child of an unaligned group when flipping', () => {
+		// The inner group is rotated 0.2 inside an outer group that is rotated 0.5, so the inner
+		// group's page rotation (0.7) and its child's page rotation (0.3 + 0.7 = 1.0) are both out of
+		// alignment with the selection axes. The inner group is committed before its child, so the
+		// child's new rotation must be computed against the inner group's *flipped* rotation.
+		const alignedId = createShapeId('aligned')
+		const innerAlignedId = createShapeId('innerAligned')
+		const unalignedId = createShapeId('unaligned')
+		editor.createShapes([
+			box(alignedId, 0, 0, 100, 50),
+			box(innerAlignedId, 200, 100, 100, 50),
+			{ ...box(unalignedId, 200, 0, 100, 50), rotation: 0.3 },
+		])
+		editor.groupShapes([innerAlignedId, unalignedId])
+		const innerGroupId = editor.getOnlySelectedShapeId()!
+		editor.rotateShapesBy([innerGroupId], 0.2)
+		editor.groupShapes([alignedId, innerGroupId])
+		const outerGroupId = editor.getOnlySelectedShapeId()!
+		editor.rotateShapesBy([outerGroupId], 0.5)
+		editor.select(outerGroupId)
+
+		expect(editor.getShapePageTransform(innerGroupId).rotation()).toBeCloseTo(0.7)
+		expect(editor.getShapePageTransform(unalignedId).rotation()).toBeCloseTo(1.0)
+
+		const selectionBounds = editor.getSelectionRotatedPageBounds()!
+		const centerBefore = editor.getShapePageBounds(unalignedId)!.center
+		const expectedCenter = Vec.RotWith(centerBefore, selectionBounds.point, -0.5)
+		expectedCenter.x = selectionBounds.point.x - (expectedCenter.x - selectionBounds.point.x)
+		expectedCenter.rotWith(selectionBounds.point, 0.5)
+
+		editor.resizeSelection({ scaleX: -1 }, 'right')
+
+		// each shape's page rotation is mirrored across the selection axis: r -> 2 * 0.5 - r
+		expect(editor.getShapePageTransform(innerGroupId).rotation()).toBeCloseTo(2 * 0.5 - 0.7)
+		expect(editor.getShapePageTransform(unalignedId).rotation()).toBeCloseTo(2 * 0.5 - 1.0)
+		const centerAfter = editor.getShapePageBounds(unalignedId)!.center
+		expect(centerAfter.x).toBeCloseTo(expectedCenter.x)
+		expect(centerAfter.y).toBeCloseTo(expectedCenter.y)
+	})
 })
 
 // describe('Icons', () => {
@@ -3580,6 +3651,25 @@ describe('shapes that have do not resize', () => {
 		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 400, h: 420 })
 		// noteB should be in the middle of boxA
 		expect(editor.getShapePageBounds(noteBId)).toMatchObject({ x: 100, y: 110, w: 200, h: 200 })
+	})
+
+	it('are still translated if part of a selection when canResize is false', () => {
+		const bookmarkId = createShapeId('bookmark')
+		editor.createShapes([
+			box(ids.boxA, 0, 0, 200, 320),
+			{ id: bookmarkId, type: 'bookmark', x: 0, y: 0, props: { w: 200 } },
+		])
+
+		// a bookmark without an asset is 320 tall
+		expect(editor.getShapePageBounds(bookmarkId)).toMatchObject({ x: 0, y: 0, w: 200, h: 320 })
+
+		editor.select(ids.boxA, bookmarkId)
+
+		editor.resizeSelection({ scaleX: 2, scaleY: 2.1 }, 'bottom_right')
+
+		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 400, h: 672 })
+		// the bookmark keeps its size but moves so its center scales with the selection
+		expect(editor.getShapePageBounds(bookmarkId)).toMatchObject({ x: 100, y: 176, w: 200, h: 320 })
 	})
 
 	it('can flip', () => {
@@ -3867,6 +3957,33 @@ it('uses the cross cursor when create resizing', () => {
 	expect(editor.getInstanceState().cursor.rotation).toBe(0)
 })
 
+describe('When brushing from a selection handle with the accel key', () => {
+	it('resets the resize cursor when brushing starts from a resize handle', () => {
+		editor.select(ids.boxA)
+		editor.pointerDownOnHandle('bottom_right', { ctrlKey: true })
+		editor.expectToBeIn('select.brushing')
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+
+		editor.pointerMoveBy(50, 50)
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+	})
+
+	it('resets the rotate cursor when brushing starts from a rotate handle', () => {
+		editor.select(ids.boxA)
+		editor.pointerDownOnHandle('top_right_rotate', { ctrlKey: true })
+		editor.expectToBeIn('select.brushing')
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getInstanceState().cursor).toMatchObject({ type: 'default', rotation: 0 })
+	})
+})
+
 describe('Resizing text from the right edge', () => {
 	it('Resizes text from the right edge', () => {
 		const id = createShapeId()
@@ -4084,5 +4201,64 @@ describe('cancelling a resize operation', () => {
 		expect(editor.getShapePageBounds(shape)).toMatchObject({ x: 0, y: 0, w: 100, h: 100 })
 		editor.cancel()
 		expect(editor.getShape(shape.id)).toBeUndefined()
+	})
+})
+
+describe('When resizing shapes are changed externally mid-resize...', () => {
+	it('keeps an external nudge applied during the resize', () => {
+		const id = createShapeId('lonelyBox')
+		editor.createShape(box(id, 0, 0, 100, 100))
+		editor.select(id)
+
+		editor
+			.pointerDownOnHandle('bottom_right')
+			.pointerMoveBy(100, 100)
+			.expectToBeIn('select.resizing')
+		expect(editor.getShapePageBounds(id)).toMatchObject({ x: 0, y: 0, w: 200, h: 200 })
+
+		// Nudge the shape from outside the interaction, as a keyboard shortcut would
+		editor.nudgeShapes([id], { x: 0, y: 50 })
+		expect(editor.getShape(id)!.y).toBeCloseTo(50, 5)
+
+		// An update without pointer movement must not stomp the nudge
+		editor.pointerMoveBy(0, 0)
+		expect(editor.getShape(id)!.y).toBeCloseTo(50, 5)
+		expect(editor.getShapePageBounds(id)).toMatchObject({ x: 0, y: 50, w: 200, h: 200 })
+
+		// Continuing the resize grows from the nudged position
+		editor.pointerMoveBy(50, 50).pointerUp()
+		const bounds = editor.getShapePageBounds(id)!
+		expect(bounds.w).toBeGreaterThan(200)
+		expect(bounds.h).toBeGreaterThan(200)
+		expect(bounds.x).toBeCloseTo(0, 5)
+		expect(bounds.y).toBeCloseTo(50, 5)
+	})
+})
+
+describe('entering the resizing state with nothing selected', () => {
+	it('returns to idle without touching earlier history', () => {
+		// A completed resize leaves a mark behind; a later failed entry must not bail to it
+		editor.select(ids.boxA)
+		editor.pointerDownOnHandle('bottom_right')
+		editor.pointerMoveBy(50, 50)
+		editor.pointerUp()
+		expect(editor.getShape<TLGeoShape>(ids.boxA)!.props).toMatchObject({ w: 150, h: 150 })
+		editor.updateShape({ id: ids.boxA, type: 'geo', x: 500 })
+		editor.selectNone()
+
+		// e.g. the pointed shape was deleted remotely between pointer down and the drag
+		expect(() =>
+			editor.setCurrentTool('select.resizing', { target: 'selection', handle: 'bottom_right' })
+		).not.toThrow()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getShape<TLGeoShape>(ids.boxA)).toMatchObject({ x: 500, props: { w: 150 } })
+	})
+
+	it('does not crash on the first ever entry', () => {
+		editor.selectNone()
+		expect(() =>
+			editor.setCurrentTool('select.resizing', { target: 'selection', handle: 'bottom_right' })
+		).not.toThrow()
+		editor.expectToBeIn('select.idle')
 	})
 })

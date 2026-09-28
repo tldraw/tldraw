@@ -26,12 +26,10 @@ export function useRoomLoadTracking() {
 			console.warn('Failed to get storage percentage for analytics:', error)
 		}
 
-		const fileSizeBucket = getFileSizeBucket(estimatedFileSizeMB)
-
 		// Send analytics data to PostHog
 		trackEvent('room_load_duration', {
 			load_time_ms: loadTime,
-			file_size_bucket: fileSizeBucket,
+			file_size_bucket: getFileSizeBucket(estimatedFileSizeMB),
 		})
 	}
 }

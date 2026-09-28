@@ -144,28 +144,26 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 					</TldrawUiDialogFooter>
 				</>
 			) : (
-				<>
-					<TldrawUiDialogBody className="tlui-embed-dialog__list">
-						{definitions.map((def) => {
-							const url = isDefaultEmbedDefinitionType(def.type)
-								? assetUrls.embedIcons[def.type]
-								: isCustomEmbedDefinition(def)
-									? def.icon
-									: undefined
-							return (
-								<TldrawUiButton type="menu" key={def.type} onClick={() => setEmbedDefinition(def)}>
-									<TldrawUiButtonLabel>{untranslated(def.title)}</TldrawUiButtonLabel>
-									{url && (
-										<div
-											className="tlui-embed-dialog__item__image"
-											style={{ backgroundImage: `url(${url})` }}
-										/>
-									)}
-								</TldrawUiButton>
-							)
-						})}
-					</TldrawUiDialogBody>
-				</>
+				<TldrawUiDialogBody className="tlui-embed-dialog__list">
+					{definitions.map((def) => {
+						const icon = isDefaultEmbedDefinitionType(def.type)
+							? assetUrls.embedIcons[def.type]
+							: isCustomEmbedDefinition(def)
+								? def.icon
+								: undefined
+						return (
+							<TldrawUiButton type="menu" key={def.type} onClick={() => setEmbedDefinition(def)}>
+								<TldrawUiButtonLabel>{untranslated(def.title)}</TldrawUiButtonLabel>
+								{icon && (
+									<div
+										className="tlui-embed-dialog__item__image"
+										style={{ backgroundImage: `url(${icon})` }}
+									/>
+								)}
+							</TldrawUiButton>
+						)
+					})}
+				</TldrawUiDialogBody>
 			)}
 		</>
 	)

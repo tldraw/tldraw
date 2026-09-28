@@ -913,6 +913,9 @@ describe('instance.isReadonly', () => {
 		expect(editor.getIsReadonly()).toBe(false)
 		mode.set('readonly')
 		expect(editor.getIsReadonly()).toBe(true)
+
+		// syncing the mode is not a user edit, so it must not show up in the undo history
+		expect(editor.getCanUndo()).toBe(false)
 	})
 })
 

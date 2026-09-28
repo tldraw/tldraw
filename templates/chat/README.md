@@ -9,9 +9,9 @@ This repo contains a starter-kit for making an AI chat application using [tldraw
 
 ## Local development
 
-Install dependencies with `yarn` or `npm install`.
+Install dependencies with `npm install`.
 
-Run the development server with `yarn dev` or `npm run dev`.
+Run the development server with `npm run dev`.
 
 Open `http://localhost:3000/` in your browser to see the app.
 

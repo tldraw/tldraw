@@ -9,6 +9,9 @@ import { Head } from './components/Head/Head'
 import { routes } from './routeDefs'
 import { router } from './routes'
 import { showConsoleBranding } from './utils/consoleBranding'
+import { markFirstLoad } from './utils/firstLoad'
+
+markFirstLoad('js-started')
 
 const TOP_LEVEL_ERROR_MESSAGES = {
 	header: 'Unable to connect',
@@ -30,6 +33,7 @@ createRoot(document.getElementById('root')!).render(
 	<RefreshErrorBoundary messages={TOP_LEVEL_ERROR_MESSAGES}>
 		<ClerkProvider
 			publishableKey={PUBLISHABLE_KEY}
+			clerkJSVersion={process.env.CLERK_JS_VERSION}
 			afterSignOutUrl={routes.tlaRoot()}
 			signInUrl="/"
 			signInFallbackRedirectUrl={routes.tlaRoot()}

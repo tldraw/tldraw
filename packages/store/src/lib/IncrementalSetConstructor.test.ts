@@ -104,3 +104,13 @@ describe('IncrementalSetConstructor (ISC)', () => {
 		})
 	})
 })
+
+describe('IncrementalSetConstructor: diff shape (ISC)', () => {
+	it('[ISC2] an add/remove round trip does not leave an empty set in the diff', () => {
+		const constructor = new IncrementalSetConstructor(new Set(['a']))
+		constructor.add('b')
+		constructor.remove('b')
+		constructor.remove('a')
+		expect(constructor.get()).toEqual({ value: new Set(), diff: { removed: new Set(['a']) } })
+	})
+})
