@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ConnectMarks, buildConnectEcho, markRoute } from './connectMarks'
+import { ConnectMarks, buildConnectEcho, connectStart, markRoute } from './connectMarks'
 
 describe('ConnectMarks', () => {
 	it('records each step as a delta from the previous mark and a time since start', () => {
@@ -57,7 +57,23 @@ describe('ConnectMarks', () => {
 		const marks = new ConnectMarks(1000, () => 1234)
 		marks.mark('auth')
 		expect(marks.fields()).toMatchObject({ d_auth: 234 })
-		expect(marks.last()).toBe(1234)
+	})
+})
+
+describe('connectStart', () => {
+	it('starts at receivedAt when it precedes requestStart', () => {
+		expect(connectStart(1000, 1200)).toBe(1000)
+	})
+
+	it('starts at requestStart when the worker clock runs ahead, so room time is not clamped away', () => {
+		const requestStart = 1000
+		const marks = new ConnectMarks(connectStart(requestStart + 300, requestStart), () => 2000)
+		marks.mark('auth', requestStart + 120)
+		expect(marks.fields()).toMatchObject({ d_auth: 120, t_auth: 120 })
+	})
+
+	it('starts at requestStart without a receivedAt', () => {
+		expect(connectStart(undefined, 1000)).toBe(1000)
 	})
 })
 

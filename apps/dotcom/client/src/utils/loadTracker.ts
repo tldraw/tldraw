@@ -96,7 +96,7 @@ const SERVER_STEP_INFO: Record<string, string> = {
 	route: 'worker received the socket → room reached (clocks of two machines, approximate)',
 	do_init: 'room woken for this request: constructor → onRequest, incl. the documentInfo read',
 	auth: 'verify the Clerk token',
-	file_record: 'file row lookup (Postgres)',
+	file_record: 'file row lookup (Postgres; ~0 when the DO has it cached)',
 	rate_limit: 'rate limiter',
 	group_check: 'group role lookup, getRole (Postgres)',
 	boot: 'room boot from empty SQLite: R2 + comments (see srv_boot_*)',
@@ -123,7 +123,7 @@ function fieldInfo(key: string, extra?: Record<string, string>) {
 	return SERVER_FIELD_INFO[key] ?? extra?.[key] ?? ''
 }
 
-/** `extraInfo` adds or overrides descriptions for fields specific to the caller's event type. */
+/** `extraInfo` describes fields specific to the caller's event type; shared server entries win. */
 export function describeLoadFields(
 	fields: Record<string, unknown>,
 	extraInfo?: Record<string, string>
@@ -164,8 +164,7 @@ export function createLoadTracker<Step extends string>(
 	}
 
 	function buildReport(): LoadReport<Step> {
-		// Sorted by when each step happened, not by the list: the router fetches both route chunks in
-		// parallel, so file-chunk-loaded regularly lands before clerk-loaded.
+		// Steps can complete out of list order (parallel route chunks), so sort by time.
 		const seen = opts.steps
 			.filter((step) => marks[step] !== undefined)
 			.sort((a, b) => marks[a]! - marks[b]!)

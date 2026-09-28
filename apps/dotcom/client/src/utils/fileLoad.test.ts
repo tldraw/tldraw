@@ -14,6 +14,7 @@ function setup(overrides: Partial<FileLoadsDeps> = {}) {
 		firstLoadId: FIRST_ID,
 		isHidden: () => hidden,
 		wasHiddenSinceNavigation: () => false,
+		firstRouteKind: () => 'root-redirect',
 		...overrides,
 	}
 	return {
@@ -86,7 +87,7 @@ describe('file loads', () => {
 		const first = loads.begin('abc')
 		loads.noteNavigation('/f/abc')
 		advance(1000)
-		first.buildEvent(false, {}) // report it, so the next begin('abc') is treated as a remount
+		first.mark('board-visible') // so the next begin('abc') is treated as a remount
 		advance(50)
 		const remount = loads.begin('abc')
 		advance(20)
@@ -97,6 +98,29 @@ describe('file loads', () => {
 	it('returns the same load when the same file begins twice (StrictMode double render)', () => {
 		const { loads } = setup()
 		expect(loads.begin('abc')).toBe(loads.begin('abc'))
+	})
+
+	it('starts a new load when the same file remounts after board-visible, even if never reported', () => {
+		const { loads, advance } = setup()
+		const first = loads.begin('abc')
+		first.mark('editor-rendered')
+		first.mark('sync-connected')
+		advance(500)
+		first.mark('board-visible')
+		advance(100)
+		const remount = loads.begin('abc')
+		expect(remount).not.toBe(first)
+		expect(remount.loadId).not.toBe(first.loadId)
+		expect(remount.connectLoadId()).toBe(remount.loadId)
+		expect(remount.tracker.getMarks()).toEqual({})
+	})
+
+	it('does not carry a hidden flag over to a same-file remount', () => {
+		const { loads } = setup()
+		const first = loads.begin('abc')
+		loads.onHidden()
+		first.mark('board-visible')
+		expect(loads.begin('abc').isHidden()).toBe(false)
 	})
 
 	it('supersedes an unfinished load when another file opens', () => {
@@ -149,6 +173,16 @@ describe('file loads', () => {
 		const { loads } = setup({ wasHiddenSinceNavigation: () => true })
 		loads.begin('abc')
 		expect(loads.begin('def').isHidden()).toBe(false)
+	})
+
+	it("tags only the first open's event with the first load's route kind", () => {
+		const { loads } = setup()
+		const first = loads.begin('abc')
+		first.mark('board-visible')
+		expect(first.buildEvent(false, {})).toMatchObject({ route_kind: 'root-redirect' })
+		const next = loads.begin('def')
+		next.mark('board-visible')
+		expect(next.buildEvent(false, {})).not.toHaveProperty('route_kind')
 	})
 
 	it('builds its event once', () => {

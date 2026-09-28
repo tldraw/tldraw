@@ -98,9 +98,9 @@ export type FirstLoadDeps = LoadTrackerDeps<FirstLoadStep> & { initialPath: stri
 
 export type FirstLoadStepRow = LoadStepRow<FirstLoadStep>
 
-export type FirstLoadReport = LoadReport<FirstLoadStep> & {
-	route_kind: 'root-redirect' | 'file' | 'other'
-}
+export type FirstLoadRouteKind = 'root-redirect' | 'file' | 'other'
+
+export type FirstLoadReport = LoadReport<FirstLoadStep> & { route_kind: FirstLoadRouteKind }
 
 export function createFirstLoadTracker(deps: FirstLoadDeps) {
 	const core = createLoadTracker(deps, {
@@ -109,13 +109,14 @@ export function createFirstLoadTracker(deps: FirstLoadDeps) {
 		logHeader: FIRST_LOAD_LOG_HEADER,
 		markPrefix: 'tla',
 	})
-	const routeKind = (): FirstLoadReport['route_kind'] => {
+	const routeKind = (): FirstLoadRouteKind => {
 		if (deps.initialPath === '/') return 'root-redirect'
 		if (deps.initialPath.startsWith('/f/')) return 'file'
 		return 'other'
 	}
 	return {
 		...core,
+		routeKind,
 		buildReport: (): FirstLoadReport => ({ ...core.buildReport(), route_kind: routeKind() }),
 		takeReport: (): FirstLoadReport | null => {
 			const report = core.takeReport()
@@ -248,6 +249,10 @@ export function markFirstLoad(step: FirstLoadStep) {
 /** The id the server can join on: sent on the sync socket URL and the init request. */
 export function getFirstLoadId() {
 	return firstLoad.loadId
+}
+
+export function getFirstLoadRouteKind(): FirstLoadRouteKind {
+	return firstLoad.routeKind()
 }
 
 function navigationTiming() {

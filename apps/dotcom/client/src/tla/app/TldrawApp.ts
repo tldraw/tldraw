@@ -185,7 +185,7 @@ export class TldrawApp {
 	private readonly comments$: Signal<QueryResultType<typeof queries.homeBoardComments>>
 	/** Like the comment feeds. */
 	private readonly reactions$: Atom<QueryResultType<typeof queries.reactions>>
-	/** The signed-in account's email, for the first-load report gate. */
+	/** The signed-in account's email, for the load report gate. */
 	readonly email: string | null
 	readonly isLoadRumEnabled: boolean
 

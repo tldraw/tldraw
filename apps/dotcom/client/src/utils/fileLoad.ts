@@ -1,5 +1,10 @@
 import { uniqueId } from '@tldraw/utils'
-import { getFirstLoadId, wasHiddenSinceNavigation } from './firstLoad'
+import {
+	type FirstLoadRouteKind,
+	getFirstLoadId,
+	getFirstLoadRouteKind,
+	wasHiddenSinceNavigation,
+} from './firstLoad'
 import {
 	createLoadTracker,
 	describeLoadFields,
@@ -33,6 +38,7 @@ export interface FileLoadsDeps extends LoadTrackerDeps<FileLoadStep> {
 	firstLoadId: string
 	isHidden(): boolean
 	wasHiddenSinceNavigation(): boolean
+	firstRouteKind(): FirstLoadRouteKind
 }
 
 export type FileLoad = ReturnType<ReturnType<typeof createFileLoads>['begin']>
@@ -87,6 +93,8 @@ export function createFileLoads(deps: FileLoadsDeps) {
 				return {
 					...flat,
 					load_kind: kind,
+					// Filters out first opens reached from another page, whose total_ms includes time there.
+					...(kind === 'first' && { route_kind: deps.firstRouteKind() }),
 					// Comparable across kinds: a first open's clock starts at navigation.
 					file_ms: rendered !== undefined && visible !== undefined ? visible - rendered : undefined,
 					srv_echo: gotEcho,
@@ -106,11 +114,15 @@ export function createFileLoads(deps: FileLoadsDeps) {
 			if (current && pathname === `/f/${current.slug}`) return
 			navigation = { pathname, at: deps.now() }
 		},
+		/**
+		 * Reuses the open load for the same file until its board is visible (StrictMode double render);
+		 * after that a same-file begin is a remount (e.g. anon → sign-in swaps layouts) and gets a
+		 * fresh load, since the old one may never be reported and would carry stale marks.
+		 */
 		begin(slug: string) {
-			if (current?.slug === slug && !current.tracker.isReported() && !current.isSuperseded()) {
-				return current
-			}
-			if (current && !current.tracker.isReported()) current.supersede()
+			const unfinished = current && current.tracker.getMarks()['board-visible'] === undefined
+			if (current?.slug === slug && unfinished && !current.isSuperseded()) return current
+			if (current && unfinished) current.supersede()
 			current = open(slug)
 			if (shouldPrintLoads()) current.tracker.enableLiveLog()
 			return current
@@ -137,6 +149,7 @@ export const fileLoads = createFileLoads({
 	firstLoadId: getFirstLoadId(),
 	isHidden: () => typeof document !== 'undefined' && document.visibilityState === 'hidden',
 	wasHiddenSinceNavigation,
+	firstRouteKind: getFirstLoadRouteKind,
 })
 
 if (typeof document !== 'undefined') {

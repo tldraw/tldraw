@@ -5,6 +5,7 @@ type StepFields = Record<`d_${string}` | `t_${string}`, number>
 /**
  * Server steps of one sync connect, echoed to the client as `d_<step>` (since the previous mark)
  * and `t_<step>` (since start). Deltas always sum to the last step's `t`, so charts can stack them.
+ * Workers' Date.now() only advances across I/O, so CPU-only spans read ~0.
  */
 export class ConnectMarks {
 	private prev: number
@@ -15,10 +16,6 @@ export class ConnectMarks {
 		private readonly now: () => number = Date.now
 	) {
 		this.prev = start
-	}
-
-	last() {
-		return this.prev
 	}
 
 	// Clamped because `start` can come from the worker's clock, not this machine's.
@@ -36,6 +33,11 @@ export class ConnectMarks {
 	fields(): StepFields {
 		return { ...this.out }
 	}
+}
+
+/** A worker clock ahead of the room's would clamp every room-side mark before receivedAt to 0. */
+export function connectStart(receivedAt: number | undefined, requestStart: number): number {
+	return Math.min(receivedAt ?? requestStart, requestStart)
 }
 
 /** Marks route (and do_init, if this request woke the room) when the worker sent a receivedAt. */

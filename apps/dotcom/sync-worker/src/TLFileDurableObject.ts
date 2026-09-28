@@ -112,7 +112,13 @@ import {
 import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { arrayBufferToBase64 } from './utils/base64'
-import { ConnectEchoBase, ConnectMarks, buildConnectEcho, markRoute } from './utils/connectMarks'
+import {
+	ConnectEchoBase,
+	ConnectMarks,
+	buildConnectEcho,
+	connectStart,
+	markRoute,
+} from './utils/connectMarks'
 import { parseTraceColo, readEdgeColo, readReceivedAt } from './utils/connectRouting'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -1017,7 +1023,7 @@ export class TLFileDurableObject extends DurableObject {
 		const requestTimer = this.timer()
 		const requestStart = Date.now()
 		const receivedAt = readReceivedAt(req.headers as Headers, requestStart)
-		const marks = new ConnectMarks(receivedAt ?? requestStart)
+		const marks = new ConnectMarks(connectStart(receivedAt, requestStart))
 		markRoute(marks, receivedAt, this._constructedAt, requestStart)
 
 		// extract query params from request, should include instanceId
@@ -1858,7 +1864,9 @@ export class TLFileDurableObject extends DurableObject {
 	private _doColo: string | undefined
 	private _doColoLookup: Promise<void> | null = null
 	private lookUpDoColo() {
-		this._doColoLookup ??= fetch('https://www.cloudflare.com/cdn-cgi/trace')
+		this._doColoLookup ??= fetch('https://www.cloudflare.com/cdn-cgi/trace', {
+			signal: AbortSignal.timeout(5000),
+		})
 			.then((res) => res.text())
 			.then((body) => {
 				this._doColo = parseTraceColo(body)
