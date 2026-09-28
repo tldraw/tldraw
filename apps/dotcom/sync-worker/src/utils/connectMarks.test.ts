@@ -26,7 +26,7 @@ describe('ConnectMarks', () => {
 	it('leaves out steps that never ran', () => {
 		const marks = new ConnectMarks(0, () => 1000)
 		marks.mark('auth', 5)
-		expect(marks.fields()).not.toHaveProperty('d_group_check')
+		expect(marks.fields()).not.toHaveProperty('d_file_record')
 	})
 
 	it('clamps a mark earlier than the previous one to a zero delta', () => {

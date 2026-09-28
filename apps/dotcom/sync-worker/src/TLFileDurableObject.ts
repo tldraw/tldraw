@@ -18,6 +18,7 @@ import {
 	WELCOME_CREATE_SOURCE,
 	can,
 	type FeatureFlagValue,
+	type Role,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -136,7 +137,7 @@ import {
 	type McpTokenOptions,
 } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
-import { getRole } from './utils/tla/getRole'
+import { getFileRecordWithRole, getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
 import { ChainState, isChainHead, PendingDelta } from './versionChain'
 import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
@@ -982,25 +983,29 @@ export class TLFileDurableObject extends DurableObject {
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
 	_fileRecordCache: TlaFile | null = null
 	async getAppFileRecord(loadIdBlobs?: string[]): Promise<TlaFile | null> {
+		return (await this.getAppFileRecordWithRole(null, loadIdBlobs))?.file ?? null
+	}
+
+	/** Also resolves `userId`'s role in the file's owning group, in the same query on a cache miss. */
+	async getAppFileRecordWithRole(
+		userId: string | null | undefined,
+		loadIdBlobs?: string[]
+	): Promise<{ file: TlaFile; role: Role | null } | null> {
 		const timer = this.timer()
 		try {
 			const result = await retry(
 				async () => {
 					if (this._fileRecordCache) {
-						return this._fileRecordCache
+						const file = this._fileRecordCache
+						return { file, role: await getRole(this.db, userId, file.owningGroupId) }
 					}
 
-					const result = await this.db
-						.selectFrom('file')
-						.where('id', '=', this.documentInfo.slug)
-						.selectAll()
-						.executeTakeFirst()
-
+					const result = await getFileRecordWithRole(this.db, this.documentInfo.slug, userId)
 					if (!result) {
 						throw new FileRecordNotFoundError()
 					}
-					this._fileRecordCache = result
-					return this._fileRecordCache
+					this._fileRecordCache = result.file
+					return result
 				},
 				// Absence is retried because the row may still be committing. Query errors are retried
 				// too: isTransientConnectionError is R2-shaped and misses Postgres errors like "too many
@@ -1108,10 +1113,11 @@ export class TLFileDurableObject extends DurableObject {
 
 			if (this.documentInfo.isApp) {
 				openMode = ROOM_OPEN_MODE.READ_WRITE
-				const file = await this.getAppFileRecord(loadIdBlobs)
+				const fileWithRole = await this.getAppFileRecordWithRole(auth?.userId, loadIdBlobs)
 				marks.mark('file_record')
 
-				if (file) {
+				if (fileWithRole) {
+					const { file, role } = fileWithRole
 					if (file.isDeleted) {
 						return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 					}
@@ -1149,18 +1155,7 @@ export class TLFileDurableObject extends DurableObject {
 					rateLimitTimer.report('on_request_rate_limit', loadIdBlobs)
 					marks.mark('rate_limit')
 
-					// Check if user has owner access (directly or via group membership)
-					let hasOwnerAccess = false
-					if (file.owningGroupId && auth?.userId) {
-						// Check the user can access the owning group's files
-						const groupCheckTimer = this.timer()
-						const role = await getRole(this.db, auth.userId, file.owningGroupId)
-						if (can(role, 'accessFiles')) {
-							hasOwnerAccess = true
-						}
-						groupCheckTimer.report('on_request_group_check', loadIdBlobs)
-						marks.mark('group_check')
-					}
+					const hasOwnerAccess = can(role, 'accessFiles')
 
 					if (!hasOwnerAccess && !file.shared) {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
@@ -1287,10 +1282,11 @@ export class TLFileDurableObject extends DurableObject {
 		// the files its user could already download from the website.
 		const auth: { userId: string } | null =
 			(await getAuth(req, this.env)) ?? (await getMcpTokenUser(req, this.env))
-		const file = await this.getAppFileRecord()
-		if (!file || file.isDeleted) {
+		const fileWithRole = await this.getAppFileRecordWithRole(auth?.userId)
+		if (!fileWithRole || fileWithRole.file.isDeleted) {
 			return new Response('Not found', { status: 404 })
 		}
+		const { file, role } = fileWithRole
 
 		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
 			return new Response('Not found', { status: 404 })
@@ -1307,14 +1303,7 @@ export class TLFileDurableObject extends DurableObject {
 			return new Response('Rate limited', { status: 429 })
 		}
 
-		let hasOwnerAccess = false
-		if (file.owningGroupId && auth?.userId) {
-			const role = await getRole(this.db, auth.userId, file.owningGroupId)
-			if (can(role, 'accessFiles')) {
-				hasOwnerAccess = true
-			}
-		}
-		if (!hasOwnerAccess && !file.shared) {
+		if (!can(role, 'accessFiles') && !file.shared) {
 			return new Response('Forbidden', { status: 403 })
 		}
 
