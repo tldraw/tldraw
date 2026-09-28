@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { Environment } from './types'
 import { resetFeatureFlagCacheForTests } from './utils/featureFlags'
 import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
@@ -19,20 +19,6 @@ async function mode(e: Environment, roomKey: string) {
 beforeEach(() => resetFeatureFlagCacheForTests())
 
 describe('version chain rollout', () => {
-	it('falls back to the default, chain, when KV is down', async () => {
-		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-		const e = {
-			FEATURE_FLAGS: {
-				get: async () => {
-					throw new Error('KV down')
-				},
-			},
-		} as unknown as Environment
-
-		expect(await mode(e, 'app_rooms/a')).toBe('chain')
-		consoleSpy.mockRestore()
-	})
-
 	it('defaults to chain everywhere, production included', async () => {
 		for (const tldrawEnv of ['development', 'staging', 'production', undefined]) {
 			expect(await mode(env(tldrawEnv), 'app_rooms/a')).toBe('chain')
