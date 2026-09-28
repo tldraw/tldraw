@@ -18,7 +18,7 @@ if [ ! -d "templates/$template_name" ]; then
 fi
 
 if [ ${#vite_args[@]} -eq 0 ]; then
-    LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter="templates/$template_name" --filter='packages/tldraw' --filter='apps/bemo-worker'
+    LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter="templates/$template_name" --filter='apps/bemo-worker'
     exit $?
 fi
 
@@ -30,7 +30,7 @@ LAZYREPO_PRETTY_OUTPUT=0 lazy run refresh-assets || exit 1
 # in their own process group (set -m) so cleanup can kill lazy and its watchers, which lazy itself
 # won't (it installs no signal handlers, so killing just its pid would orphan them).
 set -m
-LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='packages/tldraw' --filter='apps/bemo-worker' &
+LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/bemo-worker' &
 lazy_pid=$!
 disown
 cleanup() {

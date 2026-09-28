@@ -7,7 +7,7 @@ import {
 	TLSyncErrorCloseEventReason,
 } from '@tldraw/sync-core'
 import { TLRecord } from '@tldraw/tlschema'
-import { ExecutionQueue, throttle } from '@tldraw/utils'
+import { ExecutionQueue, throttle, type ThrottledFunction } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { createSentry, parseRequestQuery } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
@@ -185,7 +185,7 @@ export class BemoDO extends DurableObject<Environment> {
 		return this._room
 	}
 
-	triggerPersistSchedule: ReturnType<typeof throttle<() => void>> = throttle(() => {
+	triggerPersistSchedule: ThrottledFunction<() => void> = throttle(() => {
 		this.schedulePersist()
 	}, 2000)
 

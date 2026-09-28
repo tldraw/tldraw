@@ -9,7 +9,6 @@ import {
 	wranglerDeploy,
 } from './lib/deploy'
 import { Discord } from './lib/discord'
-import { exec } from './lib/exec'
 import { REPO_ROOT } from './lib/file'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
@@ -45,10 +44,6 @@ async function main() {
 	)
 
 	await discord.message(`--- **${env.TLDRAW_ENV} bemo deploy pre-flight** ---`)
-
-	await discord.step('setting up deploy', async () => {
-		await exec('pnpm', ['exec', 'lazy', 'prebuild'])
-	})
 
 	await discord.step('cloudflare deploy dry run', async () => {
 		await deployBemoWorker({ dryRun: true })

@@ -18,8 +18,9 @@ const FILE_STATE_FIELDS = [
 /**
  * The mutators a user reached over an OAuth access token may run, and the argument keys each one
  * accepts: the ones that act on a board — creating, renaming, pinning, removing it from a workspace,
- * marking it visited. Workspace administration (membership, roles, invite links, deleting the
- * workspace) is not among them.
+ * marking it visited — and the user's own editor preferences, so an app that embeds the editor
+ * keeps the settings the user has on tldraw.com. Workspace administration (membership, roles, invite
+ * links, deleting the workspace) and the rest of the user row are not among them.
  *
  * The token stands for what the user handed an agent — Claude, ChatGPT, Cursor — for a stated
  * purpose, which is working on boards. The mutators check roles, so nothing here lets the agent do
@@ -39,6 +40,20 @@ const MCP_MUTATOR_FIELDS = {
 	unpinFile: ['fileId', 'workspaceId'],
 	removeFileFromWorkspace: ['fileId', 'workspaceId'],
 	onEnterFile: ['fileId', 'time'],
+	updateUserPreferences: [
+		'locale',
+		'animationSpeed',
+		'areKeyboardShortcutsEnabled',
+		'edgeScrollSpeed',
+		'isSnapMode',
+		'isWrapMode',
+		'isDynamicSizeMode',
+		'isPasteAtCursorMode',
+		'enhancedA11yMode',
+		'inputMode',
+		'isZoomDirectionInverted',
+		'color',
+	],
 } as const satisfies { [K in keyof TlaMutators]?: McpFields<TlaMutators[K]> }
 
 export type McpMutators = Pick<TlaMutators, keyof typeof MCP_MUTATOR_FIELDS>

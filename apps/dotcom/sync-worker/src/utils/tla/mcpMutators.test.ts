@@ -15,6 +15,7 @@ describe('createMcpMutators', () => {
 			'unpinFile',
 			'removeFileFromWorkspace',
 			'onEnterFile',
+			'updateUserPreferences',
 		])
 		expect(Object.keys(mcp.file)).toEqual(Object.keys(all.file))
 		expect(Object.keys(mcp.file_state)).toEqual(Object.keys(all.file_state))
@@ -36,6 +37,10 @@ describe('createMcpMutators', () => {
 			])
 		)
 	})
+
+	it('leaves out the user row, beyond its editor preferences', () => {
+		expect(mcp).not.toHaveProperty('user')
+	})
 })
 
 describe('restrictMcpMutators', () => {
@@ -46,7 +51,16 @@ describe('restrictMcpMutators', () => {
 		const fileUpdate = vi.spyOn(all.file, 'update').mockResolvedValue(undefined)
 		const createFile = vi.spyOn(all, 'createFile').mockResolvedValue(undefined)
 		const fileStateUpdate = vi.spyOn(all.file_state, 'update').mockResolvedValue(undefined)
-		return { mcp: restrictMcpMutators(all as TlaMutators), fileUpdate, createFile, fileStateUpdate }
+		const updateUserPreferences = vi
+			.spyOn(all, 'updateUserPreferences')
+			.mockResolvedValue(undefined)
+		return {
+			mcp: restrictMcpMutators(all as TlaMutators),
+			fileUpdate,
+			createFile,
+			fileStateUpdate,
+			updateUserPreferences,
+		}
 	}
 
 	it('lets an agent rename a board', async () => {
@@ -98,6 +112,19 @@ describe('restrictMcpMutators', () => {
 		const state = { userId: 'user_1', fileId: 'file_1', lastVisitAt: 1 }
 		await mcp.file_state.update(tx, state)
 		expect(fileStateUpdate).toHaveBeenCalledWith(tx, state)
+	})
+
+	it('lets an agent set editor preferences, but not the name or colour scheme', async () => {
+		const { mcp, updateUserPreferences } = setup()
+		const prefs = { isSnapMode: true, inputMode: 'mouse', color: '#ff0000' } as const
+		await mcp.updateUserPreferences(tx, prefs)
+		expect(updateUserPreferences).toHaveBeenCalledWith(tx, prefs)
+
+		updateUserPreferences.mockClear()
+		for (const change of [{ name: 'Someone else' }, { colorScheme: 'dark' }]) {
+			await expect(mcp.updateUserPreferences(tx, change as any)).rejects.toThrow('forbidden')
+		}
+		expect(updateUserPreferences).not.toHaveBeenCalled()
 	})
 
 	it('refuses arguments that are not an object', async () => {

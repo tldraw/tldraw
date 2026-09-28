@@ -157,9 +157,7 @@ test.describe('live sharing scenarios', () => {
 		await visitor.editor.expectShapesCount(0)
 
 		await scenario.publishChanges(owner)
-		await visitor.page.reload()
-		await visitor.waitForAppReady()
-		await visitor.editor.expectShapesCount(1)
+		await scenario.expectPublishedShapesCount(visitor, 1)
 	})
 
 	test('workspace file deletion removes the file from active members without reload', async ({

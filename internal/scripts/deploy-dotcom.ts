@@ -366,9 +366,6 @@ async function main() {
 	await discord.message(`--- **${env.TLDRAW_ENV} dotcom deploy pre-flight** ---`)
 
 	await discord.step('setting up deploy', async () => {
-		// make sure the tldraw .css files are built:
-		await withTiming('prebuild assets', () => exec('pnpm', ['exec', 'lazy', 'prebuild']))
-
 		// link to vercel and supabase projects:
 		await withTiming('vercel link', () =>
 			vercelCli('link', ['--yes', '--project', env.VERCEL_PROJECT_ID])

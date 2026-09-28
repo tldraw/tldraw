@@ -60,7 +60,7 @@ Development:
 - `pnpm dev-vscode` - start VS Code extension development
 - `pnpm dev-template <template name>` - run a template
 
-Always run dev commands from the repo root. The root `pnpm dev` runs each package's `predev` step, which generates build artifacts like `packages/tldraw/tldraw.css`. Running a per-workspace command (`pnpm --filter examples.tldraw.com dev`) skips `predev`, so imports such as `tldraw/tldraw.css` fail to resolve. In a fresh git worktree, run `pnpm install` first since worktrees start without `node_modules`.
+In a fresh git worktree, run `pnpm install` first since worktrees start without `node_modules`.
 
 Build:
 
