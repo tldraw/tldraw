@@ -53,8 +53,8 @@ export function regionBetween(a: VecLike, b: VecLike): BoxModel {
  * release — like placing a sticky note — settling on a point, or on a shape when released over one.
  * With region comments enabled, dragging past the threshold draws a region rectangle instead.
  * Placement only opens a composer; the records are created when the comment is posted. The tool
- * stays active while the composer is open — posting returns to select, and clicking elsewhere
- * re-places the composer.
+ * stays active while the composer is open — posting returns to select, and so does clicking the
+ * canvas elsewhere, which cancels the placement.
  * @public
  */
 export class CommentTool extends StateNode {
@@ -142,6 +142,12 @@ class CommentIdle extends StateNode {
 	}
 
 	override onPointerDown() {
+		// A press away from an open composer cancels the placement rather than moving it. The
+		// tool's onExit drops the draft composer; its text survives in the draft store.
+		if (pendingComment.get(this.editor)) {
+			this.editor.setCurrentTool('select')
+			return
+		}
 		this.parent.transition('pointing')
 	}
 }

@@ -80,6 +80,9 @@ export function PendingComposer({
 			// A click in the composer, or in the mention picker it spawns (portaled elsewhere), is
 			// not "outside" — keep the draft open so the pick can insert.
 			if (el.contains(target) || target.closest('.tlui-cmt-mention-popup')) return
+			// A press on the canvas is the comment tool's to handle: it ends the placement and returns
+			// to select. Clearing here first would let that press re-place the composer instead.
+			if (editor.getContainer().querySelector('.tl-canvas')?.contains(target)) return
 			pendingComment.set(editor, null)
 		}
 		document.addEventListener('pointerdown', onPointerDown, true)
