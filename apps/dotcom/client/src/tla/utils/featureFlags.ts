@@ -17,12 +17,14 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 
 let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }
 let _wasAuthenticated = false
+// Whose flags the last authenticated response holds, so an account switch without a reload refetches.
+let flagsUserId: string | null = null
 let _hasResolvedOnce = false
 // Whether `flagsPromise` has settled; stops concurrent callers each starting a refetch.
 let settled = false
 
-// Fetched once per page load, not polled: no flag today has to change under a running tab, so a
-// flip reaches a tab on its next load. A kill switch would need polling back.
+// Fetched once per page load, not polled: a flip reaches a tab on its next load, so no flag here
+// can act as a live kill switch.
 let flagsPromise = loadFlags()
 
 function loadFlags(): Promise<FeatureFlags> {
@@ -50,13 +52,14 @@ export function getFeatureFlags(): Promise<FeatureFlags> {
 }
 
 /**
- * The flags, refetched when the last request failed or went out without a session (cookie missing
- * or expired before Clerk was ready): percentage and allowlist flags evaluate false without a user.
- * For the signed-in boot in useAppState; everything else reads `getFeatureFlags`, so a signed-out
- * page doesn't send a request per caller.
+ * `userId`'s flags, refetched when the last request failed, had no session (Clerk cookie not ready
+ * yet) or was for another account. Signed-in boot only, so signed-out pages don't send a request per
+ * caller.
  */
-export function fetchFeatureFlags(): Promise<FeatureFlags> {
-	if (settled && !_wasAuthenticated) flagsPromise = loadFlags()
+export function fetchFeatureFlags(userId: string): Promise<FeatureFlags> {
+	const otherUser = flagsUserId !== null && flagsUserId !== userId
+	if (settled && (!_wasAuthenticated || otherUser)) flagsPromise = loadFlags()
+	flagsUserId = userId
 	return flagsPromise
 }
 

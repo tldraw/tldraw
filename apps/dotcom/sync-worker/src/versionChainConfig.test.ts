@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from './types'
-import { clearFeatureFlagCacheForTests } from './utils/featureFlags'
+import { resetFeatureFlagCacheForTests } from './utils/featureFlags'
 import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
 
 function env(tldrawEnv?: string, kv?: Record<string, string>): Environment {
@@ -16,10 +16,9 @@ async function mode(e: Environment, roomKey: string) {
 	return resolveVersionChainMode(await loadVersionChainRollout(e), roomKey)
 }
 
-beforeEach(() => clearFeatureFlagCacheForTests())
+beforeEach(() => resetFeatureFlagCacheForTests())
 
 describe('version chain rollout', () => {
-	// The durable object caches the load for its lifetime, so a rejection would fail every persist.
 	it('falls back to the default, chain, when KV is down', async () => {
 		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const e = {

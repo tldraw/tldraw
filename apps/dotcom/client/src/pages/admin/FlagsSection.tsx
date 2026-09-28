@@ -237,7 +237,8 @@ function FeatureFlags() {
 			)}
 
 			<p className={styles.featureFlagsNote}>
-				<strong>Global feature toggles.</strong> Changes take effect immediately for ALL users.
+				<strong>Global feature toggles.</strong> Open tabs pick up changes on their next page load;
+				allow about 90 seconds for caches.
 			</p>
 			<p className={styles.featureFlagsDescription}>
 				Boolean flags toggle on/off for everyone. Percentage flags roll out to X% of users

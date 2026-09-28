@@ -23,8 +23,7 @@ export async function loadVersionChainRollout(env: Environment): Promise<Feature
 	try {
 		return await getFeatureFlagValue(env, 'version_chain')
 	} catch (e) {
-		// The durable object caches this promise for its lifetime, so a rejection would fail every
-		// persist until it is evicted. The default is on, which is safe to write with.
+		// The DO caches this promise for its lifetime; a rejection would fail every persist.
 		console.error('Failed to read version_chain, using the default:', e)
 		return getFeatureFlagDefault('version_chain')
 	}

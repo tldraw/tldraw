@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	canUseMcpServer,
-	clearFeatureFlagCacheForTests,
+	resetFeatureFlagCacheForTests,
 	evaluateFlagForUser,
 	getAllFeatureFlagValues,
 	getFeatureFlagValue,
@@ -33,7 +33,7 @@ vi.mock('../postgres', () => ({
 	}),
 }))
 
-beforeEach(() => clearFeatureFlagCacheForTests())
+beforeEach(() => resetFeatureFlagCacheForTests())
 
 function kvDown() {
 	return vi.fn(async () => {
@@ -352,7 +352,6 @@ describe('getFeatureFlagValue caching and failure', () => {
 		expect(env.FEATURE_FLAGS.get).toHaveBeenCalledTimes(2)
 	})
 
-	// Defaults would pass a KV blip off as the real value.
 	it('throws on KV error when nothing is cached', async () => {
 		const env = makeEnv()
 		env.FEATURE_FLAGS.get = kvDown()
@@ -409,10 +408,6 @@ describe('setFeatureFlag', () => {
 		])
 	})
 
-	// A field that means nothing for this flag's type is refused rather than dropped. It used to be
-	// dropped in silence, and the admin route still answered `{success: true, users: […]}` — so an
-	// allowlist sent to a percentage flag reported a save that stored nothing anywhere.
-	// A save based on a cached value up to a TTL old would write it back over a newer edit.
 	it('reads the current value from KV, not the cache', async () => {
 		const env = makeEnv({ rum_enabled: JSON.stringify({ enabled: false, percentage: 10 }) })
 		await getFeatureFlagValue(env as any, 'rum_enabled')
@@ -444,6 +439,9 @@ describe('setFeatureFlag', () => {
 		expect(env.FEATURE_FLAGS.put).not.toHaveBeenCalled()
 	})
 
+	// A field that means nothing for this flag's type is refused rather than dropped. It used to be
+	// dropped in silence, and the admin route still answered `{success: true, users: […]}` — so an
+	// allowlist sent to a percentage flag reported a save that stored nothing anywhere.
 	it('refuses an update naming a different type than the flag', async () => {
 		const env = makeEnv()
 		await expect(

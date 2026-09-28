@@ -90,8 +90,8 @@ function filterProperties(value: { [key: string]: any }) {
 /**
  * App feature flags for PostHog event properties; null until `/api/app/feature-flags` has settled once.
  * Only used for signed-in users — percentage flags are not evaluated for anonymous requests on the server.
- * We attach here (not via setPersonProperties) so each event reflects the latest values when flags
- * change mid-session from polling. Person-level cohorts from flags alone would need extra sync.
+ * We attach here (not via setPersonProperties) so each event carries the values this page load
+ * evaluated. Person-level cohorts from flags alone would need extra sync.
  */
 function getAppFeatureFlagEventProperties(): Record<string, boolean> | null {
 	if (!hasResolvedFlagsOnce()) return null

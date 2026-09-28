@@ -60,9 +60,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		setError(null)
 
 		const FETCH_TIMEOUT = 5000
+		const userId = auth.userId
 		function fetchFlagsWithTimeout(): Promise<FeatureFlags> {
 			return Promise.race([
-				fetchFeatureFlags(),
+				fetchFeatureFlags(userId),
 				new Promise<FeatureFlags>((resolve) =>
 					setTimeout(() => resolve({ ...DEFAULT_FLAGS }), FETCH_TIMEOUT)
 				),

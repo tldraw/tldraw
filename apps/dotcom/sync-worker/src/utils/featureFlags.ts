@@ -70,7 +70,7 @@ export function hashToPercentage(userId: string, flagName: string): number {
 const FLAG_CACHE_TTL_MS = 30_000
 const flagCache = new Map<FeatureFlagKey, { value: FeatureFlagValue; readAt: number }>()
 
-export function clearFeatureFlagCacheForTests() {
+export function resetFeatureFlagCacheForTests() {
 	flagCache.clear()
 }
 
@@ -363,7 +363,7 @@ export async function getFeatureFlags(request: IRequest, env: Environment): Prom
  *
  * Returns the record rather than a Response so the admin route can decorate it before answering —
  * see the allowlist label resolution there, which needs Postgres and has no business in here.
- * Read from KV rather than the cache, so the panel shows what a save just wrote.
+ * Bypasses the cache: another isolate's copy can be a TTL behind a save.
  */
 export async function getAllFeatureFlagValues(
 	env: Environment
