@@ -17,14 +17,14 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 
 let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }
 let _wasAuthenticated = false
-// Whose flags the last authenticated response holds, so an account switch without a reload refetches.
+// The user the latest fetch is for, so an account switch without a reload refetches. Null until the
+// signed-in boot claims the page-load fetch, which carries whatever session the cookie had.
 let flagsUserId: string | null = null
 let _hasResolvedOnce = false
 // Whether `flagsPromise` has settled; stops concurrent callers each starting a refetch.
 let settled = false
 
-// Fetched once per page load, not polled: a flip reaches a tab on its next load, so no flag here
-// can act as a live kill switch.
+// Not polled: a flip reaches a tab on its next load, so no flag here can act as a live kill switch.
 let flagsPromise = loadFlags()
 
 function loadFlags(): Promise<FeatureFlags> {
@@ -46,7 +46,7 @@ function loadFlags(): Promise<FeatureFlags> {
 	})()
 }
 
-/** This page load's flags. Never refetches. */
+/** The latest flags. Never starts a fetch. */
 export function getFeatureFlags(): Promise<FeatureFlags> {
 	return flagsPromise
 }
@@ -58,7 +58,12 @@ export function getFeatureFlags(): Promise<FeatureFlags> {
  */
 export function fetchFeatureFlags(userId: string): Promise<FeatureFlags> {
 	const otherUser = flagsUserId !== null && flagsUserId !== userId
-	if (settled && (!_wasAuthenticated || otherUser)) flagsPromise = loadFlags()
+	if (!settled && otherUser) {
+		// The fetch in flight carries the previous account's session; queue this user's behind it.
+		flagsPromise = flagsPromise.then(() => loadFlags())
+	} else if (settled && (!_wasAuthenticated || otherUser)) {
+		flagsPromise = loadFlags()
+	}
 	flagsUserId = userId
 	return flagsPromise
 }

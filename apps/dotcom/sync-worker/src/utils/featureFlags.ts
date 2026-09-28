@@ -42,7 +42,7 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			percentage: 100,
 			enabled: true,
 			description:
-				'Version history written as delta chains; rooms outside it write every version as a whole keyframe. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless',
+				'Version history written as delta chains; rooms outside it write every version as a whole keyframe. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless. A change reaches a room when its durable object next starts',
 		},
 	}
 }
@@ -75,7 +75,7 @@ export function resetFeatureFlagCacheForTests() {
 }
 
 /**
- * The stored value straight from KV. Throws when KV does; a stored value that doesn't parse reads as
+ * The stored value, skipping the isolate cache (KV's own edge cache still applies). Throws when KV does; a stored value that doesn't parse reads as
  * the defaults instead, so the admin panel can still overwrite it.
  */
 async function readFeatureFlag(env: Environment, flag: FeatureFlagKey): Promise<FeatureFlagValue> {
@@ -278,8 +278,8 @@ export async function setFeatureFlag(
 	flag: FeatureFlagKey,
 	update: FeatureFlagUpdate
 ): Promise<void> {
-	// Straight from KV: a cached `current` could be up to a TTL old, and the save would write that
-	// back over a newer edit.
+	// Skips the isolate cache: a cached `current` could be up to a TTL old, and the save would write
+	// that back over a newer edit.
 	const current = await readFeatureFlag(env, flag)
 	const put = async (value: FeatureFlagValue) => {
 		await env.FEATURE_FLAGS.put(flag, JSON.stringify(value))

@@ -136,7 +136,7 @@ export function usePerformanceTracking() {
 				}
 			})
 			.catch(() => {
-				// noop — flag fetch failures are already logged in featureFlags.ts
+				// Perf tracking setup must not break the editor
 			})
 
 		return () => {

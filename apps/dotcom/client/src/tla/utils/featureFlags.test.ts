@@ -108,6 +108,27 @@ describe('feature flags', () => {
 		expect(mockFetch).toHaveBeenCalledTimes(2)
 	})
 
+	it('fetchFeatureFlags queues a refetch when the account switches mid-fetch', async () => {
+		vi.resetModules()
+		mockFetch.mockReset()
+		let resolvePageLoad!: (r: unknown) => void
+		mockFetch.mockReturnValueOnce(new Promise((resolve) => (resolvePageLoad = resolve)))
+		const mod = await import('./featureFlags')
+
+		const forA = mod.fetchFeatureFlags('user-a')
+		mockFetchResponse(makeFlags({ rum_enabled: { enabled: true } }), true)
+		const forB = mod.fetchFeatureFlags('user-b')
+		resolvePageLoad({
+			ok: true,
+			headers: { get: () => '1' },
+			json: async () => makeFlags(),
+		})
+
+		expect((await forA).rum_enabled.enabled).toBe(false)
+		expect((await forB).rum_enabled.enabled).toBe(true)
+		expect(mockFetch).toHaveBeenCalledTimes(2)
+	})
+
 	it('falls back to defaults on a network error, and fetchFeatureFlags retries', async () => {
 		const mod = await load(() => mockFetch.mockRejectedValueOnce(new Error('network down')))
 

@@ -23,7 +23,8 @@ export async function loadVersionChainRollout(env: Environment): Promise<Feature
 	try {
 		return await getFeatureFlagValue(env, 'version_chain')
 	} catch (e) {
-		// The DO caches this promise for its lifetime; a rejection would fail every persist.
+		// The DO caches this promise for its lifetime; a rejection would fail room loads and persists
+		// until eviction.
 		console.error('Failed to read version_chain, using the default:', e)
 		return getFeatureFlagDefault('version_chain')
 	}
