@@ -2,7 +2,7 @@ import { captureException } from '@sentry/react'
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -34,16 +34,15 @@ import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/S
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
-import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
+import { estimateFileSizeBucket, useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
+import { fileLoads, reportFileLoad } from '../../../utils/fileLoad'
 import {
 	LOADS_DEBUG_FLAG,
-	getFirstLoadId,
-	hasFirstLoadStep,
 	markFirstLoad,
 	reportFirstLoad,
 	setFirstLoadServerTimings,
@@ -125,6 +124,9 @@ export function TlaEditor(props: TlaEditorProps) {
 }
 
 function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps) {
+	// TlaEditorInner is keyed by fileSlug, so this runs once per file open.
+	const [fileLoad] = useState(() => fileLoads.begin(fileSlug))
+	fileLoad.mark('editor-rendered')
 	markFirstLoad('editor-rendered')
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
@@ -173,6 +175,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			markFirstLoad('editor-mounted')
+			fileLoad.mark('editor-mounted')
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
 			trackShareLinkOpen(app, fileId, isEmbed)
@@ -188,7 +191,14 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			if (!app) {
 				setIsReady()
 				markFirstLoad('board-visible')
+				fileLoad.mark('board-visible')
 				reportFirstLoad({ email: null, flagEnabled: false, trackEvent })
+				reportFileLoad(fileLoad, {
+					email: null,
+					flagEnabled: false,
+					trackEvent,
+					extra: { file_size_bucket: estimateFileSizeBucket(editor) },
+				})
 				return
 			}
 
@@ -247,10 +257,17 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 					if (abortController.signal.aborted) return
 					setIsReady()
 					markFirstLoad('board-visible')
+					fileLoad.mark('board-visible')
 					reportFirstLoad({
 						email: app?.email,
 						flagEnabled: app?.isLoadRumEnabled ?? false,
 						trackEvent,
+					})
+					reportFileLoad(fileLoad, {
+						email: app?.email,
+						flagEnabled: app?.isLoadRumEnabled ?? false,
+						trackEvent,
+						extra: { file_size_bucket: estimateFileSizeBucket(editor) },
 					})
 				})
 
@@ -262,6 +279,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		},
 		[
 			addDialog,
+			fileLoad,
 			trackRoomLoaded,
 			trackNewRoomCreation,
 			trackShareLinkOpen,
@@ -306,27 +324,33 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
 			url.searchParams.set('v', CLIENT_BUILD_TIMESTAMP)
-			// Only the first connect belongs to the load; a reconnect carrying the id would make the
-			// server park and send an echo the client already has, and tag its timers as first-load.
-			if (!hasFirstLoadStep('sync-connected')) url.searchParams.set('loadId', getFirstLoadId())
+			// Only this open's first connect belongs to the load; a reconnect carrying the id would make
+			// the server park and send an echo the client already has.
+			const loadId = fileLoad.connectLoadId()
+			if (loadId) url.searchParams.set('loadId', loadId)
 			if (hasUser) {
 				url.searchParams.set('accessToken', await getUserToken())
 				markFirstLoad('sync-token-fetched')
+				fileLoad.mark('sync-token-fetched')
 			}
 			return url.toString()
-		}, [fileSlug, hasUser, getUserToken]),
+		}, [fileSlug, hasUser, getUserToken, fileLoad]),
 		assets,
 		users,
 		// Register the opt-in `comment` record type so comment records sync through the file room.
 		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
 		records: commentSchemaRecords,
-		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
-			if (message.type === 'first_load_server') {
-				setFirstLoadServerTimings(message)
-				return
-			}
-			trackEvent(message.type)
-		}, []),
+		onCustomMessageReceived: useCallback(
+			(message: TLCustomServerEvent) => {
+				if (message.type === 'first_load_server') {
+					setFirstLoadServerTimings(message)
+					fileLoad.setServerTimings(message)
+					return
+				}
+				trackEvent(message.type)
+			},
+			[fileLoad]
+		),
 	})
 
 	// we need to prevent recording the file exit if the store is in an error state
@@ -337,8 +361,11 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 	// Handle entering and exiting the file, with some protection against rapid enters/exits
 	useEffect(() => {
-		if (store.status === 'synced-remote') markFirstLoad('sync-connected')
-	}, [store.status])
+		if (store.status === 'synced-remote') {
+			markFirstLoad('sync-connected')
+			fileLoad.mark('sync-connected')
+		}
+	}, [store.status, fileLoad])
 
 	useEffect(() => {
 		if (!app) return
