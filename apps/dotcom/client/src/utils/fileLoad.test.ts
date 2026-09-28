@@ -13,6 +13,7 @@ function setup(overrides: Partial<FileLoadsDeps> = {}) {
 		log: vi.fn(),
 		firstLoadId: FIRST_ID,
 		isHidden: () => hidden,
+		wasHiddenSinceNavigation: () => false,
 		...overrides,
 	}
 	return {
@@ -80,6 +81,19 @@ describe('file loads', () => {
 		expect(load.buildEvent(false, {})).toMatchObject({ t_editor_rendered: 50 })
 	})
 
+	it('ignores a same-file navigation so a later remount does not reuse it as t0', () => {
+		const { loads, advance } = setup()
+		const first = loads.begin('abc')
+		loads.noteNavigation('/f/abc')
+		advance(1000)
+		first.buildEvent(false, {}) // report it, so the next begin('abc') is treated as a remount
+		advance(50)
+		const remount = loads.begin('abc')
+		advance(20)
+		remount.mark('editor-rendered')
+		expect(remount.buildEvent(false, {})).toMatchObject({ t_editor_rendered: 20 })
+	})
+
 	it('returns the same load when the same file begins twice (StrictMode double render)', () => {
 		const { loads } = setup()
 		expect(loads.begin('abc')).toBe(loads.begin('abc'))
@@ -124,6 +138,17 @@ describe('file loads', () => {
 		const { loads, hide } = setup()
 		hide()
 		expect(loads.begin('abc').isHidden()).toBe(true)
+	})
+
+	it('starts a first load hidden if the tab was hidden earlier during page boot', () => {
+		const { loads } = setup({ wasHiddenSinceNavigation: () => true })
+		expect(loads.begin('abc').isHidden()).toBe(true)
+	})
+
+	it('ignores wasHiddenSinceNavigation for a switch', () => {
+		const { loads } = setup({ wasHiddenSinceNavigation: () => true })
+		loads.begin('abc')
+		expect(loads.begin('def').isHidden()).toBe(false)
 	})
 
 	it('builds its event once', () => {

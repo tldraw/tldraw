@@ -62,7 +62,7 @@ const FIRST_LOAD_FIELD_INFO: Record<string, string> = {
 	srv_edge_colo: 'Cloudflare colo that received the socket',
 	srv_do_colo: 'colo the file room runs in (absent until its one-off lookup resolves)',
 	srv_pg_via: 'Postgres path: hyperdrive or pooler',
-	srv_connect_bytes: 'size of the connect reply (the document on the wire)',
+	srv_connect_bytes: 'length of the connect reply in characters (≈ bytes for ASCII JSON)',
 	srv_boot_r2_ms: 'room boot from empty SQLite: R2 snapshot fetch',
 	srv_boot_comments_ms:
 		'room boot from empty SQLite: comments from Postgres (parallel with the R2 fetch)',
@@ -115,13 +115,14 @@ export const FIRST_LOAD_LOG_HEADER =
 /**
  * The debug flag that prints the load to the console; sending to PostHog is gated separately
  * (shouldReportFirstLoad). The flag itself is created in TlaEditor: importing `tldraw` here would
- * pull the SDK into the entry chunk. Read once at module load, so a toggle applies from the next
- * load in this tab.
+ * pull the SDK into the entry chunk. first_load's own live-log is decided once at module load, so a
+ * toggle applies from the next full page load; shouldPrintLoads() reads it fresh, so a toggle also
+ * applies from the next file open in this tab.
  */
 export const LOADS_DEBUG_FLAG = 'logLoads'
 const printLoads = getFromSessionStorage(`tldraw_debug:${LOADS_DEBUG_FLAG}`) === 'true'
 export function shouldPrintLoads() {
-	return printLoads
+	return getFromSessionStorage(`tldraw_debug:${LOADS_DEBUG_FLAG}`) === 'true'
 }
 
 export type FirstLoadDeps = LoadTrackerDeps<FirstLoadStep> & { initialPath: string }
@@ -302,6 +303,11 @@ if (typeof window !== 'undefined') {
 	})
 }
 
+/** Whether the tab was hidden at any point since navigation start, page boot included. */
+export function wasHiddenSinceNavigation(): boolean {
+	return hiddenDuringLoad
+}
+
 export function isFirstLoadStaff(email: string | null | undefined) {
 	return !!email?.endsWith('@tldraw.com')
 }
@@ -313,14 +319,6 @@ export function markFirstLoad(step: FirstLoadStep) {
 /** The id the server can join on: sent on the sync socket URL and the init request. */
 export function getFirstLoadId() {
 	return firstLoad.loadId
-}
-
-export function hasFirstLoadStep(step: FirstLoadStep) {
-	return firstLoad.getMarks()[step] !== undefined
-}
-
-export function isFirstLoadReported() {
-	return firstLoad.isReported()
 }
 
 function navigationTiming() {

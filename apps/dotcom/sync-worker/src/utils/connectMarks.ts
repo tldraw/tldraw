@@ -38,6 +38,23 @@ export class ConnectMarks {
 	}
 }
 
+/** Marks route (and do_init, if this request woke the room) when the worker sent a receivedAt. */
+export function markRoute(
+	marks: ConnectMarks,
+	receivedAt: number | undefined,
+	constructedAt: number,
+	requestStart: number
+): void {
+	if (receivedAt === undefined) return
+	// The constructor ran for this request only if it ran after the worker received it.
+	if (constructedAt >= receivedAt) {
+		marks.mark('route', constructedAt)
+		marks.mark('do_init', requestStart)
+	} else {
+		marks.mark('route', requestStart)
+	}
+}
+
 export type ConnectEcho = Extract<TLCustomServerEvent, { type: 'first_load_server' }>
 export type ConnectEchoBase = Pick<
 	ConnectEcho,

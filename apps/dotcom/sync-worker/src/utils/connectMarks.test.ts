@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ConnectMarks, buildConnectEcho } from './connectMarks'
+import { ConnectMarks, buildConnectEcho, markRoute } from './connectMarks'
 
 describe('ConnectMarks', () => {
 	it('records each step as a delta from the previous mark and a time since start', () => {
@@ -92,5 +92,29 @@ describe('buildConnectEcho', () => {
 			1
 		)
 		expect(echo).not.toHaveProperty('do_colo')
+	})
+})
+
+describe('markRoute', () => {
+	it('marks nothing when the request carries no receivedAt', () => {
+		const marks = new ConnectMarks(1000, () => 2000)
+		markRoute(marks, undefined, 1000, 1000)
+		expect(marks.fields()).toEqual({})
+	})
+
+	it('marks route to the constructor time and do_init to request start when the constructor ran after receipt', () => {
+		const marks = new ConnectMarks(1000, () => 2000)
+		markRoute(marks, 1000, 1300, 1500)
+		expect(marks.fields()).toMatchObject({
+			t_route: 300,
+			t_do_init: 500,
+		})
+	})
+
+	it('marks only route to request start when the constructor ran before receipt', () => {
+		const marks = new ConnectMarks(1000, () => 2000)
+		markRoute(marks, 1000, 900, 1500)
+		expect(marks.fields()).toMatchObject({ t_route: 500 })
+		expect(marks.fields()).not.toHaveProperty('t_do_init')
 	})
 })

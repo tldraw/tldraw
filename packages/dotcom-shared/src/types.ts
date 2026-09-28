@@ -247,8 +247,8 @@ export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 export type TLCustomServerEvent =
 	| { type: 'persistence_good' }
 	| { type: 'persistence_bad' }
-	// Sent once to a session that connected with a `loadId`, so the client's first_load report
-	// can show the server side of that same load. All durations in ms; boot fields only on a cold boot.
+	// Sent once to a session that connected with a `loadId`, feeding the client's first_load and
+	// file_load reports. Step fields (`d_*`/`t_*`) are ms; edge_colo/do_colo/pg_via are strings.
 	| ({
 			type: 'first_load_server'
 			loadId: string

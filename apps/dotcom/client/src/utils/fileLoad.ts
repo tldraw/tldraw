@@ -7,12 +7,13 @@ import {
 	SERVER_ECHO_DEADLINE_MS,
 	shouldPrintLoads,
 	shouldReportFirstLoad,
+	wasHiddenSinceNavigation,
 } from './firstLoad'
 import { createLoadTracker, type LoadServerTimings, type LoadTrackerDeps } from './loadTracker'
 
 /**
  * Per-step timing for every file open in a tab, first load included, so a file switch can be
- * compared with a cold page load. Spec: docs/superpowers/specs/2026-09-28-file-load-timing-design.md
+ * compared with a cold page load.
  */
 export const FILE_LOAD_STEPS = [
 	'editor-rendered',
@@ -30,6 +31,7 @@ export const FILE_LOAD_LOG_HEADER =
 export interface FileLoadsDeps extends LoadTrackerDeps<FileLoadStep> {
 	firstLoadId: string
 	isHidden(): boolean
+	wasHiddenSinceNavigation(): boolean
 }
 
 export type FileLoad = ReturnType<ReturnType<typeof createFileLoads>['begin']>
@@ -53,7 +55,9 @@ export function createFileLoads(deps: FileLoadsDeps) {
 			logHeader: FILE_LOAD_LOG_HEADER,
 			markPrefix: 'tla-file',
 		})
-		let hidden = deps.isHidden()
+		// A first load's t0 is navigation start, so a tab hidden any time before this file opened
+		// (page boot included) must count as hidden, not just hidden at open() time.
+		let hidden = deps.isHidden() || (kind === 'first' && deps.wasHiddenSinceNavigation())
 		let superseded = false
 		return {
 			kind,
@@ -96,6 +100,9 @@ export function createFileLoads(deps: FileLoadsDeps) {
 		noteNavigation(pathname: string) {
 			if (!pathname.startsWith('/f/')) return
 			if (navigation?.pathname === pathname) return
+			// A router update for the file already open is not a navigation to it; treating it as one
+			// would give a later remount of this same file a stale t0.
+			if (current && pathname === `/f/${current.slug}`) return
 			navigation = { pathname, at: deps.now() }
 		},
 		begin(slug: string) {
@@ -128,6 +135,7 @@ export const fileLoads = createFileLoads({
 	log: (line) => console.log(line),
 	firstLoadId: getFirstLoadId(),
 	isHidden: () => typeof document !== 'undefined' && document.visibilityState === 'hidden',
+	wasHiddenSinceNavigation,
 })
 
 if (typeof document !== 'undefined') {

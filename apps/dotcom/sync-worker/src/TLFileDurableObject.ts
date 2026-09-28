@@ -112,7 +112,7 @@ import {
 import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { arrayBufferToBase64 } from './utils/base64'
-import { ConnectEchoBase, ConnectMarks, buildConnectEcho } from './utils/connectMarks'
+import { ConnectEchoBase, ConnectMarks, buildConnectEcho, markRoute } from './utils/connectMarks'
 import { parseTraceColo, readEdgeColo, readReceivedAt } from './utils/connectRouting'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -1018,15 +1018,7 @@ export class TLFileDurableObject extends DurableObject {
 		const requestStart = Date.now()
 		const receivedAt = readReceivedAt(req.headers as Headers, requestStart)
 		const marks = new ConnectMarks(receivedAt ?? requestStart)
-		if (receivedAt !== undefined) {
-			// The constructor ran for this request only if it ran after the worker received it.
-			if (this._constructedAt >= receivedAt) {
-				marks.mark('route', this._constructedAt)
-				marks.mark('do_init', requestStart)
-			} else {
-				marks.mark('route', requestStart)
-			}
-		}
+		markRoute(marks, receivedAt, this._constructedAt, requestStart)
 
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
