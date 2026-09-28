@@ -244,6 +244,19 @@ export interface SubmitFeedbackRequestBody {
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 
+export const CONNECT_STEPS = [
+	'route',
+	'do_init',
+	'auth',
+	'file_record',
+	'rate_limit',
+	'group_check',
+	'boot',
+	'get_room',
+	'handshake',
+] as const
+export type ConnectStep = (typeof CONNECT_STEPS)[number]
+
 export type TLCustomServerEvent =
 	| { type: 'persistence_good' }
 	| { type: 'persistence_bad' }
@@ -259,7 +272,7 @@ export type TLCustomServerEvent =
 			connect_bytes?: number
 			boot_r2_ms?: number
 			boot_comments_ms?: number
-	  } & { [K in `d_${string}` | `t_${string}`]?: number })
+	  } & { [K in `d_${ConnectStep}` | `t_${ConnectStep}`]?: number })
 
 /* ----------------------- Feature Flags ---------------------- */
 

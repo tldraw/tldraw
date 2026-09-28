@@ -1,6 +1,6 @@
-import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
+import { ConnectStep, TLCustomServerEvent } from '@tldraw/dotcom-shared'
 
-type StepFields = Record<`d_${string}` | `t_${string}`, number>
+type StepFields = { [K in `d_${ConnectStep}` | `t_${ConnectStep}`]?: number }
 
 /**
  * Server steps of one sync connect, echoed to the client as `d_<step>` (since the previous mark)
@@ -19,14 +19,14 @@ export class ConnectMarks {
 	}
 
 	// Clamped because `start` can come from the worker's clock, not this machine's.
-	mark(step: string, at: number = this.now()) {
+	mark(step: ConnectStep, at: number = this.now()) {
 		const t = Math.max(at, this.prev)
 		this.out[`d_${step}`] = Math.round(t - this.prev)
 		this.out[`t_${step}`] = Math.round(t - this.start)
 		this.prev = t
 	}
 
-	markAfter(step: string, ms: number) {
+	markAfter(step: ConnectStep, ms: number) {
 		this.mark(step, Math.min(this.prev + ms, this.now()))
 	}
 

@@ -1,4 +1,4 @@
-import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
+import { ConnectStep, TLCustomServerEvent } from '@tldraw/dotcom-shared'
 import { getFromSessionStorage, uniqueId } from '@tldraw/utils'
 
 export type LoadServerTimings = Extract<TLCustomServerEvent, { type: 'first_load_server' }>
@@ -92,7 +92,7 @@ export function measureOnTrack(track: string) {
 	}
 }
 
-const SERVER_STEP_INFO: Record<string, string> = {
+const SERVER_STEP_INFO: Record<ConnectStep, string> = {
 	route: 'worker received the socket → room reached (clocks of two machines, approximate)',
 	do_init: 'room woken for this request: constructor → onRequest, incl. the documentInfo read',
 	auth: 'verify the Clerk token',
@@ -119,7 +119,9 @@ const SERVER_FIELD_INFO: Record<string, string> = {
 
 function fieldInfo(key: string, extra?: Record<string, string>) {
 	const step = /^srv_[dt]_(.+)$/.exec(key)?.[1]
-	if (step) return `sync worker step: ${SERVER_STEP_INFO[step] ?? step}`
+	// A newer server can send steps this client doesn't know yet.
+	const stepInfo: Partial<Record<string, string>> = SERVER_STEP_INFO
+	if (step) return `sync worker step: ${stepInfo[step] ?? step}`
 	return SERVER_FIELD_INFO[key] ?? extra?.[key] ?? ''
 }
 

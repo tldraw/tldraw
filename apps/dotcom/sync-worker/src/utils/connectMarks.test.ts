@@ -16,11 +16,11 @@ describe('ConnectMarks', () => {
 
 	it('deltas sum to the last step time', () => {
 		const marks = new ConnectMarks(0, () => 1000)
-		marks.mark('a', 10)
-		marks.mark('b', 250)
-		marks.mark('c', 400)
+		marks.mark('auth', 10)
+		marks.mark('file_record', 250)
+		marks.mark('handshake', 400)
 		const f = marks.fields()
-		expect(f.d_a + f.d_b + f.d_c).toBe(f.t_c)
+		expect(f.d_auth! + f.d_file_record! + f.d_handshake!).toBe(f.t_handshake)
 	})
 
 	it('leaves out steps that never ran', () => {
