@@ -1,0 +1,118 @@
+.logo-turtle {
+	position: absolute;
+	inset: 0;
+	display: flex;
+}
+
+.logo-turtle__canvas {
+	position: relative;
+	flex: 1;
+}
+
+.tl-theme__light.logo-panel {
+	--logo-bg: #fafafa;
+	--logo-border: #ddd;
+	--logo-text: #1d1d1d;
+	--logo-muted: #6b6b6b;
+	--logo-input-bg: white;
+	--logo-accent: #2f80ed;
+	--logo-error: #e03131;
+}
+
+.tl-theme__dark.logo-panel {
+	--logo-bg: #1d1d1d;
+	--logo-border: #3a3a3a;
+	--logo-text: #f2f2f2;
+	--logo-muted: #a0a0a0;
+	--logo-input-bg: #101011;
+	--logo-accent: #4f8ff7;
+	--logo-error: #ff6b6b;
+}
+
+.logo-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 340px;
+	padding: 12px;
+	background: var(--logo-bg);
+	border-right: 1px solid var(--logo-border);
+	color: var(--logo-text);
+	font-family: system-ui, sans-serif;
+	font-size: 13px;
+}
+
+.logo-panel__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.logo-panel__header h3 {
+	margin: 0;
+	font-size: 16px;
+}
+
+.logo-panel select,
+.logo-panel button {
+	padding: 4px 10px;
+	border: 1px solid var(--logo-border);
+	border-radius: 6px;
+	background: var(--logo-input-bg);
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+
+.logo-panel button:disabled,
+.logo-panel select:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.logo-panel .logo-panel__run {
+	border-color: var(--logo-accent);
+	background: var(--logo-accent);
+	color: white;
+}
+
+.logo-panel__source {
+	flex: 3;
+	min-height: 0;
+	padding: 8px;
+	border: 1px solid var(--logo-border);
+	border-radius: 6px;
+	background: var(--logo-input-bg);
+	color: inherit;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 12px;
+	line-height: 1.5;
+	tab-size: 2;
+	resize: none;
+}
+
+.logo-panel__controls {
+	display: flex;
+	gap: 6px;
+}
+
+.logo-panel__controls select {
+	margin-left: auto;
+}
+
+.logo-panel__output {
+	flex: 1;
+	min-height: 60px;
+	overflow: auto;
+	padding: 8px;
+	border: 1px solid var(--logo-border);
+	border-radius: 6px;
+	background: var(--logo-input-bg);
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 12px;
+	white-space: pre-wrap;
+}
+
+.logo-panel__error {
+	color: var(--logo-error);
+}
