@@ -409,6 +409,16 @@ class DotcomScenario {
 		await actor.page.keyboard.press('Escape')
 	}
 
+	// Publishing writes R2 via the outbox after the mutation lands, and the published page is
+	// static, so a single reload can still serve the previous snapshot.
+	async expectPublishedShapesCount(actor: DotcomActor, expected: number, timeout = 30_000) {
+		await expect(async () => {
+			await actor.page.reload()
+			await actor.waitForAppReady()
+			await actor.editor.expectShapesCount(expected, 2_000)
+		}).toPass({ timeout, intervals: [500, 1_000, 2_000] })
+	}
+
 	async createLegacyRouteFixture(actor: DotcomActor): Promise<LegacyRouteFixture> {
 		const slug = this.id.slice(0, 96)
 		let fixture: Omit<LegacyRouteFixture, 'urls'> | null = null
