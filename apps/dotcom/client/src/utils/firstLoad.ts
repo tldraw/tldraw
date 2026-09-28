@@ -1,11 +1,17 @@
 import { getFromSessionStorage } from '@tldraw/utils'
 import {
 	createLoadTracker,
+	describeLoadFields,
+	isLoadStaff,
+	LOADS_DEBUG_FLAG,
 	LoadReport,
 	LoadServerTimings,
 	LoadStepRow,
 	LoadTrackerDeps,
+	measureOnTrack,
+	SERVER_ECHO_DEADLINE_MS,
 	serverTotalMs,
+	shouldReportLoad,
 } from './loadTracker'
 
 export { serverTotalMs }
@@ -57,16 +63,8 @@ const FIRST_LOAD_STEP_INFO: Record<FirstLoadStep, string> = {
 	'board-visible': 'ready shroud lifted; board on screen',
 }
 
+/** Field descriptions specific to first_load: init is first-load only, res_* and clerk_script_ms too. */
 const FIRST_LOAD_FIELD_INFO: Record<string, string> = {
-	srv_cold: 'no live room in the DO; true alone does not mean an R2/Postgres load (see srv_boot_*)',
-	srv_edge_colo: 'Cloudflare colo that received the socket',
-	srv_do_colo: 'colo the file room runs in (absent until its one-off lookup resolves)',
-	srv_pg_via: 'Postgres path: hyperdrive or pooler',
-	srv_connect_bytes: 'length of the connect reply in characters (≈ bytes for ASCII JSON)',
-	srv_boot_r2_ms: 'room boot from empty SQLite: R2 snapshot fetch',
-	srv_boot_comments_ms:
-		'room boot from empty SQLite: comments from Postgres (parallel with the R2 fetch)',
-	srv_echo: 'server timings arrived; false = none within 3s of board-visible',
 	srv_init_ms: 'sync worker: user init request (Server-Timing)',
 	srv_init_outcome:
 		'existing (user already set up), created (first sign-in), or a failure: rate_limited, no_clerk_user, no_email; absent if init threw',
@@ -84,46 +82,17 @@ const FIRST_LOAD_FIELD_INFO: Record<string, string> = {
 	clerk_script_ms: 'clerk.browser.js fetch duration',
 }
 
-const SERVER_STEP_INFO: Record<string, string> = {
-	route: 'worker received the socket → room reached (clocks of two machines, approximate)',
-	do_init: 'room woken for this request: constructor → onRequest, incl. the documentInfo read',
-	auth: 'verify the Clerk token',
-	file_record: 'file row lookup (Postgres)',
-	rate_limit: 'rate limiter',
-	group_check: 'group role lookup, getRole (Postgres)',
-	boot: 'room boot from empty SQLite: R2 + comments (see srv_boot_*)',
-	get_room: 'rest of get or create the room',
-	handshake:
-		'101 → client sends connect → reply goes out (RTT; the reply build is CPU and reads ~0)',
-}
-
-function fieldInfo(key: string) {
-	const step = /^srv_[dt]_(.+)$/.exec(key)?.[1]
-	if (step) return `sync worker step: ${SERVER_STEP_INFO[step] ?? step}`
-	return FIRST_LOAD_FIELD_INFO[key] ?? ''
-}
-
-export function describeLoadFields(fields: Record<string, unknown>) {
-	return Object.fromEntries(
-		Object.entries(fields).map(([k, value]) => [k, { value, what: fieldInfo(k) }])
-	)
-}
-
 export const FIRST_LOAD_LOG_HEADER =
 	'[first-load] page load timings, printed because the logLoads debug flag is on'
 
 /**
  * The debug flag that prints the load to the console; sending to PostHog is gated separately
- * (shouldReportFirstLoad). The flag itself is created in TlaEditor: importing `tldraw` here would
+ * (shouldReportLoad). The flag itself is created in TlaEditor: importing `tldraw` here would
  * pull the SDK into the entry chunk. first_load's own live-log is decided once at module load, so a
  * toggle applies from the next full page load; shouldPrintLoads() reads it fresh, so a toggle also
  * applies from the next file open in this tab.
  */
-export const LOADS_DEBUG_FLAG = 'logLoads'
 const printLoads = getFromSessionStorage(`tldraw_debug:${LOADS_DEBUG_FLAG}`) === 'true'
-export function shouldPrintLoads() {
-	return getFromSessionStorage(`tldraw_debug:${LOADS_DEBUG_FLAG}`) === 'true'
-}
 
 export type FirstLoadDeps = LoadTrackerDeps<FirstLoadStep> & { initialPath: string }
 
@@ -161,17 +130,6 @@ export function initServerTiming(entries: readonly PerformanceResourceTiming[]) 
 	const timing = init?.serverTiming?.find((t) => t.name === 'init')
 	if (!timing) return {}
 	return { srv_init_ms: Math.round(timing.duration), srv_init_outcome: timing.description }
-}
-
-/** Staff always; everyone else through the `load_rum` percentage flag (0% by default). */
-export function shouldReportFirstLoad({
-	email,
-	flagEnabled,
-}: {
-	email: string | null | undefined
-	flagEnabled: boolean
-}) {
-	return isFirstLoadStaff(email) || flagEnabled
 }
 
 const kb = (bytes: number) => Math.round(bytes / 1024)
@@ -242,31 +200,6 @@ export function summarizeResources(entries: readonly PerformanceResourceTiming[]
 	}
 }
 
-/**
- * `detail.devtools` is Chrome's Performance panel extension: it puts each step's span on its own
- * named track instead of the generic Timings track, where bare marks are just ticks.
- */
-export function measureOnTrack(track: string) {
-	return (step: string, start: number, end: number) => {
-		try {
-			performance.measure(`tla:${step}`, {
-				start,
-				end,
-				detail: {
-					devtools: {
-						dataType: 'track-entry',
-						track,
-						color: 'primary',
-						tooltipText: `${step}: ${Math.round(end - start)}ms since previous step`,
-					},
-				},
-			})
-		} catch {
-			// measures are best effort
-		}
-	}
-}
-
 /** The one tracker for this page load. Marks after the report is taken are ignored. */
 export const firstLoad = createFirstLoadTracker({
 	now: () => performance.now(),
@@ -306,10 +239,6 @@ if (typeof window !== 'undefined') {
 /** Whether the tab was hidden at any point since navigation start, page boot included. */
 export function wasHiddenSinceNavigation(): boolean {
 	return hiddenDuringLoad
-}
-
-export function isFirstLoadStaff(email: string | null | undefined) {
-	return !!email?.endsWith('@tldraw.com')
 }
 
 export function markFirstLoad(step: FirstLoadStep) {
@@ -375,8 +304,6 @@ function paintTiming() {
 	return out
 }
 
-export const SERVER_ECHO_DEADLINE_MS = 3000
-
 /**
  * Builds the report once: sent to PostHog if this account is in the gate, printed to the console if
  * the debug flag is on.
@@ -386,7 +313,7 @@ export function reportFirstLoad(opts: {
 	flagEnabled: boolean
 	trackEvent(name: string, data: Record<string, unknown>): void
 }) {
-	const inGate = shouldReportFirstLoad(opts)
+	const inGate = shouldReportLoad(opts)
 	const hidden = hiddenDuringLoad && inGate
 	const send = inGate && !hiddenDuringLoad
 	const print = printLoads
@@ -403,7 +330,7 @@ export function reportFirstLoad(opts: {
 		.whenServerTimings(SERVER_ECHO_DEADLINE_MS)
 		.then((gotEcho) =>
 			sendFirstLoadReport(
-				{ send, print, hidden, staff: isFirstLoadStaff(opts.email), trackEvent: opts.trackEvent },
+				{ send, print, hidden, staff: isLoadStaff(opts.email), trackEvent: opts.trackEvent },
 				gotEcho,
 				snapshot
 			)
@@ -455,8 +382,8 @@ function sendFirstLoadReport(
 			...(opts.staff && { what: FIRST_LOAD_STEP_INFO[s.step] }),
 		}))
 	)
-	console.table(opts.staff ? describeLoadFields(server) : server)
-	console.table(opts.staff ? describeLoadFields(resources) : resources)
+	console.table(opts.staff ? describeLoadFields(server, FIRST_LOAD_FIELD_INFO) : server)
+	console.table(opts.staff ? describeLoadFields(resources, FIRST_LOAD_FIELD_INFO) : resources)
 	console.groupEnd()
 	/* eslint-enable no-console */
 	return event

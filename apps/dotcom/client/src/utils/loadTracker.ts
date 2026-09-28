@@ -1,5 +1,5 @@
 import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
-import { uniqueId } from '@tldraw/utils'
+import { getFromSessionStorage, uniqueId } from '@tldraw/utils'
 
 export type LoadServerTimings = Extract<TLCustomServerEvent, { type: 'first_load_server' }>
 
@@ -43,6 +43,94 @@ export function serverTotalMs(msg: LoadServerTimings): number | undefined {
 		.filter(([k, v]) => k.startsWith('t_') && typeof v === 'number')
 		.map(([, v]) => v as number)
 	return ts.length ? Math.max(...ts) : undefined
+}
+
+export const LOADS_DEBUG_FLAG = 'logLoads'
+export function shouldPrintLoads() {
+	return getFromSessionStorage(`tldraw_debug:${LOADS_DEBUG_FLAG}`) === 'true'
+}
+
+export function isLoadStaff(email: string | null | undefined) {
+	return !!email?.endsWith('@tldraw.com')
+}
+
+/** Staff always; everyone else through the `load_rum` percentage flag (0% by default). */
+export function shouldReportLoad({
+	email,
+	flagEnabled,
+}: {
+	email: string | null | undefined
+	flagEnabled: boolean
+}) {
+	return isLoadStaff(email) || flagEnabled
+}
+
+export const SERVER_ECHO_DEADLINE_MS = 3000
+
+/**
+ * `detail.devtools` is Chrome's Performance panel extension: it puts each step's span on its own
+ * named track instead of the generic Timings track, where bare marks are just ticks.
+ */
+export function measureOnTrack(track: string) {
+	return (step: string, start: number, end: number) => {
+		try {
+			performance.measure(`tla:${step}`, {
+				start,
+				end,
+				detail: {
+					devtools: {
+						dataType: 'track-entry',
+						track,
+						color: 'primary',
+						tooltipText: `${step}: ${Math.round(end - start)}ms since previous step`,
+					},
+				},
+			})
+		} catch {
+			// measures are best effort
+		}
+	}
+}
+
+const SERVER_STEP_INFO: Record<string, string> = {
+	route: 'worker received the socket → room reached (clocks of two machines, approximate)',
+	do_init: 'room woken for this request: constructor → onRequest, incl. the documentInfo read',
+	auth: 'verify the Clerk token',
+	file_record: 'file row lookup (Postgres)',
+	rate_limit: 'rate limiter',
+	group_check: 'group role lookup, getRole (Postgres)',
+	boot: 'room boot from empty SQLite: R2 + comments (see srv_boot_*)',
+	get_room: 'rest of get or create the room',
+	handshake:
+		'101 → client sends connect → reply goes out (RTT; the reply build is CPU and reads ~0)',
+}
+
+const SERVER_FIELD_INFO: Record<string, string> = {
+	srv_cold: 'no live room in the DO; true alone does not mean an R2/Postgres load (see srv_boot_*)',
+	srv_edge_colo: 'Cloudflare colo that received the socket',
+	srv_do_colo: 'colo the file room runs in (absent until its one-off lookup resolves)',
+	srv_pg_via: 'Postgres path: hyperdrive or pooler',
+	srv_connect_bytes: 'length of the connect reply in characters (≈ bytes for ASCII JSON)',
+	srv_boot_r2_ms: 'room boot from empty SQLite: R2 snapshot fetch',
+	srv_boot_comments_ms:
+		'room boot from empty SQLite: comments from Postgres (parallel with the R2 fetch)',
+	srv_echo: 'server timings arrived; false = none within 3s of board-visible',
+}
+
+function fieldInfo(key: string, extra?: Record<string, string>) {
+	const step = /^srv_[dt]_(.+)$/.exec(key)?.[1]
+	if (step) return `sync worker step: ${SERVER_STEP_INFO[step] ?? step}`
+	return SERVER_FIELD_INFO[key] ?? extra?.[key] ?? ''
+}
+
+/** `extraInfo` adds or overrides descriptions for fields specific to the caller's event type. */
+export function describeLoadFields(
+	fields: Record<string, unknown>,
+	extraInfo?: Record<string, string>
+) {
+	return Object.fromEntries(
+		Object.entries(fields).map(([k, value]) => [k, { value, what: fieldInfo(k, extraInfo) }])
+	)
 }
 
 export function createLoadTracker<Step extends string>(

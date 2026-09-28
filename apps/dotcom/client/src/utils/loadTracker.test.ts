@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createLoadTracker, type LoadTrackerDeps } from './loadTracker'
+import { createLoadTracker, shouldReportLoad, type LoadTrackerDeps } from './loadTracker'
 
 const STEPS = ['a', 'b', 'c'] as const
 type S = (typeof STEPS)[number]
@@ -50,5 +50,22 @@ describe('createLoadTracker', () => {
 		expect(tracker.isReported()).toBe(false)
 		tracker.takeReport()
 		expect(tracker.isReported()).toBe(true)
+	})
+})
+
+describe('shouldReportLoad', () => {
+	it('reports for tldraw.com accounts regardless of the flag', () => {
+		expect(shouldReportLoad({ email: 'someone@tldraw.com', flagEnabled: false })).toBe(true)
+	})
+	it('reports for other accounts only when the flag is on for them', () => {
+		expect(shouldReportLoad({ email: 'someone@example.com', flagEnabled: false })).toBe(false)
+		expect(shouldReportLoad({ email: 'someone@example.com', flagEnabled: true })).toBe(true)
+	})
+	it('does not report anonymous loads unless the flag says so', () => {
+		expect(shouldReportLoad({ email: null, flagEnabled: false })).toBe(false)
+		expect(shouldReportLoad({ email: undefined, flagEnabled: false })).toBe(false)
+	})
+	it('is not fooled by a tldraw.com substring elsewhere in the address', () => {
+		expect(shouldReportLoad({ email: 'tldraw.com@example.com', flagEnabled: false })).toBe(false)
 	})
 })

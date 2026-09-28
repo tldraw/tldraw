@@ -1,15 +1,16 @@
 import { uniqueId } from '@tldraw/utils'
+import { getFirstLoadId, wasHiddenSinceNavigation } from './firstLoad'
 import {
+	createLoadTracker,
 	describeLoadFields,
-	getFirstLoadId,
-	isFirstLoadStaff,
+	isLoadStaff,
+	type LoadServerTimings,
+	type LoadTrackerDeps,
 	measureOnTrack,
 	SERVER_ECHO_DEADLINE_MS,
 	shouldPrintLoads,
-	shouldReportFirstLoad,
-	wasHiddenSinceNavigation,
-} from './firstLoad'
-import { createLoadTracker, type LoadServerTimings, type LoadTrackerDeps } from './loadTracker'
+	shouldReportLoad,
+} from './loadTracker'
 
 /**
  * Per-step timing for every file open in a tab, first load included, so a file switch can be
@@ -155,7 +156,7 @@ export function reportFileLoad(
 	}
 ) {
 	if (load.isSuperseded()) return
-	const inGate = shouldReportFirstLoad(opts)
+	const inGate = shouldReportLoad(opts)
 	const send = inGate && !load.isHidden()
 	const print = shouldPrintLoads()
 	if (!send && !print) return
@@ -164,7 +165,7 @@ export function reportFileLoad(
 		if (!event) return
 		if (send) opts.trackEvent('file_load', event)
 		if (!print) return
-		const staff = isFirstLoadStaff(opts.email)
+		const staff = isLoadStaff(opts.email)
 		const server = Object.fromEntries(Object.entries(event).filter(([k]) => k.startsWith('srv_')))
 		/* eslint-disable no-console */
 		console.groupCollapsed(

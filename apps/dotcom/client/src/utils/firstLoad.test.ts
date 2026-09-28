@@ -4,7 +4,6 @@ import {
 	FIRST_LOAD_LOG_HEADER,
 	initServerTiming,
 	serverTotalMs,
-	shouldReportFirstLoad,
 	summarizeNavigation,
 	summarizeResources,
 	type FirstLoadDeps,
@@ -249,25 +248,6 @@ describe('server timings', () => {
 		] as unknown as PerformanceResourceTiming[]
 		expect(initServerTiming(entries)).toEqual({ srv_init_ms: 187, srv_init_outcome: 'existing' })
 		expect(initServerTiming([])).toEqual({})
-	})
-})
-
-describe('shouldReportFirstLoad', () => {
-	it('reports for tldraw.com accounts regardless of the flag', () => {
-		expect(shouldReportFirstLoad({ email: 'someone@tldraw.com', flagEnabled: false })).toBe(true)
-	})
-	it('reports for other accounts only when the flag is on for them', () => {
-		expect(shouldReportFirstLoad({ email: 'someone@example.com', flagEnabled: false })).toBe(false)
-		expect(shouldReportFirstLoad({ email: 'someone@example.com', flagEnabled: true })).toBe(true)
-	})
-	it('does not report anonymous loads unless the flag says so', () => {
-		expect(shouldReportFirstLoad({ email: null, flagEnabled: false })).toBe(false)
-		expect(shouldReportFirstLoad({ email: undefined, flagEnabled: false })).toBe(false)
-	})
-	it('is not fooled by a tldraw.com substring elsewhere in the address', () => {
-		expect(shouldReportFirstLoad({ email: 'tldraw.com@example.com', flagEnabled: false })).toBe(
-			false
-		)
 	})
 })
 

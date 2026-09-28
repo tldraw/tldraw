@@ -41,13 +41,9 @@ import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/confi
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { fileLoads, reportFileLoad } from '../../../utils/fileLoad'
-import {
-	LOADS_DEBUG_FLAG,
-	markFirstLoad,
-	reportFirstLoad,
-	setFirstLoadServerTimings,
-} from '../../../utils/firstLoad'
+import { markFirstLoad, reportFirstLoad, setFirstLoadServerTimings } from '../../../utils/firstLoad'
 import { globalEditor } from '../../../utils/globalEditor'
+import { LOADS_DEBUG_FLAG } from '../../../utils/loadTracker'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
