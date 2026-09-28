@@ -235,10 +235,8 @@ export interface McpTokenOptions {
  * instance's own, so a token any other issuer signed fails on signature.
  *
  * The audience check (RFC 8707) is what stops a token the user granted to somebody else's MCP server
- * from being replayed against ours. It is per environment because it depends on Clerk configuration
- * this repository cannot see — see {@link checkMcpTokenAudience}. Where it is off, the only protection
- * is Clerk's `client_id_metadata_documents_only_allow_pre_registered_clients`, which refuses tokens
- * to CIMD clients nobody approved.
+ * from being replayed against ours. It depends on Clerk configuration this repository cannot see —
+ * see {@link checkMcpTokenAudience}.
  */
 export async function getMcpTokenAuth(
 	request: IRequest,
@@ -286,8 +284,8 @@ export async function getMcpTokenAuth(
 }
 
 /**
- * Whether a verified access token names this server as its audience, per `MCP_TOKEN_AUDIENCE_CHECK`.
- * Returns the refusal to answer with, or null to carry on — which in `report` mode is every outcome.
+ * Whether a verified access token names this server as its audience. Returns the refusal to answer
+ * with, or null to carry on.
  *
  * Clerk stamps `aud` only when the client sends an RFC 8707 `resource` parameter, and then stamps
  * exactly that value; a refresh asking for a different resource gets `invalid_target`. A client that
@@ -295,9 +293,9 @@ export async function getMcpTokenAuth(
  * pass: `@clerk/backend`'s own `audience` option skips the comparison when the claim is missing, so a
  * client could opt out of the check just by leaving the parameter off.
  *
- * Enforced unless the environment opts out with `report` or `off`, so a missing or mistyped value
- * fails closed. Opting out is for a Clerk instance not configured to stamp `aud` (staging and
- * production are), where enforcing would refuse every token.
+ * Relies on the Clerk instance being configured to stamp `aud` (staging and production are); one that
+ * is not refuses every token here. Skipped in local dev, whose Clerk development instance is not
+ * known to.
  *
  * Read from the token only after the SDK has verified its signature, so nothing here is trusted
  * that the SDK did not already check.
@@ -307,13 +305,12 @@ function checkMcpTokenAudience(
 	token: string,
 	clientId: string
 ): 'no_audience' | 'wrong_audience' | 'unconfigured' | null {
-	if (env.MCP_TOKEN_AUDIENCE_CHECK === 'off') return null
-	const mode = env.MCP_TOKEN_AUDIENCE_CHECK === 'report' ? 'report' : 'enforce'
+	if (env.IS_LOCAL === 'true') return null
 
 	const expected = env.MCP_SERVER_URL
 	if (!expected) {
-		console.error('MCP token audience check is on but MCP_SERVER_URL is unset')
-		return mode === 'enforce' ? 'unconfigured' : null
+		console.error('MCP token audience check needs MCP_SERVER_URL, which is unset')
+		return 'unconfigured'
 	}
 
 	let aud: unknown
@@ -331,15 +328,14 @@ function checkMcpTokenAudience(
 				? 'match'
 				: 'wrong_audience'
 
-	// The client id rides along, unlike on the refusal event, because which clients send `resource` is
-	// the one question report mode exists to answer. It names an application — a CIMD document URL or a
-	// pre-registered app id — never a user.
+	// The client id rides along, unlike on the refusal event, so a client locked out for not sending
+	// `resource` can be named. It names an application — a CIMD document URL or a pre-registered app
+	// id — never a user.
 	writeDataPoint(undefined, env.MEASURE, env, 'mcp_token_audience', {
-		blobs: [`outcome:${outcome}`, `mode:${mode}`, `client_id:${clientId.slice(0, 200)}`],
+		blobs: [`outcome:${outcome}`, `client_id:${clientId.slice(0, 200)}`],
 	})
 
-	if (outcome === 'match' || mode === 'report') return null
-	return outcome
+	return outcome === 'match' ? null : outcome
 }
 
 /** The bearer token on a request, if it carries one. */

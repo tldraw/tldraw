@@ -137,9 +137,6 @@ MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
 # metadata and in the WWW-Authenticate challenge. Points at the client dev server because that is
 # what proxies /api and /.well-known through to this worker.
 MCP_SERVER_URL = "http://localhost:3000/api/app/mcp"
-# The Clerk development instance is not known to stamp `aud`, and enforcing there would refuse every
-# local MCP token. Staging, production and previews enforce by default.
-MCP_TOKEN_AUDIENCE_CHECK = "report"
 # Kill switch for the MCP screenshot server (POST /app/mcp). Read per request, so setting it to
 # anything but "true" — here or straight in the Cloudflare dashboard — takes the endpoint down
 # without a rebuild. A dashboard edit lasts until the next deploy overwrites it from this file.
