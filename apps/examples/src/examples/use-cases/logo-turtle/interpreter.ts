@@ -1,7 +1,7 @@
-import type { TurtleWorld } from './turtle-world'
+import { radians, type TurtleWorld } from './turtle-world'
 
 // A small Logo interpreter in the style of https://www.calormen.com/jslogo/. Programs are
-// tokenized up front, but parsed while they run: how many inputs a word takes depends on which
+// split into tokens up front, but parsed while they run: how many inputs a word takes depends on which
 // procedures exist at the moment it is called, so there is no separate AST.
 
 export type LogoValue = number | string | LogoValue[]
@@ -44,38 +44,29 @@ function isInfix(token: LogoValue | undefined): boolean {
 	return typeof token === 'string' && INFIX.includes(token)
 }
 
-export function tokenize(source: string): LogoValue[] {
+// Can't come from source text, because whitespace always splits words
+const UNARY_MINUS = ' -'
+
+// Lists are data, so words inside them stay whole (`print [a-b]` prints `a-b`). Operators are
+// only split out by `toCode`, when a list is run as instructions.
+function readWords(source: string): LogoValue[] {
 	const root: LogoValue[] = []
 	const stack: LogoValue[][] = [root]
 	const top = () => stack[stack.length - 1]
-	let afterSpace = true
 	let i = 0
 
 	while (i < source.length) {
 		const ch = source[i]
-
 		if (ch === ';') {
 			while (i < source.length && source[i] !== '\n') i++
-			continue
-		}
-		if (ch === '~' && source[i + 1] === '\n') {
+		} else if (ch === '~' && source[i + 1] === '\n') {
 			i += 2
-			continue
-		}
-		if (/\s/.test(ch)) {
-			afterSpace = true
+		} else if (/\s/.test(ch)) {
 			i++
-			continue
-		}
-
-		const wasAfterSpace = afterSpace
-		afterSpace = false
-
-		if (ch === '[') {
+		} else if (ch === '[') {
 			const list: LogoValue[] = []
 			top().push(list)
 			stack.push(list)
-			afterSpace = true
 			i++
 		} else if (ch === ']') {
 			if (stack.length === 1) throw new LogoError("Unexpected ']'")
@@ -83,50 +74,10 @@ export function tokenize(source: string): LogoValue[] {
 			i++
 		} else if (ch === '(' || ch === ')') {
 			top().push(ch)
-			afterSpace = ch === '('
-			i++
-		} else if (ch === '"') {
-			let j = i + 1
-			while (j < source.length && !DELIMITERS.includes(source[j])) j++
-			top().push(source.slice(i, j))
-			i = j
-		} else if (
-			(ch === '<' || ch === '>') &&
-			(source[i + 1] === '=' || source.slice(i, i + 2) === '<>')
-		) {
-			top().push(source.slice(i, i + 2))
-			i += 2
-		} else if (ch === '-') {
-			// [1]
-			const list = top()
-			const prev = list[list.length - 1]
-			const next = source[i + 1] ?? ' '
-			const isUnary =
-				prev === undefined || prev === '(' || isInfix(prev) || (wasAfterSpace && !/\s/.test(next))
-			if (!isUnary) {
-				top().push('-')
-				i++
-			} else if (/[\d.]/.test(next)) {
-				let j = i + 1
-				while (j < source.length && /[\d.eE]/.test(source[j])) j++
-				top().push(source.slice(i, j))
-				i = j
-			} else {
-				top().push('minus')
-				i++
-			}
-		} else if ('+*/=<>'.includes(ch)) {
-			top().push(ch)
 			i++
 		} else {
 			let j = i
-			while (
-				j < source.length &&
-				!DELIMITERS.includes(source[j]) &&
-				!'+-*/=<>'.includes(source[j])
-			) {
-				j++
-			}
+			while (j < source.length && !DELIMITERS.includes(source[j])) j++
 			top().push(source.slice(i, j))
 			i = j
 		}
@@ -136,47 +87,91 @@ export function tokenize(source: string): LogoValue[] {
 	return root
 }
 
-// `to ... end` blocks are line-based, so pull them out before tokenizing the rest
-export function parseProgram(source: string) {
-	const lines = source.split('\n')
-	const definitions: ProcedureDefinition[] = []
-	const mainLines: string[] = []
+// [1]
+function toCode(words: LogoValue[]): LogoValue[] {
+	const code: LogoValue[] = []
+	for (const word of words) {
+		if (typeof word !== 'string' || word.startsWith('"')) {
+			code.push(word)
+			continue
+		}
+		let i = 0
+		while (i < word.length) {
+			const ch = word[i]
+			if ((ch === '<' || ch === '>') && (word[i + 1] === '=' || word.slice(i, i + 2) === '<>')) {
+				code.push(word.slice(i, i + 2))
+				i += 2
+			} else if (ch === '-') {
+				const prev = code[code.length - 1]
+				const isUnary =
+					prev === undefined ||
+					prev === '(' ||
+					prev === UNARY_MINUS ||
+					isInfix(prev) ||
+					(i === 0 && word.length > 1)
+				code.push(isUnary ? UNARY_MINUS : '-')
+				i++
+			} else if ('+*/=<>'.includes(ch)) {
+				code.push(ch)
+				i++
+			} else {
+				let j = i
+				while (j < word.length && !'+-*/=<>'.includes(word[j])) j++
+				code.push(word.slice(i, j))
+				i = j
+			}
+		}
+	}
+	return code
+}
 
-	for (let i = 0; i < lines.length; i++) {
-		if (!/^\s*to\s/i.test(lines[i])) {
-			mainLines.push(lines[i])
+const isKeyword = (word: LogoValue | undefined, keyword: string) =>
+	typeof word === 'string' && word.toLowerCase() === keyword
+
+// Definitions are pulled out before anything runs, so a procedure can be called above its `to`
+function parseProgram(source: string) {
+	const words = readWords(source)
+	const definitions: ProcedureDefinition[] = []
+	const main: LogoValue[] = []
+
+	for (let i = 0; i < words.length; i++) {
+		if (!isKeyword(words[i], 'to')) {
+			main.push(words[i])
 			continue
 		}
 
-		const header = tokenize(lines[i])
-		const name = String(header[1] ?? '').toLowerCase()
-		if (!name) throw new LogoError('to needs a procedure name')
-
-		const bodyLines: string[] = []
-		i++
-		while (i < lines.length && !/^\s*end\s*(;.*)?$/i.test(lines[i])) bodyLines.push(lines[i++])
-		if (i >= lines.length) throw new LogoError(`Missing "end" for ${name}`)
-
+		const name = words[++i]
+		if (typeof name !== 'string' || !name) throw new LogoError('to needs a procedure name')
 		const definition: ProcedureDefinition = {
-			name,
+			name: name.toLowerCase(),
 			required: [],
 			optional: [],
 			rest: null,
-			body: tokenize(bodyLines.join('\n')),
+			body: [],
 		}
-		for (const input of header.slice(2)) {
+
+		// Inputs run until the first word that isn't `:name` or `[:name default]`
+		for (i++; i < words.length; i++) {
+			const input = words[i]
 			if (typeof input === 'string' && input.startsWith(':')) {
 				definition.required.push(input.slice(1).toLowerCase())
 			} else if (Array.isArray(input) && typeof input[0] === 'string' && input[0].startsWith(':')) {
 				const inputName = input[0].slice(1).toLowerCase()
 				if (input.length === 1) definition.rest = inputName
-				else definition.optional.push({ name: inputName, defaultValue: input.slice(1) })
+				else definition.optional.push({ name: inputName, defaultValue: toCode(input.slice(1)) })
+			} else {
+				break
 			}
 		}
+
+		const body: LogoValue[] = []
+		for (; i < words.length && !isKeyword(words[i], 'end'); i++) body.push(words[i])
+		if (i >= words.length) throw new LogoError(`Missing "end" for ${definition.name}`)
+		definition.body = toCode(body)
 		definitions.push(definition)
 	}
 
-	return { definitions, body: tokenize(mainLines.join('\n')) }
+	return { definitions, body: toCode(main) }
 }
 
 class Cursor {
@@ -197,7 +192,7 @@ function formatNumber(n: number) {
 	return String(Math.round(n * 1e10) / 1e10)
 }
 
-export function formatValue(value: LogoValue, { brackets = false } = {}): string {
+function formatValue(value: LogoValue, { brackets = false } = {}): string {
 	if (typeof value === 'number') return formatNumber(value)
 	if (typeof value === 'string') return value
 	const inner = value.map((v) => formatValue(v, { brackets: true })).join(' ')
@@ -245,6 +240,7 @@ function equal(a: LogoValue, b: LogoValue): boolean {
 }
 
 const asWord = (value: LogoValue) => formatValue(value)
+const items = (value: LogoValue) => (Array.isArray(value) ? value : asWord(value).split(''))
 
 export class LogoInterpreter {
 	private procedures = new Map<string, Procedure>()
@@ -296,14 +292,23 @@ export class LogoInterpreter {
 		return last
 	}
 
+	// Loops run the same list many times, so keep its split-out tokens
+	private compiledLists = new WeakMap<LogoValue[], LogoValue[]>()
+
 	private runList(value: LogoValue, procedure: string) {
-		return this.runTokens(toList(value, procedure))
+		const list = toList(value, procedure)
+		let code = this.compiledLists.get(list)
+		if (!code) {
+			code = toCode(list)
+			this.compiledLists.set(list, code)
+		}
+		return this.runTokens(code)
 	}
 
 	// [2]
 	private async expression(c: Cursor): Promise<LogoValue | undefined> {
 		let left = await this.additive(c)
-		while (isInfix(c.peek()) && ['=', '<', '>', '<=', '>=', '<>'].includes(c.peek() as string)) {
+		while (['=', '<', '>', '<=', '>=', '<>'].includes(c.peek() as string)) {
 			const op = c.next() as string
 			const right = await this.additive(c)
 			if (left === undefined || right === undefined)
@@ -351,6 +356,7 @@ export class LogoInterpreter {
 		if (isNumeric(token)) return Number(token)
 		if (token.startsWith('"')) return token.slice(1)
 		if (token.startsWith(':')) return this.getVariable(token.slice(1))
+		if (token === UNARY_MINUS) return -toNumber(await this.primary(c), '-')
 		if (token === ')' || isInfix(token)) throw new LogoError(`Unexpected ${token}`)
 
 		if (token === '(') {
@@ -484,13 +490,13 @@ export class LogoInterpreter {
 		this.define('left lt', 1, ([n]) => world.turn(-num(n, 'left')))
 		this.define('right rt', 1, ([n]) => world.turn(num(n, 'right')))
 		this.define('home', 0, () => world.home())
-		this.define('setxy', 2, ([x, y]) => world.setPosition(num(x, 'setxy'), num(y, 'setxy')))
+		this.define('setxy', 2, ([x, y]) => world.moveTo(num(x, 'setxy'), num(y, 'setxy')))
 		this.define('setpos', 1, ([p]) => {
 			const [x, y] = toList(p, 'setpos')
-			return world.setPosition(num(x, 'setpos'), num(y, 'setpos'))
+			return world.moveTo(num(x, 'setpos'), num(y, 'setpos'))
 		})
-		this.define('setx', 1, ([x]) => world.setPosition(num(x, 'setx'), world.turtle.y))
-		this.define('sety', 1, ([y]) => world.setPosition(world.turtle.x, num(y, 'sety')))
+		this.define('setx', 1, ([x]) => world.moveTo(num(x, 'setx'), world.turtle.y))
+		this.define('sety', 1, ([y]) => world.moveTo(world.turtle.x, num(y, 'sety')))
 		this.define('setheading seth', 1, ([h]) => world.setHeading(num(h, 'setheading')))
 		this.define('arc', 2, ([angle, radius]) => world.arc(num(angle, 'arc'), num(radius, 'arc')))
 		this.define('pos', 0, () => [world.turtle.x, world.turtle.y])
@@ -519,7 +525,9 @@ export class LogoInterpreter {
 		this.define('showturtle st', 0, () => world.setVisible(true))
 		this.define('shownp shown?', 0, () => bool(world.turtle.visible))
 		this.define('label', 1, ([text]) => world.label(formatValue(text)))
-		this.define('setlabelheight', 1, ([h]) => world.setLabelHeight(num(h, 'setlabelheight')))
+		this.define('setlabelheight', 1, ([h]) => {
+			world.labelHeight = num(h, 'setlabelheight')
+		})
 		this.define('labelheight', 0, () => world.labelHeight)
 		this.define('setturtle', 1, ([n]) => world.setTurtle(num(n, 'setturtle')))
 		this.define('turtle', 0, () => world.currentTurtle)
@@ -570,7 +578,7 @@ export class LogoInterpreter {
 		})
 		this.define('for', 2, async ([control, body]) => {
 			const [varName, ...rest] = toList(control, 'for')
-			const c = new Cursor(rest)
+			const c = new Cursor(toCode(rest))
 			const start = num(await this.expression(c), 'for')
 			const end = num(await this.expression(c), 'for')
 			const step = c.done() ? (end >= start ? 1 : -1) : num(await this.expression(c), 'for')
@@ -587,9 +595,9 @@ export class LogoInterpreter {
 			}
 		})
 		this.define('foreach', 2, async ([data, template]) => {
-			const items = Array.isArray(data) ? data : asWord(data).split('')
-			for (let i = 0; i < items.length; i++) {
-				this.templateValues.push(items[i])
+			const values = items(data)
+			for (let i = 0; i < values.length; i++) {
+				this.templateValues.push(values[i])
 				this.repcounts.push(i + 1)
 				try {
 					await this.runList(template, 'foreach')
@@ -605,7 +613,9 @@ export class LogoInterpreter {
 			return value
 		})
 		this.define('run', 1, ([list]) =>
-			this.runTokens(Array.isArray(list) ? list : tokenize(asWord(list)))
+			Array.isArray(list)
+				? this.runList(list, 'run')
+				: this.runTokens(toCode(readWords(asWord(list))))
 		)
 		this.define('stop', 0, () => {
 			throw new StopSignal()
@@ -645,7 +655,6 @@ export class LogoInterpreter {
 
 		// Math
 		const nums = (values: LogoValue[], name: string) => values.map((v) => num(v, name))
-		const radians = (degrees: number) => (degrees * Math.PI) / 180
 		this.define('sum', [0, 2, Infinity], (v) => nums(v, 'sum').reduce((a, b) => a + b, 0))
 		this.define('product', [0, 2, Infinity], (v) => nums(v, 'product').reduce((a, b) => a * b, 1))
 		this.define('difference', 2, ([a, b]) => num(a, 'difference') - num(b, 'difference'))
@@ -681,9 +690,9 @@ export class LogoInterpreter {
 			return Math.floor(Math.random() * a)
 		})
 		this.define('pick', 1, ([list]) => {
-			const items = Array.isArray(list) ? list : asWord(list).split('')
-			if (!items.length) throw new LogoError("pick doesn't like an empty list as input")
-			return items[Math.floor(Math.random() * items.length)]
+			const values = items(list)
+			if (!values.length) throw new LogoError("pick doesn't like an empty list as input")
+			return values[Math.floor(Math.random() * values.length)]
 		})
 
 		// Predicates and logic
@@ -703,7 +712,6 @@ export class LogoInterpreter {
 		this.define('or', [0, 2, Infinity], (v) => bool(v.some((a) => toBool(a, 'or'))))
 
 		// Words and lists
-		const items = (value: LogoValue) => (Array.isArray(value) ? value : asWord(value).split(''))
 		const empty = (value: LogoValue, name: string) => {
 			if (items(value).length === 0) throw new LogoError(`${name} doesn't like an empty input`)
 		}
@@ -741,9 +749,9 @@ export class LogoInterpreter {
 /*
 [1]
 Logo's minus sign is ambiguous. `:a - 1` and `:a-1` subtract, but `fd -5` and `:a * -1` negate.
-Like UCB Logo, a minus that follows an infix operator or open paren, or that has a space before
-it and none after, is unary. Negative number literals become a single token; anything else
-becomes a call to `minus`.
+Like UCB Logo, a minus that follows an infix operator or open paren, or that starts a word
+(space before, none after), is unary. Unary minus binds tighter than any infix operator, so
+`-:x - 1` is `(-:x) - 1`.
 
 [2]
 Infix operators bind tighter than procedure inputs, so `fd :size / 3` is `fd (:size / 3)`. The

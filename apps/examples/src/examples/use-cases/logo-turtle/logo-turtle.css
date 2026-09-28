@@ -9,35 +9,15 @@
 	flex: 1;
 }
 
-.tl-theme__light.logo-panel {
-	--logo-bg: #fafafa;
-	--logo-border: #ddd;
-	--logo-text: #1d1d1d;
-	--logo-muted: #6b6b6b;
-	--logo-input-bg: white;
-	--logo-accent: #2f80ed;
-	--logo-error: #e03131;
-}
-
-.tl-theme__dark.logo-panel {
-	--logo-bg: #1d1d1d;
-	--logo-border: #3a3a3a;
-	--logo-text: #f2f2f2;
-	--logo-muted: #a0a0a0;
-	--logo-input-bg: #101011;
-	--logo-accent: #4f8ff7;
-	--logo-error: #ff6b6b;
-}
-
 .logo-panel {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
 	width: 340px;
 	padding: 12px;
-	background: var(--logo-bg);
-	border-right: 1px solid var(--logo-border);
-	color: var(--logo-text);
+	background: var(--tl-color-panel);
+	border-right: 1px solid var(--tl-color-divider);
+	color: var(--tl-color-text);
 	font-family: system-ui, sans-serif;
 	font-size: 13px;
 }
@@ -56,9 +36,9 @@
 .logo-panel select,
 .logo-panel button {
 	padding: 4px 10px;
-	border: 1px solid var(--logo-border);
+	border: 1px solid var(--tl-color-divider);
 	border-radius: 6px;
-	background: var(--logo-input-bg);
+	background: var(--tl-color-background);
 	color: inherit;
 	font: inherit;
 	cursor: pointer;
@@ -71,8 +51,8 @@
 }
 
 .logo-panel .logo-panel__run {
-	border-color: var(--logo-accent);
-	background: var(--logo-accent);
+	border-color: var(--tl-color-primary);
+	background: var(--tl-color-primary);
 	color: white;
 }
 
@@ -80,9 +60,9 @@
 	flex: 3;
 	min-height: 0;
 	padding: 8px;
-	border: 1px solid var(--logo-border);
+	border: 1px solid var(--tl-color-divider);
 	border-radius: 6px;
-	background: var(--logo-input-bg);
+	background: var(--tl-color-background);
 	color: inherit;
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 	font-size: 12px;
@@ -105,14 +85,14 @@
 	min-height: 60px;
 	overflow: auto;
 	padding: 8px;
-	border: 1px solid var(--logo-border);
+	border: 1px solid var(--tl-color-divider);
 	border-radius: 6px;
-	background: var(--logo-input-bg);
+	background: var(--tl-color-background);
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 	font-size: 12px;
 	white-space: pre-wrap;
 }
 
 .logo-panel__error {
-	color: var(--logo-error);
+	color: #e03131;
 }

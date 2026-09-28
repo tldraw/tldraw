@@ -36,8 +36,7 @@ export interface Turtle {
 	color: TLDefaultColorStyle
 	size: TLDefaultSizeStyle
 	visible: boolean
-	// The stroke the turtle is drawing right now, in page coordinates. It is shown by the
-	// overlay while the program runs and becomes a line shape once the pen lifts or changes.
+	// In page coordinates; committed as a line shape when the pen lifts or changes
 	path: VecModel[] | null
 }
 
@@ -66,7 +65,9 @@ function createTurtle(): Turtle {
 
 // Logo's y axis points up and the page's points down
 const toPage = (x: number, y: number): VecModel => ({ x, y: -y })
-const radians = (degrees: number) => (degrees * Math.PI) / 180
+export function radians(degrees: number) {
+	return (degrees * Math.PI) / 180
+}
 const normalizeHeading = (degrees: number) => ((degrees % 360) + 360) % 360
 
 export class TurtleWorld {
@@ -128,10 +129,6 @@ export class TurtleWorld {
 		await this.step()
 	}
 
-	async setPosition(x: number, y: number) {
-		await this.moveTo(x, y)
-	}
-
 	async home() {
 		this.turtle.heading = 0
 		await this.moveTo(0, 0)
@@ -175,10 +172,6 @@ export class TurtleWorld {
 		this.flush()
 	}
 
-	setLabelHeight(height: number) {
-		this.labelHeight = height
-	}
-
 	setTurtle(index: number) {
 		if (!this.turtles.has(index)) this.turtles.set(index, createTurtle())
 		this.currentTurtle = index
@@ -216,7 +209,7 @@ export class TurtleWorld {
 	}
 
 	clearScreen() {
-		this.clean()
+		this.editor.deleteShapes(this.getDrawnShapes())
 		this.turtles = new Map([[1, createTurtle()]])
 		this.currentTurtle = 1
 		this.labelHeight = 12
@@ -224,7 +217,6 @@ export class TurtleWorld {
 		this.centerCamera()
 	}
 
-	// Home is the page origin, so a clear screen puts it back in the middle of the viewport at 100%
 	centerCamera() {
 		const { w, h } = this.editor.getViewportScreenBounds()
 		this.editor.setCamera({ x: w / 2, y: h / 2, z: 1 })
@@ -248,7 +240,7 @@ export class TurtleWorld {
 		if (performance.now() - this.lastYield > 16) await this.nextFrame()
 	}
 
-	private async moveTo(x: number, y: number) {
+	async moveTo(x: number, y: number) {
 		const t = this.turtle
 		if (t.penDown) {
 			const to = toPage(x, y)

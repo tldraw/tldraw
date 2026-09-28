@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-	Box,
 	defaultOverlayUtils,
 	Editor,
 	EditorProvider,
@@ -121,7 +120,13 @@ function LogoPanel() {
 						Run
 					</button>
 				)}
-				<button disabled={isRunning} onClick={() => world.clearScreen()}>
+				<button
+					disabled={isRunning}
+					onClick={() => {
+						editor.markHistoryStoppingPoint('logo clear')
+						world.clearScreen()
+					}}
+				>
 					Clear
 				</button>
 				<select
@@ -147,14 +152,12 @@ function LogoPanel() {
 }
 
 function zoomToDrawingIfOffscreen(editor: Editor) {
-	const bounds = Box.Common(
+	const bounds = editor.getShapesPageBounds(
 		getTurtleWorld(editor)
 			.getDrawnShapes()
-			.map((shape) => editor.getShapePageBounds(shape))
-			.filter((b): b is Box => !!b)
+			.map((shape) => shape.id)
 	)
-	if (bounds.width === 0 && bounds.height === 0) return
-	if (editor.getViewportPageBounds().contains(bounds)) return
+	if (!bounds || editor.getViewportPageBounds().contains(bounds)) return
 	editor.zoomToBounds(bounds, { inset: 48, targetZoom: 1, animation: { duration: 300 } })
 }
 
@@ -184,16 +187,12 @@ export default function LogoTurtleExample() {
 
 /*
 [1]
-The turtles, and the stroke each one is in the middle of drawing, are drawn by an overlay util
-rather than as shapes. That keeps the store (and undo history) free of the many tiny updates an
-animated turtle makes. See `TurtleOverlayUtil.ts`.
+Turtles and in-progress strokes are drawn by an overlay util rather than as shapes, so an
+animating turtle doesn't flood the store and undo history with tiny updates.
 
 [2]
-The interpreter lives as long as the editor, so procedures and global variables you define in
-one run are still there in the next, just like the jslogo console. The turtle state lives in a
-`TurtleWorld` (see `turtle-world.ts`), which commits each finished pen stroke as a regular
-tldraw line shape and each `label` as a text shape. Those are ordinary shapes: select them,
-restyle them, or undo a whole run with one undo.
+The interpreter lives as long as the editor, so procedures and globals from one run are still
+defined in the next, like the jslogo console.
 
 [3]
 Logo puts the turtle's home at the center of the screen. Home is the page origin here, so start
