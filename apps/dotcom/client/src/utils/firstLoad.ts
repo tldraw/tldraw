@@ -1,7 +1,16 @@
-import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
-import { getFromSessionStorage, uniqueId } from '@tldraw/utils'
+import { getFromSessionStorage } from '@tldraw/utils'
+import {
+	createLoadTracker,
+	LoadReport,
+	LoadServerTimings,
+	LoadStepRow,
+	LoadTrackerDeps,
+	serverTotalMs,
+} from './loadTracker'
 
-export type FirstLoadServerTimings = Extract<TLCustomServerEvent, { type: 'first_load_server' }>
+export { serverTotalMs }
+
+export type FirstLoadServerTimings = LoadServerTimings
 
 /**
  * Per-step timing for the first load of a page, from navigation start to the board being visible.
@@ -94,7 +103,7 @@ function fieldInfo(key: string) {
 	return FIRST_LOAD_FIELD_INFO[key] ?? ''
 }
 
-function describeFields(fields: Record<string, unknown>) {
+export function describeLoadFields(fields: Record<string, unknown>) {
 	return Object.fromEntries(
 		Object.entries(fields).map(([k, value]) => [k, { value, what: fieldInfo(k) }])
 	)
@@ -111,155 +120,37 @@ export const FIRST_LOAD_LOG_HEADER =
  */
 export const LOADS_DEBUG_FLAG = 'logLoads'
 const printLoads = getFromSessionStorage(`tldraw_debug:${LOADS_DEBUG_FLAG}`) === 'true'
-
-export interface FirstLoadDeps {
-	now(): number
-	mark(name: string): void
-	measure(step: FirstLoadStep, start: number, end: number): void
-	log(line: string): void
-	initialPath: string
+export function shouldPrintLoads() {
+	return printLoads
 }
 
-export interface FirstLoadStepRow {
-	step: FirstLoadStep
-	t: number
-	delta: number
-}
+export type FirstLoadDeps = LoadTrackerDeps<FirstLoadStep> & { initialPath: string }
 
-export interface FirstLoadReport {
-	load_id: string
+export type FirstLoadStepRow = LoadStepRow<FirstLoadStep>
+
+export type FirstLoadReport = LoadReport<FirstLoadStep> & {
 	route_kind: 'root-redirect' | 'file' | 'other'
-	steps: FirstLoadStepRow[]
-	total_ms: number
-	[key: `t_${string}`]: number | undefined
-	[key: `d_${string}`]: number | undefined
-	[key: `srv_${string}`]: number | string | boolean | undefined
-}
-
-/** The server's whole connect span: its last step, since steps only run when needed. */
-export function serverTotalMs(msg: FirstLoadServerTimings): number | undefined {
-	const ts = Object.entries(msg)
-		.filter(([k, v]) => k.startsWith('t_') && typeof v === 'number')
-		.map(([, v]) => v as number)
-	return ts.length ? Math.max(...ts) : undefined
 }
 
 export function createFirstLoadTracker(deps: FirstLoadDeps) {
-	const loadId = uniqueId(21)
-	const marks: Partial<Record<FirstLoadStep, number>> = {}
-	let lastT = 0
-	let reported = false
-	let server: FirstLoadServerTimings | null = null
-	const serverWaiters: Array<() => void> = []
-	// Buffered until enableLiveLog(), which replays the steps recorded before it.
-	let live = false
-	const lines: string[] = []
-
-	function say(line: string) {
-		if (live) deps.log(line)
-		else lines.push(line)
-	}
-
+	const core = createLoadTracker(deps, {
+		steps: FIRST_LOAD_STEPS,
+		logPrefix: 'first-load',
+		logHeader: FIRST_LOAD_LOG_HEADER,
+		markPrefix: 'tla',
+	})
 	const routeKind = (): FirstLoadReport['route_kind'] => {
 		if (deps.initialPath === '/') return 'root-redirect'
 		if (deps.initialPath.startsWith('/f/')) return 'file'
 		return 'other'
 	}
-
-	function mark(step: FirstLoadStep) {
-		if (step in marks) return
-		const t = Math.round(deps.now())
-		marks[step] = t
-		deps.mark(`tla:${step}`)
-		deps.measure(step, lastT, t)
-		say(`[first-load] ${step} +${t}ms (+${t - lastT})`)
-		lastT = t
-	}
-
-	function buildReport(): FirstLoadReport {
-		// Sorted by when each step happened, not by the list: the router fetches both route chunks in
-		// parallel, so file-chunk-loaded regularly lands before clerk-loaded.
-		const seen = FIRST_LOAD_STEPS.filter((step) => marks[step] !== undefined).sort(
-			(a, b) => marks[a]! - marks[b]!
-		)
-		const steps: FirstLoadStepRow[] = []
-		let prev = 0
-		for (const step of seen) {
-			const t = marks[step]!
-			steps.push({ step, t, delta: t - prev })
-			prev = t
-		}
-		const report: FirstLoadReport = {
-			load_id: loadId,
-			route_kind: routeKind(),
-			steps,
-			total_ms: prev,
-		}
-		for (const row of steps) {
-			const key = row.step.replaceAll('-', '_')
-			report[`t_${key}`] = row.t
-			report[`d_${key}`] = row.delta
-		}
-		if (server) {
-			const { type: _type, loadId: _loadId, ...timings } = server
-			for (const [k, v] of Object.entries(timings)) {
-				if (v !== undefined) report[`srv_${k}`] = v
-			}
-		}
-		return report
-	}
-
-	/** The sync server's side of this load, sent once after the socket connects. */
-	function setServerTimings(msg: FirstLoadServerTimings) {
-		if (msg.loadId !== loadId) return
-		// A reconnect inside the report window sends a second, warm echo; the first one is the load.
-		if (server) return
-		server = msg
-		for (const wake of serverWaiters.splice(0)) wake()
-		say(
-			`[first-load] server: ${msg.cold ? 'cold' : 'warm'} room, connect ${serverTotalMs(msg) ?? '?'}ms` +
-				(msg.d_boot !== undefined ? `, boot ${msg.d_boot}ms` : '')
-		)
-	}
-
-	/**
-	 * Resolves true once the sync server's echo is in, or false at the deadline. The echo is sent
-	 * just after the connect handshake, so on a warm load it can trail board-visible by a few ms.
-	 */
-	function whenServerTimings(timeoutMs: number): Promise<boolean> {
-		if (server) return Promise.resolve(true)
-		return new Promise((resolve) => {
-			const timer = setTimeout(() => resolve(false), timeoutMs)
-			serverWaiters.push(() => {
-				clearTimeout(timer)
-				resolve(true)
-			})
-		})
-	}
-
-	/** Start printing steps as they happen, after replaying the ones already recorded. */
-	function enableLiveLog() {
-		if (live) return
-		live = true
-		deps.log(FIRST_LOAD_LOG_HEADER)
-		for (const line of lines.splice(0)) deps.log(line)
-	}
-
-	function takeReport(): FirstLoadReport | null {
-		if (reported) return null
-		reported = true
-		return buildReport()
-	}
-
 	return {
-		loadId,
-		mark,
-		getMarks: () => ({ ...marks }),
-		buildReport,
-		takeReport,
-		setServerTimings,
-		whenServerTimings,
-		enableLiveLog,
+		...core,
+		buildReport: (): FirstLoadReport => ({ ...core.buildReport(), route_kind: routeKind() }),
+		takeReport: (): FirstLoadReport | null => {
+			const report = core.takeReport()
+			return report && { ...report, route_kind: routeKind() }
+		},
 	}
 }
 
@@ -350,6 +241,31 @@ export function summarizeResources(entries: readonly PerformanceResourceTiming[]
 	}
 }
 
+/**
+ * `detail.devtools` is Chrome's Performance panel extension: it puts each step's span on its own
+ * named track instead of the generic Timings track, where bare marks are just ticks.
+ */
+export function measureOnTrack(track: string) {
+	return (step: string, start: number, end: number) => {
+		try {
+			performance.measure(`tla:${step}`, {
+				start,
+				end,
+				detail: {
+					devtools: {
+						dataType: 'track-entry',
+						track,
+						color: 'primary',
+						tooltipText: `${step}: ${Math.round(end - start)}ms since previous step`,
+					},
+				},
+			})
+		} catch {
+			// measures are best effort
+		}
+	}
+}
+
 /** The one tracker for this page load. Marks after the report is taken are ignored. */
 export const firstLoad = createFirstLoadTracker({
 	now: () => performance.now(),
@@ -360,26 +276,7 @@ export const firstLoad = createFirstLoadTracker({
 			// marks are best effort
 		}
 	},
-	measure: (step, start, end) => {
-		try {
-			// `detail.devtools` is Chrome's Performance panel extension: it puts the span on its own
-			// "First load" track instead of the generic Timings track, where bare marks are just ticks.
-			performance.measure(`tla:${step}`, {
-				start,
-				end,
-				detail: {
-					devtools: {
-						dataType: 'track-entry',
-						track: 'First load',
-						color: 'primary',
-						tooltipText: `${step}: ${Math.round(end - start)}ms since previous step`,
-					},
-				},
-			})
-		} catch {
-			// measures are best effort
-		}
-	},
+	measure: measureOnTrack('First load'),
 	// eslint-disable-next-line no-console
 	log: (line) => console.log(line),
 	initialPath: typeof window === 'undefined' ? '' : window.location.pathname,
@@ -420,6 +317,10 @@ export function getFirstLoadId() {
 
 export function hasFirstLoadStep(step: FirstLoadStep) {
 	return firstLoad.getMarks()[step] !== undefined
+}
+
+export function isFirstLoadReported() {
+	return firstLoad.isReported()
 }
 
 function navigationTiming() {
@@ -476,7 +377,7 @@ function paintTiming() {
 	return out
 }
 
-const SERVER_ECHO_DEADLINE_MS = 3000
+export const SERVER_ECHO_DEADLINE_MS = 3000
 
 /**
  * Builds the report once: sent to PostHog if this account is in the gate, printed to the console if
@@ -556,8 +457,8 @@ function sendFirstLoadReport(
 			...(opts.staff && { what: FIRST_LOAD_STEP_INFO[s.step] }),
 		}))
 	)
-	console.table(opts.staff ? describeFields(server) : server)
-	console.table(opts.staff ? describeFields(resources) : resources)
+	console.table(opts.staff ? describeLoadFields(server) : server)
+	console.table(opts.staff ? describeLoadFields(resources) : resources)
 	console.groupEnd()
 	/* eslint-enable no-console */
 	return event
