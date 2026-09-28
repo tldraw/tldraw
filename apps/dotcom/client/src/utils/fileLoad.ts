@@ -13,6 +13,7 @@ import {
 	type LoadTrackerDeps,
 	measureOnTrack,
 	SERVER_ECHO_DEADLINE_MS,
+	serverTables,
 	shouldPrintLoads,
 	shouldReportLoad,
 } from './loadTracker'
@@ -179,7 +180,7 @@ export function reportFileLoad(
 		if (send) opts.trackEvent('file_load', event)
 		if (!print) return
 		const staff = isLoadStaff(opts.email)
-		const server = Object.fromEntries(Object.entries(event).filter(([k]) => k.startsWith('srv_')))
+		const server = serverTables(event, staff)
 		/* eslint-disable no-console */
 		console.groupCollapsed(
 			`[file-load] ${load.loadId} ${load.kind} total ${event.total_ms}ms, file ${event.file_ms}ms` +
@@ -194,7 +195,8 @@ export function reportFileLoad(
 				})
 			)
 		)
-		console.table(staff ? describeLoadFields(server) : server)
+		console.table(server.steps)
+		console.table(staff ? describeLoadFields(server.other) : server.other)
 		console.groupEnd()
 		/* eslint-enable no-console */
 	})

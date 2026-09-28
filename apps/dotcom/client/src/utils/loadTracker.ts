@@ -125,6 +125,25 @@ function fieldInfo(key: string, extra?: Record<string, string>) {
 	return SERVER_FIELD_INFO[key] ?? extra?.[key] ?? ''
 }
 
+/** Server steps one row each, like the client step table, with the other `srv_*` fields apart. */
+export function serverTables(fields: Record<string, unknown>, staff: boolean) {
+	const stepInfo: Partial<Record<string, string>> = SERVER_STEP_INFO
+	const steps = Object.keys(fields)
+		.map((k) => /^srv_t_(.+)$/.exec(k)?.[1])
+		.filter((step): step is string => step !== undefined)
+		.sort((a, b) => Number(fields[`srv_t_${a}`]) - Number(fields[`srv_t_${b}`]))
+		.map((step) => ({
+			step,
+			'ms since connect start': fields[`srv_t_${step}`],
+			'delta ms': fields[`srv_d_${step}`],
+			...(staff && { what: stepInfo[step] ?? '' }),
+		}))
+	const other = Object.fromEntries(
+		Object.entries(fields).filter(([k]) => k.startsWith('srv_') && !/^srv_[dt]_/.test(k))
+	)
+	return { steps, other }
+}
+
 /** `extraInfo` describes fields specific to the caller's event type; shared server entries win. */
 export function describeLoadFields(
 	fields: Record<string, unknown>,

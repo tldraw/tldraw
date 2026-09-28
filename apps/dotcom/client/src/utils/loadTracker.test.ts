@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createLoadTracker, shouldReportLoad, type LoadTrackerDeps } from './loadTracker'
+import {
+	createLoadTracker,
+	serverTables,
+	shouldReportLoad,
+	type LoadTrackerDeps,
+} from './loadTracker'
 
 const STEPS = ['a', 'b', 'c'] as const
 type S = (typeof STEPS)[number]
@@ -67,5 +72,36 @@ describe('shouldReportLoad', () => {
 	})
 	it('is not fooled by a tldraw.com substring elsewhere in the address', () => {
 		expect(shouldReportLoad({ email: 'tldraw.com@example.com', flagEnabled: false })).toBe(false)
+	})
+})
+
+describe('serverTables', () => {
+	const fields = {
+		srv_cold: false,
+		srv_d_auth: 1,
+		srv_t_auth: 1,
+		srv_d_handshake: 64,
+		srv_t_handshake: 109,
+		srv_d_group_check: 19,
+		srv_t_group_check: 45,
+		srv_echo: true,
+	}
+
+	it('lists server steps one row each, in the order they ran, like the client step table', () => {
+		expect(serverTables(fields, false).steps).toEqual([
+			{ step: 'auth', 'ms since connect start': 1, 'delta ms': 1 },
+			{ step: 'group_check', 'ms since connect start': 45, 'delta ms': 19 },
+			{ step: 'handshake', 'ms since connect start': 109, 'delta ms': 64 },
+		])
+	})
+
+	it('keeps the fields that are not steps apart', () => {
+		expect(serverTables(fields, false).other).toEqual({ srv_cold: false, srv_echo: true })
+	})
+
+	it('describes steps for staff, and names an unknown step instead of dropping it', () => {
+		const { steps } = serverTables({ srv_d_warp: 5, srv_t_warp: 5 }, true)
+		expect(steps).toEqual([{ step: 'warp', 'ms since connect start': 5, 'delta ms': 5, what: '' }])
+		expect(serverTables(fields, true).steps[0]).toMatchObject({ what: 'verify the Clerk token' })
 	})
 })

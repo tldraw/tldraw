@@ -10,6 +10,7 @@ import {
 	LoadTrackerDeps,
 	measureOnTrack,
 	SERVER_ECHO_DEADLINE_MS,
+	serverTables,
 	serverTotalMs,
 	shouldReportLoad,
 } from './loadTracker'
@@ -372,7 +373,7 @@ function sendFirstLoadReport(
 	}
 	if (opts.send) opts.trackEvent('first_load', event)
 	if (!opts.print) return event
-	const server = Object.fromEntries(Object.entries(event).filter(([k]) => k.startsWith('srv_')))
+	const server = serverTables(event, opts.staff)
 	/* eslint-disable no-console */
 	console.groupCollapsed(
 		`[first-load] ${report.load_id} total ${report.total_ms}ms` +
@@ -387,7 +388,8 @@ function sendFirstLoadReport(
 			...(opts.staff && { what: FIRST_LOAD_STEP_INFO[s.step] }),
 		}))
 	)
-	console.table(opts.staff ? describeLoadFields(server, FIRST_LOAD_FIELD_INFO) : server)
+	console.table(server.steps)
+	console.table(opts.staff ? describeLoadFields(server.other, FIRST_LOAD_FIELD_INFO) : server.other)
 	console.table(opts.staff ? describeLoadFields(resources, FIRST_LOAD_FIELD_INFO) : resources)
 	console.groupEnd()
 	/* eslint-enable no-console */
