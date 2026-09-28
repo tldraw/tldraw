@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ConnectMarks } from './connectMarks'
+import { ConnectMarks, buildConnectEcho } from './connectMarks'
 
 describe('ConnectMarks', () => {
 	it('records each step as a delta from the previous mark and a time since start', () => {
@@ -58,5 +58,39 @@ describe('ConnectMarks', () => {
 		marks.mark('auth')
 		expect(marks.fields()).toMatchObject({ d_auth: 234 })
 		expect(marks.last()).toBe(1234)
+	})
+})
+
+describe('buildConnectEcho', () => {
+	it('flattens base fields, step marks and the connect size into one echo', () => {
+		const marks = new ConnectMarks(0, () => 500)
+		marks.mark('auth', 20)
+		marks.mark('handshake', 180)
+		expect(
+			buildConnectEcho(
+				{ loadId: 'V1StGXR8_Z5jdHi6B-myT', cold: false, pg_via: 'hyperdrive' },
+				marks,
+				4096
+			)
+		).toEqual({
+			type: 'first_load_server',
+			loadId: 'V1StGXR8_Z5jdHi6B-myT',
+			cold: false,
+			pg_via: 'hyperdrive',
+			connect_bytes: 4096,
+			d_auth: 20,
+			t_auth: 20,
+			d_handshake: 160,
+			t_handshake: 180,
+		})
+	})
+
+	it('omits undefined optional fields', () => {
+		const echo = buildConnectEcho(
+			{ loadId: 'V1StGXR8_Z5jdHi6B-myT', cold: true, do_colo: undefined },
+			new ConnectMarks(0),
+			1
+		)
+		expect(echo).not.toHaveProperty('do_colo')
 	})
 })

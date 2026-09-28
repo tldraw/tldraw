@@ -50,14 +50,13 @@ const FIRST_LOAD_STEP_INFO: Record<FirstLoadStep, string> = {
 
 const FIRST_LOAD_FIELD_INFO: Record<string, string> = {
 	srv_cold: 'no live room in the DO; true alone does not mean an R2/Postgres load (see srv_boot_*)',
-	srv_auth_ms: 'sync worker: verify the Clerk token',
-	srv_file_record_ms: 'sync worker: file row lookup (Postgres; ~0 when the DO has it cached)',
-	srv_get_room_ms: 'sync worker: get or create the room; long only when storage loads',
-	srv_total_ms: 'sync worker: whole connect request, incl. rate limit + group check (Postgres)',
+	srv_edge_colo: 'Cloudflare colo that received the socket',
+	srv_do_colo: 'colo the file room runs in (absent until its one-off lookup resolves)',
+	srv_pg_via: 'Postgres path: hyperdrive or pooler',
+	srv_connect_bytes: 'size of the connect reply (the document on the wire)',
 	srv_boot_r2_ms: 'room boot from empty SQLite: R2 snapshot fetch',
 	srv_boot_comments_ms:
 		'room boot from empty SQLite: comments from Postgres (parallel with the R2 fetch)',
-	srv_boot_total_ms: 'room boot from empty SQLite: whole storage load',
 	srv_echo: 'server timings arrived; false = none within 3s of board-visible',
 	srv_init_ms: 'sync worker: user init request (Server-Timing)',
 	srv_init_outcome:
@@ -76,9 +75,28 @@ const FIRST_LOAD_FIELD_INFO: Record<string, string> = {
 	clerk_script_ms: 'clerk.browser.js fetch duration',
 }
 
+const SERVER_STEP_INFO: Record<string, string> = {
+	route: 'worker received the socket → room reached (clocks of two machines, approximate)',
+	do_init: 'room woken for this request: constructor → onRequest, incl. the documentInfo read',
+	auth: 'verify the Clerk token',
+	file_record: 'file row lookup (Postgres)',
+	rate_limit: 'rate limiter',
+	group_check: 'group role lookup, getRole (Postgres)',
+	boot: 'room boot from empty SQLite: R2 + comments (see srv_boot_*)',
+	get_room: 'rest of get or create the room',
+	handshake:
+		'101 → client sends connect → reply goes out (RTT; the reply build is CPU and reads ~0)',
+}
+
+function fieldInfo(key: string) {
+	const step = /^srv_[dt]_(.+)$/.exec(key)?.[1]
+	if (step) return `sync worker step: ${SERVER_STEP_INFO[step] ?? step}`
+	return FIRST_LOAD_FIELD_INFO[key] ?? ''
+}
+
 function describeFields(fields: Record<string, unknown>) {
 	return Object.fromEntries(
-		Object.entries(fields).map(([k, value]) => [k, { value, what: FIRST_LOAD_FIELD_INFO[k] ?? '' }])
+		Object.entries(fields).map(([k, value]) => [k, { value, what: fieldInfo(k) }])
 	)
 }
 
@@ -115,7 +133,15 @@ export interface FirstLoadReport {
 	total_ms: number
 	[key: `t_${string}`]: number | undefined
 	[key: `d_${string}`]: number | undefined
-	[key: `srv_${string}`]: number | boolean | undefined
+	[key: `srv_${string}`]: number | string | boolean | undefined
+}
+
+/** The server's whole connect span: its last step, since steps only run when needed. */
+export function serverTotalMs(msg: FirstLoadServerTimings): number | undefined {
+	const ts = Object.entries(msg)
+		.filter(([k, v]) => k.startsWith('t_') && typeof v === 'number')
+		.map(([, v]) => v as number)
+	return ts.length ? Math.max(...ts) : undefined
 }
 
 export function createFirstLoadTracker(deps: FirstLoadDeps) {
@@ -191,8 +217,8 @@ export function createFirstLoadTracker(deps: FirstLoadDeps) {
 		server = msg
 		for (const wake of serverWaiters.splice(0)) wake()
 		say(
-			`[first-load] server: ${msg.cold ? 'cold' : 'warm'} room, request ${msg.total_ms}ms` +
-				(msg.boot_total_ms !== undefined ? `, boot ${msg.boot_total_ms}ms` : '')
+			`[first-load] server: ${msg.cold ? 'cold' : 'warm'} room, connect ${serverTotalMs(msg) ?? '?'}ms` +
+				(msg.d_boot !== undefined ? `, boot ${msg.d_boot}ms` : '')
 		)
 	}
 

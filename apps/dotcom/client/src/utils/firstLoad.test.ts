@@ -3,6 +3,7 @@ import {
 	createFirstLoadTracker,
 	FIRST_LOAD_LOG_HEADER,
 	initServerTiming,
+	serverTotalMs,
 	shouldReportFirstLoad,
 	summarizeNavigation,
 	summarizeResources,
@@ -136,31 +137,50 @@ describe('createFirstLoadTracker', () => {
 })
 
 describe('server timings', () => {
-	it('folds the sync server echo into the report as srv_ fields', () => {
+	it('folds the sync server echo, step marks included, into the report as srv_ fields', () => {
 		const { deps } = makeDeps()
 		const tracker = createFirstLoadTracker(deps)
 		tracker.setServerTimings({
 			type: 'first_load_server',
 			loadId: tracker.loadId,
 			cold: true,
-			auth_ms: 12,
-			file_record_ms: 170,
-			get_room_ms: 540,
-			total_ms: 730,
+			edge_colo: 'FRA',
+			pg_via: 'hyperdrive',
 			boot_r2_ms: 80,
 			boot_comments_ms: 510,
-			boot_total_ms: 530,
+			d_auth: 12,
+			t_auth: 12,
+			d_boot: 530,
+			t_boot: 542,
+			d_handshake: 90,
+			t_handshake: 632,
 		})
 		expect(tracker.buildReport()).toMatchObject({
 			srv_cold: true,
-			srv_auth_ms: 12,
-			srv_file_record_ms: 170,
-			srv_get_room_ms: 540,
-			srv_total_ms: 730,
+			srv_edge_colo: 'FRA',
+			srv_pg_via: 'hyperdrive',
 			srv_boot_r2_ms: 80,
-			srv_boot_comments_ms: 510,
-			srv_boot_total_ms: 530,
+			srv_d_auth: 12,
+			srv_t_boot: 542,
+			srv_d_handshake: 90,
+			srv_t_handshake: 632,
 		})
+	})
+
+	it('takes the server total from the latest step', () => {
+		expect(
+			serverTotalMs({
+				type: 'first_load_server',
+				loadId: 'x'.repeat(21),
+				cold: false,
+				t_auth: 12,
+				t_handshake: 632,
+				d_handshake: 90,
+			})
+		).toBe(632)
+		expect(
+			serverTotalMs({ type: 'first_load_server', loadId: 'x'.repeat(21), cold: false })
+		).toBeUndefined()
 	})
 
 	it('keeps the first echo when a reconnect sends a second one', () => {
@@ -170,9 +190,8 @@ describe('server timings', () => {
 			type: 'first_load_server' as const,
 			loadId: tracker.loadId,
 			cold,
-			auth_ms: 1,
-			get_room_ms: 1,
-			total_ms: 1,
+			d_auth: 1,
+			t_auth: 1,
 		})
 		tracker.setServerTimings(echo(true))
 		tracker.setServerTimings(echo(false))
@@ -186,11 +205,10 @@ describe('server timings', () => {
 			type: 'first_load_server',
 			loadId: 'someone-elses-load',
 			cold: false,
-			auth_ms: 1,
-			get_room_ms: 1,
-			total_ms: 1,
+			d_auth: 1,
+			t_auth: 1,
 		})
-		expect(tracker.buildReport()).not.toHaveProperty('srv_total_ms')
+		expect(tracker.buildReport()).not.toHaveProperty('srv_t_auth')
 	})
 
 	it('resolves the wait as soon as the echo lands, or at the deadline without it', async () => {
@@ -204,9 +222,8 @@ describe('server timings', () => {
 				type: 'first_load_server',
 				loadId: tracker.loadId,
 				cold: false,
-				auth_ms: 1,
-				get_room_ms: 1,
-				total_ms: 1,
+				d_auth: 1,
+				t_auth: 1,
 			})
 			await vi.advanceTimersByTimeAsync(0)
 			expect(early).toHaveBeenCalledWith(true)

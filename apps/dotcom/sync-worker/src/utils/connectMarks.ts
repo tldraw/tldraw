@@ -1,3 +1,5 @@
+import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
+
 type StepFields = Record<`d_${string}` | `t_${string}`, number>
 
 /**
@@ -33,5 +35,25 @@ export class ConnectMarks {
 
 	fields(): StepFields {
 		return { ...this.out }
+	}
+}
+
+export type ConnectEcho = Extract<TLCustomServerEvent, { type: 'first_load_server' }>
+export type ConnectEchoBase = Pick<
+	ConnectEcho,
+	'loadId' | 'cold' | 'edge_colo' | 'do_colo' | 'pg_via' | 'boot_r2_ms' | 'boot_comments_ms'
+>
+
+export function buildConnectEcho(
+	base: ConnectEchoBase,
+	marks: ConnectMarks,
+	connectBytes: number
+): ConnectEcho {
+	const defined = Object.fromEntries(Object.entries(base).filter(([, v]) => v !== undefined))
+	return {
+		type: 'first_load_server',
+		...(defined as ConnectEchoBase),
+		connect_bytes: connectBytes,
+		...marks.fields(),
 	}
 }

@@ -84,7 +84,7 @@ import {
 	readMcpClusterIndexRow,
 	writeMcpClusterIndexRow,
 } from './mcpClusterIndexStorage'
-import { TLPostgresPool } from './postgres'
+import { TLPostgresPool, getPostgresConnection } from './postgres'
 import {
 	deleteAllObjectsWithPrefix,
 	getR2KeyForRoom,
@@ -112,6 +112,8 @@ import {
 import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { arrayBufferToBase64 } from './utils/base64'
+import { ConnectEchoBase, ConnectMarks, buildConnectEcho } from './utils/connectMarks'
+import { parseTraceColo, readEdgeColo, readReceivedAt } from './utils/connectRouting'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { LOAD_ID_PARAM, parseLoadId } from './utils/loadId'
@@ -441,9 +443,15 @@ export class TLFileDurableObject extends DurableObject {
 								messageLength: stringified.length,
 							})
 							if (message.type === 'connect') {
-								const echo = this._pendingFirstLoadEchoes.get(sessionId)
-								if (echo) {
+								const pending = this._pendingFirstLoadEchoes.get(sessionId)
+								if (pending) {
 									this._pendingFirstLoadEchoes.delete(sessionId)
+									pending.marks.mark('handshake')
+									const echo = buildConnectEcho(
+										{ ...pending.base, do_colo: this._doColo },
+										pending.marks,
+										stringified.length
+									)
 									// Deferred: this hook runs before the connect response goes out, and sending
 									// here would put the echo ahead of it on the wire.
 									setTimeout(() => room.sendCustomMessage(sessionId, echo), 0)
@@ -1007,6 +1015,18 @@ export class TLFileDurableObject extends DurableObject {
 
 	async onRequest(req: IRequest, openMode: RoomOpenMode) {
 		const requestTimer = this.timer()
+		const requestStart = Date.now()
+		const receivedAt = readReceivedAt(req.headers as Headers, requestStart)
+		const marks = new ConnectMarks(receivedAt ?? requestStart)
+		if (receivedAt !== undefined) {
+			// The constructor ran for this request only if it ran after the worker received it.
+			if (this._constructedAt >= receivedAt) {
+				marks.mark('route', this._constructedAt)
+				marks.mark('do_init', requestStart)
+			} else {
+				marks.mark('route', requestStart)
+			}
+		}
 
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
@@ -1022,6 +1042,7 @@ export class TLFileDurableObject extends DurableObject {
 		const clientBuildTimestamp = /^\d{1,16}$/.test(params.v ?? '') ? params.v : undefined
 		const loadId = parseLoadId(params[LOAD_ID_PARAM])
 		const loadIdBlobs = this.loadIdBlobs(loadId)
+		if (loadId) this.lookUpDoColo()
 		const isNewSession = !this._room
 		if (isNewSession) this._bootLoadId = loadId
 
@@ -1063,7 +1084,6 @@ export class TLFileDurableObject extends DurableObject {
 		// now that those failures bubble instead of being swallowed. An uncaught throw here would
 		// 500 with the accepted server socket leaked in the hibernation set, so catch broadly and
 		// close it instead.
-		const echoTimings: { auth?: number; fileRecord?: number } = {}
 		let auth: { userId: string } | null
 		try {
 			if (this.documentInfo.deleted) {
@@ -1085,13 +1105,13 @@ export class TLFileDurableObject extends DurableObject {
 					allowSubprotocolToken: true,
 					allowQueryToken: true,
 				}))
-			echoTimings.auth = authTimer.report('on_request_auth', loadIdBlobs)
+			authTimer.report('on_request_auth', loadIdBlobs)
+			marks.mark('auth')
 
 			if (this.documentInfo.isApp) {
 				openMode = ROOM_OPEN_MODE.READ_WRITE
-				const fileRecordStart = Date.now()
 				const file = await this.getAppFileRecord(loadIdBlobs)
-				echoTimings.fileRecord = Date.now() - fileRecordStart
+				marks.mark('file_record')
 
 				if (file) {
 					if (file.isDeleted) {
@@ -1129,6 +1149,7 @@ export class TLFileDurableObject extends DurableObject {
 						}
 					}
 					rateLimitTimer.report('on_request_rate_limit', loadIdBlobs)
+					marks.mark('rate_limit')
 
 					// Check if user has owner access (directly or via group membership)
 					let hasOwnerAccess = false
@@ -1140,6 +1161,7 @@ export class TLFileDurableObject extends DurableObject {
 							hasOwnerAccess = true
 						}
 						groupCheckTimer.report('on_request_group_check', loadIdBlobs)
+						marks.mark('group_check')
 					}
 
 					if (!hasOwnerAccess && !file.shared) {
@@ -1190,7 +1212,11 @@ export class TLFileDurableObject extends DurableObject {
 
 			const getRoomTimer = this.timer()
 			const room = await this.getRoom()
-			const getRoomMs = getRoomTimer.report('on_request_get_room', loadIdBlobs)
+			getRoomTimer.report('on_request_get_room', loadIdBlobs)
+			// A cold SQLite boot is the bulk of getRoom; carve it out so the stack shows it.
+			const boot = isNewSession ? this._bootTimings : {}
+			if (boot.total !== undefined) marks.markAfter('boot', boot.total)
+			marks.mark('get_room')
 
 			// Don't connect if we're already at max connections
 			if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
@@ -1219,24 +1245,21 @@ export class TLFileDurableObject extends DurableObject {
 				clientBuildTimestamp,
 			})
 
-			const totalMs = requestTimer.report('on_request_total', loadIdBlobs)
+			requestTimer.report('on_request_total', loadIdBlobs)
 
 			if (loadId) {
-				const boot = isNewSession ? this._bootTimings : {}
-				// Parked, not sent: the session is still awaiting its connect handshake here, and the
-				// room drops messages to sessions that are not yet Connected. onBeforeSendMessage
-				// releases it when the connect response goes out.
+				// Parked, not sent: the room drops messages to sessions still awaiting their connect
+				// handshake. onBeforeSendMessage marks `handshake` and releases it.
 				this._pendingFirstLoadEchoes.set(sessionId, {
-					type: 'first_load_server',
-					loadId,
-					cold: isNewSession,
-					auth_ms: echoTimings.auth,
-					file_record_ms: echoTimings.fileRecord,
-					get_room_ms: getRoomMs,
-					total_ms: totalMs,
-					boot_r2_ms: boot.r2,
-					boot_comments_ms: boot.comments,
-					boot_total_ms: boot.total,
+					marks,
+					base: {
+						loadId,
+						cold: isNewSession,
+						edge_colo: readEdgeColo(req.headers as Headers),
+						pg_via: getPostgresConnection(this.env).via,
+						boot_r2_ms: boot.r2,
+						boot_comments_ms: boot.comments,
+					},
 				})
 			}
 
@@ -1830,8 +1853,28 @@ export class TLFileDurableObject extends DurableObject {
 	// Stage durations of the most recent storage load, echoed to the client that booted the room.
 	private _bootTimings: { r2?: number; comments?: number; total?: number } = {}
 
-	// first_load_server messages waiting for their session's connect handshake to complete.
-	private _pendingFirstLoadEchoes = new Map<string, TLCustomServerEvent>()
+	// Echoes waiting for their session's connect handshake; `handshake` is marked on release.
+	private _pendingFirstLoadEchoes = new Map<
+		string,
+		{ base: ConnectEchoBase; marks: ConnectMarks }
+	>()
+
+	// Constructor time, for the do_init step of the request that woke this instance.
+	private readonly _constructedAt = Date.now()
+
+	// Where this instance runs; looked up once, off the connect path.
+	private _doColo: string | undefined
+	private _doColoLookup: Promise<void> | null = null
+	private lookUpDoColo() {
+		this._doColoLookup ??= fetch('https://www.cloudflare.com/cdn-cgi/trace')
+			.then((res) => res.text())
+			.then((body) => {
+				this._doColo = parseTraceColo(body)
+			})
+			.catch(() => {
+				// best effort: the echo just goes without do_colo
+			})
+	}
 
 	// Called wherever the room is dropped. A reopen from retained storage skips loadFromDatabase
 	// (the only writer), so without this the next booting client would be echoed the old numbers.
