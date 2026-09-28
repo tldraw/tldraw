@@ -2,6 +2,7 @@ import { signJwt } from '@clerk/backend/jwt'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
 import { canUseMcpServer } from '../../utils/featureFlags'
+import { ensureUser } from './initUser'
 import {
 	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
@@ -24,7 +25,7 @@ import {
 // it at all: an earlier version of this file mocked the whole verifier and its two "verification"
 // tests were assertions about what the mock had been *called with*.
 vi.mock('../../utils/featureFlags', () => ({ canUseMcpServer: vi.fn() }))
-vi.mock('./initUser', () => ({ ensureUser: vi.fn() }))
+vi.mock('./initUser', () => ({ ensureUser: vi.fn(async () => 'existing') }))
 
 const RESOURCE = 'https://www.tldraw.com/api/app/mcp'
 
@@ -409,6 +410,23 @@ describe('authenticateMcpRequest', () => {
 		// The flag name is no longer an argument: canUseMcpServer owns which flag it consults, and the
 		// @tldraw.com fallback behind it.
 		expect(canUseMcpServer).toHaveBeenCalledWith(expect.anything(), 'user_123')
+	})
+
+	it('creates rows for a refused user who has none, then admits them if the check now passes', async () => {
+		vi.mocked(canUseMcpServer).mockResolvedValueOnce(false).mockResolvedValueOnce(true)
+		vi.mocked(ensureUser).mockResolvedValueOnce('created')
+
+		const result = await authenticateMcpRequest(bearer(await signToken()), makeEnv())
+
+		expect(result).toEqual({ ok: true, userId: 'user_123' })
+		expect(ensureUser).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'user_123')
+	})
+
+	it('does not create rows for an admitted user', async () => {
+		const result = await authenticateMcpRequest(bearer(await signToken()), makeEnv())
+
+		expect(result).toEqual({ ok: true, userId: 'user_123' })
+		expect(ensureUser).not.toHaveBeenCalled()
 	})
 
 	// The reason rides on the refusal so the route can put it on a datapoint: during a flag-gated

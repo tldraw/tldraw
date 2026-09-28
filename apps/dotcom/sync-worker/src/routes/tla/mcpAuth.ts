@@ -1,6 +1,9 @@
 import { IRequest } from 'itty-router'
+import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
+import { canUseMcpServer } from '../../utils/featureFlags'
 import { getMcpTokenAuth, type McpTokenRefusal } from '../../utils/tla/getAuth'
+import { ensureUser } from './initUser'
 
 // The OAuth 2.1 resource-server half of the board screenshot MCP server: discovery metadata, bearer
 // token verification, and the feature flag gate that decides which authenticated users are let in.
@@ -275,6 +278,9 @@ export async function authenticateMcpRequest(
 
 	const result = await getMcpTokenAuth(request, env)
 	if (result.ok) return { ok: true, userId: result.userId }
+	if (result.reason === 'not_allowlisted' && (await admitNewUser(env, result.userId))) {
+		return { ok: true, userId: result.userId }
+	}
 
 	switch (result.reason) {
 		case 'no_token':
@@ -307,6 +313,26 @@ export async function authenticateMcpRequest(
 			// misconfiguration.
 			return invalidToken(result.reason)
 	}
+}
+
+/**
+ * Someone who signed up on the consent screen has a Clerk account but no tldraw.com rows until they
+ * open tldraw.com, so the access check reads no email and refuses them. Creating the rows only on
+ * that refusal keeps the cost off every admitted request, and off the Zero, socket and thumbnail
+ * routes that share the token check.
+ */
+async function admitNewUser(env: Environment, userId: string): Promise<boolean> {
+	const db = createPostgresConnectionPool(env, 'sync-worker/mcpAdmitNewUser')
+	try {
+		if ((await ensureUser(env, db, userId)) !== 'created') return false
+	} catch (e) {
+		// A failed create is still a refusal, as it was before this existed, not a 500.
+		console.error('Failed to create user rows for an MCP sign-up:', e)
+		return false
+	} finally {
+		await db.destroy()
+	}
+	return await canUseMcpServer(env, userId)
 }
 
 /**

@@ -13,7 +13,6 @@ vi.mock('@clerk/backend', () => ({
 	verifyToken: (...args: unknown[]) => verifyToken(...args),
 }))
 vi.mock('../featureFlags', () => ({ canUseMcpServer: vi.fn() }))
-vi.mock('../../routes/tla/initUser', () => ({ ensureUser: vi.fn() }))
 
 // Import after the mocks are registered.
 import { canUseMcpServer } from '../featureFlags'
@@ -150,7 +149,7 @@ describe('getMcpTokenAuth', () => {
 
 		await expect(
 			getMcpTokenAuth(requestWith({ authorization: 'Bearer tok' }), env)
-		).resolves.toEqual({ ok: false, reason: 'not_allowlisted' })
+		).resolves.toEqual({ ok: false, reason: 'not_allowlisted', userId: 'user_1' })
 	})
 
 	it('answers with the user when the token verifies and canUseMcpServer admits them', async () => {

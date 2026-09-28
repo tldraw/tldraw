@@ -2,7 +2,6 @@ import { createClerkClient, SessionAuthObject, verifyToken } from '@clerk/backen
 import { can } from '@tldraw/dotcom-shared'
 import { IRequest, StatusError } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
-import { ensureUser } from '../../routes/tla/initUser'
 import { Environment } from '../../types'
 import { canUseMcpServer } from '../featureFlags'
 import { getRole } from './getRole'
@@ -170,7 +169,10 @@ export type SignedInAuth = Extract<SessionAuthObject, { isAuthenticated: true }>
  */
 export type McpTokenRefusal = 'no_token' | 'invalid_token' | 'unconfigured' | 'not_allowlisted'
 
-export type McpTokenAuth = { ok: true; userId: string } | { ok: false; reason: McpTokenRefusal }
+export type McpTokenAuth =
+	| { ok: true; userId: string }
+	| { ok: false; reason: Exclude<McpTokenRefusal, 'not_allowlisted'> }
+	| { ok: false; reason: 'not_allowlisted'; userId: string }
 
 export interface McpTokenOptions {
 	/**
@@ -283,16 +285,8 @@ export async function getMcpTokenAuth(
 	}
 
 	const userId = state.toAuth().userId
-	// Someone who signed up on the consent screen has a Clerk account but no rows here until they
-	// open tldraw.com; without them the access check below reads no email and they get no workspace.
-	const db = createPostgresConnectionPool(env, 'sync-worker/mcpEnsureUser')
-	try {
-		await ensureUser(env, db, userId)
-	} finally {
-		await db.destroy()
-	}
 	if (!(await canUseMcpServer(env, userId))) {
-		return { ok: false, reason: 'not_allowlisted' }
+		return { ok: false, reason: 'not_allowlisted', userId }
 	}
 
 	return { ok: true, userId }
