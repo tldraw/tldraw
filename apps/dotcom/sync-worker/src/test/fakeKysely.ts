@@ -11,13 +11,9 @@ import {
 import { vi } from 'vitest'
 
 /**
- * A real Kysely on a driver that records the SQL instead of sending it, and hands back the queued
- * result sets in order (then empty ones). Transaction boundaries are recorded as `begin` / `commit`
- * / `rollback` queries so a test can see what ran inside one.
- *
- * Real rather than a stub builder because the thing under test is usually the SQL itself: which
- * tables a query joins, or whether a column carries `COLLATE "C"`, isn't visible in a recording of
- * which builder methods were called.
+ * Real Kysely whose driver records SQL (incl. begin/commit/rollback) and returns the queued result
+ * sets in order, then empty ones. Real, not a stub builder: the SQL itself (joins, `COLLATE "C"`)
+ * is usually what's under test.
  */
 export function createFakeKysely(resultSets: unknown[][] = []) {
 	const queries: CompiledQuery[] = []
