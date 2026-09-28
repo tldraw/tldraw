@@ -24,6 +24,7 @@ import {
 // it at all: an earlier version of this file mocked the whole verifier and its two "verification"
 // tests were assertions about what the mock had been *called with*.
 vi.mock('../../utils/featureFlags', () => ({ canUseMcpServer: vi.fn() }))
+vi.mock('./initUser', () => ({ ensureUser: vi.fn() }))
 
 const RESOURCE = 'https://www.tldraw.com/api/app/mcp'
 

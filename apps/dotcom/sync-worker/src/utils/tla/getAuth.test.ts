@@ -13,6 +13,7 @@ vi.mock('@clerk/backend', () => ({
 	verifyToken: (...args: unknown[]) => verifyToken(...args),
 }))
 vi.mock('../featureFlags', () => ({ canUseMcpServer: vi.fn() }))
+vi.mock('../../routes/tla/initUser', () => ({ ensureUser: vi.fn() }))
 
 // Import after the mocks are registered.
 import { canUseMcpServer } from '../featureFlags'
