@@ -41,7 +41,7 @@ import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/confi
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import {
-	FIRST_LOAD_DEBUG_FLAG,
+	LOADS_DEBUG_FLAG,
 	getFirstLoadId,
 	hasFirstLoadStep,
 	markFirstLoad,
@@ -249,7 +249,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 					markFirstLoad('board-visible')
 					reportFirstLoad({
 						email: app?.email,
-						flagEnabled: app?.isFirstLoadRumEnabled ?? false,
+						flagEnabled: app?.isLoadRumEnabled ?? false,
 						trackEvent,
 					})
 				})
@@ -431,7 +431,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 const DOTCOM_DEBUG_FLAGS = {
 	...debugFlags,
-	logFirstLoad: createDebugValue(FIRST_LOAD_DEBUG_FLAG, { defaults: { all: false } }),
+	logLoads: createDebugValue(LOADS_DEBUG_FLAG, { defaults: { all: false } }),
 }
 
 function CustomDebugMenu() {

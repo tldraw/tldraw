@@ -83,7 +83,7 @@ function describeFields(fields: Record<string, unknown>) {
 }
 
 export const FIRST_LOAD_LOG_HEADER =
-	'[first-load] page load timings, printed because the logFirstLoad debug flag is on'
+	'[first-load] page load timings, printed because the logLoads debug flag is on'
 
 /**
  * The debug flag that prints the load to the console; sending to PostHog is gated separately
@@ -91,8 +91,8 @@ export const FIRST_LOAD_LOG_HEADER =
  * pull the SDK into the entry chunk. Read once at module load, so a toggle applies from the next
  * load in this tab.
  */
-export const FIRST_LOAD_DEBUG_FLAG = 'logFirstLoad'
-const printFirstLoad = getFromSessionStorage(`tldraw_debug:${FIRST_LOAD_DEBUG_FLAG}`) === 'true'
+export const LOADS_DEBUG_FLAG = 'logLoads'
+const printLoads = getFromSessionStorage(`tldraw_debug:${LOADS_DEBUG_FLAG}`) === 'true'
 
 export interface FirstLoadDeps {
 	now(): number
@@ -245,7 +245,7 @@ export function initServerTiming(entries: readonly PerformanceResourceTiming[]) 
 	return { srv_init_ms: Math.round(timing.duration), srv_init_outcome: timing.description }
 }
 
-/** Staff always; everyone else through the `first_load_rum` percentage flag (0% by default). */
+/** Staff always; everyone else through the `load_rum` percentage flag (0% by default). */
 export function shouldReportFirstLoad({
 	email,
 	flagEnabled,
@@ -372,7 +372,7 @@ if (typeof window !== 'undefined') {
 	} catch {
 		// best effort
 	}
-	if (printFirstLoad) firstLoad.enableLiveLog()
+	if (printLoads) firstLoad.enableLiveLog()
 	if (document.visibilityState === 'hidden') hiddenDuringLoad = true
 	document.addEventListener('visibilitychange', () => {
 		if (document.visibilityState === 'hidden') hiddenDuringLoad = true
@@ -464,7 +464,7 @@ export function reportFirstLoad(opts: {
 	const inGate = shouldReportFirstLoad(opts)
 	const hidden = hiddenDuringLoad && inGate
 	const send = inGate && !hiddenDuringLoad
-	const print = printFirstLoad
+	const print = printLoads
 	if (!send && !print) return
 	// One report per load, so wait briefly for the server echo rather than dropping the srv_ fields.
 	// Snapshot the page-side numbers now: by the time the echo wait ends, images the board loads

@@ -266,7 +266,7 @@ export type TLCustomServerEvent =
 
 export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
-	'first_load_rum',
+	'load_rum',
 	'mcp_server_access',
 	'version_chain',
 ] as const
