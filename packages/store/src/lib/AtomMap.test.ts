@@ -338,6 +338,13 @@ describe('AtomMap', () => {
 			expect(dReactor).toHaveBeenCalledTimes(2)
 			expect(dReactor).toHaveLastReturnedWith(undefined)
 		})
+
+		it('[AM4] does not capture the map', () => {
+			const map = new AtomMap('test', [['a', 1]])
+			const reactor = testReactor('remover', () => map.deleteMany(['a']))
+			map.set('b', 2)
+			expect(reactor).toHaveBeenCalledTimes(1)
+		})
 	})
 
 	describe('clear', () => {
@@ -659,22 +666,5 @@ describe('AtomMap: Map parity (AM)', () => {
 			cleared.clear()
 		}
 		expect(seen).toHaveLength(1)
-	})
-})
-
-describe('AtomMap: mutators do not capture (AM)', () => {
-	it('[AM4] deleteMany does not subscribe the calling reaction to the map', () => {
-		const map = new AtomMap('test', [
-			['a', 1],
-			['b', 2],
-		])
-		let runs = 0
-		react('remover', () => {
-			runs++
-			map.deleteMany(['a'])
-		})
-		expect(runs).toBe(1)
-		map.set('zzz', 9)
-		expect(runs).toBe(1)
 	})
 })

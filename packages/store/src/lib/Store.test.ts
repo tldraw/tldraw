@@ -229,6 +229,34 @@ describe('Store: reading and writing (S)', () => {
 		expect(unsafeOnly).toEqual(['Jimmy Tolks'])
 		stop2()
 	})
+
+	it('[S11] a reaction that puts records does not re-run for unrelated store changes', () => {
+		const a = Author.create({ name: 'A' })
+		const b = Author.create({ name: 'B' })
+		store.put([a, b])
+		let runs = 0
+		const stop = react('writer', () => {
+			runs++
+			store.put([{ ...a, name: 'A' + runs }])
+		})
+		store.put([{ ...b, name: 'B2' }])
+		expect(runs).toBe(1)
+		stop()
+	})
+
+	it('[S11] a reaction that removes records does not re-run for unrelated store changes', () => {
+		const a = Author.create({ name: 'A' })
+		const b = Author.create({ name: 'B' })
+		store.put([a, b])
+		let runs = 0
+		const stop = react('remover', () => {
+			runs++
+			store.remove([a.id])
+		})
+		store.put([{ ...b, name: 'B2' }])
+		expect(runs).toBe(1)
+		stop()
+	})
 })
 
 describe('Store: serialization and snapshots (S)', () => {
@@ -822,47 +850,5 @@ describe('Store: repeated ids in one put (S)', () => {
 		expect(entries).toEqual([])
 		expect(afterChange).not.toHaveBeenCalled()
 		expect(store.get(author.id)).toBe(stored)
-	})
-})
-
-describe('Store: writes from reactions (S)', () => {
-	let store: Store<LibraryType>
-	beforeEach(() => {
-		store = new Store({ props: {}, schema: schema() })
-	})
-	afterEach(() => {
-		store.dispose()
-	})
-
-	it('[S11] a reaction that writes to the store does not re-run for unrelated store changes', () => {
-		const a = Author.create({ name: 'A' })
-		const b = Author.create({ name: 'B' })
-		store.put([a, b])
-		let runs = 0
-		react('writer', () => {
-			runs++
-			if (runs > 20) throw new Error('looping')
-			// a fresh object each run: the validator is not reference-preserving
-			store.put([{ ...a, name: 'A' + runs }])
-		})
-		expect(runs).toBe(1)
-
-		store.put([{ ...b, name: 'B2' }])
-		expect(runs).toBe(1)
-	})
-
-	it('[S11] a reaction that removes records does not re-run for unrelated store changes', () => {
-		const a = Author.create({ name: 'A' })
-		const b = Author.create({ name: 'B' })
-		store.put([a, b])
-		let runs = 0
-		react('remover', () => {
-			runs++
-			store.remove([Author.createId('missing')])
-		})
-		expect(runs).toBe(1)
-
-		store.put([{ ...b, name: 'B2' }])
-		expect(runs).toBe(1)
 	})
 })

@@ -275,8 +275,6 @@ export class AtomMap<K, V> implements Map<K, V> {
 	deleteMany(keys: Iterable<K>): [K, V][] {
 		return transact(() => {
 			const deleted: [K, V][] = []
-			// Reads here must not capture: a reactor that deletes keys would otherwise subscribe to
-			// the whole key set and to every deleted value atom, as `delete` and `clear` avoid.
 			const newAtoms = this.atoms.__unsafe__getWithoutCapture().withMutations((atoms) => {
 				for (const key of keys) {
 					const valueAtom = atoms.get(key)

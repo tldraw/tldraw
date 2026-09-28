@@ -594,8 +594,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		if (this.listeners.size === 0) {
 			this.historyAccumulator.clear()
 		}
-		// Don't capture: a reaction that writes to the store must not become a dependent of the
-		// history atom, or every other store change would re-run it (and it could loop forever).
+		// Don't capture: a reaction that writes would otherwise re-run on every store change (S11).
 		this.history.set(this.history.__unsafe__getWithoutCapture() + 1, changes)
 	}
 
