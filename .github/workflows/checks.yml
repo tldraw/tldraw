@@ -41,18 +41,10 @@ jobs:
         run: pnpm check-circular-deps
 
       - name: Restore build tool caches
-        uses: actions/cache@v5
+        uses: ./.github/actions/build-cache
         with:
-          # No `**`: it follows workspace symlinks through node_modules and the save times out.
-          path: |
-            .turbo
-            */*/.tsbuild
-            apps/*/*/.tsbuild
-            *.tsbuildinfo
-            */*/*.tsbuildinfo
-            apps/*/*/*.tsbuildinfo
-          key: test-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.oxlintrc.json', '.oxfmtrc.json', 'turbo.json') }}-${{ github.sha }}
-          restore-keys: test-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.oxlintrc.json', '.oxfmtrc.json', 'turbo.json') }}-
+          name: test-tools
+          save: true
 
       - name: Typecheck
         run: pnpm typecheck
@@ -101,18 +93,10 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Restore build tool caches
-        uses: actions/cache@v5
+        uses: ./.github/actions/build-cache
         with:
-          # No `**`: it follows workspace symlinks through node_modules and the save times out.
-          path: |
-            .turbo
-            */*/.tsbuild
-            apps/*/*/.tsbuild
-            *.tsbuildinfo
-            */*/*.tsbuildinfo
-            apps/*/*/*.tsbuildinfo
-          key: build-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'turbo.json') }}-${{ github.sha }}
-          restore-keys: build-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'turbo.json') }}-
+          name: build-tools
+          save: true
 
       - name: Build packages
         # the sed pipe makes sure that github annotations come through without
