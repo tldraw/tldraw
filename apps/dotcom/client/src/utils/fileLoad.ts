@@ -115,7 +115,8 @@ export function createFileLoads(deps: FileLoadsDeps) {
 	return {
 		/** Called from the router, before React renders the new route. */
 		noteNavigation(pathname: string) {
-			if (!pathname.startsWith('/f/')) {
+			// Exact match: /f/:slug/history is a separate page, so going there leaves the file too.
+			if (!/^\/f\/[^/]+\/?$/.test(pathname)) {
 				// Leaving the file: a later return must not resume this load with its old t0 and marks.
 				if (current && current.tracker.getMarks()['board-visible'] === undefined)
 					current.supersede()
