@@ -28,7 +28,7 @@ import { IRequest, cors, json } from 'itty-router'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
-import { createPostgresConnectionPool } from './postgres'
+import { createPostgresConnectionPool, getPostgresConnection } from './postgres'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
@@ -40,27 +40,36 @@ import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
+import { getBoardThumbnail } from './routes/tla/getBoardThumbnail'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { initUser } from './routes/tla/initUser'
 import {
+	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
 	getMcpProtectedResourceMetadata,
 	mcpCorsPreflight,
 	withMcpCors,
 } from './routes/tla/mcpAuth'
 import { mcpServer } from './routes/tla/mcpServer'
+import {
+	MCP_SERVER_CARD_PATH,
+	MCP_SERVER_CARD_WELL_KNOWN_PATH,
+	getMcpServerCard,
+} from './routes/tla/mcpServerCard'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import { upload } from './routes/tla/uploads'
+import { verifyVersionChainRoute } from './routes/verifyVersionChain'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
-import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
+import { getAuth, getZeroAuth, requireAuth, getMcpTokenAuth } from './utils/tla/getAuth'
 import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
+import { createMcpMutators } from './utils/tla/mcpMutators'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -98,6 +107,9 @@ const router = createRouter<Environment>()
 	// `.options` before `.all` so the preflight is answered rather than dispatched into the handler.
 	.options('/app/mcp', mcpCorsPreflight)
 	.options(MCP_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
+	.options(MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH, mcpCorsPreflight)
+	.options(MCP_SERVER_CARD_PATH, mcpCorsPreflight)
+	.options(MCP_SERVER_CARD_WELL_KNOWN_PATH, mcpCorsPreflight)
 	// .all so MCP server can correctly respond to non-post requests with 405
 	.all('/app/mcp', async (req, env, ctx) => withMcpCors(await mcpServer(req, env, ctx)))
 	// Registered at the origin rather than under /app, because RFC 9728 puts protected resource
@@ -107,6 +119,13 @@ const router = createRouter<Environment>()
 	.get(MCP_PROTECTED_RESOURCE_METADATA_PATH, (req, env) =>
 		withMcpCors(getMcpProtectedResourceMetadata(req, env))
 	)
+	.get(MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH, (req, env) =>
+		withMcpCors(getMcpProtectedResourceMetadata(req, env))
+	)
+	// Unauthenticated on purpose: a Server Card is what a client reads *before* it has a token, and
+	// it carries nothing the MCP endpoint's own 401 challenge doesn't already give away.
+	.get(MCP_SERVER_CARD_PATH, (req, env) => withMcpCors(getMcpServerCard(req, env)))
+	.get(MCP_SERVER_CARD_WELL_KNOWN_PATH, (req, env) => withMcpCors(getMcpServerCard(req, env)))
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
 	.get('/snapshot/:roomId', getRoomSnapshot)
@@ -124,13 +143,22 @@ const router = createRouter<Environment>()
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY)
 	)
 	.get(`/${ROOM_PREFIX}/:roomId/history`, (req, env) => getRoomHistory(req, env, false))
-	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, (req, env) =>
-		getRoomHistorySnapshot(req, env, false)
+	// Legacy rooms write chains too; without this the verifier has a blind spot.
+	.get(`/${ROOM_PREFIX}/:roomId/history/verify`, (req, env) =>
+		verifyVersionChainRoute(req, env, false)
+	)
+	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, (req, env, ctx) =>
+		getRoomHistorySnapshot(req, env, false, ctx)
 	)
 
 	.get(`/${FILE_PREFIX}/:roomId/history`, (req, env) => getRoomHistory(req, env, true))
-	.get(`/${FILE_PREFIX}/:roomId/history/:timestamp`, (req, env) =>
-		getRoomHistorySnapshot(req, env, true)
+	// Before the :timestamp route — itty-router matches in order, and `verify` would otherwise be
+	// read as a timestamp.
+	.get(`/${FILE_PREFIX}/:roomId/history/verify`, (req, env) =>
+		verifyVersionChainRoute(req, env, true)
+	)
+	.get(`/${FILE_PREFIX}/:roomId/history/:timestamp`, (req, env, ctx) =>
+		getRoomHistorySnapshot(req, env, true, ctx)
 	)
 
 	.get('/readonly-slug/:roomId', getReadonlySlug)
@@ -160,6 +188,7 @@ const router = createRouter<Environment>()
 		return notFound()
 	})
 	.get('/app/file/:roomId/download', forwardRoomRequest)
+	.get('/app/file/:boardId/thumbnail', getBoardThumbnail)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({
@@ -174,23 +203,16 @@ const router = createRouter<Environment>()
 	.post('/app/invite/:token/accept', acceptInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
 	.get('/app/__debug-tail', (req, env) => {
-		if (isDebugLogging(env)) {
-			// upgrade to websocket
-			if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
-				return getLogger(env).fetch(req)
-			}
+		// upgrade to websocket
+		if (isDebugLogging(env) && req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
+			return getLogger(env).fetch(req)
 		}
-
 		return new Response('Not Found', { status: 404 })
 	})
-	.post('/app/__debug-tail/clear', async (req, env) => {
-		if (isDebugLogging(env)) {
-			// upgrade to websocket
-			await getLogger(env).clear()
-			return new Response('ok')
-		}
-
-		return new Response('Not Found', { status: 404 })
+	.post('/app/__debug-tail/clear', async (_req, env) => {
+		if (!isDebugLogging(env)) return new Response('Not Found', { status: 404 })
+		await getLogger(env).clear()
+		return new Response('ok')
 	})
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
@@ -222,11 +244,14 @@ const router = createRouter<Environment>()
 		}
 		// (db, mutatorContext, logLevel): mutators close over userId, so no context.
 		const processor = new PushProcessor(
-			zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING),
+			zeroPostgresJS(schema, getPostgresConnection(env).connectionString),
 			undefined,
 			'debug'
 		)
-		const result = await processor.process(createMutators(auth.userId), req)
+		const result = await processor.process(
+			auth.mcp ? createMcpMutators(auth.userId) : createMutators(auth.userId),
+			req
+		)
 		// Wake the outbox consumer without blocking the response: a poke failure must not 500 a
 		// mutation that already committed, and the singleton DO shouldn't sit on the hot path.
 		ctx.waitUntil(
@@ -251,6 +276,24 @@ const router = createRouter<Environment>()
 			userID: auth.userId,
 		})
 		return json(result)
+	})
+	// What a Zero client needs to connect that it cannot carry itself: the tables and relationships
+	// as this deployment defines them, and which zero-cache serves it. For an agent's app (the tldraw
+	// plugin for ChatGPT), which cannot depend on dotcom-shared: the schema is plain data, and read
+	// from here it cannot drift from what the query and mutate endpoints run against. MCP tokens
+	// only, since that is the only caller with nowhere else to get it.
+	.get('/app/zero/schema', async (req, env) => {
+		const auth = await getMcpTokenAuth(req, env)
+		if (!auth.ok) {
+			return Response.json(
+				{ error: 'Unauthorized' },
+				{ status: auth.reason === 'not_allowlisted' ? 403 : 401 }
+			)
+		}
+		if (!env.ZERO_SERVER) {
+			return Response.json({ error: 'Zero is not deployed here' }, { status: 503 })
+		}
+		return json({ cacheURL: env.ZERO_SERVER, schema })
 	})
 	.all('*', notFound)
 
@@ -317,8 +360,15 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				const fakeReq = new Request('https://internal', {
 					headers: { Authorization: authorizationHeader },
 				}) as unknown as IRequest
+				// A session token first, then an MCP access token: the same fallback the download and
+				// the sync socket take, so an agent's user can add files to boards they can edit.
 				const auth = await getAuth(fakeReq, this.env)
-				userId = auth?.userId ?? null
+				if (auth) {
+					userId = auth.userId
+				} else {
+					const mcp = await getMcpTokenAuth(fakeReq, this.env)
+					userId = mcp.ok ? mcp.userId : null
+				}
 			}
 			if (!(await hasWriteAccessToFile(db, fileId, userId))) {
 				return { ok: false, error: 'Forbidden' }

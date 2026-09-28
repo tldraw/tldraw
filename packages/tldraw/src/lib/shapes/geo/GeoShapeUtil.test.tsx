@@ -180,6 +180,57 @@ describe('Resizing geo shapes with labels', () => {
 		expect(geo.props.w).toBeLessThan(50)
 		expect(geo.props.h).toBeLessThan(50)
 	})
+
+	describe.each([1, 2, 0.5])('when the label stops the shrink at scale %s', (scale) => {
+		const w = 300 * scale
+		const h = 100 * scale
+
+		beforeEach(() => {
+			editor.createShapes([
+				{
+					id: geoId,
+					type: 'geo',
+					props: { w, h, scale, richText: toRichText('Hello World'), geo: 'rectangle' },
+				},
+			])
+			editor.select(geoId)
+		})
+
+		function getEdges() {
+			const { minX, minY, maxX, maxY } = editor.getShapePageBounds(geoId)!
+			return { minX, minY, maxX, maxY }
+		}
+
+		test('dragging the top-left handle keeps the bottom-right corner fixed', () => {
+			const before = getEdges()
+
+			editor
+				.pointerDown(0, 0, { target: 'selection', handle: 'top_left' })
+				.pointerMove(w - 10 * scale, h - 2 * scale)
+				.pointerUp()
+
+			const after = getEdges()
+			// the label must have stopped the shrink, or the corner check proves nothing
+			expect(after.maxX - after.minX).toBeGreaterThan(10 * scale)
+			expect(after.maxY - after.minY).toBeGreaterThan(2 * scale)
+			expect({ maxX: after.maxX, maxY: after.maxY }).toEqual({
+				maxX: before.maxX,
+				maxY: before.maxY,
+			})
+		})
+
+		test('flipping over the right edge with the left handle keeps that edge fixed', () => {
+			const before = getEdges()
+
+			editor
+				.pointerDown(0, h / 2, { target: 'selection', handle: 'left' })
+				.pointerMove(w + 10 * scale, h / 2)
+				.pointerUp()
+
+			expect(getGeo().props.flipX).toBe(true)
+			expect(getEdges().minX).toBe(before.maxX)
+		})
+	})
 })
 
 describe('Geo shapes with programmatically-authored empty rich text', () => {

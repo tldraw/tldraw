@@ -11,17 +11,17 @@ import {
 	SNAPSHOT_PREFIX,
 	SOCIAL_PREVIEW_BYPASS_PARAM,
 } from '@tldraw/dotcom-shared'
-import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
 import { createPostgresConnectionPool } from '../postgres'
-import { getR2KeyForRoom, getR2KeyForSnapshot, R2Snapshot } from '../r2'
 import { Environment, ThumbnailBoardKind } from '../types'
 import { createSupabaseClient } from '../utils/createSupabaseClient'
 import { getPublicOrigin } from '../utils/getPublicOrigin'
-import { getSnapshotsTable } from '../utils/getSnapshotsTable'
 import { getSlug } from '../utils/roomOpenMode'
 import { cleanName, getDocumentNameFromSnapshot } from './getDocumentNameFromSnapshot'
+import { getSnapshotFromR2, getSnapshotFromSupabase } from './getRoomSnapshot'
+import { getFileSnapshot } from './tla/getFileSnapshot'
 import { getPublishedRoomSnapshot } from './tla/getPublishedFile'
+import { isFileAnonymouslyViewable } from './tla/getSharedFile'
 import { resolveThumbnailBoard } from './tla/thumbnailRender'
 
 // These mirror the static social preview metadata in apps/dotcom/client/index.html. They are used
@@ -118,13 +118,15 @@ async function getTlaFileName(env: Environment, slug: string): Promise<string | 
 	try {
 		file = await db
 			.selectFrom('file')
-			.select(['name', 'shared'])
+			.select(['id', 'name', 'shared', 'isDeleted'])
 			.where('id', '=', slug)
 			.executeTakeFirst()
 	} finally {
 		await db.destroy()
 	}
-	if (!file || !file.shared) return null
+	// The same gate the OG image on this card goes through, so a trashed (or test) board can't keep
+	// unfurling its name after the room itself started answering not-found.
+	if (!file || !isFileAnonymouslyViewable(file)) return null
 
 	const name = cleanName(file.name)
 	if (name) return name
@@ -132,9 +134,7 @@ async function getTlaFileName(env: Environment, slug: string): Promise<string | 
 	// The file has no name set, so fall back to the editor document name — this matches the in-app
 	// title, which uses the file name and then the document name. It lives on the document record in
 	// the file's persisted room snapshot.
-	const object = await env.ROOMS.get(getR2KeyForRoom({ slug, isApp: true }))
-	if (!object) return null
-	return getDocumentNameFromSnapshot((await object.json()) as RoomSnapshot)
+	return getDocumentNameFromSnapshot(await getFileSnapshot(env, slug, true))
 }
 
 // Published files (`/p/:slug`). The published page serves a frozen snapshot from R2, and that's what
@@ -149,23 +149,12 @@ async function getPublishedFileName(env: Environment, slug: string): Promise<str
 // Snapshot links (`/s/:slug`). The name lives in the snapshot's document record. Mirrors
 // getRoomSnapshot: read from R2 first, then fall back to Supabase for older snapshots.
 async function getSnapshotName(env: Environment, slug: string): Promise<string | null> {
-	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(slug)
-	const object = await env.ROOM_SNAPSHOTS.get(
-		getR2KeyForSnapshot({ parentSlug, snapshotSlug: slug, isApp: false })
-	)
-	if (object) {
-		const data = ((await object.json()) as R2Snapshot)?.drawing
-		if (data) return getDocumentNameFromSnapshot(data)
-	}
+	const data = await getSnapshotFromR2(env, slug)
+	if (data) return getDocumentNameFromSnapshot(data)
 
 	const supabase = createSupabaseClient(env)
 	if (!supabase) return null
-	const result = await supabase
-		.from(getSnapshotsTable(env))
-		.select('drawing')
-		.eq('slug', slug)
-		.maybeSingle()
-	return getDocumentNameFromSnapshot(result.data?.drawing as RoomSnapshot | undefined)
+	return getDocumentNameFromSnapshot(await getSnapshotFromSupabase(supabase, env, slug))
 }
 
 // Legacy multiplayer rooms (`/r/`, `/ro/`, `/v/`). The persisted room snapshot lives in R2 and the
@@ -177,10 +166,7 @@ async function getLegacyRoomName(
 ): Promise<string | null> {
 	const roomId = await getSlug(env, slug, roomOpenMode)
 	if (!roomId) return null
-	const object = await env.ROOMS.get(getR2KeyForRoom({ slug: roomId, isApp: false }))
-	if (!object) return null
-	const data = (await object.json()) as RoomSnapshot
-	return getDocumentNameFromSnapshot(data)
+	return getDocumentNameFromSnapshot(await getFileSnapshot(env, roomId, false))
 }
 
 /**

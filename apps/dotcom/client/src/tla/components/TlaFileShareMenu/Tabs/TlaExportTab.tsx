@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
 	Box,
 	Editor,
@@ -210,7 +210,8 @@ function ExportImageButton() {
 		const editor = getCurrentEditor()
 		if (!editor) return
 
-		const { exportPadding, exportBackground, exportTheme, exportFormat } = getExportPreferences(app)
+		const preferences = getExportPreferences(app)
+		const { exportPadding, exportBackground, exportTheme, exportFormat } = preferences
 
 		let fullPage = false
 
@@ -220,38 +221,28 @@ function ExportImageButton() {
 			ids = editor.getSortedChildIdsForParent(editor.getCurrentPageId())
 		}
 
-		const opts = {
-			padding: exportPadding ? editor.options.defaultSvgPadding : ('auto' as const),
-			background: exportBackground,
-			darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
+		exportAs(editor, ids, {
+			...getImageExportOptions(editor, preferences),
 			format: exportFormat as TLExportType,
-		}
-
-		exportAs(editor, ids, opts)
+		})
 
 		trackEvent('export-image', {
 			source: 'file-share-menu',
 			fullPage,
 			padding: exportPadding,
-			background: !!opts.background,
+			background: exportBackground,
 			theme: exportTheme,
 			format: exportFormat,
 		})
 
 		setExported(true)
 		setTimeout(() => setExported(false), 2500)
-
-		return () => {
-			setExported(false)
-		}
 	}
 
 	return (
-		<>
-			<TlaButton className="tla-share-menu__copy-button" onClick={handleClick} iconRight="export">
-				<F defaultMessage="Export image" />
-			</TlaButton>
-		</>
+		<TlaButton className="tla-share-menu__copy-button" onClick={handleClick} iconRight="export">
+			<F defaultMessage="Export image" />
+		</TlaButton>
 	)
 }
 
@@ -260,11 +251,14 @@ function ExportPreviewImage() {
 	const ref = useRef<HTMLImageElement>(null)
 
 	const rImagePreviewSize = useRef<HTMLDivElement>(null)
+	// useReactor discards the effect's return value, so there is no cleanup closure: without a
+	// sequence a slow earlier export lands after a quick later one.
+	const rRenderSeq = useRef(0)
 
 	useReactor(
 		'update preview',
 		() => {
-			let cancelled = false
+			const seq = ++rRenderSeq.current
 
 			const editor = globalEditor.get()
 			if (!editor) return
@@ -294,21 +288,20 @@ function ExportPreviewImage() {
 			const fn = shapes.length > 20 ? getEditorImageSlowly : getEditorImage
 
 			fn(editor, shapes, preferences, ({ src, width, height }) => {
-				if (cancelled) return
+				if (seq !== rRenderSeq.current) return
 				const elm = ref.current
 				if (!elm) return
-				// We want to use an image element here so that a user can right click and copy / save / drag the qr code
+				// We want to use an image element here so that a user can right click and copy / save / drag the preview
 				elm.setAttribute('src', src)
 				const sizeElm = rImagePreviewSize.current
 				if (sizeElm) sizeElm.textContent = `${width.toFixed()}×${height.toFixed()}`
 			})
-
-			return () => {
-				cancelled = true
-			}
 		},
 		[]
 	)
+
+	// A debounced export still pending at unmount would otherwise run against a gone element
+	useEffect(() => () => getEditorImageSlowly.cancel(), [])
 
 	return (
 		<div className={styles.fileShareMenuExportPreview}>
@@ -327,19 +320,15 @@ async function getEditorImage(
 	preferences: TldrawAppSessionState['exportSettings'],
 	cb: (info: { src: string; width: number; height: number }) => void
 ) {
-	const { exportPadding, exportBackground, exportTheme } = preferences
-
 	const commonBounds = Box.Common(shapes.map((s) => editor.getShapePageBounds(s)!))
 
 	// image max is 216x216, so let's say 500 to be nice and safe
 	const scale = Math.min(500 / commonBounds.width, 500 / commonBounds.height)
 
 	const result = await editor.toImage(shapes, {
+		...getImageExportOptions(editor, preferences),
 		scale,
 		format: 'png',
-		padding: exportPadding ? editor.options.defaultSvgPadding : ('auto' as const),
-		background: exportBackground,
-		darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
 	})
 
 	if (!result) return
@@ -350,6 +339,17 @@ async function getEditorImage(
 }
 
 const getEditorImageSlowly = debounce(getEditorImage, 60)
+
+function getImageExportOptions(
+	editor: Editor,
+	{ exportPadding, exportBackground, exportTheme }: TldrawAppSessionState['exportSettings']
+) {
+	return {
+		padding: exportPadding ? editor.options.defaultSvgPadding : ('auto' as const),
+		background: exportBackground,
+		darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
+	}
+}
 
 function getExportPreferences(app: TldrawApp | null) {
 	const sessionState = getLocalSessionState()

@@ -16,6 +16,12 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+  # createGithubDeployment (internal/scripts/lib/deploy.ts) registers the deployment that
+  # renders the 'View Deployment' button on the PR.
+  deployments: write
+
 jobs:
   deploy:
     name: Deploy bemo to ${{ (github.ref == 'refs/heads/bemo-production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
@@ -40,10 +46,10 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Build types
-        run: yarn build-types
+        run: pnpm build-types
 
       - name: Deploy
-        run: yarn tsx internal/scripts/deploy-bemo.ts
+        run: pnpm exec tsx internal/scripts/deploy-bemo.ts
         env:
           RELEASE_COMMIT_HASH: ${{ github.sha }}
           GH_TOKEN: ${{ github.token }}

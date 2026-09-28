@@ -119,7 +119,7 @@ import { CommentTool } from '@tldraw/commenting'
 const tools = [CommentTool.configure({ enableRegions: true })]
 ```
 
-The option worth knowing about first is `history`. Comment writes default to `'ignore'`, which keeps them off the undo stack, and that default matters in a shared document: an undoable resolve would revert a thread a collaborator has since reopened. Deletes are never undoable, whatever `history` says. See [Comments and undo](/sdk-features/commenting#comments-and-undo).
+The option worth knowing about first is `history`. Comment writes default to `'ignore'`, which keeps them off the undo stack, and that default matters in a shared document: an undoable resolve would revert a thread a collaborator has since reopened. Deletes are never undoable, whatever `history` says. See [Comments and undo](/sdk-features/commenting#Comments-and-undo).
 
 ## Permissions
 
@@ -131,7 +131,7 @@ They're UI-level controls and nothing more. Comment records carry a client-suppl
 
 Comments sync like the rest of your document, with one registration on each side. Pass `records: commentSchemaRecords` to your sync hook, and the same map to `createTLSchema` on the server.
 
-On the server you can go a step further and serve comments through the room's object-store lane. Lane records are gated by their own per-session permission rather than by `isReadonly`, which is how a viewer who can't edit the document can still comment. See [Syncing comments](/sdk-features/commenting#syncing-comments).
+On the server you can go a step further and serve comments through the room's object-store lane. Lane records are gated by their own per-session permission rather than by `isReadonly`, which is how a viewer who can't edit the document can still comment. See [Syncing comments](/sdk-features/commenting#Syncing-comments).
 
 ## Related
 

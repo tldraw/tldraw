@@ -264,7 +264,7 @@ function requireNumber(arg: string, value: string | undefined) {
 
 function printHelp() {
 	writeLine(`Usage:
-  yarn workspace dotcom browser-run-thumbnail [options]
+  pnpm --filter dotcom browser-run-thumbnail [options]
 
 Options:
   --base-url <url>      Origin running the dotcom client. Default: http://127.0.0.1:3000

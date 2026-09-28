@@ -45,6 +45,12 @@ interface Env {
 	IDLE_TTL_MS_OVERRIDE?: string
 }
 
+/**
+ * Grace period before a condemned object's alarm runs destroy(). Also keeps that
+ * alarm off the running alarm's own timestamp: see TldrawMCP.alarm.
+ */
+const DESTROY_ALARM_DELAY_MS = 1000
+
 // Gated on MCP_IS_DEV so no deployed env can shorten the TTL. idle-expiry.test.ts
 // needs it: the real TTL is seven days, and the test has to see an alarm fire.
 function idleTtlMs(env: Env): number {
@@ -377,6 +383,22 @@ export class TldrawMCP extends McpAgent<Env> {
 	}
 
 	/**
+	 * After a schedule callback condemns this object, the SDK re-arms the destroy
+	 * alarm with `setAlarm(Date.now())`. Inside an alarm handler `Date.now()` is
+	 * frozen until the next I/O, and the handler can start on the scheduled
+	 * millisecond itself, so that write can equal the running alarm's time. An
+	 * unchanged alarm is a no-op to storage, and the alarm scheduler then drops
+	 * the alarm when the handler returns: the object stays condemned forever
+	 * (#10709). Moving the alarm a full delay out is always a real change.
+	 */
+	override async alarm() {
+		await super.alarm()
+		if (await this.ctx.storage.get('cf_agents_destroy_pending')) {
+			await this.ctx.storage.setAlarm(Date.now() + DESTROY_ALARM_DELAY_MS)
+		}
+	}
+
+	/**
 	 * Condemns this DO if it has been idle for `maxIdleMs`, and reports whether it
 	 * was kept. Never calls destroy() inline: it writes the SDK's own durable
 	 * destroy marker, and Agent.alarm() runs destroy() from its marker branch, which
@@ -388,7 +410,7 @@ export class TldrawMCP extends McpAgent<Env> {
 	 * The setAlarm calls are a fallback. The SDK re-arms after every schedule
 	 * callback returns, and that path sees the marker and calls `setAlarm(now)`
 	 * itself, so any delay we asked for is overwritten — these writes only matter
-	 * if that re-arm never runs.
+	 * if that re-arm never runs. `alarm()` above then moves whichever value won.
 	 */
 	async destroyIfIdle(maxIdleMs: number): Promise<{ kept: boolean }> {
 		if (await this.ctx.storage.get('cf_agents_destroy_pending')) {

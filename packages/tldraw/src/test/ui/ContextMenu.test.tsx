@@ -38,6 +38,35 @@ it('opens on right-click', async () => {
 	expect(screen.queryByTestId('context-menu')).toBeNull()
 })
 
+it('reopens after tldraw closes the menu itself', async () => {
+	const { editor } = await renderTldrawComponentWithEditor(
+		(onMount) => (
+			<Tldraw
+				onMount={(editor) => {
+					editor.createShape({ id: createShapeId(), type: 'geo' })
+					onMount(editor)
+				}}
+			/>
+		),
+		{ waitForPatterns: false }
+	)
+	const canvas = await screen.findByTestId('canvas')
+
+	fireEvent.contextMenu(canvas)
+	await screen.findByTestId('context-menu')
+
+	// A left-click on the canvas closes the menu through tldraw's own state:
+	// MenuClickCapture clears the open menus and unmounts the content before
+	// radix's dismissable layer ever sees the outside pointerdown.
+	act(() => editor.menus.clearOpenMenus())
+	expect(screen.queryByTestId('context-menu')).toBeNull()
+
+	// Regression for #10566: radix >=2.3.0 fires onOpenChange only on real state
+	// changes, so a stale internal `open` swallowed every later right-click.
+	fireEvent.contextMenu(canvas)
+	await screen.findByTestId('context-menu')
+})
+
 // A touch long-press (coarse pointer) opens the menu only in the select tool. In any
 // other tool the long-press belongs to that tool's gesture, so the menu stays closed.
 // The instance's isCoarsePointer is synced from tlenv, so flip that to simulate touch.

@@ -123,6 +123,7 @@ export function FileItems({
 	const activeWorkspaceId = useActiveWorkspaceId()
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
+	const homeWorkspaceId = app.getHomeWorkspaceId()
 
 	// Get all workspace memberships (including the home workspace, filtered out below)
 	const workspaceMemberships = useValue(
@@ -137,12 +138,12 @@ export function FileItems({
 	// labelled with its own name like any other workspace.
 	// (This is the workspace the file belongs to, which is not necessarily one the current user
 	// can write to — for that, see activeWorkspaceId above.)
-	const fileWorkspaceId = file?.owningGroupId ?? app.getHomeWorkspaceId()
-	const homeWorkspaceName = workspaceMemberships.find((g) => g.groupId === app.getHomeWorkspaceId())
-		?.group?.name
+	const fileWorkspaceId = file?.owningGroupId ?? homeWorkspaceId
+	const homeWorkspaceName = workspaceMemberships.find((g) => g.groupId === homeWorkspaceId)?.group
+		?.name
 	const moveToWorkspaces = workspaceMemberships.filter(
 		(g): g is typeof g & { group: NonNullable<(typeof g)['group']> } =>
-			g.groupId !== app.getHomeWorkspaceId() && !!g.group
+			g.groupId !== homeWorkspaceId && !!g.group
 	)
 
 	const handleCopyLinkClick = useCallback(() => {
@@ -262,13 +263,10 @@ export function FileItems({
 								label={homeWorkspaceName ?? myWorkspaceMsg}
 								id="my-files"
 								readonlyOk
-								checked={fileWorkspaceId === app.getHomeWorkspaceId()}
+								checked={fileWorkspaceId === homeWorkspaceId}
 								onSelect={() => {
-									if (fileWorkspaceId === app.getHomeWorkspaceId()) return
-									app.z.mutate.moveFileToWorkspace({
-										fileId,
-										workspaceId: app.getHomeWorkspaceId(),
-									})
+									if (fileWorkspaceId === homeWorkspaceId) return
+									app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: homeWorkspaceId })
 								}}
 							/>
 							{moveToWorkspaces.map((membership) => (

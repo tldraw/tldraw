@@ -1,3 +1,5 @@
+import { UnknownRecord } from '@tldraw/store'
+import { RoomSnapshot } from '@tldraw/sync-core'
 import { describe, expect, it } from 'vitest'
 import {
 	MAX_CHAIN_AGE_MS,
@@ -5,15 +7,17 @@ import {
 	SEGMENT_CAP,
 	WORKER_MAX_SIMULTANEOUS_CONNECTIONS,
 } from './config'
-import { SnapshotFingerprint } from './snapshotUtils'
+import { getSnapshotFingerprint, SnapshotFingerprint } from './snapshotUtils'
 import {
 	ChainState,
 	decideVersionWrite,
+	isChainHead,
 	parseVersionKey,
 	readSegmentRef,
 	segmentCustomMetadata,
 	versionKey,
 } from './versionChain'
+import { chainHeadHash, SNAPSHOT_DELTA_VERSION } from './versionDelta'
 
 const roomKey = 'app_rooms/slug'
 const fingerprint: SnapshotFingerprint = { lastDocumentChangeClock: 10, schemaHash: 'abc' }
@@ -28,6 +32,7 @@ function chain(partial: Partial<ChainState> = {}): ChainState {
 		deltaCount: 0,
 		headFingerprint: fingerprint,
 		headHash: 'h0',
+		deltaVersion: SNAPSHOT_DELTA_VERSION,
 		openSegment: null,
 		...partial,
 	}
@@ -50,6 +55,36 @@ function decide(partial: Partial<ChainState> | null, overrides: Record<string, u
 describe('decideVersionWrite', () => {
 	it('cuts a keyframe when there is no chain', () => {
 		expect(decide(null)).toEqual({ kind: 'keyframe', reason: 'no-chain' })
+	})
+
+	it('reports the caller-named reason when a discarded chain left no chain', () => {
+		expect(decide(null, { noChainReason: 'segment-lost' })).toEqual({
+			kind: 'keyframe',
+			reason: 'segment-lost',
+		})
+	})
+
+	it('retires a chain whose deltas are in another format, newer or older', () => {
+		// Older: this build was rolled back past a format bump and cannot write what the chain holds.
+		expect(decide({ deltaVersion: SNAPSHOT_DELTA_VERSION + 1 })).toEqual({
+			kind: 'keyframe',
+			reason: 'delta-format',
+		})
+		expect(decide({ deltaVersion: SNAPSHOT_DELTA_VERSION - 1 })).toEqual({
+			kind: 'keyframe',
+			reason: 'delta-format',
+		})
+	})
+
+	it('retires a chain stored before the format was recorded', () => {
+		// Reported ahead of the schema change it also carries: a format bump moves every room at
+		// once, and the metric has to show that rather than a plausible per-room cause.
+		expect(
+			decide(
+				{ deltaVersion: undefined },
+				{ nextFingerprint: { lastDocumentChangeClock: 11, schemaHash: 'different' } }
+			)
+		).toEqual({ kind: 'keyframe', reason: 'delta-format' })
 	})
 
 	it('cuts a keyframe when the incoming snapshot moved the schema hash', () => {
@@ -91,6 +126,40 @@ describe('decideVersionWrite', () => {
 			kind: 'keyframe',
 			reason: 'delta-size',
 		})
+	})
+
+	it('cuts a keyframe when the open segment would outgrow its keyframe', () => {
+		const openSegment = {
+			key: `${roomKey}/2026-09-01T00:00:01.000Z.s`,
+			firstSeq: 1,
+			count: 3,
+			bytes: 9_000,
+		}
+
+		expect(
+			decide({ deltaCount: 3, keyframeBytes: 10_000, openSegment }, { deltaBytes: 1_001 })
+		).toEqual({ kind: 'keyframe', reason: 'segment-size' })
+		expect(
+			decide({ deltaCount: 3, keyframeBytes: 10_000, openSegment }, { deltaBytes: 1_000 })
+		).toEqual({ kind: 'delta', seq: 4, isNewSegment: false, segment: { ...openSegment, count: 4 } })
+	})
+
+	it('never cuts a segment size keyframe for a tiny segment, whatever the ratio', () => {
+		const openSegment = {
+			key: `${roomKey}/2026-09-01T00:00:01.000Z.s`,
+			firstSeq: 1,
+			count: 3,
+			bytes: 3_000,
+		}
+
+		expect(decide({ deltaCount: 3, keyframeBytes: 100, openSegment }, { deltaBytes: 500 })).toEqual(
+			{
+				kind: 'delta',
+				seq: 4,
+				isNewSegment: false,
+				segment: { ...openSegment, count: 4 },
+			}
+		)
 	})
 
 	it('never cuts a size keyframe for a small delta, whatever the ratio', () => {
@@ -135,6 +204,52 @@ describe('decideVersionWrite', () => {
 			isNewSegment: true,
 			segment: { key: `${roomKey}/${iso}.s`, firstSeq: SEGMENT_CAP + 1, count: 1 },
 		})
+	})
+})
+
+describe('isChainHead', () => {
+	function snapshot(partial: Partial<RoomSnapshot> = {}): RoomSnapshot {
+		return {
+			clock: 5,
+			documentClock: 5,
+			documents: [
+				{ state: { id: 'shape:a', typeName: 'shape' } as UnknownRecord, lastChangedClock: 5 },
+			],
+			tombstones: { 'shape:old': 3 },
+			tombstoneHistoryStartsAtClock: 0,
+			schema: { schemaVersion: 2, sequences: {} } as any,
+			...partial,
+		}
+	}
+	const head = snapshot()
+	const chainAtHead = chain({
+		headFingerprint: getSnapshotFingerprint(head),
+		headHash: chainHeadHash(head),
+	})
+
+	it('accepts the head itself and a head whose shared clock a comment write moved', () => {
+		expect(isChainHead(chainAtHead, head)).toBe(true)
+		expect(isChainHead(chainAtHead, snapshot({ documentClock: 9 }))).toBe(true)
+	})
+
+	it('rejects a tombstone prune, which keeps the fingerprint but not the content', () => {
+		const pruned = snapshot({ tombstones: {}, tombstoneHistoryStartsAtClock: 4 })
+
+		expect(getSnapshotFingerprint(pruned)).toEqual(getSnapshotFingerprint(head))
+		expect(isChainHead(chainAtHead, pruned)).toBe(false)
+	})
+
+	it('rejects a document change', () => {
+		const edited = snapshot({
+			documents: [
+				{
+					state: { id: 'shape:a', typeName: 'shape', x: 1 } as unknown as UnknownRecord,
+					lastChangedClock: 6,
+				},
+			],
+		})
+
+		expect(isChainHead(chainAtHead, edited)).toBe(false)
 	})
 })
 

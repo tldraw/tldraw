@@ -1,8 +1,8 @@
 import { TlaFile, TlaUser } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
-import { StructuredDataDisplay } from './shared'
+import { getResponseError, StructuredDataDisplay, useTransientMessage } from './shared'
 import styles from './admin.module.css'
 
 // Helper component for user data summary. deletedFileCount comes from the dedicated endpoint —
@@ -14,40 +14,24 @@ function UserDataSummary({
 	data: { user: TlaUser; memberships: unknown[]; files: TlaFile[] }
 	deletedFileCount: number
 }) {
-	const getUserInfo = () => {
-		const user = data.user
-		const files = data.files || []
-		const activeFiles = files.filter((f: TlaFile) => !f.isDeleted)
-
-		return {
-			name: user?.name || 'Unknown',
-			email: user?.email || 'No email',
-			activeFiles: activeFiles.length,
-			deletedFiles: deletedFileCount,
-		}
-	}
-
-	const info = getUserInfo()
+	const { user } = data
+	const files = data.files || []
+	const rows = [
+		['Name', user?.name || 'Unknown'],
+		['Email', user?.email || 'No email'],
+		['Active Files', files.filter((f) => !f.isDeleted).length],
+		['Deleted Files', deletedFileCount],
+	]
 
 	return (
 		<div className={styles.userSummary}>
 			<div className={styles.summaryGrid}>
-				<div className={styles.summaryItem}>
-					<span className={styles.fieldLabel}>Name:</span>
-					<span className={styles.fieldValue}>{info.name}</span>
-				</div>
-				<div className={styles.summaryItem}>
-					<span className={styles.fieldLabel}>Email:</span>
-					<span className={styles.fieldValue}>{info.email}</span>
-				</div>
-				<div className={styles.summaryItem}>
-					<span className={styles.fieldLabel}>Active Files:</span>
-					<span className={styles.fieldValue}>{info.activeFiles}</span>
-				</div>
-				<div className={styles.summaryItem}>
-					<span className={styles.fieldLabel}>Deleted Files:</span>
-					<span className={styles.fieldValue}>{info.deletedFiles}</span>
-				</div>
+				{rows.map(([label, value]) => (
+					<div key={label} className={styles.summaryItem}>
+						<span className={styles.fieldLabel}>{label}:</span>
+						<span className={styles.fieldValue}>{value}</span>
+					</div>
+				))}
 			</div>
 		</div>
 	)
@@ -83,7 +67,7 @@ function DeletedFilesTable({
 					method: 'POST',
 				})
 				if (!res.ok) {
-					setError(res.statusText + ': ' + (await res.text()))
+					setError(await getResponseError(res))
 					return
 				}
 				onUndeleted()
@@ -146,7 +130,7 @@ export function UsersSection() {
 	const [data, setData] = useState<any>(null)
 	const [deletedFiles, setDeletedFiles] = useState<DeletedFileRow[]>([])
 	const [error, setError] = useState(null as string | null)
-	const [successMessage, setSuccessMessage] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useTransientMessage()
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	// The user's replicated store filters out their own deleted files, so the deleted-files
@@ -156,7 +140,7 @@ export function UsersSection() {
 		if (!q) return
 		const res = await fetch(`/api/app/admin/user/deleted_files?${new URLSearchParams({ q })}`)
 		if (!res.ok) {
-			setError(res.statusText + ': ' + (await res.text()))
+			setError(await getResponseError(res))
 			return
 		}
 		setDeletedFiles((await res.json()) as DeletedFileRow[])
@@ -175,21 +159,12 @@ export function UsersSection() {
 
 		const res = await fetch(`/api/app/admin/user?${new URLSearchParams({ q })}`)
 		if (!res.ok) {
-			setError(res.statusText + ': ' + (await res.text()))
+			setError(await getResponseError(res))
 			return
 		}
-		setError(null)
 		setData(await res.json())
 		await loadDeletedFiles()
-	}, [loadDeletedFiles])
-
-	// Clear success message after 3 seconds
-	useEffect(() => {
-		if (successMessage) {
-			const timer = setTimeout(() => setSuccessMessage(null), 3000)
-			return () => clearTimeout(timer)
-		}
-	}, [successMessage])
+	}, [loadDeletedFiles, setSuccessMessage])
 
 	return (
 		<>
@@ -277,37 +252,46 @@ function DeleteUser() {
 		setProgressLog([]) // Only clear log when starting a new deletion
 		setIsComplete(false)
 
+		// fetch rather than EventSource: the endpoint is a POST (EventSource can only issue GETs),
+		// so the SSE frames are parsed off the response body here.
 		try {
-			const eventSource = new EventSource(
-				`/api/app/admin/delete_user_sse?q=${encodeURIComponent(userId)}`
+			const response = await fetch(
+				`/api/app/admin/delete_user_sse?q=${encodeURIComponent(userId)}`,
+				{ method: 'POST' }
 			)
-
-			eventSource.onmessage = (event) => {
-				const data = JSON.parse(event.data)
-
-				const timestamp = new Date(data.timestamp).toLocaleTimeString()
-				const logEntry = `[${timestamp}] ${data.message}`
-
-				setProgressLog((prev) => [...prev, logEntry])
-
-				if (data.type === 'complete') {
-					setIsComplete(true)
-					setIsDeleting(false)
-					eventSource.close()
-				} else if (data.type === 'error') {
-					setError(data.message)
-					setIsDeleting(false)
-					eventSource.close()
-				}
+			if (!response.ok || !response.body) {
+				throw new Error(`Delete failed: ${response.status}`)
 			}
 
-			eventSource.onerror = () => {
-				setError('Connection failed')
-				setIsDeleting(false)
-				eventSource.close()
+			const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+			// Frames are separated by a blank line and can be split across reads, so hold the
+			// trailing partial frame until the rest of it arrives.
+			let buffer = ''
+			for (;;) {
+				const { done, value } = await reader.read()
+				if (done) break
+				buffer += value
+
+				let boundary = buffer.indexOf('\n\n')
+				for (; boundary !== -1; boundary = buffer.indexOf('\n\n')) {
+					const frame = buffer.slice(0, boundary)
+					buffer = buffer.slice(boundary + 2)
+					if (!frame.startsWith('data: ')) continue
+
+					const data = JSON.parse(frame.slice('data: '.length))
+					const timestamp = new Date(data.timestamp).toLocaleTimeString()
+					setProgressLog((prev) => [...prev, `[${timestamp}] ${data.message}`])
+
+					if (data.type === 'complete') {
+						setIsComplete(true)
+					} else if (data.type === 'error') {
+						setError(data.message)
+					}
+				}
 			}
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Unknown error occurred')
+		} finally {
 			setIsDeleting(false)
 		}
 	}, [])

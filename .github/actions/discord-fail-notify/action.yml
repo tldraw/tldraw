@@ -5,6 +5,10 @@ inputs:
   webhook-url:
     description: Discord webhook URL
     required: true
+  status:
+    description: What happened to the workflow, used in the message verb
+    required: false
+    default: failed
 
 runs:
   using: composite
@@ -15,6 +19,7 @@ runs:
         DISCORD_WEBHOOK_URL: ${{ inputs.webhook-url }}
         WORKFLOW: ${{ github.workflow }}
         REF: ${{ github.ref_name }}
+        STATUS: ${{ inputs.status }}
         RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       run: |
         if [ -z "$DISCORD_WEBHOOK_URL" ]; then
@@ -22,6 +27,6 @@ runs:
           exit 0
         fi
         payload=$(jq -nc \
-          --arg content "<@&1414904550917144586> ❌ **${WORKFLOW}** failed on \`${REF}\`: <${RUN_URL}>" \
+          --arg content "<@&1414904550917144586> ❌ **${WORKFLOW}** ${STATUS} on \`${REF}\`: <${RUN_URL}>" \
           '{content: $content}')
         curl -fsS -X POST -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK_URL"

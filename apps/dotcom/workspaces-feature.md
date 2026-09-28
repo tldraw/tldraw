@@ -40,10 +40,7 @@ Membership is the source of workspace-level authority. A member can see the work
 
 ### File ownership and file listing
 
-A file has exactly one owner:
-
-- Legacy files have `ownerId`.
-- Workspace files have `owningGroupId`.
+Every file is owned by exactly one workspace, `owningGroupId`. The pre-workspace `ownerId` model was removed in #10050.
 
 A workspace file also has a `group_file` row for the workspace that owns it. The only other kind of `group_file` row is a home guest link: when a user opens a shared file that none of their workspaces own, the server adds a `group_file` row into their home workspace so it shows up as a "guest file". That row's `groupId` is the user's id, and the file's `owningGroupId` stays with its real owner.
 
@@ -57,7 +54,7 @@ This distinction matters:
 
 ### File state
 
-`file_state` is per user and per file. It tracks visit and session state. In the migrated workspace model, pinned state for workspace lists is stored on `group_file.index`, not on `file_state.isPinned`.
+`file_state` is per user and per file. It tracks visit and session state. Pinned state for workspace lists is stored on `group_file.index`.
 
 When a user opens a shared file, the server upserts `file_state`. For migrated users, if the file is not in any of their current workspaces, the server also inserts a `group_file` link into their home workspace.
 

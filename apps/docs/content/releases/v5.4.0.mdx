@@ -10,6 +10,7 @@ keywords:
   - release
   - v5.4
   - v5.4.0
+  - v5.4.1
   - align-center
   - tleditors
   - reliability
@@ -186,3 +187,13 @@ This release adds a `center` operation to `Editor.alignShapes`, a `tleditors` re
 - Fix `StoreSchema.create` reporting a redundant migration dependency as circular. ([#10213](https://github.com/tldraw/tldraw/pull/10213))
 - Fix the `store.query.ids()` query creator being called with a computed's `(previousValue, epoch)` arguments. ([#10218](https://github.com/tldraw/tldraw/pull/10218))
 - Fix `CollectionDiff`s from `store.query.ids()` and `index()` containing an empty `added` or `removed` set after an add/remove round trip. ([#10221](https://github.com/tldraw/tldraw/pull/10221))
+
+---
+
+## Patch releases
+
+### v5.4.1
+
+- Fix the context menu not reopening after a left-click dismissal when radix-ui 1.5 or later is installed. ([#10567](https://github.com/tldraw/tldraw/pull/10567))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v5.4.1)

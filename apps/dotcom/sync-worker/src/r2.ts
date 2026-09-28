@@ -25,6 +25,89 @@ export function getR2KeyForSnapshot({
 	return getR2KeyForRoom({ slug, isApp })
 }
 
+// Dropped connections and the connection-limit error the shared R2 budget exists to avoid. Anything
+// else (a bad request, missing object) is permanent, and retrying it only delays the caller's
+// fallback.
+export function isTransientConnectionError(error: unknown): boolean {
+	const message = error instanceof Error ? error.message : String(error)
+	return /network|connection|closed|reset|timeout/i.test(message)
+}
+
+/**
+ * Runs one R2 operation. Operations default to running inline; a caller inside a shared connection
+ * budget (the durable object's R2 queue) passes its queue, so each operation is one budgeted slot
+ * and a fan-out never holds more connections than the budget allows.
+ */
+export type R2ReadScheduler = <T>(read: () => Promise<T>) => Promise<T>
+
+export function runInline<T>(read: () => Promise<T>): Promise<T> {
+	return read()
+}
+
+// R2 has honored `include` on list() since compat date 2022-08-04 (this worker's is far past it),
+// but the repo's ambient workers-types entrypoint predates the option — declared locally, same
+// pattern as types.ts.
+type R2ListOptionsWithInclude = R2ListOptions & {
+	include?: Array<'httpMetadata' | 'customMetadata'>
+}
+
+/**
+ * Every object under `prefix` with its custom metadata, plus the number of list calls the walk
+ * spent — callers inside a read budget account for the listing too.
+ */
+export async function listAllObjects(
+	bucket: R2Bucket,
+	prefix: string,
+	schedule: R2ReadScheduler = runInline
+): Promise<{ objects: R2Object[]; ops: number }> {
+	const objects: R2Object[] = []
+	let cursor: string | undefined
+	let ops = 0
+
+	do {
+		// Including metadata makes R2 return shorter pages, so a short page does not mean the
+		// listing is done — `truncated` is the only safe stop condition.
+		const options: R2ListOptionsWithInclude = { prefix, cursor, include: ['customMetadata'] }
+		const page = await schedule(() => bucket.list(options as R2ListOptions))
+		ops++
+		objects.push(...page.objects)
+		cursor = page.truncated ? page.cursor : undefined
+	} while (cursor)
+
+	return { objects, ops }
+}
+
+/**
+ * The objects under `prefix` whose keys fall in (`after`, `through`], with custom metadata, plus the
+ * number of list calls spent. R2 has no end key, so the walk stops at the first page that reaches
+ * past `through` rather than running to the end of the prefix.
+ */
+export async function listObjectsInRange(
+	bucket: R2Bucket,
+	prefix: string,
+	{ after, through }: { after?: string; through: string },
+	schedule: R2ReadScheduler = runInline
+): Promise<{ objects: R2Object[]; ops: number }> {
+	const objects: R2Object[] = []
+	let cursor: string | undefined
+	let ops = 0
+
+	do {
+		const options: R2ListOptionsWithInclude = cursor
+			? { prefix, cursor, include: ['customMetadata'] }
+			: { prefix, startAfter: after, include: ['customMetadata'] }
+		const page = await schedule(() => bucket.list(options as R2ListOptions))
+		ops++
+		for (const object of page.objects) {
+			if (object.key > through) return { objects, ops }
+			objects.push(object)
+		}
+		cursor = page.truncated ? page.cursor : undefined
+	} while (cursor)
+
+	return { objects, ops }
+}
+
 /**
  * Every key under `prefix`, or the first `limit` of them. The limit is passed to R2 too, so a
  * capped listing is a single page rather than a full walk sliced afterwards.
@@ -32,15 +115,15 @@ export function getR2KeyForSnapshot({
 export async function listAllObjectKeys(
 	bucket: R2Bucket,
 	prefix: string,
-	limit?: number
+	limit?: number,
+	schedule: R2ReadScheduler = runInline
 ): Promise<string[]> {
 	const keys: string[] = []
 	let cursor: string | undefined
 
 	do {
-		const result = await bucket.list(
-			limit === undefined ? { prefix, cursor } : { prefix, cursor, limit }
-		)
+		const options = limit === undefined ? { prefix, cursor } : { prefix, cursor, limit }
+		const result = await schedule(() => bucket.list(options))
 		keys.push(...result.objects.map((o) => o.key))
 		if (limit !== undefined && keys.length >= limit) return keys.slice(0, limit)
 		cursor = result.truncated ? result.cursor : undefined
@@ -54,9 +137,14 @@ export async function listAllObjectKeys(
 // that called it is left half-done.
 const MAX_R2_DELETE_KEYS = 1000
 
-export async function deleteAllObjectsWithPrefix(bucket: R2Bucket, prefix: string) {
-	const keys = await listAllObjectKeys(bucket, prefix)
+export async function deleteAllObjectsWithPrefix(
+	bucket: R2Bucket,
+	prefix: string,
+	schedule: R2ReadScheduler = runInline
+) {
+	const keys = await listAllObjectKeys(bucket, prefix, undefined, schedule)
 	for (let i = 0; i < keys.length; i += MAX_R2_DELETE_KEYS) {
-		await bucket.delete(keys.slice(i, i + MAX_R2_DELETE_KEYS))
+		const batch = keys.slice(i, i + MAX_R2_DELETE_KEYS)
+		await schedule(() => bucket.delete(batch))
 	}
 }

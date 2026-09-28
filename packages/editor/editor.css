@@ -650,7 +650,15 @@ input,
 	overflow: hidden;
 }
 
-.tl-text-input::selection {
+/**
+ * Only when there's actually a highlight to style. ProseMirror hides the native selection whenever
+ * it holds a NodeSelection — triple-clicking a list's bullet selects the whole list, for one — by
+ * zeroing the ::selection background and nothing else. Painting the selected-contrast color with
+ * no highlight behind it leaves the text invisible against the shape, and `inherit` can't undo it:
+ * highlight pseudo-elements inherit from the ancestor's ::selection, so it just picks the same
+ * color back up.
+ */
+.tl-text-input:not(:has(.ProseMirror-hideselection))::selection {
 	background: var(--tl-color-selected);
 	color: var(--tl-color-selected-contrast);
 	text-shadow: none;

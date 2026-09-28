@@ -132,8 +132,17 @@ export class Drawing extends StateNode {
 					break
 				}
 				case 'starting_straight': {
-					this.pagePointWhereNextSegmentChanged = null
-					this.segmentMode = 'free'
+					// Entered from 'starting_free' the last segment is still straight. A straight
+					// segment renders only its first two points, so writing free points into it
+					// freezes the stroke: go back to 'starting_free' instead of 'free'.
+					const shape =
+						this.initialShape && this.editor.getShape<DrawableShape>(this.initialShape.id)
+					if (shape && last(shape.props.segments)?.type === 'straight') {
+						this.segmentMode = 'starting_free'
+					} else {
+						this.pagePointWhereNextSegmentChanged = null
+						this.segmentMode = 'free'
+					}
 					break
 				}
 			}
@@ -180,7 +189,6 @@ export class Drawing extends StateNode {
 		return (
 			firstPoint !== null &&
 			lastPoint !== null &&
-			firstPoint !== lastPoint &&
 			this.currentLineLength > strokeWidth * 4 * scale &&
 			Vec.DistMin(firstPoint, lastPoint, threshold)
 		)
@@ -388,20 +396,23 @@ export class Drawing extends StateNode {
 
 						this.pagePointWhereCurrentSegmentChanged = Mat.applyToPoint(transform, prevLastPoint)
 					} else {
+						this.currentLineLength += Vec.Dist(newLastPoint, newPoint)
+
 						newSegment = this.makeSegment('straight', [newLastPoint, newPoint])
 					}
 
+					const nextSegments = [...segments, newSegment]
 					const shapePartial: TLShapePartial<DrawableShape> = {
 						id,
 						type: this.shapeType,
 						props: {
-							segments: [...segments, newSegment],
+							segments: nextSegments,
 						},
 					}
 
 					if (this.canClose()) {
 						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
-							segments,
+							nextSegments,
 							size,
 							scale
 						)
@@ -601,21 +612,17 @@ export class Drawing extends StateNode {
 				// then the user just did a click-and-immediately-press-shift to create a new straight line
 				// without continuing the previous line. In this case, we want to remove the previous segment.
 
+				// A straight segment is just [first, last]; swap its previous length for the new one
+				// (adding the whole length on every move would let tiny strokes close as if long).
+				const firstPoint = b64Vecs.decodeFirstPoint(newSegment.path, newSegment.dim)!
+				const prevLastPoint = b64Vecs.decodeLastPoint(newSegment.path, newSegment.dim)!
 				this.currentLineLength +=
-					newSegments.length && b64Vecs.decodeFirstPoint(newSegment.path, newSegment.dim)
-						? Vec.Dist(
-								b64Vecs.decodeFirstPoint(newSegment.path, newSegment.dim)!,
-								Vec.From(newPoint)
-							)
-						: 0
+					Vec.Dist(firstPoint, Vec.From(newPoint)) - Vec.Dist(firstPoint, prevLastPoint)
 
 				newSegments[newSegments.length - 1] = {
 					...newSegment,
 					type: 'straight',
-					path: b64Vecs.encodePoints(
-						[b64Vecs.decodeFirstPoint(newSegment.path, newSegment.dim)!, Vec.From(newPoint)],
-						newSegment.dim
-					),
+					path: b64Vecs.encodePoints([firstPoint, Vec.From(newPoint)], newSegment.dim),
 				}
 
 				const shapePartial: TLShapePartial<DrawableShape> = {
@@ -628,7 +635,7 @@ export class Drawing extends StateNode {
 
 				if (this.canClose()) {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
-						segments,
+						newSegments,
 						size,
 						scale
 					)

@@ -1,4 +1,5 @@
 import { atom, transact } from '@tldraw/state'
+import { noop } from '@tldraw/utils'
 import { publishDates, version } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { importPublicKey, str2ab } from '../utils/licensing'
@@ -127,6 +128,7 @@ export class LicenseManager {
 		...NO_FEATURES,
 	})
 	public verbose = true
+	private isDisposed = false
 
 	constructor(licenseKey: string | undefined, testPublicKey?: string) {
 		this.isTest = process.env.NODE_ENV === 'test'
@@ -144,6 +146,9 @@ export class LicenseManager {
 
 		this.getLicenseFromKey(licenseKey)
 			.then((result) => {
+				// replaced by a manager for a newer key: this one's messages, tracking ping and state
+				// would describe a key the app no longer uses
+				if (this.isDisposed) return
 				const licenseState = getLicenseState(
 					result,
 					(messages: string[]) => this.outputMessages(messages),
@@ -160,9 +165,15 @@ export class LicenseManager {
 				})
 			})
 			.catch((error) => {
+				if (this.isDisposed) return
 				console.error('License validation failed:', error)
 				this.state.set('unlicensed')
 			})
+	}
+
+	/** Ignore the pending validation: nothing is logged, tracked or set once the manager is replaced. */
+	dispose() {
+		this.isDisposed = true
 	}
 
 	/**
@@ -247,8 +258,9 @@ export class LicenseManager {
 			url.searchParams.set('environment', process.env.NODE_ENV)
 		}
 
+		// best-effort: a blocked or offline request must not surface as an unhandled rejection
 		// eslint-disable-next-line no-restricted-globals
-		fetch(url.toString())
+		fetch(url.toString()).catch(noop)
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {

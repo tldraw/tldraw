@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/state",
 	"description": "tldraw infinite canvas SDK (state).",
-	"version": "5.4.0",
+	"version": "5.4.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -38,20 +38,20 @@
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
-		"test-ci": "yarn run -T vitest run --passWithNoTests",
-		"test": "yarn run -T vitest --passWithNoTests",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
-		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
-		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
-		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build": "pnpm exec tsx ../../internal/scripts/build-package.ts",
+		"build-api": "pnpm exec tsx ../../internal/scripts/build-api.ts",
+		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
-		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"pack-tarball": "pnpm pack",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
 	},
 	"devDependencies": {
 		"@types/lodash": "^4.17.14",
 		"lodash": "^4.17.21",
-		"vitest": "^4.1.7"
+		"vitest": "^5.0.0"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"

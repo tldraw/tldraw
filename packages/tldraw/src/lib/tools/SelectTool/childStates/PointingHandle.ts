@@ -67,6 +67,13 @@ export class PointingHandle extends StateNode {
 	override onPointerUp() {
 		const { shape, handle } = this.info
 
+		// The shape may have been deleted since pointer down (remote user, undo); the note
+		// branch below would clone a new note from the dead record
+		if (!this.editor.getShape(shape.id)) {
+			this.parent.transition('idle')
+			return
+		}
+
 		if (this.isDoubleClick) {
 			this.parent.transition('idle')
 			this.parent.getCurrent()?.handleEvent({
@@ -123,10 +130,17 @@ export class PointingHandle extends StateNode {
 		if (editor.getIsReadonly()) return
 		const { shape, handle } = this.info
 
+		if (!editor.getShape(shape.id)) {
+			this.parent.transition('idle')
+			return
+		}
+
 		if (editor.isShapeOfType(shape, 'note')) {
 			const noteUtil = editor.getShapeUtil(shape) as NoteShapeUtil
 			const dv = getDisplayValues(noteUtil, shape)
 
+			// Cancelling the drag bails to this mark, which removes the note created below
+			const creatingMarkId = editor.markHistoryStoppingPoint('creating note from handle')
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, true)
 			if (nextNote) {
 				// Center the shape on the current pointer
@@ -148,8 +162,8 @@ export class PointingHandle extends StateNode {
 						...this.info,
 						target: 'shape',
 						shape: editor.getShape(nextNote),
-						onInteractionEnd: 'note',
 						isCreating: true,
+						creatingMarkId,
 						onCreate: () => {
 							// When we're done, start editing it
 							startEditingShapeWithRichText(editor, nextNote, { selectAll: true })

@@ -1,15 +1,15 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { deleteAllObjectsWithPrefix, listAllObjectKeys } from './r2'
+import {
+	deleteAllObjectsWithPrefix,
+	listAllObjectKeys,
+	listAllObjects,
+	listObjectsInRange,
+	R2ReadScheduler,
+	runInline,
+} from './r2'
 import { parseVersionKey, PendingDelta, readSegmentRef, SegmentBody } from './versionChain'
 import { decodeVersionBody, isGzippedVersionBody } from './versionChainCodec'
-import { applySnapshotDelta, snapshotContentHash } from './versionDelta'
-
-// R2 has honored `include` on list() since compat date 2022-08-04 (this worker's is far past it),
-// but the repo's ambient workers-types entrypoint predates the option — declared locally, same
-// pattern as types.ts.
-type R2ListOptionsWithInclude = R2ListOptions & {
-	include?: Array<'httpMetadata' | 'customMetadata'>
-}
+import { applySnapshotDelta, versionEnvelopeHash } from './versionDelta'
 
 /** A keyframe object: one whole snapshot, and the single version it is. */
 export interface KeyframeIndexEntry {
@@ -34,6 +34,15 @@ export interface SegmentIndexEntry {
  */
 export type ChainIndexEntry = KeyframeIndexEntry | SegmentIndexEntry
 
+/**
+ * A segment object R2 holds that carries no readable chain reference, so nothing can place it. The
+ * timestamp comes from its key, which names its first delta.
+ */
+export interface RejectedChainObject {
+	key: string
+	timestamp: string
+}
+
 export interface VersionReconstruction {
 	snapshot: RoomSnapshot
 	/** Every R2 operation this reconstruction cost, listings included. */
@@ -47,7 +56,8 @@ export interface VersionReconstruction {
 }
 
 /**
- * Every chain object for a room, in key order, with the versions each one holds.
+ * Every chain object for a room, in key order, with the versions each one holds, plus the segments
+ * that could not be placed at all — the verifier reports those, since nothing downstream can.
  *
  * A segment is keyed by its first delta only, so a version's timestamp does not say which object
  * holds it. Listing with `customMetadata` answers that for the whole room in one operation, without
@@ -55,46 +65,121 @@ export interface VersionReconstruction {
  */
 export async function loadChainIndex(
 	bucket: R2Bucket,
-	roomKey: string
-): Promise<{ entries: ChainIndexEntry[]; ops: number }> {
-	const entries: ChainIndexEntry[] = []
-	let cursor: string | undefined
-	let ops = 0
+	roomKey: string,
+	schedule: R2ReadScheduler = runInline
+): Promise<{ entries: ChainIndexEntry[]; ops: number; rejected: RejectedChainObject[] }> {
+	const { objects, ops } = await listAllObjects(bucket, `${roomKey}/`, schedule)
+	return { ...indexChainObjects(objects), ops }
+}
 
-	do {
-		// Including metadata makes R2 return shorter pages, so a short page does not mean the
-		// listing is done — `truncated` is the only safe stop condition.
-		const options: R2ListOptionsWithInclude = {
-			prefix: `${roomKey}/`,
-			cursor,
-			include: ['customMetadata'],
+function indexChainObjects(objects: R2Object[]): {
+	entries: ChainIndexEntry[]
+	rejected: RejectedChainObject[]
+} {
+	const entries: ChainIndexEntry[] = []
+	const rejected: RejectedChainObject[] = []
+	for (const object of objects) {
+		const parsed = parseVersionKey(object.key)
+		if (!parsed) continue
+		if (parsed.kind === 'keyframe') {
+			entries.push({ kind: 'keyframe', key: object.key, timestamps: [parsed.timestamp] })
+			continue
 		}
-		const page: R2Objects = await bucket.list(options as R2ListOptions)
-		ops++
-		for (const object of page.objects) {
-			const parsed = parseVersionKey(object.key)
-			if (!parsed) continue
-			if (parsed.kind === 'keyframe') {
-				entries.push({ kind: 'keyframe', key: object.key, timestamps: [parsed.timestamp] })
-				continue
-			}
-			const ref = readSegmentRef(object.customMetadata)
-			// A segment with no readable reference cannot be placed in a chain. Skipping it here
-			// surfaces as a sequence gap rather than as a silently short replay.
-			if (!ref) continue
-			entries.push({
-				kind: 'segment',
-				key: object.key,
-				timestamps: ref.timestamps,
-				keyframeKey: ref.keyframeKey,
-				firstSeq: ref.firstSeq,
-			})
+		const ref = readSegmentRef(object.customMetadata)
+		// A segment with no readable reference cannot be placed in a chain. Dropping it only shows
+		// up as a sequence gap when it sits mid-chain; a trailing one leaves the replay ending early
+		// and the verifier passing a chain whose tail is unreadable. Collected so it is reported
+		// outright instead.
+		if (!ref) {
+			rejected.push({ key: object.key, timestamp: parsed.timestamp })
+			continue
 		}
-		cursor = page.truncated ? page.cursor : undefined
-	} while (cursor)
+		entries.push({
+			kind: 'segment',
+			key: object.key,
+			timestamps: ref.timestamps,
+			keyframeKey: ref.keyframeKey,
+			firstSeq: ref.firstSeq,
+		})
+	}
 
 	entries.sort((a, b) => a.key.localeCompare(b.key))
-	return { entries, ops }
+	return { entries, rejected }
+}
+
+// How far a chain key may sit out of wall-clock order: a durable object re-created on a host whose
+// clock runs behind can key a later object earlier (see reconstructVersion).
+const CHAIN_KEY_CLOCK_SKEW_MS = 10 * 60 * 1000
+const HOUR_MS = 60 * 60 * 1000
+// Before tldraw.com existed, so no version can be older.
+const CHAIN_EPOCH_MS = Date.UTC(2020, 0, 1)
+// Widening look-back windows, then the rest of the prefix. Most versions sit in a chain opened
+// within the hour; the tail only runs for a room whose chain is sparse around `timestamp`.
+const INDEX_WINDOWS_MS = [HOUR_MS, 24 * HOUR_MS, 30 * 24 * HOUR_MS, 365 * 24 * HOUR_MS, Infinity]
+
+/**
+ * The part of a room's chain index that one version's read needs: the object holding `timestamp`
+ * and, for a segment, every earlier segment of its chain. Listing the whole prefix instead is
+ * unbounded in the room's history, and on rooms with tens of thousands of chain objects it
+ * throttles with R2 10058 (#10879).
+ *
+ * Relies on a room's chain objects being written one after another by a single durable object:
+ * an object's key is when it was opened, the object holding `timestamp` was opened at or before
+ * it, and its chain's segments all sit between that chain's keyframe and it. So the walk goes back
+ * in widening windows until it finds the version — or an object older than it, past which the
+ * chain cannot hold it.
+ */
+export async function loadChainIndexForVersion(
+	bucket: R2Bucket,
+	roomKey: string,
+	timestamp: string,
+	schedule: R2ReadScheduler = runInline
+): Promise<{ entries: ChainIndexEntry[]; ops: number }> {
+	const time = Date.parse(timestamp)
+	// Not a timestamp any chain key could carry; the legacy lookup still gets its say. A future one
+	// matters beyond the wasted lookup: no window would find an object before it, so the walk would
+	// fall through to listing the whole prefix. Bounding the past keeps every window a valid Date.
+	if (Number.isNaN(time) || time < CHAIN_EPOCH_MS || time > Date.now() + CHAIN_KEY_CLOCK_SKEW_MS) {
+		return { entries: [], ops: 0 }
+	}
+
+	const prefix = `${roomKey}/`
+	const keyAt = (ms: number) => `${prefix}${new Date(ms).toISOString()}`
+	const objects: R2Object[] = []
+	let ops = 0
+	// The lower bound listed so far; undefined once the walk has reached the start of the prefix.
+	let listedFrom: string | undefined = keyAt(time + CHAIN_KEY_CLOCK_SKEW_MS)
+
+	const listBack = async (after: string | undefined) => {
+		const page = await listObjectsInRange(bucket, prefix, { after, through: listedFrom! }, schedule)
+		// Newest window last in `objects` is fine: indexChainObjects sorts by key.
+		objects.push(...page.objects)
+		ops += page.ops
+		listedFrom = after
+	}
+
+	const settledBefore = keyAt(time - CHAIN_KEY_CLOCK_SKEW_MS)
+	for (const window of INDEX_WINDOWS_MS) {
+		await listBack(Number.isFinite(window) ? keyAt(time - window) : undefined)
+		const { entries } = indexChainObjects(objects)
+		const target = entries.find((entry) => entry.timestamps.includes(timestamp))
+		if (target) {
+			if (target.kind === 'segment') {
+				const keyframeTime = Date.parse(parseVersionKey(target.keyframeKey)?.timestamp ?? '')
+				// An unreadable keyframe key cannot bound the chain, so list to the start of the prefix.
+				const chainFrom = Number.isNaN(keyframeTime)
+					? undefined
+					: keyAt(keyframeTime - CHAIN_KEY_CLOCK_SKEW_MS)
+				if (listedFrom !== undefined && (chainFrom === undefined || chainFrom < listedFrom)) {
+					await listBack(chainFrom)
+				}
+			}
+			return { entries: indexChainObjects(objects).entries, ops }
+		}
+		// An object opened before the version, with the version still unfound: the chain never held it.
+		if (listedFrom === undefined || objects.some((object) => object.key <= settledBefore)) break
+	}
+	return { entries: indexChainObjects(objects).entries, ops }
 }
 
 /**
@@ -109,22 +194,24 @@ export async function reconstructVersion({
 	roomKey,
 	timestamp,
 	index,
+	schedule = runInline,
 }: {
 	chainBucket: R2Bucket
 	legacyBucket: R2Bucket
 	roomKey: string
 	timestamp: string
-	/** A chain index the caller already loaded, so one request does not list the room twice. */
+	/** A chain index the caller already loaded (whole room or loadChainIndexForVersion's), so one request does not list twice. */
 	index?: ChainIndexEntry[]
+	schedule?: R2ReadScheduler
 }): Promise<VersionReconstruction | null> {
 	const { entries, ops: listOps } = index
 		? { entries: index, ops: 0 }
-		: await loadChainIndex(chainBucket, roomKey)
+		: await loadChainIndexForVersion(chainBucket, roomKey, timestamp, schedule)
 	const target = entries.find((entry) => entry.timestamps.includes(timestamp))
 
 	if (!target) {
 		// Everything written before cut-over lives only in the legacy bucket.
-		const legacy = await legacyBucket.get(`${roomKey}/${timestamp}`)
+		const legacy = await schedule(() => legacyBucket.get(`${roomKey}/${timestamp}`))
 		if (!legacy) return null
 		return {
 			snapshot: (await decodeVersionBody(legacy)) as RoomSnapshot,
@@ -135,7 +222,7 @@ export async function reconstructVersion({
 	}
 
 	if (target.kind === 'keyframe') {
-		const object = await chainBucket.get(target.key)
+		const object = await schedule(() => chainBucket.get(target.key))
 		if (!object) throw new Error(`version chain keyframe ${target.key} is missing`)
 		return {
 			snapshot: (await decodeVersionBody(object)) as RoomSnapshot,
@@ -159,8 +246,8 @@ export async function reconstructVersion({
 	assertContiguous(segments, target.key)
 
 	const [keyframeObject, segmentBodies] = await Promise.all([
-		chainBucket.get(keyframeKey),
-		Promise.all(segments.map((entry) => readSegmentDeltas(chainBucket, entry))),
+		schedule(() => chainBucket.get(keyframeKey)),
+		Promise.all(segments.map((entry) => schedule(() => readSegmentDeltas(chainBucket, entry)))),
 	])
 	if (!keyframeObject) throw new Error(`version chain keyframe ${keyframeKey} is missing`)
 
@@ -171,9 +258,9 @@ export async function reconstructVersion({
 			snapshot = applySnapshotDelta(snapshot, delta)
 			deltaCount++
 			if (t === timestamp) {
-				// See snapshotContentHash for why the recorded hash is checked here.
-				if (delta.hash !== snapshotContentHash(snapshot)) {
-					throw new Error(`version ${timestamp} reconstructed with a different content hash`)
+				// See versionEnvelopeHash for why the recorded hash is checked here.
+				if (delta.hash !== versionEnvelopeHash(snapshot)) {
+					throw new Error(`version ${timestamp} reconstructed with a different envelope hash`)
 				}
 				return { snapshot, ops: listOps + 1 + segments.length, deltaCount, source: 'chain' }
 			}
@@ -288,19 +375,21 @@ export async function openWholeVersionStream({
 	roomKey,
 	timestamp,
 	index,
+	schedule = runInline,
 }: {
 	chainBucket: R2Bucket
 	legacyBucket: R2Bucket
 	roomKey: string
 	timestamp: string
 	index: ChainIndexEntry[]
+	schedule?: R2ReadScheduler
 }): Promise<ReadableStream<Uint8Array> | null> {
 	const target = index.find((entry) => entry.timestamps.includes(timestamp))
 	if (target && target.kind !== 'keyframe') return null
 
 	const object = target
-		? await chainBucket.get(target.key)
-		: await legacyBucket.get(`${roomKey}/${timestamp}`)
+		? await schedule(() => chainBucket.get(target.key))
+		: await schedule(() => legacyBucket.get(`${roomKey}/${timestamp}`))
 	if (!object) {
 		if (target) throw new Error(`version chain keyframe ${target.key} is missing`)
 		return null
@@ -318,14 +407,18 @@ export async function deleteAllVersions({
 	chainBucket,
 	legacyBucket,
 	roomKey,
+	schedule = runInline,
 }: {
 	chainBucket: R2Bucket
 	legacyBucket: R2Bucket
 	roomKey: string
+	schedule?: R2ReadScheduler
 }): Promise<void> {
 	// Trailing slash: a bare roomKey prefix also matches sibling rooms whose slug is a prefix of
 	// this one (deleting "abc" must not sweep "abcd").
 	await Promise.all(
-		[chainBucket, legacyBucket].map((bucket) => deleteAllObjectsWithPrefix(bucket, `${roomKey}/`))
+		[chainBucket, legacyBucket].map((bucket) =>
+			deleteAllObjectsWithPrefix(bucket, `${roomKey}/`, schedule)
+		)
 	)
 }

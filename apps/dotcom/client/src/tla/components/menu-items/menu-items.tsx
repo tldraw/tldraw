@@ -66,6 +66,7 @@ const messages = defineMessages({
 
 export function SignOutMenuItem() {
 	const auth = useAuth()
+	const app = useMaybeApp()
 
 	const trackEvent = useTldrawAppUiEvents()
 
@@ -73,9 +74,17 @@ export function SignOutMenuItem() {
 
 	const handleSignout = useCallback(() => {
 		signoutAnalytics()
-		auth.signOut().then(resetLocalSessionStateButKeepTheme)
+		auth
+			.signOut()
+			.then(async () => {
+				resetLocalSessionStateButKeepTheme()
+				// After sign-out rather than before: an IndexedDB delete waits for every connection to
+				// the database to close, and other tabs only drop theirs once Clerk propagates sign-out.
+				await app?.deleteLocalData()
+			})
+			.catch((err) => console.error('Sign out failed:', err))
 		trackEvent('sign-out-clicked', { source: 'sidebar' })
-	}, [auth, trackEvent])
+	}, [auth, app, trackEvent])
 
 	if (!auth.isSignedIn) return
 	return (
@@ -175,64 +184,34 @@ function UIThemeMenuCheckboxItem({
 	)
 }
 
-export function UIThemeSubmenu() {
+function useUIThemeIds() {
 	const editor = useMaybeEditor()
-	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
-	const trackEvent = useTldrawAppUiEvents()
-	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
+	return useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [editor])
+}
+
+export function UIThemeSubmenu() {
+	const themeIds = useUIThemeIds()
 	const colorThemeLabel = useMsg(messages.colorTheme)
-	const defaultThemeLabel = useMsg(messages.colorThemeDefault)
 
-	const themeIds = useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [
-		editor,
-	])
-
-	useEffect(() => clearThemePreview, [clearThemePreview])
-
-	if (!editor || themeIds.length === 0) return null
+	if (themeIds.length === 0) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="ui-theme" label={colorThemeLabel}>
-			<div
-				className="tlui-menu__group"
-				onPointerCancel={clearThemePreview}
-				onPointerLeave={clearThemePreview}
-			>
-				{themeIds.map((id) => (
-					<UIThemeMenuCheckboxItem
-						key={id}
-						label={id === 'default' ? defaultThemeLabel : (THEME_NAMES[id] ?? id)}
-						checked={colorTheme === id}
-						onPreview={() => setColorThemePreview(id)}
-						onSelect={() => {
-							updateLocalSessionState(() => ({ colorTheme: id }))
-							clearThemePreview()
-							trackEvent('set-color-theme', {
-								source: 'user-preferences',
-								theme: id,
-							})
-						}}
-					/>
-				))}
-			</div>
+			<UIThemeMenuGroup />
 		</TldrawUiMenuSubmenu>
 	)
 }
 
 function UIThemeMenuGroup() {
-	const editor = useMaybeEditor()
 	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
 	const trackEvent = useTldrawAppUiEvents()
 	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
 	const defaultThemeLabel = useMsg(messages.colorThemeDefault)
-
-	const themeIds = useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [
-		editor,
-	])
+	const themeIds = useUIThemeIds()
 
 	useEffect(() => clearThemePreview, [clearThemePreview])
 
-	if (!editor || themeIds.length === 0) return null
+	if (themeIds.length === 0) return null
 
 	return (
 		<div

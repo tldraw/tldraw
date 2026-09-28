@@ -21,6 +21,15 @@ describe('TLSelectTool.Zooming', () => {
 			.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
 	})
 
+	it('Reports the originating tool as the current tool id while zooming', () => {
+		editor.setCurrentTool('draw')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'draw.idle' })
+		editor.expectToBeIn('zoom.idle')
+		expect(editor.getCurrentToolId()).toBe('draw')
+		editor.setCurrentTool('select')
+		expect(editor.getCurrentToolId()).toBe('select')
+	})
+
 	it('Correctly zooms in when clicking', () => {
 		editor.setCurrentTool('zoom', { onInteractionEnd: 'select' })
 		expect(editor.getZoomLevel()).toBe(1)

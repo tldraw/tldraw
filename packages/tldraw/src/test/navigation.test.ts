@@ -30,6 +30,8 @@ const ids = {
 	nearRight: createShapeId('nearRight'),
 	farRight: createShapeId('farRight'),
 	offAxisRight: createShapeId('offAxisRight'),
+	upLeft: createShapeId('upLeft'),
+	upRight: createShapeId('upRight'),
 	row1Shape1: createShapeId('row1Shape1'),
 	row1Shape2: createShapeId('row1Shape2'),
 	row1Shape3: createShapeId('row1Shape3'),
@@ -280,6 +282,66 @@ describe('Shape navigation', () => {
 			// Navigate right - should select nearRight as it's closest
 			editor.selectAdjacentShape('right')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.nearRight])
+		})
+
+		it('prefers an aligned shape over a nearer diagonal one', () => {
+			editor.createShapes([
+				{ id: ids.center, type: 'geo', x: 0, y: 0 },
+				{ id: ids.farRight, type: 'geo', x: 300, y: 0 },
+				{ id: ids.offAxisRight, type: 'geo', x: 200, y: 150 },
+			])
+
+			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+				if (shape?.id === ids.center) return boundsAtCenter({ x: 0, y: 0 })
+				if (shape?.id === ids.farRight) return boundsAtCenter({ x: 300, y: 0 })
+				if (shape?.id === ids.offAxisRight) return boundsAtCenter({ x: 200, y: 150 })
+				return boundsAtCenter({ x: 0, y: 0 })
+			})
+
+			editor.select(ids.center)
+			editor.selectAdjacentShape('right')
+			// squared distance would let the nearer off-axis shape beat the aligned one
+			expect(editor.getSelectedShapeIds()).toEqual([ids.farRight])
+		})
+
+		it('prefers the more vertically aligned shape when navigating up', () => {
+			// Both are 50 away. atan2 (y down) gives up-left -143 and up-right -53; |angle| would
+			// put them 127 and 217 from 270 and pick upLeft.
+			editor.createShapes([
+				{ id: ids.center, type: 'geo', x: 0, y: 0 },
+				{ id: ids.upLeft, type: 'geo', x: -40, y: -30 },
+				{ id: ids.upRight, type: 'geo', x: 30, y: -40 },
+			])
+
+			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+				if (shape?.id === ids.upLeft) return boundsAtCenter({ x: -40, y: -30 })
+				if (shape?.id === ids.upRight) return boundsAtCenter({ x: 30, y: -40 })
+				return boundsAtCenter({ x: 0, y: 0 })
+			})
+
+			editor.select(ids.center)
+			editor.selectAdjacentShape('up')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.upRight])
+		})
+
+		it('measures the angle deviation across the 0/360 seam', () => {
+			// aboveRight is at -3 degrees (357 once normalised). Without wrapping, its deviation from
+			// 'right' (0) reads as 357 and the lower shape wins.
+			editor.createShapes([
+				{ id: ids.center, type: 'geo', x: 0, y: 0 },
+				{ id: ids.upRight, type: 'geo', x: 100, y: -5 },
+				{ id: ids.offAxisRight, type: 'geo', x: 160, y: 20 },
+			])
+
+			vi.spyOn(editor, 'getShapePageBounds').mockImplementation((shape: any) => {
+				if (shape?.id === ids.upRight) return boundsAtCenter({ x: 100, y: -5 })
+				if (shape?.id === ids.offAxisRight) return boundsAtCenter({ x: 160, y: 20 })
+				return boundsAtCenter({ x: 0, y: 0 })
+			})
+
+			editor.select(ids.center)
+			editor.selectAdjacentShape('right')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.upRight])
 		})
 
 		// Add this test for the 'prev' direction in directional navigation

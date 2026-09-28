@@ -8,81 +8,35 @@ import {
 } from 'tldraw'
 import { trackEvent } from '../../../utils/analytics'
 
+/** Dragging the select, hand, or draw tool off the toolbar drops a doodle of its icon on the canvas. */
 export function useExtraDragIconOverrides() {
 	const overrides = useMemo<TLUiOverrides>(() => {
 		return {
 			tools(editor, tools) {
-				tools.select.onDragStart = function (source, info) {
-					onDragFromToolbarToCreateShape(editor, info, {
-						maskedToolId: 'select',
-						createShape: (id) => {
-							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
-							return editor.createShape({
-								id,
-								type: 'draw',
-								props: {
-									segments: [
-										{
-											type: 'free',
-											path: b64Vecs.encodePoints(scalePoints(POINTER_POINTS, SCALES[sizeStyle])),
-										},
-									],
-									isClosed: true,
-								},
-							})
-						},
-					})
-
-					trackEvent('drag-tool', { source, id: 'select' })
+				for (const [id, points] of Object.entries(DRAG_ICON_POINTS)) {
+					tools[id].onDragStart = function (source, info) {
+						onDragFromToolbarToCreateShape(editor, info, {
+							maskedToolId: id,
+							createShape: (shapeId) => {
+								const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
+								return editor.createShape({
+									id: shapeId,
+									type: 'draw',
+									props: {
+										segments: [
+											{
+												type: 'free',
+												path: b64Vecs.encodePoints(scalePoints(points, SCALES[sizeStyle])),
+											},
+										],
+										isClosed: true,
+									},
+								})
+							},
+						})
+						trackEvent('drag-tool', { source, id })
+					}
 				}
-
-				tools.hand.onDragStart = function (source, info) {
-					onDragFromToolbarToCreateShape(editor, info, {
-						maskedToolId: 'hand',
-						createShape: (id) => {
-							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
-							return editor.createShape({
-								id,
-								type: 'draw',
-								props: {
-									segments: [
-										{
-											type: 'free',
-											path: b64Vecs.encodePoints(scalePoints(HAND_POINTS, SCALES[sizeStyle])),
-										},
-									],
-									isClosed: true,
-								},
-							})
-						},
-					})
-
-					trackEvent('drag-tool', { source, id: 'hand' })
-				}
-
-				tools.draw.onDragStart = function (source, info) {
-					onDragFromToolbarToCreateShape(editor, info, {
-						maskedToolId: 'draw',
-						createShape: (id) => {
-							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
-							return editor.createShape({
-								id,
-								type: 'draw',
-								props: {
-									segments: [
-										{
-											type: 'free',
-											path: b64Vecs.encodePoints(scalePoints(DRAW_POINTS, SCALES[sizeStyle])),
-										},
-									],
-									isClosed: true,
-								},
-							})
-						},
-					})
-					trackEvent('drag-tool', { source, id: 'draw' })
-				}
-
 				return tools
 			},
 		}
@@ -91,9 +45,15 @@ export function useExtraDragIconOverrides() {
 	return overrides
 }
 
-const HAND_POINTS: VecModel[] = []
+function toPoints(raw: number[]): VecModel[] {
+	const points: VecModel[] = []
+	for (let i = 0; i < raw.length; i += 2) {
+		points.push({ x: raw[i] /* flipped horizontally */, y: raw[i + 1], z: 0.5 })
+	}
+	return points
+}
 
-const RAW_HAND_POINTS = [
+const HAND_POINTS = toPoints([
 	43.63, 80, 43.74, 80, 44.3, 80, 45.21, 80, 46.42, 80, 48.07, 79.99, 50.25, 79.61, 52.6, 78.71,
 	54.74, 77.62, 56.78, 76.27, 58.47, 74.64, 59.93, 72.91, 61.49, 70.9, 63.23, 68.09, 64.83, 64.78,
 	66, 60.86, 67.03, 56.15, 68.09, 51.16, 69.08, 46.08, 69.81, 40.84, 70.04, 35.63, 70.04, 31.11,
@@ -134,18 +94,9 @@ const RAW_HAND_POINTS = [
 	18.48, 78.78, 21.29, 79.36, 24.85, 79.68, 28.57, 79.71, 32, 79.71, 35.25, 79.71, 38.08, 79.71,
 	39.95, 79.71, 41.04, 79.71, 41.63, 79.71, 42.13, 79.71, 42.61, 79.71, 43.11, 79.71, 43.59, 79.64,
 	44.06, 79.55, 44.41, 79.49, 44.58, 79.39,
-]
+])
 
-for (let i = 0; i < RAW_HAND_POINTS.length; i += 2) {
-	HAND_POINTS.push({
-		x: RAW_HAND_POINTS[i], // flipped horizontally
-		y: RAW_HAND_POINTS[i + 1],
-		z: 0.5,
-	})
-}
-
-const POINTER_POINTS: VecModel[] = []
-const RAW_POINTER_POINTS = [
+const POINTER_POINTS = toPoints([
 	0.19, 0.87, 0.19, 0.82, 0.19, 0.86, 0.19, 1.23, 0.19, 2.46, 0.19, 4.2, 0.19, 6.21, 0.19, 8.67,
 	0.19, 11.13, 0.19, 13.75, 0.19, 16.62, 0.19, 19.74, 0.19, 22.86, 0.19, 27.56, 0.19, 31.41, 0.19,
 	33.67, 0.19, 37.13, 0.19, 41.08, 0.19, 46.19, 0.19, 51.36, 0.19, 55.16, 0.19, 58.69, 0.19, 62.68,
@@ -182,18 +133,9 @@ const RAW_POINTER_POINTS = [
 	4.06, 4.92, 3.92, 4.74, 3.74, 4.51, 3.51, 3.8, 2.85, 3.36, 2.5, 2.93, 2.1, 2.55, 1.73, 2.19, 1.43,
 	1.88, 1.14, 1.67, 0.93, 1.48, 0.81, 1.41, 0.69, 1.36, 0.59, 1.26, 0.5, 1.16, 0.4, 1.06, 0.29,
 	0.98, 0.24, 0.87, 0.19, 0.76, 0.1, 0.68, 0.05, 0.62, 0,
-]
+])
 
-for (let i = 0; i < RAW_POINTER_POINTS.length; i += 2) {
-	POINTER_POINTS.push({
-		x: RAW_POINTER_POINTS[i], // flipped horizontally
-		y: RAW_POINTER_POINTS[i + 1],
-		z: 0.5,
-	})
-}
-
-const DRAW_POINTS: VecModel[] = []
-const RAW_DRAW_POINTS = [
+const DRAW_POINTS = toPoints([
 	65.85, 4.52, 65.85, 4.52, 65.81, 4.64, 64.43, 6.51, 60.95, 10.99, 55.52, 17.48, 48.5, 25.57,
 	39.91, 34.6, 30.69, 43.73, 23.32, 51.31, 16.86, 58.16, 11.59, 63.77, 8.12, 67.48, 5.4, 70.45,
 	3.72, 72.23, 2.79, 73.13, 2.37, 73.53, 2.24, 73.72, 2.24, 74, 2.15, 74.87, 1.87, 76.46, 1.49,
@@ -210,16 +152,9 @@ const RAW_DRAW_POINTS = [
 	0.44, 76.17, 1.23, 77.41, 2.06, 78.48, 2.89, 79.16, 3.49, 79.53, 3.91, 79.83, 4.2, 79.96, 4.34,
 	79.98, 4.46, 80, 4.57, 80, 4.68, 79.99, 4.81, 79.88, 4.97, 79.69, 5.08, 79.53, 5.24, 79.18, 5.49,
 	78.59, 5.74, 77.94, 6.01, 77.44, 6.26, 77.17, 6.42, 77.04, 6.53,
-]
+])
 
-for (let i = 0; i < RAW_DRAW_POINTS.length; i += 2) {
-	DRAW_POINTS.push({
-		x: RAW_DRAW_POINTS[i], // flipped horizontally
-		y: RAW_DRAW_POINTS[i + 1],
-		z: 0.5,
-	})
-}
-
+// The draw doodle's raw points aren't origin-aligned or 70px-boxed like the others.
 const minX = Math.min(...DRAW_POINTS.map((p) => p.x))
 const minY = Math.min(...DRAW_POINTS.map((p) => p.y))
 
@@ -258,4 +193,10 @@ const SCALES = {
 	m: 1,
 	l: 1.5,
 	xl: 2,
+}
+
+const DRAG_ICON_POINTS: Record<string, VecModel[]> = {
+	select: POINTER_POINTS,
+	hand: HAND_POINTS,
+	draw: DRAW_POINTS,
 }

@@ -2,18 +2,11 @@ import { AdminFileStatsResponseBody } from '@tldraw/dotcom-shared'
 import { useCallback, useRef, useState } from 'react'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
-import { formatBytes, StructuredDataDisplay } from './shared'
+import { formatBytes, formatTally, getResponseError, StructuredDataDisplay } from './shared'
 import styles from './admin.module.css'
 
 function formatNumber(value: number) {
 	return value.toLocaleString()
-}
-
-/** "412 geo, 88 arrow, 3 frame" — biggest first, so the summary line leads with what matters. */
-function formatTally(tally: Record<string, number>) {
-	const entries = Object.entries(tally).sort((a, b) => b[1] - a[1])
-	if (entries.length === 0) return 'none'
-	return entries.map(([name, count]) => `${formatNumber(count)} ${name}`).join(', ')
 }
 
 function formatTimestamp(value: number) {
@@ -44,7 +37,7 @@ export function FileStats() {
 		try {
 			const res = await fetch(`/api/app/admin/file-stats/${encodeURIComponent(slug)}`)
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 			setStats((await res.json()) as AdminFileStatsResponseBody)

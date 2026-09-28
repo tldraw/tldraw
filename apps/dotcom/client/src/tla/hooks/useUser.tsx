@@ -2,7 +2,6 @@ import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import type { UserResource } from '@clerk/types'
 import { ReactNode, createContext, useContext, useMemo } from 'react'
 import { assert, useShallowObjectIdentity } from 'tldraw'
-import { useMaybeApp } from './useAppState'
 
 interface TldrawUser {
 	id: string
@@ -28,17 +27,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
 	// Destructuring the bits we need here fixes the issue as they seem to be stable.
 	const { getToken, isSignedIn, isLoaded: isAuthLoaded } = useAuth()
 
-	// app can be null during hot reloading sometimes?
-	const app = useMaybeApp()
-
+	// Built from Clerk alone so the sync socket can carry the access token before Zero has
+	// resolved. The Clerk id is also the app's userId and the Zero user row id.
 	const value = useMemo(() => {
-		if (!user || !isSignedIn || !app) return null
-
-		const storeUser = app.getUser()
-		if (!storeUser) throw new Error('User not found in app store')
+		if (!user || !isSignedIn) return null
 
 		return {
-			id: storeUser.id,
+			id: user.id,
 			clerkUser: user,
 			isTldraw: getIsTldrawStaff(user),
 			getToken: async () => {
@@ -47,9 +42,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
 				return token
 			},
 		}
-	}, [getToken, isSignedIn, user, app])
+	}, [getToken, isSignedIn, user])
 
-	if (!isLoaded || !isAuthLoaded || !app) {
+	if (!isLoaded || !isAuthLoaded) {
 		// Render a blank editor surface while auth loads, with no spinner or fade.
 		return <div className="tldraw__editor" />
 	}

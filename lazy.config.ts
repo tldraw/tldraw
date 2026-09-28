@@ -4,7 +4,7 @@ const config = {
 	baseCacheConfig: {
 		include: [
 			'<rootDir>/package.json',
-			'<rootDir>/yarn.lock',
+			'<rootDir>/pnpm-lock.yaml',
 			'<rootDir>/lazy.config.ts',
 			'<rootDir>/internal/config/**/*',
 			'<rootDir>/internal/scripts/**/*',
@@ -22,14 +22,13 @@ const config = {
 		build: {
 			baseCommand: 'exit 0',
 			runsAfter: {
-				prebuild: {},
 				'refresh-assets': {},
 				'build-i18n': {},
 			},
 			workspaceOverrides: {
 				'apps/vscode/*': { runsAfter: { 'refresh-assets': {} } },
 				'packages/*': {
-					runsAfter: { 'build-api': { in: 'self-only' }, prebuild: { in: 'self-only' } },
+					runsAfter: { 'build-api': { in: 'self-only' } },
 					cache: {
 						inputs: ['api/**/*', 'src/**/*'],
 					},
@@ -42,7 +41,7 @@ const config = {
 							'api/**/*',
 							'components/**/*',
 							'public/**/*',
-							'scrips/**/*',
+							'scripts/**/*',
 							'styles/**/*',
 							'types/**/*',
 							'utils/**/*',
@@ -53,34 +52,11 @@ const config = {
 		},
 		dev: {
 			execution: 'independent',
-			runsAfter: { predev: {}, 'refresh-assets': {}, 'build-i18n': {} },
+			runsAfter: { 'refresh-assets': {}, 'build-i18n': {} },
 			cache: 'none',
 			workspaceOverrides: {
 				'apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
 			},
-		},
-		// predev/prebuild are the css-copy scripts. They write generated, gitignored files
-		// (tldraw.css, commenting.css, ...) that lazy doesn't track as outputs, so a cache hit
-		// would skip regenerating a file that's missing on disk and vite would fail to resolve it.
-		// They're a few file copies, so just always run them.
-		predev: {
-			cache: 'none',
-		},
-		prebuild: {
-			cache: 'none',
-		},
-		e2e: {
-			cache: 'none',
-		},
-		'e2e-x10': {
-			cache: 'none',
-		},
-		context: {
-			execution: 'independent',
-			cache: 'none',
-		},
-		'pack-tarball': {
-			parallel: false,
 		},
 		'refresh-assets': {
 			execution: 'top-level',
@@ -107,7 +83,6 @@ const config = {
 			},
 			runsAfter: {
 				'refresh-assets': {},
-				'maybe-clean-tsbuildinfo': {},
 			},
 		},
 		'build-api': {
@@ -129,7 +104,11 @@ const config = {
 		'build-i18n': {
 			execution: 'independent',
 			cache: {
-				inputs: ['<rootDir>/apps/dotcom/client/public/tla/locales/*.json'],
+				inputs: [
+					// i18n:extract reads the messages out of these sources
+					'<rootDir>/apps/dotcom/client/src/{tla,pages,components}/**/*.{ts,tsx}',
+					'<rootDir>/apps/dotcom/client/public/tla/locales/*.json',
+				],
 				outputs: ['<rootDir>/apps/dotcom/client/public/tla/locales-compiled/*.json'],
 			},
 		},

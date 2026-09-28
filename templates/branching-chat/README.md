@@ -26,7 +26,7 @@ Perfect for building chatbots, interactive storytelling, conversation design too
 ### 1. Install Dependencies
 
 ```bash
-yarn install
+npm install
 ```
 
 ### 2. Environment setup
@@ -43,7 +43,7 @@ You can also switch to a different provider using the [Vercel AI SDK](https://ai
 ### 3. Start Development
 
 ```bash
-yarn dev
+npm run dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173) to see your branching chat interface.
@@ -80,7 +80,7 @@ Ready to deploy to Cloudflare Workers:
 
 ```bash
 # Build the frontend
-yarn build
+npm run build
 
 # Deploy to Cloudflare (requires wrangler CLI)
 npx wrangler deploy

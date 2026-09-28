@@ -29,6 +29,12 @@ The release notes in `next.mdx` must ultimately reflect what ships on the `produ
 - **Development weeks** (`source: "main"`, <3 weeks since last minor release): PRs are gathered from `main` since the last release tag. These are preliminary — some may not ship if they're reverted or if production cherry-picks differ.
 - **Freeze week** (`source: "production"`, 3+ weeks since last minor release): PRs are gathered from the `production` branch using `git cherry` against the previous release branch. Only PRs that landed before the freeze or were hotfixed onto production are included. Entries accumulated from `main` that aren't on production will be pruned.
 
+`next.mdx` itself also has to be **on `production`** before the release is published, not just describe it. `prepack.ts` generates the `RELEASE_NOTES.md` that ships inside the `tldraw` npm package from the checkout being published, using `next.mdx` as the entry for the version being released. `production` only moves by hotfix during the freeze, so a release-notes PR merged to `main` reaches it only if it also carries the `dotcom-hotfix-please` label (see step 10). The check before publishing is an empty diff:
+
+```bash
+git diff --stat origin/production origin/main -- apps/docs/content/releases/next.mdx
+```
+
 ## Process
 
 ### 1. Check status
@@ -190,6 +196,7 @@ git push -u origin "$BRANCH"
 Then create the PR using the `../pr/SKILL.md` workflow and the standards in `../write-pr/SKILL.md`:
 
 - **Label**: add `docs-hotfix-please` (`gh pr edit <number> --add-label docs-hotfix-please`, or `--label docs-hotfix-please` on `gh pr create`). Without it, merging to `main` never cherry-picks the notes onto the current release branch (`vX.Y.x`), so the update never reaches tldraw.dev — which is the whole point of the run.
+- **Freeze-week label**: when `source` is `"production"`, also add `dotcom-hotfix-please`. That cherry-picks the merged PR onto `hotfixes` and from there onto `production`, which is where `prepack.ts` reads `next.mdx` from when the release is published (see "Release cycle"). `docs-hotfix-please` alone never touches `production`. After the merge, confirm the hotfix landed with the diff command from "Release cycle"; if the dotcom hotfix bot fails, cherry-pick the squash commit onto a branch from `hotfixes` by hand, strip any `[skip ci]` marker from the commit message, and open a `[HOTFIX]` PR against `hotfixes`.
 - **Title**: `docs(releases): update release notes [skip ci]` — the `[skip ci]` must be in the PR title because GitHub's squash-merge uses the PR title as the merge commit subject, and that merge commit is what needs to skip CI. **Squash-merge** the PR (do not rebase- or create-a-merge-commit) so exactly one `[skip ci]` commit lands on the base branch.
 - **Change type**: `other`
 - **Test plan**: Remove the numbered list (no manual testing steps). Untick both unit tests and end to end tests.
@@ -199,7 +206,9 @@ Then create the PR using the `../pr/SKILL.md` workflow and the standards in `../
 
 **Why `[skip ci]` is only in the PR title**: branch commits need to run the required pull request checks. GitHub's squash merge uses the PR title for the merge commit, so the marker skips push workflows when the notes-only change lands on `main`.
 
-`[skip ci]` does not interfere with the `docs-hotfix-please` label: `trigger-sdk-hotfix.yml` runs on `pull_request_target`, which GitHub's skip-ci markers do not affect, and the hotfix script strips skip-ci markers from the cherry-picked commit so the release-branch push still triggers the publish workflow. The trigger fires when a labeled PR is merged; to re-trigger it later, remove and re-add the label on the merged PR.
+`[skip ci]` does not interfere with the `docs-hotfix-please` label: `trigger-sdk-hotfix.yml` runs on `pull_request_target`, which GitHub's skip-ci markers do not affect, and the hotfix script strips skip-ci markers from the cherry-picked commit so the release-branch push still triggers the publish workflow. The trigger fires when a labeled PR is merged; to re-trigger it later, remove and re-add the label on the merged PR. The same applies to `dotcom-hotfix-please` once #10629 is fixed; until then its bot keeps the marker and the hotfix PR it opens never gets its checks.
+
+Never write the literal `[skip ci]` string anywhere else in a PR body. GitHub reads the marker from the whole squash-merge commit message, and the PR body becomes that commit's body.
 
 ## The `last_version` field
 
@@ -209,14 +218,16 @@ The `next.mdx` frontmatter includes a `last_version` field that tracks the most 
 
 During an SDK release, this skill is run **twice** to get the docs site into its post-release state:
 
-1. **First run** — update `next.mdx` with all PRs that will ship in the release (source is `"production"` during freeze week). This ensures the release notes are complete before publishing. The draft-release step (step 9) syncs the draft `vX.Y.0` GitHub release from this `next.mdx`, so `publish-new.ts` has the finished notes ready to publish.
-2. **Publish the release to NPM** — this happens outside of this skill. `publish-new.ts` publishes the draft release created in step 1.
-3. **Second run** — now that the release is published, the status script will detect `needs_archive: true`. This run:
+1. **First run** — update `next.mdx` with all PRs that will ship in the release (source is `"production"` during freeze week). This ensures the release notes are complete before publishing. The draft-release step (step 9) syncs the draft `vX.Y.0` GitHub release from this `next.mdx`, so `publish-new.ts` has the finished notes ready to publish. The PR carries both `docs-hotfix-please` and `dotcom-hotfix-please` (step 10) so the file reaches `v(X.Y-1).x` for the site and `production` for the package.
+2. **Gate** — before anyone publishes, `next.mdx` must be identical on `production` and `main` (the diff command in "Release cycle" prints nothing), and the draft `vX.Y.0` release must match `next.mdx`. If a later edit to `next.mdx` landed on `main` without the dotcom hotfix, or after the last draft sync, fix that first.
+3. **Publish the release to NPM** — this happens outside of this skill. `publish-new.ts` publishes the draft release created in step 1, and `prepack.ts` bakes `production`'s `next.mdx` into the `tldraw` package as that version's `RELEASE_NOTES.md` entry. The publish pushes the version bump to `main`, not `production`.
+4. **Second run** — now that the release is published, the status script will detect `needs_archive: true`. This workflow runs on `production` pushes, and the publish doesn't make one, so the second run happens on the next `production` push (normally the post-launch dotcom release from `main`), or when someone dispatches `update-release-notes.yml` by hand. This run:
    - Archives `next.mdx` to a versioned file (e.g., `v4.5.0.mdx`)
    - Adds the new version to the releases index (`releases.mdx`)
    - Resets `next.mdx` with the new `last_version`
    - Finds PRs that landed on `main` during the freeze (since the release tag) and adds them to the fresh `next.mdx`
    - Syncs a fresh draft for the new next minor (step 9), since the previous draft is now published
+   - Needs `docs-hotfix-please` (not `dotcom-hotfix-please`: `production` no longer matters for the notes once the package is out) so it lands on the new `vX.Y.x` branch and republishes the site
 
 After the second run, the docs site reflects the published release and `next.mdx` already has a head start on the next cycle's changes.
 

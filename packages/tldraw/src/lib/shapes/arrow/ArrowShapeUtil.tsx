@@ -8,6 +8,7 @@ import {
 	Geometry2d,
 	Group2d,
 	IndexKey,
+	Mat,
 	PI2,
 	Polyline2d,
 	Rectangle2d,
@@ -596,7 +597,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// When we start translating shapes, record where their bindings were in page space so we
 		// can maintain them as we translate the arrow
 		shapeAtTranslationStart.set(shape, {
-			pagePosition: shapePageTransform.applyToPoint(shape),
+			pagePosition: Mat.applyToPoint(this.editor.getShapeParentTransform(shape), shape),
 			terminalBindings: mapObjectMapValues(terminalsInArrowSpace, (terminalName, point) => {
 				const binding = bindings[terminalName]
 				if (!binding) return null
@@ -644,16 +645,19 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const atTranslationStart = shapeAtTranslationStart.get(initialShape)
 		if (!atTranslationStart) return
 
-		const shapePageTransform = this.editor.getShapePageTransform(shape.id)!
+		// How far the arrow's origin has moved in page space. `shape.x/y` are in the parent's
+		// space and may not be in the store yet (one-off moves like nudge/align/distribute pass a
+		// working copy), so map them through the parent transform. Applying the arrow's own page
+		// transform to them instead folds the arrow's rotation into the delta.
 		const pageDelta = Vec.Sub(
-			shapePageTransform.applyToPoint(shape),
+			Mat.applyToPoint(this.editor.getShapeParentTransform(shape), shape),
 			atTranslationStart.pagePosition
 		)
 
 		for (const terminalBinding of Object.values(atTranslationStart.terminalBindings)) {
 			if (!terminalBinding) continue
 
-			const newPagePoint = Vec.Add(terminalBinding.pagePosition, Vec.Mul(pageDelta, 0.5))
+			const newPagePoint = Vec.Add(terminalBinding.pagePosition, pageDelta)
 			const newTarget = this.editor.getShapeAtPoint(newPagePoint, {
 				hitInside: true,
 				hitFrameInside: true,
@@ -689,8 +693,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override onResize(shape: TLArrowShape, info: TLResizeInfo<TLArrowShape>) {
 		const { scaleX, scaleY } = info
 
-		const bindings = this._resizeInitialBindings.get(shape, () =>
-			getArrowBindings(this.editor, shape)
+		// Key on `info.initialShape`: the editor passes a fresh `{ ...initialShape, x, y }` as
+		// `shape` on every frame, so keying on it would re-read the already-mirrored bindings
+		// from the store and flip the anchors back and forth while dragging past zero.
+		const bindings = this._resizeInitialBindings.get(info.initialShape, () =>
+			getArrowBindings(this.editor, info.initialShape)
 		)
 		const terminals = getArrowTerminalsInArrowSpace(this.editor, shape, bindings)
 

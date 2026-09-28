@@ -63,22 +63,21 @@ export class Resizing extends StateNode {
 		this.info = info
 		this.didHoldCommand = false
 		this.didFinish = false
+		this.markId = ''
 
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
 		this.creationCursorOffset = creationCursorOffset
 
-		try {
-			// On rare and mysterious occasions, the user can enter the resizing state with no shapes selected
-			this.snapshot = this._createSnapshot()
-		} catch (e) {
-			console.error(e)
-			this.cancel()
+		// The selection can be empty here, e.g. when the pointed shape was deleted remotely between
+		// pointer down and the drag. Nothing has been marked or changed yet, so just leave.
+		const snapshot = this._createSnapshot()
+		if (!snapshot) {
+			this.parent.transition('idle')
 			return
 		}
-
-		this.markId = ''
+		this.snapshot = snapshot
 
 		if (isCreating) {
 			if (creatingMarkId) {
@@ -222,7 +221,8 @@ export class Resizing extends StateNode {
 
 			const changes: TLShapePartial[] = []
 			shapeSnapshots.forEach(({ shape }) => {
-				const current = this.editor.getShape(shape.id)!
+				const current = this.editor.getShape(shape.id)
+				if (!current) return
 				const util = this.editor.getShapeUtil(shape)
 				if (!util.canResize(shape)) return
 				const change = util.onResizeEnd?.(shape, current)
@@ -245,7 +245,13 @@ export class Resizing extends StateNode {
 	private _updateShapes() {
 		// Otherwise the stale resize snapshot would overwrite an external change.
 		if (this.changeTracker.getAndClearChanged()) {
-			this.snapshot = this._createSnapshot(this.editor.inputs.getCurrentPagePoint())
+			const snapshot = this._createSnapshot(this.editor.inputs.getCurrentPagePoint())
+			// The external change may have deleted every shape we were resizing
+			if (!snapshot) {
+				this.parent.transition('idle')
+				return
+			}
+			this.snapshot = snapshot
 			this.changeTracker.setTrackedShapeIds(this.snapshot.shapeSnapshots.keys())
 		}
 
@@ -355,8 +361,6 @@ export class Resizing extends StateNode {
 		// calculate the scale by measuring the current distance between the drag handle and the scale origin
 		// and dividing by the original distance between the drag handle and the scale origin
 
-		// bug: for edges, the page point doesn't matter, the
-
 		const distanceFromScaleOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage).rot(
 			-selectionRotation
 		)
@@ -462,8 +466,9 @@ export class Resizing extends StateNode {
 
 			for (const { id, children } of frames) {
 				if (!children.length) continue
-				const initial = shapeSnapshots.get(id)!.shape
-				const current = this.editor.getShape(id)!
+				// The frame may have been deleted mid-resize
+				const initial = shapeSnapshots.get(id)?.shape
+				const current = this.editor.getShape(id)
 				if (!(initial && current)) continue
 
 				const dx = current.x - initial.x
@@ -530,8 +535,6 @@ export class Resizing extends StateNode {
 		this.editor.setHintingShapes(hintingShapeIds)
 	}
 
-	// ---
-
 	private updateCursor({
 		dragHandle,
 		isFlippedX,
@@ -586,6 +589,9 @@ export class Resizing extends StateNode {
 		if (this.info.isCreating && !this.didFinish) {
 			this.editor.bailToMark(this.markId)
 		}
+		// Don't keep the last resize's shapes, transforms and callbacks alive until the next one
+		this.snapshot = {} as any as Snapshot
+		this.info = {} as ResizingInfo
 	}
 
 	private _createSnapshot(originPagePoint = this.editor.inputs.getOriginPagePoint()) {
@@ -594,7 +600,7 @@ export class Resizing extends StateNode {
 		const selectionRotation = editor.getSelectionRotation()
 
 		const selectionBounds = editor.getSelectionRotatedPageBounds()
-		if (!selectionBounds) throw Error('Resizing but nothing is selected')
+		if (!selectionBounds) return null
 
 		const dragHandlePoint = Vec.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),
@@ -712,4 +718,4 @@ export class Resizing extends StateNode {
 	}
 }
 
-type Snapshot = ReturnType<Resizing['_createSnapshot']>
+type Snapshot = NonNullable<ReturnType<Resizing['_createSnapshot']>>
