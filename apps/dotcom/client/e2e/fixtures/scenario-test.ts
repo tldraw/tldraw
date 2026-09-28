@@ -373,6 +373,12 @@ class DotcomScenario {
 		await actor.shareMenu.publishFile()
 		const url = await actor.shareMenu.copyLink()
 		await actor.page.keyboard.press('Escape')
+		// The first publish also lands in R2 via the outbox; until then the published page 404s.
+		const slug = new URL(url).pathname.split('/')[2]
+		await expect(async () => {
+			const response = await actor.page.request.get(`${ROOT_URL}/api/app/publish/${slug}`)
+			expect(response.status()).toBe(200)
+		}).toPass({ timeout: 20_000 })
 		return url
 	}
 
@@ -411,7 +417,7 @@ class DotcomScenario {
 
 	// Publishing writes R2 via the outbox after the mutation lands, and the published page is
 	// static, so a single reload can still serve the previous snapshot.
-	async expectPublishedShapesCount(actor: DotcomActor, expected: number, timeout = 30_000) {
+	async expectPublishedShapesCount(actor: DotcomActor, expected: number, timeout = 20_000) {
 		await expect(async () => {
 			await actor.page.reload()
 			await actor.waitForAppReady()
