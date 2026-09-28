@@ -37,13 +37,14 @@ export class Erasing extends StateNode {
 				.map((shape) => shape.id)
 		)
 
-		// Keep what the pointing state marked (it hit-tests with a margin) plus whatever is under the origin
-		const hitsAtOrigin = this.editor.getShapesAtPoint(originPagePoint).map((s) => s.id)
-		this.editor.setErasingShapes(
-			[...new Set([...this.editor.getErasingShapeIds(), ...hitsAtOrigin])].filter(
-				(id) => !this.excludedShapeIds.has(id)
-			)
-		)
+		const hitShapeIds = this.editor
+			.getShapesAtPoint(originPagePoint)
+			.filter((s) => !this.excludedShapeIds.has(s.id))
+			.map((s) => s.id)
+
+		this.editor.setErasingShapes([
+			...new Set([...this.editor.getErasingShapeIds(), ...hitShapeIds]),
+		])
 
 		const scribble = this.editor.scribbles.addScribble({
 			color: 'muted-1',
@@ -97,7 +98,10 @@ export class Erasing extends StateNode {
 		const candidateIds = editor.getShapeIdsInsideBounds(lineBounds)
 
 		// Early return if no candidates - avoid expensive getCurrentPageRenderingShapesSorted()
-		if (candidateIds.size === 0) return
+		if (candidateIds.size === 0) {
+			editor.setErasingShapes(Array.from(erasing))
+			return
+		}
 
 		const allShapes = editor.getCurrentPageRenderingShapesSorted()
 		const currentPageShapes = allShapes.filter((shape) => candidateIds.has(shape.id))
