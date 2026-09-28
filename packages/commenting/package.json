@@ -34,9 +34,6 @@
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
 		"test": "pnpm exec vitest --passWithNoTests",
 		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
-		"predev": "node ./scripts/copy-css-files.mjs",
-		"dev": "chokidar '../mentions/mentions.css' 'src/ui/comments.css' 'src/canvas/canvas.css' -c 'node ./scripts/copy-css-files.mjs'",
-		"prebuild": "node ./scripts/copy-css-files.mjs",
 		"build": "pnpm exec tsx ../../internal/scripts/build-package.ts",
 		"build-api": "pnpm exec tsx ../../internal/scripts/build-api.ts",
 		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
@@ -49,7 +46,6 @@
 		"@tldraw/driver": "workspace:*",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
-		"chokidar-cli": "^3.0.0",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"vitest": "^5.0.0"

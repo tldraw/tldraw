@@ -18,7 +18,7 @@ if [ ! -d "templates/$template_name" ]; then
 fi
 
 if [ ${#vite_args[@]} -eq 0 ]; then
-    pnpm exec turbo run dev --filter="./templates/$template_name" --filter='./packages/tldraw' --filter='./apps/bemo-worker'
+    pnpm exec turbo run dev --filter="./templates/$template_name" --filter='./apps/bemo-worker'
     exit $?
 fi
 
@@ -30,7 +30,7 @@ pnpm refresh-assets || exit 1
 # below. Run the shared deps in their own process group (set -m) so cleanup kills turbo and its
 # watchers together.
 set -m
-pnpm exec turbo run dev --filter='./packages/tldraw' --filter='./apps/bemo-worker' &
+pnpm exec turbo run dev --filter='./apps/bemo-worker' &
 turbo_pid=$!
 disown
 cleanup() {

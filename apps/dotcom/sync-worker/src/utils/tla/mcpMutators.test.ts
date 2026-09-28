@@ -15,6 +15,7 @@ describe('createMcpMutators', () => {
 			'unpinFile',
 			'removeFileFromWorkspace',
 			'onEnterFile',
+			'updateUserPreferences',
 		])
 		expect(Object.keys(mcp.file)).toEqual(Object.keys(all.file))
 		expect(Object.keys(mcp.file_state)).toEqual(Object.keys(all.file_state))
@@ -35,5 +36,9 @@ describe('createMcpMutators', () => {
 				'moveFileToWorkspace',
 			])
 		)
+	})
+
+	it('leaves out the user row, beyond its editor preferences', () => {
+		expect(mcp).not.toHaveProperty('user')
 	})
 })

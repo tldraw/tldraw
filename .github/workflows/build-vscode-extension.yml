@@ -51,9 +51,6 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Generate tldraw.css
-        run: pnpm --filter tldraw prebuild
-
       - name: Build and package extension
         run: pnpm package
         working-directory: apps/vscode/extension

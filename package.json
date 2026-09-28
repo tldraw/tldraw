@@ -32,7 +32,7 @@
 		"preinstall": "node internal/scripts/preinstall.mjs",
 		"postinstall": "husky install && pnpm refresh-assets",
 		"refresh-assets": "tsx internal/scripts/refresh-assets.ts",
-		"dev": "turbo run dev --filter='./apps/examples' --filter='./packages/tldraw' --filter='./apps/bemo-worker' --filter='./apps/dotcom/image-resize-worker'",
+		"dev": "turbo run dev --filter='./apps/examples' --filter='./apps/bemo-worker' --filter='./apps/dotcom/image-resize-worker'",
 		"dev-vscode": "code ./apps/vscode/extension && turbo run dev --filter='./apps/vscode/*'",
 		"dev-app": "process-compose -f apps/dotcom/process-compose.yaml up",
 		"dev-app:clean": "docker compose -f apps/dotcom/zero-cache/docker/docker-compose.yml down --volumes && rm -f /tmp/tldraw-dotcom-zero-dev.db /tmp/tldraw-dotcom-zero-dev.db-shm /tmp/tldraw-dotcom-zero-dev.db-wal && rm -rf apps/dotcom/sync-worker/.wrangler/state-dev apps/dotcom/zero-cache/.schema.js",

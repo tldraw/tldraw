@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	BOARD_SEARCH_MAX_TERMS,
-	CREATE_BOARD_MAX_NAME_LENGTH,
+	BOARD_NAME_MAX_LENGTH,
 	CreatableWorkspace,
 	BOARD_SEARCH_PAGE_SIZE,
 	BoardSearchRow,
@@ -9,6 +9,7 @@ import {
 	getBoardSearchResults,
 	isAfterBoardSearchCursor,
 	parseCreateBoardInput,
+	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	resolveCreateBoardWorkspace,
 } from './boardTools'
@@ -353,12 +354,35 @@ describe('parseCreateBoardInput', () => {
 	it('rejects a missing, blank, overlong or non-string name, and a non-string workspace', () => {
 		expect(() => parseCreateBoardInput({})).toThrow('name is required')
 		expect(() => parseCreateBoardInput({ name: '   ' })).toThrow('name is required')
-		expect(() =>
-			parseCreateBoardInput({ name: 'x'.repeat(CREATE_BOARD_MAX_NAME_LENGTH + 1) })
-		).toThrow(`at most ${CREATE_BOARD_MAX_NAME_LENGTH}`)
+		expect(() => parseCreateBoardInput({ name: 'x'.repeat(BOARD_NAME_MAX_LENGTH + 1) })).toThrow(
+			`at most ${BOARD_NAME_MAX_LENGTH}`
+		)
 		expect(() => parseCreateBoardInput({ name: 'Roadmap', workspace: 3 })).toThrow(
 			'workspace must be'
 		)
+	})
+})
+
+describe('parseRenameBoardInput', () => {
+	it('trims the name', () => {
+		expect(parseRenameBoardInput({ boardId: 'board_abc', name: '  Roadmap ' })).toEqual({
+			boardId: 'board_abc',
+			name: 'Roadmap',
+		})
+	})
+
+	it('rejects a missing board id, a URL, and a missing, blank or overlong name', () => {
+		expect(() => parseRenameBoardInput({ name: 'Roadmap' })).toThrow('boardId is required')
+		expect(() =>
+			parseRenameBoardInput({ boardId: 'https://www.tldraw.com/f/abc', name: 'Roadmap' })
+		).toThrow('not a URL')
+		expect(() => parseRenameBoardInput({ boardId: 'board_abc' })).toThrow('name is required')
+		expect(() => parseRenameBoardInput({ boardId: 'board_abc', name: ' ' })).toThrow(
+			'name is required'
+		)
+		expect(() =>
+			parseRenameBoardInput({ boardId: 'board_abc', name: 'x'.repeat(BOARD_NAME_MAX_LENGTH + 1) })
+		).toThrow(`at most ${BOARD_NAME_MAX_LENGTH}`)
 	})
 })
 

@@ -1,6 +1,6 @@
 import { transaction } from '@tldraw/state'
 import { SerializedSchema, StoreSnapshot, UnknownRecord } from '@tldraw/store'
-import { assert, objectMapEntries, throttle } from '@tldraw/utils'
+import { assert, objectMapEntries, throttle, type ThrottledFunction } from '@tldraw/utils'
 import {
 	computeTombstonePruning,
 	DEFAULT_INITIAL_SNAPSHOT,
@@ -508,7 +508,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 	}
 
 	/** @internal */
-	pruneTombstones: ReturnType<typeof throttle<() => void>> = throttle(
+	pruneTombstones: ThrottledFunction<() => void> = throttle(
 		() => {
 			// Runs from a timer, so a host that closed the database right after the last delete
 			// (e.g. `room.close(); db.close()` in onSessionRemoved) would otherwise get an uncaught

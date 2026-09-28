@@ -275,7 +275,10 @@ bindings = [
 #################### Hyperdrive ####################
 # Postgres through Hyperdrive; code falls back to the pooled connection string when unbound. Previews
 # stay unbound: each gets its own Supabase branch, and Hyperdrive configs are capped at 25 per
-# account. Configs are managed by hand in the Cloudflare dashboard:
+# account. Kill switch, no build needed (restarts DOs; persists across deploys until deleted):
+#   pnpm wrangler secret put HYPERDRIVE_DISABLED --env production   # value: true
+#   pnpm wrangler secret delete HYPERDRIVE_DISABLED --env production
+# Configs are managed by hand in the Cloudflare dashboard:
 # - Origin is the direct connection, with the same credentials as BOTCOM_POSTGRES_CONNECTION_STRING.
 #   Rotating the database password breaks Hyperdrive until the config is updated too.
 # - Caching stays disabled: role and file-record reads must never be stale.
@@ -733,6 +736,32 @@ simple = { limit = 10, period = 60 }
 name = "MCP_SERVER_CREATE_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1024"
+simple = { limit = 10, period = 60 }
+
+# MCP server per-account `rename_board` guard. Bounds writes, so it is its own budget and smaller than
+# search's — see MCP_RENAME_PER_USER_RATE_LIMIT in config.ts before changing this.
+[[env.dev.unsafe.bindings]]
+name = "MCP_SERVER_RENAME_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1025"
+simple = { limit = 10, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SERVER_RENAME_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1026"
+simple = { limit = 10, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SERVER_RENAME_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1027"
+simple = { limit = 10, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SERVER_RENAME_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1028"
 simple = { limit = 10, period = 60 }
 
 #################### Queues ####################

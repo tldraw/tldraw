@@ -34,6 +34,7 @@ export interface Environment {
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
 	HYPERDRIVE?: Hyperdrive
+	HYPERDRIVE_DISABLED?: string
 
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
 	PLAIN_API_KEY?: string
@@ -107,6 +108,8 @@ export interface Environment {
 	MCP_SERVER_SEARCH_RATE_LIMITER: RateLimit | undefined
 	/** Per-account `create_board` calls. Bounds writes. */
 	MCP_SERVER_CREATE_RATE_LIMITER: RateLimit | undefined
+	/** Per-account `rename_board` calls. Bounds writes. */
+	MCP_SERVER_RENAME_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
