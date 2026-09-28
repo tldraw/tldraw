@@ -11,6 +11,7 @@ import { router } from './routes'
 import { showConsoleBranding } from './utils/consoleBranding'
 import { fileLoads } from './utils/fileLoad'
 import { markFirstLoad } from './utils/firstLoad'
+import { shouldPrintLoads } from './utils/loadTracker'
 
 markFirstLoad('js-started')
 
@@ -50,7 +51,8 @@ createRoot(document.getElementById('root')!).render(
 	</RefreshErrorBoundary>
 )
 
-showConsoleBranding()
+// The banner buries the load timings the debug flag asked for.
+if (!shouldPrintLoads()) showConsoleBranding()
 try {
 	// we have a dummy service worker that unregisters itself immediately
 	// this was needed to remove the service worker we used to have from the cache
