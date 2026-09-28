@@ -26,6 +26,9 @@ import {
 const env = {
 	CLERK_SECRET_KEY: 'sk',
 	CLERK_PUBLISHABLE_KEY: 'pk',
+	// Clerk is mocked, so the tokens here are placeholders with no claims; mcpAuth.test.ts covers the
+	// audience check against real signed tokens.
+	MCP_TOKEN_AUDIENCE_CHECK: 'off',
 } as any
 
 function signedInAs(userId: string | null) {

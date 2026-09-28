@@ -295,9 +295,9 @@ export async function getMcpTokenAuth(
  * pass: `@clerk/backend`'s own `audience` option skips the comparison when the claim is missing, so a
  * client could opt out of the check just by leaving the parameter off.
  *
- * Only on environments whose Clerk instance was configured for it (staging so far), and
- * `report` before `enforce`: which clients actually send `resource` is only known from traffic, and a
- * client that does not would be locked out entirely.
+ * Enforced unless the environment opts out with `report` or `off`, so a missing or mistyped value
+ * fails closed. Opting out is for a Clerk instance not configured to stamp `aud` (staging and
+ * production are), where enforcing would refuse every token.
  *
  * Read from the token only after the SDK has verified its signature, so nothing here is trusted
  * that the SDK did not already check.
@@ -307,8 +307,8 @@ function checkMcpTokenAudience(
 	token: string,
 	clientId: string
 ): 'no_audience' | 'wrong_audience' | 'unconfigured' | null {
-	const mode = env.MCP_TOKEN_AUDIENCE_CHECK
-	if (mode !== 'report' && mode !== 'enforce') return null
+	if (env.MCP_TOKEN_AUDIENCE_CHECK === 'off') return null
+	const mode = env.MCP_TOKEN_AUDIENCE_CHECK === 'report' ? 'report' : 'enforce'
 
 	const expected = env.MCP_SERVER_URL
 	if (!expected) {

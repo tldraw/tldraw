@@ -134,10 +134,12 @@ MULTIPLAYER_SERVER = "http://localhost:3000"
 ZERO_SERVER = "http://localhost:4848/"
 MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
 # The MCP server's public URL, and the resource identifier it advertises in protected resource
-# metadata and in the WWW-Authenticate challenge. Not compared against an incoming token: Clerk stamps
-# no `aud`, so there is no audience binding to check. Points at the client dev server because that is
+# metadata and in the WWW-Authenticate challenge. Points at the client dev server because that is
 # what proxies /api and /.well-known through to this worker.
 MCP_SERVER_URL = "http://localhost:3000/api/app/mcp"
+# The Clerk development instance is not known to stamp `aud`, and enforcing there would refuse every
+# local MCP token. Staging, production and previews enforce by default.
+MCP_TOKEN_AUDIENCE_CHECK = "report"
 # Kill switch for the MCP screenshot server (POST /app/mcp). Read per request, so setting it to
 # anything but "true" — here or straight in the Cloudflare dashboard — takes the endpoint down
 # without a rebuild. A dashboard edit lasts until the next deploy overwrites it from this file.
@@ -162,10 +164,6 @@ HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
 MCP_SERVER_URL = "https://staging.tldraw.com/api/app/mcp"
 MCP_SEARCH_NAME_MATCHING_ENABLED = "true"
-# The staging Clerk instance stamps `aud` from the RFC 8707 `resource` parameter; production's does
-# not yet. Reporting until traffic shows which clients send it — see MCP_TOKEN_AUDIENCE_CHECK in
-# types.ts. deploy-dotcom.ts sets the same for previews.
-MCP_TOKEN_AUDIENCE_CHECK = "report"
 # Staging joins previews in trialling live-canvas capture (see THUMBNAIL_RENDER_LIVE_CAPTURE in
 # types.ts). Previews are too short-lived and too lightly used to produce the render_page_timings
 # volume the trial is judged on; production stays on the export until it is.

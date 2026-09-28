@@ -70,8 +70,8 @@ beforeAll(async () => {
  * instance as `iss`, a subject, a live `exp` — so each test overrides exactly the one thing it is
  * about, and no test can pass because two things were wrong at once.
  *
- * No `aud` unless a test asks for one: it is the shape of a real token from a client that sends no
- * RFC 8707 `resource`, and the audience check is off unless `MCP_TOKEN_AUDIENCE_CHECK` turns it on.
+ * `aud` names this server, as Clerk stamps it for a client that sends RFC 8707 `resource`; `null`
+ * omits it, the shape of a token from a client that sends none.
  */
 async function signToken({
 	key,
@@ -88,7 +88,8 @@ async function signToken({
 	exp?: number | null
 	claims?: Record<string, unknown>
 } = {}) {
-	const payload: Record<string, unknown> = { iss: ISSUER, ...claims }
+	const payload: Record<string, unknown> = { iss: ISSUER, aud: RESOURCE, ...claims }
+	if (payload.aud === null) delete payload.aud
 	if (sub !== null) payload.sub = sub
 	if (exp !== null) payload.exp = exp
 	return await signJwt(payload, key ?? signingKey, {
@@ -474,7 +475,7 @@ describe('the MCP token audience check', () => {
 		],
 		// What Clerk issues to a client that sends no `resource`. The SDK's own `audience` option lets
 		// this through, which is why the check reads the claim itself.
-		['a token with no audience', {}, 'no_audience'],
+		['a token with no audience', { aud: null }, 'no_audience'],
 		['a token naming another server', { aud: 'https://other.example/mcp' }, 'wrong_audience'],
 	])('with %s', (_name, claims, outcome) => {
 		it('refuses anything but a match when enforcing, as invalid_token', async () => {
@@ -505,10 +506,21 @@ describe('the MCP token audience check', () => {
 		})
 	})
 
-	// Production until its Clerk instance stamps `aud`: turning the check on there would refuse every
-	// token ever issued.
-	it.each([undefined, '', 'off', 'enforced'])('does nothing when the mode is %j', async (mode) => {
-		const result = await authenticateMcpRequest(bearer(await signToken()), audienceEnv(mode))
+	// Fails closed: an unset or mistyped mode must not quietly turn the check off.
+	it.each([undefined, '', 'enforced'])('enforces when the mode is %j', async (mode) => {
+		const result = await authenticateMcpRequest(
+			bearer(await signToken({ claims: { aud: null } })),
+			audienceEnv(mode)
+		)
+
+		expect(result).toMatchObject({ ok: false, reason: 'no_audience' })
+	})
+
+	it('does nothing when the mode is off', async () => {
+		const result = await authenticateMcpRequest(
+			bearer(await signToken({ claims: { aud: null } })),
+			audienceEnv('off')
+		)
 
 		expect(result).toEqual({ ok: true, userId: 'user_123' })
 		expect(recorded()).toEqual([])
