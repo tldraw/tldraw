@@ -107,12 +107,11 @@ async function readFeatureFlag(env: Environment, flag: FeatureFlagKey): Promise<
 }
 
 /**
- * A flag's stored value, cached per isolate. When KV fails it serves the last value this isolate
- * read, however old, and throws if there is none: falling back to the defaults would pass a KV blip
- * off as the real value. Callers that need an answer regardless pick their own fallback.
+ * A flag's stored value, cached per isolate. Never throws: when KV fails it serves the last value
+ * this isolate read, however old, or the defaults if there is none.
  *
- * `staleOnError: false` throws instead of serving a stale value, for access checks: a cached grant
- * would otherwise outlive its revocation for as long as KV stays down.
+ * `staleOnError: false` skips the stale value, for access checks: a cached grant would otherwise
+ * outlive its revocation for as long as KV stays down.
  */
 export async function getFeatureFlagValue(
 	env: Environment,
@@ -126,15 +125,9 @@ export async function getFeatureFlagValue(
 		flagCache.set(flag, { value, readAt: Date.now() })
 		return value
 	} catch (e) {
-		if (!cached || !staleOnError) throw e
-		console.error(`Failed to read feature flag ${flag}, serving the cached value:`, e)
-		return cached.value
+		console.error(`Failed to read feature flag ${flag}:`, e)
+		return cached && staleOnError ? cached.value : getFlagDefaults()[flag]
 	}
-}
-
-/** The value a flag has before anything is stored, for callers that must not fail on a KV error. */
-export function getFeatureFlagDefault(flag: FeatureFlagKey): FeatureFlagValue {
-	return getFlagDefaults()[flag]
 }
 
 /**
@@ -207,13 +200,8 @@ export function evaluateFlagForUser(
  * Clerk round trip on every refused request is a worse thing to add to an auth path.
  */
 export async function canUseMcpServer(env: Environment, userId: string): Promise<boolean> {
-	try {
-		const opts = { staleOnError: false }
-		if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId, opts)) return true
-	} catch (e) {
-		// An unreadable flag admits nobody; the staff check below still runs.
-		console.error('Failed to read mcp_server_access:', e)
-	}
+	const opts = { staleOnError: false }
+	if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId, opts)) return true
 	return await hasTldrawEmail(env, userId)
 }
 
@@ -333,19 +321,14 @@ export async function getFeatureFlags(request: IRequest, env: Environment): Prom
 
 	const flags: Record<string, EvaluatedFeatureFlag> = {}
 
-	try {
-		await Promise.all(
-			FEATURE_FLAG_KEYS.map(async (key) => {
-				const raw = await getFeatureFlagValue(env, key)
-				flags[key] = {
-					enabled: evaluateFlagForUser(raw, key, userId),
-				}
-			})
-		)
-	} catch (e) {
-		console.error('Failed to read feature flags:', e)
-		return new Response('Feature flags unavailable', { status: 503 })
-	}
+	await Promise.all(
+		FEATURE_FLAG_KEYS.map(async (key) => {
+			const raw = await getFeatureFlagValue(env, key)
+			flags[key] = {
+				enabled: evaluateFlagForUser(raw, key, userId),
+			}
+		})
+	)
 
 	// Legacy client compat: bundles built before the polyfill removal still read
 	// these flags to choose a sync path. Force them onto Zero. Remove once stale

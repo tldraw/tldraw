@@ -352,10 +352,11 @@ describe('getFeatureFlagValue caching and failure', () => {
 		expect(env.FEATURE_FLAGS.get).toHaveBeenCalledTimes(2)
 	})
 
-	it('throws on KV error when nothing is cached', async () => {
+	it('returns the defaults on KV error when nothing is cached', async () => {
 		const env = makeEnv()
 		env.FEATURE_FLAGS.get = kvDown()
-		await expect(getFeatureFlagValue(env as any, 'rum_enabled')).rejects.toThrow('KV down')
+		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(value).toMatchObject({ type: 'percentage', enabled: false, percentage: 0 })
 	})
 
 	it('serves the last cached value, however old, on KV error', async () => {
@@ -473,19 +474,6 @@ describe('getFeatureFlags (route handler)', () => {
 		expect(response.headers.get('x-authenticated')).toBe('1')
 		// percentage 100 includes every userId
 		expect(body.rum_enabled.enabled).toBe(true)
-	})
-
-	it('answers 503 rather than defaults when KV is down', async () => {
-		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-		const { getAuth } = await import('./tla/getAuth')
-		vi.mocked(getAuth).mockResolvedValue({ userId: 'user-abc' } as any)
-		const env = makeEnv()
-		env.FEATURE_FLAGS.get = kvDown()
-
-		const response = await getFeatureFlags({} as any, env as any)
-
-		expect(response.status).toBe(503)
-		consoleSpy.mockRestore()
 	})
 
 	it('returns x-authenticated=0 for unauthenticated user', async () => {
