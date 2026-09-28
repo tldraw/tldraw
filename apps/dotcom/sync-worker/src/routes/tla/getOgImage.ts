@@ -12,7 +12,7 @@ import {
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
-import { reportThumbnailError } from './thumbnailShared'
+import { cacheStatusOf, etagMatches, reportThumbnailError } from './thumbnailShared'
 
 // Almost a pure read. Two questions and nothing else: is this board publicly viewable (published, or
 // shared via link), and does a thumbnail for it exist? Both yes, serve it. Anything else, redirect to
@@ -69,7 +69,10 @@ export async function getOgImage(
 		// common: a cache revalidates for the price of a 304, and every revalidation re-runs the share
 		// gate above, so an unshared board stops being served within minutes rather than within a day.
 		if (ifNoneMatch && etagMatches(ifNoneMatch, cached.etag)) {
-			writeScreenshotTelemetry(env, { source: 'og', cacheStatus: cacheStatusOf(cached, board) })
+			writeScreenshotTelemetry(env, {
+				source: 'og',
+				cacheStatus: cacheStatusOf(cached, board.version),
+			})
 			return notModifiedResponse(cacheParamsOf(cached, board))
 		}
 
@@ -81,7 +84,10 @@ export async function getOgImage(
 			if (!cached) return redirectToDefaultOgImage(imageUrl)
 		}
 
-		writeScreenshotTelemetry(env, { source: 'og', cacheStatus: cacheStatusOf(cached, board) })
+		writeScreenshotTelemetry(env, {
+			source: 'og',
+			cacheStatus: cacheStatusOf(cached, board.version),
+		})
 		return imageResponse(
 			wantsBody ? await (cached as R2ObjectBody).arrayBuffer() : null,
 			cacheParamsOf(cached, board)
@@ -165,15 +171,11 @@ async function repairMissingPublishedImage(
 	else await enqueued
 }
 
-// Whether the image still depicts the board's current content decides the cache lifetime and nothing
-// else — both are served. There is no "too stale to serve": an old picture of this board beats the
-// generic tldraw logo, so a mismatch only asks callers back sooner.
-function cacheStatusOf(cached: R2Object, board: ResolvedThumbnailBoard) {
-	return cached.customMetadata?.version === String(board.version) ? 'hit' : 'stale'
-}
-
+// A mismatch decides the cache lifetime and nothing else — both are served. There is no "too stale to
+// serve": an old picture of this board beats the generic tldraw logo, so it only asks callers back
+// sooner.
 function cacheParamsOf(cached: R2Object, board: ResolvedThumbnailBoard): CacheParams {
-	const cacheStatus = cacheStatusOf(cached, board)
+	const cacheStatus = cacheStatusOf(cached, board.version)
 	return {
 		cacheStatus,
 		maxAgeSeconds:
@@ -188,15 +190,6 @@ interface CacheParams {
 	maxAgeSeconds: number
 	etag?: string
 	version?: string
-}
-
-// `if-none-match` is a list, each entry optionally weak-prefixed and quoted; R2's `etag` is the bare
-// value, so both sides are normalised before comparing.
-function etagMatches(ifNoneMatch: string, etag: string) {
-	return ifNoneMatch
-		.split(',')
-		.map((candidate) => candidate.trim().replace(/^W\//, '').replace(/^"|"$/g, ''))
-		.some((candidate) => candidate === '*' || candidate === etag)
 }
 
 function cacheHeaders({ cacheStatus, maxAgeSeconds, etag, version }: CacheParams) {

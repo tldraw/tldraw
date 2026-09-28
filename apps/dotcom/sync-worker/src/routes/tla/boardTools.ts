@@ -30,20 +30,41 @@ import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 export const MCP_PROTOCOL_VERSION = '2025-11-25'
 
 export const MCP_SERVER_INFO = {
-	name: 'tldraw-shared-board-screenshot',
-	title: 'tldraw board screenshots',
-	version: '3.0.0',
+	name: 'tldraw-boards',
+	title: 'tldraw boards',
+	version: '3.3.0',
 }
 
-export const MCP_SERVER_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Drill down in order: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job.'
+/**
+ * What the handshake tells a model this server is for.
+ *
+ * Two versions, because `initialize` is read before any tool is called: told to "find a board by
+ * name" on a deployment that cannot, a model calls the listing tool and reads whatever comes back as
+ * matches. That is the same failure the tool definition already guards against, arriving one step
+ * earlier — see `getSearchBoardsToolDefinition`.
+ */
+export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
+	return nameMatchingEnabled ? SEARCHING_INSTRUCTIONS : LISTING_INSTRUCTIONS
+}
 
+const SEARCHING_INSTRUCTIONS =
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
+
+const LISTING_INSTRUCTIONS =
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
+
+export const SEARCH_BOARDS_TOOL_NAME = 'search_boards'
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
 export const PAGE_INFO_TOOL_NAME = 'get_page_info'
 export const CLUSTER_INFO_TOOL_NAME = 'get_cluster_info'
 export const CLUSTER_SCREENSHOT_TOOL_NAME = 'get_cluster_screenshot'
+export const CREATE_BOARD_TOOL_NAME = 'create_board'
+export const RENAME_BOARD_TOOL_NAME = 'rename_board'
 
 export const TOOL_NAMES = [
+	SEARCH_BOARDS_TOOL_NAME,
+	CREATE_BOARD_TOOL_NAME,
+	RENAME_BOARD_TOOL_NAME,
 	BOARD_INFO_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
@@ -59,7 +80,16 @@ export const TOOL_NAMES = [
 // does not exist" would let anyone test file ids for existence. It also cannot name what would fix
 // it, since the caller may simply be signed in as the wrong account.
 export const BOARD_NOT_FOUND_MESSAGE =
-	'No board was found with this id, or this account does not have access to it. Boards you own, boards shared with you via link, and published boards are supported.'
+	'No board was found with this id, or this account does not have access to it. Boards in your own workspace, boards owned by a workspace you belong to, boards shared with you via link, and published boards are supported.'
+// BOARD_NOT_FOUND_MESSAGE ends by inviting published boards, which a rename cannot take: a /p/ slug
+// names a published copy, not the file. Still one message for missing and inaccessible alike.
+export const RENAME_BOARD_NOT_FOUND_MESSAGE =
+	'No board was found with this id, or this account does not have access to it. Pass the id from the board’s tldraw.com/f/ URL or from search_boards; a published tldraw.com/p/ board cannot be renamed.'
+
+// Only a board the caller can already see gets this: one shared with them by link, which they may
+// open and edit but whose name belongs to the workspace that owns it.
+export const RENAME_BOARD_FORBIDDEN_MESSAGE =
+	'This board is shared with you by link, but only members of the workspace that owns it can rename it.'
 export const BOARD_EMPTY_MESSAGE = 'This board has no saved content yet.'
 
 // --- Reading a snapshot -------------------------------------------------------------------------
@@ -113,6 +143,155 @@ export function getShapesOnPage(snapshot: RoomSnapshot, pageId: string): TLShape
 
 // --- Input parsing ------------------------------------------------------------------------------
 
+// One page of search results. Fixed rather than caller-settable: the cursor is how a caller reaches
+// more, and a page size that varies per call would have to be carried inside the cursor for the next
+// page to mean anything.
+export const BOARD_SEARCH_PAGE_SIZE = 20
+export const BOARD_SEARCH_MAX_QUERY_LENGTH = 200
+export const BOARD_SEARCH_MAX_TERMS = 8
+
+/**
+ * Where a page of search results ended: the sort key of its last row.
+ *
+ * Both halves are needed. `arrivedAt` is not unique — boards created in one batch share one — so
+ * `id` is the tiebreaker that makes "where the page ended" a single point rather than a range.
+ */
+export interface BoardSearchCursor {
+	/**
+	 * When the board entered this caller's list: created in one of their workspaces, moved into one,
+	 * or opened by them through a share link. Immutable whichever way it arrived, which is what a
+	 * keyset cursor needs; `searchBoards.ts` says why, and reads it from a different column per case.
+	 */
+	arrivedAt: number
+	id: string
+}
+
+// search_boards is the only tool with `required: []` — the other four all mandate boardId, which is
+// why `arguments` being wire-optional never mattered before. Its own description tells a model to
+// omit the query to list its newest boards, so a call with no `arguments` key at all is a legitimate
+// "list my newest boards", not a malformed one, and must not hit `requireArgumentsObject(undefined)`.
+export function parseSearchBoardsInput(
+	input: unknown,
+	nameMatchingEnabled = true
+): {
+	terms: string[]
+	cursor: BoardSearchCursor | null
+} {
+	const value = requireArgumentsObject(input ?? {})
+	const terms = parseSearchTerms(value.query)
+	// Refused, never quietly dropped. A model that asked for "roadmap" and got this account's twenty
+	// most recent boards would read them as twenty matches and act on one — worse than being told the
+	// search is unavailable, which it can recover from by listing instead.
+	if (terms.length && !nameMatchingEnabled) {
+		throw new Error(
+			'Searching by name is not available on this deployment. Omit the query to list boards instead.'
+		)
+	}
+	return { terms, cursor: parseBoardSearchCursor(value.cursor, terms) }
+}
+
+// Terms are ANDed, so "design system" finds "System design v2" whatever the order they were typed
+// in. A query of only whitespace means the same as no query: list the caller's newest boards.
+function parseSearchTerms(value: unknown): string[] {
+	if (value === undefined || value === null) return []
+	if (typeof value !== 'string') {
+		throw new Error('query must be a string')
+	}
+	if (value.length > BOARD_SEARCH_MAX_QUERY_LENGTH) {
+		throw new Error(`query must be ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters or fewer`)
+	}
+	const terms = value.split(/\s+/).filter((term) => term.length > 0)
+	// Each term becomes its own ILIKE, unindexable, over a scan that is already unbounded (see
+	// searchBoards.ts) — a query length limit alone does not bound term count, since whitespace is
+	// cheap. Thrown rather than truncated: silently dropping terms would change what was searched for
+	// without telling the caller.
+	if (terms.length > BOARD_SEARCH_MAX_TERMS) {
+		throw new Error(`query must be ${BOARD_SEARCH_MAX_TERMS} words or fewer`)
+	}
+	return terms
+}
+
+/**
+ * Reads back a cursor this server issued.
+ *
+ * Refuses anything it cannot decode rather than falling back to the first page: a model that has
+ * paged three times and is silently returned to the start sees its own last page repeating, with no
+ * signal that its cursor was the problem.
+ */
+function parseBoardSearchCursor(value: unknown, terms: string[]): BoardSearchCursor | null {
+	if (value === undefined || value === null) return null
+	if (typeof value !== 'string') {
+		throw new Error('cursor must be a string: the nextCursor from a previous search_boards result')
+	}
+	const invalid = new Error(
+		'cursor is not valid. Omit it to start from the first page, or pass the nextCursor from a previous search_boards result.'
+	)
+	let decoded: string
+	try {
+		decoded = atob(value)
+	} catch {
+		throw invalid
+	}
+	// The encoder percent-escapes both the id and the query, and percent-escaping covers the colon,
+	// so these are the only three unescaped ones.
+	const parts = decoded.split(':')
+	if (parts.length !== 3) throw invalid
+	const [timestampPart, idPart, queryPart] = parts
+	// `Number()` accepts far more than a timestamp can legitimately be: '' -> 0, '1e3' -> 1000,
+	// ' 5' -> 5, '+5' -> 5, 'Infinity' -> Infinity. Requiring plain digits first catches all of
+	// these, including the empty-prefix forgery `btoa(":id")`, which would otherwise pass
+	// `Number.isSafeInteger(0) && 0 >= 0` and seek strictly below epoch — an empty page with no
+	// nextCursor, forever, and no signal that the cursor was the problem. `encodeBoardSearchCursor`
+	// only ever writes a non-negative safe integer's `toString()`, which is always plain digits, so
+	// this cannot reject a cursor this server minted.
+	if (!/^\d+$/.test(timestampPart)) throw invalid
+	const arrivedAt = Number(timestampPart)
+	let id: string
+	let query: string
+	try {
+		id = decodeURIComponent(idPart)
+		query = decodeURIComponent(queryPart)
+	} catch {
+		throw invalid
+	}
+	// A cursor is a position in one query's results and means nothing in another's. Without this a
+	// model that pages, then narrows its query while passing the cursor on, silently continues from
+	// row 20 of a set it never saw the start of — and has no way to tell that is what happened.
+	if (query !== normalizeSearchQuery(terms)) {
+		throw new Error(
+			'cursor is from a different query. Repeat the query it came from, or omit the cursor to start this one from its first page.'
+		)
+	}
+	// `Number.isSafeInteger`, not `Number.isInteger`: an all-digit timestamp past MAX_SAFE_INTEGER
+	// passes the check above, then binds as an out-of-range int8 and makes Postgres throw, so caller
+	// garbage would reach a model as "the board database could not be reached" rather than as a bad
+	// cursor. An empty id is refused here too: it would seek on `arrivedAt` alone, re-serving or
+	// skipping every board that shares it.
+	if (!Number.isSafeInteger(arrivedAt) || id.length === 0) throw invalid
+	return { arrivedAt, id }
+}
+
+// Opaque on purpose: a model should only ever hand back a cursor it was given, which leaves the
+// encoding free to change without every client having to.
+//
+// The id and the query are percent-escaped because `btoa` throws on anything outside Latin-1 and
+// this runs inside the route's `try`, so anything it choked on would be reported as a database
+// failure. Real file ids are URL-safe ASCII, which percent-encoding leaves byte for byte; fixture
+// ids and search terms are arbitrary strings — a query in any non-Latin script would otherwise
+// throw here — and this is what keeps them round-tripping.
+function encodeBoardSearchCursor(cursor: BoardSearchCursor, terms: string[]): string {
+	return btoa(
+		`${cursor.arrivedAt}:${encodeURIComponent(cursor.id)}:${encodeURIComponent(normalizeSearchQuery(terms))}`
+	)
+}
+
+// What makes two searches "the same query" for the purposes of continuing a cursor. Lowercased
+// because the matching is `ilike`, so case never changed which boards the cursor was pointing into;
+// joined on single spaces because `parseSearchTerms` has already split the caller's whitespace away.
+function normalizeSearchQuery(terms: string[]): string {
+	return terms.map((term) => term.toLowerCase()).join(' ')
+}
+
 export function parseBoardInfoInput(input: unknown): { boardId: string } {
 	const value = requireArgumentsObject(input)
 	return { boardId: parseBoardId(value.boardId) }
@@ -149,6 +328,42 @@ export function parseClusterScreenshotInput(input: unknown): {
 		clusterIds: parseClusterIds(value.clusterIds),
 		theme: parseTheme(value.theme),
 	}
+}
+
+export const BOARD_NAME_MAX_LENGTH = 200
+
+// A null workspace means the caller's personal workspace. A blank string is treated the same way
+// rather than as a name to match: a model that fills every field in the schema sends "" for the one
+// it meant to leave out.
+export function parseCreateBoardInput(input: unknown): { name: string; workspace: string | null } {
+	const value = requireArgumentsObject(input)
+	const name = parseBoardName(value.name, 'the title for the new board')
+	if (value.workspace !== undefined && value.workspace !== null) {
+		if (typeof value.workspace !== 'string') {
+			throw new Error('workspace must be a workspace name or id')
+		}
+	}
+	const workspace = typeof value.workspace === 'string' ? value.workspace.trim() : ''
+	return { name, workspace: workspace || null }
+}
+
+export function parseRenameBoardInput(input: unknown): { boardId: string; name: string } {
+	const value = requireArgumentsObject(input)
+	return {
+		boardId: parseBoardId(value.boardId),
+		name: parseBoardName(value.name, 'the new title for the board'),
+	}
+}
+
+function parseBoardName(value: unknown, purpose: string): string {
+	if (typeof value !== 'string' || !value.trim()) {
+		throw new Error(`name is required: ${purpose}`)
+	}
+	const name = value.trim()
+	if (name.length > BOARD_NAME_MAX_LENGTH) {
+		throw new Error(`name must be at most ${BOARD_NAME_MAX_LENGTH} characters`)
+	}
+	return name
 }
 
 // Accepts one id or several. A single string is allowed because asking for one cluster is the common
@@ -253,6 +468,104 @@ export function toolJsonResult(value: unknown): ToolResult {
 
 // --- The tools ----------------------------------------------------------------------------------
 
+/** One board as the search query returns it, before it is shaped for the model. */
+export interface BoardSearchRow extends BoardSearchCursor {
+	name: string
+	/** When the board itself was made. Reported to the model, but never the sort key — see `arrivedAt`. */
+	createdAt: number
+	/** When the board's row last changed, by anyone — not per-caller, and not the sort key. */
+	updatedAt: number
+	/**
+	 * The name of the workspace that owns the board. Only reported for `workspace` boards — see
+	 * `getBoardSearchResults`.
+	 */
+	workspaceName: string
+	/**
+	 * How the caller reaches this board, which is also which read found it.
+	 *
+	 * `shared` is not a flavour of `workspace`: the caller is not a member of the workspace that owns
+	 * a link-shared board, so reporting it as one would tell a model it has standing there that it
+	 * does not have — and would put another organisation's workspace name in front of somebody who
+	 * was only ever given a link.
+	 */
+	source: 'owned' | 'workspace' | 'shared'
+}
+
+/**
+ * The order search results come back in: most recently arrived board first, `id` descending to break
+ * the ties `arrivedAt` leaves.
+ *
+ * "Arrived", not "created", so a board somebody shared with you this morning leads the list rather
+ * than sorting by when its owner happened to make it — which for a long-lived board buries it under
+ * everything you have made since.
+ *
+ * The single statement of that rule. `searchBoards.ts` mirrors it in SQL because Postgres does the
+ * real ordering, and the eval harness pages through fixtures with this one — if the two disagree,
+ * the harness stops being evidence about the deployed server. Ids compare by UTF-16 code unit here,
+ * which is why the SQL declares `COLLATE "C"`: an ICU or glibc collation orders the mixed case, `_`
+ * and `-` of a tldraw id differently, and the two mirrors would silently part company.
+ */
+export function compareBoardSearchOrder(a: BoardSearchCursor, b: BoardSearchCursor): number {
+	if (a.arrivedAt !== b.arrivedAt) return b.arrivedAt - a.arrivedAt
+	return a.id < b.id ? 1 : a.id > b.id ? -1 : 0
+}
+
+/**
+ * Whether a row belongs on a page after the one the cursor ended.
+ *
+ * Descending order means "after the cursor" is "sorts lower than the cursor", and the cursor's own
+ * row is excluded — reverse either and a caller is served the page it just read, forever.
+ */
+export function isAfterBoardSearchCursor(
+	row: BoardSearchCursor,
+	cursor: BoardSearchCursor
+): boolean {
+	return compareBoardSearchOrder(row, cursor) > 0
+}
+
+/**
+ * One page of search results.
+ *
+ * Takes one row more than a page and reports the surplus as `nextCursor` rather than returning it —
+ * that is what lets the query answer "there is another page" without a second count. `nextCursor` is
+ * absent on the last page, so a caller never fetches an empty page to discover it had finished.
+ *
+ * An empty result is a normal result, never `isError`: a model treats `isError` as a failure to
+ * recover from and will retry a search that simply matched nothing.
+ */
+export function getBoardSearchResults(rows: BoardSearchRow[], terms: string[]): ToolResult {
+	const boards = rows.slice(0, BOARD_SEARCH_PAGE_SIZE)
+	const lastBoard = boards.at(-1)
+	const hasMore = rows.length > boards.length
+	return toolJsonResult({
+		boardCount: boards.length,
+		...(hasMore && lastBoard ? { nextCursor: encodeBoardSearchCursor(lastBoard, terms) } : {}),
+		boards: boards.map((row) => ({
+			boardId: row.id,
+			// Reported blank rather than given a stand-in title. tldraw.com shows an unnamed board by
+			// its creation date, formatted in the viewer's locale and timezone — which this worker has
+			// neither of — so any name invented here is one the caller cannot see on their own screen,
+			// and one no query can match, since what the column holds is ''. Trimmed so that a name of
+			// only spaces reads as the absence it is.
+			name: row.name.trim(),
+			// The key the results are sorted by, so a model can see the order rather than guess at it.
+			// Equal to createdAt for a board this account made, and later for one it was shared.
+			addedAt: new Date(row.arrivedAt).toISOString(),
+			createdAt: new Date(row.createdAt).toISOString(),
+			updatedAt: new Date(row.updatedAt).toISOString(),
+			source: row.source,
+			// Only where it identifies something the caller can act on. On their own board the
+			// workspace adds nothing `source: 'owned'` has not already said, so it would be noise on
+			// every row — the cost being that a caller who renamed their home workspace
+			// (`036_home_group_renameable.sql` made it renameable, "My workspace" being only the
+			// default) will not see that name here. On a link-shared board it is withheld for a
+			// different reason: it names a workspace the caller is not in, to someone who was given a
+			// link rather than a seat.
+			...(row.source === 'workspace' ? { workspaceName: row.workspaceName } : {}),
+		})),
+	})
+}
+
 export function getBoardInfo(snapshot: RoomSnapshot): ToolResult {
 	const pages = enumerateBoardPages(snapshot)
 	return toolJsonResult({
@@ -266,6 +579,102 @@ export function getBoardInfo(snapshot: RoomSnapshot): ToolResult {
 			name: p.name,
 			hasContent: p.hasContent,
 		})),
+	})
+}
+
+/** A workspace the caller may add boards to, as `createBoard.ts` reads it. */
+export interface CreatableWorkspace {
+	id: string
+	name: string
+	/** The caller's own home workspace, whose id is their user id. */
+	personal: boolean
+}
+
+export type ResolvedCreateBoardWorkspace =
+	| { ok: true; workspace: CreatableWorkspace }
+	| { ok: false; reason: 'workspace_not_found' | 'workspace_ambiguous'; result: ToolResult }
+
+/**
+ * Picks the workspace a new board goes into. Omitted means the personal one. Otherwise an exact id
+ * wins, then a case-insensitive name: a model only ever sees workspace *names* (search_boards reports
+ * nothing else), so an id-only argument would be one it cannot fill.
+ *
+ * Only workspaces the caller can add boards to are candidates, so a workspace they can see but not
+ * add to reads as not found, and the refusal lists the ones that would work.
+ */
+export function resolveCreateBoardWorkspace(
+	workspaces: CreatableWorkspace[],
+	requested: string | null
+): ResolvedCreateBoardWorkspace {
+	if (requested === null) {
+		const personal = workspaces.find((w) => w.personal)
+		if (personal) return { ok: true, workspace: personal }
+		return {
+			ok: false,
+			reason: 'workspace_not_found',
+			result: toolError(
+				`Your personal workspace could not be found. ${describeCreatableWorkspaces(workspaces)}`
+			),
+		}
+	}
+
+	const byId = workspaces.find((w) => w.id === requested)
+	if (byId) return { ok: true, workspace: byId }
+
+	const wanted = requested.toLowerCase()
+	const byName = workspaces.filter((w) => w.name.trim().toLowerCase() === wanted)
+	if (byName.length === 1) return { ok: true, workspace: byName[0] }
+	if (byName.length > 1) {
+		return {
+			ok: false,
+			reason: 'workspace_ambiguous',
+			result: toolError(
+				`More than one of your workspaces is named "${requested}". Pass the id of the one you mean as workspace: ${byName.map(formatWorkspace).join(', ')}.`
+			),
+		}
+	}
+	return {
+		ok: false,
+		reason: 'workspace_not_found',
+		result: toolError(
+			`No workspace you can create boards in matches "${requested}". ${describeCreatableWorkspaces(workspaces)}`
+		),
+	}
+}
+
+function describeCreatableWorkspaces(workspaces: CreatableWorkspace[]) {
+	if (!workspaces.length) return 'This account has no workspaces it can create boards in.'
+	return `Workspaces you can create boards in: ${workspaces.map(formatWorkspace).join(', ')}. Pass one of these as workspace, or omit it to use your personal workspace.`
+}
+
+function formatWorkspace(workspace: CreatableWorkspace) {
+	return `"${workspace.name}" (id: ${workspace.id}${workspace.personal ? ', personal' : ''})`
+}
+
+export function getWorkspaceFullMessage(workspace: CreatableWorkspace, maxBoards: number) {
+	return `The workspace "${workspace.name}" already has the maximum of ${maxBoards} boards. Delete boards there or choose a different workspace.`
+}
+
+export function getWorkspaceGoneMessage(workspace: CreatableWorkspace) {
+	return `The workspace "${workspace.name}" was deleted. Choose a different workspace, or omit workspace to use your personal one.`
+}
+
+export function getCreatedBoardResult({
+	boardId,
+	name,
+	url,
+	workspace,
+}: {
+	boardId: string
+	name: string
+	url: string
+	workspace: CreatableWorkspace
+}): ToolResult {
+	return toolJsonResult({
+		boardId,
+		name,
+		url,
+		workspace: { id: workspace.id, name: workspace.name, personal: workspace.personal },
 	})
 }
 
@@ -548,8 +957,16 @@ function toReadableShape(shape: TLShapeWithPlainText) {
 
 // --- Tool definitions ---------------------------------------------------------------------------
 
-export function getToolDefinitions() {
+/**
+ * @param nameMatchingEnabled - Whether this deployment will match on board names. When it will not,
+ *   `search_boards` advertises no `query` argument and says so, rather than offering a search that
+ *   would be refused. Read from the environment by the route; this layer stays free of it.
+ */
+export function getToolDefinitions(nameMatchingEnabled: boolean) {
 	return [
+		getSearchBoardsToolDefinition(nameMatchingEnabled),
+		getCreateBoardToolDefinition(),
+		getRenameBoardToolDefinition(),
 		getBoardInfoToolDefinition(),
 		getPageInfoToolDefinition(),
 		getClusterInfoToolDefinition(),
@@ -574,6 +991,127 @@ const READ_ONLY_ANNOTATIONS = {
 	idempotentHint: true,
 	openWorldHint: false,
 	destructiveHint: false,
+}
+
+/**
+ * The same tool with name matching turned off: it lists, and takes no `query`.
+ *
+ * A separate definition rather than the other one with a sentence appended, because a `query` the
+ * caller must not send has no business in the schema — a model handed the argument will use it, and
+ * be refused. The scope, ordering and paging wording is the same, since none of that changes.
+ */
+function getListBoardsToolDefinition() {
+	return {
+		name: SEARCH_BOARDS_TOOL_NAME,
+		title: 'List tldraw boards',
+		description: `List tldraw.com boards this account can reach: the boards in its own workspace, the boards owned by the workspaces it belongs to, and the boards shared with it by link that it has opened. Searching by name is not available on this deployment, so this tool takes no query and lists boards in order instead. Results are ordered by addedAt — when a board joined this account's boards, which is when it was created for its own boards and when the share link was first opened for shared ones — so a board shared this morning leads the list however old it is. createdAt is when the board itself was made, and updatedAt when it last changed, by anyone. Each board's source says how you reach it: owned for your own, workspace for one owned by a workspace you belong to, and shared for one somebody sent you a link to. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId that get_board_info and the other tools take. If the result carries a nextCursor there are more boards: call again with that cursor to get the next page. An empty result is a normal result, not an error.`,
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				cursor: {
+					type: 'string',
+					description:
+						'The nextCursor from a previous result, to get the next page. Omit for the first page.',
+				},
+			},
+			required: [],
+		},
+		annotations: READ_ONLY_ANNOTATIONS,
+	} as const
+}
+
+function getSearchBoardsToolDefinition(nameMatchingEnabled: boolean) {
+	if (!nameMatchingEnabled) return getListBoardsToolDefinition()
+	return {
+		name: SEARCH_BOARDS_TOOL_NAME,
+		title: 'Search tldraw boards',
+		description: `Find tldraw.com boards by name: the boards in this account's own workspace, the boards owned by the workspaces it belongs to, and the boards shared with it by link that it has opened. Every term in the query must appear somewhere in the board name, in any order, ignoring case. Search for the distinctive words, not a whole title: a query of more than ${BOARD_SEARCH_MAX_TERMS} words, or longer than ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters, is rejected. Omit the query to list the boards that reached you most recently. Results are ordered by addedAt — when a board joined this account's boards, which is when it was created for its own boards and when the share link was first opened for shared ones — so a board shared this morning leads the list however old it is. createdAt is when the board itself was made, and updatedAt when it last changed, by anyone: an old board can have been edited today, and a board created today may never have been touched since. Each board's source says how you reach it: owned for your own, workspace for one owned by a workspace you belong to, and shared for one somebody sent you a link to. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId that get_board_info and the other tools take. If the result carries a nextCursor there are more boards: call again with the same query and that cursor to get the next page — a cursor only continues the query that produced it. A board with no name comes back with name empty: tldraw.com titles those by their creation date, so no name query can find them — reach them by listing with no query. Matching no boards is a normal empty result, not an error.`,
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				query: {
+					type: 'string',
+					maxLength: BOARD_SEARCH_MAX_QUERY_LENGTH,
+					description: `Up to ${BOARD_SEARCH_MAX_TERMS} words to match against board names, at most ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters. Every word must appear in the name, in any order. Omit to list your newest boards.`,
+				},
+				cursor: {
+					type: 'string',
+					description:
+						'The nextCursor from a previous search_boards result, to get the next page. Omit for the first page. Keep the query the same across pages; changing it invalidates where you were.',
+				},
+			},
+			required: [],
+		},
+		annotations: READ_ONLY_ANNOTATIONS,
+	}
+}
+
+function getCreateBoardToolDefinition() {
+	return {
+		name: CREATE_BOARD_TOOL_NAME,
+		title: 'Create tldraw board',
+		description:
+			'Create a new, empty tldraw.com board and return its boardId and url. The board goes in your personal workspace unless you name another workspace you belong to and can add boards to — the workspaceName search_boards reports, or a workspace id. If the workspace you name is not one of those, the error lists the ones you can use. The new board is shared by link for editing, the same as a board created on tldraw.com.',
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				name: {
+					type: 'string',
+					maxLength: BOARD_NAME_MAX_LENGTH,
+					description: 'The title for the new board.',
+				},
+				workspace: {
+					type: 'string',
+					description:
+						'The name or id of the workspace to create the board in. Omit to use your personal workspace.',
+				},
+			},
+			required: ['name'],
+		},
+		annotations: {
+			readOnlyHint: false,
+			idempotentHint: false,
+			openWorldHint: false,
+			destructiveHint: false,
+		},
+	}
+}
+
+function getRenameBoardToolDefinition() {
+	return {
+		name: RENAME_BOARD_TOOL_NAME,
+		title: 'Rename tldraw board',
+		description:
+			'Rename a tldraw.com board and return its new and previous names. You can rename boards in your own workspace and boards owned by a workspace you belong to; a board only shared with you by link cannot be renamed.',
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				// Not BOARD_ID_PROPERTY: a published /p/ slug is a copy's id, not the file's, so it
+				// cannot name the board to rename.
+				boardId: {
+					type: 'string',
+					description:
+						'The id of the board to rename: a boardId from search_boards or create_board, or the :slug of a file URL (https://www.tldraw.com/f/:slug).',
+				},
+				name: {
+					type: 'string',
+					maxLength: BOARD_NAME_MAX_LENGTH,
+					description: 'The new title for the board.',
+				},
+			},
+			required: ['boardId', 'name'],
+		},
+		annotations: {
+			readOnlyHint: false,
+			idempotentHint: true,
+			openWorldHint: false,
+			destructiveHint: false,
+		},
+	}
 }
 
 function getBoardInfoToolDefinition() {
@@ -699,7 +1237,10 @@ export type McpReply =
  */
 export async function handleMcpJsonRpc(
 	rpcRequest: JsonRpcRequest,
-	callTool: (name: string, args: unknown) => Promise<ToolResult>
+	callTool: (name: string, args: unknown) => Promise<ToolResult>,
+	// Defaulted the way an unset MCP_SEARCH_NAME_MATCHING_ENABLED reads, so the eval harness and
+	// tests exercise the full tool unless they say otherwise.
+	nameMatchingEnabled = true
 ): Promise<McpReply> {
 	if (rpcRequest.id === undefined) {
 		return { kind: 'accepted' }
@@ -715,13 +1256,13 @@ export async function handleMcpJsonRpc(
 					protocolVersion: MCP_PROTOCOL_VERSION,
 					capabilities: { tools: {} },
 					serverInfo: MCP_SERVER_INFO,
-					instructions: MCP_SERVER_INSTRUCTIONS,
+					instructions: getMcpServerInstructions(nameMatchingEnabled),
 				},
 			}
 		case 'ping':
 			return { kind: 'result', id, result: {} }
 		case 'tools/list':
-			return { kind: 'result', id, result: { tools: getToolDefinitions() } }
+			return { kind: 'result', id, result: { tools: getToolDefinitions(nameMatchingEnabled) } }
 		case 'tools/call': {
 			const name = rpcRequest.params?.name
 			if (!name || !(TOOL_NAMES as readonly string[]).includes(name)) {

@@ -65,7 +65,6 @@
 		"**/.*.js",
 		"packages/assets/*",
 		"packages/create-tldraw/cli.cjs",
-		"yarn.config.cjs",
 		"**/*/vitest.config.ts",
 		"**/*/setupVitest.js",
 		"**/*/zod-locales-shim.js",
@@ -271,7 +270,7 @@
 			}
 		},
 		{
-			"files": ["packages/**/*"],
+			"files": ["packages/**/*", "apps/**/*", "internal/**/*", "templates/**/*"],
 			"rules": {
 				"tldraw/no-undeclared-dependencies": "error"
 			}

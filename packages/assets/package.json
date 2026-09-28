@@ -49,9 +49,9 @@
 		"utils.d.ts"
 	],
 	"scripts": {
-		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
+		"pack-tarball": "pnpm pack",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"

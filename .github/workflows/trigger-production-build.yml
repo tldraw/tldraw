@@ -18,6 +18,9 @@ defaults:
 env:
   TARGET: ${{ github.event.inputs.target }}
 
+permissions:
+  contents: read
+
 jobs:
   trigger:
     name: ${{ github.event_name == 'workflow_dispatch' && 'Manual trigger' || 'Hotfix' }}

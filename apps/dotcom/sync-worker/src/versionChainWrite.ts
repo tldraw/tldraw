@@ -1,4 +1,5 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { isTransientConnectionError } from './r2'
 import { getSnapshotFingerprint, getSnapshotMetadata } from './snapshotUtils'
 import {
 	ChainState,
@@ -8,6 +9,7 @@ import {
 	SegmentBody,
 	segmentCustomMetadata,
 	versionKey,
+	VersionWriteDecision,
 } from './versionChain'
 import { decodeVersionBody, encodeVersionBody } from './versionChainCodec'
 import {
@@ -28,6 +30,27 @@ export type VersionChainWriteResult =
 	| (VersionChainWriteResultBase & { wrote: 'keyframe'; reason: KeyframeReason })
 	| (VersionChainWriteResultBase & { wrote: 'delta' })
 
+/**
+ * Whether a chain R2 call is worth repeating. Beyond dropped connections, R2 documents three
+ * errors as retryable, and every chain write error seen in production has been one of them: 10001
+ * InternalError, 10043 ServiceUnavailable and 10058 TooManyRequests.
+ */
+export function isRetryableR2Error(error: unknown): boolean {
+	if (isTransientConnectionError(error)) return true
+	const message = error instanceof Error ? error.message : String(error)
+	return /\((10001|10043|10058)\)/.test(message)
+}
+
+/**
+ * Waits exceed a second because 10058 is R2's one-write-per-second-per-key limit, and every delta
+ * rewrites the open segment's key.
+ */
+export const VERSION_CHAIN_R2_RETRY = {
+	attempts: 5,
+	waitDuration: 1100,
+	matchError: isRetryableR2Error,
+}
+
 export async function writeVersionChainEntry({
 	bucket,
 	roomKey,
@@ -39,6 +62,7 @@ export async function writeVersionChainEntry({
 	previousHeadHash,
 	next,
 	now,
+	keyframesOnly = false,
 }: {
 	bucket: R2Bucket
 	roomKey: string
@@ -55,6 +79,8 @@ export async function writeVersionChainEntry({
 	previousHeadHash?: string
 	next: RoomSnapshot
 	now: number
+	/** Write `next` as a keyframe without diffing it: the `off` mode. */
+	keyframesOnly?: boolean
 }): Promise<VersionChainWriteResult> {
 	const nextFingerprint = getSnapshotFingerprint(next)
 	const customMetadata = getSnapshotMetadata(next)
@@ -62,25 +88,28 @@ export async function writeVersionChainEntry({
 	// records the head hash, and on a large board each pass is a canonicalization of every record.
 	const nextHashes = snapshotHashes(next)
 
-	const delta = previous
-		? buildSnapshotDelta(previous, next, { envelopeHash: nextHashes.envelope })
-		: null
+	const delta =
+		previous && !keyframesOnly
+			? buildSnapshotDelta(previous, next, { envelopeHash: nextHashes.envelope })
+			: null
 	// Compressed on both sides of the size rule: comparing a raw delta against a compressed
 	// keyframe would trip the ratio on boards that simply compress well.
 	const encodedDelta = delta ? await encodeVersionBody(delta) : null
-	const decision = decideVersionWrite({
-		roomKey,
-		iso,
-		chain: previous && encodedDelta ? chain : null,
-		noChainReason,
-		previousFingerprint: previous ? getSnapshotFingerprint(previous) : nextFingerprint,
-		// The hash is what actually pins the diff base: tombstone pruning can change content
-		// without moving the fingerprint.
-		previousHash: previous ? (previousHeadHash ?? chainHeadHash(previous)) : '',
-		nextFingerprint,
-		deltaBytes: encodedDelta?.body.byteLength ?? 0,
-		now,
-	})
+	const decision: VersionWriteDecision = keyframesOnly
+		? { kind: 'keyframe', reason: 'keyframes-only' }
+		: decideVersionWrite({
+				roomKey,
+				iso,
+				chain: previous && encodedDelta ? chain : null,
+				noChainReason,
+				previousFingerprint: previous ? getSnapshotFingerprint(previous) : nextFingerprint,
+				// The hash is what actually pins the diff base: tombstone pruning can change content
+				// without moving the fingerprint.
+				previousHash: previous ? (previousHeadHash ?? chainHeadHash(previous)) : '',
+				nextFingerprint,
+				deltaBytes: encodedDelta?.body.byteLength ?? 0,
+				now,
+			})
 
 	if (decision.kind === 'keyframe') {
 		const key = versionKey(roomKey, iso, 'keyframe')
@@ -153,7 +182,7 @@ export async function writeVersionChainEntry({
  * Null means the segment is unusable and the caller starts a fresh chain, which costs one keyframe.
  * A failed `get` throws instead: the segment may be intact and only the network was not, and null
  * here would silently discard it on every blip. The caller retries transient errors and lets a
- * persistent failure fail the chain write, which has its own fallback. (A blip while reading the
+ * persistent failure fail the chain write. (A blip while reading the
  * body still decodes as null — rare enough that the keyframe is fine.)
  */
 export async function readOpenSegment(

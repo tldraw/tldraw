@@ -1,10 +1,12 @@
-import { useEffect } from 'react'
+import { commentToolOverrides } from '@tldraw/commenting'
+import { useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { assert, getFromSessionStorage, omit, react } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaAnonDotDevLink } from '../components/TlaAnonDotDevLink/TlaAnonDotDevLink'
+import { useAnonCommentToolOverrides } from '../components/TlaEditor/CommentsOnCanvas'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from '../components/TlaEditor/sneaky/SneakyDebugModeToast'
 import { components } from '../components/TlaEditor/TlaEditor'
@@ -93,11 +95,20 @@ export function Component() {
 }
 
 function LocalTldraw() {
+	// No comments exist on the scratch board — the button is only a sign-in prompt, so the tool
+	// itself stays unregistered and the anon override repoints its item at the sign-in dialog.
+	const anonCommentToolOverrides = useAnonCommentToolOverrides()
+	const commentToolItemOverrides = useMemo(
+		() => [commentToolOverrides, anonCommentToolOverrides],
+		[anonCommentToolOverrides]
+	)
+
 	return (
 		<TlaAnonLayout>
 			<LocalEditor
 				data-testid="tla-editor"
 				components={components}
+				overrides={commentToolItemOverrides}
 				onMount={(editor) => {
 					globalEditor.set(editor)
 					const shapes$ = editor.store.query.ids('shape')

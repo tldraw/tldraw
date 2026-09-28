@@ -103,10 +103,10 @@ async function main() {
 
 	if (triggerType === 'docs') {
 		await discord.step(`Ensuring no SDK changes are present`, async () => {
-			// run yarn again before building packages to make sure everything is ready
+			// run pnpm install again before building packages to make sure everything is ready
 			// in case HEAD included dev dependency changes
-			await exec('yarn', ['install'])
-			await exec('yarn', ['refresh-assets', '--force'])
+			await exec('pnpm', ['install'])
+			await exec('pnpm', ['refresh-assets', '--force'])
 
 			const diff = await getAnyPackageDiff(version.format())
 			if (diff) {
@@ -129,10 +129,10 @@ async function main() {
 		})
 	} else {
 		await discord.step('Running sdk tests', async () => {
-			await exec('yarn', ['install'])
+			await exec('pnpm', ['install'])
 			const packages = await getAllWorkspacePackages()
 
-			await exec('yarn', [
+			await exec('pnpm', [
 				'test',
 				...packages
 					.filter((p) => !p.packageJson.private)

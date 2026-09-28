@@ -11,11 +11,11 @@
 		"defaults"
 	],
 	"scripts": {
-		"migrate": "yarn tsx ./migrate.ts",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
-		"test": "yarn run -T vitest --passWithNoTests",
-		"test-ci": "yarn run -T vitest run --passWithNoTests",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
+		"migrate": "pnpm exec tsx ./migrate.ts",
+		"lint": "pnpm exec tsx ../../../internal/scripts/lint.ts",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
 	},
 	"type": "module",
 	"dependencies": {
@@ -24,6 +24,7 @@
 		"pg": "^8.16.3"
 	},
 	"devDependencies": {
+		"@types/pg": "^8.16.0",
 		"concurrently": "^9.1.2",
 		"dotenv": "^16.4.7",
 		"lazyrepo": "0.0.0-alpha.27",

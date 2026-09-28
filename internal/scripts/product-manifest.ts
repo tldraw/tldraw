@@ -14,7 +14,7 @@ interface ManifestComponent extends ProductConfig {
  * individually, listed indented beneath them on the order form.
  *
  * This is the aggregate view of the `tldraw_product` fields in each package's package.json — those
- * fields are the source of truth, and are validated by `yarn check-packages`. See
+ * fields are the source of truth, and are validated by `pnpm check-packages`. See
  * internal/docs/product-stable-ids.md.
  */
 async function main() {
@@ -31,7 +31,7 @@ async function main() {
 		if (!product) continue
 
 		// packages sharing a stable id are required to have identical product metadata; this is
-		// enforced by `yarn check-packages`, so taking the first package's config here is safe
+		// enforced by `pnpm check-packages`, so taking the first package's config here is safe
 		const component = componentsById.get(product.stableId) ?? {
 			...product,
 			packages: [],

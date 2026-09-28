@@ -1,6 +1,5 @@
 import { captureException } from '@sentry/react'
-import { THUMBNAIL_RENDER_PATH } from '@tldraw/dotcom-shared'
-import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
+import type { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Outlet, Route, createRoutesFromElements, redirect, useRouteError } from 'react-router-dom'
@@ -10,6 +9,12 @@ import { ROUTES, routes } from './routeDefs'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
 
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
+
+// Structural, not instanceof: a runtime import of @tldraw/sync-core pulls the store and schema into
+// the entry chunk, ahead of first paint.
+function isRemoteSyncError(error: unknown): error is TLRemoteSyncError {
+	return error instanceof Error && error.name === 'RemoteSyncError'
+}
 
 interface CreateAppRouterOptions {
 	includeDevRoutes?: boolean
@@ -34,26 +39,26 @@ export function createAppRouter({
 				let header = 'Something went wrong'
 				let para1 =
 					'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.'
-				if (error instanceof TLRemoteSyncError) {
-					switch (error.reason) {
-						case TLSyncErrorCloseEventReason.NOT_FOUND: {
+				if (isRemoteSyncError(error)) {
+					switch (error.reason as TLSyncErrorCloseEventReason) {
+						case 'NOT_FOUND': {
 							header = 'Not found'
 							para1 = 'The file you are looking for does not exist.'
 							break
 						}
-						case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED: {
+						case 'NOT_AUTHENTICATED': {
 							return (
 								<Suspense>
 									<LoginRedirectPage />
 								</Suspense>
 							)
 						}
-						case TLSyncErrorCloseEventReason.FORBIDDEN: {
+						case 'FORBIDDEN': {
 							header = 'Invite only'
 							para1 = `You don't have permission to view this room.`
 							break
 						}
-						case TLSyncErrorCloseEventReason.RATE_LIMITED: {
+						case 'RATE_LIMITED': {
 							header = 'Rate limited'
 							para1 = `Please slow down.`
 							break
@@ -142,8 +147,6 @@ export function createAppRouter({
 				</Route>
 			</Route>
 			<Route path="/__debug-tail" lazy={() => import('./tla/pages/worker-debug-tail')} />
-			{/* Renders a board for Browser Run thumbnail capture from a signed render token */}
-			<Route path={THUMBNAIL_RENDER_PATH} lazy={() => import('./pages/thumbnail-render')} />
 			<Route path="*" lazy={() => import('./pages/not-found')} />
 		</Route>
 	)

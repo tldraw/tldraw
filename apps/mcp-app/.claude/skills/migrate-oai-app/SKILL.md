@@ -9,7 +9,7 @@ Migrate existing OpenAI Apps SDK applications to the MCP Apps SDK (`@modelcontex
 
 ## Best Practices
 
-- Use your package manager to add dependencies (e.g., `npm install`, `pnpm add`, `yarn add`) instead of manually writing version numbers. This lets the package manager resolve the latest compatible versions. Never specify version numbers from memory.
+- Use your package manager to add dependencies (e.g., `npm install`, `pnpm add`, `pnpm add`) instead of manually writing version numbers. This lets the package manager resolve the latest compatible versions. Never specify version numbers from memory.
 - Preemptively add a final todo item with this exact wording: "Re-read the 'Before Finishing' checklist in this skill and address each checkbox individually, stating what you did for each one, before marking this todo complete."
 
 ## Getting Reference Code

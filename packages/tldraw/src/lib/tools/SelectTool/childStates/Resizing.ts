@@ -361,8 +361,6 @@ export class Resizing extends StateNode {
 		// calculate the scale by measuring the current distance between the drag handle and the scale origin
 		// and dividing by the original distance between the drag handle and the scale origin
 
-		// bug: for edges, the page point doesn't matter, the
-
 		const distanceFromScaleOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage).rot(
 			-selectionRotation
 		)
@@ -536,8 +534,6 @@ export class Resizing extends StateNode {
 
 		this.editor.setHintingShapes(hintingShapeIds)
 	}
-
-	// ---
 
 	private updateCursor({
 		dragHandle,

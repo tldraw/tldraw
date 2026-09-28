@@ -9,6 +9,7 @@ import {
 	deleteAllVersions,
 	listVersionTimestamps,
 	loadChainIndex,
+	loadChainIndexForVersion,
 	openWholeVersionStream,
 	reconstructVersion,
 } from './versionChainRead'
@@ -449,6 +450,177 @@ describe('reconstructVersion under clock skew', () => {
 
 		expect(late?.snapshot).toEqual(versions[3])
 		expect(early?.snapshot).toEqual(versions[2])
+	})
+})
+
+describe('loadChainIndexForVersion', () => {
+	/** One chain: a keyframe at `times[0]`, then one delta per later time, `cap` to a segment. */
+	async function putChain(bucket: R2Bucket, times: string[], cap = SEGMENT_CAP) {
+		const versions = times.map((_, i) => snapshot(i + 1, [`shape:${i}`]))
+		const keyframeKey = versionKey(roomKey, times[0], 'keyframe')
+		const kf = await encodeVersionBody(versions[0])
+		await bucket.put(keyframeKey, kf.body, { customMetadata: kf.metadata })
+		for (let first = 1; first < times.length; first += cap) {
+			const deltas = times.slice(first, first + cap).map((t, n) => ({
+				t,
+				delta: buildSnapshotDelta(versions[first + n - 1], versions[first + n]),
+			}))
+			const encoded = await encodeVersionBody({ v: 1, deltas })
+			await bucket.put(versionKey(roomKey, times[first], 'segment'), encoded.body, {
+				customMetadata: {
+					...encoded.metadata,
+					...segmentCustomMetadata({
+						keyframeKey,
+						firstSeq: first,
+						timestamps: deltas.map((d) => d.t),
+					}),
+				},
+			})
+		}
+		return versions
+	}
+
+	function countLists(bucket: R2Bucket) {
+		const calls: any[] = []
+		const original = bucket.list.bind(bucket)
+		;(bucket as any).list = (options: any) => {
+			calls.push(options)
+			return original(options)
+		}
+		return calls
+	}
+
+	it('lists only around the version, not the whole room', async () => {
+		const bucket = createFakeR2()
+		// A long history months back, the kind a backfill leaves behind.
+		await putChain(
+			bucket,
+			Array.from({ length: 40 }, (_, i) => `2026-03-01T00:${String(i).padStart(2, '0')}:00.000Z`),
+			2
+		)
+		const recent = [
+			'2026-09-01T12:00:00.000Z',
+			'2026-09-01T12:00:10.000Z',
+			'2026-09-01T12:00:20.000Z',
+		]
+		await putChain(bucket, recent)
+
+		const { entries, ops } = await loadChainIndexForVersion(bucket, roomKey, recent[2])
+
+		expect(entries.map((e) => e.key)).toEqual([
+			versionKey(roomKey, recent[0], 'keyframe'),
+			versionKey(roomKey, recent[1], 'segment'),
+		])
+		expect(ops).toBe(1)
+	})
+
+	it('reaches back to the keyframe of a chain that spans longer than the first window', async () => {
+		const chainBucket = createFakeR2()
+		const times = [
+			'2026-09-01T00:00:00.000Z',
+			'2026-09-01T06:00:00.000Z',
+			'2026-09-01T12:00:00.000Z',
+			'2026-09-01T18:00:00.000Z',
+			'2026-09-01T23:00:00.000Z',
+		]
+		const versions = await putChain(chainBucket, times, 1)
+
+		const { entries } = await loadChainIndexForVersion(chainBucket, roomKey, times[4])
+		expect(entries).toHaveLength(5)
+
+		const result = await reconstructVersion({
+			chainBucket,
+			legacyBucket: createFakeR2(),
+			roomKey,
+			timestamp: times[4],
+		})
+		expect(result?.snapshot).toEqual(versions[4])
+	})
+
+	it('widens the look-back for a version whose segment opened hours before it', async () => {
+		const bucket = createFakeR2()
+		const times = [
+			'2026-09-01T00:00:00.000Z',
+			'2026-09-01T00:01:00.000Z',
+			'2026-09-01T05:00:00.000Z',
+		]
+		await putChain(bucket, times)
+		const lists = countLists(bucket)
+
+		const { entries } = await loadChainIndexForVersion(bucket, roomKey, times[2])
+
+		expect(entries.map((e) => e.key)).toEqual([
+			versionKey(roomKey, times[0], 'keyframe'),
+			versionKey(roomKey, times[1], 'segment'),
+		])
+		// The hour window finds nothing; the day window finds the segment and its keyframe.
+		expect(lists).toHaveLength(2)
+	})
+
+	it('walks every window for a version only the legacy bucket holds', async () => {
+		const bucket = createFakeR2()
+		await putChain(bucket, ['2026-09-01T12:00:00.000Z', '2026-09-01T12:00:10.000Z'])
+		const lists = countLists(bucket)
+
+		const { entries, ops } = await loadChainIndexForVersion(
+			bucket,
+			roomKey,
+			'2026-08-01T00:00:00.000Z'
+		)
+
+		expect(entries).toEqual([])
+		expect(ops).toBe(5)
+		expect(lists).toHaveLength(5)
+	})
+
+	it('pages through a window holding more objects than one listing returns', async () => {
+		const bucket = createFakeR2()
+		// 1,100 keyframes in the half hour before the version, more than the fake's 1,000-key page.
+		const start = Date.parse('2026-09-01T11:30:00.000Z')
+		for (let i = 0; i < 1100; i++) {
+			const iso = new Date(start + i * 1000).toISOString()
+			await bucket.put(versionKey(roomKey, iso, 'keyframe'), '{}')
+		}
+		const times = ['2026-09-01T12:00:00.000Z', '2026-09-01T12:00:10.000Z']
+		await putChain(bucket, times)
+
+		const { entries, ops } = await loadChainIndexForVersion(bucket, roomKey, times[1])
+
+		expect(entries.some((e) => e.timestamps.includes(times[1]))).toBe(true)
+		expect(entries).toHaveLength(1102)
+		expect(ops).toBe(2)
+	})
+
+	it('stops at the first object older than a version the chain does not hold', async () => {
+		const bucket = createFakeR2()
+		await putChain(bucket, ['2025-01-01T00:00:00.000Z', '2025-01-01T00:00:10.000Z'])
+		await putChain(bucket, ['2026-09-01T11:00:00.000Z', '2026-09-01T11:00:10.000Z'])
+		const lists = countLists(bucket)
+
+		const { entries } = await loadChainIndexForVersion(bucket, roomKey, '2026-09-01T11:30:00.000Z')
+
+		expect(entries.map((e) => e.key)).toEqual([
+			versionKey(roomKey, '2026-09-01T11:00:00.000Z', 'keyframe'),
+			versionKey(roomKey, '2026-09-01T11:00:10.000Z', 'segment'),
+		])
+		expect(lists).toHaveLength(1)
+	})
+
+	it('lists nothing for a timestamp no chain key could carry', async () => {
+		const bucket = createFakeR2()
+		const lists = countLists(bucket)
+		for (const timestamp of [
+			'not-a-date',
+			'+275760-09-13T00:00:00.000Z',
+			'1970-01-01T00:00:00.000Z',
+			new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+		]) {
+			expect(await loadChainIndexForVersion(bucket, roomKey, timestamp)).toEqual({
+				entries: [],
+				ops: 0,
+			})
+		}
+		expect(lists).toHaveLength(0)
 	})
 })
 

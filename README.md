@@ -81,7 +81,7 @@ npx create-tldraw@latest
 
 ## Local development
 
-The development server runs the examples app at `localhost:5420`. You'll need [Node.js](https://nodejs.org) `^20.0.0`. Clone the repo, then enable [corepack](https://nodejs.org/api/corepack.html) for the correct yarn version:
+The development server runs the examples app at `localhost:5420`. You'll need [Node.js](https://nodejs.org) `^20.0.0`. Clone the repo, then enable [corepack](https://nodejs.org/api/corepack.html) for the correct pnpm version:
 
 ```bash
 npm i -g corepack
@@ -90,8 +90,8 @@ npm i -g corepack
 Install dependencies and start the dev server:
 
 ```bash
-yarn
-yarn dev
+pnpm install
+pnpm dev
 ```
 
 ## Documentation

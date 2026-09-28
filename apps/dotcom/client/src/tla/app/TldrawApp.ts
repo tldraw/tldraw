@@ -1,4 +1,4 @@
-import { MutatorResultErrorDetails, QueryResultType, Zero } from '@rocicorp/zero'
+import { MutatorResultErrorDetails, QueryResultType, TypedView, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	AcceptInviteResponseBody,
@@ -61,6 +61,7 @@ import {
 import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
 import { ZERO_SERVER } from '../../utils/config'
+import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
@@ -93,22 +94,6 @@ export function getPreloadDiagnostics(error: unknown): PreloadDiagnostics | unde
 }
 
 let appId = 0
-
-/**
- * Whether commenting is available to this user. While commenting is being built out it's staff-only:
- * anyone with a @tldraw.com email gets it, everyone else waits on the `commenting_enabled` flag
- * (off by default, with a percentage rollout knob on the admin page). Signed-out viewers have no
- * email and no flags, so they don't see comments at all.
- */
-export function shouldEnableCommenting(
-	flags: FeatureFlags,
-	email?: string | null
-): { value: boolean; reason: string } {
-	if (email?.endsWith('@tldraw.com')) {
-		return { value: true, reason: '@tldraw.com email' }
-	}
-	return { value: flags.commenting_enabled?.enabled ?? false, reason: 'server feature flag' }
-}
 
 /** When the user last opened the file (visit, else edit, else first visit), or undefined if never. */
 export function getFileVisitDate(state: TlaFileState | undefined): number | undefined {
@@ -185,16 +170,24 @@ export class TldrawApp {
 		QueryResultType<typeof queries.workspaceMemberships>
 	>
 	/**
-	 * Null when commenting is disabled for this user: the notifications feed is the most expensive
-	 * query in the schema (nested EXISTS over comment/thread/file/group), so a closed flag has to
-	 * keep it off the wire entirely, not just hide the UI that reads it.
+	 * The comment feeds (one per reason for a notification — see `homeBoardComments` in
+	 * dotcom-shared), each empty until {@link startNotificationFeeds} subscribes it.
 	 */
-	private readonly comments$: Signal<QueryResultType<typeof queries.comments>> | null
-	/** Null when commenting is disabled for this user, like {@link comments$}. */
-	private readonly reactions$: Signal<QueryResultType<typeof queries.reactions>> | null
-
-	/** Whether this user gets the commenting UI — see {@link shouldEnableCommenting}. */
-	readonly isCommentingEnabled: boolean
+	private readonly homeBoardComments$: Atom<QueryResultType<typeof queries.homeBoardComments>>
+	private readonly threadStarterComments$: Atom<
+		QueryResultType<typeof queries.threadStarterComments>
+	>
+	private readonly threadParticipantComments$: Atom<
+		QueryResultType<typeof queries.threadParticipantComments>
+	>
+	private readonly mentionComments$: Atom<QueryResultType<typeof queries.mentionComments>>
+	/** The feeds merged, deduped by comment id (a comment can qualify for several reasons). */
+	private readonly comments$: Signal<QueryResultType<typeof queries.homeBoardComments>>
+	/** Like the comment feeds. */
+	private readonly reactions$: Atom<QueryResultType<typeof queries.reactions>>
+	/** The signed-in account's email, for the first-load report gate. */
+	readonly email: string | null
+	readonly isFirstLoadRumEnabled: boolean
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -209,13 +202,22 @@ export class TldrawApp {
 
 	private signalizeQuery<TReturn>(name: string, query: any): Signal<TReturn> {
 		// fail if closed?
-		const view = this.z.materialize(query) as unknown as {
-			data: TReturn
-			addListener(cb: (data: TReturn) => void): () => void
-			destroy(): void
-		}
+		const view = this.z.materialize(query) as unknown as TypedView<TReturn>
 		const val$ = atom(name, view.data, { isEqual })
-		view.addListener((res) => {
+		this.bindQuery(val$, view)
+		return val$
+	}
+
+	/** Feed a materialized Zero view into an atom for its lifetime, batched like every other signal. */
+	private bindQuery<TReturn>(val$: Atom<TReturn>, view: TypedView<TReturn>) {
+		let reportedError = false
+		view.addListener((res, resultType, error) => {
+			// a failed query just leaves its signal empty, which looks like no data rather than broken.
+			// Closing Zero fails every query still hydrating, which is teardown, not a failure
+			if (resultType === 'error' && !reportedError && !this.z.closed) {
+				reportedError = true
+				captureException(new Error(`Query failed: ${val$.name}`), { extra: { error } })
+			}
 			this.changes.set(val$, structuredClone(res))
 			if (!this.changesFlushed) {
 				this.changesFlushed = promiseWithResolve()
@@ -234,7 +236,6 @@ export class TldrawApp {
 		this.disposables.push(() => {
 			view.destroy()
 		})
-		return val$
 	}
 
 	toasts: TLUiToastsContextType | null = null
@@ -262,7 +263,8 @@ export class TldrawApp {
 		this.navigate = navigate
 		this.trackEvent = trackEvent
 		this.getToken = getToken
-		this.isCommentingEnabled = shouldEnableCommenting(flags, email).value
+		this.email = email ?? null
+		this.isFirstLoadRumEnabled = flags.first_load_rum?.enabled ?? false
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
 		if (window.navigator.webdriver) {
@@ -359,42 +361,89 @@ export class TldrawApp {
 			'workspace memberships signal',
 			queries.workspaceMemberships()
 		)
-		this.comments$ = this.isCommentingEnabled
-			? this.signalizeQuery('comments signal', queries.comments())
-			: null
-		this.reactions$ = this.isCommentingEnabled
-			? this.signalizeQuery('reactions signal', queries.reactions())
-			: null
+		this.homeBoardComments$ = atom('home board comments signal', [], { isEqual })
+		this.threadStarterComments$ = atom('thread starter comments signal', [], { isEqual })
+		this.threadParticipantComments$ = atom('thread participant comments signal', [], { isEqual })
+		this.mentionComments$ = atom('mention comments signal', [], { isEqual })
+		this.comments$ = computed('comments signal', () => {
+			const seen = new Set<string>()
+			const merged: QueryResultType<typeof queries.homeBoardComments> = []
+			for (const feed of [
+				this.homeBoardComments$,
+				this.threadStarterComments$,
+				this.threadParticipantComments$,
+				this.mentionComments$,
+			]) {
+				for (const comment of feed.get()) {
+					if (seen.has(comment.id)) continue
+					seen.add(comment.id)
+					merged.push(comment)
+				}
+			}
+			return merged
+		})
+		this.reactions$ = atom('reactions signal', [], { isEqual })
 	}
 
 	/**
-	 * Recent comments across the user's files, for the notifications feed (bounded, cross-file).
-	 * Empty when commenting is disabled for this user — the query isn't subscribed at all.
+	 * Subscribe the notifications feeds. Called once {@link preload} has resolved rather than from
+	 * the constructor: nothing awaits these, but a query the view-syncer is hydrating still
+	 * delays the bootstrap queries the app does wait on (tldraw-internal#2032).
 	 */
-	getComments(): QueryResultType<typeof queries.comments> {
-		return this.comments$?.get() ?? []
+	startNotificationFeeds() {
+		this.bindQuery(
+			this.homeBoardComments$,
+			this.materializeQuery<QueryResultType<typeof queries.homeBoardComments>>(
+				queries.homeBoardComments()
+			)
+		)
+		this.bindQuery(
+			this.threadStarterComments$,
+			this.materializeQuery<QueryResultType<typeof queries.threadStarterComments>>(
+				queries.threadStarterComments()
+			)
+		)
+		this.bindQuery(
+			this.threadParticipantComments$,
+			this.materializeQuery<QueryResultType<typeof queries.threadParticipantComments>>(
+				queries.threadParticipantComments()
+			)
+		)
+		this.bindQuery(
+			this.mentionComments$,
+			this.materializeQuery<QueryResultType<typeof queries.mentionComments>>(
+				queries.mentionComments()
+			)
+		)
+		this.bindQuery(
+			this.reactions$,
+			this.materializeQuery<QueryResultType<typeof queries.reactions>>(queries.reactions())
+		)
+	}
+
+	/**
+	 * Recent comments across the user's files, for the notifications feed (bounded per feed,
+	 * cross-file, unordered). Empty until {@link startNotificationFeeds}.
+	 */
+	getComments(): QueryResultType<typeof queries.homeBoardComments> {
+		return this.comments$.get()
 	}
 
 	/**
 	 * Recent reactions to the user's comments across their files, for the notifications feed
-	 * (bounded, cross-file). Empty when commenting is disabled for this user — the query isn't
-	 * subscribed at all.
+	 * (bounded, cross-file). Empty until {@link startNotificationFeeds}.
 	 */
 	getReactions(): QueryResultType<typeof queries.reactions> {
-		return this.reactions$?.get() ?? []
+		return this.reactions$.get()
 	}
 
 	/**
 	 * Materialize an ad-hoc Zero query into a live view the caller owns and must `destroy()`. For
 	 * parameterized, component-scoped queries (e.g. one file's comments) that shouldn't be
-	 * app-lifetime signals like {@link comments$}.
+	 * app-lifetime signals like {@link fileStates$}.
 	 */
 	materializeQuery<TReturn>(query: unknown) {
-		return this.z.materialize(query as any) as unknown as {
-			readonly data: TReturn
-			addListener(cb: (data: TReturn) => void): () => void
-			destroy(): void
-		}
+		return this.z.materialize(query as any) as unknown as TypedView<TReturn>
 	}
 
 	async preload(signal?: AbortSignal) {
@@ -403,8 +452,9 @@ export class TldrawApp {
 		if (!token) throw new Error('No auth token available for init')
 		const res = await fetch(`/api/app/${this.userId}/init`, {
 			method: 'POST',
-			headers: { Authorization: `Bearer ${token}` },
+			headers: { Authorization: `Bearer ${token}`, 'x-tldraw-load-id': getFirstLoadId() },
 		})
+		markFirstLoad('init-done')
 		// A failed init only matters if the user row never shows up: returning users whose row
 		// already exists should still load through a transient worker error.
 		const initError = res.ok ? undefined : new Error(`Init failed: ${res.status}`)
@@ -478,6 +528,7 @@ export class TldrawApp {
 				if (this.user$.get()) userLoaded.resolve()
 			})
 			await Promise.race([userLoaded, timedOut])
+			markFirstLoad('zero-user-synced')
 		} finally {
 			signal?.removeEventListener('abort', onAbort)
 			document.removeEventListener('visibilitychange', onVisibilityChange)
@@ -488,6 +539,7 @@ export class TldrawApp {
 			this.z.preload(queries.fileStates()).complete,
 			this.z.preload(queries.workspaceMemberships()).complete,
 		])
+		markFirstLoad('zero-preloaded')
 	}
 
 	messages = defineMessages({
@@ -569,6 +621,22 @@ export class TldrawApp {
 		// this.store.dispose()
 	}
 
+	/**
+	 * Drops this user's Zero replica from IndexedDB. Zero keeps synced data on disk across sign-out
+	 * so the next sign-in is fast, which leaks the previous user's files on shared machines. Safe to
+	 * call after dispose(): delete() closes the instance first, and close() is idempotent.
+	 */
+	async deleteLocalData() {
+		try {
+			const { errors } = await this.z.delete()
+			for (const error of errors) {
+				captureException(error)
+			}
+		} catch (error) {
+			captureException(error)
+		}
+	}
+
 	getUser() {
 		return assertExists(this.user$.get(), 'no user')
 	}
@@ -594,13 +662,22 @@ export class TldrawApp {
 		return this.userId
 	}
 
+	/**
+	 * A membership whose group row is missing is stale, not real. The comment feeds' access gate can
+	 * keep the caller's group_user row in the client store after they leave a workspace (Zero 1.9's
+	 * union fan-in drops the remove, rocicorp/mono#6636), while the group row, synced only by this
+	 * query, is gone. Counting it would block rejoining by invite and pass client-side role checks.
+	 */
 	@computed({ isEqual })
 	getWorkspaceMemberships() {
-		return this.workspaceMemberships$.get().slice(0).sort(sortByIndex)
+		return this.workspaceMemberships$
+			.get()
+			.filter((g) => g.group)
+			.sort(sortByIndex)
 	}
 
 	getWorkspaceMembership(workspaceId: string) {
-		return this.workspaceMemberships$.get().find((g) => g.groupId === workspaceId)
+		return this.getWorkspaceMemberships().find((g) => g.groupId === workspaceId)
 	}
 
 	getWorkspaceFilesSorted(workspaceId: string) {
@@ -1099,6 +1176,7 @@ export class TldrawApp {
 		window.app = app
 		try {
 			await app.preload(opts.signal)
+			app.startNotificationFeeds()
 		} catch (e) {
 			// Don't leave the half-built app's Zero connection and timers running behind the
 			// error page the caller shows for this.

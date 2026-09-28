@@ -12,6 +12,36 @@ import styles from './admin.module.css'
 
 const FLAG_TYPE_ORDER: FeatureFlagValue['type'][] = ['boolean', 'percentage', 'allowlist']
 
+// Flags whose name title-cased does not say what they do. `Mcp Server Enabled` reads like a
+// capability toggle; it is the switch that takes the whole server down, and somebody reaching for it
+// under pressure should not have to infer that.
+const FLAG_LABELS: Record<string, string> = {
+	mcp_server_access: 'MCP server access',
+}
+
+// Access a flag grants on top of whatever the panel is showing. Kept per flag rather than written
+// into AllowlistFlag: the staff bypass belongs to `canUseMcpServer`, not to allowlists in general,
+// and a second allowlist flag inheriting this sentence would be the panel stating an access rule
+// that does not hold for it.
+const FLAG_IMPLICIT_ACCESS: Record<string, string> = {
+	mcp_server_access: '@tldraw.com accounts have access either way.',
+}
+
+// Rendered above the rest rather than interleaved alphabetically with commenting and version
+// chains: this is the one flag that decides whether an outside caller can drive the product at all,
+// and it is the one an operator comes to this page to find.
+const MCP_FLAGS = ['mcp_server_access']
+
+function flagLabel(flagName: string) {
+	return (
+		FLAG_LABELS[flagName] ??
+		flagName
+			.split('_')
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+			.join(' ')
+	)
+}
+
 export function FlagsSection() {
 	return (
 		<section className={styles.adminSection}>
@@ -51,7 +81,15 @@ function FeatureFlags() {
 	}, [loadFlags])
 
 	const saveFlag = useCallback(
-		async (flag: string, update: { enabled?: boolean; percentage?: number; emails?: string[] }) => {
+		async (
+			flag: string,
+			update: {
+				enabled?: boolean
+				percentage?: number
+				emails?: string[]
+				allowEveryone?: boolean
+			}
+		) => {
 			setIsSaving(true)
 			setError(null)
 			setSuccessMessage(null)
@@ -81,6 +119,10 @@ function FeatureFlags() {
 							? `${flag} allowlist cleared`
 							: `${flag} allowed for ${update.emails.length} user(s)`
 					)
+				} else if (update.allowEveryone !== undefined) {
+					setSuccessMessage(
+						update.allowEveryone ? `${flag} set to allow all` : `${flag} set to user list`
+					)
 				} else {
 					setSuccessMessage(`${flag} ${update.enabled ? 'enabled' : 'disabled'}`)
 				}
@@ -92,6 +134,94 @@ function FeatureFlags() {
 		},
 		[setSuccessMessage]
 	)
+
+	const renderFlag = (flagName: string, flagValue: FeatureFlagValue) => {
+		const label = flagLabel(flagName)
+
+		if (flagValue.type === 'percentage') {
+			return (
+				<PercentageFlag
+					key={flagName}
+					flagName={flagName}
+					label={label}
+					flagValue={flagValue}
+					isSaving={isSaving}
+					onToggle={(enabled) => {
+						const action = enabled ? 'Enable' : 'Disable'
+						if (!window.confirm(`${action} "${flagName}"?`)) return
+						saveFlag(flagName, { enabled })
+					}}
+					onSavePercentage={(pct) => {
+						if (!window.confirm(`Set "${flagName}" to ${pct}% of users?`)) return
+						saveFlag(flagName, { percentage: pct })
+					}}
+				/>
+			)
+		}
+
+		if (flagValue.type === 'allowlist') {
+			return (
+				<AllowlistFlag
+					key={flagName}
+					flagName={flagName}
+					label={label}
+					flagValue={flagValue}
+					isSaving={isSaving}
+					implicitAccess={FLAG_IMPLICIT_ACCESS[flagName]}
+					onSetAllowEveryone={(allowEveryone) => {
+						if (
+							allowEveryone &&
+							!window.confirm(
+								`Open "${flagName}" to EVERY signed-in account? The list below is kept, and applies again on "User list".`
+							)
+						) {
+							return
+						}
+						saveFlag(flagName, { allowEveryone })
+					}}
+					onSaveEmails={(emails) => {
+						if (
+							!window.confirm(
+								`Set "${flagName}" to these ${emails.length} address(es)? This replaces the current list.`
+							)
+						) {
+							return
+						}
+						saveFlag(flagName, { emails })
+					}}
+				/>
+			)
+		}
+
+		return (
+			<div key={flagName} className={styles.featureFlagItem}>
+				<label htmlFor={flagName} className={styles.featureFlagLabel}>
+					<input
+						id={flagName}
+						type="checkbox"
+						checked={flagValue.enabled}
+						onChange={(e) => {
+							const enabled = e.target.checked
+							const action = enabled ? 'enable' : 'disable'
+							if (
+								!window.confirm(`Are you sure you want to ${action} "${flagName}" for ALL users?`)
+							) {
+								return
+							}
+							saveFlag(flagName, { enabled })
+						}}
+						disabled={isSaving}
+					/>
+					<span>
+						<strong>{label}</strong>
+					</span>
+				</label>
+				{flagValue.description && (
+					<span className={styles.featureFlagsDescription}>{flagValue.description}</span>
+				)}
+			</div>
+		)
+	}
 
 	return (
 		<div className={styles.fileOperation}>
@@ -120,7 +250,10 @@ function FeatureFlags() {
 				<p>Loading flags...</p>
 			) : (
 				<div className={styles.featureFlagsContainer}>
+					{MCP_FLAGS.filter((name) => flags[name]).map((name) => renderFlag(name, flags[name]))}
+					{MCP_FLAGS.some((name) => flags[name]) && <hr className={styles.featureFlagsDivider} />}
 					{Object.entries(flags)
+						.filter(([name]) => !MCP_FLAGS.includes(name))
 						.sort(([a], [b]) => {
 							// Grouped by type — boolean, then percentage, then allowlist — and alphabetical
 							// within a group. Ranked rather than compared pairwise so the ordering stays a
@@ -128,91 +261,7 @@ function FeatureFlags() {
 							const rank = (name: string) => FLAG_TYPE_ORDER.indexOf(flags[name].type ?? 'boolean')
 							return rank(a) - rank(b) || a.localeCompare(b)
 						})
-						.map(([flagName, flagValue]) => {
-							const label = flagName
-								.split('_')
-								.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-								.join(' ')
-
-							if (flagValue.type === 'percentage') {
-								return (
-									<PercentageFlag
-										key={flagName}
-										flagName={flagName}
-										label={label}
-										flagValue={flagValue}
-										isSaving={isSaving}
-										onToggle={(enabled) => {
-											const action = enabled ? 'Enable' : 'Disable'
-											if (!window.confirm(`${action} "${flagName}"?`)) return
-											saveFlag(flagName, { enabled })
-										}}
-										onSavePercentage={(pct) => {
-											if (!window.confirm(`Set "${flagName}" to ${pct}% of users?`)) return
-											saveFlag(flagName, { percentage: pct })
-										}}
-									/>
-								)
-							}
-
-							if (flagValue.type === 'allowlist') {
-								return (
-									<AllowlistFlag
-										key={flagName}
-										flagName={flagName}
-										label={label}
-										flagValue={flagValue}
-										isSaving={isSaving}
-										onToggle={(enabled) => {
-											const action = enabled ? 'Enable' : 'Disable'
-											if (!window.confirm(`${action} "${flagName}"?`)) return
-											saveFlag(flagName, { enabled })
-										}}
-										onSaveEmails={(emails) => {
-											if (
-												!window.confirm(
-													`Set "${flagName}" to these ${emails.length} address(es)? This replaces the current list.`
-												)
-											) {
-												return
-											}
-											saveFlag(flagName, { emails })
-										}}
-									/>
-								)
-							}
-
-							return (
-								<div key={flagName} className={styles.featureFlagItem}>
-									<label htmlFor={flagName} className={styles.featureFlagLabel}>
-										<input
-											id={flagName}
-											type="checkbox"
-											checked={flagValue.enabled}
-											onChange={(e) => {
-												const enabled = e.target.checked
-												const action = enabled ? 'enable' : 'disable'
-												if (
-													!window.confirm(
-														`Are you sure you want to ${action} "${flagName}" for ALL users?`
-													)
-												) {
-													return
-												}
-												saveFlag(flagName, { enabled })
-											}}
-											disabled={isSaving}
-										/>
-										<span>
-											<strong>{label}</strong>
-										</span>
-									</label>
-									{flagValue.description && (
-										<span className={styles.featureFlagsDescription}>{flagValue.description}</span>
-									)}
-								</div>
-							)
-						})}
+						.map(([flagName, flagValue]) => renderFlag(flagName, flagValue))}
 				</div>
 			)}
 		</div>
@@ -229,15 +278,17 @@ function AllowlistFlag({
 	label,
 	flagValue,
 	isSaving,
-	onToggle,
+	implicitAccess,
 	onSaveEmails,
+	onSetAllowEveryone,
 }: {
 	flagName: string
 	label: string
 	flagValue: AllowlistFeatureFlag
 	isSaving: boolean
-	onToggle(enabled: boolean): void
+	implicitAccess: string | undefined
 	onSaveEmails(emails: string[]): void
+	onSetAllowEveryone(allowEveryone: boolean): void
 }) {
 	const currentEmails = (flagValue.users ?? []).map((entry) => entry.email)
 	const [text, setText] = useState(() => currentEmails.join('\n'))
@@ -270,28 +321,44 @@ function AllowlistFlag({
 		// flex item among many and shrinks to nothing beside the description.
 		<div className={`${styles.featureFlagItem} ${styles.featureFlagItemColumn}`}>
 			<div className={styles.featureFlagLabel}>
-				<label
-					htmlFor={flagName}
-					style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+				<span>
+					<strong>{label}</strong>
+				</span>
+				{/* No master toggle: an empty list already admits nobody, so an "off" beside it would be
+				    a second way to say the same thing — and on mcp_server_access it could not say it at
+				    all, since the staff bypass never consults this flag. The mode is the whole control. */}
+				<div
+					role="radiogroup"
+					aria-label={`${label} mode`}
+					style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}
 				>
-					<input
-						id={flagName}
-						type="checkbox"
-						checked={flagValue.enabled}
-						onChange={(e) => onToggle(e.target.checked)}
-						disabled={isSaving}
-						style={{ cursor: 'pointer' }}
-					/>
-					<span>
-						<strong>{label}</strong>
-					</span>
-				</label>
-				<span className={!flagValue.enabled ? styles.featureFlagDisabled : ''}>
+					<span style={{ opacity: 0.7 }}>Mode:</span>
+					{(
+						[
+							{ value: false, label: 'User list' },
+							{ value: true, label: 'Allow all' },
+						] as const
+					).map((mode) => (
+						<label
+							key={String(mode.value)}
+							style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+						>
+							<input
+								type="radio"
+								name={`${flagName}-mode`}
+								checked={(flagValue.allowEveryone === true) === mode.value}
+								onChange={() => onSetAllowEveryone(mode.value)}
+								disabled={isSaving}
+								style={{ cursor: 'pointer' }}
+							/>
+							<span>{mode.label}</span>
+						</label>
+					))}
+					{implicitAccess && <span style={{ opacity: 0.7 }}>{implicitAccess}</span>}
+				</div>
+				<span className={flagValue.allowEveryone === true ? styles.featureFlagDisabled : ''}>
 					{currentEmails.length} user(s)
 				</span>
-				{/* Editable while the flag is off, deliberately: an empty enabled allowlist admits nobody,
-				    so staging the list first and then enabling is the calm order. Requiring the flag on
-				    first forces the alarming one — enable for a list that is still empty, then fill it. */}
 				<AdminButton
 					onClick={() => onSaveEmails(parsed)}
 					variant="primary"
@@ -306,7 +373,7 @@ function AllowlistFlag({
 				disabled={isSaving}
 				className={styles.searchInput}
 				rows={4}
-				// The label above is spent on the checkbox, so the textarea names itself.
+				// The label above is not tied to a control, so the textarea names itself.
 				aria-label={`${label} allowlist, one email per line`}
 				aria-invalid={!!parseError}
 				placeholder={'One email per line, e.g. someone@tldraw.com'}

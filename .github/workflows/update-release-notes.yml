@@ -19,6 +19,9 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+
 jobs:
   update-release-notes:
     name: 'Update release notes with Claude Code'
