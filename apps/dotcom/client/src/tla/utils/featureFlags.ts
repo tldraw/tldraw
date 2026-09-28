@@ -49,9 +49,9 @@ export function getFeatureFlags(): Promise<FeatureFlags> {
 }
 
 /**
- * Refetches when the last request failed or had no session (Clerk cookie not ready yet). Signed-in
- * boot only, so signed-out pages don't send a request per caller. Sign-in and sign-out are full page
- * loads, so cached flags never belong to another account.
+ * Refetches when the last request failed or had no session (Clerk cookie not ready yet).
+ * Signed-in boot only, so signed-out pages don't send a request per caller. Sign-in and sign-out
+ * are full page loads, so cached flags never belong to another account.
  */
 export function fetchFeatureFlags(): Promise<FeatureFlags> {
 	if (settled && !_wasAuthenticated) flagsPromise = loadFlags()
