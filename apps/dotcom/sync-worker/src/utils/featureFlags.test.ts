@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ensureUser } from '../routes/tla/initUser'
 import {
 	canUseMcpServer,
 	evaluateFlagForUser,
@@ -12,6 +13,10 @@ import {
 
 vi.mock('./tla/getAuth', () => ({
 	getAuth: vi.fn(),
+}))
+
+vi.mock('../routes/tla/initUser', () => ({
+	ensureUser: vi.fn(async () => 'email_not_allowed'),
 }))
 
 // canUseMcpServer reads the account's email from Postgres when the flag does not cover them.
@@ -506,7 +511,10 @@ describe('allowEveryone', () => {
 })
 
 describe('canUseMcpServer', () => {
-	beforeEach(() => userEmail.mockReturnValue(undefined))
+	beforeEach(() => {
+		userEmail.mockReset()
+		vi.mocked(ensureUser).mockClear()
+	})
 
 	it('admits a verified @tldraw.com account the flag does not name', async () => {
 		userEmail.mockReturnValue('someone@tldraw.com')
@@ -533,6 +541,29 @@ describe('canUseMcpServer', () => {
 	it('refuses when the account has no row', async () => {
 		userEmail.mockReturnValue(undefined)
 		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
+	})
+
+	it('only lets a missing @gmail.com account have rows created', async () => {
+		await canUseMcpServer(makeEnv() as any, 'user-1')
+
+		const [, , userId, options] = vi.mocked(ensureUser).mock.calls[0]
+		expect(userId).toBe('user-1')
+		expect(options?.canCreate?.('Someone@GMAIL.com')).toBe(true)
+		expect(options?.canCreate?.('someone@tldraw.com')).toBe(false)
+		expect(options?.canCreate?.('someone@notgmail.com')).toBe(false)
+	})
+
+	it('reads the email again once the rows are created', async () => {
+		userEmail.mockReturnValueOnce(undefined).mockReturnValueOnce('someone@tldraw.com')
+		vi.mocked(ensureUser).mockResolvedValueOnce('created')
+
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
+	})
+
+	it('does not try to create rows for an account that has them', async () => {
+		userEmail.mockReturnValue('someone@example.com')
+		await canUseMcpServer(makeEnv() as any, 'user-1')
+		expect(ensureUser).not.toHaveBeenCalled()
 	})
 
 	// The flag still comes first, and it is what keeps the database read off the granted path.

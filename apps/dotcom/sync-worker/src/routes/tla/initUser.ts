@@ -1,3 +1,4 @@
+import { isClerkAPIResponseError } from '@clerk/backend/errors'
 import { IndexKey } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
@@ -7,7 +8,13 @@ import { LOAD_ID_HEADER, parseLoadId } from '../../utils/loadId'
 import { isRateLimited } from '../../utils/rateLimit'
 import { getClerkClient } from '../../utils/tla/getAuth'
 
-type EnsureUserOutcome = 'existing' | 'created' | 'rate_limited' | 'no_clerk_user' | 'no_email'
+type EnsureUserOutcome =
+	| 'existing'
+	| 'created'
+	| 'rate_limited'
+	| 'no_clerk_user'
+	| 'no_email'
+	| 'email_not_allowed'
 type InitOutcome = EnsureUserOutcome | 'error'
 
 const OUTCOME_RESPONSES: Record<EnsureUserOutcome, { body: string; status: number }> = {
@@ -16,6 +23,7 @@ const OUTCOME_RESPONSES: Record<EnsureUserOutcome, { body: string; status: numbe
 	rate_limited: { body: 'Rate limited', status: 429 },
 	no_clerk_user: { body: 'Clerk user not found', status: 404 },
 	no_email: { body: 'Clerk user has no email address', status: 400 },
+	email_not_allowed: { body: 'Email address not allowed', status: 403 },
 }
 
 export async function initUser(req: IRequest, env: Environment): Promise<Response> {
@@ -59,7 +67,8 @@ export async function initUser(req: IRequest, env: Environment): Promise<Respons
 export async function ensureUser(
 	env: Environment,
 	db: ReturnType<typeof createPostgresConnectionPool>,
-	id: string
+	id: string,
+	{ canCreate }: { canCreate?(email: string): boolean } = {}
 ): Promise<EnsureUserOutcome> {
 	const existing = await db.selectFrom('user').where('id', '=', id).select('id').executeTakeFirst()
 	if (existing) return 'existing'
@@ -70,9 +79,14 @@ export async function ensureUser(
 		return 'rate_limited'
 	}
 
-	// callers authenticate the user first, so the clerk user definitely exists
-	const clerk = getClerkClient(env)
-	const clerkUser = await clerk.users.getUser(id)
+	// Callers authenticate first, but a user deleted in Clerk since their token was issued would
+	// otherwise throw here and 500 instead of being refused.
+	const clerkUser = await getClerkClient(env)
+		.users.getUser(id)
+		.catch((e) => {
+			if (isClerkAPIResponseError(e) && e.status === 404) return null
+			throw e
+		})
 	if (!clerkUser) return 'no_clerk_user'
 
 	// A Clerk user can lack an email (e.g. some SSO/social flows); reading [0].emailAddress
@@ -80,6 +94,7 @@ export async function ensureUser(
 	const email =
 		clerkUser.primaryEmailAddress?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress
 	if (!email) return 'no_email'
+	if (canCreate && !canCreate(email)) return 'email_not_allowed'
 
 	await db.transaction().execute(async (tx) => {
 		const now = Date.now()
