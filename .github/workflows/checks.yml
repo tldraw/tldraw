@@ -51,7 +51,8 @@ jobs:
             *.tsbuildinfo
             */*/*.tsbuildinfo
             apps/*/*/*.tsbuildinfo
-          key: test-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.oxlintrc.json', '.oxfmtrc.json', 'turbo.json') }}
+          key: test-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.oxlintrc.json', '.oxfmtrc.json', 'turbo.json') }}-${{ github.sha }}
+          restore-keys: test-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.oxlintrc.json', '.oxfmtrc.json', 'turbo.json') }}-
 
       - name: Typecheck
         run: pnpm typecheck
@@ -82,7 +83,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: node_modules/.vitest-cache
-          key: vitest-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          key: vitest-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
           restore-keys: vitest-cache-${{ runner.os }}-
 
       - name: Test
@@ -110,7 +111,8 @@ jobs:
             *.tsbuildinfo
             */*/*.tsbuildinfo
             apps/*/*/*.tsbuildinfo
-          key: build-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'turbo.json') }}
+          key: build-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'turbo.json') }}-${{ github.sha }}
+          restore-keys: build-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'turbo.json') }}-
 
       - name: Build packages
         # the sed pipe makes sure that github annotations come through without
