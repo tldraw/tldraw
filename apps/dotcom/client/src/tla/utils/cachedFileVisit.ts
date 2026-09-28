@@ -1,4 +1,23 @@
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
+import { uniqueId } from '@tldraw/utils'
+
+// The redirect's history entry outlives the visit: going back to it after opening another file
+// would re-run the decision and bounce to that file. Only the latest redirect of this page load
+// counts, and it ends once a file host renders without it.
+let liveCachedVisit: string | null = null
+
+export function startCachedFileVisit() {
+	liveCachedVisit = uniqueId()
+	return liveCachedVisit
+}
+
+export function isCachedFileVisitLive(token: unknown) {
+	return liveCachedVisit !== null && token === liveCachedVisit
+}
+
+export function endCachedFileVisit() {
+	liveCachedVisit = null
+}
 
 export interface CachedFileVisitInput {
 	/** The file room's sync status. */

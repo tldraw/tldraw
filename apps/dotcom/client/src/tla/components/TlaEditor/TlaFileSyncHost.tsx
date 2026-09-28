@@ -26,7 +26,11 @@ import {
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { currentApp$, useMaybeApp } from '../../hooks/useAppState'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
-import { resolveCachedFileVisit } from '../../utils/cachedFileVisit'
+import {
+	endCachedFileVisit,
+	isCachedFileVisitLive,
+	resolveCachedFileVisit,
+} from '../../utils/cachedFileVisit'
 import { clearLastVisitedFile, setLastVisitedFile } from '../../utils/local-session-state'
 
 type FileSyncStore = ReturnType<typeof useSync>
@@ -37,7 +41,7 @@ export function useFileSyncStore(): FileSyncStore {
 	return assertExists(useContext(FileSyncStoreContext), 'TlaFileSyncHost is missing above')
 }
 
-/** Set on the `/f/:slug` location state by the `/` redirect that came from the local cache. */
+/** Location state key for the `/` redirect from the local cache; holds a `startCachedFileVisit` token. */
 export const VIA_LAST_FILE_CACHE = 'viaLastFileCache'
 
 function createPresenceUserStore(userId: string | undefined): TLUserStore {
@@ -103,7 +107,10 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 
 	const navigate = useNavigate()
 	const location = useLocation()
-	const viaCache = !!location.state?.[VIA_LAST_FILE_CACHE]
+	const viaCache = isCachedFileVisitLive(location.state?.[VIA_LAST_FILE_CACHE])
+	useEffect(() => {
+		if (!viaCache) endCachedFileVisit()
+	}, [viaCache])
 	const app = useMaybeApp()
 	// Only while the flag is set: getMostRecentFileId reads every file_state, so an ungated read
 	// would re-render the host on each throttled lastVisitAt write for the whole session.

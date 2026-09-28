@@ -1,6 +1,12 @@
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { describe, expect, it } from 'vitest'
-import { CachedFileVisitInput, resolveCachedFileVisit } from './cachedFileVisit'
+import {
+	CachedFileVisitInput,
+	endCachedFileVisit,
+	isCachedFileVisitLive,
+	resolveCachedFileVisit,
+	startCachedFileVisit,
+} from './cachedFileVisit'
 
 const base: CachedFileVisitInput = {
 	status: 'loading',
@@ -73,5 +79,27 @@ describe('resolveCachedFileVisit', () => {
 		expect(resolveCachedFileVisit({ ...known, status: 'synced-remote' })).toEqual({
 			kind: 'accepted',
 		})
+	})
+})
+
+describe('cached file visit token', () => {
+	it('is live until the visit ends', () => {
+		const token = startCachedFileVisit()
+		expect(isCachedFileVisitLive(token)).toBe(true)
+		endCachedFileVisit()
+		expect(isCachedFileVisitLive(token)).toBe(false)
+	})
+
+	it('only honours the latest redirect', () => {
+		const first = startCachedFileVisit()
+		const second = startCachedFileVisit()
+		expect(isCachedFileVisitLive(first)).toBe(false)
+		expect(isCachedFileVisitLive(second)).toBe(true)
+	})
+
+	it('ignores a missing token even with no visit live', () => {
+		endCachedFileVisit()
+		expect(isCachedFileVisitLive(undefined)).toBe(false)
+		expect(isCachedFileVisitLive(null)).toBe(false)
 	})
 })

@@ -14,6 +14,7 @@ import { components } from '../components/TlaEditor/TlaEditor'
 import { VIA_LAST_FILE_CACHE } from '../components/TlaEditor/TlaFileSyncHost'
 import { useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
+import { startCachedFileVisit } from '../utils/cachedFileVisit'
 import { importFromUrl } from '../utils/importFromUrl'
 import { getLastVisitedFileId } from '../utils/local-session-state'
 import { clearRedirectOnSignIn } from '../utils/redirect'
@@ -39,7 +40,7 @@ export function Component() {
 		if (!cachedFileId) return
 		navigate(routes.tlaFile(cachedFileId), {
 			replace: true,
-			state: { ...location.state, [VIA_LAST_FILE_CACHE]: true },
+			state: { ...location.state, [VIA_LAST_FILE_CACHE]: startCachedFileVisit() },
 		})
 	}, [app, isAppLoading, userId, navigate, location])
 
