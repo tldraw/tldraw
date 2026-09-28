@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from './types'
+import { clearFeatureFlagCacheForTests } from './utils/featureFlags'
 import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
 
 function env(tldrawEnv?: string, kv?: Record<string, string>): Environment {
@@ -15,7 +16,24 @@ async function mode(e: Environment, roomKey: string) {
 	return resolveVersionChainMode(await loadVersionChainRollout(e), roomKey)
 }
 
+beforeEach(() => clearFeatureFlagCacheForTests())
+
 describe('version chain rollout', () => {
+	// The durable object caches the load for its lifetime, so a rejection would fail every persist.
+	it('falls back to the default, chain, when KV is down', async () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const e = {
+			FEATURE_FLAGS: {
+				get: async () => {
+					throw new Error('KV down')
+				},
+			},
+		} as unknown as Environment
+
+		expect(await mode(e, 'app_rooms/a')).toBe('chain')
+		consoleSpy.mockRestore()
+	})
+
 	it('defaults to chain everywhere, production included', async () => {
 		for (const tldrawEnv of ['development', 'staging', 'production', undefined]) {
 			expect(await mode(env(tldrawEnv), 'app_rooms/a')).toBe('chain')

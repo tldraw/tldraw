@@ -7,7 +7,7 @@ import { useLocation } from 'react-router-dom'
 import { atom, getFromLocalStorage, react, setInLocalStorage, useValue, warnOnce } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
 import { useSignUpTracking } from '../tla/hooks/useSignUpTracking'
-import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/FeatureFlagPoller'
+import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/featureFlags'
 
 // Local storage key for cookie consent
 export const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'

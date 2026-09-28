@@ -1,6 +1,10 @@
 import { FeatureFlagValue } from '@tldraw/dotcom-shared'
 import { Environment } from './types'
-import { evaluateFlagForUser, getFeatureFlagValue } from './utils/featureFlags'
+import {
+	evaluateFlagForUser,
+	getFeatureFlagDefault,
+	getFeatureFlagValue,
+} from './utils/featureFlags'
 
 /**
  * How versions are encoded in the chain bucket: `chain` writes deltas between keyframes, `off`
@@ -16,7 +20,14 @@ export type VersionChainMode = 'off' | 'chain'
  * persist path.
  */
 export async function loadVersionChainRollout(env: Environment): Promise<FeatureFlagValue> {
-	return await getFeatureFlagValue(env, 'version_chain')
+	try {
+		return await getFeatureFlagValue(env, 'version_chain')
+	} catch (e) {
+		// The durable object caches this promise for its lifetime, so a rejection would fail every
+		// persist until it is evicted. The default is on, which is safe to write with.
+		console.error('Failed to read version_chain, using the default:', e)
+		return getFeatureFlagDefault('version_chain')
+	}
 }
 
 export function resolveVersionChainMode(

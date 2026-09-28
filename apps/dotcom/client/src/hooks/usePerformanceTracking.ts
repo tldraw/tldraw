@@ -6,7 +6,7 @@ import {
 	TLPerfFrameTimeStats,
 } from 'tldraw'
 import { sentryReleaseName } from '../../sentry-release-name'
-import { fetchFeatureFlags } from '../tla/utils/FeatureFlagPoller'
+import { getFeatureFlags } from '../tla/utils/featureFlags'
 import { trackEvent } from '../utils/analytics'
 
 const r2 = (n: number) => Math.round(n * 100) / 100
@@ -64,7 +64,7 @@ export function usePerformanceTracking() {
 		let unsubPageChange: (() => void) | undefined
 		let disposed = false
 
-		fetchFeatureFlags()
+		getFeatureFlags()
 			.then((flags) => {
 				if (disposed) return
 				const isChromeOS = typeof navigator !== 'undefined' && navigator.userAgent.includes('CrOS')
@@ -136,7 +136,7 @@ export function usePerformanceTracking() {
 				}
 			})
 			.catch(() => {
-				// noop — flag fetch failures are already logged by FeatureFlagPoller
+				// noop — flag fetch failures are already logged in featureFlags.ts
 			})
 
 		return () => {
