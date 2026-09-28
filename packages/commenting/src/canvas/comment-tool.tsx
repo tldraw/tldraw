@@ -113,6 +113,36 @@ export class CommentTool extends StateNode {
 	}
 }
 
+/** The anchor a comment placed at `point` gets: the shape under it, or a bare point. */
+function commentAnchorAt(editor: Editor, point: VecLike): TLCommentAnchor {
+	const hit = commentTargetShapeAt(editor, point)
+	if (!hit) return { type: 'point', x: point.x, y: point.y }
+	return shapeAnchorAt(
+		editor,
+		hit.id,
+		point,
+		getCommentingOptions(editor).shouldBePrecise(editor, {
+			shapeId: hit.id,
+			point,
+			altKey: editor.inputs.getAltKey(),
+		})
+	)
+}
+
+/**
+ * Open the comment composer at a page point, anchored the same way a click with the comment tool
+ * would anchor it. Use it to start a comment from outside the tool, such as a context menu item.
+ * Switches to the comment tool, since the draft composer belongs to the tool and closes with it.
+ * @public
+ */
+export function startCommentAt(editor: Editor, point: VecLike) {
+	editor.setCurrentTool('comment')
+	pendingComment.set(editor, {
+		anchor: commentAnchorAt(editor, point),
+		point: { x: point.x, y: point.y },
+	})
+}
+
 /** Hint the shape a comment placed at the pointer would anchor to, using the same hit-test as the
  *  anchor resolution on release. Hinting shapes render an indicator ungated by the active tool, so
  *  this shows the select-style outline while the comment tool — not select — is active. */
@@ -183,20 +213,10 @@ class CommentPointing extends StateNode {
 	override onPointerUp() {
 		const { editor } = this
 		const point = editor.inputs.getCurrentPagePoint()
-		const hit = commentTargetShapeAt(editor, point)
-		const anchor: TLCommentAnchor = hit
-			? shapeAnchorAt(
-					editor,
-					hit.id,
-					point,
-					getCommentingOptions(editor).shouldBePrecise(editor, {
-						shapeId: hit.id,
-						point,
-						altKey: editor.inputs.getAltKey(),
-					})
-				)
-			: { type: 'point', x: point.x, y: point.y }
-		pendingComment.set(editor, { anchor, point: { x: point.x, y: point.y } })
+		pendingComment.set(editor, {
+			anchor: commentAnchorAt(editor, point),
+			point: { x: point.x, y: point.y },
+		})
 		// Stay in the tool while the composer is open — the interaction isn't over until the
 		// comment is posted or dismissed, and staying keeps the surrounding UI (style panel,
 		// sidebar) from churning mid-placement.
