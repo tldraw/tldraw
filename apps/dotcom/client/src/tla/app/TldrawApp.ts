@@ -189,9 +189,9 @@ export class TldrawApp {
 	private readonly comments$: Signal<QueryResultType<typeof queries.homeBoardComments>>
 	/** Like the comment feeds. */
 	private readonly reactions$: Atom<QueryResultType<typeof queries.reactions>>
-	/** The signed-in account's email, for the first-load report gate. */
+	/** The signed-in account's email, for the load report gate. */
 	readonly email: string | null
-	readonly isFirstLoadRumEnabled: boolean
+	readonly isLoadRumEnabled: boolean
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -268,7 +268,7 @@ export class TldrawApp {
 		this.trackEvent = trackEvent
 		this.getToken = getToken
 		this.email = email ?? null
-		this.isFirstLoadRumEnabled = flags.first_load_rum?.enabled ?? false
+		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
 		if (window.navigator.webdriver) {

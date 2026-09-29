@@ -1,6 +1,14 @@
 import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo } from 'react'
+import {
+	ReactNode,
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+} from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
 	TLUserStore,
@@ -17,12 +25,8 @@ import {
 import { routes } from '../../../routeDefs'
 import { trackEvent } from '../../../utils/analytics'
 import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
-import {
-	getFirstLoadId,
-	hasFirstLoadStep,
-	markFirstLoad,
-	setFirstLoadServerTimings,
-} from '../../../utils/firstLoad'
+import { FileLoad, fileLoads } from '../../../utils/fileLoad'
+import { markFirstLoad } from '../../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { currentApp$, useMaybeApp } from '../../hooks/useAppState'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
@@ -39,6 +43,13 @@ const FileSyncStoreContext = createContext<FileSyncStore | null>(null)
 
 export function useFileSyncStore(): FileSyncStore {
 	return assertExists(useContext(FileSyncStoreContext), 'TlaFileSyncHost is missing above')
+}
+
+const FileLoadContext = createContext<FileLoad | null>(null)
+
+/** This file open's file_load tracker, begun where the open begins: the sync host. */
+export function useFileLoad(): FileLoad {
+	return assertExists(useContext(FileLoadContext), 'TlaFileSyncHost is missing above')
 }
 
 /** Location state key for the `/` redirect from the local cache; holds a `startCachedFileVisit` token. */
@@ -68,6 +79,9 @@ function createPresenceUserStore(userId: string | undefined): TLUserStore {
  * needs the app (the editor, session restore, slurping) mounts below, once it exists.
  */
 export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; children: ReactNode }) {
+	// Once per mount; begin() maps a same-file remount of an unfinished open back to its load.
+	const [fileLoad] = useState(() => fileLoads.begin(fileSlug))
+	fileLoad.mark('file-started')
 	const user = useTldrawCurrentUser()
 	const userId = user?.id
 	const getUserToken = useEvent(async () => {
@@ -82,27 +96,32 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
 			url.searchParams.set('v', CLIENT_BUILD_TIMESTAMP)
-			// Only the first connect belongs to the load; a reconnect carrying the id would make the
-			// server park and send an echo the client already has, and tag its timers as first-load.
-			if (!hasFirstLoadStep('sync-connected')) url.searchParams.set('loadId', getFirstLoadId())
+			// Only connects before sync-connected belong to the load; a later reconnect carrying an id
+			// would make the server park and send an echo nobody reads.
+			const connectId = fileLoad.nextConnectId()
+			if (connectId) url.searchParams.set('loadId', connectId)
 			if (userId) {
 				url.searchParams.set('accessToken', await getUserToken())
 				markFirstLoad('sync-token-fetched')
+				fileLoad.mark('sync-token-fetched')
 			}
 			return url.toString()
-		}, [fileSlug, userId, getUserToken]),
+		}, [fileSlug, userId, getUserToken, fileLoad]),
 		assets,
 		users,
 		// Register the opt-in `comment` record type so comment records sync through the file room.
 		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
 		records: commentSchemaRecords,
-		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
-			if (message.type === 'first_load_server') {
-				setFirstLoadServerTimings(message)
-				return
-			}
-			trackEvent(message.type)
-		}, []),
+		onCustomMessageReceived: useCallback(
+			(message: TLCustomServerEvent) => {
+				if (message.type === 'first_load_server') {
+					fileLoad.setServerTimings(message)
+					return
+				}
+				trackEvent(message.type)
+			},
+			[fileLoad]
+		),
 	})
 
 	const navigate = useNavigate()
@@ -145,15 +164,17 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	useEffect(() => {
 		if (store.status !== 'synced-remote') return
 		markFirstLoad('sync-connected')
+		fileLoad.mark('sync-connected')
 		// Written only once the room accepted us, so the cache never points at a file this account
 		// cannot open.
 		if (userId && !leaving) setLastVisitedFile(userId, fileSlug)
-	}, [store.status, userId, fileSlug, leaving])
+	}, [store.status, userId, fileSlug, leaving, fileLoad])
 
 	useEffect(() => {
 		// The hit rate of the cached redirect: a miss costs a wasted room boot on top of main's path.
 		if (visitKind && visitKind !== 'pending') {
 			trackEvent('cached-file-visit', { outcome: visitKind })
+			fileLoads.noteCachedVisit(visitKind)
 		}
 		switch (visitKind) {
 			case 'fallback':
@@ -179,5 +200,9 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 
 	if (leaving) return null
 
-	return <FileSyncStoreContext.Provider value={store}>{children}</FileSyncStoreContext.Provider>
+	return (
+		<FileLoadContext.Provider value={fileLoad}>
+			<FileSyncStoreContext.Provider value={store}>{children}</FileSyncStoreContext.Provider>
+		</FileLoadContext.Provider>
+	)
 }

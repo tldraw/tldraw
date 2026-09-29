@@ -11,7 +11,7 @@ vi.mock('tldraw', () => {
 function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 	return {
 		rum_enabled: { enabled: false },
-		first_load_rum: { enabled: false },
+		load_rum: { enabled: false },
 		mcp_server_access: { enabled: false },
 		version_chain: { enabled: false },
 		...overrides,
@@ -81,11 +81,11 @@ describe('feature flags', () => {
 		const mod = await load(() => mockFetchResponse(makeFlags(), false))
 		expect(mod.wasAuthenticated()).toBe(false)
 
-		mockFetchResponse(makeFlags({ first_load_rum: { enabled: true } }), true)
+		mockFetchResponse(makeFlags({ load_rum: { enabled: true } }), true)
 		const [a, b] = await Promise.all([mod.fetchFeatureFlags(), mod.fetchFeatureFlags()])
 
 		expect(a).toBe(b)
-		expect(a.first_load_rum.enabled).toBe(true)
+		expect(a.load_rum.enabled).toBe(true)
 		expect(mockFetch).toHaveBeenCalledTimes(2)
 		expect(mod.wasAuthenticated()).toBe(true)
 		expect(await mod.getFeatureFlags()).toBe(a)
