@@ -541,6 +541,15 @@ describe('getAllFeatureFlagValues', () => {
 		expect(flags.rum_enabled.description).toBeTruthy()
 	})
 
+	it('reads KV, not the isolate cache', async () => {
+		const env = makeEnv({ rum_enabled: JSON.stringify({ enabled: false, percentage: 10 }) })
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+		env.FEATURE_FLAGS.get = vi.fn(async () => JSON.stringify({ enabled: true, percentage: 50 }))
+
+		const flags = await getAllFeatureFlagValues(env as any)
+		expect(flags.rum_enabled).toMatchObject({ enabled: true, percentage: 50 })
+	})
+
 	it('returns all flags even when KV is empty', async () => {
 		const env = makeEnv()
 		const flags = await getAllFeatureFlagValues(env as any)
