@@ -73,8 +73,8 @@ export const MCP_SCOPES = ['openid', 'profile', 'email', 'offline_access'] as co
  * This server's own identifier: what RFC 9728 metadata advertises as the resource, and what the
  * `WWW-Authenticate` challenge points a client at.
  *
- * Also the `aud` an incoming token must carry, where the audience check is on — see
- * `checkMcpTokenAudience` in getAuth.ts.
+ * Not a test applied to incoming tokens, despite RFC 8707 intending exactly that — see
+ * `authenticateMcpRequest` for why there is no audience check and what stands in for one.
  *
  * Deployments set `MCP_SERVER_URL` explicitly rather than letting this be derived from the request,
  * because the derivation reads the `Host` header: a request carrying a forged one would otherwise
