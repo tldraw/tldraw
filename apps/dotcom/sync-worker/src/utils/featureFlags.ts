@@ -164,8 +164,9 @@ export function evaluateFlagForUser(
  * granted pays nothing for it — and the only requests that take the extra read are ones that were
  * about to be refused anyway.
  *
- * Read from our own `user` row rather than Clerk: the address is already replicated here, and a
- * Clerk round trip on every refused request is a worse thing to add to an auth path.
+ * Read from our own `user` row rather than Clerk, so an account that has one costs a single SELECT.
+ * An account without one, signed up on the consent screen but never opened tldraw.com, has its rows
+ * created here: a Clerk lookup and three inserts, once per account rather than per request.
  */
 export async function canUseMcpServer(env: Environment, userId: string): Promise<boolean> {
 	if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId)) return true
