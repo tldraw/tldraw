@@ -1,14 +1,7 @@
 import { DB, MAX_NUMBER_OF_FILES } from '@tldraw/dotcom-shared'
-import {
-	CompiledQuery,
-	DatabaseConnection,
-	Kysely,
-	PostgresAdapter,
-	PostgresIntrospector,
-	PostgresQueryCompiler,
-	QueryResult,
-} from 'kysely'
+import { Kysely } from 'kysely'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createFakeKysely } from '../../test/fakeKysely'
 import { Environment } from '../../types'
 
 vi.mock('../../postgres', () => ({ createPostgresConnectionPool: vi.fn() }))
@@ -51,46 +44,11 @@ const { createBoardForUser } = await import('./createBoard')
 
 const env = { BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: 'postgres://test' } as Environment
 
-// A real Kysely on a driver that records the SQL and hands back queued result sets in order — the
-// same harness searchBoards.test.ts uses. The reads are the workspaces, the group row lock, then the
-// count. Transaction boundaries are recorded as queries too, so a test can see what ran inside one.
+// The reads are the workspaces, the group row lock, then the count.
 function mockPool(resultSets: unknown[][]) {
-	const queries: CompiledQuery[] = []
-	const queued = [...resultSets]
-	const destroy = vi.fn(async () => {})
-	const connection: DatabaseConnection = {
-		async executeQuery<R>(compiled: CompiledQuery<unknown>): Promise<QueryResult<R>> {
-			queries.push(compiled)
-			return { rows: (queued.shift() ?? []) as R[] }
-		},
-		async *streamQuery() {},
-	}
-	const db = new Kysely<DB>({
-		dialect: {
-			createAdapter: () => new PostgresAdapter(),
-			createIntrospector: (instance) => new PostgresIntrospector(instance),
-			createQueryCompiler: () => new PostgresQueryCompiler(),
-			createDriver: () => ({
-				async init() {},
-				async acquireConnection() {
-					return connection
-				},
-				async beginTransaction() {
-					queries.push(CompiledQuery.raw('begin'))
-				},
-				async commitTransaction() {
-					queries.push(CompiledQuery.raw('commit'))
-				},
-				async rollbackTransaction() {
-					queries.push(CompiledQuery.raw('rollback'))
-				},
-				async releaseConnection() {},
-				destroy,
-			}),
-		},
-	})
-	vi.mocked(createPostgresConnectionPool).mockReturnValue(db)
-	return { queries, destroy }
+	const fake = createFakeKysely(resultSets)
+	vi.mocked(createPostgresConnectionPool).mockReturnValue(fake.db)
+	return fake
 }
 
 // Real-length ids: the mutator refuses anything outside 16–32 characters.

@@ -3,11 +3,13 @@ import {
 	createFirstLoadTracker,
 	FIRST_LOAD_LOG_HEADER,
 	initServerTiming,
-	shouldReportFirstLoad,
+	reportFirstLoad,
+	serverTotalMs,
 	summarizeNavigation,
 	summarizeResources,
 	type FirstLoadDeps,
 } from './firstLoad'
+import type { LoadServerTimings } from './loadTracker'
 
 function makeDeps(overrides: Partial<FirstLoadDeps> = {}) {
 	let t = 0
@@ -100,6 +102,11 @@ describe('createFirstLoadTracker', () => {
 		expect(createFirstLoadTracker(deps).buildReport().route_kind).toBe('root-redirect')
 	})
 
+	it('classifies a load that started on a file history page as other', () => {
+		const { deps } = makeDeps({ initialPath: '/f/abc/history' })
+		expect(createFirstLoadTracker(deps).buildReport().route_kind).toBe('other')
+	})
+
 	it('reports only once per page load', () => {
 		const { deps } = makeDeps()
 		const tracker = createFirstLoadTracker(deps)
@@ -136,31 +143,50 @@ describe('createFirstLoadTracker', () => {
 })
 
 describe('server timings', () => {
-	it('folds the sync server echo into the report as srv_ fields', () => {
+	it('folds the sync server echo, step marks included, into the report as srv_ fields', () => {
 		const { deps } = makeDeps()
 		const tracker = createFirstLoadTracker(deps)
 		tracker.setServerTimings({
 			type: 'first_load_server',
 			loadId: tracker.loadId,
 			cold: true,
-			auth_ms: 12,
-			file_record_ms: 170,
-			get_room_ms: 540,
-			total_ms: 730,
+			edge_colo: 'FRA',
+			pg_via: 'hyperdrive',
 			boot_r2_ms: 80,
 			boot_comments_ms: 510,
-			boot_total_ms: 530,
+			d_auth: 12,
+			t_auth: 12,
+			d_boot: 530,
+			t_boot: 542,
+			d_handshake: 90,
+			t_handshake: 632,
 		})
 		expect(tracker.buildReport()).toMatchObject({
 			srv_cold: true,
-			srv_auth_ms: 12,
-			srv_file_record_ms: 170,
-			srv_get_room_ms: 540,
-			srv_total_ms: 730,
+			srv_edge_colo: 'FRA',
+			srv_pg_via: 'hyperdrive',
 			srv_boot_r2_ms: 80,
-			srv_boot_comments_ms: 510,
-			srv_boot_total_ms: 530,
+			srv_d_auth: 12,
+			srv_t_boot: 542,
+			srv_d_handshake: 90,
+			srv_t_handshake: 632,
 		})
+	})
+
+	it('takes the server total from the latest step', () => {
+		expect(
+			serverTotalMs({
+				type: 'first_load_server',
+				loadId: 'x'.repeat(21),
+				cold: false,
+				t_auth: 12,
+				t_handshake: 632,
+				d_handshake: 90,
+			})
+		).toBe(632)
+		expect(
+			serverTotalMs({ type: 'first_load_server', loadId: 'x'.repeat(21), cold: false })
+		).toBeUndefined()
 	})
 
 	it('keeps the first echo when a reconnect sends a second one', () => {
@@ -170,27 +196,12 @@ describe('server timings', () => {
 			type: 'first_load_server' as const,
 			loadId: tracker.loadId,
 			cold,
-			auth_ms: 1,
-			get_room_ms: 1,
-			total_ms: 1,
+			d_auth: 1,
+			t_auth: 1,
 		})
 		tracker.setServerTimings(echo(true))
 		tracker.setServerTimings(echo(false))
 		expect(tracker.buildReport().srv_cold).toBe(true)
-	})
-
-	it('ignores an echo for a different load', () => {
-		const { deps } = makeDeps()
-		const tracker = createFirstLoadTracker(deps)
-		tracker.setServerTimings({
-			type: 'first_load_server',
-			loadId: 'someone-elses-load',
-			cold: false,
-			auth_ms: 1,
-			get_room_ms: 1,
-			total_ms: 1,
-		})
-		expect(tracker.buildReport()).not.toHaveProperty('srv_total_ms')
 	})
 
 	it('resolves the wait as soon as the echo lands, or at the deadline without it', async () => {
@@ -204,9 +215,8 @@ describe('server timings', () => {
 				type: 'first_load_server',
 				loadId: tracker.loadId,
 				cold: false,
-				auth_ms: 1,
-				get_room_ms: 1,
-				total_ms: 1,
+				d_auth: 1,
+				t_auth: 1,
 			})
 			await vi.advanceTimersByTimeAsync(0)
 			expect(early).toHaveBeenCalledWith(true)
@@ -232,25 +242,6 @@ describe('server timings', () => {
 		] as unknown as PerformanceResourceTiming[]
 		expect(initServerTiming(entries)).toEqual({ srv_init_ms: 187, srv_init_outcome: 'existing' })
 		expect(initServerTiming([])).toEqual({})
-	})
-})
-
-describe('shouldReportFirstLoad', () => {
-	it('reports for tldraw.com accounts regardless of the flag', () => {
-		expect(shouldReportFirstLoad({ email: 'someone@tldraw.com', flagEnabled: false })).toBe(true)
-	})
-	it('reports for other accounts only when the flag is on for them', () => {
-		expect(shouldReportFirstLoad({ email: 'someone@example.com', flagEnabled: false })).toBe(false)
-		expect(shouldReportFirstLoad({ email: 'someone@example.com', flagEnabled: true })).toBe(true)
-	})
-	it('does not report anonymous loads unless the flag says so', () => {
-		expect(shouldReportFirstLoad({ email: null, flagEnabled: false })).toBe(false)
-		expect(shouldReportFirstLoad({ email: undefined, flagEnabled: false })).toBe(false)
-	})
-	it('is not fooled by a tldraw.com substring elsewhere in the address', () => {
-		expect(shouldReportFirstLoad({ email: 'tldraw.com@example.com', flagEnabled: false })).toBe(
-			false
-		)
 	})
 })
 
@@ -381,5 +372,43 @@ describe('summarizeNavigation', () => {
 				})
 			)
 		).toMatchObject({ nav_dns_ms: 0, nav_connect_ms: 0, nav_server_ms: 0 })
+	})
+})
+
+describe('reportFirstLoad', () => {
+	it("waits for the adopted file load's echo and carries its ids and boot fields", async () => {
+		const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
+		let echo: LoadServerTimings | null = null
+		let wake: (gotEcho: boolean) => void = () => {}
+		const trackEvent = vi.fn()
+		reportFirstLoad({
+			email: 'someone@tldraw.com',
+			flagEnabled: false,
+			trackEvent,
+			fileLoad: {
+				loadId: 'file-load-id',
+				connectId: () => 'connect-id',
+				bootFields: () => ({ abandoned_opens: 1, cached_visit: 'redirect' }),
+				whenServerTimings: () => new Promise((resolve) => (wake = resolve)),
+				getServerTimings: () => echo,
+			},
+		})
+		await flush()
+		expect(trackEvent).not.toHaveBeenCalled()
+		echo = { type: 'first_load_server', loadId: 'connect-id', cold: true, d_auth: 5, t_auth: 5 }
+		wake(true)
+		await flush()
+		expect(trackEvent).toHaveBeenCalledWith(
+			'first_load',
+			expect.objectContaining({
+				file_load_id: 'file-load-id',
+				connect_id: 'connect-id',
+				abandoned_opens: 1,
+				cached_visit: 'redirect',
+				srv_cold: true,
+				srv_t_auth: 5,
+				srv_echo: true,
+			})
+		)
 	})
 })
