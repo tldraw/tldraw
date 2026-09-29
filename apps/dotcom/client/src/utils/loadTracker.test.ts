@@ -15,7 +15,6 @@ function setup(t0: number) {
 	const tracker = createLoadTracker(deps, {
 		steps: STEPS,
 		t0,
-		loadId: 'V1StGXR8_Z5jdHi6B-myT',
 		logPrefix: 'file-load',
 		logHeader: 'header',
 		markPrefix: 'tla-file',
@@ -31,7 +30,7 @@ describe('createLoadTracker', () => {
 		advance(60)
 		tracker.mark('c')
 		expect(tracker.buildReport()).toMatchObject({
-			load_id: 'V1StGXR8_Z5jdHi6B-myT',
+			load_id: tracker.loadId,
 			t_a: 40,
 			t_c: 100,
 			d_c: 60,

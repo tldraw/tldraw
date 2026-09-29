@@ -27,8 +27,6 @@ export interface LoadReport<Step extends string> {
 
 export interface LoadTrackerOptions<Step extends string> {
 	steps: readonly Step[]
-	/** Default: uniqueId(21). */
-	loadId?: string
 	/** The origin marks and reports are relative to. Default: 0 (navigation start). */
 	t0?: number
 	logPrefix: string
@@ -160,7 +158,7 @@ export function createLoadTracker<Step extends string>(
 	deps: LoadTrackerDeps<Step>,
 	opts: LoadTrackerOptions<Step>
 ) {
-	const loadId = opts.loadId ?? uniqueId(21)
+	const loadId = uniqueId(21)
 	const t0 = opts.t0 ?? 0
 	const marks: Partial<Record<Step, number>> = {}
 	let lastT = 0
