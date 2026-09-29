@@ -56,7 +56,7 @@ export class Sidebar {
 	async createNewDocument(name?: string) {
 		const numDocuments = await this.getNumberOfFiles()
 		const previousUrl = this.page.url()
-		// the create button has a 1000ms throttle that swallows clicks, armed once the navigation lands
+		// the create button swallows clicks for 1s after a create; lastCreatedAt is set later, so this over-waits
 		const throttleLeft = this.lastCreatedAt + 1100 - Date.now()
 		if (throttleLeft > 0) await this.page.waitForTimeout(throttleLeft)
 		await this.createFileButton.click()

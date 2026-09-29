@@ -9,7 +9,7 @@ import { expect, selectTlaMenuOption, test } from '../fixtures/scenario-test'
 test.describe.configure({ mode: 'parallel', timeout: 60_000 })
 
 test.describe('live sharing scenarios', () => {
-	test('edit-link visitors see presence and live permission changes', async ({
+	test('edit-link visitors see presence, live permission changes, and edit the file', async ({
 		owner,
 		visitor,
 		scenario,
@@ -25,6 +25,11 @@ test.describe('live sharing scenarios', () => {
 		await scenario.setSharedLinkType(owner, 'edit')
 		await expect(visitor.page.getByTestId('tools.draw')).toBeVisible({ timeout: 10000 })
 
+		await scenario.createRectangle(visitor)
+		await owner.editor.expectShapesCount(1)
+
+		// Each link type flip reconnects the visitor, so confirm presence is back before it leaves.
+		await owner.expectCollaboratorCount(1)
 		await visitor.close()
 		await owner.waitForSessionClosed()
 	})

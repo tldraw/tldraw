@@ -131,7 +131,7 @@ test.describe('UI scenarios', () => {
 
 		await owner.sidebar.switchToHomeWorkspace()
 		// Moving the open file follows it into the workspace. Home reopens its last visited file, and a
-		// file left within 1s of opening isn't recorded as visited, so open it explicitly.
+		// new file only counts as visited once its room syncs, so open it explicitly.
 		await owner.sidebar.getFileByName(fileName).click()
 		await owner.sidebar.expectFileActive(fileName)
 		await owner.sidebar.moveFileToWorkspace(fileName, workspaceName)

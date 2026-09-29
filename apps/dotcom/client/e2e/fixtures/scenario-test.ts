@@ -380,12 +380,6 @@ class DotcomScenario {
 		return url
 	}
 
-	async createPublishedFile(actor: DotcomActor, fileName = this.name('published file')) {
-		const file = await this.createPersonalFile(actor, fileName)
-		const publishedUrl = await this.publishFile(actor)
-		return { ...file, publishedUrl }
-	}
-
 	async importFileFromUrl(actor: DotcomActor, url?: string) {
 		await actor.importHelper.mockUrl(url)
 		await actor.importHelper.navigate(url)
@@ -538,7 +532,12 @@ class DotcomScenario {
 		}
 
 		if (!opts.member.email) throw new Error('Workspace member actor is not signed in')
-		const memberUserId = await this.database.getUserIdByEmail(opts.member.email)
+		let memberUserId = await this.database.getUserIdByEmail(opts.member.email)
+		if (!memberUserId) {
+			// Stored sign-ins can outlive a wiped database; booting the app recreates the user row.
+			await opts.member.goto()
+			memberUserId = await this.database.getUserIdByEmail(opts.member.email)
+		}
 		if (!memberUserId) throw new Error(`Member user not found: ${opts.member.email}`)
 
 		await opts.owner.editor.ensureSidebarOpen()

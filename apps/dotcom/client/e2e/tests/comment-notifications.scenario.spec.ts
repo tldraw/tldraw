@@ -181,42 +181,55 @@ test.describe('comment notifications', () => {
 		const file = await scenario.createSharedFile(owner, 'edit', scenario.name('home board'))
 		await member.goto(file.sharedUrl)
 		const text = scenario.name('home board comment')
-		const posted = await postComment(member, text)
+		const posted = await test.step('a comment on your home board shows up', async () => {
+			const comment = await postComment(member, text)
+			await expectUnreadBadge(owner, 1)
+			await expectNotification(owner, text, /commented on your board/)
+			await closeNotifications(owner)
 
-		await expectUnreadBadge(owner, 1)
-		await expectNotification(owner, text, /commented on your board/)
-		await closeNotifications(owner)
-
-		// the badge is there on a cold load too, before any feed change arrives
-		await owner.goto(file.url)
-		await expectUnreadBadge(owner, 1)
+			// the badge is there on a cold load too, before any feed change arrives
+			await owner.goto(file.url)
+			await expectUnreadBadge(owner, 1)
+			return comment
+		})
 
 		const mention = scenario.name('mention')
-		const mentioned = await postComment(owner, mention, { mentionUserId: await userIdOf(member) })
-		await expectNotification(member, mention, /mentioned you/)
-		await closeNotifications(member)
+		const mentioned = await test.step('a mention reaches the mentioned user', async () => {
+			const comment = await postComment(owner, mention, {
+				mentionUserId: await userIdOf(member),
+			})
+			await expectNotification(member, mention, /mentioned you/)
+			await closeNotifications(member)
+			return comment
+		})
 
-		await waitForRecord(member, mentioned.commentId)
-		await react(member, mentioned, '👍')
-		const reaction = await expectNotification(owner, mention, /reacted to your comment/)
-		await expect(reaction).toContainText('👍')
-		await closeNotifications(owner)
+		await test.step('a reaction to your comment shows up', async () => {
+			await waitForRecord(member, mentioned.commentId)
+			await react(member, mentioned, '👍')
+			const reaction = await expectNotification(owner, mention, /reacted to your comment/)
+			await expect(reaction).toContainText('👍')
+			await closeNotifications(owner)
+		})
 
-		await softDelete(member, posted.commentId)
-		await expectNoNotification(owner, text)
-		await closeNotifications(owner)
+		await test.step('a deleted comment leaves the feed', async () => {
+			await softDelete(member, posted.commentId)
+			await expectNoNotification(owner, text)
+			await closeNotifications(owner)
+		})
 
-		const doomed = scenario.name('doomed comment')
-		await postComment(member, doomed)
-		await expectNotification(owner, doomed, /commented on your board/)
-		await closeNotifications(owner)
+		await test.step('a soft-deleted board takes its notifications with it', async () => {
+			const doomed = scenario.name('doomed comment')
+			await postComment(member, doomed)
+			await expectNotification(owner, doomed, /commented on your board/)
+			await closeNotifications(owner)
 
-		// deleting the file soft-deletes it and the trigger removes its file_state/group_file rows
-		await owner.page.evaluate(
-			(fileId) => (window as any).app.deleteOrForgetFile(fileId),
-			posted.fileId
-		)
-		await expectNoNotification(owner, doomed)
+			// deleting the file soft-deletes it and the trigger removes its file_state/group_file rows
+			await owner.page.evaluate(
+				(fileId) => (window as any).app.deleteOrForgetFile(fileId),
+				posted.fileId
+			)
+			await expectNoNotification(owner, doomed)
+		})
 	})
 
 	test('replies in a workspace thread notify both sides, until access is lost', async ({
