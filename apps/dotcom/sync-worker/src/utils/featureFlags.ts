@@ -186,8 +186,12 @@ async function hasTldrawEmail(env: Environment, userId: string): Promise<boolean
 		// domain is the same domain.
 		return result.email.toLowerCase().endsWith('@tldraw.com')
 	} catch (e) {
-		// An access check that fails open on a database blip would be the wrong direction entirely.
-		console.error('Failed to read user email for MCP access:', e)
+		// An access check that fails open on a database or Clerk blip would be the wrong direction
+		// entirely.
+		console.error(
+			'MCP access check failed to ensure the user (Postgres, Clerk or rate limiter):',
+			e
+		)
 		return false
 	} finally {
 		await db.destroy()
