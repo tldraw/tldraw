@@ -140,6 +140,19 @@ describe('feature flags', () => {
 		expect(mockFetch).toHaveBeenCalledTimes(2)
 	})
 
+	it('keeps the last good flags when a refetch fails', async () => {
+		const mod = await load(() =>
+			mockFetchResponse(makeFlags({ rum_enabled: { enabled: true } }), false)
+		)
+
+		mockFetch.mockRejectedValueOnce(new Error('network down'))
+		const flags = await mod.fetchFeatureFlags()
+
+		expect(flags.rum_enabled.enabled).toBe(true)
+		expect(mod.hasResolvedFlagsOnce()).toBe(true)
+		expect(mod.wasAuthenticated()).toBe(false)
+	})
+
 	it('falls back to defaults on a non-ok response', async () => {
 		const mod = await load(() => mockFetch.mockResolvedValueOnce({ ok: false, status: 500 }))
 

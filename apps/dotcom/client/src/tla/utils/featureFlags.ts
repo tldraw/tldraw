@@ -41,8 +41,8 @@ function loadFlags(): Promise<FeatureFlags> {
 			lastLoadFailed = false
 		} catch (err) {
 			console.error('[FeatureFlags] fetch failed:', err)
+			// Keeps the last good flags, which are the defaults until a fetch succeeds.
 			_wasAuthenticated = false
-			currentFlags = { ...DEFAULT_FLAGS }
 			lastLoadFailed = true
 			scheduleRetry()
 		}
