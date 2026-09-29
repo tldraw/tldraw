@@ -30,13 +30,13 @@ export type TLAppUiEventSource =
 export interface TLAppUiEventMap {
 	'create-file': null
 	'create-workspace': null
-	'rename-workspace': null
-	'delete-workspace': null
-	'leave-workspace': null
-	'remove-workspace-member': null
-	'set-workspace-member-role': { role: Role }
-	'set-workspace-invite-link-enabled': { enabled: boolean }
-	'regenerate-workspace-invite-secret': null
+	'rename-workspace': { workspaceId: string }
+	'delete-workspace': { workspaceId: string }
+	'leave-workspace': { workspaceId: string }
+	'remove-workspace-member': { workspaceId: string }
+	'set-workspace-member-role': { workspaceId: string; role: Role }
+	'set-workspace-invite-link-enabled': { workspaceId: string; enabled: boolean }
+	'regenerate-workspace-invite-secret': { workspaceId: string }
 	'delete-file': null
 	'rename-file': { name: string }
 	'duplicate-file': null
@@ -76,7 +76,7 @@ export interface TLAppUiEventMap {
 	'create-user': null
 	'room-size-warning-dialog-shown': null
 	'room-size-limit-dialog-shown': null
-	'accept-workspace-invite': null
+	'accept-workspace-invite': { workspaceId: string }
 	'set-color-theme': { theme: string }
 	'post-comment': { operation: 'new-thread' | 'reply' }
 	'edit-comment': null

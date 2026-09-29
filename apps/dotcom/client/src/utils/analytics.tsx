@@ -3,11 +3,17 @@ import posthog, { PostHogConfig, Properties } from 'posthog-js'
 import 'posthog-js/dist/web-vitals'
 import { useEffect } from 'react'
 import ReactGA from 'react-ga4'
-import { useLocation } from 'react-router-dom'
+import { matchPath, useLocation } from 'react-router-dom'
 import { atom, getFromLocalStorage, react, setInLocalStorage, useValue, warnOnce } from 'tldraw'
+import { ROUTES } from '../routeDefs'
 import { useApp } from '../tla/hooks/useAppState'
 import { useSignUpTracking } from '../tla/hooks/useSignUpTracking'
 import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/FeatureFlagPoller'
+import {
+	applyWorkspaceIdProperty,
+	getActiveWorkspaceId,
+	setActiveWorkspaceIdForAnalytics,
+} from './analyticsWorkspace'
 
 // Local storage key for cookie consent
 export const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
@@ -173,6 +179,11 @@ function configurePosthog(options: AnalyticsOptions) {
 			if (flagProps) {
 				Object.assign(props, flagProps)
 			}
+
+			// Every event carries the workspace it happened in (see analyticsWorkspace.ts). Done
+			// here rather than at call sites so buffered, page-view, and server-originated events
+			// get it too.
+			applyWorkspaceIdProperty(props)
 
 			payload.properties = filterProperties(props)
 
@@ -410,8 +421,29 @@ export function SignedInAnalytics() {
 
 	useTrackPageViews()
 	useSignUpTracking()
+	useSyncActiveWorkspaceForAnalytics()
 
 	return null
+}
+
+/**
+ * Keep the analytics module's notion of the active workspace in step with the app's. This
+ * component sits above the file routes, so the file slug comes from the location rather than
+ * useParams; a match on the file prefix also covers the history routes under it.
+ */
+function useSyncActiveWorkspaceForAnalytics() {
+	const app = useApp()
+	const { pathname } = useLocation()
+	const fileSlug = matchPath({ path: ROUTES.tlaFile, end: false }, pathname)?.params.fileSlug
+	const activeWorkspaceId = useValue(
+		'active workspace for analytics',
+		() => getActiveWorkspaceId(app, fileSlug),
+		[app, fileSlug]
+	)
+	useEffect(() => {
+		setActiveWorkspaceIdForAnalytics(activeWorkspaceId)
+		return () => setActiveWorkspaceIdForAnalytics(null)
+	}, [activeWorkspaceId])
 }
 
 function useTrackPageViews() {
