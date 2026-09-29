@@ -55,6 +55,13 @@ export function createFileLoads(deps: FileLoadsDeps) {
 	let current: ReturnType<typeof open> | null = null
 	let opened = 0
 
+	// An abandoned first open (a cached-file redirect or fallback) must not use up `first`, or the
+	// file the boot actually lands on reports as a switch and first rows lose the slow boots.
+	function abandon(load: ReturnType<typeof open>) {
+		load.supersede()
+		if (load.kind === 'first') opened = 0
+	}
+
 	function open(slug: string) {
 		const kind: FileLoadKind = opened === 0 ? 'first' : 'switch'
 		opened++
@@ -118,8 +125,7 @@ export function createFileLoads(deps: FileLoadsDeps) {
 			// Exact match: /f/:slug/history is a separate page, so going there leaves the file too.
 			if (!/^\/f\/[^/]+\/?$/.test(pathname)) {
 				// Leaving the file: a later return must not resume this load with its old t0 and marks.
-				if (current && current.tracker.getMarks()['board-visible'] === undefined)
-					current.supersede()
+				if (current && current.tracker.getMarks()['board-visible'] === undefined) abandon(current)
 				current = null
 				navigation = null
 				return
@@ -138,7 +144,7 @@ export function createFileLoads(deps: FileLoadsDeps) {
 		begin(slug: string) {
 			const unfinished = current && current.tracker.getMarks()['board-visible'] === undefined
 			if (current?.slug === slug && unfinished && !current.isSuperseded()) return current
-			if (current && unfinished) current.supersede()
+			if (current && unfinished) abandon(current)
 			current = open(slug)
 			if (printsLoad(current)) current.tracker.enableLiveLog()
 			return current
