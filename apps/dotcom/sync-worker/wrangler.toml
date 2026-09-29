@@ -134,7 +134,8 @@ MULTIPLAYER_SERVER = "http://localhost:3000"
 ZERO_SERVER = "http://localhost:4848/"
 MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
 # The MCP server's public URL, and the resource identifier it advertises in protected resource
-# metadata and in the WWW-Authenticate challenge. Points at the client dev server because that is
+# metadata and in the WWW-Authenticate challenge. Not compared against an incoming token: Clerk stamps
+# no `aud`, so there is no audience binding to check. Points at the client dev server because that is
 # what proxies /api and /.well-known through to this worker.
 MCP_SERVER_URL = "http://localhost:3000/api/app/mcp"
 # Kill switch for the MCP screenshot server (POST /app/mcp). Read per request, so setting it to
