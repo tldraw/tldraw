@@ -86,13 +86,7 @@ const FIRST_LOAD_FIELD_INFO: Record<string, string> = {
 export const FIRST_LOAD_LOG_HEADER =
 	'[first-load] page load timings, printed because the logLoads debug flag is on'
 
-/**
- * The debug flag that prints the load to the console; sending to PostHog is gated separately
- * (shouldReportLoad). The flag itself is created in TlaEditor: importing `tldraw` here would
- * pull the SDK into the entry chunk. first_load's own live-log is decided once at module load, so a
- * toggle applies from the next full page load; shouldPrintLoads() reads it fresh, so a toggle also
- * applies from the next file open in this tab.
- */
+// Read once, so a toggle applies to first_load from the next page load; file_load reads it per open.
 const printLoads = getFromSessionStorage(`tldraw_debug:${LOADS_DEBUG_FLAG}`) === 'true'
 
 export type FirstLoadDeps = LoadTrackerDeps<FirstLoadStep> & { initialPath: string }

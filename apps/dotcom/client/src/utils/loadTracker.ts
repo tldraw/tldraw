@@ -45,6 +45,10 @@ export function serverTotalMs(msg: LoadServerTimings): number | undefined {
 	return ts.length ? Math.max(...ts) : undefined
 }
 
+/**
+ * Prints loads to the console; sending is gated separately (shouldReportLoad). The flag is created
+ * in TlaEditor: importing `tldraw` here would pull the SDK into the entry chunk.
+ */
 export const LOADS_DEBUG_FLAG = 'logLoads'
 export function shouldPrintLoads() {
 	return getFromSessionStorage(`tldraw_debug:${LOADS_DEBUG_FLAG}`) === 'true'
