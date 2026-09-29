@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ensureUser } from '../routes/tla/initUser'
 import {
 	canUseMcpServer,
 	evaluateFlagForUser,
@@ -14,22 +15,13 @@ vi.mock('./tla/getAuth', () => ({
 	getAuth: vi.fn(),
 }))
 
-// canUseMcpServer reads the account's email from Postgres when the flag does not cover them.
-const userEmail = vi.fn<() => string | undefined>(() => undefined)
+// canUseMcpServer takes the account's email from ensureUser when the flag does not cover them.
+vi.mock('../routes/tla/initUser', () => ({
+	ensureUser: vi.fn(async () => ({ outcome: 'no_clerk_user' })),
+}))
+
 vi.mock('../postgres', () => ({
-	createPostgresConnectionPool: () => ({
-		selectFrom: () => ({
-			select: () => ({
-				where: () => ({
-					executeTakeFirst: async () => {
-						const email = userEmail()
-						return email === undefined ? undefined : { email }
-					},
-				}),
-			}),
-		}),
-		destroy: async () => {},
-	}),
+	createPostgresConnectionPool: () => ({ destroy: async () => {} }),
 }))
 
 function makeEnv(
@@ -506,34 +498,47 @@ describe('allowEveryone', () => {
 })
 
 describe('canUseMcpServer', () => {
-	beforeEach(() => userEmail.mockReturnValue(undefined))
+	const withEmail = (email: string) =>
+		vi.mocked(ensureUser).mockResolvedValueOnce({ outcome: 'existing', email })
+
+	beforeEach(() => {
+		vi.mocked(ensureUser).mockClear()
+	})
 
 	it('admits a verified @tldraw.com account the flag does not name', async () => {
-		userEmail.mockReturnValue('someone@tldraw.com')
+		withEmail('someone@tldraw.com')
 		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
 	})
 
 	it('is case-insensitive about the domain', async () => {
-		userEmail.mockReturnValue('Someone@TLDRAW.com')
+		withEmail('Someone@TLDRAW.com')
 		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
 	})
 
 	// The obvious near-miss: a domain that merely ends the same way is a different company.
 	it('refuses a lookalike domain', async () => {
-		userEmail.mockReturnValue('someone@nottldraw.com')
+		withEmail('someone@nottldraw.com')
 		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
 	})
 
 	it('refuses everyone else', async () => {
-		userEmail.mockReturnValue('someone@example.com')
+		withEmail('someone@example.com')
 		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
 	})
 
-	// A token whose account no longer exists is refused, not turned into a 500.
-	it('refuses when the account has no row', async () => {
-		userEmail.mockReturnValue(undefined)
-		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
+	it('admits a @tldraw.com account whose rows it just created', async () => {
+		vi.mocked(ensureUser).mockResolvedValueOnce({ outcome: 'created', email: 'someone@tldraw.com' })
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
 	})
+
+	// A token whose account no longer exists is refused, not turned into a 500.
+	it.each(['no_clerk_user', 'no_email', 'rate_limited'] as const)(
+		'refuses when ensureUser returns %s',
+		async (outcome) => {
+			vi.mocked(ensureUser).mockResolvedValueOnce({ outcome })
+			expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
+		}
+	)
 
 	// The flag still comes first, and it is what keeps the database read off the granted path.
 	it('admits an allowlisted account without reading their email', async () => {
@@ -544,6 +549,6 @@ describe('canUseMcpServer', () => {
 			}),
 		})
 		expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
-		expect(userEmail).not.toHaveBeenCalled()
+		expect(ensureUser).not.toHaveBeenCalled()
 	})
 })

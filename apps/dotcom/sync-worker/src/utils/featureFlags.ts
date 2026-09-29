@@ -8,6 +8,7 @@ import {
 import { exhaustiveSwitchError } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { createPostgresConnectionPool } from '../postgres'
+import { ensureUser } from '../routes/tla/initUser'
 import { Environment } from '../types'
 import { getAuth } from './tla/getAuth'
 
@@ -163,8 +164,9 @@ export function evaluateFlagForUser(
  * granted pays nothing for it — and the only requests that take the extra read are ones that were
  * about to be refused anyway.
  *
- * Read from our own `user` row rather than Clerk: the address is already replicated here, and a
- * Clerk round trip on every refused request is a worse thing to add to an auth path.
+ * Read from our own `user` row rather than Clerk, so an account that has one costs a single SELECT.
+ * An account without one, signed up on the consent screen but never opened tldraw.com, has its rows
+ * created here: a Clerk lookup and three inserts, once per account rather than per request.
  */
 export async function canUseMcpServer(env: Environment, userId: string): Promise<boolean> {
 	if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId)) return true
@@ -174,18 +176,22 @@ export async function canUseMcpServer(env: Environment, userId: string): Promise
 async function hasTldrawEmail(env: Environment, userId: string): Promise<boolean> {
 	const db = createPostgresConnectionPool(env, 'sync-worker/hasTldrawEmail')
 	try {
-		const user = await db
-			.selectFrom('user')
-			.select('email')
-			.where('id', '=', userId)
-			.executeTakeFirst()
+		// Someone who signed up on the consent screen has a Clerk account but no row until they open
+		// tldraw.com, so create it here rather than refusing them for an email we never stored.
+		// ensureUser does the only read, so a concurrent first request or /init creating the row
+		// first still yields its email rather than a refusal.
+		const result = await ensureUser(env, db, userId)
+		if (!('email' in result)) return false
 		// Lowercased because the column stores whatever the account signed up with, and a capitalised
-		// domain is the same domain. Denies on a missing row rather than throwing: a token whose user
-		// is gone should be refused, not turned into a 500.
-		return user?.email?.toLowerCase().endsWith('@tldraw.com') === true
+		// domain is the same domain.
+		return result.email.toLowerCase().endsWith('@tldraw.com')
 	} catch (e) {
-		// An access check that fails open on a database blip would be the wrong direction entirely.
-		console.error('Failed to read user email for MCP access:', e)
+		// An access check that fails open on a database or Clerk blip would be the wrong direction
+		// entirely.
+		console.error(
+			'MCP access check failed to ensure the user (Postgres, Clerk or rate limiter):',
+			e
+		)
 		return false
 	} finally {
 		await db.destroy()
