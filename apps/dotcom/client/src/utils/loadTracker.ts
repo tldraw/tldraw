@@ -105,8 +105,9 @@ const SERVER_STEP_INFO: Record<ConnectStep, string> = {
 	group_check: 'group role lookup, getRole (Postgres)',
 	boot: 'room boot from empty SQLite: R2 + comments (see srv_boot_*)',
 	get_room: 'rest of get or create the room',
-	handshake:
-		'101 → client sends connect → reply goes out (RTT; the reply build is CPU and reads ~0)',
+	client_connect:
+		'101 → client connect message arrives (RTT plus client main-thread time before ws.onopen)',
+	handshake: 'connect message → reply goes out (the reply build is CPU and reads ~0)',
 }
 
 const SERVER_FIELD_INFO: Record<string, string> = {

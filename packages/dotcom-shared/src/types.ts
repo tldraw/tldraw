@@ -253,6 +253,7 @@ export const CONNECT_STEPS = [
 	'group_check',
 	'boot',
 	'get_room',
+	'client_connect',
 	'handshake',
 ] as const
 export type ConnectStep = (typeof CONNECT_STEPS)[number]
