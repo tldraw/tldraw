@@ -40,7 +40,7 @@ export function connectStart(receivedAt: number | undefined, requestStart: numbe
 	return Math.min(receivedAt ?? requestStart, requestStart)
 }
 
-/** Marks route (and do_init, if this request woke the room) when the worker sent a receivedAt. */
+/** Marks route (and do_init, if the room started while this request was in flight) given a receivedAt. */
 export function markRoute(
 	marks: ConnectMarks,
 	receivedAt: number | undefined,
@@ -48,7 +48,7 @@ export function markRoute(
 	requestStart: number
 ): void {
 	if (receivedAt === undefined) return
-	// The constructor ran for this request only if it ran after the worker received it.
+	// Constructed after the worker received this request, so this request waited on it.
 	if (constructedAt >= receivedAt) {
 		marks.mark('route', constructedAt)
 		marks.mark('do_init', requestStart)

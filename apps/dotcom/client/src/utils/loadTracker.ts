@@ -96,7 +96,8 @@ export function measureOnTrack(track: string) {
 
 const SERVER_STEP_INFO: Record<ConnectStep, string> = {
 	route: 'worker received the socket → room reached (clocks of two machines, approximate)',
-	do_init: 'room woken for this request: constructor → onRequest, incl. the documentInfo read',
+	do_init:
+		'room started while this request was in flight: constructor → onRequest, incl. the documentInfo read',
 	auth: 'verify the Clerk token',
 	file_record: 'file row lookup (Postgres; ~0 when the DO has it cached)',
 	rate_limit: 'rate limiter',
