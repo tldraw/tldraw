@@ -87,7 +87,7 @@ describe('file loads', () => {
 
 	it('times a switch from the navigation that led to it, with a new id', () => {
 		const { loads, advance } = setup()
-		loads.begin('abc').mark('board-visible')
+		loads.begin('abc')
 		advance(10_000)
 		loads.noteNavigation('/f/def')
 		advance(30)
@@ -108,7 +108,7 @@ describe('file loads', () => {
 
 	it('falls back to begin time when no navigation was noted for this file', () => {
 		const { loads, advance } = setup()
-		loads.begin('abc').mark('board-visible')
+		loads.begin('abc')
 		loads.noteNavigation('/f/other')
 		advance(1000)
 		const load = loads.begin('def')
@@ -132,7 +132,6 @@ describe('file loads', () => {
 
 	it('starts fresh when the user left for another page before the board showed and came back', () => {
 		const { loads, advance } = setup()
-		loads.begin('first').mark('board-visible')
 		const abandoned = loads.begin('abc')
 		abandoned.mark('sync-connected')
 		loads.noteNavigation('/')
@@ -150,7 +149,6 @@ describe('file loads', () => {
 
 	it('treats the file history page as leaving the file', () => {
 		const { loads, advance } = setup()
-		loads.begin('first').mark('board-visible')
 		const abandoned = loads.begin('abc')
 		abandoned.mark('sync-connected')
 		loads.noteNavigation('/f/abc/history')
@@ -198,6 +196,7 @@ describe('file loads', () => {
 		const { loads, advance } = setup()
 		advance(1000)
 		const cached = loads.begin('abc')
+		loads.yieldFirst(cached)
 		loads.noteNavigation('/f/def')
 		advance(500)
 		const landed = loads.begin('def')
@@ -209,10 +208,19 @@ describe('file loads', () => {
 
 	it('keeps the first load for the file a cached-file fallback lands on', () => {
 		const { loads } = setup()
-		loads.begin('abc')
+		loads.yieldFirst(loads.begin('abc'))
 		loads.noteNavigation('/')
 		loads.noteNavigation('/f/def')
 		expect(loads.begin('def')).toMatchObject({ kind: 'first', loadId: FIRST_ID })
+	})
+
+	it('does not yield first once the board showed', () => {
+		const { loads } = setup()
+		const first = loads.begin('abc')
+		first.mark('board-visible')
+		loads.yieldFirst(first)
+		expect(first.isSuperseded()).toBe(false)
+		expect(loads.begin('def').kind).toBe('switch')
 	})
 
 	it('supersedes an unfinished load when another file opens', () => {
@@ -232,7 +240,7 @@ describe('file loads', () => {
 
 	it('takes only its own echo, and only the first one', () => {
 		const { loads } = setup()
-		loads.begin('abc').mark('board-visible')
+		loads.begin('abc')
 		const b = loads.begin('def')
 		b.setServerTimings(echo(FIRST_ID, 111))
 		b.setServerTimings(echo(b.loadId, 300))
@@ -263,7 +271,7 @@ describe('file loads', () => {
 
 	it('ignores wasHiddenSinceNavigation for a switch', () => {
 		const { loads } = setup({ wasHiddenSinceNavigation: () => true })
-		loads.begin('abc').mark('board-visible')
+		loads.begin('abc')
 		expect(loads.begin('def').isHidden()).toBe(false)
 	})
 

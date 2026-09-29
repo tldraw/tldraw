@@ -56,13 +56,6 @@ export function createFileLoads(deps: FileLoadsDeps) {
 	let current: ReturnType<typeof open> | null = null
 	let opened = 0
 
-	// An abandoned first open (a cached-file redirect or fallback) must not use up `first`, or the
-	// file the boot actually lands on reports as a switch and first rows lose the slow boots.
-	function abandon(load: ReturnType<typeof open>) {
-		load.supersede()
-		if (load.kind === 'first') opened = 0
-	}
-
 	function open(slug: string, remount: boolean) {
 		const kind: FileLoadKind = remount ? 'remount' : opened === 0 ? 'first' : 'switch'
 		opened++
@@ -127,7 +120,8 @@ export function createFileLoads(deps: FileLoadsDeps) {
 			if (!/^\/f\/[^/]+\/?$/.test(pathname)) {
 				// Leaving before board-visible abandons the open so it never reports; dropping it makes a
 				// return start fresh instead of resuming with the old t0 and marks.
-				if (current && current.tracker.getMarks()['board-visible'] === undefined) abandon(current)
+				if (current && current.tracker.getMarks()['board-visible'] === undefined)
+					current.supersede()
 				current = null
 				navigation = null
 				return
@@ -147,10 +141,21 @@ export function createFileLoads(deps: FileLoadsDeps) {
 			const unfinished = current && current.tracker.getMarks()['board-visible'] === undefined
 			if (current?.slug === slug && unfinished && !current.isSuperseded()) return current
 			const remount = current?.slug === slug && !unfinished
-			if (current && unfinished) abandon(current)
+			if (current && unfinished) current.supersede()
 			current = open(slug, remount)
 			if (printsLoad(current)) current.tracker.enableLiveLog()
 			return current
+		},
+		/**
+		 * A cached-file redirect or fallback is still page boot, so the file it lands on keeps `first`;
+		 * otherwise first rows lose exactly the slow cache-miss boots.
+		 */
+		yieldFirst(load: ReturnType<typeof open>) {
+			if (load !== current || load.kind !== 'first') return
+			if (load.tracker.getMarks()['board-visible'] !== undefined) return
+			load.supersede()
+			current = null
+			opened = 0
 		},
 		current: () => current,
 		onHidden() {

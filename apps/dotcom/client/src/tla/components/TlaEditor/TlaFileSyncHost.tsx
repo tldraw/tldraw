@@ -179,9 +179,11 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		switch (visitKind) {
 			case 'fallback':
 				clearLastVisitedFile()
+				fileLoads.yieldFirst(fileLoad)
 				navigate(routes.tlaRoot(), { replace: true })
 				return
 			case 'redirect':
+				fileLoads.yieldFirst(fileLoad)
 				navigate(routes.tlaFile(redirectFileId!), {
 					replace: true,
 					state: omit(location.state, [VIA_LAST_FILE_CACHE]),
@@ -196,7 +198,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 				)
 				return
 		}
-	}, [visitKind, redirectFileId, location, navigate])
+	}, [visitKind, redirectFileId, location, navigate, fileLoad])
 
 	if (leaving) return null
 
