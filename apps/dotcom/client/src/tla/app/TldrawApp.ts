@@ -462,10 +462,10 @@ export class TldrawApp {
 		// A failed init only matters if the user row never shows up: returning users whose row
 		// already exists should still load through a transient worker error.
 		const initError = res.ok ? undefined : new Error(`Init failed: ${res.status}`)
-		// Zero's query can itself stall, so the deadline must cover it as well as the user row.
+		// Zero's query can itself stall, so the deadline must cover it and every stage after it.
 		// The stage is in the error so Sentry can tell a slow Zero sync from a row that never arrived.
-		let stage: 'zero query' | 'state flush' | 'user record' = 'zero query'
-		const timedOut = promiseWithResolve<never>()
+		let stage: 'zero query' | 'state flush' | 'user record' | 'workspace data' = 'zero query'
+		const failed = promiseWithResolve<never>()
 		let stopWaiting: (() => void) | undefined
 		const initReturnedAt = Date.now()
 		let hiddenMs = 0
@@ -489,7 +489,7 @@ export class TldrawApp {
 					} satisfies PreloadDiagnostics,
 				})
 			} finally {
-				timedOut.reject(error)
+				failed.reject(error)
 			}
 		}
 		// Zero built in a hidden tab waits for visibility before connecting, so a restored or
@@ -519,31 +519,35 @@ export class TldrawApp {
 		else hiddenSince = Date.now()
 		// A hidden tab can sit here indefinitely, so the caller needs a way to settle this and let
 		// create() dispose the half-built app when it gives up on it.
-		const onAbort = () => timedOut.reject(new DOMException('Bootstrap cancelled', 'AbortError'))
+		const onAbort = () => failed.reject(new DOMException('Bootstrap cancelled', 'AbortError'))
 		signal?.addEventListener('abort', onAbort)
 		if (signal?.aborted) onAbort()
 		try {
-			await Promise.race([this.z.preload(queries.user()).complete, timedOut])
+			await Promise.race([this.z.preload(queries.user()).complete, failed])
 			stage = 'state flush'
-			await Promise.race([this.changesFlushed, timedOut])
+			await Promise.race([this.changesFlushed, failed])
 			stage = 'user record'
 			const userLoaded = promiseWithResolve<void>()
 			stopWaiting = react('wait for user', () => {
 				if (this.user$.get()) userLoaded.resolve()
 			})
-			await Promise.race([userLoaded, timedOut])
+			await Promise.race([userLoaded, failed])
 			markFirstLoad('zero-user-synced')
+			stage = 'workspace data'
+			await Promise.race([
+				Promise.all([
+					this.z.preload(queries.fileStates()).complete,
+					this.z.preload(queries.workspaceMemberships()).complete,
+				]),
+				failed,
+			])
+			markFirstLoad('zero-preloaded')
 		} finally {
 			signal?.removeEventListener('abort', onAbort)
 			document.removeEventListener('visibilitychange', onVisibilityChange)
 			clearTimeout(timeout)
 			stopWaiting?.()
 		}
-		await Promise.all([
-			this.z.preload(queries.fileStates()).complete,
-			this.z.preload(queries.workspaceMemberships()).complete,
-		])
-		markFirstLoad('zero-preloaded')
 	}
 
 	messages = defineMessages({

@@ -5,6 +5,7 @@ import { ZeroLogBuffer } from './ZeroLogBuffer'
 
 function createAppStub({
 	queryComplete = Promise.resolve(),
+	workspaceComplete = Promise.resolve(),
 	changesFlushed = Promise.resolve(),
 	user = undefined as { id: string } | undefined,
 	zeroLog = new ZeroLogBuffer(),
@@ -13,7 +14,11 @@ function createAppStub({
 		userId: 'user:test',
 		getToken: async () => 'token',
 		z: {
-			preload: () => ({ complete: queryComplete }),
+			// 1st call = user query, rest = workspace queries
+			preload: vi
+				.fn()
+				.mockReturnValueOnce({ complete: queryComplete })
+				.mockReturnValue({ complete: workspaceComplete }),
 			connection: { state: { current: { name: 'connecting' } } },
 		},
 		changesFlushed,
@@ -87,6 +92,10 @@ describe('TldrawApp.preload', () => {
 		['zero query', { queryComplete: promiseWithResolve<void>() }],
 		['state flush', { changesFlushed: promiseWithResolve<void>() }],
 		['user record', {}],
+		[
+			'workspace data',
+			{ workspaceComplete: promiseWithResolve<void>(), user: { id: 'user:test' } },
+		],
 	])('names the stalled %s stage after a successful init', async (stage, stub) => {
 		vi.mocked(fetch).mockResolvedValue({ ok: true } as Response)
 		const rejected = vi.fn()
@@ -161,6 +170,27 @@ describe('TldrawApp.preload', () => {
 
 		expect(rejected).toHaveBeenCalledWith(expect.objectContaining({ name: 'AbortError' }))
 		expect(rejected.mock.calls[0][0].diagnostics).toBeUndefined()
+		expect(vi.getTimerCount()).toBe(0)
+	})
+
+	it('shares the deadline with the workspace stage', async () => {
+		vi.mocked(fetch).mockResolvedValue({ ok: true } as Response)
+		const queryComplete = promiseWithResolve<void>()
+		const workspaceComplete = promiseWithResolve<void>()
+		const rejected = vi.fn()
+		void createAppStub({ queryComplete, workspaceComplete, user: { id: 'user:test' } })
+			.preload()
+			.catch(rejected)
+
+		await vi.advanceTimersByTimeAsync(20_000)
+		queryComplete.resolve()
+		await vi.advanceTimersByTimeAsync(9_999)
+		expect(rejected).not.toHaveBeenCalled()
+		await vi.advanceTimersByTimeAsync(1)
+
+		expect(rejected).toHaveBeenCalledWith(
+			expect.objectContaining({ message: 'Timed out waiting for the workspace data after init' })
+		)
 		expect(vi.getTimerCount()).toBe(0)
 	})
 
