@@ -359,6 +359,17 @@ describe('getFeatureFlagValue caching and failure', () => {
 		expect(value).toMatchObject({ type: 'percentage', enabled: false, percentage: 0 })
 	})
 
+	it('does not cache the fallback from a failed read', async () => {
+		const env = makeEnv({ rum_enabled: JSON.stringify({ enabled: true, percentage: 10 }) })
+		const get = env.FEATURE_FLAGS.get
+		env.FEATURE_FLAGS.get = kvDown()
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+
+		env.FEATURE_FLAGS.get = get
+		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(value).toMatchObject({ enabled: true, percentage: 10 })
+	})
+
 	it('serves the last cached value, however old, on KV error', async () => {
 		const env = makeEnv({ rum_enabled: JSON.stringify({ enabled: true, percentage: 10 }) })
 		await getFeatureFlagValue(env as any, 'rum_enabled')
