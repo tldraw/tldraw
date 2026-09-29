@@ -3,8 +3,8 @@ name: Checks
 on:
   pull_request:
   merge_group:
-  # The merge queue already checked this tree. Main runs only re-seed the caches below when
-  # their keys change: caches saved on PR or queue refs aren't visible to other PRs.
+  # The merge queue already checked this tree. Main still runs the full jobs when a cache key
+  # changes, because only main-saved caches are visible to other PRs.
   push:
     branches: [main]
     paths:
