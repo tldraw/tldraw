@@ -124,7 +124,8 @@ export function createFileLoads(deps: FileLoadsDeps) {
 		noteNavigation(pathname: string) {
 			// Exact match: /f/:slug/history is a separate page, so going there leaves the file too.
 			if (!/^\/f\/[^/]+\/?$/.test(pathname)) {
-				// Leaving the file: a later return must not resume this load with its old t0 and marks.
+				// Leaving before board-visible abandons the open so it never reports; dropping it makes a
+				// return start fresh instead of resuming with the old t0 and marks.
 				if (current && current.tracker.getMarks()['board-visible'] === undefined) abandon(current)
 				current = null
 				navigation = null
