@@ -652,6 +652,14 @@ describe('canUseMcpServer', () => {
 			expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
 		})
 
+		// Stale-on-error reads (the flags route) must not re-arm the cached grant for this check.
+		it('does not keep admitting after a stale-on-error read of the flag', async () => {
+			const env = await warmThenBreak({ users: [], allowEveryone: true })
+			await getFeatureFlagValue(env as any, 'mcp_server_access')
+			userEmail.mockReturnValue('someone@example.com')
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
+		})
+
 		it('still admits staff', async () => {
 			const env = await warmThenBreak({ users: [], allowEveryone: true })
 			userEmail.mockReturnValue('someone@tldraw.com')
