@@ -31,7 +31,8 @@ export const FILE_LOAD_STEPS = [
 	'board-visible',
 ] as const
 export type FileLoadStep = (typeof FILE_LOAD_STEPS)[number]
-export type FileLoadKind = 'first' | 'switch'
+// remount: the same file's host mounted again after its board showed (e.g. anon → sign-in).
+export type FileLoadKind = 'first' | 'switch' | 'remount'
 
 export const FILE_LOAD_LOG_HEADER =
 	'[file-load] file open timings, printed because the logLoads debug flag is on'
@@ -47,7 +48,7 @@ export type FileLoad = ReturnType<ReturnType<typeof createFileLoads>['begin']>
 
 // first_load already prints the first open; printing it twice is noise.
 function printsLoad(load: { kind: FileLoadKind }) {
-	return load.kind === 'switch' && shouldPrintLoads()
+	return load.kind !== 'first' && shouldPrintLoads()
 }
 
 export function createFileLoads(deps: FileLoadsDeps) {
@@ -62,8 +63,8 @@ export function createFileLoads(deps: FileLoadsDeps) {
 		if (load.kind === 'first') opened = 0
 	}
 
-	function open(slug: string) {
-		const kind: FileLoadKind = opened === 0 ? 'first' : 'switch'
+	function open(slug: string, remount: boolean) {
+		const kind: FileLoadKind = remount ? 'remount' : opened === 0 ? 'first' : 'switch'
 		opened++
 		const nav = navigation?.pathname === `/f/${slug}` ? navigation : null
 		navigation = null
@@ -145,8 +146,9 @@ export function createFileLoads(deps: FileLoadsDeps) {
 		begin(slug: string) {
 			const unfinished = current && current.tracker.getMarks()['board-visible'] === undefined
 			if (current?.slug === slug && unfinished && !current.isSuperseded()) return current
+			const remount = current?.slug === slug && !unfinished
 			if (current && unfinished) abandon(current)
-			current = open(slug)
+			current = open(slug, remount)
 			if (printsLoad(current)) current.tracker.enableLiveLog()
 			return current
 		},

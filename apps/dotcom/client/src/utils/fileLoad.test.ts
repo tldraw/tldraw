@@ -179,6 +179,7 @@ describe('file loads', () => {
 		first.mark('board-visible')
 		advance(100)
 		const remount = loads.begin('abc')
+		expect(remount.kind).toBe('remount')
 		expect(remount).not.toBe(first)
 		expect(remount.loadId).not.toBe(first.loadId)
 		expect(remount.connectLoadId()).toBe(remount.loadId)
