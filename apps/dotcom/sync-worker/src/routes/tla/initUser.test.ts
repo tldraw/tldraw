@@ -7,25 +7,35 @@ vi.mock('../../utils/tla/getAuth', () => ({
 	getClerkClient: () => ({ users: { getUser } }),
 }))
 
-function makeDb(existingEmail?: string) {
-	const inserted: Record<string, unknown>[] = []
-	const insertChain = {
-		values: (row: Record<string, unknown>) => {
-			inserted.push(row)
-			return { onConflict: () => ({ execute: async () => {} }) }
-		},
-	}
+function makeDb(existingEmail?: string, { hasHomeGroup = true } = {}) {
+	const inserted: { table: string; row: Record<string, unknown> }[] = []
 	const db = {
 		selectFrom: () => ({
-			where: () => ({
-				select: () => ({
-					executeTakeFirst: async () =>
-						existingEmail === undefined ? undefined : { email: existingEmail },
+			leftJoin: () => ({
+				where: () => ({
+					select: () => ({
+						executeTakeFirst: async () =>
+							existingEmail === undefined
+								? undefined
+								: {
+										email: existingEmail,
+										name: 'Someone',
+										homeGroupId: hasHomeGroup ? 'user-1' : null,
+									},
+					}),
 				}),
 			}),
 		}),
 		transaction: () => ({
-			execute: async (fn: (tx: unknown) => Promise<void>) => fn({ insertInto: () => insertChain }),
+			execute: async (fn: (tx: unknown) => Promise<void>) =>
+				fn({
+					insertInto: (table: string) => ({
+						values: (row: Record<string, unknown>) => {
+							inserted.push({ table, row })
+							return { onConflict: () => ({ execute: async () => {} }) }
+						},
+					}),
+				}),
 		}),
 	}
 	return { db: db as any, inserted }
@@ -64,7 +74,19 @@ describe('ensureUser', () => {
 			outcome: 'created',
 			email: 'someone@tldraw.com',
 		})
-		expect(inserted).toHaveLength(3)
+		expect(inserted.map((i) => i.table)).toEqual(['user', 'group', 'group_user'])
+	})
+
+	// A user row without its home group leaves the account with no workspace at all.
+	it('creates the home workspace for a user row that lacks one', async () => {
+		const { db, inserted } = makeDb('someone@tldraw.com', { hasHomeGroup: false })
+		expect(await ensureUser(makeEnv(true), db, 'user-1')).toEqual({
+			outcome: 'repaired',
+			email: 'someone@tldraw.com',
+		})
+		expect(getUser).not.toHaveBeenCalled()
+		expect(inserted.map((i) => i.table)).toEqual(['group', 'group_user'])
+		expect(inserted[1].row).toMatchObject({ userId: 'user-1', groupId: 'user-1', role: 'owner' })
 	})
 
 	// A user deleted in Clerk since their token was issued is refused, not turned into a 500.
