@@ -120,7 +120,7 @@ test.describe('UI scenarios', () => {
 		scenario,
 	}) => {
 		const workspaceName = scenario.name('workspace nav')
-		const renamedWorkspaceName = scenario.name('workspace nav renamed')
+		const renamedWorkspaceName = scenario.name('nav renamed')
 		const fileName = scenario.name('workspace movable file')
 
 		await scenario.createPersonalFile(owner, fileName)

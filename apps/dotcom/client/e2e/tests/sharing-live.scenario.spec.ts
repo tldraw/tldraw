@@ -259,6 +259,8 @@ test.describe('live sharing scenarios', () => {
 		await member.editor.ensureSidebarOpen()
 		await member.workspaceInviteDialog.acceptInvitation()
 		await member.sidebar.expectWorkspaceVisible(workspaceName)
+		await member.sidebar.switchToWorkspace(workspaceName)
+		await member.sidebar.expectFileVisible(fileName)
 		await member.sidebar.openWorkspaceSettings(workspaceName)
 		const memberDialog = member.page.getByRole('dialog', { name: 'Manage workspace' })
 		await memberDialog.getByRole('tab', { name: 'Settings' }).click()

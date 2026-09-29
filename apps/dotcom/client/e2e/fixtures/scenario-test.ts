@@ -690,17 +690,21 @@ async function serveCachedClerkAssets(context: BrowserContext) {
 		const cached = clerkAssetCache.get(url)
 		if (cached) return await route.fulfill(cached)
 
-		const response = await route.fetch().catch(() => null)
-		if (!response) return await route.continue()
-		// fetch() hands back the decoded body, so the encoding headers no longer describe it.
-		const {
-			'content-encoding': _encoding,
-			'content-length': _length,
-			...headers
-		} = response.headers()
-		const entry = { status: response.status(), headers, body: await response.body() }
-		if (response.ok()) clerkAssetCache.set(url, entry)
-		await route.fulfill(entry)
+		try {
+			const response = await route.fetch()
+			// fetch() hands back the decoded body, so the encoding headers no longer describe it.
+			const {
+				'content-encoding': _encoding,
+				'content-length': _length,
+				...headers
+			} = response.headers()
+			const entry = { status: response.status(), headers, body: await response.body() }
+			if (response.ok()) clerkAssetCache.set(url, entry)
+			await route.fulfill(entry)
+		} catch {
+			// The context can close mid-fetch at teardown.
+			await route.continue().catch(() => {})
+		}
 	})
 }
 
