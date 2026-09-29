@@ -1,4 +1,4 @@
-import { expect, test } from '../fixtures/scenario-test'
+import { expect, selectTlaMenuOption, test } from '../fixtures/scenario-test'
 
 // Live share and workspace membership scenarios.
 //
@@ -9,40 +9,14 @@ import { expect, test } from '../fixtures/scenario-test'
 test.describe.configure({ mode: 'parallel', timeout: 60_000 })
 
 test.describe('live sharing scenarios', () => {
-	test('owner and visitor see live edits through an edit link', async ({
-		owner,
-		visitor,
-		scenario,
-	}) => {
-		await scenario.createGuestEditFile(owner, visitor, scenario.name('live edit file'))
-		await visitor.editor.expectShapesCount(0)
-
-		await owner.page.getByTestId('tools.rectangle').click()
-		await owner.page.locator('.tl-background').click()
-
-		await owner.editor.expectShapesCount(1)
-		await visitor.editor.expectShapesCount(1)
-	})
-
-	test('owner sees collaborator presence join and leave live', async ({
-		owner,
-		visitor,
-		scenario,
-	}) => {
-		await scenario.createGuestEditFile(owner, visitor, scenario.name('presence file'))
-		await owner.expectCollaboratorCount(1)
-		await visitor.expectCollaboratorCount(1)
-
-		await visitor.close()
-		await owner.waitForSessionClosed()
-	})
-
-	test('visitor permissions update while the shared file is open', async ({
+	test('edit-link visitors see presence, live permission changes, and edit the file', async ({
 		owner,
 		visitor,
 		scenario,
 	}) => {
 		await scenario.createGuestEditFile(owner, visitor, scenario.name('permission file'))
+		await owner.expectCollaboratorCount(1)
+		await visitor.expectCollaboratorCount(1)
 		await expect(visitor.page.getByTestId('tools.draw')).toBeVisible()
 
 		await scenario.setSharedLinkType(owner, 'view')
@@ -50,9 +24,17 @@ test.describe('live sharing scenarios', () => {
 
 		await scenario.setSharedLinkType(owner, 'edit')
 		await expect(visitor.page.getByTestId('tools.draw')).toBeVisible({ timeout: 10000 })
+
+		await scenario.createRectangle(visitor)
+		await owner.editor.expectShapesCount(1)
+
+		// Each link type flip reconnects the visitor, so confirm presence is back before it leaves.
+		await owner.expectCollaboratorCount(1)
+		await visitor.close()
+		await owner.waitForSessionClosed()
 	})
 
-	test('view-only visitors see live owner changes without edit access', async ({
+	test('view-only visitors see live owner changes until the file is unshared', async ({
 		owner,
 		visitor,
 		scenario,
@@ -61,11 +43,17 @@ test.describe('live sharing scenarios', () => {
 
 		await visitor.expectReadonly(true)
 		await expect(visitor.page.getByTestId('tools.draw')).not.toBeVisible()
+		await expect(visitor.shareMenu.shareButton).toBeVisible()
+		await expect(visitor.page.getByTestId('tla-error')).not.toBeVisible()
 		await visitor.editor.expectShapesCount(0)
 
 		await scenario.createRectangle(owner)
 		await owner.editor.expectShapesCount(1)
 		await visitor.editor.expectShapesCount(1)
+
+		await scenario.setSharedLinkType(owner, 'no-access')
+		await expect(visitor.shareMenu.shareButton).not.toBeVisible({ timeout: 10000 })
+		await expect(visitor.page.getByTestId('tla-error')).toBeVisible({ timeout: 10000 })
 	})
 
 	test('signed-in non-member sees shared files as a live guest file', async ({
@@ -116,35 +104,23 @@ test.describe('live sharing scenarios', () => {
 		await member.sidebar.expectFileNotVisible(fileName)
 	})
 
-	test('unshare removes visitor access while the file is open', async ({
+	test('published snapshots update only after publishing changes, until unpublished', async ({
 		owner,
 		visitor,
 		scenario,
 	}) => {
-		const { sharedUrl } = await scenario.createSharedFile(
-			owner,
-			'edit',
-			scenario.name('unshare file')
-		)
+		await scenario.createPersonalFile(owner, scenario.name('published snapshot file'))
 
-		await visitor.goto(sharedUrl)
-		await expect(visitor.shareMenu.shareButton).toBeVisible()
-		await expect(visitor.page.getByTestId('tla-error')).not.toBeVisible()
+		await owner.shareMenu.open()
+		await expect(owner.shareMenu.inviteTabButton).toBeVisible()
+		await expect(owner.shareMenu.exportTabButton).toBeVisible()
+		await expect(owner.shareMenu.publishTabButton).toBeVisible()
+		await expect(owner.shareMenu.inviteTabPage).toBeVisible()
+		await expect(owner.page.getByTestId('shared-link-shared-switch')).toBeVisible()
+		await owner.page.keyboard.press('Escape')
 
-		await scenario.setSharedLinkType(owner, 'no-access')
-		await expect(visitor.shareMenu.shareButton).not.toBeVisible({ timeout: 10000 })
-		await expect(visitor.page.getByTestId('tla-error')).toBeVisible({ timeout: 10000 })
-	})
-
-	test('published snapshots update only after publishing changes', async ({
-		owner,
-		visitor,
-		scenario,
-	}) => {
-		const { publishedUrl } = await scenario.createPublishedFile(
-			owner,
-			scenario.name('published snapshot file')
-		)
+		const publishedUrl = await scenario.publishFile(owner)
+		expect(new URL(publishedUrl).pathname).toMatch(/^\/p\//)
 
 		await visitor.goto(publishedUrl)
 		await visitor.editor.expectShapesCount(0)
@@ -158,43 +134,28 @@ test.describe('live sharing scenarios', () => {
 
 		await scenario.publishChanges(owner)
 		await scenario.expectPublishedShapesCount(visitor, 1)
+
+		await owner.shareMenu.open()
+		await owner.shareMenu.unpublishFile()
+		await owner.page.keyboard.press('Escape')
+		await scenario.expectUnpublished(visitor, publishedUrl)
 	})
 
-	test('workspace file deletion removes the file from active members without reload', async ({
+	test('workspace invites, settings, roles, and deletions reach active members without reload', async ({
 		owner,
 		member,
 		scenario,
 	}) => {
-		const { workspaceName, fileName } = await scenario.createWorkspaceWithMember({
-			owner,
-			member,
-			workspaceName: scenario.name('delete file workspace'),
-			fileName: scenario.name('live deleted workspace file'),
-		})
-
-		await owner.sidebar.switchToWorkspace(workspaceName)
-		await owner.sidebar.deleteFileByName(fileName)
-		await owner.deleteFileDialog.expectIsVisible()
-		await owner.deleteFileDialog.confirmDeletion()
-		await owner.deleteFileDialog.expectIsNotVisible()
-		await owner.sidebar.expectFileNotVisible(fileName)
-
-		await member.sidebar.expectFileNotVisible(fileName)
-	})
-
-	test('workspace invite acceptance appears in owner settings without reload', async ({
-		owner,
-		member,
-		scenario,
-	}) => {
+		test.setTimeout(120_000)
 		const { workspaceName, fileName, inviteUrl, memberUserId } =
 			await scenario.createPendingWorkspaceInvite({
 				owner,
 				member,
-				workspaceName: scenario.name('pending invite workspace'),
-				fileName: scenario.name('pending invite file'),
+				workspaceName: scenario.name('live workspace'),
+				fileName: scenario.name('live workspace file'),
 			})
-		const memberRoleSelect = owner.page.locator(`[id="workspace-member-role-${memberUserId}"]`)
+		const ownerDialog = owner.page.getByRole('dialog', { name: 'Manage workspace' })
+		const memberRoleSelect = ownerDialog.locator(`[id="workspace-member-role-${memberUserId}"]`)
 
 		await owner.sidebar.openWorkspaceSettings(workspaceName)
 		await expect(memberRoleSelect).not.toBeVisible()
@@ -204,18 +165,93 @@ test.describe('live sharing scenarios', () => {
 		await member.workspaceInviteDialog.expectIsVisible()
 		await member.workspaceInviteDialog.acceptInvitation()
 		await member.sidebar.expectWorkspaceVisible(workspaceName)
+		await member.sidebar.switchToWorkspace(workspaceName)
 		await member.sidebar.expectFileVisible(fileName)
 
-		await expect(memberRoleSelect).toBeVisible({ timeout: 10000 })
+		// Owners see the full dialog surface, and the new member joins the roster live.
+		await expect(memberRoleSelect).toHaveText('Member', { timeout: 10000 })
+		await expect(ownerDialog.getByPlaceholder('Workspace name')).toBeVisible()
+		await expect(ownerDialog.getByText('Invite teammates')).toBeVisible()
+		await expect(ownerDialog.getByRole('button', { name: 'Copy invite link' })).toBeVisible()
+		await expect(ownerDialog.getByRole('tab', { name: 'Members' })).toBeVisible()
+		await expect(ownerDialog.getByText(/\(you\)/)).toBeVisible()
+
+		// Interacting with the portalled role select should not count as a background click.
+		await selectTlaMenuOption(owner.page, memberRoleSelect, 'Member')
+		await expect(ownerDialog).toBeVisible()
+
+		// The dialog exposes the invite link only through the Copy button (no visible URL
+		// field), so read it from the clipboard. Regenerating from the Settings tab
+		// replaces the link, so a later copy returns a different URL.
+		await ownerDialog.getByRole('button', { name: 'Copy invite link' }).click()
+		const firstInviteUrl = await owner.page.evaluate(() => navigator.clipboard.readText())
+		expect(new URL(firstInviteUrl).pathname).toMatch(/^\/invite\//)
+
+		await ownerDialog.getByRole('tab', { name: 'Settings' }).click()
+		await ownerDialog.getByRole('button', { name: 'Regenerate invite link' }).click()
+		await owner.page.getByRole('button', { name: 'Regenerate', exact: true }).click()
+
+		// Copy again (after the 1s copy-button guard) and poll until the new link lands.
+		await expect
+			.poll(
+				async () => {
+					await owner.page.waitForTimeout(1100)
+					await ownerDialog.getByRole('button', { name: 'Copy invite link' }).click()
+					return owner.page.evaluate(() => navigator.clipboard.readText())
+				},
+				{ timeout: 15000 }
+			)
+			.not.toBe(firstInviteUrl)
+		const regeneratedInviteUrl = await owner.page.evaluate(() => navigator.clipboard.readText())
+		expect(new URL(regeneratedInviteUrl).pathname).toMatch(/^\/invite\//)
 		await owner.page.keyboard.press('Escape')
+
+		// Non-owners can inspect settings but cannot access owner-only controls.
+		await member.sidebar.openWorkspaceSettings(workspaceName)
+		const memberDialog = member.page.getByRole('dialog', { name: 'Manage workspace' })
+		await expect(memberDialog.getByPlaceholder('Workspace name')).toBeDisabled()
+		await expect(
+			memberDialog.locator(`[id="workspace-member-role-${memberUserId}"]`)
+		).not.toBeVisible()
+
+		// Leave/Delete live on the Settings tab; members get Leave but not Delete.
+		await memberDialog.getByRole('tab', { name: 'Settings' }).click()
+		const deleteWorkspaceButton = memberDialog.getByRole('button', { name: /Delete workspace/ })
+		await expect(deleteWorkspaceButton).not.toBeVisible()
+		await expect(memberDialog.getByRole('button', { name: /Leave workspace/ })).toBeVisible()
+		await member.page.keyboard.press('Escape')
+
+		// Deletions are observed by a regular member, before any role change.
+		await owner.sidebar.switchToWorkspace(workspaceName)
+		await owner.sidebar.deleteFileByName(fileName)
+		await owner.deleteFileDialog.expectIsVisible()
+		await owner.deleteFileDialog.confirmDeletion()
+		await owner.deleteFileDialog.expectIsNotVisible()
+		await owner.sidebar.expectFileNotVisible(fileName)
+		await member.sidebar.expectFileNotVisible(fileName)
+
+		// Promoting surfaces Delete reactively, and demoting takes it away again.
+		await member.sidebar.openWorkspaceSettings(workspaceName)
+		await memberDialog.getByRole('tab', { name: 'Settings' }).click()
+		await expect(deleteWorkspaceButton).not.toBeVisible()
+		await scenario.setWorkspaceMemberRole({ owner, workspaceName, memberUserId, role: 'owner' })
+		await expect(deleteWorkspaceButton).toBeVisible({ timeout: 10000 })
+		await scenario.setWorkspaceMemberRole({ owner, workspaceName, memberUserId, role: 'member' })
+		await expect(deleteWorkspaceButton).not.toBeVisible({ timeout: 10000 })
+		await member.page.keyboard.press('Escape')
+
+		await owner.sidebar.deleteWorkspace(workspaceName)
+		await owner.sidebar.expectWorkspaceNotVisible(workspaceName)
+		await member.sidebar.expectWorkspaceNotVisible(workspaceName)
 	})
 
-	test('member removal revokes the active member window without reload', async ({
+	test('removed and leaving members lose the workspace without reload', async ({
 		owner,
 		member,
 		scenario,
 	}) => {
-		const { workspaceName, fileName } = await scenario.createWorkspaceWithRemovedMember({
+		test.setTimeout(90_000)
+		const { workspaceName, fileName, inviteUrl } = await scenario.createWorkspaceWithRemovedMember({
 			owner,
 			member,
 			workspaceName: scenario.name('member removal workspace'),
@@ -224,59 +260,21 @@ test.describe('live sharing scenarios', () => {
 
 		await member.sidebar.expectWorkspaceNotVisible(workspaceName)
 		await member.sidebar.expectFileNotVisible(fileName)
-	})
 
-	test('workspace role changes update active members without reload', async ({
-		owner,
-		member,
-		scenario,
-	}) => {
-		const { workspaceName, fileName, memberUserId } = await scenario.createWorkspaceWithMember({
-			owner,
-			member,
-			workspaceName: scenario.name('role change workspace'),
-			fileName: scenario.name('role change file'),
-		})
-
+		// Removal doesn't burn the invite, so the member can rejoin and then leave on their own.
+		await member.goto(inviteUrl)
+		await member.editor.ensureSidebarOpen()
+		await member.workspaceInviteDialog.acceptInvitation()
 		await member.sidebar.expectWorkspaceVisible(workspaceName)
+		await member.sidebar.switchToWorkspace(workspaceName)
 		await member.sidebar.expectFileVisible(fileName)
-
 		await member.sidebar.openWorkspaceSettings(workspaceName)
-		// Delete lives on the Settings tab and only for owners; promoting the member should
-		// surface it there reactively, without a reload.
-		await member.page.getByRole('tab', { name: 'Settings' }).click()
-		const deleteWorkspaceButton = member.page.getByRole('button', { name: /Delete workspace/ })
-		await expect(deleteWorkspaceButton).not.toBeVisible()
+		const memberDialog = member.page.getByRole('dialog', { name: 'Manage workspace' })
+		await memberDialog.getByRole('tab', { name: 'Settings' }).click()
 
-		await scenario.setWorkspaceMemberRole({
-			owner,
-			workspaceName,
-			memberUserId,
-			role: 'owner',
-		})
-
-		await expect(deleteWorkspaceButton).toBeVisible({ timeout: 10000 })
-		await member.page.keyboard.press('Escape')
-	})
-
-	test('workspace deletion removes the workspace from active members without reload', async ({
-		owner,
-		member,
-		scenario,
-	}) => {
-		const { workspaceName, fileName } = await scenario.createWorkspaceWithMember({
-			owner,
-			member,
-			workspaceName: scenario.name('live workspace'),
-			fileName: scenario.name('shared workspace file'),
-		})
-
-		await member.sidebar.expectWorkspaceVisible(workspaceName)
-		await member.sidebar.expectFileVisible(fileName)
-
-		await owner.sidebar.deleteWorkspace(workspaceName)
-		await owner.sidebar.expectWorkspaceNotVisible(workspaceName)
-
+		// Leaving requires confirmation (the confirm button is just "Leave") and removes access.
+		await memberDialog.getByRole('button', { name: /Leave workspace/ }).click()
+		await member.page.getByRole('button', { name: 'Leave', exact: true }).click()
 		await member.sidebar.expectWorkspaceNotVisible(workspaceName)
 		await member.sidebar.expectFileNotVisible(fileName)
 	})

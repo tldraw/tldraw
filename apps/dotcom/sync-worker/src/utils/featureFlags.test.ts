@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ensureUser } from '../routes/tla/initUser'
 import {
 	canUseMcpServer,
 	resetFeatureFlagCacheForTests,
@@ -15,22 +16,13 @@ vi.mock('./tla/getAuth', () => ({
 	getAuth: vi.fn(),
 }))
 
-// canUseMcpServer reads the account's email from Postgres when the flag does not cover them.
-const userEmail = vi.fn<() => string | undefined>(() => undefined)
+// canUseMcpServer takes the account's email from ensureUser when the flag does not cover them.
+vi.mock('../routes/tla/initUser', () => ({
+	ensureUser: vi.fn(async () => ({ outcome: 'no_clerk_user' })),
+}))
+
 vi.mock('../postgres', () => ({
-	createPostgresConnectionPool: () => ({
-		selectFrom: () => ({
-			select: () => ({
-				where: () => ({
-					executeTakeFirst: async () => {
-						const email = userEmail()
-						return email === undefined ? undefined : { email }
-					},
-				}),
-			}),
-		}),
-		destroy: async () => {},
-	}),
+	createPostgresConnectionPool: () => ({ destroy: async () => {} }),
 }))
 
 beforeEach(() => resetFeatureFlagCacheForTests())
@@ -603,43 +595,56 @@ describe('allowEveryone', () => {
 })
 
 describe('canUseMcpServer', () => {
-	beforeEach(() => userEmail.mockReturnValue(undefined))
+	const withEmail = (email: string) =>
+		vi.mocked(ensureUser).mockResolvedValueOnce({ outcome: 'existing', email })
+
+	beforeEach(() => {
+		vi.mocked(ensureUser).mockClear()
+	})
 
 	it('admits a verified @tldraw.com account the flag does not name', async () => {
-		userEmail.mockReturnValue('someone@tldraw.com')
+		withEmail('someone@tldraw.com')
 		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
 	})
 
 	it('is case-insensitive about the domain', async () => {
-		userEmail.mockReturnValue('Someone@TLDRAW.com')
+		withEmail('Someone@TLDRAW.com')
 		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
 	})
 
 	// The obvious near-miss: a domain that merely ends the same way is a different company.
 	it('refuses a lookalike domain', async () => {
-		userEmail.mockReturnValue('someone@nottldraw.com')
+		withEmail('someone@nottldraw.com')
 		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
 	})
 
 	it('refuses everyone else', async () => {
-		userEmail.mockReturnValue('someone@example.com')
+		withEmail('someone@example.com')
 		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
 	})
 
-	// A token whose account no longer exists is refused, not turned into a 500.
-	it('refuses when the account has no row', async () => {
-		userEmail.mockReturnValue(undefined)
-		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
+	it('admits a @tldraw.com account whose rows it just created', async () => {
+		vi.mocked(ensureUser).mockResolvedValueOnce({ outcome: 'created', email: 'someone@tldraw.com' })
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
 	})
+
+	// A token whose account no longer exists is refused, not turned into a 500.
+	it.each(['no_clerk_user', 'no_email', 'rate_limited'] as const)(
+		'refuses when ensureUser returns %s',
+		async (outcome) => {
+			vi.mocked(ensureUser).mockResolvedValueOnce({ outcome })
+			expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
+		}
+	)
 
 	it('still admits staff and refuses everyone else when the flag is unreadable', async () => {
 		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const env = makeEnv()
 		env.FEATURE_FLAGS.get = kvDown()
 
-		userEmail.mockReturnValue('someone@tldraw.com')
+		withEmail('someone@tldraw.com')
 		expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
-		userEmail.mockReturnValue('someone@example.com')
+		withEmail('someone@example.com')
 		expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
 		consoleSpy.mockRestore()
 	})
@@ -668,7 +673,7 @@ describe('canUseMcpServer', () => {
 			['allowEveryone', { users: [], allowEveryone: true }],
 		])('does not keep admitting through %s', async (_, stored) => {
 			const env = await warmThenBreak(stored)
-			userEmail.mockReturnValue('someone@example.com')
+			withEmail('someone@example.com')
 			expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
 		})
 
@@ -676,13 +681,13 @@ describe('canUseMcpServer', () => {
 		it('does not keep admitting after a stale-on-error read of the flag', async () => {
 			const env = await warmThenBreak({ users: [], allowEveryone: true })
 			await getFeatureFlagValue(env as any, 'mcp_server_access')
-			userEmail.mockReturnValue('someone@example.com')
+			withEmail('someone@example.com')
 			expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
 		})
 
 		it('still admits staff', async () => {
 			const env = await warmThenBreak({ users: [], allowEveryone: true })
-			userEmail.mockReturnValue('someone@tldraw.com')
+			withEmail('someone@tldraw.com')
 			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
 		})
 	})
@@ -696,6 +701,6 @@ describe('canUseMcpServer', () => {
 			}),
 		})
 		expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
-		expect(userEmail).not.toHaveBeenCalled()
+		expect(ensureUser).not.toHaveBeenCalled()
 	})
 })

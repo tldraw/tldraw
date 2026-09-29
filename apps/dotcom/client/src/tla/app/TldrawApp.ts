@@ -64,6 +64,7 @@ import { ZERO_SERVER } from '../../utils/config'
 import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
+import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNotifications'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
 import { getDateFormat } from '../utils/dates'
@@ -369,23 +370,14 @@ export class TldrawApp {
 		this.threadStarterComments$ = atom('thread starter comments signal', [], { isEqual })
 		this.threadParticipantComments$ = atom('thread participant comments signal', [], { isEqual })
 		this.mentionComments$ = atom('mention comments signal', [], { isEqual })
-		this.comments$ = computed('comments signal', () => {
-			const seen = new Set<string>()
-			const merged: QueryResultType<typeof queries.homeBoardComments> = []
-			for (const feed of [
-				this.homeBoardComments$,
-				this.threadStarterComments$,
-				this.threadParticipantComments$,
-				this.mentionComments$,
-			]) {
-				for (const comment of feed.get()) {
-					if (seen.has(comment.id)) continue
-					seen.add(comment.id)
-					merged.push(comment)
-				}
-			}
-			return merged
-		})
+		this.comments$ = computed('comments signal', () =>
+			mergeCommentFeeds<QueryResultType<typeof queries.homeBoardComments>[number]>(
+				this.homeBoardComments$.get(),
+				this.threadStarterComments$.get(),
+				this.threadParticipantComments$.get(),
+				this.mentionComments$.get()
+			)
+		)
 		this.reactions$ = atom('reactions signal', [], { isEqual })
 	}
 

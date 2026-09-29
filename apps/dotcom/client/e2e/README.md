@@ -10,11 +10,12 @@ Issue #9185 is moving dotcom tests toward user scenarios instead of isolated UI 
 - Run the preserved legacy smoke suite with `pnpm e2e-dotcom-smoke` from the repo root, or `pnpm --filter dotcom e2e-smoke` from this workspace. These specs live in `tests/smoke`, still use the reset-based `chromium` project, and are intentionally separate from the default runner. They do not run on CI; migrate coverage out of `tests/smoke` into scenario tests as the follow-ups below are unblocked.
 - Run both projects together with `pnpm e2e-dotcom-all` from the repo root, or `pnpm --filter dotcom e2e-all` from this workspace, when comparing old and new coverage.
 - Use named actors from the fixture: `owner`, `member`, and `visitor`.
+- `owner` starts on `/`; `member` and `visitor` start blank, so navigate them with `actor.goto(url)` or a helper like `scenario.createGuestFile`.
 - Use `scenario.name('label')` for files and workspaces so test data is unique to the run.
 - Do not reset the whole database or shared users in scenario tests. Stable Clerk test accounts are reused by worker, while files and workspaces are namespaced by scenario.
 - Scenario actors use later Clerk test accounts than the legacy `chromium` project so explicit all-project runs can share a command while legacy tests still reset their own users.
 - Actor contexts and pages are owned by the fixture and closed automatically.
-- Use `scenario.createPersonalFile`, `scenario.createSharedFile`, `scenario.createGuestEditFile`, `scenario.createGuestViewFile`, `scenario.createPublishedFile`, `scenario.importFileFromUrl`, `scenario.downloadFileFromSidebar`, `scenario.setSharedLinkType`, `scenario.createWorkspaceWithMember`, and `scenario.createWorkspaceWithRemovedMember` for common setup.
+- Use `scenario.createPersonalFile`, `scenario.createSharedFile`, `scenario.createGuestEditFile`, `scenario.createGuestViewFile`, `scenario.publishFile`, `scenario.importFileFromUrl`, `scenario.downloadFileFromSidebar`, `scenario.setSharedLinkType`, `scenario.createWorkspaceWithMember`, and `scenario.createWorkspaceWithRemovedMember` for common setup.
 - Use `scenario.createLegacyRouteFixture` for legacy `/r`, `/ro`, `/v`, `/s`, and history route setup. It creates namespaced debug-only worker data instead of relying on shared production-like fixtures.
 - Use direct database setup only for preconditions that are expensive or impossible through the UI, such as enabling workspace flags. Keep the behavior under test in UI actions.
 - Prefer live assertions across already-open windows. Reload-based checks are still useful for persistence, but they should not be the only proof for collaboration, permission, or membership behavior.
