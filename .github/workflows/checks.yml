@@ -3,8 +3,17 @@ name: Checks
 on:
   pull_request:
   merge_group:
+  # The merge queue already checked this tree. Main runs only re-seed the caches below when
+  # their keys change: caches saved on PR or queue refs aren't visible to other PRs.
   push:
     branches: [main]
+    paths:
+      - 'pnpm-lock.yaml'
+      - 'lazy.config.ts'
+      - '.oxlintrc.json'
+      - '.oxfmtrc.json'
+      - '.github/workflows/checks.yml'
+      - '.github/actions/**'
 
 env:
   CI: 1
@@ -120,3 +129,19 @@ jobs:
         # the sed pipe makes sure that github annotations come through without
         # turbo's prefix
         run: "pnpm build-package | sed -E 's/^.*? ::/::/'"
+
+  # e2e workflows don't run on main, so seed their x64 Playwright browsers cache from here.
+  warm-playwright-cache:
+    name: 'Warm Playwright cache'
+    if: github.event_name == 'push'
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup
+
+      - name: Set up Playwright
+        uses: ./.github/actions/setup-playwright
