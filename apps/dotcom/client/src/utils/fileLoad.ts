@@ -31,6 +31,15 @@ export const FILE_LOAD_STEPS = [
 	'board-visible',
 ] as const
 export type FileLoadStep = (typeof FILE_LOAD_STEPS)[number]
+
+const FILE_LOAD_STEP_INFO: Record<FileLoadStep, string> = {
+	'file-started': 'TlaFileSyncHost mounted for this file (file_ms t0)',
+	'editor-rendered': 'TlaEditorInner first render',
+	'sync-token-fetched': 'Clerk token for the sync socket obtained',
+	'sync-connected': 'sync socket open, server checks done, snapshot received (synced-remote)',
+	'editor-mounted': "editor's onMount ran",
+	'board-visible': 'ready shroud lifted; board on screen',
+}
 // remount: the same file's host mounted again after its board showed (e.g. anon → sign-in).
 export type FileLoadKind = 'first' | 'switch' | 'remount'
 
@@ -259,6 +268,7 @@ export function reportFileLoad(
 					step: s,
 					'ms since start': event[`t_${s.replaceAll('-', '_')}`],
 					'delta ms': event[`d_${s.replaceAll('-', '_')}`],
+					...(staff && { what: FILE_LOAD_STEP_INFO[s] }),
 				})
 			)
 		)
