@@ -3,11 +3,13 @@ import {
 	createFirstLoadTracker,
 	FIRST_LOAD_LOG_HEADER,
 	initServerTiming,
+	reportFirstLoad,
 	serverTotalMs,
 	summarizeNavigation,
 	summarizeResources,
 	type FirstLoadDeps,
 } from './firstLoad'
+import type { LoadServerTimings } from './loadTracker'
 
 function makeDeps(overrides: Partial<FirstLoadDeps> = {}) {
 	let t = 0
@@ -202,19 +204,6 @@ describe('server timings', () => {
 		expect(tracker.buildReport().srv_cold).toBe(true)
 	})
 
-	it('ignores an echo for a different load', () => {
-		const { deps } = makeDeps()
-		const tracker = createFirstLoadTracker(deps)
-		tracker.setServerTimings({
-			type: 'first_load_server',
-			loadId: 'someone-elses-load',
-			cold: false,
-			d_auth: 1,
-			t_auth: 1,
-		})
-		expect(tracker.buildReport()).not.toHaveProperty('srv_t_auth')
-	})
-
 	it('resolves the wait as soon as the echo lands, or at the deadline without it', async () => {
 		vi.useFakeTimers()
 		try {
@@ -383,5 +372,43 @@ describe('summarizeNavigation', () => {
 				})
 			)
 		).toMatchObject({ nav_dns_ms: 0, nav_connect_ms: 0, nav_server_ms: 0 })
+	})
+})
+
+describe('reportFirstLoad', () => {
+	it("waits for the adopted file load's echo and carries its ids and boot fields", async () => {
+		const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
+		let echo: LoadServerTimings | null = null
+		let wake: (gotEcho: boolean) => void = () => {}
+		const trackEvent = vi.fn()
+		reportFirstLoad({
+			email: 'someone@tldraw.com',
+			flagEnabled: false,
+			trackEvent,
+			fileLoad: {
+				loadId: 'file-load-id',
+				connectId: () => 'connect-id',
+				bootFields: () => ({ abandoned_opens: 1, cached_visit: 'redirect' }),
+				whenServerTimings: () => new Promise((resolve) => (wake = resolve)),
+				getServerTimings: () => echo,
+			},
+		})
+		await flush()
+		expect(trackEvent).not.toHaveBeenCalled()
+		echo = { type: 'first_load_server', loadId: 'connect-id', cold: true, d_auth: 5, t_auth: 5 }
+		wake(true)
+		await flush()
+		expect(trackEvent).toHaveBeenCalledWith(
+			'first_load',
+			expect.objectContaining({
+				file_load_id: 'file-load-id',
+				connect_id: 'connect-id',
+				abandoned_opens: 1,
+				cached_visit: 'redirect',
+				srv_cold: true,
+				srv_t_auth: 5,
+				srv_echo: true,
+			})
+		)
 	})
 })

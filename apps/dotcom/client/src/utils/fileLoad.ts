@@ -1,8 +1,8 @@
 import { uniqueId } from '@tldraw/utils'
 import {
 	type FirstLoadRouteKind,
-	getFirstLoadId,
 	getFirstLoadRouteKind,
+	isPageBooting,
 	wasHiddenSinceNavigation,
 } from './firstLoad'
 import {
@@ -38,11 +38,14 @@ export const FILE_LOAD_LOG_HEADER =
 	'[file-load] file open timings, printed because the logLoads debug flag is on'
 
 export interface FileLoadsDeps extends LoadTrackerDeps<FileLoadStep> {
-	firstLoadId: string
+	/** Until the page's first board shows, a file open is still part of page boot. */
+	isPageBooting(): boolean
 	isHidden(): boolean
 	wasHiddenSinceNavigation(): boolean
 	firstRouteKind(): FirstLoadRouteKind
 }
+
+export type CachedVisitOutcome = 'accepted' | 'redirect' | 'fallback'
 
 export type FileLoad = ReturnType<ReturnType<typeof createFileLoads>['begin']>
 
@@ -54,18 +57,23 @@ function printsLoad(load: { kind: FileLoadKind }) {
 export function createFileLoads(deps: FileLoadsDeps) {
 	let navigation: { pathname: string; at: number } | null = null
 	let current: ReturnType<typeof open> | null = null
-	let opened = 0
+	let abandoned = 0
+	let cachedVisit: CachedVisitOutcome | undefined
+
+	function abandon(load: ReturnType<typeof open>) {
+		load.supersede()
+		abandoned++
+	}
 
 	function open(slug: string, remount: boolean) {
-		const kind: FileLoadKind = remount ? 'remount' : opened === 0 ? 'first' : 'switch'
-		opened++
+		const kind: FileLoadKind = remount ? 'remount' : deps.isPageBooting() ? 'first' : 'switch'
+		const abandonedBefore = abandoned
 		const nav = navigation?.pathname === `/f/${slug}` ? navigation : null
 		navigation = null
 		const t0 = kind === 'first' ? 0 : (nav?.at ?? deps.now())
 		const tracker = createLoadTracker(deps, {
 			steps: FILE_LOAD_STEPS,
 			t0,
-			loadId: kind === 'first' ? deps.firstLoadId : uniqueId(21),
 			logPrefix: 'file-load',
 			logHeader: FILE_LOAD_LOG_HEADER,
 			markPrefix: 'tla-file',
@@ -74,16 +82,54 @@ export function createFileLoads(deps: FileLoadsDeps) {
 		// (page boot included) must count as hidden, not just hidden at open() time.
 		let hidden = deps.isHidden() || (kind === 'first' && deps.wasHiddenSinceNavigation())
 		let superseded = false
+		// One id per socket, so each echo and server row describes exactly one connect. The load's
+		// connect is the socket that got it synced; echoes can land before that is known.
+		let latestConnectId: string | undefined
+		let connectId: string | undefined
+		const echoes = new Map<string, LoadServerTimings>()
+		const bootFields = () =>
+			kind === 'first'
+				? {
+						route_kind: deps.firstRouteKind(),
+						abandoned_opens: abandonedBefore,
+						cached_visit: cachedVisit ?? 'none',
+					}
+				: {}
+
+		function mark(step: FileLoadStep) {
+			if (step === 'sync-connected' && connectId === undefined && latestConnectId) {
+				connectId = latestConnectId
+				const echo = echoes.get(connectId)
+				if (echo) tracker.setServerTimings(echo)
+				echoes.clear()
+			}
+			tracker.mark(step)
+		}
+
 		return {
 			kind,
 			slug,
 			loadId: tracker.loadId,
 			tracker,
-			mark: (step: FileLoadStep) => tracker.mark(step),
-			connectLoadId: () =>
-				tracker.getMarks()['sync-connected'] === undefined ? tracker.loadId : undefined,
-			setServerTimings: (msg: LoadServerTimings) => tracker.setServerTimings(msg),
+			mark,
+			/** A fresh id for each connect attempt until sync-connected; later reconnects are not the load. */
+			nextConnectId() {
+				if (tracker.getMarks()['sync-connected'] !== undefined) return undefined
+				latestConnectId = uniqueId(21)
+				return latestConnectId
+			},
+			connectId: () => connectId,
+			setServerTimings(msg: LoadServerTimings) {
+				if (connectId === undefined) echoes.set(msg.loadId, msg)
+				else if (msg.loadId === connectId) tracker.setServerTimings(msg)
+			},
 			whenServerTimings: (ms: number) => tracker.whenServerTimings(ms),
+			getServerTimings: () => tracker.getServerTimings(),
+			/**
+			 * Boot context, also stamped on first_load. Lets queries drop boots whose total_ms includes
+			 * time elsewhere: another landing page, or a user leaving mid-load (abandoned, no cached visit).
+			 */
+			bootFields,
 			isHidden: () => hidden,
 			hide: () => {
 				hidden = true
@@ -101,8 +147,8 @@ export function createFileLoads(deps: FileLoadsDeps) {
 				return {
 					...flat,
 					load_kind: kind,
-					// Lets queries drop first opens reached from another page, whose total_ms includes time there.
-					...(kind === 'first' && { route_kind: deps.firstRouteKind() }),
+					connect_id: connectId,
+					...bootFields(),
 					// Comparable across kinds: a first open's clock starts at navigation, and its socket can
 					// connect before the editor renders, so measure from the sync host mounting.
 					file_ms: started !== undefined && visible !== undefined ? visible - started : undefined,
@@ -120,8 +166,7 @@ export function createFileLoads(deps: FileLoadsDeps) {
 			if (!/^\/f\/[^/]+\/?$/.test(pathname)) {
 				// Leaving before board-visible abandons the open so it never reports; dropping it makes a
 				// return start fresh instead of resuming with the old t0 and marks.
-				if (current && current.tracker.getMarks()['board-visible'] === undefined)
-					current.supersede()
+				if (current && current.tracker.getMarks()['board-visible'] === undefined) abandon(current)
 				current = null
 				navigation = null
 				return
@@ -141,21 +186,14 @@ export function createFileLoads(deps: FileLoadsDeps) {
 			const unfinished = current && current.tracker.getMarks()['board-visible'] === undefined
 			if (current?.slug === slug && unfinished && !current.isSuperseded()) return current
 			const remount = current?.slug === slug && !unfinished
-			if (current && unfinished) current.supersede()
+			if (current && unfinished) abandon(current)
 			current = open(slug, remount)
 			if (printsLoad(current)) current.tracker.enableLiveLog()
 			return current
 		},
-		/**
-		 * A cached-file redirect or fallback is still page boot, so the file it lands on keeps `first`;
-		 * otherwise first rows lose exactly the slow cache-miss boots.
-		 */
-		yieldFirst(load: ReturnType<typeof open>) {
-			if (load !== current || load.kind !== 'first') return
-			if (load.tracker.getMarks()['board-visible'] !== undefined) return
-			load.supersede()
-			current = null
-			opened = 0
+		/** Lets boot rows separate a cache-miss boot from a user leaving mid-load (abandoned_opens). */
+		noteCachedVisit(outcome: CachedVisitOutcome) {
+			cachedVisit ??= outcome
 		},
 		current: () => current,
 		onHidden() {
@@ -176,7 +214,7 @@ export const fileLoads = createFileLoads({
 	measure: measureOnTrack('File load'),
 	// eslint-disable-next-line no-console
 	log: (line) => console.log(line),
-	firstLoadId: getFirstLoadId(),
+	isPageBooting,
 	isHidden: () => typeof document !== 'undefined' && document.visibilityState === 'hidden',
 	wasHiddenSinceNavigation,
 	firstRouteKind: getFirstLoadRouteKind,

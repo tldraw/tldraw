@@ -182,7 +182,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				setIsReady()
 				markFirstLoad('board-visible')
 				fileLoad.mark('board-visible')
-				reportFirstLoad({ email: null, flagEnabled: false, trackEvent })
+				reportFirstLoad({ email: null, flagEnabled: false, trackEvent, fileLoad })
 				reportFileLoad(fileLoad, {
 					email: null,
 					flagEnabled: false,
@@ -252,6 +252,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 						email: app?.email,
 						flagEnabled: app?.isLoadRumEnabled ?? false,
 						trackEvent,
+						fileLoad,
 					})
 					reportFileLoad(fileLoad, {
 						email: app?.email,

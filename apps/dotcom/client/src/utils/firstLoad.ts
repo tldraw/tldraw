@@ -17,8 +17,6 @@ import {
 
 export { serverTotalMs }
 
-export type FirstLoadServerTimings = LoadServerTimings
-
 /**
  * Per-step timing for the first load of a page, from navigation start to the board being visible.
  *
@@ -96,6 +94,15 @@ export type FirstLoadStepRow = LoadStepRow<FirstLoadStep>
 export type FirstLoadRouteKind = 'root-redirect' | 'file' | 'other'
 
 export type FirstLoadReport = LoadReport<FirstLoadStep> & { route_kind: FirstLoadRouteKind }
+
+/** The slice of a file load first_load reads; fileLoad imports this module, so not its type. */
+export interface AdoptedFileLoad {
+	loadId: string
+	connectId(): string | undefined
+	bootFields(): Record<string, unknown>
+	whenServerTimings(ms: number): Promise<boolean>
+	getServerTimings(): LoadServerTimings | null
+}
 
 export function createFirstLoadTracker(deps: FirstLoadDeps) {
 	const core = createLoadTracker(deps, {
@@ -242,9 +249,13 @@ export function markFirstLoad(step: FirstLoadStep) {
 	firstLoad.mark(step)
 }
 
-/** The id the server can join on: sent on the sync socket URL and the init request. */
+/** Sent on the init request; the sync sockets carry their own ids (fileLoad's connect_id). */
 export function getFirstLoadId() {
 	return firstLoad.loadId
+}
+
+export function isPageBooting() {
+	return firstLoad.getMarks()['board-visible'] === undefined
 }
 
 export function getFirstLoadRouteKind(): FirstLoadRouteKind {
@@ -313,6 +324,8 @@ export function reportFirstLoad(opts: {
 	email: string | null | undefined
 	flagEnabled: boolean
 	trackEvent(name: string, data: Record<string, unknown>): void
+	/** The file open whose board ended the load; its connect is this load's server side. */
+	fileLoad: AdoptedFileLoad
 }) {
 	const inGate = shouldReportLoad(opts)
 	const hidden = hiddenDuringLoad && inGate
@@ -327,15 +340,22 @@ export function reportFirstLoad(opts: {
 		nav: navigationTiming(),
 		paint: paintTiming(),
 	}
-	void firstLoad
-		.whenServerTimings(SERVER_ECHO_DEADLINE_MS)
-		.then((gotEcho) =>
-			sendFirstLoadReport(
-				{ send, print, hidden, staff: isLoadStaff(opts.email), trackEvent: opts.trackEvent },
-				gotEcho,
-				snapshot
-			)
+	const adopted = opts.fileLoad
+	const fileFields = {
+		file_load_id: adopted.loadId,
+		connect_id: adopted.connectId(),
+		...adopted.bootFields(),
+	}
+	void adopted.whenServerTimings(SERVER_ECHO_DEADLINE_MS).then((gotEcho) => {
+		const echo = adopted.getServerTimings()
+		if (echo) firstLoad.setServerTimings(echo)
+		sendFirstLoadReport(
+			{ send, print, hidden, staff: isLoadStaff(opts.email), trackEvent: opts.trackEvent },
+			gotEcho,
+			snapshot,
+			fileFields
 		)
+	})
 }
 
 function sendFirstLoadReport(
@@ -351,7 +371,8 @@ function sendFirstLoadReport(
 		entries: PerformanceResourceTiming[]
 		nav: ReturnType<typeof navigationTiming>
 		paint: ReturnType<typeof paintTiming>
-	}
+	},
+	fileFields: Record<string, unknown>
 ) {
 	const report = firstLoad.takeReport()
 	if (!report) return null
@@ -359,6 +380,7 @@ function sendFirstLoadReport(
 	const { steps, ...flat } = report
 	const event = {
 		...flat,
+		...fileFields,
 		// false = deadline passed with no echo, which separates a slow server from a rejected id
 		srv_echo: gotEcho,
 		...initServerTiming(snapshot.entries),
@@ -389,9 +411,4 @@ function sendFirstLoadReport(
 	console.groupEnd()
 	/* eslint-enable no-console */
 	return event
-}
-
-/** Feed the sync server's echo for this load (see TlaEditor's custom message handler). */
-export function setFirstLoadServerTimings(msg: FirstLoadServerTimings) {
-	firstLoad.setServerTimings(msg)
 }

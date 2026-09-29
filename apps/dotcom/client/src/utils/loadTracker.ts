@@ -217,11 +217,8 @@ export function createLoadTracker<Step extends string>(
 		return report
 	}
 
-	/** The sync server's side of this load, sent once after the socket connects. */
+	/** The sync server's side of this load. The caller picks which socket's echo that is. */
 	function setServerTimings(msg: LoadServerTimings) {
-		if (msg.loadId !== loadId) return
-		// A second socket before sync-connected (a retry, or a remount reusing this load) also carries
-		// the id and gets an echo; the first one is the load.
 		if (server) return
 		server = msg
 		for (const wake of serverWaiters.splice(0)) wake()
@@ -264,6 +261,7 @@ export function createLoadTracker<Step extends string>(
 		loadId,
 		mark,
 		getMarks: () => ({ ...marks }),
+		getServerTimings: () => server,
 		buildReport,
 		takeReport,
 		setServerTimings,

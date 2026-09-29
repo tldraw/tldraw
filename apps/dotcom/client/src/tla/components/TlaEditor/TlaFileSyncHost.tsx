@@ -26,7 +26,7 @@ import { routes } from '../../../routeDefs'
 import { trackEvent } from '../../../utils/analytics'
 import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
 import { FileLoad, fileLoads } from '../../../utils/fileLoad'
-import { markFirstLoad, setFirstLoadServerTimings } from '../../../utils/firstLoad'
+import { markFirstLoad } from '../../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { currentApp$, useMaybeApp } from '../../hooks/useAppState'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
@@ -96,10 +96,10 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
 			url.searchParams.set('v', CLIENT_BUILD_TIMESTAMP)
-			// Only this open's first connect belongs to the load; a reconnect carrying the id would make
-			// the server park and send an echo the client already has.
-			const loadId = fileLoad.connectLoadId()
-			if (loadId) url.searchParams.set('loadId', loadId)
+			// Only connects before sync-connected belong to the load; a later reconnect carrying an id
+			// would make the server park and send an echo nobody reads.
+			const connectId = fileLoad.nextConnectId()
+			if (connectId) url.searchParams.set('loadId', connectId)
 			if (userId) {
 				url.searchParams.set('accessToken', await getUserToken())
 				markFirstLoad('sync-token-fetched')
@@ -115,7 +115,6 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		onCustomMessageReceived: useCallback(
 			(message: TLCustomServerEvent) => {
 				if (message.type === 'first_load_server') {
-					setFirstLoadServerTimings(message)
 					fileLoad.setServerTimings(message)
 					return
 				}
@@ -175,15 +174,14 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		// The hit rate of the cached redirect: a miss costs a wasted room boot on top of main's path.
 		if (visitKind && visitKind !== 'pending') {
 			trackEvent('cached-file-visit', { outcome: visitKind })
+			fileLoads.noteCachedVisit(visitKind)
 		}
 		switch (visitKind) {
 			case 'fallback':
 				clearLastVisitedFile()
-				fileLoads.yieldFirst(fileLoad)
 				navigate(routes.tlaRoot(), { replace: true })
 				return
 			case 'redirect':
-				fileLoads.yieldFirst(fileLoad)
 				navigate(routes.tlaFile(redirectFileId!), {
 					replace: true,
 					state: omit(location.state, [VIA_LAST_FILE_CACHE]),
@@ -198,7 +196,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 				)
 				return
 		}
-	}, [visitKind, redirectFileId, location, navigate, fileLoad])
+	}, [visitKind, redirectFileId, location, navigate])
 
 	if (leaving) return null
 
