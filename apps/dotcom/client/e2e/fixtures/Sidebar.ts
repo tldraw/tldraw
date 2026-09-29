@@ -28,6 +28,7 @@ export class Sidebar {
 	public readonly themeButton: Locator
 	public readonly darkModeButton: Locator
 	public readonly signOutButton: Locator
+	private lastCreatedAt = 0
 	constructor(public readonly page: Page) {
 		this.sidebarLayout = this.page.getByTestId('tla-sidebar-layout')
 		this.sidebar = this.page.getByTestId('tla-sidebar')
@@ -55,6 +56,9 @@ export class Sidebar {
 	async createNewDocument(name?: string) {
 		const numDocuments = await this.getNumberOfFiles()
 		const previousUrl = this.page.url()
+		// the create button swallows clicks for 1s after a create; lastCreatedAt is set later, so this over-waits
+		const throttleLeft = this.lastCreatedAt + 1100 - Date.now()
+		if (throttleLeft > 0) await this.page.waitForTimeout(throttleLeft)
 		await this.createFileButton.click()
 		const input = this.page.getByTestId('tla-sidebar-rename-input')
 		await expect(input).toBeVisible()
@@ -70,8 +74,7 @@ export class Sidebar {
 			this.page.keyboard.press('Enter'),
 		])
 		await expect.poll(() => this.getNumberOfFiles()).toBe(numDocuments + 1)
-		// the create button has a 1000ms throttle - wait so the next creation isn't swallowed
-		await this.page.waitForTimeout(1100)
+		this.lastCreatedAt = Date.now()
 	}
 
 	async getNumberOfFiles() {
