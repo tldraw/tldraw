@@ -8,7 +8,10 @@ import { LOAD_ID_HEADER, parseLoadId } from '../../utils/loadId'
 import { isRateLimited } from '../../utils/rateLimit'
 import { getClerkClient } from '../../utils/tla/getAuth'
 
-type EnsureUserOutcome = 'existing' | 'created' | 'rate_limited' | 'no_clerk_user' | 'no_email'
+type EnsureUserResult =
+	| { outcome: 'existing' | 'created'; email: string }
+	| { outcome: 'rate_limited' | 'no_clerk_user' | 'no_email' }
+type EnsureUserOutcome = EnsureUserResult['outcome']
 type InitOutcome = EnsureUserOutcome | 'error'
 
 const OUTCOME_RESPONSES: Record<EnsureUserOutcome, { body: string; status: number }> = {
@@ -44,7 +47,7 @@ export async function initUser(req: IRequest, env: Environment): Promise<Respons
 	const id = req.params.userId
 	const db = createPostgresConnectionPool(env, '/app/init')
 	try {
-		const outcome = await ensureUser(env, db, id)
+		const { outcome } = await ensureUser(env, db, id)
 		return respond(OUTCOME_RESPONSES[outcome].body, OUTCOME_RESPONSES[outcome].status, outcome)
 	} catch (e) {
 		record('error')
@@ -61,14 +64,18 @@ export async function ensureUser(
 	env: Environment,
 	db: ReturnType<typeof createPostgresConnectionPool>,
 	id: string
-): Promise<EnsureUserOutcome> {
-	const existing = await db.selectFrom('user').where('id', '=', id).select('id').executeTakeFirst()
-	if (existing) return 'existing'
+): Promise<EnsureUserResult> {
+	const existing = await db
+		.selectFrom('user')
+		.where('id', '=', id)
+		.select('email')
+		.executeTakeFirst()
+	if (existing) return { outcome: 'existing', email: existing.email }
 
 	// Only the creation path is rate-limited: existing users hit the cheap SELECT above on
 	// every sign-in and shouldn't burn rate-limit budget or risk a 429 boot-hang.
 	if (await isRateLimited(env, id)) {
-		return 'rate_limited'
+		return { outcome: 'rate_limited' }
 	}
 
 	// Callers authenticate first, but a user deleted in Clerk since their token was issued would
@@ -79,13 +86,13 @@ export async function ensureUser(
 			if (isClerkAPIResponseError(e) && e.status === 404) return null
 			throw e
 		})
-	if (!clerkUser) return 'no_clerk_user'
+	if (!clerkUser) return { outcome: 'no_clerk_user' }
 
 	// A Clerk user can lack an email (e.g. some SSO/social flows); reading [0].emailAddress
 	// on such a user throws and permanently 500s user boot. Fail cleanly with a 400 instead.
 	const email =
 		clerkUser.primaryEmailAddress?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress
-	if (!email) return 'no_email'
+	if (!email) return { outcome: 'no_email' }
 
 	await db.transaction().execute(async (tx) => {
 		const now = Date.now()
@@ -136,5 +143,6 @@ export async function ensureUser(
 			.onConflict((oc) => oc.doNothing())
 			.execute()
 	})
-	return 'created'
+	// Clerk's email even if a concurrent request won the insert: it wrote the same Clerk user's.
+	return { outcome: 'created', email }
 }

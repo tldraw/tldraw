@@ -175,16 +175,15 @@ export async function canUseMcpServer(env: Environment, userId: string): Promise
 async function hasTldrawEmail(env: Environment, userId: string): Promise<boolean> {
 	const db = createPostgresConnectionPool(env, 'sync-worker/hasTldrawEmail')
 	try {
-		const readUser = () =>
-			db.selectFrom('user').select('email').where('id', '=', userId).executeTakeFirst()
 		// Someone who signed up on the consent screen has a Clerk account but no row until they open
 		// tldraw.com, so create it here rather than refusing them for an email we never stored.
-		let user = await readUser()
-		if (!user && (await ensureUser(env, db, userId)) === 'created') user = await readUser()
+		// ensureUser does the only read, so a concurrent first request or /init creating the row
+		// first still yields its email rather than a refusal.
+		const result = await ensureUser(env, db, userId)
+		if (!('email' in result)) return false
 		// Lowercased because the column stores whatever the account signed up with, and a capitalised
-		// domain is the same domain. Denies on a missing row rather than throwing: a token whose user
-		// is gone should be refused, not turned into a 500.
-		return user?.email?.toLowerCase().endsWith('@tldraw.com') === true
+		// domain is the same domain.
+		return result.email.toLowerCase().endsWith('@tldraw.com')
 	} catch (e) {
 		// An access check that fails open on a database blip would be the wrong direction entirely.
 		console.error('Failed to read user email for MCP access:', e)
