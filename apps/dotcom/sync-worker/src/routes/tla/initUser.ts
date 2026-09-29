@@ -8,13 +8,7 @@ import { LOAD_ID_HEADER, parseLoadId } from '../../utils/loadId'
 import { isRateLimited } from '../../utils/rateLimit'
 import { getClerkClient } from '../../utils/tla/getAuth'
 
-type EnsureUserOutcome =
-	| 'existing'
-	| 'created'
-	| 'rate_limited'
-	| 'no_clerk_user'
-	| 'no_email'
-	| 'email_not_allowed'
+type EnsureUserOutcome = 'existing' | 'created' | 'rate_limited' | 'no_clerk_user' | 'no_email'
 type InitOutcome = EnsureUserOutcome | 'error'
 
 const OUTCOME_RESPONSES: Record<EnsureUserOutcome, { body: string; status: number }> = {
@@ -23,7 +17,6 @@ const OUTCOME_RESPONSES: Record<EnsureUserOutcome, { body: string; status: numbe
 	rate_limited: { body: 'Rate limited', status: 429 },
 	no_clerk_user: { body: 'Clerk user not found', status: 404 },
 	no_email: { body: 'Clerk user has no email address', status: 400 },
-	email_not_allowed: { body: 'Email address not allowed', status: 403 },
 }
 
 export async function initUser(req: IRequest, env: Environment): Promise<Response> {
@@ -67,8 +60,7 @@ export async function initUser(req: IRequest, env: Environment): Promise<Respons
 export async function ensureUser(
 	env: Environment,
 	db: ReturnType<typeof createPostgresConnectionPool>,
-	id: string,
-	{ canCreate }: { canCreate?(email: string): boolean } = {}
+	id: string
 ): Promise<EnsureUserOutcome> {
 	const existing = await db.selectFrom('user').where('id', '=', id).select('id').executeTakeFirst()
 	if (existing) return 'existing'
@@ -94,7 +86,6 @@ export async function ensureUser(
 	const email =
 		clerkUser.primaryEmailAddress?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress
 	if (!email) return 'no_email'
-	if (canCreate && !canCreate(email)) return 'email_not_allowed'
 
 	await db.transaction().execute(async (tx) => {
 		const now = Date.now()

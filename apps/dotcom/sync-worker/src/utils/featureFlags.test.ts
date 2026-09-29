@@ -16,7 +16,7 @@ vi.mock('./tla/getAuth', () => ({
 }))
 
 vi.mock('../routes/tla/initUser', () => ({
-	ensureUser: vi.fn(async () => 'email_not_allowed'),
+	ensureUser: vi.fn(async () => 'no_clerk_user'),
 }))
 
 // canUseMcpServer reads the account's email from Postgres when the flag does not cover them.
@@ -541,16 +541,6 @@ describe('canUseMcpServer', () => {
 	it('refuses when the account has no row', async () => {
 		userEmail.mockReturnValue(undefined)
 		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
-	})
-
-	it('only lets a missing @gmail.com account have rows created', async () => {
-		await canUseMcpServer(makeEnv() as any, 'user-1')
-
-		const [, , userId, options] = vi.mocked(ensureUser).mock.calls[0]
-		expect(userId).toBe('user-1')
-		expect(options?.canCreate?.('Someone@GMAIL.com')).toBe(true)
-		expect(options?.canCreate?.('someone@tldraw.com')).toBe(false)
-		expect(options?.canCreate?.('someone@notgmail.com')).toBe(false)
 	})
 
 	it('reads the email again once the rows are created', async () => {

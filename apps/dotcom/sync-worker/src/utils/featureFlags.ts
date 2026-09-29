@@ -172,23 +172,15 @@ export async function canUseMcpServer(env: Environment, userId: string): Promise
 	return await hasTldrawEmail(env, userId)
 }
 
-function isGmailAddress(email: string) {
-	return email.toLowerCase().endsWith('@gmail.com')
-}
-
 async function hasTldrawEmail(env: Environment, userId: string): Promise<boolean> {
 	const db = createPostgresConnectionPool(env, 'sync-worker/hasTldrawEmail')
 	try {
 		const readUser = () =>
 			db.selectFrom('user').select('email').where('id', '=', userId).executeTakeFirst()
 		// Someone who signed up on the consent screen has a Clerk account but no row until they open
-		// tldraw.com, so create it here rather than refusing them for an email we never stored. Only
-		// @gmail.com sign-ups get rows this way for now.
+		// tldraw.com, so create it here rather than refusing them for an email we never stored.
 		let user = await readUser()
-		if (!user) {
-			const outcome = await ensureUser(env, db, userId, { canCreate: isGmailAddress })
-			if (outcome === 'created') user = await readUser()
-		}
+		if (!user && (await ensureUser(env, db, userId)) === 'created') user = await readUser()
 		// Lowercased because the column stores whatever the account signed up with, and a capitalised
 		// domain is the same domain. Denies on a missing row rather than throwing: a token whose user
 		// is gone should be refused, not turned into a 500.
