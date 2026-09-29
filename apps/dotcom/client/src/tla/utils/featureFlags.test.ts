@@ -96,12 +96,47 @@ describe('feature flags', () => {
 
 		expect(mod.getCurrentFlags()).toEqual(mod.DEFAULT_FLAGS)
 		expect(mod.wasAuthenticated()).toBe(false)
-		expect(mod.hasResolvedFlagsOnce()).toBe(true)
+		expect(mod.hasResolvedFlagsOnce()).toBe(false)
 
 		mockFetchResponse(makeFlags({ rum_enabled: { enabled: true } }), true)
 		const flags = await mod.fetchFeatureFlags()
 
 		expect(flags.rum_enabled.enabled).toBe(true)
+		expect(mockFetch).toHaveBeenCalledTimes(2)
+	})
+
+	it('retries once after a delay when the page-load fetch fails', async () => {
+		vi.useFakeTimers()
+		const mod = await load(() => mockFetch.mockRejectedValueOnce(new Error('network down')))
+
+		mockFetch.mockRejectedValueOnce(new Error('still down'))
+		await vi.advanceTimersByTimeAsync(30_000)
+		expect(mockFetch).toHaveBeenCalledTimes(2)
+		expect(mod.hasResolvedFlagsOnce()).toBe(false)
+
+		await vi.advanceTimersByTimeAsync(10 * 60_000)
+		expect(mockFetch).toHaveBeenCalledTimes(2)
+	})
+
+	it('the delayed retry replaces the defaults', async () => {
+		vi.useFakeTimers()
+		const mod = await load(() => mockFetch.mockRejectedValueOnce(new Error('network down')))
+
+		mockFetchResponse(makeFlags({ rum_enabled: { enabled: true } }), false)
+		await vi.advanceTimersByTimeAsync(30_000)
+
+		expect((await mod.getFeatureFlags()).rum_enabled.enabled).toBe(true)
+		expect(mod.hasResolvedFlagsOnce()).toBe(true)
+	})
+
+	it('skips the delayed retry when a refetch already succeeded', async () => {
+		vi.useFakeTimers()
+		const mod = await load(() => mockFetch.mockRejectedValueOnce(new Error('network down')))
+
+		mockFetchResponse(makeFlags(), true)
+		await mod.fetchFeatureFlags()
+		await vi.advanceTimersByTimeAsync(30_000)
+
 		expect(mockFetch).toHaveBeenCalledTimes(2)
 	})
 

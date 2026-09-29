@@ -88,7 +88,8 @@ function filterProperties(value: { [key: string]: any }) {
 }
 
 /**
- * App feature flags for PostHog event properties; null until `/api/app/feature-flags` has settled once.
+ * App feature flags for PostHog event properties; null until `/api/app/feature-flags` has succeeded, so a failed
+ * fetch doesn't report its defaults as real "off" values.
  * Only used for signed-in users — percentage flags are not evaluated for anonymous requests on the server.
  * We attach here (not via setPersonProperties) so each event carries the values this page load
  * evaluated. Person-level cohorts from flags alone would need extra sync.

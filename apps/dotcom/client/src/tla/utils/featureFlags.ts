@@ -20,6 +20,11 @@ let _wasAuthenticated = false
 let _hasResolvedOnce = false
 // Whether `flagsPromise` has settled; stops concurrent callers each starting a refetch.
 let settled = false
+let lastLoadFailed = false
+let retryScheduled = false
+
+// One retry per page, so a failed page-load fetch doesn't leave defaults in place until reload.
+const RETRY_DELAY_MS = 30_000
 
 // Not polled: a flip reaches a tab on its next load, so no flag here can act as a live kill switch.
 let flagsPromise = loadFlags()
@@ -32,15 +37,26 @@ function loadFlags(): Promise<FeatureFlags> {
 			if (!r.ok) throw new Error(`HTTP ${r.status}`)
 			_wasAuthenticated = r.headers.get('x-authenticated') === '1'
 			currentFlags = (await r.json()) as FeatureFlags
+			_hasResolvedOnce = true
+			lastLoadFailed = false
 		} catch (err) {
 			console.error('[FeatureFlags] fetch failed:', err)
 			_wasAuthenticated = false
 			currentFlags = { ...DEFAULT_FLAGS }
+			lastLoadFailed = true
+			scheduleRetry()
 		}
-		_hasResolvedOnce = true
 		settled = true
 		return currentFlags
 	})()
+}
+
+function scheduleRetry() {
+	if (retryScheduled) return
+	retryScheduled = true
+	setTimeout(() => {
+		if (settled && lastLoadFailed) flagsPromise = loadFlags()
+	}, RETRY_DELAY_MS)
 }
 
 /** The latest flags. Never starts a fetch. */
@@ -66,12 +82,7 @@ export function getCurrentFlags(): FeatureFlags {
 	return currentFlags
 }
 
-/**
- * Whether the feature flag fetch has settled at least once (either
- * successfully or by falling back to defaults). Used by the A/B hook to
- * decide whether the values returned by `getCurrentFlags()` are meaningful
- * yet, or whether we should wait.
- */
+/** Whether a flag fetch has succeeded, i.e. `getCurrentFlags()` holds real values, not defaults. */
 export function hasResolvedFlagsOnce(): boolean {
 	return _hasResolvedOnce
 }
