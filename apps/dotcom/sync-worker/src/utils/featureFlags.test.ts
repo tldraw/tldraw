@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ensureUser } from '../routes/tla/initUser'
 import {
 	canUseMcpServer,
+	resetFeatureFlagCacheForTests,
 	evaluateFlagForUser,
 	getAllFeatureFlagValues,
 	getFeatureFlagValue,
@@ -23,6 +24,14 @@ vi.mock('../routes/tla/initUser', () => ({
 vi.mock('../postgres', () => ({
 	createPostgresConnectionPool: () => ({ destroy: async () => {} }),
 }))
+
+beforeEach(() => resetFeatureFlagCacheForTests())
+
+function kvDown() {
+	return vi.fn(async () => {
+		throw new Error('KV down')
+	})
+}
 
 function makeEnv(
 	kvData: Record<string, string> = {},
@@ -304,15 +313,63 @@ describe('getFeatureFlagValue', () => {
 		expect(value.description).not.toContain('Allow everyone')
 	})
 
-	it('returns defaults on KV error', async () => {
+	it('reads a value that is not JSON as the defaults', async () => {
 		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-		const env = makeEnv()
-		env.FEATURE_FLAGS.get = vi.fn(async () => {
-			throw new Error('KV down')
-		})
+		const env = makeEnv({ rum_enabled: '{not json' })
 		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
-		expect(value).toMatchObject({ type: 'percentage', enabled: false })
+		expect(value).toMatchObject({ type: 'percentage', enabled: false, percentage: 0 })
 		consoleSpy.mockRestore()
+	})
+})
+
+describe('getFeatureFlagValue caching and failure', () => {
+	let consoleSpy: ReturnType<typeof vi.spyOn>
+	beforeEach(() => {
+		consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.useFakeTimers()
+	})
+	afterEach(() => {
+		consoleSpy.mockRestore()
+		vi.useRealTimers()
+	})
+
+	it('reads KV once per flag within the cache window, then again after it', async () => {
+		const env = makeEnv({ rum_enabled: JSON.stringify({ enabled: true, percentage: 10 }) })
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(env.FEATURE_FLAGS.get).toHaveBeenCalledTimes(1)
+
+		vi.advanceTimersByTime(30_000)
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(env.FEATURE_FLAGS.get).toHaveBeenCalledTimes(2)
+	})
+
+	it('returns the defaults on KV error when nothing is cached', async () => {
+		const env = makeEnv()
+		env.FEATURE_FLAGS.get = kvDown()
+		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(value).toMatchObject({ type: 'percentage', enabled: false, percentage: 0 })
+	})
+
+	it('does not cache the fallback from a failed read', async () => {
+		const env = makeEnv({ rum_enabled: JSON.stringify({ enabled: true, percentage: 10 }) })
+		const get = env.FEATURE_FLAGS.get
+		env.FEATURE_FLAGS.get = kvDown()
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+
+		env.FEATURE_FLAGS.get = get
+		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(value).toMatchObject({ enabled: true, percentage: 10 })
+	})
+
+	it('serves the last cached value, however old, on KV error', async () => {
+		const env = makeEnv({ rum_enabled: JSON.stringify({ enabled: true, percentage: 10 }) })
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+
+		vi.advanceTimersByTime(10 * 60_000)
+		env.FEATURE_FLAGS.get = kvDown()
+		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(value).toMatchObject({ enabled: true, percentage: 10 })
 	})
 })
 
@@ -353,6 +410,37 @@ describe('setFeatureFlag', () => {
 		expect(JSON.parse(env.FEATURE_FLAGS.put.mock.calls[0][1]).users).toEqual([
 			{ userId: 'user-2', email: 'two@example.com' },
 		])
+	})
+
+	it('reads the current value from KV, not the cache', async () => {
+		const env = makeEnv({ rum_enabled: JSON.stringify({ enabled: false, percentage: 10 }) })
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+		env.FEATURE_FLAGS.get = vi.fn(async () => JSON.stringify({ enabled: false, percentage: 50 }))
+
+		await setFeatureFlag(env as any, 'rum_enabled', { type: 'percentage', enabled: true })
+
+		expect(JSON.parse(env.FEATURE_FLAGS.put.mock.calls[0][1])).toMatchObject({
+			enabled: true,
+			percentage: 50,
+		})
+	})
+
+	it('refreshes the cache with what it wrote', async () => {
+		const env = makeEnv()
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+		await setFeatureFlag(env as any, 'rum_enabled', { type: 'percentage', percentage: 30 })
+
+		env.FEATURE_FLAGS.get = kvDown()
+		expect(await getFeatureFlagValue(env as any, 'rum_enabled')).toMatchObject({ percentage: 30 })
+	})
+
+	it('fails rather than saving over defaults when KV is down', async () => {
+		const env = makeEnv()
+		env.FEATURE_FLAGS.get = kvDown()
+		await expect(
+			setFeatureFlag(env as any, 'rum_enabled', { type: 'percentage', enabled: true })
+		).rejects.toThrow('KV down')
+		expect(env.FEATURE_FLAGS.put).not.toHaveBeenCalled()
 	})
 
 	// A field that means nothing for this flag's type is refused rather than dropped. It used to be
@@ -443,6 +531,15 @@ describe('getAllFeatureFlagValues', () => {
 			percentage: 30,
 		})
 		expect(flags.rum_enabled.description).toBeTruthy()
+	})
+
+	it('reads KV, not the isolate cache', async () => {
+		const env = makeEnv({ rum_enabled: JSON.stringify({ enabled: false, percentage: 10 }) })
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+		env.FEATURE_FLAGS.get = vi.fn(async () => JSON.stringify({ enabled: true, percentage: 50 }))
+
+		const flags = await getAllFeatureFlagValues(env as any)
+		expect(flags.rum_enabled).toMatchObject({ enabled: true, percentage: 50 })
 	})
 
 	it('returns all flags even when KV is empty', async () => {
@@ -539,6 +636,61 @@ describe('canUseMcpServer', () => {
 			expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
 		}
 	)
+
+	it('still admits staff and refuses everyone else when the flag is unreadable', async () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const env = makeEnv()
+		env.FEATURE_FLAGS.get = kvDown()
+
+		withEmail('someone@tldraw.com')
+		expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+		withEmail('someone@example.com')
+		expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
+		consoleSpy.mockRestore()
+	})
+
+	describe('when KV fails after the flag was cached', () => {
+		let consoleSpy: ReturnType<typeof vi.spyOn>
+		beforeEach(() => {
+			consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			vi.useFakeTimers()
+		})
+		afterEach(() => {
+			consoleSpy.mockRestore()
+			vi.useRealTimers()
+		})
+
+		async function warmThenBreak(stored: object) {
+			const env = makeEnv({ mcp_server_access: JSON.stringify(stored) })
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+			vi.advanceTimersByTime(30_000)
+			env.FEATURE_FLAGS.get = kvDown()
+			return env
+		}
+
+		it.each([
+			['an individual grant', { users: [{ userId: 'user-1', email: 'someone@example.com' }] }],
+			['allowEveryone', { users: [], allowEveryone: true }],
+		])('does not keep admitting through %s', async (_, stored) => {
+			const env = await warmThenBreak(stored)
+			withEmail('someone@example.com')
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
+		})
+
+		// Stale-on-error reads (the flags route) must not re-arm the cached grant for this check.
+		it('does not keep admitting after a stale-on-error read of the flag', async () => {
+			const env = await warmThenBreak({ users: [], allowEveryone: true })
+			await getFeatureFlagValue(env as any, 'mcp_server_access')
+			withEmail('someone@example.com')
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
+		})
+
+		it('still admits staff', async () => {
+			const env = await warmThenBreak({ users: [], allowEveryone: true })
+			withEmail('someone@tldraw.com')
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+		})
+	})
 
 	// The flag still comes first, and it is what keeps the database read off the granted path.
 	it('admits an allowlisted account without reading their email', async () => {

@@ -68,7 +68,7 @@ import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNo
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
 import { getDateFormat } from '../utils/dates'
-import { FeatureFlags } from '../utils/FeatureFlagPoller'
+import { FeatureFlags } from '../utils/featureFlags'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import {
 	clearLastVisitedFile,

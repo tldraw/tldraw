@@ -43,7 +43,7 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			percentage: 100,
 			enabled: true,
 			description:
-				'Version history written as delta chains; rooms outside it write every version as a whole keyframe. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless',
+				'Version history written as delta chains; rooms outside it write every version as a whole keyframe. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless. A change reaches a room when its durable object next starts',
 		},
 	}
 }
@@ -65,36 +65,69 @@ export function hashToPercentage(userId: string, flagName: string): number {
 	return (hash >>> 0) % 100
 }
 
+// Per-isolate cache of stored values. Every page load fetches all flags and every MCP request
+// checks one, so without it each costs a KV read per flag. A flip lands within this TTL plus KV's
+// own edge cache (~60s).
+const FLAG_CACHE_TTL_MS = 30_000
+const flagCache = new Map<FeatureFlagKey, { value: FeatureFlagValue; readAt: number }>()
+
+export function resetFeatureFlagCacheForTests() {
+	flagCache.clear()
+}
+
 /**
- * Get feature flag value from KV store
+ * The stored value, skipping the isolate cache (KV's own edge cache still applies). Throws when
+ * KV does; a stored value that doesn't parse reads as the defaults instead, so the admin panel
+ * can still overwrite it.
+ */
+async function readFeatureFlag(env: Environment, flag: FeatureFlagKey): Promise<FeatureFlagValue> {
+	const defaults = getFlagDefaults()[flag]
+	const value = await env.FEATURE_FLAGS.get(flag)
+	if (!value) return defaults
+	let stored: unknown
+	try {
+		stored = JSON.parse(value)
+	} catch (e) {
+		console.error(`Stored feature flag ${flag} is not valid JSON:`, e)
+		return defaults
+	}
+	// The defaults table is the schema; KV holds only state. A stored `type` is therefore discarded
+	// rather than spread over the default one: `{"type":"allowList"}` — a capital L, or any other
+	// typo — would otherwise reach `evaluateFlagForUser` as a shape none of its arms recognise, and
+	// the value it lands on decides who is let in.
+	//
+	// `description` is discarded on the same grounds. A save writes the whole value back, so the
+	// text a flag was first saved with otherwise outlives every later edit to this table — the
+	// panel goes on describing a control by a name the code no longer uses.
+	return {
+		...defaults,
+		...(stored as object),
+		type: defaults.type,
+		description: defaults.description,
+	} as FeatureFlagValue
+}
+
+/**
+ * A flag's stored value, cached per isolate. Never throws: when KV fails it serves the last value
+ * this isolate read, however old, or the defaults if there is none.
+ *
+ * `staleOnError: false` skips the stale value, for access checks: a cached grant would otherwise
+ * outlive its revocation for as long as KV stays down.
  */
 export async function getFeatureFlagValue(
 	env: Environment,
-	flag: FeatureFlagKey
+	flag: FeatureFlagKey,
+	{ staleOnError = true }: { staleOnError?: boolean } = {}
 ): Promise<FeatureFlagValue> {
-	const defaults = getFlagDefaults()[flag]
+	const cached = flagCache.get(flag)
+	if (cached && Date.now() - cached.readAt < FLAG_CACHE_TTL_MS) return cached.value
 	try {
-		const value = await env.FEATURE_FLAGS.get(flag)
-		if (!value) {
-			return defaults
-		}
-		// The defaults table is the schema; KV holds only state. A stored `type` is therefore discarded
-		// rather than spread over the default one: `{"type":"allowList"}` — a capital L, or any other
-		// typo — would otherwise reach `evaluateFlagForUser` as a shape none of its arms recognise, and
-		// the value it lands on decides who is let in.
-		//
-		// `description` is discarded on the same grounds. A save writes the whole value back, so the
-		// text a flag was first saved with otherwise outlives every later edit to this table — the
-		// panel goes on describing a control by a name the code no longer uses.
-		return {
-			...defaults,
-			...JSON.parse(value),
-			type: defaults.type,
-			description: defaults.description,
-		} as FeatureFlagValue
+		const value = await readFeatureFlag(env, flag)
+		flagCache.set(flag, { value, readAt: Date.now() })
+		return value
 	} catch (e) {
-		console.error(`Failed to get feature flag ${flag}:`, e)
-		return defaults
+		console.error(`Failed to read feature flag ${flag}:`, e)
+		return cached && staleOnError ? cached.value : getFlagDefaults()[flag]
 	}
 }
 
@@ -122,7 +155,7 @@ export function evaluateFlagForUser(
 ): boolean {
 	// Switched exhaustively rather than ending in a fall-through, so a fourth flag type is a compile
 	// error here instead of a flag that quietly evaluates true for everyone. The type itself can only
-	// be one the defaults table names — see getFeatureFlagValue.
+	// be one the defaults table names — see readFeatureFlag.
 	switch (flag.type) {
 		case 'boolean':
 			// `enabled` is the whole evaluation.
@@ -169,7 +202,8 @@ export function evaluateFlagForUser(
  * created here: a Clerk lookup and three inserts, once per account rather than per request.
  */
 export async function canUseMcpServer(env: Environment, userId: string): Promise<boolean> {
-	if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId)) return true
+	const opts = { staleOnError: false }
+	if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId, opts)) return true
 	return await hasTldrawEmail(env, userId)
 }
 
@@ -201,9 +235,10 @@ async function hasTldrawEmail(env: Environment, userId: string): Promise<boolean
 export async function isFeatureFlagEnabledForUser(
 	env: Environment,
 	flag: FeatureFlagKey,
-	userId: string
+	userId: string,
+	opts?: { staleOnError?: boolean }
 ): Promise<boolean> {
-	return evaluateFlagForUser(await getFeatureFlagValue(env, flag), flag, userId)
+	return evaluateFlagForUser(await getFeatureFlagValue(env, flag, opts), flag, userId)
 }
 
 /**
@@ -244,8 +279,13 @@ export async function setFeatureFlag(
 	flag: FeatureFlagKey,
 	update: FeatureFlagUpdate
 ): Promise<void> {
-	const current = await getFeatureFlagValue(env, flag)
-	const put = (value: FeatureFlagValue) => env.FEATURE_FLAGS.put(flag, JSON.stringify(value))
+	// Skips the isolate cache: a cached `current` could be up to a TTL old, and the save would write
+	// that back over a newer edit.
+	const current = await readFeatureFlag(env, flag)
+	const put = async (value: FeatureFlagValue) => {
+		await env.FEATURE_FLAGS.put(flag, JSON.stringify(value))
+		flagCache.set(flag, { value, readAt: Date.now() })
+	}
 
 	switch (update.type) {
 		case 'boolean': {
@@ -319,6 +359,7 @@ export async function getFeatureFlags(request: IRequest, env: Environment): Prom
  *
  * Returns the record rather than a Response so the admin route can decorate it before answering —
  * see the allowlist label resolution there, which needs Postgres and has no business in here.
+ * Bypasses the cache: another isolate's copy can be a TTL behind a save.
  */
 export async function getAllFeatureFlagValues(
 	env: Environment
@@ -327,7 +368,7 @@ export async function getAllFeatureFlagValues(
 
 	await Promise.all(
 		FEATURE_FLAG_KEYS.map(async (key) => {
-			flags[key] = await getFeatureFlagValue(env, key)
+			flags[key] = await readFeatureFlag(env, key)
 		})
 	)
 
