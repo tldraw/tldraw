@@ -154,7 +154,7 @@ export function evaluateFlagForUser(
 ): boolean {
 	// Switched exhaustively rather than ending in a fall-through, so a fourth flag type is a compile
 	// error here instead of a flag that quietly evaluates true for everyone. The type itself can only
-	// be one the defaults table names — see getFeatureFlagValue.
+	// be one the defaults table names — see readFeatureFlag.
 	switch (flag.type) {
 		case 'boolean':
 			// `enabled` is the whole evaluation.
