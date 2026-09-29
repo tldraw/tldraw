@@ -79,7 +79,7 @@ function createPresenceUserStore(userId: string | undefined): TLUserStore {
  * needs the app (the editor, session restore, slurping) mounts below, once it exists.
  */
 export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; children: ReactNode }) {
-	// Keyed by fileSlug, so this runs once per file open.
+	// Once per mount; begin() maps a same-file remount of an unfinished open back to its load.
 	const [fileLoad] = useState(() => fileLoads.begin(fileSlug))
 	fileLoad.mark('file-started')
 	const user = useTldrawCurrentUser()
