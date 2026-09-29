@@ -1,6 +1,8 @@
 import { isClerkAPIResponseError } from '@clerk/backend/errors'
+import { DB } from '@tldraw/dotcom-shared'
 import { IndexKey } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
+import { Transaction } from 'kysely'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
@@ -9,7 +11,7 @@ import { isRateLimited } from '../../utils/rateLimit'
 import { getClerkClient } from '../../utils/tla/getAuth'
 
 type EnsureUserResult =
-	| { outcome: 'existing' | 'created'; email: string }
+	| { outcome: 'existing' | 'created' | 'repaired'; email: string }
 	| { outcome: 'rate_limited' | 'no_clerk_user' | 'no_email' }
 type EnsureUserOutcome = EnsureUserResult['outcome']
 type InitOutcome = EnsureUserOutcome | 'error'
@@ -17,6 +19,7 @@ type InitOutcome = EnsureUserOutcome | 'error'
 const OUTCOME_RESPONSES: Record<EnsureUserOutcome, { body: string; status: number }> = {
 	existing: { body: 'ok', status: 200 },
 	created: { body: 'ok', status: 200 },
+	repaired: { body: 'ok', status: 200 },
 	rate_limited: { body: 'Rate limited', status: 429 },
 	no_clerk_user: { body: 'Clerk user not found', status: 404 },
 	no_email: { body: 'Clerk user has no email address', status: 400 },
@@ -65,12 +68,21 @@ export async function ensureUser(
 	db: ReturnType<typeof createPostgresConnectionPool>,
 	id: string
 ): Promise<EnsureUserResult> {
+	// Joined to the home group because a user row alone is not enough: without the group the
+	// account has no workspace, so the sidebar is empty and create_board has nowhere to put a board.
 	const existing = await db
 		.selectFrom('user')
-		.where('id', '=', id)
-		.select('email')
+		.leftJoin('group', 'group.id', 'user.id')
+		.where('user.id', '=', id)
+		.select(['user.email', 'user.name', 'group.id as homeGroupId'])
 		.executeTakeFirst()
-	if (existing) return { outcome: 'existing', email: existing.email }
+	if (existing?.homeGroupId) return { outcome: 'existing', email: existing.email }
+	if (existing) {
+		await db.transaction().execute(async (tx) => {
+			await insertHomeWorkspace(tx, id, existing.name, Date.now())
+		})
+		return { outcome: 'repaired', email: existing.email }
+	}
 
 	// Only the creation path is rate-limited: existing users take the cheap SELECT above on every
 	// call and shouldn't burn rate-limit budget or be turned away by it.
@@ -115,34 +127,43 @@ export async function ensureUser(
 			})
 			.onConflict((oc) => oc.doNothing())
 			.execute()
-		await tx
-			.insertInto('group')
-			.values({
-				id,
-				// The home/private workspace defaults to "My workspace" and is renameable.
-				name: 'My workspace',
-				createdAt: now,
-				updatedAt: now,
-				isDeleted: false,
-				inviteSecret: null,
-			})
-			.onConflict((oc) => oc.doNothing())
-			.execute()
-		await tx
-			.insertInto('group_user')
-			.values({
-				userId: id,
-				groupId: id,
-				createdAt: now,
-				updatedAt: now,
-				role: 'owner',
-				index: 'a1' as IndexKey,
-				userName: clerkUser.fullName ?? '',
-				userColor: '',
-			})
-			.onConflict((oc) => oc.doNothing())
-			.execute()
+		await insertHomeWorkspace(tx, id, clerkUser.fullName ?? '', now)
 	})
 	// Clerk's email even if a concurrent request won the insert: it wrote the same Clerk user's.
 	return { outcome: 'created', email }
+}
+
+async function insertHomeWorkspace(
+	tx: Transaction<DB>,
+	userId: string,
+	userName: string,
+	now: number
+) {
+	await tx
+		.insertInto('group')
+		.values({
+			id: userId,
+			// The home/private workspace defaults to "My workspace" and is renameable.
+			name: 'My workspace',
+			createdAt: now,
+			updatedAt: now,
+			isDeleted: false,
+			inviteSecret: null,
+		})
+		.onConflict((oc) => oc.doNothing())
+		.execute()
+	await tx
+		.insertInto('group_user')
+		.values({
+			userId,
+			groupId: userId,
+			createdAt: now,
+			updatedAt: now,
+			role: 'owner',
+			index: 'a1' as IndexKey,
+			userName,
+			userColor: '',
+		})
+		.onConflict((oc) => oc.doNothing())
+		.execute()
 }
