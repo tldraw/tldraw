@@ -107,7 +107,7 @@ export function createFileLoads(deps: FileLoadsDeps) {
 				return {
 					...flat,
 					load_kind: kind,
-					// Filters out first opens reached from another page, whose total_ms includes time there.
+					// Lets queries drop first opens reached from another page, whose total_ms includes time there.
 					...(kind === 'first' && { route_kind: deps.firstRouteKind() }),
 					// Comparable across kinds: a first open's clock starts at navigation, and its socket can
 					// connect before the editor renders, so measure from the sync host mounting.
