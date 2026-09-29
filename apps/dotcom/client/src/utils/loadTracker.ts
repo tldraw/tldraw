@@ -118,15 +118,12 @@ const SERVER_FIELD_INFO: Record<string, string> = {
 }
 
 function fieldInfo(key: string, extra?: Record<string, string>) {
-	const step = /^srv_[dt]_(.+)$/.exec(key)?.[1]
-	// A newer server can send steps this client doesn't know yet.
-	const stepInfo: Partial<Record<string, string>> = SERVER_STEP_INFO
-	if (step) return `sync worker step: ${stepInfo[step] ?? step}`
 	return SERVER_FIELD_INFO[key] ?? extra?.[key] ?? ''
 }
 
 /** Server steps one row each, like the client step table, with the other `srv_*` fields apart. */
 export function serverTables(fields: Record<string, unknown>, staff: boolean) {
+	// A newer server can send steps this client doesn't know yet.
 	const stepInfo: Partial<Record<string, string>> = SERVER_STEP_INFO
 	const steps = Object.keys(fields)
 		.map((k) => /^srv_t_(.+)$/.exec(k)?.[1])
