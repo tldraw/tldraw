@@ -692,15 +692,28 @@ describe('canUseMcpServer', () => {
 		})
 	})
 
-	// The flag still comes first, and it is what keeps the database read off the granted path.
-	it('admits an allowlisted account without reading their email', async () => {
-		const env = makeEnv({
-			mcp_server_access: JSON.stringify({
-				enabled: true,
-				users: [{ userId: 'user-1', email: 'someone@example.com' }],
-			}),
+	describe('for an account the flag grants', () => {
+		const grantedEnv = () =>
+			makeEnv({ mcp_server_access: JSON.stringify({ users: [], allowEveryone: true }) })
+
+		// Granted accounts can sign up on the consent screen too, and need a workspace like anyone.
+		it('ensures their rows once per isolate', async () => {
+			const env = grantedEnv()
+			withEmail('someone@example.com')
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+			expect(ensureUser).toHaveBeenCalledTimes(1)
 		})
-		expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
-		expect(ensureUser).not.toHaveBeenCalled()
+
+		it('admits them and retries the rows next time when ensuring fails', async () => {
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			const env = grantedEnv()
+			vi.mocked(ensureUser).mockRejectedValueOnce(new Error('Postgres down'))
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+			withEmail('someone@example.com')
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+			expect(ensureUser).toHaveBeenCalledTimes(2)
+			consoleSpy.mockRestore()
+		})
 	})
 })
