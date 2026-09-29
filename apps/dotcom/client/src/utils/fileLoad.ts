@@ -137,9 +137,9 @@ export function createFileLoads(deps: FileLoadsDeps) {
 			navigation = { pathname, at: deps.now() }
 		},
 		/**
-		 * Reuses the open load for the same file until its board is visible (StrictMode double render);
-		 * after that a same-file begin is a remount (e.g. anon → sign-in swaps layouts) and gets a
-		 * fresh load, since the old one may never be reported and would carry stale marks.
+		 * A same-file remount (e.g. anon → sign-in swaps layouts) reuses the load until its board is
+		 * visible, and gets a fresh one after: mark() keeps each step's first time, so a reused load
+		 * would drop every step of the remount.
 		 */
 		begin(slug: string) {
 			const unfinished = current && current.tracker.getMarks()['board-visible'] === undefined
