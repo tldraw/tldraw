@@ -219,7 +219,8 @@ export function createLoadTracker<Step extends string>(
 	/** The sync server's side of this load, sent once after the socket connects. */
 	function setServerTimings(msg: LoadServerTimings) {
 		if (msg.loadId !== loadId) return
-		// A reconnect inside the report window sends a second, warm echo; the first one is the load.
+		// A second socket before sync-connected (a retry, or a remount reusing this load) also carries
+		// the id and gets an echo; the first one is the load.
 		if (server) return
 		server = msg
 		for (const wake of serverWaiters.splice(0)) wake()
