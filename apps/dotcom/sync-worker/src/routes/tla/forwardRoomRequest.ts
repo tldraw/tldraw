@@ -22,7 +22,7 @@ export async function forwardRoomRequest(request: IRequest, env: Environment): P
 	)
 	const loadId = parseLoadId(new URL(request.url).searchParams.get(LOAD_ID_PARAM))
 	// Worker wall time to the room's 101 (one clock); minus on_request_total for the same load_id
-	// ≈ route + room wake.
+	// ≈ worker ↔ room both ways + room wake + queueing.
 	if (loadId) {
 		writeDataPoint(undefined, env.MEASURE, env, 'forward_room_request', {
 			blobs: [loadId],
