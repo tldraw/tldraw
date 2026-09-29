@@ -209,22 +209,14 @@ test.describe('live sharing scenarios', () => {
 			memberDialog.locator(`[id="workspace-member-role-${memberUserId}"]`)
 		).not.toBeVisible()
 
-		// Leave/Delete live on the Settings tab; members get Leave but not Delete, and promoting the
-		// member surfaces Delete reactively.
+		// Leave/Delete live on the Settings tab; members get Leave but not Delete.
 		await memberDialog.getByRole('tab', { name: 'Settings' }).click()
 		const deleteWorkspaceButton = memberDialog.getByRole('button', { name: /Delete workspace/ })
 		await expect(deleteWorkspaceButton).not.toBeVisible()
 		await expect(memberDialog.getByRole('button', { name: /Leave workspace/ })).toBeVisible()
-
-		await scenario.setWorkspaceMemberRole({
-			owner,
-			workspaceName,
-			memberUserId,
-			role: 'owner',
-		})
-		await expect(deleteWorkspaceButton).toBeVisible({ timeout: 10000 })
 		await member.page.keyboard.press('Escape')
 
+		// Deletions are observed by a regular member, before any role change.
 		await owner.sidebar.switchToWorkspace(workspaceName)
 		await owner.sidebar.deleteFileByName(fileName)
 		await owner.deleteFileDialog.expectIsVisible()
@@ -232,6 +224,16 @@ test.describe('live sharing scenarios', () => {
 		await owner.deleteFileDialog.expectIsNotVisible()
 		await owner.sidebar.expectFileNotVisible(fileName)
 		await member.sidebar.expectFileNotVisible(fileName)
+
+		// Promoting surfaces Delete reactively, and demoting takes it away again.
+		await member.sidebar.openWorkspaceSettings(workspaceName)
+		await memberDialog.getByRole('tab', { name: 'Settings' }).click()
+		await expect(deleteWorkspaceButton).not.toBeVisible()
+		await scenario.setWorkspaceMemberRole({ owner, workspaceName, memberUserId, role: 'owner' })
+		await expect(deleteWorkspaceButton).toBeVisible({ timeout: 10000 })
+		await scenario.setWorkspaceMemberRole({ owner, workspaceName, memberUserId, role: 'member' })
+		await expect(deleteWorkspaceButton).not.toBeVisible({ timeout: 10000 })
+		await member.page.keyboard.press('Escape')
 
 		await owner.sidebar.deleteWorkspace(workspaceName)
 		await owner.sidebar.expectWorkspaceNotVisible(workspaceName)
