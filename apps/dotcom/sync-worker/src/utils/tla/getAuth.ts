@@ -1,8 +1,10 @@
 import { createClerkClient, SessionAuthObject, verifyToken } from '@clerk/backend'
+import { decodeJwt } from '@clerk/backend/jwt'
 import { can } from '@tldraw/dotcom-shared'
 import { IRequest, StatusError } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
+import { writeDataPoint } from '../analytics'
 import { canUseMcpServer } from '../featureFlags'
 import { getRole } from './getRole'
 
@@ -167,7 +169,13 @@ export type SignedInAuth = Extract<SessionAuthObject, { isAuthenticated: true }>
  * from "presented something bad" from "signed in and still not allowed" — three refusals that call
  * for entirely different answers, and that the MCP endpoint reports separately during the rollout.
  */
-export type McpTokenRefusal = 'no_token' | 'invalid_token' | 'unconfigured' | 'not_allowlisted'
+export type McpTokenRefusal =
+	| 'no_token'
+	| 'invalid_token'
+	| 'unconfigured'
+	| 'not_allowlisted'
+	| 'no_audience'
+	| 'wrong_audience'
 
 export type McpTokenAuth = { ok: true; userId: string } | { ok: false; reason: McpTokenRefusal }
 
@@ -218,34 +226,17 @@ export interface McpTokenOptions {
  * `acceptsToken: 'oauth_token'` is the path that expects RFC 9068's `at+jwt`.
  *
  * `typ` is load-bearing rather than pedantry, and is the only thing separating an OAuth access token
- * from a Clerk *session* JWT. Clerk stamps no `aud` on either, so nothing here can tell them apart by
- * audience, and a session token — `typ: JWT` — would otherwise be a valid bearer token. That would
- * make an ordinary tldraw.com website credential enough to drive an agent-facing endpoint, and the
- * consent step an agent walks the user through decoration. The SDK answers one with
- * `token-type-mismatch`.
+ * from a Clerk *session* JWT, which carries no `aud` either. A session token — `typ: JWT` — would
+ * otherwise be a valid bearer token, making an ordinary tldraw.com website credential enough to drive
+ * an agent-facing endpoint, and the consent step an agent walks the user through decoration. The SDK
+ * answers one with `token-type-mismatch`.
  *
  * No `iss` check, where the jose verifier this replaced pinned one: the key set is the accepting
  * instance's own, so a token any other issuer signed fails on signature.
  *
- * There is deliberately no check that the token was issued for the resource being called, and its
- * absence is the part of this function most likely to look like an oversight.
- *
- * RFC 8707 would bind a token to the resource it was minted for, via `aud`, so a token the user
- * granted to somebody else's MCP server could not be replayed against ours. Clerk does not implement
- * it: it stamps no `aud` on an access token whether or not the client sends a `resource` parameter,
- * so there is nothing here to compare. An earlier version of this check did it anyway and, because
- * production enforced unconditionally, would have refused every token ever issued.
- *
- * What closes the hole instead lives on the authorization server, where the client registry is:
- * Clerk's `client_id_metadata_documents_only_allow_pre_registered_clients` refuses to issue tokens to
- * CIMD clients nobody approved, so a client we have never heard of cannot obtain a token for our
- * users in the first place. Approving one is a Clerk dashboard action, not a deploy.
- *
- * The consequence to keep in mind: that setting is the whole of the protection, and it is invisible
- * from this repository. If it is ever turned off, every self-registered client in the world can call
- * these endpoints with a token its user consented to for something else entirely. A `client_id`
- * allowlist here would be the belt to that setting's braces if we ever want one — the claim is on
- * every token.
+ * The audience check (RFC 8707) is what stops a token the user granted to somebody else's MCP server
+ * from being replayed against ours. It depends on Clerk configuration this repository cannot see —
+ * see {@link checkMcpTokenAudience}.
  */
 export async function getMcpTokenAuth(
 	request: IRequest,
@@ -281,12 +272,70 @@ export async function getMcpTokenAuth(
 		return { ok: false, reason: 'invalid_token' }
 	}
 
-	const userId = state.toAuth().userId
+	const { userId, clientId } = state.toAuth()
+	const audienceRefusal = checkMcpTokenAudience(env, token, clientId)
+	if (audienceRefusal) return { ok: false, reason: audienceRefusal }
+
 	if (!(await canUseMcpServer(env, userId))) {
 		return { ok: false, reason: 'not_allowlisted' }
 	}
 
 	return { ok: true, userId }
+}
+
+/**
+ * Whether a verified access token names this server as its audience. Returns the refusal to answer
+ * with, or null to carry on.
+ *
+ * Clerk stamps `aud` only when the client sends an RFC 8707 `resource` parameter, and then stamps
+ * exactly that value; a refresh asking for a different resource gets `invalid_target`. A client that
+ * sends none gets a token with no `aud` at all, which is why absence is a refusal here rather than a
+ * pass: `@clerk/backend`'s own `audience` option skips the comparison when the claim is missing, so a
+ * client could opt out of the check just by leaving the parameter off.
+ *
+ * Relies on the Clerk instance being configured to stamp `aud` (staging and production are); one that
+ * is not refuses every token here. Skipped in local dev, whose Clerk development instance is not
+ * known to.
+ *
+ * Read from the token only after the SDK has verified its signature, so nothing here is trusted
+ * that the SDK did not already check.
+ */
+function checkMcpTokenAudience(
+	env: Environment,
+	token: string,
+	clientId: string
+): 'no_audience' | 'wrong_audience' | 'unconfigured' | null {
+	if (env.IS_LOCAL === 'true') return null
+
+	const expected = env.MCP_SERVER_URL
+	if (!expected) {
+		console.error('MCP token audience check needs MCP_SERVER_URL, which is unset')
+		return 'unconfigured'
+	}
+
+	let aud: unknown
+	try {
+		aud = decodeJwt(token).payload.aud
+	} catch {
+		// An opaque `oat_` token verified by introspection rather than as a JWT: there is no claim to read.
+		aud = undefined
+	}
+	const audiences = (Array.isArray(aud) ? aud : [aud]).filter((a) => typeof a === 'string')
+	const outcome =
+		audiences.length === 0
+			? 'no_audience'
+			: audiences.includes(expected)
+				? 'match'
+				: 'wrong_audience'
+
+	// The client id rides along, unlike on the refusal event, so a client locked out for not sending
+	// `resource` can be named. It names an application — a CIMD document URL or a pre-registered app
+	// id — never a user.
+	writeDataPoint(undefined, env.MEASURE, env, 'mcp_token_audience', {
+		blobs: [`outcome:${outcome}`, `client_id:${clientId.slice(0, 200)}`],
+	})
+
+	return outcome === 'match' ? null : outcome
 }
 
 /** The bearer token on a request, if it carries one. */
