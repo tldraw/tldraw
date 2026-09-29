@@ -1,14 +1,6 @@
-import { DB } from '@tldraw/dotcom-shared'
-import {
-	CompiledQuery,
-	DatabaseConnection,
-	Kysely,
-	PostgresAdapter,
-	PostgresIntrospector,
-	PostgresQueryCompiler,
-	QueryResult,
-} from 'kysely'
+import { CompiledQuery } from 'kysely'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createFakeKysely } from '../../test/fakeKysely'
 import { Environment } from '../../types'
 import { BOARD_SEARCH_PAGE_SIZE } from './boardTools'
 
@@ -20,45 +12,10 @@ const { escapeLikePattern, searchAccessibleBoards, selectAccessibleGroupIds } =
 
 const env = {} as Environment
 
-/**
- * A real Kysely on a driver that records the SQL instead of sending it, and hands back the queued
- * result sets in order.
- *
- * Real rather than a stub builder because the thing under test *is* the SQL: whether the query
- * joins `file_state` decides whether the ordering can ever be index-served, and whether `id`
- * carries `COLLATE "C"` decides whether the database agrees with the JS comparator. Neither is
- * visible in a recording of which builder methods were called.
- */
 function mockPool(resultSets: unknown[][]) {
-	const queries: CompiledQuery[] = []
-	const queued = [...resultSets]
-	const connection: DatabaseConnection = {
-		async executeQuery<R>(compiled: CompiledQuery<unknown>): Promise<QueryResult<R>> {
-			queries.push(compiled)
-			return { rows: (queued.shift() ?? []) as R[] }
-		},
-		async *streamQuery() {},
-	}
-	const db = new Kysely<DB>({
-		dialect: {
-			createAdapter: () => new PostgresAdapter(),
-			createIntrospector: (instance) => new PostgresIntrospector(instance),
-			createQueryCompiler: () => new PostgresQueryCompiler(),
-			createDriver: () => ({
-				async init() {},
-				async acquireConnection() {
-					return connection
-				},
-				async beginTransaction() {},
-				async commitTransaction() {},
-				async rollbackTransaction() {},
-				async releaseConnection() {},
-				async destroy() {},
-			}),
-		},
-	})
-	vi.mocked(createPostgresConnectionPool).mockReturnValue(db)
-	return { queries }
+	const fake = createFakeKysely(resultSets)
+	vi.mocked(createPostgresConnectionPool).mockReturnValue(fake.db)
+	return fake
 }
 
 /** The workspace read is the second query; the first is the workspace-membership lookup. */

@@ -250,7 +250,6 @@ export const CONNECT_STEPS = [
 	'auth',
 	'file_record',
 	'rate_limit',
-	'group_check',
 	'boot',
 	'get_room',
 	'client_connect',

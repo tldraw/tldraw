@@ -99,9 +99,9 @@ const SERVER_STEP_INFO: Record<ConnectStep, string> = {
 	do_init:
 		'room started while this request was in flight: constructor → onRequest, incl. the documentInfo read',
 	auth: 'verify the Clerk token',
-	file_record: 'file row lookup (Postgres; ~0 when the DO has it cached)',
+	file_record:
+		'file row + group role lookup (one Postgres query; role only when the DO has the row cached)',
 	rate_limit: 'rate limiter',
-	group_check: 'group role lookup, getRole (Postgres)',
 	boot: 'room boot from empty SQLite: R2 + comments (see srv_boot_*)',
 	get_room: 'rest of get or create the room',
 	client_connect:
