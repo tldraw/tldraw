@@ -594,7 +594,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		if (this.listeners.size === 0) {
 			this.historyAccumulator.clear()
 		}
-		this.history.set(this.history.get() + 1, changes)
+		// Don't capture: a reaction that writes would otherwise re-run on every store change (S11).
+		this.history.set(this.history.__unsafe__getWithoutCapture() + 1, changes)
 	}
 
 	validate(phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests') {
@@ -1098,7 +1099,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			for (const [_from, to] of objectMapValues(diff.updated)) {
 				const type = this.schema.getType(to.typeName)
 				if (ignoreEphemeralKeys && type.ephemeralKeySet.size) {
-					const existing = this.get(to.id)
+					const existing = this.unsafeGetWithoutCapture(to.id)
 					if (!existing) {
 						toPut.push(to)
 						continue

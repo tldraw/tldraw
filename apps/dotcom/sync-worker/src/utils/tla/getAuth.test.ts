@@ -12,6 +12,11 @@ vi.mock('@clerk/backend', () => ({
 	// Called through, not referenced: the factory is hoisted above the `const`.
 	verifyToken: (...args: unknown[]) => verifyToken(...args),
 }))
+// The tokens here are placeholders Clerk's mocked verifier accepts, so every one names this server.
+// mcpAuth.test.ts covers the audience check against real signed tokens.
+vi.mock('@clerk/backend/jwt', () => ({
+	decodeJwt: () => ({ payload: { aud: 'https://tldraw.com/api/app/mcp' } }),
+}))
 vi.mock('../featureFlags', () => ({ canUseMcpServer: vi.fn() }))
 
 // Import after the mocks are registered.
@@ -26,12 +31,13 @@ import {
 const env = {
 	CLERK_SECRET_KEY: 'sk',
 	CLERK_PUBLISHABLE_KEY: 'pk',
+	MCP_SERVER_URL: 'https://tldraw.com/api/app/mcp',
 } as any
 
 function signedInAs(userId: string | null) {
 	authenticateRequest.mockResolvedValue({
 		isAuthenticated: !!userId,
-		toAuth: () => (userId ? { userId } : null),
+		toAuth: () => (userId ? { userId, clientId: 'client_1' } : null),
 	})
 }
 
