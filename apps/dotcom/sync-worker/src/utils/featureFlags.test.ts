@@ -692,6 +692,21 @@ describe('canUseMcpServer', () => {
 		})
 	})
 
+	// Every account the check sees gets its rows and home workspace, whatever the domain and
+	// whether or not it is admitted.
+	it.each([
+		['a @tldraw.com account', 'someone@tldraw.com', false, true],
+		['any other account', 'someone@example.com', false, false],
+		['any other account the flag grants', 'someone@example.com', true, true],
+	])('ensures the rows of %s', async (_, email, granted, admitted) => {
+		const env = granted
+			? makeEnv({ mcp_server_access: JSON.stringify({ users: [], allowEveryone: true }) })
+			: makeEnv()
+		withEmail(email)
+		expect(await canUseMcpServer(env as any, 'user-1')).toBe(admitted)
+		expect(ensureUser).toHaveBeenCalledWith(env, expect.anything(), 'user-1')
+	})
+
 	describe('for an account the flag grants', () => {
 		const grantedEnv = () =>
 			makeEnv({ mcp_server_access: JSON.stringify({ users: [], allowEveryone: true }) })
