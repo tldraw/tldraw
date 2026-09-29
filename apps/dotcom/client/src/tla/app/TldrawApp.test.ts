@@ -8,6 +8,7 @@ function createAppStub({
 	workspaceComplete = Promise.resolve(),
 	changesFlushed = Promise.resolve(),
 	user = undefined as { id: string } | undefined,
+	user$ = atom('user', user),
 	zeroLog = new ZeroLogBuffer(),
 } = {}) {
 	return Object.assign(Object.create(TldrawApp.prototype), {
@@ -22,7 +23,7 @@ function createAppStub({
 			connection: { state: { current: { name: 'connecting' } } },
 		},
 		changesFlushed,
-		user$: atom('user', user),
+		user$,
 		zeroLog,
 	}) as TldrawApp
 }
@@ -36,7 +37,7 @@ function setVisibility(state: DocumentVisibilityState) {
 describe('TldrawApp.preload', () => {
 	beforeEach(() => {
 		vi.useFakeTimers()
-		vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 503 }))
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }))
 		visibilityState = 'visible'
 		vi.spyOn(document, 'visibilityState', 'get').mockImplementation(() => visibilityState)
 	})
@@ -47,33 +48,65 @@ describe('TldrawApp.preload', () => {
 		vi.restoreAllMocks()
 	})
 
-	it.each([undefined, { id: 'user:test' }])(
-		'times out a stalled Zero query with user %j',
-		async (user) => {
-			const app = createAppStub({ queryComplete: promiseWithResolve<void>(), user })
-			const rejected = vi.fn()
-			void app.preload().catch(rejected)
+	it('loads an existing user without calling init', async () => {
+		await expect(createAppStub({ user: { id: 'user:test' } }).preload()).resolves.toBeUndefined()
+		expect(fetch).not.toHaveBeenCalled()
+		expect(vi.getTimerCount()).toBe(0)
+	})
 
-			await vi.advanceTimersByTimeAsync(30_000)
+	it('runs init once for a user Zero has no row for, then waits for the row', async () => {
+		const user$ = atom('user', undefined as { id: string } | undefined)
+		const resolved = vi.fn()
+		void createAppStub({ user$ }).preload().then(resolved)
 
-			expect(rejected).toHaveBeenCalledWith(
-				expect.objectContaining({ message: 'Init failed: 503' })
-			)
-			expect(vi.getTimerCount()).toBe(0)
-		}
-	)
+		await vi.advanceTimersByTimeAsync(0)
+		expect(fetch).toHaveBeenCalledTimes(1)
+		expect(resolved).not.toHaveBeenCalled()
 
-	it('times out pending state updates', async () => {
-		const app = createAppStub({ changesFlushed: promiseWithResolve<void>() })
+		user$.set({ id: 'user:test' })
+		await vi.advanceTimersByTimeAsync(0)
+
+		expect(resolved).toHaveBeenCalled()
+		expect(fetch).toHaveBeenCalledTimes(1)
+		expect(vi.getTimerCount()).toBe(0)
+	})
+
+	it.each([
+		['zero query', { queryComplete: promiseWithResolve<void>() }],
+		['state flush', { changesFlushed: promiseWithResolve<void>() }],
+		['user init', { hangInit: true }],
+		['user record', {}],
+		[
+			'workspace data',
+			{ workspaceComplete: promiseWithResolve<void>(), user: { id: 'user:test' } },
+		],
+	])('names the stalled %s stage', async (stage, { hangInit, ...stub }: any) => {
+		if (hangInit) vi.mocked(fetch).mockReturnValue(new Promise(() => {}))
 		const rejected = vi.fn()
-		void app.preload().catch(rejected)
+		void createAppStub(stub).preload().catch(rejected)
 
 		await vi.advanceTimersByTimeAsync(30_000)
 
-		expect(rejected).toHaveBeenCalledWith(expect.objectContaining({ message: 'Init failed: 503' }))
+		expect(rejected).toHaveBeenCalledWith(
+			expect.objectContaining({ message: `Timed out waiting for the ${stage}` })
+		)
+		expect(vi.getTimerCount()).toBe(0)
 	})
 
-	it('shares the deadline between the query and user-record waits', async () => {
+	it('does not call init before Zero confirms the row is missing', async () => {
+		const queryComplete = promiseWithResolve<void>()
+		void createAppStub({ queryComplete })
+			.preload()
+			.catch(() => {})
+
+		await vi.advanceTimersByTimeAsync(10_000)
+		expect(fetch).not.toHaveBeenCalled()
+		queryComplete.resolve()
+		await vi.advanceTimersByTimeAsync(0)
+		expect(fetch).toHaveBeenCalledTimes(1)
+	})
+
+	it('shares the deadline between the query, init, and user-record waits', async () => {
 		const queryComplete = promiseWithResolve<void>()
 		const rejected = vi.fn()
 		void createAppStub({ queryComplete }).preload().catch(rejected)
@@ -84,34 +117,13 @@ describe('TldrawApp.preload', () => {
 		expect(rejected).not.toHaveBeenCalled()
 		await vi.advanceTimersByTimeAsync(1)
 
-		expect(rejected).toHaveBeenCalledWith(expect.objectContaining({ message: 'Init failed: 503' }))
+		expect(rejected).toHaveBeenCalledWith(
+			expect.objectContaining({ message: 'Timed out waiting for the user record' })
+		)
 		expect(vi.getTimerCount()).toBe(0)
 	})
 
-	it.each([
-		['zero query', { queryComplete: promiseWithResolve<void>() }],
-		['state flush', { changesFlushed: promiseWithResolve<void>() }],
-		['user record', {}],
-		[
-			'workspace data',
-			{ workspaceComplete: promiseWithResolve<void>(), user: { id: 'user:test' } },
-		],
-	])('names the stalled %s stage after a successful init', async (stage, stub) => {
-		vi.mocked(fetch).mockResolvedValue({ ok: true } as Response)
-		const rejected = vi.fn()
-		void createAppStub(stub).preload().catch(rejected)
-
-		await vi.advanceTimersByTimeAsync(30_000)
-
-		expect(rejected).toHaveBeenCalledWith(
-			expect.objectContaining({
-				message: `Timed out waiting for the ${stage} after init`,
-			})
-		)
-	})
-
 	it('attaches diagnostics to the timeout error', async () => {
-		vi.mocked(fetch).mockResolvedValue({ ok: true } as Response)
 		const zeroLog = new ZeroLogBuffer()
 		zeroLog.log('info', { clientID: 'c1' }, 'Connecting...')
 		const rejected = vi.fn()
@@ -130,8 +142,56 @@ describe('TldrawApp.preload', () => {
 		)
 	})
 
+	it.each([
+		['a failed response', () => ({ ok: false, status: 503 }), 'Init failed: 503'],
+		['a thrown request', () => Promise.reject(new TypeError('Failed to fetch')), 'Failed to fetch'],
+	])('reports init failing with %s if the row never arrives', async (_, response, message) => {
+		vi.mocked(fetch).mockImplementation(response as any)
+		const rejected = vi.fn()
+		void createAppStub().preload().catch(rejected)
+
+		await vi.advanceTimersByTimeAsync(29_999)
+		expect(rejected).not.toHaveBeenCalled()
+		await vi.advanceTimersByTimeAsync(1)
+
+		expect(rejected).toHaveBeenCalledWith(expect.objectContaining({ message }))
+		expect(rejected.mock.calls[0][0].diagnostics).toEqual(
+			expect.objectContaining({ stage: 'user record' })
+		)
+		expect(fetch).toHaveBeenCalledTimes(1)
+		expect(vi.getTimerCount()).toBe(0)
+	})
+
+	it('loads when the row arrives while init is still pending', async () => {
+		vi.mocked(fetch).mockReturnValue(new Promise(() => {}))
+		const user$ = atom('user', undefined as { id: string } | undefined)
+		const resolved = vi.fn()
+		void createAppStub({ user$ }).preload().then(resolved)
+
+		await vi.advanceTimersByTimeAsync(2_000)
+		user$.set({ id: 'user:test' })
+		await vi.advanceTimersByTimeAsync(0)
+
+		expect(resolved).toHaveBeenCalled()
+		expect(vi.getTimerCount()).toBe(0)
+	})
+
+	it('loads when the row replicates after an init that failed post-commit', async () => {
+		vi.mocked(fetch).mockResolvedValue({ ok: false, status: 503 } as Response)
+		const user$ = atom('user', undefined as { id: string } | undefined)
+		const resolved = vi.fn()
+		void createAppStub({ user$ }).preload().then(resolved)
+
+		await vi.advanceTimersByTimeAsync(2_000)
+		user$.set({ id: 'user:test' })
+		await vi.advanceTimersByTimeAsync(0)
+
+		expect(resolved).toHaveBeenCalled()
+		expect(fetch).toHaveBeenCalledTimes(1)
+		expect(vi.getTimerCount()).toBe(0)
+	})
+
 	it('only counts visible time and restarts the deadline on return from hidden', async () => {
-		vi.mocked(fetch).mockResolvedValue({ ok: true } as Response)
 		const rejected = vi.fn()
 		visibilityState = 'hidden'
 		void createAppStub().preload().catch(rejected)
@@ -157,7 +217,6 @@ describe('TldrawApp.preload', () => {
 	})
 
 	it('settles without diagnostics when the caller aborts a hidden bootstrap', async () => {
-		vi.mocked(fetch).mockResolvedValue({ ok: true } as Response)
 		const rejected = vi.fn()
 		const abort = new AbortController()
 		visibilityState = 'hidden'
@@ -174,7 +233,6 @@ describe('TldrawApp.preload', () => {
 	})
 
 	it('shares the deadline with the workspace stage', async () => {
-		vi.mocked(fetch).mockResolvedValue({ ok: true } as Response)
 		const queryComplete = promiseWithResolve<void>()
 		const workspaceComplete = promiseWithResolve<void>()
 		const rejected = vi.fn()
@@ -189,13 +247,8 @@ describe('TldrawApp.preload', () => {
 		await vi.advanceTimersByTimeAsync(1)
 
 		expect(rejected).toHaveBeenCalledWith(
-			expect.objectContaining({ message: 'Timed out waiting for the workspace data after init' })
+			expect.objectContaining({ message: 'Timed out waiting for the workspace data' })
 		)
-		expect(vi.getTimerCount()).toBe(0)
-	})
-
-	it('loads an existing user after an init error and clears the deadline', async () => {
-		await expect(createAppStub({ user: { id: 'user:test' } }).preload()).resolves.toBeUndefined()
 		expect(vi.getTimerCount()).toBe(0)
 	})
 })

@@ -9,9 +9,10 @@ import { getClerkClient } from '../../utils/tla/getAuth'
 
 type InitOutcome = 'existing' | 'created' | 'rate_limited' | 'no_clerk_user' | 'no_email' | 'error'
 
-// Ensures the user row + home workspace exist before Zero can query. Idempotent: concurrent
-// first-sign-ins race safely because all three inserts no-op on conflict, so the loser of the
-// race falls through to the same 200 as the winner instead of hitting a unique violation.
+// Creates the user row + home workspace; the client calls it when Zero has no user row.
+// Idempotent: concurrent first-sign-ins race safely because all three inserts no-op on conflict,
+// so the loser of the race falls through to the same 200 as the winner instead of hitting a
+// unique violation.
 export async function initUser(req: IRequest, env: Environment): Promise<Response> {
 	const start = Date.now()
 	const loadId = parseLoadId(req.headers.get(LOAD_ID_HEADER))
@@ -44,8 +45,7 @@ export async function initUser(req: IRequest, env: Environment): Promise<Respons
 			.executeTakeFirst()
 		if (existing) return respond('ok', 200, 'existing')
 
-		// Only the creation path is rate-limited: existing users hit the cheap SELECT above on
-		// every sign-in and shouldn't burn rate-limit budget or risk a 429 boot-hang.
+		// Only the creation path is rate-limited, so an existing user never burns rate-limit budget.
 		if (await isRateLimited(env, id)) {
 			return respond('Rate limited', 429, 'rate_limited')
 		}
