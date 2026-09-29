@@ -100,6 +100,11 @@ describe('createFirstLoadTracker', () => {
 		expect(createFirstLoadTracker(deps).buildReport().route_kind).toBe('root-redirect')
 	})
 
+	it('classifies a load that started on a file history page as other', () => {
+		const { deps } = makeDeps({ initialPath: '/f/abc/history' })
+		expect(createFirstLoadTracker(deps).buildReport().route_kind).toBe('other')
+	})
+
 	it('reports only once per page load', () => {
 		const { deps } = makeDeps()
 		const tracker = createFirstLoadTracker(deps)

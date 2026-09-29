@@ -112,7 +112,8 @@ export function createFirstLoadTracker(deps: FirstLoadDeps) {
 	})
 	const routeKind = (): FirstLoadRouteKind => {
 		if (deps.initialPath === '/') return 'root-redirect'
-		if (deps.initialPath.startsWith('/f/')) return 'file'
+		// Exact match: landing on /f/:slug/history first puts time on that page into total_ms.
+		if (/^\/f\/[^/]+\/?$/.test(deps.initialPath)) return 'file'
 		return 'other'
 	}
 	return {
