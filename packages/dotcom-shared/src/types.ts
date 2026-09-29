@@ -261,7 +261,7 @@ export type TLCustomServerEvent =
 	| { type: 'persistence_good' }
 	| { type: 'persistence_bad' }
 	// Sent once to a session that connected with a `loadId`, feeding the client's first_load and
-	// file_load reports. Step fields (`d_*`/`t_*`) are ms; edge_colo/do_colo/pg_via are strings.
+	// file_load reports. `d_*`/`t_*` are ms; boot fields only when this connect booted the room.
 	| ({
 			type: 'first_load_server'
 			loadId: string
