@@ -57,8 +57,8 @@ export async function initUser(req: IRequest, env: Environment): Promise<Respons
 	}
 }
 
-// Ensures the user row + home workspace exist before Zero can query. Idempotent: concurrent
-// first-sign-ins race safely because all three inserts no-op on conflict, so the loser of the
+// Ensures the user row + home workspace exist, and returns the account's email when they do.
+// Idempotent: concurrent first-sign-ins race safely because all three inserts no-op on conflict, so the loser of the
 // race falls through to the same outcome as the winner instead of hitting a unique violation.
 export async function ensureUser(
 	env: Environment,
@@ -72,8 +72,8 @@ export async function ensureUser(
 		.executeTakeFirst()
 	if (existing) return { outcome: 'existing', email: existing.email }
 
-	// Only the creation path is rate-limited: existing users hit the cheap SELECT above on
-	// every sign-in and shouldn't burn rate-limit budget or risk a 429 boot-hang.
+	// Only the creation path is rate-limited: existing users take the cheap SELECT above on every
+	// call and shouldn't burn rate-limit budget or be turned away by it.
 	if (await isRateLimited(env, id)) {
 		return { outcome: 'rate_limited' }
 	}
@@ -88,8 +88,8 @@ export async function ensureUser(
 		})
 	if (!clerkUser) return { outcome: 'no_clerk_user' }
 
-	// A Clerk user can lack an email (e.g. some SSO/social flows); reading [0].emailAddress
-	// on such a user throws and permanently 500s user boot. Fail cleanly with a 400 instead.
+	// A Clerk user can lack an email (e.g. some SSO/social flows); reading [0].emailAddress on
+	// such a user throws, which would fail that account on every call. Report it as an outcome.
 	const email =
 		clerkUser.primaryEmailAddress?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress
 	if (!email) return { outcome: 'no_email' }
