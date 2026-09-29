@@ -82,7 +82,7 @@
 		"npm": ">=7.0.0",
 		"node": ">=22.12.0"
 	},
-	"packageManager": "pnpm@12.6.0",
+	"packageManager": "pnpm@12.7.0",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,cjs,mjs}": [
 			"oxfmt --no-error-on-unmatched-pattern",
