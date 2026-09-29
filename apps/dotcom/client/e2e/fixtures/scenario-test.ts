@@ -104,7 +104,7 @@ export class DotcomActor {
 	}
 
 	async waitForAppReady() {
-		await this.homePage.isLoaded()
+		await this.homePage.expectEditorVisible()
 		await this.waitForEditorReady()
 		await this.waitForAuthLoaded()
 		await this.waitForAppStoreHydrated()
@@ -256,8 +256,13 @@ class DotcomActors {
 			await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 		}
 
+		await serveCachedClerkAssets(context)
 		const page = await context.newPage()
 		await setupClerkTestingToken({ page })
+		if (account) {
+			const acceptTerms = page.getByTestId('tla-accept-and-continue-button')
+			await page.addLocatorHandler(acceptTerms, () => acceptTerms.click())
+		}
 
 		const actor = new DotcomActor(name, page, context, account?.email)
 		this.openActors.push(actor)
@@ -409,13 +414,36 @@ class DotcomScenario {
 	}
 
 	// Publishing writes R2 via the outbox after the mutation lands, and the published page is
-	// static, so a single reload can still serve the previous snapshot.
+	// static, so a single reload can still serve the previous snapshot. Poll the API the page
+	// loads from, then reload once.
 	async expectPublishedShapesCount(actor: DotcomActor, expected: number, timeout = 20_000) {
-		await expect(async () => {
-			await actor.page.reload()
-			await actor.waitForAppReady()
-			await actor.editor.expectShapesCount(expected, 2_000)
-		}).toPass({ timeout, intervals: [500, 1_000, 2_000] })
+		const publishedUrl = actor.page.url()
+		await expect
+			.poll(
+				async () => {
+					const response = await actor.page.request.get(getPublishApiUrl(publishedUrl))
+					if (!response.ok()) return null
+					const { records } = (await response.json()) as { records: { typeName: string }[] }
+					return records.filter((r) => r.typeName === 'shape').length
+				},
+				{ timeout }
+			)
+			.toBe(expected)
+		await actor.page.reload()
+		await actor.waitForAppReady()
+		await actor.editor.expectShapesCount(expected)
+	}
+
+	// Unpublishing applies optimistically; the published page only stops resolving once the server
+	// has committed.
+	async expectUnpublished(actor: DotcomActor, publishedUrl: string, timeout = 15_000) {
+		await expect
+			.poll(async () => (await actor.page.request.get(getPublishApiUrl(publishedUrl))).status(), {
+				timeout,
+			})
+			.toBe(404)
+		await actor.page.goto(publishedUrl, { waitUntil: 'load' })
+		await expect(actor.page.getByTestId('tla-error')).toBeVisible()
 	}
 
 	async createLegacyRouteFixture(actor: DotcomActor): Promise<LegacyRouteFixture> {
@@ -504,8 +532,10 @@ class DotcomScenario {
 			.slice(0, MAX_WORKSPACE_NAME_LENGTH)
 		const fileName = opts.fileName ?? this.name('workspace file')
 
-		await this.goToAndOpenSidebar(opts.owner)
-		await this.goToAndOpenSidebar(opts.member)
+		// Only the owner needs a mounted app; the member is looked up by email.
+		if (!(await opts.owner.page.evaluate(() => !!(window as any).app?.z).catch(() => false))) {
+			await this.goToAndOpenSidebar(opts.owner)
+		}
 
 		if (!opts.member.email) throw new Error('Workspace member actor is not signed in')
 		const memberUserId = await this.database.getUserIdByEmail(opts.member.email)
@@ -633,16 +663,51 @@ export const test = base.extend<ScenarioFixtures, ScenarioWorkerFixtures>({
 	owner: async ({ actors }, testUse) => {
 		await testUse(await actors.open('owner'))
 	},
+	// Most scenarios send member and visitor straight to a shared or invite URL, so booting them at
+	// `/` first would be thrown away. Call `goto()` when a test needs them on the root.
 	member: async ({ actors }, testUse) => {
-		await testUse(await actors.open('member'))
+		await testUse(await actors.open('member', { goto: false }))
 	},
 	visitor: async ({ actors }, testUse) => {
-		await testUse(await actors.open('visitor'))
+		await testUse(await actors.open('visitor', { goto: false }))
 	},
 	scenario: async ({ browser: _browser }, testUse, testInfo) => {
 		await testUse(new DotcomScenario(testInfo))
 	},
 })
+
+// clerk-js is pinned per build, so its /npm/ assets never change within a run. Every actor gets a
+// fresh context, and Clerk's testing route disables the HTTP cache, so without this each boot
+// re-downloads clerk-js from Clerk's CDN.
+const clerkAssetCache = new Map<
+	string,
+	{ status: number; headers: Record<string, string>; body: Buffer }
+>()
+
+async function serveCachedClerkAssets(context: BrowserContext) {
+	await context.route(/^https:\/\/[^/]+\/npm\/@clerk\//, async (route) => {
+		const url = route.request().url()
+		const cached = clerkAssetCache.get(url)
+		if (cached) return await route.fulfill(cached)
+
+		const response = await route.fetch().catch(() => null)
+		if (!response) return await route.continue()
+		// fetch() hands back the decoded body, so the encoding headers no longer describe it.
+		const {
+			'content-encoding': _encoding,
+			'content-length': _length,
+			...headers
+		} = response.headers()
+		const entry = { status: response.status(), headers, body: await response.body() }
+		if (response.ok()) clerkAssetCache.set(url, entry)
+		await route.fulfill(entry)
+	})
+}
+
+function getPublishApiUrl(publishedUrl: string) {
+	const slug = new URL(publishedUrl).pathname.split('/p/')[1]
+	return `${ROOT_URL}/api/app/publish/${slug}`
+}
 
 async function ensureStorageState(
 	browser: Browser,

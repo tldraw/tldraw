@@ -25,8 +25,7 @@ export class Database {
 	) {}
 
 	async reset() {
-		await this.cleanUpUser(true)
-		await this.cleanUpUser(false)
+		await Promise.all([this.cleanUpUser(true), this.cleanUpUser(false)])
 	}
 
 	getEmail(isOther: boolean = false) {

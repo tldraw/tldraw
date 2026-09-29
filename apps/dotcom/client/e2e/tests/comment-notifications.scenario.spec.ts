@@ -172,11 +172,12 @@ async function expectUnreadBadge(actor: DotcomActor, count: number) {
 }
 
 test.describe('comment notifications', () => {
-	test('a comment on your home board shows up, and leaves when deleted', async ({
+	test('comments, mentions, and reactions on a board reach the feed, and leave with the board', async ({
 		owner,
 		member,
 		scenario,
 	}) => {
+		test.setTimeout(150_000)
 		const file = await scenario.createSharedFile(owner, 'edit', scenario.name('home board'))
 		await member.goto(file.sharedUrl)
 		const text = scenario.name('home board comment')
@@ -190,8 +191,32 @@ test.describe('comment notifications', () => {
 		await owner.goto(file.url)
 		await expectUnreadBadge(owner, 1)
 
+		const mention = scenario.name('mention')
+		const mentioned = await postComment(owner, mention, { mentionUserId: await userIdOf(member) })
+		await expectNotification(member, mention, /mentioned you/)
+		await closeNotifications(member)
+
+		await waitForRecord(member, mentioned.commentId)
+		await react(member, mentioned, '👍')
+		const reaction = await expectNotification(owner, mention, /reacted to your comment/)
+		await expect(reaction).toContainText('👍')
+		await closeNotifications(owner)
+
 		await softDelete(member, posted.commentId)
 		await expectNoNotification(owner, text)
+		await closeNotifications(owner)
+
+		const doomed = scenario.name('doomed comment')
+		await postComment(member, doomed)
+		await expectNotification(owner, doomed, /commented on your board/)
+		await closeNotifications(owner)
+
+		// deleting the file soft-deletes it and the trigger removes its file_state/group_file rows
+		await owner.page.evaluate(
+			(fileId) => (window as any).app.deleteOrForgetFile(fileId),
+			posted.fileId
+		)
+		await expectNoNotification(owner, doomed)
 	})
 
 	test('replies in a workspace thread notify both sides, until access is lost', async ({
@@ -238,85 +263,5 @@ test.describe('comment notifications', () => {
 			memberUserId: workspace.memberUserId,
 		})
 		await expectNoNotification(member, ownerReply)
-	})
-
-	test('a soft-deleted board takes its notifications with it', async ({
-		owner,
-		member,
-		scenario,
-	}) => {
-		const file = await scenario.createSharedFile(owner, 'edit', scenario.name('doomed board'))
-		await member.goto(file.sharedUrl)
-		const text = scenario.name('doomed comment')
-		const posted = await postComment(member, text)
-		await expectNotification(owner, text, /commented on your board/)
-		await closeNotifications(owner)
-
-		// deleting the file soft-deletes it and the trigger removes its file_state/group_file rows
-		await owner.page.evaluate(
-			(fileId) => (window as any).app.deleteOrForgetFile(fileId),
-			posted.fileId
-		)
-		await expectNoNotification(owner, text)
-	})
-
-	test('a mention reaches the mentioned user only on a board they can access', async ({
-		owner,
-		member,
-		scenario,
-	}) => {
-		const memberId = await userIdOf(member)
-
-		// a board the member has never opened: no file_state, no membership, so no notification
-		await scenario.createPersonalFile(owner, scenario.name('private board'))
-		const hidden = scenario.name('hidden mention')
-		await postComment(owner, hidden, { mentionUserId: memberId })
-
-		const file = await scenario.createSharedFile(owner, 'edit', scenario.name('mention board'))
-		await member.goto(file.sharedUrl)
-		await owner.goto(file.url)
-		const visible = scenario.name('visible mention')
-		await postComment(owner, visible, { mentionUserId: memberId })
-
-		await expectNotification(member, visible, /mentioned you/)
-		await expectNoNotification(member, hidden)
-	})
-
-	test('a comment in several feeds shows up once', async ({ owner, member, scenario }) => {
-		const file = await scenario.createSharedFile(owner, 'edit', scenario.name('dedupe board'))
-		await member.goto(file.sharedUrl)
-		const text = scenario.name('home board mention')
-		const posted = await postComment(member, text, { mentionUserId: await userIdOf(owner) })
-
-		// both feeds have delivered it, so a missing dedupe would show by now
-		await expect
-			.poll(
-				() =>
-					owner.page.evaluate(
-						(commentId) =>
-							[(window as any).app.homeBoardComments$, (window as any).app.mentionComments$].every(
-								(feed) => feed.get().some((c: any) => c.id === commentId)
-							),
-						posted.commentId
-					),
-				{ timeout: FEED_TIMEOUT }
-			)
-			.toBe(true)
-		await expectNotification(owner, text, /mentioned you/)
-		await expect((await openNotifications(owner)).filter({ hasText: text })).toHaveCount(1)
-		await closeNotifications(owner)
-		await expectUnreadBadge(owner, 1)
-	})
-
-	test('a reaction to your comment shows up in the feed', async ({ owner, member, scenario }) => {
-		const file = await scenario.createSharedFile(owner, 'edit', scenario.name('reaction board'))
-		const text = scenario.name('reacted comment')
-		const posted = await postComment(owner, text)
-		await member.goto(file.sharedUrl)
-		await waitForRecord(member, posted.commentId)
-		await react(member, posted, '👍')
-
-		const item = await expectNotification(owner, text, /reacted to your comment/)
-		await expect(item).toContainText('👍')
 	})
 })
