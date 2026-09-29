@@ -70,8 +70,8 @@ beforeAll(async () => {
  * instance as `iss`, a subject, a live `exp` — so each test overrides exactly the one thing it is
  * about, and no test can pass because two things were wrong at once.
  *
- * `aud` names this server, as Clerk stamps it for a client that sends RFC 8707 `resource`; `null`
- * omits it, the shape of a token from a client that sends none.
+ * No `aud`: Clerk stamps none, so its absence here is the shape of a real token rather than an
+ * omission. See authenticateMcpRequest for what stands in for that binding.
  */
 async function signToken({
 	key,
@@ -88,8 +88,7 @@ async function signToken({
 	exp?: number | null
 	claims?: Record<string, unknown>
 } = {}) {
-	const payload: Record<string, unknown> = { iss: ISSUER, aud: RESOURCE, ...claims }
-	if (payload.aud === null) delete payload.aud
+	const payload: Record<string, unknown> = { iss: ISSUER, ...claims }
 	if (sub !== null) payload.sub = sub
 	if (exp !== null) payload.exp = exp
 	return await signJwt(payload, key ?? signingKey, {
@@ -328,10 +327,11 @@ describe('authenticateMcpRequest', () => {
 	})
 
 	// The ways a token can be wrong, each signed for real and each refused by the SDK's verifier rather
-	// than by a mock returning what the test wanted. `typ` is the one that matters most: it is what
-	// separates an OAuth access token from an ordinary tldraw.com session JWT before the audience check
-	// runs. Accepting a session token would make a website credential enough to drive this server, and
-	// the consent step an agent walks a user through decoration.
+	// than by a mock returning what the test wanted. `typ` is the one that matters most: Clerk stamps
+	// no `aud` on either kind of token, so the token type is the *only* thing separating an OAuth
+	// access token from an ordinary tldraw.com session JWT. Accepting a session token would make a
+	// website credential enough to drive this server, and the consent step an agent walks a user
+	// through decoration.
 	//
 	// "Another issuer" is not a case of its own any more: with no `iss` check, what refuses a token
 	// from another Clerk instance is that it is signed with a key that is not in our instance's key
@@ -444,84 +444,5 @@ describe('authenticateMcpRequest', () => {
 		expect(response.status).toBe(401)
 		expect(response.headers.get('WWW-Authenticate')).not.toContain('error=')
 		expect(fetchMock).not.toHaveBeenCalled()
-	})
-})
-
-describe('the MCP token audience check', () => {
-	const measure = { writeDataPoint: vi.fn() }
-
-	beforeEach(() => {
-		measure.writeDataPoint.mockReset()
-		vi.mocked(canUseMcpServer).mockResolvedValue(true)
-	})
-
-	const recorded = () =>
-		measure.writeDataPoint.mock.calls
-			.map(([point]) => point.blobs)
-			.filter((blobs: string[]) => blobs[0] === 'mcp_token_audience')
-			.map((blobs: string[]) => blobs.slice(2))
-
-	it.each([
-		['a token naming this server', { aud: RESOURCE }, 'match'],
-		[
-			'a token naming this server among others',
-			{ aud: ['https://other.example', RESOURCE] },
-			'match',
-		],
-		// What Clerk issues to a client that sends no `resource`. The SDK's own `audience` option lets
-		// this through, which is why the check reads the claim itself.
-		['a token with no audience', { aud: null }, 'no_audience'],
-		['a token naming another server', { aud: 'https://other.example/mcp' }, 'wrong_audience'],
-	])('with %s, admits only a match and records the outcome', async (_name, claims, outcome) => {
-		const result = await authenticateMcpRequest(
-			bearer(await signToken({ claims: { client_id: 'client_abc', ...claims } })),
-			makeEnv({ MEASURE: measure })
-		)
-
-		if (outcome === 'match') {
-			expect(result).toEqual({ ok: true, userId: 'user_123' })
-		} else {
-			expect(result).toMatchObject({ ok: false, reason: outcome })
-			const response = responseOf(result)
-			expect(response.status).toBe(401)
-			expect(response.headers.get('WWW-Authenticate')).toContain('error="invalid_token"')
-		}
-		expect(recorded()).toEqual([[`outcome:${outcome}`, 'client_id:client_abc']])
-	})
-
-	// Checked before the flag, so a token minted for another server says so rather than reading as a
-	// user who is not on the list.
-	it('refuses a wrong audience before asking whether the user may use the server', async () => {
-		vi.mocked(canUseMcpServer).mockResolvedValue(false)
-
-		const result = await authenticateMcpRequest(
-			bearer(await signToken({ claims: { aud: 'https://other.example/mcp' } })),
-			makeEnv()
-		)
-
-		expect(result).toMatchObject({ ok: false, reason: 'wrong_audience' })
-		expect(canUseMcpServer).not.toHaveBeenCalled()
-	})
-
-	it('does nothing in local dev', async () => {
-		const result = await authenticateMcpRequest(
-			bearer(await signToken({ claims: { aud: null } })),
-			makeEnv({ IS_LOCAL: 'true', MEASURE: measure })
-		)
-
-		expect(result).toEqual({ ok: true, userId: 'user_123' })
-		expect(recorded()).toEqual([])
-	})
-
-	it('refuses as unconfigured with no MCP_SERVER_URL to compare against', async () => {
-		const result = await authenticateMcpRequest(
-			bearer(await signToken({ claims: { aud: RESOURCE } })),
-			makeEnv({ MCP_SERVER_URL: undefined })
-		)
-
-		expect(result).toMatchObject({ ok: false, reason: 'unconfigured' })
-		expect(console.error).toHaveBeenCalledWith(
-			'MCP token audience check needs MCP_SERVER_URL, which is unset'
-		)
 	})
 })
