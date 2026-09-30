@@ -376,7 +376,7 @@ describe('summarizeNavigation', () => {
 })
 
 describe('reportFirstLoad', () => {
-	it("waits for the adopted file load's echo and carries its ids and boot fields", async () => {
+	it("waits for the adopted file load's echo and carries its ids, boot fields and extras", async () => {
 		const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
 		let echo: LoadServerTimings | null = null
 		let wake: (gotEcho: boolean) => void = () => {}
@@ -392,6 +392,7 @@ describe('reportFirstLoad', () => {
 				whenServerTimings: () => new Promise((resolve) => (wake = resolve)),
 				getServerTimings: () => echo,
 			},
+			extra: { page_shapes: 12, records: 40 },
 		})
 		await flush()
 		expect(trackEvent).not.toHaveBeenCalled()
@@ -408,6 +409,8 @@ describe('reportFirstLoad', () => {
 				srv_cold: true,
 				srv_t_auth: 5,
 				srv_echo: true,
+				page_shapes: 12,
+				records: 40,
 			})
 		)
 	})

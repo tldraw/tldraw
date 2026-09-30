@@ -28,7 +28,11 @@ import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/S
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
-import { estimateFileSizeBucket, useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
+import {
+	boardSizeFields,
+	estimateFileSizeBucket,
+	useRoomLoadTracking,
+} from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
@@ -182,12 +186,13 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				setIsReady()
 				markFirstLoad('board-visible')
 				fileLoad.mark('board-visible')
-				reportFirstLoad({ email: null, flagEnabled: false, trackEvent, fileLoad })
+				const size = boardSizeFields(editor)
+				reportFirstLoad({ email: null, flagEnabled: false, trackEvent, fileLoad, extra: size })
 				reportFileLoad(fileLoad, {
 					email: null,
 					flagEnabled: false,
 					trackEvent,
-					extra: { file_size_bucket: estimateFileSizeBucket(editor) },
+					extra: { file_size_bucket: estimateFileSizeBucket(editor), ...size },
 				})
 				return
 			}
@@ -248,17 +253,19 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 					setIsReady()
 					markFirstLoad('board-visible')
 					fileLoad.mark('board-visible')
+					const size = boardSizeFields(editor)
 					reportFirstLoad({
 						email: app?.email,
 						flagEnabled: app?.isLoadRumEnabled ?? false,
 						trackEvent,
 						fileLoad,
+						extra: size,
 					})
 					reportFileLoad(fileLoad, {
 						email: app?.email,
 						flagEnabled: app?.isLoadRumEnabled ?? false,
 						trackEvent,
-						extra: { file_size_bucket: estimateFileSizeBucket(editor) },
+						extra: { file_size_bucket: estimateFileSizeBucket(editor), ...size },
 					})
 				})
 

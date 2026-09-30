@@ -58,7 +58,7 @@ const FIRST_LOAD_STEP_INFO: Record<FirstLoadStep, string> = {
 	'file-chunk-loaded': 'file route chunk evaluated',
 	'editor-rendered': 'TlaEditorInner first render (room_load_duration t0)',
 	'sync-token-fetched': 'Clerk token for the sync socket obtained',
-	'sync-connected': 'sync socket open, server checks done, snapshot received (synced-remote)',
+	'sync-connected': 'sync socket open, server checks done, snapshot received and applied',
 	'editor-mounted': "editor's onMount ran",
 	'board-visible': 'ready shroud lifted; board on screen',
 }
@@ -327,6 +327,7 @@ export function reportFirstLoad(opts: {
 	trackEvent(name: string, data: Record<string, unknown>): void
 	/** The file open whose board ended the load; its connect is this load's server side. */
 	fileLoad: AdoptedFileLoad
+	extra: Record<string, unknown>
 }) {
 	const inGate = shouldReportLoad(opts)
 	const hidden = hiddenDuringLoad && inGate
@@ -346,6 +347,7 @@ export function reportFirstLoad(opts: {
 		file_load_id: adopted.loadId,
 		connect_id: adopted.connectId(),
 		...adopted.bootFields(),
+		...opts.extra,
 	}
 	void adopted.whenServerTimings(SERVER_ECHO_DEADLINE_MS).then((gotEcho) => {
 		const echo = adopted.getServerTimings()

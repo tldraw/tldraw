@@ -36,7 +36,7 @@ const FILE_LOAD_STEP_INFO: Record<FileLoadStep, string> = {
 	'file-started': 'TlaFileSyncHost mounted for this file (file_ms t0)',
 	'editor-rendered': 'TlaEditorInner first render',
 	'sync-token-fetched': 'Clerk token for the sync socket obtained',
-	'sync-connected': 'sync socket open, server checks done, snapshot received (synced-remote)',
+	'sync-connected': 'sync socket open, server checks done, snapshot received and applied',
 	'editor-mounted': "editor's onMount ran",
 	'board-visible': 'ready shroud lifted; board on screen',
 }
