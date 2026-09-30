@@ -80,8 +80,6 @@ const FIRST_LOAD_FIELD_INFO: Record<string, string> = {
 	res_slowest: 'slowest resource by duration',
 	res_slowest_ms: 'its duration',
 	clerk_script_ms: 'clerk.browser.js fetch duration',
-	page_shapes: 'shapes on the page the board opened on',
-	records: 'records in the store (document and session) at board-visible',
 }
 
 export const FIRST_LOAD_LOG_HEADER =

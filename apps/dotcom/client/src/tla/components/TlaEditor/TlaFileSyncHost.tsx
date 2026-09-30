@@ -122,8 +122,8 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 			},
 			[fileLoad]
 		),
-		// `load` fires as the snapshot is applied. An effect on `synced-remote` waits out the editor's
-		// mount work, which on big boards put seconds of it into this step.
+		// `load` fires right after the snapshot is applied. An effect on `synced-remote` would wait out
+		// the editor's mount work, seconds on big boards.
 		trackAnalyticsEvent: useCallback(
 			(_name: string, data: { name?: string }) => {
 				if (data.name !== 'load') return
