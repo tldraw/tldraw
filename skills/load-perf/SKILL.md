@@ -27,10 +27,10 @@ Who reports: staff (`@tldraw.com`) always, everyone else through the `load_rum` 
 ## Workflow
 
 1. **Deploy timeline.** Run `scripts/deploys.sh [since]`, or `scripts/pr-deploys.sh <pr...>` when PRs are given. Say which PRs are not in production yet.
-2. **Client timings.** Adapt `references/first-load-by-era.sql` with the cut points and run it on each project. Split by `route_kind` (`file` = direct board link, `root-redirect` = `/` then redirected to a board) and by `is_signed_in`. Drop buckets with n < 10 in prod. Staging has to accept tiny n.
+2. **Client timings.** Adapt `references/first-load-by-era.sql` with the cut points and run it on each project. Split by `route_kind` (`file` = direct board link, `root-redirect` = `/` then redirected to a board) and by `is_signed_in`. Drop buckets with n < 10 in prod. Staging has to accept tiny n. It returns p50 and p90 per metric with % change against the first and the previous era. Skip p95: most eras have too few loads for it.
 3. **Sanity check.** Run `references/first-load-daily.sql`. If an era change is just one bad day, or tracks `cold` or n, it's a population shift, not the PR.
 4. **Server steps.** Run `scripts/server-steps.sh <production|staging> [since]` and match the step changes to the deploy times.
-5. **Report.** Give a table per env with era, n, the key p50s, and p90 for board visible and zero preloaded. Then one line per PR on what it moved, and what is gating board visible now.
+5. **Report.** Give a table per env with era, n, and p50 / p90 for each metric with its % change (negative = faster). Use `vs_prev` to credit a PR, and `vs_first` for the total. If the first era is short or its `cold` share differs, say so, since every `vs_first` depends on it. Then one line per PR on what it moved, and what is gating board visible now.
 
 ## Reading the numbers
 
