@@ -221,6 +221,23 @@ describe('TldrawApp.preload', () => {
 		expect(vi.getTimerCount()).toBe(0)
 	})
 
+	it('blames a later stall, not a failed init, once the row arrives', async () => {
+		vi.mocked(fetch).mockResolvedValue({ ok: false, status: 503 } as Response)
+		const user$ = atom('user', undefined as { id: string } | undefined)
+		const rejected = vi.fn()
+		void createAppStub({ user$, workspaceComplete: promiseWithResolve<void>() })
+			.preload()
+			.catch(rejected)
+
+		await vi.advanceTimersByTimeAsync(0)
+		user$.set({ id: 'user:test' })
+		await vi.advanceTimersByTimeAsync(30_000)
+
+		expect(rejected).toHaveBeenCalledWith(
+			expect.objectContaining({ message: 'Timed out waiting for the workspace data' })
+		)
+	})
+
 	it('only counts visible time and restarts the deadline on return from hidden', async () => {
 		const rejected = vi.fn()
 		visibilityState = 'hidden'
