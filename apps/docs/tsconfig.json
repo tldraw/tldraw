@@ -1,7 +1,10 @@
 {
 	"extends": "../../internal/config/tsconfig.base.json",
 	"compilerOptions": {
-		"paths": { "@/*": ["./*"] },
+		"paths": {
+			"@/*": ["./*"],
+			"*": ["${configDir}/node_modules/@types/*"]
+		},
 		"lib": ["DOM", "DOM.Iterable", "ESNext"],
 		"plugins": [{ "name": "next" }],
 		"allowJs": true,

@@ -1,3 +1,5 @@
+/// <reference types="@cloudflare/workers-types" />
+
 import { APP_ASSET_UPLOAD_ENDPOINT } from '@tldraw/dotcom-shared'
 import { T } from '@tldraw/validate'
 import {

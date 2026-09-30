@@ -51,3 +51,28 @@ overrides:
 
 patchedDependencies:
   '@microsoft/tsdoc@0.15.1': patches/@microsoft__tsdoc@0.15.1.patch
+
+packageExtensions:
+  # These packages import modules they don't declare. The standard layout finds them in pnpm's hidden
+  # hoist; the global virtual store used for local checkouts (.pnpmfile.cjs) has none.
+  '@rocicorp/zero':
+    peerDependencies:
+      kysely: '*'
+    peerDependenciesMeta:
+      kysely:
+        optional: true
+  '@fastify/websocket':
+    peerDependencies:
+      fastify: '*'
+    peerDependenciesMeta:
+      fastify:
+        optional: true
+  algoliasearch-helper:
+    peerDependencies:
+      '@algolia/client-search': '*'
+      '@algolia/recommend': '*'
+    peerDependenciesMeta:
+      '@algolia/client-search':
+        optional: true
+      '@algolia/recommend':
+        optional: true

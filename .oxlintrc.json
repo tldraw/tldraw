@@ -64,6 +64,7 @@
 		"**/.*.js",
 		"packages/assets/*",
 		"packages/create-tldraw/cli.cjs",
+		".pnpmfile.cjs",
 		"**/*/vitest.config.ts",
 		"**/*/setupVitest.js",
 		"**/*/zod-locales-shim.js",

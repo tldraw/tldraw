@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
+		"paths": { "*": ["${configDir}/node_modules/@types/*"] },
 		"lib": ["DOM", "DOM.Iterable", "ESNext"],
 		"target": "esnext",
 		"allowJs": true,
