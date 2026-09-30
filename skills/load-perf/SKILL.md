@@ -17,7 +17,7 @@ Arguments are all optional: `load-perf [staging|production] [#PR ...] [since YYY
 
 | What | Where | Access |
 | --- | --- | --- |
-| Client timings: `first_load` (page boot) | PostHog MCP, `execute-sql` | prod project **45972**, staging **45921**. 45919 is empty: `switch-project` first |
+| Client timings: `first_load` (page boot, from #10868: staging 09-22, prod 09-23) | PostHog MCP, `execute-sql` | prod project **45972**, staging **45921**. 45919 is the MCP default and is empty |
 | Sync worker connect steps | Cloudflare Analytics Engine via Grafana (`scripts/ae.sh`) | `GRAFANA_TOKEN` env var, a viewer service-account token with Query on the AE datasource |
 | Deploy times | `origin/production` deploy commits, PR merge times | `git`, `gh` |
 
@@ -25,12 +25,14 @@ Who reports: staff (`@tldraw.com`) always, everyone else through the `load_rum` 
 
 ## Workflow
 
-1. **Generate the comparison.** Run `scripts/compare-sql.mjs <env> [--since YYYY-MM-DD] [--hours 48] [--settle 1] [pr ...]` and save the output to a file.
-   - It takes each PR's deploy time from `scripts/pr-deploys.sh` and compares the 48h before the deploy with the 48h after it. The after window skips the first hour after the deploy (`--settle`), when cold caches slow every load.
-   - A window stops early at the next or previous deploy. Deploys within 2h of each other are measured together.
+1. **Generate the comparison.** Run `scripts/compare-sql.mjs <staging|production|both> --out <dir> [--since YYYY-MM-DD] [--hours 48] [--settle 1] [pr ...]`. Put `<dir>` in your scratchpad.
+   - It prints notes per env, and writes `<env>.sql` (to read) and `<env>.call` (to send).
+   - It takes deploy times from `scripts/pr-deploys.mjs`, then compares equal windows before and after each deploy: up to 48h each side, cut short at a neighbouring deploy, the start of `first_load` data, or now.
+   - It skips the first hour after a deploy (`--settle`), when cold caches slow every load. Deploys within 2h of each other are measured together.
    - It adds an `overall` row: the first 48h of data vs the last 48h.
-   - Its `-- note:` lines list PRs that aren't deployed yet, shortened windows, and grouped PRs.
-2. **Run it** with PostHog `execute-sql` on the env's project. Drop the `--` comment lines first.
+2. **Run it** on PostHog, per env:
+   - Send `call switch-project {"projectId": N}` through the PostHog MCP `exec` tool. The notes give N.
+   - Then send the contents of `<env>.call`, as-is, as the `exec` command.
 3. **Server steps.** Run `scripts/server-steps.sh <env> [since]` for daily p50/p90 of the connect path, and line the changes up with the deploy times.
 4. **Report**, per env. Lead with board visible, one row per PR (or group): `p50 before → after (±%)`, the same for p90, n before/after, and the verdict. Negative % = faster.
    - **Production verdicts** come from 95% confidence intervals of each percentile (`*_ci`, before -> after). `faster` or `slower` means the intervals don't overlap. `no clear change` means the difference is within noise. Don't round it up to a win.
@@ -38,15 +40,18 @@ Who reports: staff (`@tldraw.com`) always, everyone else through the `load_rum` 
    - Mention `population_shift` (the cold share moved by more than 0.1) and any large `weekend_before` / `weekend_after` difference. Both change who is loading, not just the code.
    - Explain *why* using the other metrics: zero preloaded, sync connected, token → sync, and the server steps.
    - Then the `overall` row, and what now gates board visible.
-   - Always include the raw result table, the `-- note:` lines, and the path to the saved SQL, so the reader can check the numbers or rerun them.
+   - Pass on the notes that affect a verdict: short windows (time of day differs under a day), hotfix bundles (the row measures the whole bundle), and PRs shipped before `first_load` existed.
+   - Always include the raw result table and the paths to `<env>.sql`, so the reader can check the numbers or rerun them.
 
-`scripts/deploys.sh [since]` prints the full deploy timeline when you need to know what else shipped around a PR. `references/first-load-daily.sql` gives a daily trend for spotting a single bad day.
+`scripts/pr-deploys.mjs <pr ...>` prints when each PR reached staging and production, and which hotfix carried it. `scripts/deploys.sh [since]` prints the full deploy timeline when you need to know what else shipped around a PR. `references/first-load-daily.sql` gives a daily trend for spotting a single bad day.
 
 ## Reading the numbers
 
 - `t_*` is ms since navigation start. `srv_*` is the server echo for the same connect.
 - Board visible ≈ max(zero preloaded, sync connected) + editor mount. Sync used to start only after Zero preloaded. Since #10880 the socket opens in parallel, so check which of the two is later.
 - `d_*` is the gap to whichever step happened just before, not a fixed predecessor. For the connect path as the client sees it, use `t_sync_connected - t_sync_token_fetched` (the "token to sync" metric) and compare it with `on_request_total` from AE.
+- Token to sync is much larger than `on_request_total`. On prod it's ~1.7s vs ~0.3s. The worker handler is only part of the connect: there's also the WebSocket upgrade, waking the DO, and the first message round trip. `first_load` has them as `srv_d_route`, `srv_d_do_init`, `srv_d_get_room`, `srv_d_client_connect` and `srv_d_handshake`.
+- Prod `on_request_total` p90 sits flat at ~2.05s: the file record and group check each have a ~1s Postgres tail. It's expected to drop with Hyperdrive (#10912) and the single query (#10959).
 - A high `t_js_started` means slow navigation TTFB (look at `nav_ttfb`), usually just after a production deploy on `root-redirect`. Not an app problem.
 - `srv_cold` means there was no live room in the DO. A load from R2/Postgres shows as `srv_boot_*`.
 - Zero stalls show up as 30-90s p90s with a normal p50, so always read the p90. Its interval is wide, so a p90 verdict needs a large effect.

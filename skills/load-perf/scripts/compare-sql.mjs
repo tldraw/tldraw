@@ -1,14 +1,18 @@
 #!/usr/bin/env node
-// Prints PostHog HogQL comparing first_load timings in equal windows before and after each PR's
-// deploy, plus an overall start-vs-now row. Paste the output into the PostHog MCP `execute-sql`.
+// Builds PostHog HogQL comparing first_load timings in equal windows before and after each PR's
+// deploy, plus an overall start-vs-now row. Prints notes; writes per env `<env>.sql` (plain SQL)
+// and `<env>.call` (the exact PostHog MCP `exec` command, ready to send).
 //
-// usage: compare-sql.mjs <production|staging> [--hours 48] [--settle 1] [--since YYYY-MM-DD] [--route file] [pr ...]
+// usage: compare-sql.mjs <production|staging|both> [--out DIR] [--hours 48] [--settle 1]
+//          [--since YYYY-MM-DD] [--route file] [pr ...]
 // With no PRs, uses every `perf` PR merged to main since --since.
-// Verdicts compare 95% confidence intervals of each percentile (order statistics, no distribution
-// assumed): faster/slower only when the before and after intervals don't overlap.
+// Production verdicts compare 95% confidence intervals of each percentile (order statistics, no
+// distribution assumed): faster/slower only when the before and after intervals don't overlap.
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { prDeploys } from './pr-deploys.mjs'
 
 const HOUR = 3600_000
 // Deploys closer than this get merged into one change: their windows would be too short to separate.
@@ -16,11 +20,19 @@ const MERGE_WITHIN_MS = 2 * HOUR
 // Share of cold rooms moving more than this means the population changed, not just the code.
 const COLD_SHIFT = 0.1
 const STAGING_FLAT_PCT = 10
+const MIN_LOADS = { production: 5, staging: 3 }
+const PROJECT = { production: 45972, staging: 45921 }
+// first_load exists from #10868's deploy on; earlier windows would compare against nothing.
+const FIRST_LOAD_FROM = { production: Date.parse('2026-09-23T09:18Z'), staging: Date.parse('2026-09-22T11:18Z') }
+// Staging serves a merge ~15 min after it lands on main.
+const STAGING_LAG = 15 * 60_000
 
 const args = process.argv.slice(2)
-const env = args.shift()
-if (env !== 'production' && env !== 'staging') {
-	console.error('usage: compare-sql.mjs <production|staging> [--hours 48] [--since YYYY-MM-DD] [--route file] [pr ...]')
+const envArg = args.shift()
+if (!['production', 'staging', 'both'].includes(envArg)) {
+	console.error(
+		'usage: compare-sql.mjs <production|staging|both> [--out DIR] [--hours 48] [--settle 1] [--since YYYY-MM-DD] [--route file] [pr ...]'
+	)
 	process.exit(1)
 }
 const opt = (name, fallback) => {
@@ -34,109 +46,111 @@ const hours = Number(opt('hours', '48'))
 const settle = Number(opt('settle', '1'))
 const since = opt('since', new Date(Date.now() - 10 * 24 * HOUR).toISOString().slice(0, 10))
 const route = opt('route', 'file')
+const outDir = opt('out', null) ?? mkdtempSync(join(tmpdir(), 'load-perf-'))
+mkdirSync(outDir, { recursive: true })
 let prs = args.map((a) => a.replace(/^#/, ''))
 
 if (prs.length === 0) {
-	const out = execFileSync('gh', [
-		'pr', 'list', '--state', 'merged', '--limit', '200',
-		'--search', `merged:>=${since} -base:hotfixes`,
-		'--json', 'number,title', '--jq', '.[] | select(.title | test("^perf")) | .number',
-	]).toString()
-	prs = out.trim().split('\n').filter(Boolean)
+	prs = JSON.parse(
+		execFileSync('gh', ['pr', 'list', '--state', 'merged', '--limit', '200', '--search', `merged:>=${since} -base:hotfixes`, '--json', 'number,title'], {
+			encoding: 'utf8',
+		})
+	)
+		.filter((p) => /^perf/.test(p.title))
+		.map((p) => String(p.number))
 }
 
-const scriptDir = dirname(fileURLToPath(import.meta.url))
-const deployLines = execFileSync(join(scriptDir, 'pr-deploys.sh'), prs).toString().trim().split('\n')
-
-const notes = []
-const points = []
-for (const line of deployLines) {
-	const [prCol, stagingCol, prodCol, title] = line.split('\t')
-	const at = (env === 'production' ? prodCol : stagingCol)?.replace(/^(staging|prod) /, '')
-	if (!at || !/^\d{4}-/.test(at)) {
-		notes.push(`${prCol} not in ${env} yet`)
-		continue
-	}
-	// Staging serves a merge ~15 min later.
-	const deployedAt = Date.parse(`${at}:00Z`) + (env === 'staging' ? 15 * 60_000 : 0)
-	points.push({ pr: prCol, title, at: deployedAt })
-}
-points.sort((a, b) => a.at - b.at)
-
-const changes = []
-for (const p of points) {
-	const last = changes.at(-1)
-	if (last && p.at - last.at < MERGE_WITHIN_MS) last.prs.push(p.pr)
-	else changes.push({ prs: [p.pr], at: p.at })
-}
-for (const c of changes) {
-	if (c.prs.length > 1)
-		notes.push(`${c.prs.join(' + ')} deployed within ${MERGE_WITHIN_MS / HOUR}h of each other; measured together`)
-}
-
+const deploys = prDeploys(prs)
 const now = Date.now()
 const fmt = (ms) => new Date(ms).toISOString().slice(0, 19).replace('T', ' ')
 const dt = (ms) => `toDateTime('${fmt(ms)}')`
-const windows = []
-changes.forEach((c, i) => {
-	const prev = changes[i - 1]?.at ?? -Infinity
-	const next = changes[i + 1]?.at ?? now
-	const from = Math.max(c.at - hours * HOUR, prev + settle * HOUR)
-	const afterFrom = c.at + settle * HOUR
-	const to = Math.min(afterFrom + hours * HOUR, next, now)
-	const label = c.prs.join(' + ')
-	const short = []
-	if (c.at - from < hours * HOUR) short.push(`${Math.max(0, Math.round((c.at - from) / HOUR))}h before`)
-	if (to - afterFrom < hours * HOUR) short.push(`${Math.max(0, Math.round((to - afterFrom) / HOUR))}h after`)
-	if (short.length) notes.push(`${label}: only ${short.join(', ')} (next or previous change, or now)`)
-	windows.push([label, 'before', dt(from), dt(c.at), dt(c.at)], [label, 'after', dt(afterFrom), dt(to), dt(c.at)])
-})
-const sinceAt = Date.parse(`${since}T00:00:00Z`)
-// first_load may start after --since, so the overall baseline begins at the first event.
-const firstEvent = `(SELECT min(timestamp) FROM events WHERE event = 'first_load' AND timestamp >= ${dt(sinceAt)})`
-windows.push(
-	['overall', 'before', firstEvent, `${firstEvent} + INTERVAL ${hours} HOUR`, dt(now)],
-	['overall', 'after', dt(now - hours * HOUR), dt(now), dt(now)]
-)
-const tuples = windows
-	.map(([label, side, from, to, order]) => `('${label}', '${side}', ${from}, ${to}, ${order})`)
-	.join(',\n        ')
+const h = (ms) => `${Math.round(ms / HOUR)}h`
 
-// Ranks bounding a 95% CI of quantile q in a sorted array of n values (normal approximation of the
-// binomial), clamped to the array.
-const ci = (arr, q) => {
-	const half = `1.96 * sqrt(length(${arr}) * ${q} * ${(1 - q).toFixed(2)})`
-	const lo = `arrayElement(${arr}, toInt(greatest(1.0, floor(length(${arr}) * ${q} - ${half}))))`
-	const hi = `arrayElement(${arr}, toInt(least(toFloat(length(${arr})), ceil(length(${arr}) * ${q} + ${half}) + 1)))`
-	return [lo, hi]
-}
-// Staging is a handful of staff loads, so a CI test would never pass: give the direction instead.
-const verdict = (name, aLo, aHi, bLo, bHi) =>
-	env === 'staging'
-		? `multiIf(length(b) = 0 OR length(a) = 0, 'no data', ${name}_change_pct <= -${STAGING_FLAT_PCT}, 'looks faster', ${name}_change_pct >= ${STAGING_FLAT_PCT}, 'looks slower', 'flat')`
-		: `multiIf(length(b) < 5 OR length(a) < 5, 'too few loads', ${aHi} < ${bLo}, 'faster', ${aLo} > ${bHi}, 'slower', 'no clear change')`
-const stats = (q, name) => {
-	const [bLo, bHi] = ci('b', q)
-	const [aLo, aHi] = ci('a', q)
-	return `
+function build(env) {
+	const notes = []
+	const dataFrom = FIRST_LOAD_FROM[env]
+	const points = []
+	for (const d of deploys) {
+		if (d.missing) {
+			notes.push(`${d.pr} not found`)
+			continue
+		}
+		const at = env === 'production' ? d.prod : d.staging !== null ? d.staging + STAGING_LAG : null
+		if (at === null) notes.push(`${d.pr} not in ${env} yet`)
+		else if (at <= dataFrom) notes.push(`${d.pr} shipped before first_load existed (#10868); nothing to compare`)
+		else {
+			points.push({ pr: d.pr, at })
+			if (env === 'production' && d.bundledWith.length)
+				notes.push(`${d.pr} shipped in hotfix ${d.hotfix} together with ${d.bundledWith.join(', ')}; its row measures the whole bundle`)
+		}
+	}
+	points.sort((a, b) => a.at - b.at)
+
+	const changes = []
+	for (const p of points) {
+		const last = changes.at(-1)
+		if (last && p.at - last.at < MERGE_WITHIN_MS) {
+			last.prs.push(p.pr)
+			last.lastAt = p.at
+		} else changes.push({ prs: [p.pr], at: p.at, lastAt: p.at })
+	}
+
+	const windows = []
+	changes.forEach((c, i) => {
+		const label = c.prs.join(' + ')
+		if (c.prs.length > 1) notes.push(`${label} deployed within ${MERGE_WITHIN_MS / HOUR}h of each other; measured together`)
+		const prevAt = changes[i - 1]?.lastAt
+		const nextAt = changes[i + 1]?.at ?? now
+		const beforeFrom = Math.max(c.at - hours * HOUR, dataFrom, prevAt === undefined ? -Infinity : prevAt + settle * HOUR)
+		const afterFrom = c.lastAt + settle * HOUR
+		const afterTo = Math.min(afterFrom + hours * HOUR, nextAt, now)
+		// Both sides get the same length, so a short side can't compare a morning against two days.
+		const len = Math.min(c.at - beforeFrom, afterTo - afterFrom)
+		if (len < HOUR) {
+			notes.push(`${label}: under 1h between it and a neighbouring deploy (or now); skipped`)
+			return
+		}
+		if (len < hours * HOUR)
+			notes.push(
+				`${label}: ${h(len)} each side (neighbouring deploy, first_load start, or now)${len < 24 * HOUR ? '; under a day, so time of day differs between sides' : ''}`
+			)
+		windows.push([label, 'before', c.at - len, c.at, c.at], [label, 'after', afterFrom, afterFrom + len, c.at])
+	})
+	const overallFrom = Math.max(Date.parse(`${since}T00:00:00Z`), dataFrom + settle * HOUR)
+	windows.push(['overall', 'before', overallFrom, overallFrom + hours * HOUR, now], ['overall', 'after', now - hours * HOUR, now, now])
+
+	const tuples = windows
+		.map(([label, side, from, to, order]) => `('${label}', '${side}', ${dt(from)}, ${dt(to)}, ${dt(order)})`)
+		.join(',\n        ')
+
+	// Ranks bounding a 95% CI of quantile q in a sorted array of n values (normal approximation of
+	// the binomial), clamped to the array.
+	const ci = (arr, q) => {
+		const half = `1.96 * sqrt(length(${arr}) * ${q} * ${(1 - q).toFixed(2)})`
+		return [
+			`arrayElement(${arr}, toInt(greatest(1.0, floor(length(${arr}) * ${q} - ${half}))))`,
+			`arrayElement(${arr}, toInt(least(toFloat(length(${arr})), ceil(length(${arr}) * ${q} + ${half}) + 1)))`,
+		]
+	}
+	const min = MIN_LOADS[env]
+	const stats = (q, name) => {
+		const [bLo, bHi] = ci('b', q)
+		const [aLo, aHi] = ci('a', q)
+		// Staging is a handful of staff loads, so a CI test would never pass: give the direction instead.
+		const verdict =
+			env === 'staging'
+				? `multiIf(length(b) < ${min} OR length(a) < ${min}, 'too few loads', ${name}_change_pct <= -${STAGING_FLAT_PCT}, 'looks faster', ${name}_change_pct >= ${STAGING_FLAT_PCT}, 'looks slower', 'flat')`
+				: `multiIf(length(b) < ${min} OR length(a) < ${min}, 'too few loads', ${aHi} < ${bLo}, 'faster', ${aLo} > ${bHi}, 'slower', 'no clear change')`
+		return `
     round(quantileIf(${q})(v, side = 'before')) AS ${name}_before,
     round(quantileIf(${q})(v, side = 'after')) AS ${name}_after,
     round(100 * (${name}_after / ${name}_before - 1)) AS ${name}_change_pct,
-    ${verdict(name, aLo, aHi, bLo, bHi)} AS ${name}_verdict,
+    ${verdict} AS ${name}_verdict,
     concat(toString(round(${bLo})), '-', toString(round(${bHi})), ' -> ', toString(round(${aLo})), '-', toString(round(${aHi}))) AS ${name}_ci`
-}
+	}
 
-console.log(`-- ${env}: first_load, route_kind = '${route}', signed in. ${hours}h before each deploy vs ${hours}h after,
--- skipping the first ${settle}h after it. overall = first ${hours}h of data since ${since} vs the last ${hours}h.
--- *_change_pct = after / before - 1, negative = faster. ${
-	env === 'staging'
-		? `*_verdict is direction only (±${STAGING_FLAT_PCT}%): staging is a few staff loads, an early signal.`
-		: '*_verdict compares 95% CIs (*_ci, before -> after): faster/slower only when they do not overlap.'
-}
--- population_shift: cold share moved more than ${COLD_SHIFT}, so a change may not be the PR's doing.
--- weekend_*: share of loads on Sat/Sun; a big difference between sides also shifts the population.
-${notes.map((n) => `-- note: ${n}`).join('\n')}
-SELECT
+	// token to sync: d_sync_connected is the gap to whichever step came just before, not the token.
+	const sql = `SELECT
   change, metric, n_before, n_after,
   p50_before, p50_after, p50_change_pct, p50_verdict, p50_ci,
   p90_before, p90_after, p90_change_pct, p90_verdict, p90_ci,
@@ -175,12 +189,11 @@ FROM (
           ('1 board visible', toFloat(properties.t_board_visible)),
           ('2 zero preloaded', toFloat(properties.t_zero_preloaded)),
           ('3 sync connected', toFloat(properties.t_sync_connected)),
-          -- d_sync_connected is the gap to the previous step, not the token
           ('4 token to sync', toFloat(properties.t_sync_connected) - toFloat(properties.t_sync_token_fetched))
         ]) AS m
       FROM events
       WHERE event = 'first_load'
-        AND timestamp >= ${dt(Math.min(sinceAt, ...changes.map((c) => c.at - hours * HOUR)))}
+        AND timestamp >= ${dt(Math.min(...windows.map((w) => w[2])))}
         AND properties.route_kind = '${route}'
         AND properties.is_signed_in = true
     )
@@ -188,4 +201,25 @@ FROM (
   )
   GROUP BY change, metric
 )
-ORDER BY ordered_at, metric`)
+ORDER BY ordered_at, metric`
+
+	const sqlPath = join(outDir, `${env}.sql`)
+	const callPath = join(outDir, `${env}.call`)
+	writeFileSync(sqlPath, sql + '\n')
+	writeFileSync(callPath, `call execute-sql ${JSON.stringify({ query: sql.replace(/\s+/g, ' ') })}\n`)
+
+	const verdictRule =
+		env === 'staging'
+			? `verdict is direction only (±${STAGING_FLAT_PCT}%): staging is a few staff loads, an early signal`
+			: 'verdict compares 95% CIs (*_ci, before -> after): faster/slower only when they do not overlap'
+	console.log(`## ${env}
+PostHog: exec \`call switch-project {"projectId": ${PROJECT[env]}}\`, then send the contents of ${callPath} as the exec command.
+SQL: ${sqlPath}
+Windows: first_load, route_kind = '${route}', signed in; up to ${hours}h each side, skipping the first ${settle}h after each deploy.
+overall = first ${hours}h of first_load data since ${since} vs the last ${hours}h. *_change_pct: negative = faster; ${verdictRule}.
+population_shift: cold share moved more than ${COLD_SHIFT}. weekend_*: share of loads on Sat/Sun.
+${notes.map((n) => `- ${n}`).join('\n')}
+`)
+}
+
+for (const env of envArg === 'both' ? ['staging', 'production'] : [envArg]) build(env)
