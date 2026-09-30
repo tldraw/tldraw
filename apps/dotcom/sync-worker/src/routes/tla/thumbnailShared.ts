@@ -150,6 +150,7 @@ export type ThumbnailErrorSurface =
 	| 'mcp_board_search'
 	| 'mcp_board_create'
 	| 'mcp_board_rename'
+	| 'mcp_workspace_list'
 	| 'mcp_screenshot'
 	// Kept apart from 'mcp_screenshot': the render succeeded and the caller still got their PNG, so
 	// this never means "screenshots are broken" — it means the cache isn't absorbing them and every
