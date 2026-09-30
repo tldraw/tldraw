@@ -12,11 +12,9 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
-import { prDeploys } from './pr-deploys.mjs'
+import { deployContents, mainMergesBetween, prDeploys, prodDeploys } from './pr-deploys.mjs'
 
 const HOUR = 3600_000
-// Deploys closer than this get merged into one change: their windows would be too short to separate.
-const MERGE_WITHIN_MS = 2 * HOUR
 // Share of cold rooms moving more than this means the population changed, not just the code.
 const COLD_SHIFT = 0.1
 const STAGING_FLAT_PCT = 10
@@ -47,6 +45,8 @@ const opt = (name, fallback) => {
 const hours = Number(opt('hours', '48'))
 // The first hour after a deploy is slow for reasons unrelated to the PR (cold CDN and chunk caches).
 const settle = Number(opt('settle', '1'))
+// Deploys closer than this get measured as one change: the settle hour would leave no window between them.
+const MERGE_WITHIN_MS = Math.max(2, settle + 1) * HOUR
 const since = opt('since', new Date(Date.now() - 10 * 24 * HOUR).toISOString().slice(0, 10))
 const route = opt('route', 'file')
 const outDir = opt('out', null) ?? mkdtempSync(join(tmpdir(), 'load-perf-'))
@@ -55,7 +55,7 @@ let prs = args.map((a) => a.replace(/^#/, ''))
 
 if (prs.length === 0) {
 	prs = JSON.parse(
-		execFileSync('gh', ['pr', 'list', '--state', 'merged', '--limit', '200', '--search', `merged:>=${since} -base:hotfixes`, '--json', 'number,title'], {
+		execFileSync('gh', ['pr', 'list', '--state', 'merged', '--limit', '200', '--search', `merged:>=${since} -base:hotfixes perf in:title`, '--json', 'number,title'], {
 			encoding: 'utf8',
 		})
 	)
@@ -64,6 +64,7 @@ if (prs.length === 0) {
 }
 
 const deploys = prDeploys(prs)
+const allProdDeploys = prodDeploys()
 const now = Date.now()
 const fmt = (ms) => new Date(ms).toISOString().slice(0, 19).replace('T', ' ')
 const dt = (ms) => `toDateTime('${fmt(ms)}')`
@@ -82,7 +83,7 @@ function build(env) {
 		if (at === null) notes.push(`${d.pr} not in ${env} yet`)
 		else if (at <= dataFrom) notes.push(`${d.pr} shipped before first_load was recorded; nothing to compare`)
 		else {
-			points.push({ pr: d.pr, at })
+			points.push({ pr: d.pr, at, prodSha: env === 'production' ? d.prodSha : null })
 			if (env === 'production' && d.bundledWith.length)
 				notes.push(`${d.pr} shipped in hotfix ${d.hotfix} together with ${d.bundledWith.join(', ')}; its row measures the whole bundle`)
 		}
@@ -92,10 +93,11 @@ function build(env) {
 	const changes = []
 	for (const p of points) {
 		const last = changes.at(-1)
-		if (last && p.at - last.at < MERGE_WITHIN_MS) {
-			last.prs.push(p.pr)
+		if (last && p.at - last.lastAt < MERGE_WITHIN_MS) {
+			if (!last.prs.includes(p.pr)) last.prs.push(p.pr)
 			last.lastAt = p.at
-		} else changes.push({ prs: [p.pr], at: p.at, lastAt: p.at })
+			last.shas.add(p.prodSha)
+		} else changes.push({ prs: [p.pr], at: p.at, lastAt: p.at, shas: new Set([p.prodSha]) })
 	}
 
 	const windows = []
@@ -110,17 +112,41 @@ function build(env) {
 		// Both sides get the same length, so a short side can't compare a morning against two days.
 		const len = Math.min(c.at - beforeFrom, afterTo - afterFrom)
 		if (len < HOUR) {
-			notes.push(`${label}: under 1h between it and a neighbouring deploy (or now); skipped`)
+			const cause = c.at - beforeFrom < afterTo - afterFrom ? 'before it (previous deploy or first_load start)' : 'after it (next deploy or now)'
+			notes.push(`${label}: under 1h of window ${cause}; skipped`)
 			return
+		}
+		// Anything else that shipped inside the windows is in the numbers too.
+		const from = c.at - len
+		const to = afterFrom + len
+		if (env === 'production') {
+			const shipped = [...c.shas].filter(Boolean).reduce((n, sha) => n + deployContents(sha).length, 0)
+			if (shipped > c.prs.length) notes.push(`${label}: its deploy shipped ${shipped} PRs in total; the row measures all of them`)
+			const others = allProdDeploys.filter((d) => d.at >= from && d.at < to && !c.shas.has(d.sha))
+			if (others.length)
+				notes.push(
+					`${label}: ${others.length} other prod deploy(s) inside the window (${others
+						.map((d) => `${fmt(d.at).slice(5, 16)}, ${deployContents(d.sha).length} PRs`)
+						.join('; ')})`
+				)
+		} else {
+			const others = mainMergesBetween(from - STAGING_LAG, to - STAGING_LAG) - c.prs.length
+			if (others > 0) notes.push(`${label}: ${others} other PRs reached staging inside the window`)
 		}
 		if (len < hours * HOUR)
 			notes.push(
 				`${label}: ${h(len)} each side (neighbouring deploy, first_load start, or now)${len < 24 * HOUR ? '; under a day, so time of day differs between sides' : ''}`
 			)
-		windows.push([label, 'before', c.at - len, c.at, c.at], [label, 'after', afterFrom, afterFrom + len, c.at])
+		windows.push([label, 'before', from, c.at, c.at], [label, 'after', afterFrom, to, c.at])
 	})
 	const overallFrom = Math.max(Date.parse(`${since}T00:00:00Z`), dataFrom + settle * HOUR)
-	windows.push(['overall', 'before', overallFrom, overallFrom + hours * HOUR, now], ['overall', 'after', now - hours * HOUR, now, now])
+	// The two overall windows must not overlap, or shared loads pull the row toward "no change".
+	const overallLen = Math.min(hours * HOUR, (now - overallFrom) / 2)
+	if (overallLen < HOUR) notes.push(`overall: under 2h of data since ${since}; skipped`)
+	else {
+		if (overallLen < hours * HOUR) notes.push(`overall: ${h(overallLen)} each side, so the two windows don't overlap`)
+		windows.push(['overall', 'before', overallFrom, overallFrom + overallLen, now], ['overall', 'after', now - overallLen, now, now])
+	}
 
 	const tuples = windows
 		.map(([label, side, from, to, order]) => `('${label}', '${side}', ${dt(from)}, ${dt(to)}, ${dt(order)})`)
@@ -219,7 +245,7 @@ ORDER BY ordered_at, metric`
 PostHog: exec \`call switch-project {"projectId": ${PROJECT[env]}}\`, then send the contents of ${callPath} as the exec command.
 SQL: ${sqlPath}
 Windows: first_load, route_kind = '${route}', signed in; up to ${hours}h each side, skipping the first ${settle}h after each deploy.
-overall = first ${hours}h of first_load data since ${since} vs the last ${hours}h. *_change_pct: negative = faster; ${verdictRule}.
+overall = first ${hours}h of first_load data from ${fmt(Math.max(Date.parse(`${since}T00:00:00Z`), dataFrom)).slice(0, 10)} vs the last ${hours}h. *_change_pct: negative = faster; ${verdictRule}.
 population_shift: cold share moved more than ${COLD_SHIFT}. weekend_*: share of loads on Sat/Sun. Loads over ${MAX_LOAD_MS / 60_000} min are dropped (sleeping laptops).
 Expected rows: ${[...new Set(windows.map((w) => w[0]))].join(', ')}. A change with no row had no loads in either window.
 ${notes.map((n) => `- ${n}`).join('\n')}
