@@ -26,7 +26,7 @@ Once per page load, from navigation start to the board being visible (`total_ms`
 | `file-chunk-loaded`  | file route chunk evaluated                                                           |
 | `editor-rendered`    | `TlaEditorInner` first render                                                        |
 | `sync-token-fetched` | Clerk token for the sync socket obtained                                             |
-| `sync-connected`     | sync socket open, server checks done, snapshot received                              |
+| `sync-connected`     | sync socket open, server checks done, snapshot received and applied                  |
 | `editor-mounted`     | the editor's `onMount` ran                                                           |
 | `board-visible`      | ready shroud lifted; board on screen                                                 |
 
@@ -37,6 +37,7 @@ Also on the event:
 - `route_kind`: `file` when the page was opened on the file route, `root-redirect` for `/` redirecting to the last file, `other` otherwise. Filter to `file` to exclude time spent on another page first.
 - `nav_*` (TTFB split into DNS, connect, server, redirects), `fcp`, `lcp`.
 - `srv_init_ms`, `srv_init_outcome`: the init request's `Server-Timing`.
+- `page_shapes`, `records`: shapes on the opened page and records in the store at `board-visible`. Also on `file_load`.
 
 ### `file_load`
 
