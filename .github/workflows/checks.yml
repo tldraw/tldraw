@@ -76,7 +76,7 @@ jobs:
         with:
           path: node_modules/.vitest-cache
           key: vitest-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
-          restore-keys: vitest-cache-${{ runner.os }}-
+          restore-keys: vitest-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
 
       - name: Test
         run: pnpm test-ci
