@@ -16,7 +16,7 @@ SELECT
   round(quantile(0.5)(toFloat(properties.t_zero_preloaded))) AS zpre,
   round(quantile(0.9)(toFloat(properties.t_zero_preloaded))) AS zpre90,
   round(quantile(0.5)(toFloat(properties.t_sync_connected))) AS sync,
-  round(quantile(0.5)(toFloat(properties.d_sync_connected))) AS dsync, -- token fetched -> socket connected
+  round(quantile(0.5)(toFloat(properties.t_sync_connected) - toFloat(properties.t_sync_token_fetched))) AS tok_to_sync, -- d_sync_connected is the gap to the previous step, not the token
   round(quantile(0.5)(toFloat(properties.t_board_visible))) AS vis50,
   round(quantile(0.9)(toFloat(properties.t_board_visible))) AS vis90
 FROM events

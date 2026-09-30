@@ -1,14 +1,16 @@
 #!/bin/bash
-# Deploy timeline for cutting eras. Production = deploy commits on origin/production.
-# Staging deploys main on every merge, so staging eras = merge time + ~15 min.
+# Deploy timeline for cutting eras. Production deploys are merge commits on origin/production;
+# D^1..D is what each one shipped. Staging deploys main on every merge, live ~15 min later.
 # usage: deploys.sh [since=YYYY-MM-DD, default 10 days ago] [title regex]
 SINCE="${1:-$(date -u -v-10d +%F 2>/dev/null || date -u -d '10 days ago' +%F)}"
 RE="${2:-perf|zero|comment|sync|load|hyperdrive|clerk|flag|postgres}"
 cd "$(git rev-parse --show-toplevel)" && git fetch -q origin production main
 echo "== production deploys (origin/production)"
-git log origin/production --since="$SINCE" --reverse --format='%cI|%s' | awk -F'|' '
-  /\|Deploy from/ {print substr($1,1,16) "  " substr($2,1,index($2," (")-1) "  <- " substr(last,1,160); last=""; next}
-  !/Add VSCode extension/ {last = (last ? last " ; " : "") $2}'
+git log origin/production --first-parent --reverse --since="$SINCE" --format='%H|%cI|%s' | grep '|Deploy from' |
+  while IFS='|' read -r sha at subj; do
+    shipped=$(git log --format=%s "$sha^1..$sha^2" 2>/dev/null | grep -v 'Add VSCode extension' | paste -sd ';' -)
+    printf '%s  %s  <- %s\n' "${at:0:16}" "${subj%% (*}" "${shipped:0:160}"
+  done
 echo; echo "== staging (main merges matching /$RE/i)"
 gh pr list --state merged --limit 200 --search "merged:>=$SINCE base:main" --json number,title,mergedAt \
   --jq '.[] | "\(.mergedAt[:16]) #\(.number) \(.title)"' | grep -iE "$RE" | grep -v HOTFIX | sort

@@ -2,28 +2,28 @@
 # When each PR reached staging and production. Use the times as era cut points.
 # usage: pr-deploys.sh <pr> [pr ...]
 # staging: merge time (staging deploys main on merge, live ~15 min later).
-# production: first "Deploy from" on origin/production that carries the PR, either as a hotfix
-# commit (same title, or a bundled hotfix listing the PR) or a main deploy containing the merge commit.
+# production: first deploy on origin/production that contains the PR's main commit or its hotfix
+# commit (same title, or a bundled hotfix PR whose body lists it).
 cd "$(git rev-parse --show-toplevel)" && git fetch -q origin production main
-PROD_LOG=$(git log origin/production --since=60.days --reverse --format='%cI|%s')
+DEPLOYS=$(git log origin/production --first-parent --reverse --since=120.days --format='%H|%cI|%s' | grep '|Deploy from')
+PROD_COMMITS=$(git log origin/production --since=120.days --format='%H|%s')
 for pr in "$@"; do
   pr=${pr#\#}
-  read -r merged sha title < <(gh pr view "$pr" --json mergedAt,mergeCommit,title --jq '"\(.mergedAt // "-") \(.mergeCommit.oid // "-") \(.title)"')
-  prod=$(awk -F'|' -v t="$title" -v n="(#$pr)" '
-    found && /\|Deploy from/ {print substr($1,1,16); exit}
-    !found && (index($2, t) || index($2, n)) && !/\|Deploy from/ {found=1}' <<<"$PROD_LOG")
-  if [ -z "$prod" ]; then
-    # Bundled hotfixes list their originals in the body, e.g. "Bundles #10897, #10876 and #10872".
-    hf=$(gh pr list --base hotfixes --state merged --search "$pr in:body" --json number --jq '.[0].number // empty')
-    [ -n "$hf" ] && prod=$(awk -F'|' -v n="(#$hf)" '
-      found && /\|Deploy from/ {print substr($1,1,16); exit}
-      !found && index($2, n) {found=1}' <<<"$PROD_LOG")
+  if ! info=$(gh pr view "$pr" --json mergedAt,mergeCommit,title --jq '"\(.mergedAt // "-")|\(.mergeCommit.oid // "")|\(.title)"' 2>/dev/null); then
+    printf '#%s\tnot found\n' "$pr"; continue
   fi
-  if [ -z "$prod" ] && [ "$sha" != "-" ]; then
-    while IFS='|' read -r at subj; do
-      main_sha=$(sed -nE 's/^Deploy from main \(([0-9a-f]+)\).*/\1/p' <<<"$subj")
-      [ -n "$main_sha" ] && git merge-base --is-ancestor "$sha" "$main_sha" 2>/dev/null && { prod=${at:0:16}; break; }
-    done < <(grep '|Deploy from main' <<<"$PROD_LOG")
-  fi
+  IFS='|' read -r merged sha title <<<"$info"
+  hf=$(gh pr list --base hotfixes --state merged --search "$pr in:body" --json number,body \
+    --jq "[.[] | select(.body | test(\"#$pr\\\\b\"))][0].number // empty")
+  candidates=("$sha")
+  while IFS='|' read -r csha subj; do
+    [[ "$subj" == *"$title"* || "$subj" == *"(#$pr)"* || ( -n "$hf" && "$subj" == *"(#$hf)"* ) ]] && candidates+=("$csha")
+  done <<<"$PROD_COMMITS"
+  prod=""
+  while IFS='|' read -r dsha at _; do
+    for c in "${candidates[@]}"; do
+      [ -n "$c" ] && git merge-base --is-ancestor "$c" "$dsha" 2>/dev/null && { prod=${at:0:16}; break 2; }
+    done
+  done <<<"$DEPLOYS"
   printf '#%s\tstaging %s\tprod %s\t%s\n' "$pr" "${merged:0:16}" "${prod:-not deployed}" "$title"
 done

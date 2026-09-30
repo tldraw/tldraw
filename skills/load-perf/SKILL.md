@@ -9,7 +9,7 @@ Measure tldraw.com load times per deploy era and say which PRs moved them.
 
 Arguments are all optional: `load-perf [staging|production] [#PR ...] [since YYYY-MM-DD]`.
 
-- No env: do both, staging first. It gets every merge within minutes, so it shows the effect before production.
+- No env: do both, staging first, since it shows a PR's effect before production.
 - No PRs: cut eras at every perf-related deploy from `scripts/deploys.sh`.
 - PRs given: cut eras only at those PRs' deploy times from `scripts/pr-deploys.sh`.
 - No `since`: the last 10 days.
@@ -26,7 +26,7 @@ Who reports: staff (`@tldraw.com`) always, everyone else through the `load_rum` 
 
 ## Workflow
 
-1. **Deploy timeline.** Run `scripts/deploys.sh [since]`, or `scripts/pr-deploys.sh <pr...>` when PRs are given. Staging goes live ~15 min after merge. Production goes live at the `Deploy from` time. Say which PRs are not in production yet.
+1. **Deploy timeline.** Run `scripts/deploys.sh [since]`, or `scripts/pr-deploys.sh <pr...>` when PRs are given. Say which PRs are not in production yet.
 2. **Client timings.** Adapt `references/first-load-by-era.sql` with the cut points and run it on each project. Split by `route_kind` (`file` = direct board link, `root-redirect` = `/` then redirected to a board) and by `is_signed_in`. Drop buckets with n < 10 in prod. Staging has to accept tiny n.
 3. **Sanity check.** Run `references/first-load-daily.sql`. If an era change is just one bad day, or tracks `cold` or n, it's a population shift, not the PR.
 4. **Server steps.** Run `scripts/server-steps.sh <production|staging> [since]` and match the step changes to the deploy times.
@@ -34,11 +34,11 @@ Who reports: staff (`@tldraw.com`) always, everyone else through the `load_rum` 
 
 ## Reading the numbers
 
-- `t_*` is ms since navigation start. `d_*` is ms since the previous step. `srv_*` is the server echo for the same connect.
+- `t_*` is ms since navigation start. `srv_*` is the server echo for the same connect.
 - Board visible ≈ max(zero preloaded, sync connected) + editor mount. Sync used to start only after Zero preloaded. Since #10880 the socket opens in parallel, so check which of the two is later.
-- `d_sync_connected` = token fetched → socket connected, i.e. the connect path as the client sees it. Compare it with `on_request_total` from AE.
+- `d_*` is the gap to whichever step happened just before, not a fixed predecessor. For the connect path as the client sees it, use `t_sync_connected - t_sync_token_fetched` and compare it with `on_request_total` from AE.
 - A high `t_js_started` means slow navigation TTFB (look at `nav_ttfb`), usually just after a production deploy on `root-redirect`. Not an app problem.
-- `srv_cold` means the room DO booted for this connect. Hold `cold` roughly constant across eras before crediting a PR.
+- `srv_cold` means there was no live room in the DO. A load from R2/Postgres shows as `srv_boot_*`. Hold `cold` roughly constant across eras before crediting a PR.
 - Watch the p90 as well as the p50. Zero stalls show up as 30-90s p90s with a normal p50.
 
 ## AE gotchas
