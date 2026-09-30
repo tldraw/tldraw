@@ -21,20 +21,21 @@ Arguments are all optional: `load-perf [staging|production] [#PR ...] [since YYY
 | Sync worker connect steps | Cloudflare Analytics Engine via Grafana (`scripts/ae.sh`) | `GRAFANA_TOKEN` env var, a viewer service-account token with Query on the AE datasource |
 | Deploy times | `origin/production` deploy commits, PR merge times | `git`, `gh` |
 
-Who reports: staff (`@tldraw.com`) always, everyone else through the `load_rum` percentage flag. Staging is 1-5 staff, so most staging windows have too few loads to judge one PR. Production has hundreds a day.
+Who reports: staff (`@tldraw.com`) always, everyone else through the `load_rum` percentage flag. Staging is 1-5 staff, production hundreds of users a day.
 
 ## Workflow
 
-1. **Generate the comparison.** Run `scripts/compare-sql.mjs <env> [--since YYYY-MM-DD] [--hours 48] [pr ...]` and save the output to a file.
-   - It takes each PR's deploy time from `scripts/pr-deploys.sh` and compares a window before the deploy with a window after it (48h each by default).
+1. **Generate the comparison.** Run `scripts/compare-sql.mjs <env> [--since YYYY-MM-DD] [--hours 48] [--settle 1] [pr ...]` and save the output to a file.
+   - It takes each PR's deploy time from `scripts/pr-deploys.sh` and compares the 48h before the deploy with the 48h after it. The after window skips the first hour after the deploy (`--settle`), when cold caches slow every load.
    - A window stops early at the next or previous deploy. Deploys within 2h of each other are measured together.
    - It adds an `overall` row: the first 48h of data vs the last 48h.
    - Its `-- note:` lines list PRs that aren't deployed yet, shortened windows, and grouped PRs.
 2. **Run it** with PostHog `execute-sql` on the env's project. Drop the `--` comment lines first.
 3. **Server steps.** Run `scripts/server-steps.sh <env> [since]` for daily p50/p90 of the connect path, and line the changes up with the deploy times.
-4. **Report**, per env:
-   - One row per PR (or group): `board visible p50 before → after (±%)`, the same for p90, n before/after, and a verdict: faster, slower, no change, or can't tell. Negative % = faster.
-   - Answer **can't tell** when a side has n < 30, or when the `cold` share moves by more than ~0.1. The second is a population change, not the PR.
+4. **Report**, per env. Lead with board visible, one row per PR (or group): `p50 before → after (±%)`, the same for p90, n before/after, and the verdict. Negative % = faster.
+   - **Production verdicts** come from 95% confidence intervals of each percentile (`*_ci`, before -> after). `faster` or `slower` means the intervals don't overlap. `no clear change` means the difference is within noise. Don't round it up to a win.
+   - **Staging verdicts** show direction only (`looks faster` / `looks slower` / `flat`, at ±10%). Staging is a few staff loads, so treat it as an early signal before production, not proof.
+   - Mention `population_shift` (the cold share moved by more than 0.1) and any large `weekend_before` / `weekend_after` difference. Both change who is loading, not just the code.
    - Explain *why* using the other metrics: zero preloaded, sync connected, token → sync, and the server steps.
    - Then the `overall` row, and what now gates board visible.
    - Always include the raw result table, the `-- note:` lines, and the path to the saved SQL, so the reader can check the numbers or rerun them.
@@ -48,7 +49,7 @@ Who reports: staff (`@tldraw.com`) always, everyone else through the `load_rum` 
 - `d_*` is the gap to whichever step happened just before, not a fixed predecessor. For the connect path as the client sees it, use `t_sync_connected - t_sync_token_fetched` (the "token to sync" metric) and compare it with `on_request_total` from AE.
 - A high `t_js_started` means slow navigation TTFB (look at `nav_ttfb`), usually just after a production deploy on `root-redirect`. Not an app problem.
 - `srv_cold` means there was no live room in the DO. A load from R2/Postgres shows as `srv_boot_*`.
-- Zero stalls show up as 30-90s p90s with a normal p50, so always read the p90.
+- Zero stalls show up as 30-90s p90s with a normal p50, so always read the p90. Its interval is wide, so a p90 verdict needs a large effect.
 - The comparison defaults to `route_kind = 'file'` (direct board links, the cleanest population). Use `--route root-redirect` for `/` loads.
 
 ## AE gotchas
