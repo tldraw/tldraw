@@ -22,7 +22,7 @@ const COLD_SHIFT = 0.1
 const STAGING_FLAT_PCT = 10
 const MIN_LOADS = { production: 5, staging: 3 }
 const PROJECT = { production: 45972, staging: 45921 }
-// first_load exists from #10868's deploy on; earlier windows would compare against nothing.
+// When first_load recording started; changes deployed earlier have nothing to compare against.
 const FIRST_LOAD_FROM = { production: Date.parse('2026-09-23T09:18Z'), staging: Date.parse('2026-09-22T11:18Z') }
 // Staging serves a merge ~15 min after it lands on main.
 const STAGING_LAG = 15 * 60_000
@@ -80,7 +80,7 @@ function build(env) {
 		}
 		const at = env === 'production' ? d.prod : d.staging !== null ? d.staging + STAGING_LAG : null
 		if (at === null) notes.push(`${d.pr} not in ${env} yet`)
-		else if (at <= dataFrom) notes.push(`${d.pr} shipped before first_load existed (#10868); nothing to compare`)
+		else if (at <= dataFrom) notes.push(`${d.pr} shipped before first_load was recorded; nothing to compare`)
 		else {
 			points.push({ pr: d.pr, at })
 			if (env === 'production' && d.bundledWith.length)

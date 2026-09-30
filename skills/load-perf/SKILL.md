@@ -17,7 +17,7 @@ Arguments are all optional: `load-perf [staging|production] [#PR ...] [since YYY
 
 | What | Where | Access |
 | --- | --- | --- |
-| Client timings: `first_load` (page boot, from #10868: staging 09-22, prod 09-23) | PostHog MCP, `execute-sql` | prod project **45972**, staging **45921**. 45919 is the MCP default and is empty |
+| Client timings: `first_load` (page boot; recorded since 2026-09-22 on staging, 2026-09-23 on prod) | PostHog MCP, `execute-sql` | prod project **45972**, staging **45921**. 45919 is the MCP default and is empty |
 | Sync worker connect steps | Cloudflare Analytics Engine via Grafana (`scripts/ae.sh`) | `GRAFANA_TOKEN` env var, a viewer service-account token with Query on the AE datasource |
 | Deploy times | `origin/production` deploy commits, PR merge times | `git`, `gh` |
 
@@ -49,10 +49,10 @@ Who reports: staff (`@tldraw.com`) always, everyone else through the `load_rum` 
 ## Reading the numbers
 
 - `t_*` is ms since navigation start. `srv_*` is the server echo for the same connect.
-- Board visible ≈ max(zero preloaded, sync connected) + editor mount. Sync used to start only after Zero preloaded. Since #10880 the socket opens in parallel, so check which of the two is later.
+- Board visible ≈ max(zero preloaded, sync connected) + editor mount. Whichever of the two lands later is what gates the board. If `t_sync_token_fetched` comes after `t_zero_preloaded`, the sync socket is waiting on Zero rather than running in parallel with it.
 - `d_*` is the gap to whichever step happened just before, not a fixed predecessor. For the connect path as the client sees it, use `t_sync_connected - t_sync_token_fetched` (the "token to sync" metric) and compare it with `on_request_total` from AE.
-- Token to sync is much larger than `on_request_total`. On prod it's ~1.7s vs ~0.3s. The worker handler is only part of the connect: there's also the WebSocket upgrade, waking the DO, and the first message round trip. `first_load` has them as `srv_d_route`, `srv_d_do_init`, `srv_d_get_room`, `srv_d_client_connect` and `srv_d_handshake`.
-- Prod `on_request_total` p90 sits flat at ~2.05s: the file record and group check each have a ~1s Postgres tail. It's expected to drop with Hyperdrive (#10912) and the single query (#10959).
+- Token to sync is usually much larger than `on_request_total`. The worker handler is only part of the connect: there's also the WebSocket upgrade, waking the DO, and the first message round trip. `first_load` has them as `srv_d_route`, `srv_d_do_init`, `srv_d_get_room`, `srv_d_client_connect` and `srv_d_handshake`.
+- A flat, day-after-day p90 in `on_request_total` means a fixed tail in one or more steps, usually Postgres. Compare each step's p90 in `server-steps.sh` to find which one.
 - A high `t_js_started` means slow navigation TTFB (look at `nav_ttfb`), usually just after a production deploy on `root-redirect`. Not an app problem.
 - `srv_cold` means there was no live room in the DO. A load from R2/Postgres shows as `srv_boot_*`.
 - Zero stalls show up as 30-90s p90s with a normal p50, so always read the p90. Its interval is wide, so a p90 verdict needs a large effect.
