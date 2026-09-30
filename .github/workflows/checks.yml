@@ -82,8 +82,8 @@ jobs:
         uses: actions/cache@v5
         with:
           path: node_modules/.vitest-cache
-          key: vitest-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
-          restore-keys: vitest-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+          key: vitest-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: vitest-cache-${{ runner.os }}-
 
       - name: Test
         run: pnpm test-ci

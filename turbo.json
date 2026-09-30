@@ -43,6 +43,7 @@
 			"persistent": true
 		},
 		"check-bundle-size": {
+			"dependsOn": ["^build-types"],
 			"outputs": []
 		}
 	}
