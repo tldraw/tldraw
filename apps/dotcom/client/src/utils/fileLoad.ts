@@ -10,6 +10,7 @@ import {
 	describeLoadFields,
 	isLoadStaff,
 	type LoadServerTimings,
+	type LoadStepLane,
 	type LoadTrackerDeps,
 	measureOnTrack,
 	SERVER_ECHO_DEADLINE_MS,
@@ -31,6 +32,15 @@ export const FILE_LOAD_STEPS = [
 	'board-visible',
 ] as const
 export type FileLoadStep = (typeof FILE_LOAD_STEPS)[number]
+
+const FILE_LOAD_LANES: Record<FileLoadStep, LoadStepLane<FileLoadStep>> = {
+	'file-started': { lane: 'Editor' },
+	'editor-rendered': { lane: 'Editor', from: ['file-started'] },
+	'sync-token-fetched': { lane: 'Sync', from: ['file-started'] },
+	'sync-connected': { lane: 'Sync', from: ['file-started', 'sync-token-fetched'] },
+	'editor-mounted': { lane: 'Editor', from: ['editor-rendered', 'sync-connected'] },
+	'board-visible': { lane: 'Editor', from: ['editor-mounted'] },
+}
 
 const FILE_LOAD_STEP_INFO: Record<FileLoadStep, string> = {
 	'file-started': 'TlaFileSyncHost mounted for this file (file_ms t0)',
@@ -80,13 +90,21 @@ export function createFileLoads(deps: FileLoadsDeps) {
 		const nav = navigation?.pathname === `/f/${slug}` ? navigation : null
 		navigation = null
 		const t0 = kind === 'first' ? 0 : (nav?.at ?? deps.now())
-		const tracker = createLoadTracker(deps, {
-			steps: FILE_LOAD_STEPS,
-			t0,
-			logPrefix: 'file-load',
-			logHeader: FILE_LOAD_LOG_HEADER,
-			markPrefix: 'tla-file',
-		})
+		// first_load already draws the boot's first open. A later boot open (the first was abandoned,
+		// e.g. a cached-visit redirect) must draw here: first_load keeps the first open's marks.
+		const measure: FileLoadsDeps['measure'] =
+			kind === 'first' && abandonedBefore === 0 ? () => {} : deps.measure
+		const tracker = createLoadTracker(
+			{ ...deps, measure },
+			{
+				steps: FILE_LOAD_STEPS,
+				t0,
+				logPrefix: 'file-load',
+				logHeader: FILE_LOAD_LOG_HEADER,
+				markPrefix: 'tla-file',
+				lanes: FILE_LOAD_LANES,
+			}
+		)
 		// A first load's t0 is navigation start, so a tab hidden any time before this file opened
 		// (page boot included) must count as hidden, not just hidden at open() time.
 		let hidden = deps.isHidden() || (kind === 'first' && deps.wasHiddenSinceNavigation())

@@ -6,8 +6,18 @@ export type LoadServerTimings = Extract<TLCustomServerEvent, { type: 'first_load
 export interface LoadTrackerDeps<Step extends string> {
 	now(): number
 	mark(name: string): void
-	measure(step: Step, start: number, end: number): void
+	/** `lane` is the flow the step belongs to (its devtools track); `since` names the span's start. */
+	measure(step: Step, start: number, end: number, lane: string, since: string): void
 	log(line: string): void
+}
+
+/**
+ * Where a step's span starts: the latest of `from` that has happened, or the origin when `from` is
+ * absent. Steps run in parallel flows, so the previous step in time is often another flow's.
+ */
+export interface LoadStepLane<Step extends string> {
+	lane: string
+	from?: readonly Step[]
 }
 
 export interface LoadStepRow<Step extends string> {
@@ -33,6 +43,7 @@ export interface LoadTrackerOptions<Step extends string> {
 	logHeader: string
 	/** performance.mark name prefix, e.g. 'tla' or 'tla-file'. */
 	markPrefix: string
+	lanes: Record<Step, LoadStepLane<Step>>
 }
 
 /** The server's whole connect span: its last step, since steps only run when needed. */
@@ -70,11 +81,11 @@ export function shouldReportLoad({
 export const SERVER_ECHO_DEADLINE_MS = 3000
 
 /**
- * `detail.devtools` is Chrome's Performance panel extension: it puts each step's span on its own
- * named track instead of the generic Timings track, where bare marks are just ticks.
+ * `detail.devtools` is Chrome's Performance panel extension: it puts each step's span on its lane's
+ * track under the caller's group, instead of the generic Timings track where bare marks are ticks.
  */
-export function measureOnTrack(track: string) {
-	return (step: string, start: number, end: number) => {
+export function measureOnTrack(trackGroup: string) {
+	return (step: string, start: number, end: number, lane: string, since: string) => {
 		try {
 			performance.measure(`tla:${step}`, {
 				start,
@@ -82,9 +93,10 @@ export function measureOnTrack(track: string) {
 				detail: {
 					devtools: {
 						dataType: 'track-entry',
-						track,
+						track: lane,
+						trackGroup,
 						color: 'primary',
-						tooltipText: `${step}: ${Math.round(end - start)}ms since previous step`,
+						tooltipText: `${step}: ${Math.round(end - start)}ms since ${since}`,
 					},
 				},
 			})
@@ -180,7 +192,15 @@ export function createLoadTracker<Step extends string>(
 		const t = Math.round(deps.now() - t0)
 		marks[step] = t
 		deps.mark(`${opts.markPrefix}:${step}`)
-		deps.measure(step, t0 + lastT, t0 + t)
+		const { lane, from } = opts.lanes[step]
+		const since = from
+			?.filter((s) => marks[s] !== undefined)
+			.reduce<Step | undefined>(
+				(a, b) => (a === undefined || marks[b]! > marks[a]! ? b : a),
+				undefined
+			)
+		const start = since !== undefined ? marks[since]! : from ? lastT : 0
+		deps.measure(step, t0 + start, t0 + t, lane, since ?? (from ? 'previous step' : 'start'))
 		say(`[${opts.logPrefix}] ${step} +${t}ms (+${t - lastT})`)
 		lastT = t
 	}

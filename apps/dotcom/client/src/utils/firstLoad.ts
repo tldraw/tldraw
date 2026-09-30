@@ -6,6 +6,7 @@ import {
 	LOADS_DEBUG_FLAG,
 	LoadReport,
 	LoadServerTimings,
+	LoadStepLane,
 	LoadStepRow,
 	LoadTrackerDeps,
 	measureOnTrack,
@@ -20,8 +21,8 @@ export { serverTotalMs }
 /**
  * Per-step timing for the first load of a page, from navigation start to the board being visible.
  *
- * Every step names the event that just completed, in past tense; its span is the time since the
- * previous step. Steps become `performance.mark`s (`tla:<step>`) and measures, `t_<step>` /
+ * Every step names the event that just completed, in past tense; its `d_` delta is the time since
+ * the previous step. Steps become `performance.mark`s (`tla:<step>`) and lane measures, `t_<step>` /
  * `d_<step>` properties on the `first_load` analytics event, and console lines. The report sorts
  * by when each step actually happened, since route chunks load in parallel. What each step marks
  * is in FIRST_LOAD_STEP_INFO.
@@ -45,6 +46,26 @@ export const FIRST_LOAD_STEPS = [
 ] as const
 
 export type FirstLoadStep = (typeof FIRST_LOAD_STEPS)[number]
+
+/** DevTools lanes: each span starts at the step it waited on, so parallel flows overlap. */
+const FIRST_LOAD_LANES: Record<FirstLoadStep, LoadStepLane<FirstLoadStep>> = {
+	'js-started': { lane: 'Page' },
+	'root-chunk-loaded': { lane: 'Page', from: ['js-started'] },
+	'clerk-loaded': { lane: 'Page', from: ['root-chunk-loaded'] },
+	'flags-loaded': { lane: 'Page', from: ['clerk-loaded'] },
+	'init-done': { lane: 'Zero', from: ['flags-loaded'] },
+	'zero-user-synced': { lane: 'Zero', from: ['flags-loaded', 'init-done'] },
+	'zero-preloaded': { lane: 'Zero', from: ['zero-user-synced'] },
+	'file-chunk-loaded': { lane: 'Editor', from: ['js-started'] },
+	'editor-rendered': { lane: 'Editor', from: ['file-chunk-loaded', 'zero-preloaded'] },
+	'sync-token-fetched': { lane: 'Sync', from: ['file-chunk-loaded', 'clerk-loaded'] },
+	'sync-connected': { lane: 'Sync', from: ['file-chunk-loaded', 'sync-token-fetched'] },
+	'editor-mounted': {
+		lane: 'Editor',
+		from: ['editor-rendered', 'sync-connected', 'zero-preloaded'],
+	},
+	'board-visible': { lane: 'Editor', from: ['editor-mounted'] },
+}
 
 const FIRST_LOAD_STEP_INFO: Record<FirstLoadStep, string> = {
 	'js-started': 'main.tsx began executing (HTML + entry bundle done)',
@@ -111,6 +132,7 @@ export function createFirstLoadTracker(deps: FirstLoadDeps) {
 		logPrefix: 'first-load',
 		logHeader: FIRST_LOAD_LOG_HEADER,
 		markPrefix: 'tla',
+		lanes: FIRST_LOAD_LANES,
 	})
 	const routeKind = (): FirstLoadRouteKind => {
 		if (deps.initialPath === '/') return 'root-redirect'
