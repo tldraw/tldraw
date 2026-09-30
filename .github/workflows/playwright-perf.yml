@@ -7,6 +7,11 @@ on:
   push:
     branches: [main]
 
+# Cancel superseded PR runs. Other events get a per-run group: a shared one drops queued merge_group/push runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
