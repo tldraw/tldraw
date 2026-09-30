@@ -561,6 +561,16 @@ export class TldrawApp {
 				failed,
 			])
 			markFirstLoad('zero-preloaded')
+			await Promise.race([this.changesFlushed, failed])
+			// A row without its home workspace (e.g. left behind by the MCP access path) only gets one
+			// from init. The app works without it meanwhile, so don't hold boot on the repair.
+			if (!this.getWorkspaceMembership(this.getHomeWorkspaceId())) {
+				this.initUser()
+					.then((error) => {
+						if (error) throw error
+					})
+					.catch((error) => captureException(error, { tags: { init: 'home workspace' } }))
+			}
 		} finally {
 			signal?.removeEventListener('abort', onAbort)
 			document.removeEventListener('visibilitychange', onVisibilityChange)
