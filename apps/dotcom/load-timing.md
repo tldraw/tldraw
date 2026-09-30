@@ -98,9 +98,9 @@ Turn on `logLoads` in the debug menu, or run `sessionStorage['tldraw_debug:logLo
 
 ### In the Performance panel
 
-Every load, flag or not, draws its steps as custom tracks in the DevTools Performance panel: a "First load" group for the page boot and a "File load" group for each later file switch. Record a trace while reloading (the reload button in the Performance panel) and expand the groups above the Main thread.
+Every load, flag or not, draws its steps as custom tracks in the DevTools Performance panel: a "First load" group for the page boot, and one "File load" group shared by every later file switch and remount. Record a trace while reloading (the reload button in the Performance panel) and expand the groups above the Main thread.
 
-Each group has one lane per flow that runs in parallel: `Page` (entry bundle, Clerk, flags), `Zero`, `Sync` (token, socket, snapshot) and `Editor` (file chunk, render, mount, board visible). A bar spans from the step its flow was waiting on to the step itself, and the tooltip names that start. So a bar's length is how long that flow took, and bars in different lanes overlap. That is unlike `d_*`, which always counts from the previous step in time, whichever flow it belonged to.
+Each group has one lane per flow that runs in parallel. "First load" has `Page` (entry bundle, Clerk, flags), `Zero`, `Sync` (token, socket, snapshot) and `Editor` (file chunk, render, mount, board visible). "File load" has only `Sync` and `Editor`, since the page and Zero are already up. A bar spans from the step its flow was waiting on to the step itself, and the tooltip names that start. So a bar's length is how long that flow took, and bars in different lanes overlap. That is unlike `d_*`, which always counts from the previous step in time, whichever flow it belonged to.
 
 Reading a load:
 

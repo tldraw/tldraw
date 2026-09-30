@@ -120,7 +120,7 @@ describe('file loads', () => {
 		})
 	})
 
-	it('draws devtools lanes only for switches, since first_load draws the first open', () => {
+	it('draws no devtools lanes for the first open, since first_load draws it', () => {
 		const { loads, advance, show, deps } = setup()
 		const first = loads.begin('abc')
 		first.mark('file-started')
@@ -130,6 +130,15 @@ describe('file loads', () => {
 		loads.noteNavigation('/f/def')
 		loads.begin('def').mark('file-started')
 		expect(deps.measure).toHaveBeenCalledWith('file-started', 1000, 1000, 'Editor', 'start')
+	})
+
+	it('draws devtools lanes for a boot open that replaced an abandoned first open', () => {
+		const { loads, advance, deps } = setup()
+		loads.begin('abc').mark('file-started')
+		advance(200)
+		loads.begin('def').mark('file-started')
+		expect(deps.measure).toHaveBeenCalledTimes(1)
+		expect(deps.measure).toHaveBeenCalledWith('file-started', 0, 200, 'Editor', 'start')
 	})
 
 	it('falls back to begin time when no navigation was noted for this file', () => {

@@ -21,8 +21,8 @@ export { serverTotalMs }
 /**
  * Per-step timing for the first load of a page, from navigation start to the board being visible.
  *
- * Every step names the event that just completed, in past tense; its span is the time since the
- * previous step. Steps become `performance.mark`s (`tla:<step>`) and measures, `t_<step>` /
+ * Every step names the event that just completed, in past tense; its `d_` delta is the time since
+ * the previous step. Steps become `performance.mark`s (`tla:<step>`) and lane measures, `t_<step>` /
  * `d_<step>` properties on the `first_load` analytics event, and console lines. The report sorts
  * by when each step actually happened, since route chunks load in parallel. What each step marks
  * is in FIRST_LOAD_STEP_INFO.
@@ -47,7 +47,7 @@ export const FIRST_LOAD_STEPS = [
 
 export type FirstLoadStep = (typeof FIRST_LOAD_STEPS)[number]
 
-/** DevTools lanes: each span starts where its own flow did, so parallel flows show as overlapping. */
+/** DevTools lanes: each span starts at the step it waited on, so parallel flows overlap. */
 const FIRST_LOAD_LANES: Record<FirstLoadStep, LoadStepLane<FirstLoadStep>> = {
 	'js-started': { lane: 'Page' },
 	'root-chunk-loaded': { lane: 'Page', from: ['js-started'] },

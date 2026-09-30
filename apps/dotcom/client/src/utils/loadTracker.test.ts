@@ -55,6 +55,25 @@ describe('createLoadTracker', () => {
 		expect(tracker.buildReport()).toMatchObject({ d_b: 30, d_c: 30 })
 	})
 
+	it('starts a span at the latest of its starts, whatever their listed order', () => {
+		let t = 0
+		const deps: LoadTrackerDeps<S> = { now: () => t, mark: vi.fn(), measure: vi.fn(), log: vi.fn() }
+		const tracker = createLoadTracker(deps, {
+			steps: STEPS,
+			logPrefix: 'file-load',
+			logHeader: 'header',
+			markPrefix: 'tla-file',
+			lanes: { a: { lane: 'A' }, b: { lane: 'B' }, c: { lane: 'C', from: ['b', 'a'] } },
+		})
+		t = 40
+		tracker.mark('b')
+		t = 70
+		tracker.mark('a')
+		t = 100
+		tracker.mark('c')
+		expect(deps.measure).toHaveBeenLastCalledWith('c', 70, 100, 'C', 'a')
+	})
+
 	it("falls back to the previous step when none of a span's starts happened", () => {
 		const { deps, tracker, advance } = setup(0)
 		advance(40)

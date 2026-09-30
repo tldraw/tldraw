@@ -90,8 +90,10 @@ export function createFileLoads(deps: FileLoadsDeps) {
 		const nav = navigation?.pathname === `/f/${slug}` ? navigation : null
 		navigation = null
 		const t0 = kind === 'first' ? 0 : (nav?.at ?? deps.now())
-		// first_load already draws the first open's lanes; a second group would repeat them.
-		const measure: FileLoadsDeps['measure'] = kind === 'first' ? () => {} : deps.measure
+		// first_load already draws the boot's first open. A later boot open (the first was abandoned,
+		// e.g. a cached-visit redirect) must draw here: first_load keeps the first open's marks.
+		const measure: FileLoadsDeps['measure'] =
+			kind === 'first' && abandonedBefore === 0 ? () => {} : deps.measure
 		const tracker = createLoadTracker(
 			{ ...deps, measure },
 			{

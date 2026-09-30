@@ -82,7 +82,7 @@ export const SERVER_ECHO_DEADLINE_MS = 3000
 
 /**
  * `detail.devtools` is Chrome's Performance panel extension: it puts each step's span on its lane's
- * track under one group per load, instead of the generic Timings track where bare marks are ticks.
+ * track under the caller's group, instead of the generic Timings track where bare marks are ticks.
  */
 export function measureOnTrack(trackGroup: string) {
 	return (step: string, start: number, end: number, lane: string, since: string) => {
