@@ -84,13 +84,13 @@ const USER_PRELOAD_TIMEOUT_MS = 30_000
 
 export interface PreloadDiagnostics {
 	stage: string
+	initError: string | undefined
 	connection: string
 	connectionReason: string | undefined
 	visibilityState: DocumentVisibilityState
 	hiddenMs: number
 	online: boolean
 	msSinceNavigation: number
-	msSinceInit: number
 	zeroLog: string[]
 }
 
@@ -442,33 +442,44 @@ export class TldrawApp {
 		return this.z.materialize(query as any) as unknown as TypedView<TReturn>
 	}
 
-	async preload(signal?: AbortSignal) {
-		// Ensure user exists in DB before Zero can query
+	/**
+	 * Creates the user row + home workspace. Throws if the request was never sent; once sent, a
+	 * failure is returned instead, since the row may still have committed.
+	 */
+	private async initUser(): Promise<Error | undefined> {
 		const token = await this.getToken()
 		if (!token) throw new Error('No auth token available for init')
-		const res = await fetch(`/api/app/${this.userId}/init`, {
-			method: 'POST',
-			headers: { Authorization: `Bearer ${token}`, 'x-tldraw-load-id': getFirstLoadId() },
-		})
-		markFirstLoad('init-done')
-		// A failed init only matters if the user row never shows up: returning users whose row
-		// already exists should still load through a transient worker error.
-		const initError = res.ok ? undefined : new Error(`Init failed: ${res.status}`)
-		// Zero's query can itself stall, so the deadline must cover it as well as the user row.
+		try {
+			const res = await fetch(`/api/app/${this.userId}/init`, {
+				method: 'POST',
+				headers: { Authorization: `Bearer ${token}`, 'x-tldraw-load-id': getFirstLoadId() },
+			})
+			return res.ok ? undefined : new Error(`Init failed: ${res.status}`)
+		} catch (e) {
+			// Browsers word network errors differently and Sentry groups on the message.
+			return new Error('Init request failed', { cause: e })
+		}
+	}
+
+	async preload(signal?: AbortSignal) {
+		// Zero's query can itself stall, so the deadline must cover it and every stage after it.
 		// The stage is in the error so Sentry can tell a slow Zero sync from a row that never arrived.
-		let stage: 'zero query' | 'state flush' | 'user record' = 'zero query'
-		const timedOut = promiseWithResolve<never>()
+		let stage: 'zero query' | 'state flush' | 'user init' | 'user record' | 'workspace data' =
+			'zero query'
+		const failed = promiseWithResolve<never>()
 		let stopWaiting: (() => void) | undefined
-		const initReturnedAt = Date.now()
+		let initError: Error | undefined
 		let hiddenMs = 0
 		const fail = () => {
-			const error = initError ?? new Error(`Timed out waiting for the ${stage} after init`)
+			const error =
+				(stage === 'user record' && initError) || new Error(`Timed out waiting for the ${stage}`)
 			try {
 				const connection = this.z.connection.state.current
 				// Sentry's ExtraErrorData integration copies this onto the event.
 				Object.assign(error, {
 					diagnostics: {
 						stage,
+						initError: initError && formatLogArg(initError),
 						connection: connection.name,
 						connectionReason:
 							'reason' in connection ? redactTokens(formatLogArg(connection.reason)) : undefined,
@@ -476,12 +487,11 @@ export class TldrawApp {
 						hiddenMs,
 						online: navigator.onLine,
 						msSinceNavigation: Math.round(performance.now()),
-						msSinceInit: Date.now() - initReturnedAt,
 						zeroLog: this.zeroLog.recent(),
 					} satisfies PreloadDiagnostics,
 				})
 			} finally {
-				timedOut.reject(error)
+				failed.reject(error)
 			}
 		}
 		// Zero built in a hidden tab waits for visibility before connecting, so a restored or
@@ -511,31 +521,52 @@ export class TldrawApp {
 		else hiddenSince = Date.now()
 		// A hidden tab can sit here indefinitely, so the caller needs a way to settle this and let
 		// create() dispose the half-built app when it gives up on it.
-		const onAbort = () => timedOut.reject(new DOMException('Bootstrap cancelled', 'AbortError'))
+		const onAbort = () => failed.reject(new DOMException('Bootstrap cancelled', 'AbortError'))
 		signal?.addEventListener('abort', onAbort)
 		if (signal?.aborted) onAbort()
 		try {
-			await Promise.race([this.z.preload(queries.user()).complete, timedOut])
+			await Promise.race([this.z.preload(queries.user()).complete, failed])
 			stage = 'state flush'
-			await Promise.race([this.changesFlushed, timedOut])
-			stage = 'user record'
+			await Promise.race([this.changesFlushed, failed])
 			const userLoaded = promiseWithResolve<void>()
 			stopWaiting = react('wait for user', () => {
 				if (this.user$.get()) userLoaded.resolve()
 			})
-			await Promise.race([userLoaded, timedOut])
+			// Only a user Zero has confirmed missing needs init, so returning users never wait on the
+			// worker's Postgres. The row wins over a slow init (another tab created it, a lost ack), and
+			// a sent init that failed may still have committed, so its error only surfaces if the
+			// deadline runs out.
+			if (!this.user$.get()) {
+				stage = 'user init'
+				await Promise.race([
+					this.initUser().then((error) => {
+						initError = error
+						// After the row wins, a late mark would skew the step deltas around it.
+						if (stage === 'user init') markFirstLoad('init-done')
+					}),
+					userLoaded,
+					failed,
+				])
+			}
+			stage = 'user record'
+			await Promise.race([userLoaded, failed])
+			if (initError) console.warn('[AppState] User row arrived after init failed:', initError)
 			markFirstLoad('zero-user-synced')
+			stage = 'workspace data'
+			await Promise.race([
+				Promise.all([
+					this.z.preload(queries.fileStates()).complete,
+					this.z.preload(queries.workspaceMemberships()).complete,
+				]),
+				failed,
+			])
+			markFirstLoad('zero-preloaded')
 		} finally {
 			signal?.removeEventListener('abort', onAbort)
 			document.removeEventListener('visibilitychange', onVisibilityChange)
 			clearTimeout(timeout)
 			stopWaiting?.()
 		}
-		await Promise.all([
-			this.z.preload(queries.fileStates()).complete,
-			this.z.preload(queries.workspaceMemberships()).complete,
-		])
-		markFirstLoad('zero-preloaded')
 	}
 
 	messages = defineMessages({
