@@ -12,5 +12,5 @@ git log origin/production --first-parent --reverse --since="$SINCE" --format='%H
     printf '%s  %s  <- %s\n' "${at:0:16}" "${subj%% (*}" "${shipped:0:160}"
   done
 echo; echo "== staging (main merges matching /$RE/i)"
-gh pr list --state merged --limit 200 --search "merged:>=$SINCE base:main" --json number,title,mergedAt \
+gh pr list --state merged --limit 200 --search "merged:>=$SINCE -base:hotfixes" --json number,title,mergedAt \
   --jq '.[] | "\(.mergedAt[:16]) #\(.number) \(.title)"' | grep -iE "$RE" | grep -v HOTFIX | sort
