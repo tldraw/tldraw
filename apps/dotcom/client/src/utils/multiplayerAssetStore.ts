@@ -4,6 +4,7 @@ import { USER_CONTENT_URL } from './config'
 import { isDevelopmentEnv, isPreviewEnv } from './env'
 
 const MAX_R2_OBJECT_NAME_BYTES = 1024
+const MIN_PNG_RESIZE_DIMENSION = 400
 
 // Assets are uploaded to and served from a separate tldrawusercontent worker (USER_CONTENT_URL).
 // Same R2 bucket as before — the worker just adds auth gating and Cloudflare Image Transformations.
@@ -134,9 +135,14 @@ export function multiplayerAssetStore(opts?: {
 				)
 			)
 
-			// Compressed file size can hide a large decoded bitmap. Skip only near-native resizes
+			// Compressed file size can hide a large decoded bitmap. Avoid near-native resizes
 			// so small dimension savings don't create extra CDN variants.
-			if (width < trueWidth * 0.75) {
+			if (
+				asset.props.mimeType === 'image/png' &&
+				trueWidth >= MIN_PNG_RESIZE_DIMENSION &&
+				asset.props.h * pixelRatio >= MIN_PNG_RESIZE_DIMENSION &&
+				width < trueWidth * 0.75
+			) {
 				return `${USER_CONTENT_URL}/cdn-cgi/image/w=${width},format=auto/${objectName}`
 			}
 

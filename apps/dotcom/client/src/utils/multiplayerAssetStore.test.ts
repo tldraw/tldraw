@@ -71,7 +71,13 @@ describe('multiplayerAssetStore.resolve', () => {
 		async (fileSize) => {
 			const asset = {
 				type: 'image',
-				props: { src: 'https://assets.tldraw.dev/image.png', w: 2500, fileSize },
+				props: {
+					src: 'https://assets.tldraw.dev/image.png',
+					w: 2500,
+					h: 1800,
+					mimeType: 'image/png',
+					fileSize,
+				},
 			}
 			expect(
 				await resolver(asset as TLAsset, {
@@ -97,7 +103,14 @@ describe('multiplayerAssetStore.resolve', () => {
 		async ({ scale, dpr, pixelRatio, expected }) => {
 			const asset = {
 				type: 'image',
-				props: { src: 'https://assets.tldraw.dev/image.png', w: 2000, pixelRatio, fileSize: 1000 },
+				props: {
+					src: 'https://assets.tldraw.dev/image.png',
+					w: 2000,
+					h: 1500,
+					mimeType: 'image/png',
+					pixelRatio,
+					fileSize: 1000,
+				},
 			}
 			expect(
 				await resolver(asset as TLAsset, {
@@ -108,6 +121,40 @@ describe('multiplayerAssetStore.resolve', () => {
 					shouldResolveToOriginal: false,
 				})
 			).toBe(`https://tldrawusercontent.com/cdn-cgi/image/${expected}/image.png`)
+		}
+	)
+
+	it.each([
+		{ mimeType: 'image/png', w: 399, h: 400, pixelRatio: 1, expected: 'format=auto' },
+		{ mimeType: 'image/png', w: 400, h: 399, pixelRatio: 1, expected: 'format=auto' },
+		{ mimeType: 'image/png', w: 400, h: 400, pixelRatio: 1, expected: 'w=200,format=auto' },
+		{ mimeType: 'image/png', w: 200, h: 200, pixelRatio: 2, expected: 'w=200,format=auto' },
+		{ mimeType: 'image/jpeg', w: 2000, h: 1500, pixelRatio: 1, expected: 'format=auto' },
+		{ mimeType: 'image/webp', w: 2000, h: 1500, pixelRatio: 1, expected: 'format=auto' },
+		{ mimeType: undefined, w: 2000, h: 1500, pixelRatio: 1, expected: 'format=auto' },
+	])(
+		'should apply the PNG size limit to $mimeType at $w × $h and pixel ratio $pixelRatio',
+		async ({ mimeType, w, h, pixelRatio, expected }) => {
+			const asset = {
+				type: 'image',
+				props: {
+					src: 'https://assets.tldraw.dev/image',
+					mimeType,
+					w,
+					h,
+					pixelRatio,
+					fileSize: FILE_SIZE,
+				},
+			}
+			expect(
+				await resolver(asset as TLAsset, {
+					screenScale: 0.5,
+					steppedScreenScale: 0.5,
+					dpr: 1,
+					networkEffectiveType: '4g',
+					shouldResolveToOriginal: false,
+				})
+			).toBe(`https://tldrawusercontent.com/cdn-cgi/image/${expected}/image`)
 		}
 	)
 
@@ -137,26 +184,31 @@ describe('multiplayerAssetStore.resolve', () => {
 		).toBe('data:somedata')
 	})
 
-	it('should return the original src if it is animated', async () => {
-		const asset = {
-			type: 'image',
-			props: {
-				src: 'http://assets.tldraw.dev/animated.gif',
-				mimeType: 'image/gif',
-				w: 100,
-				fileSize: FILE_SIZE,
-			},
+	it.each(['image/gif', 'image/avif', 'image/png'])(
+		'should return the original src for animated %s images',
+		async (mimeType) => {
+			const asset = {
+				type: 'image',
+				props: {
+					src: 'http://assets.tldraw.dev/animated.gif',
+					mimeType,
+					isAnimated: true,
+					w: 2000,
+					h: 1500,
+					fileSize: FILE_SIZE,
+				},
+			}
+			expect(
+				await resolver(asset as TLAsset, {
+					screenScale: -1,
+					steppedScreenScale: 1,
+					dpr: 1,
+					networkEffectiveType: '4g',
+					shouldResolveToOriginal: false,
+				})
+			).toBe('http://assets.tldraw.dev/animated.gif')
 		}
-		expect(
-			await resolver(asset as TLAsset, {
-				screenScale: -1,
-				steppedScreenScale: 1,
-				dpr: 1,
-				networkEffectiveType: '4g',
-				shouldResolveToOriginal: false,
-			})
-		).toBe('http://assets.tldraw.dev/animated.gif')
-	})
+	)
 
 	it('should serve vector images directly without cdn-cgi transformation', async () => {
 		const asset = {
@@ -164,7 +216,8 @@ describe('multiplayerAssetStore.resolve', () => {
 			props: {
 				src: 'http://assets.tldraw.dev/vector.svg',
 				mimeType: 'image/svg+xml',
-				w: 100,
+				w: 2000,
+				h: 1500,
 				fileSize: FILE_SIZE,
 			},
 		}
@@ -198,7 +251,13 @@ describe('multiplayerAssetStore.resolve', () => {
 	it('should handle if network compensation is not available and zoom correctly', async () => {
 		const asset = {
 			type: 'image',
-			props: { src: 'http://assets.tldraw.dev/image.jpg', w: 100, fileSize: FILE_SIZE },
+			props: {
+				src: 'http://assets.tldraw.dev/image.png',
+				w: 1000,
+				h: 800,
+				mimeType: 'image/png',
+				fileSize: FILE_SIZE,
+			},
 		}
 		expect(
 			await resolver(asset as TLAsset, {
@@ -208,13 +267,19 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: null,
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://tldrawusercontent.com/cdn-cgi/image/format=auto/image.jpg')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/format=auto/image.png')
 	})
 
 	it('should handle network compensation and zoom correctly', async () => {
 		const asset = {
 			type: 'image',
-			props: { src: 'http://assets.tldraw.dev/image.jpg', w: 100, fileSize: FILE_SIZE },
+			props: {
+				src: 'http://assets.tldraw.dev/image.png',
+				w: 1000,
+				h: 800,
+				mimeType: 'image/png',
+				fileSize: FILE_SIZE,
+			},
 		}
 		expect(
 			await resolver(asset as TLAsset, {
@@ -224,13 +289,19 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: '3g',
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://tldrawusercontent.com/cdn-cgi/image/w=50,format=auto/image.jpg')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/w=500,format=auto/image.png')
 	})
 
 	it('should not scale image above natural size', async () => {
 		const asset = {
 			type: 'image',
-			props: { src: 'https://assets.tldraw.dev/image.jpg', w: 100, fileSize: FILE_SIZE },
+			props: {
+				src: 'https://assets.tldraw.dev/image.png',
+				w: 1000,
+				h: 800,
+				mimeType: 'image/png',
+				fileSize: FILE_SIZE,
+			},
 		}
 		expect(
 			await resolver(asset as TLAsset, {
@@ -240,6 +311,6 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: '4g',
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://tldrawusercontent.com/cdn-cgi/image/format=auto/image.jpg')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/format=auto/image.png')
 	})
 })
