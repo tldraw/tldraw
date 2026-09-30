@@ -64,12 +64,17 @@ import { ZERO_SERVER } from '../../utils/config'
 import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
+import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNotifications'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
 import { getDateFormat } from '../utils/dates'
-import { FeatureFlags } from '../utils/FeatureFlagPoller'
+import { FeatureFlags } from '../utils/featureFlags'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
-import { updateLocalSessionState } from '../utils/local-session-state'
+import {
+	clearLastVisitedFile,
+	getLastVisitedFileId,
+	updateLocalSessionState,
+} from '../utils/local-session-state'
 import { ZeroLogBuffer, formatLogArg, redactTokens } from './ZeroLogBuffer'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -185,9 +190,9 @@ export class TldrawApp {
 	private readonly comments$: Signal<QueryResultType<typeof queries.homeBoardComments>>
 	/** Like the comment feeds. */
 	private readonly reactions$: Atom<QueryResultType<typeof queries.reactions>>
-	/** The signed-in account's email, for the first-load report gate. */
+	/** The signed-in account's email, for the load report gate. */
 	readonly email: string | null
-	readonly isFirstLoadRumEnabled: boolean
+	readonly isLoadRumEnabled: boolean
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -264,7 +269,7 @@ export class TldrawApp {
 		this.trackEvent = trackEvent
 		this.getToken = getToken
 		this.email = email ?? null
-		this.isFirstLoadRumEnabled = flags.first_load_rum?.enabled ?? false
+		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
 		if (window.navigator.webdriver) {
@@ -365,23 +370,14 @@ export class TldrawApp {
 		this.threadStarterComments$ = atom('thread starter comments signal', [], { isEqual })
 		this.threadParticipantComments$ = atom('thread participant comments signal', [], { isEqual })
 		this.mentionComments$ = atom('mention comments signal', [], { isEqual })
-		this.comments$ = computed('comments signal', () => {
-			const seen = new Set<string>()
-			const merged: QueryResultType<typeof queries.homeBoardComments> = []
-			for (const feed of [
-				this.homeBoardComments$,
-				this.threadStarterComments$,
-				this.threadParticipantComments$,
-				this.mentionComments$,
-			]) {
-				for (const comment of feed.get()) {
-					if (seen.has(comment.id)) continue
-					seen.add(comment.id)
-					merged.push(comment)
-				}
-			}
-			return merged
-		})
+		this.comments$ = computed('comments signal', () =>
+			mergeCommentFeeds<QueryResultType<typeof queries.homeBoardComments>[number]>(
+				this.homeBoardComments$.get(),
+				this.threadStarterComments$.get(),
+				this.threadParticipantComments$.get(),
+				this.mentionComments$.get()
+			)
+		)
 		this.reactions$ = atom('reactions signal', [], { isEqual })
 	}
 
@@ -1084,6 +1080,8 @@ export class TldrawApp {
 			this.showMutationRejectionToast(res.error)
 			return false
 		}
+		// Otherwise the next `/` load would walk straight back into the room and re-add the file.
+		if (getLastVisitedFileId(this.userId) === fileId) clearLastVisitedFile()
 		return true
 	}
 
@@ -1115,6 +1113,12 @@ export class TldrawApp {
 
 	getFileState(fileId: string) {
 		return this.getUserFileStates().find((f) => f.fileId === fileId)
+	}
+
+	/** Same test getMostRecentFileId applies: a visit whose file is gone (moved, revoked, deleted) doesn't count. */
+	isFileVisitable(fileId: string) {
+		const file = this.getFileState(fileId)?.file
+		return !!file && !file.isDeleted
 	}
 
 	updateFileState(fileId: string, partial: Omit<TlaFileStatePartial, 'fileId' | 'userId'>) {

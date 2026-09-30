@@ -9,7 +9,9 @@ import { Head } from './components/Head/Head'
 import { routes } from './routeDefs'
 import { router } from './routes'
 import { showConsoleBranding } from './utils/consoleBranding'
+import { fileLoads } from './utils/fileLoad'
 import { markFirstLoad } from './utils/firstLoad'
+import { shouldPrintLoads } from './utils/loadTracker'
 
 markFirstLoad('js-started')
 
@@ -21,6 +23,8 @@ const TOP_LEVEL_ERROR_MESSAGES = {
 }
 
 const browserRouter = createBrowserRouter(router)
+// Fires inside navigate(), before React renders the new route: the start of a file switch.
+browserRouter.subscribe((state) => fileLoads.noteNavigation(state.location.pathname))
 
 // @ts-ignore this is fine
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -47,7 +51,8 @@ createRoot(document.getElementById('root')!).render(
 	</RefreshErrorBoundary>
 )
 
-showConsoleBranding()
+// The banner buries the load timings the debug flag asked for.
+if (!shouldPrintLoads()) showConsoleBranding()
 try {
 	// we have a dummy service worker that unregisters itself immediately
 	// this was needed to remove the service worker we used to have from the cache

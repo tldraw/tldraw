@@ -3,6 +3,7 @@ name: End to end tests (perf)
 on:
   pull_request:
   merge_group:
+  # Main runs keep a per-commit perf history on main in PostHog.
   push:
     branches: [main]
 

@@ -229,6 +229,34 @@ describe('Store: reading and writing (S)', () => {
 		expect(unsafeOnly).toEqual(['Jimmy Tolks'])
 		stop2()
 	})
+
+	it('[S11] a reaction that puts records does not re-run for unrelated store changes', () => {
+		const a = Author.create({ name: 'A' })
+		const b = Author.create({ name: 'B' })
+		store.put([a, b])
+		let runs = 0
+		const stop = react('writer', () => {
+			runs++
+			store.put([{ ...a, name: 'A' + runs }])
+		})
+		store.put([{ ...b, name: 'B2' }])
+		expect(runs).toBe(1)
+		stop()
+	})
+
+	it('[S11] a reaction that removes records does not re-run for unrelated store changes', () => {
+		const a = Author.create({ name: 'A' })
+		const b = Author.create({ name: 'B' })
+		store.put([a, b])
+		let runs = 0
+		const stop = react('remover', () => {
+			runs++
+			store.remove([a.id])
+		})
+		store.put([{ ...b, name: 'B2' }])
+		expect(runs).toBe(1)
+		stop()
+	})
 })
 
 describe('Store: serialization and snapshots (S)', () => {

@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { Environment } from './types'
+import { resetFeatureFlagCacheForTests } from './utils/featureFlags'
 import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
 
 function env(tldrawEnv?: string, kv?: Record<string, string>): Environment {
@@ -14,6 +15,8 @@ function env(tldrawEnv?: string, kv?: Record<string, string>): Environment {
 async function mode(e: Environment, roomKey: string) {
 	return resolveVersionChainMode(await loadVersionChainRollout(e), roomKey)
 }
+
+beforeEach(() => resetFeatureFlagCacheForTests())
 
 describe('version chain rollout', () => {
 	it('defaults to chain everywhere, production included', async () => {
