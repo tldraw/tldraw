@@ -441,11 +441,14 @@ export class TldrawApp {
 		return this.z.materialize(query as any) as unknown as TypedView<TReturn>
 	}
 
-	/** Creates the user row + home workspace. */
+	/**
+	 * Creates the user row + home workspace. Throws if the request was never sent; once sent, a
+	 * failure is returned instead, since the row may still have committed.
+	 */
 	private async initUser(): Promise<Error | undefined> {
+		const token = await this.getToken()
+		if (!token) throw new Error('No auth token available for init')
 		try {
-			const token = await this.getToken()
-			if (!token) return new Error('No auth token available for init')
 			const res = await fetch(`/api/app/${this.userId}/init`, {
 				method: 'POST',
 				headers: { Authorization: `Bearer ${token}`, 'x-tldraw-load-id': getFirstLoadId() },

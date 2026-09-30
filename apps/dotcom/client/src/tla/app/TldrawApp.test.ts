@@ -10,10 +10,11 @@ function createAppStub({
 	user = undefined as { id: string } | undefined,
 	user$ = atom('user', user),
 	zeroLog = new ZeroLogBuffer(),
+	getToken = async (): Promise<string | undefined> => 'token',
 } = {}) {
 	return Object.assign(Object.create(TldrawApp.prototype), {
 		userId: 'user:test',
-		getToken: async () => 'token',
+		getToken,
 		z: {
 			// 1st call = user query, rest = workspace queries
 			preload: vi
@@ -159,6 +160,20 @@ describe('TldrawApp.preload', () => {
 			expect.objectContaining({ stage: 'user record' })
 		)
 		expect(fetch).toHaveBeenCalledTimes(1)
+		expect(vi.getTimerCount()).toBe(0)
+	})
+
+	it.each([
+		['no token', async () => undefined, 'No auth token available for init'],
+		['a token error', () => Promise.reject(new Error('clerk down')), 'clerk down'],
+	])('fails at once when init cannot be sent: %s', async (_, getToken, message) => {
+		const rejected = vi.fn()
+		void createAppStub({ getToken }).preload().catch(rejected)
+
+		await vi.advanceTimersByTimeAsync(0)
+
+		expect(rejected).toHaveBeenCalledWith(expect.objectContaining({ message }))
+		expect(fetch).not.toHaveBeenCalled()
 		expect(vi.getTimerCount()).toBe(0)
 	})
 
