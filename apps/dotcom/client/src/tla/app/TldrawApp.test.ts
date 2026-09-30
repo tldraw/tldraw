@@ -1,7 +1,13 @@
 import { atom, promiseWithResolve } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { markFirstLoad } from '../../utils/firstLoad'
 import { TldrawApp } from './TldrawApp'
 import { ZeroLogBuffer } from './ZeroLogBuffer'
+
+vi.mock('../../utils/firstLoad', async (importOriginal) => ({
+	...(await importOriginal<typeof import('../../utils/firstLoad')>()),
+	markFirstLoad: vi.fn(),
+}))
 
 function createAppStub({
 	queryComplete = Promise.resolve(),
@@ -38,6 +44,7 @@ function setVisibility(state: DocumentVisibilityState) {
 describe('TldrawApp.preload', () => {
 	beforeEach(() => {
 		vi.useFakeTimers()
+		vi.mocked(markFirstLoad).mockClear()
 		vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }))
 		visibilityState = 'visible'
 		vi.spyOn(document, 'visibilityState', 'get').mockImplementation(() => visibilityState)
@@ -62,6 +69,7 @@ describe('TldrawApp.preload', () => {
 
 		await vi.advanceTimersByTimeAsync(0)
 		expect(fetch).toHaveBeenCalledTimes(1)
+		expect(markFirstLoad).toHaveBeenCalledWith('init-done')
 		expect(resolved).not.toHaveBeenCalled()
 
 		user$.set({ id: 'user:test' })
@@ -208,6 +216,23 @@ describe('TldrawApp.preload', () => {
 
 		expect(resolved).toHaveBeenCalled()
 		expect(vi.getTimerCount()).toBe(0)
+	})
+
+	it('does not mark init done when the row arrived first', async () => {
+		const response = promiseWithResolve<Response>()
+		vi.mocked(fetch).mockReturnValue(response)
+		const user$ = atom('user', undefined as { id: string } | undefined)
+		const resolved = vi.fn()
+		void createAppStub({ user$ }).preload().then(resolved)
+
+		await vi.advanceTimersByTimeAsync(0)
+		user$.set({ id: 'user:test' })
+		await vi.advanceTimersByTimeAsync(0)
+		response.resolve({ ok: true } as Response)
+		await vi.advanceTimersByTimeAsync(0)
+
+		expect(resolved).toHaveBeenCalled()
+		expect(markFirstLoad).not.toHaveBeenCalledWith('init-done')
 	})
 
 	it('loads when the row replicates after an init that failed post-commit', async () => {

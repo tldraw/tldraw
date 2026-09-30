@@ -52,7 +52,7 @@ const FIRST_LOAD_STEP_INFO: Record<FirstLoadStep, string> = {
 	'clerk-loaded': 'Clerk reported isLoaded (session known)',
 	'flags-loaded': 'feature flags resolved, or timed out to defaults',
 	'init-done':
-		'POST /api/app/:userId/init settled (see srv_init_outcome); only runs when Zero found no user row',
+		'POST /api/app/:userId/init settled (see srv_init_outcome); only runs when Zero found no user row, absent if the row arrived first',
 	'zero-user-synced': 'Zero confirmed the user row from the server',
 	'zero-preloaded': 'Zero confirmed file states + workspace memberships; app state unblocks',
 	'file-chunk-loaded': 'file route chunk evaluated',

@@ -458,8 +458,6 @@ export class TldrawApp {
 		} catch (e) {
 			// Browsers word network errors differently and Sentry groups on the message.
 			return new Error('Init request failed', { cause: e })
-		} finally {
-			markFirstLoad('init-done')
 		}
 	}
 
@@ -542,6 +540,8 @@ export class TldrawApp {
 				await Promise.race([
 					this.initUser().then((error) => {
 						initError = error
+						// After the row wins, a late mark would skew the step deltas around it.
+						if (stage === 'user init') markFirstLoad('init-done')
 					}),
 					userLoaded,
 					failed,
