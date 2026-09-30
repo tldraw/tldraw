@@ -456,7 +456,8 @@ export class TldrawApp {
 			})
 			return res.ok ? undefined : new Error(`Init failed: ${res.status}`)
 		} catch (e) {
-			return e instanceof Error ? e : new Error(String(e))
+			// Browsers word network errors differently and Sentry groups on the message.
+			return new Error('Init request failed', { cause: e })
 		} finally {
 			markFirstLoad('init-done')
 		}

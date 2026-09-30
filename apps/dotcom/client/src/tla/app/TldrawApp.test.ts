@@ -160,7 +160,11 @@ describe('TldrawApp.preload', () => {
 
 	it.each([
 		['a failed response', () => ({ ok: false, status: 503 }), 'Init failed: 503'],
-		['a thrown request', () => Promise.reject(new TypeError('Failed to fetch')), 'Failed to fetch'],
+		[
+			'a thrown request',
+			() => Promise.reject(new TypeError('Failed to fetch')),
+			'Init request failed',
+		],
 	])('reports init failing with %s if the row never arrives', async (_, response, message) => {
 		vi.mocked(fetch).mockImplementation(response as any)
 		const rejected = vi.fn()
