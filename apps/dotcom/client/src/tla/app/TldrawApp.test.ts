@@ -107,6 +107,21 @@ describe('TldrawApp.preload', () => {
 		expect(fetch).toHaveBeenCalledTimes(1)
 	})
 
+	it('does not call init before pending changes flush in the user row', async () => {
+		const changesFlushed = promiseWithResolve<void>()
+		const user$ = atom('user', undefined as { id: string } | undefined)
+		const resolved = vi.fn()
+		void createAppStub({ changesFlushed, user$ }).preload().then(resolved)
+
+		await vi.advanceTimersByTimeAsync(0)
+		user$.set({ id: 'user:test' })
+		changesFlushed.resolve()
+		await vi.advanceTimersByTimeAsync(0)
+
+		expect(resolved).toHaveBeenCalled()
+		expect(fetch).not.toHaveBeenCalled()
+	})
+
 	it('shares the deadline between the query, init, and user-record waits', async () => {
 		const queryComplete = promiseWithResolve<void>()
 		const rejected = vi.fn()
