@@ -84,6 +84,7 @@ const USER_PRELOAD_TIMEOUT_MS = 30_000
 
 export interface PreloadDiagnostics {
 	stage: string
+	initError: string | undefined
 	connection: string
 	connectionReason: string | undefined
 	visibilityState: DocumentVisibilityState
@@ -479,6 +480,7 @@ export class TldrawApp {
 				Object.assign(error, {
 					diagnostics: {
 						stage,
+						initError: initError?.message,
 						connection: connection.name,
 						connectionReason:
 							'reason' in connection ? redactTokens(formatLogArg(connection.reason)) : undefined,
@@ -546,6 +548,7 @@ export class TldrawApp {
 			}
 			stage = 'user record'
 			await Promise.race([userLoaded, failed])
+			if (initError) console.warn('[AppState] User row arrived after init failed:', initError)
 			markFirstLoad('zero-user-synced')
 			stage = 'workspace data'
 			await Promise.race([

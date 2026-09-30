@@ -222,6 +222,7 @@ describe('TldrawApp.preload', () => {
 	})
 
 	it('blames a later stall, not a failed init, once the row arrives', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 		vi.mocked(fetch).mockResolvedValue({ ok: false, status: 503 } as Response)
 		const user$ = atom('user', undefined as { id: string } | undefined)
 		const rejected = vi.fn()
@@ -235,6 +236,13 @@ describe('TldrawApp.preload', () => {
 
 		expect(rejected).toHaveBeenCalledWith(
 			expect.objectContaining({ message: 'Timed out waiting for the workspace data' })
+		)
+		expect(rejected.mock.calls[0][0].diagnostics).toEqual(
+			expect.objectContaining({ stage: 'workspace data', initError: 'Init failed: 503' })
+		)
+		expect(warn).toHaveBeenCalledWith(
+			'[AppState] User row arrived after init failed:',
+			expect.objectContaining({ message: 'Init failed: 503' })
 		)
 	})
 
