@@ -118,29 +118,25 @@ export function multiplayerAssetStore(opts?: {
 				return `${USER_CONTENT_URL}/${objectName}`
 			}
 
-			// Assets that are under a certain file size aren't worth resizing.
-			// We still send them through image optimization for format conversion.
-			const { fileSize = 0 } = asset.props
-			const isWorthResizing = fileSize >= 1024 * 1024 * 1.5
+			// Reduce image bandwidth on slow connections; unsupported browsers keep full quality.
+			const networkCompensation =
+				!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
 
-			if (isWorthResizing) {
-				// N.B. navigator.connection is only available in certain browsers (mainly Blink-based browsers)
-				// 4g is as high the 'effectiveType' goes and we can pick a lower effective image quality for slower connections.
-				const networkCompensation =
-					!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
-
-				const pixelRatio = asset.props.pixelRatio ?? 1
-				const trueWidth = asset.props.w * pixelRatio
-				const width = Math.ceil(
-					Math.min(
-						trueWidth *
-							clamp(context.steppedScreenScale, 1 / 32, 1) *
-							networkCompensation *
-							context.dpr,
-						trueWidth
-					)
+			const pixelRatio = asset.props.pixelRatio ?? 1
+			const trueWidth = asset.props.w * pixelRatio
+			const width = Math.ceil(
+				Math.min(
+					trueWidth *
+						clamp(context.steppedScreenScale, 1 / 32, 1) *
+						networkCompensation *
+						context.dpr,
+					trueWidth
 				)
+			)
 
+			// Compressed file size can hide a large decoded bitmap. Skip only near-native resizes
+			// so small dimension savings don't create extra CDN variants.
+			if (width < trueWidth * 0.75) {
 				return `${USER_CONTENT_URL}/cdn-cgi/image/w=${width},format=auto/${objectName}`
 			}
 

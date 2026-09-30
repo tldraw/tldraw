@@ -50,10 +50,10 @@ describe('multiplayerAssetStore.resolve', () => {
 		).toBe('http://assets.not-tldraw.dev/video.mp4')
 	})
 
-	it('should return the a transformed URL for small image types', async () => {
+	it('should return a transformed URL for images at natural size', async () => {
 		const asset = {
 			type: 'image',
-			props: { src: 'http://assets.tldraw.dev/image.jpg', fileSize: 1000 },
+			props: { src: 'http://assets.tldraw.dev/image.jpg', w: 100, fileSize: 1000 },
 		}
 		expect(
 			await resolver(asset as TLAsset, {
@@ -65,6 +65,51 @@ describe('multiplayerAssetStore.resolve', () => {
 			})
 		).toBe('https://tldrawusercontent.com/cdn-cgi/image/format=auto/image.jpg')
 	})
+
+	it.each([300 * 1024, FILE_SIZE, undefined])(
+		'should resize a large image at a small display size with fileSize %s',
+		async (fileSize) => {
+			const asset = {
+				type: 'image',
+				props: { src: 'https://assets.tldraw.dev/image.png', w: 2500, fileSize },
+			}
+			expect(
+				await resolver(asset as TLAsset, {
+					screenScale: 0.125,
+					steppedScreenScale: 0.125,
+					dpr: 2,
+					networkEffectiveType: '4g',
+					shouldResolveToOriginal: false,
+				})
+			).toBe('https://tldrawusercontent.com/cdn-cgi/image/w=625,format=auto/image.png')
+		}
+	)
+
+	it.each([
+		{ scale: 0.5, dpr: 1, pixelRatio: 1, expected: 'w=1000,format=auto' },
+		{ scale: 0.5, dpr: 2, pixelRatio: 1, expected: 'format=auto' },
+		{ scale: 0.5, dpr: 1, pixelRatio: 2, expected: 'w=2000,format=auto' },
+		{ scale: 0.749, dpr: 1, pixelRatio: 1, expected: 'w=1498,format=auto' },
+		{ scale: 0.75, dpr: 1, pixelRatio: 1, expected: 'format=auto' },
+		{ scale: 0.9, dpr: 1, pixelRatio: 1, expected: 'format=auto' },
+	])(
+		'should choose image dimensions for $scale scale, $dpr DPR and $pixelRatio pixel ratio',
+		async ({ scale, dpr, pixelRatio, expected }) => {
+			const asset = {
+				type: 'image',
+				props: { src: 'https://assets.tldraw.dev/image.png', w: 2000, pixelRatio, fileSize: 1000 },
+			}
+			expect(
+				await resolver(asset as TLAsset, {
+					screenScale: scale,
+					steppedScreenScale: scale,
+					dpr,
+					networkEffectiveType: '4g',
+					shouldResolveToOriginal: false,
+				})
+			).toBe(`https://tldrawusercontent.com/cdn-cgi/image/${expected}/image.png`)
+		}
+	)
 
 	it('should return the original src for if original is asked for', async () => {
 		const asset = { type: 'image', props: { src: 'http://assets.tldraw.dev/image.jpg', w: 100 } }
@@ -163,7 +208,7 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: null,
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://tldrawusercontent.com/cdn-cgi/image/w=100,format=auto/image.jpg')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/format=auto/image.jpg')
 	})
 
 	it('should handle network compensation and zoom correctly', async () => {
@@ -195,6 +240,6 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: '4g',
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://tldrawusercontent.com/cdn-cgi/image/w=100,format=auto/image.jpg')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/format=auto/image.jpg')
 	})
 })
