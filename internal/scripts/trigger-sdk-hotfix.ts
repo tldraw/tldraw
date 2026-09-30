@@ -8,7 +8,7 @@ import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 import { getPrDetailsAndCommitSha, labelPresent, PullRequest } from './lib/pr-info'
 import { stripSkipCiMarkers } from './lib/skip-ci'
-import { getAllWorkspacePackages } from './lib/workspace'
+import { getAllWorkspacePackages, getPackageManager } from './lib/workspace'
 
 function getEnv() {
 	return makeEnv([
@@ -39,6 +39,10 @@ function getTriggerType(pr: PullRequest): 'none' | 'SDK' | 'docs' {
 	const isDocsOnly = hasDocsHotfixLabel && !hasSdkHotfixLabel
 	return isDocsOnly ? 'docs' : 'SDK'
 }
+
+// The release branch's pre-commit hook may expect a different package manager than this job set
+// up, and its dependencies aren't installed yet when we commit.
+const SKIP_HOOKS = ['-c', 'core.hooksPath=/dev/null']
 
 const RELEASE_NOTES_FILE = /^apps\/docs\/content\/releases\/[^/]+\.mdx$/
 
@@ -73,15 +77,7 @@ async function cherryPickTakingReleaseNotesFromCommit(commitSha: string) {
 				await exec('git', ['rm', '--quiet', '--', file])
 			}
 		}
-		// the release branch's pre-commit hook may expect a different package manager than this job set up
-		await exec('git', [
-			'-c',
-			'core.editor=true',
-			'-c',
-			'core.hooksPath=/dev/null',
-			'cherry-pick',
-			'--continue',
-		])
+		await exec('git', [...SKIP_HOOKS, '-c', 'core.editor=true', 'cherry-pick', '--continue'])
 	}
 }
 
@@ -141,17 +137,21 @@ async function main() {
 			const message = (await exec('git', ['log', '-1', '--format=%B'])).trim()
 			const cleanedMessage = stripSkipCiMarkers(message)
 			if (cleanedMessage !== message) {
-				await exec('git', ['commit', '--amend', '-m', cleanedMessage])
+				await exec('git', [...SKIP_HOOKS, 'commit', '--amend', '-m', cleanedMessage])
 			}
 		}
 	)
 
+	const packageManager = getPackageManager()
+	const install = () =>
+		packageManager === 'yarn' ? exec('yarn', ['install', '--immutable']) : exec('pnpm', ['install'])
+
 	if (triggerType === 'docs') {
 		await discord.step(`Ensuring no SDK changes are present`, async () => {
-			// run pnpm install again before building packages to make sure everything is ready
+			// install again before building packages to make sure everything is ready
 			// in case HEAD included dev dependency changes
-			await exec('pnpm', ['install'])
-			await exec('pnpm', ['refresh-assets', '--force'])
+			await install()
+			await exec(packageManager, ['refresh-assets', '--force'])
 
 			const diff = await getAnyPackageDiff(version.format())
 			if (diff) {
@@ -174,10 +174,10 @@ async function main() {
 		})
 	} else {
 		await discord.step('Running sdk tests', async () => {
-			await exec('pnpm', ['install'])
+			await install()
 			const packages = await getAllWorkspacePackages()
 
-			await exec('pnpm', [
+			await exec(packageManager, [
 				'test',
 				...packages
 					.filter((p) => !p.packageJson.private)
