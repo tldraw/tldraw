@@ -11,6 +11,6 @@ git log origin/production --first-parent --reverse --since="$SINCE" --format='%H
     shipped=$(git log --format=%s "$sha^1..$sha^2" 2>/dev/null | grep -v 'Add VSCode extension' | paste -sd ';' -)
     printf '%s  %s  <- %s\n' "${at:0:16}" "${subj%% (*}" "${shipped:0:160}"
   done
-echo; echo "== staging (main merges matching /$RE/i)"
+echo; echo "== staging (merges matching /$RE/i; a stacked PR shows its merge into its base branch, see pr-deploys.mjs for when it reached main)"
 gh pr list --state merged --limit 200 --search "merged:>=$SINCE -base:hotfixes" --json number,title,mergedAt \
   --jq '.[] | "\(.mergedAt[:16]) #\(.number) \(.title)"' | grep -iE "$RE" | grep -v HOTFIX | sort

@@ -4,7 +4,7 @@
 ENV="${1:-production}"; SINCE="${2:-$(date -u -v-10d +%F 2>/dev/null || date -u -d '10 days ago' +%F)}"
 shift $(( $# < 2 ? $# : 2 ))
 EVENTS=("$@")
-[ ${#EVENTS[@]} -eq 0 ] && EVENTS=(on_request_total on_request_auth get_file_record on_request_rate_limit on_request_get_room db_load_comments db_load_total postgres_client_connect_done)
+[ ${#EVENTS[@]} -eq 0 ] && EVENTS=(on_request_total on_request_auth get_file_record on_request_group_check on_request_rate_limit on_request_get_room db_load_comments db_load_total postgres_client_connect_done)
 IN=$(printf "'%s'," "${EVENTS[@]}"); IN=${IN%,}
 set -o pipefail
 # Grafana turns the string column into one series per event and metric ("<event>, p50"), each

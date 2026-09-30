@@ -26,6 +26,9 @@ const PROJECT = { production: 45972, staging: 45921 }
 const FIRST_LOAD_FROM = { production: Date.parse('2026-09-23T09:18Z'), staging: Date.parse('2026-09-22T11:18Z') }
 // Staging serves a merge ~15 min after it lands on main.
 const STAGING_LAG = 15 * 60_000
+// Loads that took longer than this are a laptop sleeping mid-load (values reach 12h), not a slow
+// load. Zero stalls (30-90s) stay in.
+const MAX_LOAD_MS = 5 * 60_000
 
 const args = process.argv.slice(2)
 const envArg = args.shift()
@@ -64,7 +67,7 @@ const deploys = prDeploys(prs)
 const now = Date.now()
 const fmt = (ms) => new Date(ms).toISOString().slice(0, 19).replace('T', ' ')
 const dt = (ms) => `toDateTime('${fmt(ms)}')`
-const h = (ms) => `${Math.round(ms / HOUR)}h`
+const h = (ms) => (ms < 3 * HOUR ? `${(ms / HOUR).toFixed(1)}h` : `${Math.round(ms / HOUR)}h`)
 
 function build(env) {
 	const notes = []
@@ -197,7 +200,7 @@ FROM (
         AND properties.route_kind = '${route}'
         AND properties.is_signed_in = true
     )
-    WHERE v IS NOT NULL
+    WHERE v IS NOT NULL AND v < ${MAX_LOAD_MS}
   )
   GROUP BY change, metric
 )
@@ -217,7 +220,8 @@ PostHog: exec \`call switch-project {"projectId": ${PROJECT[env]}}\`, then send 
 SQL: ${sqlPath}
 Windows: first_load, route_kind = '${route}', signed in; up to ${hours}h each side, skipping the first ${settle}h after each deploy.
 overall = first ${hours}h of first_load data since ${since} vs the last ${hours}h. *_change_pct: negative = faster; ${verdictRule}.
-population_shift: cold share moved more than ${COLD_SHIFT}. weekend_*: share of loads on Sat/Sun.
+population_shift: cold share moved more than ${COLD_SHIFT}. weekend_*: share of loads on Sat/Sun. Loads over ${MAX_LOAD_MS / 60_000} min are dropped (sleeping laptops).
+Expected rows: ${[...new Set(windows.map((w) => w[0]))].join(', ')}. A change with no row had no loads in either window.
 ${notes.map((n) => `- ${n}`).join('\n')}
 `)
 }

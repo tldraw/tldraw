@@ -30,9 +30,10 @@ Who reports: staff (`@tldraw.com`) always, everyone else through the `load_rum` 
    - It takes deploy times from `scripts/pr-deploys.mjs`, then compares equal windows before and after each deploy: up to 48h each side, cut short at a neighbouring deploy, the start of `first_load` data, or now.
    - It skips the first hour after a deploy (`--settle`), when cold caches slow every load. Deploys within 2h of each other are measured together.
    - It adds an `overall` row: the first 48h of data vs the last 48h.
-2. **Run it** on PostHog, per env:
+2. **Run it** on PostHog, per env. The data and schema are known, so skip the MCP's `metric-list` / `read-data-schema` preamble.
    - Send `call switch-project {"projectId": N}` through the PostHog MCP `exec` tool. The notes give N.
    - Then send the contents of `<env>.call`, as-is, as the `exec` command.
+   - The notes list the expected rows. A change with no row had no loads in either window, so say so rather than dropping it.
 3. **Server steps.** Run `scripts/server-steps.sh <env> [since]` for daily p50/p90 of the connect path, and line the changes up with the deploy times.
 4. **Report**, per env. Lead with board visible, one row per PR (or group): `p50 before → after (±%)`, the same for p90, n before/after, and the verdict. Negative % = faster.
    - **Production verdicts** come from 95% confidence intervals of each percentile (`*_ci`, before -> after). `faster` or `slower` means the intervals don't overlap. `no clear change` means the difference is within noise. Don't round it up to a win.
