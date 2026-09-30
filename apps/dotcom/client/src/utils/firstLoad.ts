@@ -395,6 +395,7 @@ function sendFirstLoadReport(
 	/* eslint-disable no-console */
 	console.groupCollapsed(
 		`[first-load] ${report.load_id} total ${report.total_ms}ms` +
+			(fileFields.connect_id ? `, connect_id ${fileFields.connect_id}` : '') +
 			(opts.hidden ? ', tab was hidden so not sent' : '') +
 			' (expand for steps, server, resources)'
 	)

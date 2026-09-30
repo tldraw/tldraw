@@ -260,6 +260,7 @@ export function reportFileLoad(
 		/* eslint-disable no-console */
 		console.groupCollapsed(
 			`[file-load] ${load.loadId} ${load.kind} total ${event.total_ms}ms, file ${event.file_ms}ms` +
+				(event.connect_id ? `, connect_id ${event.connect_id}` : '') +
 				(inGate && load.isHidden() ? ', tab was hidden so not sent' : '')
 		)
 		console.table(

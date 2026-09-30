@@ -4387,10 +4387,12 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: Every timer the sync worker wrote for one page load. Paste the load
-          id from the browser console ([first-load] <id> total ...) into the load_id
-          variable. Boot stages (db_load_*, room_start) appear only when that load booted
-          the room; init_user carries the id in blob4 and its outcome in blob3.
+        description: Every timer the sync worker wrote for one sync connect. Paste the
+          connect_id (printed as "connect_id ..." on the [first-load] / [file-load] console
+          line, or the connect_id property on the PostHog event) into the load_id variable;
+          the load id itself only matches init_user. Rows are sampled, so some can be missing.
+          Boot stages (db_load_*, room_start) appear only when that connect booted the room;
+          init_user carries the load id in blob4 and its outcome in blob3.
         id: 55
         links: []
         title: One load ($load_id)
@@ -5018,10 +5020,11 @@ spec:
         current:
           text: ''
           value: ''
-        description: A first_load id from the browser console, to list every sync worker
-          timer for that page load in the "One load" panel.
+        description: A connect_id from the [first-load] / [file-load] console line or the
+          PostHog event, to list every sync worker timer for that connect in the "One load"
+          panel.
         hide: dontHide
-        label: 'Load id (from the first_load console line)'
+        label: 'Connect id (connect_id from the console line or PostHog)'
         name: load_id
         query: ''
         skipUrlSync: false
