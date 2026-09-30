@@ -1,45 +1,55 @@
 ---
 name: load-perf
-description: Check tldraw.com page and board load times on staging or production and attribute changes to deployed PRs. Use when the user invokes load-perf, asks whether first load or file open got faster, whether a perf PR helped, or wants load timings compared before and after a deploy. Uses PostHog first_load/file_load events and sync worker Analytics Engine data via Grafana.
+description: Check tldraw.com page and board load times on staging or production and attribute changes to deployed PRs. Use when the user invokes load-perf, asks whether first load or file open got faster, whether a perf PR helped, or wants load timings compared before and after a deploy. Uses PostHog first_load events and sync worker Analytics Engine data via Grafana.
 ---
 
 # Load perf
 
-Measure tldraw.com load times per deploy era and say which PRs moved them.
+Answer "did this PR make loading faster?" with before → after numbers around each deploy.
 
 Arguments are all optional: `load-perf [staging|production] [#PR ...] [since YYYY-MM-DD]`.
 
 - No env: do both, staging first, since it shows a PR's effect before production.
-- No PRs: cut eras at every perf-related deploy from `scripts/deploys.sh`.
-- PRs given: cut eras only at those PRs' deploy times from `scripts/pr-deploys.sh`.
+- No PRs: every `perf` PR merged since `since`.
 - No `since`: the last 10 days.
 
 ## Data sources
 
 | What | Where | Access |
 | --- | --- | --- |
-| Client timings: `first_load` (page boot), `file_load` (every file open, `load_kind` first/switch/remount) | PostHog MCP, `execute-sql` | prod project **45972**, staging **45921**. 45919 is empty: `switch-project` first |
+| Client timings: `first_load` (page boot) | PostHog MCP, `execute-sql` | prod project **45972**, staging **45921**. 45919 is empty: `switch-project` first |
 | Sync worker connect steps | Cloudflare Analytics Engine via Grafana (`scripts/ae.sh`) | `GRAFANA_TOKEN` env var, a viewer service-account token with Query on the AE datasource |
 | Deploy times | `origin/production` deploy commits, PR merge times | `git`, `gh` |
 
-Who reports: staff (`@tldraw.com`) always, everyone else through the `load_rum` percentage flag. Staging is 1-4 staff, often reloading the same board. Production has hundreds of users a day.
+Who reports: staff (`@tldraw.com`) always, everyone else through the `load_rum` percentage flag. Staging is 1-5 staff, so most staging windows have too few loads to judge one PR. Production has hundreds a day.
 
 ## Workflow
 
-1. **Deploy timeline.** Run `scripts/deploys.sh [since]`, or `scripts/pr-deploys.sh <pr...>` when PRs are given. Say which PRs are not in production yet.
-2. **Client timings.** Adapt `references/first-load-by-era.sql` with the cut points and run it on each project. Split by `route_kind` (`file` = direct board link, `root-redirect` = `/` then redirected to a board) and by `is_signed_in`. Drop buckets with n < 10 in prod. Staging has to accept tiny n. It returns p50 and p90 per metric with % change against the first and the previous era. Skip p95: most eras have too few loads for it.
-3. **Sanity check.** Run `references/first-load-daily.sql`. If an era change is just one bad day, or tracks `cold` or n, it's a population shift, not the PR.
-4. **Server steps.** Run `scripts/server-steps.sh <production|staging> [since]` and match the step changes to the deploy times.
-5. **Report.** Give a table per env with era, n, and p50 / p90 for each metric with its % change (negative = faster). Use `vs_prev` to credit a PR, and `vs_first` for the total. If the first era is short or its `cold` share differs, say so, since every `vs_first` depends on it. Then one line per PR on what it moved, and what is gating board visible now.
+1. **Generate the comparison.** Run `scripts/compare-sql.mjs <env> [--since YYYY-MM-DD] [--hours 48] [pr ...]` and save the output to a file.
+   - It takes each PR's deploy time from `scripts/pr-deploys.sh` and compares a window before the deploy with a window after it (48h each by default).
+   - A window stops early at the next or previous deploy. Deploys within 2h of each other are measured together.
+   - It adds an `overall` row: the first 48h of data vs the last 48h.
+   - Its `-- note:` lines list PRs that aren't deployed yet, shortened windows, and grouped PRs.
+2. **Run it** with PostHog `execute-sql` on the env's project. Drop the `--` comment lines first.
+3. **Server steps.** Run `scripts/server-steps.sh <env> [since]` for daily p50/p90 of the connect path, and line the changes up with the deploy times.
+4. **Report**, per env:
+   - One row per PR (or group): `board visible p50 before → after (±%)`, the same for p90, n before/after, and a verdict: faster, slower, no change, or can't tell. Negative % = faster.
+   - Answer **can't tell** when a side has n < 30, or when the `cold` share moves by more than ~0.1. The second is a population change, not the PR.
+   - Explain *why* using the other metrics: zero preloaded, sync connected, token → sync, and the server steps.
+   - Then the `overall` row, and what now gates board visible.
+   - Always include the raw result table, the `-- note:` lines, and the path to the saved SQL, so the reader can check the numbers or rerun them.
+
+`scripts/deploys.sh [since]` prints the full deploy timeline when you need to know what else shipped around a PR. `references/first-load-daily.sql` gives a daily trend for spotting a single bad day.
 
 ## Reading the numbers
 
 - `t_*` is ms since navigation start. `srv_*` is the server echo for the same connect.
 - Board visible ≈ max(zero preloaded, sync connected) + editor mount. Sync used to start only after Zero preloaded. Since #10880 the socket opens in parallel, so check which of the two is later.
-- `d_*` is the gap to whichever step happened just before, not a fixed predecessor. For the connect path as the client sees it, use `t_sync_connected - t_sync_token_fetched` and compare it with `on_request_total` from AE.
+- `d_*` is the gap to whichever step happened just before, not a fixed predecessor. For the connect path as the client sees it, use `t_sync_connected - t_sync_token_fetched` (the "token to sync" metric) and compare it with `on_request_total` from AE.
 - A high `t_js_started` means slow navigation TTFB (look at `nav_ttfb`), usually just after a production deploy on `root-redirect`. Not an app problem.
-- `srv_cold` means there was no live room in the DO. A load from R2/Postgres shows as `srv_boot_*`. Hold `cold` roughly constant across eras before crediting a PR.
-- Watch the p90 as well as the p50. Zero stalls show up as 30-90s p90s with a normal p50.
+- `srv_cold` means there was no live room in the DO. A load from R2/Postgres shows as `srv_boot_*`.
+- Zero stalls show up as 30-90s p90s with a normal p50, so always read the p90.
+- The comparison defaults to `route_kind = 'file'` (direct board links, the cleanest population). Use `--route root-redirect` for `/` loads.
 
 ## AE gotchas
 
