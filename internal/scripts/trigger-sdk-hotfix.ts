@@ -40,6 +40,51 @@ function getTriggerType(pr: PullRequest): 'none' | 'SDK' | 'docs' {
 	return isDocsOnly ? 'docs' : 'SDK'
 }
 
+const RELEASE_NOTES_FILE = /^apps\/docs\/content\/releases\/[^/]+\.mdx$/
+
+/**
+ * Release-notes PRs regenerate `next.mdx` in full from main, but each commit is still a diff
+ * against the previous version. If one release-notes PR misses the release branch (e.g. #10700,
+ * #10825), every later cherry-pick conflicts on it. Main's copy is authoritative, so resolve
+ * conflicts confined to the release notes by taking the commit's version. Any other conflict
+ * still fails.
+ */
+async function cherryPickTakingReleaseNotesFromCommit(commitSha: string) {
+	try {
+		await exec('git', ['cherry-pick', commitSha])
+		return
+	} catch (err) {
+		const conflicted = (await exec('git', ['diff', '--name-only', '--diff-filter=U']))
+			.split('\n')
+			.filter(Boolean)
+		if (!conflicted.length || !conflicted.every((file) => RELEASE_NOTES_FILE.test(file))) {
+			throw err
+		}
+
+		nicelog('Release notes conflicted, taking the version from', commitSha)
+		for (const file of conflicted) {
+			const existsInCommit = await exec('git', ['cat-file', '-e', `${commitSha}:${file}`]).then(
+				() => true,
+				() => false
+			)
+			if (existsInCommit) {
+				await exec('git', ['checkout', commitSha, '--', file])
+			} else {
+				await exec('git', ['rm', '--quiet', '--', file])
+			}
+		}
+		// the release branch's pre-commit hook may expect a different package manager than this job set up
+		await exec('git', [
+			'-c',
+			'core.editor=true',
+			'-c',
+			'core.hooksPath=/dev/null',
+			'cherry-pick',
+			'--continue',
+		])
+	}
+}
+
 async function main() {
 	const env = getEnv()
 	const octokit = new Octokit({ auth: env.GITHUB_TOKEN })
@@ -88,7 +133,7 @@ async function main() {
 			await exec('git', ['checkout', latestReleaseBranch])
 			await exec('git', ['reset', `origin/${latestReleaseBranch}`, '--hard'])
 			await exec('git', ['log', '-1', '--oneline'])
-			await exec('git', ['cherry-pick', commitSha])
+			await cherryPickTakingReleaseNotesFromCommit(commitSha)
 
 			// the push to the release branch below must trigger publish.yml, but some
 			// merge commits (e.g. release-notes updates) carry `[skip ci]`, which would
