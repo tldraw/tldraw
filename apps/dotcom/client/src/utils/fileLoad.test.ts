@@ -52,8 +52,11 @@ describe('file loads', () => {
 		vi.spyOn(console, 'groupEnd').mockImplementation(() => {})
 		try {
 			const { loads, deps, show } = setup()
+			let connectId = ''
 			const report = async (load: FileLoad) => {
-				connect(load).echo()
+				const socket = connect(load)
+				connectId = socket.id
+				socket.echo()
 				load.mark('sync-connected')
 				load.mark('editor-rendered')
 				show(load)
@@ -67,6 +70,8 @@ describe('file loads', () => {
 			expect(deps.log).toHaveBeenCalled()
 			expect(group).toHaveBeenCalledTimes(1)
 			expect(group.mock.calls[0][0]).toContain('switch')
+			// Grafana's server rows are keyed by the socket's id, not the load id.
+			expect(group.mock.calls[0][0]).toContain(`connect_id ${connectId}`)
 		} finally {
 			deleteFromSessionStorage('tldraw_debug:logLoads')
 			vi.restoreAllMocks()
