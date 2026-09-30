@@ -599,18 +599,17 @@ export interface WorkspaceMembershipRow {
 }
 
 /**
- * Every workspace the caller belongs to, personal first and then by name. `canCreateBoards` is the
- * same `addFiles` check create_board makes, so a model can tell which names it will accept before
- * trying one.
+ * Every workspace the caller belongs to, personal first and then by name. A role the roles table
+ * does not know grants nothing, so its workspace is left out, the way search_boards leaves it out.
  */
 export function getWorkspaceListResult(rows: WorkspaceMembershipRow[], userId: string): ToolResult {
 	const workspaces = rows
+		.filter((row) => can(row.role, 'accessFiles'))
 		.map((row) => ({
 			id: row.id,
 			name: row.name,
 			personal: row.id === userId,
 			role: row.role,
-			canCreateBoards: can(row.role, 'addFiles'),
 		}))
 		.sort((a, b) => Number(b.personal) - Number(a.personal) || a.name.localeCompare(b.name))
 	return toolJsonResult({ workspaceCount: workspaces.length, workspaces })
@@ -1088,7 +1087,7 @@ function getListWorkspacesToolDefinition() {
 		name: LIST_WORKSPACES_TOOL_NAME,
 		title: 'List tldraw workspaces',
 		description:
-			'List the tldraw.com workspaces this account belongs to, including its personal workspace. Each workspace comes with its id, name, whether it is the personal one, this account’s role in it, and canCreateBoards: whether create_board accepts it as workspace.',
+			'List the tldraw.com workspaces this account belongs to, including its personal workspace. Each workspace comes with its id, name, whether it is the personal one, and this account’s role in it. create_board accepts any of them as workspace.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,

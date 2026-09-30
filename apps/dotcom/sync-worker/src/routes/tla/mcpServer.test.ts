@@ -712,7 +712,7 @@ describe('search_boards', () => {
 })
 
 describe('list_workspaces', () => {
-	it('lists every workspace, personal first, with its role and whether create_board accepts it', async () => {
+	it('lists every workspace, personal first, with its role', async () => {
 		vi.mocked(listWorkspacesForUser).mockResolvedValue([
 			{ id: 'group_b', name: 'Beta', role: 'member' },
 			{ id: 'user_abc', name: 'My workspace', role: 'owner' },
@@ -724,18 +724,16 @@ describe('list_workspaces', () => {
 		expect(listWorkspacesForUser).toHaveBeenCalledWith(env, 'user_abc')
 		expect(result.isError).toBeUndefined()
 		expect(JSON.parse(result.content[0].text)).toEqual({
-			workspaceCount: 3,
+			// A role the roles table does not know grants nothing, so its workspace is left out.
+			workspaceCount: 2,
 			workspaces: [
 				{
 					id: 'user_abc',
 					name: 'My workspace',
 					personal: true,
 					role: 'owner',
-					canCreateBoards: true,
 				},
-				// An unknown role is listed but answers false, the way `can` treats it everywhere.
-				{ id: 'group_a', name: 'Alpha', personal: false, role: 'viewer', canCreateBoards: false },
-				{ id: 'group_b', name: 'Beta', personal: false, role: 'member', canCreateBoards: true },
+				{ id: 'group_b', name: 'Beta', personal: false, role: 'member' },
 			],
 		})
 	})
