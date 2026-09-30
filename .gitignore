@@ -17,6 +17,7 @@ dist-cjs
 dist-esm
 .tsbuild*
 .turbo
+.lazy
 dist-ssr
 *.local
 
