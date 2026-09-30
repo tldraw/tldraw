@@ -133,6 +133,10 @@ export default defineConfig((env) => ({
 	resolve: {
 		alias: {
 			'@formatjs/icu-messageformat-parser': '@formatjs/icu-messageformat-parser/no-parser.js',
+			'next/navigation': fileURLToPath(new URL('./src/utils/next-router-stub.ts', import.meta.url)),
+			'next/compat/router': fileURLToPath(
+				new URL('./src/utils/next-router-stub.ts', import.meta.url)
+			),
 		},
 	},
 	build: {
