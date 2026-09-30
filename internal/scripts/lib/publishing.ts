@@ -1,7 +1,7 @@
 import { execSync } from 'child_process'
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
-import path, { join } from 'path'
+import path, { dirname, join } from 'path'
 import { Octokit } from '@octokit/rest'
 import { fetch } from 'cross-fetch'
 import { glob } from 'glob'
@@ -254,7 +254,7 @@ export async function publish(distTag?: string) {
 			publishOrder.map((packageDetails) => removeHoldingTag(packageDetails, userconfig))
 		)
 	} finally {
-		rmSync(userconfig, { force: true })
+		rmSync(dirname(userconfig), { recursive: true, force: true })
 	}
 }
 
