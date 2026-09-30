@@ -175,7 +175,7 @@ overrides:
 
 packageExtensionsChecksum: sha256-pA0Ucf0zl2+saI+EilyuFwv81kgUiNA7BU7Ta5TU2iU=
 
-pnpmfileChecksum: sha256-oDIAFksRhzDs7gUinTTx3NhkMCcOL+Ysj0pgb/AnOqQ=
+pnpmfileChecksum: sha256-rocSyIJW7KeWtYgfLAsPvsoCzbYupzYAUa/5T4EmyhU=
 
 patchedDependencies:
   '@microsoft/tsdoc@0.15.1': 9f79aa6f6ea275c5a36728edc12ed3b40dd156e0b7c55577da8509a7e980b7a0

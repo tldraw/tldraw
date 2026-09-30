@@ -1,6 +1,7 @@
 {
 	"extends": "../../internal/config/tsconfig.base.json",
 	"compilerOptions": {
+		// @types fallback for the global virtual store; see .pnpmfile.cjs.
 		"paths": {
 			"@/*": ["./*"],
 			"*": ["${configDir}/node_modules/@types/*"]

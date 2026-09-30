@@ -1,3 +1,6 @@
+const fs = require('fs')
+const path = require('path')
+
 /** @type {import('next').NextConfig} */
 
 function resolveAssetOrigin() {
@@ -16,15 +19,14 @@ function resolveAssetOrigin() {
 	return undefined
 }
 
-const fs = require('fs')
-const path = require('path')
-
 // Turbopack only compiles files under its root. pnpm's global virtual store keeps `next` and every
 // other dependency outside the repo, so widen the root until it contains them.
 function resolveTurbopackRoot() {
 	const nextDir = fs.realpathSync(path.dirname(require.resolve('next/package.json')))
 	let root = __dirname
-	while (!nextDir.startsWith(root + path.sep)) root = path.dirname(root)
+	while (root !== path.dirname(root) && !nextDir.startsWith(root + path.sep)) {
+		root = path.dirname(root)
+	}
 	return root
 }
 

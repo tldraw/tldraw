@@ -64,7 +64,6 @@
 		"**/.*.js",
 		"packages/assets/*",
 		"packages/create-tldraw/cli.cjs",
-		".pnpmfile.cjs",
 		"**/*/vitest.config.ts",
 		"**/*/setupVitest.js",
 		"**/*/zod-locales-shim.js",
@@ -410,6 +409,10 @@
 			"rules": {
 				"tldraw/no-export-star": "off"
 			}
+		},
+		{
+			"files": [".pnpmfile.cjs"],
+			"env": { "node": true }
 		},
 		{
 			"files": ["internal/scripts/process-compose-bin.cjs"],

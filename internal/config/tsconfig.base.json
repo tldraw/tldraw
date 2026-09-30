@@ -17,10 +17,6 @@
 		"module": "esnext",
 		"target": "esnext",
 		"moduleResolution": "bundler",
-		// With the global virtual store (.pnpmfile.cjs), a library that imports @types/react without
-		// declaring it can't find it, and its types silently become any. Map @types only: bundlers
-		// read `paths` too, and mapping runtime packages sends them past `exports`.
-		"paths": { "*": ["${configDir}/node_modules/@types/*"] },
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitAny": true,
 		"noImplicitReturns": true,

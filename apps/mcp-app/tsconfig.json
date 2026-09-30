@@ -1,5 +1,7 @@
 {
 	"compilerOptions": {
+		// @types fallback for the global virtual store; see .pnpmfile.cjs.
+		"paths": { "*": ["${configDir}/node_modules/@types/*"] },
 		"target": "ES2022",
 		"module": "ESNext",
 		"moduleResolution": "bundler",

@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
+		// @types fallback for the global virtual store; see .pnpmfile.cjs.
 		"paths": { "*": ["${configDir}/node_modules/@types/*"] },
 		"lib": ["DOM", "DOM.Iterable", "ESNext"],
 		"target": "esnext",
