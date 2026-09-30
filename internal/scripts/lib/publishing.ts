@@ -156,7 +156,9 @@ export async function publish(distTag?: string) {
 	// packages' `latest` moved and the rest not, and npm's minutes-long publish-to-read
 	// delay lets a dependent resolve while its pinned dependencies still 404.
 	// See https://github.com/tldraw/tldraw/actions/runs/36699898990.
+	assertDistTagCredentials()
 	const userconfig = writeDistTagNpmrc()
+	const readable = new Map<string, Promise<void>>()
 
 	try {
 		for (const packageDetails of publishOrder) {
@@ -169,7 +171,17 @@ export async function publish(distTag?: string) {
 				nicelog(
 					`[publish] ${packageDetails.name}@${packageDetails.version} already published, skipping`
 				)
+				readable.set(packageDetails.name, guarded(waitUntilReadable(packageDetails)))
 				continue
+			}
+
+			if (!(await packageExists(packageDetails))) {
+				// npm makes a package's first ever version `latest` whatever --tag says, and
+				// there is no way to unset it. On a prerelease run that leaves `latest` on a
+				// canary build until a stable release moves it.
+				nicelog(
+					`[publish] WARNING ${packageDetails.name} has never been published; npm will point its @latest at ${packageDetails.version}`
+				)
 			}
 
 			nicelog(
@@ -189,7 +201,7 @@ export async function publish(distTag?: string) {
 							[
 								'publish',
 								'--tag',
-								String(tag),
+								tag,
 								// Releases publish from release branches with generated files in the
 								// tree, which pnpm's default branch/clean checks would reject.
 								'--no-git-checks',
@@ -239,9 +251,10 @@ export async function publish(distTag?: string) {
 					numAttempts: 5,
 				}
 			)
+			readable.set(packageDetails.name, guarded(waitUntilReadable(packageDetails)))
 		}
 
-		await Promise.all(publishOrder.map((packageDetails) => waitUntilReadable(packageDetails)))
+		await Promise.all(readable.values())
 
 		await Promise.all(
 			publishOrder.map((packageDetails) => {
@@ -251,7 +264,7 @@ export async function publish(distTag?: string) {
 		)
 
 		await Promise.all(
-			publishOrder.map((packageDetails) => removeHoldingTag(packageDetails, userconfig))
+			publishOrder.map((packageDetails) => removeHoldingTags(packageDetails, userconfig))
 		)
 	} finally {
 		rmSync(dirname(userconfig), { recursive: true, force: true })
@@ -268,42 +281,83 @@ function versionUrl(packageDetails: PackageDetails) {
 }
 
 async function isPublished(packageDetails: PackageDetails) {
-	const res = await fetch(versionUrl(packageDetails), { method: 'HEAD' })
+	const res = await registryFetch(versionUrl(packageDetails), { method: 'HEAD' })
 	return res.status < 400
 }
 
+async function packageExists(packageDetails: PackageDetails) {
+	const res = await registryFetch(`https://registry.npmjs.org/${packageDetails.name}`, {
+		method: 'HEAD',
+	})
+	return res.status < 400
+}
+
+function distTag(args: string[], userconfig: string, name: string) {
+	return exec(
+		'npm',
+		['dist-tag', ...args, '--userconfig', userconfig],
+		prefixOutput(`[tag] ${name}: `)
+	)
+}
+
 /**
- * The version document and the package document are separate registry endpoints with
- * separate caches, and the package document is the one `npm dist-tag` writes to and
- * installs resolve against. Tagging a version the package document doesn't list yet
- * fails, so both have to be readable before the tags move.
+ * Keeps a rejection from a check still running in the background from taking down the
+ * process mid-publish. It surfaces when the map is awaited instead.
+ */
+function guarded(promise: Promise<void>) {
+	promise.catch(() => {})
+	return promise
+}
+
+/**
+ * Callers do irreversible work — pushing a git tag, publishing a GitHub release,
+ * uploading assets — before they get here, so the missing-credential check has to run
+ * before any of that rather than at publish time.
+ */
+export function assertDistTagCredentials() {
+	if (!process.env.NPM_TOKEN) {
+		throw new Error(
+			'NPM_TOKEN is required: publishing authenticates over OIDC, but moving the dist-tags afterwards does not.'
+		)
+	}
+}
+
+/** A stalled request would otherwise hold the release open until the job timeout. */
+function registryFetch(url: string, init: { method?: string; headers?: Record<string, string> }) {
+	return fetch(url, { ...init, signal: AbortSignal.timeout(30_000) })
+}
+
+/**
+ * Installs resolve a pinned dependency through the package document, which is cached
+ * separately from the version document and can lag behind it, so a version readable at
+ * one endpoint is not necessarily installable yet. Both have to be readable before any
+ * tag points at this version.
  */
 function waitUntilReadable(packageDetails: PackageDetails) {
 	const { name, version } = packageDetails
 	return retry(
 		async ({ attempt, total }) => {
-			const [versionRes, packumentRes] = await Promise.all([
-				fetch(versionUrl(packageDetails), { method: 'HEAD' }),
-				fetch(`https://registry.npmjs.org/${name}`, {
-					headers: { accept: 'application/vnd.npm.install-v1+json' },
-				}),
-			])
-			const listed =
-				packumentRes.status < 400 &&
-				Boolean(
-					((await packumentRes.json()) as { versions?: Record<string, unknown> }).versions?.[
-						version
-					]
-				)
-
-			if (versionRes.status >= 400 || !listed) {
-				nicelog(
-					`[verify] ${name}@${version} not readable yet (version ${versionRes.status}, listed ${listed}), attempt ${attempt + 1} of ${total}`
-				)
-				throw new Error(
-					`Package not readable: ${name}@${version} (version ${versionRes.status}, listed in package document: ${listed})`
-				)
+			const fail = (reason: string) => {
+				nicelog(`[verify] ${name}@${version} ${reason}, attempt ${attempt + 1} of ${total}`)
+				throw new Error(`Package not readable: ${name}@${version} (${reason})`)
 			}
+
+			// The cheap HEAD gates the document fetch, so a package that isn't there yet
+			// costs one request per attempt rather than pulling its whole document.
+			const versionRes = await registryFetch(versionUrl(packageDetails), { method: 'HEAD' })
+			if (versionRes.status >= 400) fail(`version document ${versionRes.status}`)
+
+			const packumentRes = await registryFetch(`https://registry.npmjs.org/${name}`, {
+				headers: { accept: 'application/vnd.npm.install-v1+json' },
+			})
+			if (packumentRes.status >= 400) {
+				// Leaving the body unread would strand the socket.
+				await packumentRes.text().catch(() => {})
+				fail(`package document ${packumentRes.status}`)
+			}
+			const packument = (await packumentRes.json()) as { versions?: Record<string, unknown> }
+			if (!packument.versions?.[version]) fail('not listed in the package document')
+
 			nicelog(`[verify] ${name}@${version} is readable`)
 		},
 		{
@@ -320,33 +374,46 @@ function waitUntilReadable(packageDetails: PackageDetails) {
  * dist-tag calls stops it being picked up in place of OIDC during publishing.
  */
 function writeDistTagNpmrc() {
-	if (!process.env.NPM_TOKEN) {
-		throw new Error('NPM_TOKEN is required to move dist-tags after publishing')
-	}
+	assertDistTagCredentials()
 	const file = join(mkdtempSync(join(tmpdir(), 'tldraw-publish-')), '.npmrc')
 	// npm expands the variable itself, so the token never lands on disk.
 	writeFileSync(file, '//registry.npmjs.org/:_authToken=${NPM_TOKEN}\n', { mode: 0o600 })
 	return file
 }
 
-async function moveDistTag(packageDetails: PackageDetails, tag: string, userconfig: string) {
+/**
+ * A tag move that gives up leaves the release in the half-tagged state this whole
+ * approach exists to avoid, so transient registry errors get retried here too.
+ */
+function moveDistTag(packageDetails: PackageDetails, tag: string, userconfig: string) {
 	const { name, version } = packageDetails
 	nicelog(`[tag] ${name}@${version} -> @${tag}`)
-	await exec('npm', ['dist-tag', 'add', `${name}@${version}`, tag, '--userconfig', userconfig], {
-		...prefixOutput(`[tag] ${name}: `),
-	})
+	return retry(
+		async () => {
+			await distTag(['add', `${name}@${version}`, tag], userconfig, name)
+		},
+		{ delay: 10_000, numAttempts: 10 }
+	)
 }
 
-async function removeHoldingTag(packageDetails: PackageDetails, userconfig: string) {
-	const tag = holdingTag(packageDetails)
+/**
+ * Sweeps every `pending-*` tag off the package, not just this run's: canary publishes on
+ * every push to main, and leftovers would pile up in the dist-tags map that each install
+ * downloads.
+ */
+async function removeHoldingTags(packageDetails: PackageDetails, userconfig: string) {
+	const { name } = packageDetails
 	try {
-		await exec('npm', ['dist-tag', 'rm', packageDetails.name, tag, '--userconfig', userconfig], {
-			...prefixOutput(`[tag] ${packageDetails.name}: `),
-		})
+		const res = await registryFetch(`https://registry.npmjs.org/-/package/${name}/dist-tags`, {})
+		if (res.status >= 400) throw new Error(`dist-tags ${res.status}`)
+		const tags = Object.keys((await res.json()) as Record<string, string>)
+		for (const tag of tags.filter((t) => t.startsWith('pending-'))) {
+			await distTag(['rm', name, tag], userconfig, name)
+		}
 	} catch (e) {
-		// The release is already complete and correctly tagged by this point; a leftover
-		// holding tag is cosmetic, so don't fail the run over it.
-		nicelog(`[tag] could not remove @${tag} from ${packageDetails.name}: ${e}`)
+		// The release is already published and correctly tagged by this point, so a
+		// leftover holding tag isn't worth failing over.
+		nicelog(`[tag] could not clear pending tags from ${name}: ${e}`)
 	}
 }
 

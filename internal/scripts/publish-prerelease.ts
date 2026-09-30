@@ -1,8 +1,17 @@
 import { exec } from './lib/exec'
-import { getLatestTldrawVersionFromNpm, publish, setAllVersions } from './lib/publishing'
+import {
+	assertDistTagCredentials,
+	getLatestTldrawVersionFromNpm,
+	publish,
+	setAllVersions,
+} from './lib/publishing'
 import { uploadStaticAssets } from './lib/upload-static-assets'
 
 async function main(releaseTag: string) {
+	// Checked up front: the tag moves at the end of publishing need a token that the
+	// OIDC publish credential cannot provide, and callers do irreversible work first.
+	assertDistTagCredentials()
+
 	const sha = (await exec('git', ['rev-parse', 'HEAD'])).trim().slice(0, 12)
 
 	const latestVersion = await getLatestTldrawVersionFromNpm()

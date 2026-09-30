@@ -6,6 +6,7 @@ import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 import {
+	assertDistTagCredentials,
 	getLatestTldrawVersionFromNpm,
 	publish,
 	publishProductionDocsAndExamplesAndBemo,
@@ -91,6 +92,7 @@ async function getNextVersion(releaseType: ReleaseType): Promise<string> {
 }
 
 async function main() {
+	assertDistTagCredentials()
 	// // check we're on the main branch on HEAD
 	const currentBranch = (await exec('git', ['rev-parse', '--abbrev-ref', 'HEAD'])).toString().trim()
 	if (currentBranch !== 'production') {

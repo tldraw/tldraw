@@ -6,6 +6,7 @@ import { getAnyPackageDiff } from './lib/didAnyPackageChange'
 import { exec } from './lib/exec'
 import { nicelog } from './lib/nicelog'
 import {
+	assertDistTagCredentials,
 	getLatestTldrawVersionFromNpm,
 	publish,
 	publishProductionDocsAndExamplesAndBemo,
@@ -15,6 +16,7 @@ import {
 import { uploadStaticAssets } from './lib/upload-static-assets'
 
 async function main() {
+	assertDistTagCredentials()
 	const currentBranch = (await exec('git', ['rev-parse', '--abbrev-ref', 'HEAD'])).toString().trim()
 	const match = currentBranch.match(/^v(\d+)\.(\d+)\.x$/)
 	if (!match) {

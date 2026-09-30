@@ -2,6 +2,7 @@ import { appendFileSync } from 'fs'
 import { parse } from 'semver'
 import { makeEnv } from './lib/makeEnv'
 import {
+	assertDistTagCredentials,
 	getLatestTldrawVersionFromNpm,
 	publish,
 	publishProductionDocsAndExamplesAndBemo,
@@ -12,6 +13,7 @@ import { uploadStaticAssets } from './lib/upload-static-assets'
 const env = makeEnv(['TLDRAW_VERSION_STRING'])
 
 async function main() {
+	assertDistTagCredentials()
 	const latestVersion = await getLatestTldrawVersionFromNpm()
 	const version = parse(env.TLDRAW_VERSION_STRING)
 	if (!version) throw new Error('Invalid version')
