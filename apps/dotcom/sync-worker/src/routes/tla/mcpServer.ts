@@ -26,6 +26,7 @@ import {
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
+	LIST_WORKSPACES_TOOL_NAME,
 	MCP_SERVER_INFO,
 	getMcpServerInstructions,
 	PAGE_INFO_TOOL_NAME,
@@ -43,10 +44,12 @@ import {
 	getCreatedBoardResult,
 	getPageInfo,
 	getToolDefinitions,
+	getWorkspaceListResult,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	parseCreateBoardInput,
+	parseListWorkspacesInput,
 	parsePageInfoInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
@@ -57,6 +60,7 @@ import {
 	toolPageResult,
 } from './boardTools'
 import { createBoardForUser } from './createBoard'
+import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import { readPageClusters, writePageClusterIndex } from './mcpClusterIndex'
 import { renameBoardForUser } from './renameBoard'
@@ -358,6 +362,7 @@ const TOOL_HANDLERS = new Map<
 	) => Promise<ToolCallResult>
 >([
 	[SEARCH_BOARDS_TOOL_NAME, callSearchBoardsTool],
+	[LIST_WORKSPACES_TOOL_NAME, callListWorkspacesTool],
 	[CREATE_BOARD_TOOL_NAME, callCreateBoardTool],
 	[RENAME_BOARD_TOOL_NAME, callRenameBoardTool],
 	[BOARD_INFO_TOOL_NAME, callBoardInfoTool],
@@ -687,6 +692,37 @@ async function callSearchBoardsTool(
 			// Every failure this can narrow is a Postgres one, and the classifier reads render
 			// failures, so a pool timeout would otherwise be recorded as `browser_timeout`. A limiter
 			// outage never reaches here — toolFailure keeps that reason as itself.
+			recordAs: () => 'board_lookup_error',
+		})
+	}
+}
+
+async function callListWorkspacesTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseListWorkspacesInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+
+	try {
+		// Shares search_boards' budget: it is the same kind of spend — a cheap, index-served Postgres
+		// read and no Browser Run — and a binding of its own would buy nothing that one doesn't.
+		const refusal = await checkSearchRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		return getWorkspaceListResult(await listWorkspacesForUser(env, userId), userId)
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_workspace_list',
+			extras: {},
+			summary: 'Could not list workspaces',
+			// A Postgres failure, like search_boards'; see the note there.
 			recordAs: () => 'board_lookup_error',
 		})
 	}
