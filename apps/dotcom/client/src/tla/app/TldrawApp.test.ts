@@ -15,9 +15,6 @@ function createAppStub({
 	changesFlushed = Promise.resolve(),
 	user = undefined as { id: string } | undefined,
 	user$ = atom('user', user),
-	workspaceMemberships$ = atom('memberships', [
-		{ groupId: 'user:test', group: {}, index: 'a1' },
-	] as any[]),
 	zeroLog = new ZeroLogBuffer(),
 	getToken = async (): Promise<string | undefined> => 'token',
 } = {}) {
@@ -34,7 +31,6 @@ function createAppStub({
 		},
 		changesFlushed,
 		user$,
-		workspaceMemberships$,
 		zeroLog,
 	}) as TldrawApp
 }
@@ -317,21 +313,6 @@ describe('TldrawApp.preload', () => {
 
 		expect(rejected).toHaveBeenCalledWith(expect.objectContaining({ name: 'AbortError' }))
 		expect(rejected.mock.calls[0][0].diagnostics).toBeUndefined()
-		expect(vi.getTimerCount()).toBe(0)
-	})
-
-	it('repairs a missing home workspace without holding boot', async () => {
-		const response = promiseWithResolve<Response>()
-		vi.mocked(fetch).mockReturnValue(response)
-		const resolved = vi.fn()
-		void createAppStub({ user: { id: 'user:test' }, workspaceMemberships$: atom('m', []) })
-			.preload()
-			.then(resolved)
-
-		await vi.advanceTimersByTimeAsync(0)
-
-		expect(resolved).toHaveBeenCalled()
-		expect(fetch).toHaveBeenCalledTimes(1)
 		expect(vi.getTimerCount()).toBe(0)
 	})
 

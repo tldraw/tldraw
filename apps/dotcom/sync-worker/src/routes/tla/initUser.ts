@@ -70,25 +70,13 @@ export async function ensureUser(
 ): Promise<EnsureUserResult> {
 	// Joined to the home group because a user row alone is not enough: without the group the
 	// account has no workspace, so the sidebar is empty and create_board has nowhere to put a board.
-	// The membership too, since the client only sees its home workspace through that row and asks
-	// for a repair on every boot until it exists.
 	const existing = await db
 		.selectFrom('user')
 		.leftJoin('group', 'group.id', 'user.id')
-		.leftJoin('group_user', (join) =>
-			join.onRef('group_user.userId', '=', 'user.id').onRef('group_user.groupId', '=', 'user.id')
-		)
 		.where('user.id', '=', id)
-		.select([
-			'user.email',
-			'user.name',
-			'group.id as homeGroupId',
-			'group_user.userId as homeMemberId',
-		])
+		.select(['user.email', 'user.name', 'group.id as homeGroupId'])
 		.executeTakeFirst()
-	if (existing?.homeGroupId && existing.homeMemberId) {
-		return { outcome: 'existing', email: existing.email }
-	}
+	if (existing?.homeGroupId) return { outcome: 'existing', email: existing.email }
 	if (existing) {
 		await db.transaction().execute(async (tx) => {
 			await insertHomeWorkspace(tx, id, existing.name, Date.now())

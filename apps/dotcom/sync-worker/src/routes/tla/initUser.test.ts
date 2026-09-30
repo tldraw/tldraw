@@ -7,24 +7,25 @@ vi.mock('../../utils/tla/getAuth', () => ({
 	getClerkClient: () => ({ users: { getUser } }),
 }))
 
-function makeDb(existingEmail?: string, { hasHomeGroup = true, hasHomeMembership = true } = {}) {
+function makeDb(existingEmail?: string, { hasHomeGroup = true } = {}) {
 	const inserted: { table: string; row: Record<string, unknown> }[] = []
-	const select = {
-		leftJoin: () => select,
-		where: () => select,
-		select: () => select,
-		executeTakeFirst: async () =>
-			existingEmail === undefined
-				? undefined
-				: {
-						email: existingEmail,
-						name: 'Someone',
-						homeGroupId: hasHomeGroup ? 'user-1' : null,
-						homeMemberId: hasHomeMembership ? 'user-1' : null,
-					},
-	}
 	const db = {
-		selectFrom: () => select,
+		selectFrom: () => ({
+			leftJoin: () => ({
+				where: () => ({
+					select: () => ({
+						executeTakeFirst: async () =>
+							existingEmail === undefined
+								? undefined
+								: {
+										email: existingEmail,
+										name: 'Someone',
+										homeGroupId: hasHomeGroup ? 'user-1' : null,
+									},
+					}),
+				}),
+			}),
+		}),
 		transaction: () => ({
 			execute: async (fn: (tx: unknown) => Promise<void>) =>
 				fn({
@@ -86,16 +87,6 @@ describe('ensureUser', () => {
 		expect(getUser).not.toHaveBeenCalled()
 		expect(inserted.map((i) => i.table)).toEqual(['group', 'group_user'])
 		expect(inserted[1].row).toMatchObject({ userId: 'user-1', groupId: 'user-1', role: 'owner' })
-	})
-
-	// The client only sees its home workspace through the membership, so it would ask on every boot.
-	it('adds the home membership to a home group that lacks one', async () => {
-		const { db, inserted } = makeDb('someone@tldraw.com', { hasHomeMembership: false })
-		expect(await ensureUser(makeEnv(true), db, 'user-1')).toEqual({
-			outcome: 'repaired',
-			email: 'someone@tldraw.com',
-		})
-		expect(inserted.map((i) => i.table)).toEqual(['group', 'group_user'])
 	})
 
 	// A user deleted in Clerk since their token was issued is refused, not turned into a 500.
