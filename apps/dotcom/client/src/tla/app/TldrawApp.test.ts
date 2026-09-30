@@ -267,7 +267,7 @@ describe('TldrawApp.preload', () => {
 			expect.objectContaining({ message: 'Timed out waiting for the workspace data' })
 		)
 		expect(rejected.mock.calls[0][0].diagnostics).toEqual(
-			expect.objectContaining({ stage: 'workspace data', initError: 'Init failed: 503' })
+			expect.objectContaining({ stage: 'workspace data', initError: 'Error: Init failed: 503' })
 		)
 		expect(warn).toHaveBeenCalledWith(
 			'[AppState] User row arrived after init failed:',

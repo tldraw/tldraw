@@ -479,7 +479,7 @@ export class TldrawApp {
 				Object.assign(error, {
 					diagnostics: {
 						stage,
-						initError: initError?.message,
+						initError: initError && formatLogArg(initError),
 						connection: connection.name,
 						connectionReason:
 							'reason' in connection ? redactTokens(formatLogArg(connection.reason)) : undefined,
@@ -534,7 +534,8 @@ export class TldrawApp {
 			})
 			// Only a user Zero has confirmed missing needs init, so returning users never wait on the
 			// worker's Postgres. The row wins over a slow init (another tab created it, a lost ack), and
-			// a failed init may still have committed, so its error only surfaces if the deadline runs out.
+			// a sent init that failed may still have committed, so its error only surfaces if the
+			// deadline runs out.
 			if (!this.user$.get()) {
 				stage = 'user init'
 				await Promise.race([
