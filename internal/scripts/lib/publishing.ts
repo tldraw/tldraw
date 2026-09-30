@@ -1,11 +1,12 @@
 import { execSync } from 'child_process'
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'fs'
+import { tmpdir } from 'os'
 import path, { join } from 'path'
 import { Octokit } from '@octokit/rest'
 import { fetch } from 'cross-fetch'
 import { glob } from 'glob'
 import { parse } from 'semver'
-import { exec } from './exec'
+import { exec, prefixOutput } from './exec'
 import { REPO_ROOT } from './file'
 import { nicelog } from './nicelog'
 import { getAllWorkspacePackages } from './workspace'
@@ -150,133 +151,203 @@ export async function publish(distTag?: string) {
 
 	const publishOrder = topologicalSortPackages(packages)
 
-	// npm can take several minutes before a published version is readable. Waiting only
-	// on a package's own dependencies keeps a newly visible package installable, without
-	// making the run wait for every package's delay in turn.
-	const readable = new Map<string, Promise<void>>()
+	// Everything publishes under a holding tag so no tag resolves to the new version
+	// until the whole set is readable. Otherwise a release that dies partway leaves some
+	// packages' `latest` moved and the rest not, and npm's minutes-long publish-to-read
+	// delay lets a dependent resolve while its pinned dependencies still 404.
+	// See https://github.com/tldraw/tldraw/actions/runs/36699898990.
+	const userconfig = writeDistTagNpmrc()
 
-	for (const packageDetails of publishOrder) {
-		await Promise.all(packageDetails.localDeps.map((dep) => readable.get(dep)))
+	try {
+		for (const packageDetails of publishOrder) {
+			const tag = holdingTag(packageDetails)
 
-		const tag = distTag ?? parse(packageDetails.version)?.prerelease[0] ?? 'latest'
+			// pnpm has no equivalent of yarn's --tolerate-republish (its --force is the
+			// opposite), it just uploads and gets a 403. Re-running a partly successful
+			// release depends on this skip.
+			if (await isPublished(packageDetails)) {
+				nicelog(
+					`[publish] ${packageDetails.name}@${packageDetails.version} already published, skipping`
+				)
+				continue
+			}
 
-		// Yarn's --tolerate-republish looked the version up and exited 0 if it already
-		// existed; pnpm has no equivalent (its --force is the opposite), it just uploads
-		// and gets a 403. Re-running a partly successful release depends on this skip.
-		if (await isPublished(packageDetails)) {
 			nicelog(
-				`[publish] ${packageDetails.name}@${packageDetails.version} already published, skipping`
+				`Publishing ${packageDetails.name} with version ${packageDetails.version} under tag @${tag}`
 			)
-			readable.set(packageDetails.name, Promise.resolve())
-			continue
+
+			await retry(
+				async () => {
+					let output = ''
+					const publishStart = Date.now()
+					nicelog(
+						`[publish] ${packageDetails.name}@${packageDetails.version} starting npm publish...`
+					)
+					try {
+						await exec(
+							`pnpm`,
+							[
+								'publish',
+								'--tag',
+								String(tag),
+								// Releases publish from release branches with generated files in the
+								// tree, which pnpm's default branch/clean checks would reject.
+								'--no-git-checks',
+								'--provenance',
+								'--access',
+								'public',
+							],
+							{
+								pwd: packageDetails.dir,
+								processStdoutLine: (line) => {
+									output += line + '\n'
+									nicelog(line)
+								},
+								processStderrLine: (line) => {
+									output += line + '\n'
+									nicelog(line)
+								},
+							}
+						)
+					} catch (e) {
+						// A retry after a publish that actually landed is rejected as "published",
+						// or as "staged" (409) while npm is still processing the first attempt.
+						// pnpm wraps its error at ~80 columns and prefixes wrapped lines with `│`,
+						// so the phrase can straddle a line break depending on the name's length.
+						const lowerOutput = output
+							.toLowerCase()
+							.replace(/[│╰─▶×]/g, ' ')
+							.replace(/\s+/g, ' ')
+						if (
+							lowerOutput.includes('cannot publish over the previously published versions') ||
+							lowerOutput.includes('cannot publish over previously staged version')
+						) {
+							nicelog(
+								`[publish] ${packageDetails.name}@${packageDetails.version} already published or staged, skipping`
+							)
+							return
+						}
+						throw e
+					}
+					const elapsed = ((Date.now() - publishStart) / 1000).toFixed(1)
+					nicelog(
+						`[publish] ${packageDetails.name}@${packageDetails.version} npm publish done (${elapsed}s)`
+					)
+				},
+				{
+					delay: 10_000,
+					numAttempts: 5,
+				}
+			)
 		}
 
-		nicelog(
-			`Publishing ${packageDetails.name} with version ${packageDetails.version} under tag @${tag}`
+		await Promise.all(publishOrder.map((packageDetails) => waitUntilReadable(packageDetails)))
+
+		await Promise.all(
+			publishOrder.map((packageDetails) => {
+				const tag = String(distTag ?? parse(packageDetails.version)?.prerelease[0] ?? 'latest')
+				return moveDistTag(packageDetails, tag, userconfig)
+			})
 		)
 
-		await retry(
-			async () => {
-				let output = ''
-				const publishStart = Date.now()
-				nicelog(
-					`[publish] ${packageDetails.name}@${packageDetails.version} starting npm publish...`
-				)
-				try {
-					await exec(
-						`pnpm`,
-						[
-							'publish',
-							'--tag',
-							String(tag),
-							// Releases publish from release branches with generated files in the
-							// tree, which pnpm's default branch/clean checks would reject.
-							'--no-git-checks',
-							'--provenance',
-							'--access',
-							'public',
-						],
-						{
-							pwd: packageDetails.dir,
-							processStdoutLine: (line) => {
-								output += line + '\n'
-								nicelog(line)
-							},
-							processStderrLine: (line) => {
-								output += line + '\n'
-								nicelog(line)
-							},
-						}
-					)
-				} catch (e) {
-					// A retry after a publish that actually landed is rejected as "published",
-					// or as "staged" (409) while npm is still processing the first attempt.
-					// pnpm wraps its error at ~80 columns and prefixes wrapped lines with `│`,
-					// so the phrase can straddle a line break depending on the name's length.
-					const lowerOutput = output
-						.toLowerCase()
-						.replace(/[│╰─▶×]/g, ' ')
-						.replace(/\s+/g, ' ')
-					if (
-						lowerOutput.includes('cannot publish over the previously published versions') ||
-						lowerOutput.includes('cannot publish over previously staged version')
-					) {
-						nicelog(
-							`[publish] ${packageDetails.name}@${packageDetails.version} already published or staged, skipping`
-						)
-						return
-					}
-					throw e
-				}
-				const elapsed = ((Date.now() - publishStart) / 1000).toFixed(1)
-				nicelog(
-					`[publish] ${packageDetails.name}@${packageDetails.version} npm publish done (${elapsed}s)`
-				)
-			},
-			{
-				delay: 10_000,
-				numAttempts: 5,
-			}
+		await Promise.all(
+			publishOrder.map((packageDetails) => removeHoldingTag(packageDetails, userconfig))
 		)
-
-		const whenReadable = waitUntilReadable(packageDetails)
-		// Rejections surface when awaited below; without this, one arriving mid-loop would
-		// kill the process in the middle of another package's publish.
-		whenReadable.catch(() => {})
-		readable.set(packageDetails.name, whenReadable)
+	} finally {
+		rmSync(userconfig, { force: true })
 	}
-
-	await Promise.all(readable.values())
 }
 
-function registryUrl(packageDetails: PackageDetails) {
+function holdingTag(packageDetails: PackageDetails) {
+	// npm rejects a tag that parses as a semver range, so this can't be the bare version.
+	return `pending-${packageDetails.version}`
+}
+
+function versionUrl(packageDetails: PackageDetails) {
 	return `https://registry.npmjs.org/${packageDetails.name}/${packageDetails.version}`
 }
 
 async function isPublished(packageDetails: PackageDetails) {
-	const res = await fetch(registryUrl(packageDetails), { method: 'HEAD' })
+	const res = await fetch(versionUrl(packageDetails), { method: 'HEAD' })
 	return res.status < 400
 }
 
+/**
+ * The version document and the package document are separate registry endpoints with
+ * separate caches, and the package document is the one `npm dist-tag` writes to and
+ * installs resolve against. Tagging a version the package document doesn't list yet
+ * fails, so both have to be readable before the tags move.
+ */
 function waitUntilReadable(packageDetails: PackageDetails) {
-	const url = registryUrl(packageDetails)
+	const { name, version } = packageDetails
 	return retry(
 		async ({ attempt, total }) => {
-			const res = await fetch(url, { method: 'HEAD' })
-			if (res.status >= 400) {
-				nicelog(
-					`[verify] ${packageDetails.name}@${packageDetails.version} not readable yet (${res.status}), attempt ${attempt + 1} of ${total}`
+			const [versionRes, packumentRes] = await Promise.all([
+				fetch(versionUrl(packageDetails), { method: 'HEAD' }),
+				fetch(`https://registry.npmjs.org/${name}`, {
+					headers: { accept: 'application/vnd.npm.install-v1+json' },
+				}),
+			])
+			const listed =
+				packumentRes.status < 400 &&
+				Boolean(
+					((await packumentRes.json()) as { versions?: Record<string, unknown> }).versions?.[
+						version
+					]
 				)
-				throw new Error(`Package not found: ${url} (${res.status})`)
+
+			if (versionRes.status >= 400 || !listed) {
+				nicelog(
+					`[verify] ${name}@${version} not readable yet (version ${versionRes.status}, listed ${listed}), attempt ${attempt + 1} of ${total}`
+				)
+				throw new Error(
+					`Package not readable: ${name}@${version} (version ${versionRes.status}, listed in package document: ${listed})`
+				)
 			}
-			nicelog(`[verify] ${packageDetails.name}@${packageDetails.version} is readable`)
+			nicelog(`[verify] ${name}@${version} is readable`)
 		},
 		{
 			delay: 10_000,
-			// 15 minutes; the slowest package took over 8 minutes in September 2026.
-			numAttempts: 90,
+			// 20 minutes. tldraw@5.5.0 was still missing after 15 in September 2026.
+			numAttempts: 120,
 		}
 	)
+}
+
+/**
+ * npm's trusted publishing OIDC credential authorizes `npm publish` and nothing else, so
+ * moving a tag needs a granular token. Keeping it in a config file passed only to the
+ * dist-tag calls stops it being picked up in place of OIDC during publishing.
+ */
+function writeDistTagNpmrc() {
+	if (!process.env.NPM_TOKEN) {
+		throw new Error('NPM_TOKEN is required to move dist-tags after publishing')
+	}
+	const file = join(mkdtempSync(join(tmpdir(), 'tldraw-publish-')), '.npmrc')
+	// npm expands the variable itself, so the token never lands on disk.
+	writeFileSync(file, '//registry.npmjs.org/:_authToken=${NPM_TOKEN}\n', { mode: 0o600 })
+	return file
+}
+
+async function moveDistTag(packageDetails: PackageDetails, tag: string, userconfig: string) {
+	const { name, version } = packageDetails
+	nicelog(`[tag] ${name}@${version} -> @${tag}`)
+	await exec('npm', ['dist-tag', 'add', `${name}@${version}`, tag, '--userconfig', userconfig], {
+		...prefixOutput(`[tag] ${name}: `),
+	})
+}
+
+async function removeHoldingTag(packageDetails: PackageDetails, userconfig: string) {
+	const tag = holdingTag(packageDetails)
+	try {
+		await exec('npm', ['dist-tag', 'rm', packageDetails.name, tag, '--userconfig', userconfig], {
+			...prefixOutput(`[tag] ${packageDetails.name}: `),
+		})
+	} catch (e) {
+		// The release is already complete and correctly tagged by this point; a leftover
+		// holding tag is cosmetic, so don't fail the run over it.
+		nicelog(`[tag] could not remove @${tag} from ${packageDetails.name}: ${e}`)
+	}
 }
 
 function retry(
