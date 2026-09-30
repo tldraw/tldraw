@@ -17,6 +17,8 @@ dist-cjs
 dist-esm
 .tsbuild*
 .turbo
+# cache from prior tooling (lazyrepo)
+.lazy
 dist-ssr
 *.local
 
