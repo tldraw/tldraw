@@ -94,7 +94,7 @@ async function main() {
 		throw new Error('Workflow triggered from a branch other than main or production.')
 	}
 
-	await exec('pnpm', ['exec', 'lazy', 'run', 'build', '--filter=packages/*'])
+	await exec('pnpm', ['exec', 'turbo', 'run', 'build', '--filter=./packages/*'])
 
 	// When two pushes to main happen in quick succession, the concurrency group serializes
 	// the runs but `vsce show` can lag a fresh publish by 10+ minutes, so both runs compute

@@ -9,9 +9,7 @@ on:
     branches: [main]
     paths:
       - 'pnpm-lock.yaml'
-      - 'lazy.config.ts'
-      - '.oxlintrc.json'
-      - '.oxfmtrc.json'
+      - 'turbo.json'
       - '.github/workflows/checks.yml'
       - '.github/actions/**'
 
@@ -50,25 +48,16 @@ jobs:
         run: pnpm check-circular-deps
 
       - name: Restore build tool caches
-        uses: actions/cache@v5
+        uses: ./.github/actions/build-cache
         with:
-          # No `**`: it follows workspace symlinks through node_modules and the save times out.
-          path: |
-            .lazy
-            */*/.lazy
-            apps/*/*/.lazy
-            */*/.tsbuild
-            apps/*/*/.tsbuild
-            *.tsbuildinfo
-            */*/*.tsbuildinfo
-            apps/*/*/*.tsbuildinfo
-          key: test-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.oxlintrc.json', '.oxfmtrc.json', 'lazy.config.ts') }}
+          name: test-tools
+          save: true
 
       - name: Typecheck
-        run: pnpm build-types
+        run: pnpm typecheck
 
       - name: Check bundle sizes
-        run: pnpm exec lazy check-bundle-size
+        run: pnpm exec turbo run check-bundle-size
 
       - name: Check PR template
         run: pnpm update-pr-template --check
@@ -111,19 +100,10 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Restore build tool caches
-        uses: actions/cache@v5
+        uses: ./.github/actions/build-cache
         with:
-          # No `**`: it follows workspace symlinks through node_modules and the save times out.
-          path: |
-            .lazy
-            */*/.lazy
-            apps/*/*/.lazy
-            */*/.tsbuild
-            apps/*/*/.tsbuild
-            *.tsbuildinfo
-            */*/*.tsbuildinfo
-            apps/*/*/*.tsbuildinfo
-          key: build-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'lazy.config.ts') }}
+          name: build-tools
+          save: true
 
       - name: Build packages
         # the sed pipe makes sure that github annotations come through without

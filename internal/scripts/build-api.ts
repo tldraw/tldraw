@@ -6,7 +6,7 @@ import { exec } from './lib/exec'
 import { sortUnions } from './lib/sort-unions'
 
 async function buildApi(sourcePackageDir: string) {
-	// lazy runs `build-types` before this (see lazy.config.ts).
+	// turbo runs `build-types` before this.
 
 	const relativeSourcePackageDir = path.relative(path.resolve(__dirname, '../..'), sourcePackageDir)
 

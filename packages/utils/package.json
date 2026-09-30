@@ -46,7 +46,8 @@
 		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "pnpm pack",
-		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"lodash.isequal": "^4.5.0",
@@ -59,7 +60,6 @@
 		"@types/lodash.isequalwith": "^4.4.9",
 		"@types/lodash.throttle": "^4.1.9",
 		"@types/lodash.uniq": "^4.5.9",
-		"lazyrepo": "0.0.0-alpha.27",
 		"vitest": "^5.0.0"
 	},
 	"engines": {
