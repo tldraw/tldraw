@@ -3,8 +3,15 @@ name: Checks
 on:
   pull_request:
   merge_group:
+  # The merge queue already checked this tree. Main still runs the full jobs when a cache key
+  # changes, because only main-saved caches are visible to other PRs.
   push:
     branches: [main]
+    paths:
+      - 'pnpm-lock.yaml'
+      - 'turbo.json'
+      - '.github/workflows/checks.yml'
+      - '.github/actions/**'
 
 env:
   CI: 1
@@ -41,25 +48,16 @@ jobs:
         run: pnpm check-circular-deps
 
       - name: Restore build tool caches
-        uses: actions/cache@v5
+        uses: ./.github/actions/build-cache
         with:
-          # No `**`: it follows workspace symlinks through node_modules and the save times out.
-          path: |
-            .lazy
-            */*/.lazy
-            apps/*/*/.lazy
-            */*/.tsbuild
-            apps/*/*/.tsbuild
-            *.tsbuildinfo
-            */*/*.tsbuildinfo
-            apps/*/*/*.tsbuildinfo
-          key: test-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.oxlintrc.json', '.oxfmtrc.json', 'lazy.config.ts') }}
+          name: test-tools
+          save: true
 
       - name: Typecheck
-        run: pnpm build-types
+        run: pnpm typecheck
 
       - name: Check bundle sizes
-        run: pnpm exec lazy check-bundle-size
+        run: pnpm exec turbo run check-bundle-size
 
       - name: Check PR template
         run: pnpm update-pr-template --check
@@ -102,21 +100,29 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Restore build tool caches
-        uses: actions/cache@v5
+        uses: ./.github/actions/build-cache
         with:
-          # No `**`: it follows workspace symlinks through node_modules and the save times out.
-          path: |
-            .lazy
-            */*/.lazy
-            apps/*/*/.lazy
-            */*/.tsbuild
-            apps/*/*/.tsbuild
-            *.tsbuildinfo
-            */*/*.tsbuildinfo
-            apps/*/*/*.tsbuildinfo
-          key: build-tools-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'lazy.config.ts') }}
+          name: build-tools
+          save: true
 
       - name: Build packages
         # the sed pipe makes sure that github annotations come through without
         # turbo's prefix
         run: "pnpm build-package | sed -E 's/^.*? ::/::/'"
+
+  # Perf is the only e2e workflow left on main and skips pushes outside its paths, so seed the
+  # x64 Playwright browsers cache here too.
+  warm-playwright-cache:
+    name: 'Warm Playwright cache'
+    if: github.event_name == 'push'
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup
+
+      - name: Set up Playwright
+        uses: ./.github/actions/setup-playwright

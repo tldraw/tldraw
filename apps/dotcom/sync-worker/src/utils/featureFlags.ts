@@ -73,6 +73,7 @@ const flagCache = new Map<FeatureFlagKey, { value: FeatureFlagValue; readAt: num
 
 export function resetFeatureFlagCacheForTests() {
 	flagCache.clear()
+	usersWithRows.clear()
 }
 
 /**
@@ -194,8 +195,8 @@ export function evaluateFlagForUser(
  *
  * The domain check is second on purpose. It needs the account's email, which is a Postgres read the
  * flag evaluation does not otherwise make, so putting it after the flag means anybody already
- * granted pays nothing for it — and the only requests that take the extra read are ones that were
- * about to be refused anyway.
+ * granted pays for no email read. They still get one `ensureUser` SELECT per isolate, so an
+ * account granted by the flag also ends up with a workspace.
  *
  * Read from our own `user` row rather than Clerk, so an account that has one costs a single SELECT.
  * An account without one, signed up on the consent screen but never opened tldraw.com, has its rows
@@ -203,8 +204,38 @@ export function evaluateFlagForUser(
  */
 export async function canUseMcpServer(env: Environment, userId: string): Promise<boolean> {
 	const opts = { staleOnError: false }
-	if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId, opts)) return true
+	if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId, opts)) {
+		// A granted account can have signed up on the consent screen too, most of all once
+		// allowEveryone opens the flag, and without rows it has no workspace for create_board.
+		if (!usersWithRows.has(userId)) await ensureUserRowsForGrantedUser(env, userId)
+		return true
+	}
 	return await hasTldrawEmail(env, userId)
+}
+
+// Accounts this isolate has already seen with their rows in place, so a granted caller pays for the
+// ensureUser read once per isolate rather than on every request its token makes.
+// Capped because a long-lived isolate would otherwise hold every user it has ever served.
+const usersWithRows = new Set<string>()
+const MAX_USERS_WITH_ROWS = 10_000
+
+async function ensureUserRowsForGrantedUser(env: Environment, userId: string) {
+	const db = createPostgresConnectionPool(env, 'sync-worker/ensureGrantedUser')
+	try {
+		const result = await ensureUser(env, db, userId)
+		if (!('email' in result)) return
+		if (usersWithRows.size >= MAX_USERS_WITH_ROWS) usersWithRows.clear()
+		usersWithRows.add(userId)
+	} catch (e) {
+		// The flag already admitted them; a database or Clerk blip costs the rows, not the access.
+		// Not cached, so the next request tries again.
+		console.error(
+			'MCP access check failed to ensure a granted user (Postgres, Clerk or rate limiter):',
+			e
+		)
+	} finally {
+		await db.destroy()
+	}
 }
 
 async function hasTldrawEmail(env: Environment, userId: string): Promise<boolean> {

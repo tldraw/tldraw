@@ -3,8 +3,6 @@ name: End to end tests (examples)
 on:
   pull_request:
   merge_group:
-  push:
-    branches: [main]
 
 env:
   CI: 1
@@ -68,7 +66,7 @@ jobs:
         uses: ./.github/actions/setup-playwright
 
       - name: Build examples
-        run: pnpm exec lazy refresh-assets && cd apps/examples && pnpm build
+        run: pnpm exec turbo run refresh-assets && cd apps/examples && pnpm build
 
       - name: Run Playwright tests
         run: 'pnpm e2e'
