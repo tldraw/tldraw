@@ -120,6 +120,18 @@ describe('file loads', () => {
 		})
 	})
 
+	it('draws devtools lanes only for switches, since first_load draws the first open', () => {
+		const { loads, advance, show, deps } = setup()
+		const first = loads.begin('abc')
+		first.mark('file-started')
+		show(first)
+		expect(deps.measure).not.toHaveBeenCalled()
+		advance(1000)
+		loads.noteNavigation('/f/def')
+		loads.begin('def').mark('file-started')
+		expect(deps.measure).toHaveBeenCalledWith('file-started', 1000, 1000, 'Editor', 'start')
+	})
+
 	it('falls back to begin time when no navigation was noted for this file', () => {
 		const { loads, advance, show } = setup()
 		show(loads.begin('abc'))

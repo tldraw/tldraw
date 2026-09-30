@@ -18,6 +18,7 @@ function setup(t0: number) {
 		logPrefix: 'file-load',
 		logHeader: 'header',
 		markPrefix: 'tla-file',
+		lanes: { a: { lane: 'A' }, b: { lane: 'B', from: ['a'] }, c: { lane: 'A', from: ['a'] } },
 	})
 	return { deps, tracker, advance: (ms: number) => (t += ms) }
 }
@@ -36,9 +37,29 @@ describe('createLoadTracker', () => {
 			d_c: 60,
 			total_ms: 100,
 		})
-		expect(deps.measure).toHaveBeenNthCalledWith(1, 'a', 5000, 5040)
-		expect(deps.measure).toHaveBeenNthCalledWith(2, 'c', 5040, 5100)
+		expect(deps.measure).toHaveBeenNthCalledWith(1, 'a', 5000, 5040, 'A', 'start')
+		expect(deps.measure).toHaveBeenNthCalledWith(2, 'c', 5040, 5100, 'A', 'a')
 		expect(deps.mark).toHaveBeenCalledWith('tla-file:a')
+	})
+
+	it("starts a span at its own flow's step, not at another flow's step in between", () => {
+		const { deps, tracker, advance } = setup(0)
+		advance(40)
+		tracker.mark('a')
+		advance(30)
+		tracker.mark('b')
+		advance(30)
+		tracker.mark('c')
+		expect(deps.measure).toHaveBeenLastCalledWith('c', 40, 100, 'A', 'a')
+		// the report's deltas still run from the previous step in time
+		expect(tracker.buildReport()).toMatchObject({ d_b: 30, d_c: 30 })
+	})
+
+	it("falls back to the previous step when none of a span's starts happened", () => {
+		const { deps, tracker, advance } = setup(0)
+		advance(40)
+		tracker.mark('b')
+		expect(deps.measure).toHaveBeenLastCalledWith('b', 0, 40, 'B', 'previous step')
 	})
 
 	it('logs with its own prefix', () => {

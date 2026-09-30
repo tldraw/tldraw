@@ -6,6 +6,7 @@ import {
 	LOADS_DEBUG_FLAG,
 	LoadReport,
 	LoadServerTimings,
+	LoadStepLane,
 	LoadStepRow,
 	LoadTrackerDeps,
 	measureOnTrack,
@@ -45,6 +46,26 @@ export const FIRST_LOAD_STEPS = [
 ] as const
 
 export type FirstLoadStep = (typeof FIRST_LOAD_STEPS)[number]
+
+/** DevTools lanes: each span starts where its own flow did, so parallel flows show as overlapping. */
+const FIRST_LOAD_LANES: Record<FirstLoadStep, LoadStepLane<FirstLoadStep>> = {
+	'js-started': { lane: 'Page' },
+	'root-chunk-loaded': { lane: 'Page', from: ['js-started'] },
+	'clerk-loaded': { lane: 'Page', from: ['root-chunk-loaded'] },
+	'flags-loaded': { lane: 'Page', from: ['clerk-loaded'] },
+	'init-done': { lane: 'Zero', from: ['flags-loaded'] },
+	'zero-user-synced': { lane: 'Zero', from: ['flags-loaded', 'init-done'] },
+	'zero-preloaded': { lane: 'Zero', from: ['zero-user-synced'] },
+	'file-chunk-loaded': { lane: 'Editor', from: ['js-started'] },
+	'editor-rendered': { lane: 'Editor', from: ['file-chunk-loaded', 'zero-preloaded'] },
+	'sync-token-fetched': { lane: 'Sync', from: ['file-chunk-loaded', 'clerk-loaded'] },
+	'sync-connected': { lane: 'Sync', from: ['file-chunk-loaded', 'sync-token-fetched'] },
+	'editor-mounted': {
+		lane: 'Editor',
+		from: ['editor-rendered', 'sync-connected', 'zero-preloaded'],
+	},
+	'board-visible': { lane: 'Editor', from: ['editor-mounted'] },
+}
 
 const FIRST_LOAD_STEP_INFO: Record<FirstLoadStep, string> = {
 	'js-started': 'main.tsx began executing (HTML + entry bundle done)',
@@ -111,6 +132,7 @@ export function createFirstLoadTracker(deps: FirstLoadDeps) {
 		logPrefix: 'first-load',
 		logHeader: FIRST_LOAD_LOG_HEADER,
 		markPrefix: 'tla',
+		lanes: FIRST_LOAD_LANES,
 	})
 	const routeKind = (): FirstLoadRouteKind => {
 		if (deps.initialPath === '/') return 'root-redirect'

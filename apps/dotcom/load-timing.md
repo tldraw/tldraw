@@ -94,7 +94,19 @@ Every file open sends its `loadId` on the socket, whether or not it reports, so 
 
 ## Debugging a single load
 
-Turn on `logLoads` in the debug menu, or run `sessionStorage['tldraw_debug:logLoads'] = 'true'`, then reload. Each load prints a console group with its client steps, server steps and the other `srv_*` fields, and draws a "First load" or "File load" track in the DevTools Performance panel. Staff also get a column describing each step. Printing doesn't depend on the reporting gate.
+Turn on `logLoads` in the debug menu, or run `sessionStorage['tldraw_debug:logLoads'] = 'true'`, then reload. Each load prints a console group with its client steps, server steps and the other `srv_*` fields. Staff also get a column describing each step. Printing doesn't depend on the reporting gate.
+
+### In the Performance panel
+
+Every load, flag or not, draws its steps as custom tracks in the DevTools Performance panel: a "First load" group for the page boot and a "File load" group for each later file switch. Record a trace while reloading (the reload button in the Performance panel) and expand the groups above the Main thread.
+
+Each group has one lane per flow that runs in parallel: `Page` (entry bundle, Clerk, flags), `Zero`, `Sync` (token, socket, snapshot) and `Editor` (file chunk, render, mount, board visible). A bar spans from the step its flow was waiting on to the step itself, and the tooltip names that start. So a bar's length is how long that flow took, and bars in different lanes overlap. That is unlike `d_*`, which always counts from the previous step in time, whichever flow it belonged to.
+
+Reading a load:
+
+- The lane that finishes last before `editor-mounted` gated the board.
+- Line the lanes up against the Main thread below. A long `Sync` bar over a solid block of main-thread work means the page was busy, not the network. The snapshot's arrival is marked right after it is applied, so a long bar with an idle main thread is time on the wire or on the server; compare with the `srv_*` steps.
+- A long `editor-mounted` bar is editor construction and first render. Select that range on the Main thread to see what ran.
 
 ## Known gaps
 

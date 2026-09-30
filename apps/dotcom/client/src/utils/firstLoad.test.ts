@@ -31,15 +31,52 @@ describe('createFirstLoadTracker', () => {
 		expect(tracker.loadId).toMatch(/^[A-Za-z0-9_-]{8,32}$/)
 	})
 
-	it('measures each step as a span from the previous one, on its own devtools track', () => {
+	it('measures each step from where its own flow started, on that flow lane', () => {
 		const { deps, advance } = makeDeps()
 		const tracker = createFirstLoadTracker(deps)
 		advance(100)
 		tracker.mark('js-started')
 		advance(400)
 		tracker.mark('clerk-loaded')
-		expect(deps.measure).toHaveBeenNthCalledWith(1, 'js-started', 0, 100)
-		expect(deps.measure).toHaveBeenNthCalledWith(2, 'clerk-loaded', 100, 500)
+		advance(50)
+		tracker.mark('flags-loaded')
+		advance(50)
+		tracker.mark('sync-token-fetched')
+		advance(300)
+		tracker.mark('zero-user-synced')
+		expect(deps.measure).toHaveBeenNthCalledWith(1, 'js-started', 0, 100, 'Page', 'start')
+		expect(deps.measure).toHaveBeenNthCalledWith(
+			2,
+			'clerk-loaded',
+			100,
+			500,
+			'Page',
+			'previous step'
+		)
+		expect(deps.measure).toHaveBeenNthCalledWith(
+			3,
+			'flags-loaded',
+			500,
+			550,
+			'Page',
+			'clerk-loaded'
+		)
+		expect(deps.measure).toHaveBeenNthCalledWith(
+			4,
+			'sync-token-fetched',
+			500,
+			600,
+			'Sync',
+			'clerk-loaded'
+		)
+		expect(deps.measure).toHaveBeenNthCalledWith(
+			5,
+			'zero-user-synced',
+			550,
+			900,
+			'Zero',
+			'flags-loaded'
+		)
 	})
 
 	it('records the first time a step is marked and ignores later marks of the same step', () => {
