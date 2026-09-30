@@ -9,9 +9,7 @@ on:
     branches: [main]
     paths:
       - 'pnpm-lock.yaml'
-      - 'lazy.config.ts'
-      - '.oxlintrc.json'
-      - '.oxfmtrc.json'
+      - 'turbo.json'
       - '.github/workflows/checks.yml'
       - '.github/actions/**'
 
