@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
 import path from 'path'
 import { glob } from 'glob'
 import { REPO_ROOT, readJsonIfExists } from './file'
@@ -36,10 +36,24 @@ async function readPackage(packageJsonFile: string): Promise<Package> {
 	}
 }
 
+function readRootPackageJson() {
+	return JSON.parse(readFileSync(path.join(REPO_ROOT, 'package.json'), 'utf8'))
+}
+
+/**
+ * Hotfix scripts check out release branches cut before the switch from Yarn to pnpm (v5.5.x and
+ * earlier), so anything they run on that tree has to use the tree's own package manager.
+ */
+export function getPackageManager(): 'pnpm' | 'yarn' {
+	return readRootPackageJson().packageManager?.startsWith('yarn@') ? 'yarn' : 'pnpm'
+}
+
 // The `packages:` list in pnpm-workspace.yaml is a flat list of globs, so a regex is enough and
 // keeps this script free of a yaml dependency.
-function getWorkspaceGlobs() {
-	const yaml = readFileSync(path.join(REPO_ROOT, 'pnpm-workspace.yaml'), 'utf8')
+function getWorkspaceGlobs(): string[] {
+	const pnpmWorkspacePath = path.join(REPO_ROOT, 'pnpm-workspace.yaml')
+	if (!existsSync(pnpmWorkspacePath)) return readRootPackageJson().workspaces
+	const yaml = readFileSync(pnpmWorkspacePath, 'utf8')
 	const list = yaml.match(/^packages:\n((?:\s+-[^\n]*\n)+)/m)
 	if (!list) throw new Error('No packages list found in pnpm-workspace.yaml')
 	return [...list[1].matchAll(/^\s+-\s*['"]?([^'"\n]+?)['"]?\s*$/gm)].map((m) => m[1])
