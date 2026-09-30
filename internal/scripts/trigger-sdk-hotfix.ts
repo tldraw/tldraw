@@ -143,8 +143,25 @@ async function main() {
 	)
 
 	const packageManager = getPackageManager()
-	const install = () =>
-		packageManager === 'yarn' ? exec('yarn', ['install', '--immutable']) : exec('pnpm', ['install'])
+	const install = async () => {
+		if (packageManager === 'pnpm') return exec('pnpm', ['install'])
+		// Yarn installs over the job's pnpm node_modules without replacing its layout, so
+		// api-extractor resolves types differently and every prepack build-api fails its report check.
+		await exec('find', [
+			'.',
+			'-name',
+			'node_modules',
+			'-type',
+			'd',
+			'-prune',
+			'-exec',
+			'rm',
+			'-rf',
+			'{}',
+			'+',
+		])
+		return exec('yarn', ['install', '--immutable'])
+	}
 
 	if (triggerType === 'docs') {
 		await discord.step(`Ensuring no SDK changes are present`, async () => {
