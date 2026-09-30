@@ -8,6 +8,7 @@ import {
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
+	LIST_WORKSPACES_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
 	RENAME_BOARD_TOOL_NAME,
 	SEARCH_BOARDS_TOOL_NAME,
@@ -25,6 +26,7 @@ import {
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	parseCreateBoardInput,
+	parseListWorkspacesInput,
 	parsePageInfoInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
@@ -213,6 +215,14 @@ async function callFixtureTool(
 					: toolError(
 							`${HARNESS_GAP_MARKER} No screenshot was built for this cluster set. Run against staging or production to see the real render.`
 						)
+			}
+			case LIST_WORKSPACES_TOOL_NAME: {
+				// Parsed so argument errors read as they do in production; a fixture session has no
+				// workspaces to list.
+				parseListWorkspacesInput(args)
+				return toolError(
+					`${HARNESS_GAP_MARKER} Workspaces cannot be listed against fixtures. Run against staging or production to list them.`
+				)
 			}
 			case CREATE_BOARD_TOOL_NAME: {
 				// Parsed so argument errors read as they do in production; a fixture session has no

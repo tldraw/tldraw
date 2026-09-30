@@ -4,6 +4,7 @@ import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_PAGES,
 	ShapeCluster,
+	can,
 	getShapeClusters,
 	getShapeText,
 	type TLShapeWithPlainText,
@@ -32,7 +33,7 @@ export const MCP_PROTOCOL_VERSION = '2025-11-25'
 export const MCP_SERVER_INFO = {
 	name: 'tldraw-boards',
 	title: 'tldraw boards',
-	version: '3.3.0',
+	version: '3.4.0',
 }
 
 /**
@@ -48,10 +49,10 @@ export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
 }
 
 const SEARCHING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
 
 const LISTING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
 
 export const SEARCH_BOARDS_TOOL_NAME = 'search_boards'
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
@@ -60,9 +61,11 @@ export const CLUSTER_INFO_TOOL_NAME = 'get_cluster_info'
 export const CLUSTER_SCREENSHOT_TOOL_NAME = 'get_cluster_screenshot'
 export const CREATE_BOARD_TOOL_NAME = 'create_board'
 export const RENAME_BOARD_TOOL_NAME = 'rename_board'
+export const LIST_WORKSPACES_TOOL_NAME = 'list_workspaces'
 
 export const TOOL_NAMES = [
 	SEARCH_BOARDS_TOOL_NAME,
+	LIST_WORKSPACES_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
 	RENAME_BOARD_TOOL_NAME,
 	BOARD_INFO_TOOL_NAME,
@@ -347,6 +350,12 @@ export function parseCreateBoardInput(input: unknown): { name: string; workspace
 	return { name, workspace: workspace || null }
 }
 
+// Takes no arguments. A call with no `arguments` key at all is the normal way to call it, so undefined
+// is accepted the way parseSearchBoardsInput accepts it.
+export function parseListWorkspacesInput(input: unknown): void {
+	requireArgumentsObject(input ?? {})
+}
+
 export function parseRenameBoardInput(input: unknown): { boardId: string; name: string } {
 	const value = requireArgumentsObject(input)
 	return {
@@ -582,6 +591,31 @@ export function getBoardInfo(snapshot: RoomSnapshot): ToolResult {
 	})
 }
 
+/** A workspace the caller belongs to, and their role in it, as `listWorkspaces.ts` reads it. */
+export interface WorkspaceMembershipRow {
+	id: string
+	name: string
+	role: string
+}
+
+/**
+ * Every workspace the caller belongs to, personal first and then by name. `canCreateBoards` is the
+ * same `addFiles` check create_board makes, so a model can tell which names it will accept before
+ * trying one.
+ */
+export function getWorkspaceListResult(rows: WorkspaceMembershipRow[], userId: string): ToolResult {
+	const workspaces = rows
+		.map((row) => ({
+			id: row.id,
+			name: row.name,
+			personal: row.id === userId,
+			role: row.role,
+			canCreateBoards: can(row.role, 'addFiles'),
+		}))
+		.sort((a, b) => Number(b.personal) - Number(a.personal) || a.name.localeCompare(b.name))
+	return toolJsonResult({ workspaceCount: workspaces.length, workspaces })
+}
+
 /** A workspace the caller may add boards to, as `createBoard.ts` reads it. */
 export interface CreatableWorkspace {
 	id: string
@@ -596,8 +630,8 @@ export type ResolvedCreateBoardWorkspace =
 
 /**
  * Picks the workspace a new board goes into. Omitted means the personal one. Otherwise an exact id
- * wins, then a case-insensitive name: a model only ever sees workspace *names* (search_boards reports
- * nothing else), so an id-only argument would be one it cannot fill.
+ * wins, then a case-insensitive name: search_boards reports only workspace *names*, so an id-only
+ * argument would be one a model that has not called list_workspaces cannot fill.
  *
  * Only workspaces the caller can add boards to are candidates, so a workspace they can see but not
  * add to reads as not found, and the refusal lists the ones that would work.
@@ -965,6 +999,7 @@ function toReadableShape(shape: TLShapeWithPlainText) {
 export function getToolDefinitions(nameMatchingEnabled: boolean) {
 	return [
 		getSearchBoardsToolDefinition(nameMatchingEnabled),
+		getListWorkspacesToolDefinition(),
 		getCreateBoardToolDefinition(),
 		getRenameBoardToolDefinition(),
 		getBoardInfoToolDefinition(),
@@ -1048,12 +1083,28 @@ function getSearchBoardsToolDefinition(nameMatchingEnabled: boolean) {
 	}
 }
 
+function getListWorkspacesToolDefinition() {
+	return {
+		name: LIST_WORKSPACES_TOOL_NAME,
+		title: 'List tldraw workspaces',
+		description:
+			'List the tldraw.com workspaces this account belongs to, including its personal workspace. Each workspace comes with its id, name, whether it is the personal one, this account’s role in it, and canCreateBoards: whether create_board accepts it as workspace.',
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {},
+			required: [],
+		},
+		annotations: READ_ONLY_ANNOTATIONS,
+	} as const
+}
+
 function getCreateBoardToolDefinition() {
 	return {
 		name: CREATE_BOARD_TOOL_NAME,
 		title: 'Create tldraw board',
 		description:
-			'Create a new, empty tldraw.com board and return its boardId and url. The board goes in your personal workspace unless you name another workspace you belong to and can add boards to — the workspaceName search_boards reports, or a workspace id. If the workspace you name is not one of those, the error lists the ones you can use. The new board is shared by link for editing, the same as a board created on tldraw.com.',
+			'Create a new, empty tldraw.com board and return its boardId and url. The board goes in your personal workspace unless you name another workspace you belong to and can add boards to — a name or id from list_workspaces, or the workspaceName search_boards reports. If the workspace you name is not one of those, the error lists the ones you can use. The new board is shared by link for editing, the same as a board created on tldraw.com.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,

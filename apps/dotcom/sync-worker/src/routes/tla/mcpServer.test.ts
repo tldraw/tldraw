@@ -18,6 +18,7 @@ import {
 import { createBoardForUser } from './createBoard'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
+import { listWorkspacesForUser } from './listWorkspaces'
 import { authenticateMcpRequest } from './mcpAuth'
 import { normalizeMcpClient, resetRateLimitFallbackForTests, mcpServer } from './mcpServer'
 import { renameBoardForUser } from './renameBoard'
@@ -80,6 +81,7 @@ vi.mock('./searchBoards', () => ({ searchAccessibleBoards: vi.fn() }))
 
 // The database half is covered in createBoard.test.ts; these tests are about the dispatch around it.
 vi.mock('./createBoard', () => ({ createBoardForUser: vi.fn() }))
+vi.mock('./listWorkspaces', () => ({ listWorkspacesForUser: vi.fn() }))
 vi.mock('./renameBoard', () => ({ renameBoardForUser: vi.fn() }))
 
 beforeEach(() => {
@@ -325,6 +327,7 @@ describe('MCP server', () => {
 		)
 		expect(result.tools.map((tool: any) => tool.name)).toEqual([
 			'search_boards',
+			'list_workspaces',
 			'create_board',
 			'rename_board',
 			'get_board_info',
@@ -473,7 +476,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.3.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.4.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -681,7 +684,7 @@ describe('search_boards', () => {
 	})
 
 	// The wire-legal call a model makes by following the tool's own description literally: MCP's
-	// `arguments` is optional, and this is the only tool with `required: []`, so a real client can
+	// `arguments` is optional, and this tool has `required: []`, so a real client can
 	// send `params: {name: "search_boards"}` with no `arguments` key at all. Built with
 	// makeRpcRequest, not makeToolCall/callTool, because those always supply an `arguments` key —
 	// which is exactly why this case was missed before.
@@ -705,6 +708,55 @@ describe('search_boards', () => {
 		expect(result.content[0].text).toBe(
 			'Could not search boards: the board database could not be reached.'
 		)
+	})
+})
+
+describe('list_workspaces', () => {
+	it('lists every workspace, personal first, with its role and whether create_board accepts it', async () => {
+		vi.mocked(listWorkspacesForUser).mockResolvedValue([
+			{ id: 'group_b', name: 'Beta', role: 'member' },
+			{ id: 'user_abc', name: 'My workspace', role: 'owner' },
+			{ id: 'group_a', name: 'Alpha', role: 'viewer' },
+		])
+		const env = makeEnv()
+		const result = await callTool('list_workspaces', {}, env, 'user_abc')
+
+		expect(listWorkspacesForUser).toHaveBeenCalledWith(env, 'user_abc')
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			workspaceCount: 3,
+			workspaces: [
+				{
+					id: 'user_abc',
+					name: 'My workspace',
+					personal: true,
+					role: 'owner',
+					canCreateBoards: true,
+				},
+				// An unknown role is listed but answers false, the way `can` treats it everywhere.
+				{ id: 'group_a', name: 'Alpha', personal: false, role: 'viewer', canCreateBoards: false },
+				{ id: 'group_b', name: 'Beta', personal: false, role: 'member', canCreateBoards: true },
+			],
+		})
+	})
+
+	// Clients call a no-argument tool without an `arguments` key at all.
+	it('accepts a call with no arguments key', async () => {
+		vi.mocked(listWorkspacesForUser).mockResolvedValue([])
+		const request = makeRpcRequest(
+			'tools/call',
+			{ name: 'list_workspaces' },
+			{ userId: 'user_abc' }
+		)
+		const result = await rpcResult(await mcpServer(request, makeEnv()))
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text)).toEqual({ workspaceCount: 0, workspaces: [] })
+	})
+
+	it('answers a database failure as a tool error', async () => {
+		vi.mocked(listWorkspacesForUser).mockRejectedValue(new Error('pool timeout'))
+		const result = await callTool('list_workspaces', {})
+		expect(result.isError).toBe(true)
 	})
 })
 
