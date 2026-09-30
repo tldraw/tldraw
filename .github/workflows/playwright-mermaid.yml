@@ -3,8 +3,6 @@ name: End to end tests (mermaid readability)
 on:
   pull_request:
   merge_group:
-  push:
-    branches: [main]
 
 env:
   CI: 1
@@ -37,7 +35,7 @@ jobs:
               - 'apps/examples/e2e/mermaid-readability/**'
               - '.github/workflows/playwright-mermaid.yml'
               - '.github/actions/**'
-              - 'yarn.lock'
+              - 'pnpm-lock.yaml'
 
   build:
     name: 'End to end tests (mermaid readability)'
@@ -57,10 +55,10 @@ jobs:
         uses: ./.github/actions/setup-playwright
 
       - name: Build examples
-        run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && cd apps/examples && yarn build
+        run: pnpm exec turbo run refresh-assets && cd apps/examples && pnpm build
 
       - name: Run Playwright tests (mermaid readability)
-        run: 'yarn e2e-mermaid-readability'
+        run: 'pnpm e2e-mermaid-readability'
         working-directory: apps/examples
 
       - uses: actions/upload-artifact@v6

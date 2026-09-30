@@ -8,7 +8,7 @@ The examples project (`apps/examples`) is meant to 1) provide a clean developmen
 
 ### Development
 
-When you run `yarn dev` from the repository root, this project is what is run and hosted at [localhost:5420](http://localhost:5420).
+When you run `pnpm dev` from the repository root, this project is what is run and hosted at [localhost:5420](http://localhost:5420).
 
 ### Deployment and hosting
 

@@ -25,8 +25,8 @@ async function main() {
 
 	if (!existsSync(join(workspacePath, 'tsconfig.json'))) {
 		console.error(`❌ No tsconfig.json found in ${targetWorkspace}`)
-		console.error(`Usage: yarn profile-typescript [workspace-path]`)
-		console.error(`Example: yarn profile-typescript packages/editor`)
+		console.error(`Usage: pnpm profile-typescript [workspace-path]`)
+		console.error(`Example: pnpm profile-typescript packages/editor`)
 		process.exit(1)
 	}
 

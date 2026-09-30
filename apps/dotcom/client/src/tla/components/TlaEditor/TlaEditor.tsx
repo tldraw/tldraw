@@ -1,7 +1,6 @@
 import { captureException } from '@sentry/react'
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
-import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
-import { useSync } from '@tldraw/sync'
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
 	DefaultDebugMenu,
@@ -10,15 +9,10 @@ import {
 	TLComponents,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
-	TLUserStore,
 	Tldraw,
 	TldrawUiMenuItem,
-	UserRecordType,
-	commentSchemaRecords,
-	computed,
 	createSessionStateSnapshotSignal,
 	createDebugValue,
-	createUserId,
 	debugFlags,
 	react,
 	throttle,
@@ -34,22 +28,15 @@ import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/S
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
-import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
+import { estimateFileSizeBucket, useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
-import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
-import {
-	FIRST_LOAD_DEBUG_FLAG,
-	getFirstLoadId,
-	hasFirstLoadStep,
-	markFirstLoad,
-	reportFirstLoad,
-	setFirstLoadServerTimings,
-} from '../../../utils/firstLoad'
+import { reportFileLoad } from '../../../utils/fileLoad'
+import { markFirstLoad, reportFirstLoad } from '../../../utils/firstLoad'
 import { globalEditor } from '../../../utils/globalEditor'
-import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
+import { LOADS_DEBUG_FLAG } from '../../../utils/loadTracker'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
@@ -74,6 +61,7 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
+import { useFileLoad, useFileSyncStore } from './TlaFileSyncHost'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
@@ -125,6 +113,8 @@ export function TlaEditor(props: TlaEditorProps) {
 }
 
 function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps) {
+	const fileLoad = useFileLoad()
+	fileLoad.mark('editor-rendered')
 	markFirstLoad('editor-rendered')
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
@@ -165,6 +155,8 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		})
 	}, [hideAllShapes])
 
+	const store = useFileSyncStore()
+
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
 	const trackShareLinkOpen = useShareLinkOpenTracking()
@@ -173,6 +165,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			markFirstLoad('editor-mounted')
+			fileLoad.mark('editor-mounted')
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
 			trackShareLinkOpen(app, fileId, isEmbed)
@@ -188,7 +181,14 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			if (!app) {
 				setIsReady()
 				markFirstLoad('board-visible')
-				reportFirstLoad({ email: null, flagEnabled: false, trackEvent })
+				fileLoad.mark('board-visible')
+				reportFirstLoad({ email: null, flagEnabled: false, trackEvent, fileLoad })
+				reportFileLoad(fileLoad, {
+					email: null,
+					flagEnabled: false,
+					trackEvent,
+					extra: { file_size_bucket: estimateFileSizeBucket(editor) },
+				})
 				return
 			}
 
@@ -247,10 +247,18 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 					if (abortController.signal.aborted) return
 					setIsReady()
 					markFirstLoad('board-visible')
+					fileLoad.mark('board-visible')
 					reportFirstLoad({
 						email: app?.email,
-						flagEnabled: app?.isFirstLoadRumEnabled ?? false,
+						flagEnabled: app?.isLoadRumEnabled ?? false,
 						trackEvent,
+						fileLoad,
+					})
+					reportFileLoad(fileLoad, {
+						email: app?.email,
+						flagEnabled: app?.isLoadRumEnabled ?? false,
+						trackEvent,
+						extra: { file_size_bucket: estimateFileSizeBucket(editor) },
 					})
 				})
 
@@ -262,6 +270,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		},
 		[
 			addDialog,
+			fileLoad,
 			trackRoomLoaded,
 			trackNewRoomCreation,
 			trackShareLinkOpen,
@@ -275,60 +284,6 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		]
 	)
 
-	const user = useTldrawCurrentUser()
-	const getUserToken = useEvent(async () => {
-		return (await user?.getToken()) ?? 'not-logged-in'
-	})
-	const hasUser = !!user
-	const assets = useMemo(() => {
-		return multiplayerAssetStore({ getFileId: () => fileId, getToken: getUserToken })
-	}, [fileId, getUserToken])
-
-	const users: TLUserStore = useMemo(() => {
-		const prefs = app?.tlUser.userPreferences
-		// Signed out, attribute nothing: useSync's default store would stamp the local preferences id,
-		// which authorizeFileRecord rejects for a guest session, rolling back note edits and duplicates.
-		if (!prefs) return { currentUser: computed('currentUser', () => null) }
-		const currentUser = computed('currentUser', () => {
-			const p = prefs.get()
-			return UserRecordType.create({
-				id: createUserId(p.id),
-				name: p.name ?? '',
-				color: p.color ?? '',
-			})
-		})
-		return {
-			currentUser,
-		}
-	}, [app?.tlUser.userPreferences])
-
-	const store = useSync({
-		uri: useCallback(async () => {
-			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
-			url.searchParams.set('v', CLIENT_BUILD_TIMESTAMP)
-			// Only the first connect belongs to the load; a reconnect carrying the id would make the
-			// server park and send an echo the client already has, and tag its timers as first-load.
-			if (!hasFirstLoadStep('sync-connected')) url.searchParams.set('loadId', getFirstLoadId())
-			if (hasUser) {
-				url.searchParams.set('accessToken', await getUserToken())
-				markFirstLoad('sync-token-fetched')
-			}
-			return url.toString()
-		}, [fileSlug, hasUser, getUserToken]),
-		assets,
-		users,
-		// Register the opt-in `comment` record type so comment records sync through the file room.
-		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
-		records: commentSchemaRecords,
-		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
-			if (message.type === 'first_load_server') {
-				setFirstLoadServerTimings(message)
-				return
-			}
-			trackEvent(message.type)
-		}, []),
-	})
-
 	// we need to prevent recording the file exit if the store is in an error state
 	const storeError = useRef(false)
 	if (store.status === 'error') {
@@ -336,10 +291,6 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	}
 
 	// Handle entering and exiting the file, with some protection against rapid enters/exits
-	useEffect(() => {
-		if (store.status === 'synced-remote') markFirstLoad('sync-connected')
-	}, [store.status])
-
 	useEffect(() => {
 		if (!app) return
 		if (store.status !== 'synced-remote') return
@@ -431,7 +382,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 const DOTCOM_DEBUG_FLAGS = {
 	...debugFlags,
-	logFirstLoad: createDebugValue(FIRST_LOAD_DEBUG_FLAG, { defaults: { all: false } }),
+	logLoads: createDebugValue(LOADS_DEBUG_FLAG, { defaults: { all: false } }),
 }
 
 function CustomDebugMenu() {

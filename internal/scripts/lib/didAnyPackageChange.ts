@@ -39,7 +39,7 @@ async function getPackageFirstDiff(
 		const publishedManifest = getTarballManifestSync(publishedTarballPath)
 
 		const localTarballPath = `${dirPath}/local-package.tgz`
-		await exec('yarn', ['pack', '--out', localTarballPath], { pwd: pkg.dir, env: process.env })
+		await exec('pnpm', ['pack', '--out', localTarballPath], { pwd: pkg.dir, env: process.env })
 
 		const localManifest = getTarballManifestSync(localTarballPath)
 

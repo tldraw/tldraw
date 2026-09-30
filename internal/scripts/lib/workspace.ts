@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs'
 import path from 'path'
 import { glob } from 'glob'
 import { REPO_ROOT, readJsonIfExists } from './file'
@@ -35,18 +36,21 @@ async function readPackage(packageJsonFile: string): Promise<Package> {
 	}
 }
 
-async function getChildWorkspaces(parent: Package): Promise<Package[]> {
-	if (!parent.packageJson.workspaces) return []
+// The `packages:` list in pnpm-workspace.yaml is a flat list of globs, so a regex is enough and
+// keeps this script free of a yaml dependency.
+function getWorkspaceGlobs() {
+	const yaml = readFileSync(path.join(REPO_ROOT, 'pnpm-workspace.yaml'), 'utf8')
+	const list = yaml.match(/^packages:\n((?:\s+-[^\n]*\n)+)/m)
+	if (!list) throw new Error('No packages list found in pnpm-workspace.yaml')
+	return [...list[1].matchAll(/^\s+-\s*['"]?([^'"\n]+?)['"]?\s*$/gm)].map((m) => m[1])
+}
 
+async function getChildWorkspaces(): Promise<Package[]> {
 	const foundPackages = []
-	for (const workspace of parent.packageJson.workspaces) {
-		const workspacePath = path.join(parent.path, workspace)
+	for (const workspace of getWorkspaceGlobs()) {
+		const workspacePath = path.join(REPO_ROOT, workspace)
 		for (const packageJsonFilePath of glob.sync(path.join(workspacePath, 'package.json'))) {
-			const child = await readPackage(packageJsonFilePath)
-			foundPackages.push(child)
-			if (child.packageJson.workspaces) {
-				foundPackages.push(...(await getChildWorkspaces(child)))
-			}
+			foundPackages.push(await readPackage(packageJsonFilePath))
 		}
 	}
 
@@ -58,5 +62,5 @@ export async function getRootPackage() {
 }
 
 export async function getAllWorkspacePackages() {
-	return await getChildWorkspaces(await getRootPackage())
+	return await getChildWorkspaces()
 }

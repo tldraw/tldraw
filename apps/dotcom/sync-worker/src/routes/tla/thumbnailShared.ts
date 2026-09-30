@@ -113,7 +113,7 @@ function classifyBrowserRenderFailure(error: BrowserRenderError): string {
 // Caller-facing explanation for a classified failure, as a clause to follow a tool's own prefix.
 // Derived from the bounded reason code and never from `error.message`: these tools answer anonymous,
 // unauthenticated callers, and Postgres and R2 errors carry internal hostnames, ports, and database
-// usernames (the pool is built from BOTCOM_POSTGRES_POOLED_CONNECTION_STRING). The unbounded
+// usernames (from the pool's connection string). The unbounded
 // original still reaches Sentry through reportThumbnailError, which is where it is useful.
 export function describeThumbnailFailure(reason: string): string {
 	switch (reason) {

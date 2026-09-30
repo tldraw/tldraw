@@ -2,4 +2,4 @@
 
 set -eux
 
-yarn run -T tsx ./dev.ts
+pnpm exec tsx ./dev.ts

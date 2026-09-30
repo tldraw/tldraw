@@ -5,7 +5,7 @@
 // the frame, runs a scenario module, then trims the setup frames and transcodes
 // with ffmpeg.
 //
-// Usage (from the repo root, with `yarn dev` serving localhost:5420):
+// Usage (from the repo root, with `pnpm dev` serving localhost:5420):
 //   node skills/write-pr/scripts/record-interaction.mjs <scenario.mjs> <out.mp4> [--url URL] [--keep-ui]
 //
 // The scenario module default-exports `async (page, helpers) => {}`. See
@@ -44,7 +44,7 @@ try {
 	browser = await chromium.launch()
 } catch (e) {
 	console.error(
-		'Could not launch Chromium. Install scripts are disabled in this repo, so run `yarn playwright install chromium` once first.'
+		'Could not launch Chromium. Install scripts are disabled in this repo, so run `pnpm exec playwright install chromium` once first.'
 	)
 	throw e
 }
