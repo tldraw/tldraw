@@ -117,17 +117,14 @@ describe('comment tool placement lifecycle', () => {
 		})
 	})
 
-	it('re-places the composer on a second click', () => {
+	it('cancels the placement and returns to select on a second click', () => {
 		editor.setCurrentTool('comment')
 		driver.pointerDown(400, 300)
 		driver.pointerUp(400, 300)
 		driver.pointerDown(200, 200)
 		driver.pointerUp(200, 200)
-		expect(editor.isIn('comment.idle')).toBe(true)
-		expect(pendingComment.get(editor)).toEqual({
-			anchor: { type: 'point', x: 200, y: 200 },
-			point: { x: 200, y: 200 },
-		})
+		expect(editor.isIn('select.idle')).toBe(true)
+		expect(pendingComment.get(editor)).toBeNull()
 	})
 
 	it('drops the pending composer when the tool exits', () => {
