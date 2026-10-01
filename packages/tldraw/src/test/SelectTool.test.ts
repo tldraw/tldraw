@@ -64,6 +64,22 @@ describe('TLSelectTool.Idle', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 
+	it('Does not select a locked group by double clicking one of its children', () => {
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		const groupId = createShapeId('group')
+		editor.createShapes([
+			{ id: a, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100, fill: 'solid' } },
+			{ id: b, type: 'geo', x: 500, y: 300, props: { w: 100, h: 100, fill: 'solid' } },
+		])
+		editor.groupShapes([a, b], { groupId })
+		editor.updateShape({ id: groupId, type: 'group', isLocked: true })
+		editor.selectNone()
+		editor.doubleClick(350, 350)
+		// Same as double clicking a locked shape: it acts like the canvas and creates text
+		expect(editor.getOnlySelectedShape()?.type).toBe('text')
+	})
+
 	it('Returns to idle when a canvas press is cancelled', () => {
 		editor.pointerDown(10, 10, { target: 'canvas' })
 		editor.expectToBeIn('select.pointing_canvas')
