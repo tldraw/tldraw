@@ -2110,6 +2110,9 @@ export class TLFileDurableObject extends DurableObject {
 
 	// Save the room to r2
 	async persistToDatabase(opts?: { throwOnFailure?: boolean }) {
+		// Legacy rooms are read-only, but boot migrations and the last session leaving still trigger
+		// persists, which rewrite ROOMS and add a history version without any edit.
+		if (this._documentInfo && !this._documentInfo.isApp) return
 		await this.executionQueue
 			.push(async () => {
 				await retry(
@@ -3545,12 +3548,10 @@ export class TLFileDurableObject extends DurableObject {
 	async __admin__hardDeleteIfLegacy() {
 		if (!this._documentInfo || this.documentInfo.deleted || this.documentInfo.isApp) return false
 		this.setDocumentInfo({ slug: this.documentInfo.slug, isApp: false, deleted: true })
-		// Queued so an in-flight persist finishes before the R2 deletes rather than re-uploading
-		// the snapshot after them.
+		// Queued so an in-flight restore finishes before the R2 deletes rather than writing the
+		// snapshot after them.
 		await this.executionQueue.push(async () => {
 			await this.closeAllSocketsForDelete()
-			// Without this the closing sessions' last-out persist re-uploads the snapshot to the keys
-			// deleted below.
 			this._room = null
 			this.dropBootTimings()
 			const slug = this.documentInfo.slug
