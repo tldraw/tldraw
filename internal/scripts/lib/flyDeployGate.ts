@@ -131,12 +131,13 @@ interface FlyMachine {
 	config?: { env?: Record<string, string | undefined> }
 }
 
-export interface DeployedInputHash {
-	/** The hash every running machine was deployed with, or null when the caller must deploy. */
-	hash: string | null
-	/** Why there is no usable hash, for the deploy log: a skipped deploy is hard to explain later. */
-	reason: 'stamped' | 'no-machines' | 'unstamped' | 'mixed' | 'unhealthy'
-}
+/**
+ * The hash every running machine was deployed with, or why there is none and the caller must
+ * deploy. The reason goes in the deploy log: a skipped deploy is hard to explain later.
+ */
+export type DeployedInputHash =
+	| { reason: 'stamped'; hash: string }
+	| { reason: 'no-machines' | 'unstamped' | 'mixed' | 'unhealthy' }
 
 /**
  * What the running machines were last deployed with, plus why the stamp is unusable when it is.
@@ -151,7 +152,7 @@ export interface DeployedInputHash {
  */
 export function parseDeployedInputHash(machineListJson: string): DeployedInputHash {
 	const machines = (JSON.parse(machineListJson) ?? []) as FlyMachine[]
-	if (machines.length === 0) return { hash: null, reason: 'no-machines' }
+	if (machines.length === 0) return { reason: 'no-machines' }
 	const hashes = new Set<string | undefined>()
 	for (const machine of machines) {
 		const checks = machine.checks ?? []
@@ -159,13 +160,13 @@ export function parseDeployedInputHash(machineListJson: string): DeployedInputHa
 			machine.state === 'started' &&
 			checks.length > 0 &&
 			checks.every((check) => check.status === 'passing')
-		if (!healthy) return { hash: null, reason: 'unhealthy' }
+		if (!healthy) return { reason: 'unhealthy' }
 		hashes.add(machine.config?.env?.[DEPLOY_INPUT_HASH_ENV])
 	}
-	if (hashes.size !== 1) return { hash: null, reason: 'mixed' }
+	if (hashes.size !== 1) return { reason: 'mixed' }
 	const [hash] = hashes
-	if (hash === undefined) return { hash: null, reason: 'unstamped' }
-	return { hash, reason: 'stamped' }
+	if (hash === undefined) return { reason: 'unstamped' }
+	return { reason: 'stamped', hash }
 }
 
 export async function getDeployedInputHash(appName: string): Promise<DeployedInputHash> {

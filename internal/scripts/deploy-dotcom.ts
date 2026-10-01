@@ -760,14 +760,16 @@ async function deployFlyAppIfChanged({
 	const forced = env.ZERO_FORCE_DEPLOY === 'true' || !!previewId
 	const hash = hashFlyDeployInputs(inputs)
 	const deployed = forced ? null : await getDeployedInputHash(appName)
-	if (deployed?.hash === hash) {
+	if (deployed?.reason === 'stamped' && deployed.hash === hash) {
 		nicelog(`${appName}: deploy inputs unchanged (${hash.slice(0, 12)}), skipping fly deploy`)
 		await discord.message(`${appName}: deploy inputs unchanged, skipping fly deploy`)
 		return
 	}
 	const from = !deployed
 		? 'not checked'
-		: (deployed.hash?.slice(0, 12) ?? `no stamp: ${deployed.reason}`)
+		: deployed.reason === 'stamped'
+			? deployed.hash.slice(0, 12)
+			: `no stamp: ${deployed.reason}`
 	nicelog(`${appName}: deploying (${from} -> ${hash.slice(0, 12)}${forced ? ', forced' : ''})`)
 	fs.writeFileSync(
 		path.join(zeroCacheFolder, configFile),
