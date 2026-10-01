@@ -1,7 +1,8 @@
 import { RoomOpenMode } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { getLegacyRoomObject, getR2KeyForSnapshot, R2Snapshot } from '../../r2'
+import { getR2KeyForRoom, getR2KeyForSnapshot, R2Snapshot } from '../../r2'
 import { Environment } from '../../types'
+import { reconstructLatestVersion } from '../../versionChainRead'
 import { getSlug } from '../roomOpenMode'
 
 export async function getLegacyRoomData(
@@ -25,5 +26,9 @@ export async function getLegacyRoomData(
 
 	const slug = await getSlug(env, id, type)
 	if (!slug) return null
-	return await getLegacyRoomObject(env.ROOMS_HISTORY, slug).then((r) => r?.text())
+	const snapshot = await reconstructLatestVersion({
+		chainBucket: env.ROOMS_HISTORY,
+		roomKey: getR2KeyForRoom({ slug, isApp: false }),
+	})
+	return snapshot ? JSON.stringify(snapshot) : null
 }

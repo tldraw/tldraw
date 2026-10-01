@@ -271,6 +271,38 @@ export async function reconstructVersion({
 }
 
 /**
+ * A room's newest version rebuilt from its chain, or null when the chain holds none. Legacy rooms
+ * load this way so they stop depending on ROOMS `public_rooms/<slug>`.
+ */
+export async function reconstructLatestVersion({
+	chainBucket,
+	roomKey,
+	schedule = runInline,
+}: {
+	chainBucket: R2Bucket
+	roomKey: string
+	schedule?: R2ReadScheduler
+}): Promise<RoomSnapshot | null> {
+	const { entries } = await loadChainIndex(chainBucket, roomKey, schedule)
+	// ISO timestamps sort lexically.
+	const latest = entries
+		.flatMap((entry) => entry.timestamps)
+		.sort()
+		.at(-1)
+	if (!latest) return null
+	// The timestamp comes from the chain's own index, so the legacy-bucket fallback can never run.
+	const version = await reconstructVersion({
+		chainBucket,
+		legacyBucket: chainBucket,
+		roomKey,
+		timestamp: latest,
+		index: entries,
+		schedule,
+	})
+	return version?.snapshot ?? null
+}
+
+/**
  * The deltas a listed segment holds, exactly as the listing described them. Shared by
  * reconstruction and the verifier so that the verifier cannot pass a segment reads would reject.
  */

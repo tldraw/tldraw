@@ -88,8 +88,6 @@ import {
 import { TLPostgresPool, getPostgresConnection } from './postgres'
 import {
 	deleteAllObjectsWithPrefix,
-	getLegacyRoomObject,
-	getLegacyRoomPrefix,
 	getR2KeyForRoom,
 	isTransientConnectionError,
 	R2ReadScheduler,
@@ -145,8 +143,10 @@ import { ChainState, isChainHead, PendingDelta } from './versionChain'
 import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
 import {
 	deleteAllVersions,
+	loadChainIndex,
 	loadChainIndexForVersion,
 	openWholeVersionStream,
+	reconstructLatestVersion,
 	reconstructVersion,
 } from './versionChainRead'
 import {
@@ -918,12 +918,9 @@ export class TLFileDurableObject extends DurableObject {
 				if (this.documentInfo.isApp) {
 					await this.r2.rooms.put(roomKey, dataText)
 				} else {
-					// Legacy boots read the newest object under this prefix, so a newer timestamp
-					// makes the restore stick.
-					await this.r2.versionChain.put(
-						`${getLegacyRoomPrefix(roomId)}${new Date().toISOString()}`,
-						dataText
-					)
+					// Legacy rooms boot from their chain's newest version, so the restore goes in as a
+					// newer keyframe.
+					await this.writeLegacyKeyframe(roomKey, restored ?? JSON.parse(dataText))
 				}
 				this._lastPersistedFingerprint = null
 				// The chain head no longer matches the rooms object. The fingerprint check would
@@ -1706,9 +1703,18 @@ export class TLFileDurableObject extends DurableObject {
 			// when loading, prefer to fetch documents from the bucket
 			const r2FetchTimer = this.timer()
 			this.setBootStage('storage-load:r2')
-			const roomFromBucket = this.documentInfo.isApp
-				? await this.r2.rooms.get(key)
-				: await getLegacyRoomObject(this.r2.versionChain, slug)
+			if (!this.documentInfo.isApp) {
+				const snapshot = await reconstructLatestVersion({
+					chainBucket: this.r2.versionChain,
+					roomKey: key,
+				})
+				this._bootTimings.r2 = r2FetchTimer.report('db_load_r2_fetch', this.bootLoadIdBlobs())
+				if (!snapshot) throw new RoomNotFoundError(slug)
+				this._bootTimings.total = loadTimer.report('db_load_total', this.bootLoadIdBlobs())
+				// Legacy rooms are read-only, so the storage-limit warning this feeds never applies.
+				return { snapshot, roomSizeMB: 0 }
+			}
+			const roomFromBucket = await this.r2.rooms.get(key)
 			this._bootTimings.r2 = r2FetchTimer.report('db_load_r2_fetch', this.bootLoadIdBlobs())
 
 			if (roomFromBucket) {
@@ -3579,9 +3585,7 @@ export class TLFileDurableObject extends DurableObject {
 			})
 
 			// remove main file
-			await deleteAllObjectsWithPrefix(this.env.ROOMS_HISTORY, getLegacyRoomPrefix(slug), (op) =>
-				this.addR2Operation('version_chain_delete', op)
-			)
+			await this.env.ROOMS.delete(roomKey)
 		})
 
 		return true
@@ -3589,11 +3593,33 @@ export class TLFileDurableObject extends DurableObject {
 
 	async __admin__createLegacyRoom(id: string) {
 		this.setDocumentInfo({ slug: id, isApp: false, deleted: false })
-		await this.r2.versionChain.put(
-			`${getLegacyRoomPrefix(id)}${new Date().toISOString()}`,
-			JSON.stringify(DEFAULT_INITIAL_SNAPSHOT)
+		await this.writeLegacyKeyframe(
+			getR2KeyForRoom({ slug: id, isApp: false }),
+			DEFAULT_INITIAL_SNAPSHOT
 		)
 		await this.getRoom()
+	}
+
+	private async writeLegacyKeyframe(roomKey: string, snapshot: RoomSnapshot) {
+		const { entries } = await loadChainIndex(this.r2.versionChain, roomKey)
+		const latest = entries
+			.flatMap((entry) => entry.timestamps)
+			.sort()
+			.at(-1)
+		// Reads take the newest timestamp, so a host clock behind the latest version would key this
+		// keyframe before it and the old drawing would keep loading.
+		const now = Math.max(Date.now(), latest ? Date.parse(latest) + 1 : 0)
+		await writeVersionChainEntry({
+			bucket: this.r2.versionChain,
+			roomKey,
+			iso: new Date(now).toISOString(),
+			chain: null,
+			pending: [],
+			previous: null,
+			next: snapshot,
+			now,
+			keyframesOnly: true,
+		})
 	}
 }
 
