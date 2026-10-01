@@ -20,6 +20,7 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { EndToEndApi } from './EndToEndApi'
+import { checkMermaidReadability } from './mermaidReadability'
 ;(window as any).__tldraw_ui_event = { id: 'NOTHING_YET' }
 ;(window as any).__tldraw_editor_events = []
 
@@ -162,6 +163,7 @@ function SneakyExportButton() {
 					},
 				})
 			},
+			checkMermaidReadability: (definition: string) => checkMermaidReadability(editor, definition),
 			toRichText: (text: string) => toRichText(text),
 			preloadFonts: async () => {
 				// Load every default font face up front. Text geometry is measured from the

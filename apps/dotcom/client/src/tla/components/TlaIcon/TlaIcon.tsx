@@ -31,13 +31,9 @@ export function TlaIcon({
 		// @ts-ignore
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		ref.current.style.webkitMask = getMaskStyle(icon)
-	}, [ref, icon])
+	}, [icon])
 
-	const _className = classNames({
-		[styles.icon]: true,
-		[styles.inline]: inline,
-		[className]: true,
-	})
+	const _className = classNames(styles.icon, { [styles.inline]: inline }, className)
 
 	if (icon === 'none') {
 		// An empty spacer: keep the icon's layout box but no painted mark.

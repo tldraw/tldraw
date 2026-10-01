@@ -52,7 +52,7 @@ export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownM
 			dir={dir}
 			asChild
 			// Firefox fix: Stop the dropdown immediately closing after touch
-			onTouchEnd={(e) => preventDefault(e)}
+			onTouchEnd={preventDefault}
 			{...rest}
 		>
 			{children}

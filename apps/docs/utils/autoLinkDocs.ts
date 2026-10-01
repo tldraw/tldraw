@@ -51,7 +51,12 @@ export async function autoLinkDocsForArticle(
 		let str = ''
 
 		if (heading) {
-			const headingRow = await db.get('SELECT slug FROM headings WHERE slug = ?', heading)
+			// scoped to the article: the same slug (`children`, `dispose`...) exists on many pages
+			const headingRow = await db.get(
+				'SELECT slug FROM headings WHERE articleId = ? AND slug = ?',
+				article.id,
+				heading
+			)
 			if (!headingRow) throw Error(`Could not find heading for ${_title} (${heading}) in ${id}`)
 			str = `[\`${title}.${heading}\`](/${article.id}#${headingRow.slug})`
 		} else {

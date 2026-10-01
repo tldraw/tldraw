@@ -11,6 +11,16 @@ import { twJoin } from 'tailwind-merge'
 import { cn } from '@/utils/cn'
 import { Search } from '.'
 
+function isEditableElement(target: EventTarget | null) {
+	if (!(target instanceof HTMLElement)) return false
+	return (
+		target.isContentEditable ||
+		target.tagName === 'INPUT' ||
+		target.tagName === 'TEXTAREA' ||
+		target.tagName === 'SELECT'
+	)
+}
+
 export function SearchButton({
 	type,
 	layout,
@@ -28,6 +38,10 @@ export function SearchButton({
 
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (e.key === '/') {
+				// A bare "/" is only a shortcut outside text fields, otherwise typing a path into
+				// the feedback textarea opens the dialog and steals focus mid-word.
+				if (isEditableElement(e.target)) return
+				e.preventDefault()
 				setOpen(true)
 			} else if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
 				setOpen((open) => !open)

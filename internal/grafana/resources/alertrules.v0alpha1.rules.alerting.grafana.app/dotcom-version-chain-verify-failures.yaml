@@ -1,0 +1,95 @@
+apiVersion: rules.alerting.grafana.app/v0alpha1
+kind: AlertRule
+metadata:
+  annotations:
+    grafana.app/folder: dotcom
+    grafana.com/provenance: ''
+  labels:
+    grafana.app/folder: dotcom
+    grafana.com/group: version-chain-alerts
+    grafana.com/group-index: '1'
+  name: dotcom-version-chain-verify-failures
+  namespace: stacks-890472
+spec:
+  annotations:
+    description: More than two retired version chains failed to reproduce the state
+      the durable object persisted, in the last hour. Check the "Verify results"
+      panel on the Dotcom events dashboard for the reason. head-mismatch is the
+      serious one — the delta encoding is producing a different board — while
+      missing and legacy-fallback mean the chain did not answer at all. Until the
+      legacy full copies are turned off these versions still read; after that they
+      are unreadable and there is no rebuild path, so this should block the
+      rollout advancing.
+    summary: Version chain reconstructions are not reproducing persisted state
+  execErrState: Error
+  expressions:
+    A:
+      datasourceUID: bdgu7tk03irr4e
+      model:
+        dateTimeType: DATETIME
+        editorMode: code
+        extrapolate: true
+        format: table
+        formatAs: table
+        intervalFactor: 1
+        # rawQuery must be the boolean, not a copy of the SQL. The dashboard panels
+        # carry the SQL in both fields, but that shape reaches the plugin as
+        # already-interpolated text and dies on "unsupported value type: $from".
+        # Matches 'fail' rather than negating 'ok': a check the durable object
+        # declined to run (outcome 'skipped') is not a failing chain, and on a
+        # board big enough to skip, a negated match would page on every retire.
+        query: |-
+          SELECT count() as fails
+          FROM 'MEASURE'
+          WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+          AND blob1 = 'version_chain_verify'
+          AND blob2 = 'production-tldraw-multiplayer'
+          AND blob3 = 'fail'
+        rawQuery: true
+        refId: A
+        round: 0s
+        skip_comments: true
+        step: ''
+      relativeTimeRange:
+        from: 1h0m0s
+        to: 0s
+    C:
+      model:
+        conditions:
+          - evaluator:
+              params:
+                - 2
+              type: gt
+            operator:
+              type: and
+            query:
+              params:
+                - C
+            reducer:
+              params: []
+              type: last
+            type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+      queryType: expression
+      source: true
+  for: 10m0s
+  labels:
+    service: dotcom
+    severity: warning
+  # count() with no GROUP BY returns a row holding 0 rather than no rows, so a
+  # healthy hour evaluates a real zero. NoData here means the Analytics Engine
+  # datasource itself is down, which is not a version chain problem.
+  noDataState: Ok
+  notificationSettings:
+    receiver: Discord
+    type: SimplifiedRouting
+  title: Version chain verify failures
+  trigger:
+    interval: 10m

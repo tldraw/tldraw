@@ -1,3 +1,4 @@
+import { PageRecordType } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
@@ -382,6 +383,51 @@ describe('LaserTool', () => {
 
 			// Should have scribbles from both (before first fades)
 			expect(editor.getInstanceState().scribbles.length).toBeGreaterThan(initialScribbleCount)
+		})
+	})
+
+	describe('Page changes', () => {
+		it('clears the trail when the current page changes', () => {
+			editor.setCurrentTool('laser')
+
+			editor.pointerDown(0, 0)
+			for (let i = 1; i <= 10; i++) {
+				editor.pointerMove(i * 5, i * 5)
+				vi.advanceTimersByTime(16)
+			}
+			editor.pointerUp()
+			expect(editor.getInstanceState().scribbles.length).toBeGreaterThan(0)
+
+			const page2Id = PageRecordType.createId('page2')
+			editor.createPage({ id: page2Id, name: 'Page 2' })
+			editor.setCurrentPage(page2Id)
+			vi.advanceTimersByTime(16)
+
+			expect(editor.getInstanceState().scribbles).toEqual([])
+		})
+
+		it('starts a fresh session on the new page after a page change', () => {
+			editor.setCurrentTool('laser')
+
+			editor.pointerDown(0, 0)
+			editor.pointerMove(10, 10)
+			vi.advanceTimersByTime(16)
+			editor.pointerUp()
+
+			const page2Id = PageRecordType.createId('page2')
+			editor.createPage({ id: page2Id, name: 'Page 2' })
+			editor.setCurrentPage(page2Id)
+			vi.advanceTimersByTime(16)
+
+			editor.pointerDown(0, 50)
+			for (let i = 1; i <= 10; i++) {
+				editor.pointerMove(i * 5, 50 + i * 5)
+				vi.advanceTimersByTime(16)
+			}
+			editor.pointerUp()
+
+			// Only the stroke drawn on the new page is visible
+			expect(editor.getInstanceState().scribbles.length).toBe(1)
 		})
 	})
 

@@ -25,8 +25,7 @@ export const CursorChatBubble = track(function CursorChatBubble() {
 	const [value, setValue] = useState('')
 
 	useEffect(() => {
-		const closingUp = !isChatting && chatMessage
-		if (closingUp || isChatting) {
+		if (isChatting || chatMessage) {
 			const duration = isChatting ? CHAT_MESSAGE_TIMEOUT_CHATTING : CHAT_MESSAGE_TIMEOUT_CLOSING
 			rTimeout.current = editor.timers.setTimeout(() => {
 				editor.updateInstanceState({ chatMessage: '', isChatting: false })
@@ -54,7 +53,7 @@ function usePositionBubble(ref: RefObject<HTMLInputElement | null>) {
 		if (!elm) return
 
 		const { x, y } = editor.inputs.getCurrentScreenPoint()
-		ref.current?.style.setProperty('transform', `translate(${x}px, ${y}px)`)
+		elm.style.setProperty('transform', `translate(${x}px, ${y}px)`)
 
 		// Positioning the chat bubble
 		function positionChatBubble(e: PointerEvent) {
@@ -193,7 +192,7 @@ const CursorChatInput = track(function CursorChatInput({
 	return (
 		<input
 			ref={ref}
-			className={`tl-cursor-chat`}
+			className="tl-cursor-chat"
 			style={{ backgroundColor: editor.user.getColor() }}
 			onBlur={stopChatting}
 			onChange={handleChange}

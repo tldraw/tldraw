@@ -227,9 +227,9 @@ async function main() {
 	await exec('git', ['fetch', 'origin', '--tags'])
 
 	if (args.includes('--help') || args.includes('-h')) {
-		console.error('Usage: yarn extract-draft-changelog [start-ref] [end-ref]')
-		console.error('Example: yarn extract-draft-changelog v2.0.0 HEAD')
-		console.error('Example: yarn extract-draft-changelog v2.0.0  # uses current HEAD')
+		console.error('Usage: pnpm extract-draft-changelog [start-ref] [end-ref]')
+		console.error('Example: pnpm extract-draft-changelog v2.0.0 HEAD')
+		console.error('Example: pnpm extract-draft-changelog v2.0.0  # uses current HEAD')
 		process.exit(1)
 	}
 

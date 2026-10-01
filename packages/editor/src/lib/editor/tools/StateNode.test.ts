@@ -238,6 +238,70 @@ describe('StateNode.addChild', () => {
 	})
 })
 
+describe('StateNode.enter', () => {
+	let idleExits = 0
+
+	class Idle extends StateNode {
+		static override id = 'idle'
+		override onExit() {
+			idleExits++
+		}
+	}
+
+	class Pointing extends StateNode {
+		static override id = 'pointing'
+	}
+
+	class ToolWithEnterTransition extends StateNode {
+		static override id = 'enterTransition'
+		static override initial = 'idle'
+		static override children() {
+			return [Idle, Pointing]
+		}
+
+		override onEnter(info: { startPointing?: boolean }) {
+			if (info?.startPointing) this.transition('pointing', info)
+		}
+	}
+
+	class OtherTool extends StateNode {
+		static override id = 'other'
+	}
+
+	let editor: Editor
+
+	beforeEach(() => {
+		idleExits = 0
+		editor = new Editor({
+			initialState: 'other',
+			shapeUtils: [],
+			bindingUtils: [],
+			tools: [OtherTool, ToolWithEnterTransition],
+			store: createTLStore({ shapeUtils: [], bindingUtils: [] }),
+			getContainer: () => document.body,
+		})
+	})
+
+	it('enters the initial child when onEnter does not transition', () => {
+		editor.setCurrentTool('enterTransition')
+		expect(editor.root.getPath()).toBe('root.enterTransition.idle')
+		expect(editor.root.children!['enterTransition'].children!['idle'].getIsActive()).toBe(true)
+	})
+
+	it('does not enter the initial child on top of a child that onEnter transitioned to', () => {
+		editor.setCurrentTool('enterTransition', { startPointing: true })
+		const tool = editor.root.children!['enterTransition']
+		expect(editor.root.getPath()).toBe('root.enterTransition.pointing')
+		expect(tool.children!['pointing'].getIsActive()).toBe(true)
+		expect(tool.children!['idle'].getIsActive()).toBe(false)
+		// The stale (never re-entered) idle child must not get a spurious onExit
+		expect(idleExits).toBe(0)
+
+		editor.setCurrentTool('other')
+		expect(tool.children!['pointing'].getIsActive()).toBe(false)
+	})
+})
+
 describe('current tool id mask', () => {
 	// Tool mask test classes
 	class ToolA extends StateNode {

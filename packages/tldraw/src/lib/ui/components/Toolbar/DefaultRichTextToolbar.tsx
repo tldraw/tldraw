@@ -159,10 +159,6 @@ function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 		setIsEditingLink(true)
 	}, [])
 
-	const onEditLinkCancel = useCallback(() => {
-		setIsEditingLink(false)
-	}, [])
-
 	const onEditLinkClose = useCallback(() => {
 		setIsEditingLink(false)
 		if (!textEditor) return
@@ -170,7 +166,7 @@ function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 		textEditor.commands.setTextSelection({ from, to: from })
 	}, [textEditor])
 
-	return { isEditingLink, onEditLinkStart, onEditLinkClose, onEditLinkCancel }
+	return { isEditingLink, onEditLinkStart, onEditLinkClose }
 }
 
 function useIsMousingDownOnTextEditor(textEditor: TiptapEditor) {

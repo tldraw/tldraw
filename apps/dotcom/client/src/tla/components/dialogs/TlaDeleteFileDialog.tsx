@@ -36,8 +36,12 @@ export function TlaDeleteFileDialog({
 	const handleDelete = async () => {
 		const token = await auth.getToken()
 		if (!token) throw new Error('No token')
+		const deleted = await app.deleteOrForgetFile(fileId, workspaceId)
+		if (!deleted) {
+			onClose()
+			return
+		}
 		trackEvent('delete-file', { source: 'file-menu' })
-		await app.deleteOrForgetFile(fileId, workspaceId)
 
 		// Stay in the workspace the file was deleted from: go to its most recent remaining
 		// file, or — if that was its last file — create a fresh blank file in it, the same
@@ -65,19 +69,17 @@ export function TlaDeleteFileDialog({
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
-				<>
-					{isOwner ? (
-						<F
-							defaultMessage="Are you sure you want to delete <strong>{fileName}</strong>?"
-							values={{ fileName, strong: (chunks) => <strong>{chunks}</strong> }}
-						/>
-					) : (
-						<F
-							defaultMessage="Are you sure you want to forget <strong>{fileName}</strong>?"
-							values={{ fileName, strong: (chunks) => <strong>{chunks}</strong> }}
-						/>
-					)}
-				</>
+				{isOwner ? (
+					<F
+						defaultMessage="Are you sure you want to delete <strong>{fileName}</strong>?"
+						values={{ fileName, strong: (chunks) => <strong>{chunks}</strong> }}
+					/>
+				) : (
+					<F
+						defaultMessage="Are you sure you want to forget <strong>{fileName}</strong>?"
+						values={{ fileName, strong: (chunks) => <strong>{chunks}</strong> }}
+					/>
+				)}
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="normal" onClick={onClose}>

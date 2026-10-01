@@ -14,7 +14,7 @@ export default function CustomRendererExample() {
 	return (
 		// [2]
 		<div className="tldraw__editor custom-renderer">
-			<Tldraw persistenceKey="example" components={components} />
+			<Tldraw persistenceKey="custom-renderer-example" components={components} />
 		</div>
 	)
 }

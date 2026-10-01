@@ -4,11 +4,14 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import {
 	isMintedRenderToken,
+	markRenderTokenServed,
 	renderJobAccess,
+	renderParamsForJob,
 	verifyThumbnailRenderToken,
 } from '../../utils/renderTokens'
 import { getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileRoomSnapshot } from './getSharedFile'
+import { sliceSnapshotForRender } from './sliceSnapshotForRender'
 import { reportThumbnailError } from './thumbnailShared'
 
 // Serves snapshot data to the thumbnail render page. Only accepts short-lived render tokens
@@ -35,6 +38,12 @@ export async function getThumbnailSnapshot(
 	if (!(await isMintedRenderToken(env, job, token))) {
 		return json({ error: true, message: 'Invalid or expired render token' }, 403)
 	}
+
+	// The page has called home. Stamped here, before the read, so a session that later dies can be told
+	// apart from one whose page never ran at all (see wasRenderTokenServedSince). Awaited rather than
+	// deferred: a page that errors the instant it has its snapshot ends the session, whose cleanup
+	// deletes the stamp — a deferred write could land after that and stay behind.
+	await markRenderTokenServed(env, job, token)
 
 	// Read under the gate the job was signed with, not a fixed one, so an MCP token stays confined to
 	// what the MCP tool could resolve — including a board that has gone private since it was minted.
@@ -87,22 +96,13 @@ export async function getThumbnailSnapshot(
 		}
 	}
 
+	const records = snapshot.documents.map((d) => d.state) as TLRecord[]
 	return json({
 		error: false,
-		records: snapshot.documents.map((d) => d.state) as TLRecord[],
+		// The rest of the board costs parse, migration and store load inside the Browser Run budget.
+		records: sliceSnapshotForRender(records, job) ?? records,
 		schema: snapshot.schema,
-		renderParams: {
-			...(job.camera ? { camera: job.camera } : null),
-			...(job.pageId ? { pageId: job.pageId } : null),
-			...(job.shapeIds ? { shapeIds: job.shapeIds } : null),
-			...(job.mode ? { mode: job.mode } : null),
-			x: job.x,
-			y: job.y,
-			z: job.z,
-			width: job.width,
-			height: job.height,
-			theme: job.theme,
-		},
+		renderParams: renderParamsForJob(job),
 	})
 }
 

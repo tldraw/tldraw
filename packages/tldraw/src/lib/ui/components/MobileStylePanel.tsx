@@ -29,9 +29,11 @@ export function MobileStylePanel() {
 		'mobile style panel current color',
 		() => {
 			const colors = editor.getCurrentTheme().colors[editor.getColorMode()]
-			return color?.type === 'shared'
-				? getColorValue(colors, color.value as TLDefaultColorStyle, 'solid')
-				: getColorValue(colors, 'black', 'solid')
+			return getColorValue(
+				colors,
+				color?.type === 'shared' ? (color.value as TLDefaultColorStyle) : 'black',
+				'solid'
+			)
 		},
 		[editor, color]
 	)
@@ -67,12 +69,12 @@ export function MobileStylePanel() {
 					disabled={disableStylePanel}
 				>
 					<TldrawUiButtonIcon
-						icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'}
+						icon={!disableStylePanel && color?.type === 'mixed' ? 'mixed' : 'blob'}
 					/>
 				</TldrawUiButton>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent side={orientation === 'horizontal' ? 'top' : 'right'} align="end">
-				{StylePanel && <StylePanel isMobile />}
+				<StylePanel isMobile />
 			</TldrawUiPopoverContent>
 		</TldrawUiPopover>
 	)

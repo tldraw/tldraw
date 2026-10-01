@@ -93,7 +93,11 @@ export abstract class BaseFrameLikeShapeUtil<
 			const currentChildren = compact(
 				editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
 			)
-			if (previousChildren.every((s) => !currentChildren.find((c) => c.index === s.index))) {
+			if (
+				previousChildren.every(
+					(s) => !currentChildren.find((c) => c.index === initialIndices.get(s.id))
+				)
+			) {
 				canRestoreOriginalIndices = true
 			}
 		}

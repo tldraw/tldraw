@@ -4,14 +4,14 @@ export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
 /** Adaptive-thinking mode passed to the Anthropic provider. */
 export type AnthropicThinking = 'adaptive' | 'disabled'
 
-/** Effort level passed to the Anthropic provider (Opus 4.6+/Sonnet 4.6; not supported on Haiku 4.5). */
+/** Effort level passed to the Anthropic provider (Opus 4.6+/Sonnet 4.6+; not supported on Haiku 4.5). */
 export type AnthropicEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
 /** Reasoning effort passed to the OpenAI provider. */
-export type OpenAIReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh'
+export type OpenAIReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
-/** Thinking level passed to the Google provider (Gemini 3). Thinking cannot be fully disabled. */
-export type GeminiThinkingLevel = 'minimal' | 'low' | 'medium' | 'high'
+/** Thinking level passed to the Google provider. */
+export type GeminiThinkingLevel = 'low' | 'medium' | 'high'
 
 interface BaseAgentModelDefinition {
 	name: AgentModelName
@@ -19,13 +19,13 @@ interface BaseAgentModelDefinition {
 
 	/**
 	 * Whether the model accepts a prefilled assistant turn to force the JSON start.
-	 * Opus 4.7+ and Sonnet 4.6 reject last-assistant-turn prefills (400).
+	 * Opus 4.6+ and Sonnet 4.6+ reject last-assistant-turn prefills (400).
 	 */
 	supportsPrefill: boolean
 
 	/**
 	 * Whether the model accepts a `temperature` sampling parameter.
-	 * Opus 4.7+ removed `temperature`/`top_p`/`top_k` (sending them is a 400).
+	 * Opus 4.7+ and Sonnet 5 removed `temperature`/`top_p`/`top_k` (sending them is a 400).
 	 */
 	supportsTemperature: boolean
 }
@@ -39,10 +39,6 @@ export interface AnthropicModelDefinition extends BaseAgentModelDefinition {
 
 export interface GoogleModelDefinition extends BaseAgentModelDefinition {
 	provider: 'google'
-	/**
-	 * Thinking level (Gemini 3). Thinking can't be fully disabled — `minimal` is the floor,
-	 * and `gemini-3.1-pro-preview` doesn't support `minimal`, so its floor is `low`.
-	 */
 	thinkingLevel: GeminiThinkingLevel
 }
 
@@ -58,10 +54,9 @@ export type AgentModelDefinition =
 
 export const AGENT_MODEL_DEFINITIONS = {
 	// Anthropic models
-	// sonnet 4.6 is recommended
-	'claude-opus-4-8': {
-		name: 'claude-opus-4-8',
-		id: 'claude-opus-4-8',
+	'claude-opus-5': {
+		name: 'claude-opus-5',
+		id: 'claude-opus-5',
 		provider: 'anthropic',
 		supportsPrefill: false,
 		supportsTemperature: false,
@@ -69,12 +64,12 @@ export const AGENT_MODEL_DEFINITIONS = {
 		effort: 'medium',
 	},
 
-	'claude-sonnet-4-6': {
-		name: 'claude-sonnet-4-6',
-		id: 'claude-sonnet-4-6',
+	'claude-sonnet-5': {
+		name: 'claude-sonnet-5',
+		id: 'claude-sonnet-5',
 		provider: 'anthropic',
 		supportsPrefill: false,
-		supportsTemperature: true,
+		supportsTemperature: false,
 		thinking: 'adaptive',
 		effort: 'low',
 	},
@@ -89,55 +84,45 @@ export const AGENT_MODEL_DEFINITIONS = {
 	},
 
 	// Google models
-	// gemini 3 flash is fastest, and quite good
-	'gemini-3.5-flash': {
-		name: 'gemini-3.5-flash',
-		id: 'gemini-3.5-flash',
+	'gemini-3.8-flash': {
+		name: 'gemini-3.8-flash',
+		id: 'gemini-3.8-flash',
 		provider: 'google',
-		supportsPrefill: true,
-		supportsTemperature: true,
-		thinkingLevel: 'minimal',
-	},
-
-	'gemini-3.1-pro-preview': {
-		name: 'gemini-3.1-pro-preview',
-		id: 'gemini-3.1-pro-preview',
-		provider: 'google',
-		supportsPrefill: true,
-		supportsTemperature: true,
-		thinkingLevel: 'low', // minimal is not supported on 3.1 pro, so low is the floor
-	},
-
-	'gemini-3.1-flash-lite': {
-		name: 'gemini-3.1-flash-lite',
-		id: 'gemini-3.1-flash-lite',
-		provider: 'google',
-		supportsPrefill: true,
-		supportsTemperature: true,
-		thinkingLevel: 'minimal',
+		supportsPrefill: false,
+		supportsTemperature: false,
+		thinkingLevel: 'low',
 	},
 
 	// OpenAI models
-	'gpt-5.5': {
-		name: 'gpt-5.5',
-		id: 'gpt-5.5',
+	'gpt-5.6-sol': {
+		name: 'gpt-5.6-sol',
+		id: 'gpt-5.6-sol',
 		provider: 'openai',
 		supportsPrefill: false,
 		supportsTemperature: false,
-		reasoningEffort: 'low',
+		reasoningEffort: 'medium',
 	},
 
-	'gpt-5.4-mini': {
-		name: 'gpt-5.4-mini',
-		id: 'gpt-5.4-mini',
+	'gpt-5.6-terra': {
+		name: 'gpt-5.6-terra',
+		id: 'gpt-5.6-terra',
 		provider: 'openai',
-		supportsPrefill: true,
-		supportsTemperature: true,
-		reasoningEffort: 'none',
+		supportsPrefill: false,
+		supportsTemperature: false,
+		reasoningEffort: 'high',
+	},
+
+	'gpt-5.6-luna': {
+		name: 'gpt-5.6-luna',
+		id: 'gpt-5.6-luna',
+		provider: 'openai',
+		supportsPrefill: false,
+		supportsTemperature: false,
+		reasoningEffort: 'max',
 	},
 } as const
 
-export const DEFAULT_MODEL_NAME: AgentModelName = 'claude-sonnet-4-6'
+export const DEFAULT_MODEL_NAME: AgentModelName = 'claude-sonnet-5'
 
 /**
  * Check if a string is a valid AgentModelName.

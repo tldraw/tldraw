@@ -3,8 +3,11 @@ name: End to end tests (examples)
 on:
   pull_request:
   merge_group:
-  push:
-    branches: [main]
+
+# Cancel superseded PR runs. Other events get a per-run group: a shared one drops queued merge_group/push runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   CI: 1
@@ -13,6 +16,9 @@ env:
 defaults:
   run:
     shell: bash
+
+permissions:
+  contents: read
 
 jobs:
   check:
@@ -34,7 +40,7 @@ jobs:
               - 'apps/examples/**'
               - '.github/workflows/playwright-examples.yml'
               - '.github/actions/**'
-              - 'yarn.lock'
+              - 'pnpm-lock.yaml'
 
       - name: Check for any non-doc changes
         uses: dorny/paths-filter@v3
@@ -65,10 +71,10 @@ jobs:
         uses: ./.github/actions/setup-playwright
 
       - name: Build examples
-        run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && cd apps/examples && yarn build
+        run: pnpm exec turbo run refresh-assets && cd apps/examples && pnpm build
 
       - name: Run Playwright tests
-        run: 'yarn e2e'
+        run: 'pnpm e2e'
         working-directory: apps/examples
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}

@@ -291,6 +291,38 @@ describe('When rotating...', () => {
 	})
 })
 
+describe('When rotating shapes are changed externally mid-rotation...', () => {
+	it('keeps an external nudge applied during the rotation', () => {
+		editor.select(ids.box1)
+		const p = editor.getSelectionHandlePagePoint('top_right_rotate')
+		editor
+			.pointerMove(p.x, p.y)
+			.pointerDown()
+			.pointerMove(p.x + 30, p.y + 30)
+			.expectToBeIn('select.rotating')
+
+		const rotated = editor.getShape(ids.box1)!
+		expect(rotated.rotation).not.toBe(0)
+
+		// Nudge the shape from outside the interaction, as a keyboard shortcut would
+		editor.nudgeShapes([ids.box1], { x: 0, y: 40 })
+		const nudged = editor.getShape(ids.box1)!
+		expect(nudged.y).not.toBeCloseTo(rotated.y, 5)
+
+		// An update without pointer movement must not stomp the nudge
+		editor.pointerMove(p.x + 30, p.y + 30)
+		let current = editor.getShape(ids.box1)!
+		expect(current.x).toBeCloseTo(nudged.x, 5)
+		expect(current.y).toBeCloseTo(nudged.y, 5)
+		expect(current.rotation).toBeCloseTo(nudged.rotation, 5)
+
+		// Continuing the rotation keeps the nudge and rotates further
+		editor.pointerMove(p.x + 60, p.y + 60).pointerUp()
+		current = editor.getShape(ids.box1)!
+		expect(current.rotation).not.toBeCloseTo(nudged.rotation, 5)
+	})
+})
+
 describe('Rotation math', () => {
 	it('rotates one point around another', () => {
 		const a = new Vec(100, 100)

@@ -411,6 +411,22 @@ describe('When clicking and dragging', () => {
 		expect(editor.getShape(ids.box3)).not.toBeDefined()
 	})
 
+	it.each([
+		['exactly on the outline', 300],
+		['a pixel inside the outline', 301],
+		['a pixel outside the outline', 299],
+	])('Keeps erasing a frame pressed %s when the drag begins', (_label, x) => {
+		editor.setCurrentTool('eraser')
+		editor.pointerDown(x, 50) // on frame1's left edge, not its children
+		expect(editor.getErasingShapeIds()).toEqual([ids.frame1])
+		editor.pointerMove(325, 50) // drag inward, still in the frame, clear of box4
+		vi.advanceTimersByTime(16)
+		editor.expectToBeIn('eraser.erasing')
+		expect(editor.getErasingShapeIds()).toEqual([ids.frame1])
+		editor.pointerUp()
+		expect(editor.getShape(ids.frame1)).not.toBeDefined()
+	})
+
 	it('Only erases masked shapes when pointer is inside the mask', () => {
 		editor.setCurrentTool('eraser')
 		editor.pointerMove(425, 0)
@@ -423,8 +439,8 @@ describe('When clicking and dragging', () => {
 		editor.pointerUp()
 		expect(editor.getShape(ids.box3)).toBeDefined()
 
-		editor.pointerMove(375, 0)
-		editor.pointerDown() // Above the not-masked part of box3
+		editor.pointerMove(375, 20)
+		editor.pointerDown() // Inside frame1 (clear of its outline), above the not-masked part of box3
 		editor.pointerMove(375, 500) // Through the masked part of box3
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
 		expect(editor.getErasingShapeIds()).toEqual([ids.box3])

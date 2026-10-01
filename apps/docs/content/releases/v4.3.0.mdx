@@ -73,7 +73,7 @@ declare module 'tldraw' {
 type MyBinding = TLBinding`<'my-binding'>`
 ```
 
-See the [Custom Shapes Guide](https://tldraw.dev/docs/shapes#custom-shapes) and the [Pin Bindings example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/pin-bindings) for details.
+See the [Custom Shapes Guide](https://tldraw.dev/docs/shapes#Custom-shapes) and the [Pin Bindings example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/pin-bindings) for details.
 
 **After registering, remove the `TLBaseShape` import** — it's no longer used and will trip lint rules that flag unused imports.
 
@@ -87,7 +87,7 @@ See the [Custom Shapes Guide](https://tldraw.dev/docs/shapes#custom-shapes) and 
 **Use `as const` on the static `type` field.** TypeScript may widen `static override type = 'my-shape'` to `string`, which fails the new constraint. Add `as const` to keep it a string literal:
 
 ```ts
-class MyShapeUtil extends ShapeUtil`<MyShape>` {
+class MyShapeUtil extends (ShapeUtil`<MyShape>`) {
 	static override type = 'my-shape' as const
 	// ...
 }

@@ -26,10 +26,10 @@ describe('defaultWelcomeSnapshot', () => {
 	// a room verbatim. Rather than just check that it still migrates, keep the baked file itself
 	// migrated up to head: this test migrates and revalidates every record, re-anchors the stored
 	// schema, and asserts the pretty-printed JSON matches the file on disk. A schema change that
-	// touches these records fails this test; run `yarn test -u` to re-bake
+	// touches these records fails this test; run `pnpm test -u` to re-bake
 	// assets/welcome-snapshot.json. Changing the default canvas content is a separate manual
 	// re-export — see the header in defaultWelcomeSnapshot.ts.
-	it('assets/welcome-snapshot.json is baked at the current schema (run `yarn test -u` to re-bake)', async () => {
+	it('assets/welcome-snapshot.json is baked at the current schema (run `pnpm test -u` to re-bake)', async () => {
 		const schema = createTLSchema()
 		expect(snapshot.documents.length).toBeGreaterThan(0)
 		const documents = snapshot.documents.map(({ state, lastChangedClock }) => {

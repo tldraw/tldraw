@@ -78,14 +78,14 @@ function reconcileFadeNodes(
 
 	for (const node of nextNodes) {
 		const previousItem = previousById.get(node.id)
+		// A node that was fading out and came back snaps to present rather than re-entering.
 		next.push({
 			node,
-			phase:
-				previousItem && previousItem.phase !== 'exiting'
-					? previousItem.phase
-					: previousItem
-						? 'present'
-						: 'entering',
+			phase: !previousItem
+				? 'entering'
+				: previousItem.phase === 'exiting'
+					? 'present'
+					: previousItem.phase,
 		})
 	}
 

@@ -169,7 +169,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 								</>
 							}
 							value={item.value}
-							data-state={value.type === 'shared' && value.value === item.value ? 'on' : 'off'}
+							data-state={isActive ? 'on' : 'off'}
 							data-isactive={isActive}
 							title={label}
 							style={

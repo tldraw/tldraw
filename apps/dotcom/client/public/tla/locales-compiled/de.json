@@ -253,6 +253,12 @@
       "value": " hat Ihren Beitrag kommentiert"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Feedback konnte nicht übermittelt werden"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -269,6 +275,12 @@
     {
       "type": 0,
       "value": "Suchen..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Bitte versuchen Sie es erneut."
     }
   ],
   "2de510be71": [
@@ -417,12 +429,6 @@
       "value": "Um die Bearbeitung fortzusetzen, kopieren Sie bitte die Datei in Ihren Dateien."
     }
   ],
-  "47839e47a5": [
-    {
-      "type": 0,
-      "value": "tldraw"
-    }
-  ],
   "47f493a590": [
     {
       "type": 0,
@@ -497,6 +503,12 @@
     {
       "type": 0,
       "value": " ungelesen"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Ihre lokale Zeichnung konnte nicht wiederhergestellt werden. Versuchen Sie, diese Seite neu zu laden."
     }
   ],
   "554a05155c": [
@@ -1064,6 +1076,12 @@
     {
       "type": 0,
       "value": "Datei löschen"
+    }
+  ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Sie scheinen offline zu sein. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
     }
   ],
   "9ccb565b86": [

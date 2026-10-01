@@ -145,6 +145,9 @@
 
 .tl-analytics-dialog {
 	font-family: 'Inter', sans-serif;
+	/* The dialog renders inside the host page, so reset inherited text styles
+	   like tldraw.com's letter-spacing (#9363) */
+	letter-spacing: normal;
 	color: var(--tl-analytics-text);
 	position: fixed;
 	inset: 0;

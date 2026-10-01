@@ -1,5 +1,5 @@
 import { createRecordType } from '@tldraw/store'
-import { getTestMigration, testSchema } from './__tests__/migrationTestUtils'
+import { getTestMigration, testSchema, wasMigratorCalled } from './__tests__/migrationTestUtils'
 import { bookmarkAssetVersions } from './assets/TLBookmarkAsset'
 import { imageAssetVersions } from './assets/TLImageAsset'
 import { videoAssetVersions } from './assets/TLVideoAsset'
@@ -2800,9 +2800,9 @@ describe('DrawShapeSegment dim validation', () => {
 describe('all migrator fns were called at least once', () => {
 	for (const migration of testSchema.sortedMigrations) {
 		it(`migration ${migration.id}`, () => {
-			expect((migration as any).up).toHaveBeenCalled()
+			expect(wasMigratorCalled(migration.id, 'up')).toBe(true)
 			if (typeof migration.down === 'function') {
-				expect((migration as any).down).toHaveBeenCalled()
+				expect(wasMigratorCalled(migration.id, 'down')).toBe(true)
 			}
 		})
 	}

@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite'
 import { DocumentRecordType, PageRecordType, TLDOCUMENT_ID, TLRecord } from '@tldraw/tlschema'
 import { ZERO_INDEX_KEY } from '@tldraw/utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	contractRecords,
 	contractSchema,
@@ -9,6 +9,7 @@ import {
 	makePage,
 	registerStorageContractTests,
 } from '../test/storageContractSuite'
+import { MAX_TOMBSTONES } from './InMemorySyncStorage'
 import { NodeSqliteWrapper } from './NodeSqliteWrapper'
 import { SQLiteSyncStorage } from './SQLiteSyncStorage'
 
@@ -261,6 +262,64 @@ describe('SQLiteSyncStorage', () => {
 				.prepare<{ migrationVersion: number }>('SELECT migrationVersion FROM metadata')
 				.all()[0]
 			expect(row?.migrationVersion).toBe(3)
+		})
+	})
+
+	describe('tombstone pruning robustness', () => {
+		const makeTombstones = (count: number) => {
+			const tombstones: Record<string, number> = {}
+			for (let i = 0; i < count; i++) tombstones[`shape:doc${i}`] = i + 1
+			return tombstones
+		}
+		function makeOverfullStorage() {
+			const db = new DatabaseSync(':memory:')
+			const storage = new SQLiteSyncStorage<TLRecord>({
+				sql: new NodeSqliteWrapper(db),
+				snapshot: makeContractSnapshot(contractRecords, {
+					tombstones: makeTombstones(MAX_TOMBSTONES + 500),
+					documentClock: MAX_TOMBSTONES + 501,
+					tombstoneHistoryStartsAtClock: 0,
+				}),
+			})
+			return { db, storage, prune: (storage as any).pruneTombstones as { (): void; flush(): void } }
+		}
+
+		it('[SS18] a prune that fires after the database was closed does not throw', () => {
+			const { db, storage, prune } = makeOverfullStorage()
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			try {
+				// a delete schedules the throttled prune; the host then closes everything
+				storage.transaction((txn) => txn.delete(contractRecords[1].id))
+				db.close()
+				// the throttle timer fires later, from outside any caller that could catch it
+				expect(() => prune.flush()).not.toThrow()
+				expect(consoleSpy).toHaveBeenCalledWith('Failed to prune tombstones', expect.anything())
+			} finally {
+				consoleSpy.mockRestore()
+			}
+		})
+
+		it('[SS18] a prune whose delete fails leaves the history clock where it was', () => {
+			const { storage, prune } = makeOverfullStorage()
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			try {
+				const stmts = (storage as any).stmts
+				const originalRun = stmts.deleteTombstonesBefore.run
+				stmts.deleteTombstonesBefore.run = () => {
+					throw new Error('SQLITE_BUSY: database is locked')
+				}
+				prune()
+				expect(() => prune.flush()).not.toThrow()
+				stmts.deleteTombstonesBefore.run = originalRun
+
+				// neither half of the prune applied: the history start was not advanced past
+				// tombstones that still exist
+				const snapshot = storage.getSnapshot()
+				expect(snapshot.tombstoneHistoryStartsAtClock).toBe(0)
+				expect(Object.keys(snapshot.tombstones!).length).toBe(MAX_TOMBSTONES + 500)
+			} finally {
+				consoleSpy.mockRestore()
+			}
 		})
 	})
 })

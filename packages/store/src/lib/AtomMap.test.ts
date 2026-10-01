@@ -338,6 +338,13 @@ describe('AtomMap', () => {
 			expect(dReactor).toHaveBeenCalledTimes(2)
 			expect(dReactor).toHaveLastReturnedWith(undefined)
 		})
+
+		it('[AM4] does not capture the map', () => {
+			const map = new AtomMap('test', [['a', 1]])
+			const reactor = testReactor('remover', () => map.deleteMany(['a']))
+			map.set('b', 2)
+			expect(reactor).toHaveBeenCalledTimes(1)
+		})
 	})
 
 	describe('clear', () => {
@@ -628,5 +635,36 @@ describe('AtomMap', () => {
 	it('[AM8] has the AtomMap string tag', () => {
 		const map = new AtomMap('test')
 		expect(Object.prototype.toString.call(map)).toBe('[object AtomMap]')
+	})
+})
+
+describe('AtomMap: Map parity (AM)', () => {
+	it('[AM6] an entry deleted before iteration reaches it is skipped, like Map', () => {
+		const map = new AtomMap('test', [
+			['a', 1],
+			['b', 2],
+			['c', 3],
+		])
+		const visited: string[] = []
+		for (const [key] of map) {
+			visited.push(key)
+			if (key === visited[0]) {
+				// delete the two keys we have not reached yet
+				for (const other of ['a', 'b', 'c']) if (other !== key) map.delete(other)
+			}
+		}
+		expect(visited).toHaveLength(1)
+		expect(Array.from(map.keys())).toEqual(visited)
+
+		const cleared = new AtomMap('test2', [
+			['a', 1],
+			['b', 2],
+		])
+		const seen: string[] = []
+		for (const key of cleared.keys()) {
+			seen.push(key)
+			cleared.clear()
+		}
+		expect(seen).toHaveLength(1)
 	})
 })

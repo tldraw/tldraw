@@ -24,7 +24,7 @@ relationship to the previous room, and the user should be able to edit it just
 like any other file.
 */
 
-const { loader, useData } = defineLoader(async (args) => {
+const { loader, useMaybeData } = defineLoader(async (args) => {
 	const roomId = args.params.roomId
 	const result = await fetch(`/api/snapshot/${roomId}`)
 	if (!result.ok) throw new Error('Room not found')
@@ -54,7 +54,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 
 	const userId = useMaybeApp()?.userId
 
-	const result = useData()
+	const result = useMaybeData()
 
 	const snapshot = useMemo(() => {
 		if (!result) {
@@ -76,27 +76,15 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
+	const content = error ? (
+		<TlaFileError error={error} />
+	) : (
+		<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
+	)
+
 	if (!userId) {
-		return (
-			<ReadyWrapper>
-				{error ? (
-					<TlaFileError error={error} />
-				) : (
-					<TlaAnonLayout>
-						<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
-					</TlaAnonLayout>
-				)}
-			</ReadyWrapper>
-		)
+		return <ReadyWrapper>{error ? content : <TlaAnonLayout>{content}</TlaAnonLayout>}</ReadyWrapper>
 	}
 
-	return (
-		<TlaSidebarLayout collapsible>
-			{error ? (
-				<TlaFileError error={error} />
-			) : (
-				<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
-			)}
-		</TlaSidebarLayout>
-	)
+	return <TlaSidebarLayout collapsible>{content}</TlaSidebarLayout>
 }
