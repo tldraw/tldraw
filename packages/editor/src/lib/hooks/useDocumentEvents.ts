@@ -232,6 +232,13 @@ export function useDocumentEvents() {
 				return
 			}
 
+			// The native `metaKey` is still true on Meta's own keyup. Reported as-is it matches
+			// neither branch of the editor's modifier handling - which ignores `metaKey` on a
+			// key_up, then only arms the 150ms release when it reads false - so a cmd tap left
+			// `getMetaKey()` true until some later event happened to say otherwise.
+			const isMetaRelease = e.code === 'MetaLeft' || e.code === 'MetaRight'
+			const metaKey = isMetaRelease ? false : e.metaKey
+
 			const info: TLKeyboardEventInfo = {
 				type: 'keyboard',
 				name: 'key_up',
@@ -239,9 +246,9 @@ export function useDocumentEvents() {
 				code: e.code,
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
-				ctrlKey: e.metaKey || e.ctrlKey,
-				metaKey: e.metaKey,
-				accelKey: isAccelKey(e),
+				ctrlKey: metaKey || e.ctrlKey,
+				metaKey,
+				accelKey: isAccelKey({ ctrlKey: e.ctrlKey, metaKey }),
 			}
 
 			heldKeysRef.current.delete(e.code)

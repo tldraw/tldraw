@@ -5,6 +5,34 @@ import { Editor } from '../editor/Editor'
 import { TLKeyboardEventInfo } from '../editor/types/event-types'
 import { TL_CONTAINER_CLASS, TldrawEditor } from '../TldrawEditor'
 
+async function renderEditor() {
+	let editor!: Editor
+	const store = createTLStore({ shapeUtils: [], bindingUtils: [] })
+	await act(async () => {
+		render(<TldrawEditor store={store} autoFocus onMount={(e) => void (editor = e)} />)
+	})
+	const container = document.querySelector<HTMLElement>(`.${TL_CONTAINER_CLASS}`)!
+	return { editor, container }
+}
+
+function keyDown(container: HTMLElement, init: KeyboardEventInit) {
+	act(() => {
+		container.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, ...init }))
+	})
+}
+
+function keyUp(container: HTMLElement, init: KeyboardEventInit) {
+	act(() => {
+		container.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, ...init }))
+	})
+}
+
+function blurWindow() {
+	act(() => {
+		window.dispatchEvent(new Event('blur'))
+	})
+}
+
 describe('useDocumentEvents drop handling', () => {
 	// The container's native drop listener used to stop propagation before the event reached
 	// React's root, so React onDrop handlers inside the canvas never fired.
@@ -33,28 +61,6 @@ describe('useDocumentEvents drop handling', () => {
 })
 
 describe('useDocumentEvents window blur', () => {
-	async function renderEditor() {
-		let editor!: Editor
-		const store = createTLStore({ shapeUtils: [], bindingUtils: [] })
-		await act(async () => {
-			render(<TldrawEditor store={store} autoFocus onMount={(e) => void (editor = e)} />)
-		})
-		const container = document.querySelector<HTMLElement>(`.${TL_CONTAINER_CLASS}`)!
-		return { editor, container }
-	}
-
-	function keyDown(container: HTMLElement, init: KeyboardEventInit) {
-		act(() => {
-			container.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, ...init }))
-		})
-	}
-
-	function blurWindow() {
-		act(() => {
-			window.dispatchEvent(new Event('blur'))
-		})
-	}
-
 	afterEach(() => {
 		cleanup()
 	})
@@ -103,5 +109,26 @@ describe('useDocumentEvents window blur', () => {
 		editor.on('event', onEvent)
 		blurWindow()
 		expect(onEvent).not.toHaveBeenCalled()
+	})
+})
+
+describe('useDocumentEvents meta release', () => {
+	afterEach(() => {
+		cleanup()
+	})
+
+	// Browsers report `metaKey: true` on Meta's own keyup, which left `getMetaKey()` true
+	// until some later event happened to report it false.
+	it('releases meta itself, though its keyup reports metaKey as still down', async () => {
+		const { editor, container } = await renderEditor()
+
+		keyDown(container, { key: 'Meta', code: 'MetaLeft', metaKey: true })
+		expect(editor.inputs.getMetaKey()).toBe(true)
+
+		keyUp(container, { key: 'Meta', code: 'MetaLeft', metaKey: true })
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 200))
+		})
+		expect(editor.inputs.getMetaKey()).toBe(false)
 	})
 })
