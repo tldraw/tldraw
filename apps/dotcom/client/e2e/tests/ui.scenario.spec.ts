@@ -27,6 +27,13 @@ test.describe('UI scenarios', () => {
 		await owner.sidebar.expectFileActive(originalName)
 		expect(await owner.editor.getCurrentFileName()).toBe(originalName)
 
+		await owner.sidebar.getFileByName(originalName).getByRole('link').focus()
+		await owner.page.keyboard.press('Enter')
+		const enterInput = owner.page.getByTestId('tla-sidebar-rename-input')
+		await expect(enterInput).toBeFocused()
+		await owner.page.keyboard.press('Escape')
+		await expect(enterInput).not.toBeVisible()
+
 		await owner.sidebar.getFileByName(originalName).dblclick()
 		const cancelInput = owner.page.getByTestId('tla-sidebar-rename-input')
 		await expect(cancelInput).toBeFocused()
