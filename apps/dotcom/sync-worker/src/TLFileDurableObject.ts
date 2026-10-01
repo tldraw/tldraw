@@ -2123,6 +2123,9 @@ export class TLFileDurableObject extends DurableObject {
 
 	// Save the room to r2
 	async persistToDatabase(opts?: { throwOnFailure?: boolean }) {
+		// Legacy rooms are read-only, but boot migrations and last-out still trigger persists, which
+		// would recreate the ROOMS `public_rooms/<slug>` objects being removed.
+		if (this._documentInfo && !this._documentInfo.isApp) return
 		await this.executionQueue
 			.push(async () => {
 				await retry(
