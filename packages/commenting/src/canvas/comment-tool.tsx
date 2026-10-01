@@ -113,6 +113,44 @@ export class CommentTool extends StateNode {
 	}
 }
 
+function pendingCommentAt(editor: Editor, point: VecLike): PendingComment {
+	const hit = commentTargetShapeAt(editor, point)
+	const anchor: TLCommentAnchor = hit
+		? shapeAnchorAt(
+				editor,
+				hit.id,
+				point,
+				getCommentingOptions(editor).shouldBePrecise(editor, {
+					shapeId: hit.id,
+					point,
+					altKey: editor.inputs.getAltKey(),
+				})
+			)
+		: { type: 'point', x: point.x, y: point.y }
+	return { anchor, point: { x: point.x, y: point.y } }
+}
+
+/**
+ * Open the comment composer at a page point, anchored as a comment tool click there would be. Use
+ * it to start a comment from outside the tool, such as a context menu item. Enters the comment tool
+ * (which must be registered), since the draft composer closes when the tool exits. It doesn't check
+ * `canComment`: a viewer who can't comment sees the `ComposerFallback` slot instead.
+ *
+ * @example
+ * ```tsx
+ * <TldrawUiMenuItem id="comment" label="Comment" onSelect={() => startCommentAt(editor, point)} />
+ * ```
+ * @public
+ */
+export function startCommentAt(editor: Editor, point: VecLike) {
+	editor.setCurrentTool('comment')
+	const pending = pendingCommentAt(editor, point)
+	pendingComment.set(editor, pending)
+	// Entering the tool hints the shape under the live pointer, which is wherever the caller's UI
+	// was (a menu item), not `point`.
+	editor.setHintingShapes(pending.anchor.type === 'shape' ? [pending.anchor.shapeId] : [])
+}
+
 /** Hint the shape a comment placed at the pointer would anchor to, using the same hit-test as the
  *  anchor resolution on release. Hinting shapes render an indicator ungated by the active tool, so
  *  this shows the select-style outline while the comment tool — not select — is active. */
@@ -183,20 +221,7 @@ class CommentPointing extends StateNode {
 	override onPointerUp() {
 		const { editor } = this
 		const point = editor.inputs.getCurrentPagePoint()
-		const hit = commentTargetShapeAt(editor, point)
-		const anchor: TLCommentAnchor = hit
-			? shapeAnchorAt(
-					editor,
-					hit.id,
-					point,
-					getCommentingOptions(editor).shouldBePrecise(editor, {
-						shapeId: hit.id,
-						point,
-						altKey: editor.inputs.getAltKey(),
-					})
-				)
-			: { type: 'point', x: point.x, y: point.y }
-		pendingComment.set(editor, { anchor, point: { x: point.x, y: point.y } })
+		pendingComment.set(editor, pendingCommentAt(editor, point))
 		// Stay in the tool while the composer is open — the interaction isn't over until the
 		// comment is posted or dismissed, and staying keeps the surrounding UI (style panel,
 		// sidebar) from churning mid-placement.

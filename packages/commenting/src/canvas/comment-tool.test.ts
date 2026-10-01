@@ -12,7 +12,7 @@ import {
 	TLStateNodeConstructor,
 } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { CommentTool } from './comment-tool'
+import { CommentTool, startCommentAt } from './comment-tool'
 import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
 
 /**
@@ -162,6 +162,41 @@ describe('comment tool placement lifecycle', () => {
 		editor.cancel()
 		expect(editor.isIn('select')).toBe(true)
 		expect(pendingComment.get(editor)).toBeNull()
+	})
+})
+
+describe('startCommentAt', () => {
+	let driver: Driver
+
+	beforeEach(() => {
+		driver = makeEditor()
+	})
+
+	it('enters the tool and opens the composer at a bare point on empty canvas', () => {
+		commentsSidebarOpen.set(editor, true)
+		startCommentAt(editor, { x: 400, y: 300 })
+		expect(editor.isIn('comment.idle')).toBe(true)
+		expect(commentsSidebarOpen.get(editor)).toBe(false)
+		expect(pendingComment.get(editor)).toEqual({
+			anchor: { type: 'point', x: 400, y: 300 },
+			point: { x: 400, y: 300 },
+		})
+	})
+
+	it('anchors to the shape under the point', () => {
+		const id = makeShape()
+		startCommentAt(editor, { x: 150, y: 125 })
+		expect(pendingComment.get(editor)?.anchor).toMatchObject({ type: 'shape', shapeId: id })
+	})
+
+	it('hints the anchored shape, not the one under the live pointer', () => {
+		const anchored = makeShape()
+		const underPointer = makeShape(400, 100)
+		driver.pointerMove(450, 125)
+		editor.setCurrentTool('comment')
+		expect(editor.getHintingShapeIds()).toEqual([underPointer])
+		startCommentAt(editor, { x: 150, y: 125 })
+		expect(editor.getHintingShapeIds()).toEqual([anchored])
 	})
 })
 
