@@ -1,6 +1,6 @@
 import { RoomOpenMode } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { getR2KeyForRoom, getR2KeyForSnapshot, R2Snapshot } from '../../r2'
+import { getLegacyRoomObject, getR2KeyForSnapshot, R2Snapshot } from '../../r2'
 import { Environment } from '../../types'
 import { getRoomDurableObject } from '../durableObjects'
 import { getSlug } from '../roomOpenMode'
@@ -28,5 +28,5 @@ export async function getLegacyRoomData(
 	if (!slug) return null
 	// The room lives under the resolved slug; a readonly id would address a different, empty object.
 	await getRoomDurableObject(env, slug).awaitPersist()
-	return await env.ROOMS.get(getR2KeyForRoom({ slug, isApp: false })).then((r) => r?.text())
+	return await getLegacyRoomObject(env.ROOMS_HISTORY, slug).then((r) => r?.text())
 }

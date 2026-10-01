@@ -88,6 +88,8 @@ import {
 import { TLPostgresPool, getPostgresConnection } from './postgres'
 import {
 	deleteAllObjectsWithPrefix,
+	getLegacyRoomObject,
+	getLegacyRoomPrefix,
 	getR2KeyForRoom,
 	isTransientConnectionError,
 	R2ReadScheduler,
@@ -1695,7 +1697,9 @@ export class TLFileDurableObject extends DurableObject {
 			// when loading, prefer to fetch documents from the bucket
 			const r2FetchTimer = this.timer()
 			this.setBootStage('storage-load:r2')
-			const roomFromBucket = await this.r2.rooms.get(key)
+			const roomFromBucket = this.documentInfo.isApp
+				? await this.r2.rooms.get(key)
+				: await getLegacyRoomObject(this.r2.versionChain, slug)
 			this._bootTimings.r2 = r2FetchTimer.report('db_load_r2_fetch', this.bootLoadIdBlobs())
 
 			if (roomFromBucket) {
@@ -3565,7 +3569,9 @@ export class TLFileDurableObject extends DurableObject {
 			})
 
 			// remove main file
-			await this.env.ROOMS.delete(roomKey)
+			await deleteAllObjectsWithPrefix(this.env.ROOMS_HISTORY, getLegacyRoomPrefix(slug), (op) =>
+				this.addR2Operation('version_chain_delete', op)
+			)
 		})
 
 		return true
@@ -3573,8 +3579,10 @@ export class TLFileDurableObject extends DurableObject {
 
 	async __admin__createLegacyRoom(id: string) {
 		this.setDocumentInfo({ slug: id, isApp: false, deleted: false })
-		const key = getR2KeyForRoom({ slug: id, isApp: false })
-		await this.r2.rooms.put(key, JSON.stringify(DEFAULT_INITIAL_SNAPSHOT))
+		await this.r2.versionChain.put(
+			`${getLegacyRoomPrefix(id)}${new Date().toISOString()}`,
+			JSON.stringify(DEFAULT_INITIAL_SNAPSHOT)
+		)
 		await this.getRoom()
 	}
 }

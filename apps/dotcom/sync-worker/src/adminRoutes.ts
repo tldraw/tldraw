@@ -22,7 +22,7 @@ import { getUploadObjectName } from './assetAssociation'
 import { summarizeSnapshotDocuments } from './fileStats'
 import { MAX_ATTEMPTS } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
-import { getR2KeyForRoom } from './r2'
+import { getLegacyRoomPrefix, getR2KeyForRoom, listAllObjectKeys } from './r2'
 import { sweepVersionChainsRoute } from './routes/sweepVersionChains'
 import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
@@ -776,7 +776,8 @@ export const adminRoutes = createRouter<Environment>()
 						.select('id')
 						.executeTakeFirst())
 				} else if (prefix === ROOM_PREFIX && id) {
-					exists = !!(await env.ROOMS.head(getR2KeyForRoom({ slug: id, isApp: false })))
+					exists =
+						(await listAllObjectKeys(env.ROOMS_HISTORY, getLegacyRoomPrefix(id), 1)).length > 0
 				}
 			} catch (e) {
 				warnings.push(`createSource check failed for ${raw}: ${e}`)

@@ -1,6 +1,6 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { StatusError } from 'itty-router'
-import { getR2KeyForRoom } from '../../r2'
+import { getLegacyRoomObject, getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
 
 export async function returnFileSnapshot(env: Environment, fileSlug: string, isApp: boolean) {
@@ -28,7 +28,9 @@ export async function getFileSnapshot(
 	fileSlug: string,
 	isApp: boolean
 ): Promise<RoomSnapshot | null> {
-	const snapshot = await env.ROOMS.get(getR2KeyForRoom({ slug: fileSlug, isApp }))
+	const snapshot = isApp
+		? await env.ROOMS.get(getR2KeyForRoom({ slug: fileSlug, isApp }))
+		: await getLegacyRoomObject(env.ROOMS_HISTORY, fileSlug)
 	if (!snapshot) {
 		return null
 	}

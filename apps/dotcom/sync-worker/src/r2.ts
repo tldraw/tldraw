@@ -11,6 +11,24 @@ export function getR2KeyForRoom({ slug, isApp }: { slug: string; isApp: boolean 
 	return `${isApp ? 'app_rooms' : 'public_rooms'}/${slug}`
 }
 
+// Legacy rooms are read-only. Their snapshots moved out of ROOMS `public_rooms/<slug>` into
+// ROOMS_HISTORY `legacy_app_rooms/<slug>/<timestamp>`. The trailing slash keeps slug `abc` from
+// matching `abcd`.
+export function getLegacyRoomPrefix(slug: string) {
+	return `legacy_app_rooms/${slug}/`
+}
+
+/** The latest snapshot object for a legacy room, or null when it has none. */
+export async function getLegacyRoomObject(
+	roomsHistory: R2Bucket,
+	slug: string
+): Promise<R2ObjectBody | null> {
+	const keys = await listAllObjectKeys(roomsHistory, getLegacyRoomPrefix(slug))
+	// R2 lists keys in ascending order and the timestamps are ISO strings, so the last is the newest.
+	const latest = keys.at(-1)
+	return latest ? await roomsHistory.get(latest) : null
+}
+
 export function getR2KeyForSnapshot({
 	parentSlug,
 	snapshotSlug,
