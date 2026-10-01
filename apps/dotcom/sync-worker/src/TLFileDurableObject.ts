@@ -915,7 +915,16 @@ export class TLFileDurableObject extends DurableObject {
 			// suspended mid-upload or at its version lookup, would otherwise resume after these
 			// lines and clobber both the null and the restored object.
 			await this.executionQueue.push(async () => {
-				await this.r2.rooms.put(roomKey, dataText)
+				if (this.documentInfo.isApp) {
+					await this.r2.rooms.put(roomKey, dataText)
+				} else {
+					// Legacy boots read the newest object under this prefix, so a newer timestamp
+					// makes the restore stick.
+					await this.r2.versionChain.put(
+						`${getLegacyRoomPrefix(roomId)}${new Date().toISOString()}`,
+						dataText
+					)
+				}
 				this._lastPersistedFingerprint = null
 				// The chain head no longer matches the rooms object. The fingerprint check would
 				// catch the stale chain on the next persist anyway; clearing here makes the next
