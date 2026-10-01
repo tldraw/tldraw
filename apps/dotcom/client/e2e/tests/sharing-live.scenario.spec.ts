@@ -68,6 +68,12 @@ test.describe('live sharing scenarios', () => {
 		await expect(member.page.getByTestId(`guest-badge-${fileName}`)).toBeVisible()
 		await expect(member.page.getByTestId('tools.draw')).toBeVisible()
 
+		const guestFileLink = member.sidebar.getFileByName(fileName).getByRole('link')
+		await guestFileLink.focus()
+		await member.page.keyboard.press('Enter')
+		await expect(member.page.getByTestId('tla-sidebar-rename-input')).not.toBeVisible()
+		await expect(guestFileLink).toBeFocused()
+
 		await scenario.setSharedLinkType(owner, 'view')
 		await expect(member.page.getByTestId('tools.draw')).not.toBeVisible({ timeout: 10000 })
 	})
