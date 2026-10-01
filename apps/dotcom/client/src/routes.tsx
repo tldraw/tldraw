@@ -1,14 +1,20 @@
 import { captureException } from '@sentry/react'
-import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
+import type { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Outlet, Route, createRoutesFromElements, redirect, useRouteError } from 'react-router-dom'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
-import { ROUTES, routes } from './routeDefs'
+import { ROUTES, routes, TlaRouteHandle } from './routeDefs'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
 
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
+
+// Structural, not instanceof: a runtime import of @tldraw/sync-core pulls the store and schema into
+// the entry chunk, ahead of first paint.
+function isRemoteSyncError(error: unknown): error is TLRemoteSyncError {
+	return error instanceof Error && error.name === 'RemoteSyncError'
+}
 
 interface CreateAppRouterOptions {
 	includeDevRoutes?: boolean
@@ -33,26 +39,26 @@ export function createAppRouter({
 				let header = 'Something went wrong'
 				let para1 =
 					'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.'
-				if (error instanceof TLRemoteSyncError) {
-					switch (error.reason) {
-						case TLSyncErrorCloseEventReason.NOT_FOUND: {
+				if (isRemoteSyncError(error)) {
+					switch (error.reason as TLSyncErrorCloseEventReason) {
+						case 'NOT_FOUND': {
 							header = 'Not found'
 							para1 = 'The file you are looking for does not exist.'
 							break
 						}
-						case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED: {
+						case 'NOT_AUTHENTICATED': {
 							return (
 								<Suspense>
 									<LoginRedirectPage />
 								</Suspense>
 							)
 						}
-						case TLSyncErrorCloseEventReason.FORBIDDEN: {
+						case 'FORBIDDEN': {
 							header = 'Invite only'
 							para1 = `You don't have permission to view this room.`
 							break
 						}
-						case TLSyncErrorCloseEventReason.RATE_LIMITED: {
+						case 'RATE_LIMITED': {
 							header = 'Rate limited'
 							para1 = `Please slow down.`
 							break
@@ -86,7 +92,11 @@ export function createAppRouter({
 				</>
 			)}
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
-				<Route path={ROUTES.tlaRoot} lazy={() => import('./tla/pages/local')} />
+				<Route
+					path={ROUTES.tlaRoot}
+					lazy={() => import('./tla/pages/local')}
+					handle={{ rendersWhileAppLoads: true } satisfies TlaRouteHandle}
+				/>
 				<Route element={<NoIndex />}>
 					<Route path={ROUTES.tlaNew} lazy={() => import('./pages/tla-new')} />
 					<Route path={ROUTES.tlaOptIn} loader={() => redirect(routes.tlaRoot())} />
@@ -96,7 +106,11 @@ export function createAppRouter({
 						lazy={() => import('./tla/pages/local-file-index')}
 					/>
 					{/* File view */}
-					<Route path={ROUTES.tlaFile} lazy={() => import('./tla/pages/file')} />
+					<Route
+						path={ROUTES.tlaFile}
+						lazy={() => import('./tla/pages/file')}
+						handle={{ rendersWhileAppLoads: true } satisfies TlaRouteHandle}
+					/>
 					<Route lazy={() => import('./tla/providers/RequireTldrawStaff')}>
 						<Route path={ROUTES.tlaFileHistory} lazy={() => import('./tla/pages/file-history')} />
 						<Route

@@ -87,6 +87,15 @@ export class ShareMenu {
 	@step
 	async publishFile() {
 		await this.share('publish')
+		const url = await this.copyLink()
+		// The first publish lands in R2 via the outbox; until then the published page 404s.
+		const { origin, pathname } = new URL(url)
+		const slug = pathname.split('/')[2]
+		await expect(async () => {
+			const response = await this.page.request.get(`${origin}/api/app/publish/${slug}`)
+			expect(response.status()).toBe(200)
+		}).toPass({ timeout: 20_000 })
+		return url
 	}
 
 	@step

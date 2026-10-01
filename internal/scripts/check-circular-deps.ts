@@ -116,7 +116,7 @@ async function checkPackageForCircularDependencies(packageName: string, packageE
 
 		async function checkIncludeSet(includePatterns) {
 			const outputFilePath = path.join(
-				'.lazy',
+				'.turbo',
 				'circle-deps',
 				packageName + '-' + Date.now() + '-' + Math.random().toString(36).slice(2) + '.json'
 			)

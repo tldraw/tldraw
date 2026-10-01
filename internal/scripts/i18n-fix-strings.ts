@@ -12,8 +12,8 @@ import { Key, LokaliseApi } from '@lokalise/node-api'
 // Lokalise holds two separate projects and a run targets exactly one of them,
 // so every fix declares which project it belongs to and --project selects it:
 //
-//   yarn i18n-fix-strings --project=sdk               # dry run, prints the before/after diff
-//   yarn i18n-fix-strings --project=dotcom --apply    # write the corrections to Lokalise
+//   pnpm i18n-fix-strings --project=sdk               # dry run, prints the before/after diff
+//   pnpm i18n-fix-strings --project=dotcom --apply    # write the corrections to Lokalise
 
 /** Gap between Lokalise calls; the API allows six requests a second per token. */
 const REQUEST_INTERVAL_MS = 250

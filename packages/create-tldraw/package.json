@@ -1,7 +1,7 @@
 {
 	"name": "create-tldraw",
 	"description": "tldraw infinite canvas SDK (create cli).",
-	"version": "5.4.2",
+	"version": "5.5.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -39,13 +39,14 @@
 	],
 	"scripts": {
 		"dev": "./scripts/dev.sh",
-		"test-ci": "yarn run -T vitest run --passWithNoTests",
-		"test": "yarn run -T vitest --passWithNoTests",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
 		"build": "./scripts/build.sh",
-		"prepack": "yarn build",
-		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"prepack": "pnpm build",
+		"pack-tarball": "pnpm pack",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc --build"
 	},
 	"devDependencies": {
 		"@bomb.sh/args": "^0.3.1",
@@ -55,7 +56,6 @@
 		"ansi-regex": "^6.1.0",
 		"ansi-styles": "^6.2.1",
 		"esbuild": "^0.28.0",
-		"lazyrepo": "0.0.0-alpha.27",
 		"picocolors": "^1.1.1",
 		"string-width": "^7.2.0",
 		"strip-ansi": "^7.1.0",

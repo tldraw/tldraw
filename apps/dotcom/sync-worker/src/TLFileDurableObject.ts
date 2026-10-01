@@ -17,6 +17,8 @@ import {
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	can,
+	type FeatureFlagValue,
+	type Role,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -83,8 +85,13 @@ import {
 	readMcpClusterIndexRow,
 	writeMcpClusterIndexRow,
 } from './mcpClusterIndexStorage'
-import { TLPostgresPool } from './postgres'
-import { deleteAllObjectsWithPrefix, getR2KeyForRoom, R2ReadScheduler } from './r2'
+import { TLPostgresPool, getPostgresConnection } from './postgres'
+import {
+	deleteAllObjectsWithPrefix,
+	getR2KeyForRoom,
+	isTransientConnectionError,
+	R2ReadScheduler,
+} from './r2'
 import {
 	BootStage,
 	FileEffectStallError,
@@ -106,6 +113,14 @@ import {
 import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { arrayBufferToBase64 } from './utils/base64'
+import {
+	ConnectEchoBase,
+	ConnectMarks,
+	buildConnectEcho,
+	connectStart,
+	markRoute,
+} from './utils/connectMarks'
+import { parseTraceColo, readEdgeColo, readReceivedAt } from './utils/connectRouting'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { LOAD_ID_PARAM, parseLoadId } from './utils/loadId'
@@ -113,23 +128,30 @@ import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
-import { getAuth, requireAdminAccess, requireAdminAccessToRequest } from './utils/tla/getAuth'
+import {
+	getAuth,
+	getMcpTokenAuth,
+	MCP_SOCKET_SUBPROTOCOL,
+	requireAdminAccess,
+	requireAdminAccessToRequest,
+	type McpTokenOptions,
+} from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
-import { getRole } from './utils/tla/getRole'
+import { getFileRecordWithRole, getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
 import { ChainState, isChainHead, PendingDelta } from './versionChain'
-import {
-	loadVersionChainRollout,
-	resolveVersionChainMode,
-	VersionChainRollout,
-} from './versionChainConfig'
+import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
 import {
 	deleteAllVersions,
-	loadChainIndex,
+	loadChainIndexForVersion,
 	openWholeVersionStream,
 	reconstructVersion,
 } from './versionChainRead'
-import { readOpenSegment, writeVersionChainEntry } from './versionChainWrite'
+import {
+	readOpenSegment,
+	VERSION_CHAIN_R2_RETRY,
+	writeVersionChainEntry,
+} from './versionChainWrite'
 import { chainHeadHash } from './versionDelta'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
@@ -166,14 +188,6 @@ type R2OperationType =
 	| 'version_chain_verify'
 	| 'version_chain_delete'
 
-// Transient R2 failures worth retrying — dropped connections and the connection-limit error the
-// shared budget exists to avoid. Anything else (a bad request, missing object, etc.) is permanent,
-// so retrying only wastes time before the simple-PUT fallback runs.
-function isTransientConnectionError(error: unknown): boolean {
-	const message = error instanceof Error ? error.message : String(error)
-	return /network|connection|closed|reset|timeout/i.test(message)
-}
-
 // Where the chain state lives in durable object storage; see getVersionChain.
 const VERSION_CHAIN_STORAGE_KEY = 'versionChain'
 
@@ -205,6 +219,16 @@ interface SocketAttachment {
 	// Absent for bundles that predate the param, or when the param didn't validate.
 	clientBuildTimestamp?: string
 	snapshot: SessionStateSnapshot | null
+}
+
+/** The user behind an MCP access token, in the shape the file checks already take. */
+async function getMcpTokenUser(
+	req: IRequest,
+	env: Environment,
+	options?: McpTokenOptions
+): Promise<{ userId: string } | null> {
+	const result = await getMcpTokenAuth(req, env, options)
+	return result.ok ? { userId: result.userId } : null
 }
 
 async function canAccessTestProductionFile(
@@ -419,6 +443,12 @@ export class TLFileDurableObject extends DurableObject {
 							this._pool = null
 							this._db = null
 						},
+						// Split from `handshake` so client main-thread time before the connect is not
+						// read as server time.
+						onAfterReceiveMessage: ({ sessionId, message }) => {
+							if (message.type !== 'connect') return
+							this._pendingFirstLoadEchoes.get(sessionId)?.marks.mark('client_connect')
+						},
 						onBeforeSendMessage: ({ sessionId, message, stringified }) => {
 							this.logEvent({
 								type: 'send_message',
@@ -426,9 +456,15 @@ export class TLFileDurableObject extends DurableObject {
 								messageLength: stringified.length,
 							})
 							if (message.type === 'connect') {
-								const echo = this._pendingFirstLoadEchoes.get(sessionId)
-								if (echo) {
+								const pending = this._pendingFirstLoadEchoes.get(sessionId)
+								if (pending) {
 									this._pendingFirstLoadEchoes.delete(sessionId)
+									pending.marks.mark('handshake')
+									const echo = buildConnectEcho(
+										{ ...pending.base, do_colo: this._doColo },
+										pending.marks,
+										stringified.length
+									)
 									// Deferred: this hook runs before the connect response goes out, and sending
 									// here would put the echo ahead of it on the wire.
 									setTimeout(() => room.sendCustomMessage(sessionId, echo), 0)
@@ -765,15 +801,11 @@ export class TLFileDurableObject extends DurableObject {
 	// The open segment's deltas. Null means "not known here yet" — after an eviction they are
 	// refetched from the segment object in R2, which is the durable copy.
 	_pendingDeltas: PendingDelta[] | null = null
-	// The version key the chain head was written under, so a retried persist can put the legacy
-	// copy of the same content under the same key.
-	_versionChainHeadIso: string | null = null
-
-	_versionChainRollout: Promise<VersionChainRollout> | null = null
+	_versionChainRollout: Promise<FeatureFlagValue> | null = null
 
 	// One KV read per incarnation, by design: the rollout is config, not room state, and a KV flip
 	// landing as objects wake is the contract (see loadVersionChainRollout).
-	private versionChainRollout(): Promise<VersionChainRollout> {
+	private versionChainRollout(): Promise<FeatureFlagValue> {
 		this._versionChainRollout ??= loadVersionChainRollout(this.env)
 		return this._versionChainRollout
 	}
@@ -797,12 +829,12 @@ export class TLFileDurableObject extends DurableObject {
 		// rewriting it from an empty buffer would silently erase the deltas its metadata still
 		// promises. The caller starts a fresh chain on null.
 		const segmentKey = chain.openSegment.key
-		const deltas = await this.addR2Operation('version_chain_write', () =>
-			retry(() => readOpenSegment(this.r2.versionChain, segmentKey), {
-				attempts: 3,
-				waitDuration: 500,
-				matchError: isTransientConnectionError,
-			})
+		const deltas = await retry(
+			() =>
+				this.addR2Operation('version_chain_write', () =>
+					readOpenSegment(this.r2.versionChain, segmentKey)
+				),
+			VERSION_CHAIN_R2_RETRY
 		)
 		if (deltas) this._pendingDeltas = deltas
 		return deltas
@@ -834,14 +866,17 @@ export class TLFileDurableObject extends DurableObject {
 				// fans out to the keyframe plus every segment (see _verifyRetiredChain). Every read
 				// is one idempotent get or list, so each retries transient errors on its own.
 				const schedule: R2ReadScheduler = (read) =>
-					this.addR2Operation('version_chain_read', () =>
-						retry(read, { attempts: 3, waitDuration: 500, matchError: isTransientConnectionError })
-					)
+					retry(() => this.addR2Operation('version_chain_read', read), VERSION_CHAIN_R2_RETRY)
 				const buckets = {
 					chainBucket: this.r2.versionChain,
 					legacyBucket: this.r2.versionCache,
 				}
-				const { entries: index } = await loadChainIndex(this.r2.versionChain, roomKey, schedule)
+				const { entries: index } = await loadChainIndexForVersion(
+					this.r2.versionChain,
+					roomKey,
+					timestamp,
+					schedule
+				)
 				const whole = await openWholeVersionStream({
 					...buckets,
 					roomKey,
@@ -888,7 +923,6 @@ export class TLFileDurableObject extends DurableObject {
 				this._versionChain = null
 				this._versionChainLoaded = true
 				this._pendingDeltas = null
-				this._versionChainHeadIso = null
 				await this.storage.delete(VERSION_CHAIN_STORAGE_KEY)
 			})
 
@@ -955,25 +989,29 @@ export class TLFileDurableObject extends DurableObject {
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
 	_fileRecordCache: TlaFile | null = null
 	async getAppFileRecord(loadIdBlobs?: string[]): Promise<TlaFile | null> {
+		return (await this.getAppFileRecordWithRole(null, loadIdBlobs))?.file ?? null
+	}
+
+	/** Also resolves `userId`'s role in the file's owning group, in the same query on a cache miss. */
+	async getAppFileRecordWithRole(
+		userId: string | null | undefined,
+		loadIdBlobs?: string[]
+	): Promise<{ file: TlaFile; role: Role | null } | null> {
 		const timer = this.timer()
 		try {
 			const result = await retry(
 				async () => {
 					if (this._fileRecordCache) {
-						return this._fileRecordCache
+						const file = this._fileRecordCache
+						return { file, role: await getRole(this.db, userId, file.owningGroupId) }
 					}
 
-					const result = await this.db
-						.selectFrom('file')
-						.where('id', '=', this.documentInfo.slug)
-						.selectAll()
-						.executeTakeFirst()
-
+					const result = await getFileRecordWithRole(this.db, this.documentInfo.slug, userId)
 					if (!result) {
 						throw new FileRecordNotFoundError()
 					}
-					this._fileRecordCache = result
-					return this._fileRecordCache
+					this._fileRecordCache = result.file
+					return result
 				},
 				// Absence is retried because the row may still be committing. Query errors are retried
 				// too: isTransientConnectionError is R2-shaped and misses Postgres errors like "too many
@@ -994,6 +1032,10 @@ export class TLFileDurableObject extends DurableObject {
 
 	async onRequest(req: IRequest, openMode: RoomOpenMode) {
 		const requestTimer = this.timer()
+		const requestStart = Date.now()
+		const receivedAt = readReceivedAt(req.headers as Headers, requestStart)
+		const marks = new ConnectMarks(connectStart(receivedAt, requestStart))
+		markRoute(marks, receivedAt, this._constructedAt, requestStart)
 
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
@@ -1009,6 +1051,7 @@ export class TLFileDurableObject extends DurableObject {
 		const clientBuildTimestamp = /^\d{1,16}$/.test(params.v ?? '') ? params.v : undefined
 		const loadId = parseLoadId(params[LOAD_ID_PARAM])
 		const loadIdBlobs = this.loadIdBlobs(loadId)
+		if (loadId) this.lookUpDoColo()
 		const isNewSession = !this._room
 		if (isNewSession) this._bootLoadId = loadId
 
@@ -1016,9 +1059,25 @@ export class TLFileDurableObject extends DurableObject {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		this.state.acceptWebSocket(serverWebSocket)
 
+		// A browser closes a connection whose offered subprotocol the server did not select, so a
+		// handshake carrying an MCP token has to be answered with the same value back. Every 101 out
+		// of here goes through this, the two that close the socket immediately included: the client
+		// still has to finish the handshake to receive the close reason, and one that never completes
+		// reports a failed connection instead of the reason it failed.
+		const offeredSubprotocol = req.headers.get('sec-websocket-protocol')?.split(',')[0].trim()
+		const acceptSocket = () =>
+			new Response(null, {
+				status: 101,
+				webSocket: clientWebSocket,
+				headers:
+					offeredSubprotocol === MCP_SOCKET_SUBPROTOCOL
+						? { 'sec-websocket-protocol': MCP_SOCKET_SUBPROTOCOL }
+						: undefined,
+			})
+
 		const closeSocket = (reason: TLSyncErrorCloseEventReason) => {
 			serverWebSocket.close(TLSyncErrorCloseEventCode, reason)
-			return new Response(null, { status: 101, webSocket: clientWebSocket })
+			return acceptSocket()
 		}
 		// For infra failures (Postgres, rate limiter, etc.): a TLSyncErrorCloseEventCode close is
 		// terminal on the client (error screen, no reconnect), which would strand every connecting
@@ -1027,31 +1086,44 @@ export class TLFileDurableObject extends DurableObject {
 		// do. Workers only allow 1000 or 3000-4999 here.
 		const closeSocketRetryable = () => {
 			serverWebSocket.close(1000, 'transient_error')
-			return new Response(null, { status: 101, webSocket: clientWebSocket })
+			return acceptSocket()
 		}
 
 		// Everything from here through the permission checks below can throw on an infra failure
 		// now that those failures bubble instead of being swallowed. An uncaught throw here would
 		// 500 with the accepted server socket leaked in the hibernation set, so catch broadly and
 		// close it instead.
-		const echoTimings: { auth?: number; fileRecord?: number } = {}
-		let auth: Awaited<ReturnType<typeof getAuth>>
+		let auth: { userId: string } | null
 		try {
 			if (this.documentInfo.deleted) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 			}
 
 			const authTimer = this.timer()
-			auth = await getAuth(req, this.env)
-			echoTimings.auth = authTimer.report('on_request_auth', loadIdBlobs)
+			// An MCP client — Claude, ChatGPT, Cursor — cannot hold a tldraw.com session, so an OAuth
+			// access token is the only sign-in it has, and without this a user's own boards are
+			// unreachable over sync to the agent they just signed in to. Accepted only as a fallback,
+			// and it widens nothing: every check below is the same either way, so a token joins
+			// exactly the rooms, at exactly the open mode — write included — its user would get from
+			// the website. It rides in the handshake's `Sec-WebSocket-Protocol` header, the one field
+			// a browser lets a client set there, which keeps it out of the URL that session tokens
+			// still use.
+			auth =
+				(await getAuth(req, this.env)) ??
+				(await getMcpTokenUser(req, this.env, {
+					allowSubprotocolToken: true,
+					allowQueryToken: true,
+				}))
+			authTimer.report('on_request_auth', loadIdBlobs)
+			marks.mark('auth')
 
 			if (this.documentInfo.isApp) {
 				openMode = ROOM_OPEN_MODE.READ_WRITE
-				const fileRecordStart = Date.now()
-				const file = await this.getAppFileRecord(loadIdBlobs)
-				echoTimings.fileRecord = Date.now() - fileRecordStart
+				const fileWithRole = await this.getAppFileRecordWithRole(auth?.userId, loadIdBlobs)
+				marks.mark('file_record')
 
-				if (file) {
+				if (fileWithRole) {
+					const { file, role } = fileWithRole
 					if (file.isDeleted) {
 						return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 					}
@@ -1087,18 +1159,9 @@ export class TLFileDurableObject extends DurableObject {
 						}
 					}
 					rateLimitTimer.report('on_request_rate_limit', loadIdBlobs)
+					marks.mark('rate_limit')
 
-					// Check if user has owner access (directly or via group membership)
-					let hasOwnerAccess = false
-					if (file.owningGroupId && auth?.userId) {
-						// Check the user can access the owning group's files
-						const groupCheckTimer = this.timer()
-						const role = await getRole(this.db, auth.userId, file.owningGroupId)
-						if (can(role, 'accessFiles')) {
-							hasOwnerAccess = true
-						}
-						groupCheckTimer.report('on_request_group_check', loadIdBlobs)
-					}
+					const hasOwnerAccess = can(role, 'accessFiles')
 
 					if (!hasOwnerAccess && !file.shared) {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
@@ -1148,7 +1211,11 @@ export class TLFileDurableObject extends DurableObject {
 
 			const getRoomTimer = this.timer()
 			const room = await this.getRoom()
-			const getRoomMs = getRoomTimer.report('on_request_get_room', loadIdBlobs)
+			getRoomTimer.report('on_request_get_room', loadIdBlobs)
+			// A cold SQLite boot is the bulk of getRoom; carve it out so the stack shows it.
+			const boot = isNewSession ? this._bootTimings : {}
+			if (boot.total !== undefined) marks.markAfter('boot', boot.total)
+			marks.mark('get_room')
 
 			// Don't connect if we're already at max connections
 			if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
@@ -1177,28 +1244,25 @@ export class TLFileDurableObject extends DurableObject {
 				clientBuildTimestamp,
 			})
 
-			const totalMs = requestTimer.report('on_request_total', loadIdBlobs)
+			requestTimer.report('on_request_total', loadIdBlobs)
 
 			if (loadId) {
-				const boot = isNewSession ? this._bootTimings : {}
-				// Parked, not sent: the session is still awaiting its connect handshake here, and the
-				// room drops messages to sessions that are not yet Connected. onBeforeSendMessage
-				// releases it when the connect response goes out.
+				// Parked, not sent: the room drops messages to sessions still awaiting their connect
+				// handshake. onBeforeSendMessage marks `handshake` and releases it.
 				this._pendingFirstLoadEchoes.set(sessionId, {
-					type: 'first_load_server',
-					loadId,
-					cold: isNewSession,
-					auth_ms: echoTimings.auth,
-					file_record_ms: echoTimings.fileRecord,
-					get_room_ms: getRoomMs,
-					total_ms: totalMs,
-					boot_r2_ms: boot.r2,
-					boot_comments_ms: boot.comments,
-					boot_total_ms: boot.total,
+					marks,
+					base: {
+						loadId,
+						cold: isNewSession,
+						edge_colo: readEdgeColo(req.headers as Headers),
+						pg_via: getPostgresConnection(this.env).via,
+						boot_r2_ms: boot.r2,
+						boot_comments_ms: boot.comments,
+					},
 				})
 			}
 
-			return new Response(null, { status: 101, webSocket: clientWebSocket })
+			return acceptSocket()
 		} catch (e) {
 			if (e instanceof RoomNotFoundError) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
@@ -1217,11 +1281,18 @@ export class TLFileDurableObject extends DurableObject {
 			return new Response('Not found', { status: 404 })
 		}
 
-		const auth = await getAuth(req, this.env)
-		const file = await this.getAppFileRecord()
-		if (!file || file.isDeleted) {
+		// An MCP client — Claude, ChatGPT, Cursor — cannot hold a tldraw.com session, so an OAuth access
+		// token is the only sign-in it has, and without this a user's own boards are unreachable to the
+		// agent they just signed in to. Accepted only as a fallback, and it widens nothing: the
+		// group-role and link-sharing checks below are the same either way, so a token reaches exactly
+		// the files its user could already download from the website.
+		const auth: { userId: string } | null =
+			(await getAuth(req, this.env)) ?? (await getMcpTokenUser(req, this.env))
+		const fileWithRole = await this.getAppFileRecordWithRole(auth?.userId)
+		if (!fileWithRole || fileWithRole.file.isDeleted) {
 			return new Response('Not found', { status: 404 })
 		}
+		const { file, role } = fileWithRole
 
 		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
 			return new Response('Not found', { status: 404 })
@@ -1238,14 +1309,7 @@ export class TLFileDurableObject extends DurableObject {
 			return new Response('Rate limited', { status: 429 })
 		}
 
-		let hasOwnerAccess = false
-		if (file.owningGroupId && auth?.userId) {
-			const role = await getRole(this.db, auth.userId, file.owningGroupId)
-			if (can(role, 'accessFiles')) {
-				hasOwnerAccess = true
-			}
-		}
-		if (!hasOwnerAccess && !file.shared) {
+		if (!can(role, 'accessFiles') && !file.shared) {
 			return new Response('Forbidden', { status: 403 })
 		}
 
@@ -1782,8 +1846,30 @@ export class TLFileDurableObject extends DurableObject {
 	// Stage durations of the most recent storage load, echoed to the client that booted the room.
 	private _bootTimings: { r2?: number; comments?: number; total?: number } = {}
 
-	// first_load_server messages waiting for their session's connect handshake to complete.
-	private _pendingFirstLoadEchoes = new Map<string, TLCustomServerEvent>()
+	// Echoes waiting for their session's connect handshake; `handshake` is marked on release.
+	private _pendingFirstLoadEchoes = new Map<
+		string,
+		{ base: ConnectEchoBase; marks: ConnectMarks }
+	>()
+
+	// Constructor time, for the do_init step of the request that woke this instance.
+	private readonly _constructedAt = Date.now()
+
+	// Where this instance runs; looked up once, off the connect path.
+	private _doColo: string | undefined
+	private _doColoLookup: Promise<void> | null = null
+	private lookUpDoColo() {
+		this._doColoLookup ??= fetch('https://www.cloudflare.com/cdn-cgi/trace', {
+			signal: AbortSignal.timeout(5000),
+		})
+			.then((res) => res.text())
+			.then((body) => {
+				this._doColo = parseTraceColo(body)
+			})
+			.catch(() => {
+				// best effort: the echo just goes without do_colo
+			})
+	}
 
 	// Called wherever the room is dropped. A reopen from retained storage skips loadFromDatabase
 	// (the only writer), so without this the next booting client would be echoed the old numbers.
@@ -2179,11 +2265,6 @@ export class TLFileDurableObject extends DurableObject {
 
 	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
 		const customMetadata = getSnapshotMetadata(snapshot)
-		// Per attempt, not per persist: the retry loop re-reads the snapshot, so a retry may carry
-		// newer content that deserves its own version. When the chain already holds THIS content
-		// from an earlier attempt, _writeVersionChainEntry hands back the key it used, and the
-		// legacy copy lands under that same key — the two buckets must agree on when a version is.
-		let iso = new Date().toISOString()
 		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(
 			this.r2.rooms,
@@ -2198,60 +2279,39 @@ export class TLFileDurableObject extends DurableObject {
 
 		const mode = resolveVersionChainMode(await this.versionChainRollout(), key)
 
-		// A non-transient chain failure (corrupt segment, a 4xx, DO storage) must be a metric, not
-		// a failed persist: the outer retry would otherwise re-upload the rooms object 100 times,
-		// raise persistence_bad, and record no version at all. In dual mode the legacy write below
-		// runs regardless; in chain mode it runs as the fallback, so the version still exists as
-		// a full copy the read paths already know how to serve.
-		let chainWritten = false
-		if (mode !== 'off') {
-			try {
-				iso = await this._writeVersionChainEntry(snapshot, key, iso)
-				chainWritten = true
-			} catch (error) {
-				this.logEvent({ type: 'version_chain_error' })
-				this.reportError(error)
-			}
-		}
-		// Dual-write keeps the legacy full copy as the independent record the read-path verifier
-		// checks chain reconstructions against. (_verifyRetiredChain only compares against what this
-		// DO last persisted.) Stage 3 of the rollout flips this to 'chain'.
-		// Nothing dedupes this write the way the version check in persistToDatabase does: a retry
-		// that got here has already set _lastPersistedFingerprint and takes the skip path instead
-		// (the chain write above carries its own re-entry guard for the same reason).
-		if (mode !== 'chain' || !chainWritten) {
-			await this._uploadSnapshotToBucket(
-				this.r2.versionCache,
-				snapshot,
-				`${key}/${iso}`,
-				customMetadata
-			)
+		// A chain failure that outlasted its retries is a metric, not a failed persist: the outer retry
+		// would re-upload the rooms object 100 times and raise persistence_bad. This persist records no
+		// version, but the chain is untouched and the next persist's delta carries its changes; only
+		// when no edit follows does history lack the board's current state.
+		try {
+			// Per attempt, not per persist: the retry loop re-reads the snapshot, so a retry may carry
+			// newer content that deserves its own version.
+			await this._writeVersionChainEntry(snapshot, key, new Date().toISOString(), mode === 'off')
+		} catch (error) {
+			this.logEvent({ type: 'version_chain_error' })
+			this.reportError(error)
 		}
 	}
 
 	/**
-	 * Writes this snapshot into the chain and returns the version key (ISO timestamp) it lives under
-	 * — `iso` when written now, or the key from an earlier attempt when the chain already holds
-	 * exactly this content.
+	 * Writes this snapshot into the chain under `iso`: as a delta where the chain allows one, or
+	 * always as a keyframe when `keyframesOnly` (the `off` mode).
 	 */
 	private async _writeVersionChainEntry(
 		snapshot: RoomSnapshot,
 		key: string,
-		iso: string
-	): Promise<string> {
+		iso: string,
+		keyframesOnly: boolean
+	): Promise<void> {
 		let chain = await this.getVersionChain()
-		// Re-entry guard: a dual-write persist that failed on the legacy upload retries this whole
-		// method with the chain already holding this exact version. Without it, every such retry
-		// appends a no-op delta at a fresh timestamp — the duplicate class #10571 exists to kill.
-		// Head identity, not just the fingerprint: a tombstone prune between attempts keeps the
-		// fingerprint but changes content, and the legacy copy must not land under a key the chain
-		// holds other content at.
-		if (chain && isChainHead(chain, snapshot)) {
-			return this._versionChainHeadIso ?? iso
-		}
+		// A persist retried after the chain already took this exact version must not write it again
+		// at a fresh timestamp — the duplicate class #10571 exists to kill. Head identity, not just
+		// the fingerprint: a tombstone prune between attempts keeps the fingerprint but changes content.
+		if (chain && isChainHead(chain, snapshot)) return
 		let pending: PendingDelta[] = []
 		let noChainReason: 'segment-lost' | undefined
-		if (chain) {
+		// A keyframe discards the open segment, so there is nothing to rehydrate.
+		if (chain && !keyframesOnly) {
 			const rehydrated = await this.getPendingDeltas(chain)
 			// The chain said a segment was open but R2 no longer has it. Appending would rewrite the
 			// segment without the deltas its metadata still promises, so start a fresh chain instead.
@@ -2266,12 +2326,11 @@ export class TLFileDurableObject extends DurableObject {
 				pending = rehydrated
 			}
 		}
-		// R2 persist flakiness is a known quantity (see the multipart/fallback machinery on the
-		// snapshot uploads). A chain write is one idempotent PUT for a fixed iso, so retrying the
-		// whole call is safe.
-		const result = await this.addR2Operation('version_chain_write', () =>
-			retry(
-				() =>
+		// One idempotent PUT for a fixed iso, so retrying the whole call is safe. The retry wraps the
+		// queued operation so a wait between attempts does not hold one of the two R2 slots.
+		const result = await retry(
+			() =>
+				this.addR2Operation('version_chain_write', () =>
 					writeVersionChainEntry({
 						bucket: this.r2.versionChain,
 						roomKey: key,
@@ -2283,17 +2342,19 @@ export class TLFileDurableObject extends DurableObject {
 						previousHeadHash: this._lastPersistedHeadHash ?? undefined,
 						next: snapshot,
 						now: Date.now(),
-					}),
-				{ attempts: 3, waitDuration: 500, matchError: isTransientConnectionError }
-			)
+						keyframesOnly,
+					})
+				),
+			VERSION_CHAIN_R2_RETRY
 		)
 		this._versionChain = result.chain
 		this._pendingDeltas = result.pending
-		this._versionChainHeadIso = iso
 		await this.storage.put(VERSION_CHAIN_STORAGE_KEY, result.chain)
 		const previous = this._lastPersistedSnapshot
-		this._lastPersistedSnapshot = snapshot
-		this._lastPersistedHeadHash = result.chain.headHash
+		// Only a delta needs the diff base; in `off` mode it would pin a decoded copy of the board
+		// for nothing, as the wake seed gate says.
+		this._lastPersistedSnapshot = keyframesOnly ? null : snapshot
+		this._lastPersistedHeadHash = keyframesOnly ? null : result.chain.headHash
 		this.logEvent({
 			type: 'version_chain_write',
 			bytes: result.bytes,
@@ -2327,7 +2388,6 @@ export class TLFileDurableObject extends DurableObject {
 				this.ctx.waitUntil(this._verifyRetiredChain(pending[pending.length - 1].t, previous))
 			}
 		}
-		return iso
 	}
 
 	private async _verifyRetiredChain(lastDeltaTimestamp: string, expected: RoomSnapshot) {

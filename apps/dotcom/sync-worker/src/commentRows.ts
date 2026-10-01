@@ -14,6 +14,7 @@ import {
 } from '@tldraw/tlschema'
 import { JsonObject } from '@tldraw/utils'
 import { Kysely } from 'kysely'
+import { jsonArrayFrom } from 'kysely/helpers/postgres'
 
 /**
  * Conversions between the room's comment records and their Postgres rows. Postgres is the sole
@@ -296,23 +297,27 @@ export function liveCommentDocuments(
 }
 
 /**
- * Load a file's comment rows over a single checked-out connection. Each `execute()` on the bare
- * Kysely instance checks out its own connection, and `TLPostgresPool` dials a fresh socket per
- * checkout, so three parallel-looking queries would otherwise cost three sequential dials.
+ * Load a file's comment rows in one statement. `TLPostgresPool` dials a fresh socket per checkout
+ * and pg runs a client's queries one round trip at a time, so separate selects would cost a dial
+ * or a round trip each on the room-open path.
  */
 export async function loadCommentDocuments(
 	db: Kysely<DB>,
 	fileId: string
 ): Promise<CommentLoadResult> {
-	const [threadRows, commentRows, reactionRows] = await db
-		.connection()
-		.execute((conn) =>
-			Promise.all([
-				conn.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll().execute(),
-				conn.selectFrom('comment').where('fileId', '=', fileId).selectAll().execute(),
-				conn.selectFrom('comment_reaction').where('fileId', '=', fileId).selectAll().execute(),
-			])
-		)
+	const { threadRows, commentRows, reactionRows } = await db
+		.selectNoFrom((eb) => [
+			jsonArrayFrom(eb.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll()).as(
+				'threadRows'
+			),
+			jsonArrayFrom(eb.selectFrom('comment').where('fileId', '=', fileId).selectAll()).as(
+				'commentRows'
+			),
+			jsonArrayFrom(eb.selectFrom('comment_reaction').where('fileId', '=', fileId).selectAll()).as(
+				'reactionRows'
+			),
+		])
+		.executeTakeFirstOrThrow()
 	// Soft-deleted threads and their comments never re-enter a room, and neither do reactions
 	// whose comment doesn't; their rows stay in Postgres only (see liveCommentDocuments).
 	return liveCommentDocuments(threadRows, commentRows, reactionRows)

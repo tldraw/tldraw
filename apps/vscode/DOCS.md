@@ -223,7 +223,7 @@ For extension developers, the build system supports hot reload:
 ```bash
 # Start extension development with hot reload
 cd apps/vscode
-yarn dev
+pnpm dev
 
 # This starts both extension and editor in watch mode
 # Extension reloads automatically when files change
@@ -326,7 +326,7 @@ To build the extension locally:
 
 **Prerequisites**
 
-- Node.js 16+ and yarn
+- Node.js 16+ and pnpm
 - VS Code development environment
 
 **Build Process**
@@ -334,13 +334,13 @@ To build the extension locally:
 ```bash
 # Install dependencies
 cd apps/vscode
-yarn install
+pnpm install
 
 # Build extension and editor
-yarn build
+pnpm build
 
 # Package for distribution
-yarn package
+pnpm package
 ```
 
 This creates a `.vsix` file that can be installed locally or distributed.
@@ -349,7 +349,7 @@ This creates a `.vsix` file that can be installed locally or distributed.
 
 ```bash
 # Start development environment
-yarn dev
+pnpm dev
 
 # This opens VS Code Extension Development Host
 # Test your changes in the new VS Code window

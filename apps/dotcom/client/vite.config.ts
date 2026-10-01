@@ -4,7 +4,9 @@ import formatjs from '@formatjs/unplugin/vite'
 import react from '@vitejs/plugin-react'
 import { config } from 'dotenv'
 import { defineConfig, Plugin } from 'vite'
+import { resolveClerkJs } from './scripts/clerk-js'
 import { getMultiplayerServerURL } from './scripts/multiplayer-server-url'
+import { routePreloadPlugin } from './scripts/vite-route-preload-plugin'
 import {
 	thumbnailRenderEntryPlugin,
 	thumbnailScreenshotPlugin,
@@ -51,6 +53,38 @@ function spaFallbackPlugin(): Plugin {
 	}
 }
 
+// Pins ClerkProvider to the exact clerk-js version and starts fetching it while the HTML parses,
+// instead of after the entry bundle has run. The preload's crossorigin must match Clerk's own script
+// tag or it is fetched twice. The preconnect has none on purpose: Clerk's API calls send cookies,
+// and credentialed requests don't share connections with anonymous ones.
+function clerkJsPlugin(): Plugin {
+	let clerkJs: Awaited<ReturnType<typeof resolveClerkJs>> = null
+	return {
+		name: 'clerk-js',
+		async config() {
+			clerkJs = await resolveClerkJs(process.env.VITE_CLERK_PUBLISHABLE_KEY)
+			if (!clerkJs) return
+			return { define: { 'process.env.CLERK_JS_VERSION': JSON.stringify(clerkJs.version) } }
+		},
+		transformIndexHtml(html, ctx) {
+			if (!clerkJs || !ctx.path.endsWith('/index.html')) return html
+			const { url } = clerkJs
+			return [
+				{
+					tag: 'link',
+					attrs: { rel: 'preconnect', href: new URL(url).origin },
+					injectTo: 'head',
+				},
+				{
+					tag: 'link',
+					attrs: { rel: 'preload', as: 'script', href: url, crossorigin: 'anonymous' },
+					injectTo: 'head',
+				},
+			]
+		},
+	}
+}
+
 function urlOrLocalFallback(mode: string, url: string | undefined, localFallbackPort: number) {
 	if (url) {
 		return JSON.stringify(url)
@@ -76,6 +110,7 @@ export default defineConfig((env) => ({
 		// itself ready.
 		thumbnailRenderEntryPlugin(),
 		spaFallbackPlugin(),
+		clerkJsPlugin(),
 		thumbnailScreenshotPlugin(),
 		zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
 		react(),
@@ -84,6 +119,15 @@ export default defineConfig((env) => ({
 			additionalComponentNames: ['F'],
 			ast: true,
 		}),
+		// The editor sits in the root providers' static graph, so their wave is most of the bytes on
+		// every tla route.
+		routePreloadPlugin(
+			[
+				'./src/tla/providers/TlaRootProviders.tsx',
+				'./src/tla/pages/file.tsx',
+				'./src/tla/pages/local.tsx',
+			].map((p) => fileURLToPath(new URL(p, import.meta.url)))
+		),
 	],
 	publicDir: './public',
 	resolve: {

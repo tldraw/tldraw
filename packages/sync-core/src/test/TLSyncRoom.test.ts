@@ -2482,6 +2482,130 @@ describe('26. Session lifecycle (SES)', () => {
 		expect(socket.__lastMessage).toEqual({ type: 'pong' })
 	})
 
+	it('[SES5] no session receives string-append ops while a client without append support is connected', () => {
+		vi.useFakeTimers()
+		const { room } = makeRoom()
+		const v8 = connectSession(room, 'v8', { protocolVersion: getTlsyncProtocolVersion() })
+		const v7 = connectSession(room, 'v7', { protocolVersion: 7 })
+		expect(room.getCanEmitStringAppend()).toBe(false)
+
+		const hasAppend = (msg: any) => JSON.stringify(msg).includes('"append"')
+
+		// a full put over an existing record whose only change is a string append
+		room.handleMessage('v8', {
+			type: 'push',
+			clientClock: 1,
+			diff: { [pageRecord.id]: ['put', { ...pageRecord, name: pageRecord.name + ' more' }] },
+		} as TLPushRequest<TLRecord>)
+		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL + 1)
+		expect(sentDataMessages(v7)).toEqual([
+			{
+				type: 'patch',
+				diff: { [pageRecord.id]: ['patch', { name: ['put', pageRecord.name + ' more'] }] },
+				serverClock: 1,
+			},
+		])
+		expect(sentDataMessages(v8).some(hasAppend)).toBe(false)
+		clearSocket(v7)
+		clearSocket(v8)
+
+		// a patch whose recomputed broadcast would otherwise be an append
+		room.handleMessage('v8', {
+			type: 'push',
+			clientClock: 2,
+			diff: { [pageRecord.id]: ['patch', { name: ['put', pageRecord.name + ' more and more'] }] },
+		} as TLPushRequest<TLRecord>)
+		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL + 1)
+		expect(sentDataMessages(v7)).toEqual([
+			{
+				type: 'patch',
+				diff: {
+					[pageRecord.id]: ['patch', { name: ['put', pageRecord.name + ' more and more'] }],
+				},
+				serverClock: 2,
+			},
+		])
+		expect(sentDataMessages(v8)).toEqual([
+			{ type: 'push_result', clientClock: 2, serverClock: 2, action: 'commit' },
+		])
+	})
+
+	it('[SES6] handleResumedSession rejects a session whose schema the server can no longer reconcile', () => {
+		const { room } = makeRoom()
+		const socket = makeSocket()
+		const newerSchema: SerializedSchemaV2 = {
+			schemaVersion: 2,
+			sequences: {
+				...(room.serializedSchema as SerializedSchemaV2).sequences,
+				'com.tldraw.store': 999,
+			},
+		}
+
+		room.handleResumedSession({
+			sessionId: 'resumed',
+			socket,
+			meta: undefined,
+			isReadonly: false,
+			serializedSchema: newerSchema,
+			presenceId: null,
+			presenceRecord: null,
+			requiresLegacyRejection: false,
+			supportsStringAppend: true,
+		})
+
+		expect(room.sessions.has('resumed')).toBe(false)
+		expect(socket.close).toHaveBeenCalledWith(
+			TLSyncErrorCloseEventCode,
+			TLSyncErrorCloseEventReason.SERVER_TOO_OLD
+		)
+	})
+
+	it('[SES6] rejecting a resumed session removes its restored presence for other sessions', () => {
+		vi.useFakeTimers()
+		const { room } = makeRoom()
+		const makePresence = (name: string) =>
+			InstancePresenceRecordType.create({
+				id: InstancePresenceRecordType.createId(name),
+				currentPageId: pageRecord.id,
+				userId: createUserId(name),
+				userName: name,
+			})
+		const resume = (sessionId: string, serializedSchema: SerializedSchema) => {
+			const socket = makeSocket()
+			const presenceRecord = makePresence(sessionId)
+			room.handleResumedSession({
+				sessionId,
+				socket,
+				meta: undefined,
+				isReadonly: false,
+				serializedSchema,
+				presenceId: presenceRecord.id,
+				presenceRecord,
+				requiresLegacyRejection: false,
+				supportsStringAppend: true,
+			})
+			return { socket, presenceId: presenceRecord.id }
+		}
+
+		const other = resume('other', room.serializedSchema)
+		const rejected = resume('rejected', {
+			schemaVersion: 2,
+			sequences: {
+				...(room.serializedSchema as SerializedSchemaV2).sequences,
+				'com.tldraw.store': 999,
+			},
+		})
+		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL * 2)
+
+		expect(room.sessions.has('rejected')).toBe(false)
+		expect(room.presenceStore.get(rejected.presenceId)).toBeUndefined()
+		// other clients still hold this presence from before the socket slept
+		expect(sentDataMessages(other.socket).at(-1)).toMatchObject({
+			type: 'patch',
+			diff: { [rejected.presenceId]: [RecordOpType.Remove] },
+		})
+	})
+
 	it('[SES7] a message from an unknown session id logs a warning and is ignored', () => {
 		const warn = vi.fn()
 		const { room } = makeRoom({ log: { warn } })

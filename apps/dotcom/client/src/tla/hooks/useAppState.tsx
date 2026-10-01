@@ -2,9 +2,9 @@ import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { captureException } from '@sentry/react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { assertExists, atom } from 'tldraw'
+import { assertExists, atom, useValue } from 'tldraw'
 import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
-import { enableFirstLoadLiveLog, isFirstLoadStaff, markFirstLoad } from '../../utils/firstLoad'
+import { markFirstLoad } from '../../utils/firstLoad'
 import { TldrawApp, getPreloadDiagnostics } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
 import {
@@ -12,11 +12,18 @@ import {
 	FeatureFlags,
 	fetchFeatureFlags,
 	wasAuthenticated,
-} from '../utils/FeatureFlagPoller'
+} from '../utils/featureFlags'
 
 const appContext = createContext<TldrawApp | null>(null)
+// Anonymous trees never mount the provider, so they read the default: not loading.
+const appLoadingContext = createContext(false)
 
 export const isClientTooOld$ = atom('isClientTooOld', false)
+
+// The one source for the app; the React context below is derived from it. Code that runs before
+// the app exists but must pick it up without remounting (the presence user store behind the sync
+// socket) reads this directly.
+export const currentApp$ = atom<TldrawApp | null>('currentApp', null)
 
 const APP_LOAD_ERROR_MESSAGES = {
 	header: 'Something went wrong',
@@ -25,7 +32,7 @@ const APP_LOAD_ERROR_MESSAGES = {
 }
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
-	const [app, setApp] = useState(null as TldrawApp | null)
+	const app = useValue(currentApp$)
 	const [error, setError] = useState<unknown>(null)
 	const auth = useAuth()
 	const { user, isLoaded } = useClerkUser()
@@ -36,7 +43,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	}
 	const navigate = useNavigate()
 	const email = user.primaryEmailAddress?.emailAddress
-	if (isFirstLoadStaff(email)) enableFirstLoadLiveLog()
+
+	// Cleared on unmount only. A Clerk user change (accepting the legal terms updates the user)
+	// re-runs the bootstrap below; nulling the atom there would blank every gated route for the
+	// whole preload, so the old app stays in place until the new one replaces it.
+	useEffect(() => {
+		return () => {
+			currentApp$.set(null)
+		}
+	}, [])
 
 	useEffect(() => {
 		let _app: TldrawApp
@@ -60,14 +75,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				flags = await fetchFlagsWithTimeout()
 			}
 			markFirstLoad('flags-loaded')
-			// Flagged users get the live lines too: a load that hangs never reaches the summary tables.
-			if (flags.first_load_rum?.enabled) enableFirstLoadLiveLog()
 			if (didCancel) return
 			const token = await auth.getToken()
 			if (!token) throw new Error('no token')
 			const { app } = await TldrawApp.create({
 				userId: auth.userId,
-				email: user.primaryEmailAddress?.emailAddress,
+				email,
 				flags,
 				getToken: async () => {
 					const token = await auth.getToken()
@@ -93,7 +106,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				return
 			}
 			_app = app
-			setApp(app)
+			currentApp$.set(app)
 		})().catch((err) => {
 			if (didCancel) return
 			console.error('[AppState] Failed to initialize:', err)
@@ -133,16 +146,26 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		)
 	}
 
-	if (!app) {
-		// We used to show a Loading... here but it was causing too much flickering.
-		return null
-	}
-
-	return <appContext.Provider value={app}>{children}</appContext.Provider>
+	// Children render while the app loads so the file route can open its sync socket in parallel
+	// with the Zero preload. Routes that cannot cope with a null app are held back by the
+	// `AppGate` in `TlaRootProviders`, not here.
+	return (
+		<appLoadingContext.Provider value={!app}>
+			<appContext.Provider value={app}>{children}</appContext.Provider>
+		</appLoadingContext.Provider>
+	)
 }
 
 export function useMaybeApp() {
 	return useContext(appContext)
+}
+
+/**
+ * True between mount and the app resolving for a signed-in user. `useMaybeApp()` alone cannot
+ * tell a signed-out visitor from a signed-in user whose Zero preload is still running.
+ */
+export function useIsAppLoading() {
+	return useContext(appLoadingContext)
 }
 export function useApp(): TldrawApp {
 	return assertExists(useContext(appContext), 'useApp must be used within AppStateProvider')

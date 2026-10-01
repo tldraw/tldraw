@@ -1099,6 +1099,63 @@ describe('Snap-between behavior', () => {
 		expect(pointLines[1].points).toHaveLength(6)
 	})
 
+	it('shows both horizontal snap-betweens when their breadths only touch', () => {
+		// ┌───┐       ┌───┐
+		// │ A ├──┼──┤ B │  ┌───┐
+		// ├───┤       ├───┤  │ X │ ◄─── drag
+		// │ C ├──┼──┤ D │  └───┘
+		// └───┘       └───┘
+		// the A-B and C-D gaps share the same span but their breadths only meet at
+		// y=10, which is not an overlap, so neither center snap hides the other
+		editor.createShapes([
+			box(ids.box1, 0, 0),
+			box(ids.box2, 20, 0),
+			box(ids.line1, 0, 10),
+			box(ids.boxD, 20, 10),
+			box(ids.boxX, 50, 0, 4, 20),
+		])
+
+		editor.pointerDown(52, 10, ids.boxX).pointerMove(16, 10, { ctrlKey: true })
+		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 13, y: 0 })
+
+		const { gapLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
+		expect(gapLines).toHaveLength(2)
+		expect(gapLines.map((line) => line.direction)).toEqual(['horizontal', 'horizontal'])
+		expect(gapLines[0].gaps).toHaveLength(2)
+		expect(gapLines[1].gaps).toHaveLength(2)
+	})
+
+	it('shows both vertical snap-betweens when their breadths only touch', () => {
+		// ┌───┬───┐
+		// │ A │ B │
+		// └─┬─┴─┬─┘
+		//   ┼   ┼
+		// ┌─┴─┬─┴─┐
+		// │ C │ D │
+		// └───┴───┘
+		//
+		// ┌───────┐
+		// │   X   │ ◄─── drag
+		// └───────┘
+		// vertical mirror of the horizontal case above; both axes must agree
+		editor.createShapes([
+			box(ids.box1, 0, 0),
+			box(ids.box2, 10, 0),
+			box(ids.line1, 0, 20),
+			box(ids.boxD, 10, 20),
+			box(ids.boxX, 0, 50, 20, 4),
+		])
+
+		editor.pointerDown(10, 52, ids.boxX).pointerMove(10, 16, { ctrlKey: true })
+		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 0, y: 13 })
+
+		const { gapLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
+		expect(gapLines).toHaveLength(2)
+		expect(gapLines.map((line) => line.direction)).toEqual(['vertical', 'vertical'])
+		expect(gapLines[0].gaps).toHaveLength(2)
+		expect(gapLines[1].gaps).toHaveLength(2)
+	})
+
 	it('should not snap horizontally if the shape is larger than the gap', () => {
 		//        ┌─────┐             ┌─────┐
 		//        │     │             │     │
