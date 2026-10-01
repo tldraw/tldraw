@@ -11,9 +11,9 @@ export function getR2KeyForRoom({ slug, isApp }: { slug: string; isApp: boolean 
 	return `${isApp ? 'app_rooms' : 'public_rooms'}/${slug}`
 }
 
-// Legacy rooms are read-only. Their snapshots moved out of ROOMS `public_rooms/<slug>` into
-// ROOMS_HISTORY `legacy_app_rooms/<slug>/<timestamp>`. The trailing slash keeps slug `abc` from
-// matching `abcd`.
+// Legacy rooms are read-only, and their snapshots are copied to ROOMS_HISTORY
+// `legacy_app_rooms/<slug>/<timestamp>` so ROOMS `public_rooms/<slug>` can be removed. The trailing
+// slash keeps slug `abc` from matching `abcd`.
 export function getLegacyRoomPrefix(slug: string) {
 	return `legacy_app_rooms/${slug}/`
 }
