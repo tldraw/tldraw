@@ -3561,12 +3561,10 @@ export class TLFileDurableObject extends DurableObject {
 	async __admin__hardDeleteIfLegacy() {
 		if (!this._documentInfo || this.documentInfo.deleted || this.documentInfo.isApp) return false
 		this.setDocumentInfo({ slug: this.documentInfo.slug, isApp: false, deleted: true })
-		// Queued so an in-flight persist finishes before the R2 deletes rather than re-uploading
-		// the snapshot after them.
+		// Queued so an in-flight restore finishes before the R2 deletes rather than writing a
+		// snapshot after them.
 		await this.executionQueue.push(async () => {
 			await this.closeAllSocketsForDelete()
-			// Without this the closing sessions' last-out persist re-uploads the snapshot to the keys
-			// deleted below.
 			this._room = null
 			this.dropBootTimings()
 			const slug = this.documentInfo.slug
