@@ -781,6 +781,7 @@ async function deployFlyAppIfChanged({
 			'utf-8'
 		)
 	}
+	if (inputs.secrets) await stageZeroFlySecrets(appName, inputs.secrets)
 	await exec('flyctl', ['deploy', '-a', appName, '-c', configFile], { pwd: zeroCacheFolder })
 }
 
@@ -897,7 +898,6 @@ async function deployZeroViaFlyIoMultiNode() {
 
 	// Deploy replication manager first
 	await ensureFlyApp(flyioReplAppName, apps)
-	await stageZeroFlySecrets(flyioReplAppName, secrets)
 	await deployFlyAppIfChanged({
 		appName: flyioReplAppName,
 		configFile: 'flyio-replication-manager.toml',
@@ -907,7 +907,6 @@ async function deployZeroViaFlyIoMultiNode() {
 	// Deploy view syncer with reference to replication manager
 	const replManagerUri = `http://${flyioReplAppName}.internal:4849`
 	await ensureFlyApp(flyioAppName, apps)
-	await stageZeroFlySecrets(flyioAppName, secrets)
 	await deployFlyAppIfChanged({
 		appName: flyioAppName,
 		configFile: 'flyio-view-syncer.toml',
