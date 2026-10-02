@@ -509,3 +509,40 @@ describe('a predicate that throws', () => {
 		error.mockRestore()
 	})
 })
+
+it('does not run an action that became disabled after render', async () => {
+	let enabled = true
+	const onSelect = vi.fn()
+	const { rendered } = await renderTldrawComponentWithEditor(
+		(onMount) => (
+			<Tldraw
+				onMount={onMount}
+				components={{ QuickActions: null }}
+				overrides={{
+					actions(_editor, actions) {
+						actions['stale'] = {
+							id: 'stale',
+							label: 'action.group',
+							icon: 'group',
+							isEnabled: () => enabled,
+							onSelect,
+						}
+						return actions
+					},
+				}}
+			>
+				<TldrawUiToolbar label="test">
+					<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
+						<TldrawUiMenuActionItem actionId="stale" />
+					</TldrawUiMenuContextProvider>
+				</TldrawUiToolbar>
+			</Tldraw>
+		),
+		{ waitForPatterns: false }
+	)
+	enabled = false
+	fireEvent.click(
+		rendered.container.querySelector('[data-testid="actions-menu.stale"]') as HTMLElement
+	)
+	expect(onSelect).not.toHaveBeenCalled()
+})

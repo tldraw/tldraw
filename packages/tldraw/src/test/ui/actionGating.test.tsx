@@ -1,6 +1,8 @@
 import { act } from '@testing-library/react'
-import { createShapeId, Editor, TLShapeId } from '@tldraw/editor'
+import { atom, createShapeId, createTLStore, Editor, TLShapeId } from '@tldraw/editor'
 import { useEffect } from 'react'
+import { defaultBindingUtils } from '../../lib/defaultBindingUtils'
+import { defaultShapeUtils } from '../../lib/defaultShapeUtils'
 import { Tldraw } from '../../lib/Tldraw'
 import { TLUiActionsContextType, useActions } from '../../lib/ui/context/actions'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
@@ -343,4 +345,33 @@ describe('purity and stability', () => {
 		act(() => editor.selectNone())
 		expect(captured.length).toBe(count)
 	})
+})
+
+it('cursor chat runs outside the select tool', async () => {
+	const store = createTLStore({
+		shapeUtils: defaultShapeUtils,
+		bindingUtils: defaultBindingUtils,
+		collaboration: { status: atom('status', 'online' as const) },
+	})
+	let captured: TLUiActionsContextType = {}
+	const { editor } = await renderTldrawComponentWithEditor(
+		(onMount) => (
+			<Tldraw store={store} onMount={onMount}>
+				<ActionCapturer
+					onCapture={(a) => {
+						captured = a
+					}}
+				/>
+			</Tldraw>
+		),
+		{ waitForPatterns: false }
+	)
+	act(() => editor.setCurrentTool('draw'))
+	act(() => {
+		captured['open-cursor-chat'].onSelect('kbd')
+	})
+	await act(async () => {
+		await new Promise((r) => requestAnimationFrame(r))
+	})
+	expect(editor.getInstanceState().isChatting).toBe(true)
 })
