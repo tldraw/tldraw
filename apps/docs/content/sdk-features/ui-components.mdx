@@ -195,6 +195,34 @@ Pass `null` to hide a component entirely. This is useful for focused experiences
 
 See the [UI components hidden example](/examples/ui/ui-components-hidden) for a complete list of hideable components.
 
+## Command palette
+
+Press Cmd+K (Ctrl+K on Windows and Linux) to open the command palette, a searchable list of commands. It's the `CommandPalette` slot, built from the same menu items as the other menus: `DefaultCommandPalette` renders `DefaultCommandPaletteContent` unless you pass children.
+
+To add commands, wrap the default:
+
+```tsx
+function MyCommandPalette() {
+	return (
+		<DefaultCommandPalette>
+			<TldrawUiMenuGroup id="my-stuff" label="My stuff">
+				<TldrawUiMenuActionItem actionId="my-action" />
+				<TldrawUiMenuItem id="say-hi" label="Say hi" onSelect={sayHi} />
+			</TldrawUiMenuGroup>
+			<DefaultCommandPaletteContent />
+		</DefaultCommandPalette>
+	)
+}
+
+;<Tldraw components={{ CommandPalette: MyCommandPalette }} />
+```
+
+`DefaultCommandPaletteContent` is made of exported groups, such as `CommandPaletteEditGroup` and `CommandPaletteViewGroup`, so you can reorder or drop them. `CommandPaletteToolsGroup` (one item per tool) isn't in the default content, but you can add it. Removing an action through `overrides.actions` also removes it from the palette. Pass `CommandPalette: null` to turn the palette off.
+
+For long or async lists, read the query with `useCommandPaletteQuery()` and render only your best matches. `getCommandPaletteMatchScore` matches the same way the palette does.
+
+Pass `disabledReason` to a disabled item to say why it's disabled. The palette shows it when the item is highlighted.
+
 ## Overrides
 
 Control tldraw's actions, tools, and translations with the `overrides` prop. This prop accepts a [TLUiOverrides](?) object, which has methods for `actions` and `tools`, and a `translations` property.
@@ -318,4 +346,5 @@ Note that `onUiEvent` only fires for UI interactions. Calling [Editor#alignShape
 - [Changing menus](/examples/ui/custom-menus) - Create custom menus using tldraw's menu system
 - [Vertical toolbar](/examples/ui/vertical-toolbar) - Switch to a vertical toolbar layout
 - [Add tool to toolbar](/examples/ui/add-tool-to-toolbar) - Add a custom tool to the toolbar
+- [Command palette](/examples/ui/command-palette) - Add your own commands to the command palette
 - [UI events](/examples/events/ui-events) - Listen to UI events like tool selection and menu interactions
