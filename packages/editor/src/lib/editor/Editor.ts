@@ -1,5 +1,5 @@
 import { EMPTY_ARRAY, atom, computed, react, unsafe__withoutCapture } from '@tldraw/state'
-import { ComputedCache, StoreSideEffects } from '@tldraw/store'
+import { StoreSideEffects } from '@tldraw/store'
 import {
 	PageRecordType,
 	StyleProp,
@@ -39,25 +39,17 @@ import {
 	createBindingId,
 	createUserId,
 	getShapePropKeysByStyle,
-	isPageId,
-	isShapeId,
 } from '@tldraw/tlschema'
 import {
 	IndexKey,
 	JsonObject,
-	ZERO_INDEX_KEY,
 	annotateError,
 	assert,
 	bind,
-	compact,
 	getIndexAbove,
 	getIndexBetween,
-	getIndices,
-	getIndicesAbove,
-	getIndicesBetween,
 	getOwnProperty,
 	hasOwnProperty,
-	sortById,
 	sortByIndex,
 	uniqueId,
 } from '@tldraw/utils'
@@ -81,10 +73,8 @@ import { LicenseManager } from '../license/LicenseManager'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
-import { intersectPolygonPolygon } from '../primitives/intersect'
 import { Mat, MatLike } from '../primitives/Mat'
 import { Vec, VecLike } from '../primitives/Vec'
-import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { TLDeepLink, TLDeepLinkOptions } from '../utils/deepLinks'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
@@ -92,17 +82,10 @@ import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/Sh
 import { AssetUtil } from './assets/AssetUtil'
 import { BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
-import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
-import {
-	RENDERING_SHAPES_SORT_CACHE_THRESHOLD,
-	applyPartialToRecordWithProps,
-	pushShapeWithDescendants,
-	toShapeIds,
-} from './editorHelpers'
+import { applyPartialToRecordWithProps } from './editorHelpers'
 import { registerEditorSideEffects } from './editorSideEffects'
-import { getCulledShapeIds } from './kernels/culling'
 import { CameraManager } from './managers/CameraManager/CameraManager'
 import { ClickManager } from './managers/ClickManager/ClickManager'
 import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
@@ -120,6 +103,7 @@ import { ResizeManager } from './managers/ResizeManager/ResizeManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SelectionManager } from './managers/SelectionManager/SelectionManager'
 import { ShapeCommandsManager } from './managers/ShapeCommandsManager/ShapeCommandsManager'
+import { ShapesManager } from './managers/ShapesManager/ShapesManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
@@ -128,7 +112,6 @@ import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import { OverlayManager } from './overlays/OverlayManager'
 import { TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
-import { getUnorderedRenderingShapes } from './queries/renderingShapes'
 import {
 	ShapeUtil,
 	TLEditStartInfo,
@@ -474,7 +457,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._currentPageShapeIds = deriveShapeIdsInCurrentPage(this.store, () =>
 			this.getCurrentPageId()
 		)
-		this._parentIdsToChildIds = parentsToChildren(this.store)
+		this._shapesManager._parentIdsToChildIds = parentsToChildren(this.store)
 
 		this.disposables.add(
 			this.store.listen((changes) => {
@@ -2828,13 +2811,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
+	readonly _shapesManager = new ShapesManager(this)
+
+	/** @internal */
 	getUnorderedRenderingShapes(
 		// The rendering state. We use this method both for rendering, which
 		// is based on other state, and for computing order for SVG export,
 		// which should work even when things are for example off-screen.
 		useEditorState: boolean
 	): TLRenderingShape[] {
-		return getUnorderedRenderingShapes(this, useEditorState)
+		return this._shapesManager.getUnorderedRenderingShapes(useEditorState)
 	}
 
 	/**
@@ -2861,59 +2847,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getRenderingShapes() {
-		const renderingShapes = this.getUnorderedRenderingShapes(true)
-
-		// Its IMPORTANT that the result be sorted by id AND include the index
-		// that the shape should be displayed at. Steve, this is the past you
-		// telling the present you not to change this.
-
-		// We want to sort by id because moving elements about in the DOM will
-		// cause the element to get removed by react as it moves the DOM node. This
-		// causes <iframes/> to re-render which is hella annoying and a perf
-		// drain. By always sorting by 'id' we keep the shapes always in the
-		// same order; but we later use index to set the element's 'z-index'
-		// to change the "rendered" position in z-space.
-
-		// For small N, native Array.sort is fast enough that the cache
-		// bookkeeping is a net loss. Only use the permutation cache when
-		// there are enough shapes for sort cost to matter.
-		if (renderingShapes.length <= RENDERING_SHAPES_SORT_CACHE_THRESHOLD) {
-			this._renderingShapesSortCache = null
-			return renderingShapes.sort(sortById)
-		}
-
-		// Sort permutation cache: when the set of ids on the page doesn't
-		// change (e.g. while drawing a stroke, only props change), we can
-		// reuse the previous sorted order and place each entry at its known
-		// sorted position in O(N) instead of running Array.sort O(N log N).
-		const cache = this._renderingShapesSortCache
-		if (cache !== null && cache.size === renderingShapes.length) {
-			const sorted = new Array<TLRenderingShape>(renderingShapes.length)
-			let allMatched = true
-			for (let i = 0; i < renderingShapes.length; i++) {
-				const entry = renderingShapes[i]
-				const pos = cache.get(entry.id)
-				if (pos === undefined) {
-					allMatched = false
-					break
-				}
-				sorted[pos] = entry
-			}
-			if (allMatched) return sorted
-		}
-
-		// Slow path: full sort, then cache the permutation by id.
-		renderingShapes.sort(sortById)
-		const positionById = new Map<TLShapeId, number>()
-		for (let i = 0; i < renderingShapes.length; i++) {
-			positionById.set(renderingShapes[i].id, i)
-		}
-		this._renderingShapesSortCache = positionById
-		return renderingShapes
+	getRenderingShapes() {
+		return this._shapesManager.getRenderingShapes()
 	}
-
-	private _renderingShapesSortCache: Map<TLShapeId, number> | null = null
 
 	/* --------------------- Pages ---------------------- */
 
@@ -3375,10 +3311,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return await this.store.props.assets.upload(asset, file, abortSignal)
 	}
 
-	/* --------------------- Shapes --------------------- */
-
-	private _shapeGeometryCaches: Record<string, ComputedCache<Geometry2d, TLShape>> = {}
-
 	/**
 	 * Get the geometry of a shape in shape-space.
 	 *
@@ -3395,33 +3327,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T {
-		const context = opts?.context ?? 'none'
-		if (!this._shapeGeometryCaches[context]) {
-			this._shapeGeometryCaches[context] = this.store.createComputedCache(
-				'bounds',
-				(shape) => {
-					this.fonts.trackFontsForShape(shape)
-					return this.getShapeUtil(shape).getGeometry(shape, opts)
-				},
-				{ areRecordsEqual: areShapesContentEqual }
-			)
-		}
-		return this._shapeGeometryCaches[context].get(
-			typeof shape === 'string' ? shape : shape.id
-		)! as T
-	}
-
-	/** @internal */
-	@computed private _getShapeHandlesCache(): ComputedCache<TLHandle[] | undefined, TLShape> {
-		return this.store.createComputedCache(
-			'handles',
-			(shape) => {
-				return this.getShapeUtil(shape).getHandles?.(shape)
-			},
-			{
-				areRecordsEqual: areShapesContentEqual,
-			}
-		)
+		return this._shapesManager.getShapeGeometry<T>(shape, opts)
 	}
 
 	/**
@@ -3437,7 +3343,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined {
-		return this._getShapeHandlesCache().get(typeof shape === 'string' ? shape : shape.id)
+		return this._shapesManager.getShapeHandles<T>(shape)
 	}
 
 	/**
@@ -3456,31 +3362,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeLocalTransform(shape: TLShape | TLShapeId): Mat {
-		const id = typeof shape === 'string' ? shape : shape.id
-		const freshShape = this.getShape(id)
-		if (!freshShape) throw Error('Editor.getTransform: shape not found')
-		return Mat.Identity().translate(freshShape.x, freshShape.y).rotate(freshShape.rotation)
-	}
-
-	/**
-	 * A cache of page transforms.
-	 *
-	 * @internal
-	 */
-	@computed private _getShapePageTransformCache(): ComputedCache<Mat, TLShape> {
-		return this.store.createComputedCache<Mat, TLShape>('pageTransformCache', (shape) => {
-			if (isPageId(shape.parentId)) {
-				return this.getShapeLocalTransform(shape)
-			}
-
-			// If the shape's parent doesn't exist yet (e.g. when merging in changes from remote in the wrong order)
-			// then we can't compute the transform yet, so just return the identity matrix.
-			// In the future we should look at creating a store update mechanism that understands and preserves
-			// ordering.
-			const parentTransform =
-				this._getShapePageTransformCache().get(shape.parentId) ?? Mat.Identity()
-			return Mat.Compose(parentTransform, this.getShapeLocalTransform(shape)!)
-		})
+		return this._shapesManager.getShapeLocalTransform(shape)
 	}
 
 	/**
@@ -3496,10 +3378,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeParentTransform(shape: TLShape | TLShapeId): Mat {
-		const id = typeof shape === 'string' ? shape : shape.id
-		const freshShape = this.getShape(id)
-		if (!freshShape || isPageId(freshShape.parentId)) return Mat.Identity()
-		return this._getShapePageTransformCache().get(freshShape.parentId) ?? Mat.Identity()
+		return this._shapesManager.getShapeParentTransform(shape)
 	}
 
 	/**
@@ -3516,17 +3395,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapePageTransform(shape: TLShape | TLShapeId): Mat {
-		const id = typeof shape === 'string' ? shape : shape.id
-		return this._getShapePageTransformCache().get(id) ?? Mat.Identity()
-	}
-
-	/** @internal */
-	@computed private _getShapePageBoundsCache(): ComputedCache<Box, TLShape> {
-		return this.store.createComputedCache<Box, TLShape>('pageBoundsCache', (shape) => {
-			return Box.FromPoints(
-				this.getShapePageTransform(shape).applyToPoints(this.getShapeGeometry(shape).boundsVertices)
-			)
-		})
+		return this._shapesManager.getShapePageTransform(shape)
 	}
 
 	/**
@@ -3543,29 +3412,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapePageBounds(shape: TLShape | TLShapeId): Box | undefined {
-		return this._getShapePageBoundsCache().get(typeof shape === 'string' ? shape : shape.id)
-	}
-
-	/**
-	 * A cache of clip paths used for clipping.
-	 *
-	 * @internal
-	 */
-	@computed private _getShapeClipPathCache(): ComputedCache<string, TLShape> {
-		return this.store.createComputedCache<string, TLShape>('clipPathCache', (shape) => {
-			const pageMask = this._getShapeMaskCache().get(shape.id)
-			if (!pageMask) return undefined
-			if (pageMask.length === 0) {
-				return `polygon(0px 0px, 0px 0px, 0px 0px)`
-			}
-
-			const pageTransform = this._getShapePageTransformCache().get(shape.id)
-			if (!pageTransform) return undefined
-
-			const localMask = Mat.applyToPoints(Mat.Inverse(pageTransform), pageMask)
-
-			return `polygon(${localMask.map((p) => `${p.x}px ${p.y}px`).join(',')})`
-		})
+		return this._shapesManager.getShapePageBounds(shape)
 	}
 
 	/**
@@ -3584,36 +3431,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeClipPath(shape: TLShape | TLShapeId): string | undefined {
-		return this._getShapeClipPathCache().get(typeof shape === 'string' ? shape : shape.id)
-	}
-
-	/** @internal */
-	@computed private _getShapeMaskCache(): ComputedCache<Vec[], TLShape> {
-		return this.store.createComputedCache('pageMaskCache', (shape) => {
-			if (isPageId(shape.parentId)) return undefined
-
-			const clipPaths: Vec[][] = []
-			// Get all ancestors that can potentially clip this shape
-			for (const ancestor of this.getShapeAncestors(shape.id)) {
-				const util = this.getShapeUtil(ancestor)
-				const clipPath = util.getClipPath?.(ancestor)
-				if (!clipPath) continue
-				if (util.shouldClipChild?.(shape) === false) continue
-				const pageTransform = this.getShapePageTransform(ancestor.id)
-				clipPaths.push(pageTransform.applyToPoints(clipPath))
-			}
-			if (clipPaths.length === 0) return undefined
-
-			const pageMask = clipPaths.reduce((acc, b) => {
-				const intersection = intersectPolygonPolygon(acc, b)
-				if (intersection) {
-					return intersection.map(Vec.Cast)
-				}
-				return []
-			})
-
-			return pageMask
-		})
+		return this._shapesManager.getShapeClipPath(shape)
 	}
 
 	/**
@@ -3631,7 +3449,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeMask(shape: TLShapeId | TLShape): VecLike[] | undefined {
-		return this._getShapeMaskCache().get(typeof shape === 'string' ? shape : shape.id)
+		return this._shapesManager.getShapeMask(shape)
 	}
 
 	/**
@@ -3650,32 +3468,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeMaskedPageBounds(shape: TLShapeId | TLShape): Box | undefined {
-		if (typeof shape !== 'string') shape = shape.id
-		return this._getShapeMaskedPageBoundsCache().get(shape)
-	}
-
-	/** @internal */
-	@computed private _getShapeMaskedPageBoundsCache(): ComputedCache<Box, TLShape> {
-		return this.store.createComputedCache('shapeMaskedPageBoundsCache', (shape) => {
-			const pageBounds = this._getShapePageBoundsCache().get(shape.id)
-			if (!pageBounds) return
-			const pageMask = this._getShapeMaskCache().get(shape.id)
-			if (pageMask) {
-				if (pageMask.length === 0) return undefined
-				const { corners } = pageBounds
-				// the mask may have fewer than four points (e.g. a triangular clip path)
-				if (
-					pageMask.length === corners.length &&
-					corners.every((p, i) => Vec.Equals(p, pageMask[i]))
-				) {
-					return pageBounds.clone()
-				}
-				const intersection = intersectPolygonPolygon(pageMask, corners)
-				if (!intersection) return
-				return Box.FromPoints(intersection)
-			}
-			return pageBounds
-		})
+		return this._shapesManager.getShapeMaskedPageBounds(shape)
 	}
 
 	/**
@@ -3693,19 +3486,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeAncestors(shape: TLShapeId | TLShape, acc: TLShape[] = []): TLShape[] {
-		const id = typeof shape === 'string' ? shape : shape.id
-		const freshShape = this.getShape(id)
-		if (!freshShape) return acc
-		const parentId = freshShape.parentId
-		if (isPageId(parentId)) {
-			acc.reverse()
-			return acc
-		}
-
-		const parent = this.store.get(parentId)
-		if (!parent) return acc
-		acc.push(parent)
-		return this.getShapeAncestors(parent, acc)
+		return this._shapesManager.getShapeAncestors(shape, acc)
 	}
 
 	/**
@@ -3727,16 +3508,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shape: TLShape | TLShapeId,
 		predicate: (parent: TLShape) => boolean
 	): TLShape | undefined {
-		const id = typeof shape === 'string' ? shape : shape.id
-		const freshShape = this.getShape(id)
-		if (!freshShape) return
-
-		const parentId = freshShape.parentId
-		if (isPageId(parentId)) return
-
-		const parent = this.getShape(parentId)
-		if (!parent) return
-		return predicate(parent) ? parent : this.findShapeAncestor(parent, predicate)
+		return this._shapesManager.findShapeAncestor(shape, predicate)
 	}
 
 	/**
@@ -3748,11 +3520,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean {
-		const id = typeof shape === 'string' ? shape : shape?.id
-		const freshShape = id && this.getShape(id)
-		if (!freshShape) return false
-		if (freshShape.parentId === ancestorId) return true
-		return this.hasAncestor(this.getShapeParent(freshShape), ancestorId)
+		return this._shapesManager.hasAncestor(shape, ancestorId)
 	}
 
 	/**
@@ -3765,35 +3533,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shapes: TLShape[] | TLShapeId[],
 		predicate?: (shape: TLShape) => boolean
 	): TLShapeId | undefined {
-		if (shapes.length === 0) {
-			return
-		}
-
-		const ids = toShapeIds(shapes)
-		const freshShapes = compact(ids.map((id) => this.getShape(id)))
-
-		if (freshShapes.length === 1) {
-			const parentId = freshShapes[0].parentId
-			if (isPageId(parentId)) {
-				return
-			}
-			return predicate ? this.findShapeAncestor(freshShapes[0], predicate)?.id : parentId
-		}
-
-		const [nodeA, ...others] = freshShapes
-		let ancestor = this.getShapeParent(nodeA)
-		while (ancestor) {
-			// TODO: this is not ideal, optimize
-			if (predicate && !predicate(ancestor)) {
-				ancestor = this.getShapeParent(ancestor)
-				continue
-			}
-			if (others.every((shape) => this.hasAncestor(shape, ancestor!.id))) {
-				return ancestor!.id
-			}
-			ancestor = this.getShapeParent(ancestor)
-		}
-		return undefined
+		return this._shapesManager.findCommonAncestor(shapes, predicate)
 	}
 
 	/**
@@ -3804,10 +3544,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
-		const _shape = shape && this.getShape(shape)
-		if (_shape === undefined) return false
-		if (_shape.isLocked) return true
-		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
+		return this._shapesManager.isShapeOrAncestorLocked(shape)
 	}
 
 	/**
@@ -3815,33 +3552,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed
 	getNotVisibleShapes() {
-		return this._notVisibleShapes.get()
+		return this._shapesManager.getNotVisibleShapes()
 	}
-
-	private _notVisibleShapes = notVisibleShapes(this)
-	private _culledShapesCache: Set<TLShapeId> | null = null
 
 	/**
 	 * Get culled shapes (those that should not render), taking into account which shapes are selected or editing.
 	 *
 	 * @public
 	 */
-	@computed
 	getCulledShapes() {
-		const notVisibleShapes = this.getNotVisibleShapes()
-		const selectedShapeIds = this.getSelectedShapeIds()
-		const editingId = this.getEditingShapeId()
-
-		const culled = getCulledShapeIds(
-			notVisibleShapes,
-			selectedShapeIds,
-			editingId,
-			this._culledShapesCache
-		)
-		this._culledShapesCache = culled
-		return culled
+		return this._shapesManager.getCulledShapes()
 	}
 
 	/**
@@ -3849,21 +3570,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getCurrentPageBounds(): Box | undefined {
-		let commonBounds: Box | undefined
-
-		this.getCurrentPageShapeIdsSorted().forEach((shapeId) => {
-			if (this.isShapeHidden(shapeId)) return
-			const bounds = this.getShapeMaskedPageBounds(shapeId)
-			if (!bounds) return
-			if (!commonBounds) {
-				commonBounds = bounds.clone()
-			} else {
-				commonBounds = commonBounds.expand(bounds)
-			}
-		})
-
-		return commonBounds
+	getCurrentPageBounds(): Box | undefined {
+		return this._shapesManager.getCurrentPageBounds()
 	}
 
 	/**
@@ -3876,10 +3584,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getHitTestMargin(): number {
-		const { hitTestMargin, coarseHitTestMargin } = this.options
-		const margin = this.getInstanceState().isCoarsePointer ? coarseHitTestMargin : hitTestMargin
-		return margin / this.getZoomLevel()
+	getHitTestMargin(): number {
+		return this._shapesManager.getHitTestMargin()
 	}
 
 	/** @internal */
@@ -3994,8 +3700,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec {
-		const id = typeof shape === 'string' ? shape : shape.id
-		return this._getShapePageTransformCache().get(id)!.clone().invert().applyToPoint(point)
+		return this._shapesManager.getPointInShapeSpace(shape, point)
 	}
 
 	/**
@@ -4012,12 +3717,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getPointInParentSpace(shape: TLShapeId | TLShape, point: VecLike): Vec {
-		const id = typeof shape === 'string' ? shape : shape.id
-		const freshShape = this.getShape(id)
-		if (!freshShape) return new Vec(0, 0)
-		if (isPageId(freshShape.parentId)) return Vec.From(point)
-
-		return this.getShapePageTransform(freshShape.parentId).clone().invert().applyToPoint(point)
+		return this._shapesManager.getPointInParentSpace(shape, point)
 	}
 
 	/**
@@ -4025,8 +3725,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getCurrentPageShapes(): TLShape[] {
-		return Array.from(this.getCurrentPageShapeIds(), (id) => this.store.get(id)! as TLShape)
+	getCurrentPageShapes(): TLShape[] {
+		return this._shapesManager.getCurrentPageShapes()
 	}
 
 	/**
@@ -4035,15 +3735,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getCurrentPageShapesSorted(): TLShape[] {
-		const result: TLShape[] = []
-		const topLevelShapes = this.getSortedChildIdsForParent(this.getCurrentPageId())
-
-		for (let i = 0, n = topLevelShapes.length; i < n; i++) {
-			pushShapeWithDescendants(this, topLevelShapes[i], result)
-		}
-
-		return result
+	getCurrentPageShapesSorted(): TLShape[] {
+		return this._shapesManager.getCurrentPageShapesSorted()
 	}
 
 	/**
@@ -4052,11 +3745,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
-		const culledShapes = this.getCulledShapes()
-		return this.getCurrentPageShapesSorted().filter(
-			({ id }) => !culledShapes.has(id) && !this.isShapeHidden(id)
-		)
+	getCurrentPageRenderingShapesSorted(): TLShape[] {
+		return this._shapesManager.getCurrentPageRenderingShapesSorted()
 	}
 
 	/**
@@ -4082,9 +3772,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	): shape is Extract<TLShape, { type: T['type'] }>
 	isShapeOfType<T extends TLShape = TLShape>(shapeId: TLShapeId, type: T['type']): boolean
 	isShapeOfType(arg: TLShape | TLShapeId, type: TLShape['type']) {
-		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
-		if (!shape) return false
-		return shape.type === type
+		return (this._shapesManager.isShapeOfType as any)(arg, type)
 	}
 
 	/**
@@ -4101,9 +3789,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isShapeFrameLike(shape: TLShape | TLShapeId): boolean {
-		const _shape = typeof shape === 'string' ? this.getShape(shape) : shape
-		if (!_shape) return false
-		return this.getShapeUtil(_shape).isFrameLike(_shape)
+		return this._shapesManager.isShapeFrameLike(shape)
 	}
 
 	/**
@@ -4119,9 +3805,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShape<T extends TLShape = TLShape>(shape: TLShape | TLParentId): T | undefined {
-		const id = typeof shape === 'string' ? shape : shape.id
-		if (!isShapeId(id)) return undefined
-		return this.store.get(id) as T
+		return this._shapesManager.getShape<T>(shape)
 	}
 
 	/**
@@ -4136,11 +3820,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined {
-		const id = typeof shape === 'string' ? shape : shape?.id
-		if (!id) return undefined
-		const freshShape = this.getShape(id)
-		if (freshShape === undefined || !isShapeId(freshShape.parentId)) return undefined
-		return this.getShape(freshShape.parentId)
+		return this._shapesManager.getShapeParent(shape)
 	}
 
 	/**
@@ -4154,19 +3834,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		siblingShape: TLShape,
 		targetShape: TLShape | undefined
 	): TLShape | undefined {
-		if (!targetShape) {
-			return undefined
-		}
-		if (targetShape.parentId === siblingShape.parentId) {
-			return targetShape
-		}
-
-		const ancestor = this.findShapeAncestor(
-			targetShape,
-			(ancestor) => ancestor.parentId === siblingShape.parentId
-		)
-
-		return ancestor
+		return this._shapesManager.getShapeNearestSibling(siblingShape, targetShape)
 	}
 
 	/**
@@ -4184,7 +3852,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isShapeInPage(shape: TLShape | TLShapeId, pageId = this.getCurrentPageId()): boolean {
-		return this.getAncestorPageId(shape) === pageId
+		return this._shapesManager.isShapeInPage(shape, pageId)
 	}
 
 	/**
@@ -4197,24 +3865,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined {
-		const id = typeof shape === 'string' ? shape : shape?.id
-		const _shape = id && this.getShape(id)
-		if (!_shape) return undefined
-		if (isPageId(_shape.parentId)) {
-			return _shape.parentId
-		} else {
-			return this.getAncestorPageId(this.getShape(_shape.parentId))
-		}
+		return this._shapesManager.getAncestorPageId(shape)
 	}
-
-	// Parents and children
-
-	/**
-	 * A cache of parents to children.
-	 *
-	 * @internal
-	 */
-	private readonly _parentIdsToChildIds: ReturnType<typeof parentsToChildren>
 
 	/**
 	 * Reparent shapes to a new parent. This operation preserves the shape's current page positions /
@@ -4234,90 +3886,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	reparentShapes(shapes: TLShapeId[] | TLShape[], parentId: TLParentId, insertIndex?: IndexKey) {
-		const ids = toShapeIds(shapes)
-		if (ids.length === 0) return this
-
-		const changes: TLShapePartial[] = []
-
-		const parentTransform = isPageId(parentId)
-			? Mat.Identity()
-			: this.getShapePageTransform(parentId)!
-
-		const parentPageRotation = parentTransform.rotation()
-
-		let indices: IndexKey[] = []
-
-		const sibs = compact(this.getSortedChildIdsForParent(parentId).map((id) => this.getShape(id)))
-
-		if (insertIndex) {
-			const sibWithInsertIndex = sibs.find((s) => s.index === insertIndex)
-			if (sibWithInsertIndex) {
-				// If there's a sibling with the same index as the insert index...
-				const sibAbove = sibs[sibs.indexOf(sibWithInsertIndex) + 1]
-				if (sibAbove) {
-					// If the sibling has a sibling above it, insert the shapes
-					// between the sibling and its sibling above it.
-					indices = getIndicesBetween(insertIndex, sibAbove.index, ids.length)
-				} else {
-					// Or if the sibling is the top sibling, insert the shapes
-					// above the sibling
-					indices = getIndicesAbove(insertIndex, ids.length)
-				}
-			} else {
-				// If there's no collision, then we can start at the insert index
-				const sibAbove = sibs.sort(sortByIndex).find((s) => s.index > insertIndex)
-
-				if (sibAbove) {
-					// If the siblings include a sibling with a higher index, insert the shapes
-					// between the insert index and the sibling with the higher index.
-					indices = getIndicesBetween(insertIndex, sibAbove.index, ids.length)
-				} else {
-					// Otherwise, we're at the top of the order, so insert the shapes above
-					// the insert index.
-					indices = getIndicesAbove(insertIndex, ids.length)
-				}
-			}
-		} else {
-			// If insert index is not specified, start the index at the top.
-			const sib = sibs.length && sibs[sibs.length - 1]
-			indices = sib ? getIndicesAbove(sib.index, ids.length) : getIndices(ids.length)
-		}
-
-		const invertedParentTransform = parentTransform.clone().invert()
-
-		const shapesToReparent = compact(ids.map((id) => this.getShape(id))).sort(sortByIndex)
-
-		// Ignore locked shapes so that we can reparent locked shapes, for example
-		// when a locked shape's parent is deleted.
-		this.run(
-			() => {
-				for (let i = 0; i < shapesToReparent.length; i++) {
-					const shape = shapesToReparent[i]
-
-					const pageTransform = this.getShapePageTransform(shape)
-					const newPoint = invertedParentTransform.applyToPoint(pageTransform.point())
-					const newRotation = pageTransform.rotation() - parentPageRotation
-
-					if (shape.id === parentId) {
-						throw Error('Attempted to reparent a shape to itself!')
-					}
-
-					changes.push({
-						id: shape.id,
-						type: shape.type,
-						parentId: parentId,
-						x: newPoint.x,
-						y: newPoint.y,
-						rotation: newRotation,
-						index: indices[i],
-					})
-				}
-
-				this.updateShapes(changes)
-			},
-			{ ignoreShapeLock: true }
-		)
-
+		this._shapesManager.reparentShapes(shapes, parentId, insertIndex)
 		return this
 	}
 
@@ -4331,14 +3900,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getHighestIndexForParent(parent: TLParentId | TLPage | TLShape): IndexKey {
-		const parentId = typeof parent === 'string' ? parent : parent.id
-		const children = this._parentIdsToChildIds.get()[parentId]
-
-		if (!children || children.length === 0) {
-			return getIndexAbove(ZERO_INDEX_KEY)
-		}
-		const shape = this.getShape(children[children.length - 1])!
-		return getIndexAbove(shape.index)
+		return this._shapesManager.getHighestIndexForParent(parent)
 	}
 
 	/**
@@ -4354,10 +3916,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getSortedChildIdsForParent(parent: TLParentId | TLPage | TLShape): TLShapeId[] {
-		const parentId = typeof parent === 'string' ? parent : parent.id
-		const ids = this._parentIdsToChildIds.get()[parentId]
-		if (!ids) return EMPTY_ARRAY
-		return ids
+		return this._shapesManager.getSortedChildIdsForParent(parent)
 	}
 
 	/**
@@ -4377,11 +3936,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		parent: TLParentId | TLPage | TLShape,
 		visitor: (id: TLShapeId) => void | false
 	): this {
-		const children = this.getSortedChildIdsForParent(parent)
-		for (const id of children) {
-			if (visitor(id) === false) continue
-			this.visitDescendants(id, visitor)
-		}
+		this._shapesManager.visitDescendants(parent, visitor)
 		return this
 	}
 
@@ -4395,14 +3950,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId> {
-		const shapeIds = new Set<TLShapeId>()
-		for (const shape of compact(ids.map((id) => this.getShape(id))).sort(sortByIndex)) {
-			shapeIds.add(shape.id)
-			this.visitDescendants(shape, (descendantId) => {
-				shapeIds.add(descendantId)
-			})
-		}
-		return shapeIds
+		return this._shapesManager.getShapeAndDescendantIds(ids)
 	}
 
 	/**
@@ -4435,28 +3983,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shape: TLShape | TLShapeId,
 		filter?: (shape: TLShape) => boolean
 	): TLShape {
-		const id = typeof shape === 'string' ? shape : shape.id
-		const freshShape = this.getShape(id)!
-		let match = freshShape
-		let node = freshShape as TLShape | undefined
-
-		const focusedGroup = this.getFocusedGroup()
-
-		while (node) {
-			if (
-				this.isShapeOfType(node, 'group') &&
-				focusedGroup?.id !== node.id &&
-				!this.hasAncestor(focusedGroup, node.id) &&
-				(filter?.(node) ?? true)
-			) {
-				match = node
-			} else if (focusedGroup?.id === node.id) {
-				break
-			}
-			node = this.getShapeParent(node)
-		}
-
-		return match
+		return this._shapesManager.getOutermostSelectableShape(shape, filter)
 	}
 
 	/* -------------------- Bindings -------------------- */

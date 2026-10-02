@@ -10,6 +10,7 @@ import { Awaitable } from '@tldraw/utils';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
+import { ComputedCache } from '@tldraw/store';
 import { CustomRecordInfo } from '@tldraw/tlschema';
 import { Dispatch } from 'react';
 import { Editor as Editor_2 } from '@tiptap/core';
@@ -1857,6 +1858,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     setTool(Tool: TLStateNodeConstructor, parent?: StateNode): void;
     // @internal (undocumented)
     readonly _shapeCommandsManager: ShapeCommandsManager;
+    // @internal (undocumented)
+    readonly _shapesManager: ShapesManager;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLShape>;
     };
@@ -3913,6 +3916,113 @@ export class ShapeCommandsManager extends EditorManager {
     updateShapes<T extends TLShape>(partials: (null | TLShapePartial<T> | undefined)[]): Editor;
     // (undocumented)
     _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
+}
+
+// @internal
+export class ShapesManager extends EditorManager {
+    // (undocumented)
+    _culledShapesCache: null | Set<TLShapeId>;
+    // (undocumented)
+    findCommonAncestor(shapes: TLShape[] | TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
+    // (undocumented)
+    findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
+    // (undocumented)
+    getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
+    // (undocumented)
+    getCulledShapes(): Set<TLShapeId>;
+    // (undocumented)
+    getCurrentPageBounds(): Box | undefined;
+    // (undocumented)
+    getCurrentPageRenderingShapesSorted(): TLShape[];
+    // (undocumented)
+    getCurrentPageShapes(): TLShape[];
+    // (undocumented)
+    getCurrentPageShapesSorted(): TLShape[];
+    // (undocumented)
+    getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): IndexKey;
+    // (undocumented)
+    getHitTestMargin(): number;
+    // (undocumented)
+    getNotVisibleShapes(): Set<TLShapeId>;
+    // (undocumented)
+    getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
+    // (undocumented)
+    getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
+    // (undocumented)
+    getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
+    // (undocumented)
+    getRenderingShapes(): TLRenderingShape[];
+    // (undocumented)
+    getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
+    // (undocumented)
+    getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
+    // (undocumented)
+    getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
+    // (undocumented)
+    getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
+    _getShapeClipPathCache(): ComputedCache<string, TLShape>;
+    // (undocumented)
+    getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T;
+    // (undocumented)
+    getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
+    // (undocumented)
+    _getShapeHandlesCache(): ComputedCache<TLHandle[] | undefined, TLShape>;
+    // (undocumented)
+    getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
+    // (undocumented)
+    getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
+    // (undocumented)
+    _getShapeMaskCache(): ComputedCache<Vec[], TLShape>;
+    // (undocumented)
+    getShapeMaskedPageBounds(shape: TLShape | TLShapeId): Box | undefined;
+    // (undocumented)
+    _getShapeMaskedPageBoundsCache(): ComputedCache<Box, TLShape>;
+    // (undocumented)
+    getShapeNearestSibling(siblingShape: TLShape, targetShape: TLShape | undefined): TLShape | undefined;
+    // (undocumented)
+    getShapePageBounds(shape: TLShape | TLShapeId): Box | undefined;
+    // (undocumented)
+    _getShapePageBoundsCache(): ComputedCache<Box, TLShape>;
+    // (undocumented)
+    getShapePageTransform(shape: TLShape | TLShapeId): Mat;
+    _getShapePageTransformCache(): ComputedCache<Mat, TLShape>;
+    // (undocumented)
+    getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;
+    // (undocumented)
+    getShapeParentTransform(shape: TLShape | TLShapeId): Mat;
+    // (undocumented)
+    getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
+    // (undocumented)
+    getUnorderedRenderingShapes(useEditorState: boolean): TLRenderingShape[];
+    // (undocumented)
+    hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
+    // (undocumented)
+    isShapeFrameLike(shape: TLShape | TLShapeId): boolean;
+    // (undocumented)
+    isShapeInPage(shape: TLShape | TLShapeId, pageId?: TLPageId): boolean;
+    // (undocumented)
+    isShapeOfType<K extends TLShape['type']>(shape: TLShape, type: K): shape is Extract<TLShape, {
+        type: K;
+    }>;
+    // (undocumented)
+    isShapeOfType<T extends TLShape>(shape: TLShape, type: T['type']): shape is Extract<TLShape, {
+        type: T['type'];
+    }>;
+    // (undocumented)
+    isShapeOfType<T extends TLShape = TLShape>(shapeId: TLShapeId, type: T['type']): boolean;
+    // (undocumented)
+    isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
+    // (undocumented)
+    _notVisibleShapes: Computed<Set<TLShapeId>, unknown>;
+    _parentIdsToChildIds: Computed<Record<TLParentId, TLShapeId[]>>;
+    // (undocumented)
+    _renderingShapesSortCache: Map<TLShapeId, number> | null;
+    // (undocumented)
+    reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): Editor;
+    // (undocumented)
+    _shapeGeometryCaches: Record<string, ComputedCache<Geometry2d, TLShape>>;
+    // (undocumented)
+    visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): Editor;
 }
 
 // @public (undocumented)
