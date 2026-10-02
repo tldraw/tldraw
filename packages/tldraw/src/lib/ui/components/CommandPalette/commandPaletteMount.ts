@@ -28,8 +28,9 @@ export function useCommandPaletteMountRegistration() {
 }
 
 // Opening the palette with nothing to render it leaves a menu marked open, which disables every
-// keyboard shortcut.
+// keyboard shortcut. Creates the count on first read, so a reactive caller (the open action's
+// isAvailable) subscribes before the palette mounts instead of reading a constant false.
 /** @internal */
 export function isCommandPaletteMounted(editor: Editor) {
-	return (mountCounts.get(editor)?.get() ?? 0) > 0
+	return getMountCount(editor).get() > 0
 }

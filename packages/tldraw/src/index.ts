@@ -385,6 +385,7 @@ export {
 	type CommandPalettePromptItemProps,
 } from './lib/ui/components/CommandPalette/CommandPalettePromptItem'
 export {
+	CommandPaletteActionGroup,
 	CommandPaletteArrangeGroup,
 	CommandPaletteEditGroup,
 	CommandPaletteExportGroup,
@@ -394,6 +395,7 @@ export {
 	CommandPaletteSelectionGroup,
 	CommandPaletteToolsGroup,
 	CommandPaletteViewGroup,
+	type TLUiCommandPaletteActionGroupProps,
 } from './lib/ui/components/CommandPalette/CommandPaletteGroups'
 export { getCommandPaletteMatchScore } from './lib/ui/components/CommandPalette/commandPaletteSearch'
 export { DefaultCommandPaletteContent } from './lib/ui/components/CommandPalette/DefaultCommandPaletteContent'

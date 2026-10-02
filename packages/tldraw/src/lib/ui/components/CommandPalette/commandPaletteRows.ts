@@ -14,6 +14,11 @@ export interface CommandPaletteRowOptions {
 	groupSubmenus: boolean
 }
 
+// Search lists disabled rows only with a reason, so it never shows a greyed row it can't explain.
+function explainable(entries: readonly CommandPaletteEntry[]) {
+	return entries.filter((entry) => !entry.disabled || !!entry.disabledReason)
+}
+
 function itemRow(entry: CommandPaletteEntry, label = entry.label): CommandPaletteRow {
 	return { type: 'item', key: `item:${entry.id}`, entry, label, recent: false }
 }
@@ -102,7 +107,7 @@ export function getCommandPaletteSearchRows(
 	recentIds: readonly string[],
 	{ groupSubmenus }: Pick<CommandPaletteRowOptions, 'groupSubmenus'>
 ): CommandPaletteRow[] {
-	const ranked = rankCommandPaletteEntries(entries, query, recentIds)
+	const ranked = rankCommandPaletteEntries(explainable(entries), query, recentIds)
 	if (!groupSubmenus) return ranked.map((entry) => itemRow(entry))
 
 	// An item stays a row when the query names it ("page 2", "move to page 2"); one found only
@@ -148,7 +153,7 @@ export function getCommandPaletteSubmenuRows(
 		}
 		return rows
 	}
-	const rankable = inSubmenu.map((entry) => ({
+	const rankable = explainable(inSubmenu).map((entry) => ({
 		id: entry.id,
 		label: entry.name,
 		path: [],

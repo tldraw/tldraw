@@ -1,5 +1,5 @@
 import { useActions } from '../../../context/actions'
-import { useActionState } from '../../../hooks/useActionState'
+import { useActionDisabledReason, useActionState } from '../../../hooks/useActionState'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 import { TldrawUiMenuItem, type TLUiMenuItemProps } from './TldrawUiMenuItem'
 
@@ -17,24 +17,30 @@ export function TldrawUiMenuActionItem({
 	actionId = '',
 	whenDisabled = 'disable',
 	disabled = false,
+	disabledReason,
 	...rest
 }: TLUiMenuActionItemProps) {
 	const actions = useActions()
 	const action = actions[actionId]
 	const { type: menuType } = useTldrawUiMenuContext()
 	const { visible, enabled } = useActionState(action)
+	const isDisabled = disabled || !enabled
+	// The palette has one rule instead of whenDisabled: a disabled row shows only with a reason.
+	const inPalette = menuType === 'command-palette'
+	const actionReason = useActionDisabledReason(action, inPalette && isDisabled && !disabledReason)
 	if (!action) return null
 	if (!visible) {
 		// The shortcuts dialog lists what a key does, even where the menu item wouldn't show.
 		if (menuType !== 'keyboard-shortcuts') return null
-	} else if ((disabled || !enabled) && whenDisabled === 'hide') {
+	} else if (isDisabled && whenDisabled === 'hide' && !inPalette) {
 		return null
 	}
 	return (
 		<TldrawUiMenuItem
 			{...(action as TLUiMenuItemProps)}
 			{...rest}
-			disabled={disabled || !enabled}
+			disabled={isDisabled}
+			disabledReason={disabledReason ?? actionReason}
 		/>
 	)
 }

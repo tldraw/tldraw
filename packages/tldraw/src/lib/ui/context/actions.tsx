@@ -67,6 +67,7 @@ import {
 	supportsDownloadingOriginal,
 } from './action-predicates'
 import { isActionRunnable } from './action-state'
+import { withCommandPaletteDefaults } from './command-palette-defaults'
 import { useTldrawUiComponents } from './components'
 import { TLUiEventSource, useUiEvents } from './events'
 
@@ -98,6 +99,18 @@ export interface TLUiActionItem<
 	isEnabled?(editor: Editor): boolean
 	/** For checkbox actions: whether the item shows as checked. Must be pure and read only editor state. */
 	isChecked?(editor: Editor): boolean
+	/**
+	 * Why the action can't run while `isEnabled` returns false, shown by the command palette. A
+	 * translation key, or a pure function of editor state for reasons that depend on it. Without
+	 * one, the palette leaves the action out while it's disabled rather than show a row it can't
+	 * explain.
+	 */
+	disabledReason?: TransationKey | ((editor: Editor) => TransationKey | undefined)
+	/**
+	 * Where the command palette lists the action. `false` leaves it out, `{ group }` lists it in the
+	 * `CommandPaletteActionGroup` with that group. Without it, the palette's catch-all group lists it.
+	 */
+	commandPalette?: false | { group?: string }
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
 
@@ -279,8 +292,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.open-command-palette',
 				kbd: 'cmd+k,ctrl+k',
 				readonlyOk: true,
+				isAvailable: isCommandPaletteMounted,
 				onSelect(source) {
-					if (!isCommandPaletteMounted(editor)) return
 					trackEvent('open-command-palette', { source })
 					editor.complete()
 					// DefaultPageMenu clears open menus on keydown while body is focused, closing the palette.
@@ -1880,7 +1893,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			})
 		}
 
-		const actions = makeActions(actionItems)
+		const actions = makeActions(withCommandPaletteDefaults(actionItems))
 		return gateActions(editor, overrides ? overrides(editor, actions, helpers) : actions)
 	}, [
 		helpers,

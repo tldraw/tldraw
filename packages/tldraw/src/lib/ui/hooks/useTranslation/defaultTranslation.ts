@@ -505,6 +505,11 @@ export const DEFAULT_TRANSLATION = {
 	'command-palette.reason.nothing-to-redo': 'Nothing to redo',
 	'command-palette.reason.page-empty': 'This page is empty',
 	'command-palette.reason.zoom-100': 'Already at 100%',
+	'command-palette.reason.select-tool': 'Switch to the select tool first',
+	'command-palette.reason.nothing-locked': 'Nothing is locked',
+	'command-palette.reason.mouse-input-only': 'Only with mouse input',
+	'command-palette.reason.group-bound-arrow': 'Also select the shapes the arrows connect',
+	'command-palette.reason.frame-empty': 'This frame is empty',
 	'vscode.file-open.desc':
 		'We’ve updated this document to work with the current version of tldraw. If you’d like to keep the original version (which will work on old.tldraw.com), click below to create a backup.',
 	'vscode.file-open.open': 'Continue',
