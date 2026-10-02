@@ -13,6 +13,7 @@ export class RichTextToolbar {
 			strike: this.page.getByTestId('rich-text.strike'),
 			link: this.page.getByTestId('rich-text.link'),
 			bulletList: this.page.getByTestId('rich-text.bulletList'),
+			taskList: this.page.getByTestId('rich-text.taskList'),
 			highlight: this.page.getByTestId('rich-text.highlight'),
 			linkRemove: this.page.getByTestId('rich-text.link-remove'),
 			heading: this.page.getByTestId('rich-text.heading'),

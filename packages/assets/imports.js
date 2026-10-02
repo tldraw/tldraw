@@ -253,6 +253,7 @@ export function getAssetUrlsByImport(opts) {
 			'stretch-horizontal': iconsIcon0MergedSvg2 + '#stretch-horizontal',
 			'stretch-vertical': iconsIcon0MergedSvg2 + '#stretch-vertical',
 			strike: iconsIcon0MergedSvg2 + '#strike',
+			taskList: iconsIcon0MergedSvg2 + '#taskList',
 			'text-align-center': iconsIcon0MergedSvg2 + '#text-align-center',
 			'text-align-left': iconsIcon0MergedSvg2 + '#text-align-left',
 			'text-align-right': iconsIcon0MergedSvg2 + '#text-align-right',

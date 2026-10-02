@@ -116,6 +116,31 @@ export const manCropAsCircle: TLShapeCrop = {
 	bottomRight: { x: 0.75, y: 0.3 },
 	isCircle: true,
 }
+export const taskList = {
+	type: 'doc',
+	content: [
+		{
+			type: 'taskList',
+			attrs: { dir: 'auto' },
+			content: [
+				['done, and struck through', true],
+				['still to do', false],
+				['a long one that wraps onto a second line', true],
+			].map(([text, checked]) => ({
+				type: 'taskItem',
+				attrs: { dir: 'auto', checked },
+				content: [
+					{
+						type: 'paragraph',
+						attrs: { dir: 'auto' },
+						content: [{ type: 'text', text }],
+					},
+				],
+			})),
+		},
+	],
+}
+
 export const richText = {
 	type: 'doc',
 	content: [

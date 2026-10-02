@@ -292,6 +292,8 @@ export type TLUiTranslationKey =
 	| 'tool.rich-text-bulletList'
 	| 'tool.rich-text-toolbar-title'
 	| 'tool.rich-text-orderedList'
+	| 'tool.rich-text-taskList'
+	| 'tool.rich-text-taskItem-toggle'
 	| 'tool.bookmark'
 	| 'a11y.status'
 	| 'a11y.skip-to-main-content'

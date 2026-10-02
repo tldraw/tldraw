@@ -32,7 +32,8 @@ describe('re-exported TipTap surface', () => {
 		).toBe('<p dir="auto"><span class="wavy">hi</span></p>')
 	})
 
-	it('adds task lists to tldraw defaults', () => {
+	it('re-exports the same TaskList and TaskItem the defaults are built from', () => {
+		// Re-adding them shouldn't fork the schema: two copies of a node under one name throws.
 		const schema = getSchema([...tipTapDefaultExtensions, TaskList, TaskItem])
 		expect(schema.nodes.taskList).toBeTruthy()
 		expect(schema.nodes.taskItem).toBeTruthy()

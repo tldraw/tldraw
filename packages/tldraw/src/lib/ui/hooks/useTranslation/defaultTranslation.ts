@@ -293,6 +293,8 @@ export const DEFAULT_TRANSLATION = {
 	'tool.rich-text-bulletList': 'Bulleted list',
 	'tool.rich-text-toolbar-title': 'Text formatting',
 	'tool.rich-text-orderedList': 'Ordered list',
+	'tool.rich-text-taskList': 'Task list',
+	'tool.rich-text-taskItem-toggle': 'Tick task item',
 	'tool.bookmark': 'Bookmark',
 	'a11y.status': 'Status',
 	'a11y.skip-to-main-content': 'Move focus to canvas',
