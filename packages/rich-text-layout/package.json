@@ -47,7 +47,9 @@
 		"pack-tarball": "pnpm pack",
 		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
 		"build-types": "tsc --build",
-		"golden": "pnpm exec tsx ./golden/run.ts"
+		"golden": "pnpm exec tsx ./golden/run.ts",
+		"golden:boards": "pnpm exec tsx ./golden/boards-run.ts",
+		"golden:fuzz": "pnpm exec tsx ./golden/fuzz.ts"
 	},
 	"dependencies": {
 		"@chenglou/pretext": "0.0.8",
@@ -65,6 +67,8 @@
 		"@napi-rs/canvas": "^0.1.65",
 		"@playwright/test": "^1.61.0",
 		"@resvg/resvg-js": "^2.6.2",
+		"esbuild": "^0.28.0",
+		"fast-check": "^4.10.2",
 		"jsdom": "^29.1.1",
 		"lazyrepo": "0.0.0-alpha.27",
 		"vitest": "^5.0.0",

@@ -40,7 +40,8 @@ const supportedMarks = new Set([
 	'superscript',
 ])
 
-function supportsRichText(node: JSONContent): boolean {
+/** @internal */
+export function supportsRichText(node: JSONContent): boolean {
 	if (!supportedNodes.has(node.type ?? '') || (node.text && needsDomShaping.test(node.text)))
 		return false
 	if (node.attrs?.dir === 'rtl') return false
