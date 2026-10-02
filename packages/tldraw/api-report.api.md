@@ -4307,10 +4307,10 @@ export const TldrawUiInput: React_2.ForwardRefExoticComponent<TLUiInputProps & R
 export function TldrawUiKbd({ children, visibleOnMobileLayout }: TLUiKbdProps): JSX.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuActionCheckboxItem({ actionId, ...rest }: TLUiMenuActionCheckboxItemProps): JSX.Element | null;
+export function TldrawUiMenuActionCheckboxItem({ actionId, whenDisabled, disabled, checked, ...rest }: TLUiMenuActionCheckboxItemProps): JSX.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuActionItem({ actionId, ...rest }: TLUiMenuActionItemProps): JSX.Element | null;
+export function TldrawUiMenuActionItem({ actionId, whenDisabled, disabled, ...rest }: TLUiMenuActionItemProps): JSX.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, lang, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX.Element | null;
@@ -4623,6 +4623,8 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     icon?: IconType | React_2.ReactElement;
     // (undocumented)
     id: string;
+    isChecked?(editor: Editor): boolean;
+    isEnabled?(editor: Editor): boolean;
     // (undocumented)
     isRequiredA11yAction?: boolean;
     // (undocumented)
@@ -5388,11 +5390,13 @@ export interface TLUiMainMenuProps {
 
 // @public (undocumented)
 export type TLUiMenuActionCheckboxItemProps = {
+    whenDisabled?: 'disable' | 'hide';
     actionId?: string;
 } & Pick<TLUiMenuCheckboxItemProps, 'checked' | 'disabled' | 'toggle'>;
 
 // @public (undocumented)
 export type TLUiMenuActionItemProps = {
+    whenDisabled?: 'disable' | 'hide';
     actionId?: string;
 } & Partial<Pick<TLUiMenuItemProps, 'disabled' | 'isSelected' | 'noClose' | 'onSelect'>>;
 
@@ -6573,6 +6577,9 @@ export function useSelectedShapesAnnouncer(): void;
 
 // @public (undocumented)
 export function useShowCollaborationUi(): boolean;
+
+// @public
+export function useSomeActionsEnabled(actionIds: readonly string[]): boolean;
 
 // @public (undocumented)
 export function useStylePanelContext(): StylePanelContext;

@@ -55,6 +55,13 @@ export interface TLUiActionItem<
 	readonlyOk?: boolean
 	checkbox?: boolean
 	isRequiredA11yAction?: boolean
+	/**
+	 * Whether the action can run now. Menus disable or hide the item when it returns false;
+	 * keyboard shortcuts ignore it. Must be pure: it runs reactively on every render.
+	 */
+	isEnabled?(editor: Editor): boolean
+	/** For checkbox actions: whether the item shows as checked. Must be pure. */
+	isChecked?(editor: Editor): boolean
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
 
