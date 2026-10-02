@@ -33,14 +33,26 @@ export async function fetchTranslation(
 	locale: TLUiTranslation['locale'],
 	assetUrls: TLUiAssetUrls
 ): Promise<TLUiTranslation> {
+	if (locale === 'en') {
+		return EN_TRANSLATION
+	}
+
+	try {
+		return await fetchLocaleTranslation(locale, assetUrls)
+	} catch (error) {
+		console.warn(`Could not load translations for locale ${locale}.`, error)
+		return EN_TRANSLATION
+	}
+}
+
+async function fetchLocaleTranslation(
+	locale: TLUiTranslation['locale'],
+	assetUrls: TLUiAssetUrls
+): Promise<TLUiTranslation> {
 	const mainRes = await fetch(assetUrls.translations.en)
 
 	if (!mainRes.ok) {
 		console.warn(`No main translations found.`)
-		return EN_TRANSLATION
-	}
-
-	if (locale === 'en') {
 		return EN_TRANSLATION
 	}
 
