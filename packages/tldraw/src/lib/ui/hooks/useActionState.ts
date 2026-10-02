@@ -28,26 +28,31 @@ export function getActionState(
 ): TLUiActionState {
 	if (!action) return MISSING
 	if (!editor) return NO_EDITOR
+	return readActionState(editor, action)
+}
+
+function readActionState(editor: Editor, action: TLUiActionItem): TLUiActionState {
 	// These run from always-mounted menus, so a throw would take down the whole editor rather than
-	// one menu item. Each predicate falls back on its own, so one throwing can't undo another.
+	// one menu item. A throw disables the item instead, without hiding an action that's unavailable.
+	let threw = false
+	function tryPredicate<T>(run: () => T, fallback: T): T {
+		try {
+			return run()
+		} catch (error) {
+			threw = true
+			reportThrowingAction(action, error)
+			return fallback
+		}
+	}
 	const visible = tryPredicate(
-		action,
 		() => isActionVisible(editor, action),
 		!editor.getIsReadonly() || !!action.readonlyOk
 	)
+	const enabled = visible && tryPredicate(() => isActionEnabled(editor, action), false)
 	return {
 		visible,
-		enabled: visible && tryPredicate(action, () => isActionEnabled(editor, action), false),
-		checked: tryPredicate(action, () => action.isChecked?.(editor), undefined),
-	}
-}
-
-function tryPredicate<T>(action: TLUiActionItem, run: () => T, fallback: T): T {
-	try {
-		return run()
-	} catch (error) {
-		reportThrowingAction(action, error)
-		return fallback
+		enabled: enabled && !threw,
+		checked: tryPredicate(() => action.isChecked?.(editor), undefined),
 	}
 }
 

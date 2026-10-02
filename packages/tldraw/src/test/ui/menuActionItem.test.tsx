@@ -8,6 +8,7 @@ import { TldrawUiMenuActionCheckboxItem } from '../../lib/ui/components/primitiv
 import { TldrawUiMenuActionItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuContextProvider } from '../../lib/ui/components/primitives/menus/TldrawUiMenuContext'
 import { TldrawUiToolbar } from '../../lib/ui/components/primitives/TldrawUiToolbar'
+import { TLUiActionItem } from '../../lib/ui/context/actions'
 import { useSomeActionsEnabled } from '../../lib/ui/hooks/useActionState'
 import { TLUiOverrides } from '../../lib/ui/overrides'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
@@ -430,6 +431,53 @@ describe('a predicate that throws', () => {
 		expect(button('throws')!.disabled).toBe(true)
 		expect(screen.queryAllByTestId('canvas').length).toBeGreaterThan(0)
 		expect(error.mock.calls.filter(([msg]) => String(msg).includes('"throws"'))).toHaveLength(1)
+		error.mockRestore()
+	})
+
+	async function renderThrowing(action: Partial<TLUiActionItem>) {
+		await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<Tldraw
+					onMount={onMount}
+					components={{ QuickActions: null }}
+					overrides={{
+						actions(_editor, actions) {
+							actions['throwing'] = {
+								id: 'throwing',
+								label: 'action.group',
+								icon: 'group',
+								onSelect() {},
+								...action,
+							}
+							return actions
+						},
+					}}
+				>
+					<TldrawUiToolbar label="test">
+						<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
+							<TldrawUiMenuActionItem actionId="throwing" />
+							<SomeEnabled ids={['throwing']} />
+						</TldrawUiMenuContextProvider>
+					</TldrawUiToolbar>
+				</Tldraw>
+			),
+			{ waitForPatterns: false }
+		)
+		return {
+			disabled: button('throwing')?.disabled,
+			someEnabled: screen.getByTestId('some').textContent,
+		}
+	}
+
+	it('disables an item whose isAvailable throws', async () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const thrower = () => {
+			throw new Error('boom')
+		}
+		expect(await renderThrowing({ isAvailable: thrower })).toEqual({
+			disabled: true,
+			someEnabled: 'false',
+		})
 		error.mockRestore()
 	})
 })
