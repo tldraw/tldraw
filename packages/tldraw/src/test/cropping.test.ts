@@ -1,6 +1,17 @@
-import { createShapeId, TLImageShape, TLSelectionHandle, TLShape } from '@tldraw/editor'
+import {
+	createShapeId,
+	MediaHelpers,
+	TldrawOptions,
+	TLExternalContent,
+	TLImageShape,
+	TLSelectionHandle,
+	TLShape,
+} from '@tldraw/editor'
 import { vi } from 'vitest'
+import { defaultAssetUtils } from '../lib/defaultAssetUtils'
+import { registerDefaultExternalContentHandlers } from '../lib/defaultExternalContentHandlers'
 import { MIN_CROP_SIZE } from '../lib/shapes/shared/crop'
+import { pasteFiles } from '../lib/ui/hooks/clipboard/pasteFiles'
 import { defaultHandleOverlays, TestEditor } from './TestEditor'
 
 vi.useFakeTimers()
@@ -1388,6 +1399,133 @@ describe('When cropping with modifiers and snapping...', () => {
 
 		editor.pointerUp()
 		expect(editor.snaps.getIndicators().length).toBe(0)
+	})
+})
+
+describe('Pasting an image while cropping', () => {
+	function makeImageFile() {
+		return new File(['fake'], 'pasted.png', { type: 'image/png' })
+	}
+
+	it('replaces the cropping image in place without creating a new shape', async () => {
+		const replaceSpy = vi.spyOn(editor, 'replaceExternalContent').mockResolvedValue()
+		const putSpy = vi.spyOn(editor, 'putExternalContent').mockResolvedValue()
+
+		editor.select(ids.imageA)
+		editor.setCroppingShape(ids.imageA)
+		expect(editor.getCroppingShapeId()).toBe(ids.imageA)
+
+		const shapeCountBefore = editor.getCurrentPageShapes().length
+		await pasteFiles(editor, [makeImageFile()])
+
+		expect(replaceSpy).toHaveBeenCalledTimes(1)
+		expect(replaceSpy.mock.calls[0][0]).toMatchObject({
+			type: 'file-replace',
+			shapeId: ids.imageA,
+		})
+		expect(putSpy).not.toHaveBeenCalled()
+		// No new shape is created and we stay in crop mode on the same shape.
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCountBefore)
+		expect(editor.getCroppingShapeId()).toBe(ids.imageA)
+	})
+
+	it('does a normal paste when not cropping', async () => {
+		const replaceSpy = vi.spyOn(editor, 'replaceExternalContent').mockResolvedValue()
+		const putSpy = vi.spyOn(editor, 'putExternalContent').mockResolvedValue()
+
+		expect(editor.getCroppingShapeId()).toBe(null)
+		await pasteFiles(editor, [makeImageFile()])
+
+		expect(replaceSpy).not.toHaveBeenCalled()
+		expect(putSpy).toHaveBeenCalledTimes(1)
+		expect(putSpy.mock.calls[0][0]).toMatchObject({ type: 'files' })
+	})
+
+	it('does a normal paste when multiple images are pasted while cropping', async () => {
+		const replaceSpy = vi.spyOn(editor, 'replaceExternalContent').mockResolvedValue()
+		const putSpy = vi.spyOn(editor, 'putExternalContent').mockResolvedValue()
+
+		editor.setCroppingShape(ids.imageA)
+		await pasteFiles(editor, [makeImageFile(), makeImageFile()])
+
+		expect(replaceSpy).not.toHaveBeenCalled()
+		expect(putSpy).toHaveBeenCalledTimes(1)
+		expect(putSpy.mock.calls[0][0]).toMatchObject({ type: 'files' })
+	})
+
+	it('does a normal paste when a non-image file is pasted while cropping', async () => {
+		const replaceSpy = vi.spyOn(editor, 'replaceExternalContent').mockResolvedValue()
+		const putSpy = vi.spyOn(editor, 'putExternalContent').mockResolvedValue()
+
+		editor.setCroppingShape(ids.imageA)
+		await pasteFiles(editor, [new File(['fake'], 'clip.mp4', { type: 'video/mp4' })])
+
+		expect(replaceSpy).not.toHaveBeenCalled()
+		expect(putSpy).toHaveBeenCalledTimes(1)
+		expect(putSpy.mock.calls[0][0]).toMatchObject({ type: 'files' })
+	})
+
+	function makeCroppingEditor(
+		onBeforePasteFromClipboard: NonNullable<TldrawOptions['onBeforePasteFromClipboard']>
+	) {
+		editor.dispose()
+		editor = new TestEditor({ options: { onBeforePasteFromClipboard } })
+		editor.createShapes([{ id: ids.imageA, type: 'image', x: 100, y: 100, props: imageProps }])
+		editor.select(ids.imageA)
+		editor.setCroppingShape(ids.imageA)
+	}
+
+	it('does not replace the image when onBeforePasteFromClipboard cancels the paste', async () => {
+		makeCroppingEditor(() => false)
+		const replaceSpy = vi.spyOn(editor, 'replaceExternalContent').mockResolvedValue()
+		const putSpy = vi.spyOn(editor, 'putExternalContent').mockResolvedValue()
+
+		await pasteFiles(editor, [makeImageFile()])
+
+		expect(replaceSpy).not.toHaveBeenCalled()
+		expect(putSpy).not.toHaveBeenCalled()
+	})
+
+	it('replaces the image with the file returned by onBeforePasteFromClipboard', async () => {
+		const swapped = new File(['other'], 'swapped.png', { type: 'image/png' })
+		makeCroppingEditor(
+			({ content }) => ({ ...content, files: [swapped] }) as TLExternalContent<unknown>
+		)
+		const replaceSpy = vi.spyOn(editor, 'replaceExternalContent').mockResolvedValue()
+
+		await pasteFiles(editor, [makeImageFile()])
+
+		expect(replaceSpy).toHaveBeenCalledTimes(1)
+		expect(replaceSpy.mock.calls[0][0]).toMatchObject({ type: 'file-replace', file: swapped })
+	})
+
+	it('swaps the asset and keeps the crop and crop mode with the real replace handler', async () => {
+		editor.dispose()
+		editor = new TestEditor({ assetUtils: defaultAssetUtils, overlayUtils: defaultHandleOverlays })
+		registerDefaultExternalContentHandlers(editor, {
+			toasts: { addToast: vi.fn() } as any,
+			msg: ((key: string) => key) as any,
+		})
+		vi.spyOn(MediaHelpers, 'isAnimated').mockResolvedValue(false)
+		vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 1200, h: 800, pixelRatio: 1 })
+		vi.spyOn(editor, 'createTemporaryAssetPreview').mockReturnValue(undefined)
+
+		const crop = { topLeft: { x: 0.25, y: 0.25 }, bottomRight: { x: 0.75, y: 0.75 } }
+		editor.createShapes([
+			{ id: ids.imageA, type: 'image', x: 100, y: 100, props: { ...imageProps, crop } },
+		])
+		editor.select(ids.imageA)
+		editor.setCroppingShape(ids.imageA)
+		editor.setCurrentTool('select.crop.idle')
+
+		await pasteFiles(editor, [makeImageFile()])
+
+		const shape = editor.getShape<TLImageShape>(ids.imageA)!
+		expect(editor.getAsset(shape.props.assetId!)).toMatchObject({ type: 'image' })
+		expect(shape.props.crop).toEqual(crop)
+		expect(editor.getCurrentPageShapes()).toHaveLength(1)
+		expect(editor.getCroppingShapeId()).toBe(ids.imageA)
+		expect(editor.isIn('select.crop.idle')).toBe(true)
 	})
 })
 
