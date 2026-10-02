@@ -5,6 +5,7 @@ import { unwrapLabel } from '../../../context/actions'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { CommandPalettePathProvider } from '../../CommandPalette/CommandPaletteContext'
 import { TldrawUiButton } from '../Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../Button/TldrawUiButtonLabel'
@@ -82,6 +83,14 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 						</_ContextMenu.ContextMenuSubContent>
 					</_ContextMenu.ContextMenuPortal>
 				</ContextMenuSubWithMenu>
+			)
+		}
+		case 'command-palette': {
+			if (disabled) return null
+			return (
+				<CommandPalettePathProvider label={labelStr} submenuId={id}>
+					{children}
+				</CommandPalettePathProvider>
 			)
 		}
 		default: {

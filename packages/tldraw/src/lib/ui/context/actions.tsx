@@ -29,6 +29,10 @@ import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
+import {
+	COMMAND_PALETTE_MENU_ID,
+	isCommandPaletteMounted,
+} from '../components/CommandPalette/commandPaletteMount'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
@@ -268,6 +272,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!KeyboardShortcutsDialog) return
 					trackEvent('open-kbd-shortcuts', { source })
 					helpers.addDialog({ component: KeyboardShortcutsDialog })
+				},
+			},
+			{
+				id: 'open-command-palette',
+				label: 'action.open-command-palette',
+				kbd: 'cmd+k,ctrl+k',
+				readonlyOk: true,
+				onSelect(source) {
+					if (!isCommandPaletteMounted(editor)) return
+					trackEvent('open-command-palette', { source })
+					editor.complete()
+					// DefaultPageMenu clears open menus on keydown while body is focused, closing the palette.
+					const doc = editor.getContainerDocument()
+					if (doc.activeElement === doc.body) editor.getContainer().focus()
+					editor.menus.addOpenMenu(COMMAND_PALETTE_MENU_ID)
 				},
 			},
 			{

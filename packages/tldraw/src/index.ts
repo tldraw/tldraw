@@ -322,6 +322,10 @@ export {
 	type TLUiActionsMenuProps,
 } from './lib/ui/components/ActionsMenu/DefaultActionsMenu'
 export {
+	DefaultCommandPalette,
+	type TLUiCommandPaletteProps,
+} from './lib/ui/components/CommandPalette/DefaultCommandPalette'
+export {
 	AlignMenuItems,
 	DefaultActionsMenuContent,
 	DistributeMenuItems,
@@ -369,6 +373,30 @@ export {
 	DefaultKeyboardShortcutsDialog,
 	type TLUiKeyboardShortcutsDialogProps,
 } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
+export { CommandPaletteMenuItem } from './lib/ui/components/CommandPalette/CommandPaletteMenuItem'
+export { useCommandPaletteQuery } from './lib/ui/components/CommandPalette/CommandPaletteContext'
+export {
+	commandPaletteFlags,
+	type CommandPaletteFlags,
+	type CommandPalettePosition,
+} from './lib/ui/components/CommandPalette/commandPaletteFlags'
+export {
+	CommandPalettePromptItem,
+	type CommandPalettePromptItemProps,
+} from './lib/ui/components/CommandPalette/CommandPalettePromptItem'
+export {
+	CommandPaletteArrangeGroup,
+	CommandPaletteEditGroup,
+	CommandPaletteExportGroup,
+	CommandPaletteHelpGroup,
+	CommandPalettePagesGroup,
+	CommandPalettePreferencesGroup,
+	CommandPaletteSelectionGroup,
+	CommandPaletteToolsGroup,
+	CommandPaletteViewGroup,
+} from './lib/ui/components/CommandPalette/CommandPaletteGroups'
+export { getCommandPaletteMatchScore } from './lib/ui/components/CommandPalette/commandPaletteSearch'
+export { DefaultCommandPaletteContent } from './lib/ui/components/CommandPalette/DefaultCommandPaletteContent'
 export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 export { LanguageMenu } from './lib/ui/components/LanguageMenu'
 export { InputModeMenu } from './lib/ui/components/InputModeMenu'

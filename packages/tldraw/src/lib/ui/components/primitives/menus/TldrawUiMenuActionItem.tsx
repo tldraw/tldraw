@@ -8,7 +8,9 @@ export type TLUiMenuActionItemProps = {
 	actionId?: string
 	/** What to do when the item is disabled, by `disabled` or the action's `isEnabled`. Defaults to `'disable'`. */
 	whenDisabled?: 'hide' | 'disable'
-} & Partial<Pick<TLUiMenuItemProps, 'disabled' | 'isSelected' | 'noClose' | 'onSelect'>>
+} & Partial<
+	Pick<TLUiMenuItemProps, 'disabled' | 'disabledReason' | 'isSelected' | 'noClose' | 'onSelect'>
+>
 
 /** @public @react */
 export function TldrawUiMenuActionItem({

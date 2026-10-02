@@ -3,6 +3,7 @@ import { ReactNode } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { CommandPalettePathProvider } from '../../CommandPalette/CommandPaletteContext'
 import { TldrawUiColumn, TldrawUiGrid, TldrawUiRow, useTldrawUiOrientation } from '../layout'
 import { TldrawUiDropdownMenuGroup } from '../TldrawUiDropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
@@ -65,6 +66,15 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 				<TldrawUiGrid className="tlui-main-toolbar__group" data-testid={testId}>
 					{children}
 				</TldrawUiGrid>
+			)
+		}
+		case 'command-palette': {
+			// Labelled groups only add to the search path (e.g. a file's workspace); unlabelled ones are
+			// the visual groups menus draw separators between.
+			return (
+				<CommandPalettePathProvider label={labelStr} sectionId={labelStr ? undefined : id}>
+					{children}
+				</CommandPalettePathProvider>
 			)
 		}
 		default: {
