@@ -131,13 +131,7 @@ import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { Mat, MatLike } from '../primitives/Mat'
-import {
-	HALF_PI,
-	approximately,
-	areAnglesCompatible,
-	clamp,
-	pointInPolygon,
-} from '../primitives/utils'
+import { approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { Vec, VecLike } from '../primitives/Vec'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
@@ -218,12 +212,14 @@ import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import { OverlayManager } from './overlays/OverlayManager'
 import { TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
+import { getPasteParentId } from './queries/pasteParent'
+import { getUnorderedRenderingShapes } from './queries/renderingShapes'
+import { getShapeClusters } from './queries/shapeClusters'
 import {
 	ShapeUtil,
 	TLEditStartInfo,
 	TLGeometryOpts,
 	TLResizeMode,
-	TLShapeUtilCanBeLaidOutOpts,
 	TLShapeUtilCanBindOpts,
 } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
@@ -4447,88 +4443,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// which should work even when things are for example off-screen.
 		useEditorState: boolean
 	): TLRenderingShape[] {
-		// Here we get the shape as well as any of its children, as well as their
-		// opacities. If the shape is being erased, and none of its ancestors are
-		// being erased, then we reduce the opacity of the shape and all of its
-		// ancestors; but we don't apply this effect more than once among a set
-		// of descendants so that it does not compound.
-
-		// This is designed to keep all the shapes in a single list which
-		// allows the DOM nodes to be reused even when they become children
-		// of other nodes.
-
-		const renderingShapes: TLRenderingShape[] = []
-
-		let nextIndex = this.options.maxShapesPerPage * 2
-		let nextBackgroundIndex = this.options.maxShapesPerPage
-
-		const erasingShapeIds = new Set(this.getErasingShapeIds())
-
-		const addShapeById = (id: TLShapeId, opacity: number, isAncestorErasing: boolean) => {
-			const shape = this.getShape(id)
-			if (!shape) return
-
-			if (this.isShapeHidden(shape)) {
-				// process children just in case they are overriding the hidden state
-				const isErasing = isAncestorErasing || erasingShapeIds.has(id)
-				for (const childId of this.getSortedChildIdsForParent(id)) {
-					addShapeById(childId, opacity, isErasing)
-				}
-				return
-			}
-
-			opacity *= shape.opacity
-			let isShapeErasing = false
-			const util = this.getShapeUtil(shape)
-
-			if (useEditorState) {
-				isShapeErasing = !isAncestorErasing && erasingShapeIds.has(id)
-				if (isShapeErasing) {
-					opacity *= 0.32
-				}
-			}
-
-			renderingShapes.push({
-				id,
-				shape,
-				util,
-				index: nextIndex,
-				backgroundIndex: nextBackgroundIndex,
-				opacity,
-			})
-
-			nextIndex += 1
-			nextBackgroundIndex += 1
-
-			const childIds = this.getSortedChildIdsForParent(id)
-			if (!childIds.length) return
-
-			let backgroundIndexToRestore = null
-			if (util.providesBackgroundForChildren(shape)) {
-				backgroundIndexToRestore = nextBackgroundIndex
-				nextBackgroundIndex = nextIndex
-				nextIndex += this.options.maxShapesPerPage
-			}
-
-			for (const childId of childIds) {
-				addShapeById(childId, opacity, isAncestorErasing || isShapeErasing)
-			}
-
-			if (backgroundIndexToRestore !== null) {
-				nextBackgroundIndex = backgroundIndexToRestore
-			}
-		}
-
-		// If we're using editor state, then we're only interested in on-screen shapes.
-		// If we're not using the editor state, then we're interested in ALL shapes, even those from other pages.
-		const pages = useEditorState ? [this.getCurrentPage()] : this.getPages()
-		for (const page of pages) {
-			for (const childId of this.getSortedChildIdsForParent(page.id)) {
-				addShapeById(childId, 1, false)
-			}
-		}
-
-		return renderingShapes
+		return getUnorderedRenderingShapes(this, useEditorState)
 	}
 
 	// Camera state
@@ -7126,101 +7041,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
-	private getShapeClusters(
-		shapes: TLShapeId[] | TLShape[],
-		type: TLShapeUtilCanBeLaidOutOpts['type'],
-		opts?: { filterAxisAligned?: boolean }
-	): { clusters: { shapes: TLShape[]; pageBounds: Box }[] } {
-		const ids = toShapeIds(shapes)
-
-		// always fresh shapes
-		let freshShapes = compact(ids.map((id) => this.getShape(id)))
-
-		// optionally filter to axis-aligned shapes (rotation is a multiple of 90 degrees)
-		if (opts?.filterAxisAligned) {
-			freshShapes = freshShapes.filter((s) => {
-				// Page rotations come back through atan2 on a composed matrix, so a 270° shape can land
-				// a hair either side of the multiple; an exact === 0 check drops it
-				const remainder = Math.abs(this.getShapePageTransform(s).rotation() % HALF_PI)
-				return Math.min(remainder, HALF_PI - remainder) < 1e-9
-			})
-		}
-
-		const clusters: { shapes: TLShape[]; pageBounds: Box }[] = []
-		const visited = new Set<TLShapeId>()
-
-		for (const shape of freshShapes) {
-			if (visited.has(shape.id)) continue
-			visited.add(shape.id)
-
-			const shapePageBounds = this.getShapePageBounds(shape)
-			if (!shapePageBounds) continue
-
-			if (
-				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
-					type,
-					shapes: freshShapes,
-				})
-			) {
-				continue
-			}
-
-			const shapesMovingTogether = [shape]
-			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
-
-			// Seed with bindings in both directions, otherwise an arrow visited before the shapes it
-			// binds ends up in a cluster of its own and the result depends on input order
-			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsInvolvingShape(shape.id, 'arrow'),
-				initialShapes: freshShapes,
-				resultShapes: shapesMovingTogether,
-				resultBounds: boundsOfShapesMovingTogether,
-				visited,
-			})
-
-			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
-			if (!commonPageBounds) continue
-
-			clusters.push({
-				shapes: shapesMovingTogether,
-				pageBounds: commonPageBounds,
-			})
-		}
-
-		return { clusters }
-	}
-
-	/**
-	 * @internal
-	 */
-	private collectShapesViaArrowBindings(info: {
-		initialShapes: TLShape[]
-		resultShapes: TLShape[]
-		resultBounds: Box[]
-		bindings: TLBinding[]
-		visited: Set<TLShapeId>
-	}) {
-		const { initialShapes, resultShapes, resultBounds, bindings, visited } = info
-		for (const binding of bindings) {
-			for (const id of [binding.fromId, binding.toId]) {
-				if (!visited.has(id)) {
-					const aligningShape = initialShapes.find((s) => s.id === id)
-					if (aligningShape && !visited.has(aligningShape.id)) {
-						visited.add(aligningShape.id)
-						const shapePageBounds = this.getShapePageBounds(aligningShape)
-						if (!shapePageBounds) continue
-						resultShapes.push(aligningShape)
-						resultBounds.push(shapePageBounds)
-						this.collectShapesViaArrowBindings({
-							...info,
-							bindings: this.getBindingsInvolvingShape(aligningShape, 'arrow'),
-						})
-					}
-				}
-			}
-		}
-	}
-
 	/**
 	 * Flip shape positions.
 	 *
@@ -7336,7 +7156,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// todo: this has a lot of extra code to handle stacking with custom gaps or auto gaps or other things like that. I don't think anyone has ever used this stuff.
 
-		const { clusters: shapeClustersToStack } = this.getShapeClusters(shapes, 'stack')
+		const { clusters: shapeClustersToStack } = getShapeClusters(this, toShapeIds(shapes), 'stack')
 
 		const len = shapeClustersToStack.length
 		if ((_gap === 0 && len < 3) || len < 2) return this
@@ -7367,7 +7187,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const gap = _gap ?? this.options.adjacentShapeMargin
 
-		const { clusters } = this.getShapeClusters(shapes, 'pack')
+		const { clusters } = getShapeClusters(this, toShapeIds(shapes), 'pack')
 
 		if (clusters.length < 2) return this
 
@@ -7410,7 +7230,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this.alignShapes(shapes, 'center-horizontal').alignShapes(shapes, 'center-vertical')
 		}
 
-		const { clusters: shapeClustersToAlign } = this.getShapeClusters(shapes, 'align')
+		const { clusters: shapeClustersToAlign } = getShapeClusters(this, toShapeIds(shapes), 'align')
 
 		if (shapeClustersToAlign.length < 2) return this
 
@@ -7439,7 +7259,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	distributeShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
 		if (this.getIsReadonly()) return this
 
-		const { clusters: shapeClustersToDistribute } = this.getShapeClusters(shapes, 'distribute')
+		const { clusters: shapeClustersToDistribute } = getShapeClusters(
+			this,
+			toShapeIds(shapes),
+			'distribute'
+		)
 
 		if (shapeClustersToDistribute.length < 3) return this
 
@@ -7482,9 +7306,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	stretchShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
 		if (this.getIsReadonly()) return this
 
-		const { clusters: shapeClustersToStretch } = this.getShapeClusters(shapes, 'stretch', {
-			filterAxisAligned: true,
-		})
+		const { clusters: shapeClustersToStretch } = getShapeClusters(
+			this,
+			toShapeIds(shapes),
+			'stretch',
+			{
+				filterAxisAligned: true,
+			}
+		)
 
 		if (shapeClustersToStretch.length < 2) return this
 
@@ -7515,9 +7344,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const targetBounds = Box.From(bounds)
 
-		const { clusters: shapeClusters } = this.getShapeClusters(shapes, 'resize_to_bounds', {
-			filterAxisAligned: true,
-		})
+		const { clusters: shapeClusters } = getShapeClusters(
+			this,
+			toShapeIds(shapes),
+			'resize_to_bounds',
+			{
+				filterAxisAligned: true,
+			}
+		)
 
 		if (shapeClusters.length === 0) return this
 
@@ -9176,87 +9010,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 			bindings.map((binding) => [binding.id, preserveIds ? binding.id : createBindingId()])
 		)
 
-		let pasteParentId: TLPageId | TLShapeId = currentPageId
-
 		const shapesById = new Map(shapes.map((s) => [s.id, s]))
 		const rootShapesFromContent = compact(rootShapeIds.map((id) => shapesById.get(id)))
 
-		if (point) {
-			// PASTE AT CURSOR: find the deepest accepts-children shape under the cursor
-			if (rootShapesFromContent.length > 0) {
-				const targetParent = this.getShapeAtPoint(point, {
-					hitInside: true,
-					hitFrameInside: true,
-					hitLocked: true,
-					filter: (shape) => {
-						const util = this.getShapeUtil(shape)
-						return rootShapesFromContent.every((rootShape) =>
-							util.canReceiveNewChildrenOfType?.(shape, rootShape.type)
-						)
-					},
-				})
-				pasteParentId = targetParent?.id ?? currentPageId
-			}
-		} else if (!preservePosition) {
-			// STANDARD PASTE: check if a selected shape (or its ancestor) accepts children
-			const selectedShapes = this.getSelectedShapes()
-			let selectedParent: TLShape | null = null
-
-			const canAcceptAll = (candidate: TLShape) => {
-				const util = this.getShapeUtil(candidate)
-				return rootShapesFromContent.every((rs) =>
-					util.canReceiveNewChildrenOfType?.(candidate, rs.type)
-				)
-			}
-
-			for (const shape of selectedShapes) {
-				// Find the nearest container: the shape itself if it can accept,
-				// an accepting ancestor, or fall back to the shape's parent
-				// (handles groups and other non-frame containers)
-				const candidate = canAcceptAll(shape)
-					? shape
-					: (this.findShapeAncestor(shape, canAcceptAll) ??
-						(isShapeId(shape.parentId) ? this.getShape(shape.parentId)! : null))
-
-				if (!candidate) {
-					selectedParent = null
-					break
-				}
-				if (!selectedParent) {
-					selectedParent = candidate
-				} else if (selectedParent.id !== candidate.id) {
-					// Different candidates — find the deepest common accepting ancestor
-					const spAncestors = this.getShapeAncestors(selectedParent)
-					if (canAcceptAll(selectedParent)) spAncestors.push(selectedParent)
-					const acceptingAncestors = spAncestors.filter(canAcceptAll)
-
-					const candidateAncestorIds = new Set([
-						candidate.id,
-						...this.getShapeAncestors(candidate).map((a) => a.id),
-					])
-
-					let common: TLShape | null = null
-					for (let i = acceptingAncestors.length - 1; i >= 0; i--) {
-						if (candidateAncestorIds.has(acceptingAncestors[i].id)) {
-							common = acceptingAncestors[i]
-							break
-						}
-					}
-
-					selectedParent = common
-					if (!selectedParent) break
-				}
-			}
-
-			// Don't paste a shape into itself (the duplicating-a-frame case)
-			if (selectedParent && shapeIdMap.has(selectedParent.id)) {
-				selectedParent = null
-			}
-
-			if (selectedParent) {
-				pasteParentId = selectedParent.id
-			}
-		}
+		const pasteParentId = getPasteParentId(this, {
+			currentPageId,
+			rootShapesFromContent,
+			shapeIdMap,
+			point,
+			preservePosition,
+		})
 
 		let index = this.getHighestIndexForParent(pasteParentId) // todo: requires that the putting page is the current page
 
