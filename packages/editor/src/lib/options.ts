@@ -109,7 +109,7 @@ export interface TldrawOptions {
 	readonly maxExportDelayMs: number
 	readonly tooltipDelayMs: number
 	/**
-	 * How long should previews created by {@link Editor.createTemporaryAssetPreview} last before
+	 * How long should previews created by {@link EditorForwarders.createTemporaryAssetPreview} last before
 	 * they expire? Defaults to 3 minutes.
 	 */
 	readonly temporaryAssetPreviewLifetimeMs: number
@@ -181,7 +181,7 @@ export interface TldrawOptions {
 	readonly selectLockedShapes: boolean
 	/**
 	 * Options for the editor's camera. These are the initial camera options.
-	 * Use {@link Editor.setCameraOptions} to update camera options at runtime.
+	 * Use {@link EditorForwarders.setCameraOptions} to update camera options at runtime.
 	 */
 	readonly camera: Partial<TLCameraOptions>
 	/**

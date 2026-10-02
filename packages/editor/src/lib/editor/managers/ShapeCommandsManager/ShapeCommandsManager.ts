@@ -43,9 +43,22 @@ import { EditorManager } from '../EditorManager'
 /**
  * Commands that create, update, delete, duplicate, move, rotate, reorder, lock, group and animate shapes.
  *
- * @internal
+ * @public
  */
 export class ShapeCommandsManager extends EditorManager {
+	/**
+	 * Rotate shapes by a delta in radians.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.rotateShapesBy(editor.getSelectedShapeIds(), Math.PI)
+	 * editor.rotateShapesBy(editor.getSelectedShapeIds(), Math.PI / 2)
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) of the shapes to move.
+	 * @param delta - The delta in radians to apply to the selection rotation.
+	 * @param opts - The options for the rotation.
+	 */
 	rotateShapesBy(
 		shapes: TLShapeId[] | TLShape[],
 		delta: number,
@@ -98,6 +111,7 @@ export class ShapeCommandsManager extends EditorManager {
 		return workingShape
 	}
 
+	/** @internal */
 	getChangesToTranslateShapeByPageDelta(shape: TLShape, pageDelta: VecLike): TLShape {
 		const localDelta = Vec.From(pageDelta).rot(
 			-this.editor.getShapeParentTransform(shape).rotation()
@@ -105,6 +119,17 @@ export class ShapeCommandsManager extends EditorManager {
 		return this.getChangesToTranslateShape(shape, localDelta.add(shape))
 	}
 
+	/**
+	 * Move shapes by a delta.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.nudgeShapes(['box1', 'box2'], { x: 8, y: 8 })
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to move.
+	 * @param offset - The offset to apply to the shapes.
+	 */
 	nudgeShapes(shapes: TLShapeId[] | TLShape[], offset: VecLike): Editor {
 		const ids = toShapeIds(shapes)
 
@@ -121,6 +146,20 @@ export class ShapeCommandsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Duplicate shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.duplicateShapes(['box1', 'box2'], { x: 8, y: 8 })
+	 * editor.duplicateShapes(editor.getSelectedShapes(), { x: 8, y: 8 })
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to duplicate.
+	 * @param offset - The offset (in pixels) to apply to the duplicated shapes.
+	 *
+	 * @public
+	 */
 	duplicateShapes(shapes: TLShapeId[] | TLShape[], offset?: VecLike): Editor {
 		this.editor.run(() => {
 			const _ids = toShapeIds(shapes)
@@ -251,6 +290,19 @@ export class ShapeCommandsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Move shapes to page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.moveShapesToPage(['box1', 'box2'], 'page1')
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) of the shapes to move.
+	 * @param pageId - The id of the page where the shapes will be moved.
+	 *
+	 * @public
+	 */
 	moveShapesToPage(shapes: TLShapeId[] | TLShape[], pageId: TLPageId): Editor {
 		const ids = toShapeIds(shapes)
 
@@ -308,6 +360,13 @@ export class ShapeCommandsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Toggle the lock state of one or more shapes. If there is a mix of locked and unlocked shapes, all shapes will be locked.
+	 *
+	 * @param shapes - The shapes (or shape ids) to toggle.
+	 *
+	 * @public
+	 */
 	toggleLock(shapes: TLShapeId[] | TLShape[]): Editor {
 		const ids = toShapeIds(shapes)
 
@@ -338,6 +397,19 @@ export class ShapeCommandsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Send shapes to the back of the page's object list.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.sendToBack(['id1', 'id2'])
+	 * editor.sendToBack(box1, box2)
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to move.
+	 *
+	 * @public
+	 */
 	sendToBack(shapes: TLShapeId[] | TLShape[]): Editor {
 		const ids = toShapeIds(shapes)
 		const changes = getReorderingShapesChanges(this.editor, 'toBack', ids, {
@@ -347,6 +419,28 @@ export class ShapeCommandsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Send shapes backward in the page's object list.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.sendBackward(['id1', 'id2'])
+	 * editor.sendBackward([box1, box2])
+	 * ```
+	 *
+	 * By default, the operation will only consider overlapping shapes.
+	 * To consider all shapes, pass `{ considerAllShapes: true }` in the options.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.sendBackward(['id1', 'id2'], { considerAllShapes: true })
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to move.
+	 * @param opts - The options for the backward operation.
+	 *
+	 * @public
+	 */
 	sendBackward(
 		shapes: TLShapeId[] | TLShape[],
 		opts: { considerAllShapes?: boolean } = {}
@@ -357,6 +451,28 @@ export class ShapeCommandsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Bring shapes forward in the page's object list.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.bringForward(['id1', 'id2'])
+	 * editor.bringForward(box1,  box2)
+	 * ```
+	 *
+	 * By default, the operation will only consider overlapping shapes.
+	 * To consider all shapes, pass `{ considerAllShapes: true }` in the options.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.bringForward(['id1', 'id2'], { considerAllShapes: true })
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to move.
+	 * @param opts - The options for the forward operation.
+	 *
+	 * @public
+	 */
 	bringForward(
 		shapes: TLShapeId[] | TLShape[],
 		opts: { considerAllShapes?: boolean } = {}
@@ -367,6 +483,19 @@ export class ShapeCommandsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Bring shapes to the front of the page's object list.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.bringToFront(['id1', 'id2'])
+	 * editor.bringToFront([box1, box2])
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to move.
+	 *
+	 * @public
+	 */
 	bringToFront(shapes: TLShapeId[] | TLShape[]): Editor {
 		const ids = toShapeIds(shapes)
 		const changes = getReorderingShapesChanges(this.editor, 'toFront', ids)
@@ -374,14 +503,44 @@ export class ShapeCommandsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Get the initial meta value for a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getInitialMetaForShape = (shape) => {
+	 *   if (shape.type === 'note') {
+	 *     return { createdBy: myCurrentUser.id }
+	 *   }
+	 * }
+	 * ```
+	 *
+	 * @param shape - The shape to get the initial meta for.
+	 *
+	 * @public
+	 */
 	getInitialMetaForShape(_shape: TLShape): JsonObject {
 		return {}
 	}
 
+	/**
+	 * Get whether the provided shape can be created.
+	 *
+	 * @param shape - The shape or shape IDs to check.
+	 *
+	 * @public
+	 */
 	canCreateShape(shape: OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id']): boolean {
 		return this.editor.canCreateShapes([shape])
 	}
 
+	/**
+	 * Get whether the provided shapes can be created.
+	 *
+	 * @param shapes - The shapes or shape IDs to create.
+	 *
+	 * @public
+	 */
 	canCreateShapes(
 		shapes: (TLShape['id'] | OptionalKeys<TLShapePartial<TLShape>, 'id'>)[]
 	): boolean {
@@ -391,11 +550,37 @@ export class ShapeCommandsManager extends EditorManager {
 		)
 	}
 
+	/**
+	 * Create a single shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.createShape(myShape)
+	 * editor.createShape({ id: 'box1', type: 'text', props: { richText: toRichText("ok") } })
+	 * ```
+	 *
+	 * @param shape - The shape (or shape partial) to create.
+	 *
+	 * @public
+	 */
 	createShape<TShape extends TLShape>(shape: TLCreateShapePartial<TShape>): Editor {
 		this.editor.createShapes([shape])
 		return this.editor
 	}
 
+	/**
+	 * Create shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.createShapes([myShape])
+	 * editor.createShapes([{ id: 'box1', type: 'text', props: { richText: toRichText("ok") } }])
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape partials) to create.
+	 *
+	 * @public
+	 */
 	createShapes<TShape extends TLShape = TLShape>(shapes: TLCreateShapePartial<TShape>[]): Editor {
 		if (!Array.isArray(shapes)) {
 			throw Error('Editor.createShapes: must provide an array of shapes or shape partials')
@@ -597,6 +782,20 @@ export class ShapeCommandsManager extends EditorManager {
 
 	animatingShapes = new Map<TLShapeId, string>()
 
+	/**
+	 * Animate a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.animateShape({ id: 'box1', type: 'box', x: 100, y: 100 })
+	 * editor.animateShape({ id: 'box1', type: 'box', x: 100, y: 100 }, { animation: { duration: 100, ease: t => t*t } })
+	 * ```
+	 *
+	 * @param partial - The shape partial to update.
+	 * @param opts - The animation's options.
+	 *
+	 * @public
+	 */
 	animateShape(
 		partial: TLShapePartial | null | undefined,
 		opts = { animation: DEFAULT_ANIMATION_OPTIONS } as TLCameraMoveOptions
@@ -604,6 +803,20 @@ export class ShapeCommandsManager extends EditorManager {
 		return this.editor.animateShapes([partial], opts)
 	}
 
+	/**
+	 * Animate shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.animateShapes([{ id: 'box1', type: 'box', x: 100, y: 100 }])
+	 * editor.animateShapes([{ id: 'box1', type: 'box', x: 100, y: 100 }], { animation: { duration: 100, ease: t => t*t } })
+	 * ```
+	 *
+	 * @param partials - The shape partials to update.
+	 * @param opts - The animation's options.
+	 *
+	 * @public
+	 */
 	animateShapes(
 		partials: (TLShapePartial | null | undefined)[],
 		opts = { animation: DEFAULT_ANIMATION_OPTIONS } as TLCameraMoveOptions
@@ -847,11 +1060,35 @@ export class ShapeCommandsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Update a shape using a partial of the shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updateShape({ id: 'box1', type: 'geo', props: { w: 100, h: 100 } })
+	 * ```
+	 *
+	 * @param partial - The shape partial to update.
+	 *
+	 * @public
+	 */
 	updateShape<T extends TLShape = TLShape>(partial: TLShapePartial<T> | null | undefined) {
 		this.editor.updateShapes([partial])
 		return this.editor
 	}
 
+	/**
+	 * Update shapes using partials of each shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updateShapes([{ id: 'box1', type: 'geo', props: { w: 100, h: 100 } }])
+	 * ```
+	 *
+	 * @param partials - The shape partials to update.
+	 *
+	 * @public
+	 */
 	updateShapes<T extends TLShape>(partials: (TLShapePartial<T> | null | undefined)[]) {
 		const compactedPartials: TLShapePartial<T>[] = []
 
@@ -888,6 +1125,7 @@ export class ShapeCommandsManager extends EditorManager {
 		return this.editor
 	}
 
+	/** @internal */
 	_updateShapes(_partials: (TLShapePartial | null | undefined)[]) {
 		if (this.editor.getIsReadonly()) return
 

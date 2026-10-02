@@ -20,15 +20,35 @@ import { EditorManager } from '../EditorManager'
 /**
  * Resizing a shape, including shapes whose rotation is not aligned with the resize axis.
  *
- * @internal
+ * @public
  */
 export class ResizeManager extends EditorManager {
+	/**
+	 * Resize a shape.
+	 *
+	 * @param shape - The shape (or the shape id of the shape) to resize.
+	 * @param scale - The scale factor to apply to the shape.
+	 * @param opts - Additional options.
+	 *
+	 * @public
+	 */
 	resizeShape(shape: TLShapeId | TLShape, scale: VecLike, opts: TLResizeShapeOptions = {}): Editor {
 		const partial = this.editor.getResizeShapePartial(shape, scale, opts)
 		if (partial) this.editor.updateShapes([partial])
 		return this.editor
 	}
 
+	/**
+	 * Get the update for a resized shape without committing it to the store. Interactions that
+	 * resize many shapes at once use this to collect all of the updates and commit them in a
+	 * single batch. Returns null when there is nothing to update.
+	 *
+	 * Shapes that are rotated out of alignment with the scale axis cannot be resized with a
+	 * single update; those shapes are resized immediately (as `resizeShape` would do) and null
+	 * is returned.
+	 *
+	 * @internal
+	 */
 	getResizeShapePartial(
 		shape: TLShapeId | TLShape,
 		scale: VecLike,

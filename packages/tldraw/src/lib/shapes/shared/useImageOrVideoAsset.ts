@@ -33,7 +33,7 @@ export interface UseImageOrVideoAssetOptions {
 
 /**
  * This is a handy helper hook that resolves an asset to an optimized URL for a given shape, or its
- * {@link @tldraw/editor#Editor.createTemporaryAssetPreview | placeholder} if the asset is still
+ * {@link @tldraw/editor#EditorForwarders.createTemporaryAssetPreview | placeholder} if the asset is still
  * uploading. This is used in particular for high-resolution images when you want lower and higher
  * resolution depending on the size of the image on the canvas and the zoom level.
  *

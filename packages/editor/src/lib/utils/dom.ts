@@ -81,7 +81,7 @@ export function releasePointerCapture(
 /**
  * Calls `event.stopPropagation()`.
  *
- * @deprecated Use {@link Editor.markEventAsHandled} instead, or manually call `event.stopPropagation()` if
+ * @deprecated Use {@link EditorForwarders.markEventAsHandled} instead, or manually call `event.stopPropagation()` if
  * that's what you really want.
  *
  * @public

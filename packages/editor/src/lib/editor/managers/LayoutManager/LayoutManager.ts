@@ -19,7 +19,7 @@ import { EditorManager } from '../EditorManager'
 /**
  * Arranging shapes relative to each other: align, distribute, stack, pack, flip, stretch and resize to bounds.
  *
- * @internal
+ * @public
  */
 export class LayoutManager extends EditorManager {
 	/**
@@ -69,6 +69,20 @@ export class LayoutManager extends EditorManager {
 		}
 	}
 
+	/**
+	 * Flip shape positions.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.flipShapes([box1, box2], 'horizontal', 32)
+	 * editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal', 32)
+	 * ```
+	 *
+	 * @param shapes - The ids of the shapes to flip.
+	 * @param operation - Whether to flip horizontally or vertically.
+	 *
+	 * @public
+	 */
 	flipShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): Editor {
 		if (this.editor.getIsReadonly()) return this.editor
 
@@ -145,6 +159,21 @@ export class LayoutManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Stack shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.stackShapes([box1, box2], 'horizontal')
+	 * editor.stackShapes(editor.getSelectedShapeIds(), 'horizontal')
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to stack.
+	 * @param operation - Whether to stack horizontally or vertically.
+	 * @param gap - The gap to leave between shapes. By default, uses the editor's `adjacentShapeMargin` option.
+	 *
+	 * @public
+	 */
 	stackShapes(
 		shapes: TLShapeId[] | TLShape[],
 		operation: 'horizontal' | 'vertical',
@@ -172,6 +201,19 @@ export class LayoutManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Pack shapes into a grid centered on their current position. Based on potpack (https://github.com/mapbox/potpack).
+	 *
+	 * @example
+	 * ```ts
+	 * editor.packShapes([box1, box2])
+	 * editor.packShapes(editor.getSelectedShapeIds(), 32)
+	 * ```
+	 *
+	 *
+	 * @param shapes - The shapes (or shape ids) to pack.
+	 * @param gap - The padding to apply to the packed shapes. Defaults to the editor's `adjacentShapeMargin` option.
+	 */
 	packShapes(shapes: TLShapeId[] | TLShape[], _gap?: number): Editor {
 		if (this.editor.getIsReadonly()) return this.editor
 
@@ -190,6 +232,20 @@ export class LayoutManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Align shape positions.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.alignShapes([box1, box2], 'left')
+	 * editor.alignShapes(editor.getSelectedShapeIds(), 'left')
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to align.
+	 * @param operation - The align operation to apply.
+	 *
+	 * @public
+	 */
 	alignShapes(
 		shapes: TLShapeId[] | TLShape[],
 		operation:
@@ -224,6 +280,20 @@ export class LayoutManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Distribute shape positions.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.distributeShapes([box1, box2], 'horizontal')
+	 * editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to distribute.
+	 * @param operation - Whether to distribute shapes horizontally or vertically.
+	 *
+	 * @public
+	 */
 	distributeShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): Editor {
 		if (this.editor.getIsReadonly()) return this.editor
 
@@ -257,6 +327,20 @@ export class LayoutManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Stretch shape sizes and positions to fill their common bounding box.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.stretchShapes([box1, box2], 'horizontal')
+	 * editor.stretchShapes(editor.getSelectedShapeIds(), 'horizontal')
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to stretch.
+	 * @param operation - Whether to stretch shapes horizontally or vertically.
+	 *
+	 * @public
+	 */
 	stretchShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): Editor {
 		if (this.editor.getIsReadonly()) return this.editor
 
@@ -278,6 +362,21 @@ export class LayoutManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Resize and reposition a set of shapes so that their combined page bounds matches the given
+	 * target bounds.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.resizeToBounds([box1, box2], { x: 0, y: 0, w: 500, h: 500 })
+	 * editor.resizeToBounds(editor.getSelectedShapeIds(), new Box(0, 0, 500, 500))
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to resize.
+	 * @param bounds - The target bounding box.
+	 *
+	 * @public
+	 */
 	resizeToBounds(shapes: TLShapeId[] | TLShape[], bounds: BoxLike): Editor {
 		if (this.editor.getIsReadonly()) return this.editor
 

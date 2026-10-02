@@ -671,11 +671,11 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 
 	/**
 	 * A callback called when a shape is reproduced from an existing shape, either by duplicating
-	 * ({@link Editor.duplicateShapes}) or by pasting/putting content onto the page
-	 * ({@link Editor.putContentOntoCurrentPage}). This provides a last chance to modify the copy
+	 * ({@link EditorForwarders.duplicateShapes}) or by pasting/putting content onto the page
+	 * ({@link EditorForwarders.putContentOntoCurrentPage}). This provides a last chance to modify the copy
 	 * before it's created — for example, to re-stamp attribution so the copy is credited to the
 	 * current user rather than the original author. It is not called when content is put with
-	 * `preserveIds` (e.g. {@link Editor.moveShapesToPage}), since the shape keeps its identity
+	 * `preserveIds` (e.g. {@link EditorForwarders.moveShapesToPage}), since the shape keeps its identity
 	 * and no copy is made.
 	 *
 	 * @example

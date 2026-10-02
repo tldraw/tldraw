@@ -25,9 +25,10 @@ import { EditorManager } from '../EditorManager'
 /**
  * Input event dispatch: the per-tick event queue, pointer, keyboard, wheel and pinch handling, modifier key debouncing, and crash reporting.
  *
- * @internal
+ * @public
  */
 export class EventsManager extends EditorManager {
+	/** @internal */
 	createErrorAnnotations(origin: string, willCrashApp: boolean | 'unknown') {
 		try {
 			const editingShapeId = this.editor.getEditingShapeId()
@@ -68,10 +69,20 @@ export class EventsManager extends EditorManager {
 	/** @internal */
 	_crashingError: unknown | null = null
 
+	/**
+	 * We can't use an `atom` here because there's a chance that when `crashAndReportError` is called,
+	 * we're in a transaction that's about to be rolled back due to the same error we're currently
+	 * reporting.
+	 *
+	 * Instead, to listen to changes to this value, you need to listen to editor's `crash` event.
+	 *
+	 * @internal
+	 */
 	getCrashingError() {
 		return this._crashingError
 	}
 
+	/** @internal */
 	crash(error: unknown): Editor {
 		this._crashingError = error
 		this.editor.store.markAsPossiblyCorrupted()
@@ -79,21 +90,65 @@ export class EventsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Dispatch a cancel event.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.cancel()
+	 * ```
+	 *
+	 * @public
+	 */
 	cancel(): Editor {
 		this.editor.dispatch({ type: 'misc', name: 'cancel' })
 		return this.editor
 	}
 
+	/**
+	 * Dispatch an interrupt event.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.interrupt()
+	 * ```
+	 *
+	 * @public
+	 */
 	interrupt(): Editor {
 		this.editor.dispatch({ type: 'misc', name: 'interrupt' })
 		return this.editor
 	}
 
+	/**
+	 * Dispatch a complete event.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.complete()
+	 * ```
+	 *
+	 * @public
+	 */
 	complete(): Editor {
 		this.editor.dispatch({ type: 'misc', name: 'complete' })
 		return this.editor
 	}
 
+	/**
+	 * Dispatch a pointer move event in the current position of the pointer. This is useful when
+	 * external circumstances have changed (e.g. the camera moved or a shape was moved) and you want
+	 * the current interaction to respond to that change.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updatePointer()
+	 * ```
+	 *
+	 * @param options - The options for updating the pointer.
+	 * @returns The editor instance.
+	 * @public
+	 */
 	updatePointer(options?: TLUpdatePointerOptions): Editor {
 		const event: TLPointerEventInfo = {
 			type: 'pointer',
@@ -129,6 +184,11 @@ export class EventsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Prevent a double click event from firing the next time the user clicks
+	 *
+	 * @public
+	 */
 	cancelDoubleClick() {
 		this.editor._clickManager.cancelDoubleClickTimeout()
 	}
@@ -165,21 +225,37 @@ export class EventsManager extends EditorManager {
 		})
 	}
 
+	/**
+	 * Release the shift modifier. See `EventsManager._releaseModifierKey`.
+	 * @internal
+	 */
 	@bind
 	_releaseShiftKey() {
 		this._releaseModifierKey(SHIFT_KEY)
 	}
 
+	/**
+	 * Release the alt modifier. See `EventsManager._releaseModifierKey`.
+	 * @internal
+	 */
 	@bind
 	_releaseAltKey() {
 		this._releaseModifierKey(ALT_KEY)
 	}
 
+	/**
+	 * Release the ctrl modifier. See `EventsManager._releaseModifierKey`.
+	 * @internal
+	 */
 	@bind
 	_releaseCtrlKey() {
 		this._releaseModifierKey(CTRL_KEY)
 	}
 
+	/**
+	 * Release the meta modifier. See `EventsManager._releaseModifierKey`.
+	 * @internal
+	 */
 	@bind
 	_releaseMetaKey() {
 		this._releaseModifierKey(META_KEY)
@@ -245,16 +321,46 @@ export class EventsManager extends EditorManager {
 	/** @internal */
 	handledEvents = new WeakSet<Event>()
 
+	/**
+	 * In tldraw, events are sometimes handled by multiple components. For example, the shapes might
+	 * have events, but the canvas handles events too. The way that the canvas handles events can
+	 * interfere with the with the shapes event handlers - for example, it calls `.preventDefault()`
+	 * on `pointerDown`, which also prevents `click` events from firing on the shapes.
+	 *
+	 * You can use `.stopPropagation()` to prevent the event from propagating to the rest of the
+	 * DOM, but that can impact non-tldraw event handlers set up elsewhere. By using
+	 * `markEventAsHandled`, you'll stop other parts of tldraw from handling the event without
+	 * impacting other, non-tldraw event handlers. See also {@link EditorForwarders.wasEventAlreadyHandled}.
+	 *
+	 * @public
+	 */
 	markEventAsHandled(e: Event | { nativeEvent: Event }) {
 		const nativeEvent = 'nativeEvent' in e ? e.nativeEvent : e
 		this.handledEvents.add(nativeEvent)
 	}
 
+	/**
+	 * Checks if an event has already been handled. See {@link EditorForwarders.markEventAsHandled}.
+	 *
+	 * @public
+	 */
 	wasEventAlreadyHandled(e: Event | { nativeEvent: Event }) {
 		const nativeEvent = 'nativeEvent' in e ? e.nativeEvent : e
 		return this.handledEvents.has(nativeEvent)
 	}
 
+	/**
+	 * Dispatch an event to the editor.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.dispatch(myPointerEvent)
+	 * ```
+	 *
+	 * @param info - The event info.
+	 *
+	 * @public
+	 */
 	dispatch(info: TLEventInfo) {
 		this._pendingEventsForNextTick.push(info)
 		if (
@@ -338,7 +444,7 @@ export class EventsManager extends EditorManager {
 
 		const instanceState = this.editor.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const pageState = this.editor.store.get(this.editor._getCurrentPageStateId())!
-		const cameraOptions = this.editor._cameraManager._cameraOptions.__unsafe__getWithoutCapture()!
+		const cameraOptions = this.editor.camera._cameraOptions.__unsafe__getWithoutCapture()!
 
 		switch (type) {
 			case 'pinch': {
@@ -401,7 +507,7 @@ export class EventsManager extends EditorManager {
 						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.editor.getCamera())
 
 						const { panSpeed } = cameraOptions
-						this.editor._cameraManager._setCamera(
+						this.editor.camera._setCamera(
 							new Vec(
 								cx + (dx * panSpeed) / cz - x / cz + x / z,
 								cy + (dy * panSpeed) / cz - y / cz + y / z,
@@ -501,7 +607,7 @@ export class EventsManager extends EditorManager {
 							const finalDelta = isZoomDirectionInverted ? -deltaValue : deltaValue
 
 							const zoom = cz + finalDelta * zoomSpeed * cz
-							this.editor._cameraManager._setCamera(
+							this.editor.camera._setCamera(
 								new Vec(cx + x / zoom - x / cz, cy + y / zoom - y / cz, zoom),
 								{
 									immediate: true,
@@ -515,7 +621,7 @@ export class EventsManager extends EditorManager {
 						}
 						case 'pan': {
 							// Pan the camera based on the wheel delta
-							this.editor._cameraManager._setCamera(
+							this.editor.camera._setCamera(
 								new Vec(cx + (dx * panSpeed) / cz, cy + (dy * panSpeed) / cz, cz),
 								{
 									immediate: true,
