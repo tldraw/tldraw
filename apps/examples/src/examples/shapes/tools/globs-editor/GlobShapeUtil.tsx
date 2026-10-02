@@ -239,6 +239,10 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		return true
 	}
 
+	override canFlip() {
+		return true
+	}
+
 	override onResize(shape: GlobShape, info: TLResizeInfo<GlobShape>) {
 		const { scaleX, scaleY, initialShape } = info
 
