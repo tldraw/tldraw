@@ -316,13 +316,20 @@ export async function publishProductionDocsAndExamplesAndBemo({
 // version bump with no release), so a retry or job re-run starts clean.
 export async function pushReleaseCommitAndTag(refspec?: string) {
 	await retry(
-		async () => {
-			await exec('git', [
-				'push',
-				'--atomic',
-				'--follow-tags',
-				...(refspec ? ['origin', refspec] : []),
-			])
+		async ({ attempt, remaining, total }) => {
+			try {
+				await exec('git', [
+					'push',
+					'--atomic',
+					'--follow-tags',
+					...(refspec ? ['origin', refspec] : []),
+				])
+			} catch (e) {
+				nicelog(
+					`[push] git push rejected, attempt ${attempt + 1} of ${total}${remaining > 1 ? ', retrying' : ''}`
+				)
+				throw e
+			}
 		},
 		{ delay: 10_000, numAttempts: 5 }
 	)
