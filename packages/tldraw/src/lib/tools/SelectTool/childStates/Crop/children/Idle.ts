@@ -89,17 +89,12 @@ export class Idle extends StateNode {
 				if (info.shape.id === this.editor.getCroppingShapeId()) {
 					this.editor.setCurrentTool('select.crop.pointing_crop', info)
 					return
-				} else {
-					if (this.editor.getShapeUtil(info.shape)?.canCrop(info.shape)) {
-						this.editor.setCroppingShape(info.shape.id)
-						this.editor.setSelectedShapes([info.shape.id])
-						this.editor.setCurrentTool('select.crop.pointing_crop', info)
-					} else {
-						this.cancel()
-						// feed the event back into the statechart
-						this.editor.root.handleEvent(info)
-					}
 				}
+				// Any other shape, croppable or not, ends the crop. Re-dispatching the
+				// event lets the select tool select that shape with the same click
+				// instead of silently moving the crop target onto it (#10760).
+				this.cancel()
+				this.editor.root.handleEvent(info)
 				break
 			}
 			case 'selection': {
