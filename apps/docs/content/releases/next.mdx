@@ -24,7 +24,7 @@ So far this release adds a `ThrottledFunction` type to `@tldraw/utils`, thins th
 
 ## Bug fixes
 
-- Fix the edge scrolling preference showing as off when its speed is set to anything other than 1. ([#11038](https://github.com/tldraw/tldraw/pull/11038))
+- Fix the edge scrolling preference showing as off when edge scrolling is on at a speed other than 1, such as 0.5 or 2. ([#11038](https://github.com/tldraw/tldraw/pull/11038))
 - Fix three resize issues: flipping a rotated selection gave its children the wrong rotation, shapes not aligned with the selection received `onResizeStart` and `onResizeEnd` more than once, and `resizeBox` slid the fixed edge when a shape hit its `maxWidth` or `maxHeight`. ([#10351](https://github.com/tldraw/tldraw/pull/10351))
 - Fix duplicating a page moving its shapes when they were off screen, and starting the new page with the current page's camera instead of the duplicated page's. ([#10465](https://github.com/tldraw/tldraw/pull/10465))
 - Fix the arrow tool's precise mode carrying over when you move to a different target shape. ([#10244](https://github.com/tldraw/tldraw/pull/10244))
