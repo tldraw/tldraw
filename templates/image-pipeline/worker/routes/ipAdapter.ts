@@ -12,21 +12,17 @@ interface IPAdapterRequest {
  * POST /api/ip-adapter
  *
  * Generates an image guided by a reference image and text prompt using
- * IP-Adapter SDXL on Replicate. Falls back to a placeholder if no API key.
+ * IP-Adapter SDXL on Replicate.
  */
 export async function handleIPAdapter(request: IRequest, env: Env) {
+	const apiKey = request.headers.get('x-ai-api-key')?.trim()
+	if (!apiKey) return Response.json({ error: 'A Replicate API key is required.' }, { status: 401 })
+
 	const body = (await request.json()) as IPAdapterRequest
 
 	if (!body.imageUrl) {
 		return new Response(JSON.stringify({ error: 'imageUrl is required' }), {
 			status: 400,
-			headers: { 'Content-Type': 'application/json' },
-		})
-	}
-
-	const apiKey = env.REPLICATE_API_TOKEN
-	if (!apiKey) {
-		return new Response(JSON.stringify(ipAdapterPlaceholder(body)), {
 			headers: { 'Content-Type': 'application/json' },
 		})
 	}
@@ -83,19 +79,4 @@ export async function handleIPAdapter(request: IRequest, env: Env) {
 			headers: { 'Content-Type': 'application/json' },
 		})
 	}
-}
-
-function ipAdapterPlaceholder(params: IPAdapterRequest) {
-	const hue = Math.floor(Math.random() * 360)
-	const prompt = (params.prompt || 'IP-Adapter').slice(0, 30)
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">
-		<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-			<stop offset="0%" stop-color="hsl(${hue},50%,40%)"/>
-			<stop offset="100%" stop-color="hsl(${(hue + 80) % 360},45%,55%)"/>
-		</linearGradient></defs>
-		<rect width="1024" height="1024" fill="url(#bg)"/>
-		<text x="512" y="490" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="sans-serif" font-size="22">${prompt}</text>
-		<text x="512" y="530" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-family="sans-serif" font-size="14">IP-Adapter · scale ${params.scale} · placeholder</text>
-	</svg>`
-	return { imageUrl: `data:image/svg+xml,${encodeURIComponent(svg)}` }
 }

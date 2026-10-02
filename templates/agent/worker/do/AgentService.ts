@@ -1,10 +1,6 @@
-import { AnthropicProvider, AnthropicProviderOptions, createAnthropic } from '@ai-sdk/anthropic'
-import {
-	createGoogleGenerativeAI,
-	GoogleGenerativeAIProvider,
-	GoogleGenerativeAIProviderOptions,
-} from '@ai-sdk/google'
-import { createOpenAI, OpenAIProvider, OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
+import { AnthropicProviderOptions, createAnthropic } from '@ai-sdk/anthropic'
+import { createGoogleGenerativeAI, GoogleGenerativeAIProviderOptions } from '@ai-sdk/google'
+import { createOpenAI, OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
 import { LanguageModel, ModelMessage, streamText } from 'ai'
 import {
 	AgentModelDefinition,
@@ -16,27 +12,24 @@ import { DebugPart } from '../../shared/schema/PromptPartDefinitions'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { Streaming } from '../../shared/types/Streaming'
-import { Environment } from '../environment'
 import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
 import { getModelName } from '../prompt/getModelName'
 import { closeAndParseJson } from './closeAndParseJson'
 
 export class AgentService {
-	openai: OpenAIProvider
-	anthropic: AnthropicProvider
-	google: GoogleGenerativeAIProvider
-
-	constructor(env: Environment) {
-		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY })
-		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
-		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
-	}
+	constructor(private readonly apiKey: string) {}
 
 	getModel(modelName: AgentModelName): LanguageModel {
-		const modelDefinition = getAgentModelDefinition(modelName)
-		const provider = modelDefinition.provider
-		return this[provider](modelDefinition.id)
+		const { provider, id } = getAgentModelDefinition(modelName)
+		switch (provider) {
+			case 'openai':
+				return createOpenAI({ apiKey: this.apiKey })(id)
+			case 'anthropic':
+				return createAnthropic({ apiKey: this.apiKey })(id)
+			case 'google':
+				return createGoogleGenerativeAI({ apiKey: this.apiKey })(id)
+		}
 	}
 
 	async *stream(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentAction>> {

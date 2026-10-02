@@ -29,16 +29,11 @@ Perfect for building chatbots, interactive storytelling, conversation design too
 npm install
 ```
 
-### 2. Environment setup
+### 2. API keys
 
-Create a `.env` file in the root directory and add your Google Generative API key:
+Open the app and enter your Google API key in **API key settings**. Reopen the dialog with the **API keys** button to update or remove keys. Usage is billed to your provider account.
 
-```
-GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key_here
-```
-
-Get your API key from [Google AI Studio](https://aistudio.google.com/apikey).
-You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
+Keys are saved in this browser, separate from canvas and chat data, and sent through the app’s server only for AI requests. The server requires a user-supplied key; no server-side provider secrets are needed.
 
 ### 3. Start Development
 

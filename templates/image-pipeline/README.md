@@ -7,15 +7,11 @@
 
 This starter kit builds a visual node-graph editor for AI image generation pipelines on top of [tldraw](https://github.com/tldraw/tldraw). Users place nodes on an infinite canvas, wire up typed ports, and run the graph to generate images — similar to ComfyUI, but built with React and tldraw.
 
-## Environment setup
+## API keys
 
-Create a `.dev.vars` file in the root directory and add your Replicate API key:
+Open the app and enter your Replicate API key in **API key settings**. Reopen the dialog with the **API keys** button to update or remove keys. Usage is billed to your provider account.
 
-```
-REPLICATE_API_TOKEN=your_replicate_api_token_here
-```
-
-Without a token, generation requests will fail with an error.
+Keys are saved in this browser, separate from canvas and chat data, and sent through the app’s server only for AI requests. The server requires a user-supplied key; no server-side provider secrets are needed.
 
 ## Local development
 
@@ -82,7 +78,7 @@ To deploy, create an R2 bucket and deploy the worker:
 
 ```bash
 npx wrangler r2 bucket create image-pipeline
-npx wrangler secret put REPLICATE_API_TOKEN
+
 npm run build
 npx wrangler deploy
 ```

@@ -35,6 +35,9 @@ interface GenerateRequest {
  * Returns: { imageUrl: string, seed: number }
  */
 export async function handleGenerate(request: IRequest, env: Env) {
+	const apiKey = request.headers.get('x-ai-api-key')?.trim()
+	if (!apiKey) return Response.json({ error: 'A Replicate API key is required.' }, { status: 401 })
+
 	const body = (await request.json()) as GenerateRequest
 
 	if (!body.prompt) {
@@ -60,7 +63,7 @@ export async function handleGenerate(request: IRequest, env: Env) {
 			referenceImageUrl: body.referenceImageUrl,
 		}
 
-		let result = await provider.generate(params, env)
+		let result = await provider.generate(params, env, apiKey)
 
 		// Optionally persist the image to R2.
 		if (env.IMAGE_BUCKET && result.imageUrl?.startsWith('data:')) {

@@ -27,8 +27,8 @@ export interface UpscaleResult {
 
 export interface ImageProvider {
 	name: string
-	generate(params: GenerateParams, env: Env): Promise<GenerateResult>
-	upscale?(params: UpscaleParams, env: Env): Promise<UpscaleResult>
+	generate(params: GenerateParams, env: Env, apiKey: string): Promise<GenerateResult>
+	upscale?(params: UpscaleParams, env: Env, apiKey: string): Promise<UpscaleResult>
 }
 
 /**
