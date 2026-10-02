@@ -35,30 +35,32 @@ function readActionState(editor: Editor, action: TLUiActionItem): TLUiActionStat
 	// These run from always-mounted menus, so a throw would take down the whole editor rather than
 	// one menu item. A throw disables the item instead, without hiding an action that's unavailable.
 	let threw = false
-	function tryPredicate<T>(run: () => T, fallback: T): T {
+	function tryPredicate<T>(name: string, run: () => T, fallback: T): T {
 		try {
 			return run()
 		} catch (error) {
 			threw = true
-			reportThrowingAction(action, error)
+			reportThrowingPredicate(action, name, error)
 			return fallback
 		}
 	}
 	const visible = tryPredicate(
+		'isAvailable',
 		() => isActionVisible(editor, action),
 		!editor.getIsReadonly() || !!action.readonlyOk
 	)
-	const enabled = visible && tryPredicate(() => isActionEnabled(editor, action), false)
-	const checked = tryPredicate(() => action.isChecked?.(editor), undefined)
+	const enabled = visible && tryPredicate('isEnabled', () => isActionEnabled(editor, action), false)
+	const checked = tryPredicate('isChecked', () => action.isChecked?.(editor), undefined)
 	return { visible, enabled: enabled && !threw, checked }
 }
 
-const reportedActions = new Set<string>()
+const reportedPredicates = new Set<string>()
 
-function reportThrowingAction(action: TLUiActionItem, error: unknown) {
-	if (reportedActions.has(action.id)) return
-	reportedActions.add(action.id)
-	console.error(`The "${action.id}" action's isAvailable, isEnabled or isChecked threw`, error)
+function reportThrowingPredicate(action: TLUiActionItem, name: string, error: unknown) {
+	const key = `${action.id}:${name}`
+	if (reportedPredicates.has(key)) return
+	reportedPredicates.add(key)
+	console.error(`The "${action.id}" action's ${name} threw`, error)
 }
 
 function isSameState(a: TLUiActionState, b: TLUiActionState) {

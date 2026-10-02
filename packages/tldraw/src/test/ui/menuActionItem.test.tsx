@@ -434,7 +434,7 @@ describe('a predicate that throws', () => {
 		error.mockRestore()
 	})
 
-	async function renderThrowing(action: Partial<TLUiActionItem>) {
+	async function renderThrowing(action: Partial<TLUiActionItem>, id = 'throwing') {
 		await renderTldrawComponentWithEditor(
 			(onMount) => (
 				<Tldraw
@@ -442,8 +442,8 @@ describe('a predicate that throws', () => {
 					components={{ QuickActions: null }}
 					overrides={{
 						actions(_editor, actions) {
-							actions['throwing'] = {
-								id: 'throwing',
+							actions[id] = {
+								id,
 								label: 'action.group',
 								icon: 'group',
 								onSelect() {},
@@ -455,8 +455,8 @@ describe('a predicate that throws', () => {
 				>
 					<TldrawUiToolbar label="test">
 						<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
-							<TldrawUiMenuActionItem actionId="throwing" />
-							<SomeEnabled ids={['throwing']} />
+							<TldrawUiMenuActionItem actionId={id} />
+							<SomeEnabled ids={[id]} />
 						</TldrawUiMenuContextProvider>
 					</TldrawUiToolbar>
 				</Tldraw>
@@ -464,7 +464,7 @@ describe('a predicate that throws', () => {
 			{ waitForPatterns: false }
 		)
 		return {
-			disabled: button('throwing')?.disabled,
+			disabled: button(id)?.disabled,
 			someEnabled: screen.getByTestId('some').textContent,
 		}
 	}
@@ -490,6 +490,22 @@ describe('a predicate that throws', () => {
 			disabled: true,
 			someEnabled: 'false',
 		})
+		error.mockRestore()
+	})
+
+	it('reports each throwing predicate once, by name', async () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const thrower = () => {
+			throw new Error('boom')
+		}
+		await renderThrowing({ isEnabled: thrower, isChecked: thrower }, 'throws-twice')
+		const reports = error.mock.calls
+			.map(([msg]) => String(msg))
+			.filter((m) => m.includes('throws-twice'))
+		expect(reports.map((m) => m.match(/\b(isAvailable|isEnabled|isChecked)\b/)?.[0])).toEqual([
+			'isEnabled',
+			'isChecked',
+		])
 		error.mockRestore()
 	})
 })
