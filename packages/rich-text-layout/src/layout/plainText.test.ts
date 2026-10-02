@@ -49,6 +49,26 @@ describe('layoutPlainText', () => {
 		expect(layout.width).toBe(100)
 	})
 
+	it('hangs a trailing space after a broken word instead of opening a line for it', () => {
+		// Each 10px grapheme overflows the 5px box, so the word breaks after every one.
+		const layout = layoutPlainText('abc ', {
+			style: { ...style, overflowWrap: 'break-word' },
+			maxWidth: 5,
+		})
+		expect(layout.lines.map((l) => l.fragments.map((f) => f.text).join(''))).toEqual([
+			'a',
+			'b',
+			'c ',
+		])
+	})
+
+	it('keeps trailing spaces at the end of a paragraph inside maxWidth', () => {
+		// 'aaa bbb' is 70px; the trailing space would make it 80 in a 75px box.
+		const layout = layoutPlainText('aaa bbb ', { style, maxWidth: 75 })
+		expect(layout.lines).toHaveLength(1)
+		expect(layout.lines[0].width).toBe(75)
+	})
+
 	it('breaks overlong words at graphemes with overflow-wrap: break-word', () => {
 		const layout = layoutPlainText('abcdefghij', {
 			style: { ...style, overflowWrap: 'break-word' },
