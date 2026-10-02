@@ -1,8 +1,10 @@
 import {
 	approximately,
+	defineMessages,
 	isEqual,
 	kickoutOccludedShapes,
 	modulate,
+	TLI18nMessage,
 	TLImageShape,
 	TLShapePartial,
 	track,
@@ -33,6 +35,16 @@ import {
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+// Only the ids nothing else declares; the rest are declared with what they name.
+const messages = defineMessages({
+	toolAspectRatio: { id: 'tool.aspect-ratio', defaultMessage: 'Aspect ratio' },
+	toolImageCrop: { id: 'tool.image-crop', defaultMessage: 'Crop image' },
+	toolImageCropConfirm: { id: 'tool.image-crop-confirm', defaultMessage: 'Confirm' },
+	toolImageZoom: { id: 'tool.image-zoom', defaultMessage: 'Zoom' },
+	toolMediaAltText: { id: 'tool.media-alt-text', defaultMessage: 'Alternative text' },
+})
+
 /** @public */
 export interface DefaultImageToolbarContentProps {
 	imageShapeId: TLImageShape['id']
@@ -41,6 +53,18 @@ export interface DefaultImageToolbarContentProps {
 	onManipulatingStart(): void
 	onManipulatingEnd(): void
 }
+
+// Keyed on the option rather than written at the call site, which used to compose the id from
+// `aspectRatio` and so hid every one of these from the extractor. The `Record` keeps it complete:
+// a new option won't compile until it has a label.
+const aspectRatioMessages: Record<ASPECT_RATIO_OPTION, TLI18nMessage> = defineMessages({
+	original: { id: 'tool.aspect-ratio.original', defaultMessage: 'Original' },
+	square: { id: 'tool.aspect-ratio.square', defaultMessage: 'Square (1:1)' },
+	circle: { id: 'tool.aspect-ratio.circle', defaultMessage: 'Circle (1:1)' },
+	landscape: { id: 'tool.aspect-ratio.landscape', defaultMessage: 'Landscape (4:3)' },
+	portrait: { id: 'tool.aspect-ratio.portrait', defaultMessage: 'Portrait (3:4)' },
+	wide: { id: 'tool.aspect-ratio.wide', defaultMessage: 'Wide (16:9)' },
+})
 
 const MAX_RATIO_CONVERSION = MAX_ZOOM / (MAX_ZOOM - 1)
 
@@ -209,18 +233,18 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 				<TldrawUiSlider
 					ref={sliderRef}
 					value={displayValue}
-					label="tool.image-zoom"
+					label={messages.toolImageZoom.id}
 					onValueChange={handleZoomChange}
 					onHistoryMark={onHistoryMark}
 					min={0}
 					steps={100}
 					data-testid="tool.image-zoom"
-					title={msg('tool.image-zoom')}
+					title={msg(messages.toolImageZoom.id)}
 				/>
 				<TldrawUiDropdownMenuRoot id="image-toolbar-aspect-ratio">
 					<TldrawUiDropdownMenuTrigger>
 						<TldrawUiToolbarButton
-							title={msg('tool.aspect-ratio')}
+							title={msg(messages.toolAspectRatio.id)}
 							type="icon"
 							data-testid="tool.image-aspect-ratio"
 						>
@@ -247,10 +271,10 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 									key={aspectRatio}
 									onSelect={() => handleAspectRatioChange(aspectRatio as ASPECT_RATIO_OPTION)}
 									checked={checked}
-									title={msg(`tool.aspect-ratio.${aspectRatio}`)}
+									title={msg(aspectRatioMessages[aspectRatio as ASPECT_RATIO_OPTION].id)}
 								>
 									<TldrawUiButtonLabel>
-										{msg(`tool.aspect-ratio.${aspectRatio}`)}
+										{msg(aspectRatioMessages[aspectRatio as ASPECT_RATIO_OPTION].id)}
 									</TldrawUiButtonLabel>
 								</TldrawUiDropdownMenuCheckboxItem>
 							)
@@ -262,7 +286,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 					onClick={onManipulatingEnd}
 					data-testid="tool.image-crop-confirm"
 					style={{ borderLeft: '1px solid var(--tl-color-divider)', marginLeft: '2px' }}
-					title={msg('tool.image-crop-confirm')}
+					title={msg(messages.toolImageCropConfirm.id)}
 				>
 					<TldrawUiButtonIcon small icon="check" />
 				</TldrawUiToolbarButton>
@@ -284,7 +308,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 					</TldrawUiToolbarButton>
 					<TldrawUiToolbarButton
 						type="icon"
-						title={msg('tool.image-crop')}
+						title={msg(messages.toolImageCrop.id)}
 						onClick={onManipulatingStart}
 						data-testid="tool.image-crop"
 					>
@@ -303,7 +327,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			{(altText || !isReadonly) && (
 				<TldrawUiToolbarButton
 					type="icon"
-					title={msg('tool.media-alt-text')}
+					title={msg(messages.toolMediaAltText.id)}
 					data-testid="tool.image-alt-text"
 					onClick={() => {
 						trackEvent('alt-text-start', { source })

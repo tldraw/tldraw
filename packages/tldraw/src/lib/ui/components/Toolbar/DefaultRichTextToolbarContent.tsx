@@ -1,9 +1,29 @@
-import { isAccelKey, preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
+import {
+	defineMessages,
+	isAccelKey,
+	preventDefault,
+	TiptapEditor,
+	TLI18nMessage,
+	useEditor,
+} from '@tldraw/editor'
 import { useEffect, useMemo, useState } from 'react'
 import { TLUiEventMap, useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
+
+// Keyed on the action name rather than written at the call site, which used to compose the id
+// from `name` and so hid every one of these from the extractor. Only the actions this toolbar
+// builds are here; the other `tool.rich-text-*` strings are referenced directly, from the link
+// editor and the keyboard shortcuts dialog.
+const richTextMessages: Record<string, TLI18nMessage> = defineMessages({
+	bold: { id: 'tool.rich-text-bold', defaultMessage: 'Bold' },
+	italic: { id: 'tool.rich-text-italic', defaultMessage: 'Italic' },
+	code: { id: 'tool.rich-text-code', defaultMessage: 'Code' },
+	link: { id: 'tool.rich-text-link', defaultMessage: 'Link' },
+	bulletList: { id: 'tool.rich-text-bulletList', defaultMessage: 'Bulleted list' },
+	highlight: { id: 'tool.rich-text-highlight', defaultMessage: 'Highlight' },
+})
 
 /** @public */
 export interface DefaultRichTextToolbarContentProps {
@@ -118,7 +138,7 @@ export function DefaultRichTextToolbarContent({
 		return (
 			<TldrawUiToolbarButton
 				key={name}
-				title={msg(`tool.rich-text-${name}`)}
+				title={msg(richTextMessages[name]?.id ?? `tool.rich-text-${name}`)}
 				data-testid={`rich-text.${name}`}
 				type="icon"
 				isActive={isActive} // todo: we need to update this only when the text editor "settles", ie not during a change of selection

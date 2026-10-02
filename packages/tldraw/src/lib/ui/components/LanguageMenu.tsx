@@ -1,8 +1,13 @@
-import { LANGUAGES, useMaybeEditor, useValue } from '@tldraw/editor'
+import { defineMessages, LANGUAGES, useMaybeEditor, useValue } from '@tldraw/editor'
 import { useUiEvents } from '../context/events'
 import { TldrawUiMenuCheckboxItem } from './primitives/menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	menuLanguage: { id: 'menu.language', defaultMessage: 'Language' },
+})
 
 /** @public @react */
 export function LanguageMenu() {
@@ -13,7 +18,7 @@ export function LanguageMenu() {
 	if (!editor) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="help menu language" label="menu.language">
+		<TldrawUiMenuSubmenu id="help menu language" label={messages.menuLanguage.id}>
 			<TldrawUiMenuGroup id="languages" className="tlui-language-menu">
 				{LANGUAGES.map(({ locale, label }) => (
 					<TldrawUiMenuCheckboxItem

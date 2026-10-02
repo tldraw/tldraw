@@ -1,4 +1,11 @@
-import { USER_COLORS, getOwnerWindow, track, useContainer, useEditor } from '@tldraw/editor'
+import {
+	defineMessages,
+	getOwnerWindow,
+	track,
+	useContainer,
+	useEditor,
+	USER_COLORS,
+} from '@tldraw/editor'
 import { Popover as _Popover } from 'radix-ui'
 import React, { useCallback, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
@@ -6,6 +13,11 @@ import { useDirection, useTranslation } from '../../hooks/useTranslation/useTran
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiGrid } from '../primitives/layout'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	peopleMenuChangeColor: { id: 'people-menu.change-color', defaultMessage: 'Change color' },
+})
 
 /** @public @react */
 export const UserPresenceColorPicker = track(function UserPresenceColorPicker() {
@@ -87,7 +99,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 					type="icon"
 					className="tlui-people-menu__user__color"
 					style={{ color: value }}
-					title={msg('people-menu.change-color')}
+					title={msg(messages.peopleMenuChangeColor.id)}
 				>
 					<TldrawUiButtonIcon icon="color" />
 				</TldrawUiButton>

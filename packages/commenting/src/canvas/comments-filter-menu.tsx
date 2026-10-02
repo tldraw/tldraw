@@ -1,4 +1,5 @@
 import {
+	defineMessages,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -13,6 +14,15 @@ import {
 import { MoreMenuIcon } from '../ui/icons'
 import { SidebarFilters } from './sidebar-filters'
 import { sidebarFilters } from './state'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	commentsFilter: { id: 'comments.filter', defaultMessage: 'Filter comments' },
+	commentsOnlyMyComments: { id: 'comments.only-my-comments', defaultMessage: 'Only my comments' },
+	commentsOnlyUnread: { id: 'comments.only-unread', defaultMessage: 'Only unread' },
+	commentsShowAllPages: { id: 'comments.show-all-pages', defaultMessage: 'Show all pages' },
+	commentsShowResolved: { id: 'comments.show-resolved', defaultMessage: 'Show resolved comments' },
+})
 
 /** @public */
 export interface CommentsFilterMenuProps {
@@ -40,8 +50,8 @@ export function CommentsFilterMenu({
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton
 					type="icon"
-					tooltip={msg('comments.filter')}
-					title={msg('comments.filter')}
+					tooltip={msg(messages.commentsFilter.id)}
+					title={msg(messages.commentsFilter.id)}
 					className="tlui-cmt-header-btn"
 				>
 					<MoreMenuIcon />
@@ -54,14 +64,14 @@ export function CommentsFilterMenu({
 					<TldrawUiMenuGroup id="comments-filter">
 						<TldrawUiMenuCheckboxItem
 							id="show-all-pages"
-							label="comments.show-all-pages"
+							label={messages.commentsShowAllPages.id}
 							checked={!filters.onlyCurrentPage}
 							onSelect={() => toggle('onlyCurrentPage')}
 						/>
 						{canFilterByAuthor && (
 							<TldrawUiMenuCheckboxItem
 								id="only-my-comments"
-								label="comments.only-my-comments"
+								label={messages.commentsOnlyMyComments.id}
 								checked={filters.onlyMine}
 								onSelect={() => toggle('onlyMine')}
 							/>
@@ -69,14 +79,14 @@ export function CommentsFilterMenu({
 						{canFilterByUnread && (
 							<TldrawUiMenuCheckboxItem
 								id="only-unread"
-								label="comments.only-unread"
+								label={messages.commentsOnlyUnread.id}
 								checked={filters.onlyUnread}
 								onSelect={() => toggle('onlyUnread')}
 							/>
 						)}
 						<TldrawUiMenuCheckboxItem
 							id="show-resolved"
-							label="comments.show-resolved"
+							label={messages.commentsShowResolved.id}
 							checked={filters.showResolved}
 							onSelect={() => toggle('showResolved')}
 						/>

@@ -1,4 +1,4 @@
-import { PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
+import { defineMessages, PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -13,6 +13,19 @@ import {
 	TldrawUiDropdownMenuTrigger,
 } from '../primitives/TldrawUiDropdownMenu'
 import { onMovePage } from './edit-pages-shared'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	pageMenuSubmenuDelete: { id: 'page-menu.submenu.delete', defaultMessage: 'Delete' },
+	pageMenuSubmenuDuplicatePage: {
+		id: 'page-menu.submenu.duplicate-page',
+		defaultMessage: 'Duplicate',
+	},
+	pageMenuSubmenuMoveDown: { id: 'page-menu.submenu.move-down', defaultMessage: 'Move down' },
+	pageMenuSubmenuMoveUp: { id: 'page-menu.submenu.move-up', defaultMessage: 'Move up' },
+	pageMenuSubmenuRename: { id: 'page-menu.submenu.rename', defaultMessage: 'Rename' },
+	pageMenuSubmenuTitle: { id: 'page-menu.submenu.title', defaultMessage: 'Menu' },
+})
 /** @public */
 export interface PageItemSubmenuProps {
 	index: number
@@ -57,8 +70,8 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton
 					type="icon"
-					tooltip={msg('page-menu.submenu.title')}
-					title={msg('page-menu.submenu.title')}
+					tooltip={msg(messages.pageMenuSubmenuTitle.id)}
+					title={msg(messages.pageMenuSubmenuTitle.id)}
 					data-testid="page-menu.item-submenu"
 				>
 					<TldrawUiButtonIcon icon="dots-vertical" small />
@@ -68,11 +81,15 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 				<TldrawUiMenuContextProvider type="menu" sourceId="page-menu">
 					<TldrawUiMenuGroup id="modify">
 						{onRename && (
-							<TldrawUiMenuItem id="rename" label="page-menu.submenu.rename" onSelect={onRename} />
+							<TldrawUiMenuItem
+								id="rename"
+								label={messages.pageMenuSubmenuRename.id}
+								onSelect={onRename}
+							/>
 						)}
 						<TldrawUiMenuItem
 							id="duplicate"
-							label="page-menu.submenu.duplicate-page"
+							label={messages.pageMenuSubmenuDuplicatePage.id}
 							onSelect={onDuplicate}
 							disabled={listSize >= editor.options.maxPages}
 						/>
@@ -80,20 +97,24 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 							<TldrawUiMenuItem
 								id="move-up"
 								onSelect={onMoveUp}
-								label="page-menu.submenu.move-up"
+								label={messages.pageMenuSubmenuMoveUp.id}
 							/>
 						)}
 						{index < listSize - 1 && (
 							<TldrawUiMenuItem
 								id="move-down"
-								label="page-menu.submenu.move-down"
+								label={messages.pageMenuSubmenuMoveDown.id}
 								onSelect={onMoveDown}
 							/>
 						)}
 					</TldrawUiMenuGroup>
 					{listSize > 1 && (
 						<TldrawUiMenuGroup id="delete">
-							<TldrawUiMenuItem id="delete" onSelect={onDelete} label="page-menu.submenu.delete" />
+							<TldrawUiMenuItem
+								id="delete"
+								onSelect={onDelete}
+								label={messages.pageMenuSubmenuDelete.id}
+							/>
 						</TldrawUiMenuGroup>
 					)}
 				</TldrawUiMenuContextProvider>

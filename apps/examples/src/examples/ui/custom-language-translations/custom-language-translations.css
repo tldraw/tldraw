@@ -3,3 +3,11 @@
 	display: flex;
 	margin: 8px;
 }
+
+.custom-language-count {
+	align-self: center;
+	padding: 0 8px;
+	font-size: 12px;
+	color: var(--tl-color-text-1);
+	white-space: nowrap;
+}

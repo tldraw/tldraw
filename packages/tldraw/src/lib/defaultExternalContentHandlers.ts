@@ -1,6 +1,13 @@
 import {
+	assert,
 	AssetRecordType,
+	createShapeId,
+	defineMessages,
 	Editor,
+	fetch,
+	getHashForBuffer,
+	getHashForString,
+	maybeSnapToGrid,
 	T,
 	TLAsset,
 	TLAssetId,
@@ -17,15 +24,9 @@ import {
 	TLTextShapeProps,
 	TLUrlExternalAsset,
 	TLVideoAsset,
+	toRichText,
 	Vec,
 	VecLike,
-	assert,
-	createShapeId,
-	fetch,
-	getHashForBuffer,
-	getHashForString,
-	maybeSnapToGrid,
-	toRichText,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
 import { createBookmarkFromUrl } from './shapes/bookmark/bookmarks'
@@ -38,6 +39,28 @@ import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
 import { isShapeWithLink } from './utils/shapes/shapes'
 import { renderHtmlFromRichTextForMeasurement, renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	assetsFilesAmountTooMany: {
+		id: 'assets.files.amount-too-many',
+		defaultMessage: 'Too many files',
+	},
+	assetsFilesMaximumSize: {
+		id: 'assets.files.maximum-size',
+		defaultMessage: 'Maximum file size is {size}',
+	},
+	assetsFilesSizeTooBig: {
+		id: 'assets.files.size-too-big',
+		defaultMessage: 'File size is too big',
+	},
+	assetsFilesTypeNotAllowed: {
+		id: 'assets.files.type-not-allowed',
+		defaultMessage: 'File type is not allowed',
+	},
+	assetsFilesUploadFailed: { id: 'assets.files.upload-failed', defaultMessage: 'Upload failed' },
+	assetsUrlFailed: { id: 'assets.url.failed', defaultMessage: 'Couldn’t load URL preview' },
+})
 
 /**
  * 5000px
@@ -288,7 +311,7 @@ export async function defaultHandleExternalUrlAsset(
 	} catch (error) {
 		console.error(error)
 		toasts.addToast({
-			title: msg('assets.url.failed'),
+			title: msg(messages.assetsUrlFailed.id),
 			severity: 'error',
 		})
 		meta = { image: '', favicon: '', title: '', description: '' }
@@ -397,7 +420,7 @@ export async function defaultHandleExternalFileContent(
 ) {
 	const { toasts, msg } = options
 	if (files.length > editor.options.maxFilesAtOnce) {
-		toasts.addToast({ title: msg('assets.files.amount-too-many'), severity: 'error' })
+		toasts.addToast({ title: msg(messages.assetsFilesAmountTooMany.id), severity: 'error' })
 		return
 	}
 
@@ -420,7 +443,7 @@ export async function defaultHandleExternalFileContent(
 		const sanitizedFile = await maybeSanitizeSvgFile(file)
 		if (!sanitizedFile) {
 			toasts.addToast({
-				title: msg('assets.files.upload-failed'),
+				title: msg(messages.assetsFilesUploadFailed.id),
 				severity: 'error',
 			})
 			continue
@@ -432,7 +455,7 @@ export async function defaultHandleExternalFileContent(
 			assetInfo = await getAssetInfo(editor, sanitizedFile)
 		} catch (error) {
 			toasts.addToast({
-				title: msg('assets.files.upload-failed'),
+				title: msg(messages.assetsFilesUploadFailed.id),
 				severity: 'error',
 			})
 			console.error(error)
@@ -462,7 +485,7 @@ export async function defaultHandleExternalFileContent(
 				editor.updateAssets([{ ...newAsset, id: assetAndFile.asset.id }])
 			} catch (error) {
 				toasts.addToast({
-					title: msg('assets.files.upload-failed'),
+					title: msg(messages.assetsFilesUploadFailed.id),
 					severity: 'error',
 				})
 				console.error(error)
@@ -609,7 +632,7 @@ export async function defaultHandleExternalUrlContent(
 	if (!T.linkUrl.isValid(url)) {
 		console.warn(`Could not create a bookmark from an invalid url: ${JSON.stringify(url)}`)
 		toasts.addToast({
-			title: msg('assets.url.failed'),
+			title: msg(messages.assetsUrlFailed.id),
 			severity: 'error',
 		})
 		return
@@ -650,7 +673,7 @@ export async function defaultHandleExternalUrlContent(
 
 	if (!result.ok) {
 		toasts.addToast({
-			title: msg('assets.url.failed'),
+			title: msg(messages.assetsUrlFailed.id),
 			severity: 'error',
 		})
 		return
@@ -913,7 +936,7 @@ export function notifyIfFileNotAllowed(
 		(acceptedVideoMimeTypes?.includes(file.type) ?? false)
 	if (!isFileTypeAllowed) {
 		toasts.addToast({
-			title: msg('assets.files.type-not-allowed'),
+			title: msg(messages.assetsFilesTypeNotAllowed.id),
 			severity: 'error',
 		})
 		return false
@@ -934,8 +957,8 @@ export function notifyIfFileNotAllowed(
 		}
 
 		toasts.addToast({
-			title: msg('assets.files.size-too-big'),
-			description: msg('assets.files.maximum-size').replace('{size}', formatBytes(maxAssetSize)),
+			title: msg(messages.assetsFilesSizeTooBig.id),
+			description: msg(messages.assetsFilesMaximumSize.id, { size: formatBytes(maxAssetSize) }),
 			severity: 'error',
 		})
 		return false
@@ -946,7 +969,7 @@ export function notifyIfFileNotAllowed(
 	// of copied files.
 	if (!file.type) {
 		toasts.addToast({
-			title: msg('assets.files.upload-failed'),
+			title: msg(messages.assetsFilesUploadFailed.id),
 			severity: 'error',
 		})
 		console.error('No mime type')

@@ -1,4 +1,4 @@
-import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
+import { defineMessages, useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
 import { memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../constants'
 import { useBreakpoint } from '../context/breakpoints'
@@ -6,6 +6,11 @@ import { useTldrawUiComponents } from '../context/components'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiRow } from './primitives/layout'
 import { TldrawUiToolbar } from './primitives/TldrawUiToolbar'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	actionsMenuTitle: { id: 'actions-menu.title', defaultMessage: 'Actions' },
+})
 
 /** @public @react */
 export const DefaultMenuPanel = memo(function MenuPanel() {
@@ -37,7 +42,7 @@ export const DefaultMenuPanel = memo(function MenuPanel() {
 				{MainMenu && <MainMenu />}
 				{PageMenu && !isSinglePageMode && <PageMenu />}
 				{showQuickActions ? (
-					<TldrawUiToolbar orientation="horizontal" label={msg('actions-menu.title')}>
+					<TldrawUiToolbar orientation="horizontal" label={msg(messages.actionsMenuTitle.id)}>
 						{QuickActions && <QuickActions />}
 						{ActionsMenu && <ActionsMenu />}
 					</TldrawUiToolbar>

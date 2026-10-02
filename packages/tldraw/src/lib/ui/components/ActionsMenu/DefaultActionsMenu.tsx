@@ -1,3 +1,4 @@
+import { defineMessages } from '@tldraw/editor'
 import { ReactNode, memo } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -13,6 +14,11 @@ import {
 } from '../primitives/TldrawUiPopover'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	actionsMenuTitle: { id: 'actions-menu.title', defaultMessage: 'Actions' },
+})
 
 /** @public */
 export interface TLUiActionsMenuProps {
@@ -39,7 +45,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				<TldrawUiToolbarButton
 					type="icon"
 					data-testid="actions-menu.button"
-					title={msg('actions-menu.title')}
+					title={msg(messages.actionsMenuTitle.id)}
 				>
 					<TldrawUiButtonIcon
 						icon={orientation === 'horizontal' ? 'dots-vertical' : 'dots-horizontal'}
@@ -58,7 +64,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				sideOffset={6}
 			>
 				<TldrawUiToolbar
-					label={msg('actions-menu.title')}
+					label={msg(messages.actionsMenuTitle.id)}
 					className="tlui-actions-menu"
 					data-testid="actions-menu.content"
 					orientation="grid"

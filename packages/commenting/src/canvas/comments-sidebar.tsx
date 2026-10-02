@@ -1,5 +1,12 @@
 import { ReactNode, useCallback } from 'react'
-import { EditorPortal, TLCommentThread, useEditor, useTranslation, useValue } from 'tldraw'
+import {
+	defineMessages,
+	EditorPortal,
+	TLCommentThread,
+	useEditor,
+	useTranslation,
+	useValue,
+} from 'tldraw'
 import { CommentListItemProps, CommentListItemRenderProps, CommentsList } from '../ui/comments-list'
 import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { CommentsFilterMenu } from './comments-filter-menu'
@@ -11,6 +18,17 @@ import { useCommentingOptions } from './options'
 import { richTextToPlaintext } from './rich-text'
 import { commentsSidebarOpen, openThreadId, sidebarFilters } from './state'
 import { focusThread } from './thread-state'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	commentsEmpty: { id: 'comments.empty', defaultMessage: 'No comments on this page yet.' },
+	commentsEmptyFiltered: {
+		id: 'comments.empty-filtered',
+		defaultMessage: 'No comments match your filters.',
+	},
+	commentsResolved: { id: 'comments.resolved', defaultMessage: 'Resolved' },
+	commentsTitle: { id: 'comments.title', defaultMessage: 'Comments' },
+})
 
 /**
  * The host wiring for {@link CanvasCommentsSidebar}: the {@link CommentingContext} fields it reads,
@@ -146,7 +164,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		<SidebarPanel>
 			<CommentsList
 				items={items}
-				header={header ?? msg('comments.title')}
+				header={header ?? msg(messages.commentsTitle.id)}
 				headerAction={
 					<div className="tlui-cmt-list__header-actions">
 						<CommentsFilterMenu
@@ -158,10 +176,10 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				}
 				empty={
 					items.length === 0 && pageThreads.length > 0
-						? msg('comments.empty-filtered')
-						: (empty ?? msg('comments.empty'))
+						? msg(messages.commentsEmptyFiltered.id)
+						: (empty ?? msg(messages.commentsEmpty.id))
 				}
-				resolvedLabel={msg('comments.resolved')}
+				resolvedLabel={msg(messages.commentsResolved.id)}
 				onSelect={focus}
 				renderItem={renderItem}
 			/>

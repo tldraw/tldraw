@@ -32,6 +32,7 @@ import { TLAnyAssetUtilConstructor } from './config/defaultAssets'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
+import { TLI18nAdapter } from './config/TLI18n'
 import { Editor } from './editor/Editor'
 import { resolveThemes } from './editor/managers/ThemeManager/ThemeManager'
 import { TLAnyOverlayUtilConstructor } from './editor/overlays/OverlayUtil'
@@ -253,6 +254,11 @@ export interface TldrawEditorBaseProps {
 	 * The URLs for the fonts to use in the editor.
 	 */
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
+
+	/**
+	 * An i18n adapter for translating strings.
+	 */
+	i18n?: TLI18nAdapter
 }
 
 /**
@@ -505,6 +511,7 @@ function TldrawEditorWithReadyStore({
 	assetUrls,
 	themes,
 	initialTheme,
+	i18n,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -580,6 +587,7 @@ function TldrawEditorWithReadyStore({
 				fontAssetUrls: assetUrls?.fonts,
 				themes: themes,
 				initialTheme: initialTheme,
+				i18n,
 			})
 			editor.licenseManager = licenseManager
 
@@ -620,6 +628,7 @@ function TldrawEditorWithReadyStore({
 			licenseManager,
 			getShapeVisibility,
 			assetUrls,
+			i18n,
 		]
 	)
 

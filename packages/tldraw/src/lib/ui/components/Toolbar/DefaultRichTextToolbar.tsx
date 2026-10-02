@@ -1,11 +1,27 @@
 import { getMarkRange, Range, EditorEvents as TextEditorEvents } from '@tiptap/core'
 import { MarkType } from '@tiptap/pm/model'
-import { Box, debounce, TiptapEditor, track, useEditor, useValue } from '@tldraw/editor'
+import {
+	Box,
+	debounce,
+	defineMessages,
+	TiptapEditor,
+	track,
+	useEditor,
+	useValue,
+} from '@tldraw/editor'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { rectToBox, TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
 import { LinkEditor } from './LinkEditor'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	toolRichTextToolbarTitle: {
+		id: 'tool.rich-text-toolbar-title',
+		defaultMessage: 'Text formatting',
+	},
+})
 
 /** @public */
 export interface TLUiRichTextToolbarProps {
@@ -84,7 +100,7 @@ function ContextualToolbarInner({
 			getSelectionBounds={getSelectionBounds}
 			isMousingDown={isMousingDown}
 			changeOnlyWhenYChanges={true}
-			label={msg('tool.rich-text-toolbar-title')}
+			label={msg(messages.toolRichTextToolbarTitle.id)}
 		>
 			{children ? (
 				children

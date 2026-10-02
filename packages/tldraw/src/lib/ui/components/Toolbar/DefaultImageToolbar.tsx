@@ -1,9 +1,14 @@
-import { Box, TLImageShape, useEditor, useValue } from '@tldraw/editor'
+import { Box, defineMessages, TLImageShape, useEditor, useValue } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { AltTextEditor } from './AltTextEditor'
 import { DefaultImageToolbarContent } from './DefaultImageToolbarContent'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	toolImageToolbarTitle: { id: 'tool.image-toolbar-title', defaultMessage: 'Image tools' },
+})
 
 /** @public */
 export interface TLUiImageToolbarProps {
@@ -102,7 +107,7 @@ function ContextualToolbarInner({
 		<TldrawUiContextualToolbar
 			className="tlui-media__toolbar tlui-image__toolbar"
 			getSelectionBounds={getSelectionBounds}
-			label={msg('tool.image-toolbar-title')}
+			label={msg(messages.toolImageToolbarTitle.id)}
 		>
 			{children ? (
 				children

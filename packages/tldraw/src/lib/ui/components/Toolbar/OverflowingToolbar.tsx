@@ -1,6 +1,7 @@
 import {
 	activeElementShouldCaptureKeys,
 	assert,
+	defineMessages,
 	modulate,
 	preventDefault,
 	tlmenus,
@@ -23,6 +24,12 @@ import {
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	toolPanelMore: { id: 'tool-panel.more', defaultMessage: 'More' },
+	toolPanelTitle: { id: 'tool-panel.title', defaultMessage: 'Tools' },
+})
 
 export const IsInOverflowContext = createContext(false)
 
@@ -296,7 +303,7 @@ export function OverflowingToolbar({
 			className={classNames('tlui-main-toolbar__tools', {
 				'tlui-main-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 			})}
-			label={msg('tool-panel.title')}
+			label={msg(messages.toolPanelTitle.id)}
 		>
 			<Layout id={`${id}_main`} ref={mainToolsRef}>
 				<TldrawUiMenuContextProvider type="toolbar" sourceId="toolbar">
@@ -308,7 +315,7 @@ export function OverflowingToolbar({
 					<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
 						<TldrawUiPopoverTrigger>
 							<TldrawUiToolbarButton
-								title={msg('tool-panel.more')}
+								title={msg(messages.toolPanelMore.id)}
 								type="tool"
 								className="tlui-main-toolbar__overflow"
 								data-testid="tools.more-button"
@@ -327,7 +334,7 @@ export function OverflowingToolbar({
 								className="tlui-main-toolbar__overflow-content"
 								ref={setOverflowTools}
 								data-testid="tools.more-content"
-								label={msg('tool-panel.more')}
+								label={msg(messages.toolPanelMore.id)}
 								id={`${id}_more`}
 								onClick={() => {
 									tlmenus.deleteOpenMenu(popoverId, editor.contextId)

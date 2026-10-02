@@ -1,6 +1,16 @@
 import { ComponentType, ReactNode } from 'react'
-import { TldrawUiTooltip, useTranslation } from 'tldraw'
+import { defineMessages, TldrawUiTooltip, useTranslation } from 'tldraw'
 import { ReactionReactor } from './reactions'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	commentsMentionYou: { id: 'comments.mention-you', defaultMessage: 'You' },
+	commentsReacted: {
+		id: 'comments.reacted',
+		defaultMessage:
+			'{count, plural, =1 {{a} reacted} =2 {{a} and {b} reacted} =3 {{a}, {b} and {c} reacted} other {{a}, {b}, {c} and {others, plural, one {# other} other {# others}} reacted}}',
+	},
+})
 
 /** Render a reaction token to its visual — the emoji glyph by default. @public */
 export type RenderReaction = (token: string) => ReactNode
@@ -99,25 +109,27 @@ export function DefaultReactionTooltip({ reactors, children }: ReactionTooltipPr
 /**
  * The default reactor sentence naming who reacted — up to three names spelled out, then "and N
  * others" (e.g. "You reacted", "You and Bo reacted", "You, Bo and Ada reacted", "You, Bo, Ada and 2
- * others reacted"). The wording lives in the `comments.reacted-*` translation strings so each locale
- * controls the grammar. Exported so a custom `ReactionTooltip` can reuse it inside its own box.
+ * others reacted"). The wording lives in the `comments.reacted` translation string, whose ICU
+ * plural picks the phrasing, so each locale controls both the grammar and how it counts. Exported
+ * so a custom `ReactionTooltip` can reuse it inside its own box.
  * @public @react
  */
 export function DefaultReactionTooltipContent({ reactors }: { reactors: ReactionReactor[] }) {
 	const msg = useTranslation()
 	const names = reactors.map((reactor) =>
-		reactor.you ? msg('comments.mention-you') : reactor.name
+		reactor.you ? msg(messages.commentsMentionYou.id) : reactor.name
 	)
 	if (names.length === 0) return null
 	const [a, b, c] = names
-	const others = names.length - 3
-	const key =
-		names.length <= 3
-			? `comments.reacted-${names.length}`
-			: others === 1
-				? 'comments.reacted-more-one'
-				: 'comments.reacted-more'
-	// Single pass, so a substituted name containing a placeholder can't be re-substituted.
-	const vars: Record<string, string | undefined> = { a, b, c, count: String(others) }
-	return <>{msg(key).replace(/\{(a|b|c|count)\}/g, (_, k) => vars[k] ?? '')}</>
+	return (
+		<>
+			{msg(messages.commentsReacted.id, {
+				count: names.length,
+				others: names.length - 3,
+				a,
+				b,
+				c,
+			})}
+		</>
+	)
 }

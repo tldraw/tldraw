@@ -4,6 +4,7 @@ import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
+import { styleMessageId, stylePanelMessageId } from '../../styleMessages'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
@@ -41,7 +42,7 @@ function StylePanelDropdownPickerInner<T extends string>(props: StylePanelDropdo
 	const msg = useTranslation()
 	const toolbarLabel = props.label
 		? msg(props.label)
-		: msg(`style-panel.${props.stylePanelType}` as TLUiTranslationKey)
+		: msg(stylePanelMessageId(props.stylePanelType))
 	return (
 		<TldrawUiToolbar label={toolbarLabel}>
 			<StylePanelDropdownPickerInline {...props} />
@@ -77,7 +78,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 		return match ?? items[0]?.icon
 	}, [items, value])
 
-	const stylePanelName = msg(`style-panel.${stylePanelType}` as TLUiTranslationKey)
+	const stylePanelName = msg(stylePanelMessageId(stylePanelType))
 
 	// The current value isn't always present in this dropdown's items (for example the fill
 	// dropdown only holds the "extra" fills, so a "solid" selection lives elsewhere). When the
@@ -88,7 +89,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 		value.type === 'mixed'
 			? msg('style-panel.mixed')
 			: valueInItems
-				? stylePanelName + ' — ' + msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
+				? stylePanelName + ' — ' + msg(styleMessageId(uiType, value.value))
 				: stylePanelName
 	const labelStr = label ? msg(label) : ''
 
@@ -121,11 +122,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 									key={item.value}
 									type="icon"
 									data-testid={`style.${testIdType}.${item.value}`}
-									title={
-										stylePanelName +
-										' — ' +
-										msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
-									}
+									title={stylePanelName + ' — ' + msg(styleMessageId(uiType, item.value))}
 									isActive={valueInItems && icon === item.icon}
 									onClick={() => {
 										ctx.onHistoryMark('select style dropdown item')

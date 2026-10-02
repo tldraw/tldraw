@@ -1,4 +1,4 @@
-import { useEditor, useValue } from '@tldraw/editor'
+import { defineMessages, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactNode, memo } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -13,6 +13,16 @@ import {
 	TldrawUiDialogTitle,
 } from '../primitives/TldrawUiDialog'
 import { DefaultKeyboardShortcutsDialogContent } from './DefaultKeyboardShortcutsDialogContent'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	shortcutsDialogDisabledNotice: {
+		id: 'shortcuts-dialog.disabled-notice',
+		defaultMessage:
+			'Keyboard shortcuts are turned off. Turn them back on under Preferences > Accessibility.',
+	},
+	shortcutsDialogTitle: { id: 'shortcuts-dialog.title', defaultMessage: 'Keyboard shortcuts' },
+})
 
 /** @public */
 export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
@@ -37,7 +47,7 @@ export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShort
 	return (
 		<>
 			<TldrawUiDialogHeader className="tlui-shortcuts-dialog__header">
-				<TldrawUiDialogTitle>{msg('shortcuts-dialog.title')}</TldrawUiDialogTitle>
+				<TldrawUiDialogTitle>{msg(messages.shortcutsDialogTitle.id)}</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			{!areKeyboardShortcutsEnabled && (
@@ -46,7 +56,7 @@ export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShort
 					data-testid="kbd.disabled-notice"
 					role="status"
 				>
-					{msg('shortcuts-dialog.disabled-notice')}
+					{msg(messages.shortcutsDialogDisabledNotice.id)}
 				</div>
 			)}
 			<TldrawUiDialogBody

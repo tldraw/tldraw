@@ -201,6 +201,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	createShapeForAsset?(asset: TLAsset, position: VecModel): TLShapePartial | null
 
 	/**
+	 * Get a translated name for this shape type. Used for accessibility announcements.
+	 * Return `undefined` to fall back to the default translation key lookup.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	getShapeName(_shape: Shape): string | undefined {
+		return undefined
+	}
+
+	/**
 	 * Get the shape's geometry.
 	 *
 	 * @param shape - The shape.

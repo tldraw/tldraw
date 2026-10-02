@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react'
 import {
+	defineMessages,
 	Editor,
 	EditorAtom,
 	EditorPortal,
@@ -16,6 +17,11 @@ import { useComments } from './hooks'
 import { useCommentingOptions } from './options'
 import { openStackId, openThreadId } from './state'
 import { POPOVER_OFFSET, toCardProps, useResolveName } from './thread-view'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	commentsPreviewMore: { id: 'comments.preview-more', defaultMessage: '{count} more' },
+})
 
 /**
  * Hover previews for every canvas marker — a single pin, a coincident stack, or a cluster badge.
@@ -277,7 +283,7 @@ export function ThreadPreview({
 					})}
 					{overflow > 0 && (
 						<div className="tlui-cmt-preview-more">
-							{msg('comments.preview-more').replace('{count}', String(overflow))}
+							{msg(messages.commentsPreviewMore.id, { count: overflow })}
 						</div>
 					)}
 				</div>

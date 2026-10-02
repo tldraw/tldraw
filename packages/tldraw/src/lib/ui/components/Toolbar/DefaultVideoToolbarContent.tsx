@@ -1,10 +1,16 @@
-import { TLVideoShape, track, useEditor, useValue } from '@tldraw/editor'
+import { defineMessages, TLVideoShape, track, useEditor, useValue } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useActions } from '../../context/actions'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+// Only the ids nothing else declares; the rest are declared with what they name.
+const messages = defineMessages({
+	toolMediaAltText: { id: 'tool.media-alt-text', defaultMessage: 'Alternative text' },
+})
 
 /** @public */
 export interface DefaultVideoToolbarContentProps {
@@ -65,7 +71,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 				<TldrawUiToolbarButton
 					type="icon"
 					isActive={!!altText}
-					title={msg('tool.media-alt-text')}
+					title={msg(messages.toolMediaAltText.id)}
 					data-testid="tool.video-alt-text"
 					onClick={() => {
 						trackEvent('alt-text-start', { source })

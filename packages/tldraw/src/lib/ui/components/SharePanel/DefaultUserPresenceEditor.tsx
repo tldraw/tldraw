@@ -1,4 +1,4 @@
-import { useEditor, useValue } from '@tldraw/editor'
+import { defineMessages, useEditor, useValue } from '@tldraw/editor'
 import { useCallback, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -6,6 +6,13 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiInput } from '../primitives/TldrawUiInput'
 import { UserPresenceColorPicker } from './UserPresenceColorPicker'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	peopleMenuAnonymousUser: { id: 'people-menu.anonymous-user', defaultMessage: 'New user' },
+	peopleMenuChangeName: { id: 'people-menu.change-name', defaultMessage: 'Change name' },
+	peopleMenuUser: { id: 'people-menu.user', defaultMessage: '(You)' },
+})
 
 /** @public @react */
 export function DefaultUserPresenceEditor() {
@@ -64,10 +71,10 @@ export function DefaultUserPresenceEditor() {
 						className="tlui-people-menu__user__name"
 						onDoubleClick={() => setIsEditingName(true)}
 					>
-						{userName || msg('people-menu.anonymous-user')}
+						{userName || msg(messages.peopleMenuAnonymousUser.id)}
 					</div>
 					{!userName ? (
-						<div className="tlui-people-menu__user__label">{msg('people-menu.user')}</div>
+						<div className="tlui-people-menu__user__label">{msg(messages.peopleMenuUser.id)}</div>
 					) : null}
 				</>
 			)}
@@ -75,7 +82,7 @@ export function DefaultUserPresenceEditor() {
 				type="icon"
 				className="tlui-people-menu__user__edit"
 				data-testid="people-menu.change-name"
-				title={msg('people-menu.change-name')}
+				title={msg(messages.peopleMenuChangeName.id)}
 				onClick={toggleEditingName}
 			>
 				<TldrawUiButtonIcon icon={isEditingName ? 'check' : 'edit'} />
