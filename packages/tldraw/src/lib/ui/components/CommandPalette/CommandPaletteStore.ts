@@ -1,5 +1,6 @@
 import { atom, computed } from '@tldraw/editor'
 import { TLUiEventSource } from '../../context/events'
+import { TLUiIconJsx } from '../primitives/TldrawUiIcon'
 
 /** @internal */
 export interface CommandPaletteSubmenu {
@@ -24,6 +25,9 @@ export interface CommandPaletteEntry {
 	submenu: CommandPaletteSubmenu | null
 	/** The unlabelled menu group the item is in, for separators inside an opened submenu. */
 	section: string | null
+	/** The outermost labelled group the item is in, for group headings. */
+	heading: string | null
+	icon?: string | TLUiIconJsx
 	kbd?: string
 	checked?: boolean
 	isSelected?: boolean

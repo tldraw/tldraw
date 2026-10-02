@@ -2373,6 +2373,11 @@ tldraw? probably.
 	font-size: 12px;
 }
 
+/* Room for group headings next to longer labels. */
+.tlui-command-palette[data-wide] {
+	width: min(360px, calc(100% - 16px));
+}
+
 .tlui-command-palette[data-position='top'] {
 	--tlui-command-palette-anchor: 30%;
 }
@@ -2508,11 +2513,6 @@ tldraw? probably.
 	padding-block-end: var(--tl-space-4);
 	font-size: 11px;
 	color: var(--tl-color-text-3);
-}
-
-/* Lines up with the label after the 15px check slot and its gap. */
-.tlui-command-palette__description[data-indented] {
-	padding-inline-start: calc(15px + var(--tl-space-3));
 }
 
 .tlui-command-palette__list:empty {

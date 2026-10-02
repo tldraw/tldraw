@@ -475,6 +475,7 @@ export type TLUiTranslationKey =
 	| 'command-palette.placeholder'
 	| 'command-palette.no-results'
 	| 'command-palette.recent'
+	| 'command-palette.suggested'
 	| 'command-palette.selection'
 	| 'command-palette.export'
 	| 'command-palette.tools'

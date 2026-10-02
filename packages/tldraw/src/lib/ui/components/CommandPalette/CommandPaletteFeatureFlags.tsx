@@ -1,7 +1,11 @@
 import { Atom, useValue } from '@tldraw/editor'
 import { memo } from 'react'
 import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
-import { CommandPalettePosition, commandPaletteFlags } from './commandPaletteFlags'
+import {
+	CommandPalettePosition,
+	CommandPaletteTopSection,
+	commandPaletteFlags,
+} from './commandPaletteFlags'
 import { CommandPaletteItemRegistration } from './CommandPaletteItemRegistration'
 
 function FlagItem({
@@ -31,7 +35,51 @@ function FlagItem({
 	)
 }
 
-const POSITIONS: { value: CommandPalettePosition; label: string; description: string }[] = [
+interface Choice<T> {
+	value: T
+	label: string
+	description: string
+}
+
+// One row per value of a pick-one flag, checked when it's the current one.
+function ChoiceItem<T extends string>({
+	id,
+	flag,
+	value,
+	label,
+	description,
+}: Choice<T> & { id: string; flag: Atom<T> }) {
+	const current = useValue(flag)
+	return (
+		<CommandPaletteItemRegistration
+			id={`command-palette-flag-${id}-${value}`}
+			label={label}
+			description={description}
+			checked={current === value}
+			disabled={false}
+			pinned
+			onSelect={() => {
+				flag.set(value)
+			}}
+		/>
+	)
+}
+
+const TOP_SECTIONS: Choice<CommandPaletteTopSection>[] = [
+	{
+		value: 'recent',
+		label: 'Top: Recent',
+		description: "Recently run commands lead the list, and aren't repeated in it.",
+	},
+	{
+		value: 'suggested',
+		label: 'Top: Suggested',
+		description: 'Commands for what is selected lead the list, and break ties in search.',
+	},
+	{ value: 'none', label: 'Top: Nothing', description: 'The list starts with the groups.' },
+]
+
+const POSITIONS: Choice<CommandPalettePosition>[] = [
 	{ value: 'top', label: 'Position: Top', description: 'Opens in the upper part of the screen.' },
 	{ value: 'center', label: 'Position: Center', description: 'Opens in the middle of the screen.' },
 	{
@@ -40,23 +88,6 @@ const POSITIONS: { value: CommandPalettePosition; label: string; description: st
 		description: 'Opens lower down, closer to the toolbar.',
 	},
 ]
-
-function PositionItem({ value, label, description }: (typeof POSITIONS)[number]) {
-	const position = useValue(commandPaletteFlags.position)
-	return (
-		<CommandPaletteItemRegistration
-			id={`command-palette-flag-position-${value}`}
-			label={label}
-			description={description}
-			checked={position === value}
-			disabled={false}
-			pinned
-			onSelect={() => {
-				commandPaletteFlags.position.set(value)
-			}}
-		/>
-	)
-}
 
 // Memo: items re-register on every render, and each registration re-renders the shell.
 /** Testing only: palette design variants, untranslated. @internal */
@@ -69,11 +100,20 @@ export const CommandPaletteFeatureFlags = memo(function CommandPaletteFeatureFla
 				description="Off: every row keeps a check slot on the left, so labels line up."
 				flag={commandPaletteFlags.checkmarksOnRight}
 			/>
+			{TOP_SECTIONS.map((choice) => (
+				<ChoiceItem key={choice.value} id="top" flag={commandPaletteFlags.topSection} {...choice} />
+			))}
 			<FlagItem
-				id="show-recents"
-				label="Show recents"
-				description="Recently run commands above the list, and not repeated in it."
-				flag={commandPaletteFlags.showRecents}
+				id="show-group-headings"
+				label="Show group headings"
+				description="Heads each group while browsing, like Recent. Off: groups run together."
+				flag={commandPaletteFlags.showGroupHeadings}
+			/>
+			<FlagItem
+				id="show-icons"
+				label="Show icons"
+				description="An icon before each label, from the item's menu icon. Rows without one keep the space."
+				flag={commandPaletteFlags.showIcons}
 			/>
 			<FlagItem
 				id="show-disabled-reasons"
@@ -93,8 +133,13 @@ export const CommandPaletteFeatureFlags = memo(function CommandPaletteFeatureFla
 				description="tldraw.com: New file asks for a name here. Off: default name, then rename."
 				flag={commandPaletteFlags.nameNewFiles}
 			/>
-			{POSITIONS.map((position) => (
-				<PositionItem key={position.value} {...position} />
+			{POSITIONS.map((choice) => (
+				<ChoiceItem
+					key={choice.value}
+					id="position"
+					flag={commandPaletteFlags.position}
+					{...choice}
+				/>
 			))}
 		</TldrawUiMenuSubmenu>
 	)

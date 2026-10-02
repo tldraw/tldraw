@@ -379,6 +379,7 @@ export {
 	commandPaletteFlags,
 	type CommandPaletteFlags,
 	type CommandPalettePosition,
+	type CommandPaletteTopSection,
 } from './lib/ui/components/CommandPalette/commandPaletteFlags'
 export {
 	CommandPalettePromptItem,

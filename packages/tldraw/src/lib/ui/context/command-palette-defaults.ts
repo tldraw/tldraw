@@ -1,6 +1,13 @@
 import { Editor } from '@tldraw/editor'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
-import { areAllSelectedFrameLike, hasUnlockedSelection } from './action-predicates'
+import {
+	areAllSelectedFrameLike,
+	hasDownloadableMediaSelected,
+	hasUnlockedSelection,
+	isOnlyEmbeddableBookmarkSelected,
+	isOnlyEmbedWithUrlSelected,
+	isUngroupAllowed,
+} from './action-predicates'
 import type { TLUiActionItem } from './actions'
 
 type Reason = TLUiActionItem<TLUiTranslationKey>['disabledReason']
@@ -236,4 +243,47 @@ export function withCommandPaletteDefaults(actions: TLUiActionItem[]): TLUiActio
 		}
 	}
 	return actions
+}
+
+// Most specific first: the commands for this kind of selection, then for any selection, then for
+// none. Testing only, behind the top section flag.
+const SUGGESTIONS: { when(editor: Editor): boolean; ids: readonly string[] }[] = [
+	{
+		when: (editor) => hasSelection(editor) && areAllSelectedFrameLike(editor),
+		ids: ['fit-frame-to-content', 'remove-frame'],
+	},
+	{ when: (editor) => isOnly(editor, 'text'), ids: ['toggle-auto-size', 'edit-link'] },
+	{ when: isUngroupAllowed, ids: ['ungroup'] },
+	{ when: isOnlyEmbeddableBookmarkSelected, ids: ['convert-to-embed'] },
+	{ when: isOnlyEmbedWithUrlSelected, ids: ['convert-to-bookmark'] },
+	{ when: hasDownloadableMediaSelected, ids: ['download-original'] },
+	{
+		when: (editor) => hasUnlockedSelection(editor, 2),
+		ids: ['group', 'align-center-horizontal', 'align-center-vertical'],
+	},
+	{ when: hasSelection, ids: ['duplicate', 'frame-selection', 'toggle-lock', 'delete'] },
+	{ when: (editor) => !hasSelection(editor), ids: ['insert-media', 'zoom-to-fit', 'select-all'] },
+]
+
+function hasSelection(editor: Editor) {
+	return editor.getSelectedShapeIds().length > 0
+}
+
+function isOnly(editor: Editor, type: string) {
+	const only = editor.getOnlySelectedShape()
+	return !!only && only.type === type
+}
+
+/**
+ * Action ids suggested for the editor's current state, most specific first. The palette lists the
+ * enabled ones, up to as many as it lists recents.
+ *
+ * @internal
+ */
+export function getCommandPaletteSuggestions(editor: Editor): string[] {
+	const ids = new Set<string>()
+	for (const { when, ids: suggested } of SUGGESTIONS) {
+		if (when(editor)) for (const id of suggested) ids.add(id)
+	}
+	return [...ids]
 }

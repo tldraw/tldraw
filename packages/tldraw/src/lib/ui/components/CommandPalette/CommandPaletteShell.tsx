@@ -1,5 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { ReactNode, useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { getCommandPaletteSuggestions } from '../../context/command-palette-defaults'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
@@ -35,13 +36,17 @@ export function CommandPaletteShell({ onClose, children }: CommandPaletteShellPr
 	const dir = useDirection()
 	const [store] = useState(() => new CommandPaletteStore())
 	const [recentIds] = useState(getCommandPaletteRecents)
+	// Fixed when the palette opens, so the list doesn't reshuffle under the pointer.
+	const [suggestedIds] = useState(() => getCommandPaletteSuggestions(editor))
 	const query = useValue(store.query)
 	const entries = useValue(store.entries)
 	const submenu = useValue(store.submenu)
 	const prompt = useValue(store.prompt)
 	const position = useValue(commandPaletteFlags.position)
-	const showRecents = useValue(commandPaletteFlags.showRecents)
+	const topSection = useValue(commandPaletteFlags.topSection)
 	const groupSubmenus = useValue(commandPaletteFlags.groupSubmenus)
+	const showGroupHeadings = useValue(commandPaletteFlags.showGroupHeadings)
+	const showIcons = useValue(commandPaletteFlags.showIcons)
 	const checkmarksOnRight = useValue(commandPaletteFlags.checkmarksOnRight)
 	const [activeIndex, setActiveIndex] = useState(0)
 	const rPalette = useRef<HTMLDivElement>(null)
@@ -57,14 +62,28 @@ export function CommandPaletteShell({ onClose, children }: CommandPaletteShellPr
 			const label = value ? `${prompt.name}: ${value}` : prompt.name
 			return [{ type: 'item', key: 'prompt', entry: prompt, label, recent: false }]
 		}
-		if (submenu) return getCommandPaletteSubmenuRows(entries, submenu.key, query, recentIds)
-		if (query.trim())
-			return getCommandPaletteSearchRows(entries, query, recentIds, { groupSubmenus })
-		return getCommandPaletteBrowseRows(entries, recentIds, msg('command-palette.recent'), {
-			showRecents,
-			groupSubmenus,
-		})
-	}, [entries, prompt, submenu, query, recentIds, msg, showRecents, groupSubmenus])
+		// Suggestions also break ties in search, where recents otherwise would.
+		const topIds = topSection === 'suggested' ? suggestedIds : recentIds
+		if (submenu) return getCommandPaletteSubmenuRows(entries, submenu.key, query, topIds)
+		if (query.trim()) return getCommandPaletteSearchRows(entries, query, topIds, { groupSubmenus })
+		return getCommandPaletteBrowseRows(
+			entries,
+			topIds,
+			msg(topSection === 'suggested' ? 'command-palette.suggested' : 'command-palette.recent'),
+			{ showRecents: topSection !== 'none', groupSubmenus, showGroupHeadings }
+		)
+	}, [
+		entries,
+		prompt,
+		submenu,
+		query,
+		recentIds,
+		suggestedIds,
+		msg,
+		topSection,
+		groupSubmenus,
+		showGroupHeadings,
+	])
 	const selectableRows = useMemo(
 		() => rows.filter((row): row is SelectableRow => row.type === 'item' || row.type === 'submenu'),
 		[rows]
@@ -264,6 +283,7 @@ export function CommandPaletteShell({ onClose, children }: CommandPaletteShellPr
 					ref={rPalette}
 					className="tlui-command-palette"
 					data-position={position}
+					data-wide={showGroupHeadings || undefined}
 					role="dialog"
 					aria-label={msg('command-palette.title')}
 					data-testid="command-palette"
@@ -324,6 +344,7 @@ export function CommandPaletteShell({ onClose, children }: CommandPaletteShellPr
 										// Every row reserves the slot, so labels don't shift as checked rows come and go while typing.
 										checkSlot={!checkmarksOnRight}
 										checkmarksOnRight={checkmarksOnRight}
+										iconSlot={showIcons}
 										rScrollToActive={rScrollToActive}
 										onHover={() => setActiveIndex(index)}
 										onRun={() => runRow(row)}
@@ -371,6 +392,7 @@ function CommandPaletteRowView({
 	isActive,
 	checkSlot,
 	checkmarksOnRight,
+	iconSlot,
 	rScrollToActive,
 	onHover,
 	onRun,
@@ -380,6 +402,7 @@ function CommandPaletteRowView({
 	isActive: boolean
 	checkSlot: boolean
 	checkmarksOnRight: boolean
+	iconSlot: boolean
 	rScrollToActive: React.RefObject<boolean>
 	onHover(): void
 	onRun(): void
@@ -406,7 +429,9 @@ function CommandPaletteRowView({
 				onClick={onRun}
 			>
 				<span className="tlui-command-palette__row">
-					{checkSlot && <TldrawUiIcon aria-hidden="true" label="" icon="none" small />}
+					{(checkSlot || iconSlot) && (
+						<TldrawUiIcon aria-hidden="true" label="" icon="none" small />
+					)}
 					<span className="tlui-command-palette__label">{row.submenu.label}</span>
 					<TldrawUiIcon
 						aria-hidden="true"
@@ -442,16 +467,23 @@ function CommandPaletteRowView({
 			onClick={onRun}
 		>
 			<span className="tlui-command-palette__row">
-				{checkSlot &&
-					(marked === undefined ? (
-						<TldrawUiIcon aria-hidden="true" label="" icon="none" small />
-					) : (
+				{/* One leading slot: a row is either checkable or has an icon, never both. */}
+				{checkSlot && marked !== undefined ? (
+					<TldrawUiIcon
+						icon={marked ? 'check' : 'none'}
+						small
+						label={msg(marked ? 'ui.checked' : 'ui.unchecked')}
+					/>
+				) : (
+					(checkSlot || iconSlot) && (
 						<TldrawUiIcon
-							icon={marked ? 'check' : 'none'}
+							aria-hidden="true"
+							label=""
+							icon={(iconSlot && entry.icon) || 'none'}
 							small
-							label={msg(marked ? 'ui.checked' : 'ui.unchecked')}
 						/>
-					))}
+					)
+				)}
 				<span className="tlui-command-palette__label">{row.label}</span>
 				{marked && checkmarksOnRight && (
 					<TldrawUiIcon icon="check" small label={msg('ui.checked')} />
@@ -469,7 +501,9 @@ function CommandPaletteRowView({
 				<span
 					id={descriptionId}
 					className="tlui-command-palette__description"
-					data-indented={checkSlot || undefined}
+					style={{
+						paddingInlineStart: checkSlot || iconSlot ? 'calc(15px + var(--tl-space-3))' : 0,
+					}}
 				>
 					{entry.description}
 				</span>

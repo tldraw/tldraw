@@ -72,7 +72,11 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 			// Labelled groups only add to the search path (e.g. a file's workspace); unlabelled ones are
 			// the visual groups menus draw separators between.
 			return (
-				<CommandPalettePathProvider label={labelStr} sectionId={labelStr ? undefined : id}>
+				<CommandPalettePathProvider
+					label={labelStr}
+					sectionId={labelStr ? undefined : id}
+					heading={labelStr}
+				>
 					{children}
 				</CommandPalettePathProvider>
 			)

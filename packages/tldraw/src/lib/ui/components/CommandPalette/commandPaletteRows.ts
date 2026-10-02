@@ -1,3 +1,4 @@
+import { MAX_COMMAND_PALETTE_RECENTS } from './commandPaletteRecents'
 import { getCommandPaletteMatchScore, rankCommandPaletteEntries } from './commandPaletteSearch'
 import { CommandPaletteEntry, CommandPaletteSubmenu } from './CommandPaletteStore'
 
@@ -12,6 +13,7 @@ export type CommandPaletteRow =
 export interface CommandPaletteRowOptions {
 	showRecents: boolean
 	groupSubmenus: boolean
+	showGroupHeadings?: boolean
 }
 
 // Search lists disabled rows only with a reason, so it never shows a greyed row it can't explain.
@@ -36,25 +38,41 @@ function getGroupedSubmenuKeys(entries: readonly CommandPaletteEntry[]) {
 	return new Set([...sizes].filter(([, size]) => size > 1).map(([key]) => key))
 }
 
-// No group headings: they cost rows in a short, mostly searched list.
+// Headings cost rows in a short, mostly searched list, so they're off unless flagged on.
 function listEntries(
 	entries: readonly CommandPaletteEntry[],
 	groupSubmenus: boolean,
-	skip: ReadonlySet<CommandPaletteEntry> = new Set()
+	{
+		skip = new Set(),
+		headings = false,
+	}: { skip?: ReadonlySet<CommandPaletteEntry>; headings?: boolean } = {}
 ) {
 	const rows: CommandPaletteRow[] = []
 	const grouped = groupSubmenus ? getGroupedSubmenuKeys(entries) : new Set<string>()
 	const added = new Set<string>()
+	let currentHeading: string | null = null
+	const push = (entry: CommandPaletteEntry, row: CommandPaletteRow) => {
+		if (headings && entry.heading !== currentHeading) {
+			// An unlabelled group after a labelled one gets a separator so it doesn't read as part of it.
+			if (entry.heading) {
+				rows.push({ type: 'heading', key: `heading:${rows.length}`, label: entry.heading })
+			} else if (rows.length) {
+				rows.push({ type: 'separator', key: `separator:${rows.length}` })
+			}
+			currentHeading = entry.heading
+		}
+		rows.push(row)
+	}
 	for (const entry of entries) {
 		const { submenu } = entry
 		if (submenu && grouped.has(submenu.key)) {
 			if (!added.has(submenu.key)) {
 				added.add(submenu.key)
-				rows.push(submenuRow(submenu))
+				push(entry, submenuRow(submenu))
 			}
 			continue
 		}
-		if (!skip.has(entry)) rows.push(itemRow(entry))
+		if (!skip.has(entry)) push(entry, itemRow(entry))
 	}
 	return rows
 }
@@ -64,7 +82,7 @@ export function getCommandPaletteBrowseRows(
 	entries: readonly CommandPaletteEntry[],
 	recentIds: readonly string[],
 	recentHeading: string,
-	{ showRecents, groupSubmenus }: CommandPaletteRowOptions
+	{ showRecents, groupSubmenus, showGroupHeadings = false }: CommandPaletteRowOptions
 ): CommandPaletteRow[] {
 	const rows: CommandPaletteRow[] = []
 	const enabled = entries.filter((entry) => !entry.disabled)
@@ -80,6 +98,7 @@ export function getCommandPaletteBrowseRows(
 		? recentIds
 				.map((id) => unpinned.find((entry) => entry.id === id))
 				.filter((entry): entry is CommandPaletteEntry => !!entry)
+				.slice(0, MAX_COMMAND_PALETTE_RECENTS)
 		: []
 	if (recent.length) {
 		rows.push({ type: 'heading', key: 'heading:recent', label: recentHeading })
@@ -95,7 +114,9 @@ export function getCommandPaletteBrowseRows(
 		rows.push({ type: 'separator', key: 'separator:recent' })
 	}
 
-	rows.push(...listEntries(unpinned, groupSubmenus, new Set(recent)))
+	rows.push(
+		...listEntries(unpinned, groupSubmenus, { skip: new Set(recent), headings: showGroupHeadings })
+	)
 	if (rows[rows.length - 1]?.type === 'separator') rows.pop()
 	return rows
 }

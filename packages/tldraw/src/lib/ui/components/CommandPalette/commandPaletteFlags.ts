@@ -4,9 +4,17 @@ import { Atom, atom } from '@tldraw/editor'
 export type CommandPalettePosition = 'top' | 'center' | 'bottom'
 
 /** @internal */
+export type CommandPaletteTopSection = 'recent' | 'suggested' | 'none'
+
+/** @internal */
 export interface CommandPaletteFlags {
 	checkmarksOnRight: Atom<boolean>
-	showRecents: Atom<boolean>
+	/** What leads the list while browsing: recently run commands, or ones suggested by context. */
+	topSection: Atom<CommandPaletteTopSection>
+	/** Heads each group (Selection, Edit, …) while browsing, like Recent. */
+	showGroupHeadings: Atom<boolean>
+	/** An icon slot before each label, filled with the item's menu icon. */
+	showIcons: Atom<boolean>
 	/** Shows why a highlighted disabled row is unavailable, in place of its shortcut. */
 	showDisabledReasons: Atom<boolean>
 	/** Collapse each submenu into one row you open, instead of listing every "Submenu: item" row. */
@@ -20,7 +28,9 @@ export interface CommandPaletteFlags {
 /** @internal */
 export const commandPaletteFlags: CommandPaletteFlags = {
 	checkmarksOnRight: atom('command palette flag: checkmarks on right', false),
-	showRecents: atom('command palette flag: show recents', true),
+	topSection: atom<CommandPaletteTopSection>('command palette flag: top section', 'recent'),
+	showGroupHeadings: atom('command palette flag: show group headings', false),
+	showIcons: atom('command palette flag: show icons', false),
 	showDisabledReasons: atom('command palette flag: show disabled reasons', true),
 	groupSubmenus: atom('command palette flag: group submenus', true),
 	nameNewFiles: atom('command palette flag: name new files', false),

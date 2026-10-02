@@ -37,9 +37,15 @@ interface PathContextValue {
 	path: readonly string[]
 	submenu: CommandPaletteSubmenu | null
 	section: string | null
+	heading: string | null
 }
 
-const PathContext = createContext<PathContextValue>({ path: [], submenu: null, section: null })
+const PathContext = createContext<PathContextValue>({
+	path: [],
+	submenu: null,
+	section: null,
+	heading: null,
+})
 
 /** @internal */
 export function useCommandPalettePath() {
@@ -51,12 +57,15 @@ export function CommandPalettePathProvider({
 	label,
 	submenuId,
 	sectionId,
+	heading,
 	children,
 }: {
 	label?: string
 	submenuId?: string
 	/** Starts a section that an opened submenu separates from its neighbours, like a menu group. */
 	sectionId?: string
+	/** A group label; the outermost one heads its items when group headings are on. */
+	heading?: string
 	children: ReactNode
 }) {
 	const parent = useContext(PathContext)
@@ -66,8 +75,9 @@ export function CommandPalettePathProvider({
 			submenu:
 				submenuId && label ? { key: [...parent.path, submenuId].join('/'), label } : parent.submenu,
 			section: sectionId ? `${parent.section ?? ''}/${sectionId}` : parent.section,
+			heading: parent.heading ?? heading ?? null,
 		}),
-		[parent, label, submenuId, sectionId]
+		[parent, label, submenuId, sectionId, heading]
 	)
 	return <PathContext.Provider value={value}>{children}</PathContext.Provider>
 }

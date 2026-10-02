@@ -485,6 +485,7 @@ export const DEFAULT_TRANSLATION = {
 	'command-palette.placeholder': 'Search…',
 	'command-palette.no-results': 'No results',
 	'command-palette.recent': 'Recent',
+	'command-palette.suggested': 'Suggested',
 	'command-palette.selection': 'Selection',
 	'command-palette.export': 'Export',
 	'command-palette.tools': 'Tools',
