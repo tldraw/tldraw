@@ -82,13 +82,14 @@ export interface TLUiActionItem<
 	/**
 	 * Whether the action exists in the current context at all, e.g. clipboard support or debug
 	 * mode. When false, menus hide the item (the keyboard shortcuts dialog still lists it) and the
-	 * action doesn't run, however it's called. Must be pure and read only editor state.
+	 * action doesn't run from a menu, a shortcut or `useActions()`. Must be pure and read only
+	 * editor state.
 	 */
 	isAvailable?(editor: Editor): boolean
 	/**
 	 * Whether the action can run now. When false, menus disable or hide the item and the action
-	 * doesn't run, however it's called. Must be pure and read only editor state: menus re-run it
-	 * when that state changes, so anything else it reads goes stale.
+	 * doesn't run from a menu, a shortcut or `useActions()`. Must be pure and read only editor
+	 * state: menus re-run it when that state changes, so anything else it reads goes stale.
 	 */
 	isEnabled?(editor: Editor): boolean
 	/** For checkbox actions: whether the item shows as checked. Must be pure and read only editor state. */
