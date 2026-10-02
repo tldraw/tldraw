@@ -53,6 +53,9 @@ export interface Environment {
 	// Delta chains. ROOMS_HISTORY_EPHEMERAL keeps every version written before cut-over, so both
 	// buckets stay on the read path until the standing history is compacted.
 	ROOMS_HISTORY: R2Bucket
+	// The room-history migration's cold archive of every board's pre-migration history. Only
+	// hard deletes touch it.
+	ROOMS_HISTORY_COLD: R2Bucket
 
 	ROOM_SNAPSHOTS: R2Bucket
 	SNAPSHOT_SLUG_TO_PARENT_SLUG: KVNamespace
