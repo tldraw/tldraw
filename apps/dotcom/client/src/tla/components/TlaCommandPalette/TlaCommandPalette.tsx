@@ -1,6 +1,7 @@
 import { CommentsMenuItem, toggleCommentsSidebar } from '@tldraw/commenting'
 import { useNavigate } from 'react-router-dom'
 import {
+	CommandPaletteActionGroup,
 	CommandPaletteArrangeGroup,
 	CommandPaletteEditGroup,
 	CommandPaletteExportGroup,
@@ -109,6 +110,7 @@ export function TlaCommandPalette() {
 			<CommandPalettePreferencesGroup />
 			<TlaAccountGroup />
 			<CommandPaletteHelpGroup />
+			<CommandPaletteActionGroup />
 		</DefaultCommandPalette>
 	)
 }
