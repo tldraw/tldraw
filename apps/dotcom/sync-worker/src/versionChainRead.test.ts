@@ -734,7 +734,12 @@ describe('deleteAllVersions', () => {
 			},
 		}) as R2Bucket
 
-		await deleteAllVersions({ chainBucket: createFakeR2(), legacyBucket: counting, roomKey })
+		await deleteAllVersions({
+			chainBucket: createFakeR2(),
+			legacyBucket: counting,
+			coldBucket: createFakeR2(),
+			roomKey,
+		})
 
 		expect((await legacyBucket.list({ prefix: `${roomKey}/` })).objects).toHaveLength(0)
 		expect(deleteCalls).toBe(2)
@@ -743,13 +748,15 @@ describe('deleteAllVersions', () => {
 	it('runs every list page and delete batch through the scheduler', async () => {
 		const chainBucket = createFakeR2()
 		const legacyBucket = createFakeR2()
+		const coldBucket = createFakeR2()
 		await chainBucket.put(`${roomKey}/2026-09-01T00:00:00.000Z.k`, '{}')
 		await legacyBucket.put(`${roomKey}/2026-08-01T00:00:00.000Z`, '{}')
+		await coldBucket.put(`${roomKey}/manifest.jsonl`, '{}')
 
 		// A bucket call outside a scheduled operation is a connection the caller's budget never saw.
 		let scheduledDepth = 0
 		let unscheduledCalls = 0
-		for (const bucket of [chainBucket, legacyBucket]) {
+		for (const bucket of [chainBucket, legacyBucket, coldBucket]) {
 			for (const method of ['list', 'delete'] as const) {
 				const original = (bucket[method] as any).bind(bucket)
 				;(bucket as any)[method] = (...args: unknown[]) => {
@@ -769,14 +776,16 @@ describe('deleteAllVersions', () => {
 			}
 		}
 
-		await deleteAllVersions({ chainBucket, legacyBucket, roomKey, schedule })
+		await deleteAllVersions({ chainBucket, legacyBucket, coldBucket, roomKey, schedule })
 
-		// One listing and one delete batch per bucket, each its own scheduled operation. Counters
-		// first: the verification lists below run outside the sweep on purpose.
-		expect(scheduled).toBe(4)
+		// One listing and one delete batch per non-empty prefix, one listing for the empty
+		// `legacy_versions/` prefix, and the boundary delete, each its own scheduled operation.
+		// Counters first: the verification lists below run outside the sweep on purpose.
+		expect(scheduled).toBe(8)
 		expect(unscheduledCalls).toBe(0)
 		expect((await chainBucket.list({ prefix: `${roomKey}/` })).objects).toHaveLength(0)
 		expect((await legacyBucket.list({ prefix: `${roomKey}/` })).objects).toHaveLength(0)
+		expect((await coldBucket.list({ prefix: `${roomKey}/` })).objects).toHaveLength(0)
 	})
 })
 
