@@ -4,9 +4,9 @@ import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
 import { getFrameableShapeIds } from '../../utils/frames/frames'
 import { getSelectedLinkShape } from '../../utils/shapes/shapes'
 
-// Shared by action isAvailable/isEnabled/isChecked and the menu hooks, so the two can't drift.
-// Every function must stay pure and read only editor state: menus re-run them when that state
-// changes, so anything else they read goes stale.
+// Shared by action isAvailable/isEnabled and the menu hooks, so the two can't drift.
+// Every function must stay pure and read only editor state or values fixed for the session (like
+// clipboard support): menus re-run them when editor state changes, so anything else goes stale.
 
 const FLIPPABLE_TYPES = new Set(['group', 'image', 'arrow', 'line', 'draw', 'geo'])
 
