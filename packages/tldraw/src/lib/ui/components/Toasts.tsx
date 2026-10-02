@@ -1,4 +1,4 @@
-import { useValue } from '@tldraw/editor'
+import { defineMessages, TLI18nMessage, useValue } from '@tldraw/editor'
 import { Toast as _Toast } from 'radix-ui'
 import { memo } from 'react'
 import { AlertSeverity, TLUiToast, useToasts } from '../context/toasts'
@@ -18,6 +18,16 @@ const SEVERITY_TO_ICON: { [msg in AlertSeverity]: TLUiIconType } = {
 }
 
 /** @internal */
+// Keyed on the severity rather than written at the call site, which used to compose the id from
+// `severity` and so hid all four from the extractor. The `Record` keeps it complete: a new
+// severity won't compile until it has a label.
+const severityMessages: Record<AlertSeverity, TLI18nMessage> = defineMessages({
+	success: { id: 'toast.success', defaultMessage: 'Success' },
+	info: { id: 'toast.info', defaultMessage: 'Info' },
+	warning: { id: 'toast.warning', defaultMessage: 'Warning' },
+	error: { id: 'toast.error', defaultMessage: 'Error' },
+})
+
 function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 	const { removeToast } = useToasts()
 	const msg = useTranslation()
@@ -31,7 +41,8 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 	const hasActions = toast.actions && toast.actions.length > 0
 
 	const icon = toast.icon || (toast.severity && SEVERITY_TO_ICON[toast.severity])
-	const iconLabel = toast.iconLabel || (toast.severity ? msg(`toast.${toast.severity}`) : '')
+	const iconLabel =
+		toast.iconLabel || (toast.severity ? msg(severityMessages[toast.severity].id) : '')
 
 	return (
 		<_Toast.Root

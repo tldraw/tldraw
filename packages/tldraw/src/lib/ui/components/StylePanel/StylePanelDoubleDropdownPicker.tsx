@@ -3,6 +3,7 @@ import * as React from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { styleMessageId } from '../../styleMessages'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import {
@@ -135,7 +136,7 @@ function DropdownHalf<T extends string>({
 						' — ' +
 						(value === null || value.type === 'mixed'
 							? msg('style-panel.mixed')
-							: msg(`${uiType}-style.${value.value}` as TLUiTranslationKey))
+							: msg(styleMessageId(uiType, value.value)))
 					}
 				>
 					<TldrawUiButtonIcon icon={icon} small invertIcon={invertIcon} />
@@ -149,7 +150,7 @@ function DropdownHalf<T extends string>({
 								key={item.value}
 								type="icon"
 								data-testid={`style.${uiType}.${item.value}`}
-								title={`${msg(label)} — ${msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}`}
+								title={`${msg(label)} — ${msg(styleMessageId(uiType, item.value))}`}
 								onClick={() => {
 									ctx.onHistoryMark('select style dropdown item')
 									onValueChange(style, item.value)

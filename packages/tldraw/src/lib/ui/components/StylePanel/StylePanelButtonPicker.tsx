@@ -12,8 +12,8 @@ import { memo, useMemo, useRef } from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
-import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { styleMessageId } from '../../styleMessages'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiGrid, TldrawUiRow } from '../primitives/layout'
 import {
@@ -154,7 +154,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 			<Layout>
 				{items.map((item) => {
 					const isActive = value.type === 'shared' && value.value === item.value
-					const label = title + ' — ' + msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
+					const label = title + ' — ' + msg(styleMessageId(uiType, item.value))
 					return (
 						<TldrawUiToolbarToggleItem
 							type="icon"

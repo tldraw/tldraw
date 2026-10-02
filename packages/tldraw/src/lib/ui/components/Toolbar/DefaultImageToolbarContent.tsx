@@ -1,8 +1,10 @@
 import {
 	approximately,
+	defineMessages,
 	isEqual,
 	kickoutOccludedShapes,
 	modulate,
+	TLI18nMessage,
 	TLImageShape,
 	TLShapePartial,
 	track,
@@ -41,6 +43,18 @@ export interface DefaultImageToolbarContentProps {
 	onManipulatingStart(): void
 	onManipulatingEnd(): void
 }
+
+// Keyed on the option rather than written at the call site, which used to compose the id from
+// `aspectRatio` and so hid every one of these from the extractor. The `Record` keeps it complete:
+// a new option won't compile until it has a label.
+const aspectRatioMessages: Record<ASPECT_RATIO_OPTION, TLI18nMessage> = defineMessages({
+	original: { id: 'tool.aspect-ratio.original', defaultMessage: 'Original' },
+	square: { id: 'tool.aspect-ratio.square', defaultMessage: 'Square (1:1)' },
+	circle: { id: 'tool.aspect-ratio.circle', defaultMessage: 'Circle (1:1)' },
+	landscape: { id: 'tool.aspect-ratio.landscape', defaultMessage: 'Landscape (4:3)' },
+	portrait: { id: 'tool.aspect-ratio.portrait', defaultMessage: 'Portrait (3:4)' },
+	wide: { id: 'tool.aspect-ratio.wide', defaultMessage: 'Wide (16:9)' },
+})
 
 const MAX_RATIO_CONVERSION = MAX_ZOOM / (MAX_ZOOM - 1)
 
@@ -247,10 +261,10 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 									key={aspectRatio}
 									onSelect={() => handleAspectRatioChange(aspectRatio as ASPECT_RATIO_OPTION)}
 									checked={checked}
-									title={msg(`tool.aspect-ratio.${aspectRatio}`)}
+									title={msg(aspectRatioMessages[aspectRatio as ASPECT_RATIO_OPTION].id)}
 								>
 									<TldrawUiButtonLabel>
-										{msg(`tool.aspect-ratio.${aspectRatio}`)}
+										{msg(aspectRatioMessages[aspectRatio as ASPECT_RATIO_OPTION].id)}
 									</TldrawUiButtonLabel>
 								</TldrawUiDropdownMenuCheckboxItem>
 							)

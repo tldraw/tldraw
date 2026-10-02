@@ -1,5 +1,6 @@
 import {
 	debugFlags,
+	defineMessages,
 	Editor,
 	TLGeoShape,
 	TLShapeId,
@@ -13,8 +14,17 @@ import {
 import { memo, MouseEvent, useCallback, useEffect, useRef } from 'react'
 import { useA11y } from '../context/a11y'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
+import { styleMessageId } from '../styleMessages'
 import { suppressBackToContent } from './HelperButtons/BackToContent'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
+
+// `shape.type` and a geo shape's `props.geo` compose these ids, so the extractor sees none of
+// them here. The media names are declared below; the geo names live in `styleMessages`, and the
+// `tool.*` names in the tool registry that labels the toolbar with the same ids.
+const mediaMessages = defineMessages({
+	image: { id: 'a11y.shape-image', defaultMessage: 'Image' },
+	video: { id: 'a11y.shape-video', defaultMessage: 'Video' },
+})
 
 export function SkipToMainContent() {
 	const editor = useEditor()
@@ -111,9 +121,9 @@ export function generateShapeAnnouncementMessage(args: {
 	const shapeType =
 		shapeUtil.getShapeName(shape) ??
 		(shape.type === 'geo'
-			? msg(`geo-style.${(shape as TLGeoShape).props.geo}`)
+			? msg(styleMessageId('geo', (shape as TLGeoShape).props.geo))
 			: shape.type === 'image' || shape.type === 'video'
-				? msg(`a11y.shape-${shape.type}`)
+				? msg(mediaMessages[shape.type as 'image' | 'video'].id)
 				: msg(`tool.${shape.type}`))
 
 	// Get shape index in reading order
