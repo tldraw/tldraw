@@ -1,3 +1,4 @@
+import { execFileSync } from 'child_process'
 import { writeFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
@@ -421,6 +422,8 @@ async function main() {
 	]
 	const out = join(dirname(fileURLToPath(import.meta.url)), `fuzz-report-${browserName}.md`)
 	writeFileSync(out, lines.join('\n'))
+	// The report is committed, so it has to pass the repo's format check as written.
+	execFileSync('pnpm', ['exec', 'oxfmt', out], { stdio: 'ignore' })
 	console.log(lines.slice(0, 12 + Object.keys(counts).length).join('\n'))
 	console.log(`\n${clusters.size} clusters; full report in ${out}`)
 }
