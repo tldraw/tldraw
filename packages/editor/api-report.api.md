@@ -694,6 +694,90 @@ export interface ContainerProviderProps {
     container: HTMLElement;
 }
 
+// @internal
+export class ContentManager extends EditorManager {
+    // (undocumented)
+    createDeepLink(opts?: {
+        param?: string;
+        to?: TLDeepLink;
+        url?: string | URL;
+    }): URL;
+    // (undocumented)
+    createTemporaryAssetPreview(assetId: TLAssetId, file: File): string | undefined;
+    // (undocumented)
+    getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined>;
+    // (undocumented)
+    getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
+    // (undocumented)
+    getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
+        height: number;
+        svg: SVGSVGElement;
+        trimPadding: number;
+        width: number;
+    } | undefined>;
+    // (undocumented)
+    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
+        height: number;
+        svg: string;
+        trimPadding: number;
+        width: number;
+    } | undefined>;
+    // (undocumented)
+    getTemporaryAssetPreview(assetId: TLAssetId): string | undefined;
+    // (undocumented)
+    hasExternalAssetHandler(type: TLExternalAsset['type']): boolean;
+    // (undocumented)
+    navigateToDeepLink(opts?: {
+        param?: string;
+        url?: string | URL;
+    } | TLDeepLink): Editor;
+    // (undocumented)
+    _navigateToDeepLink(deepLink: TLDeepLink): void;
+    // (undocumented)
+    putContentOntoCurrentPage(content: TLContent, opts?: {
+        point?: VecLike;
+        preserveIds?: boolean;
+        preservePosition?: boolean;
+        select?: boolean;
+    }): Editor;
+    // (undocumented)
+    putExternalContent<E>(info: TLExternalContent<E>, opts?: {
+        force?: boolean;
+    }): Promise<void>;
+    // (undocumented)
+    registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void;
+    // (undocumented)
+    registerExternalAssetHandler<T extends TLExternalAsset['type']>(type: T, handler: ((info: TLExternalAsset & {
+        type: T;
+    }) => Promise<TLAsset>) | null): Editor;
+    // (undocumented)
+    registerExternalContentHandler<T extends TLExternalContent<E>['type'], E>(type: T, handler: ((info: T extends TLExternalContent<E>['type'] ? Extract<TLExternalContent<E>, {
+        type: T;
+    }> : TLExternalContent<E>) => void) | null): Editor;
+    // (undocumented)
+    replaceExternalContent<E>(info: TLExternalContent<E>, opts?: {
+        force?: boolean;
+    }): Promise<void>;
+    // (undocumented)
+    resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined>;
+    // (undocumented)
+    readonly temporaryAssetPreview: Map<TLAssetId, string>;
+    // (undocumented)
+    toImage(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
+        blob: Blob;
+        height: number;
+        width: number;
+    }>;
+    // (undocumented)
+    toImageDataUrl(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
+        height: number;
+        url: string;
+        width: number;
+    }>;
+    // (undocumented)
+    _zoomToFitPageContentAt100Percent(): void;
+}
+
 // @public (undocumented)
 export const coreShapes: readonly [typeof GroupShapeUtil];
 
@@ -1066,6 +1150,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     _clickManager: ClickManager;
     readonly collaborators: CollaboratorsManager;
     complete(): this;
+    // @internal (undocumented)
+    readonly _contentManager: ContentManager;
     // (undocumented)
     readonly contextId: string;
     // @internal (undocumented)
