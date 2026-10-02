@@ -80,15 +80,17 @@ jobs:
           pnpm build-i18n 
           git diff --exit-code --quiet ./apps/dotcom/client/public/tla/locales/ ./apps/dotcom/client/public/tla/locales-compiled/ || (echo "Please run pnpm build-i18n and commit the changes" && exit 1)
 
-      # vitest's fsModuleCache (~54MB gzipped). Entries are content-hashed, so a stale
-      # restore is safe - unmatched modules are just re-transformed. Keyed on pnpm-lock.yaml so
-      # one entry is reused across commits instead of saving a new copy on every run.
+      # vitest's fsModuleCache (~54MB gzipped). Keyed on pnpm-lock.yaml so one entry is reused
+      # across commits instead of saving a new copy on every run. No restore-keys: cached modules
+      # embed resolved node_modules/.pnpm paths, and an entry from another lockfile can point at a
+      # folder that no longer exists. vitest is meant to clear it on a lockfile change, but its
+      # clear also deletes _metadata.json, so the saved cache has none and the next restore is
+      # trusted as-is (#11008).
       - name: Restore vitest module cache
         uses: actions/cache@v5
         with:
           path: node_modules/.vitest-cache
           key: vitest-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: vitest-cache-${{ runner.os }}-
 
       - name: Test
         run: pnpm test-ci

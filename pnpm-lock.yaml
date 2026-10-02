@@ -173,6 +173,8 @@ overrides:
   undici@7.24.4: 7.28.0
   ip-address@10.1.0: 10.2.0
 
+packageExtensionsChecksum: sha256-pA0Ucf0zl2+saI+EilyuFwv81kgUiNA7BU7Ta5TU2iU=
+
 patchedDependencies:
   '@microsoft/tsdoc@0.15.1': 9f79aa6f6ea275c5a36728edc12ed3b40dd156e0b7c55577da8509a7e980b7a0
 
@@ -387,6 +389,12 @@ importers:
 
   apps/docs:
     dependencies:
+      '@algolia/client-search':
+        specifier: ^4.24.0
+        version: 4.24.0
+      '@algolia/recommend':
+        specifier: ^4.24.0
+        version: 4.24.0
       '@ariakit/react':
         specifier: ^0.4.15
         version: 0.4.15(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -440,7 +448,7 @@ importers:
         version: 4.0.3
       instantsearch.js:
         specifier: ^4.77.1
-        version: 4.77.1(algoliasearch@4.24.0)
+        version: 4.77.1(@algolia/client-search@4.24.0)(@algolia/recommend@4.24.0)(algoliasearch@4.24.0)
       js-cookie:
         specifier: 3.0.7
         version: 3.0.7
@@ -467,7 +475,7 @@ importers:
         version: 19.2.1(react@19.2.1)
       react-instantsearch:
         specifier: ^7.15.1
-        version: 7.15.1(algoliasearch@4.24.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+        version: 7.15.1(@algolia/client-search@4.24.0)(@algolia/recommend@4.24.0)(algoliasearch@4.24.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       rehype-slug:
         specifier: ^6.0.0
         version: 6.0.0
@@ -601,7 +609,7 @@ importers:
         version: 4.101.21(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@rocicorp/zero':
         specifier: 1.9.0
-        version: 1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
+        version: 1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(kysely@0.28.17)(supports-color@10.2.2)
       '@sentry/integrations':
         specifier: ^7.120.3
         version: 7.120.3
@@ -795,7 +803,7 @@ importers:
         version: 3.17.1(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@rocicorp/zero':
         specifier: 1.9.0
-        version: 1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
+        version: 1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(kysely@0.28.17)(supports-color@10.2.2)
       '@supabase/supabase-js':
         specifier: ^2.48.1
         version: 2.48.1
@@ -875,7 +883,7 @@ importers:
     dependencies:
       '@rocicorp/zero':
         specifier: 1.9.0
-        version: 1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
+        version: 1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(kysely@0.28.17)(supports-color@10.2.2)
       kysely:
         specifier: ^0.28.12
         version: 0.28.17
@@ -1560,7 +1568,7 @@ importers:
     dependencies:
       '@rocicorp/zero':
         specifier: 1.9.0
-        version: 1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
+        version: 1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(kysely@0.28.17)(supports-color@10.2.2)
       '@tldraw/state':
         specifier: workspace:*
         version: link:../state
@@ -2429,7 +2437,7 @@ importers:
         version: 10.1.0
       '@fastify/websocket':
         specifier: ^11.0.0
-        version: 11.0.2
+        version: 11.0.2(fastify@5.8.5)
       '@tldraw/sync':
         specifier: workspace:*
         version: link:../../packages/sync
@@ -4391,6 +4399,11 @@ packages:
 
   '@fastify/websocket@11.0.2':
     resolution: {integrity: sha512-1oyJkNSZNJGjo/A5fXvlpEcm1kTBD91nRAN9lA7RNVsVNsyC5DuhOXdNL9/4UawVe7SKvzPT/QVI4RdtE9ylnA==}
+    peerDependencies:
+      fastify: '*'
+    peerDependenciesMeta:
+      fastify:
+        optional: true
 
   '@floating-ui/core@1.6.0':
     resolution: {integrity: sha512-PcF++MykgmTj3CIyOQbKA/hDzOAiqI3mhuoN44WRCopIs1sgoDoU4oty4Jtqaj/y3oDU6fnVSm4QG0a3t5i0+g==}
@@ -7690,6 +7703,11 @@ packages:
     resolution: {integrity: sha512-2huSS0rHOEfzjPP5K7SrndBuJfchhBCW3VHiSnPhTpmtH9ivvA44jqbBygCN9/d44pP9T2dzNxghiYiIWGMn5A==}
     engines: {node: '>=22'}
     hasBin: true
+    peerDependencies:
+      kysely: '*'
+    peerDependenciesMeta:
+      kysely:
+        optional: true
 
   '@rolldown/binding-android-arm64@1.0.0-rc.1':
     resolution: {integrity: sha512-He6ZoCfv5D7dlRbrhNBkuMVIHd0GDnjJwbICE1OWpG7G3S2gmJ+eXkcNLJjzjNDpeI2aRy56ou39AJM9AD8YFA==}
@@ -9977,7 +9995,14 @@ packages:
   algoliasearch-helper@3.23.1:
     resolution: {integrity: sha512-j/dF2ZELJBm4SJTK5ECsMuCDJpBB8ITiWKRjd3S15bK2bqrXKLWqDiA5A96WhVvCpZ2NmgNlUYmFbKOfcqivbg==}
     peerDependencies:
+      '@algolia/client-search': '*'
+      '@algolia/recommend': '*'
       algoliasearch: '>= 3.1 < 6'
+    peerDependenciesMeta:
+      '@algolia/client-search':
+        optional: true
+      '@algolia/recommend':
+        optional: true
 
   algoliasearch@4.24.0:
     resolution: {integrity: sha512-bf0QV/9jVejssFBmz2HQLxUadxk574t4iwjCKp5E7NBzwKkrDEhKPISIIjAU/p6K5qDx3qoeh4+26zWN1jmw3g==}
@@ -18360,11 +18385,13 @@ snapshots:
       '@fastify/forwarded': 3.0.0
       ipaddr.js: 2.2.0
 
-  '@fastify/websocket@11.0.2':
+  '@fastify/websocket@11.0.2(fastify@5.8.5)':
     dependencies:
       duplexify: 4.1.3
       fastify-plugin: 5.0.1
       ws: 8.21.0
+    optionalDependencies:
+      fastify: 5.8.5
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -21628,7 +21655,7 @@ snapshots:
     dependencies:
       node-gyp-build: 4.8.4
 
-  '@rocicorp/zero@1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)':
+  '@rocicorp/zero@1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(kysely@0.28.17)(supports-color@10.2.2)':
     dependencies:
       '@badrap/valita': 0.3.11
       '@databases/escape-identifier': 1.0.3
@@ -21636,7 +21663,7 @@ snapshots:
       '@dotenvx/dotenvx': 1.39.0
       '@drdgvhbh/postgres-error-codes': 0.0.6
       '@fastify/cors': 10.1.0
-      '@fastify/websocket': 11.0.2
+      '@fastify/websocket': 11.0.2(fastify@5.8.5)
       '@google-cloud/precise-date': 4.0.0
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/api-logs': 0.218.0
@@ -21679,6 +21706,8 @@ snapshots:
       url-pattern: 1.0.3
       urlpattern-polyfill: 10.1.0
       ws: 8.21.0
+    optionalDependencies:
+      kysely: 0.28.17
     transitivePeerDependencies:
       - '@75lb/nature'
       - '@opentelemetry/core'
@@ -24509,10 +24538,13 @@ snapshots:
       require-from-string: 2.0.2
       uri-js: 4.4.1
 
-  algoliasearch-helper@3.23.1(algoliasearch@4.24.0):
+  algoliasearch-helper@3.23.1(@algolia/client-search@4.24.0)(@algolia/recommend@4.24.0)(algoliasearch@4.24.0):
     dependencies:
       '@algolia/events': 4.0.1
       algoliasearch: 4.24.0
+    optionalDependencies:
+      '@algolia/client-search': 4.24.0
+      '@algolia/recommend': 4.24.0
 
   algoliasearch@4.24.0:
     dependencies:
@@ -27317,7 +27349,7 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.28.6
 
-  instantsearch.js@4.77.1(algoliasearch@4.24.0):
+  instantsearch.js@4.77.1(@algolia/client-search@4.24.0)(@algolia/recommend@4.24.0)(algoliasearch@4.24.0):
     dependencies:
       '@algolia/events': 4.0.1
       '@types/dom-speech-recognition': 0.0.1
@@ -27325,13 +27357,16 @@ snapshots:
       '@types/hogan.js': 3.0.5
       '@types/qs': 6.14.0
       algoliasearch: 4.24.0
-      algoliasearch-helper: 3.23.1(algoliasearch@4.24.0)
+      algoliasearch-helper: 3.23.1(@algolia/client-search@4.24.0)(@algolia/recommend@4.24.0)(algoliasearch@4.24.0)
       hogan.js: 3.0.2
       htm: 3.1.1
       instantsearch-ui-components: 0.11.1
       preact: 10.25.4
       qs: 6.9.9
       search-insights: 2.17.3
+    transitivePeerDependencies:
+      - '@algolia/client-search'
+      - '@algolia/recommend'
 
   internmap@1.0.1: {}
 
@@ -30075,24 +30110,30 @@ snapshots:
       react-fast-compare: 3.2.2
       shallowequal: 1.1.0
 
-  react-instantsearch-core@7.15.1(algoliasearch@4.24.0)(react@19.2.1):
+  react-instantsearch-core@7.15.1(@algolia/client-search@4.24.0)(@algolia/recommend@4.24.0)(algoliasearch@4.24.0)(react@19.2.1):
     dependencies:
       '@babel/runtime': 7.28.6
       algoliasearch: 4.24.0
-      algoliasearch-helper: 3.23.1(algoliasearch@4.24.0)
-      instantsearch.js: 4.77.1(algoliasearch@4.24.0)
+      algoliasearch-helper: 3.23.1(@algolia/client-search@4.24.0)(@algolia/recommend@4.24.0)(algoliasearch@4.24.0)
+      instantsearch.js: 4.77.1(@algolia/client-search@4.24.0)(@algolia/recommend@4.24.0)(algoliasearch@4.24.0)
       react: 19.2.1
       use-sync-external-store: 1.5.0(react@19.2.1)
+    transitivePeerDependencies:
+      - '@algolia/client-search'
+      - '@algolia/recommend'
 
-  react-instantsearch@7.15.1(algoliasearch@4.24.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
+  react-instantsearch@7.15.1(@algolia/client-search@4.24.0)(@algolia/recommend@4.24.0)(algoliasearch@4.24.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
     dependencies:
       '@babel/runtime': 7.28.6
       algoliasearch: 4.24.0
       instantsearch-ui-components: 0.11.1
-      instantsearch.js: 4.77.1(algoliasearch@4.24.0)
+      instantsearch.js: 4.77.1(@algolia/client-search@4.24.0)(@algolia/recommend@4.24.0)(algoliasearch@4.24.0)
       react: 19.2.1
       react-dom: 19.2.1(react@19.2.1)
-      react-instantsearch-core: 7.15.1(algoliasearch@4.24.0)(react@19.2.1)
+      react-instantsearch-core: 7.15.1(@algolia/client-search@4.24.0)(@algolia/recommend@4.24.0)(algoliasearch@4.24.0)(react@19.2.1)
+    transitivePeerDependencies:
+      - '@algolia/client-search'
+      - '@algolia/recommend'
 
   react-intl@8.1.3(@types/react@19.2.7)(react@19.2.1)(typescript@5.9.3):
     dependencies:
