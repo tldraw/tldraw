@@ -1,4 +1,4 @@
-import { fireEvent, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, waitFor, within } from '@testing-library/react'
 import { deleteFromLocalStorage } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { vi } from 'vitest'
@@ -25,7 +25,7 @@ afterEach(() => {
 	deleteFromLocalStorage('tldraw-command-palette-recents')
 	commandPaletteFlags.checkmarksOnRight.set(false)
 	commandPaletteFlags.topSection.set('recent')
-	commandPaletteFlags.showGroupHeadings.set(false)
+	commandPaletteFlags.showGroupHeadings.set(true)
 	commandPaletteFlags.showIcons.set(false)
 	commandPaletteFlags.showDisabledReasons.set(true)
 	commandPaletteFlags.groupSubmenus.set(true)
@@ -56,7 +56,7 @@ function item(id: string, label: string, onSelect = vi.fn(), extra: object = {})
 }
 
 describe('CommandPaletteShell', () => {
-	it('lists items without group headings', async () => {
+	it('heads groups by default, and lists them without headings when the flag is off', async () => {
 		const { rendered } = await renderShell(
 			<TldrawUiMenuGroup id="edit" label="menu.edit">
 				{item('alpha', 'Alpha')}
@@ -64,7 +64,10 @@ describe('CommandPaletteShell', () => {
 			</TldrawUiMenuGroup>
 		)
 		await rendered.findByTestId('command-palette.item.alpha')
-		expect(within(rendered.getByTestId('command-palette')).queryByText('Edit')).toBeNull()
+		const palette = within(rendered.getByTestId('command-palette'))
+		expect(palette.queryByText('Edit')).not.toBeNull()
+		act(() => void commandPaletteFlags.showGroupHeadings.set(false))
+		expect(palette.queryByText('Edit')).toBeNull()
 		expect(rendered.getByTestId('command-palette.item.beta')).toBeTruthy()
 	})
 

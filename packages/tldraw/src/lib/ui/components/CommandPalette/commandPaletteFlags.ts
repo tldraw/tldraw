@@ -29,7 +29,7 @@ export interface CommandPaletteFlags {
 export const commandPaletteFlags: CommandPaletteFlags = {
 	checkmarksOnRight: atom('command palette flag: checkmarks on right', false),
 	topSection: atom<CommandPaletteTopSection>('command palette flag: top section', 'recent'),
-	showGroupHeadings: atom('command palette flag: show group headings', false),
+	showGroupHeadings: atom('command palette flag: show group headings', true),
 	showIcons: atom('command palette flag: show icons', false),
 	showDisabledReasons: atom('command palette flag: show disabled reasons', true),
 	groupSubmenus: atom('command palette flag: group submenus', true),
