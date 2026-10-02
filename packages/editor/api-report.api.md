@@ -1528,6 +1528,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCanRedo(): boolean;
     // (undocumented)
     getCanUndo(): boolean;
+    // @internal (undocumented)
+    getChangesToTranslateShapeByPageDelta(shape: TLShape, pageDelta: VecLike): TLShape;
     getCollaborators(): TLInstancePresence[];
     getCollaboratorsOnCurrentPage(): TLInstancePresence[];
     getColorMode(): 'dark' | 'light';
@@ -1733,6 +1735,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeOfType<T extends TLShape = TLShape>(shapeId: TLShapeId, type: T['type']): boolean;
     isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
+    // @internal (undocumented)
+    readonly _layoutManager: LayoutManager;
     // @internal
     licenseManager?: LicenseManager;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): this;
@@ -2982,6 +2986,38 @@ export function isSafeFloat(n: number): boolean;
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opts?: {
     filter?(parent: TLShape): boolean;
 }): void;
+
+// @internal
+export class LayoutManager extends EditorManager {
+    // (undocumented)
+    alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): Editor;
+    applyLayoutTransforms(transforms: {
+        item: {
+            shapes: TLShape[];
+        };
+        pageOffset: VecLike;
+        scale: VecLike;
+        scaleOrigin: VecLike;
+    }[]): void;
+    // (undocumented)
+    distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): Editor;
+    // (undocumented)
+    flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): Editor;
+    getChangesToApplyLayoutMoves(moves: {
+        delta: VecLike;
+        item: {
+            shapes: TLShape[];
+        };
+    }[]): TLShapePartial[];
+    // (undocumented)
+    packShapes(shapes: TLShape[] | TLShapeId[], _gap?: number): Editor;
+    // (undocumented)
+    resizeToBounds(shapes: TLShape[] | TLShapeId[], bounds: BoxLike): Editor;
+    // (undocumented)
+    stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): Editor;
+    // (undocumented)
+    stretchShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): Editor;
+}
 
 // @internal (undocumented)
 export const LICENSE_TIMEOUT = 5000;

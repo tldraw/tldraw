@@ -129,14 +129,6 @@ import {
 	offerMarginHit,
 } from './kernels/hitTest'
 import {
-	getAlignLayout,
-	getDistributeLayout,
-	getPackLayout,
-	getResizeToBoundsLayout,
-	getStackLayout,
-	getStretchLayout,
-} from './kernels/layout'
-import {
 	findNearestItemInDirection,
 	getAdjacentIndex,
 	sortIntoReadingOrder,
@@ -161,6 +153,7 @@ import { FocusManager } from './managers/FocusManager/FocusManager'
 import { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
+import { LayoutManager } from './managers/LayoutManager/LayoutManager'
 import { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
@@ -172,7 +165,6 @@ import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPr
 import { OverlayManager } from './overlays/OverlayManager'
 import { TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
 import { getUnorderedRenderingShapes } from './queries/renderingShapes'
-import { getShapeClusters } from './queries/shapeClusters'
 import {
 	ShapeUtil,
 	TLEditStartInfo,
@@ -5734,7 +5726,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// frame or group would move along its parent's axes instead of the page's.
 	// todo: a shape laid out together with its own parent moves twice, once with the parent and once
 	// on its own; the layout commands should skip shapes whose ancestors are also being laid out
-	private getChangesToTranslateShapeByPageDelta(shape: TLShape, pageDelta: VecLike): TLShape {
+	/** @internal */
+	getChangesToTranslateShapeByPageDelta(shape: TLShape, pageDelta: VecLike): TLShape {
 		const localDelta = Vec.From(pageDelta).rot(-this.getShapeParentTransform(shape).rotation())
 		return this.getChangesToTranslateShape(shape, localDelta.add(shape))
 	}
@@ -6114,50 +6107,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/**
-	 * Shared clustering logic for layout methods. Resolves shapes, optionally filters to
-	 * axis-aligned shapes, checks canBeLaidOut, and groups shapes into clusters via arrow bindings.
-	 *
-	 * @internal
-	 */
-	/** Layout kernels return a move per cluster; every shape in the cluster shifts by that delta. */
-	private getChangesToApplyLayoutMoves(
-		moves: { item: { shapes: TLShape[] }; delta: VecLike }[]
-	): TLShapePartial[] {
-		const changes: TLShapePartial[] = []
-		for (const { item, delta } of moves) {
-			for (const shape of item.shapes) {
-				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
-			}
-		}
-		return changes
-	}
-
-	/**
-	 * Layout kernels return a translation and a scale per cluster. Each shape moves before it
-	 * resizes, so the resize measures geometry that is already in place.
-	 */
-	private applyLayoutTransforms(
-		transforms: {
-			item: { shapes: TLShape[] }
-			pageOffset: VecLike
-			scaleOrigin: VecLike
-			scale: VecLike
-		}[]
-	) {
-		for (const { item, pageOffset, scaleOrigin, scale } of transforms) {
-			for (const shape of item.shapes) {
-				this.updateShape(this.getChangesToTranslateShapeByPageDelta(shape, pageOffset))
-
-				this.resizeShape(shape.id, scale, {
-					initialBounds: this.getShapeGeometry(shape).bounds,
-					scaleOrigin,
-					isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
-					scaleAxisRotation: 0,
-				})
-			}
-		}
-	}
+	/** @internal */
+	readonly _layoutManager = new LayoutManager(this)
 
 	/**
 	 * Flip shape positions.
@@ -6174,78 +6125,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	flipShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
-		if (this.getIsReadonly()) return this
-
-		const ids = toShapeIds(shapes)
-
-		// Collect a greedy list of shapes to flip
-		const shapesToFlipFirstPass = compact(ids.map((id) => this.getShape(id)))
-
-		for (const shape of shapesToFlipFirstPass) {
-			if (this.isShapeOfType(shape, 'group')) {
-				const childrenOfGroups = compact(
-					this.getSortedChildIdsForParent(shape.id).map((id) => this.getShape(id))
-				)
-				shapesToFlipFirstPass.push(...childrenOfGroups)
-			}
-		}
-
-		// exclude shapes that can't be flipped
-		const shapesToFlip: {
-			shape: TLShape
-			localBounds: Box
-			pageTransform: Mat
-			isAspectRatioLocked: boolean
-		}[] = []
-
-		const allBounds: Box[] = []
-
-		for (const shape of shapesToFlipFirstPass) {
-			const util = this.getShapeUtil(shape)
-			if (
-				!util.canBeLaidOut(shape, {
-					type: 'flip',
-					shapes: shapesToFlipFirstPass,
-				})
-			) {
-				continue
-			}
-
-			const pageBounds = this.getShapePageBounds(shape)
-			const localBounds = this.getShapeGeometry(shape).bounds
-			const pageTransform = this.getShapePageTransform(shape.id)
-			if (!(pageBounds && localBounds && pageTransform)) continue
-			shapesToFlip.push({
-				shape,
-				localBounds,
-				pageTransform,
-				isAspectRatioLocked: util.isAspectRatioLocked(shape),
-			})
-			allBounds.push(pageBounds)
-		}
-
-		if (!shapesToFlip.length) return this
-
-		const scaleOriginPage = Box.Common(allBounds).center
-
-		this.run(() => {
-			for (const { shape, localBounds, pageTransform, isAspectRatioLocked } of shapesToFlip) {
-				this.resizeShape(
-					shape.id,
-					{ x: operation === 'horizontal' ? -1 : 1, y: operation === 'vertical' ? -1 : 1 },
-					{
-						initialBounds: localBounds,
-						initialPageTransform: pageTransform,
-						initialShape: shape,
-						isAspectRatioLocked,
-						mode: 'scale_shape',
-						scaleOrigin: scaleOriginPage,
-						scaleAxisRotation: 0,
-					}
-				)
-			}
-		})
-
+		this._layoutManager.flipShapes(shapes, operation)
 		return this
 	}
 
@@ -6269,21 +6149,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		operation: 'horizontal' | 'vertical',
 		gap?: number
 	): this {
-		const _gap = gap ?? this.options.adjacentShapeMargin
-		if (this.getIsReadonly()) return this
-
-		// todo: this has a lot of extra code to handle stacking with custom gaps or auto gaps or other things like that. I don't think anyone has ever used this stuff.
-
-		const { clusters: shapeClustersToStack } = getShapeClusters(this, toShapeIds(shapes), 'stack')
-
-		const len = shapeClustersToStack.length
-		if ((_gap === 0 && len < 3) || len < 2) return this
-
-		const changes = this.getChangesToApplyLayoutMoves(
-			getStackLayout(shapeClustersToStack, operation, _gap)
-		)
-
-		this.updateShapes(changes)
+		this._layoutManager.stackShapes(shapes, operation, gap)
 		return this
 	}
 
@@ -6301,20 +6167,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param gap - The padding to apply to the packed shapes. Defaults to the editor's `adjacentShapeMargin` option.
 	 */
 	packShapes(shapes: TLShapeId[] | TLShape[], _gap?: number): this {
-		if (this.getIsReadonly()) return this
-
-		const gap = _gap ?? this.options.adjacentShapeMargin
-
-		const { clusters } = getShapeClusters(this, toShapeIds(shapes), 'pack')
-
-		if (clusters.length < 2) return this
-
-		const changes = this.getChangesToApplyLayoutMoves(getPackLayout(clusters, gap))
-
-		if (changes.length) {
-			this.updateShapes(changes)
-		}
-
+		this._layoutManager.packShapes(shapes, _gap)
 		return this
 	}
 
@@ -6343,20 +6196,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			| 'bottom'
 			| 'center'
 	): this {
-		if (this.getIsReadonly()) return this
-		if (operation === 'center') {
-			return this.alignShapes(shapes, 'center-horizontal').alignShapes(shapes, 'center-vertical')
-		}
-
-		const { clusters: shapeClustersToAlign } = getShapeClusters(this, toShapeIds(shapes), 'align')
-
-		if (shapeClustersToAlign.length < 2) return this
-
-		const changes = this.getChangesToApplyLayoutMoves(
-			getAlignLayout(shapeClustersToAlign, operation)
-		)
-
-		this.updateShapes(changes)
+		this._layoutManager.alignShapes(shapes, operation)
 		return this
 	}
 
@@ -6375,35 +6215,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	distributeShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
-		if (this.getIsReadonly()) return this
-
-		const { clusters: shapeClustersToDistribute } = getShapeClusters(
-			this,
-			toShapeIds(shapes),
-			'distribute'
-		)
-
-		if (shapeClustersToDistribute.length < 3) return this
-
-		const layout = getDistributeLayout(
-			shapeClustersToDistribute,
-			operation,
-			(cluster) => cluster.shapes[0].id
-		)
-
-		// If the first shape group is also the last shape group, distribute without it
-		if (layout.type === 'excludes') {
-			const excludedShapeIds = new Set(layout.excluded.shapes.map((s) => s.id))
-			const ids = toShapeIds(shapes)
-			return this.distributeShapes(
-				ids.filter((id) => !excludedShapeIds.has(id)),
-				operation
-			)
-		}
-
-		const changes = this.getChangesToApplyLayoutMoves(layout.moves)
-
-		this.updateShapes(changes)
+		this._layoutManager.distributeShapes(shapes, operation)
 		return this
 	}
 
@@ -6422,23 +6234,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stretchShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
-		if (this.getIsReadonly()) return this
-
-		const { clusters: shapeClustersToStretch } = getShapeClusters(
-			this,
-			toShapeIds(shapes),
-			'stretch',
-			{
-				filterAxisAligned: true,
-			}
-		)
-
-		if (shapeClustersToStretch.length < 2) return this
-
-		this.run(() => {
-			this.applyLayoutTransforms(getStretchLayout(shapeClustersToStretch, operation))
-		})
-
+		this._layoutManager.stretchShapes(shapes, operation)
 		return this
 	}
 
@@ -6458,26 +6254,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	resizeToBounds(shapes: TLShapeId[] | TLShape[], bounds: BoxLike): this {
-		if (this.getIsReadonly()) return this
-
-		const targetBounds = Box.From(bounds)
-
-		const { clusters: shapeClusters } = getShapeClusters(
-			this,
-			toShapeIds(shapes),
-			'resize_to_bounds',
-			{
-				filterAxisAligned: true,
-			}
-		)
-
-		if (shapeClusters.length === 0) return this
-
-		const transforms = getResizeToBoundsLayout(shapeClusters, targetBounds)
-		if (!transforms) return this
-
-		this.applyLayoutTransforms(transforms)
-
+		this._layoutManager.resizeToBounds(shapes, bounds)
 		return this
 	}
 
