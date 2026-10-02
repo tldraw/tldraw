@@ -208,9 +208,9 @@ describe('built-in action isEnabled', () => {
 		})
 
 		describe.each([
-			['flip-horizontal', 'x'],
-			['flip-vertical', 'y'],
-		] as const)('%s shortcut', (actionId, axis) => {
+			['flip-horizontal', 'horizontal', 'x'],
+			['flip-vertical', 'vertical', 'y'],
+		] as const)('%s shortcut', (actionId, direction, axis) => {
 			it('flips a lone shape that can flip', async () => {
 				const { editor, actions } = await setup()
 				act(() => {
@@ -219,7 +219,7 @@ describe('built-in action isEnabled', () => {
 				})
 				const flipShapes = vi.spyOn(editor, 'flipShapes')
 				act(() => actions()[actionId].onSelect('kbd'))
-				expect(flipShapes).toHaveBeenCalledTimes(1)
+				expect(flipShapes).toHaveBeenCalledExactlyOnceWith([g1], direction)
 			})
 
 			it('ignores a lone shape that cannot flip', async () => {

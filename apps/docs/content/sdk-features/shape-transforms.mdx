@@ -100,7 +100,7 @@ editor.flipShapes([box1, box2], 'vertical')
 
 When flipping groups, the editor includes all children of the group so the whole hierarchy flips together. Shapes can opt out of flipping by returning `false` from [ShapeUtil#canBeLaidOut](?); arrows do this when the shape they're bound to isn't part of the flip.
 
-The default UI only offers flip for a single selected shape when [ShapeUtil#canFlip](?) returns `true`, meaning flipping changes the shape itself by mirroring it or its stored flip. [Editor#flipShapes](?) doesn't check it. It defaults to `false`; the built-in group, image, arrow, line, draw, highlight and geo shapes return `true`. Override it in your shape util if your shape changes when flipped. Shapes that return `false` still move with the rest of a multi-shape flip.
+The default UI only offers flip for a single selected shape when [ShapeUtil#canFlip](?) returns `true`, meaning flipping changes the shape itself by mirroring it or toggling its stored flip. [Editor#flipShapes](?) doesn't check it. It defaults to `false`; the built-in group, image, arrow, line, draw, highlight and geo shapes return `true`. Override it in your shape util if your shape changes when flipped. Shapes that return `false` still move with the rest of a multi-shape flip.
 
 ### Rotation
 
