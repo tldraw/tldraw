@@ -1,4 +1,5 @@
 import { createShapeId, TLShapeId } from '@tldraw/editor'
+import { TextShapeUtil } from '../../lib/shapes/text/TextShapeUtil'
 import {
 	canApplySelectionAction,
 	canApplyToUnlockedSelection,
@@ -99,6 +100,19 @@ describe('action predicates', () => {
 		editor.createShape({ id: text, type: 'text', x: 0, y: 300 })
 		editor.select(text)
 		expect(isOnlyFlippableShapeSelected(editor)).toBe(false)
+	})
+
+	it('flip on a single shape follows the shape util', () => {
+		class FlippableTextShapeUtil extends TextShapeUtil {
+			override canFlip() {
+				return true
+			}
+		}
+		editor = new TestEditor({ shapeUtils: [FlippableTextShapeUtil] })
+		const text = createShapeId('text')
+		editor.createShape({ id: text, type: 'text', x: 0, y: 0 })
+		editor.select(text)
+		expect(isOnlyFlippableShapeSelected(editor)).toBe(true)
 	})
 
 	it('stack needs 3 unlocked shapes not counting bound arrows', () => {

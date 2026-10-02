@@ -7,8 +7,6 @@ import { getSelectedLinkShape } from '../../utils/shapes/shapes'
 // Shared by action isEnabled/isChecked and the menu hooks, so the two can't drift.
 // Every function must stay pure: they run inside useValue on every render.
 
-const FLIPPABLE_TYPES = new Set(['group', 'image', 'arrow', 'line', 'draw', 'geo'])
-
 /** @internal */
 export function canApplySelectionAction(editor: Editor) {
 	return editor.isIn('select') && editor.getSelectedShapeIds().length > 0
@@ -72,7 +70,17 @@ export function hasThreeStackableShapes(editor: Editor) {
 /** @internal */
 export function isOnlyFlippableShapeSelected(editor: Editor) {
 	const shape = editor.getOnlySelectedShape()
-	return !!shape && FLIPPABLE_TYPES.has(shape.type) && !editor.isShapeOrAncestorLocked(shape)
+	return (
+		!!shape && editor.getShapeUtil(shape).canFlip(shape) && !editor.isShapeOrAncestorLocked(shape)
+	)
+}
+
+/** @internal */
+export function canFlipSelection(editor: Editor) {
+	return (
+		editor.isIn('select') &&
+		(hasUnlockedSelection(editor, 2) || isOnlyFlippableShapeSelected(editor))
+	)
 }
 
 /** @internal */

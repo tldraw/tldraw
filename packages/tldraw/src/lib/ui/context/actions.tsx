@@ -45,6 +45,7 @@ import {
 	canApplyToUnlockedSelection,
 	canFitFrameToContent,
 	canFlatten,
+	canFlipSelection,
 	canFrameSelection,
 	canReadClipboard,
 	canToggleAutoSize,
@@ -59,7 +60,6 @@ import {
 	isGroupAllowed,
 	isOnlyEmbeddableBookmarkSelected,
 	isOnlyEmbedWithUrlSelected,
-	isOnlyFlippableShapeSelected,
 	isUngroupAllowed,
 	supportsDownloadingOriginal,
 } from './action-predicates'
@@ -922,9 +922,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'flip-horizontal',
-				isEnabled: (editor) =>
-					editor.isIn('select') &&
-					(hasUnlockedSelection(editor, 2) || isOnlyFlippableShapeSelected(editor)),
+				isEnabled: canFlipSelection,
 				label: {
 					default: 'action.flip-horizontal',
 					['context-menu']: 'action.flip-horizontal.short',
@@ -933,6 +931,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
+					// Shortcuts skip isEnabled, so a lone shape that can't flip must be rejected here.
+					if (!canFlipSelection(editor)) return
 
 					trackEvent('flip-shapes', { operation: 'horizontal', source })
 					updateSelectedShapes('flip horizontal', (ids) => editor.flipShapes(ids, 'horizontal'))
@@ -940,14 +940,14 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'flip-vertical',
-				isEnabled: (editor) =>
-					editor.isIn('select') &&
-					(hasUnlockedSelection(editor, 2) || isOnlyFlippableShapeSelected(editor)),
+				isEnabled: canFlipSelection,
 				label: { default: 'action.flip-vertical', ['context-menu']: 'action.flip-vertical.short' },
 				kbd: 'shift+v',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
+					// Shortcuts skip isEnabled, so a lone shape that can't flip must be rejected here.
+					if (!canFlipSelection(editor)) return
 
 					trackEvent('flip-shapes', { operation: 'vertical', source })
 					updateSelectedShapes('flip vertical', (ids) => editor.flipShapes(ids, 'vertical'))

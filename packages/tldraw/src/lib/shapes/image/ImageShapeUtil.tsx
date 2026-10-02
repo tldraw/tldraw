@@ -168,6 +168,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		return shape.props.altText
 	}
 
+	override canFlip() {
+		return true
+	}
+
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
 		let resized: TLImageShape = resizeBox(shape, info)
 		const { scaleX, scaleY } = info

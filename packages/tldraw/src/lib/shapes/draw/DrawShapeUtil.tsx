@@ -235,6 +235,10 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return [getFillDefForCanvas()]
 	}
 
+	override canFlip() {
+		return true
+	}
+
 	override onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>) {
 		const newScaleX = info.scaleX * shape.props.scaleX
 		const newScaleY = info.scaleY * shape.props.scaleY
