@@ -399,26 +399,38 @@ export async function openWholeVersionStream({
 		: object.body
 }
 
+// Written into the chain bucket by the room-history migration, outside the chain's key space:
+// byte-for-byte copies of versions that only ever reached the legacy bucket, and each room's
+// backfill boundary.
+const LEGACY_VERSIONS_PREFIX = 'legacy_versions/'
+const BACKFILL_BOUNDARY_PREFIX = 'room-history-backfill/'
+
 /**
- * Removes a room's history from both buckets. Sweeping only one would leave a deleted board's
- * content behind in the other.
+ * Removes a room's history from every place it is kept: the chain, the legacy copies, and the
+ * room-history migration's cold archive, plus what that migration left beside the chain (its copies
+ * of legacy-only versions and its backfill boundary). Missing any one would leave a deleted board's
+ * content behind.
  */
 export async function deleteAllVersions({
 	chainBucket,
 	legacyBucket,
+	coldBucket,
 	roomKey,
 	schedule = runInline,
 }: {
 	chainBucket: R2Bucket
 	legacyBucket: R2Bucket
+	coldBucket: R2Bucket
 	roomKey: string
 	schedule?: R2ReadScheduler
 }): Promise<void> {
 	// Trailing slash: a bare roomKey prefix also matches sibling rooms whose slug is a prefix of
 	// this one (deleting "abc" must not sweep "abcd").
-	await Promise.all(
-		[chainBucket, legacyBucket].map((bucket) =>
+	await Promise.all([
+		...[chainBucket, legacyBucket, coldBucket].map((bucket) =>
 			deleteAllObjectsWithPrefix(bucket, `${roomKey}/`, schedule)
-		)
-	)
+		),
+		deleteAllObjectsWithPrefix(chainBucket, `${LEGACY_VERSIONS_PREFIX}${roomKey}/`, schedule),
+		schedule(() => chainBucket.delete(`${BACKFILL_BOUNDARY_PREFIX}${roomKey}.json`)),
+	])
 }
