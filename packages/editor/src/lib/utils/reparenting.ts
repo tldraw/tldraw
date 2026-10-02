@@ -57,6 +57,8 @@ export function kickoutOccludedShapes(
 		}
 	}
 
+	if (parentsToLostChildren.size === 0) return
+
 	// Get all of the shapes on the current page, sorted by their index
 	const sortedShapeIds = editor.getCurrentPageShapesSorted().map((s) => s.id)
 
