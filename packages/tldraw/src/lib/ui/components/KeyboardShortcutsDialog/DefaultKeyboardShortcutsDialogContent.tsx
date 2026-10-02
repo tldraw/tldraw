@@ -64,6 +64,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="group" />
 				<TldrawUiMenuActionItem actionId="ungroup" />
 				<TldrawUiMenuActionItem actionId="frame-selection" />
+				<TldrawUiMenuActionItem actionId="remove-frame" />
 				<TldrawUiMenuActionItem actionId="flatten-to-image" />
 				<TldrawUiMenuActionItem actionId="toggle-lock" />
 				<TldrawUiMenuActionItem actionId="flip-horizontal" />

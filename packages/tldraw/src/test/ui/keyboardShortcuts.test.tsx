@@ -757,6 +757,95 @@ describe('frame selection shortcut', () => {
 		expect(editor.getShape(arrow)?.parentId).toBe(frame!.id)
 		expect(editor.getShape(target)?.parentId).toBe(frame!.id)
 	})
+
+	it('does not remove a selected frame on cmd+alt+g', async () => {
+		const { editor } = await setupFocusedEditor()
+		const frameId = createShapeId()
+		act(() => {
+			editor.createShapes([{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } }])
+			editor.select(frameId)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
+
+		expect(editor.getShape(frameId)).toBeDefined()
+	})
+
+	it.each([
+		['cmd+alt+shift+g (macOS)', { metaKey: true }],
+		['ctrl+alt+shift+g (Windows / Linux)', { ctrlKey: true }],
+	])('removes the selected frame on %s', async (_label, modifier) => {
+		const { editor } = await setupFocusedEditor()
+		const frameId = createShapeId()
+		const a = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } },
+				{ id: a, type: 'geo', parentId: frameId, x: 10, y: 10 },
+			])
+			editor.select(frameId)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, shiftKey: true, ...modifier })
+
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(a)?.parentId).toBe(editor.getCurrentPageId())
+	})
+})
+
+describe('group shortcut', () => {
+	it('does not ungroup a lone group on cmd+g', async () => {
+		const { editor } = await setupFocusedEditor()
+		const a = createShapeId()
+		const b = createShapeId()
+		const groupId = createShapeId('group')
+		act(() => {
+			editor.createShapes([
+				{ id: a, type: 'geo', x: 0, y: 0 },
+				{ id: b, type: 'geo', x: 200, y: 0 },
+			])
+			editor.groupShapes([a, b], { groupId })
+			editor.select(groupId)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', metaKey: true })
+
+		expect(editor.getShape(groupId)).toBeDefined()
+	})
+
+	it('still groups two shapes on cmd+g', async () => {
+		const { editor } = await setupFocusedEditor()
+		const a = createShapeId()
+		const b = createShapeId()
+		act(() => {
+			editor.createShapes([
+				{ id: a, type: 'geo', x: 0, y: 0 },
+				{ id: b, type: 'geo', x: 200, y: 0 },
+			])
+			editor.select(a, b)
+		})
+
+		keydown(editor, { key: 'g', code: 'KeyG', metaKey: true })
+
+		const parent = editor.getShape(editor.getShape(a)!.parentId as any)
+		expect(parent?.type).toBe('group')
+	})
+})
+
+describe('flip shortcuts', () => {
+	it.each(['h', 'v'])('shift+%s does not flip a lone text', async (key) => {
+		const { editor } = await setupFocusedEditor()
+		const id = createShapeId()
+		act(() => {
+			editor.createShapes([{ id, type: 'text', x: 0, y: 0 }])
+			editor.select(id)
+		})
+		const before = editor.getShape(id)
+
+		keydown(editor, { key, code: `Key${key.toUpperCase()}`, shiftKey: true })
+
+		expect(editor.getShape(id)).toEqual(before)
+	})
 })
 
 describe('scale selection shortcuts', () => {
