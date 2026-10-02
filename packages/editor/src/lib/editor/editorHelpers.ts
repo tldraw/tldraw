@@ -10,6 +10,8 @@ export const RENDERING_SHAPES_SORT_CACHE_THRESHOLD = 100
  * The four debounced modifier keys, each paired with the way Editor reads, writes, releases and
  * recognises it. A modifier's release is dispatched through its own `Editor` method so a subclass
  * override still runs.
+ *
+ * @internal
  */
 export interface ModifierKey {
 	key: 'Shift' | 'Alt' | 'Ctrl' | 'Meta'

@@ -74,6 +74,7 @@ import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
+import { TLInstancePageStateId } from '@tldraw/tlschema';
 import { TLInstancePresence } from '@tldraw/tlschema';
 import { TLOpacityType } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
@@ -1062,7 +1063,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     clearHistory(): this;
     // @internal
-    protected _clickManager: ClickManager;
+    _clickManager: ClickManager;
     readonly collaborators: CollaboratorsManager;
     complete(): this;
     // (undocumented)
@@ -1369,6 +1370,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     _ensureUserRecord(user: TLUser): void;
     // @internal (undocumented)
+    readonly _eventsManager: EventsManager;
+    // @internal (undocumented)
     externalAssetContentHandlers: {
         [K in TLExternalAsset['type']]: {
             [Key in K]: ((info: TLExternalAsset & {
@@ -1388,7 +1391,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     // (undocumented)
-    _flushEventForTick(info: TLEventInfo): this | undefined;
+    _flushEventForTick(info: TLEventInfo): Editor | undefined;
     focus({ focusContainer }?: {
         focusContainer?: boolean | undefined;
     }): this;
@@ -1469,6 +1472,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageShapesInReadingOrder(): TLShape[];
     getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;
+    // @internal (undocumented)
+    _getCurrentPageStateId(): TLInstancePageStateId;
     getCurrentTheme(): TLTheme;
     getCurrentThemeId(): TLThemeId;
     getCurrentTool(): StateNode;
@@ -1950,6 +1955,333 @@ export function ErrorScreen({ children }: LoadingScreenProps): JSX.Element;
 
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
+
+// @internal
+export class EventsManager extends EditorManager {
+    // (undocumented)
+    cancel(): Editor;
+    // (undocumented)
+    cancelDoubleClick(): void;
+    // (undocumented)
+    complete(): Editor;
+    // (undocumented)
+    crash(error: unknown): Editor;
+    // (undocumented)
+    _crashingError: null | unknown;
+    // (undocumented)
+    createErrorAnnotations(origin: string, willCrashApp: 'unknown' | boolean): {
+        extras: {
+            activeStateNode: string;
+            collaboratorCount: number;
+            editingShape: TLShape | undefined;
+            inputs: {
+                altKey: boolean;
+                buttons: number[];
+                ctrlKey: boolean;
+                currentPagePoint: VecModel;
+                currentScreenPoint: VecModel;
+                isDragging: boolean;
+                isEditing: boolean;
+                isPanning: boolean;
+                isPen: boolean;
+                isPinching: boolean;
+                isPointing: boolean;
+                isSpacebarPanning: boolean;
+                keys: string[];
+                metaKey: boolean;
+                originPagePoint: VecModel;
+                originScreenPoint: VecModel;
+                pointerVelocity: VecModel;
+                previousPagePoint: VecModel;
+                previousScreenPoint: VecModel;
+                shiftKey: boolean;
+            };
+            instanceState: TLInstance;
+            pageState: TLInstancePageState;
+            selectedShapes: ({
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "arrow";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "bookmark";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "draw";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "embed";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "frame";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "geo";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "group";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "highlight";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "image";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "line";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "my-custom-shape";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "note";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "test-persistent";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "test-shape";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "text";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "video";
+                typeName: 'shape';
+                x: number;
+                y: number;
+            })[];
+            selectionCount: number;
+        };
+        tags: {
+            origin: string;
+            willCrashApp: "unknown" | boolean;
+        };
+    } | {
+        extras: {
+            activeStateNode?: undefined;
+            collaboratorCount?: undefined;
+            editingShape?: undefined;
+            inputs?: undefined;
+            instanceState?: undefined;
+            pageState?: undefined;
+            selectedShapes?: undefined;
+            selectionCount?: undefined;
+        };
+        tags: {
+            origin: string;
+            willCrashApp: "unknown" | boolean;
+        };
+    };
+    _didCaptureSelectionAtPointerDown: boolean;
+    // (undocumented)
+    _didPinch: boolean;
+    // (undocumented)
+    dispatch(info: TLEventInfo): Editor;
+    // (undocumented)
+    _flushEventForTick(info: TLEventInfo): Editor | undefined;
+    // (undocumented)
+    _flushEventsForTick(elapsed: number): void;
+    // (undocumented)
+    getCrashingError(): unknown;
+    // (undocumented)
+    handledEvents: WeakSet<Event>;
+    // (undocumented)
+    interrupt(): Editor;
+    // (undocumented)
+    _longPressTimeout: any;
+    // (undocumented)
+    markEventAsHandled(e: {
+        nativeEvent: Event;
+    } | Event): void;
+    // (undocumented)
+    maybeTrackPerformance(name: string): void;
+    // (undocumented)
+    _modifierKeyTimeouts: Map<"Alt" | "Ctrl" | "Meta" | "Shift", any>;
+    // (undocumented)
+    _pendingEventsForNextTick: TLEventInfo[];
+    // (undocumented)
+    readonly performanceTracker: PerformanceTracker;
+    // (undocumented)
+    performanceTrackerTimeout: any;
+    _prevCursor: TLCursorType;
+    // (undocumented)
+    _releaseAltKey(): void;
+    // (undocumented)
+    _releaseCtrlKey(): void;
+    _releaseDebouncedModifiers(): void;
+    // (undocumented)
+    _releaseMetaKey(): void;
+    _releaseModifierKey(modifier: ModifierKey): void;
+    // (undocumented)
+    _releaseShiftKey(): void;
+    // (undocumented)
+    _restoreToolId: string;
+    // (undocumented)
+    _selectedShapeIdsAtPointerDown: TLShapeId[];
+    // (undocumented)
+    updatePointer(options?: TLUpdatePointerOptions): Editor;
+    // (undocumented)
+    wasEventAlreadyHandled(e: {
+        nativeEvent: Event;
+    } | Event): boolean;
+}
 
 // @internal (undocumented)
 export function extractSessionStateFromLegacySnapshot(store: Record<string, UnknownRecord>): null | TLSessionStateSnapshot;
@@ -2805,6 +3137,23 @@ export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;
 
 // @public
 export function MenuClickCapture(): false | JSX.Element;
+
+// @internal
+export interface ModifierKey {
+    // (undocumented)
+    code: string;
+    // (undocumented)
+    flag: 'altKey' | 'ctrlKey' | 'metaKey' | 'shiftKey';
+    // (undocumented)
+    get(inputs: InputsManager): boolean;
+    ignoresKeyUp?: boolean;
+    // (undocumented)
+    key: 'Alt' | 'Ctrl' | 'Meta' | 'Shift';
+    // (undocumented)
+    release(editor: Editor): void;
+    // (undocumented)
+    set(inputs: InputsManager, value: boolean): void;
+}
 
 // @public
 export function moveElementInto(parent: HTMLElement, element: HTMLElement): void;
