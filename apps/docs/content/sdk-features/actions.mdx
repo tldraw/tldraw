@@ -170,7 +170,7 @@ You can call the original handler before or after your custom logic, or replace 
 
 ### Adding custom actions
 
-Add new actions by inserting them into the actions record. The `actions` map passed to `overrides` isn't gated yet, so calling a built-in's `onSelect` on it from inside a custom action skips the readonly check, `isAvailable` and `isEnabled`. Check the ones that action has before you call it. Actions you get from `useActions()` in component code are gated.
+Add new actions by inserting them into the actions record. The `actions` map passed to `overrides` isn't gated yet, so calling a built-in's `onSelect` on it from inside a custom action skips the readonly check, `isAvailable` and `isEnabled`. Before you call it, check `editor.getIsReadonly()` (unless it's `readonlyOk`) and whichever of `isAvailable` and `isEnabled` it defines. Actions you get from `useActions()` in component code are gated.
 
 ```typescript
 const overrides: TLUiOverrides = {
@@ -317,7 +317,7 @@ When you change a built-in action, spread the original so it keeps its `isAvaila
 actions['group'] = { ...actions['group'], onSelect: myGroup }
 ```
 
-Replacing an action with a new object drops them, along with `readonlyOk`: menus show it as always enabled, a checkbox item for it always shows as unchecked, shortcuts and `onSelect` calls run it in any state, and it stops running while the editor is readonly.
+Replacing an action with a new object drops them, along with `readonlyOk`: menus show it as always enabled, a checkbox item for it always shows as unchecked, shortcuts and `onSelect` calls run it whatever the selection, and if the built-in was `readonlyOk`, it stops running while the editor is readonly.
 
 Use `isAvailable` instead when the action doesn't exist in the current context at all, rather than being blocked right now. Every menu item hides an unavailable action, whatever `whenDisabled` says; only the keyboard shortcuts dialog still lists it. The built-in paste (without clipboard read access), copy as PNG (without clipboard write access), copy as JSON (outside debug mode), cursor chat (on touch), exit pen mode, stop following, and back to content work this way.
 
