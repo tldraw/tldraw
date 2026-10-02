@@ -82,6 +82,7 @@ import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { applyPartialToRecordWithProps } from './editorHelpers'
 import { registerEditorSideEffects } from './editorSideEffects'
+import { AssetsManager } from './managers/AssetsManager/AssetsManager'
 import { CameraManager } from './managers/CameraManager/CameraManager'
 import { ClickManager } from './managers/ClickManager/ClickManager'
 import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
@@ -3049,12 +3050,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/* --------------------- Assets --------------------- */
-
 	/** @internal */
-	@computed private _getAllAssetsQuery() {
-		return this.store.query.records('asset')
-	}
+	readonly _assetsManager = new AssetsManager(this)
 
 	/**
 	 * Get all assets in the editor.
@@ -3062,7 +3059,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getAssets() {
-		return this._getAllAssetsQuery().get()
+		return this._assetsManager.getAssets()
 	}
 
 	/**
@@ -3078,9 +3075,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	createAssets(assets: TLAsset[]): this {
-		if (this.getIsReadonly()) return this
-		if (assets.length <= 0) return this
-		this.run(() => this.store.put(assets), { history: 'ignore' })
+		this._assetsManager.createAssets(assets)
 		return this
 	}
 
@@ -3097,19 +3092,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateAssets(assets: TLAssetPartial[]): this {
-		if (this.getIsReadonly()) return this
-		if (assets.length <= 0) return this
-		this.run(
-			() => {
-				this.store.put(
-					assets.map((partial) => ({
-						...this.store.get(partial.id)!,
-						...partial,
-					}))
-				)
-			},
-			{ history: 'ignore' }
-		)
+		this._assetsManager.updateAssets(assets)
 		return this
 	}
 
@@ -3126,24 +3109,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	deleteAssets(assets: TLAssetId[] | TLAsset[]): this {
-		if (this.getIsReadonly()) return this
-
-		const ids =
-			typeof assets[0] === 'string'
-				? (assets as TLAssetId[])
-				: (assets as TLAsset[]).map((a) => a.id)
-		if (ids.length <= 0) return this
-
-		this.run(
-			() => {
-				// the asset store's remove is async; surface failures instead of leaving an unhandled rejection
-				Promise.resolve(this.store.props.assets.remove?.(ids)).catch((err) =>
-					console.error('Error while removing assets from the asset store:', err)
-				)
-				this.store.remove(ids)
-			},
-			{ history: 'ignore' }
-		)
+		this._assetsManager.deleteAssets(assets)
 		return this
 	}
 
@@ -3160,7 +3126,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined {
-		return this.store.get(typeof asset === 'string' ? asset : asset.id) as T | undefined
+		return this._assetsManager.getAsset<T>(asset)
 	}
 
 	async resolveAssetUrl(
@@ -3171,29 +3137,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			dpr?: number
 		}
 	): Promise<string | null> {
-		if (!assetId) return null
-		const asset = this.getAsset(assetId)
-		if (!asset) return null
-
-		const {
-			screenScale = 1,
-			shouldResolveToOriginal = false,
-			dpr = this.getInstanceState().devicePixelRatio,
-		} = context
-
-		// We only look at the zoom level at powers of 2.
-		const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
-		const steppedScreenScale = zoomStepFunction(screenScale)
-		const networkEffectiveType: string | null =
-			'connection' in navigator ? ((navigator as any).connection?.effectiveType ?? null) : null
-
-		return await this.store.props.assets.resolve(asset, {
-			screenScale: screenScale || 1,
-			steppedScreenScale,
-			dpr,
-			networkEffectiveType,
-			shouldResolveToOriginal,
-		})
+		return this._assetsManager.resolveAssetUrl(assetId, context)
 	}
 	/**
 	 * Upload an asset to the store's asset service, returning a URL that can be used to resolve the
@@ -3204,7 +3148,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		file: File,
 		abortSignal?: AbortSignal
 	): Promise<{ src: string; meta?: JsonObject }> {
-		return await this.store.props.assets.upload(asset, file, abortSignal)
+		return this._assetsManager.uploadAsset(asset, file, abortSignal)
 	}
 
 	/**

@@ -149,6 +149,33 @@ export class Arc2d extends Geometry2d {
 // @public
 export function areAnglesCompatible(a: number, b: number): boolean;
 
+// @internal
+export class AssetsManager extends EditorManager {
+    // (undocumented)
+    createAssets(assets: TLAsset[]): Editor;
+    // (undocumented)
+    deleteAssets(assets: TLAsset[] | TLAssetId[]): Editor;
+    // (undocumented)
+    _getAllAssetsQuery(): Computed<(TLBookmarkAsset | TLImageAsset | TLVideoAsset)[], unknown>;
+    // (undocumented)
+    getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined;
+    // (undocumented)
+    getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
+    // (undocumented)
+    resolveAssetUrl(assetId: null | TLAssetId, context: {
+        dpr?: number;
+        screenScale?: number;
+        shouldResolveToOriginal?: boolean;
+    }): Promise<null | string>;
+    // (undocumented)
+    updateAssets(assets: TLAssetPartial[]): Editor;
+    // (undocumented)
+    uploadAsset(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<{
+        meta?: JsonObject;
+        src: string;
+    }>;
+}
+
 // @public
 export abstract class AssetUtil<Asset extends TLAsset = TLAsset> {
     constructor(editor: Editor);
@@ -1105,6 +1132,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         tags?: Record<string, boolean | number | string>;
         willCrashApp: boolean;
     }): this;
+    // @internal (undocumented)
+    readonly _assetsManager: AssetsManager;
     assetUtils: {
         readonly [K in string]?: AssetUtil<TLAsset>;
     };
