@@ -9,6 +9,7 @@ import {
 	getLatestTldrawVersionFromNpm,
 	publish,
 	publishProductionDocsAndExamplesAndBemo,
+	pushReleaseCommitAndTag,
 	setAllVersions,
 	triggerBumpVersionsWorkflow,
 } from './lib/publishing'
@@ -102,7 +103,7 @@ async function main() {
 	// create and push a new tag
 	await exec('git', ['commit', '-m', `${tag} [skip ci]`])
 	await exec('git', ['tag', '-a', tag, '-m', tag, '-f'])
-	await exec('git', ['push', '--follow-tags'])
+	await pushReleaseCommitAndTag()
 
 	// Generate changelog and create GitHub release
 	nicelog('Generating changelog...')

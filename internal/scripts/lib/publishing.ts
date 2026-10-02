@@ -311,6 +311,23 @@ export async function publishProductionDocsAndExamplesAndBemo({
 	await exec('git', ['push', 'origin', `${gitRef}:bemo-production`, `--force`])
 }
 
+// GitHub intermittently rejects a new tag with "Unable to determine if workflow can be created or
+// updated due to timeout". Without --atomic the branch still lands, stranding a version-bump commit
+// with no tag or npm release; with it a rejection changes nothing, so a retry starts clean.
+export async function pushReleaseCommitAndTag(refspec?: string) {
+	await retry(
+		async () => {
+			await exec('git', [
+				'push',
+				'--atomic',
+				'--follow-tags',
+				...(refspec ? ['origin', refspec] : []),
+			])
+		},
+		{ delay: 10_000, numAttempts: 5 }
+	)
+}
+
 export async function triggerBumpVersionsWorkflow(ghToken: string) {
 	const octokit = new Octokit({ auth: ghToken })
 	await octokit.rest.actions.createWorkflowDispatch({
