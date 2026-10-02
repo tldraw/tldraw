@@ -42,6 +42,12 @@ export interface LayoutProfile {
 	 * alternates at word boundaries, e.g. across the hyphens of `state-of-the-art`.
 	 */
 	shapeAcrossWordBoundaries: boolean
+	/**
+	 * Whether a slash followed by a letter or digit is a break opportunity. WebKit breaks there
+	 * (`fun/chaos`, URL paths) and shapes each side separately, so the text is wider than one
+	 * shaped run; Chromium does neither.
+	 */
+	breakAfterSlash: boolean
 }
 
 /** @public */
@@ -62,12 +68,14 @@ export const chromiumLayoutProfile: LayoutProfile = {
 	roundLineBoxes: false,
 	floorHalfLeading: true,
 	shapeAcrossWordBoundaries: true,
+	breakAfterSlash: false,
 }
 
 /**
  * WebKit's behaviour where it differs from Chromium. Trailing-space and word-shaping rules were
- * measured with `pnpm golden --webkit`; line box rounding comes from tldraw issue 8970. WebKit
- * also breaks URLs at more points than Chromium, which pretext's node profile does not model.
+ * measured with `pnpm golden --webkit`; line box rounding comes from tldraw issue 8970. Slash
+ * breaks were measured with the in-browser harness (`pnpm golden:boards --webkit`); WebKit's
+ * other extra URL break points are not modelled.
  *
  * @public
  */
@@ -77,6 +85,7 @@ export const webkitLayoutProfile: LayoutProfile = {
 	// Not measured against WebKit; its line boxes are rounded as a whole instead.
 	floorHalfLeading: false,
 	shapeAcrossWordBoundaries: false,
+	breakAfterSlash: true,
 }
 
 const PRESETS: Record<LayoutEngine, LayoutProfile> = {

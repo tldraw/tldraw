@@ -49,6 +49,19 @@ describe('layoutPlainText', () => {
 		expect(layout.width).toBe(100)
 	})
 
+	it('breaks after a slash in WebKit, except inside a numeric fraction', () => {
+		const text = (layout: ReturnType<typeof layoutPlainText>) =>
+			layout.lines.map((l) => l.fragments.map((f) => f.text).join(''))
+		expect(text(layoutPlainText('ab/cd', { style, maxWidth: 35, engine: 'webkit' }))).toEqual([
+			'ab/',
+			'cd',
+		])
+		expect(text(layoutPlainText('ab/cd', { style, maxWidth: 35 }))).toEqual(['ab/cd'])
+		expect(text(layoutPlainText('12/34', { style, maxWidth: 35, engine: 'webkit' }))).toEqual([
+			'12/34',
+		])
+	})
+
 	it('hangs a trailing space after a broken word instead of opening a line for it', () => {
 		// Each 10px grapheme overflows the 5px box, so the word breaks after every one.
 		const layout = layoutPlainText('abc ', {
