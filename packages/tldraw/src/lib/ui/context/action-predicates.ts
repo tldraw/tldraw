@@ -75,6 +75,7 @@ export function isOnlyFlippableShapeSelected(editor: Editor) {
 	)
 }
 
+// Flip's onSelect checks this too: shortcuts skip isEnabled.
 /** @internal */
 export function canFlipSelection(editor: Editor) {
 	return (

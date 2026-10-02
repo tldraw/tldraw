@@ -931,7 +931,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
-					// Shortcuts skip isEnabled, so a lone shape that can't flip must be rejected here.
 					if (!canFlipSelection(editor)) return
 
 					trackEvent('flip-shapes', { operation: 'horizontal', source })
@@ -946,7 +945,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
-					// Shortcuts skip isEnabled, so a lone shape that can't flip must be rejected here.
 					if (!canFlipSelection(editor)) return
 
 					trackEvent('flip-shapes', { operation: 'vertical', source })
