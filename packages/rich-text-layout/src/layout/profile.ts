@@ -66,7 +66,7 @@ export const chromiumLayoutProfile: LayoutProfile = {
 
 /**
  * WebKit's behaviour where it differs from Chromium. Trailing-space and word-shaping rules were
- * measured with `yarn golden --webkit`; line box rounding comes from tldraw issue 8970. WebKit
+ * measured with `pnpm golden --webkit`; line box rounding comes from tldraw issue 8970. WebKit
  * also breaks URLs at more points than Chromium, which pretext's node profile does not model.
  *
  * @public

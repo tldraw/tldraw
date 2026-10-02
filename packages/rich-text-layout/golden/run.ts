@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
 // Golden drift harness. Usage (from the package directory):
-//   yarn golden            compare plain-text corpus
-//   yarn golden --rich     compare the rich-text corpus too (needs the tldraw adapter)
-//   yarn golden --pixels   rasterize the native svg (Chromium and resvg) against foreignObject
-//   yarn golden --refresh  re-measure in Chromium instead of using cached results
-//   yarn golden --dump     write the per-case rows to results/rows.json for inspection
-//   yarn golden --webkit   measure against WebKit instead of Chromium
+//   pnpm golden            compare plain-text corpus
+//   pnpm golden --rich     compare the rich-text corpus too (needs the tldraw adapter)
+//   pnpm golden --pixels   rasterize the native svg (Chromium and resvg) against foreignObject
+//   pnpm golden --refresh  re-measure in Chromium instead of using cached results
+//   pnpm golden --dump     write the per-case rows to results/rows.json for inspection
+//   pnpm golden --webkit   measure against WebKit instead of Chromium
 import { createHash } from 'crypto'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
