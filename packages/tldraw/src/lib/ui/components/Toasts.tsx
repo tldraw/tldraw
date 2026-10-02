@@ -8,6 +8,12 @@ import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
 import { TldrawUiIcon } from './primitives/TldrawUiIcon'
 
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+// Only the ids nothing else declares; the rest are declared with what they name.
+const messages = defineMessages({
+	toastClose: { id: 'toast.close', defaultMessage: 'Close' },
+})
+
 const DEFAULT_TOAST_DURATION = 4000
 
 const SEVERITY_TO_ICON: { [msg in AlertSeverity]: TLUiIconType } = {
@@ -85,7 +91,9 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 								className="tlui-toast__close"
 								style={{ marginLeft: 'auto' }}
 							>
-								<TldrawUiButtonLabel>{toast.closeLabel ?? msg('toast.close')}</TldrawUiButtonLabel>
+								<TldrawUiButtonLabel>
+									{toast.closeLabel ?? msg(messages.toastClose.id)}
+								</TldrawUiButtonLabel>
 							</TldrawUiButton>
 						</_Toast.Close>
 					</div>
@@ -94,7 +102,9 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 			{!hasActions && (
 				<_Toast.Close asChild>
 					<TldrawUiButton type="normal" className="tlui-toast__close">
-						<TldrawUiButtonLabel>{toast.closeLabel ?? msg('toast.close')}</TldrawUiButtonLabel>
+						<TldrawUiButtonLabel>
+							{toast.closeLabel ?? msg(messages.toastClose.id)}
+						</TldrawUiButtonLabel>
 					</TldrawUiButton>
 				</_Toast.Close>
 			)}

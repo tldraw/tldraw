@@ -1,6 +1,16 @@
 import { ComponentType, ReactNode } from 'react'
-import { TldrawUiTooltip, useTranslation } from 'tldraw'
+import { defineMessages, TldrawUiTooltip, useTranslation } from 'tldraw'
 import { ReactionReactor } from './reactions'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	commentsMentionYou: { id: 'comments.mention-you', defaultMessage: 'You' },
+	commentsReacted: {
+		id: 'comments.reacted',
+		defaultMessage:
+			'{count, plural, =1 {{a} reacted} =2 {{a} and {b} reacted} =3 {{a}, {b} and {c} reacted} other {{a}, {b}, {c} and {others, plural, one {# other} other {# others}} reacted}}',
+	},
+})
 
 /** Render a reaction token to its visual — the emoji glyph by default. @public */
 export type RenderReaction = (token: string) => ReactNode
@@ -107,13 +117,13 @@ export function DefaultReactionTooltip({ reactors, children }: ReactionTooltipPr
 export function DefaultReactionTooltipContent({ reactors }: { reactors: ReactionReactor[] }) {
 	const msg = useTranslation()
 	const names = reactors.map((reactor) =>
-		reactor.you ? msg('comments.mention-you') : reactor.name
+		reactor.you ? msg(messages.commentsMentionYou.id) : reactor.name
 	)
 	if (names.length === 0) return null
 	const [a, b, c] = names
 	return (
 		<>
-			{msg('comments.reacted', {
+			{msg(messages.commentsReacted.id, {
 				count: names.length,
 				others: names.length - 3,
 				a,

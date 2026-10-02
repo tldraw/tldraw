@@ -1,4 +1,4 @@
-import { preventDefault, track, useEditor } from '@tldraw/editor'
+import { defineMessages, preventDefault, track, useEditor } from '@tldraw/editor'
 import {
 	ChangeEvent,
 	ClipboardEvent,
@@ -11,6 +11,11 @@ import {
 	useState,
 } from 'react'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	cursorChatTypeToChat: { id: 'cursor-chat.type-to-chat', defaultMessage: 'Type to chat…' },
+})
 
 // todo:
 // - not cleaning up
@@ -103,7 +108,7 @@ const CursorChatInput = track(function CursorChatInput({
 	const msg = useTranslation()
 
 	const ref = useRef<HTMLInputElement>(null)
-	const placeholder = chatMessage || msg('cursor-chat.type-to-chat')
+	const placeholder = chatMessage || msg(messages.cursorChatTypeToChat.id)
 
 	usePositionBubble(ref)
 

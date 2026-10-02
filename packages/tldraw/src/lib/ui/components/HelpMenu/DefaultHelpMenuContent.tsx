@@ -1,8 +1,17 @@
+import { defineMessages } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useTldrawUiComponents } from '../../context/components'
 import { useDialogs } from '../../context/dialogs'
 import { LanguageMenu } from '../LanguageMenu'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	helpMenuKeyboardShortcuts: {
+		id: 'help-menu.keyboard-shortcuts',
+		defaultMessage: 'Keyboard shortcuts',
+	},
+})
 
 /** @public @react */
 export function DefaultHelpMenuContent() {
@@ -28,7 +37,7 @@ export function KeyboardShortcutsMenuItem() {
 	return (
 		<TldrawUiMenuItem
 			id="keyboard-shortcuts-button"
-			label="help-menu.keyboard-shortcuts"
+			label={messages.helpMenuKeyboardShortcuts.id}
 			readonlyOk
 			onSelect={handleSelect}
 		/>

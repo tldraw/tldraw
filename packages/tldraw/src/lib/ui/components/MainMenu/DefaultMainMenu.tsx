@@ -1,4 +1,4 @@
-import { useContainer } from '@tldraw/editor'
+import { defineMessages, useContainer } from '@tldraw/editor'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode, memo } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
@@ -7,6 +7,11 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultMainMenuContent } from './DefaultMainMenuContent'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	menuTitle: { id: 'menu.title', defaultMessage: 'Menu' },
+})
 
 /** @public */
 export interface TLUiMainMenuProps {
@@ -28,7 +33,11 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 	return (
 		<_DropdownMenu.Root dir={dir} open={isOpen} onOpenChange={onOpenChange} modal={false}>
 			<_DropdownMenu.Trigger asChild dir={dir}>
-				<TldrawUiButton type="icon" data-testid="main-menu.button" title={msg('menu.title')}>
+				<TldrawUiButton
+					type="icon"
+					data-testid="main-menu.button"
+					title={msg(messages.menuTitle.id)}
+				>
 					<TldrawUiButtonIcon icon="menu" small />
 				</TldrawUiButton>
 			</_DropdownMenu.Trigger>

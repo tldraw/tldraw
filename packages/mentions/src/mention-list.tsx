@@ -1,7 +1,13 @@
 import { ReactNode, forwardRef } from 'react'
-import { useTranslation } from 'tldraw'
+import { defineMessages, useTranslation } from 'tldraw'
 import { Avatar } from './avatar'
 import { CommentAuthor } from './comment-author'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	commentsMentionNoMatches: { id: 'comments.mention-no-matches', defaultMessage: 'No matches' },
+	commentsMentionYou: { id: 'comments.mention-you', defaultMessage: 'You' },
+})
 
 /** A person the composer's \@-mention picker can offer: a {@link CommentAuthor} plus its id and
  * picker-only display fields. @public */
@@ -39,7 +45,7 @@ function DefaultMemberRow({ member }: { member: MentionMember }) {
 				<span className="tlui-cmt-mention-list__name">
 					{member.name}
 					{member.you && (
-						<span className="tlui-cmt-mention-list__you">{`(${msg('comments.mention-you')})`}</span>
+						<span className="tlui-cmt-mention-list__you">{`(${msg(messages.commentsMentionYou.id)})`}</span>
 					)}
 				</span>
 				{member.secondary && (
@@ -64,7 +70,7 @@ export const MentionList = forwardRef<HTMLDivElement, MentionListProps>(function
 	if (members.length === 0) {
 		return (
 			<div ref={ref} className="tlui-cmt-mention-list tlui-cmt-mention-list--empty">
-				{emptyLabel ?? msg('comments.mention-no-matches')}
+				{emptyLabel ?? msg(messages.commentsMentionNoMatches.id)}
 			</div>
 		)
 	}

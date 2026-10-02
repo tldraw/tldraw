@@ -1,5 +1,6 @@
 import { memo, useMemo, useRef } from 'react'
 import {
+	defineMessages,
 	Editor,
 	TLCommentThread,
 	useContainer,
@@ -13,6 +14,11 @@ import { forwardPointerEventToCanvas, isCanvasPanGesture } from './canvas-events
 import { type CommentingContext } from './context'
 import { sortThreadsForPreview, ThreadPreview, useMarkerPreview } from './thread-preview'
 import { impreciseShapePinInset, isInInflatedViewport } from './thread-state'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	commentsClusterLabel: { id: 'comments.cluster-label', defaultMessage: '{count} comments here' },
+})
 
 /**
  * The count badge standing in for several threads folded together at the current zoom. Hovering it
@@ -99,7 +105,7 @@ export const ClusterBadge = memo(function ClusterBadge({
 				type="button"
 				className="tlui-cmt-button tlui-cmt-canvas-cluster"
 				style={{ left: point.x, top: point.y }}
-				aria-label={msg('comments.cluster-label', { count: node.count })}
+				aria-label={msg(messages.commentsClusterLabel.id, { count: node.count })}
 				onPointerDown={(e) => {
 					if (isCanvasPanGesture(editor, e)) {
 						forwardPointerEventToCanvas(container, e)

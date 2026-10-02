@@ -1,8 +1,20 @@
-import { TLExportType, TLShapeId, assert, useMaybeEditor } from '@tldraw/editor'
+import { assert, defineMessages, TLExportType, TLShapeId, useMaybeEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { exportAs } from '../../utils/export/exportAs'
 import { useToasts } from '../context/toasts'
 import { useTranslation } from './useTranslation/useTranslation'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	toastErrorExportFailDesc: {
+		id: 'toast.error.export-fail.desc',
+		defaultMessage: 'Failed to export image',
+	},
+	toastErrorExportFailTitle: {
+		id: 'toast.error.export-fail.title',
+		defaultMessage: 'Failed export',
+	},
+})
 
 /** @public */
 export function useExportAs() {
@@ -22,8 +34,8 @@ export function useExportAs() {
 				console.error(e.message)
 				addToast({
 					id: 'export-fail',
-					title: msg('toast.error.export-fail.title'),
-					description: msg('toast.error.export-fail.desc'),
+					title: msg(messages.toastErrorExportFailTitle.id),
+					description: msg(messages.toastErrorExportFailDesc.id),
 					severity: 'error',
 				})
 			})

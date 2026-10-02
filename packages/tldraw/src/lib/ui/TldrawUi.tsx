@@ -1,4 +1,11 @@
-import { tlenv, useContainer, useEditor, useReactor, useValue } from '@tldraw/editor'
+import {
+	defineMessages,
+	tlenv,
+	useContainer,
+	useEditor,
+	useReactor,
+	useValue,
+} from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
@@ -18,6 +25,14 @@ import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useReadonly } from './hooks/useReadonly'
 import { useDirection, useTranslation } from './hooks/useTranslation/useTranslation'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	focusModeToggleFocusMode: {
+		id: 'focus-mode.toggle-focus-mode',
+		defaultMessage: 'Toggle focus mode',
+	},
+})
 
 /** @public */
 export interface TldrawUiProps extends TLUiContextProviderProps {
@@ -196,7 +211,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 					<TldrawUiButton
 						type="icon"
 						className="tlui-focus-button"
-						title={msg('focus-mode.toggle-focus-mode')}
+						title={msg(messages.focusModeToggleFocusMode.id)}
 						onClick={() => toggleFocus.onSelect('menu')}
 					>
 						<TldrawUiButtonIcon icon="dot" />

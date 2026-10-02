@@ -1,5 +1,6 @@
 import { useCallback, useId, type ComponentType, type KeyboardEvent, type MouseEvent } from 'react'
 import {
+	defineMessages,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -11,6 +12,11 @@ import {
 import { EmojiPicker, type EmojiPickerProps } from './emoji-picker'
 import { SmileyIcon } from './icons'
 import { RenderReaction } from './reaction'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	commentsAddReaction: { id: 'comments.add-reaction', defaultMessage: 'Add reaction' },
+})
 
 /** @public */
 export interface ReactionPickerProps {
@@ -92,8 +98,8 @@ export function ReactionPicker({
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton
 					type="icon"
-					tooltip={msg('comments.add-reaction')}
-					title={msg('comments.add-reaction')}
+					tooltip={msg(messages.commentsAddReaction.id)}
+					title={msg(messages.commentsAddReaction.id)}
 					className={className}
 				>
 					<SmileyIcon />

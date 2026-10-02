@@ -1,4 +1,4 @@
-import { useEditor, useValue } from '@tldraw/editor'
+import { defineMessages, useEditor, useValue } from '@tldraw/editor'
 import { getFrameableShapeIds } from '../../utils/frames/frames'
 import { supportsDownloadingOriginal, useActions } from '../context/actions'
 import { useUiEvents } from '../context/events'
@@ -23,6 +23,16 @@ import { TldrawUiMenuActionItem } from './primitives/menus/TldrawUiMenuActionIte
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from './primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+// Only the ids nothing else declares; the rest are declared with what they name.
+const messages = defineMessages({
+	contextMenuArrange: { id: 'context-menu.arrange', defaultMessage: 'Arrange' },
+	contextMenuCopyAs: { id: 'context-menu.copy-as', defaultMessage: 'Copy as' },
+	contextMenuEdit: { id: 'context-menu.edit', defaultMessage: 'Edit' },
+	contextMenuExportAs: { id: 'context-menu.export-as', defaultMessage: 'Export as' },
+	contextMenuMoveToPage: { id: 'context-menu.move-to-page', defaultMessage: 'Move to page' },
+})
 
 /* -------------------- Selection ------------------- */
 
@@ -253,7 +263,7 @@ export function CopyAsMenuGroup() {
 	return (
 		<TldrawUiMenuSubmenu
 			id="copy-as"
-			label="context-menu.copy-as"
+			label={messages.contextMenuCopyAs.id}
 			size="small"
 			disabled={!atLeastOneShapeOnPage}
 		>
@@ -279,7 +289,7 @@ export function ExportAsMenuGroup() {
 	if (!actions['export-as-svg'] && !actions['export-as-png']) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="export-as" label="context-menu.export-as" size="small">
+		<TldrawUiMenuSubmenu id="export-as" label={messages.contextMenuExportAs.id} size="small">
 			<TldrawUiMenuGroup id="export-as-group">
 				<TldrawUiMenuActionItem actionId="export-as-svg" />
 				<TldrawUiMenuActionItem actionId="export-as-png" />
@@ -365,7 +375,7 @@ export function EditMenuSubmenu() {
 	if (isReadonlyMode) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="edit" label="context-menu.edit" size="small">
+		<TldrawUiMenuSubmenu id="edit" label={messages.contextMenuEdit.id} size="small">
 			<GroupMenuItem />
 			<UngroupMenuItem />
 			<FlattenMenuItem />
@@ -391,7 +401,7 @@ export function ArrangeMenuSubmenu() {
 	if (!(twoSelected || onlyFlippableShapeSelected)) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="arrange" label="context-menu.arrange" size="small">
+		<TldrawUiMenuSubmenu id="arrange" label={messages.contextMenuArrange.id} size="small">
 			{twoSelected && (
 				<TldrawUiMenuGroup id="align">
 					<TldrawUiMenuActionItem actionId="align-left" />
@@ -479,7 +489,7 @@ export function MoveToPageMenu() {
 	if (isReadonlyMode) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="move-to-page" label="context-menu.move-to-page" size="small">
+		<TldrawUiMenuSubmenu id="move-to-page" label={messages.contextMenuMoveToPage.id} size="small">
 			<TldrawUiMenuGroup id="pages">
 				{pages.map((page) => (
 					<TldrawUiMenuItem

@@ -1,4 +1,5 @@
 import {
+	defineMessages,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuGroup,
@@ -11,6 +12,13 @@ import {
 	useValue,
 } from 'tldraw'
 import { commentsHidden, toggleCommentsHidden } from './state'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+// Only the ids nothing else declares; the rest are declared with what they name.
+const messages = defineMessages({
+	commentsHide: { id: 'comments.hide', defaultMessage: 'Hide comments' },
+	commentsShow: { id: 'comments.show', defaultMessage: 'Show comments' },
+})
 
 // A keyboard-shortcut glyph, not translatable copy — kept out of JSX as a constant.
 const HIDE_SHORTCUT = '⇧C'
@@ -49,7 +57,7 @@ export function CommentsOverflowMenu() {
 							className="tlui-cmt-menu-item"
 							onClick={() => toggleCommentsHidden(editor)}
 						>
-							<span>{hidden ? msg('comments.show') : msg('comments.hide')}</span>
+							<span>{hidden ? msg(messages.commentsShow.id) : msg(messages.commentsHide.id)}</span>
 							<span className="tlui-cmt-menu-item__shortcut">{HIDE_SHORTCUT}</span>
 						</button>
 					</TldrawUiDropdownMenuItem>

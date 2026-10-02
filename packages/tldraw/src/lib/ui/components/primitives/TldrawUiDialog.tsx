@@ -1,9 +1,15 @@
+import { defineMessages } from '@tldraw/editor'
 import classNames from 'classnames'
 import { Dialog as _Dialog } from 'radix-ui'
 import { CSSProperties, ReactNode } from 'react'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	uiClose: { id: 'ui.close', defaultMessage: 'Close' },
+})
 
 /** @public */
 export interface TLUiDialogHeaderProps {
@@ -47,7 +53,7 @@ export function TldrawUiDialogCloseButton() {
 			<_Dialog.DialogClose data-testid="dialog.close" dir={dir} asChild>
 				<TldrawUiButton
 					type="icon"
-					aria-label={msg('ui.close')}
+					aria-label={msg(messages.uiClose.id)}
 					onTouchEnd={(e) => (e.target as HTMLButtonElement).click()}
 				>
 					<TldrawUiButtonIcon small icon="cross-2" />

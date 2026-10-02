@@ -8,9 +8,10 @@ import {
 	useState,
 } from 'react'
 import {
-	type BoxModel,
+	defineMessages,
 	Editor,
 	TLCommentThread,
+	type BoxModel,
 	useContainer,
 	usePassThroughWheelEvents,
 	useTranslation,
@@ -45,6 +46,16 @@ import {
 	shapeAnchorAt,
 } from './thread-state'
 import { POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+// Only the ids nothing else declares; the rest are declared with what they name.
+const messages = defineMessages({
+	commentsPinLabel: { id: 'comments.pin-label', defaultMessage: 'Comment by {name}' },
+	commentsPinLabelResolved: {
+		id: 'comments.pin-label-resolved',
+		defaultMessage: 'Resolved comment by {name}',
+	},
+})
 
 /** The opened popover has a header row the hover preview lacks, so it opens this much higher — the
  *  first comment then lands where the preview's sat. Re-measure if the header height or the preview
@@ -194,9 +205,12 @@ export const ThreadPin = memo(function ThreadPin({
 	) : (
 		<Avatar author={threadAuthor ?? UNKNOWN_COMMENT_AUTHOR} />
 	)
-	const pinLabel = msg(thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label', {
-		name: threadAuthor?.name ?? msg('comments.unknown-author'),
-	})
+	const pinLabel = msg(
+		thread.resolved ? messages.commentsPinLabelResolved.id : messages.commentsPinLabel.id,
+		{
+			name: threadAuthor?.name ?? msg('comments.unknown-author'),
+		}
+	)
 
 	// Drag the marker to move the thread: position is overridden locally while dragging, then re-anchored
 	// on drop. A region translates keeping its size; a barely-moved pointer is a click.

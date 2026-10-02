@@ -9,6 +9,7 @@ import { TldrawUiMenuToolItem } from '../primitives/menus/TldrawUiMenuToolItem'
 // are declared here — a second copy of an English string is a second thing to keep in step.
 // `label` is data the menu primitives translate, so these reference the id rather than being `<F>`.
 const messages = defineMessages({
+	toolRichTextOrderedList: { id: 'tool.rich-text-orderedList', defaultMessage: 'Ordered list' },
 	a11yEnterLeaveContainer: {
 		id: 'a11y.enter-leave-container',
 		defaultMessage: 'Enter/leave container',
@@ -179,7 +180,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				/>
 				<TldrawUiMenuItem
 					id="text-orderedList"
-					label="tool.rich-text-orderedList"
+					label={messages.toolRichTextOrderedList.id}
 					kbd="cmd+shift+7"
 					onSelect={noop}
 				/>

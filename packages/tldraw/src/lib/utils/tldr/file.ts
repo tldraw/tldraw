@@ -1,5 +1,9 @@
 import {
+	createTLStore,
+	defineMessages,
 	Editor,
+	exhaustiveSwitchError,
+	fetch,
 	FileHelpers,
 	MigrationFailureReason,
 	MigrationResult,
@@ -17,15 +21,34 @@ import {
 	TLSchema,
 	TLStore,
 	TLVideoAsset,
-	UnknownRecord,
-	createTLStore,
-	exhaustiveSwitchError,
-	fetch,
 	transact,
+	UnknownRecord,
 } from '@tldraw/editor'
 import { TLUiToastsContextType } from '../../ui/context/toasts'
 import { TLUiTranslationKey } from '../../ui/hooks/useTranslation/TLUiTranslationKey'
 import { buildFromV1Document } from '../tldr/buildFromV1Document'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	assetsFilesUploadFailed: { id: 'assets.files.upload-failed', defaultMessage: 'Upload failed' },
+	fileSystemFileOpenErrorFileFormatVersionTooNew: {
+		id: 'file-system.file-open-error.file-format-version-too-new',
+		defaultMessage:
+			'The file you tried to open is from a newer version of tldraw. Please reload the page and try again.',
+	},
+	fileSystemFileOpenErrorGenericCorruptedFile: {
+		id: 'file-system.file-open-error.generic-corrupted-file',
+		defaultMessage: 'The file you tried to open is corrupted.',
+	},
+	fileSystemFileOpenErrorNotATldrawFile: {
+		id: 'file-system.file-open-error.not-a-tldraw-file',
+		defaultMessage: 'The file you tried to open doesn’t look like a tldraw file.',
+	},
+	fileSystemFileOpenErrorTitle: {
+		id: 'file-system.file-open-error.title',
+		defaultMessage: 'Could not open file',
+	},
+})
 
 /** @public */
 export const TLDRAW_FILE_MIMETYPE = 'application/vnd.tldraw+json' as const
@@ -255,16 +278,16 @@ export async function parseAndLoadDocument(
 					tags: { parseErrorType: parseFileResult.error.type },
 				})
 				reportError(parseFileResult.error.cause)
-				description = msg('file-system.file-open-error.not-a-tldraw-file')
+				description = msg(messages.fileSystemFileOpenErrorNotATldrawFile.id)
 				break
 			case 'fileFormatVersionTooNew':
-				description = msg('file-system.file-open-error.file-format-version-too-new')
+				description = msg(messages.fileSystemFileOpenErrorFileFormatVersionTooNew.id)
 				break
 			case 'migrationFailed':
 				if (parseFileResult.error.reason === MigrationFailureReason.TargetVersionTooNew) {
-					description = msg('file-system.file-open-error.file-format-version-too-new')
+					description = msg(messages.fileSystemFileOpenErrorFileFormatVersionTooNew.id)
 				} else {
-					description = msg('file-system.file-open-error.generic-corrupted-file')
+					description = msg(messages.fileSystemFileOpenErrorGenericCorruptedFile.id)
 				}
 				break
 			case 'invalidRecords':
@@ -274,7 +297,7 @@ export async function parseAndLoadDocument(
 					tags: { parseErrorType: parseFileResult.error.type },
 				})
 				reportError(parseFileResult.error.cause)
-				description = msg('file-system.file-open-error.generic-corrupted-file')
+				description = msg(messages.fileSystemFileOpenErrorGenericCorruptedFile.id)
 				break
 			case 'v1File': {
 				buildFromV1Document(editor, parseFileResult.error.data.document)
@@ -285,7 +308,7 @@ export async function parseAndLoadDocument(
 				exhaustiveSwitchError(parseFileResult.error, 'type')
 		}
 		addToast({
-			title: msg('file-system.file-open-error.title'),
+			title: msg(messages.fileSystemFileOpenErrorTitle.id),
 			description,
 			severity: 'error',
 		})
@@ -354,7 +377,7 @@ async function extractAssets(
 				editor.updateAssets([{ ...newAsset, id }])
 			} catch (error) {
 				addToast({
-					title: msg('assets.files.upload-failed'),
+					title: msg(messages.assetsFilesUploadFailed.id),
 					severity: 'error',
 				})
 				console.error(error)

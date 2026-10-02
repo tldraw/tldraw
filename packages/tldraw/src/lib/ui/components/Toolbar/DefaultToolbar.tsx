@@ -1,4 +1,4 @@
-import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
+import { defineMessages, useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactNode, memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -12,6 +12,11 @@ import { TldrawUiToolbar } from '../primitives/TldrawUiToolbar'
 import { DefaultToolbarContent } from './DefaultToolbarContent'
 import { OverflowingToolbar } from './OverflowingToolbar'
 import { ToggleToolLockedButton } from './ToggleToolLockedButton'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	actionsMenuTitle: { id: 'actions-menu.title', defaultMessage: 'Actions' },
+})
 
 /** @public */
 export interface DefaultToolbarProps {
@@ -74,7 +79,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 									<TldrawUiToolbar
 										orientation={orientation}
 										className="tlui-main-toolbar__extras__controls"
-										label={msg('actions-menu.title')}
+										label={msg(messages.actionsMenuTitle.id)}
 									>
 										{QuickActions && <QuickActions />}
 										{ActionsMenu && <ActionsMenu />}

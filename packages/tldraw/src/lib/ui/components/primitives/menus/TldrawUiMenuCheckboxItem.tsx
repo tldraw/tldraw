@@ -1,4 +1,4 @@
-import { preventDefault } from '@tldraw/editor'
+import { defineMessages, preventDefault } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu, DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
@@ -8,6 +8,12 @@ import { useDirection, useTranslation } from '../../../hooks/useTranslation/useT
 import { TldrawUiIcon, TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	uiChecked: { id: 'ui.checked', defaultMessage: 'Checked' },
+	uiUnchecked: { id: 'ui.unchecked', defaultMessage: 'Unchecked' },
+})
 
 /** @public */
 export interface TLUiMenuCheckboxItemProps<
@@ -57,7 +63,7 @@ export function TldrawUiMenuCheckboxItem<
 		<>
 			<TldrawUiIcon
 				small
-				label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
+				label={msg(checked ? messages.uiChecked.id : messages.uiUnchecked.id)}
 				icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
 			/>
 			{labelStr && (

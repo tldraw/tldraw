@@ -1,4 +1,4 @@
-import { useContainer, useEditor, useValue } from '@tldraw/editor'
+import { defineMessages, useContainer, useEditor, useValue } from '@tldraw/editor'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode, memo, useCallback } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -8,6 +8,11 @@ import { useDirection, useTranslation } from '../../hooks/useTranslation/useTran
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { DefaultZoomMenuContent } from './DefaultZoomMenuContent'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	navigationZoneZoom: { id: 'navigation-zone.zoom', defaultMessage: 'Zoom' },
+})
 
 /** @public */
 export interface TLUiZoomMenuProps {
@@ -64,8 +69,8 @@ const ZoomTriggerButton = () => {
 		<TldrawUiToolbarButton
 			asChild
 			type="icon"
-			aria-label={`${msg('navigation-zone.zoom')} — ${value}`}
-			title={`${msg('navigation-zone.zoom')} — ${value}`}
+			aria-label={`${msg(messages.navigationZoneZoom.id)} — ${value}`}
+			title={`${msg(messages.navigationZoneZoom.id)} — ${value}`}
 			data-testid="minimap.zoom-menu-button"
 			className="tlui-zoom-menu__button"
 			onDoubleClick={handleDoubleClick}

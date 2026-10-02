@@ -1,4 +1,12 @@
-import { useTranslation } from 'tldraw'
+import { defineMessages, useTranslation } from 'tldraw'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	commentsReplies: {
+		id: 'comments.replies',
+		defaultMessage: '{count, plural, one {# reply} other {# replies}}',
+	},
+})
 
 /**
  * The localized "N replies" label (e.g. "1 reply", "3 replies") for a thread with `replyCount`
@@ -11,5 +19,5 @@ export function replyCountLabel(
 	replyCount: number
 ): string | null {
 	if (replyCount <= 0) return null
-	return msg('comments.replies', { count: replyCount })
+	return msg(messages.commentsReplies.id, { count: replyCount })
 }

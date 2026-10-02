@@ -1,4 +1,4 @@
-import { useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
+import { defineMessages, useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
 import { Popover as _Popover } from 'radix-ui'
 import { ReactNode } from 'react'
 import { useTldrawUiComponents } from '../../context/components'
@@ -7,6 +7,11 @@ import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { OfflineIndicator } from '../OfflineIndicator/OfflineIndicator'
 import { DefaultPeopleMenuContent } from './DefaultPeopleMenuContent'
+
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+const messages = defineMessages({
+	peopleMenuTitle: { id: 'people-menu.title', defaultMessage: 'People' },
+})
 
 /** @public */
 export interface DefaultPeopleMenuProps {
@@ -44,7 +49,10 @@ export function DefaultPeopleMenu({ children }: DefaultPeopleMenuProps) {
 	return (
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
 			<_Popover.Trigger dir={dir} asChild>
-				<button className="tlui-people-menu__avatars-button" title={msg('people-menu.title')}>
+				<button
+					className="tlui-people-menu__avatars-button"
+					title={msg(messages.peopleMenuTitle.id)}
+				>
 					{PeopleMenuFacePile ? (
 						<PeopleMenuFacePile userColor={userColor} userIds={userIds} userName={userName} />
 					) : null}

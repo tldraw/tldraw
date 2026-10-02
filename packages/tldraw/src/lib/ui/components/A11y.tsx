@@ -18,12 +18,31 @@ import { styleMessageId } from '../styleMessages'
 import { suppressBackToContent } from './HelperButtons/BackToContent'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+// Only the ids nothing else declares; the rest are declared with what they name.
+const messages = defineMessages({
+	a11yMultipleShapes: { id: 'a11y.multiple-shapes', defaultMessage: '{num} shapes selected' },
+	a11yShapeIndex: { id: 'a11y.shape-index', defaultMessage: '{num} of {total}' },
+	a11ySkipToMainContent: {
+		id: 'a11y.skip-to-main-content',
+		defaultMessage: 'Move focus to canvas',
+	},
+	a11yStatus: { id: 'a11y.status', defaultMessage: 'Status' },
+})
+
 // `shape.type` and a geo shape's `props.geo` compose these ids, so the extractor sees none of
 // them here. The media names are declared below; the geo names live in `styleMessages`, and the
 // `tool.*` names in the tool registry that labels the toolbar with the same ids.
 const mediaMessages = defineMessages({
 	image: { id: 'a11y.shape-image', defaultMessage: 'Image' },
 	video: { id: 'a11y.shape-video', defaultMessage: 'Video' },
+})
+
+// A bookmark is a shape type with no tool of its own — it appears by pasting a URL — so its name
+// isn't declared with the toolbar's and would go unextracted. Announced through `tool.${type}`
+// like any other shape.
+const shapeNameMessages = defineMessages({
+	bookmark: { id: 'tool.bookmark', defaultMessage: 'Bookmark' },
 })
 
 export function SkipToMainContent() {
@@ -61,7 +80,7 @@ export function SkipToMainContent() {
 			className="tl-skip-to-main-content"
 			onClick={handleNavigateToFirstShape}
 		>
-			{msg('a11y.skip-to-main-content')}
+			{msg(messages.a11ySkipToMainContent.id)}
 		</TldrawUiButton>
 	)
 }
@@ -78,7 +97,7 @@ export const DefaultA11yAnnouncer = memo(function TldrawUiA11yAnnouncer() {
 	return (
 		msg.msg && (
 			<div
-				aria-label={translation('a11y.status')}
+				aria-label={translation(messages.a11yStatus.id)}
 				aria-live={msg.priority || 'assertive'}
 				role="status"
 				aria-hidden="false"
@@ -107,7 +126,7 @@ export function generateShapeAnnouncementMessage(args: {
 	const numShapes = selectedShapeIds.length
 
 	if (numShapes > 1) {
-		return msg('a11y.multiple-shapes', { num: numShapes })
+		return msg(messages.a11yMultipleShapes.id, { num: numShapes })
 	}
 	if (numShapes !== 1) return ''
 
@@ -124,12 +143,15 @@ export function generateShapeAnnouncementMessage(args: {
 			? msg(styleMessageId('geo', (shape as TLGeoShape).props.geo))
 			: shape.type === 'image' || shape.type === 'video'
 				? msg(mediaMessages[shape.type as 'image' | 'video'].id)
-				: msg(`tool.${shape.type}`))
+				: msg(
+						shapeNameMessages[shape.type as keyof typeof shapeNameMessages]?.id ??
+							`tool.${shape.type}`
+					))
 
 	// Get shape index in reading order
 	const readingOrderShapes = editor.getCurrentPageShapesInReadingOrder()
 	const currentShapeIndex = readingOrderShapes.findIndex((s) => s.id === shapeId) + 1
-	const shapeIndex = msg('a11y.shape-index', {
+	const shapeIndex = msg(messages.a11yShapeIndex.id, {
 		num: currentShapeIndex,
 		total: readingOrderShapes.length,
 	})
