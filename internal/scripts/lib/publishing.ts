@@ -311,9 +311,9 @@ export async function publishProductionDocsAndExamplesAndBemo({
 	await exec('git', ['push', 'origin', `${gitRef}:bemo-production`, `--force`])
 }
 
-// GitHub intermittently rejects a new tag with "Unable to determine if workflow can be created or
-// updated due to timeout". Without --atomic the branch still lands, stranding a version-bump commit
-// with no tag or npm release; with it a rejection changes nothing, so a retry starts clean.
+// Without `workflows` permission GitHub sometimes rejects a new tag ("Unable to determine if workflow
+// can be created or updated due to timeout"). --atomic stops the branch landing without its tag (a
+// version bump with no release), so a retry or job re-run starts clean.
 export async function pushReleaseCommitAndTag(refspec?: string) {
 	await retry(
 		async () => {
