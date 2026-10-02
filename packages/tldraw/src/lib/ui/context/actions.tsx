@@ -32,7 +32,6 @@ import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../util
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
-import { DefaultKeyboardShortcutsDialog } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -225,10 +224,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.open-kbd-shortcuts',
 				kbd: 'cmd+alt+/,ctrl+alt+/',
 				onSelect(source) {
+					const { KeyboardShortcutsDialog } = components
+					if (!KeyboardShortcutsDialog) return
 					trackEvent('open-kbd-shortcuts', { source })
-					helpers.addDialog({
-						component: components.KeyboardShortcutsDialog ?? DefaultKeyboardShortcutsDialog,
-					})
+					helpers.addDialog({ component: KeyboardShortcutsDialog })
 				},
 			},
 			{
