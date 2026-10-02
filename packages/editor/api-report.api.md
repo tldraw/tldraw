@@ -821,7 +821,7 @@ export const defaultUserPreferences: Readonly<{
 export const defaultUserStore: TLUserStore;
 
 // @public
-export function defineMessages<Messages extends Record<string, TLI18nMessage>>(msgs: Messages): Messages;
+export function defineMessages<const Messages extends Record<string, TLI18nMessage>>(msgs: Messages): Messages;
 
 // @public
 export function degreesToRadians(d: number): number;

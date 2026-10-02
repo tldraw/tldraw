@@ -64,13 +64,17 @@ export interface TLI18nMessage {
  * Declares messages so the extractor can find them. Returns them unchanged; the value is in
  * naming the call, which is what `formatjs extract` looks for.
  *
+ * The type parameter is `const` so each `id` keeps its literal type. That's what lets a declared
+ * id be passed where a `TLUiTranslationKey` is expected — a menu item's `label`, say — instead of
+ * widening to `string` and needing a cast.
+ *
  * For a message rendered as an element, write it inline on the `<F>` instead — the extractor
  * reads those props directly, and the text then sits where it's read. This is for the messages
  * that can't be elements: a label the UI takes as data, and anything going through `useMsg`.
  *
  * @public
  */
-export function defineMessages<Messages extends Record<string, TLI18nMessage>>(
+export function defineMessages<const Messages extends Record<string, TLI18nMessage>>(
 	msgs: Messages
 ): Messages {
 	if (process.env.NODE_ENV !== 'production') {
