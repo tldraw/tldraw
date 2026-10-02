@@ -1,7 +1,6 @@
-import { Atom, EMPTY_ARRAY, atom, computed, react, unsafe__withoutCapture } from '@tldraw/state'
+import { EMPTY_ARRAY, atom, computed, react, unsafe__withoutCapture } from '@tldraw/state'
 import { ComputedCache, StoreSideEffects } from '@tldraw/store'
 import {
-	InstancePageStateRecordType,
 	PageRecordType,
 	StyleProp,
 	StylePropValue,
@@ -48,12 +47,9 @@ import {
 	JsonObject,
 	ZERO_INDEX_KEY,
 	annotateError,
-	areArraysShallowEqual,
 	assert,
-	assertExists,
 	bind,
 	compact,
-	dedupe,
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
@@ -107,11 +103,6 @@ import {
 } from './editorHelpers'
 import { registerEditorSideEffects } from './editorSideEffects'
 import { getCulledShapeIds } from './kernels/culling'
-import {
-	findNearestItemInDirection,
-	getAdjacentIndex,
-	sortIntoReadingOrder,
-} from './kernels/readingOrder'
 import { CameraManager } from './managers/CameraManager/CameraManager'
 import { ClickManager } from './managers/ClickManager/ClickManager'
 import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
@@ -127,6 +118,7 @@ import { LayoutManager } from './managers/LayoutManager/LayoutManager'
 import { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
 import { ResizeManager } from './managers/ResizeManager/ResizeManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
+import { SelectionManager } from './managers/SelectionManager/SelectionManager'
 import { ShapeCommandsManager } from './managers/ShapeCommandsManager/ShapeCommandsManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
@@ -359,7 +351,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.getContainer = getContainer
 
-		this._textOptions = atom('text options', options?.text ?? null)
+		this._selectionManager._textOptions = atom('text options', options?.text ?? null)
 
 		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), colorScheme ?? 'light')
 		this.disposables.add(() => this.user.dispose())
@@ -1610,6 +1602,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/** @internal */
+	readonly _selectionManager = new SelectionManager(this)
+
 	/* ------------------- Page State ------------------- */
 
 	/**
@@ -1617,13 +1612,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getPageStates(): TLInstancePageState[] {
-		return this._getPageStatesQuery().get()
-	}
-
-	/** @internal */
-	@computed private _getPageStatesQuery() {
-		return this.store.query.records('instance_page_state')
+	getPageStates(): TLInstancePageState[] {
+		return this._selectionManager.getPageStates()
 	}
 
 	/**
@@ -1631,13 +1621,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getCurrentPageState(): TLInstancePageState {
-		return this.store.get(this._getCurrentPageStateId())!
+	getCurrentPageState(): TLInstancePageState {
+		return this._selectionManager.getCurrentPageState()
 	}
 
 	/** @internal */
-	@computed _getCurrentPageStateId() {
-		return InstancePageStateRecordType.createId(this.getCurrentPageId())
+	_getCurrentPageStateId() {
+		return this._selectionManager._getCurrentPageStateId()
 	}
 
 	/**
@@ -1657,14 +1647,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			Omit<TLInstancePageState, 'selectedShapeIds' | 'editingShapeId' | 'pageId' | 'focusedGroupId'>
 		>
 	): this {
-		this._updateCurrentPageState(partial)
+		this._selectionManager.updateCurrentPageState(partial)
 		return this
 	}
 	_updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>) {
-		this.store.update(partial.id ?? this.getCurrentPageState().id, (state) => ({
-			...state,
-			...partial,
-		}))
+		return this._selectionManager._updateCurrentPageState(partial)
 	}
 
 	/**
@@ -1672,8 +1659,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getSelectedShapeIds() {
-		return this.getCurrentPageState().selectedShapeIds
+	getSelectedShapeIds() {
+		return this._selectionManager.getSelectedShapeIds()
 	}
 
 	/**
@@ -1682,8 +1669,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 * @readonly
 	 */
-	@computed getSelectedShapes(): TLShape[] {
-		return compact(this.getSelectedShapeIds().map((id) => this.store.get(id)))
+	getSelectedShapes(): TLShape[] {
+		return this._selectionManager.getSelectedShapes()
 	}
 
 	/**
@@ -1700,18 +1687,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setSelectedShapes(shapes: TLShapeId[] | TLShape[]): this {
-		return this.run(
-			() => {
-				const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
-				const { selectedShapeIds: prevSelectedShapeIds } = this.getCurrentPageState()
-				const prevSet = new Set(prevSelectedShapeIds)
-
-				if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
-
-				this.store.put([{ ...this.getCurrentPageState(), selectedShapeIds: ids }])
-			},
-			{ history: 'record-preserveRedoStack' }
-		)
+		this._selectionManager.setSelectedShapes(shapes)
+		return this
 	}
 
 	/**
@@ -1722,11 +1699,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isAncestorSelected(shape: TLShape | TLShapeId): boolean {
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-		const _shape = this.getShape(id)
-		if (!_shape) return false
-		const selectedShapeIds = this.getSelectedShapeIds()
-		return !!this.findShapeAncestor(_shape, (parent) => selectedShapeIds.includes(parent.id))
+		return this._selectionManager.isAncestorSelected(shape)
 	}
 
 	/**
@@ -1743,8 +1716,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	select(...shapes: TLShapeId[] | TLShape[]): this {
-		const ids = toShapeIds(shapes)
-		this.setSelectedShapes(ids)
+		this._selectionManager.select(...shapes)
 		return this
 	}
 
@@ -1759,11 +1731,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	deselect(...shapes: TLShapeId[] | TLShape[]): this {
-		const ids = toShapeIds(shapes)
-		const selectedShapeIds = this.getSelectedShapeIds()
-		if (selectedShapeIds.length > 0 && ids.length > 0) {
-			this.setSelectedShapes(selectedShapeIds.filter((id) => !ids.includes(id)))
-		}
+		this._selectionManager.deselect(...shapes)
 		return this
 	}
 
@@ -1780,35 +1748,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	selectAll(): this {
-		let parentToSelectWithinId: TLParentId | null = null
-
-		const selectedShapeIds = this.getSelectedShapeIds()
-
-		// If we have selected shapes, try to find a parent to select within
-		if (selectedShapeIds.length > 0) {
-			for (const id of selectedShapeIds) {
-				const shape = this.getShape(id)
-				if (!shape) continue
-				if (parentToSelectWithinId === null) {
-					// If we haven't found a parent yet, set this parent as the parent to select within
-					parentToSelectWithinId = shape.parentId
-				} else if (parentToSelectWithinId !== shape.parentId) {
-					// If we've found two different parents, we can't select all, do nothing
-					return this
-				}
-			}
-		}
-
-		// If we haven't found a parent from our selected shapes, select the current page
-		if (!parentToSelectWithinId) {
-			parentToSelectWithinId = this.getCurrentPageId()
-		}
-
-		// Select all the unlocked shapes within the parent. Only the shape's own lock matters here:
-		// selecting inside a locked frame or group is allowed, mutating is not.
-		const ids = this.getSortedChildIdsForParent(parentToSelectWithinId)
-		if (ids.length <= 0) return this
-		this.setSelectedShapes(ids.filter((id) => !this.getShape(id)?.isLocked))
+		this._selectionManager.selectAll()
 		return this
 	}
 
@@ -1823,42 +1763,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	selectAdjacentShape(direction: TLAdjacentDirection) {
-		const selectedShapeIds = this.getSelectedShapeIds()
-		const firstParentId = selectedShapeIds[0] ? this.getShape(selectedShapeIds[0])?.parentId : null
-		const isSelectedWithinContainer =
-			firstParentId &&
-			selectedShapeIds.every((shapeId) => this.getShape(shapeId)?.parentId === firstParentId) &&
-			!isPageId(firstParentId)
-		// Locked shapes (and children of locked containers) can't be selected by clicking or
-		// select all, so traversal skips them too
-		const filteredShapes = this.getCurrentPageShapes().filter(
-			(shape) =>
-				!this.isShapeOrAncestorLocked(shape) &&
-				(isSelectedWithinContainer ? shape.parentId === firstParentId : isPageId(shape.parentId))
-		)
-		const readingOrderShapes = this._getShapesInReadingOrder(filteredShapes)
-		const currentShapeId: TLShapeId | undefined =
-			selectedShapeIds.length === 1
-				? selectedShapeIds[0]
-				: readingOrderShapes.find((shape) => selectedShapeIds.includes(shape.id))?.id
-
-		let adjacentShapeId: TLShapeId
-		if (direction === 'next' || direction === 'prev') {
-			const currentIndex = currentShapeId
-				? readingOrderShapes.findIndex((shape) => shape.id === currentShapeId)
-				: -1
-			const adjacentIndex = getAdjacentIndex(readingOrderShapes.length, currentIndex, direction)
-			if (adjacentIndex === null) return
-			adjacentShapeId = readingOrderShapes[adjacentIndex].id
-		} else {
-			if (!currentShapeId) return
-			adjacentShapeId = this.getNearestAdjacentShape(filteredShapes, currentShapeId, direction)
-		}
-
-		const shape = this.getShape(adjacentShapeId)
-		if (!shape) return
-
-		this._selectShapesAndZoom([shape.id])
+		return this._selectionManager.selectAdjacentShape(direction)
 	}
 
 	/**
@@ -1867,22 +1772,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getCurrentPageShapesInReadingOrder(): TLShape[] {
-		const shapes = this.getCurrentPageShapes().filter((shape) => isPageId(shape.parentId))
-		return this._getShapesInReadingOrder(shapes)
-	}
-
-	private _getShapesInReadingOrder(shapes: TLShape[]): TLShape[] {
-		const tabbableShapes = shapes.filter((shape) => this.getShapeUtil(shape).canTabTo(shape))
-
-		if (tabbableShapes.length <= 1) return tabbableShapes
-
-		return sortIntoReadingOrder(
-			tabbableShapes.map((shape) => ({
-				payload: shape,
-				center: this.getShapePageBounds(shape)!.center,
-			}))
-		)
+	getCurrentPageShapesInReadingOrder(): TLShape[] {
+		return this._selectionManager.getCurrentPageShapesInReadingOrder()
 	}
 
 	/**
@@ -1895,55 +1786,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		currentShapeId: TLShapeId,
 		direction: 'left' | 'right' | 'up' | 'down'
 	): TLShapeId {
-		const currentShape = this.getShape(currentShapeId)
-		if (!currentShape) return currentShapeId
-
-		const tabbableShapes = shapes.filter(
-			(shape) => this.getShapeUtil(shape).canTabTo(shape) && shape.id !== currentShapeId
-		)
-		if (!tabbableShapes.length) return currentShapeId
-
-		const currentCenter = this.getShapePageBounds(currentShape)!.center
-		const nearest = findNearestItemInDirection(
-			tabbableShapes.map((shape) => ({
-				payload: shape,
-				center: this.getShapePageBounds(shape)!.center,
-			})),
-			currentCenter,
-			direction
-		)
-
-		return nearest ? nearest.id : currentShapeId
+		return this._selectionManager.getNearestAdjacentShape(shapes, currentShapeId, direction)
 	}
 
 	selectParentShape() {
-		const selectedShape = this.getOnlySelectedShape()
-		if (!selectedShape) return
-		const parentShape = this.getShape(selectedShape.parentId)
-		if (!parentShape) return
-		this._selectShapesAndZoom([parentShape.id])
+		return this._selectionManager.selectParentShape()
 	}
 
 	selectFirstChildShape() {
-		const selectedShapes = this.getSelectedShapes()
-		if (!selectedShapes.length) return
-		const selectedShape = selectedShapes[0]
-		const children = compact(
-			this.getSortedChildIdsForParent(selectedShape.id).map((id) => this.getShape(id))
-		)
-		const sortedChildren = this._getShapesInReadingOrder(children)
-		if (sortedChildren.length === 0) return
-		this._selectShapesAndZoom([sortedChildren[0].id])
-	}
-
-	private _selectShapesAndZoom(ids: TLShapeId[]) {
-		this.setSelectedShapes(ids)
-		this.zoomToSelectionIfOffscreen(256, {
-			animation: {
-				duration: this.options.animationMediumMs,
-			},
-			inset: 0,
-		})
+		return this._selectionManager.selectFirstChildShape()
 	}
 
 	/**
@@ -1957,10 +1808,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	selectNone(): this {
-		if (this.getSelectedShapeIds().length > 0) {
-			this.setSelectedShapes([])
-		}
-
+		this._selectionManager.selectNone()
 		return this
 	}
 
@@ -1972,8 +1820,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 * @readonly
 	 */
-	@computed getOnlySelectedShapeId(): TLShapeId | null {
-		return this.getOnlySelectedShape()?.id ?? null
+	getOnlySelectedShapeId(): TLShapeId | null {
+		return this._selectionManager.getOnlySelectedShapeId()
 	}
 
 	/**
@@ -1984,9 +1832,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 * @readonly
 	 */
-	@computed getOnlySelectedShape(): TLShape | null {
-		const selectedShapes = this.getSelectedShapes()
-		return selectedShapes.length === 1 ? selectedShapes[0] : null
+	getOnlySelectedShape(): TLShape | null {
+		return this._selectionManager.getOnlySelectedShape()
 	}
 
 	/**
@@ -1995,9 +1842,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapesPageBounds(shapeIds: TLShapeId[]): Box | null {
-		const bounds = compact(shapeIds.map((id) => this.getShapePageBounds(id)))
-		if (bounds.length === 0) return null
-		return Box.Common(bounds)
+		return this._selectionManager.getShapesPageBounds(shapeIds)
 	}
 
 	/**
@@ -2009,8 +1854,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getSelectionPageBounds(): Box | null {
-		return this.getShapesPageBounds(this.getSelectedShapeIds())
+	getSelectionPageBounds(): Box | null {
+		return this._selectionManager.getSelectionPageBounds()
 	}
 
 	/**
@@ -2020,29 +1865,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getSelectionScreenBounds(): Box | undefined {
-		const bounds = this.getSelectionPageBounds()
-		if (!bounds) return undefined
-		const { x, y } = this.pageToScreen(bounds.point)
-		const zoom = this.getZoomLevel()
-		return new Box(x, y, bounds.width * zoom, bounds.height * zoom)
+		return this._selectionManager.getSelectionScreenBounds()
 	}
 
 	/**
 	 * @internal
 	 */
 	getShapesSharedRotation(shapeIds: TLShapeId[]) {
-		let rotation = 0
-		for (let i = 0, n = shapeIds.length; i < n; i++) {
-			const pageRotation = this.getShapePageTransform(shapeIds[i]).rotation()
-			if (i === 0) {
-				rotation = pageRotation
-			} else if (pageRotation !== rotation) {
-				// There are at least 2 different rotations, so the common rotation is zero
-				return 0
-			}
-		}
-
-		return rotation
+		return this._selectionManager.getShapesSharedRotation(shapeIds)
 	}
 
 	/**
@@ -2051,41 +1881,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed getSelectionRotation(): number {
-		return this.getShapesSharedRotation(this.getSelectedShapeIds())
+	getSelectionRotation(): number {
+		return this._selectionManager.getSelectionRotation()
 	}
 
 	/**
 	 * @internal
 	 */
 	getShapesRotatedPageBounds(shapeIds: TLShapeId[]): Box | undefined {
-		if (shapeIds.length === 0) {
-			return undefined
-		}
-
-		const selectionRotation = this.getShapesSharedRotation(shapeIds)
-		if (selectionRotation === 0) {
-			return this.getShapesPageBounds(shapeIds) ?? undefined
-		}
-
-		if (shapeIds.length === 1) {
-			const bounds = this.getShapeGeometry(shapeIds[0]).bounds.clone()
-			const pageTransform = this.getShapePageTransform(shapeIds[0])
-			bounds.point = pageTransform.applyToPoint(bounds.point)
-			return bounds
-		}
-
-		// need to 'un-rotate' all the outlines of the existing nodes so we can fit them inside a box
-		const boxFromRotatedVertices = Box.FromPoints(
-			shapeIds
-				.flatMap((id) =>
-					this.getShapePageTransform(id).applyToPoints(this.getShapeGeometry(id).bounds.corners)
-				)
-				.map((p) => p.rot(-selectionRotation))
-		)
-		// now position box so that it's top-left corner is in the right place
-		boxFromRotatedVertices.point = boxFromRotatedVertices.point.rot(selectionRotation)
-		return boxFromRotatedVertices
+		return this._selectionManager.getShapesRotatedPageBounds(shapeIds)
 	}
 
 	/**
@@ -2094,8 +1898,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed getSelectionRotatedPageBounds(): Box | undefined {
-		return this.getShapesRotatedPageBounds(this.getSelectedShapeIds())
+	getSelectionRotatedPageBounds(): Box | undefined {
+		return this._selectionManager.getSelectionRotatedPageBounds()
 	}
 
 	/**
@@ -2104,19 +1908,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed getSelectionRotatedScreenBounds(): Box | undefined {
-		const bounds = this.getSelectionRotatedPageBounds()
-		if (!bounds) return undefined
-		// Don't use pageToScreen here: it reads the screen bounds without capturing them, so this
-		// computed would never invalidate when the container moves
-		const screenBounds = this.getViewportScreenBounds()
-		const { x: cx, y: cy, z: zoom } = this.getCamera()
-		return new Box(
-			(bounds.x + cx) * zoom + screenBounds.x,
-			(bounds.y + cy) * zoom + screenBounds.y,
-			bounds.width * zoom,
-			bounds.height * zoom
-		)
+	getSelectionRotatedScreenBounds(): Box | undefined {
+		return this._selectionManager.getSelectionRotatedScreenBounds()
 	}
 
 	// Focus Group
@@ -2126,8 +1919,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getFocusedGroupId(): TLShapeId | TLPageId {
-		return this.getCurrentPageState().focusedGroupId ?? this.getCurrentPageId()
+	getFocusedGroupId(): TLShapeId | TLPageId {
+		return this._selectionManager.getFocusedGroupId()
 	}
 
 	/**
@@ -2135,9 +1928,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getFocusedGroup(): TLShape | undefined {
-		const focusedGroupId = this.getFocusedGroupId()
-		return focusedGroupId ? this.getShape(focusedGroupId) : undefined
+	getFocusedGroup(): TLShape | undefined {
+		return this._selectionManager.getFocusedGroup()
 	}
 
 	/**
@@ -2148,29 +1940,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setFocusedGroup(shape: TLShapeId | TLGroupShape | null): this {
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-
-		if (id !== null) {
-			const shape = this.getShape(id)
-			if (!shape) {
-				throw Error(`Editor.setFocusedGroup: Shape with id ${id} does not exist`)
-			}
-
-			if (!this.isShapeOfType(shape, 'group')) {
-				throw Error(
-					`Editor.setFocusedGroup: Cannot set focused group to shape of type ${shape.type}`
-				)
-			}
-		}
-
-		if (id === this.getFocusedGroupId()) return this
-
-		return this.run(
-			() => {
-				this.store.update(this.getCurrentPageState().id, (s) => ({ ...s, focusedGroupId: id }))
-			},
-			{ history: 'record-preserveRedoStack' }
-		)
+		this._selectionManager.setFocusedGroup(shape)
+		return this
 	}
 
 	/**
@@ -2179,22 +1950,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	popFocusedGroupId(): this {
-		const focusedGroup = this.getFocusedGroup()
-
-		if (focusedGroup) {
-			// If we have a focused layer, look for an ancestor of the focused shape that is a group
-			const match = this.findShapeAncestor(focusedGroup, (shape) =>
-				this.isShapeOfType(shape, 'group')
-			)
-			// If we have an ancestor that can become a focused layer, set it as the focused layer
-			this.setFocusedGroup(match?.id ?? null)
-			this.select(focusedGroup.id)
-		} else {
-			// If there's no parent focused group, then clear the focus layer and clear selection
-			this.setFocusedGroup(null)
-			this.selectNone()
-		}
-
+		this._selectionManager.popFocusedGroupId()
 		return this
 	}
 
@@ -2203,8 +1959,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getEditingShapeId(): TLShapeId | null {
-		return this.getCurrentPageState().editingShapeId
+	getEditingShapeId(): TLShapeId | null {
+		return this._selectionManager.getEditingShapeId()
 	}
 
 	/**
@@ -2212,9 +1968,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getEditingShape(): TLShape | undefined {
-		const editingShapeId = this.getEditingShapeId()
-		return editingShapeId ? this.getShape(editingShapeId) : undefined
+	getEditingShape(): TLShape | undefined {
+		return this._selectionManager.getEditingShape()
 	}
 
 	/**
@@ -2227,17 +1982,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns true if the shape can be edited, false otherwise.
 	 */
 	canEditShape<T extends TLShape | TLShapeId>(shape: T | null, info?: TLEditStartInfo): shape is T {
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-		if (!id) return false // no shape
-		if (id === this.getEditingShapeId()) return false // already editing this shape
-		const _shape = this.getShape(id)
-		if (!_shape) return false // no shape
-		const util = this.getShapeUtil(_shape)
-		const _info: TLEditStartInfo = info ?? { type: 'unknown' }
-		if (!util.canEdit(_shape, _info)) return false // shape is not editable
-		if (this.getIsReadonly() && !util.canEditInReadonly(_shape)) return false // readonly and no exception
-		if (this.isShapeOrAncestorLocked(_shape) && !util.canEditWhileLocked(_shape)) return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
-		return true // shape is editable
+		return this._selectionManager.canEditShape<T>(shape, info)
 	}
 
 	/**
@@ -2254,55 +1999,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-
-		// id was provided but the next editing shape was not editable or didn't exist, so do nothing
-		if (id && !this.canEditShape(id)) return this
-
-		this.run(() => {
-			// Clean up the previous editing shape. This runs outside the history-ignored batch below,
-			// otherwise document changes made by onEditEnd (e.g. deleting an empty text shape) are
-			// never recorded and leave a phantom undo entry whose redo resurrects the shape.
-			const prevEditingShapeId = this.getEditingShapeId()
-			if (prevEditingShapeId) {
-				const prevEditingShape = this.getShape(prevEditingShapeId)
-				if (prevEditingShape) {
-					this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
-				}
-			}
-
-			this.run(
-				() => {
-					// Clean up the editing shape state and rich text editor
-					this._updateCurrentPageState({ editingShapeId: null })
-					this._currentRichTextEditor.set(null)
-
-					if (!id) return
-
-					this.select(id)
-					this._updateCurrentPageState({ editingShapeId: id })
-
-					const nextEditingShape = this.getShape(id)! // shape should be there because canEditShape checked it. Possible small chance that onEditEnd deleted it?
-					this.getShapeUtil(nextEditingShape).onEditStart?.(nextEditingShape)
-				},
-				{ history: 'ignore' }
-			)
-		})
-
+		this._selectionManager.setEditingShape(shape)
 		return this
 	}
-
-	// Rich text editor
-
-	private _currentRichTextEditor = atom('rich text editor', null as TiptapEditor | null)
 
 	/**
 	 * The current editing shape's text editor.
 	 *
 	 * @public
 	 */
-	@computed getRichTextEditor(): TiptapEditor | null {
-		return this._currentRichTextEditor.get()
+	getRichTextEditor(): TiptapEditor | null {
+		return this._selectionManager.getRichTextEditor()
 	}
 
 	/**
@@ -2318,7 +2025,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setRichTextEditor(textEditor: TiptapEditor | null) {
-		this._currentRichTextEditor.set(textEditor)
+		this._selectionManager.setRichTextEditor(textEditor)
 		return this
 	}
 
@@ -2330,8 +2037,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed getHoveredShapeId(): TLShapeId | null {
-		return this.getCurrentPageState().hoveredShapeId
+	getHoveredShapeId(): TLShapeId | null {
+		return this._selectionManager.getHoveredShapeId()
 	}
 
 	/**
@@ -2339,9 +2046,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getHoveredShape(): TLShape | undefined {
-		const hoveredShapeId = this.getHoveredShapeId()
-		return hoveredShapeId ? this.getShape(hoveredShapeId) : undefined
+	getHoveredShape(): TLShape | undefined {
+		return this._selectionManager.getHoveredShape()
 	}
 	/**
 	 * Set the editor's current hovered shape.
@@ -2357,14 +2063,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setHoveredShape(shape: TLShapeId | TLShape | null): this {
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-		if (id === this.getHoveredShapeId()) return this
-		this.run(
-			() => {
-				this.updateCurrentPageState({ hoveredShapeId: id })
-			},
-			{ history: 'ignore' }
-		)
+		this._selectionManager.setHoveredShape(shape)
 		return this
 	}
 
@@ -2375,8 +2074,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getHintingShapeIds() {
-		return this.getCurrentPageState().hintingShapeIds
+	getHintingShapeIds() {
+		return this._selectionManager.getHintingShapeIds()
 	}
 
 	/**
@@ -2384,9 +2083,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getHintingShape() {
-		const hintingShapeIds = this.getHintingShapeIds()
-		return compact(hintingShapeIds.map((id) => this.getShape(id)))
+	getHintingShape() {
+		return this._selectionManager.getHintingShape()
 	}
 
 	/**
@@ -2403,14 +2101,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setHintingShapes(shapes: TLShapeId[] | TLShape[]): this {
-		const ids = toShapeIds(shapes)
-		// always ephemeral
-		this.run(
-			() => {
-				this._updateCurrentPageState({ hintingShapeIds: dedupe(ids) })
-			},
-			{ history: 'ignore' }
-		)
+		this._selectionManager.setHintingShapes(shapes)
 		return this
 	}
 
@@ -2421,8 +2112,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getErasingShapeIds() {
-		return this.getCurrentPageState().erasingShapeIds
+	getErasingShapeIds() {
+		return this._selectionManager.getErasingShapeIds()
 	}
 
 	/**
@@ -2430,9 +2121,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getErasingShapes() {
-		const erasingShapeIds = this.getErasingShapeIds()
-		return compact(erasingShapeIds.map((id) => this.getShape(id)))
+	getErasingShapes() {
+		return this._selectionManager.getErasingShapes()
 	}
 
 	/**
@@ -2449,20 +2139,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setErasingShapes(shapes: TLShapeId[] | TLShape[]): this {
-		// copy before sorting: the caller may pass a store-owned (frozen) array
-		const ids = toShapeIds(shapes).slice()
-		ids.sort() // sort the incoming ids
-		const erasingShapeIds = this.getErasingShapeIds()
-		this.run(
-			() => {
-				// the current ids are also sorted, so a shallow comparison tells us whether they changed
-				if (!areArraysShallowEqual(ids, erasingShapeIds)) {
-					this._updateCurrentPageState({ erasingShapeIds: ids })
-				}
-			},
-			{ history: 'ignore' }
-		)
-
+		this._selectionManager.setErasingShapes(shapes)
 		return this
 	}
 
@@ -2474,7 +2151,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getCroppingShapeId() {
-		return this.getCurrentPageState().croppingShapeId
+		return this._selectionManager.getCroppingShapeId()
 	}
 
 	/**
@@ -2486,16 +2163,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns true if the shape can be cropped, false otherwise.
 	 */
 	canCropShape<T extends TLShape | TLShapeId>(shape: T | null): shape is T {
-		if (!shape) return false
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-		if (!id) return false
-		const _shape = this.getShape(id)
-		if (!_shape) return false
-		const util = this.getShapeUtil(_shape)
-		if (!util.canCrop(_shape)) return false
-		if (this.getIsReadonly()) return false
-		if (this.isShapeOrAncestorLocked(_shape)) return false
-		return true
+		return this._selectionManager.canCropShape<T>(shape)
 	}
 
 	/**
@@ -2513,23 +2181,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCroppingShape(shape: TLShapeId | TLShape | null): this {
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-		if (id !== this.getCroppingShapeId()) {
-			this.run(
-				() => {
-					if (!id) {
-						this.updateCurrentPageState({ croppingShapeId: null })
-					} else if (this.canCropShape(id)) {
-						this.updateCurrentPageState({ croppingShapeId: id })
-					}
-				},
-				{ history: 'ignore' }
-			)
-		}
+		this._selectionManager.setCroppingShape(shape)
 		return this
 	}
-
-	private _textOptions: Atom<TLTextOptions | null>
 
 	/**
 	 * Get the current text options.
@@ -2541,7 +2195,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 *  @public */
 	getTextOptions() {
-		return assertExists(this._textOptions.get(), 'Cannot use text without setting textOptions')
+		return this._selectionManager.getTextOptions()
 	}
 
 	/** @internal */

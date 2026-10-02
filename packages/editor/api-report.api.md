@@ -1826,6 +1826,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     selectAll(): this;
     // (undocumented)
     selectFirstChildShape(): void;
+    // @internal (undocumented)
+    readonly _selectionManager: SelectionManager;
     selectNone(): this;
     // (undocumented)
     selectParentShape(): void;
@@ -3705,6 +3707,122 @@ export type SelectionEdge = 'bottom' | 'left' | 'right' | 'top';
 
 // @public (undocumented)
 export type SelectionHandle = SelectionCorner | SelectionEdge;
+
+// @internal
+export class SelectionManager extends EditorManager {
+    // (undocumented)
+    canCropShape<T extends TLShape | TLShapeId>(shape: null | T): shape is T;
+    // (undocumented)
+    canEditShape<T extends TLShape | TLShapeId>(shape: null | T, info?: TLEditStartInfo): shape is T;
+    // (undocumented)
+    _currentRichTextEditor: Atom<Editor_2 | null, unknown>;
+    // (undocumented)
+    deselect(...shapes: TLShape[] | TLShapeId[]): Editor;
+    // (undocumented)
+    getCroppingShapeId(): null | TLShapeId;
+    // (undocumented)
+    getCurrentPageShapesInReadingOrder(): TLShape[];
+    // (undocumented)
+    getCurrentPageState(): TLInstancePageState;
+    // (undocumented)
+    _getCurrentPageStateId(): TLInstancePageStateId;
+    // (undocumented)
+    getEditingShape(): TLShape | undefined;
+    // (undocumented)
+    getEditingShapeId(): null | TLShapeId;
+    // (undocumented)
+    getErasingShapeIds(): TLShapeId[];
+    // (undocumented)
+    getErasingShapes(): NonNullable<TLShape | undefined>[];
+    // (undocumented)
+    getFocusedGroup(): TLShape | undefined;
+    // (undocumented)
+    getFocusedGroupId(): TLPageId | TLShapeId;
+    // (undocumented)
+    getHintingShape(): NonNullable<TLShape | undefined>[];
+    // (undocumented)
+    getHintingShapeIds(): TLShapeId[];
+    // (undocumented)
+    getHoveredShape(): TLShape | undefined;
+    // (undocumented)
+    getHoveredShapeId(): null | TLShapeId;
+    // (undocumented)
+    getNearestAdjacentShape(shapes: TLShape[], currentShapeId: TLShapeId, direction: 'down' | 'left' | 'right' | 'up'): TLShapeId;
+    // (undocumented)
+    getOnlySelectedShape(): null | TLShape;
+    // (undocumented)
+    getOnlySelectedShapeId(): null | TLShapeId;
+    // (undocumented)
+    getPageStates(): TLInstancePageState[];
+    // (undocumented)
+    _getPageStatesQuery(): Computed<TLInstancePageState[], unknown>;
+    // (undocumented)
+    getRichTextEditor(): null | TiptapEditor;
+    // (undocumented)
+    getSelectedShapeIds(): TLShapeId[];
+    // (undocumented)
+    getSelectedShapes(): TLShape[];
+    // (undocumented)
+    getSelectionPageBounds(): Box | null;
+    // (undocumented)
+    getSelectionRotatedPageBounds(): Box | undefined;
+    // (undocumented)
+    getSelectionRotatedScreenBounds(): Box | undefined;
+    // (undocumented)
+    getSelectionRotation(): number;
+    // (undocumented)
+    getSelectionScreenBounds(): Box | undefined;
+    // (undocumented)
+    _getShapesInReadingOrder(shapes: TLShape[]): TLShape[];
+    // (undocumented)
+    getShapesPageBounds(shapeIds: TLShapeId[]): Box | null;
+    // (undocumented)
+    getShapesRotatedPageBounds(shapeIds: TLShapeId[]): Box | undefined;
+    // (undocumented)
+    getShapesSharedRotation(shapeIds: TLShapeId[]): number;
+    // (undocumented)
+    getTextOptions(): TLTextOptions;
+    // (undocumented)
+    isAncestorSelected(shape: TLShape | TLShapeId): boolean;
+    // (undocumented)
+    popFocusedGroupId(): Editor;
+    // (undocumented)
+    select(...shapes: TLShape[] | TLShapeId[]): Editor;
+    // (undocumented)
+    selectAdjacentShape(direction: TLAdjacentDirection): void;
+    // (undocumented)
+    selectAll(): Editor;
+    // (undocumented)
+    selectFirstChildShape(): void;
+    // (undocumented)
+    selectNone(): Editor;
+    // (undocumented)
+    selectParentShape(): void;
+    // (undocumented)
+    _selectShapesAndZoom(ids: TLShapeId[]): void;
+    // (undocumented)
+    setCroppingShape(shape: null | TLShape | TLShapeId): Editor;
+    // (undocumented)
+    setEditingShape(shape: null | TLShape | TLShapeId): Editor;
+    // (undocumented)
+    setErasingShapes(shapes: TLShape[] | TLShapeId[]): Editor;
+    // (undocumented)
+    setFocusedGroup(shape: null | TLGroupShape | TLShapeId): Editor;
+    // (undocumented)
+    setHintingShapes(shapes: TLShape[] | TLShapeId[]): Editor;
+    // (undocumented)
+    setHoveredShape(shape: null | TLShape | TLShapeId): Editor;
+    // (undocumented)
+    setRichTextEditor(textEditor: null | TiptapEditor): Editor;
+    // (undocumented)
+    setSelectedShapes(shapes: TLShape[] | TLShapeId[]): Editor;
+    // (undocumented)
+    _textOptions: Atom<null | TLTextOptions>;
+    // (undocumented)
+    updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>): Editor;
+    // (undocumented)
+    _updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>): void;
+}
 
 // @public (undocumented)
 export function setPointerCapture(element: Element, event: PointerEvent | React.PointerEvent<Element>): void;
