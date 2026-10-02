@@ -524,3 +524,11 @@ registerTldrawLibraryVersion(
 )
 
 export { getColorValue } from './lib/editor/managers/ThemeManager/defaultThemes'
+export { CameraManager } from './lib/editor/managers/CameraManager/CameraManager'
+export { EventsManager } from './lib/editor/managers/EventsManager/EventsManager'
+export { type ModifierKey } from './lib/editor/editorHelpers'
+export { ContentManager } from './lib/editor/managers/ContentManager/ContentManager'
+export { LayoutManager } from './lib/editor/managers/LayoutManager/LayoutManager'
+export { ResizeManager } from './lib/editor/managers/ResizeManager/ResizeManager'
+export { ShapeCommandsManager } from './lib/editor/managers/ShapeCommandsManager/ShapeCommandsManager'
+export { HitTestManager } from './lib/editor/managers/HitTestManager/HitTestManager'

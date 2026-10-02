@@ -32,3 +32,7 @@ getConstrainedCamera(point: VecLike, opts?: TLCameraMoveOptions): CameraXYZ {
 Kernels don't hide the editor behind a port, and they don't own state. Code that is genuinely a
 graph walk over editor queries (cluster building, ancestor search) belongs in a free function
 `fn(editor, …)`, not here.
+
+Those live in `../queries/`, one walk per file. A query takes the editor first and only reads from
+it: no writes, no history, no state. It promises no isolation; what it buys is a file that holds
+one thing.
