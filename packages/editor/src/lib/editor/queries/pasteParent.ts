@@ -11,7 +11,7 @@ export function getPasteParentId(
 	info: {
 		currentPageId: TLPageId
 		rootShapesFromContent: TLShape[]
-		/** Keyed by the id of each shape being pasted, so content is never pasted into itself. */
+		/** Keyed by the source id of each pasted shape. */
 		shapeIdMap: ReadonlyMap<string, TLShapeId>
 		point: VecLike | undefined
 		preservePosition: boolean

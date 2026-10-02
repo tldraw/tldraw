@@ -5,7 +5,6 @@ import { HALF_PI } from '../../primitives/utils'
 import type { Editor } from '../Editor'
 import type { TLShapeUtilCanBeLaidOutOpts } from '../shapes/ShapeUtil'
 
-/** Shapes that a layout operation moves as one unit, with their common page bounds. */
 export interface ShapeCluster {
 	shapes: TLShape[]
 	pageBounds: Box

@@ -4,9 +4,6 @@ import type { Editor, TLRenderingShape } from '../Editor'
 /**
  * Walk the shape tree in paint order and give each shape the index, background index and
  * inherited opacity it renders with.
- *
- * `useEditorState` is true for rendering the current page, which dims shapes being erased, and
- * false for computing order for SVG export, which covers every page.
  */
 export function getUnorderedRenderingShapes(
 	editor: Editor,
