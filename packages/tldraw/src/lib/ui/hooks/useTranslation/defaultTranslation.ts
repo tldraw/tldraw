@@ -241,6 +241,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.pentagon': 'Pentagon',
 	'tool.rectangle': 'Rectangle',
 	'tool.rhombus': 'Rhombus',
+	'tool.rhombus-2': 'Rhombus left',
 	'tool.star': 'Star',
 	'tool.trapezoid': 'Trapezoid',
 	'tool.triangle': 'Triangle',
