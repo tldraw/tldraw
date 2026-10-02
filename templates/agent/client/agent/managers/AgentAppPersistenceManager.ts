@@ -2,10 +2,7 @@ import { react } from 'tldraw'
 import { PersistedAgentState, TldrawAgent } from '../TldrawAgent'
 import { BaseAgentAppManager } from './BaseAgentAppManager'
 
-/**
- * The key prefix used for localStorage persistence.
- */
-const STORAGE_PREFIX = 'tldraw-agent-app'
+const STORAGE_KEY = 'tldraw-agent-app:state'
 
 /**
  * The persisted state for the entire app.
@@ -39,25 +36,12 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 	private agentWatcherCleanupFns = new Map<string, () => void>()
 
 	/**
-	 * Check if state is currently being loaded.
-	 */
-	getIsLoadingState(): boolean {
-		return this.isLoadingState
-	}
-
-	/**
 	 * Serialize the current app state for persistence.
 	 */
 	serializeState(): PersistedAppState {
-		const agents = this.app.agents.getAgents()
-
 		return {
-			agents: agents.reduce(
-				(acc, agent) => {
-					acc[agent.id] = agent.serializeState()
-					return acc
-				},
-				{} as Record<string, PersistedAgentState>
+			agents: Object.fromEntries(
+				this.app.agents.getAgents().map((agent) => [agent.id, agent.serializeState()])
 			),
 		}
 	}
@@ -69,13 +53,9 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 	 */
 	loadState() {
 		this.isLoadingState = true
-
 		try {
-			const appState = this.loadValue<PersistedAppState>('state')
-			if (!appState) {
-				this.isLoadingState = false
-				return
-			}
+			const appState = this.loadValue()
+			if (!appState) return
 
 			// Create agents for all persisted IDs (createAgent returns existing if already exists)
 			for (const agentId of Object.keys(appState.agents)) {
@@ -83,13 +63,10 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 			}
 
 			// Load state for each agent
-			const agents = this.app.agents.getAgents()
-			agents.forEach((agent) => {
+			for (const agent of this.app.agents.getAgents()) {
 				const agentState = appState.agents[agent.id]
-				if (agentState) {
-					agent.loadState(agentState)
-				}
-			})
+				if (agentState) agent.loadState(agentState)
+			}
 		} catch (e) {
 			console.error('Failed to load app state:', e)
 		} finally {
@@ -111,26 +88,20 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 			// Set up watchers for new agents
 			for (const agent of agents) {
 				if (!this.agentWatcherCleanupFns.has(agent.id)) {
-					const cleanup = this.createAgentStateWatcher(agent)
-					this.agentWatcherCleanupFns.set(agent.id, cleanup)
+					this.agentWatcherCleanupFns.set(agent.id, this.createAgentStateWatcher(agent))
 				}
 			}
 
 			// Clean up watchers for removed agents
-			for (const id of this.agentWatcherCleanupFns.keys()) {
+			for (const [id, cleanup] of this.agentWatcherCleanupFns) {
 				if (!currentAgentIds.has(id)) {
-					const cleanup = this.agentWatcherCleanupFns.get(id)
-					if (cleanup) {
-						cleanup()
-					}
+					cleanup()
 					this.agentWatcherCleanupFns.delete(id)
 				}
 			}
 
 			// Save when agent list changes (if not loading)
-			if (!this.isLoadingState) {
-				this.saveState()
-			}
+			this.saveState()
 		})
 	}
 
@@ -148,9 +119,7 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 			agent.debug.getDebugFlags()
 
 			// Save if not currently loading
-			if (!this.isLoadingState) {
-				this.saveState()
-			}
+			this.saveState()
 		})
 	}
 
@@ -158,23 +127,18 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 	 * Save the current app state to localStorage.
 	 */
 	private saveState() {
-		const agents = this.app.agents.getAgents()
+		if (this.isLoadingState) return
 		// Don't save if no agents exist (e.g., during dispose)
-		if (agents.length === 0) {
-			return
-		}
-		const appState = this.serializeState()
-		this.saveValue('state', appState)
+		if (this.app.agents.getAgents().length === 0) return
+		this.saveValue(this.serializeState())
 	}
 
 	/**
 	 * Stop auto-saving and clean up watchers.
 	 */
 	stopAutoSave() {
-		if (this.agentsListCleanup) {
-			this.agentsListCleanup()
-			this.agentsListCleanup = null
-		}
+		this.agentsListCleanup?.()
+		this.agentsListCleanup = null
 		for (const cleanup of this.agentWatcherCleanupFns.values()) {
 			cleanup()
 		}
@@ -202,35 +166,26 @@ export class AgentAppPersistenceManager extends BaseAgentAppManager {
 	/**
 	 * Load a value from localStorage.
 	 */
-	private loadValue<T>(key: string): T | null {
-		const localStorage = globalThis.localStorage
-		if (!localStorage) return null
-
+	private loadValue(): PersistedAppState | null {
+		if (!globalThis.localStorage) return null
 		try {
-			const fullKey = `${STORAGE_PREFIX}:${key}`
-			const stored = localStorage.getItem(fullKey)
-			if (stored) {
-				return JSON.parse(stored) as T
-			}
+			const stored = localStorage.getItem(STORAGE_KEY)
+			return stored ? (JSON.parse(stored) as PersistedAppState) : null
 		} catch {
-			console.warn(`Couldn't load ${key} from localStorage`)
+			console.warn(`Couldn't load ${STORAGE_KEY} from localStorage`)
+			return null
 		}
-
-		return null
 	}
 
 	/**
 	 * Save a value to localStorage.
 	 */
-	private saveValue<T>(key: string, value: T): void {
-		const localStorage = globalThis.localStorage
-		if (!localStorage) return
-
+	private saveValue(value: PersistedAppState): void {
+		if (!globalThis.localStorage) return
 		try {
-			const fullKey = `${STORAGE_PREFIX}:${key}`
-			localStorage.setItem(fullKey, JSON.stringify(value))
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(value))
 		} catch {
-			console.warn(`Couldn't save ${key} to localStorage`)
+			console.warn(`Couldn't save ${STORAGE_KEY} to localStorage`)
 		}
 	}
 }

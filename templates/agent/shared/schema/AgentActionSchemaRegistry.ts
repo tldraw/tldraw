@@ -34,10 +34,11 @@ export function registerActionSchema<T extends z.ZodType>(
 
 	if (forModes && forModes.length > 0) {
 		// Mode-specific registration
-		if (!modeSchemaRegistry.has(type)) {
-			modeSchemaRegistry.set(type, new Map())
+		let modeMap = modeSchemaRegistry.get(type)
+		if (!modeMap) {
+			modeMap = new Map()
+			modeSchemaRegistry.set(type, modeMap)
 		}
-		const modeMap = modeSchemaRegistry.get(type)!
 		for (const mode of forModes) {
 			if (modeMap.has(mode)) {
 				throw new Error(`Action schema for ${type} already registered for mode ${mode}`)
@@ -65,16 +66,8 @@ export function registerActionSchema<T extends z.ZodType>(
  */
 export function getActionSchemaForMode(type: string, mode: string): z.ZodType | undefined {
 	// Check for mode-specific schema first
-	const modeMap = modeSchemaRegistry.get(type)
-	if (modeMap) {
-		const modeSchema = modeMap.get(mode)
-		if (modeSchema) {
-			return modeSchema
-		}
-	}
-
 	// Fall back to default schema
-	return defaultSchemaRegistry.get(type)
+	return modeSchemaRegistry.get(type)?.get(mode) ?? defaultSchemaRegistry.get(type)
 }
 
 /**
