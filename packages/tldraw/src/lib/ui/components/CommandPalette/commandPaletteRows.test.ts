@@ -112,11 +112,12 @@ describe('getCommandPaletteBrowseRows', () => {
 })
 
 describe('getCommandPaletteSearchRows', () => {
-	it('ranks matches, including disabled ones', () => {
+	it('ranks matches, including disabled ones that can say why', () => {
 		const rows = getCommandPaletteSearchRows(
 			[
 				entry('realign', { label: 'Realign', path: ['Arrange'] }),
-				entry('align', { label: 'Align', path: ['Arrange'], disabled: true }),
+				entry('align', { label: 'Align', path: ['Arrange'], disabled: true, disabledReason: 'x' }),
+				entry('unalign', { label: 'Unalign', path: ['Arrange'], disabled: true }),
 				entry('zoom', { label: 'Zoom in' }),
 			],
 			'align',

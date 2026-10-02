@@ -1,10 +1,14 @@
 import { act, fireEvent, waitFor } from '@testing-library/react'
 import { createShapeId, deleteFromLocalStorage } from '@tldraw/editor'
+import { ReactNode } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
+import { CommandPaletteActionGroup } from '../../lib/ui/components/CommandPalette/CommandPaletteGroups'
 import { CommandPaletteToolsGroup } from '../../lib/ui/components/CommandPalette/CommandPaletteGroups'
 import { CommandPaletteShell } from '../../lib/ui/components/CommandPalette/CommandPaletteShell'
 import { DefaultCommandPaletteContent } from '../../lib/ui/components/CommandPalette/DefaultCommandPaletteContent'
+import { TLUiActionsContextType, useActions } from '../../lib/ui/context/actions'
+import { TLUiOverrides } from '../../lib/ui/overrides'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
 vi.mock('../../lib/ui/hooks/useTranslation/useTranslation', async () =>
@@ -16,17 +20,23 @@ afterEach(() => deleteFromLocalStorage('tldraw-command-palette-recents'))
 async function renderPalette({
 	maxPages,
 	onUiEvent,
-}: { maxPages?: number; onUiEvent?(name: string, data: unknown): void } = {}) {
+	overrides,
+	content = <DefaultCommandPaletteContent />,
+}: {
+	maxPages?: number
+	onUiEvent?(name: string, data: unknown): void
+	overrides?: TLUiOverrides
+	content?: ReactNode
+} = {}) {
 	const { editor, rendered } = await renderTldrawComponentWithEditor(
 		(onMount) => (
 			<Tldraw
 				onMount={onMount}
 				onUiEvent={onUiEvent}
+				overrides={overrides}
 				options={maxPages === undefined ? undefined : { maxPages }}
 			>
-				<CommandPaletteShell onClose={() => {}}>
-					<DefaultCommandPaletteContent />
-				</CommandPaletteShell>
+				<CommandPaletteShell onClose={() => {}}>{content}</CommandPaletteShell>
 			</Tldraw>
 		),
 		{ waitForPatterns: false }
@@ -190,6 +200,110 @@ describe('default command palette content', () => {
 		expect(onUiEvent).toHaveBeenCalledWith('color-scheme', {
 			source: 'command-palette',
 			value: 'dark',
+		})
+	})
+
+	describe('actions', () => {
+		const makeRed = vi.fn()
+		const overrides: TLUiOverrides = {
+			actions(_editor, actions) {
+				actions['make-red'] = {
+					id: 'make-red',
+					label: 'Make red',
+					isEnabled: (editor) => editor.getSelectedShapeIds().length > 0,
+					disabledReason: (editor) =>
+						editor.isIn('select') ? 'command-palette.reason.select-shape' : undefined,
+					onSelect: makeRed,
+				}
+				actions['secret'] = { id: 'secret', label: 'Secret', commandPalette: false, onSelect() {} }
+				actions['make-blue'] = {
+					id: 'make-blue',
+					label: 'Make blue',
+					commandPalette: { group: 'colors' },
+					onSelect() {},
+				}
+				return actions
+			},
+		}
+
+		it('places or opts out every built-in action, so the catch-all only gets new ones', async () => {
+			let actions: TLUiActionsContextType = {}
+			function Probe() {
+				actions = useActions()
+				return null
+			}
+			await renderPalette({ content: <Probe /> })
+			const unplaced = Object.values(actions)
+				.filter((action) => action.commandPalette === undefined)
+				.map((action) => action.id)
+			expect(unplaced).toEqual([])
+		})
+
+		it('lists custom actions in the catch-all, minus opted-out ones', async () => {
+			const { rendered, search } = await renderPalette({ overrides })
+			await rendered.findByTestId('command-palette.item.make-blue')
+			search('secret')
+			expect(rendered.queryByTestId('command-palette.item.secret')).toBeNull()
+		})
+
+		it("gates custom actions and explains them with the action's reason", async () => {
+			const { editor, rendered, search, enter } = await renderPalette({ overrides })
+			search('make red')
+			const row = await rendered.findByTestId('command-palette.item.make-red')
+			expect(row.getAttribute('aria-disabled')).toBe('true')
+			fireEvent.pointerMove(row)
+			await rendered.findByText('Select a shape first')
+			act(() => {
+				editor.createShapes([{ type: 'geo', x: 0, y: 0 }])
+				editor.selectAll()
+			})
+			await waitFor(() => expect(row.getAttribute('aria-disabled')).toBeNull())
+			enter()
+			expect(makeRed).toHaveBeenCalled()
+		})
+
+		it('leaves disabled actions without a reason out of search', async () => {
+			const { editor, rendered, search } = await renderPalette({ overrides })
+			act(() => editor.setCurrentTool('draw'))
+			search('make red')
+			await rendered.findByTestId('command-palette.input')
+			await waitFor(() =>
+				expect(rendered.queryByTestId('command-palette.item.make-red')).toBeNull()
+			)
+		})
+
+		it('lists a group where it is placed, and only once', async () => {
+			const { rendered } = await renderPalette({
+				overrides,
+				content: (
+					<>
+						<CommandPaletteActionGroup group="colors" label="Colors" />
+						<DefaultCommandPaletteContent />
+					</>
+				),
+			})
+			await rendered.findByTestId('command-palette.item.make-blue')
+			const ids = rendered.getAllByRole('option').map((option) => option.dataset.testid)
+			expect(ids.filter((id) => id === 'command-palette.item.make-blue')).toHaveLength(1)
+			expect(ids.indexOf('command-palette.item.make-blue')).toBeLessThan(
+				ids.indexOf('command-palette.item.zoom-in')
+			)
+		})
+
+		it('asks for the select tool before the selection outside it', async () => {
+			const { editor, rendered, search } = await renderPalette()
+			act(() => {
+				editor.createShapes([
+					{ type: 'geo', x: 0, y: 0 },
+					{ type: 'geo', x: 200, y: 0 },
+				])
+				editor.selectAll()
+				editor.setCurrentTool('draw')
+			})
+			search('align left')
+			const row = await rendered.findByTestId('command-palette.item.align-left')
+			fireEvent.pointerMove(row)
+			await rendered.findByText('Switch to the select tool first')
 		})
 	})
 })
