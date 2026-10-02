@@ -22,27 +22,31 @@ export function useHandleSidebarCreateFile() {
 
 	const rCanCreate = useRef(true)
 
-	return useCallback(async () => {
-		if (!rCanCreate.current) return
-		const res = await app.createFile({ workspaceId: activeWorkspaceId })
-		if (res.ok) {
-			const { fileId } = res.value
-			const isMobile = getIsCoarsePointer()
-			if (!isMobile) {
-				app.sidebarState.update((prev) => ({
-					...prev,
-					renameState: { fileId, workspaceId: activeWorkspaceId },
-				}))
+	// A given name skips the rename that otherwise follows.
+	return useCallback(
+		async ({ name }: { name?: string } = {}) => {
+			if (!rCanCreate.current) return
+			const res = await app.createFile({ workspaceId: activeWorkspaceId, name: name || undefined })
+			if (res.ok) {
+				const { fileId } = res.value
+				const isMobile = getIsCoarsePointer()
+				if (!isMobile && !name) {
+					app.sidebarState.update((prev) => ({
+						...prev,
+						renameState: { fileId, workspaceId: activeWorkspaceId },
+					}))
+				}
+				navigate(routes.tlaFile(fileId))
+				trackEvent('create-file', { source: 'sidebar' })
+				rCanCreate.current = false
+				tltime.setTimeout('can create again', () => (rCanCreate.current = true), 1000)
+				if (isMobile) {
+					toggleMobileSidebar(false)
+				}
 			}
-			navigate(routes.tlaFile(fileId))
-			trackEvent('create-file', { source: 'sidebar' })
-			rCanCreate.current = false
-			tltime.setTimeout('can create again', () => (rCanCreate.current = true), 1000)
-			if (isMobile) {
-				toggleMobileSidebar(false)
-			}
-		}
-	}, [app, navigate, trackEvent, activeWorkspaceId])
+		},
+		[app, navigate, trackEvent, activeWorkspaceId]
+	)
 }
 
 export function TlaSidebarCreateFileButton() {
@@ -53,7 +57,7 @@ export function TlaSidebarCreateFileButton() {
 		<TldrawUiButton
 			type="icon"
 			className={styles.sidebarCreateFileButton}
-			onClick={handleSidebarCreate}
+			onClick={() => handleSidebarCreate()}
 			data-testid="tla-create-file"
 			tooltip={createTitle}
 			title={createTitle}

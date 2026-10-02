@@ -51,6 +51,7 @@ import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
+import { TlaCommandPalette } from '../TlaCommandPalette/TlaCommandPalette'
 import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
 import { TlaEditorContextMenu } from './editor-components/TlaEditorContextMenu'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
@@ -90,6 +91,7 @@ const tlaCommentTools = [
 export const components: TLComponents = {
 	ContextMenu: TlaEditorContextMenu,
 	ErrorFallback: TlaEditorErrorFallback,
+	CommandPalette: TlaCommandPalette,
 	MenuPanel: TlaEditorMenuPanel,
 	TopPanel: TlaEditorTopPanel,
 	SharePanel: TlaEditorSharePanel,
