@@ -53,12 +53,31 @@ import { EditorManager } from '../EditorManager'
 /**
  * Content going in and out of the editor: external content and asset handlers, copy and paste of page content, export to SVG and images, and deep links.
  *
- * @internal
+ * @public
  */
 export class ContentManager extends EditorManager {
 	/** @internal */
 	readonly temporaryAssetPreview = new Map<TLAssetId, string>()
 
+	/**
+	 * Register an external asset handler. This handler will be called when the editor needs to
+	 * create an asset for some external content, like an image/video file or a bookmark URL. For
+	 * example, the 'file' type handler will be called when a user drops an image onto the canvas.
+	 *
+	 * The handler should extract any relevant metadata for the asset, upload it to blob storage
+	 * using {@link EditorForwarders.uploadAsset} if needed, and return the asset with the metadata & uploaded
+	 * URL.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.registerExternalAssetHandler('file', myHandler)
+	 * ```
+	 *
+	 * @param type - The type of external content.
+	 * @param handler - The handler to use for this content type.
+	 *
+	 * @public
+	 */
 	registerExternalAssetHandler<T extends TLExternalAsset['type']>(
 		type: T,
 		handler: null | ((info: TLExternalAsset & { type: T }) => Promise<TLAsset>)
@@ -67,6 +86,22 @@ export class ContentManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Register a temporary preview of an asset. This is useful for showing a ghost image of
+	 * something that is being uploaded. Retrieve the placeholder with
+	 * {@link EditorForwarders.getTemporaryAssetPreview}. Placeholders last for 3 minutes by default, but this
+	 * can be configured using
+	 *
+	 * @example
+	 * ```ts
+	 * editor.createTemporaryAssetPreview(assetId, file)
+	 * ```
+	 *
+	 * @param assetId - The asset's id.
+	 * @param file - The raw file.
+	 *
+	 * @public
+	 */
 	createTemporaryAssetPreview(assetId: TLAssetId, file: File) {
 		if (this.temporaryAssetPreview.has(assetId)) {
 			return this.temporaryAssetPreview.get(assetId)
@@ -84,10 +119,35 @@ export class ContentManager extends EditorManager {
 		return objectUrl
 	}
 
+	/**
+	 * Get temporary preview of an asset. This is useful for showing a ghost
+	 * image of something that is being uploaded.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getTemporaryAssetPreview('someId')
+	 * ```
+	 *
+	 * @param assetId - The asset's id.
+	 *
+	 * @public
+	 */
 	getTemporaryAssetPreview(assetId: TLAssetId) {
 		return this.temporaryAssetPreview.get(assetId)
 	}
 
+	/**
+	 * Get an asset for an external asset content type.
+	 *
+	 * @example
+	 * ```ts
+	 * const asset = await editor.getAssetForExternalContent({ type: 'file', file: myFile })
+	 * const asset = await editor.getAssetForExternalContent({ type: 'url', url: myUrl })
+	 * ```
+	 *
+	 * @param info - Info about the external content.
+	 * @returns The asset.
+	 */
 	async getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined> {
 		return await this.editor.externalAssetContentHandlers[info.type]?.(info as any)
 	}
@@ -96,6 +156,25 @@ export class ContentManager extends EditorManager {
 		return !!this.editor.externalAssetContentHandlers[type]
 	}
 
+	/**
+	 * Register an external content handler. This handler will be called when the editor receives
+	 * external content of the provided type. For example, the 'image' type handler will be called
+	 * when a user drops an image onto the canvas.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.registerExternalContentHandler('text', myHandler)
+	 * ```
+	 * @example
+	 * ```ts
+	 * editor.registerExternalContentHandler<'embed', MyEmbedType>('embed', myHandler)
+	 * ```
+	 *
+	 * @param type - The type of external content.
+	 * @param handler - The handler to use for this content type.
+	 *
+	 * @public
+	 */
 	registerExternalContentHandler<T extends TLExternalContent<E>['type'], E>(
 		type: T,
 		handler:
@@ -110,6 +189,12 @@ export class ContentManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Handle external content, such as files, urls, embeds, or plain text which has been put into the app, for example by pasting external text or dropping external images onto canvas.
+	 *
+	 * @param info - Info about the external content.
+	 * @param opts - Options for handling external content, including force flag to bypass readonly checks.
+	 */
 	async putExternalContent<E>(
 		info: TLExternalContent<E>,
 		opts = {} as { force?: boolean }
@@ -119,6 +204,12 @@ export class ContentManager extends EditorManager {
 		return this.editor.externalContentHandlers[info.type]?.(info as any)
 	}
 
+	/**
+	 * Handle replacing external content.
+	 *
+	 * @param info - Info about the external content.
+	 * @param opts - Options for handling external content, including force flag to bypass readonly checks.
+	 */
 	async replaceExternalContent<E>(
 		info: TLExternalContent<E>,
 		opts = {} as { force?: boolean }
@@ -127,6 +218,15 @@ export class ContentManager extends EditorManager {
 		return this.editor.externalContentHandlers[info.type]?.(info as any)
 	}
 
+	/**
+	 * Get content that can be exported for the given shape ids.
+	 *
+	 * @param shapes - The shapes (or shape ids) to get content for.
+	 *
+	 * @returns The exported content.
+	 *
+	 * @public
+	 */
 	getContentFromCurrentPage(shapes: TLShapeId[] | TLShape[]): TLContent | undefined {
 		// todo: make this work with any page, not just the current page
 		const ids = toShapeIds(shapes)
@@ -251,6 +351,14 @@ export class ContentManager extends EditorManager {
 		return content
 	}
 
+	/**
+	 * Place content into the editor.
+	 *
+	 * @param content - The content.
+	 * @param opts - Options for placing the content.
+	 *
+	 * @public
+	 */
 	putContentOntoCurrentPage(
 		content: TLContent,
 		opts: {
@@ -563,6 +671,16 @@ export class ContentManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Get an exported SVG element of the given shapes.
+	 *
+	 * @param shapes - The shapes (or shape ids) to export.
+	 * @param opts - Options for the export.
+	 *
+	 * @returns The SVG element.
+	 *
+	 * @public
+	 */
 	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts: TLSvgExportOptions = {}) {
 		const ids =
 			shapes.length === 0 ? this.editor.getCurrentPageShapeIdsSorted() : toShapeIds(shapes)
@@ -580,6 +698,16 @@ export class ContentManager extends EditorManager {
 		return exportToSvg(this.editor, ids, opts)
 	}
 
+	/**
+	 * Get an exported SVG string of the given shapes.
+	 *
+	 * @param shapes - The shapes (or shape ids) to export.
+	 * @param opts - Options for the export.
+	 *
+	 * @returns The SVG element.
+	 *
+	 * @public
+	 */
 	async getSvgString(shapes: TLShapeId[] | TLShape[], opts: TLSvgExportOptions = {}) {
 		const result = await this.editor.getSvgElement(shapes, opts)
 		if (!result) return undefined
@@ -593,6 +721,15 @@ export class ContentManager extends EditorManager {
 		}
 	}
 
+	/**
+	 * Get an exported image of the given shapes.
+	 *
+	 * @param shapes - The shapes (or shape ids) to export.
+	 * @param opts - Options for the export.
+	 *
+	 * @returns A blob of the image.
+	 * @public
+	 */
 	async toImage(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
 		const withDefaults = {
 			format: 'png',
@@ -650,6 +787,15 @@ export class ContentManager extends EditorManager {
 		}
 	}
 
+	/**
+	 * Get an exported image of the given shapes as a data URL.
+	 *
+	 * @param shapes - The shapes (or shape ids) to export.
+	 * @param opts - Options for the export.
+	 *
+	 * @returns A data URL of the image.
+	 * @public
+	 */
 	async toImageDataUrl(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
 		const { blob, width, height } = await this.editor.toImage(shapes, opts)
 		return {
@@ -718,6 +864,31 @@ export class ContentManager extends EditorManager {
 		})
 	}
 
+	/**
+	 * Handles navigating to the content specified by the query param in the given URL.
+	 *
+	 * Use {@link EditorForwarders.createDeepLink} to create a URL with a deep link query param.
+	 *
+	 * If no URL is provided, it will look for the param in the current `window.location.href`.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.navigateToDeepLink()
+	 * ```
+	 *
+	 * The default parameter name is 'd'. You can override this by providing the `param` option.
+	 *
+	 * @example
+	 * ```ts
+	 * // disable page parameter and change viewport parameter to 'c'
+	 * editor.navigateToDeepLink({
+	 *   param: 'x',
+	 *   url: 'https://my-app.com/my-document?x=200.12.454.23.xyz123',
+	 * })
+	 * ```
+	 *
+	 * @param opts - Options for loading the state from the URL.
+	 */
 	navigateToDeepLink(opts?: TLDeepLink | { url?: string | URL; param?: string }): Editor {
 		if (opts && 'type' in opts) {
 			this._navigateToDeepLink(opts)
@@ -741,6 +912,40 @@ export class ContentManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Turns the given URL into a deep link by adding a query parameter.
+	 *
+	 * e.g. `https://my-app.com/my-document?d=100.100.200.200.xyz123`
+	 *
+	 * If no URL is provided, it will use the current `window.location.href`.
+	 *
+	 * @example
+	 * ```ts
+	 * // create a deep link to the current page + viewport
+	 * navigator.clipboard.writeText(editor.createDeepLink())
+	 * ```
+	 *
+	 * You can link to a particular set of shapes by providing a `to` parameter.
+	 *
+	 * @example
+	 * ```ts
+	 * // create a deep link to the set of currently selected shapes
+	 * navigator.clipboard.writeText(editor.createDeepLink({
+	 *   to: { type: 'selection', shapeIds: editor.getSelectedShapeIds() }
+	 * }))
+	 * ```
+	 *
+	 * The default query param is 'd'. You can override this by providing a `param` parameter.
+	 *
+	 * @example
+	 * ```ts
+	 * // Use `x` as the param name instead
+	 * editor.createDeepLink({ param: 'x' })
+	 * ```
+	 *
+	 * @param opts - Options for adding the state to the URL.
+	 * @returns the updated URL
+	 */
 	createDeepLink(opts?: { url?: string | URL; param?: string; to?: TLDeepLink }): URL {
 		const url = new URL(opts?.url ?? window.location.href)
 
@@ -758,6 +963,50 @@ export class ContentManager extends EditorManager {
 		return url
 	}
 
+	/**
+	 * Register a listener for changes to a deep link for the current document.
+	 *
+	 * You'll typically want to use this indirectly via the {@link TldrawEditorBaseProps.deepLinks} prop on the `<Tldraw />` component.
+	 *
+	 * By default this will update `window.location` in place, but you can provide a custom callback
+	 * to handle state changes on your own.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.registerDeepLinkListener({
+	 *   onChange(url) {
+	 *     window.history.replaceState({}, document.title, url.toString())
+	 *   }
+	 * })
+	 * ```
+	 *
+	 * You can also provide a custom URL to update, in which case you must also provide `onChange`.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.registerDeepLinkListener({
+	 *   getUrl: () => `https://my-app.com/my-document`,
+	 *   onChange(url) {
+	 *     setShareUrl(url.toString())
+	 *   }
+	 * })
+	 * ```
+	 *
+	 * By default this will update with a debounce interval of 500ms, but you can provide a custom interval.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.registerDeepLinkListener({ debounceMs: 1000 })
+	 * ```
+	 * The default parameter name is `d`. You can override this by providing a `param` option.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.registerDeepLinkListener({ param: 'x' })
+	 * ```
+	 * @param opts - Options for setting up the listener.
+	 * @returns a function that will stop the listener.
+	 */
 	registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void {
 		if (opts?.getUrl && !opts?.onChange) {
 			throw Error(

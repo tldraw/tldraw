@@ -7,7 +7,7 @@ import { EditorManager } from '../EditorManager'
 /**
  * Asset records: lookup, create, update, delete, resolve and upload.
  *
- * @internal
+ * @public
  */
 export class AssetsManager extends EditorManager {
 	/* --------------------- Assets --------------------- */
@@ -17,10 +17,27 @@ export class AssetsManager extends EditorManager {
 		return this.editor.store.query.records('asset')
 	}
 
+	/**
+	 * Get all assets in the editor.
+	 *
+	 * @public
+	 */
 	getAssets() {
 		return this._getAllAssetsQuery().get()
 	}
 
+	/**
+	 * Create one or more assets.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.createAssets([...myAssets])
+	 * ```
+	 *
+	 * @param assets - The assets to create.
+	 *
+	 * @public
+	 */
 	createAssets(assets: TLAsset[]): Editor {
 		if (this.editor.getIsReadonly()) return this.editor
 		if (assets.length <= 0) return this.editor
@@ -28,6 +45,18 @@ export class AssetsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Update one or more assets.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updateAssets([{ id: 'asset1', name: 'New name' }])
+	 * ```
+	 *
+	 * @param assets - The assets to update.
+	 *
+	 * @public
+	 */
 	updateAssets(assets: TLAssetPartial[]): Editor {
 		if (this.editor.getIsReadonly()) return this.editor
 		if (assets.length <= 0) return this.editor
@@ -45,6 +74,18 @@ export class AssetsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Delete one or more assets.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.deleteAssets(['asset1', 'asset2'])
+	 * ```
+	 *
+	 * @param assets - The assets (or asset ids) to delete.
+	 *
+	 * @public
+	 */
 	deleteAssets(assets: TLAssetId[] | TLAsset[]): Editor {
 		if (this.editor.getIsReadonly()) return this.editor
 
@@ -67,6 +108,18 @@ export class AssetsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Get an asset by its id.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getAsset('asset1')
+	 * ```
+	 *
+	 * @param asset - The asset (or asset id) to get.
+	 *
+	 * @public
+	 */
 	getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined {
 		return this.editor.store.get(typeof asset === 'string' ? asset : asset.id) as T | undefined
 	}
@@ -104,6 +157,10 @@ export class AssetsManager extends EditorManager {
 		})
 	}
 
+	/**
+	 * Upload an asset to the store's asset service, returning a URL that can be used to resolve the
+	 * asset.
+	 */
 	async uploadAsset(
 		asset: TLAsset,
 		file: File,

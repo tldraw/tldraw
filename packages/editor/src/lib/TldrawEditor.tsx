@@ -229,7 +229,7 @@ export interface TldrawEditorBaseProps {
 	 * Provides a way to hide shapes.
 	 *
 	 * Hidden shapes will not render in the editor, and they will not be eligible for hit test via
-	 * {@link @tldraw/editor#Editor.getShapeAtPoint} and {@link @tldraw/editor#Editor.getShapesAtPoint}. But otherwise they will
+	 * {@link @tldraw/editor#EditorForwarders.getShapeAtPoint} and {@link @tldraw/editor#EditorForwarders.getShapesAtPoint}. But otherwise they will
 	 * remain in the store and participate in all other operations.
 	 *
 	 * @example

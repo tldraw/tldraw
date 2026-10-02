@@ -16,7 +16,7 @@ import { EditorManager } from '../EditorManager'
 /**
  * Bindings between shapes: lookup, create, update and delete.
  *
- * @internal
+ * @public
  */
 export class BindingsManager extends EditorManager {
 	/* -------------------- Bindings -------------------- */
@@ -35,10 +35,17 @@ export class BindingsManager extends EditorManager {
 		)
 	}
 
+	/**
+	 * Get a binding from the store by its ID if it exists.
+	 */
 	getBinding(id: TLBindingId): TLBinding | undefined {
 		return this.editor.store.get(id) as TLBinding | undefined
 	}
 
+	/**
+	 * Get all bindings of a certain type _from_ a particular shape. These are the bindings whose
+	 * `fromId` matched the shape's ID.
+	 */
 	getBindingsFromShape<K extends TLBinding['type']>(
 		shape: TLShape | TLShapeId,
 		type: K
@@ -57,6 +64,10 @@ export class BindingsManager extends EditorManager {
 			.filter((b) => b.fromId === id && b.type === type) as Binding[]
 	}
 
+	/**
+	 * Get all bindings of a certain type _to_ a particular shape. These are the bindings whose
+	 * `toId` matches the shape's ID.
+	 */
 	getBindingsToShape<K extends TLBinding['type']>(
 		shape: TLShape | TLShapeId,
 		type: K
@@ -75,6 +86,10 @@ export class BindingsManager extends EditorManager {
 			.filter((b) => b.toId === id && b.type === type) as Binding[]
 	}
 
+	/**
+	 * Get all bindings involving a particular shape. This includes bindings where the shape is the
+	 * `fromId` or `toId`. If a type is provided, only bindings of that type are returned.
+	 */
 	getBindingsInvolvingShape<K extends TLBinding['type']>(
 		shape: TLShape | TLShapeId,
 		type: K
@@ -93,6 +108,10 @@ export class BindingsManager extends EditorManager {
 		return result.filter((b) => b.type === type) as Binding[]
 	}
 
+	/**
+	 * Create bindings from a list of partial bindings. You can omit the ID and most props of a
+	 * binding, but the `type`, `toId`, and `fromId` must all be provided.
+	 */
 	createBindings<B extends TLBinding = TLBinding>(partials: TLBindingCreate<B>[]) {
 		if (this.editor.getIsReadonly()) return this.editor
 
@@ -121,10 +140,19 @@ export class BindingsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Create a single binding from a partial. You can omit the ID and most props of a binding, but
+	 * the `type`, `toId`, and `fromId` must all be provided.
+	 */
 	createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>) {
 		return this.editor.createBindings([partial])
 	}
 
+	/**
+	 * Update bindings from a list of partial bindings. Each partial must include an ID, which will
+	 * be used to match the binding to it's existing record. If there is no existing record, that
+	 * binding is skipped. The changes from the partial are merged into the existing record.
+	 */
 	updateBindings(partials: (TLBindingUpdate | null | undefined)[]) {
 		if (this.editor.getIsReadonly()) return this.editor
 
@@ -152,10 +180,18 @@ export class BindingsManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Update a binding from a partial binding. Each partial must include an ID, which will be used
+	 * to match the binding to it's existing record. If there is no existing record, that binding is
+	 * skipped. The changes from the partial are merged into the existing record.
+	 */
 	updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>) {
 		return this.editor.updateBindings([partial])
 	}
 
+	/**
+	 * Delete a binding by its ID. If the binding doesn't exist, it's ignored.
+	 */
 	deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<Editor['deleteBindings']>[1]) {
 		return this.editor.deleteBindings([binding], opts)
 	}

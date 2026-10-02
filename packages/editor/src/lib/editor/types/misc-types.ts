@@ -208,7 +208,7 @@ export interface TLUpdatePointerOptions {
 }
 
 /**
- * Options to {@link Editor.getShapeAtPoint}.
+ * Options to {@link EditorForwarders.getShapeAtPoint}.
  *
  * @public
  */

@@ -20,9 +20,16 @@ import { EditorManager } from '../EditorManager'
 /**
  * Finding shapes at a point or inside bounds.
  *
- * @internal
+ * @public
  */
 export class HitTestManager extends EditorManager {
+	/**
+	 * Get the top-most selected shape at the given point, ignoring groups.
+	 *
+	 * @param point - The point to check.
+	 *
+	 * @returns The top-most selected shape at the given point, or undefined if there is no shape at the point.
+	 */
 	getSelectedShapeAtPoint(point: VecLike): TLShape | undefined {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		if (selectedShapeIds.length === 0) return undefined
@@ -47,6 +54,14 @@ export class HitTestManager extends EditorManager {
 		return undefined
 	}
 
+	/**
+	 * Get the shape at the current point.
+	 *
+	 * @param point - The point to check.
+	 * @param opts - Options for the check: `hitInside` to check if the point is inside the shape, `margin` to check if the point is within a margin of the shape, `hitFrameInside` to check if the point is inside the frame, and `filter` to filter the shapes to check.
+	 *
+	 * @returns The shape at the given point, or undefined if there is no shape at the point.
+	 */
 	getShapeAtPoint(point: VecLike, opts: TLGetShapeAtPointOptions = {}): TLShape | undefined {
 		const viewportPageBounds = this.editor.getViewportPageBounds()
 		const {
@@ -188,6 +203,22 @@ export class HitTestManager extends EditorManager {
 		return getBestHit(ranking)
 	}
 
+	/**
+	 * Get the shapes, if any, at a given page point.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapesAtPoint({ x: 100, y: 100 })
+	 * editor.getShapesAtPoint({ x: 100, y: 100 }, { hitInside: true, margin: 8 })
+	 * ```
+	 *
+	 * @param point - The page point to test.
+	 * @param opts - The options for the hit point testing.
+	 *
+	 * @returns An array of shapes at the given point, sorted in reverse order of their absolute z-index (top-most shape first).
+	 *
+	 * @public
+	 */
 	getShapesAtPoint(
 		point: VecLike,
 		opts = {} as { margin?: number; hitInside?: boolean }
@@ -209,10 +240,42 @@ export class HitTestManager extends EditorManager {
 		return result
 	}
 
+	/**
+	 * Get shape IDs within the given bounds.
+	 *
+	 * Note: Uses shape page bounds only. Frames with labels outside their bounds
+	 * may not be included even if the label is within the search bounds.
+	 *
+	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
+	 * ```ts
+	 * const candidates = editor.getShapeIdsInsideBounds(bounds)
+	 * const sorted = editor.getCurrentPageShapesSorted().filter(s => candidates.has(s.id))
+	 * ```
+	 *
+	 * @param bounds - The bounds to search within.
+	 * @returns Unordered set of shape IDs within the given bounds.
+	 *
+	 * @public
+	 */
 	getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId> {
 		return this.editor._spatialIndex.getShapeIdsInsideBounds(bounds)
 	}
 
+	/**
+	 * Test whether a point (in the current page space) will will a shape. This method takes into account masks,
+	 * such as when a shape is the child of a frame and is partially clipped by the frame.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.isPointInShape({ x: 100, y: 100 }, myShape)
+	 * ```
+	 *
+	 * @param shape - The shape to test against.
+	 * @param point - The page point to test (in the current page space).
+	 * @param opts - The options for the hit point testing.
+	 *
+	 * @public
+	 */
 	isPointInShape(
 		shape: TLShape | TLShapeId,
 		point: VecLike,
@@ -233,6 +296,16 @@ export class HitTestManager extends EditorManager {
 			.hitTestPoint(this.editor.getPointInShapeSpace(shape, point), margin, hitInside)
 	}
 
+	/**
+	 * Get the shape that some shapes should be dropped on at a given point.
+	 *
+	 * @param point - The point to find the parent for.
+	 * @param droppingShapes - The shapes that are being dropped.
+	 *
+	 * @returns The shape to drop on.
+	 *
+	 * @public
+	 */
 	getDraggingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined {
 		// get fresh moving shapes
 		const draggingShapes = compact(droppingShapes.map((s) => this.editor.getShape(s))).filter(

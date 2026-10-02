@@ -31,7 +31,7 @@ import { EditorManager } from '../EditorManager'
 /**
  * The camera: options and constraints, zoom, animation, viewport bounds, coordinate conversion and following another user.
  *
- * @internal
+ * @public
  */
 export class CameraManager extends EditorManager {
 	/* --------------------- Camera --------------------- */
@@ -42,6 +42,11 @@ export class CameraManager extends EditorManager {
 		return CameraRecordType.createId(this.editor.getCurrentPageId())
 	}
 
+	/**
+	 * The current camera.
+	 *
+	 * @public
+	 */
 	@computed getCamera(): TLCamera {
 		const baseCamera = this.editor.store.get(this._unsafe_getCameraId())!
 		if (this._isLockedOnFollowingUser.get()) {
@@ -110,16 +115,36 @@ export class CameraManager extends EditorManager {
 		}
 	}
 
+	/**
+	 * The current camera zoom level.
+	 *
+	 * @public
+	 */
 	@computed getZoomLevel() {
 		return this.editor.getCamera().z
 	}
 
+	/**
+	 * Get the scale factor used when creating or resizing shapes in dynamic size mode.
+	 *
+	 * @public
+	 */
 	@computed getResizeScaleFactor() {
 		return this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
 	}
 
 	_debouncedZoomLevel = atom('debounced zoom level', 1)
 
+	/**
+	 * Get the debounced zoom level. When the camera is moving, this returns the zoom level
+	 * from when the camera started moving rather than the current zoom level. This can be
+	 * used to avoid expensive re-renders during camera movements.
+	 *
+	 * This behavior is controlled by the `useDebouncedZoom` option. When `useDebouncedZoom`
+	 * is `false`, this method always returns the current zoom level.
+	 *
+	 * @public
+	 */
 	@computed getDebouncedZoomLevel() {
 		if (this.editor.options.debouncedZoom) {
 			if (this.editor.getCameraState() === 'idle') {
@@ -136,16 +161,46 @@ export class CameraManager extends EditorManager {
 		return this.editor.getCurrentPageShapeIds().size > this.editor.options.debouncedZoomThreshold
 	}
 
+	/**
+	 * Get the efficient zoom level. This returns the current zoom level if there are less than a certain number of shapes on the page,
+	 * otherwise it returns the debounced zoom level. This can be used to avoid expensive re-renders during camera movements.
+	 *
+	 * @public
+	 * @example
+	 * ```ts
+	 * editor.getEfficientZoomLevel()
+	 * ```
+	 *
+	 * @public
+	 */
 	@computed getEfficientZoomLevel() {
 		return this._getAboveDebouncedZoomThreshold()
 			? this.editor.getDebouncedZoomLevel()
 			: this.editor.getZoomLevel()
 	}
 
+	/**
+	 * Get the camera's initial or reset zoom level.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getInitialZoom()
+	 * ```
+	 *
+	 * @public */
 	getInitialZoom() {
 		return this._getFitZoom(this.editor.getCameraOptions().constraints?.initialZoom ?? 'default')
 	}
 
+	/**
+	 * Get the camera's base level for calculating actual zoom levels based on the zoom steps.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getBaseZoom()
+	 * ```
+	 *
+	 * @public */
 	getBaseZoom() {
 		return this._getFitZoom(this.editor.getCameraOptions().constraints?.baseZoom ?? 'default')
 	}
@@ -158,10 +213,31 @@ export class CameraManager extends EditorManager {
 
 	_cameraOptions = atom('camera options', DEFAULT_CAMERA_OPTIONS)
 
+	/**
+	 * Get the current camera options.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getCameraOptions()
+	 * ```
+	 *
+	 *  @public */
 	getCameraOptions() {
 		return this._cameraOptions.get()
 	}
 
+	/**
+	 * Set the camera options. Changing the options won't immediately change the camera itself, so you may want to call `setCamera` after changing the options.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setCameraOptions(myCameraOptions)
+	 * editor.setCamera(editor.getCamera())
+	 * ```
+	 *
+	 * @param opts - The camera options to set.
+	 *
+	 * @public */
 	setCameraOptions(opts: Partial<TLCameraOptions>) {
 		const next = structuredClone({
 			...this._cameraOptions.__unsafe__getWithoutCapture(),
@@ -175,6 +251,7 @@ export class CameraManager extends EditorManager {
 		return this.editor
 	}
 
+	/** @internal */
 	getConstrainedCamera(
 		point: VecLike,
 		opts?: TLCameraMoveOptions
@@ -250,6 +327,21 @@ export class CameraManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Set the current camera.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setCamera({ x: 0, y: 0})
+	 * editor.setCamera({ x: 0, y: 0, z: 1.5})
+	 * editor.setCamera({ x: 0, y: 0, z: 1.5}, { animation: { duration: 1000, easing: (t) => t * t } })
+	 * ```
+	 *
+	 * @param point - The new camera position.
+	 * @param opts - The camera move options.
+	 *
+	 * @public
+	 */
 	setCamera(point: VecLike, opts?: TLCameraMoveOptions): Editor {
 		const { isLocked } = this._cameraOptions.__unsafe__getWithoutCapture()
 		if (isLocked && !opts?.force) return this.editor
@@ -289,6 +381,20 @@ export class CameraManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Center the camera on a point (in the current page space).
+	 *
+	 * @example
+	 * ```ts
+	 * editor.centerOnPoint({ x: 100, y: 100 })
+	 * editor.centerOnPoint({ x: 100, y: 100 }, { animation: { duration: 200 } })
+	 * ```
+	 *
+	 * @param point - The point in the current page space to center on.
+	 * @param opts - The camera move options.
+	 *
+	 * @public
+	 */
 	centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): Editor {
 		const { isLocked } = this.editor.getCameraOptions()
 		if (isLocked && !opts?.force) return this.editor
@@ -301,6 +407,19 @@ export class CameraManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Zoom the camera to fit the current page's content in the viewport.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.zoomToFit()
+	 * editor.zoomToFit({ animation: { duration: 200 } })
+	 * ```
+	 *
+	 * @param opts - The camera move options.
+	 *
+	 * @public
+	 */
 	zoomToFit(opts?: TLCameraMoveOptions): Editor {
 		const ids = [...this.editor.getCurrentPageShapeIds()].filter(
 			(id) => !this.editor.isShapeHidden(id)
@@ -311,6 +430,21 @@ export class CameraManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Set the zoom back to 100%.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.resetZoom()
+	 * editor.resetZoom(editor.getViewportScreenCenter(), { animation: { duration: 200 } })
+	 * editor.resetZoom(editor.getViewportScreenCenter(), { animation: { duration: 200 } })
+	 * ```
+	 *
+	 * @param point - The screen point to zoom out on. Defaults to the viewport screen center.
+	 * @param opts - The camera move options.
+	 *
+	 * @public
+	 */
 	resetZoom(point = this.editor.getViewportScreenCenter(), opts?: TLCameraMoveOptions): Editor {
 		const { isLocked, constraints: constraints } = this.editor.getCameraOptions()
 		if (isLocked && !opts?.force) return this.editor
@@ -332,6 +466,21 @@ export class CameraManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Zoom the camera in.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.zoomIn()
+	 * editor.zoomIn(editor.getViewportScreenCenter(), { animation: { duration: 200 } })
+	 * editor.zoomIn(editor.inputs.getCurrentScreenPoint(), { animation: { duration: 200 } })
+	 * ```
+	 *
+	 * @param point - The screen point to zoom in on. Defaults to the screen center
+	 * @param opts - The camera move options.
+	 *
+	 * @public
+	 */
 	zoomIn(point = this.editor.getViewportScreenCenter(), opts?: TLCameraMoveOptions): Editor {
 		const { isLocked } = this.editor.getCameraOptions()
 		if (isLocked && !opts?.force) return this.editor
@@ -347,6 +496,21 @@ export class CameraManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Zoom the camera out.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.zoomOut()
+	 * editor.zoomOut(editor.getViewportScreenCenter(), { animation: { duration: 120 } })
+	 * editor.zoomOut(editor.inputs.getCurrentScreenPoint(), { animation: { duration: 120 } })
+	 * ```
+	 *
+	 * @param point - The point to zoom out on. Defaults to the viewport screen center.
+	 * @param opts - The camera move options.
+	 *
+	 * @public
+	 */
 	zoomOut(point = this.editor.getViewportScreenCenter(), opts?: TLCameraMoveOptions): Editor {
 		const { isLocked } = this.editor.getCameraOptions()
 		if (isLocked && !opts?.force) return this.editor
@@ -362,6 +526,19 @@ export class CameraManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Zoom the camera to fit the current selection in the viewport.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.zoomToSelection()
+	 * editor.zoomToSelection({ animation: { duration: 200 } })
+	 * ```
+	 *
+	 * @param opts - The camera move options.
+	 *
+	 * @public
+	 */
 	zoomToSelection(opts?: TLCameraMoveOptions): Editor {
 		const { isLocked } = this.editor.getCameraOptions()
 		if (isLocked && !opts?.force) return this.editor
@@ -383,6 +560,11 @@ export class CameraManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Zoom the camera to the current selection if offscreen.
+	 *
+	 * @public
+	 */
 	zoomToSelectionIfOffscreen(
 		padding = 16,
 		opts?: { targetZoom?: number; inset?: number } & TLCameraMoveOptions
@@ -406,6 +588,21 @@ export class CameraManager extends EditorManager {
 		}
 	}
 
+	/**
+	 * Zoom the camera to fit a bounding box (in the current page space).
+	 *
+	 * @example
+	 * ```ts
+	 * editor.zoomToBounds(myBounds)
+	 * editor.zoomToBounds(myBounds, { animation: { duration: 200 } })
+	 * editor.zoomToBounds(myBounds, { animation: { duration: 200 }, inset: 0, targetZoom: 1 })
+	 * ```
+	 *
+	 * @param bounds - The bounding box.
+	 * @param opts - The camera move options, target zoom, or custom inset amount.
+	 *
+	 * @public
+	 */
 	zoomToBounds(
 		bounds: BoxLike,
 		opts?: { targetZoom?: number; inset?: number } & TLCameraMoveOptions
@@ -448,6 +645,16 @@ export class CameraManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Stop the current camera animation, if any.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.stopCameraAnimation()
+	 * ```
+	 *
+	 * @public
+	 */
 	stopCameraAnimation(): Editor {
 		this.editor.emit('stop-camera-animation')
 		return this.editor
@@ -511,6 +718,7 @@ export class CameraManager extends EditorManager {
 		)
 	}
 
+	/** @internal */
 	_animateToViewport(
 		targetViewportPage: Box,
 		opts = { animation: DEFAULT_ANIMATION_OPTIONS } as TLCameraMoveOptions
@@ -557,6 +765,17 @@ export class CameraManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Slide the camera in a certain direction.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.slideCamera({ speed: 1, direction: { x: 1, y: 0 }, friction: 0.1 })
+	 * ```
+	 *
+	 * @param opts - Options for the slide
+	 * @public
+	 */
 	slideCamera(
 		opts = {} as {
 			speed: number
@@ -626,6 +845,19 @@ export class CameraManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Animate the camera to a user's cursor position. This also briefly show the user's cursor if it's not currently visible.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.zoomToUser(myUserId)
+	 * editor.zoomToUser(myUserId, { animation: { duration: 200 } })
+	 * ```
+	 *
+	 * @param userId - The id of the user to animate to.
+	 * @param opts - The camera move options.
+	 * @public
+	 */
 	zoomToUser(
 		userId: TLUserId,
 		opts: TLCameraMoveOptions = { animation: { duration: 500 } }
@@ -679,6 +911,21 @@ export class CameraManager extends EditorManager {
 	/** @internal */
 	_willSetInitialBounds = true
 
+	/**
+	 * Update the viewport. The viewport will measure the size and screen position of its container
+	 * element. This should be done whenever the container's position on the screen changes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updateViewportScreenBounds(new Box(0, 0, 1280, 1024))
+	 * editor.updateViewportScreenBounds(new Box(0, 0, 1280, 1024), true)
+	 * ```
+	 *
+	 * @param screenBounds - The new screen bounds of the viewport.
+	 * @param center - Whether to preserve the viewport page center as the viewport changes.
+	 *
+	 * @public
+	 */
 	updateViewportScreenBounds(screenBounds: Box | HTMLElement, center = false): Editor {
 		if (!(screenBounds instanceof Box)) {
 			const rect = screenBounds.getBoundingClientRect()
@@ -742,22 +989,49 @@ export class CameraManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * The bounds of the editor's viewport in screen space.
+	 *
+	 * @public
+	 */
 	@computed getViewportScreenBounds() {
 		const { x, y, w, h } = this.editor.getInstanceState().screenBounds
 		return new Box(x, y, w, h)
 	}
 
+	/**
+	 * The center of the editor's viewport in screen space.
+	 *
+	 * @public
+	 */
 	@computed getViewportScreenCenter() {
 		const viewportScreenBounds = this.editor.getViewportScreenBounds()
 		return new Vec(viewportScreenBounds.w / 2, viewportScreenBounds.h / 2)
 	}
 
+	/**
+	 * The current viewport in the current page space.
+	 *
+	 * @public
+	 */
 	@computed getViewportPageBounds() {
 		const { w, h } = this.editor.getViewportScreenBounds()
 		const { x: cx, y: cy, z: cz } = this.editor.getCamera()
 		return new Box(-cx, -cy, w / cz, h / cz)
 	}
 
+	/**
+	 * Convert a point in screen space to a point in the current page space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.screenToPage({ x: 100, y: 100 })
+	 * ```
+	 *
+	 * @param point - The point in screen space.
+	 *
+	 * @public
+	 */
 	screenToPage(point: VecLike) {
 		const { screenBounds } = this.editor.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const { x: cx, y: cy, z: cz = 1 } = this.editor.getCamera()
@@ -768,6 +1042,18 @@ export class CameraManager extends EditorManager {
 		)
 	}
 
+	/**
+	 * Convert a point in the current page space to a point in current screen space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.pageToScreen({ x: 100, y: 100 })
+	 * ```
+	 *
+	 * @param point - The point in page space.
+	 *
+	 * @public
+	 */
 	pageToScreen(point: VecLike) {
 		const { screenBounds } = this.editor.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const { x: cx, y: cy, z: cz = 1 } = this.editor.getCamera()
@@ -778,6 +1064,18 @@ export class CameraManager extends EditorManager {
 		)
 	}
 
+	/**
+	 * Convert a point in the current page space to a point in current viewport space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.pageToViewport({ x: 100, y: 100 })
+	 * ```
+	 *
+	 * @param point - The point in page space.
+	 *
+	 * @public
+	 */
 	pageToViewport(point: VecLike) {
 		const { x: cx, y: cy, z: cz = 1 } = this.editor.getCamera()
 		return new Vec((point.x + cx) * cz, (point.y + cy) * cz, point.z ?? 0.5)
@@ -788,6 +1086,18 @@ export class CameraManager extends EditorManager {
 	// When we are 'locked on' to a user, our camera is derived from their camera.
 	_isLockedOnFollowingUser = atom('isLockedOnFollowingUser', false)
 
+	/**
+	 * Start viewport-following a user.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.startFollowingUser(myUserId)
+	 * ```
+	 *
+	 * @param userId - The id of the user to follow.
+	 *
+	 * @public
+	 */
 	startFollowingUser(userId: TLUserId): Editor {
 		// if we were already following someone, stop following them
 		this.editor.stopFollowingUser()
@@ -917,6 +1227,15 @@ export class CameraManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Stop viewport-following a user.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.stopFollowingUser()
+	 * ```
+	 * @public
+	 */
 	stopFollowingUser(): Editor {
 		this.editor.run(
 			() => {
@@ -959,6 +1278,16 @@ export class CameraManager extends EditorManager {
 		this.editor.updateInstanceState({ cameraState }, { history: 'ignore' })
 	}
 
+	/**
+	 * Whether the camera is moving or idle.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getCameraState()
+	 * ```
+	 *
+	 * @public
+	 */
 	getCameraState() {
 		return this.editor.getInstanceState().cameraState
 	}

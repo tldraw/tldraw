@@ -10,7 +10,7 @@ import { EditorManager } from '../EditorManager'
 /**
  * Pages: lookup, the current page, and creating, updating, deleting and duplicating pages.
  *
- * @internal
+ * @public
  */
 export class PagesManager extends EditorManager {
 	/* --------------------- Pages ---------------------- */
@@ -19,18 +19,61 @@ export class PagesManager extends EditorManager {
 		return this.editor.store.query.records('page')
 	}
 
+	/**
+	 * Info about the project's current pages.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPages()
+	 * ```
+	 *
+	 * @public
+	 */
 	@computed getPages(): TLPage[] {
 		return Array.from(this._getAllPagesQuery().get()).sort(sortByIndex)
 	}
 
+	/**
+	 * The current page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getCurrentPage()
+	 * ```
+	 *
+	 * @public
+	 */
 	getCurrentPage(): TLPage {
 		return this.editor.getPage(this.editor.getCurrentPageId())!
 	}
 
+	/**
+	 * The current page id.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getCurrentPageId()
+	 * ```
+	 *
+	 * @public
+	 */
 	@computed getCurrentPageId(): TLPageId {
 		return this.editor.getInstanceState().currentPageId
 	}
 
+	/**
+	 * Get a page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPage(myPage.id)
+	 * editor.getPage(myPage)
+	 * ```
+	 *
+	 * @param page - The page (or the page id) to get.
+	 *
+	 * @public
+	 */
 	getPage(page: TLPageId | TLPage): TLPage | undefined {
 		return this.editor.store.get(typeof page === 'string' ? page : page.id)
 	}
@@ -38,21 +81,60 @@ export class PagesManager extends EditorManager {
 	/* @internal */
 	_currentPageShapeIds!: Computed<Set<TLShapeId>>
 
+	/**
+	 * An array of all of the shapes on the current page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getCurrentPageIds()
+	 * ```
+	 *
+	 * @public
+	 */
 	getCurrentPageShapeIds() {
 		return this._currentPageShapeIds.get()
 	}
 
+	/**
+	 * @internal
+	 */
 	@computed
 	getCurrentPageShapeIdsSorted() {
 		return Array.from(this.editor.getCurrentPageShapeIds()).sort()
 	}
 
+	/**
+	 * Get the ids of shapes on a page.
+	 *
+	 * @example
+	 * ```ts
+	 * const idsOnPage1 = editor.getPageShapeIds('page1')
+	 * const idsOnPage2 = editor.getPageShapeIds(myPage2)
+	 * ```
+	 *
+	 * @param page - The page (or the page id) to get the shape ids for.
+	 *
+	 * @public
+	 **/
 	getPageShapeIds(page: TLPageId | TLPage): Set<TLShapeId> {
 		const pageId = typeof page === 'string' ? page : page.id
 		const result = this.editor.store.query.exec('shape', { parentId: { eq: pageId } })
 		return this.editor.getShapeAndDescendantIds(result.map((s) => s.id))
 	}
 
+	/**
+	 * Set the current page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setCurrentPage('page1')
+	 * editor.setCurrentPage(myPage1)
+	 * ```
+	 *
+	 * @param page - The page (or the page id) to set as the current page.
+	 *
+	 * @public
+	 */
 	setCurrentPage(page: TLPageId | TLPage): Editor {
 		const pageId = typeof page === 'string' ? page : page.id
 		if (!this.editor.store.has(pageId)) {
@@ -74,6 +156,18 @@ export class PagesManager extends EditorManager {
 		)
 	}
 
+	/**
+	 * Update a page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updatePage({ id: 'page2', name: 'Page 2' })
+	 * ```
+	 *
+	 * @param partial - The partial of the shape to update.
+	 *
+	 * @public
+	 */
 	updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): Editor {
 		if (this.editor.getIsReadonly()) return this.editor
 
@@ -85,6 +179,19 @@ export class PagesManager extends EditorManager {
 		)
 	}
 
+	/**
+	 * Create a page whilst ensuring that the page name is unique.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.createPage(myPage)
+	 * editor.createPage({ name: 'Page 2' })
+	 * ```
+	 *
+	 * @param page - The page (or page partial) to create.
+	 *
+	 * @public
+	 */
 	createPage(page: Partial<TLPage>): Editor {
 		this.editor.run(() => {
 			if (this.editor.getIsReadonly()) return
@@ -114,6 +221,18 @@ export class PagesManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Delete a page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.deletePage('page1')
+	 * ```
+	 *
+	 * @param page - The page (or the page id) to delete.
+	 *
+	 * @public
+	 */
 	deletePage(page: TLPageId | TLPage): Editor {
 		const id = typeof page === 'string' ? page : page.id
 		this.editor.run(
@@ -141,6 +260,14 @@ export class PagesManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Duplicate a page.
+	 *
+	 * @param page - The page (or the page id) to duplicate. Defaults to the current page.
+	 * @param createId - The id of the new page. Defaults to a new id.
+	 *
+	 * @public
+	 */
 	duplicatePage(page: TLPageId | TLPage, createId: TLPageId = PageRecordType.createId()): Editor {
 		if (this.editor.getPages().length >= this.editor.options.maxPages) return this.editor
 		const id = typeof page === 'string' ? page : page.id
@@ -172,6 +299,19 @@ export class PagesManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Rename a page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.renamePage('page1', 'My Page')
+	 * ```
+	 *
+	 * @param page - The page (or the page id) to rename.
+	 * @param name - The new name.
+	 *
+	 * @public
+	 */
 	renamePage(page: TLPageId | TLPage, name: string) {
 		const id = typeof page === 'string' ? page : page.id
 		if (this.editor.getIsReadonly()) return this.editor

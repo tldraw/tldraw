@@ -44,9 +44,10 @@ import { EditorManager } from '../EditorManager'
 /**
  * Reading shapes: lookup, geometry, transforms, bounds, masks, ancestry, child order, culling and rendering order.
  *
- * @internal
+ * @public
  */
 export class ShapesManager extends EditorManager {
+	/** @internal */
 	getUnorderedRenderingShapes(
 		// The rendering state. We use this method both for rendering, which
 		// is based on other state, and for computing order for SVG export,
@@ -56,6 +57,16 @@ export class ShapesManager extends EditorManager {
 		return getUnorderedRenderingShapes(this.editor, useEditorState)
 	}
 
+	/**
+	 * Get the shapes that should be displayed in the current viewport.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getRenderingShapes()
+	 * ```
+	 *
+	 * @public
+	 */
 	@computed getRenderingShapes() {
 		const renderingShapes = this.editor.getUnorderedRenderingShapes(true)
 
@@ -114,6 +125,21 @@ export class ShapesManager extends EditorManager {
 
 	_shapeGeometryCaches: Record<string, ComputedCache<Geometry2d, TLShape>> = {}
 
+	/**
+	 * Get the geometry of a shape in shape-space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapeGeometry(myShape)
+	 * editor.getShapeGeometry(myShapeId)
+	 * editor.getShapeGeometry(myShapeId, { context: "arrow" })
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to get the geometry for.
+	 * @param opts - Additional options about the request for geometry. Passed to {@link ShapeUtil.getGeometry}.
+	 *
+	 * @public
+	 */
 	getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId, opts?: TLGeometryOpts): T {
 		const context = opts?.context ?? 'none'
 		if (!this._shapeGeometryCaches[context]) {
@@ -144,10 +170,37 @@ export class ShapesManager extends EditorManager {
 		)
 	}
 
+	/**
+	 * Get the handles (if any) for a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapeHandles(myShape)
+	 * editor.getShapeHandles(myShapeId)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to get the handles for.
+	 * @public
+	 */
 	getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined {
 		return this._getShapeHandlesCache().get(typeof shape === 'string' ? shape : shape.id)
 	}
 
+	/**
+	 * Get the local transform for a shape as a matrix model. This transform reflects both its
+	 * translation (x, y) from from either its parent's top left corner, if the shape's parent is
+	 * another shape, or else from the 0,0 of the page, if the shape's parent is the page; and the
+	 * shape's rotation.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapeLocalTransform(myShape)
+	 * ```
+	 *
+	 * @param shape - The shape to get the local transform for.
+	 *
+	 * @public
+	 */
 	getShapeLocalTransform(shape: TLShape | TLShapeId): Mat {
 		const id = typeof shape === 'string' ? shape : shape.id
 		const freshShape = this.editor.getShape(id)
@@ -176,6 +229,18 @@ export class ShapesManager extends EditorManager {
 		})
 	}
 
+	/**
+	 * Get the local transform of a shape's parent as a matrix model.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapeParentTransform(myShape)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to get the parent transform for.
+	 *
+	 * @public
+	 */
 	getShapeParentTransform(shape: TLShape | TLShapeId): Mat {
 		const id = typeof shape === 'string' ? shape : shape.id
 		const freshShape = this.editor.getShape(id)
@@ -183,6 +248,19 @@ export class ShapesManager extends EditorManager {
 		return this._getShapePageTransformCache().get(freshShape.parentId) ?? Mat.Identity()
 	}
 
+	/**
+	 * Get the transform of a shape in the current page space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapePageTransform(myShape)
+	 * editor.getShapePageTransform(myShapeId)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to get the page transform for.
+	 *
+	 * @public
+	 */
 	getShapePageTransform(shape: TLShape | TLShapeId): Mat {
 		const id = typeof shape === 'string' ? shape : shape.id
 		return this._getShapePageTransformCache().get(id) ?? Mat.Identity()
@@ -199,6 +277,19 @@ export class ShapesManager extends EditorManager {
 		})
 	}
 
+	/**
+	 * Get the bounds of a shape in the current page space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapePageBounds(myShape)
+	 * editor.getShapePageBounds(myShapeId)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to get the bounds for.
+	 *
+	 * @public
+	 */
 	getShapePageBounds(shape: TLShape | TLShapeId): Box | undefined {
 		return this._getShapePageBoundsCache().get(typeof shape === 'string' ? shape : shape.id)
 	}
@@ -225,6 +316,21 @@ export class ShapesManager extends EditorManager {
 		})
 	}
 
+	/**
+	 * Get the clip path for a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * const clipPath = editor.getShapeClipPath(shape)
+	 * const clipPath = editor.getShapeClipPath(shape.id)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to get the clip path for.
+	 *
+	 * @returns The clip path or undefined.
+	 *
+	 * @public
+	 */
 	getShapeClipPath(shape: TLShape | TLShapeId): string | undefined {
 		return this._getShapeClipPathCache().get(typeof shape === 'string' ? shape : shape.id)
 	}
@@ -258,10 +364,39 @@ export class ShapesManager extends EditorManager {
 		})
 	}
 
+	/**
+	 * Get the mask (in the current page space) for a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * const pageMask = editor.getShapeMask(shape.id)
+	 * ```
+	 *
+	 * @param shape - The shape (or the shape id) of the shape to get the mask for.
+	 *
+	 * @returns The mask for the shape.
+	 *
+	 * @public
+	 */
 	getShapeMask(shape: TLShapeId | TLShape): VecLike[] | undefined {
 		return this._getShapeMaskCache().get(typeof shape === 'string' ? shape : shape.id)
 	}
 
+	/**
+	 * Get the bounds of a shape in the current page space, incorporating any masks. For example, if the
+	 * shape were the child of a frame and was half way out of the frame, the bounds would be the half
+	 * of the shape that was in the frame.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapeMaskedPageBounds(myShape)
+	 * editor.getShapeMaskedPageBounds(myShapeId)
+	 * ```
+	 *
+	 * @param shape - The shape to get the masked bounds for.
+	 *
+	 * @public
+	 */
 	getShapeMaskedPageBounds(shape: TLShapeId | TLShape): Box | undefined {
 		if (typeof shape !== 'string') shape = shape.id
 		return this._getShapeMaskedPageBoundsCache().get(shape)
@@ -291,6 +426,20 @@ export class ShapesManager extends EditorManager {
 		})
 	}
 
+	/**
+	 * Get the ancestors of a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * const ancestors = editor.getShapeAncestors(myShape)
+	 * const ancestors = editor.getShapeAncestors(myShapeId)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to get the ancestors for.
+	 * @param acc - The accumulator.
+	 *
+	 * @public
+	 */
 	getShapeAncestors(shape: TLShapeId | TLShape, acc: TLShape[] = []): TLShape[] {
 		const id = typeof shape === 'string' ? shape : shape.id
 		const freshShape = this.editor.getShape(id)
@@ -307,6 +456,21 @@ export class ShapesManager extends EditorManager {
 		return this.editor.getShapeAncestors(parent, acc)
 	}
 
+	/**
+	 * Find the first ancestor matching the given predicate
+	 *
+	 * @example
+	 * ```ts
+	 * const ancestor = editor.findShapeAncestor(myShape)
+	 * const ancestor = editor.findShapeAncestor(myShape.id)
+	 * const ancestor = editor.findShapeAncestor(myShape.id, (shape) => shape.type === 'frame')
+	 * ```
+	 *
+	 * @param shape - The shape to check the ancestors for.
+	 * @param predicate - The predicate to match.
+	 *
+	 * @public
+	 */
 	findShapeAncestor(
 		shape: TLShape | TLShapeId,
 		predicate: (parent: TLShape) => boolean
@@ -323,6 +487,14 @@ export class ShapesManager extends EditorManager {
 		return predicate(parent) ? parent : this.editor.findShapeAncestor(parent, predicate)
 	}
 
+	/**
+	 * Returns true if the the given shape has the given ancestor.
+	 *
+	 * @param shape - The shape.
+	 * @param ancestorId - The id of the ancestor.
+	 *
+	 * @public
+	 */
 	hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean {
 		const id = typeof shape === 'string' ? shape : shape?.id
 		const freshShape = id && this.editor.getShape(id)
@@ -331,6 +503,12 @@ export class ShapesManager extends EditorManager {
 		return this.editor.hasAncestor(this.editor.getShapeParent(freshShape), ancestorId)
 	}
 
+	/**
+	 * Get the common ancestor of two or more shapes that matches a predicate.
+	 *
+	 * @param shapes - The shapes (or shape ids) to check.
+	 * @param predicate - The predicate to match.
+	 */
 	findCommonAncestor(
 		shapes: TLShape[] | TLShapeId[],
 		predicate?: (shape: TLShape) => boolean
@@ -366,6 +544,13 @@ export class ShapesManager extends EditorManager {
 		return undefined
 	}
 
+	/**
+	 * Check whether a shape or its parent is locked.
+	 *
+	 * @param shape - The shape (or shape id) to check.
+	 *
+	 * @public
+	 */
 	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
 		const _shape = shape && this.editor.getShape(shape)
 		if (_shape === undefined) return false
@@ -373,6 +558,11 @@ export class ShapesManager extends EditorManager {
 		return this.editor.isShapeOrAncestorLocked(this.editor.getShapeParent(_shape))
 	}
 
+	/**
+	 * Get shapes that are outside of the viewport.
+	 *
+	 * @public
+	 */
 	@computed
 	getNotVisibleShapes() {
 		return this._notVisibleShapes.get()
@@ -381,6 +571,11 @@ export class ShapesManager extends EditorManager {
 	_notVisibleShapes = notVisibleShapes(this.editor)
 	_culledShapesCache: Set<TLShapeId> | null = null
 
+	/**
+	 * Get culled shapes (those that should not render), taking into account which shapes are selected or editing.
+	 *
+	 * @public
+	 */
 	@computed
 	getCulledShapes() {
 		const notVisibleShapes = this.editor.getNotVisibleShapes()
@@ -397,6 +592,11 @@ export class ShapesManager extends EditorManager {
 		return culled
 	}
 
+	/**
+	 * The bounds of the current page (the common bounds of all of the shapes on the page).
+	 *
+	 * @public
+	 */
 	@computed getCurrentPageBounds(): Box | undefined {
 		let commonBounds: Box | undefined
 
@@ -414,6 +614,16 @@ export class ShapesManager extends EditorManager {
 		return commonBounds
 	}
 
+	/**
+	 * Get the hit-test margin in page space—the distance in page units within which a pointer is
+	 * considered to be touching a shape. This resolves to {@link TldrawOptions.hitTestMargin} (or
+	 * {@link TldrawOptions.coarseHitTestMargin} when using a coarse pointer) divided by the current
+	 * zoom level, so it stays a constant distance in screen space.
+	 *
+	 * @returns The hit-test margin in page space.
+	 *
+	 * @public
+	 */
 	@computed getHitTestMargin(): number {
 		const { hitTestMargin, coarseHitTestMargin } = this.editor.options
 		const margin = this.editor.getInstanceState().isCoarsePointer
@@ -422,11 +632,39 @@ export class ShapesManager extends EditorManager {
 		return margin / this.editor.getZoomLevel()
 	}
 
+	/**
+	 * Convert a point in the current page space to a point in the local space of a shape. For example, if a
+	 * shape's page point were `{ x: 100, y: 100 }`, a page point at `{ x: 110, y: 110 }` would be at
+	 * `{ x: 10, y: 10 }` in the shape's local space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPointInShapeSpace(myShape, { x: 100, y: 100 })
+	 * ```
+	 *
+	 * @param shape - The shape to get the point in the local space of.
+	 * @param point - The page point to get in the local space of the shape.
+	 *
+	 * @public
+	 */
 	getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec {
 		const id = typeof shape === 'string' ? shape : shape.id
 		return this._getShapePageTransformCache().get(id)!.clone().invert().applyToPoint(point)
 	}
 
+	/**
+	 * Convert a delta in the current page space to a point in the local space of a shape's parent.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPointInParentSpace(myShape.id, { x: 100, y: 100 })
+	 * ```
+	 *
+	 * @param shape - The shape to get the point in the local space of.
+	 * @param point - The page point to get in the local space of the shape.
+	 *
+	 * @public
+	 */
 	getPointInParentSpace(shape: TLShapeId | TLShape, point: VecLike): Vec {
 		const id = typeof shape === 'string' ? shape : shape.id
 		const freshShape = this.editor.getShape(id)
@@ -440,6 +678,11 @@ export class ShapesManager extends EditorManager {
 			.applyToPoint(point)
 	}
 
+	/**
+	 * An array containing all of the shapes in the current page.
+	 *
+	 * @public
+	 */
 	@computed getCurrentPageShapes(): TLShape[] {
 		return Array.from(
 			this.editor.getCurrentPageShapeIds(),
@@ -447,6 +690,12 @@ export class ShapesManager extends EditorManager {
 		)
 	}
 
+	/**
+	 * An array containing all of the shapes in the current page, sorted in z-index order (accounting
+	 * for nested shapes): e.g. A, B, BA, BB, C.
+	 *
+	 * @public
+	 */
 	@computed getCurrentPageShapesSorted(): TLShape[] {
 		const result: TLShape[] = []
 		const topLevelShapes = this.editor.getSortedChildIdsForParent(this.editor.getCurrentPageId())
@@ -458,6 +707,12 @@ export class ShapesManager extends EditorManager {
 		return result
 	}
 
+	/**
+	 * An array containing all of the rendering shapes in the current page, sorted in z-index order (accounting
+	 * for nested shapes): e.g. A, B, BA, BB, C.
+	 *
+	 * @public
+	 */
 	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
 		const culledShapes = this.editor.getCulledShapes()
 		return this.editor
@@ -465,6 +720,19 @@ export class ShapesManager extends EditorManager {
 			.filter(({ id }) => !culledShapes.has(id) && !this.editor.isShapeHidden(id))
 	}
 
+	/**
+	 * Get whether a shape matches the type of a TLShapeUtil.
+	 *
+	 * @example
+	 * ```ts
+	 * const isArrowShape = isShapeOfType(someShape, 'arrow')
+	 * ```
+	 *
+	 * @param util - the TLShapeUtil constructor to test against
+	 * @param shape - the shape to test
+	 *
+	 * @public
+	 */
 	isShapeOfType<K extends TLShape['type']>(
 		shape: TLShape,
 		type: K
@@ -480,18 +748,54 @@ export class ShapesManager extends EditorManager {
 		return shape.type === type
 	}
 
+	/**
+	 * Get whether a shape behaves like a frame — a container that has child
+	 * shapes, requires full-brush selection, blocks erasure from inside, etc.
+	 *
+	 * @example
+	 * ```ts
+	 * const isFrameLike = editor.isShapeFrameLike(someShape)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to test.
+	 *
+	 * @public
+	 */
 	isShapeFrameLike(shape: TLShape | TLShapeId): boolean {
 		const _shape = typeof shape === 'string' ? this.editor.getShape(shape) : shape
 		if (!_shape) return false
 		return this.editor.getShapeUtil(_shape).isFrameLike(_shape)
 	}
 
+	/**
+	 * Get a shape by its id.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShape('box1')
+	 * ```
+	 *
+	 * @param shape - The shape (or the id of the shape) to get.
+	 *
+	 * @public
+	 */
 	getShape<T extends TLShape = TLShape>(shape: TLShape | TLParentId): T | undefined {
 		const id = typeof shape === 'string' ? shape : shape.id
 		if (!isShapeId(id)) return undefined
 		return this.editor.store.get(id) as T
 	}
 
+	/**
+	 * Get the parent shape for a given shape. Returns undefined if the shape is the direct child of
+	 * the page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapeParent(myShape)
+	 * ```
+	 *
+	 * @public
+	 */
 	getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined {
 		const id = typeof shape === 'string' ? shape : shape?.id
 		if (!id) return undefined
@@ -500,6 +804,13 @@ export class ShapesManager extends EditorManager {
 		return this.editor.getShape(freshShape.parentId)
 	}
 
+	/**
+	 * If siblingShape and targetShape are siblings, this returns targetShape. If targetShape has an
+	 * ancestor who is a sibling of siblingShape, this returns that ancestor. Otherwise, this returns
+	 * undefined.
+	 *
+	 * @internal
+	 */
 	getShapeNearestSibling(
 		siblingShape: TLShape,
 		targetShape: TLShape | undefined
@@ -519,10 +830,33 @@ export class ShapesManager extends EditorManager {
 		return ancestor
 	}
 
+	/**
+	 * Get whether the given shape is the descendant of the given page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.isShapeInPage(myShape)
+	 * editor.isShapeInPage(myShape, 'page1')
+	 * ```
+	 *
+	 * @param shape - The shape to check.
+	 * @param pageId - The id of the page to check against. Defaults to the current page.
+	 *
+	 * @public
+	 */
 	isShapeInPage(shape: TLShape | TLShapeId, pageId = this.editor.getCurrentPageId()): boolean {
 		return this.editor.getAncestorPageId(shape) === pageId
 	}
 
+	/**
+	 * Get the id of the containing page for a given shape.
+	 *
+	 * @param shape - The shape to get the page id for.
+	 *
+	 * @returns The id of the page that contains the shape, or undefined if the shape is undefined.
+	 *
+	 * @public
+	 */
 	getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined {
 		const id = typeof shape === 'string' ? shape : shape?.id
 		const _shape = id && this.editor.getShape(id)
@@ -543,6 +877,23 @@ export class ShapesManager extends EditorManager {
 	 */
 	_parentIdsToChildIds!: Computed<Record<TLParentId, TLShapeId[]>>
 
+	/**
+	 * Reparent shapes to a new parent. This operation preserves the shape's current page positions /
+	 * rotations.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.reparentShapes([box1, box2], 'frame1')
+	 * editor.reparentShapes([box1.id, box2.id], 'frame1')
+	 * editor.reparentShapes([box1.id, box2.id], 'frame1', 4)
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) of the shapes to reparent.
+	 * @param parentId - The id of the new parent shape.
+	 * @param insertIndex - The index to insert the children.
+	 *
+	 * @public
+	 */
 	reparentShapes(shapes: TLShapeId[] | TLShape[], parentId: TLParentId, insertIndex?: IndexKey) {
 		const ids = toShapeIds(shapes)
 		if (ids.length === 0) return this.editor
@@ -633,6 +984,15 @@ export class ShapesManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Get the index above the highest child of a given parent.
+	 *
+	 * @param parent - The parent (or the id) of the parent.
+	 *
+	 * @returns The index.
+	 *
+	 * @public
+	 */
 	getHighestIndexForParent(parent: TLParentId | TLPage | TLShape): IndexKey {
 		const parentId = typeof parent === 'string' ? parent : parent.id
 		const children = this._parentIdsToChildIds.get()[parentId]
@@ -644,6 +1004,18 @@ export class ShapesManager extends EditorManager {
 		return getIndexAbove(shape.index)
 	}
 
+	/**
+	 * Get an array of all the children of a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getSortedChildIdsForParent('frame1')
+	 * ```
+	 *
+	 * @param parent - The parent (or the id) of the parent shape.
+	 *
+	 * @public
+	 */
 	getSortedChildIdsForParent(parent: TLParentId | TLPage | TLShape): TLShapeId[] {
 		const parentId = typeof parent === 'string' ? parent : parent.id
 		const ids = this._parentIdsToChildIds.get()[parentId]
@@ -651,6 +1023,19 @@ export class ShapesManager extends EditorManager {
 		return ids
 	}
 
+	/**
+	 * Run a visitor function for all descendants of a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.visitDescendants('frame1', myCallback)
+	 * ```
+	 *
+	 * @param parent - The parent (or the id) of the parent shape.
+	 * @param visitor - The visitor function.
+	 *
+	 * @public
+	 */
 	visitDescendants(
 		parent: TLParentId | TLPage | TLShape,
 		visitor: (id: TLShapeId) => void | false
@@ -663,6 +1048,15 @@ export class ShapesManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Get the shape ids of all descendants of the given shapes (including the shapes themselves). IDs are returned in z-index order.
+	 *
+	 * @param ids - The ids of the shapes to get descendants of.
+	 *
+	 * @returns The descendant ids.
+	 *
+	 * @public
+	 */
 	getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId> {
 		const shapeIds = new Set<TLShapeId>()
 		for (const shape of compact(ids.map((id) => this.editor.getShape(id))).sort(sortByIndex)) {
@@ -674,6 +1068,18 @@ export class ShapesManager extends EditorManager {
 		return shapeIds
 	}
 
+	/**
+	 * Get the shape that should be selected when you click on a given shape, assuming there is
+	 * nothing already selected. It will not return anything higher than or including the current
+	 * focus layer.
+	 *
+	 * @param shape - The shape to get the outermost selectable shape for.
+	 * @param filter - A function to filter the selectable shapes.
+	 *
+	 * @returns The outermost selectable shape.
+	 *
+	 * @public
+	 */
 	getOutermostSelectableShape(
 		shape: TLShape | TLShapeId,
 		filter?: (shape: TLShape) => boolean

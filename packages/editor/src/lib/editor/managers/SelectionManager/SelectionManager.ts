@@ -26,9 +26,14 @@ import { EditorManager } from '../EditorManager'
 /**
  * Per-page interaction state: the selection, the focused group, and the editing, hovered, hinting, erasing and cropping shapes.
  *
- * @internal
+ * @public
  */
 export class SelectionManager extends EditorManager {
+	/**
+	 * Page states.
+	 *
+	 * @public
+	 */
 	@computed getPageStates(): TLInstancePageState[] {
 		return this._getPageStatesQuery().get()
 	}
@@ -38,14 +43,32 @@ export class SelectionManager extends EditorManager {
 		return this.editor.store.query.records('instance_page_state')
 	}
 
+	/**
+	 * The current page state.
+	 *
+	 * @public
+	 */
 	@computed getCurrentPageState(): TLInstancePageState {
 		return this.editor.store.get(this.editor._getCurrentPageStateId())!
 	}
 
+	/** @internal */
 	@computed _getCurrentPageStateId() {
 		return InstancePageStateRecordType.createId(this.editor.getCurrentPageId())
 	}
 
+	/**
+	 * Update this instance's page state.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updateCurrentPageState({ id: 'page1', editingShapeId: 'shape:123' })
+	 * ```
+	 *
+	 * @param partial - The partial of the page state object containing the changes.
+	 *
+	 * @public
+	 */
 	updateCurrentPageState(
 		partial: Partial<
 			Omit<TLInstancePageState, 'selectedShapeIds' | 'editingShapeId' | 'pageId' | 'focusedGroupId'>
@@ -62,14 +85,38 @@ export class SelectionManager extends EditorManager {
 		}))
 	}
 
+	/**
+	 * The current selected ids.
+	 *
+	 * @public
+	 */
 	@computed getSelectedShapeIds() {
 		return this.editor.getCurrentPageState().selectedShapeIds
 	}
 
+	/**
+	 * An array containing all of the currently selected shapes.
+	 *
+	 * @public
+	 * @readonly
+	 */
 	@computed getSelectedShapes(): TLShape[] {
 		return compact(this.editor.getSelectedShapeIds().map((id) => this.editor.store.get(id)))
 	}
 
+	/**
+	 * Select one or more shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setSelectedShapes(['id1'])
+	 * editor.setSelectedShapes(['id1', 'id2'])
+	 * ```
+	 *
+	 * @param shapes - The shape (or shape ids) to select.
+	 *
+	 * @public
+	 */
 	setSelectedShapes(shapes: TLShapeId[] | TLShape[]): Editor {
 		return this.editor.run(
 			() => {
@@ -85,6 +132,13 @@ export class SelectionManager extends EditorManager {
 		)
 	}
 
+	/**
+	 * Determine whether or not any of a shape's ancestors are selected.
+	 *
+	 * @param shape - The shape (or shape id) of the shape to check.
+	 *
+	 * @public
+	 */
 	isAncestorSelected(shape: TLShape | TLShapeId): boolean {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		const _shape = this.editor.getShape(id)
@@ -93,12 +147,35 @@ export class SelectionManager extends EditorManager {
 		return !!this.editor.findShapeAncestor(_shape, (parent) => selectedShapeIds.includes(parent.id))
 	}
 
+	/**
+	 * Select one or more shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.select('id1')
+	 * editor.select('id1', 'id2')
+	 * ```
+	 *
+	 * @param shapes - The shape (or the shape ids) to select.
+	 *
+	 * @public
+	 */
 	select(...shapes: TLShapeId[] | TLShape[]): Editor {
 		const ids = toShapeIds(shapes)
 		this.editor.setSelectedShapes(ids)
 		return this.editor
 	}
 
+	/**
+	 * Remove a shape from the existing set of selected shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.deselect(shape.id)
+	 * ```
+	 *
+	 * @public
+	 */
 	deselect(...shapes: TLShapeId[] | TLShape[]): Editor {
 		const ids = toShapeIds(shapes)
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
@@ -108,6 +185,18 @@ export class SelectionManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Select all shapes. If the user has selected shapes that share a parent,
+	 * select all shapes within that parent. If the user has not selected any shapes,
+	 * or if the shapes shapes are only on select all shapes on the current page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.selectAll()
+	 * ```
+	 *
+	 * @public
+	 */
 	selectAll(): Editor {
 		let parentToSelectWithinId: TLParentId | null = null
 
@@ -141,6 +230,16 @@ export class SelectionManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * Select the next shape in the reading order or in cardinal order.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.selectAdjacentShape('next')
+	 * ```
+	 *
+	 * @public
+	 */
 	selectAdjacentShape(direction: TLAdjacentDirection) {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const firstParentId = selectedShapeIds[0]
@@ -190,6 +289,12 @@ export class SelectionManager extends EditorManager {
 		this._selectShapesAndZoom([shape.id])
 	}
 
+	/**
+	 * Generates a reading order for shapes based on rows grouping.
+	 * Tries to keep a natural reading order (left-to-right, top-to-bottom).
+	 *
+	 * @public
+	 */
 	@computed getCurrentPageShapesInReadingOrder(): TLShape[] {
 		const shapes = this.editor.getCurrentPageShapes().filter((shape) => isPageId(shape.parentId))
 		return this._getShapesInReadingOrder(shapes)
@@ -208,6 +313,11 @@ export class SelectionManager extends EditorManager {
 		)
 	}
 
+	/**
+	 * Find the nearest adjacent shape in a specific direction.
+	 *
+	 * @public
+	 */
 	getNearestAdjacentShape(
 		shapes: TLShape[],
 		currentShapeId: TLShapeId,
@@ -264,6 +374,16 @@ export class SelectionManager extends EditorManager {
 		})
 	}
 
+	/**
+	 * Clear the selection.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.selectNone()
+	 * ```
+	 *
+	 * @public
+	 */
 	selectNone(): Editor {
 		if (this.editor.getSelectedShapeIds().length > 0) {
 			this.editor.setSelectedShapes([])
@@ -272,25 +392,61 @@ export class SelectionManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * The id of the editor's only selected shape.
+	 *
+	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected shape's id.
+	 *
+	 * @public
+	 * @readonly
+	 */
 	@computed getOnlySelectedShapeId(): TLShapeId | null {
 		return this.editor.getOnlySelectedShape()?.id ?? null
 	}
 
+	/**
+	 * The editor's only selected shape.
+	 *
+	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected shape.
+	 *
+	 * @public
+	 * @readonly
+	 */
 	@computed getOnlySelectedShape(): TLShape | null {
 		const selectedShapes = this.editor.getSelectedShapes()
 		return selectedShapes.length === 1 ? selectedShapes[0] : null
 	}
 
+	/**
+	 * Get the page bounds of all the provided shapes.
+	 *
+	 * @public
+	 */
 	getShapesPageBounds(shapeIds: TLShapeId[]): Box | null {
 		const bounds = compact(shapeIds.map((id) => this.editor.getShapePageBounds(id)))
 		if (bounds.length === 0) return null
 		return Box.Common(bounds)
 	}
 
+	/**
+	 * The current page bounds of all the selected shapes. If the
+	 * selection is rotated, then these bounds are the axis-aligned
+	 * box that the rotated bounds would fit inside of.
+	 *
+	 * @readonly
+	 *
+	 * @public
+	 */
 	@computed getSelectionPageBounds(): Box | null {
 		return this.editor.getShapesPageBounds(this.editor.getSelectedShapeIds())
 	}
 
+	/**
+	 * The bounds of the selection bounding box in the current page space.
+	 *
+	 * @readonly
+	 * @public
+	 */
 	getSelectionScreenBounds(): Box | undefined {
 		const bounds = this.editor.getSelectionPageBounds()
 		if (!bounds) return undefined
@@ -299,6 +455,9 @@ export class SelectionManager extends EditorManager {
 		return new Box(x, y, bounds.width * zoom, bounds.height * zoom)
 	}
 
+	/**
+	 * @internal
+	 */
 	getShapesSharedRotation(shapeIds: TLShapeId[]) {
 		let rotation = 0
 		for (let i = 0, n = shapeIds.length; i < n; i++) {
@@ -314,10 +473,19 @@ export class SelectionManager extends EditorManager {
 		return rotation
 	}
 
+	/**
+	 * The rotation of the selection bounding box in the current page space.
+	 *
+	 * @readonly
+	 * @public
+	 */
 	@computed getSelectionRotation(): number {
 		return this.editor.getShapesSharedRotation(this.editor.getSelectedShapeIds())
 	}
 
+	/**
+	 * @internal
+	 */
 	getShapesRotatedPageBounds(shapeIds: TLShapeId[]): Box | undefined {
 		if (shapeIds.length === 0) {
 			return undefined
@@ -350,10 +518,22 @@ export class SelectionManager extends EditorManager {
 		return boxFromRotatedVertices
 	}
 
+	/**
+	 * The bounds of the selection bounding box in the current page space.
+	 *
+	 * @readonly
+	 * @public
+	 */
 	@computed getSelectionRotatedPageBounds(): Box | undefined {
 		return this.editor.getShapesRotatedPageBounds(this.editor.getSelectedShapeIds())
 	}
 
+	/**
+	 * The bounds of the selection bounding box in the current page space.
+	 *
+	 * @readonly
+	 * @public
+	 */
 	@computed getSelectionRotatedScreenBounds(): Box | undefined {
 		const bounds = this.editor.getSelectionRotatedPageBounds()
 		if (!bounds) return undefined
@@ -369,15 +549,32 @@ export class SelectionManager extends EditorManager {
 		)
 	}
 
+	/**
+	 * The current focused group id.
+	 *
+	 * @public
+	 */
 	@computed getFocusedGroupId(): TLShapeId | TLPageId {
 		return this.editor.getCurrentPageState().focusedGroupId ?? this.editor.getCurrentPageId()
 	}
 
+	/**
+	 * The current focused group.
+	 *
+	 * @public
+	 */
 	@computed getFocusedGroup(): TLShape | undefined {
 		const focusedGroupId = this.editor.getFocusedGroupId()
 		return focusedGroupId ? this.editor.getShape(focusedGroupId) : undefined
 	}
 
+	/**
+	 * Set the current focused group shape.
+	 *
+	 * @param shape - The group shape id (or group shape's id) to set as the focused group shape.
+	 *
+	 * @public
+	 */
 	setFocusedGroup(shape: TLShapeId | TLGroupShape | null): Editor {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 
@@ -407,6 +604,11 @@ export class SelectionManager extends EditorManager {
 		)
 	}
 
+	/**
+	 * Exit the current focused group, moving up to the next parent group if there is one.
+	 *
+	 * @public
+	 */
 	popFocusedGroupId(): Editor {
 		const focusedGroup = this.editor.getFocusedGroup()
 
@@ -427,15 +629,34 @@ export class SelectionManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * The current editing shape's id.
+	 *
+	 * @public
+	 */
 	@computed getEditingShapeId(): TLShapeId | null {
 		return this.editor.getCurrentPageState().editingShapeId
 	}
 
+	/**
+	 * The current editing shape.
+	 *
+	 * @public
+	 */
 	@computed getEditingShape(): TLShape | undefined {
 		const editingShapeId = this.editor.getEditingShapeId()
 		return editingShapeId ? this.editor.getShape(editingShapeId) : undefined
 	}
 
+	/**
+	 * Whether the shape can be edited.
+	 *
+	 * @param shape - The shape (or shape id) to check if it can be edited.
+	 * @param info - The info about the edit start.
+	 *
+	 * @public
+	 * @returns true if the shape can be edited, false otherwise.
+	 */
 	canEditShape<T extends TLShape | TLShapeId>(shape: T | null, info?: TLEditStartInfo): shape is T {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		if (!id) return false // no shape
@@ -451,6 +672,19 @@ export class SelectionManager extends EditorManager {
 		return true // shape is editable
 	}
 
+	/**
+	 * Set the current editing shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setEditingShape(myShape)
+	 * editor.setEditingShape(myShape.id)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to set as editing.
+	 *
+	 * @public
+	 */
 	setEditingShape(shape: TLShapeId | TLShape | null): Editor {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 
@@ -494,24 +728,65 @@ export class SelectionManager extends EditorManager {
 
 	_currentRichTextEditor = atom('rich text editor', null as TiptapEditor | null)
 
+	/**
+	 * The current editing shape's text editor.
+	 *
+	 * @public
+	 */
 	@computed getRichTextEditor(): TiptapEditor | null {
 		return this._currentRichTextEditor.get()
 	}
 
+	/**
+	 * Set the current editing shape's rich text editor.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setRichTextEditor(richTextEditorView)
+	 * ```
+	 *
+	 * @param textEditor - The text editor to set as the current editing shape's text editor.
+	 *
+	 * @public
+	 */
 	setRichTextEditor(textEditor: TiptapEditor | null) {
 		this._currentRichTextEditor.set(textEditor)
 		return this.editor
 	}
 
+	/**
+	 * The current hovered shape id.
+	 *
+	 * @readonly
+	 * @public
+	 */
 	@computed getHoveredShapeId(): TLShapeId | null {
 		return this.editor.getCurrentPageState().hoveredShapeId
 	}
 
+	/**
+	 * The current hovered shape.
+	 *
+	 * @public
+	 */
 	@computed getHoveredShape(): TLShape | undefined {
 		const hoveredShapeId = this.editor.getHoveredShapeId()
 		return hoveredShapeId ? this.editor.getShape(hoveredShapeId) : undefined
 	}
 
+	/**
+	 * Set the editor's current hovered shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setHoveredShape(myShape)
+	 * editor.setHoveredShape(myShape.id)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to set as hovered.
+	 *
+	 * @public
+	 */
 	setHoveredShape(shape: TLShapeId | TLShape | null): Editor {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		if (id === this.editor.getHoveredShapeId()) return this.editor
@@ -524,15 +799,38 @@ export class SelectionManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * The editor's current hinting shape ids.
+	 *
+	 * @public
+	 */
 	@computed getHintingShapeIds() {
 		return this.editor.getCurrentPageState().hintingShapeIds
 	}
 
+	/**
+	 * The editor's current hinting shapes.
+	 *
+	 * @public
+	 */
 	@computed getHintingShape() {
 		const hintingShapeIds = this.editor.getHintingShapeIds()
 		return compact(hintingShapeIds.map((id) => this.editor.getShape(id)))
 	}
 
+	/**
+	 * Set the editor's current hinting shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setHintingShapes([myShape])
+	 * editor.setHintingShapes([myShape.id])
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to set as hinting.
+	 *
+	 * @public
+	 */
 	setHintingShapes(shapes: TLShapeId[] | TLShape[]): Editor {
 		const ids = toShapeIds(shapes)
 		// always ephemeral
@@ -545,15 +843,38 @@ export class SelectionManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * The editor's current erasing ids.
+	 *
+	 * @public
+	 */
 	@computed getErasingShapeIds() {
 		return this.editor.getCurrentPageState().erasingShapeIds
 	}
 
+	/**
+	 * The editor's current erasing shapes.
+	 *
+	 * @public
+	 */
 	@computed getErasingShapes() {
 		const erasingShapeIds = this.editor.getErasingShapeIds()
 		return compact(erasingShapeIds.map((id) => this.editor.getShape(id)))
 	}
 
+	/**
+	 * Set the editor's current erasing shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setErasingShapes([myShape])
+	 * editor.setErasingShapes([myShape.id])
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to set as hinting.
+	 *
+	 * @public
+	 */
 	setErasingShapes(shapes: TLShapeId[] | TLShape[]): Editor {
 		// copy before sorting: the caller may pass a store-owned (frozen) array
 		const ids = toShapeIds(shapes).slice()
@@ -572,10 +893,23 @@ export class SelectionManager extends EditorManager {
 		return this.editor
 	}
 
+	/**
+	 * The current cropping shape's id.
+	 *
+	 * @public
+	 */
 	getCroppingShapeId() {
 		return this.editor.getCurrentPageState().croppingShapeId
 	}
 
+	/**
+	 * Whether the shape can be cropped.
+	 *
+	 * @param shape - The shape (or shape id) to check if it can be cropped.
+	 *
+	 * @public
+	 * @returns true if the shape can be cropped, false otherwise.
+	 */
 	canCropShape<T extends TLShape | TLShapeId>(shape: T | null): shape is T {
 		if (!shape) return false
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
@@ -589,6 +923,20 @@ export class SelectionManager extends EditorManager {
 		return true
 	}
 
+	/**
+	 * Set the current cropping shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setCroppingShape(myShape)
+	 * editor.setCroppingShape(myShape.id)
+	 * ```
+	 *
+	 *
+	 * @param shape - The shape (or shape id) to set as cropping.
+	 *
+	 * @public
+	 */
 	setCroppingShape(shape: TLShapeId | TLShape | null): Editor {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		if (id !== this.editor.getCroppingShapeId()) {
@@ -608,6 +956,15 @@ export class SelectionManager extends EditorManager {
 
 	_textOptions!: Atom<TLTextOptions | null>
 
+	/**
+	 * Get the current text options.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getTextOptions()
+	 * ```
+	 *
+	 *  @public */
 	getTextOptions() {
 		return assertExists(this._textOptions.get(), 'Cannot use text without setting textOptions')
 	}
