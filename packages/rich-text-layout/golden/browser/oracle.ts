@@ -32,6 +32,7 @@ async function bundle() {
 
 export interface Oracle {
 	measureCases(cases: FuzzCase[]): Promise<FuzzResult[]>
+	layoutCase(c: FuzzCase): Promise<unknown>
 	measureBoard(snapshot: unknown): Promise<{ results: BoardShapeResult[]; error?: string }>
 	close(): Promise<void>
 }
@@ -53,6 +54,7 @@ export async function launchOracle(browserName: BrowserName = 'chromium'): Promi
 	await page.evaluate((urls) => window.__rtl.init(urls), fontAssetUrls())
 	return {
 		measureCases: (cases) => page.evaluate((cases) => window.__rtl.measureCases(cases), cases),
+		layoutCase: (c) => page.evaluate((c) => window.__rtl.layoutCase(c), c),
 		measureBoard: (snapshot) => page.evaluate((s) => window.__rtl.measureBoard(s), snapshot),
 		close: () => browser.close(),
 	}

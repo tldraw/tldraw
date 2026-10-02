@@ -52,6 +52,7 @@ function makeEditor(textMeasurer: TLTextMeasurer | 'dom', fontAssetUrls: Record<
 }
 
 let editors: Record<Engine, Editor> | null = null
+let nativeMeasurer: ReturnType<typeof createTldrawTextMeasurer> | null = null
 
 async function init(fontAssetUrls: Record<string, string>) {
 	const ctx = document.createElement('canvas').getContext('2d')!
@@ -59,6 +60,7 @@ async function init(fontAssetUrls: Record<string, string>) {
 	await installMeasureContext(measureContext)
 	// No DOM fallback: `routing` reports what the default measurer would do instead.
 	const native = createTldrawTextMeasurer({ measureContext })
+	nativeMeasurer = native
 	editors = { dom: makeEditor('dom', fontAssetUrls), native: makeEditor(native, fontAssetUrls) }
 }
 
@@ -230,7 +232,25 @@ function measureCase(c: FuzzCase): FuzzResult {
 	}
 }
 
+/** The engine's lines and fragments for a case, for looking into a failure. */
+function layoutCase(c: FuzzCase) {
+	const layout = nativeMeasurer!.layoutRichText(c.doc, {
+		fontStyle: 'normal',
+		fontWeight: 'normal',
+		fontFamily: FONT_VARS[c.font],
+		fontSize: c.fontSize,
+		lineHeight: 1.35,
+		padding: '0px',
+		maxWidth: typeof c.width === 'number' ? c.width : null,
+	})
+	return layout.lines.map((l) => ({
+		width: l.width,
+		fragments: l.fragments.map((f) => ({ text: f.text, kind: f.kind, x: f.x, width: f.width })),
+	}))
+}
+
 const api = {
+	layoutCase,
 	init,
 	measureBoard,
 	measureCases: (cases: FuzzCase[]) => cases.map(measureCase),
