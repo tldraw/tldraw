@@ -301,6 +301,10 @@ export class Idle extends StateNode {
 								hitInside: false,
 								hitLocked: this.editor.options.selectLockedShapes,
 								renderingOnly: true,
+								// A child of a locked group would otherwise drill into (select) the locked group
+								filter: (shape) =>
+									this.editor.options.selectLockedShapes ||
+									!this.editor.isShapeOrAncestorLocked(shape),
 							}))
 
 				if (hitShape) {
