@@ -534,3 +534,4 @@ export { ShapeCommandsManager } from './lib/editor/managers/ShapeCommandsManager
 export { HitTestManager } from './lib/editor/managers/HitTestManager/HitTestManager'
 export { SelectionManager } from './lib/editor/managers/SelectionManager/SelectionManager'
 export { ShapesManager } from './lib/editor/managers/ShapesManager/ShapesManager'
+export { PagesManager } from './lib/editor/managers/PagesManager/PagesManager'

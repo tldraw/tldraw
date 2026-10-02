@@ -1767,6 +1767,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly options: TldrawOptions;
     readonly overlays: OverlayManager;
     packShapes(shapes: TLShape[] | TLShapeId[], _gap?: number): this;
+    // @internal (undocumented)
+    readonly _pagesManager: PagesManager;
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
     readonly performance: PerformanceManager;
@@ -3391,6 +3393,40 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
     renderMinimap(_ctx: CanvasRenderingContext2D, _overlays: T[], _zoom: number): void;
     // (undocumented)
     static type: string;
+}
+
+// @internal
+export class PagesManager extends EditorManager {
+    // (undocumented)
+    createPage(page: Partial<TLPage>): Editor;
+    // (undocumented)
+    _currentPageShapeIds: Computed<Set<TLShapeId>>;
+    // (undocumented)
+    deletePage(page: TLPage | TLPageId): Editor;
+    // (undocumented)
+    duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): Editor;
+    // (undocumented)
+    _getAllPagesQuery(): Computed<TLPage[], unknown>;
+    // (undocumented)
+    getCurrentPage(): TLPage;
+    // (undocumented)
+    getCurrentPageId(): TLPageId;
+    // (undocumented)
+    getCurrentPageShapeIds(): Set<TLShapeId>;
+    // (undocumented)
+    getCurrentPageShapeIdsSorted(): TLShapeId[];
+    // (undocumented)
+    getPage(page: TLPage | TLPageId): TLPage | undefined;
+    // (undocumented)
+    getPages(): TLPage[];
+    // (undocumented)
+    getPageShapeIds(page: TLPage | TLPageId): Set<TLShapeId>;
+    // (undocumented)
+    renamePage(page: TLPage | TLPageId, name: string): Editor;
+    // (undocumented)
+    setCurrentPage(page: TLPage | TLPageId): Editor;
+    // (undocumented)
+    updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): Editor;
 }
 
 // @public

@@ -46,11 +46,8 @@ import {
 	annotateError,
 	assert,
 	bind,
-	getIndexAbove,
-	getIndexBetween,
 	getOwnProperty,
 	hasOwnProperty,
-	sortByIndex,
 	uniqueId,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
@@ -76,7 +73,6 @@ import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Mat, MatLike } from '../primitives/Mat'
 import { Vec, VecLike } from '../primitives/Vec'
 import { TLDeepLink, TLDeepLinkOptions } from '../utils/deepLinks'
-import { getIncrementedName } from '../utils/getIncrementedName'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { AssetUtil } from './assets/AssetUtil'
@@ -98,6 +94,7 @@ import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { HitTestManager } from './managers/HitTestManager/HitTestManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
 import { LayoutManager } from './managers/LayoutManager/LayoutManager'
+import { PagesManager } from './managers/PagesManager/PagesManager'
 import { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
 import { ResizeManager } from './managers/ResizeManager/ResizeManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
@@ -454,7 +451,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.sideEffects = this.store.sideEffects
 		registerEditorSideEffects(this)
 
-		this._currentPageShapeIds = deriveShapeIdsInCurrentPage(this.store, () =>
+		this._pagesManager._currentPageShapeIds = deriveShapeIdsInCurrentPage(this.store, () =>
 			this.getCurrentPageId()
 		)
 		this._shapesManager._parentIdsToChildIds = parentsToChildren(this.store)
@@ -2851,11 +2848,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._shapesManager.getRenderingShapes()
 	}
 
-	/* --------------------- Pages ---------------------- */
-
-	@computed private _getAllPagesQuery() {
-		return this.store.query.records('page')
-	}
+	/** @internal */
+	readonly _pagesManager = new PagesManager(this)
 
 	/**
 	 * Info about the project's current pages.
@@ -2867,8 +2861,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getPages(): TLPage[] {
-		return Array.from(this._getAllPagesQuery().get()).sort(sortByIndex)
+	getPages(): TLPage[] {
+		return this._pagesManager.getPages()
 	}
 
 	/**
@@ -2882,7 +2876,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getCurrentPage(): TLPage {
-		return this.getPage(this.getCurrentPageId())!
+		return this._pagesManager.getCurrentPage()
 	}
 
 	/**
@@ -2895,8 +2889,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getCurrentPageId(): TLPageId {
-		return this.getInstanceState().currentPageId
+	getCurrentPageId(): TLPageId {
+		return this._pagesManager.getCurrentPageId()
 	}
 
 	/**
@@ -2913,11 +2907,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getPage(page: TLPageId | TLPage): TLPage | undefined {
-		return this.store.get(typeof page === 'string' ? page : page.id)
+		return this._pagesManager.getPage(page)
 	}
-
-	/* @internal */
-	private readonly _currentPageShapeIds: ReturnType<typeof deriveShapeIdsInCurrentPage>
 
 	/**
 	 * An array of all of the shapes on the current page.
@@ -2930,15 +2921,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getCurrentPageShapeIds() {
-		return this._currentPageShapeIds.get()
+		return this._pagesManager.getCurrentPageShapeIds()
 	}
 
 	/**
 	 * @internal
 	 */
-	@computed
 	getCurrentPageShapeIdsSorted() {
-		return Array.from(this.getCurrentPageShapeIds()).sort()
+		return this._pagesManager.getCurrentPageShapeIdsSorted()
 	}
 
 	/**
@@ -2955,9 +2945,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 **/
 	getPageShapeIds(page: TLPageId | TLPage): Set<TLShapeId> {
-		const pageId = typeof page === 'string' ? page : page.id
-		const result = this.store.query.exec('shape', { parentId: { eq: pageId } })
-		return this.getShapeAndDescendantIds(result.map((s) => s.id))
+		return this._pagesManager.getPageShapeIds(page)
 	}
 
 	/**
@@ -2974,24 +2962,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCurrentPage(page: TLPageId | TLPage): this {
-		const pageId = typeof page === 'string' ? page : page.id
-		if (!this.store.has(pageId)) {
-			console.error("Tried to set the current page id to a page that doesn't exist.")
-			return this
-		}
-
-		this.stopFollowingUser()
-		// finish off any in-progress interactions
-		this.complete()
-
-		return this.run(
-			() => {
-				this.store.put([{ ...this.getInstanceState(), currentPageId: pageId }])
-				// ensure camera constraints are applied
-				this.setCamera(this.getCamera())
-			},
-			{ history: 'record-preserveRedoStack' }
-		)
+		this._pagesManager.setCurrentPage(page)
+		return this
 	}
 
 	/**
@@ -3007,12 +2979,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this {
-		if (this.getIsReadonly()) return this
-
-		const prev = this.getPage(partial.id)
-		if (!prev) return this
-
-		return this.run(() => this.store.update(partial.id, (page) => ({ ...page, ...partial })))
+		this._pagesManager.updatePage(partial)
+		return this
 	}
 
 	/**
@@ -3029,31 +2997,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	createPage(page: Partial<TLPage>): this {
-		this.run(() => {
-			if (this.getIsReadonly()) return
-			if (this.getPages().length >= this.options.maxPages) return
-			const pages = this.getPages()
-
-			const name = getIncrementedName(
-				page.name ?? 'Page 1',
-				pages.map((p) => p.name)
-			)
-
-			let index = page.index
-
-			if (!index || pages.some((p) => p.index === index)) {
-				index = getIndexAbove(pages[pages.length - 1].index)
-			}
-
-			const newPage = PageRecordType.create({
-				meta: {},
-				...page,
-				name,
-				index,
-			})
-
-			this.store.put([newPage])
-		})
+		this._pagesManager.createPage(page)
 		return this
 	}
 
@@ -3070,29 +3014,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	deletePage(page: TLPageId | TLPage): this {
-		const id = typeof page === 'string' ? page : page.id
-		this.run(
-			() => {
-				if (this.getIsReadonly()) return
-				const pages = this.getPages()
-				if (pages.length === 1) return
-
-				const deletedPage = this.getPage(id)
-				if (!deletedPage) return
-
-				if (id === this.getCurrentPageId()) {
-					const index = pages.findIndex((page) => page.id === id)
-					const next = pages[index - 1] ?? pages[index + 1]
-					this.setCurrentPage(next.id)
-				}
-
-				const shapes = this.getSortedChildIdsForParent(deletedPage.id)
-				this.deleteShapes(shapes)
-
-				this.store.remove([deletedPage.id])
-			},
-			{ ignoreShapeLock: true }
-		)
+		this._pagesManager.deletePage(page)
 		return this
 	}
 
@@ -3105,31 +3027,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	duplicatePage(page: TLPageId | TLPage, createId: TLPageId = PageRecordType.createId()): this {
-		if (this.getPages().length >= this.options.maxPages) return this
-		const id = typeof page === 'string' ? page : page.id
-		const freshPage = this.getPage(id) // get the most recent version of the page anyway
-		if (!freshPage) return this
-
-		const prevCamera = { ...this.getCamera() }
-		const content = this.getContentFromCurrentPage(this.getSortedChildIdsForParent(freshPage.id))
-
-		this.run(() => {
-			const pages = this.getPages()
-			const index = getIndexBetween(freshPage.index, pages[pages.indexOf(freshPage) + 1]?.index)
-
-			// create the page (also creates the pagestate and camera for the new page)
-			this.createPage({ name: freshPage.name + ' Copy', id: createId, index })
-			// set the new page as the current page
-			this.setCurrentPage(createId)
-			// update the new page's camera to the previous page's camera
-			this.setCamera(prevCamera)
-
-			if (content) {
-				// If we had content on the previous page, put it on the new page
-				return this.putContentOntoCurrentPage(content)
-			}
-		})
-
+		this._pagesManager.duplicatePage(page, createId)
 		return this
 	}
 
@@ -3147,9 +3045,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	renamePage(page: TLPageId | TLPage, name: string) {
-		const id = typeof page === 'string' ? page : page.id
-		if (this.getIsReadonly()) return this
-		this.updatePage({ id, name })
+		this._pagesManager.renamePage(page, name)
 		return this
 	}
 
