@@ -1,5 +1,5 @@
 import { useActions } from '../../../context/actions'
-import { useIsActionEnabled } from '../../../hooks/useActionState'
+import { useActionState } from '../../../hooks/useActionState'
 import { TldrawUiMenuItem, type TLUiMenuItemProps } from './TldrawUiMenuItem'
 
 /** @public */
@@ -18,14 +18,14 @@ export function TldrawUiMenuActionItem({
 }: TLUiMenuActionItemProps) {
 	const actions = useActions()
 	const action = actions[actionId]
-	const isEnabled = useIsActionEnabled(action)
-	if (!action) return null
-	if (!isEnabled && whenDisabled === 'hide') return null
+	const { visible, enabled } = useActionState(action)
+	if (!action || !visible) return null
+	if (!enabled && whenDisabled === 'hide') return null
 	return (
 		<TldrawUiMenuItem
 			{...(action as TLUiMenuItemProps)}
 			{...rest}
-			disabled={disabled || !isEnabled}
+			disabled={disabled || !enabled}
 		/>
 	)
 }

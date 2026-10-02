@@ -1,5 +1,5 @@
 import { useActions } from '../../../context/actions'
-import { useIsActionChecked, useIsActionEnabled } from '../../../hooks/useActionState'
+import { useActionState } from '../../../hooks/useActionState'
 import {
 	TldrawUiMenuCheckboxItem,
 	type TLUiMenuCheckboxItemProps,
@@ -22,16 +22,15 @@ export function TldrawUiMenuActionCheckboxItem({
 }: TLUiMenuActionCheckboxItemProps) {
 	const actions = useActions()
 	const action = actions[actionId]
-	const isEnabled = useIsActionEnabled(action)
-	const isChecked = useIsActionChecked(action)
-	if (!action) return null
-	if (!isEnabled && whenDisabled === 'hide') return null
+	const { visible, enabled, checked: isChecked } = useActionState(action)
+	if (!action || !visible) return null
+	if (!enabled && whenDisabled === 'hide') return null
 	return (
 		<TldrawUiMenuCheckboxItem
 			{...(action as TLUiMenuCheckboxItemProps)}
 			{...rest}
 			checked={checked ?? isChecked ?? false}
-			disabled={disabled || !isEnabled}
+			disabled={disabled || !enabled}
 		/>
 	)
 }

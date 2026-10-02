@@ -1,7 +1,7 @@
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useActions } from '../../context/actions'
 import { useBreakpoint } from '../../context/breakpoints'
-import { useIsActionEnabled } from '../../hooks/useActionState'
+import { useActionState } from '../../hooks/useActionState'
 import { ZoomTo100MenuItem } from '../menu-items'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 
@@ -93,8 +93,8 @@ export function EditLinkMenuItem() {
 /** @public @react */
 export function GroupOrUngroupMenuItem() {
 	const actions = useActions()
-	const canGroup = useIsActionEnabled(actions['group'])
-	const canUngroup = useIsActionEnabled(actions['ungroup'])
+	const canGroup = useActionState(actions['group']).enabled
+	const canUngroup = useActionState(actions['ungroup']).enabled
 	return !canGroup && canUngroup ? <UngroupMenuItem /> : <GroupMenuItem />
 }
 
