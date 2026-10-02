@@ -111,7 +111,7 @@ const messages = defineMessages({
 	},
 	actionDownloadOriginal: { id: 'action.download-original', defaultMessage: 'Download original' },
 	actionDuplicate: { id: 'action.duplicate', defaultMessage: 'Duplicate' },
-	actionEditLink: { id: 'action.edit-link', defaultMessage: 'Edit link\u2026' },
+	actionEditLink: { id: 'action.edit-link', defaultMessage: 'Edit link…' },
 	actionEnhancedA11yMode: {
 		id: 'action.enhanced-a11y-mode',
 		defaultMessage: 'Toggle enhanced accessibility mode',
@@ -137,8 +137,8 @@ const messages = defineMessages({
 	actionFlipVerticalShort: { id: 'action.flip-vertical.short', defaultMessage: 'Flip V' },
 	actionFrameSelection: { id: 'action.frame-selection', defaultMessage: 'Frame selection' },
 	actionGroup: { id: 'action.group', defaultMessage: 'Group' },
-	actionInsertEmbed: { id: 'action.insert-embed', defaultMessage: 'Insert embed\u2026' },
-	actionInsertMedia: { id: 'action.insert-media', defaultMessage: 'Upload media\u2026' },
+	actionInsertEmbed: { id: 'action.insert-embed', defaultMessage: 'Insert embed…' },
+	actionInsertMedia: { id: 'action.insert-media', defaultMessage: 'Upload media…' },
 	actionOpenCursorChat: { id: 'action.open-cursor-chat', defaultMessage: 'Cursor chat' },
 	actionOpenEmbedLink: { id: 'action.open-embed-link', defaultMessage: 'Open link' },
 	actionOpenKbdShortcuts: { id: 'action.open-kbd-shortcuts', defaultMessage: 'Keyboard shortcuts' },
@@ -150,7 +150,7 @@ const messages = defineMessages({
 			'Could not paste due to missing clipboard permissions. Please enable the permissions and try again.',
 	},
 	actionPasteErrorTitle: { id: 'action.paste-error-title', defaultMessage: 'Pasting failed' },
-	actionPrint: { id: 'action.print', defaultMessage: 'Print\u2026' },
+	actionPrint: { id: 'action.print', defaultMessage: 'Print…' },
 	actionRedo: { id: 'action.redo', defaultMessage: 'Redo' },
 	actionRemoveFrame: { id: 'action.remove-frame', defaultMessage: 'Remove frame' },
 	actionRotateCcw: { id: 'action.rotate-ccw', defaultMessage: 'Rotate counterclockwise' },
@@ -268,7 +268,7 @@ const messages = defineMessages({
 	fillStyleFill: { id: 'fill-style.fill', defaultMessage: 'Fill' },
 	fillStyleLinedFill: { id: 'fill-style.lined-fill', defaultMessage: 'Lined fill' },
 	pageMenuNewPageInitialName: { id: 'page-menu.new-page-initial-name', defaultMessage: 'Page 1' },
-	toolReplaceMedia: { id: 'tool.replace-media', defaultMessage: 'Replace media\u2026' },
+	toolReplaceMedia: { id: 'tool.replace-media', defaultMessage: 'Replace media…' },
 })
 
 /** @public */

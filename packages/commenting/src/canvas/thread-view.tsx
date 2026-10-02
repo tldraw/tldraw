@@ -1,11 +1,11 @@
 import { memo, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	createComment,
+	defineMessages,
 	Editor,
 	EditorPortal,
 	TLComment,
 	TLCommentThread,
-	TLRichText,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuGroup,
@@ -13,6 +13,7 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
+	TLRichText,
 	useContainer,
 	usePassThroughWheelEvents,
 	useTranslation,
@@ -51,6 +52,29 @@ import {
 } from './options'
 import { openThreadId } from './state'
 
+// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
+// Only the ids nothing else declares; the rest are declared with what they name.
+const messages = defineMessages({
+	commentsCopyLink: { id: 'comments.copy-link', defaultMessage: 'Copy link' },
+	commentsDelete: { id: 'comments.delete', defaultMessage: 'Delete thread' },
+	commentsDismiss: { id: 'comments.dismiss', defaultMessage: 'Dismiss' },
+	commentsEdit: { id: 'comments.edit', defaultMessage: 'Edit' },
+	commentsEditPlaceholder: {
+		id: 'comments.edit-placeholder',
+		defaultMessage: 'Edit comment…',
+	},
+	commentsLinkCopied: { id: 'comments.link-copied', defaultMessage: 'Link copied' },
+	commentsMoreOptions: { id: 'comments.more-options', defaultMessage: 'More options' },
+	commentsReopen: { id: 'comments.reopen', defaultMessage: 'Reopen' },
+	commentsReplyPlaceholder: { id: 'comments.reply-placeholder', defaultMessage: 'Reply…' },
+	commentsResolve: { id: 'comments.resolve', defaultMessage: 'Resolve' },
+	commentsResolvedBy: { id: 'comments.resolved-by', defaultMessage: 'Resolved by {name}' },
+	commentsSave: { id: 'comments.save', defaultMessage: 'Save' },
+	commentsSend: { id: 'comments.send', defaultMessage: 'Send' },
+	commentsThreadTitle: { id: 'comments.thread-title', defaultMessage: 'Comment' },
+	commentsUnknownAuthor: { id: 'comments.unknown-author', defaultMessage: 'Someone' },
+})
+
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
 /** The "⋯" dropdown used for both a comment's and the thread's actions. */
@@ -70,12 +94,12 @@ function MoreOptionsMenu({
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton
 					type="icon"
-					tooltip={msg('comments.more-options')}
-					title={msg('comments.more-options')}
+					tooltip={msg(messages.commentsMoreOptions.id)}
+					title={msg(messages.commentsMoreOptions.id)}
 					className="tlui-cmt-thread__action"
 					data-cmt-more-for={moreFor}
 				>
-					<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+					<TldrawUiIcon icon="dots-vertical" label={msg(messages.commentsMoreOptions.id)} small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			<TldrawUiDropdownMenuContent
@@ -459,11 +483,11 @@ export const ThreadView = memo(function ThreadView({
 				>
 					<CommentComposer
 						author={card.author}
-						placeholder={msg('comments.edit-placeholder')}
+						placeholder={msg(messages.commentsEditPlaceholder.id)}
 						value={editText}
 						onChange={setEditText}
 						onSubmit={saveEdit}
-						sendLabel={msg('comments.save')}
+						sendLabel={msg(messages.commentsSave.id)}
 						disabled={isCommentEmpty(editText)}
 						getMentionSuggestions={getMentionSuggestions}
 						renderMentionSuggestion={renderMentionSuggestion}
@@ -491,7 +515,7 @@ export const ThreadView = memo(function ThreadView({
 								<MoreOptionsMenu id={`comment-actions-${comment.id}`} moreFor={comment.id}>
 									{permissions?.edit && (
 										<MenuItem
-											label={msg('comments.edit')}
+											label={msg(messages.commentsEdit.id)}
 											onClick={() => startEdit(comment, { fromMoreMenu: true })}
 										/>
 									)}
@@ -515,7 +539,9 @@ export const ThreadView = memo(function ThreadView({
 
 	// Resolve and delete are commenting writes: behind `canComment`, plus the `currentUserId` a
 	// resolve stamps into `resolved.by`.
-	const resolveLabel = msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')
+	const resolveLabel = msg(
+		thread.resolved ? messages.commentsReopen.id : messages.commentsResolve.id
+	)
 	const headerActions = (
 		<>
 			{/* Host verbs — assign, link a ticket — sit ahead of the built-in actions. */}
@@ -527,13 +553,15 @@ export const ThreadView = memo(function ThreadView({
 					    item can confirm the copy in place. */}
 					{threadHref !== undefined && (
 						<MenuItem
-							label={msg(linkCopied ? 'comments.link-copied' : 'comments.copy-link')}
+							label={msg(
+								linkCopied ? messages.commentsLinkCopied.id : messages.commentsCopyLink.id
+							)}
 							noClose
 							onClick={copyThreadLink}
 						/>
 					)}
 					{canDeleteThread && (
-						<MenuItem label={msg('comments.delete')} danger onClick={removeThread} />
+						<MenuItem label={msg(messages.commentsDelete.id)} danger onClick={removeThread} />
 					)}
 				</MoreOptionsMenu>
 			)}
@@ -550,26 +578,27 @@ export const ThreadView = memo(function ThreadView({
 			)}
 			<TldrawUiButton
 				type="icon"
-				tooltip={msg('comments.dismiss')}
-				title={msg('comments.dismiss')}
+				tooltip={msg(messages.commentsDismiss.id)}
+				title={msg(messages.commentsDismiss.id)}
 				className="tlui-cmt-thread__action"
 				onClick={() => openThreadId.set(editor, null)}
 			>
-				<TldrawUiIcon icon="cross-2" label={msg('comments.dismiss')} small />
+				<TldrawUiIcon icon="cross-2" label={msg(messages.commentsDismiss.id)} small />
 			</TldrawUiButton>
 		</>
 	)
 
 	return (
 		<CommentThread
-			header={msg('comments.thread-title')}
+			header={msg(messages.commentsThreadTitle.id)}
 			headerActions={headerActions}
 			renderComment={renderComment}
 			comments={cards}
 			resolvedBanner={
 				thread.resolved
-					? msg('comments.resolved-by', {
-							name: resolveAuthor(thread.resolved.by)?.name ?? msg('comments.unknown-author'),
+					? msg(messages.commentsResolvedBy.id, {
+							name:
+								resolveAuthor(thread.resolved.by)?.name ?? msg(messages.commentsUnknownAuthor.id),
 						})
 					: undefined
 			}
@@ -577,8 +606,8 @@ export const ThreadView = memo(function ThreadView({
 				canReply
 					? {
 							author: me ?? UNKNOWN_COMMENT_AUTHOR,
-							placeholder: msg('comments.reply-placeholder'),
-							sendLabel: msg('comments.send'),
+							placeholder: msg(messages.commentsReplyPlaceholder.id),
+							sendLabel: msg(messages.commentsSend.id),
 							value: reply,
 							onChange: (value: TLRichText) => {
 								setReply(value)

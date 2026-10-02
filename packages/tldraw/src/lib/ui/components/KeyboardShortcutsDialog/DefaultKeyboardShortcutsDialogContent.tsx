@@ -15,7 +15,7 @@ const messages = defineMessages({
 	},
 	a11yMoveShape: { id: 'a11y.move-shape', defaultMessage: 'Move shape' },
 	a11yMoveShapeFaster: { id: 'a11y.move-shape-faster', defaultMessage: 'Move shape faster' },
-	a11yOpenContextMenu: { id: 'a11y.open-context-menu', defaultMessage: 'Context menu\u2026' },
+	a11yOpenContextMenu: { id: 'a11y.open-context-menu', defaultMessage: 'Context menu…' },
 	a11yOpenKeyboardShortcuts: {
 		id: 'a11y.open-keyboard-shortcuts',
 		defaultMessage: 'Keyboard shortcuts',
