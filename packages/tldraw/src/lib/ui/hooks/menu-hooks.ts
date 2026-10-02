@@ -12,6 +12,8 @@ import {
 	isUngroupAllowed,
 } from '../context/action-predicates'
 
+// The @public hooks here are SDK API: keep them even when nothing in tldraw calls them.
+
 /** @internal */
 export function useThreeStackableItems() {
 	const editor = useEditor()

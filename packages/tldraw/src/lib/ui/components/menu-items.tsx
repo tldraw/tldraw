@@ -3,7 +3,7 @@ import { useActions } from '../context/actions'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
 import { useHasShapesOnPage, useUnlockedSelectedShapesCount } from '../hooks/menu-hooks'
-import { useSomeActionsEnabled } from '../hooks/useActionState'
+import { useSomeActionsEnabled, useSomeActionsVisible } from '../hooks/useActionState'
 import { useReadonly } from '../hooks/useReadonly'
 import { TldrawUiMenuActionCheckboxItem } from './primitives/menus/TldrawUiMenuActionCheckboxItem'
 import { TldrawUiMenuActionItem } from './primitives/menus/TldrawUiMenuActionItem'
@@ -122,15 +122,13 @@ export function ClipboardMenuGroup() {
 	)
 }
 
+const COPY_AS_ACTIONS = ['copy-as-svg', 'copy-as-png', 'copy-as-json']
+
 /** @public @react */
 export function CopyAsMenuGroup() {
-	const editor = useEditor()
-	const actions = useActions()
 	const atLeastOneShapeOnPage = useHasShapesOnPage()
-	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
-
-	const showCopyAsJson = !!actions['copy-as-json'] && isDebugMode
-	if (!actions['copy-as-svg'] && !actions['copy-as-png'] && !showCopyAsJson) return null
+	const hasCopyActions = useSomeActionsVisible(COPY_AS_ACTIONS)
+	if (!hasCopyActions) return null
 
 	return (
 		<TldrawUiMenuSubmenu
@@ -140,9 +138,9 @@ export function CopyAsMenuGroup() {
 			disabled={!atLeastOneShapeOnPage}
 		>
 			<TldrawUiMenuGroup id="copy-as-group">
-				<TldrawUiMenuActionItem actionId="copy-as-svg" />
-				<TldrawUiMenuActionItem actionId="copy-as-png" />
-				<TldrawUiMenuActionItem actionId="copy-as-json" />
+				{COPY_AS_ACTIONS.map((id) => (
+					<TldrawUiMenuActionItem key={id} actionId={id} />
+				))}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="copy-as-bg">
 				<ToggleTransparentBgMenuItem />

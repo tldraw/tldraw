@@ -56,6 +56,22 @@ export function useActionState(action: TLUiActionItem | undefined): TLUiActionSt
 	return useValue($state)
 }
 
+function useSomeActions(
+	name: string,
+	actionIds: readonly string[],
+	test: (state: TLUiActionState) => boolean
+) {
+	const editor = useMaybeEditor()
+	const actions = useActions()
+	const key = actionIds.join('\n')
+	return useValue(
+		name,
+		() => actionIds.some((id) => test(getActionState(editor, actions[id]))),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[editor, actions, key]
+	)
+}
+
 /**
  * Whether any of the given actions would show and be enabled. Unknown ids, and actions that
  * aren't `readonlyOk` while the editor is readonly, count as not shown. Use it to hide a submenu
@@ -64,13 +80,15 @@ export function useActionState(action: TLUiActionItem | undefined): TLUiActionSt
  * @public
  */
 export function useSomeActionsEnabled(actionIds: readonly string[]): boolean {
-	const editor = useMaybeEditor()
-	const actions = useActions()
-	const key = actionIds.join('\n')
-	return useValue(
-		'some actions enabled',
-		() => actionIds.some((id) => getActionState(editor, actions[id]).enabled),
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[editor, actions, key]
-	)
+	return useSomeActions('some actions enabled', actionIds, (state) => state.enabled)
+}
+
+/**
+ * Like {@link useSomeActionsEnabled}, but for a submenu that shows disabled items: true when any
+ * of the actions would show at all.
+ *
+ * @internal
+ */
+export function useSomeActionsVisible(actionIds: readonly string[]): boolean {
+	return useSomeActions('some actions visible', actionIds, (state) => state.visible)
 }
