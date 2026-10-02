@@ -2292,12 +2292,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			firstParentId &&
 			selectedShapeIds.every((shapeId) => this.getShape(shapeId)?.parentId === firstParentId) &&
 			!isPageId(firstParentId)
-		// Locked shapes (and children of locked containers) can't be selected by clicking or
-		// select all, so traversal skips them too
-		const filteredShapes = this.getCurrentPageShapes().filter(
-			(shape) =>
-				!this.isShapeOrAncestorLocked(shape) &&
-				(isSelectedWithinContainer ? shape.parentId === firstParentId : isPageId(shape.parentId))
+		const filteredShapes = this.getCurrentPageShapes().filter((shape) =>
+			isSelectedWithinContainer ? shape.parentId === firstParentId : isPageId(shape.parentId)
 		)
 		const readingOrderShapes = this._getShapesInReadingOrder(filteredShapes)
 		const currentShapeId: TLShapeId | undefined =
@@ -2333,6 +2329,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Generates a reading order for shapes based on rows grouping.
 	 * Tries to keep a natural reading order (left-to-right, top-to-bottom).
+	 * Locked shapes and shapes whose util returns `false` from {@link ShapeUtil.canTabTo}
+	 * are left out.
 	 *
 	 * @public
 	 */
@@ -2341,11 +2339,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._getShapesInReadingOrder(shapes)
 	}
 
+	// Locked shapes (and children of locked containers) can't be selected by clicking or
+	// select all, so the reading order and keyboard traversal leave them out too (#10421)
+	private _canTabToShape(shape: TLShape): boolean {
+		return this.getShapeUtil(shape).canTabTo(shape) && !this.isShapeOrAncestorLocked(shape)
+	}
+
 	private _getShapesInReadingOrder(shapes: TLShape[]): TLShape[] {
 		const SHALLOW_ANGLE = 20
 		const ROW_THRESHOLD = 100
 
-		const tabbableShapes = shapes.filter((shape) => this.getShapeUtil(shape).canTabTo(shape))
+		const tabbableShapes = shapes.filter((shape) => this._canTabToShape(shape))
 
 		if (tabbableShapes.length <= 1) return tabbableShapes
 
@@ -2429,7 +2433,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!currentShape) return currentShapeId
 
 		const tabbableShapes = shapes.filter(
-			(shape) => this.getShapeUtil(shape).canTabTo(shape) && shape.id !== currentShapeId
+			(shape) => this._canTabToShape(shape) && shape.id !== currentShapeId
 		)
 		if (!tabbableShapes.length) return currentShapeId
 

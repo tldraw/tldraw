@@ -1134,6 +1134,38 @@ describe('Shape navigation', () => {
 			editor.selectAdjacentShape('left')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		})
+
+		it('leaves locked shapes out of the reading order', () => {
+			editor.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 100, y: 0, isLocked: true },
+				{ id: ids.frame1, type: 'frame', x: 200, y: 0, props: { w: 100, h: 100 }, isLocked: true },
+				{ id: ids.box3, type: 'geo', x: 300, y: 0 },
+			])
+
+			expect(editor.getCurrentPageShapesInReadingOrder().map((shape) => shape.id)).toEqual([
+				ids.box1,
+				ids.box3,
+			])
+		})
+
+		it('skips locked children with selectFirstChildShape', () => {
+			editor.createShapes([
+				{ id: ids.frame1, type: 'frame', x: 0, y: 0, props: { w: 400, h: 200 } },
+				{ id: ids.box1, type: 'geo', x: 10, y: 10, parentId: ids.frame1, isLocked: true },
+				{ id: ids.box2, type: 'geo', x: 120, y: 10, parentId: ids.frame1 },
+			])
+
+			editor.select(ids.frame1)
+			editor.selectFirstChildShape()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+			// With every child locked there is nothing to move to
+			editor.updateShapes([{ id: ids.box2, type: 'geo', isLocked: true }])
+			editor.select(ids.frame1)
+			editor.selectFirstChildShape()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.frame1])
+		})
 	})
 
 	describe('edge cases and regressions', () => {

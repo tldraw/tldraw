@@ -90,6 +90,26 @@ describe('A11y Shape Announcements', () => {
 		expect(message).toBe('A test image, image. 1 of 1')
 	})
 
+	it('leaves locked shapes out of the shape count', () => {
+		const box1 = createShapeId('box1')
+		const locked = createShapeId('locked')
+		const box2 = createShapeId('box2')
+
+		editor.createShapes([
+			{ id: box1, type: 'geo', x: 0, y: 0 },
+			{ id: locked, type: 'geo', x: 100, y: 0, isLocked: true },
+			{ id: box2, type: 'geo', x: 200, y: 0 },
+		])
+
+		const message = generateShapeAnnouncementMessage({
+			editor,
+			selectedShapeIds: [box2],
+			msg: mockTranslate,
+		})
+
+		expect(message).toBe('rectangle. 2 of 2')
+	})
+
 	it('returns empty string when no shapes are selected', () => {
 		// Get announcement for empty selection
 		const message = generateShapeAnnouncementMessage({
