@@ -397,8 +397,16 @@ export class LicenseManager {
 		}
 	}
 
+	private getCurrentHostname() {
+		// A document loaded from `blob:https://example.com/<uuid>` has an empty hostname, but its
+		// origin is the page that created the blob. Opaque origins ('null': custom schemes, file:,
+		// about:) keep using the hostname.
+		const { origin, hostname } = window.location
+		return (origin && origin !== 'null' ? new URL(origin).hostname : hostname).toLowerCase()
+	}
+
 	private isDomainValid(licenseInfo: LicenseInfo) {
-		const currentHostname = window.location.hostname.toLowerCase()
+		const currentHostname = this.getCurrentHostname()
 
 		return licenseInfo.hosts.some((host) => {
 			const normalizedHostOrUrlRegex = host.toLowerCase().trim()

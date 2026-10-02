@@ -370,6 +370,46 @@ describe('LicenseManager', () => {
 			expect(result.isDomainValid).toBe(false)
 		})
 
+		it('Succeeds if the page is a blob URL created by a licensed host', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('blob:https://www.example.com/6ec2dc7a-afe9-45d9-bd71-1749f9568d28')
+
+			const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = (await licenseManager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(true)
+		})
+
+		it('Succeeds if the page is a blob URL created by a wildcard-licensed host', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('blob:https://sub.example.com/6ec2dc7a-afe9-45d9-bd71-1749f9568d28')
+
+			const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			permissiveHostsInfo[PROPERTIES.HOSTS] = ['*.example.com']
+			const permissiveLicenseKey = await generateLicenseKey(
+				JSON.stringify(permissiveHostsInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				permissiveLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(true)
+		})
+
+		it('Fails if the page is a blob URL created by an unlicensed host', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('blob:https://www.foo.com/6ec2dc7a-afe9-45d9-bd71-1749f9568d28')
+
+			const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = (await licenseManager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(false)
+		})
+
 		it('Succeeds if it is a vscode extension', async () => {
 			// @ts-ignore
 			delete window.location
