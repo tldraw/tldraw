@@ -1707,6 +1707,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     hasShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): boolean;
     protected readonly history: HistoryManager<TLRecord>;
+    // @internal (undocumented)
+    readonly _hitTestManager: HitTestManager;
     // (undocumented)
     readonly id: string;
     readonly inputs: InputsManager;
@@ -1867,6 +1869,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         speedThreshold?: number;
     }): this;
     readonly snaps: SnapManager;
+    // @internal
+    readonly _spatialIndex: SpatialIndexManager;
     squashToMark(markId: string): this;
     stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): this;
     startFollowingUser(userId: TLUserId): this;
@@ -2793,6 +2797,28 @@ export class HistoryManager<R extends UnknownRecord> {
         pushToRedoStack: boolean;
         toMark?: string;
     }): this;
+}
+
+// @internal
+export class HitTestManager extends EditorManager {
+    // (undocumented)
+    getDraggingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined;
+    // (undocumented)
+    getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
+    // (undocumented)
+    getShapeAtPoint(point: VecLike, opts?: TLGetShapeAtPointOptions): TLShape | undefined;
+    // (undocumented)
+    getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId>;
+    // (undocumented)
+    getShapesAtPoint(point: VecLike, opts?: {
+        hitInside?: boolean;
+        margin?: number;
+    }): TLShape[];
+    // (undocumented)
+    isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
+        hitInside?: boolean;
+        margin?: number;
+    }): boolean;
 }
 
 // @public (undocumented)

@@ -531,3 +531,4 @@ export { ContentManager } from './lib/editor/managers/ContentManager/ContentMana
 export { LayoutManager } from './lib/editor/managers/LayoutManager/LayoutManager'
 export { ResizeManager } from './lib/editor/managers/ResizeManager/ResizeManager'
 export { ShapeCommandsManager } from './lib/editor/managers/ShapeCommandsManager/ShapeCommandsManager'
+export { HitTestManager } from './lib/editor/managers/HitTestManager/HitTestManager'
