@@ -1,4 +1,5 @@
 import { IRequest } from 'itty-router'
+import { jsonResponse } from '../jsonResponse'
 import { getUpscaleProvider } from '../providers'
 import type { UpscaleParams } from '../providers'
 
@@ -20,12 +21,7 @@ interface UpscaleRequest {
 export async function handleUpscale(request: IRequest, env: Env) {
 	const body = (await request.json()) as UpscaleRequest
 
-	if (!body.imageUrl) {
-		return new Response(JSON.stringify({ error: 'imageUrl is required' }), {
-			status: 400,
-			headers: { 'Content-Type': 'application/json' },
-		})
-	}
+	if (!body.imageUrl) return jsonResponse({ error: 'imageUrl is required' }, 400)
 
 	try {
 		const provider = getUpscaleProvider(body.method)
@@ -36,22 +32,12 @@ export async function handleUpscale(request: IRequest, env: Env) {
 		}
 
 		if (!provider.upscale) {
-			return new Response(
-				JSON.stringify({ error: `Provider "${provider.name}" does not support upscaling` }),
-				{ status: 400, headers: { 'Content-Type': 'application/json' } }
-			)
+			return jsonResponse({ error: `Provider "${provider.name}" does not support upscaling` }, 400)
 		}
 
-		const result = await provider.upscale(params, env)
-
-		return new Response(JSON.stringify(result), {
-			headers: { 'Content-Type': 'application/json' },
-		})
+		return jsonResponse(await provider.upscale(params, env))
 	} catch (e: any) {
 		console.error('Upscale error:', e)
-		return new Response(JSON.stringify({ error: e.message ?? 'Upscale failed' }), {
-			status: 500,
-			headers: { 'Content-Type': 'application/json' },
-		})
+		return jsonResponse({ error: e.message ?? 'Upscale failed' }, 500)
 	}
 }
