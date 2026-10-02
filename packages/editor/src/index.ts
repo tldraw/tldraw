@@ -524,3 +524,4 @@ registerTldrawLibraryVersion(
 )
 
 export { getColorValue } from './lib/editor/managers/ThemeManager/defaultThemes'
+export { CameraManager } from './lib/editor/managers/CameraManager/CameraManager'

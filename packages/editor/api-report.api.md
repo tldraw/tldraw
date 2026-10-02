@@ -59,6 +59,7 @@ import { TLBindingId } from '@tldraw/tlschema';
 import { TLBindingUpdate } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
+import { TLCameraId } from '@tldraw/tlschema';
 import { TLCreateShapePartial } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
@@ -461,6 +462,138 @@ export class Box {
 
 // @public (undocumented)
 export type BoxLike = Box | BoxModel;
+
+// @internal
+export class CameraManager extends EditorManager {
+    // (undocumented)
+    _animateToViewport(targetViewportPage: Box, opts?: TLCameraMoveOptions): Editor | undefined;
+    // (undocumented)
+    _animateViewport(ms: number): void;
+    // (undocumented)
+    _cameraOptions: Atom<TLCameraOptions, unknown>;
+    // (undocumented)
+    _cameraStateTimeoutRemaining: number;
+    // (undocumented)
+    centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): Editor;
+    // (undocumented)
+    _debouncedZoomLevel: Atom<number, unknown>;
+    // (undocumented)
+    _decayCameraStateTimeout(elapsed: number): void;
+    // (undocumented)
+    _getAboveDebouncedZoomThreshold(): boolean;
+    // (undocumented)
+    getBaseZoom(): number;
+    // (undocumented)
+    getCamera(): TLCamera;
+    // (undocumented)
+    getCameraForFollowing(): {
+        x: number;
+        y: number;
+        z: number;
+    } | null;
+    // (undocumented)
+    getCameraOptions(): TLCameraOptions;
+    // (undocumented)
+    getCameraState(): "idle" | "moving";
+    // (undocumented)
+    getConstrainedCamera(point: VecLike, opts?: TLCameraMoveOptions): {
+        x: number;
+        y: number;
+        z: number;
+    };
+    // (undocumented)
+    getDebouncedZoomLevel(): number;
+    // (undocumented)
+    getEfficientZoomLevel(): number;
+    // (undocumented)
+    _getFitZoom(fit: TLCameraConstraints['initialZoom']): number;
+    // (undocumented)
+    _getFollowingPresence(targetUserId: null | TLUserId): null | TLInstancePresence;
+    // (undocumented)
+    getInitialZoom(): number;
+    // (undocumented)
+    getResizeScaleFactor(): number;
+    // (undocumented)
+    getViewportPageBounds(): Box;
+    // (undocumented)
+    getViewportPageBoundsForFollowing(): Box | null;
+    // (undocumented)
+    getViewportScreenBounds(): Box;
+    // (undocumented)
+    getViewportScreenCenter(): Vec;
+    // (undocumented)
+    getZoomLevel(): number;
+    // (undocumented)
+    _isLockedOnFollowingUser: Atom<boolean, unknown>;
+    // (undocumented)
+    pageToScreen(point: VecLike): Vec;
+    // (undocumented)
+    pageToViewport(point: VecLike): Vec;
+    // (undocumented)
+    resetZoom(point?: Vec, opts?: TLCameraMoveOptions): Editor;
+    // (undocumented)
+    screenToPage(point: VecLike): Vec;
+    // (undocumented)
+    setCamera(point: VecLike, opts?: TLCameraMoveOptions): Editor;
+    // (undocumented)
+    _setCamera(point: VecLike, opts?: TLCameraMoveOptions): Editor;
+    // (undocumented)
+    setCameraOptions(opts: Partial<TLCameraOptions>): Editor;
+    // (undocumented)
+    _setCameraState(cameraState: 'idle' | 'moving'): void;
+    // (undocumented)
+    slideCamera(opts?: {
+        direction: VecLike;
+        force?: boolean;
+        friction?: number;
+        speed: number;
+        speedThreshold?: number;
+    }): Editor;
+    // (undocumented)
+    startFollowingUser(userId: TLUserId): Editor;
+    // (undocumented)
+    stopCameraAnimation(): Editor;
+    // (undocumented)
+    stopFollowingUser(): Editor;
+    _takeCameraControl(): void;
+    // (undocumented)
+    _tickCameraState(): void;
+    // (undocumented)
+    _unsafe_getCameraId(): TLCameraId;
+    // (undocumented)
+    updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): Editor;
+    // (undocumented)
+    _viewportAnimation: {
+        duration: number;
+        easing(t: number): number;
+        elapsed: number;
+        end: Box;
+        opts: TLCameraMoveOptions;
+        start: Box;
+    } | null;
+    // (undocumented)
+    _willSetInitialBounds: boolean;
+    // (undocumented)
+    zoomIn(point?: Vec, opts?: TLCameraMoveOptions): Editor;
+    // (undocumented)
+    zoomOut(point?: Vec, opts?: TLCameraMoveOptions): Editor;
+    // (undocumented)
+    zoomToBounds(bounds: BoxLike, opts?: {
+        inset?: number;
+        targetZoom?: number;
+    } & TLCameraMoveOptions): Editor;
+    // (undocumented)
+    zoomToFit(opts?: TLCameraMoveOptions): Editor;
+    // (undocumented)
+    zoomToSelection(opts?: TLCameraMoveOptions): Editor;
+    // (undocumented)
+    zoomToSelectionIfOffscreen(padding?: number, opts?: {
+        inset?: number;
+        targetZoom?: number;
+    } & TLCameraMoveOptions): void;
+    // (undocumented)
+    zoomToUser(userId: TLUserId, opts?: TLCameraMoveOptions): Editor;
+}
 
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
@@ -878,6 +1011,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
     // @internal (undocumented)
+    _animateToViewport(targetViewportPage: Box, opts?: TLCameraMoveOptions): Editor | undefined;
+    // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
         extras?: Record<string, unknown>;
         origin: string;
@@ -899,6 +1034,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         considerAllShapes?: boolean;
     }): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
+    // @internal (undocumented)
+    readonly _cameraManager: CameraManager;
     // (undocumented)
     canBindShapes({ fromShape, toShape, binding, }: {
         binding: {
@@ -1305,6 +1442,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCollaborators(): TLInstancePresence[];
     getCollaboratorsOnCurrentPage(): TLInstancePresence[];
     getColorMode(): 'dark' | 'light';
+    // @internal (undocumented)
+    getConstrainedCamera(point: VecLike, opts?: TLCameraMoveOptions): {
+        x: number;
+        y: number;
+        z: number;
+    };
     getContainer: () => HTMLElement;
     // @internal
     getContainerDocument(): Document;
