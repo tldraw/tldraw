@@ -1,6 +1,7 @@
 import { isClerkAPIResponseError } from '@clerk/backend/errors'
 import { DB } from '@tldraw/dotcom-shared'
 import { IndexKey } from '@tldraw/utils'
+import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { Transaction } from 'kysely'
 import { createPostgresConnectionPool } from '../../postgres'
@@ -8,7 +9,14 @@ import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { LOAD_ID_HEADER, parseLoadId } from '../../utils/loadId'
 import { isRateLimited } from '../../utils/rateLimit'
-import { getClerkClient } from '../../utils/tla/getAuth'
+import {
+	getBearerToken,
+	getClerkClient,
+	getMcpTokenAuth,
+	isOAuthAccessToken,
+	requireAuth,
+} from '../../utils/tla/getAuth'
+import { writeMcpAuthRefusalTelemetry } from './mcpServer'
 
 type EnsureUserResult =
 	| { outcome: 'existing' | 'created' | 'repaired'; email: string }
@@ -23,6 +31,32 @@ const OUTCOME_RESPONSES: Record<EnsureUserOutcome, { body: string; status: numbe
 	rate_limited: { body: 'Rate limited', status: 429 },
 	no_clerk_user: { body: 'Clerk user not found', status: 404 },
 	no_email: { body: 'Clerk user has no email address', status: 400 },
+}
+
+/**
+ * `POST /app/:userId/init`. tldraw.com's app calls it with a session token. The tldraw plugin for
+ * ChatGPT calls it from its own worker with the OAuth access token the host hands it, for an
+ * account that signed up on the consent screen and has never opened tldraw.com. Routed on the
+ * token's `typ`, as the thumbnail route is, so each request is verified once.
+ */
+export async function handleInitUser(req: IRequest, env: Environment): Promise<Response> {
+	const token = getBearerToken(req)
+	let userId: string
+	if (token && isOAuthAccessToken(token)) {
+		const auth = await getMcpTokenAuth(req, env)
+		if (!auth.ok) {
+			writeMcpAuthRefusalTelemetry(env, req, auth.reason, 'init')
+			return Response.json(
+				{ error: 'Unauthorized' },
+				{ status: auth.reason === 'not_allowlisted' ? 403 : 401 }
+			)
+		}
+		userId = auth.userId
+	} else {
+		userId = (await requireAuth(req, env)).userId
+	}
+	if (req.params.userId !== userId) return notFound()
+	return initUser(req, env)
 }
 
 export async function initUser(req: IRequest, env: Environment): Promise<Response> {
