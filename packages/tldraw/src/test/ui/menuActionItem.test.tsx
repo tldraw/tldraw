@@ -114,3 +114,52 @@ describe('useSomeActionsEnabled', () => {
 		expect(screen.getByTestId('some').textContent).toBe('false')
 	})
 })
+
+describe('arrange submenu gate', () => {
+	it('is false when every arrange action was deleted', async () => {
+		const ARRANGE_IDS = [
+			'align-left',
+			'align-center-horizontal',
+			'align-right',
+			'align-top',
+			'align-center-vertical',
+			'align-bottom',
+			'distribute-horizontal',
+			'distribute-vertical',
+			'stretch-horizontal',
+			'stretch-vertical',
+			'flip-horizontal',
+			'flip-vertical',
+			'pack',
+			'stack-horizontal',
+			'stack-vertical',
+		]
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<Tldraw
+					onMount={onMount}
+					components={{ QuickActions: null }}
+					overrides={{
+						actions(_e, actions) {
+							for (const id of ARRANGE_IDS) delete actions[id]
+							return actions
+						},
+					}}
+				>
+					<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
+						<SomeEnabled ids={ARRANGE_IDS} />
+					</TldrawUiMenuContextProvider>
+				</Tldraw>
+			),
+			{ waitForPatterns: false }
+		)
+		act(() => {
+			editor.createShapes([
+				{ id: createShapeId('a'), type: 'geo' },
+				{ id: createShapeId('b'), type: 'geo', x: 200 },
+			])
+			editor.selectAll()
+		})
+		expect(screen.getByTestId('some').textContent).toBe('false')
+	})
+})

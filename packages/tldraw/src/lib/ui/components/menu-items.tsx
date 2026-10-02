@@ -2,13 +2,8 @@ import { useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../context/actions'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
-import {
-	useAnySelectedShapesCount,
-	useHasShapesOnPage,
-	useOnlyFlippableShape,
-	useThreeStackableItems,
-	useUnlockedSelectedShapesCount,
-} from '../hooks/menu-hooks'
+import { useHasShapesOnPage, useUnlockedSelectedShapesCount } from '../hooks/menu-hooks'
+import { useSomeActionsEnabled } from '../hooks/useActionState'
 import { useReadonly } from '../hooks/useReadonly'
 import { TldrawUiMenuActionCheckboxItem } from './primitives/menus/TldrawUiMenuActionCheckboxItem'
 import { TldrawUiMenuActionItem } from './primitives/menus/TldrawUiMenuActionItem'
@@ -223,109 +218,89 @@ export function DeleteMenuItem() {
 
 /* --------------------- Modify --------------------- */
 
+const EDIT_ACTIONS = [
+	'group',
+	'ungroup',
+	'flatten-to-image',
+	'frame-selection',
+	'edit-link',
+	'fit-frame-to-content',
+	'remove-frame',
+	'convert-to-embed',
+	'convert-to-bookmark',
+	'toggle-auto-size',
+	'toggle-lock',
+]
+
 /** @public @react */
 export function EditMenuSubmenu() {
-	const isReadonlyMode = useReadonly()
-	if (!useAnySelectedShapesCount(1)) return null
-	if (isReadonlyMode) return null
+	const show = useSomeActionsEnabled(EDIT_ACTIONS)
+	if (!show) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="edit" label="context-menu.edit" size="small">
-			<GroupMenuItem />
-			<UngroupMenuItem />
-			<FlattenMenuItem />
-			<FrameSelectionMenuItem />
-			<EditLinkMenuItem />
-			<FitFrameToContentMenuItem />
-			<RemoveFrameMenuItem />
-			<ConvertToEmbedMenuItem />
-			<ConvertToBookmarkMenuItem />
-			<ToggleAutoSizeMenuItem />
-			<ToggleLockMenuItem />
+			{EDIT_ACTIONS.map((id) => (
+				<TldrawUiMenuActionItem key={id} actionId={id} whenDisabled="hide" />
+			))}
 		</TldrawUiMenuSubmenu>
+	)
+}
+
+const ARRANGE_GROUPS: { id: string; actionIds: string[] }[] = [
+	{
+		id: 'align',
+		actionIds: [
+			'align-left',
+			'align-center-horizontal',
+			'align-right',
+			'align-top',
+			'align-center-vertical',
+			'align-bottom',
+		],
+	},
+	{ id: 'distribute', actionIds: ['distribute-horizontal', 'distribute-vertical'] },
+	{ id: 'stretch', actionIds: ['stretch-horizontal', 'stretch-vertical'] },
+	{ id: 'flip', actionIds: ['flip-horizontal', 'flip-vertical'] },
+	{ id: 'order', actionIds: ['pack', 'stack-horizontal', 'stack-vertical'] },
+]
+const ARRANGE_ACTIONS = ARRANGE_GROUPS.flatMap((group) => group.actionIds)
+
+function ActionGroup({ id, actionIds }: { id: string; actionIds: string[] }) {
+	const show = useSomeActionsEnabled(actionIds)
+	if (!show) return null
+	return (
+		<TldrawUiMenuGroup id={id}>
+			{actionIds.map((actionId) => (
+				<TldrawUiMenuActionItem key={actionId} actionId={actionId} whenDisabled="hide" />
+			))}
+		</TldrawUiMenuGroup>
 	)
 }
 
 /** @public @react */
 export function ArrangeMenuSubmenu() {
-	const twoSelected = useUnlockedSelectedShapesCount(2)
-	const onlyFlippableShapeSelected = useOnlyFlippableShape()
-	const isReadonlyMode = useReadonly()
-
-	if (isReadonlyMode) return null
-	if (!(twoSelected || onlyFlippableShapeSelected)) return null
+	const show = useSomeActionsEnabled(ARRANGE_ACTIONS)
+	if (!show) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="arrange" label="context-menu.arrange" size="small">
-			{twoSelected && (
-				<TldrawUiMenuGroup id="align">
-					<TldrawUiMenuActionItem actionId="align-left" />
-					<TldrawUiMenuActionItem actionId="align-center-horizontal" />
-					<TldrawUiMenuActionItem actionId="align-right" />
-					<TldrawUiMenuActionItem actionId="align-top" />
-					<TldrawUiMenuActionItem actionId="align-center-vertical" />
-					<TldrawUiMenuActionItem actionId="align-bottom" />
-				</TldrawUiMenuGroup>
-			)}
-			<DistributeMenuGroup />
-			{twoSelected && (
-				<TldrawUiMenuGroup id="stretch">
-					<TldrawUiMenuActionItem actionId="stretch-horizontal" />
-					<TldrawUiMenuActionItem actionId="stretch-vertical" />
-				</TldrawUiMenuGroup>
-			)}
-			{(twoSelected || onlyFlippableShapeSelected) && (
-				<TldrawUiMenuGroup id="flip">
-					<TldrawUiMenuActionItem actionId="flip-horizontal" />
-					<TldrawUiMenuActionItem actionId="flip-vertical" />
-				</TldrawUiMenuGroup>
-			)}
-			<OrderMenuGroup />
+			{ARRANGE_GROUPS.map((group) => (
+				<ActionGroup key={group.id} id={group.id} actionIds={group.actionIds} />
+			))}
 		</TldrawUiMenuSubmenu>
 	)
 }
 
-function DistributeMenuGroup() {
-	const threeSelected = useUnlockedSelectedShapesCount(3)
-	if (!threeSelected) return null
-
-	return (
-		<TldrawUiMenuGroup id="distribute">
-			<TldrawUiMenuActionItem actionId="distribute-horizontal" />
-			<TldrawUiMenuActionItem actionId="distribute-vertical" />
-		</TldrawUiMenuGroup>
-	)
-}
-
-function OrderMenuGroup() {
-	const twoSelected = useUnlockedSelectedShapesCount(2)
-	const threeStackableItems = useThreeStackableItems()
-	if (!twoSelected) return null
-
-	return (
-		<TldrawUiMenuGroup id="order">
-			<TldrawUiMenuActionItem actionId="pack" />
-			{threeStackableItems && <TldrawUiMenuActionItem actionId="stack-horizontal" />}
-			{threeStackableItems && <TldrawUiMenuActionItem actionId="stack-vertical" />}
-		</TldrawUiMenuGroup>
-	)
-}
+const REORDER_ACTIONS = ['bring-to-front', 'bring-forward', 'send-backward', 'send-to-back']
 
 /** @public @react */
 export function ReorderMenuSubmenu() {
-	const isReadonlyMode = useReadonly()
-	const oneSelected = useUnlockedSelectedShapesCount(1)
-	if (isReadonlyMode) return null
-	if (!oneSelected) return null
+	const show = useSomeActionsEnabled(REORDER_ACTIONS)
+	if (!show) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="reorder" label="context-menu.reorder" size="small">
-			<TldrawUiMenuGroup id="reorder">
-				<TldrawUiMenuActionItem actionId="bring-to-front" />
-				<TldrawUiMenuActionItem actionId="bring-forward" />
-				<TldrawUiMenuActionItem actionId="send-backward" />
-				<TldrawUiMenuActionItem actionId="send-to-back" />
-			</TldrawUiMenuGroup>
+			<ActionGroup id="reorder" actionIds={REORDER_ACTIONS} />
 		</TldrawUiMenuSubmenu>
 	)
 }
