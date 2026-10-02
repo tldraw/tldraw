@@ -36,10 +36,10 @@ function extract(): Extracted {
 	const outDir = mkdtempSync(path.join(tmpdir(), 'tldraw-i18n-'))
 	const outFile = path.join(outDir, 'extracted.json')
 
-	// `@formatjs/cli` is a devDependency of packages/tldraw, so it isn't on the root's script path;
-	// the hoisted binary is.
+	// `@formatjs/cli` is declared by packages/tldraw, and pnpm links a workspace's binaries into
+	// that workspace rather than the root, so this is where the binary lands.
 	execFileSync(
-		path.join(REPO_ROOT, 'node_modules/.bin/formatjs'),
+		path.join(REPO_ROOT, 'packages/tldraw/node_modules/.bin/formatjs'),
 		[
 			'extract',
 			...globs,
