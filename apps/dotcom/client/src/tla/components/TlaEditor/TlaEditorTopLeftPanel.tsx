@@ -65,9 +65,9 @@ import { editorMessages } from './editor-messages'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
-/** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, only for users
- *  the commenting flag covers). Rebuilt here because tldraw's `ViewSubmenu` is a fixed component
- *  with no slot to inject into. */
+/** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, signed-in
+ *  only). Rebuilt here because tldraw's `ViewSubmenu` is a fixed component with no slot to inject
+ *  into. */
 function TlaViewSubmenu() {
 	const commentingEnabled = useIsCommentingEnabled()
 	return (

@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { Environment } from './types'
+import { resetFeatureFlagCacheForTests } from './utils/featureFlags'
 import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
 
 function env(tldrawEnv?: string, kv?: Record<string, string>): Environment {
@@ -15,36 +16,17 @@ async function mode(e: Environment, roomKey: string) {
 	return resolveVersionChainMode(await loadVersionChainRollout(e), roomKey)
 }
 
-describe('version chain rollout', () => {
-	it('defaults to dual everywhere outside production', async () => {
-		expect(await mode(env('development'), 'app_rooms/a')).toBe('dual')
-		expect(await mode(env('staging'), 'app_rooms/a')).toBe('dual')
-		expect(await mode(env(undefined), 'app_rooms/a')).toBe('dual')
-	})
+beforeEach(() => resetFeatureFlagCacheForTests())
 
-	it('defaults to off in production', async () => {
-		expect(await mode(env('production'), 'app_rooms/a')).toBe('off')
+describe('version chain rollout', () => {
+	it('defaults to chain everywhere, production included', async () => {
+		for (const tldrawEnv of ['development', 'staging', 'production', undefined]) {
+			expect(await mode(env(tldrawEnv), 'app_rooms/a')).toBe('chain')
+		}
 	})
 
 	it('is off when the chain flag is disabled', async () => {
-		const e = env('staging', { version_chain: '{"enabled":false}' })
-
-		expect(await mode(e, 'app_rooms/a')).toBe('off')
-	})
-
-	it('is chain when legacy writes are disabled for a room on chains', async () => {
-		const e = env('staging', { version_chain_legacy_writes: '{"enabled":false}' })
-
-		expect(await mode(e, 'app_rooms/a')).toBe('chain')
-	})
-
-	it('never leaves a room writing nothing: outside the chain rollout, legacy always wins', async () => {
-		// The dangerous flag state — legacy writes disabled while the chain rollout does not cover the
-		// room — must degrade to legacy-only, not to no version writes at all.
-		const e = env('staging', {
-			version_chain: '{"enabled":true,"percentage":0}',
-			version_chain_legacy_writes: '{"enabled":false}',
-		})
+		const e = env('production', { version_chain: '{"enabled":false}' })
 
 		expect(await mode(e, 'app_rooms/a')).toBe('off')
 	})
@@ -61,15 +43,9 @@ describe('version chain rollout', () => {
 		)
 		const rooms = Array.from({ length: 200 }, (_, i) => `app_rooms/room-${i}`)
 
-		const on = rooms.filter((room) => resolveVersionChainMode(rollout, room) === 'dual').length
+		const on = rooms.filter((room) => resolveVersionChainMode(rollout, room) === 'chain').length
 
 		expect(on).toBeGreaterThan(60)
 		expect(on).toBeLessThan(140)
-	})
-
-	it('lets a stored flag turn production on without a deploy', async () => {
-		const e = env('production', { version_chain: '{"enabled":true,"percentage":100}' })
-
-		expect(await mode(e, 'app_rooms/a')).toBe('dual')
 	})
 })

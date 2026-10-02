@@ -25,7 +25,7 @@ export class ClickManager {
 	@bind
 	_getClickTimeout(state: TLClickState, id = uniqueId()) {
 		this._clickId = id
-		clearTimeout(this._clickTimeout)
+		this.editor.timers.clearTimeout(this._clickTimeout)
 		this._clickTimeout = this.editor.timers.setTimeout(
 			() => {
 				if (this._clickState === state && this._clickId === id) {
@@ -166,7 +166,8 @@ export class ClickManager {
 	 */
 	@bind
 	cancelDoubleClickTimeout() {
-		this._clickTimeout = clearTimeout(this._clickTimeout)
+		this.editor.timers.clearTimeout(this._clickTimeout)
+		this._clickTimeout = undefined
 		this._clickState = 'idle'
 		// when a double click is cancelled, we are no longer pending any further
 		// clicks, so we set this to false even if the user is still pressing

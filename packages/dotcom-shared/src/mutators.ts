@@ -149,19 +149,65 @@ async function assertUserCanAccessFileById(tx: Tx, userId: string, fileId: strin
 	await assertUserCanAccessFile(tx, userId, file!)
 }
 
+const isBoolean = (value: unknown) => typeof value === 'boolean'
+const isNumber = (value: unknown) => typeof value === 'number' && Number.isFinite(value)
+const isShortString = (value: unknown) => typeof value === 'string' && value.length <= 64
+/** For an optional column, where null unsets the preference and the editor's default applies. */
+const orNull = (check: (value: unknown) => boolean) => (value: unknown) =>
+	value === null || check(value)
+
+/**
+ * The user preferences `updateUserPreferences` may change, and what each accepts. The editor
+ * preferences in UserPreferencesKeys, less colorScheme (an app embedding the editor owns its
+ * theme) and name (so an agent's token cannot rename its user).
+ */
+const USER_PREFERENCE_VALIDATORS = {
+	locale: orNull(isShortString),
+	animationSpeed: orNull(isNumber),
+	areKeyboardShortcutsEnabled: orNull(isBoolean),
+	edgeScrollSpeed: orNull(isNumber),
+	isSnapMode: orNull(isBoolean),
+	isWrapMode: orNull(isBoolean),
+	isDynamicSizeMode: orNull(isBoolean),
+	isPasteAtCursorMode: orNull(isBoolean),
+	enhancedA11yMode: orNull(isBoolean),
+	inputMode: orNull((value) => value === 'trackpad' || value === 'mouse'),
+	isZoomDirectionInverted: orNull(isBoolean),
+	// Not null: the column is required.
+	color: isShortString,
+} satisfies Partial<Record<keyof TlaUser, (value: unknown) => boolean>>
+
+export type TlaUserPreferenceKey = keyof typeof USER_PREFERENCE_VALIDATORS
+
+/** The keys `updateUserPreferences` accepts, for callers that narrow it further. */
+export const USER_PREFERENCE_KEYS = Object.keys(
+	USER_PREFERENCE_VALIDATORS
+) as readonly TlaUserPreferenceKey[]
+
 export function createMutators(userId: string) {
 	const mutators = {
 		user: {
-			/** @deprecated */
-			insert: async (tx: Tx, user: TlaUser) => {
-				assert(userId === user.id, ZErrorCode.forbidden)
-				await tx.mutate.user.insert(user)
-			},
 			update: async (tx: Tx, user: TlaUserPartial) => {
 				assert(userId === user.id, ZErrorCode.forbidden)
 				disallowImmutableMutations(user, immutableColumns.user)
 				await tx.mutate.user.update(user)
 			},
+		},
+		/** Sets the caller's own editor preferences, and nothing else on their user row. */
+		updateUserPreferences: async (
+			tx: Tx,
+			preferences: Partial<Pick<TlaUser, TlaUserPreferenceKey>>
+		) => {
+			const entries = Object.entries(preferences)
+			for (const [key, value] of entries) {
+				assert(Object.hasOwn(USER_PREFERENCE_VALIDATORS, key), ZErrorCode.forbidden)
+				assert(
+					USER_PREFERENCE_VALIDATORS[key as TlaUserPreferenceKey](value),
+					ZErrorCode.bad_request
+				)
+			}
+			if (entries.length === 0) return
+			await tx.mutate.user.update({ ...preferences, id: userId })
 		},
 		file: {
 			update: async (tx: Tx, _file: TlaFilePartial) => {
@@ -630,6 +676,9 @@ export function createMutators(userId: string) {
 
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			assert(file, ZErrorCode.bad_request)
+			// a fresh group_file row would re-grant access to a trashed board, bringing its
+			// comment notifications back for the target workspace
+			assert(!file.isDeleted, ZErrorCode.bad_request)
 
 			// No-op if file is already in the target workspace
 			if (file.owningGroupId === workspaceId) return

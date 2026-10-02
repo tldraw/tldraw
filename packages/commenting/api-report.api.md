@@ -635,6 +635,9 @@ export interface SidebarRow {
 export function sortSidebarRows(rows: readonly SidebarRow[]): readonly SidebarRow[];
 
 // @public
+export function startCommentAt(editor: Editor, point: VecLike): void;
+
+// @public
 export function summarizeReactions(reactions: readonly ReactionSummaryInput[], currentUserId?: null | string, resolveName?: (userId: string) => string | undefined): ReactionSummary[];
 
 // @public

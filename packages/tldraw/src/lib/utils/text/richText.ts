@@ -9,6 +9,7 @@ import {
 } from '@tiptap/core'
 import { Code } from '@tiptap/extension-code'
 import { Highlight } from '@tiptap/extension-highlight'
+import { Typography } from '@tiptap/extension-typography'
 import { Node } from '@tiptap/pm/model'
 import { StarterKit, type StarterKitOptions } from '@tiptap/starter-kit'
 import {
@@ -20,6 +21,8 @@ import {
 	WeakCache,
 } from '@tldraw/editor'
 import { DefaultFontFaces } from '../../shapes/shared/defaultFonts'
+import { LiteralTypingExtension } from './literalTyping'
+import { WrapSelectionExtension } from './wrapSelection'
 
 /** @public */
 export const KeyboardShiftEnterTweakExtension = Extension.create({
@@ -70,6 +73,9 @@ export function getTipTapDefaultExtensions(
 			...starterKitOptions,
 		}),
 		Highlight,
+		Typography,
+		LiteralTypingExtension,
+		WrapSelectionExtension,
 		KeyboardShiftEnterTweakExtension,
 
 		// N.B. We disable the text direction core extension in RichTextArea,

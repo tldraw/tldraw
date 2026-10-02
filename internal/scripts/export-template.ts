@@ -64,6 +64,8 @@ async function main() {
 		.split('\n')
 		.map((s) => s.replace(templateRepoPrefix, ''))
 		.filter((s) => s.trim())
+		// Monorepo-only Vercel deploy config; its commands don't work outside this workspace.
+		.filter((s) => s !== 'vercel.json')
 
 	await mkdir(workingDir, { recursive: true })
 

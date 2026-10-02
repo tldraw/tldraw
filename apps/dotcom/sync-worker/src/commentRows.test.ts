@@ -28,6 +28,7 @@ import {
 	isCommentThreadIdFkViolation,
 	isCommentThreadFkViolation,
 	liveCommentDocuments,
+	loadCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
 	planCommentDrain,
@@ -44,6 +45,7 @@ import {
 	upsertCommentRows,
 	upsertCommentThreadRows,
 } from './commentRows'
+import { createFakeKysely } from './test/fakeKysely'
 
 const pageId = 'page:page1' as TLPageId
 const shapeId = 'shape:box1' as TLShapeId
@@ -859,6 +861,15 @@ describe('mergeCommentDocumentsIntoSnapshot', () => {
 		expect(snapshot.documents.slice(1)).toEqual(docs)
 	})
 
+	it('handles more comment docs than fit in a spread call', () => {
+		const state = makeThread()
+		const docs: RoomSnapshot['documents'] = []
+		for (let i = 1; i <= 150_000; i++) docs.push({ state, lastChangedClock: i })
+		const snapshot = makeSnapshot({ documentClock: 10 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(docs))
+		expect(snapshot.documentClock).toBe(150_000)
+	})
+
 	it('leaves documentClock alone when all comment clocks are at or below it', () => {
 		const snapshot = makeSnapshot({ documentClock: 10 })
 		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(3, 10)))
@@ -1051,6 +1062,58 @@ describe('liveCommentDocuments', () => {
 
 	it('empty rows produce an empty, zero-floor load', () => {
 		expect(liveCommentDocuments([], [])).toEqual({ documents: [], clockFloor: 0 })
+	})
+})
+
+describe('loadCommentDocuments', () => {
+	it('loads all three tables in one statement', async () => {
+		const fake = createFakeKysely([[{ threadRows: [], commentRows: [], reactionRows: [] }]])
+		await loadCommentDocuments(fake.db, 'file1')
+		expect(fake.queries).toHaveLength(1)
+		for (const table of ['comment_thread', 'comment', 'comment_reaction']) {
+			expect(fake.queries[0].sql).toContain(`from "${table}" where "fileId" = $`)
+		}
+	})
+
+	it('returns the live documents and clock floor for the rows', async () => {
+		const thread = makeThread()
+		const comment = createComment({
+			threadId: thread.id,
+			pageId,
+			authorId: 'user1',
+			body,
+			now: 1500,
+		})
+		const reaction = createCommentReaction({
+			commentId: comment.id,
+			threadId: thread.id,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now: 1700,
+		})
+		const deletedThread = { ...makeThread(), isDeleted: true }
+		const deletedThreadComment = createComment({
+			threadId: deletedThread.id,
+			pageId,
+			authorId: 'user1',
+			body,
+			now: 1600,
+		})
+		const threadRows = [
+			threadRecordToRow(thread, 'file1', 42),
+			threadRecordToRow(deletedThread, 'file1', 50),
+		]
+		const commentRows = [
+			commentRecordToRow(comment, 'file1', 43),
+			commentRecordToRow(deletedThreadComment, 'file1', 51),
+		]
+		const reactionRows = [reactionRecordToRow(reaction, 'file1', 45)]
+		const fake = createFakeKysely([[{ threadRows, commentRows, reactionRows }]])
+		const expected = liveCommentDocuments(threadRows, commentRows, reactionRows)
+		expect(await loadCommentDocuments(fake.db, 'file1')).toEqual(expected)
+		expect(expected.documents.map((d) => d.state.id)).toEqual([thread.id, comment.id, reaction.id])
+		expect(expected.clockFloor).toBe(51)
 	})
 })
 

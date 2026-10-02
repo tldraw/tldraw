@@ -25,11 +25,11 @@ Sections marked **internal** describe supporting machinery that has its own cont
 ## 3. Computing diffs: `diffRecord` (D)
 
 - **D1** `diffRecord(prev, next)` returns an `ObjectDiff` describing how to turn `prev` into `next`, or `null` when there is nothing to change (including when `prev === next`).
-- **D2** A key present in `prev` but missing from `next` produces `['delete']`. A key present in `next` but missing from `prev` produces `['put', value]`.
+- **D2** A key present in `prev` but missing from `next` produces `['delete']`. A key present in `next` but missing from `prev` produces `['put', value]`. Only own keys count (inherited `Object.prototype` members are never consulted), and a key whose value is `undefined` is treated as absent on both sides — `undefined` does not survive JSON, so it is never put. `__proto__` keys are ignored, matching AD8.
 - **D3** `props` and `meta` are the only nested keys at the top level: changes inside them are expressed as `['patch', ...]` ops. Any other top-level key whose values are not both arrays or both strings is compared with deep equality and produces a whole-value `['put', next]` on change — even when both values are plain objects.
 - **D4** Inside a nested diff (within `props`/`meta` or deeper), object values are recursively patched; `null` and primitive values are put.
 - **D5** When both values are strings (at any level, including top-level keys) and `next` starts with `prev`, the diff is `['append', addedSuffix, prev.length]`. Other string changes are puts. With `legacyAppendMode` enabled, string appends become puts instead; array appends (D7) are unaffected by `legacyAppendMode`.
-- **D6** Same-length arrays: if no items changed, no op. If at most `max(length/5, 1)` items changed, the op is `['patch', { [index]: op }]` where each changed index gets a recursive diff when both old and new items are truthy objects, and a put otherwise. If more items changed, the whole array is put.
+- **D6** Same-length arrays: if no items changed, no op. If at most `max(length/5, 1)` items changed, the op is `['patch', { [index]: op }]` where each changed index gets a recursive diff when both old and new items are truthy objects of the same kind (both arrays or both plain objects), and a put otherwise. If more items changed, the whole array is put.
 - **D7** Different-length arrays: when the shared prefix is unchanged and the array grew, the op is `['append', addedItems, prev.length]`. Any change in the shared prefix (including truncation) puts the whole array.
 
 ## 4. Applying diffs: `applyObjectDiff` (AD)
@@ -38,9 +38,10 @@ Sections marked **internal** describe supporting machinery that has its own cont
 - **AD2** A `put` is applied only when the new value is not deep-equal to the current value.
 - **AD3** An `append` is applied only when the current value is an array/string of the matching type whose length equals the op's offset. On any mismatch the op is silently ignored.
 - **AD4** A `patch` is applied only when the current value is a truthy object; it recurses with AD1 semantics. Patching a missing or primitive value is silently ignored.
-- **AD5** A `delete` removes the key when present.
+- **AD5** A `delete` removes the key when it is an own key of the object.
 - **AD6** Patching a non-object (`null`, primitives) returns the input unchanged.
 - **AD7** Arrays are cloned as arrays; ops keyed by numeric strings index into them.
+- **AD8** Ops keyed `__proto__` are ignored: diffs arrive from untrusted peers and assigning that key would change the target's prototype.
 
 ## 5. Converting diffs (ND)
 
@@ -171,7 +172,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **CL2** The connect message carries a fresh unique `connectRequestId`, the store's serialized schema, protocol version 8, and `lastServerClock` (−1 before any server contact, afterwards the last seen server clock).
 - **CL3** `onLoad` fires on the first message received from the server, of any type.
 - **CL4** A `connect` response whose `connectRequestId` does not match the latest request is ignored.
-- **CL5** On a `connect` response with `hydrationType: 'wipe_presence'`, the client reverts its speculative changes, removes all presence records, applies the server's diff, then re-applies the speculative changes on top and pushes them as a new push request.
+- **CL5** On a `connect` response with `hydrationType: 'wipe_presence'`, the client reverts its speculative changes, removes all presence records, applies the server's diff, then re-applies the speculative changes on top and pushes them as a new push request. Pending store history is flushed first, so a local change still queued behind the store's frame throttle is part of the speculative changes being rebased.
 - **CL6** With `hydrationType: 'wipe_all'`, all document records are additionally wiped before the server's diff is applied; speculative changes still re-apply on top afterwards.
 - **CL7** After connecting, `onAfterConnect` is called with `{ isReadonly }` from the connect message, and the current presence state (if any) is pushed.
 - **CL8** When the socket goes `'offline'`, the client resets: presence records are removed from the store, pending and unsent pushes are dropped, and the client waits to reconnect. When the socket reports `'error'`, `onSyncError(reason)` fires and the client closes permanently.
@@ -251,8 +252,8 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **SES2** Cancelling (also via `handleClose`) moves the session to `AwaitingRemoval` — keeping its presence id and meta for a quick reconnect — closes the socket, and schedules a follow-up prune.
 - **SES3** Removal deletes the session, closes the socket (with code 4099 and the reason when fatal), deletes the session's presence record and broadcasts that deletion to everyone, emits `session_removed`, and emits `room_became_empty` when it was the last session.
 - **SES4** `rejectSession` with a reason: legacy sessions (protocol ≤ 6) receive a deprecated `incompatibility_error` message (reason mapped: `CLIENT_TOO_OLD` → `clientTooOld`, `SERVER_TOO_OLD` → `serverTooOld`, `INVALID_RECORD` → `invalidRecord`, anything else → `invalidOperation`) and are then removed without a close code; modern sessions are closed with code 4099 and the reason string, truncated on a code-point boundary and ended with `... (+N bytes)` (N being the bytes dropped) to fit the 123 UTF-8 bytes a close frame allows, so the socket's `close()` does not throw. Without a reason it is a plain removal.
-- **SES5** `getCanEmitStringAppend()` is false when any connected session has `supportsStringAppend: false`; pushes handled in that state use legacy append mode (D5) so broadcast diffs avoid string-append ops.
-- **SES6** `handleResumedSession` registers a session directly in `Connected` state (no handshake): `requiresDownMigrations` is recomputed from the supplied schema, and a supplied presence record is restored into the presence store.
+- **SES5** `getCanEmitStringAppend()` is false when any connected session has `supportsStringAppend: false`; pushes handled in that state use legacy append mode (D5) on every diff the room emits — the pusher's push result, the broadcast to other sessions (including the down-migrated variant, MG1), and puts over existing records — so no session receives a string-append op.
+- **SES6** `handleResumedSession` registers a session directly in `Connected` state (no handshake): `requiresDownMigrations` is recomputed from the supplied schema, and a supplied presence record is restored into the presence store. The handshake's schema checks (HS3) are re-applied — a schema the server can no longer reconcile rejects the resumed session instead of being served unmigrated diffs.
 - **SES7** A message from an unknown session id logs a warning and is ignored.
 
 ## 27. Migrations over the wire (MG)

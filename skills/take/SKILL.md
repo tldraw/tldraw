@@ -78,8 +78,8 @@ Run the smallest relevant checks first. Use broader checks when the change touch
 Typical final checks:
 
 ```bash
-yarn typecheck
-yarn lint
+pnpm typecheck
+pnpm lint
 ```
 
 For focused package changes, prefer the relevant workspace tests before repo-wide checks.

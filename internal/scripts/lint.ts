@@ -47,12 +47,12 @@ async function main() {
 
 	try {
 		await exec(
-			'yarn',
+			'pnpm',
 			['oxfmt', shouldFix ? '--write' : '--check', '--no-error-on-unmatched-pattern', fmtGlob],
 			{ pwd: REPO_ROOT }
 		)
 		if (!shouldFix) {
-			await exec('yarn', ['oxlint', ...target.split(' ')], { pwd: REPO_ROOT })
+			await exec('pnpm', ['exec', 'oxlint', ...target.split(' ')], { pwd: REPO_ROOT })
 		}
 	} catch {
 		process.exit(1)

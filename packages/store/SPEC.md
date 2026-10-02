@@ -52,6 +52,8 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **S8** `getStoreSnapshot(scope?)` is `{ store: serialize(scope), schema: schema.serialize() }`.
 - **S9** `loadStoreSnapshot(snapshot)` migrates the snapshot, replaces all current records with the result, and runs the integrity checker — all with side effects disabled (restoring the previous enabled state afterwards). It throws if migration fails, leaving the store unchanged.
 - **S10** `migrateSnapshot(snapshot)` returns the migrated snapshot stamped with the current serialized schema, and throws if migration fails.
+- **S11** `put` and `remove` don't capture: a reaction or computed that writes to the store is not re-run by unrelated store changes.
+- **S12** When the same id appears more than once in one `put`, the history entry records it once: as an update whose `from` is the record as it was before the call, or as a single addition if the call also created it. A record changed and then changed back (by reference) within one call is not recorded at all.
 
 ## 6. Atomic operations and the side-effect flush (AO)
 
@@ -88,6 +90,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **H11** Change-sets recorded inside a transaction that later rolls back (a throw, or an explicit rollback) are discarded: listeners never receive them, and a rolled-back nested transaction discards only its own. (History interceptors, being synchronous, have already seen them.)
 - **H12** `dispose()` delivers any pending change-sets to the attached listeners and then cancels the scheduled flush; it does not remove listeners.
 - **H13** A listener that throws does not prevent the other listeners from receiving the same flush; the first error is rethrown once every listener has been called.
+- **H14** The remover returned by `listen` flushes pending change-sets to the attached listeners, including the one being removed, and then removes it. The remover never throws: an error a listener raises during that flush is logged with `console.error`, so teardown code that calls removers in sequence runs to completion. Called from inside a flush, it removes the listener without flushing, so the other listeners keep receiving entries in order.
 
 ## 9. Validation (V)
 
@@ -142,7 +145,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **SC2** `serialize()` returns `{ schemaVersion: 2, sequences }` mapping each sequence id to the version of its last migration (0 for an empty sequence).
 - **SC3** `serializeEarliestVersion()` maps every sequence to version 0.
 - **SC4** `getType(typeName)` returns the RecordType and throws for unknown type names.
-- **SC5** `upgradeSchema` converts a v1 serialized schema to v2: `storeVersion` becomes `com.tldraw.store`, each record version becomes `com.tldraw.<typeName>`, and each subtype version becomes `com.tldraw.<typeName>.<subType>`. v2 schemas pass through unchanged; schema versions other than 1 or 2 produce an error result.
+- **SC5** `upgradeSchema` converts a v1 serialized schema to v2: `storeVersion` becomes `com.tldraw.store`, each record version becomes `com.tldraw.<typeName>`, and each subtype version becomes `com.tldraw.<typeName>.<subType>`. v2 schemas pass through unchanged; schema versions other than 1 or 2, and schemas missing their `sequences` (v2) or `recordVersions` (v1) object, produce an error result rather than throwing.
 
 ## 16. Migrations: authoring (M)
 
@@ -167,7 +170,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **MG2** A sequence already at the current version contributes nothing; if no sequence contributes anything the result is the empty array.
 - **MG3** Sequences in the persisted schema that the current schema does not know are ignored.
 - **MG4** A sequence missing from the persisted schema is included in full if it is `retroactive`, and skipped entirely if not.
-- **MG5** A persisted version that does not exist in the current sequence produces an error result (`Incompatible schema?`).
+- **MG5** A persisted version that does not exist in the current sequence produces an error result (`Incompatible schema?`). So does a version that is present but not a number, even for a `retroactive` sequence: only a missing version means "never applied".
 - **MG6** Results (success or error) are cached per persisted-schema object identity: calling again with the same object returns the same array instance.
 - **MG7** v1 persisted schemas are upgraded (SC5) before comparison.
 
@@ -188,7 +191,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **MA3** Store-scope migrations receive the whole record map and may add, change, and delete records.
 - **MA4** Storage-scope migrations receive a `SynchronousStorage` (get/set/delete/keys/values/entries) and may use it to read and write records directly.
 - **MA5** When migrations are applied, records whose type's scope is not `'document'` are removed from the result (legacy cleanup). A snapshot needing no migrations keeps such records.
-- **MA6** An unknown record type encountered during migration, or a migrator that throws, produces a `migration-error` result.
+- **MA6** An unknown record type encountered during migration, a migrator that throws, or a malformed persisted schema produces a `migration-error` result.
 - **MA7** `migrateStorage(storage)` applies the same process to external storage, writing the current serialized schema via `setSchema` and updating only records that actually changed (deep equality).
 
 ## 21. Integrity (IC)
@@ -203,7 +206,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **AM1** `get`/`has` are reactive per key: an effect reading a present key re-runs when that key's value changes or the key is deleted, but not when other keys are set, updated, or deleted.
 - **AM2** Reading an absent key subscribes to the map's key set, so the reader re-runs when that key is later added (a reader of an absent key may also re-run when the key set otherwise changes — per-key isolation applies to present keys).
 - **AM3** `set` adds or updates and returns the map. `update(key, fn)` replaces an existing value and throws for a missing key.
-- **AM4** `delete` returns whether the key existed. `deleteMany(keys)` deletes in one transaction (one reaction for the whole batch), returns the `[key, value]` pairs actually deleted, and ignores missing keys.
+- **AM4** `delete` returns whether the key existed. `deleteMany(keys)` deletes in one transaction (one reaction for the whole batch), returns the `[key, value]` pairs actually deleted, and ignores missing keys. Like the other mutators, it does not capture the map.
 - **AM5** `clear()` empties the map.
 - **AM6** `entries`, `keys`, `values`, `forEach`, `[Symbol.iterator]`, and `size` see exactly the live entries and are reactive. `forEach` honors `thisArg`. As with `Map`, an entry deleted during iteration before it is visited is skipped.
 - **AM7** Changes made inside a rolled-back `@tldraw/state` transaction are restored: additions disappear, updates revert, deletions reappear.

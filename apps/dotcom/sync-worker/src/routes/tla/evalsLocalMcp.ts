@@ -1,23 +1,35 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
+import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 import {
 	BOARD_INFO_TOOL_NAME,
 	BOARD_NOT_FOUND_MESSAGE,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
+	CREATE_BOARD_TOOL_NAME,
+	LIST_WORKSPACES_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
+	RENAME_BOARD_TOOL_NAME,
+	SEARCH_BOARDS_TOOL_NAME,
 	ShapeMeasurement,
 	ToolResult,
+	compareBoardSearchOrder,
 	getBoardInfo,
+	getBoardSearchResults,
 	clusterPage,
 	getClusterInfo,
 	getPageInfo,
 	handleMcpJsonRpc,
+	isAfterBoardSearchCursor,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
+	parseCreateBoardInput,
+	parseListWorkspacesInput,
 	parsePageInfoInput,
+	parseRenameBoardInput,
+	parseSearchBoardsInput,
 	pickClusterShapes,
 	resolvePage,
 	toolError,
@@ -25,6 +37,17 @@ import {
 } from './boardTools'
 
 const HARNESS_GAP_MARKER = '[harness-gap]'
+
+// Insertion order is the fixture stand-in for creation time, but a bare index would have every eval
+// board report a 1970 timestamp — and a model reasoning about "my newest board" reads those. Spaced
+// an hour apart from a fixed date rather than from `Date.now()`, so two runs over the same fixtures
+// produce byte-identical results.
+const FIXTURE_CREATED_AT_BASE_MS = Date.UTC(2026, 0, 5, 9, 0, 0)
+const FIXTURE_CREATED_AT_STEP_MS = 60 * 60 * 1000
+
+function fixtureTimestamp(index: number): number {
+	return FIXTURE_CREATED_AT_BASE_MS + index * FIXTURE_CREATED_AT_STEP_MS
+}
 
 interface FixtureBoard {
 	snapshot: RoomSnapshot
@@ -125,6 +148,32 @@ async function callFixtureTool(
 ): Promise<ToolResult> {
 	try {
 		switch (name) {
+			case SEARCH_BOARDS_TOOL_NAME: {
+				const { terms, cursor } = parseSearchBoardsInput(args)
+				// The session is the whole "account": every board in it is one the caller owns. Names
+				// come from the snapshot, since a fixture has no `file` row to carry one, and
+				// insertion order stands in for creation order — so ordering and paging behave the
+				// way they do in production without fixtures needing timestamps.
+				const rows = [...boards.entries()]
+					.map(([id, board], index) => ({
+						id,
+						name: getDocumentNameFromSnapshot(board.snapshot) ?? '',
+						// A fixture session is the caller's own account, so every board arrived by being
+						// made here — the two timestamps are the same value, exactly as `createFile` writes
+						// them in production.
+						arrivedAt: fixtureTimestamp(index),
+						createdAt: fixtureTimestamp(index),
+						updatedAt: fixtureTimestamp(index),
+						workspaceName: '',
+						source: 'owned' as const,
+					}))
+					.filter((row) =>
+						terms.every((term) => row.name.toLowerCase().includes(term.toLowerCase()))
+					)
+					.sort(compareBoardSearchOrder)
+					.filter((row) => !cursor || isAfterBoardSearchCursor(row, cursor))
+				return getBoardSearchResults(rows, terms)
+			}
 			case BOARD_INFO_TOOL_NAME: {
 				const { boardId } = parseBoardInfoInput(args)
 				const board = boards.get(boardId)
@@ -166,6 +215,28 @@ async function callFixtureTool(
 					: toolError(
 							`${HARNESS_GAP_MARKER} No screenshot was built for this cluster set. Run against staging or production to see the real render.`
 						)
+			}
+			case LIST_WORKSPACES_TOOL_NAME: {
+				// Parsed so argument errors read as they do in production; a fixture session has no
+				// workspaces to list.
+				parseListWorkspacesInput(args)
+				return toolError(
+					`${HARNESS_GAP_MARKER} Workspaces cannot be listed against fixtures. Run against staging or production to list them.`
+				)
+			}
+			case CREATE_BOARD_TOOL_NAME: {
+				// Parsed so argument errors read as they do in production; a fixture session has no
+				// workspaces or database to create into.
+				parseCreateBoardInput(args)
+				return toolError(
+					`${HARNESS_GAP_MARKER} Boards cannot be created against fixtures. Run against staging or production to create one.`
+				)
+			}
+			case RENAME_BOARD_TOOL_NAME: {
+				parseRenameBoardInput(args)
+				return toolError(
+					`${HARNESS_GAP_MARKER} Boards cannot be renamed against fixtures. Run against staging or production to rename one.`
+				)
 			}
 			default:
 				return toolError(`Unknown tool: ${name}`)
