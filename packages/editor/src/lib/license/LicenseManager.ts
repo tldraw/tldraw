@@ -185,11 +185,10 @@ export class LicenseManager {
 	}
 
 	private getIsDevelopment() {
-		const protocol = window.location.protocol
-		const hostname = window.location.hostname
+		const { protocol, hostname } = this.getOriginLocation()
 
 		// Tauri uses `tauri://localhost` on macOS and Linux and `http://tauri.localhost` on Windows.
-		if (hostname.toLowerCase().endsWith('.localhost')) {
+		if (hostname.endsWith('.localhost')) {
 			return process.env.NODE_ENV !== 'production'
 		}
 
@@ -198,6 +197,15 @@ export class LicenseManager {
 			(protocol === 'https:' && this.isLoopbackHost(hostname)) ||
 			process.env.NODE_ENV !== 'production'
 		)
+	}
+
+	private getOriginLocation() {
+		// A document loaded from `blob:https://example.com/<uuid>` has protocol `blob:` and an empty
+		// hostname, but its origin is the page that created the blob. Opaque origins ('null': custom
+		// schemes, file:, about:) keep using the location.
+		const { origin, protocol, hostname } = window.location
+		const source = origin && origin !== 'null' ? new URL(origin) : { protocol, hostname }
+		return { protocol: source.protocol, hostname: source.hostname.toLowerCase() }
 	}
 
 	private isLoopbackHost(hostname: string) {
@@ -398,7 +406,7 @@ export class LicenseManager {
 	}
 
 	private isDomainValid(licenseInfo: LicenseInfo) {
-		const currentHostname = window.location.hostname.toLowerCase()
+		const currentHostname = this.getOriginLocation().hostname
 
 		return licenseInfo.hosts.some((host) => {
 			const normalizedHostOrUrlRegex = host.toLowerCase().trim()
