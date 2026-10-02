@@ -112,9 +112,113 @@ describe('useDocumentEvents window blur', () => {
 	})
 })
 
+// Browsers report `metaKey` as still true on the keyup of Meta itself.
+const metaKeyUp: KeyboardEventInit = { key: 'Meta', code: 'MetaLeft', metaKey: true }
+
 describe('useDocumentEvents meta release', () => {
 	afterEach(() => {
 		cleanup()
+	})
+
+	// macOS never delivers the keyup of a non-modifier key pressed while Meta is held, so the
+	// arrow from a Cmd+Arrow shortcut stayed held and the next plain arrow nudged diagonally.
+	it('releases keys whose keyup macOS swallowed while Meta was held', async () => {
+		const { editor, container } = await renderEditor()
+
+		keyDown(container, { key: 'Meta', code: 'MetaLeft', metaKey: true })
+		keyDown(container, { key: 'ArrowUp', code: 'ArrowUp', metaKey: true })
+		expect([...editor.inputs.keys]).toEqual(['MetaLeft', 'ArrowUp'])
+
+		// no keyup for ArrowUp ever arrives
+		keyUp(container, metaKeyUp)
+		expect([...editor.inputs.keys]).toEqual([])
+	})
+
+	// A key held from before Meta went down still gets its own keyup, so releasing it here
+	// would drop a key the user is still holding.
+	it('leaves keys held from before Meta went down', async () => {
+		const { editor, container } = await renderEditor()
+
+		keyDown(container, { key: ' ', code: 'Space' })
+		keyDown(container, { key: 'Meta', code: 'MetaLeft', metaKey: true })
+		keyUp(container, metaKeyUp)
+
+		expect([...editor.inputs.keys]).toEqual(['Space'])
+	})
+
+	// That key keeps auto-repeating, and once Cmd is down those repeats carry `metaKey`.
+	// Counting them would release a key that is still physically down - and a repeat never
+	// puts it back, since the editor treats key_repeat as a noop.
+	it('leaves a key that was already repeating when Meta went down', async () => {
+		const { editor, container } = await renderEditor()
+
+		keyDown(container, { key: 'ArrowUp', code: 'ArrowUp' })
+		keyDown(container, { key: 'Meta', code: 'MetaLeft', metaKey: true })
+		keyDown(container, { key: 'ArrowUp', code: 'ArrowUp', metaKey: true, repeat: true })
+		keyUp(container, metaKeyUp)
+
+		expect([...editor.inputs.keys]).toEqual(['ArrowUp'])
+	})
+
+	// Idle.onKeyUp re-enters shape editing on Enter, so replaying a key_up here stole the
+	// focus that cmd+Enter's a11y action had just put on the style toolbar.
+	it('does not fire tool key_up handlers for the keys it releases', async () => {
+		const { editor, container } = await renderEditor()
+		const keyUps: TLKeyboardEventInfo[] = []
+		editor.on('event', (info) => {
+			if (info.type === 'keyboard' && info.name === 'key_up') keyUps.push(info)
+		})
+
+		keyDown(container, { key: 'Meta', code: 'MetaLeft', metaKey: true })
+		keyDown(container, { key: 'Enter', code: 'Enter', metaKey: true })
+		keyUp(container, metaKeyUp)
+
+		expect([...editor.inputs.keys]).toEqual([])
+		expect(keyUps.map((info) => info.code)).toEqual(['MetaLeft'])
+	})
+
+	// A still-held modifier keeps its own keyup, and reporting it as up would start the
+	// editor's 150ms release: `ShiftLeft` would leave `inputs.keys` and shrink the nudge step.
+	it('leaves a still-held modifier alone', async () => {
+		const { editor, container } = await renderEditor()
+
+		keyDown(container, { key: 'Shift', code: 'ShiftLeft', shiftKey: true })
+		keyDown(container, { key: 'Meta', code: 'MetaLeft', shiftKey: true, metaKey: true })
+		keyDown(container, { key: 'ArrowUp', code: 'ArrowUp', shiftKey: true, metaKey: true })
+
+		keyUp(container, { ...metaKeyUp, shiftKey: true })
+		expect([...editor.inputs.keys]).toEqual(['ShiftLeft'])
+
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 200))
+		})
+		expect([...editor.inputs.keys]).toEqual(['ShiftLeft'])
+		expect(editor.inputs.getShiftKey()).toBe(true)
+	})
+
+	// Letting go of Cmd while still holding the arrow: the arrow is dropped as owed a keyup,
+	// but it is genuinely down, and its repeats say so. Without this, nudging stopped dead
+	// mid-gesture and stayed dead for as long as the key was held.
+	it('takes back a dropped key that is still repeating', async () => {
+		const { editor, container } = await renderEditor()
+
+		keyDown(container, { key: 'Meta', code: 'MetaLeft', metaKey: true })
+		keyDown(container, { key: 'ArrowUp', code: 'ArrowUp', metaKey: true })
+		keyUp(container, metaKeyUp)
+		expect([...editor.inputs.keys]).toEqual([])
+
+		keyDown(container, { key: 'ArrowUp', code: 'ArrowUp', repeat: true })
+		expect([...editor.inputs.keys]).toEqual(['ArrowUp'])
+	})
+
+	it('does not disturb keys held without Meta', async () => {
+		const { editor, container } = await renderEditor()
+
+		keyDown(container, { key: 'ArrowUp', code: 'ArrowUp' })
+		keyUp(container, { key: 'ArrowUp', code: 'ArrowUp' })
+		keyDown(container, { key: 'ArrowRight', code: 'ArrowRight' })
+
+		expect([...editor.inputs.keys]).toEqual(['ArrowRight'])
 	})
 
 	// Browsers report `metaKey: true` on Meta's own keyup, which left `getMetaKey()` true
@@ -125,7 +229,7 @@ describe('useDocumentEvents meta release', () => {
 		keyDown(container, { key: 'Meta', code: 'MetaLeft', metaKey: true })
 		expect(editor.inputs.getMetaKey()).toBe(true)
 
-		keyUp(container, { key: 'Meta', code: 'MetaLeft', metaKey: true })
+		keyUp(container, metaKeyUp)
 		await act(async () => {
 			await new Promise((resolve) => setTimeout(resolve, 200))
 		})

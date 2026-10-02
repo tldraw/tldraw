@@ -11551,7 +11551,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 						break
 					}
 					case 'key_repeat': {
-						// noop
+						// A repeat is the only positive evidence that a key is still physically
+						// down, so it is also the only way one we lost track of can get back in.
+						// A key still held when Meta is released is dropped there on the
+						// assumption macOS ate its keyup; this is what corrects that.
+						inputs.keys.add(info.code)
 						break
 					}
 				}

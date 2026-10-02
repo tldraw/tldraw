@@ -18,6 +18,10 @@ export function useDocumentEvents() {
 	// blur release below needs the key remembered per code.
 	const heldKeysRef = useRef(new Map<string, string>())
 
+	// Non-modifier keys pressed while Meta was down. macOS never delivers their keyup, so
+	// `inputs.keys` would count them as held for good; see the Meta branch in `handleKeyUp`.
+	const keysPressedWithMetaRef = useRef(new Set<string>())
+
 	// Prevent the browser's default drag and drop behavior on our container (UI, etc)
 	useEffect(() => {
 		if (!container) return
@@ -217,6 +221,12 @@ export function useDocumentEvents() {
 			}
 
 			heldKeysRef.current.set(e.code, e.key)
+			// Only a fresh press counts. A key held from before Meta went down keeps auto-
+			// repeating, and those repeats carry `metaKey` too, which would make it look like
+			// it was pressed during the Meta window.
+			if (!e.repeat && e.metaKey && !MODIFIER_CODES.has(e.code)) {
+				keysPressedWithMetaRef.current.add(e.code)
+			}
 			editor.dispatch(info)
 		}
 
@@ -252,7 +262,26 @@ export function useDocumentEvents() {
 			}
 
 			heldKeysRef.current.delete(e.code)
+			keysPressedWithMetaRef.current.delete(e.code)
 			editor.dispatch(info)
+
+			// macOS swallows the keyup of a non-modifier key pressed while Meta is held, so a
+			// stuck ArrowUp from Cmd+ArrowUp made every later arrow nudge diagonally: the nudge
+			// sums all held arrows. Anything held from before the Meta window still gets its
+			// own keyup, so only drop what was pressed inside it. That is still one too many -
+			// the key you are *still* holding is not owed anything - and the key_repeat case
+			// in `Editor.dispatch` is what takes that one back.
+			//
+			// Drop them rather than replaying a key_up: a tool's onKeyUp is a real action at
+			// the wrong moment, and a synthetic Enter re-entered shape editing and stole the
+			// focus that cmd+Enter's a11y action had just put on the style toolbar.
+			if (isMetaRelease) {
+				for (const code of keysPressedWithMetaRef.current) {
+					editor.inputs.keys.delete(code)
+					heldKeysRef.current.delete(code)
+				}
+				keysPressedWithMetaRef.current.clear()
+			}
 		}
 
 		function handleTouchStart(e: TouchEvent) {
@@ -341,6 +370,7 @@ export function useDocumentEvents() {
 				})
 			}
 			heldKeys.clear()
+			keysPressedWithMetaRef.current.clear()
 		}
 
 		win.addEventListener('blur', handleWindowBlur)
@@ -349,6 +379,17 @@ export function useDocumentEvents() {
 		}
 	}, [editor])
 }
+
+const MODIFIER_CODES = new Set([
+	'ShiftLeft',
+	'ShiftRight',
+	'AltLeft',
+	'AltRight',
+	'ControlLeft',
+	'ControlRight',
+	'MetaLeft',
+	'MetaRight',
+])
 
 function areShortcutsDisabled(editor: Editor) {
 	return (
