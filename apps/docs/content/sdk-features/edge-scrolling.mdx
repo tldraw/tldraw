@@ -27,7 +27,7 @@ The built-in select tool does this in its Translating (moving shapes), Brushing 
 
 ## Tool integration
 
-To add edge scrolling to a custom tool, call `updateEdgeScrolling()` from the tick handler of the state where dragging happens, and only while the user is dragging:
+To add edge scrolling to a custom tool, call `updateEdgeScrolling()` from the tick handler of the state where dragging happens, and only while the user is dragging. Call [EdgeScrollManager#reset](?) when the state exits so a drag that ends in the edge zone doesn't leave the delay and ramp primed for the next one:
 
 ```typescript
 import { StateNode, TLTickEventInfo } from 'tldraw'
@@ -40,10 +40,14 @@ export class CustomDragState extends StateNode {
 		if (!editor.inputs.getIsDragging() || editor.inputs.getIsPanning()) return
 		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
+
+	override onExit() {
+		this.editor.edgeScrollManager.reset()
+	}
 }
 ```
 
-[EdgeScrollManager#getIsEdgeScrolling](?) returns true while the pointer is inside the edge zone, including during the start delay, and false once it leaves. Use it to show an indicator in your own UI.
+[EdgeScrollManager#getIsEdgeScrolling](?) returns true while the pointer is inside the edge zone, including during the start delay, and false once it leaves or the state resets the manager. Use it to show an indicator in your own UI.
 
 ## Configuration options
 

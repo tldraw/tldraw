@@ -868,6 +868,7 @@ export class EdgeScrollManager {
     editor: Editor;
     // (undocumented)
     getIsEdgeScrolling(): boolean;
+    reset(): void;
     updateEdgeScrolling(elapsed: number): void;
 }
 
