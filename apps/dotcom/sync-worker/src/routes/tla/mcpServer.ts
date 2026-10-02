@@ -318,7 +318,7 @@ export function writeMcpAuthRefusalTelemetry(
 	env: Environment,
 	request: Request,
 	reason: McpAuthRefusal,
-	route: 'mcp' | 'thumbnail'
+	route: 'mcp' | 'thumbnail' | 'init'
 ) {
 	writeDataPoint(undefined, env.MEASURE, env, 'mcp_server_auth_refusal', {
 		blobs: [
