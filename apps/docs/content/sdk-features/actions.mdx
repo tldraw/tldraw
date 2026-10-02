@@ -118,7 +118,7 @@ The default actions cover most editing operations you'd expect in a canvas appli
 | Zoom        | `zoom-in`, `zoom-out`, `zoom-to-100`, `zoom-to-fit`, `zoom-to-selection`, `select-zoom-tool`                                                                               |
 | Preferences | `toggle-dark-mode`, `toggle-snap-mode`, `toggle-grid`, `toggle-focus-mode`                                                                                                 |
 
-The full list is in the [default actions source](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx). An action doesn't run when its `isAvailable` or `isEnabled` returns false, or when the editor is readonly and it isn't `readonlyOk`, including when you call `onSelect` directly. For example, `group` does nothing unless two or more unlocked shapes are selected in the select tool.
+The full list is in the [default actions source](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx). An action doesn't run when its `isAvailable` or `isEnabled` returns false, or when the editor is readonly and it isn't `readonlyOk`, including when you call `onSelect` on an action from `useActions()`. For example, `group` does nothing unless two or more unlocked shapes are selected in the select tool.
 
 ## Overriding actions
 
@@ -309,7 +309,7 @@ actions['make-red'] = {
 }
 ```
 
-Menus, keyboard shortcuts and direct `onSelect` calls all respect `isEnabled`, so `onSelect` doesn't need to check it again.
+Menus, keyboard shortcuts and `onSelect` calls on actions from `useActions()` all respect `isEnabled`, so `onSelect` doesn't need to check it again.
 
 When you change a built-in action, spread the original so it keeps its `isAvailable`, `isEnabled` and `isChecked`:
 
