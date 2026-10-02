@@ -431,6 +431,57 @@ describe('LaserTool', () => {
 		})
 	})
 
+	describe('Session timing out mid-stroke', () => {
+		// A backgrounded tab or a throttled mobile browser stalls the frame loop, so the lasering
+		// state's tick handler never gets to extend the session and its idle timeout fires while the
+		// pointer is still down (#10125). The session then fades out and is removed.
+		function fadeOutSessionMidStroke() {
+			const extendSession = vi.spyOn(editor.scribbles, 'extendSession').mockImplementation(() => {})
+			vi.advanceTimersByTime(editor.options.laserDelayMs + editor.options.laserFadeoutMs + 200)
+			extendSession.mockRestore()
+			expect(editor.getInstanceState().scribbles).toEqual([])
+		}
+
+		it('continues the stroke in a fresh session instead of throwing', () => {
+			const startSession = vi.spyOn(editor.scribbles, 'startSession')
+			editor.setCurrentTool('laser')
+			editor.pointerDown(0, 0)
+			editor.pointerMove(10, 10)
+			editor.expectToBeIn('laser.lasering')
+			const firstSessionId = startSession.mock.results[0].value
+
+			fadeOutSessionMidStroke()
+			expect(editor.scribbles.isSessionActive(firstSessionId)).toBe(false)
+
+			expect(() => editor.pointerMove(20, 20)).not.toThrow()
+			editor.expectToBeIn('laser.lasering')
+			expect(startSession).toHaveBeenCalledTimes(2)
+			const secondSessionId = startSession.mock.results[1].value
+			expect(editor.scribbles.isSessionActive(secondSessionId)).toBe(true)
+
+			for (let i = 3; i <= 10; i++) {
+				editor.pointerMove(i * 10, i * 10)
+			}
+			const scribbles = editor.getInstanceState().scribbles
+			expect(scribbles.length).toBe(1)
+			expect(scribbles[0].points.length).toBeGreaterThan(0)
+
+			expect(() => editor.pointerUp()).not.toThrow()
+			editor.expectToBeIn('laser.idle')
+		})
+
+		it('finishes the stroke without throwing when the session is gone on pointer up', () => {
+			editor.setCurrentTool('laser')
+			editor.pointerDown(0, 0)
+			editor.pointerMove(10, 10)
+
+			fadeOutSessionMidStroke()
+
+			expect(() => editor.pointerUp()).not.toThrow()
+			editor.expectToBeIn('laser.idle')
+		})
+	})
+
 	describe('Edge cases', () => {
 		it('handles rapid pointer up/down', () => {
 			editor.setCurrentTool('laser')
