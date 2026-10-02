@@ -70,9 +70,10 @@ export function hasThreeStackableShapes(editor: Editor) {
 /** @internal */
 export function isOnlyFlippableShapeSelected(editor: Editor) {
 	const shape = editor.getOnlySelectedShape()
-	return (
-		!!shape && editor.getShapeUtil(shape).canFlip(shape) && !editor.isShapeOrAncestorLocked(shape)
-	)
+	if (!shape || editor.isShapeOrAncestorLocked(shape)) return false
+	const util = editor.getShapeUtil(shape)
+	// A lone bound arrow opts out of the flip via canBeLaidOut, so flipping it would do nothing.
+	return util.canFlip(shape) && util.canBeLaidOut(shape, { type: 'flip', shapes: [shape] })
 }
 
 // Flip's onSelect checks this too: shortcuts skip isEnabled.

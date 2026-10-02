@@ -102,6 +102,16 @@ describe('action predicates', () => {
 		expect(isOnlyFlippableShapeSelected(editor)).toBe(false)
 	})
 
+	it('flip on a single shape skips a bound arrow and allows highlight', () => {
+		bindArrow(a, b)
+		editor.select(arrow)
+		expect(isOnlyFlippableShapeSelected(editor)).toBe(false)
+		const highlight = createShapeId('highlight')
+		editor.createShape({ id: highlight, type: 'highlight', x: 0, y: 300 })
+		editor.select(highlight)
+		expect(isOnlyFlippableShapeSelected(editor)).toBe(true)
+	})
+
 	it('flip on a single shape follows the shape util', () => {
 		class FlippableTextShapeUtil extends TextShapeUtil {
 			override canFlip() {
