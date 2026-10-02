@@ -100,8 +100,8 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	// return would steal focus back and blur it closed. Only restore focus if nothing claimed it.
 	const preventCloseAutoFocusIfClaimed = useCallback(
 		(e: Event) => {
-			const activeElement = editor.getContainerDocument().activeElement
-			if (activeElement && activeElement !== editor.getContainerDocument().body) {
+			const { activeElement, body } = editor.getContainerDocument()
+			if (activeElement && activeElement !== body) {
 				e.preventDefault()
 			}
 		},
