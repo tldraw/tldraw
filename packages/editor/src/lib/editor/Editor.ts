@@ -1,4 +1,4 @@
-import { EMPTY_ARRAY, atom, computed, react, unsafe__withoutCapture } from '@tldraw/state'
+import { atom, computed, react, unsafe__withoutCapture } from '@tldraw/state'
 import { StoreSideEffects } from '@tldraw/store'
 import {
 	PageRecordType,
@@ -36,7 +36,6 @@ import {
 	TLUser,
 	TLUserId,
 	UserRecordType,
-	createBindingId,
 	createUserId,
 	getShapePropKeysByStyle,
 } from '@tldraw/tlschema'
@@ -77,12 +76,11 @@ import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { AssetUtil } from './assets/AssetUtil'
 import { BindingUtil } from './bindings/BindingUtil'
-import { bindingsIndex } from './derivations/bindingsIndex'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
-import { applyPartialToRecordWithProps } from './editorHelpers'
 import { registerEditorSideEffects } from './editorSideEffects'
 import { AssetsManager } from './managers/AssetsManager/AssetsManager'
+import { BindingsManager } from './managers/BindingsManager/BindingsManager'
 import { CameraManager } from './managers/CameraManager/CameraManager'
 import { ClickManager } from './managers/ClickManager/ClickManager'
 import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
@@ -3826,27 +3824,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._shapesManager.getOutermostSelectableShape(shape, filter)
 	}
 
-	/* -------------------- Bindings -------------------- */
-
-	@computed
-	private _getBindingsIndexCache() {
-		const index = bindingsIndex(this)
-		return this.store.createComputedCache<TLBinding[], TLShape>(
-			'bindingsIndex',
-			(shape) => {
-				return index.get().get(shape.id)
-			},
-			// we can ignore the shape equality check here because the index is
-			// computed incrementally based on what bindings are in the store
-			{ areRecordsEqual: () => true }
-		)
-	}
+	/** @internal */
+	readonly _bindingsManager = new BindingsManager(this)
 
 	/**
 	 * Get a binding from the store by its ID if it exists.
 	 */
 	getBinding(id: TLBindingId): TLBinding | undefined {
-		return this.store.get(id) as TLBinding | undefined
+		return this._bindingsManager.getBinding(id)
 	}
 
 	/**
@@ -3865,10 +3850,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
 	): Binding[] {
-		const id = typeof shape === 'string' ? shape : shape.id
-		return this.getBindingsInvolvingShape(id).filter(
-			(b) => b.fromId === id && b.type === type
-		) as Binding[]
+		return (this._bindingsManager.getBindingsFromShape as any)(shape, type)
 	}
 
 	/**
@@ -3887,10 +3869,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
 	): Binding[] {
-		const id = typeof shape === 'string' ? shape : shape.id
-		return this.getBindingsInvolvingShape(id).filter(
-			(b) => b.toId === id && b.type === type
-		) as Binding[]
+		return (this._bindingsManager.getBindingsToShape as any)(shape, type)
 	}
 
 	/**
@@ -3909,10 +3888,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shape: TLShape | TLShapeId,
 		type?: Binding['type']
 	): Binding[] {
-		const id = typeof shape === 'string' ? shape : shape.id
-		const result = this._getBindingsIndexCache().get(id) ?? EMPTY_ARRAY
-		if (!type) return result as Binding[]
-		return result.filter((b) => b.type === type) as Binding[]
+		return (this._bindingsManager.getBindingsInvolvingShape as any)(shape, type)
 	}
 
 	/**
@@ -3920,30 +3896,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * binding, but the `type`, `toId`, and `fromId` must all be provided.
 	 */
 	createBindings<B extends TLBinding = TLBinding>(partials: TLBindingCreate<B>[]) {
-		if (this.getIsReadonly()) return this
-
-		const bindings: TLBinding[] = []
-		for (const partial of partials) {
-			const fromShape = this.getShape(partial.fromId)
-			const toShape = this.getShape(partial.toId)
-			if (!fromShape || !toShape) continue
-			if (!this.canBindShapes({ fromShape, toShape, binding: partial })) continue
-
-			const util = this.getBindingUtil(partial.type)
-			const defaultProps = util.getDefaultProps()
-			const binding = this.store.schema.types.binding.create({
-				...partial,
-				id: partial.id ?? createBindingId(),
-				props: {
-					...defaultProps,
-					...partial.props,
-				},
-			}) as TLBinding
-
-			bindings.push(binding)
-		}
-
-		this.store.put(bindings)
+		this._bindingsManager.createBindings<B>(partials)
 		return this
 	}
 
@@ -3952,7 +3905,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * the `type`, `toId`, and `fromId` must all be provided.
 	 */
 	createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>) {
-		return this.createBindings([partial])
+		this._bindingsManager.createBinding<B>(partial)
+		return this
 	}
 
 	/**
@@ -3961,29 +3915,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * binding is skipped. The changes from the partial are merged into the existing record.
 	 */
 	updateBindings(partials: (TLBindingUpdate | null | undefined)[]) {
-		if (this.getIsReadonly()) return this
-
-		const updated: TLBinding[] = []
-
-		for (const partial of partials) {
-			if (!partial) continue
-
-			const current = this.getBinding(partial.id)
-			if (!current) continue
-
-			const updatedBinding = applyPartialToRecordWithProps(current, partial)
-			if (updatedBinding === current) continue
-
-			const fromShape = this.getShape(updatedBinding.fromId)
-			const toShape = this.getShape(updatedBinding.toId)
-			if (!fromShape || !toShape) continue
-			if (!this.canBindShapes({ fromShape, toShape, binding: updatedBinding })) continue
-
-			updated.push(updatedBinding)
-		}
-
-		this.store.put(updated)
-
+		this._bindingsManager.updateBindings(partials)
 		return this
 	}
 
@@ -3993,7 +3925,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * skipped. The changes from the partial are merged into the existing record.
 	 */
 	updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>) {
-		return this.updateBindings([partial])
+		this._bindingsManager.updateBinding<B>(partial)
+		return this
 	}
 
 	/**
@@ -4032,7 +3965,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Delete a binding by its ID. If the binding doesn't exist, it's ignored.
 	 */
 	deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]) {
-		return this.deleteBindings([binding], opts)
+		this._bindingsManager.deleteBinding(binding, opts)
+		return this
 	}
 	canBindShapes({
 		fromShape,

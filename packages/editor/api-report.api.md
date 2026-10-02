@@ -49,6 +49,7 @@ import { StyleProp } from '@tldraw/tlschema';
 import { StylePropValue } from '@tldraw/tlschema';
 import { T } from '@tldraw/validate';
 import { Timers } from '@tldraw/utils';
+import { TLArrowBinding } from '@tldraw/tlschema';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
@@ -287,6 +288,42 @@ export interface BindingOnShapeDeleteOptions<Binding extends TLBinding = TLBindi
 export interface BindingOnShapeIsolateOptions<Binding extends TLBinding = TLBinding> {
     binding: Binding;
     removedShape: TLShape;
+}
+
+// @internal
+export class BindingsManager extends EditorManager {
+    // (undocumented)
+    createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>): Editor;
+    // (undocumented)
+    createBindings<B extends TLBinding = TLBinding>(partials: TLBindingCreate<B>[]): Editor;
+    // (undocumented)
+    deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<Editor['deleteBindings']>[1]): Editor;
+    // (undocumented)
+    getBinding(id: TLBindingId): TLBinding | undefined;
+    // (undocumented)
+    getBindingsFromShape<K extends TLBinding['type']>(shape: TLShape | TLShapeId, type: K): Extract<TLBinding, {
+        type: K;
+    }>[];
+    // (undocumented)
+    getBindingsFromShape<Binding extends TLBinding = TLBinding>(shape: TLShape | TLShapeId, type: Binding['type']): Binding[];
+    // (undocumented)
+    _getBindingsIndexCache(): ComputedCache<TLArrowBinding[], TLShape>;
+    // (undocumented)
+    getBindingsInvolvingShape<K extends TLBinding['type']>(shape: TLShape | TLShapeId, type: K): Extract<TLBinding, {
+        type: K;
+    }>[];
+    // (undocumented)
+    getBindingsInvolvingShape<Binding extends TLBinding = TLBinding>(shape: TLShape | TLShapeId, type?: Binding['type']): Binding[];
+    // (undocumented)
+    getBindingsToShape<K extends TLBinding['type']>(shape: TLShape | TLShapeId, type: K): Extract<TLBinding, {
+        type: K;
+    }>[];
+    // (undocumented)
+    getBindingsToShape<Binding extends TLBinding = TLBinding>(shape: TLShape | TLShapeId, type: Binding['type']): Binding[];
+    // (undocumented)
+    updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>): Editor;
+    // (undocumented)
+    updateBindings(partials: (null | TLBindingUpdate | undefined)[]): Editor;
 }
 
 // @public (undocumented)
@@ -1139,6 +1176,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     bail(): this;
     bailToMark(id: string): this;
+    // @internal (undocumented)
+    readonly _bindingsManager: BindingsManager;
     bindingUtils: {
         readonly [K in string]?: BindingUtil<TLBinding>;
     };
