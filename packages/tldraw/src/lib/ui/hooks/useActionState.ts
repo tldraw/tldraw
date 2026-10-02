@@ -3,7 +3,7 @@ import { TLUiActionItem, useActions } from '../context/actions'
 
 /** @internal */
 export interface TLUiActionState {
-	/** False hides the item on every surface. */
+	/** False hides the item in every menu except the keyboard shortcuts dialog. */
 	visible: boolean
 	enabled: boolean
 	checked: boolean | undefined
@@ -73,8 +73,8 @@ function useSomeActions(
 }
 
 /**
- * Whether any of the given actions would show and be enabled. Unknown ids, and actions that
- * aren't `readonlyOk` while the editor is readonly, count as not shown. Use it to hide a submenu
+ * Whether any of the given actions would show and be enabled. Unknown ids, unavailable actions,
+ * and actions that aren't `readonlyOk` while the editor is readonly count as not shown. Use it to hide a submenu
  * whose items would all be hidden; a closed submenu doesn't mount its items, so it can't ask them.
  *
  * @public

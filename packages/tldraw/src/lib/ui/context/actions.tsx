@@ -80,7 +80,8 @@ export interface TLUiActionItem<
 	isRequiredA11yAction?: boolean
 	/**
 	 * Whether the action exists in the current context at all, e.g. clipboard support or debug
-	 * mode. Every menu hides the item when it returns false. Must be pure.
+	 * mode. Menus hide the item when it returns false (the keyboard shortcuts dialog still lists
+	 * it); keyboard shortcuts ignore it. Must be pure.
 	 */
 	isAvailable?(editor: Editor): boolean
 	/**
