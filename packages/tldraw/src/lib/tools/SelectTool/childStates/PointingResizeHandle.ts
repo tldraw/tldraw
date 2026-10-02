@@ -5,6 +5,7 @@ import {
 	TLPointerEventInfo,
 	TLSelectionHandle,
 } from '@tldraw/editor'
+import { DeferredDoubleClick } from '../selectHelpers'
 
 export const CursorTypeMap: Record<TLSelectionHandle, TLCursorType> = {
 	bottom: 'ns-resize',
@@ -30,7 +31,7 @@ export class PointingResizeHandle extends StateNode {
 	static override id = 'pointing_resize_handle'
 
 	private info = {} as PointingResizeHandleInfo
-	private pendingDoubleClick: TLClickEventInfo | null = null
+	private doubleClick = new DeferredDoubleClick(this)
 
 	private updateCursor() {
 		const cursorType = CursorTypeMap[this.info.handle!]
@@ -42,7 +43,7 @@ export class PointingResizeHandle extends StateNode {
 
 	override onEnter(info: PointingResizeHandleInfo) {
 		this.info = info
-		this.pendingDoubleClick = null
+		this.doubleClick.start(info)
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
@@ -69,28 +70,12 @@ export class PointingResizeHandle extends StateNode {
 	}
 
 	override onPointerUp() {
-		if (this.pendingDoubleClick) {
-			this.parent.transition('idle')
-			this.parent.getCurrent()?.handleEvent(this.pendingDoubleClick)
-			return
-		}
+		if (this.doubleClick.replay()) return
 		this.complete()
 	}
 
-	// A double click's 'down' phase arrives while the second press is still held. Acting on it
-	// immediately would steal a press that is about to become a drag (#9499), so it is deferred
-	// to pointer up.
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (
-			this.editor.inputs.getShiftKey() ||
-			info.phase !== 'down' ||
-			info.ctrlKey ||
-			info.shiftKey
-		) {
-			return
-		}
-
-		this.pendingDoubleClick = info
+		this.doubleClick.defer(info)
 	}
 
 	override onCancel() {

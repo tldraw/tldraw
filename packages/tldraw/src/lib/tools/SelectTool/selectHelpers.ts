@@ -2,7 +2,10 @@ import {
 	Editor,
 	ExtractShapeByProps,
 	richTextValidator,
+	StateNode,
+	TLClickEventInfo,
 	TLEventInfo,
+	TLPointerEventInfo,
 	TLRichText,
 	TLShape,
 	TLShapeId,
@@ -91,4 +94,68 @@ export function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) 
 		point,
 		selectionBounds.corners.map((c) => Vec.RotWith(c, selectionBounds.point, selectionRotation))
 	)
+}
+
+/**
+ * A shift or ctrl double click is toggling shapes in and out of the selection, so it must not also
+ * act.
+ *
+ * @internal
+ */
+export function isPlainDoubleClickDown(editor: Editor, info: TLClickEventInfo) {
+	return info.phase === 'down' && !info.ctrlKey && !info.shiftKey && !editor.inputs.getShiftKey()
+}
+
+/**
+ * Defers a double click to pointer up: its 'down' phase arrives while the second press is still
+ * held, and acting on it then steals a press that is about to become a drag (#9499).
+ *
+ * The replay carries the target the press resolved on entry. The double click's own target is the
+ * raw canvas, and resolving it again at the release point misses a handle the press drifted off.
+ *
+ * Call `start` in `onEnter`, or a double click whose press became a drag replays on the next plain
+ * click. Add new users to `deferredDoubleClick.test.ts`.
+ *
+ * @internal
+ */
+export class DeferredDoubleClick {
+	private press = {} as TLPointerEventInfo
+	private info: TLClickEventInfo | null = null
+
+	constructor(private readonly state: StateNode) {}
+
+	start(press: TLPointerEventInfo) {
+		this.press = press
+		this.info = null
+	}
+
+	defer(info: TLClickEventInfo) {
+		if (isPlainDoubleClickDown(this.state.editor, info)) {
+			this.info = info
+		}
+	}
+
+	replay() {
+		if (!this.info) return false
+		const { parent } = this.state
+		parent.transition('idle')
+		parent.getCurrent()?.handleEvent(withPressTarget(this.info, this.press))
+		return true
+	}
+}
+
+// Only the target carries over: entry info can also hold state options such as onInteractionEnd
+function withPressTarget(info: TLClickEventInfo, press: TLPointerEventInfo): TLClickEventInfo {
+	switch (press.target) {
+		case 'canvas':
+			return { ...info, target: 'canvas', shape: undefined }
+		case 'selection':
+			return { ...info, target: 'selection', handle: press.handle, shape: undefined }
+		case 'shape':
+			return { ...info, target: 'shape', shape: press.shape }
+		case 'handle':
+			return { ...info, target: 'handle', shape: press.shape, handle: press.handle }
+		case 'overlay':
+			return { ...info, target: 'overlay', overlay: press.overlay, shape: undefined }
+	}
 }
