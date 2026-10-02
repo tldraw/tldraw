@@ -537,3 +537,4 @@ export { ShapesManager } from './lib/editor/managers/ShapesManager/ShapesManager
 export { PagesManager } from './lib/editor/managers/PagesManager/PagesManager'
 export { AssetsManager } from './lib/editor/managers/AssetsManager/AssetsManager'
 export { BindingsManager } from './lib/editor/managers/BindingsManager/BindingsManager'
+export { StylesManager } from './lib/editor/managers/StylesManager/StylesManager'

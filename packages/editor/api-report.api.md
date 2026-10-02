@@ -1957,6 +1957,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     styleProps: {
         [key: string]: Map<StyleProp<any>, string>;
     };
+    // @internal (undocumented)
+    readonly _stylesManager: StylesManager;
     readonly textMeasure: TextManager;
     readonly timers: {
         dispose: () => void;
@@ -4429,6 +4431,28 @@ export type StoreName = (typeof Table)[keyof typeof Table];
 
 // @public
 export function strokeShapeIndicators(editor: Editor, ctx: CanvasRenderingContext2D, shapeIds: TLShapeId[]): void;
+
+// @internal
+export class StylesManager extends EditorManager {
+    _getSelectionSharedStyles(): ReadonlySharedStyleMap;
+    // (undocumented)
+    getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
+    // (undocumented)
+    getSharedOpacity(): SharedStyle<number>;
+    // (undocumented)
+    getSharedStyles(): ReadonlySharedStyleMap;
+    _getStyleableShapes(shapes: TLShape[]): TLShape[];
+    // (undocumented)
+    getStyleForNextShape<T>(style: StyleProp<T>): T;
+    // (undocumented)
+    setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): Editor;
+    // (undocumented)
+    setOpacityForSelectedShapes(opacity: number): Editor;
+    // (undocumented)
+    setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): Editor;
+    // (undocumented)
+    setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): Editor;
+}
 
 // @public (undocumented)
 export function suffixSafeId(id: SafeId, suffix: string): SafeId;
