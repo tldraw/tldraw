@@ -264,6 +264,11 @@ function diffValue(valueA: unknown, valueB: unknown, legacyAppendMode: boolean):
 		Array.isArray(valueA) !== Array.isArray(valueB)
 	) {
 		return isEqual(valueA, valueB) ? null : [ValueOpType.Put, valueB]
+	} else if (Array.isArray(valueA) !== Array.isArray(valueB)) {
+		// a patch op preserves the container type of the value it's applied to, so an
+		// object <-> array change must replace the value wholesale or the applied result
+		// silently diverges (e.g. [1] patched onto { v: 1 } yields { '0': 1 })
+		return [ValueOpType.Put, valueB]
 	} else {
 		const diff = diffObject(valueA, valueB, undefined, legacyAppendMode)
 		return diff ? [ValueOpType.Patch, diff] : null
