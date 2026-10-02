@@ -1,6 +1,5 @@
 import { useAtom, useValue } from '@tldraw/state-react'
-import { DefaultColorStyle, TLShape, TLShapeId } from '@tldraw/tlschema'
-import { TLFontFace } from '@tldraw/tlschema'
+import { DefaultColorStyle, TLFontFace, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { hasOwnProperty, promiseWithResolve, uniqueId } from '@tldraw/utils'
 import {
 	ComponentType,
@@ -51,7 +50,6 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 
 	const colorMode: 'light' | 'dark' =
 		opts.darkMode !== undefined ? (opts.darkMode ? 'dark' : 'light') : editor.getColorMode()
-	const isDarkMode = colorMode === 'dark'
 
 	// ---Figure out which shapes we need to include
 	const shapeIdsToInclude = editor.getShapeAndDescendantIds(ids)
@@ -113,15 +111,12 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 			bbox={bbox}
 			background={background}
 			singleFrameShapeId={singleFrameShapeId}
-			isDarkMode={isDarkMode}
 			colorMode={colorMode}
 			renderingShapes={renderingShapes}
 			onMount={initialEffectPromise.resolve}
 			onError={exportDelay.fail}
 			waitUntil={exportDelay.waitUntil}
-		>
-			{}
-		</SvgExport>
+		/>
 	)
 
 	return { jsx: svg, width: w, height: h, exportDelay, trimPadding }
@@ -205,7 +200,6 @@ function SvgExport({
 	bbox,
 	background,
 	singleFrameShapeId,
-	isDarkMode,
 	colorMode,
 	renderingShapes,
 	onMount,
@@ -219,7 +213,6 @@ function SvgExport({
 	bbox: Box
 	background: boolean
 	singleFrameShapeId: TLShapeId | null
-	isDarkMode: boolean
 	colorMode: 'light' | 'dark'
 	renderingShapes: TLRenderingShape[]
 	onMount(): void
@@ -228,6 +221,7 @@ function SvgExport({
 }) {
 	const masksId = useUniqueSafeId()
 	const theme = editor.getCurrentTheme()
+	const isDarkMode = colorMode === 'dark'
 
 	const stateAtom = useAtom<{
 		defsById: Record<
@@ -312,22 +306,19 @@ function SvgExport({
 						])
 
 						const pageTransform = editor.getShapePageTransform(shape)
-						let pageTransformString = pageTransform!.toCssString()
+						let pageTransformString = pageTransform.toCssString()
 						let scale = 1
-						if ('scale' in shape.props) {
-							if (shape.props.scale !== 1) {
-								scale = shape.props.scale
-								pageTransformString = `${pageTransformString} scale(${shape.props.scale}, ${shape.props.scale})`
-							}
+						if ('scale' in shape.props && shape.props.scale !== 1) {
+							scale = shape.props.scale
+							pageTransformString = `${pageTransformString} scale(${scale}, ${scale})`
 						}
 
 						// Create svg mask if shape has a frame as parent
 						const pageMask = editor.getShapeMask(shape.id)
-						const shapeMask = pageMask
-							? Mat.From(Mat.Inverse(pageTransform)).applyToPoints(pageMask)
-							: null
 						const shapeMaskId = suffixSafeId(masksId, shape.id)
-						if (shapeMask) {
+						const clipPath = pageMask ? `url(#${shapeMaskId})` : undefined
+						if (pageMask) {
+							const shapeMask = Mat.From(Mat.Inverse(pageTransform)).applyToPoints(pageMask)
 							// Create a clip path and add it to defs
 							shapeDefs[shapeMaskId] = {
 								pending: false,
@@ -350,7 +341,7 @@ function SvgExport({
 										key={`fg_${shape.id}`}
 										transform={pageTransformString}
 										opacity={opacity}
-										clipPath={pageMask ? `url(#${shapeMaskId})` : undefined}
+										clipPath={clipPath}
 									>
 										{toSvgResult}
 									</g>
@@ -365,7 +356,7 @@ function SvgExport({
 										key={`bg_${shape.id}`}
 										transform={pageTransformString}
 										opacity={opacity}
-										clipPath={pageMask ? `url(#${shapeMaskId})` : undefined}
+										clipPath={clipPath}
 									>
 										{toBackgroundSvgResult}
 									</g>

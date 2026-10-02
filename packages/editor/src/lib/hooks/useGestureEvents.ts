@@ -206,7 +206,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 		}
 
 		function onTouchStart(event: TouchEvent) {
-			if (!(event.target === elm || elm?.contains(event.target as Node))) return
+			if (!elm?.contains(event.target as Node)) return
 
 			activeTouches = Array.from(event.touches)
 
@@ -288,7 +288,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 		function onGestureStart(event: Event) {
 			const e = event as GestureEvent
-			if (!(e.target === elm || elm?.contains(e.target as Node))) return
+			if (!elm?.contains(e.target as Node)) return
 
 			preventDefault(e)
 			e.stopPropagation()
@@ -316,7 +316,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 		function onGestureChange(event: Event) {
 			const e = event as GestureEvent
-			if (!(e.target === elm || elm?.contains(e.target as Node))) return
+			if (!elm?.contains(e.target as Node)) return
 
 			preventDefault(e)
 			e.stopPropagation()
@@ -344,7 +344,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 		function onGestureEnd(event: Event) {
 			const e = event as GestureEvent
-			if (!(e.target === elm || elm?.contains(e.target as Node))) return
+			if (!elm?.contains(e.target as Node)) return
 
 			preventDefault(e)
 			e.stopPropagation()

@@ -29,19 +29,13 @@ export class ClickManager {
 		this._clickTimeout = this.editor.timers.setTimeout(
 			() => {
 				if (this._clickState === state && this._clickId === id) {
-					switch (this._clickState) {
-						case 'pendingOverflow': {
-							this.editor.dispatch({
-								...this.lastPointerInfo,
-								type: 'click',
-								name: 'double_click',
-								phase: this._isPressingWhilePending ? 'settle-down' : 'settle-up',
-							})
-							break
-						}
-						default: {
-							// noop
-						}
+					if (this._clickState === 'pendingOverflow') {
+						this.editor.dispatch({
+							...this.lastPointerInfo,
+							type: 'click',
+							name: 'double_click',
+							phase: this._isPressingWhilePending ? 'settle-down' : 'settle-up',
+						})
 					}
 
 					this._clickState = 'idle'
@@ -124,17 +118,12 @@ export class ClickManager {
 
 				this._isPressingWhilePending = false
 
-				switch (this._clickState) {
-					case 'pendingOverflow': {
-						return {
-							...this.lastPointerInfo,
-							type: 'click',
-							name: 'double_click',
-							phase: 'up',
-						}
-					}
-					default: {
-						// idle, pendingDouble, overflow
+				if (this._clickState === 'pendingOverflow') {
+					return {
+						...this.lastPointerInfo,
+						type: 'click',
+						name: 'double_click',
+						phase: 'up',
 					}
 				}
 

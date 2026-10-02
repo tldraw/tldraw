@@ -51,9 +51,10 @@ export class CubicSpline2d extends Geometry2d {
 	}
 
 	getVertices() {
-		const vertices = this.segments.reduce((acc, segment) => {
-			return acc.concat(segment.vertices)
-		}, [] as Vec[])
+		const vertices: Vec[] = []
+		for (const segment of this.segments) {
+			vertices.push(...segment.vertices)
+		}
 		vertices.push(this._points[this._points.length - 1])
 		return vertices
 	}
@@ -61,11 +62,9 @@ export class CubicSpline2d extends Geometry2d {
 	nearestPoint(A: VecLike): Vec {
 		let nearest: Vec | undefined
 		let dist = Infinity
-		let d: number
-		let p: Vec
 		for (const segment of this.segments) {
-			p = segment.nearestPoint(A)
-			d = Vec.Dist2(p, A)
+			const p = segment.nearestPoint(A)
+			const d = Vec.Dist2(p, A)
 			if (d < dist) {
 				nearest = p
 				dist = d

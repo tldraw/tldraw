@@ -86,9 +86,6 @@ function migrateSnapshot(data: { version: number; user: any }) {
 	if (data.version < Versions.AddIsSnapMode) {
 		data.user.isSnapMode = false
 	}
-	if (data.version < Versions.MakeFieldsNullable) {
-		// noop
-	}
 	if (data.version < Versions.AddEdgeScrollSpeed) {
 		data.user.edgeScrollSpeed = 1
 	}
@@ -155,11 +152,8 @@ function getRandomColor() {
 
 /** @internal */
 export function userPrefersReducedMotion() {
-	if (typeof window !== 'undefined' && getGlobalWindow().matchMedia) {
-		return getGlobalWindow().matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
-	}
-
-	return false
+	if (typeof window === 'undefined') return false
+	return getGlobalWindow().matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
 }
 
 /** @public */
@@ -241,6 +235,14 @@ export function setUserPreferences(user: TLUserPreferences) {
 	broadcastUserPreferencesChange()
 }
 
+// Lazy: Cloudflare Workers reject crypto.getRandomValues in global scope
+let _broadcastOrigin: string | null = null
+function getBroadcastOrigin() {
+	_broadcastOrigin ??= uniqueId()
+	return _broadcastOrigin
+}
+const broadcastEventKey = 'tldraw-user-preferences-change' as const
+
 const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
 
 const channel =
@@ -254,15 +256,6 @@ channel?.addEventListener('message', (e) => {
 		globalUserPreferences.set(migrateUserPreferences(data.data))
 	}
 })
-
-let _broadcastOrigin = null as null | string
-function getBroadcastOrigin() {
-	if (_broadcastOrigin === null) {
-		_broadcastOrigin = uniqueId()
-	}
-	return _broadcastOrigin
-}
-const broadcastEventKey = 'tldraw-user-preferences-change' as const
 
 function broadcastUserPreferencesChange() {
 	channel?.postMessage({

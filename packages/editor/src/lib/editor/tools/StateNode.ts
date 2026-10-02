@@ -49,27 +49,14 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 		this.parent = parent ?? ({} as any)
 
-		if (parent) {
-			if (children && initial) {
-				this.type = 'branch'
-				this.initial = initial
-				this.children = Object.fromEntries(
-					children().map((Ctor) => [Ctor.id, new Ctor(this.editor, this)])
-				)
-				this._current.set(this.children[this.initial])
-			} else {
-				this.type = 'leaf'
-			}
-		} else {
-			this.type = 'root'
+		this.type = parent ? (children && initial ? 'branch' : 'leaf') : 'root'
 
-			if (children && initial) {
-				this.initial = initial
-				this.children = Object.fromEntries(
-					children().map((Ctor) => [Ctor.id, new Ctor(this.editor, this)])
-				)
-				this._current.set(this.children[this.initial])
-			}
+		if (children && initial) {
+			this.initial = initial
+			this.children = Object.fromEntries(
+				children().map((Ctor) => [Ctor.id, new Ctor(this.editor, this)])
+			)
+			this._current.set(this.children[this.initial])
 		}
 		this.isLockable = isLockable
 		this.useCoalescedEvents = useCoalescedEvents
