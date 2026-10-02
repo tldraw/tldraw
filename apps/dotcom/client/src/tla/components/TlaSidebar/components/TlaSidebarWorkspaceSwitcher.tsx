@@ -13,7 +13,7 @@ import {
 import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
-import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { defineMessages, useMsg } from '../../../utils/i18n'
 import { CreateWorkspaceDialog } from '../../dialogs/CreateWorkspaceDialog'
@@ -191,7 +191,7 @@ function WorkspaceSwitcherItem({
 	)
 }
 
-function useSwitchToWorkspace() {
+export function useSwitchToWorkspace() {
 	const app = useApp()
 	const navigate = useNavigate()
 
@@ -234,7 +234,7 @@ function useSwitchToWorkspace() {
 	)
 }
 
-function useCreateWorkspaceDialog() {
+export function useCreateWorkspaceDialog(source: TLAppUiEventSource = 'sidebar') {
 	const app = useApp()
 	const navigate = useNavigate()
 	const { addDialog } = useDialogs()
@@ -253,7 +253,7 @@ function useCreateWorkspaceDialog() {
 							app.showMutationRejectionToast(createRes.error)
 							return
 						}
-						trackEvent('create-workspace', { source: 'sidebar' })
+						trackEvent('create-workspace', { source })
 						// Seed the workspace's welcome file once, here at creation, and open it
 						// directly (not via switchToWorkspace, whose empty-workspace path would
 						// otherwise create a blank file before the welcome file lands).
@@ -270,5 +270,5 @@ function useCreateWorkspaceDialog() {
 				/>
 			),
 		})
-	}, [app, addDialog, navigate, switchToWorkspace, trackEvent])
+	}, [app, addDialog, navigate, switchToWorkspace, trackEvent, source])
 }

@@ -39,8 +39,8 @@ export function InputModeMenu() {
 							label={getLabel(mode)}
 							checked={inputMode === preference}
 							readonlyOk
-							onSelect={() => {
-								trackEvent('input-mode', { source: 'menu', value: mode })
+							onSelect={(source) => {
+								trackEvent('input-mode', { source, value: mode })
 								editor.user.updateUserPreferences({ inputMode: preference })
 							}}
 						/>

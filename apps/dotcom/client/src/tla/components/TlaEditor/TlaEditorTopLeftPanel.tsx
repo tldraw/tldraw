@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom'
 import {
 	AccessibilityMenu,
 	ColorSchemeMenu,
+	CommandPaletteMenuItem,
 	DefaultPageMenu,
 	EditSubmenu,
 	ExportFileContentSubMenu,
@@ -62,6 +63,7 @@ import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import { editorMessages } from './editor-messages'
+import { fileHeaderRenaming, useStartFileRename } from './fileHeaderRename'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
@@ -208,7 +210,15 @@ function TlaEditorTopLeftPanelAnonymous() {
 function TlaEditorTopLeftPanelSignedIn() {
 	const editor = useEditor()
 	const intl = useIntl()
-	const [isRenaming, setIsRenaming] = useState(false)
+	const isRenaming = useValue('is renaming', () => fileHeaderRenaming.get(), [])
+	const setIsRenaming = useCallback((value: boolean) => fileHeaderRenaming.set(value), [])
+	// A rename left open when the file switches would carry over to the next file.
+	useEffect(
+		() => () => {
+			fileHeaderRenaming.set(false)
+		},
+		[]
+	)
 	const pageMenuLbl = useMsg(messages.pageMenu)
 	const fileSubmenuMsg = useMsg(editorMessages.file)
 
@@ -245,19 +255,10 @@ function TlaEditorTopLeftPanelSignedIn() {
 				editor.updateDocumentSettings({ name })
 			}
 		},
-		[app, editor, fileId, isOwner]
+		[app, editor, fileId, isOwner, setIsRenaming]
 	)
 
-	const handleRenameAction = () => {
-		if (getIsCoarsePointer()) {
-			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
-			if (newName && fileId) {
-				app.updateFile(fileId, { name: newName })
-			}
-		} else {
-			setIsRenaming(true)
-		}
-	}
+	const handleRenameAction = useStartFileRename(fileId, fileName)
 	const handleRenameEnd = () => setIsRenaming(false)
 
 	return (
@@ -490,6 +491,7 @@ function TlaPreferencesGroup() {
 			</TldrawUiMenuSubmenu>
 			<LanguageMenu />
 			<KeyboardShortcutsMenuItem />
+			<CommandPaletteMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }

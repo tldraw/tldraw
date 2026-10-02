@@ -24,6 +24,7 @@ export type TLUiEventSource =
 	| 'rich-text-menu'
 	| 'image-toolbar'
 	| 'video-toolbar'
+	| 'command-palette'
 	| 'unknown'
 
 /** @public */
@@ -134,6 +135,7 @@ export interface TLUiEventMap {
 	'image-replace': null
 	'video-replace': null
 	'open-kbd-shortcuts': null
+	'open-command-palette': null
 	'rich-text': {
 		operation:
 			| 'bold'

@@ -2342,3 +2342,184 @@ tldraw? probably.
 		transform: translateX(calc(-100% - var(--tl-space-3)));
 	}
 }
+
+/* ------------------ Command palette ------------------ */
+
+.tlui-command-palette__overlay {
+	position: absolute;
+	inset: 0;
+	z-index: var(--tl-layer-menus);
+	pointer-events: all;
+}
+
+.tlui-command-palette {
+	--tlui-command-palette-row: 40px;
+	position: absolute;
+	/* Where the full-height (260px) palette is centered; the top stays put as the list shrinks. On
+	   short screens it rises to stay 100px clear of the bottom toolbar. */
+	--tlui-command-palette-anchor: 65%;
+	top: max(8px, min(calc(var(--tlui-command-palette-anchor) - 130px), calc(100% - 360px)));
+	left: 50%;
+	transform: translateX(-50%);
+	width: min(300px, calc(100% - 16px));
+	max-height: min(60%, calc(100% - var(--tlui-command-palette-anchor) + 122px));
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	border-radius: var(--tl-radius-3);
+	background-color: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-3);
+	color: var(--tl-color-text-1);
+	font-size: 12px;
+}
+
+/* Room for group headings next to longer labels. */
+.tlui-command-palette[data-wide] {
+	width: min(360px, calc(100% - 16px));
+}
+
+.tlui-command-palette[data-position='top'] {
+	--tlui-command-palette-anchor: 30%;
+}
+
+.tlui-command-palette[data-position='center'] {
+	--tlui-command-palette-anchor: 50%;
+}
+
+/* The on-screen keyboard covers the lower half on touch devices. */
+.tl-container[data-coarse='true'] .tlui-command-palette {
+	--tlui-command-palette-anchor: 30%;
+}
+
+/* Extends .tlui-input; no font-size here, so its iOS 16px rule still applies. */
+.tlui-command-palette__input {
+	flex-shrink: 0;
+	padding: 0 var(--tl-space-4);
+	border-bottom: 1px solid var(--tl-color-divider);
+}
+
+/* Rows overlap by 4px like .tlui-button__menu, so 6 rows are 6 * 36px + 4px. */
+.tlui-command-palette__list {
+	min-height: 0;
+	max-height: calc(6 * (var(--tlui-command-palette-row) - 4px) + 4px);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scroll-padding-block-start: 32px;
+	scroll-padding-block-end: var(--tlui-command-palette-row);
+	scrollbar-width: none;
+}
+
+.tlui-command-palette__list::-webkit-scrollbar {
+	display: none;
+}
+
+.tlui-command-palette__list[data-more] {
+	-webkit-mask-image: linear-gradient(
+		to bottom,
+		black calc(100% - var(--tlui-command-palette-row)),
+		transparent
+	);
+	mask-image: linear-gradient(
+		to bottom,
+		black calc(100% - var(--tlui-command-palette-row)),
+		transparent
+	);
+}
+
+.tlui-command-palette__heading {
+	padding: var(--tl-space-3) var(--tl-space-4) var(--tl-space-1);
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-command-palette__back {
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-1);
+	padding-inline-start: var(--tl-space-3);
+	cursor: pointer;
+}
+
+@media (hover: hover) {
+	.tlui-command-palette__back:hover {
+		color: var(--tl-color-text-1);
+	}
+}
+
+.tlui-command-palette__separator {
+	border-bottom: 1px solid var(--tl-color-divider);
+}
+
+.tlui-command-palette__item {
+	position: relative;
+	z-index: 0;
+	padding: 0 var(--tl-space-4);
+	cursor: pointer;
+}
+
+.tlui-command-palette__item + .tlui-command-palette__item {
+	margin-top: -4px;
+}
+
+.tlui-command-palette__item::after {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	z-index: -1;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-muted-2);
+	opacity: 0;
+}
+
+.tlui-command-palette__item[data-highlighted]::after {
+	opacity: 1;
+}
+
+.tlui-command-palette__item[aria-disabled='true'] {
+	color: var(--tl-color-text-disabled);
+	cursor: default;
+}
+
+.tlui-command-palette__row {
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-3);
+	height: var(--tlui-command-palette-row);
+}
+
+.tlui-command-palette__row > .tlui-icon {
+	flex-shrink: 0;
+}
+
+.tlui-command-palette__label {
+	flex: 1 1 0;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tlui-command-palette__reason {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 11px;
+}
+
+.tlui-command-palette__description {
+	display: block;
+	margin-block-start: calc(-1 * var(--tl-space-3));
+	padding-block-end: var(--tl-space-4);
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-command-palette__list:empty {
+	display: none;
+}
+
+.tlui-command-palette__empty {
+	padding: var(--tl-space-4);
+	color: var(--tl-color-text-3);
+}

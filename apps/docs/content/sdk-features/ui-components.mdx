@@ -195,6 +195,53 @@ Pass `null` to hide a component entirely. This is useful for focused experiences
 
 See the [UI components hidden example](/examples/ui/ui-components-hidden) for a complete list of hideable components.
 
+## Command palette
+
+Press Cmd+K (Ctrl+K on Windows and Linux) to open the command palette, a searchable list of commands. It's the `CommandPalette` slot, built from the same menu items as the other menus: `DefaultCommandPalette` renders `DefaultCommandPaletteContent` unless you pass children.
+
+Actions show up in the palette on their own. Your custom actions from `overrides.actions` are listed at the end of the default content, with the same label, shortcut and [gating](/sdk-features/actions#enabling-and-checking-actions) as everywhere else. Two optional action fields control how:
+
+```tsx
+actions['make-red'] = {
+	id: 'make-red',
+	label: 'Make red',
+	isEnabled: (editor) => editor.getSelectedShapeIds().length > 0,
+	// Shown when the palette lists the action while it's disabled.
+	disabledReason: 'command-palette.reason.select-shape',
+	// Lists it in <CommandPaletteActionGroup group="colors" />; false leaves it out.
+	commandPalette: { group: 'colors' },
+	onSelect() {
+		/* … */
+	},
+}
+```
+
+The palette lists an enabled action while browsing and searching. A disabled one appears only in search results, greyed out with its `disabledReason`; without a reason it isn't listed, so the palette never shows a row it can't explain. `disabledReason` can also be a function of the editor, for reasons that depend on its state.
+
+To place commands, wrap the default:
+
+```tsx
+function MyCommandPalette() {
+	return (
+		<DefaultCommandPalette>
+			<CommandPaletteActionGroup group="colors" label="Colors" />
+			<TldrawUiMenuGroup id="my-stuff" label="My stuff">
+				<TldrawUiMenuItem id="say-hi" label="Say hi" onSelect={sayHi} />
+			</TldrawUiMenuGroup>
+			<DefaultCommandPaletteContent />
+		</DefaultCommandPalette>
+	)
+}
+
+;<Tldraw components={{ CommandPalette: MyCommandPalette }} />
+```
+
+A command shows once, wherever it's placed first, so placing an action yourself takes it out of the catch-all at the end. `DefaultCommandPaletteContent` is made of exported groups, such as `CommandPaletteEditGroup` and `CommandPaletteViewGroup`, ending with `<CommandPaletteActionGroup />`, the catch-all. If you list the groups yourself, end with it too, or actions you don't place won't appear. `CommandPaletteToolsGroup` (one item per tool) isn't in the default content, but you can add it. Pass `CommandPalette: null` to turn the palette off.
+
+For long or async lists, read the query with `useCommandPaletteQuery()` and render only your best matches. `getCommandPaletteMatchScore` matches the same way the palette does.
+
+Items that aren't actions take a `disabledReason` prop for the same purpose.
+
 ## Overrides
 
 Control tldraw's actions, tools, and translations with the `overrides` prop. This prop accepts a [TLUiOverrides](?) object, which has methods for `actions` and `tools`, and a `translations` property.
@@ -318,4 +365,5 @@ Note that `onUiEvent` only fires for UI interactions. Calling [Editor#alignShape
 - [Changing menus](/examples/ui/custom-menus) - Create custom menus using tldraw's menu system
 - [Vertical toolbar](/examples/ui/vertical-toolbar) - Switch to a vertical toolbar layout
 - [Add tool to toolbar](/examples/ui/add-tool-to-toolbar) - Add a custom tool to the toolbar
+- [Command palette](/examples/ui/command-palette) - Add your own commands to the command palette
 - [UI events](/examples/events/ui-events) - Listen to UI events like tool selection and menu interactions

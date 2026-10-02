@@ -5,6 +5,7 @@ import 'tldraw/tldraw.css'
 const components: Required<TLUiComponents> = {
 	ContextMenu: null,
 	ActionsMenu: null,
+	CommandPalette: null,
 	HelpMenu: null,
 	ZoomMenu: null,
 	MainMenu: null,

@@ -83,6 +83,8 @@ The [TLUiActionItem](?) interface defines what an action contains:
 | `isAvailable`          | Optional `(editor) => boolean`. When it returns `false`, menus hide the action, and the action doesn't run (see [Enabling and checking actions](#enabling-and-checking-actions)) |
 | `isEnabled`            | Optional `(editor) => boolean`. When it returns `false`, menus disable or hide the action, and the action doesn't run                                                            |
 | `isChecked`            | Optional `(editor) => boolean`. For checkbox actions, whether the item shows as checked                                                                                          |
+| `disabledReason`       | Optional translation key, or `(editor) => key`, that says why the action is disabled. The [command palette](/sdk-features/ui-components#command-palette) shows it                |
+| `commandPalette`       | Optional. `false` leaves the action out of the command palette; `{ group }` lists it in that `CommandPaletteActionGroup`. Without it, the palette lists it anyway                |
 | `onSelect`             | Handler called when the action is triggered. Receives a [TLUiEventSource](?) indicating the trigger origin (`'kbd'`, `'menu'`, `'toolbar'`, etc.)                                |
 
 ## Accessing actions

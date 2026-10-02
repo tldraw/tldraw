@@ -23,7 +23,7 @@ import { signoutAnalytics } from '../../../utils/analytics'
 import { isDevelopmentEnv } from '../../../utils/env'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { UI_THEMES } from '../../themes/ui-themes'
-import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { defineMessages, isInternalLocale, useMsg } from '../../utils/i18n'
 import {
@@ -187,6 +187,22 @@ function UIThemeMenuCheckboxItem({
 function useUIThemeIds() {
 	const editor = useMaybeEditor()
 	return useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [editor])
+}
+
+export function useUIThemeChoices() {
+	const themeIds = useUIThemeIds()
+	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
+	const defaultThemeLabel = useMsg(messages.colorThemeDefault)
+	const trackEvent = useTldrawAppUiEvents()
+	return themeIds.map((id) => ({
+		id,
+		label: id === 'default' ? defaultThemeLabel : (THEME_NAMES[id] ?? id),
+		checked: colorTheme === id,
+		select(source: TLAppUiEventSource) {
+			updateLocalSessionState(() => ({ colorTheme: id }))
+			trackEvent('set-color-theme', { source, theme: id })
+		},
+	}))
 }
 
 export function UIThemeSubmenu() {

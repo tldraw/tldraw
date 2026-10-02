@@ -17,6 +17,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useEffect } from 'react'
+import { isCommandPaletteMounted } from '../components/CommandPalette/commandPaletteMount'
 import { useActions } from '../context/actions'
 import { splitKbd } from '../kbd-utils'
 import { useCommentingEnabled } from './useCommentingEnabled'
@@ -64,6 +65,8 @@ export function useKeyboardShortcuts() {
 
 			register(getHotkeysStringFromKbd(action.kbd), (event) => {
 				if (areShortcutsDisabled(editor) && !action.isRequiredA11yAction) return
+				// Without a mounted palette, leave Cmd+K to the browser or host app.
+				if (action.id === 'open-command-palette' && !isCommandPaletteMounted(editor)) return
 				preventDefault(event)
 				action.onSelect('kbd')
 			})
