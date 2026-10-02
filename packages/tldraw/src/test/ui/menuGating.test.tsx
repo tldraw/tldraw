@@ -357,7 +357,7 @@ const CM: Record<Exclude<State, 'twoInHand'>, CmRow> = {
 		'sub:reorder': 'enabled',
 	},
 	lockedPair: {
-		group: 'enabled',
+		group: 'hidden', // changed: group needs 2 unlocked shapes
 		ungroup: 'hidden',
 		duplicate: 'hidden',
 		'toggle-lock': 'enabled',
@@ -486,7 +486,7 @@ const MM: Record<'empty' | 'one' | 'lockedPair' | 'group', MmRow> = {
 		copy: 'enabled',
 		duplicate: 'hidden',
 		delete: 'disabled',
-		group: 'enabled',
+		group: 'hidden', // changed: group needs 2 unlocked shapes
 		ungroup: 'hidden',
 		'toggle-lock': 'enabled',
 		'unlock-all': 'enabled',

@@ -10,7 +10,6 @@ import {
 	StyleProp,
 	TLEmbedShape,
 	TLImageShape,
-	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
@@ -40,6 +39,7 @@ import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
 import { TLUiOverrideHelpers, useDefaultHelpers } from '../overrides'
 import { useA11y } from './a11y'
+import { supportsDownloadingOriginal } from './action-predicates'
 import { useTldrawUiComponents } from './components'
 import { TLUiEventSource, useUiEvents } from './events'
 
@@ -61,6 +61,8 @@ export interface TLUiActionItem<
 /** @public */
 export type TLUiActionsContextType = Record<string, TLUiActionItem>
 
+export { supportsDownloadingOriginal }
+
 /** @internal */
 export const ActionsContext = React.createContext<TLUiActionsContextType | null>(null)
 
@@ -81,17 +83,6 @@ export interface ActionsProviderProps {
 		helpers: TLUiOverrideHelpers
 	): TLUiActionsContextType
 	children: React.ReactNode
-}
-
-/** @public */
-export function supportsDownloadingOriginal(
-	shape: TLShape,
-	editor: Editor
-): shape is TLImageShape | TLVideoShape {
-	return (
-		(editor.isShapeOfType(shape, 'image') || editor.isShapeOfType(shape, 'video')) &&
-		!!(shape as any).props.assetId
-	)
 }
 
 function makeActions(actions: TLUiActionItem[]) {
