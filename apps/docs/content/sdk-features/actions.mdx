@@ -317,7 +317,7 @@ When you change a built-in action, spread the original so it keeps its `isAvaila
 actions['group'] = { ...actions['group'], onSelect: myGroup }
 ```
 
-Replacing an action with a new object drops them: menus show it as always enabled, and a checkbox item for it always shows as unchecked.
+Replacing an action with a new object drops them, along with `readonlyOk`: menus show it as always enabled, a checkbox item for it always shows as unchecked, shortcuts and `onSelect` calls run it in any state, and it stops running while the editor is readonly.
 
 Use `isAvailable` instead when the action doesn't exist in the current context at all, rather than being blocked right now. Every menu item hides an unavailable action, whatever `whenDisabled` says; only the keyboard shortcuts dialog still lists it. The built-in paste (without clipboard read access), copy as PNG (without clipboard write access), copy as JSON (outside debug mode), cursor chat (on touch), exit pen mode, stop following, and back to content work this way.
 
