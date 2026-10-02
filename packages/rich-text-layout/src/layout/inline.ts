@@ -608,6 +608,12 @@ export function layoutInline(
 		}
 	}
 
+	// At a soft wrap all trailing spaces hang. Before a forced break or at the end of the paragraph
+	// they hang only as far as they overflow the line (CSS Text's conditional hanging), so they
+	// never push the line, or scrollWidth, past maxWidth.
+	const hangingWidth = (lineEnd: number, trailing: number, endsChunk: boolean) =>
+		endsChunk ? Math.min(trailing, Math.max(0, lineEnd - maxWidth)) : trailing
+
 	let markerPending = options.marker ?? null
 	const placeMarker = (fragments: Fragment[]) => {
 		if (!markerPending) return
@@ -653,6 +659,7 @@ export function layoutInline(
 	}
 
 	for (const chunk of chunks) {
+		let lineInChunk = 0
 		if (chunk.text.length === 0) {
 			const fragments: Fragment[] = []
 			placeMarker(fragments)
@@ -740,6 +747,49 @@ export function layoutInline(
 
 			const endsChunk = to >= chunk.text.length
 
+			// pretext can open a line with the spaces that follow a word it broke mid-grapheme.
+			// Preserved spaces after a soft wrap hang at the end of the previous line instead;
+			// left on their own line they add a line the DOM doesn't have.
+			const prev = lines[lines.length - 1]
+			if (
+				block.whiteSpace !== 'normal' &&
+				direction === 'ltr' &&
+				lineInChunk > 0 &&
+				fragments[0]?.kind === 'space'
+			) {
+				let n = 0
+				while (n < fragments.length && fragments[n].kind === 'space') n++
+				const moved = fragments.splice(0, n)
+				fragmentLevels.splice(0, n)
+				const last = prev.fragments[prev.fragments.length - 1]
+				let px = last ? last.x + last.width : 0
+				let movedWidth = 0
+				for (const f of moved) {
+					f.x = px
+					px += f.width
+					movedWidth += f.width
+					prev.fragments.push(f)
+				}
+				const prevTrailing = prev.trailingWhitespaceWidth + movedWidth
+				const prevEnds = endsChunk && fragments.length === 0
+				const prevHang = hangingWidth(px, prevTrailing, prevEnds)
+				prev.width = px - prevHang
+				prev.trailingWhitespaceWidth = prevHang
+				prev.endsChunk = prevEnds
+				for (const f of fragments) f.x -= movedWidth
+				x -= movedWidth
+				if (fragments.length === 0) {
+					if (
+						range.end.segmentIndex === cursor.segmentIndex &&
+						range.end.graphemeIndex === cursor.graphemeIndex
+					) {
+						break
+					}
+					cursor = range.end
+					continue
+				}
+			}
+
 			// Trailing whitespace: in `normal` mode it collapses away entirely. In `pre-wrap` it is
 			// preserved and hangs past the end edge at a soft wrap, taking no part in alignment or
 			// the line's reported width, but before a forced break or at the end of the paragraph
@@ -757,7 +807,7 @@ export function layoutInline(
 					i--
 				}
 			}
-			const hanging = endsChunk ? 0 : trailing
+			const hanging = hangingWidth(x, trailing, endsChunk)
 			const contentWidth = x - hanging
 
 			// Mixed-direction lines: reorder fragments visually (UAX #9 L2) and re-run the x
@@ -779,6 +829,7 @@ export function layoutInline(
 
 			placeMarker(fragments)
 			lines.push(makeLine(fragments, contentWidth, hanging, endsChunk))
+			lineInChunk++
 			// Max-content comes from whole-fragment measurements rather than pretext's per-segment
 			// sums: fonts with kerning or contextual alternates shape a word differently from the
 			// sum of its parts, and browsers measure the shaped run.

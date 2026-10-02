@@ -4,7 +4,7 @@ Seed 42, 3000 cases. Failures by kind (a case can fail several ways):
 
 | kind  | cases | rate   |
 | ----- | ----- | ------ |
-| lines | 684   | 22.80% |
+| lines | 428   | 14.27% |
 | wide  | 15    | 0.50%  |
 | wrap  | 3     | 0.10%  |
 
@@ -12,7 +12,25 @@ Seed 42, 3000 cases. Failures by kind (a case can fail several ways):
 
 Signature: kind | width mode | nodes | marks | text features. Up to 100 failures per kind were shrunk.
 
-### lines | note | p | - | trailing-space (43)
+### lines | fixed | p | - | trailing-space+tab (11)
+
+```json
+{
+	"font": "sans",
+	"fontSize": 49,
+	"mode": "text",
+	"maxWidth": 32,
+	"dom": { "w": 32, "h": 66, "scrollWidth": 32 },
+	"native": { "w": 32, "h": 132, "scrollWidth": 32 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "b \t" }] }]
+	}
+}
+```
+
+### lines | note | p | - | trailing-space+tab (10)
 
 ```json
 {
@@ -25,12 +43,14 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 	"routing": "native",
 	"doc": {
 		"type": "doc",
-		"content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "mYcXWqyvCYdAUP " }] }]
+		"content": [
+			{ "type": "paragraph", "content": [{ "type": "text", "text": "NPiHOBfyaNcRxZa \t" }] }
+		]
 	}
 }
 ```
 
-### lines | boundary | bulletList+listItem | - | - (6)
+### lines | boundary | bulletList+listItem | - | - (9)
 
 ```json
 {
@@ -58,38 +78,146 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 }
 ```
 
-### lines | fixed | p | - | trailing-space (5)
+### lines | note | bulletList+listItem | - | - (7)
 
 ```json
 {
-	"font": "sans",
-	"fontSize": 49,
-	"mode": "text",
-	"maxWidth": 32,
-	"dom": { "w": 32, "h": 66, "scrollWidth": 43 },
-	"native": { "w": 32, "h": 132, "scrollWidth": 43 },
+	"font": "serif",
+	"fontSize": 31,
+	"mode": "note",
+	"maxWidth": 167,
+	"dom": { "w": 167, "h": 126, "scrollWidth": 175 },
+	"native": { "w": 167, "h": 168, "scrollWidth": 175 },
 	"routing": "native",
 	"doc": {
 		"type": "doc",
-		"content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "m " }] }]
+		"content": [
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{ "type": "paragraph", "content": [] },
+							{
+								"type": "bulletList",
+								"content": [
+									{
+										"type": "listItem",
+										"content": [
+											{
+												"type": "paragraph",
+												"content": [{ "type": "text", "text": "Ekmmc Am jhc" }]
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
 	}
 }
 ```
 
-### lines | fixed | p | - | trailing-space+tab (5)
+### lines | note | p | - | punct (6)
+
+```json
+{
+	"font": "sans",
+	"fontSize": 16,
+	"mode": "note",
+	"maxWidth": 167,
+	"dom": { "w": 167, "h": 44, "scrollWidth": 169 },
+	"native": { "w": 167, "h": 66, "scrollWidth": 169 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "paragraph",
+				"content": [{ "type": "text", "text": "oLCBITBpqAURkKYqxg Oapjrnbvw asdhe … yb" }]
+			}
+		]
+	}
+}
+```
+
+### lines | fixed | p | - | - (4)
 
 ```json
 {
 	"font": "draw",
-	"fontSize": 59,
+	"fontSize": 36,
 	"mode": "text",
-	"maxWidth": 56,
-	"dom": { "w": 56, "h": 80, "scrollWidth": 56 },
-	"native": { "w": 56, "h": 160, "scrollWidth": 56 },
+	"maxWidth": 38,
+	"dom": { "w": 38, "h": 294, "scrollWidth": 40 },
+	"native": { "w": 38, "h": 343, "scrollWidth": 38 },
 	"routing": "native",
 	"doc": {
 		"type": "doc",
-		"content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "z \t" }] }]
+		"content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "uPrACsw" }] }]
+	}
+}
+```
+
+### lines | fixed | p | - | punct (4)
+
+```json
+{
+	"font": "mono",
+	"fontSize": 41,
+	"mode": "text",
+	"maxWidth": 35,
+	"dom": { "w": 35, "h": 110, "scrollWidth": 35 },
+	"native": { "w": 35, "h": 55, "scrollWidth": 49 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [{ "type": "paragraph", "content": [{ "type": "text", "text": ")/" }] }]
+	}
+}
+```
+
+### lines | note | p | - | - (4)
+
+```json
+{
+	"font": "sans",
+	"fontSize": 19,
+	"mode": "note",
+	"maxWidth": 167,
+	"dom": { "w": 167, "h": 78, "scrollWidth": 171 },
+	"native": { "w": 167, "h": 104, "scrollWidth": 170 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "paragraph",
+				"content": [{ "type": "text", "text": "OmABWtGBVrtrwm Uj Kclofmvp cjnvvn smwybpg Fji" }]
+			}
+		]
+	}
+}
+```
+
+### lines | note | h2 | - | empty (3)
+
+```json
+{
+	"font": "sans",
+	"fontSize": 23,
+	"mode": "note",
+	"maxWidth": 167,
+	"dom": { "w": 0, "h": 10, "scrollWidth": 0 },
+	"native": { "w": 0, "h": 61.575, "scrollWidth": 0 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [{ "type": "heading", "attrs": { "level": 2 }, "content": [] }]
 	}
 }
 ```
@@ -112,38 +240,110 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 }
 ```
 
-### lines | fixed | p | - | - (2)
+### lines | note | bulletList+listItem | - | space-run (3)
 
 ```json
 {
-	"font": "draw",
-	"fontSize": 36,
-	"mode": "text",
-	"maxWidth": 38,
-	"dom": { "w": 38, "h": 294, "scrollWidth": 40 },
-	"native": { "w": 38, "h": 343, "scrollWidth": 38 },
+	"font": "mono",
+	"fontSize": 32,
+	"mode": "note",
+	"maxWidth": 167,
+	"dom": { "w": 167, "h": 129, "scrollWidth": 185 },
+	"native": { "w": 167, "h": 172, "scrollWidth": 185 },
 	"routing": "native",
 	"doc": {
 		"type": "doc",
-		"content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "uPrACsw" }] }]
+		"content": [
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [{ "type": "text", "text": "qnubszvo xoeb rh  Cd \"" }]
+							}
+						]
+					}
+				]
+			}
+		]
 	}
 }
 ```
 
-### lines | note | h1 | - | empty (2)
+### lines | fixed | p | - | long-word (3)
 
 ```json
 {
-	"font": "sans",
-	"fontSize": 24,
-	"mode": "note",
-	"maxWidth": 167,
-	"dom": { "w": 0, "h": 10, "scrollWidth": 0 },
-	"native": { "w": 0, "h": 79.80000000000001, "scrollWidth": 0 },
+	"font": "draw",
+	"fontSize": 43,
+	"mode": "text",
+	"maxWidth": 369,
+	"dom": { "w": 369, "h": 174, "scrollWidth": 369 },
+	"native": { "w": 369, "h": 116, "scrollWidth": 369 },
 	"routing": "native",
 	"doc": {
 		"type": "doc",
-		"content": [{ "type": "heading", "attrs": { "level": 1 }, "content": [] }]
+		"content": [
+			{ "type": "paragraph", "content": [{ "type": "text", "text": "ERyteKRtmjyxhPQnAAqmGHQuq" }] }
+		]
+	}
+}
+```
+
+### lines | fixed | bulletList+listItem | - | trailing-space+tab (2)
+
+```json
+{
+	"font": "mono",
+	"fontSize": 24,
+	"mode": "text",
+	"maxWidth": 153,
+	"dom": { "w": 153, "h": 96, "scrollWidth": 153 },
+	"native": { "w": 153, "h": 128, "scrollWidth": 153 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{ "type": "paragraph", "content": [] },
+							{
+								"type": "bulletList",
+								"content": [
+									{
+										"type": "listItem",
+										"content": [
+											{ "type": "paragraph", "content": [] },
+											{
+												"type": "bulletList",
+												"content": [
+													{
+														"type": "listItem",
+														"content": [
+															{
+																"type": "paragraph",
+																"content": [{ "type": "text", "text": "56545 \t" }]
+															}
+														]
+													}
+												]
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
 	}
 }
 ```
@@ -166,57 +366,100 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 }
 ```
 
-### lines | note | p | - | punct (2)
+### lines | note | bulletList+listItem | - | punct (2)
 
 ```json
 {
 	"font": "sans",
-	"fontSize": 20,
+	"fontSize": 15,
 	"mode": "note",
 	"maxWidth": 167,
-	"dom": { "w": 167, "h": 27, "scrollWidth": 167 },
-	"native": { "w": 167, "h": 54, "scrollWidth": 167 },
-	"routing": "native",
-	"doc": {
-		"type": "doc",
-		"content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "–tNCJmBsOfOXJF" }] }]
-	}
-}
-```
-
-### lines | fixed | p | - | punct (2)
-
-```json
-{
-	"font": "draw",
-	"fontSize": 44,
-	"mode": "text",
-	"maxWidth": 57,
-	"dom": { "w": 57, "h": 236, "scrollWidth": 57 },
-	"native": { "w": 57, "h": 177, "scrollWidth": 57 },
-	"routing": "native",
-	"doc": {
-		"type": "doc",
-		"content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "ps//exa" }] }]
-	}
-}
-```
-
-### lines | fixed | p | - | long-word (2)
-
-```json
-{
-	"font": "draw",
-	"fontSize": 43,
-	"mode": "text",
-	"maxWidth": 369,
-	"dom": { "w": 369, "h": 174, "scrollWidth": 369 },
-	"native": { "w": 369, "h": 116, "scrollWidth": 369 },
+	"dom": { "w": 167, "h": 80, "scrollWidth": 167 },
+	"native": { "w": 167, "h": 100, "scrollWidth": 167 },
 	"routing": "native",
 	"doc": {
 		"type": "doc",
 		"content": [
-			{ "type": "paragraph", "content": [{ "type": "text", "text": "ERyteKRtmjyxhPQnAAqmGHQuq" }] }
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{ "type": "paragraph", "content": [] },
+							{
+								"type": "bulletList",
+								"content": [
+									{
+										"type": "listItem",
+										"content": [
+											{
+												"type": "paragraph",
+												"content": [
+													{
+														"type": "text",
+														"text": "lNAOuwQTYfhxXafP Tbjsqf / lry Lpggrtlb pij Fpcaeslj"
+													}
+												]
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+}
+```
+
+### lines | fixed | bulletList+listItem | code | trailing-space+tab (2)
+
+```json
+{
+	"font": "sans",
+	"fontSize": 51,
+	"mode": "text",
+	"maxWidth": 297,
+	"dom": { "w": 297, "h": 207, "scrollWidth": 297 },
+	"native": { "w": 297, "h": 276, "scrollWidth": 297 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{ "type": "paragraph", "content": [] },
+							{
+								"type": "bulletList",
+								"content": [
+									{
+										"type": "listItem",
+										"content": [
+											{
+												"type": "paragraph",
+												"content": [
+													{
+														"type": "text",
+														"text": "Rmnbwic dfqi \t",
+														"marks": [{ "type": "code" }]
+													}
+												]
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				]
+			}
 		]
 	}
 }
@@ -274,20 +517,35 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 }
 ```
 
-### lines | note | h3 | - | empty (2)
+### lines | note | bulletList+listItem | - | space-run+punct (2)
 
 ```json
 {
 	"font": "sans",
-	"fontSize": 18,
+	"fontSize": 29,
 	"mode": "note",
 	"maxWidth": 167,
-	"dom": { "w": 0, "h": 10, "scrollWidth": 0 },
-	"native": { "w": 0, "h": 43.431, "scrollWidth": 0 },
+	"dom": { "w": 167, "h": 117, "scrollWidth": 168 },
+	"native": { "w": 167, "h": 156, "scrollWidth": 168 },
 	"routing": "native",
 	"doc": {
 		"type": "doc",
-		"content": [{ "type": "heading", "attrs": { "level": 3 }, "content": [] }]
+		"content": [
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [{ "type": "text", "text": "eXXqfjvNZ 94881 … ) Myc    osg" }]
+							}
+						]
+					}
+				]
+			}
+		]
 	}
 }
 ```
@@ -397,99 +655,16 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 }
 ```
 
-### lines | fixed | bulletList+listItem | - | trailing-space+tab (1)
-
-```json
-{
-	"font": "mono",
-	"fontSize": 24,
-	"mode": "text",
-	"maxWidth": 153,
-	"dom": { "w": 153, "h": 96, "scrollWidth": 153 },
-	"native": { "w": 153, "h": 128, "scrollWidth": 157 },
-	"routing": "native",
-	"doc": {
-		"type": "doc",
-		"content": [
-			{
-				"type": "bulletList",
-				"content": [
-					{
-						"type": "listItem",
-						"content": [
-							{ "type": "paragraph", "content": [] },
-							{
-								"type": "bulletList",
-								"content": [
-									{
-										"type": "listItem",
-										"content": [
-											{ "type": "paragraph", "content": [] },
-											{
-												"type": "bulletList",
-												"content": [
-													{
-														"type": "listItem",
-														"content": [
-															{
-																"type": "paragraph",
-																"content": [{ "type": "text", "text": "NOD \t " }]
-															}
-														]
-													}
-												]
-											}
-										]
-									}
-								]
-							}
-						]
-					}
-				]
-			}
-		]
-	}
-}
-```
-
-### lines | fixed | bulletList+listItem | - | trailing-space+punct (1)
+### lines | note | p | code | punct (1)
 
 ```json
 {
 	"font": "sans",
-	"fontSize": 24,
-	"mode": "text",
-	"maxWidth": 35,
-	"dom": { "w": 35, "h": 32, "scrollWidth": 44 },
-	"native": { "w": 35, "h": 64, "scrollWidth": 44 },
-	"routing": "native",
-	"doc": {
-		"type": "doc",
-		"content": [
-			{
-				"type": "bulletList",
-				"content": [
-					{
-						"type": "listItem",
-						"content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "… " }] }]
-					}
-				]
-			}
-		]
-	}
-}
-```
-
-### lines | note | p | code | trailing-space (1)
-
-```json
-{
-	"font": "draw",
-	"fontSize": 29,
+	"fontSize": 28,
 	"mode": "note",
 	"maxWidth": 167,
-	"dom": { "w": 167, "h": 39, "scrollWidth": 168 },
-	"native": { "w": 167, "h": 78, "scrollWidth": 168 },
+	"dom": { "w": 167, "h": 76, "scrollWidth": 168 },
+	"native": { "w": 167, "h": 114, "scrollWidth": 168 },
 	"routing": "native",
 	"doc": {
 		"type": "doc",
@@ -497,32 +672,8 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 			{
 				"type": "paragraph",
 				"content": [
-					{ "type": "text", "text": "vOxKzeFW" },
-					{ "type": "text", "text": ", ", "marks": [{ "type": "code" }] }
+					{ "type": "text", "text": "zirpkmfpbo xjezcaj •", "marks": [{ "type": "code" }] }
 				]
-			}
-		]
-	}
-}
-```
-
-### lines | note | p | - | - (1)
-
-```json
-{
-	"font": "sans",
-	"fontSize": 19,
-	"mode": "note",
-	"maxWidth": 167,
-	"dom": { "w": 167, "h": 78, "scrollWidth": 171 },
-	"native": { "w": 167, "h": 104, "scrollWidth": 170 },
-	"routing": "native",
-	"doc": {
-		"type": "doc",
-		"content": [
-			{
-				"type": "paragraph",
-				"content": [{ "type": "text", "text": "OmABWtGBVrtrwm Uj Kclofmvp cjnvvn smwybpg Fji" }]
 			}
 		]
 	}
@@ -556,6 +707,29 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 }
 ```
 
+### lines | fixed | p | code | trailing-space+tab (1)
+
+```json
+{
+	"font": "sans",
+	"fontSize": 36,
+	"mode": "text",
+	"maxWidth": 31,
+	"dom": { "w": 31, "h": 49, "scrollWidth": 31 },
+	"native": { "w": 31, "h": 98, "scrollWidth": 31 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "paragraph",
+				"content": [{ "type": "text", "text": "x \t", "marks": [{ "type": "code" }] }]
+			}
+		]
+	}
+}
+```
+
 ### lines | boundary | bulletList+listItem | - | leading-space+punct (1)
 
 ```json
@@ -577,32 +751,6 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 						"type": "listItem",
 						"content": [{ "type": "paragraph", "content": [{ "type": "text", "text": " →" }] }]
 					}
-				]
-			}
-		]
-	}
-}
-```
-
-### lines | fixed | p | bold | - (1)
-
-```json
-{
-	"font": "serif",
-	"fontSize": 20,
-	"mode": "text",
-	"maxWidth": 33,
-	"dom": { "w": 33, "h": 189, "scrollWidth": 33 },
-	"native": { "w": 33, "h": 162, "scrollWidth": 33 },
-	"routing": "native",
-	"doc": {
-		"type": "doc",
-		"content": [
-			{
-				"type": "paragraph",
-				"content": [
-					{ "type": "text", "text": "NIUkuBfDfM", "marks": [{ "type": "bold" }] },
-					{ "type": "text", "text": "rzfh" }
 				]
 			}
 		]
@@ -648,44 +796,6 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 }
 ```
 
-### lines | note | p | - | trailing-space+punct (1)
-
-```json
-{
-	"font": "serif",
-	"fontSize": 15,
-	"mode": "note",
-	"maxWidth": 167,
-	"dom": { "w": 167, "h": 20, "scrollWidth": 169 },
-	"native": { "w": 167, "h": 40, "scrollWidth": 169 },
-	"routing": "native",
-	"doc": {
-		"type": "doc",
-		"content": [
-			{ "type": "paragraph", "content": [{ "type": "text", "text": "mom/some/pathx=1ree " }] }
-		]
-	}
-}
-```
-
-### lines | fixed | p | - | trailing-space+leading-space+tab (1)
-
-```json
-{
-	"font": "serif",
-	"fontSize": 36,
-	"mode": "text",
-	"maxWidth": 132,
-	"dom": { "w": 132, "h": 49, "scrollWidth": 132 },
-	"native": { "w": 132, "h": 98, "scrollWidth": 134 },
-	"routing": "native",
-	"doc": {
-		"type": "doc",
-		"content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "    Aigx \t " }] }]
-	}
-}
-```
-
 ### wide | max-content | listItem+orderedList | - | - (1)
 
 ```json
@@ -723,6 +833,29 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 }
 ```
 
+### lines | note | p | - | tab+punct (1)
+
+```json
+{
+	"font": "mono",
+	"fontSize": 20,
+	"mode": "note",
+	"maxWidth": 167,
+	"dom": { "w": 167, "h": 81, "scrollWidth": 168 },
+	"native": { "w": 167, "h": 108, "scrollWidth": 168 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "paragraph",
+				"content": [{ "type": "text", "text": "fpKpRLgwKytaTF 22335 Xrxwzjg \t . —" }]
+			}
+		]
+	}
+}
+```
+
 ### lines | note | p | - | tab+long-word+punct (1)
 
 ```json
@@ -751,67 +884,24 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 }
 ```
 
-### lines | note | p | - | tab (1)
+### lines | note | p | - | trailing-space+tab+space-run (1)
 
 ```json
 {
 	"font": "draw",
-	"fontSize": 15,
+	"fontSize": 19,
 	"mode": "note",
 	"maxWidth": 167,
-	"dom": { "w": 167, "h": 40, "scrollWidth": 167 },
-	"native": { "w": 167, "h": 20, "scrollWidth": 167 },
-	"routing": "native",
-	"doc": {
-		"type": "doc",
-		"content": [
-			{ "type": "paragraph", "content": [{ "type": "text", "text": "zecktir \tIhrbeute od" }] }
-		]
-	}
-}
-```
-
-### lines | note | p | code | - (1)
-
-```json
-{
-	"font": "sans",
-	"fontSize": 25,
-	"mode": "note",
-	"maxWidth": 167,
-	"dom": { "w": 167, "h": 68, "scrollWidth": 170 },
-	"native": { "w": 167, "h": 102, "scrollWidth": 170 },
+	"dom": { "w": 167, "h": 52, "scrollWidth": 167 },
+	"native": { "w": 167, "h": 78, "scrollWidth": 167 },
 	"routing": "native",
 	"doc": {
 		"type": "doc",
 		"content": [
 			{
 				"type": "paragraph",
-				"content": [
-					{ "type": "text", "text": "WltaLXL" },
-					{ "type": "text", "text": "83347 12541 27404", "marks": [{ "type": "code" }] }
-				]
+				"content": [{ "type": "text", "text": "Karuxvzp    pqylz epwasanw \t" }]
 			}
-		]
-	}
-}
-```
-
-### lines | note | p | - | trailing-space+long-word (1)
-
-```json
-{
-	"font": "sans",
-	"fontSize": 15,
-	"mode": "note",
-	"maxWidth": 167,
-	"dom": { "w": 167, "h": 20, "scrollWidth": 168 },
-	"native": { "w": 167, "h": 40, "scrollWidth": 168 },
-	"routing": "native",
-	"doc": {
-		"type": "doc",
-		"content": [
-			{ "type": "paragraph", "content": [{ "type": "text", "text": "GCyiHUmuXtjwKlpfOesv " }] }
 		]
 	}
 }
@@ -834,118 +924,6 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 			{
 				"type": "paragraph",
 				"content": [{ "type": "text", "text": "https://example.com/somepathx=1xylxp" }]
-			}
-		]
-	}
-}
-```
-
-### lines | fixed | bulletList+listItem | code | trailing-space+tab (1)
-
-```json
-{
-	"font": "sans",
-	"fontSize": 51,
-	"mode": "text",
-	"maxWidth": 297,
-	"dom": { "w": 297, "h": 207, "scrollWidth": 297 },
-	"native": { "w": 297, "h": 276, "scrollWidth": 297 },
-	"routing": "native",
-	"doc": {
-		"type": "doc",
-		"content": [
-			{
-				"type": "bulletList",
-				"content": [
-					{
-						"type": "listItem",
-						"content": [
-							{ "type": "paragraph", "content": [] },
-							{
-								"type": "bulletList",
-								"content": [
-									{
-										"type": "listItem",
-										"content": [
-											{
-												"type": "paragraph",
-												"content": [
-													{
-														"type": "text",
-														"text": "Rmnbwic dfqi \t",
-														"marks": [{ "type": "code" }]
-													}
-												]
-											}
-										]
-									}
-								]
-							}
-						]
-					}
-				]
-			}
-		]
-	}
-}
-```
-
-### lines | note | h2 | - | empty (1)
-
-```json
-{
-	"font": "sans",
-	"fontSize": 31,
-	"mode": "note",
-	"maxWidth": 167,
-	"dom": { "w": 0, "h": 10, "scrollWidth": 0 },
-	"native": { "w": 0, "h": 77.775, "scrollWidth": 0 },
-	"routing": "native",
-	"doc": {
-		"type": "doc",
-		"content": [{ "type": "heading", "attrs": { "level": 2 }, "content": [] }]
-	}
-}
-```
-
-### lines | fixed | bulletList+listItem | - | trailing-space+tab+punct (1)
-
-```json
-{
-	"font": "mono",
-	"fontSize": 58,
-	"mode": "text",
-	"maxWidth": 593,
-	"dom": { "w": 593, "h": 156, "scrollWidth": 593 },
-	"native": { "w": 593, "h": 234, "scrollWidth": 600 },
-	"routing": "native",
-	"doc": {
-		"type": "doc",
-		"content": [
-			{
-				"type": "bulletList",
-				"content": [
-					{
-						"type": "listItem",
-						"content": [
-							{ "type": "paragraph", "content": [] },
-							{
-								"type": "bulletList",
-								"content": [
-									{
-										"type": "listItem",
-										"content": [
-											{
-												"type": "paragraph",
-												"content": [{ "type": "text", "text": "aftny… ' sa \t " }]
-											}
-										]
-									}
-								]
-							}
-						]
-					}
-				]
 			}
 		]
 	}
@@ -1010,26 +988,23 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 }
 ```
 
-### lines | note | p | bold | - (1)
+### lines | note | p | - | space-run+long-word+punct (1)
 
 ```json
 {
-	"font": "draw",
-	"fontSize": 32,
+	"font": "sans",
+	"fontSize": 15,
 	"mode": "note",
 	"maxWidth": 167,
-	"dom": { "w": 167, "h": 86, "scrollWidth": 172 },
-	"native": { "w": 167, "h": 129, "scrollWidth": 172 },
+	"dom": { "w": 167, "h": 40, "scrollWidth": 169 },
+	"native": { "w": 167, "h": 60, "scrollWidth": 169 },
 	"routing": "native",
 	"doc": {
 		"type": "doc",
 		"content": [
 			{
 				"type": "paragraph",
-				"content": [
-					{ "type": "text", "text": "ybxuByXFb htt" },
-					{ "type": "text", "text": "Wj Vls", "marks": [{ "type": "bold" }] }
-				]
+				"content": [{ "type": "text", "text": "zRcGuLuspjiyNfpRUFgLk     b 61190 bnqt ohnw . -" }]
 			}
 		]
 	}
@@ -1062,39 +1037,34 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 }
 ```
 
-### lines | fixed | p | - | trailing-space+tab+punct (1)
-
-```json
-{
-	"font": "draw",
-	"fontSize": 18,
-	"mode": "text",
-	"maxWidth": 118,
-	"dom": { "w": 118, "h": 72, "scrollWidth": 118 },
-	"native": { "w": 118, "h": 96, "scrollWidth": 123 },
-	"routing": "native",
-	"doc": {
-		"type": "doc",
-		"content": [
-			{
-				"type": "paragraph",
-				"content": [{ "type": "text", "text": "htps://examplecom/some/path?x=1  \t " }]
-			}
-		]
-	}
-}
-```
-
-### lines | fixed | bulletList+listItem | - | trailing-space (1)
+### lines | note | h3 | - | empty (1)
 
 ```json
 {
 	"font": "sans",
-	"fontSize": 44,
-	"mode": "text",
-	"maxWidth": 52,
-	"dom": { "w": 52, "h": 59, "scrollWidth": 69 },
-	"native": { "w": 52, "h": 118, "scrollWidth": 69 },
+	"fontSize": 18,
+	"mode": "note",
+	"maxWidth": 167,
+	"dom": { "w": 0, "h": 10, "scrollWidth": 0 },
+	"native": { "w": 0, "h": 43.431, "scrollWidth": 0 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [{ "type": "heading", "attrs": { "level": 3 }, "content": [] }]
+	}
+}
+```
+
+### lines | note | bulletList+listItem | - | trailing-space+leading-space+tab (1)
+
+```json
+{
+	"font": "mono",
+	"fontSize": 16,
+	"mode": "note",
+	"maxWidth": 167,
+	"dom": { "w": 167, "h": 22, "scrollWidth": 167 },
+	"native": { "w": 167, "h": 44, "scrollWidth": 167 },
 	"routing": "native",
 	"doc": {
 		"type": "doc",
@@ -1104,7 +1074,88 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 				"content": [
 					{
 						"type": "listItem",
-						"content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "d " }] }]
+						"content": [
+							{ "type": "paragraph", "content": [{ "type": "text", "text": "    Kbgo Fwlnbj \t" }] }
+						]
+					}
+				]
+			}
+		]
+	}
+}
+```
+
+### lines | fixed | p | - | trailing-space+tab+punct (1)
+
+```json
+{
+	"font": "draw",
+	"fontSize": 24,
+	"mode": "text",
+	"maxWidth": 118,
+	"dom": { "w": 118, "h": 128, "scrollWidth": 118 },
+	"native": { "w": 118, "h": 160, "scrollWidth": 118 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "paragraph",
+				"content": [{ "type": "text", "text": "htps://examplecomsome/path?x=1   \t" }]
+			}
+		]
+	}
+}
+```
+
+### lines | note | p | - | space-run (1)
+
+```json
+{
+	"font": "mono",
+	"fontSize": 24,
+	"mode": "note",
+	"maxWidth": 167,
+	"dom": { "w": 167, "h": 64, "scrollWidth": 173 },
+	"native": { "w": 167, "h": 96, "scrollWidth": 173 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [
+			{ "type": "paragraph", "content": [{ "type": "text", "text": "KkugiFNledm' . X    Cbkw" }] }
+		]
+	}
+}
+```
+
+### lines | fixed | bulletList+listItem | code | tab+punct (1)
+
+```json
+{
+	"font": "draw",
+	"fontSize": 24,
+	"mode": "text",
+	"maxWidth": 200,
+	"dom": { "w": 200, "h": 65, "scrollWidth": 200 },
+	"native": { "w": 200, "h": 33, "scrollWidth": 201 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{ "type": "text", "text": "Orr svkkd \t•" },
+									{ "type": "text", "text": "\"", "marks": [{ "type": "code" }] }
+								]
+							}
+						]
 					}
 				]
 			}
@@ -1130,6 +1181,136 @@ Signature: kind | width mode | nodes | marks | text features. Up to 100 failures
 			{
 				"type": "paragraph",
 				"content": [{ "type": "text", "text": "  \t", "marks": [{ "type": "code" }] }]
+			}
+		]
+	}
+}
+```
+
+### lines | fixed | p | - | tab (1)
+
+```json
+{
+	"font": "mono",
+	"fontSize": 56,
+	"mode": "text",
+	"maxWidth": 603,
+	"dom": { "w": 603, "h": 228, "scrollWidth": 603 },
+	"native": { "w": 603, "h": 152, "scrollWidth": 605 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "paragraph",
+				"content": [{ "type": "text", "text": "e nlrvfb Zbijjfwen \t 38696" }]
+			}
+		]
+	}
+}
+```
+
+### lines | note | h1 | - | empty (1)
+
+```json
+{
+	"font": "sans",
+	"fontSize": 15,
+	"mode": "note",
+	"maxWidth": 167,
+	"dom": { "w": 0, "h": 10, "scrollWidth": 0 },
+	"native": { "w": 0, "h": 55.5, "scrollWidth": 0 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [{ "type": "heading", "attrs": { "level": 1 }, "content": [] }]
+	}
+}
+```
+
+### lines | fixed | bulletList+listItem | bold | trailing-space+tab (1)
+
+```json
+{
+	"font": "draw",
+	"fontSize": 24,
+	"mode": "text",
+	"maxWidth": 131,
+	"dom": { "w": 131, "h": 32, "scrollWidth": 131 },
+	"native": { "w": 131, "h": 64, "scrollWidth": 131 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [{ "type": "text", "text": "32052 ! \t", "marks": [{ "type": "bold" }] }]
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+}
+```
+
+### lines | note | p | - | long-word+punct (1)
+
+```json
+{
+	"font": "sans",
+	"fontSize": 15,
+	"mode": "note",
+	"maxWidth": 167,
+	"dom": { "w": 167, "h": 60, "scrollWidth": 171 },
+	"native": { "w": 167, "h": 80, "scrollWidth": 171 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "paragraph",
+				"content": [
+					{
+						"type": "text",
+						"text": "vXpLjOAqFfZXQyfhsqnzg vlx … \" Z 62885 st injnm ze32558 mwlsgwc"
+					}
+				]
+			}
+		]
+	}
+}
+```
+
+### lines | boundary | p | - | tab+url+punct (1)
+
+```json
+{
+	"font": "mono",
+	"fontSize": 24,
+	"mode": "text",
+	"maxWidth": 876.40625,
+	"dom": { "w": 876.40625, "h": 64, "scrollWidth": 876 },
+	"native": { "w": 863.9996337890625, "h": 32, "scrollWidth": 864 },
+	"routing": "native",
+	"doc": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "paragraph",
+				"content": [
+					{
+						"type": "text",
+						"text": "zhgbceqavo Lhzwoyxddc Vm https://example.com/some/path?x=1\tq"
+					}
+				]
 			}
 		]
 	}
