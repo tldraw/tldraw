@@ -3330,12 +3330,13 @@ export class TLFileDurableObject extends DurableObject {
 
 			// remove edit history
 			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
-			// Each list page and delete batch is its own queued operation: the sweep runs both
-			// buckets concurrently, and unqueued beside two asset copies that is the whole
+			// Each list page and delete batch is its own queued operation: the sweep runs every
+			// bucket concurrently, and unqueued beside two asset copies that is over the
 			// six-connection budget.
 			await deleteAllVersions({
 				chainBucket: this.env.ROOMS_HISTORY,
 				legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
+				coldBucket: this.env.ROOMS_HISTORY_COLD,
 				roomKey: r2Key,
 				schedule: (op) => this.addR2Operation('version_chain_delete', op),
 			})
@@ -3560,6 +3561,7 @@ export class TLFileDurableObject extends DurableObject {
 			await deleteAllVersions({
 				chainBucket: this.env.ROOMS_HISTORY,
 				legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
+				coldBucket: this.env.ROOMS_HISTORY_COLD,
 				roomKey,
 				schedule: (op) => this.addR2Operation('version_chain_delete', op),
 			})
