@@ -14,6 +14,7 @@ So far this release adds a `ThrottledFunction` type to `@tldraw/utils`, thins th
 
 - Add a `ThrottledFunction<T>` type to `@tldraw/utils` for annotating the result of `throttle`. `throttle` now returns this type, with the same runtime behavior. ([#10927](https://github.com/tldraw/tldraw/pull/10927))
 - Add `isAvailable(editor)`, `isEnabled(editor)` and `isChecked(editor)` to actions. Menu items built with `TldrawUiMenuActionItem` and `TldrawUiMenuActionCheckboxItem` read them: an unavailable action is hidden, a disabled one is greyed out or hidden depending on `whenDisabled: 'hide' | 'disable'`. `useSomeActionsEnabled` hides a submenu when none of its actions would show. If you replace a built-in action with a new object instead of spreading it, it loses its gating.
+- 💥 Add `ShapeUtil.canFlip(shape)`, which decides whether the flip menu items and shift+H / shift+V act on a single selected shape. It defaults to `false`, so a lone custom shape no longer flips from the shortcut. If your shape mirrors when flipped (for example it handles negative scale in `onResize`), add `override canFlip() { return true }` to its util. Multi-shape flips are unchanged. ([#11041](https://github.com/tldraw/tldraw/pull/11041))
 
 ## Improvements
 
