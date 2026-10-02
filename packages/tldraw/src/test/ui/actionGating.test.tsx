@@ -248,6 +248,24 @@ describe('built-in action isEnabled', () => {
 	})
 })
 
+describe('built-in action isAvailable', () => {
+	it('splits availability from enablement', async () => {
+		const { editor, actions } = await setup()
+		const state = (id: string) => ({
+			available: actions()[id].isAvailable!(editor),
+			enabled: actions()[id].isEnabled!(editor),
+		})
+		expect(state('copy-as-json')).toEqual({ available: false, enabled: false })
+		act(() => editor.updateInstanceState({ isDebugMode: true }))
+		expect(state('copy-as-json')).toEqual({ available: true, enabled: false })
+		seed(editor)
+		expect(state('copy-as-json')).toEqual({ available: true, enabled: true })
+		expect(actions()['exit-pen-mode'].isAvailable!(editor)).toBe(false)
+		act(() => editor.updateInstanceState({ isPenMode: true }))
+		expect(actions()['exit-pen-mode'].isAvailable!(editor)).toBe(true)
+	})
+})
+
 describe('built-in action isChecked', () => {
 	it('reads user and instance state', async () => {
 		const { editor, actions } = await setup()
@@ -281,6 +299,7 @@ describe('purity and stability', () => {
 		})
 		const before = { tool: editor.getCurrentToolId(), records: editor.store.serialize('all') }
 		for (const action of Object.values(actions())) {
+			action.isAvailable?.(editor)
 			action.isEnabled?.(editor)
 			action.isChecked?.(editor)
 		}

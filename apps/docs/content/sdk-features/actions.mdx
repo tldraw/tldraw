@@ -308,7 +308,7 @@ actions['make-red'] = {
 
 Keyboard shortcuts ignore `isEnabled`, so `onSelect` should still check its own preconditions.
 
-When you change a built-in action, spread the original so it keeps its `isEnabled` and `isChecked`:
+When you change a built-in action, spread the original so it keeps its `isAvailable`, `isEnabled` and `isChecked`:
 
 ```tsx
 actions['group'] = { ...actions['group'], onSelect: myGroup }
@@ -316,7 +316,18 @@ actions['group'] = { ...actions['group'], onSelect: myGroup }
 
 Replacing an action with a new object drops them, and menus will show it as always enabled.
 
-Some gates mean "not available here" rather than "not right now": paste without clipboard read access, copy as PNG without clipboard write access, copy as JSON outside debug mode, cursor chat, exit pen mode, stop following, and back to content. Place these with `whenDisabled="hide"`, otherwise they show greyed out.
+Use `isAvailable` instead when the action doesn't exist in the current context at all, rather than being blocked right now. Every menu item hides an unavailable action, whatever `whenDisabled` says. The built-in paste (without clipboard read access), copy as PNG (without clipboard write access), copy as JSON (outside debug mode), cursor chat (on touch), exit pen mode, stop following, and back to content work this way.
+
+```tsx
+actions['open-devtools'] = {
+	id: 'open-devtools',
+	label: 'action.open-devtools',
+	isAvailable: (editor) => editor.getInstanceState().isDebugMode,
+	onSelect() {
+		// ...
+	},
+}
+```
 
 To hide a submenu when none of its actions would show, use [useSomeActionsEnabled](?). It treats actions that aren't `readonlyOk` as unavailable in readonly mode:
 

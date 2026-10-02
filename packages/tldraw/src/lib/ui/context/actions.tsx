@@ -79,6 +79,11 @@ export interface TLUiActionItem<
 	checkbox?: boolean
 	isRequiredA11yAction?: boolean
 	/**
+	 * Whether the action exists in the current context at all, e.g. clipboard support or debug
+	 * mode. Every menu hides the item when it returns false. Must be pure.
+	 */
+	isAvailable?(editor: Editor): boolean
+	/**
 	 * Whether the action can run now. Menus disable or hide the item when it returns false;
 	 * keyboard shortcuts ignore it. Must be pure: it runs reactively on every render.
 	 */
@@ -366,7 +371,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'copy-as-png',
-				isEnabled: (editor) => hasShapesOnPage(editor) && canWriteClipboard(editor),
+				isAvailable: canWriteClipboard,
+				isEnabled: hasShapesOnPage,
 				label: {
 					default: 'action.copy-as-png',
 					menu: 'action.copy-as-png.short',
@@ -383,7 +389,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'copy-as-json',
-				isEnabled: (editor) => hasShapesOnPage(editor) && editor.getInstanceState().isDebugMode,
+				isAvailable: (editor) => editor.getInstanceState().isDebugMode,
+				isEnabled: hasShapesOnPage,
 				label: {
 					default: 'action.copy-as-json',
 					menu: 'action.copy-as-json.short',
@@ -1083,7 +1090,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'paste',
-				isEnabled: canReadClipboard,
+				isAvailable: canReadClipboard,
 				label: 'action.paste',
 				kbd: 'cmd+v,ctrl+v',
 				onSelect(source) {
@@ -1584,7 +1591,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'exit-pen-mode',
-				isEnabled: (editor) => editor.getInstanceState().isPenMode,
+				isAvailable: (editor) => editor.getInstanceState().isPenMode,
 				label: 'action.exit-pen-mode',
 				icon: 'cross-2',
 				readonlyOk: true,
@@ -1595,7 +1602,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'stop-following',
-				isEnabled: (editor) => !!editor.getInstanceState().followingUserId,
+				isAvailable: (editor) => !!editor.getInstanceState().followingUserId,
 				label: 'action.stop-following',
 				icon: 'cross-2',
 				readonlyOk: true,
@@ -1606,7 +1613,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'back-to-content',
-				isEnabled: isContentOffscreen,
+				isAvailable: isContentOffscreen,
 				label: 'action.back-to-content',
 				icon: 'arrow-left',
 				readonlyOk: true,
@@ -1957,8 +1964,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		if (showCollaborationUi) {
 			actionItems.push({
 				id: 'open-cursor-chat',
-				isEnabled: (editor) =>
-					editor.getCurrentToolId() === 'select' && !editor.getInstanceState().isCoarsePointer,
+				isAvailable: (editor) => !editor.getInstanceState().isCoarsePointer,
+				isEnabled: (editor) => editor.getCurrentToolId() === 'select',
 				label: 'action.open-cursor-chat',
 				readonlyOk: true,
 				kbd: '/',

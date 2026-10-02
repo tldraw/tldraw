@@ -13,7 +13,7 @@ So far this release adds a `ThrottledFunction` type to `@tldraw/utils`, thins th
 ## API changes
 
 - Add a `ThrottledFunction<T>` type to `@tldraw/utils` for annotating the result of `throttle`. `throttle` now returns this type, with the same runtime behavior. ([#10927](https://github.com/tldraw/tldraw/pull/10927))
-- Add `isEnabled(editor)` and `isChecked(editor)` to actions. Menu items built with `TldrawUiMenuActionItem` and `TldrawUiMenuActionCheckboxItem` read them, and take `whenDisabled: 'hide' | 'disable'`. `useSomeActionsEnabled` hides a submenu when none of its actions would show. If you replace a built-in action with a new object instead of spreading it, it loses its gating.
+- Add `isAvailable(editor)`, `isEnabled(editor)` and `isChecked(editor)` to actions. Menu items built with `TldrawUiMenuActionItem` and `TldrawUiMenuActionCheckboxItem` read them: an unavailable action is hidden, a disabled one is greyed out or hidden depending on `whenDisabled: 'hide' | 'disable'`. `useSomeActionsEnabled` hides a submenu when none of its actions would show. If you replace a built-in action with a new object instead of spreading it, it loses its gating.
 
 ## Improvements
 

@@ -13,7 +13,8 @@ const MISSING: TLUiActionState = { visible: false, enabled: false, checked: unde
 const NO_EDITOR: TLUiActionState = { visible: true, enabled: true, checked: undefined }
 
 function isActionVisible(editor: Editor, action: TLUiActionItem) {
-	return !editor.getIsReadonly() || !!action.readonlyOk
+	if (editor.getIsReadonly() && !action.readonlyOk) return false
+	return !action.isAvailable || action.isAvailable(editor)
 }
 
 function isActionEnabled(editor: Editor, action: TLUiActionItem) {

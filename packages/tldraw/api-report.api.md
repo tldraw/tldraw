@@ -4623,6 +4623,7 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     icon?: IconType | React_2.ReactElement;
     // (undocumented)
     id: string;
+    isAvailable?(editor: Editor): boolean;
     isChecked?(editor: Editor): boolean;
     isEnabled?(editor: Editor): boolean;
     // (undocumented)

@@ -141,8 +141,8 @@ export function CopyAsMenuGroup() {
 		>
 			<TldrawUiMenuGroup id="copy-as-group">
 				<TldrawUiMenuActionItem actionId="copy-as-svg" />
-				<TldrawUiMenuActionItem actionId="copy-as-png" whenDisabled="hide" />
-				<TldrawUiMenuActionItem actionId="copy-as-json" whenDisabled="hide" />
+				<TldrawUiMenuActionItem actionId="copy-as-png" />
+				<TldrawUiMenuActionItem actionId="copy-as-json" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="copy-as-bg">
 				<ToggleTransparentBgMenuItem />

@@ -10,6 +10,7 @@ import { TLUiOverrides } from '../../lib/ui/overrides'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
 const $enabled = atom('test enabled', false)
+const $available = atom('test available', false)
 
 const overrides: TLUiOverrides = {
 	actions(_editor, actions) {
@@ -21,6 +22,13 @@ const overrides: TLUiOverrides = {
 			onSelect() {},
 		}
 		actions['ungated'] = { id: 'ungated', label: 'action.group', icon: 'group', onSelect() {} }
+		actions['unavailable'] = {
+			id: 'unavailable',
+			label: 'action.group',
+			icon: 'group',
+			isAvailable: () => $available.get(),
+			onSelect() {},
+		}
 		actions['group-spread'] = { ...actions['group'], id: 'group-spread', onSelect() {} }
 		actions['group-replaced'] = {
 			id: 'group-replaced',
@@ -37,7 +45,10 @@ function SomeEnabled({ ids }: { ids: string[] }) {
 }
 
 async function setup(children: React.ReactNode) {
-	act(() => $enabled.set(false))
+	act(() => {
+		$enabled.set(false)
+		$available.set(false)
+	})
 	return renderTldrawComponentWithEditor(
 		(onMount) => (
 			<Tldraw onMount={onMount} overrides={overrides} components={{ QuickActions: null }}>
@@ -97,6 +108,22 @@ describe('TldrawUiMenuActionItem', () => {
 			editor.selectAll()
 		})
 		expect(button('group-spread')!.disabled).toBe(false)
+	})
+})
+
+describe('isAvailable', () => {
+	it('hides the menu item whatever whenDisabled says', async () => {
+		await setup(<TldrawUiMenuActionItem actionId="unavailable" whenDisabled="disable" />)
+		expect(button('unavailable')).toBeNull()
+		act(() => $available.set(true))
+		expect(button('unavailable')!.disabled).toBe(false)
+	})
+
+	it('counts as not enabled for useSomeActionsEnabled', async () => {
+		await setup(<SomeEnabled ids={['unavailable']} />)
+		expect(screen.getByTestId('some').textContent).toBe('false')
+		act(() => $available.set(true))
+		expect(screen.getByTestId('some').textContent).toBe('true')
 	})
 })
 

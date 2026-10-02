@@ -1,5 +1,6 @@
 import { useActions } from '../../../context/actions'
 import { useActionState } from '../../../hooks/useActionState'
+import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 import { TldrawUiMenuItem, type TLUiMenuItemProps } from './TldrawUiMenuItem'
 
 /** @public */
@@ -18,8 +19,11 @@ export function TldrawUiMenuActionItem({
 }: TLUiMenuActionItemProps) {
 	const actions = useActions()
 	const action = actions[actionId]
+	const { type: menuType } = useTldrawUiMenuContext()
 	const { visible, enabled } = useActionState(action)
-	if (!action || !visible) return null
+	if (!action) return null
+	// The shortcuts dialog lists what a key does, even where the menu item wouldn't show.
+	if (!visible && menuType !== 'keyboard-shortcuts') return null
 	if (!enabled && whenDisabled === 'hide') return null
 	return (
 		<TldrawUiMenuItem
