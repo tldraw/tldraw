@@ -51,7 +51,7 @@ export function getShapeClusters(
 	bounds?: Record<string, ClusterBounds>
 ): ShapeCluster[] {
 	const byId = new Map(shapes.map((shape) => [shape.id, shape]))
-	const atomsByRoot = new Map<string, TLShape[]>()
+	const atomsByRoot = new Map<string, TLShapeWithPlainText[]>()
 
 	for (const shape of shapes) {
 		let root = shape
@@ -70,14 +70,16 @@ export function getShapeClusters(
 	const atoms = [...atomsByRoot.values()]
 	const clusters = bounds ? mergeNearbyAtoms(atoms, bounds) : atoms
 
+	// Ids hash the sorted member ids, so the same membership always yields the same handle. Hash
+	// collisions are numbered in key order to keep that stable too.
 	const keys = clusters.map(getClusterKey)
 	const ids = new Array<string>(clusters.length)
 	const collisions = new Map<string, number>()
-
-	for (const { key, index } of keys
-		.map((key, index) => ({ key, index }))
-		.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))) {
-		const base = `cluster:${(Number(getHashForString(key)) >>> 0).toString(36)}`
+	const byKey = keys
+		.map((_, i) => i)
+		.sort((a, b) => (keys[a] < keys[b] ? -1 : keys[a] > keys[b] ? 1 : 0))
+	for (const index of byKey) {
+		const base = `cluster:${(Number(getHashForString(keys[index])) >>> 0).toString(36)}`
 		const collision = collisions.get(base) ?? 0
 		collisions.set(base, collision + 1)
 		ids[index] = collision === 0 ? base : `${base}-${collision}`
@@ -335,7 +337,10 @@ function containsBox(a: ClusterBounds, b: ClusterBounds, tolerance = 2): boolean
  * Containment runs over everything, arrows included, because a shape genuinely inside another cannot
  * bridge anything — it can only join the thing that encloses it.
  */
-function mergeNearbyAtoms(atoms: TLShape[][], bounds: Record<string, ClusterBounds>): TLShape[][] {
+function mergeNearbyAtoms(
+	atoms: TLShapeWithPlainText[][],
+	bounds: Record<string, ClusterBounds>
+): TLShapeWithPlainText[][] {
 	const boxes = atoms.map((atom) => boundsForAtom(atom, bounds))
 	const parent = atoms.map((_, i) => i)
 	const find = (i: number): number => {

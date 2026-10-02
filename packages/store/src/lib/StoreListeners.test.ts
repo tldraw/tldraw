@@ -482,3 +482,99 @@ describe('applying diffs with ignoreEphemeralKeys (H)', () => {
 		expect(result.lastActive).toBe(100)
 	})
 })
+
+describe('listeners: a throwing listener (H)', () => {
+	it('[H13] a listener that throws does not stop the others from receiving the flush', () => {
+		const received = vi.fn()
+		store.listen(() => {
+			throw new Error('listener failed')
+		})
+		store.listen(received)
+
+		expect(() => store.put([tolkein()])).toThrow('listener failed')
+		expect(received).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('listeners: dispose (H)', () => {
+	it('[H12] dispose delivers pending change-sets to listeners before cancelling the flush', () => {
+		try {
+			// @ts-expect-error - test-only escape hatch
+			globalThis.__FORCE_RAF_IN_TESTS__ = true
+			const listener = vi.fn()
+			store.listen(listener)
+			store.put([tolkein()])
+			expect(listener).not.toHaveBeenCalled()
+
+			store.dispose()
+			expect(listener).toHaveBeenCalledTimes(1)
+		} finally {
+			// @ts-expect-error - test-only escape hatch
+			globalThis.__FORCE_RAF_IN_TESTS__ = false
+		}
+	})
+})
+
+describe('listeners: removing a listener (H)', () => {
+	const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve))
+
+	beforeEach(() => {
+		// @ts-expect-error - test-only escape hatch
+		globalThis.__FORCE_RAF_IN_TESTS__ = true
+		return () => {
+			// @ts-expect-error - test-only escape hatch
+			globalThis.__FORCE_RAF_IN_TESTS__ = false
+		}
+	})
+
+	it('[H14] the remover delivers pending change-sets before removing the listener', async () => {
+		const listener = vi.fn()
+		const removeListener = store.listen(listener)
+		store.put([tolkein()])
+		expect(listener).not.toHaveBeenCalled()
+
+		removeListener()
+		expect(listener).toHaveBeenCalledTimes(1)
+
+		store.put([hobbit()])
+		await nextFrame()
+		expect(listener).toHaveBeenCalledTimes(1)
+	})
+
+	it('[H14] the remover logs a listener error from its flush instead of throwing it', async () => {
+		const error = new Error('listener failed')
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const listener = vi.fn(() => {
+			throw error
+		})
+		try {
+			const removeListener = store.listen(listener)
+			store.put([tolkein()])
+
+			expect(removeListener).not.toThrow()
+			expect(consoleError).toHaveBeenCalledWith(error)
+
+			store.put([hobbit()])
+			await nextFrame()
+			expect(listener).toHaveBeenCalledTimes(1)
+		} finally {
+			consoleError.mockRestore()
+		}
+	})
+
+	it('[H14] a listener that writes and then removes itself mid-flush does not reorder the others', async () => {
+		const received: string[][] = []
+		const removeWriter = store.listen(() => {
+			store.put([hobbit()])
+			removeWriter()
+		})
+		store.listen(({ changes }) => received.push(Object.keys(changes.added)))
+
+		const author = tolkein()
+		store.put([author])
+		await nextFrame()
+		await nextFrame()
+
+		expect(received).toEqual([[author.id], [hobbit().id]])
+	})
+})

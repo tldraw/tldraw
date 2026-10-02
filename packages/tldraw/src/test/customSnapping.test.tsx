@@ -353,6 +353,16 @@ describe('custom handle snapping', () => {
 			expect(pagePoint.x).toBeCloseTo(10)
 			expect(pagePoint.y).toBeCloseTo(110)
 		})
+
+		test("doesn't snap to a shape's label geometry", () => {
+			// a note's geometry is its body plus a label rectangle inside it; the label
+			// (50,69 100x62 in shape space here) is not an outline to snap to
+			editor.createShape({ id: createShapeId('note'), type: 'note', x: 400, y: 400 })
+			startDraggingHandle()
+			editor.pointerMove(452, 500, undefined, { ctrlKey: true })
+			expect(editor.snaps.getIndicators()).toHaveLength(0)
+			expect(handlePosition()).toMatchObject({ x: 452, y: 500 })
+		})
 	})
 
 	describe('with empty handleSnapGeometry.outline', () => {

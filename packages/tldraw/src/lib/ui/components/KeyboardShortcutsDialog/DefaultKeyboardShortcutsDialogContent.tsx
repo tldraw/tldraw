@@ -1,3 +1,4 @@
+import { noop } from '@tldraw/editor'
 import { useShowCollaborationUi } from '../../hooks/useCollaborationStatus'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
@@ -26,14 +27,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuToolItem toolId="frame" />
 				<TldrawUiMenuToolItem toolId="note" />
 				<TldrawUiMenuToolItem toolId="laser" />
-				<TldrawUiMenuItem
-					id="pointer-down"
-					label="tool.pointer-down"
-					kbd=","
-					onSelect={() => {
-						/* do nothing */
-					}}
-				/>
+				<TldrawUiMenuItem id="pointer-down" label="tool.pointer-down" kbd="," onSelect={noop} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.preferences" id="preferences">
 				<TldrawUiMenuActionItem actionId="toggle-dark-mode" />
@@ -60,14 +54,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="zoom-to-100" />
 				<TldrawUiMenuActionItem actionId="zoom-to-fit" />
 				<TldrawUiMenuActionItem actionId="zoom-to-selection" />
-				<TldrawUiMenuItem
-					id="zoom-quick"
-					label="action.zoom-quick"
-					kbd="shift+z"
-					onSelect={() => {
-						/* do nothing */
-					}}
-				/>
+				<TldrawUiMenuItem id="zoom-quick" label="action.zoom-quick" kbd="shift+z" onSelect={noop} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.transform" id="transform">
 				<TldrawUiMenuActionItem actionId="bring-to-front" />
@@ -91,77 +78,49 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="distribute-vertical" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.text-formatting" id="text">
-				<TldrawUiMenuItem
-					id="text-bold"
-					label="tool.rich-text-bold"
-					kbd="cmd+b"
-					onSelect={() => {
-						/* do nothing */
-					}}
-				/>
+				<TldrawUiMenuItem id="text-bold" label="tool.rich-text-bold" kbd="cmd+b" onSelect={noop} />
 				<TldrawUiMenuItem
 					id="text-italic"
 					label="tool.rich-text-italic"
 					kbd="cmd+i"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
-				<TldrawUiMenuItem
-					id="text-code"
-					label="tool.rich-text-code"
-					kbd="cmd+e"
-					onSelect={() => {
-						/* do nothing */
-					}}
-				/>
+				<TldrawUiMenuItem id="text-code" label="tool.rich-text-code" kbd="cmd+e" onSelect={noop} />
 				<TldrawUiMenuItem
 					id="text-highlight"
 					label="tool.rich-text-highlight"
 					kbd="cmd+shift+h"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="text-strikethrough"
 					label="tool.rich-text-strikethrough"
 					kbd="cmd+shift+s"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="text-link"
 					label="tool.rich-text-link"
 					kbd="cmd+shift+k"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="text-header"
 					label="tool.rich-text-header"
 					kbd="cmd+alt+[[1-6]]"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="text-orderedList"
 					label="tool.rich-text-orderedList"
 					kbd="cmd+shift+7"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="text-bulletedlist"
 					label="tool.rich-text-bulletList"
 					kbd="cmd+shift+8"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.a11y" id="a11y">
@@ -169,97 +128,73 @@ export function DefaultKeyboardShortcutsDialogContent() {
 					id="a11y-select-next-shape"
 					label="a11y.select-shape"
 					kbd="[[Tab]]"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="a11y-select-next-shape-direction"
 					label="a11y.select-shape-direction"
 					kbd="cmd+[[↑→↓←]]"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="a11y-select-next-shape-container"
 					label="a11y.enter-leave-container"
 					kbd="cmd+shift+[[↑↓]]"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="a11y-pan-camera"
 					label="a11y.pan-camera"
 					kbd="[[Space]]+[[↑→↓←]]"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="adjust-shape-styles"
 					label="a11y.adjust-shape-styles"
 					kbd="cmd+[[Enter]]"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="open-context-menu"
 					label="a11y.open-context-menu"
 					kbd="cmd+shift+[[Enter]]"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="a11y-move-shape"
 					label="a11y.move-shape"
 					kbd="[[↑→↓←]]"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="a11y-move-shape-faster"
 					label="a11y.move-shape-faster"
 					kbd="shift+[[↑→↓←]]"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="a11y-rotate-shape-cw"
 					label="a11y.rotate-shape-cw"
 					kbd="shift+﹥"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="a11y-rotate-shape-cw-fine"
 					label="a11y.rotate-shape-cw-fine"
 					kbd="shift+alt+﹥"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="a11y-rotate-shape-ccw"
 					label="a11y.rotate-shape-ccw"
 					kbd="shift+﹤"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuItem
 					id="a11y-rotate-shape-ccw-fine"
 					label="a11y.rotate-shape-ccw-fine"
 					kbd="shift+alt+﹤"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 				<TldrawUiMenuActionItem actionId="enlarge-shapes" />
 				<TldrawUiMenuActionItem actionId="shrink-shapes" />
@@ -268,9 +203,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 					id="a11y-open-keyboard-shortcuts"
 					label="a11y.open-keyboard-shortcuts"
 					kbd="cmd+alt+/"
-					onSelect={() => {
-						/* do nothing */
-					}}
+					onSelect={noop}
 				/>
 			</TldrawUiMenuGroup>
 			{showCollaborationUi && (

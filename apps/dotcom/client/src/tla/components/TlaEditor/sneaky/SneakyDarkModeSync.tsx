@@ -1,12 +1,10 @@
 import { useEditor, useReactor } from 'tldraw'
-import { useMaybeApp } from '../../../hooks/useAppState'
 import {
 	getLocalSessionStateUnsafe,
 	updateLocalSessionState,
 } from '../../../utils/local-session-state'
 
 export function SneakyDarkModeSync() {
-	const app = useMaybeApp()
 	const editor = useEditor()
 
 	useReactor(
@@ -21,7 +19,7 @@ export function SneakyDarkModeSync() {
 				updateLocalSessionState(() => ({ theme: 'dark' }))
 			}
 		},
-		[app, editor]
+		[editor]
 	)
 
 	return null

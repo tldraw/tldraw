@@ -120,6 +120,10 @@ test('parseCss', () => {
 		  ],
 		  "imports": [
 		    {
+		      "extras": "",
+		      "url": "https://example.com/font.css",
+		    },
+		    {
 		      "extras": " screen and (min-width: 900px)",
 		      "url": "thing.css",
 		    },

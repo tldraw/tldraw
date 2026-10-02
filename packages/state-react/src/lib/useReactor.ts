@@ -76,7 +76,7 @@ import { useEffect } from 'react'
  */
 export function useReactor(name: string, reactFn: () => void, deps: undefined | any[] = []) {
 	useEffect(() => {
-		let cancelFn: () => void | undefined
+		let cancelFn: (() => void) | undefined
 		const scheduler = new EffectScheduler(name, reactFn, {
 			scheduleEffect: (cb) => {
 				cancelFn = throttleToNextFrame(cb)

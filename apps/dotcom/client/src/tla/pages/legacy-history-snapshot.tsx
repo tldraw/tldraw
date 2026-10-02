@@ -2,12 +2,12 @@ import { captureException } from '@sentry/react'
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { useEffect, useMemo } from 'react'
-import { useRouteError } from 'react-router-dom'
+import { useParams, useRouteError } from 'react-router-dom'
 import { TLStoreSnapshot, fetch } from 'tldraw'
-import { defineLoader } from '../../utils/defineLoader'
 import { TlaHistorySnapshotEditor } from '../components/TlaEditor/TlaHistorySnapshotEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
+import { useFetchJson } from '../hooks/useFetchJson'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { toggleSidebar } from '../utils/local-session-state'
 
@@ -19,43 +19,24 @@ export function ErrorBoundary() {
 	return <Component error={error} />
 }
 
-const { loader, useData } = defineLoader(async (args) => {
-	const roomId = args.params.boardId
-	const timestamp = args.params.timestamp
-
-	if (!roomId) return null
-
-	const result = await fetch(`/api/${ROOM_PREFIX}/${roomId}/history/${timestamp}`, {
-		headers: {},
-	})
-	if (!result.ok) return null
-	const data = (await result.json()) as RoomSnapshot
-
-	return { data, roomId, timestamp }
-})
-
-export { loader }
-
 export function Component({ error: _error }: { error?: unknown }) {
 	const userId = useMaybeApp()?.userId
 
-	const result = useData()
+	const { boardId, timestamp } = useParams<{ boardId: string; timestamp: string }>()
+	const data = useFetchJson<RoomSnapshot>(`/api/${ROOM_PREFIX}/${boardId}/history/${timestamp}`)
 
 	const snapshot = useMemo(() => {
-		if (!result) {
+		if (!data) {
 			return null
 		}
 
 		return {
-			schema: result.data.schema,
-			store: Object.fromEntries(
-				result.data.documents.map((record) => [record.state.id, record.state])
-			),
+			schema: data.schema,
+			store: Object.fromEntries(data.documents.map((record) => [record.state.id, record.state])),
 		} as TLStoreSnapshot
-	}, [result])
+	}, [data])
 
-	const ts = result?.timestamp
-	const error = _error || !result || !ts || !snapshot
+	const error = _error || data === null || !boardId || !timestamp
 
 	useEffect(() => {
 		if (error && userId) {
@@ -64,30 +45,27 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
+	if (error) return <TlaFileError error={error} />
+	if (!snapshot) return null
+
 	return (
-		<>
-			{error ? (
-				<TlaFileError error={error} />
-			) : (
-				<TlaAnonLayout>
-					<TlaHistorySnapshotEditor
-						fileSlug={result.roomId}
-						snapshot={snapshot}
-						onRestore={async () => {
-							const res = await fetch(`/api/r/${result.roomId}/restore`, {
-								method: 'POST',
-								headers: {
-									'Content-Type': 'application/json',
-								},
-								body: JSON.stringify({ timestamp: ts }),
-							})
-							if (!res.ok) {
-								throw new Error('Failed to restore version: ' + (await res.text()))
-							}
-						}}
-					/>
-				</TlaAnonLayout>
-			)}
-		</>
+		<TlaAnonLayout>
+			<TlaHistorySnapshotEditor
+				fileSlug={boardId}
+				snapshot={snapshot}
+				onRestore={async () => {
+					const res = await fetch(`/api/r/${boardId}/restore`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({ timestamp }),
+					})
+					if (!res.ok) {
+						throw new Error('Failed to restore version: ' + (await res.text()))
+					}
+				}}
+			/>
+		</TlaAnonLayout>
 	)
 }

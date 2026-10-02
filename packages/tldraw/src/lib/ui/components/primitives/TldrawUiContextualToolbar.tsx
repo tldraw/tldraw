@@ -77,11 +77,10 @@ export function TldrawUiContextualToolbar({
 			const toolbarElm = toolbarRef.current
 			if (!toolbarElm) return
 
-			const nextContentSizeUpdateCounter = contentSizeUpdateCounter.get()
-
 			// capture / force this to update when...
 			editor.getCamera() // the camera moves
-			contentSizeUpdateCounter.get() // the toolbar size changes
+			const nextContentSizeUpdateCounter = contentSizeUpdateCounter.get() // the toolbar size changes
+
 			// undefined here means that we can't show the toolbar due to an incompatible position
 			const position = getToolbarScreenPosition(editor, toolbarElm, getSelectionBounds)
 
@@ -97,15 +96,11 @@ export function TldrawUiContextualToolbar({
 			} else {
 				// If the camera state is moving, we want to immediately update the position
 				// todo: consider hiding the toolbar while the camera is moving
-				const cameraState = editor.getCameraState()
-				if (cameraState === 'moving') {
+				if (editor.getCameraState() === 'moving') {
 					// ...if we wanted this to avoid prematurely updating any positions, we'd need
 					// to have the last updated position in page space, so that we could convert
 					// it to screen space and update it here
-					const elm = toolbarRef.current
-					if (elm) {
-						elm.style.setProperty('transform', `translate(${position.x}px, ${position.y}px)`)
-					}
+					toolbarElm.style.setProperty('transform', `translate(${position.x}px, ${position.y}px)`)
 				} else {
 					const moveImmediately = lastContentSizeUpdateCounter !== nextContentSizeUpdateCounter
 					// Schedule a move to its next location
@@ -236,21 +231,13 @@ export function getToolbarScreenPosition(
 	y = clamp(y, SCREEN_MARGIN, vsb.h - toolbarBounds.h - SCREEN_MARGIN)
 
 	// Offset the position by the container's scroll position
-	x += scrollLeft
-	y += scrollTop
-
 	// Round the position to the nearest pixel
-	x = Math.round(x)
-	y = Math.round(y)
-
-	return { x, y }
+	return { x: Math.round(x + scrollLeft), y: Math.round(y + scrollTop) }
 }
 
 function sufficientlyDistant(curr: Vec, next: Vec, changeOnlyWhenYChanges: boolean) {
-	if (changeOnlyWhenYChanges) {
-		return Vec.Sub(next, curr).y ** 2 >= MIN_DISTANCE_TO_REPOSITION_SQUARED
-	}
-	return Vec.Len2(Vec.Sub(next, curr)) >= MIN_DISTANCE_TO_REPOSITION_SQUARED
+	const dist2 = changeOnlyWhenYChanges ? (next.y - curr.y) ** 2 : Vec.Dist2(next, curr)
+	return dist2 >= MIN_DISTANCE_TO_REPOSITION_SQUARED
 }
 
 export function useToolbarVisibilityStateMachine(changeOnlyWhenYChanges: boolean) {

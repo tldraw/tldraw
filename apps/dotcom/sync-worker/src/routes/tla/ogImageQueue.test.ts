@@ -1049,6 +1049,46 @@ describe('handleOgImageRenderMessage', () => {
 			expect.objectContaining({
 				outcome: 'browser_timeout',
 				durationMs: THUMBNAIL_RENDER_TIMEOUT_MS,
+				// The page never fetched its snapshot, so the browser, not the page, is where this died.
+				page: 'unreached',
+				browserMsUsed: 0,
+			}),
+		])
+	})
+
+	it('records the billed browser time, the page reach and what the board held on a completed session', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		const snapshot = makeOnePageSnapshot()
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(snapshot)
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(
+				async () =>
+					new Response(new Uint8Array([1, 2, 3]), {
+						status: 200,
+						headers: { 'X-Browser-Ms-Used': '1234' },
+					})
+			),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 1))
+
+		expect(sessionsOf(env)).toEqual([
+			expect.objectContaining({
+				outcome: 'ok',
+				page: 'reached',
+				browserMsUsed: 1234,
+				content: [
+					snapshot.documents.length,
+					expect.any(Number),
+					expect.any(Number),
+					expect.any(Number),
+					expect.any(Number),
+				],
 			}),
 		])
 	})
@@ -1166,7 +1206,17 @@ describe('handleOgImageRenderMessage', () => {
 				mode: 'screenshot',
 				outcome: 'browser_failed',
 				reason: 'crawler',
+				// The fake browser never fetches the snapshot, so the page never called home.
+				page: 'unreached',
 				durationMs: expect.any(Number),
+				browserMsUsed: 0,
+				content: [
+					makeOnePageSnapshot().documents.length,
+					expect.any(Number),
+					expect.any(Number),
+					expect.any(Number),
+					expect.any(Number),
+				],
 			},
 		])
 

@@ -76,19 +76,15 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 		private current: Value,
 		options?: AtomOptions<Value, Diff>
 	) {
-		this.isEqual = options?.isEqual ?? null
-
-		if (!options) return
-
-		if (options.historyLength) {
+		this.isEqual = options?.isEqual ?? equals
+		if (options?.historyLength) {
 			this.historyBuffer = new HistoryBuffer(options.historyLength)
 		}
-
-		this.computeDiff = options.computeDiff
+		this.computeDiff = options?.computeDiff
 	}
 
 	/** @internal */
-	readonly isEqual: null | ((a: any, b: any) => boolean)
+	readonly isEqual: (a: any, b: any) => boolean
 
 	/** @internal */
 	computeDiff?: ComputeDiff<Value, Diff>
@@ -144,7 +140,7 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 	 */
 	set(value: Value, diff?: Diff): Value {
 		// If the value has not changed, do nothing.
-		if (this.isEqual?.(this.current, value) ?? equals(this.current, value)) {
+		if (this.isEqual(this.current, value)) {
 			return this.current
 		}
 

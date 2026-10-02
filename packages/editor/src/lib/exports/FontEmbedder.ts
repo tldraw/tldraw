@@ -24,6 +24,9 @@ export class FontEmbedder {
 	private fontFacesPromise: Promise<ParsedFontFace[]> | null = null
 	private readonly foundFontNames = new Set<string>()
 	private readonly fontFacesToEmbed = new Set<ParsedFontFace>()
+	// per export, keyed by resolved url: parsed font faces are shared across exports through the
+	// fetch cache, so a failed fetch stored on them would never be retried
+	private readonly embeddedUrls = new Map<string, Promise<string | null>>()
 	private readonly pendingPromises: Promise<void>[] = []
 
 	startFindingDocumentFontFaces(doc: Document) {
@@ -36,7 +39,7 @@ export class FontEmbedder {
 
 		const fonts = parseCssFontFamilyValue(fontFamilyValue)
 		for (const font of fonts) {
-			if (this.foundFontNames.has(font)) return
+			if (this.foundFontNames.has(font)) continue
 			this.foundFontNames.add(font)
 
 			this.pendingPromises.push(
@@ -47,9 +50,9 @@ export class FontEmbedder {
 
 						this.fontFacesToEmbed.add(fontFace)
 						for (const url of fontFace.urls) {
-							if (!url.resolved || url.embedded) continue
+							if (!url.resolved || this.embeddedUrls.has(url.resolved)) continue
 							// kick off fetching this font
-							url.embedded = resourceToDataUrl(url.resolved)
+							this.embeddedUrls.set(url.resolved, resourceToDataUrl(url.resolved))
 						}
 					}
 				})
@@ -66,11 +69,11 @@ export class FontEmbedder {
 			let fontFaceString = `@font-face {${fontFace.fontFace}}`
 
 			for (const url of fontFace.urls) {
-				if (!url.embedded) continue
-				const dataUrl = await url.embedded
+				if (!url.resolved) continue
+				const dataUrl = await this.embeddedUrls.get(url.resolved)
 				if (!dataUrl) continue
 
-				fontFaceString = fontFaceString.replace(url.original, dataUrl)
+				fontFaceString = fontFaceString.replace(url.original, () => dataUrl)
 			}
 
 			css += fontFaceString
@@ -119,12 +122,30 @@ async function getDocumentFontFaces(doc: Document) {
 	return compact(await Promise.all(fontFaces)).flat()
 }
 
-const fetchCssFontFaces = fetchCache(async (response: Response): Promise<ParsedFontFace[]> => {
+const fetchParsedCss = fetchCache(async (response: Response) => {
 	const parsed = parseCss(await response.text(), response.url)
+	return {
+		fontFaces: parsed.fontFaces,
+		importUrls: parsed.imports.map(({ url }) => new URL(url, response.url).href),
+	}
+})
+
+/** @internal */
+export async function fetchCssFontFaces(
+	url: string,
+	// the chain of sheets that imported this one: sheets that @import each other would otherwise
+	// await their own in-flight fetch forever. Each branch gets its own copy so a sheet imported by
+	// two siblings lands under both in source order, not under whichever fetch resolved first.
+	seen = new Set<string>()
+): Promise<ParsedFontFace[]> {
+	if (seen.has(url)) return []
+	seen.add(url)
+
+	const parsed = await fetchParsedCss(url)
+	if (!parsed) return []
 
 	const importedFontFaces = await Promise.all(
-		parsed.imports.map(({ url }) => fetchCssFontFaces(new URL(url, response.url).href))
+		parsed.importUrls.map((importUrl) => fetchCssFontFaces(importUrl, new Set(seen)))
 	)
-
-	return [...parsed.fontFaces, ...compact(importedFontFaces).flat()]
-})
+	return [...parsed.fontFaces, ...importedFontFaces.flat()]
+}

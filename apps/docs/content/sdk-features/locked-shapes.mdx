@@ -103,7 +103,7 @@ Even with `ignoreShapeLock: true`, some behaviors remain unchanged: locked shape
 
 Some shapes have interactive content that should remain usable even when locked. Embed shapes (YouTube videos, Figma files, interactive maps) are a good example: you might want the embed locked in place but still playable or navigable.
 
-[ShapeUtils](/sdk-features/shapes#shapeutil) can override [ShapeUtil#canEditWhileLocked](?) (default `false`) to allow editing interactions on locked shapes. The built-in embed shape returns `true` unless its embed definition says otherwise:
+[ShapeUtils](/sdk-features/shapes#ShapeUtil) can override [ShapeUtil#canEditWhileLocked](?) (default `false`) to allow editing interactions on locked shapes. The built-in embed shape returns `true` unless its embed definition says otherwise:
 
 ```typescript
 class MyInteractiveShapeUtil extends ShapeUtil<MyShape> {

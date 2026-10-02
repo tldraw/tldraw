@@ -241,6 +241,11 @@ export {
 	type LineShapeOptions,
 	type LineShapeUtilDisplayValues,
 } from './lib/shapes/line/LineShapeUtil'
+export {
+	DefaultNoteShapeAttribution,
+	type TLNoteShapeAttributionComponent,
+	type TLNoteShapeAttributionProps,
+} from './lib/shapes/note/DefaultNoteShapeAttribution'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export {
 	NoteShapeUtil,
@@ -844,6 +849,24 @@ export {
 	tipTapDefaultExtensions,
 } from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
+export {
+	Extension,
+	getSchema,
+	Mark,
+	mergeAttributes,
+	Node,
+	TaskItem,
+	TaskList,
+	type Extensions,
+	type JSONContent,
+	type TaskItemOptions,
+	type TaskListOptions,
+} from './lib/utils/text/tiptap'
+export {
+	defaultWrappingPairs,
+	WrapSelectionExtension,
+	type WrapSelectionOptions,
+} from './lib/utils/text/wrapSelection'
 export {
 	buildFromV1Document,
 	TLV1AlignStyle,

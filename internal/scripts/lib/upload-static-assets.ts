@@ -60,7 +60,7 @@ function collectFiles(
 
 export async function uploadStaticAssets(version: string) {
 	try {
-		await exec('yarn', ['refresh-assets'], { env: { ALLOW_REFRESH_ASSETS_CHANGES: '1' } })
+		await exec('pnpm', ['refresh-assets'], { env: { ALLOW_REFRESH_ASSETS_CHANGES: '1' } })
 
 		const entries = fs.readdirSync(ASSETS_FOLDER, { withFileTypes: true })
 

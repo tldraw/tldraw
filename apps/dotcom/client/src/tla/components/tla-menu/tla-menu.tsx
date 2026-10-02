@@ -77,7 +77,8 @@ export function TlaMenuControlInfoTooltip({
 					<a
 						onClick={onClick}
 						href={href}
-						target="_blank nofollow noreferrer"
+						target="_blank"
+						rel="noopener noreferrer nofollow"
 						className={styles.menuInfoTrigger}
 					>
 						<TldrawUiIcon label={helpMsg} icon="help-circle" small />
@@ -274,7 +275,7 @@ export function TlaMenuSwitch({ id, checked, onChange, disabled, ...rest }: TlaM
 /* ---------------------- Tabs ---------------------- */
 
 /*
-This is a set of primitives for creating tabs in the UI. Structure is:
+Primitives for tabs. Structure is:
 
 <Root>
 	<Tabs>

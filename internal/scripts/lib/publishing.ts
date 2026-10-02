@@ -59,13 +59,13 @@ export async function setAllVersions(version: string, options?: { stageChanges?:
 		)
 	}
 
-	await exec('yarn', ['refresh-assets', '--force'], { env: { ALLOW_REFRESH_ASSETS_CHANGES: '1' } })
+	await exec('pnpm', ['refresh-assets', '--force'], { env: { ALLOW_REFRESH_ASSETS_CHANGES: '1' } })
 
 	const lernaJson = JSON.parse(readFileSync('lerna.json', 'utf8'))
 	lernaJson.version = version
 	writeFileSync('lerna.json', JSON.stringify(lernaJson, null, '\t') + '\n')
 
-	execSync('yarn')
+	execSync('pnpm install')
 
 	if (options?.stageChanges) {
 		await stageAllPackageJsonChanges()
@@ -81,7 +81,7 @@ async function stageAllPackageJsonChanges() {
 		}
 	}
 	const versionFilesToAdd = glob.sync('**/*/version.ts', {
-		ignore: ['node_modules/**'],
+		ignore: ['**/node_modules/**'],
 		follow: false,
 	})
 	console.log('versionFilesToAdd', versionFilesToAdd)
@@ -136,22 +136,41 @@ function topologicalSortPackages(packages: Record<string, PackageDetails>) {
 
 export async function publish(distTag?: string) {
 	// Authentication uses npm's trusted publisher OIDC flow. The publish job in
-	// CI must grant `permissions: id-token: write` so yarn (>= 4.10, which we are
+	// CI must grant `permissions: id-token: write` so pnpm (>= 10.13, which we are
 	// on via `packageManager`) can exchange the GitHub-issued OIDC token for a
 	// short-lived publish token automatically.
 	//
-	// We invoke `yarn npm publish` rather than `npm publish` directly so that
-	// yarn rewrites `workspace:*` dependency specifiers in the published
+	// We invoke `pnpm publish` rather than `npm publish` directly so that
+	// pnpm rewrites `workspace:*` dependency specifiers in the published
 	// tarball into the concrete sibling versions. `npm publish` has no concept
-	// of yarn's workspace protocol and would ship `"workspace:*"` literally,
+	// of pnpm's workspace protocol and would ship `"workspace:*"` literally,
 	// breaking installs for any consumer outside this monorepo.
 	// See https://docs.npmjs.com/trusted-publishers
 	const packages = await getAllPackageDetails()
 
 	const publishOrder = topologicalSortPackages(packages)
 
+	// npm can take several minutes before a published version is readable. Waiting only
+	// on a package's own dependencies keeps a newly visible package installable, without
+	// making the run wait for every package's delay in turn.
+	const readable = new Map<string, Promise<void>>()
+
 	for (const packageDetails of publishOrder) {
+		await Promise.all(packageDetails.localDeps.map((dep) => readable.get(dep)))
+
 		const tag = distTag ?? parse(packageDetails.version)?.prerelease[0] ?? 'latest'
+
+		// Yarn's --tolerate-republish looked the version up and exited 0 if it already
+		// existed; pnpm has no equivalent (its --force is the opposite), it just uploads
+		// and gets a 403. Re-running a partly successful release depends on this skip.
+		if (await isPublished(packageDetails)) {
+			nicelog(
+				`[publish] ${packageDetails.name}@${packageDetails.version} already published, skipping`
+			)
+			readable.set(packageDetails.name, Promise.resolve())
+			continue
+		}
+
 		nicelog(
 			`Publishing ${packageDetails.name} with version ${packageDetails.version} under tag @${tag}`
 		)
@@ -165,13 +184,14 @@ export async function publish(distTag?: string) {
 				)
 				try {
 					await exec(
-						`yarn`,
+						`pnpm`,
 						[
-							'npm',
 							'publish',
 							'--tag',
 							String(tag),
-							'--tolerate-republish',
+							// Releases publish from release branches with generated files in the
+							// tree, which pnpm's default branch/clean checks would reject.
+							'--no-git-checks',
 							'--provenance',
 							'--access',
 							'public',
@@ -189,12 +209,20 @@ export async function publish(distTag?: string) {
 						}
 					)
 				} catch (e) {
+					// A retry after a publish that actually landed is rejected as "published",
+					// or as "staged" (409) while npm is still processing the first attempt.
+					// pnpm wraps its error at ~80 columns and prefixes wrapped lines with `│`,
+					// so the phrase can straddle a line break depending on the name's length.
+					const lowerOutput = output
+						.toLowerCase()
+						.replace(/[│╰─▶×]/g, ' ')
+						.replace(/\s+/g, ' ')
 					if (
-						output.includes('cannot publish over the previously published versions') ||
-						output.includes('You cannot publish over the previously published versions')
+						lowerOutput.includes('cannot publish over the previously published versions') ||
+						lowerOutput.includes('cannot publish over previously staged version')
 					) {
 						nicelog(
-							`[publish] ${packageDetails.name}@${packageDetails.version} already published, skipping`
+							`[publish] ${packageDetails.name}@${packageDetails.version} already published or staged, skipping`
 						)
 						return
 					}
@@ -211,27 +239,44 @@ export async function publish(distTag?: string) {
 			}
 		)
 
-		await retry(
-			async ({ attempt, total }) => {
-				nicelog('Waiting for package to be published... attempt', attempt, 'of', total)
-				// fetch the new package directly from the npm registry
-				const newVersion = packageDetails.version
-
-				const url = `https://registry.npmjs.org/${packageDetails.name}/${newVersion}`
-				nicelog('looking for package at url: ', url)
-				const res = await fetch(url, {
-					method: 'HEAD',
-				})
-				if (res.status >= 400) {
-					throw new Error(`Package not found: ${res.status}`)
-				}
-			},
-			{
-				delay: 10000,
-				numAttempts: 50,
-			}
-		)
+		const whenReadable = waitUntilReadable(packageDetails)
+		// Rejections surface when awaited below; without this, one arriving mid-loop would
+		// kill the process in the middle of another package's publish.
+		whenReadable.catch(() => {})
+		readable.set(packageDetails.name, whenReadable)
 	}
+
+	await Promise.all(readable.values())
+}
+
+function registryUrl(packageDetails: PackageDetails) {
+	return `https://registry.npmjs.org/${packageDetails.name}/${packageDetails.version}`
+}
+
+async function isPublished(packageDetails: PackageDetails) {
+	const res = await fetch(registryUrl(packageDetails), { method: 'HEAD' })
+	return res.status < 400
+}
+
+function waitUntilReadable(packageDetails: PackageDetails) {
+	const url = registryUrl(packageDetails)
+	return retry(
+		async ({ attempt, total }) => {
+			const res = await fetch(url, { method: 'HEAD' })
+			if (res.status >= 400) {
+				nicelog(
+					`[verify] ${packageDetails.name}@${packageDetails.version} not readable yet (${res.status}), attempt ${attempt + 1} of ${total}`
+				)
+				throw new Error(`Package not found: ${url} (${res.status})`)
+			}
+			nicelog(`[verify] ${packageDetails.name}@${packageDetails.version} is readable`)
+		},
+		{
+			delay: 10_000,
+			// 15 minutes; the slowest package took over 8 minutes in September 2026.
+			numAttempts: 90,
+		}
+	)
 }
 
 function retry(

@@ -143,6 +143,48 @@ describe('distributeShapes command', () => {
 			})
 		})
 
+		it('keeps an arrow and its bound shapes together regardless of input order', () => {
+			const arrowId = createShapeId('arrow')
+			editor.updateShapes([
+				{ id: ids.boxB, type: 'geo', x: 300, y: 0 },
+				{ id: ids.boxC, type: 'geo', x: 600, y: 0 },
+			])
+			editor.createShape({ id: arrowId, type: 'arrow', x: 50, y: 50 })
+			editor.createBindings([
+				{
+					fromId: arrowId,
+					toId: ids.boxA,
+					type: 'arrow',
+					props: {
+						terminal: 'start',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: false,
+					},
+				},
+				{
+					fromId: arrowId,
+					toId: ids.boxB,
+					type: 'arrow',
+					props: {
+						terminal: 'end',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: false,
+					},
+				},
+			])
+			// the arrow comes first: seeding its cluster from bindings *to* it alone would leave
+			// it (and then A and B) in clusters of their own and pull B up against A
+			editor.stackShapes([arrowId, ids.boxA, ids.boxB, ids.boxC], 'horizontal', 10)
+			vi.advanceTimersByTime(1000)
+			editor.expectShapeToMatch(
+				{ id: ids.boxA, x: 0 },
+				{ id: ids.boxB, x: 300 },
+				{ id: ids.boxC, x: 410 }
+			)
+		})
+
 		it('stacks in spatial order, not selection order, when a gap is given', () => {
 			// boxC sits between boxA and boxB on the page but comes after both in the input
 			editor.updateShapes([{ id: ids.boxC, type: 'geo', x: 50, y: 0 }])

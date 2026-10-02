@@ -49,7 +49,7 @@ async function main() {
 
 	// Ensure asset directories exist before comparing package contents.
 	// CI may skip postinstall (and thus refresh-assets) when install-state.gz is cached.
-	await exec('yarn', ['refresh-assets', '--force'])
+	await exec('pnpm', ['refresh-assets', '--force'])
 
 	// Skip releasing a new version if the package contents are identical.
 	// This may happen when cherry-picking docs-only changes.

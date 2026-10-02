@@ -33,7 +33,8 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		})
 		// Upload flow for app file assets:
 		// 1. validateUpload — "file" = tldraw document record in postgres (not the asset blob).
-		//    Checks the document exists and the user has write access (owner, shared-edit link, or group member).
+		//    Checks the user has write access (owner, shared-edit link, or group member); a missing or
+		//    deleted document is a 403 too, so callers cannot probe for ids.
 		// 2. R2 upload — writes the asset blob to the R2 bucket.
 		// 3. confirmUpload — queues a message to asynchronously insert an `asset` row
 		//    linking the uploaded blob to the document.
@@ -50,8 +51,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 					TRANSIENT_RETRY_OPTIONS
 				)
 				if (!validation.ok) {
-					const status = validation.error === 'File not found' ? 404 : 403
-					return Response.json({ error: validation.error }, { status })
+					return Response.json({ error: validation.error }, { status: 403 })
 				}
 				userId = validation.userId
 			}

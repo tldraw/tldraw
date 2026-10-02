@@ -424,7 +424,7 @@ export class ScribbleManager {
 
 	private clearIdleTimeout(session: Session): void {
 		if (session.idleTimeoutHandle !== undefined) {
-			clearTimeout(session.idleTimeoutHandle)
+			this.editor.timers.clearTimeout(session.idleTimeoutHandle)
 			session.idleTimeoutHandle = undefined
 		}
 	}

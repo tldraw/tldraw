@@ -101,11 +101,11 @@ gh pr checks --json name,status,conclusion
 
 Investigate failures by category:
 
-**Lint errors** — Run `yarn lint-current`. Fix if mechanical (formatting, import order, unused vars). Flag if the lint rule itself is questionable.
+**Lint errors** — Run `pnpm lint-current`. Fix if mechanical (formatting, import order, unused vars). Flag if the lint rule itself is questionable.
 
-**Type errors** — Run `yarn typecheck` from repo root. Fix straightforward type mismatches. Flag if fix requires architectural decisions.
+**Type errors** — Run `pnpm typecheck` from repo root. Fix straightforward type mismatches. Flag if fix requires architectural decisions.
 
-**Unit test failures** — Run `yarn test run` in relevant workspace. Fix if test expectation is clearly outdated due to intentional code changes. Flag if failure reveals actual bug or design concern.
+**Unit test failures** — Run `pnpm test run` in relevant workspace. Fix if test expectation is clearly outdated due to intentional code changes. Flag if failure reveals actual bug or design concern.
 
 **E2E snapshot failures** — Determine whether the PR's code changes _should_ cause visual differences:
 
@@ -157,5 +157,5 @@ Omit empty sections.
 - Never resolve comments raising design questions or matters of opinion.
 - Never resolve without replying first.
 - Read actual code before concluding a comment is a false positive.
-- Verify fixes don't break types (`yarn typecheck`) or lint (`yarn lint-current`).
+- Verify fixes don't break types (`pnpm typecheck`) or lint (`pnpm lint-current`).
 - Do not modify test expectations unless change is clearly intentional.
