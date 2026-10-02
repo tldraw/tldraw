@@ -1851,9 +1851,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
     setTool(Tool: TLStateNodeConstructor, parent?: StateNode): void;
+    // @internal (undocumented)
+    readonly _shapeCommandsManager: ShapeCommandsManager;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLShape>;
     };
+    // @internal (undocumented)
+    _shouldIgnoreShapeLock: boolean;
     readonly sideEffects: StoreSideEffects<TLRecord>;
     slideCamera(opts?: {
         direction: VecLike;
@@ -3684,6 +3688,88 @@ export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 
 // @public (undocumented)
 export function setUserPreferences(user: TLUserPreferences): void;
+
+// @internal
+export class ShapeCommandsManager extends EditorManager {
+    // (undocumented)
+    animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): Editor;
+    // (undocumented)
+    animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): Editor;
+    // (undocumented)
+    animatingShapes: Map<TLShapeId, string>;
+    // (undocumented)
+    bringForward(shapes: TLShape[] | TLShapeId[], opts?: {
+        considerAllShapes?: boolean;
+    }): Editor;
+    // (undocumented)
+    bringToFront(shapes: TLShape[] | TLShapeId[]): Editor;
+    // (undocumented)
+    canCreateShape(shape: OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id']): boolean;
+    // (undocumented)
+    canCreateShapes(shapes: (OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id'])[]): boolean;
+    // (undocumented)
+    createShape<TShape extends TLShape>(shape: TLCreateShapePartial<TShape>): Editor;
+    // (undocumented)
+    createShapes<TShape extends TLShape = TLShape>(shapes: TLCreateShapePartial<TShape>[]): Editor;
+    // (undocumented)
+    deleteShape(id: TLShapeId): Editor;
+    // (undocumented)
+    deleteShape(shape: TLShape): Editor;
+    // (undocumented)
+    deleteShapes(ids: TLShapeId[]): Editor;
+    // (undocumented)
+    deleteShapes(shapes: TLShape[]): Editor;
+    // (undocumented)
+    duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): Editor;
+    // (undocumented)
+    getChangesToTranslateShape(initialShape: TLShape, newShapeCoords: VecLike): TLShape;
+    // (undocumented)
+    getChangesToTranslateShapeByPageDelta(shape: TLShape, pageDelta: VecLike): TLShape;
+    // (undocumented)
+    getInitialMetaForShape(_shape: TLShape): JsonObject;
+    // (undocumented)
+    _getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[];
+    // (undocumented)
+    groupShapes(shapes: TLShape[], opts?: Partial<{
+        groupId: TLShapeId;
+        select: boolean;
+    }>): Editor;
+    // (undocumented)
+    groupShapes(ids: TLShapeId[], opts?: Partial<{
+        groupId: TLShapeId;
+        select: boolean;
+    }>): Editor;
+    // (undocumented)
+    moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): Editor;
+    // (undocumented)
+    nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): Editor;
+    // (undocumented)
+    rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number, opts?: {
+        center?: VecLike;
+    }): Editor;
+    // (undocumented)
+    sendBackward(shapes: TLShape[] | TLShapeId[], opts?: {
+        considerAllShapes?: boolean;
+    }): Editor;
+    // (undocumented)
+    sendToBack(shapes: TLShape[] | TLShapeId[]): Editor;
+    // (undocumented)
+    toggleLock(shapes: TLShape[] | TLShapeId[]): Editor;
+    // (undocumented)
+    ungroupShapes(ids: TLShapeId[], opts?: Partial<{
+        select: boolean;
+    }>): Editor;
+    // (undocumented)
+    ungroupShapes(shapes: TLShape[], opts?: Partial<{
+        select: boolean;
+    }>): Editor;
+    // (undocumented)
+    updateShape<T extends TLShape = TLShape>(partial: null | TLShapePartial<T> | undefined): Editor;
+    // (undocumented)
+    updateShapes<T extends TLShape>(partials: (null | TLShapePartial<T> | undefined)[]): Editor;
+    // (undocumented)
+    _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
+}
 
 // @public (undocumented)
 export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
