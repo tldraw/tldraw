@@ -170,7 +170,7 @@ You can call the original handler before or after your custom logic, or replace 
 
 ### Adding custom actions
 
-Add new actions by inserting them into the actions record. The `actions` map passed to `overrides` isn't checked yet, so calling a built-in's `onSelect` on it from inside a custom action skips `isAvailable` and `isEnabled`. Call it through `useActions()` instead, or check the predicate first.
+Add new actions by inserting them into the actions record. The `actions` map passed to `overrides` isn't gated yet, so calling a built-in's `onSelect` on it from inside a custom action skips the readonly check, `isAvailable` and `isEnabled`. Check the ones that action has before you call it. Actions you get from `useActions()` in component code are gated.
 
 ```typescript
 const overrides: TLUiOverrides = {
