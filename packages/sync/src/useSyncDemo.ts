@@ -68,6 +68,7 @@ function getEnv(cb: () => string | undefined): string | undefined {
 
 const DEMO_WORKER = getEnv(() => process.env.TLDRAW_BEMO_URL) ?? 'https://demo.tldraw.xyz'
 const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://images.tldraw.xyz'
+const MIN_RESIZE_DIMENSION = 400
 
 /**
  * Creates a tldraw store synced with a multiplayer room hosted on tldraw's demo server `https://demo.tldraw.xyz`.
@@ -228,29 +229,29 @@ function createDemoAssetStore(host: string): TLAssetStore {
 
 			if (!isTldrawImage) return src
 
-			// Assets that are under a certain file size aren't worth transforming (and incurring cost).
-			// We still send them through the image worker to get them optimized though.
-			const { fileSize = 0 } = asset.props
-			const isWorthResizing = fileSize >= 1024 * 1024 * 1.5
+			// Reduce image bandwidth on slow connections; unsupported browsers keep full quality.
+			const networkCompensation =
+				!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
 
-			if (isWorthResizing) {
-				// N.B. navigator.connection is only available in certain browsers (mainly Blink-based browsers)
-				// 4g is as high the 'effectiveType' goes and we can pick a lower effective image quality for slower connections.
-				const networkCompensation =
-					!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
-
-				const pixelRatio = asset.props.pixelRatio ?? 1
-				const trueWidth = asset.props.w * pixelRatio
-				const width = Math.ceil(
-					Math.min(
-						trueWidth *
-							clamp(context.steppedScreenScale, 1 / 32, 1) *
-							networkCompensation *
-							context.dpr,
-						trueWidth
-					)
+			const pixelRatio = asset.props.pixelRatio ?? 1
+			const trueWidth = asset.props.w * pixelRatio
+			const width = Math.ceil(
+				Math.min(
+					trueWidth *
+						clamp(context.steppedScreenScale, 1 / 32, 1) *
+						networkCompensation *
+						context.dpr,
+					trueWidth
 				)
+			)
 
+			// Compressed file size can hide a large decoded bitmap. Avoid near-native resizes
+			// so small dimension savings don't create extra CDN variants.
+			if (
+				trueWidth >= MIN_RESIZE_DIMENSION &&
+				asset.props.h * pixelRatio >= MIN_RESIZE_DIMENSION &&
+				width < trueWidth * 0.75
+			) {
 				url.searchParams.set('w', width.toString())
 			}
 
