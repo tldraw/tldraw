@@ -1800,6 +1800,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         force?: boolean;
     }): Promise<void>;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
+    // @internal (undocumented)
+    readonly _resizeManager: ResizeManager;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): this;
     resizeToBounds(shapes: TLShape[] | TLShapeId[], bounds: BoxLike): this;
     // (undocumented)
@@ -3540,6 +3542,25 @@ export interface ResizeBoxOptions {
     minHeight?: number;
     // (undocumented)
     minWidth?: number;
+}
+
+// @internal
+export class ResizeManager extends EditorManager {
+    // (undocumented)
+    getResizeShapePartial(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): null | TLShapePartial;
+    // (undocumented)
+    resizeShape(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): Editor;
+    // (undocumented)
+    _resizeUnalignedShape(id: TLShapeId, scale: VecLike, options: {
+        initialBounds: Box;
+        initialPageTransform: MatLike;
+        initialShape: TLShape;
+        isAspectRatioLocked: boolean;
+        scaleAxisRotation: number;
+        scaleOrigin: VecLike;
+    }): Editor;
+    // (undocumented)
+    _scalePagePoint(point: VecLike, scaleOrigin: VecLike, scale: VecLike, scaleAxisRotation: number): Vec;
 }
 
 // @public
