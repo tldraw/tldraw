@@ -954,4 +954,17 @@ describe('shortcuts honour action predicates', () => {
 		expect(editor.getCurrentToolId()).toBe('draw')
 		expect(event.defaultPrevented).toBe(true)
 	})
+
+	it('switches to the select tool and selects everything on cmd+a from another tool', async () => {
+		const { editor } = await setupFocusedEditor()
+		const ids = [createShapeId(), createShapeId()]
+		act(() => {
+			editor.createShapes(ids.map((id, i) => ({ id, type: 'geo', x: i * 200, y: 0 })))
+			editor.selectNone()
+			editor.setCurrentTool('draw')
+		})
+		press(editor, { key: 'a', code: 'KeyA', metaKey: true })
+		expect(editor.getCurrentToolId()).toBe('select')
+		expect(new Set(editor.getSelectedShapeIds())).toEqual(new Set(ids))
+	})
 })
