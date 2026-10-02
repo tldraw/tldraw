@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { createShapeId, Editor } from '@tldraw/editor'
+import { createShapeId, Editor, TLShapeId } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { Tldraw } from '../../lib/Tldraw'
 import { TLUiActionsContextType, useActions } from '../../lib/ui/context/actions'
@@ -106,6 +106,104 @@ describe('built-in action isEnabled', () => {
 			group: false,
 			'toggle-lock': true,
 			copy: true,
+		})
+	})
+
+	describe('select-tool gating', () => {
+		const geo = (id: TLShapeId, x = 0) => ({ id, type: 'geo', x, y: 0 }) as const
+		const [g1, g2, g3] = [a, b, c]
+		const setups: Record<string, (editor: Editor) => void> = {
+			ungroup(editor) {
+				editor.createShapes([geo(g1), geo(g2, 200)])
+				editor.groupShapes([g1, g2], { groupId: createShapeId('grp') })
+				editor.select(createShapeId('grp'))
+			},
+			'edit-link'(editor) {
+				editor.createShapes([geo(g1)])
+				editor.select(g1)
+			},
+			'toggle-auto-size'(editor) {
+				editor.createShape({ id: g1, type: 'text', props: { autoSize: false } })
+				editor.select(g1)
+			},
+			'frame-selection'(editor) {
+				editor.createShapes([geo(g1)])
+				editor.select(g1)
+			},
+			'remove-frame'(editor) {
+				editor.createShape({ id: g1, type: 'frame' })
+				editor.select(g1)
+			},
+			'fit-frame-to-content'(editor) {
+				editor.createShape({ id: g1, type: 'frame' })
+				editor.createShape({ ...geo(g2), parentId: g1 })
+				editor.select(g1)
+			},
+			'convert-to-bookmark'(editor) {
+				editor.createShape({
+					id: g1,
+					type: 'embed',
+					props: { url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+				})
+				editor.select(g1)
+			},
+			'convert-to-embed'(editor) {
+				editor.createShape({
+					id: g1,
+					type: 'bookmark',
+					props: { url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+				})
+				editor.select(g1)
+			},
+			'flip-horizontal'(editor) {
+				editor.createShapes([geo(g1), geo(g2, 200)])
+				editor.select(g1, g2)
+			},
+			'flip-vertical'(editor) {
+				editor.createShapes([geo(g1), geo(g2, 200)])
+				editor.select(g1, g2)
+			},
+			'stack-horizontal'(editor) {
+				editor.createShapes([geo(g1), geo(g2, 200), geo(g3, 400)])
+				editor.select(g1, g2, g3)
+			},
+			'stack-vertical'(editor) {
+				editor.createShapes([geo(g1), geo(g2, 200), geo(g3, 400)])
+				editor.select(g1, g2, g3)
+			},
+			pack(editor) {
+				editor.createShapes([geo(g1), geo(g2, 200)])
+				editor.select(g1, g2)
+			},
+			'bring-to-front': oneGeo,
+			'bring-forward': oneGeo,
+			'send-backward': oneGeo,
+			'send-to-back': oneGeo,
+		}
+		function oneGeo(editor: Editor) {
+			editor.createShapes([geo(g1)])
+			editor.select(g1)
+		}
+
+		it.each(Object.keys(setups))(
+			'%s is enabled in select and disabled in another tool',
+			async (id) => {
+				const { editor, actions } = await setup()
+				act(() => setups[id](editor))
+				expect(actions()[id].isEnabled!(editor)).toBe(true)
+				act(() => editor.setCurrentTool('hand'))
+				expect(editor.getSelectedShapeIds().length).toBeGreaterThan(0)
+				expect(actions()[id].isEnabled!(editor)).toBe(false)
+			}
+		)
+
+		it('flip is off for a single locked shape', async () => {
+			const { editor, actions } = await setup()
+			act(() => {
+				editor.createShapes([{ ...geo(g1), isLocked: true }])
+				editor.select(g1)
+			})
+			expect(actions()['flip-horizontal'].isEnabled!(editor)).toBe(false)
 		})
 	})
 

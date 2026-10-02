@@ -17,7 +17,7 @@ So far this release adds a `ThrottledFunction` type to `@tldraw/utils`, thins th
 
 ## Improvements
 
-- Stop showing menu actions that would do nothing: grouping locked shapes, flipping a locked shape, unlocking when nothing is locked, exporting an empty page, moving to a new page at the page limit, and grouping an arrow away from a shape it's bound to.
+- Menus no longer offer actions that would do nothing: grouping locked shapes, flipping a locked shape, unlocking when nothing is locked, exporting all shapes on an empty page, moving to a new page at the page limit, and grouping an arrow away from a shape it's bound to.
 - Draw the hinted outline around shapes, such as a frame you're dragging a shape into, at 2px instead of 2.5px. ([#10952](https://github.com/tldraw/tldraw/pull/10952))
 - Speed up `store.query.index()` and `store.query.ids()` updates by no longer allocating for each change. ([#10228](https://github.com/tldraw/tldraw/pull/10228))
 

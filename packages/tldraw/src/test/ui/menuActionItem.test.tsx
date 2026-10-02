@@ -1,6 +1,7 @@
 import { act, screen } from '@testing-library/react'
 import { atom, createShapeId } from '@tldraw/editor'
 import { Tldraw } from '../../lib/Tldraw'
+import { GroupOrUngroupMenuItem } from '../../lib/ui/components/ActionsMenu/DefaultActionsMenuContent'
 import { TldrawUiMenuActionItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuContextProvider } from '../../lib/ui/components/primitives/menus/TldrawUiMenuContext'
 import { TldrawUiToolbar } from '../../lib/ui/components/primitives/TldrawUiToolbar'
@@ -112,6 +113,42 @@ describe('useSomeActionsEnabled', () => {
 		expect(screen.getByTestId('some').textContent).toBe('true')
 		act(() => editor.updateInstanceState({ isReadonly: true }))
 		expect(screen.getByTestId('some').textContent).toBe('false')
+	})
+})
+
+describe('GroupOrUngroupMenuItem', () => {
+	it('shows ungroup when the group action was deleted', async () => {
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<Tldraw
+					onMount={onMount}
+					components={{ QuickActions: null }}
+					overrides={{
+						actions(_e, actions) {
+							delete actions['group']
+							return actions
+						},
+					}}
+				>
+					<TldrawUiToolbar label="test">
+						<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
+							<GroupOrUngroupMenuItem />
+						</TldrawUiMenuContextProvider>
+					</TldrawUiToolbar>
+				</Tldraw>
+			),
+			{ waitForPatterns: false }
+		)
+		const group = createShapeId('group')
+		act(() => {
+			editor.createShapes([
+				{ id: createShapeId('a'), type: 'geo' },
+				{ id: createShapeId('b'), type: 'geo', x: 200 },
+			])
+			editor.groupShapes([createShapeId('a'), createShapeId('b')], { groupId: group })
+			editor.select(group)
+		})
+		expect(button('ungroup')).not.toBeNull()
 	})
 })
 

@@ -280,13 +280,12 @@ Some actions show different labels depending on where they appear. The `label` p
 
 ```typescript
 actions['export-as-svg'] = {
-	id: 'export-as-svg',
+	...actions['export-as-svg'],
 	label: {
 		default: 'action.export-as-svg',
 		menu: 'action.export-as-svg.short',
 		'context-menu': 'action.export-as-svg.short',
 	},
-	// ...
 }
 ```
 
@@ -317,7 +316,9 @@ actions['group'] = { ...actions['group'], onSelect: myGroup }
 
 Replacing an action with a new object drops them, and menus will show it as always enabled.
 
-To hide a submenu when none of its actions would show, use [useSomeActionsEnabled](?):
+Some gates mean "not available here" rather than "not right now": paste without clipboard read access, copy as PNG without clipboard write access, copy as JSON outside debug mode, cursor chat, exit pen mode, stop following, and back to content. Place these with `whenDisabled="hide"`, otherwise they show greyed out.
+
+To hide a submenu when none of its actions would show, use [useSomeActionsEnabled](?). It treats actions that aren't `readonlyOk` as unavailable in readonly mode:
 
 ```tsx
 const IDS = ['make-red', 'make-blue']

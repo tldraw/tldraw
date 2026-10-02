@@ -116,6 +116,12 @@ describe('action predicates', () => {
 		expect(canFlatten(editor)).toBe(false)
 		editor.select(a)
 		expect(canFlatten(editor)).toBe(true)
+		const image = createShapeId('image')
+		editor.createShape({ id: image, type: 'image', x: 0, y: 300 })
+		editor.select(image)
+		expect(canFlatten(editor)).toBe(false)
+		editor.select(image, a)
+		expect(canFlatten(editor)).toBe(true)
 	})
 
 	it('unlock all needs a locked shape on the page', () => {

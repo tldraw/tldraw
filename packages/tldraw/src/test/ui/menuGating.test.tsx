@@ -27,8 +27,9 @@ const ids = {
 	group: createShapeId('group'),
 }
 
-function applyState(editor: Editor, state: State) {
+function applyState(editor: Editor, state: State | 'readonly') {
 	act(() => {
+		editor.updateInstanceState({ isReadonly: false })
 		editor.selectNone()
 		editor.setCurrentTool('select')
 		editor.deleteShapes([...editor.getCurrentPageShapeIds()])
@@ -44,6 +45,9 @@ function applyState(editor: Editor, state: State) {
 				return select(ids.a)
 			case 'two':
 				return select(ids.a, ids.b)
+			case 'readonly':
+				select(ids.a, ids.b)
+				return editor.updateInstanceState({ isReadonly: true })
 			case 'three':
 				return select(ids.a, ids.b, ids.c)
 			case 'lockedPair':
@@ -283,7 +287,25 @@ const CM_SUBMENUS = ['edit', 'arrange', 'reorder'] as const
 type CmRow = Record<(typeof CM_IDS)[number] | `sub:${(typeof CM_SUBMENUS)[number]}`, Gate>
 
 // twoInHand is left out: the context menu only opens through the select tool.
-const CM: Record<Exclude<State, 'twoInHand'>, CmRow> = {
+const CM: Record<Exclude<State, 'twoInHand'> | 'readonly', CmRow> = {
+	readonly: {
+		group: 'hidden',
+		ungroup: 'hidden',
+		duplicate: 'hidden',
+		'toggle-lock': 'hidden',
+		cut: 'hidden',
+		copy: 'enabled',
+		delete: 'hidden',
+		'select-all': 'enabled',
+		'align-left': 'hidden',
+		'distribute-horizontal': 'hidden',
+		'flip-horizontal': 'hidden',
+		'stack-horizontal': 'hidden',
+		'bring-to-front': 'hidden',
+		'sub:edit': 'hidden',
+		'sub:arrange': 'hidden',
+		'sub:reorder': 'hidden',
+	},
 	empty: {
 		group: 'hidden',
 		ungroup: 'hidden',

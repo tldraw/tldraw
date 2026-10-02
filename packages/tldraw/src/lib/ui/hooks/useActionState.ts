@@ -6,7 +6,7 @@ export function useIsActionEnabled(action: TLUiActionItem | undefined): boolean 
 	const editor = useMaybeEditor()
 	return useValue(
 		'action enabled',
-		() => !editor || !action?.isEnabled || action.isEnabled(editor),
+		() => !!action && (!editor || !action.isEnabled || action.isEnabled(editor)),
 		[editor, action]
 	)
 }
