@@ -52,7 +52,6 @@ interface Session {
 	state: 'active' | 'stopping' | 'complete'
 	options: Required<Omit<ScribbleSessionOptions, 'id'>>
 	idleTimeoutHandle?: number
-	idleDeadline: number
 	fadeElapsed: number
 	totalPointsAtFadeStart: number
 }
@@ -87,7 +86,6 @@ export class ScribbleManager {
 				fadeEasing: options.fadeEasing ?? (options.fadeMode === 'grouped' ? 'ease-in' : 'linear'),
 				fadeDurationMs: options.fadeDurationMs ?? this.editor.options.laserFadeoutMs,
 			},
-			idleDeadline: 0,
 			fadeElapsed: 0,
 			totalPointsAtFadeStart: 0,
 		}
@@ -402,24 +400,11 @@ export class ScribbleManager {
 
 	// ==================== PRIVATE HELPERS ====================
 
-	// Called every laser frame. A new timer per call would leak its id in editor.timers.
 	private resetIdleTimeout(session: Session): void {
-		session.idleDeadline = Date.now() + session.options.idleTimeoutMs
-		if (session.idleTimeoutHandle === undefined) {
-			this.armIdleTimeout(session, session.options.idleTimeoutMs)
-		}
-	}
-
-	private armIdleTimeout(session: Session, delay: number): void {
+		this.clearIdleTimeout(session)
 		session.idleTimeoutHandle = this.editor.timers.setTimeout(() => {
-			session.idleTimeoutHandle = undefined
-			const remaining = session.idleDeadline - Date.now()
-			if (remaining > 0) {
-				this.armIdleTimeout(session, remaining)
-			} else {
-				this.stopSession(session.id)
-			}
-		}, delay)
+			this.stopSession(session.id)
+		}, session.options.idleTimeoutMs)
 	}
 
 	private clearIdleTimeout(session: Session): void {
