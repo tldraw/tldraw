@@ -411,10 +411,6 @@
 			}
 		},
 		{
-			"files": [".pnpmfile.cjs"],
-			"env": { "node": true }
-		},
-		{
 			"files": ["internal/scripts/process-compose-bin.cjs"],
 			"env": { "node": true },
 			"globals": { "fetch": "readonly" }

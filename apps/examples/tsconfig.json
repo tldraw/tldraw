@@ -4,8 +4,8 @@
 	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*", "./scripts/legacy-translations"],
 	"compilerOptions": {
 		"outDir": "./.tsbuild",
-		// @types fallback for the global virtual store; see .pnpmfile.cjs.
-		"paths": { "*": ["${configDir}/node_modules/@types/*"] }
+		// @types fallback for the global virtual store; see pnpm-workspace.yaml.
+		"paths": { "*": ["./node_modules/@types/*"] }
 	},
 	"references": [
 		{ "path": "../../packages/assets" },
