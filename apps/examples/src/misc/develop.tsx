@@ -60,6 +60,22 @@ const ContextMenu = track(() => {
 	)
 })
 
+function TextMeasurementToggle() {
+	const enabled = new URLSearchParams(window.location.search).get('textMeasurer') !== 'dom'
+	return (
+		<TldrawUiMenuItem
+			id="native-text-measurement"
+			label={enabled ? 'Use DOM text measurement' : 'Use native text measurement'}
+			onSelect={() => {
+				const url = new URL(window.location.href)
+				if (enabled) url.searchParams.set('textMeasurer', 'dom')
+				else url.searchParams.delete('textMeasurer')
+				window.location.href = url.toString()
+			}}
+		/>
+	)
+}
+
 function A11yAudit() {
 	const { addDialog } = useDialogs()
 
@@ -111,6 +127,7 @@ const components: TLComponents = {
 	DebugMenu: () => (
 		<DefaultDebugMenu>
 			<A11yAudit />
+			<TextMeasurementToggle />
 			<DefaultDebugMenuContent />
 		</DefaultDebugMenu>
 	),
@@ -139,6 +156,8 @@ function afterChangeHandler(prev: any, next: any) {
 }
 
 export default function Develop() {
+	const nativeTextMeasurement =
+		new URLSearchParams(window.location.search).get('textMeasurer') !== 'dom'
 	const performanceOverrides = usePerformance()
 	const debuggingOverrides = useDebugging()
 
@@ -152,6 +171,7 @@ export default function Develop() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				textMeasurer={nativeTextMeasurement ? undefined : 'dom'}
 				licenseKey={getLicenseKey()}
 				overrides={[performanceOverrides, debuggingOverrides, commentToolOverrides]}
 				store={store}
