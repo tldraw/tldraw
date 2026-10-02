@@ -207,27 +207,43 @@ describe('built-in action isEnabled', () => {
 			expect(actions()['flip-horizontal'].isEnabled!(editor)).toBe(false)
 		})
 
-		it('flip shortcut ignores a lone shape that cannot flip', async () => {
-			const { editor, actions } = await setup()
-			act(() => {
-				editor.createShape({ id: g1, type: 'text', x: 0, y: 0 })
-				editor.select(g1)
+		describe.each([
+			['flip-horizontal', 'x'],
+			['flip-vertical', 'y'],
+		] as const)('%s shortcut', (actionId, axis) => {
+			it('flips a lone shape that can flip', async () => {
+				const { editor, actions } = await setup()
+				act(() => {
+					editor.createShape(geo(g1))
+					editor.select(g1)
+				})
+				const flipShapes = vi.spyOn(editor, 'flipShapes')
+				act(() => actions()[actionId].onSelect('kbd'))
+				expect(flipShapes).toHaveBeenCalledTimes(1)
 			})
-			expect(actions()['flip-horizontal'].isEnabled!(editor)).toBe(false)
-			const flipShapes = vi.spyOn(editor, 'flipShapes')
-			act(() => actions()['flip-horizontal'].onSelect('kbd'))
-			expect(flipShapes).not.toHaveBeenCalled()
-		})
 
-		it('flip still moves shapes that cannot flip in a mixed selection', async () => {
-			const { editor, actions } = await setup()
-			act(() => {
-				editor.createShapes([geo(g1), { id: g2, type: 'text', x: 200, y: 0 }])
-				editor.select(g1, g2)
+			it('ignores a lone shape that cannot flip', async () => {
+				const { editor, actions } = await setup()
+				act(() => {
+					editor.createShape({ id: g1, type: 'text', x: 0, y: 0 })
+					editor.select(g1)
+				})
+				expect(actions()[actionId].isEnabled!(editor)).toBe(false)
+				const flipShapes = vi.spyOn(editor, 'flipShapes')
+				act(() => actions()[actionId].onSelect('kbd'))
+				expect(flipShapes).not.toHaveBeenCalled()
 			})
-			act(() => actions()['flip-horizontal'].onSelect('kbd'))
-			expect(editor.getShape(g1)!.x).toBeGreaterThan(0)
-			expect(editor.getShape(g2)!.x).toBeLessThan(200)
+
+			it('still moves shapes that cannot flip in a mixed selection', async () => {
+				const { editor, actions } = await setup()
+				act(() => {
+					editor.createShapes([geo(g1), { id: g2, type: 'text', x: 200, y: 200 }])
+					editor.select(g1, g2)
+				})
+				act(() => actions()[actionId].onSelect('kbd'))
+				expect(editor.getShape(g1)![axis]).toBeGreaterThan(0)
+				expect(editor.getShape(g2)![axis]).toBeLessThan(200)
+			})
 		})
 	})
 
