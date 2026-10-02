@@ -13,9 +13,11 @@ So far this release adds a `ThrottledFunction` type to `@tldraw/utils`, thins th
 ## API changes
 
 - Add a `ThrottledFunction<T>` type to `@tldraw/utils` for annotating the result of `throttle`. `throttle` now returns this type, with the same runtime behavior. ([#10927](https://github.com/tldraw/tldraw/pull/10927))
+- Add `isEnabled(editor)` and `isChecked(editor)` to actions. Menu items built with `TldrawUiMenuActionItem` and `TldrawUiMenuActionCheckboxItem` read them, and take `whenDisabled: 'hide' | 'disable'`. `useSomeActionsEnabled` hides a submenu when none of its actions would show. If you replace a built-in action with a new object instead of spreading it, it loses its gating.
 
 ## Improvements
 
+- Stop showing menu actions that would do nothing: grouping locked shapes, flipping a locked shape, unlocking when nothing is locked, exporting an empty page, moving to a new page at the page limit, and grouping an arrow away from a shape it's bound to.
 - Draw the hinted outline around shapes, such as a frame you're dragging a shape into, at 2px instead of 2.5px. ([#10952](https://github.com/tldraw/tldraw/pull/10952))
 - Speed up `store.query.index()` and `store.query.ids()` updates by no longer allocating for each change. ([#10228](https://github.com/tldraw/tldraw/pull/10228))
 

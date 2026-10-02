@@ -272,7 +272,7 @@ function CustomMenu() {
 }
 ```
 
-This component looks up the action by ID and renders it with the correct label, icon, and shortcut hint. Pass `disabled` yourself if the item should be disabled. For toggle actions, use [TldrawUiMenuActionCheckboxItem](?) with a `checked` prop.
+This component looks up the action by ID and renders it with the correct label, icon, and shortcut hint. If the action defines `isEnabled`, the item disables itself when it returns false. Pass `whenDisabled="hide"` to hide it instead. For toggle actions, use [TldrawUiMenuActionCheckboxItem](?); it reads `checked` from the action's `isChecked` unless you pass `checked`.
 
 ## Context-sensitive labels
 
@@ -291,6 +291,48 @@ actions['export-as-svg'] = {
 ```
 
 The menu component uses the appropriate label based on its context. If no specific label exists for a context, it falls back to `default`.
+
+## Enabling and checking actions
+
+`isEnabled` tells every menu whether the action can run right now. `isChecked` tells checkbox items whether they're on. Both receive the editor and must not change anything: they run on every render.
+
+```tsx
+actions['make-red'] = {
+	id: 'make-red',
+	label: 'action.make-red',
+	isEnabled: (editor) => editor.getSelectedShapeIds().length > 0,
+	onSelect() {
+		// ...
+	},
+}
+```
+
+Keyboard shortcuts ignore `isEnabled`, so `onSelect` should still check its own preconditions.
+
+When you change a built-in action, spread the original so it keeps its `isEnabled` and `isChecked`:
+
+```tsx
+actions['group'] = { ...actions['group'], onSelect: myGroup }
+```
+
+Replacing an action with a new object drops them, and menus will show it as always enabled.
+
+To hide a submenu when none of its actions would show, use [useSomeActionsEnabled](?):
+
+```tsx
+const IDS = ['make-red', 'make-blue']
+
+function ColorsSubmenu() {
+	if (!useSomeActionsEnabled(IDS)) return null
+	return (
+		<TldrawUiMenuSubmenu id="colors" label="menu.colors">
+			{IDS.map((id) => (
+				<TldrawUiMenuActionItem key={id} actionId={id} whenDisabled="hide" />
+			))}
+		</TldrawUiMenuSubmenu>
+	)
+}
+```
 
 ## Tracking action usage
 
