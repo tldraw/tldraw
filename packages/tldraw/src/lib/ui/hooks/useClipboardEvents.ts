@@ -15,6 +15,7 @@ import {
 	useMaybeEditor,
 	useValue,
 } from '@tldraw/editor'
+import { find } from 'linkifyjs'
 import lz from 'lz-string'
 import { useCallback, useEffect } from 'react'
 import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
@@ -149,6 +150,24 @@ function areShortcutsDisabled(editor: Editor) {
 }
 
 /**
+ * Whether a paste event just turned the rich text selection into a link. The editing shape's
+ * TipTap editor handles the paste before it bubbles to the document: it links a selection when the
+ * pasted text is a single url, and otherwise replaces the selection, collapsing it.
+ *
+ * The rich text toolbar's link input keeps the linked selection while it has focus, so a url
+ * pasted there would count too unless the paste has to come from inside the TipTap editor.
+ */
+function didPasteLinkOntoRichTextSelection(editor: Editor, e: ClipboardEvent) {
+	const richTextEditor = editor.getRichTextEditor()
+	if (!richTextEditor || richTextEditor.state.selection.empty) return false
+	if (!richTextEditor.view.dom.contains(e.target as Node | null)) return false
+	if (!richTextEditor.isActive('link')) return false
+	// Match TipTap's link paste handler, which also links bare domains like `tldraw.com`.
+	const text = e.clipboardData?.getData('text/plain').trim() ?? ''
+	return find(text, { defaultProtocol: 'http' }).some((link) => link.isLink && link.value === text)
+}
+
+/**
  * Handle text pasted into the editor.
  * @param editor - The editor instance.
  * @param data - The text to paste.
@@ -160,12 +179,13 @@ const handleText = (
 	data: string,
 	point?: VecLike,
 	sources?: TLExternalContentSource[],
-	clipboardPasteSource: 'native-event' | 'clipboard-read' = 'native-event'
+	clipboardPasteSource: 'native-event' | 'clipboard-read' = 'native-event',
+	onPasteLinkOntoShape?: () => void
 ) => {
 	const validUrlList = getValidHttpURLList(data)
 	if (validUrlList) {
 		if (validUrlList.length === 1) {
-			pasteUrl(editor, validUrlList[0], point, sources, clipboardPasteSource)
+			pasteUrl(editor, validUrlList[0], point, sources, clipboardPasteSource, onPasteLinkOntoShape)
 		} else {
 			// A shape can only hold one link, so several links at once always become bookmarks.
 			editor.markHistoryStoppingPoint('paste')
@@ -178,7 +198,7 @@ const handleText = (
 			}
 		}
 	} else if (isValidHttpURL(data)) {
-		pasteUrl(editor, data, point, sources, clipboardPasteSource)
+		pasteUrl(editor, data, point, sources, clipboardPasteSource, onPasteLinkOntoShape)
 	} else if (isSvgText(data)) {
 		editor.markHistoryStoppingPoint('paste')
 		putPastedExternalContent(
@@ -244,12 +264,14 @@ type ClipboardThing =
  * @param editor - The editor
  * @param clipboardData - The clipboard data
  * @param point - The point to paste at
+ * @param onPasteLinkOntoShape - Called when the pasted url is set as the selected shape's link
  * @internal
  */
 export async function handlePasteFromEventClipboardData(
 	editor: Editor,
 	clipboardData: DataTransfer,
-	point?: VecLike
+	point?: VecLike,
+	onPasteLinkOntoShape?: () => void
 ) {
 	// Do not paste while in any editing state
 	if (editor.getEditingShapeId() !== null) return
@@ -280,7 +302,7 @@ export async function handlePasteFromEventClipboardData(
 		}
 	}
 
-	return await handleClipboardThings(editor, things, point, 'native-event')
+	return await handleClipboardThings(editor, things, point, 'native-event', onPasteLinkOntoShape)
 }
 
 const clipboardApiTextTypes = [
@@ -304,12 +326,15 @@ export async function handlePasteFromClipboardApi({
 	point,
 	fallbackFiles,
 	clipboardPasteSource,
+	onPasteLinkOntoShape,
 }: {
 	editor: Editor
 	clipboardItems: ClipboardItem[]
 	point?: VecLike
 	fallbackFiles?: File[]
 	clipboardPasteSource: 'native-event' | 'clipboard-read'
+	/** Called when the pasted url is set as the selected shape's link. */
+	onPasteLinkOntoShape?(): void
 }) {
 	// We need to populate the array of clipboard things
 	// based on the ClipboardItems from the Clipboard API.
@@ -368,7 +393,13 @@ export async function handlePasteFromClipboardApi({
 		)
 	}
 
-	return await handleClipboardThings(editor, things, point, clipboardPasteSource)
+	return await handleClipboardThings(
+		editor,
+		things,
+		point,
+		clipboardPasteSource,
+		onPasteLinkOntoShape
+	)
 }
 
 function pasteIframeEmbed(editor: Editor, html: string, point: VecLike | undefined) {
@@ -392,7 +423,8 @@ async function handleClipboardThings(
 	editor: Editor,
 	things: ClipboardThing[],
 	point: VecLike | undefined,
-	clipboardPasteSource: 'native-event' | 'clipboard-read'
+	clipboardPasteSource: 'native-event' | 'clipboard-read',
+	onPasteLinkOntoShape?: () => void
 ) {
 	// 1. Generate clipboard results for non-file things
 	//
@@ -606,7 +638,7 @@ async function handleClipboardThings(
 					? bodyNode.firstElementChild.getAttribute('href')
 					: null
 			if (href) {
-				handleText(editor, href, point, results, clipboardPasteSource)
+				handleText(editor, href, point, results, clipboardPasteSource, onPasteLinkOntoShape)
 				return
 			}
 
@@ -628,7 +660,7 @@ async function handleClipboardThings(
 					)
 				} else {
 					// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
-					handleText(editor, text, point, results, clipboardPasteSource)
+					handleText(editor, text, point, results, clipboardPasteSource, onPasteLinkOntoShape)
 				}
 				return
 			}
@@ -644,7 +676,7 @@ async function handleClipboardThings(
 	// Try to paste a link
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'url') {
-			pasteUrl(editor, result.data, point, results, clipboardPasteSource)
+			pasteUrl(editor, result.data, point, results, clipboardPasteSource, onPasteLinkOntoShape)
 			return
 		}
 	}
@@ -653,7 +685,7 @@ async function handleClipboardThings(
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'text' && result.data.trim()) {
 			// The clipboard may include multiple text items, but we only want to paste the first one
-			handleText(editor, result.data, point, results, clipboardPasteSource)
+			handleText(editor, result.data, point, results, clipboardPasteSource, onPasteLinkOntoShape)
 			return
 		}
 	}
@@ -811,6 +843,7 @@ export function useMenuClipboardEvents() {
 					clipboardItems: data,
 					point,
 					clipboardPasteSource: 'clipboard-read',
+					onPasteLinkOntoShape: () => trackEvent('paste-link', { source, target: 'shape' }),
 				})
 				trackEvent('paste', { source: 'menu' })
 			} else {
@@ -894,7 +927,15 @@ export function useNativeClipboardEvents() {
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
-			if (editor.getEditingShapeId() !== null || areShortcutsDisabled(editor)) return
+			if (editor.getEditingShapeId() !== null || areShortcutsDisabled(editor)) {
+				if (didPasteLinkOntoRichTextSelection(editor, e)) {
+					trackEvent('paste-link', { source: 'kbd', target: 'text' })
+				}
+				return
+			}
+
+			const onPasteLinkOntoShape = () =>
+				trackEvent('paste-link', { source: 'kbd', target: 'shape' })
 
 			// Cmd+Shift+V / Ctrl+Shift+V = paste as plain text (no formatting).
 			// If there's no plain text on the clipboard (e.g., a copied PNG), fall
@@ -936,7 +977,7 @@ export function useNativeClipboardEvents() {
 
 			const pasteFromEvent = () => {
 				if (e.clipboardData) {
-					handlePasteFromEventClipboardData(editor, e.clipboardData, point)
+					handlePasteFromEventClipboardData(editor, e.clipboardData, point, onPasteLinkOntoShape)
 				}
 			}
 
@@ -959,6 +1000,7 @@ export function useNativeClipboardEvents() {
 								point,
 								fallbackFiles,
 								clipboardPasteSource: 'native-event',
+								onPasteLinkOntoShape,
 							})
 						}
 					},
