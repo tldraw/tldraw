@@ -792,10 +792,10 @@ export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: Box
 export function ConversionsMenuGroup(): JSX.Element | null;
 
 // @public (undocumented)
-export function ConvertToBookmarkMenuItem(): JSX.Element | null;
+export function ConvertToBookmarkMenuItem(): JSX.Element;
 
 // @public (undocumented)
-export function ConvertToEmbedMenuItem(): JSX.Element | null;
+export function ConvertToEmbedMenuItem(): JSX.Element;
 
 // @public
 export function copyAs(editor: Editor, ids: TLShapeId[], opts: CopyAsOptions): Promise<void>;
@@ -847,7 +847,7 @@ export interface CubicBezierToPathBuilderCommand extends PathBuilderCommandBase 
 }
 
 // @public (undocumented)
-export function CursorChatItem(): JSX.Element | null;
+export function CursorChatItem(): JSX.Element;
 
 // @public (undocumented)
 export interface CustomDebugFlags {
@@ -1635,10 +1635,10 @@ export interface DrawShapeUtilDisplayValues {
 export function DrawToolbarItem(): JSX.Element;
 
 // @public (undocumented)
-export function DuplicateMenuItem(): JSX.Element | null;
+export function DuplicateMenuItem(): JSX.Element;
 
 // @public (undocumented)
-export function EditLinkMenuItem(): JSX.Element | null;
+export function EditLinkMenuItem(): JSX.Element;
 
 // @public (undocumented)
 export function EditMenuSubmenu(): JSX.Element | null;
@@ -1980,7 +1980,7 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
 }): void;
 
 // @public (undocumented)
-export function FitFrameToContentMenuItem(): JSX.Element | null;
+export function FitFrameToContentMenuItem(): JSX.Element;
 
 // @public (undocumented)
 export interface FrameShapeOptions extends ShapeOptionsWithDisplayValues<TLFrameShape, FrameShapeUtilDisplayValues> {
@@ -2430,7 +2430,7 @@ export interface GoogleMapsEmbedConfig {
 }
 
 // @public (undocumented)
-export function GroupMenuItem(): JSX.Element | null;
+export function GroupMenuItem(): JSX.Element;
 
 // @public (undocumented)
 export function GroupOrUngroupMenuItem(): JSX.Element;
@@ -3284,7 +3284,7 @@ export function registerDefaultSideEffects(editor: Editor): () => void;
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
 
 // @public (undocumented)
-export function RemoveFrameMenuItem(): JSX.Element | null;
+export function RemoveFrameMenuItem(): JSX.Element;
 
 // @public
 export function renderHtmlFromRichText(editor: Editor, richText: TLRichText_2): string;
@@ -6303,7 +6303,7 @@ export interface TLZoomBrushOverlay extends TLOverlay {
 }
 
 // @public (undocumented)
-export function ToggleAutoSizeMenuItem(): JSX.Element | null;
+export function ToggleAutoSizeMenuItem(): JSX.Element;
 
 // @public (undocumented)
 export function ToggleDebugModeItem(): JSX.Element;
@@ -6330,7 +6330,7 @@ export function ToggleInvertZoomItem(): JSX.Element;
 export function ToggleKeyboardShortcutsItem(): JSX.Element;
 
 // @public (undocumented)
-export function ToggleLockMenuItem(): JSX.Element | null;
+export function ToggleLockMenuItem(): JSX.Element;
 
 // @public (undocumented)
 export function TogglePasteAtCursorItem(): JSX.Element;
@@ -6381,7 +6381,7 @@ export function truncateStringWithEllipsis(str: string, maxLength: number): stri
 export function UndoRedoGroup(): JSX.Element;
 
 // @public (undocumented)
-export function UngroupMenuItem(): JSX.Element | null;
+export function UngroupMenuItem(): JSX.Element;
 
 // @public
 export const unknownEmbedShapePermissionOverrides: TLEmbedShapePermissions;
