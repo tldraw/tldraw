@@ -1,44 +1,11 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import {
 	canApplySelectionAction,
-	canReadClipboard,
-	canToggleAutoSize,
 	getUnlockedSelectedShapes,
-	hasLinkShapeSelected,
 	hasShapesOnPage,
-	hasThreeStackableShapes,
-	isGroupAllowed,
-	isOnlyFlippableShapeSelected,
-	isUngroupAllowed,
 } from '../context/action-predicates'
 
 // The @public hooks here are SDK API: keep them even when nothing in tldraw calls them.
-
-/** @internal */
-export function useThreeStackableItems() {
-	const editor = useEditor()
-	return useValue('threeStackableItems', () => hasThreeStackableShapes(editor), [editor])
-}
-
-/** @internal */
-export function useIsInSelectState() {
-	const editor = useEditor()
-	return useValue('isInSelectState', () => editor.isIn('select'), [editor])
-}
-
-/** @internal */
-export function useAllowGroup() {
-	const editor = useEditor()
-	return useValue('allow group', () => isGroupAllowed(editor), [editor])
-}
-
-/** @internal */
-export function useAllowUngroup() {
-	const editor = useEditor()
-	return useValue('allowUngroup', () => isUngroupAllowed(editor), [editor])
-}
-
-export const showMenuPaste = canReadClipboard()
 
 function countWithinBounds(len: number, min?: number, max?: number) {
 	if (min === undefined && max === undefined) return len
@@ -68,21 +35,6 @@ export function useUnlockedSelectedShapesCount(min?: number, max?: number) {
 		() => countWithinBounds(getUnlockedSelectedShapes(editor).length, min, max),
 		[editor, min, max]
 	)
-}
-
-export function useShowAutoSizeToggle() {
-	const editor = useEditor()
-	return useValue('showAutoSizeToggle', () => canToggleAutoSize(editor), [editor])
-}
-
-export function useHasLinkShapeSelected() {
-	const editor = useEditor()
-	return useValue('hasLinkShapeSelected', () => hasLinkShapeSelected(editor), [editor])
-}
-
-export function useOnlyFlippableShape() {
-	const editor = useEditor()
-	return useValue('onlyFlippableShape', () => isOnlyFlippableShapeSelected(editor), [editor])
 }
 
 /** @public */
