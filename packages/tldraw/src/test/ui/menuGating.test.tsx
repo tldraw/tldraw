@@ -184,12 +184,12 @@ const AM: Partial<Record<State, string>> = {
 	three: 'E E E E E D E H',
 	lockedPair: 'D D D D D D D H',
 	group: 'D D D E E D H E',
-	boundArrow: 'E E D E E D D H', // changed group: an arrow bound outside the selection blocks it
+	boundArrow: 'E E D E E D D H', // group: an arrow bound outside the selection blocks it
 	twoInHand: 'D D D D D D D H',
-	groupWithLocked: 'D D D E E D H E', // changed: group needs 2 unlocked shapes, so Ungroup shows
-	lockedGroup: 'D D D D D D D H', // changed: a locked group can't be ungrouped, so Group shows
-	lockedThree: 'D D D D D D D H', // changed stack: locked shapes don't count
-	groupInHand: 'D D D D D D D H', // changed: ungroup needs the select tool, so Group shows
+	groupWithLocked: 'D D D E E D H E', // group needs 2 unlocked shapes, so Ungroup shows
+	lockedGroup: 'D D D D D D D H', // a locked group can't be ungrouped, so Group shows
+	lockedThree: 'D D D D D D D H', // stack: locked shapes don't count
+	groupInHand: 'D D D D D D D H', // ungroup needs the select tool, so Group shows
 }
 
 describe('toolbar actions menu gating', () => {
@@ -251,7 +251,6 @@ const CM_IDS = [
 ] as const
 const CM_SUBMENUS = ['edit', 'arrange', 'reorder'] as const
 
-// twoInHand is left out: the context menu only opens through the select tool.
 const CM_COLUMNS = [...CM_IDS, ...CM_SUBMENUS.map((id) => `sub:${id}`)]
 
 // twoInHand and groupInHand are left out: the context menu only opens through the select tool.
@@ -260,12 +259,12 @@ const CM: Partial<Record<State, string>> = {
 	one: 'H H E E E E E E H H E H E E E E',
 	two: 'E H E E E E E E E H E H E E E E',
 	three: 'E H E E E E E E E E E E E E E E',
-	lockedPair: 'H H H E H E H E H H H H H E H H', // changed group: needs 2 unlocked shapes
+	lockedPair: 'H H H E H E H E H H H H H E H H', // group: needs 2 unlocked shapes
 	group: 'H E E E E E E E H H E H E E E E',
 	boundArrow: 'H H E E E E E E E E E H E E E E',
 	readonly: 'H H H H H E H E H H H H H H H H',
-	lockedGroup: 'H H H E H E H E H H H H H E H H', // changed ungroup, flip: skip a locked group
-	lockedThree: 'H H H E H E H E H H H H H E H H', // changed group: needs 2 unlocked shapes
+	lockedGroup: 'H H H E H E H E H H H H H E H H', // ungroup, flip: skip a locked group
+	lockedThree: 'H H H E H E H E H H H H H E H H', // group: needs 2 unlocked shapes
 }
 
 describe('context menu gating', () => {
@@ -309,10 +308,10 @@ const MM_IDS = [
 
 // twoInHand is left out: changing tools closes open menus.
 const MM: Partial<Record<State, string>> = {
-	empty: 'D D H D H H H D D D D D', // changed export-all: disabled on an empty page
-	one: 'E E E E H H E D E E E E', // changed unlock-all: nothing is locked
-	lockedPair: 'D E H D H H E E E E E E', // changed group: needs 2 unlocked shapes
-	group: 'E E E E H E E D E E E E', // changed unlock-all: nothing is locked
+	empty: 'D D H D H H H D D D D D', // export-all: disabled on an empty page
+	one: 'E E E E H H E D E E E E', // unlock-all: nothing is locked
+	lockedPair: 'D E H D H H E E E E E E', // group: needs 2 unlocked shapes
+	group: 'E E E E H E E D E E E E', // unlock-all: nothing is locked
 }
 
 describe('main menu gating', () => {
