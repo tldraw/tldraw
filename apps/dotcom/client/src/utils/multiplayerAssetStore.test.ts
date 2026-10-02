@@ -129,11 +129,11 @@ describe('multiplayerAssetStore.resolve', () => {
 		{ mimeType: 'image/png', w: 400, h: 399, pixelRatio: 1, expected: 'format=auto' },
 		{ mimeType: 'image/png', w: 400, h: 400, pixelRatio: 1, expected: 'w=200,format=auto' },
 		{ mimeType: 'image/png', w: 200, h: 200, pixelRatio: 2, expected: 'w=200,format=auto' },
-		{ mimeType: 'image/jpeg', w: 2000, h: 1500, pixelRatio: 1, expected: 'format=auto' },
-		{ mimeType: 'image/webp', w: 2000, h: 1500, pixelRatio: 1, expected: 'format=auto' },
-		{ mimeType: undefined, w: 2000, h: 1500, pixelRatio: 1, expected: 'format=auto' },
+		{ mimeType: 'image/jpeg', w: 2000, h: 1500, pixelRatio: 1, expected: 'w=1000,format=auto' },
+		{ mimeType: 'image/webp', w: 2000, h: 1500, pixelRatio: 1, expected: 'w=1000,format=auto' },
+		{ mimeType: undefined, w: 2000, h: 1500, pixelRatio: 1, expected: 'w=1000,format=auto' },
 	])(
-		'should apply the PNG size limit to $mimeType at $w × $h and pixel ratio $pixelRatio',
+		'should apply the size limit to $mimeType at $w × $h and pixel ratio $pixelRatio',
 		async ({ mimeType, w, h, pixelRatio, expected }) => {
 			const asset = {
 				type: 'image',
