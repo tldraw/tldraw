@@ -1,4 +1,4 @@
-import { createMutators, TlaMutators } from '@tldraw/dotcom-shared'
+import { createMutators, TlaMutators, USER_PREFERENCE_KEYS } from '@tldraw/dotcom-shared'
 import { describe, expect, it, vi } from 'vitest'
 import { createMcpMutators, restrictMcpMutators } from './mcpMutators'
 
@@ -125,6 +125,14 @@ describe('restrictMcpMutators', () => {
 			await expect(mcp.updateUserPreferences(tx, change as any)).rejects.toThrow('forbidden')
 		}
 		expect(updateUserPreferences).not.toHaveBeenCalled()
+	})
+
+	it('accepts every preference updateUserPreferences accepts', async () => {
+		const { mcp, updateUserPreferences } = setup()
+		for (const key of USER_PREFERENCE_KEYS) {
+			await mcp.updateUserPreferences(tx, { [key]: null })
+		}
+		expect(updateUserPreferences).toHaveBeenCalledTimes(USER_PREFERENCE_KEYS.length)
 	})
 
 	it('refuses arguments that are not an object', async () => {

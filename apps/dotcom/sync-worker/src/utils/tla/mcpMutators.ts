@@ -1,4 +1,9 @@
-import { createMutators, TlaMutators, ZErrorCode } from '@tldraw/dotcom-shared'
+import {
+	createMutators,
+	TlaMutators,
+	USER_PREFERENCE_KEYS,
+	ZErrorCode,
+} from '@tldraw/dotcom-shared'
 import { assert } from '@tldraw/utils'
 
 /** The argument keys a mutator is allowed, or, for a group like `file`, the keys for each of its mutators. */
@@ -40,20 +45,7 @@ const MCP_MUTATOR_FIELDS = {
 	unpinFile: ['fileId', 'workspaceId'],
 	removeFileFromWorkspace: ['fileId', 'workspaceId'],
 	onEnterFile: ['fileId', 'time'],
-	updateUserPreferences: [
-		'locale',
-		'animationSpeed',
-		'areKeyboardShortcutsEnabled',
-		'edgeScrollSpeed',
-		'isSnapMode',
-		'isWrapMode',
-		'isDynamicSizeMode',
-		'isPasteAtCursorMode',
-		'enhancedA11yMode',
-		'inputMode',
-		'isZoomDirectionInverted',
-		'color',
-	],
+	updateUserPreferences: USER_PREFERENCE_KEYS,
 } as const satisfies { [K in keyof TlaMutators]?: McpFields<TlaMutators[K]> }
 
 export type McpMutators = Pick<TlaMutators, keyof typeof MCP_MUTATOR_FIELDS>
