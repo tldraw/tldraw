@@ -38,6 +38,7 @@ import { JsonObject } from '@tldraw/editor';
 import { JSX } from 'react/jsx-runtime';
 import { JSXElementConstructor } from 'react';
 import { LANGUAGES } from '@tldraw/editor';
+import { LayoutEngine } from '@tldraw/rich-text-layout';
 import { Mark } from '@tiptap/core';
 import { MatLike } from '@tldraw/editor';
 import { MeasureContext } from '@tldraw/rich-text-layout';
@@ -4264,6 +4265,7 @@ export interface TldrawTextMeasurer extends TLTextMeasurer {
 // @public
 export interface TldrawTextMeasurerOptions {
     colors?: TldrawRichTextColors;
+    engine?: LayoutEngine;
     extensions?: Extensions;
     measureContext: MeasureContext;
 }

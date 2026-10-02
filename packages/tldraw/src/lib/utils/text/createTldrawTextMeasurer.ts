@@ -10,8 +10,10 @@ import {
 	TLRichText,
 	TLTextMeasurer,
 	resolveLineHeightPx,
+	tlenv,
 } from '@tldraw/editor'
 import {
+	LayoutEngine,
 	MeasureContext,
 	NodeRegistry,
 	StyleDeclaration,
@@ -53,6 +55,11 @@ export interface TldrawTextMeasurerOptions {
 	extensions?: Extensions
 	/** Colours used when the layout is rendered; measurement doesn't depend on them. */
 	colors?: TldrawRichTextColors
+	/**
+	 * Which browser's layout rules to match. Defaults to the browser the code is running in:
+	 * WebKit on Safari and every iOS browser, Chromium elsewhere.
+	 */
+	engine?: LayoutEngine
 }
 
 /**
@@ -190,6 +197,7 @@ function registryFromExtensions(extensions: Extensions | undefined): NodeRegistr
  */
 export function createTldrawTextMeasurer(options: TldrawTextMeasurerOptions): TldrawTextMeasurer {
 	const { measureContext } = options
+	const engine = options.engine ?? (tlenv.isSafari || tlenv.isIos ? 'webkit' : 'chromium')
 	const registry = registryFromExtensions(options.extensions)
 	const sheets = new Map<string, StyleSheet>()
 	const sheetFor = (lineHeight: number, colors: TldrawRichTextColors | undefined) => {
@@ -251,6 +259,7 @@ export function createTldrawTextMeasurer(options: TldrawTextMeasurerOptions): Tl
 
 	function layoutRichText(richText: TLRichText, opts: TldrawRichTextLayoutOptions): TextLayout {
 		return layoutDocument(richText as never, {
+			engine,
 			...sizing(opts),
 			registry,
 			styles: sheetFor(opts.lineHeight, opts.colors),
@@ -262,6 +271,7 @@ export function createTldrawTextMeasurer(options: TldrawTextMeasurerOptions): Tl
 	function layoutText(text: string, opts: TldrawRichTextLayoutOptions): TextLayout {
 		// Plain text is measured outside `.tl-rich-text`, so it gets the UA tab size.
 		return layoutPlainText(normalizeTextForDom(text), {
+			engine,
 			...sizing(opts),
 			style: rootStyle(opts, 8),
 			measureContext,

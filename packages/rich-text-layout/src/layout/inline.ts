@@ -92,7 +92,8 @@ const COLLAPSIBLE = /[ \t\n\r\f]/
 function buildChunks(
 	content: InlineContent,
 	whiteSpace: ResolvedBlockStyle['whiteSpace'],
-	wordBreak: ResolvedBlockStyle['wordBreak']
+	wordBreak: ResolvedBlockStyle['wordBreak'],
+	profile: LayoutProfile
 ): Chunk[] {
 	const chunks: Chunk[] = []
 	let current: Chunk = { text: '', runOf: [], srcOff: [] }
@@ -136,10 +137,25 @@ function buildChunks(
 
 	const collapsed = whiteSpace === 'normal' ? chunks.map(collapseChunk) : chunks
 	if (wordBreak === 'break-all') return collapsed.map(injectBreakOpportunities)
-	return collapsed.map((chunk) =>
-		PICTOGRAPH_BLOCK.test(chunk.text) ? injectPictographBreaks(chunk) : chunk
-	)
+	return collapsed.map((chunk) => {
+		if (PICTOGRAPH_BLOCK.test(chunk.text)) chunk = injectPictographBreaks(chunk)
+		if (profile.breakAfterSlash && chunk.text.includes('/')) chunk = injectSlashBreaks(chunk)
+		return chunk
+	})
 }
+
+// WebKit breaks after a slash before a letter or digit, but not inside a numeric fraction (`1/2`).
+function injectSlashBreaks(chunk: Chunk): Chunk {
+	let beforeSlash = ''
+	return injectBreaks(chunk, (prev, g) => {
+		const fraction = DIGIT_GRAPHEME.test(beforeSlash) && DIGIT_GRAPHEME.test(g)
+		const breaks = prev === '/' && LETTER_OR_DIGIT_GRAPHEME.test(g) && !fraction
+		beforeSlash = prev
+		return breaks
+	})
+}
+
+const DIGIT_GRAPHEME = /^\p{N}/u
 
 const SYNTHETIC_BREAK = '\u200B'
 const SPACE_GRAPHEME = /^[ \t\n]$/
@@ -566,7 +582,7 @@ export function layoutInline(
 ): InlineLayoutResult {
 	const { block, measure, profile } = options
 	const maxWidth = block.whiteSpace === 'pre' ? Infinity : options.maxWidth
-	const chunks = buildChunks(content, block.whiteSpace, block.wordBreak)
+	const chunks = buildChunks(content, block.whiteSpace, block.wordBreak, profile)
 	const pretext = getPretext()
 
 	// A trailing break (hardBreak or newline at the very end) does not open a new line.

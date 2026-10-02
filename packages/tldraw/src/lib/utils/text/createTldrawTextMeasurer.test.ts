@@ -41,6 +41,15 @@ describe('createTldrawTextMeasurer', () => {
 		expect(size).toMatchObject({ w: 75, h: 54 })
 	})
 
+	it('follows the chosen engine: WebKit breaks after a slash, Chromium does not', () => {
+		const opts = { ...baseOpts, maxWidth: 35, disableOverflowWrapBreaking: true }
+		const chromium = createTldrawTextMeasurer({ measureContext: fake, engine: 'chromium' })
+		const webkit = createTldrawTextMeasurer({ measureContext: fake, engine: 'webkit' })
+		// 'ab/cd' is 50px: Chromium has no break opportunity and overflows on one line.
+		expect(chromium.measureText('ab/cd', opts).h).toBe(27)
+		expect(webkit.measureText('ab/cd', opts).h).toBe(54)
+	})
+
 	it('lays rich text out from the document rather than the html', () => {
 		const richText = toRichText('hello\nworld')
 		const size = measurer.measureHtml('<p>ignored</p>', { ...baseOpts, richText })
