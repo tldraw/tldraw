@@ -1,5 +1,5 @@
 import { act, screen } from '@testing-library/react'
-import { atom } from '@tldraw/editor'
+import { atom, createShapeId } from '@tldraw/editor'
 import { Tldraw } from '../../lib/Tldraw'
 import { TldrawUiMenuActionItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuContextProvider } from '../../lib/ui/components/primitives/menus/TldrawUiMenuContext'
@@ -79,8 +79,24 @@ describe('TldrawUiMenuActionItem', () => {
 		expect(button('ungated')!.disabled).toBe(true)
 	})
 
-	// Task 4 enables this once `group` has isEnabled
-	it.todo('keeps the gate on a spread override and drops it on a wholesale replacement')
+	it('keeps the gate on a spread override and drops it on a wholesale replacement', async () => {
+		const { editor } = await setup(
+			<>
+				<TldrawUiMenuActionItem actionId="group-spread" />
+				<TldrawUiMenuActionItem actionId="group-replaced" />
+			</>
+		)
+		expect(button('group-spread')!.disabled).toBe(true)
+		expect(button('group-replaced')!.disabled).toBe(false)
+		act(() => {
+			editor.createShapes([
+				{ id: createShapeId('a'), type: 'geo' },
+				{ id: createShapeId('b'), type: 'geo', x: 200 },
+			])
+			editor.selectAll()
+		})
+		expect(button('group-spread')!.disabled).toBe(false)
+	})
 })
 
 describe('useSomeActionsEnabled', () => {

@@ -202,7 +202,7 @@ const AM: Record<State, Record<(typeof AM_IDS)[number], Gate>> = {
 		'bring-to-front': 'enabled',
 		'rotate-cw': 'enabled',
 		'edit-link': 'disabled',
-		group: 'enabled',
+		group: 'disabled', // changed: arrow bound outside the selection blocks group
 		ungroup: 'hidden',
 	},
 	twoInHand: {
@@ -465,7 +465,7 @@ const MM: Record<'empty' | 'one' | 'lockedPair' | 'group', MmRow> = {
 		'select-all': 'disabled',
 		'zoom-to-fit': 'disabled',
 		'zoom-to-selection': 'disabled',
-		'export-all-as-svg': 'enabled',
+		'export-all-as-svg': 'disabled', // changed: export all disabled on an empty page
 	},
 	one: {
 		cut: 'enabled',
@@ -475,7 +475,7 @@ const MM: Record<'empty' | 'one' | 'lockedPair' | 'group', MmRow> = {
 		group: 'hidden',
 		ungroup: 'hidden',
 		'toggle-lock': 'enabled',
-		'unlock-all': 'enabled',
+		'unlock-all': 'disabled', // changed: nothing locked
 		'select-all': 'enabled',
 		'zoom-to-fit': 'enabled',
 		'zoom-to-selection': 'enabled',
@@ -503,7 +503,7 @@ const MM: Record<'empty' | 'one' | 'lockedPair' | 'group', MmRow> = {
 		group: 'hidden',
 		ungroup: 'enabled',
 		'toggle-lock': 'enabled',
-		'unlock-all': 'enabled',
+		'unlock-all': 'disabled', // changed: nothing locked
 		'select-all': 'enabled',
 		'zoom-to-fit': 'enabled',
 		'zoom-to-selection': 'enabled',
