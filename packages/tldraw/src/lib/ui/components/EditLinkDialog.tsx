@@ -39,13 +39,8 @@ function assertShapeWithLink(shape: TLShape | null | undefined): asserts shape i
 }
 
 const messages = defineMessages({
-	title: { id: 'edit-link-dialog.title', defaultMessage: 'Edit link' },
-	invalidUrl: { id: 'edit-link-dialog.invalid-url', defaultMessage: 'A link must be a valid URL.' },
-	detail: { id: 'edit-link-dialog.detail', defaultMessage: 'Links will open in a new tab.' },
+	// `TldrawUiInput` takes its label as data, not as an element, so this one can't be an `<F>`.
 	url: { id: 'edit-link-dialog.url', defaultMessage: 'URL' },
-	clear: { id: 'edit-link-dialog.clear', defaultMessage: 'Clear' },
-	save: { id: 'edit-link-dialog.save', defaultMessage: 'Continue' },
-	cancel: { id: 'edit-link-dialog.cancel', defaultMessage: 'Cancel' },
 })
 
 export const EditLinkDialog = track(function EditLinkDialog({ onClose }: TLUiDialogProps) {
@@ -132,7 +127,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 		<>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
-					<F {...messages.title} />
+					<F defaultMessage="Edit link" id="edit-link-dialog.title" />
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
@@ -151,20 +146,24 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 						onCancel={handleCancel}
 					/>
 					<div>
-						{urlInputState.valid ? <F {...messages.detail} /> : <F {...messages.invalidUrl} />}
+						{urlInputState.valid ? (
+							<F defaultMessage="Links will open in a new tab." id="edit-link-dialog.detail" />
+						) : (
+							<F defaultMessage="A link must be a valid URL." id="edit-link-dialog.invalid-url" />
+						)}
 					</div>
 				</div>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="normal" onClick={handleCancel} onTouchEnd={handleCancel}>
 					<TldrawUiButtonLabel>
-						<F {...messages.cancel} />
+						<F defaultMessage="Cancel" id="edit-link-dialog.cancel" />
 					</TldrawUiButtonLabel>
 				</TldrawUiButton>
 				{isRemoving ? (
 					<TldrawUiButton type="danger" onTouchEnd={handleClear} onClick={handleClear}>
 						<TldrawUiButtonLabel>
-							<F {...messages.clear} />
+							<F defaultMessage="Clear" id="edit-link-dialog.clear" />
 						</TldrawUiButtonLabel>
 					</TldrawUiButton>
 				) : (
@@ -175,7 +174,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 						onClick={handleComplete}
 					>
 						<TldrawUiButtonLabel>
-							<F {...messages.save} />
+							<F defaultMessage="Continue" id="edit-link-dialog.save" />
 						</TldrawUiButtonLabel>
 					</TldrawUiButton>
 				)}

@@ -64,6 +64,10 @@ export interface TLI18nMessage {
  * Declares messages so the extractor can find them. Returns them unchanged; the value is in
  * naming the call, which is what `formatjs extract` looks for.
  *
+ * For a message rendered as an element, write it inline on the `<F>` instead — the extractor
+ * reads those props directly, and the text then sits where it's read. This is for the messages
+ * that can't be elements: a label the UI takes as data, and anything going through `useMsg`.
+ *
  * @public
  */
 export function defineMessages<Messages extends Record<string, TLI18nMessage>>(
