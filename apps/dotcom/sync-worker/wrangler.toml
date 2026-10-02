@@ -379,19 +379,19 @@ bucket_name = "rooms-history"
 
 #################### Rooms history cold archive ####################
 # The room-history migration's archive. Only hard deletes write here (they remove a board's
-# archive); every non-production environment points at the migration's test bucket.
+# archive); every non-production environment points at its preview bucket.
 [[env.dev.r2_buckets]]
 binding = "ROOMS_HISTORY_COLD"
-bucket_name = "legacy-snapshot-data-test"
-preview_bucket_name = "legacy-snapshot-data-test"
+bucket_name = "legacy-snapshot-data-preview"
+preview_bucket_name = "legacy-snapshot-data-preview"
 
 [[env.preview.r2_buckets]]
 binding = "ROOMS_HISTORY_COLD"
-bucket_name = "legacy-snapshot-data-test"
+bucket_name = "legacy-snapshot-data-preview"
 
 [[env.staging.r2_buckets]]
 binding = "ROOMS_HISTORY_COLD"
-bucket_name = "legacy-snapshot-data-test"
+bucket_name = "legacy-snapshot-data-preview"
 
 [[env.production.r2_buckets]]
 binding = "ROOMS_HISTORY_COLD"
