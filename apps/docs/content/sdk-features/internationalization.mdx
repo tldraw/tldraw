@@ -84,6 +84,48 @@ function CopyButton() {
 }
 ```
 
+Pass a second argument to fill in a message's placeholders:
+
+```tsx
+function SelectionStatus({ count }: { count: number }) {
+	const msg = useTranslation()
+	return <p>{msg('a11y.multiple-shapes', { num: count })}</p>
+}
+```
+
+### Rendering a message as an element
+
+[F](?) renders a message where it belongs in the markup, with its English alongside:
+
+```tsx
+import { F } from 'tldraw'
+
+function CopyButton() {
+	return (
+		<button>
+			<F defaultMessage="Copy" id="action.copy" />
+		</button>
+	)
+}
+```
+
+Use [useMsg](?) where a string is needed instead — an `aria-label`, a `title`, a `placeholder`, or any module with no JSX:
+
+```tsx
+import { defineMessages, useMsg } from 'tldraw'
+
+const messages = defineMessages({
+	close: { id: 'ui.close', defaultMessage: 'Close' },
+})
+
+function CloseButton() {
+	const label = useMsg(messages.close)
+	return <button aria-label={label} />
+}
+```
+
+Both resolve against the same translations as `msg`, so an override reaches all three.
+
 Use [useCurrentTranslation](?) for the full translation object, including locale and text direction:
 
 ```tsx
@@ -129,6 +171,46 @@ function App() {
 ```
 
 Overrides are merged with the base translations for each language. English is the fallback: any key missing from the target language uses the English string. If you add your own keys (for example a custom tool label), provide at least an `en` override for them.
+
+Your strings are ICU messages too, so they can pluralise and take placeholders. A `{` that isn't opening a placeholder has to be escaped as `'{'`, or the message won't parse — a message that fails to parse renders as written rather than disappearing.
+
+## Message format
+
+Messages are [ICU MessageFormat](https://unicode-org.github.io/icu/userguide/format_parse/messages/), so a single message can say the right thing for any number:
+
+```json
+{
+	"comments.replies": "{count, plural, one {# reply} other {# replies}}"
+}
+```
+
+```tsx
+msg('comments.replies', { count: 1 }) // "1 reply"
+msg('comments.replies', { count: 4 }) // "4 replies"
+```
+
+This matters beyond English. A language picks between its own plural categories, which is why one string per number doesn't travel: Arabic has six, Polish four, Russian three. ICU asks the locale which category a number falls into, so the translator writes each form their language needs and the right one is chosen at runtime.
+
+`select` chooses between fixed options rather than numbers:
+
+```json
+{
+	"my.app.greeting": "{gender, select, female {She} male {He} other {They}} shared a file"
+}
+```
+
+Numbers and dates are formatted for the locale as well:
+
+```json
+{
+	"my.app.fileCount": "{count, number} files",
+	"my.app.lastEdited": "Edited {when, date, medium}"
+}
+```
+
+> Use `#` inside a plural to print the number being matched. Outside a plural it's a literal `#`.
+
+A message's `defaultMessage` is its English, and it's formatted as English. The translation from the catalog is what gets the user's locale and its plural categories, so a locale missing a string falls back to readable English rather than to English grammar applied to another language.
 
 ### Translation keys
 
