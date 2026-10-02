@@ -469,6 +469,18 @@ describe('a predicate that throws', () => {
 		}
 	}
 
+	it('disables an item whose isChecked throws', async () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const thrower = () => {
+			throw new Error('boom')
+		}
+		expect(await renderThrowing({ checkbox: true, isChecked: thrower })).toEqual({
+			disabled: true,
+			someEnabled: 'false',
+		})
+		error.mockRestore()
+	})
+
 	it('disables an item whose isAvailable throws', async () => {
 		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const thrower = () => {

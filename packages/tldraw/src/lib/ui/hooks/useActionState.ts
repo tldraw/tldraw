@@ -49,11 +49,8 @@ function readActionState(editor: Editor, action: TLUiActionItem): TLUiActionStat
 		!editor.getIsReadonly() || !!action.readonlyOk
 	)
 	const enabled = visible && tryPredicate(() => isActionEnabled(editor, action), false)
-	return {
-		visible,
-		enabled: enabled && !threw,
-		checked: tryPredicate(() => action.isChecked?.(editor), undefined),
-	}
+	const checked = tryPredicate(() => action.isChecked?.(editor), undefined)
+	return { visible, enabled: enabled && !threw, checked }
 }
 
 const reportedActions = new Set<string>()
