@@ -33,7 +33,7 @@ export function getActionState(
 
 function readActionState(editor: Editor, action: TLUiActionItem): TLUiActionState {
 	// These run from always-mounted menus, so a throw would take down the whole editor rather than
-	// one menu item. A throw disables the item instead, without hiding an action that's unavailable.
+	// one menu item. A throw disables the item instead; it stays visible unless readonly hides it.
 	let threw = false
 	function tryPredicate<T>(name: string, run: () => T, fallback: T): T {
 		try {
