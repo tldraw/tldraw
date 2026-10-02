@@ -351,6 +351,7 @@ export {
 	useLicenseContext,
 	useMaybeLicenseManager,
 } from './lib/license/LicenseProvider'
+export { setLicense, type TLSetLicenseOptions } from './lib/license/setLicense'
 export { useLicenseFeatureFlag } from './lib/license/useLicenseManagerState'
 export {
 	defaultTldrawOptions,
