@@ -15,6 +15,7 @@ function entry(id: string, overrides: Partial<CommandPaletteEntry> = {}): Comman
 		path: [],
 		submenu: null,
 		section: null,
+		heading: null,
 		disabled: false,
 		onSelect: vi.fn(),
 		marker: null,
@@ -85,6 +86,48 @@ describe('getCommandPaletteBrowseRows', () => {
 			grouped
 		)
 		expect(describeRows(rows)).toEqual(['flag', '---', '# Recent', 'recent grid', '---', 'undo'])
+	})
+
+	it('heads each labelled group when headings are on, separating unlabelled ones', () => {
+		const rows = getCommandPaletteBrowseRows(
+			[
+				entry('undo', { heading: 'Edit' }),
+				entry('redo', { heading: 'Edit' }),
+				entry('grid', { heading: 'View' }),
+				entry('custom'),
+			],
+			[],
+			'Recent',
+			{ ...grouped, showGroupHeadings: true }
+		)
+		expect(describeRows(rows)).toEqual([
+			'# Edit',
+			'undo',
+			'redo',
+			'# View',
+			'grid',
+			'---',
+			'custom',
+		])
+	})
+
+	it('lists at most 5 top commands', () => {
+		const ids = ['a', 'b', 'c', 'd', 'e', 'f']
+		const rows = getCommandPaletteBrowseRows(
+			ids.map((id) => entry(id)),
+			ids,
+			'Suggested',
+			grouped
+		)
+		expect(describeRows(rows).slice(0, 7)).toEqual([
+			'# Suggested',
+			'recent a',
+			'recent b',
+			'recent c',
+			'recent d',
+			'recent e',
+			'---',
+		])
 	})
 
 	it('hides recents when they are turned off', () => {

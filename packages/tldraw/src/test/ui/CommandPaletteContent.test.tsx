@@ -8,6 +8,7 @@ import { CommandPaletteToolsGroup } from '../../lib/ui/components/CommandPalette
 import { CommandPaletteShell } from '../../lib/ui/components/CommandPalette/CommandPaletteShell'
 import { DefaultCommandPaletteContent } from '../../lib/ui/components/CommandPalette/DefaultCommandPaletteContent'
 import { TLUiActionsContextType, useActions } from '../../lib/ui/context/actions'
+import { getCommandPaletteSuggestions } from '../../lib/ui/context/command-palette-defaults'
 import { TLUiOverrides } from '../../lib/ui/overrides'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
@@ -100,6 +101,31 @@ describe('default command palette content', () => {
 		const flip = await rendered.findByTestId('command-palette.item.flip-horizontal')
 		fireEvent.pointerMove(flip)
 		await rendered.findByText("This shape can't be flipped")
+	})
+
+	it('suggests the commands for what is selected, most specific first', async () => {
+		const { editor } = await renderPalette()
+		expect(getCommandPaletteSuggestions(editor)).toEqual([
+			'insert-media',
+			'zoom-to-fit',
+			'select-all',
+		])
+		act(() => {
+			editor.createShapes([
+				{ type: 'geo', x: 0, y: 0 },
+				{ type: 'geo', x: 200, y: 0 },
+			])
+			editor.selectAll()
+		})
+		expect(getCommandPaletteSuggestions(editor)).toEqual([
+			'group',
+			'align-center-horizontal',
+			'align-center-vertical',
+			'duplicate',
+			'frame-selection',
+			'toggle-lock',
+			'delete',
+		])
 	})
 
 	it('aligns two selected shapes', async () => {

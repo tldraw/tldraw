@@ -9,6 +9,7 @@ function entry(id: string, marker: Element | null): CommandPaletteEntry {
 		path: [],
 		submenu: null,
 		section: null,
+		heading: null,
 		disabled: false,
 		onSelect: vi.fn(),
 		marker,

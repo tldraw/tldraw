@@ -24,7 +24,9 @@ vi.mock('../../lib/ui/hooks/useTranslation/useTranslation', async () =>
 afterEach(() => {
 	deleteFromLocalStorage('tldraw-command-palette-recents')
 	commandPaletteFlags.checkmarksOnRight.set(false)
-	commandPaletteFlags.showRecents.set(true)
+	commandPaletteFlags.topSection.set('recent')
+	commandPaletteFlags.showGroupHeadings.set(false)
+	commandPaletteFlags.showIcons.set(false)
 	commandPaletteFlags.showDisabledReasons.set(true)
 	commandPaletteFlags.groupSubmenus.set(true)
 	commandPaletteFlags.nameNewFiles.set(false)
@@ -312,6 +314,25 @@ describe('CommandPaletteShell', () => {
 		)
 		const row = await rendered.findByTestId('command-palette.item.alpha')
 		expect(row.querySelector('.tlui-icon')).not.toBeNull()
+	})
+
+	it('shows group headings in a wider palette, and one leading slot per row', async () => {
+		commandPaletteFlags.showGroupHeadings.set(true)
+		commandPaletteFlags.showIcons.set(true)
+		const { rendered } = await renderShell(
+			<TldrawUiMenuGroup id="edit" label="Edit">
+				<TldrawUiMenuItem id="alpha" label="Alpha" iconLeft="plus" onSelect={vi.fn()} />
+				{item('beta', 'Beta')}
+				<TldrawUiMenuCheckboxItem id="grid" label="Grid" checked readonlyOk onSelect={vi.fn()} />
+			</TldrawUiMenuGroup>
+		)
+		await rendered.findByText('Edit')
+		expect(rendered.getByTestId('command-palette').hasAttribute('data-wide')).toBe(true)
+		// One leading slot each, shared by the icon and the check.
+		for (const id of ['alpha', 'beta', 'grid']) {
+			const row = rendered.getByTestId(`command-palette.item.${id}`)
+			expect(row.querySelectorAll('.tlui-icon')).toHaveLength(1)
+		}
 	})
 
 	it('reserves the check slot on every row, even with nothing checked', async () => {
