@@ -4636,7 +4636,6 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     } | TransationKey;
     // (undocumented)
     onSelect(source: TLUiEventSource): Promise<void> | void;
-    // (undocumented)
     readonlyOk?: boolean;
 }
 

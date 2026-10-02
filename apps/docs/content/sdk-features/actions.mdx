@@ -71,19 +71,19 @@ Keyboard shortcuts are bound automatically. The [useKeyboardShortcuts](?) hook p
 
 The [TLUiActionItem](?) interface defines what an action contains:
 
-| Property               | Description                                                                                                                                                   |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                   | Unique identifier for the action (e.g., `'duplicate'`, `'zoom-in'`)                                                                                           |
-| `label`                | Translation key for display text. Can be a string or an object mapping contexts to different keys (see [Context-sensitive labels](#context-sensitive-labels)) |
-| `icon`                 | Icon name from tldraw's icon set, or a custom React element                                                                                                   |
-| `kbd`                  | Keyboard shortcut string. Use commas to bind several combinations, e.g. `'cmd+g,ctrl+g'` (see [Keyboard shortcuts](#keyboard-shortcuts))                      |
-| `readonlyOk`           | When `true`, the action works in readonly mode. Defaults to `false`                                                                                           |
-| `checkbox`             | When `true`, renders as a toggle with a checkmark indicator in menus                                                                                          |
-| `isRequiredA11yAction` | When `true`, the keyboard shortcut works even when shortcuts are normally disabled (e.g., while editing a shape). Used for accessibility actions              |
-| `isAvailable`          | Optional `(editor) => boolean`. When it returns `false`, menus hide the action (see [Enabling and checking actions](#enabling-and-checking-actions))          |
-| `isEnabled`            | Optional `(editor) => boolean`. When it returns `false`, menus disable or hide the action                                                                     |
-| `isChecked`            | Optional `(editor) => boolean`. For checkbox actions, whether the item shows as checked                                                                       |
-| `onSelect`             | Handler called when the action is triggered. Receives a [TLUiEventSource](?) indicating the trigger origin (`'kbd'`, `'menu'`, `'toolbar'`, etc.)             |
+| Property               | Description                                                                                                                                                                      |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                   | Unique identifier for the action (e.g., `'duplicate'`, `'zoom-in'`)                                                                                                              |
+| `label`                | Translation key for display text. Can be a string or an object mapping contexts to different keys (see [Context-sensitive labels](#context-sensitive-labels))                    |
+| `icon`                 | Icon name from tldraw's icon set, or a custom React element                                                                                                                      |
+| `kbd`                  | Keyboard shortcut string. Use commas to bind several combinations, e.g. `'cmd+g,ctrl+g'` (see [Keyboard shortcuts](#keyboard-shortcuts))                                         |
+| `readonlyOk`           | When `true`, the action runs in readonly mode; otherwise it doesn't run, however it's triggered. Defaults to `false`                                                             |
+| `checkbox`             | When `true`, renders as a toggle with a checkmark indicator in menus                                                                                                             |
+| `isRequiredA11yAction` | When `true`, the keyboard shortcut works even when shortcuts are normally disabled (e.g., while editing a shape). Used for accessibility actions                                 |
+| `isAvailable`          | Optional `(editor) => boolean`. When it returns `false`, menus hide the action, and the action doesn't run (see [Enabling and checking actions](#enabling-and-checking-actions)) |
+| `isEnabled`            | Optional `(editor) => boolean`. When it returns `false`, menus disable or hide the action, and the action doesn't run                                                            |
+| `isChecked`            | Optional `(editor) => boolean`. For checkbox actions, whether the item shows as checked                                                                                          |
+| `onSelect`             | Handler called when the action is triggered. Receives a [TLUiEventSource](?) indicating the trigger origin (`'kbd'`, `'menu'`, `'toolbar'`, etc.)                                |
 
 ## Accessing actions
 
@@ -118,7 +118,7 @@ The default actions cover most editing operations you'd expect in a canvas appli
 | Zoom        | `zoom-in`, `zoom-out`, `zoom-to-100`, `zoom-to-fit`, `zoom-to-selection`, `select-zoom-tool`                                                                               |
 | Preferences | `toggle-dark-mode`, `toggle-snap-mode`, `toggle-grid`, `toggle-focus-mode`                                                                                                 |
 
-The full list is in the [default actions source](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx). Most actions guard themselves inside their handlers. For example, `group` and the arrangement actions do nothing unless shapes are selected and the select tool is active.
+The full list is in the [default actions source](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx). An action doesn't run when its `isAvailable` or `isEnabled` returns false, or when the editor is readonly and it isn't `readonlyOk`, including when you call `onSelect` directly. For example, `group` does nothing unless two or more unlocked shapes are selected in the select tool.
 
 ## Overriding actions
 
@@ -170,7 +170,7 @@ You can call the original handler before or after your custom logic, or replace 
 
 ### Adding custom actions
 
-Add new actions by inserting them into the actions record:
+Add new actions by inserting them into the actions record. The `actions` map passed to `overrides` isn't checked yet, so calling a built-in's `onSelect` on it from inside a custom action skips `isAvailable` and `isEnabled`. Call it through `useActions()` instead, or check the predicate first.
 
 ```typescript
 const overrides: TLUiOverrides = {
@@ -309,7 +309,7 @@ actions['make-red'] = {
 }
 ```
 
-Keyboard shortcuts ignore `isAvailable` and `isEnabled`, so `onSelect` should still check its own preconditions.
+Menus, keyboard shortcuts and direct `onSelect` calls all respect `isEnabled`, so `onSelect` doesn't need to check it again.
 
 When you change a built-in action, spread the original so it keeps its `isAvailable`, `isEnabled` and `isChecked`:
 

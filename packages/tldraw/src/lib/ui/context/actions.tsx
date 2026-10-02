@@ -75,19 +75,20 @@ export interface TLUiActionItem<
 	id: string
 	kbd?: string
 	label?: TransationKey | { [key: string]: TransationKey }
+	/** When `true`, the action runs while the editor is readonly. Defaults to `false`. */
 	readonlyOk?: boolean
 	checkbox?: boolean
 	isRequiredA11yAction?: boolean
 	/**
 	 * Whether the action exists in the current context at all, e.g. clipboard support or debug
-	 * mode. Menus hide the item when it returns false (the keyboard shortcuts dialog still lists
-	 * it); keyboard shortcuts ignore it. Must be pure and read only editor state.
+	 * mode. When false, menus hide the item (the keyboard shortcuts dialog still lists it) and the
+	 * action doesn't run, however it's called. Must be pure and read only editor state.
 	 */
 	isAvailable?(editor: Editor): boolean
 	/**
-	 * Whether the action can run now. Menus disable or hide the item when it returns false;
-	 * keyboard shortcuts ignore it. Must be pure and read only editor state: menus re-run it when
-	 * that state changes, so anything else it reads goes stale.
+	 * Whether the action can run now. When false, menus disable or hide the item and the action
+	 * doesn't run, however it's called. Must be pure and read only editor state: menus re-run it
+	 * when that state changes, so anything else it reads goes stale.
 	 */
 	isEnabled?(editor: Editor): boolean
 	/** For checkbox actions: whether the item shows as checked. Must be pure and read only editor state. */
