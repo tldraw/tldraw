@@ -3,23 +3,28 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import path from 'path'
 
-// Extracts the SDK's co-located messages and compares them to assets/translations/main.json.
+// Writes assets/translations/main.json from the messages declared through `defineMessages` and
+// `<F>`, so the English lives next to the code that shows it and the catalog is output rather
+// than a file to hand-edit.
 //
-// The SDK is mid-migration: its strings are moving out of main.json and into `defineMessages` /
-// `<F>` next to the code that renders them. Once every string has moved, extraction becomes the
-// thing that writes main.json and the catalog stops being hand-edited. Until then this runs as a
-// check, because extraction is destructive by nature: a key nobody moved into code is simply
-// absent from the output, and silently dropping it would take that string's 49 translations with
-// it — along with any override an app has keyed to it.
+//   pnpm i18n-extract              # report what's declared, and any drift
+//   pnpm i18n-extract --check      # same, but exit non-zero on drift (for CI)
+//   pnpm i18n-extract --write      # regenerate main.json
 //
-//   yarn i18n-extract              # report coverage and drift
-//   yarn i18n-extract --check      # same, but exit non-zero on drift (for CI)
-//   yarn i18n-extract --add-new    # append ids that only exist in code; never removes anything
-//   yarn i18n-extract --write      # overwrite main.json; refuses while coverage is incomplete
+// Changing an English string means editing its `defaultMessage` and running --write; main.json is
+// still committed, because it's a published asset and what gets uploaded to Lokalise. --check is
+// what keeps the two from parting ways, and so what makes "generated" true rather than a habit.
 //
-// The SDK's ids are stable names, not content hashes, so there is deliberately no
+// --write refuses if any id is in main.json but declared nowhere, which now means someone added it
+// to the catalog by hand. Writing anyway would drop it and its 49 translations, along with any
+// override an app has keyed to it.
+//
+// The ids are stable names, not content hashes, so there is deliberately no
 // --id-interpolation-pattern here: a descriptor without an id is an error, not something to
 // paper over. `action.copy` has to survive a reworded English string, because apps override by key.
+//
+// Only `packages/*` is scanned. Some of the catalog is rendered only by an app — see
+// `consumerMessages` in packages/tldraw, which declares those so they survive a write.
 
 const REPO_ROOT = path.resolve(__dirname, '../..')
 const MAIN_JSON = path.join(REPO_ROOT, 'assets/translations/main.json')
@@ -65,7 +70,6 @@ function main() {
 	const args = process.argv.slice(2)
 	const check = args.includes('--check')
 	const write = args.includes('--write')
-	const addNew = args.includes('--add-new')
 
 	const catalog: Record<string, string> = JSON.parse(readFileSync(MAIN_JSON, 'utf8'))
 	const extracted = extract()
@@ -73,21 +77,19 @@ function main() {
 	const catalogIds = new Set(Object.keys(catalog))
 	const codeIds = new Set(Object.keys(extracted))
 
-	const migrated = [...codeIds].filter((id) => catalogIds.has(id)).sort()
+	const inBoth = [...codeIds].filter((id) => catalogIds.has(id)).sort()
 	const notYetInCode = [...catalogIds].filter((id) => !codeIds.has(id)).sort()
 	const newInCode = [...codeIds].filter((id) => !catalogIds.has(id)).sort()
 
 	// A string that lives in both places has to say the same thing, or translators are working
 	// from text the user never sees.
-	const drifted = migrated.filter((id) => extracted[id].defaultMessage !== catalog[id])
+	const drifted = inBoth.filter((id) => extracted[id].defaultMessage !== catalog[id])
 
-	const pct = catalogIds.size ? Math.round((migrated.length / catalogIds.size) * 100) : 0
-	console.log(`catalog keys        : ${catalogIds.size}`)
-	console.log(`ids found in code   : ${codeIds.size}`)
-	console.log(`  already migrated  : ${migrated.length} (${pct}% of the catalog)`)
-	console.log(`  new, not in catalog: ${newInCode.length}`)
-	console.log(`still only in catalog: ${notYetInCode.length}`)
-	console.log(`text drift          : ${drifted.length}`)
+	console.log(`declared in code : ${codeIds.size}`)
+	console.log(`in main.json     : ${catalogIds.size}`)
+	console.log(`  a write adds   : ${newInCode.length}`)
+	console.log(`  a write drops  : ${notYetInCode.length}`)
+	console.log(`text drift       : ${drifted.length}`)
 
 	if (drifted.length) {
 		console.log('\nThese differ between code and main.json:')
@@ -103,22 +105,6 @@ function main() {
 		console.log('\nNew ids, would be added to the catalog:')
 		for (const id of newInCode.slice(0, 40)) console.log(`  ${id}`)
 		if (newInCode.length > 40) console.log(`  ... and ${newInCode.length - 40} more`)
-	}
-
-	// Additive counterpart to --write, for while the catalog is still the thing Lokalise uploads:
-	// a message declared in code has to reach main.json to reach a translator.
-	if (addNew) {
-		if (!newInCode.length) {
-			console.log('\nNothing to add.')
-			return
-		}
-		const raw = readFileSync(MAIN_JSON, 'utf8')
-		const tail = raw.slice(raw.lastIndexOf('}') + 1)
-		const next: Record<string, string> = { ...catalog }
-		for (const id of newInCode) next[id] = extracted[id].defaultMessage
-		writeFileSync(MAIN_JSON, JSON.stringify(next, null, '\t') + tail)
-		console.log(`\nAdded ${newInCode.length} keys to assets/translations/main.json`)
-		return
 	}
 
 	if (write) {

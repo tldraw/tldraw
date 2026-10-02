@@ -77,8 +77,16 @@ jobs:
 
       - name: Check dotcom localizations
         run: |
-          pnpm build-i18n 
+          pnpm build-i18n
           git diff --exit-code --quiet ./apps/dotcom/client/public/tla/locales/ ./apps/dotcom/client/public/tla/locales-compiled/ || (echo "Please run pnpm build-i18n and commit the changes" && exit 1)
+
+      # main.json is generated from the messages declared in the SDK's source, so a hand-edit to
+      # either side has to fail rather than reach translators as text nobody sees.
+      - name: Check SDK localizations
+        run: |
+          pnpm i18n-extract --check
+          pnpm i18n-extract --write
+          git diff --exit-code --quiet ./assets/translations/main.json || (echo "Please run pnpm i18n-extract --write and commit the changes" && exit 1)
 
       # vitest's fsModuleCache (~54MB gzipped). Entries are content-hashed, so a stale
       # restore is safe - unmatched modules are just re-transformed. Keyed on pnpm-lock.yaml so
