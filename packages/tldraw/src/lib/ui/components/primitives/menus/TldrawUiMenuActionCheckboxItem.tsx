@@ -8,7 +8,7 @@ import {
 /** @public */
 export type TLUiMenuActionCheckboxItemProps = {
 	actionId?: string
-	/** What to do when the action's `isEnabled` returns false. Defaults to `'disable'`. */
+	/** What to do when the item is disabled, by `disabled` or the action's `isEnabled`. Defaults to `'disable'`. */
 	whenDisabled?: 'hide' | 'disable'
 } & Pick<TLUiMenuCheckboxItemProps, 'disabled' | 'checked' | 'toggle'>
 
@@ -24,7 +24,7 @@ export function TldrawUiMenuActionCheckboxItem({
 	const action = actions[actionId]
 	const { visible, enabled, checked: isChecked } = useActionState(action)
 	if (!action || !visible) return null
-	if (!enabled && whenDisabled === 'hide') return null
+	if ((disabled || !enabled) && whenDisabled === 'hide') return null
 	return (
 		<TldrawUiMenuCheckboxItem
 			{...(action as TLUiMenuCheckboxItemProps)}

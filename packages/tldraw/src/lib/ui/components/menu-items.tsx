@@ -2,7 +2,11 @@ import { useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../context/actions'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
-import { useHasShapesOnPage, useUnlockedSelectedShapesCount } from '../hooks/menu-hooks'
+import {
+	useAnySelectedShapesCount,
+	useHasShapesOnPage,
+	useUnlockedSelectedShapesCount,
+} from '../hooks/menu-hooks'
 import { useSomeActionsEnabled, useSomeActionsVisible } from '../hooks/useActionState'
 import { useReadonly } from '../hooks/useReadonly'
 import { TldrawUiMenuActionCheckboxItem } from './primitives/menus/TldrawUiMenuActionCheckboxItem'
@@ -216,7 +220,8 @@ export function DeleteMenuItem() {
 
 /* --------------------- Modify --------------------- */
 
-const EDIT_ACTIONS = [
+/** @internal */
+export const EDIT_ACTIONS = [
 	'group',
 	'ungroup',
 	'flatten-to-image',
@@ -232,8 +237,11 @@ const EDIT_ACTIONS = [
 
 /** @public @react */
 export function EditMenuSubmenu() {
+	// The selection check keeps an action replaced without isEnabled from opening the submenu on
+	// an empty canvas.
+	const hasSelection = useAnySelectedShapesCount(1)
 	const show = useSomeActionsEnabled(EDIT_ACTIONS)
-	if (!show) return null
+	if (!hasSelection || !show) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="edit" label="context-menu.edit" size="small">
@@ -261,7 +269,8 @@ const ARRANGE_GROUPS: { id: string; actionIds: string[] }[] = [
 	{ id: 'flip', actionIds: ['flip-horizontal', 'flip-vertical'] },
 	{ id: 'order', actionIds: ['pack', 'stack-horizontal', 'stack-vertical'] },
 ]
-const ARRANGE_ACTIONS = ARRANGE_GROUPS.flatMap((group) => group.actionIds)
+/** @internal */
+export const ARRANGE_ACTIONS = ARRANGE_GROUPS.flatMap((group) => group.actionIds)
 
 function ActionGroup({ id, actionIds }: { id: string; actionIds: string[] }) {
 	const show = useSomeActionsEnabled(actionIds)
@@ -277,8 +286,9 @@ function ActionGroup({ id, actionIds }: { id: string; actionIds: string[] }) {
 
 /** @public @react */
 export function ArrangeMenuSubmenu() {
+	const hasSelection = useUnlockedSelectedShapesCount(1)
 	const show = useSomeActionsEnabled(ARRANGE_ACTIONS)
-	if (!show) return null
+	if (!hasSelection || !show) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="arrange" label="context-menu.arrange" size="small">
@@ -289,12 +299,14 @@ export function ArrangeMenuSubmenu() {
 	)
 }
 
-const REORDER_ACTIONS = ['bring-to-front', 'bring-forward', 'send-backward', 'send-to-back']
+/** @internal */
+export const REORDER_ACTIONS = ['bring-to-front', 'bring-forward', 'send-backward', 'send-to-back']
 
 /** @public @react */
 export function ReorderMenuSubmenu() {
+	const hasSelection = useUnlockedSelectedShapesCount(1)
 	const show = useSomeActionsEnabled(REORDER_ACTIONS)
-	if (!show) return null
+	if (!hasSelection || !show) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="reorder" label="context-menu.reorder" size="small">

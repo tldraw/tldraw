@@ -17,7 +17,20 @@ vi.hoisted(() => {
 })
 
 type Gate = 'hidden' | 'disabled' | 'enabled'
-type State = 'empty' | 'one' | 'two' | 'three' | 'lockedPair' | 'group' | 'boundArrow' | 'twoInHand'
+type State =
+	| 'empty'
+	| 'one'
+	| 'two'
+	| 'three'
+	| 'lockedPair'
+	| 'group'
+	| 'boundArrow'
+	| 'twoInHand'
+	| 'readonly'
+	| 'groupWithLocked'
+	| 'lockedGroup'
+	| 'lockedThree'
+	| 'groupInHand'
 
 const ids = {
 	a: createShapeId('a'),
@@ -27,7 +40,7 @@ const ids = {
 	group: createShapeId('group'),
 }
 
-function applyState(editor: Editor, state: State | 'readonly') {
+function applyState(editor: Editor, state: State) {
 	act(() => {
 		editor.updateInstanceState({ isReadonly: false })
 		editor.selectNone()
@@ -89,6 +102,23 @@ function applyState(editor: Editor, state: State | 'readonly') {
 			case 'twoInHand':
 				select(ids.a, ids.b)
 				return editor.setCurrentTool('hand')
+			case 'lockedGroup':
+				editor.groupShapes([ids.a, ids.b], { groupId: ids.group })
+				editor.updateShapes([{ id: ids.group, type: 'group', isLocked: true }])
+				return select(ids.group)
+			case 'lockedThree':
+				editor.updateShapes(
+					[ids.a, ids.b, ids.c].map((id) => ({ id, type: 'geo', isLocked: true }))
+				)
+				return select(ids.a, ids.b, ids.c)
+			case 'groupInHand':
+				editor.groupShapes([ids.a, ids.b], { groupId: ids.group })
+				select(ids.group)
+				return editor.setCurrentTool('hand')
+			case 'groupWithLocked':
+				editor.groupShapes([ids.a, ids.b], { groupId: ids.group })
+				editor.updateShapes([{ id: ids.c, type: 'geo', isLocked: true }])
+				return select(ids.group, ids.c)
 		}
 	})
 }
@@ -107,6 +137,15 @@ function readGates(prefix: string, actionIds: readonly string[]): Record<string,
 			return [id, gate]
 		})
 	)
+}
+
+const GATES = { H: 'hidden', D: 'disabled', E: 'enabled' } as const
+
+// Rows list one letter per column, in column order: H hidden, D disabled, E enabled.
+function expected(columns: readonly string[], row: string | undefined): Record<string, Gate> {
+	const letters = (row ?? '').split(' ') as (keyof typeof GATES)[]
+	if (letters.length !== columns.length) throw new Error(`Row "${row}" doesn't match ${columns}`)
+	return Object.fromEntries(columns.map((id, i) => [id, GATES[letters[i]]]))
 }
 
 const submenuTrigger = (prefix: string, id: string) =>
@@ -138,87 +177,19 @@ const AM_IDS = [
 	'ungroup',
 ] as const
 
-const AM: Record<State, Record<(typeof AM_IDS)[number], Gate>> = {
-	empty: {
-		'align-left': 'disabled',
-		'distribute-horizontal': 'disabled',
-		'stack-horizontal': 'disabled',
-		'bring-to-front': 'disabled',
-		'rotate-cw': 'disabled',
-		'edit-link': 'disabled',
-		group: 'disabled',
-		ungroup: 'hidden',
-	},
-	one: {
-		'align-left': 'disabled',
-		'distribute-horizontal': 'disabled',
-		'stack-horizontal': 'disabled',
-		'bring-to-front': 'enabled',
-		'rotate-cw': 'enabled',
-		'edit-link': 'enabled' /* geo has a url prop */,
-		group: 'disabled',
-		ungroup: 'hidden',
-	},
-	two: {
-		'align-left': 'enabled',
-		'distribute-horizontal': 'disabled',
-		'stack-horizontal': 'disabled',
-		'bring-to-front': 'enabled',
-		'rotate-cw': 'enabled',
-		'edit-link': 'disabled',
-		group: 'enabled',
-		ungroup: 'hidden',
-	},
-	three: {
-		'align-left': 'enabled',
-		'distribute-horizontal': 'enabled',
-		'stack-horizontal': 'enabled',
-		'bring-to-front': 'enabled',
-		'rotate-cw': 'enabled',
-		'edit-link': 'disabled',
-		group: 'enabled',
-		ungroup: 'hidden',
-	},
-	lockedPair: {
-		'align-left': 'disabled',
-		'distribute-horizontal': 'disabled',
-		'stack-horizontal': 'disabled',
-		'bring-to-front': 'disabled',
-		'rotate-cw': 'disabled',
-		'edit-link': 'disabled',
-		group: 'disabled',
-		ungroup: 'hidden',
-	},
-	group: {
-		'align-left': 'disabled',
-		'distribute-horizontal': 'disabled',
-		'stack-horizontal': 'disabled',
-		'bring-to-front': 'enabled',
-		'rotate-cw': 'enabled',
-		'edit-link': 'disabled',
-		group: 'hidden',
-		ungroup: 'enabled',
-	},
-	boundArrow: {
-		'align-left': 'enabled',
-		'distribute-horizontal': 'enabled',
-		'stack-horizontal': 'disabled',
-		'bring-to-front': 'enabled',
-		'rotate-cw': 'enabled',
-		'edit-link': 'disabled',
-		group: 'disabled', // changed: arrow bound outside the selection blocks group
-		ungroup: 'hidden',
-	},
-	twoInHand: {
-		'align-left': 'disabled',
-		'distribute-horizontal': 'disabled',
-		'stack-horizontal': 'disabled',
-		'bring-to-front': 'disabled',
-		'rotate-cw': 'disabled',
-		'edit-link': 'disabled',
-		group: 'disabled',
-		ungroup: 'hidden',
-	},
+const AM: Partial<Record<State, string>> = {
+	empty: 'D D D D D D D H',
+	one: 'D D D E E E D H', // edit-link: a geo shape has a url prop
+	two: 'E D D E E D E H',
+	three: 'E E E E E D E H',
+	lockedPair: 'D D D D D D D H',
+	group: 'D D D E E D H E',
+	boundArrow: 'E E D E E D D H', // group: an arrow bound outside the selection blocks it
+	twoInHand: 'D D D D D D D H',
+	groupWithLocked: 'D D D E E D H E', // group needs 2 unlocked shapes, so Ungroup shows
+	lockedGroup: 'D D D D D D D H', // a locked group can't be ungrouped, so Group shows
+	lockedThree: 'D D D D D D D H', // stack: locked shapes don't count
+	groupInHand: 'D D D D D D D H', // ungroup needs the select tool, so Group shows
 }
 
 describe('toolbar actions menu gating', () => {
@@ -231,7 +202,7 @@ describe('toolbar actions menu gating', () => {
 			</TldrawUiToolbar>
 		)
 		applyState(editor, state)
-		expect(readGates('actions-menu', AM_IDS)).toEqual(AM[state])
+		expect(readGates('actions-menu', AM_IDS)).toEqual(expected(AM_IDS, AM[state]))
 	})
 })
 
@@ -239,15 +210,11 @@ describe('toolbar actions menu gating', () => {
 
 const QA_IDS = ['delete', 'duplicate'] as const
 
-const QA: Record<State, Record<(typeof QA_IDS)[number], Gate>> = {
-	empty: { delete: 'disabled', duplicate: 'disabled' },
-	one: { delete: 'enabled', duplicate: 'enabled' },
-	two: { delete: 'enabled', duplicate: 'enabled' },
-	three: { delete: 'enabled', duplicate: 'enabled' },
-	lockedPair: { delete: 'disabled', duplicate: 'disabled' },
-	group: { delete: 'enabled', duplicate: 'enabled' },
-	boundArrow: { delete: 'enabled', duplicate: 'enabled' },
-	twoInHand: { delete: 'disabled', duplicate: 'disabled' },
+const QA: Partial<Record<State, string>> = {
+	empty: 'D D',
+	one: 'E E',
+	lockedPair: 'D D',
+	twoInHand: 'D D',
 }
 
 describe('quick actions gating', () => {
@@ -260,7 +227,7 @@ describe('quick actions gating', () => {
 			</TldrawUiToolbar>
 		)
 		applyState(editor, state)
-		expect(readGates('quick-actions', QA_IDS)).toEqual(QA[state])
+		expect(readGates('quick-actions', QA_IDS)).toEqual(expected(QA_IDS, QA[state]))
 	})
 })
 
@@ -284,158 +251,24 @@ const CM_IDS = [
 ] as const
 const CM_SUBMENUS = ['edit', 'arrange', 'reorder'] as const
 
-type CmRow = Record<(typeof CM_IDS)[number] | `sub:${(typeof CM_SUBMENUS)[number]}`, Gate>
+const CM_COLUMNS = [...CM_IDS, ...CM_SUBMENUS.map((id) => `sub:${id}`)]
 
-// twoInHand is left out: the context menu only opens through the select tool.
-const CM: Record<Exclude<State, 'twoInHand'> | 'readonly', CmRow> = {
-	readonly: {
-		group: 'hidden',
-		ungroup: 'hidden',
-		duplicate: 'hidden',
-		'toggle-lock': 'hidden',
-		cut: 'hidden',
-		copy: 'enabled',
-		delete: 'hidden',
-		'select-all': 'enabled',
-		'align-left': 'hidden',
-		'distribute-horizontal': 'hidden',
-		'flip-horizontal': 'hidden',
-		'stack-horizontal': 'hidden',
-		'bring-to-front': 'hidden',
-		'sub:edit': 'hidden',
-		'sub:arrange': 'hidden',
-		'sub:reorder': 'hidden',
-	},
-	empty: {
-		group: 'hidden',
-		ungroup: 'hidden',
-		duplicate: 'hidden',
-		'toggle-lock': 'hidden',
-		cut: 'hidden',
-		copy: 'hidden',
-		delete: 'hidden',
-		'select-all': 'hidden',
-		'align-left': 'hidden',
-		'distribute-horizontal': 'hidden',
-		'flip-horizontal': 'hidden',
-		'stack-horizontal': 'hidden',
-		'bring-to-front': 'hidden',
-		'sub:edit': 'hidden',
-		'sub:arrange': 'hidden',
-		'sub:reorder': 'hidden',
-	},
-	one: {
-		group: 'hidden',
-		ungroup: 'hidden',
-		duplicate: 'enabled',
-		'toggle-lock': 'enabled',
-		cut: 'enabled',
-		copy: 'enabled',
-		delete: 'enabled',
-		'select-all': 'enabled',
-		'align-left': 'hidden',
-		'distribute-horizontal': 'hidden',
-		'flip-horizontal': 'enabled',
-		'stack-horizontal': 'hidden',
-		'bring-to-front': 'enabled',
-		'sub:edit': 'enabled',
-		'sub:arrange': 'enabled',
-		'sub:reorder': 'enabled',
-	},
-	two: {
-		group: 'enabled',
-		ungroup: 'hidden',
-		duplicate: 'enabled',
-		'toggle-lock': 'enabled',
-		cut: 'enabled',
-		copy: 'enabled',
-		delete: 'enabled',
-		'select-all': 'enabled',
-		'align-left': 'enabled',
-		'distribute-horizontal': 'hidden',
-		'flip-horizontal': 'enabled',
-		'stack-horizontal': 'hidden',
-		'bring-to-front': 'enabled',
-		'sub:edit': 'enabled',
-		'sub:arrange': 'enabled',
-		'sub:reorder': 'enabled',
-	},
-	three: {
-		group: 'enabled',
-		ungroup: 'hidden',
-		duplicate: 'enabled',
-		'toggle-lock': 'enabled',
-		cut: 'enabled',
-		copy: 'enabled',
-		delete: 'enabled',
-		'select-all': 'enabled',
-		'align-left': 'enabled',
-		'distribute-horizontal': 'enabled',
-		'flip-horizontal': 'enabled',
-		'stack-horizontal': 'enabled',
-		'bring-to-front': 'enabled',
-		'sub:edit': 'enabled',
-		'sub:arrange': 'enabled',
-		'sub:reorder': 'enabled',
-	},
-	lockedPair: {
-		group: 'hidden', // changed: group needs 2 unlocked shapes
-		ungroup: 'hidden',
-		duplicate: 'hidden',
-		'toggle-lock': 'enabled',
-		cut: 'hidden',
-		copy: 'enabled',
-		delete: 'hidden',
-		'select-all': 'enabled',
-		'align-left': 'hidden',
-		'distribute-horizontal': 'hidden',
-		'flip-horizontal': 'hidden',
-		'stack-horizontal': 'hidden',
-		'bring-to-front': 'hidden',
-		'sub:edit': 'enabled',
-		'sub:arrange': 'hidden',
-		'sub:reorder': 'hidden',
-	},
-	group: {
-		group: 'hidden',
-		ungroup: 'enabled',
-		duplicate: 'enabled',
-		'toggle-lock': 'enabled',
-		cut: 'enabled',
-		copy: 'enabled',
-		delete: 'enabled',
-		'select-all': 'enabled',
-		'align-left': 'hidden',
-		'distribute-horizontal': 'hidden',
-		'flip-horizontal': 'enabled',
-		'stack-horizontal': 'hidden',
-		'bring-to-front': 'enabled',
-		'sub:edit': 'enabled',
-		'sub:arrange': 'enabled',
-		'sub:reorder': 'enabled',
-	},
-	boundArrow: {
-		group: 'hidden',
-		ungroup: 'hidden',
-		duplicate: 'enabled',
-		'toggle-lock': 'enabled',
-		cut: 'enabled',
-		copy: 'enabled',
-		delete: 'enabled',
-		'select-all': 'enabled',
-		'align-left': 'enabled',
-		'distribute-horizontal': 'enabled',
-		'flip-horizontal': 'enabled',
-		'stack-horizontal': 'hidden',
-		'bring-to-front': 'enabled',
-		'sub:edit': 'enabled',
-		'sub:arrange': 'enabled',
-		'sub:reorder': 'enabled',
-	},
+// twoInHand and groupInHand are left out: the context menu only opens through the select tool.
+const CM: Partial<Record<State, string>> = {
+	empty: 'H H H H H H H H H H H H H H H H',
+	one: 'H H E E E E E E H H E H E E E E',
+	two: 'E H E E E E E E E H E H E E E E',
+	three: 'E H E E E E E E E E E E E E E E',
+	lockedPair: 'H H H E H E H E H H H H H E H H', // group: needs 2 unlocked shapes
+	group: 'H E E E E E E E H H E H E E E E',
+	boundArrow: 'H H E E E E E E E E E H E E E E',
+	readonly: 'H H H H H E H E H H H H H H H H',
+	lockedGroup: 'H H H E H E H E H H H H H E H H', // ungroup, flip: skip a locked group
+	lockedThree: 'H H H E H E H E H H H H H E H H', // group: needs 2 unlocked shapes
 }
 
 describe('context menu gating', () => {
-	it.each(Object.keys(CM) as (keyof typeof CM)[])('%s', async (state) => {
+	it.each(Object.keys(CM) as State[])('%s', async (state) => {
 		const editor = await renderWith()
 		applyState(editor, state)
 		const selected = editor.getSelectedShapeIds()
@@ -450,7 +283,9 @@ describe('context menu gating', () => {
 			if (subs[`sub:${id}`] === 'enabled')
 				act(() => editor.menus.addOpenMenu(`context-menu-sub.${id}`))
 		}
-		expect({ ...readGates('context-menu', CM_IDS), ...subs }).toEqual(CM[state])
+		expect({ ...readGates('context-menu', CM_IDS), ...subs }).toEqual(
+			expected(CM_COLUMNS, CM[state])
+		)
 	})
 })
 
@@ -471,70 +306,16 @@ const MM_IDS = [
 	'export-all-as-svg',
 ] as const
 
-type MmRow = Record<(typeof MM_IDS)[number], Gate>
-
 // twoInHand is left out: changing tools closes open menus.
-const MM: Record<'empty' | 'one' | 'lockedPair' | 'group', MmRow> = {
-	empty: {
-		cut: 'disabled',
-		copy: 'disabled',
-		duplicate: 'hidden',
-		delete: 'disabled',
-		group: 'hidden',
-		ungroup: 'hidden',
-		'toggle-lock': 'hidden',
-		'unlock-all': 'disabled',
-		'select-all': 'disabled',
-		'zoom-to-fit': 'disabled',
-		'zoom-to-selection': 'disabled',
-		'export-all-as-svg': 'disabled', // changed: export all disabled on an empty page
-	},
-	one: {
-		cut: 'enabled',
-		copy: 'enabled',
-		duplicate: 'enabled',
-		delete: 'enabled',
-		group: 'hidden',
-		ungroup: 'hidden',
-		'toggle-lock': 'enabled',
-		'unlock-all': 'disabled', // changed: nothing locked
-		'select-all': 'enabled',
-		'zoom-to-fit': 'enabled',
-		'zoom-to-selection': 'enabled',
-		'export-all-as-svg': 'enabled',
-	},
-	lockedPair: {
-		cut: 'disabled',
-		copy: 'enabled',
-		duplicate: 'hidden',
-		delete: 'disabled',
-		group: 'hidden', // changed: group needs 2 unlocked shapes
-		ungroup: 'hidden',
-		'toggle-lock': 'enabled',
-		'unlock-all': 'enabled',
-		'select-all': 'enabled',
-		'zoom-to-fit': 'enabled',
-		'zoom-to-selection': 'enabled',
-		'export-all-as-svg': 'enabled',
-	},
-	group: {
-		cut: 'enabled',
-		copy: 'enabled',
-		duplicate: 'enabled',
-		delete: 'enabled',
-		group: 'hidden',
-		ungroup: 'enabled',
-		'toggle-lock': 'enabled',
-		'unlock-all': 'disabled', // changed: nothing locked
-		'select-all': 'enabled',
-		'zoom-to-fit': 'enabled',
-		'zoom-to-selection': 'enabled',
-		'export-all-as-svg': 'enabled',
-	},
+const MM: Partial<Record<State, string>> = {
+	empty: 'D D H D H H H D D D D D', // export-all: disabled on an empty page
+	one: 'E E E E H H E D E E E E', // unlock-all: nothing is locked
+	lockedPair: 'D E H D H H E E E E E E', // group: needs 2 unlocked shapes
+	group: 'E E E E H E E D E E E E', // unlock-all: nothing is locked
 }
 
 describe('main menu gating', () => {
-	it.each(Object.keys(MM) as (keyof typeof MM)[])('%s', async (state) => {
+	it.each(Object.keys(MM) as State[])('%s', async (state) => {
 		const editor = await renderWith()
 		applyState(editor, state)
 		act(() => editor.menus.addOpenMenu('main menu'))
@@ -550,6 +331,6 @@ describe('main menu gating', () => {
 				if (gate !== 'hidden') merged[id] = gate
 			}
 		}
-		expect(merged).toEqual(MM[state])
+		expect(merged).toEqual(expected(MM_IDS, MM[state]))
 	})
 })

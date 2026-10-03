@@ -60,7 +60,6 @@ describe('built-in action isEnabled', () => {
 			'bring-to-front',
 			'rotate-cw',
 			'align-left',
-			'distribute-horizontal',
 			'group',
 			'toggle-lock',
 			'copy',
@@ -73,7 +72,6 @@ describe('built-in action isEnabled', () => {
 			'bring-to-front': true,
 			'rotate-cw': true,
 			'align-left': true,
-			'distribute-horizontal': false,
 			group: true,
 			'toggle-lock': true,
 			copy: true,
@@ -86,7 +84,6 @@ describe('built-in action isEnabled', () => {
 			'bring-to-front': false,
 			'rotate-cw': false,
 			'align-left': false,
-			'distribute-horizontal': false,
 			group: false,
 			'toggle-lock': false,
 			copy: false,
@@ -103,7 +100,6 @@ describe('built-in action isEnabled', () => {
 			'bring-to-front': true,
 			'rotate-cw': true,
 			'align-left': false,
-			'distribute-horizontal': false,
 			group: false,
 			'toggle-lock': true,
 			copy: true,
@@ -180,10 +176,40 @@ describe('built-in action isEnabled', () => {
 			'bring-forward': oneGeo,
 			'send-backward': oneGeo,
 			'send-to-back': oneGeo,
+			'rotate-cw': oneGeo,
+			'rotate-ccw': oneGeo,
+			'enlarge-shapes': oneGeo,
+			'shrink-shapes': oneGeo,
+			duplicate: oneGeo,
+			delete: oneGeo,
+			cut: oneGeo,
+			copy: oneGeo,
+			'toggle-lock': oneGeo,
+			'select-none': oneGeo,
+			'zoom-to-selection': oneGeo,
+			group: twoGeo,
+			'align-left': twoGeo,
+			'align-center-horizontal': twoGeo,
+			'align-right': twoGeo,
+			'align-top': twoGeo,
+			'align-center-vertical': twoGeo,
+			'align-bottom': twoGeo,
+			'stretch-horizontal': twoGeo,
+			'stretch-vertical': twoGeo,
+			'distribute-horizontal': threeGeo,
+			'distribute-vertical': threeGeo,
 		}
 		function oneGeo(editor: Editor) {
 			editor.createShapes([geo(g1)])
 			editor.select(g1)
+		}
+		function twoGeo(editor: Editor) {
+			editor.createShapes([geo(g1), geo(g2, 200)])
+			editor.select(g1, g2)
+		}
+		function threeGeo(editor: Editor) {
+			editor.createShapes([geo(g1), geo(g2, 200), geo(g3, 400)])
+			editor.select(g1, g2, g3)
 		}
 
 		it.each(Object.keys(setups))(

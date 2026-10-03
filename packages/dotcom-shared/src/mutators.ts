@@ -179,6 +179,11 @@ const USER_PREFERENCE_VALIDATORS = {
 
 export type TlaUserPreferenceKey = keyof typeof USER_PREFERENCE_VALIDATORS
 
+/** The keys `updateUserPreferences` accepts, for callers that narrow it further. */
+export const USER_PREFERENCE_KEYS = Object.keys(
+	USER_PREFERENCE_VALIDATORS
+) as readonly TlaUserPreferenceKey[]
+
 export function createMutators(userId: string) {
 	const mutators = {
 		user: {

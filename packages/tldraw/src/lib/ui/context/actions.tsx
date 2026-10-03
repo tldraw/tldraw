@@ -31,7 +31,6 @@ import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../util
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
-import { DefaultKeyboardShortcutsDialog } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -81,15 +80,16 @@ export interface TLUiActionItem<
 	/**
 	 * Whether the action exists in the current context at all, e.g. clipboard support or debug
 	 * mode. Menus hide the item when it returns false (the keyboard shortcuts dialog still lists
-	 * it); keyboard shortcuts ignore it. Must be pure.
+	 * it); keyboard shortcuts ignore it. Must be pure and read only editor state.
 	 */
 	isAvailable?(editor: Editor): boolean
 	/**
 	 * Whether the action can run now. Menus disable or hide the item when it returns false;
-	 * keyboard shortcuts ignore it. Must be pure: it runs reactively on every render.
+	 * keyboard shortcuts ignore it. Must be pure and read only editor state: menus re-run it when
+	 * that state changes, so anything else it reads goes stale.
 	 */
 	isEnabled?(editor: Editor): boolean
-	/** For checkbox actions: whether the item shows as checked. Must be pure. */
+	/** For checkbox actions: whether the item shows as checked. Must be pure and read only editor state. */
 	isChecked?(editor: Editor): boolean
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
@@ -253,10 +253,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.open-kbd-shortcuts',
 				kbd: 'cmd+alt+/,ctrl+alt+/',
 				onSelect(source) {
+					const { KeyboardShortcutsDialog } = components
+					if (!KeyboardShortcutsDialog) return
 					trackEvent('open-kbd-shortcuts', { source })
-					helpers.addDialog({
-						component: components.KeyboardShortcutsDialog ?? DefaultKeyboardShortcutsDialog,
-					})
+					helpers.addDialog({ component: KeyboardShortcutsDialog })
 				},
 			},
 			{

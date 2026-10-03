@@ -5164,7 +5164,7 @@ export interface TLUiEventMap {
     'reset-zoom': null;
     // (undocumented)
     'rich-text': {
-        operation: 'bold' | 'bulletList' | 'heading' | 'link-edit' | 'link-remove' | 'link-visit' | 'link' | 'strike';
+        operation: 'bold' | 'bulletList' | 'code' | 'heading' | 'highlight' | 'italic' | 'link-edit' | 'link-remove' | 'link-visit' | 'link' | 'strike';
     };
     // (undocumented)
     'rotate-ccw': {

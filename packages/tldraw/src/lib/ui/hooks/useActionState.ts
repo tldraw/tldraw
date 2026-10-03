@@ -28,12 +28,39 @@ export function getActionState(
 ): TLUiActionState {
 	if (!action) return MISSING
 	if (!editor) return NO_EDITOR
-	const visible = isActionVisible(editor, action)
-	return {
-		visible,
-		enabled: visible && isActionEnabled(editor, action),
-		checked: action.isChecked?.(editor),
+	return readActionState(editor, action)
+}
+
+function readActionState(editor: Editor, action: TLUiActionItem): TLUiActionState {
+	// These run from always-mounted menus, so a throw would take down the whole editor rather than
+	// one menu item. A throw disables the item instead; it stays visible unless readonly hides it.
+	let threw = false
+	function tryPredicate<T>(name: string, run: () => T, fallback: T): T {
+		try {
+			return run()
+		} catch (error) {
+			threw = true
+			reportThrowingPredicate(action, name, error)
+			return fallback
+		}
 	}
+	const visible = tryPredicate(
+		'isAvailable',
+		() => isActionVisible(editor, action),
+		!editor.getIsReadonly() || !!action.readonlyOk
+	)
+	const enabled = visible && tryPredicate('isEnabled', () => isActionEnabled(editor, action), false)
+	const checked = tryPredicate('isChecked', () => action.isChecked?.(editor), undefined)
+	return { visible, enabled: enabled && !threw, checked }
+}
+
+const reportedPredicates = new Set<string>()
+
+function reportThrowingPredicate(action: TLUiActionItem, name: string, error: unknown) {
+	const key = `${action.id}:${name}`
+	if (reportedPredicates.has(key)) return
+	reportedPredicates.add(key)
+	console.error(`The "${action.id}" action's ${name} threw`, error)
 }
 
 function isSameState(a: TLUiActionState, b: TLUiActionState) {
@@ -73,9 +100,10 @@ function useSomeActions(
 }
 
 /**
- * Whether any of the given actions would show and be enabled. Unknown ids, unavailable actions,
- * and actions that aren't `readonlyOk` while the editor is readonly count as not shown. Use it to hide a submenu
- * whose items would all be hidden; a closed submenu doesn't mount its items, so it can't ask them.
+ * Whether any of the given actions is available and enabled. Unknown ids, unavailable actions,
+ * and actions that aren't `readonlyOk` while the editor is readonly count as not enabled. Use it to
+ * hide a submenu when none of its items can run; a closed submenu doesn't mount its items, so it
+ * can't ask them.
  *
  * @public
  */

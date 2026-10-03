@@ -4,8 +4,9 @@ import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
 import { getFrameableShapeIds } from '../../utils/frames/frames'
 import { getSelectedLinkShape } from '../../utils/shapes/shapes'
 
-// Shared by action isEnabled/isChecked and the menu hooks, so the two can't drift.
-// Every function must stay pure: they run inside useValue on every render.
+// Shared by action isAvailable/isEnabled and the menu hooks, so the two can't drift.
+// Every function must stay pure and read only editor state or values fixed for the session (like
+// clipboard support): menus re-run them when editor state changes, so anything else goes stale.
 
 /** @internal */
 export function canApplySelectionAction(editor: Editor) {
@@ -42,7 +43,7 @@ export function isGroupAllowed(editor: Editor) {
 	if (!hasUnlockedSelection(editor, 2)) return false
 	const selected = editor.getSelectedShapes()
 	const selectedIds = new Set(selected.map((s) => s.id))
-	// Grouping an arrow away from a shape it's bound to would break the binding.
+	// An arrow grouped without a shape it's bound to gets reparented back out of the group.
 	for (const shape of selected) {
 		if (!editor.isShapeOfType(shape, 'arrow')) continue
 		const { start, end } = getArrowBindings(editor, shape)
