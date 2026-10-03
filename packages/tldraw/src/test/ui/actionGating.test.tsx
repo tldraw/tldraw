@@ -1,6 +1,7 @@
 import { act } from '@testing-library/react'
 import { createShapeId, Editor, TLShapeId } from '@tldraw/editor'
 import { useEffect } from 'react'
+import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import { TLUiActionsContextType, useActions } from '../../lib/ui/context/actions'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
@@ -230,6 +231,45 @@ describe('built-in action isEnabled', () => {
 				editor.select(g1)
 			})
 			expect(actions()['flip-horizontal'].isEnabled!(editor)).toBe(false)
+		})
+
+		describe.each([
+			['flip-horizontal', 'horizontal', 'x'],
+			['flip-vertical', 'vertical', 'y'],
+		] as const)('%s shortcut', (actionId, direction, axis) => {
+			it('flips a lone shape that can flip', async () => {
+				const { editor, actions } = await setup()
+				act(() => {
+					editor.createShape(geo(g1))
+					editor.select(g1)
+				})
+				const flipShapes = vi.spyOn(editor, 'flipShapes')
+				act(() => actions()[actionId].onSelect('kbd'))
+				expect(flipShapes).toHaveBeenCalledExactlyOnceWith([g1], direction)
+			})
+
+			it('ignores a lone shape that cannot flip', async () => {
+				const { editor, actions } = await setup()
+				act(() => {
+					editor.createShape({ id: g1, type: 'text', x: 0, y: 0 })
+					editor.select(g1)
+				})
+				expect(actions()[actionId].isEnabled!(editor)).toBe(false)
+				const flipShapes = vi.spyOn(editor, 'flipShapes')
+				act(() => actions()[actionId].onSelect('kbd'))
+				expect(flipShapes).not.toHaveBeenCalled()
+			})
+
+			it('still moves shapes that cannot flip in a mixed selection', async () => {
+				const { editor, actions } = await setup()
+				act(() => {
+					editor.createShapes([geo(g1), { id: g2, type: 'text', x: 200, y: 200 }])
+					editor.select(g1, g2)
+				})
+				act(() => actions()[actionId].onSelect('kbd'))
+				expect(editor.getShape(g1)![axis]).toBeGreaterThan(0)
+				expect(editor.getShape(g2)![axis]).toBeLessThan(200)
+			})
 		})
 	})
 

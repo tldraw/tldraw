@@ -8,8 +8,6 @@ import { getSelectedLinkShape } from '../../utils/shapes/shapes'
 // Every function must stay pure and read only editor state or values fixed for the session (like
 // clipboard support): menus re-run them when editor state changes, so anything else goes stale.
 
-const FLIPPABLE_TYPES = new Set(['group', 'image', 'arrow', 'line', 'draw', 'geo'])
-
 /** @internal */
 export function canApplySelectionAction(editor: Editor) {
 	return editor.isIn('select') && editor.getSelectedShapeIds().length > 0
@@ -73,7 +71,19 @@ export function hasThreeStackableShapes(editor: Editor) {
 /** @internal */
 export function isOnlyFlippableShapeSelected(editor: Editor) {
 	const shape = editor.getOnlySelectedShape()
-	return !!shape && FLIPPABLE_TYPES.has(shape.type) && !editor.isShapeOrAncestorLocked(shape)
+	if (!shape || editor.isShapeOrAncestorLocked(shape)) return false
+	const util = editor.getShapeUtil(shape)
+	// A lone bound arrow opts out of the flip via canBeLaidOut, so flipping it would do nothing.
+	return util.canFlip(shape) && util.canBeLaidOut(shape, { type: 'flip', shapes: [shape] })
+}
+
+// Flip's onSelect checks this too: shortcuts skip isEnabled.
+/** @internal */
+export function canFlipSelection(editor: Editor) {
+	return (
+		editor.isIn('select') &&
+		(hasUnlockedSelection(editor, 2) || isOnlyFlippableShapeSelected(editor))
+	)
 }
 
 /** @internal */

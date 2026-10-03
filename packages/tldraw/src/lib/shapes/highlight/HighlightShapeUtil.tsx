@@ -223,6 +223,10 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		)
 	}
 
+	override canFlip() {
+		return true
+	}
+
 	override onResize(shape: TLHighlightShape, info: TLResizeInfo<TLHighlightShape>) {
 		const newScaleX = info.scaleX * shape.props.scaleX
 		const newScaleY = info.scaleY * shape.props.scaleY
