@@ -4,6 +4,7 @@ import { ReactNode } from 'react'
 import { useTldrawUiComponents } from '../../context/components'
 import { useCollaborationStatus } from '../../hooks/useCollaborationStatus'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useMenuWheelPassThrough } from '../../hooks/useMenuWheelPassThrough'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { OfflineIndicator } from '../OfflineIndicator/OfflineIndicator'
 import { DefaultPeopleMenuContent } from './DefaultPeopleMenuContent'
@@ -19,6 +20,7 @@ export function DefaultPeopleMenu({ children }: DefaultPeopleMenuProps) {
 	const dir = useDirection()
 
 	const container = useContainer()
+	const setMenuContent = useMenuWheelPassThrough()
 	const editor = useEditor()
 
 	const userIds = usePeerIds()
@@ -52,6 +54,7 @@ export function DefaultPeopleMenu({ children }: DefaultPeopleMenuProps) {
 			</_Popover.Trigger>
 			<_Popover.Portal container={container}>
 				<_Popover.Content
+					ref={setMenuContent}
 					dir={dir}
 					className="tlui-menu"
 					side="bottom"
