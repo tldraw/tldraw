@@ -8,7 +8,7 @@ import { getOwnerWindow } from './domUtils'
 import { embedMedia } from './embedMedia'
 import { SVG_EXPORT_CLASSNAME } from './FontEmbedder'
 import { getSvgJsx } from './getSvgJsx'
-import { StyleEmbedder } from './StyleEmbedder'
+import { ExportStyleCache, StyleEmbedder } from './StyleEmbedder'
 
 let idCounter = 1
 
@@ -69,7 +69,7 @@ export async function exportToSvg(
 		// would expect them to. But when we pull the SVG into its own file or draw it to a canvas
 		// though, it has to be completely self-contained. We embed any external resources, and
 		// apply any styles directly to the elements themselves.
-		await applyChangesToForeignObjects(svg)
+		await applyChangesToForeignObjects(svg, opts.styleCache)
 
 		return { svg, width: result.width, height: result.height, trimPadding: result.trimPadding }
 	} finally {
@@ -83,7 +83,7 @@ export async function exportToSvg(
 	}
 }
 
-async function applyChangesToForeignObjects(svg: SVGSVGElement) {
+async function applyChangesToForeignObjects(svg: SVGSVGElement, styleCache?: ExportStyleCache) {
 	// If any shapes have their own <foreignObject> elements, we don't want to mess with them. Our
 	// ones that we need to embed will have a class of `tl-export-embed-styles`.
 	const foreignObjectChildren = [
@@ -92,7 +92,7 @@ async function applyChangesToForeignObjects(svg: SVGSVGElement) {
 	if (!foreignObjectChildren.length) return
 
 	// StyleEmbedder embeds any CSS - including resources like fonts and images.
-	const styleEmbedder = new StyleEmbedder(svg)
+	const styleEmbedder = new StyleEmbedder(svg, styleCache)
 
 	try {
 		// begin traversing stylesheets to find @font-face declarations we might need to embed
