@@ -1737,6 +1737,52 @@ describe('When resizing a frame', () => {
 	})
 })
 
+describe('reconciling remote reparents', () => {
+	it('kicks a shape back to the page when a remote merge parents it to a frame it no longer overlaps', () => {
+		// A concurrent gulp + move can merge field-by-field into an incoherent record: parentId from
+		// the client that dropped the shape into the frame, x/y from the client that moved it on the
+		// page. The shape ends up parented to the frame while sitting far outside it ("offshot"). We
+		// simulate that merged record directly by swapping only the parent on a remote change.
+		const frameId = createShapeId('frame')
+		editor.createShape({ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+		const boxId = createShapeId('box')
+		editor.createShape({ id: boxId, type: 'geo', x: 500, y: 50, props: { w: 40, h: 20 } })
+		expect(editor.getShape(boxId)!.parentId).toBe(editor.getCurrentPageId())
+
+		editor.store.mergeRemoteChanges(() => {
+			editor.store.update(boxId, (r) => ({ ...r, parentId: frameId }))
+		})
+
+		// the shape is reconciled back onto the page, with parentId and transform agreeing again
+		expect(editor.getShape(boxId)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ x: 500, y: 50, w: 40, h: 20 })
+	})
+
+	it('leaves a remotely moved shape alone when it still overlaps its frame parent', () => {
+		const frameId = createShapeId('frame')
+		editor.createShape({ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+		const boxId = createShapeId('box')
+		editor.createShape({
+			id: boxId,
+			type: 'geo',
+			parentId: frameId,
+			x: 10,
+			y: 10,
+			props: { w: 20, h: 20 },
+		})
+		expect(editor.getShape(boxId)!.parentId).toBe(frameId)
+
+		// a remote move that keeps the shape inside the frame must not trigger a kickout
+		editor.store.mergeRemoteChanges(() => {
+			editor.store.update(boxId, (r) => ({ ...r, x: 40, y: 40 }))
+		})
+
+		expect(editor.getShape(boxId)!.parentId).toBe(frameId)
+	})
+})
+
 it('avoids crash when dragging into descendant', () => {
 	const frame1id = dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
 	const frame2id = dragCreateFrame({ down: [50, 50], move: [150, -50], up: [150, -50] })
