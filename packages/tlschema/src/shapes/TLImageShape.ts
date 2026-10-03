@@ -1,6 +1,7 @@
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
 import { vecModelValidator } from '../misc/geometry-types'
+import { isPreDeepLinkUrl } from '../misc/linkUrl'
 import { TLAssetId } from '../records/TLAsset'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
@@ -137,6 +138,7 @@ const Versions = createShapePropsMigrationIds('image', {
 	MakeUrlsValid: 3,
 	AddFlipProps: 4,
 	AddAltText: 5,
+	AllowDeepLinkUrls: 6,
 })
 
 /**
@@ -201,6 +203,17 @@ export const imageShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.altText
+			},
+		},
+		{
+			id: Versions.AllowDeepLinkUrls,
+			up: (_props) => {
+				// noop: every url valid before is still valid
+			},
+			down: (props) => {
+				if (!isPreDeepLinkUrl(props.url)) {
+					props.url = ''
+				}
 			},
 		},
 	],
