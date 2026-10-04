@@ -167,7 +167,6 @@ const router = createRouter<Environment>()
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.post(`/app/file/:roomId/restore`, forwardRoomRequest)
 	.post('/app/:userId/init', async (req, env) => {
-		// Ensure user exists in DB before Zero can query
 		const auth = await requireAuth(req, env)
 		if (req.params.userId !== auth.userId) return notFound()
 		return initUser(req, env)

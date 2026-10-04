@@ -174,8 +174,10 @@ export function TlaSidebarFileLinkInner({
 		editor,
 	])
 
+	const hasAdminRights = useHasFileAdminRights(fileId)
+
 	const handleKeyDown = (e: KeyboardEvent) => {
-		if (!isActive) return
+		if (!isActive || !hasAdminRights) return
 		if (e.key === 'Enter') {
 			handleRenameAction()
 		}
@@ -197,7 +199,6 @@ export function TlaSidebarFileLinkInner({
 	}, [isActive, linkRef, editor])
 
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
-	const hasAdminRights = useHasFileAdminRights(fileId)
 
 	// disable dragging on mobile
 	const isDragEnabled = !getIsCoarsePointer()

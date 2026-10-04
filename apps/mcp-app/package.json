@@ -16,7 +16,8 @@
 		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
 		"test": "pnpm exec vitest --passWithNoTests",
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
-		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"@modelcontextprotocol/ext-apps": "^1.0.0",

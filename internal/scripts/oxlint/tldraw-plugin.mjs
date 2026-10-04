@@ -25,7 +25,7 @@ const SKIPPED_DIR_NAMES = new Set([
 	'dist',
 	'dist-cjs',
 	'dist-esm',
-	'.lazy',
+	'.turbo',
 	'.next',
 	'.wrangler',
 	'.vercel',

@@ -9,6 +9,7 @@ import {
 	getLatestTldrawVersionFromNpm,
 	publish,
 	publishProductionDocsAndExamplesAndBemo,
+	pushReleaseCommitAndTag,
 	setAllVersions,
 	triggerBumpVersionsWorkflow,
 } from './lib/publishing'
@@ -120,7 +121,7 @@ async function main() {
 	const branchName = `v${major}.${minor}.x`
 	// create and push a new tag to the release branch
 	await exec('git', ['tag', '-a', gitTag, '-m', gitTag, '-f'])
-	await exec('git', ['push', 'origin', `HEAD:refs/heads/${branchName}`, '--follow-tags'])
+	await pushReleaseCommitAndTag(`HEAD:refs/heads/${branchName}`)
 	await publishProductionDocsAndExamplesAndBemo()
 
 	// convert draft release to published release

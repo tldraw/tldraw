@@ -16,7 +16,7 @@ interface LibraryInfo {
 
 /** Prepares the package for publishing. the tarball in case it will be written to disk. */
 async function buildPackage({ sourcePackageDir }: { sourcePackageDir: string }) {
-	// lazy runs `build-types` before this (see lazy.config.ts).
+	// turbo runs `build-types` before this.
 
 	if (!existsSync(path.join(sourcePackageDir, 'src/index.ts'))) {
 		throw new Error(`No src/index.ts file found in '${sourcePackageDir}'!`)

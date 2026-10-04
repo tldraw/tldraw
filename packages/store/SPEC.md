@@ -52,6 +52,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **S8** `getStoreSnapshot(scope?)` is `{ store: serialize(scope), schema: schema.serialize() }`.
 - **S9** `loadStoreSnapshot(snapshot)` migrates the snapshot, replaces all current records with the result, and runs the integrity checker — all with side effects disabled (restoring the previous enabled state afterwards). It throws if migration fails, leaving the store unchanged.
 - **S10** `migrateSnapshot(snapshot)` returns the migrated snapshot stamped with the current serialized schema, and throws if migration fails.
+- **S11** `put` and `remove` don't capture: a reaction or computed that writes to the store is not re-run by unrelated store changes.
 - **S12** When the same id appears more than once in one `put`, the history entry records it once: as an update whose `from` is the record as it was before the call, or as a single addition if the call also created it. A record changed and then changed back (by reference) within one call is not recorded at all.
 
 ## 6. Atomic operations and the side-effect flush (AO)
@@ -82,10 +83,11 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **H4** `filters.source` (`'user' | 'remote' | 'all'`) drops entries from other sources. `filters.scope` (`'document' | 'session' | 'presence' | 'all'`) filters each entry's diff down to records of that scope; if nothing remains, the listener is not called for that entry.
 - **H5** `listen` flushes pending history first, so a new listener never sees changes made before it subscribed.
 - **H6** While no listeners are attached, accumulated history is discarded rather than retained.
-- **H7** `extractingChanges(fn)` returns the squashed diff of exactly the changes made during `fn` (listeners still see those changes normally).
+- **H7** `extractingChanges(fn)` returns the squashed diff of exactly the changes made during `fn` (listeners still see those changes normally); changes from a nested transaction that rolled back inside `fn` are excluded.
 - **H8** `addHistoryInterceptor(fn)` calls `fn(entry, source)` synchronously for every change-set as it happens and returns a remover.
 - **H9** `applyDiff(diff)` puts the `added` and `updated` records and removes the `removed` ids. `runCallbacks: false` disables side effects for the application (AO3). Applying a diff and then its `reverseRecordsDiff` (D2) restores the prior state.
 - **H10** `applyDiff` with `ignoreEphemeralKeys: true` ignores changes to keys in the type's `ephemeralKeySet` when applying updates to existing records: non-ephemeral changed keys are merged onto the stored record (including the removal of a non-ephemeral key that the update leaves out), and an update touching only ephemeral keys is dropped. Updates for records that don't exist are applied in full, as are records in `added`.
+- **H11** Change-sets recorded inside a transaction that later rolls back (a throw, or an explicit rollback) are discarded: listeners never receive them, and a rolled-back nested transaction discards only its own. (History interceptors, being synchronous, have already seen them.)
 - **H12** `dispose()` delivers any pending change-sets to the attached listeners and then cancels the scheduled flush; it does not remove listeners.
 - **H13** A listener that throws does not prevent the other listeners from receiving the same flush; the first error is rethrown once every listener has been called.
 - **H14** The remover returned by `listen` flushes pending change-sets to the attached listeners, including the one being removed, and then removes it. The remover never throws: an error a listener raises during that flush is logged with `console.error`, so teardown code that calls removers in sequence runs to completion. Called from inside a flush, it removes the listener without flushing, so the other listeners keep receiving entries in order.
@@ -204,7 +206,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **AM1** `get`/`has` are reactive per key: an effect reading a present key re-runs when that key's value changes or the key is deleted, but not when other keys are set, updated, or deleted.
 - **AM2** Reading an absent key subscribes to the map's key set, so the reader re-runs when that key is later added (a reader of an absent key may also re-run when the key set otherwise changes — per-key isolation applies to present keys).
 - **AM3** `set` adds or updates and returns the map. `update(key, fn)` replaces an existing value and throws for a missing key.
-- **AM4** `delete` returns whether the key existed. `deleteMany(keys)` deletes in one transaction (one reaction for the whole batch), returns the `[key, value]` pairs actually deleted, and ignores missing keys.
+- **AM4** `delete` returns whether the key existed. `deleteMany(keys)` deletes in one transaction (one reaction for the whole batch), returns the `[key, value]` pairs actually deleted, and ignores missing keys. Like the other mutators, it does not capture the map.
 - **AM5** `clear()` empties the map.
 - **AM6** `entries`, `keys`, `values`, `forEach`, `[Symbol.iterator]`, and `size` see exactly the live entries and are reactive. `forEach` honors `thisArg`. As with `Map`, an entry deleted during iteration before it is visited is skipped.
 - **AM7** Changes made inside a rolled-back `@tldraw/state` transaction are restored: additions disappear, updates revert, deletions reappear.

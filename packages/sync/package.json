@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync",
 	"description": "tldraw infinite canvas SDK (multiplayer sync react bindings).",
-	"version": "5.4.2",
+	"version": "5.5.2",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -47,7 +47,8 @@
 		"build-api": "pnpm exec tsx ../../internal/scripts/build-api.ts",
 		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
-		"pack-tarball": "pnpm pack"
+		"pack-tarball": "pnpm pack",
+		"build-types": "tsc --build"
 	},
 	"devDependencies": {
 		"@types/react": "^19.2.7",

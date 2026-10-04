@@ -18,6 +18,7 @@ import {
 	WELCOME_CREATE_SOURCE,
 	can,
 	type FeatureFlagValue,
+	type Role,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -84,7 +85,7 @@ import {
 	readMcpClusterIndexRow,
 	writeMcpClusterIndexRow,
 } from './mcpClusterIndexStorage'
-import { TLPostgresPool } from './postgres'
+import { TLPostgresPool, getPostgresConnection } from './postgres'
 import {
 	deleteAllObjectsWithPrefix,
 	getR2KeyForRoom,
@@ -112,6 +113,14 @@ import {
 import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { arrayBufferToBase64 } from './utils/base64'
+import {
+	ConnectEchoBase,
+	ConnectMarks,
+	buildConnectEcho,
+	connectStart,
+	markRoute,
+} from './utils/connectMarks'
+import { parseTraceColo, readEdgeColo, readReceivedAt } from './utils/connectRouting'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { LOAD_ID_PARAM, parseLoadId } from './utils/loadId'
@@ -128,7 +137,7 @@ import {
 	type McpTokenOptions,
 } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
-import { getRole } from './utils/tla/getRole'
+import { getFileRecordWithRole, getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
 import { ChainState, isChainHead, PendingDelta } from './versionChain'
 import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
@@ -434,6 +443,12 @@ export class TLFileDurableObject extends DurableObject {
 							this._pool = null
 							this._db = null
 						},
+						// Split from `handshake` so client main-thread time before the connect is not
+						// read as server time.
+						onAfterReceiveMessage: ({ sessionId, message }) => {
+							if (message.type !== 'connect') return
+							this._pendingFirstLoadEchoes.get(sessionId)?.marks.mark('client_connect')
+						},
 						onBeforeSendMessage: ({ sessionId, message, stringified }) => {
 							this.logEvent({
 								type: 'send_message',
@@ -441,9 +456,15 @@ export class TLFileDurableObject extends DurableObject {
 								messageLength: stringified.length,
 							})
 							if (message.type === 'connect') {
-								const echo = this._pendingFirstLoadEchoes.get(sessionId)
-								if (echo) {
+								const pending = this._pendingFirstLoadEchoes.get(sessionId)
+								if (pending) {
 									this._pendingFirstLoadEchoes.delete(sessionId)
+									pending.marks.mark('handshake')
+									const echo = buildConnectEcho(
+										{ ...pending.base, do_colo: this._doColo },
+										pending.marks,
+										stringified.length
+									)
 									// Deferred: this hook runs before the connect response goes out, and sending
 									// here would put the echo ahead of it on the wire.
 									setTimeout(() => room.sendCustomMessage(sessionId, echo), 0)
@@ -968,25 +989,29 @@ export class TLFileDurableObject extends DurableObject {
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
 	_fileRecordCache: TlaFile | null = null
 	async getAppFileRecord(loadIdBlobs?: string[]): Promise<TlaFile | null> {
+		return (await this.getAppFileRecordWithRole(null, loadIdBlobs))?.file ?? null
+	}
+
+	/** Also resolves `userId`'s role in the file's owning group, in the same query on a cache miss. */
+	async getAppFileRecordWithRole(
+		userId: string | null | undefined,
+		loadIdBlobs?: string[]
+	): Promise<{ file: TlaFile; role: Role | null } | null> {
 		const timer = this.timer()
 		try {
 			const result = await retry(
 				async () => {
 					if (this._fileRecordCache) {
-						return this._fileRecordCache
+						const file = this._fileRecordCache
+						return { file, role: await getRole(this.db, userId, file.owningGroupId) }
 					}
 
-					const result = await this.db
-						.selectFrom('file')
-						.where('id', '=', this.documentInfo.slug)
-						.selectAll()
-						.executeTakeFirst()
-
+					const result = await getFileRecordWithRole(this.db, this.documentInfo.slug, userId)
 					if (!result) {
 						throw new FileRecordNotFoundError()
 					}
-					this._fileRecordCache = result
-					return this._fileRecordCache
+					this._fileRecordCache = result.file
+					return result
 				},
 				// Absence is retried because the row may still be committing. Query errors are retried
 				// too: isTransientConnectionError is R2-shaped and misses Postgres errors like "too many
@@ -1007,6 +1032,10 @@ export class TLFileDurableObject extends DurableObject {
 
 	async onRequest(req: IRequest, openMode: RoomOpenMode) {
 		const requestTimer = this.timer()
+		const requestStart = Date.now()
+		const receivedAt = readReceivedAt(req.headers as Headers, requestStart)
+		const marks = new ConnectMarks(connectStart(receivedAt, requestStart))
+		markRoute(marks, receivedAt, this._constructedAt, requestStart)
 
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
@@ -1022,6 +1051,7 @@ export class TLFileDurableObject extends DurableObject {
 		const clientBuildTimestamp = /^\d{1,16}$/.test(params.v ?? '') ? params.v : undefined
 		const loadId = parseLoadId(params[LOAD_ID_PARAM])
 		const loadIdBlobs = this.loadIdBlobs(loadId)
+		if (loadId) this.lookUpDoColo()
 		const isNewSession = !this._room
 		if (isNewSession) this._bootLoadId = loadId
 
@@ -1063,7 +1093,6 @@ export class TLFileDurableObject extends DurableObject {
 		// now that those failures bubble instead of being swallowed. An uncaught throw here would
 		// 500 with the accepted server socket leaked in the hibernation set, so catch broadly and
 		// close it instead.
-		const echoTimings: { auth?: number; fileRecord?: number } = {}
 		let auth: { userId: string } | null
 		try {
 			if (this.documentInfo.deleted) {
@@ -1085,15 +1114,16 @@ export class TLFileDurableObject extends DurableObject {
 					allowSubprotocolToken: true,
 					allowQueryToken: true,
 				}))
-			echoTimings.auth = authTimer.report('on_request_auth', loadIdBlobs)
+			authTimer.report('on_request_auth', loadIdBlobs)
+			marks.mark('auth')
 
 			if (this.documentInfo.isApp) {
 				openMode = ROOM_OPEN_MODE.READ_WRITE
-				const fileRecordStart = Date.now()
-				const file = await this.getAppFileRecord(loadIdBlobs)
-				echoTimings.fileRecord = Date.now() - fileRecordStart
+				const fileWithRole = await this.getAppFileRecordWithRole(auth?.userId, loadIdBlobs)
+				marks.mark('file_record')
 
-				if (file) {
+				if (fileWithRole) {
+					const { file, role } = fileWithRole
 					if (file.isDeleted) {
 						return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 					}
@@ -1129,18 +1159,9 @@ export class TLFileDurableObject extends DurableObject {
 						}
 					}
 					rateLimitTimer.report('on_request_rate_limit', loadIdBlobs)
+					marks.mark('rate_limit')
 
-					// Check if user has owner access (directly or via group membership)
-					let hasOwnerAccess = false
-					if (file.owningGroupId && auth?.userId) {
-						// Check the user can access the owning group's files
-						const groupCheckTimer = this.timer()
-						const role = await getRole(this.db, auth.userId, file.owningGroupId)
-						if (can(role, 'accessFiles')) {
-							hasOwnerAccess = true
-						}
-						groupCheckTimer.report('on_request_group_check', loadIdBlobs)
-					}
+					const hasOwnerAccess = can(role, 'accessFiles')
 
 					if (!hasOwnerAccess && !file.shared) {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
@@ -1190,7 +1211,11 @@ export class TLFileDurableObject extends DurableObject {
 
 			const getRoomTimer = this.timer()
 			const room = await this.getRoom()
-			const getRoomMs = getRoomTimer.report('on_request_get_room', loadIdBlobs)
+			getRoomTimer.report('on_request_get_room', loadIdBlobs)
+			// A cold SQLite boot is the bulk of getRoom; carve it out so the stack shows it.
+			const boot = isNewSession ? this._bootTimings : {}
+			if (boot.total !== undefined) marks.markAfter('boot', boot.total)
+			marks.mark('get_room')
 
 			// Don't connect if we're already at max connections
 			if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
@@ -1219,24 +1244,21 @@ export class TLFileDurableObject extends DurableObject {
 				clientBuildTimestamp,
 			})
 
-			const totalMs = requestTimer.report('on_request_total', loadIdBlobs)
+			requestTimer.report('on_request_total', loadIdBlobs)
 
 			if (loadId) {
-				const boot = isNewSession ? this._bootTimings : {}
-				// Parked, not sent: the session is still awaiting its connect handshake here, and the
-				// room drops messages to sessions that are not yet Connected. onBeforeSendMessage
-				// releases it when the connect response goes out.
+				// Parked, not sent: the room drops messages to sessions still awaiting their connect
+				// handshake. onBeforeSendMessage marks `handshake` and releases it.
 				this._pendingFirstLoadEchoes.set(sessionId, {
-					type: 'first_load_server',
-					loadId,
-					cold: isNewSession,
-					auth_ms: echoTimings.auth,
-					file_record_ms: echoTimings.fileRecord,
-					get_room_ms: getRoomMs,
-					total_ms: totalMs,
-					boot_r2_ms: boot.r2,
-					boot_comments_ms: boot.comments,
-					boot_total_ms: boot.total,
+					marks,
+					base: {
+						loadId,
+						cold: isNewSession,
+						edge_colo: readEdgeColo(req.headers as Headers),
+						pg_via: getPostgresConnection(this.env).via,
+						boot_r2_ms: boot.r2,
+						boot_comments_ms: boot.comments,
+					},
 				})
 			}
 
@@ -1266,10 +1288,11 @@ export class TLFileDurableObject extends DurableObject {
 		// the files its user could already download from the website.
 		const auth: { userId: string } | null =
 			(await getAuth(req, this.env)) ?? (await getMcpTokenUser(req, this.env))
-		const file = await this.getAppFileRecord()
-		if (!file || file.isDeleted) {
+		const fileWithRole = await this.getAppFileRecordWithRole(auth?.userId)
+		if (!fileWithRole || fileWithRole.file.isDeleted) {
 			return new Response('Not found', { status: 404 })
 		}
+		const { file, role } = fileWithRole
 
 		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
 			return new Response('Not found', { status: 404 })
@@ -1286,14 +1309,7 @@ export class TLFileDurableObject extends DurableObject {
 			return new Response('Rate limited', { status: 429 })
 		}
 
-		let hasOwnerAccess = false
-		if (file.owningGroupId && auth?.userId) {
-			const role = await getRole(this.db, auth.userId, file.owningGroupId)
-			if (can(role, 'accessFiles')) {
-				hasOwnerAccess = true
-			}
-		}
-		if (!hasOwnerAccess && !file.shared) {
+		if (!can(role, 'accessFiles') && !file.shared) {
 			return new Response('Forbidden', { status: 403 })
 		}
 
@@ -1830,8 +1846,30 @@ export class TLFileDurableObject extends DurableObject {
 	// Stage durations of the most recent storage load, echoed to the client that booted the room.
 	private _bootTimings: { r2?: number; comments?: number; total?: number } = {}
 
-	// first_load_server messages waiting for their session's connect handshake to complete.
-	private _pendingFirstLoadEchoes = new Map<string, TLCustomServerEvent>()
+	// Echoes waiting for their session's connect handshake; `handshake` is marked on release.
+	private _pendingFirstLoadEchoes = new Map<
+		string,
+		{ base: ConnectEchoBase; marks: ConnectMarks }
+	>()
+
+	// Constructor time, for the do_init step of the request that woke this instance.
+	private readonly _constructedAt = Date.now()
+
+	// Where this instance runs; looked up once, off the connect path.
+	private _doColo: string | undefined
+	private _doColoLookup: Promise<void> | null = null
+	private lookUpDoColo() {
+		this._doColoLookup ??= fetch('https://www.cloudflare.com/cdn-cgi/trace', {
+			signal: AbortSignal.timeout(5000),
+		})
+			.then((res) => res.text())
+			.then((body) => {
+				this._doColo = parseTraceColo(body)
+			})
+			.catch(() => {
+				// best effort: the echo just goes without do_colo
+			})
+	}
 
 	// Called wherever the room is dropped. A reopen from retained storage skips loadFromDatabase
 	// (the only writer), so without this the next booting client would be echoed the old numbers.
@@ -3292,12 +3330,13 @@ export class TLFileDurableObject extends DurableObject {
 
 			// remove edit history
 			const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
-			// Each list page and delete batch is its own queued operation: the sweep runs both
-			// buckets concurrently, and unqueued beside two asset copies that is the whole
+			// Each list page and delete batch is its own queued operation: the sweep runs every
+			// bucket concurrently, and unqueued beside two asset copies that is over the
 			// six-connection budget.
 			await deleteAllVersions({
 				chainBucket: this.env.ROOMS_HISTORY,
 				legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
+				coldBucket: this.env.ROOMS_HISTORY_COLD,
 				roomKey: r2Key,
 				schedule: (op) => this.addR2Operation('version_chain_delete', op),
 			})
@@ -3522,6 +3561,7 @@ export class TLFileDurableObject extends DurableObject {
 			await deleteAllVersions({
 				chainBucket: this.env.ROOMS_HISTORY,
 				legacyBucket: this.env.ROOMS_HISTORY_EPHEMERAL,
+				coldBucket: this.env.ROOMS_HISTORY_COLD,
 				roomKey,
 				schedule: (op) => this.addR2Operation('version_chain_delete', op),
 			})
