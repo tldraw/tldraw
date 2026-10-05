@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1306,6 +1300,12 @@
     {
       "type": 0,
       "value": "Owner"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the File menu in the top left."
     }
   ],
   "b758336699": [

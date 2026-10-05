@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "We’re working on support for files from <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
-  },
   "043973ec1f": {
     "translation": "Still having trouble? {GetHelpLink}"
   },
@@ -536,6 +533,9 @@
   },
   "b6f4a2ec63": {
     "translation": "Owner"
+  },
+  "b74dbb40c5": {
+    "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the File menu in the top left."
   },
   "b758336699": {
     "translation": "Copy link"
