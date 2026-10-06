@@ -405,7 +405,7 @@ function CustomDebugMenu() {
 			<A11yAudit />
 			{!isReadOnly && app && user?.isTldraw && (
 				<TldrawUiMenuItem
-					id="user-manual"
+					id="file-history"
 					label="File history"
 					readonlyOk
 					onSelect={() => {
