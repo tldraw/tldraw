@@ -16,6 +16,8 @@ describe('captureRouteError', () => {
 		TLSyncErrorCloseEventReason.NOT_AUTHENTICATED,
 		TLSyncErrorCloseEventReason.FORBIDDEN,
 		TLSyncErrorCloseEventReason.RATE_LIMITED,
+		TLSyncErrorCloseEventReason.ROOM_FULL,
+		TLSyncErrorCloseEventReason.CLIENT_TOO_OLD,
 	])('does not capture a %s sync error, which has its own page', (reason) => {
 		captureRouteError(new TLRemoteSyncError(reason))
 		expect(captureException).not.toHaveBeenCalled()

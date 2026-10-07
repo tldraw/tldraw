@@ -15,6 +15,8 @@ const EXPECTED_SYNC_ERROR_REASONS: ReadonlySet<string> = new Set<TLSyncErrorClos
 	'NOT_AUTHENTICATED',
 	'FORBIDDEN',
 	'RATE_LIMITED',
+	'ROOM_FULL',
+	'CLIENT_TOO_OLD',
 ])
 
 export function isExpectedRouteError(error: unknown): boolean {
