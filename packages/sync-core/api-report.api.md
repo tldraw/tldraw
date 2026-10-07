@@ -524,7 +524,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         meta: SessionMeta;
     })): void;
     handleSocketError(sessionId: string): void;
-    handleSocketMessage(sessionId: string, message: AllowSharedBufferSource | string): void;
+    handleSocketMessage(sessionId: string, message: AllowSharedBufferSource | string, socket?: WebSocketMinimal): void;
     handleSocketResume(opts: {
         sessionId: string;
         snapshot: SessionStateSnapshot;

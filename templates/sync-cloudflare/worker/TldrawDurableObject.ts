@@ -122,7 +122,8 @@ export class TldrawDurableObject extends DurableObject {
 		if (!attachment) return
 
 		this.sessionIdToWs.set(attachment.sessionId, ws)
-		this.getOrCreateRoom().handleSocketMessage(attachment.sessionId, message)
+		// pass the socket so a superseded socket's in-flight messages can't corrupt the new one's
+		this.getOrCreateRoom().handleSocketMessage(attachment.sessionId, message, ws)
 	}
 
 	override async webSocketClose(ws: WebSocket) {

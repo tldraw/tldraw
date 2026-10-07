@@ -508,6 +508,7 @@ export class TLFileDurableObject extends DurableObject {
 
 					for (const resume of resumes) {
 						room.handleSocketResume(resume)
+						this.sessionIdToWs.set(resume.sessionId, resume.socket)
 					}
 					// Also associate file assets after we load the room
 					setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
@@ -715,9 +716,8 @@ export class TLFileDurableObject extends DurableObject {
 			if (!attachment?.sessionId) return
 			if (!this._documentInfo) return
 
-			this.sessionIdToWs.set(attachment.sessionId, ws)
 			const room = await this.getRoom()
-			room.handleSocketMessage(attachment.sessionId, message)
+			room.handleSocketMessage(attachment.sessionId, message, ws)
 		} catch (e) {
 			if (e instanceof RoomNotFoundError) {
 				// Post-hibernation resume raced a deleted room; there's no room left to message.
@@ -755,7 +755,10 @@ export class TLFileDurableObject extends DurableObject {
 			const attachment = this.getSocketAttachment(ws)
 			if (!attachment?.sessionId) return
 
-			this.sessionIdToWs.delete(attachment.sessionId)
+			// a reconnect under the same session id may already have replaced this socket's mapping
+			if (this.sessionIdToWs.get(attachment.sessionId) === ws) {
+				this.sessionIdToWs.delete(attachment.sessionId)
+			}
 			if (!this._documentInfo) return
 			// A deleted room has nothing left to broadcast, and booting one here would resume the
 			// just-closed sessions onto storage the delete is wiping.
@@ -1230,6 +1233,9 @@ export class TLFileDurableObject extends DurableObject {
 				isReadonly,
 				objectAccess,
 			})
+			// Mapped here and on resume, never from webSocketMessage: a superseded socket for the same
+			// session id can still deliver messages, and would steal the session's snapshot writes.
+			this.sessionIdToWs.set(sessionId, serverWebSocket)
 			if (isNewSession) {
 				this.logEvent({
 					type: 'client',
