@@ -94,6 +94,7 @@ import {
 } from './r2'
 import {
 	BootStage,
+	clearSupersededSessionSnapshots,
 	FileEffectStallError,
 	RoomNotFoundError,
 	SourcePersistTimeoutError,
@@ -1236,6 +1237,7 @@ export class TLFileDurableObject extends DurableObject {
 			// Mapped here and on resume, never from webSocketMessage: a superseded socket for the same
 			// session id can still deliver messages, and would steal the session's snapshot writes.
 			this.sessionIdToWs.set(sessionId, serverWebSocket)
+			clearSupersededSessionSnapshots(this.state.getWebSockets(), sessionId, serverWebSocket)
 			if (isNewSession) {
 				this.logEvent({
 					type: 'client',
