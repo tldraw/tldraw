@@ -357,9 +357,8 @@ export class Idle extends StateNode {
 						break
 					}
 
-					// Mark before calling the handler, not after: a handler may update other shapes as a
-					// side effect (the frame util moves its children), and those changes belong to this
-					// undo step rather than the previous one
+					// Mark first: handlers can write to the store themselves (the frame util moves its
+					// children), and those writes would otherwise join the previous undo step
 					if (isEdge && util.onDoubleClickEdge) {
 						this.editor.markHistoryStoppingPoint('double click edge')
 						const change = util.onDoubleClickEdge(onlySelectedShape, info)
