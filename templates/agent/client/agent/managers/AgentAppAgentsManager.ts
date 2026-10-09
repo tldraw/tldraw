@@ -3,13 +3,6 @@ import { TldrawAgent } from '../TldrawAgent'
 import { BaseAgentAppManager } from './BaseAgentAppManager'
 
 /**
- * Generate a unique agent ID.
- */
-function generateAgentId(): string {
-	return uniqueId()
-}
-
-/**
  * Manager for agent lifecycle - creation, disposal, and tracking.
  *
  * Manages multiple agents per editor. The agents are stored in an EditorAtom
@@ -40,17 +33,14 @@ export class AgentAppAgentsManager extends BaseAgentAppManager {
 	 */
 	static getAgent(editor: Editor, id?: string): TldrawAgent | undefined {
 		const agents = AgentAppAgentsManager.$agents.get(editor)
-		if (id) {
-			return agents.find((agent) => agent.id === id)
-		}
-		return agents[0]
+		return id ? agents.find((agent) => agent.id === id) : agents[0]
 	}
 
 	/**
 	 * Get all agents.
 	 */
 	getAgents(): TldrawAgent[] {
-		return AgentAppAgentsManager.$agents.get(this.app.editor)
+		return AgentAppAgentsManager.getAgents(this.app.editor)
 	}
 
 	/**
@@ -58,11 +48,7 @@ export class AgentAppAgentsManager extends BaseAgentAppManager {
 	 * If no ID is provided, returns the first agent.
 	 */
 	getAgent(id?: string): TldrawAgent | undefined {
-		const agents = AgentAppAgentsManager.$agents.get(this.app.editor)
-		if (id) {
-			return agents.find((agent) => agent.id === id)
-		}
-		return agents[0]
+		return AgentAppAgentsManager.getAgent(this.app.editor, id)
 	}
 
 	/**
@@ -74,9 +60,7 @@ export class AgentAppAgentsManager extends BaseAgentAppManager {
 	 */
 	createAgent(id: string): TldrawAgent {
 		const existingAgent = this.getAgent(id)
-		if (existingAgent) {
-			return existingAgent
-		}
+		if (existingAgent) return existingAgent
 
 		const agent = new TldrawAgent({
 			editor: this.app.editor,
@@ -86,7 +70,6 @@ export class AgentAppAgentsManager extends BaseAgentAppManager {
 
 		// Register the agent in the static atom
 		AgentAppAgentsManager.$agents.update(this.app.editor, (agents) => [...agents, agent])
-
 		return agent
 	}
 
@@ -96,11 +79,7 @@ export class AgentAppAgentsManager extends BaseAgentAppManager {
 	 * Call this after the app is initialized.
 	 */
 	ensureAtLeastOneAgent(): TldrawAgent {
-		const existingAgent = this.getAgent()
-		if (existingAgent) {
-			return existingAgent
-		}
-		return this.createAgent(generateAgentId())
+		return this.getAgent() ?? this.createAgent(uniqueId())
 	}
 
 	/**
@@ -112,9 +91,7 @@ export class AgentAppAgentsManager extends BaseAgentAppManager {
 	 */
 	deleteAgent(id: string): boolean {
 		const agent = this.getAgent(id)
-		if (!agent) {
-			return false
-		}
+		if (!agent) return false
 
 		// Dispose the agent first
 		agent.dispose()
@@ -123,40 +100,22 @@ export class AgentAppAgentsManager extends BaseAgentAppManager {
 		AgentAppAgentsManager.$agents.update(this.app.editor, (agents) =>
 			agents.filter((a) => a.id !== id)
 		)
-
 		return true
-	}
-
-	/**
-	 * Reset the state of all agents without disposing them.
-	 * Clears chats, todos, context, and returns agents to initial mode.
-	 */
-	resetAllAgents() {
-		const agents = AgentAppAgentsManager.$agents.get(this.app.editor)
-		agents.forEach((agent) => agent.reset())
-	}
-
-	/**
-	 * Dispose all agents. Call this during cleanup.
-	 */
-	disposeAllAgents() {
-		const agents = AgentAppAgentsManager.$agents.get(this.app.editor)
-		agents.forEach((agent) => agent.dispose())
-		AgentAppAgentsManager.$agents.set(this.app.editor, [])
 	}
 
 	/**
 	 * Reset the manager to its initial state.
 	 */
 	reset() {
-		this.resetAllAgents()
+		this.getAgents().forEach((agent) => agent.reset())
 	}
 
 	/**
 	 * Dispose of the manager and all agents.
 	 */
 	override dispose() {
-		this.disposeAllAgents()
+		this.getAgents().forEach((agent) => agent.dispose())
+		AgentAppAgentsManager.$agents.set(this.app.editor, [])
 		super.dispose()
 	}
 }

@@ -50,12 +50,7 @@ export function ChatHistory({ agent }: { agent: TldrawAgent }) {
 
 		// If the user is scrolled to the bottom, keep them there while new actions appear
 		if (previousScrollDistanceFromBottomRef.current <= 0) {
-			const scrollDistanceFromBottom =
-				historyRef.current.scrollHeight -
-				historyRef.current.scrollTop -
-				historyRef.current.clientHeight
-
-			if (scrollDistanceFromBottom > 0) {
+			if (getScrollDistanceFromBottom(historyRef.current) > 0) {
 				historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
 			}
 		}
@@ -64,12 +59,7 @@ export function ChatHistory({ agent }: { agent: TldrawAgent }) {
 	// Keep track of the user's scroll position
 	const handleScroll = () => {
 		if (!historyRef.current) return
-		const scrollDistanceFromBottom =
-			historyRef.current.scrollHeight -
-			historyRef.current.scrollTop -
-			historyRef.current.clientHeight
-
-		previousScrollDistanceFromBottomRef.current = scrollDistanceFromBottom
+		previousScrollDistanceFromBottomRef.current = getScrollDistanceFromBottom(historyRef.current)
 	}
 
 	const isGenerating = useValue('isGenerating', () => agent.requests.isGenerating(), [agent])
@@ -87,4 +77,8 @@ export function ChatHistory({ agent }: { agent: TldrawAgent }) {
 			})}
 		</div>
 	)
+}
+
+function getScrollDistanceFromBottom(element: HTMLElement) {
+	return element.scrollHeight - element.scrollTop - element.clientHeight
 }

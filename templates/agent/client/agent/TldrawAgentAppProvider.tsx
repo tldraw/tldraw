@@ -108,9 +108,7 @@ export const TldrawAgentAppProvider = memo(function TldrawAgentAppProvider({
 	}, [editor, handleError, onMount, onUnmount])
 
 	// Don't render children until app exists
-	if (!app) {
-		return null
-	}
+	if (!app) return null
 
 	return <TldrawAgentAppContext.Provider value={app}>{children}</TldrawAgentAppContext.Provider>
 })

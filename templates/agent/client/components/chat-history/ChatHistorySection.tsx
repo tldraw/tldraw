@@ -47,9 +47,7 @@ export function getAgentHistorySections(items: ChatHistoryItem[]): ChatHistorySe
 		}
 
 		// Only add to the last section if one exists
-		if (sections.length > 0) {
-			sections[sections.length - 1].items.push(item)
-		}
+		sections.at(-1)?.items.push(item)
 	}
 
 	return sections
