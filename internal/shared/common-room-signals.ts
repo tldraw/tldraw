@@ -20,5 +20,5 @@ export const COMMON_ROOM_SNIPPET = `
   })();
 `
 
-// Whitespace changes in the snippet invalidate this CSP hash; csp.test.ts checks they stay in sync.
+// Regenerate this CSP hash whenever the snippet changes, including whitespace.
 export const COMMON_ROOM_SNIPPET_CSP_HASH = 'sha256-Tv+e9rkNdvH6wzNNhbFVr8sptca7kOdvkN2y9gQNAbg='
