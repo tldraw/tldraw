@@ -62,7 +62,7 @@ The `priority` option accepts `'polite'` or `'assertive'` and defaults to `'asse
 
 Users can navigate between shapes using the keyboard. With a shape selected, Tab moves selection to the next shape in reading order and Shift+Tab moves to the previous shape. Arrow keys with Ctrl/Cmd move selection to the nearest shape in that direction, and Ctrl/Cmd+Shift+Down or Up select a group's first child or its parent. [Editor#selectAdjacentShape](?) is the programmatic equivalent.
 
-Tldraw determines reading order by analyzing shape positions on the canvas. Shapes are grouped into rows based on their vertical position, then sorted left-to-right within each row. This creates a natural top-to-bottom, left-to-right reading order similar to text. You can access this order programmatically with [Editor#getCurrentPageShapesInReadingOrder](?).
+Tldraw determines reading order by analyzing shape positions on the canvas. Shapes are grouped into rows based on their vertical position, then sorted left-to-right within each row. This creates a natural top-to-bottom, left-to-right reading order similar to text. You can access this order programmatically with [Editor#getCurrentPageShapesInReadingOrder](?). Locked shapes are left out of the reading order unless the `selectLockedShapes` option is enabled, so keyboard navigation never lands on a shape that clicking would skip.
 
 A "Skip to main content" link appears when users Tab into the editor. It selects the first shape on the canvas and zooms to it.
 
