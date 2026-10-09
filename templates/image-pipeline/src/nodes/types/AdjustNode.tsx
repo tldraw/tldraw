@@ -1,5 +1,4 @@
-import classNames from 'classnames'
-import { T, useEditor, useValue } from 'tldraw'
+import { T, useEditor } from 'tldraw'
 import { AdjustIcon } from '../../components/icons/AdjustIcon'
 import {
 	NODE_HEADER_HEIGHT_PX,
@@ -8,8 +7,7 @@ import {
 	NODE_ROW_HEIGHT_PX,
 	NODE_WIDTH_PX,
 } from '../../constants'
-import { Port, ShapePort } from '../../ports/Port'
-import { getNodeInputPortValues } from '../nodePorts'
+import { ShapePort } from '../../ports/Port'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
@@ -20,11 +18,9 @@ import {
 	loadImage,
 	NodeComponentProps,
 	NodeDefinition,
-	NodeImage,
-	NodePlaceholder,
-	NodePortLabel,
-	NodeRow,
-	STOP_EXECUTION,
+	NodeImagePreview,
+	NodePortRow,
+	NodeSliderRow,
 	updateNode,
 } from './shared'
 
@@ -124,74 +120,31 @@ export class AdjustNodeDefinition extends NodeDefinition<AdjustNode> {
 
 function AdjustNodeComponent({ shape, node }: NodeComponentProps<AdjustNode>) {
 	const editor = useEditor()
-	const imageInput = useValue('image input', () => getNodeInputPortValues(editor, shape.id).image, [
-		editor,
-		shape.id,
-	])
 
-	const makeSlider = (
-		label: string,
-		field: 'brightness' | 'contrast' | 'saturation',
-		min: number,
-		max: number
-	) => (
-		<NodeRow className="NodeInputRow">
-			<span className="NodeInputRow-label">{label}</span>
-			<input
-				type="range"
-				min={min}
-				max={max}
-				value={node[field]}
-				onChange={(e) =>
-					updateNode<AdjustNode>(
-						editor,
-						shape,
-						(n) => ({
-							...n,
-							[field]: Number(e.target.value),
-						}),
-						false
-					)
-				}
-				onPointerDown={(e) => e.stopPropagation()}
-			/>
-			<span className="NodeRow-value">{node[field]}</span>
-		</NodeRow>
+	const slider = (label: string, field: 'brightness' | 'contrast' | 'saturation') => (
+		<NodeSliderRow
+			label={label}
+			min={-50}
+			max={50}
+			value={node[field]}
+			onChange={(value) =>
+				updateNode<AdjustNode>(editor, shape, (n) => ({ ...n, [field]: value }), false)
+			}
+		/>
 	)
 
 	return (
 		<>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="image" />
-				<NodePortLabel dataType="image">Image</NodePortLabel>
-				{imageInput ? (
-					<span className="NodeRow-connected-value">
-						{imageInput.isOutOfDate || imageInput.value === STOP_EXECUTION ? (
-							<NodePlaceholder />
-						) : (
-							'connected'
-						)}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">not connected</span>
-				)}
-			</NodeRow>
-			{makeSlider('Brightness', 'brightness', -50, 50)}
-			{makeSlider('Contrast', 'contrast', -50, 50)}
-			{makeSlider('Saturation', 'saturation', -50, 50)}
-			<div
-				className={classNames('NodeImagePreview', {
-					NodeImagePreview_loading: shape.props.isOutOfDate,
-				})}
-			>
-				{node.lastResultUrl ? (
-					<NodeImage src={node.lastResultUrl} alt="Adjusted" />
-				) : (
-					<div className="NodeImagePreview-empty">
-						<span>Connect an image</span>
-					</div>
-				)}
-			</div>
+			<NodePortRow shapeId={shape.id} portId="image" dataType="image" label="Image" />
+			{slider('Brightness', 'brightness')}
+			{slider('Contrast', 'contrast')}
+			{slider('Saturation', 'saturation')}
+			<NodeImagePreview
+				src={node.lastResultUrl}
+				alt="Adjusted"
+				emptyText="Connect an image"
+				isLoading={shape.props.isOutOfDate}
+			/>
 		</>
 	)
 }

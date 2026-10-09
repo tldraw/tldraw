@@ -47,9 +47,8 @@ export class ExecutionGraph {
 				connections,
 			})
 
-			for (const connection of Object.values(connections)) {
-				if (!connection || connection.terminal !== 'start') continue
-				toVisit.push(connection.connectedShapeId)
+			for (const connection of connections) {
+				if (connection.terminal === 'start') toVisit.push(connection.connectedShapeId)
 			}
 		}
 	}
@@ -63,11 +62,7 @@ export class ExecutionGraph {
 
 		this.state = 'executing'
 		try {
-			const promises = []
-			for (const nodeId of this.startingNodeIds) {
-				promises.push(this.executeNodeIfReady(nodeId))
-			}
-			await Promise.all(promises)
+			await Promise.all([...this.startingNodeIds].map((id) => this.executeNodeIfReady(id)))
 		} finally {
 			this.state = 'stopped'
 		}
@@ -88,7 +83,7 @@ export class ExecutionGraph {
 		const sortedConnections = [...node.connections].sort((a, b) => a.order - b.order)
 
 		for (const connection of sortedConnections) {
-			if (!connection || connection.terminal !== 'end') continue
+			if (connection.terminal !== 'end') continue
 
 			const dependency = this.nodesById.get(connection.connectedShapeId)
 			let value: PipelineValue | STOP_EXECUTION
@@ -150,14 +145,11 @@ export class ExecutionGraph {
 			outputs,
 		})
 
-		const executingDependentPromises = []
-		for (const connection of Object.values(node.connections)) {
-			if (!connection || connection.terminal !== 'start') continue
-
-			executingDependentPromises.push(this.executeNodeIfReady(connection.connectedShapeId))
-		}
-
-		await Promise.all(executingDependentPromises)
+		await Promise.all(
+			node.connections
+				.filter((c) => c.terminal === 'start')
+				.map((c) => this.executeNodeIfReady(c.connectedShapeId))
+		)
 	}
 
 	getNodeStatus(nodeId: TLShapeId) {
