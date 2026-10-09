@@ -225,8 +225,7 @@ spec:
 
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
-                        AND blob1 IN ('room_create', 'room_reopen', 'enter', 'leave',
-                        'last_out')
+                        AND blob1 IN ('room_reopen', 'enter', 'leave', 'last_out')
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
@@ -240,8 +239,7 @@ spec:
 
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
-                        AND blob1 IN ('room_create', 'room_reopen', 'enter', 'leave',
-                        'last_out')
+                        AND blob1 IN ('room_reopen', 'enter', 'leave', 'last_out')
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
@@ -957,7 +955,7 @@ spec:
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
                         AND blob1 IN ('on_request_total', 'on_request_auth', 'on_request_rate_limit',
-                        'on_request_group_check', 'on_request_get_room', 'forward_room_request')
+                        'on_request_get_room', 'forward_room_request')
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
@@ -974,7 +972,7 @@ spec:
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
                         AND blob1 IN ('on_request_total', 'on_request_auth', 'on_request_rate_limit',
-                        'on_request_group_check', 'on_request_get_room', 'forward_room_request')
+                        'on_request_get_room', 'forward_room_request')
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
@@ -1218,7 +1216,7 @@ spec:
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
                         AND blob1 IN ('on_request_total', 'on_request_auth', 'on_request_rate_limit',
-                        'on_request_group_check', 'on_request_get_room', 'get_file_record',
+                        'on_request_get_room', 'get_file_record',
                         'get_file_record_error', 'db_load_total', 'db_load_total_error',
                         'db_load_r2_fetch', 'db_load_supabase_fetch', 'db_load_create_from_source', 'db_load_comments',
                         'create_from_source_fetch_total', 'create_from_source_r2_put',
@@ -1236,7 +1234,7 @@ spec:
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
                         AND blob1 IN ('on_request_total', 'on_request_auth', 'on_request_rate_limit',
-                        'on_request_group_check', 'on_request_get_room', 'get_file_record',
+                        'on_request_get_room', 'get_file_record',
                         'get_file_record_error', 'db_load_total', 'db_load_total_error',
                         'db_load_r2_fetch', 'db_load_supabase_fetch', 'db_load_create_from_source', 'db_load_comments',
                         'create_from_source_fetch_total', 'create_from_source_r2_put',
@@ -3899,7 +3897,7 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, if(blob3 = 'ok', 'ok', concat(blob3, ':', blob4))
+                        SECOND) as date, if(blob3 = 'ok', 'ok', format('{}:{}', blob3, blob4))
                         as result, count() as total
 
                         FROM 'MEASURE'
@@ -3914,7 +3912,7 @@ spec:
 
                         ORDER BY date ASC"
                       rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, if(blob3 = 'ok', 'ok', concat(blob3, ':', blob4))
+                        SECOND) as date, if(blob3 = 'ok', 'ok', format('{}:{}', blob3, blob4))
                         as result, count() as total
 
                         FROM 'MEASURE'
@@ -4432,136 +4430,6 @@ spec:
               showHeader: true
               sortBy: []
           version: 13.2.0-29854286369
-    panel-56:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: time_series
-                      formatAs: time_series
-                      intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, quantileWeighted(0.5, double1, _sample_interval)
-                        as p50, quantileWeighted(0.95, double1, _sample_interval) as
-                        p95, quantileWeighted(0.99, double1, _sample_interval) as p99
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'on_request_group_check'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, quantileWeighted(0.5, double1, _sample_interval)
-                        as p50, quantileWeighted(0.95, double1, _sample_interval) as
-                        p95, quantileWeighted(0.99, double1, _sample_interval) as p99
-
-                        FROM 'MEASURE'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'on_request_group_check'
-
-                        AND blob2 = '${environment}-tldraw-multiplayer'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: getRole Postgres lookup on connect; the biggest per-connect Postgres
-          cost outside Europe.
-        id: 56
-        links: []
-        title: Group check (getRole) latency percentiles
-        vizConfig:
-          group: timeseries
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: palette-classic
-                custom:
-                  axisBorderShow: false
-                  axisCenteredZero: false
-                  axisColorMode: text
-                  axisLabel: ''
-                  axisPlacement: auto
-                  barAlignment: 0
-                  barWidthFactor: 0.8
-                  drawStyle: line
-                  fillOpacity: 12
-                  gradientMode: opacity
-                  hideFrom:
-                    legend: false
-                    tooltip: false
-                    viz: false
-                  insertNulls: false
-                  lineInterpolation: linear
-                  lineWidth: 1.5
-                  pointSize: 5
-                  scaleDistribution:
-                    type: linear
-                  showPoints: never
-                  showValues: false
-                  spanNulls: false
-                  stacking:
-                    group: A
-                    mode: none
-                  thresholdsStyle:
-                    mode: 'off'
-                min: 0
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-                unit: ms
-              overrides: []
-            options:
-              annotations:
-                clustering: -1
-                multiLane: false
-              legend:
-                calcs: []
-                displayMode: list
-                enableFacetedFilter: false
-                overflow: ellipsis
-                placement: bottom
-                showLegend: true
-              tooltip:
-                hideZeros: false
-                maxHeight: 600
-                mode: multi
-                sort: desc
-          version: 13.2.0-29854286369
   layout:
     kind: RowsLayout
     spec:
@@ -4686,17 +4554,8 @@ spec:
                         kind: ElementReference
                         name: panel-55
                       height: 8
-                      width: 12
+                      width: 24
                       x: 0
-                      y: 17
-                  - kind: GridLayoutItem
-                    spec:
-                      element:
-                        kind: ElementReference
-                        name: panel-56
-                      height: 8
-                      width: 12
-                      x: 12
                       y: 17
             title: Room and connect latency
         - kind: RowsLayoutRow
