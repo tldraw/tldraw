@@ -62,7 +62,26 @@ export interface TLSvgExportOptions {
 	 * attribute of the SVG element.
 	 */
 	preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
+
+	/**
+	 * How shape labels and text are written into the SVG.
+	 *
+	 * - `'foreignObject'` (default) — embed HTML in `<foreignObject>`; pixel-identical to the
+	 *   canvas in browsers, but rasterizers without an HTML engine (resvg, Figma, Inkscape)
+	 *   render no text.
+	 * - `'native'` — lay the text out with `@tldraw/rich-text-layout` and emit `<text>`/`<tspan>`
+	 *   elements that any SVG renderer understands. Custom rich text extensions fall back to
+	 *   `'foreignObject'` unless an explicit native text export provider is registered.
+	 */
+	text?: TLSvgExportTextMode
 }
+
+/**
+ * How text is written into an exported SVG; see {@link TLSvgExportOptions.text}.
+ *
+ * @public
+ */
+export type TLSvgExportTextMode = 'foreignObject' | 'native'
 
 /** @public */
 export interface TLImageExportOptions extends TLSvgExportOptions {
