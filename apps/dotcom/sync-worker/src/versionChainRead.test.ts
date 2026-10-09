@@ -76,7 +76,7 @@ async function seedChain(bucket: R2Bucket, versions: RoomSnapshot[], cap = SEGME
 }
 
 describe('decodeVersionBody', () => {
-	it('reads an uncompressed legacy object and a gzipped chain object alike', async () => {
+	it('reads an uncompressed object and a gzipped one alike', async () => {
 		const bucket = createFakeR2()
 		const encoded = await encodeVersionBody({ hello: 'world' })
 
@@ -91,25 +91,21 @@ describe('decodeVersionBody', () => {
 describe('reconstructVersion', () => {
 	it('returns a keyframe directly', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		const versions = [snapshot(1, ['shape:a'])]
 		await seedChain(chainBucket, versions)
 
 		const result = await reconstructVersion({
 			chainBucket,
-			legacyBucket,
 			roomKey,
 			timestamp: isoAt(0),
 		})
 
 		expect(result?.snapshot).toEqual(versions[0])
 		expect(result?.deltaCount).toBe(0)
-		expect(result?.source).toBe('chain')
 	})
 
 	it('replays every version in a single segment', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		const versions = [
 			snapshot(1, ['shape:a']),
 			snapshot(2, ['shape:a', 'shape:b']),
@@ -120,7 +116,6 @@ describe('reconstructVersion', () => {
 		for (let i = 0; i < versions.length; i++) {
 			const result = await reconstructVersion({
 				chainBucket,
-				legacyBucket,
 				roomKey,
 				timestamp: timestamps[i],
 			})
@@ -131,7 +126,6 @@ describe('reconstructVersion', () => {
 
 	it('replays across several segments', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		const versions = [snapshot(1, ['shape:0'])]
 		for (let i = 1; i <= 10; i++) {
 			versions.push(
@@ -145,7 +139,6 @@ describe('reconstructVersion', () => {
 
 		const last = await reconstructVersion({
 			chainBucket,
-			legacyBucket,
 			roomKey,
 			timestamp: timestamps[timestamps.length - 1],
 		})
@@ -158,7 +151,6 @@ describe('reconstructVersion', () => {
 
 	it('runs every R2 read through the scheduler, one operation each', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		const versions = [snapshot(1, ['shape:0'])]
 		for (let i = 1; i <= 10; i++) {
 			versions.push(
@@ -193,7 +185,6 @@ describe('reconstructVersion', () => {
 
 		const last = await reconstructVersion({
 			chainBucket,
-			legacyBucket,
 			roomKey,
 			timestamp: timestamps[timestamps.length - 1],
 			schedule,
@@ -207,7 +198,6 @@ describe('reconstructVersion', () => {
 
 	it('reads a version in the middle of an open segment', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		const versions = [
 			snapshot(1, ['shape:a']),
 			snapshot(2, ['shape:a', 'shape:b']),
@@ -217,7 +207,6 @@ describe('reconstructVersion', () => {
 
 		const middle = await reconstructVersion({
 			chainBucket,
-			legacyBucket,
 			roomKey,
 			timestamp: timestamps[1],
 		})
@@ -225,28 +214,10 @@ describe('reconstructVersion', () => {
 		expect(middle?.snapshot).toEqual(versions[1])
 	})
 
-	it('falls back to a legacy full copy when the chain has nothing', async () => {
-		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
-		const legacy = snapshot(7, ['shape:legacy'])
-		await legacyBucket.put(`${roomKey}/2026-08-01T00:00:00.000Z`, JSON.stringify(legacy))
-
-		const result = await reconstructVersion({
-			chainBucket,
-			legacyBucket,
-			roomKey,
-			timestamp: '2026-08-01T00:00:00.000Z',
-		})
-
-		expect(result?.snapshot).toEqual(legacy)
-		expect(result?.source).toBe('legacy')
-	})
-
-	it('returns null when neither bucket has the version', async () => {
+	it('returns null when the chain does not hold the version', async () => {
 		expect(
 			await reconstructVersion({
 				chainBucket: createFakeR2(),
-				legacyBucket: createFakeR2(),
 				roomKey,
 				timestamp: '2026-08-01T00:00:00.000Z',
 			})
@@ -262,7 +233,6 @@ describe('reconstructVersion', () => {
 		await expect(
 			reconstructVersion({
 				chainBucket,
-				legacyBucket: createFakeR2(),
 				roomKey,
 				timestamp: timestamps[1],
 			})
@@ -287,7 +257,6 @@ describe('reconstructVersion', () => {
 		await expect(
 			reconstructVersion({
 				chainBucket,
-				legacyBucket: createFakeR2(),
 				roomKey,
 				timestamp: timestamps[timestamps.length - 1],
 			})
@@ -314,7 +283,6 @@ describe('reconstructVersion', () => {
 		await expect(
 			reconstructVersion({
 				chainBucket,
-				legacyBucket: createFakeR2(),
 				roomKey,
 				timestamp: timestamps[1],
 			})
@@ -342,7 +310,6 @@ describe('reconstructVersion', () => {
 		await expect(
 			reconstructVersion({
 				chainBucket,
-				legacyBucket: createFakeR2(),
 				roomKey,
 				timestamp: timestamps[1],
 			})
@@ -374,7 +341,6 @@ describe('reconstructVersion', () => {
 
 		const result = await reconstructVersion({
 			chainBucket,
-			legacyBucket: createFakeR2(),
 			roomKey,
 			timestamp: isoAt(1),
 		})
@@ -386,7 +352,6 @@ describe('reconstructVersion', () => {
 describe('reconstructVersion segment format', () => {
 	it('refuses a segment written in an unknown format', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		const versions = [snapshot(1, ['shape:a']), snapshot(2, ['shape:a', 'shape:b'])]
 		await seedChain(chainBucket, versions)
 
@@ -398,9 +363,9 @@ describe('reconstructVersion segment format', () => {
 			customMetadata: { ...existing.customMetadata, ...reencoded.metadata },
 		})
 
-		await expect(
-			reconstructVersion({ chainBucket, legacyBucket, roomKey, timestamp: isoAt(1) })
-		).rejects.toThrow(/unknown version segment format/)
+		await expect(reconstructVersion({ chainBucket, roomKey, timestamp: isoAt(1) })).rejects.toThrow(
+			/unknown version segment format/
+		)
 	})
 })
 
@@ -437,13 +402,11 @@ describe('reconstructVersion under clock skew', () => {
 
 		const late = await reconstructVersion({
 			chainBucket,
-			legacyBucket: createFakeR2(),
 			roomKey,
 			timestamp: isoAt(15),
 		})
 		const early = await reconstructVersion({
 			chainBucket,
-			legacyBucket: createFakeR2(),
 			roomKey,
 			timestamp: isoAt(21),
 		})
@@ -530,7 +493,6 @@ describe('loadChainIndexForVersion', () => {
 
 		const result = await reconstructVersion({
 			chainBucket,
-			legacyBucket: createFakeR2(),
 			roomKey,
 			timestamp: times[4],
 		})
@@ -557,7 +519,7 @@ describe('loadChainIndexForVersion', () => {
 		expect(lists).toHaveLength(2)
 	})
 
-	it('walks every window for a version only the legacy bucket holds', async () => {
+	it('walks every window for a version older than the whole chain', async () => {
 		const bucket = createFakeR2()
 		await putChain(bucket, ['2026-09-01T12:00:00.000Z', '2026-09-01T12:00:10.000Z'])
 		const lists = countLists(bucket)
@@ -629,45 +591,27 @@ describe('openWholeVersionStream', () => {
 		return await new Response(stream).text()
 	}
 
-	it('streams a keyframe decompressed, a legacy copy raw, and nothing for a delta', async () => {
+	it('streams a keyframe decompressed, and nothing for a delta or an unknown version', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		const versions = [snapshot(1, ['shape:a']), snapshot(2, ['shape:a', 'shape:b'])]
 		const timestamps = await seedChain(chainBucket, versions)
-		const legacy = snapshot(9, ['shape:legacy'])
-		await legacyBucket.put(`${roomKey}/2026-08-01T00:00:00.000Z`, JSON.stringify(legacy))
 		const { entries: index } = await loadChainIndex(chainBucket, roomKey)
 
-		const keyframe = await openWholeVersionStream({
+		const keyframe = await openWholeVersionStream({ chainBucket, timestamp: timestamps[0], index })
+		const delta = await openWholeVersionStream({ chainBucket, timestamp: timestamps[1], index })
+		const unknown = await openWholeVersionStream({
 			chainBucket,
-			legacyBucket,
-			roomKey,
-			timestamp: timestamps[0],
-			index,
-		})
-		const legacyStream = await openWholeVersionStream({
-			chainBucket,
-			legacyBucket,
-			roomKey,
 			timestamp: '2026-08-01T00:00:00.000Z',
-			index,
-		})
-		const delta = await openWholeVersionStream({
-			chainBucket,
-			legacyBucket,
-			roomKey,
-			timestamp: timestamps[1],
 			index,
 		})
 
 		expect(JSON.parse(await text(keyframe!))).toEqual(versions[0])
-		expect(JSON.parse(await text(legacyStream!))).toEqual(legacy)
 		expect(delta).toBeNull()
+		expect(unknown).toBeNull()
 	})
 
 	it('runs its get through the scheduler', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		const versions = [snapshot(1, ['shape:a'])]
 		const timestamps = await seedChain(chainBucket, versions)
 		const { entries: index } = await loadChainIndex(chainBucket, roomKey)
@@ -679,8 +623,6 @@ describe('openWholeVersionStream', () => {
 		}
 		const stream = await openWholeVersionStream({
 			chainBucket,
-			legacyBucket,
-			roomKey,
 			timestamp: timestamps[0],
 			index,
 			schedule,
@@ -694,16 +636,11 @@ describe('openWholeVersionStream', () => {
 describe('listVersionTimestamps with a limit', () => {
 	it('caps the result and reuses a preloaded index', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		await seedChain(chainBucket, [snapshot(1, ['shape:a']), snapshot(2, ['shape:a', 'shape:b'])])
-		for (let i = 0; i < 5; i++) {
-			await legacyBucket.put(`${roomKey}/2026-08-0${i + 1}T00:00:00.000Z`, '{}')
-		}
 		const { entries: index } = await loadChainIndex(chainBucket, roomKey)
 
 		const capped = await listVersionTimestamps({
 			chainBucket,
-			legacyBucket,
 			roomKey,
 			prefix: '',
 			index,
@@ -781,14 +718,13 @@ describe('deleteAllVersions', () => {
 })
 
 describe('listVersionTimestamps', () => {
-	it('merges chain and legacy versions, dedupes and sorts newest first', async () => {
+	it('lists every version the chain holds under the prefix, newest first', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		await seedChain(chainBucket, [snapshot(1, ['shape:a']), snapshot(2, ['shape:a', 'shape:b'])])
-		await legacyBucket.put(`${roomKey}/2026-08-31T00:00:00.000Z`, '{}')
 
-		expect(
-			await listVersionTimestamps({ chainBucket, legacyBucket, roomKey, prefix: '2026-0' })
-		).toEqual([isoAt(1), isoAt(0), '2026-08-31T00:00:00.000Z'])
+		expect(await listVersionTimestamps({ chainBucket, roomKey, prefix: '2026-0' })).toEqual([
+			isoAt(1),
+			isoAt(0),
+		])
 	})
 })

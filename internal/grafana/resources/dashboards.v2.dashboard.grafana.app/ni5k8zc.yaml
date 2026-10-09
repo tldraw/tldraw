@@ -3937,9 +3937,9 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Retired-chain verification. Fail reasons: missing | legacy-fallback
-          | head-mismatch | error. Any fail means a reconstruction did not reproduce
-          the persisted state.'
+        description: 'Retired-chain verification. Fail reasons: missing | head-mismatch
+          | error. Any fail means a reconstruction did not reproduce the persisted
+          state.'
         id: 51
         links: []
         title: Verify results
