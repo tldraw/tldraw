@@ -32,8 +32,8 @@ spec:
       Sentry project tldraw-sync, culprit TLFileDurableObject._writeVersionChainEntry (the
       event''s slug extra names the board). Resolved means 10 minutes passed with fewer
       than 10 failures, not that a cause was fixed.'
-    summary: 'Version history: 10 or more board saves in the last 10 minutes recorded no
-      history entry (the boards themselves saved fine).'
+    summary: 'Version history: 10 or more version-chain errors in the last 10 minutes.
+      Some saves may be missing history entries (the boards themselves saved fine).'
   execErrState: Error
   expressions:
     A:
