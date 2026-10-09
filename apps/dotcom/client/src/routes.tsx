@@ -1,5 +1,4 @@
-import { captureException } from '@sentry/react'
-import type { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
+import type { TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Outlet, Route, createRoutesFromElements, redirect, useRouteError } from 'react-router-dom'
@@ -7,14 +6,9 @@ import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
 import { ROUTES, routes, TlaRouteHandle } from './routeDefs'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
+import { captureRouteError, isRemoteSyncError } from './utils/routeErrors'
 
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
-
-// Structural, not instanceof: a runtime import of @tldraw/sync-core pulls the store and schema into
-// the entry chunk, ahead of first paint.
-function isRemoteSyncError(error: unknown): error is TLRemoteSyncError {
-	return error instanceof Error && error.name === 'RemoteSyncError'
-}
 
 interface CreateAppRouterOptions {
 	includeDevRoutes?: boolean
@@ -33,7 +27,7 @@ export function createAppRouter({
 			ErrorBoundary={() => {
 				const error = useRouteError()
 				useEffect(() => {
-					captureException(error)
+					captureRouteError(error)
 				}, [error])
 
 				let header = 'Something went wrong'
