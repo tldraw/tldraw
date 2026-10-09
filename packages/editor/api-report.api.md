@@ -1109,46 +1109,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
-                type: "my-custom-shape";
-                typeName: 'shape';
-                x: number;
-                y: number;
-            } | {
-                id: TLShapeId;
-                index: IndexKey;
-                isLocked: boolean;
-                meta: JsonObject;
-                opacity: TLOpacityType;
-                parentId: TLParentId;
-                props: any;
-                rotation: number;
                 type: "note";
-                typeName: 'shape';
-                x: number;
-                y: number;
-            } | {
-                id: TLShapeId;
-                index: IndexKey;
-                isLocked: boolean;
-                meta: JsonObject;
-                opacity: TLOpacityType;
-                parentId: TLParentId;
-                props: any;
-                rotation: number;
-                type: "test-persistent";
-                typeName: 'shape';
-                x: number;
-                y: number;
-            } | {
-                id: TLShapeId;
-                index: IndexKey;
-                isLocked: boolean;
-                meta: JsonObject;
-                opacity: TLOpacityType;
-                parentId: TLParentId;
-                props: any;
-                rotation: number;
-                type: "test-shape";
                 typeName: 'shape';
                 x: number;
                 y: number;
