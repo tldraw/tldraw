@@ -33,6 +33,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://stats.g.doubleclick.net',
 		'https://*.google-analytics.com',
 		'https://api.reo.dev',
+		'https://api.cr-relay.com',
 		'https://fonts.googleapis.com',
 		// asset uploads/serving
 		'https://tldrawusercontent.com',
@@ -56,6 +57,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.google-analytics.com',
 		'https://analytics.tldraw.com',
 		'https://static.reo.dev',
+		'https://cdn.cr-relay.com',
 	],
 	'worker-src': [`'self'`, `blob:`],
 	'style-src': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],
