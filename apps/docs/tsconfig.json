@@ -1,6 +1,7 @@
 {
 	"extends": "../../internal/config/tsconfig.base.json",
 	"compilerOptions": {
+		"rootDir": "../..",
 		"paths": { "@/*": ["./*"] },
 		"lib": ["DOM", "DOM.Iterable", "ESNext"],
 		"plugins": [{ "name": "next" }],
@@ -13,6 +14,7 @@
 		"strictNullChecks": true
 	},
 	"include": [
+		"../../internal/shared/common-room-signals.ts",
 		"next-env.d.ts",
 		"**/*.ts",
 		"**/*.tsx",
@@ -21,8 +23,5 @@
 		"vitest.config.ts"
 	],
 	"exclude": ["node_modules", ".next", "postcss.config.js", "tailwind.config.js"],
-	"references": [
-		{ "path": "../../packages/assets" },
-		{ "path": "../../packages/utils" }
-	]
+	"references": [{ "path": "../../packages/assets" }, { "path": "../../packages/utils" }]
 }

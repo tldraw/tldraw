@@ -1,3 +1,5 @@
+import { COMMON_ROOM_SNIPPET_CSP_HASH } from '../../../../../internal/shared/common-room-signals'
+
 export const cspDirectives: { [key: string]: string[] } = {
 	'default-src': [`'self'`],
 	'connect-src': [
@@ -45,6 +47,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'script-src': [
 		`'self'`,
+		`'${COMMON_ROOM_SNIPPET_CSP_HASH}'`,
 		'https://challenges.cloudflare.com',
 		'https://*.clerk.accounts.dev',
 		'https://clerk.tldraw.com',
