@@ -210,3 +210,35 @@ describe('DrawShapeUtil dot detection', () => {
 		})
 	})
 })
+
+describe('DrawShapeUtil getInterpolatedProps', () => {
+	it('interpolates from a shape created with default props, which has no segments', () => {
+		// https://github.com/tldraw/tldraw/issues/10737
+		const startId = createShapeId('start')
+		const endId = createShapeId('end')
+		editor.createShapes([
+			{ id: startId, type: 'draw' },
+			{
+				id: endId,
+				type: 'draw',
+				props: {
+					segments: createDrawSegments([
+						[
+							{ x: 0, y: 0, z: 0.5 },
+							{ x: 10, y: 10, z: 0.5 },
+						],
+					]),
+				},
+			},
+		])
+		const start = editor.getShape<TLDrawShape>(startId)!
+		const end = editor.getShape<TLDrawShape>(endId)!
+		expect(start.props.segments).toEqual([])
+		const util = editor.getShapeUtil('draw')
+
+		expect(() => util.getInterpolatedProps!(start, end, 0.5)).not.toThrow()
+		expect(util.getInterpolatedProps!(start, end, 1).segments).toEqual(end.props.segments)
+		expect(() => util.getInterpolatedProps!(end, start, 0.5)).not.toThrow()
+		expect(util.getInterpolatedProps!(end, start, 0).segments).toEqual(end.props.segments)
+	})
+})
