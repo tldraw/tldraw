@@ -1,12 +1,14 @@
 import { CommonRoomTracker } from '../../../../internal/shared/common-room-tracker'
 import { AnalyticsService } from './analytics-service'
 
+const COMMON_ROOM_ENABLED_HOSTNAMES = ['tldraw.dev']
+
 class CommonRoomAnalyticsService extends AnalyticsService {
 	private configured = false
 	private tracker = new CommonRoomTracker()
 
 	override initialize() {
-		this.configured = window.TL_COMMON_ROOM_ENABLED === true
+		this.configured = COMMON_ROOM_ENABLED_HOSTNAMES.includes(window.location.hostname)
 	}
 
 	override enable() {

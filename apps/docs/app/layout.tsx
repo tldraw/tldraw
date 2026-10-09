@@ -85,7 +85,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
 						<Header />
 						{children}
 						<Footer />
-						<Analytics commonRoomEnabled={process.env.VERCEL_ENV === 'production'} />
+						<Analytics />
 					</ThemeProvider>
 					<noscript>
 						<iframe
