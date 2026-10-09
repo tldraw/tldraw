@@ -171,12 +171,7 @@ import { getCulledShapeIds } from './kernels/culling'
 import {
 	classifyClosedShapeHit,
 	classifyFrameLikeHit,
-	createHitRanking,
-	getBestHit,
-	getBestOpenShapeHit,
 	getDistanceToGeometry,
-	offerHollowHit,
-	offerMarginHit,
 } from './kernels/hitTest'
 import {
 	getAlignLayout,
@@ -5657,7 +5652,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const [innerMargin, outerMargin] = Array.isArray(margin) ? margin : [margin, margin]
 
-		const ranking = createHitRanking<TLShape>()
+		let inHollowSmallestArea = Infinity
+		let inHollowSmallestAreaHit: TLShape | null = null
+
+		let inMarginClosestToEdgeDistance = Infinity
+		let inMarginClosestToEdgeHit: TLShape | null = null
 
 		// Use larger margin for spatial search to account for edge distance checks
 		const searchMargin = Math.max(innerMargin, outerMargin, this.getHitTestMargin())
@@ -5716,7 +5715,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				})
 
 				// If the hit is within the frame's outer margin, then select the frame
-				if (frameHit === 'in-margin') return ranking.marginHit || shape
+				if (frameHit === 'in-margin') return inMarginClosestToEdgeHit || shape
 
 				if (frameHit === 'body') {
 					// Once we've hit a frame, we want to end the search. If we have hit a shape
@@ -5725,7 +5724,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// frame. If `hitFrameInside` is true (e.g. used drawing an arrow into the
 					// frame) we the frame itself; other wise, (e.g. when hovering or pointing)
 					// we would want to return null.
-					return getBestHit(ranking) || (hitFrameInside ? shape : undefined)
+					return (
+						inMarginClosestToEdgeHit ||
+						inHollowSmallestAreaHit ||
+						(hitFrameInside ? shape : undefined)
+					)
 				}
 
 				continue
@@ -5744,25 +5747,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 					outerMargin,
 					hitInside,
 					isGroup,
-					hasMarginHit: !!ranking.marginHit,
+					hasMarginHit: !!inMarginClosestToEdgeHit,
 				})
 
 				switch (hit.type) {
 					case 'filled': {
-						return ranking.marginHit || shape
+						return inMarginClosestToEdgeHit || shape
 					}
 					case 'ignored': {
 						continue
 					}
 					case 'in-margin': {
-						offerMarginHit(ranking, shape, hit.distance)
+						if (hit.distance < inMarginClosestToEdgeDistance) {
+							inMarginClosestToEdgeDistance = hit.distance
+							inMarginClosestToEdgeHit = shape
+						}
 						break
 					}
 					case 'hollow': {
 						// If the shape is bigger than the viewport, then skip it. (Only here: its
 						// edges should still be hittable within the margin.)
 						if (this.getShapePageBounds(shape)!.contains(viewportPageBounds)) continue
-						offerHollowHit(ranking, shape, geometry.area)
+						const { area } = geometry
+						if (area < inHollowSmallestArea) {
+							inHollowSmallestArea = area
+							inHollowSmallestAreaHit = shape
+						}
 						break
 					}
 					case 'miss': {
@@ -5777,12 +5787,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the distance is less than the margin, return the shape as the hit.
 				// Use the editor's configurable hit test margin.
 				if (distance < this.getHitTestMargin()) {
-					return getBestOpenShapeHit(ranking, shape, distance)
+					// An edge we already hit (above this shape) that is at least as close still wins,
+					// matching the closest-edge rule used for hollow shapes
+					if (inMarginClosestToEdgeHit && inMarginClosestToEdgeDistance <= distance) {
+						return inMarginClosestToEdgeHit
+					}
+					return shape
 				}
 			}
 		}
 
-		return getBestHit(ranking)
+		// If we haven't hit any filled shapes or frames, then return either
+		// the shape who we hit within the margin (and of those, the one that
+		// had the shortest distance between the point and the shape edge),
+		// or else the hollow shape with the smallest area—or if we didn't hit
+		// any margins or any hollow shapes, then null.
+		return inMarginClosestToEdgeHit || inHollowSmallestAreaHit || undefined
 	}
 
 	/**
@@ -7081,12 +7101,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/**
-	 * Shared clustering logic for layout methods. Resolves shapes, optionally filters to
-	 * axis-aligned shapes, checks canBeLaidOut, and groups shapes into clusters via arrow bindings.
-	 *
-	 * @internal
-	 */
 	/** Layout kernels return a move per cluster; every shape in the cluster shifts by that delta. */
 	private getChangesToApplyLayoutMoves(
 		moves: { item: { shapes: TLShape[] }; delta: VecLike }[]
@@ -7126,6 +7140,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
+	/**
+	 * Shared clustering logic for layout methods. Resolves shapes, optionally filters to
+	 * axis-aligned shapes, checks canBeLaidOut, and groups shapes into clusters via arrow bindings.
+	 *
+	 * @internal
+	 */
 	private getShapeClusters(
 		shapes: TLShapeId[] | TLShape[],
 		type: TLShapeUtilCanBeLaidOutOpts['type'],
@@ -7611,7 +7631,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (util.onResize && util.canResize(initialShape)) {
 			// get the model changes from the shape util
-			const newPagePoint = this._scalePagePoint(
+			const newPagePoint = scalePagePoint(
 				Mat.applyToPoint(pageTransform, new Vec(0, 0)),
 				scaleOrigin,
 				scale,
@@ -7677,12 +7697,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const initialPageCenter = Mat.applyToPoint(pageTransform, initialBounds.center)
 		// get the model changes from the shape util
-		const newPageCenter = this._scalePagePoint(
-			initialPageCenter,
-			scaleOrigin,
-			scale,
-			scaleAxisRotation
-		)
+		const newPageCenter = scalePagePoint(initialPageCenter, scaleOrigin, scale, scaleAxisRotation)
 
 		const initialPageCenterInParentSpace = this.getPointInParentSpace(
 			initialShape.id,
@@ -7708,16 +7723,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			x: initialShape.x + delta.x,
 			y: initialShape.y + delta.y,
 		}
-	}
-
-	/** @internal */
-	private _scalePagePoint(
-		point: VecLike,
-		scaleOrigin: VecLike,
-		scale: VecLike,
-		scaleAxisRotation: number
-	) {
-		return scalePagePoint(point, scaleOrigin, scale, scaleAxisRotation)
 	}
 
 	/** @internal */
@@ -7765,7 +7770,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 
 		// And now we scale the center point by the original scale factor
-		const postScaleShapePageCenter = this._scalePagePoint(
+		const postScaleShapePageCenter = scalePagePoint(
 			preScaleShapePageCenter,
 			options.scaleOrigin,
 			scale,
@@ -9142,6 +9147,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (result.type === 'error') {
 			throw Error('Could not put content: could not migrate content')
 		}
+		// The cast is unchecked: groupBy keys by plain string, so nothing ties `typeName` to the
+		// record type. Each key below must match a TLRecord typeName exactly, or that type is
+		// silently treated as empty.
 		const {
 			asset: assets = [],
 			shape: shapes = [],

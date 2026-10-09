@@ -2,11 +2,9 @@ import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { Group2d } from '../../primitives/geometry/Group2d'
 import { VecLike } from '../../primitives/Vec'
 
-// Pure hit-test distance and ranking math. Editor keeps the z-order loop and every editor read
-// (masks, shape utils, page bounds, hit test margin) at its original point, then calls in here, so
-// nothing in this file may read editor state.
-//
-// Shapes are opaque to this file: the ranking is generic over whatever the caller is ranking.
+// Pure hit-test distance and classification math. Editor keeps the z-order loop, the running best
+// candidates, and every editor read (masks, shape utils, page bounds, hit test margin) at its
+// original point, then calls in here, so nothing in this file may read editor state.
 
 /** How close a point must be to count as a hit, and whether the shape's interior counts. */
 export interface HitTestMargins {
@@ -159,66 +157,4 @@ export function classifyClosedShapeHit(
 	}
 
 	return { type: 'miss' }
-}
-
-/**
- * The best candidates seen so far while walking shapes from the top of the z-order down: the shape
- * whose edge the point came closest to, and the smallest hollow shape the point landed in.
- */
-export interface HitRanking<T> {
-	marginDistance: number
-	marginHit: T | null
-	hollowArea: number
-	hollowHit: T | null
-}
-
-/** Start ranking hit candidates. */
-export function createHitRanking<T>(): HitRanking<T> {
-	return {
-		marginDistance: Infinity,
-		marginHit: null,
-		hollowArea: Infinity,
-		hollowHit: null,
-	}
-}
-
-/** Offer a shape whose edge the point came within margin distance of. */
-export function offerMarginHit<T>(ranking: HitRanking<T>, shape: T, distance: number): void {
-	if (distance < ranking.marginDistance) {
-		ranking.marginDistance = distance
-		ranking.marginHit = shape
-	}
-}
-
-/** Offer a hollow shape that the point landed inside of. */
-export function offerHollowHit<T>(ranking: HitRanking<T>, shape: T, area: number): void {
-	if (area < ranking.hollowArea) {
-		ranking.hollowArea = area
-		ranking.hollowHit = shape
-	}
-}
-
-/**
- * The winner for an open shape (e.g. a line or draw shape) the point is within margin distance of.
- * An edge already hit above this shape that is at least as close still wins, matching the
- * closest-edge rule used for hollow shapes.
- */
-export function getBestOpenShapeHit<T>(ranking: HitRanking<T>, shape: T, distance: number): T {
-	if (ranking.marginHit && ranking.marginDistance <= distance) {
-		return ranking.marginHit
-	}
-	return shape
-}
-
-/**
- * The winner once every shape has been checked: the shape whose edge was closest to the point, or
- * else the smallest hollow shape it landed in.
- */
-export function getBestHit<T>(ranking: HitRanking<T>): T | undefined {
-	// If we haven't hit any filled shapes or frames, then return either
-	// the shape who we hit within the margin (and of those, the one that
-	// had the shortest distance between the point and the shape edge),
-	// or else the hollow shape with the smallest area—or if we didn't hit
-	// any margins or any hollow shapes, then null.
-	return ranking.marginHit || ranking.hollowHit || undefined
 }

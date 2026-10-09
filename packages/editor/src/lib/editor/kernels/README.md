@@ -22,6 +22,12 @@ getConstrainedCamera(point: VecLike, opts?: TLCameraMoveOptions): CameraXYZ {
   read hoisted out of its branch changes behavior in ways types and most tests won't catch.
 - **Never hoist a read across a shape util callback.** `onResize`, `canBeLaidOut` and friends can
   read or change editor state, so a read that came after one stays after it.
+- **Geometry is user code too.** A kernel may take a `Geometry2d`, but `distanceToPoint`,
+  `hitTestPoint` and `ignoreHit` can be overridden by custom geometry. Call them in the same order
+  and on the same branches the shell did, and treat them like any other callback.
+- **Running state stays in the shell.** When a loop keeps a best-so-far across iterations (as
+  `getShapeAtPoint` does), keep those locals in `Editor` and extract only the per-item decision. A
+  kernel object that just wraps a few variables adds lines without making anything testable.
 - **Kernels return plans, not effects.** Deltas, partials, positions. Every `updateShapes`,
   `run`, and history call stays in the shell.
 - **Callback-heavy code keeps its choreography in the shell.** When only the arithmetic is pure,
