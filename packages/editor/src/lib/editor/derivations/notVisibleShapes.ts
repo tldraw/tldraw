@@ -1,6 +1,7 @@
 import { computed, isUninitialized } from '@tldraw/state'
 import { TLShapeId } from '@tldraw/tlschema'
 import type { Editor } from '../Editor'
+import { reuseSetIfUnchanged } from '../kernels/culling'
 import { ShapeUtil } from '../shapes/ShapeUtil'
 
 /**
@@ -56,17 +57,6 @@ export function notVisibleShapes(editor: Editor) {
 		}
 
 		// Reuse prev set when contents are unchanged
-		if (notVisibleIds.size === prevValue.size) {
-			let same = true
-			for (const id of notVisibleIds) {
-				if (!prevValue.has(id)) {
-					same = false
-					break
-				}
-			}
-			if (same) return prevValue
-		}
-
-		return notVisibleIds
+		return reuseSetIfUnchanged(prevValue, notVisibleIds)
 	})
 }
