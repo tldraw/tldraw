@@ -5,30 +5,7 @@ import { renderTldrawComponentWithEditor } from './testutils/renderTldrawCompone
 
 // These tests drive the real DOM event handlers (useCanvasEvents for pointer
 // events, useGestureEvents for touch pinch) rather than dispatching synthetic
-// editor events, so they exercise the same path a touch device takes. jsdom is
-// missing a few browser APIs those handlers rely on, so we polyfill them here.
-
-if (typeof (globalThis as any).PointerEvent === 'undefined') {
-	// jsdom has no PointerEvent; the canvas handlers do `e instanceof PointerEvent`.
-	;(globalThis as any).PointerEvent = class PointerEvent extends MouseEvent {
-		pointerId: number
-		pointerType: string
-		pressure: number
-		isPrimary: boolean
-		constructor(type: string, params: any = {}) {
-			super(type, params)
-			this.pointerId = params.pointerId ?? 0
-			this.pointerType = params.pointerType ?? ''
-			this.pressure = params.pressure ?? 0
-			this.isPrimary = params.isPrimary ?? false
-		}
-	}
-}
-if (!Element.prototype.setPointerCapture) {
-	Element.prototype.setPointerCapture = () => {}
-	Element.prototype.releasePointerCapture = () => {}
-	Element.prototype.hasPointerCapture = () => false
-}
+// editor events, so they exercise the same path a touch device takes.
 
 const ids = {
 	a: createShapeId('a'),
