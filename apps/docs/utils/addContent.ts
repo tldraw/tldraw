@@ -69,12 +69,14 @@ async function insertContent(
     ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	)
 
-	for (let i = 0; i < content.sections.length; i++) {
-		const section = content.sections[i]
+	for (const section of content.sections) {
 		try {
+			// `section.index` is assigned by the generators across all content sources (regular
+			// sections 0..n, examples and reference far away). addContentToDb is called once per
+			// source, so a per-call loop index would give two sections the same idx.
 			await sectionInsert.run(
 				section.id,
-				section.id === 'reference' ? 99999 : i,
+				section.index,
 				section.title,
 				section.description,
 				section.path,
