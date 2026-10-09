@@ -95,6 +95,7 @@
 	"devDependencies": {
 		"@lingual/i18n-check": "^0.5.5",
 		"@microsoft/api-extractor": "^7.55.2",
+		"@playwright/test": "^1.61.0",
 		"@swc/core": "^1.15.18",
 		"@tldraw/scripts": "workspace:*",
 		"@types/adm-zip": "^0.5.7",
