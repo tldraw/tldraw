@@ -2,6 +2,7 @@
 
 import Script from 'next/script'
 import { useEffect } from 'react'
+import { CommonRoomSignals } from '@/components/common/common-room-signals'
 
 export default function Analytics() {
 	useEffect(() => {
@@ -54,6 +55,7 @@ export default function Analytics() {
 				defer
 				src={analyticsScriptSrc}
 			/>
+			<CommonRoomSignals />
 		</>
 	)
 }
