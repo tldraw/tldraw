@@ -114,11 +114,13 @@ try {
 
 	rawPath = await page.video().path()
 } finally {
-	// Closing the context is what finalizes the recording: browser.close() alone
-	// leaves a .webm that ffmpeg can't parse. Both have to run even when the
-	// scenario throws; otherwise a failed attempt leaks a browser.
-	await context?.close()
-	await browser.close()
+	// Without context.close() the .webm is never finalized and ffmpeg can't parse
+	// it. Both closes must run even when the scenario throws, or a browser leaks.
+	try {
+		await context?.close()
+	} finally {
+		await browser.close()
+	}
 }
 
 const trimSeconds = ((scenarioStartedAt - recordingStartedAt) / 1000).toFixed(2)
