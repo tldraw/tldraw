@@ -36,7 +36,7 @@ If the directory already has files in it, you'll be asked whether to keep them, 
 
 ## Development
 
-Run in development mode with `yarn dev` from this folder.
+Run in development mode with `pnpm dev` from this folder.
 You can also run `alias create-tldraw=~/<path to this repo>/packages/create-tldraw/scripts/dev.sh`, and then use `create-tldraw` to run the development version of this script.
 
 ## Adding more templates

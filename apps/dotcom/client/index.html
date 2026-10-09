@@ -4,6 +4,8 @@
 		<meta charset="UTF-8" />
 		<!-- theme init prevents dark mode flashbang on refresh, and prevents a portion of the flashbang during signin/signout -->
 		<script src="/theme-init.js"></script>
+		<!-- must stay a classic script ahead of the app module script; see polyfills.js -->
+		<script src="/polyfills.js"></script>
 
 		<link rel="manifest" href="/manifest.webmanifest" />
 		<meta
@@ -79,6 +81,8 @@
 
 		<!-- $PRELOADED_FONTS -->
 
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
 			rel="stylesheet"
 			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"

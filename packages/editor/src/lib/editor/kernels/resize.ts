@@ -87,19 +87,6 @@ export function isMirroredInOneAxis(scale: VecLike): boolean {
 }
 
 /**
- * The local rotation that negates a shape's page rotation, which mirrors it.
- *
- * For a shape with local rotation `localRotation` and parent page rotation `parentRotation`:
- * - pageRot = parentRot + localRot
- * - newPageRot = -pageRot (we want to negate the page rotation)
- * - newPageRot = parentRot + newLocalRot (parent hasn't changed)
- * - Therefore: newLocalRot = -pageRot - parentRot = -(parentRot + localRot) - parentRot = -localRot - 2*parentRot
- */
-export function getMirroredRotation(localRotation: number, parentRotation: number): number {
-	return -localRotation - 2 * parentRotation
-}
-
-/**
  * The page point that puts a shape's center at `targetPageCenter`.
  *
  * This uses the local bounds center transformed to page space, not the axis-aligned page bounds

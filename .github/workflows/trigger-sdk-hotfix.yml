@@ -62,9 +62,15 @@ jobs:
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
           git log --oneline -10
-          yarn tsx internal/scripts/trigger-sdk-hotfix.ts
+          pnpm exec tsx internal/scripts/trigger-sdk-hotfix.ts
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           TLDRAW_BEMO_URL: https://demo.tldraw.xyz
           DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+
+      # the script leaves another branch checked out. composite post steps re-read action.yml, so a
+      # different setup action there fails the job with "Index was out of range".
+      - name: Restore original checkout
+        if: always()
+        run: git checkout --force "$GITHUB_SHA"

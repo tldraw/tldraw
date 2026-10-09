@@ -20,8 +20,9 @@ const REASON_PRIORITY: CommentNotificationReason[] = ['mention', 'reply', 'owned
 
 /**
  * The comment fields the notifications feed needs — a structural subset of the Zero row so this
- * is unit-testable without Zero types. Both feeds yield comment rows: `comments` carries other
- * people's comments that concern the caller, `reactions` the caller's own that were reacted to.
+ * is unit-testable without Zero types. Both sources yield comment rows: the merged comment feeds
+ * carry other people's comments that concern the caller, `reactions` the caller's own that were
+ * reacted to.
  */
 export interface CommentNotificationInput {
 	id: string
@@ -73,10 +74,10 @@ export interface CommentNotification<
 /**
  * Tags each comment in the notifications feed with why it's there, newest first.
  *
- * Stricter than the `comments` synced query, whose reply category has no timing condition (ZQL
- * can't compare `createdAt` across correlated rows): the reply reason only applies to comments
- * from strictly after the user joined the thread — earlier ones are context they saw when
- * joining, not notifications. The strict compare leans on Postgres stamping `createdAt`
+ * Stricter than the thread feeds (`threadStarterComments`, `threadParticipantComments`), which
+ * have no timing condition (ZQL can't compare `createdAt` across correlated rows): the reply
+ * reason only applies to comments from strictly after the user joined the thread — earlier ones
+ * are context they saw when joining, not notifications. The strict compare leans on Postgres stamping `createdAt`
  * monotonically per thread on insert (migration 046): every new comment lands strictly after the
  * thread's max, so it can never tie with or fall behind the reader's join and get dropped. Rows
  * from before that migration keep their client stamps, so in an old thread a pre-migration reply
@@ -199,6 +200,22 @@ export function buildReactionNotifications(
 	}
 
 	return notifications
+}
+
+/** Unions the per-reason comment feeds: a comment matching several reasons arrives in each of them. */
+export function mergeCommentFeeds<T extends { id: string }>(
+	...feeds: readonly (readonly T[])[]
+): T[] {
+	const seen = new Set<string>()
+	const merged: T[] = []
+	for (const feed of feeds) {
+		for (const comment of feed) {
+			if (seen.has(comment.id)) continue
+			seen.add(comment.id)
+			merged.push(comment)
+		}
+	}
+	return merged
 }
 
 /** Merges both feeds' entries newest-first; the panel and its tests share this. */

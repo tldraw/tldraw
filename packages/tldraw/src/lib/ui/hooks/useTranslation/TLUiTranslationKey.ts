@@ -250,6 +250,7 @@ export type TLUiTranslationKey =
 	| 'tool.pentagon'
 	| 'tool.rectangle'
 	| 'tool.rhombus'
+	| 'tool.rhombus-2'
 	| 'tool.star'
 	| 'tool.trapezoid'
 	| 'tool.triangle'

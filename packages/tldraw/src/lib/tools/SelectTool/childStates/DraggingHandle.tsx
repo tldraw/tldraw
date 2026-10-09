@@ -173,7 +173,7 @@ export class DraggingHandle extends StateNode {
 
 	private clearExactTimeout() {
 		if (this.exactTimeout !== -1) {
-			clearTimeout(this.exactTimeout)
+			this.editor.timers.clearTimeout(this.exactTimeout)
 			this.exactTimeout = -1
 		}
 	}

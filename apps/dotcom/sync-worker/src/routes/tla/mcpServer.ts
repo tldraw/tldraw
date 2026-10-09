@@ -9,11 +9,14 @@ import {
 	MCP_PER_BOARD_RATE_LIMIT,
 	MCP_PER_USER_RATE_LIMIT,
 	MCP_RATE_LIMIT_WINDOW_MS,
+	MCP_CREATE_PER_USER_RATE_LIMIT,
+	MCP_RENAME_PER_USER_RATE_LIMIT,
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
 } from '../../config'
 import { Environment, envFlagWord } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
+import { getPublicOrigin } from '../../utils/getPublicOrigin'
 import { sha256 } from '../../utils/hash'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
@@ -22,9 +25,12 @@ import {
 	BOARD_NOT_FOUND_MESSAGE,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
+	CREATE_BOARD_TOOL_NAME,
+	LIST_WORKSPACES_TOOL_NAME,
 	MCP_SERVER_INFO,
-	MCP_SERVER_INSTRUCTIONS,
+	getMcpServerInstructions,
 	PAGE_INFO_TOOL_NAME,
+	RENAME_BOARD_TOOL_NAME,
 	PageSelector,
 	ResolvedPageOk,
 	SEARCH_BOARDS_TOOL_NAME,
@@ -35,20 +41,29 @@ import {
 	getBoardInfo,
 	getBoardSearchResults,
 	getClusterInfo,
+	getCreatedBoardResult,
 	getPageInfo,
 	getToolDefinitions,
+	getWorkspaceListResult,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
+	parseCreateBoardInput,
+	parseListWorkspacesInput,
 	parsePageInfoInput,
+	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	pickClusterShapes,
 	resolvePage,
 	toolError as modelToolError,
+	toolJsonResult,
 	toolPageResult,
 } from './boardTools'
+import { createBoardForUser } from './createBoard'
+import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import { readPageClusters, writePageClusterIndex } from './mcpClusterIndex'
+import { renameBoardForUser } from './renameBoard'
 import { searchAccessibleBoards } from './searchBoards'
 import {
 	ResolveThumbnailBoardResult,
@@ -148,6 +163,14 @@ function searchRateLimitKey(userId: string) {
 	return `search:${userId}`
 }
 
+function createRateLimitKey(userId: string) {
+	return `create:${userId}`
+}
+
+function renameRateLimitKey(userId: string) {
+	return `rename:${userId}`
+}
+
 async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
 	return isRateLimited(env.MCP_SERVER_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
 		fallbackLimit: MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
@@ -214,12 +237,16 @@ interface JsonRpcRequest {
 	}
 }
 
-// Runtime kill switch for the whole MCP server, read per request so flipping MCP_SCREENSHOT_ENABLED
-// takes effect on the next request rather than the next build. An unset var means enabled, so
-// environments that never configure it (previews, local dev, tests) keep working; a var that is set
-// must say 'true', so a stray value disables rather than silently leaving the endpoint up.
-export function isMcpScreenshotEnabled(env: Environment) {
-	const word = envFlagWord(env.MCP_SCREENSHOT_ENABLED)
+// Whether search_boards will match on board names. Unset means enabled, so previews, local dev and
+// tests keep working, while a set value must say 'true' so a stray one turns matching off rather
+// than leaving it on.
+//
+// It gates the one part of the search no index reaches — `name ILIKE '%term%'`, which reads every
+// board in the caller's scope when a term matches nothing. Turning it off does not silently drop the
+// terms: a query with them is refused, and the tool stops advertising `query` at all. Serving
+// unfiltered boards to a model that asked for "roadmap" would be read as twenty matches.
+export function isMcpSearchNameMatchingEnabled(env: Environment) {
+	const word = envFlagWord(env.MCP_SEARCH_NAME_MATCHING_ENABLED)
 	return word === undefined || word === 'true'
 }
 
@@ -284,9 +311,21 @@ function writeMcpToolCallTelemetry(
 //
 // Reason and client are both closed vocabularies (see McpAuthRefusal and MCP_CLIENT_FAMILIES). No
 // token, subject, client id or board identity goes near this, in keeping with every other event here.
-function writeMcpAuthRefusalTelemetry(env: Environment, request: Request, reason: McpAuthRefusal) {
+//
+// `route` separates the MCP endpoint from the board thumbnail route, which accepts the same OAuth
+// tokens: without it a burst of refused thumbnail requests would read as MCP clients being turned away.
+export function writeMcpAuthRefusalTelemetry(
+	env: Environment,
+	request: Request,
+	reason: McpAuthRefusal,
+	route: 'mcp' | 'thumbnail'
+) {
 	writeDataPoint(undefined, env.MEASURE, env, 'mcp_server_auth_refusal', {
-		blobs: [`reason:${reason}`, `client:${normalizeMcpClient(request.headers.get('user-agent'))}`],
+		blobs: [
+			`reason:${reason}`,
+			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
+			`route:${route}`,
+		],
 	})
 }
 
@@ -323,6 +362,9 @@ const TOOL_HANDLERS = new Map<
 	) => Promise<ToolCallResult>
 >([
 	[SEARCH_BOARDS_TOOL_NAME, callSearchBoardsTool],
+	[LIST_WORKSPACES_TOOL_NAME, callListWorkspacesTool],
+	[CREATE_BOARD_TOOL_NAME, callCreateBoardTool],
+	[RENAME_BOARD_TOOL_NAME, callRenameBoardTool],
 	[BOARD_INFO_TOOL_NAME, callBoardInfoTool],
 	[PAGE_INFO_TOOL_NAME, callPageInfoTool],
 	[CLUSTER_INFO_TOOL_NAME, callClusterInfoTool],
@@ -334,12 +376,6 @@ export async function mcpServer(
 	env: Environment,
 	ctx?: ExecutionContext
 ): Promise<Response> {
-	// Checked before anything else, including the method check, so a disabled server looks like it
-	// isn't there at all rather than like a route that exists but rejects everything.
-	if (!isMcpScreenshotEnabled(env)) {
-		return new Response('Not Found', { status: 404 })
-	}
-
 	// new MCP spec (2026-07-28 onwards) no longer allows get or delete requests
 	if (request.method !== 'POST') {
 		return new Response('MCP screenshot server expects POST', { status: 405 })
@@ -351,7 +387,7 @@ export async function mcpServer(
 	// naming a public board, and requiring a token retires that deliberately.
 	const auth = await authenticateMcpRequest(request, env)
 	if (!auth.ok) {
-		writeMcpAuthRefusalTelemetry(env, request, auth.reason)
+		writeMcpAuthRefusalTelemetry(env, request, auth.reason, 'mcp')
 		return auth.response
 	}
 
@@ -373,7 +409,7 @@ export async function mcpServer(
 			protocolVersion: MCP_PROTOCOL_VERSION_LEGACY,
 			capabilities: { tools: {} },
 			serverInfo: MCP_SERVER_INFO,
-			instructions: MCP_SERVER_INSTRUCTIONS,
+			instructions: getMcpServerInstructions(isMcpSearchNameMatchingEnabled(env)),
 		})
 	}
 
@@ -391,7 +427,7 @@ export async function mcpServer(
 			resultType: 'complete',
 			supportedVersions: SUPPORTED_PROTOCOL_VERSIONS,
 			capabilities: { tools: {} },
-			instructions: MCP_SERVER_INSTRUCTIONS,
+			instructions: getMcpServerInstructions(isMcpSearchNameMatchingEnabled(env)),
 			ttlMs: TOOLS_LIST_TTL_MS,
 			cacheScope: TOOLS_LIST_CACHE_SCOPE,
 			_meta: { [META_SERVER_INFO]: MCP_SERVER_INFO },
@@ -420,7 +456,7 @@ export async function mcpServer(
 				rpcRequest.id,
 				withResultEnvelope(
 					{
-						tools: getToolDefinitions(),
+						tools: getToolDefinitions(isMcpSearchNameMatchingEnabled(env)),
 						...(era === 'modern'
 							? { ttlMs: TOOLS_LIST_TTL_MS, cacheScope: TOOLS_LIST_CACHE_SCOPE }
 							: {}),
@@ -622,7 +658,9 @@ async function callSearchBoardsTool(
 	userId: string,
 	ctx?: ExecutionContext
 ) {
-	const parsed = parseToolInput(() => parseSearchBoardsInput(argumentsValue))
+	const parsed = parseToolInput(() =>
+		parseSearchBoardsInput(argumentsValue, isMcpSearchNameMatchingEnabled(env))
+	)
 	if (!parsed.ok) return parsed.result
 	const input = parsed.input
 
@@ -655,6 +693,111 @@ async function callSearchBoardsTool(
 			// failures, so a pool timeout would otherwise be recorded as `browser_timeout`. A limiter
 			// outage never reaches here — toolFailure keeps that reason as itself.
 			recordAs: () => 'board_lookup_error',
+		})
+	}
+}
+
+async function callListWorkspacesTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseListWorkspacesInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+
+	try {
+		// Shares search_boards' budget: it is the same kind of spend — a cheap, index-served Postgres
+		// read and no Browser Run — and a binding of its own would buy nothing that one doesn't.
+		const refusal = await checkSearchRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		return getWorkspaceListResult(await listWorkspacesForUser(env, userId), userId)
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_workspace_list',
+			extras: {},
+			summary: 'Could not list workspaces',
+			// A Postgres failure, like search_boards'; see the note there.
+			recordAs: () => 'board_lookup_error',
+		})
+	}
+}
+
+async function callCreateBoardTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseCreateBoardInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const refusal = await checkCreateRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		const created = await createBoardForUser(env, userId, input, ctx)
+		if (!created.ok) return withTelemetryReason(created.result, created.reason)
+		return getCreatedBoardResult({
+			boardId: created.boardId,
+			name: input.name,
+			url: `${getPublicOrigin(request as IRequest, env)}/f/${created.boardId}`,
+			workspace: created.workspace,
+		})
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_board_create',
+			// The board name is something the caller typed, so it stays off the Sentry event.
+			extras: { namedWorkspace: input.workspace !== null },
+			summary: 'Could not create the board',
+			recordAs: () => 'board_create_error',
+		})
+	}
+}
+
+async function callRenameBoardTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseRenameBoardInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const refusal = await checkRenameRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		const renamed = await renameBoardForUser(env, userId, input, ctx)
+		if (!renamed.ok) return withTelemetryReason(renamed.result, renamed.reason)
+		return toolJsonResult({
+			boardId: input.boardId,
+			name: input.name,
+			previousName: renamed.previousName,
+			url: `${getPublicOrigin(request as IRequest, env)}/f/${input.boardId}`,
+		})
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_board_rename',
+			// The new name is something the caller typed, so it stays off the Sentry event.
+			extras: { boardId: input.boardId },
+			summary: 'Could not rename the board',
+			recordAs: () => 'board_rename_error',
 		})
 	}
 }
@@ -943,6 +1086,59 @@ async function checkSearchRateLimit(
 	)
 }
 
+/**
+ * The per-caller ceiling on `create_board`. Its own binding because it bounds writes, which neither
+ * the Browser Run budget nor the search one is sized for. MAX_NUMBER_OF_FILES caps what a runaway
+ * loop can leave behind; this caps how fast it gets there.
+ */
+async function checkCreateRateLimit(
+	env: Environment,
+	userId: string,
+	telemetry: McpTelemetryWriter
+): Promise<ToolCallResult | undefined> {
+	if (
+		!(await isRateLimited(env.MCP_SERVER_CREATE_RATE_LIMITER, createRateLimitKey(userId), {
+			fallbackLimit: MCP_CREATE_PER_USER_RATE_LIMIT,
+		}))
+	) {
+		return undefined
+	}
+	telemetry({
+		cacheStatus: 'none',
+		rateLimitAllowed: false,
+		failureReason: 'rate_limited_create',
+		callerHash: await sha256(userId),
+	})
+	return toolError(
+		`Rate limited. Board creation is limited to about ${MCP_CREATE_PER_USER_RATE_LIMIT} per minute per account.`,
+		'rate_limited_create'
+	)
+}
+
+async function checkRenameRateLimit(
+	env: Environment,
+	userId: string,
+	telemetry: McpTelemetryWriter
+): Promise<ToolCallResult | undefined> {
+	if (
+		!(await isRateLimited(env.MCP_SERVER_RENAME_RATE_LIMITER, renameRateLimitKey(userId), {
+			fallbackLimit: MCP_RENAME_PER_USER_RATE_LIMIT,
+		}))
+	) {
+		return undefined
+	}
+	telemetry({
+		cacheStatus: 'none',
+		rateLimitAllowed: false,
+		failureReason: 'rate_limited_rename',
+		callerHash: await sha256(userId),
+	})
+	return toolError(
+		`Rate limited. Renaming boards is limited to about ${MCP_RENAME_PER_USER_RATE_LIMIT} per minute per account.`,
+		'rate_limited_rename'
+	)
+}
+
 type PageClustersResult =
 	| { ok: true; clusters: ShapeCluster[]; clusterCacheStatus: 'hit' | 'miss' }
 	| { ok: false; result: ToolCallResult }
@@ -1208,6 +1404,12 @@ async function renderShapeSetScreenshot(
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			telemetry: { source: 'mcp' },
 			content: summarizeSnapshotContent(resolved.snapshot, resolved.page.pageId),
+			// Preview trial (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts): let the screenshot
+			// rasterize the live canvas instead of running editor.toImage in the page. Agent-facing
+			// only — the OG surface keeps the export path's pixel-exact sizing.
+			...(envFlagWord(env.THUMBNAIL_RENDER_LIVE_CAPTURE) === 'true'
+				? { capture: 'live' as const }
+				: null),
 		})
 
 		// The render is already paid for and the PNG in hand is what the caller asked for, so a failed

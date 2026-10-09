@@ -137,6 +137,7 @@ import {
 	areAnglesCompatible,
 	clamp,
 	pointInPolygon,
+	shortAngleDist,
 } from '../primitives/utils'
 import { Vec, VecLike } from '../primitives/Vec'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
@@ -189,7 +190,6 @@ import {
 import {
 	getFiniteScale,
 	getLocalScale,
-	getMirroredRotation,
 	getPagePointForCenter,
 	isMirroredInOneAxis,
 	lockScaleToLargerAxis,
@@ -2099,7 +2099,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._updateInstanceState(partial, { history: 'ignore', ...historyOptions })
 
 		if (partial.isChangingStyle !== undefined) {
-			clearTimeout(this._isChangingStyleTimeout)
+			this.timers.clearTimeout(this._isChangingStyleTimeout)
 			if (partial.isChangingStyle === true) {
 				// If we've set to true, set a new reset timeout to change the value back to false after 1 seconds
 				this._isChangingStyleTimeout = this.timers.setTimeout(() => {
@@ -4890,7 +4890,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const freshPage = this.getPage(id) // get the most recent version of the page anyway
 		if (!freshPage) return this
 
-		const prevCamera = { ...this.getCamera() }
+		// Read the source page's own camera rather than getCamera(), which is the
+		// current page's and is wrong when duplicating a page that isn't being viewed
+		const prevCamera = {
+			...(this.store.get(CameraRecordType.createId(freshPage.id)) ?? this.getCamera()),
+		}
 		const content = this.getContentFromCurrentPage(this.getSortedChildIdsForParent(freshPage.id))
 
 		this.run(() => {
@@ -4905,8 +4909,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.setCamera(prevCamera)
 
 			if (content) {
-				// If we had content on the previous page, put it on the new page
-				return this.putContentOntoCurrentPage(content)
+				// Without preservePosition the paste rule recenters off-screen content
+				// in the viewport, so the copy's layout would not match the original
+				return this.putContentOntoCurrentPage(content, { preservePosition: true })
 			}
 		})
 
@@ -7736,6 +7741,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			initialShape: TLShape
 			isAspectRatioLocked: boolean
 			initialPageTransform: MatLike
+			dragHandle?: TLResizeHandle
+			mode?: TLResizeMode
+			skipStartAndEndCallbacks?: boolean
 		}
 	) {
 		const { type } = options.initialShape
@@ -7752,13 +7760,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 			initialBounds: options.initialBounds,
 			isAspectRatioLocked: options.isAspectRatioLocked,
 			initialPageTransform: options.initialPageTransform,
+			dragHandle: options.dragHandle,
+			mode: options.mode,
+			// this is one frame of the same resize, not a new one, so don't fire start/end again
+			skipStartAndEndCallbacks: options.skipStartAndEndCallbacks,
 		})
 
 		// then if the shape is flipped in one axis only, we need to apply an extra rotation
 		// to make sure the shape is mirrored correctly
 		if (isMirroredInOneAxis(scale)) {
+			// Mirroring across an axis at angle `axisRot` maps a page rotation `pageRot` to
+			// `2 * axisRot - pageRot`. For a shape with local rotation `localRot` whose parent had
+			// page rotation `parentRot` when the resize began:
+			// - pageRot = parentRot + localRot
+			// - newPageRot = 2 * axisRot - pageRot
+			// - newPageRot = (parentRot + parentDelta) + newLocalRot
+			// - Therefore: newLocalRot = 2 * axisRot - localRot - 2 * parentRot - parentDelta
+			// `parentDelta` is how far the parent has rotated since the resize began. Nested resizes
+			// commit ancestors before descendants, so an unaligned parent may itself have been
+			// flipped by the time its child gets here; reading the parent's current rotation as if
+			// it were the initial one would then double-count that flip.
 			const parentRotation = this.getShapeParentTransform(id).rotation()
-			const rotation = getMirroredRotation(options.initialShape.rotation, parentRotation)
+			// take the shortest arc so the stored rotation doesn't drift by 2π when the parent
+			// hasn't moved and the initial page rotation happens to be wrapped
+			const parentDelta = shortAngleDist(
+				Mat.Cast(options.initialPageTransform).rotation() - options.initialShape.rotation,
+				parentRotation
+			)
+			const initialParentRotation = parentRotation - parentDelta
+			const rotation =
+				2 * options.scaleAxisRotation -
+				options.initialShape.rotation -
+				2 * initialParentRotation -
+				parentDelta
 			this.updateShapes([{ id, type, rotation }])
 		}
 
@@ -10146,7 +10180,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const pending = MODIFIER_KEYS.filter((modifier) => this._modifierKeyTimeouts.has(modifier.key))
 
 		for (const modifier of pending) {
-			clearTimeout(this._modifierKeyTimeouts.get(modifier.key))
+			this.timers.clearTimeout(this._modifierKeyTimeouts.get(modifier.key))
 			this._modifierKeyTimeouts.delete(modifier.key)
 			modifier.set(this.inputs, false)
 		}
@@ -10296,7 +10330,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const timeout = this._modifierKeyTimeouts.get(modifier.key)
 			const isPressed = info[modifier.flag]
 			if (isPressed && !(modifier.ignoresKeyUp && info.name === 'key_up')) {
-				clearTimeout(timeout)
+				this.timers.clearTimeout(timeout)
 				this._modifierKeyTimeouts.delete(modifier.key)
 				modifier.set(inputs, true)
 			} else if (!isPressed && modifier.get(inputs) && timeout === undefined) {
@@ -10317,8 +10351,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		switch (type) {
 			case 'pinch': {
-				if (cameraOptions.isLocked) return
-				clearTimeout(this._longPressTimeout)
+				this.timers.clearTimeout(this._longPressTimeout)
 				this.inputs.updateFromEvent(info)
 
 				switch (info.name) {
@@ -10355,6 +10388,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 					case 'pinch': {
 						if (!inputs.getIsPinching()) return
+						// Lock the zoom, not the gesture: skipping pinch_start would send the fingers'
+						// pointer events to the tool, and skipping pinch_end would leave isPinching stuck.
+						if (cameraOptions.isLocked) return
 
 						const {
 							point: { z = 1 },
@@ -10428,8 +10464,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				let wheelBehavior = cameraOptions.wheelBehavior
 				const inputMode = this.user.getUserPreferences().inputMode
 
-				// If the user has set their input mode preference, then use that to determine the wheel behavior
-				if (inputMode !== null) {
+				// The user's input mode preference picks between pan and zoom, but it must not
+				// re-enable a wheel the app disabled with `wheelBehavior: 'none'`.
+				if (inputMode !== null && wheelBehavior !== 'none') {
 					wheelBehavior = inputMode === 'trackpad' ? 'pan' : 'zoom'
 				}
 
@@ -10503,15 +10540,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Ignore pointer events while we're pinching
 				if (inputs.getIsPinching()) return
 
-				this.inputs.updateFromEvent(info)
 				const { isPen } = info
 				const { isPenMode } = instanceState
 
+				// In pen mode, reject non-pen input (a resting palm) before it touches any
+				// state: otherwise updateFromEvent moves the origin point out from under the
+				// pen's drag, and a palm pointer_up clears the pen's isPointing/isDragging.
+				if (isPenMode && !isPen) return
+
+				this.inputs.updateFromEvent(info)
+
 				switch (info.name) {
 					case 'pointer_down': {
-						// If we're in pen mode and the input is not a pen type, then stop here
-						if (isPenMode && !isPen) return
-
 						// A pointer down starts a new interaction, so flush any modifier that's
 						// still lingering in its release-debounce window: treat it as released now.
 						this._releaseDebouncedModifiers()
@@ -10567,8 +10607,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 							this.interrupt()
 						}
 
-						// On devices with erasers (like the Surface Pen or Wacom Pen), button 5 is the eraser
-						if (info.button === STYLUS_ERASER_BUTTON) {
+						// On devices with erasers (like the Surface Pen or Wacom Pen), button 5 is the eraser.
+						// Guarded on the eraser tool existing: the bare editor can be configured without
+						// it, and an unguarded transition would throw and crash the editor.
+						if (info.button === STYLUS_ERASER_BUTTON && this.getStateDescendant('eraser')) {
 							this._restoreToolId = this.getCurrentToolId()
 							this.complete()
 							this.setCurrentTool('eraser')
@@ -10578,10 +10620,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 								this._prevCursor = this.getInstanceState().cursor.type
 							}
 							this.inputs.setIsPanning(true)
-							clearTimeout(this._longPressTimeout)
+							this.timers.clearTimeout(this._longPressTimeout)
 						} else if (info.button === RIGHT_MOUSE_BUTTON && this.options.rightClickPanning) {
 							this.inputs.setIsRightPointing(true)
-							clearTimeout(this._longPressTimeout)
+							this.timers.clearTimeout(this._longPressTimeout)
 							return this
 						}
 
@@ -10596,9 +10638,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 						break
 					}
 					case 'pointer_move': {
-						// If the user is in pen mode, but the pointer is not a pen, stop here.
-						if (!isPen && isPenMode) return
-
 						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 
 						// Right-click pointing: waiting to see if this becomes a drag
@@ -10649,7 +10688,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						) {
 							// Start dragging
 							inputs.setIsDragging(true)
-							clearTimeout(this._longPressTimeout)
+							this.timers.clearTimeout(this._longPressTimeout)
 						}
 						break
 					}
@@ -10657,12 +10696,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// Stop dragging / pointing
 						inputs.setIsDragging(false)
 						inputs.setIsPointing(false)
-						clearTimeout(this._longPressTimeout)
+						this.timers.clearTimeout(this._longPressTimeout)
 						// Remove the button from the buttons set
 						inputs.buttons.delete(info.button)
-
-						// If we're in pen mode and we're not using a pen, stop here
-						if (instanceState.isPenMode && !isPen) return
 
 						// Right-click pointing ended without dragging—this is a static
 						// right-click, so let it through to the state chart as right_click.
@@ -10733,7 +10769,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								})
 							}
 						} else {
-							if (info.button === STYLUS_ERASER_BUTTON) {
+							if (info.button === STYLUS_ERASER_BUTTON && this.getStateDescendant('eraser')) {
 								// If we were erasing with a stylus button, restore the tool we were using before we started erasing
 								this.complete()
 								this.setCurrentTool(this._restoreToolId)
@@ -10773,7 +10809,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 								this.inputs.setIsPanning(true)
 								this.inputs.setIsSpacebarPanning(true)
-								clearTimeout(this._longPressTimeout)
+								this.timers.clearTimeout(this._longPressTimeout)
 								this.setCursor({
 									type: this.inputs.getIsPointing() ? 'grabbing' : 'grab',
 									rotation: 0,
@@ -10801,7 +10837,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 									}
 								}
 
-								if (offset) {
+								// `_animateToViewport` bypasses `setCamera`, so honor the lock here.
+								if (offset && !cameraOptions.isLocked) {
 									const bounds = this.getViewportPageBounds()
 									const next = bounds.clone().translate(offset.mulV({ x: bounds.w, y: bounds.h }))
 									this._animateToViewport(next, { animation: { duration: 320 } })
@@ -10863,9 +10900,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.setCurrentTool('select')
 			}
 
-			// If a left click pointer event, send the event to the click manager.
+			// Send the event to the click manager. In pen mode only pen clicks count; otherwise
+			// every pointer does, including an indirect tablet stylus (a pen that never enables
+			// pen mode), which would otherwise never produce double-click events.
 			const { isPenMode } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-			if (info.isPen === isPenMode) {
+			if (!isPenMode || info.isPen) {
 				// The click manager may return a new event, i.e. a double click event
 				// depending on the event coming in and its own state. If the event has
 				// changed then hand both events to the statechart
@@ -10897,7 +10936,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private maybeTrackPerformance(name: string) {
 		if (debugFlags.measurePerformance.get()) {
 			if (this.performanceTracker.isStarted()) {
-				clearTimeout(this.performanceTrackerTimeout)
+				this.timers.clearTimeout(this.performanceTrackerTimeout)
 			} else {
 				this.performanceTracker.start(name)
 			}

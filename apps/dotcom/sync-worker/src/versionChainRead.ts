@@ -3,6 +3,7 @@ import {
 	deleteAllObjectsWithPrefix,
 	listAllObjectKeys,
 	listAllObjects,
+	listObjectsInRange,
 	R2ReadScheduler,
 	runInline,
 } from './r2'
@@ -68,6 +69,13 @@ export async function loadChainIndex(
 	schedule: R2ReadScheduler = runInline
 ): Promise<{ entries: ChainIndexEntry[]; ops: number; rejected: RejectedChainObject[] }> {
 	const { objects, ops } = await listAllObjects(bucket, `${roomKey}/`, schedule)
+	return { ...indexChainObjects(objects), ops }
+}
+
+function indexChainObjects(objects: R2Object[]): {
+	entries: ChainIndexEntry[]
+	rejected: RejectedChainObject[]
+} {
 	const entries: ChainIndexEntry[] = []
 	const rejected: RejectedChainObject[] = []
 	for (const object of objects) {
@@ -96,7 +104,82 @@ export async function loadChainIndex(
 	}
 
 	entries.sort((a, b) => a.key.localeCompare(b.key))
-	return { entries, ops, rejected }
+	return { entries, rejected }
+}
+
+// How far a chain key may sit out of wall-clock order: a durable object re-created on a host whose
+// clock runs behind can key a later object earlier (see reconstructVersion).
+const CHAIN_KEY_CLOCK_SKEW_MS = 10 * 60 * 1000
+const HOUR_MS = 60 * 60 * 1000
+// Before tldraw.com existed, so no version can be older.
+const CHAIN_EPOCH_MS = Date.UTC(2020, 0, 1)
+// Widening look-back windows, then the rest of the prefix. Most versions sit in a chain opened
+// within the hour; the tail only runs for a room whose chain is sparse around `timestamp`.
+const INDEX_WINDOWS_MS = [HOUR_MS, 24 * HOUR_MS, 30 * 24 * HOUR_MS, 365 * 24 * HOUR_MS, Infinity]
+
+/**
+ * The part of a room's chain index that one version's read needs: the object holding `timestamp`
+ * and, for a segment, every earlier segment of its chain. Listing the whole prefix instead is
+ * unbounded in the room's history, and on rooms with tens of thousands of chain objects it
+ * throttles with R2 10058 (#10879).
+ *
+ * Relies on a room's chain objects being written one after another by a single durable object:
+ * an object's key is when it was opened, the object holding `timestamp` was opened at or before
+ * it, and its chain's segments all sit between that chain's keyframe and it. So the walk goes back
+ * in widening windows until it finds the version — or an object older than it, past which the
+ * chain cannot hold it.
+ */
+export async function loadChainIndexForVersion(
+	bucket: R2Bucket,
+	roomKey: string,
+	timestamp: string,
+	schedule: R2ReadScheduler = runInline
+): Promise<{ entries: ChainIndexEntry[]; ops: number }> {
+	const time = Date.parse(timestamp)
+	// Not a timestamp any chain key could carry; the legacy lookup still gets its say. A future one
+	// matters beyond the wasted lookup: no window would find an object before it, so the walk would
+	// fall through to listing the whole prefix. Bounding the past keeps every window a valid Date.
+	if (Number.isNaN(time) || time < CHAIN_EPOCH_MS || time > Date.now() + CHAIN_KEY_CLOCK_SKEW_MS) {
+		return { entries: [], ops: 0 }
+	}
+
+	const prefix = `${roomKey}/`
+	const keyAt = (ms: number) => `${prefix}${new Date(ms).toISOString()}`
+	const objects: R2Object[] = []
+	let ops = 0
+	// The lower bound listed so far; undefined once the walk has reached the start of the prefix.
+	let listedFrom: string | undefined = keyAt(time + CHAIN_KEY_CLOCK_SKEW_MS)
+
+	const listBack = async (after: string | undefined) => {
+		const page = await listObjectsInRange(bucket, prefix, { after, through: listedFrom! }, schedule)
+		// Newest window last in `objects` is fine: indexChainObjects sorts by key.
+		objects.push(...page.objects)
+		ops += page.ops
+		listedFrom = after
+	}
+
+	const settledBefore = keyAt(time - CHAIN_KEY_CLOCK_SKEW_MS)
+	for (const window of INDEX_WINDOWS_MS) {
+		await listBack(Number.isFinite(window) ? keyAt(time - window) : undefined)
+		const { entries } = indexChainObjects(objects)
+		const target = entries.find((entry) => entry.timestamps.includes(timestamp))
+		if (target) {
+			if (target.kind === 'segment') {
+				const keyframeTime = Date.parse(parseVersionKey(target.keyframeKey)?.timestamp ?? '')
+				// An unreadable keyframe key cannot bound the chain, so list to the start of the prefix.
+				const chainFrom = Number.isNaN(keyframeTime)
+					? undefined
+					: keyAt(keyframeTime - CHAIN_KEY_CLOCK_SKEW_MS)
+				if (listedFrom !== undefined && (chainFrom === undefined || chainFrom < listedFrom)) {
+					await listBack(chainFrom)
+				}
+			}
+			return { entries: indexChainObjects(objects).entries, ops }
+		}
+		// An object opened before the version, with the version still unfound: the chain never held it.
+		if (listedFrom === undefined || objects.some((object) => object.key <= settledBefore)) break
+	}
+	return { entries: indexChainObjects(objects).entries, ops }
 }
 
 /**
@@ -117,13 +200,13 @@ export async function reconstructVersion({
 	legacyBucket: R2Bucket
 	roomKey: string
 	timestamp: string
-	/** A chain index the caller already loaded, so one request does not list the room twice. */
+	/** A chain index the caller already loaded (whole room or loadChainIndexForVersion's), so one request does not list twice. */
 	index?: ChainIndexEntry[]
 	schedule?: R2ReadScheduler
 }): Promise<VersionReconstruction | null> {
 	const { entries, ops: listOps } = index
 		? { entries: index, ops: 0 }
-		: await loadChainIndex(chainBucket, roomKey, schedule)
+		: await loadChainIndexForVersion(chainBucket, roomKey, timestamp, schedule)
 	const target = entries.find((entry) => entry.timestamps.includes(timestamp))
 
 	if (!target) {
@@ -316,26 +399,38 @@ export async function openWholeVersionStream({
 		: object.body
 }
 
+// Written into the chain bucket by the room-history migration, outside the chain's key space:
+// byte-for-byte copies of versions that only ever reached the legacy bucket, and each room's
+// backfill boundary.
+const LEGACY_VERSIONS_PREFIX = 'legacy_versions/'
+const BACKFILL_BOUNDARY_PREFIX = 'room-history-backfill/'
+
 /**
- * Removes a room's history from both buckets. Sweeping only one would leave a deleted board's
- * content behind in the other.
+ * Removes a room's history from every place it is kept: the chain, the legacy copies, and the
+ * room-history migration's cold archive, plus what that migration left beside the chain (its copies
+ * of legacy-only versions and its backfill boundary). Missing any one would leave a deleted board's
+ * content behind.
  */
 export async function deleteAllVersions({
 	chainBucket,
 	legacyBucket,
+	coldBucket,
 	roomKey,
 	schedule = runInline,
 }: {
 	chainBucket: R2Bucket
 	legacyBucket: R2Bucket
+	coldBucket: R2Bucket
 	roomKey: string
 	schedule?: R2ReadScheduler
 }): Promise<void> {
 	// Trailing slash: a bare roomKey prefix also matches sibling rooms whose slug is a prefix of
 	// this one (deleting "abc" must not sweep "abcd").
-	await Promise.all(
-		[chainBucket, legacyBucket].map((bucket) =>
+	await Promise.all([
+		...[chainBucket, legacyBucket, coldBucket].map((bucket) =>
 			deleteAllObjectsWithPrefix(bucket, `${roomKey}/`, schedule)
-		)
-	)
+		),
+		deleteAllObjectsWithPrefix(chainBucket, `${LEGACY_VERSIONS_PREFIX}${roomKey}/`, schedule),
+		schedule(() => chainBucket.delete(`${BACKFILL_BOUNDARY_PREFIX}${roomKey}.json`)),
+	])
 }

@@ -14,11 +14,20 @@ describe('isAllowedOrigin', () => {
 		'https://tldraw.dev',
 		'https://tldrawusercontent.com',
 		'http://localhost:3000',
+		// The sandbox ChatGPT and Codex render MCP app views in; Codex desktop has its own scheme.
+		'https://abc123.web-sandbox.oaiusercontent.com',
+		'codex-sandbox://mcp-server-tldraw-abc123.web-sandbox.oaiusercontent.com',
 	])('allows %s', (origin) => {
 		expect(isAllowedOrigin(origin)).toBe(origin)
 	})
 
-	it.each(['https://evil.com', 'https://tldraw.com.evil.com', ''])('rejects %s', (origin) => {
+	it.each([
+		'https://evil.com',
+		'https://tldraw.com.evil.com',
+		'https://oaiusercontent.com',
+		'https://web-sandbox.oaiusercontent.com.evil.com',
+		'',
+	])('rejects %s', (origin) => {
 		expect(isAllowedOrigin(origin)).toBeUndefined()
 	})
 })

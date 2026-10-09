@@ -27,7 +27,7 @@ function makeFile(overrides: Partial<any> = {}) {
 }
 
 function makeMembership(groupId: string, groupFiles: any[]) {
-	return { groupId, groupFiles }
+	return { groupId, groupFiles, group: { id: groupId } }
 }
 
 describe('getWorkspaceFilesSorted', () => {
@@ -57,5 +57,18 @@ describe('getWorkspaceFilesSorted', () => {
 		const app = createAppStub([membership], homeId)
 
 		expect(app.getWorkspaceFilesSorted(homeId)).toEqual([])
+	})
+})
+
+describe('getWorkspaceMembership', () => {
+	it('ignores a membership whose group row is gone', () => {
+		// what the comment feeds' access gate can leave behind after the user leaves a workspace
+		const app = createAppStub([
+			{ ...makeMembership('group:left', []), group: undefined },
+			makeMembership('group:kept', []),
+		])
+		expect(app.getWorkspaceMembership('group:left')).toBeUndefined()
+		expect(app.getWorkspaceMembership('group:kept')?.groupId).toBe('group:kept')
+		expect(app.getWorkspaceMemberships().map((m) => m.groupId)).toEqual(['group:kept'])
 	})
 })

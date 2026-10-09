@@ -103,4 +103,29 @@ describe('Resize box', () => {
 			},
 		})
 	})
+
+	it('Keeps the opposite edges fixed when clamping to the maximum size', () => {
+		const results = resizeBox(
+			shape,
+			{
+				newPoint: { x: -100, y: -100 },
+				handle: 'top_left',
+				mode: 'resize_bounds',
+				scaleX: 2,
+				scaleY: 2,
+				initialBounds: new Box(0, 0, 100, 100),
+				initialShape: shape,
+			},
+			{ maxWidth: 150, maxHeight: 150 }
+		)
+		// The bottom right corner stays at (100, 100), so the box spans -50..100 on each axis
+		expect(results).toMatchObject({
+			x: -50,
+			y: -50,
+			props: {
+				w: 150,
+				h: 150,
+			},
+		})
+	})
 })

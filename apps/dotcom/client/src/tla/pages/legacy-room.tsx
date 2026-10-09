@@ -1,7 +1,7 @@
-import { captureException } from '@sentry/react'
 import { ROOM_OPEN_MODE, RoomOpenMode } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useParams, useRouteError } from 'react-router-dom'
+import { captureRouteError } from '../../utils/routeErrors'
 import { TlaLegacyFileEditor } from '../components/TlaEditor/TlaLegacyFileEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
@@ -29,7 +29,7 @@ export function defineLegacyRoomPage(roomOpenMode: RoomOpenMode) {
 	function ErrorBoundary() {
 		const error = useRouteError()
 		useEffect(() => {
-			captureException(error)
+			captureRouteError(error)
 		}, [error])
 		return <Component error={error} />
 	}

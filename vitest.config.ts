@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config'
 
 // Package managers that link workspace packages into their dependents' node_modules (pnpm)
 // would otherwise surface every package's config once per dependent.
-const vitestPackages = glob.sync('{apps,packages}/**/vitest.config.ts', {
+const vitestPackages = glob.sync('{apps,packages,internal}/**/vitest.config.ts', {
 	ignore: '**/node_modules/**',
 })
 

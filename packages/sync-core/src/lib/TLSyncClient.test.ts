@@ -375,6 +375,67 @@ describe('TLSyncClient', () => {
 			expect(pushWithPage!.diff![localPage.id][0]).toBe(RecordOpType.Put)
 		})
 
+		it('[CL5] a reconnect flushes pending store history first, so a change queued behind the frame throttle is neither lost nor resurrected', () => {
+			connectClient()
+
+			socket.mockConnectionStatus('offline')
+			const localPage = makePage('Offline Page')
+			store.put([localPage]) // reaches speculativeChanges
+
+			// In the browser the store delivers history on the next animation frame, so the client's
+			// view of speculative changes can lag the store. Hold the next flush back the same way.
+			const flushHistory = store._flushHistory
+			store._flushHistory = () => {}
+			store.remove([localPage.id]) // ...so this delete is still queued when we reconnect
+			store._flushHistory = flushHistory
+
+			socket.mockConnectionStatus('online')
+			socket.mockServerMessage(
+				createConnectMessage({ hydrationType: 'wipe_presence', serverClock: 2, diff: {} })
+			)
+			vi.advanceTimersByTime(100)
+
+			// the user deleted the page: it must not come back, and must not be pushed as a put
+			expect(store.get(localPage.id)).toBeUndefined()
+			expect(
+				getSentPushes().some((msg) => msg.diff?.[localPage.id]?.[0] === RecordOpType.Put)
+			).toBe(false)
+		})
+
+		it('[CL5] a store listener that throws during the reconnect flush does not stall the connect', () => {
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			try {
+				client = createClient()
+				let listenerThrown = false
+				store.listen(() => {
+					if (listenerThrown) return
+					listenerThrown = true
+					throw new Error('listener error')
+				})
+
+				// queue a local change behind the frame throttle so the connect flush delivers it
+				const flushHistory = store._flushHistory
+				store._flushHistory = () => {}
+				const localPage = makePage('Local Page', 'a5')
+				store.put([localPage])
+				store._flushHistory = flushHistory
+
+				const serverDiff = documentScopeDiff()
+				delete serverDiff[localPage.id] // the server never saw it
+				socket.mockServerMessage(createConnectMessage({ diff: serverDiff }))
+				vi.advanceTimersByTime(100)
+
+				expect(client.isConnectedToRoom).toBe(true)
+				expect(onLoad).toHaveBeenCalled()
+				expect(store.get(localPage.id)).toEqual(localPage)
+				expect(
+					getSentPushes().some((msg) => msg.diff?.[localPage.id]?.[0] === RecordOpType.Put)
+				).toBe(true)
+			} finally {
+				consoleSpy.mockRestore()
+			}
+		})
+
 		it('[CL6] wipe_all reconnect wipes document records before applying the server diff', () => {
 			client = createClient()
 

@@ -5,10 +5,10 @@ These are tracked in https://eu.posthog.com/project/45972/insights/ZdpGyj1r
 
 ```bash
 # Run all performance tests
-yarn e2e-perf
+pnpm e2e-perf
 
 # With UI
-yarn e2e-perf-ui
+pnpm e2e-perf-ui
 ```
 
 Baselines are automatically created on first run.
