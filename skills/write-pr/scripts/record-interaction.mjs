@@ -16,7 +16,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { chromium } from 'playwright'
+import { chromium } from '@playwright/test'
 
 const args = process.argv.slice(2)
 const positional = args.filter((a) => !a.startsWith('--'))
@@ -49,11 +49,12 @@ try {
 	throw e
 }
 
+let context
 let rawPath
 let recordingStartedAt
 let scenarioStartedAt
 try {
-	const context = await browser.newContext({
+	context = await browser.newContext({
 		viewport: { width: WIDTH, height: HEIGHT },
 		deviceScaleFactor: 1,
 		recordVideo: { dir: tmpDir, size: { width: WIDTH, height: HEIGHT } },
@@ -113,8 +114,10 @@ try {
 
 	rawPath = await page.video().path()
 } finally {
-	// Closing the context is what flushes the recording to disk, so it has to run
-	// even when the scenario throws; otherwise a failed attempt leaks a browser.
+	// Closing the context is what finalizes the recording: browser.close() alone
+	// leaves a .webm that ffmpeg can't parse. Both have to run even when the
+	// scenario throws; otherwise a failed attempt leaks a browser.
+	await context?.close()
 	await browser.close()
 }
 
