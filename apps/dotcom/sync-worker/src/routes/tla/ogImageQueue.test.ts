@@ -304,19 +304,19 @@ describe('enqueuePublishThumbnailRender', () => {
 		expect(reportProblem).not.toHaveBeenCalled()
 	})
 
-	// A render already queued for the board re-reads the published snapshot when it runs, so it covers
-	// this publish too.
-	it('does not report the ask being deduped by a pending render', async () => {
-		const queue = makeFakeQueue()
-		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
+	// The quiet one. A marker left behind by an earlier failed job turns the ask away with a value, not
+	// an exception, so this is the case that would go unnoticed without the report.
+	it('reports the ask being turned away by a pending marker', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
 		const board = { kind: 'published', slug: 'published-slug' } as const
 		await enqueueOgImageRender(env, board, { reason: 'publish' })
 		const reportProblem = vi.fn()
 
 		await enqueuePublishThumbnailRender(env, 'published-slug', reportProblem)
 
-		expect(queue.send).toHaveBeenCalledTimes(1)
-		expect(reportProblem).not.toHaveBeenCalled()
+		expect(reportProblem).toHaveBeenCalledTimes(1)
+		expect((reportProblem.mock.calls[0][0] as Error).message).toContain('already_pending')
 	})
 
 	it('reports an unconfigured queue rather than passing for success', async () => {

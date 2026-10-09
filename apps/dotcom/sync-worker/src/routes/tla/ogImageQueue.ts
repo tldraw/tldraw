@@ -232,9 +232,7 @@ export async function enqueuePublishThumbnailRender(
 	await env.THUMBNAILS?.delete(getOgImageRepairCooldownKey(board)).catch(() => {})
 	try {
 		const result = await enqueueOgImageRender(env, board, { reason: 'publish' })
-		// `already_pending` is not a lost ask: the queued job re-reads the published snapshot when it
-		// runs, so it renders this publish. Reporting it filled Sentry with noise (#11064).
-		if (result === 'unavailable') {
+		if (result !== 'enqueued') {
 			reportProblem(new Error(`Publish thumbnail enqueue did not take effect: ${result}`))
 		}
 	} catch (error) {
