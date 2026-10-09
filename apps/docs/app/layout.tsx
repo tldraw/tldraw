@@ -3,6 +3,7 @@ import { Metadata, Viewport } from 'next'
 import { ThemeProvider } from 'next-themes'
 import localFont from 'next/font/local'
 import AutoRefresh from '@/components/common/autorefresh'
+import { CommonRoomSignals } from '@/components/common/common-room-signals'
 import { Footer } from '@/components/navigation/footer'
 import { Header } from '@/components/navigation/header'
 import { assetUrl } from '@/utils/asset-url'
@@ -86,6 +87,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
 						{children}
 						<Footer />
 						<Analytics />
+						<CommonRoomSignals />
 					</ThemeProvider>
 					<noscript>
 						<iframe
