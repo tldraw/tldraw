@@ -4,7 +4,6 @@ import { HelmetProvider } from 'react-helmet-async'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import '../sentry.client.config'
 import '../styles/globals.css'
-import { CommonRoomSignals } from './components/CommonRoomSignals/CommonRoomSignals'
 import { RefreshErrorBoundary } from './components/ErrorPage/ErrorPage'
 import { Head } from './components/Head/Head'
 import { routes } from './routeDefs'
@@ -46,7 +45,6 @@ createRoot(document.getElementById('root')!).render(
 		>
 			<HelmetProvider>
 				<Head />
-				<CommonRoomSignals />
 				<RouterProvider router={browserRouter} />
 			</HelmetProvider>
 		</ClerkProvider>
