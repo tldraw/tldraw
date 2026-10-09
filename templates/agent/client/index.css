@@ -228,6 +228,26 @@ body {
 	gap: 0px;
 }
 
+.chat-api-settings {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: none;
+	border-radius: 4px;
+	background: transparent;
+	color: inherit;
+	cursor: pointer;
+}
+
+.chat-api-settings:hover,
+.chat-api-settings:focus-visible {
+	color: var(--tl-color-text);
+	background: var(--tl-color-muted-2);
+}
+
 .chat-icon {
 	width: 11px;
 	height: 11px;

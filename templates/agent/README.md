@@ -4,17 +4,11 @@ This starter kit demonstrates how to build an agent that can manipulate the [tld
 
 A chat panel on the right side of the screen lets users communicate with the agent, add context, and see chat history.
 
-## Environment setup
+## API keys
 
-Create a `.dev.vars` file in the root directory and add API keys for any model providers you want to use.
+Open the app and enter your OpenAI, Anthropic, or Google API key in **API key settings**. Reopen the dialog with the settings button beside the model selector to update or remove keys. Select a model from the matching provider in the chat panel. Usage is billed to your provider account.
 
-```
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
-GOOGLE_API_KEY=your_google_api_key_here
-OPENAI_API_KEY=your_openai_api_key_here
-```
-
-We recommend using Anthropic for best results. Get your API key from the [Anthropic dashboard](https://console.anthropic.com/settings/keys).
+Keys are saved in this browser, separate from canvas and chat data, and sent through the app’s server only for AI requests. The server requires a user-supplied key; no server-side provider secrets are needed.
 
 ## Local development
 

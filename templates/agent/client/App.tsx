@@ -12,6 +12,7 @@ import {
 	TldrawAgentAppContextProvider,
 	TldrawAgentAppProvider,
 } from './agent/TldrawAgentAppProvider'
+import { ApiKeySettings } from './components/ApiKeySettings'
 import { ChatPanel } from './components/ChatPanel'
 import { ChatPanelFallback } from './components/ChatPanelFallback'
 import { CustomHelperButtons } from './components/CustomHelperButtons'
@@ -72,6 +73,7 @@ function App() {
 
 	return (
 		<TldrawUiToastsProvider>
+			{app && <ApiKeySettings />}
 			<div className="tldraw-agent-container">
 				<div className="tldraw-canvas">
 					<Tldraw

@@ -9,6 +9,7 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { ApiKeySettings } from './components/ApiKeySettings'
 import { overrides, WorkflowToolbar } from './components/WorkflowToolbar.tsx'
 import { ConnectionBindingUtil } from './connection/ConnectionBindingUtil.tsx'
 import { ConnectionCenterHandleOverlayUtil } from './connection/ConnectionCenterHandleOverlayUtil.tsx'
@@ -62,6 +63,7 @@ const options: Partial<TldrawOptions> = {
 function App() {
 	return (
 		<div className="workflow" style={{ position: 'fixed', inset: 0 }}>
+			<ApiKeySettings />
 			<Tldraw
 				persistenceKey="workflow"
 				options={options}
