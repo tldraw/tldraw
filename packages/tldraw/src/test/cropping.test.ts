@@ -705,6 +705,31 @@ describe('When in the select.crop.translating_crop state', () => {
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(afterSession)
 	})
 
+	it('undoes a crop entered by double-clicking an edge in one step', () => {
+		// The image util's edge handler returns nothing outside crop mode, which leaves the select
+		// tool's 'double click edge' mark behind with no changes after it
+		const original = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		editor
+			.select(ids.imageB)
+			.doubleClick(550, 550, { target: 'selection', handle: 'bottom' })
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
+			.pointerMove(300, 300)
+			.pointerUp()
+			.keyDown('Enter')
+			.keyUp('Enter')
+			.expectToBeIn('select.idle')
+
+		const afterSession = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+		expect(afterSession).not.toMatchObject(original)
+
+		editor.undo()
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(original)
+		editor.redo()
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(afterSession)
+	})
+
 	it('pressing enter / pointer up / complete should transition to select.crop.idle', () => {
 		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
