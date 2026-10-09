@@ -114,7 +114,7 @@ Attach each incoming WebSocket to the room and forward its events:
 room.handleSocketConnect({ sessionId, socket })
 // If your platform doesn't let the room add listeners to the socket itself
 // (Bun.serve, Cloudflare hibernation), forward events by hand:
-room.handleSocketMessage(sessionId, message)
+room.handleSocketMessage(sessionId, message, socket)
 room.handleSocketClose(sessionId)
 ```
 

@@ -79,7 +79,7 @@ io.on('connection', async (socket) => {
 		// Handle tldraw sync messages
 		socket.on('tldraw-message', (message) => {
 			// Ensure message is a string - Socket.IO might send it as an object or buffer
-			room.handleSocketMessage(sessionId, message)
+			room.handleSocketMessage(sessionId, message, socketAdapter)
 		})
 
 		// Handle disconnect

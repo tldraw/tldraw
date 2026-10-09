@@ -21,7 +21,7 @@ import {
 	ZERO_INDEX_KEY,
 } from 'tldraw'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { MAX_ASSEMBLED_MESSAGE_CHARS } from '../lib/chunk'
+import { chunk, MAX_ASSEMBLED_MESSAGE_CHARS } from '../lib/chunk'
 import { RecordOpType } from '../lib/diff'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from '../lib/InMemorySyncStorage'
 import { getTlsyncProtocolVersion } from '../lib/protocol'
@@ -452,6 +452,75 @@ describe('28. TLSocketRoom (SR)', () => {
 				TLSyncErrorCloseEventReason.UNKNOWN_ERROR
 			)
 			expect(room.getSessions()).toHaveLength(0)
+		})
+
+		it('[SR5] ignores chunks from a superseded socket so they do not corrupt the replacement socket', () => {
+			const log: TLSyncLog = { warn: vi.fn(), error: vi.fn() }
+			const room = new TLSocketRoom({ log })
+			const oldSocket = createMockSocket()
+			connectSession(room, 'S', oldSocket)
+			// the client reconnects under the same session id while the old socket is still draining
+			const newSocket = createMockSocket()
+			connectSession(room, 'S', newSocket)
+			vi.mocked(newSocket.send).mockClear()
+
+			const oldChunks = chunk(JSON.stringify({ type: 'ping' }), 4)
+			const newChunks = chunk(JSON.stringify({ type: 'ping' }), 5)
+			expect(oldChunks.length).toBeGreaterThan(1)
+			expect(newChunks.length).toBeGreaterThan(1)
+			// interleave the two sockets' chunk sequences, as a hibernation host delivers them
+			for (let i = 0; i < Math.max(oldChunks.length, newChunks.length); i++) {
+				if (oldChunks[i]) room.handleSocketMessage('S', oldChunks[i], oldSocket)
+				if (newChunks[i]) room.handleSocketMessage('S', newChunks[i], newSocket)
+			}
+			// a lone complete message from the old socket mid-sequence is ignored too
+			room.handleSocketMessage('S', JSON.stringify({ type: 'ping' }), oldSocket)
+
+			expect(log.error).not.toHaveBeenCalled()
+			expect(newSocket.close).not.toHaveBeenCalled()
+			expect(room.getSessions()).toEqual([
+				expect.objectContaining({ sessionId: 'S', isConnected: true }),
+			])
+			expect(vi.mocked(newSocket.send).mock.calls.map((c) => JSON.parse(c[0]).type)).toEqual([
+				'pong',
+			])
+		})
+
+		it("[SR4][SR5] the listeners attached by handleSocketConnect drop a superseded socket's messages", () => {
+			function createListeningSocket() {
+				const listeners: Record<string, ((e: any) => void)[]> = {}
+				const socket: WebSocketMinimal & { fire(type: string, data: string): void } = {
+					send: vi.fn(),
+					close: vi.fn(),
+					readyState: WebSocket.OPEN,
+					addEventListener: vi.fn((type: string, fn: (e: any) => void) => {
+						;(listeners[type] ??= []).push(fn)
+					}),
+					removeEventListener: vi.fn(),
+					fire(type, data) {
+						for (const fn of listeners[type] ?? []) fn({ data })
+					},
+				}
+				return socket
+			}
+			const log: TLSyncLog = { warn: vi.fn(), error: vi.fn() }
+			const room = new TLSocketRoom({ log })
+			const oldSocket = createListeningSocket()
+			connectSession(room, 'S', oldSocket)
+			const newSocket = createListeningSocket()
+			connectSession(room, 'S', newSocket)
+
+			const [first, ...rest] = chunk(JSON.stringify({ type: 'ping' }), 5)
+			newSocket.fire('message', first)
+			// the old socket's tail chunk would otherwise be assembled onto the new socket's sequence
+			oldSocket.fire('message', '0_kPAAAjzgAA')
+			for (const c of rest) newSocket.fire('message', c)
+
+			expect(log.error).not.toHaveBeenCalled()
+			expect(newSocket.close).not.toHaveBeenCalled()
+			expect(vi.mocked(newSocket.send).mock.calls.map((c) => JSON.parse(c[0]).type)).toContain(
+				'pong'
+			)
 		})
 
 		it('[SR5] warns when receiving a message from an unknown session', () => {

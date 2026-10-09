@@ -355,7 +355,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	) {
 		const { sessionId, socket, isReadonly = false, objectAccess = 'write' } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
-			this.handleSocketMessage(sessionId, event.data)
+			this.handleSocketMessage(sessionId, event.data, socket)
 		const handleSocketError = this.handleSocketError.bind(this, sessionId)
 		const handleSocketClose = this.handleSocketClose.bind(this, sessionId)
 
@@ -422,8 +422,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * The method handles message chunking/reassembly and forwards complete messages
 	 * to the underlying sync room for processing.
 	 *
+	 * Pass the socket the message came from whenever you have it. A client that reconnects under
+	 * the same session id can leave its previous socket delivering messages for a while; with the
+	 * socket given, those are dropped instead of being spliced into the new socket's chunked
+	 * messages.
+	 *
 	 * @param sessionId - Session identifier matching the one used in handleSocketConnect
 	 * @param message - Raw message data from the client (string or binary)
+	 * @param socket - The socket the message arrived on, when known
 	 *
 	 * @example
 	 * ```ts
@@ -435,17 +441,30 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *   },
 	 *   message(ws, message) {
 	 *     const { sessionId, room } = ws.data
-	 *     room.handleSocketMessage(sessionId, message)
+	 *     room.handleSocketMessage(sessionId, message, ws)
 	 *   }
 	 * })
 	 * ```
 	 */
-	handleSocketMessage(sessionId: string, message: string | AllowSharedBufferSource) {
-		const assembler = this.sessions.get(sessionId)?.assembler
-		if (!assembler) {
+	handleSocketMessage(
+		sessionId: string,
+		message: string | AllowSharedBufferSource,
+		socket?: WebSocketMinimal
+	) {
+		const entry = this.sessions.get(sessionId)
+		if (!entry) {
 			this.log?.warn?.('Received message from unknown session', sessionId)
 			return
 		}
+		// Each socket carries its own chunk sequence, but the assembler belongs to the session id.
+		// Feeding a superseded socket's in-flight chunks into the replacement's assembler breaks
+		// both messages ("Unexpected non-chunk message", "Chunks received in wrong order", or a
+		// lone tail chunk parsed as JSON) — see #10132.
+		if (socket && entry.socket !== socket) {
+			this.log?.warn?.('Ignoring message from superseded socket', sessionId)
+			return
+		}
+		const assembler = entry.assembler
 
 		try {
 			const messageString =
