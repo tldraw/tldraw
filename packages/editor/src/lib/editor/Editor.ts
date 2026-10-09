@@ -2329,8 +2329,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Generates a reading order for shapes based on rows grouping.
 	 * Tries to keep a natural reading order (left-to-right, top-to-bottom).
-	 * Locked shapes and shapes whose util returns `false` from {@link ShapeUtil.canTabTo}
-	 * are left out.
+	 * Shapes whose util returns `false` from {@link ShapeUtil.canTabTo} are left out, as are
+	 * locked shapes unless the `selectLockedShapes` option is enabled.
 	 *
 	 * @public
 	 */
@@ -2340,9 +2340,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	// Locked shapes (and children of locked containers) can't be selected by clicking or
-	// select all, so the reading order and keyboard traversal leave them out too (#10421)
+	// select all, so the reading order and keyboard traversal leave them out too (#10421),
+	// except when selectLockedShapes makes them clickable again
 	private _canTabToShape(shape: TLShape): boolean {
-		return this.getShapeUtil(shape).canTabTo(shape) && !this.isShapeOrAncestorLocked(shape)
+		return (
+			this.getShapeUtil(shape).canTabTo(shape) &&
+			(this.options.selectLockedShapes || !this.isShapeOrAncestorLocked(shape))
+		)
 	}
 
 	private _getShapesInReadingOrder(shapes: TLShape[]): TLShape[] {

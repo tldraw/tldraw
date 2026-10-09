@@ -115,18 +115,23 @@ export function generateShapeAnnouncementMessage(args: {
 				? msg(`a11y.shape-${shape.type}`)
 				: msg(`tool.${shape.type}`)
 
-	// Get shape index in reading order
+	// A selected shape outside the reading order (locked, or canTabTo false) has no position
+	// to announce, and "0 of N" would be wrong
 	const readingOrderShapes = editor.getCurrentPageShapesInReadingOrder()
-	const currentShapeIndex = (readingOrderShapes.findIndex((s) => s.id === shapeId) + 1).toString()
-	const shapeIndex = msg('a11y.shape-index')
-		.replace('{num}', currentShapeIndex)
-		.replace('{total}', readingOrderShapes.length.toString())
+	const indexInReadingOrder = readingOrderShapes.findIndex((s) => s.id === shapeId)
+	const shapeIndex =
+		indexInReadingOrder === -1
+			? ''
+			: ' ' +
+				msg('a11y.shape-index')
+					.replace('{num}', (indexInReadingOrder + 1).toString())
+					.replace('{total}', readingOrderShapes.length.toString())
 
 	// Get describing text (alt text or shape text)
 	const describingText = shapeUtil.getAriaDescriptor(shape) || shapeUtil.getText(shape) || ''
 
 	// Build the full announcement
-	return (describingText ? `${describingText}, ` : '') + `${shapeType}. ${shapeIndex}`
+	return (describingText ? `${describingText}, ` : '') + `${shapeType}.${shapeIndex}`
 }
 
 /** @public */

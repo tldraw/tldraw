@@ -1166,6 +1166,28 @@ describe('Shape navigation', () => {
 			editor.selectFirstChildShape()
 			expect(editor.getSelectedShapeIds()).toEqual([ids.frame1])
 		})
+
+		it('reaches locked shapes when the selectLockedShapes option is enabled', () => {
+			const lockEditor = new TestEditor({ options: { selectLockedShapes: true } })
+			lockEditor.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 100, y: 0, isLocked: true },
+				{ id: ids.box3, type: 'geo', x: 200, y: 0 },
+			])
+
+			expect(lockEditor.getCurrentPageShapesInReadingOrder().map((shape) => shape.id)).toEqual([
+				ids.box1,
+				ids.box2,
+				ids.box3,
+			])
+
+			lockEditor.select(ids.box1)
+			lockEditor.selectAdjacentShape('next')
+			expect(lockEditor.getSelectedShapeIds()).toEqual([ids.box2])
+
+			lockEditor.selectAdjacentShape('right')
+			expect(lockEditor.getSelectedShapeIds()).toEqual([ids.box3])
+		})
 	})
 
 	describe('edge cases and regressions', () => {
