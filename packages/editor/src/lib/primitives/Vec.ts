@@ -623,7 +623,7 @@ export class Vec {
 
 	static Clamp(A: Vec, min: number, max?: number) {
 		if (max === undefined) {
-			return new Vec(Math.min(Math.max(A.x, min)), Math.min(Math.max(A.y, min)))
+			return new Vec(Math.max(A.x, min), Math.max(A.y, min))
 		}
 
 		return new Vec(Math.min(Math.max(A.x, min), max), Math.min(Math.max(A.y, min), max))

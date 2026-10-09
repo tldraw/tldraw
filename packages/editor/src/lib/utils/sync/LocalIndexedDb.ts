@@ -1,7 +1,7 @@
 import { RecordsDiff, SerializedSchema, SerializedStore } from '@tldraw/store'
 import { TLRecord, TLStoreSchema } from '@tldraw/tlschema'
 import { assert, getFromLocalStorage, noop, setInLocalStorage } from '@tldraw/utils'
-import { IDBPDatabase, IDBPTransaction, deleteDB, openDB } from 'idb'
+import { IDBPDatabase, IDBPObjectStore, IDBPTransaction, deleteDB, openDB } from 'idb'
 import { TLSessionStateSnapshot } from '../../config/TLSessionStateSnapshot'
 
 // DO NOT CHANGE THESE WITHOUT ADDING MIGRATION LOGIC. DOING SO WOULD WIPE ALL EXISTING DATA.
@@ -30,17 +30,10 @@ async function openLocalDb(persistenceKey: string) {
 
 	const db = await openDB<StoreName>(storeId, 4, {
 		upgrade(database) {
-			if (!database.objectStoreNames.contains(Table.Records)) {
-				database.createObjectStore(Table.Records)
-			}
-			if (!database.objectStoreNames.contains(Table.Schema)) {
-				database.createObjectStore(Table.Schema)
-			}
-			if (!database.objectStoreNames.contains(Table.SessionState)) {
-				database.createObjectStore(Table.SessionState)
-			}
-			if (!database.objectStoreNames.contains(Table.Assets)) {
-				database.createObjectStore(Table.Assets)
+			for (const name of Object.values(Table)) {
+				if (!database.objectStoreNames.contains(name)) {
+					database.createObjectStore(name)
+				}
 			}
 		},
 		// Another tab is deleting (hard reset) or upgrading this database. Its request waits
@@ -60,8 +53,7 @@ async function migrateLegacyAssetDbIfNeeded(persistenceKey: string) {
 		? (await window.indexedDB.databases()).map((db) => db.name)
 		: getAllIndexDbNames()
 	const oldStoreId = LEGACY_ASSET_STORE_PREFIX + persistenceKey
-	const existing = databases.find((dbName) => dbName === oldStoreId)
-	if (!existing) return
+	if (!databases.includes(oldStoreId)) return
 
 	const oldAssetDb = await openDB<StoreName>(oldStoreId, 1, {
 		upgrade(database) {
@@ -106,6 +98,25 @@ interface SessionStateSnapshotRow {
 	updatedAt: number
 }
 
+function putSessionState<Names extends StoreName[]>(
+	sessionStateStore: IDBPObjectStore<StoreName, Names, typeof Table.SessionState, 'readwrite'>,
+	sessionId: string | null | undefined,
+	sessionStateSnapshot: TLSessionStateSnapshot | null | undefined
+) {
+	if (sessionStateSnapshot && sessionId) {
+		sessionStateStore.put(
+			{
+				snapshot: sessionStateSnapshot,
+				updatedAt: Date.now(),
+				id: sessionId,
+			} satisfies SessionStateSnapshotRow,
+			sessionId
+		)
+	} else if (sessionStateSnapshot || sessionId) {
+		console.error('sessionStateSnapshot and instanceId must be provided together')
+	}
+}
+
 /** @internal */
 export class LocalIndexedDb {
 	private getDbPromise: Promise<IDBPDatabase<StoreName>>
@@ -123,10 +134,6 @@ export class LocalIndexedDb {
 		})()
 	}
 
-	private getDb() {
-		return this.getDbPromise
-	}
-
 	/**
 	 * Wait for any pending transactions to be completed. Useful for tests.
 	 *
@@ -140,7 +147,7 @@ export class LocalIndexedDb {
 		if (this.isClosed) return
 		this.isClosed = true
 		await this.pending()
-		;(await this.getDb()).close()
+		;(await this.getDbPromise).close()
 		LocalIndexedDb.connectedInstances.delete(this)
 	}
 
@@ -151,7 +158,7 @@ export class LocalIndexedDb {
 	): Promise<T> {
 		const txPromise = (async () => {
 			assert(!this.isClosed, 'db is closed')
-			const db = await this.getDb()
+			const db = await this.getDbPromise
 			const tx = db.transaction(names, mode)
 			// Commit failures may arrive before the callback finishes; observe them immediately
 			// while preserving the rejection for the await below.
@@ -189,13 +196,11 @@ export class LocalIndexedDb {
 					const all = (await sessionStateStore.getAll()) as SessionStateSnapshotRow[]
 					sessionStateSnapshot = all.sort((a, b) => a.updatedAt - b.updatedAt).pop()?.snapshot
 				}
-				const result = {
+				return {
 					records: await recordsStore.getAll(),
 					schema: await schemaStore.get(Table.Schema),
 					sessionStateSnapshot,
 				} satisfies LoadResult
-
-				return result
 			}
 		)
 	}
@@ -231,18 +236,7 @@ export class LocalIndexedDb {
 			await Promise.all(requests)
 
 			schemaStore.put(schema.serialize(), Table.Schema)
-			if (sessionStateSnapshot && sessionId) {
-				sessionStateStore.put(
-					{
-						snapshot: sessionStateSnapshot,
-						updatedAt: Date.now(),
-						id: sessionId,
-					} satisfies SessionStateSnapshotRow,
-					sessionId
-				)
-			} else if (sessionStateSnapshot || sessionId) {
-				console.error('sessionStateSnapshot and instanceId must be provided together')
-			}
+			putSessionState(sessionStateStore, sessionId, sessionStateSnapshot)
 		})
 	}
 
@@ -269,19 +263,7 @@ export class LocalIndexedDb {
 			)
 
 			schemaStore.put(schema.serialize(), Table.Schema)
-
-			if (sessionStateSnapshot && sessionId) {
-				sessionStateStore.put(
-					{
-						snapshot: sessionStateSnapshot,
-						updatedAt: Date.now(),
-						id: sessionId,
-					} satisfies SessionStateSnapshotRow,
-					sessionId
-				)
-			} else if (sessionStateSnapshot || sessionId) {
-				console.error('sessionStateSnapshot and instanceId must be provided together')
-			}
+			putSessionState(sessionStateStore, sessionId, sessionStateSnapshot)
 		})
 	}
 

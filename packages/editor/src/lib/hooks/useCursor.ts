@@ -20,8 +20,8 @@ function getCursorCss(
 	const a = (-tr - r) * (PI / 180)
 	const s = Math.sin(a)
 	const c = Math.cos(a)
-	const dx = 1 * c - 1 * s
-	const dy = 1 * s + 1 * c
+	const dx = c - s
+	const dy = s + c
 
 	// A raw '#' in the colour (hex) would end the unencoded data url as a fragment.
 	return (
