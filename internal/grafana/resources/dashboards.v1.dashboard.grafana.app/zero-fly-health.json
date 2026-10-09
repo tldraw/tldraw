@@ -1943,7 +1943,7 @@
               "type": "prometheus",
               "uid": "${DS_PROM}"
             },
-            "description": "Highest sync protocol version seen from connecting clients, and the number of distinct client schemas in use. Both jump during a rollout \u2014 useful for confirming clients picked up a new build.",
+            "description": "Highest sync protocol version seen from connecting clients. Jumps during a rollout, useful for confirming clients picked up a new build.",
             "fieldConfig": {
               "defaults": {
                 "color": {
@@ -2029,18 +2029,6 @@
                 "legendFormat": "max protocol version",
                 "range": true,
                 "refId": "A"
-              },
-              {
-                "datasource": {
-                  "type": "prometheus",
-                  "uid": "${DS_PROM}"
-                },
-                "editorMode": "code",
-                "expr": "sum(zero_sync_client_schemas{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"})",
-                "instant": false,
-                "legendFormat": "client schemas",
-                "range": true,
-                "refId": "B"
               }
             ],
             "title": "Client protocol versions",
@@ -2051,7 +2039,7 @@
               "type": "prometheus",
               "uid": "${DS_PROM}"
             },
-            "description": "Client groups, live IVM pipelines and unique pipelines. pipelines_total \u226b pipelines_unique means many groups are running the same query \u2014 good dedupe headroom.",
+            "description": "Active client groups across view-syncers. Queries and rows have their own panels.",
             "fieldConfig": {
               "defaults": {
                 "color": {
@@ -2137,33 +2125,9 @@
                 "legendFormat": "client groups",
                 "range": true,
                 "refId": "A"
-              },
-              {
-                "datasource": {
-                  "type": "prometheus",
-                  "uid": "${DS_PROM}"
-                },
-                "editorMode": "code",
-                "expr": "sum(zero_sync_pipelines_total{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"})",
-                "instant": false,
-                "legendFormat": "pipelines (total)",
-                "range": true,
-                "refId": "B"
-              },
-              {
-                "datasource": {
-                  "type": "prometheus",
-                  "uid": "${DS_PROM}"
-                },
-                "editorMode": "code",
-                "expr": "sum(zero_sync_pipelines_unique{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"})",
-                "instant": false,
-                "legendFormat": "pipelines (unique)",
-                "range": true,
-                "refId": "C"
               }
             ],
-            "title": "Client groups & pipeline footprint",
+            "title": "Client groups",
             "type": "timeseries"
           }
         ],
@@ -4815,200 +4779,6 @@
               "type": "prometheus",
               "uid": "${DS_PROM}"
             },
-            "description": "Change-streamer half of forward-to-subscriber latency: from a transaction's BEGIN to forwarding its COMMIT. Large p99 here means big transactions upstream.",
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "palette-classic"
-                },
-                "custom": {
-                  "axisBorderShow": false,
-                  "axisCenteredZero": false,
-                  "axisColorMode": "text",
-                  "axisLabel": "",
-                  "axisPlacement": "auto",
-                  "barAlignment": 0,
-                  "drawStyle": "line",
-                  "fillOpacity": 0,
-                  "gradientMode": "none",
-                  "hideFrom": {
-                    "legend": false,
-                    "tooltip": false,
-                    "viz": false
-                  },
-                  "insertNulls": false,
-                  "lineInterpolation": "linear",
-                  "lineWidth": 2,
-                  "pointSize": 5,
-                  "scaleDistribution": {
-                    "type": "linear"
-                  },
-                  "showPoints": "never",
-                  "spanNulls": true,
-                  "stacking": {
-                    "group": "A",
-                    "mode": "none"
-                  },
-                  "thresholdsStyle": {
-                    "mode": "off"
-                  }
-                },
-                "min": 0,
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green"
-                    }
-                  ]
-                },
-                "unit": "s"
-              },
-              "overrides": [
-                {
-                  "matcher": {
-                    "id": "byName",
-                    "options": "p50"
-                  },
-                  "properties": [
-                    {
-                      "id": "color",
-                      "value": {
-                        "fixedColor": "green",
-                        "mode": "fixed"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "matcher": {
-                    "id": "byName",
-                    "options": "p95"
-                  },
-                  "properties": [
-                    {
-                      "id": "color",
-                      "value": {
-                        "fixedColor": "orange",
-                        "mode": "fixed"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "matcher": {
-                    "id": "byName",
-                    "options": "p99"
-                  },
-                  "properties": [
-                    {
-                      "id": "color",
-                      "value": {
-                        "fixedColor": "red",
-                        "mode": "fixed"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "matcher": {
-                    "id": "byName",
-                    "options": "avg"
-                  },
-                  "properties": [
-                    {
-                      "id": "color",
-                      "value": {
-                        "fixedColor": "blue",
-                        "mode": "fixed"
-                      }
-                    }
-                  ]
-                }
-              ]
-            },
-            "gridPos": {
-              "h": 8,
-              "w": 12,
-              "x": 12,
-              "y": 29
-            },
-            "id": 43,
-            "options": {
-              "legend": {
-                "calcs": [
-                  "lastNotNull",
-                  "max"
-                ],
-                "displayMode": "table",
-                "placement": "bottom",
-                "showLegend": true
-              },
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "multi",
-                "sort": "desc"
-              }
-            },
-            "pluginVersion": "",
-            "targets": [
-              {
-                "datasource": {
-                  "type": "prometheus",
-                  "uid": "${DS_PROM}"
-                },
-                "editorMode": "code",
-                "expr": "histogram_quantile(0.5, sum by (le) (rate(zero_replication_transaction_forward_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$win])))",
-                "instant": false,
-                "legendFormat": "p50",
-                "range": true,
-                "refId": "A"
-              },
-              {
-                "datasource": {
-                  "type": "prometheus",
-                  "uid": "${DS_PROM}"
-                },
-                "editorMode": "code",
-                "expr": "histogram_quantile(0.95, sum by (le) (rate(zero_replication_transaction_forward_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$win])))",
-                "instant": false,
-                "legendFormat": "p95",
-                "range": true,
-                "refId": "B"
-              },
-              {
-                "datasource": {
-                  "type": "prometheus",
-                  "uid": "${DS_PROM}"
-                },
-                "editorMode": "code",
-                "expr": "histogram_quantile(0.99, sum by (le) (rate(zero_replication_transaction_forward_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$win])))",
-                "instant": false,
-                "legendFormat": "p99",
-                "range": true,
-                "refId": "C"
-              },
-              {
-                "datasource": {
-                  "type": "prometheus",
-                  "uid": "${DS_PROM}"
-                },
-                "editorMode": "code",
-                "expr": "sum(rate(zero_replication_transaction_forward_duration_seconds_sum{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$win])) / sum(rate(zero_replication_transaction_forward_duration_seconds_count{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$win]))",
-                "instant": false,
-                "legendFormat": "avg",
-                "range": true,
-                "refId": "D"
-              }
-            ],
-            "title": "Transaction forward duration",
-            "type": "timeseries"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROM}"
-            },
             "description": "Active vs queued change-stream subscribers. Queued subscribers are view-syncers waiting for the current transaction to finish before they can attach \u2014 persistent queuing after a deploy means new machines are struggling to catch up.",
             "fieldConfig": {
               "defaults": {
@@ -5542,144 +5312,6 @@
             ],
             "title": "Initial sync",
             "type": "timeseries"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROM}"
-            },
-            "description": "Retained change-log rows and bytes on the replication-manager. This is what new view-syncers replay to catch up. Unbounded growth means purges are blocked \u2014 see the backup section.",
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "palette-classic"
-                },
-                "custom": {
-                  "axisBorderShow": false,
-                  "axisCenteredZero": false,
-                  "axisColorMode": "text",
-                  "axisLabel": "",
-                  "axisPlacement": "auto",
-                  "barAlignment": 0,
-                  "drawStyle": "line",
-                  "fillOpacity": 0,
-                  "gradientMode": "none",
-                  "hideFrom": {
-                    "legend": false,
-                    "tooltip": false,
-                    "viz": false
-                  },
-                  "insertNulls": false,
-                  "lineInterpolation": "linear",
-                  "lineWidth": 2,
-                  "pointSize": 5,
-                  "scaleDistribution": {
-                    "type": "linear"
-                  },
-                  "showPoints": "never",
-                  "spanNulls": true,
-                  "stacking": {
-                    "group": "A",
-                    "mode": "none"
-                  },
-                  "thresholdsStyle": {
-                    "mode": "off"
-                  }
-                },
-                "min": 0,
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green"
-                    }
-                  ]
-                },
-                "unit": "short"
-              },
-              "overrides": [
-                {
-                  "matcher": {
-                    "id": "byName",
-                    "options": "change-log bytes"
-                  },
-                  "properties": [
-                    {
-                      "id": "unit",
-                      "value": "bytes"
-                    },
-                    {
-                      "id": "custom.axisPlacement",
-                      "value": "right"
-                    }
-                  ]
-                }
-              ]
-            },
-            "gridPos": {
-              "h": 8,
-              "w": 12,
-              "x": 12,
-              "y": 45
-            },
-            "id": 48,
-            "options": {
-              "legend": {
-                "calcs": [
-                  "lastNotNull",
-                  "max"
-                ],
-                "displayMode": "table",
-                "placement": "bottom",
-                "showLegend": true
-              },
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "multi",
-                "sort": "desc"
-              }
-            },
-            "pluginVersion": "",
-            "targets": [
-              {
-                "datasource": {
-                  "type": "prometheus",
-                  "uid": "${DS_PROM}"
-                },
-                "editorMode": "code",
-                "expr": "max(zero_replica_sqlite_change_log_rows{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
-                "instant": false,
-                "legendFormat": "change-log rows",
-                "range": true,
-                "refId": "A"
-              },
-              {
-                "datasource": {
-                  "type": "prometheus",
-                  "uid": "${DS_PROM}"
-                },
-                "editorMode": "code",
-                "expr": "max(zero_replica_sqlite_change_log_file_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
-                "instant": false,
-                "legendFormat": "change-log bytes",
-                "range": true,
-                "refId": "B"
-              },
-              {
-                "datasource": {
-                  "type": "prometheus",
-                  "uid": "${DS_PROM}"
-                },
-                "editorMode": "code",
-                "expr": "sum(rate(zero_replica_sqlite_change_log_purged_rows_total{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$__rate_interval]))",
-                "instant": false,
-                "legendFormat": "purged rows/s",
-                "range": true,
-                "refId": "C"
-              }
-            ],
-            "title": "SQLite change-log health",
-            "type": "timeseries"
           }
         ],
         "title": "\ud83d\udd01 Replication (Postgres \u2192 replica)",
@@ -5810,18 +5442,6 @@
                 "legendFormat": "wal2",
                 "range": true,
                 "refId": "C"
-              },
-              {
-                "datasource": {
-                  "type": "prometheus",
-                  "uid": "${DS_PROM}"
-                },
-                "editorMode": "code",
-                "expr": "max(zero_replica_sqlite_change_log_file_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
-                "instant": false,
-                "legendFormat": "change-log",
-                "range": true,
-                "refId": "D"
               }
             ],
             "title": "Replica file sizes",
@@ -8015,9 +7635,9 @@
                   "uid": "${DS_FLY}"
                 },
                 "editorMode": "code",
-                "expr": "1 - (fly_instance_filesystem_free_bytes{app=~\"$fly_app\"} / fly_instance_filesystem_size_bytes{app=~\"$fly_app\"})",
+                "expr": "1 - (fly_instance_filesystem_blocks_avail{app=~\"$fly_app\", mount=\"/data\"} / fly_instance_filesystem_blocks{app=~\"$fly_app\", mount=\"/data\"})",
                 "instant": false,
-                "legendFormat": "{{app}} \u00b7 {{device}}",
+                "legendFormat": "{{app}} \u00b7 {{instance}}",
                 "range": true,
                 "refId": "A"
               }
