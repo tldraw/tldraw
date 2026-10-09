@@ -3,12 +3,13 @@
 import Script from 'next/script'
 import { useEffect } from 'react'
 
-export default function Analytics() {
+export default function Analytics({ commonRoomEnabled }: { commonRoomEnabled: boolean }) {
 	useEffect(() => {
+		window.TL_COMMON_ROOM_ENABLED = commonRoomEnabled
 		window.TL_GA4_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID
 		window.TL_GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID
 		window.TL_GTM_CONTAINER_ID = process.env.NEXT_PUBLIC_GTM_CONTAINER_ID
-	}, [])
+	}, [commonRoomEnabled])
 
 	useEffect(() => {
 		const handleCopy = (copyEvent: ClipboardEvent) => {
@@ -95,6 +96,7 @@ declare global {
 		TL_GA4_MEASUREMENT_ID: string | undefined
 		TL_GOOGLE_ADS_ID?: string
 		TL_GTM_CONTAINER_ID?: string
+		TL_COMMON_ROOM_ENABLED?: boolean
 		posthog: any
 	}
 }
