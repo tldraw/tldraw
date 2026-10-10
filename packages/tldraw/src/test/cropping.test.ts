@@ -417,16 +417,52 @@ describe('When in the crop.idle state', () => {
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.imageB])
 	})
 
-	it('clicking another image shape should set that shape as the new cropping shape and transition to pointing_crop', () => {
+	it('clicking another croppable shape exits crop mode and selects that shape', () => {
 		editor
 			.expectToBeIn('select.idle')
 			.doubleClick(550, 550, ids.imageB)
 			.expectToBeIn('select.crop.idle')
-			.pointerDown(100, 100, { target: 'shape', shape: editor.getShape(ids.imageA) })
-			.expectToBeIn('select.crop.pointing_crop')
+			.pointerDown(200, 200, { target: 'shape', shape: editor.getShape(ids.imageA) })
 
-		expect(editor.getCroppingShapeId()).toBe(ids.imageA)
+		expect(editor.getCroppingShapeId()).toBe(null)
+		expect(editor.isIn('select.crop')).toBe(false)
+		expect(editor.isIn('select')).toBe(true)
+
+		editor.pointerUp(200, 200, { target: 'shape', shape: editor.getShape(ids.imageA) })
+
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCroppingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.imageA])
+	})
+
+	it('clicking a non-croppable shape exits crop mode and selects that shape', () => {
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(1050, 1050, { target: 'shape', shape: editor.getShape(ids.boxA) })
+
+		expect(editor.getCroppingShapeId()).toBe(null)
+		expect(editor.isIn('select.crop')).toBe(false)
+
+		editor.pointerUp(1050, 1050, { target: 'shape', shape: editor.getShape(ids.boxA) })
+
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toMatchObject([ids.boxA])
+	})
+
+	it('clicking the empty canvas exits crop mode and deselects', () => {
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(2000, 2000)
+
+		expect(editor.getCroppingShapeId()).toBe(null)
+		expect(editor.isIn('select.crop')).toBe(false)
+
+		editor.pointerUp(2000, 2000).expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toMatchObject([])
 	})
 
 	it('rotating will return to select.crop.idle', () => {
