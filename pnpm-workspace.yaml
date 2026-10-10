@@ -51,3 +51,34 @@ overrides:
 
 patchedDependencies:
   '@microsoft/tsdoc@0.15.1': patches/@microsoft__tsdoc@0.15.1.patch
+
+# node_modules links into pnpm's shared store instead of cloning ~140k files per checkout, so a
+# worktree installs and deletes in seconds. The store has no hidden hoist, so an undeclared import
+# only resolves if packageExtensions declares it. Types that import @types/react without declaring
+# it rely on an @types `paths` fallback in the tsconfigs that need it. Only @types: bundlers read
+# `paths` too, and mapping runtime packages would send them past `exports`.
+enableGlobalVirtualStore: true
+
+packageExtensions:
+  # These packages import modules they don't declare.
+  '@rocicorp/zero':
+    peerDependencies:
+      kysely: '*'
+    peerDependenciesMeta:
+      kysely:
+        optional: true
+  '@fastify/websocket':
+    peerDependencies:
+      fastify: '*'
+    peerDependenciesMeta:
+      fastify:
+        optional: true
+  algoliasearch-helper:
+    peerDependencies:
+      '@algolia/client-search': '*'
+      '@algolia/recommend': '*'
+    peerDependenciesMeta:
+      '@algolia/client-search':
+        optional: true
+      '@algolia/recommend':
+        optional: true

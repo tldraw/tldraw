@@ -20,6 +20,7 @@ config({
 })
 
 const multiplayerServerProxyTarget = getMultiplayerServerURL() || 'http://127.0.0.1:8787'
+const nextRouterStub = fileURLToPath(new URL('./src/utils/next-router-stub.ts', import.meta.url))
 
 /**
  * Plugin to enable SPA fallback for vite preview.
@@ -133,6 +134,8 @@ export default defineConfig((env) => ({
 	resolve: {
 		alias: {
 			'@formatjs/icu-messageformat-parser': '@formatjs/icu-messageformat-parser/no-parser.js',
+			'next/navigation': nextRouterStub,
+			'next/compat/router': nextRouterStub,
 		},
 	},
 	build: {

@@ -50,6 +50,8 @@
 		"build-types": "tsc --build"
 	},
 	"dependencies": {
+		"@algolia/client-search": "^4.24.0",
+		"@algolia/recommend": "^4.24.0",
 		"@ariakit/react": "^0.4.15",
 		"@headlessui/react": "^2.2.0",
 		"@heroicons/react": "^2.2.0",
