@@ -56,7 +56,7 @@ export interface LicenseInfo {
  * Names of the licensable product features gated by the license. `collaboration` is an umbrella
  * that also grants all of its sub-features (currently just `commenting`).
  *
- * @internal
+ * @public
  */
 export type LicenseFeatureName = 'collaboration' | 'commenting'
 

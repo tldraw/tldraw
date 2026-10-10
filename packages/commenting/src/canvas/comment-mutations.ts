@@ -10,6 +10,7 @@ import {
 	TLRichText,
 } from 'tldraw'
 import { getCommentRecord, getLiveComments, type TLCommentRecord } from './comment-store'
+import { canRunCommenting, warnUnlicensedCommenting } from './license'
 import { getCommentingOptions, type CommentingOptions } from './options'
 import { openThreadId } from './state'
 
@@ -75,13 +76,21 @@ function historyModeFor(
  * the write that triggered it, with no "after the commit" to defer to. (A `store.listen` handler
  * normally flushes on a later frame, so its writes open a commit of their own, but a synchronous
  * flush — as under test — lands it inside too.)
+ *
+ * Every write to a comment record goes through here, so this is where the commenting license is
+ * enforced: without one, nothing is written and the callback never runs, hence the `undefined`.
  * @internal
  */
 export function commitCommentMutation<T>(
 	editor: Editor,
 	fn: (writer: CommentMutationWriter) => T,
 	kind: CommentMutationKind = 'mutation'
-): T {
+): T | undefined {
+	if (!canRunCommenting(editor)) {
+		warnUnlicensedCommenting('writing a comment record')
+		return undefined
+	}
+
 	const history = historyModeFor(getCommentingOptions(editor), kind)
 	const enclosing = activeCommentMutations.get(editor)
 	if (enclosing && enclosing.history !== history) {
