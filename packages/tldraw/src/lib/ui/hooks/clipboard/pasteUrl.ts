@@ -18,6 +18,7 @@ function getLinkTargetShapeId(editor: Editor, url: string): TLShapeId | undefine
  * @param editor - The editor instance.
  * @param url - The URL to paste.
  * @param point - The point at which to paste the file.
+ * @param onPasteLinkOntoShape - Called when the url is set as the selected shape's link.
  * @internal
  */
 export async function pasteUrl(
@@ -25,11 +26,15 @@ export async function pasteUrl(
 	url: string,
 	point?: VecLike,
 	sources?: TLExternalContentSource[],
-	clipboardPasteSource: 'native-event' | 'clipboard-read' = 'native-event'
+	clipboardPasteSource: 'native-event' | 'clipboard-read' = 'native-event',
+	onPasteLinkOntoShape?: () => void
 ) {
 	// A `text/uri-list` terminates each url with a line break, and some apps leave one on a copied
 	// plain text url too. `new URL()` accepts them, so they would otherwise reach the shape.
 	const trimmedUrl = url.trim()
+
+	const shapeId = getLinkTargetShapeId(editor, trimmedUrl)
+	if (shapeId) onPasteLinkOntoShape?.()
 
 	editor.markHistoryStoppingPoint('paste')
 
@@ -40,7 +45,7 @@ export async function pasteUrl(
 			point,
 			url: trimmedUrl,
 			sources,
-			shapeId: getLinkTargetShapeId(editor, trimmedUrl),
+			shapeId,
 		},
 		{ source: clipboardPasteSource, point }
 	)

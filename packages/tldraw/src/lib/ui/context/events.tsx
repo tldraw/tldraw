@@ -95,6 +95,7 @@ export interface TLUiEventMap {
 	print: null
 	copy: null
 	paste: null
+	'paste-link': { target: 'shape' | 'text' }
 	cut: null
 	'set-style': { id: string; value: string | number }
 	'toggle-transparent': null
