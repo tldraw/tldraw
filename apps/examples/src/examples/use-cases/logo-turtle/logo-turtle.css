@@ -1,0 +1,98 @@
+.logo-turtle {
+	position: absolute;
+	inset: 0;
+	display: flex;
+}
+
+.logo-turtle__canvas {
+	position: relative;
+	flex: 1;
+}
+
+.logo-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 340px;
+	padding: 12px;
+	background: var(--tl-color-panel);
+	border-right: 1px solid var(--tl-color-divider);
+	color: var(--tl-color-text);
+	font-family: system-ui, sans-serif;
+	font-size: 13px;
+}
+
+.logo-panel__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.logo-panel__header h3 {
+	margin: 0;
+	font-size: 16px;
+}
+
+.logo-panel select,
+.logo-panel button {
+	padding: 4px 10px;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 6px;
+	background: var(--tl-color-background);
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+
+.logo-panel button:disabled,
+.logo-panel select:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.logo-panel .logo-panel__run {
+	border-color: var(--tl-color-primary);
+	background: var(--tl-color-primary);
+	color: white;
+}
+
+.logo-panel__source {
+	flex: 3;
+	min-height: 0;
+	padding: 8px;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 6px;
+	background: var(--tl-color-background);
+	color: inherit;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 12px;
+	line-height: 1.5;
+	tab-size: 2;
+	resize: none;
+}
+
+.logo-panel__controls {
+	display: flex;
+	gap: 6px;
+}
+
+.logo-panel__controls select {
+	margin-left: auto;
+}
+
+.logo-panel__output {
+	flex: 1;
+	min-height: 60px;
+	overflow: auto;
+	padding: 8px;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 6px;
+	background: var(--tl-color-background);
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 12px;
+	white-space: pre-wrap;
+}
+
+.logo-panel__error {
+	color: #e03131;
+}
