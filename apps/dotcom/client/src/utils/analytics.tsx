@@ -8,6 +8,7 @@ import { atom, getFromLocalStorage, react, setInLocalStorage, useValue, warnOnce
 import { useApp } from '../tla/hooks/useAppState'
 import { useSignUpTracking } from '../tla/hooks/useSignUpTracking'
 import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/featureFlags'
+import { configureCommonRoom, trackCommonRoomPageview } from './common-room-signals'
 
 // Local storage key for cookie consent
 export const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
@@ -132,6 +133,8 @@ export function configureAnalytics(
 	consent: boolean,
 	user: { id: string; name: string; email: string } | undefined
 ) {
+	configureCommonRoom(consent, user)
+
 	configurePosthog({
 		optedIn: consent,
 		user,
@@ -313,9 +316,9 @@ function getGA4() {
 export function trackEvent(name: string, data?: { [key: string]: any }) {
 	getPosthog()?.capture(name, data)
 
-	// Send pageviews to both platforms, but other app-specific events only to PostHog
 	if (name === '$pageview') {
 		getGA4()?.event('page_view', data)
+		trackCommonRoomPageview()
 	}
 
 	// Track new-account sign-ups in GA4 as well as PostHog. This is the conversion
@@ -423,6 +426,7 @@ function useTrackPageViews() {
 }
 
 export function signoutAnalytics() {
+	configureCommonRoom(false)
 	if (shouldUsePosthog) posthog.reset()
 	if (shouldUseGA4) ReactGA.reset()
 }
