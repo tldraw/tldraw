@@ -19,8 +19,145 @@ interface ElementStyleInfo {
 	after: Styles | undefined
 }
 
+/**
+ * A cache of read element styles, shared between exports.
+ *
+ * Reading one element's styles means asking the browser for every CSS property it knows about,
+ * and an export reads every element inside every `<foreignObject>`. The answers repeat heavily:
+ * elements rendered from the same component resolve to the same styles, and a second export of
+ * the same page resolves to the same styles again. Pass one of these through
+ * {@link TLSvgExportOptions.styleCache} to reuse them.
+ *
+ * Only worth it when exporting repeatedly — rendering video frames, drawing thumbnails. A single
+ * export has nothing to reuse and should leave this unset.
+ *
+ * Entries are keyed on what the caller can see: the element's tag, class and inline style, and
+ * the same three for each of its ancestors. That does not model a stylesheet which selects on
+ * document structure — `:nth-child`, sibling combinators, or attributes other than `class` and
+ * `style` — so two elements this key calls equal can genuinely differ.
+ *
+ * Rather than ask callers to know that about their own markup, the cache checks itself: the first
+ * time a key is reused it is read fresh anyway and the two compared, and a slow sample keeps
+ * checking for as long as the cache lives. A disagreement sets {@link ExportStyleCache.disabled}
+ * and the cache answers nothing from then on, so a key that does not describe what it claimed
+ * costs the speed rather than the picture. {@link ExportStyleCache.mismatches} says whether that
+ * ever happened.
+ *
+ * Hold a cache no longer than the run of exports it serves: a stylesheet or theme change
+ * invalidates every entry, and the checking above samples rather than catching it immediately.
+ *
+ * @public
+ */
+export class ExportStyleCache {
+	/**
+	 * Read styles, by key. Holds `object` rather than the style type so that this class stays
+	 * opaque to callers: creating one and handing it to an export is the whole of its API.
+	 *
+	 * @internal
+	 */
+	readonly entries = new Map<string, object>()
+
+	/**
+	 * The key given to each element, so a child's key can be built on its parent's.
+	 *
+	 * @internal
+	 */
+	readonly keys = new WeakMap<Element, string>()
+
+	/**
+	 * Keys whose first reuse has been checked against a fresh read.
+	 *
+	 * @internal
+	 */
+	readonly verified = new Set<string>()
+
+	/** How many times a key has been reused, for the sampling rate below. @internal */
+	reuseCount = 0
+
+	/**
+	 * Set when a reused style did not match a fresh read of the same element.
+	 *
+	 * Once this is true the cache answers nothing for the rest of its life and every element is
+	 * read again, so a key that turns out not to describe what it claimed costs the speed rather
+	 * than the picture.
+	 */
+	disabled = false
+
+	/**
+	 * How many reuses turned out to be wrong. Zero on a cache that has done its job.
+	 *
+	 * Worth reporting if you are watching a fleet: this going non-zero means the key does not
+	 * model something a stylesheet is doing, and the exports that ran before the check caught it
+	 * were the last ones at risk.
+	 */
+	mismatches = 0
+}
+
+/**
+ * How often a reuse is checked against a fresh read, past the first for each key.
+ *
+ * Every key is checked the first time it is reused, which is the moment the cache first makes a
+ * claim about it. That alone would not notice a key that starts out honest and stops being so —
+ * a stylesheet selecting on position sees a different answer when an element's siblings change —
+ * so a slow sample runs for as long as the cache lives.
+ */
+const REUSE_CHECK_INTERVAL = 50
+
+/**
+ * The cache key for an element: its own shape, and the shape of every ancestor.
+ *
+ * Built on the parent's key rather than by walking upwards, so the chain costs one lookup — which
+ * works because an export reads a tree from the root down. An element whose parent has not been
+ * read yet keys as if it were a root, which is correct for the roots and conservative elsewhere:
+ * a wrong key can only collide with another element of identical shape and identical ancestry.
+ */
+function cacheKeyFor(
+	cache: ExportStyleCache,
+	element: Element,
+	respectDefaults: boolean,
+	skipInheritedParentStyles: boolean
+) {
+	const parent = element.parentElement
+	const parentKey = parent ? (cache.keys.get(parent) ?? '') : ''
+	const key = `${parentKey}»${element.tagName}|${element.getAttribute('class') ?? ''}|${
+		element.getAttribute('style') ?? ''
+	}|${respectDefaults ? 1 : 0}${skipInheritedParentStyles ? 1 : 0}`
+	cache.keys.set(element, key)
+	return key
+}
+
+/** Whether a reused set of styles says the same as a fresh read of the same element. */
+function styleInfoMatches(a: ElementStyleInfo, b: ElementStyleInfo) {
+	return (
+		stylesMatch(a.self, b.self) && stylesMatch(a.before, b.before) && stylesMatch(a.after, b.after)
+	)
+}
+
+function stylesMatch(a: Styles | undefined, b: Styles | undefined) {
+	if (!a || !b) return !a === !b
+	const keys = Object.keys(a)
+	if (keys.length !== Object.keys(b).length) return false
+	for (const key of keys) {
+		if (a[key] !== b[key]) return false
+	}
+	return true
+}
+
+// `fetchResources` rewrites url() values in place, so neither the cache nor its caller may hold
+// the other's object.
+function copyStyleInfo(info: ElementStyleInfo): ElementStyleInfo {
+	return {
+		self: { ...info.self },
+		before: info.before && { ...info.before },
+		after: info.after && { ...info.after },
+	}
+}
+
 export class StyleEmbedder {
-	constructor(private readonly root: Element) {}
+	constructor(
+		private readonly root: Element,
+		private readonly cache?: ExportStyleCache
+	) {}
 	private readonly styles = new Map<Element, ElementStyleInfo>()
 	readonly fonts = new FontEmbedder()
 
@@ -68,10 +205,38 @@ export class StyleEmbedder {
 			}
 		}
 
+		const cache = this.cache && !this.cache.disabled ? this.cache : undefined
+		let key: string | undefined
+		let reused: ElementStyleInfo | undefined
+		if (cache) {
+			key = cacheKeyFor(cache, element, shouldRespectDefaults, shouldSkipInheritedParentStyles)
+			const hit = cache.entries.get(key) as ElementStyleInfo | undefined
+			if (hit) {
+				cache.reuseCount++
+				const check = !cache.verified.has(key) || cache.reuseCount % REUSE_CHECK_INTERVAL === 0
+				if (!check) {
+					this.styles.set(element, copyStyleInfo(hit))
+					return
+				}
+				cache.verified.add(key)
+				reused = hit
+			}
+		}
+
 		const info: ElementStyleInfo = {
 			self: styleFromElement(element, { defaultStyles, parentStyles }),
 			before: styleFromPseudoElement(element, '::before'),
 			after: styleFromPseudoElement(element, '::after'),
+		}
+
+		if (cache && reused && !styleInfoMatches(reused, info)) {
+			// The key claimed two elements resolve the same and they do not. Everything this cache
+			// would say from here is suspect, so it stops saying anything.
+			cache.disabled = true
+			cache.mismatches++
+			cache.entries.clear()
+		} else if (cache && key !== undefined) {
+			cache.entries.set(key, copyStyleInfo(info))
 		}
 		this.styles.set(element, info)
 	}
