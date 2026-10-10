@@ -6,7 +6,9 @@ import {
 	FLAGS,
 	getEnabledFeatures,
 	getLicenseState,
+	LicenseFromKeyResult,
 	LicenseManager,
+	LicenseState,
 	PROPERTIES,
 	ValidLicenseKeyResult,
 } from './LicenseManager'
@@ -676,6 +678,122 @@ describe('LicenseManager', () => {
 				}
 			}
 		)
+	})
+
+	describe('Canonical tldraw hosts', () => {
+		function setHost(url: string) {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL(url)
+		}
+
+		it('Licenses tldraw-owned hosts with a watermark when no key is provided', async () => {
+			const hosts = [
+				'https://tldraw.com',
+				'https://www.tldraw.com',
+				'https://makereal.tldraw.com',
+				'https://tldraw.dev',
+				'https://staging.tldraw.dev',
+				'https://preview.tldraw.club',
+				'https://fairies.tldraw.workers.dev',
+				'https://teach.tldraw.xyz',
+			]
+
+			for (const host of hosts) {
+				setHost(host)
+
+				const result = await licenseManager.getLicenseFromKey('')
+
+				expect(result).toMatchObject({
+					isLicenseParseable: true,
+					isDomainValid: true,
+					isLicensedWithWatermark: true,
+					isCollaborationEnabled: true,
+					isCommentingEnabled: true,
+					isAnnualLicenseExpired: false,
+					isPerpetualLicenseExpired: false,
+					daysSinceExpiry: 0,
+				})
+				expect(getLicenseState(result, () => {}, false)).toBe('licensed-with-watermark')
+				expect(getEnabledFeatures(result, 'licensed-with-watermark', false)).toEqual({
+					collaboration: true,
+					commenting: true,
+				})
+			}
+		})
+
+		it('Does not license hosts that merely look like ours', async () => {
+			const hosts = [
+				'https://nottldraw.com',
+				'https://tldraw.com.example.com',
+				'https://eviltldraw.dev',
+				'https://tldraw.co',
+				'https://tldraw.workers.dev.example.com',
+			]
+
+			for (const host of hosts) {
+				setHost(host)
+
+				const result = await licenseManager.getLicenseFromKey('')
+
+				expect(result).toMatchObject({ isLicenseParseable: false, reason: 'no-key-provided' })
+			}
+		})
+
+		// getTrackType reports nothing at all in development, and the shared manager was constructed
+		// against jsdom's http://localhost default. Pin it to production so these assertions are about
+		// the canonical-host grant rather than about dev detection.
+		function getTrackTypeInProduction(result: LicenseFromKeyResult, licenseState: LicenseState) {
+			const wasDevelopment = licenseManager.isDevelopment
+			licenseManager.isDevelopment = false
+			try {
+				// @ts-ignore accessing a private method
+				return licenseManager.getTrackType(result, licenseState)
+			} finally {
+				licenseManager.isDevelopment = wasDevelopment
+			}
+		}
+
+		it('Never sends a watermark tracking ping for our own domains', async () => {
+			setHost('https://makereal.tldraw.com')
+
+			const result = await licenseManager.getLicenseFromKey('')
+
+			// getTrackType is what maybeTrack consults before it fetches; null means no ping.
+			expect(getTrackTypeInProduction(result, 'licensed-with-watermark')).toBe(null)
+			expect(getTrackTypeInProduction(result, 'unlicensed-production')).toBe(null)
+		})
+
+		it('Still tracks a real watermarked key on one of our domains', async () => {
+			setHost('https://makereal.tldraw.com')
+
+			const licenseKey = await generateLicenseKey(
+				JSON.stringify([
+					'a-real-key',
+					['*.tldraw.com'],
+					FLAGS.ANNUAL_LICENSE | FLAGS.WITH_WATERMARK,
+					expiryDate,
+				]),
+				keyPair
+			)
+			const result = await licenseManager.getLicenseFromKey(licenseKey)
+
+			expect(getTrackTypeInProduction(result, 'licensed-with-watermark')).toBe('with_watermark')
+		})
+
+		it('Lets an explicitly provided key win over the canonical-host grant', async () => {
+			setHost('https://tldraw.com')
+
+			const licenseKey = await generateLicenseKey(
+				JSON.stringify(['a-real-key', ['*.tldraw.com'], FLAGS.ANNUAL_LICENSE, expiryDate]),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
+
+			expect(result.license.id).toBe('a-real-key')
+			expect(result.isLicensedWithWatermark).toBe(false)
+		})
 	})
 
 	describe('License types and flags', () => {
