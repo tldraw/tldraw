@@ -20,6 +20,7 @@ import {
 	MAX_ZOOM,
 } from '../../../shapes/shared/crop'
 import { useActions } from '../../context/actions'
+import { useTldrawUiComponents } from '../../context/components'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -80,6 +81,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	// This balances usage of the zoom slider with manual cropping.
 	const maxZoom = crop ? Math.max(zoom, 1 - 1 / MAX_ZOOM) : MAX_ZOOM
 	const actions = useActions()
+	const { ImageToolbarExtra } = useTldrawUiComponents()
 
 	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
 
@@ -290,6 +292,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 					>
 						<TldrawUiButtonIcon small icon="crop" />
 					</TldrawUiToolbarButton>
+					{ImageToolbarExtra && <ImageToolbarExtra imageShapeId={imageShapeId} />}
 				</>
 			)}
 			<TldrawUiToolbarButton

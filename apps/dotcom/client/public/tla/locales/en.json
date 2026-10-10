@@ -579,6 +579,9 @@
   "c8a59e7135": {
     "translation": "Dismiss"
   },
+  "c9550fbcd7": {
+    "translation": "Could not remove the background"
+  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -623,6 +626,9 @@
   },
   "dbf9b24193": {
     "translation": "Leave workspace"
+  },
+  "dd5dc42cdd": {
+    "translation": "Remove background"
   },
   "dfdb78a4e4": {
     "translation": "App debug flags"
@@ -683,6 +689,9 @@
   },
   "f0e8bff6f9": {
     "translation": "User settings"
+  },
+  "f1d1a51310": {
+    "translation": "Restore background"
   },
   "f2569594b2": {
     "translation": "We use these cookies to save your files and settings."

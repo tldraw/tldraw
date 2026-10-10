@@ -4719,6 +4719,9 @@ export interface TLUiComponents {
     HelpMenu?: ComponentType<TLUiHelpMenuProps> | null;
     // (undocumented)
     ImageToolbar?: ComponentType | null;
+    ImageToolbarExtra?: ComponentType<{
+        imageShapeId: TLShapeId;
+    }> | null;
     // (undocumented)
     KeyboardShortcutsDialog?: ComponentType<TLUiKeyboardShortcutsDialogProps> | null;
     // (undocumented)
@@ -5133,6 +5136,8 @@ export interface TLUiEventMap {
     };
     // (undocumented)
     'pack-shapes': null;
+    // (undocumented)
+    'remove-background': null;
     // (undocumented)
     'remove-frame': null;
     // (undocumented)
