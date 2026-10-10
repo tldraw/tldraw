@@ -10,6 +10,7 @@ keywords:
   - release
   - v5.5
   - v5.5.0
+  - v5.5.1
   - rich-text
   - typography
   - tiptap
@@ -195,3 +196,13 @@ import { Mark, mergeAttributes } from 'tldraw'
 ### CLI
 
 - Fix `create-tldraw --no-telemetry` being ignored. ([#10789](https://github.com/tldraw/tldraw/pull/10789))
+
+---
+
+## Patch releases
+
+### v5.5.1
+
+- Fix shape hover and selection feeling offset below shapes. The default cursor's hotspot sat above its visible tip, so thin shapes like arrows lit up early when approached from below and late from above. ([#11033](https://github.com/tldraw/tldraw/pull/11033))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v5.5.1)
