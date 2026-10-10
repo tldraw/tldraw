@@ -95,6 +95,19 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 		if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
 	}, [])
 
+	// Radix returns focus to the trigger in a setTimeout after the menu unmounts. An item that
+	// focuses something itself (e.g. cursor chat's input) can win that race, and the late
+	// return would steal focus back and blur it closed. Only restore focus if nothing claimed it.
+	const preventCloseAutoFocusIfClaimed = useCallback(
+		(e: Event) => {
+			const { activeElement, body } = editor.getContainerDocument()
+			if (activeElement && activeElement !== body) {
+				e.preventDefault()
+			}
+		},
+		[editor]
+	)
+
 	const rContextMenuPagePoint = useContext(ContextMenuPagePointContext)
 
 	const cb = useCallback(
@@ -178,6 +191,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 						onPointerDownOutside={suppressDismissDuringGrace}
 						onInteractOutside={suppressDismissDuringGrace}
 						onFocusOutside={suppressDismissDuringGrace}
+						onCloseAutoFocus={preventCloseAutoFocusIfClaimed}
 					>
 						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
 							{content}
