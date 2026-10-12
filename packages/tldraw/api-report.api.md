@@ -1138,7 +1138,7 @@ export { DefaultContextMenu as ContextMenu }
 export { DefaultContextMenu }
 
 // @public (undocumented)
-export function DefaultContextMenuContent(): JSX.Element;
+export function DefaultContextMenuContent({ children }: TLUiDefaultContextMenuContentProps): JSX.Element;
 
 // @public (undocumented)
 export function DefaultDebugMenu({ children }: TLUiDebugMenuProps): JSX.Element;
@@ -4807,6 +4807,11 @@ export interface TLUiContextualToolbarProps {
 // @public (undocumented)
 export interface TLUiDebugMenuProps {
     // (undocumented)
+    children?: ReactNode;
+}
+
+// @public (undocumented)
+export interface TLUiDefaultContextMenuContentProps {
     children?: ReactNode;
 }
 

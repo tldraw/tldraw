@@ -1,4 +1,5 @@
 import { useEditor, useValue } from '@tldraw/editor'
+import { ReactNode } from 'react'
 import { useShowCollaborationUi } from '../../hooks/useCollaborationStatus'
 import {
 	ArrangeMenuSubmenu,
@@ -12,8 +13,17 @@ import {
 } from '../menu-items'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 
+/** @public */
+export interface TLUiDefaultContextMenuContentProps {
+	/**
+	 * Extra items to render at the start of the collaboration group, before cursor chat. Only
+	 * rendered when the collaboration UI is shown.
+	 */
+	children?: ReactNode
+}
+
 /** @public @react */
-export function DefaultContextMenuContent() {
+export function DefaultContextMenuContent({ children }: TLUiDefaultContextMenuContentProps) {
 	const editor = useEditor()
 	const showCollaborationUi = useShowCollaborationUi()
 
@@ -31,6 +41,7 @@ export function DefaultContextMenuContent() {
 		<>
 			{showCollaborationUi && (
 				<TldrawUiMenuGroup id="cursor-chat">
+					{children}
 					<CursorChatItem />
 				</TldrawUiMenuGroup>
 			)}
