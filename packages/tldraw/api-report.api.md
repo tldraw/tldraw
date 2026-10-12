@@ -561,6 +561,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLBookmarkShape, endShape: TLBookmarkShape, t: number): TLBookmarkShapeProps;
     // (undocumented)
+    getShapeName(): string;
+    // (undocumented)
     getText(shape: TLBookmarkShape): string;
     // (undocumented)
     hideSelectionBoundsFg(shape: TLBookmarkShape): boolean;
@@ -2132,6 +2134,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLGeoShape, endShape: TLGeoShape, t: number): TLGeoShapeProps;
     // (undocumented)
+    getShapeName(shape: TLGeoShape): string | undefined;
+    // (undocumented)
     getText(shape: TLGeoShape): string;
     // (undocumented)
     static migrations: TLPropsMigrations;
@@ -2603,6 +2607,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     getIndicatorPath(shape: TLImageShape): Path2D | undefined;
     // (undocumented)
     getInterpolatedProps(startShape: TLImageShape, endShape: TLImageShape, t: number): TLImageShapeProps;
+    // (undocumented)
+    getShapeName(): string;
     // (undocumented)
     static handledAssetTypes: readonly ['image'];
     // (undocumented)
@@ -6674,6 +6680,8 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     getDefaultProps(): TLVideoShape['props'];
     // (undocumented)
     getIndicatorPath(shape: TLVideoShape): Path2D;
+    // (undocumented)
+    getShapeName(): string;
     // (undocumented)
     static handledAssetTypes: readonly ['video'];
     // (undocumented)

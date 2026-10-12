@@ -2,7 +2,6 @@ import {
 	debugFlags,
 	defineMessages,
 	Editor,
-	TLGeoShape,
 	TLShapeId,
 	unsafe__withoutCapture,
 	useContainer,
@@ -14,7 +13,6 @@ import {
 import { memo, MouseEvent, useCallback, useEffect, useRef } from 'react'
 import { useA11y } from '../context/a11y'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
-import { styleMessageId } from '../styleMessages'
 import { suppressBackToContent } from './HelperButtons/BackToContent'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 
@@ -28,21 +26,6 @@ const messages = defineMessages({
 		defaultMessage: 'Move focus to canvas',
 	},
 	a11yStatus: { id: 'a11y.status', defaultMessage: 'Status' },
-})
-
-// `shape.type` and a geo shape's `props.geo` compose these ids, so the extractor sees none of
-// them here. The media names are declared below; the geo names live in `styleMessages`, and the
-// `tool.*` names in the tool registry that labels the toolbar with the same ids.
-const mediaMessages = defineMessages({
-	image: { id: 'a11y.shape-image', defaultMessage: 'Image' },
-	video: { id: 'a11y.shape-video', defaultMessage: 'Video' },
-})
-
-// A bookmark is a shape type with no tool of its own — it appears by pasting a URL — so its name
-// isn't declared with the toolbar's and would go unextracted. Announced through `tool.${type}`
-// like any other shape.
-const shapeNameMessages = defineMessages({
-	bookmark: { id: 'tool.bookmark', defaultMessage: 'Bookmark' },
 })
 
 export function SkipToMainContent() {
@@ -136,17 +119,10 @@ export function generateShapeAnnouncementMessage(args: {
 
 	const shapeUtil = editor.getShapeUtil(shape.type)
 
-	// A shape util can name itself via an ICU message; otherwise fall back to the key lookup.
-	const shapeType =
-		shapeUtil.getShapeName(shape) ??
-		(shape.type === 'geo'
-			? msg(styleMessageId('geo', (shape as TLGeoShape).props.geo))
-			: shape.type === 'image' || shape.type === 'video'
-				? msg(mediaMessages[shape.type as 'image' | 'video'].id)
-				: msg(
-						shapeNameMessages[shape.type as keyof typeof shapeNameMessages]?.id ??
-							`tool.${shape.type}`
-					))
+	// Each shape names itself. Only the convention is left here: a shape that doesn't override
+	// `getShapeName` is announced by its tool's label, which is how every built-in but geo, the
+	// two media shapes and bookmark gets its name.
+	const shapeType = shapeUtil.getShapeName(shape) ?? msg(`tool.${shape.type}`)
 
 	// Get shape index in reading order
 	const readingOrderShapes = editor.getCurrentPageShapesInReadingOrder()

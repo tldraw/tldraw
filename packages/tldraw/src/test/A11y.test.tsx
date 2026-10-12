@@ -13,6 +13,10 @@ describe('A11y Shape Announcements', () => {
 
 		// Formats through real ICU like `useTranslation` does, so a malformed message here fails the
 		// test rather than announcing its own placeholders.
+		//
+		// A shape's name no longer comes through here: each util returns its own via `getShapeName`,
+		// resolved against the editor's i18n. So "Rectangle" and "Image" below are the catalogue's
+		// real text, where this stub would have produced the key's last segment.
 		const intl = createIntl({ locale: 'en', defaultLocale: 'en', messages: {} })
 		mockTranslate = vi.fn((key: string, values?: Record<string, unknown>) => {
 			let defaultMessage = key
@@ -75,7 +79,7 @@ describe('A11y Shape Announcements', () => {
 			msg: mockTranslate,
 		})
 
-		expect(message).toBe('Hello, rectangle. 1 of 1')
+		expect(message).toBe('Hello, Rectangle. 1 of 1')
 	})
 
 	it('announces image shape with alt text', () => {
@@ -93,7 +97,7 @@ describe('A11y Shape Announcements', () => {
 			msg: mockTranslate,
 		})
 
-		expect(message).toBe('A test image, image. 1 of 1')
+		expect(message).toBe('A test image, Image. 1 of 1')
 	})
 
 	it('returns empty string when no shapes are selected', () => {
@@ -105,5 +109,28 @@ describe('A11y Shape Announcements', () => {
 		})
 
 		expect(message).toBe('')
+	})
+
+	// Each util names itself. Only the convention is left in A11y: a shape that doesn't override
+	// `getShapeName` is announced by its tool's label.
+	it('lets a shape name itself, and falls back to the tool label otherwise', () => {
+		const geo = createShapeId('geo')
+		const note = createShapeId('note')
+		editor.createShapes([
+			{ id: geo, type: 'geo', x: 0, y: 0, props: { geo: 'ellipse' } },
+			{ id: note, type: 'note', x: 200, y: 0 },
+		])
+
+		// geo names itself by which geo it is, not by its shared type
+		expect(editor.getShapeUtil('geo').getShapeName(editor.getShape(geo)!)).toBe('Ellipse')
+		// a note doesn't override, so A11y's convention supplies the name
+		expect(editor.getShapeUtil('note').getShapeName(editor.getShape(note)!)).toBeUndefined()
+		expect(
+			generateShapeAnnouncementMessage({
+				editor,
+				selectedShapeIds: [note],
+				msg: mockTranslate,
+			})
+		).toContain('note')
 	})
 })
