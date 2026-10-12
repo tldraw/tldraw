@@ -99,6 +99,32 @@ export type ThumbnailRenderData =
 /** Fetches the render job the URL's token names: the records to draw and how to draw them. */
 export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRenderData> {
 	pageTimings.bootAt = performance.now()
+
+	// SPIKE (#11096): a page sent to Browser Run as `html` is about:blank, so it has no token to
+	// fetch with. Its records are pushed in through addScriptTag instead, which lands after this
+	// module may already have run, hence the one-shot setter.
+	if (url.protocol === 'about:') {
+		const pushed = await new Promise<Extract<ThumbnailSnapshotResponseBody, { error: false }>>(
+			(resolve) => {
+				const existing = (window as any).__TLDRAW_RENDER__
+				if (existing) return resolve(existing)
+				Object.defineProperty(window, '__TLDRAW_RENDER__', {
+					configurable: true,
+					set: resolve,
+					get: () => undefined,
+				})
+			}
+		)
+		pageTimings.dataAt = performance.now()
+		;(window as any).__TLDRAW_RENDER_TIMINGS__ = pageTimings
+		return {
+			ok: true,
+			token: '',
+			records: pushed.records,
+			schema: pushed.schema,
+			renderParams: pushed.renderParams,
+		}
+	}
 	const token = url.searchParams.get('token')
 	pageTimings.token = token ?? undefined
 

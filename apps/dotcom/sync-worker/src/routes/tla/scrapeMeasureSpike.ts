@@ -1,5 +1,9 @@
+import { TLRecord } from '@tldraw/tlschema'
 import { IRequest } from 'itty-router'
 import { Environment, isDebugLogging } from '../../types'
+import { ThumbnailRenderJob, renderParamsForJob } from '../../utils/renderTokens'
+import { getSharedFileRoomSnapshot } from './getSharedFile'
+import { sliceSnapshotForRender } from './sliceSnapshotForRender'
 
 // SPIKE, not for merge. Can a measure's result come back through the `scrape` quick action instead
 // of the render page POSTing it to /app/thumbnail-render/result?
@@ -373,6 +377,158 @@ export async function scrapeMeasureSpikeRunSnapshot(request: IRequest, env: Envi
 	} catch (error) {
 		report.parseError = String(error)
 		report.rawHead = raw.slice(0, 500)
+	}
+	return Response.json(report)
+}
+
+// Fourth spike: the real render page, sent as `html` to the `snapshot` quick action.
+//
+// GET /api/app/__scrape-spike/run-real?slug=<file slug>[&capture=live][&embed=0][&lock=1][&out=png]
+//   Reads the board, fetches the deployed render page's HTML and adds a <base> pointing at the app
+//   origin (so its bundle, CSS and fonts load from there), embeds the rendered page's image assets as
+//   data URIs resized through image-resize-worker, pushes the records in, and captures.
+//   lock=1 allows only data:, blob: and the app origin. out=png returns the image itself.
+//   Preview and dev only; skips the access checks a real surface applies.
+
+export async function scrapeMeasureSpikeRunReal(request: IRequest, env: Environment) {
+	if (!isDebugLogging(env)) return new Response('Not Found', { status: 404 })
+	if (!env.BROWSER)
+		return Response.json({ error: 'BROWSER binding not configured' }, { status: 500 })
+	const url = new URL(request.url)
+	const slug = url.searchParams.get('slug')
+	if (!slug) return Response.json({ error: 'slug is required' }, { status: 400 })
+	const capture = url.searchParams.get('capture') === 'live' ? 'live' : undefined
+	const embed = url.searchParams.get('embed') !== '0'
+	const lock = url.searchParams.get('lock') === '1'
+	const renderOrigin = url.searchParams.get('renderOrigin') || env.MCP_SCREENSHOT_RENDER_ORIGIN
+	if (!renderOrigin) return Response.json({ error: 'no render origin' }, { status: 500 })
+	const imageWorker =
+		url.searchParams.get('imageWorker') ||
+		renderOrigin.replace('-preview-deploy.tldraw.com', '-images.tldraw.xyz')
+	const width = Number(url.searchParams.get('width') || 1200)
+	const height = Number(url.searchParams.get('height') || 630)
+	const report: Record<string, unknown> = { slug, capture: capture ?? 'export', embed, lock }
+
+	const snapshot = await getSharedFileRoomSnapshot(env, slug, { access: 'render' }).catch(
+		(error) => {
+			report.snapshotError = String(error)
+			return undefined
+		}
+	)
+	if (!snapshot?.documents) return Response.json(report, { status: 404 })
+	let records = snapshot.documents.map((d) => d.state) as TLRecord[]
+	const pageId = url.searchParams.get('pageId') || undefined
+	const job: ThumbnailRenderJob = {
+		v: 1,
+		kind: 'shared_file',
+		slug,
+		access: 'render',
+		version: 0,
+		camera: 'content',
+		...(pageId ? { pageId } : null),
+		...(capture ? { capture } : null),
+		x: 0,
+		y: 0,
+		z: 1,
+		width,
+		height,
+		theme: 'light',
+		exp: Date.now() + 60_000,
+	}
+	records = sliceSnapshotForRender(records, job) ?? records
+	report.records = records.length
+
+	// Images only: the thumbnail is at most a few hundred pixels across, so 1200 wide is plenty.
+	const assetsReport: unknown[] = []
+	if (embed) {
+		records = await Promise.all(
+			records.map(async (record) => {
+				const asset = record as TLRecord & { type?: string; props?: { src?: string | null } }
+				const src = asset.props?.src
+				if (record.typeName !== 'asset' || asset.type !== 'image' || !src?.startsWith('http')) {
+					return record
+				}
+				const resizeUrl = `${imageWorker}/${src.replace(/^https?:\/\//, '')}?w=1200`
+				const response = await fetch(resizeUrl, { headers: { Accept: 'image/webp' } })
+				const contentType = response.headers.get('content-type') ?? ''
+				if (!response.ok || !contentType.startsWith('image/')) {
+					assetsReport.push({ src, status: response.status, contentType })
+					return record
+				}
+				const bytes = new Uint8Array(await response.arrayBuffer())
+				let binary = ''
+				for (let i = 0; i < bytes.length; i += 0x8000) {
+					binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
+				}
+				const dataUri = `data:${contentType};base64,${btoa(binary)}`
+				assetsReport.push({ src, bytes: bytes.length, contentType, dataUriChars: dataUri.length })
+				return { ...asset, props: { ...asset.props, src: dataUri } } as TLRecord
+			})
+		)
+	}
+	report.assets = assetsReport
+
+	const pageResponse = await fetch(`${renderOrigin}/__thumbnail-render`)
+	let html = await pageResponse.text()
+	report.renderPage = { status: pageResponse.status, chars: html.length }
+	html = html.replace(/<head([^>]*)>/i, (head) => `${head}<base href="${renderOrigin}/">`)
+
+	const push = `window.__TLDRAW_RENDER__=${JSON.stringify({
+		error: false,
+		records,
+		schema: snapshot.schema,
+		renderParams: renderParamsForJob(job),
+	})}`
+	report.pushChars = push.length
+
+	const escaped = renderOrigin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+	const body = {
+		html,
+		addScriptTag: [{ content: push }],
+		viewport: { width, height, deviceScaleFactor: 1 },
+		gotoOptions: { waitUntil: 'domcontentloaded', timeout: 45_000 },
+		waitForSelector: {
+			selector: '[data-thumbnail-ready="true"], [data-thumbnail-error]',
+			timeout: 45_000,
+		},
+		...(lock ? { allowRequestPattern: ['^data:.*', '^blob:.*', `^${escaped}/.*`] } : null),
+		screenshotOptions: { type: 'png' },
+	}
+
+	const startedAt = Date.now()
+	let response: Response
+	try {
+		response = await env.BROWSER.quickAction('snapshot', body)
+	} catch (error) {
+		return Response.json({ ...report, threw: String(error), ms: Date.now() - startedAt })
+	}
+	report.status = response.status
+	report.ms = Date.now() - startedAt
+	report.browserMs = response.headers.get('X-Browser-Ms-Used')
+	const raw = await response.text()
+	let json: any
+	try {
+		json = JSON.parse(raw)
+	} catch {
+		return Response.json({ ...report, rawHead: raw.slice(0, 500) })
+	}
+	if (!json.success) return Response.json({ ...report, errors: json.errors })
+	const content: string = json.result?.content ?? ''
+	const screenshot: string = json.result?.screenshot ?? ''
+	report.htmlChars = content.length
+	report.ready = /<body[^>]*data-thumbnail-ready="true"/.test(content)
+	report.error = content.match(/<body[^>]*data-thumbnail-error="([^"]*)"/)?.[1]
+	report.screenshotBase64Chars = screenshot.length
+	if (url.searchParams.get('out') === 'png' && screenshot) {
+		return new Response(
+			Uint8Array.from(atob(screenshot), (c) => c.charCodeAt(0)),
+			{
+				headers: {
+					'content-type': 'image/png',
+					'x-spike-report': JSON.stringify(report).slice(0, 4000),
+				},
+			}
+		)
 	}
 	return Response.json(report)
 }

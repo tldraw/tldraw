@@ -67,6 +67,7 @@ import {
 	scrapeMeasureSpikePixel,
 	scrapeMeasureSpikeRun,
 	scrapeMeasureSpikeRunImages,
+	scrapeMeasureSpikeRunReal,
 	scrapeMeasureSpikeRunSnapshot,
 	scrapeMeasureSpikeUploads,
 } from './routes/tla/scrapeMeasureSpike'
@@ -240,6 +241,7 @@ const router = createRouter<Environment>()
 	.get('/app/__scrape-spike/run-images', scrapeMeasureSpikeRunImages)
 	.get('/app/__scrape-spike/uploads', scrapeMeasureSpikeUploads)
 	.get('/app/__scrape-spike/run-snapshot', scrapeMeasureSpikeRunSnapshot)
+	.get('/app/__scrape-spike/run-real', scrapeMeasureSpikeRunReal)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)
