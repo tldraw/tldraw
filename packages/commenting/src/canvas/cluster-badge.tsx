@@ -17,7 +17,10 @@ import { impreciseShapePinInset, isInInflatedViewport } from './thread-state'
 
 // Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
-	commentsClusterLabel: { id: 'comments.cluster-label', defaultMessage: '{count} comments here' },
+	commentsClusterLabel: {
+		id: 'comments.cluster-label',
+		defaultMessage: '{count, plural, one {# comment here} other {# comments here}}',
+	},
 })
 
 /**

@@ -627,9 +627,10 @@ export class TldrawApp {
 				'{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}',
 		},
 		addingTldrFiles: {
-			// no need for pluralization, if there was only one file we navigated to it
-			// so there's no need to show a toast.
-			defaultMessage: 'Added {total} .tldr files.',
+			// A single file navigates instead of toasting, so English only ever shows the plural.
+			// It still needs the forms: Russian wants a separate one for 2-4 and Arabic a dual, so
+			// "always more than one" doesn't mean "always one form".
+			defaultMessage: '{total, plural, one {Added # .tldr file.} other {Added # .tldr files.}}',
 		},
 	})
 

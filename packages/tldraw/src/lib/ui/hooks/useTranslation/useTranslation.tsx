@@ -107,6 +107,24 @@ export function TldrawUiTranslationProvider({
 		return { ...loaded, messages: { ...loaded.messages, ...localeOverrides } }
 	}, [loaded, overrides, locale])
 
+	// react-intl builds each provider's catalog from its own props and never consults the one above
+	// it. So without merging, this provider shadows an app's own `IntlProvider` for everything
+	// inside it — every tldraw.com dialog and share menu — and those fall back to `defaultMessage`:
+	// flawless English, silently untranslated in the other 49 locales.
+	//
+	// Ours wins a collision: `overrides.translations` is the documented way to change an SDK string,
+	// and it's already folded into `currentTranslation`. The cast is because the type is a union of
+	// two uniform records and this one is mixed on purpose — the SDK ships ICU strings, an app may
+	// precompile to AST as tldraw.com does, and `formatMessage` picks its parser per message.
+	const parentIntl = React.useContext(IntlContext)
+	const messages = React.useMemo(
+		() =>
+			parentIntl
+				? ({ ...parentIntl.messages, ...currentTranslation.messages } as IntlConfig['messages'])
+				: currentTranslation.messages,
+		[parentIntl, currentTranslation.messages]
+	)
+
 	return (
 		<TranslationsContext.Provider value={currentTranslation}>
 			{/* One IntlShape behind both APIs: `msg()` by key and `<F>`/`useMsg()` by descriptor
@@ -116,12 +134,7 @@ export function TldrawUiTranslationProvider({
 			    which isn't in `LANGUAGES` and so loads English — and `F` decides whether to
 			    transform the text by asking `intl` which locale it's in, so handing it the fallback
 			    would mean a pseudo-locale silently rendered as plain English. */}
-			<IntlProvider
-				locale={locale}
-				defaultLocale="en"
-				messages={currentTranslation.messages}
-				onError={onError}
-			>
+			<IntlProvider locale={locale} defaultLocale="en" messages={messages} onError={onError}>
 				{children}
 			</IntlProvider>
 		</TranslationsContext.Provider>

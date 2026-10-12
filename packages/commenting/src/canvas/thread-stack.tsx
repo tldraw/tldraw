@@ -34,7 +34,7 @@ const messages = defineMessages({
 	},
 	commentsStackLabel: {
 		id: 'comments.stack-label',
-		defaultMessage: '{count} comments at this spot',
+		defaultMessage: '{count, plural, one {# comment at this spot} other {# comments at this spot}}',
 	},
 })
 

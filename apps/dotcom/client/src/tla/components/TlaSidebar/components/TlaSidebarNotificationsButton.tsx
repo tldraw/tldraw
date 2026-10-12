@@ -19,7 +19,11 @@ const NOTIFICATIONS_MENU_ID = 'sidebar-notifications'
 
 const messages = defineMessages({
 	notifications: { defaultMessage: 'Notifications' },
-	unreadNotifications: { defaultMessage: '{count} unread' },
+	// Both forms read the same in English, where "unread" doesn't inflect. Declared anyway, so a
+	// translator gets the slots for languages where the adjective agrees with the count.
+	unreadNotifications: {
+		defaultMessage: '{count, plural, one {# unread} other {# unread}}',
+	},
 })
 
 /** Opens the notifications popover (comments across the user's files), with an unread badge. */

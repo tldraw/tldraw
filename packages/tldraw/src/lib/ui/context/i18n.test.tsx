@@ -1,6 +1,7 @@
 import { render, renderHook, screen } from '@testing-library/react'
 import { defineMessages } from '@tldraw/editor'
 import * as React from 'react'
+import { IntlProvider } from 'react-intl'
 import { describe, expect, it, vi } from 'vitest'
 import { defaultUiAssetUrls } from '../assetUrls'
 import { DEFAULT_TRANSLATION } from '../hooks/useTranslation/defaultTranslation'
@@ -217,5 +218,24 @@ describe('an element as a value', () => {
 		)
 		expect(screen.getByTestId('help').tagName).toBe('A')
 		expect(screen.getByTestId('help').textContent).toBe('Get help')
+	})
+})
+
+describe('an app catalog outside the SDK provider', () => {
+	// The SDK mounts its own `IntlProvider`, and react-intl's builds its catalog purely from its own
+	// props — it does not merge with the one above it. So without this, an app that renders its own
+	// translated components inside `TldrawUiContextProvider` (every dotcom dialog and share menu)
+	// lost its catalog and fell back to `defaultMessage`: perfect English, every other locale
+	// silently untranslated.
+	it('still resolves inside the SDK provider', () => {
+		const SdkProvider = withProvider()
+		render(
+			<IntlProvider locale="en" defaultLocale="en" messages={{ 'app.hello': 'From the app' }}>
+				<SdkProvider>
+					<F id="app.hello" defaultMessage="Hello" />
+				</SdkProvider>
+			</IntlProvider>
+		)
+		expect(screen.getByText('From the app')).toBeTruthy()
 	})
 })

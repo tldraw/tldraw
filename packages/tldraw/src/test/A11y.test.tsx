@@ -20,7 +20,8 @@ describe('A11y Shape Announcements', () => {
 		const intl = createIntl({ locale: 'en', defaultLocale: 'en', messages: {} })
 		mockTranslate = vi.fn((key: string, values?: Record<string, unknown>) => {
 			let defaultMessage = key
-			if (key === 'a11y.multiple-shapes') defaultMessage = '{num} shapes selected'
+			if (key === 'a11y.multiple-shapes')
+				defaultMessage = '{num, plural, one {# shape selected} other {# shapes selected}}'
 			else if (key === 'a11y.shape') defaultMessage = 'Shape'
 			else if (key === 'a11y.text') defaultMessage = 'Text'
 			else if (key === 'a11y.shape-index') defaultMessage = '{num} of {total}'

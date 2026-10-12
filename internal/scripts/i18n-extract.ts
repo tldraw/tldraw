@@ -54,6 +54,47 @@ interface Extracted {
 	[id: string]: { defaultMessage: string; description?: string }
 }
 
+// --- the plural gate ---------------------------------------------------------------------------
+
+// A message that interpolates a count has to be an ICU plural. English hides most of why:
+// "1 comments here" is visibly broken, but "Added 2 .tldr files." looks fine and is still wrong in
+// Russian, which wants a distinct form for 2-4, and in Arabic, which has a dual. "It can never be
+// one" is therefore not a reason to skip it. Nor can a translator add a form the source doesn't
+// have, so a flat string locks all 49 locales into whichever one English happened to use.
+const COUNT_PLACEHOLDER = /\{\s*(count|num|number|total|amount|quantity|uploaded|n)\s*\}/i
+
+// Keyed by the English itself, not the id, so it reads as the judgement it is and so it covers both
+// catalogues — dotcom's ids are content hashes and would churn. Anything new has to be argued here.
+const NOT_A_QUANTITY = new Map([
+	['{num} of {total}', 'a position, "3 of 7" — neither number quantifies a noun'],
+	['{count} more', 'no noun or adjective in the sentence for the count to agree with'],
+])
+
+/** Returns true if any message interpolates a count without pluralising. */
+function checkPlurals(label: string, messages: Record<string, string>): boolean {
+	const offenders = Object.entries(messages)
+		.filter(([, text]) => {
+			if (NOT_A_QUANTITY.has(text)) return false
+			// A plural anywhere is enough. The count it selects on is the one that matters, and a
+			// branch may well interpolate that same count again inside itself.
+			if (text.includes(', plural,')) return false
+			return COUNT_PLACEHOLDER.test(text)
+		})
+		.sort(([a], [b]) => a.localeCompare(b))
+
+	console.log(`  unpluralised     : ${offenders.length}`)
+	if (!offenders.length) return false
+	console.error(
+		`\n${label}: ${offenders.length} message(s) interpolate a count without an ICU plural:`
+	)
+	for (const [id, text] of offenders) console.error(`    ${id}: ${JSON.stringify(text)}`)
+	console.error(
+		'\nWrite it as `{count, plural, one {# thing} other {# things}}`. If the number genuinely ' +
+			'quantifies nothing, add the English to `NOT_A_QUANTITY` in this script with the reason.'
+	)
+	return true
+}
+
 function extractSdk(mode: Mode): boolean {
 	const outFile = tmp('extracted.json')
 	formatjs([
@@ -89,6 +130,10 @@ function extractSdk(mode: Mode): boolean {
 	console.log(`  added            : ${added.length}`)
 	console.log(`  dropped          : ${dropped.length}`)
 	console.log(`  text drift       : ${drifted.length}`)
+	const sdkUnpluralised = checkPlurals(
+		'sdk',
+		Object.fromEntries(Object.entries(extracted).map(([id, m]) => [id, m.defaultMessage]))
+	)
 
 	for (const id of drifted.slice(0, 20)) {
 		console.log(`    ${id}`)
@@ -98,6 +143,7 @@ function extractSdk(mode: Mode): boolean {
 	for (const id of added.slice(0, 20)) console.log(`    + ${id}`)
 	for (const id of dropped.slice(0, 20)) console.log(`    - ${id}`)
 
+	if (sdkUnpluralised) process.exitCode = 1
 	const differs = added.length > 0 || dropped.length > 0 || drifted.length > 0
 	if (mode === 'check') return differs
 
@@ -159,6 +205,14 @@ function extractDotcom(mode: Mode): boolean {
 	const extracted = JSON.parse(readFileSync(enOut, 'utf8'))
 	console.log(`  declared in code : ${Object.keys(extracted).length}`)
 	console.log(`  compiled locales : ${readdirSync(compiledOut).length}`)
+	// Lokalise format: { id: { translation } }.
+	const texts = Object.fromEntries(
+		Object.entries(extracted as Record<string, { translation: string }>).map(([id, m]) => [
+			id,
+			m.translation,
+		])
+	)
+	if (checkPlurals('dotcom', texts)) process.exitCode = 1
 
 	if (mode === 'write') {
 		console.log(`  wrote ${DOTCOM_EN} and ${DOTCOM_COMPILED}/`)
