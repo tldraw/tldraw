@@ -12,12 +12,28 @@ metadata:
   namespace: stacks-890472
 spec:
   annotations:
-    description: A chain write failed in the last hour after retrying R2's retryable
-      errors five times. Boards are unaffected, but that persist recorded no version
-      (there is no legacy fallback); the next persist's delta carries its changes.
-      Check the "Chain write errors" panel on the Dotcom events dashboard, then Sentry
-      for the underlying exception. Expected rate is zero.
-    summary: Version chain writes are failing and recording no version
+    description: 'Counts version_chain_error events (the sync worker''s MEASURE dataset,
+      production) over the last 10 minutes and fires at 10 or more. Each event is a board
+      save whose version-chain write still failed after R2''s retryable errors were retried
+      five times: the board saved normally, but that save left no entry in version
+      history. The next save''s delta carries its changes, so history only misses the
+      board''s state between those two saves. There is no legacy fallback.
+
+
+      Isolated failures are expected and do not alert: one-off platform errors such as a
+      Cloudflare Durable Object storage reset during the chain-state storage.put
+      (TLDRAW-SYNC-3Y1, 2026-10-04 and 10-05) show on the panel below without paging.
+      The threshold catches bursts like the R2 10058 throttling on chain LISTs (#10879),
+      which ran at 10 to 50 a minute in September, and a steady trickle from a bug that
+      fails every save on some boards.
+
+
+      Where to look: the "Chain write errors" panel on the Dotcom events dashboard, then
+      Sentry project tldraw-sync, culprit TLFileDurableObject._writeVersionChainEntry (the
+      event''s slug extra names the board). Resolved means 10 minutes passed with fewer
+      than 10 failures, not that a cause was fixed.'
+    summary: 'Version history: 10 or more version-chain errors in the last 10 minutes.
+      Some saves may be missing history entries (the boards themselves saved fine).'
   execErrState: Error
   expressions:
     A:
@@ -43,14 +59,14 @@ spec:
         skip_comments: true
         step: ''
       relativeTimeRange:
-        from: 1h0m0s
+        from: 10m0s
         to: 0s
     C:
       model:
         conditions:
           - evaluator:
               params:
-                - 0
+                - 9
               type: gt
             operator:
               type: and
@@ -71,7 +87,7 @@ spec:
         type: threshold
       queryType: expression
       source: true
-  for: 10m0s
+  for: 0s
   labels:
     service: dotcom
     severity: warning

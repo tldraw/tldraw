@@ -322,7 +322,7 @@ export function ImportFileActionItem() {
 
 	return (
 		<TldrawUiMenuItem
-			id="about"
+			id="import-file"
 			label={importFileMsg}
 			readonlyOk
 			onSelect={async () => {
@@ -330,7 +330,7 @@ export function ImportFileActionItem() {
 				if (!editor) return
 				if (!app) return
 
-				trackEvent('import-tldr-file', { source: 'account-menu' })
+				trackEvent('import-tldr-file', { source: 'file-menu' })
 
 				try {
 					// tldraw offline files are selectable so that we can explain why we can't open them
@@ -345,7 +345,7 @@ export function ImportFileActionItem() {
 					if (!tldrawFiles.length) return
 
 					app.uploadTldrFiles(tldrawFiles, {
-						source: 'account-menu',
+						source: 'file-menu',
 						onFirstFileUploaded: (fileId) => {
 							navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
 						},

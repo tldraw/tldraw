@@ -1,7 +1,7 @@
-import { captureException } from '@sentry/react'
 import { useEffect } from 'react'
 import { useParams, useRouteError } from 'react-router-dom'
 import { markFirstLoad } from '../../utils/firstLoad'
+import { captureRouteError } from '../../utils/routeErrors'
 import { TlaEditor } from '../components/TlaEditor/TlaEditor'
 import { TlaFileSyncHost } from '../components/TlaEditor/TlaFileSyncHost'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
@@ -16,7 +16,7 @@ markFirstLoad('file-chunk-loaded')
 export function ErrorBoundary() {
 	const error = useRouteError()
 	useEffect(() => {
-		captureException(error)
+		captureRouteError(error)
 	}, [error])
 	return <Component error={error} />
 }
