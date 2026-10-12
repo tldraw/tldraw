@@ -1,3 +1,4 @@
+import puppeteer from '@cloudflare/puppeteer'
 import { TLRecord } from '@tldraw/tlschema'
 import { IRequest } from 'itty-router'
 import { Environment, isDebugLogging } from '../../types'
@@ -509,6 +510,9 @@ export async function scrapeMeasureSpikeRunReal(request: IRequest, env: Environm
 		cacheTTL: 0,
 	}
 
+	if (url.searchParams.get('via') === 'puppeteer') {
+		return runViaPuppeteer(env, url, body, report, { measure, lockPattern: escaped })
+	}
 	if (measure) return runRealMeasure(env, body, records, report)
 
 	const startedAt = Date.now()
@@ -634,4 +638,113 @@ async function runRealMeasure(
 			}
 		})
 	return Response.json(report)
+}
+
+// Fifth spike: the same render through a Browser Run session the worker keeps alive and reconnects
+// to, instead of a fresh browser per Quick Action. reuse=0 launches and closes every time, as the
+// control. keepAlive is how long an idle session survives (ms, Browser Run caps it at 10 minutes);
+// idle time is billed, so the spike keeps it short.
+async function runViaPuppeteer(
+	env: Environment,
+	url: URL,
+	body: {
+		html: string
+		addScriptTag: { content: string }[]
+		viewport: { width: number; height: number }
+	},
+	report: Record<string, unknown>,
+	{ measure, lockPattern }: { measure: boolean; lockPattern: string }
+) {
+	const reuse = url.searchParams.get('reuse') !== '0'
+	const keepAlive = Number(url.searchParams.get('keepAlive') || 120_000)
+	const lock = url.searchParams.get('lock') === '1'
+	const startedAt = Date.now()
+
+	let browser: Awaited<ReturnType<typeof puppeteer.launch>> | undefined
+	let reused = false
+	if (reuse) {
+		const sessions = await puppeteer.sessions(env.BROWSER as any)
+		report.sessionsOpen = sessions.length
+		for (const session of sessions.filter((s) => !s.connectionId)) {
+			try {
+				browser = await puppeteer.connect(env.BROWSER as any, session.sessionId)
+				reused = true
+				break
+			} catch {
+				// Taken by another request between listing and connecting; try the next one.
+			}
+		}
+	}
+	if (!browser) browser = await puppeteer.launch(env.BROWSER as any, { keep_alive: keepAlive })
+	report.via = 'puppeteer'
+	report.reused = reused
+	report.sessionId = browser.sessionId()
+	report.acquireMs = Date.now() - startedAt
+
+	const renderStartedAt = Date.now()
+	const page = await browser.newPage()
+	try {
+		await page.setViewport({ ...body.viewport, deviceScaleFactor: 1 })
+		if (lock) {
+			const allowed = new RegExp(`^(data:|blob:|about:|${lockPattern}/)`)
+			await page.setRequestInterception(true)
+			page.on('request', (request) => {
+				if (allowed.test(request.url())) request.continue()
+				else request.abort()
+			})
+		}
+		await page.setContent(body.html, { waitUntil: 'domcontentloaded', timeout: 45_000 })
+		for (const tag of body.addScriptTag) await page.addScriptTag({ content: tag.content })
+		await page.waitForSelector('[data-thumbnail-ready="true"], [data-thumbnail-error]', {
+			timeout: 45_000,
+		})
+		report.error = await page.evaluate(() => document.body.dataset.thumbnailError ?? null)
+		if (measure) {
+			const text = await page.evaluate(
+				() => document.getElementById('thumbnail-result')?.textContent ?? null
+			)
+			const result = text ? JSON.parse(text) : null
+			report.shapesMeasured = result ? Object.keys(result.bounds).length : 0
+			report.timings = result?.timings
+			report.renderMs = Date.now() - renderStartedAt
+		} else {
+			const png = (await page.screenshot({ type: 'png' })) as Uint8Array
+			report.renderMs = Date.now() - renderStartedAt
+			report.screenshotBytes = png.byteLength
+			if (url.searchParams.get('out') === 'png') {
+				report.totalMs = Date.now() - startedAt
+				return new Response(new Uint8Array(png), {
+					headers: {
+						'content-type': 'image/png',
+						'x-spike-report': JSON.stringify(report).slice(0, 4000),
+					},
+				})
+			}
+		}
+	} catch (error) {
+		report.threw = String(error)
+	} finally {
+		await page.close().catch(() => {})
+		// Disconnecting leaves the session running for the next request; closing ends it.
+		if (reuse) await browser.disconnect()
+		else await browser.close()
+	}
+	report.totalMs = Date.now() - startedAt
+	return Response.json(report)
+}
+
+// GET /api/app/__scrape-spike/sessions[?close=1]  lists open Browser Run sessions; close=1 ends the
+// idle ones, so the spike leaves nothing billing behind.
+export async function scrapeMeasureSpikeSessions(request: IRequest, env: Environment) {
+	if (!isDebugLogging(env)) return new Response('Not Found', { status: 404 })
+	const sessions = await puppeteer.sessions(env.BROWSER as any)
+	if (new URL(request.url).searchParams.get('close') === '1') {
+		for (const session of sessions.filter((s) => !s.connectionId)) {
+			const browser = await puppeteer
+				.connect(env.BROWSER as any, session.sessionId)
+				.catch(() => null)
+			await browser?.close()
+		}
+	}
+	return Response.json(sessions)
 }
