@@ -1,4 +1,4 @@
-import { TldrawUiButton, useMsg } from 'tldraw'
+import { TldrawUiButton, useTranslation } from 'tldraw'
 import { TlaFileMenu } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { messages } from './sidebar-shared'
@@ -13,7 +13,8 @@ export function TlaSidebarFileLinkMenu({
 	workspaceId: string | null
 	onRenameAction(): void
 }) {
-	const fileMenuLbl = useMsg(messages.fileMenu)
+	const msg = useTranslation()
+	const fileMenuLbl = msg(messages.fileMenu.id)
 
 	return (
 		<TlaFileMenu

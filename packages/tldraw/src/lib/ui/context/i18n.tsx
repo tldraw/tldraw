@@ -1,4 +1,4 @@
-import { TLI18n, TLI18nAdapter, TLI18nMessage, TLI18nMessageInput } from '@tldraw/editor'
+import { TLI18n, TLI18nAdapter, TLI18nMessageInput } from '@tldraw/editor'
 import { ReactNode, useCallback, useRef } from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import {
@@ -66,28 +66,8 @@ function makeLong(str: string) {
 }
 
 /**
- * Translates a message and returns it as a string, for the places a component can't go: an
- * `aria-label`, a `title`, a `placeholder`, or any non-JSX module.
- *
- * @example
- *
- * ```tsx
- * const messages = defineMessages({
- * 	close: { id: 'ui.close', defaultMessage: 'Close' },
- * })
- * const label = useMsg(messages.close)
- * ```
- *
- * @public
- */
-export function useMsg(message: TLI18nMessage, values?: TLUiTranslationValues): string {
-	const intl = useIntl()
-	return intl.formatMessage(message, values)
-}
-
-/**
  * Renders a translated message. Use this wherever the message is text in the document; where a
- * string is needed instead, use {@link useMsg}.
+ * string is needed instead, translate the message's id through `useTranslation`.
  *
  * The `id` is optional, so a message whose id a bundler plugin injects can be rendered from source
  * that carries none. The output is wrapped in a `<span className="i18n-msg">`, which lets a tool

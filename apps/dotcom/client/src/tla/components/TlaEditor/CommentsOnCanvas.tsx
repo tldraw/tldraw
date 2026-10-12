@@ -9,7 +9,15 @@ import {
 } from '@tldraw/commenting'
 import { queries } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { F, TLUiOverrides, defineMessages, useDialogs, useEditor, useMsg, useValue } from 'tldraw'
+import {
+	defineMessages,
+	F,
+	TLUiOverrides,
+	useDialogs,
+	useEditor,
+	useTranslation,
+	useValue,
+} from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -40,13 +48,14 @@ const commentMessages = defineMessages({
  * old the comment is.
  */
 export function CommentsOnCanvas({ fileId }: { fileId: string }) {
+	const msg = useTranslation()
 	const editor = useEditor()
 	const app = useMaybeApp()
 	const currentUserId = app?.userId ?? null
 	useCommentTracking()
 	// Guests who signed in by email have no name yet, so their roster rows would be blank. Name them
 	// the same way the rest of the commenting UI names an author it can't resolve.
-	const unknownAuthor = useMsg(commentMessages.unknownAuthor)
+	const unknownAuthor = msg(commentMessages.unknownAuthor.id)
 
 	const currentUser = useValue(
 		'current user',
@@ -267,9 +276,10 @@ const signInMessages = defineMessages({
 /** For signed-out viewers, the comment tool button and its `c` shortcut open the sign-in dialog
  *  instead of entering the tool. Compose after `commentToolOverrides`, which registers the tool. */
 export function useAnonCommentToolOverrides(): TLUiOverrides {
+	const msg = useTranslation()
 	const app = useMaybeApp()
 	const trackEvent = useTldrawAppUiEvents()
-	const ctaString = useMsg(signInMessages.signInToComment)
+	const ctaString = msg(signInMessages.signInToComment.id)
 	return useMemo(() => {
 		if (app) return {}
 		return {
@@ -290,6 +300,7 @@ export function useAnonCommentToolOverrides(): TLUiOverrides {
 /** Anon viewers read comments but don't compose — the toolkit's `ComposerFallback` slot holds
  *  this sign-in prompt (registered via `CommentTool.configure` in `TlaEditor`). */
 export function SignInToComment() {
+	const msg = useTranslation()
 	const editor = useEditor()
 	// Fallback slots render for every non-composing session; the CTA is only honest for a
 	// signed-out visitor on an editable canvas — signing in unlocks nothing on view-only.
@@ -297,7 +308,7 @@ export function SignInToComment() {
 	const app = useMaybeApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
-	const ctaString = useMsg(signInMessages.signInToComment)
+	const ctaString = msg(signInMessages.signInToComment.id)
 	if (isReadonly || app) return null
 	return (
 		<TlaCtaButton

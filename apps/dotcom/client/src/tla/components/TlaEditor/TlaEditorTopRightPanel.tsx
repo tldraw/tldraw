@@ -15,6 +15,8 @@ import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
+	defineMessages,
+	F,
 	PeopleMenu,
 	TldrawUiButton,
 	useDialogs,
@@ -22,7 +24,6 @@ import {
 	usePassThroughWheelEvents,
 	useTranslation,
 } from 'tldraw'
-import { F, defineMessages, useMsg } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
@@ -51,7 +52,8 @@ export function TlaEditorTopRightPanel({
 	isAnonUser: boolean
 	context: TopRightPanelContext
 }) {
-	const ctaString = useMsg(ctaMessages.signInToShare)
+	const msg = useTranslation()
+	const ctaString = msg(ctaMessages.signInToShare.id)
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 	const fileId = useCurrentFileId()
@@ -124,12 +126,13 @@ export function TlaEditorTopRightPanel({
  * viewer is signed out.
  */
 function CommentsSidebarButton() {
+	const msg = useTranslation()
 	const editor = useEditor()
 	const trackEvent = useTldrawAppUiEvents()
 	const commentingEnabled = useCommentingEnabled()
 	const commentingEnabledForUser = useIsCommentingEnabled()
 	const open = useCommentsSidebarOpen()
-	const label = useMsg(commentsMessages.comments)
+	const label = msg(commentsMessages.comments.id)
 
 	if (!commentingEnabled || !commentingEnabledForUser) return null
 
@@ -229,8 +232,9 @@ function SignedOutShareButton({
 	fileId?: string
 	context: TopRightPanelContext
 }) {
+	const msg = useTranslation()
 	const trackEvent = useTldrawAppUiEvents()
-	const shareLbl = useMsg(signedOutShareMessages.share)
+	const shareLbl = msg(signedOutShareMessages.share.id)
 
 	return (
 		<TlaFileShareMenu fileId={fileId} context={context} source="anon">

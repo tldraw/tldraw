@@ -3,28 +3,29 @@ import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
+	createDebugValue,
+	createSessionStateSnapshotSignal,
+	debugFlags,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
+	defineMessages,
 	Editor,
-	TLComponents,
-	TLSessionStateSnapshot,
-	TLUiDialogsContextType,
-	Tldraw,
-	TldrawUiMenuItem,
-	createSessionStateSnapshotSignal,
-	createDebugValue,
-	debugFlags,
 	react,
 	throttle,
+	TLComponents,
+	Tldraw,
+	TldrawUiMenuItem,
+	TLSessionStateSnapshot,
 	tltime,
+	TLUiDialogsContextType,
 	useAtom,
 	useDialogs,
 	useEditor,
 	useEvent,
 	useToasts,
+	useTranslation,
 	useValue,
 } from 'tldraw'
-import { defineMessages, useMsg } from 'tldraw'
 import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
@@ -119,6 +120,7 @@ export function TlaEditor(props: TlaEditorProps) {
 }
 
 function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps) {
+	const msg = useTranslation()
 	const fileLoad = useFileLoad()
 	fileLoad.mark('editor-rendered')
 	markFirstLoad('editor-rendered')
@@ -129,7 +131,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 	const setIsReady = useSetIsReady()
 	const { addToast } = useToasts()
-	const slurpFailedMsg = useMsg(messages.slurpFailed)
+	const slurpFailedMsg = msg(messages.slurpFailed.id)
 	const showSlurpFailure = useEvent(() => {
 		addToast({
 			id: 'local-file-restore-failed',

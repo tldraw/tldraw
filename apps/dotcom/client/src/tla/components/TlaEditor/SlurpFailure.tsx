@@ -1,4 +1,5 @@
 import {
+	F,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
@@ -7,7 +8,6 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
-import { F } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 

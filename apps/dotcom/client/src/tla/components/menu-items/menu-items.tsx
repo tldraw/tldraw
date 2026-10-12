@@ -4,6 +4,8 @@ import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	defineMessages,
+	isPseudoLocale,
 	TLDRAW_FILE_EXTENSION,
 	TldrawUiIcon,
 	TldrawUiMenuCheckboxItem,
@@ -17,7 +19,6 @@ import {
 	useUiEvents,
 	useValue,
 } from 'tldraw'
-import { defineMessages, isPseudoLocale, useMsg } from 'tldraw'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
 import { signoutAnalytics } from '../../../utils/analytics'
@@ -65,12 +66,13 @@ const messages = defineMessages({
 })
 
 export function SignOutMenuItem() {
+	const msg = useTranslation()
 	const auth = useAuth()
 	const app = useMaybeApp()
 
 	const trackEvent = useTldrawAppUiEvents()
 
-	const label = useMsg(messages.signOut)
+	const label = msg(messages.signOut.id)
 
 	const handleSignout = useCallback(() => {
 		signoutAnalytics()
@@ -190,8 +192,9 @@ function useUIThemeIds() {
 }
 
 export function UIThemeSubmenu() {
+	const msg = useTranslation()
 	const themeIds = useUIThemeIds()
-	const colorThemeLabel = useMsg(messages.colorTheme)
+	const colorThemeLabel = msg(messages.colorTheme.id)
 
 	if (themeIds.length === 0) return null
 
@@ -203,10 +206,11 @@ export function UIThemeSubmenu() {
 }
 
 function UIThemeMenuGroup() {
+	const msg = useTranslation()
 	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
 	const trackEvent = useTldrawAppUiEvents()
 	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
-	const defaultThemeLabel = useMsg(messages.colorThemeDefault)
+	const defaultThemeLabel = msg(messages.colorThemeDefault.id)
 	const themeIds = useUIThemeIds()
 
 	useEffect(() => clearThemePreview, [clearThemePreview])
@@ -254,11 +258,12 @@ export function ThemeSubmenu() {
 }
 
 export function CookieConsentMenuItem() {
+	const msg = useTranslation()
 	const { addDialog } = useDialogs()
 	return (
 		<TldrawUiMenuItem
 			id="cookie-consent"
-			label={useMsg(messages.manageCookies)}
+			label={msg(messages.manageCookies.id)}
 			readonlyOk
 			onSelect={() => {
 				addDialog({ component: () => <TlaManageCookiesDialog /> })
@@ -268,11 +273,12 @@ export function CookieConsentMenuItem() {
 }
 
 export function UserManualMenuItem({ icon = true }: { icon?: boolean } = {}) {
+	const msg = useTranslation()
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
 	return (
 		<TldrawUiMenuItem
 			id="user-manual"
-			label={useMsg(messages.getHelp)}
+			label={msg(messages.getHelp.id)}
 			iconLeft={icon ? 'manual' : undefined}
 			readonlyOk
 			onSelect={() => {
@@ -283,11 +289,12 @@ export function UserManualMenuItem({ icon = true }: { icon?: boolean } = {}) {
 }
 
 export function GiveUsFeedbackMenuItem() {
+	const msg = useTranslation()
 	const { addDialog } = useDialogs()
 	return (
 		<TldrawUiMenuItem
 			id="give-us-feedback"
-			label={useMsg(messages.submitFeedback)}
+			label={msg(messages.submitFeedback.id)}
 			iconLeft="comment"
 			readonlyOk
 			onSelect={() => {
@@ -298,11 +305,12 @@ export function GiveUsFeedbackMenuItem() {
 }
 
 export function LegalSummaryMenuItem() {
+	const msg = useTranslation()
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
 	return (
 		<TldrawUiMenuItem
 			id="tos"
-			label={useMsg(messages.legalSummary)}
+			label={msg(messages.legalSummary.id)}
 			readonlyOk
 			onSelect={() => {
 				openAndTrack('/legal.html')
@@ -312,12 +320,13 @@ export function LegalSummaryMenuItem() {
 }
 
 export function ImportFileActionItem() {
+	const msg = useTranslation()
 	const trackEvent = useTldrawAppUiEvents()
 	const app = useMaybeApp()
 
 	const navigate = useNavigate()
 
-	const importFileMsg = useMsg(messages.importFile)
+	const importFileMsg = msg(messages.importFile.id)
 	const rejectTldrawOfflineFiles = useRejectTldrawOfflineFiles()
 
 	return (
@@ -372,16 +381,17 @@ export function DebugMenuGroup() {
 }
 
 export function DebugSubmenu() {
+	const msg = useTranslation()
 	const editor = useMaybeEditor()
-	const appFlagsLbl = useMsg(messages.appDebugFlags)
+	const appFlagsLbl = msg(messages.appDebugFlags.id)
 
 	const [shouldHighlightMissing, setShouldHighlightMissing] = useState(
 		document.body.classList.contains('tla-lang-highlight-missing')
 	)
 	const debugLanguageFlags = [
-		{ name: useMsg(messages.langAccented), locale: 'xx-AE' },
-		{ name: useMsg(messages.langLongString), locale: 'xx-LS' },
-		{ name: useMsg(messages.langHighlightMissing), locale: 'xx-MS' },
+		{ name: msg(messages.langAccented.id), locale: 'xx-AE' },
+		{ name: msg(messages.langLongString.id), locale: 'xx-LS' },
+		{ name: msg(messages.langHighlightMissing.id), locale: 'xx-MS' },
 	]
 
 	// Remember the user's real locale so an internal debug locale can be toggled back off.

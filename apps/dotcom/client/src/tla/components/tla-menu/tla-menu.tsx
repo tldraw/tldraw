@@ -9,12 +9,12 @@ import {
 	useContext,
 } from 'react'
 import {
+	defineMessages,
 	TldrawUiButton,
 	TldrawUiIcon,
 	TldrawUiTooltip,
-	defineMessages,
 	useContainer,
-	useMsg,
+	useTranslation,
 } from 'tldraw'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './menu.module.css'
@@ -74,7 +74,8 @@ export function TlaMenuControlInfoTooltip({
 	children: ReactNode
 	showOnMobile?: boolean
 }) {
-	const helpMsg = useMsg(messages.help)
+	const msg = useTranslation()
+	const helpMsg = msg(messages.help.id)
 
 	return (
 		<div className={styles.menuInfoTriggerContainer}>

@@ -1,6 +1,6 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
-import { F, defineMessages, useEditor, useMsg, useValue } from 'tldraw'
+import { defineMessages, F, useEditor, useTranslation, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useEditorDeepLink } from '../../../hooks/useDeepLink'
@@ -91,6 +91,7 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: stri
 }
 
 function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
+	const msg = useTranslation()
 	const app = useApp()
 	const user = useTldrawCurrentUser()
 	const trackEvent = useTldrawAppUiEvents()
@@ -112,7 +113,7 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
 		[app, fileId, trackEvent]
 	)
 
-	const label = useMsg(sharedLinkType === 'edit' ? messages.editor : messages.viewer)
+	const label = msg((sharedLinkType === 'edit' ? messages.editor : messages.viewer).id)
 
 	return (
 		<TlaMenuControl>

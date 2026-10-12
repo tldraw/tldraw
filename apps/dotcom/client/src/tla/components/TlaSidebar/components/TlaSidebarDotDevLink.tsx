@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { TldrawUiIcon, defineMessages, useMsg } from 'tldraw'
+import { defineMessages, TldrawUiIcon, useTranslation } from 'tldraw'
 import { ExternalLink } from '../../ExternalLink/ExternalLink'
 import styles from '../sidebar.module.css'
 
@@ -8,7 +8,8 @@ const messages = defineMessages({
 })
 
 export function TlaSidebarDotDevLink() {
-	const lbl = useMsg(messages.buildWithTldraw)
+	const msg = useTranslation()
+	const lbl = msg(messages.buildWithTldraw.id)
 	return (
 		<ExternalLink
 			className={classNames(styles.sidebarLinkButton, styles.hoverable, 'tla-text_ui__regular')}

@@ -56,7 +56,6 @@ export {
 	F,
 	PSEUDO_LOCALES,
 	isPseudoLocale,
-	useMsg,
 	useTldrawI18n,
 	type TLUiMessageProps,
 	type TLUiMessageValues,

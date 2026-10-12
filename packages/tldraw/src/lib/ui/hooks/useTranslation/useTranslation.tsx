@@ -128,7 +128,7 @@ export function TldrawUiTranslationProvider({
 
 	return (
 		<TranslationsContext.Provider value={currentTranslation}>
-			{/* One IntlShape behind both APIs: `msg()` by key and `<F>`/`useMsg()` by descriptor
+			{/* One IntlShape behind both APIs: `msg()` by key and `<F>` by descriptor
 			    read the same merged catalog, so an app's `overrides.translations` reaches both.
 
 			    The locale is the requested one, not the loaded one. They differ for a pseudo-locale,
@@ -230,7 +230,7 @@ export function useTranslation() {
 			// nullish passthrough this has always had rather than substituting an empty string.
 			if (!id) return id as string
 			// A bare key carries no default message, by design: this is the path for labels that
-			// arrive as data and for an app's own keys. Co-located messages use `F`/`useMsg`.
+			// arrive as data and for an app's own keys. A message rendered as text uses `F`.
 			// eslint-disable-next-line tldraw/enforce-default-message
 			return intl.formatMessage({ id }, values)
 		},

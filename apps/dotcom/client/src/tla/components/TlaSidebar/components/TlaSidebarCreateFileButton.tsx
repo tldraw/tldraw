@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { TldrawUiButton, tltime, useMsg } from 'tldraw'
+import { TldrawUiButton, tltime, useTranslation } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
@@ -45,7 +45,8 @@ export function useHandleSidebarCreateFile() {
 }
 
 export function TlaSidebarCreateFileButton() {
-	const createTitle = useMsg(messages.create)
+	const msg = useTranslation()
+	const createTitle = msg(messages.create.id)
 	const handleSidebarCreate = useHandleSidebarCreateFile()
 
 	return (

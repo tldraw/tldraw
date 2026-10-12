@@ -3,14 +3,15 @@ import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	defineMessages,
 	uniqueId,
 	useContainer,
 	useDialogs,
 	useGlobalMenuIsOpen,
 	useMaybeEditor,
+	useTranslation,
 	useValue,
 } from 'tldraw'
-import { defineMessages, useMsg } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
@@ -34,11 +35,12 @@ const messages = defineMessages({
  * it active (the active workspace is derived from the open file).
  */
 export function TlaSidebarWorkspaceSwitcher() {
+	const msg = useTranslation()
 	const app = useApp()
 	const homeWorkspaceId = app.getHomeWorkspaceId()
 	const activeWorkspaceId = useActiveWorkspaceId()
 	const isHome = activeWorkspaceId === homeWorkspaceId
-	const myWorkspaceLbl = useMsg(messages.myWorkspace)
+	const myWorkspaceLbl = msg(messages.myWorkspace.id)
 
 	const workspaces = useValue(
 		'workspaceMemberships',
@@ -82,7 +84,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 	)
 	const switchToWorkspace = useSwitchToWorkspace()
 	const handleCreateWorkspace = useCreateWorkspaceDialog()
-	const createWorkspaceLbl = useMsg(messages.createWorkspace)
+	const createWorkspaceLbl = msg(messages.createWorkspace.id)
 	const container = useContainer()
 
 	return (

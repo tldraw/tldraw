@@ -137,7 +137,6 @@ import { TLHandleDragInfo } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
 import { TLHighlightShapeProps } from '@tldraw/editor';
 import { TLI18nAdapter } from '@tldraw/editor';
-import { TLI18nMessage } from '@tldraw/editor';
 import { TLI18nMessageInput } from '@tldraw/editor';
 import { TLImageAsset } from '@tldraw/editor';
 import { TLImageExportOptions } from '@tldraw/editor';
@@ -6585,9 +6584,6 @@ export function useMenuClipboardEvents(): {
 
 // @public (undocumented)
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void): readonly [boolean, (isOpen: boolean) => void];
-
-// @public
-export function useMsg(message: TLI18nMessage, values?: TLUiTranslationValues): string;
 
 // @public (undocumented)
 export function useNativeClipboardEvents(): void;

@@ -5,16 +5,17 @@ import { KeyboardEvent, MouseEvent, ReactNode, useEffect, useRef } from 'react'
 import { useIntl } from 'react-intl'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
-	TldrawUiMenuContextProvider,
-	TldrawUiTooltip,
+	defineMessages,
+	F,
 	isEqual,
 	preventDefault,
+	TldrawUiMenuContextProvider,
+	TldrawUiTooltip,
 	useContainer,
 	useMaybeEditor,
 	useMenuIsOpen,
 	useValue,
 } from 'tldraw'
-import { F, defineMessages } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'

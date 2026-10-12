@@ -1,11 +1,12 @@
 import {
+	defineMessages,
 	TldrawUiButton,
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 	useMenuIsOpen,
+	useTranslation,
 } from 'tldraw'
-import { defineMessages, useMsg } from 'tldraw'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
@@ -28,11 +29,12 @@ const messages = defineMessages({
 
 /** Opens the notifications popover (comments across the user's files), with an unread badge. */
 export function TlaSidebarNotificationsButton() {
+	const msg = useTranslation()
 	const { unreadCount } = useCommentNotifications()
 	// Same id as the popover, so we can dismiss it when a notification is opened.
 	const [, onOpenChange] = useMenuIsOpen(NOTIFICATIONS_MENU_ID)
-	const label = useMsg(messages.notifications)
-	const unreadLabel = useMsg(messages.unreadNotifications, { count: unreadCount })
+	const label = msg(messages.notifications.id)
+	const unreadLabel = msg(messages.unreadNotifications.id, { count: unreadCount })
 
 	return (
 		<TldrawUiPopover id={NOTIFICATIONS_MENU_ID}>

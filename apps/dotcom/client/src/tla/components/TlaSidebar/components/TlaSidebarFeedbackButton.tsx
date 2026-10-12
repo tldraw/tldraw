@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { defineMessages, useDialogs, useMsg } from 'tldraw'
+import { defineMessages, useDialogs, useTranslation } from 'tldraw'
 import { SubmitFeedbackDialog } from '../../dialogs/SubmitFeedbackDialog'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
@@ -9,8 +9,9 @@ const messages = defineMessages({
 })
 
 export function TlaSidebarFeedbackButton() {
+	const msg = useTranslation()
 	const { addDialog } = useDialogs()
-	const lbl = useMsg(messages.submitFeedback)
+	const lbl = msg(messages.submitFeedback.id)
 	return (
 		<button
 			className={classNames(styles.sidebarLinkButton, styles.hoverable, 'tla-text_ui__regular')}

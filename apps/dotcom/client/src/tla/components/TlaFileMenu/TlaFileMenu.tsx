@@ -4,6 +4,8 @@ import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	defineMessages,
+	getIncrementedName,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -12,14 +14,13 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
-	getIncrementedName,
 	uniqueId,
 	useDialogs,
 	useMaybeEditor,
 	useToasts,
+	useTranslation,
 	useValue,
 } from 'tldraw'
-import { defineMessages, useMsg } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
@@ -111,13 +112,14 @@ export function FileItems({
 	onRenameAction(): void
 	workspaceId: string | null
 }) {
+	const msg = useTranslation()
 	const app = useApp()
 	const editor = useMaybeEditor()
 	const { addDialog } = useDialogs()
 	const navigate = useNavigate()
 	const { addToast } = useToasts()
 	const trackEvent = useTldrawAppUiEvents()
-	const copiedMsg = useMsg(messages.copied)
+	const copiedMsg = msg(messages.copied.id)
 	const hasAdminRights = useHasFileAdminRights(fileId)
 	const isPinned = useIsFilePinned(fileId, workspaceId ?? '')
 	const activeWorkspaceId = useActiveWorkspaceId()
@@ -212,14 +214,14 @@ export function FileItems({
 		downloadAppFile(fileId)
 	}, [fileId, source, trackEvent])
 
-	const copyLinkMsg = useMsg(messages.copyLink)
-	const renameMsg = useMsg(messages.rename)
-	const duplicateMsg = useMsg(messages.duplicate)
-	const pinMsg = useMsg(messages.pin)
-	const unpinMsg = useMsg(messages.unpin)
-	const deleteOrForgetMsg = useMsg(hasAdminRights ? messages.delete : messages.forget)
-	const downloadFile = useMsg(editorMessages.downloadFile)
-	const myWorkspaceMsg = useMsg(messages.myWorkspace)
+	const copyLinkMsg = msg(messages.copyLink.id)
+	const renameMsg = msg(messages.rename.id)
+	const duplicateMsg = msg(messages.duplicate.id)
+	const pinMsg = msg(messages.pin.id)
+	const unpinMsg = msg(messages.unpin.id)
+	const deleteOrForgetMsg = msg((hasAdminRights ? messages.delete : messages.forget).id)
+	const downloadFile = msg(editorMessages.downloadFile.id)
+	const myWorkspaceMsg = msg(messages.myWorkspace.id)
 
 	return (
 		<Fragment>

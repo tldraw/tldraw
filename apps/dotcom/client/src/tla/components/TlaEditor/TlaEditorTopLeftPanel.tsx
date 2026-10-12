@@ -7,6 +7,7 @@ import {
 	AccessibilityMenu,
 	ColorSchemeMenu,
 	DefaultPageMenu,
+	defineMessages,
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
@@ -14,17 +15,8 @@ import {
 	KeyboardShortcutsMenuItem,
 	LanguageMenu,
 	PreferencesGroup,
-	ToggleDebugModeItem,
-	ToggleDynamicSizeModeItem,
-	ToggleEdgeScrollingItem,
-	ToggleFocusModeItem,
-	ToggleGridItem,
-	TogglePasteAtCursorItem,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
-	ToggleSnapModeItem,
-	ToggleToolLockItem,
-	ToggleWrapModeItem,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -33,15 +25,24 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuSubmenu,
-	ZoomTo100MenuItem,
-	ZoomToFitMenuItem,
-	ZoomToSelectionMenuItem,
+	ToggleDebugModeItem,
+	ToggleDynamicSizeModeItem,
+	ToggleEdgeScrollingItem,
+	ToggleFocusModeItem,
+	ToggleGridItem,
+	TogglePasteAtCursorItem,
+	ToggleSnapModeItem,
+	ToggleToolLockItem,
+	ToggleWrapModeItem,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
+	useTranslation,
 	useValue,
+	ZoomTo100MenuItem,
+	ZoomToFitMenuItem,
+	ZoomToSelectionMenuItem,
 } from 'tldraw'
-import { defineMessages, useMsg } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
@@ -112,7 +113,8 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 }
 
 function TlaEditorTopLeftPanelAnonymous() {
-	const pageMenuLbl = useMsg(messages.pageMenu)
+	const msg = useTranslation()
+	const pageMenuLbl = msg(messages.pageMenu.id)
 	// GOTCHA: 'anonymous' doesn't always mean logged out
 	// we show this version of the panel for published files as well.
 	const app = useMaybeApp()
@@ -207,11 +209,12 @@ function TlaEditorTopLeftPanelAnonymous() {
 }
 
 function TlaEditorTopLeftPanelSignedIn() {
+	const msg = useTranslation()
 	const editor = useEditor()
 	const intl = useIntl()
 	const [isRenaming, setIsRenaming] = useState(false)
-	const pageMenuLbl = useMsg(messages.pageMenu)
-	const fileSubmenuMsg = useMsg(editorMessages.file)
+	const pageMenuLbl = msg(messages.pageMenu.id)
+	const fileSubmenuMsg = msg(editorMessages.file.id)
 
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
@@ -450,7 +453,8 @@ function TlaFileNameEditorInput({
 }
 
 function SignInMenuItem() {
-	const msg = useMsg(messages.signIn)
+	const msg = useTranslation()
+	const signInLbl = msg(messages.signIn.id)
 	const { addDialog } = useDialogs()
 
 	return (
@@ -461,7 +465,7 @@ function SignInMenuItem() {
 				addDialog({ component: TlaSignInDialog })
 			}}
 		>
-			<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
+			<TldrawUiButtonLabel>{signInLbl}</TldrawUiButtonLabel>
 			<TlaIcon icon="sign-in" />
 		</TldrawUiButton>
 	)

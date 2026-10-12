@@ -3,6 +3,8 @@ import { Tooltip as _Tooltip } from 'radix-ui'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	defineMessages,
+	F,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
@@ -10,9 +12,9 @@ import {
 	TldrawUiInput,
 	TldrawUiTooltip,
 	useDialogs,
+	useTranslation,
 	useValue,
 } from 'tldraw'
-import { F, defineMessages, useMsg } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -72,6 +74,7 @@ function useScrollbarWhenScrollable() {
 }
 
 export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSettingsDialogProps) {
+	const msg = useTranslation()
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
@@ -80,10 +83,10 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 
 	const scrollableRef = useScrollbarWhenScrollable()
 
-	const namePlaceholderMsg = useMsg(messages.namePlaceholder)
-	const ownerMsg = useMsg(messages.owner)
-	const memberMsg = useMsg(messages.member)
-	const youMsg = useMsg(messages.you)
+	const namePlaceholderMsg = msg(messages.namePlaceholder.id)
+	const ownerMsg = msg(messages.owner.id)
+	const memberMsg = msg(messages.member.id)
+	const youMsg = msg(messages.you.id)
 
 	const workspaceMembership = useValue(
 		'workspaceMembership',

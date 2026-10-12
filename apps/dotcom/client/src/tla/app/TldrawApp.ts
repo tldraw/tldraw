@@ -49,6 +49,7 @@ import {
 	createTLSchema,
 	dataUrlToFile,
 	defaultUserPreferences,
+	defineMessages,
 	getUserPreferences,
 	parseTldrawJsonFile,
 	react,
@@ -62,7 +63,6 @@ import {
 	transact,
 	translateMessage,
 } from 'tldraw'
-import { defineMessages } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
 import { ZERO_SERVER } from '../../utils/config'

@@ -3,13 +3,14 @@ import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import {
+	defineMessages,
 	deleteFromSessionStorage,
 	fetch,
 	getFromSessionStorage,
 	useDialogs,
 	useToasts,
+	useTranslation,
 } from 'tldraw'
-import { defineMessages, useMsg } from 'tldraw'
 import { useMaybeApp } from '../hooks/useAppState'
 import { hasNotAcceptedLegal } from '../utils/auth'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
@@ -35,12 +36,13 @@ export const WORKSPACE_INVITE_QUERY_PARAM = 'invite'
 type ValidInviteInfo = Extract<GetInviteInfoResponseBody, { error: false }>
 
 export function WorkspaceInviteHandler() {
+	const msg = useTranslation()
 	const auth = useAuth()
 	const dialogs = useDialogs()
 	const { addToast } = useToasts()
 	const app = useMaybeApp()
-	const alreadyMemberMsg = useMsg(workspaceInviteMessages.alreadyMember)
-	const errorMsg = useMsg(workspaceInviteMessages.error)
+	const alreadyMemberMsg = msg(workspaceInviteMessages.alreadyMember.id)
+	const errorMsg = msg(workspaceInviteMessages.error.id)
 	const location = useLocation()
 	const [searchParams, setSearchParams] = useSearchParams()
 

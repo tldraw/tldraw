@@ -93,7 +93,7 @@ export type TLI18nMessageInput = Omit<TLI18nMessage, 'id'> & { id?: string }
  *
  * For a message rendered as an element, write it inline on the `<F>` instead; the extractor reads
  * those props directly. This is for the ones that can't be: a label the UI takes as data, and
- * anything going through `useMsg`.
+ * anything translated as a string through `useTranslation`.
  *
  * @example
  *

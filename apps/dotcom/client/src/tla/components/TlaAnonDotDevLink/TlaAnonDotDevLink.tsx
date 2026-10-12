@@ -1,14 +1,16 @@
 import { useAuth } from '@clerk/clerk-react'
 import {
+	defineMessages,
+	F,
 	PORTRAIT_BREAKPOINT,
 	TldrawUiButton,
 	TldrawUiIcon,
 	useBreakpoint,
 	useEditor,
 	useLocalStorageState,
+	useTranslation,
 	useValue,
 } from 'tldraw'
-import { F, defineMessages, useMsg } from 'tldraw'
 import { trackEvent } from '../../../utils/analytics'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import styles from './TlaAnonDotDevLink.module.css'
@@ -20,9 +22,10 @@ const messages = defineMessages({
 const STORAGE_KEY = 'tldraw-dotcom:anon-dotdev-link:dismissed'
 
 export function TlaAnonDotDevLink() {
+	const msg = useTranslation()
 	const { isSignedIn, isLoaded } = useAuth()
 	const [isDismissed, setIsDismissed] = useLocalStorageState(STORAGE_KEY, false)
-	const dismissLbl = useMsg(messages.dismiss)
+	const dismissLbl = msg(messages.dismiss.id)
 	const editor = useEditor()
 	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
 	const breakpoint = useBreakpoint()

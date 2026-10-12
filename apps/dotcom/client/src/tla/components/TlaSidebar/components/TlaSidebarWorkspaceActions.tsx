@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { ReactNode, useCallback } from 'react'
-import { defineMessages, useDialogs, useMsg } from 'tldraw'
+import { defineMessages, useDialogs, useTranslation } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { WorkspaceSettingsDialog } from '../../dialogs/WorkspaceSettingsDialog'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
@@ -20,11 +20,12 @@ const messages = defineMessages({
  * see WorkspaceSettingsDialog.)
  */
 export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: string }) {
+	const msg = useTranslation()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
 	const handleCreateFile = useHandleSidebarCreateFile()
-	const newBoardLbl = useMsg(messages.newFile)
-	const settingsLbl = useMsg(messages.workspaceSettings)
+	const newBoardLbl = msg(messages.newFile.id)
+	const settingsLbl = msg(messages.workspaceSettings.id)
 
 	const handleSettings = useCallback(() => {
 		addDialog({

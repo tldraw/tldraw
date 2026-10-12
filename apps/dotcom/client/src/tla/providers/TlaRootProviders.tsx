@@ -9,6 +9,7 @@ import {
 	DefaultA11yAnnouncer,
 	DefaultDialogs,
 	DefaultToasts,
+	defineMessages,
 	EditorContext,
 	fetch,
 	react,
@@ -24,7 +25,6 @@ import {
 	useToasts,
 	useValue,
 } from 'tldraw'
-import { defineMessages } from 'tldraw'
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/ErrorPage'
 import { TlaRouteHandle } from '../../routeDefs'

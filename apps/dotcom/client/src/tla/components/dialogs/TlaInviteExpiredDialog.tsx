@@ -1,10 +1,10 @@
 import {
+	F,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
-import { F } from 'tldraw'
 import { sadFaceIcon } from '../../../components/ErrorPage/ErrorPage'
 import { TlaButton } from '../TlaButton/TlaButton'
 import styles from './TlaInviteExpiredDialog.module.css'

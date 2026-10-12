@@ -7,7 +7,7 @@ import { defaultUiAssetUrls } from '../assetUrls'
 import { DEFAULT_TRANSLATION } from '../hooks/useTranslation/defaultTranslation'
 import { TldrawUiTranslationProvider, useTranslation } from '../hooks/useTranslation/useTranslation'
 import { AssetUrlsProvider } from './asset-urls'
-import { F, isPseudoLocale, useMsg, useTldrawI18n } from './i18n'
+import { F, isPseudoLocale, useTldrawI18n } from './i18n'
 
 vi.unmock('./useTranslation')
 vi.unmock('../hooks/useTranslation/useTranslation')
@@ -32,34 +32,22 @@ function withProvider(overrides?: Record<string, Record<string, string>>, locale
 	)
 }
 
-describe('useMsg', () => {
-	it('resolves a descriptor against the catalog', () => {
-		const { result } = renderHook(() => useMsg(messages.copy), { wrapper: withProvider() })
+// `defineMessages` is where the English lives; the id it carries is what the UI translates. The
+// key-based lookups themselves are covered in useTranslation.test.tsx.
+describe('a declared message through msg()', () => {
+	it('resolves its id against the catalog', () => {
+		const { result } = renderHook(() => useTranslation()(messages.copy.id), {
+			wrapper: withProvider(),
+		})
 		expect(result.current).toBe(DEFAULT_TRANSLATION['action.copy'])
 	})
 
-	it('pluralises through ICU', () => {
-		const { result } = renderHook(() => useMsg(messages.replies, { count: 3 }), {
-			wrapper: withProvider(),
-		})
-		expect(result.current).toBe('3 replies')
-	})
-
-	// The whole point of one IntlShape: an app overrides a key once and both APIs pick it up.
+	// One IntlShape behind the catalogue and the overrides, so an app overrides a key once and a
+	// message declared against that key picks it up.
 	it('picks up overrides.translations', () => {
 		const wrapper = withProvider({ en: { 'action.copy': 'Duplicate it' } })
-		const { result } = renderHook(() => useMsg(messages.copy), { wrapper })
+		const { result } = renderHook(() => useTranslation()(messages.copy.id), { wrapper })
 		expect(result.current).toBe('Duplicate it')
-	})
-
-	it('agrees with msg() for the same key', () => {
-		const wrapper = withProvider({ en: { 'action.copy': 'Snap' } })
-		const { result } = renderHook(
-			() => ({ viaKey: useTranslation()('action.copy'), viaDescriptor: useMsg(messages.copy) }),
-			{ wrapper }
-		)
-		expect(result.current.viaKey).toBe(result.current.viaDescriptor)
-		expect(result.current.viaKey).toBe('Snap')
 	})
 })
 

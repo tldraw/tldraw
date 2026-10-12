@@ -95,8 +95,6 @@ function extractSdk(mode: Mode): boolean {
 		...SDK_PACKAGES.map((p) => `packages/${p}/src/**/*.{ts,tsx}`),
 		'--out-file',
 		outFile,
-		'--additional-function-names',
-		'useMsg',
 		'--additional-component-names',
 		'F',
 		'--ignore',

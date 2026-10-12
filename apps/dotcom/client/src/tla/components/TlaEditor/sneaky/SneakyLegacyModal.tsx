@@ -3,6 +3,7 @@ import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
+	F,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
@@ -12,7 +13,6 @@ import {
 	TldrawUiDialogTitle,
 	useDialogs,
 } from 'tldraw'
-import { F } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { trackEvent } from '../../../../utils/analytics'
 import { useMaybeApp } from '../../../hooks/useAppState'

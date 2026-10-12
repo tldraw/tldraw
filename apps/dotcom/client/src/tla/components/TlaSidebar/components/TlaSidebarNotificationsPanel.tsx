@@ -13,6 +13,8 @@ import { useIntl } from 'react-intl'
 import { Link } from 'react-router-dom'
 import {
 	createDeepLinkString,
+	defineMessages,
+	F,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -23,9 +25,9 @@ import {
 	TldrawUiMenuItem,
 	TldrawUiTooltip,
 	TLRichText,
+	useTranslation,
 	useValue,
 } from 'tldraw'
-import { F, defineMessages, useMsg } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
@@ -135,10 +137,11 @@ function NotificationsOverflowMenu({
 	onMarkAllRead(): void
 	hasUnread: boolean
 }) {
-	const moreLbl = useMsg(messages.moreOptions)
-	const allLbl = useMsg(messages.filterAll)
-	const unreadLbl = useMsg(messages.filterUnread)
-	const markAllReadLbl = useMsg(messages.markAllRead)
+	const msg = useTranslation()
+	const moreLbl = msg(messages.moreOptions.id)
+	const allLbl = msg(messages.filterAll.id)
+	const unreadLbl = msg(messages.filterUnread.id)
+	const markAllReadLbl = msg(messages.markAllRead.id)
 
 	return (
 		<TldrawUiDropdownMenuRoot id="notifications-overflow">
@@ -214,13 +217,14 @@ function commentLink(fileId: string, shapeId: string | null | undefined, comment
  * you're being notified), the comment preview and any reaction pills beneath, and an unread dot.
  */
 export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
+	const msg = useTranslation()
 	const app = useMaybeApp()
 	const { notifications, unreadCount } = useCommentNotifications()
 	const [filter, setFilter] = useState<NotificationFilter>('all')
-	const title = useMsg(messages.title)
-	const closeLbl = useMsg(messages.close)
-	const empty = useMsg(messages.empty)
-	const unknownAuthor = useMsg(messages.unknownAuthor)
+	const title = msg(messages.title.id)
+	const closeLbl = msg(messages.close.id)
+	const empty = msg(messages.empty.id)
+	const unknownAuthor = msg(messages.unknownAuthor.id)
 	const { locale } = useIntl()
 
 	const visible = filter === 'unread' ? notifications.filter((n) => n.unread) : notifications

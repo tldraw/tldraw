@@ -7,7 +7,7 @@ import {
 } from '@tldraw/commenting'
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { defineMessages, useEditor, useMsg, useToasts } from 'tldraw'
+import { defineMessages, useEditor, useToasts, useTranslation } from 'tldraw'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { useIsReady } from '../../../hooks/useIsReady'
 
@@ -23,6 +23,7 @@ const messages = defineMessages({
  * re-open the thread.
  */
 export function SneakyCommentDeepLink() {
+	const msg = useTranslation()
 	const editor = useEditor()
 	const app = useMaybeApp()
 	const isReady = useIsReady()
@@ -30,7 +31,7 @@ export function SneakyCommentDeepLink() {
 	const { addToast } = useToasts()
 	const [searchParams, setSearchParams] = useSearchParams()
 	const commentId = searchParams.get('comment')
-	const deletedMsg = useMsg(messages.commentDeleted)
+	const deletedMsg = msg(messages.commentDeleted.id)
 
 	useEffect(() => {
 		if (!commentId) return

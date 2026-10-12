@@ -109,22 +109,22 @@ function CopyButton() {
 }
 ```
 
-Use [useMsg](?) where a string is needed instead — an `aria-label`, a `title`, a `placeholder`, or any module with no JSX:
+Where a string is needed instead — an `aria-label`, a `title`, a `placeholder` — translate the declared message's `id` through [useTranslation](?):
 
 ```tsx
-import { defineMessages, useMsg } from 'tldraw'
+import { defineMessages, useTranslation } from 'tldraw'
 
 const messages = defineMessages({
 	close: { id: 'ui.close', defaultMessage: 'Close' },
 })
 
 function CloseButton() {
-	const label = useMsg(messages.close)
-	return <button aria-label={label} />
+	const msg = useTranslation()
+	return <button aria-label={msg(messages.close.id)} />
 }
 ```
 
-Both resolve against the same translations as `msg`, so an override reaches all three.
+Both resolve against the same translations, so an override reaches each of them.
 
 Use [useCurrentTranslation](?) for the full translation object, including locale and text direction:
 

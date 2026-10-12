@@ -2,17 +2,19 @@ import classNames from 'classnames'
 import { useEffect, useRef, useState } from 'react'
 import {
 	Box,
+	compact,
+	debounce,
+	defineMessages,
 	Editor,
+	exportAs,
+	F,
 	FileHelpers,
 	TLExportType,
 	TLShape,
-	compact,
-	debounce,
-	exportAs,
 	useReactor,
+	useTranslation,
 	useValue,
 } from 'tldraw'
-import { F, defineMessages, useMsg } from 'tldraw'
 import { globalEditor } from '../../../../utils/globalEditor'
 import { TldrawApp } from '../../../app/TldrawApp'
 import { useMaybeApp } from '../../../hooks/useAppState'
@@ -171,7 +173,8 @@ function ExportThemeSelect({
 	value: TldrawAppSessionState['exportSettings']['exportTheme']
 	onChange(key: 'exportTheme', value: TldrawAppSessionState['exportSettings']['exportTheme']): void
 }) {
-	const label = useMsg(messages[value as 'auto' | 'light' | 'dark'])
+	const msg = useTranslation()
+	const label = msg(messages[value as 'auto' | 'light' | 'dark'].id)
 	const trackEvent = useTldrawAppUiEvents()
 	const handleChange = (value: TldrawAppSessionState['exportSettings']['exportTheme']) => {
 		onChange('exportTheme', value)

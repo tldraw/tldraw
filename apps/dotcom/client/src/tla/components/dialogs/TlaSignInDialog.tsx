@@ -13,13 +13,15 @@ import {
 	type FormEvent,
 } from 'react'
 import {
+	defineMessages,
 	exhaustiveSwitchError,
+	F,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
+	useTranslation,
 } from 'tldraw'
-import { F, defineMessages, useMsg } from 'tldraw'
 import { setRedirectOnSignIn } from '../../utils/redirect'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
@@ -111,10 +113,11 @@ function TlaEnterEmailStep({
 	inviteInfo?: Extract<GetInviteInfoResponseBody, { error: false }>
 	skipRedirect?: boolean
 }) {
+	const msg = useTranslation()
 	const { signIn, isLoaded: isSignInLoaded } = useSignIn()
 	const { setActive, client } = useClerk()
 
-	const enterEmailAddressMsg = useMsg(messages.enterEmailAddress)
+	const enterEmailAddressMsg = msg(messages.enterEmailAddress.id)
 
 	const [state, setState] = useState<{
 		identifier: string
