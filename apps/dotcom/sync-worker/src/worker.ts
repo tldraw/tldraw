@@ -61,7 +61,13 @@ import {
 } from './routes/tla/mcpServerCard'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
-import { scrapeMeasureSpikePage, scrapeMeasureSpikeRun } from './routes/tla/scrapeMeasureSpike'
+import {
+	scrapeMeasureSpikeImagesPage,
+	scrapeMeasureSpikePage,
+	scrapeMeasureSpikePixel,
+	scrapeMeasureSpikeRun,
+	scrapeMeasureSpikeRunImages,
+} from './routes/tla/scrapeMeasureSpike'
 import { upload } from './routes/tla/uploads'
 import { verifyVersionChainRoute } from './routes/verifyVersionChain'
 import { testRoutes } from './testRoutes'
@@ -227,6 +233,9 @@ const router = createRouter<Environment>()
 	.post('/app/thumbnail-render/result', putThumbnailRenderResult)
 	.get('/app/__scrape-spike/page', scrapeMeasureSpikePage)
 	.get('/app/__scrape-spike/run', scrapeMeasureSpikeRun)
+	.get('/app/__scrape-spike/pixel.png', scrapeMeasureSpikePixel)
+	.get('/app/__scrape-spike/images-page', scrapeMeasureSpikeImagesPage)
+	.get('/app/__scrape-spike/run-images', scrapeMeasureSpikeRunImages)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)

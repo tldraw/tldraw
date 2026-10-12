@@ -136,3 +136,143 @@ export async function scrapeMeasureSpikeRun(request: IRequest, env: Environment)
 	}
 	return Response.json(report)
 }
+
+// Second spike: does a page sent as `html` (no URL, so a private worker could serve it) load the
+// board's image assets? `fetch` and `sendBeacon` are known to be dropped in html mode; `<img>`,
+// CSS backgrounds and `@font-face` are not yet tested.
+//
+// GET /api/app/__scrape-spike/run-images?mode=html|url[&img=<extra absolute url>...]
+//   mode=url sends the same page by URL, as the control.
+
+const PIXEL_PNG_BASE64 =
+	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=='
+
+export async function scrapeMeasureSpikePixel(_request: IRequest, env: Environment) {
+	if (!isDebugLogging(env)) return new Response('Not Found', { status: 404 })
+	const bytes = Uint8Array.from(atob(PIXEL_PNG_BASE64), (c) => c.charCodeAt(0))
+	return new Response(bytes, {
+		headers: { 'content-type': 'image/png', 'cache-control': 'no-store' },
+	})
+}
+
+function imagesPage(probes: { name: string; url: string }[], fontUrl: string, fetchUrl: string) {
+	return `<!doctype html><html><head><style>
+@font-face { font-family: SpikeFont; src: url(${JSON.stringify(fontUrl)}) format('woff2'); }
+#bg { width: 4px; height: 4px; }
+</style></head><body><div id="bg"></div><script>
+(async function () {
+	const probes = ${JSON.stringify(probes)}
+	const withTimeout = (promise, ms) =>
+		Promise.race([promise, new Promise((resolve) => setTimeout(() => resolve('timeout'), ms))])
+	const results = { origin: location.origin, href: location.href.slice(0, 80) }
+	results.images = await Promise.all(
+		probes.map(({ name, url }) =>
+			withTimeout(
+				new Promise((resolve) => {
+					const img = new Image()
+					img.onload = () => resolve({ name, outcome: 'load', width: img.naturalWidth })
+					img.onerror = () => resolve({ name, outcome: 'error' })
+					img.src = url
+					document.body.appendChild(img)
+				}),
+				8000
+			).then((r) => (r === 'timeout' ? { name, outcome: 'timeout' } : r))
+		)
+	)
+	// The SDK exports images by fetching them into data URLs, so fetch matters as much as <img>.
+	results.fetch = await withTimeout(
+		fetch(${JSON.stringify(fetchUrl)}).then(
+			(r) => 'status ' + r.status,
+			(e) => 'error ' + e
+		),
+		8000
+	)
+	results.font = await withTimeout(
+		document.fonts.load('16px SpikeFont').then(
+			(faces) => 'faces ' + faces.length,
+			(e) => 'error ' + e
+		),
+		8000
+	)
+	const bg = document.getElementById('bg')
+	bg.style.backgroundImage = 'url(' + JSON.stringify(probes[0].url) + ')'
+	results.cssBackground = getComputedStyle(bg).backgroundImage.slice(0, 60)
+	document.body.replaceChildren()
+	const pre = document.createElement('pre')
+	pre.id = 'result'
+	pre.textContent = JSON.stringify(results)
+	document.body.appendChild(pre)
+	document.body.dataset.thumbnailReady = 'true'
+})()
+</script></body></html>`
+}
+
+function imageProbesFor(url: URL) {
+	const origin = url.origin
+	return {
+		probes: [
+			{ name: 'data-uri', url: `data:image/png;base64,${PIXEL_PNG_BASE64}` },
+			{ name: 'worker-origin', url: `${origin}/api/app/__scrape-spike/pixel.png?n=${Date.now()}` },
+			{
+				name: 'app-static',
+				url: `https://pr-11096-preview-deploy.tldraw.com/social-og.png?n=${Date.now()}`,
+			},
+			{ name: 'third-party', url: `https://www.google.com/favicon.ico?n=${Date.now()}` },
+			...url.searchParams.getAll('img').map((extra, i) => ({ name: `extra-${i}`, url: extra })),
+		],
+		fontUrl: 'https://pr-11096-preview-deploy.tldraw.com/Shantell_Sans-Tldrawish.woff2',
+		fetchUrl: `${origin}/api/app/__scrape-spike/pixel.png?fetch=${Date.now()}`,
+	}
+}
+
+export async function scrapeMeasureSpikeImagesPage(request: IRequest, env: Environment) {
+	if (!isDebugLogging(env)) return new Response('Not Found', { status: 404 })
+	const { probes, fontUrl, fetchUrl } = imageProbesFor(new URL(request.url))
+	return new Response(imagesPage(probes, fontUrl, fetchUrl), {
+		headers: { 'content-type': 'text/html; charset=utf-8' },
+	})
+}
+
+export async function scrapeMeasureSpikeRunImages(request: IRequest, env: Environment) {
+	if (!isDebugLogging(env)) return new Response('Not Found', { status: 404 })
+	if (!env.BROWSER)
+		return Response.json({ error: 'BROWSER binding not configured' }, { status: 500 })
+
+	const url = new URL(request.url)
+	const mode = url.searchParams.get('mode') === 'url' ? 'url' : 'html'
+	const { probes, fontUrl, fetchUrl } = imageProbesFor(url)
+	const pageUrl = new URL('/api/app/__scrape-spike/images-page', url.origin)
+	for (const extra of url.searchParams.getAll('img')) pageUrl.searchParams.append('img', extra)
+	const body = {
+		...(mode === 'html'
+			? { html: imagesPage(probes, fontUrl, fetchUrl) }
+			: { url: pageUrl.toString() }),
+		gotoOptions: { waitUntil: 'domcontentloaded', timeout: 30_000 },
+		waitForSelector: { selector: '[data-thumbnail-ready="true"]', timeout: 30_000 },
+	}
+
+	const startedAt = Date.now()
+	let response: Response
+	try {
+		response = await env.BROWSER.quickAction('content', body)
+	} catch (error) {
+		return Response.json({ mode, threw: String(error), ms: Date.now() - startedAt })
+	}
+	const raw = await response.text()
+	const report: Record<string, unknown> = {
+		mode,
+		status: response.status,
+		ms: Date.now() - startedAt,
+		browserMs: response.headers.get('X-Browser-Ms-Used'),
+	}
+	try {
+		const html = String(JSON.parse(raw).result)
+		const match = html.match(/<pre id="result">([\s\S]*?)<\/pre>/)
+		const text = match?.[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&')
+		report.page = text ? JSON.parse(text) : { htmlHead: html.slice(0, 500) }
+	} catch (error) {
+		report.parseError = String(error)
+		report.rawHead = raw.slice(0, 500)
+	}
+	return Response.json(report)
+}
