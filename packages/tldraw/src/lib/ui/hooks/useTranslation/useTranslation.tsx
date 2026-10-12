@@ -110,9 +110,13 @@ export function TldrawUiTranslationProvider({
 	// one shadows an app's own `IntlProvider` for everything inside it — every tldraw.com dialog
 	// and share menu — leaving them on `defaultMessage`: English, and silently untranslated
 	// everywhere else. Ours wins a collision, since `overrides.translations` is the documented way
-	// to change an SDK string. The cast is because the type is a union of two uniform records and
-	// this one is mixed on purpose: `formatMessage` picks its parser per message, so the SDK's ICU
-	// strings and an app's precompiled AST can share a catalog.
+	// to change an SDK string.
+	//
+	// The cast is because the type is a union of two uniform records and this one is mixed on
+	// purpose: `formatMessage` dispatches per message, so the SDK's ICU strings and an app's
+	// precompiled AST can share a catalog. That holds only while the app keeps react-intl's ICU
+	// parser — an app that aliases it away, as tldraw.com used to, formats every string message
+	// with a placeholder to its own source.
 	const parentIntl = React.useContext(IntlContext)
 	const messages = React.useMemo(
 		() =>
