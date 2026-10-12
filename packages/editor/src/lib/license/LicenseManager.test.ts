@@ -6,9 +6,7 @@ import {
 	FLAGS,
 	getEnabledFeatures,
 	getLicenseState,
-	LicenseFromKeyResult,
 	LicenseManager,
-	LicenseState,
 	PROPERTIES,
 	ValidLicenseKeyResult,
 } from './LicenseManager'
@@ -602,11 +600,31 @@ describe('LicenseManager', () => {
 	})
 
 	describe('Canonical tldraw hosts', () => {
-		function setHost(url: string) {
+		let fetchSpy: ReturnType<typeof vi.fn>
+
+		beforeEach(() => {
+			process.env.NODE_ENV = 'production'
+			fetchSpy = vi.fn(() => Promise.resolve(new Response()))
+			vi.stubGlobal('fetch', fetchSpy)
+		})
+
+		afterEach(() => {
+			vi.unstubAllGlobals()
+			process.env.NODE_ENV = 'test'
+		})
+
+		// The shared licenseManager was built against jsdom's localhost default, so it's in dev mode.
+		// Build one on the host itself so these run the constructor path a real page on our domains
+		// takes: production dev detection, license state, feature flags and the tracking ping.
+		async function createManagerOnHost(url: string, licenseKey = '') {
 			// @ts-ignore
 			delete window.location
 			// @ts-ignore
 			window.location = new URL(url)
+
+			const manager = new LicenseManager(licenseKey, keyPair.publicKey)
+			await vi.waitFor(() => expect(manager.state.get()).not.toBe('pending'))
+			return manager
 		}
 
 		it('Licenses tldraw-owned hosts with a watermark when no key is provided', async () => {
@@ -622,11 +640,10 @@ describe('LicenseManager', () => {
 			]
 
 			for (const host of hosts) {
-				setHost(host)
+				const manager = await createManagerOnHost(host)
 
-				const result = await licenseManager.getLicenseFromKey('')
-
-				expect(result).toMatchObject({
+				expect(manager.isDevelopment).toBe(false)
+				expect(await manager.getLicenseFromKey('')).toMatchObject({
 					isLicenseParseable: true,
 					isDomainValid: true,
 					isLicensedWithWatermark: true,
@@ -636,11 +653,9 @@ describe('LicenseManager', () => {
 					isPerpetualLicenseExpired: false,
 					daysSinceExpiry: 0,
 				})
-				expect(getLicenseState(result, () => {}, false)).toBe('licensed-with-watermark')
-				expect(getEnabledFeatures(result, 'licensed-with-watermark', false)).toEqual({
-					collaboration: true,
-					commenting: true,
-				})
+				expect(manager.state.get()).toBe('licensed-with-watermark')
+				expect(manager.featureFlags.get()).toEqual({ collaboration: true, commenting: true })
+				manager.dispose()
 			}
 		})
 
@@ -654,41 +669,27 @@ describe('LicenseManager', () => {
 			]
 
 			for (const host of hosts) {
-				setHost(host)
+				const manager = await createManagerOnHost(host)
 
-				const result = await licenseManager.getLicenseFromKey('')
-
-				expect(result).toMatchObject({ isLicenseParseable: false, reason: 'no-key-provided' })
+				expect(await manager.getLicenseFromKey('')).toMatchObject({
+					isLicenseParseable: false,
+					reason: 'no-key-provided',
+				})
+				expect(manager.state.get()).toBe('unlicensed-production')
+				expect(manager.featureFlags.get()).toEqual({ collaboration: false, commenting: false })
+				manager.dispose()
 			}
 		})
 
-		// getTrackType reports nothing at all in development, and the shared manager was constructed
-		// against jsdom's http://localhost default. Pin it to production so these assertions are about
-		// the canonical-host grant rather than about dev detection.
-		function getTrackTypeInProduction(result: LicenseFromKeyResult, licenseState: LicenseState) {
-			const wasDevelopment = licenseManager.isDevelopment
-			licenseManager.isDevelopment = false
-			try {
-				// @ts-ignore accessing a private method
-				return licenseManager.getTrackType(result, licenseState)
-			} finally {
-				licenseManager.isDevelopment = wasDevelopment
-			}
-		}
-
 		it('Never sends a watermark tracking ping for our own domains', async () => {
-			setHost('https://makereal.tldraw.com')
+			const manager = await createManagerOnHost('https://makereal.tldraw.com')
 
-			const result = await licenseManager.getLicenseFromKey('')
-
-			// getTrackType is what maybeTrack consults before it fetches; null means no ping.
-			expect(getTrackTypeInProduction(result, 'licensed-with-watermark')).toBe(null)
-			expect(getTrackTypeInProduction(result, 'unlicensed-production')).toBe(null)
+			expect(manager.state.get()).toBe('licensed-with-watermark')
+			expect(fetchSpy).not.toHaveBeenCalled()
+			manager.dispose()
 		})
 
 		it('Still tracks a real watermarked key on one of our domains', async () => {
-			setHost('https://makereal.tldraw.com')
-
 			const licenseKey = await generateLicenseKey(
 				JSON.stringify([
 					'a-real-key',
@@ -698,22 +699,28 @@ describe('LicenseManager', () => {
 				]),
 				keyPair
 			)
-			const result = await licenseManager.getLicenseFromKey(licenseKey)
+			const manager = await createManagerOnHost('https://makereal.tldraw.com', licenseKey)
 
-			expect(getTrackTypeInProduction(result, 'licensed-with-watermark')).toBe('with_watermark')
+			expect(manager.state.get()).toBe('licensed-with-watermark')
+			expect(fetchSpy).toHaveBeenCalledTimes(1)
+			const trackUrl = new URL(fetchSpy.mock.calls[0][0] as string)
+			expect(trackUrl.searchParams.get('license_type')).toBe('with_watermark')
+			expect(trackUrl.searchParams.get('license_id')).toBe('a-real-key')
+			manager.dispose()
 		})
 
 		it('Lets an explicitly provided key win over the canonical-host grant', async () => {
-			setHost('https://tldraw.com')
-
 			const licenseKey = await generateLicenseKey(
 				JSON.stringify(['a-real-key', ['*.tldraw.com'], FLAGS.ANNUAL_LICENSE, expiryDate]),
 				keyPair
 			)
-			const result = (await licenseManager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
+			const manager = await createManagerOnHost('https://tldraw.com', licenseKey)
 
+			const result = (await manager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
 			expect(result.license.id).toBe('a-real-key')
 			expect(result.isLicensedWithWatermark).toBe(false)
+			expect(manager.state.get()).toBe('licensed')
+			manager.dispose()
 		})
 	})
 
