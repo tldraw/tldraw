@@ -135,6 +135,35 @@ describe('pseudo locales', () => {
 		})
 		expect(screen.getByText(/^Your files loooo/)).toBeTruthy()
 	})
+
+	// `@formatjs/unplugin` with `ast: true` — which is how tldraw.com builds — replaces every
+	// `defaultMessage` with an array of AST nodes. Transforming that directly threw
+	// `str.replace is not a function` under xx-AE and rendered "[object Object]" under xx-LS, so
+	// both pseudo-locales were broken in the one app that offers them.
+	const precompiled = [{ type: 0, value: 'Your files' }] as unknown as string
+
+	it('accents a message precompiled to AST', () => {
+		render(<F defaultMessage={precompiled} id="example.files" />, {
+			wrapper: withProvider(undefined, 'xx-AE'),
+		})
+		expect(screen.getByText('Ýóúř ƒíłéš')).toBeTruthy()
+	})
+
+	it('lengthens a message precompiled to AST', () => {
+		render(<F defaultMessage={precompiled} id="example.files" />, {
+			wrapper: withProvider(undefined, 'xx-LS'),
+		})
+		expect(screen.getByText(/^Your files loooo/)).toBeTruthy()
+	})
+
+	// Formatting to get the text also means the values land in it, where the raw default message
+	// used to surface its own placeholder.
+	it('substitutes values before transforming', () => {
+		render(<F defaultMessage="{n} files" id="example.count" values={{ n: 3 }} />, {
+			wrapper: withProvider(undefined, 'xx-AE'),
+		})
+		expect(screen.getByText('3 ƒíłéš')).toBeTruthy()
+	})
 })
 
 describe('isPseudoLocale', () => {

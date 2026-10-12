@@ -83,15 +83,23 @@ function makeLong(str: string) {
  */
 export function F({ values, ...descriptor }: TLUiMessageProps) {
 	const intl = useIntl()
+	// Format the message before transforming it, rather than reaching for `descriptor`. A build
+	// that precompiles messages to AST, as tldraw.com does, leaves `defaultMessage` an array of
+	// nodes: accenting it threw `str.replace is not a function` and lengthening it printed
+	// "[object Object]". Formatting also substitutes the values, where the raw default message
+	// showed its own `{placeholders}`. Values holding an element come back as nodes rather than a
+	// string, and there is nothing to transform, so those render untransformed.
+	// eslint-disable-next-line tldraw/enforce-default-message
+	const pseudo = isPseudoLocale(intl.locale) ? intl.formatMessage(descriptor, values) : null
 	return (
 		// Inline, so the marker span doesn't disturb the layout around it. Why it's here at all is
 		// on `F` above.
 		<span className="i18n-msg">
-			{isPseudoLocale(intl.locale) ? (
+			{typeof pseudo === 'string' ? (
 				intl.locale === 'xx-AE' ? (
-					makeAccented(descriptor.defaultMessage)
+					makeAccented(pseudo)
 				) : (
-					makeLong(descriptor.defaultMessage)
+					makeLong(pseudo)
 				)
 			) : (
 				// The rule can't see a spread; `F`'s own callers are what it needs to check.
