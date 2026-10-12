@@ -71,6 +71,45 @@ describe('F', () => {
 	})
 })
 
+describe('TldrawUiTranslationProvider', () => {
+	function withLocale(
+		locale: string,
+		overrides?: Record<string, Record<string, string>>
+	): React.FC<{ children: React.ReactNode }> {
+		return ({ children }) => (
+			<AssetUrlsProvider assetUrls={defaultUiAssetUrls}>
+				<TldrawUiTranslationProvider locale={locale} overrides={overrides}>
+					{children}
+				</TldrawUiTranslationProvider>
+			</AssetUrlsProvider>
+		)
+	}
+
+	// An override is local data. Merging it used to live in the same effect as the fetch, so a
+	// changed override only landed after another round trip — and an app assembling its overrides
+	// as it loads its own strings refetched this catalogue on every identity change.
+	it('applies a changed override without refetching', () => {
+		const { result, rerender } = renderHook(() => useTranslation(), {
+			wrapper: withLocale('en', { en: { 'app.title': 'First' } }),
+		})
+		expect(result.current('app.title')).toBe('First')
+		rerender()
+		const { result: second } = renderHook(() => useTranslation(), {
+			wrapper: withLocale('en', { en: { 'app.title': 'Second' } }),
+		})
+		expect(second.current('app.title')).toBe('Second')
+	})
+
+	// A locale the SDK ships nothing for falls back to English, and its overrides still have to
+	// apply — that's the only place an app-only locale's strings can come from.
+	it('applies overrides for a locale the SDK has no catalogue for', () => {
+		const { result } = renderHook(() => useTranslation(), {
+			wrapper: withLocale('xx-AE', { 'xx-AE': { 'app.title': 'Áççéñtéd' } }),
+		})
+		expect(result.current('app.title')).toBe('Áççéñtéd')
+	})
+})
+
 describe('isPseudoLocale', () => {
 	it('recognises the pseudo locales and nothing else', () => {
 		expect(isPseudoLocale('xx-AE')).toBe(true)
