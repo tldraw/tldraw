@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Seret fail ke dalam bar sisi pada halaman ini. Atau pilih pilihan 'Import fail' daripada menu pengguna."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1298,6 +1292,12 @@
     {
       "type": 0,
       "value": "Pemilik"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Seret fail ke bar sisi pada halaman ini. Atau pilih pilihan 'Import fail' daripada menu Fail di bahagian atas kiri."
     }
   ],
   "b758336699": [

@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "我們正在努力支援來自 <a><strong>{appName}</strong></a> 的檔案。"
   },
-  "03b3e13197": {
-    "translation": "將檔案拖曳到本頁面的側邊欄，或從使用者選單中選取「匯入檔案」。"
-  },
   "043973ec1f": {
     "translation": "仍有問題嗎？{GetHelpLink}"
   },
@@ -536,6 +533,9 @@
   },
   "b6f4a2ec63": {
     "translation": "擁有者"
+  },
+  "b74dbb40c5": {
+    "translation": "將文件拖曳到此頁面的側邊欄中。或者，從左上角的「檔案」選單中選擇「匯入檔案」選項。"
   },
   "b758336699": {
     "translation": "複製連結"

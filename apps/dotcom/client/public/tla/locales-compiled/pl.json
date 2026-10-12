@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Przeciągnij plik na pasek boczny na tej stronie lub wybierz opcję „Importuj plik” z menu użytkownika."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1324,6 +1318,12 @@
     {
       "type": 0,
       "value": "Właściciel"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Przeciągnij plik na pasek boczny na tej stronie. Możesz też wybrać opcję „Importuj plik” z menu Plik w lewym górnym rogu."
     }
   ],
   "b758336699": [

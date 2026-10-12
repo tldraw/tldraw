@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Trageți fișierul în bara laterală de pe această pagină. Sau selectați opțiunea „Importați fișierul” din meniul utilizatorului."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1313,6 +1307,12 @@
     {
       "type": 0,
       "value": "Proprietar"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Trageți fișierul în bara laterală de pe această pagină. Sau selectați opțiunea „Importați fișierul” din meniul Fișier din stânga sus."
     }
   ],
   "b758336699": [

@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Arrossegueu el fitxer a la barra lateral d'aquesta pàgina. O seleccioneu l'opció \"Importa fitxer\" al menú d'usuari."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1302,6 +1296,12 @@
     {
       "type": 0,
       "value": "propietari"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Arrossegueu el fitxer a la barra lateral d'aquesta pàgina. O seleccioneu l'opció \"Importa fitxer\" al menú Fitxer a la part superior esquerra."
     }
   ],
   "b758336699": [

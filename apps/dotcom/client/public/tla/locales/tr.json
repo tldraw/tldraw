@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "<a><strong>{appName}</strong></a> adresinden gelen dosyalar için destek üzerinde çalışıyoruz."
   },
-  "03b3e13197": {
-    "translation": "Dosyayı bu sayfadaki kenar çubuğuna sürükleyin. Veya kullanıcı menüsünden 'Dosyayı içe aktar' seçeneğini seçin."
-  },
   "043973ec1f": {
     "translation": "Sorun devam ediyor mu? {GetHelpLink}"
   },
@@ -536,6 +533,9 @@
   },
   "b6f4a2ec63": {
     "translation": "Mal sahibi"
+  },
+  "b74dbb40c5": {
+    "translation": "Dosyayı bu sayfanın kenar çubuğuna sürükleyin. Veya sol üst köşedeki Dosya menüsünden 'Dosya içe aktar' seçeneğini seçin."
   },
   "b758336699": {
     "translation": "Bağlantıyı kopyala"

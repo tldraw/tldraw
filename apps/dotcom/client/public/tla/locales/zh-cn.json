@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "我们正在努力支持来自 <a><strong>{appName}</strong></a> 的文件。"
   },
-  "03b3e13197": {
-    "translation": "将文件拖放到本页面的侧边栏，或在用户菜单中选择“导入文件”选项。"
-  },
   "043973ec1f": {
     "translation": "仍然有问题？{GetHelpLink}"
   },
@@ -536,6 +533,9 @@
   },
   "b6f4a2ec63": {
     "translation": "所有者"
+  },
+  "b74dbb40c5": {
+    "translation": "将文件拖到此页面的侧边栏中。或者，从左上角的“文件”菜单中选择“导入文件”选项。"
   },
   "b758336699": {
     "translation": "复制链接"

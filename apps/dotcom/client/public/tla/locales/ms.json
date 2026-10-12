@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Kami sedang berusaha untuk menyokong fail daripada <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Seret fail ke dalam bar sisi pada halaman ini. Atau pilih pilihan 'Import fail' daripada menu pengguna."
-  },
   "043973ec1f": {
     "translation": "Masih menghadapi masalah? {GetHelpLink}"
   },
@@ -536,6 +533,9 @@
   },
   "b6f4a2ec63": {
     "translation": "Pemilik"
+  },
+  "b74dbb40c5": {
+    "translation": "Seret fail ke bar sisi pada halaman ini. Atau pilih pilihan 'Import fail' daripada menu Fail di bahagian atas kiri."
   },
   "b758336699": {
     "translation": "Salin pautan"

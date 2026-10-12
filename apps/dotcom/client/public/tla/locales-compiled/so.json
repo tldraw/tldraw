@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Ku jiid faylka dhinaca bar-side ee boggan. Ama ka dooro 'Faylka Import' ee liiska isticmaalaha."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1302,6 +1296,12 @@
     {
       "type": 0,
       "value": "Mulkiilaha"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Faylka u jiid dhinaca dambe ee boggan. Ama dooro ikhtiyaarka 'Soo dejiso faylka' ee ku yaal liiska Faylka ee ku yaal bidixda sare."
     }
   ],
   "b758336699": [
