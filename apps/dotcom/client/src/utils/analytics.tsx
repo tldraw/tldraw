@@ -9,8 +9,9 @@ import { useApp } from '../tla/hooks/useAppState'
 import { useSignUpTracking } from '../tla/hooks/useSignUpTracking'
 import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/featureFlags'
 import {
+	commonRoom,
 	configureCommonRoom,
-	resetCommonRoom,
+	shouldUseCommonRoom,
 	trackCommonRoomPageview,
 } from './common-room-signals'
 
@@ -430,7 +431,7 @@ function useTrackPageViews() {
 }
 
 export function signoutAnalytics() {
-	resetCommonRoom()
+	if (shouldUseCommonRoom) commonRoom.reset()
 	if (shouldUsePosthog) posthog.reset()
 	if (shouldUseGA4) ReactGA.reset()
 }

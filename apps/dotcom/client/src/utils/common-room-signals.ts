@@ -6,11 +6,13 @@ interface CommonRoomUser {
 	name: string
 }
 
+export const shouldUseCommonRoom = isProductionEnv
+
 const tracker = new CommonRoomTracker()
 let identifiedEmail: string | undefined
 
 export function configureCommonRoom(consent: boolean, user?: CommonRoomUser) {
-	if (!isProductionEnv || !consent) {
+	if (!shouldUseCommonRoom || !consent) {
 		tracker.disable()
 		identifiedEmail = undefined
 		return
@@ -23,9 +25,11 @@ export function configureCommonRoom(consent: boolean, user?: CommonRoomUser) {
 	if (user) tracker.identify({ email: user.email, name: user.name })
 }
 
-export function resetCommonRoom() {
-	tracker.reset()
-	identifiedEmail = undefined
+export const commonRoom = {
+	reset() {
+		tracker.reset()
+		identifiedEmail = undefined
+	},
 }
 
 export function trackCommonRoomPageview() {
