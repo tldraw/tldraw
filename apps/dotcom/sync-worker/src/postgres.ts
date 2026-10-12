@@ -247,7 +247,12 @@ export class TLPostgresPool implements PostgresPool {
 					.finally(() => {
 						const stream = (client as any).connection?.stream
 						if (stream && typeof stream.destroy === 'function') {
-							stream.destroy()
+							try {
+								stream.destroy()
+							} catch {
+								// After a clean end() pg-cloudflare has already nulled its socket, so destroy
+								// throws a TypeError; uncaught, that's an unhandled rejection per release.
+							}
 						}
 					})
 				released.resolve(undefined)

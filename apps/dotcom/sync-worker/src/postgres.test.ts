@@ -119,4 +119,32 @@ describe('TLPostgresPool', () => {
 		settleEnd()
 		await vi.waitFor(() => expect(order).toEqual(['end settled', 'stream destroyed']))
 	})
+
+	// pg-cloudflare nulls its socket once the terminate closes it, so destroying after a clean end()
+	// throws a TypeError from inside the release's promise chain: an unhandled rejection per release.
+	it('tolerates a socket that end() already closed', async () => {
+		const destroy = vi.fn(() => {
+			throw new TypeError("Cannot read properties of null (reading 'close')")
+		})
+		stubClient.create = () => ({
+			on: () => {},
+			connect: async () => {},
+			query: () => {},
+			end: async () => {},
+			connection: { stream: { destroy } },
+		})
+		const unhandled = vi.fn()
+		process.on('unhandledRejection', unhandled)
+		try {
+			const pool = new TLPostgresPool({} as Environment, {} as Logger)
+			const client = await pool.connect()
+			client.release()
+
+			await vi.waitFor(() => expect(destroy).toHaveBeenCalled())
+			await new Promise((resolve) => setTimeout(resolve, 0))
+			expect(unhandled).not.toHaveBeenCalled()
+		} finally {
+			process.off('unhandledRejection', unhandled)
+		}
+	})
 })
