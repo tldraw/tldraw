@@ -8,7 +8,11 @@ import { atom, getFromLocalStorage, react, setInLocalStorage, useValue, warnOnce
 import { useApp } from '../tla/hooks/useAppState'
 import { useSignUpTracking } from '../tla/hooks/useSignUpTracking'
 import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/featureFlags'
-import { configureCommonRoom, trackCommonRoomPageview } from './common-room-signals'
+import {
+	configureCommonRoom,
+	resetCommonRoom,
+	trackCommonRoomPageview,
+} from './common-room-signals'
 
 // Local storage key for cookie consent
 export const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
@@ -426,7 +430,7 @@ function useTrackPageViews() {
 }
 
 export function signoutAnalytics() {
-	configureCommonRoom(false)
+	resetCommonRoom()
 	if (shouldUsePosthog) posthog.reset()
 	if (shouldUseGA4) ReactGA.reset()
 }

@@ -32,8 +32,7 @@ class CommonRoomAnalyticsService extends AnalyticsService {
 
 	override reset() {
 		if (!this.isEnabled) return
-		this.disable()
-		this.enable()
+		this.isEnabled = this.tracker.reset()
 	}
 
 	override trackPageview() {

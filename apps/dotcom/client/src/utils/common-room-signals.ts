@@ -17,10 +17,15 @@ export function configureCommonRoom(consent: boolean, user?: CommonRoomUser) {
 	}
 
 	// A new account or sign-out must not retain the previous visitor's identity.
-	if (identifiedEmail !== user?.email) tracker.disable()
+	if (identifiedEmail && identifiedEmail !== user?.email) tracker.reset()
 	if (!tracker.enable()) return
 	identifiedEmail = user?.email
 	if (user) tracker.identify({ email: user.email, name: user.name })
+}
+
+export function resetCommonRoom() {
+	tracker.reset()
+	identifiedEmail = undefined
 }
 
 export function trackCommonRoomPageview() {

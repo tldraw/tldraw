@@ -22,9 +22,17 @@ export class CommonRoomTracker {
 	private iframe: HTMLIFrameElement | null = null
 	private lastPageUrl: string | null = null
 	private pageviewInterval: ReturnType<typeof setInterval> | undefined
+	private identifiedUser: CommonRoomIdentity | undefined
 
 	private getSignals() {
 		return (this.iframe?.contentWindow as CommonRoomWindow | null)?.signals
+	}
+
+	private syncPageUrl() {
+		const frameWindow = this.iframe?.contentWindow
+		if (frameWindow && frameWindow.location.href !== window.location.href) {
+			frameWindow.history.replaceState(null, '', window.location.href)
+		}
 	}
 
 	enable(options: CommonRoomTrackerOptions = {}): boolean {
@@ -42,6 +50,15 @@ export class CommonRoomTracker {
 			this.disable()
 			return false
 		}
+
+		// document.open() copies the parent's URL so the SDK can read its domain and query params.
+		// https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#document-open-steps
+		frameDocument.open()
+		const html = frameDocument.createElement('html')
+		html.append(frameDocument.createElement('head'), frameDocument.createElement('body'))
+		frameDocument.appendChild(html)
+		frameDocument.close()
+		this.syncPageUrl()
 
 		const script = frameDocument.createElement('script')
 		script.textContent = COMMON_ROOM_SNIPPET
@@ -70,19 +87,42 @@ export class CommonRoomTracker {
 		this.iframe?.remove()
 		this.iframe = null
 		this.lastPageUrl = null
+		this.identifiedUser = undefined
+	}
+
+	reset(): boolean {
+		const wasEnabled = this.iframe !== null
+		const watchPageChanges = this.pageviewInterval !== undefined
+		const lastPageUrl = this.lastPageUrl
+		this.disable()
+		if (!wasEnabled) return false
+		// Reset identity without reporting the same page again when rebuilding the SDK context.
+		this.lastPageUrl = lastPageUrl
+		return this.enable({ watchPageChanges })
 	}
 
 	identify(user: CommonRoomIdentity) {
-		this.getSignals()?.identify(user)
+		const signals = this.getSignals()
+		if (
+			!signals ||
+			(this.identifiedUser?.email === user.email && this.identifiedUser.name === user.name)
+		) {
+			return
+		}
+		this.syncPageUrl()
+		signals.identify(user)
+		this.identifiedUser = { ...user }
 	}
 
 	form(user: CommonRoomIdentity) {
+		this.syncPageUrl()
 		this.getSignals()?.form(user)
 	}
 
 	page() {
 		const signals = this.getSignals()
 		if (!signals || this.lastPageUrl === window.location.href) return
+		this.syncPageUrl()
 		this.lastPageUrl = window.location.href
 		signals.page(this.lastPageUrl)
 	}
