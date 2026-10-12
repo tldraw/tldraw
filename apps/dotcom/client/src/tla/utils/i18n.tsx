@@ -1,90 +1,60 @@
 /* eslint-disable no-restricted-imports */
-import { FormatXMLElementFn } from 'intl-messageformat'
 import { ComponentPropsWithoutRef } from 'react'
 import {
 	FormattedMessage,
 	IntlConfig,
 	IntlShape,
-	MessageDescriptor,
-	PrimitiveType,
 	createIntlCache,
 	createIntl as originalCreateIntl,
-	defineMessages as originalDefineMessages,
-	useIntl,
 } from 'react-intl'
+import { F as TldrawF, TLI18nMessage, defineMessages as sdkDefineMessages } from 'tldraw'
 
 // Re-export everything and override below what we want to override.
 // eslint-disable-next-line
 export * from 'react-intl'
 
-export function useMsg(
-	message: MessageDescriptor,
-	values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>
-) {
-	const intl = useIntl()
-	return intl.formatMessage(message, values)
+// The SDK's, rather than a second copy of them. dotcom and the SDK resolve to one react-intl, so
+// these read the `IntlProvider` in TlaRootProviders and translate against dotcom's own messages:
+// the catalogue and its Lokalise project stay dotcom's, only the machinery is shared.
+//
+// `isPseudoLocale` is what used to be `isInternalLocale`, and the accented and lengthened
+// transforms it pairs with now live inside the SDK's `F`.
+export { isPseudoLocale, useMsg } from 'tldraw'
+
+/**
+ * A message as a call site here writes it, which is without an id: `@formatjs/unplugin` injects
+ * one at build from the message's content.
+ */
+type AppMessage = Omit<TLI18nMessage, 'id'> & { id?: string }
+
+/**
+ * Declares messages for extraction, and is where the injected id is asserted — so everything
+ * downstream takes a `TLI18nMessage` and needs no cast of its own. Throws if an id is still
+ * missing by the time this runs, which means the plugin didn't.
+ */
+export function defineMessages<K extends string>(
+	msgs: Record<K, AppMessage>
+): Record<K, TLI18nMessage> {
+	return sdkDefineMessages(msgs as Record<K, TLI18nMessage>)
 }
 
-const INTERNAL_LOCALES = ['xx-AE', 'xx-LS']
-
-// We use `@formatjs/unplugin` in `vite.config.ts` to generate IDs for messages.
-// This should always have an ID, so we throw an error if it's missing.
-function fetchId({ id }: MessageDescriptor) {
-	if (id) return id
-
-	throw new Error('MessageDescriptor must have an id.')
-}
-
+/**
+ * A translated message, wrapped so the language-debug overlay can find it.
+ *
+ * Delegates to the SDK's `F`, which handles the pseudo-locales. The span is the part that can't
+ * move there: `.tla-lang-highlight-missing` uses it to tell text that came through here apart from
+ * text that never did.
+ *
+ * The cast is for the id. `@formatjs/unplugin` injects one at build from the message's content, so
+ * a call site here writes none and the SDK's required `id` isn't satisfied in source — it is by the
+ * time anything runs.
+ */
 export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
-	const intl = useIntl()
-	const id = fetchId(props)
-	let internalMessage = (props.defaultMessage || '') as string
-	if (intl.locale === 'xx-AE') {
-		internalMessage = makeAccented(internalMessage)
-	} else if (intl.locale === 'xx-LS') {
-		internalMessage = makeLong(internalMessage)
-	}
-
 	return (
 		<span className="i18n-msg">
-			{isInternalLocale(intl.locale) ? (
-				<>{internalMessage}</>
-			) : (
-				/* eslint-disable-next-line tldraw/enforce-default-message */
-				<FormattedMessage id={id} {...props} />
-			)}
+			<TldrawF {...(props as ComponentPropsWithoutRef<typeof TldrawF>)} />
 		</span>
 	)
-}
-
-// We programmatically define ID's for messages to make things easier for devs.
-export function defineMessages<Messages extends Record<string, MessageDescriptor>>(
-	msgs: Messages
-): Messages {
-	for (const key in msgs) {
-		if (!msgs[key].id) {
-			msgs[key].id = fetchId(msgs[key])
-		}
-	}
-	return originalDefineMessages(msgs)
-}
-
-export function isInternalLocale(locale: string) {
-	return INTERNAL_LOCALES.indexOf(locale) !== -1
-}
-
-function makeAccented(str: string) {
-	const accents = 'áƃçđéƒǵȟíǰķłɱñóƥɋřšťúṽẃẍýž'
-	return str.replace(/[a-zA-Z]/g, (char) => {
-		const isUpper = char === char.toUpperCase()
-		const index = char.toLowerCase().charCodeAt(0) - 97
-		const accentedChar = accents[index] || char
-		return isUpper ? accentedChar.toUpperCase() : accentedChar
-	})
-}
-
-function makeLong(str: string) {
-	return `${str} loooooooo oo ooooooong`
 }
 
 // This is optional but highly recommended since it prevents memory leaks.

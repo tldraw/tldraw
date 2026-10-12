@@ -25,7 +25,7 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { UI_THEMES } from '../../themes/ui-themes'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
-import { defineMessages, isInternalLocale, useMsg } from '../../utils/i18n'
+import { defineMessages, isPseudoLocale, useMsg } from '../../utils/i18n'
 import {
 	getLocalSessionState,
 	resetLocalSessionStateButKeepTheme,
@@ -388,7 +388,7 @@ export function DebugSubmenu() {
 	// Falls back to 'en' if we load already stuck in a debug locale.
 	const previousLocale = useRef('en')
 	const currentLocale = editor?.user.getLocale() ?? 'en'
-	if (!isInternalLocale(currentLocale)) {
+	if (!isPseudoLocale(currentLocale)) {
 		previousLocale.current = currentLocale
 	}
 
