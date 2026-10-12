@@ -14,7 +14,7 @@ getConstrainedCamera(point: VecLike, opts?: TLCameraMoveOptions): CameraXYZ {
 
 ## Rules
 
-- **A core function imports nothing that can reach the editor.** Primitives, `@tldraw/utils`, and types.
+- **A core function imports nothing that can reach the editor.** Primitives, `@tldraw/utils`, pure helpers in `lib/utils`, and types.
   Never `Editor`, a manager, `@tldraw/state`, `@tldraw/store`, the DOM, or another core module. The
   dependency graph stays a star, so a core function can be read and tested on its own.
 - **Editor gathers inputs where the old code read them**, in the same order, on the same branches.

@@ -1,4 +1,5 @@
 import type { TLShapeId } from '@tldraw/tlschema'
+import { stableSet } from '../../utils/stableSet'
 
 // Pure culling set math. Editor reads the visible, selected and editing shapes through its own
 // (overridable, reactive) methods and owns the cache field, so nothing in this file may read
@@ -29,22 +30,5 @@ export function getCulledShapeIds(
 		next.delete(id)
 	})
 
-	return reuseSetIfUnchanged(previous, next)
-}
-
-/**
- * `previous` if it holds exactly the same members as `next`, otherwise `next`. Keeping the
- * identity of an unchanged set lets consumers compare with `===`.
- */
-export function reuseSetIfUnchanged<T>(previous: Set<T> | null, next: Set<T>): Set<T> {
-	if (!previous) return next
-
-	// If sizes differ, contents must differ
-	if (previous.size !== next.size) return next
-
-	for (const id of previous) {
-		if (!next.has(id)) return next
-	}
-
-	return previous
+	return stableSet(previous, next)
 }

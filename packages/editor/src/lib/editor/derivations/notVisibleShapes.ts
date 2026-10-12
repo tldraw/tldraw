@@ -1,6 +1,6 @@
 import { computed, isUninitialized } from '@tldraw/state'
 import { TLShapeId } from '@tldraw/tlschema'
-import { reuseSetIfUnchanged } from '../core/culling'
+import { stableSet } from '../../utils/stableSet'
 import type { Editor } from '../Editor'
 import { ShapeUtil } from '../shapes/ShapeUtil'
 
@@ -57,6 +57,6 @@ export function notVisibleShapes(editor: Editor) {
 		}
 
 		// Reuse prev set when contents are unchanged
-		return reuseSetIfUnchanged(prevValue, notVisibleIds)
+		return stableSet(prevValue, notVisibleIds)
 	})
 }
