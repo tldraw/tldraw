@@ -336,10 +336,7 @@ export {
 	DefaultContextMenu,
 	type TLUiContextMenuProps,
 } from './lib/ui/components/ContextMenu/DefaultContextMenu'
-export {
-	DefaultContextMenuContent,
-	type TLUiDefaultContextMenuContentProps,
-} from './lib/ui/components/ContextMenu/DefaultContextMenuContent'
+export { DefaultContextMenuContent } from './lib/ui/components/ContextMenu/DefaultContextMenuContent'
 export {
 	DefaultDebugMenu,
 	type TLUiDebugMenuProps,
