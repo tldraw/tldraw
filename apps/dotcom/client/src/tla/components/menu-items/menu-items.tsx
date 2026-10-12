@@ -1,11 +1,10 @@
 import { useAuth } from '@clerk/clerk-react'
 import { fileOpen } from 'browser-fs-access'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	defineMessages,
-	isPseudoLocale,
 	TLDRAW_FILE_EXTENSION,
 	TldrawUiIcon,
 	TldrawUiMenuCheckboxItem,
@@ -60,8 +59,6 @@ const messages = defineMessages({
 	colorThemeDefault: { defaultMessage: 'Default' },
 	// debug
 	appDebugFlags: { defaultMessage: 'App debug flags' },
-	langAccented: { defaultMessage: 'i18n: Accented' },
-	langLongString: { defaultMessage: 'i18n: Long String' },
 	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
 })
 
@@ -378,58 +375,29 @@ export function DebugMenuGroup() {
 
 export function DebugSubmenu() {
 	const msg = useTranslation()
-	const editor = useMaybeEditor()
 
 	const [shouldHighlightMissing, setShouldHighlightMissing] = useState(
 		document.body.classList.contains('tla-lang-highlight-missing')
 	)
-	const debugLanguageFlags = [
-		{ name: msg(messages.langAccented.id), locale: 'xx-AE' },
-		{ name: msg(messages.langLongString.id), locale: 'xx-LS' },
-		{ name: msg(messages.langHighlightMissing.id), locale: 'xx-MS' },
-	]
-
-	// Remember the user's real locale so an internal debug locale can be toggled back off.
-	// Falls back to 'en' if we load already stuck in a debug locale.
-	const previousLocale = useRef('en')
-	const currentLocale = editor?.user.getLocale() ?? 'en'
-	if (!isPseudoLocale(currentLocale)) {
-		previousLocale.current = currentLocale
-	}
 
 	useEffect(() => {
 		document.body.classList.toggle('tla-lang-highlight-missing', shouldHighlightMissing)
 	}, [shouldHighlightMissing])
 
+	const highlightMissingLbl = msg(messages.langHighlightMissing.id)
+
 	return (
 		<TldrawUiMenuSubmenu id="debug" label={msg(messages.appDebugFlags.id)}>
 			<TldrawUiMenuGroup id="debug app flags">
-				{debugLanguageFlags.map((flag) => (
-					<TldrawUiMenuCheckboxItem
-						key={flag.name}
-						id={flag.name}
-						title={flag.name}
-						label={flag.name
-							.replace(/([a-z0-9])([A-Z])/g, (m) => `${m[0]} ${m[1].toLowerCase()}`)
-							.replace(/^[a-z]/, (m) => m.toUpperCase())}
-						checked={
-							flag.locale === 'xx-MS'
-								? shouldHighlightMissing
-								: editor?.user.getLocale() === flag.locale
-						}
-						onSelect={() => {
-							if (flag.locale === 'xx-MS') {
-								setShouldHighlightMissing(!shouldHighlightMissing)
-							} else {
-								// Selecting the active locale again restores the user's real language.
-								const isActive = editor?.user.getLocale() === flag.locale
-								editor?.user.updateUserPreferences({
-									locale: isActive ? previousLocale.current : flag.locale,
-								})
-							}
-						}}
-					/>
-				))}
+				{/* Shadows every string the UI rendered without going through `F`, which is what
+				    marks translated text with `.i18n-msg`. Not a locale — a body class. */}
+				<TldrawUiMenuCheckboxItem
+					id="highlight-missing"
+					title={highlightMissingLbl}
+					label={highlightMissingLbl}
+					checked={shouldHighlightMissing}
+					onSelect={() => setShouldHighlightMissing(!shouldHighlightMissing)}
+				/>
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)

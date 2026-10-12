@@ -54,8 +54,6 @@ export {
 export { DefaultToasts } from './lib/ui/components/Toasts'
 export {
 	F,
-	PSEUDO_LOCALES,
-	isPseudoLocale,
 	useTldrawI18n,
 	type TLUiMessageProps,
 	type TLUiMessageValues,

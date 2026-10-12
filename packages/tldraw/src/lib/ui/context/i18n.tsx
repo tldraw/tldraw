@@ -39,33 +39,6 @@ export interface TLUiMessageProps extends TLI18nMessageInput {
 }
 
 /**
- * Locales that aren't languages: they transform the English text instead of translating it, to
- * surface strings that never made it into the catalog and layouts that can't take a longer one.
- *
- * @public
- */
-export const PSEUDO_LOCALES = ['xx-AE', 'xx-LS'] as const
-
-/** @public */
-export function isPseudoLocale(locale: string) {
-	return (PSEUDO_LOCALES as readonly string[]).includes(locale)
-}
-
-const ACCENTS = 'áƃçđéƒǵȟíǰķłɱñóƥɋřšťúṽẃẍýž'
-
-function makeAccented(str: string) {
-	return str.replace(/[a-zA-Z]/g, (char) => {
-		const isUpper = char === char.toUpperCase()
-		const accented = ACCENTS[char.toLowerCase().charCodeAt(0) - 97] || char
-		return isUpper ? accented.toUpperCase() : accented
-	})
-}
-
-function makeLong(str: string) {
-	return `${str} loooooooo oo ooooooong`
-}
-
-/**
  * Renders a translated message. Use this wherever the message is text in the document; where a
  * string is needed instead, translate the message's id through `useTranslation`.
  *
@@ -82,22 +55,13 @@ function makeLong(str: string) {
  * @public @react
  */
 export function F({ values, ...descriptor }: TLUiMessageProps) {
-	const intl = useIntl()
 	return (
 		// Inline, so the marker span doesn't disturb the layout around it. Why it's here at all is
 		// on `F` above.
 		<span className="i18n-msg">
-			{isPseudoLocale(intl.locale) ? (
-				intl.locale === 'xx-AE' ? (
-					makeAccented(descriptor.defaultMessage)
-				) : (
-					makeLong(descriptor.defaultMessage)
-				)
-			) : (
-				// The rule can't see a spread; `F`'s own callers are what it needs to check.
-				// eslint-disable-next-line tldraw/enforce-default-message
-				<FormattedMessage {...descriptor} values={values} />
-			)}
+			{/* The rule can't see a spread; `F`'s own callers are what it needs to check. */}
+			{/* eslint-disable-next-line tldraw/enforce-default-message */}
+			<FormattedMessage {...descriptor} values={values} />
 		</span>
 	)
 }

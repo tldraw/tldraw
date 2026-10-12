@@ -5,8 +5,8 @@ import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 // react-intl's FormattedMessage rather than the SDK's `F`, which everything else here uses. This
 // page renders when the app has failed, so it's reachable from the entry chunk, and importing the
 // SDK would put the whole editor in front of first paint — `routePreloadPlugin` fails the build for
-// it. Nothing is lost: this page is outside the editor, so the pseudo-locales and the marker span
-// have nothing to act on.
+// it. Nothing is lost: this page is outside the editor, so the marker span that the language-debug
+// overlay looks for has nothing to act on here.
 import { isInIframe } from '../../utils/iFrame'
 
 const GoBackLink = () => {

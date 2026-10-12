@@ -7,7 +7,7 @@ import { defaultUiAssetUrls } from '../assetUrls'
 import { DEFAULT_TRANSLATION } from '../hooks/useTranslation/defaultTranslation'
 import { TldrawUiTranslationProvider, useTranslation } from '../hooks/useTranslation/useTranslation'
 import { AssetUrlsProvider } from './asset-urls'
-import { F, isPseudoLocale, useTldrawI18n } from './i18n'
+import { F, useTldrawI18n } from './i18n'
 
 vi.unmock('./useTranslation')
 vi.unmock('../hooks/useTranslation/useTranslation')
@@ -93,9 +93,9 @@ describe('TldrawUiTranslationProvider', () => {
 	// apply — that's the only place an app-only locale's strings can come from.
 	it('applies overrides for a locale the SDK has no catalogue for', () => {
 		const { result } = renderHook(() => useTranslation(), {
-			wrapper: withLocale('xx-AE', { 'xx-AE': { 'app.title': 'Áççéñtéd' } }),
+			wrapper: withLocale('zz', { zz: { 'app.title': 'App only' } }),
 		})
-		expect(result.current('app.title')).toBe('Áççéñtéd')
+		expect(result.current('app.title')).toBe('App only')
 	})
 })
 
@@ -116,33 +116,6 @@ describe('rich text in a message', () => {
 		)
 		expect(screen.getByTestId('who').textContent).toBe('Ada')
 		expect(screen.getByTestId('who').tagName).toBe('STRONG')
-	})
-})
-
-describe('pseudo locales', () => {
-	// These aren't languages: they transform the English so an unlocalised string stands out, and a
-	// layout that can't take a longer one shows it. dotcom's language-debug mode relies on them.
-	it('accents the text under xx-AE', () => {
-		render(<F defaultMessage="Your files" id="example.files" />, {
-			wrapper: withProvider(undefined, 'xx-AE'),
-		})
-		expect(screen.getByText('Ýóúř ƒíłéš')).toBeTruthy()
-	})
-
-	it('lengthens the text under xx-LS', () => {
-		render(<F defaultMessage="Your files" id="example.files" />, {
-			wrapper: withProvider(undefined, 'xx-LS'),
-		})
-		expect(screen.getByText(/^Your files loooo/)).toBeTruthy()
-	})
-})
-
-describe('isPseudoLocale', () => {
-	it('recognises the pseudo locales and nothing else', () => {
-		expect(isPseudoLocale('xx-AE')).toBe(true)
-		expect(isPseudoLocale('xx-LS')).toBe(true)
-		expect(isPseudoLocale('en')).toBe(false)
-		expect(isPseudoLocale('ar')).toBe(false)
 	})
 })
 
@@ -176,13 +149,6 @@ describe('the message marker', () => {
 		const { container } = render(<F {...messages.copy} />, { wrapper: withProvider() })
 		const marker = container.querySelector('.i18n-msg')
 		expect(marker?.textContent).toBe(DEFAULT_TRANSLATION['action.copy'])
-	})
-
-	it('wraps a pseudo-locale message too, which is where the overlay is used', () => {
-		const { container } = render(<F defaultMessage="Your files" id="example.files" />, {
-			wrapper: withProvider(undefined, 'xx-AE'),
-		})
-		expect(container.querySelector('.i18n-msg')?.textContent).toBe('Ýóúř ƒíłéš')
 	})
 })
 

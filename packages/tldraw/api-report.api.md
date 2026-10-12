@@ -2638,9 +2638,6 @@ export interface ImageShapeUtilDisplayValues {
 // @public (undocumented)
 export function InputModeMenu(): JSX.Element;
 
-// @public (undocumented)
-export function isPseudoLocale(locale: string): boolean;
-
 export { JSONContent }
 
 // @public (undocumented)
@@ -3281,9 +3278,6 @@ export function preloadFont(id: string, font: TLTypeFace, targetDocument?: Docum
 
 // @public (undocumented)
 export function PrintItem(): JSX.Element;
-
-// @public
-export const PSEUDO_LOCALES: readonly ['xx-AE', 'xx-LS'];
 
 // @public
 export function putExcalidrawContent(editor: Editor, excalidrawClipboardContent: any, point?: VecLike): Promise<void>;
