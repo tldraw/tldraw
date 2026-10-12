@@ -21,10 +21,10 @@ const messages = defineMessages({
 
 // The provider fetches a locale over the network; 'en' short-circuits to the bundled defaults, so
 // these render against DEFAULT_TRANSLATION plus whatever overrides are passed.
-function withProvider(overrides?: Record<string, Record<string, string>>) {
+function withProvider(overrides?: Record<string, Record<string, string>>, locale = 'en') {
 	return ({ children }: { children: React.ReactNode }) => (
 		<AssetUrlsProvider assetUrls={defaultUiAssetUrls}>
-			<TldrawUiTranslationProvider locale="en" overrides={overrides}>
+			<TldrawUiTranslationProvider locale={locale} overrides={overrides}>
 				{children}
 			</TldrawUiTranslationProvider>
 		</AssetUrlsProvider>
@@ -127,6 +127,24 @@ describe('rich text in a message', () => {
 		)
 		expect(screen.getByTestId('who').textContent).toBe('Ada')
 		expect(screen.getByTestId('who').tagName).toBe('STRONG')
+	})
+})
+
+describe('pseudo locales', () => {
+	// These aren't languages: they transform the English so an unlocalised string stands out, and a
+	// layout that can't take a longer one shows it. dotcom's language-debug mode relies on them.
+	it('accents the text under xx-AE', () => {
+		render(<F defaultMessage="Your files" id="example.files" />, {
+			wrapper: withProvider(undefined, 'xx-AE'),
+		})
+		expect(screen.getByText('Ýóúř ƒíłéš')).toBeTruthy()
+	})
+
+	it('lengthens the text under xx-LS', () => {
+		render(<F defaultMessage="Your files" id="example.files" />, {
+			wrapper: withProvider(undefined, 'xx-LS'),
+		})
+		expect(screen.getByText(/^Your files loooo/)).toBeTruthy()
 	})
 })
 

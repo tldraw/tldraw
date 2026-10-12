@@ -9,6 +9,7 @@ import {
 	type IntlConfig,
 } from 'react-intl'
 import { useAssetUrls } from '../../context/asset-urls'
+import { isPseudoLocale } from '../../context/i18n'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { TLUiTranslation, fetchTranslation } from './translations'
@@ -98,6 +99,8 @@ export function TldrawUiTranslationProvider({
 	// Keyed on the requested locale, not the loaded one. They differ when the SDK ships no catalogue
 	// for it and `fetchTranslation` falls back to English — which is the case for a locale that
 	// exists only in an app's own strings, so that's exactly when its overrides have to apply.
+	const onError = React.useMemo(() => makeOnTranslationError(locale), [locale])
+
 	const currentTranslation = React.useMemo(() => {
 		const localeOverrides = overrides?.[locale]
 		if (!localeOverrides) return loaded
@@ -107,12 +110,17 @@ export function TldrawUiTranslationProvider({
 	return (
 		<TranslationsContext.Provider value={currentTranslation}>
 			{/* One IntlShape behind both APIs: `msg()` by key and `<F>`/`useMsg()` by descriptor
-			    read the same merged catalog, so an app's `overrides.translations` reaches both. */}
+			    read the same merged catalog, so an app's `overrides.translations` reaches both.
+
+			    The locale is the requested one, not the loaded one. They differ for a pseudo-locale,
+			    which isn't in `LANGUAGES` and so loads English — and `F` decides whether to
+			    transform the text by asking `intl` which locale it's in, so handing it the fallback
+			    would mean a pseudo-locale silently rendered as plain English. */}
 			<IntlProvider
-				locale={currentTranslation.locale}
+				locale={locale}
 				defaultLocale="en"
 				messages={currentTranslation.messages}
-				onError={onTranslationError}
+				onError={onError}
 			>
 				{children}
 			</IntlProvider>
@@ -132,10 +140,17 @@ export type TLUiTranslationValues = Record<
 
 // Returning the key verbatim for an unknown id is documented behaviour: apps pass their own keys
 // and plain text through `msg()`. Only surface errors that mean a message is actually malformed.
-const onTranslationError: IntlConfig['onError'] = (error) => {
-	if (error.code === ReactIntlErrorCode.MISSING_TRANSLATION) return
-	if (process.env.NODE_ENV !== 'production') console.error(error)
+function makeOnTranslationError(locale: string): IntlConfig['onError'] {
+	const pseudo = isPseudoLocale(locale)
+	return (error) => {
+		if (error.code === ReactIntlErrorCode.MISSING_TRANSLATION) return
+		// A pseudo-locale isn't a language, so Intl has no data for it. Expected, not a problem.
+		if (pseudo && error.code === ReactIntlErrorCode.MISSING_DATA) return
+		if (process.env.NODE_ENV !== 'production') console.error(error)
+	}
 }
+
+const onTranslationError = makeOnTranslationError('en')
 
 // One cache for the intl instances built below, as formatjs recommends, so that repeated mounts
 // don't leak a formatter cache each.
