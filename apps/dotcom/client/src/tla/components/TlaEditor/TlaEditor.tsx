@@ -1,6 +1,6 @@
 import { captureException } from '@sentry/react'
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
-import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
+import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
@@ -399,7 +399,6 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
-				licenseKey={getLicenseKey()}
 				store={store}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}

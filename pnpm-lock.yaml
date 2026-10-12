@@ -952,9 +952,6 @@ importers:
       '@tldraw/commenting':
         specifier: workspace:*
         version: link:../../packages/commenting
-      '@tldraw/dotcom-shared':
-        specifier: workspace:*
-        version: link:../../packages/dotcom-shared
       '@tldraw/driver':
         specifier: workspace:*
         version: link:../../packages/driver

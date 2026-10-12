@@ -5,7 +5,6 @@ import {
 	commentToolOverrides,
 	isAllowedReactionEmoji,
 } from '@tldraw/commenting'
-import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback, useMemo } from 'react'
 import {
 	commentSchemaRecords,
@@ -36,9 +35,7 @@ const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
 function ReactionPalette(props: DrawingReactionPaletteProps) {
 	const editor = useEditor()
 	const saveDrawing = useCallback((src: string) => saveDrawingReaction(editor, src), [editor])
-	return (
-		<DrawingReactionPalette {...props} licenseKey={getLicenseKey()} saveDrawing={saveDrawing} />
-	)
+	return <DrawingReactionPalette {...props} saveDrawing={saveDrawing} />
 }
 
 // [2]
@@ -74,7 +71,6 @@ export default function CommentDrawingReactionsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				licenseKey={getLicenseKey()}
 				store={store}
 				tools={COMMENT_TOOLS}
 				overrides={[commentToolOverrides]}

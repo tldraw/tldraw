@@ -7,7 +7,6 @@ import {
 	ThumbnailShapeMeasurement,
 	ThumbnailRenderTimingsRequestBody,
 	ThumbnailSnapshotResponseBody,
-	getLicenseKey,
 } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
@@ -188,7 +187,6 @@ function ThumbnailRenderPage({
 		>
 			<Tldraw
 				hideUi
-				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
 				components={{ ErrorFallback: ThumbnailRenderCrash }}

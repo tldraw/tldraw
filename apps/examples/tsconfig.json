@@ -10,7 +10,6 @@
 		{ "path": "../../packages/sync" },
 		{ "path": "../../packages/state" },
 		{ "path": "../../packages/tldraw" },
-		{ "path": "../../packages/dotcom-shared" },
 		{ "path": "../../packages/driver" },
 		{ "path": "../../packages/tlschema" }
 	]
