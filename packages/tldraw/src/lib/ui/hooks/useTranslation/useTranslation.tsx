@@ -68,11 +68,15 @@ export function TldrawUiTranslationProvider({
 }: TLUiTranslationProviderProps) {
 	const getAssetUrl = useAssetUrls()
 
-	const [currentTranslation, setCurrentTranslation] = React.useState<TLUiTranslation>(() => ({
+	// Only the fetch belongs in an effect. Merging overrides on top is derived from data already
+	// in hand, so keeping it out means a changed override applies on the next render instead of
+	// after another round trip — and an app that builds its overrides as it loads its own strings
+	// doesn't refetch this catalog every time that object's identity changes.
+	const [loaded, setLoaded] = React.useState<TLUiTranslation>(() => ({
 		locale: 'en',
 		label: 'English',
 		dir: 'ltr',
-		messages: overrides?.en ? { ...DEFAULT_TRANSLATION, ...overrides.en } : DEFAULT_TRANSLATION,
+		messages: DEFAULT_TRANSLATION,
 	}))
 
 	React.useEffect(() => {
@@ -81,13 +85,7 @@ export function TldrawUiTranslationProvider({
 		async function loadTranslation() {
 			const translation = await fetchTranslation(locale, getAssetUrl)
 			if (isCancelled) return
-
-			const localeOverrides = overrides?.[locale]
-			setCurrentTranslation(
-				localeOverrides
-					? { ...translation, messages: { ...translation.messages, ...localeOverrides } }
-					: translation
-			)
+			setLoaded(translation)
 		}
 
 		loadTranslation()
@@ -95,7 +93,16 @@ export function TldrawUiTranslationProvider({
 		return () => {
 			isCancelled = true
 		}
-	}, [getAssetUrl, locale, overrides])
+	}, [getAssetUrl, locale])
+
+	// Keyed on the requested locale, not the loaded one. They differ when the SDK ships no catalogue
+	// for it and `fetchTranslation` falls back to English — which is the case for a locale that
+	// exists only in an app's own strings, so that's exactly when its overrides have to apply.
+	const currentTranslation = React.useMemo(() => {
+		const localeOverrides = overrides?.[locale]
+		if (!localeOverrides) return loaded
+		return { ...loaded, messages: { ...loaded.messages, ...localeOverrides } }
+	}, [loaded, overrides, locale])
 
 	return (
 		<TranslationsContext.Provider value={currentTranslation}>

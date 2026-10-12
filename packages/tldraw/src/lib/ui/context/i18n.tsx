@@ -1,5 +1,5 @@
 import { TLI18n, TLI18nAdapter, TLI18nMessage } from '@tldraw/editor'
-import { useCallback, useRef } from 'react'
+import { ReactNode, useCallback, useRef } from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import {
 	TLUiTranslationValues,
@@ -7,9 +7,32 @@ import {
 	useTranslation,
 } from '../hooks/useTranslation/useTranslation'
 
+/**
+ * Values for a message rendered as an element. Alongside the primitives a string message takes, a
+ * function may be given for a tag that appears in the message, and it receives the text that tag
+ * encloses. That lets part of a translated string carry markup without splitting the string into
+ * fragments a translator then can't reorder.
+ *
+ * @example
+ *
+ * ```tsx
+ * <F
+ * 	defaultMessage="<who>{name}</who> joined"
+ * 	id="example.joined"
+ * 	values={{ name: 'Ada', who: (chunks) => <strong>{chunks}</strong> }}
+ * />
+ * ```
+ *
+ * @public
+ */
+export type TLUiMessageValues = Record<
+	string,
+	TLUiTranslationValues[string] | ((chunks: ReactNode) => ReactNode)
+>
+
 /** @public */
 export interface TLUiMessageProps extends TLI18nMessage {
-	values?: TLUiTranslationValues
+	values?: TLUiMessageValues
 }
 
 /**
