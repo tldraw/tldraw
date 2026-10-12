@@ -16,9 +16,7 @@ export function TlaEditorContextMenu(props: TLUiContextMenuProps) {
 	const commentingEnabled = useCommentingEnabled()
 	return (
 		<DefaultContextMenu {...props}>
-			<DefaultContextMenuContent>
-				{commentingEnabled && <CommentMenuItem />}
-			</DefaultContextMenuContent>
+			<DefaultContextMenuContent commentSlot={commentingEnabled && <CommentMenuItem />} />
 		</DefaultContextMenu>
 	)
 }

@@ -16,14 +16,14 @@ import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 /** @public */
 export interface TLUiDefaultContextMenuContentProps {
 	/**
-	 * Extra items to render at the start of the collaboration group, before cursor chat. Only
-	 * rendered when the collaboration UI is shown.
+	 * A comment item to render in the collaboration group, before cursor chat. Only rendered when
+	 * the collaboration UI is shown.
 	 */
-	children?: ReactNode
+	commentSlot?: ReactNode
 }
 
 /** @public @react */
-export function DefaultContextMenuContent({ children }: TLUiDefaultContextMenuContentProps) {
+export function DefaultContextMenuContent({ commentSlot }: TLUiDefaultContextMenuContentProps) {
 	const editor = useEditor()
 	const showCollaborationUi = useShowCollaborationUi()
 
@@ -41,7 +41,7 @@ export function DefaultContextMenuContent({ children }: TLUiDefaultContextMenuCo
 		<>
 			{showCollaborationUi && (
 				<TldrawUiMenuGroup id="cursor-chat">
-					{children}
+					{commentSlot}
 					<CursorChatItem />
 				</TldrawUiMenuGroup>
 			)}
