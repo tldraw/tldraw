@@ -59,6 +59,7 @@ export {
 	useMsg,
 	useTldrawI18n,
 	type TLUiMessageProps,
+	type TLUiMessageValues,
 } from './lib/ui/context/i18n'
 export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
 // eslint-disable-next-line tldraw/no-export-star

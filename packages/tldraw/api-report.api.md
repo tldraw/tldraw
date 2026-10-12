@@ -5504,8 +5504,11 @@ export type TLUiMenuToolItemProps = {
 // @public (undocumented)
 export interface TLUiMessageProps extends TLI18nMessage {
     // (undocumented)
-    values?: TLUiTranslationValues;
+    values?: TLUiMessageValues;
 }
+
+// @public
+export type TLUiMessageValues = Record<string, ((chunks: ReactNode) => ReactNode) | TLUiTranslationValues[string]>;
 
 // @public (undocumented)
 export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>;

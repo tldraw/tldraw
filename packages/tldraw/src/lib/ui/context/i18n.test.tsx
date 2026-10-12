@@ -110,6 +110,26 @@ describe('TldrawUiTranslationProvider', () => {
 	})
 })
 
+describe('rich text in a message', () => {
+	// An app marking up part of a string — "<name>Ada</name> mentioned you" — needs the markup
+	// inside the message so a translator can move it, rather than split into fragments.
+	it('renders a tag through the function given for it', () => {
+		render(
+			<F
+				defaultMessage="<name>{author}</name> mentioned you"
+				id="example.mention"
+				values={{
+					author: 'Ada',
+					name: (chunks) => <strong data-testid="who">{chunks}</strong>,
+				}}
+			/>,
+			{ wrapper: withProvider() }
+		)
+		expect(screen.getByTestId('who').textContent).toBe('Ada')
+		expect(screen.getByTestId('who').tagName).toBe('STRONG')
+	})
+})
+
 describe('isPseudoLocale', () => {
 	it('recognises the pseudo locales and nothing else', () => {
 		expect(isPseudoLocale('xx-AE')).toBe(true)
