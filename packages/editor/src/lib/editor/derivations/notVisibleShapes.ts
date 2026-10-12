@@ -1,7 +1,7 @@
 import { computed, isUninitialized } from '@tldraw/state'
 import { TLShapeId } from '@tldraw/tlschema'
+import { reuseSetIfUnchanged } from '../core/culling'
 import type { Editor } from '../Editor'
-import { reuseSetIfUnchanged } from '../kernels/culling'
 import { ShapeUtil } from '../shapes/ShapeUtil'
 
 /**

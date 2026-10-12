@@ -2,7 +2,7 @@ import { Box } from '../../primitives/Box'
 import { getDistributeLayout, getResizeToBoundsLayout, getStackLayout } from './layout'
 
 // Each layout is covered through the editor in packages/tldraw/src/test/commands/ (alignShapes,
-// distributeShapes, stackShapes, packShapes, stretch, resizeToBounds). These are the kernel
+// distributeShapes, stackShapes, packShapes, stretch, resizeToBounds). These are the core
 // contracts and edges those don't reach.
 
 function item(id: string, x: number, y: number, w: number, h: number) {

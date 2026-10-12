@@ -157,23 +157,15 @@ import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rot
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { AssetUtil } from './assets/AssetUtil'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
-import { bindingsIndex } from './derivations/bindingsIndex'
-import { notVisibleShapes } from './derivations/notVisibleShapes'
-import { parentsToChildren } from './derivations/parentsToChildren'
-import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import {
 	clampCameraZoom,
 	constrainCamera,
 	getCameraZoomedAboutPoint,
 	getFitZoom,
 	getNextZoomStep,
-} from './kernels/camera'
-import { getCulledShapeIds } from './kernels/culling'
-import {
-	classifyClosedShapeHit,
-	classifyFrameLikeHit,
-	getDistanceToGeometry,
-} from './kernels/hitTest'
+} from './core/camera'
+import { getCulledShapeIds } from './core/culling'
+import { classifyClosedShapeHit, classifyFrameLikeHit, getDistanceToGeometry } from './core/hitTest'
 import {
 	getAlignLayout,
 	getDistributeLayout,
@@ -181,12 +173,12 @@ import {
 	getResizeToBoundsLayout,
 	getStackLayout,
 	getStretchLayout,
-} from './kernels/layout'
+} from './core/layout'
 import {
 	findNearestItemInDirection,
 	getAdjacentIndex,
 	sortIntoReadingOrder,
-} from './kernels/readingOrder'
+} from './core/readingOrder'
 import {
 	getFiniteScale,
 	getLocalScale,
@@ -195,7 +187,11 @@ import {
 	lockScaleToLargerAxis,
 	lockScaleToSmallerAxis,
 	scalePagePoint,
-} from './kernels/resize'
+} from './core/resize'
+import { bindingsIndex } from './derivations/bindingsIndex'
+import { notVisibleShapes } from './derivations/notVisibleShapes'
+import { parentsToChildren } from './derivations/parentsToChildren'
+import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ClickManager } from './managers/ClickManager/ClickManager'
 import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
@@ -7106,7 +7102,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/** Layout kernels return a move per cluster; every shape in the cluster shifts by that delta. */
+	/** Layout core functions return a move per cluster; every shape in the cluster shifts by that delta. */
 	private getChangesToApplyLayoutMoves(
 		moves: { item: { shapes: TLShape[] }; delta: VecLike }[]
 	): TLShapePartial[] {
@@ -7120,7 +7116,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Layout kernels return a translation and a scale per cluster. Each shape moves before it
+	 * Layout core functions return a translation and a scale per cluster. Each shape moves before it
 	 * resizes, so the resize measures geometry that is already in place.
 	 */
 	private applyLayoutTransforms(
