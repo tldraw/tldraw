@@ -3,6 +3,9 @@ import { generateSection } from './generateSection'
 
 const { log: nicelog } = console
 
+// Keep in sync with `categories` in apps/examples/src/examples.tsx. An example whose folder
+// isn't listed here has no category row, so it disappears from the sidebar and llms.txt;
+// generateSection throws for that case.
 export const EXAMPLES_CATEGORIES = [
 	{ id: 'getting-started', title: 'Getting started', description: '', groups: [], hero: null },
 	{ id: 'configuration', title: 'Configuration', description: '', groups: [], hero: null },
@@ -11,6 +14,7 @@ export const EXAMPLES_CATEGORIES = [
 	{ id: 'layout', title: 'Page layout', description: '', groups: [], hero: null },
 	{ id: 'events', title: 'Events & effects', description: '', groups: [], hero: null },
 	{ id: 'shapes/tools', title: 'Shapes & tools', description: '', groups: [], hero: null },
+	{ id: 'users', title: 'Users', description: '', groups: [], hero: null },
 	{ id: 'collaboration', title: 'Collaboration', description: '', groups: [], hero: null },
 	{ id: 'data/assets', title: 'Data & assets', description: '', groups: [], hero: null },
 	{ id: 'use-cases', title: 'Use cases', description: '', groups: [], hero: null },

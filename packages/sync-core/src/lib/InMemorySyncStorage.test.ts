@@ -51,6 +51,27 @@ describe('InMemorySyncStorage', () => {
 			expect(storage.getClock()).toBe(25)
 		})
 
+		it('[IM1] handles snapshots with far more records and tombstones than fit in a spread call', () => {
+			const documents = []
+			for (let i = 0; i < 150_000; i++) {
+				documents.push({
+					state: { ...contractRecords[0], id: `shape:${i}` } as TLRecord,
+					lastChangedClock: i,
+				})
+			}
+			const tombstones: Record<string, number> = {}
+			for (let i = 0; i < 150_000; i++) tombstones[`shape:gone-${i}`] = 150_000 + i
+			const storage = new InMemorySyncStorage<TLRecord>({
+				snapshot: makeContractSnapshot(contractRecords, {
+					documents,
+					tombstones,
+					documentClock: 0,
+					tombstoneHistoryStartsAtClock: 0,
+				}),
+			})
+			expect(storage.getClock()).toBe(299_999)
+		})
+
 		it('[IM2] clamps tombstoneHistoryStartsAtClock down to the document clock', () => {
 			const storage = new InMemorySyncStorage<TLRecord>({
 				snapshot: makeContractSnapshot(contractRecords, {

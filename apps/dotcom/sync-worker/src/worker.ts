@@ -9,7 +9,6 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
-	can,
 	createMutators,
 	queries,
 	schema,
@@ -29,8 +28,7 @@ import { IRequest, cors, json } from 'itty-router'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
-import { createPostgresConnectionPool } from './postgres'
-import { createRoomSnapshot } from './routes/createRoomSnapshot'
+import { createPostgresConnectionPool, getPostgresConnection } from './postgres'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
@@ -42,27 +40,36 @@ import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
+import { getBoardThumbnail } from './routes/tla/getBoardThumbnail'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { initUser } from './routes/tla/initUser'
 import {
+	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
 	getMcpProtectedResourceMetadata,
 	mcpCorsPreflight,
 	withMcpCors,
 } from './routes/tla/mcpAuth'
+import { mcpServer } from './routes/tla/mcpServer'
+import {
+	MCP_SERVER_CARD_PATH,
+	MCP_SERVER_CARD_WELL_KNOWN_PATH,
+	getMcpServerCard,
+} from './routes/tla/mcpServerCard'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
-import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
+import { verifyVersionChainRoute } from './routes/verifyVersionChain'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
-import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
-import { getRole } from './utils/tla/getRole'
+import { getAuth, getZeroAuth, requireAuth, getMcpTokenAuth } from './utils/tla/getAuth'
+import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
+import { createMcpMutators } from './utils/tla/mcpMutators'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -100,10 +107,11 @@ const router = createRouter<Environment>()
 	// `.options` before `.all` so the preflight is answered rather than dispatched into the handler.
 	.options('/app/mcp', mcpCorsPreflight)
 	.options(MCP_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
+	.options(MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH, mcpCorsPreflight)
+	.options(MCP_SERVER_CARD_PATH, mcpCorsPreflight)
+	.options(MCP_SERVER_CARD_WELL_KNOWN_PATH, mcpCorsPreflight)
 	// .all so MCP server can correctly respond to non-post requests with 405
-	.all('/app/mcp', async (req, env, ctx) =>
-		withMcpCors(await sharedBoardScreenshotMcp(req, env, ctx))
-	)
+	.all('/app/mcp', async (req, env, ctx) => withMcpCors(await mcpServer(req, env, ctx)))
 	// Registered at the origin rather than under /app, because RFC 9728 puts protected resource
 	// metadata at a well-known path derived from the resource's own path — a client looks for exactly
 	// this URL and nowhere else. The /api/* route pattern does not cover it, so wrangler.toml carries
@@ -111,9 +119,15 @@ const router = createRouter<Environment>()
 	.get(MCP_PROTECTED_RESOURCE_METADATA_PATH, (req, env) =>
 		withMcpCors(getMcpProtectedResourceMetadata(req, env))
 	)
+	.get(MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH, (req, env) =>
+		withMcpCors(getMcpProtectedResourceMetadata(req, env))
+	)
+	// Unauthenticated on purpose: a Server Card is what a client reads *before* it has a token, and
+	// it carries nothing the MCP endpoint's own 401 challenge doesn't already give away.
+	.get(MCP_SERVER_CARD_PATH, (req, env) => withMcpCors(getMcpServerCard(req, env)))
+	.get(MCP_SERVER_CARD_WELL_KNOWN_PATH, (req, env) => withMcpCors(getMcpServerCard(req, env)))
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
-	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
 	// Social preview metadata for board links. Vercel routes social crawlers (by user-agent) here so
 	// the unfurled link preview includes the board's name. See apps/dotcom/client/scripts/build.ts.
@@ -129,13 +143,22 @@ const router = createRouter<Environment>()
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY)
 	)
 	.get(`/${ROOM_PREFIX}/:roomId/history`, (req, env) => getRoomHistory(req, env, false))
-	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, (req, env) =>
-		getRoomHistorySnapshot(req, env, false)
+	// Legacy rooms write chains too; without this the verifier has a blind spot.
+	.get(`/${ROOM_PREFIX}/:roomId/history/verify`, (req, env) =>
+		verifyVersionChainRoute(req, env, false)
+	)
+	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, (req, env, ctx) =>
+		getRoomHistorySnapshot(req, env, false, ctx)
 	)
 
 	.get(`/${FILE_PREFIX}/:roomId/history`, (req, env) => getRoomHistory(req, env, true))
-	.get(`/${FILE_PREFIX}/:roomId/history/:timestamp`, (req, env) =>
-		getRoomHistorySnapshot(req, env, true)
+	// Before the :timestamp route — itty-router matches in order, and `verify` would otherwise be
+	// read as a timestamp.
+	.get(`/${FILE_PREFIX}/:roomId/history/verify`, (req, env) =>
+		verifyVersionChainRoute(req, env, true)
+	)
+	.get(`/${FILE_PREFIX}/:roomId/history/:timestamp`, (req, env, ctx) =>
+		getRoomHistorySnapshot(req, env, true, ctx)
 	)
 
 	.get('/readonly-slug/:roomId', getReadonlySlug)
@@ -144,7 +167,6 @@ const router = createRouter<Environment>()
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.post(`/app/file/:roomId/restore`, forwardRoomRequest)
 	.post('/app/:userId/init', async (req, env) => {
-		// Ensure user exists in DB before Zero can query
 		const auth = await requireAuth(req, env)
 		if (req.params.userId !== auth.userId) return notFound()
 		return initUser(req, env)
@@ -165,6 +187,7 @@ const router = createRouter<Environment>()
 		return notFound()
 	})
 	.get('/app/file/:roomId/download', forwardRoomRequest)
+	.get('/app/file/:boardId/thumbnail', getBoardThumbnail)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({
@@ -179,23 +202,16 @@ const router = createRouter<Environment>()
 	.post('/app/invite/:token/accept', acceptInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
 	.get('/app/__debug-tail', (req, env) => {
-		if (isDebugLogging(env)) {
-			// upgrade to websocket
-			if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
-				return getLogger(env).fetch(req)
-			}
+		// upgrade to websocket
+		if (isDebugLogging(env) && req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
+			return getLogger(env).fetch(req)
 		}
-
 		return new Response('Not Found', { status: 404 })
 	})
-	.post('/app/__debug-tail/clear', async (req, env) => {
-		if (isDebugLogging(env)) {
-			// upgrade to websocket
-			await getLogger(env).clear()
-			return new Response('ok')
-		}
-
-		return new Response('Not Found', { status: 404 })
+	.post('/app/__debug-tail/clear', async (_req, env) => {
+		if (!isDebugLogging(env)) return new Response('Not Found', { status: 404 })
+		await getLogger(env).clear()
+		return new Response('ok')
 	})
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
@@ -225,11 +241,16 @@ const router = createRouter<Environment>()
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
+		// (db, mutatorContext, logLevel): mutators close over userId, so no context.
 		const processor = new PushProcessor(
-			zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING),
+			zeroPostgresJS(schema, getPostgresConnection(env).connectionString),
+			undefined,
 			'debug'
 		)
-		const result = await processor.process(createMutators(auth.userId), req)
+		const result = await processor.process(
+			auth.mcp ? createMcpMutators(auth.userId) : createMutators(auth.userId),
+			req
+		)
 		// Wake the outbox consumer without blocking the response: a poke failure must not 500 a
 		// mutation that already committed, and the singleton DO shouldn't sit on the hot path.
 		ctx.waitUntil(
@@ -254,6 +275,24 @@ const router = createRouter<Environment>()
 			userID: auth.userId,
 		})
 		return json(result)
+	})
+	// What a Zero client needs to connect that it cannot carry itself: the tables and relationships
+	// as this deployment defines them, and which zero-cache serves it. For an agent's app (the tldraw
+	// plugin for ChatGPT), which cannot depend on dotcom-shared: the schema is plain data, and read
+	// from here it cannot drift from what the query and mutate endpoints run against. MCP tokens
+	// only, since that is the only caller with nowhere else to get it.
+	.get('/app/zero/schema', async (req, env) => {
+		const auth = await getMcpTokenAuth(req, env)
+		if (!auth.ok) {
+			return Response.json(
+				{ error: 'Unauthorized' },
+				{ status: auth.reason === 'not_allowlisted' ? 403 : 401 }
+			)
+		}
+		if (!env.ZERO_SERVER) {
+			return Response.json({ error: 'Zero is not deployed here' }, { status: 503 })
+		}
+		return json({ cacheURL: env.ZERO_SERVER, schema })
 	})
 	.all('*', notFound)
 
@@ -315,34 +354,24 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	): Promise<{ ok: true; userId: string | null } | { ok: false; error: string }> {
 		const db = createPostgresConnectionPool(this.env, 'sync-worker')
 		try {
-			const file = await db
-				.selectFrom('file')
-				.where('id', '=', fileId)
-				.select(['owningGroupId', 'shared', 'sharedLinkType'])
-				.executeTakeFirst()
-			if (!file) return { ok: false, error: 'File not found' }
-
 			let userId: string | null = null
 			if (authorizationHeader) {
 				const fakeReq = new Request('https://internal', {
 					headers: { Authorization: authorizationHeader },
 				}) as unknown as IRequest
+				// A session token first, then an MCP access token: the same fallback the download and
+				// the sync socket take, so an agent's user can add files to boards they can edit.
 				const auth = await getAuth(fakeReq, this.env)
-				userId = auth?.userId ?? null
-			}
-
-			const isSharedEdit = file.shared && file.sharedLinkType === 'edit'
-			if (isSharedEdit) {
-				// shared for editing
-			} else if (userId && file.owningGroupId) {
-				const role = await getRole(db, userId, file.owningGroupId)
-				if (!can(role, 'accessFiles')) {
-					return { ok: false, error: 'Forbidden' }
+				if (auth) {
+					userId = auth.userId
+				} else {
+					const mcp = await getMcpTokenAuth(fakeReq, this.env)
+					userId = mcp.ok ? mcp.userId : null
 				}
-			} else {
+			}
+			if (!(await hasWriteAccessToFile(db, fileId, userId))) {
 				return { ok: false, error: 'Forbidden' }
 			}
-
 			return { ok: true, userId }
 		} finally {
 			await db.destroy()
@@ -389,55 +418,59 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		// The pool is only needed for asset-upload messages, so create it lazily: OG image render
 		// batches should not open database connections they never use.
 		let db: ReturnType<typeof createPostgresConnectionPool> | undefined
-		for (const message of batch.messages) {
-			switch (message.body.type) {
-				case 'og-image-render':
-					try {
-						await handleOgImageRenderMessage(
-							this.env,
-							message as Message<OgImageRenderQueueMessage>,
-							this.ctx
-						)
-					} catch (e) {
-						// handleOgImageRenderMessage settles the message itself; this guards the batch loop
-						// against an unexpected throw escaping it, so one bad message can't abort processing
-						// of the rest of the batch. Retry is a no-op if the handler already settled.
-						//
-						// Reported on every delivery rather than on the last one. The handler already
-						// reports the render failures it catches, so anything reaching here escaped it
-						// entirely — a bug in the handler, not a failing render. Those are rare, and an
-						// escape that doesn't recur never reaches a final delivery anyway: the handler's
-						// own budget acks the message at attempts >= OG_MAX_RENDER_ATTEMPTS.
-						this.reportQueueFailure(message, e)
-						message.retry()
+		try {
+			for (const message of batch.messages) {
+				switch (message.body.type) {
+					case 'og-image-render':
+						try {
+							await handleOgImageRenderMessage(
+								this.env,
+								message as Message<OgImageRenderQueueMessage>,
+								this.ctx
+							)
+						} catch (e) {
+							// handleOgImageRenderMessage settles the message itself; this guards the batch loop
+							// against an unexpected throw escaping it, so one bad message can't abort processing
+							// of the rest of the batch. Retry is a no-op if the handler already settled.
+							//
+							// Reported on every delivery rather than on the last one. The handler already
+							// reports the render failures it catches, so anything reaching here escaped it
+							// entirely — a bug in the handler, not a failing render. Those are rare, and an
+							// escape that doesn't recur never reaches a final delivery anyway: the handler's
+							// own budget acks the message at attempts >= OG_MAX_RENDER_ATTEMPTS.
+							this.reportQueueFailure(message, e)
+							message.retry()
+						}
+						break
+					case 'asset-upload': {
+						const { objectName, fileId, userId } = message.body
+						try {
+							db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
+							await db
+								.insertInto('asset')
+								.values({ objectName, fileId, userId })
+								.onConflict((oc) => oc.column('objectName').doNothing())
+								.execute()
+							message.ack()
+						} catch (e) {
+							this.reportQueueFailureOnFinalAttempt(message, e)
+							message.retry({
+								delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
+							})
+						}
+						break
 					}
-					break
-				case 'asset-upload': {
-					const { objectName, fileId, userId } = message.body
-					try {
-						db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
-						await db
-							.insertInto('asset')
-							.values({ objectName, fileId, userId })
-							.onConflict((oc) => oc.column('objectName').doNothing())
-							.execute()
-						message.ack()
-					} catch (e) {
-						this.reportQueueFailureOnFinalAttempt(message, e)
-						message.retry({
-							delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
-						})
-					}
-					break
+					default:
+						// One shared queue carries every message type, so a newly added type that nobody
+						// handles here would otherwise fall through to whichever branch happens to be last
+						// and be mis-parsed as that type. This makes it a compile error instead. At runtime
+						// it only fires on deploy skew (a producer ahead of this consumer), where throwing
+						// is what we want: the batch is redelivered once the new consumer is live.
+						exhaustiveSwitchError(message.body, 'type')
 				}
-				default:
-					// One shared queue carries every message type, so a newly added type that nobody
-					// handles here would otherwise fall through to whichever branch happens to be last
-					// and be mis-parsed as that type. This makes it a compile error instead. At runtime
-					// it only fires on deploy skew (a producer ahead of this consumer), where throwing
-					// is what we want: the batch is redelivered once the new consumer is live.
-					exhaustiveSwitchError(message.body, 'type')
 			}
+		} finally {
+			await db?.destroy()
 		}
 	}
 }

@@ -1973,3 +1973,48 @@ it('does not get drop children of nested frame if they are occluded from the out
 
 	expect(editor.getShape(rect1)?.parentId).toBe(frame2Id)
 })
+
+describe('When double-clicking a frame edge', () => {
+	it('fits the frame to its content without moving the children', () => {
+		const frameId = createShapeId()
+		const boxId = createShapeId()
+		editor.createShapes([
+			{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 800, h: 600 } },
+			{ id: boxId, type: 'geo', parentId: frameId, x: 300, y: 200, props: { w: 100, h: 100 } },
+		])
+		editor.select(frameId)
+
+		const boxPageBoundsBefore = editor.getShapePageBounds(boxId)!
+
+		editor.doubleClick(800, 300, { target: 'selection', handle: 'right' })
+
+		// The frame fits the content horizontally (100 wide plus 10 of padding either
+		// side) and moves right to compensate; its height is left alone
+		expect(editor.getShapePageBounds(frameId)).toMatchObject({ x: 290, y: 0, w: 120, h: 600 })
+		expect(editor.getShapePageBounds(boxId)).toMatchObject(boxPageBoundsBefore)
+	})
+
+	it('keeps the children in place when the frame is rotated', () => {
+		const frameId = createShapeId()
+		const boxId = createShapeId()
+		editor.createShapes([
+			{ id: frameId, type: 'frame', x: 0, y: 0, rotation: Math.PI / 2, props: { w: 800, h: 600 } },
+			{ id: boxId, type: 'geo', parentId: frameId, x: 300, y: 200, props: { w: 100, h: 100 } },
+		])
+		editor.select(frameId)
+
+		const boxPageBoundsBefore = editor.getShapePageBounds(boxId)!
+
+		const bounds = editor.getSelectionPageBounds()!
+		editor.doubleClick(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' })
+
+		// The frame moved by the same 290 as above, but along its own rotated x axis
+		const frame = editor.getShape(frameId)!
+		expect(frame.x).toBeCloseTo(0)
+		expect(frame.y).toBeCloseTo(290)
+
+		const boxPageBoundsAfter = editor.getShapePageBounds(boxId)!
+		expect(boxPageBoundsAfter.x).toBeCloseTo(boxPageBoundsBefore.x)
+		expect(boxPageBoundsAfter.y).toBeCloseTo(boxPageBoundsBefore.y)
+	})
+})

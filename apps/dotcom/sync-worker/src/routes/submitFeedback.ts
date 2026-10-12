@@ -96,12 +96,16 @@ export async function submitFeedback(req: IRequest, env: Environment) {
 
 async function getUserEmail(env: Environment, userId: string) {
 	const pg = createPostgresConnectionPool(env, 'submitFeedback')
-	const { email } = await pg
-		.selectFrom('user')
-		.where('id', '=', userId)
-		.select('email')
-		.executeTakeFirstOrThrow()
-	return email
+	try {
+		const { email } = await pg
+			.selectFrom('user')
+			.where('id', '=', userId)
+			.select('email')
+			.executeTakeFirstOrThrow()
+		return email
+	} finally {
+		await pg.destroy()
+	}
 }
 
 const UPSERT_CUSTOMER_MUTATION = `

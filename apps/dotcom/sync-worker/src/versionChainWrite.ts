@@ -1,0 +1,201 @@
+import { RoomSnapshot } from '@tldraw/sync-core'
+import { isTransientConnectionError } from './r2'
+import { getSnapshotFingerprint, getSnapshotMetadata } from './snapshotUtils'
+import {
+	ChainState,
+	decideVersionWrite,
+	KeyframeReason,
+	PendingDelta,
+	SegmentBody,
+	segmentCustomMetadata,
+	versionKey,
+	VersionWriteDecision,
+} from './versionChain'
+import { decodeVersionBody, encodeVersionBody } from './versionChainCodec'
+import {
+	buildSnapshotDelta,
+	chainHeadHash,
+	SNAPSHOT_DELTA_VERSION,
+	snapshotHashes,
+} from './versionDelta'
+
+interface VersionChainWriteResultBase {
+	chain: ChainState
+	/** The open segment's contents after this write — exactly what R2 now holds. */
+	pending: PendingDelta[]
+	bytes: number
+}
+
+export type VersionChainWriteResult =
+	| (VersionChainWriteResultBase & { wrote: 'keyframe'; reason: KeyframeReason })
+	| (VersionChainWriteResultBase & { wrote: 'delta' })
+
+/**
+ * Whether a chain R2 call is worth repeating. Beyond dropped connections, R2 documents three
+ * errors as retryable, and every chain write error seen in production has been one of them: 10001
+ * InternalError, 10043 ServiceUnavailable and 10058 TooManyRequests.
+ */
+export function isRetryableR2Error(error: unknown): boolean {
+	if (isTransientConnectionError(error)) return true
+	const message = error instanceof Error ? error.message : String(error)
+	return /\((10001|10043|10058)\)/.test(message)
+}
+
+/**
+ * Waits exceed a second because 10058 is R2's one-write-per-second-per-key limit, and every delta
+ * rewrites the open segment's key.
+ */
+export const VERSION_CHAIN_R2_RETRY = {
+	attempts: 5,
+	waitDuration: 1100,
+	matchError: isRetryableR2Error,
+}
+
+export async function writeVersionChainEntry({
+	bucket,
+	roomKey,
+	iso,
+	chain,
+	noChainReason,
+	pending,
+	previous,
+	previousHeadHash,
+	next,
+	now,
+	keyframesOnly = false,
+}: {
+	bucket: R2Bucket
+	roomKey: string
+	iso: string
+	chain: ChainState | null
+	noChainReason?: 'no-chain' | 'segment-lost'
+	pending: PendingDelta[]
+	previous: RoomSnapshot | null
+	/**
+	 * `chainHeadHash(previous)`, when the caller kept it from the write that produced `previous`
+	 * (it is that write's `chain.headHash`); computed here otherwise. Trusted as given: a wrong value
+	 * cuts a content-mismatch keyframe, never a bad delta.
+	 */
+	previousHeadHash?: string
+	next: RoomSnapshot
+	now: number
+	/** Write `next` as a keyframe without diffing it: the `off` mode. */
+	keyframesOnly?: boolean
+}): Promise<VersionChainWriteResult> {
+	const nextFingerprint = getSnapshotFingerprint(next)
+	const customMetadata = getSnapshotMetadata(next)
+	// One pass for both hashes of `next`: the delta records the envelope hash and the chain head
+	// records the head hash, and on a large board each pass is a canonicalization of every record.
+	const nextHashes = snapshotHashes(next)
+
+	const delta =
+		previous && !keyframesOnly
+			? buildSnapshotDelta(previous, next, { envelopeHash: nextHashes.envelope })
+			: null
+	// Compressed on both sides of the size rule: comparing a raw delta against a compressed
+	// keyframe would trip the ratio on boards that simply compress well.
+	const encodedDelta = delta ? await encodeVersionBody(delta) : null
+	const decision: VersionWriteDecision = keyframesOnly
+		? { kind: 'keyframe', reason: 'keyframes-only' }
+		: decideVersionWrite({
+				roomKey,
+				iso,
+				chain: previous && encodedDelta ? chain : null,
+				noChainReason,
+				previousFingerprint: previous ? getSnapshotFingerprint(previous) : nextFingerprint,
+				// The hash is what actually pins the diff base: tombstone pruning can change content
+				// without moving the fingerprint.
+				previousHash: previous ? (previousHeadHash ?? chainHeadHash(previous)) : '',
+				nextFingerprint,
+				deltaBytes: encodedDelta?.body.byteLength ?? 0,
+				now,
+			})
+
+	if (decision.kind === 'keyframe') {
+		const key = versionKey(roomKey, iso, 'keyframe')
+		const encoded = await encodeVersionBody(next)
+		await bucket.put(key, encoded.body, {
+			customMetadata: { ...customMetadata, ...encoded.metadata },
+		})
+		return {
+			wrote: 'keyframe',
+			reason: decision.reason,
+			bytes: encoded.body.byteLength,
+			pending: [],
+			chain: {
+				keyframeKey: key,
+				deltaVersion: SNAPSHOT_DELTA_VERSION,
+				keyframeAt: now,
+				keyframeBytes: encoded.body.byteLength,
+				deltaCount: 0,
+				headFingerprint: nextFingerprint,
+				headHash: nextHashes.head,
+				openSegment: null,
+			},
+		}
+	}
+
+	// A new segment starts from this delta alone; an existing one is rewritten with everything it
+	// already held plus this delta. R2 bills the operation, not the bytes uploaded, so the rewrite
+	// costs the same single Class A op either way and only the final body is stored.
+	const deltas = decision.isNewSegment
+		? [{ t: iso, delta: delta! }]
+		: [...pending, { t: iso, delta: delta! }]
+	const encoded = await encodeVersionBody({ v: 1 as const, deltas })
+
+	await bucket.put(decision.segment.key, encoded.body, {
+		customMetadata: {
+			...customMetadata,
+			...encoded.metadata,
+			...segmentCustomMetadata({
+				keyframeKey: chain!.keyframeKey,
+				firstSeq: decision.segment.firstSeq,
+				timestamps: deltas.map((d) => d.t),
+			}),
+		},
+	})
+
+	// Only now, after the PUT resolved: the buffer has to stay exactly what R2 holds, or a retry
+	// would rewrite the segment without a delta it already contains.
+	return {
+		wrote: 'delta',
+		bytes: encoded.body.byteLength,
+		pending: deltas,
+		chain: {
+			...chain!,
+			deltaCount: decision.seq,
+			headFingerprint: nextFingerprint,
+			headHash: nextHashes.head,
+			openSegment: { ...decision.segment, bytes: encoded.body.byteLength },
+		},
+	}
+}
+
+/**
+ * The deltas an open segment holds, for a durable object that lost its in-memory buffer, or null
+ * when the object cannot be used as one: missing, undecodable, or not a v1 segment body.
+ *
+ * Deltas of a superseded format are returned rather than refused. `decideVersionWrite` retires such
+ * a chain with a `delta-format` keyframe; refusing here would null the chain first and report the
+ * whole bump as `segment-lost`, which is the per-room signal that reason has to stay.
+ *
+ * Null means the segment is unusable and the caller starts a fresh chain, which costs one keyframe.
+ * A failed `get` throws instead: the segment may be intact and only the network was not, and null
+ * here would silently discard it on every blip. The caller retries transient errors and lets a
+ * persistent failure fail the chain write. (A blip while reading the
+ * body still decodes as null — rare enough that the keyframe is fine.)
+ */
+export async function readOpenSegment(
+	bucket: R2Bucket,
+	key: string
+): Promise<PendingDelta[] | null> {
+	const object = await bucket.get(key)
+	if (!object) return null
+	try {
+		const body = (await decodeVersionBody(object)) as Partial<SegmentBody> | null
+		if (body?.v !== 1 || !Array.isArray(body.deltas)) return null
+		return body.deltas
+	} catch {
+		return null
+	}
+}

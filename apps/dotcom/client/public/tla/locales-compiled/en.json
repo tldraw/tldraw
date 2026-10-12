@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -257,6 +251,12 @@
       "value": " commented on your board"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Could not submit feedback"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -273,6 +273,12 @@
     {
       "type": 0,
       "value": "Search..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Please try again."
     }
   ],
   "2de510be71": [
@@ -421,12 +427,6 @@
       "value": "To continue editing please copy the file to your files."
     }
   ],
-  "47839e47a5": [
-    {
-      "type": 0,
-      "value": "tldraw"
-    }
-  ],
   "47f493a590": [
     {
       "type": 0,
@@ -501,6 +501,12 @@
     {
       "type": 0,
       "value": " unread"
+    }
+  ],
+  "550b25cc0c": [
+    {
+      "type": 0,
+      "value": "Could not restore your local drawing. Try reloading this page."
     }
   ],
   "554a05155c": [
@@ -1074,6 +1080,12 @@
       "value": "Delete file"
     }
   ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "You appear to be offline. Check your connection and try again."
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1288,6 +1300,12 @@
     {
       "type": 0,
       "value": "Owner"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the File menu in the top left."
     }
   ],
   "b758336699": [

@@ -26,25 +26,19 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 	const dir = useDirection()
 	const labelToUse = unwrapLabel(label, menu.type)
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
+	const testId = `${menu.sourceId}-group.${id}`
 
 	switch (menu.type) {
 		case 'menu': {
 			return (
-				<TldrawUiDropdownMenuGroup
-					className={className}
-					data-testid={`${menu.sourceId}-group.${id}`}
-				>
+				<TldrawUiDropdownMenuGroup className={className} data-testid={testId}>
 					{children}
 				</TldrawUiDropdownMenuGroup>
 			)
 		}
 		case 'context-menu': {
 			return (
-				<div
-					dir={dir}
-					className={classNames('tlui-menu__group', className)}
-					data-testid={`${menu.sourceId}-group.${id}`}
-				>
+				<div dir={dir} className={classNames('tlui-menu__group', className)} data-testid={testId}>
 					{children}
 				</div>
 			)
@@ -52,7 +46,7 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 		case 'keyboard-shortcuts': {
 			// todo: if groups need a label, let's give em a label
 			return (
-				<div className="tlui-shortcuts-dialog__group" data-testid={`${menu.sourceId}-group.${id}`}>
+				<div className="tlui-shortcuts-dialog__group" data-testid={testId}>
 					<h2 className="tlui-shortcuts-dialog__group__title">{labelStr}</h2>
 					<div className="tlui-shortcuts-dialog__group__content">{children}</div>
 				</div>
@@ -61,17 +55,14 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 		case 'toolbar': {
 			const Layout = orientation === 'horizontal' ? TldrawUiRow : TldrawUiColumn
 			return (
-				<Layout className="tlui-main-toolbar__group" data-testid={`${menu.sourceId}-group.${id}`}>
+				<Layout className="tlui-main-toolbar__group" data-testid={testId}>
 					{children}
 				</Layout>
 			)
 		}
 		case 'toolbar-overflow': {
 			return (
-				<TldrawUiGrid
-					className="tlui-main-toolbar__group"
-					data-testid={`${menu.sourceId}-group.${id}`}
-				>
+				<TldrawUiGrid className="tlui-main-toolbar__group" data-testid={testId}>
 					{children}
 				</TldrawUiGrid>
 			)

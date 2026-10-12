@@ -1,0 +1,26 @@
+.map-tile {
+	position: absolute;
+	pointer-events: none;
+	user-select: none;
+}
+
+.map-top-panel {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin: 8px;
+	padding: 4px 8px;
+	font-size: 12px;
+	color: var(--tl-color-text);
+}
+
+.map-top-panel a {
+	color: var(--tl-color-text-1);
+}
+
+.map-readout {
+	font-family: var(--tl-font-mono);
+	font-variant-numeric: tabular-nums;
+	/* tlui-layout disables selection, and a coordinate readout you cannot copy is useless. */
+	user-select: text;
+}

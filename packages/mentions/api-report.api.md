@@ -10,7 +10,7 @@ import { JsonObject } from 'tldraw';
 import { JSX } from 'react/jsx-runtime';
 import { MentionNodeAttrs } from '@tiptap/extension-mention';
 import { MentionOptions } from '@tiptap/extension-mention';
-import { Node as Node_2 } from '@tiptap/core';
+import { Node as Node_2 } from 'tldraw';
 import { ReactNode } from 'react';
 import { RefAttributes } from 'react';
 import type { SuggestionOptions } from '@tiptap/suggestion';

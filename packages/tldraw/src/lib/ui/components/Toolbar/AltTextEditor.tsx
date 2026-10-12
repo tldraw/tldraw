@@ -27,8 +27,6 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 	const trackEvent = useUiEvents()
 	const isReadonly = editor.getIsReadonly()
 
-	const handleValueChange = (value: string) => setAltText(value)
-
 	const handleComplete = useCallback(() => {
 		trackEvent('set-alt-text', { source })
 		const shape = editor.getShape<ExtractShapeByProps<{ altText: string }>>(shapeId)
@@ -44,9 +42,6 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 		onClose()
 	}, [trackEvent, source, editor, shapeId, altText, onClose])
 
-	const handleConfirm = () => handleComplete()
-	const handleAltTextCancel = useCallback(() => onClose(), [onClose])
-
 	useEffect(() => {
 		const doc = editor.getContainerDocument()
 		ref.current?.select()
@@ -54,7 +49,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 		function handleKeyDown(event: KeyboardEvent) {
 			if (event.key === 'Escape') {
 				event.stopPropagation()
-				handleAltTextCancel()
+				onClose()
 			}
 		}
 
@@ -62,7 +57,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 		return () => {
 			doc.removeEventListener('keydown', handleKeyDown, { capture: true })
 		}
-	}, [editor, handleAltTextCancel])
+	}, [editor, onClose])
 
 	useEffect(() => {
 		const doc = editor.getContainerDocument()
@@ -88,9 +83,9 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 				value={altText}
 				placeholder={msg('tool.media-alt-text-desc')}
 				aria-label={msg('tool.media-alt-text-desc')}
-				onValueChange={handleValueChange}
+				onValueChange={setAltText}
 				onComplete={handleComplete}
-				onCancel={handleAltTextCancel}
+				onCancel={onClose}
 				disabled={isReadonly}
 			/>
 			{!isReadonly && (
@@ -99,7 +94,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 					data-testid="tool.media-alt-text-confirm"
 					type="icon"
 					onPointerDown={preventDefault}
-					onClick={handleConfirm}
+					onClick={handleComplete}
 				>
 					<TldrawUiButtonIcon small icon="check" />
 				</TldrawUiButton>
