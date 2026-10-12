@@ -9,16 +9,17 @@ import {
 	DefaultDialogs,
 	DefaultToasts,
 	EditorContext,
-	RTL_LANGUAGES,
-	TLUiEventHandler,
-	TldrawUiA11yProvider,
-	TldrawUiContextProvider,
 	fetch,
 	react,
+	RTL_LANGUAGES,
 	runtime,
 	setRuntimeOverrides,
+	TldrawUiA11yProvider,
+	TldrawUiContextProvider,
 	tlenvReactive,
+	TLUiEventHandler,
 	useDialogs,
+	useTldrawI18n,
 	useToasts,
 	useValue,
 } from 'tldraw'
@@ -40,7 +41,7 @@ import { useUITheme } from '../hooks/useUITheme'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { hasNotAcceptedLegal } from '../utils/auth'
-import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
+import { IntlProvider, defineMessages, useIntl } from '../utils/i18n'
 import {
 	getLocalSessionState,
 	resetLocalSessionStateButKeepTheme,
@@ -196,10 +197,6 @@ function IntlWrapper({ children, locale }: { children: ReactNode; locale: string
 		}
 	}, [locale])
 
-	const defaultLocale = 'en'
-	// createIntl is used in non-React locations.
-	setupCreateIntl({ defaultLocale, locale, messages })
-
 	return (
 		<IntlProvider defaultLocale={locale} locale={locale} messages={messages}>
 			{children}
@@ -225,6 +222,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					<DefaultDialogs />
 					<DefaultToasts />
 					<DefaultA11yAnnouncer />
+					<PutI18nInApp />
 					<PutToastsInApp />
 					<WorkspaceInviteHandler />
 					{currentEditor && <TlaCookieConsent />}
@@ -232,6 +230,15 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 			</TldrawUiA11yProvider>
 		</EditorContext.Provider>
 	)
+}
+
+// The app outlives any render, so the adapter is handed to it rather than reached for. Same
+// shape as `PutToastsInApp` below.
+function PutI18nInApp() {
+	const i18n = useTldrawI18n()
+	const app = useMaybeApp()
+	if (app) app.i18n = i18n
+	return null
 }
 
 function PutToastsInApp() {

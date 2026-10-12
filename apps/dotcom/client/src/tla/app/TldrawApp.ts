@@ -41,13 +41,9 @@ import {
 } from '@tldraw/utils'
 import { useNavigate } from 'react-router-dom'
 import {
-	Atom,
-	Signal,
-	TLDocument,
-	TLUiToastsContextType,
-	TLUserPreferences,
 	assertExists,
 	atom,
+	Atom,
 	computed,
 	createTLCurrentUser,
 	createTLSchema,
@@ -56,7 +52,15 @@ import {
 	getUserPreferences,
 	parseTldrawJsonFile,
 	react,
+	Signal,
+	TLDocument,
+	TLI18nAdapter,
+	TLI18nMessage,
+	TLI18nValues,
+	TLUiToastsContextType,
+	TLUserPreferences,
 	transact,
+	translateMessage,
 } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
@@ -69,7 +73,7 @@ import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
 import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/featureFlags'
-import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
+import { defineMessages } from '../utils/i18n'
 import {
 	clearLastVisitedFile,
 	getLastVisitedFileId,
@@ -244,6 +248,11 @@ export class TldrawApp {
 	}
 
 	toasts: TLUiToastsContextType | null = null
+	/**
+	 * The editor's i18n, put here by `PutI18nInApp` once the provider has it. Held rather than
+	 * reached for: this class outlives any render and has no hooks available.
+	 */
+	i18n: TLI18nAdapter | null = null
 	trackEvent: TLAppUiContextType
 	navigate: ReturnType<typeof useNavigate>
 
@@ -638,8 +647,8 @@ export class TldrawApp {
 		const code = error.type === 'zero' ? ZErrorCode.offline_error : (error.message as ZErrorCode)
 		const descriptor = this.getMessage(code)
 		this.toasts?.addToast({
-			title: this.getIntl().formatMessage(this.messages.mutation_error_toast_title),
-			description: this.getIntl().formatMessage(descriptor),
+			title: this.msg(this.messages.mutation_error_toast_title),
+			description: this.msg(descriptor),
 		})
 	}, 3000)
 
@@ -859,8 +868,8 @@ export class TldrawApp {
 	private showMaxFilesToast() {
 		trackEvent('max-files-reached')
 		this.toasts?.addToast({
-			title: this.getIntl().formatMessage(this.messages.max_files_title),
-			description: this.getIntl().formatMessage(this.messages.max_files_reached),
+			title: this.msg(this.messages.max_files_title),
+			description: this.msg(this.messages.max_files_reached),
 			keepOpen: true,
 		})
 	}
@@ -893,7 +902,7 @@ export class TldrawApp {
 
 		const seed = this.createFile({
 			workspaceId,
-			name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
+			name: this.msg(this.messages.new_workspace_file_name),
 			createSource: WELCOME_CREATE_SOURCE,
 		})
 		this.workspaceWelcomeFileSeeds.set(workspaceId, seed)
@@ -998,7 +1007,9 @@ export class TldrawApp {
 	getFallbackFileName(time: number) {
 		const createdAt = new Date(time)
 		const format = getDateFormat(createdAt)
-		return this.getIntl().formatDate(createdAt, format)
+		// `Intl` directly: a locale is all a date needs, and it's the one thing `TLI18n` carries.
+		const locale = this.i18n?.().locale ?? 'en'
+		return new Intl.DateTimeFormat(locale, format).format(createdAt)
 	}
 
 	getFileName(file: TlaFile | string | null, useDateFallback: false): string | undefined
@@ -1243,16 +1254,12 @@ export class TldrawApp {
 		return { app, userId: user.id }
 	}
 
-	getIntl() {
-		const intl = createIntl()
-		if (intl) return intl
-		// intl should exists since IntlWrapper should create it before we get here, but let's use this just in case
-		setupCreateIntl({
-			defaultLocale: 'en',
-			locale: this.user$.get()?.locale ?? 'en',
-			messages: {},
-		})
-		return createIntl()!
+	/**
+	 * Translates a message in the user's locale, falling back to its English when the provider
+	 * hasn't handed over an i18n yet — which beats a toast showing an id, or throwing.
+	 */
+	msg(message: TLI18nMessage, values?: TLI18nValues) {
+		return translateMessage(this.i18n?.() ?? null, message, values)
 	}
 
 	async uploadTldrFiles(
@@ -1301,7 +1308,7 @@ export class TldrawApp {
 			if (getApproxPercentage() > 50) return
 			uploadingToastId = this.toasts?.addToast({
 				severity: 'info',
-				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
+				title: this.msg(this.messages.uploadingTldrFiles, {
 					total: totalFiles,
 					uploaded: uploadedFiles + 1,
 				}),
@@ -1339,7 +1346,7 @@ export class TldrawApp {
 				if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
 				this.toasts?.addToast({
 					severity: 'error',
-					title: this.getIntl().formatMessage(this.messages.unknown_error),
+					title: this.msg(this.messages.unknown_error),
 					keepOpen: true,
 				})
 				console.error(res.error)
@@ -1348,7 +1355,7 @@ export class TldrawApp {
 			}
 
 			updateToast({
-				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
+				title: this.msg(this.messages.uploadingTldrFiles, {
 					total: totalFiles,
 					uploaded: ++uploadedFiles + 1,
 				}),
@@ -1368,7 +1375,7 @@ export class TldrawApp {
 		if (totalFiles > 1) {
 			this.toasts?.addToast({
 				severity: 'success',
-				title: this.getIntl().formatMessage(this.messages.addingTldrFiles, {
+				title: this.msg(this.messages.addingTldrFiles, {
 					total: files.length,
 				}),
 				keepOpen: true,

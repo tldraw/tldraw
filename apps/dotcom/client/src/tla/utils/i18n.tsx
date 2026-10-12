@@ -1,12 +1,6 @@
 /* eslint-disable no-restricted-imports */
 import { ComponentPropsWithoutRef } from 'react'
-import {
-	FormattedMessage,
-	IntlConfig,
-	IntlShape,
-	createIntlCache,
-	createIntl as originalCreateIntl,
-} from 'react-intl'
+import { FormattedMessage } from 'react-intl'
 import { F as TldrawF, TLI18nMessage, defineMessages as sdkDefineMessages } from 'tldraw'
 
 // Re-export everything and override below what we want to override.
@@ -55,34 +49,4 @@ export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
 			<TldrawF {...(props as ComponentPropsWithoutRef<typeof TldrawF>)} />
 		</span>
 	)
-}
-
-// This is optional but highly recommended since it prevents memory leaks.
-// See: https://formatjs.github.io/docs/react-intl/api/#createintl
-const cache = createIntlCache()
-let presetIntl: IntlShape | null = null
-let didSetupCreateIntl = false
-export function setupCreateIntl({ defaultLocale, locale, messages }: IntlConfig) {
-	presetIntl = originalCreateIntl(
-		{
-			defaultLocale,
-			locale,
-			messages,
-		},
-		cache
-	)
-
-	didSetupCreateIntl = true
-}
-
-// createIntl is used in non-React locations.
-export function createIntl(options?: IntlShape) {
-	if (options) {
-		return originalCreateIntl(options)
-	} else {
-		if (!didSetupCreateIntl) {
-			throw new Error('Need to run setupCreateIntl to use createIntl without options.')
-		}
-		return presetIntl
-	}
 }
