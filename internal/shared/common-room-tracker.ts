@@ -1,5 +1,8 @@
 import { COMMON_ROOM_SNIPPET } from './common-room-signals'
 
+// Common Room's persisted identity: https://www.commonroom.io/docs/signals/website-visitor-tracking/faqs/
+const COMMON_ROOM_IDENTITY_COOKIES = ['signals-sdk-user-id', 'signals-sdk-session-id']
+
 interface CommonRoomIdentity {
 	email: string
 	name?: string
@@ -32,6 +35,19 @@ export class CommonRoomTracker {
 		const frameWindow = this.iframe?.contentWindow
 		if (frameWindow && frameWindow.location.href !== window.location.href) {
 			frameWindow.history.replaceState(null, '', window.location.href)
+		}
+	}
+
+	private clearIdentityCookies() {
+		const hostnameParts = window.location.hostname.split('.')
+		for (const name of COMMON_ROOM_IDENTITY_COOKIES) {
+			const expiredCookie = `${name}=; Max-Age=0; Path=/`
+			document.cookie = expiredCookie
+			// The SDK may use a parent domain while an older installation used a host-only cookie.
+			for (let index = 0; index < hostnameParts.length - 1; index++) {
+				const domain = hostnameParts.slice(index).join('.')
+				document.cookie = `${expiredCookie}; Domain=${domain}`
+			}
 		}
 	}
 
@@ -95,6 +111,7 @@ export class CommonRoomTracker {
 		const watchPageChanges = this.pageviewInterval !== undefined
 		const lastPageUrl = this.lastPageUrl
 		this.disable()
+		this.clearIdentityCookies()
 		if (!wasEnabled) return false
 		// Reset identity without reporting the same page again when rebuilding the SDK context.
 		this.lastPageUrl = lastPageUrl
