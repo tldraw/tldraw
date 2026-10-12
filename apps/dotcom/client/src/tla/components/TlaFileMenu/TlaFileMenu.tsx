@@ -214,44 +214,42 @@ export function FileItems({
 		downloadAppFile(fileId)
 	}, [fileId, source, trackEvent])
 
-	const copyLinkMsg = msg(messages.copyLink.id)
-	const renameMsg = msg(messages.rename.id)
-	const duplicateMsg = msg(messages.duplicate.id)
-	const pinMsg = msg(messages.pin.id)
 	const unpinMsg = msg(messages.unpin.id)
-	const deleteOrForgetMsg = msg((hasAdminRights ? messages.delete : messages.forget).id)
-	const downloadFile = msg(editorMessages.downloadFile.id)
-	const myWorkspaceMsg = msg(messages.myWorkspace.id)
 
 	return (
 		<Fragment>
 			<TldrawUiMenuGroup id="file-actions">
 				{/* todo: in published rooms, support copying link */}
 				<TldrawUiMenuItem
-					label={copyLinkMsg}
+					label={msg(messages.copyLink.id)}
 					id="copy-link"
 					readonlyOk
 					onSelect={handleCopyLinkClick}
 				/>
 				{hasAdminRights && (
-					<TldrawUiMenuItem label={renameMsg} id="rename" readonlyOk onSelect={onRenameAction} />
+					<TldrawUiMenuItem
+						label={msg(messages.rename.id)}
+						id="rename"
+						readonlyOk
+						onSelect={onRenameAction}
+					/>
 				)}
 				{/* todo: in published rooms, support duplication / forking */}
 				<TldrawUiMenuItem
-					label={duplicateMsg}
+					label={msg(messages.duplicate.id)}
 					id="duplicate"
 					readonlyOk
 					onSelect={handleDuplicateClick}
 				/>
 				<TldrawUiMenuItem
-					label={downloadFile}
+					label={msg(editorMessages.downloadFile.id)}
 					id="download-file"
 					readonlyOk
 					onSelect={handleDownloadClick}
 				/>
 				{workspaceId && (
 					<TldrawUiMenuItem
-						label={isPinned ? unpinMsg : pinMsg}
+						label={isPinned ? unpinMsg : msg(messages.pin.id)}
 						id="pin-unpin"
 						readonlyOk
 						onSelect={handlePinUnpinClick}
@@ -264,7 +262,7 @@ export function FileItems({
 						<TldrawUiMenuGroup id="workspaces">
 							<TldrawUiMenuCheckboxItem
 								key="my-files"
-								label={homeWorkspaceName ?? myWorkspaceMsg}
+								label={homeWorkspaceName ?? msg(messages.myWorkspace.id)}
 								id="my-files"
 								readonlyOk
 								checked={fileWorkspaceId === homeWorkspaceId}
@@ -325,7 +323,7 @@ export function FileItems({
 				)}
 				{workspaceId && (
 					<TldrawUiMenuItem
-						label={deleteOrForgetMsg}
+						label={msg((hasAdminRights ? messages.delete : messages.forget).id)}
 						id="delete"
 						readonlyOk
 						onSelect={handleDeleteClick}

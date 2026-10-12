@@ -113,8 +113,6 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
 		[app, fileId, trackEvent]
 	)
 
-	const label = msg((sharedLinkType === 'edit' ? messages.editor : messages.viewer).id)
-
 	return (
 		<TlaMenuControl>
 			<TlaMenuControlLabel htmlFor="tla-shared-link-type-select">
@@ -123,7 +121,7 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
 			<TlaMenuSelect
 				id="tla-shared-link-type-select"
 				data-testid="shared-link-type-select"
-				label={label}
+				label={msg((sharedLinkType === 'edit' ? messages.editor : messages.viewer).id)}
 				value={sharedLinkType!}
 				onChange={handleSelectChange}
 				options={[

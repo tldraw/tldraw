@@ -11,7 +11,6 @@ const messages = defineMessages({
 export function TlaSidebarFeedbackButton() {
 	const msg = useTranslation()
 	const { addDialog } = useDialogs()
-	const lbl = msg(messages.submitFeedback.id)
 	return (
 		<button
 			className={classNames(styles.sidebarLinkButton, styles.hoverable, 'tla-text_ui__regular')}
@@ -21,7 +20,7 @@ export function TlaSidebarFeedbackButton() {
 			}}
 		>
 			<TlaIcon icon="feedback" />
-			<span className={styles.sidebarLinkButtonLabel}>{lbl}</span>
+			<span className={styles.sidebarLinkButtonLabel}>{msg(messages.submitFeedback.id)}</span>
 		</button>
 	)
 }

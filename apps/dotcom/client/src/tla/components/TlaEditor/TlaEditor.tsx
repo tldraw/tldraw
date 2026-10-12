@@ -131,12 +131,11 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 	const setIsReady = useSetIsReady()
 	const { addToast } = useToasts()
-	const slurpFailedMsg = msg(messages.slurpFailed.id)
 	const showSlurpFailure = useEvent(() => {
 		addToast({
 			id: 'local-file-restore-failed',
 			severity: 'warning',
-			title: slurpFailedMsg,
+			title: msg(messages.slurpFailed.id),
 			keepOpen: true,
 		})
 	})

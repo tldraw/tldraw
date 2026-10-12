@@ -84,9 +84,6 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	const scrollableRef = useScrollbarWhenScrollable()
 
 	const namePlaceholderMsg = msg(messages.namePlaceholder.id)
-	const ownerMsg = msg(messages.owner.id)
-	const memberMsg = msg(messages.member.id)
-	const youMsg = msg(messages.you.id)
 
 	const workspaceMembership = useValue(
 		'workspaceMembership',
@@ -158,7 +155,10 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	// Optional column: older cached rows without it (and the migration's default)
 	// mean "enabled", so treat a missing value as true.
 	const inviteLinkEnabled = workspace.inviteLinkEnabled ?? true
-	const roleLabels: Record<Role, string> = { owner: ownerMsg, member: memberMsg }
+	const roleLabels: Record<Role, string> = {
+		owner: msg(messages.owner.id),
+		member: msg(messages.member.id),
+	}
 	// Owners sort above members; within a role the current user is pinned to the top.
 	const roleOrder: Record<Role, number> = { owner: 0, member: 1 }
 	const roleOptions = (Object.keys(roleLabels) as Role[]).map((value) => ({
@@ -444,7 +444,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 													</div>
 													<span className={styles.memberName}>
 														{member.userName}
-														{isSelf ? ` (${youMsg})` : ''}
+														{isSelf ? ` (${msg(messages.you.id)})` : ''}
 													</span>
 													{canManageWorkspace ? (
 														<TlaMenuSelect

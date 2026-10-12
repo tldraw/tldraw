@@ -308,14 +308,16 @@ export function SignInToComment() {
 	const app = useMaybeApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
-	const ctaString = msg(signInMessages.signInToComment.id)
 	if (isReadonly || app) return null
 	return (
 		<TlaCtaButton
 			canvas
 			data-testid="tla-sign-in-to-comment-button"
 			onClick={() => {
-				trackEvent('sign-up-clicked', { source: 'comments', ctaMessage: ctaString })
+				trackEvent('sign-up-clicked', {
+					source: 'comments',
+					ctaMessage: msg(signInMessages.signInToComment.id),
+				})
 				addDialog({ component: TlaSignInDialog })
 			}}
 		>

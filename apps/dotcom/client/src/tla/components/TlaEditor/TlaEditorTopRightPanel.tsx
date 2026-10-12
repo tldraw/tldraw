@@ -53,7 +53,6 @@ export function TlaEditorTopRightPanel({
 	context: TopRightPanelContext
 }) {
 	const msg = useTranslation()
-	const ctaString = msg(ctaMessages.signInToShare.id)
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 	const fileId = useCurrentFileId()
@@ -81,7 +80,7 @@ export function TlaEditorTopRightPanel({
 					onClick={() => {
 						trackEvent('sign-up-clicked', {
 							source: 'anon-landing-page',
-							ctaMessage: ctaString,
+							ctaMessage: msg(ctaMessages.signInToShare.id),
 						})
 						addDialog({ component: TlaSignInDialog })
 					}}

@@ -33,8 +33,6 @@ export function TlaSidebarNotificationsButton() {
 	const { unreadCount } = useCommentNotifications()
 	// Same id as the popover, so we can dismiss it when a notification is opened.
 	const [, onOpenChange] = useMenuIsOpen(NOTIFICATIONS_MENU_ID)
-	const label = msg(messages.notifications.id)
-	const unreadLabel = msg(messages.unreadNotifications.id, { count: unreadCount })
 
 	return (
 		<TldrawUiPopover id={NOTIFICATIONS_MENU_ID}>
@@ -43,10 +41,15 @@ export function TlaSidebarNotificationsButton() {
 					type="icon"
 					className={styles.sidebarCreateFileButton}
 					data-testid="tla-notifications-button"
-					title={label}
+					title={msg(messages.notifications.id)}
 				>
 					<TlaIcon icon="notification" />
-					{unreadCount > 0 && <span className={notifications.badge} aria-label={unreadLabel} />}
+					{unreadCount > 0 && (
+						<span
+							className={notifications.badge}
+							aria-label={msg(messages.unreadNotifications.id, { count: unreadCount })}
+						/>
+					)}
 				</TldrawUiButton>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent

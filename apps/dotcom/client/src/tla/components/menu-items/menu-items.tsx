@@ -72,8 +72,6 @@ export function SignOutMenuItem() {
 
 	const trackEvent = useTldrawAppUiEvents()
 
-	const label = msg(messages.signOut.id)
-
 	const handleSignout = useCallback(() => {
 		signoutAnalytics()
 		auth
@@ -95,7 +93,7 @@ export function SignOutMenuItem() {
 				id="sign-out"
 				data-testid="tla-user-sign-out"
 				onSelect={handleSignout}
-				label={label}
+				label={msg(messages.signOut.id)}
 				readonlyOk
 			/>
 		</TldrawUiMenuGroup>
@@ -194,12 +192,11 @@ function useUIThemeIds() {
 export function UIThemeSubmenu() {
 	const msg = useTranslation()
 	const themeIds = useUIThemeIds()
-	const colorThemeLabel = msg(messages.colorTheme.id)
 
 	if (themeIds.length === 0) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="ui-theme" label={colorThemeLabel}>
+		<TldrawUiMenuSubmenu id="ui-theme" label={msg(messages.colorTheme.id)}>
 			<UIThemeMenuGroup />
 		</TldrawUiMenuSubmenu>
 	)
@@ -326,13 +323,12 @@ export function ImportFileActionItem() {
 
 	const navigate = useNavigate()
 
-	const importFileMsg = msg(messages.importFile.id)
 	const rejectTldrawOfflineFiles = useRejectTldrawOfflineFiles()
 
 	return (
 		<TldrawUiMenuItem
 			id="import-file"
-			label={importFileMsg}
+			label={msg(messages.importFile.id)}
 			readonlyOk
 			onSelect={async () => {
 				const editor = getCurrentEditor()
@@ -383,7 +379,6 @@ export function DebugMenuGroup() {
 export function DebugSubmenu() {
 	const msg = useTranslation()
 	const editor = useMaybeEditor()
-	const appFlagsLbl = msg(messages.appDebugFlags.id)
 
 	const [shouldHighlightMissing, setShouldHighlightMissing] = useState(
 		document.body.classList.contains('tla-lang-highlight-missing')
@@ -407,7 +402,7 @@ export function DebugSubmenu() {
 	}, [shouldHighlightMissing])
 
 	return (
-		<TldrawUiMenuSubmenu id="debug" label={appFlagsLbl}>
+		<TldrawUiMenuSubmenu id="debug" label={msg(messages.appDebugFlags.id)}>
 			<TldrawUiMenuGroup id="debug app flags">
 				{debugLanguageFlags.map((flag) => (
 					<TldrawUiMenuCheckboxItem

@@ -24,8 +24,6 @@ export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: strin
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
 	const handleCreateFile = useHandleSidebarCreateFile()
-	const newBoardLbl = msg(messages.newFile.id)
-	const settingsLbl = msg(messages.workspaceSettings.id)
 
 	const handleSettings = useCallback(() => {
 		addDialog({
@@ -41,13 +39,13 @@ export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: strin
 			<TlaSidebarSearch />
 			<TlaSidebarActionButton
 				icon="edit"
-				label={newBoardLbl}
+				label={msg(messages.newFile.id)}
 				onClick={handleCreateFile}
 				testId="tla-sidebar-new-board"
 			/>
 			<TlaSidebarActionButton
 				icon="settings"
-				label={settingsLbl}
+				label={msg(messages.workspaceSettings.id)}
 				onClick={handleSettings}
 				testId="tla-sidebar-workspace-settings"
 			/>

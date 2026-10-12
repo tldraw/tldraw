@@ -84,7 +84,6 @@ export function TlaSidebarWorkspaceSwitcher() {
 	)
 	const switchToWorkspace = useSwitchToWorkspace()
 	const handleCreateWorkspace = useCreateWorkspaceDialog()
-	const createWorkspaceLbl = msg(messages.createWorkspace.id)
 	const container = useContainer()
 
 	return (
@@ -151,7 +150,9 @@ export function TlaSidebarWorkspaceSwitcher() {
 							>
 								<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
 									<TlaIcon icon="plus" />
-									<span className={styles.sidebarTruncatedText}>{createWorkspaceLbl}</span>
+									<span className={styles.sidebarTruncatedText}>
+										{msg(messages.createWorkspace.id)}
+									</span>
 								</span>
 							</_DropdownMenu.Item>
 						</_DropdownMenu.Content>

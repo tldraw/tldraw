@@ -214,7 +214,6 @@ function TlaEditorTopLeftPanelSignedIn() {
 	const intl = useIntl()
 	const [isRenaming, setIsRenaming] = useState(false)
 	const pageMenuLbl = msg(messages.pageMenu.id)
-	const fileSubmenuMsg = msg(editorMessages.file.id)
 
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
@@ -296,7 +295,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 			>
 				<TldrawUiMenuGroup id="regular-stuff">
 					{fileId && (
-						<TldrawUiMenuSubmenu id="file" label={fileSubmenuMsg}>
+						<TldrawUiMenuSubmenu id="file" label={msg(editorMessages.file.id)}>
 							<FileItems
 								source="file-header"
 								fileId={fileId}
@@ -454,7 +453,6 @@ function TlaFileNameEditorInput({
 
 function SignInMenuItem() {
 	const msg = useTranslation()
-	const signInLbl = msg(messages.signIn.id)
 	const { addDialog } = useDialogs()
 
 	return (
@@ -465,7 +463,7 @@ function SignInMenuItem() {
 				addDialog({ component: TlaSignInDialog })
 			}}
 		>
-			<TldrawUiButtonLabel>{signInLbl}</TldrawUiButtonLabel>
+			<TldrawUiButtonLabel>{msg(messages.signIn.id)}</TldrawUiButtonLabel>
 			<TlaIcon icon="sign-in" />
 		</TldrawUiButton>
 	)

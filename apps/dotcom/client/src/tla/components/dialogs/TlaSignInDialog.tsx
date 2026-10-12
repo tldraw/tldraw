@@ -117,8 +117,6 @@ function TlaEnterEmailStep({
 	const { signIn, isLoaded: isSignInLoaded } = useSignIn()
 	const { setActive, client } = useClerk()
 
-	const enterEmailAddressMsg = msg(messages.enterEmailAddress.id)
-
 	const [state, setState] = useState<{
 		identifier: string
 		isSubmitting: boolean
@@ -255,7 +253,7 @@ function TlaEnterEmailStep({
 						data-testid="tla-identifier-input"
 						value={state.identifier}
 						onChange={(e) => setState((s) => ({ ...s, identifier: e.target.value }))}
-						placeholder={enterEmailAddressMsg}
+						placeholder={msg(messages.enterEmailAddress.id)}
 						className={styles.authInput}
 						required
 						disabled={state.isSubmitting}

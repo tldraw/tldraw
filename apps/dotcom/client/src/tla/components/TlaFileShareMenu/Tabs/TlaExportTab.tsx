@@ -174,7 +174,6 @@ function ExportThemeSelect({
 	onChange(key: 'exportTheme', value: TldrawAppSessionState['exportSettings']['exportTheme']): void
 }) {
 	const msg = useTranslation()
-	const label = msg(messages[value as 'auto' | 'light' | 'dark'].id)
 	const trackEvent = useTldrawAppUiEvents()
 	const handleChange = (value: TldrawAppSessionState['exportSettings']['exportTheme']) => {
 		onChange('exportTheme', value)
@@ -189,7 +188,7 @@ function ExportThemeSelect({
 			<TlaMenuSelect
 				id="tla-export-theme-select"
 				value={value}
-				label={label}
+				label={msg(messages[value as 'auto' | 'light' | 'dark'].id)}
 				onChange={handleChange}
 				options={[
 					{ value: 'auto', label: <F defaultMessage="Auto" /> },
