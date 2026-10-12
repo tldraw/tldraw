@@ -19,7 +19,7 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
-import { defineMessages, F, useMsg } from '../../utils/i18n'
+import { F, defineMessages, useMsg } from 'tldraw'
 import { setRedirectOnSignIn } from '../../utils/redirect'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'

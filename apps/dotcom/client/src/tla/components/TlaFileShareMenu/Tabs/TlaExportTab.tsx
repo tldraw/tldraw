@@ -12,12 +12,12 @@ import {
 	useReactor,
 	useValue,
 } from 'tldraw'
+import { F, defineMessages, useMsg } from 'tldraw'
 import { globalEditor } from '../../../../utils/globalEditor'
 import { TldrawApp } from '../../../app/TldrawApp'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getCurrentEditor } from '../../../utils/getCurrentEditor'
-import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
 	TldrawAppSessionState,
 	getLocalSessionState,

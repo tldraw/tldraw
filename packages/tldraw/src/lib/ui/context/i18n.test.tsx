@@ -1,5 +1,5 @@
 import { render, renderHook, screen } from '@testing-library/react'
-import { defineMessages, defineMessagesWithGeneratedIds, type TLI18nMessage } from '@tldraw/editor'
+import { defineMessages } from '@tldraw/editor'
 import * as React from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { defaultUiAssetUrls } from '../assetUrls'
@@ -158,30 +158,23 @@ describe('isPseudoLocale', () => {
 })
 
 describe('defineMessages', () => {
-	it('rejects a descriptor with no id, so nothing unextractable ships', () => {
-		expect(() => defineMessages({ bad: { defaultMessage: 'No id' } as TLI18nMessage })).toThrow(
-			/missing an id/
-		)
-	})
-})
-
-describe('defineMessagesWithGeneratedIds', () => {
-	it('keeps an injected id', () => {
-		const defined = defineMessagesWithGeneratedIds({
-			copy: { id: 'a1b2c3d4e5', defaultMessage: 'Copy' },
-		})
-		expect(defined.copy).toEqual({ id: 'a1b2c3d4e5', defaultMessage: 'Copy' })
+	it('keeps a written id, and its literal type', () => {
+		const defined = defineMessages({ copy: { id: 'action.copy', defaultMessage: 'Copy' } })
+		expect(defined.copy).toEqual({ id: 'action.copy', defaultMessage: 'Copy' })
+		// The literal type is what lets a declared id go where a TLUiTranslationKey is expected.
+		const key: 'action.copy' = defined.copy.id
+		expect(key).toBe('action.copy')
 	})
 
-	// Where no plugin ran, which is every test in an app that uses this. It can't throw the way
-	// `defineMessages` does, or an app whose ids arrive at build couldn't be tested at all.
-	it('stands the English in for a missing id rather than throwing', () => {
-		const defined = defineMessagesWithGeneratedIds({ copy: { defaultMessage: 'Copy' } })
+	// Where a bundler plugin was going to supply the id and none ran — every test in an app that
+	// writes its messages that way. Throwing here would mean such an app couldn't be tested.
+	it('stands the English in for a missing id', () => {
+		const defined = defineMessages({ copy: { defaultMessage: 'Copy' } })
 		expect(defined.copy).toEqual({ id: 'Copy', defaultMessage: 'Copy' })
 	})
 
 	it('renders as its English when no plugin supplied an id', () => {
-		const defined = defineMessagesWithGeneratedIds({ greet: { defaultMessage: 'Hello there' } })
+		const defined = defineMessages({ greet: { defaultMessage: 'Hello there' } })
 		render(<F {...defined.greet} />, { wrapper: withProvider() })
 		expect(screen.getByText('Hello there')).toBeTruthy()
 	})

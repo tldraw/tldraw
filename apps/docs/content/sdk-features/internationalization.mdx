@@ -146,14 +146,12 @@ The [TLUiTranslation](?) object contains a `locale` code (e.g., `'fr'`), a `labe
 
 ### Generated message ids
 
-The SDK's own messages have hand-written ids, because an app overrides by id and an id has to survive a reworded English string. An app's own messages needn't: if you use [@formatjs/unplugin](https://formatjs.github.io/docs/tooling/bundler-plugins) with an `idInterpolationPattern`, your bundler derives each id from the message's own text and you write none.
-
-Use [defineMessagesWithGeneratedIds](?) for those, so the messages still type-check where the id is missing in source:
+The SDK's own messages have hand-written ids, because an app overrides by id and an id has to survive a reworded English string. An app's own messages needn't: if you use [@formatjs/unplugin](https://formatjs.github.io/docs/tooling/bundler-plugins) with an `idInterpolationPattern`, your bundler derives each id from the message's own text, and you can leave it out.
 
 ```tsx
-import { defineMessagesWithGeneratedIds, F } from 'tldraw'
+import { defineMessages, F } from 'tldraw'
 
-const messages = defineMessagesWithGeneratedIds({
+const messages = defineMessages({
 	// No id: the plugin injects one at build.
 	welcome: { defaultMessage: 'Welcome back' },
 })
@@ -163,7 +161,7 @@ function Greeting() {
 }
 ```
 
-Where no plugin has run — a unit test, normally — the English stands in as the id. It matches nothing in any catalogue, so the message renders as that English rather than failing.
+Where no plugin ran either — a unit test, normally — the English stands in as the id. It matches nothing in any catalogue, so the message renders as that English rather than failing.
 
 ## Overriding translations
 

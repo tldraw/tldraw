@@ -8,8 +8,14 @@ import {
 	useCallback,
 	useContext,
 } from 'react'
-import { TldrawUiButton, TldrawUiIcon, TldrawUiTooltip, useContainer } from 'tldraw'
-import { defineMessages, useMsg } from '../../utils/i18n'
+import {
+	TldrawUiButton,
+	TldrawUiIcon,
+	TldrawUiTooltip,
+	defineMessages,
+	useContainer,
+	useMsg,
+} from 'tldraw'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './menu.module.css'
 

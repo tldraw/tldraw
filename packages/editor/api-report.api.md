@@ -821,10 +821,9 @@ export const defaultUserPreferences: Readonly<{
 export const defaultUserStore: TLUserStore;
 
 // @public
-export function defineMessages<const Messages extends Record<string, TLI18nMessage>>(msgs: Messages): Messages;
-
-// @public
-export function defineMessagesWithGeneratedIds<K extends string>(msgs: Record<K, TLI18nMessageWithGeneratedId>): Record<K, TLI18nMessage>;
+export function defineMessages<const Messages extends Record<string, TLI18nMessageInput>>(msgs: Messages): {
+    [K in keyof Messages]: Messages[K] & TLI18nMessage;
+};
 
 // @public
 export function degreesToRadians(d: number): number;
@@ -4365,14 +4364,9 @@ export interface TLI18nMessage {
 }
 
 // @public
-export interface TLI18nMessageWithGeneratedId {
-    // (undocumented)
-    defaultMessage: string;
-    // (undocumented)
-    description?: string;
-    // (undocumented)
+export type TLI18nMessageInput = Omit<TLI18nMessage, 'id'> & {
     id?: string;
-}
+};
 
 // @public
 export type TLI18nValues = Record<string, bigint | boolean | Date | null | number | string | undefined>;

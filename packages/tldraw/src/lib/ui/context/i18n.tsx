@@ -1,4 +1,4 @@
-import { TLI18n, TLI18nAdapter, TLI18nMessage, TLI18nMessageWithGeneratedId } from '@tldraw/editor'
+import { TLI18n, TLI18nAdapter, TLI18nMessage, TLI18nMessageInput } from '@tldraw/editor'
 import { ReactNode, useCallback, useRef } from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import {
@@ -35,14 +35,12 @@ export type TLUiMessageValues = Record<
 >
 
 /**
- * The id is optional here, unlike on `TLI18nMessage`, so that an app whose ids a bundler
- * plugin injects can render messages that carry none in source. The SDK's own always write one:
- * omitting it there gives the message a content-hash id, which `pnpm i18n-extract --check` reports
- * as an unexpected new key and CI rejects.
+ * The id is optional, as it is on `TLI18nMessageInput`, so a message whose id a bundler plugin
+ * injects can be rendered from source that carries none.
  *
  * @public
  */
-export interface TLUiMessageProps extends TLI18nMessageWithGeneratedId {
+export interface TLUiMessageProps extends TLI18nMessageInput {
 	values?: TLUiMessageValues
 }
 

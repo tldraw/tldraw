@@ -11,8 +11,8 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { F } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
-import { F } from '../../../utils/i18n'
 
 function RoomSizeDialog({
 	title,

@@ -8,8 +8,8 @@ import {
 	useLocalStorageState,
 	useValue,
 } from 'tldraw'
+import { F, defineMessages, useMsg } from 'tldraw'
 import { trackEvent } from '../../../utils/analytics'
-import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import styles from './TlaAnonDotDevLink.module.css'
 

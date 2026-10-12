@@ -9,9 +9,9 @@ import {
 	useDialogs,
 	useToasts,
 } from 'tldraw'
+import { defineMessages, useMsg } from 'tldraw'
 import { useMaybeApp } from '../hooks/useAppState'
 import { hasNotAcceptedLegal } from '../utils/auth'
-import { defineMessages, useMsg } from '../utils/i18n'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { TlaInviteDialog } from './dialogs/TlaInviteDialog'
 import { TlaInviteExpiredDialog } from './dialogs/TlaInviteExpiredDialog'

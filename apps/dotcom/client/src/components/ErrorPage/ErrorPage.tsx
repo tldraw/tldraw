@@ -1,7 +1,8 @@
 import { Component, ReactNode } from 'react'
+import { IntlProvider } from 'react-intl'
 import { Link } from 'react-router-dom'
+import { F } from 'tldraw'
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
-import { F, IntlProvider } from '../../tla/utils/i18n'
 import { isInIframe } from '../../utils/iFrame'
 
 const GoBackLink = () => {

@@ -61,63 +61,53 @@ export interface TLI18nMessage {
 }
 
 /**
- * Declares messages so the extractor can find them. Returns them unchanged; the value is in
- * naming the call, which is what `formatjs extract` looks for.
+ * A message as it's written. The id is optional because a bundler plugin may supply it:
+ * `@formatjs/unplugin` with an `idInterpolationPattern` derives one from the message's own text,
+ * which is how tldraw.com does it. Everywhere downstream takes a {@link TLI18nMessage}, whose id
+ * is required, because {@link defineMessages} fills one in.
  *
- * The type parameter is `const` so each `id` keeps its literal type. That's what lets a declared
- * id be passed where a `TLUiTranslationKey` is expected — a menu item's `label`, say — instead of
- * widening to `string` and needing a cast.
+ * @public
+ */
+export type TLI18nMessageInput = Omit<TLI18nMessage, 'id'> & { id?: string }
+
+/**
+ * Declares messages so the extractor can find them. The value is in naming the call, which
+ * `formatjs extract` matches by name wherever it was imported from.
+ *
+ * Write the id yourself, as the SDK's own messages do — an app overrides by id, so an id has to
+ * survive a reworded English string. Leave it out only where a bundler plugin injects one. Where
+ * no plugin ran either, which in practice means a test, the English stands in as the id: it
+ * matches nothing in any catalogue, so the message renders as that English. A message that
+ * reaches a real build with no id is caught by `pnpm i18n-extract --check`, which sees the
+ * content hash the extractor gave it as a key nobody declared.
+ *
+ * The type parameter is `const` so each written `id` keeps its literal type. That's what lets a
+ * declared id be passed where a `TLUiTranslationKey` is expected — a menu item's `label`, say —
+ * instead of widening to `string` and needing a cast.
  *
  * For a message rendered as an element, write it inline on the `<F>` instead — the extractor
  * reads those props directly, and the text then sits where it's read. This is for the messages
  * that can't be elements: a label the UI takes as data, and anything going through `useMsg`.
  *
+ * @example
+ *
+ * ```ts
+ * const messages = defineMessages({
+ * 	copy: { id: 'action.copy', defaultMessage: 'Copy' },
+ * })
+ * ```
+ *
  * @public
  */
-export function defineMessages<const Messages extends Record<string, TLI18nMessage>>(
+export function defineMessages<const Messages extends Record<string, TLI18nMessageInput>>(
 	msgs: Messages
-): Messages {
-	if (process.env.NODE_ENV !== 'production') {
-		for (const key in msgs) {
-			if (!msgs[key].id) throw new Error(`defineMessages: "${key}" is missing an id.`)
-		}
-	}
-	return msgs
-}
-
-/**
- * A message as written where a bundler plugin supplies its id, rather than the author. The id is
- * optional here and required everywhere else, which is the only difference.
- *
- * @public
- */
-export interface TLI18nMessageWithGeneratedId {
-	id?: string
-	defaultMessage: string
-	description?: string
-}
-
-/**
- * Declares messages whose ids a bundler plugin generates from their text — `@formatjs/unplugin`
- * with an `idInterpolationPattern`, which is how tldraw.com does it. Use {@link defineMessages}
- * instead when the ids are written by hand, as the SDK's own are: it requires them, and that is
- * the only thing that catches a message no extractor can see.
- *
- * Returns messages whose ids are required, so nothing downstream needs to know the difference.
- * Where a plugin hasn't run — a test, normally — the English stands in as the id. It matches
- * nothing in any catalogue, so the message renders as that English instead of throwing.
- *
- * @public
- */
-export function defineMessagesWithGeneratedIds<K extends string>(
-	msgs: Record<K, TLI18nMessageWithGeneratedId>
-): Record<K, TLI18nMessage> {
-	const withIds = {} as Record<K, TLI18nMessage>
+): { [K in keyof Messages]: Messages[K] & TLI18nMessage } {
+	const withIds = {} as { [K in keyof Messages]: Messages[K] & TLI18nMessage }
 	for (const key in msgs) {
 		const message = msgs[key]
-		withIds[key] = message.id
-			? (message as TLI18nMessage)
-			: { ...message, id: message.defaultMessage }
+		withIds[key] = (
+			message.id ? message : { ...message, id: message.defaultMessage }
+		) as Messages[typeof key] & TLI18nMessage
 	}
 	return withIds
 }

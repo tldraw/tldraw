@@ -2,6 +2,7 @@ import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { IntlProvider, useIntl } from 'react-intl'
 import { Outlet, useMatches } from 'react-router-dom'
 import {
 	ContainerProvider,
@@ -23,6 +24,7 @@ import {
 	useToasts,
 	useValue,
 } from 'tldraw'
+import { defineMessages } from 'tldraw'
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/ErrorPage'
 import { TlaRouteHandle } from '../../routeDefs'
@@ -37,11 +39,10 @@ import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/Maybe
 import { components } from '../components/TlaEditor/TlaEditor'
 import { WorkspaceInviteHandler } from '../components/WorkspaceInviteHandler'
 import { AppStateProvider, useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
+import '../styles/tla.css'
 import { useUITheme } from '../hooks/useUITheme'
 import { UserProvider } from '../hooks/useUser'
-import '../styles/tla.css'
 import { hasNotAcceptedLegal } from '../utils/auth'
-import { IntlProvider, defineMessages, useIntl } from '../utils/i18n'
 import {
 	getLocalSessionState,
 	resetLocalSessionStateButKeepTheme,

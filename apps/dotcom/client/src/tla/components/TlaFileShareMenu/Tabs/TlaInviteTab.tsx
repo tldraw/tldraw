@@ -1,6 +1,6 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
-import { useEditor, useValue } from 'tldraw'
+import { F, defineMessages, useEditor, useMsg, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useEditorDeepLink } from '../../../hooks/useDeepLink'
@@ -8,7 +8,6 @@ import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
 import { useTldrawCurrentUser } from '../../../hooks/useUser'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
-import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,

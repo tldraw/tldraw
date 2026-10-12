@@ -9,6 +9,7 @@ import {
 	summarizeReactions,
 } from '@tldraw/commenting'
 import { ReactNode, useCallback, useState } from 'react'
+import { useIntl } from 'react-intl'
 import { Link } from 'react-router-dom'
 import {
 	createDeepLinkString,
@@ -24,9 +25,9 @@ import {
 	TLRichText,
 	useValue,
 } from 'tldraw'
+import { F, defineMessages, useMsg } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { defineMessages, F, useIntl, useMsg } from '../../../utils/i18n'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {

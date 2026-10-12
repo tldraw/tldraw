@@ -12,10 +12,10 @@ import {
 	TldrawUiDialogTitle,
 	useDialogs,
 } from 'tldraw'
+import { F } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { trackEvent } from '../../../../utils/analytics'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { F } from '../../../utils/i18n'
 import { useGetFileName, useRoomInfo } from '../TlaEditorTopRightPanel'
 import styles from './sneaky-legacy-modal.module.css'
 

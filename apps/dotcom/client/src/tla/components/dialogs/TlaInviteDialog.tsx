@@ -6,8 +6,8 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
+import { F } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { F } from '../../utils/i18n'
 import styles from './TlaInviteDialog.module.css'
 
 export function TlaInviteDialog({

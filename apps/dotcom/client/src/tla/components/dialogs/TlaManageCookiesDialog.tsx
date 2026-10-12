@@ -5,8 +5,8 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
+import { F } from 'tldraw'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
-import { F } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
 	TlaMenuControl,

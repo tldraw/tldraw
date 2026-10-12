@@ -19,6 +19,7 @@ import {
 	useToasts,
 	useValue,
 } from 'tldraw'
+import { defineMessages, useMsg } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
@@ -27,7 +28,6 @@ import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
-import { defineMessages, useMsg } from '../../utils/i18n'
 import { CreateWorkspaceDialog } from '../dialogs/CreateWorkspaceDialog'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu'

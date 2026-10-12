@@ -11,8 +11,8 @@ import {
 	useMenuIsOpen,
 	useValue,
 } from 'tldraw'
+import { F, defineMessages, useMsg } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
-import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
 	CookieConsentMenuItem,
 	DebugMenuGroup,

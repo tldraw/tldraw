@@ -62,6 +62,7 @@ import {
 	transact,
 	translateMessage,
 } from 'tldraw'
+import { defineMessages } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
 import { ZERO_SERVER } from '../../utils/config'
@@ -73,7 +74,6 @@ import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
 import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/featureFlags'
-import { defineMessages } from '../utils/i18n'
 import {
 	clearLastVisitedFile,
 	getLastVisitedFileId,

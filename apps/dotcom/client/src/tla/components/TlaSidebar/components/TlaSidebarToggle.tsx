@@ -1,6 +1,5 @@
-import { TldrawUiButton } from 'tldraw'
+import { TldrawUiButton, useMsg } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
-import { useMsg } from '../../../utils/i18n'
 import { getIsSidebarOpen, toggleSidebar } from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { messages, useHideSidebarToggle } from './sidebar-shared'

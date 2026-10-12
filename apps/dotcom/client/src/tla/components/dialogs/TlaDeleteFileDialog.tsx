@@ -10,11 +10,11 @@ import {
 	TldrawUiDialogTitle,
 	useValue,
 } from 'tldraw'
+import { F } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useApp } from '../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { F } from '../../utils/i18n'
 
 export function TlaDeleteFileDialog({
 	fileId,

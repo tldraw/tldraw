@@ -1,5 +1,4 @@
-import { TldrawUiButton } from 'tldraw'
-import { useMsg } from '../../../utils/i18n'
+import { TldrawUiButton, useMsg } from 'tldraw'
 import { TlaFileMenu } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { messages } from './sidebar-shared'

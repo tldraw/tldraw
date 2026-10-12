@@ -1,6 +1,5 @@
 import classNames from 'classnames'
-import { useDialogs } from 'tldraw'
-import { defineMessages, useMsg } from '../../../utils/i18n'
+import { defineMessages, useDialogs, useMsg } from 'tldraw'
 import { SubmitFeedbackDialog } from '../../dialogs/SubmitFeedbackDialog'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'

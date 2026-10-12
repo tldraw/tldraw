@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useIntl } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import {
 	Editor,
@@ -7,11 +8,11 @@ import {
 	downloadFile,
 	serializeTldrawJsonBlob,
 } from 'tldraw'
+import { useMsg } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { useIntl, useMsg } from '../../utils/i18n'
 import { editorMessages as messages } from './editor-messages'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 

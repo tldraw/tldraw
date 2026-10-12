@@ -17,6 +17,7 @@ import {
 	useUiEvents,
 	useValue,
 } from 'tldraw'
+import { defineMessages, isPseudoLocale, useMsg } from 'tldraw'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
 import { signoutAnalytics } from '../../../utils/analytics'
@@ -25,7 +26,6 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { UI_THEMES } from '../../themes/ui-themes'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
-import { defineMessages, isPseudoLocale, useMsg } from '../../utils/i18n'
 import {
 	getLocalSessionState,
 	resetLocalSessionStateButKeepTheme,

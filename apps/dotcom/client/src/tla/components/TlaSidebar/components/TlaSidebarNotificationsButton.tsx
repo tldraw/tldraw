@@ -5,7 +5,7 @@ import {
 	TldrawUiPopoverTrigger,
 	useMenuIsOpen,
 } from 'tldraw'
-import { defineMessages, useMsg } from '../../../utils/i18n'
+import { defineMessages, useMsg } from 'tldraw'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {

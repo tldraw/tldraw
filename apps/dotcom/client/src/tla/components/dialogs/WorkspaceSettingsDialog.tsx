@@ -12,10 +12,10 @@ import {
 	useDialogs,
 	useValue,
 } from 'tldraw'
+import { F, defineMessages, useMsg } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { defineMessages, F, useMsg } from '../../utils/i18n'
 import {
 	TlaMenuControl,
 	TlaMenuControlLabel,

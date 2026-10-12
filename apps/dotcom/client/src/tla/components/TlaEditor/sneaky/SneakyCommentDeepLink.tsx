@@ -7,10 +7,9 @@ import {
 } from '@tldraw/commenting'
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useEditor, useToasts } from 'tldraw'
+import { defineMessages, useEditor, useMsg, useToasts } from 'tldraw'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { useIsReady } from '../../../hooks/useIsReady'
-import { defineMessages, useMsg } from '../../../utils/i18n'
 
 const messages = defineMessages({
 	commentDeleted: { defaultMessage: 'This comment was deleted.' },

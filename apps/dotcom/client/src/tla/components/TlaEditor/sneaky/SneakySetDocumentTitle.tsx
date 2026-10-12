@@ -1,9 +1,8 @@
 import { Helmet } from 'react-helmet-async'
 import { useParams } from 'react-router-dom'
-import { useValue } from 'tldraw'
+import { useMsg, useValue } from 'tldraw'
 import { useGlobalEditor } from '../../../../utils/globalEditor'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { useMsg } from '../../../utils/i18n'
 import { editorMessages as messages } from '../editor-messages'
 import { getEditorFileName } from '../useFileEditorOverrides'
 

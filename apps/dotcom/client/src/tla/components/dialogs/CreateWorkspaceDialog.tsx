@@ -9,7 +9,7 @@ import {
 	TldrawUiDialogTitle,
 	TldrawUiInput,
 } from 'tldraw'
-import { defineMessages, F, useMsg } from '../../utils/i18n'
+import { F, defineMessages, useMsg } from 'tldraw'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({

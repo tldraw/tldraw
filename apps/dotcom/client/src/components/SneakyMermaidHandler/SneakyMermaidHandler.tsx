@@ -1,6 +1,11 @@
 import { useEffect } from 'react'
-import { defaultHandleExternalTextContent, useEditor, useToasts } from 'tldraw'
-import { defineMessages, useMsg } from '../../tla/utils/i18n'
+import {
+	defaultHandleExternalTextContent,
+	defineMessages,
+	useEditor,
+	useMsg,
+	useToasts,
+} from 'tldraw'
 import { simpleMermaidStringTest, stripMarkdownMermaidFence } from './simpleMermaidStringTest'
 
 const messages = defineMessages({

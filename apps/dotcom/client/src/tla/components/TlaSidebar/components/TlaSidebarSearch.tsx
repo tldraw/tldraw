@@ -1,8 +1,7 @@
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { TldrawUiButton, TldrawUiInput, useValue } from 'tldraw'
+import { TldrawUiButton, TldrawUiInput, defineMessages, useMsg, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
-import { defineMessages, useMsg } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 

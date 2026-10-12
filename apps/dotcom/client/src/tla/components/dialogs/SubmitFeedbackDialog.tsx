@@ -2,6 +2,7 @@ import { useAuth } from '@clerk/clerk-react'
 import { addBreadcrumb, captureException } from '@sentry/react'
 import { SubmitFeedbackRequestBody } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
+import { useIntl } from 'react-intl'
 import {
 	TldrawUiButton,
 	TldrawUiButtonCheck,
@@ -17,7 +18,7 @@ import {
 	setInLocalStorage,
 	useToasts,
 } from 'tldraw'
-import { F, defineMessages, useIntl } from '../../utils/i18n'
+import { F, defineMessages } from 'tldraw'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import styles from './dialogs.module.css'
 
