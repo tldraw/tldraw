@@ -6,6 +6,7 @@ import {
 	TLStateNodeConstructor,
 	TLUiOverrides,
 	VecLike,
+	defineMessages,
 } from 'tldraw'
 import { type CommentingOptions, defaultCommentingOptions, getCommentingOptions } from './options'
 import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
@@ -308,6 +309,10 @@ class CommentDragging extends StateNode {
 /** @public */
 export const commentTools = [CommentTool]
 
+const messages = defineMessages({
+	toolComment: { id: 'tool.comment', defaultMessage: 'Comment' },
+})
+
 /** Registers the comment tool in the UI (icon, label, shortcut). Compose into your overrides.
  *  Once registered, tldraw's `DefaultQuickActionsContent` shows the comment button.
  * @public */
@@ -316,7 +321,7 @@ export const commentToolOverrides: TLUiOverrides = {
 		tools.comment = {
 			id: 'comment',
 			icon: 'comment',
-			label: 'Comment',
+			label: messages.toolComment.id,
 			kbd: 'c',
 			onSelect: () => editor.setCurrentTool('comment'),
 		}

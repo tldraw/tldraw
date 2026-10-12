@@ -18,6 +18,7 @@ import {
 } from '../hooks/menu-hooks'
 import { useGetEmbedDefinition } from '../hooks/useGetEmbedDefinition'
 import { useReadonly } from '../hooks/useReadonly'
+import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuActionCheckboxItem } from './primitives/menus/TldrawUiMenuActionCheckboxItem'
 import { TldrawUiMenuActionItem } from './primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
@@ -30,6 +31,9 @@ const messages = defineMessages({
 	contextMenuEdit: { id: 'context-menu.edit', defaultMessage: 'Edit' },
 	contextMenuExportAs: { id: 'context-menu.export-as', defaultMessage: 'Export as' },
 	contextMenuMoveToPage: { id: 'context-menu.move-to-page', defaultMessage: 'Move to page' },
+	movedToPageAction: { id: 'toast.moved-to-page.action', defaultMessage: 'Go back' },
+	movedToPageDesc: { id: 'toast.moved-to-page.desc', defaultMessage: 'Moved to {page}.' },
+	movedToPageTitle: { id: 'toast.moved-to-page.title', defaultMessage: 'Changed page' },
 })
 
 /* -------------------- Selection ------------------- */
@@ -476,6 +480,7 @@ export function ReorderMenuSubmenu() {
 /** @public @react */
 export function MoveToPageMenu() {
 	const editor = useEditor()
+	const msg = useTranslation()
 	const pages = useValue('pages', () => editor.getPages(), [editor])
 	const currentPageId = useValue('current page id', () => editor.getCurrentPageId(), [editor])
 	const { addToast } = useToasts()
@@ -503,11 +508,11 @@ export function MoveToPageMenu() {
 
 							if (toPage) {
 								addToast({
-									title: 'Changed page',
-									description: `Moved to ${toPage.name}.`,
+									title: msg(messages.movedToPageTitle.id),
+									description: msg(messages.movedToPageDesc.id, { page: toPage.name }),
 									actions: [
 										{
-											label: 'Go back',
+											label: msg(messages.movedToPageAction.id),
 											type: 'primary',
 											onClick: () => {
 												editor.markHistoryStoppingPoint('change-page')
