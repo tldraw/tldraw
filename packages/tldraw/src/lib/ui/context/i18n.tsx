@@ -86,12 +86,16 @@ export function useTldrawI18n(): TLI18nAdapter {
 	const translation = useCurrentTranslation()
 	const intl = useIntl()
 
-	// The adapter identity has to stay stable: it's a constructor option, so a new one on every
-	// locale change would tear down and rebuild the editor. Hence the ref — the returned function
-	// is fixed, and still reads the current translation.
+	// A stable function that reads the current translation, so whatever holds the adapter — the
+	// editor, or an app that stores it — never sees it change identity on a locale switch.
 	const i18nRef = useRef<TLI18n | null>(null)
 	i18nRef.current = {
-		locale: translation.locale,
+		// The requested locale, as the `IntlProvider` has it, not the catalog that loaded. They
+		// differ while a catalog is in flight and for a locale the SDK ships none for, and either
+		// way the loaded one is English — so a French user's dates formatted as English.
+		locale: intl.locale,
+		// The loaded catalog's, deliberately: it has to agree with `useDirection`, which lays out
+		// the rest of the UI.
 		dir: translation.dir,
 		// The whole descriptor, so react-intl formats `defaultMessage` itself for an id the
 		// catalog doesn't have. Given only the id it returns the id, and the English then had to

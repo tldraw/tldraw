@@ -384,3 +384,18 @@ describe('ZeroLogBuffer', () => {
 		expect(long.endsWith('…')).toBe(true)
 	})
 })
+
+describe('TldrawApp.msg', () => {
+	// Before `PutI18nInApp` hands over the editor's i18n there is none to translate through. The
+	// fallback used to return the default message as written, so an upload toast showed its own
+	// ICU source rather than "Added 3 .tldr files."
+	it('formats the English, values and all, before an i18n arrives', () => {
+		const app = createAppStub()
+		const added = {
+			id: 'test.added',
+			defaultMessage: '{total, plural, one {Added # .tldr file.} other {Added # .tldr files.}}',
+		}
+		expect(app.msg(added, { total: 1 })).toBe('Added 1 .tldr file.')
+		expect(app.msg(added, { total: 3 })).toBe('Added 3 .tldr files.')
+	})
+})

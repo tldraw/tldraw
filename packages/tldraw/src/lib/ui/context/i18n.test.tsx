@@ -213,6 +213,13 @@ describe('the i18n adapter the editor gets', () => {
 		).toBe('Added 3 files.')
 	})
 
+	// The requested locale, not the catalog that loaded: for a locale the SDK ships none for, the
+	// loaded one is English, and an app formatting dates by `locale` then got English dates.
+	it('reports the requested locale, not the catalog that loaded', () => {
+		const { result } = renderHook(() => useTldrawI18n(), { wrapper: withProvider(undefined, 'zz') })
+		expect(result.current().locale).toBe('zz')
+	})
+
 	it('still prefers a translation when there is one', () => {
 		const i18n = adapterWith({ 'app.added-files': 'Added {total}' })
 		expect(i18n.translate({ id: 'app.added-files', defaultMessage: 'x' }, { total: 2 })).toBe(

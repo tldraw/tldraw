@@ -32,7 +32,7 @@ import { TLAnyAssetUtilConstructor } from './config/defaultAssets'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
-import { TLI18nAdapter } from './config/TLI18n'
+import { defaultI18n, TLI18nAdapter } from './config/TLI18n'
 import { Editor } from './editor/Editor'
 import { resolveThemes } from './editor/managers/ThemeManager/ThemeManager'
 import { TLAnyOverlayUtilConstructor } from './editor/overlays/OverlayUtil'
@@ -490,6 +490,19 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 
 const noAutoFocus = () => getGlobalDocument().location.search.includes('tldraw_preserve_focus')
 
+/**
+ * A slot the UI fills with its own i18n, for an editor whose host passed none. Every app that
+ * composes `<TldrawEditor>` and `<TldrawUi>` by hand rather than rendering `<Tldraw>` is one: the
+ * `i18n` prop is new, so none of them pass it, and their shape names — which shapes now resolve
+ * through the editor's i18n — would have been announced in English. The UI renders inside the
+ * editor in every composition, so it can hand its translations up. An `i18n` prop still wins.
+ *
+ * @internal
+ */
+export const EditorI18nFallbackContext = React.createContext<{
+	current: TLI18nAdapter | null
+} | null>(null)
+
 function TldrawEditorWithReadyStore({
 	onMount,
 	children,
@@ -556,6 +569,18 @@ function TldrawEditorWithReadyStore({
 		}
 	}, [autoFocus, initialState, colorScheme, cameraOptions, deepLinks, themes, initialTheme])
 
+	// The adapter is called on each use rather than held as a value, so the editor can keep one
+	// stable function that reads whichever adapter is current. Listing `i18n` among the deps that
+	// recreate the editor instead tore it down — camera, selection, undo history — whenever the
+	// adapter's identity changed, which is every render for one written inline.
+	const i18nRef = useRef(i18n)
+	i18nRef.current = i18n
+	const fallbackI18nRef = useRef<TLI18nAdapter | null>(null)
+	const stableI18n = useCallback<TLI18nAdapter>(
+		() => (i18nRef.current ?? fallbackI18nRef.current ?? defaultI18n)(),
+		[]
+	)
+
 	useLayoutEffect(
 		() => {
 			const {
@@ -587,7 +612,7 @@ function TldrawEditorWithReadyStore({
 				fontAssetUrls: assetUrls?.fonts,
 				themes: themes,
 				initialTheme: initialTheme,
-				i18n,
+				i18n: stableI18n,
 			})
 			editor.licenseManager = licenseManager
 
@@ -628,7 +653,7 @@ function TldrawEditorWithReadyStore({
 			licenseManager,
 			getShapeVisibility,
 			assetUrls,
-			i18n,
+			stableI18n,
 		]
 	)
 
@@ -776,10 +801,12 @@ function TldrawEditorWithReadyStore({
 				<Crash crashingError={crashingError} />
 			) : (
 				<EditorProvider editor={editor}>
-					<Layout onMount={onMount}>
-						{children ?? (Canvas ? <Canvas key={editor.contextId} /> : null)}
-						<Watermark />
-					</Layout>
+					<EditorI18nFallbackContext.Provider value={fallbackI18nRef}>
+						<Layout onMount={onMount}>
+							{children ?? (Canvas ? <Canvas key={editor.contextId} /> : null)}
+							<Watermark />
+						</Layout>
+					</EditorI18nFallbackContext.Provider>
 				</EditorProvider>
 			)}
 		</OptionalErrorBoundary>

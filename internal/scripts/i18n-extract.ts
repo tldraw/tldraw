@@ -18,8 +18,8 @@ import path from 'path'
 // they stay apart:
 //
 //   sdk     stable names (`action.copy`), authored. An app overrides by key, so an id has to
-//           survive a reworded English string. There is deliberately no --id-interpolation-pattern:
-//           a descriptor without an id is an error, not something to paper over.
+//           survive a reworded English string. A descriptor without an id is an error rather than
+//           something to paper over: see MISSING_ID below.
 //   dotcom  md5 content hashes, injected at build by @formatjs/unplugin. App copy churns, nothing
 //           outside dotcom keys off these, and a changed string becoming a new string is fine.
 //
@@ -88,6 +88,13 @@ function checkPlurals(label: string, messages: Record<string, string>): boolean 
 	return true
 }
 
+// The extractor gives an id-less descriptor one of its own, which here can only be a mistake. Left
+// to its default pattern it is a short hash — `--check` reports it as added, but writing it puts
+// a key in main.json that nothing at runtime looks up, since `defineMessages` stands the English
+// in as the id instead. Translators would translate a key that never renders. The prefix makes
+// such an id unmistakable, so it can be refused outright.
+const MISSING_ID = 'MISSING_ID_'
+
 function extractSdk(mode: Mode): boolean {
 	const outFile = tmp('extracted.json')
 	formatjs([
@@ -101,10 +108,24 @@ function extractSdk(mode: Mode): boolean {
 		'**/*.test.ts',
 		'--ignore',
 		'**/*.test.tsx',
+		'--id-interpolation-pattern',
+		`${MISSING_ID}[sha512:contenthash:hex:8]`,
 		'--throws',
 	])
 	const extracted: Extracted = existsSync(outFile) ? JSON.parse(readFileSync(outFile, 'utf8')) : {}
 	const catalog: Record<string, string> = JSON.parse(readFileSync(MAIN_JSON, 'utf8'))
+
+	const missingIds = Object.keys(extracted).filter((id) => id.startsWith(MISSING_ID))
+	if (missingIds.length) {
+		console.error(
+			`\nsdk: ${missingIds.length} message(s) declared without an id. SDK ids are authored — ` +
+				`an app overrides by them — so write one:`
+		)
+		for (const id of missingIds) {
+			console.error(`    ${JSON.stringify(extracted[id].defaultMessage)}`)
+		}
+		process.exit(1)
+	}
 
 	const codeIds = new Set(Object.keys(extracted))
 	const catalogIds = new Set(Object.keys(catalog))
@@ -209,9 +230,26 @@ function extractDotcom(mode: Mode): boolean {
 	}
 
 	const committed = readFileSync(path.join(DOTCOM, DOTCOM_EN), 'utf8')
-	const differs = committed !== readFileSync(enOut, 'utf8')
-	console.log(`  en.json differs  : ${differs}`)
-	return differs
+	const enDiffers = committed !== readFileSync(enOut, 'utf8')
+	console.log(`  en.json differs  : ${enDiffers}`)
+
+	// The compiled folder is what the app serves, so it needs the same guard. It can drift on its
+	// own: a Lokalise download updates a locale in `locales/` and nobody recompiles, and every
+	// check above still passes while production serves the stale strings.
+	const committedDir = path.join(DOTCOM, DOTCOM_COMPILED)
+	const names = new Set([...readdirSync(compiledOut), ...readdirSync(committedDir)])
+	const stale = [...names]
+		.filter((name) => {
+			const fresh = path.join(compiledOut, name)
+			const kept = path.join(committedDir, name)
+			if (!existsSync(fresh) || !existsSync(kept)) return true
+			return readFileSync(fresh, 'utf8') !== readFileSync(kept, 'utf8')
+		})
+		.sort()
+	console.log(`  compiled differs : ${stale.length}`)
+	for (const name of stale.slice(0, 20)) console.log(`    ${name}`)
+
+	return enDiffers || stale.length > 0
 }
 
 function main() {

@@ -39,6 +39,7 @@ import {
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
+import { createIntl, type IntlShape } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import {
 	assertExists,
@@ -61,7 +62,6 @@ import {
 	TLUiToastsContextType,
 	TLUserPreferences,
 	transact,
-	translateMessage,
 } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
@@ -158,6 +158,14 @@ export function msUntilTokenRefresh(token: string | undefined, now = Date.now())
 	const remaining = msUntilExpiry(token, now)
 	if (remaining === null) return FALLBACK_TOKEN_REFRESH_MS
 	return Math.max(MIN_TOKEN_REFRESH_MS, remaining / 2)
+}
+
+// `locale` matches `defaultLocale` so a message missing from the empty catalog falls back to its
+// English without a MISSING_TRANSLATION per call, and is formatted with English plural rules.
+let englishIntl: IntlShape | undefined
+function getEnglishIntl() {
+	englishIntl ??= createIntl({ locale: 'en', defaultLocale: 'en', messages: {} })
+	return englishIntl
 }
 
 export class TldrawApp {
@@ -1256,11 +1264,15 @@ export class TldrawApp {
 	}
 
 	/**
-	 * Translates a message in the user's locale, falling back to its English when the provider
-	 * hasn't handed over an i18n yet — which beats a toast showing an id, or throwing.
+	 * Translates a message in the user's locale. Until `PutI18nInApp` hands over the editor's
+	 * i18n — app creation, a user switch — it formats the English instead, values and all.
+	 * `translateMessage` alone returns the default message unformatted there, which put a plural
+	 * toast's own ICU source on screen.
 	 */
 	msg(message: TLI18nMessage, values?: TLI18nValues) {
-		return translateMessage(this.i18n?.() ?? null, message, values)
+		const i18n = this.i18n?.()
+		if (i18n) return i18n.translate(message, values)
+		return getEnglishIntl().formatMessage(message, values)
 	}
 
 	async uploadTldrFiles(

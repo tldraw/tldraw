@@ -1731,6 +1731,11 @@ export class EditorAtom<T> {
 // @public (undocumented)
 export const EditorContext: React_3.Context<Editor | null>;
 
+// @internal
+export const EditorI18nFallbackContext: React_3.Context<{
+    current: null | TLI18nAdapter;
+} | null>;
+
 // @public
 export abstract class EditorManager {
     constructor(editor: Editor);
