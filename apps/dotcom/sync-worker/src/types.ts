@@ -13,7 +13,10 @@ import type { KeyframeReason } from './versionChain'
 // in @cloudflare/workers-types yet, so the small surface we use is declared here; it resolves to a
 // standard `Response` (PNG bytes for `screenshot`, with an `X-Browser-Ms-Used` header).
 export interface BrowserBinding {
-	quickAction(action: 'screenshot' | 'scrape' | 'content', options: unknown): Promise<Response>
+	quickAction(
+		action: 'screenshot' | 'scrape' | 'content' | 'snapshot',
+		options: unknown
+	): Promise<Response>
 }
 
 // This type isn't available in @cloudflare/workers-types yet

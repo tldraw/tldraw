@@ -67,6 +67,8 @@ import {
 	scrapeMeasureSpikePixel,
 	scrapeMeasureSpikeRun,
 	scrapeMeasureSpikeRunImages,
+	scrapeMeasureSpikeRunSnapshot,
+	scrapeMeasureSpikeUploads,
 } from './routes/tla/scrapeMeasureSpike'
 import { upload } from './routes/tla/uploads'
 import { verifyVersionChainRoute } from './routes/verifyVersionChain'
@@ -236,6 +238,8 @@ const router = createRouter<Environment>()
 	.get('/app/__scrape-spike/pixel.png', scrapeMeasureSpikePixel)
 	.get('/app/__scrape-spike/images-page', scrapeMeasureSpikeImagesPage)
 	.get('/app/__scrape-spike/run-images', scrapeMeasureSpikeRunImages)
+	.get('/app/__scrape-spike/uploads', scrapeMeasureSpikeUploads)
+	.get('/app/__scrape-spike/run-snapshot', scrapeMeasureSpikeRunSnapshot)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)

@@ -241,6 +241,8 @@ export async function scrapeMeasureSpikeRunImages(request: IRequest, env: Enviro
 	const url = new URL(request.url)
 	const mode = url.searchParams.get('mode') === 'url' ? 'url' : 'html'
 	const { probes, fontUrl, fetchUrl } = imageProbesFor(url)
+	const allow = url.searchParams.getAll('allow')
+	const reject = url.searchParams.getAll('reject')
 	const pageUrl = new URL('/api/app/__scrape-spike/images-page', url.origin)
 	for (const extra of url.searchParams.getAll('img')) pageUrl.searchParams.append('img', extra)
 	const body = {
@@ -249,6 +251,8 @@ export async function scrapeMeasureSpikeRunImages(request: IRequest, env: Enviro
 			: { url: pageUrl.toString() }),
 		gotoOptions: { waitUntil: 'domcontentloaded', timeout: 30_000 },
 		waitForSelector: { selector: '[data-thumbnail-ready="true"]', timeout: 30_000 },
+		...(allow.length ? { allowRequestPattern: allow } : null),
+		...(reject.length ? { rejectRequestPattern: reject } : null),
 	}
 
 	const startedAt = Date.now()
@@ -256,11 +260,13 @@ export async function scrapeMeasureSpikeRunImages(request: IRequest, env: Enviro
 	try {
 		response = await env.BROWSER.quickAction('content', body)
 	} catch (error) {
-		return Response.json({ mode, threw: String(error), ms: Date.now() - startedAt })
+		return Response.json({ mode, allow, reject, threw: String(error), ms: Date.now() - startedAt })
 	}
 	const raw = await response.text()
 	const report: Record<string, unknown> = {
 		mode,
+		allow,
+		reject,
 		status: response.status,
 		ms: Date.now() - startedAt,
 		browserMs: response.headers.get('X-Browser-Ms-Used'),
@@ -270,6 +276,100 @@ export async function scrapeMeasureSpikeRunImages(request: IRequest, env: Enviro
 		const match = html.match(/<pre id="result">([\s\S]*?)<\/pre>/)
 		const text = match?.[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&')
 		report.page = text ? JSON.parse(text) : { htmlHead: html.slice(0, 500) }
+	} catch (error) {
+		report.parseError = String(error)
+		report.rawHead = raw.slice(0, 500)
+	}
+	return Response.json(report)
+}
+
+// Third spike batch.
+//
+// GET /api/app/__scrape-spike/uploads?prefix=&limit=  read-only listing of UPLOADS, to find an
+//   image to push through image-resize-worker's service-binding path.
+// GET /api/app/__scrape-spike/run-snapshot?selector=0|1&mode=url|html
+//   the `snapshot` quick action, which returns HTML and a screenshot in one call: can screenshots
+//   carry their timings out in the HTML instead of a beacon?
+// /run-images also takes allow=<regex> / reject=<regex> (repeatable), passed to Browser Run as
+//   allowRequestPattern / rejectRequestPattern: can request filtering lock an html-mode page down?
+
+export async function scrapeMeasureSpikeUploads(request: IRequest, env: Environment) {
+	if (!isDebugLogging(env)) return new Response('Not Found', { status: 404 })
+	const url = new URL(request.url)
+	const listed = await env.UPLOADS.list({
+		prefix: url.searchParams.get('prefix') || undefined,
+		limit: Math.min(Number(url.searchParams.get('limit') || 50), 500),
+	})
+	return Response.json(
+		listed.objects.map((o) => ({
+			key: o.key,
+			size: o.size,
+			uploaded: o.uploaded,
+		}))
+	)
+}
+
+export async function scrapeMeasureSpikeRunSnapshot(request: IRequest, env: Environment) {
+	if (!isDebugLogging(env)) return new Response('Not Found', { status: 404 })
+	if (!env.BROWSER)
+		return Response.json({ error: 'BROWSER binding not configured' }, { status: 500 })
+
+	const url = new URL(request.url)
+	const withSelector = url.searchParams.get('selector') !== '0'
+	const mode = url.searchParams.get('mode') === 'html' ? 'html' : 'url'
+	const nonce = crypto.randomUUID()
+	// teardown=0: the screenshot needs something on the page, and the result element rides along.
+	const pageUrl = `${url.origin}/api/app/__scrape-spike/page?bytes=700&teardown=0`
+	// An html-mode page is about:blank, so its query string is baked in instead.
+	const page =
+		mode === 'html' ? PAGE.replace('location.search', `'?bytes=700&teardown=0'`) : undefined
+	const body = {
+		...(page ? { html: page } : { url: pageUrl }),
+		addScriptTag: [{ content: `window.__SCRAPE_SPIKE__=${JSON.stringify({ nonce })}` }],
+		viewport: { width: 400, height: 300, deviceScaleFactor: 1 },
+		gotoOptions: { waitUntil: 'domcontentloaded', timeout: 30_000 },
+		waitForSelector: { selector: '[data-thumbnail-ready="true"]', timeout: 30_000 },
+		...(withSelector ? { selector: 'body[data-thumbnail-ready="true"]' } : null),
+		screenshotOptions: { type: 'png' },
+	}
+
+	const startedAt = Date.now()
+	let response: Response
+	try {
+		response = await env.BROWSER.quickAction('snapshot', body)
+	} catch (error) {
+		return Response.json({ mode, withSelector, threw: String(error), ms: Date.now() - startedAt })
+	}
+	const raw = await response.text()
+	const report: Record<string, unknown> = {
+		mode,
+		withSelector,
+		status: response.status,
+		ms: Date.now() - startedAt,
+		browserMs: response.headers.get('X-Browser-Ms-Used'),
+		contentType: response.headers.get('content-type'),
+		responseChars: raw.length,
+	}
+	try {
+		const json = JSON.parse(raw)
+		report.success = json.success
+		report.errors = json.errors
+		const result = json.result ?? {}
+		report.resultKeys = Object.keys(result)
+		const html = typeof result.content === 'string' ? result.content : ''
+		const screenshot = typeof result.screenshot === 'string' ? result.screenshot : ''
+		report.htmlChars = html.length
+		report.resultInHtml = html.includes(nonce)
+		report.screenshotBase64Chars = screenshot.length
+		if (screenshot) {
+			const bytes = Uint8Array.from(atob(screenshot.slice(0, 64)), (c) => c.charCodeAt(0))
+			// PNG IHDR: width and height are big-endian at bytes 16..23.
+			const view = new DataView(bytes.buffer)
+			report.screenshotPng = bytes[1] === 0x50 && bytes[2] === 0x4e
+			if (report.screenshotPng) {
+				report.screenshotSize = `${view.getUint32(16)}x${view.getUint32(20)}`
+			}
+		}
 	} catch (error) {
 		report.parseError = String(error)
 		report.rawHead = raw.slice(0, 500)
