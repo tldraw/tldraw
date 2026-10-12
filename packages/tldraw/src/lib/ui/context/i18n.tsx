@@ -1,4 +1,4 @@
-import { TLI18n, TLI18nAdapter, TLI18nMessage } from '@tldraw/editor'
+import { TLI18n, TLI18nAdapter, TLI18nMessage, TLI18nMessageWithGeneratedId } from '@tldraw/editor'
 import { ReactNode, useCallback, useRef } from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import {
@@ -9,17 +9,21 @@ import {
 
 /**
  * Values for a message rendered as an element. Alongside the primitives a string message takes, a
- * function may be given for a tag that appears in the message, and it receives the text that tag
- * encloses. That lets part of a translated string carry markup without splitting the string into
- * fragments a translator then can't reorder.
+ * value may be an element, and a function may be given for a tag that appears in the message, which
+ * receives the text that tag encloses. Either way the markup stays out of the string, so a
+ * translator gets one whole sentence to reorder rather than fragments that can only be concatenated.
  *
  * @example
  *
  * ```tsx
  * <F
- * 	defaultMessage="<who>{name}</who> joined"
+ * 	defaultMessage="<who>{name}</who> joined. {help}"
  * 	id="example.joined"
- * 	values={{ name: 'Ada', who: (chunks) => <strong>{chunks}</strong> }}
+ * 	values={{
+ * 		name: 'Ada',
+ * 		who: (chunks) => <strong>{chunks}</strong>,
+ * 		help: <a href="/help">Need help?</a>,
+ * 	}}
  * />
  * ```
  *
@@ -27,11 +31,18 @@ import {
  */
 export type TLUiMessageValues = Record<
 	string,
-	TLUiTranslationValues[string] | ((chunks: ReactNode) => ReactNode)
+	TLUiTranslationValues[string] | ReactNode | ((chunks: ReactNode) => ReactNode)
 >
 
-/** @public */
-export interface TLUiMessageProps extends TLI18nMessage {
+/**
+ * The id is optional here, unlike on `TLI18nMessage`, so that an app whose ids a bundler
+ * plugin injects can render messages that carry none in source. The SDK's own always write one:
+ * omitting it there gives the message a content-hash id, which `pnpm i18n-extract --check` reports
+ * as an unexpected new key and CI rejects.
+ *
+ * @public
+ */
+export interface TLUiMessageProps extends TLI18nMessageWithGeneratedId {
 	values?: TLUiMessageValues
 }
 
@@ -96,13 +107,24 @@ export function useMsg(message: TLI18nMessage, values?: TLUiTranslationValues): 
  */
 export function F({ values, ...descriptor }: TLUiMessageProps) {
 	const intl = useIntl()
-	if (isPseudoLocale(intl.locale)) {
-		const text = descriptor.defaultMessage
-		return <>{intl.locale === 'xx-AE' ? makeAccented(text) : makeLong(text)}</>
-	}
-	// The rule can't see a spread; `F`'s own callers are what it needs to check.
-	// eslint-disable-next-line tldraw/enforce-default-message
-	return <FormattedMessage {...descriptor} values={values} />
+	return (
+		// The span marks text that came through here, so a tool can tell it from text that never
+		// did — which is how tldraw.com's language-debug overlay finds untranslated strings. An
+		// inline element, so it doesn't disturb the layout around it.
+		<span className="i18n-msg">
+			{isPseudoLocale(intl.locale) ? (
+				intl.locale === 'xx-AE' ? (
+					makeAccented(descriptor.defaultMessage)
+				) : (
+					makeLong(descriptor.defaultMessage)
+				)
+			) : (
+				// The rule can't see a spread; `F`'s own callers are what it needs to check.
+				// eslint-disable-next-line tldraw/enforce-default-message
+				<FormattedMessage {...descriptor} values={values} />
+			)}
+		</span>
+	)
 }
 
 /**

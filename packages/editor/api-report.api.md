@@ -824,6 +824,9 @@ export const defaultUserStore: TLUserStore;
 export function defineMessages<const Messages extends Record<string, TLI18nMessage>>(msgs: Messages): Messages;
 
 // @public
+export function defineMessagesWithGeneratedIds<K extends string>(msgs: Record<K, TLI18nMessageWithGeneratedId>): Record<K, TLI18nMessage>;
+
+// @public
 export function degreesToRadians(d: number): number;
 
 // @public (undocumented)
@@ -4359,6 +4362,16 @@ export interface TLI18nMessage {
     description?: string;
     // (undocumented)
     id: string;
+}
+
+// @public
+export interface TLI18nMessageWithGeneratedId {
+    // (undocumented)
+    defaultMessage: string;
+    // (undocumented)
+    description?: string;
+    // (undocumented)
+    id?: string;
 }
 
 // @public

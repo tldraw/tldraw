@@ -138,6 +138,7 @@ import { TLHighlightShape } from '@tldraw/editor';
 import { TLHighlightShapeProps } from '@tldraw/editor';
 import { TLI18nAdapter } from '@tldraw/editor';
 import { TLI18nMessage } from '@tldraw/editor';
+import { TLI18nMessageWithGeneratedId } from '@tldraw/editor';
 import { TLImageAsset } from '@tldraw/editor';
 import { TLImageExportOptions } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
@@ -5507,14 +5508,14 @@ export type TLUiMenuToolItemProps = {
     toolId?: string;
 } & Pick<TLUiMenuItemProps, 'disabled' | 'isSelected'>;
 
-// @public (undocumented)
-export interface TLUiMessageProps extends TLI18nMessage {
+// @public
+export interface TLUiMessageProps extends TLI18nMessageWithGeneratedId {
     // (undocumented)
     values?: TLUiMessageValues;
 }
 
 // @public
-export type TLUiMessageValues = Record<string, ((chunks: ReactNode) => ReactNode) | TLUiTranslationValues[string]>;
+export type TLUiMessageValues = Record<string, ((chunks: ReactNode) => ReactNode) | ReactNode | TLUiTranslationValues[string]>;
 
 // @public (undocumented)
 export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>;

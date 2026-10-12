@@ -86,6 +86,43 @@ export function defineMessages<const Messages extends Record<string, TLI18nMessa
 }
 
 /**
+ * A message as written where a bundler plugin supplies its id, rather than the author. The id is
+ * optional here and required everywhere else, which is the only difference.
+ *
+ * @public
+ */
+export interface TLI18nMessageWithGeneratedId {
+	id?: string
+	defaultMessage: string
+	description?: string
+}
+
+/**
+ * Declares messages whose ids a bundler plugin generates from their text — `@formatjs/unplugin`
+ * with an `idInterpolationPattern`, which is how tldraw.com does it. Use {@link defineMessages}
+ * instead when the ids are written by hand, as the SDK's own are: it requires them, and that is
+ * the only thing that catches a message no extractor can see.
+ *
+ * Returns messages whose ids are required, so nothing downstream needs to know the difference.
+ * Where a plugin hasn't run — a test, normally — the English stands in as the id. It matches
+ * nothing in any catalogue, so the message renders as that English instead of throwing.
+ *
+ * @public
+ */
+export function defineMessagesWithGeneratedIds<K extends string>(
+	msgs: Record<K, TLI18nMessageWithGeneratedId>
+): Record<K, TLI18nMessage> {
+	const withIds = {} as Record<K, TLI18nMessage>
+	for (const key in msgs) {
+		const message = msgs[key]
+		withIds[key] = message.id
+			? (message as TLI18nMessage)
+			: { ...message, id: message.defaultMessage }
+	}
+	return withIds
+}
+
+/**
  * Translates `message` through an editor's i18n, falling back to its English.
  *
  * Takes the editor's i18n rather than reading a context, so it works in the places this package

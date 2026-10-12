@@ -1,5 +1,5 @@
 import { render, renderHook, screen } from '@testing-library/react'
-import { defineMessages, type TLI18nMessage } from '@tldraw/editor'
+import { defineMessages, defineMessagesWithGeneratedIds, type TLI18nMessage } from '@tldraw/editor'
 import * as React from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { defaultUiAssetUrls } from '../assetUrls'
@@ -162,5 +162,67 @@ describe('defineMessages', () => {
 		expect(() => defineMessages({ bad: { defaultMessage: 'No id' } as TLI18nMessage })).toThrow(
 			/missing an id/
 		)
+	})
+})
+
+describe('defineMessagesWithGeneratedIds', () => {
+	it('keeps an injected id', () => {
+		const defined = defineMessagesWithGeneratedIds({
+			copy: { id: 'a1b2c3d4e5', defaultMessage: 'Copy' },
+		})
+		expect(defined.copy).toEqual({ id: 'a1b2c3d4e5', defaultMessage: 'Copy' })
+	})
+
+	// Where no plugin ran, which is every test in an app that uses this. It can't throw the way
+	// `defineMessages` does, or an app whose ids arrive at build couldn't be tested at all.
+	it('stands the English in for a missing id rather than throwing', () => {
+		const defined = defineMessagesWithGeneratedIds({ copy: { defaultMessage: 'Copy' } })
+		expect(defined.copy).toEqual({ id: 'Copy', defaultMessage: 'Copy' })
+	})
+
+	it('renders as its English when no plugin supplied an id', () => {
+		const defined = defineMessagesWithGeneratedIds({ greet: { defaultMessage: 'Hello there' } })
+		render(<F {...defined.greet} />, { wrapper: withProvider() })
+		expect(screen.getByText('Hello there')).toBeTruthy()
+	})
+})
+
+describe('the message marker', () => {
+	// A tool outside the SDK has to be able to tell text that came through `F` from text that never
+	// did. tldraw.com's language-debug overlay finds untranslated strings by exactly this class.
+	it('wraps a message in a span tools can find', () => {
+		const { container } = render(<F {...messages.copy} />, { wrapper: withProvider() })
+		const marker = container.querySelector('.i18n-msg')
+		expect(marker?.textContent).toBe(DEFAULT_TRANSLATION['action.copy'])
+	})
+
+	it('wraps a pseudo-locale message too, which is where the overlay is used', () => {
+		const { container } = render(<F defaultMessage="Your files" id="example.files" />, {
+			wrapper: withProvider(undefined, 'xx-AE'),
+		})
+		expect(container.querySelector('.i18n-msg')?.textContent).toBe('Ýóúř ƒíłéš')
+	})
+})
+
+describe('an element as a value', () => {
+	// A placeholder filled with an element, rather than a tag wrapped around part of the message.
+	// Both keep the sentence whole for the translator; this is the one react-intl itself documents.
+	it('substitutes the element into the message', () => {
+		render(
+			<F
+				defaultMessage="Still having trouble? {help}"
+				id="example.trouble"
+				values={{
+					help: (
+						<a data-testid="help" href="/help">
+							Get help
+						</a>
+					),
+				}}
+			/>,
+			{ wrapper: withProvider() }
+		)
+		expect(screen.getByTestId('help').tagName).toBe('A')
+		expect(screen.getByTestId('help').textContent).toBe('Get help')
 	})
 })

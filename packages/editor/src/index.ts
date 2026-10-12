@@ -78,10 +78,12 @@ export {
 export {
 	defaultI18n,
 	defineMessages,
+	defineMessagesWithGeneratedIds,
 	translateMessage,
 	type TLI18n,
 	type TLI18nAdapter,
 	type TLI18nMessage,
+	type TLI18nMessageWithGeneratedId,
 	type TLI18nValues,
 } from './lib/config/TLI18n'
 export {
