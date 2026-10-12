@@ -504,6 +504,9 @@ export async function scrapeMeasureSpikeRunReal(request: IRequest, env: Environm
 		},
 		...(lock ? { allowRequestPattern: ['^data:.*', '^blob:.*', `^${escaped}/.*`] } : null),
 		screenshotOptions: { type: 'png' },
+		// Browser Run caches quick action responses for a few seconds by default; repeat runs were
+		// coming back with identical timings.
+		cacheTTL: 0,
 	}
 
 	if (measure) return runRealMeasure(env, body, records, report)
