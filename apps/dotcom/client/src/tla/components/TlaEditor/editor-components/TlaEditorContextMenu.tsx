@@ -1,28 +1,54 @@
 import { startCommentAt, useCanComment, useCommentingEnabled } from '@tldraw/commenting'
 import { useState } from 'react'
 import {
+	ArrangeMenuSubmenu,
+	ClipboardMenuGroup,
+	ConversionsMenuGroup,
+	CursorChatItem,
 	DefaultContextMenu,
-	DefaultContextMenuContent,
+	EditMenuSubmenu,
+	MoveToPageMenu,
+	ReorderMenuSubmenu,
+	SelectAllMenuItem,
 	TLUiContextMenuProps,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	useEditor,
+	useShowCollaborationUi,
 	useTools,
+	useValue,
 } from 'tldraw'
 import { useMaybeApp } from '../../../hooks/useAppState'
 
+// Mirrors DefaultContextMenuContent, with the comment item sharing the cursor chat group.
 export function TlaEditorContextMenu(props: TLUiContextMenuProps) {
+	const editor = useEditor()
+	const showCollaborationUi = useShowCollaborationUi()
 	// Same gate as the comment button in quick actions, so signed-out visitors get the entry too
 	// and it prompts them to sign in.
 	const commentingEnabled = useCommentingEnabled()
+	const isSinglePageMode = useValue('isSinglePageMode', () => editor.options.maxPages <= 1, [
+		editor,
+	])
 	return (
 		<DefaultContextMenu {...props}>
-			{commentingEnabled && (
-				<TldrawUiMenuGroup id="comment">
-					<CommentMenuItem />
+			{(showCollaborationUi || commentingEnabled) && (
+				<TldrawUiMenuGroup id="cursor-chat">
+					{showCollaborationUi && <CursorChatItem />}
+					{commentingEnabled && <CommentMenuItem />}
 				</TldrawUiMenuGroup>
 			)}
-			<DefaultContextMenuContent />
+			<TldrawUiMenuGroup id="modify">
+				<EditMenuSubmenu />
+				<ArrangeMenuSubmenu />
+				<ReorderMenuSubmenu />
+				{!isSinglePageMode && <MoveToPageMenu />}
+			</TldrawUiMenuGroup>
+			<ClipboardMenuGroup />
+			<ConversionsMenuGroup />
+			<TldrawUiMenuGroup id="select-all">
+				<SelectAllMenuItem />
+			</TldrawUiMenuGroup>
 		</DefaultContextMenu>
 	)
 }
