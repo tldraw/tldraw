@@ -9,7 +9,6 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { DefaultZoomMenuContent } from './DefaultZoomMenuContent'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	navigationZoneZoom: { id: 'navigation-zone.zoom', defaultMessage: 'Zoom' },
 })

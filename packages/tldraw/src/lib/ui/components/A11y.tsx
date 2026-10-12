@@ -16,14 +16,11 @@ import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { suppressBackToContent } from './HelperButtons/BackToContent'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
-// Only the ids nothing else declares; the rest are declared with what they name.
 const messages = defineMessages({
 	a11yMultipleShapes: {
 		id: 'a11y.multiple-shapes',
-		// Only ever read with two or more shapes, so English shows just the one form. It still has
-		// to be a plural: Russian needs a separate form for 2-4 and Arabic a dual, and a flat
-		// string leaves a translator nowhere to put them.
+		// Only ever read with two or more shapes, so English shows one form. Still a plural, because
+		// other languages distinguish within "many" — see the gate in `internal/scripts/i18n-extract.ts`.
 		defaultMessage: '{num, plural, one {# shape selected} other {# shapes selected}}',
 	},
 	a11yShapeIndex: { id: 'a11y.shape-index', defaultMessage: '{num} of {total}' },

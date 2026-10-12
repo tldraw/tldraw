@@ -19,7 +19,6 @@ import { richTextToPlaintext } from './rich-text'
 import { commentsSidebarOpen, openThreadId, sidebarFilters } from './state'
 import { focusThread } from './thread-state'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	commentsEmpty: { id: 'comments.empty', defaultMessage: 'No comments on this page yet.' },
 	commentsEmptyFiltered: {

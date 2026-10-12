@@ -2,7 +2,6 @@ import { defineMessages, TldrawUiButton, useEditor, useTranslation, useValue } f
 import { EyeClosedIcon, EyeOpenIcon } from '../ui/icons'
 import { commentsHidden, toggleCommentsHidden } from './state'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	commentsHide: { id: 'comments.hide', defaultMessage: 'Hide comments' },
 	commentsShow: { id: 'comments.show', defaultMessage: 'Show comments' },

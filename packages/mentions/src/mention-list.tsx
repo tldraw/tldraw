@@ -3,7 +3,6 @@ import { defineMessages, useTranslation } from 'tldraw'
 import { Avatar } from './avatar'
 import { CommentAuthor } from './comment-author'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	commentsMentionNoMatches: { id: 'comments.mention-no-matches', defaultMessage: 'No matches' },
 	commentsMentionYou: { id: 'comments.mention-you', defaultMessage: 'You' },

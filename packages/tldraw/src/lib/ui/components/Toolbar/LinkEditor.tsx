@@ -6,7 +6,6 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiInput } from '../primitives/TldrawUiInput'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	toolRichTextLinkRemove: { id: 'tool.rich-text-link-remove', defaultMessage: 'Remove link' },
 	toolRichTextLinkVisit: { id: 'tool.rich-text-link-visit', defaultMessage: 'Visit link' },

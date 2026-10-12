@@ -25,7 +25,6 @@ import {
 } from '../primitives/TldrawUiPopover'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	toolPanelMore: { id: 'tool-panel.more', defaultMessage: 'More' },
 	toolPanelTitle: { id: 'tool-panel.title', defaultMessage: 'Tools' },

@@ -5,9 +5,9 @@ import { defineMessages } from '@tldraw/editor'
  * menu item or an override. tldraw.com supplies the file-open prompts, the VS Code extension the
  * backup ones, and both add their own links to the help menu.
  *
- * They need declaring somewhere, because nothing in `packages/*` mentions them and the catalog is
- * extraction output — an id declared nowhere is an id that disappears, taking 49 translations and
- * any app keyed to it. They live together rather than scattered through files that don't use them.
+ * They need declaring because the catalog is extraction output and nothing in `packages/*`
+ * mentions them — an id declared nowhere disappears, taking 49 translations and any app keyed to
+ * it with it.
  *
  * @internal
  */

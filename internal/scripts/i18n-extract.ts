@@ -23,9 +23,6 @@ import path from 'path'
 //   dotcom  md5 content hashes, injected at build by @formatjs/unplugin. App copy churns, nothing
 //           outside dotcom keys off these, and a changed string becoming a new string is fine.
 //
-// Alongside i18n-upload-strings and i18n-download-strings, which already handle both projects the
-// same way.
-//
 // Only `packages/*` is scanned for the SDK. Part of its catalogue is rendered only by an app — see
 // `consumerMessages` in packages/tldraw, which declares those so they survive a write.
 
@@ -45,16 +42,12 @@ function tmp(name: string) {
 	return path.join(mkdtempSync(path.join(tmpdir(), 'tldraw-i18n-')), name)
 }
 
-// --- the SDK catalogue -------------------------------------------------------------------------
-
 const MAIN_JSON = path.join(REPO_ROOT, 'assets/translations/main.json')
 const SDK_PACKAGES = ['tldraw', 'commenting', 'mentions', 'editor']
 
 interface Extracted {
 	[id: string]: { defaultMessage: string; description?: string }
 }
-
-// --- the plural gate ---------------------------------------------------------------------------
 
 // A message that interpolates a count has to be an ICU plural. English hides most of why:
 // "1 comments here" is visibly broken, but "Added 2 .tldr files." looks fine and is still wrong in
@@ -162,8 +155,6 @@ function extractSdk(mode: Mode): boolean {
 	return differs
 }
 
-// --- the dotcom catalogue ----------------------------------------------------------------------
-
 const DOTCOM = path.join(REPO_ROOT, 'apps/dotcom/client')
 const DOTCOM_EN = 'public/tla/locales/en.json'
 const DOTCOM_COMPILED = 'public/tla/locales-compiled'
@@ -224,8 +215,6 @@ function extractDotcom(mode: Mode): boolean {
 	console.log(`  en.json differs  : ${differs}`)
 	return differs
 }
-
-// --- entry point -------------------------------------------------------------------------------
 
 function main() {
 	const args = process.argv.slice(2)

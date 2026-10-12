@@ -18,7 +18,6 @@ import { useCommentingOptions } from './options'
 import { openStackId, openThreadId } from './state'
 import { POPOVER_OFFSET, toCardProps, useResolveName } from './thread-view'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	commentsPreviewMore: { id: 'comments.preview-more', defaultMessage: '{count} more' },
 })

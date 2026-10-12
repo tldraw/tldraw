@@ -4,7 +4,6 @@ import { FormattedMessage, useIntl } from 'react-intl'
 import {
 	TLUiTranslationValues,
 	useCurrentTranslation,
-	useTranslation,
 } from '../hooks/useTranslation/useTranslation'
 
 /**
@@ -105,9 +104,8 @@ export function useMsg(message: TLI18nMessage, values?: TLUiTranslationValues): 
 export function F({ values, ...descriptor }: TLUiMessageProps) {
 	const intl = useIntl()
 	return (
-		// The span marks text that came through here, so a tool can tell it from text that never
-		// did — which is how tldraw.com's language-debug overlay finds untranslated strings. An
-		// inline element, so it doesn't disturb the layout around it.
+		// Inline, so the marker span doesn't disturb the layout around it. Why it's here at all is
+		// on `F` above.
 		<span className="i18n-msg">
 			{isPseudoLocale(intl.locale) ? (
 				intl.locale === 'xx-AE' ? (
@@ -142,17 +140,20 @@ export function F({ values, ...descriptor }: TLUiMessageProps) {
  */
 export function useTldrawI18n(): TLI18nAdapter {
 	const translation = useCurrentTranslation()
-	const msg = useTranslation()
+	const intl = useIntl()
 
 	// The adapter identity has to stay stable: it's a constructor option, so a new one on every
-	// locale change would tear down and rebuild the editor. Reading through a ref keeps the
-	// returned function fixed while still resolving against the current translation. Assigned
-	// during render, so it is always set before the editor can call the adapter.
+	// locale change would tear down and rebuild the editor. Hence the ref — the returned function
+	// is fixed, and still reads the current translation.
 	const i18nRef = useRef<TLI18n | null>(null)
 	i18nRef.current = {
 		locale: translation.locale,
 		dir: translation.dir,
-		translate: msg,
+		// The whole descriptor, so react-intl formats `defaultMessage` itself for an id the
+		// catalog doesn't have. Given only the id it returns the id, and the English then had to
+		// be substituted in verbatim — which showed a plural message's own ICU source in a toast.
+		// eslint-disable-next-line tldraw/enforce-default-message
+		translate: (message, values) => intl.formatMessage(message, values),
 	}
 
 	return useCallback(() => i18nRef.current!, [])

@@ -12,7 +12,6 @@ import {
 } from 'react'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	cursorChatTypeToChat: { id: 'cursor-chat.type-to-chat', defaultMessage: 'Type to chat…' },
 })

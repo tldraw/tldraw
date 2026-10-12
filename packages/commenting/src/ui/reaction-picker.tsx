@@ -13,7 +13,6 @@ import { EmojiPicker, type EmojiPickerProps } from './emoji-picker'
 import { SmileyIcon } from './icons'
 import { RenderReaction } from './reaction'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	commentsAddReaction: { id: 'comments.add-reaction', defaultMessage: 'Add reaction' },
 })

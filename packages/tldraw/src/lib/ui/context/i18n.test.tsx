@@ -7,7 +7,7 @@ import { defaultUiAssetUrls } from '../assetUrls'
 import { DEFAULT_TRANSLATION } from '../hooks/useTranslation/defaultTranslation'
 import { TldrawUiTranslationProvider, useTranslation } from '../hooks/useTranslation/useTranslation'
 import { AssetUrlsProvider } from './asset-urls'
-import { F, isPseudoLocale, useMsg } from './i18n'
+import { F, isPseudoLocale, useMsg, useTldrawI18n } from './i18n'
 
 vi.unmock('./useTranslation')
 vi.unmock('../hooks/useTranslation/useTranslation')
@@ -222,11 +222,8 @@ describe('an element as a value', () => {
 })
 
 describe('an app catalog outside the SDK provider', () => {
-	// The SDK mounts its own `IntlProvider`, and react-intl's builds its catalog purely from its own
-	// props — it does not merge with the one above it. So without this, an app that renders its own
-	// translated components inside `TldrawUiContextProvider` (every dotcom dialog and share menu)
-	// lost its catalog and fell back to `defaultMessage`: perfect English, every other locale
-	// silently untranslated.
+	// Without the merge in `TldrawUiTranslationProvider`, an app's own components inside
+	// `TldrawUiContextProvider` lost their catalog and rendered English in every locale.
 	it('still resolves inside the SDK provider', () => {
 		const SdkProvider = withProvider()
 		render(
@@ -237,5 +234,35 @@ describe('an app catalog outside the SDK provider', () => {
 			</IntlProvider>
 		)
 		expect(screen.getByText('From the app')).toBeTruthy()
+	})
+})
+
+describe('the i18n adapter the editor gets', () => {
+	function adapterWith(messages: Record<string, string>) {
+		const SdkProvider = withProvider({ en: messages })
+		const { result } = renderHook(() => useTldrawI18n(), { wrapper: SdkProvider })
+		return result.current()
+	}
+
+	// Given only the id, the fallback substituted the English whole and put a plural message's own
+	// ICU source into an upload toast.
+	it('formats the English for an id the catalog has no entry for', () => {
+		const i18n = adapterWith({})
+		expect(
+			i18n.translate(
+				{
+					id: 'app.added-files',
+					defaultMessage: '{total, plural, one {Added # file.} other {Added # files.}}',
+				},
+				{ total: 3 }
+			)
+		).toBe('Added 3 files.')
+	})
+
+	it('still prefers a translation when there is one', () => {
+		const i18n = adapterWith({ 'app.added-files': 'Added {total}' })
+		expect(i18n.translate({ id: 'app.added-files', defaultMessage: 'x' }, { total: 2 })).toBe(
+			'Added 2'
+		)
 	})
 })

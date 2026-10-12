@@ -15,7 +15,6 @@ import { MoreMenuIcon } from '../ui/icons'
 import { SidebarFilters } from './sidebar-filters'
 import { sidebarFilters } from './state'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	commentsFilter: { id: 'comments.filter', defaultMessage: 'Filter comments' },
 	commentsOnlyMyComments: { id: 'comments.only-my-comments', defaultMessage: 'Only my comments' },

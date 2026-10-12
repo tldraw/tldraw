@@ -2,7 +2,6 @@ import { ComponentType, ReactNode } from 'react'
 import { defineMessages, TldrawUiTooltip, useTranslation } from 'tldraw'
 import { ReactionReactor } from './reactions'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	commentsMentionYou: { id: 'comments.mention-you', defaultMessage: 'You' },
 	commentsReacted: {

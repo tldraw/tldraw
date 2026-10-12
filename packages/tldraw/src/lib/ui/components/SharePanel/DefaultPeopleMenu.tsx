@@ -8,7 +8,6 @@ import { useDirection, useTranslation } from '../../hooks/useTranslation/useTran
 import { OfflineIndicator } from '../OfflineIndicator/OfflineIndicator'
 import { DefaultPeopleMenuContent } from './DefaultPeopleMenuContent'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	peopleMenuTitle: { id: 'people-menu.title', defaultMessage: 'People' },
 })

@@ -283,7 +283,7 @@ export function Tldraw(props: TldrawProps) {
 				// If the locale prop is provided, then use that and assume it to be controlled
 				locale={locale ?? rest.user?.userPreferences.get().locale ?? defaultUserPreferences.locale}
 			>
-				<TldrawEditorWithI18n
+				<InsideOfTranslationContext
 					initialState="select"
 					{...rest}
 					components={componentsWithDefault}
@@ -305,15 +305,16 @@ export function Tldraw(props: TldrawProps) {
 						/>
 						{children}
 					</TldrawUi>
-				</TldrawEditorWithI18n>
+				</InsideOfTranslationContext>
 			</TldrawUiTranslationProvider>
 		</AssetUrlsProvider>
 	)
 }
 
-// `useTldrawI18n` needs the translation context, which lives outside <TldrawEditor />, so the
-// adapter is injected one layer in rather than built by `Tldraw` itself.
-function TldrawEditorWithI18n(props: TldrawEditorProps) {
+// `useTldrawI18n` needs the translation context, which `Tldraw` renders rather than sits inside, so
+// the adapter has to be read one layer in. Named for that position, as `InsideOfEditorAndUiContext`
+// below is — it's a plumbing component, not a variant of <TldrawEditor />.
+function InsideOfTranslationContext(props: TldrawEditorProps) {
 	const i18n = useTldrawI18n()
 	return <TldrawEditor {...props} i18n={i18n} />
 }

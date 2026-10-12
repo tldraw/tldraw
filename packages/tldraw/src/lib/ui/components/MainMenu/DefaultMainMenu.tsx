@@ -8,7 +8,6 @@ import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultMainMenuContent } from './DefaultMainMenuContent'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	menuTitle: { id: 'menu.title', defaultMessage: 'Menu' },
 })

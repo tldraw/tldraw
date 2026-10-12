@@ -28,7 +28,6 @@ import { TLUiToastsContextType } from '../../ui/context/toasts'
 import { TLUiTranslationKey } from '../../ui/hooks/useTranslation/TLUiTranslationKey'
 import { buildFromV1Document } from '../tldr/buildFromV1Document'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	assetsFilesUploadFailed: { id: 'assets.files.upload-failed', defaultMessage: 'Upload failed' },
 	fileSystemFileOpenErrorFileFormatVersionTooNew: {

@@ -6,7 +6,6 @@ import { useDirection, useTranslation } from '../../hooks/useTranslation/useTran
 import { TldrawUiButton } from './Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	uiClose: { id: 'ui.close', defaultMessage: 'Close' },
 })

@@ -23,7 +23,6 @@ import { useDirection, useTranslation } from '../../hooks/useTranslation/useTran
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultContextMenuContent } from './DefaultContextMenuContent'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	contextMenuTitle: { id: 'context-menu.title', defaultMessage: 'Context menu' },
 })

@@ -9,7 +9,6 @@ import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from './Button/TldrawUiButtonLabel'
 import { TldrawUiIcon } from './TldrawUiIcon'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	uiChecked: { id: 'ui.checked', defaultMessage: 'Checked' },
 })

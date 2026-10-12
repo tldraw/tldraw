@@ -14,7 +14,6 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiGrid } from '../primitives/layout'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	peopleMenuChangeColor: { id: 'people-menu.change-color', defaultMessage: 'Change color' },
 })

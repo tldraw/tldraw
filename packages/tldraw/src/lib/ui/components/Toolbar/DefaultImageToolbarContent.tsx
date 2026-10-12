@@ -35,8 +35,6 @@ import {
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
-// Only the ids nothing else declares; the rest are declared with what they name.
 const messages = defineMessages({
 	toolAspectRatio: { id: 'tool.aspect-ratio', defaultMessage: 'Aspect ratio' },
 	toolImageCrop: { id: 'tool.image-crop', defaultMessage: 'Crop image' },

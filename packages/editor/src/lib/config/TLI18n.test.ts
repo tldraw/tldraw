@@ -7,17 +7,20 @@ const messages = defineMessages({
 		id: 'a11y.multiple-shapes',
 		defaultMessage: '{num, plural, one {# shape selected} other {# shapes selected}}',
 	},
+	// A plain placeholder, which the regex stub below can substitute. The plural above needs a
+	// real ICU formatter, so the adapter's own handling of it is covered in packages/tldraw.
+	addedFiles: { id: 'test.added-files', defaultMessage: 'Added {total} files' },
 })
 
 function i18nWith(catalog: Record<string, string>): TLI18n {
 	return {
 		locale: 'en',
 		dir: 'ltr',
-		// Mirrors the real adapter: an unknown key comes back unchanged.
-		translate: (key, values) => {
-			const message = catalog[key]
-			if (message === undefined) return key
-			return message.replace(/\{(\w+)[^}]*\}/g, (_, name) => String(values?.[name] ?? ''))
+		// Mirrors the real adapter: a message the catalog doesn't have falls back to its own
+		// English, and either way the values are substituted.
+		translate: (message, values) => {
+			const text = catalog[message.id] ?? message.defaultMessage
+			return text.replace(/\{(\w+)[^}]*\}/g, (_, name) => String(values?.[name] ?? ''))
 		},
 	}
 }
@@ -34,13 +37,19 @@ describe('translateMessage', () => {
 		expect(translateMessage(undefined, messages.somethingWentWrong)).toBe('Something went wrong')
 	})
 
-	// A message that hasn't been through Lokalise yet is absent from every catalog, and the adapter
-	// signals that by handing the key back. Showing the id to someone would be worse than English.
+	// A message that hasn't been through Lokalise yet is absent from every catalog. Showing the id
+	// to someone would be worse than English.
 	it('falls back to the English when the catalog has no entry', () => {
 		expect(translateMessage(i18nWith({}), messages.somethingWentWrong)).toBe('Something went wrong')
 		expect(translateMessage(defaultI18n(), messages.somethingWentWrong)).toBe(
 			'Something went wrong'
 		)
+	})
+
+	// The adapter gets the whole message, so it can substitute into the English too. Falling back
+	// to the raw source instead put a plural message's own ICU into an upload toast.
+	it('substitutes values into the English it falls back to', () => {
+		expect(translateMessage(i18nWith({}), messages.addedFiles, { total: 3 })).toBe('Added 3 files')
 	})
 
 	it('passes values through to the translation', () => {

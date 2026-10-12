@@ -3,14 +3,10 @@ import { defineMessages } from '@tldraw/editor'
 /**
  * Labels for every value of every style the SDK ships, keyed by the id itself.
  *
- * The style pickers build their key from two interpolations —
- * `` msg(`${uiType}-style.${item.value}`) `` — so the extractor can't see a single one of these
- * ids at the call site. Declaring them here is what puts them in the catalog; the pickers go on
- * composing the key, and `styleMessages.test.ts` holds the two in sync by checking every value of
- * every style prop against this map.
- *
- * `uiType` is an open prop, so a custom style's values won't be here and will fall back to
- * rendering their key. Supply those through an app's own translations.
+ * The pickers compose their key — `` msg(`${uiType}-style.${item.value}`) `` — so the extractor
+ * sees none of these ids at the call site, and declaring them here is what puts them in the
+ * catalog. `uiType` is an open prop, so a custom style's values aren't here and fall back to
+ * rendering their key; supply those through an app's own translations.
  *
  * @internal
  */
@@ -122,9 +118,8 @@ export const styleMessages = defineMessages({
 
 /**
  * The style panel's own labels — section headings and the two words the pickers add around a
- * value. `StylePanelDropdownPicker` composes `` msg(`style-panel.${stylePanelType}`) ``, so these
- * ids are invisible at the call site too. `stylePanelType` is an open prop, so a custom section's
- * heading falls back to rendering its key.
+ * value. Composed the same way, so invisible at the call site too; a custom section's heading
+ * falls back to rendering its key.
  *
  * @internal
  */
@@ -151,10 +146,8 @@ export const stylePanelMessages = defineMessages({
 })
 
 /**
- * The id to translate for a style value's label.
- *
- * Resolves through {@link styleMessages} so the map is load-bearing rather than a list that can
- * quietly fall out of step: drop an entry and the picker stops finding it. Falls back to the
+ * The id to translate for a style value's label. Resolved through {@link styleMessages}, so
+ * dropping an entry there breaks the picker rather than going unnoticed. Falls back to the
  * composed key for a custom style, whose values the SDK can't know.
  *
  * @internal

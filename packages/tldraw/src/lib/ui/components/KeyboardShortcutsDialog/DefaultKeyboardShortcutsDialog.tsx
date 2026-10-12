@@ -14,7 +14,6 @@ import {
 } from '../primitives/TldrawUiDialog'
 import { DefaultKeyboardShortcutsDialogContent } from './DefaultKeyboardShortcutsDialogContent'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	shortcutsDialogDisabledNotice: {
 		id: 'shortcuts-dialog.disabled-notice',

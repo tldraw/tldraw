@@ -18,10 +18,13 @@ export interface TLI18n {
 	locale: string
 	dir: 'ltr' | 'rtl'
 	/**
-	 * Translate `key` in the current locale, substituting `values` into its ICU placeholders.
-	 * Unknown keys come back as-is, so an app can pass its own keys or plain text.
+	 * Translate `message` in the current locale, substituting `values` into its ICU placeholders.
+	 *
+	 * Takes the whole message rather than its id so an implementation can fall back to the English
+	 * and still substitute into it. A message absent from the catalog — anything not yet through
+	 * Lokalise — would otherwise have to come back as its own source text, placeholders and all.
 	 */
-	translate(key: string, values?: TLI18nValues): string
+	translate(message: TLI18nMessage, values?: TLI18nValues): string
 }
 
 /**
@@ -33,7 +36,10 @@ export interface TLI18n {
 export type TLI18nAdapter = () => TLI18n
 
 /**
- * The i18n used when the host app supplies none: every key translates to itself.
+ * The i18n used when the host app supplies none: every message comes back as its own English.
+ *
+ * Placeholders are left as they are, because formatting ICU needs a formatter and this package
+ * deliberately has none — it is the floor for an editor running with no translations at all.
  *
  * @public
  */
@@ -41,8 +47,8 @@ export function defaultI18n(): TLI18n {
 	return {
 		locale: 'en',
 		dir: 'ltr',
-		translate(key: string) {
-			return key
+		translate(message: TLI18nMessage) {
+			return message.defaultMessage
 		},
 	}
 }
@@ -71,23 +77,23 @@ export interface TLI18nMessage {
 export type TLI18nMessageInput = Omit<TLI18nMessage, 'id'> & { id?: string }
 
 /**
- * Declares messages so the extractor can find them. The value is in naming the call, which
- * `formatjs extract` matches by name wherever it was imported from.
+ * Declares messages so the extractor can find them, next to the UI that shows them — the English
+ * then lives with the code rather than in a catalog edited by hand. Call it by this name:
+ * `formatjs extract` matches the call by name, wherever it was imported from, so a wrapper under
+ * another name extracts nothing.
  *
  * Write the id yourself, as the SDK's own messages do — an app overrides by id, so an id has to
- * survive a reworded English string. Leave it out only where a bundler plugin injects one. Where
- * no plugin ran either, which in practice means a test, the English stands in as the id: it
- * matches nothing in any catalogue, so the message renders as that English. A message that
- * reaches a real build with no id is caught by `pnpm i18n-extract --check`, which sees the
- * content hash the extractor gave it as a key nobody declared.
+ * survive a reworded English string. Leave it out only where a bundler plugin injects one; with no
+ * plugin either the English stands in, so the message still renders as itself. An id missing from
+ * a real build is caught by `pnpm i18n-extract --check`.
  *
- * The type parameter is `const` so each written `id` keeps its literal type. That's what lets a
- * declared id be passed where a `TLUiTranslationKey` is expected — a menu item's `label`, say —
- * instead of widening to `string` and needing a cast.
+ * The type parameter is `const` so each written `id` keeps its literal type, which is what lets a
+ * declared id go where a `TLUiTranslationKey` is expected — a menu item's `label`, say — instead
+ * of widening to `string` and needing a cast.
  *
- * For a message rendered as an element, write it inline on the `<F>` instead — the extractor
- * reads those props directly, and the text then sits where it's read. This is for the messages
- * that can't be elements: a label the UI takes as data, and anything going through `useMsg`.
+ * For a message rendered as an element, write it inline on the `<F>` instead; the extractor reads
+ * those props directly. This is for the ones that can't be: a label the UI takes as data, and
+ * anything going through `useMsg`.
  *
  * @example
  *
@@ -119,6 +125,9 @@ export function defineMessages<const Messages extends Record<string, TLI18nMessa
  * has to keep working: a `ShapeUtil` with no hooks available, or an error fallback rendered
  * outside the editor it's reporting on.
  *
+ * With no i18n at all the English is returned unformatted, for the reason given on
+ * {@link defaultI18n}. Every other case goes through the adapter, which does substitute.
+ *
  * @public
  */
 export function translateMessage(
@@ -127,9 +136,5 @@ export function translateMessage(
 	values?: TLI18nValues
 ): string {
 	if (!i18n) return message.defaultMessage
-	const translated = i18n.translate(message.id, values)
-	// `translate` hands an unknown key back unchanged, which is what happens both when no
-	// translations are loaded and before a newly added message has been through Lokalise. Either
-	// way the id is not something to show someone.
-	return translated === message.id ? message.defaultMessage : translated
+	return i18n.translate(message, values)
 }

@@ -40,7 +40,6 @@ import { isShapeWithLink } from './utils/shapes/shapes'
 import { renderHtmlFromRichTextForMeasurement, renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	assetsFilesAmountTooMany: {
 		id: 'assets.files.amount-too-many',

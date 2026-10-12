@@ -1,7 +1,6 @@
 import { defineMessages, TldrawUiMenuCheckboxItem, useEditor, useValue } from 'tldraw'
 import { commentsHidden, toggleCommentsHidden } from './state'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	commentsTitle: { id: 'comments.title', defaultMessage: 'Comments' },
 })

@@ -5,7 +5,6 @@ import { useDialogs } from '../../context/dialogs'
 import { LanguageMenu } from '../LanguageMenu'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	helpMenuKeyboardShortcuts: {
 		id: 'help-menu.keyboard-shortcuts',

@@ -7,7 +7,6 @@ import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiRow } from './primitives/layout'
 import { TldrawUiToolbar } from './primitives/TldrawUiToolbar'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	actionsMenuTitle: { id: 'actions-menu.title', defaultMessage: 'Actions' },
 })

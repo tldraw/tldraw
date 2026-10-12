@@ -15,7 +15,6 @@ import { type CommentingContext } from './context'
 import { sortThreadsForPreview, ThreadPreview, useMarkerPreview } from './thread-preview'
 import { impreciseShapePinInset, isInInflatedViewport } from './thread-state'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	commentsClusterLabel: {
 		id: 'comments.cluster-label',

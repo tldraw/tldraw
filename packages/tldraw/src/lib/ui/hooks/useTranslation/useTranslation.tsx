@@ -69,10 +69,9 @@ export function TldrawUiTranslationProvider({
 }: TLUiTranslationProviderProps) {
 	const getAssetUrl = useAssetUrls()
 
-	// Only the fetch belongs in an effect. Merging overrides on top is derived from data already
-	// in hand, so keeping it out means a changed override applies on the next render instead of
-	// after another round trip — and an app that builds its overrides as it loads its own strings
-	// doesn't refetch this catalog every time that object's identity changes.
+	// Only the fetch belongs in an effect; merging overrides is derived from data already in hand.
+	// Inside one, a changed override took another round trip to apply, and an app assembling its
+	// overrides as it loads its own strings refetched this catalog on every identity change.
 	const [loaded, setLoaded] = React.useState<TLUiTranslation>(() => ({
 		locale: 'en',
 		label: 'English',
@@ -107,15 +106,13 @@ export function TldrawUiTranslationProvider({
 		return { ...loaded, messages: { ...loaded.messages, ...localeOverrides } }
 	}, [loaded, overrides, locale])
 
-	// react-intl builds each provider's catalog from its own props and never consults the one above
-	// it. So without merging, this provider shadows an app's own `IntlProvider` for everything
-	// inside it — every tldraw.com dialog and share menu — and those fall back to `defaultMessage`:
-	// flawless English, silently untranslated in the other 49 locales.
-	//
-	// Ours wins a collision: `overrides.translations` is the documented way to change an SDK string,
-	// and it's already folded into `currentTranslation`. The cast is because the type is a union of
-	// two uniform records and this one is mixed on purpose — the SDK ships ICU strings, an app may
-	// precompile to AST as tldraw.com does, and `formatMessage` picks its parser per message.
+	// react-intl builds each provider's catalog from its own props alone, so without merging this
+	// one shadows an app's own `IntlProvider` for everything inside it — every tldraw.com dialog
+	// and share menu — leaving them on `defaultMessage`: English, and silently untranslated
+	// everywhere else. Ours wins a collision, since `overrides.translations` is the documented way
+	// to change an SDK string. The cast is because the type is a union of two uniform records and
+	// this one is mixed on purpose: `formatMessage` picks its parser per message, so the SDK's ICU
+	// strings and an app's precompiled AST can share a catalog.
 	const parentIntl = React.useContext(IntlContext)
 	const messages = React.useMemo(
 		() =>

@@ -628,8 +628,8 @@ export class TldrawApp {
 		},
 		addingTldrFiles: {
 			// A single file navigates instead of toasting, so English only ever shows the plural.
-			// It still needs the forms: Russian wants a separate one for 2-4 and Arabic a dual, so
-			// "always more than one" doesn't mean "always one form".
+			// Still a plural — see the gate in `internal/scripts/i18n-extract.ts` for why "never
+			// one" isn't a reason to skip it.
 			defaultMessage: '{total, plural, one {Added # .tldr file.} other {Added # .tldr files.}}',
 		},
 	})

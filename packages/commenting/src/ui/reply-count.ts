@@ -1,6 +1,5 @@
 import { defineMessages, useTranslation } from 'tldraw'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	commentsReplies: {
 		id: 'comments.replies',

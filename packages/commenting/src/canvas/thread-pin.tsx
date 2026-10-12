@@ -47,8 +47,6 @@ import {
 } from './thread-state'
 import { POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
-// Only the ids nothing else declares; the rest are declared with what they name.
 const messages = defineMessages({
 	commentsPinLabel: { id: 'comments.pin-label', defaultMessage: 'Comment by {name}' },
 	commentsPinLabelResolved: {

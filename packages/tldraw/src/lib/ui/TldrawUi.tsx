@@ -26,7 +26,6 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useReadonly } from './hooks/useReadonly'
 import { useDirection, useTranslation } from './hooks/useTranslation/useTranslation'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	focusModeToggleFocusMode: {
 		id: 'focus-mode.toggle-focus-mode',

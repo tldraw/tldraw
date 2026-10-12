@@ -15,7 +15,6 @@ import {
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	actionsMenuTitle: { id: 'actions-menu.title', defaultMessage: 'Actions' },
 })

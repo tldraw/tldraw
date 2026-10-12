@@ -28,8 +28,6 @@ import { useIsMobileCommenting, useMobilePlacement } from './mobile-placement'
 import { useCanComment, useCommentingOptions } from './options'
 import { pendingComment } from './state'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
-// Only the ids nothing else declares; the rest are declared with what they name.
 const messages = defineMessages({
 	commentsAddPlaceholder: { id: 'comments.add-placeholder', defaultMessage: 'Add a comment…' },
 })

@@ -7,7 +7,6 @@ import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiInput } from '../primitives/TldrawUiInput'
 import { UserPresenceColorPicker } from './UserPresenceColorPicker'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	peopleMenuAnonymousUser: { id: 'people-menu.anonymous-user', defaultMessage: 'New user' },
 	peopleMenuChangeName: { id: 'people-menu.change-name', defaultMessage: 'Change name' },

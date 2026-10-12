@@ -4,7 +4,6 @@ import { TLCopyType, copyAs } from '../../utils/export/copyAs'
 import { useToasts } from '../context/toasts'
 import { useTranslation } from './useTranslation/useTranslation'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	toastErrorCopyFailDesc: {
 		id: 'toast.error.copy-fail.desc',

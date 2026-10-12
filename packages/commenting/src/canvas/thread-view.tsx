@@ -52,8 +52,6 @@ import {
 } from './options'
 import { openThreadId } from './state'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
-// Only the ids nothing else declares; the rest are declared with what they name.
 const messages = defineMessages({
 	commentsCopyLink: { id: 'comments.copy-link', defaultMessage: 'Copy link' },
 	commentsDelete: { id: 'comments.delete', defaultMessage: 'Delete thread' },

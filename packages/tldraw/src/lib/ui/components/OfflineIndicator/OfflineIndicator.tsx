@@ -3,7 +3,6 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TldrawUiTooltip } from '../primitives/TldrawUiTooltip'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	statusOffline: { id: 'status.offline', defaultMessage: 'Offline' },
 })

@@ -4,7 +4,6 @@ import { exportAs } from '../../utils/export/exportAs'
 import { useToasts } from '../context/toasts'
 import { useTranslation } from './useTranslation/useTranslation'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	toastErrorExportFailDesc: {
 		id: 'toast.error.export-fail.desc',

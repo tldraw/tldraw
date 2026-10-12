@@ -5,7 +5,6 @@ import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolb
 import { AltTextEditor } from './AltTextEditor'
 import { DefaultImageToolbarContent } from './DefaultImageToolbarContent'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	toolImageToolbarTitle: { id: 'tool.image-toolbar-title', defaultMessage: 'Image tools' },
 })

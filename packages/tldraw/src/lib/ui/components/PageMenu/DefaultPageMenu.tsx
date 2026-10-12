@@ -27,8 +27,6 @@ import { onMovePage } from './edit-pages-shared'
 import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
-// Only the ids nothing else declares; the rest are declared with what they name.
 const messages = defineMessages({
 	actionRename: { id: 'action.rename', defaultMessage: 'Rename' },
 	contextMenuReorder: { id: 'context-menu.reorder', defaultMessage: 'Reorder' },

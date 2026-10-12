@@ -15,7 +15,6 @@ import { rectToBox, TldrawUiContextualToolbar } from '../primitives/TldrawUiCont
 import { DefaultRichTextToolbarContent } from './DefaultRichTextToolbarContent'
 import { LinkEditor } from './LinkEditor'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	toolRichTextToolbarTitle: {
 		id: 'tool.rich-text-toolbar-title',

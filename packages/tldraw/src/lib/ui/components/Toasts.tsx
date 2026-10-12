@@ -8,8 +8,6 @@ import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
 import { TldrawUiIcon } from './primitives/TldrawUiIcon'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
-// Only the ids nothing else declares; the rest are declared with what they name.
 const messages = defineMessages({
 	toastClose: { id: 'toast.close', defaultMessage: 'Close' },
 })

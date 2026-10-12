@@ -13,7 +13,6 @@ import { DefaultToolbarContent } from './DefaultToolbarContent'
 import { OverflowingToolbar } from './OverflowingToolbar'
 import { ToggleToolLockedButton } from './ToggleToolLockedButton'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	actionsMenuTitle: { id: 'actions-menu.title', defaultMessage: 'Actions' },
 })

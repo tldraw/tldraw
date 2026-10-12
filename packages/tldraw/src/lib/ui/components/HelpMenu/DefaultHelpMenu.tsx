@@ -13,7 +13,6 @@ import {
 } from '../primitives/TldrawUiDropdownMenu'
 import { DefaultHelpMenuContent } from './DefaultHelpMenuContent'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	helpMenuTitle: { id: 'help-menu.title', defaultMessage: 'Help and resources' },
 })

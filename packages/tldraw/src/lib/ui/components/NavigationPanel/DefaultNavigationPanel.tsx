@@ -10,7 +10,6 @@ import { kbdStr } from '../../kbd-utils'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	navigationZoneTitle: { id: 'navigation-zone.title', defaultMessage: 'Navigation' },
 	navigationZoneToggleMinimap: {

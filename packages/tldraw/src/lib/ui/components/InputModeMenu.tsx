@@ -5,7 +5,6 @@ import { TldrawUiMenuCheckboxItem } from './primitives/menus/TldrawUiMenuCheckbo
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	actionToggleMouse: { id: 'action.toggle-mouse', defaultMessage: 'Mouse' },
 	actionToggleTrackpad: { id: 'action.toggle-trackpad', defaultMessage: 'Trackpad' },

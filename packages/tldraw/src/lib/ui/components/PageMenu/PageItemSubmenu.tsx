@@ -14,7 +14,6 @@ import {
 } from '../primitives/TldrawUiDropdownMenu'
 import { onMovePage } from './edit-pages-shared'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	pageMenuSubmenuDelete: { id: 'page-menu.submenu.delete', defaultMessage: 'Delete' },
 	pageMenuSubmenuDuplicatePage: {

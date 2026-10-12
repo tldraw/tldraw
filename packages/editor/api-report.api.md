@@ -4347,7 +4347,7 @@ export interface TLI18n {
     dir: 'ltr' | 'rtl';
     // (undocumented)
     locale: string;
-    translate(key: string, values?: TLI18nValues): string;
+    translate(message: TLI18nMessage, values?: TLI18nValues): string;
 }
 
 // @public

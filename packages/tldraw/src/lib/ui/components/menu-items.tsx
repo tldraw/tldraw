@@ -24,8 +24,6 @@ import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from './primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
-// Only the ids nothing else declares; the rest are declared with what they name.
 const messages = defineMessages({
 	contextMenuArrange: { id: 'context-menu.arrange', defaultMessage: 'Arrange' },
 	contextMenuCopyAs: { id: 'context-menu.copy-as', defaultMessage: 'Copy as' },

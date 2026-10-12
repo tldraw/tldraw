@@ -9,7 +9,6 @@ import { TldrawUiIcon, TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	uiChecked: { id: 'ui.checked', defaultMessage: 'Checked' },
 	uiUnchecked: { id: 'ui.unchecked', defaultMessage: 'Unchecked' },

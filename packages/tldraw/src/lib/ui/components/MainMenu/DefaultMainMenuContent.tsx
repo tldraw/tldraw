@@ -39,7 +39,6 @@ import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionIt
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 
-// Declared here so the English sits with the UI that shows it, and so the extractor can see it.
 const messages = defineMessages({
 	contextMenuExportAllAs: { id: 'context-menu.export-all-as', defaultMessage: 'Export' },
 	menuEdit: { id: 'menu.edit', defaultMessage: 'Edit' },
