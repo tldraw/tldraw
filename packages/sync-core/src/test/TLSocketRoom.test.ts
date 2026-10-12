@@ -21,6 +21,7 @@ import {
 	ZERO_INDEX_KEY,
 } from 'tldraw'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { MAX_ASSEMBLED_MESSAGE_CHARS } from '../lib/chunk'
 import { RecordOpType } from '../lib/diff'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from '../lib/InMemorySyncStorage'
 import { getTlsyncProtocolVersion } from '../lib/protocol'
@@ -390,6 +391,29 @@ describe('28. TLSocketRoom (SR)', () => {
 			expect(socket.close).toHaveBeenCalled()
 			// the session enters the disconnect grace period rather than being rejected
 			expect(room.getSessions()[0].isConnected).toBe(false)
+		})
+
+		it('[SR5] rejects the session when an assembly exceeds the size cap', () => {
+			const log: TLSyncLog = { warn: vi.fn(), error: vi.fn() }
+			const room = new TLSocketRoom({ log })
+			const socket = createMockSocket()
+			connectSession(room, 'test-session', socket)
+
+			// A chunk stream that never sends its last chunk. Unlike the other assembly errors
+			// this one is fatal: a reconnecting client would re-send the same oversized message.
+			const body = 'x'.repeat(1024 * 1024)
+			const chunksNeeded = Math.ceil(MAX_ASSEMBLED_MESSAGE_CHARS / body.length) + 1
+			for (let i = 0; i < chunksNeeded; i++) {
+				room.handleSocketMessage('test-session', `${chunksNeeded - i}_${body}`)
+				if ((log.error as any).mock.calls.length) break
+			}
+
+			expect(log.error).toHaveBeenCalledWith('Error assembling message', expect.anything())
+			expect(socket.close).toHaveBeenCalledWith(
+				TLSyncErrorCloseEventCode,
+				TLSyncErrorCloseEventReason.MESSAGE_TOO_LARGE
+			)
+			expect(room.getSessions()).toHaveLength(0)
 		})
 
 		it('[SR5] rejects the session with UNKNOWN_ERROR when message handling throws', () => {

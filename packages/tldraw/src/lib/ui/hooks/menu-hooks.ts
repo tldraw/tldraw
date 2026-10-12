@@ -1,5 +1,6 @@
 import { Editor, useEditor, useValue } from '@tldraw/editor'
 import { getArrowBindings } from '../../shapes/arrow/shared'
+import { getSelectedLinkShape } from '../../utils/shapes/shapes'
 
 function shapesWithUnboundArrows(editor: Editor) {
 	return editor.getSelectedShapes().filter((shape) => {
@@ -116,19 +117,7 @@ export function useShowAutoSizeToggle() {
 
 export function useHasLinkShapeSelected() {
 	const editor = useEditor()
-	return useValue(
-		'hasLinkShapeSelected',
-		() => {
-			const onlySelectedShape = editor.getOnlySelectedShape()
-			return !!(
-				onlySelectedShape &&
-				onlySelectedShape.type !== 'embed' &&
-				'url' in onlySelectedShape.props &&
-				!onlySelectedShape.isLocked
-			)
-		},
-		[editor]
-	)
+	return useValue('hasLinkShapeSelected', () => !!getSelectedLinkShape(editor), [editor])
 }
 
 export function useOnlyFlippableShape() {

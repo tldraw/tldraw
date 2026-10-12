@@ -1,6 +1,7 @@
 import {
 	Editor,
 	ExtractShapeByProps,
+	HALF_PI,
 	richTextValidator,
 	TLEventInfo,
 	TLRichText,
@@ -9,6 +10,7 @@ import {
 	Vec,
 	VecLike,
 	pointInPolygon,
+	approximately,
 } from '@tldraw/editor'
 
 /** @internal */
@@ -91,4 +93,16 @@ export function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) 
 		point,
 		selectionBounds.corners.map((c) => Vec.RotWith(c, selectionBounds.point, selectionRotation))
 	)
+}
+
+/**
+ * Whether a rotation is a multiple of 90 degrees. An exact `rotation % HALF_PI === 0` misses
+ * page rotations accumulated through rotated parents, which land a few ulps off and silently
+ * disable right-angle-only behavior such as bounds snapping.
+ *
+ * @internal
+ */
+export function isRightAngleRotation(rotation: number) {
+	const turns = rotation / HALF_PI
+	return approximately(turns, Math.round(turns))
 }

@@ -239,7 +239,7 @@ function useFileQuery<T extends readonly unknown[]>(
 		if (!app) return
 		const view = app.materializeQuery<T>(query({ fileId }))
 		setData(view.data)
-		const unlisten = view.addListener(setData)
+		const unlisten = view.addListener((next) => setData(next as T))
 		return () => {
 			unlisten()
 			view.destroy()

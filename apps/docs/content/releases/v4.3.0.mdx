@@ -87,7 +87,7 @@ See the [Custom Shapes Guide](https://tldraw.dev/docs/shapes#Custom-shapes) and 
 **Use `as const` on the static `type` field.** TypeScript may widen `static override type = 'my-shape'` to `string`, which fails the new constraint. Add `as const` to keep it a string literal:
 
 ```ts
-class MyShapeUtil extends ShapeUtil`<MyShape>` {
+class MyShapeUtil extends (ShapeUtil`<MyShape>`) {
 	static override type = 'my-shape' as const
 	// ...
 }

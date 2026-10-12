@@ -92,6 +92,7 @@ describe('verifyRoomVersions under clock skew', () => {
 			complete: true,
 			mismatches: [],
 			errors: [],
+			legacyReadFailures: [],
 		})
 	})
 })
@@ -118,6 +119,7 @@ describe('verifyRoomVersions after cut-over', () => {
 			complete: false,
 			mismatches: [],
 			errors: [],
+			legacyReadFailures: [],
 		})
 	})
 })
@@ -152,6 +154,7 @@ describe('verifyRoomVersions with a limit', () => {
 			complete: false,
 			mismatches: [],
 			errors: [],
+			legacyReadFailures: [],
 		})
 		expect(full.mismatches).toEqual(['2026-08-01T00:00:00.000Z'])
 	})
@@ -170,6 +173,7 @@ describe('verifyRoomVersions with a limit', () => {
 			complete: false,
 			mismatches: [],
 			errors: [],
+			legacyReadFailures: [],
 		})
 	})
 })
@@ -361,6 +365,7 @@ describe('verifyRoomVersions on an unreadable segment', () => {
 					message: expect.stringMatching(/has no readable chain reference/),
 				},
 			],
+			legacyReadFailures: [],
 		})
 	})
 
@@ -416,6 +421,7 @@ describe('verifyRoomVersions', () => {
 			complete: true,
 			mismatches: [],
 			errors: [],
+			legacyReadFailures: [],
 		})
 	})
 
@@ -445,7 +451,8 @@ describe('verifyRoomVersions', () => {
 			reads: 5,
 			complete: true,
 			mismatches: [],
-			errors: [
+			errors: [],
+			legacyReadFailures: [
 				{
 					timestamp: flakyIso,
 					message: expect.stringMatching(/^legacy copy read failed: network connection lost/),

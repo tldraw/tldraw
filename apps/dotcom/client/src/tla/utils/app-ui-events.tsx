@@ -15,7 +15,6 @@ export type TLAppUiEventSource =
 	| 'anon-landing-page'
 	| 'anon-top-bar'
 	| 'comments'
-	| 'account-menu'
 	| 'top-bar'
 	| 'legacy-import-button'
 	| 'file-drop'
@@ -47,6 +46,7 @@ export interface TLAppUiEventMap {
 	'open-share-menu': null
 	'change-share-menu-tab': { tab: TldrawAppSessionState['shareMenuActiveTab'] }
 	'copy-share-link': null
+	'open-share-link': null
 	'copy-file-link': null
 	'toggle-shared': { shared: boolean }
 	'set-theme': { theme: 'dark' | 'light' | 'auto' }

@@ -9,7 +9,7 @@ on:
   pull_request:
     paths:
       - '**/package.json'
-      - 'yarn.lock'
+      - 'pnpm-lock.yaml'
       - 'internal/scripts/license-report.ts'
       - '.github/workflows/license-report.yml'
 
@@ -43,7 +43,7 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Generate license report
-        run: yarn license-report --prod
+        run: pnpm license-report --prod
 
       - name: Commit changes
         run: |

@@ -12,6 +12,7 @@ vi.mock('@tldraw/utils', async (importOriginal) => {
 // NOTE: setupVitest.js replaces the global WebSocket with the 'ws' package's WebSocket,
 // matching the WebSocketServer the tests connect to.
 import { WebSocketServer, WebSocket as WsWebSocket } from 'ws'
+import { MAX_ASSEMBLED_MESSAGE_CHARS } from './chunk'
 import {
 	ACTIVE_MAX_DELAY,
 	ACTIVE_MIN_DELAY,
@@ -398,6 +399,32 @@ describe('ClientWebSocketAdapter', () => {
 			expect(consoleWarnSpy).toHaveBeenCalledWith(
 				expect.stringContaining('Tried to send message while')
 			)
+		})
+
+		it('[CW6] refuses to send a message the server would reject as too large', async () => {
+			const onMessage = vi.fn()
+			connectMock.mockImplementationOnce((ws: any) => {
+				ws.on('message', onMessage)
+			})
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+
+			const onStatusChange = vi.fn()
+			adapter.onStatusChange(onStatusChange)
+
+			const message = {
+				...connectMessage(),
+				largeData: 'x'.repeat(MAX_ASSEMBLED_MESSAGE_CHARS),
+			} as any
+			adapter.sendMessage(message)
+
+			// nothing goes on the wire: sending would only earn a close and a reconnect that
+			// re-sends the same message
+			expect(onMessage).not.toHaveBeenCalled()
+			expect(adapter.connectionStatus).toBe('error')
+			expect(onStatusChange).toHaveBeenCalledWith({
+				status: 'error',
+				reason: TLSyncErrorCloseEventReason.MESSAGE_TOO_LARGE,
+			})
 		})
 
 		it('[CW6] silently drops the message when there is no socket', async () => {
@@ -881,6 +908,37 @@ describe('ReconnectManager', () => {
 
 		// closing again is safe
 		expect(() => manager.close()).not.toThrow()
+	})
+
+	it('[RM4] reconnect hints and the disconnect handler survive an undefined WebSocket global', async () => {
+		// Regression test for the undefined-WebSocket crash guarded in ClientWebSocketAdapter.ts (#10106).
+		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+		const manager = adapter._reconnectManager
+		// jsdom reports a throwing event listener on window instead of from dispatchEvent
+		const listenerErrors: unknown[] = []
+		const onError = (event: ErrorEvent) => {
+			event.preventDefault()
+			listenerErrors.push(event.error)
+		}
+		window.addEventListener('error', onError)
+		const originalWebSocket = globalThis.WebSocket
+		try {
+			;(globalThis as any).WebSocket = undefined
+
+			window.dispatchEvent(new Event('online'))
+			expect(() => manager.maybeReconnected()).not.toThrow()
+			expect(() => manager.connected()).not.toThrow()
+			expect(adapter.connectionStatus).toBe('online')
+
+			window.dispatchEvent(new Event('offline'))
+			expect(() => manager.disconnected()).not.toThrow()
+			expect(listenerErrors).toEqual([])
+			expect(adapter.connectionStatus).toBe('offline')
+			expect(adapter._ws).toBeNull()
+		} finally {
+			globalThis.WebSocket = originalWebSocket
+			window.removeEventListener('error', onError)
+		}
 	})
 })
 

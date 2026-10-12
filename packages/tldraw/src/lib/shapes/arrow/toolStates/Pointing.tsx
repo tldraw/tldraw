@@ -200,7 +200,7 @@ export class Pointing extends StateNode {
 
 	private clearPreciseTimeout() {
 		if (this.isPreciseTimerId !== null) {
-			clearTimeout(this.isPreciseTimerId)
+			this.editor.timers.clearTimeout(this.isPreciseTimerId)
 		}
 	}
 }

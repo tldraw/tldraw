@@ -1,6 +1,6 @@
 import { invLerp } from '@tldraw/utils'
 import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
-import type { Actor, Message } from 'mermaid/dist/diagrams/sequence/types.js'
+import type { Actor, Box, Message } from 'mermaid/dist/diagrams/sequence/types.js'
 import { clamp, TLArrowShapeArrowheadStyle, TLDefaultDashStyle } from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
@@ -9,6 +9,7 @@ import type {
 	MermaidBlueprintLineNode,
 } from './blueprint'
 import { parseRgbToTldrawColor } from './colors'
+import type { MeasureLabelWidth } from './mermaidNodeCreateShape'
 import { getAccumulatedTranslate } from './svgParsing'
 
 export interface SvgRect {
@@ -22,9 +23,23 @@ export interface ActorLayout extends SvgRect {
 	bottomY: number
 }
 
+export interface FragmentFrameLayout {
+	top: number
+	bottom: number
+	sectionYs: number[]
+}
+
 export interface ParsedSequenceLayout {
 	actorLayouts: ActorLayout[]
 	noteRects: SvgRect[]
+	/**
+	 * Mermaid gives each row as much room as its content needs, so rows are read from its rendering
+	 * rather than spaced evenly. Keyed by index into the diagram's messages, in the same space as
+	 * `actorLayouts`.
+	 */
+	rowYs: Map<number, number>
+	/** Keyed by the index of the message that closes the fragment. */
+	fragmentFrames: Map<number, FragmentFrameLayout>
 }
 
 export const LINETYPE = {
@@ -177,13 +192,6 @@ const FALLBACK_EVENT_SPACING = 80
 const FALLBACK_NOTE_WIDTH = 120
 const FALLBACK_NOTE_HEIGHT = 50
 const NOTE_PADDING = 5
-// tldraw's hand-drawn font is wider than Mermaid's default, so we estimate the minimum note
-// width from the label text to prevent wrapping. Mermaid breaks notes on `<br/>`, and the
-// estimate is a single line's worth: measuring the whole label would size a three-line note
-// as though it ran on one line.
-const NOTE_CHAR_WIDTH = 11
-const NOTE_TEXT_PADDING = 40
-const NOTE_LINE_BREAK = /<br\s*\/?>|\n/i
 const FRAGMENT_PADDING_X = 30
 const FRAGMENT_PADDING_TOP = 50
 const FRAGMENT_PADDING_BOTTOM = 25
@@ -191,6 +199,12 @@ const ACTOR_PADDING_WIDTH = 30
 const ACTOR_PADDING_HEIGHT = 10
 const SELF_MSG_Y_OFFSET = 0.04
 const SELF_MSG_BEND = -80
+// Mermaid draws a self-message as a loop 20px tall, starting at the top of its path.
+const SELF_MSG_SVG_LOOP_HEIGHT = 20
+// How far up into the label mermaid drew above a message's line our arrow sits. Our labels are
+// centred on the arrow and taller than mermaid's, so halfway pushed them into a fragment's section
+// title above, while the line itself pushed them across the frame's bottom edge.
+const MESSAGE_ROW_LABEL_SHARE = 0.25
 const MIN_LIFELINE_HEIGHT = 1
 const ACTIVATION_BOX_WIDTH = 20
 const ACTIVATION_NEST_OFFSET = 6
@@ -212,6 +226,7 @@ interface OpenFragment {
 
 interface FragmentSpan extends OpenFragment {
 	lastEventIndex: number
+	endMessageIndex: number
 }
 
 interface ActivationSpan {
@@ -276,7 +291,17 @@ function parseActorManRects(root: Element): SvgRect[] {
 	return results
 }
 
-function computeActorLayouts(root: Element, actorCount: number, eventCount: number): ActorLayout[] {
+interface ComputedActorLayouts {
+	actorLayouts: ActorLayout[]
+	/** Maps a y in mermaid's SVG into the space of `actorLayouts`, when they were read from it. */
+	toLayoutY?(svgY: number): number
+}
+
+function computeActorLayouts(
+	root: Element,
+	actorCount: number,
+	eventCount: number
+): ComputedActorLayouts {
 	const byX = (a: SvgRect, b: SvgRect) => a.x - b.x
 	let top = parseSvgRects(root, 'rect.actor-top').sort(byX)
 	let bottom = parseSvgRects(root, 'rect.actor-bottom').sort(byX)
@@ -360,24 +385,37 @@ function computeActorLayouts(root: Element, actorCount: number, eventCount: numb
 		const xCenters = svgCenters.map((c) => (c - svgCenters[0]) * scale)
 		const totalSpan = xCenters.length > 1 ? xCenters[xCenters.length - 1] : 0
 
-		const topRowBottom = Math.max(...top.map((r) => r.y + r.h))
-		const bottomRowTop = Math.min(...bottom.map((r) => r.y))
-		const yStretch = Math.max(0, MIN_VERTICAL_GAP - (bottomRowTop - topRowBottom))
+		// A created participant's top box and a destroyed one's bottom box sit mid-diagram, so
+		// neither marks a row edge. Measuring the gap from one reports the diagram as far shorter
+		// than it is, inflating the stretch below and leaving the whole diagram too tall.
+		const headerBottom = Math.min(...top.map((r) => r.y + r.h))
+		const footerTop = Math.max(...bottom.map((r) => r.y))
+		const yStretch = Math.max(0, MIN_VERTICAL_GAP - (footerTop - headerBottom))
 		const topMinY = Math.min(...top.map((r) => r.y))
 		const bottomMaxY = Math.max(...bottom.map((r) => r.y + r.h))
 		const originY = -(bottomMaxY + yStretch + topMinY) / 2
+		// The stretch pushes the footer down, so spread it over the rows between header and footer.
+		const toLayoutY = (svgY: number) =>
+			originY +
+			svgY +
+			(footerTop > headerBottom
+				? yStretch * clamp(invLerp(headerBottom, footerTop, svgY), 0, 1)
+				: 0)
 
-		return top.map((topRect, i) => {
+		const actorLayouts = top.map((topRect, i) => {
 			const w = topRect.w + ACTOR_PADDING_WIDTH
 			const h = topRect.h + ACTOR_PADDING_HEIGHT
 			return {
 				x: xCenters[i] - totalSpan / 2 - w / 2,
-				y: originY + topRect.y,
+				// Through `toLayoutY` so a created or destroyed participant's mid-diagram box takes
+				// the same share of the stretch as the row it sits on, rather than all of it or none.
+				y: toLayoutY(topRect.y),
 				w,
 				h,
-				bottomY: originY + bottom[i].y + yStretch,
+				bottomY: toLayoutY(bottom[i].y),
 			}
 		})
+		return { actorLayouts, toLayoutY }
 	}
 
 	const fallbackLifelineHeight = Math.max(300, eventCount * FALLBACK_EVENT_SPACING)
@@ -385,13 +423,119 @@ function computeActorLayouts(root: Element, actorCount: number, eventCount: numb
 	const totalHeight = FALLBACK_ACTOR_HEIGHT * 2 + fallbackLifelineHeight
 	const startX = -totalWidth / 2
 	const startY = -totalHeight / 2
-	return Array.from({ length: actorCount }, (_, i) => ({
-		x: startX + i * (FALLBACK_ACTOR_WIDTH + FALLBACK_ACTOR_SPACING),
-		y: startY,
-		w: FALLBACK_ACTOR_WIDTH,
-		h: FALLBACK_ACTOR_HEIGHT,
-		bottomY: startY + totalHeight - FALLBACK_ACTOR_HEIGHT,
-	}))
+	return {
+		actorLayouts: Array.from({ length: actorCount }, (_, i) => ({
+			x: startX + i * (FALLBACK_ACTOR_WIDTH + FALLBACK_ACTOR_SPACING),
+			y: startY,
+			w: FALLBACK_ACTOR_WIDTH,
+			h: FALLBACK_ACTOR_HEIGHT,
+			bottomY: startY + totalHeight - FALLBACK_ACTOR_HEIGHT,
+		})),
+	}
+}
+
+/** Mermaid tags each message, note and fragment it draws with `i<index into its messages>`. */
+function getMessageIndex(el: Element): number | undefined {
+	const match = el.getAttribute('data-id')?.match(/^i(\d+)$/)
+	return match ? Number(match[1]) : undefined
+}
+
+function parseRowYs(root: Element, toLayoutY: (svgY: number) => number): Map<number, number> {
+	const rowYs = new Map<number, number>()
+	for (const el of root.querySelectorAll('[data-et="message"]')) {
+		const index = getMessageIndex(el)
+		if (index === undefined) continue
+		let y: number
+		if (el.tagName.toLowerCase() === 'path') {
+			// Our self-message loop is far taller than mermaid's and holds its own label, so it
+			// centres on mermaid's loop: spreading it over the label above would push the first loop
+			// into the participant box.
+			const start = el.getAttribute('d')?.match(/^\s*M\s*[\d.e+-]+[,\s]+([\d.e+-]+)/)
+			if (!start) continue
+			y = parseFloat(start[1]) + SELF_MSG_SVG_LOOP_HEIGHT / 2
+		} else {
+			// Mermaid draws a message's label above its line, one text element per line of label, just
+			// before the line itself.
+			const lineY = parseFloat(el.getAttribute('y1') ?? '')
+			let labelTopY = lineY
+			for (
+				let sibling = el.previousElementSibling;
+				sibling?.matches('text.messageText');
+				sibling = sibling.previousElementSibling
+			) {
+				labelTopY = Math.min(labelTopY, parseFloat(sibling.getAttribute('y') ?? ''))
+			}
+			y = lineY - (lineY - labelTopY) * MESSAGE_ROW_LABEL_SHARE
+		}
+		y += getAccumulatedTranslate(el).y
+		if (Number.isFinite(y)) rowYs.set(index, toLayoutY(y))
+	}
+	for (const group of root.querySelectorAll('[data-et="note"]')) {
+		const index = getMessageIndex(group)
+		const rect = group.querySelector('rect.note')
+		if (index === undefined || !rect) continue
+		const y =
+			getAccumulatedTranslate(rect).y +
+			parseFloat(rect.getAttribute('y') ?? '') +
+			parseFloat(rect.getAttribute('height') ?? '') / 2
+		if (Number.isFinite(y)) rowYs.set(index, toLayoutY(y))
+	}
+	return rowYs
+}
+
+function parseFragmentFrames(
+	root: Element,
+	toLayoutY: (svgY: number) => number
+): Map<number, FragmentFrameLayout> {
+	const frames = new Map<number, FragmentFrameLayout>()
+	for (const group of root.querySelectorAll('[data-et="control-structure"]')) {
+		const index = getMessageIndex(group)
+		if (index === undefined) continue
+		const offsetY = getAccumulatedTranslate(group).y
+		const horizontalYs: number[] = []
+		for (const line of group.querySelectorAll('line.loopLine')) {
+			const y1 = parseFloat(line.getAttribute('y1') ?? '')
+			const y2 = parseFloat(line.getAttribute('y2') ?? '')
+			if (Number.isFinite(y1) && y1 === y2) horizontalYs.push(offsetY + y1)
+		}
+		if (horizontalYs.length < 2) continue
+		const top = Math.min(...horizontalYs)
+		const bottom = Math.max(...horizontalYs)
+		frames.set(index, {
+			top: toLayoutY(top),
+			bottom: toLayoutY(bottom),
+			sectionYs: horizontalYs
+				.filter((y) => y > top && y < bottom)
+				.sort((a, b) => a - b)
+				.map(toLayoutY),
+		})
+	}
+	return frames
+}
+
+function getActorLabel(actors: Map<string, Actor>, key: string): string {
+	const actor = actors.get(key)
+	return actor?.description || actor?.name || key
+}
+
+/**
+ * Widen each actor box to fit its label, moving the actors to its right along by as much: widening in
+ * place would eat the gap mermaid left between neighbors, and long names would overlap.
+ */
+function fitActorsToLabels(
+	layouts: ActorLayout[],
+	labels: string[],
+	measureLabelWidth: MeasureLabelWidth
+): ActorLayout[] {
+	let shift = 0
+	let previousGrowth = 0
+	return layouts.map((layout, i) => {
+		const w = Math.max(layout.w, measureLabelWidth(labels[i], 's'))
+		const growth = w - layout.w
+		shift += (previousGrowth + growth) / 2
+		previousGrowth = growth
+		return { ...layout, x: layout.x + shift - growth / 2, w }
+	})
 }
 
 function getMessageLabel(msg: Message): string | undefined {
@@ -409,9 +553,12 @@ export function parseSequenceLayout(
 	actorCount: number,
 	eventCount: number
 ): ParsedSequenceLayout {
+	const { actorLayouts, toLayoutY } = computeActorLayouts(root, actorCount, eventCount)
 	return {
-		actorLayouts: computeActorLayouts(root, actorCount, eventCount),
+		actorLayouts,
 		noteRects: parseSvgRects(root, 'rect.note'),
+		rowYs: toLayoutY ? parseRowYs(root, toLayoutY) : new Map(),
+		fragmentFrames: toLayoutY ? parseFragmentFrames(root, toLayoutY) : new Map(),
 	}
 }
 
@@ -425,7 +572,8 @@ export function sequenceToBlueprint(
 	actorKeys: string[],
 	messages: Message[],
 	createdActors: Map<string, number> = new Map(),
-	destroyedActors: Map<string, number> = new Map()
+	destroyedActors: Map<string, number> = new Map(),
+	measureLabelWidth: MeasureLabelWidth = () => 0
 ): DiagramMermaidBlueprint {
 	const actorCount = actorKeys.length
 	if (actorCount === 0)
@@ -435,6 +583,7 @@ export function sequenceToBlueprint(
 	const fragments: FragmentSpan[] = []
 	const fragmentStack: OpenFragment[] = []
 	const events: Message[] = []
+	const eventMessageIndices: number[] = []
 	const activationStack = new Map<string, number[]>()
 	const activationSpans: ActivationSpan[] = []
 
@@ -482,7 +631,12 @@ export function sequenceToBlueprint(
 
 		if (FRAGMENT_END_TYPES.has(type)) {
 			const frag = fragmentStack.pop()
-			if (frag) fragments.push({ ...frag, lastEventIndex: events.length - 1 })
+			if (frag)
+				fragments.push({
+					...frag,
+					lastEventIndex: events.length - 1,
+					endMessageIndex: messageIndex,
+				})
 			continue
 		}
 
@@ -546,6 +700,7 @@ export function sequenceToBlueprint(
 				destructionEventIndex.set(to, events.length)
 		}
 		events.push(msg)
+		eventMessageIndices.push(messageIndex)
 
 		// Only signals consume a number; notes occupy a row but are never numbered.
 		// The counter advances even while numbering is off, matching mermaid.
@@ -553,7 +708,11 @@ export function sequenceToBlueprint(
 		if (isSignal) autonumber = Math.round((autonumber + autonumberStep) * 100) / 100
 	}
 
-	const layouts = layout.actorLayouts
+	const layouts = fitActorsToLabels(
+		layout.actorLayouts,
+		actorKeys.map((key) => getActorLabel(actors, key)),
+		measureLabelWidth
+	)
 
 	// Build blueprint
 	const svgNoteRects = layout.noteRects
@@ -567,7 +726,17 @@ export function sequenceToBlueprint(
 	// mid-diagram, so it must not be the baseline the whole row grid is priced against.
 	const diagramBottomY = Math.max(...layouts.map((l) => l.bottomY))
 	const eventStep = (diagramBottomY - lifelineTop) / (events.length + 1)
-	const eventY = (eventIndex: number) => lifelineTop + eventStep * (eventIndex + 1)
+	const measuredRowYs = eventMessageIndices.map((messageIndex) => layout.rowYs.get(messageIndex))
+	// Mixing measured rows with evenly spaced ones could put a row above the one before it, so a
+	// single row mermaid didn't draw sends every row back to the even grid.
+	const hasMeasuredRows = measuredRowYs.every((y) => y !== undefined)
+	// Row -1 is the top of the lifelines and row `events.length` the bottom, so a fragment section
+	// that opens before the first row or after the last still has a neighbour to sit between.
+	const eventY = (eventIndex: number) => {
+		if (eventIndex < 0) return lifelineTop
+		if (eventIndex >= events.length) return diagramBottomY
+		return hasMeasuredRows ? measuredRowYs[eventIndex]! : lifelineTop + eventStep * (eventIndex + 1)
+	}
 
 	// Where each actor's two boxes sit, and the lifeline strung between their inner edges.
 	// A created or destroyed participant puts its box on the message row that opens or closes
@@ -577,9 +746,10 @@ export function sequenceToBlueprint(
 		const destroyedAt = destructionEventIndex.get(actorKeys[i])
 		const topBoxY = createdAt !== undefined ? eventY(createdAt) - h / 2 : y
 		const lifelineTopY = topBoxY + h
-		// Boxes a row apart leave no gap between them. Push the bottom box down rather than let
-		// the lifeline vanish: with no lifeline shape to bind to, every arrow that reaches this
-		// participant is dropped without a trace.
+		// Boxes a row apart can meet: evenly spaced rows leave them no room, and our boxes are taller
+		// than mermaid's. Push the bottom box down rather than let the lifeline vanish: with no
+		// lifeline shape to bind to, every arrow that reaches this participant is dropped without a
+		// trace.
 		const bottomBoxY = Math.max(
 			destroyedAt !== undefined ? eventY(destroyedAt) - h / 2 : bottomY,
 			lifelineTopY + MIN_LIFELINE_HEIGHT
@@ -587,9 +757,21 @@ export function sequenceToBlueprint(
 		return { topBoxY, lifelineTopY, bottomBoxY }
 	})
 
-	// --- Z-order: lifelines -> activations -> fragments -> actor boxes -> notes/arrows ---
+	// --- Z-order: participant boxes -> lifelines -> activations -> fragments -> actor boxes -> notes/arrows ---
+	// Lines render beneath every node, so nodes that would cover them are marked `background`.
 
-	// 1. Lifelines (behind everything)
+	// 0. Participant boxes (behind everything)
+	nodes.push(
+		...getParticipantBoxNodes(
+			actors,
+			actorKeys,
+			layouts,
+			Math.min(...layouts.map((l) => l.y)),
+			Math.max(...lifecycles.map((l, i) => l.bottomBoxY + layouts[i].h))
+		)
+	)
+
+	// 1. Lifelines
 	for (let i = 0; i < actorCount; i++) {
 		const { x, w } = layouts[i]
 		const { lifelineTopY, bottomBoxY } = lifecycles[i]
@@ -650,8 +832,12 @@ export function sequenceToBlueprint(
 		const fragment = fragments[fragmentIndex]
 		if (fragment.lastEventIndex < fragment.firstEventIndex) continue
 
-		const fragTop = eventY(fragment.firstEventIndex) - FRAGMENT_PADDING_TOP
-		const fragBottom = eventY(fragment.lastEventIndex) + FRAGMENT_PADDING_BOTTOM
+		// Mermaid's frame already leaves room for a title that wraps onto several lines.
+		const frame = hasMeasuredRows ? layout.fragmentFrames.get(fragment.endMessageIndex) : undefined
+		const fragTop = frame?.top ?? eventY(fragment.firstEventIndex) - FRAGMENT_PADDING_TOP
+		const fragBottom = frame?.bottom ?? eventY(fragment.lastEventIndex) + FRAGMENT_PADDING_BOTTOM
+		const sectionYs =
+			frame?.sectionYs.length === fragment.sections.length - 1 ? frame.sectionYs : undefined
 		const indices = [...fragment.actorKeys].map((k) => keyIndex.get(k)!).filter((idx) => idx >= 0)
 		if (indices.length === 0) continue
 
@@ -677,6 +863,7 @@ export function sequenceToBlueprint(
 				fill: rgbColor.hasAlpha ? 'semi' : 'solid',
 				color: rgbColor.color,
 				size: 's',
+				background: true,
 			})
 		} else {
 			nodes.push({
@@ -692,7 +879,9 @@ export function sequenceToBlueprint(
 
 			for (let s = 1; s < fragment.sections.length; s++) {
 				const section = fragment.sections[s]
-				const sepY = lifelineTop + eventStep * (section.firstEventIndex + 0.5)
+				const sepY =
+					sectionYs?.[s - 1] ??
+					(eventY(section.firstEventIndex - 1) + eventY(section.firstEventIndex)) / 2
 
 				lines.push({
 					id: `fragment-${fragmentIndex}-sep-${s}`,
@@ -733,7 +922,7 @@ export function sequenceToBlueprint(
 		const { topBoxY, bottomBoxY } = lifecycles[i]
 		const shared = {
 			kind: actor.type,
-			label: actor.description || actor.name || key,
+			label: getActorLabel(actors, key),
 			x,
 			w,
 			h,
@@ -836,11 +1025,10 @@ export function sequenceToBlueprint(
 
 			const svgNote = svgNoteRects[svgNoteIndex++]
 			const noteHeight = svgNote?.h ?? FALLBACK_NOTE_HEIGHT
-			const longestLine = label
-				? Math.max(...label.split(NOTE_LINE_BREAK).map((line) => line.trim().length))
-				: 0
-			const textWidth = longestLine ? longestLine * NOTE_CHAR_WIDTH + NOTE_TEXT_PADDING : 0
-			const baseWidth = Math.max(svgNote?.w ?? FALLBACK_NOTE_WIDTH, textWidth)
+			const baseWidth = Math.max(
+				svgNote?.w ?? FALLBACK_NOTE_WIDTH,
+				label ? measureLabelWidth(label, 's') : 0
+			)
 			const noteWidth = isSpanning
 				? Math.max(baseWidth, Math.abs(toCenterX - fromCenterX) + NOTE_PADDING)
 				: baseWidth
@@ -881,4 +1069,61 @@ export function sequenceToBlueprint(
 		lines,
 		groups: actorKeys.map((key) => [`actor-top-${key}`, `lifeline-${key}`, `actor-bottom-${key}`]),
 	}
+}
+
+const BOX_PADDING_X = 40
+const BOX_PADDING_Y = 20
+const BOX_LABEL_HEIGHT = 40
+
+/**
+ * Like mermaid, every box leaves room above the header row for a label once any box has one, so the
+ * boxes stay level and no label sits on an actor.
+ */
+function getParticipantBoxNodes(
+	actors: Map<string, Actor>,
+	actorKeys: string[],
+	layouts: ActorLayout[],
+	top: number,
+	bottom: number
+): MermaidBlueprintNode[] {
+	const participantIndicesByBox = new Map<Box, number[]>()
+	for (let i = 0; i < actorKeys.length; i++) {
+		const box = actors.get(actorKeys[i])?.box
+		if (!box) continue
+		const indices = participantIndicesByBox.get(box)
+		if (indices) indices.push(i)
+		else participantIndicesByBox.set(box, [i])
+	}
+
+	const hasLabels = [...participantIndicesByBox.keys()].some((box) => box.name)
+	const boxTop = top - BOX_PADDING_Y - (hasLabels ? BOX_LABEL_HEIGHT : 0)
+	const boxBottom = bottom + BOX_PADDING_Y
+	const gapAfter = (i: number) =>
+		i >= 0 && i + 1 < layouts.length ? layouts[i + 1].x - (layouts[i].x + layouts[i].w) : Infinity
+
+	return [...participantIndicesByBox].map(([box, indices], boxIndex) => {
+		const first = indices[0]
+		const last = indices[indices.length - 1]
+		// Taking at most a third of the gap on each side keeps two neighboring boxes apart, and keeps
+		// a box off the participant beside it.
+		const left = layouts[first].x - Math.min(BOX_PADDING_X, gapAfter(first - 1) / 3)
+		const right = layouts[last].x + layouts[last].w + Math.min(BOX_PADDING_X, gapAfter(last) / 3)
+		const color = parseRgbToTldrawColor(box.fill)
+		return {
+			id: `box-${boxIndex}`,
+			kind: 'sequence_box',
+			x: left,
+			y: boxTop,
+			w: right - left,
+			h: boxBottom - boxTop,
+			...(color
+				? { fill: color.hasAlpha ? 'semi' : 'solid', color: color.color }
+				: { fill: 'none', color: 'grey' }),
+			size: 's',
+			align: 'middle',
+			verticalAlign: 'start',
+			label: box.name,
+			background: true,
+		}
+	})
 }

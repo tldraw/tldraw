@@ -5,7 +5,11 @@ import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
 import { isTestFile } from '../utils/tla/isTestFile'
-import { loadChainIndex, openWholeVersionStream, reconstructVersion } from '../versionChainRead'
+import {
+	loadChainIndexForVersion,
+	openWholeVersionStream,
+	reconstructVersion,
+} from '../versionChainRead'
 
 // Get a snapshot of the room at a given point in time
 export async function getRoomHistorySnapshot(
@@ -32,7 +36,11 @@ export async function getRoomHistorySnapshot(
 	let result
 	let listOps = 0
 	try {
-		const { entries: index, ops } = await loadChainIndex(env.ROOMS_HISTORY, roomKey)
+		const { entries: index, ops } = await loadChainIndexForVersion(
+			env.ROOMS_HISTORY,
+			roomKey,
+			timestamp
+		)
 		// The listing is part of this request's R2 cost: reconstructVersion counts zero listing
 		// ops for a pre-loaded index, so leaving these out under-reports the header below.
 		listOps = ops
