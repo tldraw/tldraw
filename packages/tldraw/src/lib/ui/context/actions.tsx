@@ -63,6 +63,15 @@ export type TLUiActionsContextType = Record<string, TLUiActionItem>
 /** @internal */
 export const ActionsContext = React.createContext<TLUiActionsContextType | null>(null)
 
+/**
+ * The page point the context menu opened at, or null while it is closed. The context menu
+ * writes it; actions that place content (paste) read it, since the pointer keeps moving
+ * over the menu after it opens (#10423).
+ *
+ * @internal
+ */
+export const ContextMenuPagePointContext = React.createContext<{ current: Vec | null } | null>(null)
+
 /** @public */
 export interface ActionsProviderProps {
 	overrides?(
@@ -112,6 +121,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const msg = useTranslation()
 
 	const defaultDocumentName = helpers.msg('document.default-name')
+
+	const rContextMenuPagePoint = React.useRef<Vec | null>(null)
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
@@ -1009,7 +1020,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					// its point, before the read settles.
 					const point =
 						source === 'context-menu'
-							? (helpers.getContextMenuPagePoint() ?? editor.inputs.getCurrentPagePoint())
+							? (rContextMenuPagePoint.current ?? editor.inputs.getCurrentPagePoint())
 							: undefined
 					readClipboard(
 						() => navigator.clipboard?.read(),
@@ -1877,7 +1888,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		components,
 	])
 
-	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
+	return (
+		<ContextMenuPagePointContext.Provider value={rContextMenuPagePoint}>
+			<ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
+		</ContextMenuPagePointContext.Provider>
+	)
 }
 
 /** @public */

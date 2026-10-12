@@ -16,9 +16,9 @@ import {
 	useEffect,
 	useRef,
 } from 'react'
+import { ContextMenuPagePointContext } from '../../context/actions'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { ContextMenuPagePointContext } from '../../overrides'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultContextMenuContent } from './DefaultContextMenuContent'
 

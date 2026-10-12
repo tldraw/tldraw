@@ -1,11 +1,4 @@
-import {
-	Editor,
-	objectMapEntries,
-	useMaybeEditor,
-	useShallowArrayIdentity,
-	Vec,
-	VecLike,
-} from '@tldraw/editor'
+import { Editor, objectMapEntries, useMaybeEditor, useShallowArrayIdentity } from '@tldraw/editor'
 import { createContext, useCallback, useContext, useMemo } from 'react'
 import { PORTRAIT_BREAKPOINT } from './constants'
 import { ActionsProviderProps, TLUiActionsContextType } from './context/actions'
@@ -22,15 +15,6 @@ import { TLUiToolsContextType, TLUiToolsProviderProps } from './hooks/useTools'
 import { TLUiTranslationProviderProps, useTranslation } from './hooks/useTranslation/useTranslation'
 
 export const MimeTypeContext = createContext<string[] | undefined>([])
-
-/**
- * The page point the context menu opened at, or null while it is closed. The context menu
- * writes it; items that place content (paste, comment) read it, since the pointer keeps moving
- * over the menu after it opens (#10423).
- *
- * @internal
- */
-export const ContextMenuPagePointContext = createContext<{ current: Vec | null } | null>(null)
 
 /** @public */
 export function useDefaultHelpers() {
@@ -49,12 +33,6 @@ export function useDefaultHelpers() {
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const mimeTypes = useShallowArrayIdentity(useContext(MimeTypeContext))
-	const rContextMenuPagePoint = useContext(ContextMenuPagePointContext)
-
-	const getContextMenuPagePoint = useCallback(
-		(): VecLike | null => rContextMenuPagePoint?.current ?? null,
-		[rContextMenuPagePoint]
-	)
 
 	const insertMedia = useCallback(async () => {
 		if (!editor) return
@@ -123,7 +101,6 @@ export function useDefaultHelpers() {
 			copyAs,
 			exportAs,
 			getEmbedDefinition,
-			getContextMenuPagePoint,
 		}),
 		[
 			addToast,
@@ -144,7 +121,6 @@ export function useDefaultHelpers() {
 			copyAs,
 			exportAs,
 			getEmbedDefinition,
-			getContextMenuPagePoint,
 		]
 	)
 }

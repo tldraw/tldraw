@@ -309,22 +309,16 @@ class CommentDragging extends StateNode {
 export const commentTools = [CommentTool]
 
 /** Registers the comment tool in the UI (icon, label, shortcut). Compose into your overrides.
- *  Once registered, tldraw's `DefaultQuickActionsContent` shows the comment button, and its
- *  `DefaultContextMenuContent` shows a comment item that opens the composer at the right-clicked
- *  point.
+ *  Once registered, tldraw's `DefaultQuickActionsContent` shows the comment button.
  * @public */
 export const commentToolOverrides: TLUiOverrides = {
-	tools(editor, tools, { getContextMenuPagePoint }) {
+	tools(editor, tools) {
 		tools.comment = {
 			id: 'comment',
 			icon: 'comment',
 			label: 'Comment',
 			kbd: 'c',
-			onSelect: (source) => {
-				const point = source === 'context-menu' ? getContextMenuPagePoint() : null
-				if (point) startCommentAt(editor, point)
-				else editor.setCurrentTool('comment')
-			},
+			onSelect: () => editor.setCurrentTool('comment'),
 		}
 		return tools
 	},
