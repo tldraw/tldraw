@@ -1,6 +1,7 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { ReactNode } from 'react'
 import { useShowCollaborationUi } from '../../hooks/useCollaborationStatus'
+import { useCommentingEnabled } from '../../hooks/useCommentingEnabled'
+import { useTools } from '../../hooks/useTools'
 import {
 	ArrangeMenuSubmenu,
 	ClipboardMenuGroup,
@@ -12,18 +13,10 @@ import {
 	SelectAllMenuItem,
 } from '../menu-items'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
-
-/** @public */
-export interface TLUiDefaultContextMenuContentProps {
-	/**
-	 * A comment item to render in the collaboration group, before cursor chat. Only rendered when
-	 * the collaboration UI is shown.
-	 */
-	commentSlot?: ReactNode
-}
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
 /** @public @react */
-export function DefaultContextMenuContent({ commentSlot }: TLUiDefaultContextMenuContentProps) {
+export function DefaultContextMenuContent() {
 	const editor = useEditor()
 	const showCollaborationUi = useShowCollaborationUi()
 
@@ -41,7 +34,7 @@ export function DefaultContextMenuContent({ commentSlot }: TLUiDefaultContextMen
 		<>
 			{showCollaborationUi && (
 				<TldrawUiMenuGroup id="cursor-chat">
-					{commentSlot}
+					<CommentMenuItem />
 					<CursorChatItem />
 				</TldrawUiMenuGroup>
 			)}
@@ -58,4 +51,12 @@ export function DefaultContextMenuContent({ commentSlot }: TLUiDefaultContextMen
 			</TldrawUiMenuGroup>
 		</>
 	)
+}
+
+function CommentMenuItem() {
+	const commentingEnabled = useCommentingEnabled()
+	const commentTool = useTools().comment
+	if (!commentingEnabled || !commentTool) return null
+	// `c` enters the tool rather than opening a composer at the menu's point, so don't advertise it.
+	return <TldrawUiMenuItem {...commentTool} kbd={undefined} />
 }

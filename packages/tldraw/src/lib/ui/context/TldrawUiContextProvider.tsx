@@ -1,10 +1,17 @@
-import { RecursivePartial, defaultUserPreferences, track, useMaybeEditor } from '@tldraw/editor'
-import { ReactNode } from 'react'
+import {
+	RecursivePartial,
+	Vec,
+	defaultUserPreferences,
+	track,
+	useMaybeEditor,
+} from '@tldraw/editor'
+import { ReactNode, useRef } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
 import { TldrawUiTooltipProvider } from '../components/primitives/TldrawUiTooltip'
 import { ToolsProvider } from '../hooks/useTools'
 import { TldrawUiTranslationProvider } from '../hooks/useTranslation/useTranslation'
 import {
+	ContextMenuPagePointContext,
 	MimeTypeContext,
 	TLUiOverrides,
 	useMergedOverrides,
@@ -104,9 +111,12 @@ function InternalProviders({
 	children,
 }: Pick<TLUiContextProviderProps, 'overrides' | 'children'>) {
 	const mergedOverrides = useMergedOverrides(overrides)
+	const rContextMenuPagePoint = useRef<Vec | null>(null)
 	return (
-		<ActionsProvider overrides={mergedOverrides.actions}>
-			<ToolsProvider overrides={mergedOverrides.tools}>{children}</ToolsProvider>
-		</ActionsProvider>
+		<ContextMenuPagePointContext.Provider value={rContextMenuPagePoint}>
+			<ActionsProvider overrides={mergedOverrides.actions}>
+				<ToolsProvider overrides={mergedOverrides.tools}>{children}</ToolsProvider>
+			</ActionsProvider>
+		</ContextMenuPagePointContext.Provider>
 	)
 }

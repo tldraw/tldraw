@@ -10,9 +10,12 @@ import {
 	Editor,
 	TLShapeId,
 	TLStateNodeConstructor,
+	TLUiOverrideHelpers,
+	TLUiToolsContextType,
+	VecLike,
 } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { CommentTool, startCommentAt } from './comment-tool'
+import { CommentTool, commentToolOverrides, startCommentAt } from './comment-tool'
 import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
 
 /**
@@ -194,6 +197,30 @@ describe('startCommentAt', () => {
 		expect(editor.getHintingShapeIds()).toEqual([underPointer])
 		startCommentAt(editor, { x: 150, y: 125 })
 		expect(editor.getHintingShapeIds()).toEqual([anchored])
+	})
+})
+
+describe('commentToolOverrides', () => {
+	function getCommentTool(contextMenuPagePoint: VecLike | null) {
+		const helpers = { getContextMenuPagePoint: () => contextMenuPagePoint } as TLUiOverrideHelpers
+		const tools = commentToolOverrides.tools!(editor, {} as TLUiToolsContextType, helpers)
+		return tools.comment
+	}
+
+	beforeEach(() => {
+		makeEditor()
+	})
+
+	it('opens the composer at the point the context menu opened', () => {
+		getCommentTool({ x: 400, y: 300 }).onSelect('context-menu')
+		expect(editor.isIn('comment.idle')).toBe(true)
+		expect(pendingComment.get(editor)?.point).toEqual({ x: 400, y: 300 })
+	})
+
+	it('only enters the tool from other sources', () => {
+		getCommentTool({ x: 400, y: 300 }).onSelect('quick-actions')
+		expect(editor.isIn('comment.idle')).toBe(true)
+		expect(pendingComment.get(editor)).toBeNull()
 	})
 })
 
