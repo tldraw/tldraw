@@ -614,11 +614,25 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 				const text = editor.getShapeUtil(shape).getText(shape)
 				bounds[id] = { x: box.x, y: box.y, w: box.w, h: box.h, ...(text ? { text } : null) }
 			}
-			await fetch(THUMBNAIL_RESULT_ENDPOINT, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ token, bounds }),
-			})
+			if (window.location.protocol === 'about:') {
+				// SPIKE (#11096): a page sent as html has nowhere to POST to. The worker reads the result
+				// back out of the /content response instead, so everything else goes first: the pushed
+				// records and the editor DOM would otherwise ride back with it.
+				const result = JSON.stringify({ bounds, timings: pageTimings })
+				for (const script of Array.from(document.scripts)) script.remove()
+				document.head.replaceChildren()
+				document.body.replaceChildren()
+				const pre = document.createElement('pre')
+				pre.id = 'thumbnail-result'
+				pre.textContent = result
+				document.body.appendChild(pre)
+			} else {
+				await fetch(THUMBNAIL_RESULT_ENDPOINT, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ token, bounds }),
+				})
+			}
 			if (cancelled) return
 			signalThumbnailReady()
 		})().catch((error) => {

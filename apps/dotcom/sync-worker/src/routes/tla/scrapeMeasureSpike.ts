@@ -398,7 +398,11 @@ export async function scrapeMeasureSpikeRunReal(request: IRequest, env: Environm
 	const slug = url.searchParams.get('slug')
 	if (!slug) return Response.json({ error: 'slug is required' }, { status: 400 })
 	const capture = url.searchParams.get('capture') === 'live' ? 'live' : undefined
-	const embed = url.searchParams.get('embed') !== '0'
+	const measure = url.searchParams.get('mode') === 'measure'
+	// A measure draws nothing, so its assets are dead weight unless asked for.
+	const embed = measure
+		? url.searchParams.get('embed') === '1'
+		: url.searchParams.get('embed') !== '0'
 	const lock = url.searchParams.get('lock') === '1'
 	const renderOrigin = url.searchParams.get('renderOrigin') || env.MCP_SCREENSHOT_RENDER_ORIGIN
 	if (!renderOrigin) return Response.json({ error: 'no render origin' }, { status: 500 })
@@ -407,7 +411,13 @@ export async function scrapeMeasureSpikeRunReal(request: IRequest, env: Environm
 		renderOrigin.replace('-preview-deploy.tldraw.com', '-images.tldraw.xyz')
 	const width = Number(url.searchParams.get('width') || 1200)
 	const height = Number(url.searchParams.get('height') || 630)
-	const report: Record<string, unknown> = { slug, capture: capture ?? 'export', embed, lock }
+	const report: Record<string, unknown> = {
+		slug,
+		mode: measure ? 'measure' : 'screenshot',
+		capture: capture ?? 'export',
+		embed,
+		lock,
+	}
 
 	const snapshot = await getSharedFileRoomSnapshot(env, slug, { access: 'render' }).catch(
 		(error) => {
@@ -427,6 +437,7 @@ export async function scrapeMeasureSpikeRunReal(request: IRequest, env: Environm
 		camera: 'content',
 		...(pageId ? { pageId } : null),
 		...(capture ? { capture } : null),
+		...(measure ? { mode: 'measure' as const } : null),
 		x: 0,
 		y: 0,
 		z: 1,
@@ -495,6 +506,8 @@ export async function scrapeMeasureSpikeRunReal(request: IRequest, env: Environm
 		screenshotOptions: { type: 'png' },
 	}
 
+	if (measure) return runRealMeasure(env, body, records, report)
+
 	const startedAt = Date.now()
 	let response: Response
 	try {
@@ -530,5 +543,92 @@ export async function scrapeMeasureSpikeRunReal(request: IRequest, env: Environm
 			}
 		)
 	}
+	return Response.json(report)
+}
+
+function decodeHtmlText(text: string) {
+	return text.replace(/&(lt|gt|amp|quot|nbsp|#39);/g, (_, entity: string) =>
+		entity === 'lt'
+			? '<'
+			: entity === 'gt'
+				? '>'
+				: entity === 'amp'
+					? '&'
+					: entity === 'quot'
+						? '"'
+						: entity === 'nbsp'
+							? '\u00a0'
+							: "'"
+	)
+}
+
+// The measure half of run-real: the same page and push, through `content`, with the bounds read
+// back out of the cleared page. Checked against what the records themselves say for every unrotated
+// shape with a stored size, which the page's geometry must agree with.
+async function runRealMeasure(
+	env: Environment,
+	body: Record<string, unknown>,
+	records: TLRecord[],
+	report: Record<string, unknown>
+) {
+	const { screenshotOptions: _, viewport: __, ...contentBody } = body as any
+	const startedAt = Date.now()
+	let response: Response
+	try {
+		response = await env.BROWSER!.quickAction('content', {
+			...contentBody,
+			viewport: { width: 1200, height: 630, deviceScaleFactor: 1 },
+		})
+	} catch (error) {
+		return Response.json({ ...report, threw: String(error), ms: Date.now() - startedAt })
+	}
+	report.status = response.status
+	report.ms = Date.now() - startedAt
+	report.browserMs = response.headers.get('X-Browser-Ms-Used')
+	const raw = await response.text()
+	report.responseChars = raw.length
+	let html: string
+	try {
+		const json = JSON.parse(raw)
+		if (!json.success) return Response.json({ ...report, errors: json.errors })
+		html = String(json.result)
+	} catch {
+		return Response.json({ ...report, rawHead: raw.slice(0, 500) })
+	}
+	report.htmlChars = html.length
+	report.ready = /<body[^>]*data-thumbnail-ready="true"/.test(html)
+	report.error = html.match(/<body[^>]*data-thumbnail-error="([^"]*)"/)?.[1]
+	const match = html.match(/<pre id="thumbnail-result">([\s\S]*?)<\/pre>/)
+	if (!match) return Response.json({ ...report, htmlHead: html.slice(0, 800) })
+	report.overheadChars = html.length - match[1].length
+	report.pushEchoed = html.includes('__TLDRAW_RENDER__')
+	const result = JSON.parse(decodeHtmlText(match[1])) as {
+		bounds: Record<string, { x: number; y: number; w: number; h: number; text?: string }>
+		timings: Record<string, number>
+	}
+	report.timings = result.timings
+	const shapes = records.filter((r) => r.typeName === 'shape') as any[]
+	report.shapesInRecords = shapes.length
+	report.shapesMeasured = Object.keys(result.bounds).length
+	report.texts = Object.values(result.bounds)
+		.map((b) => b.text)
+		.filter(Boolean)
+	report.checks = shapes
+		.filter(
+			(shape) =>
+				shape.rotation === 0 &&
+				shape.parentId?.startsWith('page:') &&
+				typeof shape.props?.w === 'number' &&
+				typeof shape.props?.h === 'number'
+		)
+		.map((shape) => {
+			const b = result.bounds[shape.id]
+			const scale = typeof shape.props.scale === 'number' ? shape.props.scale : 1
+			return {
+				type: shape.type,
+				stored: [shape.x, shape.y, shape.props.w * scale, shape.props.h * scale].map(Math.round),
+				measured: b ? [b.x, b.y, b.w, b.h].map(Math.round) : null,
+			}
+		})
 	return Response.json(report)
 }
