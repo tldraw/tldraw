@@ -185,7 +185,11 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			...[...GeoShapeGeoStyle.values].map((geo) => ({
 				id: geo,
-				label: geoMessages[`tool.${geo}`].id,
+				// A geo type added through GeoShapeUtil.configure() is in GeoShapeGeoStyle.values but
+				// has no message declared here, so fall back to the composed key for an app to
+				// translate through overrides. Dereferencing the missing message threw, and because
+				// this runs while the toolbar builds, it took the whole editor down with it.
+				label: geoMessages[`tool.${geo}`]?.id ?? `tool.${geo}`,
 				meta: {
 					geo,
 				},

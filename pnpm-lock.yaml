@@ -2029,7 +2029,7 @@ importers:
     devDependencies:
       '@formatjs/cli':
         specifier: ^6.5.1
-        version: 6.5.1(@vue/compiler-core@3.5.17)(vue@3.5.17(typescript@7.0.2))
+        version: 6.5.1(@vue/compiler-core@3.5.17)(vue@3.5.17(typescript@5.9.3))
       '@peculiar/webcrypto':
         specifier: ^1.5.0
         version: 1.5.0
@@ -18434,11 +18434,6 @@ snapshots:
     optionalDependencies:
       '@vue/compiler-core': 3.5.17
       vue: 3.5.17(typescript@5.9.3)
-
-  '@formatjs/cli@6.5.1(@vue/compiler-core@3.5.17)(vue@3.5.17(typescript@7.0.2))':
-    optionalDependencies:
-      '@vue/compiler-core': 3.5.17
-      vue: 3.5.17(typescript@7.0.2)
 
   '@formatjs/ecma402-abstract@2.2.4':
     dependencies:

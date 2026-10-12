@@ -34,12 +34,7 @@ export type TLUiMessageValues = Record<
 	TLUiTranslationValues[string] | ReactNode | ((chunks: ReactNode) => ReactNode)
 >
 
-/**
- * The id is optional, as it is on `TLI18nMessageInput`, so a message whose id a bundler plugin
- * injects can be rendered from source that carries none.
- *
- * @public
- */
+/** @public */
 export interface TLUiMessageProps extends TLI18nMessageInput {
 	values?: TLUiMessageValues
 }
@@ -94,6 +89,10 @@ export function useMsg(message: TLI18nMessage, values?: TLUiTranslationValues): 
 /**
  * Renders a translated message. Use this wherever the message is text in the document; where a
  * string is needed instead, use {@link useMsg}.
+ *
+ * The `id` is optional, so a message whose id a bundler plugin injects can be rendered from source
+ * that carries none. The output is wrapped in a `<span className="i18n-msg">`, which lets a tool
+ * tell text that came through here from text that never did.
  *
  * @example
  *

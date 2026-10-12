@@ -5508,7 +5508,7 @@ export type TLUiMenuToolItemProps = {
     toolId?: string;
 } & Pick<TLUiMenuItemProps, 'disabled' | 'isSelected'>;
 
-// @public
+// @public (undocumented)
 export interface TLUiMessageProps extends TLI18nMessageInput {
     // (undocumented)
     values?: TLUiMessageValues;
