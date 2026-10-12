@@ -9,7 +9,7 @@ const options: Partial<TldrawOptions> = {
 export default function CustomOptionsExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="example" options={options} />
+			<Tldraw persistenceKey="custom-options-example" options={options} />
 		</div>
 	)
 }

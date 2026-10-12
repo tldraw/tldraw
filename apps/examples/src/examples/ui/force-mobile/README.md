@@ -1,13 +1,14 @@
 ---
 title: Force mobile layout
-component: ./ForceBreakpointExample
+component: ./ForceBreakpointExample.tsx
 priority: 4
 keywords: [mobile, responsive, breakpoint, forcemobile, layout, ui layout]
 ---
 
-Force the editor UI to render as if it were on a mobile device.
+Force the UI to use the mobile layout regardless of screen size.
 
 ---
 
-This example shows how you can force the editor to use the mobile breakpoint's UI layout.
-To do this, pass the `forceMobile` prop to the editor component.
+The `forceMobile` prop pins tldraw's UI to the mobile breakpoint, so the toolbar and menus render in their compact mobile arrangement even in a wide window. Without it, the layout is chosen from the width of the editor's container.
+
+Try resizing the window: the layout stays in mobile mode.

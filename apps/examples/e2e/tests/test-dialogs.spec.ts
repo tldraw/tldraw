@@ -105,3 +105,30 @@ test.describe('stacked dialogs', () => {
 		await expect(page.getByTestId('dialog-parent')).toBeVisible()
 	})
 })
+
+// A touch press is checked against the dialog stack at the click that follows it, not at the
+// press, so this needs a genuine touch-to-click sequence to reproduce. The viewport is wide on
+// purpose: the editor cancels a touchstart close to the window's edges, which substitutes a
+// synthesised click and moves the check earlier than the real one, hiding the bug.
+test.describe('stacked dialogs on a wide touch viewport', () => {
+	test.use({ viewport: { width: 1024, height: 768 }, hasTouch: true, isMobile: true })
+
+	test.beforeEach(async ({ page }) => {
+		await page.goto('http://localhost:5420/toasts-and-dialogs')
+		await page.waitForSelector('.tl-canvas')
+	})
+
+	test('confirming the nested dialog by touch leaves the parent open', async ({ page }) => {
+		await page.getByTestId('show-nested-dialog').tap()
+		await expect(page.getByTestId('dialog-parent')).toBeVisible()
+
+		await page.getByTestId('dialog-parent.open-nested').tap()
+		await expect(page.getByTestId('dialog-nested')).toBeVisible()
+
+		// By the time the deferred check runs the nested dialog has unmounted, leaving the parent
+		// topmost — the press that closed the nested dialog must not read as a press outside it.
+		await page.getByTestId('dialog-nested.confirm').tap()
+		await expect(page.getByTestId('dialog-nested')).toHaveCount(0)
+		await expect(page.getByTestId('dialog-parent')).toBeVisible()
+	})
+})

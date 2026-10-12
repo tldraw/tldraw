@@ -16,9 +16,12 @@ export const THUMBNAIL_SETTLED_SELECTOR = '[data-thumbnail-ready="true"], [data-
 // <body> so it resolves to a single element (both <html> and <body> carry the ready marker).
 const THUMBNAIL_CAPTURE_SELECTOR = 'body[data-thumbnail-ready="true"]'
 
-// Builds the `/screenshot` request body. `timeoutMs` bounds both navigation and the settle+export
-// wait; the render page sizes its own settle budget under it (THUMBNAIL_SETTLE_TIMEOUT_MS), so pass
-// THUMBNAIL_RENDER_TIMEOUT_MS to keep the two deadlines from drifting.
+// Builds the `/screenshot` request body. `timeoutMs` is granted to navigation and to the
+// settle+export wait *individually* — these are per-phase timers, not a cap on the call. They
+// exist so Browser Run gives up on a dead page early; bounding the call as a whole is the
+// sync-worker's job. The render page sizes its own settle budget under the same value
+// (THUMBNAIL_SETTLE_TIMEOUT_MS), so pass THUMBNAIL_RENDER_TIMEOUT_MS to keep the deadlines from
+// drifting.
 export function getThumbnailScreenshotRequestBody({
 	renderUrl,
 	width,
@@ -40,7 +43,7 @@ export function getThumbnailScreenshotRequestBody({
 			deviceScaleFactor: 1,
 		},
 		// Waiting for a terminal selector is the real completion signal; waiting on network activity is
-		// fragile because background app requests (e.g. replicator-status polling) can keep the network
+		// fragile because background app requests (e.g. feature-flag polling) can keep the network
 		// busy indefinitely. `load` is a milder form of that same trap, so it stops here at
 		// domcontentloaded: `load` does not fire until every subresource settles, and one stalled image
 		// request is enough to hold it open until this timeout — at which point the capture fails

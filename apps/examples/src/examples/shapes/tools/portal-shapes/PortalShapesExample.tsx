@@ -1,11 +1,4 @@
-import {
-	createShapeId,
-	TLContent,
-	TLShapePartial,
-	TLRichText,
-	TLTextShapeProps,
-	Tldraw,
-} from 'tldraw'
+import { createShapeId, TLContent, TLRichText, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 import companionCube from './companion-cube.json'
 import { PortalShapeUtil } from './PortalShapeUtil'
@@ -34,39 +27,31 @@ export default function PortalShapesExample() {
 				shapeUtils={shapeUtils}
 				onMount={(editor) => {
 					// [2]
-					const blueId = createShapeId('blue-portal')
-					const orangeId = createShapeId('orange-portal')
-					const portalShapes = [
+					editor.createShapes([
 						{
-							id: blueId,
+							id: createShapeId('blue-portal'),
 							type: 'portal',
 							x: 100,
 							y: 150,
 							props: { w: 200, h: 300, color: 'blue' },
 						},
 						{
-							id: orangeId,
+							id: createShapeId('orange-portal'),
 							type: 'portal',
 							x: 500,
 							y: 150,
 							props: { w: 200, h: 300, color: 'orange' },
 						},
-					] as const
+					])
 
-					editor.createShapes(portalShapes as unknown as TLShapePartial[])
-
-					// [3]
 					editor.createShape({
 						type: 'text',
 						x: 100,
 						y: 500,
-						props: {
-							size: 'l',
-							richText: tagline,
-						} satisfies Partial<TLTextShapeProps>,
+						props: { size: 'l', richText: tagline },
 					})
 
-					// [4]
+					// [3]
 					editor.putContentOntoCurrentPage(companionCube as unknown as TLContent, {
 						point: { x: 300, y: 20 },
 					})
@@ -82,17 +67,14 @@ export default function PortalShapesExample() {
 
 /*
 [1]
-Register the custom PortalShapeUtil. This array is defined outside of the
-component so it stays referentially stable across renders.
+The shape util array is defined outside the component so it keeps the same identity across
+renders.
 
 [2]
-Create a pair of linked portals — one blue, one orange. They find each
-other by color, so only one of each should exist on a page.
+Create a pair of linked portals, one blue and one orange. They find each other by color, so
+only one of each should exist on a page.
 
 [3]
-Add the Portal tagline as a text shape.
-
-[4]
-Load the companion cube from a snapshot and place it on the canvas
-for the user to drag into the portals.
+The companion cube is a group of shapes saved as `TLContent` (the format used by copy/paste).
+`putContentOntoCurrentPage` places it on the canvas for the user to drag into the portals.
 */

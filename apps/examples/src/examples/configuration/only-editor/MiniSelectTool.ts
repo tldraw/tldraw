@@ -1,7 +1,7 @@
 import { StateNode, TLClickEventInfo, TLPointerEventInfo, TLShape, createShapeId } from 'tldraw'
 // There's a guide at the bottom of this file!
 
-//[1]
+// [1]
 export class MiniSelectTool extends StateNode {
 	static override id = 'select'
 	static override children() {
@@ -9,10 +9,10 @@ export class MiniSelectTool extends StateNode {
 	}
 	static override initial = 'idle'
 }
-//[2]
+// [2]
 class IdleState extends StateNode {
 	static override id = 'idle'
-	//[a]
+	// [a]
 	override onPointerDown(info: TLPointerEventInfo) {
 		const { editor } = this
 
@@ -45,7 +45,7 @@ class IdleState extends StateNode {
 			}
 		}
 	}
-	//[b]
+	// [b]
 	override onDoubleClick(info: TLClickEventInfo) {
 		const { editor } = this
 
@@ -86,14 +86,14 @@ class IdleState extends StateNode {
 	}
 }
 
-//[3]
+// [3]
 class PointingState extends StateNode {
 	static override id = 'pointing'
-	//[a]
+	// [a]
 	override onPointerUp(info: TLPointerEventInfo) {
 		this.parent.transition('idle', info)
 	}
-	//[b]
+	// [b]
 	override onPointerMove() {
 		if (this.editor.inputs.getIsDragging()) {
 			this.parent.transition('dragging', { shapes: [...this.editor.getSelectedShapes()] })
@@ -101,20 +101,18 @@ class PointingState extends StateNode {
 	}
 }
 
-//[4]
+// [4]
 class DraggingState extends StateNode {
 	static override id = 'dragging'
-	//[a]
 	private initialDraggingShapes: TLShape[] = []
-	//[b]
+	// [a]
 	override onEnter(info: { shapes: TLShape[] }) {
 		this.initialDraggingShapes = info.shapes
 	}
-	//[c]
 	override onPointerUp(info: TLPointerEventInfo) {
 		this.parent.transition('idle', info)
 	}
-	//[d]
+	// [b]
 	override onPointerMove() {
 		const { initialDraggingShapes } = this
 		const originPagePoint = this.editor.inputs.getOriginPagePoint()
@@ -133,68 +131,39 @@ class DraggingState extends StateNode {
 }
 
 /*
-This is where we implement our select tool. In tldraw, tools are part of the
-tldraw state chart. Check out the docs for more info:
-https://tldraw.dev/docs/editor#State-Chart
-
-
-Our state node [1] has three children: idle [2], pointing [3], and dragging [4].
-Only one child state can be "active" at a time. The parent state's initial active
-state is "idle". Certain events received by the child states will cause the parent
-state to transition to another child state, making that state active instead.
-
-Note that when `transition()` is called, the parent state will call the new
-active state(s)'s `onEnter` method with the second argument passed to the
-transition method. This is useful for passing data between states.
+Tools are nodes in the editor's state chart (https://tldraw.dev/docs/tools). This tool has
+three child states, idle [2], pointing [3], and dragging [4]; exactly one is active at a time,
+and events go to the active child. A child calls `this.parent.transition(id, info)` to hand
+control to a sibling; the sibling's `onEnter` receives `info`, which is how data moves between
+states.
 
 [1]
-This is where we define our state node by extending the StateNode class. We
-give it an id, a list of children states, and its initial active state.
+The tool itself only declares its id, its children, and which child starts active.
 
 [2]
-The idle state is the tool's default state. This is where most of the action is.
-We have some handy methods available to help us handle events:
+Idle is where the tool waits for input.
 
-	[a] onPointerDown
-		The user clicked on something, let's figure out what it was. We can
-		access the editor via this.editor, and then use it to check if we hit
-		a shape. If we did then we call the onPointerDown method again with the
-		shape as the target, select the shape and transition to the pointing state.
-		Otherwise we deselect everything.
+	[a] Pointer events arrive with a `target` of 'canvas' or 'shape'. A hit on the canvas can
+		still land on a shape (for example inside a hollow shape), so we re-check with
+		`getShapeAtPoint` and re-dispatch as a 'shape' event. Pointing a shape selects it (or
+		adds it with shift) and moves to pointing so a drag can begin.
 
-	[b] onDoubleClick
-		The user double clicked on something, let's do the same thing as above.
-		If we hit a shape then we call the onDoubleClick method again with the
-		shape as the target, and delete the shape. Otherwise we create a new shape.
+	[b] Double-click fires once per phase ('down', 'up', 'settle-down', 'settle-up'); we only act
+		on 'up' so the shape is created or deleted once.
 
 [3]
-The pointing state is something of a transitionary state. Its job is to transition
-to the dragging state when the user starts dragging, or go back to the idle state
-on pointer up.
+Pointing exists to tell a click from a drag.
 
-	[a] onPointerUp
-		The user let go of the mouse, let's go back to the idle state.
-	[b] onPointerMove
-		The user moved the mouse, let's double check they're dragging. If they are
-		then let's transition to the dragging state and pass it the shapes that
-		are being dragged.
+	[a] Pointer up without moving far enough: back to idle.
+	[b] `editor.inputs.getIsDragging()` becomes true once the pointer has moved past the drag
+		threshold. We then move to dragging and hand it the shapes to move.
 
 [4]
-The dragging state is where we actually move the shapes around. It's job is to
-update the position of the shapes being dragged, and transition back to the idle
-state when the user lets go of the mouse.
+Dragging moves the selected shapes.
 
-	[a] initialDraggingShapes
-		We'll use this to keep track of the shapes being dragged when we enter
-		the state.
-
-	[b] onEnter
-		When we enter the dragging state, we'll save the shapes being dragged.
-
-	[c] onPointerUp
-		The user let go of the mouse, let's go back to the idle state.
-
-	[d] onPointerMove
-		The user moved the mouse, let's update the position of the shapes being
-		dragged using editor.updateShapes().
+	[a] The shapes captured on enter keep their original positions, so each move can be computed
+		from the pointer's total offset since the drag started rather than accumulated deltas.
+	[b] `getOriginPagePoint()` is where the pointer went down; the difference to
+		`getCurrentPagePoint()` is applied to each shape's starting position with
+		`editor.updateShapes()`.
 */

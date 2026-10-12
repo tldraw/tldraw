@@ -9,12 +9,12 @@ import { ArraySet } from './ArraySet'
  *
  * @example
  * ```ts
- * import { atom, getGlobalEpoch, RESET_VALUE } from '@tldraw/state'
+ * import { atom, RESET_VALUE } from '@tldraw/state'
  *
- * const count = atom('count', 0, { historyLength: 3 })
- * const oldEpoch = getGlobalEpoch()
+ * const count = atom('count', 0, { historyLength: 3, computeDiff: (prev, next) => next - prev })
+ * const oldEpoch = count.lastChangedEpoch
  *
- * // Make many changes that exceed history length
+ * // Make more changes than the history length can hold
  * count.set(1)
  * count.set(2)
  * count.set(3)
@@ -183,8 +183,8 @@ export interface Child {
  * A function type that computes the difference between two values of a signal.
  *
  * This function is used to generate incremental diffs that can be applied to
- * reconstruct state changes over time. It's particularly useful for features
- * like undo/redo, synchronization, and change tracking.
+ * reconstruct state changes over time, so that downstream computeds and effects can
+ * update incrementally instead of recomputing from scratch.
  *
  * The function should analyze the previous and current values and return a
  * diff object that represents the change. If the diff cannot be computed
@@ -193,7 +193,7 @@ export interface Child {
  *
  * @param previousValue - The previous value of the signal
  * @param currentValue - The current value of the signal
- * @param lastComputedEpoch - The epoch when the previous value was set
+ * @param lastComputedEpoch - For an atom, the epoch when the previous value was set. For a computed, the epoch at which it was last checked (the same value its compute function receives), so that `other.getDiffSince(lastComputedEpoch)` yields exactly the changes not yet accounted for.
  * @param currentEpoch - The epoch when the current value was set
  * @returns A diff object representing the change, or the unique symbol RESET_VALUE if no diff can be computed
  *

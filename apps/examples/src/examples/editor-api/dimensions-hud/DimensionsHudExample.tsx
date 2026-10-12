@@ -35,5 +35,6 @@ overlays remain enabled. The util's `options.zIndex` controls where it appears
 relative to the selection handles and other canvas overlays.
 
 [2]
-Pass the overlay util array to the `overlayUtils` prop on `<Tldraw>`.
+Pass the overlay util array to the `overlayUtils` prop on `<Tldraw>`. Utils are
+constructed once on mount, so define the array at module level.
 */

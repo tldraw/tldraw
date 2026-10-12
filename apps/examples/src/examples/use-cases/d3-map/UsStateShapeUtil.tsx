@@ -58,10 +58,10 @@ export class UsStateShapeUtil extends ShapeUtil<UsStateShape> {
 		}
 	}
 
-	override canResize(shape: UsStateShape) {
+	override canResize() {
 		return true
 	}
-	override isAspectRatioLocked(shape: UsStateShape) {
+	override isAspectRatioLocked() {
 		return true
 	}
 

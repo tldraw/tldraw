@@ -86,9 +86,7 @@ function UserSwitcher() {
 function CustomUserPanel() {
 	const editor = useEditor()
 
-	const currentUser = useValue('current-user', () => editor.store.props.users.currentUser.get(), [
-		editor,
-	])
+	const currentUser = useValue(editor.store.props.users.currentUser)
 	const customMeta = asCustomMeta(currentUser)
 
 	return (
@@ -116,63 +114,42 @@ function CustomUserPanel() {
 	)
 }
 
+const components = {
+	TopPanel: UserSwitcher,
+	SharePanel: CustomUserPanel,
+}
+
 // [6]
 export default function CustomUserExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
-				persistenceKey="custom-user-example"
-				users={users}
-				components={{
-					TopPanel: UserSwitcher,
-					SharePanel: CustomUserPanel,
-				}}
-			/>
+			<Tldraw persistenceKey="custom-user-example" users={users} components={components} />
 		</div>
 	)
 }
 
 /*
 [1]
-Define a TypeScript interface for your custom user metadata. The TLUser
-record's `meta` field is typed as JsonObject, which accepts any JSON-compatible
-data. We define this interface for type safety and cast to it when reading.
-
-For runtime validation of custom meta fields, pass validators to
-createTLSchema:
-
-    import { createTLSchema, T } from 'tldraw'
-
-    const schema = createTLSchema({
-      user: {
-        meta: {
-          isAdmin: T.boolean,
-          department: T.string,
-        },
-      },
-    })
+`TLUser.meta` is typed as `JsonObject`, so it accepts any JSON-compatible data. An
+interface plus a cast on read gives you typed access. For runtime validation, pass
+validators to `createTLSchema` (see the README).
 
 [2]
-A fake user directory stored in a reactive atom. Each user has custom metadata
-in their `meta` object — `isAdmin` and `department`. In a real app this data
-would come from your authentication system or user service.
+A fake user directory in a reactive atom, with `isAdmin` and `department` in each
+user's `meta`. In a real app this would come from your auth system.
 
 [3]
-The custom TLUserStore. `currentUser` and `resolve` return reactive Signals
-derived from the atoms — any computed or useValue that reads `.get()` on these
-signals will re-evaluate when the underlying data changes.
+The `TLUserStore`. `currentUser` and `resolve` are signals derived from the atoms, so
+anything reading them re-evaluates when the data changes.
 
 [4]
-The top panel lets you switch which user is "logged in". Each button shows
-the user's color dot and name.
+Switch which user is "logged in".
 
 [5]
-The side panel reads the current user and displays both standard fields
-(name, color) and custom metadata (department, admin badge). Because everything
-reads from reactive atoms, switching users updates the panel immediately.
+The panel reads the current user signal and shows both the standard fields (name,
+color) and the custom meta (department, admin badge).
 
 [6]
-We pass the user store to Tldraw via the `users` prop. Custom metadata flows
-through the same TLUser records the editor already manages — no extra wiring
-needed.
+Pass the user store via the `users` prop. Custom metadata rides along on the same
+`TLUser` records the editor already manages, so nothing else needs wiring.
 */

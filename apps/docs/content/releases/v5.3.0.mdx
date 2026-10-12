@@ -10,6 +10,8 @@ keywords:
   - release
   - v5.3
   - v5.3.0
+  - v5.3.1
+  - v5.3.2
   - commenting
   - comments
   - collaboration
@@ -104,3 +106,22 @@ See the [commenting docs](https://tldraw.dev/docs/commenting) for setup.
 - Fix uploaded asset handling for invalid R2 object names. ([#9495](https://github.com/tldraw/tldraw/pull/9495))
 - Fix a crash when a custom font failed to load after its editor had been disposed. ([#9494](https://github.com/tldraw/tldraw/pull/9494))
 - Fix license expiry being evaluated in local time, which could deactivate a license a calendar day early for users west of UTC; the expiry date is now treated as the last fully usable day in UTC. ([#9475](https://github.com/tldraw/tldraw/pull/9475))
+
+---
+
+## Patch releases
+
+### v5.3.1
+
+- Fix touches in part of the canvas being ignored on iOS when the editor was inset from the edge of the page, such as beside a sidebar. ([#9989](https://github.com/tldraw/tldraw/pull/9989))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v5.3.1)
+
+### v5.3.2
+
+- Fix default UI components, such as `DefaultToolbar` and `DefaultQuickActionsContent`, crashing when mounted outside the `Tldraw` component. ([#10007](https://github.com/tldraw/tldraw/pull/10007))
+- Fix license validation treating native apps served from custom protocols as development environments. ([#10021](https://github.com/tldraw/tldraw/pull/10021))
+- Fix wildcard license host matching so `*.example.com` matches only that domain's subdomains. ([#10053](https://github.com/tldraw/tldraw/pull/10053))
+- Add product metadata to each published package's `package.json`, so which product or feature a package implements is clearer, and ship the missing `LICENSE.md` files. ([#9977](https://github.com/tldraw/tldraw/pull/9977))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v5.3.2)

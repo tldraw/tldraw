@@ -94,11 +94,9 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 					if (!shape || shape.type === 'group') continue
 
 					const geometry = editor.getShapeGeometry(shape)
-					const pageTransform = editor.getShapePageTransform(shape)
-					if (!pageTransform) continue
+					const m = editor.getShapePageTransform(shape)
 
 					ctx.save()
-					const m = pageTransform
 					ctx.transform(m.a, m.b, m.c, m.d, m.e, m.f)
 
 					// Outline

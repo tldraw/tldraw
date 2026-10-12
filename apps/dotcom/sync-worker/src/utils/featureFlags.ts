@@ -1,14 +1,18 @@
 import {
+	AllowlistEntry,
 	EvaluatedFeatureFlag,
 	FEATURE_FLAG_KEYS,
 	FeatureFlagKey,
 	FeatureFlagValue,
 } from '@tldraw/dotcom-shared'
+import { exhaustiveSwitchError } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
+import { createPostgresConnectionPool } from '../postgres'
+import { ensureUser } from '../routes/tla/initUser'
 import { Environment } from '../types'
 import { getAuth } from './tla/getAuth'
 
-function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
+function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 	return {
 		rum_enabled: {
 			type: 'percentage',
@@ -16,18 +20,30 @@ function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagV
 			enabled: false,
 			description: 'Real User Monitoring for editor performance metrics',
 		},
-		commenting_enabled: {
+		load_rum: {
 			type: 'percentage',
+			// Master toggle on, 0%: turning it on for a debugging session is one percentage change in
+			// the admin panel, no deploy. Users with a @tldraw.com email send it regardless.
 			percentage: 0,
-			enabled: false,
+			enabled: true,
 			description:
-				'Commenting on files (tool, pins, threads, sidebar, notifications). Users with a @tldraw.com email always have it, regardless of this flag',
+				'Send the per-step first_load and file_load timing events (client marks + sync server echo) to PostHog. Users with a @tldraw.com email always send them, regardless of this flag',
 		},
-		mcp_friends_and_family: {
-			type: 'boolean',
-			enabled: false,
+		mcp_server_access: {
+			type: 'allowlist',
+			users: [],
+			allowEveryone: false,
 			description:
-				'Raises the /app/mcp rate limits for signed-in callers on the friends and family list (edited below)',
+				'Who may drive the MCP server at /api/app/mcp. The list starts empty, so an unconfigured flag names nobody. Anyone with a verified @tldraw.com email is admitted whatever the list says. Allow all opens it to every signed-in account',
+		},
+		version_chain: {
+			type: 'percentage',
+			// On by default everywhere, production included: a durable object whose KV read fails lands
+			// here, and `off` would have it write a whole keyframe on every save for its lifetime.
+			percentage: 100,
+			enabled: true,
+			description:
+				'Version history written as delta chains; rooms outside it write every version as a whole keyframe. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless. A change reaches a room when its durable object next starts',
 		},
 	}
 }
@@ -49,53 +65,241 @@ export function hashToPercentage(userId: string, flagName: string): number {
 	return (hash >>> 0) % 100
 }
 
+// Per-isolate cache of stored values. Every page load fetches all flags and every MCP request
+// checks one, so without it each costs a KV read per flag. A flip lands within this TTL plus KV's
+// own edge cache (~60s).
+const FLAG_CACHE_TTL_MS = 30_000
+const flagCache = new Map<FeatureFlagKey, { value: FeatureFlagValue; readAt: number }>()
+
+export function resetFeatureFlagCacheForTests() {
+	flagCache.clear()
+	usersWithRows.clear()
+}
+
 /**
- * Get feature flag value from KV store
+ * The stored value, skipping the isolate cache (KV's own edge cache still applies). Throws when
+ * KV does; a stored value that doesn't parse reads as the defaults instead, so the admin panel
+ * can still overwrite it.
+ */
+async function readFeatureFlag(env: Environment, flag: FeatureFlagKey): Promise<FeatureFlagValue> {
+	const defaults = getFlagDefaults()[flag]
+	const value = await env.FEATURE_FLAGS.get(flag)
+	if (!value) return defaults
+	let stored: unknown
+	try {
+		stored = JSON.parse(value)
+	} catch (e) {
+		console.error(`Stored feature flag ${flag} is not valid JSON:`, e)
+		return defaults
+	}
+	// The defaults table is the schema; KV holds only state. A stored `type` is therefore discarded
+	// rather than spread over the default one: `{"type":"allowList"}` — a capital L, or any other
+	// typo — would otherwise reach `evaluateFlagForUser` as a shape none of its arms recognise, and
+	// the value it lands on decides who is let in.
+	//
+	// `description` is discarded on the same grounds. A save writes the whole value back, so the
+	// text a flag was first saved with otherwise outlives every later edit to this table — the
+	// panel goes on describing a control by a name the code no longer uses.
+	return {
+		...defaults,
+		...(stored as object),
+		type: defaults.type,
+		description: defaults.description,
+	} as FeatureFlagValue
+}
+
+/**
+ * A flag's stored value, cached per isolate. Never throws: when KV fails it serves the last value
+ * this isolate read, however old, or the defaults if there is none.
+ *
+ * `staleOnError: false` skips the stale value, for access checks: a cached grant would otherwise
+ * outlive its revocation for as long as KV stays down.
  */
 export async function getFeatureFlagValue(
 	env: Environment,
-	flag: FeatureFlagKey
+	flag: FeatureFlagKey,
+	{ staleOnError = true }: { staleOnError?: boolean } = {}
 ): Promise<FeatureFlagValue> {
+	const cached = flagCache.get(flag)
+	if (cached && Date.now() - cached.readAt < FLAG_CACHE_TTL_MS) return cached.value
 	try {
-		const value = await env.FEATURE_FLAGS.get(flag)
-		if (!value) {
-			return getFlagDefaults(env)[flag]
-		}
-		return { ...getFlagDefaults(env)[flag], ...JSON.parse(value) }
+		const value = await readFeatureFlag(env, flag)
+		flagCache.set(flag, { value, readAt: Date.now() })
+		return value
 	} catch (e) {
-		console.error(`Failed to get feature flag ${flag}:`, e)
-		return getFlagDefaults(env)[flag]
+		console.error(`Failed to read feature flag ${flag}:`, e)
+		return cached && staleOnError ? cached.value : getFlagDefaults()[flag]
 	}
 }
 
 /**
+ * The type a flag is. Read from the defaults table rather than from KV, which is what makes it a
+ * schema: a caller can tell which fields apply to a flag without a KV round trip, and without a
+ * stored value getting a say in the answer.
+ */
+export function getFeatureFlagType(
+	env: Environment,
+	flag: FeatureFlagKey
+): FeatureFlagValue['type'] {
+	return getFlagDefaults()[flag].type
+}
+
+/**
  * Evaluate a flag for a specific user. Percentage flags use a deterministic
- * hash of userId+flagName. Boolean flags use the `enabled` field directly.
+ * hash of userId+flagName. Allowlist flags check the user against the named ids.
+ * Boolean flags use the `enabled` field directly.
  */
 export function evaluateFlagForUser(
 	flag: FeatureFlagValue,
 	flagName: string,
 	userId: string | null
 ): boolean {
-	if (!flag.enabled) return false
-	if (flag.type === 'percentage') {
-		if (!userId) return false
-		return hashToPercentage(userId, flagName) < flag.percentage
+	// Switched exhaustively rather than ending in a fall-through, so a fourth flag type is a compile
+	// error here instead of a flag that quietly evaluates true for everyone. The type itself can only
+	// be one the defaults table names — see readFeatureFlag.
+	switch (flag.type) {
+		case 'boolean':
+			// `enabled` is the whole evaluation.
+			return flag.enabled
+		case 'percentage':
+			if (!flag.enabled) return false
+			if (!userId) return false
+			return hashToPercentage(userId, flagName) < flag.percentage
+		case 'allowlist':
+			// No master toggle to check: an allowlist says who is on, and an empty one is the off state.
+			// A stored `enabled` from before that was true is therefore ignored rather than obeyed.
+			// An anonymous caller is never on a list of users. Stated rather than left to `some`, which
+			// would also be false but only by accident of `null` matching nobody.
+			if (!userId) return false
+			// Checked before the list rather than folded into it, so an operator can open a flag to
+			// everyone without first emptying a list they will want back when they close it again.
+			if (flag.allowEveryone === true) return true
+			// Missing or malformed `users` denies rather than admits: this is read from KV, where a
+			// hand-edited value can arrive as anything, and the failure mode of the alternative is a flag
+			// that silently opens to everyone.
+			return (
+				Array.isArray(flag.users) && flag.users.some((entry) => entry && entry.userId === userId)
+			)
+		default:
+			exhaustiveSwitchError(flag)
 	}
-	return true
 }
 
 /**
- * Get the master enabled switch for a flag. For boolean flags this is the full
- * evaluation. For percentage flags this ignores the per-user rollout — use
- * `getFeatureFlags` (the route handler) for per-user evaluation instead.
+ * Whether a flag is on for one user, server-side. The counterpart to `getFeatureFlags` (which
+ * evaluates every flag for a browser) for a route that gates itself on a single one.
  */
-export async function getFeatureFlagEnabled(
+/**
+ * Whether a caller may drive the MCP server: the `mcp_server_access` flag, or a verified
+ * @tldraw.com email.
+ *
+ * The domain check is second on purpose. It needs the account's email, which is a Postgres read the
+ * flag evaluation does not otherwise make, so putting it after the flag means anybody already
+ * granted pays for no email read. They still get one `ensureUser` SELECT per isolate, so an
+ * account granted by the flag also ends up with a workspace.
+ *
+ * Read from our own `user` row rather than Clerk, so an account that has one costs a single SELECT.
+ * An account without one, signed up on the consent screen but never opened tldraw.com, has its rows
+ * created here: a Clerk lookup and three inserts, once per account rather than per request.
+ */
+export async function canUseMcpServer(env: Environment, userId: string): Promise<boolean> {
+	const opts = { staleOnError: false }
+	if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId, opts)) {
+		// A granted account can have signed up on the consent screen too, most of all once
+		// allowEveryone opens the flag, and without rows it has no workspace for create_board.
+		if (!usersWithRows.has(userId)) await ensureUserRowsForGrantedUser(env, userId)
+		return true
+	}
+	return await hasTldrawEmail(env, userId)
+}
+
+// Accounts this isolate has already seen with their rows in place, so a granted caller pays for the
+// ensureUser read once per isolate rather than on every request its token makes.
+// Capped because a long-lived isolate would otherwise hold every user it has ever served.
+const usersWithRows = new Set<string>()
+const MAX_USERS_WITH_ROWS = 10_000
+
+async function ensureUserRowsForGrantedUser(env: Environment, userId: string) {
+	const db = createPostgresConnectionPool(env, 'sync-worker/ensureGrantedUser')
+	try {
+		const result = await ensureUser(env, db, userId)
+		if (!('email' in result)) return
+		if (usersWithRows.size >= MAX_USERS_WITH_ROWS) usersWithRows.clear()
+		usersWithRows.add(userId)
+	} catch (e) {
+		// The flag already admitted them; a database or Clerk blip costs the rows, not the access.
+		// Not cached, so the next request tries again.
+		console.error(
+			'MCP access check failed to ensure a granted user (Postgres, Clerk or rate limiter):',
+			e
+		)
+	} finally {
+		await db.destroy()
+	}
+}
+
+async function hasTldrawEmail(env: Environment, userId: string): Promise<boolean> {
+	const db = createPostgresConnectionPool(env, 'sync-worker/hasTldrawEmail')
+	try {
+		// Someone who signed up on the consent screen has a Clerk account but no row until they open
+		// tldraw.com, so create it here rather than refusing them for an email we never stored.
+		// ensureUser does the only read, so a concurrent first request or /init creating the row
+		// first still yields its email rather than a refusal.
+		const result = await ensureUser(env, db, userId)
+		if (!('email' in result)) return false
+		// Lowercased because the column stores whatever the account signed up with, and a capitalised
+		// domain is the same domain.
+		return result.email.toLowerCase().endsWith('@tldraw.com')
+	} catch (e) {
+		// An access check that fails open on a database or Clerk blip would be the wrong direction
+		// entirely.
+		console.error(
+			'MCP access check failed to ensure the user (Postgres, Clerk or rate limiter):',
+			e
+		)
+		return false
+	} finally {
+		await db.destroy()
+	}
+}
+
+export async function isFeatureFlagEnabledForUser(
 	env: Environment,
-	flag: FeatureFlagKey
+	flag: FeatureFlagKey,
+	userId: string,
+	opts?: { staleOnError?: boolean }
 ): Promise<boolean> {
-	const value = await getFeatureFlagValue(env, flag)
-	return value.enabled
+	return evaluateFlagForUser(await getFeatureFlagValue(env, flag, opts), flag, userId)
+}
+
+/**
+ * A change to one flag, discriminated by the type of flag it applies to.
+ *
+ * Discriminated rather than an optional-field bag, because the fields are not interchangeable: a bag
+ * of `{ enabled?, percentage?, users? }` is matched by independent `if` guards that silently drop a
+ * field belonging to another type — a `users` list sent for a percentage flag wrote nothing and still
+ * reported success. Here a mismatch is a compile error at the call site, and a fourth flag type makes
+ * the compiler name every place that has to learn about it.
+ */
+export type FeatureFlagUpdate =
+	| { type: 'boolean'; enabled?: boolean }
+	| { type: 'percentage'; enabled?: boolean; percentage?: number }
+	| { type: 'allowlist'; users?: AllowlistEntry[]; allowEveryone?: boolean }
+
+/** Thrown when an update names a different type than the flag it addresses. */
+export class FeatureFlagTypeError extends Error {}
+
+function expectFlagType<T extends FeatureFlagValue['type']>(
+	flag: FeatureFlagKey,
+	current: FeatureFlagValue,
+	type: T
+): Extract<FeatureFlagValue, { type: T }> {
+	if (current.type !== type) {
+		throw new FeatureFlagTypeError(
+			`"${flag}" is a ${current.type} flag; ${type} fields do not apply to it`
+		)
+	}
+	return current as Extract<FeatureFlagValue, { type: T }>
 }
 
 /**
@@ -104,17 +308,45 @@ export async function getFeatureFlagEnabled(
 export async function setFeatureFlag(
 	env: Environment,
 	flag: FeatureFlagKey,
-	value: { enabled?: boolean; percentage?: number }
+	update: FeatureFlagUpdate
 ): Promise<void> {
-	const current = await getFeatureFlagValue(env, flag)
-	if (value.enabled !== undefined) {
-		current.enabled = value.enabled
+	// Skips the isolate cache: a cached `current` could be up to a TTL old, and the save would write
+	// that back over a newer edit.
+	const current = await readFeatureFlag(env, flag)
+	const put = async (value: FeatureFlagValue) => {
+		await env.FEATURE_FLAGS.put(flag, JSON.stringify(value))
+		flagCache.set(flag, { value, readAt: Date.now() })
 	}
-	if (value.percentage !== undefined && current.type === 'percentage') {
-		current.percentage = value.percentage
+
+	switch (update.type) {
+		case 'boolean': {
+			const value = expectFlagType(flag, current, 'boolean')
+			return put({ ...value, enabled: update.enabled ?? value.enabled })
+		}
+		case 'percentage': {
+			const value = expectFlagType(flag, current, 'percentage')
+			return put({
+				...value,
+				enabled: update.enabled ?? value.enabled,
+				percentage: update.percentage ?? value.percentage,
+			})
+		}
+		case 'allowlist': {
+			const value = expectFlagType(flag, current, 'allowlist')
+			return put({
+				...value,
+				// Replaces the list rather than merging into it, so removing someone is a normal save and
+				// not a separate operation the admin UI would have to model.
+				users: update.users ?? value.users,
+				allowEveryone: update.allowEveryone ?? value.allowEveryone ?? false,
+			})
+		}
+		default:
+			exhaustiveSwitchError(update)
 	}
-	await env.FEATURE_FLAGS.put(flag, JSON.stringify(current))
 }
+
+export { parseAllowlistEmails } from '@tldraw/dotcom-shared'
 
 /**
  * Route handler: Get all feature flags evaluated for the requesting user.
@@ -140,6 +372,9 @@ export async function getFeatureFlags(request: IRequest, env: Environment): Prom
 	// bundles have aged out.
 	flags.zero_enabled = { enabled: true }
 	flags.zero_kill_switch = { enabled: false }
+	// Same for commenting_enabled: bundles from before the flag was removed gate every comments
+	// surface on it, and a missing key reads as off.
+	flags.commenting_enabled = { enabled: true }
 
 	return new Response(JSON.stringify(flags), {
 		headers: {
@@ -150,20 +385,23 @@ export async function getFeatureFlags(request: IRequest, env: Environment): Prom
 }
 
 /**
- * Route handler: Get all feature flags with raw values (for admin UI).
- * Does NOT evaluate per-user — returns the stored percentage and enabled as-is.
+ * Every flag's stored value, unevaluated — the admin view. Does NOT evaluate per-user: the stored
+ * percentage, enabled and user list are returned as-is.
+ *
+ * Returns the record rather than a Response so the admin route can decorate it before answering —
+ * see the allowlist label resolution there, which needs Postgres and has no business in here.
+ * Bypasses the cache: another isolate's copy can be a TTL behind a save.
  */
-export async function getFeatureFlagsAdmin(
-	_request: IRequest,
+export async function getAllFeatureFlagValues(
 	env: Environment
-): Promise<Response> {
+): Promise<Record<string, FeatureFlagValue>> {
 	const flags: Record<string, FeatureFlagValue> = {}
 
 	await Promise.all(
 		FEATURE_FLAG_KEYS.map(async (key) => {
-			flags[key] = await getFeatureFlagValue(env, key)
+			flags[key] = await readFeatureFlag(env, key)
 		})
 	)
 
-	return new Response(JSON.stringify(flags), { headers: { 'Content-Type': 'application/json' } })
+	return flags
 }

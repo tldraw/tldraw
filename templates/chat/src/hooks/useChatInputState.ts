@@ -2,15 +2,17 @@ import { useReducer } from 'react'
 import { TLEditorSnapshot } from 'tldraw'
 import { WhiteboardImage } from '../components/WhiteboardModal'
 
+interface OpenWhiteboard {
+	snapshot?: TLEditorSnapshot
+	id?: string
+	uploadedFile?: File
+	imageName?: string
+}
+
 interface ChatInputState {
 	input: string
 	images: WhiteboardImage[]
-	openWhiteboard: {
-		snapshot?: TLEditorSnapshot
-		id?: string
-		uploadedFile?: File
-		imageName?: string
-	} | null
+	openWhiteboard: OpenWhiteboard | null
 	isDragging: boolean
 }
 
@@ -24,13 +26,7 @@ type ChatInputAction =
 	/** Clears all input data (text, images, modals) */
 	| { type: 'clear' }
 	/** Opens the whiteboard modal for drawing/editing */
-	| {
-			type: 'openWhiteboard'
-			snapshot?: TLEditorSnapshot
-			id?: string
-			uploadedFile?: File
-			imageName?: string
-	  }
+	| ({ type: 'openWhiteboard' } & OpenWhiteboard)
 	/** Closes the whiteboard modal */
 	| { type: 'closeWhiteboard' }
 	/** Indicates a file is being dragged over the input area */
@@ -40,39 +36,38 @@ type ChatInputAction =
 	/** Handles dropping an image file to open in whiteboard */
 	| { type: 'drop'; file: File }
 
+const initialState: ChatInputState = {
+	input: '',
+	images: [],
+	openWhiteboard: null,
+	isDragging: false,
+}
+
 function chatInputReducer(state: ChatInputState, action: ChatInputAction): ChatInputState {
 	switch (action.type) {
 		case 'setInput':
 			return { ...state, input: action.input }
 		case 'setImage': {
-			const index = state.images.findIndex((img) => img.id === action.image.id)
-			if (index !== -1) {
-				const newImages = [...state.images]
-				newImages[index] = action.image
-				return { ...state, images: newImages }
+			const exists = state.images.some((img) => img.id === action.image.id)
+			return {
+				...state,
+				images: exists
+					? state.images.map((img) => (img.id === action.image.id ? action.image : img))
+					: [...state.images, action.image],
 			}
-			return { ...state, images: [...state.images, action.image] }
 		}
 		case 'removeImage':
 			return { ...state, images: state.images.filter((img) => img.id !== action.imageId) }
 		case 'clear':
-			return {
-				input: '',
-				images: [],
-				openWhiteboard: null,
-				isDragging: false,
-			}
-		case 'openWhiteboard':
+			return initialState
+		case 'openWhiteboard': {
+			const { snapshot, id, uploadedFile, imageName } = action
 			return {
 				...state,
-				openWhiteboard: {
-					snapshot: action.snapshot,
-					id: action.id,
-					uploadedFile: action.uploadedFile,
-					imageName: action.imageName,
-				},
+				openWhiteboard: { snapshot, id, uploadedFile, imageName },
 				isDragging: false,
 			}
+		}
 		case 'closeWhiteboard':
 			return { ...state, openWhiteboard: null }
 		case 'dragEnter':
@@ -102,12 +97,5 @@ function chatInputReducer(state: ChatInputState, action: ChatInputAction): ChatI
  * @returns A tuple containing the current state and dispatch function for actions
  */
 export function useChatInputState(): [ChatInputState, React.Dispatch<ChatInputAction>] {
-	const [state, dispatch] = useReducer(chatInputReducer, {
-		input: '',
-		images: [],
-		openWhiteboard: null,
-		isDragging: false,
-	})
-
-	return [state, dispatch]
+	return useReducer(chatInputReducer, initialState)
 }

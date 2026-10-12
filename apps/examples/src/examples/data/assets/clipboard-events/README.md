@@ -1,17 +1,18 @@
 ---
 title: Clipboard events
 component: ./ClipboardEventsExample.tsx
-category: data/assets
 priority: 4
 keywords: [clipboard, copy, paste, cut, events, disable]
 ---
 
-Intercept clipboard copy, cut, and paste using `onBeforeCopyToClipboard` and `onBeforePasteFromClipboard`.
+Filter, transform, or block copy, cut, and paste with the clipboard hooks in `TldrawOptions`.
 
 ---
 
-This example shows how to filter or cancel clipboard operations. The hooks run for both keyboard shortcuts and menu actions.
+Three options let you intercept clipboard operations. They run for both keyboard shortcuts and menu actions.
 
-- **`onBeforeCopyToClipboard`** — Receives serialized `TLContent` plus `operation` (`'copy'` | `'cut'`) and `source` (`'native'` | `'menu'`). Return a modified `TLContent` to change what is written, or `false` to cancel the write (for cut, the selection is not removed).
+- `onClipboardPasteRaw` runs first, before tldraw parses the clipboard. It receives the raw `DataTransfer` (source `native-event`) or `ClipboardItem[]` (source `clipboard-read`). Return `false` to cancel tldraw's default paste handling and deal with the data yourself.
+- `onBeforeCopyToClipboard` receives the serialized `TLContent` plus `operation` (`copy` or `cut`) and `source` (`native` or `menu`). Return a modified `TLContent` to change what's written, or `false` to cancel (for cut, the selection is kept).
+- `onBeforePasteFromClipboard` receives the parsed `TLExternalContent` about to be applied. Return a modified content object or `false` to cancel. It only fires for clipboard paste, not for file drops or programmatic `putExternalContent` calls.
 
-- **`onBeforePasteFromClipboard`** — Runs when pasted content is about to be applied. Receives `source` (`'native-event'` | `'clipboard-read'`). Return `false` to cancel, or a modified `TLExternalContent` to transform. This hook applies to clipboard paste only, not file drops or other `putExternalContent` calls.
+Use the checkboxes in the top panel to block copy or paste, strip red shapes on copy or paste, take over raw paste, or add a 500ms delay to the hooks. The log below the controls shows each hook as it fires. Try drawing a red and a blue shape, then copying and pasting with different toggles on.

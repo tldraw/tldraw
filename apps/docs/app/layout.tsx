@@ -8,8 +8,6 @@ import { Header } from '@/components/navigation/header'
 import { assetUrl } from '@/utils/asset-url'
 import { cn } from '@/utils/cn'
 import Analytics from './analytics'
-import './github-dark.css'
-import './github-light.css'
 import './globals.css'
 
 function Wrapper({ children }: { children: React.ReactNode }) {

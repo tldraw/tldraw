@@ -8,8 +8,8 @@ export class PlayingCardTool extends BaseBoxShapeTool {
 /*
 This file contains our custom tool. The tool is a StateNode with the `id` "PlayingCard".
 
-We get a lot of functionality for free by extending the BaseBoxShapeTool. but we can
-handle events in our own way by overriding methods like onDoubleClick. For an example
+We get click-to-create and drag-to-create for free by extending BaseBoxShapeTool, but we
+could handle events in our own way by overriding methods like onDoubleClick. For an example
 of a tool with more custom functionality, check out the screenshot-tool example.
 
 */

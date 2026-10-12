@@ -42,11 +42,7 @@ const BOUNDS_SIZES: Record<string, BoxModel> = {
 export default function CameraOptionsExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
-				// persistenceKey="camera-options"
-				components={components}
-				options={{ camera: CAMERA_OPTIONS }}
-			>
+			<Tldraw components={components} options={{ camera: CAMERA_OPTIONS }}>
 				<CameraOptionsControlPanel />
 			</Tldraw>
 		</div>
@@ -105,15 +101,10 @@ const BoundsDisplay = track(() => {
 					left: x,
 					width: w,
 					height: h,
-					// grey and white stripes
 					border: '1px dashed var(--tl-color-text)',
-					backgroundImage: `
-			
-				`,
-					backgroundSize: '200px 200px',
-					backgroundPosition: '0 0, 0 100px, 100px -100px, -100px 0px',
 				}}
 			>
+				{/* grey and white stripes */}
 				<div
 					style={{
 						position: 'absolute',
@@ -133,8 +124,8 @@ const BoundsDisplay = track(() => {
 	)
 })
 
+// [1]
 const components = {
-	// These components are just included for debugging / visualization!
 	OnTheCanvas: BoundsDisplay,
 	InFrontOfTheCanvas: PaddingDisplay,
 }
@@ -142,10 +133,11 @@ const components = {
 const CameraOptionsControlPanel = track(() => {
 	const editor = useEditor()
 
+	// [2]
 	const [cameraOptions, setCameraOptions] = useLocalStorageState('camera ex1', CAMERA_OPTIONS)
 
+	// [3]
 	useEffect(() => {
-		if (!editor) return
 		editor.run(() => {
 			editor.setCameraOptions(cameraOptions)
 			editor.setCamera(editor.getCamera(), {
@@ -224,14 +216,15 @@ const CameraOptionsControlPanel = track(() => {
 						const value = e.target.value
 						updateOptions({
 							...CAMERA_OPTIONS,
-							wheelBehavior: value as 'zoom' | 'pan',
+							wheelBehavior: value as TLCameraOptions['wheelBehavior'],
 						})
 					}}
 				>
 					<option>zoom</option>
 					<option>pan</option>
+					<option>none</option>
 				</select>
-				<label htmlFor="panspeed">Pan Speed</label>
+				<label htmlFor="panspeed">Pan speed</label>
 				<input
 					name="panspeed"
 					type="number"
@@ -242,7 +235,7 @@ const CameraOptionsControlPanel = track(() => {
 						updateOptions({ panSpeed: val })
 					}}
 				/>
-				<label htmlFor="zoomspeed">Zoom Speed</label>
+				<label htmlFor="zoomspeed">Zoom speed</label>
 				<input
 					name="zoomspeed"
 					type="number"
@@ -253,7 +246,7 @@ const CameraOptionsControlPanel = track(() => {
 						updateOptions({ zoomSpeed: val })
 					}}
 				/>
-				<label htmlFor="zoomsteps">Zoom Steps</label>
+				<label htmlFor="zoomsteps">Zoom steps</label>
 				<input
 					name="zoomsteps"
 					type="text"
@@ -298,14 +291,14 @@ const CameraOptionsControlPanel = track(() => {
 					}}
 				>
 					<option value="none">none</option>
-					<option value="a4">A4 Page</option>
-					<option value="portrait">Portait</option>
+					<option value="a4">A4 page</option>
+					<option value="portrait">Portrait</option>
 					<option value="landscape">Landscape</option>
 					<option value="square">Square</option>
 				</select>
 				{constraints ? (
 					<>
-						<label htmlFor="initialZoom">Initial Zoom</label>
+						<label htmlFor="initialZoom">Initial zoom</label>
 						<select
 							name="initialZoom"
 							value={constraints.initialZoom}
@@ -328,7 +321,7 @@ const CameraOptionsControlPanel = track(() => {
 							<option>fit-y-100</option>
 							<option>default</option>
 						</select>
-						<label htmlFor="zoomBehavior">Base Zoom</label>
+						<label htmlFor="zoomBehavior">Base zoom</label>
 						<select
 							name="zoomBehavior"
 							value={constraints.baseZoom}
@@ -351,7 +344,7 @@ const CameraOptionsControlPanel = track(() => {
 							<option>fit-y-100</option>
 							<option>default</option>
 						</select>
-						<label htmlFor="originX">Origin X</label>
+						<label htmlFor="originX">Origin x</label>
 						<input
 							name="originX"
 							type="number"
@@ -369,7 +362,7 @@ const CameraOptionsControlPanel = track(() => {
 								})
 							}}
 						/>
-						<label htmlFor="originY">Origin Y</label>
+						<label htmlFor="originY">Origin y</label>
 						<input
 							name="originY"
 							type="number"
@@ -388,7 +381,7 @@ const CameraOptionsControlPanel = track(() => {
 								})
 							}}
 						/>
-						<label htmlFor="paddingX">Padding X</label>
+						<label htmlFor="paddingX">Padding x</label>
 						<input
 							name="paddingX"
 							type="number"
@@ -407,7 +400,7 @@ const CameraOptionsControlPanel = track(() => {
 								})
 							}}
 						/>
-						<label htmlFor="paddingY">Padding Y</label>
+						<label htmlFor="paddingY">Padding y</label>
 						<input
 							name="paddingY"
 							type="number"
@@ -425,7 +418,7 @@ const CameraOptionsControlPanel = track(() => {
 								})
 							}}
 						/>
-						<label htmlFor="behaviorX">Behavior X</label>
+						<label htmlFor="behaviorX">Behavior x</label>
 						<select
 							name="behaviorX"
 							value={(constraints.behavior as { x: any; y: any }).x}
@@ -448,7 +441,7 @@ const CameraOptionsControlPanel = track(() => {
 							<option>outside</option>
 							<option>fixed</option>
 						</select>
-						<label htmlFor="behaviorY">Behavior Y</label>
+						<label htmlFor="behaviorY">Behavior y</label>
 						<select
 							name="behaviorY"
 							value={(constraints.behavior as { x: any; y: any }).y}
@@ -478,20 +471,35 @@ const CameraOptionsControlPanel = track(() => {
 				<button
 					onClick={() => {
 						editor.setCamera(editor.getCamera(), { reset: true })
-						// eslint-disable-next-line no-console
-						console.log(editor.getCameraOptions())
 					}}
 				>
-					Reset Camera
+					Reset camera
 				</button>
 				<button
 					onClick={() => {
 						updateOptions(CAMERA_OPTIONS)
 					}}
 				>
-					Reset Camera Options
+					Reset camera options
 				</button>
 			</div>
 		</div>
 	)
 })
+
+/*
+[1]
+These two components are only there to visualize the configuration: BoundsDisplay draws the
+constraint bounds in page space (OnTheCanvas), and PaddingDisplay draws the padding inset in
+screen space (InFrontOfTheCanvas). Neither is needed to make constraints work.
+
+[2]
+The panel's options are kept in local storage so they survive a refresh, and so the panel,
+not the initial `options.camera`, is the source of truth once it has mounted.
+
+[3]
+`editor.setCameraOptions()` updates the options at runtime and re-applies the constraints to
+the current camera. We follow it with `setCamera(getCamera(), { immediate: true })` so the
+camera snaps to its new constrained position instead of animating there. Wrapping both in
+`editor.run()` keeps them in one transaction.
+*/

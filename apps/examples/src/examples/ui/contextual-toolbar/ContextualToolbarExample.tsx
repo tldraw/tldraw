@@ -73,20 +73,22 @@ export default function ContextualToolbar() {
 }
 
 /*
-This example shows how you can use our contextual toolbar primitive that can show up when you
-select a shape. It's using the `InFrontOfTheCanvas` component to render the toolbar. This allows us to render
-the toolbar on top of the shapes, but behind the existing UI.
+`TldrawUiContextualToolbar` is rendered in the `InFrontOfTheCanvas` slot, so it sits on top of
+the shapes but behind the rest of the UI.
+
 [1]
-This is our context toolbar. It's positioned absolutely on top of the selected shapes.
+The component is wrapped in `track()` so it re-renders when the selection, camera, or tool state
+changes. We only show the toolbar while the select tool is idle, so it disappears while shapes are
+being dragged, resized, or rotated.
+
 [2]
-Different shapes support different style properties and this is how we get the styles that are 
-supported by all selected shapes. If none of the selected shapes supported the `DefaultSizeStyle`
-we wouldn't show the toolbar at all.
-We also get the current value of the size property. If all the shapes have the same size then the
-type of the size property is `shared`. This will allow us to show the currently selected size in the
-toolbar. If the shapes have different sizes then the type of the size property is `mixed` and none
-of the sizes will be highlighted.
+Different shapes support different style properties. `getSharedStyles()` returns the styles
+supported by every selected shape; if none of them support `DefaultSizeStyle` we don't show the
+toolbar at all. If all the shapes have the same size, the entry's type is `shared` and we highlight
+that size. If they differ, the type is `mixed` and nothing is highlighted.
+
 [3]
-We pass in getSelectionBounds so that the toolbar knows where to position itself. You can use the
-selection bounds of the current shapes or some other logic.
+`getSelectionBounds` tells the toolbar where to position itself. Here we use the selection's
+rotated screen bounds with a height of zero so the toolbar sits along the top edge; you can use
+any other logic you like.
 */

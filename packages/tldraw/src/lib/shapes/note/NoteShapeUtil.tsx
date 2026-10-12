@@ -32,8 +32,6 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useCallback, useContext } from 'react'
-import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
-import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
 	isEditingRichTextList,
@@ -54,7 +52,15 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
-import { CLONE_HANDLE_MARGIN, getNoteShapeForAdjacentPosition } from './noteHelpers'
+import {
+	DefaultNoteShapeAttribution,
+	TLNoteShapeAttributionComponent,
+} from './DefaultNoteShapeAttribution'
+import {
+	CLONE_HANDLE_MARGIN,
+	getNoteShapeForAdjacentPosition,
+	startEditingAdjacentNote,
+} from './noteHelpers'
 
 const NOTE_SHAPE_HORIZONTAL_ALIGNS = Object.freeze({
 	start: 'start',
@@ -100,6 +106,22 @@ export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<
 	 * but you can set it to be user-resizable using scale.
 	 */
 	resizeMode: 'none' | 'scale'
+	/**
+	 * The component used to render the note's "last edited by" attribution badge, both on the canvas
+	 * and in image exports. Defaults to {@link DefaultNoteShapeAttribution}. Set it to `null` to hide
+	 * the badge, or provide your own component (receiving {@link TLNoteShapeAttributionProps}) to
+	 * replace it.
+	 *
+	 * @example
+	 * ```tsx
+	 * // hide the badge
+	 * NoteShapeUtil.configure({ AttributionComponent: null })
+	 *
+	 * // render your own
+	 * NoteShapeUtil.configure({ AttributionComponent: (props) => <MyBadge {...props} /> })
+	 * ```
+	 */
+	AttributionComponent: TLNoteShapeAttributionComponent
 }
 
 /** @public */
@@ -110,6 +132,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override options: NoteShapeOptions = {
 		resizeMode: 'none',
+		AttributionComponent: DefaultNoteShapeAttribution,
 		getDefaultDisplayValues(_editor, shape, theme, colorMode): NoteShapeUtilDisplayValues {
 			const { color, labelColor, font, size, align, verticalAlign } = shape.props
 			const colors = theme.colors[colorMode]
@@ -308,13 +331,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					style: 'normal',
 				})
 
-		if (shape.props.textLastEditedBy && !isEmptyRichText(shape.props.richText)) {
-			return [...fonts, DefaultFontFaces.tldraw_sans.normal.normal]
-		}
 		const themeFaces = getThemeFontFaces(this.editor.getCurrentTheme(), shape.props.font)
-		if (themeFaces) return [...themeFaces, ...fonts]
+		const textFaces = themeFaces ? [...themeFaces, ...fonts] : fonts
 
-		return fonts.length ? fonts : EMPTY_ARRAY
+		// The attribution line renders in the default sans face regardless of the note's font.
+		// Theme faces come first so an attributed note keeps its custom font (export included).
+		if (shape.props.textLastEditedBy && !isEmptyRichText(shape.props.richText)) {
+			return [...textFaces, DefaultFontFaces.tldraw_sans.normal.normal]
+		}
+
+		return textFaces.length ? textFaces : EMPTY_ARRAY
 	}
 
 	component(shape: TLNoteShape) {
@@ -343,6 +369,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const isReadyForEditing = useIsReadyForEditing(this.editor, shape.id)
 		const isEmpty = isEmptyRichText(richText)
 
+		const NoteShapeAttribution = this.options.AttributionComponent
 		const attribution = useValue(
 			'attribution',
 			() => {
@@ -369,20 +396,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						boxShadow: hideShadows ? 'none' : getNoteShadow(shape.id, rotation, scale),
 					}}
 				>
-					{attribution && (
-						<TldrawUiTooltip content={attribution.full} side="bottom">
-							<div
-								className="tl-note__attribution"
-								style={{
-									['--note-attribution-scale' as string]: scale,
-									fontSize: 11 * scale,
-									color: dv.labelColor,
-									opacity: 0.6,
-								}}
-							>
-								{attribution.short}
-							</div>
-						</TldrawUiTooltip>
+					{attribution && NoteShapeAttribution && (
+						<NoteShapeAttribution
+							shape={shape}
+							name={attribution.full}
+							firstName={attribution.short}
+							color={dv.labelColor}
+							scale={scale}
+							variant="canvas"
+						/>
 					)}
 					{(isSelected || isReadyForEditing || !isEmpty) && (
 						<RichTextLabel
@@ -459,10 +481,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		})
 
 		const { textLastEditedBy } = shape.props
-		const attributionName =
+		const attributionFullName =
 			textLastEditedBy && !isEmptyRichText(shape.props.richText)
-				? (this.editor.getAttributionDisplayName(textLastEditedBy)?.split(' ')[0] ?? null)
+				? (this.editor.getAttributionDisplayName(textLastEditedBy) ?? null)
 				: null
+		const attributionFirstName = attributionFullName?.split(' ')[0] ?? null
+		const NoteShapeAttribution = this.options.AttributionComponent
 
 		return (
 			<>
@@ -488,7 +512,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					padding={dv.labelPadding}
 					showTextOutline={false}
 				/>
-				{attributionName && (
+				{attributionFirstName && attributionFullName && NoteShapeAttribution && (
 					<foreignObject
 						x={0}
 						y={0}
@@ -497,16 +521,14 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						className="tl-export-embed-styles"
 					>
 						<div style={{ position: 'relative', width: '100%', height: '100%' }}>
-							<div
-								className="tl-note__attribution"
-								style={{
-									fontSize: 11,
-									color: dv.labelColor,
-									opacity: 0.6,
-								}}
-							>
-								{attributionName}
-							</div>
+							<NoteShapeAttribution
+								shape={shape}
+								name={attributionFullName}
+								firstName={attributionFirstName}
+								color={dv.labelColor}
+								scale={1}
+								variant="export"
+							/>
 						</div>
 					</foreignObject>
 				)}
@@ -746,7 +768,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				})
 
 				if (newNote) {
-					startEditingShapeWithRichText(editor, newNote, { selectAll: true })
+					startEditingAdjacentNote(editor, newNote)
 				}
 			}
 		},

@@ -1,7 +1,7 @@
 import { TLUiComponents, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// The type here is include only to ensure this example contains all possible ui components,
+// [1]
 const components: Required<TLUiComponents> = {
 	ContextMenu: null,
 	ActionsMenu: null,
@@ -43,3 +43,13 @@ export default function UiComponentsHiddenExample() {
 		</div>
 	)
 }
+
+/*
+[1]
+Setting a slot to `null` removes that part of the UI. Set only the slots you
+want to hide; the `Required<>` type is here so this example lists every slot,
+which is handy as a reference. Hiding `Toasts`, `Dialogs`, or `A11y`
+also disables the features that render through them (toast notifications,
+dialogs like the keyboard shortcuts panel, and screen reader announcements). To
+hide everything at once, use the `hideUi` prop instead.
+*/

@@ -74,11 +74,10 @@ export function TldrawUiPopoverContent({
 	const handleOpenAutoFocus = React.useCallback(() => {
 		if (!autoFocusFirstButton) return
 		const buttons = (ref.current?.querySelectorAll('button:not([disabled])') ?? []) as HTMLElement[]
-		const visibleButtons = [...buttons].filter(
+		const firstVisibleButton = [...buttons].find(
 			(button) => button.offsetWidth || button.offsetHeight
 		)
-		const firstButton = visibleButtons[0]
-		if (firstButton) firstButton.focus()
+		firstVisibleButton?.focus()
 	}, [autoFocusFirstButton])
 
 	return (

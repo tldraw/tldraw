@@ -17,10 +17,10 @@ keywords:
   ]
 ---
 
-Control behavior after dragging, resizing, or rotating shapes.
+Run custom logic when a programmatically started drag ends with `onInteractionEnd`.
 
 ---
 
-When programmatically starting interactions like translating, resizing, or rotating, you can use the `onInteractionEnd` option to control what happens when the interaction completes. Pass a string to transition to a specific tool, or a function to execute custom logic.
+When a tool starts one of the select tool's interactions itself, for example `editor.setCurrentTool('select.translating', info)`, the `onInteractionEnd` field in `info` controls what happens when the interaction finishes. Pass a tool id string to report that tool as the current one while the drag runs (and return to it if tool lock is on), or a function to run arbitrary code.
 
-In this example, we set the fill of a shape after we finish translating to be patterned.
+This example's tool creates a square on click and immediately starts translating it. Click and drag anywhere: when you release, the callback changes the fill to a pattern and returns to the tool so the next click creates another square.

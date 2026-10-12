@@ -2,11 +2,13 @@
 title: Custom theme
 component: ./CustomThemeExample.tsx
 priority: 0.6
-keywords: [theme, brand, custom, colors, dark mode, light mode, palette]
+keywords: [theme, brand, custom, colors, fonts, dark mode, light mode, palette, updatetheme]
 ---
 
-Register a custom named theme and switch between themes.
+Add custom colors and fonts to the theme, remove built-in ones, and adjust theme values at runtime.
 
 ---
 
-You can register themes beyond `light` and `dark` by passing a `themes` prop with additional entries. Use the `initialTheme` prop to set the initial theme; switch at runtime via `editor.setCurrentTheme()`. This example adds a "my-brand" theme with custom colors and provides buttons to switch between all three themes.
+Pass a `themes` prop to `<Tldraw>` to replace the default theme. This example adds a "pink" color and two custom fonts (a bundled pixel font and a remote Google Font), removes the "light-\*" colors and the serif font, and adds translations so the style panel shows readable names. Custom color and font names are declared to TypeScript via module augmentation of `TLThemeDefaultColors`, `TLThemeFonts`, and `TLRemovedDefaultThemeColors`.
+
+The sliders in the bottom right change the theme's `fontSize`, `lineHeight`, and `strokeWidth` at runtime with `editor.updateTheme()`. Draw some shapes and drag the stroke width slider to see them update. To register additional named themes and switch between them, see the multiple themes example.

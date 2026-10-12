@@ -2,30 +2,24 @@
 title: Pasting Mermaid code as shapes
 component: ./MermaidPasting.tsx
 priority: 10
-keywords: [mermaid, diagram]
+keywords: [mermaid, diagram, paste, external content]
 ---
 
-Paste mermaid diagrams!
+Paste Mermaid source onto the canvas and get native tldraw shapes.
 
 ---
 
-This example shows how to handle the pasting of mermaid diagrams into the
-canvas.
+A custom `text` external content handler (`editor.registerExternalContentHandler`) checks whether pasted text looks like a Mermaid diagram. If it does, `createMermaidDiagram` from `@tldraw/mermaid` turns it into geo shapes, arrows, and text; otherwise the default text handler runs.
 
-Supported diagrams:
+Flowcharts, state diagrams, sequence diagrams, and mind maps become native shapes. Other diagram types are rendered by Mermaid to SVG and pasted as an image, with a toast to say so.
 
-- Flowcharts
-- State
-- Sequence
-- Mindmap
-
-Example:
+Try copying this and pasting it onto the canvas:
 
 ```
 graph TD
-    A[Start] --> B{Is it correct LALA?}
-    B -- Yes --> C[Display Diagram]
-    B -- No --> D[Edit Code]
+    A[Start] --> B{Is it correct?}
+    B -- Yes --> C[Display diagram]
+    B -- No --> D[Edit code]
     D --> B
     C --> E[End]
 ```

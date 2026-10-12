@@ -5,8 +5,10 @@ priority: 0
 keywords: [options, configuration, pages, animation, camera]
 ---
 
-Override default editor options like max number of pages and animation speed.
+Override editor options like the maximum number of pages and animation duration.
 
 ---
 
-Use the `options` property to override tldraw's options. In this example, we limit the maximum number of pages to 3, and slow down camera animations like zoom in and zoom out.
+The `options` prop on `Tldraw` takes a `Partial<TldrawOptions>` and overrides tldraw's defaults; anything you leave out keeps its default value. Options are read once when the editor is created, so define the object outside the component (or memoize it) rather than creating a new one on every render.
+
+This example limits documents to 3 pages and sets `animationMediumMs` to 5 seconds. Try opening the page menu and adding pages: the "create page" button disables after the third. Then zoom in or out from the zoom menu and watch the (very) slow animation.

@@ -16,14 +16,11 @@ export async function POST(req: Request) {
 		return new Response('x-file-name is not set', { status: 400 })
 	}
 
-	const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY })
+	const ai = new GoogleGenAI({ apiKey })
 
 	const file = await ai.files.upload({
 		file: await req.blob(),
-		config: {
-			mimeType: contentType,
-			displayName,
-		},
+		config: { mimeType: contentType, displayName },
 	})
 
 	return Response.json({ uploadedUrl: file.uri, expiresAt: file.expirationTime })

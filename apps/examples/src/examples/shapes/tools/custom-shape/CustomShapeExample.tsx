@@ -66,7 +66,7 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	}
 
 	// [e]
-	override onResize(shape: any, info: TLResizeInfo<any>) {
+	override onResize(shape: ICustomShape, info: TLResizeInfo<ICustomShape>) {
 		return resizeBox(shape, info)
 	}
 
@@ -116,25 +116,26 @@ Define the shape type using TLShape with the shape's type as a type argument.
 [3]
 This is our shape util. In tldraw shape utils are classes that define how a shape behaves and renders.
 We can extend the ShapeUtil class and provide the shape type as a generic. If we extended the
-BaseBoxShapeUtil class instead, we wouldn't have define methods such as `getGeometry` and `onResize`.
+BaseBoxShapeUtil class instead, we wouldn't have to define methods such as `getGeometry` and `onResize`.
 
 	[a]
-	This is where we define out shape's props and type for the editor. It's important to use the same
-	string for the type as we did in [2]. We need to define the shape's props using tldraw's validator
-	library. The validator will help make sure the store always has shape data we can trust.
+	This is where we define our shape's props and type for the editor. It's important to use the same
+	string for the type as we did in [1]. We define the shape's props using tldraw's validator
+	library, which makes sure the store always has shape data we can trust.
 
 	[b]
 	This is a method that returns the default props for our shape.
 
 	[c]
-	Some handy methods for controlling different shape behaviour. You don't have to define these, and
-	they're only shown here so you know they exist. Check out the editable shape example to learn more
-	about creating an editable shape.
+	Some handy methods for controlling different shape behaviour. These are the defaults, so you don't
+	have to define them; they're only shown here so you know they exist. Check out the editable shape
+	example to learn more about creating an editable shape.
 
 	[d]
 	The getGeometry method is what the editor uses for hit-testing, binding etc. We're using the
-	Rectangle2d class from tldraw's geometry library to create a rectangle shape. If we extended the
-	BaseBoxShapeUtil class, we wouldn't have to define this method.
+	Rectangle2d class from tldraw's geometry library to create a rectangle shape. `isFilled: true`
+	means clicks inside the rectangle hit the shape, not just clicks on its outline. If we extended
+	the BaseBoxShapeUtil class, we wouldn't have to define this method.
 
 	[e]
 	We're using the resizeBox utility method to handle resizing our shape. If we extended the

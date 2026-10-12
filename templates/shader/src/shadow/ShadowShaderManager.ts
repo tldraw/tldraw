@@ -1,11 +1,8 @@
 import { Atom, Box, Editor, Group2d, react, TLShape, Vec } from 'tldraw'
 import { WebGLManager } from '../WebGLManager'
 import { ShaderManagerConfig } from './config'
-import fragmentShader from './fragment.glsl?raw'
-import vertexShader from './vertex.glsl?raw'
-
-const VERTEX_SHADER = vertexShader
-const FRAGMENT_SHADER = fragmentShader
+import FRAGMENT_SHADER from './fragment.glsl?raw'
+import VERTEX_SHADER from './vertex.glsl?raw'
 
 export type Geometry = Array<{ start: Vec; end: Vec }>
 
@@ -50,8 +47,6 @@ export class ShadowShaderManager extends WebGLManager<ShaderManagerConfig> {
 			return
 		}
 
-		const isWebGL2 = this.gl instanceof WebGL2RenderingContext
-
 		const maxTextureSize = this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE)
 
 		if (!maxTextureSize) {
@@ -59,29 +54,23 @@ export class ShadowShaderManager extends WebGLManager<ShaderManagerConfig> {
 			return
 		}
 
+		const gl = this.gl
 		const compileShader = (type: number, source: string): WebGLShader | null => {
-			if (!this.gl) {
-				console.error('No GL context')
-				return null
-			}
-
-			const shader = this.gl.createShader(type)
+			const shader = gl.createShader(type)
 			if (!shader) {
 				console.error('Failed to create shader - createShader returned null')
 				return null
 			}
 
-			this.gl.shaderSource(shader, source)
-			this.gl.compileShader(shader)
+			gl.shaderSource(shader, source)
+			gl.compileShader(shader)
 
-			const compileStatus = this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)
-			const shaderType = type === this.gl.VERTEX_SHADER ? 'VERTEX' : 'FRAGMENT'
-
-			if (compileStatus !== true) {
-				const log = this.gl.getShaderInfoLog(shader)
+			if (gl.getShaderParameter(shader, gl.COMPILE_STATUS) !== true) {
+				const shaderType = type === gl.VERTEX_SHADER ? 'VERTEX' : 'FRAGMENT'
+				const log = gl.getShaderInfoLog(shader)
 				console.error(`${shaderType} shader compile error:`, log || 'No error log available')
 				console.error('Shader source:', source)
-				this.gl.deleteShader(shader)
+				gl.deleteShader(shader)
 				return null
 			}
 
@@ -128,11 +117,8 @@ export class ShadowShaderManager extends WebGLManager<ShaderManagerConfig> {
 
 		this.positionBuffer = this.gl.createBuffer()
 
-		if (isWebGL2) {
-			const gl2 = this.gl as WebGL2RenderingContext
-			this.vao = gl2.createVertexArray()
-			gl2.bindVertexArray(this.vao)
-		}
+		this.vao = this.gl.createVertexArray()
+		this.gl.bindVertexArray(this.vao)
 
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer)
 		const positions = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1])
@@ -142,10 +128,7 @@ export class ShadowShaderManager extends WebGLManager<ShaderManagerConfig> {
 		this.gl.enableVertexAttribArray(a_position)
 		this.gl.vertexAttribPointer(a_position, 2, this.gl.FLOAT, false, 0, 0)
 
-		if (isWebGL2) {
-			const gl2 = this.gl as WebGL2RenderingContext
-			gl2.bindVertexArray(null)
-		}
+		this.gl.bindVertexArray(null)
 
 		this.disposables.add(react('dependencies', this.tick))
 
@@ -156,10 +139,9 @@ export class ShadowShaderManager extends WebGLManager<ShaderManagerConfig> {
 		const { editor } = this
 		const vsb = editor.getViewportScreenBounds()
 		const camera = editor.getCamera()
-		const shapes = this.editor.getCurrentPageShapes()
 		this.geometries = []
 
-		for (const shape of shapes) {
+		for (const shape of editor.getCurrentPageShapes()) {
 			try {
 				const geometry = this.extractGeometry(shape, camera, vsb)
 				if (geometry) {
@@ -231,20 +213,14 @@ export class ShadowShaderManager extends WebGLManager<ShaderManagerConfig> {
 			this.gl.uniform1f(this.u_segmentCount, Math.min(allSegments.length / 4, this.maxSegments))
 		}
 
-		if (this.vao && this.gl instanceof WebGL2RenderingContext) {
-			this.gl.bindVertexArray(this.vao)
-		}
-
+		this.gl.bindVertexArray(this.vao)
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4)
-
-		if (this.vao && this.gl instanceof WebGL2RenderingContext) {
-			this.gl.bindVertexArray(null)
-		}
+		this.gl.bindVertexArray(null)
 	}
 
 	onDispose = (): void => {
 		if (this.gl) {
-			if (this.vao && this.gl instanceof WebGL2RenderingContext) {
+			if (this.vao) {
 				this.gl.deleteVertexArray(this.vao)
 				this.vao = null
 			}
@@ -266,23 +242,13 @@ export class ShadowShaderManager extends WebGLManager<ShaderManagerConfig> {
 		this.tick()
 	}
 
-	refresh = (): void => {
-		try {
-			this.tick()
-		} catch (e) {
-			console.log('Error refreshing geometries', e)
-		}
-	}
-
 	private pageToCanvas = (
 		point: Vec,
 		camera: { x: number; y: number; z: number },
 		viewportScreenBounds: Box
 	): Vec => {
-		const screenX = (point.x + camera.x) * camera.z + viewportScreenBounds.x
-		const screenY = (point.y + camera.y) * camera.z + viewportScreenBounds.y
-		const canvasX = (screenX - viewportScreenBounds.x) / viewportScreenBounds.width
-		const canvasY = 1.0 - (screenY - viewportScreenBounds.y) / viewportScreenBounds.height
+		const canvasX = ((point.x + camera.x) * camera.z) / viewportScreenBounds.width
+		const canvasY = 1.0 - ((point.y + camera.y) * camera.z) / viewportScreenBounds.height
 		return new Vec(canvasX, canvasY)
 	}
 
@@ -290,22 +256,19 @@ export class ShadowShaderManager extends WebGLManager<ShaderManagerConfig> {
 		shape: TLShape,
 		camera: { x: number; y: number; z: number },
 		viewportScreenBounds: Box
-	): Array<{ start: Vec; end: Vec }> | null => {
-		const { editor } = this
+	): Geometry | null => {
 		const geometry = this.editor.getShapeGeometry(shape)
-		const transform = editor.getShapePageTransform(shape)
+		const transform = this.editor.getShapePageTransform(shape)
 		if (!transform) return null
 
 		const canvasPoints = geometry.vertices.map((c) =>
 			this.pageToCanvas(transform.applyToPoint(c), camera, viewportScreenBounds)
 		)
 
-		const segments: Array<{ start: Vec; end: Vec }> = []
+		const segments: Geometry = []
 
 		for (let i = 0; i < canvasPoints.length - 1; i++) {
-			const start = canvasPoints[i]
-			const end = canvasPoints[i + 1]
-			segments.push({ start, end })
+			segments.push({ start: canvasPoints[i], end: canvasPoints[i + 1] })
 		}
 
 		const isClosed =

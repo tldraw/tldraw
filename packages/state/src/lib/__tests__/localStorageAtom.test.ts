@@ -260,4 +260,19 @@ describe('localStorageAtom', () => {
 			cleanup2()
 		})
 	})
+
+	describe('outside the browser', () => {
+		it('[LS6] does not throw without a window and returns a working atom', () => {
+			vi.stubGlobal('window', undefined)
+			try {
+				const [atom, cleanup] = localStorageAtom('test-key', 'initial-value')
+				expect(atom.get()).toBe('initial-value')
+				atom.set('next')
+				expect(atom.get()).toBe('next')
+				expect(() => cleanup()).not.toThrow()
+			} finally {
+				vi.unstubAllGlobals()
+			}
+		})
+	})
 })

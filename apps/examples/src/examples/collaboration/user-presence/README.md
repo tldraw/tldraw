@@ -1,6 +1,7 @@
 ---
 title: Manually update user presence
 component: ./UserPresenceExample.tsx
+priority: 5
 keywords:
   [
     presence,
@@ -13,11 +14,12 @@ keywords:
     cursor animation,
     mergeRemoteChanges,
   ]
-priority: 5
 ---
 
-Manually show other users editing the same document.
+Show another user's cursor and chat bubble by writing an `instance_presence` record to the store.
 
 ---
 
-Here, we add fake `InstancePresence` records to the store to simulate other users. If you have your own presence system, you could add real records to the store in the same way.
+Collaborator cursors, names, and chat messages are rendered from `instance_presence` records. This example creates one for a fake peer with `InstancePresenceRecordType.create`, writes it inside `store.mergeRemoteChanges`, and updates its cursor and `lastActivityTimestamp` every frame so the cursor stays visible and moves in a circle.
+
+If you have your own presence system, you can write real records the same way. For a full multiplayer setup, see the sync examples.

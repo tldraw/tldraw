@@ -25,6 +25,7 @@ export {
 export {
 	DefaultErrorFallback,
 	type TLErrorFallbackComponent,
+	type TLErrorFallbackProps,
 } from './lib/components/default-components/DefaultErrorFallback'
 export { DefaultGrid, type TLGridProps } from './lib/components/default-components/DefaultGrid'
 export { type TLShapeErrorFallbackComponent } from './lib/components/default-components/DefaultShapeErrorFallback'
@@ -32,7 +33,10 @@ export {
 	DefaultShapeWrapper,
 	type TLShapeWrapperProps,
 } from './lib/components/default-components/DefaultShapeWrapper'
-export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
+export {
+	DefaultSpinner,
+	type TLSpinnerProps,
+} from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
 export {
 	EditorPortal,
@@ -290,6 +294,7 @@ export {
 export { getOwnerDocument, getOwnerWindow } from './lib/exports/domUtils'
 export { getSvgAsImage } from './lib/exports/getSvgAsImage'
 export { tlenv, tlenvReactive } from './lib/globals/environment'
+export { tleditors } from './lib/globals/editors'
 export { tlmenus } from './lib/globals/menus'
 export { tltime } from './lib/globals/time'
 export {
@@ -341,7 +346,11 @@ export {
 	type LicenseState,
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
-export { LICENSE_TIMEOUT, useLicenseContext } from './lib/license/LicenseProvider'
+export {
+	LICENSE_TIMEOUT,
+	useLicenseContext,
+	useMaybeLicenseManager,
+} from './lib/license/LicenseProvider'
 export { useLicenseFeatureFlag } from './lib/license/useLicenseManagerState'
 export {
 	defaultTldrawOptions,

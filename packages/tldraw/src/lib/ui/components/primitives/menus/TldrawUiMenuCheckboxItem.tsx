@@ -53,6 +53,27 @@ export function TldrawUiMenuCheckboxItem<
 	const labelToUse = unwrapLabel(label, menuType)
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
+	const content = (
+		<>
+			<TldrawUiIcon
+				small
+				label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
+				icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
+			/>
+			{labelStr && (
+				<span className="tlui-button__label" draggable={false}>
+					{labelStr}
+				</span>
+			)}
+			{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
+		</>
+	)
+
+	const handleSelect = (e: Event) => {
+		onSelect(sourceId)
+		preventDefault(e)
+	}
+
 	switch (menuType) {
 		case 'menu': {
 			return (
@@ -60,24 +81,11 @@ export function TldrawUiMenuCheckboxItem<
 					dir={dir}
 					lang={lang}
 					className="tlui-button tlui-button__menu tlui-button__checkbox"
-					onSelect={(e) => {
-						onSelect?.(sourceId)
-						preventDefault(e)
-					}}
+					onSelect={handleSelect}
 					disabled={disabled}
 					checked={checked}
 				>
-					<TldrawUiIcon
-						small
-						label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
-						icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
-					/>
-					{labelStr && (
-						<span className="tlui-button__label" draggable={false}>
-							{labelStr}
-						</span>
-					)}
-					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
+					{content}
 				</_DropdownMenu.CheckboxItem>
 			)
 		}
@@ -88,24 +96,11 @@ export function TldrawUiMenuCheckboxItem<
 					className="tlui-button tlui-button__menu tlui-button__checkbox"
 					dir={dir}
 					lang={lang}
-					onSelect={(e) => {
-						onSelect(sourceId)
-						preventDefault(e)
-					}}
+					onSelect={handleSelect}
 					disabled={disabled}
 					checked={checked}
 				>
-					<TldrawUiIcon
-						small
-						label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
-						icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
-					/>
-					{labelStr && (
-						<span className="tlui-button__label" draggable={false}>
-							{labelStr}
-						</span>
-					)}
-					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
+					{content}
 				</_ContextMenu.CheckboxItem>
 			)
 		}

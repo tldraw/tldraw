@@ -126,8 +126,7 @@ function seed(editor: Editor) {
 }
 
 // The host supplies the sidebar's open/close affordance. Here it's a button in the share-panel
-// slot — the same top-right spot tldraw.com uses. (The comment tool closes the sidebar while
-// it's active, so the button is how it comes back.)
+// slot. The comment tool closes the sidebar when it activates, so the button is how it comes back.
 function SidebarToggle() {
 	const editor = useEditor()
 	const open = useValue('sidebar open', () => commentsSidebarOpen.get(editor), [editor])

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetch } from 'tldraw'
 import { sentryReleaseName } from '../../../sentry-release-name'
-import { StructuredDataDisplay } from './shared'
+import { getResponseError, StructuredDataDisplay } from './shared'
 import styles from './admin.module.css'
 
 export function SystemSection() {
@@ -12,7 +12,7 @@ export function SystemSection() {
 		fetch('/api/app/admin/outbox')
 			.then(async (res) => {
 				if (!res.ok) {
-					setError(res.statusText + ': ' + (await res.text()))
+					setError(await getResponseError(res))
 					return
 				}
 				setError(null)

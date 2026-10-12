@@ -1,5 +1,24 @@
-import { expect } from '@playwright/test'
+import { Page, expect } from '@playwright/test'
 import test from '../fixtures/fixtures'
+
+// Pick the comment tool and click the canvas, then wait for the composer to take focus before
+// returning. Its autofocus runs on the next animation frame, so typing straight after the click
+// can land before it and be dropped — no text, nothing to post, no pin.
+async function startComment(page: Page) {
+	await page.getByTestId('quick-actions.comment').click()
+	await page.mouse.click(400, 300)
+	await expect(
+		page.locator('.tlui-cmt-canvas-composer [contenteditable="true"].tlui-cmt-input')
+	).toBeFocused()
+}
+
+// Place a comment at the same point, post it, and dismiss the thread the send leaves open.
+async function placeComment(page: Page, text: string) {
+	await startComment(page)
+	await page.keyboard.type(text)
+	await page.keyboard.press('Enter')
+	await page.keyboard.press('Escape')
+}
 
 /**
  * Canvas comment markers are the only way into a thread, so they have to be reachable without a
@@ -26,6 +45,9 @@ test.describe('commenting a11y', () => {
 		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
 		await expect(commentTool).toHaveAttribute('data-isactive', 'true')
 		await page.mouse.click(400, 300)
+		await expect(
+			page.locator('.tlui-cmt-canvas-composer [contenteditable="true"].tlui-cmt-input')
+		).toBeFocused()
 		await page.keyboard.type('hello from the keyboard')
 		await page.keyboard.press('Enter')
 
@@ -58,8 +80,7 @@ test.describe('commenting a11y', () => {
 	}) => {
 		if (isMobile) test.skip()
 
-		await page.getByTestId('quick-actions.comment').click()
-		await page.mouse.click(400, 300)
+		await startComment(page)
 
 		// The composer is a contenteditable whose visible placeholder is aria-hidden, so without an
 		// explicit name a screen reader lands on an unlabelled textbox.
@@ -95,11 +116,7 @@ test.describe('commenting a11y', () => {
 	}) => {
 		if (isMobile) test.skip()
 
-		await page.getByTestId('quick-actions.comment').click()
-		await page.mouse.click(400, 300)
-		await page.keyboard.type('first')
-		await page.keyboard.press('Enter')
-		await page.keyboard.press('Escape')
+		await placeComment(page, 'first')
 		await expect(page.locator('.tlui-cmt-canvas-pin__marker')).toHaveCount(1)
 
 		// The comments layer is portalled into the editor container, and a pin is a real button. Left
@@ -132,11 +149,7 @@ test.describe('commenting a11y', () => {
 	}) => {
 		if (isMobile) test.skip()
 
-		await page.getByTestId('quick-actions.comment').click()
-		await page.mouse.click(400, 300)
-		await page.keyboard.type('first')
-		await page.keyboard.press('Enter')
-		await page.keyboard.press('Escape')
+		await placeComment(page, 'first')
 
 		// Open the thread and spend its one Tab-into-the-reply-box, so nothing is left to pull focus
 		// back into the panel on its own — the state the escape has to survive.
@@ -173,16 +186,8 @@ test.describe('commenting a11y', () => {
 
 		// Two comments on the same point stack behind one badge. The first carries a link, which a
 		// comment body renders as a real anchor.
-		await page.getByTestId('quick-actions.comment').click()
-		await page.mouse.click(400, 300)
-		await page.keyboard.type('see https://tldraw.dev ')
-		await page.keyboard.press('Enter')
-		await page.keyboard.press('Escape')
-		await page.getByTestId('quick-actions.comment').click()
-		await page.mouse.click(400, 300)
-		await page.keyboard.type('second')
-		await page.keyboard.press('Enter')
-		await page.keyboard.press('Escape')
+		await placeComment(page, 'see https://tldraw.dev ')
+		await placeComment(page, 'second')
 
 		// Open the stack list from the keyboard.
 		const badge = page.locator('.tlui-cmt-canvas-stack-badge')

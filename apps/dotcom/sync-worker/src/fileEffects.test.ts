@@ -6,9 +6,7 @@ function file(partial: Partial<TlaFile>): TlaFile {
 	return {
 		id: 'f1',
 		name: 'file',
-		ownerId: 'u1',
 		ownerName: '',
-		ownerAvatar: '',
 		thumbnail: '',
 		shared: true,
 		sharedLinkType: 'edit',
@@ -105,6 +103,7 @@ function effectRow(partial: Partial<TlaEffectOutbox>): TlaEffectOutbox {
 		attempts: 0,
 		createdAt: new Date(0),
 		nextRetryAt: null,
+		lastError: null,
 		...partial,
 	}
 }
@@ -202,5 +201,37 @@ describe('processFileEffect', () => {
 			})
 		)
 		expect(deps.calls).toEqual(['update:f1'])
+	})
+})
+
+describe('processFileEffect on trashed files', () => {
+	it('still notifies update but skips publish when current file is soft-deleted', async () => {
+		const current = file({ id: 'f1', published: true, lastPublished: 100, isDeleted: true })
+		const deps = makeFileDeps({ f1: current })
+		await processFileEffect(
+			deps,
+			effectRow({
+				id: 1,
+				command: 'update',
+				payload: file({ id: 'f1', published: true, lastPublished: 100, isDeleted: true }),
+				prevPayload: file({ id: 'f1', published: false, lastPublished: 0 }),
+			})
+		)
+		expect(deps.calls).toEqual(['update:f1'])
+	})
+
+	it('still unpublishes when current file is soft-deleted', async () => {
+		const current = file({ id: 'f1', published: false, isDeleted: true })
+		const deps = makeFileDeps({ f1: current })
+		await processFileEffect(
+			deps,
+			effectRow({
+				id: 2,
+				command: 'update',
+				payload: file({ id: 'f1', published: false, isDeleted: true }),
+				prevPayload: file({ id: 'f1', published: true, lastPublished: 100 }),
+			})
+		)
+		expect(deps.calls).toEqual(['update:f1', 'unpublish:f1'])
 	})
 })

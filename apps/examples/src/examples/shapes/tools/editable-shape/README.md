@@ -5,15 +5,12 @@ priority: 2
 keywords: [editing, canedit, double click, interactive, emoji picker, shape state, editing state]
 ---
 
-A custom shape that you can edit by double-clicking it.
+A custom shape that becomes interactive when you double-click it.
 
 ---
 
-In tldraw, the Editor can have one editing shape at a time. When in its editing state, the editor will ignore events until the user exits the editing state by pressing Escape or clicking on the canvas.
+The editor has at most one editing shape at a time. While a shape is being edited it can't be dragged, resized, or rotated, and pointer events reach its content. Only shapes whose util returns true from `canEdit` can enter this state; the user gets there by double-clicking the shape or selecting it and pressing Enter, and leaves it with Escape or by clicking the canvas.
 
-Only shapes with a `canEdit` flag that returns true may become editable. A user may begin editing a shape by double clicking on the editable shape, or selecting the editable shape and pressing enter.
+The default shapes mostly use editing for text, but it's a general mechanism. This example's shape shows an emoji, and while editing it shows a button that cycles to the next emoji with `editor.updateShape`. The component reads `editor.getEditingShapeId()` to decide what to render, turns on `pointerEvents` only while editing, and marks pointer-down events as handled so clicking the button doesn't start a drag. `onEditEnd` spins the shape when editing finishes.
 
-Many of our shapes use editing to allow for interactions inside of the shape. For example, a text shape behaves like a text graphic until the user begins editing it—and only then can the user use their keyboard to edit the text. Note that a shape can be interactive regardless of whether it's the editor's editing shape—the "editing" mechanic is just a way of managing a common pattern in canvas applications.
-
-In this example we'll create a shape that renders an emoji and allows the user to change the emoji when the shape is in the editing state.
-Most of the relevant code for this is in the EditableShapeUtil.tsx file. If you want a more in-depth explanation of the shape util, check out the custom shape example.
+Try double-clicking the shape, clicking Next a few times, then pressing Escape. The relevant code is in `EditableShapeUtil.tsx`; for a walkthrough of the shape util basics, see the custom shape example.

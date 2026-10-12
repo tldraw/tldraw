@@ -13,6 +13,7 @@ import { Editor } from 'tldraw';
 import { EditorAtom } from 'tldraw';
 import { filterMentionMembers } from '@tldraw/mentions';
 import { JSX } from 'react/jsx-runtime';
+import { KeyboardEvent as KeyboardEvent_2 } from 'react';
 import { Mention } from '@tldraw/mentions';
 import { MentionList } from '@tldraw/mentions';
 import { MentionListProps } from '@tldraw/mentions';
@@ -408,7 +409,7 @@ export function EmojiPicker({ emoji, selected, onSelect, renderReaction, }: Emoj
 // @public (undocumented)
 export interface EmojiPickerProps {
     emoji?: string[];
-    onSelect?(emoji: string): void;
+    onSelect?(emoji: string, event?: KeyboardEvent_2 | MouseEvent_2): void;
     renderReaction?: RenderReaction;
     selected?: string[];
 }
@@ -632,6 +633,9 @@ export interface SidebarRow {
 
 // @public
 export function sortSidebarRows(rows: readonly SidebarRow[]): readonly SidebarRow[];
+
+// @public
+export function startCommentAt(editor: Editor, point: VecLike): void;
 
 // @public
 export function summarizeReactions(reactions: readonly ReactionSummaryInput[], currentUserId?: null | string, resolveName?: (userId: string) => string | undefined): ReactionSummary[];

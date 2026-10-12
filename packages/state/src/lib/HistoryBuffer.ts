@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY } from './helpers'
 import { RESET_VALUE } from './types'
 
 /**
@@ -14,6 +15,9 @@ type RangeTuple<Diff> = [fromEpoch: number, toEpoch: number, diff: Diff]
  *
  * The buffer uses a wrap-around strategy to maintain a fixed-size history of the most recent
  * changes, automatically overwriting older entries when the capacity is exceeded.
+ *
+ * Entries must be contiguous (`entry[k].toEpoch === entry[k+1].fromEpoch`); `getChangesSince`
+ * relies on that to find the entry covering an epoch.
  *
  * @example
  * ```ts
@@ -54,12 +58,14 @@ export class HistoryBuffer<Diff> {
 	/**
 	 * Adds a diff entry to the history buffer, representing a change between two epochs.
 	 *
-	 * If the diff is undefined, the operation is ignored. If the diff is RESET_VALUE,
-	 * the entire buffer is cleared to indicate that historical tracking should restart.
+	 * If the diff is RESET_VALUE, or undefined (meaning no diff is available), the entire buffer is
+	 * cleared to indicate that historical tracking should restart. Silently skipping an entry would
+	 * leave a gap, and a later `getChangesSince` from before the gap would return an incomplete
+	 * diff list rather than RESET_VALUE.
 	 *
 	 * @param lastComputedEpoch - The epoch when the previous value was computed
 	 * @param currentEpoch - The epoch when the current value was computed
-	 * @param diff - The diff representing the change, or RESET_VALUE to clear history
+	 * @param diff - The diff representing the change, or RESET_VALUE / undefined to clear history
 	 * @example
 	 * ```ts
 	 * const buffer = new HistoryBuffer<string>(5)
@@ -67,12 +73,8 @@ export class HistoryBuffer<Diff> {
 	 * buffer.pushEntry(1, 2, RESET_VALUE) // Clears the buffer
 	 * ```
 	 */
-	pushEntry(lastComputedEpoch: number, currentEpoch: number, diff: Diff | RESET_VALUE) {
-		if (diff === undefined) {
-			return
-		}
-
-		if (diff === RESET_VALUE) {
+	pushEntry(lastComputedEpoch: number, currentEpoch: number, diff: Diff | RESET_VALUE | undefined) {
+		if (diff === RESET_VALUE || diff === undefined) {
 			this.clear()
 			return
 		}
@@ -139,7 +141,7 @@ export class HistoryBuffer<Diff> {
 
 			// If the first element is already too early, bail
 			if (i === 0 && sinceEpoch >= toEpoch) {
-				return []
+				return EMPTY_ARRAY
 			}
 
 			// If the element is since the given epoch, return an array with all diffs from this element and all following elements

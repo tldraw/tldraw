@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { ArraySet } from '../ArraySet'
 import { atom } from '../Atom'
 import { reactor } from '../EffectScheduler'
-import { attach, detach, equals, hasReactors, haveParentsChanged, singleton } from '../helpers'
+import { attach, detach, equals, haveParentsChanged, singleton } from '../helpers'
 import { Child } from '../types'
 
 // Unit tests for the internal helpers behind SPEC.md rules EQ1/EQ2 (equals),
@@ -132,25 +132,21 @@ describe('helpers', () => {
 		})
 	})
 
-	describe('hasReactors', () => {
-		it('returns false when signal has no actively listening children', () => {
-			const signal = atom('test', 1)
-			expect(hasReactors(signal)).toBe(false)
-		})
-
-		it('integrates correctly with real reactive signals', () => {
+	// CAP7: a signal's children set is non-empty exactly while something downstream is listening
+	describe('children', () => {
+		it('is empty unless something is actively listening', () => {
 			const baseAtom = atom('base', 1)
-			expect(hasReactors(baseAtom)).toBe(false)
+			expect(baseAtom.children.isEmpty).toBe(true)
 
 			const reactorInstance = reactor('test-reactor', () => {
 				baseAtom.get()
 			})
 
 			reactorInstance.start()
-			expect(hasReactors(baseAtom)).toBe(true)
+			expect(baseAtom.children.isEmpty).toBe(false)
 
 			reactorInstance.stop()
-			expect(hasReactors(baseAtom)).toBe(false)
+			expect(baseAtom.children.isEmpty).toBe(true)
 		})
 	})
 })

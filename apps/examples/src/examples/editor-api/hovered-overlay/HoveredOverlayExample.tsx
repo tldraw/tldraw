@@ -60,8 +60,8 @@ Key methods on `editor.overlays`:
 [1]
 Read `editor.overlays.getHoveredOverlay()` inside `useValue` so the component
 re-renders whenever the hovered overlay changes. Select a shape to produce
-handles, then hover one — you'll see its type (e.g. `selection_fg`, `handle`)
-and fully-qualified id.
+handles, then hover one to see its type (for example `selection_foreground` or
+`shape_handle`) and its id.
 
 [2]
 Mount the readout into the `TopPanel` component slot.

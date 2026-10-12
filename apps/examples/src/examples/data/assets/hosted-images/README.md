@@ -17,9 +17,10 @@ keywords:
   ]
 ---
 
-How to handle images uploaded by the user.
+Upload user images to your own server with a `TLAssetStore` instead of storing them as data URLs.
 
 ---
 
-This example shows how to handle images uploaded by the user. To do this we'll need to
-create a `TLAssetStore`, which tells the editor how to handle uploaded assets.
+Without an asset store, images and videos added to the canvas are inlined into the document as data URLs. A `TLAssetStore` passed to the `assets` prop takes over: its `upload` method sends each new file to your server and returns the URL to save, and its optional `resolve` method turns that saved URL into the one actually rendered, which is the place to add auth tokens or pick an optimized size.
+
+The upload endpoint here is a placeholder, so this example won't actually store anything. It shows the code you'd write against your own backend.

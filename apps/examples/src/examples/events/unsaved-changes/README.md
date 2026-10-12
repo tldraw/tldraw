@@ -1,6 +1,7 @@
 ---
 title: Unsaved changes
 component: ./UnsavedChangesExample.tsx
+priority: 8
 keywords:
   [
     save,
@@ -16,8 +17,16 @@ keywords:
   ]
 ---
 
-Track unsaved changes and enable save functionality.
+Track unsaved document changes as a squashed diff and enable a save button while there are any.
 
 ---
 
-This example shows how to track when the document has unsaved changes by listening to document scope events. A save button is enabled only when there are unsaved changes, and clicking it clears the unsaved state. The example uses `Editor.store.listen` with the `document` scope to monitor changes to the tldraw document.
+This example listens to the store with `editor.store.listen(handler, { scope: 'document' })`, so
+only changes to persisted document records count, not the camera or selection. Each transaction's
+diff is folded into a running `RecordsDiff` with `squashRecordDiffs`, so a shape that's created and
+then deleted cancels out and repeated edits collapse into one. The save button in the top panel is
+enabled while that diff is non-empty.
+
+Try drawing something: the button lights up. Delete what you drew and it goes back to "No changes",
+because the squashed diff is empty again. Clicking save hands the diff and a snapshot from
+`editor.getSnapshot()` to a placeholder function and resets the diff.

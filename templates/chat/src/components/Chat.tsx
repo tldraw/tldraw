@@ -3,12 +3,12 @@
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, FileUIPart, TextUIPart, UIMessage } from 'ai'
 import { useCallback, useEffect } from 'react'
-import { TLEditorSnapshot } from 'tldraw'
 import { useChatMessageStorage } from '@/hooks/useChatMessageStorage'
 import { uploadMessageContents } from '@/utils/uploadMessageContents'
 import { useChatInputState } from '../hooks/useChatInputState'
 import { useScrollToBottom } from '../hooks/useScrollToBottom'
 import { ChatInput } from './ChatInput'
+import { ImageClickTarget } from './ChatMessage'
 import { ClearChatIcon } from './ClearChatIcon'
 import { MessageList } from './MessageList'
 import { TldrawProviderMetadata, WhiteboardImage } from './WhiteboardModal'
@@ -61,7 +61,7 @@ function ChatInner({
 		if (chat.status === 'ready') {
 			saveMessages(chat.messages)
 		}
-	}, [chat.status, chat.messages, saveMessages, setMessages])
+	}, [chat.status, chat.messages, saveMessages])
 
 	// If the chat encounters an error, we alert the user and clear the error.
 	useEffect(() => {
@@ -95,9 +95,7 @@ function ChatInner({
 				parts.push({ type: 'text', text })
 			}
 
-			sendMessage({
-				parts,
-			})
+			sendMessage({ parts })
 		},
 		[sendMessage, chatInputDispatch]
 	)
@@ -111,12 +109,7 @@ function ChatInner({
 	// when the user clicks on an image from chat history, we open the tldraw modal. here they can
 	// see a larger version of the image, but also annotate it and re-add it to the chat.
 	const handleImageClick = useCallback(
-		(opts: { snapshot: TLEditorSnapshot; imageName: string } | { uploadedFile: File }) => {
-			chatInputDispatch({
-				type: 'openWhiteboard',
-				...opts,
-			})
-		},
+		(opts: ImageClickTarget) => chatInputDispatch({ type: 'openWhiteboard', ...opts }),
 		[chatInputDispatch]
 	)
 

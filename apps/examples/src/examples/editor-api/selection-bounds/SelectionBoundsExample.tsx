@@ -124,7 +124,6 @@ function seedDemoContent(editor: Editor) {
 	editor.zoomToFit({ animation: { duration: 0 } })
 }
 
-// [3]
 const SelectionBoundsOverlay = track(() => {
 	const editor = useEditor()
 	const axisAlignedBounds = editor.getSelectionPageBounds() // [1]
@@ -132,6 +131,7 @@ const SelectionBoundsOverlay = track(() => {
 
 	if (!axisAlignedBounds || !rotatedBounds) return null
 
+	// [3]
 	const zoom = editor.getZoomLevel()
 	const rotation = editor.getSelectionRotation()
 	const axisAlignedViewportPoint = editor.pageToViewport(axisAlignedBounds.point)
@@ -198,30 +198,28 @@ export default function SelectionBoundsExample() {
 }
 
 /*
-This example shows how to read and visualize selection bounds. tldraw uses two
-different kinds of bounds:
+The editor keeps two kinds of bounds for the current selection.
 
-[1] `getSelectionPageBounds()` returns the axis-aligned bounding box of the
-current selection (shown as the blue dashed box). It always has zero rotation -
-it's the smallest upright rectangle that contains every selected shape. It isn't
-visible; we use it for hit testing and viewport culling.
+[1]
+`getSelectionPageBounds()` is the axis-aligned bounding box (blue dashed). It has zero rotation and is
+the smallest upright rectangle containing every selected shape. It's used for hit testing and culling,
+not for the visible selection UI.
 
-[2] `getSelectionRotatedPageBounds()` returns the rotated selection box (shown
-as the amber solid box). When the selected shapes share a common rotation, this
-box matches their orientation. We use this for the selection UI — if you
-select two shapes rotated by the same angle, the resize handles align with the
-shapes' axes so you can scale them without distortion. An axis-aligned box would
-only let you resize horizontally and vertically relative to the page.
+[2]
+`getSelectionRotatedPageBounds()` is the rotated selection box (amber solid). When the selected shapes
+share one rotation, this box follows it, which is why the resize handles on two equally rotated shapes
+line up with the shapes' own axes. When rotations differ there's no sensible shared angle, so it falls
+back to the axis-aligned box.
 
-[3] The overlay converts both page-space boxes into viewport coordinates with
-`pageToViewport()` so we can position HTML elements on top of the canvas.
+[3]
+Both boxes are in page space. `pageToViewport()` converts their origins to viewport pixels, and the sizes
+are scaled by the zoom level, so plain HTML elements can be laid over the canvas. The component is
+wrapped in `track` so it re-renders whenever the selection or camera changes.
 
-Try selecting the three groups of shapes on the canvas:
-1. A single rotated shape has two bounding boxes: axis-aligned and rotated, for selection.
-2. Multiple shapes with a shared rotation, so the rotated bounds still align
-to their common angle.
-3. The purple and red pair: two ungrouped shapes with different rotations. If the
-selected shapes are rotated by different amounts, there's no single angle that
-makes sense for the selection box, so we fall back to an axis-aligned box.
-Select both and rotate to see this in action.
+Try selecting each demo:
+1. The blue shape: a single rotated shape, where the two boxes differ.
+2. The green group: two shapes with a shared rotation, so the rotated box still follows their angle.
+3. The purple and red pair: two ungrouped shapes with different rotations, so the rotated box collapses
+   to the axis-aligned one. Rotate one of them on its own to see how the axis-aligned box changes while
+   the rotated box stays aligned to the page.
 */

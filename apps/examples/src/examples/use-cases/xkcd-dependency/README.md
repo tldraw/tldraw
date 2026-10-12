@@ -5,8 +5,10 @@ keywords: [physics, gravity, animation, fun, xkcd, rapier]
 priority: 10
 ---
 
-A recreation of the xkcd "Dependency" comic (#2347) using tldraw shapes and Rapier 2D physics.
+Rebuild the xkcd "Dependency" comic as geo shapes and drop it into a Rapier 2D physics simulation.
 
 ---
 
-The tower of blocks is held up by gravity from the start. Try pulling out a block and watch everything collapse — just like in the [original comic](https://xkcd.com/2347/).
+Each block in the comic is a geo shape with a matching Rapier rigid body. On every editor `tick` the world steps and awake bodies write their position and rotation back to their shapes with `editor.updateShapes`. Selected blocks become kinematic and follow the shape instead, so you can drag them; deleting a block removes its body and wakes the rest.
+
+Try pulling out the red block near the bottom and watch everything collapse, just like in the [original comic](https://xkcd.com/2347/).

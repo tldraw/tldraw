@@ -64,14 +64,14 @@ when you click.
 We extend the `StateNode` class to create a new tool called `StickerTool`. We set its id
 to "sticker". We are not implementing any child states in this example, so we don't need
 to set an initial state or define any children states. To see an example of a custom tool
-with child states, check out the screenshot tool or minimal examples.
+with child states, check out the screenshot tool example.
 
 	[a] The onEnter method is called when the tool is activated. We use it to set the cursor
 		to a crosshair.
 
-	[b] The onPointerDown method is called when the user clicks on the canvas. We use it to
-		create a new shape at the click location. We can get the click location from the
-		editor's inputs.
+	[b] The onPointerDown method is called when the user presses on the canvas. We create a
+		text shape at the pointer's page-space position, read from `editor.inputs`, offset so
+		the emoji is centered under the cursor.
 
 [2]
 We pass our custom tool to the Tldraw component using the `tools` prop. We also set the

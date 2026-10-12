@@ -31,7 +31,7 @@ export default defineConfig({
 	// Run files in parallel, but tests within a file in sequence. This is important for certain
 	// tests that use shared system resources like the clipboard, which should all be kept in the
 	// same file.
-	fullyParallel: process.env.STAGING_TESTS ? true : false,
+	fullyParallel: !!process.env.STAGING_TESTS,
 	/* Fail the build on CI if you accidentally left test.only in the source code. */
 	forbidOnly: !!process.env.CI,
 	/* Retry on CI only */
@@ -120,7 +120,7 @@ export default defineConfig({
 
 	/* Run your local dev server before starting the tests */
 	webServer: {
-		command: process.env.CI ? 'VITE_PREVIEW=1 yarn dev-app' : 'yarn preview-app',
+		command: process.env.CI ? 'VITE_PREVIEW=1 pnpm dev-app' : 'pnpm preview-app',
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),

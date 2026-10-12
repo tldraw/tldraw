@@ -64,19 +64,13 @@ function ScreenshotBox() {
 	const screenshotBrush = useValue(
 		'screenshot brush',
 		() => {
-			// Check whether the screenshot tool (and its dragging state) is active
 			if (editor.getPath() !== 'screenshot.dragging') return null
 
-			// Get screenshot.dragging state node
 			const draggingState = editor.getStateDescendant<ScreenshotDragging>('screenshot.dragging')!
-
-			// Get the box from the screenshot.dragging state node
 			const box = draggingState.screenshotBox.get()
 
-			// The box is in "page space", i.e. panned and zoomed with the canvas, but we
-			// want to show it in front of the canvas, so we'll need to convert it to
-			// "page space", i.e. uneffected by scale, and relative to the tldraw
-			// page's top left corner.
+			// The box is in page space, but this component sits in front of the canvas in
+			// viewport space, so convert it.
 			const zoomLevel = editor.getZoomLevel()
 			const { x, y } = editor.pageToViewport({ x: box.x, y: box.y })
 			return new Box(x, y, box.w * zoomLevel, box.h * zoomLevel)
@@ -132,32 +126,25 @@ use tools to create other types of interactions too! In this example, we create 
 drawing their box, we'll export (or copy) a screenshot of that area.
 
 [1]
-Our custom tool is a class that extends the StateNode class. See the ScreenshotTool
-files for more about the too. We define an array (outside of any React component)
-to hold the custom tools. We'll pass this into the Tldraw component's `tools` prop.
+Our custom tool is a class that extends `StateNode`. See the ScreenshotTool folder for the
+tool itself. The array is defined outside of any React component and passed to the Tldraw
+component's `tools` prop.
 
 [2]
-Here we make sure the UI knows about our new tool. We do this by adding it to the
-`tools` object, which tells other parts of the UI a tool's label, icon, what should
-happen when it's selected, etc. We'll pass our customUiOverrides object into the
-Tldraw component's `overrides` prop.
+Register the tool with the UI by adding it to the `tools` object in a `TLUiOverrides`. This
+gives the toolbar (and keyboard shortcuts) the tool's label, icon, shortcut, and what to do
+when it's selected. The custom toolbar then places the item in front of the default content.
 
 [3]
-Our toolbar item is using a custom icon, so we need to provide the asset url for it. 
-We do this by providing a custom assetUrls object to the Tldraw component. 
-This object is a map of icon ids to their urls. The icon ids are the same as the 
-icon prop on the toolbar item. We'll pass our assetUrls object into the Tldraw
-component's `assetUrls` prop.
+The toolbar item uses a custom icon, so we map its icon id to a url via `assetUrls.icons`.
 
 [4]
-We want to show a box on the canvas when the screenshot tool is active. We do this
-by providing an override to the InFrontOfTheCanvas component. This component will be shown
-in front of the canvas but behind any other UI elements, such as menus and the toolbar.
-We'll pass our components object into the Tldraw component's `components` prop. 
+While the tool's dragging state is active we draw the screenshot box in the
+`InFrontOfTheCanvas` slot, which renders over the canvas but under menus and the toolbar. The
+box lives in an atom on the dragging state node, so reading it inside `useValue` re-renders
+this component as the user drags. `editor.getStateDescendant` finds that node by path.
 
 [5]
-Finally we pass all of our customizations into the Tldraw component. It's important
-that the customizations are defined outside of the React component, otherwise they
-will cause the Tldraw component to see them as new values on every render, which may
-produce unexpected results.
+All of the customizations are defined outside of the React component so they keep the same
+identity across renders; new objects each render would make Tldraw re-register them.
 */

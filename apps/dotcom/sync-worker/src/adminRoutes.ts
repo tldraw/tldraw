@@ -1,9 +1,12 @@
 import {
 	AdminFileAssetsResponseBody,
 	AdminFileStatsResponseBody,
+	AdminOutboxRowsResponseBody,
+	AdminOutboxStatsResponseBody,
+	AllowlistEntry,
 	FILE_PREFIX,
 	FeatureFlagKey,
-	FriendsAndFamilyEntry,
+	FeatureFlagValue,
 	LOCAL_FILE_PREFIX,
 	PUBLISH_PREFIX,
 	ROOM_PREFIX,
@@ -20,6 +23,7 @@ import { summarizeSnapshotDocuments } from './fileStats'
 import { MAX_ATTEMPTS } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
+import { sweepVersionChainsRoute } from './routes/sweepVersionChains'
 import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { undeleteFile } from './undeleteFile'
@@ -27,14 +31,16 @@ import {
 	getFileEffectProcessor,
 	getRoomDurableObject,
 	getRoomDurableObjectById,
-	getUserDurableObject,
+	getRoomDurableObjectId,
 } from './utils/durableObjects'
-import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
 import {
-	getFriendsAndFamilyList,
-	parseFriendsAndFamilyEmails,
-	setFriendsAndFamilyList,
-} from './utils/mcpFriendsAndFamily'
+	FEATURE_FLAG_KEYS,
+	FeatureFlagUpdate,
+	getAllFeatureFlagValues,
+	getFeatureFlagType,
+	parseAllowlistEmails,
+	setFeatureFlag,
+} from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 /**
@@ -43,13 +49,13 @@ import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/get
  * per address, and an email with no tldraw account fails the save instead of being stored as an
  * entry that can never match.
  */
-async function resolveFriendsAndFamilyUsers(
+async function resolveAllowlistUsers(
 	env: Environment,
 	emails: string[]
-): Promise<FriendsAndFamilyEntry[]> {
+): Promise<AllowlistEntry[]> {
 	if (!emails.length) return []
 
-	const db = createPostgresConnectionPool(env, '/app/admin/mcp-friends-and-family')
+	const db = createPostgresConnectionPool(env, '/app/admin/feature-flags')
 	try {
 		const rows = await db
 			.selectFrom('user')
@@ -74,19 +80,76 @@ async function resolveFriendsAndFamilyUsers(
 	}
 }
 
+/**
+ * Refreshes the email labels an allowlist carries, and marks the entries whose user id no longer
+ * resolves to an account.
+ *
+ * The stored email is written once at save time and never updated, so it rots: an address change
+ * leaves an entry that still *works* — matching is by id — while displaying the old address, and
+ * re-saving the list as displayed then 400s on a line the admin cannot pick out from the rest. A
+ * deleted account leaves an entry that looks like a live grant and matches nobody. Resolved on read
+ * instead, which costs the admin panel one query per page load and the request path nothing.
+ */
+async function withResolvedAllowlistLabels(
+	env: Environment,
+	flags: Record<string, FeatureFlagValue>
+): Promise<Record<string, FeatureFlagValue>> {
+	const entriesOf = (flag: FeatureFlagValue) =>
+		flag.type === 'allowlist' && Array.isArray(flag.users) ? flag.users : []
+
+	const ids = [
+		...new Set(Object.values(flags).flatMap((flag) => entriesOf(flag).map((e) => e.userId))),
+	]
+	if (!ids.length) return flags
+
+	const db = createPostgresConnectionPool(env, '/app/admin/feature-flags')
+	let emailById: Map<string, string>
+	try {
+		const rows = await db
+			.selectFrom('user')
+			.select(['id', 'email'])
+			.where('id', 'in', ids)
+			.execute()
+		emailById = new Map(rows.map((row) => [row.id, row.email]))
+	} finally {
+		await db.destroy()
+	}
+
+	return Object.fromEntries(
+		Object.entries(flags).map(([key, flag]) => {
+			if (flag.type !== 'allowlist') return [key, flag]
+			return [
+				key,
+				{
+					...flag,
+					users: entriesOf(flag).map((entry) => {
+						const email = emailById.get(entry.userId)
+						return email ? { ...entry, email } : { ...entry, missing: true }
+					}),
+				},
+			]
+		})
+	)
+}
+
 async function requireUser(env: Environment, q: string) {
 	const db = createPostgresConnectionPool(env, '/app/admin/user')
-	const userRow = await db
-		.selectFrom('user')
-		.where((eb) => eb.or([eb('email', '=', q), eb('id', '=', q)]))
-		.selectAll()
-		.executeTakeFirst()
-
-	if (!userRow) {
-		throw new StatusError(404, 'User not found ' + q)
+	try {
+		const userRow = await db
+			.selectFrom('user')
+			.where((eb) => eb.or([eb('email', '=', q), eb('id', '=', q)]))
+			.selectAll()
+			.executeTakeFirst()
+		if (!userRow) {
+			throw new StatusError(404, 'User not found ' + q)
+		}
+		return userRow
+	} finally {
+		await db.destroy()
 	}
-	return userRow
 }
+
+type SendProgress = (step: string, message: string, details?: any) => void
 
 export const adminRoutes = createRouter<Environment>()
 	.all('/app/admin/*', async (req, env) => {
@@ -112,18 +175,10 @@ export const adminRoutes = createRouter<Environment>()
 				.leftJoin('group_file', 'group_file.fileId', 'file.id')
 				.where('file.isDeleted', '=', false)
 				.where((eb) =>
-					eb.or([
-						eb('file.ownerId', '=', userRow.id),
-						eb(
-							'group_file.groupId',
-							'in',
-							memberships.length ? memberships.map((m) => m.id) : ['']
-						),
-					])
+					eb('group_file.groupId', 'in', memberships.length ? memberships.map((m) => m.id) : [''])
 				)
-				// distinctOn dedupes before the limit is applied, so a file matching both the owner
-				// clause and multiple group memberships (join fanout) still only counts once against
-				// the 500 cap.
+				// distinctOn dedupes before the limit is applied, so a file matching multiple
+				// group memberships (join fanout) still only counts once against the 500 cap.
 				.distinctOn('file.id')
 				.orderBy('file.id')
 				.selectAll('file')
@@ -134,6 +189,8 @@ export const adminRoutes = createRouter<Environment>()
 			await db.destroy()
 		}
 	})
+	// Batched and resumable rather than a whole-fleet run: see sweepVersionChains for the budget.
+	.get('/app/admin/version-chain/sweep', (req, env) => sweepVersionChainsRoute(req, env))
 	.get('/app/admin/outbox', async (res, env) => {
 		const db = createPostgresConnectionPool(env, '/app/admin/outbox')
 		try {
@@ -145,7 +202,7 @@ export const adminRoutes = createRouter<Environment>()
 					eb.fn.min('createdAt').filterWhere('attempts', '<', MAX_ATTEMPTS).as('oldestPending'),
 				])
 				.executeTakeFirstOrThrow()
-			return json({
+			const result: AdminOutboxStatsResponseBody = {
 				outbox: {
 					pending: Number(stats.pending),
 					parked: Number(stats.parked),
@@ -153,21 +210,126 @@ export const adminRoutes = createRouter<Environment>()
 						? Math.round((Date.now() - new Date(stats.oldestPending).getTime()) / 1000)
 						: null,
 				},
-			})
+			}
+			return json(result)
 		} finally {
 			await db.destroy()
 		}
 	})
-	// Maps a durable object id back to its room slug and reports activity signals. The id is a
-	// one-way hash of the room name, but the room object stores its own identity, so it is asked
-	// directly — a never-initialized id resolves to null. The brief wake is storage-read only; no
-	// room boot. Persist history comes from the version-cache bucket: one timestamped snapshot per
-	// persist, so save cadence separates an actively edited room from a parked tab holding a
-	// socket open.
-	.get('/app/admin/resolve-do-id/:objectId', async (res, env) => {
-		const objectId = res.params.objectId
-		if (!/^[0-9a-f]{64}$/.test(objectId)) {
-			throw new StatusError(400, 'objectId must be a 64-char lowercase hex string')
+	// Up to 100 outbox rows for manual inspection. Batches the current 'file' row per file-table
+	// entity in one query (rather than N+1) so the operator can compare payload vs. live state
+	// without a separate lookup per row.
+	.get('/app/admin/outbox/rows', async (_res, env) => {
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/rows')
+		try {
+			// Pending rows first, then parked, so old parked rows can't crowd new pending rows out
+			// of the 100-row cap.
+			const rows = await db
+				.selectFrom('effect_outbox')
+				.selectAll()
+				.orderBy(sql`("attempts" >= ${sql.raw(String(MAX_ATTEMPTS))})`)
+				.orderBy('id')
+				.limit(100)
+				.execute()
+
+			const fileIds = [
+				...new Set(rows.filter((r) => r.tableName === 'file').map((r) => r.entityId)),
+			]
+			const currentFiles = fileIds.length
+				? await db.selectFrom('file').where('id', 'in', fileIds).selectAll().execute()
+				: []
+			const currentFileById = new Map(currentFiles.map((f) => [f.id, f]))
+
+			const now = Date.now()
+			const result: AdminOutboxRowsResponseBody = {
+				rows: rows.map((row) => ({
+					...row,
+					createdAt: row.createdAt.toISOString(),
+					nextRetryAt: row.nextRetryAt ? row.nextRetryAt.toISOString() : null,
+					ageSeconds: Math.round((now - row.createdAt.getTime()) / 1000),
+					parked: row.attempts >= MAX_ATTEMPTS,
+					currentEntity:
+						row.tableName === 'file' ? (currentFileById.get(row.entityId) ?? null) : null,
+				})),
+			}
+			return json(result)
+		} finally {
+			await db.destroy()
+		}
+	})
+	.post('/app/admin/outbox/:id/retry', async (res, env) => {
+		const id = Number(res.params.id)
+		if (Number.isNaN(id)) {
+			throw new StatusError(400, 'id must be numeric')
+		}
+
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/retry')
+		let numUpdatedRows: bigint
+		try {
+			const result = await db
+				.updateTable('effect_outbox')
+				.set({ attempts: 0, nextRetryAt: null })
+				.where('id', '=', id)
+				.executeTakeFirst()
+			numUpdatedRows = result.numUpdatedRows
+		} finally {
+			await db.destroy()
+		}
+		// The drain (or another operator) may have deleted the row concurrently.
+		if (numUpdatedRows === 0n) {
+			throw new StatusError(404, `Outbox row ${id} not found`)
+		}
+		// Best-effort nudge: the reset already committed, so a poke failure must not 500 this
+		// request; the sweep alarm picks the row up within 30s regardless.
+		try {
+			await getFileEffectProcessor(env).poke()
+		} catch (e) {
+			console.error(`Failed to poke effect processor after resetting outbox row ${id}`, e)
+		}
+		return json({ ok: true })
+	})
+	.post('/app/admin/outbox/:id/delete', async (res, env) => {
+		const id = Number(res.params.id)
+		if (Number.isNaN(id)) {
+			throw new StatusError(400, 'id must be numeric')
+		}
+
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/delete')
+		let numDeletedRows: bigint
+		try {
+			const result = await db.deleteFrom('effect_outbox').where('id', '=', id).executeTakeFirst()
+			numDeletedRows = result.numDeletedRows
+		} finally {
+			await db.destroy()
+		}
+		// The drain (or another operator) may have already deleted the row.
+		if (numDeletedRows === 0n) {
+			throw new StatusError(404, `Outbox row ${id} not found`)
+		}
+		return json({ ok: true })
+	})
+	// Maps a durable object id or room slug to the room's activity signals. The id is a one-way
+	// hash of the room name, but the room object stores its own identity, so it is asked directly —
+	// a never-initialized id resolves to null. A slug (anything that isn't 64-char hex) is hashed
+	// forward via idFromName. The brief wake is storage-read only; no room boot. Persist history
+	// comes from the version-cache bucket: one timestamped snapshot per persist, so save cadence
+	// separates an actively edited room from a parked tab holding a socket open.
+	.get('/app/admin/resolve-do-id/:objectIdOrSlug', async (res, env) => {
+		const param = res.params.objectIdOrSlug
+		let objectId: string
+		if (/^[0-9a-f]{64}$/.test(param)) {
+			objectId = param
+		} else if (/^[0-9a-fA-F]{16,}$/.test(param)) {
+			// hex is a subset of the slug charset — without this, a truncated or uppercase id would
+			// hash as a slug and report a confident "never initialized"
+			throw new StatusError(
+				400,
+				'looks like a truncated or uppercase durable object id — paste the full 64-char lowercase hex'
+			)
+		} else if (/^[a-zA-Z0-9_-]+$/.test(param)) {
+			objectId = getRoomDurableObjectId(env, param).toString()
+		} else {
+			throw new StatusError(400, 'pass a 64-char hex durable object id or a room slug')
 		}
 		let roomDo: ReturnType<typeof getRoomDurableObjectById>
 		try {
@@ -178,7 +340,7 @@ export const adminRoutes = createRouter<Environment>()
 			throw new StatusError(400, 'not a valid durable object id for the file namespace')
 		}
 		const info = await roomDo.__admin__getDocumentInfo()
-		if (!info) return json({ match: null, history: null })
+		if (!info) return json({ objectId, match: null, history: null })
 
 		// Stream the stats instead of collecting objects, so any number of snapshots fits. Keys are
 		// ISO timestamps (oldest first); min/max tracking keeps the newest save correct either way.
@@ -212,6 +374,7 @@ export const adminRoutes = createRouter<Environment>()
 		} while (cursor)
 
 		return json({
+			objectId,
 			match: info,
 			history: {
 				saves,
@@ -227,10 +390,29 @@ export const adminRoutes = createRouter<Environment>()
 			},
 		})
 	})
-	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
+	// Force-closes every session on a file room with CLIENT_TOO_OLD. Shipped clients treat that
+	// as terminal — no reconnect, a "please reload" screen — so a room held awake around the
+	// clock by parked background tabs on stale bundles can finally hibernate. Resolve the id
+	// first and check the verdict: this closes actively edited sessions just the same.
+	.post('/app/admin/close-do-sessions/:objectId', async (res, env) => {
+		const objectId = res.params.objectId
+		if (!/^[0-9a-f]{64}$/.test(objectId)) {
+			throw new StatusError(400, 'objectId must be a 64-char lowercase hex string')
+		}
+		let roomDo: ReturnType<typeof getRoomDurableObjectById>
+		try {
+			roomDo = getRoomDurableObjectById(env, objectId)
+		} catch {
+			throw new StatusError(400, 'not a valid durable object id for the file namespace')
+		}
+		return json(await roomDo.__admin__closeAllSessions())
+	})
+	.get('/app/admin/feature-flags', async (_req, env) => {
+		return json(await withResolvedAllowlistLabels(env, await getAllFeatureFlagValues(env)))
+	})
 	.post('/app/admin/feature-flags', async (req, env) => {
 		const body: any = await req.json()
-		const { flag, enabled, percentage } = body
+		const { flag, enabled, percentage, emails, allowEveryone } = body
 
 		if (typeof flag !== 'string') {
 			throw new StatusError(400, 'flag (string) is required')
@@ -244,36 +426,68 @@ export const adminRoutes = createRouter<Environment>()
 		) {
 			throw new StatusError(400, 'percentage must be a number between 0 and 100')
 		}
+		if (allowEveryone !== undefined && typeof allowEveryone !== 'boolean') {
+			throw new StatusError(400, 'allowEveryone must be a boolean')
+		}
 
 		if (!FEATURE_FLAG_KEYS.includes(flag as FeatureFlagKey)) {
 			throw new StatusError(400, `Invalid flag. Must be one of: ${FEATURE_FLAG_KEYS.join(', ')}`)
 		}
+		const flagKey = flag as FeatureFlagKey
 
-		const update: { enabled?: boolean; percentage?: number } = {}
-		if (enabled !== undefined) update.enabled = enabled
-		if (percentage !== undefined) update.percentage = percentage
-
-		await setFeatureFlag(env, flag as FeatureFlagKey, update)
-		return json({ success: true, flag, ...update })
-	})
-	.get('/app/admin/mcp-friends-and-family', async (_req, env) => {
-		return json({ entries: await getFriendsAndFamilyList(env) })
-	})
-	.post('/app/admin/mcp-friends-and-family', async (req, env) => {
-		const body: any = await req.json()
-
-		// Parsing before resolving means a typo is rejected at the point someone can still fix it,
-		// rather than sitting in the list looking like it grants access while matching nothing.
-		let emails: string[]
-		try {
-			emails = parseFriendsAndFamilyEmails(body?.entries)
-		} catch (e) {
-			throw new StatusError(400, e instanceof Error ? e.message : String(e))
+		// A field that means nothing for this flag's type is refused rather than dropped. It used to be
+		// dropped silently and still answered `{success: true, users: […]}`, so an admin could send an
+		// allowlist to a percentage flag, be told it saved, and have nothing stored anywhere.
+		const type = getFeatureFlagType(env, flagKey)
+		if (percentage !== undefined && type !== 'percentage') {
+			throw new StatusError(400, `"${flagKey}" is a ${type} flag; percentage does not apply to it`)
+		}
+		if (emails !== undefined && type !== 'allowlist') {
+			throw new StatusError(400, `"${flagKey}" is a ${type} flag; emails do not apply to it`)
+		}
+		if (allowEveryone !== undefined && type !== 'allowlist') {
+			throw new StatusError(
+				400,
+				`"${flagKey}" is a ${type} flag; allowEveryone does not apply to it`
+			)
+		}
+		// Allowlists have no master toggle — the list is the control. Refused rather than dropped, on
+		// the same grounds as the checks above: a caller that thinks it is closing a flag should not be
+		// told the save succeeded.
+		if (enabled !== undefined && type === 'allowlist') {
+			throw new StatusError(
+				400,
+				`"${flagKey}" is an allowlist flag; enabled does not apply to it — edit the list or allowEveryone`
+			)
 		}
 
-		const entries = await resolveFriendsAndFamilyUsers(env, emails)
-		await setFriendsAndFamilyList(env, entries)
-		return json({ success: true, entries })
+		let update: FeatureFlagUpdate
+		if (type === 'allowlist') {
+			let users: AllowlistEntry[] | undefined
+			if (emails !== undefined) {
+				// An allowlist is edited as emails and stored as user ids. Parsing before resolving means a
+				// typo is rejected at the point someone can still fix it, rather than sitting in the list
+				// looking like it grants access while matching nothing; resolving at save time means an email
+				// with no tldraw account fails the save instead of being stored as an entry that can never
+				// match.
+				let parsed: string[]
+				try {
+					parsed = parseAllowlistEmails(emails)
+				} catch (e) {
+					throw new StatusError(400, e instanceof Error ? e.message : String(e))
+				}
+				users = await resolveAllowlistUsers(env, parsed)
+			}
+			update = { type, users, allowEveryone }
+		} else if (type === 'percentage') {
+			update = { type, enabled, percentage }
+		} else {
+			update = { type, enabled }
+		}
+
+		await setFeatureFlag(env, flagKey, update)
+		const { type: _type, ...stored } = update
+		return json({ success: true, flag, ...stored })
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
@@ -318,28 +532,14 @@ export const adminRoutes = createRouter<Environment>()
 		await getFileEffectProcessor(env)
 			.poke()
 			.catch(() => {})
-		// Hard-reboot every affected user so the restored rows replicate to their session (the
-		// isDeleted false-flip case flagged in dotcom-shared mutators.ts). Best-effort: the
-		// writes already committed, so a reboot failure must not surface as a 500 (a retry would
-		// just 400 with 'File is not deleted' without rebooting anyone). Bounded concurrency keeps
-		// us inside the worker's connection budget for workspaces with many members.
-		const rebootQueue = new PQueue({ concurrency: 5 })
-		await rebootQueue.addAll(
-			outcome.rebootUserIds.map((userId) => async () => {
-				try {
-					await getUserDurableObject(env, userId).admin_forceHardReboot(userId)
-				} catch (e) {
-					console.error(`Failed to reboot user ${userId} after undeleting file ${fileId}`, e)
-				}
-			})
-		)
 		return json({ success: true })
 	})
 	// Deleted files the user OWNS: legacy direct owner, their home workspace (group id = user
 	// id), or a workspace where they hold the owner role. Mere memberships and guest files are
 	// excluded — the per-row Undelete button restores files, so the list must only contain files
-	// the user legitimately owns. Queried from Postgres because the user's replicated store
-	// filters out their own deleted files (see fetchEverythingSql).
+	// the user legitimately owns. Queried from Postgres because the synced store never surfaces
+	// deleted files: the client filters on file.isDeleted, and the join rows that sync a file
+	// (file_state, group_file) are removed on delete.
 	.get('/app/admin/user/deleted_files', async (res, env) => {
 		const q = res.query['q']
 		if (typeof q !== 'string') {
@@ -363,7 +563,6 @@ export const adminRoutes = createRouter<Environment>()
 			)
 			.where((eb) =>
 				eb.or([
-					eb('file.ownerId', '=', userRow.id),
 					eb('file.owningGroupId', '=', userRow.id),
 					eb(
 						'file.owningGroupId',
@@ -393,7 +592,11 @@ export const adminRoutes = createRouter<Environment>()
 
 		return new Response('User deleted', { status: 200 })
 	})
-	.get('/app/admin/delete_user_sse', async (res, env) => {
+	// POST, not GET: this permanently deletes a user and authenticates with the session cookie, so
+	// it must not be reachable by navigating to a URL. A link anywhere the admin's browser will
+	// follow — including one placed on a board, which is same-origin with this route — would
+	// otherwise be enough to trigger it.
+	.post('/app/admin/delete_user_sse', async (res, env) => {
 		const q = res.query['q']
 		if (typeof q !== 'string') {
 			return new Response('Missing query param', { status: 400 })
@@ -404,44 +607,31 @@ export const adminRoutes = createRouter<Environment>()
 		return new Response(
 			new ReadableStream({
 				async start(controller) {
+					// Helper function to send progress events
+					const encoder = new TextEncoder()
+					const send = (type: string, step: string, message: string, details?: any) => {
+						const event = { type, step, message, timestamp: Date.now(), details }
+						controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
+					}
 					try {
-						// Helper function to send progress events
-						const sendProgress = (step: string, message: string, details?: any) => {
-							const event = {
-								type: 'progress',
-								step,
-								message,
-								timestamp: Date.now(),
-								details,
-							}
-							controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`))
-						}
-
-						sendProgress('starting', 'Beginning user deletion process...', { userId: userRow.id })
-
-						await performUserDeletion(userRow, env, sendProgress)
-
-						// Send completion event
-						const completionEvent = {
-							type: 'complete',
-							step: 'finished',
-							message: 'User deletion completed successfully',
-							timestamp: Date.now(),
-							details: { userId: userRow.id },
-						}
-						controller.enqueue(
-							new TextEncoder().encode(`data: ${JSON.stringify(completionEvent)}\n\n`)
+						send('progress', 'starting', 'Beginning user deletion process...', {
+							userId: userRow.id,
+						})
+						await performUserDeletion(userRow, env, (step, message, details) =>
+							send('progress', step, message, details)
 						)
+						// Send completion event
+						send('complete', 'finished', 'User deletion completed successfully', {
+							userId: userRow.id,
+						})
 					} catch (error) {
 						// Send error event
-						const errorEvent = {
-							type: 'error',
-							step: 'error',
-							message: error instanceof Error ? error.message : 'Unknown error occurred',
-							timestamp: Date.now(),
-							details: { error: error instanceof Error ? error.stack : String(error) },
-						}
-						controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(errorEvent)}\n\n`))
+						send(
+							'error',
+							'error',
+							error instanceof Error ? error.message : 'Unknown error occurred',
+							{ error: error instanceof Error ? error.stack : String(error) }
+						)
 					} finally {
 						controller.close()
 					}
@@ -466,13 +656,14 @@ export const adminRoutes = createRouter<Environment>()
 		assert(typeof slug === 'string', 'slug is required')
 
 		const pg = createPostgresConnectionPool(env, '/app/admin/file-assets')
-		const file = await pg
-			.selectFrom('file')
-			.where('id', '=', slug)
-			.select(['id', 'name', 'ownerId', 'owningGroupId', 'isDeleted', 'createSource'])
-			.executeTakeFirst()
-
-		const snapshot = await getFileSnapshot(env, slug, true)
+		const [file, snapshot] = await Promise.all([
+			pg
+				.selectFrom('file')
+				.where('id', '=', slug)
+				.select(['id', 'name', 'owningGroupId', 'isDeleted', 'createSource'])
+				.executeTakeFirst(),
+			getFileSnapshot(env, slug, true),
+		])
 		if (!snapshot) {
 			throw new StatusError(404, `No persisted snapshot for ${slug}`)
 		}
@@ -660,7 +851,6 @@ export const adminRoutes = createRouter<Environment>()
 				.selectFrom('file')
 				.where('id', '=', slug)
 				.select([
-					'ownerId',
 					'owningGroupId',
 					'createdAt',
 					'updatedAt',
@@ -740,7 +930,7 @@ export const adminRoutes = createRouter<Environment>()
 		const stats: AdminFileStatsResponseBody = {
 			file: fileRow
 				? {
-						ownerType: fileRow.ownerId ? 'user' : fileRow.owningGroupId ? 'group' : 'none',
+						ownerType: fileRow.owningGroupId ? 'group' : 'none',
 						createdAt: fileRow.createdAt,
 						updatedAt: fileRow.updatedAt,
 						isDeleted: fileRow.isDeleted,
@@ -887,7 +1077,7 @@ async function hardDeleteAppFile({
 async function deleteUserFromAnalytics(
 	userId: string,
 	env: Environment,
-	sendProgress?: (step: string, message: string, details?: any) => void
+	sendProgress?: SendProgress
 ) {
 	if (!env.ANALYTICS_API_URL || !env.ANALYTICS_API_TOKEN) {
 		sendProgress?.(
@@ -927,9 +1117,9 @@ async function deleteUserFromAnalytics(
 }
 
 async function performUserDeletion(
-	userRow: any,
-	env: any,
-	sendProgress?: (step: string, message: string, details?: any) => void
+	userRow: { id: string },
+	env: Environment,
+	sendProgress?: SendProgress
 ) {
 	const pg = createPostgresConnectionPool(env, '/app/admin/delete_user')
 
@@ -945,21 +1135,23 @@ async function performUserDeletion(
 		.select('groupId')
 		.execute()
 
-	const groupsToDelete: string[] = []
-
-	for (const membership of userOwnedGroupMemberships) {
-		// Check if this user is the only owner of this group
-		const ownerCount = await pg
-			.selectFrom('group_user')
-			.where('groupId', '=', membership.groupId)
-			.where('role', '=', 'owner')
-			.select((eb) => eb.fn.countAll().as('count'))
-			.executeTakeFirst()
-
-		if (ownerCount && Number(ownerCount.count) === 1) {
-			groupsToDelete.push(membership.groupId)
-		}
-	}
+	// Check if this user is the only owner of this group
+	const ownerCounts = userOwnedGroupMemberships.length
+		? await pg
+				.selectFrom('group_user')
+				.where(
+					'groupId',
+					'in',
+					userOwnedGroupMemberships.map((m) => m.groupId)
+				)
+				.where('role', '=', 'owner')
+				.groupBy('groupId')
+				.select((eb) => ['groupId', eb.fn.countAll().as('count')])
+				.execute()
+		: []
+	const groupsToDelete = ownerCounts
+		.filter((row) => Number(row.count) === 1)
+		.map((row) => row.groupId)
 
 	sendProgress?.('groups', `Found ${groupsToDelete.length} groups to delete`, {
 		groupCount: groupsToDelete.length,
@@ -967,36 +1159,30 @@ async function performUserDeletion(
 	})
 
 	// Step 2: Soft delete groups (the cleanup_deleted_group_trigger will soft delete their files)
+	const filesToDelete: TlaFile[] = []
 	if (groupsToDelete.length > 0) {
 		sendProgress?.('groups', 'Soft deleting groups...')
 		await pg.updateTable('group').set('isDeleted', true).where('id', 'in', groupsToDelete).execute()
+		filesToDelete.push(
+			...(await pg
+				.selectFrom('file')
+				.where('owningGroupId', 'in', groupsToDelete)
+				.selectAll()
+				.execute())
+		)
 	}
 
-	// Step 3: Get all files to hard delete
-	const filesToDelete = new Map<string, TlaFile>()
-
-	if (groupsToDelete.length > 0) {
-		const groupFiles = await pg
-			.selectFrom('file')
-			.where('owningGroupId', 'in', groupsToDelete)
-			.selectAll()
-			.execute()
-		for (const file of groupFiles) {
-			filesToDelete.set(file.id, file)
-		}
-	}
-
-	sendProgress?.('files', `Found ${filesToDelete.size} files to delete`, {
-		fileCount: filesToDelete.size,
+	sendProgress?.('files', `Found ${filesToDelete.length} files to delete`, {
+		fileCount: filesToDelete.length,
 	})
 
 	// Allow time for soft deletes to propagate
-	if (groupsToDelete.length > 0 || filesToDelete.size > 0) {
+	if (groupsToDelete.length > 0) {
 		await sleep(3000)
 	}
 
 	// Now hard delete all files
-	for (const file of filesToDelete.values()) {
+	for (const file of filesToDelete) {
 		sendProgress?.('files', `Hard deleting file '${file.name}' (${file.id})`)
 		await hardDeleteAppFile({ pg, file, env })
 	}
@@ -1005,9 +1191,6 @@ async function performUserDeletion(
 
 	// Step 5: Hard delete groups and user in a transaction
 	await pg.transaction().execute(async (tx) => {
-		// Clean up tables that don't have CASCADE delete constraints
-		await tx.deleteFrom('user_mutation_number').where('userId', '=', userRow.id).execute()
-
 		// Clean up assets that reference this user (nullable foreign key)
 		await tx.deleteFrom('asset').where('userId', '=', userRow.id).execute()
 
@@ -1026,16 +1209,9 @@ async function performUserDeletion(
 	sendProgress?.('clerk', 'Deleting user from Clerk...')
 
 	// Delete user from Clerk
-	const clerk = getClerkClient(env)
-	await clerk.users.deleteUser(userRow.id)
+	await getClerkClient(env).users.deleteUser(userRow.id)
 
 	// Delete user from analytics service
 	sendProgress?.('analytics', 'Deleting user from analytics...')
 	await deleteUserFromAnalytics(userRow.id, env, sendProgress)
-
-	sendProgress?.('durable_object', 'Cleaning up user durable object state...')
-
-	// Clean up user durable object state and R2 data
-	const user = getUserDurableObject(env, userRow.id)
-	await user.admin_delete(userRow.id)
 }

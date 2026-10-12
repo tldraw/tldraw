@@ -1,6 +1,6 @@
 import { StoreSchema, SynchronousStorage, UnknownRecord } from '@tldraw/store'
+import { TLStoreSnapshot } from '@tldraw/tlschema'
 import { assert, isEqual, objectMapEntriesIterable, objectMapValues } from '@tldraw/utils'
-import { TLStoreSnapshot } from 'tldraw'
 import { diffRecord, NetworkDiff, RecordOpType } from './diff'
 import { RoomSnapshot } from './TLSyncRoom'
 
@@ -146,13 +146,18 @@ export interface TLSyncForwardDiff<R extends UnknownRecord> {
 }
 
 /**
+ * @param legacyAppendMode - When true, string appends are emitted as puts (see `diffRecord`); the
+ * room sets this whenever a connected client predates string-append support.
  * @internal
  */
-export function toNetworkDiff<R extends UnknownRecord>(diff: TLSyncForwardDiff<R>): NetworkDiff<R> {
+export function toNetworkDiff<R extends UnknownRecord>(
+	diff: TLSyncForwardDiff<R>,
+	legacyAppendMode = false
+): NetworkDiff<R> {
 	const networkDiff: NetworkDiff<R> = {}
 	for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
 		if (Array.isArray(put)) {
-			const patch = diffRecord(put[0], put[1])
+			const patch = diffRecord(put[0], put[1], legacyAppendMode)
 			if (patch) {
 				networkDiff[id] = [RecordOpType.Patch, patch]
 			}
@@ -205,7 +210,9 @@ export function loadSnapshotIntoStorage<R extends UnknownRecord>(
 		if (isEqual(existing, doc.state)) continue
 		txn.set(doc.state.id, doc.state as R)
 	}
-	for (const id of txn.keys()) {
+	// materialize the keys first: some SQLite drivers (better-sqlite3) refuse writes while a
+	// statement iterator is open, so deleting during `keys()` would throw
+	for (const id of Array.from(txn.keys())) {
 		if (!docIds.has(id)) {
 			txn.delete(id)
 		}

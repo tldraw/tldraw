@@ -1,9 +1,9 @@
-import { vi } from 'vitest'
+import { Mock, vi } from 'vitest'
 import { Environment } from '../../types'
 import { base64UrlDecode } from '../../utils/base64'
 
 // Shared fakes for the Browser Run thumbnail / OG image tests (thumbnailRender,
-// sharedBoardScreenshotMcp, ogImageQueue, getOgImage). The R2/browser/queue fakes, snapshot builder
+// mcpServer, ogImageQueue, getOgImage). The R2/browser/queue fakes, snapshot builder
 // and token helpers belong here rather than in any one test file, so that all four exercise the same
 // stand-ins.
 
@@ -45,7 +45,18 @@ export function makeSnapshot(
 // trip from a skipped query. `withPostgres` only runs the callback, against the supplied db or
 // this fake when the caller lends none; the real borrow-or-own lifetime lives in postgres.ts and
 // is pinned by postgres.test.ts.
-export function makeFakePostgresModule() {
+export function makeFakePostgresModule(): {
+	db: any
+	executeTakeFirst: Mock
+	withPostgres: Mock<
+		(
+			_env: unknown,
+			_name: string,
+			suppliedDb: any,
+			fn: (db: any) => Promise<unknown>
+		) => Promise<unknown>
+	>
+} {
 	const executeTakeFirst = vi.fn()
 	const db: any = {
 		selectFrom: () => db,
@@ -114,6 +125,17 @@ export function makeFakeThumbnailsBucket() {
 		async delete(key: string) {
 			store.delete(key)
 		},
+		// Prefix listing, which the render-token cleanup uses now that a board's records are spread
+		// across one key per surface (and, for MCP, per page and theme). `truncated` is always false:
+		// the real bucket paginates at 1000 and a board never approaches that.
+		async list({ prefix = '' }: { prefix?: string } = {}) {
+			return {
+				truncated: false as const,
+				objects: [...store.keys()]
+					.filter((key) => key.startsWith(prefix))
+					.map((key) => ({ key, ...etagOf(store.get(key)!) })),
+			}
+		},
 	}
 }
 
@@ -166,6 +188,54 @@ export function makeMeasuringBrowserBinding(
 	})
 }
 
+// In-memory stand-in for the TLDR_DOC namespace, with the file object's MCP cluster index storage.
+//
+// One store per object id, because that is the property the design rests on: the index key carries no
+// slug precisely because each file has its own object, so a fake that pooled every file into one
+// store could not tell a right `fileId` from a wrong one.
+//
+// Within a store, rows are keyed the way the real table is — (kind, pageId), with the version held as
+// a value rather than part of the key — so a write for new content replaces the old row exactly as
+// `INSERT OR REPLACE` does, a read for a stale version misses, and a write prunes the pages the board
+// no longer has. mcpClusterIndexStorage.test.ts is what holds this fake to the real statements.
+export function makeFakeFileDurableObjectNamespace() {
+	const objects = new Map<string, Map<string, { version: string; payload: string }>>()
+	const calls = { get: 0, put: 0 }
+	const keyOf = (key: { kind: string; pageId: string }) => `${key.kind}/${key.pageId}`
+	const storeFor = (id: string) => {
+		const existing = objects.get(id)
+		if (existing) return existing
+		const created = new Map<string, { version: string; payload: string }>()
+		objects.set(id, created)
+		return created
+	}
+
+	return {
+		objects,
+		calls,
+		// A legible id rather than an opaque hash, so an assertion that reaches one reads as `do(<name>)`.
+		idFromName: (name: string) => ({ toString: () => `do(${name})` }),
+		get: (id: { toString(): string }) => {
+			const store = storeFor(String(id))
+			return {
+				async getMcpClusterIndex(key: any) {
+					calls.get++
+					const row = store.get(keyOf(key))
+					return row && row.version === key.version ? row.payload : null
+				},
+				async putMcpClusterIndex(key: any, payload: string, livePageIds: string[]) {
+					calls.put++
+					for (const existing of [...store.keys()]) {
+						const [kind, pageId] = existing.split('/')
+						if (kind === key.kind && !livePageIds.includes(pageId)) store.delete(existing)
+					}
+					store.set(keyOf(key), { version: key.version, payload })
+				},
+			}
+		},
+	}
+}
+
 export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	return {
 		BROWSER: makeBrowserBinding(),
@@ -173,36 +243,51 @@ export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>
 		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
 		MEASURE: { writeDataPoint: vi.fn() },
 		QUEUE: makeFakeQueue(),
-		// Nothing in the thumbnail pipeline derives a board id, and this exists to keep it that way: if
-		// something starts, a legible `do(<name>)` shows up in an assertion rather than an opaque hash.
-		TLDR_DOC: { idFromName: (name: string) => ({ toString: () => `do(${name})` }) },
+		// The MCP cluster index cache lives on the file's durable object, so the default env has a
+		// working one: a test that measures twice for the same board and page is asserting that the
+		// cache did not hold, which is worth failing on rather than passing by accident.
+		TLDR_DOC: makeFakeFileDurableObjectNamespace(),
 		...overrides,
 	} as unknown as Environment
+}
+
+/** The fake TLDR_DOC namespace an env was built with, for tests that assert on cache traffic. */
+export function clusterIndexStoreOf(env: Environment) {
+	return env.TLDR_DOC as unknown as ReturnType<typeof makeFakeFileDurableObjectNamespace>
+}
+
+/** Every cluster index row an env holds, as `<object>|<kind>/<pageId>`, for whole-store assertions. */
+export function clusterIndexKeysOf(env: Environment) {
+	return [...clusterIndexStoreOf(env).objects].flatMap(([id, store]) =>
+		[...store.keys()].map((key) => `${id}|${key}`)
+	)
 }
 
 export function screenshotOf(env: Environment) {
 	return (env.BROWSER as any).quickAction as ReturnType<typeof vi.fn>
 }
 
-// Pulls the `<prefix>:…` telemetry blob out of every writeDataPoint call, so tests can assert on the
-// low-cardinality dimensions (failure reason codes, and the IP recorded only on failures) without
-// depending on the order of the blobs array.
-export function blobsWithPrefix(env: Environment, prefix: string): string[] {
-	return (env.MEASURE as any).writeDataPoint.mock.calls
-		.map((call: any[]) => (call[0].blobs as string[]).find((blob) => blob.startsWith(prefix)))
-		.filter(Boolean)
-}
-
 // The datapoints for one event name (blob1). The MCP route writes two events per screenshot tool
-// call — the render ledger and the protocol-level tool call — and they share prefixes (`reason:`), so
-// a test asserting on one has to say which.
+// call — the render ledger (`mcp_shared_board_screenshot`, request-level) and the spend ledger
+// (`browser_run_session`, one per browser session) — and they share prefixes (`reason:`), so a test
+// asserting on one has to say which.
 export function datapointsNamed(
 	env: Environment,
 	name: string
-): { blobs: string[]; doubles?: number[] }[] {
-	return (env.MEASURE as any).writeDataPoint.mock.calls
-		.map((call: any[]) => call[0])
-		.filter((point: any) => (point.blobs as string[])[0] === name)
+): Array<{ blobs: string[]; doubles: number[] }> {
+	const points: Array<{ blobs: string[]; doubles: number[] }> = (
+		env.MEASURE as any
+	).writeDataPoint.mock.calls.map((call: any[]) => call[0])
+	return points.filter((point) => point.blobs[0] === name)
+}
+
+// Pulls the `<prefix>:…` telemetry blob out of every request-level datapoint, so tests can assert on
+// the low-cardinality dimensions (failure reason codes, and the caller recorded only on failures)
+// without depending on the order of the blobs array.
+export function blobsWithPrefix(env: Environment, prefix: string): string[] {
+	return datapointsNamed(env, 'mcp_shared_board_screenshot')
+		.map((point) => point.blobs.find((blob) => blob.startsWith(prefix)))
+		.filter(Boolean) as string[]
 }
 
 // The `<prefix>:…` blobs of one event's datapoints, with the prefix stripped, in write order.
@@ -217,17 +302,38 @@ export function failureBlobsOf(env: Environment) {
 	return blobsWithPrefix(env, 'failure:')
 }
 
-export function ipBlobsOf(env: Environment) {
-	return blobsWithPrefix(env, 'ip:')
+export function callerBlobsOf(env: Environment) {
+	return blobsWithPrefix(env, 'caller:')
 }
 
-// The Browser Run duration (double3) of every datapoint written. -1 is the sentinel for "no browser
-// was spent", which is what separates a failure that never reached the capture from one that created
-// a browser and held it — a distinction the spend ledger would otherwise lose on every failed render.
-export function renderDurationsOf(env: Environment): number[] {
-	return (env.MEASURE as any).writeDataPoint.mock.calls.map(
-		(call: any[]) => (call[0].doubles as number[])[2]
-	)
+// Every browser_run_session datapoint, parsed for whole-object assertions: one entry per browser
+// session actually created, in creation order. `durationMs` is that session's own wall-clock —
+// request rows carry no durations at all under the split ledger.
+export function sessionsOf(env: Environment): Array<{
+	source: string
+	mode: string
+	outcome: string
+	reason: string
+	page: string
+	durationMs: number
+	browserMsUsed: number
+	/** records, page shapes, media assets, bbox width, bbox height */
+	content: number[]
+}> {
+	return datapointsNamed(env, 'browser_run_session').map((point) => {
+		const value = (prefix: string) =>
+			point.blobs.find((blob) => blob.startsWith(prefix))!.slice(prefix.length)
+		return {
+			source: value('source:'),
+			mode: value('mode:'),
+			outcome: value('outcome:'),
+			reason: value('reason:'),
+			page: value('page:'),
+			durationMs: point.doubles[2],
+			browserMsUsed: point.doubles[3],
+			content: point.doubles.slice(4, 9),
+		}
+	})
 }
 
 // The index (index1) of every datapoint written. Always `undefined`, since the dataset carries no

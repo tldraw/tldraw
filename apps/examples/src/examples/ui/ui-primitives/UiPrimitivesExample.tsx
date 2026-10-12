@@ -234,7 +234,7 @@ function UiShowcase() {
 			<section>
 				<h3>Icons ({iconTypes.length})</h3>
 				<div className="ui-icon-grid">
-					{iconTypes.map((icon: (typeof iconTypes)[number]) => (
+					{iconTypes.map((icon) => (
 						<TldrawUiTooltip key={icon} content={icon}>
 							<div className="ui-icon-cell">
 								<TldrawUiIcon icon={icon} label={icon} />
@@ -253,7 +253,6 @@ function UiShowcase() {
 							<TldrawUiButtonLabel>Hover me</TldrawUiButtonLabel>
 						</TldrawUiButton>
 					</TldrawUiTooltip>
-					{/* Note: TldrawUiKbd inside tooltips crashes outside TldrawUiContextProvider (see bug) */}
 					<TldrawUiTooltip content="Info tooltip">
 						<TldrawUiButton type="icon" title="Info">
 							<TldrawUiButtonIcon icon="question-mark" />
@@ -293,13 +292,16 @@ export default function UiPrimitivesExample() {
 
 /*
 [1]
-This component demonstrates all the UI primitives available in tldraw. We use
-editor.markEventAsHandled on pointer down to prevent the canvas from receiving
-pointer events when interacting with the UI components.
+A tour of the UI primitives exported from tldraw: buttons, dropdown menus,
+selects, inputs, sliders, popovers, icons, tooltips, and keyboard shortcut
+badges. They all read tldraw's CSS variables, so anything you build with them
+matches the rest of the UI (including dark mode). The showcase calls
+`editor.markEventAsHandled` on pointer down so clicks on the controls don't also
+reach the canvas.
 
 [2]
-We use OnTheCanvas to render our UI showcase directly on the canvas. This lets
-you zoom in and inspect the components at different scales - useful for pixel
-peeping! We also hide the default UI with hideUi since we're showcasing the
-primitives themselves.
+The showcase is rendered in the `OnTheCanvas` slot, so it scales with the
+camera. That's deliberate: zoom in to inspect the components at different
+sizes. The primitives need the UI context that `<Tldraw />` provides, so they
+must be rendered inside it (a `components` slot, or as children).
 */

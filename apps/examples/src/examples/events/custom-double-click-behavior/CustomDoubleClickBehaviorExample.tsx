@@ -3,30 +3,24 @@ import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
+// [1]
+type IdleStateNode = StateNode & {
+	handleDoubleClickOnCanvas(info: TLClickEventInfo): void
+}
+
 export default function CustomDoubleClickBehaviorExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				// [1]
 				onMount={(editor) => {
 					// [2]
-					type IdleStateNode = StateNode & {
-						handleDoubleClickOnCanvas(info: TLClickEventInfo): void
-					}
-
-					// [3]
 					const selectIdleState = editor.getStateDescendant<IdleStateNode>('select.idle')
 					if (!selectIdleState) throw Error('SelectTool Idle state not found')
 
-					// [4]
-					function customDoubleClickOnCanvasHandler(_info: TLClickEventInfo) {
-						// Your custom behavior goes here...
+					// [3]
+					selectIdleState.handleDoubleClickOnCanvas = function (_info: TLClickEventInfo) {
 						window.alert('double clicked on the canvas')
 					}
-
-					// [5]
-					selectIdleState.handleDoubleClickOnCanvas =
-						customDoubleClickOnCanvasHandler.bind(selectIdleState)
 				}}
 			/>
 		</div>
@@ -34,40 +28,25 @@ export default function CustomDoubleClickBehaviorExample() {
 }
 
 /*
-This example demonstrates how to customize the double-click behavior on canvas
-by overriding the SelectTool's Idle state's handleDoubleClickOnCanvas method.
+The select tool's `Idle` state calls `handleDoubleClickOnCanvas` when the user double-clicks
+on empty canvas (or on a shape that can't be edited). By default it creates a text shape and
+starts editing it. Here we swap that method out at runtime for one that shows an alert.
 
-Key concepts:
+[1]
+The `Idle` class itself isn't exported from `tldraw`, and `handleDoubleClickOnCanvas` isn't
+part of the public `StateNode` type, so we describe the shape we expect and cast to it.
 
-[1] onMount callback:
-    The onMount callback gives us access to the editor instance after it's 
-    fully initialized. This is where we can access and modify built-in tools.
+[2]
+`editor.getStateDescendant` walks the tool state tree by dotted path: `'select'` is the
+select tool, `'select.idle'` is its idle child state. Because tools are singletons created
+when the editor mounts, `onMount` is a safe place to patch them.
 
-[2] Type definition for IdleStateNode:
-    We create a type that extends StateNode and includes the handleDoubleClickOnCanvas
-    method. This gives us proper TypeScript support when accessing the method.
+[3]
+Assigning a `function` (rather than an arrow function) means `this` inside it is the state
+node, the same as it would be for the original method. This replaces the default behavior
+entirely; if you want to extend it instead, keep a reference to the original method and call
+it from your replacement.
 
-[3] Getting the SelectTool's Idle state:
-    We use `editor.getStateDescendant<IdleStateNode>('select.idle')` to get a 
-    reference to the Idle state of the SelectTool. The path 'select.idle' 
-    refers to the SelectTool's 'idle' child state.
-
-[4] Custom handler function:
-    We define our custom behavior in a separate function. This keeps the code
-    clean and makes it easy to test or reuse the handler logic.
-
-[5] Method replacement with binding:
-    We replace the original handleDoubleClickOnCanvas method with our custom
-    implementation, binding it to the selectIdleState context so that `this`
-    refers to the correct state node when the function is called. This 
-    completely overrides the default behavior.
-
-The handleDoubleClickOnCanvas method is called when the user double-clicks on
-the canvas (not on a shape). By overriding this method, we can customize what
-happens when the user double-clicks on empty space.
-
-Note: This approach completely replaces the original method. If you want to 
-preserve the original behavior and add to it, you should store a reference
-to the original method before replacing it, then call it from your custom
-implementation when appropriate.
+If all you want is to turn the default off, there's a simpler route: pass
+`options={{ createTextOnCanvasDoubleClick: false }}` to `<Tldraw>`.
 */

@@ -20,11 +20,11 @@ keywords:
   ]
 ---
 
-Customize tldraw's menus, including the toolbar, main menu, context menu, page menu, and more.
+Add items to every one of tldraw's menus, including the toolbar, main menu, context menu, and page menu.
 
 ---
 
-You can use the `components` prop to override tldraw's default menus. You can provide a React component of your own, import our default component and edit it, or return null to hide it completely. This example demonstrates how to do this with every menu in tldraw, including the following:
+Use the `components` prop to override tldraw's default menus. You can provide a React component of your own, import the default component and add to it, or return `null` to hide it completely. Each default menu comes as a pair, for example `DefaultMainMenu` and `DefaultMainMenuContent`, so you can wrap the default content with your own items. This example customizes every menu in tldraw:
 
 - Toolbar
 - Main menu
@@ -38,3 +38,5 @@ You can use the `components` prop to override tldraw's default menus. You can pr
 - Quick actions panel
 - Style panel
 - Zoom menu
+
+The custom additions are highlighted in thistle so they're easy to spot.

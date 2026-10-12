@@ -27,6 +27,7 @@ export function insertNodeWithinConnection(
 	const startBounds = editor.getShapePageBounds(originalBindings.start.toId)!
 	const endBounds = editor.getShapePageBounds(originalBindings.end.toId)!
 
+	// Aim for the midpoint between the two nodes, but never overlap the upstream one
 	let newNodeX: number, newNodeY: number
 
 	if (direction === 'horizontal') {
@@ -152,15 +153,12 @@ function moveNodesIfNeeded(
 
 		// if this node isn't colliding with the expanded parent node, it's already far enough away
 		// and we don't need to do anything!
-		if (!nodeBounds.collides(parentExpandedBounds)) {
-			return
-		}
+		if (!nodeBounds.collides(parentExpandedBounds)) return
 
 		// we need to nudge this node to make room for the new node.
 		// direction determines whether we nudge horizontally or vertically
 		let newNudgeAmountX = 0
 		let newNudgeAmountY = 0
-
 		if (direction === 'horizontal') {
 			// nudge to the right for horizontal layout
 			newNudgeAmountX = parentExpandedBounds.right - nodeBounds.left
@@ -180,8 +178,8 @@ function moveNodesIfNeeded(
 		nodeBounds
 			.translate({ x: newNudgeAmountX, y: newNudgeAmountY })
 			.expandBy(DEFAULT_NODE_SPACING_PX)
-		for (const connection of Object.values(getNodePortConnections(editor, node))) {
-			if (!connection || connection.terminal !== 'start') continue
+		for (const connection of getNodePortConnections(editor, node)) {
+			if (connection.terminal !== 'start') continue
 			visit(connection.connectedShapeId, nodeBounds)
 		}
 	}

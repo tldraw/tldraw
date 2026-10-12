@@ -122,6 +122,54 @@ function createPointer(): Pointer {
 	}
 }
 
+type GL = WebGL2RenderingContext | WebGLRenderingContext
+
+function compileShader(gl: GL, type: number, source: string, keywords?: string[]) {
+	source = addKeywords(source, keywords)
+
+	const shader = gl.createShader(type)!
+	gl.shaderSource(shader, source)
+	gl.compileShader(shader)
+
+	if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+		console.trace(gl.getShaderInfoLog(shader))
+	}
+
+	return shader
+}
+
+function addKeywords(source: string, keywords?: string[]) {
+	if (keywords == null) return source
+	let keywordsString = ''
+	keywords.forEach((keyword) => {
+		keywordsString += '#define ' + keyword + '\n'
+	})
+	return keywordsString + source
+}
+
+function createProgram(gl: GL, vertexShader: WebGLShader, fragmentShader: WebGLShader) {
+	let program = gl.createProgram()!
+	gl.attachShader(program, vertexShader)
+	gl.attachShader(program, fragmentShader)
+	gl.linkProgram(program)
+
+	if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+		console.trace(gl.getProgramInfoLog(program))
+	}
+
+	return program
+}
+
+function getUniforms(gl: GL, program: WebGLProgram) {
+	let uniforms: { [key: string]: WebGLUniformLocation } = {}
+	let uniformCount = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS)
+	for (let i = 0; i < uniformCount; i++) {
+		let uniformName = gl.getActiveUniform(program, i)!.name
+		uniforms[uniformName] = gl.getUniformLocation(program, uniformName)!
+	}
+	return uniforms
+}
+
 /**
  * Main fluid simulation class implementing a GPU-accelerated Navier-Stokes solver.
  * Based on the WebGL fluid simulation by Pavel Dobryakov (MIT License).
@@ -135,7 +183,7 @@ function createPointer(): Pointer {
  * - User interaction via pointer/drag events
  */
 export class FluidSimulation {
-	private gl: WebGL2RenderingContext | WebGLRenderingContext
+	private gl: GL
 	private ext: any
 	private pointers: Pointer[] = []
 	private splatStack: number[] = []
@@ -252,12 +300,7 @@ export class FluidSimulation {
 		}
 	}
 
-	private getSupportedFormat(
-		gl: WebGL2RenderingContext | WebGLRenderingContext,
-		internalFormat: number,
-		format: number,
-		type: number
-	): any {
+	private getSupportedFormat(gl: GL, internalFormat: number, format: number, type: number): any {
 		if (!this.supportRenderTextureFormat(gl, internalFormat, format, type)) {
 			switch (internalFormat) {
 				case (gl as WebGL2RenderingContext).R16F:
@@ -280,12 +323,7 @@ export class FluidSimulation {
 		}
 	}
 
-	private supportRenderTextureFormat(
-		gl: WebGL2RenderingContext | WebGLRenderingContext,
-		internalFormat: number,
-		format: number,
-		type: number
-	) {
+	private supportRenderTextureFormat(gl: GL, internalFormat: number, format: number, type: number) {
 		let texture = gl.createTexture()
 		gl.bindTexture(gl.TEXTURE_2D, texture)
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
@@ -306,55 +344,10 @@ export class FluidSimulation {
 		return /Mobi|Android/i.test(navigator.userAgent)
 	}
 
-	private compileShader(type: number, source: string, keywords?: string[]) {
-		source = this.addKeywords(source, keywords)
-
-		const shader = this.gl.createShader(type)!
-		this.gl.shaderSource(shader, source)
-		this.gl.compileShader(shader)
-
-		if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-			console.trace(this.gl.getShaderInfoLog(shader))
-		}
-
-		return shader
-	}
-
-	private addKeywords(source: string, keywords?: string[]) {
-		if (keywords == null) return source
-		let keywordsString = ''
-		keywords.forEach((keyword) => {
-			keywordsString += '#define ' + keyword + '\n'
-		})
-		return keywordsString + source
-	}
-
-	private createProgram(vertexShader: WebGLShader, fragmentShader: WebGLShader) {
-		let program = this.gl.createProgram()!
-		this.gl.attachShader(program, vertexShader)
-		this.gl.attachShader(program, fragmentShader)
-		this.gl.linkProgram(program)
-
-		if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
-			console.trace(this.gl.getProgramInfoLog(program))
-		}
-
-		return program
-	}
-
-	private getUniforms(program: WebGLProgram) {
-		let uniforms: { [key: string]: WebGLUniformLocation } = {}
-		let uniformCount = this.gl.getProgramParameter(program, this.gl.ACTIVE_UNIFORMS)
-		for (let i = 0; i < uniformCount; i++) {
-			let uniformName = this.gl.getActiveUniform(program, i)!.name
-			uniforms[uniformName] = this.gl.getUniformLocation(program, uniformName)!
-		}
-		return uniforms
-	}
-
 	private initializeShaders() {
 		// Base vertex shader
-		const baseVertexShader = this.compileShader(
+		const baseVertexShader = compileShader(
+			this.gl,
 			this.gl.VERTEX_SHADER,
 			`
 			precision highp float;
@@ -378,7 +371,8 @@ export class FluidSimulation {
 		)
 
 		// Blur vertex shader for bloom
-		const blurVertexShader = this.compileShader(
+		const blurVertexShader = compileShader(
+			this.gl,
 			this.gl.VERTEX_SHADER,
 			`
 			precision highp float;
@@ -399,7 +393,8 @@ export class FluidSimulation {
 		)
 
 		// Simple copy shader
-		const copyShader = this.compileShader(
+		const copyShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision mediump float;
@@ -414,7 +409,8 @@ export class FluidSimulation {
 		)
 
 		// Color shader
-		const colorShader = this.compileShader(
+		const colorShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision mediump float;
@@ -427,7 +423,8 @@ export class FluidSimulation {
 		)
 
 		// Splat shader
-		const splatShader = this.compileShader(
+		const splatShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision highp float;
@@ -450,7 +447,8 @@ export class FluidSimulation {
 		)
 
 		// Blur shader for bloom
-		const blurShader = this.compileShader(
+		const blurShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision mediump float;
@@ -470,7 +468,8 @@ export class FluidSimulation {
 		)
 
 		// Bloom prefilter shader
-		const bloomPrefilterShader = this.compileShader(
+		const bloomPrefilterShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision mediump float;
@@ -492,7 +491,8 @@ export class FluidSimulation {
 		)
 
 		// Bloom blur shader
-		const bloomBlurShader = this.compileShader(
+		const bloomBlurShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision mediump float;
@@ -516,7 +516,8 @@ export class FluidSimulation {
 		)
 
 		// Bloom final shader
-		const bloomFinalShader = this.compileShader(
+		const bloomFinalShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision mediump float;
@@ -541,7 +542,8 @@ export class FluidSimulation {
 		)
 
 		// Sunrays mask shader
-		const sunraysMaskShader = this.compileShader(
+		const sunraysMaskShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision highp float;
@@ -559,7 +561,8 @@ export class FluidSimulation {
 		)
 
 		// Sunrays shader
-		const sunraysShader = this.compileShader(
+		const sunraysShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision highp float;
@@ -597,7 +600,8 @@ export class FluidSimulation {
 		)
 
 		// Additional shaders for complete simulation
-		const clearShader = this.compileShader(
+		const clearShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision mediump float;
@@ -612,7 +616,8 @@ export class FluidSimulation {
 		`
 		)
 
-		const advectionShader = this.compileShader(
+		const advectionShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision highp float;
@@ -645,7 +650,8 @@ export class FluidSimulation {
 		`
 		)
 
-		const divergenceShader = this.compileShader(
+		const divergenceShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision mediump float;
@@ -675,7 +681,8 @@ export class FluidSimulation {
 		`
 		)
 
-		const curlShader = this.compileShader(
+		const curlShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision mediump float;
@@ -698,7 +705,8 @@ export class FluidSimulation {
 		`
 		)
 
-		const vorticityShader = this.compileShader(
+		const vorticityShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision highp float;
@@ -733,7 +741,8 @@ export class FluidSimulation {
 		`
 		)
 
-		const pressureShader = this.compileShader(
+		const pressureShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision mediump float;
@@ -759,7 +768,8 @@ export class FluidSimulation {
 		`
 		)
 
-		const gradientSubtractShader = this.compileShader(
+		const gradientSubtractShader = compileShader(
+			this.gl,
 			this.gl.FRAGMENT_SHADER,
 			`
 			precision mediump float;
@@ -892,10 +902,10 @@ export class FluidSimulation {
 	}
 
 	private createProgramWithUniforms(vertexShader: WebGLShader, fragmentShader: WebGLShader) {
-		const program = this.createProgram(vertexShader, fragmentShader)
+		const program = createProgram(this.gl, vertexShader, fragmentShader)
 		return {
 			program,
-			uniforms: this.getUniforms(program),
+			uniforms: getUniforms(this.gl, program),
 			bind: () => this.gl.useProgram(program),
 		}
 	}
@@ -1821,35 +1831,7 @@ export class FluidSimulation {
 	 */
 	adaptiveDecimatePoints(points: Array<{ x: number; y: number }>): Array<{ x: number; y: number }> {
 		if (points.length <= 3) return points
-
-		// Calculate bounding box to estimate shape size
-		let minX = points[0].x,
-			maxX = points[0].x
-		let minY = points[0].y,
-			maxY = points[0].y
-
-		for (const point of points) {
-			minX = Math.min(minX, point.x)
-			maxX = Math.max(maxX, point.x)
-			minY = Math.min(minY, point.y)
-			maxY = Math.max(maxY, point.y)
-		}
-
-		// const shapeWidth = maxX - minX
-		// const shapeHeight = maxY - minY
-		// const shapeSize = Math.sqrt(shapeWidth * shapeWidth + shapeHeight * shapeHeight)
-
-		// Adaptive threshold: larger shapes can have more aggressive decimation
-		const threshold = 0.002 // Base threshold for small shapes
-		// if (shapeSize > 0.1) threshold = 0.004 // Medium shapes
-		// if (shapeSize > 0.3) threshold = 0.008 // Large shapes
-		// if (shapeSize > 0.5) threshold = 0.012 // Very large shapes
-
-		// Also consider point density
-		// const pointDensity = points.length / shapeSize
-		// if (pointDensity > 100) threshold *= 1.5 // More aggressive for very dense geometry
-
-		return this.decimatePoints(points, threshold)
+		return this.decimatePoints(points, 0.002)
 	}
 
 	/**
@@ -1981,12 +1963,9 @@ export class FluidSimulation {
  * Supports dynamic shader compilation with preprocessor definitions.
  */
 class Material {
-	private vertexShader: WebGLShader
-	private fragmentShaderSource: string
 	private programs: { [key: number]: WebGLProgram } = {}
 	private activeProgram: WebGLProgram | null = null
 	public uniforms: { [key: string]: WebGLUniformLocation } = {}
-	private gl: WebGL2RenderingContext | WebGLRenderingContext
 
 	/**
 	 * Creates a new Material instance.
@@ -1995,14 +1974,10 @@ class Material {
 	 * @param fragmentShaderSource - Fragment shader source code
 	 */
 	constructor(
-		gl: WebGL2RenderingContext | WebGLRenderingContext,
-		vertexShader: WebGLShader,
-		fragmentShaderSource: string
-	) {
-		this.gl = gl
-		this.vertexShader = vertexShader
-		this.fragmentShaderSource = fragmentShaderSource
-	}
+		private gl: GL,
+		private vertexShader: WebGLShader,
+		private fragmentShaderSource: string
+	) {}
 
 	/**
 	 * Sets shader keywords (preprocessor definitions) and compiles a variant if needed.
@@ -2014,18 +1989,19 @@ class Material {
 
 		let program = this.programs[hash]
 		if (program == null) {
-			let fragmentShader = this.compileShader(
+			let fragmentShader = compileShader(
+				this.gl,
 				this.gl.FRAGMENT_SHADER,
 				this.fragmentShaderSource,
 				keywords
 			)
-			program = this.createProgram(this.vertexShader, fragmentShader)
+			program = createProgram(this.gl, this.vertexShader, fragmentShader)
 			this.programs[hash] = program
 		}
 
 		if (program == this.activeProgram) return
 
-		this.uniforms = this.getUniforms(program)
+		this.uniforms = getUniforms(this.gl, program)
 		this.activeProgram = program
 	}
 
@@ -2034,52 +2010,6 @@ class Material {
 	 */
 	bind() {
 		this.gl.useProgram(this.activeProgram)
-	}
-
-	private compileShader(type: number, source: string, keywords?: string[]) {
-		source = this.addKeywords(source, keywords)
-
-		const shader = this.gl.createShader(type)!
-		this.gl.shaderSource(shader, source)
-		this.gl.compileShader(shader)
-
-		if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-			console.trace(this.gl.getShaderInfoLog(shader))
-		}
-
-		return shader
-	}
-
-	private addKeywords(source: string, keywords?: string[]) {
-		if (keywords == null) return source
-		let keywordsString = ''
-		keywords.forEach((keyword) => {
-			keywordsString += '#define ' + keyword + '\n'
-		})
-		return keywordsString + source
-	}
-
-	private createProgram(vertexShader: WebGLShader, fragmentShader: WebGLShader) {
-		let program = this.gl.createProgram()!
-		this.gl.attachShader(program, vertexShader)
-		this.gl.attachShader(program, fragmentShader)
-		this.gl.linkProgram(program)
-
-		if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
-			console.trace(this.gl.getProgramInfoLog(program))
-		}
-
-		return program
-	}
-
-	private getUniforms(program: WebGLProgram) {
-		let uniforms: { [key: string]: WebGLUniformLocation } = {}
-		let uniformCount = this.gl.getProgramParameter(program, this.gl.ACTIVE_UNIFORMS)
-		for (let i = 0; i < uniformCount; i++) {
-			let uniformName = this.gl.getActiveUniform(program, i)!.name
-			uniforms[uniformName] = this.gl.getUniformLocation(program, uniformName)!
-		}
-		return uniforms
 	}
 
 	private hashCode(s: string) {

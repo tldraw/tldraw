@@ -79,9 +79,7 @@ export function getAllConnectedNodes(
 	const found = new Set<TLShapeId>()
 
 	while (toVisit.length > 0) {
-		const nodeId = toVisit.shift()
-		if (!nodeId) continue
-
+		const nodeId = toVisit.shift()!
 		const node = editor.getShape(nodeId)
 		if (!node || !editor.isShapeOfType(node, 'node')) continue
 

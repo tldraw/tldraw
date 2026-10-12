@@ -8,17 +8,19 @@ keywords:
     snap mode,
     bounds snapping,
     custom snapping,
-    getboundssnappinggeometry,
+    getboundssnapgeometry,
     geometry,
     custom shape,
     playing cards,
   ]
 ---
 
-Custom shapes with special bounds snapping behaviour.
+Give a custom shape its own snap points with `getBoundsSnapGeometry`.
 
 ---
 
-This example shows how to create a shape with custom snapping geometry. When shapes are moved around in snap mode, they will snap to the bounds of other shapes by default. However, a shape can return custom snapping geometry to snap to instead.
+When shapes are moved in snap mode, they snap to the bounding boxes of nearby shapes by default. A shape util can override `getBoundsSnapGeometry` to return different points, which are used both when this shape is dragged and when other shapes snap against it.
 
-In this case, we've created a custom playing card shape. The cards are designed to snap together so that the top-left icon remains visible when stacked, similar to a hand of cards in a game.
+The playing card shape here returns the corners and center of the small square around its top-left suit icon. Cards therefore snap together so that each icon stays visible when they're fanned out, like a hand of cards.
+
+Try dragging one card over another; snap mode is turned on for you in `onMount`, and you can hold cmd/ctrl while dragging to snap when it's off. Use the joker tool in the toolbar (or press `c`) to add more cards.

@@ -5,9 +5,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLFileDurableObject } from './TLFileDurableObject'
 import type { TLFileEffectProcessor } from './TLFileEffectProcessor'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
-import type { TLPostgresReplicator } from './TLPostgresReplicator'
-import { TLStatsDurableObject } from './TLStatsDurableObject'
-import type { TLUserDurableObject } from './TLUserDurableObject'
+import type { KeyframeReason } from './versionChain'
 
 // The Browser Rendering binding's Quick Actions method. Cloudflare exposes `env.BROWSER.quickAction`
 // so a Worker can call the Quick Actions endpoints (`screenshot`, `pdf`, …) straight through the
@@ -30,14 +28,13 @@ export interface Analytics {
 export interface Environment {
 	// bindings
 	TLDR_DOC: DurableObjectNamespace<TLFileDurableObject>
-	TL_PG_REPLICATOR: DurableObjectNamespace<TLPostgresReplicator>
-	TL_USER: DurableObjectNamespace<TLUserDurableObject>
 	TL_FILE_EFFECTS: DurableObjectNamespace<TLFileEffectProcessor>
 	TL_LOGGER: DurableObjectNamespace<TLLoggerDurableObject>
-	TL_STATS: DurableObjectNamespace<TLStatsDurableObject>
 
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
+	HYPERDRIVE?: Hyperdrive
+	HYPERDRIVE_DISABLED?: string
 
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
 	PLAIN_API_KEY?: string
@@ -46,14 +43,24 @@ export interface Environment {
 
 	MEASURE: Analytics | undefined
 
+	// Workers Static Assets binding — reads the committed default welcome snapshot
+	// (assets/welcome-snapshot.json) at seed time; the worker never serves the directory
+	// publicly (run_worker_first is set).
+	ASSETS: Fetcher
+
 	ROOMS: R2Bucket
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket
+	// Delta chains. ROOMS_HISTORY_EPHEMERAL keeps every version written before cut-over, so both
+	// buckets stay on the read path until the standing history is compacted.
+	ROOMS_HISTORY: R2Bucket
+	// The room-history migration's cold archive of every board's pre-migration history. Only
+	// hard deletes touch it.
+	ROOMS_HISTORY_COLD: R2Bucket
 
 	ROOM_SNAPSHOTS: R2Bucket
 	SNAPSHOT_SLUG_TO_PARENT_SLUG: KVNamespace
 
 	UPLOADS: R2Bucket
-	USER_DO_SNAPSHOTS: R2Bucket
 
 	SLUG_TO_READONLY_SLUG: KVNamespace
 	READONLY_SLUG_TO_SLUG: KVNamespace
@@ -77,6 +84,8 @@ export interface Environment {
 	ASSET_UPLOAD_ORIGIN: string | undefined
 	USER_CONTENT_URL: string | undefined
 	MULTIPLAYER_SERVER: string | undefined
+	/** The zero-cache clients of this deployment connect to; what `/app/zero/schema` hands out. */
+	ZERO_SERVER: string | undefined
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 	HEALTH_CHECK_DB_SIZE_THRESHOLD_GB: string | undefined
@@ -86,20 +95,24 @@ export interface Environment {
 	ANALYTICS_API_URL: string | undefined
 	ANALYTICS_API_TOKEN: string | undefined
 
-	PIERRE_KEY: string | undefined
-
 	RATE_LIMITER: RateLimit
 	// Rate limit bindings for the Browser Run-backed MCP screenshot tool, declared in wrangler.toml.
 	// All three bound what an agent calling the public MCP endpoint can spend; board thumbnail
 	// rendering is subject to none of them. Separate bindings because a binding carries one `limit`
 	// applied per key, so budgets with different numbers cannot share one. The route falls back to an
 	// isolate-local guard when they are absent (local dev, tests).
-	/** Per-IP `get_shared_board_screenshot` calls. */
+	/** One per-account budget (`user:`) across every Browser Run-spending MCP tool. */
 	MCP_SCREENSHOT_RATE_LIMITER: RateLimit | undefined
-	/** Per-board Browser Run captures, applied only on cache misses. */
+	/** Per-board Browser Run captures, applied only on cache misses. Measures are not counted here. */
 	MCP_SERVER_BOARD_RATE_LIMITER: RateLimit | undefined
-	/** Total Browser Run invocations made by the tool, on one shared key. */
+	/** Total Browser Run sessions the tools spend, captures and measures alike, on one shared key. */
 	MCP_SERVER_BROWSER_RATE_LIMITER: RateLimit | undefined
+	/** Per-account `search_boards` calls. Bounds Postgres, not Browser Run, which search never spends. */
+	MCP_SERVER_SEARCH_RATE_LIMITER: RateLimit | undefined
+	/** Per-account `create_board` calls. Bounds writes. */
+	MCP_SERVER_CREATE_RATE_LIMITER: RateLimit | undefined
+	/** Per-account `rename_board` calls. Bounds writes. */
+	MCP_SERVER_RENAME_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
@@ -125,17 +138,33 @@ export interface Environment {
 	// non-functional local binding and the render path fails closed; real local captures need
 	// `wrangler dev --remote` with credentials or a preview deploy. Undefined in tests.
 	BROWSER: BrowserBinding | undefined
-	// Kill switch for the MCP screenshot server (POST /app/mcp). Absent means enabled, so an
-	// environment that never configured it behaves as it did before the flag existed. Anything other
-	// than 'true' turns the endpoint off, so a typo fails in the safe direction. Editing this var in
-	// the Cloudflare dashboard takes the server down without a rebuild or a code deploy — but the
-	// next deploy restores the wrangler.toml value, so follow an emergency flip with a config change.
-	MCP_SCREENSHOT_ENABLED: string | undefined
+	/**
+	 * Whether `search_boards` will match on board names. Unset means yes, so previews, local dev and
+	 * tests keep working; production sets it to "false" while the unindexed `ILIKE` scan it drives is
+	 * still being watched.
+	 */
+	MCP_SEARCH_NAME_MATCHING_ENABLED: string | undefined
 	// Origin serving the client thumbnail render page (THUMBNAIL_RENDER_PATH). Set per
 	// environment in wrangler.toml.
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
+	// 'true' opts MCP screenshots into live-canvas capture: the page prunes the canvas to the
+	// requested shapes, settles and fits, and the screenshotting browser rasterizes it instead of
+	// the page exporting itself. Skips the export phase, the expensive part on heavy boards, at the
+	// cost of the export path's pixel-exact sizing. Off everywhere it is unset.
+	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
+	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected
+	// resource metadata and in the `WWW-Authenticate` challenge. Not compared against anything on an
+	// incoming token: Clerk stamps no `aud`, so there is no audience binding to check — see
+	// authenticateMcpRequest for what stands in for one. Set per environment in wrangler.toml;
+	// previews have no vars block there, so deploy-dotcom.ts injects it as a deploy var. Left unset,
+	// it is derived from the request's own origin, which is fine locally and wrong anywhere a Host
+	// header can be forged — see getMcpResourceUrl.
+	MCP_SERVER_URL: string | undefined
+	// Overrides the OAuth authorization server advertised to MCP clients. Normally unset: the value is
+	// derived from CLERK_PUBLISHABLE_KEY so it cannot drift from the instance whose tokens we verify.
+	MCP_OAUTH_AUTHORIZATION_SERVER: string | undefined
 	// Development only: a local HTTP screenshot service to use instead of the BROWSER binding, which
 	// cannot reach Browser Run in local dev. Set in [env.dev.vars] to the client dev server's
 	// screenshot endpoint; unset everywhere else, which is what keeps deployed environments on
@@ -147,9 +176,15 @@ export function isDebugLogging(env: Environment) {
 	return env.TLDRAW_ENV === 'development' || env.TLDRAW_ENV === 'preview'
 }
 
-export function getUserDoSnapshotKey(env: Environment, userId: string) {
-	const snapshotPrefix = env.TLDRAW_ENV === 'preview' ? env.WORKER_NAME + '/' : ''
-	return `${snapshotPrefix}${userId}`
+/**
+ * The word a boolean-ish env var holds: trimmed, lowercased, with unset and empty folded together.
+ * Used by MCP_SEARCH_NAME_MATCHING_ENABLED. Kept as a shared helper rather than inlined so a second
+ * boolean-ish var cannot arrive parsing its value differently — each call site keeps its own
+ * fail-safe direction, this owns what a value *is*.
+ */
+export function envFlagWord(value: string | undefined): string | undefined {
+	const word = value?.trim().toLowerCase()
+	return word ? word : undefined
 }
 
 export interface DBLoadResult {
@@ -166,6 +201,10 @@ export type TLServerEvent =
 			type: 'client'
 			name: 'room_create' | 'room_reopen' | 'enter' | 'leave' | 'last_out'
 			instanceId: string
+			// `enter` only: the client bundle's build timestamp from the `?v=` connect param,
+			// so bundle age is queryable per connect. Absent = a bundle from before the param,
+			// or a param that didn't validate as an epoch-ms number.
+			clientBuildTimestamp?: string
 	  }
 	| {
 			type: 'client'
@@ -184,7 +223,37 @@ export type TLServerEvent =
 				| 'comment_reaction_orphan_prune'
 				| 'room_empty'
 				| 'fail_persist'
-				| 'room_start'
+	  }
+	| {
+			type: 'room'
+			name: 'room_start'
+			/**
+			 * How many hibernated sockets this boot resumed. Zero means a cold boot, and anything
+			 * higher means the durable object woke with clients still attached — which nothing else
+			 * in the dataset distinguishes, since both emit the same `room_start`.
+			 */
+			resumedSockets: number
+	  }
+	// Discriminated on `wrote`: only a keyframe carries the reason that forced it.
+	| ({
+			type: 'version_chain_write'
+			bytes: number
+			depth: number
+	  } & ({ wrote: 'keyframe'; reason: KeyframeReason } | { wrote: 'delta' }))
+	// Discriminated on `outcome`: only a failure or a skip carries a reason.
+	| ({
+			/** A cadence keyframe retired a chain; did that chain reconstruct the state it claims? */
+			type: 'version_chain_verify'
+	  } & (
+			| { outcome: 'ok' }
+			| { outcome: 'fail'; reason: 'missing' | 'legacy-fallback' | 'head-mismatch' | 'error' }
+			// Not a failure: the chain was left unchecked because reconstructing it here would risk
+			// the isolate's memory. Carries the keyframe size so the threshold can be tuned.
+			| { outcome: 'skipped'; reason: 'keyframe-size'; keyframeBytes: number }
+	  ))
+	| {
+			/** A chain write outlasted its retries and was swallowed so the persist could complete. */
+			type: 'version_chain_error'
 	  }
 	| {
 			type: 'send_message'
@@ -207,51 +276,6 @@ export type TLServerEvent =
 			 */
 			sharedState: 'shared' | 'private' | 'unknown' | 'legacy' | 'deleted'
 	  }
-
-export type TLPostgresReplicatorRebootSource =
-	| 'constructor'
-	| 'inactivity'
-	| 'retry'
-	| 'subscription_closed'
-	| 'test'
-
-export type TLPostgresReplicatorEvent =
-	| { type: 'reboot'; source: TLPostgresReplicatorRebootSource }
-	| { type: 'request_lsn_update' }
-	| {
-			type:
-				| 'reboot_error'
-				| 'register_user'
-				| 'unregister_user'
-				| 'get_file_record'
-				| 'prune'
-				| 'resume_sequence'
-	  }
-	| { type: 'reboot_duration'; duration: number }
-	| { type: 'rpm'; rpm: number }
-	| { type: 'active_users'; count: number }
-
-export type TLUserDurableObjectEvent =
-	| {
-			type:
-				| 'reboot'
-				| 'full_data_fetch'
-				| 'full_data_fetch_hard'
-				| 'found_snapshot'
-				| 'reboot_error'
-				| 'rate_limited'
-				| 'broadcast_message'
-				| 'mutation'
-				| 'reject_mutation'
-				| 'replication_event'
-				| 'connect_retry'
-				| 'user_do_abort'
-				| 'not_enough_history_for_fast_reboot'
-				| 'woken_up_by_replication_event'
-			id: string
-	  }
-	| { type: 'reboot_duration'; id: string; duration: number }
-	| { type: 'cold_start_time'; id: string; duration: number }
 
 export interface AssetUploadQueueMessage {
 	type: 'asset-upload'
@@ -278,6 +302,17 @@ export interface ThumbnailBoardRef {
 }
 
 /**
+ * Which page of which board a stored MCP cluster index belongs to. The object it is stored in is
+ * already the board's file, so this addresses a page within that. See mcpClusterIndexStorage.ts.
+ */
+export interface McpClusterIndexKey {
+	kind: ThumbnailBoardKind
+	pageId: string
+	/** The board's content version, so an index is only read back for the content it was built from. */
+	version: string
+}
+
+/**
  * How much of a board a caller is entitled to. `public` is the anonymous gate: the board must be
  * shared via link. `render` is for generating a thumbnail we will store but not necessarily serve
  * publicly, so it only requires that the board exists and has content.
@@ -288,10 +323,23 @@ export interface ThumbnailBoardRef {
  */
 export type ThumbnailBoardAccess = 'public' | 'render'
 
-// What prompted a board thumbnail render. Purely telemetry — every trigger is treated identically by
-// the consumer — so renders can be attributed to the thing that asked for them. `publish` and `edit`
-// are the two producers; `crawler` is reachable only as the fallback for a queued message that
-// carries no reason of its own.
+/**
+ * Which pipeline asked for a render. `og` covers the social-preview route and its queue consumer;
+ * `mcp` is the board screenshot MCP server.
+ *
+ * Unlike `OgImageRenderReason` this is not telemetry — it is signed into the render job and
+ * namespaces the minted-token record, so two surfaces rendering the same board at the same time do
+ * not overwrite each other's proof of mint. See `recordMintedRenderToken`.
+ */
+export type ThumbnailRenderSurface = 'og' | 'mcp'
+
+// What prompted a board thumbnail render, so renders can be attributed to the thing that asked for
+// them. `publish` and `edit` are the trigger producers; `crawler` is the OG route's published-board
+// repair (`repairMissingPublishedImage`) and doubles as the fallback for a queued message that
+// carries no reason of its own. Telemetry with one exception: when a job burns its whole retry
+// budget, the consumer arms the repair cooldown only if a crawler asked (see `retryOrDrop`), so
+// traffic an outside caller controls cannot re-arm the retry chain on a board that just proved it
+// cannot render.
 export type OgImageRenderReason = 'crawler' | 'publish' | 'edit'
 
 // Asks the queue consumer to render a board's OG image through Browser Run and refresh the R2
@@ -304,9 +352,10 @@ export interface OgImageRenderQueueMessage {
 	// Optional only because a message may already be in the queue without one; every producer sets it.
 	reason?: OgImageRenderReason
 	/**
-	 * Set on a job the consumer enqueued for itself, having found the board changed while it was
-	 * capturing. A follow-up never spawns another: a board edited without pause would otherwise render
-	 * continuously instead of at the debounce's cadence.
+	 * Set on a job the consumer enqueued for itself, having found a `published` board changed while it
+	 * was capturing — the one kind whose dropped ask nothing re-asks for. Shared files never get one:
+	 * the DO's debounce alarm re-asks by construction (see enqueueFollowUpIfBoardMoved). A follow-up
+	 * never spawns another: a board republished without pause would otherwise render continuously.
 	 */
 	followUp?: boolean
 }

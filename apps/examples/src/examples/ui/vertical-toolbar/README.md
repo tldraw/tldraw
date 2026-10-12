@@ -4,8 +4,8 @@ component: ./VerticalToolbarExample.tsx
 keywords: [vertical toolbar, toolbar orientation, DefaultToolbar, components override, layout]
 ---
 
-Switch from a horizontal toolbar at the bottom of the screen to a vertical one on the left.
+Move the toolbar from the bottom of the screen to a vertical strip on the left.
 
 ---
 
-Tldraw supports a vertical toolbar out of the box. Override the toolbar component to set the orientation of the default toolbar to vertical.
+`DefaultToolbar` takes an `orientation` prop. Override the `Toolbar` slot with a component that renders `<DefaultToolbar orientation="vertical" />` and the toolbar, its groups, and its overflow menu all switch to a vertical layout. To also change which tools appear, pass children to `DefaultToolbar` (see the [toolbar groups](https://tldraw.dev/examples/toolbar-groups) example).

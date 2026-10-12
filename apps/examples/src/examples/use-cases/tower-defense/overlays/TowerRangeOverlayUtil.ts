@@ -14,11 +14,9 @@ export class TowerRangeOverlayUtil extends OverlayUtil<TLTowerRangeOverlay> {
 	static override type = 'td-tower-range'
 	override options = { zIndex: 100 }
 
-	// We deliberately don't rely on `editor.getHoveredShape()` here: default geo
-	// shapes have `fill: 'none'`, which makes their interiors transparent to
-	// hover hit-testing. Walking tower bounds directly means hovering anywhere
-	// inside a tower's bounding box highlights its range, regardless of fill.
-	// Memoised via computed so isActive() + getOverlays() share one walk per tick.
+	// Not `editor.getHoveredShape()`: unfilled geo shapes are hollow to hit-testing, so hovering
+	// their interior wouldn't count. Checking bounds directly also lets the range show for
+	// locked shapes. Memoised so isActive() and getOverlays() share one walk per tick.
 	private _hoveredTowers = computed('td-tower-range:hovered', (): TLTowerRangeOverlay[] => {
 		const point = this.editor.inputs.getCurrentPagePoint()
 		const result: TLTowerRangeOverlay[] = []
@@ -29,9 +27,8 @@ export class TowerRangeOverlayUtil extends OverlayUtil<TLTowerRangeOverlay> {
 			const stats = getScaledStats(baseStats, getTowerLevel(shape))
 			const bounds = this.editor.getShapePageBounds(shape.id)
 			if (!bounds) continue
-			// Always preview the range while a tower is being placed (unlocked);
-			// once placed (locked), only show on hover. Filtering on isLocked
-			// avoids flicker as the in-progress shape's bounds chase the pointer.
+			// Placed towers are locked and only show range on hover; an unlocked tower shape
+			// (e.g. one being drawn by hand) always shows it
 			const isPlacing = !shape.isLocked
 			if (!isPlacing && !bounds.containsPoint(point)) continue
 			result.push({

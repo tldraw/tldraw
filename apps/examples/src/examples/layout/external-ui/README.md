@@ -18,11 +18,14 @@ keywords:
   ]
 ---
 
-This example shows how to control the tldraw editor from an external UI, using state.
+Control the editor from a toolbar rendered outside the `Tldraw` component, holding the editor in React state.
 
 ---
 
-This example shows how to control the tldraw editor from an external UI, outside
-of the `Tldraw` component. There are a few ways of doing this—for example, by putting the editor on the window object, passing it around via props, or using React context.
+UI that lives outside the `Tldraw` component can't use `useEditor()`, so it needs some other way to reach the editor instance. The simplest option is to capture it in `onMount` and store it in state in the same component that renders `<Tldraw>`.
 
-In this example, we'll just put the editor instance in state and use it in the same component. See the [other External UI example](https://tldraw.dev/examples/external-ui-context) for an alternative (and more realistic) solution using React context.
+Here the default toolbar is hidden (`components={{ Toolbar: null }}`) and replaced with three buttons rendered below the canvas. `useValue` keeps the active button in sync with `editor.getCurrentToolId()`, and the buttons call `editor.setCurrentTool()`. Because the editor is `null` until it mounts, the callbacks guard against that.
+
+Try clicking "Oval" and drawing on the canvas. The oval button sets `GeoShapeGeoStyle` before switching to the geo tool, since the geo tool creates whichever geo shape is currently selected in the style.
+
+For a version that distributes the editor through React context, so any descendant component can use it, see the [External UI (using context)](https://tldraw.dev/examples/external-ui-context) example.

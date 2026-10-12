@@ -16,8 +16,10 @@ keywords:
 multiplayer: true
 ---
 
-Customize the presence data synced between different tldraw instances.
+Change the presence data synced to other users with `getUserPresence`.
 
 ---
 
-This example shows how to customize the presence data synced between different tldraw instances.
+Presence is the per-user state (cursor, camera, selection, chat message) that sync broadcasts to every other client. Pass `getUserPresence` to `useSyncDemo` (or `useSync`) to control what is sent: start from `getDefaultUserPresence`, then remove fields you don't want shared or change them.
+
+This example drops the camera, so other users can't follow this viewport, and makes the cursor orbit its real position. Open the example in two tabs to see the effect.

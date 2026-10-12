@@ -1,3 +1,4 @@
+import { PageRecordType } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
@@ -340,6 +341,49 @@ describe('ScribbleManager', () => {
 				}
 
 				expect(editor.scribbles.isSessionActive(sessionId)).toBe(false)
+			})
+
+			it('clears sessions started on another page when the current page changes', () => {
+				const sessionId = editor.scribbles.startSession({ selfConsume: false })
+				const item = editor.scribbles.addScribbleToSession(sessionId, {})
+				for (let i = 0; i < 10; i++) {
+					editor.scribbles.addPointToSession(sessionId, item.id, i * 5, i * 5)
+					editor.scribbles.tick(16)
+				}
+				expect(editor.getInstanceState().scribbles.length).toBe(1)
+
+				const page2Id = PageRecordType.createId('page2')
+				editor.createPage({ id: page2Id, name: 'Page 2' })
+				editor.setCurrentPage(page2Id)
+				editor.scribbles.tick(16)
+
+				expect(editor.getInstanceState().scribbles).toEqual([])
+				expect(editor.scribbles.isSessionActive(sessionId)).toBe(false)
+			})
+
+			it('draws a scribble whose first point arrives frames after it was added', () => {
+				const item = editor.scribbles.addScribble({})
+				for (let i = 0; i < 10; i++) {
+					editor.scribbles.tick(16)
+				}
+
+				editor.scribbles.addPoint(item.id, 10, 10)
+				editor.scribbles.tick(16)
+
+				expect(editor.getInstanceState().scribbles).toMatchObject([
+					{ id: item.id, state: 'starting', points: [{ x: 10, y: 10, z: 0.5 }] },
+				])
+			})
+
+			it('removes a scribble that is completed before its first point', () => {
+				const sessionId = editor.scribbles.startSession({ selfConsume: false })
+				const item = editor.scribbles.addScribbleToSession(sessionId, {})
+
+				editor.scribbles.complete(item.id)
+				editor.scribbles.tick(16)
+
+				expect(editor.scribbles.isSessionActive(sessionId)).toBe(false)
+				expect(() => editor.scribbles.addPoint(item.id, 0, 0)).toThrow()
 			})
 		})
 	})

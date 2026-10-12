@@ -8,6 +8,8 @@ const customShapes = [CounterShapeUtil]
 const customTools = [CounterShapeTool]
 
 export default function SyncDemoShapeExample({ roomId }: { roomId: string }) {
+	// The store needs the shape utils too, so it can validate and migrate counter shapes that arrive
+	// from other clients.
 	const store = useSyncDemo({ roomId, shapeUtils: customShapes })
 	return (
 		<div className="tldraw__editor">

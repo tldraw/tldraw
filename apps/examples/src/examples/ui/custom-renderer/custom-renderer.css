@@ -1,0 +1,4 @@
+/* Hide tldraw's DOM shape layer; the custom renderer draws the shapes instead. */
+.custom-renderer .tl-shapes {
+	display: none;
+}

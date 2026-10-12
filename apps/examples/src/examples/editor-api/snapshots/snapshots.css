@@ -1,0 +1,23 @@
+.snapshot-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	margin: 8px;
+	padding: 4px;
+	pointer-events: all;
+}
+
+.snapshot-saved {
+	padding: 0 8px;
+	font-size: 12px;
+	transition:
+		transform 0.2s ease,
+		opacity 0.2s ease;
+	transform: scale(0.5);
+	opacity: 0;
+}
+
+.snapshot-saved[data-visible='true'] {
+	transform: scale(1);
+	opacity: 1;
+}

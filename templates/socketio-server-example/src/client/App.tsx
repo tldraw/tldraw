@@ -64,7 +64,6 @@ function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRe
 				console.log('📥 Received:', message)
 				callback(message)
 			}
-
 			ioSocket.on('tldraw-message', handler)
 
 			// Return cleanup function
@@ -96,25 +95,15 @@ function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRe
 	}
 
 	// Map Socket.IO events to TLPersistentClientSocket status
-	const connectHandler = () => {
-		tldrawSocket.connectionStatus = 'online'
-		statusChangeListeners.forEach((cb) => cb({ status: 'online' }))
+	const setStatus = (event: TLSocketStatusChangeEvent) => {
+		tldrawSocket.connectionStatus = event.status
+		statusChangeListeners.forEach((cb) => cb(event))
 	}
 
-	const disconnectHandler = () => {
-		tldrawSocket.connectionStatus = 'offline'
-		statusChangeListeners.forEach((cb) => cb({ status: 'offline' }))
-	}
-
-	const errorHandler = (error: any) => {
-		tldrawSocket.connectionStatus = 'error'
-		statusChangeListeners.forEach((cb) =>
-			cb({
-				status: 'error',
-				reason: error.message || 'Connection error',
-			})
-		)
-	}
+	const connectHandler = () => setStatus({ status: 'online' })
+	const disconnectHandler = () => setStatus({ status: 'offline' })
+	const errorHandler = (error: any) =>
+		setStatus({ status: 'error', reason: error.message || 'Connection error' })
 
 	ioSocket.on('connect', connectHandler)
 	ioSocket.on('disconnect', disconnectHandler)
@@ -122,10 +111,7 @@ function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRe
 
 	// Set initial status
 	const initialStatusTimeout = setTimeout(() => {
-		if (ioSocket.connected) {
-			tldrawSocket.connectionStatus = 'online'
-			statusChangeListeners.forEach((cb) => cb({ status: 'online' }))
-		}
+		if (ioSocket.connected) connectHandler()
 	}, 0)
 
 	return tldrawSocket
@@ -135,9 +121,7 @@ function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRe
 const multiplayerAssets: TLAssetStore = {
 	// to upload an asset, we prefix it with a unique id, POST it to our worker, and return the URL
 	async upload(_asset, file) {
-		const id = uniqueId()
-
-		const objectName = `${id}-${file.name}`
+		const objectName = `${uniqueId()}-${file.name}`
 		const url = `${WORKER_URL}/uploads/${encodeURIComponent(objectName)}`
 
 		const response = await fetch(url, {

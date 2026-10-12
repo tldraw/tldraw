@@ -19,7 +19,7 @@ status: published
 date: 1/31/2026
 ---
 
-The geo shape is one of the default shapes in tldraw. It renders geometric primitives—rectangles, ellipses, stars, clouds, and 16 other forms—with optional rich text labels. Geo shapes are the usual building blocks for flowcharts and diagrams.
+The geo shape is one of the default shapes in tldraw. It renders one of 20 built-in geometric forms (rectangles, ellipses, stars, clouds, and more) with an optional rich text label. Geo shapes are the usual building blocks for flowcharts and diagrams.
 
 ## Geometric forms
 
@@ -115,7 +115,7 @@ editor.createShape({
 })
 ```
 
-The label text automatically wraps within the shape bounds. When text overflows the shape height, the shape grows vertically to accommodate it. The `growY` property tracks this additional height.
+The label text wraps within the shape bounds. When text overflows the shape height, the shape grows vertically and tracks the extra height in `growY`. If the label's minimum width is wider than the shape, the shape widens to fit it.
 
 ### Changing the geometric form
 
@@ -140,6 +140,8 @@ import { GeoShapeGeoStyle } from 'tldraw'
 // Set the default geo style to star
 editor.setStyleForNextShapes(GeoShapeGeoStyle, 'star')
 ```
+
+The geo tool's toolbar shortcuts are R for rectangle and O for ellipse.
 
 ## Using the geo tool
 
@@ -186,10 +188,12 @@ When tool lock is enabled (via the toolbar or `editor.updateInstanceState({ isTo
 | `growY`         | `number`                        | Additional vertical space for text overflow                 |
 | `url`           | `string`                        | Optional hyperlink URL                                      |
 | `scale`         | `number`                        | Scale factor applied to the shape                           |
+| `flipX`         | `boolean`                       | Mirror the shape horizontally                               |
+| `flipY`         | `boolean`                       | Mirror the shape vertically                                 |
 
 ## Configuration options
 
-Configure the geo shape utility to adjust rendering behavior:
+Configure [GeoShapeUtil](?) to adjust rendering behavior:
 
 | Option            | Type      | Default | Description                                                                                      |
 | ----------------- | --------- | ------- | ------------------------------------------------------------------------------------------------ |
@@ -211,7 +215,7 @@ Pass the configured utility to the `shapeUtils` prop:
 
 ## Custom geo types
 
-Register custom geo types via `customGeoTypes` to add new shapes that inherit all standard geo behavior — labels, fill/dash/color styling, resizing, SVG export, and hyperlinks — while providing their own path geometry, snap behavior, creation size, and style panel icon. This lets you extend the built-in geo enum without forking `GeoShapeUtil`.
+Register custom geo types via `customGeoTypes` to add new forms without forking [GeoShapeUtil](?). Custom types inherit all standard geo behavior (labels, fill/dash/color styling, resizing, SVG export, and hyperlinks) and provide their own path geometry, snap behavior, creation size, and style panel icon.
 
 ```tsx
 import { GeoShapeUtil, PathBuilder } from 'tldraw'
@@ -241,7 +245,7 @@ const MyGeoShapeUtil = GeoShapeUtil.configure({
 })
 ```
 
-Each entry in `customGeoTypes` is a `GeoTypeDefinition`:
+Each entry in `customGeoTypes` is a [GeoTypeDefinition](?). Keys that collide with a built-in form are ignored with a console warning.
 
 | Field           | Type                                        | Description                                                                                          |
 | --------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
@@ -279,9 +283,11 @@ When the label text exceeds the shape's height, the shape automatically grows by
 
 Geo shapes resize from any corner or edge handle. When resizing a shape with a label:
 
-- The shape respects a minimum unscaled size of 51 × 51 pixels when it contains text
-- The shape won't shrink smaller than the label's required dimensions
-- `growY` resets to 0 when you resize, letting the shape recalculate the needed height
+- The shape won't shrink smaller than the label's measured dimensions
+- `growY` resets to 0 when you resize, and the shape recalculates the needed height
+- Dragging a handle past the opposite edge flips the shape by toggling `flipX` or `flipY`
+
+When you first add a label to a shape smaller than 51 × 51 unscaled pixels, the shape grows to at least that size and becomes square.
 
 ## Special interactions
 
@@ -295,10 +301,7 @@ The cloud shape generates its bumps procedurally based on the shape's ID. Each c
 
 ### Handle snap geometry
 
-Arrows snap to geo shapes at meaningful positions:
-
-- **Polygon-based shapes** (rectangle, triangle, pentagon, etc.): Arrows snap to each vertex and the center
-- **Curved shapes** (ellipse, oval, cloud, heart): Arrows snap only to the center point
+When you drag a line handle (or any custom handle with `snapType` set) near a geo shape, it snaps to the shape's outline. Polygon-based forms (rectangle, triangle, pentagon, and so on) also snap to each vertex and the center; curved forms (ellipse, oval, cloud, heart) snap only to the center. Arrow terminals bind to geo shapes through a separate system; see [Bindings](/sdk-features/bindings).
 
 ## Dynamic resize mode
 
@@ -331,7 +334,7 @@ Click the link button to open the URL in a new tab.
 
 ## Path rendering
 
-Geo shapes use a path-based rendering system. Each geometric form—built-in or custom—has a `GeoTypeDefinition` whose `getPath` method generates the outline used for both fills and strokes. The same path drives solid, semi-transparent, and pattern fills as well as solid, dashed, and dotted stroke styles. Path calculations are cached per shape.
+Geo shapes use a path-based rendering system. Each geometric form, built-in or custom, has a [GeoTypeDefinition](?) whose `getPath` method generates the outline used for both fills and strokes. The same path drives solid, semi-transparent, and pattern fills as well as solid, dashed, and dotted stroke styles. Path calculations are cached per shape.
 
 When the `dash` property is set to `'draw'`, the shape renders with organic, hand-drawn strokes. The randomness is seeded by the shape's ID, so each shape's hand-drawn look stays stable across renders.
 
@@ -342,7 +345,7 @@ The shape's geometry returns a [Group2d](?) containing:
 1. The outline path geometry (polygon or curve depending on the form)
 2. A label rectangle for hit testing text interactions
 
-This compound geometry enables accurate point-in-shape detection for both the shape outline and its text label.
+The label rectangle is excluded from the shape's bounds but used for hit testing.
 
 ## Related articles
 

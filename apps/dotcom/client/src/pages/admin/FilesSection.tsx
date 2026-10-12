@@ -3,7 +3,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
 import { FileStats } from './FileStats'
-import { formatBytes, StructuredDataDisplay } from './shared'
+import {
+	formatBytes,
+	formatTally,
+	getResponseError,
+	StructuredDataDisplay,
+	useTransientMessage,
+} from './shared'
 import styles from './admin.module.css'
 
 export function FilesSection() {
@@ -51,6 +57,8 @@ interface ResolvedDoRoom {
 	deleted: boolean
 	connectedSockets: number
 	roomLoaded: boolean
+	bootStage: string | null
+	bootStageAgeMs: number | null
 }
 
 interface ResolvedDoHistory {
@@ -96,9 +104,9 @@ const CF_ACCOUNT_TAG = 'c34edc4e76350954b63adebde86d5eb1'
 const CF_TLDR_DOC_NAMESPACE_ID = '5864db4344ac4c55bfd94e81dd25a043'
 
 /**
- * Maps a durable object id (from Cloudflare analytics or the dash) back to its room slug, with
- * liveness and persist-history signals. The object stores its own identity, so the resolver asks
- * it directly.
+ * Looks up a room by durable object id (from Cloudflare analytics or the dash) or by room slug,
+ * with liveness and persist-history signals. The server distinguishes the two forms and returns
+ * the canonical object id either way.
  */
 function ResolveDoId() {
 	const [input, setInput] = useState('')
@@ -113,29 +121,41 @@ function ResolveDoId() {
 		} | null
 	)
 
-	const onResolve = useCallback(async () => {
-		const objectId = input.trim()
-		if (!/^[0-9a-f]{64}$/.test(objectId)) {
-			setError('Paste a 64-character lowercase hex durable object id')
-			return
-		}
+	const resolve = useCallback(async (idOrSlug: string) => {
 		setError(null)
 		setResult(null)
 		setCopied(false)
 		setIsRunning(true)
 		try {
-			const res = await fetch(`/api/app/admin/resolve-do-id/${objectId}`)
+			// the server resolves either form and returns the canonical object id
+			const res = await fetch(`/api/app/admin/resolve-do-id/${encodeURIComponent(idOrSlug)}`)
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
-			setResult({ objectId, ...(await res.json()) })
+			setResult(await res.json())
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Resolve failed')
 		} finally {
 			setIsRunning(false)
 		}
-	}, [input])
+	}, [])
+
+	const onResolve = useCallback(async () => {
+		const idOrSlug = input.trim()
+		// hex is a subset of the slug charset — catch truncated/uppercase ids before they hash as slugs
+		if (/^[0-9a-fA-F]{16,}$/.test(idOrSlug) && !/^[0-9a-f]{64}$/.test(idOrSlug)) {
+			setError(
+				'Looks like a truncated or uppercase durable object id — paste the full 64-char lowercase hex'
+			)
+			return
+		}
+		if (!/^[0-9a-f]{64}$/.test(idOrSlug) && !/^[a-zA-Z0-9_-]+$/.test(idOrSlug)) {
+			setError('Paste a 64-character hex durable object id or a room slug')
+			return
+		}
+		await resolve(idOrSlug)
+	}, [input, resolve])
 
 	const onCopySlug = useCallback(async (slug: string) => {
 		await navigator.clipboard.writeText(slug)
@@ -146,26 +166,53 @@ function ResolveDoId() {
 	const match = result?.match
 	const history = result?.history
 
+	const [isClosing, setIsClosing] = useState(false)
+	const onForceClose = useCallback(async () => {
+		// target the id that was resolved, not the live input — the admin may have edited the
+		// input since, and the button describes the resolved room
+		if (!result || !match) return
+		if (
+			!window.confirm(
+				`Force-close ${match.connectedSockets} session(s) on ${match.slug}? ` +
+					'Every connected tab (including anyone actively editing) is disconnected and shown ' +
+					'a "please reload" screen.'
+			)
+		) {
+			return
+		}
+		setError(null)
+		setIsClosing(true)
+		try {
+			const res = await fetch(`/api/app/admin/close-do-sessions/${result.objectId}`, {
+				method: 'POST',
+			})
+			if (!res.ok) {
+				setError(await getResponseError(res))
+				return
+			}
+			// re-resolve the same object so the socket count and verdict reflect the drain
+			await resolve(result.objectId)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Force-close failed')
+		} finally {
+			setIsClosing(false)
+		}
+	}, [result, match, resolve])
+
 	return (
 		<div>
 			<p>
-				Finds the room behind a durable object id. Cloudflare analytics (the durable objects dash,
-				GraphQL, our Analytics Engine events) rank hot objects by id, but the id is a one-way hash
-				of the room name — this asks the object itself for its stored identity. Paste the full
-				64-character id (dash lists often truncate; use the search dropdown or GraphQL for the full
-				one).
-			</p>
-			<p>
-				Reading the result: <b>sockets</b> are live browser tabs holding a connection, and the save
-				stats come from the snapshot history bucket (one snapshot per persist) — recent, frequent
-				saves mean someone is editing; a connected socket with stale saves is a parked background
-				tab; no sockets means the room is idle. The slug is copyable on purpose instead of linked —
-				we do not open users&apos; files.
+				Paste a durable object id (full 64-character hex — dash lists truncate, grab the full id
+				from the search dropdown or GraphQL) or a room slug — either resolves to the room&apos;s
+				activity. <b>Sockets</b> are live tabs; save stats come from the snapshot history bucket.
+				Frequent recent saves = someone editing; sockets with stale saves = parked background tabs;
+				no sockets = idle. The slug is copyable instead of linked — we do not open users&apos;
+				files.
 			</p>
 			<div className={styles.searchContainer}>
 				<input
 					className={styles.searchInput}
-					placeholder="Durable object id (64-char hex)"
+					placeholder="Durable object id (64-char hex) or room slug"
 					value={input}
 					onChange={(e) => setInput(e.target.value)}
 					onKeyDown={(e) => e.key === 'Enter' && onResolve()}
@@ -177,7 +224,7 @@ function ResolveDoId() {
 			</div>
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			{result && !match && (
-				<div className={styles.subTitle}>No room for that id (never initialized)</div>
+				<div className={styles.subTitle}>No room for that id or slug (never initialized)</div>
 			)}
 			{match && result && (
 				<div className={styles.subTitle}>
@@ -200,7 +247,11 @@ function ResolveDoId() {
 					<div>
 						{history ? <b>{activityVerdict(match, history)}</b> : null} · {match.connectedSockets}{' '}
 						socket{match.connectedSockets === 1 ? '' : 's'} connected · room{' '}
-						{match.roomLoaded ? 'loaded in memory' : 'not loaded (hibernated or idle)'}
+						{match.bootStage !== null
+							? `booting: ${match.bootStage} for ${Math.round((match.bootStageAgeMs ?? 0) / 1000)}s`
+							: match.roomLoaded
+								? 'loaded in memory'
+								: 'not loaded (hibernated or idle)'}
 					</div>
 					{history && (
 						<div>
@@ -216,6 +267,14 @@ function ResolveDoId() {
 									`total ${formatBytes(history.totalSizeBytes)}`}
 						</div>
 					)}
+					{match.connectedSockets > 0 && (
+						<div>
+							<AdminButton variant="danger" onClick={onForceClose} isLoading={isClosing}>
+								Force-close {match.connectedSockets} session
+								{match.connectedSockets === 1 ? '' : 's'}
+							</AdminButton>
+						</div>
+					)}
 				</div>
 			)}
 		</div>
@@ -229,7 +288,7 @@ function WelcomeTemplate() {
 	)
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState(null as string | null)
-	const [successMessage, setSuccessMessage] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useTransientMessage()
 
 	const load = useCallback(async () => {
 		setIsLoading(true)
@@ -237,7 +296,7 @@ function WelcomeTemplate() {
 		try {
 			const res = await fetch('/api/app/admin/welcome-template')
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 			setCurrent(await res.json())
@@ -267,7 +326,7 @@ function WelcomeTemplate() {
 				body: JSON.stringify({ fileId }),
 			})
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 			setCurrent(await res.json())
@@ -276,7 +335,7 @@ function WelcomeTemplate() {
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to set welcome template')
 		}
-	}, [])
+	}, [setSuccessMessage])
 
 	const onClear = useCallback(async () => {
 		if (
@@ -288,7 +347,7 @@ function WelcomeTemplate() {
 		try {
 			const res = await fetch('/api/app/admin/welcome-template/clear', { method: 'POST' })
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 			setCurrent(null)
@@ -296,14 +355,7 @@ function WelcomeTemplate() {
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to clear welcome template')
 		}
-	}, [])
-
-	useEffect(() => {
-		if (successMessage) {
-			const timer = setTimeout(() => setSuccessMessage(null), 3000)
-			return () => clearTimeout(timer)
-		}
-	}, [successMessage])
+	}, [setSuccessMessage])
 
 	return (
 		<div className={styles.fileOperation}>
@@ -346,7 +398,7 @@ function WelcomeTemplate() {
 function HardDeleteFile() {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [error, setError] = useState(null as string | null)
-	const [successMessage, setSuccessMessage] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useTransientMessage()
 
 	const onDelete = useCallback(async () => {
 		const fileId = inputRef.current?.value
@@ -369,21 +421,12 @@ function HardDeleteFile() {
 			method: 'POST',
 		})
 		if (!res.ok) {
-			setError(res.statusText + ': ' + (await res.text()))
+			setError(await getResponseError(res))
 			return
-		} else {
-			setSuccessMessage('File deleted successfully! 🧹')
-			inputRef.current!.value = ''
 		}
-	}, [])
-
-	// Clear success message after 3 seconds
-	useEffect(() => {
-		if (successMessage) {
-			const timer = setTimeout(() => setSuccessMessage(null), 3000)
-			return () => clearTimeout(timer)
-		}
-	}, [successMessage])
+		setSuccessMessage('File deleted successfully! 🧹')
+		inputRef.current!.value = ''
+	}, [setSuccessMessage])
 
 	return (
 		<div className={styles.dangerZone}>
@@ -401,11 +444,9 @@ function HardDeleteFile() {
 
 function CreateLegacyFile() {
 	const [isCreating, setIsCreating] = useState(false)
-	const [successMessage, setSuccessMessage] = useState(null as string | null)
 
 	const handleCreate = useCallback(async () => {
 		setIsCreating(true)
-		setSuccessMessage(null)
 		try {
 			const res = await fetch(`/api/app/admin/create_legacy_file`, { method: 'POST' })
 			const { slug } = await res.json()
@@ -417,17 +458,8 @@ function CreateLegacyFile() {
 		}
 	}, [])
 
-	// Clear success message after 3 seconds
-	useEffect(() => {
-		if (successMessage) {
-			const timer = setTimeout(() => setSuccessMessage(null), 3000)
-			return () => clearTimeout(timer)
-		}
-	}, [successMessage])
-
 	return (
 		<div className={styles.fileOperation}>
-			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 			<p>Creates an empty legacy multiplayer room and opens it.</p>
 			<AdminButton onClick={handleCreate} variant="primary" isLoading={isCreating}>
 				Create legacy file
@@ -440,11 +472,9 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [error, setError] = useState(null as string | null)
 	const [isDownloading, setIsDownloading] = useState(false)
-	const [successMessage, setSuccessMessage] = useState(null as string | null)
 
 	const onDownload = useCallback(async () => {
 		setError(null)
-		setSuccessMessage(null)
 		const fileSlug = inputRef.current?.value
 		if (!fileSlug) {
 			setError('Please enter a file slug')
@@ -456,7 +486,7 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 		try {
 			const res = await fetch(`/api/app/admin/${path}/${fileSlug}`)
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 
@@ -475,21 +505,12 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 		}
 	}, [legacy])
 
-	// Clear success message after 3 seconds
-	useEffect(() => {
-		if (successMessage) {
-			const timer = setTimeout(() => setSuccessMessage(null), 3000)
-			return () => clearTimeout(timer)
-		}
-	}, [successMessage])
-
 	return (
 		<div className={styles.fileOperation}>
 			<h4 className={styles.subTitle}>
 				{legacy ? 'Download legacy .tldr file' : 'Download .tldr file'}
 			</h4>
 			{error && <div className={styles.errorMessage}>{error}</div>}
-			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 			<div className={styles.downloadContainer}>
 				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
 				<AdminButton onClick={onDownload} variant="primary" isLoading={isDownloading}>
@@ -503,7 +524,7 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 function UndeleteFileById() {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [error, setError] = useState(null as string | null)
-	const [successMessage, setSuccessMessage] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useTransientMessage()
 	const [isLoading, setIsLoading] = useState(false)
 
 	const onUndelete = useCallback(async () => {
@@ -521,7 +542,7 @@ function UndeleteFileById() {
 				method: 'POST',
 			})
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 			setSuccessMessage('File undeleted')
@@ -529,14 +550,7 @@ function UndeleteFileById() {
 		} finally {
 			setIsLoading(false)
 		}
-	}, [])
-
-	useEffect(() => {
-		if (successMessage) {
-			const timer = setTimeout(() => setSuccessMessage(null), 3000)
-			return () => clearTimeout(timer)
-		}
-	}, [successMessage])
+	}, [setSuccessMessage])
 
 	return (
 		<div className={styles.fileOperation}>
@@ -571,7 +585,7 @@ function AssetDiagnostics() {
 		try {
 			const res = await fetch(`/api/app/admin/file-assets/${encodeURIComponent(slug)}`)
 			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
+				setError(await getResponseError(res))
 				return
 			}
 			setReport((await res.json()) as AdminFileAssetsResponseBody)
@@ -617,12 +631,7 @@ function AssetDiagnostics() {
 								[
 									'Shapes',
 									`${report.shapes.total}${
-										report.shapes.total > 0
-											? ` (${Object.entries(report.shapes.byType)
-													.sort((a, b) => b[1] - a[1])
-													.map(([type, count]) => `${count} ${type}`)
-													.join(', ')})`
-											: ''
+										report.shapes.total > 0 ? ` (${formatTally(report.shapes.byType)})` : ''
 									}`,
 								],
 								['Total assets', report.assets.total],

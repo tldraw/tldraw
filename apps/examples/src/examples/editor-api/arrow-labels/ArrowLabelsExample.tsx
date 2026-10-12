@@ -143,30 +143,21 @@ export default function ArrowLabelsExample() {
 }
 
 /*
-Introduction:
-
-This example shows how to create arrows with text labels. Arrow labels are
-set using the `richText` prop with the `toRichText()` helper, and can be
-customized with position, color, and font options.
+Arrow labels are stored in the arrow's `richText` prop. Use the `toRichText()` helper to
+turn a plain string into that format.
 
 [1]
-The simplest labeled arrow. Use `toRichText('your text')` to convert a plain string
-into the rich text format that arrow labels expect. The `labelPosition` prop controls
-where the label sits along the arrow, from 0 (start) to 1 (end). The `size` prop
-('s', 'm', 'l', 'xl') controls both the arrow stroke width and the label font size.
+The simplest labeled arrow. `labelPosition` is a fraction along the arrow from 0 (start) to
+1 (end); 0.5 is the default and centers the label.
 
 [2]
-Label position and color. The `labelPosition` prop places the label at different
-points along the arrow path. The `labelColor` prop sets the text color independently
-from the arrow's `color` prop, letting you use contrasting colors for readability.
+`labelColor` sets the text color independently of the arrow's `color`, which is useful for
+contrast when the arrow itself is a light color.
 
 [3]
-Font styles. The `font` prop controls the label's typeface. Available options are
-'draw' (hand-drawn), 'sans' (clean sans-serif), 'serif' (traditional), and
-'mono' (monospace).
+`font` picks the label typeface: 'draw' (hand-drawn), 'sans', 'serif', or 'mono'. The `size`
+prop, shared with the stroke width, controls the label's font size.
 
 [4]
-Labels on curved arrows. The `bend` prop creates a curved arrow, and the label
-follows the curve.
-
+`bend` curves the arrow, and the label is positioned along the curve rather than the chord.
 */

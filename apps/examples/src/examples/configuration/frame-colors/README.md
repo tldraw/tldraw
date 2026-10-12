@@ -5,10 +5,10 @@ priority: 5
 keywords: [frame, colors, configure, frameshapeutil, showcolors, shapeutils]
 ---
 
-Use the `showColors` option to display colored fills and headings on frame shapes.
+Give frames a colored fill and heading with the `showColors` option.
 
 ---
 
-Use the `showColors` option to display colored fills and headings on frame shapes.
+By default frames are white with a plain heading and ignore the color style. `FrameShapeUtil.configure({ showColors: true })` makes frames use the selected color for a tinted fill and a colored heading, and adds the color picker to the style panel when a frame is selected.
 
-Create a frame (keyboard shortcut **F**) and see how it looks with the `showColors` option enabled.
+Create a frame (F), then pick a color in the style panel to see it applied.

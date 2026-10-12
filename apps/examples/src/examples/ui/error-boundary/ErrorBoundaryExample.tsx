@@ -1,21 +1,23 @@
-import { Tldraw } from 'tldraw'
+import { TLComponents, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { ErrorShapeUtil } from './ErrorShape'
 
 // There's a guide at the bottom of this file!
 
 // [1]
-const shapes = [ErrorShapeUtil]
+const shapeUtils = [ErrorShapeUtil]
+
+// [2]
+const components: TLComponents = {
+	ShapeErrorFallback: ({ error }) => <div>Shape error! {String(error)}</div>,
+}
 
 export default function ErrorBoundaryExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				shapeUtils={shapes}
-				components={{
-					// [2]
-					ShapeErrorFallback: ({ error }) => <div>Shape error! {String(error)}</div>,
-				}}
+				shapeUtils={shapeUtils}
+				components={components}
 				onMount={(editor) => {
 					// [3]
 					editor.createShape({ type: 'error' })
@@ -26,17 +28,16 @@ export default function ErrorBoundaryExample() {
 }
 
 /*
-This example shows how to customize the error fallback that appears when a shape throws an error. We
-simulate this scenario by creating a shape that always throws an error when it renders.
+Each shape renders inside its own error boundary, so a shape that throws shows a fallback
+instead of taking down the editor. This example customizes that fallback.
 
 [1]
-This is the custom shape that always throws an error when it renders. Check out ErrorShape.ts to see
-how it works.
+A custom shape whose `component()` always throws. See ErrorShape.ts.
 
 [2]
-Pass in the custom error fallback component.
+`ShapeErrorFallback` receives the thrown `error`. Like `shapeUtils`, `components` is
+defined at module level so `<Tldraw>` doesn't see a new object every render.
 
 [3]
-When the app starts, create our error shape so that we can see the custom error fallback.
-
+Create the error shape on mount so the fallback is visible straight away.
 */

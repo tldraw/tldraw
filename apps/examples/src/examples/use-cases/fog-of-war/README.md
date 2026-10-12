@@ -16,8 +16,10 @@ keywords:
 priority: 3
 ---
 
-Create a fog of war effect by keeping an HTML canvas in sync with canvas content.
+Cover the canvas in fog that clears wherever shapes are drawn, using an HTML canvas kept in sync with the editor.
 
 ---
 
-This example shows how you might keep an HTML canvas in sync with canvas content. It implements a simple "fog of war" effect, where the canvas is covered by a black overlay that can be cleared by drawing shapes on the canvas.
+An HTML `<canvas>` rendered in the `InFrontOfTheCanvas` slot paints a dark overlay over the whole viewport. A `useReactor` callback re-runs whenever shapes or the camera change: it marks any grid cell that overlaps a shape's page bounds as revealed, then redraws the overlay with the camera transform applied and clears the revealed cells.
+
+Try drawing anywhere: the fog lifts around your strokes and stays lifted as you pan and zoom.

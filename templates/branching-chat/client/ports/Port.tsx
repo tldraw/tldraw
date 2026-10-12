@@ -27,7 +27,6 @@ export interface PortIdentifier {
  */
 export function Port({ shapeId, port }: { shapeId: TLShapeId; port: ShapePort }) {
 	const editor = useEditor()
-	if (!port) throw new Error(`Port not found on shape ${shapeId}`)
 
 	// isHinting is true if the user is currently dragging a connection to this port. it means we
 	// should highlight this port.
@@ -45,7 +44,7 @@ export function Port({ shapeId, port }: { shapeId: TLShapeId; port: ShapePort })
 	const isEligible = useValue(
 		'isEligible',
 		() => {
-			const { eligiblePorts: eligiblePorts } = portState.get(editor)
+			const { eligiblePorts } = portState.get(editor)
 			if (!eligiblePorts) return false
 			if (eligiblePorts.terminal !== port.terminal) return false
 			if (eligiblePorts.excludeNodes?.has(shapeId)) return false

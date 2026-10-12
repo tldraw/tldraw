@@ -15,8 +15,10 @@ keywords:
   ]
 ---
 
-Draw a custom grid on the canvas.
+Draw a custom grid on the canvas with a 2d canvas context.
 
 ---
 
-This example shows how to draw a custom grid on the canvas. It uses a 2d canvas context to draw major and minor grid lines.
+Override the `Grid` component via the `components` prop to draw your own grid. The component receives the camera position, zoom, and grid size, and this example uses them to draw minor and major grid lines into a 2d canvas at the device's pixel ratio. Grid mode is turned on in `onMount` so the grid is visible immediately.
+
+Try zooming and panning; the grid redraws to match the camera and switches color in dark mode.

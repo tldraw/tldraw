@@ -7,7 +7,6 @@ import { myInteractiveShape } from './my-interactive-shape-util'
 // [1]
 const customShapeUtils = [myInteractiveShape]
 
-// [2]
 export default function InteractiveShapeExample() {
 	return (
 		<div className="tldraw__editor">
@@ -23,12 +22,8 @@ export default function InteractiveShapeExample() {
 
 /*
 [1]
-By default the editor handles pointer events, but sometimes you want to handle 
-interactions on your shape in your own ways, for example via a button. You can do this 
-by using the css property `pointer events: all` and stopping event propagation. In 
-this example we want our todo shape to have a checkbox so the user can mark them as 
-done.
-
-[2]
-Check out my-interactive-shape-util.tsx to see how we create the shape. 
- */
+The shape util array is defined outside the component so it keeps the same identity across
+renders. See my-interactive-shape-util.tsx for the shape itself, which shows how to let a
+shape handle its own pointer events (a checkbox and a text input) without the editor
+selecting or dragging it.
+*/

@@ -33,8 +33,8 @@ const MEMBERS: MentionMember[] = [
 const AUTHORS: Record<string, CommentAuthor> = Object.fromEntries(MEMBERS.map((m) => [m.id, m]))
 const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
 
-// Region comments are off by default (click-only). Configuring the tool with `enableRegions` lets
-// dragging the comment tool out create a comment anchored to a rectangular area.
+// Region comments are off by default. With `enableRegions`, dragging the comment tool out draws a
+// rectangle and anchors the comment to that area instead of a point or shape.
 const COMMENT_TOOLS = [CommentTool.configure({ enableRegions: true })]
 
 export default function CommentingMobileExample() {

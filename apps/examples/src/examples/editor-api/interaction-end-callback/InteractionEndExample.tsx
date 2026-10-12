@@ -1,5 +1,7 @@
-import { StateNode, TLPointerEventInfo, Tldraw, createShapeId } from 'tldraw'
+import { createShapeId, StateNode, TLPointerEventInfo, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
+
+// There's a guide at the bottom of this file!
 
 // [1]
 class QuickShapeTool extends StateNode {
@@ -31,38 +33,40 @@ class QuickShapeTool extends StateNode {
 			isCreating: true,
 			// [3]
 			onInteractionEnd: () => {
-				// Change fill to semi-transparent after dragging
 				this.editor.updateShape({
 					id: shapeId,
 					type: 'geo',
 					props: { fill: 'pattern' },
 				})
-				// Return to our custom tool
 				this.editor.setCurrentTool('quick-shape')
 			},
 		})
 	}
 }
 
+const tools = [QuickShapeTool]
+
 export default function InteractionEndExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw tools={[QuickShapeTool]} initialState="quick-shape" hideUi />
+			<Tldraw tools={tools} initialState="quick-shape" hideUi />
 		</div>
 	)
 }
 
 /*
 [1]
-Create a simple tool that creates shapes on click. This demonstrates using
-onInteractionEnd to control what happens after the user drags the new shape.
+A tool that creates a shape on pointer down and immediately hands off to the select tool's
+translating state, so the shape follows the pointer until it's released.
 
 [2]
-After creating the shape, transition to the translating state so the user can
-immediately position it.
+`select.translating` is normally entered from `select.pointing_shape`. Entering it directly needs
+the same info: the pointer event, the target shape, and `isCreating`, which tells the state that
+the shape was just created so it won't Alt-clone it and will treat the drag as part of creation.
 
 [3]
-Pass a function as onInteractionEnd to execute custom logic when dragging ends.
-Here we change the shape's fill style and return to our custom tool. You can also
-pass a string like 'quick-shape' or 'select.idle' to simply transition to that tool.
+`onInteractionEnd` runs when the drag finishes. Passing a string such as 'quick-shape' mainly
+masks the current tool id, so the UI keeps showing that tool during the drag; it only switches
+back to it on completion when tool lock is on. Passing a function lets you do more first. Here we swap the fill
+to a pattern and then return to this tool so the next click creates another shape.
 */

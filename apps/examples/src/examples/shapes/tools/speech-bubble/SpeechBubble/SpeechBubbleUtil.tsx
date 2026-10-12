@@ -21,7 +21,6 @@ import {
 	getFontFamily,
 	resizeBox,
 	structuredClone,
-	useEditor,
 	vecModelValidator,
 } from 'tldraw'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
@@ -49,12 +48,12 @@ declare module 'tldraw' {
 	}
 }
 
-// Copied from tldraw/tldraw
-export const STROKE_SIZES = {
-	s: 2,
-	m: 3.5,
-	l: 5,
-	xl: 10,
+// Stroke width multipliers per size, applied to the theme's base stroke width
+const STROKE_SIZES: Record<TLDefaultSizeStyle, number> = {
+	s: 1,
+	m: 1.75,
+	l: 2.5,
+	xl: 5,
 }
 
 // There's a guide at the bottom of this file!
@@ -81,14 +80,6 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 	// [3]
 	static override props = speechBubbleShapeProps
-
-	override isAspectRatioLocked(shape: SpeechBubbleShape) {
-		return false
-	}
-
-	override canResize(shape: SpeechBubbleShape) {
-		return true
-	}
 
 	override canEdit(shape: SpeechBubbleShape) {
 		return true
@@ -202,17 +193,15 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const vertices = getSpeechBubbleVertices(shape)
 		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const editor = useEditor()
-		const theme = editor.getCurrentTheme()
-		const colors = theme.colors[editor.getColorMode()]
+		const theme = this.editor.getCurrentTheme()
+		const colors = theme.colors[this.editor.getColorMode()]
 
 		return (
 			<>
 				<svg className="tl-svg-container">
 					<path
 						d={pathData}
-						strokeWidth={STROKE_SIZES[size]}
+						strokeWidth={theme.strokeWidth * STROKE_SIZES[size]}
 						stroke={getColorValue(colors, color, 'solid')}
 						fill={'none'}
 					/>
@@ -242,13 +231,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	}
 
 	override onResize(shape: SpeechBubbleShape, info: TLResizeInfo<SpeechBubbleShape>) {
-		const resized = resizeBox(shape, info)
-		const next = structuredClone(info.initialShape)
-		next.x = resized.x
-		next.y = resized.y
-		next.props.w = resized.props.w
-		next.props.h = resized.props.h
-		return next
+		return resizeBox(shape, info)
 	}
 
 	getGrowY(shape: SpeechBubbleShape, prevGrowY = 0) {
@@ -286,39 +269,36 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 }
 
 /*
-Introduction: This file contains our custom shape util. The shape util is a class that defines how
-our shape behaves. Most of the logic for how the speech bubble shape works is in the onBeforeUpdate
-handler [6]. Since this shape has a handle, we need to do some special stuff to make sure it updates
-the way we want it to.
+This file contains the speech bubble shape util. Most of the logic that makes the tail behave
+lives in the onBeforeUpdate handler [6]: because the tail is driven by a handle, we constrain it
+there so every way of changing the shape (dragging the handle, resizing, editing text) keeps the
+tail in a sensible place.
 
 [1]
-First, we need to extend TLGlobalShapePropsMap to add our shape's props to the global type system.
-This tells TypeScript about the shape's properties. For this shape, we define width (w), height (h),
-size, color, font, alignment, text, and tail (using VecModel) as the shape's properties.
+Extend TLGlobalShapePropsMap to add our shape's props to the global type system. The tail is a
+VecModel.
 
 [2]
 Define the shape type using TLShape with the shape's type as a type argument.
 
 [3]
-This is where we define the shape's props and a type validator for each key. tldraw exports a
-bunch of handy validators for us to use. Props you define here will determine which style options
-show up in the style menu, e.g. we define 'size' and 'color' props, but we could add 'dash', 'fill'
-or any other of the default props.
+The shape's props with a validator for each key. Using tldraw's StyleProps (DefaultSizeStyle,
+DefaultColorStyle, DefaultFontStyle, and the align styles) here is what makes those options show
+up in the style panel for this shape; add 'dash' or 'fill' the same way if you want them.
 
 [4]
-Here is where we set the default props for our shape, this will determine how the shape looks
-when we click-create it. You'll notice we don't store the tail's absolute position though, instead
-we record its relative position. This is because we can also drag-create shapes. If we store the
-tail's position absolutely it won't scale properly when drag-creating. Throughout the rest of the
-util we'll need to convert the tail's relative position to an absolute position and vice versa.
+Default props. The tail is stored as a fraction of the shape's width and height rather than in
+pixels, so it scales correctly when the shape is drag-created or resized. The rest of the util
+converts between the normalized tail and shape space as needed.
 
 [5]
-`getHandles` tells tldraw how to turn our shape into a list of handles that'll show up when it's
-selected. We only have one handle, the tail, which simplifies things for us a bit. In
-`onHandleDrag`, we tell tldraw how our shape should be updated when the handle is dragged.
+`getHandles` returns the handles to show when the shape is selected: just the tail here. Handle
+positions are in shape space, so we scale the normalized tail up. `onHandleDrag` does the reverse
+when the handle moves.
 
 [6]
-This is the last method that fires after a shape has been changed, we can use it to make sure
-the tail stays the right length and position. Check out helpers.tsx to get into some of the more
-specific geometry stuff.
+onBeforeUpdate runs on every change to the shape. We use it to keep the tail at a sensible
+distance from the body: pushed outside if it was dragged inside, and clamped between a minimum
+and maximum length. It also recomputes `growY` so the body grows to fit the text. See helpers.tsx
+for the geometry.
 */

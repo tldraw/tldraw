@@ -16,8 +16,10 @@ keywords:
   ]
 ---
 
-Customize and override tldraw's actions.
+Add a custom action and change an existing action's keyboard shortcut using the `overrides` prop.
 
 ---
 
-This example shows how you can override tldraw's actions object to change keyboard shortcuts and add your own custom actions. In this case we've changed the delete action's shortcut to 'Shift + X', and we've added a new action that shows a toast when you press the 'S' key. For more information on keyboard shortcuts see the [keyboard shortcuts example](https://tldraw.dev/examples/keyboard-shortcuts).
+The `actions` override receives tldraw's default actions and returns the set to use. Here we add a `my-action` action that shows a toast when you press `S`, and change the delete action's shortcut to `Shift + X`.
+
+Try pressing `S` on the canvas to see the toast, then select a shape and press `Shift + X` to delete it. For more information on keyboard shortcuts see the [keyboard shortcuts example](https://tldraw.dev/examples/keyboard-shortcuts).

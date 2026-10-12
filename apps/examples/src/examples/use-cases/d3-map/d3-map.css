@@ -32,21 +32,5 @@
 
 .d3-map-top-panel {
 	display: flex;
-	gap: 8px;
-	padding: 4px;
 	pointer-events: all;
-}
-
-.d3-map-reset-button {
-	padding: 4px 12px;
-	font-size: 13px;
-	background: var(--tl-color-low);
-	color: var(--tl-color-text);
-	border: 1px solid var(--tl-color-text-3);
-	border-radius: var(--tl-radius-4);
-	cursor: pointer;
-}
-
-.d3-map-reset-button:hover {
-	background: var(--tl-color-muted-2);
 }

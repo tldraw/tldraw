@@ -5,8 +5,10 @@ priority: 0
 keywords: [inline, embedded, non-fullscreen, layout, container, positioning, inset, wrapper]
 ---
 
-Using the tldraw component in a non-fullscreen layout.
+Place the `Tldraw` component in a container that doesn't fill the screen.
 
 ---
 
-The `<Tldraw/>` component may be placed in any layout, even if it's not full-screen. In this example, the editor is inset within the screen layout. The component's interactions should still behave as you'd expect them to.
+The `Tldraw` component fills its container, and that container can be anywhere in your layout. Here it's an absolutely positioned box inset 100px from every edge of the page. Pointer events, keyboard shortcuts, camera, and UI all work the same as in a full-screen editor because the editor measures its own container rather than the window.
+
+For examples with several fixed-size editors on one page, see [Inset editor (fixed sizes)](https://tldraw.dev/examples/inline).

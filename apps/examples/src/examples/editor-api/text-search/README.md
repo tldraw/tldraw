@@ -13,11 +13,14 @@ keywords:
     filter shapes,
     overrides,
     actions,
+    gettext,
   ]
 ---
 
-Search through all the text on the canvas.
+Search the text of every shape on the current page and zoom to a result.
 
 ---
 
-A simple example of how to use the API to search for text in shapes and display results in the `HelperButtons` part of the user interface. Press Ctrl+F or Cmd+F to open the search bar.
+Each shape util exposes its text through `getText(shape)`, so the search filters `editor.getCurrentPageShapes()` by that value. Results are listed in the `HelperButtons` UI slot, and clicking one selects the shape and calls `zoomToSelection` to animate the camera to it. A UI action override binds Cmd+F / Ctrl+F to open the panel.
+
+Add some text or shapes with labels, press Cmd+F or Ctrl+F, and start typing. Press Escape to close.

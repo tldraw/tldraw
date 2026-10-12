@@ -1,4 +1,4 @@
-import { atom } from '@tldraw/state'
+import { atom } from 'tldraw'
 import { predecessorsFromEdges } from './pipelineGraph'
 
 export type StepStatus = 'pending' | 'running' | 'passed' | 'failed'

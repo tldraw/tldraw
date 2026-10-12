@@ -14,10 +14,15 @@ keywords:
   ]
 ---
 
-Register a handler to run after shapes are created or updated.
+Run a handler after shapes are created or updated to keep only one red shape on the page.
 
 ---
 
-You can register handlers to run after any record is created or updated. This is most useful for
-updating _other_ records in response to a particular record changing. In this example, we make sure
-there's only ever one red shape on a page.
+`editor.sideEffects.registerAfterCreateHandler` and `registerAfterChangeHandler` run after a
+record has been written to the store. That makes them the right place to update _other_ records in
+response to a change. Here, whenever a shape is created or changed and it turns out to be red, every
+other red shape on the same page is turned black.
+
+Try selecting one of the black words and setting its color to red in the style panel: the previously
+red word turns black. Because after-change handlers also fire for the updates they cause, make sure
+your handler is a no-op for records that already satisfy your rule, or it will loop.

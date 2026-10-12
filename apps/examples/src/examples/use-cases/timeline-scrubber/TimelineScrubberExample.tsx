@@ -5,7 +5,6 @@ import {
 	squashRecordDiffs,
 	Tldraw,
 	TldrawUiSlider,
-	track,
 	useEditor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -31,7 +30,7 @@ export default function TimelineScrubberExample() {
 	)
 }
 
-const TimelineScrubber = track(() => {
+function TimelineScrubber() {
 	const editor = useEditor()
 
 	const [timeline, setTimeline] = useState<TimelineState>({
@@ -48,43 +47,28 @@ const TimelineScrubber = track(() => {
 
 		setTimeline((prev) => {
 			// [2]
-			if (prev.currentIndex < prev.entries.length) {
-				// We're scrubbed back in time, create new timeline branch
-				const newEntries = prev.entries.slice(0, prev.currentIndex)
-				newEntries.push(newEntry)
-				return {
-					entries: newEntries,
-					currentIndex: newEntries.length,
-				}
-			} else {
-				// Normal forward progression
-				const newEntries = [...prev.entries, newEntry]
-				return {
-					entries: newEntries,
-					currentIndex: newEntries.length,
-				}
+			const newEntries = [...prev.entries.slice(0, prev.currentIndex), newEntry]
+			return {
+				entries: newEntries,
+				currentIndex: newEntries.length,
 			}
 		})
 	}, [])
 
 	// [3]
 	useEffect(() => {
-		if (!editor) return
-
-		const cleanupFn = editor.store.listen(
+		return editor.store.listen(
 			({ changes }) => {
 				recordChange(changes)
 			},
 			{ scope: 'document', source: 'user' }
 		)
-
-		return cleanupFn
 	}, [editor, recordChange])
 
 	// [4]
 	const navigateToIndex = useCallback(
 		(targetIndex: number) => {
-			if (!editor || targetIndex === timeline.currentIndex) return
+			if (targetIndex === timeline.currentIndex) return
 
 			const { entries, currentIndex } = timeline
 
@@ -113,13 +97,6 @@ const TimelineScrubber = track(() => {
 		[timeline, editor]
 	)
 
-	const handleSliderChange = useCallback(
-		(newIndex: number) => {
-			navigateToIndex(newIndex)
-		},
-		[navigateToIndex]
-	)
-
 	const isEmpty = timeline.entries.length === 0
 
 	const length = Math.max(3, String(timeline.entries.length).length)
@@ -142,28 +119,29 @@ const TimelineScrubber = track(() => {
 								timeline.entries[timeline.currentIndex - 1]?.timestamp ?? Date.now()
 							).toLocaleString()
 				}
-				onValueChange={handleSliderChange}
+				onValueChange={navigateToIndex}
 			/>
 		</div>
 	)
-})
+}
 
 /*
 [1]
-The recordChange function handles new changes from the store. It creates a new timeline entry
-and manages timeline branching logic.
+Each store change becomes one timeline entry holding its `RecordsDiff`. Index 0 is the empty
+canvas, index n is the state after the nth change.
 
 [2]
-If we're not at the latest point in time (currentIndex < entries.length), it means the user
-made a change while scrubbed back. We truncate the future timeline and create a new branch.
-Timeline indexing: 0 = empty canvas, 1 = first change applied, 2 = second change, etc.
+If the user edits while scrubbed back (`currentIndex < entries.length`), the entries after
+the current point are discarded and the new change starts a fresh branch from there.
 
-[3] 
-We listen to document changes from user actions only, filtering out changes we make during
-navigation to avoid recording our own time travel operations.
+[3]
+`store.listen` with `scope: 'document'` ignores presence and session records (camera,
+selection), and `source: 'user'` ignores changes we apply ourselves during navigation, so
+time travel doesn't record itself.
 
 [4]
-Navigation collects the required diffs, squashes them into a single optimized diff, then
-applies it (reversing first if going backward). Uses mergeRemoteChanges to ensure changes
-are treated as remote and don't trigger our listener.
+Moving from one index to another collects the diffs in between, squashes them into one with
+`squashRecordDiffs`, reverses it with `reverseRecordsDiff` when going backwards, and applies
+it inside `store.mergeRemoteChanges` so it arrives with `source: 'remote'` and is neither
+recorded by our listener nor pushed onto the undo stack.
 */

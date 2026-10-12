@@ -1,33 +1,17 @@
 import { TLComponents, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
+import './event-blocker.css'
+
+// There's a guide at the bottom of this file!
 
 function WelcomeScreen() {
 	return (
-		<div
-			style={{
-				position: 'absolute',
-				inset: 0,
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
-				pointerEvents: 'none', // [1]
-			}}
-		>
-			<div
-				style={{
-					padding: 32,
-					borderRadius: 20,
-					boxShadow: '2px 2px 12px rgba(0,0,0,.2)',
-					backgroundColor: 'white',
-					pointerEvents: 'all', // [2]
-					width: 400,
-				}}
-			>
-				<p
-					style={{
-						userSelect: 'text', // [3]
-					}}
-				>
+		// [1]
+		<div className="event-blocker__backdrop">
+			{/* [2] */}
+			<div className="event-blocker__panel">
+				{/* [3] */}
+				<p>
 					Notice that if you click on this box or start a drag from in here, you will not be
 					interacting with the canvas. However, you can still interact with the canvas by clicking
 					anywhere else!
@@ -47,23 +31,25 @@ const components: TLComponents = {
 export default function EventBlockerExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="example" components={components} />
+			<Tldraw persistenceKey="event-blocker-example" components={components} />
 		</div>
 	)
 }
 
 /*
 [1]
-This div will overlay the whole canvas. We want the user's pointer events to
-pass through this div rather than getting blocked by it div, so we turn
-pointer events off.
+The `InFrontOfTheCanvas` slot is a full-size layer over the canvas that starts with
+`pointer-events: none`, so anything rendered here is click-through by default. This
+backdrop just centers the panel; pointer events pass straight through it to the canvas.
 
 [2]
-This is the container that's centered on the screen. For this div, we want to
-block pointer events so that the user can't interact with the canvas behind it,
-so we turn pointer events on.
+Setting `pointer-events: all` on the panel opts it back in. The slot sits above the canvas
+and marks pointer events that start inside it as handled (see `editor.markEventAsHandled`),
+so tldraw ignores them: clicking or dragging here won't select, draw, or pan. You don't need
+to call `stopPropagation` yourself.
 
 [3]
-As a side note, we also turn off user-select for anything inside of the canvas.
-If you want the user to be able to select text, you can set this style to 'all'.
+tldraw disables text selection everywhere inside its container so that dragging on the
+canvas doesn't highlight text. If you want the user to be able to select text in your
+overlay, set `user-select: text` on it.
 */

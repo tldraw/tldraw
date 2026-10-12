@@ -120,6 +120,52 @@ describe('useSyncDemo', () => {
 			)
 			expect(result).toEqual({ src: 'https://demo.server.com/uploads/unique-123-test-file-jpg' })
 		})
+
+		it('should reject the upload when the server responds with an error status', async () => {
+			useSyncDemo({ roomId: 'test-room', host: 'https://demo.server.com' })
+
+			const useSyncCall = vi.mocked(useSync).mock.calls[0][0]
+			const assetStore = useSyncCall.assets
+			const file = new File(['test content'], 'test-file.jpg')
+
+			// a rejected upload resolves the fetch; the asset must not point at a URL that was never stored
+			vi.mocked(mockFetch).mockResolvedValueOnce(new Response(null, { status: 409 }))
+
+			await expect(assetStore.upload({} as TLAsset, file)).rejects.toThrow('409')
+		})
+	})
+
+	describe('asset resolution', () => {
+		function resolveImage(props: Record<string, unknown>, scale: number) {
+			const assetStore = vi.mocked(useSync).mock.calls[0][0].assets
+			const asset = {
+				type: 'image',
+				props: { src: 'https://demo.tldraw.xyz/uploads/image', ...props },
+			}
+			return assetStore.resolve!(asset as TLAsset, {
+				screenScale: scale,
+				steppedScreenScale: scale,
+				dpr: 1,
+				networkEffectiveType: '4g',
+				shouldResolveToOriginal: false,
+			})
+		}
+
+		it.each([
+			{ mimeType: 'image/png', w: 2000, h: 1500, fileSize: 1000, scale: 0.5, expected: '?w=1000' },
+			{ mimeType: 'image/jpeg', w: 2000, h: 1500, fileSize: 1000, scale: 0.5, expected: '?w=1000' },
+			{ mimeType: 'image/webp', w: 2000, h: 1500, fileSize: 1000, scale: 0.5, expected: '?w=1000' },
+			{ mimeType: 'image/jpeg', w: 399, h: 400, fileSize: 1000, scale: 0.5, expected: '' },
+			{ mimeType: 'image/jpeg', w: 2000, h: 1500, fileSize: 1000, scale: 0.75, expected: '' },
+		])(
+			'should resize $mimeType at $w × $h and $scale scale',
+			async ({ expected, scale, ...props }) => {
+				useSyncDemo({ roomId: 'test-room', host: 'https://demo.server.com' })
+				expect(await resolveImage(props, scale)).toBe(
+					`https://images.tldraw.xyz/demo.tldraw.xyz/uploads/image${expected}`
+				)
+			}
+		)
 	})
 
 	describe('bookmark asset creation', () => {

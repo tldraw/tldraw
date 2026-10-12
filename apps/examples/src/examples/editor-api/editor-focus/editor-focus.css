@@ -1,3 +1,20 @@
+.editor-focus-example {
+	padding: 32px;
+	min-height: 120vh;
+}
+
+.editor-focus-example__controls {
+	display: flex;
+	gap: 4px;
+}
+
+.editor-focus-example__editor {
+	width: 800px;
+	max-width: 100%;
+	height: 500px;
+}
+
+/* The editor adds this class to its container while it has focus. */
 .tl-container__focused {
 	outline: 1px solid var(--tl-color-primary);
 }

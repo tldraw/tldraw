@@ -88,6 +88,45 @@ describe('LicenseManager', () => {
 			}
 		})
 
+		it('Signals that it is development mode for blob URLs created by a development page', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				const origins = ['http://example.com', 'https://localhost:3000', 'https://127.0.0.1']
+				for (const origin of origins) {
+					// @ts-ignore
+					delete window.location
+					// @ts-ignore
+					window.location = new URL(`blob:${origin}/6ec2dc7a-afe9-45d9-bd71-1749f9568d28`)
+
+					const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey)
+					const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+					const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
+					expect(result).toMatchObject({ isLicenseParseable: true, isDevelopment: true })
+				}
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
+		it('Signals that it is not development mode for blob URLs created by a production page', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL(
+					'blob:https://www.example.com/6ec2dc7a-afe9-45d9-bd71-1749f9568d28'
+				)
+
+				const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey)
+				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+				const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
+				expect(result).toMatchObject({ isLicenseParseable: true, isDevelopment: false })
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
 		it('Signals that it is development mode when NODE_ENV is not production', async () => {
 			process.env.NODE_ENV = 'development'
 			// @ts-ignore
@@ -316,6 +355,42 @@ describe('LicenseManager', () => {
 			expect(result.isDomainValid).toBe(true)
 		})
 
+		it('Fails if the wildcard domain is a prefix of the current hostname', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('https://sub.example.com.other.io')
+
+			const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			permissiveHostsInfo[PROPERTIES.HOSTS] = ['*.example.com']
+			const permissiveLicenseKey = await generateLicenseKey(
+				JSON.stringify(permissiveHostsInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				permissiveLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(false)
+		})
+
+		it('Fails if the current hostname only ends with the wildcard domain', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('https://notexample.com')
+
+			const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			permissiveHostsInfo[PROPERTIES.HOSTS] = ['*.example.com']
+			const permissiveLicenseKey = await generateLicenseKey(
+				JSON.stringify(permissiveHostsInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				permissiveLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(false)
+		})
+
 		it('Fails if has a subdomain wildcard isnt for the same base domain', async () => {
 			// @ts-ignore
 			delete window.location
@@ -331,6 +406,46 @@ describe('LicenseManager', () => {
 			const result = (await licenseManager.getLicenseFromKey(
 				permissiveLicenseKey
 			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(false)
+		})
+
+		it('Succeeds if the page is a blob URL created by a licensed host', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('blob:https://www.example.com/6ec2dc7a-afe9-45d9-bd71-1749f9568d28')
+
+			const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = (await licenseManager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(true)
+		})
+
+		it('Succeeds if the page is a blob URL created by a wildcard-licensed host', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('blob:https://sub.example.com/6ec2dc7a-afe9-45d9-bd71-1749f9568d28')
+
+			const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			permissiveHostsInfo[PROPERTIES.HOSTS] = ['*.example.com']
+			const permissiveLicenseKey = await generateLicenseKey(
+				JSON.stringify(permissiveHostsInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				permissiveLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isDomainValid).toBe(true)
+		})
+
+		it('Fails if the page is a blob URL created by an unlicensed host', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('blob:https://www.foo.com/6ec2dc7a-afe9-45d9-bd71-1749f9568d28')
+
+			const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = (await licenseManager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
 			expect(result.isDomainValid).toBe(false)
 		})
 
@@ -422,6 +537,107 @@ describe('LicenseManager', () => {
 			expect(result.isDomainValid).toBe(true)
 		})
 
+		it('Is not development mode on a custom protocol', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL('app-bundle://app/index.html')
+
+				const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+				nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
+				nativeLicenseInfo[PROPERTIES.HOSTS] = ['app-bundle:']
+				const nativeLicenseKey = await generateLicenseKey(
+					JSON.stringify(nativeLicenseInfo),
+					keyPair
+				)
+				const nativeLicenseManager = new LicenseManager('', keyPair.publicKey)
+				const result = (await nativeLicenseManager.getLicenseFromKey(
+					nativeLicenseKey
+				)) as ValidLicenseKeyResult
+				expect(result).toMatchObject({
+					isLicenseParseable: true,
+					isNativeLicense: true,
+					isDomainValid: true,
+					isDevelopment: false,
+				})
+				expect(getLicenseState(result, () => {}, result.isDevelopment)).toBe('licensed')
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
+		it('Validates the domain on a custom protocol', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL('app-bundle://app/index.html')
+
+				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+				const customProtocolLicenseManager = new LicenseManager('', keyPair.publicKey)
+				const result = (await customProtocolLicenseManager.getLicenseFromKey(
+					licenseKey
+				)) as ValidLicenseKeyResult
+				expect(result).toMatchObject({ isDomainValid: false, isDevelopment: false })
+				expect(getLicenseState(result, () => {}, result.isDevelopment)).toBe(
+					'unlicensed-production'
+				)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
+		it('Is development mode over http on a non-loopback host', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL('http://www.example.com')
+
+				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+				const httpLicenseManager = new LicenseManager('', keyPair.publicKey)
+				const result = (await httpLicenseManager.getLicenseFromKey(
+					licenseKey
+				)) as ValidLicenseKeyResult
+				expect(result.isDevelopment).toBe(true)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
+		it.each([
+			['http://localhost:5173/', true],
+			['http://127.0.0.1:3000/', true],
+			['https://localhost:8443/', true],
+			['https://[::1]:8443/', true],
+			['http://192.168.1.5:3000/', true],
+			['http://staging-box/', true],
+			['https://www.example.com/', false],
+			['tauri://localhost/index.html', false],
+			['http://tauri.localhost/index.html', false],
+			['app://tauri.localhost/com.example.app', false],
+			['app-bundle://localhost/index.html', false],
+		])('Development mode at %s is %s', async (href, expected) => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL(href)
+
+				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+				const manager = new LicenseManager('', keyPair.publicKey)
+				const result = (await manager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
+				expect(result.isDevelopment).toBe(expected)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
 		it('Fails if it is a native app with the wrong protocol', async () => {
 			// @ts-ignore
 			delete window.location
@@ -436,6 +652,154 @@ describe('LicenseManager', () => {
 				nativeLicenseKey
 			)) as ValidLicenseKeyResult
 			expect(result.isDomainValid).toBe(false)
+		})
+
+		it.each(['tauri://localhost/index.html', 'http://tauri.localhost/index.html'])(
+			'Does not license an unrelated key at %s',
+			async (href) => {
+				process.env.NODE_ENV = 'production'
+				try {
+					// @ts-ignore
+					delete window.location
+					// @ts-ignore
+					window.location = new URL(href)
+
+					const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+					const manager = new LicenseManager('', keyPair.publicKey)
+					const result = (await manager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
+					expect(result).toMatchObject({ isDevelopment: false, isDomainValid: false })
+					expect(getLicenseState(result, () => {}, result.isDevelopment)).toBe(
+						'unlicensed-production'
+					)
+				} finally {
+					process.env.NODE_ENV = 'test'
+				}
+			}
+		)
+	})
+
+	describe('Canonical tldraw hosts', () => {
+		let fetchSpy: ReturnType<typeof vi.fn>
+
+		beforeEach(() => {
+			process.env.NODE_ENV = 'production'
+			fetchSpy = vi.fn(() => Promise.resolve(new Response()))
+			vi.stubGlobal('fetch', fetchSpy)
+		})
+
+		afterEach(() => {
+			vi.unstubAllGlobals()
+			process.env.NODE_ENV = 'test'
+		})
+
+		// The shared licenseManager was built against jsdom's localhost default, so it's in dev mode.
+		// Build one on the host itself so these run the constructor path a real page on our domains
+		// takes: production dev detection, license state, feature flags and the tracking ping.
+		async function createManagerOnHost(url: string, licenseKey = '') {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL(url)
+
+			const manager = new LicenseManager(licenseKey, keyPair.publicKey)
+			await vi.waitFor(() => expect(manager.state.get()).not.toBe('pending'))
+			return manager
+		}
+
+		it('Licenses tldraw-owned hosts with a watermark when no key is provided', async () => {
+			const hosts = [
+				'https://tldraw.com',
+				'https://www.tldraw.com',
+				'https://makereal.tldraw.com',
+				'https://tldraw.dev',
+				'https://staging.tldraw.dev',
+				'https://preview.tldraw.club',
+				'https://fairies.tldraw.workers.dev',
+				'https://teach.tldraw.xyz',
+			]
+
+			for (const host of hosts) {
+				const manager = await createManagerOnHost(host)
+
+				expect(manager.isDevelopment).toBe(false)
+				expect(await manager.getLicenseFromKey('')).toMatchObject({
+					isLicenseParseable: true,
+					isDomainValid: true,
+					isLicensedWithWatermark: true,
+					isCollaborationEnabled: true,
+					isCommentingEnabled: true,
+					isAnnualLicenseExpired: false,
+					isPerpetualLicenseExpired: false,
+					daysSinceExpiry: 0,
+				})
+				expect(manager.state.get()).toBe('licensed-with-watermark')
+				expect(manager.featureFlags.get()).toEqual({ collaboration: true, commenting: true })
+				manager.dispose()
+			}
+		})
+
+		it('Does not license hosts that merely look like ours', async () => {
+			const hosts = [
+				'https://nottldraw.com',
+				'https://tldraw.com.example.com',
+				'https://eviltldraw.dev',
+				'https://tldraw.co',
+				'https://tldraw.workers.dev.example.com',
+			]
+
+			for (const host of hosts) {
+				const manager = await createManagerOnHost(host)
+
+				expect(await manager.getLicenseFromKey('')).toMatchObject({
+					isLicenseParseable: false,
+					reason: 'no-key-provided',
+				})
+				expect(manager.state.get()).toBe('unlicensed-production')
+				expect(manager.featureFlags.get()).toEqual({ collaboration: false, commenting: false })
+				manager.dispose()
+			}
+		})
+
+		it('Never sends a watermark tracking ping for our own domains', async () => {
+			const manager = await createManagerOnHost('https://makereal.tldraw.com')
+
+			expect(manager.state.get()).toBe('licensed-with-watermark')
+			expect(fetchSpy).not.toHaveBeenCalled()
+			manager.dispose()
+		})
+
+		it('Still tracks a real watermarked key on one of our domains', async () => {
+			const licenseKey = await generateLicenseKey(
+				JSON.stringify([
+					'a-real-key',
+					['*.tldraw.com'],
+					FLAGS.ANNUAL_LICENSE | FLAGS.WITH_WATERMARK,
+					expiryDate,
+				]),
+				keyPair
+			)
+			const manager = await createManagerOnHost('https://makereal.tldraw.com', licenseKey)
+
+			expect(manager.state.get()).toBe('licensed-with-watermark')
+			expect(fetchSpy).toHaveBeenCalledTimes(1)
+			const trackUrl = new URL(fetchSpy.mock.calls[0][0] as string)
+			expect(trackUrl.searchParams.get('license_type')).toBe('with_watermark')
+			expect(trackUrl.searchParams.get('license_id')).toBe('a-real-key')
+			manager.dispose()
+		})
+
+		it('Lets an explicitly provided key win over the canonical-host grant', async () => {
+			const licenseKey = await generateLicenseKey(
+				JSON.stringify(['a-real-key', ['*.tldraw.com'], FLAGS.ANNUAL_LICENSE, expiryDate]),
+				keyPair
+			)
+			const manager = await createManagerOnHost('https://tldraw.com', licenseKey)
+
+			const result = (await manager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
+			expect(result.license.id).toBe('a-real-key')
+			expect(result.isLicensedWithWatermark).toBe(false)
+			expect(manager.state.get()).toBe('licensed')
+			manager.dispose()
 		})
 	})
 

@@ -43,9 +43,7 @@ function App() {
 const multiplayerAssets: TLAssetStore = {
 	// to upload an asset, we prefix it with a unique id, POST it to our worker, and return the URL
 	async upload(_asset, file) {
-		const id = uniqueId()
-
-		const objectName = `${id}-${file.name}`
+		const objectName = `${uniqueId()}-${file.name}`
 		const url = `${WORKER_URL}/uploads/${encodeURIComponent(objectName)}`
 
 		const response = await fetch(url, {

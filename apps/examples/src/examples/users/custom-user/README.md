@@ -18,13 +18,13 @@ keywords:
   ]
 ---
 
-Extend user records with custom metadata fields like roles and departments.
+Store app-specific fields like roles and departments in `TLUser.meta`.
 
 ---
 
-This example shows how to store custom metadata on `TLUser` records. Each user has `isAdmin` and `department` fields in their `meta` object. Switch between users at the top to see their custom metadata displayed in the side panel.
+`TLUser` records have a `meta` field for your own data. This example gives each user an `isAdmin` flag and a `department`, provides them through a `TLUserStore`, and reads them back in a side panel. Switch users with the buttons at the top to see the panel update.
 
-For runtime validation of custom meta fields, pass validators to `createTLSchema`:
+`meta` is untyped JSON, so the example casts to a local interface when reading. For runtime validation, pass validators to `createTLSchema` and hand the resulting schema to your store:
 
 ```ts
 const schema = createTLSchema({

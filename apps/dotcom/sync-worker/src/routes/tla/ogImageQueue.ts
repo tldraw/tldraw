@@ -7,7 +7,6 @@ import {
 	OG_REPAIR_COOLDOWN_MS,
 	OG_RETRY_DELAY_SECONDS,
 } from '../../config'
-import { getR2KeyForRoom } from '../../r2'
 import {
 	Environment,
 	OgImageRenderQueueMessage,
@@ -15,23 +14,20 @@ import {
 	ThumbnailBoardRef,
 } from '../../types'
 import { deleteRenderTokenRecord } from '../../utils/renderTokens'
+import { enumerateBoardPages } from './boardTools'
 import {
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
-	enumerateBoardPages,
 	loadBoardSnapshot,
 	putThumbnailPng,
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
+	summarizeSnapshotContent,
 } from './thumbnailRender'
-import {
-	browserRunDurationOf,
-	classifyScreenshotFailure,
-	reportThumbnailError,
-} from './thumbnailShared'
+import { classifyScreenshotFailure, reportThumbnailError } from './thumbnailShared'
 
 // Queue-backed async board thumbnail generation. Renders are asked for by the things that change a
-// board's content — publishing (TLPostgresReplicator) and editing (TLFileDurableObject) — and this
+// board's content — publishing (the outbox publish effect) and editing (TLFileDurableObject) — and this
 // consumer performs the capture out of band, refreshing the R2 cache the GET og-image route reads.
 // That route only ever reads; the MCP tool must return its image in-band, so it captures inline into
 // its own bucket. Neither goes through here.
@@ -39,7 +35,7 @@ import {
 // This path has no cap of any kind, by design. What bounds it is the render debounce upstream in
 // TLFileDurableObject, which is per-board, so total spend scales with how many boards are edited at
 // once. See "Request limits" in browser-run-thumbnails.md for why, and why the only rate limiting in
-// the pipeline lives on the MCP endpoint instead (sharedBoardScreenshotMcp.ts).
+// the pipeline lives on the MCP endpoint instead (mcpServer.ts).
 
 // OG images render a single page as the unfurl preview. Pick the first page (in board order) that
 // has content, so a board whose first page is empty still gets a meaningful image; fall back to the
@@ -94,9 +90,21 @@ export async function isOgImageRepairOnCooldown(
 	// Fail open on a read error: the enqueue this gates needs the same bucket for its pending marker,
 	// so if R2 is genuinely down the ask fails and reports there rather than being silently skipped.
 	const existing = await env.THUMBNAILS.head(getOgImageRepairCooldownKey(board)).catch(() => null)
-	if (!existing) return false
-	const expiresAt = Number(existing.customMetadata?.expiresAt)
+	return isMarkerAlive(existing)
+}
+
+// The pending and repair-cooldown markers are empty objects whose lifetime lives in `expiresAt`
+// metadata, since the bucket has no expiration rule of its own.
+function isMarkerAlive(marker: R2Object | null): boolean {
+	if (!marker) return false
+	const expiresAt = Number(marker.customMetadata?.expiresAt)
 	return Number.isFinite(expiresAt) && expiresAt > Date.now()
+}
+
+function putMarker(bucket: R2Bucket, key: string, ttlMs: number, now = Date.now()) {
+	return bucket.put(key, new Uint8Array(), {
+		customMetadata: { expiresAt: String(now + ttlMs) },
+	})
 }
 
 export async function enqueueOgImageRender(
@@ -105,29 +113,32 @@ export async function enqueueOgImageRender(
 	{
 		reason,
 		followUp,
+		firedAt,
 	}: {
 		// Required rather than defaulted: every trigger knows why it is asking, and a default would put
 		// whichever one forgot to say into some other trigger's telemetry bucket.
 		reason: OgImageRenderReason
 		followUp?: boolean
+		/**
+		 * When the ask fired, for asks made by the file DO's debounce alarm. The marker's expiry is
+		 * stamped from it rather than from the moment the R2 write below lands: the alarm resets the
+		 * debouncer's window *before* this function's R2 round trip runs, so a persist can land in
+		 * between and start a new max-wait window earlier than the marker's write. Counting the TTL
+		 * from the fire keeps that window ending at or past the marker's expiry, which is what lets
+		 * OG_RENDER_MAX_WAIT_MS >= OG_PENDING_MARKER_TTL_MS hold by exact equality (both pinned in
+		 * ogImageQueue.test.ts). Callers that are not debounced fires omit it.
+		 */
+		firedAt?: number
 	}
 ): Promise<EnqueueOgImageResult> {
 	if (!env.THUMBNAILS || !env.QUEUE) return 'unavailable'
 
 	const pendingKey = getOgImagePendingKey(board)
-	const existing = await env.THUMBNAILS.head(pendingKey)
-	if (existing) {
-		const expiresAt = Number(existing.customMetadata?.expiresAt)
-		if (Number.isFinite(expiresAt) && expiresAt > Date.now()) {
-			return 'already_pending'
-		}
+	if (isMarkerAlive(await env.THUMBNAILS.head(pendingKey))) {
+		return 'already_pending'
 	}
 
-	await env.THUMBNAILS.put(pendingKey, new Uint8Array(), {
-		customMetadata: {
-			expiresAt: String(Date.now() + OG_PENDING_MARKER_TTL_MS),
-		},
-	})
+	await putMarker(env.THUMBNAILS, pendingKey, OG_PENDING_MARKER_TTL_MS, firedAt)
 
 	const message: OgImageRenderQueueMessage = {
 		type: 'og-image-render',
@@ -330,23 +341,23 @@ export async function handleOgImageRenderMessage(
 
 		// The render page exports the chosen page; the worker screenshots it through the BROWSER
 		// binding and writes the PNG to the cache key the OG route reads.
+		const pageId = pickOgImagePageId(snapshot)
 		const render = await captureThumbnailScreenshot(env, board, {
-			pageId: pickOgImagePageId(snapshot),
+			surface: 'og',
+			pageId,
 			theme: 'light',
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
+			// `source` is the telemetry surface, not the render pipeline: these sessions belong to the
+			// queue's ledger even though the job is signed for the og pipeline.
+			telemetry: { source: 'queue', reason },
+			content: summarizeSnapshotContent(snapshot, pageId),
 		})
 		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version)
 		await clearOgImagePendingMarker(env, boardRef)
 		await enqueueFollowUpIfBoardMoved(env, message, board, reason, { ctx, db })
 
-		writeScreenshotTelemetry(env, {
-			source: 'queue',
-			reason,
-			followUp,
-			cacheStatus: 'miss',
-			browserRunDurationMs: render.durationMs,
-		})
+		writeScreenshotTelemetry(env, { source: 'queue', reason, followUp, cacheStatus: 'miss' })
 		message.ack()
 	} catch (error) {
 		// Reported once per job, on the delivery that gives up, rather than once per delivery: a board
@@ -369,25 +380,39 @@ export async function handleOgImageRenderMessage(
 			reason,
 			followUp,
 			failureReason: classifyScreenshotFailure(error),
-			browserRunDurationMs: browserRunDurationOf(error),
 			board: boardRef,
 		})
 	}
 }
 
 /**
- * A capture takes seconds, and the board can change during one. An edit or publish landing in that
- * window asks for a render, finds the pending marker this job set, and is turned away — the ask is
- * *dropped*, not deferred, and nothing upstream retries it: the debouncer has already reset and
- * neither caller reads the result. So the render we just wrote would be the last word, showing a
- * board as it was before its final edits, until something happened to ask again.
+ * A capture takes seconds, and the board can change during one. A *publish* landing in that window
+ * asks for a render, finds the pending marker this job set, and is turned away — the ask is
+ * *dropped*, not deferred, and nothing ever re-asks for a published board: its snapshot is frozen,
+ * so the render we just wrote would be the last word, showing the previous publication. This check
+ * is what closes that, and it is `published`-only because published boards are the only kind whose
+ * dropped ask stays dropped.
  *
- * Re-resolving here is what closes that. A retry needs no such check, since every delivery re-resolves
- * before capturing and so picks up the newest content by itself.
+ * A shared file's dropped ask is deferred by construction, in two halves pinned in
+ * ogImageQueue.test.ts. A *debounced* fire's ask is only turned away while this job's marker is
+ * alive, which places its persist a full OG_RENDER_DEBOUNCE_MS before the marker's clear — while
+ * the image whose write performs that clear read its snapshot at most THUMBNAIL_RENDER_TIMEOUT_MS
+ * plus the post-capture tail before it, retries included. The debounce being the longer of the two
+ * means the dropped ask's content is already in the image. A *max-wait* fire escapes that bound but
+ * cannot be turned away at all: the fire that enqueued this job reset the debouncer's window, so a
+ * clamped fire lands at or past the marker's TTL. Following up here as well bought nothing worth
+ * its cost — follow-ups were roughly a fifth of shared-file
+ * queue captures in production (measured 2026-08-11 via the `followup` telemetry blob): on a board
+ * that settled, the follow-up merely relocated the render the debounced ask was about to do; on a
+ * board still moving, it rendered a mid-edit state the next debounced render superseded.
  *
- * Deliberately never chained. A board edited without pause would otherwise find itself stale on every
- * follow-up and render continuously, which is the exact cost the debounce upstream exists to avoid.
- * One extra render per triggered render is the ceiling.
+ * Both halves price the job ending in an image write, which a give-up never does — the asks its
+ * marker turned away deferred into nothing. A known residue, not a regression; see "the deferral
+ * stops at that give-up" in browser-run-thumbnails.md.
+ *
+ * Deliberately never chained. A published board republished without pause would otherwise find
+ * itself stale on every follow-up and render continuously. One extra render per triggered render is
+ * the ceiling.
  *
  * Best effort: the image is already written and the marker already cleared, so a failure here loses a
  * refresh, not the render. It must not turn a completed job into a retry.
@@ -399,9 +424,10 @@ async function enqueueFollowUpIfBoardMoved(
 	reason: OgImageRenderReason,
 	{ ctx, db }: { ctx?: ExecutionContext; db?: Kysely<DB> }
 ) {
+	if (rendered.kind !== 'published') return
 	if (message.body.followUp) return
 	try {
-		const current = await readCurrentBoardVersion(env, rendered, db)
+		const current = await readCurrentPublishedVersion(env, rendered, db)
 		if (current === null) return
 		if (String(current) === String(rendered.version)) return
 		await enqueueOgImageRender(env, rendered, { reason, followUp: true })
@@ -416,33 +442,21 @@ async function enqueueFollowUpIfBoardMoved(
 }
 
 /**
- * The board's current content version, for the "did it move while we were capturing?" check above and
- * nothing else. `null` means there is nothing to compare against, which is treated as "don't follow
- * up".
- *
- * A shared file's version *is* the persisted room's R2 etag, so this reads that object's head rather
- * than going through `resolveThumbnailBoard`. The Postgres half of a resolve answers the gate, and no
- * gate is needed here: this decides whether to **enqueue**, and the job it enqueues re-resolves in
- * full before spending any Browser Run. So a board soft-deleted inside this window costs one queue
- * message that the next delivery drops as `board_not_viewable` — not a render, and not a leak.
- *
- * A published board's version is `lastPublished`, a column rather than an etag, so it has no R2
- * shortcut and keeps the full resolve. Publishing is not the trigger that made this path hot.
+ * The published board's current `lastPublished`, for the "did it move while we were capturing?"
+ * check above and nothing else. `null` means there is nothing to compare against, which is treated
+ * as "don't follow up". A full resolve rather than something lighter, because a published version is
+ * a Postgres column with no R2 shortcut — and publishing is not a hot path.
  */
-async function readCurrentBoardVersion(
+async function readCurrentPublishedVersion(
 	env: Environment,
 	board: ResolvedThumbnailBoard,
 	db?: Kysely<DB>
 ): Promise<string | number | null> {
-	if (board.kind === 'published') {
-		const resolved = await resolveThumbnailBoard(env, board.kind, board.slug, {
-			access: 'render',
-			db,
-		})
-		return resolved.ok ? resolved.board.version : null
-	}
-	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug: board.slug, isApp: true }))
-	return persisted?.etag ?? null
+	const resolved = await resolveThumbnailBoard(env, board.kind, board.slug, {
+		access: 'render',
+		db,
+	})
+	return resolved.ok ? resolved.board.version : null
 }
 
 async function retryOrDrop(
@@ -452,7 +466,6 @@ async function retryOrDrop(
 		reason,
 		followUp,
 		failureReason,
-		browserRunDurationMs,
 		board,
 	}: {
 		/**
@@ -465,23 +478,18 @@ async function retryOrDrop(
 		/** Resolved by the caller for the same reason as `reason` above. */
 		followUp: boolean
 		failureReason: string
-		browserRunDurationMs?: number
 		board: ThumbnailBoardRef
 	}
 ) {
-	// One datapoint per delivery, the opposite of the Sentry report above, because this dataset is the
-	// spend ledger for an uncapped render path: every delivery that reaches the capture creates a
-	// browser and can hold it for the full THUMBNAIL_RENDER_TIMEOUT_MS, last attempt or not. Telemetry
-	// counts spend, Sentry counts problems — three deliveries are three lots of spend, one problem.
+	// One datapoint per delivery, the opposite of the Sentry report above: three deliveries are three
+	// failures on this ledger, one problem on Sentry's. The Browser Run spend of a delivery that
+	// reached the capture is on the browser_run_session event, written inside the render itself.
 	writeScreenshotTelemetry(env, {
 		source: 'queue',
 		reason,
 		followUp,
 		cacheStatus: 'miss',
 		failureReason,
-		// Present only when the capture itself failed. A delivery that bailed earlier (an unreadable or
-		// empty snapshot) spent no Browser Run and correctly records none.
-		browserRunDurationMs,
 	})
 	// attempts counts this delivery, so attempts >= MAX means this was the final try.
 	if (message.attempts < OG_MAX_RENDER_ATTEMPTS) {
@@ -500,10 +508,12 @@ async function retryOrDrop(
 	// on a board that just proved it cannot render. Arm the repair cooldown instead — publish- and
 	// edit-triggered asks don't consult it, so a genuine republish still renders straight away. Best
 	// effort: a cooldown that fails to write costs extra renders, not the ack.
-	if (board.kind === 'published' && reason === 'crawler') {
-		await env.THUMBNAILS?.put(getOgImageRepairCooldownKey(board), new Uint8Array(), {
-			customMetadata: { expiresAt: String(Date.now() + OG_REPAIR_COOLDOWN_MS) },
-		}).catch(() => {})
+	if (board.kind === 'published' && reason === 'crawler' && env.THUMBNAILS) {
+		await putMarker(
+			env.THUMBNAILS,
+			getOgImageRepairCooldownKey(board),
+			OG_REPAIR_COOLDOWN_MS
+		).catch(() => {})
 	}
 	message.ack()
 }

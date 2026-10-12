@@ -1,8 +1,9 @@
+import { exhaustiveSwitchError } from '@tldraw/utils'
 import { vi } from 'vitest'
 import { atom } from '../Atom'
 import { Computed, UNINITIALIZED, computed, isUninitialized, withDiff } from '../Computed'
 import { react } from '../EffectScheduler'
-import { EMPTY_ARRAY, assertNever } from '../helpers'
+import { EMPTY_ARRAY } from '../helpers'
 import { getGlobalEpoch, transact, transaction } from '../transactions'
 import { RESET_VALUE, Signal } from '../types'
 
@@ -76,6 +77,35 @@ describe('atom history (H)', () => {
 		a.set(5)
 
 		expect(calls).toEqual([[1, 5, epochBeforeSet, getGlobalEpoch()]])
+	})
+
+	it('[H2][C2] a computed read inside computeDiff still sees the change afterwards', () => {
+		// computeDiff runs before the epoch ticks, so a dependent computed it reads is not stamped as
+		// checked at the epoch of the write that is still in progress.
+		const a = atom('', 1, {
+			historyLength: 10,
+			computeDiff: (prev, next) => {
+				c.get()
+				return next - prev
+			},
+		})
+		const c: Computed<number> = computed('', () => a.get() * 2)
+		const seen: number[] = []
+		react('', () => seen.push(c.get()))
+
+		a.set(2)
+
+		expect(c.get()).toBe(4)
+		expect(seen).toEqual([2, 4])
+		expect(a.getDiffSince(a.lastChangedEpoch - 1)).toEqual([1])
+	})
+
+	it('[H2] records an explicit null diff rather than treating it as missing', () => {
+		const a = atom<number, null | number>('', 1, { historyLength: 3 })
+		const startEpoch = a.lastChangedEpoch
+		a.set(2, 1)
+		a.set(3, null)
+		expect(a.getDiffSince(startEpoch)).toEqual([1, null])
 	})
 
 	it('[H4] clears the history buffer if no diff can be determined', () => {
@@ -383,7 +413,7 @@ function getIncrementalRecordMapper<In, Out>(
 					}
 					break
 				default:
-					assertNever(change)
+					exhaustiveSwitchError(change)
 			}
 		}
 

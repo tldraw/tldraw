@@ -14,8 +14,9 @@ export default function FocusModeExample() {
 	)
 }
 
-/**
- * This example demonstrates how to enable focus mode when the editor mounts.
- *
- * [1] The editor's instance state is updated on mount to enable focus mode.
- */
+/*
+[1]
+Focus mode is a flag on the editor's instance state. `updateInstanceState` sets it; the default UI
+reads it and hides everything except a small exit button. When a `persistenceKey` is used, this
+flag is preserved as a user preference, so setting it in `onMount` forces it on regardless.
+*/

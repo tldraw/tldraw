@@ -1,9 +1,7 @@
 import { Tldraw, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// There's a guide at the bottom of this page!
-
-export default function PreventMoveExample() {
+export default function PreventShapeChangeExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
@@ -19,7 +17,7 @@ export default function PreventMoveExample() {
 						},
 					})
 
-					// [1]
+					// Unlike locking the shape, rejecting transforms here leaves it selectable and editable.
 					editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next) => {
 						if (
 							editor.isShapeOfType(prev, 'geo') &&
@@ -43,17 +41,3 @@ export default function PreventMoveExample() {
 		</div>
 	)
 }
-
-/*
-[1]
-Here we register a handler that will run whenever a change is about to be made to
-a shape's record.
-
-The logic we want is that: if the shape is a geo shape and a rectangle, and then
-if the x, y, or rotation properties would be different in the next version of
-the shape record, or if the props.w, or props.h properties would change, then
-we want to reject the change; otherwise, we want to allow it.
-
-To reject the change, we return the previous record. To allow the change, we
-return the next record.
-*/

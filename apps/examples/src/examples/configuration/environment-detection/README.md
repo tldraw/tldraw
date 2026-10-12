@@ -1,5 +1,5 @@
 ---
-title: Environment detection with tlenv and tlenvReactive
+title: Environment detection
 component: ./EnvironmentDetectionExample.tsx
 priority: 2
 keywords:
@@ -16,23 +16,13 @@ keywords:
   ]
 ---
 
-Detect platform, browser, and input device type.
+Detect the platform, browser, and pointer type with `tlenv` and `tlenvReactive`.
 
 ---
 
-This example demonstrates tldraw's environment detection APIs for building platform-aware and device-adaptive interfaces:
+tldraw exports two objects that describe the environment it's running in:
 
-**Static detection (tlenv):**
+- `tlenv` is a plain object of flags that don't change during a session: `isDarwin`, `isIos`, `isAndroid`, `isSafari`, `isFirefox`, `isChromeForIos`, and so on. Read it directly, for example to show Cmd instead of Ctrl in shortcut hints on macOS.
+- `tlenvReactive` is an atom holding values that can change while the app is open, most importantly `isCoarsePointer`. Read it with `useValue` (or inside a `track`ed component) so your UI updates when it changes.
 
-- Platform detection (macOS, Windows, iOS, Android)
-- Browser detection (Safari, Firefox, Chrome)
-- Platform-specific keyboard shortcuts (Cmd vs Ctrl)
-
-**Reactive detection (tlenvReactive with useValue):**
-
-- Pointer type detection (coarse/fine) - can change mid-session on hybrid devices
-- Real-time updates when switching between touch and mouse input
-
-The example shows practical usage like adapting button sizes based on pointer type - larger touch targets (48px) for coarse pointers (touch) and smaller targets (32px) for fine pointers (mouse/trackpad).
-
-Use `tlenv` for static properties that don't change during the session, and `tlenvReactive` with the `useValue` hook for properties that can change reactively, especially `isCoarsePointer` on touchscreen laptops.
+The panel at the top shows what each one reports for your device, and a button that grows to a 48px touch target when the pointer is coarse. On a touchscreen laptop, tap the screen and then move the trackpad to watch the pointer type and button size switch.
