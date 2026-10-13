@@ -25,8 +25,6 @@ export interface SweepResult {
 	/** Rooms whose per-room read budget ran out with entries unvisited. */
 	incomplete: number
 	failed: number
-	/** Versions whose legacy copy would not read. Not failures: the chain itself replayed clean. */
-	legacyReadFailures: number
 	reads: number
 	/** Pass back as `cursor` to continue; null when the batch reached the end of the table. */
 	nextCursor: string | null
@@ -120,7 +118,6 @@ export async function sweepVersionChains({
 		verified: 0,
 		incomplete: 0,
 		failed: 0,
-		legacyReadFailures: 0,
 		reads: 0,
 		nextCursor: null,
 		failures: [],
@@ -141,7 +138,6 @@ export async function sweepVersionChains({
 
 		const verify = await verifyRoomVersions({
 			chainBucket: env.ROOMS_HISTORY,
-			legacyBucket: env.ROOMS_HISTORY_EPHEMERAL,
 			roomKey: getR2KeyForRoom({ slug: file.id, isApp: true }),
 			limit: Math.min(readsPerRoom, SWEEP_READ_BUDGET - result.reads),
 		})
@@ -150,12 +146,6 @@ export async function sweepVersionChains({
 		result.reads += verify.reads
 		if (verify.replayed > 0) result.verified++
 		if (!verify.complete) result.incomplete++
-		if (verify.legacyReadFailures.length > 0) {
-			result.legacyReadFailures += verify.legacyReadFailures.length
-			console.warn(
-				`Version chain sweep could not read ${verify.legacyReadFailures.length} legacy copies. file=${file.id} first=${verify.legacyReadFailures[0].timestamp}: ${verify.legacyReadFailures[0].message}`
-			)
-		}
 
 		const reason =
 			verify.errors.length > 0 ? 'chain-error' : verify.mismatches.length > 0 ? 'mismatch' : null

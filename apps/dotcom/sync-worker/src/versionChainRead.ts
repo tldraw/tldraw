@@ -1,7 +1,6 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import {
 	deleteAllObjectsWithPrefix,
-	listAllObjectKeys,
 	listAllObjects,
 	listObjectsInRange,
 	R2ReadScheduler,
@@ -48,11 +47,6 @@ export interface VersionReconstruction {
 	/** Every R2 operation this reconstruction cost, listings included. */
 	ops: number
 	deltaCount: number
-	/**
-	 * Which bucket answered. A caller proving that a chain reads back must not accept a legacy
-	 * full copy as that proof.
-	 */
-	source: 'chain' | 'legacy'
 }
 
 /**
@@ -136,9 +130,9 @@ export async function loadChainIndexForVersion(
 	schedule: R2ReadScheduler = runInline
 ): Promise<{ entries: ChainIndexEntry[]; ops: number }> {
 	const time = Date.parse(timestamp)
-	// Not a timestamp any chain key could carry; the legacy lookup still gets its say. A future one
-	// matters beyond the wasted lookup: no window would find an object before it, so the walk would
-	// fall through to listing the whole prefix. Bounding the past keeps every window a valid Date.
+	// Not a timestamp any chain key could carry. A future one matters beyond the wasted lookup: no
+	// window would find an object before it, so the walk would fall through to listing the whole
+	// prefix. Bounding the past keeps every window a valid Date.
 	if (Number.isNaN(time) || time < CHAIN_EPOCH_MS || time > Date.now() + CHAIN_KEY_CLOCK_SKEW_MS) {
 		return { entries: [], ops: 0 }
 	}
@@ -183,21 +177,19 @@ export async function loadChainIndexForVersion(
 }
 
 /**
- * The board as it stood at `timestamp`, or null if no bucket holds that version.
+ * The board as it stood at `timestamp`, or null if the chain does not hold that version.
  *
  * Throws rather than returning a partial reconstruction: a version that silently comes back missing
  * half its shapes is worse than one that comes back as an error.
  */
 export async function reconstructVersion({
 	chainBucket,
-	legacyBucket,
 	roomKey,
 	timestamp,
 	index,
 	schedule = runInline,
 }: {
 	chainBucket: R2Bucket
-	legacyBucket: R2Bucket
 	roomKey: string
 	timestamp: string
 	/** A chain index the caller already loaded (whole room or loadChainIndexForVersion's), so one request does not list twice. */
@@ -209,17 +201,7 @@ export async function reconstructVersion({
 		: await loadChainIndexForVersion(chainBucket, roomKey, timestamp, schedule)
 	const target = entries.find((entry) => entry.timestamps.includes(timestamp))
 
-	if (!target) {
-		// Everything written before cut-over lives only in the legacy bucket.
-		const legacy = await schedule(() => legacyBucket.get(`${roomKey}/${timestamp}`))
-		if (!legacy) return null
-		return {
-			snapshot: (await decodeVersionBody(legacy)) as RoomSnapshot,
-			ops: listOps + 1,
-			deltaCount: 0,
-			source: 'legacy',
-		}
-	}
+	if (!target) return null
 
 	if (target.kind === 'keyframe') {
 		const object = await schedule(() => chainBucket.get(target.key))
@@ -228,7 +210,6 @@ export async function reconstructVersion({
 			snapshot: (await decodeVersionBody(object)) as RoomSnapshot,
 			ops: listOps + 1,
 			deltaCount: 0,
-			source: 'chain',
 		}
 	}
 
@@ -262,7 +243,7 @@ export async function reconstructVersion({
 				if (delta.hash !== versionEnvelopeHash(snapshot)) {
 					throw new Error(`version ${timestamp} reconstructed with a different envelope hash`)
 				}
-				return { snapshot, ops: listOps + 1 + segments.length, deltaCount, source: 'chain' }
+				return { snapshot, ops: listOps + 1 + segments.length, deltaCount }
 			}
 		}
 	}
@@ -313,37 +294,22 @@ function assertContiguous(segments: SegmentIndexEntry[], targetKey: string) {
 	}
 }
 
-/** Version timestamps for a room across both buckets, newest first. */
+/** Version timestamps for a room, newest first. */
 export async function listVersionTimestamps({
 	chainBucket,
-	legacyBucket,
 	roomKey,
 	prefix,
 	index,
 	limit,
 }: {
 	chainBucket: R2Bucket
-	legacyBucket: R2Bucket
 	roomKey: string
 	prefix: string
 	/** A chain index the caller already loaded; getRoomHistory probes many prefixes per request. */
 	index?: ChainIndexEntry[]
-	/**
-	 * Caps the legacy listing at the R2 level. Legacy histories are never pruned, so an uncapped
-	 * walk of a big room is hundreds of pages.
-	 *
-	 * Not "the newest `limit` versions": R2 lists forward, so once the cap binds it is the *oldest*
-	 * legacy page that comes back, and newest-first holds only within that sample. A capped result
-	 * may therefore only answer whether anything exists, or — as `getRoomHistory` does — whether the
-	 * room holds fewer than `limit` versions, which is answerable because a short result means the
-	 * cap never bound.
-	 */
 	limit?: number
 }): Promise<string[]> {
-	const [entries, legacyKeys] = await Promise.all([
-		index ?? loadChainIndex(chainBucket, roomKey).then((r) => r.entries),
-		listAllObjectKeys(legacyBucket, `${roomKey}/${prefix}`, limit),
-	])
+	const entries = index ?? (await loadChainIndex(chainBucket, roomKey)).entries
 
 	const timestamps = new Set<string>()
 	for (const entry of entries) {
@@ -353,17 +319,15 @@ export async function listVersionTimestamps({
 			if (timestamp.startsWith(prefix)) timestamps.add(timestamp)
 		}
 	}
-	for (const key of legacyKeys) {
-		timestamps.add(key.slice(key.lastIndexOf('/') + 1))
-	}
 
 	const sorted = [...timestamps].sort((a, b) => b.localeCompare(a))
 	return limit === undefined ? sorted : sorted.slice(0, limit)
 }
 
 /**
- * The raw body of a version that exists as a whole object — a keyframe, or a legacy full copy —
- * as a stream of JSON bytes, or null when the version lives inside a segment and needs a replay.
+ * The raw body of a version that exists as a whole object — a keyframe — as a stream of JSON
+ * bytes, or null when the version lives inside a segment and needs a replay, or is not in the
+ * chain at all.
  *
  * The read routes hand this straight through: parsing a 25MB board into objects and serializing
  * it again costs ~3x the body on a 128MB isolate, where streaming costs nothing. Only a real delta
@@ -371,29 +335,20 @@ export async function listVersionTimestamps({
  */
 export async function openWholeVersionStream({
 	chainBucket,
-	legacyBucket,
-	roomKey,
 	timestamp,
 	index,
 	schedule = runInline,
 }: {
 	chainBucket: R2Bucket
-	legacyBucket: R2Bucket
-	roomKey: string
 	timestamp: string
 	index: ChainIndexEntry[]
 	schedule?: R2ReadScheduler
 }): Promise<ReadableStream<Uint8Array> | null> {
 	const target = index.find((entry) => entry.timestamps.includes(timestamp))
-	if (target && target.kind !== 'keyframe') return null
+	if (!target || target.kind !== 'keyframe') return null
 
-	const object = target
-		? await schedule(() => chainBucket.get(target.key))
-		: await schedule(() => legacyBucket.get(`${roomKey}/${timestamp}`))
-	if (!object) {
-		if (target) throw new Error(`version chain keyframe ${target.key} is missing`)
-		return null
-	}
+	const object = await schedule(() => chainBucket.get(target.key))
+	if (!object) throw new Error(`version chain keyframe ${target.key} is missing`)
 	return isGzippedVersionBody(object)
 		? object.body.pipeThrough(new DecompressionStream('gzip'))
 		: object.body
