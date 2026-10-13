@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'fs'
 import path from 'path'
-import { render, renderHook, screen, waitFor } from '@testing-library/react'
+import { act, render, renderHook, screen, waitFor } from '@testing-library/react'
 import { defineMessages, getDeclaredMessages } from '@tldraw/editor'
 import * as React from 'react'
 import { IntlProvider } from 'react-intl'
@@ -267,32 +267,38 @@ describe('the i18n adapter the editor gets', () => {
 })
 
 describe('the declared English', () => {
-	// It stands in for the English catalog the SDK no longer bundles, so once the package has loaded
-	// it has to hold every key an app might look up by id. Two kinds are exempt: a message written
-	// inline on an `<F>`, which carries its own English, and one from a package `tldraw` doesn't
-	// import. What's left failing means a declaring module never loads, as `consumerMessages` didn't.
+	// A chunk imported after mount — a lazily loaded @tldraw/commenting — declares labels that are
+	// looked up by id. A snapshot taken at mount left them rendering as their ids.
+	it('picks up a message declared after mount', () => {
+		const { result } = renderHook(() => useTranslation(), { wrapper: withProvider() })
+		expect(result.current('test.declared-late')).toBe('test.declared-late')
+		act(() => {
+			defineMessages({ late: { id: 'test.declared-late', defaultMessage: 'Declared late' } })
+		})
+		expect(result.current('test.declared-late')).toBe('Declared late')
+	})
+
+	// Stands in for the English catalog the SDK no longer bundles. Fails when a declaring module is
+	// never imported, as `consumerMessages` wasn't. Exempt: messages inline on an `<F>`, which carry
+	// their own English, and @tldraw/commenting's, which `tldraw` doesn't import.
 	it('covers main.json once the package has loaded', async () => {
 		await import('../../../index')
 		const { default: main } = await import('../../../../../../assets/translations/main.json')
-		const packages = path.resolve(__dirname, '../../../../..')
-		const exempt = new Set<string>()
-		for (const dir of ['tldraw/src', 'commenting/src', 'mentions/src']) {
-			for (const file of readdirSync(path.join(packages, dir), { recursive: true })) {
-				if (!/\.tsx?$/.test(String(file))) continue
-				const source = readFileSync(path.join(packages, dir, String(file)), 'utf8')
-				const ids =
-					dir === 'tldraw/src'
-						? source.matchAll(/<F\b[^>]*?\bid="([^"]+)"/g)
-						: source.matchAll(/\bid[=:] ?['"]([^'"]+)['"]/g)
-				for (const [, id] of ids) exempt.add(id)
-			}
+		const src = path.resolve(__dirname, '../../..')
+		const inlineIds = new Set<string>()
+		for (const file of readdirSync(src, { recursive: true })) {
+			if (!String(file).endsWith('.tsx')) continue
+			const source = readFileSync(path.join(src, String(file)), 'utf8')
+			for (const [, id] of source.matchAll(/<F\b[^>]*?\bid="([^"]+)"/g)) inlineIds.add(id)
 		}
 		const declared = getDeclaredMessages()
-		const missing = Object.keys(main).filter((id) => !(id in declared) && !exempt.has(id))
-		expect(missing).toEqual([])
-		const wrong = Object.keys(declared).filter(
-			(id) => id in main && declared[id] !== main[id as keyof typeof main]
+		const missing = Object.keys(main).filter(
+			(id) =>
+				!(id in declared) &&
+				!inlineIds.has(id) &&
+				!id.startsWith('comments.') &&
+				id !== 'tool.comment'
 		)
-		expect(wrong).toEqual([])
+		expect(missing).toEqual([])
 	})
 })

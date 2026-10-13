@@ -1,3 +1,5 @@
+import { atom } from '@tldraw/state'
+
 /**
  * Values substituted into a message's ICU placeholders.
  *
@@ -77,6 +79,11 @@ export interface TLI18nMessage {
 export type TLI18nMessageInput = Omit<TLI18nMessage, 'id'> & { id?: string }
 
 const declaredMessages: Record<string, string> = {}
+// Bumped per `defineMessages` call, so a reader re-renders when a chunk loaded after mount — a
+// dynamically imported @tldraw/commenting, say — declares messages its labels look up by id.
+const declaredVersion = atom('declaredMessagesVersion', 0)
+let snapshot: Readonly<Record<string, string>> = {}
+let snapshotVersion = -1
 
 /**
  * Declares messages so the extractor can find them, next to the UI that shows them — the English
@@ -119,6 +126,7 @@ export function defineMessages<const Messages extends Record<string, TLI18nMessa
 		withIds[key] = withId
 		declaredMessages[withId.id] = withId.defaultMessage
 	}
+	declaredVersion.update((v) => v + 1)
 	return withIds
 }
 
@@ -128,12 +136,18 @@ export function defineMessages<const Messages extends Record<string, TLI18nMessa
  * by id alone — a menu label, or an app calling `msg('action.copy')` — resolves against it.
  *
  * Declarations run as their modules load, so this is complete once the package has been imported.
- * Live, not a copy: spread it rather than holding on to it.
+ * Reactive: read it inside `useValue` or a `computed` to pick up a module that loads later. The
+ * returned object changes identity only when something new is declared.
  *
  * @internal
  */
 export function getDeclaredMessages(): Readonly<Record<string, string>> {
-	return declaredMessages
+	const version = declaredVersion.get()
+	if (version !== snapshotVersion) {
+		snapshot = { ...declaredMessages }
+		snapshotVersion = version
+	}
+	return snapshot
 }
 
 /**

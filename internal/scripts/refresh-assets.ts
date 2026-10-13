@@ -351,8 +351,8 @@ async function copyTranslations() {
 		languagesFile
 	)
 
-	// No English catalog is generated alongside this: it's the declarations' own `defaultMessage`s,
-	// collected as they load. See `getDeclaredMessages`.
+	// translationKeys.ts
+
 	const mainTranslation = await readJsonIfExists(join(sourceFolderPath, 'main.json'))!
 
 	const translationKeys = Object.keys(mainTranslation).map((key) => `'${key}'`)

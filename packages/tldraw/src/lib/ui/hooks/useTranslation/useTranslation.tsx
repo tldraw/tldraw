@@ -1,4 +1,4 @@
-import { TLI18nMessage, getDeclaredMessages, warnOnce } from '@tldraw/editor'
+import { TLI18nMessage, getDeclaredMessages, useValue, warnOnce } from '@tldraw/editor'
 import * as React from 'react'
 import {
 	IntlContext,
@@ -98,6 +98,7 @@ export function TldrawUiTranslationProvider({
 	// Lowest to highest: the declared English, the English overrides, the locale's catalog, its
 	// overrides. The English overrides go underneath the catalog, so they reach only ids it lacks:
 	// an app's own key not yet translated for this locale falls back to its English, not its id.
+	const declared = useValue('declared messages', getDeclaredMessages, [])
 	const translated = React.useMemo(() => {
 		const enOverrides = locale === 'en' ? undefined : overrides?.en
 		return { ...enOverrides, ...loaded.messages, ...overrides?.[locale] }
@@ -106,9 +107,9 @@ export function TldrawUiTranslationProvider({
 	const currentTranslation = React.useMemo(
 		() => ({
 			...loaded,
-			messages: { ...getDeclaredMessages(), ...translated } as TLUiTranslation['messages'],
+			messages: { ...declared, ...translated } as TLUiTranslation['messages'],
 		}),
-		[loaded, translated]
+		[loaded, declared, translated]
 	)
 
 	// react-intl builds each provider's catalog from its own props alone, so without merging this
@@ -129,12 +130,12 @@ export function TldrawUiTranslationProvider({
 		() =>
 			parentIntl
 				? ({
-						...getDeclaredMessages(),
+						...declared,
 						...parentIntl.messages,
 						...translated,
 					} as IntlConfig['messages'])
 				: currentTranslation.messages,
-		[parentIntl, translated, currentTranslation.messages]
+		[parentIntl, declared, translated, currentTranslation.messages]
 	)
 
 	return (
@@ -245,9 +246,7 @@ export function useTranslation() {
 			if (!message) return message as string
 			// A bare key carries no default message, by design: this is the path for labels that
 			// arrive as data and for an app's own keys.
-			// eslint-disable-next-line tldraw/enforce-default-message
-			if (typeof message === 'string') return intl.formatMessage({ id: message }, values)
-			return intl.formatMessage(message, values)
+			return intl.formatMessage(typeof message === 'string' ? { id: message } : message, values)
 		},
 		[intl]
 	)

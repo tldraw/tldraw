@@ -22,7 +22,6 @@ vi.mock('./src/lib/ui/hooks/useTranslation/useTranslation', async () => {
 			dir: 'ltr',
 			messages: {},
 		}),
-		// Return the key itself as the translation, or a declared message's id
 		useTranslation: () => (message) => (typeof message === 'object' ? message.id : message || ''),
 	}
 })
