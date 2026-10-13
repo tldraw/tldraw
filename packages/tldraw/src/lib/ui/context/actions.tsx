@@ -97,8 +97,6 @@ export interface TLUiActionItem<
 /** @public */
 export type TLUiActionsContextType = Record<string, TLUiActionItem>
 
-export { supportsDownloadingOriginal }
-
 /** @internal */
 export const ActionsContext = React.createContext<TLUiActionsContextType | null>(null)
 
