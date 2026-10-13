@@ -34,7 +34,7 @@ import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
 import { FONT_SIZES, TEXT_PROPS, getFontFamily } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
-import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
+import { TLUiTranslationValues } from './ui/hooks/useTranslation/useTranslation'
 import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
 import { isShapeWithLink } from './utils/shapes/shapes'
 import { renderHtmlFromRichTextForMeasurement, renderRichTextFromHTML } from './utils/text/richText'
@@ -107,8 +107,8 @@ export interface TLExternalContentProps {
 /** @public */
 export interface TLDefaultExternalContentHandlerOpts extends TLExternalContentProps {
 	toasts: TLUiToastsContextType
-	// Passed ids, not declared messages: it's app-supplied and may only accept string keys.
-	msg: ReturnType<typeof useTranslation>
+	// Takes ids, not declared messages: an app may supply its own `msg` that only knows string keys.
+	msg(id: string, values?: TLUiTranslationValues): string
 }
 
 /** @public */

@@ -32,13 +32,6 @@ export async function fetchTranslation(
 	locale: TLUiTranslation['locale'],
 	assetUrls: TLUiAssetUrls
 ): Promise<TLUiTranslation> {
-	const mainRes = await fetch(assetUrls.translations.en)
-
-	if (!mainRes.ok) {
-		console.warn(`No main translations found.`)
-		return EN_TRANSLATION
-	}
-
 	if (locale === 'en') {
 		return EN_TRANSLATION
 	}
@@ -58,8 +51,9 @@ export async function fetchTranslation(
 		return EN_TRANSLATION
 	}
 
+	// The only reader of en.json, so it's fetched only here.
 	if (process.env.NODE_ENV === 'development') {
-		const main: Record<string, string> = await mainRes.json()
+		const main: Record<string, string> = await (await fetch(assetUrls.translations.en)).json()
 		const missing = Object.keys(main).filter((key) => !messages[key as TLUiTranslationKey])
 		if (missing.length > 0) {
 			console.warn(`Language ${locale}: missing messages for keys:\n${missing.join('\n')}`)

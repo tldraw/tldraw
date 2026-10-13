@@ -128,6 +128,36 @@ describe('TldrawUiTranslationProvider', () => {
 		}
 	})
 
+	// `<Tldraw>` nests the UI's provider inside one fixed at the browser's language. Merging the
+	// outer one's catalog left a French browser French after switching to English.
+	it("doesn't take another provider's language when nested inside it", async () => {
+		const fetchSpy = vi
+			.spyOn(window, 'fetch')
+			.mockImplementation(
+				async () => ({ ok: true, json: async () => ({ 'action.copy': 'Copier' }) }) as Response
+			)
+		try {
+			const Outer = withLocale('fr')
+			const Inner = withLocale('en')
+			const { result } = renderHook(() => useTranslation(), {
+				wrapper: ({ children }) => (
+					<IntlProvider locale="fr" messages={{ 'app.hello': 'Bonjour' }}>
+						<Outer>
+							<Inner>{children}</Inner>
+						</Outer>
+					</IntlProvider>
+				),
+			})
+			await waitFor(() => expect(fetchSpy).toHaveBeenCalled())
+			await act(async () => {})
+			expect(result.current('action.copy')).toBe('Copy')
+			// The app's own catalog still comes through both.
+			expect(result.current('app.hello')).toBe('Bonjour')
+		} finally {
+			fetchSpy.mockRestore()
+		}
+	})
+
 	// An empty override is how an app hides a label; react-intl's default shows the id instead.
 	it('renders an empty override as empty', () => {
 		const { result } = renderHook(() => useTranslation(), {
@@ -283,7 +313,11 @@ describe('the declared English', () => {
 	// their own English, and @tldraw/commenting's, which `tldraw` doesn't import.
 	it('covers main.json once the package has loaded', async () => {
 		await import('../../../index')
-		const { default: main } = await import('../../../../../../assets/translations/main.json')
+		// The one test that reads the catalog file, since matching it is the point.
+		const repoRoot = path.resolve(__dirname, '../../../../../..')
+		const main = JSON.parse(
+			readFileSync(path.join(repoRoot, 'assets/translations/main.json'), 'utf8')
+		)
 		const src = path.resolve(__dirname, '../../..')
 		const inlineIds = new Set<string>()
 		for (const file of readdirSync(src, { recursive: true })) {

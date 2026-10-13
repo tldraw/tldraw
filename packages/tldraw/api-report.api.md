@@ -4125,7 +4125,7 @@ export type TLCopyType = 'json' | 'png' | 'svg';
 // @public (undocumented)
 export interface TLDefaultExternalContentHandlerOpts extends TLExternalContentProps {
     // (undocumented)
-    msg: ReturnType<typeof useTranslation>;
+    msg(id: string, values?: TLUiTranslationValues): string;
     // (undocumented)
     toasts: TLUiToastsContextType;
 }

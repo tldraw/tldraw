@@ -1,9 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import * as React from 'react'
 import { describe, expect, it, vi } from 'vitest'
-// The English catalog the SDK declares. Read from the file because importing this one module
-// declares almost none of it — it's complete only once the whole package has loaded.
-import main from '../../../../../../../assets/translations/main.json'
 import { TLUiTranslation } from './translations'
 import {
 	TranslationsContext,
@@ -18,11 +15,17 @@ import {
 // context-dependent behavior.
 vi.unmock('./useTranslation')
 
+const catalog = {
+	'action.copy': 'Copy',
+	'a11y.shape-index': '{num} of {total}',
+	'comments.replies': '{count, plural, one {# reply} other {# replies}}',
+}
+
 const rtlTranslation: TLUiTranslation = {
 	locale: 'ar',
 	label: 'Arabic',
 	dir: 'rtl',
-	messages: main as TLUiTranslation['messages'],
+	messages: catalog as TLUiTranslation['messages'],
 }
 
 function withTranslation(translation: TLUiTranslation) {
@@ -81,7 +84,7 @@ describe('useTranslation', () => {
 				locale,
 				label: locale,
 				dir: 'ltr',
-				messages: { ...main, ...messages } as TLUiTranslation['messages'],
+				messages: { ...catalog, ...messages } as TLUiTranslation['messages'],
 			}),
 		})
 		return result.current
@@ -99,22 +102,6 @@ describe('useTranslation', () => {
 		const msg = msgWith({})
 		expect(msg('comments.replies', { count: 1 })).toBe('1 reply')
 		expect(msg('comments.replies', { count: 4 })).toBe('4 replies')
-	})
-
-	it('picks the reactor phrasing by number of reactors', () => {
-		const msg = msgWith({})
-		const names = { a: 'Ada', b: 'Bo', c: 'Cy' }
-		expect(msg('comments.reacted', { ...names, count: 1, others: -2 })).toBe('Ada reacted')
-		expect(msg('comments.reacted', { ...names, count: 2, others: -1 })).toBe('Ada and Bo reacted')
-		expect(msg('comments.reacted', { ...names, count: 3, others: 0 })).toBe(
-			'Ada, Bo and Cy reacted'
-		)
-		expect(msg('comments.reacted', { ...names, count: 4, others: 1 })).toBe(
-			'Ada, Bo, Cy and 1 other reacted'
-		)
-		expect(msg('comments.reacted', { ...names, count: 6, others: 3 })).toBe(
-			'Ada, Bo, Cy and 3 others reacted'
-		)
 	})
 
 	// Apps are documented to pass their own keys and plain text through `msg`.

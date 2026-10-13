@@ -323,7 +323,7 @@ export function FileItems({
 				)}
 				{workspaceId && (
 					<TldrawUiMenuItem
-						label={msg((hasAdminRights ? messages.delete : messages.forget).id)}
+						label={msg(hasAdminRights ? messages.delete : messages.forget)}
 						id="delete"
 						readonlyOk
 						onSelect={handleDeleteClick}

@@ -1112,12 +1112,20 @@ const rules = {
 			return {
 				CallExpression(node) {
 					if (node.callee.type !== 'Identifier' || node.callee.name !== 'msg') return
-					const arg = node.arguments[0]
-					if (!arg) return
-					const isBare =
+					const isBare = (arg) =>
 						(arg.type === 'Literal' && typeof arg.value === 'string') ||
 						(arg.type === 'TemplateLiteral' && arg.expressions.length === 0)
-					if (isBare) context.report({ node: arg, messageId: 'bare' })
+					const check = (arg) => {
+						if (!arg) return
+						// `msg(open ? 'a' : 'b')` is a bare key either way.
+						if (arg.type === 'ConditionalExpression') {
+							check(arg.consequent)
+							check(arg.alternate)
+						} else if (isBare(arg)) {
+							context.report({ node: arg, messageId: 'bare' })
+						}
+					}
+					check(node.arguments[0])
 				},
 			}
 		},

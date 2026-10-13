@@ -31,6 +31,13 @@ export interface TLUiTranslationProviderProps {
 	overrides?: Record<string, Record<string, string>>
 }
 
+// What a nested `TldrawUiTranslationProvider` needs to tell its parent `IntlProvider` apart from
+// an app's: the catalog this one handed react-intl, which passes it through as `intl.messages`.
+const OuterCatalogContext = React.createContext<{
+	messages: IntlConfig['messages']
+	appMessages: IntlConfig['messages'] | undefined
+} | null>(null)
+
 /** @public */
 export type TLUiTranslationContextType = TLUiTranslation
 
@@ -120,23 +127,31 @@ export function TldrawUiTranslationProvider({
 	// it holds the app's own declarations too, whose English would otherwise shadow their
 	// translations.
 	//
+	// Only the app's catalog is merged, never another of ours: `<Tldraw>` renders one of these
+	// above the UI's, with the locale it mounted with, and merging that put its language under
+	// every other — French under English, French filling German's gaps.
+	//
 	// The cast is because the type is a union of two uniform records and this one is mixed on
 	// purpose: `formatMessage` dispatches per message, so the SDK's ICU strings and an app's
 	// precompiled AST can share a catalog. That holds only while the app keeps react-intl's ICU
 	// parser — an app that aliases it away, as tldraw.com used to, formats every string message
 	// with a placeholder to its own source.
 	const parentIntl = React.useContext(IntlContext)
+	const outer = React.useContext(OuterCatalogContext)
+	const appMessages =
+		outer && parentIntl?.messages === outer.messages ? outer.appMessages : parentIntl?.messages
 	const messages = React.useMemo(
 		() =>
-			parentIntl
+			appMessages
 				? ({
 						...declared,
-						...parentIntl.messages,
+						...appMessages,
 						...translated,
 					} as IntlConfig['messages'])
 				: currentTranslation.messages,
-		[parentIntl, declared, translated, currentTranslation.messages]
+		[appMessages, declared, translated, currentTranslation.messages]
 	)
+	const outerCatalog = React.useMemo(() => ({ messages, appMessages }), [messages, appMessages])
 
 	return (
 		<TranslationsContext.Provider value={currentTranslation}>
@@ -149,7 +164,7 @@ export function TldrawUiTranslationProvider({
 				onError={onTranslationError}
 				fallbackOnEmptyString={false}
 			>
-				{children}
+				<OuterCatalogContext.Provider value={outerCatalog}>{children}</OuterCatalogContext.Provider>
 			</IntlProvider>
 		</TranslationsContext.Provider>
 	)
@@ -196,7 +211,7 @@ const intlCache = createIntlCache()
  *
  * const msg = useTranslation()
  * const label = msg(messages.selected, { count: 5 })
- * const styles = msg('style-panel.styles')
+ * const title = msg('my-app.title')
  * ```
  *
  * @public
