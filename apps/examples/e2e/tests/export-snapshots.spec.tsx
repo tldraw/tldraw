@@ -31,6 +31,7 @@ import {
 	manCropAsCircle,
 	richText,
 	richTextForArrow,
+	taskList,
 } from './export-snapshots-data'
 
 declare const editor: Editor
@@ -73,6 +74,10 @@ const snapshots: Snapshots = {
 				<TL.geo dash="solid" richText={toRichText('\n\n\n\n\n\ntext')} w={200} h={30} scale={2} />
 			),
 			'rich text': <TL.geo dash="solid" richText={richText} align="start" w={300} h={300} />,
+			// The checkbox is a styled <span> rather than the <input>, because form controls aren't
+			// rendered when an SVG is loaded as an image. Without this, a CSS change could empty every
+			// exported checkbox and nothing would catch it.
+			'task list': <TL.geo dash="solid" richText={taskList} align="start" w={300} h={140} />,
 		},
 	},
 	// A dedicated group (its own snapshot image) for RTL export alignment (#7720): `start` must

@@ -170,6 +170,7 @@ export function getAssetUrls(opts) {
 			'stretch-horizontal': iconsIcon0MergedSvg + '#stretch-horizontal',
 			'stretch-vertical': iconsIcon0MergedSvg + '#stretch-vertical',
 			strike: iconsIcon0MergedSvg + '#strike',
+			taskList: iconsIcon0MergedSvg + '#taskList',
 			'text-align-center': iconsIcon0MergedSvg + '#text-align-center',
 			'text-align-left': iconsIcon0MergedSvg + '#text-align-left',
 			'text-align-right': iconsIcon0MergedSvg + '#text-align-right',
