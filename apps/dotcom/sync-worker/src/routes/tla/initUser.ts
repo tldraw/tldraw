@@ -12,11 +12,10 @@ import { isRateLimited } from '../../utils/rateLimit'
 import {
 	getBearerToken,
 	getClerkClient,
-	getMcpTokenAuth,
 	isOAuthAccessToken,
 	requireAuth,
+	verifyOAuthAccessToken,
 } from '../../utils/tla/getAuth'
-import { writeMcpAuthRefusalTelemetry } from './mcpServer'
 
 type EnsureUserResult =
 	| { outcome: 'existing' | 'created' | 'repaired'; email: string }
@@ -38,19 +37,17 @@ const OUTCOME_RESPONSES: Record<EnsureUserOutcome, { body: string; status: numbe
  * ChatGPT calls it from its own worker with the OAuth access token the host hands it, for an
  * account that signed up on the consent screen and has never opened tldraw.com. Routed on the
  * token's `typ`, as the thumbnail route is, so each request is verified once.
+ *
+ * No `mcp_server_access` check on the access token: like the session path, any Clerk account gets
+ * its rows. It also keeps creation here, where `init_user` records it, rather than inside that
+ * check, which creates missing rows itself.
  */
 export async function handleInitUser(req: IRequest, env: Environment): Promise<Response> {
 	const token = getBearerToken(req)
 	let userId: string
 	if (token && isOAuthAccessToken(token)) {
-		const auth = await getMcpTokenAuth(req, env)
-		if (!auth.ok) {
-			writeMcpAuthRefusalTelemetry(env, req, auth.reason, 'init')
-			return Response.json(
-				{ error: 'Unauthorized' },
-				{ status: auth.reason === 'not_allowlisted' ? 403 : 401 }
-			)
-		}
+		const auth = await verifyOAuthAccessToken(req, env)
+		if (!auth.ok) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		userId = auth.userId
 	} else {
 		userId = (await requireAuth(req, env)).userId

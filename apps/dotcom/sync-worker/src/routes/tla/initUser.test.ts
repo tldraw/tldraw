@@ -6,16 +6,15 @@ const getUser = vi.fn()
 vi.mock('../../utils/tla/getAuth', async (importOriginal) => ({
 	...(await importOriginal<typeof import('../../utils/tla/getAuth')>()),
 	getClerkClient: () => ({ users: { getUser } }),
-	getMcpTokenAuth: vi.fn(),
 	requireAuth: vi.fn(),
+	verifyOAuthAccessToken: vi.fn(),
 }))
-vi.mock('./mcpServer', () => ({ writeMcpAuthRefusalTelemetry: vi.fn() }))
 vi.mock('../../utils/analytics', () => ({ writeDataPoint: vi.fn() }))
 const pool = vi.hoisted(() => ({ current: undefined as unknown }))
 vi.mock('../../postgres', () => ({ createPostgresConnectionPool: () => pool.current }))
 
-const { getMcpTokenAuth, requireAuth } = await import('../../utils/tla/getAuth')
-const { writeMcpAuthRefusalTelemetry } = await import('./mcpServer')
+const { requireAuth, verifyOAuthAccessToken } = await import('../../utils/tla/getAuth')
+const { writeDataPoint } = await import('../../utils/analytics')
 
 function makeDb(existingEmail?: string, { hasHomeGroup = true } = {}) {
 	const inserted: { table: string; row: Record<string, unknown> }[] = []
@@ -155,32 +154,40 @@ describe('handleInitUser', () => {
 	})
 
 	it('accepts an OAuth access token for the user it names', async () => {
-		vi.mocked(getMcpTokenAuth).mockResolvedValue({ ok: true, userId: 'user-1' })
+		vi.mocked(verifyOAuthAccessToken).mockResolvedValue({ ok: true, userId: 'user-1' })
 		const response = await handleInitUser(makeRequest(OAUTH_TOKEN), makeEnv())
 		expect(response.status).toBe(200)
 		expect(requireAuth).not.toHaveBeenCalled()
 	})
 
-	it('answers 403 for a valid access token outside mcp_server_access', async () => {
-		vi.mocked(getMcpTokenAuth).mockResolvedValue({ ok: false, reason: 'not_allowlisted' })
+	// The plugin's consent-screen signups are created by this call, so that is where they are counted.
+	it('records the creation of an account first seen on an access token', async () => {
+		getUser.mockResolvedValue(clerkUser('someone@example.com'))
+		const { db } = makeDb()
+		pool.current = Object.assign(db, { destroy: async () => {} })
+		vi.mocked(verifyOAuthAccessToken).mockResolvedValue({ ok: true, userId: 'user-1' })
 		const response = await handleInitUser(makeRequest(OAUTH_TOKEN), makeEnv())
-		expect(response.status).toBe(403)
-		expect(writeMcpAuthRefusalTelemetry).toHaveBeenCalledWith(
+		expect(response.status).toBe(200)
+		expect(writeDataPoint).toHaveBeenCalledWith(
+			undefined,
+			undefined,
 			expect.anything(),
-			expect.anything(),
-			'not_allowlisted',
-			'init'
+			'init_user',
+			{
+				blobs: ['created'],
+				doubles: [expect.any(Number)],
+			}
 		)
 	})
 
 	it('answers 401 for an access token that does not verify', async () => {
-		vi.mocked(getMcpTokenAuth).mockResolvedValue({ ok: false, reason: 'invalid_token' })
+		vi.mocked(verifyOAuthAccessToken).mockResolvedValue({ ok: false, reason: 'invalid_token' })
 		const response = await handleInitUser(makeRequest(OAUTH_TOKEN), makeEnv())
 		expect(response.status).toBe(401)
 	})
 
 	it('answers 404 for an access token whose user is not the one in the path', async () => {
-		vi.mocked(getMcpTokenAuth).mockResolvedValue({ ok: true, userId: 'user-2' })
+		vi.mocked(verifyOAuthAccessToken).mockResolvedValue({ ok: true, userId: 'user-2' })
 		const response = await handleInitUser(makeRequest(OAUTH_TOKEN), makeEnv())
 		expect(response.status).toBe(404)
 	})
@@ -189,6 +196,6 @@ describe('handleInitUser', () => {
 		vi.mocked(requireAuth).mockResolvedValue({ userId: 'user-1' } as any)
 		const response = await handleInitUser(makeRequest(SESSION_TOKEN), makeEnv())
 		expect(response.status).toBe(200)
-		expect(getMcpTokenAuth).not.toHaveBeenCalled()
+		expect(verifyOAuthAccessToken).not.toHaveBeenCalled()
 	})
 })
