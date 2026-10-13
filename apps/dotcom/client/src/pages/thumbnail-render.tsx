@@ -618,6 +618,12 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 				// SPIKE (#11096): a page sent as html has nowhere to POST to. The worker reads the result
 				// back out of the /content response instead, so everything else goes first: the pushed
 				// records and the editor DOM would otherwise ride back with it.
+				// A warm page runs job after job, so it keeps its DOM and hands the result over directly.
+				if ((window as any).__TLDRAW_WARM__) {
+					;(window as any).__TLDRAW_RESULT__ = { bounds, timings: { ...pageTimings } }
+					signalThumbnailReady()
+					return
+				}
 				const result = JSON.stringify({ bounds, timings: pageTimings })
 				for (const script of Array.from(document.scripts)) script.remove()
 				document.head.replaceChildren()

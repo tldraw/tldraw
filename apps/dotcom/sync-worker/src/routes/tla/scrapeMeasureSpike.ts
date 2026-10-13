@@ -510,6 +510,17 @@ export async function scrapeMeasureSpikeRunReal(request: IRequest, env: Environm
 		cacheTTL: 0,
 	}
 
+	if (url.searchParams.get('via') === 'warm') {
+		return runWarm(env, url, {
+			html,
+			records,
+			schema: snapshot.schema,
+			job,
+			lockPattern: escaped,
+			viewport: { width, height },
+			report,
+		})
+	}
 	if (url.searchParams.get('via') === 'puppeteer') {
 		return runViaPuppeteer(env, url, body, report, { measure, lockPattern: escaped })
 	}
@@ -747,4 +758,104 @@ export async function scrapeMeasureSpikeSessions(request: IRequest, env: Environ
 		}
 	}
 	return Response.json(sessions)
+}
+
+// Sixth spike: a warm page. One request launches a browser, loads the render page once, then runs
+// each job in `jobs` (comma-separated: measure, live, export) through that same page. The first job
+// pays for nothing the rest do not; the per-job times are what a warm pool would bill.
+// out=png&index=<n> returns job n's capture instead.
+async function runWarm(
+	env: Environment,
+	url: URL,
+	{
+		html,
+		records,
+		schema,
+		job,
+		lockPattern,
+		viewport,
+		report,
+	}: {
+		html: string
+		records: TLRecord[]
+		schema: unknown
+		job: ThumbnailRenderJob
+		lockPattern: string
+		viewport: { width: number; height: number }
+		report: Record<string, unknown>
+	}
+) {
+	const jobs = (url.searchParams.get('jobs') || 'measure,live,export,measure,live,export').split(
+		','
+	)
+	const pngIndex =
+		url.searchParams.get('out') === 'png' ? Number(url.searchParams.get('index') || 0) : -1
+	const lock = url.searchParams.get('lock') === '1'
+	const startedAt = Date.now()
+	const browser = await puppeteer.launch(env.BROWSER as any, { keep_alive: 60_000 })
+	report.via = 'warm'
+	report.launchMs = Date.now() - startedAt
+	const results: unknown[] = []
+	let png: Uint8Array | undefined
+	try {
+		const page = await browser.newPage()
+		await page.setViewport({ ...viewport, deviceScaleFactor: 1 })
+		if (lock) {
+			const allowed = new RegExp(`^(data:|blob:|about:|${lockPattern}/)`)
+			await page.setRequestInterception(true)
+			page.on('request', (request) => {
+				if (allowed.test(request.url())) request.continue()
+				else request.abort()
+			})
+		}
+		const warmStartedAt = Date.now()
+		await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 45_000 })
+		await page.waitForFunction(() => typeof (window as any).__tldrawRenderJob === 'function', {
+			timeout: 45_000,
+		})
+		report.warmupMs = Date.now() - warmStartedAt
+
+		for (const [index, kind] of jobs.entries()) {
+			const jobStartedAt = Date.now()
+			const renderParams = renderParamsForJob({
+				...job,
+				...(kind === 'measure' ? { mode: 'measure' as const } : null),
+				...(kind === 'live' ? { capture: 'live' as const } : { capture: undefined }),
+			})
+			const outcome = (await page.evaluate((pushed) => (window as any).__tldrawRenderJob(pushed), {
+				records,
+				schema,
+				renderParams,
+			} as any)) as { error: string | null; result: any; ms: number }
+			const entry: Record<string, unknown> = {
+				kind,
+				error: outcome.error,
+				pageMs: Math.round(outcome.ms),
+			}
+			if (kind === 'measure') {
+				entry.shapesMeasured = outcome.result ? Object.keys(outcome.result.bounds).length : 0
+			} else {
+				const shot = (await page.screenshot({ type: 'png' })) as Uint8Array
+				entry.screenshotBytes = shot.byteLength
+				if (index === pngIndex) png = shot
+			}
+			entry.totalMs = Date.now() - jobStartedAt
+			results.push(entry)
+		}
+	} catch (error) {
+		report.threw = String(error)
+	} finally {
+		await browser.close().catch(() => {})
+	}
+	report.jobs = results
+	report.totalMs = Date.now() - startedAt
+	if (png) {
+		return new Response(new Uint8Array(png), {
+			headers: {
+				'content-type': 'image/png',
+				'x-spike-report': JSON.stringify(report).slice(0, 4000),
+			},
+		})
+	}
+	return Response.json(report)
 }
