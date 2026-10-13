@@ -88,6 +88,7 @@ const messages = defineMessages({
 	app: { defaultMessage: 'App' },
 	toggleSidebar: { defaultMessage: 'Toggle sidebar' },
 	notifications: { defaultMessage: 'Notifications' },
+	openNotifications: { defaultMessage: 'Open notifications panel' },
 	unknownAuthor: { defaultMessage: 'Someone' },
 	markAllRead: { defaultMessage: 'Mark all notifications as read' },
 	workspaces: { defaultMessage: 'Workspaces' },
@@ -354,7 +355,7 @@ function TlaAppGroup() {
 	const trackEvent = useTldrawAppUiEvents()
 	const appLbl = useMsg(messages.app)
 	const toggleSidebarLbl = useMsg(messages.toggleSidebar)
-	const notificationsLbl = useMsg(messages.notifications)
+	const openNotificationsLbl = useMsg(messages.openNotifications)
 
 	return (
 		<TldrawUiMenuGroup id="tla-app" label={appLbl}>
@@ -374,7 +375,7 @@ function TlaAppGroup() {
 			{app && (
 				<TldrawUiMenuItem
 					id="tla-notifications"
-					label={notificationsLbl}
+					label={openNotificationsLbl}
 					readonlyOk
 					onSelect={() => openNotificationsPanel(editor)}
 				/>
