@@ -4,6 +4,7 @@ import {
 	TLEventInfo,
 	TLRichText,
 	TLShapeId,
+	isAccelKey,
 	openWindow,
 	preventDefault,
 	resolveLineHeightPx,
@@ -13,7 +14,7 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { useMemo } from 'react'
-import { renderHtmlFromRichText } from '../../utils/text/richText'
+import { renderHtmlFromRichText, toggleTaskItemInRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
 import { isLegacyAlign } from './legacyProps'
 import { useEditableRichText } from './useEditableRichText'
@@ -98,7 +99,9 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		[editor]
 	)
 
-	const handlePointerDown = (e: React.MouseEvent<HTMLDivElement>) => {
+	const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+		if (handleTaskItemPointerDown(e)) return
+
 		const HTMLElementCtor = editor.getContainerWindow().HTMLElement
 		if (
 			e.target instanceof HTMLElementCtor &&
@@ -121,6 +124,44 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 			}
 			editor.on('event', handlePointerUp)
 		}
+	}
+
+	/**
+	 * Ticks a checkbox in one click, without entering edit mode first. The static HTML has no
+	 * ProseMirror behind it and its checkboxes don't take pointer events (see editor.css), so the hit
+	 * test is by the labels' rects. The canvas is told to ignore the press, so it doesn't also select
+	 * the shape or start a drag, and the item flips on pointer up over the same box, like a click.
+	 */
+	const handleTaskItemPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+		if (!selectToolActive || isEditing || editor.getIsReadonly()) return false
+		// Modifiers mean selection: shift-click to add the shape, and so on.
+		if (e.button !== 0 || e.shiftKey || e.altKey || isAccelKey(e)) return false
+		const shape = editor.getShape(shapeId)
+		if (!shape || editor.isShapeOrAncestorLocked(shape)) return false
+
+		const root = e.currentTarget
+		const index = getTaskItemIndexAtPoint(root, e.clientX, e.clientY)
+		if (index === -1) return false
+
+		editor.markEventAsHandled(e)
+		const win = editor.getContainerWindow()
+		const handlePointerUp = (up: PointerEvent) => {
+			if (up.pointerId !== e.pointerId) return
+			win.removeEventListener('pointerup', handlePointerUp)
+			if (getTaskItemIndexAtPoint(root, up.clientX, up.clientY) !== index) return
+
+			const current = editor.getShape(shapeId)
+			const currentRichText = (current?.props as { richText?: TLRichText } | undefined)?.richText
+			if (!currentRichText) return
+			editor.markHistoryStoppingPoint('toggle task item')
+			editor.updateShape({
+				id: shapeId,
+				type,
+				props: { richText: toggleTaskItemInRichText(currentRichText, index) },
+			})
+		}
+		win.addEventListener('pointerup', handlePointerUp)
+		return true
 	}
 
 	// Should be guarded higher up so that this doesn't render... but repeated here. This should never be true.
@@ -287,4 +328,21 @@ export function RichTextSVG({
 			</div>
 		</foreignObject>
 	)
+}
+
+/** The document-order index of the task item whose checkbox is under the point, or -1. */
+function getTaskItemIndexAtPoint(root: HTMLElement, clientX: number, clientY: number) {
+	const labels = root.querySelectorAll('li[data-type="taskItem"] > label')
+	for (let i = 0; i < labels.length; i++) {
+		const rect = labels[i].getBoundingClientRect()
+		if (
+			clientX >= rect.left &&
+			clientX <= rect.right &&
+			clientY >= rect.top &&
+			clientY <= rect.bottom
+		) {
+			return i
+		}
+	}
+	return -1
 }
