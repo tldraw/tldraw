@@ -114,7 +114,7 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 
 function TlaEditorTopLeftPanelAnonymous() {
 	const msg = useTranslation()
-	const pageMenuLbl = msg(messages.pageMenu.id)
+	const pageMenuLbl = msg(messages.pageMenu)
 	// GOTCHA: 'anonymous' doesn't always mean logged out
 	// we show this version of the panel for published files as well.
 	const app = useMaybeApp()
@@ -213,7 +213,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 	const editor = useEditor()
 	const intl = useIntl()
 	const [isRenaming, setIsRenaming] = useState(false)
-	const pageMenuLbl = msg(messages.pageMenu.id)
+	const pageMenuLbl = msg(messages.pageMenu)
 
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
@@ -295,7 +295,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 			>
 				<TldrawUiMenuGroup id="regular-stuff">
 					{fileId && (
-						<TldrawUiMenuSubmenu id="file" label={msg(editorMessages.file.id)}>
+						<TldrawUiMenuSubmenu id="file" label={msg(editorMessages.file)}>
 							<FileItems
 								source="file-header"
 								fileId={fileId}
@@ -463,7 +463,7 @@ function SignInMenuItem() {
 				addDialog({ component: TlaSignInDialog })
 			}}
 		>
-			<TldrawUiButtonLabel>{msg(messages.signIn.id)}</TldrawUiButtonLabel>
+			<TldrawUiButtonLabel>{msg(messages.signIn)}</TldrawUiButtonLabel>
 			<TlaIcon icon="sign-in" />
 		</TldrawUiButton>
 	)

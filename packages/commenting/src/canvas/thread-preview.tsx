@@ -282,7 +282,7 @@ export function ThreadPreview({
 					})}
 					{overflow > 0 && (
 						<div className="tlui-cmt-preview-more">
-							{msg(messages.commentsPreviewMore.id, { count: overflow })}
+							{msg(messages.commentsPreviewMore, { count: overflow })}
 						</div>
 					)}
 				</div>

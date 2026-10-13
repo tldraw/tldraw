@@ -1,7 +1,9 @@
 import { renderHook } from '@testing-library/react'
 import * as React from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { DEFAULT_TRANSLATION } from './defaultTranslation'
+// The English catalog the SDK declares. Read from the file because importing this one module
+// declares almost none of it — it's complete only once the whole package has loaded.
+import DEFAULT_TRANSLATION from '../../../../../../../assets/translations/main.json'
 import { TLUiTranslation } from './translations'
 import {
 	TranslationsContext,
@@ -20,7 +22,7 @@ const rtlTranslation: TLUiTranslation = {
 	locale: 'ar',
 	label: 'Arabic',
 	dir: 'rtl',
-	messages: DEFAULT_TRANSLATION,
+	messages: DEFAULT_TRANSLATION as TLUiTranslation['messages'],
 }
 
 function withTranslation(translation: TLUiTranslation) {

@@ -68,8 +68,8 @@ const ZoomTriggerButton = () => {
 		<TldrawUiToolbarButton
 			asChild
 			type="icon"
-			aria-label={`${msg(messages.navigationZoneZoom.id)} — ${value}`}
-			title={`${msg(messages.navigationZoneZoom.id)} — ${value}`}
+			aria-label={`${msg(messages.navigationZoneZoom)} — ${value}`}
+			title={`${msg(messages.navigationZoneZoom)} — ${value}`}
 			data-testid="minimap.zoom-menu-button"
 			className="tlui-zoom-menu__button"
 			onDoubleClick={handleDoubleClick}

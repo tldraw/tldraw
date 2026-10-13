@@ -45,7 +45,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 		<TldrawUiToolbarButton
 			type="icon"
 			data-testid="minimap.toggle-button"
-			title={msg(messages.navigationZoneToggleMinimap.id)}
+			title={msg(messages.navigationZoneToggleMinimap)}
 			onClick={toggleMinimap}
 		>
 			<TldrawUiButtonIcon small icon={collapsed !== isRtl ? 'chevron-right' : 'chevron-left'} />
@@ -54,7 +54,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 
 	return (
 		<div ref={ref} className="tlui-navigation-panel">
-			<TldrawUiToolbar orientation="horizontal" label={msg(messages.navigationZoneTitle.id)}>
+			<TldrawUiToolbar orientation="horizontal" label={msg(messages.navigationZoneTitle)}>
 				{ZoomMenu && breakpoint < PORTRAIT_BREAKPOINT.TABLET ? (
 					<ZoomMenu />
 				) : (

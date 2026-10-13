@@ -22,7 +22,8 @@ vi.mock('./src/lib/ui/hooks/useTranslation/useTranslation', async () => {
 			dir: 'ltr',
 			messages: {},
 		}),
-		useTranslation: () => (key) => key || '', // Return the key itself as the translation
+		// Return the key itself as the translation, or a declared message's id
+		useTranslation: () => (message) => (typeof message === 'object' ? message.id : message || ''),
 	}
 })
 
@@ -80,11 +81,10 @@ const { version } = require('./package.json')
 // Window fetch mock for network requests - handles translation loading
 window.fetch = async (input, init) => {
 	if (input === `https://cdn.tldraw.com/${version}/translations/en.json`) {
-		const { DEFAULT_TRANSLATION } =
-			await import('./src/lib/ui/hooks/useTranslation/defaultTranslation.ts')
+		const { default: main } = await import('../../assets/translations/main.json')
 		return {
 			ok: true,
-			json: async () => DEFAULT_TRANSLATION,
+			json: async () => main,
 		}
 	}
 

@@ -349,7 +349,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const a11y = useA11y()
 	const msg = useTranslation()
 
-	const defaultDocumentName = helpers.msg(messages.documentDefaultName.id)
+	const defaultDocumentName = helpers.msg(messages.documentDefaultName)
 
 	const rContextMenuPagePoint = React.useRef<Vec | null>(null)
 
@@ -418,8 +418,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				?.then(onRead)
 				.catch(() => {
 					helpers.addToast({
-						title: helpers.msg(messages.actionPasteErrorTitle.id),
-						description: helpers.msg(messages.actionPasteErrorDescription.id),
+						title: helpers.msg(messages.actionPasteErrorTitle),
+						description: helpers.msg(messages.actionPasteErrorDescription),
 						severity: 'error',
 					})
 				})
@@ -1772,7 +1772,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.run(() => {
 						editor.markHistoryStoppingPoint('move_shapes_to_page')
 						editor.createPage({
-							name: helpers.msg(messages.pageMenuNewPageInitialName.id),
+							name: helpers.msg(messages.pageMenuNewPageInitialName),
 							id: newPageId,
 						})
 						editor.moveShapesToPage(ids, newPageId)
@@ -1870,7 +1870,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							editor.markHistoryStoppingPoint('creating page')
 							const newPageId = PageRecordType.createId()
 							editor.createPage({
-								name: helpers.msg(messages.pageMenuNewPageInitialName.id),
+								name: helpers.msg(messages.pageMenuNewPageInitialName),
 								id: newPageId,
 							})
 							editor.setCurrentPage(newPageId)

@@ -25,7 +25,7 @@ export function TlaAnonDotDevLink() {
 	const msg = useTranslation()
 	const { isSignedIn, isLoaded } = useAuth()
 	const [isDismissed, setIsDismissed] = useLocalStorageState(STORAGE_KEY, false)
-	const dismissLbl = msg(messages.dismiss.id)
+	const dismissLbl = msg(messages.dismiss)
 	const editor = useEditor()
 	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
 	const breakpoint = useBreakpoint()

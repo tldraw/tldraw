@@ -33,8 +33,8 @@ export function useExportAs() {
 				console.error(e.message)
 				addToast({
 					id: 'export-fail',
-					title: msg(messages.toastErrorExportFailTitle.id),
-					description: msg(messages.toastErrorExportFailDesc.id),
+					title: msg(messages.toastErrorExportFailTitle),
+					description: msg(messages.toastErrorExportFailDesc),
 					severity: 'error',
 				})
 			})

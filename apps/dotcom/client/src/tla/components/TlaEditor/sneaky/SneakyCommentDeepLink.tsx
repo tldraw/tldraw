@@ -31,7 +31,7 @@ export function SneakyCommentDeepLink() {
 	const { addToast } = useToasts()
 	const [searchParams, setSearchParams] = useSearchParams()
 	const commentId = searchParams.get('comment')
-	const deletedMsg = msg(messages.commentDeleted.id)
+	const deletedMsg = msg(messages.commentDeleted)
 
 	useEffect(() => {
 		if (!commentId) return

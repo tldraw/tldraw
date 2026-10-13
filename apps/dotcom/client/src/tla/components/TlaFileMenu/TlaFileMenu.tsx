@@ -119,7 +119,7 @@ export function FileItems({
 	const navigate = useNavigate()
 	const { addToast } = useToasts()
 	const trackEvent = useTldrawAppUiEvents()
-	const copiedMsg = msg(messages.copied.id)
+	const copiedMsg = msg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
 	const isPinned = useIsFilePinned(fileId, workspaceId ?? '')
 	const activeWorkspaceId = useActiveWorkspaceId()
@@ -214,21 +214,21 @@ export function FileItems({
 		downloadAppFile(fileId)
 	}, [fileId, source, trackEvent])
 
-	const unpinMsg = msg(messages.unpin.id)
+	const unpinMsg = msg(messages.unpin)
 
 	return (
 		<Fragment>
 			<TldrawUiMenuGroup id="file-actions">
 				{/* todo: in published rooms, support copying link */}
 				<TldrawUiMenuItem
-					label={msg(messages.copyLink.id)}
+					label={msg(messages.copyLink)}
 					id="copy-link"
 					readonlyOk
 					onSelect={handleCopyLinkClick}
 				/>
 				{hasAdminRights && (
 					<TldrawUiMenuItem
-						label={msg(messages.rename.id)}
+						label={msg(messages.rename)}
 						id="rename"
 						readonlyOk
 						onSelect={onRenameAction}
@@ -236,20 +236,20 @@ export function FileItems({
 				)}
 				{/* todo: in published rooms, support duplication / forking */}
 				<TldrawUiMenuItem
-					label={msg(messages.duplicate.id)}
+					label={msg(messages.duplicate)}
 					id="duplicate"
 					readonlyOk
 					onSelect={handleDuplicateClick}
 				/>
 				<TldrawUiMenuItem
-					label={msg(editorMessages.downloadFile.id)}
+					label={msg(editorMessages.downloadFile)}
 					id="download-file"
 					readonlyOk
 					onSelect={handleDownloadClick}
 				/>
 				{workspaceId && (
 					<TldrawUiMenuItem
-						label={isPinned ? unpinMsg : msg(messages.pin.id)}
+						label={isPinned ? unpinMsg : msg(messages.pin)}
 						id="pin-unpin"
 						readonlyOk
 						onSelect={handlePinUnpinClick}
@@ -262,7 +262,7 @@ export function FileItems({
 						<TldrawUiMenuGroup id="workspaces">
 							<TldrawUiMenuCheckboxItem
 								key="my-files"
-								label={homeWorkspaceName ?? msg(messages.myWorkspace.id)}
+								label={homeWorkspaceName ?? msg(messages.myWorkspace)}
 								id="my-files"
 								readonlyOk
 								checked={fileWorkspaceId === homeWorkspaceId}

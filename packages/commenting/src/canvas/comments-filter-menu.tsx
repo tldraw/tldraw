@@ -49,8 +49,8 @@ export function CommentsFilterMenu({
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton
 					type="icon"
-					tooltip={msg(messages.commentsFilter.id)}
-					title={msg(messages.commentsFilter.id)}
+					tooltip={msg(messages.commentsFilter)}
+					title={msg(messages.commentsFilter)}
 					className="tlui-cmt-header-btn"
 				>
 					<MoreMenuIcon />

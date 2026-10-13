@@ -205,9 +205,9 @@ export const ThreadPin = memo(function ThreadPin({
 		<Avatar author={threadAuthor ?? UNKNOWN_COMMENT_AUTHOR} />
 	)
 	const pinLabel = msg(
-		thread.resolved ? messages.commentsPinLabelResolved.id : messages.commentsPinLabel.id,
+		thread.resolved ? messages.commentsPinLabelResolved : messages.commentsPinLabel,
 		{
-			name: threadAuthor?.name ?? msg(messages.commentsUnknownAuthor.id),
+			name: threadAuthor?.name ?? msg(messages.commentsUnknownAuthor),
 		}
 	)
 

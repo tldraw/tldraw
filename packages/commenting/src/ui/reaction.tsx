@@ -116,13 +116,13 @@ export function DefaultReactionTooltip({ reactors, children }: ReactionTooltipPr
 export function DefaultReactionTooltipContent({ reactors }: { reactors: ReactionReactor[] }) {
 	const msg = useTranslation()
 	const names = reactors.map((reactor) =>
-		reactor.you ? msg(messages.commentsMentionYou.id) : reactor.name
+		reactor.you ? msg(messages.commentsMentionYou) : reactor.name
 	)
 	if (names.length === 0) return null
 	const [a, b, c] = names
 	return (
 		<>
-			{msg(messages.commentsReacted.id, {
+			{msg(messages.commentsReacted, {
 				count: names.length,
 				others: names.length - 3,
 				a,

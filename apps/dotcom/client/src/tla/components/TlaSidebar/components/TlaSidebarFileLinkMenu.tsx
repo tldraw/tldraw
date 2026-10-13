@@ -14,7 +14,7 @@ export function TlaSidebarFileLinkMenu({
 	onRenameAction(): void
 }) {
 	const msg = useTranslation()
-	const fileMenuLbl = msg(messages.fileMenu.id)
+	const fileMenuLbl = msg(messages.fileMenu)
 
 	return (
 		<TlaFileMenu

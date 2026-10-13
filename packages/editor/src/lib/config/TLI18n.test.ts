@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { TLI18n, defaultI18n, defineMessages, translateMessage } from './TLI18n'
+import {
+	TLI18n,
+	defaultI18n,
+	defineMessages,
+	getDeclaredMessages,
+	translateMessage,
+} from './TLI18n'
 
 const messages = defineMessages({
 	somethingWentWrong: { id: 'error.title', defaultMessage: 'Something went wrong' },
@@ -62,5 +68,17 @@ describe('defineMessages', () => {
 	it('returns the messages unchanged', () => {
 		const declared = { a: { id: 'x', defaultMessage: 'X' } }
 		expect(defineMessages(declared)).toEqual(declared)
+	})
+
+	// The SDK bundles no separate English catalog; a key looked up by id resolves against this.
+	it('records the English of each message it declares', () => {
+		defineMessages({
+			a: { id: 'test.declared', defaultMessage: 'Declared' },
+			b: { defaultMessage: 'No id' },
+		})
+		expect(getDeclaredMessages()).toMatchObject({
+			'test.declared': 'Declared',
+			'No id': 'No id',
+		})
 	})
 })

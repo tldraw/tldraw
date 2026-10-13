@@ -107,6 +107,8 @@ export interface TLExternalContentProps {
 /** @public */
 export interface TLDefaultExternalContentHandlerOpts extends TLExternalContentProps {
 	toasts: TLUiToastsContextType
+	// The handlers pass this ids, not declared messages: it's the app's, and one written to take a
+	// key would get an object.
 	msg: ReturnType<typeof useTranslation>
 }
 

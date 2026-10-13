@@ -41,7 +41,7 @@ export const DefaultMenuPanel = memo(function MenuPanel() {
 				{MainMenu && <MainMenu />}
 				{PageMenu && !isSinglePageMode && <PageMenu />}
 				{showQuickActions ? (
-					<TldrawUiToolbar orientation="horizontal" label={msg(messages.actionsMenuTitle.id)}>
+					<TldrawUiToolbar orientation="horizontal" label={msg(messages.actionsMenuTitle)}>
 						{QuickActions && <QuickActions />}
 						{ActionsMenu && <ActionsMenu />}
 					</TldrawUiToolbar>

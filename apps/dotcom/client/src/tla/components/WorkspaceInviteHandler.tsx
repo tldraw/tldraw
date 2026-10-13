@@ -41,8 +41,8 @@ export function WorkspaceInviteHandler() {
 	const dialogs = useDialogs()
 	const { addToast } = useToasts()
 	const app = useMaybeApp()
-	const alreadyMemberMsg = msg(workspaceInviteMessages.alreadyMember.id)
-	const errorMsg = msg(workspaceInviteMessages.error.id)
+	const alreadyMemberMsg = msg(workspaceInviteMessages.alreadyMember)
+	const errorMsg = msg(workspaceInviteMessages.error)
 	const location = useLocation()
 	const [searchParams, setSearchParams] = useSearchParams()
 

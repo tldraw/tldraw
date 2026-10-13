@@ -36,7 +36,7 @@ const USER_SETTINGS_MENU_ID = 'user-settings-sidebar'
 export function TlaUserSettingsMenu() {
 	const msg = useTranslation()
 	const app = useApp()
-	const userMenuLbl = msg(messages.userMenu.id)
+	const userMenuLbl = msg(messages.userMenu)
 	const user = useValue('auth', () => app.getUser(), [app])
 
 	// The dropdown's open state is keyed globally by its id, so we can reuse the

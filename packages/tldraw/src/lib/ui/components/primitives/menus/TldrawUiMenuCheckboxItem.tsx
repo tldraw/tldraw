@@ -62,7 +62,7 @@ export function TldrawUiMenuCheckboxItem<
 		<>
 			<TldrawUiIcon
 				small
-				label={msg(checked ? messages.uiChecked.id : messages.uiUnchecked.id)}
+				label={msg(checked ? messages.uiChecked : messages.uiUnchecked)}
 				icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
 			/>
 			{labelStr && (

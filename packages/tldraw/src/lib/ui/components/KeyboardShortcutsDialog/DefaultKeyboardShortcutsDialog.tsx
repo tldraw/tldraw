@@ -46,7 +46,7 @@ export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShort
 	return (
 		<>
 			<TldrawUiDialogHeader className="tlui-shortcuts-dialog__header">
-				<TldrawUiDialogTitle>{msg(messages.shortcutsDialogTitle.id)}</TldrawUiDialogTitle>
+				<TldrawUiDialogTitle>{msg(messages.shortcutsDialogTitle)}</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			{!areKeyboardShortcutsEnabled && (
@@ -55,7 +55,7 @@ export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShort
 					data-testid="kbd.disabled-notice"
 					role="status"
 				>
-					{msg(messages.shortcutsDialogDisabledNotice.id)}
+					{msg(messages.shortcutsDialogDisabledNotice)}
 				</div>
 			)}
 			<TldrawUiDialogBody

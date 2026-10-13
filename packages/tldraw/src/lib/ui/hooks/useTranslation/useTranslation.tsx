@@ -1,4 +1,4 @@
-import { warnOnce } from '@tldraw/editor'
+import { TLI18nMessage, getDeclaredMessages, warnOnce } from '@tldraw/editor'
 import * as React from 'react'
 import {
 	IntlContext,
@@ -8,10 +8,12 @@ import {
 	createIntlCache,
 	type IntlConfig,
 } from 'react-intl'
+// Nothing renders these, so nothing else imports them, and an app looks them up by key. Imported
+// so their English is declared — see `getDeclaredMessages`.
+import '../../consumerMessages'
 import { useAssetUrls } from '../../context/asset-urls'
-import { DEFAULT_TRANSLATION } from './defaultTranslation'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
-import { TLUiTranslation, fetchTranslation } from './translations'
+import { EN_TRANSLATION, TLUiTranslation, fetchTranslation } from './translations'
 
 /** @public */
 export interface TLUiTranslationProviderProps {
@@ -71,12 +73,7 @@ export function TldrawUiTranslationProvider({
 	// Only the fetch belongs in an effect; merging overrides is derived from data already in hand.
 	// Inside one, a changed override took another round trip to apply, and an app assembling its
 	// overrides as it loads its own strings refetched this catalog on every identity change.
-	const [loaded, setLoaded] = React.useState<TLUiTranslation>(() => ({
-		locale: 'en',
-		label: 'English',
-		dir: 'ltr',
-		messages: DEFAULT_TRANSLATION,
-	}))
+	const [loaded, setLoaded] = React.useState<TLUiTranslation>(EN_TRANSLATION)
 
 	React.useEffect(() => {
 		let isCancelled = false
@@ -98,20 +95,29 @@ export function TldrawUiTranslationProvider({
 	// for it and `fetchTranslation` falls back to English — which is the case for a locale that
 	// exists only in an app's own strings, so that's exactly when its overrides have to apply.
 	//
-	// The English overrides go underneath the catalog, so they reach only ids the catalog lacks: an
-	// app's own key not yet translated for this locale falls back to its English, not to its id.
-	const currentTranslation = React.useMemo(() => {
-		const localeOverrides = overrides?.[locale]
+	// Lowest to highest: the declared English, the English overrides, the locale's catalog, its
+	// overrides. The English overrides go underneath the catalog, so they reach only ids it lacks:
+	// an app's own key not yet translated for this locale falls back to its English, not its id.
+	const translated = React.useMemo(() => {
 		const enOverrides = locale === 'en' ? undefined : overrides?.en
-		if (!localeOverrides && !enOverrides) return loaded
-		return { ...loaded, messages: { ...enOverrides, ...loaded.messages, ...localeOverrides } }
+		return { ...enOverrides, ...loaded.messages, ...overrides?.[locale] }
 	}, [loaded, overrides, locale])
+
+	const currentTranslation = React.useMemo(
+		() => ({
+			...loaded,
+			messages: { ...getDeclaredMessages(), ...translated } as TLUiTranslation['messages'],
+		}),
+		[loaded, translated]
+	)
 
 	// react-intl builds each provider's catalog from its own props alone, so without merging this
 	// one shadows an app's own `IntlProvider` for everything inside it — every tldraw.com dialog
 	// and share menu — leaving them on `defaultMessage`: English, and silently untranslated
 	// everywhere else. Ours wins a collision, since `overrides.translations` is the documented way
-	// to change an SDK string.
+	// to change an SDK string. The declared English goes underneath the app's catalog, not over it:
+	// it holds the app's own declarations too, whose English would otherwise shadow their
+	// translations.
 	//
 	// The cast is because the type is a union of two uniform records and this one is mixed on
 	// purpose: `formatMessage` dispatches per message, so the SDK's ICU strings and an app's
@@ -122,9 +128,13 @@ export function TldrawUiTranslationProvider({
 	const messages = React.useMemo(
 		() =>
 			parentIntl
-				? ({ ...parentIntl.messages, ...currentTranslation.messages } as IntlConfig['messages'])
+				? ({
+						...getDeclaredMessages(),
+						...parentIntl.messages,
+						...translated,
+					} as IntlConfig['messages'])
 				: currentTranslation.messages,
-		[parentIntl, currentTranslation.messages]
+		[parentIntl, translated, currentTranslation.messages]
 	)
 
 	return (
@@ -169,18 +179,23 @@ const onTranslationError: IntlConfig['onError'] = (error) => {
 const intlCache = createIntlCache()
 
 /**
- * Returns a function to translate a translation key into a string based on the current translation.
+ * Returns a function to translate a message into a string based on the current translation.
  *
- * Messages are {@link https://unicode-org.github.io/icu/userguide/format_parse/messages/ | ICU
- * MessageFormat}, so a message can pluralise or select on the values you pass it. Unknown keys are
- * returned as-is.
+ * Pass a message declared with `defineMessages`, or a translation key. Messages are
+ * {@link https://unicode-org.github.io/icu/userguide/format_parse/messages/ | ICU MessageFormat},
+ * so a message can pluralise or select on the values you pass it. A declared message missing from
+ * the catalog falls back to its `defaultMessage`; an unknown key is returned as-is.
  *
  * @example
  *
  * ```ts
+ * const messages = defineMessages({
+ * 	selected: { id: 'my-app.selected', defaultMessage: '{count, plural, one {# shape} other {# shapes}}' },
+ * })
+ *
  * const msg = useTranslation()
- * const label = msg('style-panel.styles')
- * const selected = msg('a11y.multiple-shapes', { num: 5 })
+ * const label = msg(messages.selected, { count: 5 })
+ * const styles = msg('style-panel.styles')
  * ```
  *
  * @public
@@ -210,7 +225,7 @@ export function useTranslation() {
 						{
 							locale: translation?.locale ?? 'en',
 							defaultLocale: 'en',
-							messages: translation?.messages ?? DEFAULT_TRANSLATION,
+							messages: translation?.messages ?? getDeclaredMessages(),
 							onError: onTranslationError,
 							fallbackOnEmptyString: false,
 						},
@@ -222,16 +237,17 @@ export function useTranslation() {
 
 	return React.useCallback(
 		function msg(
-			id?: Exclude<string, TLUiTranslationKey> | string,
+			message?: Exclude<string, TLUiTranslationKey> | string | TLI18nMessage,
 			values?: TLUiTranslationValues
 		): string {
 			// `formatMessage` needs an id. Callers pass optional labels straight through, so keep the
 			// nullish passthrough this has always had rather than substituting an empty string.
-			if (!id) return id as string
+			if (!message) return message as string
 			// A bare key carries no default message, by design: this is the path for labels that
-			// arrive as data and for an app's own keys. A message rendered as text uses `F`.
+			// arrive as data and for an app's own keys.
 			// eslint-disable-next-line tldraw/enforce-default-message
-			return intl.formatMessage({ id }, values)
+			if (typeof message === 'string') return intl.formatMessage({ id: message }, values)
+			return intl.formatMessage(message, values)
 		},
 		[intl]
 	)

@@ -25,8 +25,8 @@ export function useCopyAs() {
 				addToast({
 					id: 'copy-fail',
 					severity: 'warning',
-					title: msg(messages.toastErrorCopyFailTitle.id),
-					description: msg(messages.toastErrorCopyFailDesc.id),
+					title: msg(messages.toastErrorCopyFailTitle),
+					description: msg(messages.toastErrorCopyFailDesc),
 				})
 			})
 		},

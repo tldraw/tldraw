@@ -65,8 +65,8 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
 					{embedDefinition
-						? `${msg(messages.embedDialogTitle.id)} — ${embedDefinition.title}`
-						: msg(messages.embedDialogTitle.id)}
+						? `${msg(messages.embedDialogTitle)} — ${embedDefinition.title}`
+						: msg(messages.embedDialogTitle)}
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
@@ -104,7 +104,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 						/>
 						{url === '' ? (
 							<div className="tlui-embed-dialog__instruction">
-								<span>{msg(messages.embedDialogInstruction.id)}</span>{' '}
+								<span>{msg(messages.embedDialogInstruction)}</span>{' '}
 								{embedDefinition.instructionLink && (
 									<>
 										<a
@@ -113,7 +113,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 											href={embedDefinition.instructionLink}
 											className="tlui-embed-dialog__instruction__link"
 										>
-											{msg(messages.embedDialogLearnMore.id)}
+											{msg(messages.embedDialogLearnMore)}
 										</a>
 										.
 									</>
@@ -121,7 +121,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 							</div>
 						) : (
 							<div className="tlui-embed-dialog__warning">
-								{showError ? msg(messages.embedDialogInvalidUrl.id) : '\xa0'}
+								{showError ? msg(messages.embedDialogInvalidUrl) : '\xa0'}
 							</div>
 						)}
 					</TldrawUiDialogBody>
@@ -134,11 +134,11 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								setUrl('')
 							}}
 						>
-							<TldrawUiButtonLabel>{msg(messages.embedDialogBack.id)}</TldrawUiButtonLabel>
+							<TldrawUiButtonLabel>{msg(messages.embedDialogBack)}</TldrawUiButtonLabel>
 						</TldrawUiButton>
 						<div className="tlui-embed__spacer" />
 						<TldrawUiButton type="normal" onClick={onClose}>
-							<TldrawUiButtonLabel>{msg(messages.embedDialogCancel.id)}</TldrawUiButtonLabel>
+							<TldrawUiButtonLabel>{msg(messages.embedDialogCancel)}</TldrawUiButtonLabel>
 						</TldrawUiButton>
 						<TldrawUiButton
 							type="primary"
@@ -156,7 +156,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								onClose()
 							}}
 						>
-							<TldrawUiButtonLabel>{msg(messages.embedDialogCreate.id)}</TldrawUiButtonLabel>
+							<TldrawUiButtonLabel>{msg(messages.embedDialogCreate)}</TldrawUiButtonLabel>
 						</TldrawUiButton>
 					</TldrawUiDialogFooter>
 				</>

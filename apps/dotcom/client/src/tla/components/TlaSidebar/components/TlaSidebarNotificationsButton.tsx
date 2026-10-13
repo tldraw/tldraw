@@ -41,13 +41,13 @@ export function TlaSidebarNotificationsButton() {
 					type="icon"
 					className={styles.sidebarCreateFileButton}
 					data-testid="tla-notifications-button"
-					title={msg(messages.notifications.id)}
+					title={msg(messages.notifications)}
 				>
 					<TlaIcon icon="notification" />
 					{unreadCount > 0 && (
 						<span
 							className={notifications.badge}
-							aria-label={msg(messages.unreadNotifications.id, { count: unreadCount })}
+							aria-label={msg(messages.unreadNotifications, { count: unreadCount })}
 						/>
 					)}
 				</TldrawUiButton>

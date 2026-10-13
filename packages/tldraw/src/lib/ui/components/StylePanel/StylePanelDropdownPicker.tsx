@@ -87,7 +87,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 	const valueInItems = value.type !== 'mixed' && items.some((item) => item.value === value.value)
 	const titleStr =
 		value.type === 'mixed'
-			? msg(stylePanelMessages.mixed.id)
+			? msg(stylePanelMessages.mixed)
 			: valueInItems
 				? stylePanelName + ' — ' + msg(styleMessageId(uiType, value.value))
 				: stylePanelName

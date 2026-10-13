@@ -78,7 +78,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 									<TldrawUiToolbar
 										orientation={orientation}
 										className="tlui-main-toolbar__extras__controls"
-										label={msg(messages.actionsMenuTitle.id)}
+										label={msg(messages.actionsMenuTitle)}
 									>
 										{QuickActions && <QuickActions />}
 										{ActionsMenu && <ActionsMenu />}

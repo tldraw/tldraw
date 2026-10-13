@@ -146,8 +146,8 @@ export function PendingComposer({
 				{canComment ? (
 					<CommentComposer
 						author={me ?? UNKNOWN_COMMENT_AUTHOR}
-						placeholder={msg(messages.commentsAddPlaceholder.id)}
-						sendLabel={msg(messages.commentsSend.id)}
+						placeholder={msg(messages.commentsAddPlaceholder)}
+						sendLabel={msg(messages.commentsSend)}
 						value={text}
 						onChange={(value) => {
 							setText(value)

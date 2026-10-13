@@ -18,5 +18,5 @@ export function replyCountLabel(
 	replyCount: number
 ): string | null {
 	if (replyCount <= 0) return null
-	return msg(messages.commentsReplies.id, { count: replyCount })
+	return msg(messages.commentsReplies, { count: replyCount })
 }

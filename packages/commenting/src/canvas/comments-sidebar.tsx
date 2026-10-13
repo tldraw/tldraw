@@ -163,7 +163,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		<SidebarPanel>
 			<CommentsList
 				items={items}
-				header={header ?? msg(messages.commentsTitle.id)}
+				header={header ?? msg(messages.commentsTitle)}
 				headerAction={
 					<div className="tlui-cmt-list__header-actions">
 						<CommentsFilterMenu
@@ -175,10 +175,10 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				}
 				empty={
 					items.length === 0 && pageThreads.length > 0
-						? msg(messages.commentsEmptyFiltered.id)
-						: (empty ?? msg(messages.commentsEmpty.id))
+						? msg(messages.commentsEmptyFiltered)
+						: (empty ?? msg(messages.commentsEmpty))
 				}
-				resolvedLabel={msg(messages.commentsResolved.id)}
+				resolvedLabel={msg(messages.commentsResolved)}
 				onSelect={focus}
 				renderItem={renderItem}
 			/>

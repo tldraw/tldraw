@@ -44,7 +44,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				<TldrawUiToolbarButton
 					type="icon"
 					data-testid="actions-menu.button"
-					title={msg(messages.actionsMenuTitle.id)}
+					title={msg(messages.actionsMenuTitle)}
 				>
 					<TldrawUiButtonIcon
 						icon={orientation === 'horizontal' ? 'dots-vertical' : 'dots-horizontal'}
@@ -63,7 +63,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				sideOffset={6}
 			>
 				<TldrawUiToolbar
-					label={msg(messages.actionsMenuTitle.id)}
+					label={msg(messages.actionsMenuTitle)}
 					className="tlui-actions-menu"
 					data-testid="actions-menu.content"
 					orientation="grid"

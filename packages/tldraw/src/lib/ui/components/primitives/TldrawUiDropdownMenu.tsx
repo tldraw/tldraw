@@ -210,7 +210,7 @@ export function TldrawUiDropdownMenuIndicator() {
 
 	return (
 		<_DropdownMenu.ItemIndicator dir={dir} asChild>
-			<TldrawUiIcon label={msg(messages.uiChecked.id)} icon="check" />
+			<TldrawUiIcon label={msg(messages.uiChecked)} icon="check" />
 		</_DropdownMenu.ItemIndicator>
 	)
 }
@@ -261,7 +261,7 @@ export function TldrawUiDropdownMenuCheckboxItem({
 		>
 			<div className="tlui-button__checkbox__indicator">
 				<_DropdownMenu.ItemIndicator dir={dir}>
-					<TldrawUiIcon label={msg(messages.uiChecked.id)} icon="check" small />
+					<TldrawUiIcon label={msg(messages.uiChecked)} icon="check" small />
 				</_DropdownMenu.ItemIndicator>
 			</div>
 			{children}

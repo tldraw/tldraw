@@ -18,7 +18,7 @@ export function TldrawUiButtonCheck({ checked }: TLUiButtonCheckProps) {
 	return (
 		<TldrawUiIcon
 			data-checked={!!checked}
-			label={msg(checked ? messages.uiChecked.id : messages.uiUnchecked.id)}
+			label={msg(checked ? messages.uiChecked : messages.uiUnchecked)}
 			icon={checked ? 'check' : 'none'}
 			className="tlui-button__icon"
 			small

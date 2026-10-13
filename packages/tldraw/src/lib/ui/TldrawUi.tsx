@@ -210,7 +210,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 					<TldrawUiButton
 						type="icon"
 						className="tlui-focus-button"
-						title={msg(messages.focusModeToggleFocusMode.id)}
+						title={msg(messages.focusModeToggleFocusMode)}
 						onClick={() => toggleFocus.onSelect('menu')}
 					>
 						<TldrawUiButtonIcon icon="dot" />

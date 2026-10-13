@@ -10,5 +10,5 @@ const messages = defineMessages({
 export function Spinner(props: React.SVGProps<SVGSVGElement>) {
 	const msg = useTranslation()
 
-	return <DefaultSpinner aria-label={msg(messages.appLoading.id)} {...props} />
+	return <DefaultSpinner aria-label={msg(messages.appLoading)} {...props} />
 }

@@ -138,7 +138,7 @@ export function DefaultRichTextToolbarContent({
 		return (
 			<TldrawUiToolbarButton
 				key={name}
-				title={msg(richTextMessages[name]?.id ?? `tool.rich-text-${name}`)}
+				title={msg(richTextMessages[name] ?? `tool.rich-text-${name}`)}
 				data-testid={`rich-text.${name}`}
 				type="icon"
 				isActive={isActive} // todo: we need to update this only when the text editor "settles", ie not during a change of selection

@@ -135,7 +135,7 @@ function DropdownHalf<T extends string>({
 						msg(label) +
 						' — ' +
 						(value === null || value.type === 'mixed'
-							? msg(stylePanelMessages.mixed.id)
+							? msg(stylePanelMessages.mixed)
 							: msg(styleMessageId(uiType, value.value)))
 					}
 				>

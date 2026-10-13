@@ -80,7 +80,7 @@ export function TlaEditorTopRightPanel({
 					onClick={() => {
 						trackEvent('sign-up-clicked', {
 							source: 'anon-landing-page',
-							ctaMessage: msg(ctaMessages.signInToShare.id),
+							ctaMessage: msg(ctaMessages.signInToShare),
 						})
 						addDialog({ component: TlaSignInDialog })
 					}}
@@ -131,7 +131,7 @@ function CommentsSidebarButton() {
 	const commentingEnabled = useCommentingEnabled()
 	const commentingEnabledForUser = useIsCommentingEnabled()
 	const open = useCommentsSidebarOpen()
-	const label = msg(commentsMessages.comments.id)
+	const label = msg(commentsMessages.comments)
 
 	if (!commentingEnabled || !commentingEnabledForUser) return null
 
@@ -233,7 +233,7 @@ function SignedOutShareButton({
 }) {
 	const msg = useTranslation()
 	const trackEvent = useTldrawAppUiEvents()
-	const shareLbl = msg(signedOutShareMessages.share.id)
+	const shareLbl = msg(signedOutShareMessages.share)
 
 	return (
 		<TlaFileShareMenu fileId={fileId} context={context} source="anon">

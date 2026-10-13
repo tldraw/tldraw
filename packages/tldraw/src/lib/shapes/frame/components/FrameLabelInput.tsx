@@ -87,7 +87,7 @@ export const FrameLabelInput = forwardRef<
 			promptOpen.current = true
 			const shape = editor.getShape<TLFrameShape>(id)
 			const currentName = shape?.props.name ?? ''
-			const newName = window.prompt(msg(messages.actionRename.id), currentName)
+			const newName = window.prompt(msg(messages.actionRename), currentName)
 			promptOpen.current = false
 			if (newName !== null) renameFrame(newName)
 			editor.setEditingShape(null)

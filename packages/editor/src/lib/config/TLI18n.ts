@@ -76,6 +76,8 @@ export interface TLI18nMessage {
  */
 export type TLI18nMessageInput = Omit<TLI18nMessage, 'id'> & { id?: string }
 
+const declaredMessages: Record<string, string> = {}
+
 /**
  * Declares messages so the extractor can find them, next to the UI that shows them — the English
  * then lives with the code rather than in a catalog edited by hand. Call it by this name:
@@ -111,11 +113,27 @@ export function defineMessages<const Messages extends Record<string, TLI18nMessa
 	const withIds = {} as { [K in keyof Messages]: Messages[K] & TLI18nMessage }
 	for (const key in msgs) {
 		const message = msgs[key]
-		withIds[key] = (
+		const withId = (
 			message.id ? message : { ...message, id: message.defaultMessage }
 		) as Messages[typeof key] & TLI18nMessage
+		withIds[key] = withId
+		declaredMessages[withId.id] = withId.defaultMessage
 	}
 	return withIds
+}
+
+/**
+ * The English of every message declared so far, by id. This is the English catalog: building it
+ * from the declarations means it isn't bundled a second time as a generated file. A key looked up
+ * by id alone — a menu label, or an app calling `msg('action.copy')` — resolves against it.
+ *
+ * Declarations run as their modules load, so this is complete once the package has been imported.
+ * Live, not a copy: spread it rather than holding on to it.
+ *
+ * @internal
+ */
+export function getDeclaredMessages(): Readonly<Record<string, string>> {
+	return declaredMessages
 }
 
 /**

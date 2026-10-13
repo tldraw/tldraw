@@ -56,12 +56,12 @@ export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
 				onDoubleClick={handleFollowClick}
 			>
 				<TldrawUiIcon
-					label={msg(messages.peopleMenuAvatarColor.id)}
+					label={msg(messages.peopleMenuAvatarColor)}
 					icon="color"
 					color={presence.color}
 				/>
 				<div className="tlui-people-menu__name">
-					{presence.userName?.trim() || msg(messages.peopleMenuAnonymousUser.id)}
+					{presence.userName?.trim() || msg(messages.peopleMenuAnonymousUser)}
 				</div>
 			</TldrawUiButton>
 			<TldrawUiButton
@@ -69,10 +69,10 @@ export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
 				className="tlui-people-menu__item__follow"
 				title={
 					theyAreFollowingYou
-						? msg(messages.peopleMenuLeading.id)
+						? msg(messages.peopleMenuLeading)
 						: youAreFollowingThem
-							? msg(messages.peopleMenuFollowing.id)
-							: msg(messages.peopleMenuFollow.id)
+							? msg(messages.peopleMenuFollowing)
+							: msg(messages.peopleMenuFollow)
 				}
 				onClick={handleFollowClick}
 				disabled={theyAreFollowingYou}

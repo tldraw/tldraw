@@ -201,7 +201,7 @@ export function DefaultMinimap() {
 			<canvas
 				ref={rCanvas}
 				role="img"
-				aria-label={msg(messages.navigationZoneMinimap.id)}
+				aria-label={msg(messages.navigationZoneMinimap)}
 				data-testid="minimap.canvas"
 				className="tlui-minimap__canvas"
 				onDoubleClick={onDoubleClick}

@@ -45,8 +45,7 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 	const hasActions = toast.actions && toast.actions.length > 0
 
 	const icon = toast.icon || (toast.severity && SEVERITY_TO_ICON[toast.severity])
-	const iconLabel =
-		toast.iconLabel || (toast.severity ? msg(severityMessages[toast.severity].id) : '')
+	const iconLabel = toast.iconLabel || (toast.severity ? msg(severityMessages[toast.severity]) : '')
 
 	return (
 		<_Toast.Root
@@ -90,7 +89,7 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 								style={{ marginLeft: 'auto' }}
 							>
 								<TldrawUiButtonLabel>
-									{toast.closeLabel ?? msg(messages.toastClose.id)}
+									{toast.closeLabel ?? msg(messages.toastClose)}
 								</TldrawUiButtonLabel>
 							</TldrawUiButton>
 						</_Toast.Close>
@@ -101,7 +100,7 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 				<_Toast.Close asChild>
 					<TldrawUiButton type="normal" className="tlui-toast__close">
 						<TldrawUiButtonLabel>
-							{toast.closeLabel ?? msg(messages.toastClose.id)}
+							{toast.closeLabel ?? msg(messages.toastClose)}
 						</TldrawUiButtonLabel>
 					</TldrawUiButton>
 				</_Toast.Close>

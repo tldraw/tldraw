@@ -11,7 +11,7 @@ export function SneakySetDocumentTitle() {
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const app = useMaybeApp()
 	const editor = useGlobalEditor()
-	const untitledProject = msg(messages.untitledProject.id)
+	const untitledProject = msg(messages.untitledProject)
 	const title = useValue('title', () => getEditorFileName(app, fileSlug, editor, untitledProject), [
 		app,
 		editor,

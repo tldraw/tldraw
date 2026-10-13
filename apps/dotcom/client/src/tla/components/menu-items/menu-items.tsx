@@ -90,7 +90,7 @@ export function SignOutMenuItem() {
 				id="sign-out"
 				data-testid="tla-user-sign-out"
 				onSelect={handleSignout}
-				label={msg(messages.signOut.id)}
+				label={msg(messages.signOut)}
 				readonlyOk
 			/>
 		</TldrawUiMenuGroup>
@@ -193,7 +193,7 @@ export function UIThemeSubmenu() {
 	if (themeIds.length === 0) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="ui-theme" label={msg(messages.colorTheme.id)}>
+		<TldrawUiMenuSubmenu id="ui-theme" label={msg(messages.colorTheme)}>
 			<UIThemeMenuGroup />
 		</TldrawUiMenuSubmenu>
 	)
@@ -204,7 +204,7 @@ function UIThemeMenuGroup() {
 	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
 	const trackEvent = useTldrawAppUiEvents()
 	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
-	const defaultThemeLabel = msg(messages.colorThemeDefault.id)
+	const defaultThemeLabel = msg(messages.colorThemeDefault)
 	const themeIds = useUIThemeIds()
 
 	useEffect(() => clearThemePreview, [clearThemePreview])
@@ -257,7 +257,7 @@ export function CookieConsentMenuItem() {
 	return (
 		<TldrawUiMenuItem
 			id="cookie-consent"
-			label={msg(messages.manageCookies.id)}
+			label={msg(messages.manageCookies)}
 			readonlyOk
 			onSelect={() => {
 				addDialog({ component: () => <TlaManageCookiesDialog /> })
@@ -272,7 +272,7 @@ export function UserManualMenuItem({ icon = true }: { icon?: boolean } = {}) {
 	return (
 		<TldrawUiMenuItem
 			id="user-manual"
-			label={msg(messages.getHelp.id)}
+			label={msg(messages.getHelp)}
 			iconLeft={icon ? 'manual' : undefined}
 			readonlyOk
 			onSelect={() => {
@@ -288,7 +288,7 @@ export function GiveUsFeedbackMenuItem() {
 	return (
 		<TldrawUiMenuItem
 			id="give-us-feedback"
-			label={msg(messages.submitFeedback.id)}
+			label={msg(messages.submitFeedback)}
 			iconLeft="comment"
 			readonlyOk
 			onSelect={() => {
@@ -304,7 +304,7 @@ export function LegalSummaryMenuItem() {
 	return (
 		<TldrawUiMenuItem
 			id="tos"
-			label={msg(messages.legalSummary.id)}
+			label={msg(messages.legalSummary)}
 			readonlyOk
 			onSelect={() => {
 				openAndTrack('/legal.html')
@@ -325,7 +325,7 @@ export function ImportFileActionItem() {
 	return (
 		<TldrawUiMenuItem
 			id="import-file"
-			label={msg(messages.importFile.id)}
+			label={msg(messages.importFile)}
 			readonlyOk
 			onSelect={async () => {
 				const editor = getCurrentEditor()
@@ -384,10 +384,10 @@ export function DebugSubmenu() {
 		document.body.classList.toggle('tla-lang-highlight-missing', shouldHighlightMissing)
 	}, [shouldHighlightMissing])
 
-	const highlightMissingLbl = msg(messages.langHighlightMissing.id)
+	const highlightMissingLbl = msg(messages.langHighlightMissing)
 
 	return (
-		<TldrawUiMenuSubmenu id="debug" label={msg(messages.appDebugFlags.id)}>
+		<TldrawUiMenuSubmenu id="debug" label={msg(messages.appDebugFlags)}>
 			<TldrawUiMenuGroup id="debug app flags">
 				{/* Shadows every string the UI rendered without going through `F`, which is what
 				    marks translated text with `.i18n-msg`. Not a locale — a body class. */}

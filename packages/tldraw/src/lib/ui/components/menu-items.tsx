@@ -508,11 +508,11 @@ export function MoveToPageMenu() {
 
 							if (toPage) {
 								addToast({
-									title: msg(messages.movedToPageTitle.id),
-									description: msg(messages.movedToPageDesc.id, { page: toPage.name }),
+									title: msg(messages.movedToPageTitle),
+									description: msg(messages.movedToPageDesc, { page: toPage.name }),
 									actions: [
 										{
-											label: msg(messages.movedToPageAction.id),
+											label: msg(messages.movedToPageAction),
 											type: 'primary',
 											onClick: () => {
 												editor.markHistoryStoppingPoint('change-page')

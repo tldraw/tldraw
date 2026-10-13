@@ -109,7 +109,7 @@ function CopyButton() {
 }
 ```
 
-Where a string is needed instead — an `aria-label`, a `title`, a `placeholder` — translate the declared message's `id` through [useTranslation](?):
+Where a string is needed instead — an `aria-label`, a `title`, a `placeholder` — pass the declared message to [useTranslation](?). If the current locale has no translation for it yet, its `defaultMessage` is used:
 
 ```tsx
 import { defineMessages, useTranslation } from 'tldraw'
@@ -120,7 +120,7 @@ const messages = defineMessages({
 
 function CloseButton() {
 	const msg = useTranslation()
-	return <button aria-label={msg(messages.close.id)} />
+	return <button aria-label={msg(messages.close)} />
 }
 ```
 

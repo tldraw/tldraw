@@ -52,7 +52,7 @@ export function TldrawUiDialogCloseButton() {
 			<_Dialog.DialogClose data-testid="dialog.close" dir={dir} asChild>
 				<TldrawUiButton
 					type="icon"
-					aria-label={msg(messages.uiClose.id)}
+					aria-label={msg(messages.uiClose)}
 					onTouchEnd={(e) => (e.target as HTMLButtonElement).click()}
 				>
 					<TldrawUiButtonIcon small icon="cross-2" />

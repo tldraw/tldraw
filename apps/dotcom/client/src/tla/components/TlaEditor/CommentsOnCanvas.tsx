@@ -55,7 +55,7 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 	useCommentTracking()
 	// Guests who signed in by email have no name yet, so their roster rows would be blank. Name them
 	// the same way the rest of the commenting UI names an author it can't resolve.
-	const unknownAuthor = msg(commentMessages.unknownAuthor.id)
+	const unknownAuthor = msg(commentMessages.unknownAuthor)
 
 	const currentUser = useValue(
 		'current user',
@@ -279,7 +279,7 @@ export function useAnonCommentToolOverrides(): TLUiOverrides {
 	const msg = useTranslation()
 	const app = useMaybeApp()
 	const trackEvent = useTldrawAppUiEvents()
-	const ctaString = msg(signInMessages.signInToComment.id)
+	const ctaString = msg(signInMessages.signInToComment)
 	return useMemo(() => {
 		if (app) return {}
 		return {
@@ -316,7 +316,7 @@ export function SignInToComment() {
 			onClick={() => {
 				trackEvent('sign-up-clicked', {
 					source: 'comments',
-					ctaMessage: msg(signInMessages.signInToComment.id),
+					ctaMessage: msg(signInMessages.signInToComment),
 				})
 				addDialog({ component: TlaSignInDialog })
 			}}

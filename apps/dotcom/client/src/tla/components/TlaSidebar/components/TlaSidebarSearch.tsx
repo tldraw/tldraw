@@ -24,8 +24,8 @@ export function TlaSidebarSearch() {
 	const [query, setLocalQuery] = useState('')
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	const searchLbl = msg(messages.search.id)
-	const clearLbl = msg(messages.clearSearch.id)
+	const searchLbl = msg(messages.search)
+	const clearLbl = msg(messages.clearSearch)
 
 	const setQuery = useCallback(
 		(searchQuery: string) => {
