@@ -2018,3 +2018,22 @@ describe('When double-clicking a frame edge', () => {
 		expect(boxPageBoundsAfter.y).toBeCloseTo(boxPageBoundsBefore.y)
 	})
 })
+
+describe('removeFrame', () => {
+	it('leaves non-frame shapes passed alongside a frame in place', () => {
+		const frameId = createShapeId('frame')
+		const childId = createShapeId('child')
+		const rectId = createShapeId('rect')
+		editor.createShapes([
+			{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } },
+			{ id: childId, type: 'geo', parentId: frameId, x: 10, y: 10 },
+			{ id: rectId, type: 'geo', x: 400, y: 0 },
+		])
+
+		removeFrame(editor, [frameId, rectId])
+
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(childId)?.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShape(rectId)).toBeDefined()
+	})
+})
