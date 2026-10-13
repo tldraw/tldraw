@@ -73,7 +73,7 @@ Testing:
 
 - `pnpm test` in a workspace - run tests in watch mode
 - `pnpm test run` in a workspace - run tests once
-- `pnpm test run --grep "pattern"` in a workspace - run matching tests
+- `pnpm test run -t "pattern"` in a workspace - run tests whose names match
 - `pnpm exec vitest` - run all tests across the repo; slow, avoid unless necessary
 - `pnpm e2e` - run examples e2e tests
 - `pnpm e2e-dotcom` - run tldraw.com e2e tests
@@ -89,7 +89,7 @@ Code quality:
 
 ## Validation workflow
 
-- For narrow package changes, run the relevant workspace test first, for example `cd packages/tldraw && pnpm test run --grep "SelectTool"`.
+- For narrow package changes, run the relevant workspace test first, for example `cd packages/tldraw && pnpm test run -t "SelectTool"`.
 - For changes that affect shared types, migrations, editor behavior, or cross-package contracts, run `pnpm typecheck` from the repo root.
 - For public API changes, run `pnpm api-check` and include intentional API report updates.
 - For asset changes, run `pnpm refresh-assets` or `pnpm typecheck` so generated assets stay current.
