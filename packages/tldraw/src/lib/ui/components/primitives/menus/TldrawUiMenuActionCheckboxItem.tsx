@@ -22,8 +22,8 @@ export function TldrawUiMenuActionCheckboxItem({
 }: TLUiMenuActionCheckboxItemProps) {
 	const actions = useActions()
 	const action = actions[actionId]
-	const { visible, enabled, checked: isChecked } = useActionState(action)
-	if (!action || !visible) return null
+	const { available, enabled, checked: isChecked } = useActionState(action)
+	if (!action || !available) return null
 	if ((disabled || !enabled) && whenDisabled === 'hide') return null
 	return (
 		<TldrawUiMenuCheckboxItem

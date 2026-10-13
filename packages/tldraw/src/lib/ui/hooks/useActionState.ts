@@ -4,15 +4,15 @@ import { TLUiActionItem, useActions } from '../context/actions'
 /** @internal */
 export interface TLUiActionState {
 	/** False hides the item in every menu except the keyboard shortcuts dialog. */
-	visible: boolean
+	available: boolean
 	enabled: boolean
 	checked: boolean | undefined
 }
 
-const MISSING: TLUiActionState = { visible: false, enabled: false, checked: undefined }
-const NO_EDITOR: TLUiActionState = { visible: true, enabled: true, checked: undefined }
+const MISSING: TLUiActionState = { available: false, enabled: false, checked: undefined }
+const NO_EDITOR: TLUiActionState = { available: true, enabled: true, checked: undefined }
 
-function isActionVisible(editor: Editor, action: TLUiActionItem) {
+function isActionAvailable(editor: Editor, action: TLUiActionItem) {
 	if (editor.getIsReadonly() && !action.readonlyOk) return false
 	return !action.isAvailable || action.isAvailable(editor)
 }
@@ -44,14 +44,15 @@ function readActionState(editor: Editor, action: TLUiActionItem): TLUiActionStat
 			return fallback
 		}
 	}
-	const visible = tryPredicate(
+	const available = tryPredicate(
 		'isAvailable',
-		() => isActionVisible(editor, action),
+		() => isActionAvailable(editor, action),
 		!editor.getIsReadonly() || !!action.readonlyOk
 	)
-	const enabled = visible && tryPredicate('isEnabled', () => isActionEnabled(editor, action), false)
+	const enabled =
+		available && tryPredicate('isEnabled', () => isActionEnabled(editor, action), false)
 	const checked = tryPredicate('isChecked', () => action.isChecked?.(editor), undefined)
-	return { visible, enabled: enabled && !threw, checked }
+	return { available, enabled: enabled && !threw, checked }
 }
 
 const reportedPredicates = new Set<string>()
@@ -64,7 +65,7 @@ function reportThrowingPredicate(action: TLUiActionItem, name: string, error: un
 }
 
 function isSameState(a: TLUiActionState, b: TLUiActionState) {
-	return a.visible === b.visible && a.enabled === b.enabled && a.checked === b.checked
+	return a.available === b.available && a.enabled === b.enabled && a.checked === b.checked
 }
 
 /**
@@ -117,6 +118,6 @@ export function useSomeActionsEnabled(actionIds: readonly string[]): boolean {
  *
  * @internal
  */
-export function useSomeActionsVisible(actionIds: readonly string[]): boolean {
-	return useSomeActions('some actions visible', actionIds, (state) => state.visible)
+export function useSomeActionsAvailable(actionIds: readonly string[]): boolean {
+	return useSomeActions('some actions available', actionIds, (state) => state.available)
 }

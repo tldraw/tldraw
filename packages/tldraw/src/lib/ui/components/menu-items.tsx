@@ -7,7 +7,7 @@ import {
 	useHasShapesOnPage,
 	useUnlockedSelectedShapesCount,
 } from '../hooks/menu-hooks'
-import { useSomeActionsEnabled, useSomeActionsVisible } from '../hooks/useActionState'
+import { useSomeActionsEnabled, useSomeActionsAvailable } from '../hooks/useActionState'
 import { useReadonly } from '../hooks/useReadonly'
 import { TldrawUiMenuActionCheckboxItem } from './primitives/menus/TldrawUiMenuActionCheckboxItem'
 import { TldrawUiMenuActionItem } from './primitives/menus/TldrawUiMenuActionItem'
@@ -131,7 +131,7 @@ const COPY_AS_ACTIONS = ['copy-as-svg', 'copy-as-png', 'copy-as-json']
 /** @public @react */
 export function CopyAsMenuGroup() {
 	const atLeastOneShapeOnPage = useHasShapesOnPage()
-	const hasCopyActions = useSomeActionsVisible(COPY_AS_ACTIONS)
+	const hasCopyActions = useSomeActionsAvailable(COPY_AS_ACTIONS)
 	if (!hasCopyActions) return null
 
 	return (

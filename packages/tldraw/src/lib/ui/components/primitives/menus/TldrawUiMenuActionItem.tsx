@@ -20,9 +20,9 @@ export function TldrawUiMenuActionItem({
 	const actions = useActions()
 	const action = actions[actionId]
 	const { type: menuType } = useTldrawUiMenuContext()
-	const { visible, enabled } = useActionState(action)
+	const { available, enabled } = useActionState(action)
 	if (!action) return null
-	if (!visible) {
+	if (!available) {
 		// The shortcuts dialog lists what a key does, even where the menu item wouldn't show.
 		if (menuType !== 'keyboard-shortcuts') return null
 	} else if ((disabled || !enabled) && whenDisabled === 'hide') {
