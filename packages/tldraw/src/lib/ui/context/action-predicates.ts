@@ -91,7 +91,7 @@ export function hasLinkShapeSelected(editor: Editor) {
 export function canFrameSelection(editor: Editor) {
 	const selected = editor.getSelectedShapes()
 	if (selected.length === 0) return false
-	// An all-frame selection unframes instead; remove-frame covers that.
+	// An all-frame selection is disabled; remove-frame covers it.
 	if (selected.every((s) => editor.isShapeOfType(s, 'frame'))) return false
 	return getFrameableShapeIds(editor, editor.getSelectedShapeIds()).length > 0
 }
