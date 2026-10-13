@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import { useNavigate } from 'react-router-dom'
 import { routes } from '../../routeDefs'
 import { bootedOnOAuthConsent } from '../../utils/clerkUi'
+import { TlaLogo } from '../components/TlaLogo/TlaLogo'
 import { OPEN_SIGN_IN, setRedirect } from '../utils/redirect'
 import styles from './oauth-consent.module.css'
 
@@ -21,6 +22,7 @@ export function Component() {
 				<meta name="robots" content="noindex" />
 			</Helmet>
 			<Show when="signed-in">
+				<TlaLogo className={styles.logo} />
 				<OAuthConsent />
 			</Show>
 			<Show when="signed-out">
