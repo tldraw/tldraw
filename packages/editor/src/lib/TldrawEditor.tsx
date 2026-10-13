@@ -497,6 +497,10 @@ const noAutoFocus = () => getGlobalDocument().location.search.includes('tldraw_p
  * through the editor's i18n — would have been announced in English. The UI renders inside the
  * editor in every composition, so it can hand its translations up. An `i18n` prop still wins.
  *
+ * `<Tldraw>` relies on this too, rather than passing a prop: the translation provider it renders
+ * above the editor has its locale fixed at mount, so an adapter read from there kept announcing
+ * shapes in the first language after the user switched.
+ *
  * @internal
  */
 export const EditorI18nFallbackContext = React.createContext<{

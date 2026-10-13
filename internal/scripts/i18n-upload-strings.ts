@@ -112,6 +112,9 @@ async function uploadFile(
 		lang_iso: 'en',
 		detect_icu_plurals: true,
 		cleanup_mode: cleanupMode,
+		// Without it Lokalise keeps the English it already holds for an existing key, so a reworded
+		// string never lands and `tag_updated_keys` never fires.
+		replace_modified: true,
 		// Tag only what Lokalise counts as updated — a key whose English differs from the English
 		// it already held. `tag_inserted_keys` defaults to true, so it has to be turned off by hand:
 		// a brand-new key is untranslated and gets ordered on that basis, and tagging it as well

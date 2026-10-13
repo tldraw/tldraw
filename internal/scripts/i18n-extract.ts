@@ -198,6 +198,7 @@ function extractDotcom(mode: Mode): boolean {
 		'[md5:contenthash:hex:10]',
 		'--format',
 		'lokalise',
+		'--throws',
 	])
 
 	// The compile needs the English it just wrote to sit alongside the other locales. In check mode

@@ -97,6 +97,27 @@ describe('TldrawUiTranslationProvider', () => {
 		})
 		expect(result.current('app.title')).toBe('App only')
 	})
+
+	// Only the active locale's overrides used to apply, so an app key missing from them showed its id.
+	it("falls back to an app key's English override in another locale", () => {
+		const { result } = renderHook(() => useTranslation(), {
+			wrapper: withLocale('zz', {
+				en: { 'app.title': 'English', 'action.copy': 'Make a copy' },
+				zz: {},
+			}),
+		})
+		expect(result.current('app.title')).toBe('English')
+		// The catalog's own string still wins over an English override of an SDK key.
+		expect(result.current('action.copy')).toBe(DEFAULT_TRANSLATION['action.copy'])
+	})
+
+	// An empty override is how an app hides a label; react-intl's default shows the id instead.
+	it('renders an empty override as empty', () => {
+		const { result } = renderHook(() => useTranslation(), {
+			wrapper: withLocale('en', { en: { 'action.copy': '' } }),
+		})
+		expect(result.current('action.copy')).toBe('')
+	})
 })
 
 describe('rich text in a message', () => {

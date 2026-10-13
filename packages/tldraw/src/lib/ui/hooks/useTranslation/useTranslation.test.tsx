@@ -121,6 +121,10 @@ describe('useTranslation', () => {
 		expect(msgWith({ 'my.own.key': 'Mine' })('my.own.key')).toBe('Mine')
 	})
 
+	it('renders an empty message as empty, not as its id', () => {
+		expect(msgWith({ 'action.copy': '' })('action.copy')).toBe('')
+	})
+
 	it('passes a nullish id straight through', () => {
 		expect(msgWith({})(undefined)).toBeUndefined()
 	})

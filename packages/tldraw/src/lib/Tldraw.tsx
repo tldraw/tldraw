@@ -5,7 +5,6 @@ import {
 	TLOnMountHandler,
 	TLTextOptions,
 	TldrawEditor,
-	TldrawEditorProps,
 	TldrawEditorBaseProps,
 	TldrawEditorStoreProps,
 	defaultUserPreferences,
@@ -40,7 +39,6 @@ import { Spinner } from './ui/components/Spinner'
 import { AssetUrlsProvider } from './ui/context/asset-urls'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { useUiEvents } from './ui/context/events'
-import { useTldrawI18n } from './ui/context/i18n'
 import { useToasts } from './ui/context/toasts'
 import {
 	TldrawUiTranslationProvider,
@@ -283,7 +281,7 @@ export function Tldraw(props: TldrawProps) {
 				// If the locale prop is provided, then use that and assume it to be controlled
 				locale={locale ?? rest.user?.userPreferences.get().locale ?? defaultUserPreferences.locale}
 			>
-				<InsideOfTranslationContext
+				<TldrawEditor
 					initialState="select"
 					{...rest}
 					components={componentsWithDefault}
@@ -305,18 +303,10 @@ export function Tldraw(props: TldrawProps) {
 						/>
 						{children}
 					</TldrawUi>
-				</InsideOfTranslationContext>
+				</TldrawEditor>
 			</TldrawUiTranslationProvider>
 		</AssetUrlsProvider>
 	)
-}
-
-// `useTldrawI18n` needs the translation context, which `Tldraw` renders rather than sits inside, so
-// the adapter has to be read one layer in. Named for that position, as `InsideOfEditorAndUiContext`
-// below is — it's a plumbing component, not a variant of <TldrawEditor />.
-function InsideOfTranslationContext(props: TldrawEditorProps) {
-	const i18n = useTldrawI18n()
-	return <TldrawEditor {...props} i18n={i18n} />
 }
 
 // We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor and TldrawUi.

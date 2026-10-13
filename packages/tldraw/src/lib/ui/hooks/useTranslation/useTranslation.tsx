@@ -97,10 +97,14 @@ export function TldrawUiTranslationProvider({
 	// Keyed on the requested locale, not the loaded one. They differ when the SDK ships no catalogue
 	// for it and `fetchTranslation` falls back to English — which is the case for a locale that
 	// exists only in an app's own strings, so that's exactly when its overrides have to apply.
+	//
+	// The English overrides go underneath the catalog, so they reach only ids the catalog lacks: an
+	// app's own key not yet translated for this locale falls back to its English, not to its id.
 	const currentTranslation = React.useMemo(() => {
 		const localeOverrides = overrides?.[locale]
-		if (!localeOverrides) return loaded
-		return { ...loaded, messages: { ...loaded.messages, ...localeOverrides } }
+		const enOverrides = locale === 'en' ? undefined : overrides?.en
+		if (!localeOverrides && !enOverrides) return loaded
+		return { ...loaded, messages: { ...enOverrides, ...loaded.messages, ...localeOverrides } }
 	}, [loaded, overrides, locale])
 
 	// react-intl builds each provider's catalog from its own props alone, so without merging this
@@ -132,6 +136,7 @@ export function TldrawUiTranslationProvider({
 				defaultLocale="en"
 				messages={messages}
 				onError={onTranslationError}
+				fallbackOnEmptyString={false}
 			>
 				{children}
 			</IntlProvider>
@@ -149,6 +154,9 @@ export type TLUiTranslationValues = Record<
 	string | number | bigint | boolean | Date | null | undefined
 >
 
+// `fallbackOnEmptyString` is off on both intl instances because an override of `''` is how an app
+// hides a label; react-intl's default renders the id in its place.
+//
 // Returning the key verbatim for an unknown id is documented behaviour: apps pass their own keys
 // and plain text through `msg()`. Only surface errors that mean a message is actually malformed.
 const onTranslationError: IntlConfig['onError'] = (error) => {
@@ -204,6 +212,7 @@ export function useTranslation() {
 							defaultLocale: 'en',
 							messages: translation?.messages ?? DEFAULT_TRANSLATION,
 							onError: onTranslationError,
+							fallbackOnEmptyString: false,
 						},
 						intlCache
 					),

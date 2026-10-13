@@ -6,12 +6,21 @@ import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
 
 const messages = defineMessages({
+	actionToggleAutoNone: { id: 'action.toggle-auto-none', defaultMessage: 'Auto' },
+	actionToggleAutoPan: { id: 'action.toggle-auto-pan', defaultMessage: 'Auto (trackpad)' },
+	actionToggleAutoZoom: { id: 'action.toggle-auto-zoom', defaultMessage: 'Auto (mouse)' },
 	actionToggleMouse: { id: 'action.toggle-mouse', defaultMessage: 'Mouse' },
 	actionToggleTrackpad: { id: 'action.toggle-trackpad', defaultMessage: 'Trackpad' },
 	menuInputDevice: { id: 'menu.input-device', defaultMessage: 'Input device' },
 })
 
 const MODES = ['auto', 'trackpad', 'mouse'] as const
+
+const AUTO_LABELS = {
+	none: messages.actionToggleAutoNone,
+	pan: messages.actionToggleAutoPan,
+	zoom: messages.actionToggleAutoZoom,
+}
 
 /** @public @react */
 export function InputModeMenu() {
@@ -27,7 +36,7 @@ export function InputModeMenu() {
 
 	const getLabel = (mode: (typeof MODES)[number]) => {
 		if (mode === 'auto') {
-			return `action.toggle-auto-${wheelBehavior}`
+			return AUTO_LABELS[wheelBehavior].id
 		}
 
 		return mode === 'trackpad' ? messages.actionToggleTrackpad.id : messages.actionToggleMouse.id
