@@ -357,21 +357,22 @@ export class Idle extends StateNode {
 						break
 					}
 
-					// Test edges for an onDoubleClickEdge handler
-					if (isEdge) {
-						const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
+					// Mark first: handlers can write to the store themselves (the frame util moves its
+					// children), and those writes would otherwise join the previous undo step
+					if (isEdge && util.onDoubleClickEdge) {
+						this.editor.markHistoryStoppingPoint('double click edge')
+						const change = util.onDoubleClickEdge(onlySelectedShape, info)
 						if (change) {
-							this.editor.markHistoryStoppingPoint('double click edge')
 							this.editor.updateShapes([change])
 							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
 							return
 						}
 					}
 
-					if (isCorner) {
-						const change = util.onDoubleClickCorner?.(onlySelectedShape, info)
+					if (isCorner && util.onDoubleClickCorner) {
+						this.editor.markHistoryStoppingPoint('double click corner')
+						const change = util.onDoubleClickCorner(onlySelectedShape, info)
 						if (change) {
-							this.editor.markHistoryStoppingPoint('double click corner')
 							this.editor.updateShapes([change])
 							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
 							return
