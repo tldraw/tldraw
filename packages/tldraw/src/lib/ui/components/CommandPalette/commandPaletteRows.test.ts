@@ -130,6 +130,16 @@ describe('getCommandPaletteBrowseRows', () => {
 		])
 	})
 
+	it('leaves out the heading when only one group is listed', () => {
+		const rows = getCommandPaletteBrowseRows(
+			[entry('undo', { heading: 'Edit' }), entry('redo', { heading: 'Edit' })],
+			[],
+			'Recent',
+			{ ...grouped, showGroupHeadings: true }
+		)
+		expect(describeRows(rows)).toEqual(['undo', 'redo'])
+	})
+
 	it('hides recents when they are turned off', () => {
 		const rows = getCommandPaletteBrowseRows([entry('undo')], ['undo'], 'Recent', {
 			...grouped,

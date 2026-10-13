@@ -59,10 +59,15 @@ function item(id: string, label: string, onSelect = vi.fn(), extra: object = {})
 describe('CommandPaletteShell', () => {
 	it('heads groups by default, and lists them without headings when the flag is off', async () => {
 		const { rendered } = await renderShell(
-			<TldrawUiMenuGroup id="edit" label="menu.edit">
-				{item('alpha', 'Alpha')}
-				{item('beta', 'Beta')}
-			</TldrawUiMenuGroup>
+			<>
+				<TldrawUiMenuGroup id="edit" label="menu.edit">
+					{item('alpha', 'Alpha')}
+					{item('beta', 'Beta')}
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="view" label="menu.view">
+					{item('gamma', 'Gamma')}
+				</TldrawUiMenuGroup>
+			</>
 		)
 		await rendered.findByTestId('command-palette.item.alpha')
 		const palette = within(rendered.getByTestId('command-palette'))
@@ -389,11 +394,16 @@ describe('CommandPaletteShell', () => {
 		commandPaletteFlags.showGroupHeadings.set(true)
 		commandPaletteFlags.showIcons.set(true)
 		const { rendered } = await renderShell(
-			<TldrawUiMenuGroup id="edit" label="Edit">
-				<TldrawUiMenuItem id="alpha" label="Alpha" iconLeft="plus" onSelect={vi.fn()} />
-				{item('beta', 'Beta')}
-				<TldrawUiMenuCheckboxItem id="grid" label="Grid" checked readonlyOk onSelect={vi.fn()} />
-			</TldrawUiMenuGroup>
+			<>
+				<TldrawUiMenuGroup id="edit" label="Edit">
+					<TldrawUiMenuItem id="alpha" label="Alpha" iconLeft="plus" onSelect={vi.fn()} />
+					{item('beta', 'Beta')}
+					<TldrawUiMenuCheckboxItem id="grid" label="Grid" checked readonlyOk onSelect={vi.fn()} />
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="view" label="View">
+					{item('gamma', 'Gamma')}
+				</TldrawUiMenuGroup>
+			</>
 		)
 		await rendered.findByText('Edit')
 		expect(rendered.getByTestId('command-palette').hasAttribute('data-wide')).toBe(true)
