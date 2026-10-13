@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useNavigate } from 'react-router-dom'
 import { routes } from '../../routeDefs'
+import { bootedOnOAuthConsent } from '../../utils/clerkUi'
 import { OPEN_SIGN_IN, setRedirect } from '../utils/redirect'
 import styles from './oauth-consent.module.css'
 
@@ -10,6 +11,10 @@ import styles from './oauth-consent.module.css'
 // Account Portal. Clerk owns the consent logic and form POST; we only own the page around it, which
 // Clerk requires to carry no navigation or sign-out links.
 export function Component() {
+	if (!bootedOnOAuthConsent) {
+		window.location.reload()
+		return null
+	}
 	return (
 		<div className={styles.page}>
 			<Helmet>

@@ -83,7 +83,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				userId: auth.userId,
 				email,
 				flags,
-				getToken: () => tokenOrUndefinedWhenOffline(() => auth.getToken()),
+				getToken: async () => {
+					const token = await auth.getToken()
+					return token || undefined
+				},
 				// `skipCache` is load-bearing, not belt and braces: Clerk hands back a cached token
 				// until it is nearly expired, and the refresh schedules itself from the *remaining*
 				// life of whatever it is given. Cached tokens would shorten that interval on every
@@ -167,8 +170,8 @@ export function useApp(): TldrawApp {
 	return assertExists(useContext(appContext), 'useApp must be used within AppStateProvider')
 }
 
-// Clerk Core 3's getToken throws offline where Core 2 returned null. The app and Zero treat a
-// missing token as "retry later"; a rejection would surface as a load or auth error instead.
+// Clerk Core 3's getToken throws offline where Core 2 returned null. Zero boots tokenless and picks
+// a token up on its next refresh; a rejection would fail the load instead.
 async function tokenOrUndefinedWhenOffline(get: () => Promise<string | null>) {
 	try {
 		return (await get()) || undefined

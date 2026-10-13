@@ -192,9 +192,11 @@ function TlaEnterEmailStep({
 		[state, client.signUp, signIn, onClose, setActive, isSignInLoaded, onComplete]
 	)
 
+	const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false)
 	const handleGoogleSignIn = useCallback(async () => {
 		if (!isSignInLoaded || !signIn) return
 		if (!skipRedirect) setRedirectOnSignIn()
+		setIsGoogleRedirecting(true)
 		try {
 			await signIn.authenticateWithRedirect({
 				strategy: 'oauth_google',
@@ -202,6 +204,7 @@ function TlaEnterEmailStep({
 				redirectUrlComplete: routes.tlaRoot({ asUrl: true }),
 			})
 		} catch (err: any) {
+			setIsGoogleRedirecting(false)
 			setState((s) => ({
 				...s,
 				error: err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || 'Something went wrong',
@@ -234,6 +237,7 @@ function TlaEnterEmailStep({
 					data-testid="tla-google-sign-in-button"
 					className={styles.authCtaButton}
 					onClick={handleGoogleSignIn}
+					disabled={!isSignInLoaded || isGoogleRedirecting}
 				>
 					<GoogleIcon />
 					<F defaultMessage="Sign in with Google" />

@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/react'
+import { useAuth, useClerk } from '@clerk/react'
 import { commentToolOverrides } from '@tldraw/commenting'
 import { useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -53,11 +53,6 @@ export function Component() {
 			const redirectTo = getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
 			if (redirectTo) {
 				clearRedirectOnSignIn()
-				// A full load, because Clerk's UI bundle is only fetched when the page boots there.
-				if (redirectTo.startsWith(routes.tlaOAuthConsent())) {
-					window.location.replace(redirectTo)
-					return
-				}
 				if (redirectTo.startsWith('/')) {
 					navigate(redirectTo, { replace: true })
 					return
@@ -164,11 +159,18 @@ function LocalTldraw() {
 
 function useOpenSignInFromLocationState() {
 	const dialogs = useDialogs()
+	const clerk = useClerk()
 	const location = useLocation()
 	const navigate = useNavigate()
 	useEffect(() => {
 		if (!location.state?.[OPEN_SIGN_IN]) return
 		navigate('.', { replace: true, state: omit(location.state, [OPEN_SIGN_IN]) })
-		dialogs.addDialog({ component: TlaSignInDialog })
-	}, [dialogs, location, navigate])
+		dialogs.addDialog({
+			component: TlaSignInDialog,
+			// Dismissed without signing in: a redirect left behind would hijack a later sign-in.
+			onClose: () => {
+				if (!clerk.isSignedIn) clearRedirectOnSignIn()
+			},
+		})
+	}, [clerk, dialogs, location, navigate])
 }
