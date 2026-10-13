@@ -1964,7 +1964,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			actionItems.push({
 				id: 'open-cursor-chat',
 				isAvailable: (editor) => !editor.getInstanceState().isCoarsePointer,
-				isEnabled: (editor) => editor.getCurrentToolId() === 'select',
+				isEnabled: (editor) => editor.isIn('select'),
 				label: 'action.open-cursor-chat',
 				readonlyOk: true,
 				kbd: '/',
