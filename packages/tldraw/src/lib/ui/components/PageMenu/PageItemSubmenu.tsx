@@ -69,8 +69,8 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton
 					type="icon"
-					tooltip={msg(messages.pageMenuSubmenuTitle.id)}
-					title={msg(messages.pageMenuSubmenuTitle.id)}
+					tooltip={msg(messages.pageMenuSubmenuTitle)}
+					title={msg(messages.pageMenuSubmenuTitle)}
 					data-testid="page-menu.item-submenu"
 				>
 					<TldrawUiButtonIcon icon="dots-vertical" small />

@@ -48,10 +48,7 @@ export function DefaultPeopleMenu({ children }: DefaultPeopleMenuProps) {
 	return (
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
 			<_Popover.Trigger dir={dir} asChild>
-				<button
-					className="tlui-people-menu__avatars-button"
-					title={msg(messages.peopleMenuTitle.id)}
-				>
+				<button className="tlui-people-menu__avatars-button" title={msg(messages.peopleMenuTitle)}>
 					{PeopleMenuFacePile ? (
 						<PeopleMenuFacePile userColor={userColor} userIds={userIds} userName={userName} />
 					) : null}

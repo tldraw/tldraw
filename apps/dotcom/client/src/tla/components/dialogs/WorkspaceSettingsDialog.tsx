@@ -83,7 +83,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 
 	const scrollableRef = useScrollbarWhenScrollable()
 
-	const namePlaceholderMsg = msg(messages.namePlaceholder.id)
+	const namePlaceholderMsg = msg(messages.namePlaceholder)
 
 	const workspaceMembership = useValue(
 		'workspaceMembership',
@@ -156,8 +156,8 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	// mean "enabled", so treat a missing value as true.
 	const inviteLinkEnabled = workspace.inviteLinkEnabled ?? true
 	const roleLabels: Record<Role, string> = {
-		owner: msg(messages.owner.id),
-		member: msg(messages.member.id),
+		owner: msg(messages.owner),
+		member: msg(messages.member),
 	}
 	// Owners sort above members; within a role the current user is pinned to the top.
 	const roleOrder: Record<Role, number> = { owner: 0, member: 1 }
@@ -444,7 +444,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 													</div>
 													<span className={styles.memberName}>
 														{member.userName}
-														{isSelf ? ` (${msg(messages.you.id)})` : ''}
+														{isSelf ? ` (${msg(messages.you)})` : ''}
 													</span>
 													{canManageWorkspace ? (
 														<TlaMenuSelect

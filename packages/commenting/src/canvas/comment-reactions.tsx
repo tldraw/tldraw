@@ -187,7 +187,7 @@ export function CommentReactions({ comment, currentUserId, resolveName }: Commen
 	const { components } = useCommentingOptions()
 	const reactions = useCommentReactions(editor, comment.id)
 	const msg = useTranslation()
-	const unknownAuthorName = msg(messages.commentsUnknownAuthor.id)
+	const unknownAuthorName = msg(messages.commentsUnknownAuthor)
 	const summaries = useMemo(
 		() => summarizeReactions(reactions, currentUserId, resolveName, { unknownAuthorName }),
 		[reactions, currentUserId, resolveName, unknownAuthorName]

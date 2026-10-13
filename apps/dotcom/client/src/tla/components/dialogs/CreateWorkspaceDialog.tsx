@@ -27,7 +27,7 @@ interface CreateWorkspaceDialogProps {
 
 export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDialogProps) {
 	const msg = useTranslation()
-	const [workspaceName, setWorkspaceName] = useState(msg(messages.defaultName.id))
+	const [workspaceName, setWorkspaceName] = useState(msg(messages.defaultName))
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
@@ -70,7 +70,7 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 						onValueChange={setWorkspaceName}
 						onComplete={handleCreate}
 						onCancel={onClose}
-						placeholder={msg(messages.placeholder.id)}
+						placeholder={msg(messages.placeholder)}
 						maxLength={MAX_WORKSPACE_NAME_LENGTH}
 						autoFocus
 					/>

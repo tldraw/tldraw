@@ -106,7 +106,7 @@ function ContextualToolbarInner({
 		<TldrawUiContextualToolbar
 			className="tlui-media__toolbar tlui-image__toolbar"
 			getSelectionBounds={getSelectionBounds}
-			label={msg(messages.toolImageToolbarTitle.id)}
+			label={msg(messages.toolImageToolbarTitle)}
 		>
 			{children ? (
 				children

@@ -98,7 +98,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 					type="icon"
 					className="tlui-people-menu__user__color"
 					style={{ color: value }}
-					title={msg(messages.peopleMenuChangeColor.id)}
+					title={msg(messages.peopleMenuChangeColor)}
 				>
 					<TldrawUiButtonIcon icon="color" />
 				</TldrawUiButton>

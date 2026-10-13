@@ -137,6 +137,7 @@ import { TLHandleDragInfo } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
 import { TLHighlightShapeProps } from '@tldraw/editor';
 import { TLI18nAdapter } from '@tldraw/editor';
+import { TLI18nMessage } from '@tldraw/editor';
 import { TLI18nMessageInput } from '@tldraw/editor';
 import { TLImageAsset } from '@tldraw/editor';
 import { TLImageExportOptions } from '@tldraw/editor';
@@ -3060,7 +3061,7 @@ export interface PageItemSubmenuProps {
 }
 
 // @internal (undocumented)
-export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey) => string, addToast: TLUiToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
+export function parseAndLoadDocument(editor: Editor, document: string, msg: ReturnType<typeof useTranslation>, addToast: TLUiToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
 
 // @public (undocumented)
 export function parseTldrawJsonFile({ json, schema, }: {
@@ -6480,7 +6481,7 @@ export function useDefaultHelpers(): {
     getEmbedDefinition: (url: string) => TLEmbedResult;
     insertMedia: () => Promise<void>;
     isMobile: boolean;
-    msg: (id?: Exclude<string, TLUiTranslationKey> | string, values?: TLUiTranslationValues) => string;
+    msg: (message?: Exclude<string, TLUiTranslationKey> | TLI18nMessage | string, values?: TLUiTranslationValues) => string;
     paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource, point?: VecLike) => Promise<void>;
     printSelectionOrPages: () => Promise<void>;
     removeDialog: (id: string) => string;
@@ -6616,7 +6617,7 @@ export function useToasts(): TLUiToastsContextType;
 export function useTools(): TLUiToolsContextType;
 
 // @public
-export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string, values?: TLUiTranslationValues) => string;
+export function useTranslation(): (message?: Exclude<string, TLUiTranslationKey> | string | TLI18nMessage, values?: TLUiTranslationValues) => string;
 
 // @public (undocumented)
 export function useUiEvents(): TLUiEventContextType;

@@ -107,7 +107,7 @@ const CursorChatInput = track(function CursorChatInput({
 	const msg = useTranslation()
 
 	const ref = useRef<HTMLInputElement>(null)
-	const placeholder = chatMessage || msg(messages.cursorChatTypeToChat.id)
+	const placeholder = chatMessage || msg(messages.cursorChatTypeToChat)
 
 	usePositionBubble(ref)
 

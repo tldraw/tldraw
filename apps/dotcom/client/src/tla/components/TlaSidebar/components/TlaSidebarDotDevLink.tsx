@@ -9,7 +9,7 @@ const messages = defineMessages({
 
 export function TlaSidebarDotDevLink() {
 	const msg = useTranslation()
-	const lbl = msg(messages.buildWithTldraw.id)
+	const lbl = msg(messages.buildWithTldraw)
 	return (
 		<ExternalLink
 			className={classNames(styles.sidebarLinkButton, styles.hoverable, 'tla-text_ui__regular')}

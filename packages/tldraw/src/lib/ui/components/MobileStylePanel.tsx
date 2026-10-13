@@ -66,7 +66,7 @@ export function MobileStylePanel() {
 					style={{
 						color: disableStylePanel ? 'var(--tl-color-muted-1)' : currentColor,
 					}}
-					title={msg(stylePanelMessages.title.id)}
+					title={msg(stylePanelMessages.title)}
 					disabled={disableStylePanel}
 				>
 					<TldrawUiButtonIcon

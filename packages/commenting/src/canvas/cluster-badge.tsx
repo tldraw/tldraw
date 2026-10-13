@@ -107,7 +107,7 @@ export const ClusterBadge = memo(function ClusterBadge({
 				type="button"
 				className="tlui-cmt-button tlui-cmt-canvas-cluster"
 				style={{ left: point.x, top: point.y }}
-				aria-label={msg(messages.commentsClusterLabel.id, { count: node.count })}
+				aria-label={msg(messages.commentsClusterLabel, { count: node.count })}
 				onPointerDown={(e) => {
 					if (isCanvasPanGesture(editor, e)) {
 						forwardPointerEventToCanvas(container, e)

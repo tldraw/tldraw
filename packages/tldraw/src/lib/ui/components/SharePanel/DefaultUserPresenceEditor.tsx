@@ -70,10 +70,10 @@ export function DefaultUserPresenceEditor() {
 						className="tlui-people-menu__user__name"
 						onDoubleClick={() => setIsEditingName(true)}
 					>
-						{userName || msg(messages.peopleMenuAnonymousUser.id)}
+						{userName || msg(messages.peopleMenuAnonymousUser)}
 					</div>
 					{!userName ? (
-						<div className="tlui-people-menu__user__label">{msg(messages.peopleMenuUser.id)}</div>
+						<div className="tlui-people-menu__user__label">{msg(messages.peopleMenuUser)}</div>
 					) : null}
 				</>
 			)}
@@ -81,7 +81,7 @@ export function DefaultUserPresenceEditor() {
 				type="icon"
 				className="tlui-people-menu__user__edit"
 				data-testid="people-menu.change-name"
-				title={msg(messages.peopleMenuChangeName.id)}
+				title={msg(messages.peopleMenuChangeName)}
 				onClick={toggleEditingName}
 			>
 				<TldrawUiButtonIcon icon={isEditingName ? 'check' : 'edit'} />

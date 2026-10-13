@@ -39,13 +39,13 @@ export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: strin
 			<TlaSidebarSearch />
 			<TlaSidebarActionButton
 				icon="edit"
-				label={msg(messages.newFile.id)}
+				label={msg(messages.newFile)}
 				onClick={handleCreateFile}
 				testId="tla-sidebar-new-board"
 			/>
 			<TlaSidebarActionButton
 				icon="settings"
-				label={msg(messages.workspaceSettings.id)}
+				label={msg(messages.workspaceSettings)}
 				onClick={handleSettings}
 				testId="tla-sidebar-workspace-settings"
 			/>

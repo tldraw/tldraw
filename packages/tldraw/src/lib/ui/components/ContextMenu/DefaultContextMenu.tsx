@@ -176,7 +176,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 					<_ContextMenu.Content
 						className="tlui-menu tlui-scrollable"
 						data-testid="context-menu"
-						aria-label={msg(messages.contextMenuTitle.id)}
+						aria-label={msg(messages.contextMenuTitle)}
 						alignOffset={-4}
 						collisionPadding={4}
 						onContextMenu={preventDefault}

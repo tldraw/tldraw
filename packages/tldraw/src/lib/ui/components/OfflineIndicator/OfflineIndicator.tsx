@@ -12,9 +12,9 @@ export function OfflineIndicator() {
 	const msg = useTranslation()
 
 	return (
-		<TldrawUiTooltip content={msg(messages.statusOffline.id)}>
+		<TldrawUiTooltip content={msg(messages.statusOffline)}>
 			<div className="tlui-offline-indicator">
-				<TldrawUiIcon icon="status-offline" label={msg(messages.statusOffline.id)} small />
+				<TldrawUiIcon icon="status-offline" label={msg(messages.statusOffline)} small />
 			</div>
 		</TldrawUiTooltip>
 	)

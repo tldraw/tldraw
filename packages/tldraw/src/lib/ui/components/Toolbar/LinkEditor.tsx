@@ -101,7 +101,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 			/>
 			<TldrawUiButton
 				className="tlui-rich-text__toolbar-link-visit"
-				title={msg(messages.toolRichTextLinkVisit.id)}
+				title={msg(messages.toolRichTextLinkVisit)}
 				type="icon"
 				onPointerDown={preventDefault}
 				onClick={handleVisitLink}
@@ -111,7 +111,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 			</TldrawUiButton>
 			<TldrawUiButton
 				className="tlui-rich-text__toolbar-link-remove"
-				title={msg(messages.toolRichTextLinkRemove.id)}
+				title={msg(messages.toolRichTextLinkRemove)}
 				data-testid="rich-text.link-remove"
 				type="icon"
 				onPointerDown={preventDefault}

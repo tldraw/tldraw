@@ -6,7 +6,7 @@ import { editorMessages as messages } from '../editor-messages'
 export function SneakyLegacySetDocumentTitle() {
 	const msg = useTranslation()
 	const editor = useGlobalEditor()
-	const untitledProject = msg(messages.untitledProject.id)
+	const untitledProject = msg(messages.untitledProject)
 	const title = useValue('title', () => editor?.getDocumentSettings().name || untitledProject, [
 		editor,
 		untitledProject,

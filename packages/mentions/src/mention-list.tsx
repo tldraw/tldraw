@@ -44,7 +44,7 @@ function DefaultMemberRow({ member }: { member: MentionMember }) {
 				<span className="tlui-cmt-mention-list__name">
 					{member.name}
 					{member.you && (
-						<span className="tlui-cmt-mention-list__you">{`(${msg(messages.commentsMentionYou.id)})`}</span>
+						<span className="tlui-cmt-mention-list__you">{`(${msg(messages.commentsMentionYou)})`}</span>
 					)}
 				</span>
 				{member.secondary && (
@@ -69,7 +69,7 @@ export const MentionList = forwardRef<HTMLDivElement, MentionListProps>(function
 	if (members.length === 0) {
 		return (
 			<div ref={ref} className="tlui-cmt-mention-list tlui-cmt-mention-list--empty">
-				{emptyLabel ?? msg(messages.commentsMentionNoMatches.id)}
+				{emptyLabel ?? msg(messages.commentsMentionNoMatches)}
 			</div>
 		)
 	}

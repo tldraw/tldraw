@@ -20,7 +20,7 @@ export function TlaSidebarFeedbackButton() {
 			}}
 		>
 			<TlaIcon icon="feedback" />
-			<span className={styles.sidebarLinkButtonLabel}>{msg(messages.submitFeedback.id)}</span>
+			<span className={styles.sidebarLinkButtonLabel}>{msg(messages.submitFeedback)}</span>
 		</button>
 	)
 }

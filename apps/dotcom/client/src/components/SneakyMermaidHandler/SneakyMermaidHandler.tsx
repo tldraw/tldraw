@@ -17,8 +17,8 @@ export function SneakyMermaidHandler() {
 	const msg = useTranslation()
 	const editor = useEditor()
 	const { addToast } = useToasts()
-	const unsupportedTitle = msg(messages.unsupportedTitle.id)
-	const unsupportedDescription = msg(messages.unsupportedDescription.id)
+	const unsupportedTitle = msg(messages.unsupportedTitle)
+	const unsupportedDescription = msg(messages.unsupportedDescription)
 
 	useEffect(() => {
 		editor.registerExternalContentHandler('text', async (content) => {

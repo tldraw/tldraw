@@ -135,7 +135,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		addToast({
 			id: 'local-file-restore-failed',
 			severity: 'warning',
-			title: msg(messages.slurpFailed.id),
+			title: msg(messages.slurpFailed),
 			keepOpen: true,
 		})
 	})

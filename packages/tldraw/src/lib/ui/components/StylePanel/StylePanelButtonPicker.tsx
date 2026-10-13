@@ -161,11 +161,11 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 							key={item.value}
 							data-id={item.value}
 							data-testid={`style.${uiType}.${item.value}`}
-							aria-label={label + (isActive ? ` (${msg(stylePanelMessages.selected.id)})` : '')}
+							aria-label={label + (isActive ? ` (${msg(stylePanelMessages.selected)})` : '')}
 							tooltip={
 								<>
 									<div>{label}</div>
-									{isActive ? <div>({msg(stylePanelMessages.selected.id)})</div> : null}
+									{isActive ? <div>({msg(stylePanelMessages.selected)})</div> : null}
 								</>
 							}
 							value={item.value}

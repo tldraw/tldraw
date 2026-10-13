@@ -75,7 +75,7 @@ export function TlaMenuControlInfoTooltip({
 	showOnMobile?: boolean
 }) {
 	const msg = useTranslation()
-	const helpMsg = msg(messages.help.id)
+	const helpMsg = msg(messages.help)
 
 	return (
 		<div className={styles.menuInfoTriggerContainer}>

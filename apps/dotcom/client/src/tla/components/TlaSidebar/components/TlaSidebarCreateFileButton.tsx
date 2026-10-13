@@ -46,7 +46,7 @@ export function useHandleSidebarCreateFile() {
 
 export function TlaSidebarCreateFileButton() {
 	const msg = useTranslation()
-	const createTitle = msg(messages.create.id)
+	const createTitle = msg(messages.create)
 	const handleSidebarCreate = useHandleSidebarCreateFile()
 
 	return (

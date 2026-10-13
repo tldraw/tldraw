@@ -40,7 +40,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 	const homeWorkspaceId = app.getHomeWorkspaceId()
 	const activeWorkspaceId = useActiveWorkspaceId()
 	const isHome = activeWorkspaceId === homeWorkspaceId
-	const myWorkspaceLbl = msg(messages.myWorkspace.id)
+	const myWorkspaceLbl = msg(messages.myWorkspace)
 
 	const workspaces = useValue(
 		'workspaceMemberships',
@@ -151,7 +151,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 								<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
 									<TlaIcon icon="plus" />
 									<span className={styles.sidebarTruncatedText}>
-										{msg(messages.createWorkspace.id)}
+										{msg(messages.createWorkspace)}
 									</span>
 								</span>
 							</_DropdownMenu.Item>

@@ -78,6 +78,7 @@ export {
 export {
 	defaultI18n,
 	defineMessages,
+	getDeclaredMessages,
 	translateMessage,
 	type TLI18n,
 	type TLI18nAdapter,

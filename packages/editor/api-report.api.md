@@ -1977,6 +1977,9 @@ export function getColorValue(colors: TLThemeColors, color: string | TLDefaultCo
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
 
+// @internal
+export function getDeclaredMessages(): Readonly<Record<string, string>>;
+
 // @public
 export function getDefaultCdnBaseUrl(): string;
 

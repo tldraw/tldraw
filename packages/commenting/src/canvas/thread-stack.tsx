@@ -150,7 +150,7 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 					ref={badgeRef}
 					type="button"
 					className="tlui-cmt-button tlui-cmt-canvas-stack-badge"
-					aria-label={msg(messages.commentsStackLabel.id, { count: threads.length })}
+					aria-label={msg(messages.commentsStackLabel, { count: threads.length })}
 					aria-expanded={open}
 					onPointerDown={(e) => e.stopPropagation()}
 					onClick={(e) => {
@@ -241,10 +241,10 @@ function StackThreadCard({
 				type="button"
 				className="tlui-cmt-button tlui-cmt-stack-list__card-action"
 				aria-label={msg(
-					thread.resolved ? messages.commentsPinLabelResolved.id : messages.commentsPinLabel.id,
+					thread.resolved ? messages.commentsPinLabelResolved : messages.commentsPinLabel,
 					{
 						name:
-							props.resolveAuthor(thread.createdBy)?.name ?? msg(messages.commentsUnknownAuthor.id),
+							props.resolveAuthor(thread.createdBy)?.name ?? msg(messages.commentsUnknownAuthor),
 					}
 				)}
 				onClick={open}

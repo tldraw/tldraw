@@ -99,7 +99,7 @@ function ContextualToolbarInner({
 			getSelectionBounds={getSelectionBounds}
 			isMousingDown={isMousingDown}
 			changeOnlyWhenYChanges={true}
-			label={msg(messages.toolRichTextToolbarTitle.id)}
+			label={msg(messages.toolRichTextToolbarTitle)}
 		>
 			{children ? (
 				children

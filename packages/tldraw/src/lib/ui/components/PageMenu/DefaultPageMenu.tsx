@@ -171,7 +171,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const renderedListHeight = Math.min(userListHeight ?? autoFitListHeight, renderCap)
 	const hasReachedMaxPages = pages.length >= editor.options.maxPages
 	const createPageButtonLabel = msg(
-		hasReachedMaxPages ? messages.pageMenuMaxPagesReached.id : messages.pageMenuCreateNewPage.id
+		hasReachedMaxPages ? messages.pageMenuMaxPagesReached : messages.pageMenuCreateNewPage
 	)
 
 	const handleResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -486,7 +486,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		(id: TLPageId, currentName: string) => {
 			if (isReadonlyMode) return
 			if (shouldUseWindowPrompt) {
-				const name = window.prompt(msg(messages.actionRename.id), currentName)
+				const name = window.prompt(msg(messages.actionRename), currentName)
 				if (name && name !== currentName) {
 					editor.renamePage(id, name)
 					trackEvent('rename-page', { source: 'page-menu' })
@@ -502,11 +502,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		if (isReadonlyMode) return
 
 		const newPageId = PageRecordType.createId()
-		const initialName = msg(messages.pageMenuNewPageInitialName.id)
+		const initialName = msg(messages.pageMenuNewPageInitialName)
 		let name = initialName
 
 		if (shouldUseWindowPrompt) {
-			const result = window.prompt(msg(messages.pageMenuCreateNewPage.id), initialName)
+			const result = window.prompt(msg(messages.pageMenuCreateNewPage), initialName)
 			if (result === null) return
 			name = result || initialName
 		}
@@ -631,8 +631,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 														onPointerUp={handlePointerUp}
 														onPointerCancel={handlePointerCancel}
 														onKeyDown={handleKeyDown}
-														tooltip={msg(messages.contextMenuReorder.id)}
-														title={msg(messages.contextMenuReorder.id)}
+														tooltip={msg(messages.contextMenuReorder)}
+														title={msg(messages.contextMenuReorder)}
 													>
 														<TldrawUiButtonIcon icon="drag-handle-dots" small />
 													</TldrawUiButton>
@@ -649,8 +649,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 													}}
 													onDoubleClick={() => startRenamingPage(page.id, page.name)}
 													{...rowDragHandlers}
-													tooltip={msg(messages.pageMenuGoToPage.id)}
-													title={msg(messages.pageMenuGoToPage.id)}
+													tooltip={msg(messages.pageMenuGoToPage)}
+													title={msg(messages.pageMenuGoToPage)}
 													data-id={page.id}
 													data-index={index}
 													onKeyDown={(e) => {
@@ -690,7 +690,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						onDoubleClick={handleResizeDoubleClick}
 						role="separator"
 						aria-orientation="horizontal"
-						aria-label={msg(messages.pageMenuResize.id)}
+						aria-label={msg(messages.pageMenuResize)}
 					/>
 					<TldrawUiButton
 						type="menu"

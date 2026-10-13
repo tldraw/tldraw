@@ -66,7 +66,7 @@ export function SkipToMainContent() {
 			className="tl-skip-to-main-content"
 			onClick={handleNavigateToFirstShape}
 		>
-			{msg(messages.a11ySkipToMainContent.id)}
+			{msg(messages.a11ySkipToMainContent)}
 		</TldrawUiButton>
 	)
 }

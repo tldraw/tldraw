@@ -1,3 +1,5 @@
+import { atom } from '@tldraw/state'
+
 /**
  * Values substituted into a message's ICU placeholders.
  *
@@ -76,6 +78,13 @@ export interface TLI18nMessage {
  */
 export type TLI18nMessageInput = Omit<TLI18nMessage, 'id'> & { id?: string }
 
+const declaredMessages: Record<string, string> = {}
+// Bumped per `defineMessages` call, so a reader re-renders when a chunk loaded after mount — a
+// dynamically imported @tldraw/commenting, say — declares messages its labels look up by id.
+const declaredVersion = atom('declaredMessagesVersion', 0)
+let snapshot: Readonly<Record<string, string>> = {}
+let snapshotVersion = -1
+
 /**
  * Declares messages so the extractor can find them, next to the UI that shows them — the English
  * then lives with the code rather than in a catalog edited by hand. Call it by this name:
@@ -111,11 +120,34 @@ export function defineMessages<const Messages extends Record<string, TLI18nMessa
 	const withIds = {} as { [K in keyof Messages]: Messages[K] & TLI18nMessage }
 	for (const key in msgs) {
 		const message = msgs[key]
-		withIds[key] = (
+		const withId = (
 			message.id ? message : { ...message, id: message.defaultMessage }
 		) as Messages[typeof key] & TLI18nMessage
+		withIds[key] = withId
+		declaredMessages[withId.id] = withId.defaultMessage
 	}
+	declaredVersion.update((v) => v + 1)
 	return withIds
+}
+
+/**
+ * The English of every message declared so far, by id. This is the English catalog: building it
+ * from the declarations means it isn't bundled a second time as a generated file. A key looked up
+ * by id alone — a menu label, or an app calling `msg('action.copy')` — resolves against it.
+ *
+ * Declarations run as their modules load, so this is complete once the package has been imported.
+ * Reactive: read it inside `useValue` or a `computed` to pick up a module that loads later. The
+ * returned object changes identity only when something new is declared.
+ *
+ * @internal
+ */
+export function getDeclaredMessages(): Readonly<Record<string, string>> {
+	const version = declaredVersion.get()
+	if (version !== snapshotVersion) {
+		snapshot = { ...declaredMessages }
+		snapshotVersion = version
+	}
+	return snapshot
 }
 
 /**

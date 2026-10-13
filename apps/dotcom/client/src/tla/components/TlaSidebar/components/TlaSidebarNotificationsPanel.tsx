@@ -145,7 +145,7 @@ function NotificationsOverflowMenu({
 				<TldrawUiDropdownMenuTrigger>
 					<TldrawUiButton
 						type="icon"
-						title={msg(messages.moreOptions.id)}
+						title={msg(messages.moreOptions)}
 						className="tlui-cmt-header-btn"
 					>
 						<TlaIcon icon="dots-vertical-strong" />
@@ -155,14 +155,14 @@ function NotificationsOverflowMenu({
 					<TldrawUiMenuGroup id="notifications-filter">
 						<TldrawUiMenuCheckboxItem
 							id="filter-all"
-							label={msg(messages.filterAll.id)}
+							label={msg(messages.filterAll)}
 							checked={filter === 'all'}
 							onSelect={() => onFilterChange('all')}
 							readonlyOk
 						/>
 						<TldrawUiMenuCheckboxItem
 							id="filter-unread"
-							label={msg(messages.filterUnread.id)}
+							label={msg(messages.filterUnread)}
 							checked={filter === 'unread'}
 							onSelect={() => onFilterChange('unread')}
 							readonlyOk
@@ -171,7 +171,7 @@ function NotificationsOverflowMenu({
 					<TldrawUiMenuGroup id="notifications-actions">
 						<TldrawUiMenuItem
 							id="mark-all-read"
-							label={msg(messages.markAllRead.id)}
+							label={msg(messages.markAllRead)}
 							onSelect={onMarkAllRead}
 							disabled={!hasUnread}
 							readonlyOk
@@ -232,7 +232,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 			author: {
 				// never fall back to the raw id: an opaque uuid as a byline reads as a bug, and the rest
 				// of the commenting UI says "Someone" for an unresolvable author
-				name: c.authorName || msg(messages.unknownAuthor.id),
+				name: c.authorName || msg(messages.unknownAuthor),
 				color: c.authorColor || undefined,
 			},
 			preview: richTextToPlaintext(c.body as TLRichText),
@@ -278,7 +278,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 		<div className={styles.wrap}>
 			<CommentsList
 				items={items}
-				header={msg(messages.title.id)}
+				header={msg(messages.title)}
 				headerAction={
 					<div className="tlui-cmt-list__header-actions">
 						<NotificationsOverflowMenu
@@ -289,7 +289,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 						/>
 						<TldrawUiButton
 							type="icon"
-							title={msg(messages.close.id)}
+							title={msg(messages.close)}
 							className="tlui-cmt-header-btn"
 							onClick={onClose}
 						>
@@ -297,7 +297,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 						</TldrawUiButton>
 					</div>
 				}
-				empty={msg(messages.empty.id)}
+				empty={msg(messages.empty)}
 				renderItem={(item) => {
 					const n = notificationById.get(item.id)
 					return (

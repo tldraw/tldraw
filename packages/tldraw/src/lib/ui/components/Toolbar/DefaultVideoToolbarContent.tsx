@@ -52,7 +52,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 			{!isReadonly && (
 				<TldrawUiToolbarButton
 					type="icon"
-					title={msg(messages.toolReplaceMedia.id)}
+					title={msg(messages.toolReplaceMedia)}
 					onClick={handleVideoReplace}
 					data-testid="tool.video-replace"
 				>
@@ -61,7 +61,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 			)}
 			<TldrawUiToolbarButton
 				type="icon"
-				title={msg(messages.actionDownloadOriginal.id)}
+				title={msg(messages.actionDownloadOriginal)}
 				onClick={handleVideoDownload}
 				data-testid="tool.video-download"
 			>
@@ -71,7 +71,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 				<TldrawUiToolbarButton
 					type="icon"
 					isActive={!!altText}
-					title={msg(messages.toolMediaAltText.id)}
+					title={msg(messages.toolMediaAltText)}
 					data-testid="tool.video-alt-text"
 					onClick={() => {
 						trackEvent('alt-text-start', { source })

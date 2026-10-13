@@ -188,7 +188,7 @@ function ExportThemeSelect({
 			<TlaMenuSelect
 				id="tla-export-theme-select"
 				value={value}
-				label={msg(messages[value as 'auto' | 'light' | 'dark'].id)}
+				label={msg(messages[value as 'auto' | 'light' | 'dark'])}
 				onChange={handleChange}
 				options={[
 					{ value: 'auto', label: <F defaultMessage="Auto" /> },

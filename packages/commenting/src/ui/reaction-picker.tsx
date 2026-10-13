@@ -97,8 +97,8 @@ export function ReactionPicker({
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton
 					type="icon"
-					tooltip={msg(messages.commentsAddReaction.id)}
-					title={msg(messages.commentsAddReaction.id)}
+					tooltip={msg(messages.commentsAddReaction)}
+					title={msg(messages.commentsAddReaction)}
 					className={className}
 				>
 					<SmileyIcon />

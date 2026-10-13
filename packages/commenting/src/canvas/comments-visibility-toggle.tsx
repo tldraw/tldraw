@@ -14,7 +14,7 @@ export function CommentsVisibilityToggle() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
-	const label = hidden ? msg(messages.commentsShow.id) : msg(messages.commentsHide.id)
+	const label = hidden ? msg(messages.commentsShow) : msg(messages.commentsHide)
 
 	return (
 		<TldrawUiButton

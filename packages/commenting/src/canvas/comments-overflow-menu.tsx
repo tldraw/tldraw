@@ -35,11 +35,11 @@ export function CommentsOverflowMenu() {
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton
 					type="icon"
-					tooltip={msg(messages.commentsMoreOptions.id)}
-					title={msg(messages.commentsMoreOptions.id)}
+					tooltip={msg(messages.commentsMoreOptions)}
+					title={msg(messages.commentsMoreOptions)}
 					className="tlui-cmt-header-btn"
 				>
-					<TldrawUiIcon icon="dots-vertical" label={msg(messages.commentsMoreOptions.id)} small />
+					<TldrawUiIcon icon="dots-vertical" label={msg(messages.commentsMoreOptions)} small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			<TldrawUiDropdownMenuContent
@@ -56,7 +56,7 @@ export function CommentsOverflowMenu() {
 							className="tlui-cmt-menu-item"
 							onClick={() => toggleCommentsHidden(editor)}
 						>
-							<span>{hidden ? msg(messages.commentsShow.id) : msg(messages.commentsHide.id)}</span>
+							<span>{hidden ? msg(messages.commentsShow) : msg(messages.commentsHide)}</span>
 							<span className="tlui-cmt-menu-item__shortcut">{HIDE_SHORTCUT}</span>
 						</button>
 					</TldrawUiDropdownMenuItem>

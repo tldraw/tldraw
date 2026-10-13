@@ -8,7 +8,7 @@ import styles from '../sidebar.module.css'
 export function TlaSidebarToggle() {
 	const msg = useTranslation()
 	const trackEvent = useTldrawAppUiEvents()
-	const toggleLbl = msg(messages.toggleSidebar.id)
+	const toggleLbl = msg(messages.toggleSidebar)
 	const hideSidebarToggle = useHideSidebarToggle()
 	if (hideSidebarToggle) return null
 

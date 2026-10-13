@@ -253,7 +253,7 @@ function TlaEnterEmailStep({
 						data-testid="tla-identifier-input"
 						value={state.identifier}
 						onChange={(e) => setState((s) => ({ ...s, identifier: e.target.value }))}
-						placeholder={msg(messages.enterEmailAddress.id)}
+						placeholder={msg(messages.enterEmailAddress)}
 						className={styles.authInput}
 						required
 						disabled={state.isSubmitting}

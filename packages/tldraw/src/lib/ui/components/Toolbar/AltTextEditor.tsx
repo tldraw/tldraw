@@ -93,8 +93,8 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 				className="tlui-media__toolbar-alt-text-input"
 				data-testid="media-toolbar.alt-text-input"
 				value={altText}
-				placeholder={msg(messages.toolMediaAltTextDesc.id)}
-				aria-label={msg(messages.toolMediaAltTextDesc.id)}
+				placeholder={msg(messages.toolMediaAltTextDesc)}
+				aria-label={msg(messages.toolMediaAltTextDesc)}
 				onValueChange={setAltText}
 				onComplete={handleComplete}
 				onCancel={onClose}
@@ -102,7 +102,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 			/>
 			{!isReadonly && (
 				<TldrawUiButton
-					title={msg(messages.toolMediaAltTextConfirm.id)}
+					title={msg(messages.toolMediaAltTextConfirm)}
 					data-testid="tool.media-alt-text-confirm"
 					type="icon"
 					onPointerDown={preventDefault}

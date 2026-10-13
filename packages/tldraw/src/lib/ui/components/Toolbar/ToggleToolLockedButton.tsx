@@ -34,8 +34,8 @@ export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonP
 
 	const toggleLockAction = actions['toggle-tool-lock']
 	const tooltipContent = toggleLockAction?.kbd
-		? `${msg(messages.actionToggleToolLock.id)} ${kbdStr(toggleLockAction.kbd)}`
-		: msg(messages.actionToggleToolLock.id)
+		? `${msg(messages.actionToggleToolLock)} ${kbdStr(toggleLockAction.kbd)}`
+		: msg(messages.actionToggleToolLock)
 
 	return (
 		<TldrawUiTooltip content={tooltipContent}>

@@ -1103,7 +1103,7 @@ const rules = {
 	'no-bare-translation-key': {
 		meta: {
 			messages: {
-				bare: "Pass a declared message's id, as `msg(messages.x.id)`, not a bare key. Declare it with `defineMessages` so the extractor and typecheck see it.",
+				bare: 'Pass a declared message, as `msg(messages.x)`, not a bare key. Declare it with `defineMessages` so the extractor and typecheck see it.',
 			},
 			type: 'problem',
 			schema: [],

@@ -52,7 +52,7 @@ export function getEditorFileName(
 export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 	const msg = useTranslation()
 	const app = useMaybeApp()
-	const untitledProject = msg(messages.untitledProject.id)
+	const untitledProject = msg(messages.untitledProject)
 	const intl = useIntl()
 	const navigate = useNavigate()
 	const trackEvent = useHandleUiEvents()

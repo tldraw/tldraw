@@ -302,7 +302,7 @@ export function OverflowingToolbar({
 			className={classNames('tlui-main-toolbar__tools', {
 				'tlui-main-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 			})}
-			label={msg(messages.toolPanelTitle.id)}
+			label={msg(messages.toolPanelTitle)}
 		>
 			<Layout id={`${id}_main`} ref={mainToolsRef}>
 				<TldrawUiMenuContextProvider type="toolbar" sourceId="toolbar">
@@ -314,7 +314,7 @@ export function OverflowingToolbar({
 					<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
 						<TldrawUiPopoverTrigger>
 							<TldrawUiToolbarButton
-								title={msg(messages.toolPanelMore.id)}
+								title={msg(messages.toolPanelMore)}
 								type="tool"
 								className="tlui-main-toolbar__overflow"
 								data-testid="tools.more-button"
@@ -333,7 +333,7 @@ export function OverflowingToolbar({
 								className="tlui-main-toolbar__overflow-content"
 								ref={setOverflowTools}
 								data-testid="tools.more-content"
-								label={msg(messages.toolPanelMore.id)}
+								label={msg(messages.toolPanelMore)}
 								id={`${id}_more`}
 								onClick={() => {
 									tlmenus.deleteOpenMenu(popoverId, editor.contextId)
