@@ -1,7 +1,7 @@
 import { UnknownRecord } from '@tldraw/store'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createFakeR2 } from '../test/fakeR2'
 import { Environment } from '../types'
 import { segmentCustomMetadata, versionKey } from '../versionChain'
@@ -10,12 +10,6 @@ import { buildSnapshotDelta } from '../versionDelta'
 import { getRoomHistorySnapshot } from './getRoomHistorySnapshot'
 
 vi.mock('../utils/tla/getAuth', () => ({ requireAdminAccessToRequest: vi.fn() }))
-
-const captureException = vi.fn()
-vi.mock('@tldraw/worker-shared', async (importOriginal) => ({
-	...(await importOriginal<typeof import('@tldraw/worker-shared')>()),
-	createSentry: vi.fn(() => ({ captureException })),
-}))
 
 const roomKey = 'app_rooms/board'
 
@@ -37,25 +31,18 @@ function isoAt(i: number) {
 	return `2026-09-01T00:00:${String(i).padStart(2, '0')}.000Z`
 }
 
-async function fetchSnapshot(env: Environment, timestamp: string, ctx?: ExecutionContext) {
+async function fetchSnapshot(env: Environment, timestamp: string) {
 	return await getRoomHistorySnapshot(
 		{ params: { roomId: 'board', timestamp } } as unknown as IRequest,
 		env,
-		true,
-		ctx
+		true
 	)
 }
 
 describe('getRoomHistorySnapshot', () => {
-	beforeEach(() => captureException.mockClear())
-
 	it('counts the chain listing in x-version-chain-ops on both serve paths', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
-		const env = {
-			ROOMS_HISTORY: chainBucket,
-			ROOMS_HISTORY_EPHEMERAL: legacyBucket,
-		} as unknown as Environment
+		const env = { ROOMS_HISTORY: chainBucket } as unknown as Environment
 
 		// A keyframe at iso 0 and one segment holding deltas for isos 1 and 2.
 		const versions = [snapshot(1, ['shape:a']), snapshot(2, ['shape:a', 'shape:b'])]
@@ -94,43 +81,9 @@ describe('getRoomHistorySnapshot', () => {
 		expect(await replayed.json()).toEqual(versions[1])
 	})
 
-	it('serves the legacy copy and reports when the chain read throws', async () => {
-		const legacyBucket = createFakeR2()
-		const timestamp = isoAt(3)
-		await legacyBucket.put(`${roomKey}/${timestamp}`, JSON.stringify(snapshot(3, ['shape:a'])))
-		const boom = new Error('chain listing failed')
-		const env = {
-			ROOMS_HISTORY: {
-				list: vi.fn(async () => {
-					throw boom
-				}),
-			},
-			ROOMS_HISTORY_EPHEMERAL: legacyBucket,
-		} as unknown as Environment
+	it('returns 404 for a version the chain does not hold', async () => {
+		const env = { ROOMS_HISTORY: createFakeR2() } as unknown as Environment
 
-		const response = await fetchSnapshot(env, timestamp, {} as ExecutionContext)
-
-		expect({
-			status: response.status,
-			ops: response.headers.get('x-version-chain-ops'),
-			body: await response.json(),
-		}).toEqual({ status: 200, ops: null, body: snapshot(3, ['shape:a']) })
-		expect(captureException).toHaveBeenCalledWith(boom)
-	})
-
-	it('rethrows without reporting when there is no legacy copy to serve', async () => {
-		const boom = new Error('chain listing failed')
-		const env = {
-			ROOMS_HISTORY: {
-				list: vi.fn(async () => {
-					throw boom
-				}),
-			},
-			ROOMS_HISTORY_EPHEMERAL: createFakeR2(),
-		} as unknown as Environment
-
-		// The worker's catch-all reports what escapes, so a capture here would file it twice.
-		await expect(fetchSnapshot(env, isoAt(4), {} as ExecutionContext)).rejects.toBe(boom)
-		expect(captureException).not.toHaveBeenCalled()
+		expect((await fetchSnapshot(env, isoAt(4))).status).toBe(404)
 	})
 })
