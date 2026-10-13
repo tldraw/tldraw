@@ -129,8 +129,16 @@ export function getCommandPaletteBrowseRows(
 		rows.push({ type: 'separator', key: 'separator:recent' })
 	}
 
+	const listed = listEntries(unpinned, groupSubmenus, {
+		skip: new Set(recent),
+		headings: showGroupHeadings,
+	})
+	// A heading over the only section names nothing it needs to tell apart.
+	const groupHeadings = listed.filter((row) => row.type === 'heading')
 	rows.push(
-		...listEntries(unpinned, groupSubmenus, { skip: new Set(recent), headings: showGroupHeadings })
+		...(groupHeadings.length === 1 && !recent.length
+			? listed.filter((row) => row !== groupHeadings[0])
+			: listed)
 	)
 	if (rows[rows.length - 1]?.type === 'separator') rows.pop()
 	return rows
