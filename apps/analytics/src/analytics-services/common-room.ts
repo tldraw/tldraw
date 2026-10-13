@@ -17,6 +17,7 @@ class CommonRoomAnalyticsService extends AnalyticsService {
 	}
 
 	override disable() {
+		if (!this.configured) return
 		this.tracker.disable()
 		this.isEnabled = false
 	}

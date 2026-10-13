@@ -12,7 +12,8 @@ const tracker = new CommonRoomTracker()
 let identifiedEmail: string | undefined
 
 export function configureCommonRoom(consent: boolean, user?: CommonRoomUser) {
-	if (!shouldUseCommonRoom || !consent) {
+	if (!shouldUseCommonRoom) return
+	if (!consent) {
 		tracker.disable()
 		identifiedEmail = undefined
 		return

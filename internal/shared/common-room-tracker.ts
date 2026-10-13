@@ -104,6 +104,7 @@ export class CommonRoomTracker {
 		this.iframe = null
 		this.lastPageUrl = null
 		this.identifiedUser = undefined
+		this.clearIdentityCookies()
 	}
 
 	reset(): boolean {
@@ -111,7 +112,6 @@ export class CommonRoomTracker {
 		const watchPageChanges = this.pageviewInterval !== undefined
 		const lastPageUrl = this.lastPageUrl
 		this.disable()
-		this.clearIdentityCookies()
 		if (!wasEnabled) return false
 		// Reset identity without reporting the same page again when rebuilding the SDK context.
 		this.lastPageUrl = lastPageUrl
