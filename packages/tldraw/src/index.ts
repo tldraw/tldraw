@@ -261,7 +261,7 @@ export {
 	type ASPECT_RATIO_OPTION,
 	type CropBoxOptions,
 } from './lib/shapes/shared/crop'
-export { getFontFamily } from './lib/shapes/shared/default-shape-constants'
+export { getFontCheckboxStyle, getFontFamily } from './lib/shapes/shared/default-shape-constants'
 export {
 	allDefaultFontFaces,
 	DefaultFontFaces,

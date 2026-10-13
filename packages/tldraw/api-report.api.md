@@ -423,6 +423,8 @@ export interface ArrowShapeUtilDisplayValues {
     // (undocumented)
     labelBorderRadius: number;
     // (undocumented)
+    labelCheckboxStyle: Record<string, string> | undefined;
+    // (undocumented)
     labelColor: string;
     // (undocumented)
     labelFontFamily: string;
@@ -2286,6 +2288,8 @@ export interface GeoShapeUtilDisplayValues {
     // (undocumented)
     fillColor: string;
     // (undocumented)
+    labelCheckboxStyle: Record<string, string> | undefined;
+    // (undocumented)
     labelColor: string;
     // (undocumented)
     labelEdgeMargin: number;
@@ -2378,6 +2382,9 @@ export function getDisplayValues<Shape extends TLShape, DisplayValues extends ob
 
 // @public
 export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string, embedConfig?: Record<string, unknown>): TLEmbedResult;
+
+// @public
+export function getFontCheckboxStyle(theme: TLTheme, font: string): Record<string, string> | undefined;
 
 // @public (undocumented)
 export function getFontFamily(theme: TLTheme, font: string): string;
@@ -2943,6 +2950,8 @@ export interface NoteShapeUtilDisplayValues {
     // (undocumented)
     borderWidth: number;
     // (undocumented)
+    labelCheckboxStyle: Record<string, string> | undefined;
+    // (undocumented)
     labelColor: string;
     // (undocumented)
     labelFontFamily: string;
@@ -3314,12 +3323,13 @@ export function RhombusToolbarItem(): JSX.Element;
 export const RichTextArea: React_3.ForwardRefExoticComponent<TextAreaProps & React_3.RefAttributes<HTMLDivElement>>;
 
 // @public
-export const RichTextLabel: React_3.MemoExoticComponent<({ shapeId, type, richText, labelColor, fontFamily, fontSize, lineHeight, textAlign, verticalAlign, wrap, isSelected, padding, onKeyDown: handleKeyDownCustom, classNamePrefix, style, textWidth, textHeight, hasCustomTabBehavior, showTextOutline, }: RichTextLabelProps) => JSX.Element | null>;
+export const RichTextLabel: React_3.MemoExoticComponent<({ shapeId, type, richText, labelColor, fontFamily, checkboxStyle, fontSize, lineHeight, textAlign, verticalAlign, wrap, isSelected, padding, onKeyDown: handleKeyDownCustom, classNamePrefix, style, textWidth, textHeight, hasCustomTabBehavior, showTextOutline, }: RichTextLabelProps) => JSX.Element | null>;
 
 // @public (undocumented)
 export interface RichTextLabelProps {
     // (undocumented)
     bounds?: Box;
+    checkboxStyle?: Record<string, string>;
     // (undocumented)
     classNamePrefix?: string;
     // (undocumented)
@@ -3363,12 +3373,13 @@ export interface RichTextLabelProps {
 }
 
 // @public
-export function RichTextSVG({ bounds, richText, fontSize, fontFamily, lineHeight, textAlign, verticalAlign, wrap, labelColor, padding, showTextOutline, }: RichTextSVGProps): JSX.Element;
+export function RichTextSVG({ bounds, richText, fontSize, fontFamily, checkboxStyle, lineHeight, textAlign, verticalAlign, wrap, labelColor, padding, showTextOutline, }: RichTextSVGProps): JSX.Element;
 
 // @public (undocumented)
 export interface RichTextSVGProps {
     // (undocumented)
     bounds: Box;
+    checkboxStyle?: Record<string, string>;
     // (undocumented)
     fontFamily: string;
     // (undocumented)
@@ -3916,6 +3927,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 // @public (undocumented)
 export interface TextShapeUtilDisplayValues {
+    // (undocumented)
+    checkboxStyle: Record<string, string> | undefined;
     // (undocumented)
     color: string;
     // (undocumented)

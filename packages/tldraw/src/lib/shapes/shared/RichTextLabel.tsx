@@ -24,6 +24,8 @@ export interface RichTextLabelProps {
 	shapeId: TLShapeId
 	type: ExtractShapeByProps<{ richText: TLRichText }>['type']
 	fontFamily: string
+	/** Custom properties that draw task list checkboxes in the font's style; see `getFontCheckboxStyle`. */
+	checkboxStyle?: Record<string, string>
 	fontSize: number
 	lineHeight: number
 	textAlign: 'start' | 'center' | 'end'
@@ -56,6 +58,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	richText,
 	labelColor,
 	fontFamily,
+	checkboxStyle,
 	fontSize,
 	lineHeight,
 	textAlign,
@@ -208,6 +211,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 						minHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
 						// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css).
 						'--tl-rich-text-heading-line-height': lineHeight,
+						...checkboxStyle,
 						minWidth: Math.ceil(textWidth || 0),
 						color: labelColor,
 						width: textWidth ? Math.ceil(textWidth) : undefined,
@@ -250,6 +254,8 @@ export interface RichTextSVGProps {
 	richText: TLRichText
 	fontSize: number
 	fontFamily: string
+	/** Custom properties that draw task list checkboxes in the font's style; see `getFontCheckboxStyle`. */
+	checkboxStyle?: Record<string, string>
 	lineHeight: number
 	textAlign: 'start' | 'center' | 'end'
 	verticalAlign: 'start' | 'middle' | 'end'
@@ -269,6 +275,7 @@ export function RichTextSVG({
 	richText,
 	fontSize,
 	fontFamily,
+	checkboxStyle,
 	lineHeight,
 	textAlign,
 	verticalAlign,
@@ -303,6 +310,7 @@ export function RichTextSVG({
 		lineHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
 		// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css).
 		'--tl-rich-text-heading-line-height': lineHeight,
+		...checkboxStyle,
 		textAlign,
 		width: '100%',
 		wordWrap: 'break-word' as const,
