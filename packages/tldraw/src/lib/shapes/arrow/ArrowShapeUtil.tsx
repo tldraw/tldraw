@@ -55,6 +55,7 @@ import {
 	ARROW_LABEL_FONT_SIZES,
 	ARROW_LABEL_PADDING,
 	STROKE_SIZES,
+	getFontCheckboxStyle,
 	getFontFamily,
 } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
@@ -179,6 +180,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				patternFillFallbackColor: getColorValue(colors, color, 'semi'),
 				labelColor: getColorValue(colors, labelColor, 'solid'),
 				labelFontFamily: getFontFamily(theme, font),
+				labelCheckboxStyle: getFontCheckboxStyle(theme, font),
 				labelFontSize: theme.fontSize * ARROW_LABEL_FONT_SIZES[size],
 				labelLineHeight: theme.lineHeight,
 				labelPadding: ARROW_LABEL_PADDING,
@@ -870,6 +872,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						shapeId={shape.id}
 						type="arrow"
 						fontFamily={dv.labelFontFamily}
+						checkboxStyle={dv.labelCheckboxStyle}
 						fontSize={dv.labelFontSize}
 						lineHeight={dv.labelLineHeight}
 						textAlign="center"
@@ -1028,6 +1031,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					<RichTextSVG
 						fontSize={dv.labelFontSize * shape.props.scale}
 						fontFamily={dv.labelFontFamily}
+						checkboxStyle={dv.labelCheckboxStyle}
 						lineHeight={dv.labelLineHeight}
 						textAlign="center"
 						verticalAlign="middle"

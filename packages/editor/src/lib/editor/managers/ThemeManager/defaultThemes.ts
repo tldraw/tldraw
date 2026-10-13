@@ -5,6 +5,7 @@ import {
 	TLTheme,
 	TLThemeColors,
 } from '@tldraw/tlschema'
+import { DRAW_FONT_CHECKBOX } from './drawFontCheckbox'
 
 /**
  * The default theme definition containing color palettes for both light and dark modes.
@@ -39,6 +40,7 @@ export const DEFAULT_THEME: TLTheme = {
 					style: 'italic',
 				},
 			],
+			checkbox: DRAW_FONT_CHECKBOX,
 		},
 		sans: {
 			fontFamily: DefaultFontFamilies.sans,
