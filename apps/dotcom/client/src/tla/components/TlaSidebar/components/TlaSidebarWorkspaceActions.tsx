@@ -42,7 +42,7 @@ export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: strin
 			<TlaSidebarActionButton
 				icon="edit"
 				label={newBoardLbl}
-				onClick={handleCreateFile}
+				onClick={() => handleCreateFile()}
 				testId="tla-sidebar-new-board"
 			/>
 			<TlaSidebarActionButton

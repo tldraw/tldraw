@@ -85,3 +85,19 @@
 	box-shadow: 0 0 0 2px var(--tla-color-sidebar);
 	pointer-events: none;
 }
+
+/* The unread dot as a command palette row icon, centered in the icon slot. */
+.paletteUnreadIcon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.paletteUnreadIcon::before {
+	content: '';
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background-color: var(--tl-color-selected);
+}
