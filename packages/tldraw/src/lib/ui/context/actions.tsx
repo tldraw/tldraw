@@ -1646,12 +1646,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'adjust-shape-styles',
+				isEnabled: canApplySelection,
 				label: 'a11y.adjust-shape-styles',
 				kbd: 'cmd+Enter,ctrl+Enter',
 				isRequiredA11yAction: true,
 				onSelect: async (source) => {
-					if (!canApplySelection(editor)) return
-
 					const onlySelectedShape = editor.getOnlySelectedShape()
 					if (
 						onlySelectedShape &&
@@ -1674,12 +1673,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'a11y-open-context-menu',
+				isEnabled: canApplySelection,
 				kbd: 'cmd+shift+Enter,ctrl+shift+Enter',
 				isRequiredA11yAction: true,
 				readonlyOk: true,
 				onSelect: async (source) => {
-					if (!canApplySelection(editor)) return
-
 					// For multiple shapes or a single shape, get the selection bounds
 					const selectionBounds = editor.getSelectionPageBounds()
 					if (!selectionBounds) return
