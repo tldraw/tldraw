@@ -1,4 +1,5 @@
-import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
+import { useAuth, useUser as useClerkUser } from '@clerk/react'
+import { ClerkOfflineError } from '@clerk/react/errors'
 import { captureException } from '@sentry/react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -82,18 +83,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				userId: auth.userId,
 				email,
 				flags,
-				getToken: async () => {
-					const token = await auth.getToken()
-					return token || undefined
-				},
+				getToken: () => tokenOrUndefinedWhenOffline(() => auth.getToken()),
 				// `skipCache` is load-bearing, not belt and braces: Clerk hands back a cached token
 				// until it is nearly expired, and the refresh schedules itself from the *remaining*
 				// life of whatever it is given. Cached tokens would shorten that interval on every
 				// pass — 90s, then 45s, then 22s — until it bottomed out against its floor.
-				getZeroToken: async () => {
-					const token = await auth.getToken({ template: 'zero', skipCache: true })
-					return token || undefined
-				},
+				getZeroToken: () =>
+					tokenOrUndefinedWhenOffline(() => auth.getToken({ template: 'zero', skipCache: true })),
 				onClientTooOld: () => {
 					isClientTooOld$.set(true)
 				},
@@ -169,4 +165,15 @@ export function useIsAppLoading() {
 }
 export function useApp(): TldrawApp {
 	return assertExists(useContext(appContext), 'useApp must be used within AppStateProvider')
+}
+
+// Clerk Core 3's getToken throws offline where Core 2 returned null. The app and Zero treat a
+// missing token as "retry later"; a rejection would surface as a load or auth error instead.
+async function tokenOrUndefinedWhenOffline(get: () => Promise<string | null>) {
+	try {
+		return (await get()) || undefined
+	} catch (e) {
+		if (ClerkOfflineError.is(e)) return undefined
+		throw e
+	}
 }

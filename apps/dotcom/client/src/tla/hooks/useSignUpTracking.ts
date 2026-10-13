@@ -1,4 +1,4 @@
-import { useUser as useClerkUser } from '@clerk/clerk-react'
+import { useUser as useClerkUser } from '@clerk/react'
 import { useEffect } from 'react'
 import { getFromLocalStorage, setInLocalStorage } from 'tldraw'
 import { trackEvent } from '../../utils/analytics'

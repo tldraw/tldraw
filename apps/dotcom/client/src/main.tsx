@@ -1,4 +1,4 @@
-import { ClerkProvider } from '@clerk/clerk-react'
+import { ClerkProvider } from '@clerk/react'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
@@ -33,11 +33,19 @@ if (!PUBLISHABLE_KEY) {
 	throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env.local')
 }
 
+// Core 3 hides the version pin from ClerkProvider's props, but still forwards it to the script loader.
+const clerkScriptProps = { __internal_clerkJSVersion: process.env.CLERK_JS_VERSION } as object
+
+// The app draws its own auth UI, so Clerk's prebuilt-component bundle is only worth downloading on
+// the consent page, which Clerk always reaches with a full page load.
+const prefetchClerkUI = window.location.pathname === routes.tlaOAuthConsent()
+
 createRoot(document.getElementById('root')!).render(
 	<RefreshErrorBoundary messages={TOP_LEVEL_ERROR_MESSAGES}>
 		<ClerkProvider
 			publishableKey={PUBLISHABLE_KEY}
-			clerkJSVersion={process.env.CLERK_JS_VERSION}
+			{...clerkScriptProps}
+			prefetchUI={prefetchClerkUI}
 			afterSignOutUrl={routes.tlaRoot()}
 			signInUrl="/"
 			signInFallbackRedirectUrl={routes.tlaRoot()}

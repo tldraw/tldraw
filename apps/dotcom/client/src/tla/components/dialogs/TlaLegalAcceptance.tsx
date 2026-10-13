@@ -1,4 +1,4 @@
-import { useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/react'
 import classNames from 'classnames'
 import { useCallback, useState } from 'react'
 import { TldrawUiDialogBody, TldrawUiDialogHeader, TldrawUiDialogTitle } from 'tldraw'

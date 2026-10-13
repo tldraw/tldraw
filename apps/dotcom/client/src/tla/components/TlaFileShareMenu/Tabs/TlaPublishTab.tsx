@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import { TlaFile } from '@tldraw/dotcom-shared'
 import { useCallback, useState } from 'react'
 import { useParams } from 'react-router-dom'

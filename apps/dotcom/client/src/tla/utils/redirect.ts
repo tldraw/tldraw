@@ -15,3 +15,6 @@ export function setRedirectOnSignIn() {
 export function clearRedirectOnSignIn() {
 	deleteFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
 }
+
+// Location state that opens the sign-in dialog on `/`.
+export const OPEN_SIGN_IN = 'openSignIn'

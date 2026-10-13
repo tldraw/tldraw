@@ -1,0 +1,8 @@
+.page {
+	min-height: 100dvh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+	background: var(--tla-color-sidebar, #f5f5f5);
+}

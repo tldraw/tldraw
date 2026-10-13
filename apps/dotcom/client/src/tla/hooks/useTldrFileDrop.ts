@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import { DragEvent, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tlmenus } from 'tldraw'
