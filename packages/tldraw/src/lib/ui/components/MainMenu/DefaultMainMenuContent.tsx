@@ -1,6 +1,7 @@
 import { useActions } from '../../context/actions'
 import { AccessibilityMenu } from '../AccessibilityMenu'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
+import { CommandPaletteMenuItem } from '../CommandPalette/CommandPaletteMenuItem'
 import { KeyboardShortcutsMenuItem } from '../HelpMenu/DefaultHelpMenuContent'
 import { InputModeMenu } from '../InputModeMenu'
 import { LanguageMenu } from '../LanguageMenu'
@@ -176,6 +177,7 @@ export function PreferencesGroup() {
 			</TldrawUiMenuSubmenu>
 			<LanguageMenu />
 			<KeyboardShortcutsMenuItem />
+			<CommandPaletteMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }

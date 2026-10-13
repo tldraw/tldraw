@@ -117,6 +117,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		NavigationPanel,
 		HelperButtons,
 		DebugPanel,
+		CommandPalette,
 		Toasts,
 		Dialogs,
 		A11y,
@@ -229,6 +230,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 				</>
 			)}
 			{FollowingIndicator && <FollowingIndicator />}
+			{CommandPalette && <CommandPalette />}
 			{Toasts && <Toasts />}
 			{Dialogs && <Dialogs />}
 		</div>

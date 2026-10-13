@@ -22,6 +22,35 @@ export function useActionState(action: TLUiActionItem | undefined): TLUiActionSt
 	return useValue($state)
 }
 
+/**
+ * The action's `disabledReason` as a translation key, read only while `active` (the item is
+ * disabled and shown in the command palette), so other menus never run it. A throwing reason
+ * counts as none.
+ *
+ * @internal
+ */
+export function useActionDisabledReason(
+	action: TLUiActionItem | undefined,
+	active: boolean
+): string | undefined {
+	const editor = useMaybeEditor()
+	return useValue(
+		'action disabled reason',
+		() => {
+			const reason = action?.disabledReason
+			if (!active || !editor || !reason) return undefined
+			if (typeof reason !== 'function') return reason
+			try {
+				return reason(editor)
+			} catch (error) {
+				console.error(`The "${action!.id}" action's disabledReason threw`, error)
+				return undefined
+			}
+		},
+		[editor, action, active]
+	)
+}
+
 function useSomeActions(
 	name: string,
 	actionIds: readonly string[],
