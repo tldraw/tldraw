@@ -27,7 +27,12 @@ import {
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
-import { FONT_SIZES, TEXT_PROPS, getFontFamily } from '../shared/default-shape-constants'
+import {
+	FONT_SIZES,
+	TEXT_PROPS,
+	getFontCheckboxStyle,
+	getFontFamily,
+} from '../shared/default-shape-constants'
 import { getThemeFontFaces } from '../shared/defaultFonts'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
@@ -54,6 +59,7 @@ const sizeCache = createComputedCache(
 export interface TextShapeUtilDisplayValues {
 	color: string
 	fontFamily: string
+	checkboxStyle: Record<string, string> | undefined
 	fontSize: number
 	lineHeight: number
 	fontWeight: string
@@ -86,6 +92,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			return {
 				color: getColorValue(theme.colors[colorMode], color, 'solid'),
 				fontFamily: getFontFamily(theme, font),
+				checkboxStyle: getFontCheckboxStyle(theme, font),
 				fontSize: theme.fontSize * FONT_SIZES[size],
 				lineHeight: theme.lineHeight,
 				fontWeight: TEXT_PROPS.fontWeight,
@@ -176,6 +183,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				classNamePrefix="tl-text-shape"
 				type="text"
 				fontFamily={dv.fontFamily}
+				checkboxStyle={dv.checkboxStyle}
 				fontSize={dv.fontSize}
 				lineHeight={dv.lineHeight}
 				textAlign={textAlign === 'middle' ? 'center' : textAlign}
@@ -225,6 +233,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			<RichTextSVG
 				fontSize={dv.fontSize}
 				fontFamily={dv.fontFamily}
+				checkboxStyle={dv.checkboxStyle}
 				lineHeight={dv.lineHeight}
 				textAlign={shape.props.textAlign === 'middle' ? 'center' : shape.props.textAlign}
 				verticalAlign="middle"

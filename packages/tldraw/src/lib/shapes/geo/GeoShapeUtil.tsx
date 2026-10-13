@@ -47,6 +47,7 @@ import {
 	LABEL_PADDING,
 	STROKE_SIZES,
 	TEXT_PROPS,
+	getFontCheckboxStyle,
 	getFontFamily,
 } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
@@ -110,6 +111,7 @@ export interface GeoShapeUtilDisplayValues {
 	patternFillFallbackColor: string
 	labelColor: string
 	labelFontFamily: string
+	labelCheckboxStyle: Record<string, string> | undefined
 	labelFontSize: number
 	labelMinWidth: number
 	labelExtraPadding: number
@@ -208,6 +210,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				patternFillFallbackColor: getColorValue(colors, color, 'semi'),
 				labelColor: getColorValue(colors, labelColor, 'solid'), // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
 				labelFontFamily: getFontFamily(theme, font),
+				labelCheckboxStyle: getFontCheckboxStyle(theme, font),
 				labelFontSize: theme.fontSize * LABEL_FONT_SIZES[size],
 				labelMinWidth: GEO_SHAPE_MIN_WIDTHS[size],
 				labelExtraPadding: theme.strokeWidth * STROKE_SIZES[size],
@@ -419,6 +422,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							shapeId={id}
 							type={type}
 							fontFamily={dv.labelFontFamily}
+							checkboxStyle={dv.labelCheckboxStyle}
 							fontSize={dv.labelFontSize}
 							lineHeight={dv.labelLineHeight}
 							padding={dv.labelPadding}
@@ -488,6 +492,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				<RichTextSVG
 					fontSize={dv.labelFontSize}
 					fontFamily={dv.labelFontFamily}
+					checkboxStyle={dv.labelCheckboxStyle}
 					lineHeight={dv.labelLineHeight}
 					textAlign={dv.labelHorizontalAlign}
 					verticalAlign={dv.labelVerticalAlign}

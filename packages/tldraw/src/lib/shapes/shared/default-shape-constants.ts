@@ -55,6 +55,38 @@ export function getFontFamily(theme: TLTheme, font: string): string {
 	return FONT_FAMILIES[font] ?? font
 }
 
+const CHECKBOX_BOX_SLOTS = 6
+
+/**
+ * The custom properties that draw task list checkboxes in a font's own style, from its theme entry.
+ * Set them on an element containing rich text. Returns nothing for a font without its own
+ * checkboxes, which then gets the standard ones.
+ *
+ * @public
+ */
+export function getFontCheckboxStyle(
+	theme: TLTheme,
+	font: string
+): Record<string, string> | undefined {
+	const checkbox = theme.fonts[font as keyof typeof theme.fonts]?.checkbox
+	if (!checkbox) return undefined
+	const style: Record<string, string> = {}
+	const { boxes, tick } = checkbox
+	if (boxes && boxes.length > 0) {
+		// The stylesheet cycles a fixed set of slots by list position; fill them all by cycling
+		// through however many boxes the font has, so three boxes run 1-2-3-1-2-3.
+		for (let i = 0; i < CHECKBOX_BOX_SLOTS; i++) {
+			style[`--tl-checkbox-box-${i + 1}`] = cssUrl(boxes[i % boxes.length])
+		}
+	}
+	if (tick) style['--tl-checkbox-tick'] = cssUrl(tick)
+	return style
+}
+
+function cssUrl(url: string) {
+	return `url(${JSON.stringify(url)})`
+}
+
 /** @internal */
 export const LABEL_TO_ARROW_PADDING = 20
 /** @internal */
