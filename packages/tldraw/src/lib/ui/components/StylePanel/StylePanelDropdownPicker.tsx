@@ -4,7 +4,7 @@ import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
-import { styleMessageId, stylePanelMessageId } from '../../styleMessages'
+import { styleMessageId, stylePanelMessageId, stylePanelMessages } from '../../styleMessages'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
@@ -87,7 +87,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 	const valueInItems = value.type !== 'mixed' && items.some((item) => item.value === value.value)
 	const titleStr =
 		value.type === 'mixed'
-			? msg('style-panel.mixed')
+			? msg(stylePanelMessages.mixed.id)
 			: valueInItems
 				? stylePanelName + ' — ' + msg(styleMessageId(uiType, value.value))
 				: stylePanelName

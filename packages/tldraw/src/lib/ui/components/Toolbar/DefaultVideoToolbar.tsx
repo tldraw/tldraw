@@ -1,9 +1,13 @@
-import { Box, TLVideoShape, track, useEditor, useValue } from '@tldraw/editor'
+import { Box, defineMessages, TLVideoShape, track, useEditor, useValue } from '@tldraw/editor'
 import { useCallback, useState } from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { AltTextEditor } from './AltTextEditor'
 import { DefaultVideoToolbarContent } from './DefaultVideoToolbarContent'
+
+const messages = defineMessages({
+	toolVideoToolbarTitle: { id: 'tool.video-toolbar-title', defaultMessage: 'Video tools' },
+})
 
 /** @public */
 export interface TLUiVideoToolbarProps {
@@ -63,7 +67,7 @@ function ContextualToolbarInner({
 		<TldrawUiContextualToolbar
 			className="tlui-media__toolbar tlui-video__toolbar"
 			getSelectionBounds={getSelectionBounds}
-			label={msg('tool.video-toolbar-title')}
+			label={msg(messages.toolVideoToolbarTitle.id)}
 		>
 			{children ? (
 				children

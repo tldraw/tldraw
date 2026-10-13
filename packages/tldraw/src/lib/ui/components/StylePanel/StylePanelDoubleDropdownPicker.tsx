@@ -3,7 +3,7 @@ import * as React from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { styleMessageId } from '../../styleMessages'
+import { styleMessageId, stylePanelMessages } from '../../styleMessages'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import {
@@ -135,7 +135,7 @@ function DropdownHalf<T extends string>({
 						msg(label) +
 						' — ' +
 						(value === null || value.type === 'mixed'
-							? msg('style-panel.mixed')
+							? msg(stylePanelMessages.mixed.id)
 							: msg(styleMessageId(uiType, value.value)))
 					}
 				>

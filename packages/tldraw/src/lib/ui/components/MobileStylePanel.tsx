@@ -9,6 +9,7 @@ import { useCallback } from 'react'
 import { useTldrawUiComponents } from '../context/components'
 import { useRelevantStyles } from '../hooks/useRelevantStyles'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
+import { stylePanelMessages } from '../styleMessages'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './primitives/Button/TldrawUiButtonIcon'
 import { useTldrawUiOrientation } from './primitives/layout'
@@ -65,7 +66,7 @@ export function MobileStylePanel() {
 					style={{
 						color: disableStylePanel ? 'var(--tl-color-muted-1)' : currentColor,
 					}}
-					title={msg('style-panel.title')}
+					title={msg(stylePanelMessages.title.id)}
 					disabled={disableStylePanel}
 				>
 					<TldrawUiButtonIcon

@@ -14,6 +14,7 @@ import {
 import { commentsHidden, toggleCommentsHidden } from './state'
 
 const messages = defineMessages({
+	commentsMoreOptions: { id: 'comments.more-options', defaultMessage: 'More options' },
 	commentsHide: { id: 'comments.hide', defaultMessage: 'Hide comments' },
 	commentsShow: { id: 'comments.show', defaultMessage: 'Show comments' },
 })
@@ -34,11 +35,11 @@ export function CommentsOverflowMenu() {
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton
 					type="icon"
-					tooltip={msg('comments.more-options')}
-					title={msg('comments.more-options')}
+					tooltip={msg(messages.commentsMoreOptions.id)}
+					title={msg(messages.commentsMoreOptions.id)}
 					className="tlui-cmt-header-btn"
 				>
-					<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+					<TldrawUiIcon icon="dots-vertical" label={msg(messages.commentsMoreOptions.id)} small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			<TldrawUiDropdownMenuContent

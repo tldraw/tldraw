@@ -1,9 +1,13 @@
-import { TLFrameShape, TLShapeId, useEditor, useValue } from '@tldraw/editor'
+import { defineMessages, TLFrameShape, TLShapeId, useEditor, useValue } from '@tldraw/editor'
 import { forwardRef, useCallback, useEffect, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../../ui/constants'
 import { useBreakpoint } from '../../../ui/context/breakpoints'
 import { useTranslation } from '../../../ui/hooks/useTranslation/useTranslation'
 import { defaultEmptyAs } from '../frameHelpers'
+
+const messages = defineMessages({
+	actionRename: { id: 'action.rename', defaultMessage: 'Rename' },
+})
 
 export const FrameLabelInput = forwardRef<
 	HTMLInputElement,
@@ -83,7 +87,7 @@ export const FrameLabelInput = forwardRef<
 			promptOpen.current = true
 			const shape = editor.getShape<TLFrameShape>(id)
 			const currentName = shape?.props.name ?? ''
-			const newName = window.prompt(msg('action.rename'), currentName)
+			const newName = window.prompt(msg(messages.actionRename.id), currentName)
 			promptOpen.current = false
 			if (newName !== null) renameFrame(newName)
 			editor.setEditingShape(null)

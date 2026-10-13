@@ -28,6 +28,7 @@ import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
 
 const messages = defineMessages({
+	pageMenuNewPageInitialName: { id: 'page-menu.new-page-initial-name', defaultMessage: 'Page 1' },
 	actionRename: { id: 'action.rename', defaultMessage: 'Rename' },
 	contextMenuReorder: { id: 'context-menu.reorder', defaultMessage: 'Reorder' },
 	pageMenuCreateNewPage: { id: 'page-menu.create-new-page', defaultMessage: 'Create new page' },
@@ -501,7 +502,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		if (isReadonlyMode) return
 
 		const newPageId = PageRecordType.createId()
-		const initialName = msg('page-menu.new-page-initial-name')
+		const initialName = msg(messages.pageMenuNewPageInitialName.id)
 		let name = initialName
 
 		if (shouldUseWindowPrompt) {

@@ -25,6 +25,7 @@ import {
 } from './thread-view'
 
 const messages = defineMessages({
+	commentsUnknownAuthor: { id: 'comments.unknown-author', defaultMessage: 'Someone' },
 	commentsPinLabel: { id: 'comments.pin-label', defaultMessage: 'Comment by {name}' },
 	commentsPinLabelResolved: {
 		id: 'comments.pin-label-resolved',
@@ -242,7 +243,8 @@ function StackThreadCard({
 				aria-label={msg(
 					thread.resolved ? messages.commentsPinLabelResolved.id : messages.commentsPinLabel.id,
 					{
-						name: props.resolveAuthor(thread.createdBy)?.name ?? msg('comments.unknown-author'),
+						name:
+							props.resolveAuthor(thread.createdBy)?.name ?? msg(messages.commentsUnknownAuthor.id),
 					}
 				)}
 				onClick={open}

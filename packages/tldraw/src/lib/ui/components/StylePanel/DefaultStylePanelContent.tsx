@@ -23,6 +23,7 @@ import { GeoShapeUtil } from '../../../shapes/geo/GeoShapeUtil'
 import { defaultGeoTypeDefinitions, GeoTypeDefinition } from '../../../shapes/geo/getGeoShapePath'
 import { getColorStyleItems, getFontStyleItems, STYLES } from '../../../styles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { stylePanelMessages } from '../../styleMessages'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
@@ -88,7 +89,7 @@ export function StylePanelColorPicker() {
 
 	return (
 		<StylePanelButtonPicker
-			title={msg('style-panel.color')}
+			title={msg(stylePanelMessages.color.id)}
 			uiType="color"
 			style={DefaultColorStyle}
 			items={items}
@@ -127,7 +128,7 @@ export function StylePanelOpacityPicker() {
 	return (
 		<>
 			{enhancedA11yMode && (
-				<StylePanelSubheading>{msg('style-panel.opacity')}</StylePanelSubheading>
+				<StylePanelSubheading>{msg(stylePanelMessages.opacity.id)}</StylePanelSubheading>
 			)}
 			<TldrawUiSlider
 				data-testid="style.opacity"
@@ -135,7 +136,7 @@ export function StylePanelOpacityPicker() {
 				label={opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity.value}`}
 				onValueChange={handleOpacityValueChange}
 				steps={tldrawSupportedOpacities.length - 1}
-				title={msg('style-panel.opacity')}
+				title={msg(stylePanelMessages.opacity.id)}
 				onHistoryMark={onHistoryMark}
 				ariaValueModifier={25}
 			/>
@@ -150,7 +151,7 @@ export function StylePanelFillPicker() {
 	const fill = styles.get(DefaultFillStyle)
 	if (fill === undefined) return null
 
-	const title = msg('style-panel.fill')
+	const title = msg(stylePanelMessages.fill.id)
 
 	return (
 		<>
@@ -189,7 +190,7 @@ export function StylePanelDashPicker() {
 
 	return (
 		<StylePanelButtonPicker
-			title={msg('style-panel.dash')}
+			title={msg(stylePanelMessages.dash.id)}
 			uiType="dash"
 			style={DefaultDashStyle}
 			items={STYLES.dash}
@@ -208,7 +209,7 @@ export function StylePanelSizePicker() {
 
 	return (
 		<StylePanelButtonPicker
-			title={msg('style-panel.size')}
+			title={msg(stylePanelMessages.size.id)}
 			uiType="size"
 			style={DefaultSizeStyle}
 			items={STYLES.size}
@@ -239,7 +240,7 @@ export function StylePanelFontPicker() {
 
 	return (
 		<StylePanelButtonPicker
-			title={msg('style-panel.font')}
+			title={msg(stylePanelMessages.font.id)}
 			uiType="font"
 			style={DefaultFontStyle}
 			items={items}
@@ -254,7 +255,7 @@ export function StylePanelTextAlignPicker() {
 	const msg = useTranslation()
 	const textAlign = styles.get(DefaultTextAlignStyle)
 	if (textAlign === undefined) return null
-	const title = msg('style-panel.align')
+	const title = msg(stylePanelMessages.align.id)
 
 	return (
 		<>
@@ -269,7 +270,7 @@ export function StylePanelTextAlignPicker() {
 				/>
 				<TldrawUiToolbarButton
 					type="icon"
-					title={msg('style-panel.vertical-align')}
+					title={msg(stylePanelMessages['vertical-align'].id)}
 					data-testid="vertical-align"
 					disabled
 				>
@@ -287,7 +288,7 @@ export function StylePanelLabelAlignPicker() {
 	const labelAlign = styles.get(DefaultHorizontalAlignStyle)
 	const verticalLabelAlign = styles.get(DefaultVerticalAlignStyle)
 	if (labelAlign === undefined) return null
-	const title = msg('style-panel.label-align')
+	const title = msg(stylePanelMessages['label-align'].id)
 
 	return (
 		<>
@@ -303,7 +304,7 @@ export function StylePanelLabelAlignPicker() {
 				{verticalLabelAlign === undefined ? (
 					<TldrawUiToolbarButton
 						type="icon"
-						title={msg('style-panel.vertical-align')}
+						title={msg(stylePanelMessages['vertical-align'].id)}
 						data-testid="vertical-align"
 						disabled
 					>

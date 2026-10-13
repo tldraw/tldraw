@@ -7,6 +7,8 @@ import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
 const messages = defineMessages({
+	actionDownloadOriginal: { id: 'action.download-original', defaultMessage: 'Download original' },
+	toolReplaceMedia: { id: 'tool.replace-media', defaultMessage: 'Replace media…' },
 	toolMediaAltText: { id: 'tool.media-alt-text', defaultMessage: 'Alternative text' },
 })
 
@@ -50,7 +52,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 			{!isReadonly && (
 				<TldrawUiToolbarButton
 					type="icon"
-					title={msg('tool.replace-media')}
+					title={msg(messages.toolReplaceMedia.id)}
 					onClick={handleVideoReplace}
 					data-testid="tool.video-replace"
 				>
@@ -59,7 +61,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 			)}
 			<TldrawUiToolbarButton
 				type="icon"
-				title={msg('action.download-original')}
+				title={msg(messages.actionDownloadOriginal.id)}
 				onClick={handleVideoDownload}
 				data-testid="tool.video-download"
 			>

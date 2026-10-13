@@ -48,6 +48,7 @@ import {
 import { POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
 
 const messages = defineMessages({
+	commentsUnknownAuthor: { id: 'comments.unknown-author', defaultMessage: 'Someone' },
 	commentsPinLabel: { id: 'comments.pin-label', defaultMessage: 'Comment by {name}' },
 	commentsPinLabelResolved: {
 		id: 'comments.pin-label-resolved',
@@ -206,7 +207,7 @@ export const ThreadPin = memo(function ThreadPin({
 	const pinLabel = msg(
 		thread.resolved ? messages.commentsPinLabelResolved.id : messages.commentsPinLabel.id,
 		{
-			name: threadAuthor?.name ?? msg('comments.unknown-author'),
+			name: threadAuthor?.name ?? msg(messages.commentsUnknownAuthor.id),
 		}
 	)
 

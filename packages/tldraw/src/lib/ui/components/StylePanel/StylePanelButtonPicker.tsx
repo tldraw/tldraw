@@ -13,7 +13,7 @@ import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { styleMessageId } from '../../styleMessages'
+import { styleMessageId, stylePanelMessages } from '../../styleMessages'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiGrid, TldrawUiRow } from '../primitives/layout'
 import {
@@ -161,11 +161,11 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 							key={item.value}
 							data-id={item.value}
 							data-testid={`style.${uiType}.${item.value}`}
-							aria-label={label + (isActive ? ` (${msg('style-panel.selected')})` : '')}
+							aria-label={label + (isActive ? ` (${msg(stylePanelMessages.selected.id)})` : '')}
 							tooltip={
 								<>
 									<div>{label}</div>
-									{isActive ? <div>({msg('style-panel.selected')})</div> : null}
+									{isActive ? <div>({msg(stylePanelMessages.selected.id)})</div> : null}
 								</>
 							}
 							value={item.value}

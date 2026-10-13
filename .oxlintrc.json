@@ -423,8 +423,15 @@
 			}
 		},
 		{
+			"files": ["packages/**/*"],
+			"rules": {
+				"tldraw/no-bare-translation-key": "error"
+			}
+		},
+		{
 			"files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts"],
 			"rules": {
+				"tldraw/no-bare-translation-key": "off",
 				"tldraw/no-restricted-properties": "off",
 				"no-restricted-globals": "off",
 				"react/jsx-key": "off",

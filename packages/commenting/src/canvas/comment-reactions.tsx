@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import {
 	createCommentReaction,
 	createCommentReactionId,
+	defineMessages,
 	Editor,
 	TLComment,
 	TLCommentReaction,
@@ -16,6 +17,10 @@ import { commitCommentMutation } from './comment-mutations'
 import { UNKNOWN_AUTHOR } from './comment-render'
 import { getCommentReactions } from './comment-store'
 import { getCommentingOptions, useCommentingOptions } from './options'
+
+const messages = defineMessages({
+	commentsUnknownAuthor: { id: 'comments.unknown-author', defaultMessage: 'Someone' },
+})
 
 /**
  * One comment's reactions, oldest first, reactively.
@@ -182,7 +187,7 @@ export function CommentReactions({ comment, currentUserId, resolveName }: Commen
 	const { components } = useCommentingOptions()
 	const reactions = useCommentReactions(editor, comment.id)
 	const msg = useTranslation()
-	const unknownAuthorName = msg('comments.unknown-author')
+	const unknownAuthorName = msg(messages.commentsUnknownAuthor.id)
 	const summaries = useMemo(
 		() => summarizeReactions(reactions, currentUserId, resolveName, { unknownAuthorName }),
 		[reactions, currentUserId, resolveName, unknownAuthorName]

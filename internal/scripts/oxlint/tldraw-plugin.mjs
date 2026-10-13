@@ -1097,6 +1097,31 @@ const rules = {
 		},
 	},
 
+	// `msg()` takes any string, so a mistyped key renders as itself and nothing catches it: not the
+	// types, and not `i18n-extract --check`, which only sees ids declared through `defineMessages`.
+	// A template with placeholders is left alone — a key built at runtime can't be declared.
+	'no-bare-translation-key': {
+		meta: {
+			messages: {
+				bare: "Pass a declared message's id, as `msg(messages.x.id)`, not a bare key. Declare it with `defineMessages` so the extractor and typecheck see it.",
+			},
+			type: 'problem',
+			schema: [],
+		},
+		create(context) {
+			return {
+				CallExpression(node) {
+					if (node.callee.type !== 'Identifier' || node.callee.name !== 'msg') return
+					const arg = node.arguments[0]
+					if (!arg) return
+					const isBare =
+						(arg.type === 'Literal' && typeof arg.value === 'string') ||
+						(arg.type === 'TemplateLiteral' && arg.expressions.length === 0)
+					if (isBare) context.report({ node: arg, messageId: 'bare' })
+				},
+			}
+		},
+	},
 	'enforce-default-message': {
 		meta: {
 			messages: {

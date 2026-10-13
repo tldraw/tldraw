@@ -29,6 +29,7 @@ import { useCanComment, useCommentingOptions } from './options'
 import { pendingComment } from './state'
 
 const messages = defineMessages({
+	commentsSend: { id: 'comments.send', defaultMessage: 'Send' },
 	commentsAddPlaceholder: { id: 'comments.add-placeholder', defaultMessage: 'Add a comment…' },
 })
 
@@ -146,7 +147,7 @@ export function PendingComposer({
 					<CommentComposer
 						author={me ?? UNKNOWN_COMMENT_AUTHOR}
 						placeholder={msg(messages.commentsAddPlaceholder.id)}
-						sendLabel={msg('comments.send')}
+						sendLabel={msg(messages.commentsSend.id)}
 						value={text}
 						onChange={(value) => {
 							setText(value)

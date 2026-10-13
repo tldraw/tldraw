@@ -53,6 +53,7 @@ import {
 import { openThreadId } from './state'
 
 const messages = defineMessages({
+	actionDelete: { id: 'action.delete', defaultMessage: 'Delete' },
 	commentsCopyLink: { id: 'comments.copy-link', defaultMessage: 'Copy link' },
 	commentsDelete: { id: 'comments.delete', defaultMessage: 'Delete thread' },
 	commentsDismiss: { id: 'comments.dismiss', defaultMessage: 'Dismiss' },
@@ -519,7 +520,7 @@ export const ThreadView = memo(function ThreadView({
 									)}
 									{permissions?.delete && (
 										<MenuItem
-											label={msg('action.delete')}
+											label={msg(messages.actionDelete.id)}
 											danger
 											onClick={() => deleteComment(editor, comment)}
 										/>

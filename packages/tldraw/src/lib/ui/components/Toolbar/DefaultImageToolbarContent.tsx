@@ -36,6 +36,8 @@ import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
 const messages = defineMessages({
+	actionDownloadOriginal: { id: 'action.download-original', defaultMessage: 'Download original' },
+	toolReplaceMedia: { id: 'tool.replace-media', defaultMessage: 'Replace media…' },
 	toolAspectRatio: { id: 'tool.aspect-ratio', defaultMessage: 'Aspect ratio' },
 	toolImageCrop: { id: 'tool.image-crop', defaultMessage: 'Crop image' },
 	toolImageCropConfirm: { id: 'tool.image-crop-confirm', defaultMessage: 'Confirm' },
@@ -300,7 +302,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 						type="icon"
 						data-testid="tool.image-replace"
 						onClick={handleImageReplace}
-						title={msg('tool.replace-media')}
+						title={msg(messages.toolReplaceMedia.id)}
 					>
 						<TldrawUiButtonIcon small icon="tool-media" />
 					</TldrawUiToolbarButton>
@@ -316,7 +318,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			)}
 			<TldrawUiToolbarButton
 				type="icon"
-				title={msg('action.download-original')}
+				title={msg(messages.actionDownloadOriginal.id)}
 				onClick={handleImageDownload}
 				data-testid="tool.image-download"
 			>
