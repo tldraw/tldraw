@@ -145,12 +145,13 @@ export function getCommandPaletteSearchRows(
 ): CommandPaletteRow[] {
 	const ranked = rankCommandPaletteEntries(explainable(entries), query, recentIds)
 
-	// An item stays a row when the query names it ("page 2", "move to page 2"); one found only
-	// through its submenu or path folds into the row that opens the submenu ("move", "preferences").
+	// An item stays a row when the query names it ("page 2", "move to page 2"). When the query also
+	// matches the submenu's own name ("page", "file"), or only its path ("preferences"), the items fold
+	// into the row that opens the submenu, so it doesn't show next to some of its own items.
 	const isFoundByOwnName = (entry: CommandPaletteEntry, submenu: CommandPaletteSubmenu) =>
-		getCommandPaletteMatchScore(query, entry.name) > 0 ||
-		(getCommandPaletteMatchScore(query, entry.label) > 0 &&
-			getCommandPaletteMatchScore(query, submenu.label) === 0)
+		getCommandPaletteMatchScore(query, submenu.label) === 0 &&
+		(getCommandPaletteMatchScore(query, entry.name) > 0 ||
+			getCommandPaletteMatchScore(query, entry.label) > 0)
 	const grouped = getGroupedSubmenuKeys(entries, groupSubmenus)
 	const added = new Set<string>()
 	const rows: CommandPaletteRow[] = []
