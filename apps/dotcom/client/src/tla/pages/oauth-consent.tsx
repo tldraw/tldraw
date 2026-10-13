@@ -23,7 +23,7 @@ export function Component() {
 			</Helmet>
 			<Show when="signed-in">
 				<TlaLogo className={styles.logo} />
-				<OAuthConsent />
+				<OAuthConsent appearance={{ variables: { colorPrimary: '#1d1d1d' } }} />
 			</Show>
 			<Show when="signed-out">
 				<SignInThenReturn />

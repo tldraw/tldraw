@@ -10,7 +10,7 @@
 }
 
 /* Nested to outrank TlaLogo's own size, whose stylesheet may load later. The tl colour
-   variables aren't in scope on this route. */
+   variables aren't in scope on this route; the fallback matches OAuthConsent's colorPrimary. */
 .page .logo {
 	width: 108px;
 	height: 36px;
