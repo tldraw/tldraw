@@ -350,6 +350,18 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	}
 
 	/**
+	 * Whether flipping changes the shape itself, by mirroring it or toggling its stored flip. The
+	 * default UI only offers flip for a lone selected shape when this is true; {@link Editor.flipShapes}
+	 * doesn't check it, so shapes that return false still move when flipped as part of a larger
+	 * selection. Use {@link ShapeUtil.canBeLaidOut} to opt out of that.
+	 *
+	 * @public
+	 */
+	canFlip(shape: Shape): boolean {
+		return false
+	}
+
+	/**
 	 * Whether the shape can participate in layout functions such as alignment or distribution.
 	 *
 	 * @param shape - The shape.

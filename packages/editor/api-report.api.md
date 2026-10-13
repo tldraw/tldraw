@@ -2121,6 +2121,8 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind(): boolean;
     // (undocumented)
+    canFlip(): boolean;
+    // (undocumented)
     canResize(): boolean;
     // (undocumented)
     canResizeChildren(): boolean;
@@ -3065,6 +3067,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     canEdit(shape: Shape, info: TLEditStartInfo): boolean;
     canEditInReadonly(shape: Shape): boolean;
     canEditWhileLocked(shape: Shape): boolean;
+    canFlip(shape: Shape): boolean;
     canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']): boolean;
     canRemoveChildrenOfType(shape: Shape, type: TLShape['type']): boolean;
     canResize(shape: Shape): boolean;
