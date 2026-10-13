@@ -2159,9 +2159,6 @@ importers:
       '@ai-sdk/anthropic':
         specifier: ^2.0.80
         version: 2.0.80(zod@4.3.6)
-      '@ai-sdk/google':
-        specifier: ^2.0.74
-        version: 2.0.74(zod@4.3.6)
       '@ai-sdk/openai':
         specifier: ^2.0.106
         version: 2.0.106(zod@4.3.6)
@@ -2226,9 +2223,9 @@ importers:
 
   templates/branching-chat:
     dependencies:
-      '@ai-sdk/google':
-        specifier: ^2.0.74
-        version: 2.0.74(zod@4.3.6)
+      '@ai-sdk/openai':
+        specifier: ^2.0.106
+        version: 2.0.106(zod@4.3.6)
       '@cloudflare/vite-plugin':
         specifier: ^1.29.1
         version: 1.30.0(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(workerd@1.20260317.1)(wrangler@4.76.0(@cloudflare/workers-types@4.20260317.1))

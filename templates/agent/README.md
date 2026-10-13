@@ -6,15 +6,13 @@ A chat panel on the right side of the screen lets users communicate with the age
 
 ## Environment setup
 
-Create a `.dev.vars` file in the root directory and add API keys for any model providers you want to use.
+Create a `.dev.vars` file in the root directory and add an API key from [OpenRouter](https://openrouter.ai/settings/keys). The agent reaches every model through OpenRouter.
 
 ```
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
-GOOGLE_API_KEY=your_google_api_key_here
-OPENAI_API_KEY=your_openai_api_key_here
+OPENROUTER_API_KEY=your_openrouter_api_key_here
 ```
 
-We recommend using Anthropic for best results. Get your API key from the [Anthropic dashboard](https://console.anthropic.com/settings/keys).
+We recommend using Anthropic models for best results.
 
 ## Local development
 
@@ -589,7 +587,7 @@ Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts`.
 ```ts
 'claude-sonnet-5': {
 	name: 'claude-sonnet-5',
-	id: 'claude-sonnet-5',
+	id: 'anthropic/claude-sonnet-5',
 	provider: 'anthropic',
 	supportsPrefill: false,
 	supportsTemperature: false,

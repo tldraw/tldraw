@@ -31,13 +31,12 @@ npm install
 
 ### 2. Environment setup
 
-Create a `.env` file in the root directory and add your Google Generative API key:
+Create a `.env` file in the root directory and add an API key from [OpenRouter](https://openrouter.ai/settings/keys):
 
 ```
-GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key_here
+OPENROUTER_API_KEY=your_openrouter_api_key_here
 ```
 
-Get your API key from [Google AI Studio](https://aistudio.google.com/apikey).
 You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
 
 ### 3. Start Development
@@ -86,7 +85,7 @@ npm run build
 npx wrangler deploy
 ```
 
-Make sure to set your `GOOGLE_GENERATIVE_AI_API_KEY` in your Cloudflare Workers environment variables.
+Make sure to set your `OPENROUTER_API_KEY` in your Cloudflare Workers environment variables.
 
 ## Customization
 
