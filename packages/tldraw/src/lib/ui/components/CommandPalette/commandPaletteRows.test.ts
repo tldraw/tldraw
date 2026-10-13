@@ -200,6 +200,11 @@ describe('getCommandPaletteSearchRows', () => {
 		expect(describeRows(rows)).toEqual(['Move to page: Page 2'])
 	})
 
+	it('folds items named by the query too when it also matches the submenu name', () => {
+		const rows = getCommandPaletteSearchRows(submenuEntries, 'page', [], { groupSubmenus: true })
+		expect(describeRows(rows)).toEqual(['> Move to page'])
+	})
+
 	it('keeps items when the query spans the submenu and the item name', () => {
 		const rows = getCommandPaletteSearchRows(submenuEntries, 'move to page 1', [], {
 			groupSubmenus: true,
