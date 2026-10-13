@@ -68,9 +68,9 @@ function getOgImagePendingKey(board: ThumbnailBoardRef) {
 	return getOgImageCacheKey(board).replace(/\.png$/, '.pending')
 }
 
-// Armed when a crawler-triggered job gives up, consulted only by the OG route's published-board
-// repair (see OG_REPAIR_COOLDOWN_MS in config.ts). Deliberately not consulted by enqueueOgImageRender
-// itself: a republish is a genuine new snapshot and must render regardless of how the last attempt
+// Armed when a crawler-triggered job ends without an image — it gave up, or the board has nothing to
+// render — and consulted only by the OG route's published-board repair (see OG_REPAIR_COOLDOWN_MS in
+// config.ts). Deliberately not consulted by enqueueOgImageRender itself: a republish is a genuine new snapshot and must render regardless of how the last attempt
 // went, so only the one ask an outside caller can cause is metered. For the same reason the publish
 // trigger *clears* it: the cooldown is evidence about the snapshot that failed, and a republish
 // replaces that snapshot, so the new one gets its own repair backstop — and re-arms the cooldown
@@ -511,7 +511,7 @@ async function retryOrDrop(
 
 // For a job that ended without an image. When the ask was the OG route's crawler-triggered repair,
 // clearing the marker lets the next unauthenticated request re-arm the whole job straight away,
-// letting traffic an outside caller controls spend on a board that just proved it cannot render.
+// letting traffic an outside caller controls spend on a board that just proved it yields no image.
 // Arm the repair cooldown instead — publish- and edit-triggered asks don't consult it, so a genuine
 // republish still renders straight away. Best effort: a cooldown that fails to write costs extra
 // renders, not the ack.
