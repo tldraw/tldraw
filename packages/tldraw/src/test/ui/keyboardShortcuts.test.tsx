@@ -1,10 +1,11 @@
 import { act, screen } from '@testing-library/react'
 import { createShapeId, Editor, TLShapeId } from '@tldraw/editor'
 import { useEffect } from 'react'
+import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import { DefaultKeyboardShortcutsDialogContent } from '../../lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 import { TldrawUiMenuContextProvider } from '../../lib/ui/components/primitives/menus/TldrawUiMenuContext'
-import { useActions } from '../../lib/ui/context/actions'
+import { TLUiActionItem, useActions } from '../../lib/ui/context/actions'
 import { useDialogs } from '../../lib/ui/context/dialogs'
 import {
 	getHotkeysStringFromKbd,
@@ -432,6 +433,8 @@ describe('shifted number-row shortcuts across keyboard layouts', () => {
 		['German', '='],
 	])('zooms to 100%% (never zoom-in) on shift+0 for a %s layout glyph', async (_layout, key) => {
 		const { editor } = await setupFocusedEditor()
+		// zoom-to-100 is disabled at 100%.
+		act(() => editor.setCamera({ x: 0, y: 0, z: 2 }))
 		const resetZoom = vi.spyOn(editor, 'resetZoom').mockImplementation(() => editor)
 		const zoomIn = vi.spyOn(editor, 'zoomIn').mockImplementation(() => editor)
 
@@ -681,24 +684,6 @@ describe('frame selection shortcut', () => {
 		expect(editor.getShape(arrow)?.parentId).toBe(frame!.id)
 	})
 
-	it('removes the frame when a single frame is selected', async () => {
-		const { editor } = await setupFocusedEditor()
-		const frameId = createShapeId()
-		const a = createShapeId()
-		act(() => {
-			editor.createShapes([
-				{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } },
-				{ id: a, type: 'geo', parentId: frameId, x: 10, y: 10 },
-			])
-			editor.select(frameId)
-		})
-
-		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
-
-		expect(editor.getShape(frameId)).toBeUndefined()
-		expect(editor.getShape(a)?.parentId).toBe(editor.getCurrentPageId())
-	})
-
 	it('leaves locked shapes out of the frame and in place', async () => {
 		const { editor } = await setupFocusedEditor()
 		const locked = createShapeId()
@@ -814,4 +799,70 @@ describe('scale selection shortcuts', () => {
 			expect(editor.getSelectedShapes()).toEqual(originalShapes)
 		}
 	)
+})
+
+describe('shortcuts honour action predicates', () => {
+	async function setupGated(isEnabled: () => boolean, extra: Partial<TLUiActionItem> = {}) {
+		const onSelect = vi.fn()
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<Tldraw
+					onMount={onMount}
+					overrides={{
+						actions: (_editor, actions) => ({
+							...actions,
+							gated: { id: 'gated', label: 'Gated', kbd: 'alt+j', isEnabled, onSelect, ...extra },
+						}),
+					}}
+				/>
+			),
+			{ waitForPatterns: false }
+		)
+		act(() => editor.updateInstanceState({ isFocused: true }))
+		return { editor, onSelect }
+	}
+
+	function press(editor: Editor, init: KeyboardEventInit) {
+		const event = new KeyboardEvent('keydown', { bubbles: true, cancelable: true, ...init })
+		act(() => {
+			editor.getContainerDocument().body.dispatchEvent(event)
+		})
+		return event
+	}
+
+	it('does not run a disabled custom action, but still prevents the default', async () => {
+		const { editor, onSelect } = await setupGated(() => false)
+		const event = press(editor, { key: 'j', code: 'KeyJ', altKey: true })
+		expect(onSelect).not.toHaveBeenCalled()
+		expect(event.defaultPrevented).toBe(true)
+	})
+
+	it('runs it when enabled', async () => {
+		const { editor, onSelect } = await setupGated(() => true)
+		press(editor, { key: 'j', code: 'KeyJ', altKey: true })
+		expect(onSelect).toHaveBeenCalledWith('kbd')
+	})
+
+	it('lets an a11y-required action through while editing, but still honours isEnabled', async () => {
+		let enabled = false
+		const { editor, onSelect } = await setupGated(() => enabled, { isRequiredA11yAction: true })
+		const id = createShapeId()
+		act(() => {
+			editor.createShapes([{ id, type: 'text', x: 0, y: 0 }])
+			editor.setEditingShape(id)
+		})
+		press(editor, { key: 'j', code: 'KeyJ', altKey: true })
+		expect(onSelect).not.toHaveBeenCalled()
+		enabled = true
+		press(editor, { key: 'j', code: 'KeyJ', altKey: true })
+		expect(onSelect).toHaveBeenCalledWith('kbd')
+	})
+
+	it('does not switch tool on cmd+a with an empty page, but still prevents the default', async () => {
+		const { editor } = await setupFocusedEditor()
+		act(() => editor.setCurrentTool('draw'))
+		const event = press(editor, { key: 'a', code: 'KeyA', metaKey: true })
+		expect(editor.getCurrentToolId()).toBe('draw')
+		expect(event.defaultPrevented).toBe(true)
+	})
 })

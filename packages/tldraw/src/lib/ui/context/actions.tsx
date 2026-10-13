@@ -62,6 +62,7 @@ import {
 	isUngroupAllowed,
 	supportsDownloadingOriginal,
 } from './action-predicates'
+import { isActionRunnable } from './action-state'
 import { useTldrawUiComponents } from './components'
 import { TLUiEventSource, useUiEvents } from './events'
 
@@ -74,19 +75,21 @@ export interface TLUiActionItem<
 	id: string
 	kbd?: string
 	label?: TransationKey | { [key: string]: TransationKey }
+	/** When `true`, the action runs while the editor is readonly. Defaults to `false`. */
 	readonlyOk?: boolean
 	checkbox?: boolean
 	isRequiredA11yAction?: boolean
 	/**
 	 * Whether the action exists in the current context at all, e.g. clipboard support or debug
-	 * mode. Menus hide the item when it returns false (the keyboard shortcuts dialog still lists
-	 * it); keyboard shortcuts ignore it. Must be pure and read only editor state.
+	 * mode. When false, menus hide the item (the keyboard shortcuts dialog still lists it) and the
+	 * action doesn't run from a menu, a shortcut or `useActions()`. Must be pure and read only
+	 * editor state.
 	 */
 	isAvailable?(editor: Editor): boolean
 	/**
-	 * Whether the action can run now. Menus disable or hide the item when it returns false;
-	 * keyboard shortcuts ignore it. Must be pure and read only editor state: menus re-run it when
-	 * that state changes, so anything else it reads goes stale.
+	 * Whether the action can run now. When false, menus disable or hide the item and the action
+	 * doesn't run from a menu, a shortcut or `useActions()`. Must be pure and read only editor
+	 * state: menus re-run it when that state changes, so anything else it reads goes stale.
 	 */
 	isEnabled?(editor: Editor): boolean
 	/** For checkbox actions: whether the item shows as checked. Must be pure and read only editor state. */
@@ -121,6 +124,35 @@ export interface ActionsProviderProps {
 
 function makeActions(actions: TLUiActionItem[]) {
 	return Object.fromEntries(actions.map((action) => [action.id, action])) as TLUiActionsContextType
+}
+
+/**
+ * Wraps every action so it only runs when {@link isActionRunnable}, however it's called. Returns
+ * new objects: overrides may return the same object on every render, which must not be wrapped twice.
+ *
+ * @internal
+ */
+export function gateActions(
+	editor: Editor,
+	actions: TLUiActionsContextType
+): TLUiActionsContextType {
+	const gated: TLUiActionsContextType = {}
+	for (const [key, action] of Object.entries(actions)) {
+		const { onSelect } = action
+		gated[key] = {
+			...action,
+			onSelect: function gatedOnSelect(
+				this: TLUiActionItem | undefined,
+				source: TLUiEventSource
+			): Promise<void> | void {
+				// Event listeners pass a foreign `this`; only a copy of this action carries the wrapper.
+				const self: TLUiActionItem = this?.onSelect === gatedOnSelect ? this : gated[key]
+				if (!isActionRunnable(editor, self)) return
+				return onSelect.call(self, source)
+			},
+		}
+	}
+	return gated
 }
 
 function getExportName(editor: Editor, defaultName: string) {
@@ -1985,12 +2017,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		const actions = makeActions(actionItems)
-
-		if (overrides) {
-			return overrides(editor, actions, helpers)
-		}
-
-		return actions
+		return gateActions(editor, overrides ? overrides(editor, actions, helpers) : actions)
 	}, [
 		helpers,
 		_editor,
