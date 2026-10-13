@@ -62,8 +62,9 @@ test.describe('command palette', () => {
 		const list = page.getByRole('listbox')
 		await expect(list).toBeVisible()
 		expect(await page.getByRole('option').count()).toBeGreaterThan(6)
+		// 9 rows' worth (36px each, +4): group headings and separators take some of the space.
 		const height = await list.evaluate((el) => el.clientHeight)
-		expect(height).toBeLessThanOrEqual(270)
+		expect(height).toBeLessThanOrEqual(9 * 36 + 4)
 	})
 
 	test('fades the list while more items are below', async ({ page }) => {
