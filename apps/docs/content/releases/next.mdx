@@ -8,7 +8,7 @@ status: published
 last_version: v5.5.0
 ---
 
-So far this release adds a `ThrottledFunction` type to `@tldraw/utils`, thins the hinted shape outline, and fixes bugs in resizing, page duplication, local persistence, the store, and sync.
+So far this release gates menu items on whether their actions can run, adds a comment item to the default context menu, adds a `ThrottledFunction` type to `@tldraw/utils`, and fixes bugs in resizing, groups, undo, local persistence, the store, and sync.
 
 ## API changes
 
@@ -21,17 +21,30 @@ So far this release adds a `ThrottledFunction` type to `@tldraw/utils`, thins th
 - Menus no longer offer actions that would do nothing: grouping locked shapes, flipping a locked shape, unlocking when nothing is locked, exporting all shapes on an empty page, moving to a new page at the page limit, and grouping an arrow away from a shape it's bound to. The main menu hides Paste, instead of disabling it, in browsers that can't read the clipboard. ([#11038](https://github.com/tldraw/tldraw/pull/11038))
 - Draw the hinted outline around shapes, such as a frame you're dragging a shape into, at 2px instead of 2.5px. ([#10952](https://github.com/tldraw/tldraw/pull/10952))
 - Speed up `store.query.index()` and `store.query.ids()` updates by no longer allocating for each change. ([#10228](https://github.com/tldraw/tldraw/pull/10228))
+- Add a **Comment** item to the default canvas context menu when commenting is set up. It opens the comment composer where you right-clicked. ([#11095](https://github.com/tldraw/tldraw/pull/11095))
+- Clicking the canvas while writing a new comment now cancels it and returns to the select tool, instead of moving the comment. ([#10969](https://github.com/tldraw/tldraw/pull/10969))
 
 ## Bug fixes
 
 - Fix the edge scrolling preference showing as off when edge scrolling is on at a speed other than 1, such as 0.5 or 2. ([#11038](https://github.com/tldraw/tldraw/pull/11038))
 - Fix three resize issues: flipping a rotated selection gave its children the wrong rotation, shapes not aligned with the selection received `onResizeStart` and `onResizeEnd` more than once, and `resizeBox` slid the fixed edge when a shape hit its `maxWidth` or `maxHeight`. ([#10351](https://github.com/tldraw/tldraw/pull/10351))
+- Fix bookmarks, notes and other shapes that don't resize being moved to the wrong place when their group is resized or flipped. ([#10619](https://github.com/tldraw/tldraw/pull/10619))
+- Fix bounds snapping not engaging while resizing or cropping shapes inside rotated frames or groups. ([#10181](https://github.com/tldraw/tldraw/pull/10181))
+- Fix undo after double-clicking a frame's corner or edge to fit it to its content: undoing could delete a just-drawn frame, or leave its children shifted. ([#11075](https://github.com/tldraw/tldraw/pull/11075))
+- Fix clicking a child of a locked group selecting the locked group. ([#10180](https://github.com/tldraw/tldraw/pull/10180))
+- Fix the eraser sometimes dropping a highlighted shape when a drag starts near a group. ([#10182](https://github.com/tldraw/tldraw/pull/10182))
 - Fix duplicating a page moving its shapes when they were off screen, and starting the new page with the current page's camera instead of the duplicated page's. ([#10465](https://github.com/tldraw/tldraw/pull/10465))
 - Fix the arrow tool's precise mode carrying over when you move to a different target shape. ([#10244](https://github.com/tldraw/tldraw/pull/10244))
 - Fix holding Cmd/Ctrl+Shift+Arrow switching from selecting a parent or child to selecting the adjacent shape once the key starts repeating. ([#10184](https://github.com/tldraw/tldraw/pull/10184))
 - Fix `editor.setCursor` throwing for the rotate and resize cursor types, and hex cursor colors breaking SVG cursors. ([#10350](https://github.com/tldraw/tldraw/pull/10350))
+- Fix scribbles added in a tool's `onEnter` being removed before their first point, so later `addPoint` or `stop` calls threw. ([#10336](https://github.com/tldraw/tldraw/pull/10336))
+- Fix animating a draw or highlight shape throwing when one side of the animation has no points. ([#10771](https://github.com/tldraw/tldraw/pull/10771))
+- Fix the keyboard shortcuts dialog still opening from its shortcut when `KeyboardShortcutsDialog` is overridden with `null`. ([#11019](https://github.com/tldraw/tldraw/pull/11019))
+- Fix the rich text toolbar reporting the wrong operation in `onUiEvent` for italic, code and highlight. ([#11018](https://github.com/tldraw/tldraw/pull/11018))
+- Fix the "rhombus left" geo tool showing a raw translation key as its label in custom toolbars and menus. ([#11062](https://github.com/tldraw/tldraw/pull/11062))
 - Fix edits being lost when an editor remounts with the same `persistenceKey` while the previous one is still saving. ([#10752](https://github.com/tldraw/tldraw/pull/10752))
 - Fix store changes made in the last frame before a listener is removed never reaching that listener. ([#10802](https://github.com/tldraw/tldraw/pull/10802))
+- Fix store listeners and `extractingChanges` receiving changes from transactions that rolled back. ([#10205](https://github.com/tldraw/tldraw/pull/10205))
 - Fix a reaction that writes to the store re-running on every unrelated store change. ([#10236](https://github.com/tldraw/tldraw/pull/10236))
 - Fix undo restoring an in-between state after a single `put` updated the same record twice. ([#10203](https://github.com/tldraw/tldraw/pull/10203))
 - Fix `migrateStoreSnapshot` throwing on a malformed persisted schema instead of returning a migration error. ([#10220](https://github.com/tldraw/tldraw/pull/10220))
@@ -39,3 +52,4 @@ So far this release adds a `ThrottledFunction` type to `@tldraw/utils`, thins th
 - Fix a resumed sync session on a hibernating host skipping the version checks made on first connect, so after a server redeploy a client could be sent changes its schema couldn't handle. It's now rejected with `SERVER_TOO_OLD` or `CLIENT_TOO_OLD`, as on connect. ([#10122](https://github.com/tldraw/tldraw/pull/10122))
 - Fix a record field set to `undefined` getting the sync session kicked with `INVALID_RECORD`, and ignore `__proto__` keys in incoming changes. ([#10118](https://github.com/tldraw/tldraw/pull/10118))
 - Fix older sync clients (protocol version 7) silently falling out of sync when the server sent them text-append changes they don't support. ([#10095](https://github.com/tldraw/tldraw/pull/10095))
+- Fix a record deleted while offline sometimes reappearing after reconnecting. ([#10997](https://github.com/tldraw/tldraw/pull/10997))
