@@ -1,4 +1,4 @@
-import { MAX_THUMBNAIL_PAGES } from '@tldraw/dotcom-shared'
+import { MAX_THUMBNAIL_PAGES, THUMBNAIL_PAGE_WATCHDOG_MS } from '@tldraw/dotcom-shared'
 import {
 	Editor,
 	createShapeId,
@@ -164,5 +164,55 @@ describe('the failure beacon', () => {
 		expect(beacons.map(([, init]) => JSON.parse(init!.body as string))).toEqual([
 			{ token: 't', error: { message: 'Could not load render job (404)', phase: 'boot' } },
 		])
+	})
+})
+
+describe('the page watchdog', () => {
+	afterEach(() => {
+		vi.useRealTimers()
+		vi.unstubAllGlobals()
+	})
+
+	// The module keeps per-page state (the watchdog, the once-only beacon), so each test gets a fresh one.
+	async function bootPage() {
+		vi.useFakeTimers()
+		vi.resetModules()
+		const fetchMock = vi.fn(async (url: RequestInfo | URL, _init?: RequestInit) =>
+			String(url).includes('/snapshot')
+				? Response.json({ error: false, records: [], schema: {}, renderParams: {} })
+				: new Response(null)
+		)
+		vi.stubGlobal('fetch', fetchMock)
+		const page = await import('./thumbnail-render')
+		const data = await page.acquireThumbnailRenderData(
+			new URL('https://x.test/__thumbnail-render?token=t')
+		)
+		expect(data.ok).toBe(true)
+		const beacons = () =>
+			fetchMock.mock.calls
+				.filter(([url]) => String(url).endsWith('/api/app/thumbnail-render/result'))
+				.map(([, init]) => JSON.parse(init!.body as string))
+		return { page, beacons }
+	}
+
+	it('marks a stalled page as failed before the worker gives up, naming the last phase', async () => {
+		const { beacons } = await bootPage()
+
+		vi.advanceTimersByTime(THUMBNAIL_PAGE_WATCHDOG_MS)
+
+		expect(document.body.dataset.thumbnailError).toBe('Render page stalled after data')
+		expect(beacons()).toEqual([
+			{ token: 't', error: { message: 'Render page stalled after data', phase: 'data' } },
+		])
+	})
+
+	it('leaves a page that finished alone', async () => {
+		const { page, beacons } = await bootPage()
+		page.signalThumbnailReady()
+
+		vi.advanceTimersByTime(THUMBNAIL_PAGE_WATCHDOG_MS)
+
+		expect(document.body.dataset.thumbnailError).toBeUndefined()
+		expect(beacons()).toEqual([])
 	})
 })
