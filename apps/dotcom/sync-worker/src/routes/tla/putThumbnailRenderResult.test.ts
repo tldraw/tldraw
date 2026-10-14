@@ -192,6 +192,23 @@ describe('the failure beacon', () => {
 		logged.mockRestore()
 	})
 
+	it('tags a measure as capturing nothing, as the session ledger does', async () => {
+		const env = makeScreenshotTestEnv() as unknown as Environment
+		const token = await mintThumbnailRenderToken(env, { ...JOB, mode: 'measure' })
+		const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		await putThumbnailRenderResult(
+			makeRequest({ token, error: { message: 'boom', phase: 'mount' } }),
+			env
+		)
+
+		expect(logged.mock.calls[0][1]).toMatchObject({
+			render_mode: 'measure',
+			render_capture: 'none',
+		})
+		logged.mockRestore()
+	})
+
 	it('caps the message it reports', async () => {
 		const env = makeScreenshotTestEnv() as unknown as Environment
 		const token = await mintThumbnailRenderToken(env, JOB)

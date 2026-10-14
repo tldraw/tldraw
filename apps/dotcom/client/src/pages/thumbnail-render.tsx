@@ -334,9 +334,10 @@ export function signalThumbnailReady() {
 // Marks the terminal failure state on both <html> and <body>: the worker's screenshot wait resolves
 // on either marker, and success marks both, so failure does too.
 export function setThumbnailError(message: string) {
+	// Before the marker, like the timings beacon before the ready one: the marker ends the session.
+	sendErrorBeacon(message)
 	document.body.dataset.thumbnailError = message
 	document.documentElement.dataset.thumbnailError = message
-	sendErrorBeacon(message)
 }
 
 // A data-URL <img> can finish decoding before React attaches the onLoad handler, in which case

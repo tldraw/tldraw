@@ -116,7 +116,8 @@ export async function putThumbnailRenderResult(
 				extras: {
 					render_surface: surface,
 					render_mode: mode,
-					render_capture: job.capture ?? 'export',
+					// Matches browser_run_session, where a measure draws nothing: `capture:none`.
+					render_capture: mode === 'measure' ? 'none' : (job.capture ?? 'export'),
 				},
 			}
 		)
