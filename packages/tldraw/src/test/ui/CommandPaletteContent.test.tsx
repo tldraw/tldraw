@@ -1,5 +1,5 @@
 import { act, fireEvent, waitFor } from '@testing-library/react'
-import { createShapeId, deleteFromLocalStorage } from '@tldraw/editor'
+import { Box, createShapeId, deleteFromLocalStorage } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
@@ -18,7 +18,10 @@ vi.mock('../../lib/ui/hooks/useTranslation/useTranslation', async () =>
 	vi.importActual('../../lib/ui/hooks/useTranslation/useTranslation')
 )
 
-afterEach(() => deleteFromLocalStorage('tldraw-command-palette-recents'))
+afterEach(() => {
+	deleteFromLocalStorage('tldraw-command-palette-recents')
+	deleteFromLocalStorage('minimap')
+})
 
 async function renderPalette({
 	maxPages,
@@ -234,6 +237,21 @@ describe('default command palette content', () => {
 			source: 'command-palette',
 			value: 'dark',
 		})
+	})
+
+	it('toggles the minimap, in step with the navigation panel', async () => {
+		const { editor, rendered, search, enter } = await renderPalette()
+		act(() => editor.updateViewportScreenBounds(new Box(0, 0, 1400, 900)))
+		search('minimap')
+		await rendered.findByTestId('command-palette.item.toggle-minimap')
+		expect(rendered.queryByTestId('minimap.zoom-in')).toBeNull()
+		enter()
+		await rendered.findByTestId('minimap.zoom-in')
+		act(() => editor.updateViewportScreenBounds(new Box(0, 0, 500, 800)))
+		search('minimap')
+		await waitFor(() =>
+			expect(rendered.queryByTestId('command-palette.item.toggle-minimap')).toBeNull()
+		)
 	})
 
 	describe('actions', () => {

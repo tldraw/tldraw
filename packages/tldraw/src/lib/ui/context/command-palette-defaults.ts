@@ -61,6 +61,7 @@ const PALETTE_GROUPS: Record<string, readonly string[]> = {
 		'zoom-to-fit',
 		'zoom-to-100',
 		'toggle-grid',
+		'toggle-minimap',
 		'toggle-focus-mode',
 	],
 	export: [

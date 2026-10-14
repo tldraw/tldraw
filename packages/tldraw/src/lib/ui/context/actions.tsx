@@ -35,6 +35,8 @@ import {
 } from '../components/CommandPalette/commandPaletteMount'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { isMinimapCollapsed, toggleMinimap } from '../components/NavigationPanel/minimapCollapsed'
+import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from '../constants'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -1454,6 +1456,25 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						})
 					})
 				},
+			},
+			{
+				id: 'toggle-minimap',
+				label: {
+					default: 'action.toggle-minimap',
+					menu: 'action.toggle-minimap.menu',
+				},
+				// The navigation panel only shows the minimap from tablet width up.
+				isAvailable: (editor) =>
+					!!components.Minimap &&
+					!!components.NavigationPanel &&
+					editor.getViewportScreenBounds().width > PORTRAIT_BREAKPOINTS[PORTRAIT_BREAKPOINT.TABLET],
+				isChecked: (editor) => !isMinimapCollapsed(editor),
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-minimap', { source })
+					toggleMinimap(editor)
+				},
+				checkbox: true,
 			},
 			{
 				id: 'toggle-grid',

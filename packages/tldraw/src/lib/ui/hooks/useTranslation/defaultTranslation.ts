@@ -118,6 +118,8 @@ export const DEFAULT_TRANSLATION = {
 	'action.toggle-dynamic-size-mode': 'Toggle dynamic size',
 	'action.toggle-grid.menu': 'Show grid',
 	'action.toggle-grid': 'Toggle grid',
+	'action.toggle-minimap.menu': 'Show minimap',
+	'action.toggle-minimap': 'Toggle minimap',
 	'action.toggle-lock': 'Toggle locked',
 	'action.flatten-to-image': 'Flatten',
 	'action.toggle-snap-mode.menu': 'Always snap',

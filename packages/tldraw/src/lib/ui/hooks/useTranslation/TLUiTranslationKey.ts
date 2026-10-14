@@ -117,6 +117,8 @@ export type TLUiTranslationKey =
 	| 'action.toggle-dynamic-size-mode'
 	| 'action.toggle-grid.menu'
 	| 'action.toggle-grid'
+	| 'action.toggle-minimap.menu'
+	| 'action.toggle-minimap'
 	| 'action.toggle-lock'
 	| 'action.flatten-to-image'
 	| 'action.toggle-snap-mode.menu'
