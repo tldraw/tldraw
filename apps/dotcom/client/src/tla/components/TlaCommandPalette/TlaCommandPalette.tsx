@@ -1,5 +1,4 @@
 import { CommentsMenuItem, richTextToPlaintext, toggleCommentsSidebar } from '@tldraw/commenting'
-import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	CommandPaletteActionGroup,
@@ -19,14 +18,12 @@ import {
 	CommandPaletteViewGroup,
 	DefaultCommandPalette,
 	TldrawUiMenuActionItem,
-	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TLRichText,
 	TldrawUiMenuSubmenu,
 	commandPaletteFlags,
 	getCommandPaletteMatchScore,
-	useCommandPaletteActiveItemId,
 	useCommandPaletteQuery,
 	useDialogs,
 	useEditor,
@@ -46,7 +43,6 @@ import { defineMessages, useMsg } from '../../utils/i18n'
 import {
 	getIsSidebarOpen,
 	isDesktopSidebarLayout,
-	setColorThemePreview,
 	toggleMobileSidebar,
 	toggleSidebar,
 } from '../../utils/local-session-state'
@@ -57,7 +53,7 @@ import {
 	ImportFileActionItem,
 	SignOutMenuItem,
 	UserManualMenuItem,
-	useUIThemeChoices,
+	UIThemeCommandPaletteSubmenu,
 } from '../menu-items/menu-items'
 import { useStartFileRename } from '../TlaEditor/fileHeaderRename'
 import { FileItems } from '../TlaFileMenu/TlaFileMenu'
@@ -103,7 +99,6 @@ const messages = defineMessages({
 	workspaceSettings: { defaultMessage: 'Workspace settings…' },
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
 	account: { defaultMessage: 'Account' },
-	colorTheme: { defaultMessage: 'Color theme' },
 	signIn: { defaultMessage: 'Sign in' },
 })
 
@@ -476,41 +471,15 @@ function TlaWorkspacesGroup() {
 	)
 }
 
-// Highlighting a color theme previews it, like hovering one in the menu. Closing without choosing
-// unmounts this and drops the preview.
-function ColorThemePreview({ themeIds }: { themeIds: string[] }) {
-	const activeId = useCommandPaletteActiveItemId()
-	const themeId = themeIds.find((id) => activeId === `ui-theme-${id}`) ?? null
-	useEffect(() => setColorThemePreview(themeId), [themeId])
-	useEffect(() => () => setColorThemePreview(null), [])
-	return null
-}
-
 function TlaAccountGroup() {
 	const app = useMaybeApp()
 	const { addDialog } = useDialogs()
-	const themeChoices = useUIThemeChoices()
 	const accountLbl = useMsg(messages.account)
-	const colorThemeLbl = useMsg(messages.colorTheme)
 	const signInLbl = useMsg(messages.signIn)
 
 	return (
 		<TldrawUiMenuGroup id="tla-account" label={accountLbl}>
-			{themeChoices.length > 0 && (
-				<TldrawUiMenuSubmenu id="tla-color-theme" label={colorThemeLbl}>
-					<ColorThemePreview themeIds={themeChoices.map((choice) => choice.id)} />
-					{themeChoices.map((choice) => (
-						<TldrawUiMenuCheckboxItem
-							key={choice.id}
-							id={`ui-theme-${choice.id}`}
-							label={choice.label}
-							checked={choice.checked}
-							readonlyOk
-							onSelect={() => choice.select('command-palette')}
-						/>
-					))}
-				</TldrawUiMenuSubmenu>
-			)}
+			<UIThemeCommandPaletteSubmenu />
 			{!app && (
 				<TldrawUiMenuItem
 					id="tla-sign-in"
