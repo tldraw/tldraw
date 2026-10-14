@@ -180,7 +180,8 @@ describe('default command palette content', () => {
 		const { rendered, input } = await renderPalette()
 		fireEvent.click(await rendered.findByTestId('command-palette.submenu.Language'))
 		expect(input.value).toBe('')
-		expect(rendered.getByTestId('command-palette.back').textContent).toBe('Language')
+		// The header also shows the Esc hint.
+		expect(rendered.getByTestId('command-palette.back').textContent).toBe('LanguageEsc')
 		expect((await rendered.findByTestId('command-palette.item.language-de')).textContent).toBe(
 			'Deutsch'
 		)
