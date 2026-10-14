@@ -16,6 +16,7 @@ import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 import { TldrawUiMenuToolItem } from '../primitives/menus/TldrawUiMenuToolItem'
 import { CommandPalettePathProvider } from './CommandPaletteContext'
+import { CommandPalettePromptItem } from './CommandPalettePromptItem'
 
 /** @public */
 export interface TLUiCommandPaletteActionGroupProps {
@@ -89,6 +90,9 @@ export function CommandPalettePagesGroup() {
 	const isReadonly = useReadonly()
 	const pages = useValue('pages', () => editor.getPages(), [editor])
 	const currentPageId = useValue('current page id', () => editor.getCurrentPageId(), [editor])
+	const currentPageName = useValue('current page name', () => editor.getCurrentPage().name, [
+		editor,
+	])
 	const { maxPages } = editor.options
 	if (maxPages <= 1) return null
 
@@ -127,6 +131,44 @@ export function CommandPalettePagesGroup() {
 						trackEvent('new-page', { source })
 					}}
 				/>
+			)}
+			{!isReadonly && (
+				<>
+					<CommandPalettePromptItem
+						id="rename-page"
+						label={msg('command-palette.rename-page')}
+						placeholder={msg('command-palette.page-name')}
+						initialValue={currentPageName}
+						onSubmit={(name) => {
+							if (!name || name === currentPageName) return
+							editor.markHistoryStoppingPoint('rename page')
+							editor.renamePage(currentPageId, name)
+							trackEvent('rename-page', { source: 'command-palette' })
+						}}
+					/>
+					<TldrawUiMenuItem
+						id="duplicate-page"
+						label="command-palette.duplicate-page"
+						disabled={pages.length >= maxPages}
+						disabledReason="page-menu.max-pages-reached"
+						onSelect={(source) => {
+							editor.markHistoryStoppingPoint('creating page')
+							editor.duplicatePage(currentPageId, PageRecordType.createId())
+							trackEvent('duplicate-page', { source })
+						}}
+					/>
+					<TldrawUiMenuItem
+						id="delete-page"
+						label="command-palette.delete-page"
+						disabled={pages.length <= 1}
+						disabledReason="command-palette.reason.only-page"
+						onSelect={(source) => {
+							editor.markHistoryStoppingPoint('deleting page')
+							editor.deletePage(currentPageId)
+							trackEvent('delete-page', { source })
+						}}
+					/>
+				</>
 			)}
 			<MoveToPageItems />
 		</TldrawUiMenuGroup>

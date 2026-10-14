@@ -254,6 +254,34 @@ describe('default command palette content', () => {
 		)
 	})
 
+	it('renames, duplicates and deletes the current page', async () => {
+		const { editor, rendered, input, search, enter } = await renderPalette()
+		search('rename page')
+		enter()
+		await waitFor(() => expect(input.value).toBe('Page 1'))
+		search('Plans')
+		enter()
+		expect(editor.getCurrentPage().name).toBe('Plans')
+		// The test palette stays open after running, still in the prompt.
+		fireEvent.keyDown(input, { key: 'Escape' })
+
+		search('delete page')
+		const del = await rendered.findByTestId('command-palette.item.delete-page')
+		expect(del.getAttribute('aria-disabled')).toBe('true')
+
+		search('duplicate page')
+		enter()
+		expect(editor.getPages()).toHaveLength(2)
+		search('delete page')
+		await waitFor(() =>
+			expect(
+				rendered.getByTestId('command-palette.item.delete-page').getAttribute('aria-disabled')
+			).toBeNull()
+		)
+		enter()
+		expect(editor.getPages()).toHaveLength(1)
+	})
+
 	describe('actions', () => {
 		const makeRed = vi.fn()
 		const overrides: TLUiOverrides = {
