@@ -58,6 +58,15 @@ function getEntryScore(query: string, entry: CommandPaletteRankable) {
 	return getCommandPaletteMatchScore(query, entry.name) === 5 ? Math.max(score, 4) : score
 }
 
+// Words in the label the query doesn't touch, so "color red" puts "Color: Red" above
+// "Color: Light red" when both match equally well.
+function countUntouchedWords(query: string, label: string) {
+	const queryWords = normalizeCommandPaletteText(query).split(/\s+/)
+	return normalizeCommandPaletteText(label)
+		.split(/[^\p{L}\p{N}]+/u)
+		.filter((word) => word && !queryWords.some((q) => word.startsWith(q))).length
+}
+
 /** @internal */
 export function rankCommandPaletteEntries<T extends CommandPaletteRankable>(
 	entries: readonly T[],
@@ -69,16 +78,18 @@ export function rankCommandPaletteEntries<T extends CommandPaletteRankable>(
 		return index === -1 ? recentIds.length : index
 	}
 	return entries
-		.map((entry, index) => ({
-			entry,
-			index,
-			score: getEntryScore(query, entry),
-		}))
+		.map((entry, index) => {
+			const score = getEntryScore(query, entry)
+			// Path-only matches don't touch the label at all, so it can't break their ties.
+			const untouched = score > 1 ? countUntouchedWords(query, entry.label) : 0
+			return { entry, index, score, untouched }
+		})
 		.filter(({ score }) => score > 0)
 		.sort(
 			(a, b) =>
 				Number(a.entry.disabled) - Number(b.entry.disabled) ||
 				b.score - a.score ||
+				a.untouched - b.untouched ||
 				recency(a.entry.id) - recency(b.entry.id) ||
 				a.index - b.index
 		)

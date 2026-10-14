@@ -52,6 +52,15 @@ describe('rankCommandPaletteEntries', () => {
 		expect(ranked.map((e) => e.id)).toEqual(['exact', 'mid'])
 	})
 
+	it('breaks ties toward labels with fewer words the query misses', () => {
+		const ranked = rankCommandPaletteEntries(
+			[entry('light-red', 'Color: Light red'), entry('red', 'Color: Red')],
+			'color red',
+			[]
+		)
+		expect(ranked.map((e) => e.id)).toEqual(['red', 'light-red'])
+	})
+
 	it('puts disabled matches after enabled ones', () => {
 		const ranked = rankCommandPaletteEntries(
 			[entry('a', 'Align', true), entry('b', 'Realign')],
