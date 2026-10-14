@@ -5,6 +5,7 @@ import {
 	hasDownloadableMediaSelected,
 	hasUnlockedSelection,
 	isOnlyEmbeddableBookmarkSelected,
+	isOnlyTextSelected,
 	isOnlyEmbedWithUrlSelected,
 	isUngroupAllowed,
 } from './action-predicates'
@@ -149,7 +150,10 @@ const DISABLED_REASONS: Record<string, Reason> = {
 	'select-none': SELECT_SHAPES[1],
 	'zoom-to-selection': SELECT_SHAPES[1],
 	'frame-selection': SELECT_SHAPES[1],
-	'flatten-to-image': SELECT_SHAPES[1],
+	'flatten-to-image': (editor) =>
+		editor.getSelectedShapeIds().length > 0
+			? 'command-palette.reason.already-image'
+			: 'command-palette.reason.select-shape',
 	'bring-to-front': SELECT_SHAPES[1],
 	'bring-forward': SELECT_SHAPES[1],
 	'send-backward': SELECT_SHAPES[1],
@@ -182,7 +186,11 @@ const DISABLED_REASONS: Record<string, Reason> = {
 	'edit-link': inSelectTool('command-palette.reason.select-link-shape'),
 	'convert-to-embed': inSelectTool('command-palette.reason.select-bookmark'),
 	'convert-to-bookmark': inSelectTool('command-palette.reason.select-embed'),
-	'toggle-auto-size': inSelectTool('command-palette.reason.select-text'),
+	'toggle-auto-size': inSelectTool((editor) =>
+		isOnlyTextSelected(editor)
+			? 'command-palette.reason.auto-size-on'
+			: 'command-palette.reason.select-text'
+	),
 	'download-original': 'command-palette.reason.select-media',
 	'flip-horizontal': inSelectTool((editor) =>
 		hasUnlockedSelection(editor, 1)

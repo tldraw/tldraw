@@ -502,6 +502,8 @@ export type TLUiTranslationKey =
 	| 'command-palette.reason.mouse-input-only'
 	| 'command-palette.reason.group-bound-arrow'
 	| 'command-palette.reason.frame-empty'
+	| 'command-palette.reason.auto-size-on'
+	| 'command-palette.reason.already-image'
 	| 'vscode.file-open.desc'
 	| 'vscode.file-open.open'
 	| 'vscode.file-open.backup'

@@ -512,6 +512,8 @@ export const DEFAULT_TRANSLATION = {
 	'command-palette.reason.mouse-input-only': 'Only with mouse input',
 	'command-palette.reason.group-bound-arrow': 'Also select the shapes the arrows connect',
 	'command-palette.reason.frame-empty': 'This frame is empty',
+	'command-palette.reason.auto-size-on': 'This text already sizes to fit',
+	'command-palette.reason.already-image': 'This is already an image',
 	'vscode.file-open.desc':
 		'We’ve updated this document to work with the current version of tldraw. If you’d like to keep the original version (which will work on old.tldraw.com), click below to create a backup.',
 	'vscode.file-open.open': 'Continue',
