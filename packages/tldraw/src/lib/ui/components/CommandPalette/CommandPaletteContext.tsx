@@ -35,11 +35,11 @@ export function useCommandPaletteQuery(): string {
 }
 
 /**
- * The id of the item highlighted in the command palette, by keyboard or pointer, or null. Lets an
- * item preview its effect before it's chosen; undo the preview when this changes or the palette
- * unmounts, since closing without choosing should leave things as they were.
+ * The id of the item highlighted in the command palette, by keyboard or pointer, or null. For
+ * tldraw.com's theme preview. Internal because previewing anything stored in the document would
+ * sync each highlight and add it to history.
  *
- * @public
+ * @internal
  */
 export function useCommandPaletteActiveItemId(): string | null {
 	const store = useContext(StoreContext)

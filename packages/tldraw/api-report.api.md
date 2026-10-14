@@ -6564,7 +6564,7 @@ export function useCanUndo(): boolean;
 // @public (undocumented)
 export function useCollaborationStatus(): "offline" | "online" | null;
 
-// @public
+// @internal
 export function useCommandPaletteActiveItemId(): null | string;
 
 // @public

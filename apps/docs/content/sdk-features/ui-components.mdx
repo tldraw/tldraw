@@ -240,7 +240,7 @@ function MyCommandPalette() {
 
 A command shows once, wherever it's placed first, so placing an action yourself takes it out of the catch-all at the end. `DefaultCommandPaletteContent` is made of exported groups, such as `CommandPaletteEditGroup` and `CommandPaletteViewGroup`, ending with `<CommandPaletteActionGroup />`, the catch-all. If you list the groups yourself, end with it too, or actions you don't place won't appear. `CommandPaletteToolsGroup` lists one item per tool, after the commands. Pass `CommandPalette: null` to turn the palette off.
 
-For long or async lists, read the query with `useCommandPaletteQuery()` and render only your best matches. `getCommandPaletteMatchScore` matches the same way the palette does. To preview an item's effect before it's chosen, such as a theme, read `useCommandPaletteActiveItemId()` and undo the preview when it changes or the palette closes.
+For long or async lists, read the query with `useCommandPaletteQuery()` and render only your best matches. `getCommandPaletteMatchScore` matches the same way the palette does.
 
 Items that aren't actions take the same `disabledReason` prop.
 
