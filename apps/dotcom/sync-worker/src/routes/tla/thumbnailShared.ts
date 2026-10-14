@@ -76,6 +76,20 @@ export class BrowserRenderError extends Error {
 	}
 }
 
+// The render page's own `data-thumbnail-error`, read off a measure's `/content` response. A
+// screenshot never sees one: its capture element is missing on that path, so Browser Run fails the
+// call as a BrowserRenderError instead. The page's message stays out of `message` for the same
+// Sentry grouping reason as BrowserRenderError.
+export class RenderPageError extends Error {
+	readonly detail: string
+
+	constructor(detail: string) {
+		super('Render page failed')
+		this.name = 'RenderPageError'
+		this.detail = detail
+	}
+}
+
 // Maps an arbitrary render error to a bounded set of reason codes for the `failure` telemetry blob.
 // Raw `error.message` strings are unbounded and must never reach that dimension, so keep this a
 // small, stable vocabulary. The typed cases are matched first and by type: a failed snapshot read is
@@ -88,6 +102,7 @@ export function classifyScreenshotFailure(error: unknown): string {
 	if (error instanceof RateLimiterUnavailableError) return 'rate_limiter_unavailable'
 	if (error instanceof BoardSnapshotReadError) return 'snapshot_read_error'
 	if (error instanceof BrowserRenderError) return classifyBrowserRenderFailure(error)
+	if (error instanceof RenderPageError) return 'page_error'
 	const message = error instanceof Error ? error.message : String(error)
 	if (/not configured/i.test(message)) return 'not_configured'
 	if (/timeout|timed out/i.test(message)) return 'browser_timeout'
@@ -234,6 +249,7 @@ function safeRequestContext(request: Request | undefined): Record<string, unknow
 // file a new Sentry issue per distinct detail string. Without them an event says only "Browser
 // Rendering screenshot failed (422)", which is true of a crash, an OOM render and a timeout alike.
 function browserRenderContextOf(error: unknown): Record<string, unknown> | null {
+	if (error instanceof RenderPageError) return { render_page_error: error.detail }
 	if (!(error instanceof BrowserRenderError)) return null
 	return {
 		browser_render_status: error.status,

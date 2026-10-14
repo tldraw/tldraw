@@ -51,8 +51,24 @@ describe('the timing beacon', () => {
 		const point = calls[0][0]
 		// writeDataPoint prefixes [eventName, workerName]; the beacon's own blobs follow.
 		expect(point.blobs[0]).toBe('render_page_timings')
-		expect(point.blobs.slice(2)).toEqual(['surface:mcp'])
+		expect(point.blobs.slice(2)).toEqual(['surface:mcp', 'acquired:unknown'])
 		expect(point.doubles).toEqual([100, 150, 900, 1400, 2100])
+	})
+
+	it('records how the page got its records, and buckets anything else as unknown', async () => {
+		const env = makeScreenshotTestEnv() as unknown as Environment
+		const token = await mintThumbnailRenderToken(env, JOB)
+
+		for (const acquiredBy of ['push', 'fetch', 'something-else']) {
+			await putThumbnailRenderResult(makeRequest({ token, acquiredBy, timings: TIMINGS }), env)
+		}
+
+		const calls = (env.MEASURE as any).writeDataPoint.mock.calls
+		expect(calls.map((call: any[]) => call[0].blobs[3])).toEqual([
+			'acquired:push',
+			'acquired:fetch',
+			'acquired:unknown',
+		])
 	})
 
 	it('refuses a beacon whose token was not signed by us', async () => {
@@ -148,7 +164,7 @@ describe('the timing beacon', () => {
 		expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
 	})
 
-	it('leaves the measure-result branch alone', async () => {
+	it('refuses a measure result, which now comes back in the page instead', async () => {
 		const env = makeScreenshotTestEnv() as unknown as Environment
 		const token = await mintThumbnailRenderToken(env, { ...JOB, mode: 'measure' })
 
@@ -157,7 +173,6 @@ describe('the timing beacon', () => {
 			env
 		)
 
-		expect(response.status).toBe(200)
-		expect(await response.json()).toEqual({ error: false, stored: 1 })
+		expect(response.status).toBe(400)
 	})
 })

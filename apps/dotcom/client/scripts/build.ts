@@ -15,7 +15,7 @@ import json5 from 'json5'
 import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
-import { csp } from '../src/utils/csp'
+import { csp, thumbnailRenderCsp } from '../src/utils/csp'
 import { reportBundleSize } from './measure-bundle-size'
 import { getMultiplayerServerURL } from './multiplayer-server-url'
 import { Config } from './vercel-output-config'
@@ -296,7 +296,7 @@ async function build() {
 						check: true,
 						src: `^${THUMBNAIL_RENDER_PATH}$`,
 						dest: '/thumbnail-render.html',
-						headers: commonSecurityHeaders,
+						headers: { ...commonSecurityHeaders, 'Content-Security-Policy': thumbnailRenderCsp },
 					},
 					// serve static files
 					{

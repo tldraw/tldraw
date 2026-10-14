@@ -1,6 +1,5 @@
 import { vi } from 'vitest'
 import { Environment } from '../../types'
-import { base64UrlDecode } from '../../utils/base64'
 
 // Shared fakes for the Browser Run thumbnail / OG image tests (thumbnailRender,
 // mcpServer, ogImageQueue, getOgImage). The R2/browser/queue fakes, snapshot builder
@@ -126,30 +125,36 @@ export function makeFakeQueue() {
 	return { send: vi.fn(async (_message: unknown) => undefined) }
 }
 
-// Stands in for the render page on a `measure` job: a real one POSTs its measurements to
-// /app/thumbnail-render/result before signalling ready, so the fake writes them to the same place
-// the worker reads from. Without this every clustering tool would fail on a missing result, since
-// they all measure the page before clustering it.
+// Stands in for the render page on a `measure` job: a real one leaves its measurements in its own
+// HTML for the worker's `/content` read, so the fake answers `content` with that page. Without this
+// every clustering tool would fail on a missing result, since they all measure the page before
+// clustering it. Bounds are given as boxes, the shape the worker stores, and converted to what the
+// page reports.
 export function makeMeasuringBrowserBinding(
-	env: () => Environment,
 	bounds: Record<
 		string,
 		{ minX: number; minY: number; maxX: number; maxY: number; text?: string }
 	> = {}
 ) {
-	return makeBrowserBinding(async (body: any) => {
-		const token = new URL(body.url).searchParams.get('token')
-		const job = token
-			? JSON.parse(new TextDecoder().decode(base64UrlDecode(token.split('.')[0])))
-			: null
-		if (job?.mode === 'measure') {
-			await (env().THUMBNAILS as R2Bucket).put(
-				`render-result/${encodeURIComponent(token!)}.json`,
-				JSON.stringify(bounds)
-			)
-		}
-		return new Response(new Uint8Array([1, 2, 3]), { status: 200 })
-	})
+	const binding = makeBrowserBinding()
+	binding.quickAction.mockImplementation(async (action: string) =>
+		action === 'content'
+			? new Response(measurePageHtml(bounds), { status: 200 })
+			: new Response(new Uint8Array([1, 2, 3]), { status: 200 })
+	)
+	return binding
+}
+
+export function measurePageHtml(
+	bounds: Record<string, { minX: number; minY: number; maxX: number; maxY: number; text?: string }>
+) {
+	const reported = Object.fromEntries(
+		Object.entries(bounds).map(([id, { minX, minY, maxX, maxY, text }]) => [
+			id,
+			{ x: minX, y: minY, w: maxX - minX, h: maxY - minY, ...(text ? { text } : null) },
+		])
+	)
+	return `<html data-thumbnail-ready="true"><head></head><body data-thumbnail-ready="true"><script type="application/json" id="tldraw-measure-result">${JSON.stringify(reported).replace(/</g, '\\u003c')}</script></body></html>`
 }
 
 // In-memory stand-in for the TLDR_DOC namespace, with the file object's MCP cluster index storage.

@@ -177,6 +177,12 @@ export interface ThumbnailShapeMeasurement {
  */
 export interface ThumbnailRenderTimingsRequestBody {
 	token: string
+	/**
+	 * How the page got its records: `push` read them off the injected global, `fetch` asked the
+	 * snapshot route. The worker can only say what it sent; this is what the page actually used.
+	 * Optional because a page from before this field existed sends none.
+	 */
+	acquiredBy?: 'push' | 'fetch'
 	timings: {
 		bootAt: number
 		dataAt: number
@@ -184,12 +190,6 @@ export interface ThumbnailRenderTimingsRequestBody {
 		settledAt: number
 		exportedAt: number
 	}
-}
-
-/** Body of POST /app/thumbnail-render/result — `shapeId -> measurement`, as the editor measured it. */
-export interface ThumbnailRenderResultRequestBody {
-	token: string
-	bounds: Record<string, ThumbnailShapeMeasurement>
 }
 
 export type ThumbnailSnapshotResponseBody =
