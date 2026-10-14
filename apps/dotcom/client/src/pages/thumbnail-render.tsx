@@ -2,6 +2,7 @@ import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_DIMENSION,
 	MIN_THUMBNAIL_DIMENSION,
+	THUMBNAIL_PAGE_WATCHDOG_MS,
 	THUMBNAIL_RENDER_ERROR_MAX_LENGTH,
 	THUMBNAIL_SETTLE_TIMEOUT_MS,
 	ThumbnailRenderErrorRequestBody,
@@ -91,20 +92,12 @@ function sendTimingsBeacon(exportedAt: number) {
 // terminal, but more than one path can mark it.
 let errorReported = false
 function sendErrorBeacon(message: string) {
-	const { token, dataAt, mountAt, settledAt } = pageTimings
+	const { token } = pageTimings
 	if (!token || errorReported) return
 	errorReported = true
-	const phase: ThumbnailRenderPhase =
-		settledAt !== undefined
-			? 'settle'
-			: mountAt !== undefined
-				? 'mount'
-				: dataAt !== undefined
-					? 'data'
-					: 'boot'
 	const body: ThumbnailRenderErrorRequestBody = {
 		token,
-		error: { message: message.slice(0, THUMBNAIL_RENDER_ERROR_MAX_LENGTH), phase },
+		error: { message: message.slice(0, THUMBNAIL_RENDER_ERROR_MAX_LENGTH), phase: lastPhase() },
 	}
 	fetch(THUMBNAIL_RESULT_ENDPOINT, {
 		method: 'POST',
@@ -112,6 +105,34 @@ function sendErrorBeacon(message: string) {
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(body),
 	}).catch(() => {})
+}
+
+function lastPhase(): ThumbnailRenderPhase {
+	const { dataAt, mountAt, settledAt } = pageTimings
+	if (settledAt !== undefined) return 'settle'
+	if (mountAt !== undefined) return 'mount'
+	if (dataAt !== undefined) return 'data'
+	return 'boot'
+}
+
+// See THUMBNAIL_PAGE_WATCHDOG_MS. Without it a stalled page ends as a worker-side timeout that says
+// nothing about where the time went.
+let watchdogStarted = false
+function startWatchdog() {
+	if (watchdogStarted) return
+	watchdogStarted = true
+	setTimeout(
+		() => {
+			if (
+				document.body.dataset.thumbnailReady === 'true' ||
+				document.body.dataset.thumbnailError !== undefined
+			) {
+				return
+			}
+			setThumbnailError(`Render page stalled after ${lastPhase()}`)
+		},
+		Math.max(0, THUMBNAIL_PAGE_WATCHDOG_MS - performance.now())
+	)
 }
 
 export type ThumbnailRenderData =
@@ -136,6 +157,7 @@ export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRen
 	if (!token) {
 		return { ok: false, message: 'Missing render token' }
 	}
+	startWatchdog()
 
 	const result = await fetch(
 		`${THUMBNAIL_SNAPSHOT_ENDPOINT}?token=${encodeURIComponent(token)}`
@@ -509,7 +531,8 @@ function fitExportCamera(
 // (editor.toImage + normalize + paint) is the expensive part on heavy boards, so it must keep the
 // bulk of that window. We intentionally do not put a tighter client-side deadline around the export
 // — the worker's waitForSelector wait is the real deadline, and a shorter client cap would abort
-// exports that would otherwise finish in time. A broken asset only burns the settle budget, then the
+// exports that would otherwise finish in time. The page watchdog is not one: it fires only as the
+// worker is about to abandon the capture, to record where it stalled (THUMBNAIL_PAGE_WATCHDOG_MS). A broken asset only burns the settle budget, then the
 // export runs anyway. Export failures surface as data-thumbnail-error; the worker's screenshot wait
 // never sees the ready selector and times out.
 export function ThumbnailExportSignal({
