@@ -114,17 +114,18 @@ export function CommandPalettePathProvider({
  * Lists the command palette items inside first, above recents, while browsing, e.g. unread
  * notifications. Renders its children unchanged outside the palette.
  *
- * @internal
+ * @public @react
  */
 export function CommandPalettePinned({ children }: { children: ReactNode }) {
 	return <CommandPalettePathProvider pinned>{children}</CommandPalettePathProvider>
 }
 
 /**
- * Keeps the submenu inside as one command palette row you open, even with a single item, and its
- * items out of top-level search, e.g. notifications, whose text shouldn't show until asked for.
+ * Keeps the submenu inside as one command palette row you open, even with a single item, and keeps
+ * its items out of top-level search, e.g. notifications, whose text shouldn't show until asked for.
+ * Renders its children unchanged outside the palette.
  *
- * @internal
+ * @public @react
  */
 export function CommandPaletteCollapsed({ children }: { children: ReactNode }) {
 	return <CommandPalettePathProvider collapseSubmenu>{children}</CommandPalettePathProvider>

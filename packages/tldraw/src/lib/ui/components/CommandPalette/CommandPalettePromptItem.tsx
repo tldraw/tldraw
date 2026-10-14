@@ -1,7 +1,7 @@
 import { useTldrawUiMenuContext } from '../primitives/menus/TldrawUiMenuContext'
 import { CommandPaletteItemRegistration } from './CommandPaletteItemRegistration'
 
-/** @internal */
+/** @public */
 export interface CommandPalettePromptItemProps {
 	id: string
 	label: string
@@ -13,10 +13,10 @@ export interface CommandPalettePromptItemProps {
 }
 
 /**
- * A command palette item that asks for text (e.g. a name) in the palette before running. Renders
- * nothing outside the palette.
+ * A command palette item that asks for text (e.g. a name) in the palette before running, with
+ * rows that say what Enter does and a Cancel row. Renders nothing outside the palette.
  *
- * @internal
+ * @public @react
  */
 export function CommandPalettePromptItem({
 	id,
