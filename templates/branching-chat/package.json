@@ -19,7 +19,10 @@
 		},
 		"deploy": {
 			"target": "cloudflare",
-			"host": "branching-chat.templates.tldraw.dev"
+			"host": "branching-chat.templates.tldraw.dev",
+			"secrets": [
+				"OPENROUTER_API_KEY"
+			]
 		},
 		"scripts": {
 			"lint": null,

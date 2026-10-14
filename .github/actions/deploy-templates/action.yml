@@ -19,6 +19,12 @@ inputs:
   cloudflare-api-token:
     description: Cloudflare API token with workers permissions (CLOUDFLARE_API_TOKEN)
     required: true
+  agent-openrouter-api-key:
+    description: OpenRouter key for the agent demo (TEMPLATES_AGENT_OPENROUTER_API_KEY)
+    required: true
+  branching-chat-openrouter-api-key:
+    description: OpenRouter key for the branching-chat demo (TEMPLATES_BRANCHING_CHAT_OPENROUTER_API_KEY)
+    required: true
 
 runs:
   using: composite
@@ -45,6 +51,8 @@ runs:
         TEMPLATES_TLDRAW_LICENSE_KEY: ${{ inputs.license-key }}
         CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare-api-token }}
         CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare-account-id }}
+        TEMPLATES_AGENT_OPENROUTER_API_KEY: ${{ inputs.agent-openrouter-api-key }}
+        TEMPLATES_BRANCHING_CHAT_OPENROUTER_API_KEY: ${{ inputs.branching-chat-openrouter-api-key }}
       run: |
         cd templates
         all_templates=$(ls -d */ | cut -f1 -d'/')
