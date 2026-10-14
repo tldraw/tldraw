@@ -5,6 +5,11 @@ import { Environment, isDebugLogging } from '../../types'
 import { ThumbnailRenderJob, renderParamsForJob } from '../../utils/renderTokens'
 import { getSharedFileRoomSnapshot } from './getSharedFile'
 import { sliceSnapshotForRender } from './sliceSnapshotForRender'
+import {
+	captureThumbnailScreenshot,
+	measurePageShapes,
+	resolveThumbnailBoard,
+} from './thumbnailRender'
 
 // SPIKE, not for merge. Can a measure's result come back through the `scrape` quick action instead
 // of the render page POSTing it to /app/thumbnail-render/result?
@@ -858,4 +863,66 @@ async function runWarm(
 		})
 	}
 	return Response.json(report)
+}
+
+// GET /api/app/__scrape-spike/pipeline?slug=…&mode=measure|screenshot[&pageId=…][&push=0]
+// Drives the production pipeline itself (measurePageShapes / captureThumbnailScreenshot) for a shared
+// file, so the preview can be tested without an MCP OAuth token. `push=0` leaves the page to fetch.
+export async function scrapeMeasureSpikePipeline(request: IRequest, env: Environment) {
+	if (!isDebugLogging(env)) return new Response('Not Found', { status: 404 })
+	const url = new URL(request.url)
+	const slug = url.searchParams.get('slug')
+	if (!slug) return Response.json({ error: 'slug is required' }, { status: 400 })
+	const resolved = await resolveThumbnailBoard(env, 'shared_file', slug, { access: 'render' })
+	if (!resolved.ok) return Response.json({ error: resolved.reason }, { status: 404 })
+	const snapshot = await getSharedFileRoomSnapshot(env, slug, { access: 'render' })
+	const pageId =
+		url.searchParams.get('pageId') ||
+		(snapshot?.documents.find((d) => (d.state as TLRecord).typeName === 'page')?.state as TLRecord)
+			?.id
+	if (!pageId) return Response.json({ error: 'no page' }, { status: 404 })
+	const pushed = url.searchParams.get('push') === '0' ? undefined : snapshot
+	const startedAt = Date.now()
+	try {
+		if (url.searchParams.get('mode') === 'screenshot') {
+			const { base64 } = await captureThumbnailScreenshot(env, resolved.board, {
+				surface: 'mcp',
+				pageId,
+				theme: 'light',
+				width: 1200,
+				height: 630,
+				telemetry: { source: 'mcp' },
+				snapshot: pushed,
+			})
+			if (url.searchParams.get('format') === 'png') {
+				return new Response(
+					Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)),
+					{
+						headers: { 'content-type': 'image/png' },
+					}
+				)
+			}
+			return Response.json({
+				ok: true,
+				ms: Date.now() - startedAt,
+				pngBytes: (base64.length * 3) / 4,
+			})
+		}
+		const bounds = await measurePageShapes(env, resolved.board, pageId, {
+			surface: 'mcp',
+			snapshot: pushed,
+		})
+		return Response.json({ ok: true, ms: Date.now() - startedAt, pageId, bounds })
+	} catch (error) {
+		return Response.json(
+			{
+				ok: false,
+				ms: Date.now() - startedAt,
+				name: (error as Error)?.name,
+				message: (error as Error)?.message,
+				detail: (error as { detail?: unknown })?.detail,
+			},
+			{ status: 500 }
+		)
+	}
 }

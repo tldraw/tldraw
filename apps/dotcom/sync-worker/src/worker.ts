@@ -64,6 +64,7 @@ import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import {
 	scrapeMeasureSpikeImagesPage,
 	scrapeMeasureSpikePage,
+	scrapeMeasureSpikePipeline,
 	scrapeMeasureSpikePixel,
 	scrapeMeasureSpikeRun,
 	scrapeMeasureSpikeRunImages,
@@ -244,6 +245,7 @@ const router = createRouter<Environment>()
 	.get('/app/__scrape-spike/run-snapshot', scrapeMeasureSpikeRunSnapshot)
 	.get('/app/__scrape-spike/run-real', scrapeMeasureSpikeRunReal)
 	.get('/app/__scrape-spike/sessions', scrapeMeasureSpikeSessions)
+	.get('/app/__scrape-spike/pipeline', scrapeMeasureSpikePipeline)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)
