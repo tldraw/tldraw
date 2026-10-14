@@ -61,6 +61,18 @@ import {
 } from './routes/tla/mcpServerCard'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
+import {
+	scrapeMeasureSpikeImagesPage,
+	scrapeMeasureSpikePage,
+	scrapeMeasureSpikePipeline,
+	scrapeMeasureSpikePixel,
+	scrapeMeasureSpikeRun,
+	scrapeMeasureSpikeRunImages,
+	scrapeMeasureSpikeRunReal,
+	scrapeMeasureSpikeRunSnapshot,
+	scrapeMeasureSpikeSessions,
+	scrapeMeasureSpikeUploads,
+} from './routes/tla/scrapeMeasureSpike'
 import { upload } from './routes/tla/uploads'
 import { verifyVersionChainRoute } from './routes/verifyVersionChain'
 import { testRoutes } from './testRoutes'
@@ -224,6 +236,16 @@ const router = createRouter<Environment>()
 	.all('/app/social-preview/:prefix/:slug/image', getOgImage)
 	.get('/app/thumbnail-render/snapshot', getThumbnailSnapshot)
 	.post('/app/thumbnail-render/result', putThumbnailRenderResult)
+	.get('/app/__scrape-spike/page', scrapeMeasureSpikePage)
+	.get('/app/__scrape-spike/run', scrapeMeasureSpikeRun)
+	.get('/app/__scrape-spike/pixel.png', scrapeMeasureSpikePixel)
+	.get('/app/__scrape-spike/images-page', scrapeMeasureSpikeImagesPage)
+	.get('/app/__scrape-spike/run-images', scrapeMeasureSpikeRunImages)
+	.get('/app/__scrape-spike/uploads', scrapeMeasureSpikeUploads)
+	.get('/app/__scrape-spike/run-snapshot', scrapeMeasureSpikeRunSnapshot)
+	.get('/app/__scrape-spike/run-real', scrapeMeasureSpikeRunReal)
+	.get('/app/__scrape-spike/sessions', scrapeMeasureSpikeSessions)
+	.get('/app/__scrape-spike/pipeline', scrapeMeasureSpikePipeline)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)

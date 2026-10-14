@@ -44,6 +44,55 @@ async function boot() {
 	)
 }
 
+// SPIKE (#11096): a warm page. The worker loads this page once in a kept-alive browser and then
+// calls this per job, so the bundle, fonts and stylesheet are paid for once rather than per render.
+// Each job remounts the editor under a new key and resolves when the page reaches a terminal marker.
+if (window.location.protocol === 'about:') {
+	let jobCount = 0
+	;(window as any).__tldrawRenderJob = (pushed: {
+		records: any[]
+		schema: any
+		renderParams: any
+	}): Promise<{ error: string | null; result: unknown; ms: number }> => {
+		const startedAt = performance.now()
+		for (const el of [document.body, document.documentElement]) {
+			delete el.dataset.thumbnailReady
+			delete el.dataset.thumbnailError
+		}
+		;(window as any).__TLDRAW_WARM__ = true
+		;(window as any).__TLDRAW_RESULT__ = undefined
+		root.render(
+			<ThumbnailRenderBoundary key={++jobCount}>
+				<ThumbnailRenderView
+					data={{
+						ok: true,
+						token: '',
+						records: pushed.records,
+						schema: pushed.schema,
+						renderParams: pushed.renderParams,
+					}}
+				/>
+			</ThumbnailRenderBoundary>
+		)
+		return new Promise((resolve) => {
+			const done = () => {
+				const { thumbnailReady, thumbnailError } = document.body.dataset
+				if (thumbnailReady !== 'true' && thumbnailError === undefined) return false
+				observer.disconnect()
+				resolve({
+					error: thumbnailError ?? null,
+					result: (window as any).__TLDRAW_RESULT__ ?? null,
+					ms: performance.now() - startedAt,
+				})
+				return true
+			}
+			const observer = new MutationObserver(done)
+			observer.observe(document.body, { attributes: true })
+			done()
+		})
+	}
+}
+
 // A rejected acquisition — a 200 whose body fails to parse, an unforeseen throw — reaches the error
 // marker through the same view as any other failure.
 boot().catch((error) => {

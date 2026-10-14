@@ -28,6 +28,7 @@ import {
 	callerBlobsOf,
 	clusterIndexKeysOf,
 	clusterIndexStoreOf,
+	contentResponse,
 	datapointsNamed,
 	failureBlobsOf,
 	makeBrowserBinding,
@@ -127,7 +128,7 @@ function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 		...overrides,
 	})
 	if (!('BROWSER' in overrides)) {
-		;(env as any).BROWSER = makeMeasuringBrowserBinding(() => env)
+		;(env as any).BROWSER = makeMeasuringBrowserBinding()
 	}
 	return env
 }
@@ -238,19 +239,14 @@ async function firstClusterId(env: Environment, userId: string, boardId: string,
 	return JSON.parse(pageResult.content[0].text).clusters[0].id as string
 }
 
-// Measures are exempt from the worker-side capture deadline (abandonAtRenderTimeout): the render
-// page POSTs its result before signalling ready and the result route accepts any unexpired signed
-// token, so a measure abandoned mid-flight would let that POST land after the cleanup that deletes
-// the result key — stranding an object in a bucket with no lifecycle rule. The deadline exists for
-// the OG pipeline's invariants, which never price a measure; a measure stays bounded by the quick
-// action's own per-phase timers.
-describe('measure deadline exemption', () => {
-	it('does not abandon a measure at the render timeout', async () => {
+// Measures get the same worker-side deadline as screenshots now that their result comes back in the
+// response: there is no late POST left for an abandoned measure to strand.
+describe('measure deadline', () => {
+	it('abandons a measure at the render timeout', async () => {
 		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
 		mockPublishedBoard()
 		const env = makeEnv()
-		const measuring = makeMeasuringBrowserBinding(() => env)
-		// The quick action outlives the worker deadline — only its own per-phase timers bound it.
+		const measuring = makeMeasuringBrowserBinding()
 		;(env as any).BROWSER = {
 			quickAction: vi.fn(async (action: string, body: any) => {
 				await new Promise((resolve) => setTimeout(resolve, THUMBNAIL_RENDER_TIMEOUT_MS + 5000))
@@ -265,8 +261,72 @@ describe('measure deadline exemption', () => {
 		await vi.advanceTimersByTimeAsync(THUMBNAIL_RENDER_TIMEOUT_MS + 5001)
 		const result = await call
 
+		expect(result.isError).toBe(true)
+		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['browser_timeout'])
+	})
+})
+
+describe('measure through /content', () => {
+	it('reads the result out of the page and sends no screenshot', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_content')
+
 		expect(result.isError).not.toBe(true)
-		expect(JSON.parse(result.content[0].text).clusters.length).toBeGreaterThan(0)
+		expect(screenshotOf(env).mock.calls.map((call) => call[0])).toEqual(['content'])
+		const body = screenshotOf(env).mock.calls[0][1]
+		expect(body).toMatchObject({ cacheTTL: 0 })
+		expect(body).not.toHaveProperty('selector')
+		expect(body).not.toHaveProperty('screenshotOptions')
+	})
+
+	it('fails with the page’s own error, kept out of the message', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () =>
+				contentResponse(
+					'<html data-thumbnail-error="Snapshot &quot;x&quot; failed"><body data-thumbnail-error="Snapshot &quot;x&quot; failed"></body></html>'
+				)
+			),
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_page_error')
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).not.toContain('Snapshot')
+		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['page_error'])
+	})
+
+	it('fails a content response that carries no page as a browser failure', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () =>
+				Response.json({ success: false, errors: [{ code: 1, message: 'nope' }] })
+			),
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_no_page')
+
+		expect(result.isError).toBe(true)
+		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['browser_failed'])
+	})
+
+	it('drops malformed boxes rather than clustering NaN', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () =>
+				contentResponse(
+					`<html data-thumbnail-ready="true"><body><script type="application/json" id="tldraw-measure-result">${JSON.stringify(
+						{ 'shape:bad': { x: 'nope', y: 0, w: 1, h: 1 } }
+					)}</script></body></html>`
+				)
+			),
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_malformed')
+
+		expect(result.isError).not.toBe(true)
 	})
 })
 
@@ -1092,7 +1152,7 @@ describe('page and cluster info', () => {
 	it('replaces rich text with the plain text the editor reported', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
-		;(env as any).BROWSER = makeMeasuringBrowserBinding(() => env, {
+		;(env as any).BROWSER = makeMeasuringBrowserBinding({
 			'shape:page:a-0': { minX: 0, minY: 0, maxX: 10, maxY: 10, text: 'Checkout total' },
 			'shape:page:a-1': { minX: 5000, minY: 0, maxX: 5010, maxY: 10 },
 		})
@@ -1140,7 +1200,7 @@ describe('cluster index cache', () => {
 	it('keeps the plain text only an editor can report', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
-		;(env as any).BROWSER = makeMeasuringBrowserBinding(() => env, {
+		;(env as any).BROWSER = makeMeasuringBrowserBinding({
 			'shape:page:a-0': { minX: 0, minY: 0, maxX: 10, maxY: 10, text: 'Checkout total' },
 			'shape:page:a-1': { minX: 5000, minY: 0, maxX: 5010, maxY: 10 },
 		})

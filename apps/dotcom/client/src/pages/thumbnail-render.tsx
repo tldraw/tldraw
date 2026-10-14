@@ -2,6 +2,9 @@ import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_DIMENSION,
 	MIN_THUMBNAIL_DIMENSION,
+	THUMBNAIL_MEASURE_RESULT_ID,
+	THUMBNAIL_RENDER_GLOBAL,
+	THUMBNAIL_RENDER_PUSH_PARAM,
 	THUMBNAIL_SETTLE_TIMEOUT_MS,
 	ThumbnailRenderParams,
 	ThumbnailShapeMeasurement,
@@ -50,6 +53,7 @@ const THUMBNAIL_RESULT_ENDPOINT = '/api/app/thumbnail-render/result'
 const pageTimings: {
 	/** Authorises the beacon. Never set on the dev fixture page, which therefore sends none. */
 	token?: string
+	acquiredBy?: 'push' | 'fetch'
 	bootAt?: number
 	dataAt?: number
 	mountAt?: number
@@ -60,7 +64,7 @@ const pageTimings: {
 // which it must, because the screenshot (and the session's teardown) follows the ready marker
 // almost immediately.
 function sendTimingsBeacon(exportedAt: number) {
-	const { token, bootAt, dataAt, mountAt, settledAt } = pageTimings
+	const { token, acquiredBy, bootAt, dataAt, mountAt, settledAt } = pageTimings
 	if (
 		!token ||
 		bootAt === undefined ||
@@ -72,6 +76,7 @@ function sendTimingsBeacon(exportedAt: number) {
 	}
 	const body: ThumbnailRenderTimingsRequestBody = {
 		token,
+		acquiredBy,
 		timings: { bootAt, dataAt, mountAt, settledAt, exportedAt },
 	}
 	// A plain same-origin fetch: forcing it into no-cors mode turned out to stop delivery entirely.
@@ -96,14 +101,83 @@ export type ThumbnailRenderData =
 			message: string
 	  }
 
-/** Fetches the render job the URL's token names: the records to draw and how to draw them. */
+type ThumbnailPushedSnapshot = Extract<ThumbnailSnapshotResponseBody, { error: false }>
+
+declare global {
+	interface Window {
+		[THUMBNAIL_RENDER_GLOBAL]?: ThumbnailPushedSnapshot
+	}
+}
+
+// The injected script runs after navigation, often after this module has looked, so a one-shot
+// setter catches the assignment. No timer: a push that never lands ends as the capture's timeout,
+// and the worker fetches on the board's next attempt (see markPushTimedOut).
+function awaitPushedSnapshot(): Promise<ThumbnailPushedSnapshot> {
+	return new Promise((resolve) => {
+		Object.defineProperty(window, THUMBNAIL_RENDER_GLOBAL, {
+			configurable: true,
+			set: (value: ThumbnailPushedSnapshot) => {
+				Object.defineProperty(window, THUMBNAIL_RENDER_GLOBAL, {
+					configurable: true,
+					writable: true,
+					value,
+				})
+				resolve(value)
+			},
+			get: () => undefined,
+		})
+	})
+}
+
+/** The render job the URL's token names: the records to draw and how to draw them. */
 export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRenderData> {
 	pageTimings.bootAt = performance.now()
+
+	// SPIKE (#11096): a page sent to Browser Run as `html` is about:blank, so it has no token to
+	// fetch with. Its records are pushed in through addScriptTag instead, which lands after this
+	// module may already have run, hence the one-shot setter.
+	if (url.protocol === 'about:') {
+		const pushed = await new Promise<Extract<ThumbnailSnapshotResponseBody, { error: false }>>(
+			(resolve) => {
+				const existing = (window as any).__TLDRAW_RENDER__
+				if (existing) return resolve(existing)
+				Object.defineProperty(window, '__TLDRAW_RENDER__', {
+					configurable: true,
+					set: resolve,
+					get: () => undefined,
+				})
+			}
+		)
+		pageTimings.dataAt = performance.now()
+		;(window as any).__TLDRAW_RENDER_TIMINGS__ = pageTimings
+		return {
+			ok: true,
+			token: '',
+			records: pushed.records,
+			schema: pushed.schema,
+			renderParams: pushed.renderParams,
+		}
+	}
 	const token = url.searchParams.get('token')
 	pageTimings.token = token ?? undefined
 
 	if (!token) {
 		return { ok: false, message: 'Missing render token' }
+	}
+
+	const pushed =
+		window[THUMBNAIL_RENDER_GLOBAL] ??
+		(url.searchParams.get(THUMBNAIL_RENDER_PUSH_PARAM) === '1' ? await awaitPushedSnapshot() : null)
+	if (pushed) {
+		pageTimings.acquiredBy = 'push'
+		pageTimings.dataAt = performance.now()
+		return {
+			ok: true,
+			token,
+			records: pushed.records,
+			schema: pushed.schema,
+			renderParams: pushed.renderParams,
+		}
 	}
 
 	const result = await fetch(
@@ -118,6 +192,7 @@ export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRen
 		return { ok: false, message: data.message }
 	}
 
+	pageTimings.acquiredBy = 'fetch'
 	pageTimings.dataAt = performance.now()
 	return {
 		ok: true,
@@ -132,7 +207,6 @@ export function ThumbnailRenderView({ data }: { data: ThumbnailRenderData }) {
 	if (!data.ok) return <ThumbnailRenderError message={data.message} />
 	return (
 		<ThumbnailRenderPage
-			token={data.token}
 			records={data.records}
 			schema={data.schema}
 			renderParams={data.renderParams}
@@ -141,12 +215,10 @@ export function ThumbnailRenderView({ data }: { data: ThumbnailRenderData }) {
 }
 
 function ThumbnailRenderPage({
-	token,
 	records,
 	schema,
 	renderParams,
 }: {
-	token: string
 	records: TLRecord[]
 	schema: SerializedSchema
 	renderParams: ThumbnailRenderParams
@@ -223,7 +295,7 @@ function ThumbnailRenderPage({
 				}}
 			>
 				{renderParams.mode === 'measure' ? (
-					<ThumbnailMeasureSignal token={token} />
+					<ThumbnailMeasureSignal />
 				) : (
 					<ThumbnailExportSignal
 						theme={theme}
@@ -283,6 +355,9 @@ export function signalThumbnailReady() {
 export function setThumbnailError(message: string) {
 	document.body.dataset.thumbnailError = message
 	document.documentElement.dataset.thumbnailError = message
+	// A measure's `/content` read returns the whole document, and a pushed board's script would
+	// otherwise ride back with every failure.
+	for (const script of document.querySelectorAll('script')) script.remove()
 }
 
 // A data-URL <img> can finish decoding before React attaches the onLoad handler, in which case
@@ -563,10 +638,9 @@ export function ThumbnailExportSignal({
 	return null
 }
 
-// Measure mode. The page exists only to be a real editor: it settles, measures, posts, and marks
-// itself ready. The worker's screenshot of it is discarded — driving a Browser Run session is simply
-// how the measurement gets to happen, and the ready marker is how the worker knows it is done.
-function ThumbnailMeasureSignal({ token }: { token: string }) {
+// Measure mode. The page exists only to be a real editor: it settles, measures, leaves the result in
+// the DOM, and marks itself ready. The worker reads the page's HTML through `/content`.
+function ThumbnailMeasureSignal() {
 	const editor = useEditor()
 
 	useEffect(() => {
@@ -588,12 +662,27 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 				const text = editor.getShapeUtil(shape).getText(shape)
 				bounds[id] = { x: box.x, y: box.y, w: box.w, h: box.h, ...(text ? { text } : null) }
 			}
-			await fetch(THUMBNAIL_RESULT_ENDPOINT, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ token, bounds }),
-			})
+			// SPIKE (#11096): the html-mode spike routes read their own result format.
+			if (window.location.protocol === 'about:') {
+				// A warm page runs job after job, so it keeps its DOM and hands the result over directly.
+				if ((window as any).__TLDRAW_WARM__) {
+					;(window as any).__TLDRAW_RESULT__ = { bounds, timings: { ...pageTimings } }
+					signalThumbnailReady()
+					return
+				}
+				const result = JSON.stringify({ bounds, timings: pageTimings })
+				for (const script of Array.from(document.scripts)) script.remove()
+				document.head.replaceChildren()
+				document.body.replaceChildren()
+				const pre = document.createElement('pre')
+				pre.id = 'thumbnail-result'
+				pre.textContent = result
+				document.body.appendChild(pre)
+				signalThumbnailReady()
+				return
+			}
 			if (cancelled) return
+			publishMeasureResult(bounds)
 			signalThumbnailReady()
 		})().catch((error) => {
 			if (cancelled) return
@@ -602,9 +691,21 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 		return () => {
 			cancelled = true
 		}
-	}, [editor, token])
+	}, [editor])
 
 	return null
+}
+
+// Everything else goes first: `/content` returns the whole document, and a pushed board's script
+// alone can be megabytes the worker would read only to discard.
+function publishMeasureResult(bounds: Record<string, ThumbnailShapeMeasurement>) {
+	const result = document.createElement('script')
+	result.type = 'application/json'
+	result.id = THUMBNAIL_MEASURE_RESULT_ID
+	// Escaped so shape text containing `</script>` cannot end the element early in the serialized HTML.
+	result.textContent = JSON.stringify(bounds).replace(/</g, '\\u003c')
+	document.head.replaceChildren()
+	document.body.replaceChildren(result)
 }
 
 // Exports the exact viewport rectangle through editor.toImage: bounds are the viewport in page
