@@ -4720,7 +4720,6 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     commandPalette?: {
         group?: string;
     } | false;
-    disabledReason?: ((editor: Editor) => TransationKey | undefined) | TransationKey;
     // (undocumented)
     icon?: IconType | React_2.ReactElement;
     // (undocumented)

@@ -100,13 +100,6 @@ export interface TLUiActionItem<
 	/** For checkbox actions: whether the item shows as checked. Must be pure and read only editor state. */
 	isChecked?(editor: Editor): boolean
 	/**
-	 * Why the action can't run while `isEnabled` returns false, shown by the command palette. A
-	 * translation key, or a pure function of editor state for reasons that depend on it. Without
-	 * one, the palette leaves the action out while it's disabled rather than show a row it can't
-	 * explain.
-	 */
-	disabledReason?: TransationKey | ((editor: Editor) => TransationKey | undefined)
-	/**
 	 * Where the command palette lists the action. `false` leaves it out, `{ group }` lists it in the
 	 * `CommandPaletteActionGroup` with that group. Without it, the palette's catch-all group lists it.
 	 */
