@@ -5,7 +5,8 @@ import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { useIntl } from '../../utils/i18n'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 
-export const fileHeaderRenaming = atom('file header renaming', false)
+// The id of the file whose header name is being edited, so a rename can't carry over to another file.
+export const fileHeaderRenaming = atom<string | null>('file header renaming', null)
 
 export function useStartFileRename(fileId: string | undefined, fileName: string) {
 	const app = useApp()
@@ -19,6 +20,6 @@ export function useStartFileRename(fileId: string | undefined, fileName: string)
 		}
 		// The header isn't rendered in focus mode.
 		editor?.updateInstanceState({ isFocusMode: false })
-		fileHeaderRenaming.set(true)
+		fileHeaderRenaming.set(fileId ?? null)
 	}, [app, editor, fileId, fileName, intl])
 }

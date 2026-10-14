@@ -210,15 +210,6 @@ function TlaEditorTopLeftPanelAnonymous() {
 function TlaEditorTopLeftPanelSignedIn() {
 	const editor = useEditor()
 	const intl = useIntl()
-	const isRenaming = useValue('is renaming', () => fileHeaderRenaming.get(), [])
-	const setIsRenaming = useCallback((value: boolean) => fileHeaderRenaming.set(value), [])
-	// A rename left open when the file switches would carry over to the next file.
-	useEffect(
-		() => () => {
-			fileHeaderRenaming.set(false)
-		},
-		[]
-	)
 	const pageMenuLbl = useMsg(messages.pageMenu)
 	const fileSubmenuMsg = useMsg(editorMessages.file)
 
@@ -230,6 +221,19 @@ function TlaEditorTopLeftPanelSignedIn() {
 	const app = useApp()
 	// Undefined on legacy routes (/r, /ro, /v, /s): the file-bound actions have nothing to act on.
 	const fileId = useCurrentFileId()
+	const isRenaming = useValue(
+		'is renaming',
+		() => !!fileId && fileHeaderRenaming.get() === fileId,
+		[fileId]
+	)
+	const stopRenaming = useCallback(() => fileHeaderRenaming.set(null), [])
+	// Otherwise coming back to this file later would reopen a rename left open.
+	useEffect(
+		() => () => {
+			if (fileHeaderRenaming.get() === fileId) fileHeaderRenaming.set(null)
+		},
+		[fileId]
+	)
 	const fileName = useValue(
 		'fileName',
 		// TODO(david): This is a temporary fix for allowing guests to see the file name.
@@ -247,7 +251,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 	const handleFileNameChange = useCallback(
 		(name: string) => {
 			if (!isOwner || !fileId) return
-			setIsRenaming(false)
+			stopRenaming()
 			// only actually update the name if name is a value, otherwise keep the previous name
 			if (name) {
 				// don't allow guests to update the file name
@@ -255,11 +259,11 @@ function TlaEditorTopLeftPanelSignedIn() {
 				editor.updateDocumentSettings({ name })
 			}
 		},
-		[app, editor, fileId, isOwner, setIsRenaming]
+		[app, editor, fileId, isOwner, stopRenaming]
 	)
 
 	const handleRenameAction = useStartFileRename(fileId, fileName)
-	const handleRenameEnd = () => setIsRenaming(false)
+	const handleRenameEnd = stopRenaming
 
 	return (
 		<>
