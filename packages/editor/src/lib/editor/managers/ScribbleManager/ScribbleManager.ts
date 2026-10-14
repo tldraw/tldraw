@@ -444,13 +444,11 @@ export class ScribbleManager {
 			}
 		}
 
-		// Remove completed items in individual fade mode
+		// Keep starting scribbles with no point yet, or addPoint can't find them (#7681).
 		if (session.options.fadeMode === 'individual') {
-			for (let i = session.items.length - 1; i >= 0; i--) {
-				if (session.items[i].scribble.points.length === 0) {
-					session.items.splice(i, 1)
-				}
-			}
+			session.items = session.items.filter(
+				({ scribble }) => scribble.points.length > 0 || scribble.state === 'starting'
+			)
 		}
 	}
 

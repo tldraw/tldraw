@@ -1,9 +1,9 @@
-import { captureException } from '@sentry/react'
 import { FILE_PREFIX, type HistoryResponseBody } from '@tldraw/dotcom-shared'
 import { useEffect, useState } from 'react'
 import { useParams, useRouteError } from 'react-router-dom'
 import { BoardHistoryLog } from '../../components/BoardHistoryLog/BoardHistoryLog'
 import { fetchHistory } from '../../utils/fetchHistory'
+import { captureRouteError } from '../../utils/routeErrors'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
 import { useFetchJson } from '../hooks/useFetchJson'
@@ -13,7 +13,7 @@ import { toggleSidebar } from '../utils/local-session-state'
 export function ErrorBoundary() {
 	const error = useRouteError()
 	useEffect(() => {
-		captureException(error)
+		captureRouteError(error)
 	}, [error])
 	return <Component error={error} />
 }

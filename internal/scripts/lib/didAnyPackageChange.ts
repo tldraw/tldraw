@@ -7,6 +7,7 @@ import tmp from 'tmp'
 import { exec } from './exec'
 import { nicelog } from './nicelog'
 import { PackageDetails, getAllPackageDetails } from './publishing'
+import { getPackageManager } from './workspace'
 
 async function getPackageFirstDiff(
 	pkg: PackageDetails,
@@ -39,7 +40,10 @@ async function getPackageFirstDiff(
 		const publishedManifest = getTarballManifestSync(publishedTarballPath)
 
 		const localTarballPath = `${dirPath}/local-package.tgz`
-		await exec('pnpm', ['pack', '--out', localTarballPath], { pwd: pkg.dir, env: process.env })
+		await exec(getPackageManager(), ['pack', '--out', localTarballPath], {
+			pwd: pkg.dir,
+			env: process.env,
+		})
 
 		const localManifest = getTarballManifestSync(localTarballPath)
 

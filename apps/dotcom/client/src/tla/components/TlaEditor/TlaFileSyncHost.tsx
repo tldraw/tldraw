@@ -122,6 +122,16 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 			},
 			[fileLoad]
 		),
+		// `load` fires right after the snapshot is applied. An effect on `synced-remote` would wait out
+		// the editor's mount work, seconds on big boards.
+		trackAnalyticsEvent: useCallback(
+			(_name: string, data: { name?: string }) => {
+				if (data.name !== 'load') return
+				markFirstLoad('sync-connected')
+				fileLoad.mark('sync-connected')
+			},
+			[fileLoad]
+		),
 	})
 
 	const navigate = useNavigate()
@@ -163,12 +173,10 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 
 	useEffect(() => {
 		if (store.status !== 'synced-remote') return
-		markFirstLoad('sync-connected')
-		fileLoad.mark('sync-connected')
 		// Written only once the room accepted us, so the cache never points at a file this account
 		// cannot open.
 		if (userId && !leaving) setLastVisitedFile(userId, fileSlug)
-	}, [store.status, userId, fileSlug, leaving, fileLoad])
+	}, [store.status, userId, fileSlug, leaving])
 
 	useEffect(() => {
 		// The hit rate of the cached redirect: a miss costs a wasted room boot on top of main's path.

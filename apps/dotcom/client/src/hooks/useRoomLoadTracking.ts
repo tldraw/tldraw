@@ -24,6 +24,14 @@ export function estimateFileSizeBucket(editor: Editor): string {
 	return getFileSizeBucket(estimatedFileSizeMB)
 }
 
+/** What the client had to mount and render, so load times can be bucketed by board size. */
+export function boardSizeFields(editor: Editor) {
+	return {
+		page_shapes: editor.getCurrentPageShapeIds().size,
+		records: editor.store.allRecords().length,
+	}
+}
+
 export function useRoomLoadTracking() {
 	const loadStartTime = useRef(Date.now())
 

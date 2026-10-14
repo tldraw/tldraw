@@ -52,8 +52,11 @@ describe('file loads', () => {
 		vi.spyOn(console, 'groupEnd').mockImplementation(() => {})
 		try {
 			const { loads, deps, show } = setup()
+			let connectId = ''
 			const report = async (load: FileLoad) => {
-				connect(load).echo()
+				const socket = connect(load)
+				connectId = socket.id
+				socket.echo()
 				load.mark('sync-connected')
 				load.mark('editor-rendered')
 				show(load)
@@ -67,6 +70,8 @@ describe('file loads', () => {
 			expect(deps.log).toHaveBeenCalled()
 			expect(group).toHaveBeenCalledTimes(1)
 			expect(group.mock.calls[0][0]).toContain('switch')
+			// Grafana's server rows are keyed by the socket's id, not the load id.
+			expect(group.mock.calls[0][0]).toContain(`connect_id ${connectId}`)
 		} finally {
 			deleteFromSessionStorage('tldraw_debug:logLoads')
 			vi.restoreAllMocks()
@@ -113,6 +118,27 @@ describe('file loads', () => {
 			t_board_visible: 430,
 			file_ms: 400,
 		})
+	})
+
+	it('draws no devtools lanes for the first open, since first_load draws it', () => {
+		const { loads, advance, show, deps } = setup()
+		const first = loads.begin('abc')
+		first.mark('file-started')
+		show(first)
+		expect(deps.measure).not.toHaveBeenCalled()
+		advance(1000)
+		loads.noteNavigation('/f/def')
+		loads.begin('def').mark('file-started')
+		expect(deps.measure).toHaveBeenCalledWith('file-started', 1000, 1000, 'Editor', 'start')
+	})
+
+	it('draws devtools lanes for a boot open that replaced an abandoned first open', () => {
+		const { loads, advance, deps } = setup()
+		loads.begin('abc').mark('file-started')
+		advance(200)
+		loads.begin('def').mark('file-started')
+		expect(deps.measure).toHaveBeenCalledTimes(1)
+		expect(deps.measure).toHaveBeenCalledWith('file-started', 0, 200, 'Editor', 'start')
 	})
 
 	it('falls back to begin time when no navigation was noted for this file', () => {

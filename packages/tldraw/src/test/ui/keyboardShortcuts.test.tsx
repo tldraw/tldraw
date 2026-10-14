@@ -206,6 +206,32 @@ describe('keyboard shortcuts dialog with shortcuts turned off', () => {
 	})
 })
 
+describe('keyboard shortcuts dialog overridden with null', () => {
+	it('does not open a dialog', async () => {
+		let dialogs: ReturnType<typeof useDialogs> | null = null
+		function OpenShortcutsDialog() {
+			const actions = useActions()
+			dialogs = useDialogs()
+			useEffect(() => {
+				actions['open-kbd-shortcuts'].onSelect('kbd')
+			}, [actions])
+			return null
+		}
+
+		const { rendered } = await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<Tldraw onMount={onMount} components={{ KeyboardShortcutsDialog: null }}>
+					<OpenShortcutsDialog />
+				</Tldraw>
+			),
+			{ waitForPatterns: false }
+		)
+
+		expect(dialogs!.dialogs.get()).toEqual([])
+		expect(rendered.queryByTestId('kbd.select')).toBeNull()
+	})
+})
+
 async function setupFocusedEditor() {
 	const { editor } = await renderTldrawComponentWithEditor(
 		(onMount) => <Tldraw onMount={onMount} />,

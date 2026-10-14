@@ -26,7 +26,7 @@ Each package has its own `TestEditor`, and they are not interchangeable: `packag
 
 ```bash
 cd packages/tldraw && pnpm test run
-cd packages/tldraw && pnpm test run --grep "SelectTool"
+cd packages/tldraw && pnpm test run -t "SelectTool"
 cd packages/tldraw && pnpm test          # watch mode
 ```
 

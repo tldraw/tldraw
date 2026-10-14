@@ -1,8 +1,8 @@
-import { captureException } from '@sentry/react'
 import { ROOM_PREFIX, type HistoryResponseBody } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useParams, useRouteError } from 'react-router-dom'
 import { BoardHistoryLog } from '../../components/BoardHistoryLog/BoardHistoryLog'
+import { captureRouteError } from '../../utils/routeErrors'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
 import { useFetchJson } from '../hooks/useFetchJson'
@@ -18,7 +18,7 @@ History here should work in an identical way to its previous implementation.
 export function ErrorBoundary() {
 	const error = useRouteError()
 	useEffect(() => {
-		captureException(error)
+		captureRouteError(error)
 	}, [error])
 	return <Component error={error} />
 }

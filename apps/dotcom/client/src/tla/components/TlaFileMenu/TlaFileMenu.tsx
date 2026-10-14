@@ -148,7 +148,9 @@ export function FileItems({
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
-		copyTextToClipboard(editor?.createDeepLink({ url }).toString() ?? url)
+		// The mounted editor is the open file's, which a sidebar row may not be.
+		const deepLink = source === 'file-header' ? editor?.createDeepLink({ url }).toString() : null
+		copyTextToClipboard(deepLink ?? url)
 		addToast({
 			id: 'copied-link',
 			title: copiedMsg,
