@@ -199,15 +199,13 @@ See the [UI components hidden example](/examples/ui/ui-components-hidden) for a 
 
 Press Cmd+K (Ctrl+K on Windows and Linux) to open the command palette, a searchable list of commands. It's the `CommandPalette` slot, built from the same menu items as the other menus: `DefaultCommandPalette` renders `DefaultCommandPaletteContent` unless you pass children.
 
-Actions show up in the palette on their own. Your custom actions from `overrides.actions` are listed at the end of the default content, with the same label, shortcut and [gating](/sdk-features/actions#enabling-and-checking-actions) as everywhere else. Two optional action fields control how:
+Actions show up in the palette on their own. Your custom actions from `overrides.actions` are listed at the end of the default content, with the same label, shortcut and [gating](/sdk-features/actions#enabling-and-checking-actions) as everywhere else. The optional `commandPalette` field controls where:
 
 ```tsx
 actions['make-red'] = {
 	id: 'make-red',
 	label: 'Make red',
 	isEnabled: (editor) => editor.getSelectedShapeIds().length > 0,
-	// Shown when the palette lists the action while it's disabled.
-	disabledReason: 'command-palette.reason.select-shape',
 	// Lists it in <CommandPaletteActionGroup group="colors" />; false leaves it out.
 	commandPalette: { group: 'colors' },
 	onSelect() {
@@ -216,7 +214,11 @@ actions['make-red'] = {
 }
 ```
 
-The palette lists an enabled action while browsing and searching. A disabled one appears only in search results, greyed out with its `disabledReason`; without a reason it isn't listed, so the palette never shows a row it can't explain. `disabledReason` can also be a function of the editor, for reasons that depend on its state.
+The palette lists an enabled action while browsing and searching. A disabled one appears only in search results, greyed out with a reason that says why; without a reason it isn't listed, so the palette never shows a row it can't explain. Built-in actions come with reasons. For your own, place the item yourself and pass `disabledReason`:
+
+```tsx
+<TldrawUiMenuActionItem actionId="make-red" disabledReason="command-palette.reason.select-shape" />
+```
 
 To place commands, wrap the default:
 
@@ -240,7 +242,7 @@ A command shows once, wherever it's placed first, so placing an action yourself 
 
 For long or async lists, read the query with `useCommandPaletteQuery()` and render only your best matches. `getCommandPaletteMatchScore` matches the same way the palette does.
 
-Items that aren't actions take a `disabledReason` prop for the same purpose.
+Items that aren't actions take the same `disabledReason` prop.
 
 A few components shape how items appear in the palette. Outside it they render their children unchanged, so a group can be shared with other menus.
 

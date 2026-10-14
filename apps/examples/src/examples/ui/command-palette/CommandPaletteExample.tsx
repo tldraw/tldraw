@@ -1,11 +1,11 @@
 import {
-	CommandPaletteActionGroup,
 	DefaultCommandPalette,
 	DefaultColorStyle,
 	DefaultCommandPaletteContent,
 	TLComponents,
 	TLUiOverrides,
 	Tldraw,
+	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	getCommandPaletteMatchScore,
@@ -62,8 +62,6 @@ const overrides: TLUiOverrides = {
 			id: 'make-red',
 			label: 'Make red',
 			isEnabled: (editor) => editor.getSelectedShapeIds().length > 0,
-			disabledReason: 'command-palette.reason.select-shape',
-			commandPalette: { group: 'colors' },
 			onSelect() {
 				editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
 			},
@@ -77,7 +75,12 @@ function CustomCommandPalette() {
 	const { addToast } = useToasts()
 	return (
 		<DefaultCommandPalette>
-			<CommandPaletteActionGroup group="colors" label="Colors" />
+			<TldrawUiMenuGroup id="colors" label="Colors">
+				<TldrawUiMenuActionItem
+					actionId="make-red"
+					disabledReason="command-palette.reason.select-shape"
+				/>
+			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="example" label="Example">
 				<TldrawUiMenuItem
 					id="say-hello"
@@ -125,10 +128,10 @@ A group can filter itself. `useCommandPaletteQuery` returns what the user typed,
 are rendered instead of every shape on the page.
 
 [2]
-Actions are listed in the palette on their own, gated by `isEnabled` like everywhere else. While
-nothing is selected, searching "make red" shows the row greyed out with its `disabledReason`.
-`commandPalette.group` lists it in a `CommandPaletteActionGroup` with that group; without one it
-would land in the catch-all at the end of the default content.
+Actions are listed in the palette on their own, gated by `isEnabled` like everywhere else. Left
+alone, this one would land in the catch-all at the end of the default content; placing it in a
+group below takes it out of there. While nothing is selected, searching "make red" shows the row
+greyed out with the item's `disabledReason`.
 
 [3]
 Wrap `DefaultCommandPalette` and keep `DefaultCommandPaletteContent` to add commands without
