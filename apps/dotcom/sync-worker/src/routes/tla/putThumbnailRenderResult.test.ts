@@ -1,5 +1,6 @@
+import { THUMBNAIL_RENDER_ERROR_MAX_LENGTH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
 import {
 	ThumbnailRenderJob,
@@ -8,6 +9,7 @@ import {
 } from '../../utils/renderTokens'
 import { putThumbnailRenderResult } from './putThumbnailRenderResult'
 import { makeFakeThumbnailsBucket, makeScreenshotTestEnv } from './screenshotTestHelpers'
+import { RenderPageError } from './thumbnailShared'
 
 function makeRequest(body: unknown): IRequest {
 	return { json: async () => body } as unknown as IRequest
@@ -159,5 +161,79 @@ describe('the timing beacon', () => {
 
 		expect(response.status).toBe(200)
 		expect(await response.json()).toEqual({ error: false, stored: 1 })
+	})
+})
+
+describe('the failure beacon', () => {
+	it('records the phase and reports the message to Sentry, not to the dataset', async () => {
+		const env = makeScreenshotTestEnv() as unknown as Environment
+		const token = await mintThumbnailRenderToken(env, { ...JOB, surface: 'og' })
+		const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const response = await putThumbnailRenderResult(
+			makeRequest({ token, error: { message: 'Could not load render job (404)', phase: 'boot' } }),
+			env
+		)
+
+		expect(response.status).toBe(200)
+		const point = (env.MEASURE as any).writeDataPoint.mock.calls[0][0]
+		expect(point.blobs[0]).toBe('render_page_error')
+		expect(point.blobs.slice(2)).toEqual(['surface:og', 'mode:screenshot', 'phase:boot'])
+		// Without a ctx there is no Sentry client, so the report is logged with the same context.
+		const [, context, error] = logged.mock.calls[0]
+		expect(error).toBeInstanceOf(RenderPageError)
+		expect(context).toMatchObject({
+			render_page_error: 'Could not load render job (404)',
+			render_page_phase: 'boot',
+			render_surface: 'og',
+			render_mode: 'screenshot',
+			render_capture: 'export',
+		})
+		logged.mockRestore()
+	})
+
+	it('caps the message it reports', async () => {
+		const env = makeScreenshotTestEnv() as unknown as Environment
+		const token = await mintThumbnailRenderToken(env, JOB)
+		const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		await putThumbnailRenderResult(
+			makeRequest({ token, error: { message: 'x'.repeat(10_000), phase: 'settle' } }),
+			env
+		)
+
+		expect(logged.mock.calls[0][1].render_page_error).toHaveLength(
+			THUMBNAIL_RENDER_ERROR_MAX_LENGTH
+		)
+		logged.mockRestore()
+	})
+
+	it.each([{ message: 'boom', phase: 'export' }, { message: 42, phase: 'boot' }, null])(
+		'refuses the malformed error %j',
+		async (error) => {
+			const env = makeScreenshotTestEnv() as unknown as Environment
+			const token = await mintThumbnailRenderToken(env, JOB)
+
+			const response = await putThumbnailRenderResult(makeRequest({ token, error }), env)
+
+			expect(response.status).toBe(400)
+			expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
+		}
+	)
+
+	it('refuses a token that was not signed by us', async () => {
+		const env = makeScreenshotTestEnv() as unknown as Environment
+		const other = makeScreenshotTestEnv({
+			MCP_SCREENSHOT_TOKEN_SECRET: 'someone-elses-secret',
+		}) as unknown as Environment
+		const forged = await mintThumbnailRenderToken(other, JOB)
+
+		const response = await putThumbnailRenderResult(
+			makeRequest({ token: forged, error: { message: 'boom', phase: 'boot' } }),
+			env
+		)
+
+		expect(response.status).toBe(403)
+		expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
 	})
 })

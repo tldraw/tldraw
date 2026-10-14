@@ -2,8 +2,11 @@ import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_DIMENSION,
 	MIN_THUMBNAIL_DIMENSION,
+	THUMBNAIL_RENDER_ERROR_MAX_LENGTH,
 	THUMBNAIL_SETTLE_TIMEOUT_MS,
+	ThumbnailRenderErrorRequestBody,
 	ThumbnailRenderParams,
+	ThumbnailRenderPhase,
 	ThumbnailShapeMeasurement,
 	ThumbnailRenderTimingsRequestBody,
 	ThumbnailSnapshotResponseBody,
@@ -75,6 +78,34 @@ function sendTimingsBeacon(exportedAt: number) {
 		timings: { bootAt, dataAt, mountAt, settledAt, exportedAt },
 	}
 	// A plain same-origin fetch: forcing it into no-cors mode turned out to stop delivery entirely.
+	fetch(THUMBNAIL_RESULT_ENDPOINT, {
+		method: 'POST',
+		keepalive: true,
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(body),
+	}).catch(() => {})
+}
+
+// The page's own reason for a failure. Without it the worker sees only Browser Run's "capture
+// element missing", which is the same for every way the page can fail. Once per page: an error is
+// terminal, but more than one path can mark it.
+let errorReported = false
+function sendErrorBeacon(message: string) {
+	const { token, dataAt, mountAt, settledAt } = pageTimings
+	if (!token || errorReported) return
+	errorReported = true
+	const phase: ThumbnailRenderPhase =
+		settledAt !== undefined
+			? 'settle'
+			: mountAt !== undefined
+				? 'mount'
+				: dataAt !== undefined
+					? 'data'
+					: 'boot'
+	const body: ThumbnailRenderErrorRequestBody = {
+		token,
+		error: { message: message.slice(0, THUMBNAIL_RENDER_ERROR_MAX_LENGTH), phase },
+	}
 	fetch(THUMBNAIL_RESULT_ENDPOINT, {
 		method: 'POST',
 		keepalive: true,
@@ -283,6 +314,7 @@ export function signalThumbnailReady() {
 export function setThumbnailError(message: string) {
 	document.body.dataset.thumbnailError = message
 	document.documentElement.dataset.thumbnailError = message
+	sendErrorBeacon(message)
 }
 
 // A data-URL <img> can finish decoding before React attaches the onLoad handler, in which case

@@ -186,6 +186,26 @@ export interface ThumbnailRenderTimingsRequestBody {
 	}
 }
 
+/** The last render page phase that completed before a failure, in the order the page runs them. */
+export type ThumbnailRenderPhase = 'boot' | 'data' | 'mount' | 'settle'
+
+/**
+ * The render page's failure beacon, POSTed to the result route when the page marks
+ * `data-thumbnail-error`. Browser Run only tells the worker that the capture element was missing;
+ * this is the page's own reason, and how far it got.
+ */
+// Both ends cap the message: the page so a huge one never leaves the browser, the worker because
+// the beacon is signed but its body is still caller-shaped.
+export const THUMBNAIL_RENDER_ERROR_MAX_LENGTH = 500
+
+export interface ThumbnailRenderErrorRequestBody {
+	token: string
+	error: {
+		message: string
+		phase: ThumbnailRenderPhase
+	}
+}
+
 /** Body of POST /app/thumbnail-render/result — `shapeId -> measurement`, as the editor measured it. */
 export interface ThumbnailRenderResultRequestBody {
 	token: string
