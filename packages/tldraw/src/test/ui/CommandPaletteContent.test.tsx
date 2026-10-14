@@ -7,6 +7,8 @@ import { CommandPaletteActionGroup } from '../../lib/ui/components/CommandPalett
 import { CommandPaletteToolsGroup } from '../../lib/ui/components/CommandPalette/CommandPaletteGroups'
 import { CommandPaletteShell } from '../../lib/ui/components/CommandPalette/CommandPaletteShell'
 import { DefaultCommandPaletteContent } from '../../lib/ui/components/CommandPalette/DefaultCommandPaletteContent'
+import { TldrawUiMenuActionItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuActionItem'
+import { TldrawUiMenuGroup } from '../../lib/ui/components/primitives/menus/TldrawUiMenuGroup'
 import { TLUiActionsContextType, useActions } from '../../lib/ui/context/actions'
 import { getCommandPaletteSuggestions } from '../../lib/ui/context/command-palette-defaults'
 import { TLUiOverrides } from '../../lib/ui/overrides'
@@ -242,8 +244,6 @@ describe('default command palette content', () => {
 					id: 'make-red',
 					label: 'Make red',
 					isEnabled: (editor) => editor.getSelectedShapeIds().length > 0,
-					disabledReason: (editor) =>
-						editor.isIn('select') ? 'command-palette.reason.select-shape' : undefined,
 					onSelect: makeRed,
 				}
 				actions['secret'] = { id: 'secret', label: 'Secret', commandPalette: false, onSelect() {} }
@@ -277,8 +277,21 @@ describe('default command palette content', () => {
 			expect(rendered.queryByTestId('command-palette.item.secret')).toBeNull()
 		})
 
-		it("gates custom actions and explains them with the action's reason", async () => {
-			const { editor, rendered, search, enter } = await renderPalette({ overrides })
+		it('gates custom actions, explained by the reason on their placed item', async () => {
+			const { editor, rendered, search, enter } = await renderPalette({
+				overrides,
+				content: (
+					<>
+						<TldrawUiMenuGroup id="colors" label="Colors">
+							<TldrawUiMenuActionItem
+								actionId="make-red"
+								disabledReason="command-palette.reason.select-shape"
+							/>
+						</TldrawUiMenuGroup>
+						<DefaultCommandPaletteContent />
+					</>
+				),
+			})
 			search('make red')
 			const row = await rendered.findByTestId('command-palette.item.make-red')
 			expect(row.getAttribute('aria-disabled')).toBe('true')
