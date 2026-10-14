@@ -139,10 +139,15 @@ export function makeMeasuringBrowserBinding(
 	const binding = makeBrowserBinding()
 	binding.quickAction.mockImplementation(async (action: string) =>
 		action === 'content'
-			? new Response(measurePageHtml(bounds), { status: 200 })
+			? contentResponse(measurePageHtml(bounds))
 			: new Response(new Uint8Array([1, 2, 3]), { status: 200 })
 	)
 	return binding
+}
+
+// What Browser Run's `/content` answers with: the page's HTML wrapped in its JSON envelope.
+export function contentResponse(html: string) {
+	return Response.json({ success: true, result: html })
 }
 
 export function measurePageHtml(

@@ -28,6 +28,7 @@ import {
 	callerBlobsOf,
 	clusterIndexKeysOf,
 	clusterIndexStoreOf,
+	contentResponse,
 	datapointsNamed,
 	failureBlobsOf,
 	makeBrowserBinding,
@@ -283,12 +284,10 @@ describe('measure through /content', () => {
 	it('fails with the page’s own error, kept out of the message', async () => {
 		mockPublishedBoard()
 		const env = makeEnv({
-			BROWSER: makeBrowserBinding(
-				async () =>
-					new Response(
-						'<html data-thumbnail-error="Snapshot &quot;x&quot; failed"><body data-thumbnail-error="Snapshot &quot;x&quot; failed"></body></html>',
-						{ status: 200 }
-					)
+			BROWSER: makeBrowserBinding(async () =>
+				contentResponse(
+					'<html data-thumbnail-error="Snapshot &quot;x&quot; failed"><body data-thumbnail-error="Snapshot &quot;x&quot; failed"></body></html>'
+				)
 			),
 		})
 
@@ -299,17 +298,29 @@ describe('measure through /content', () => {
 		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['page_error'])
 	})
 
+	it('fails a content response that carries no page as a browser failure', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () =>
+				Response.json({ success: false, errors: [{ code: 1, message: 'nope' }] })
+			),
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_no_page')
+
+		expect(result.isError).toBe(true)
+		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['browser_failed'])
+	})
+
 	it('drops malformed boxes rather than clustering NaN', async () => {
 		mockPublishedBoard()
 		const env = makeEnv({
-			BROWSER: makeBrowserBinding(
-				async () =>
-					new Response(
-						`<html data-thumbnail-ready="true"><body><script type="application/json" id="tldraw-measure-result">${JSON.stringify(
-							{ 'shape:bad': { x: 'nope', y: 0, w: 1, h: 1 } }
-						)}</script></body></html>`,
-						{ status: 200 }
-					)
+			BROWSER: makeBrowserBinding(async () =>
+				contentResponse(
+					`<html data-thumbnail-ready="true"><body><script type="application/json" id="tldraw-measure-result">${JSON.stringify(
+						{ 'shape:bad': { x: 'nope', y: 0, w: 1, h: 1 } }
+					)}</script></body></html>`
+				)
 			),
 		})
 

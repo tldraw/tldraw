@@ -749,7 +749,31 @@ async function callBrowserRun(
 			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
 		})
 	})
-	return { buffer, durationMs: Date.now() - startedAt, browserMsUsed: browserMsUsedOf(response) }
+	return {
+		buffer: action === 'content' ? unwrapContentResult(buffer, response.status, startedAt) : buffer,
+		durationMs: Date.now() - startedAt,
+		browserMsUsed: browserMsUsedOf(response),
+	}
+}
+
+// `/content` answers `{ success, result: "<html>…" }` rather than the HTML itself. Anything else is a
+// session that ran and gave nothing usable, so it fails the way a broken capture body does.
+function unwrapContentResult(buffer: ArrayBuffer, status: number, startedAt: number): ArrayBuffer {
+	let body: { success?: unknown; result?: unknown; errors?: unknown }
+	try {
+		body = JSON.parse(new TextDecoder().decode(buffer))
+	} catch {
+		body = {}
+	}
+	if (body.success !== true || typeof body.result !== 'string') {
+		throw new BrowserRenderError({
+			status,
+			detail: truncate(`Unusable content response: ${JSON.stringify(body.errors ?? body)}`),
+			durationMs: Date.now() - startedAt,
+			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
+		})
+	}
+	return new TextEncoder().encode(body.result).buffer as ArrayBuffer
 }
 
 // The request cannot cap its own total: `gotoOptions.timeout` and `waitForSelector.timeout` are
