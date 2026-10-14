@@ -67,6 +67,8 @@ export class CommandPaletteStore {
 	readonly submenu = atom<CommandPaletteSubmenu | null>('command palette submenu', null)
 	/** The item whose prompt is open, or null. */
 	readonly prompt = atom<CommandPaletteEntry | null>('command palette prompt', null)
+	/** The id of the highlighted item, or null when a submenu row, a prompt or nothing is. */
+	readonly activeItemId = atom<string | null>('command palette active item', null)
 
 	set(token: string, entry: CommandPaletteEntry) {
 		this.registrations.set(token, entry)

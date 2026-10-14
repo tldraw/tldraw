@@ -1,5 +1,14 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { ReactNode, useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+	ReactNode,
+	useCallback,
+	useEffect,
+	useId,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { getCommandPaletteSuggestions } from '../../context/command-palette-defaults'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
@@ -132,6 +141,10 @@ export function CommandPaletteShell({ onClose, children }: CommandPaletteShellPr
 	const clampedIndex = Math.min(activeIndex, selectableRows.length - 1)
 	const activeRow = clampedIndex >= 0 ? selectableRows[clampedIndex] : undefined
 	rClampedIndex.current = Math.max(clampedIndex, 0)
+	const activeItemId = !prompt && activeRow?.type === 'item' ? activeRow.entry.id : null
+	useEffect(() => {
+		store.activeItemId.set(activeItemId)
+	}, [store, activeItemId])
 	const optionId = (index: number) => `${listboxId}-option-${index}`
 
 	const updateScroll = useCallback(() => {

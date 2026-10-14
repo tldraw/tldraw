@@ -3,7 +3,10 @@ import { deleteFromLocalStorage } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
-import { CommandPalettePinned } from '../../lib/ui/components/CommandPalette/CommandPaletteContext'
+import {
+	CommandPalettePinned,
+	useCommandPaletteActiveItemId,
+} from '../../lib/ui/components/CommandPalette/CommandPaletteContext'
 import { commandPaletteFlags } from '../../lib/ui/components/CommandPalette/commandPaletteFlags'
 import { CommandPalettePromptItem } from '../../lib/ui/components/CommandPalette/CommandPalettePromptItem'
 import {
@@ -293,6 +296,27 @@ describe('CommandPaletteShell', () => {
 		await open()
 		fireEvent.click(rendered.getByTestId('command-palette.back'))
 		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+	})
+
+	it('reports the highlighted item, for previews', async () => {
+		const seen: (string | null)[] = []
+		function Probe() {
+			seen.push(useCommandPaletteActiveItemId())
+			return null
+		}
+		const { input } = await renderShell(
+			<>
+				<Probe />
+				{item('alpha', 'Alpha')}
+				{item('beta', 'Beta')}
+			</>
+		)
+		type(input, 'beta')
+		await waitFor(() => expect(seen.at(-1)).toBe('beta'))
+		type(input, 'alpha')
+		await waitFor(() => expect(seen.at(-1)).toBe('alpha'))
+		type(input, 'nothing matches this')
+		await waitFor(() => expect(seen.at(-1)).toBeNull())
 	})
 
 	it('backs out of a submenu to the search it was opened from', async () => {

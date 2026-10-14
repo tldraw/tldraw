@@ -377,6 +377,7 @@ export { CommandPaletteMenuItem } from './lib/ui/components/CommandPalette/Comma
 export {
 	CommandPaletteCollapsed,
 	CommandPalettePinned,
+	useCommandPaletteActiveItemId,
 	useCommandPaletteQuery,
 	type CommandPaletteCollapsedProps,
 	type CommandPalettePinnedProps,

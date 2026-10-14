@@ -1,4 +1,5 @@
 import { CommentsMenuItem, richTextToPlaintext, toggleCommentsSidebar } from '@tldraw/commenting'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	CommandPaletteActionGroup,
@@ -23,6 +24,7 @@ import {
 	TldrawUiMenuSubmenu,
 	commandPaletteFlags,
 	getCommandPaletteMatchScore,
+	useCommandPaletteActiveItemId,
 	useCommandPaletteQuery,
 	useDialogs,
 	useEditor,
@@ -42,6 +44,7 @@ import { defineMessages, useMsg } from '../../utils/i18n'
 import {
 	getIsSidebarOpen,
 	isDesktopSidebarLayout,
+	setColorThemePreview,
 	toggleMobileSidebar,
 	toggleSidebar,
 } from '../../utils/local-session-state'
@@ -469,6 +472,16 @@ function TlaWorkspacesGroup() {
 	)
 }
 
+// Highlighting a color theme previews it, like hovering one in the menu. Closing without choosing
+// unmounts this and drops the preview.
+function ColorThemePreview({ themeIds }: { themeIds: string[] }) {
+	const activeId = useCommandPaletteActiveItemId()
+	const themeId = themeIds.find((id) => activeId === `ui-theme-${id}`) ?? null
+	useEffect(() => setColorThemePreview(themeId), [themeId])
+	useEffect(() => () => setColorThemePreview(null), [])
+	return null
+}
+
 function TlaAccountGroup() {
 	const app = useMaybeApp()
 	const { addDialog } = useDialogs()
@@ -481,6 +494,7 @@ function TlaAccountGroup() {
 		<TldrawUiMenuGroup id="tla-account" label={accountLbl}>
 			{themeChoices.length > 0 && (
 				<TldrawUiMenuSubmenu id="tla-color-theme" label={colorThemeLbl}>
+					<ColorThemePreview themeIds={themeChoices.map((choice) => choice.id)} />
 					{themeChoices.map((choice) => (
 						<TldrawUiMenuCheckboxItem
 							key={choice.id}

@@ -34,6 +34,18 @@ export function useCommandPaletteQuery(): string {
 	return useValue('command palette query', () => store?.query.get() ?? '', [store])
 }
 
+/**
+ * The id of the item highlighted in the command palette, by keyboard or pointer, or null. Lets an
+ * item preview its effect before it's chosen; undo the preview when this changes or the palette
+ * unmounts, since closing without choosing should leave things as they were.
+ *
+ * @public
+ */
+export function useCommandPaletteActiveItemId(): string | null {
+	const store = useContext(StoreContext)
+	return useValue('command palette active item', () => store?.activeItemId.get() ?? null, [store])
+}
+
 interface PathContextValue {
 	path: readonly string[]
 	submenu: CommandPaletteSubmenu | null

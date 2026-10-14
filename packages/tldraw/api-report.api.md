@@ -6555,6 +6555,9 @@ export function useCanUndo(): boolean;
 export function useCollaborationStatus(): "offline" | "online" | null;
 
 // @public
+export function useCommandPaletteActiveItemId(): null | string;
+
+// @public
 export function useCommandPaletteQuery(): string;
 
 // @public (undocumented)
