@@ -405,6 +405,7 @@ export {
 	CommandPaletteViewGroup,
 	type TLUiCommandPaletteActionGroupProps,
 } from './lib/ui/components/CommandPalette/CommandPaletteGroups'
+export { CommandPaletteImageGroup } from './lib/ui/components/CommandPalette/CommandPaletteImageGroup'
 export { CommandPaletteStylesGroup } from './lib/ui/components/CommandPalette/CommandPaletteStylesGroup'
 export { getCommandPaletteMatchScore } from './lib/ui/components/CommandPalette/commandPaletteSearch'
 export { DefaultCommandPaletteContent } from './lib/ui/components/CommandPalette/DefaultCommandPaletteContent'

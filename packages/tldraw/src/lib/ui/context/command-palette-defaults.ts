@@ -116,6 +116,7 @@ const NOT_IN_PALETTE = [
 	'enlarge-shapes',
 	'shrink-shapes',
 	'image-replace',
+	'crop-image',
 	'video-replace',
 	'copy-hovered-styles',
 ]

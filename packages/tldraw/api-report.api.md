@@ -823,6 +823,9 @@ export const commandPaletteFlags: CommandPaletteFlags;
 // @public (undocumented)
 export function CommandPaletteHelpGroup(): JSX.Element;
 
+// @public
+export function CommandPaletteImageGroup(): JSX.Element | null;
+
 // @public (undocumented)
 export function CommandPaletteMenuItem(): JSX.Element | null;
 
@@ -5167,6 +5170,8 @@ export interface TLUiEventMap {
     'copy-link': null;
     // (undocumented)
     'create-new-project': null;
+    // (undocumented)
+    'crop-image': null;
     // (undocumented)
     'delete-page': null;
     // (undocumented)

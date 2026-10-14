@@ -1,5 +1,5 @@
 import { act, fireEvent, waitFor } from '@testing-library/react'
-import { Box, createShapeId, deleteFromLocalStorage } from '@tldraw/editor'
+import { Box, createShapeId, deleteFromLocalStorage, TLImageShape } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
@@ -300,6 +300,37 @@ describe('default command palette content', () => {
 		search('start arrowhead')
 		await rendered.findByTestId('command-palette.input')
 		expect(rendered.queryByTestId('command-palette.item.style-arrowhead-start-dot')).toBeNull()
+	})
+
+	it('offers the image toolbar commands while one image is selected', async () => {
+		const { editor, rendered, input, search, enter } = await renderPalette()
+		search('crop image')
+		await rendered.findByTestId('command-palette.input')
+		expect(rendered.queryByTestId('command-palette.item.crop-image')).toBeNull()
+		const id = createShapeId('image')
+		const image = () => editor.getShape<TLImageShape>(id)!
+		act(() => {
+			editor.createShapes([
+				{ id, type: 'image', x: 0, y: 0, props: { w: 200, h: 100, altText: 'A cat' } },
+			])
+			editor.select(id)
+		})
+
+		search('alternative text')
+		enter()
+		await waitFor(() => expect(input.value).toBe('A cat'))
+		search('A dog')
+		enter()
+		expect(image().props.altText).toBe('A dog')
+		fireEvent.click(rendered.getByTestId('command-palette.item.command-palette-cancel'))
+
+		search('aspect ratio square')
+		fireEvent.click(await rendered.findByTestId('command-palette.item.aspect-ratio-square'))
+		expect(image().props.w).toBeCloseTo(image().props.h)
+
+		search('crop image')
+		enter()
+		expect(editor.isIn('select.crop.idle')).toBe(true)
 	})
 
 	describe('actions', () => {

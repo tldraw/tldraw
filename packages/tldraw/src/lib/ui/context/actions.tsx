@@ -1791,6 +1791,20 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'crop-image',
+				label: 'tool.image-crop',
+				isAvailable: (editor) => {
+					if (!editor.isIn('select')) return false
+					const shape = editor.getOnlySelectedShape()
+					return !!shape && shape.type === 'image' && !shape.isLocked
+				},
+				readonlyOk: false,
+				onSelect(source) {
+					trackEvent('crop-image', { source })
+					editor.setCurrentTool('select.crop.idle')
+				},
+			},
+			{
 				id: 'image-replace',
 				label: 'tool.replace-media',
 				icon: 'arrow-cycle',

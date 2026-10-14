@@ -10,6 +10,7 @@ import {
 	CommandPaletteToolsGroup,
 	CommandPaletteViewGroup,
 } from './CommandPaletteGroups'
+import { CommandPaletteImageGroup } from './CommandPaletteImageGroup'
 import { CommandPaletteStylesGroup } from './CommandPaletteStylesGroup'
 
 /**
@@ -23,6 +24,7 @@ export function DefaultCommandPaletteContent() {
 		<>
 			<CommandPaletteSelectionGroup />
 			<CommandPaletteArrangeGroup />
+			<CommandPaletteImageGroup />
 			<CommandPaletteStylesGroup />
 			<CommandPaletteEditGroup />
 			<CommandPaletteViewGroup />
