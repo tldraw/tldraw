@@ -267,6 +267,13 @@ async function build() {
 							'Access-Control-Allow-Origin': '*',
 						},
 					},
+					// The OAuth consent page is a clickjacking target: framed invisibly, an Allow click
+					// grants a third-party app access to the account. Clerk requires it unframeable.
+					{
+						src: '^/oauth-consent/?$',
+						continue: true,
+						headers: { 'X-Frame-Options': 'DENY' },
+					},
 					{
 						src: '^/\\.well-known/ai-catalog\\.json$',
 						continue: true,

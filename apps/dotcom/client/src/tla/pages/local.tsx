@@ -1,11 +1,12 @@
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth, useClerk } from '@clerk/react'
 import { commentToolOverrides } from '@tldraw/commenting'
 import { useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { assert, getFromSessionStorage, omit, react } from 'tldraw'
+import { assert, getFromSessionStorage, omit, react, useDialogs } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
+import { TlaSignInDialog } from '../components/dialogs/TlaSignInDialog'
 import { TlaAnonDotDevLink } from '../components/TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { useAnonCommentToolOverrides } from '../components/TlaEditor/CommentsOnCanvas'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
@@ -17,7 +18,7 @@ import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { startCachedFileVisit } from '../utils/cachedFileVisit'
 import { importFromUrl } from '../utils/importFromUrl'
 import { getLastVisitedFileId } from '../utils/local-session-state'
-import { clearRedirectOnSignIn } from '../utils/redirect'
+import { clearRedirectOnSignIn, OPEN_SIGN_IN } from '../utils/redirect'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
 
@@ -119,6 +120,7 @@ export function Component() {
 }
 
 function LocalTldraw() {
+	useOpenSignInFromLocationState()
 	// No comments exist on the scratch board — the button is only a sign-in prompt, so the tool
 	// itself stays unregistered and the anon override repoints its item at the sign-in dialog.
 	const anonCommentToolOverrides = useAnonCommentToolOverrides()
@@ -153,4 +155,22 @@ function LocalTldraw() {
 			</LocalEditor>
 		</TlaAnonLayout>
 	)
+}
+
+function useOpenSignInFromLocationState() {
+	const dialogs = useDialogs()
+	const clerk = useClerk()
+	const location = useLocation()
+	const navigate = useNavigate()
+	useEffect(() => {
+		if (!location.state?.[OPEN_SIGN_IN]) return
+		navigate('.', { replace: true, state: omit(location.state, [OPEN_SIGN_IN]) })
+		dialogs.addDialog({
+			component: TlaSignInDialog,
+			// Dismissed without signing in: a redirect left behind would hijack a later sign-in.
+			onClose: () => {
+				if (!clerk.isSignedIn) clearRedirectOnSignIn()
+			},
+		})
+	}, [clerk, dialogs, location, navigate])
 }

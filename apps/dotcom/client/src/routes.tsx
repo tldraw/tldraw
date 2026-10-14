@@ -148,6 +148,8 @@ export function createAppRouter({
 					<Route path="/admin/:section" lazy={() => import('./pages/admin')} />
 				</Route>
 			</Route>
+			<Route path={ROUTES.tlaSsoCallback} lazy={() => import('./tla/pages/sso-callback')} />
+			<Route path={ROUTES.tlaOAuthConsent} lazy={() => import('./tla/pages/oauth-consent')} />
 			<Route path="/__debug-tail" lazy={() => import('./tla/pages/worker-debug-tail')} />
 			<Route path="*" lazy={() => import('./pages/not-found')} />
 		</Route>

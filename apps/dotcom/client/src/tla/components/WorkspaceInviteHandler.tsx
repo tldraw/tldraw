@@ -1,4 +1,4 @@
-import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
+import { useAuth, useUser as useClerkUser } from '@clerk/react'
 import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'

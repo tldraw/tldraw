@@ -1,4 +1,4 @@
-import { useClerk } from '@clerk/clerk-react'
+import { useClerk } from '@clerk/react'
 
 export default function LoginRedirectPage() {
 	const clerk = useClerk()

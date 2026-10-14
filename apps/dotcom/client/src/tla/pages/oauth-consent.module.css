@@ -1,0 +1,18 @@
+.page {
+	min-height: 100dvh;
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+	background: var(--tla-color-sidebar, #f5f5f5);
+}
+
+/* Nested to outrank TlaLogo's own size, whose stylesheet may load later. The tl colour
+   variables aren't in scope on this route; the fallback matches OAuthConsent's colorPrimary. */
+.page .logo {
+	width: 108px;
+	height: 36px;
+	background-color: var(--tl-color-text-0, #1d1d1d);
+}
