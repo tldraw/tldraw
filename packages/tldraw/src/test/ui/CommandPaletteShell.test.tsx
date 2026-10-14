@@ -286,12 +286,60 @@ describe('CommandPaletteShell', () => {
 		press(input, 'Backspace')
 		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
 		await open()
+		expect(within(rendered.getByTestId('command-palette.back')).getByText('Esc')).toBeTruthy()
 		press(input, 'Escape')
 		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
 		expect(onClose).not.toHaveBeenCalled()
 		await open()
 		fireEvent.click(rendered.getByTestId('command-palette.back'))
 		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+	})
+
+	it('backs out of a submenu to the search it was opened from', async () => {
+		const { rendered, input } = await renderShell(
+			<>
+				{item('menu', 'Many things')}
+				<TldrawUiMenuSubmenu id="many" label="Many">
+					{['a', 'b'].map((id) => item(id, `Option ${id}`))}
+				</TldrawUiMenuSubmenu>
+			</>
+		)
+		const selected = () =>
+			rendered.getAllByRole('option').find((el) => el.getAttribute('aria-selected') === 'true')
+				?.dataset.testid
+		type(input, 'many')
+		await waitFor(() => expect(selected()).toBe('command-palette.item.menu'))
+		press(input, 'ArrowDown')
+		expect(selected()).toBe('command-palette.submenu.Many')
+		press(input, 'Enter')
+		expect(input.value).toBe('')
+		press(input, 'Escape')
+		expect(input.value).toBe('many')
+		expect(selected()).toBe('command-palette.submenu.Many')
+	})
+
+	it('opens a submenu with ArrowRight at the end of the input and leaves with ArrowLeft at its start', async () => {
+		const { rendered, input } = await renderShell(
+			<TldrawUiMenuSubmenu id="many" label="Many">
+				{['a', 'b'].map((id) => item(id, `Option ${id}`))}
+			</TldrawUiMenuSubmenu>
+		)
+		type(input, 'many')
+		await rendered.findByTestId('command-palette.submenu.Many')
+		input.setSelectionRange(2, 2)
+		press(input, 'ArrowRight')
+		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+		input.setSelectionRange(4, 4)
+		press(input, 'ArrowRight')
+		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
+		type(input, 'b')
+		input.setSelectionRange(1, 1)
+		press(input, 'ArrowLeft')
+		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
+		input.setSelectionRange(0, 0)
+		press(input, 'ArrowLeft')
+		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+		expect(input.value).toBe('many')
 	})
 
 	it('asks for text before running a prompt item, falling back to an empty value', async () => {
@@ -343,7 +391,9 @@ describe('CommandPaletteShell', () => {
 		)
 		fireEvent.click(await rendered.findByTestId('command-palette.item.new'))
 		type(input, 'Plans')
-		fireEvent.click(rendered.getByTestId('command-palette.item.command-palette-cancel'))
+		const cancel = rendered.getByTestId('command-palette.item.command-palette-cancel')
+		expect(within(cancel).getByText('Esc')).toBeTruthy()
+		fireEvent.click(cancel)
 		expect(onSubmit).not.toHaveBeenCalled()
 		expect(input.value).toBe('')
 		expect(input.placeholder).not.toBe('File name')

@@ -49,6 +49,7 @@ export function CommandPaletteShell({ onClose, children }: CommandPaletteShellPr
 	const checkmarksOnRight = useValue(commandPaletteFlags.checkmarksOnRight)
 	const showGroupHeadings = useValue(commandPaletteFlags.showGroupHeadings)
 	const [activeIndex, setActiveIndex] = useState(0)
+	const rClampedIndex = useRef(0)
 	const rPalette = useRef<HTMLDivElement>(null)
 	const rInput = useRef<HTMLInputElement>(null)
 	const rList = useRef<HTMLDivElement>(null)
@@ -74,7 +75,7 @@ export function CommandPaletteShell({ onClose, children }: CommandPaletteShellPr
 				{
 					type: 'item',
 					key: 'prompt:cancel',
-					entry: { ...prompt, id: 'command-palette-cancel', prompt: undefined, kbd: undefined },
+					entry: { ...prompt, id: 'command-palette-cancel', prompt: undefined, kbd: '[[Esc]]' },
 					label: msg('command-palette.cancel'),
 					icon: 'arrow-right',
 					recent: false,
@@ -130,6 +131,7 @@ export function CommandPaletteShell({ onClose, children }: CommandPaletteShellPr
 	)
 	const clampedIndex = Math.min(activeIndex, selectableRows.length - 1)
 	const activeRow = clampedIndex >= 0 ? selectableRows[clampedIndex] : undefined
+	rClampedIndex.current = Math.max(clampedIndex, 0)
 	const optionId = (index: number) => `${listboxId}-option-${index}`
 
 	const updateScroll = useCallback(() => {
@@ -201,23 +203,32 @@ export function CommandPaletteShell({ onClose, children }: CommandPaletteShellPr
 		}
 	}, [editor])
 
+	// Each level opened on top of another remembers that level's search, so backing out returns to
+	// the same results instead of an empty palette.
+	const rBackTo = useRef<{ query: string; activeIndex: number }[]>([])
+	const pushLevel = useCallback(() => {
+		rBackTo.current.push({ query: store.query.get(), activeIndex: rClampedIndex.current })
+	}, [store])
+
 	const openSubmenu = useCallback(
-		(next: CommandPaletteSubmenu | null) => {
+		(next: CommandPaletteSubmenu) => {
+			pushLevel()
 			store.submenu.set(next)
 			setQuery('')
 		},
-		[store, setQuery]
+		[store, setQuery, pushLevel]
 	)
 
 	const rSelectInput = useRef(false)
 	const openPrompt = useCallback(
-		(entry: CommandPaletteEntry | null) => {
+		(entry: CommandPaletteEntry) => {
+			pushLevel()
 			store.prompt.set(entry)
-			const initialValue = entry?.prompt?.initialValue ?? ''
+			const initialValue = entry.prompt?.initialValue ?? ''
 			setQuery(initialValue)
 			rSelectInput.current = !!initialValue
 		},
-		[store, setQuery]
+		[store, setQuery, pushLevel]
 	)
 	// Select a prefilled value once it's in the input, so typing replaces it.
 	useLayoutEffect(() => {
@@ -228,9 +239,12 @@ export function CommandPaletteShell({ onClose, children }: CommandPaletteShellPr
 
 	// A prompt opened from inside a submenu backs out to that submenu.
 	const back = useCallback(() => {
-		if (prompt) openPrompt(null)
-		else openSubmenu(null)
-	}, [prompt, openPrompt, openSubmenu])
+		if (prompt) store.prompt.set(null)
+		else store.submenu.set(null)
+		const previous = rBackTo.current.pop()
+		setQuery(previous?.query ?? '')
+		setActiveIndex(previous?.activeIndex ?? 0)
+	}, [prompt, store, setQuery])
 
 	const dismiss = useCallback(() => {
 		onClose()
@@ -308,6 +322,25 @@ export function CommandPaletteShell({ onClose, children }: CommandPaletteShellPr
 				if (prompt || submenu) back()
 				else dismiss()
 				return
+			// Like a menu, but only at the input's edges, so the caret still moves through the query.
+			case 'ArrowRight': {
+				const input = e.currentTarget
+				const atEnd = input.selectionStart === query.length && input.selectionEnd === query.length
+				if (!prompt && activeRow?.type === 'submenu' && atEnd) {
+					e.preventDefault()
+					runRow(activeRow)
+				}
+				return
+			}
+			case 'ArrowLeft': {
+				const input = e.currentTarget
+				const atStart = input.selectionStart === 0 && input.selectionEnd === 0
+				if (!prompt && submenu && atStart) {
+					e.preventDefault()
+					back()
+				}
+				return
+			}
 			case 'Backspace':
 				if ((prompt || submenu) && !query) {
 					e.preventDefault()
@@ -378,6 +411,10 @@ export function CommandPaletteShell({ onClose, children }: CommandPaletteShellPr
 								small
 							/>
 							{submenu.label}
+							{/* Says how to leave, since the submenu has no Cancel row. */}
+							<span className="tlui-command-palette__back-kbd">
+								<TldrawUiKbd>[[Esc]]</TldrawUiKbd>
+							</span>
 						</div>
 					)}
 					<div

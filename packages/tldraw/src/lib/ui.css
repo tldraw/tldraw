@@ -2472,6 +2472,10 @@ tldraw? probably.
 	cursor: pointer;
 }
 
+.tlui-command-palette__back-kbd {
+	margin-inline-start: auto;
+}
+
 @media (hover: hover) {
 	.tlui-command-palette__back:hover {
 		color: var(--tl-color-text-1);
