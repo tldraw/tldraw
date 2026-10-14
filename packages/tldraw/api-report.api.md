@@ -797,10 +797,10 @@ export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: Box
 export function ConversionsMenuGroup(): JSX.Element | null;
 
 // @public (undocumented)
-export function ConvertToBookmarkMenuItem(): JSX.Element | null;
+export function ConvertToBookmarkMenuItem(): JSX.Element;
 
 // @public (undocumented)
-export function ConvertToEmbedMenuItem(): JSX.Element | null;
+export function ConvertToEmbedMenuItem(): JSX.Element;
 
 // @public
 export function copyAs(editor: Editor, ids: TLShapeId[], opts: CopyAsOptions): Promise<void>;
@@ -852,7 +852,7 @@ export interface CubicBezierToPathBuilderCommand extends PathBuilderCommandBase 
 }
 
 // @public (undocumented)
-export function CursorChatItem(): JSX.Element | null;
+export function CursorChatItem(): JSX.Element;
 
 // @public (undocumented)
 export interface CustomDebugFlags {
@@ -1640,10 +1640,10 @@ export interface DrawShapeUtilDisplayValues {
 export function DrawToolbarItem(): JSX.Element;
 
 // @public (undocumented)
-export function DuplicateMenuItem(): JSX.Element | null;
+export function DuplicateMenuItem(): JSX.Element;
 
 // @public (undocumented)
-export function EditLinkMenuItem(): JSX.Element | null;
+export function EditLinkMenuItem(): JSX.Element;
 
 // @public (undocumented)
 export function EditMenuSubmenu(): JSX.Element | null;
@@ -1988,7 +1988,7 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
 }): void;
 
 // @public (undocumented)
-export function FitFrameToContentMenuItem(): JSX.Element | null;
+export function FitFrameToContentMenuItem(): JSX.Element;
 
 // @public (undocumented)
 export interface FrameShapeOptions extends ShapeOptionsWithDisplayValues<TLFrameShape, FrameShapeUtilDisplayValues> {
@@ -2440,7 +2440,7 @@ export interface GoogleMapsEmbedConfig {
 }
 
 // @public (undocumented)
-export function GroupMenuItem(): JSX.Element | null;
+export function GroupMenuItem(): JSX.Element;
 
 // @public (undocumented)
 export function GroupOrUngroupMenuItem(): JSX.Element;
@@ -3296,7 +3296,7 @@ export function registerDefaultSideEffects(editor: Editor): () => void;
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
 
 // @public (undocumented)
-export function RemoveFrameMenuItem(): JSX.Element | null;
+export function RemoveFrameMenuItem(): JSX.Element;
 
 // @public
 export function renderHtmlFromRichText(editor: Editor, richText: TLRichText_2): string;
@@ -4319,10 +4319,10 @@ export const TldrawUiInput: React_2.ForwardRefExoticComponent<TLUiInputProps & R
 export function TldrawUiKbd({ children, visibleOnMobileLayout }: TLUiKbdProps): JSX.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuActionCheckboxItem({ actionId, ...rest }: TLUiMenuActionCheckboxItemProps): JSX.Element | null;
+export function TldrawUiMenuActionCheckboxItem({ actionId, whenDisabled, disabled, checked, ...rest }: TLUiMenuActionCheckboxItemProps): JSX.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuActionItem({ actionId, ...rest }: TLUiMenuActionItemProps): JSX.Element | null;
+export function TldrawUiMenuActionItem({ actionId, whenDisabled, disabled, ...rest }: TLUiMenuActionItemProps): JSX.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, lang, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX.Element | null;
@@ -4635,6 +4635,9 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     icon?: IconType | React_2.ReactElement;
     // (undocumented)
     id: string;
+    isAvailable?(editor: Editor): boolean;
+    isChecked?(editor: Editor): boolean;
+    isEnabled?(editor: Editor): boolean;
     // (undocumented)
     isRequiredA11yAction?: boolean;
     // (undocumented)
@@ -5400,11 +5403,13 @@ export interface TLUiMainMenuProps {
 
 // @public (undocumented)
 export type TLUiMenuActionCheckboxItemProps = {
+    whenDisabled?: 'disable' | 'hide';
     actionId?: string;
 } & Pick<TLUiMenuCheckboxItemProps, 'checked' | 'disabled' | 'toggle'>;
 
 // @public (undocumented)
 export type TLUiMenuActionItemProps = {
+    whenDisabled?: 'disable' | 'hide';
     actionId?: string;
 } & Partial<Pick<TLUiMenuItemProps, 'disabled' | 'isSelected' | 'noClose' | 'onSelect'>>;
 
@@ -6323,7 +6328,7 @@ export interface TLZoomBrushOverlay extends TLOverlay {
 }
 
 // @public (undocumented)
-export function ToggleAutoSizeMenuItem(): JSX.Element | null;
+export function ToggleAutoSizeMenuItem(): JSX.Element;
 
 // @public (undocumented)
 export function ToggleDebugModeItem(): JSX.Element;
@@ -6350,7 +6355,7 @@ export function ToggleInvertZoomItem(): JSX.Element;
 export function ToggleKeyboardShortcutsItem(): JSX.Element;
 
 // @public (undocumented)
-export function ToggleLockMenuItem(): JSX.Element | null;
+export function ToggleLockMenuItem(): JSX.Element;
 
 // @public (undocumented)
 export function TogglePasteAtCursorItem(): JSX.Element;
@@ -6401,7 +6406,7 @@ export function truncateStringWithEllipsis(str: string, maxLength: number): stri
 export function UndoRedoGroup(): JSX.Element;
 
 // @public (undocumented)
-export function UngroupMenuItem(): JSX.Element | null;
+export function UngroupMenuItem(): JSX.Element;
 
 // @public
 export const unknownEmbedShapePermissionOverrides: TLEmbedShapePermissions;
@@ -6597,6 +6602,9 @@ export function useSelectedShapesAnnouncer(): void;
 
 // @public (undocumented)
 export function useShowCollaborationUi(): boolean;
+
+// @public
+export function useSomeActionsEnabled(actionIds: readonly string[]): boolean;
 
 // @public (undocumented)
 export function useStylePanelContext(): StylePanelContext;

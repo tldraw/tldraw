@@ -540,7 +540,6 @@ export class TLFileDurableObject extends DurableObject {
 	readonly supabaseTable: string
 	readonly r2: {
 		readonly rooms: R2Bucket
-		readonly versionCache: R2Bucket
 		readonly versionChain: R2Bucket
 	}
 
@@ -590,7 +589,6 @@ export class TLFileDurableObject extends DurableObject {
 		this.supabaseTable = env.TLDRAW_ENV === 'production' ? 'drawings' : 'drawings_staging'
 		this.r2 = {
 			rooms: env.ROOMS,
-			versionCache: env.ROOMS_HISTORY_EPHEMERAL,
 			versionChain: env.ROOMS_HISTORY,
 		}
 
@@ -851,60 +849,45 @@ export class TLFileDurableObject extends DurableObject {
 			if (!timestamp) {
 				return new Response('Missing timestamp', { status: 400 })
 			}
-			// Reconstructs from the chain, falling back to the legacy full copy both when the chain
-			// has nothing for this version and when it is broken — an admin who can preview a version
-			// must be able to restore it while the full copies exist.
-			// Whole objects (keyframes, legacy copies) are read as text once — the same cost as the
-			// handler this replaces — and only a delta replay materializes a snapshot, which is then
-			// reused below rather than re-parsed. Parsing, re-serializing and parsing again a large
-			// board is what pushes a 128MB isolate over.
+			// Keyframes are read as text once — the same cost as the handler this replaces — and
+			// only a delta replay materializes a snapshot, which is then reused below rather than
+			// re-parsed. Parsing, re-serializing and parsing again a large board is what pushes a
+			// 128MB isolate over.
 			let dataText: string
 			let restored: RoomSnapshot | undefined
-			try {
-				// Each read is its own queued operation rather than the whole restore holding one
-				// slot — a slot is sized for an asset copy's two connections, and reconstruction
-				// fans out to the keyframe plus every segment (see _verifyRetiredChain). Every read
-				// is one idempotent get or list, so each retries transient errors on its own.
-				const schedule: R2ReadScheduler = (read) =>
-					retry(() => this.addR2Operation('version_chain_read', read), VERSION_CHAIN_R2_RETRY)
-				const buckets = {
+			// Each read is its own queued operation rather than the whole restore holding one
+			// slot — a slot is sized for an asset copy's two connections, and reconstruction
+			// fans out to the keyframe plus every segment (see _verifyRetiredChain). Every read
+			// is one idempotent get or list, so each retries transient errors on its own.
+			const schedule: R2ReadScheduler = (read) =>
+				retry(() => this.addR2Operation('version_chain_read', read), VERSION_CHAIN_R2_RETRY)
+			const { entries: index } = await loadChainIndexForVersion(
+				this.r2.versionChain,
+				roomKey,
+				timestamp,
+				schedule
+			)
+			const whole = await openWholeVersionStream({
+				chainBucket: this.r2.versionChain,
+				timestamp,
+				index,
+				schedule,
+			})
+			if (whole) {
+				dataText = await new Response(whole).text()
+			} else {
+				const reconstruction = await reconstructVersion({
 					chainBucket: this.r2.versionChain,
-					legacyBucket: this.r2.versionCache,
-				}
-				const { entries: index } = await loadChainIndexForVersion(
-					this.r2.versionChain,
-					roomKey,
-					timestamp,
-					schedule
-				)
-				const whole = await openWholeVersionStream({
-					...buckets,
 					roomKey,
 					timestamp,
 					index,
 					schedule,
 				})
-				if (whole) {
-					dataText = await new Response(whole).text()
-				} else {
-					const reconstruction = await reconstructVersion({
-						...buckets,
-						roomKey,
-						timestamp,
-						index,
-						schedule,
-					})
-					if (!reconstruction) {
-						return new Response('Version not found', { status: 400 })
-					}
-					restored = reconstruction.snapshot
-					dataText = JSON.stringify(restored)
+				if (!reconstruction) {
+					return new Response('Version not found', { status: 400 })
 				}
-			} catch (error) {
-				const legacy = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
-				if (!legacy) throw error
-				this.reportError(error)
-				dataText = await legacy.text()
+				restored = reconstruction.snapshot
+				dataText = JSON.stringify(restored)
 			}
 
 			// The put deliberately carries no version metadata, so null ("looked up, no usable
@@ -2397,22 +2380,19 @@ export class TLFileDurableObject extends DurableObject {
 			// the keyframe plus every segment — five beside a copy is over the six.
 			const reconstruction = await reconstructVersion({
 				chainBucket: this.r2.versionChain,
-				legacyBucket: this.r2.versionCache,
 				roomKey: getR2KeyForRoom(this.documentInfo),
 				timestamp: lastDeltaTimestamp,
 				schedule: (read) => this.addR2Operation('version_chain_verify', read),
 			})
-			// A legacy full copy is not the chain reading back; only a chain answer counts. Compared on
-			// the head hash, not the envelope hash: `expected` may be the wake seed, whose documentClock a
-			// comment write moved past the clock the chain head was written at — a chain-age keyframe on
-			// an idle commented board is exactly that case, and it would fail here on a correct chain.
+			// Compared on the head hash, not the envelope hash: `expected` may be the wake seed, whose
+			// documentClock a comment write moved past the clock the chain head was written at — a
+			// chain-age keyframe on an idle commented board is exactly that case, and it would fail
+			// here on a correct chain.
 			const reason = !reconstruction
 				? 'missing'
-				: reconstruction.source !== 'chain'
-					? 'legacy-fallback'
-					: chainHeadHash(reconstruction.snapshot) !== chainHeadHash(expected)
-						? 'head-mismatch'
-						: null
+				: chainHeadHash(reconstruction.snapshot) !== chainHeadHash(expected)
+					? 'head-mismatch'
+					: null
 			this.logEvent(
 				reason === null
 					? { type: 'version_chain_verify', outcome: 'ok' }
@@ -2431,7 +2411,7 @@ export class TLFileDurableObject extends DurableObject {
 		customMetadata: Record<string, string>
 	): Promise<number | null> {
 		// Funnel through the shared connection budget so the upload can't contend with a concurrent
-		// asset-association pass (or the version-cache upload) and exhaust Cloudflare's connections.
+		// asset-association pass (or a version chain write) and exhaust Cloudflare's connections.
 		const result = await this.addR2Operation('snapshot_upload', async () => {
 			try {
 				// Try multipart upload first, retrying transient connection drops before falling back.
