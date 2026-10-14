@@ -110,13 +110,23 @@ export function CommandPalettePathProvider({
 	return <PathContext.Provider value={value}>{children}</PathContext.Provider>
 }
 
+/** @public */
+export interface CommandPalettePinnedProps {
+	children: ReactNode
+}
+
+/** @public */
+export interface CommandPaletteCollapsedProps {
+	children: ReactNode
+}
+
 /**
  * Lists the command palette items inside first, above recents, while browsing, e.g. unread
  * notifications. Renders its children unchanged outside the palette.
  *
  * @public @react
  */
-export function CommandPalettePinned({ children }: { children: ReactNode }) {
+export function CommandPalettePinned({ children }: CommandPalettePinnedProps) {
 	return <CommandPalettePathProvider pinned>{children}</CommandPalettePathProvider>
 }
 
@@ -127,6 +137,6 @@ export function CommandPalettePinned({ children }: { children: ReactNode }) {
  *
  * @public @react
  */
-export function CommandPaletteCollapsed({ children }: { children: ReactNode }) {
+export function CommandPaletteCollapsed({ children }: CommandPaletteCollapsedProps) {
 	return <CommandPalettePathProvider collapseSubmenu>{children}</CommandPalettePathProvider>
 }

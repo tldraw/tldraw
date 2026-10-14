@@ -378,6 +378,8 @@ export {
 	CommandPaletteCollapsed,
 	CommandPalettePinned,
 	useCommandPaletteQuery,
+	type CommandPaletteCollapsedProps,
+	type CommandPalettePinnedProps,
 } from './lib/ui/components/CommandPalette/CommandPaletteContext'
 export {
 	commandPaletteFlags,
