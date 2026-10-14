@@ -10,6 +10,7 @@ import {
 	CommandPaletteToolsGroup,
 	CommandPaletteViewGroup,
 } from './CommandPaletteGroups'
+import { CommandPaletteStylesGroup } from './CommandPaletteStylesGroup'
 
 /**
  * The default command palette groups, then a catch-all for actions none of them list, such as an
@@ -22,6 +23,7 @@ export function DefaultCommandPaletteContent() {
 		<>
 			<CommandPaletteSelectionGroup />
 			<CommandPaletteArrangeGroup />
+			<CommandPaletteStylesGroup />
 			<CommandPaletteEditGroup />
 			<CommandPaletteViewGroup />
 			<CommandPalettePagesGroup />

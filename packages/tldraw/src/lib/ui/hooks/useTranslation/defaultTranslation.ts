@@ -493,6 +493,8 @@ export const DEFAULT_TRANSLATION = {
 	'command-palette.export': 'Export',
 	'command-palette.tools': 'Tools',
 	'command-palette.go-to-page': 'Go to page',
+	'command-palette.arrowhead-start': 'Start arrowhead',
+	'command-palette.arrowhead-end': 'End arrowhead',
 	'command-palette.rename-page': 'Rename page',
 	'command-palette.page-name': 'Page name',
 	'command-palette.duplicate-page': 'Duplicate page',

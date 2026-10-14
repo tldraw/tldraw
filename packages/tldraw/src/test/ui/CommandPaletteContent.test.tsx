@@ -282,6 +282,26 @@ describe('default command palette content', () => {
 		expect(editor.getPages()).toHaveLength(1)
 	})
 
+	it("sets the selection's styles, checking the current value", async () => {
+		const { editor, rendered, search, enter } = await renderPalette()
+		act(() => {
+			editor.createShapes([{ id: createShapeId('box'), type: 'geo', x: 0, y: 0 }])
+			editor.select(createShapeId('box'))
+		})
+		search('color red')
+		const red = await rendered.findByTestId('command-palette.item.style-color-red')
+		expect(red.textContent).toContain('Color: Red')
+		enter()
+		expect(editor.getShape(createShapeId('box'))!.props).toMatchObject({ color: 'red' })
+		search('dash dashed')
+		enter()
+		expect(editor.getShape(createShapeId('box'))!.props).toMatchObject({ dash: 'dashed' })
+		// Arrow styles don't apply to a geo shape.
+		search('start arrowhead')
+		await rendered.findByTestId('command-palette.input')
+		expect(rendered.queryByTestId('command-palette.item.style-arrowhead-start-dot')).toBeNull()
+	})
+
 	describe('actions', () => {
 		const makeRed = vi.fn()
 		const overrides: TLUiOverrides = {

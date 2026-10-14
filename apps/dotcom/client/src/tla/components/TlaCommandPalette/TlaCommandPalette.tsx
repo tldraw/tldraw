@@ -12,6 +12,7 @@ import {
 	CommandPalettePagesGroup,
 	CommandPalettePreferencesGroup,
 	CommandPaletteSelectionGroup,
+	CommandPaletteStylesGroup,
 	CommandPalettePromptItem,
 	CommandPaletteToolsGroup,
 	CommandPaletteViewGroup,
@@ -112,6 +113,7 @@ export function TlaCommandPalette() {
 			{app && <TlaNotificationsGroup />}
 			<CommandPaletteSelectionGroup />
 			<CommandPaletteArrangeGroup />
+			<CommandPaletteStylesGroup />
 			{app && <TlaFilesGroup />}
 			{app && <TlaCurrentFileGroup />}
 			<CommandPalettePagesGroup />

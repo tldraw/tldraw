@@ -483,6 +483,8 @@ export type TLUiTranslationKey =
 	| 'command-palette.export'
 	| 'command-palette.tools'
 	| 'command-palette.go-to-page'
+	| 'command-palette.arrowhead-start'
+	| 'command-palette.arrowhead-end'
 	| 'command-palette.rename-page'
 	| 'command-palette.page-name'
 	| 'command-palette.duplicate-page'
