@@ -130,3 +130,41 @@ describe('isEditingRichTextList', () => {
 		expect(isEditingRichTextList(editor)).toBe(true)
 	})
 })
+
+describe('trailing node', () => {
+	const blockTypesOf = (textEditor: TextEditor) => textEditor.getJSON().content?.map((n) => n.type)
+
+	// Covers every enabled block type so that enabling a new one can't bring back #7641 / #11113.
+	it('does not append an empty paragraph after any enabled block type', () => {
+		const textEditor = new TextEditor({ extensions: tipTapDefaultExtensions, content: '<p></p>' })
+		try {
+			const blockTypes = Object.values(textEditor.schema.nodes).filter((type) =>
+				type.isInGroup('block')
+			)
+			expect(blockTypes.map((type) => type.name)).toContain('heading')
+			for (const type of blockTypes) {
+				const { state } = textEditor
+				textEditor.view.dispatch(
+					state.tr.replaceWith(0, state.doc.content.size, type.createAndFill()!)
+				)
+				expect(blockTypesOf(textEditor)).toEqual([type.name])
+			}
+		} finally {
+			textEditor.destroy()
+		}
+	})
+
+	it('lets the user delete the empty line under a heading', () => {
+		const textEditor = new TextEditor({
+			extensions: tipTapDefaultExtensions,
+			content: '<h1>Heading</h1><p></p>',
+		})
+		try {
+			textEditor.commands.setTextSelection(textEditor.state.doc.content.size - 1)
+			textEditor.commands.keyboardShortcut('Backspace')
+			expect(blockTypesOf(textEditor)).toEqual(['heading'])
+		} finally {
+			textEditor.destroy()
+		}
+	})
+})
