@@ -1,5 +1,6 @@
 import { Atom, useEditor, useValue } from '@tldraw/editor'
 import { useLayoutEffect, useState } from 'react'
+import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -86,6 +87,8 @@ const POSITIONS: { value: CommandPalettePosition; label: string }[] = [
 export function CommandPaletteFeatureFlagsPanel() {
 	const editor = useEditor()
 	const [position, setPosition] = useState<{ top: number; left: number } | null>(null)
+	// Collapsed by default so it doesn't cover the canvas, e.g. where e2e tests draw.
+	const [isOpen, setIsOpen] = useLocalStorageState('tldraw-command-palette-flags-open', false)
 
 	// The helper buttons grow and shrink as buttons come and go, so follow their bottom edge.
 	useLayoutEffect(() => {
@@ -115,7 +118,22 @@ export function CommandPaletteFeatureFlagsPanel() {
 			style={{ top: position.top, left: position.left }}
 			onPointerDown={editor.markEventAsHandled}
 		>
-			<div className="tlui-command-palette-flags__title">Command palette flags</div>
+			<TldrawUiButton
+				type="menu"
+				className="tlui-command-palette-flags__title"
+				onClick={() => setIsOpen(!isOpen)}
+			>
+				<TldrawUiButtonLabel>Command palette flags</TldrawUiButtonLabel>
+				<TldrawUiButtonIcon icon={isOpen ? 'chevron-up' : 'chevron-down'} small />
+			</TldrawUiButton>
+			{isOpen && <FlagList />}
+		</div>
+	)
+}
+
+function FlagList() {
+	return (
+		<>
 			<FlagChoice
 				id="top"
 				label="Top section"
@@ -158,6 +176,6 @@ export function CommandPaletteFeatureFlagsPanel() {
 				title="tldraw.com: New file and Rename file ask for the name here."
 				flag={commandPaletteFlags.nameNewFiles}
 			/>
-		</div>
+		</>
 	)
 }

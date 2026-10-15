@@ -2357,7 +2357,7 @@ tldraw? probably.
 	position: absolute;
 	display: flex;
 	flex-direction: column;
-	width: 220px;
+	min-width: 180px;
 	margin: var(--tl-space-3);
 	padding: var(--tl-space-1) 0;
 	border-radius: var(--tl-radius-3);
@@ -2368,8 +2368,7 @@ tldraw? probably.
 }
 
 .tlui-command-palette-flags__title {
-	padding: var(--tl-space-2) var(--tl-space-4) var(--tl-space-1);
-	font-size: 11px;
+	justify-content: space-between;
 	color: var(--tl-color-text-3);
 }
 
