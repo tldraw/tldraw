@@ -1,4 +1,4 @@
-import { react, RESET_VALUE, transact } from '@tldraw/state'
+import { react, RESET_VALUE, transact, transaction } from '@tldraw/state'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BaseRecord, RecordId } from './BaseRecord'
 import { RecordsDiff, reverseRecordsDiff } from './RecordsDiff'
@@ -461,6 +461,93 @@ describe('applying diffs (H)', () => {
 	})
 })
 
+describe('listeners: rollback (H)', () => {
+	it('[H11] listeners never see change-sets from a transaction that rolled back', async () => {
+		const listener = vi.fn()
+		store.listen(listener)
+		const author = tolkein()
+
+		expect(() =>
+			store.atomic(() => {
+				store.put([author])
+				throw new Error('abort')
+			})
+		).toThrow('abort')
+		expect(store.get(author.id)).toBeUndefined()
+
+		// a later, committed change flushes whatever the accumulator still holds
+		store.put([Author.create({ name: 'Ursula K. Le Guin' })])
+		await new Promise((resolve) => requestAnimationFrame(resolve))
+
+		const addedIds = listener.mock.calls.flatMap(([entry]) => Object.keys(entry.changes.added))
+		expect(addedIds).not.toContain(author.id)
+		expect(addedIds).toHaveLength(1)
+	})
+
+	it('[H11] a rolled-back nested transaction only discards its own change-sets', async () => {
+		const listener = vi.fn()
+		store.listen(listener)
+		const kept = tolkein()
+		const dropped = Author.create({ name: 'Dropped' })
+
+		transact(() => {
+			store.put([kept])
+			try {
+				transaction(() => {
+					store.put([dropped])
+					throw new Error('inner')
+				})
+			} catch {
+				// the outer transaction commits
+			}
+		})
+		await new Promise((resolve) => requestAnimationFrame(resolve))
+
+		expect(store.get(kept.id)).toBeDefined()
+		expect(store.get(dropped.id)).toBeUndefined()
+		const addedIds = listener.mock.calls.flatMap(([entry]) => Object.keys(entry.changes.added))
+		expect(addedIds).toEqual([kept.id])
+	})
+})
+
+describe('extracting changes across rolled-back nested transactions (H)', () => {
+	it('[H7] extractingChanges excludes changes from a nested transaction that rolled back', () => {
+		const kept = tolkein()
+		const dropped = Author.create({ name: 'Dropped' })
+		const changes = store.extractingChanges(() => {
+			store.put([kept])
+			try {
+				transaction(() => {
+					store.put([dropped])
+					throw new Error('inner')
+				})
+			} catch {
+				// swallowed: the outer work continues
+			}
+		})
+		expect(Object.keys(changes.added)).toEqual([kept.id])
+		expect(store.get(dropped.id)).toBeUndefined()
+	})
+})
+
+describe('listeners added from an interceptor (H)', () => {
+	it('[H8] a flush triggered from inside an interceptor still delivers the entry being recorded', () => {
+		const first = vi.fn()
+		store.listen(first)
+		let added = false
+		store.addHistoryInterceptor(() => {
+			if (added) return
+			added = true
+			// listen() flushes synchronously while the entry is still being recorded
+			store.listen(() => {})
+		})
+
+		store.put([tolkein()])
+		store._flushHistory()
+		expect(first).toHaveBeenCalledTimes(1)
+	})
+})
+
 describe('applying diffs with ignoreEphemeralKeys (H)', () => {
 	it('[H10] ignoreEphemeralKeys also applies the removal of a non-ephemeral key', () => {
 		const visitId = Visit.createId('jane')
@@ -512,5 +599,69 @@ describe('listeners: dispose (H)', () => {
 			// @ts-expect-error - test-only escape hatch
 			globalThis.__FORCE_RAF_IN_TESTS__ = false
 		}
+	})
+})
+
+describe('listeners: removing a listener (H)', () => {
+	const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve))
+
+	beforeEach(() => {
+		// @ts-expect-error - test-only escape hatch
+		globalThis.__FORCE_RAF_IN_TESTS__ = true
+		return () => {
+			// @ts-expect-error - test-only escape hatch
+			globalThis.__FORCE_RAF_IN_TESTS__ = false
+		}
+	})
+
+	it('[H14] the remover delivers pending change-sets before removing the listener', async () => {
+		const listener = vi.fn()
+		const removeListener = store.listen(listener)
+		store.put([tolkein()])
+		expect(listener).not.toHaveBeenCalled()
+
+		removeListener()
+		expect(listener).toHaveBeenCalledTimes(1)
+
+		store.put([hobbit()])
+		await nextFrame()
+		expect(listener).toHaveBeenCalledTimes(1)
+	})
+
+	it('[H14] the remover logs a listener error from its flush instead of throwing it', async () => {
+		const error = new Error('listener failed')
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const listener = vi.fn(() => {
+			throw error
+		})
+		try {
+			const removeListener = store.listen(listener)
+			store.put([tolkein()])
+
+			expect(removeListener).not.toThrow()
+			expect(consoleError).toHaveBeenCalledWith(error)
+
+			store.put([hobbit()])
+			await nextFrame()
+			expect(listener).toHaveBeenCalledTimes(1)
+		} finally {
+			consoleError.mockRestore()
+		}
+	})
+
+	it('[H14] a listener that writes and then removes itself mid-flush does not reorder the others', async () => {
+		const received: string[][] = []
+		const removeWriter = store.listen(() => {
+			store.put([hobbit()])
+			removeWriter()
+		})
+		store.listen(({ changes }) => received.push(Object.keys(changes.added)))
+
+		const author = tolkein()
+		store.put([author])
+		await nextFrame()
+		await nextFrame()
+
+		expect(received).toEqual([[author.id], [hobbit().id]])
 	})
 })

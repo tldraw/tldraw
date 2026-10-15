@@ -1,4 +1,10 @@
-import { assert } from 'tldraw'
+import { assert } from '@tldraw/utils'
+
+/** Route `handle` metadata read by the tla layout. */
+export interface TlaRouteHandle {
+	/** Render while the signed-in app is still preloading; the page must cope with a null app. */
+	rendersWhileAppLoads?: boolean
+}
 
 export const ROUTES = {
 	tlaOptIn: '/preview',

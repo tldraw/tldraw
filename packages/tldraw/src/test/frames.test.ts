@@ -2018,3 +2018,73 @@ describe('When double-clicking a frame edge', () => {
 		expect(boxPageBoundsAfter.y).toBeCloseTo(boxPageBoundsBefore.y)
 	})
 })
+
+describe('Undoing a double-click fit to content', () => {
+	let frameId: TLShapeId
+	let boxId: TLShapeId
+
+	beforeEach(() => {
+		boxId = createRect({ pos: [300, 300], size: [100, 100] })
+		// Drawn with the tool so the frame's creation is a marked undo step the fit could leak into
+		frameId = dragCreateFrame({ down: [100, 100], move: [600, 600], up: [600, 600] })
+		expect(editor.getShape(boxId)).toMatchObject({ parentId: frameId, x: 200, y: 200 })
+	})
+
+	it('undoes a corner double-click as its own step', () => {
+		const frameBefore = editor.getShape(frameId)!
+		const boxBefore = editor.getShape(boxId)!
+
+		editor.doubleClick(100, 100, { target: 'selection', handle: 'top_left' })
+		const frameAfter = editor.getShape(frameId)!
+		const boxAfter = editor.getShape(boxId)!
+		expect(frameAfter).toMatchObject({ x: 290, y: 290, props: { w: 120, h: 120 } })
+		expect(boxAfter).toMatchObject({ x: 10, y: 10 })
+
+		// The first undo unfits the frame rather than deleting it
+		editor.undo()
+		expect(editor.getShape(frameId)).toEqual(frameBefore)
+		expect(editor.getShape(boxId)).toEqual(boxBefore)
+
+		editor.redo()
+		expect(editor.getShape(frameId)).toEqual(frameAfter)
+		expect(editor.getShape(boxId)).toEqual(boxAfter)
+		editor.undo()
+
+		editor.undo()
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(boxId)).toMatchObject({
+			parentId: editor.getCurrentPageId(),
+			x: 300,
+			y: 300,
+		})
+	})
+
+	it('undoes an edge double-click as its own step, children included', () => {
+		const frameBefore = editor.getShape(frameId)!
+		const boxBefore = editor.getShape(boxId)!
+
+		editor.doubleClick(600, 350, { target: 'selection', handle: 'right' })
+		const frameAfter = editor.getShape(frameId)!
+		const boxAfter = editor.getShape(boxId)!
+		expect(frameAfter).toMatchObject({ x: 290, y: 100, props: { w: 120, h: 500 } })
+		expect(boxAfter).toMatchObject({ x: 10, y: 200 })
+
+		// The children are moved before the frame is, but one undo reverts both
+		editor.undo()
+		expect(editor.getShape(frameId)).toEqual(frameBefore)
+		expect(editor.getShape(boxId)).toEqual(boxBefore)
+
+		editor.redo()
+		expect(editor.getShape(frameId)).toEqual(frameAfter)
+		expect(editor.getShape(boxId)).toEqual(boxAfter)
+		editor.undo()
+
+		editor.undo()
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(boxId)).toMatchObject({
+			parentId: editor.getCurrentPageId(),
+			x: 300,
+			y: 300,
+		})
+	})
+})

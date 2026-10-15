@@ -97,6 +97,8 @@ export type KeyframeReason =
 	// Caller-supplied via `noChainReason`: the chain was discarded because R2 no longer served its
 	// open segment, which would otherwise be indistinguishable from a brand-new room.
 	| 'segment-lost'
+	// The room's mode is `off`: every version is a keyframe, no deltas.
+	| 'keyframes-only'
 
 export type VersionWriteDecision =
 	| { kind: 'keyframe'; reason: KeyframeReason }

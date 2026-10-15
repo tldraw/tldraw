@@ -1,6 +1,7 @@
 import {
 	Editor,
 	ExtractShapeByProps,
+	HALF_PI,
 	richTextValidator,
 	StateNode,
 	TLClickEventInfo,
@@ -12,6 +13,7 @@ import {
 	Vec,
 	VecLike,
 	pointInPolygon,
+	approximately,
 } from '@tldraw/editor'
 
 /** @internal */
@@ -158,4 +160,16 @@ function withPressTarget(info: TLClickEventInfo, press: TLPointerEventInfo): TLC
 		case 'overlay':
 			return { ...info, target: 'overlay', overlay: press.overlay, shape: undefined }
 	}
+}
+
+/**
+ * Whether a rotation is a multiple of 90 degrees. An exact `rotation % HALF_PI === 0` misses
+ * page rotations accumulated through rotated parents, which land a few ulps off and silently
+ * disable right-angle-only behavior such as bounds snapping.
+ *
+ * @internal
+ */
+export function isRightAngleRotation(rotation: number) {
+	const turns = rotation / HALF_PI
+	return approximately(turns, Math.round(turns))
 }

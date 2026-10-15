@@ -7,7 +7,10 @@ import {
 	BOARD_NOT_FOUND_MESSAGE,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
+	CREATE_BOARD_TOOL_NAME,
+	LIST_WORKSPACES_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
+	RENAME_BOARD_TOOL_NAME,
 	SEARCH_BOARDS_TOOL_NAME,
 	ShapeMeasurement,
 	ToolResult,
@@ -22,7 +25,10 @@ import {
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
+	parseCreateBoardInput,
+	parseListWorkspacesInput,
 	parsePageInfoInput,
+	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	pickClusterShapes,
 	resolvePage,
@@ -209,6 +215,28 @@ async function callFixtureTool(
 					: toolError(
 							`${HARNESS_GAP_MARKER} No screenshot was built for this cluster set. Run against staging or production to see the real render.`
 						)
+			}
+			case LIST_WORKSPACES_TOOL_NAME: {
+				// Parsed so argument errors read as they do in production; a fixture session has no
+				// workspaces to list.
+				parseListWorkspacesInput(args)
+				return toolError(
+					`${HARNESS_GAP_MARKER} Workspaces cannot be listed against fixtures. Run against staging or production to list them.`
+				)
+			}
+			case CREATE_BOARD_TOOL_NAME: {
+				// Parsed so argument errors read as they do in production; a fixture session has no
+				// workspaces or database to create into.
+				parseCreateBoardInput(args)
+				return toolError(
+					`${HARNESS_GAP_MARKER} Boards cannot be created against fixtures. Run against staging or production to create one.`
+				)
+			}
+			case RENAME_BOARD_TOOL_NAME: {
+				parseRenameBoardInput(args)
+				return toolError(
+					`${HARNESS_GAP_MARKER} Boards cannot be renamed against fixtures. Run against staging or production to rename one.`
+				)
 			}
 			default:
 				return toolError(`Unknown tool: ${name}`)

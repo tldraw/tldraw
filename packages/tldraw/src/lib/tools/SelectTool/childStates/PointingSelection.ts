@@ -5,14 +5,6 @@ import { isPlainDoubleClickDown } from '../selectHelpers'
 export class PointingSelection extends StateNode {
 	static override id = 'pointing_selection'
 
-	info = {} as TLPointerEventInfo & {
-		target: 'selection'
-	}
-
-	override onEnter(info: TLPointerEventInfo & { target: 'selection' }) {
-		this.info = info
-	}
-
 	override onPointerUp(info: TLPointerEventInfo) {
 		selectOnCanvasPointerUp(this.editor, info)
 		this.parent.transition('idle', info)

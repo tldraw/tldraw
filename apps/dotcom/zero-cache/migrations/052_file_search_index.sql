@@ -22,5 +22,10 @@
 -- takes those two in the opposite order — reproduced on PG16, and the migration is the one Postgres
 -- kills, so the deploy fails. A run that locks one of the two cannot be in that cycle at all.
 
-CREATE INDEX "file_owning_group_created_at_idx"
+-- IF NOT EXISTS so a deploy still succeeds when the index was created by hand ahead of it — the
+-- likely reason being someone building it out of band to avoid the write stall above. Note it
+-- matches on *name only*, not definition: an index of this name with different columns or ordering
+-- would satisfy this and leave the search unindexed with a green deploy. Check `pg_index` rather
+-- than trusting the clause if you ever pre-create it.
+CREATE INDEX IF NOT EXISTS "file_owning_group_created_at_idx"
   ON public."file" ("owningGroupId", "createdAt" DESC);

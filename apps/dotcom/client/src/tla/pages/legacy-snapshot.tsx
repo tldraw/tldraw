@@ -1,8 +1,8 @@
-import { captureException } from '@sentry/react'
 import { useEffect, useMemo } from 'react'
 import { useParams, useRouteError } from 'react-router-dom'
 import { SerializedSchema, TLRecord, TLStoreSnapshot, fetch } from 'tldraw'
 import { defineLoader } from '../../utils/defineLoader'
+import { captureRouteError } from '../../utils/routeErrors'
 import { TlaLegacySnapshotEditor } from '../components/TlaEditor/TlaLegacySnapshotEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
@@ -43,7 +43,7 @@ export { loader }
 export function ErrorBoundary() {
 	const error = useRouteError()
 	useEffect(() => {
-		captureException(error)
+		captureRouteError(error)
 	}, [error])
 	return <Component error={error} />
 }

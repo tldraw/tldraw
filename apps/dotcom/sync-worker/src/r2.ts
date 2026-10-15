@@ -25,6 +25,14 @@ export function getR2KeyForSnapshot({
 	return getR2KeyForRoom({ slug, isApp })
 }
 
+// Dropped connections and the connection-limit error the shared R2 budget exists to avoid. Anything
+// else (a bad request, missing object) is permanent, and retrying it only delays the caller's
+// fallback.
+export function isTransientConnectionError(error: unknown): boolean {
+	const message = error instanceof Error ? error.message : String(error)
+	return /network|connection|closed|reset|timeout/i.test(message)
+}
+
 /**
  * Runs one R2 operation. Operations default to running inline; a caller inside a shared connection
  * budget (the durable object's R2 queue) passes its queue, so each operation is one budgeted slot
@@ -39,7 +47,7 @@ export function runInline<T>(read: () => Promise<T>): Promise<T> {
 // R2 has honored `include` on list() since compat date 2022-08-04 (this worker's is far past it),
 // but the repo's ambient workers-types entrypoint predates the option — declared locally, same
 // pattern as types.ts.
-type R2ListOptionsWithInclude = R2ListOptions & {
+export type R2ListOptionsWithInclude = R2ListOptions & {
 	include?: Array<'httpMetadata' | 'customMetadata'>
 }
 
@@ -63,6 +71,37 @@ export async function listAllObjects(
 		const page = await schedule(() => bucket.list(options as R2ListOptions))
 		ops++
 		objects.push(...page.objects)
+		cursor = page.truncated ? page.cursor : undefined
+	} while (cursor)
+
+	return { objects, ops }
+}
+
+/**
+ * The objects under `prefix` whose keys fall in (`after`, `through`], with custom metadata, plus the
+ * number of list calls spent. R2 has no end key, so the walk stops at the first page that reaches
+ * past `through` rather than running to the end of the prefix.
+ */
+export async function listObjectsInRange(
+	bucket: R2Bucket,
+	prefix: string,
+	{ after, through }: { after?: string; through: string },
+	schedule: R2ReadScheduler = runInline
+): Promise<{ objects: R2Object[]; ops: number }> {
+	const objects: R2Object[] = []
+	let cursor: string | undefined
+	let ops = 0
+
+	do {
+		const options: R2ListOptionsWithInclude = cursor
+			? { prefix, cursor, include: ['customMetadata'] }
+			: { prefix, startAfter: after, include: ['customMetadata'] }
+		const page = await schedule(() => bucket.list(options as R2ListOptions))
+		ops++
+		for (const object of page.objects) {
+			if (object.key > through) return { objects, ops }
+			objects.push(object)
+		}
 		cursor = page.truncated ? page.cursor : undefined
 	} while (cursor)
 

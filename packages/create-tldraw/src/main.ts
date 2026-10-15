@@ -26,10 +26,9 @@ import { wrapAnsi } from './wrap-ansi'
 
 const DEBUG = !!process.env.DEBUG
 
-const TELEMETRY_URLS = [
-	'https://dashboard.tldraw.pro/api/starter-kit-choice',
-	'https://teamldraw.com/api/starter-kit-choice',
-]
+// tldraw.dev forwards this on to wherever the counts are actually kept, so a change there doesn't
+// need a new release of this package.
+const TELEMETRY_URL = 'https://tldraw.dev/api/starter-kit-choice'
 
 async function main() {
 	const args = parseCliArgs(process.argv.slice(2))
@@ -102,16 +101,14 @@ async function templatePicker(args: CliArgs) {
 function trackStarterKitChoice(templateId: string, telemetry: boolean) {
 	if (!telemetry) return
 
-	for (const url of TELEMETRY_URLS) {
-		// Fire and forget - don't block on this request
-		fetch(url, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ id: templateId }),
-		}).catch(() => {
-			// Silently ignore errors
-		})
-	}
+	// Fire and forget - don't block on this request
+	fetch(TELEMETRY_URL, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ id: templateId }),
+	}).catch(() => {
+		// Silently ignore errors
+	})
 }
 
 async function namePicker(argOption?: string) {

@@ -367,6 +367,57 @@ describe('user mutations', () => {
 	})
 })
 
+describe('updateUserPreferences', () => {
+	const userId = 'user_aaaa11112222bbbb'
+
+	function setup() {
+		const { tx, mutations } = createMockTx(makeStore({ user: [makeUser({ id: userId })] }))
+		return { tx, mutations, m: createMutators(userId) }
+	}
+
+	it('sets the caller’s own preferences, on their own row', async () => {
+		const { tx, mutations, m } = setup()
+		await expectValid(() =>
+			m.updateUserPreferences(tx, { isSnapMode: true, inputMode: 'mouse', animationSpeed: 0 })
+		)
+		expect(mutations).toEqual([
+			{
+				op: 'update',
+				table: 'user',
+				data: { id: userId, isSnapMode: true, inputMode: 'mouse', animationSpeed: 0 },
+			},
+		])
+	})
+
+	it('accepts null, which unsets a preference', async () => {
+		const { tx, m } = setup()
+		await expectValid(() => m.updateUserPreferences(tx, { isSnapMode: null as any }))
+	})
+
+	it('refuses the rest of the user row, the theme and the name', async () => {
+		const { tx, m } = setup()
+		for (const change of [
+			{ name: 'Hacked' },
+			{ colorScheme: 'dark' },
+			{ flags: 'example_flag' },
+			{ email: 'evil@evil.com' },
+			{ id: 'user_other1234567890' },
+			{ toString: 'x' },
+		]) {
+			await expectForbidden(() => m.updateUserPreferences(tx, change as any))
+		}
+	})
+
+	it('refuses a value of the wrong type', async () => {
+		const { tx, m } = setup()
+		await expectBadRequest(() => m.updateUserPreferences(tx, { isSnapMode: 'yes' as any }))
+		await expectBadRequest(() => m.updateUserPreferences(tx, { inputMode: 'pen' as any }))
+		await expectBadRequest(() => m.updateUserPreferences(tx, { animationSpeed: Infinity }))
+		// The color column is required, so it cannot be unset.
+		await expectBadRequest(() => m.updateUserPreferences(tx, { color: null as any }))
+	})
+})
+
 describe('file mutations', () => {
 	const userId = 'user_aaaa11112222bbbb'
 	const groupId = 'group_aaa11112222bbb'
@@ -912,6 +963,22 @@ describe('file operations across workspaces', () => {
 		const m = createMutators(userId)
 		await m.moveFileToWorkspace(tx, { fileId, workspaceId: groupB })
 		expect(s.file[0]?.owningGroupId).toBe(groupB)
+	})
+
+	it('cannot move a deleted file', async () => {
+		const s = makeStore({
+			user: [makeUser({ id: userId })],
+			file: [makeFile({ id: fileId, owningGroupId: groupA, isDeleted: true })],
+			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
+			group_user: [
+				makeGroupUser({ userId, groupId: groupA }),
+				makeGroupUser({ userId, groupId: groupB }),
+			],
+		})
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectBadRequest(() => m.moveFileToWorkspace(tx, { fileId, workspaceId: groupB }))
+		expect(s.group_file).toEqual([])
 	})
 
 	it('member of source workspace only cannot move file to other workspace', async () => {

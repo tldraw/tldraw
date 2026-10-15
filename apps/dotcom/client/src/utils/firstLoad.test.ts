@@ -1,11 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
 	createFirstLoadTracker,
+	FIRST_LOAD_LOG_HEADER,
 	initServerTiming,
-	shouldReportFirstLoad,
+	reportFirstLoad,
+	serverTotalMs,
+	summarizeNavigation,
 	summarizeResources,
 	type FirstLoadDeps,
 } from './firstLoad'
+import type { LoadServerTimings } from './loadTracker'
 
 function makeDeps(overrides: Partial<FirstLoadDeps> = {}) {
 	let t = 0
@@ -27,15 +31,52 @@ describe('createFirstLoadTracker', () => {
 		expect(tracker.loadId).toMatch(/^[A-Za-z0-9_-]{8,32}$/)
 	})
 
-	it('measures each step as a span from the previous one, on its own devtools track', () => {
+	it('measures each step from where its own flow started, on that flow lane', () => {
 		const { deps, advance } = makeDeps()
 		const tracker = createFirstLoadTracker(deps)
 		advance(100)
 		tracker.mark('js-started')
 		advance(400)
 		tracker.mark('clerk-loaded')
-		expect(deps.measure).toHaveBeenNthCalledWith(1, 'js-started', 0, 100)
-		expect(deps.measure).toHaveBeenNthCalledWith(2, 'clerk-loaded', 100, 500)
+		advance(50)
+		tracker.mark('flags-loaded')
+		advance(50)
+		tracker.mark('sync-token-fetched')
+		advance(300)
+		tracker.mark('zero-user-synced')
+		expect(deps.measure).toHaveBeenNthCalledWith(1, 'js-started', 0, 100, 'Page', 'start')
+		expect(deps.measure).toHaveBeenNthCalledWith(
+			2,
+			'clerk-loaded',
+			100,
+			500,
+			'Page',
+			'previous step'
+		)
+		expect(deps.measure).toHaveBeenNthCalledWith(
+			3,
+			'flags-loaded',
+			500,
+			550,
+			'Page',
+			'clerk-loaded'
+		)
+		expect(deps.measure).toHaveBeenNthCalledWith(
+			4,
+			'sync-token-fetched',
+			500,
+			600,
+			'Sync',
+			'clerk-loaded'
+		)
+		expect(deps.measure).toHaveBeenNthCalledWith(
+			5,
+			'zero-user-synced',
+			550,
+			900,
+			'Zero',
+			'flags-loaded'
+		)
 	})
 
 	it('records the first time a step is marked and ignores later marks of the same step', () => {
@@ -98,6 +139,11 @@ describe('createFirstLoadTracker', () => {
 		expect(createFirstLoadTracker(deps).buildReport().route_kind).toBe('root-redirect')
 	})
 
+	it('classifies a load that started on a file history page as other', () => {
+		const { deps } = makeDeps({ initialPath: '/f/abc/history' })
+		expect(createFirstLoadTracker(deps).buildReport().route_kind).toBe('other')
+	})
+
 	it('reports only once per page load', () => {
 		const { deps } = makeDeps()
 		const tracker = createFirstLoadTracker(deps)
@@ -117,6 +163,7 @@ describe('createFirstLoadTracker', () => {
 		expect(log).not.toHaveBeenCalled()
 		tracker.enableLiveLog()
 		expect(log.mock.calls.map((c) => c[0])).toEqual([
+			FIRST_LOAD_LOG_HEADER,
 			'[first-load] js-started +50ms (+50)',
 			'[first-load] clerk-loaded +250ms (+200)',
 		])
@@ -133,31 +180,50 @@ describe('createFirstLoadTracker', () => {
 })
 
 describe('server timings', () => {
-	it('folds the sync server echo into the report as srv_ fields', () => {
+	it('folds the sync server echo, step marks included, into the report as srv_ fields', () => {
 		const { deps } = makeDeps()
 		const tracker = createFirstLoadTracker(deps)
 		tracker.setServerTimings({
 			type: 'first_load_server',
 			loadId: tracker.loadId,
 			cold: true,
-			auth_ms: 12,
-			file_record_ms: 170,
-			get_room_ms: 540,
-			total_ms: 730,
+			edge_colo: 'FRA',
+			pg_via: 'hyperdrive',
 			boot_r2_ms: 80,
 			boot_comments_ms: 510,
-			boot_total_ms: 530,
+			d_auth: 12,
+			t_auth: 12,
+			d_boot: 530,
+			t_boot: 542,
+			d_handshake: 90,
+			t_handshake: 632,
 		})
 		expect(tracker.buildReport()).toMatchObject({
 			srv_cold: true,
-			srv_auth_ms: 12,
-			srv_file_record_ms: 170,
-			srv_get_room_ms: 540,
-			srv_total_ms: 730,
+			srv_edge_colo: 'FRA',
+			srv_pg_via: 'hyperdrive',
 			srv_boot_r2_ms: 80,
-			srv_boot_comments_ms: 510,
-			srv_boot_total_ms: 530,
+			srv_d_auth: 12,
+			srv_t_boot: 542,
+			srv_d_handshake: 90,
+			srv_t_handshake: 632,
 		})
+	})
+
+	it('takes the server total from the latest step', () => {
+		expect(
+			serverTotalMs({
+				type: 'first_load_server',
+				loadId: 'x'.repeat(21),
+				cold: false,
+				t_auth: 12,
+				t_handshake: 632,
+				d_handshake: 90,
+			})
+		).toBe(632)
+		expect(
+			serverTotalMs({ type: 'first_load_server', loadId: 'x'.repeat(21), cold: false })
+		).toBeUndefined()
 	})
 
 	it('keeps the first echo when a reconnect sends a second one', () => {
@@ -167,27 +233,12 @@ describe('server timings', () => {
 			type: 'first_load_server' as const,
 			loadId: tracker.loadId,
 			cold,
-			auth_ms: 1,
-			get_room_ms: 1,
-			total_ms: 1,
+			d_auth: 1,
+			t_auth: 1,
 		})
 		tracker.setServerTimings(echo(true))
 		tracker.setServerTimings(echo(false))
 		expect(tracker.buildReport().srv_cold).toBe(true)
-	})
-
-	it('ignores an echo for a different load', () => {
-		const { deps } = makeDeps()
-		const tracker = createFirstLoadTracker(deps)
-		tracker.setServerTimings({
-			type: 'first_load_server',
-			loadId: 'someone-elses-load',
-			cold: false,
-			auth_ms: 1,
-			get_room_ms: 1,
-			total_ms: 1,
-		})
-		expect(tracker.buildReport()).not.toHaveProperty('srv_total_ms')
 	})
 
 	it('resolves the wait as soon as the echo lands, or at the deadline without it', async () => {
@@ -201,9 +252,8 @@ describe('server timings', () => {
 				type: 'first_load_server',
 				loadId: tracker.loadId,
 				cold: false,
-				auth_ms: 1,
-				get_room_ms: 1,
-				total_ms: 1,
+				d_auth: 1,
+				t_auth: 1,
 			})
 			await vi.advanceTimersByTimeAsync(0)
 			expect(early).toHaveBeenCalledWith(true)
@@ -229,25 +279,6 @@ describe('server timings', () => {
 		] as unknown as PerformanceResourceTiming[]
 		expect(initServerTiming(entries)).toEqual({ srv_init_ms: 187, srv_init_outcome: 'existing' })
 		expect(initServerTiming([])).toEqual({})
-	})
-})
-
-describe('shouldReportFirstLoad', () => {
-	it('reports for tldraw.com accounts regardless of the flag', () => {
-		expect(shouldReportFirstLoad({ email: 'someone@tldraw.com', flagEnabled: false })).toBe(true)
-	})
-	it('reports for other accounts only when the flag is on for them', () => {
-		expect(shouldReportFirstLoad({ email: 'someone@example.com', flagEnabled: false })).toBe(false)
-		expect(shouldReportFirstLoad({ email: 'someone@example.com', flagEnabled: true })).toBe(true)
-	})
-	it('does not report anonymous loads unless the flag says so', () => {
-		expect(shouldReportFirstLoad({ email: null, flagEnabled: false })).toBe(false)
-		expect(shouldReportFirstLoad({ email: undefined, flagEnabled: false })).toBe(false)
-	})
-	it('is not fooled by a tldraw.com substring elsewhere in the address', () => {
-		expect(shouldReportFirstLoad({ email: 'tldraw.com@example.com', flagEnabled: false })).toBe(
-			false
-		)
 	})
 })
 
@@ -316,5 +347,108 @@ describe('summarizeResources', () => {
 
 	it('handles an empty list', () => {
 		expect(summarizeResources([])).toMatchObject({ res_count: 0, res_kb: 0, clerk_script_ms: null })
+	})
+})
+
+describe('summarizeNavigation', () => {
+	function nav(overrides: Partial<PerformanceNavigationTiming> = {}) {
+		return {
+			type: 'navigate',
+			nextHopProtocol: 'h3',
+			redirectCount: 0,
+			activationStart: 0,
+			fetchStart: 5,
+			domainLookupStart: 5,
+			domainLookupEnd: 5,
+			connectStart: 5,
+			connectEnd: 5,
+			requestStart: 6,
+			responseStart: 90.4,
+			domContentLoadedEventEnd: 300,
+			...overrides,
+		} as PerformanceNavigationTiming
+	}
+
+	it('splits time to first byte into its phases', () => {
+		expect(
+			summarizeNavigation(
+				nav({
+					fetchStart: 120,
+					domainLookupStart: 121,
+					domainLookupEnd: 151,
+					connectStart: 151,
+					connectEnd: 211,
+					requestStart: 212,
+					responseStart: 1712.6,
+				})
+			)
+		).toEqual({
+			nav_type: 'navigate',
+			nav_ttfb: 1713,
+			nav_dom_content_loaded: 300,
+			nav_protocol: 'h3',
+			nav_redirect_count: 0,
+			nav_fetch_start: 120,
+			nav_dns_ms: 30,
+			nav_connect_ms: 60,
+			nav_server_ms: 1501,
+			nav_activation_start: 0,
+		})
+	})
+
+	it('reports zero for phases the browser skipped or hid', () => {
+		expect(
+			summarizeNavigation(
+				nav({
+					domainLookupStart: 0,
+					domainLookupEnd: 0,
+					connectStart: 0,
+					connectEnd: 0,
+					requestStart: 0,
+					responseStart: 0,
+				})
+			)
+		).toMatchObject({ nav_dns_ms: 0, nav_connect_ms: 0, nav_server_ms: 0 })
+	})
+})
+
+describe('reportFirstLoad', () => {
+	it("waits for the adopted file load's echo and carries its ids, boot fields and extras", async () => {
+		const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
+		let echo: LoadServerTimings | null = null
+		let wake: (gotEcho: boolean) => void = () => {}
+		const trackEvent = vi.fn()
+		reportFirstLoad({
+			email: 'someone@tldraw.com',
+			flagEnabled: false,
+			trackEvent,
+			fileLoad: {
+				loadId: 'file-load-id',
+				connectId: () => 'connect-id',
+				bootFields: () => ({ abandoned_opens: 1, cached_visit: 'redirect' }),
+				whenServerTimings: () => new Promise((resolve) => (wake = resolve)),
+				getServerTimings: () => echo,
+			},
+			extra: { page_shapes: 12, records: 40 },
+		})
+		await flush()
+		expect(trackEvent).not.toHaveBeenCalled()
+		echo = { type: 'first_load_server', loadId: 'connect-id', cold: true, d_auth: 5, t_auth: 5 }
+		wake(true)
+		await flush()
+		expect(trackEvent).toHaveBeenCalledWith(
+			'first_load',
+			expect.objectContaining({
+				file_load_id: 'file-load-id',
+				connect_id: 'connect-id',
+				abandoned_opens: 1,
+				cached_visit: 'redirect',
+				srv_cold: true,
+				srv_t_auth: 5,
+				srv_echo: true,
+				page_shapes: 12,
+				records: 40,
+			})
+		)
 	})
 })

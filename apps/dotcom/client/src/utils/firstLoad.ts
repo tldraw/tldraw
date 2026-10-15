@@ -1,31 +1,31 @@
-import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
-import { uniqueId } from 'tldraw'
+import { getFromSessionStorage } from '@tldraw/utils'
+import {
+	createLoadTracker,
+	describeLoadFields,
+	isLoadStaff,
+	LOADS_DEBUG_FLAG,
+	LoadReport,
+	LoadServerTimings,
+	LoadStepLane,
+	LoadStepRow,
+	LoadTrackerDeps,
+	measureOnTrack,
+	SERVER_ECHO_DEADLINE_MS,
+	serverTables,
+	serverTotalMs,
+	shouldReportLoad,
+} from './loadTracker'
 
-export type FirstLoadServerTimings = Extract<TLCustomServerEvent, { type: 'first_load_server' }>
+export { serverTotalMs }
 
 /**
  * Per-step timing for the first load of a page, from navigation start to the board being visible.
  *
- * Every step names the event that just completed, in past tense; its span is the time since the
- * previous step. Steps become `performance.mark`s (`tla:<step>`) and measures, `t_<step>` /
+ * Every step names the event that just completed, in past tense; its `d_` delta is the time since
+ * the previous step. Steps become `performance.mark`s (`tla:<step>`) and lane measures, `t_<step>` /
  * `d_<step>` properties on the `first_load` analytics event, and console lines. The report sorts
- * by when each step actually happened, since route chunks load in parallel.
- *
- * | step                 | the moment it marks                                                   |
- * |----------------------|-----------------------------------------------------------------------|
- * | js-started           | main.tsx began executing (HTML + entry bundle done)                   |
- * | root-chunk-loaded    | the TlaRootProviders route chunk was evaluated                        |
- * | clerk-loaded         | Clerk reported `isLoaded` (session known)                             |
- * | flags-loaded         | feature flags resolved, or timed out to defaults                      |
- * | init-done            | `POST /api/app/:id/init` returned                                     |
- * | zero-user-synced     | Zero confirmed the user row from the server                           |
- * | zero-preloaded       | Zero confirmed file states + workspace memberships; app state unblocks|
- * | file-chunk-loaded    | the file route chunk was evaluated                                    |
- * | editor-rendered      | TlaEditorInner rendered for the first time (`room_load_duration` t0)  |
- * | sync-token-fetched   | Clerk token for the sync socket obtained                              |
- * | sync-connected       | the sync store reached `synced-remote`                                |
- * | editor-mounted       | the editor's `onMount` ran                                            |
- * | board-visible        | the ready shroud lifted; the board is on screen                       |
+ * by when each step actually happened, since route chunks load in parallel. What each step marks
+ * is in FIRST_LOAD_STEP_INFO.
  *
  * How to read the output: tldraw/tldraw-internal#2026.
  */
@@ -47,146 +47,107 @@ export const FIRST_LOAD_STEPS = [
 
 export type FirstLoadStep = (typeof FIRST_LOAD_STEPS)[number]
 
-export interface FirstLoadDeps {
-	now(): number
-	mark(name: string): void
-	measure(step: FirstLoadStep, start: number, end: number): void
-	log(line: string): void
-	initialPath: string
+/** DevTools lanes: each span starts at the step it waited on, so parallel flows overlap. */
+const FIRST_LOAD_LANES: Record<FirstLoadStep, LoadStepLane<FirstLoadStep>> = {
+	'js-started': { lane: 'Page' },
+	'root-chunk-loaded': { lane: 'Page', from: ['js-started'] },
+	'clerk-loaded': { lane: 'Page', from: ['root-chunk-loaded'] },
+	'flags-loaded': { lane: 'Page', from: ['clerk-loaded'] },
+	'init-done': { lane: 'Zero', from: ['flags-loaded'] },
+	'zero-user-synced': { lane: 'Zero', from: ['flags-loaded', 'init-done'] },
+	'zero-preloaded': { lane: 'Zero', from: ['zero-user-synced'] },
+	'file-chunk-loaded': { lane: 'Editor', from: ['js-started'] },
+	'editor-rendered': { lane: 'Editor', from: ['file-chunk-loaded', 'zero-preloaded'] },
+	'sync-token-fetched': { lane: 'Sync', from: ['file-chunk-loaded', 'clerk-loaded'] },
+	'sync-connected': { lane: 'Sync', from: ['file-chunk-loaded', 'sync-token-fetched'] },
+	'editor-mounted': {
+		lane: 'Editor',
+		from: ['editor-rendered', 'sync-connected', 'zero-preloaded'],
+	},
+	'board-visible': { lane: 'Editor', from: ['editor-mounted'] },
 }
 
-export interface FirstLoadStepRow {
-	step: FirstLoadStep
-	t: number
-	delta: number
+const FIRST_LOAD_STEP_INFO: Record<FirstLoadStep, string> = {
+	'js-started': 'main.tsx began executing (HTML + entry bundle done)',
+	'root-chunk-loaded': 'TlaRootProviders route chunk evaluated',
+	'clerk-loaded': 'Clerk reported isLoaded (session known)',
+	'flags-loaded': 'feature flags resolved, or timed out to defaults',
+	'init-done':
+		'POST /api/app/:userId/init settled (see srv_init_outcome); only runs when Zero found no user row, absent if the row arrived first',
+	'zero-user-synced': 'Zero confirmed the user row from the server',
+	'zero-preloaded': 'Zero confirmed file states + workspace memberships; app state unblocks',
+	'file-chunk-loaded': 'file route chunk evaluated',
+	'editor-rendered': 'TlaEditorInner first render (room_load_duration t0)',
+	'sync-token-fetched': 'Clerk token for the sync socket obtained',
+	'sync-connected': 'sync socket open, server checks done, snapshot received and applied',
+	'editor-mounted': "editor's onMount ran",
+	'board-visible': 'ready shroud lifted; board on screen',
 }
 
-export interface FirstLoadReport {
-	load_id: string
-	route_kind: 'root-redirect' | 'file' | 'other'
-	steps: FirstLoadStepRow[]
-	total_ms: number
-	[key: `t_${string}`]: number | undefined
-	[key: `d_${string}`]: number | undefined
-	[key: `srv_${string}`]: number | boolean | undefined
+/** Field descriptions specific to first_load: init is first-load only, res_* and clerk_script_ms too. */
+const FIRST_LOAD_FIELD_INFO: Record<string, string> = {
+	srv_init_ms: 'sync worker: user init request (Server-Timing)',
+	srv_init_outcome:
+		'created (first sign-in), existing (Zero had no row but Postgres did: replica lag or another tab), or a failure: rate_limited, no_clerk_user, no_email; absent if init threw, did not run, or was still pending',
+	res_count: 'resources loaded by board-visible',
+	res_kb: 'total transferred',
+	res_js_kb: 'JS transferred',
+	res_css_kb: 'CSS transferred',
+	res_font_kb: 'fonts transferred',
+	res_fetch_kb: 'fetch/XHR transferred',
+	res_cached: 'resources with 0 bytes transferred (cache hits, or opaque cross-origin)',
+	res_largest: 'largest resource by transfer size',
+	res_largest_kb: 'its size',
+	res_slowest: 'slowest resource by duration',
+	res_slowest_ms: 'its duration',
+	clerk_script_ms: 'clerk.browser.js fetch duration',
+}
+
+export const FIRST_LOAD_LOG_HEADER =
+	'[first-load] page load timings, printed because the logLoads debug flag is on'
+
+// Read once, so a toggle applies to first_load from the next page load; file_load reads it per open.
+const printLoads = getFromSessionStorage(`tldraw_debug:${LOADS_DEBUG_FLAG}`) === 'true'
+
+export type FirstLoadDeps = LoadTrackerDeps<FirstLoadStep> & { initialPath: string }
+
+export type FirstLoadStepRow = LoadStepRow<FirstLoadStep>
+
+export type FirstLoadRouteKind = 'root-redirect' | 'file' | 'other'
+
+export type FirstLoadReport = LoadReport<FirstLoadStep> & { route_kind: FirstLoadRouteKind }
+
+/** The slice of a file load first_load reads; fileLoad imports this module, so not its type. */
+export interface AdoptedFileLoad {
+	loadId: string
+	connectId(): string | undefined
+	bootFields(): Record<string, unknown>
+	whenServerTimings(ms: number): Promise<boolean>
+	getServerTimings(): LoadServerTimings | null
 }
 
 export function createFirstLoadTracker(deps: FirstLoadDeps) {
-	const loadId = uniqueId(21)
-	const marks: Partial<Record<FirstLoadStep, number>> = {}
-	let lastT = 0
-	let reported = false
-	let server: FirstLoadServerTimings | null = null
-	const serverWaiters: Array<() => void> = []
-	// Live lines are buffered until enableLiveLog(): the gate (a @tldraw.com account) is only
-	// known once Clerk has loaded, well after the first steps.
-	let live = false
-	const lines: string[] = []
-
-	function say(line: string) {
-		if (live) deps.log(line)
-		else lines.push(line)
-	}
-
-	const routeKind = (): FirstLoadReport['route_kind'] => {
+	const core = createLoadTracker(deps, {
+		steps: FIRST_LOAD_STEPS,
+		logPrefix: 'first-load',
+		logHeader: FIRST_LOAD_LOG_HEADER,
+		markPrefix: 'tla',
+		lanes: FIRST_LOAD_LANES,
+	})
+	const routeKind = (): FirstLoadRouteKind => {
 		if (deps.initialPath === '/') return 'root-redirect'
-		if (deps.initialPath.startsWith('/f/')) return 'file'
+		// Exact match: landing on /f/:slug/history first puts time on that page into total_ms.
+		if (/^\/f\/[^/]+\/?$/.test(deps.initialPath)) return 'file'
 		return 'other'
 	}
-
-	function mark(step: FirstLoadStep) {
-		if (step in marks) return
-		const t = Math.round(deps.now())
-		marks[step] = t
-		deps.mark(`tla:${step}`)
-		deps.measure(step, lastT, t)
-		say(`[first-load] ${step} +${t}ms (+${t - lastT})`)
-		lastT = t
-	}
-
-	function buildReport(): FirstLoadReport {
-		// Sorted by when each step happened, not by the list: the router fetches both route chunks in
-		// parallel, so file-chunk-loaded regularly lands before clerk-loaded.
-		const seen = FIRST_LOAD_STEPS.filter((step) => marks[step] !== undefined).sort(
-			(a, b) => marks[a]! - marks[b]!
-		)
-		const steps: FirstLoadStepRow[] = []
-		let prev = 0
-		for (const step of seen) {
-			const t = marks[step]!
-			steps.push({ step, t, delta: t - prev })
-			prev = t
-		}
-		const report: FirstLoadReport = {
-			load_id: loadId,
-			route_kind: routeKind(),
-			steps,
-			total_ms: prev,
-		}
-		for (const row of steps) {
-			const key = row.step.replaceAll('-', '_')
-			report[`t_${key}`] = row.t
-			report[`d_${key}`] = row.delta
-		}
-		if (server) {
-			const { type: _type, loadId: _loadId, ...timings } = server
-			for (const [k, v] of Object.entries(timings)) {
-				if (v !== undefined) report[`srv_${k}`] = v
-			}
-		}
-		return report
-	}
-
-	/** The sync server's side of this load, sent once after the socket connects. */
-	function setServerTimings(msg: FirstLoadServerTimings) {
-		if (msg.loadId !== loadId) return
-		// A reconnect inside the report window sends a second, warm echo; the first one is the load.
-		if (server) return
-		server = msg
-		for (const wake of serverWaiters.splice(0)) wake()
-		say(
-			`[first-load] server: ${msg.cold ? 'cold' : 'warm'} room, request ${msg.total_ms}ms` +
-				(msg.boot_total_ms !== undefined ? `, boot ${msg.boot_total_ms}ms` : '')
-		)
-	}
-
-	/**
-	 * Resolves true once the sync server's echo is in, or false at the deadline. The echo is sent
-	 * just after the connect handshake, so on a warm load it can trail board-visible by a few ms.
-	 */
-	function whenServerTimings(timeoutMs: number): Promise<boolean> {
-		if (server) return Promise.resolve(true)
-		return new Promise((resolve) => {
-			const timer = setTimeout(() => resolve(false), timeoutMs)
-			serverWaiters.push(() => {
-				clearTimeout(timer)
-				resolve(true)
-			})
-		})
-	}
-
-	/** Start printing steps as they happen, after replaying the ones already recorded. */
-	function enableLiveLog() {
-		if (live) return
-		live = true
-		for (const line of lines.splice(0)) deps.log(line)
-	}
-
-	function takeReport(): FirstLoadReport | null {
-		if (reported) return null
-		reported = true
-		return buildReport()
-	}
-
 	return {
-		loadId,
-		mark,
-		getMarks: () => ({ ...marks }),
-		buildReport,
-		takeReport,
-		setServerTimings,
-		whenServerTimings,
-		enableLiveLog,
+		...core,
+		routeKind,
+		buildReport: (): FirstLoadReport => ({ ...core.buildReport(), route_kind: routeKind() }),
+		takeReport: (): FirstLoadReport | null => {
+			const report = core.takeReport()
+			return report && { ...report, route_kind: routeKind() }
+		},
 	}
 }
 
@@ -196,17 +157,6 @@ export function initServerTiming(entries: readonly PerformanceResourceTiming[]) 
 	const timing = init?.serverTiming?.find((t) => t.name === 'init')
 	if (!timing) return {}
 	return { srv_init_ms: Math.round(timing.duration), srv_init_outcome: timing.description }
-}
-
-/** Staff always; everyone else through the `first_load_rum` percentage flag (0% by default). */
-export function shouldReportFirstLoad({
-	email,
-	flagEnabled,
-}: {
-	email: string | null | undefined
-	flagEnabled: boolean
-}) {
-	return isFirstLoadStaff(email) || flagEnabled
 }
 
 const kb = (bytes: number) => Math.round(bytes / 1024)
@@ -287,30 +237,15 @@ export const firstLoad = createFirstLoadTracker({
 			// marks are best effort
 		}
 	},
-	measure: (step, start, end) => {
-		try {
-			// `detail.devtools` is Chrome's Performance panel extension: it puts the span on its own
-			// "First load" track instead of the generic Timings track, where bare marks are just ticks.
-			performance.measure(`tla:${step}`, {
-				start,
-				end,
-				detail: {
-					devtools: {
-						dataType: 'track-entry',
-						track: 'First load',
-						color: 'primary',
-						tooltipText: `${step}: ${Math.round(end - start)}ms since previous step`,
-					},
-				},
-			})
-		} catch {
-			// measures are best effort
-		}
-	},
+	measure: measureOnTrack('First load'),
 	// eslint-disable-next-line no-console
 	log: (line) => console.log(line),
 	initialPath: typeof window === 'undefined' ? '' : window.location.pathname,
 })
+
+// Background tabs throttle timers and Zero, so a load that was hidden at any point can take minutes
+// and says nothing about load speed. Such loads still print but are not sent.
+let hiddenDuringLoad = false
 
 if (typeof window !== 'undefined') {
 	;(window as any).__firstLoad = firstLoad
@@ -321,43 +256,63 @@ if (typeof window !== 'undefined') {
 	} catch {
 		// best effort
 	}
-	// Anonymous or non-staff sessions can opt in per load; staff accounts are enabled from
-	// useAppState as soon as Clerk says who they are.
-	if (window.location.search.includes('firstLoadDebug')) firstLoad.enableLiveLog()
+	if (printLoads) firstLoad.enableLiveLog()
+	if (document.visibilityState === 'hidden') hiddenDuringLoad = true
+	document.addEventListener('visibilitychange', () => {
+		if (document.visibilityState === 'hidden') hiddenDuringLoad = true
+	})
 }
 
-/** Live console lines for this load, replaying the steps already recorded. */
-export function enableFirstLoadLiveLog() {
-	firstLoad.enableLiveLog()
-}
-
-export function isFirstLoadStaff(email: string | null | undefined) {
-	return !!email?.endsWith('@tldraw.com')
+/** Whether the tab was hidden at any point since navigation start, page boot included. */
+export function wasHiddenSinceNavigation(): boolean {
+	return hiddenDuringLoad
 }
 
 export function markFirstLoad(step: FirstLoadStep) {
 	firstLoad.mark(step)
 }
 
-/** The id the server can join on: sent on the sync socket URL and the init request. */
+/** Sent on the init request; the sync sockets carry their own ids (fileLoad's connect_id). */
 export function getFirstLoadId() {
 	return firstLoad.loadId
 }
 
-export function hasFirstLoadStep(step: FirstLoadStep) {
-	return firstLoad.getMarks()[step] !== undefined
+export function isPageBooting() {
+	return firstLoad.getMarks()['board-visible'] === undefined
+}
+
+export function getFirstLoadRouteKind(): FirstLoadRouteKind {
+	return firstLoad.routeKind()
 }
 
 function navigationTiming() {
 	const nav = performance.getEntriesByType('navigation')[0] as
 		| PerformanceNavigationTiming
 		| undefined
-	if (!nav) return {}
+	return nav ? summarizeNavigation(nav) : {}
+}
+
+/**
+ * Splits `nav_ttfb` into the phases that can make it slow. `nav_fetch_start` covers everything
+ * before the request, including cross-origin redirects (tldraw.com → www) that `nav_redirect_count`
+ * can't see.
+ */
+export function summarizeNavigation(nav: PerformanceNavigationTiming) {
+	const span = (from: number, to: number) => (from > 0 ? Math.round(to - from) : 0)
 	return {
 		nav_type: nav.type,
 		nav_ttfb: Math.round(nav.responseStart),
 		nav_dom_content_loaded: Math.round(nav.domContentLoadedEventEnd),
 		nav_protocol: nav.nextHopProtocol,
+		nav_redirect_count: nav.redirectCount,
+		nav_fetch_start: Math.round(nav.fetchStart),
+		nav_dns_ms: span(nav.domainLookupStart, nav.domainLookupEnd),
+		nav_connect_ms: span(nav.connectStart, nav.connectEnd),
+		nav_server_ms: span(nav.requestStart, nav.responseStart),
+		// Prerender only, and missing from the DOM lib types.
+		nav_activation_start: Math.round(
+			(nav as PerformanceNavigationTiming & { activationStart?: number }).activationStart ?? 0
+		),
 	}
 }
 
@@ -385,18 +340,22 @@ function paintTiming() {
 }
 
 /**
- * Sends the `first_load` event once, if this account is in the gate, and prints the same tables
- * to the console: a flagged user can paste them into a support thread, and staff can read a load
- * without waiting for PostHog.
+ * Builds the report once: sent to PostHog if this account is in the gate, printed to the console if
+ * the debug flag is on.
  */
-const SERVER_ECHO_DEADLINE_MS = 3000
-
 export function reportFirstLoad(opts: {
 	email: string | null | undefined
 	flagEnabled: boolean
 	trackEvent(name: string, data: Record<string, unknown>): void
+	/** The file open whose board ended the load; its connect is this load's server side. */
+	fileLoad: AdoptedFileLoad
+	extra: Record<string, unknown>
 }) {
-	if (!shouldReportFirstLoad(opts)) return
+	const inGate = shouldReportLoad(opts)
+	const hidden = hiddenDuringLoad && inGate
+	const send = inGate && !hiddenDuringLoad
+	const print = printLoads
+	if (!send && !print) return
 	// One report per load, so wait briefly for the server echo rather than dropping the srv_ fields.
 	// Snapshot the page-side numbers now: by the time the echo wait ends, images the board loads
 	// after it became visible would otherwise be counted as first-load resources.
@@ -405,19 +364,40 @@ export function reportFirstLoad(opts: {
 		nav: navigationTiming(),
 		paint: paintTiming(),
 	}
-	void firstLoad
-		.whenServerTimings(SERVER_ECHO_DEADLINE_MS)
-		.then((gotEcho) => sendFirstLoadReport(opts, gotEcho, snapshot))
+	const adopted = opts.fileLoad
+	const fileFields = {
+		file_load_id: adopted.loadId,
+		connect_id: adopted.connectId(),
+		...adopted.bootFields(),
+		...opts.extra,
+	}
+	void adopted.whenServerTimings(SERVER_ECHO_DEADLINE_MS).then((gotEcho) => {
+		const echo = adopted.getServerTimings()
+		if (echo) firstLoad.setServerTimings(echo)
+		sendFirstLoadReport(
+			{ send, print, hidden, staff: isLoadStaff(opts.email), trackEvent: opts.trackEvent },
+			gotEcho,
+			snapshot,
+			fileFields
+		)
+	})
 }
 
 function sendFirstLoadReport(
-	opts: { trackEvent(name: string, data: Record<string, unknown>): void },
+	opts: {
+		send: boolean
+		print: boolean
+		hidden: boolean
+		staff: boolean
+		trackEvent(name: string, data: Record<string, unknown>): void
+	},
 	gotEcho: boolean,
 	snapshot: {
 		entries: PerformanceResourceTiming[]
 		nav: ReturnType<typeof navigationTiming>
 		paint: ReturnType<typeof paintTiming>
-	}
+	},
+	fileFields: Record<string, unknown>
 ) {
 	const report = firstLoad.takeReport()
 	if (!report) return null
@@ -425,6 +405,7 @@ function sendFirstLoadReport(
 	const { steps, ...flat } = report
 	const event = {
 		...flat,
+		...fileFields,
 		// false = deadline passed with no echo, which separates a slow server from a rejected id
 		srv_echo: gotEcho,
 		...initServerTiming(snapshot.entries),
@@ -432,18 +413,28 @@ function sendFirstLoadReport(
 		...snapshot.paint,
 		...resources,
 	}
-	opts.trackEvent('first_load', event)
-	const server = Object.fromEntries(Object.entries(event).filter(([k]) => k.startsWith('srv_')))
+	if (opts.send) opts.trackEvent('first_load', event)
+	if (!opts.print) return event
+	const server = serverTables(event, opts.staff)
 	/* eslint-disable no-console */
-	console.log(`[first-load] ${report.load_id} total ${report.total_ms}ms`)
-	console.table(steps.map((s) => ({ step: s.step, 'ms since nav': s.t, 'delta ms': s.delta })))
-	console.table(server)
-	console.table(resources)
+	console.groupCollapsed(
+		`[first-load] ${report.load_id} total ${report.total_ms}ms` +
+			(fileFields.connect_id ? `, connect_id ${fileFields.connect_id}` : '') +
+			(opts.hidden ? ', tab was hidden so not sent' : '') +
+			' (expand for steps, server, resources)'
+	)
+	console.table(
+		steps.map((s) => ({
+			step: s.step,
+			'ms since nav': s.t,
+			'delta ms': s.delta,
+			...(opts.staff && { what: FIRST_LOAD_STEP_INFO[s.step] }),
+		}))
+	)
+	console.table(server.steps)
+	console.table(opts.staff ? describeLoadFields(server.other, FIRST_LOAD_FIELD_INFO) : server.other)
+	console.table(opts.staff ? describeLoadFields(resources, FIRST_LOAD_FIELD_INFO) : resources)
+	console.groupEnd()
 	/* eslint-enable no-console */
 	return event
-}
-
-/** Feed the sync server's echo for this load (see TlaEditor's custom message handler). */
-export function setFirstLoadServerTimings(msg: FirstLoadServerTimings) {
-	firstLoad.setServerTimings(msg)
 }
