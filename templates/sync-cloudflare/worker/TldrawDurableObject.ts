@@ -109,6 +109,10 @@ export class TldrawDurableObject extends DurableObject {
 		const attachment: SocketAttachment = { sessionId, snapshot: null }
 		serverWebSocket.serializeAttachment(attachment)
 
+		// Resume first: a cold boot that skipped the old socket would give this session a fresh
+		// presence id, and the old one's presence would never be removed for other clients.
+		const room = this.getOrCreateRoom()
+
 		// A client reconnecting under the same session id can leave its old socket open. Clear that
 		// socket's snapshot so a resume after hibernation can't pick it over this one, which would
 		// make the room ignore this socket's messages.
@@ -121,7 +125,7 @@ export class TldrawDurableObject extends DurableObject {
 
 		// Connect to the room. The first webSocketMessage from the client will
 		// complete the handshake and trigger debounced snapshot storage.
-		this.getOrCreateRoom().handleSocketConnect({ sessionId, socket: serverWebSocket })
+		room.handleSocketConnect({ sessionId, socket: serverWebSocket })
 
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
