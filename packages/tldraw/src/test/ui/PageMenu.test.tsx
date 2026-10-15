@@ -126,6 +126,23 @@ describe('pressing Escape while drag-reordering pages (#11112)', () => {
 		expect(editor.getCurrentPage().name).toBe('Page 5')
 		expect(getPageNames()).toEqual(ORIGINAL_ORDER)
 	})
+
+	it('closes the menu when the row is pressed but not yet dragged', async () => {
+		await openPageMenu()
+		const button = getRowButton('Page 2')
+		fireEvent.pointerDown(button, { ...MOUSE, button: 0, clientY: 100 })
+		// Safari doesn't focus buttons on click, so the row may not see the key.
+		;(document.activeElement as HTMLElement | null)?.blur()
+
+		fireEvent.keyDown(document.body, { key: 'Escape' })
+		expect(getListContent()).toBeNull()
+
+		// Hovering after reopening must not turn the abandoned press into a drag.
+		await openPageMenu()
+		fireEvent.pointerMove(getRowButton('Page 2'), { ...MOUSE, clientY: 250 })
+		expect(getListContent()?.getAttribute('data-dragging')).toBe('false')
+		expect(getRowOffsets()).toEqual(RESTING_OFFSETS)
+	})
 })
 
 it('does not leave a drag behind when the menu closes mid-drag', async () => {
