@@ -1,8 +1,21 @@
+import {
+	commentSchemaRecords,
+	createCommentThread,
+	createShapeId,
+	createTLSchema,
+	createTLStore,
+	defaultBindingUtils,
+	defaultShapeUtils,
+	defaultTools,
+	Editor,
+	PageRecordType,
+} from 'tldraw'
 import { describe, expect, it } from 'vitest'
 import { createClusterRuntime } from '../clustering/runtime'
 import type { ClusterNode, ClusterTable, LeafInput } from '../clustering/types'
 import type { ClusterInput } from './cluster-input'
-import { anyFoldedLeafMoved, type ClusterModel } from './cluster-model'
+import { anyFoldedLeafMoved, revealThreadPin, type ClusterModel } from './cluster-model'
+import { defaultCommentingOptions } from './options'
 
 function node(ids: string[], x = 0, y = 0): ClusterNode {
 	const members = ids.slice().sort()
@@ -84,5 +97,55 @@ describe('anyFoldedLeafMoved', () => {
 	it('holds the freeze on mismatched inputs rather than reading past the end', () => {
 		const next = input([leaf('t1', 40, 0), leaf('t2', 10, 0)])
 		expect(anyFoldedLeafMoved(input(AT_REST), next, rendered(0.5))).toBe(false)
+	})
+})
+
+describe('revealThreadPin', () => {
+	it('records a cross-page jump as its own undo step', () => {
+		const editor = new Editor({
+			store: createTLStore({ schema: createTLSchema({ records: commentSchemaRecords }) }),
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			tools: defaultTools,
+			getContainer: () => document.body,
+		})
+		try {
+			const page1Id = editor.getCurrentPageId()
+			const page2Id = PageRecordType.createId()
+			const boxId = createShapeId()
+
+			// Set up the second page outside of history so the only undoable steps are the ones
+			// the test creates: one edit on page 1, then the jump to the pin on page 2.
+			editor.run(() => editor.createPage({ id: page2Id, name: 'Page 2' }), { history: 'ignore' })
+			editor.clearHistory()
+
+			editor.markHistoryStoppingPoint('create box')
+			editor.createShape({ id: boxId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+			const thread = createCommentThread({
+				pageId: page2Id,
+				anchor: { type: 'point', x: 50, y: 50 },
+				createdBy: 'me',
+			})
+			revealThreadPin(
+				editor,
+				thread,
+				{ leaves: [], events: [] },
+				{ minZoom: 0.1, maxZoom: 8 },
+				{ ...defaultCommentingOptions, enableClustering: false },
+				0
+			)
+			expect(editor.getCurrentPageId()).toBe(page2Id)
+
+			// The first undo only takes us back to page 1; the edit made there is still intact.
+			editor.undo()
+			expect(editor.getCurrentPageId()).toBe(page1Id)
+			expect(editor.getShape(boxId)).toBeDefined()
+
+			editor.undo()
+			expect(editor.getShape(boxId)).toBeUndefined()
+		} finally {
+			editor.dispose()
+		}
 	})
 })

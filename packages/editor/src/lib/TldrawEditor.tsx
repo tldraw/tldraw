@@ -46,7 +46,7 @@ import { EditorProvider, useEditor } from './hooks/useEditor'
 import { EditorComponentsProvider } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
-import { useShallowObjectIdentity } from './hooks/useIdentity'
+import { useDeepObjectIdentity, useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
 import { useStateAttribute } from './hooks/useStateAttribute'
@@ -106,11 +106,7 @@ export interface TldrawEditorWithoutStoreProps extends TLStoreBaseOptions {
 /** @public */
 export type TldrawEditorStoreProps = TldrawEditorWithStoreProps | TldrawEditorWithoutStoreProps
 
-/**
- * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.
- *
- * @public
- **/
+/** @public */
 export type TldrawEditorProps = TldrawEditorBaseProps & TldrawEditorStoreProps
 
 /**
@@ -284,7 +280,13 @@ const EMPTY_TOOLS_ARRAY = [] as const
 /** @internal */
 export const TL_CONTAINER_CLASS = 'tl-container'
 
-/** @public @react */
+/**
+ * The editor component without any of the default shapes, tools, or UI. It renders the canvas, or
+ * your own children in its place, with the shape utils, binding utils, tools, and components you
+ * pass in; the `Tldraw` component in the `tldraw` package wraps it with those defaults.
+ *
+ * @public @react
+ */
 export const TldrawEditor = memo(function TldrawEditor({
 	store,
 	components,
@@ -311,18 +313,24 @@ export const TldrawEditor = memo(function TldrawEditor({
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
 
-	// Merge deprecated props with options
-	// options values take precedence over the deprecated props
-	const mergedOptions = useMemo(() => {
-		let result = _options
-		if (_textOptions) {
-			result = { ...result, text: result?.text ?? _textOptions }
-		}
-		if (_deepLinks !== undefined) {
-			result = { ...result, deepLinks: result?.deepLinks ?? _deepLinks }
-		}
-		return result
-	}, [_options, _textOptions, _deepLinks])
+	// Merge deprecated props with options (options win). `options` is a dependency of the
+	// editor-creating effect, so it's shallow-stabilised below; the nested objects are
+	// deep-stabilised here first, or an inline `options={{ camera: { ... } }}` would still
+	// recreate the editor on every render. `text` needs the deep comparison as well: `<Tldraw>`
+	// builds a fresh `tipTapConfig` inside it whenever its own `options.text` is a new identity.
+	const camera = useDeepObjectIdentity(_options?.camera)
+	const gridSteps = useDeepObjectIdentity(_options?.gridSteps)
+	const text = useDeepObjectIdentity(_options?.text ?? _textOptions)
+	const mergedDeepLinks = _options?.deepLinks ?? _deepLinks
+	const deepLinkOptions = useDeepObjectIdentity(
+		mergedDeepLinks === true ? undefined : mergedDeepLinks
+	)
+	const deepLinks = mergedDeepLinks === true ? true : deepLinkOptions
+	let mergedOptions = _options
+	if (camera !== undefined) mergedOptions = { ...mergedOptions, camera }
+	if (gridSteps !== undefined) mergedOptions = { ...mergedOptions, gridSteps }
+	if (text !== undefined) mergedOptions = { ...mergedOptions, text }
+	if (deepLinks !== undefined) mergedOptions = { ...mergedOptions, deepLinks }
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
@@ -669,19 +677,25 @@ function TldrawEditorWithReadyStore({
 	useEffect(
 		function handleFocusOnPointerDownForPreserveFocusMode() {
 			if (!editor) return
+			const container = editor.getContainer()
 
 			function handleFocusOnPointerDown() {
 				if (!editor) return
 				editor.focus()
 			}
 
-			function handleBlurOnPointerDown() {
+			function handleBlurOnPointerDown(e: PointerEvent) {
 				if (!editor) return
+				// The same pointerdown bubbles from the container to the body; blurring here would
+				// cancel the interaction the container listener just focused for. Check the composed
+				// path rather than `e.target`: when the editor lives in an open shadow root the target
+				// is retargeted to the shadow host by the time the event reaches the body. (A closed
+				// shadow root truncates the path at the host, so those still blur.)
+				if (e.composedPath().includes(container)) return
 				editor.blur()
 			}
 
 			if (autoFocus && noAutoFocus()) {
-				const container = editor.getContainer()
 				container.addEventListener('pointerdown', handleFocusOnPointerDown)
 				container.ownerDocument.body.addEventListener('pointerdown', handleBlurOnPointerDown)
 

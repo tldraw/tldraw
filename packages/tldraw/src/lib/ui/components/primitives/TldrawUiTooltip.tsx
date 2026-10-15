@@ -61,15 +61,7 @@ type TooltipEvent =
 
 // Singleton tooltip manager using explicit state machine
 class TooltipManager {
-	private static instance: TooltipManager | null = null
 	private state = atom<TooltipState>('tooltip state', { name: 'idle' })
-
-	static getInstance(): TooltipManager {
-		if (!TooltipManager.instance) {
-			TooltipManager.instance = new TooltipManager()
-		}
-		return TooltipManager.instance
-	}
 
 	hideAllTooltips() {
 		this.handleEvent({ type: 'hide_all' })
@@ -162,21 +154,14 @@ class TooltipManager {
 
 	getCurrentTooltipData(): TooltipData | null {
 		const currentState = this.state.get()
-		let tooltip: TooltipData | null = null
-
-		if (currentState.name === 'showing') {
-			tooltip = currentState.tooltip
-		} else if (currentState.name === 'waiting_to_hide') {
-			tooltip = currentState.tooltip
-		}
-
-		if (!tooltip) return null
+		if (currentState.name !== 'showing' && currentState.name !== 'waiting_to_hide') return null
+		const { tooltip } = currentState
 		if (tlenvReactive.get().isCoarsePointer && !tooltip.showOnMobile) return null
 		return tooltip
 	}
 }
 
-const tooltipManager = TooltipManager.getInstance()
+const tooltipManager = new TooltipManager()
 
 /** @public */
 export function hideAllTooltips() {
@@ -386,13 +371,9 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			return <>{children}</>
 		}
 
-		let delayDurationToUse
-		if (enhancedA11yMode) {
-			delayDurationToUse = 0
-		} else {
-			delayDurationToUse =
-				delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS)
-		}
+		const delayDurationToUse = enhancedA11yMode
+			? 0
+			: (delayDuration ?? (editor?.options.tooltipDelayMs || DEFAULT_TOOLTIP_DELAY_MS))
 
 		// Fallback to old behavior if no provider
 		if (!hasProvider || enhancedA11yMode) {
@@ -429,14 +410,13 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			onBlur?(event: React.FocusEvent<HTMLElement>): void
 		}>
 
-		const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
-			childElement.props.onMouseEnter?.(event)
+		const show = (targetElement: HTMLElement) => {
 			tooltipManager.handleEvent({
 				type: 'show',
 				tooltip: {
 					id: tooltipId.current,
 					content,
-					targetElement: event.currentTarget as HTMLElement,
+					targetElement,
 					side: sideToUse,
 					sideOffset,
 					showOnMobile,
@@ -445,8 +425,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			})
 		}
 
-		const handleMouseLeave = (event: React.MouseEvent<HTMLElement>) => {
-			childElement.props.onMouseLeave?.(event)
+		const hide = () => {
 			tooltipManager.handleEvent({
 				type: 'hide',
 				tooltipId: tooltipId.current,
@@ -455,39 +434,23 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			})
 		}
 
-		const handleFocus = (event: React.FocusEvent<HTMLElement>) => {
-			childElement.props.onFocus?.(event)
-			tooltipManager.handleEvent({
-				type: 'show',
-				tooltip: {
-					id: tooltipId.current,
-					content,
-					targetElement: event.currentTarget as HTMLElement,
-					side: sideToUse,
-					sideOffset,
-					showOnMobile,
-					delayDuration: delayDurationToUse,
-				},
-			})
-		}
-
-		const handleBlur = (event: React.FocusEvent<HTMLElement>) => {
-			childElement.props.onBlur?.(event)
-			tooltipManager.handleEvent({
-				type: 'hide',
-				tooltipId: tooltipId.current,
-				editor,
-				instant: false,
-			})
-		}
-
-		const childrenWithHandlers = React.cloneElement(childElement, {
-			onMouseEnter: handleMouseEnter,
-			onMouseLeave: handleMouseLeave,
-			onFocus: handleFocus,
-			onBlur: handleBlur,
+		return React.cloneElement(childElement, {
+			onMouseEnter: (event: React.MouseEvent<HTMLElement>) => {
+				childElement.props.onMouseEnter?.(event)
+				show(event.currentTarget)
+			},
+			onMouseLeave: (event: React.MouseEvent<HTMLElement>) => {
+				childElement.props.onMouseLeave?.(event)
+				hide()
+			},
+			onFocus: (event: React.FocusEvent<HTMLElement>) => {
+				childElement.props.onFocus?.(event)
+				show(event.currentTarget)
+			},
+			onBlur: (event: React.FocusEvent<HTMLElement>) => {
+				childElement.props.onBlur?.(event)
+				hide()
+			},
 		})
-
-		return childrenWithHandlers
 	}
 )

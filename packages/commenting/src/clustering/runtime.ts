@@ -70,7 +70,7 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 	private resolvedCache: { version: number; map: Map<string, ClusterNode> } | null = null
 
 	constructor(private readonly table: ClusterTable) {
-		this.resetVisible()
+		this.reset()
 	}
 
 	getSuppressedCount(): number {
@@ -84,10 +84,7 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 	seed(zoom: number): void {
 		validateZoom(zoom)
 		this.k = seedCount(this.table.events, zoom)
-		this.suppressed.clear()
-		this.detached.clear()
-		this.patched.clear()
-		this.resetVisible()
+		this.reset()
 		for (let i = 0; i < this.k; i++) {
 			applyEvent(this.visible, this.table.events[i])
 		}
@@ -114,10 +111,7 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 		}
 
 		this.k = k
-		this.suppressed.clear()
-		this.detached.clear()
-		this.patched.clear()
-		this.resetVisible()
+		this.reset()
 		for (let i = 0; i < k; i++) {
 			const event = events[i]
 			if (zoom > event.zMerge && !wasMergedTogether(event.result.members, ownerByMember)) {
@@ -222,8 +216,8 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 			this.patched.set(id, null)
 		}
 		const patch = (node: ClusterNode) => {
-			if (node.members.length === 1 || !node.members.some((m) => this.detached.has(m))) return
 			const members = node.members.filter((m) => !this.detached.has(m))
+			if (members.length === node.members.length) return
 			if (members.length === 0) {
 				this.patched.set(node.id, null)
 			} else if (members.length === 1) {
@@ -250,11 +244,11 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 		}
 	}
 
-	private resetVisible() {
-		this.visible = new Map()
-		for (const leaf of this.table.leaves) {
-			this.visible.set(leaf.id, leaf)
-		}
+	private reset() {
+		this.suppressed.clear()
+		this.detached.clear()
+		this.patched.clear()
+		this.visible = new Map(this.table.leaves.map((leaf) => [leaf.id, leaf]))
 	}
 }
 

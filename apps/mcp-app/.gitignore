@@ -5,11 +5,3 @@ mcp-deployed-server-plan.md
 # Environment secrets
 .env
 .dev.vars
-
-# Prune script run artifacts
-prune-ids.txt
-prune-results.jsonl
-prune-dry-run.jsonl
-prune-list-cursor.txt
-prune-progress.json
-prune-ids-partial*.txt

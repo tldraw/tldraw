@@ -1,5 +1,3 @@
-let nextMermaidId = 0
-
 import type { FlowDB } from 'mermaid/dist/diagrams/flowchart/flowDb.d.ts'
 import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
 import type { MindmapDB } from 'mermaid/dist/diagrams/mindmap/mindmapDb.d.ts'
@@ -7,10 +5,13 @@ import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
 import type { StateDB } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
 import { Editor } from 'tldraw'
 import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
+import { createLabelWidthMeasurer } from './mermaidNodeCreateShape'
 import { mindmapToBlueprint, parseMindmapLayout } from './mindmapDiagram'
 import { BlueprintRenderingOptions, renderBlueprint } from './renderBlueprint'
 import { countSequenceEvents, parseSequenceLayout, sequenceToBlueprint } from './sequenceDiagram'
 import { parseStateDiagramLayout, stateToBlueprint } from './stateDiagram'
+
+let nextMermaidId = 0
 
 /** @public */
 export class MermaidDiagramError extends Error {
@@ -70,6 +71,11 @@ export async function createMermaidDiagram(
 		mindmap: { ...MERMAID_CONFIG.mindmap, ...options.mermaidConfig?.mindmap },
 		sequence: { ...MERMAID_CONFIG.sequence, ...options.mermaidConfig?.sequence },
 		themeVariables: { ...MERMAID_CONFIG.themeVariables, ...options.mermaidConfig?.themeVariables },
+		// A diagram's own `%%{init}%%` or frontmatter config outranks `initialize`, so one that sets
+		// `fontSize` undoes FONT_INFLATE: every box is measured small while tldraw still draws its
+		// wider face, and labels break mid-word. Mermaid strips `secure` keys from in-diagram config
+		// at any depth, and keeps its own defaults alongside the ones listed here.
+		secure: [...(options.mermaidConfig?.secure ?? []), 'fontSize'],
 	})
 
 	const parsedResult = await mermaid.parse(text, { suppressErrors: true })
@@ -79,10 +85,12 @@ export async function createMermaidDiagram(
 	}
 
 	const offscreen = document.createElement('div')
-	offscreen.style.position = 'absolute'
-	offscreen.style.left = '-9999px'
-	offscreen.style.top = '-9999px'
-	offscreen.style.overflow = 'hidden'
+	Object.assign(offscreen.style, {
+		position: 'absolute',
+		left: '-9999px',
+		top: '-9999px',
+		overflow: 'hidden',
+	})
 	document.body.appendChild(offscreen)
 
 	try {
@@ -129,7 +137,8 @@ export async function createMermaidDiagram(
 					actorKeys,
 					messages,
 					db.getCreatedActors(),
-					db.getDestroyedActors()
+					db.getDestroyedActors(),
+					createLabelWidthMeasurer(editor)
 				)
 				break
 			}
