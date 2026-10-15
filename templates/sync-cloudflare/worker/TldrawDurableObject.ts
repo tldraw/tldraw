@@ -165,6 +165,6 @@ export class TldrawDurableObject extends DurableObject {
 			})
 		}
 
-		room[method](attachment.sessionId)
+		room[method](attachment.sessionId, ws)
 	}
 }

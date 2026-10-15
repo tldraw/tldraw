@@ -778,7 +778,7 @@ export class TLFileDurableObject extends DurableObject {
 				})
 			}
 
-			room[method](attachment.sessionId)
+			room[method](attachment.sessionId, ws)
 		} catch (e) {
 			if (e instanceof RoomNotFoundError) {
 				// The socket is already closing/closed; nothing left to clean up on the room side.

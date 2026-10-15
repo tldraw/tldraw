@@ -356,9 +356,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		const { sessionId, socket, isReadonly = false, objectAccess = 'write' } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data, socket)
-		const handleSocketError = this.handleSocketError.bind(this, sessionId)
-		const handleSocketClose = this.handleSocketClose.bind(this, sessionId)
+		const handleSocketError = () => this.handleSocketError(sessionId, socket)
+		const handleSocketClose = () => this.handleSocketClose(sessionId, socket)
 
+		// A reconnect under the same session id can leave the old socket open.
+		this.sessions.get(sessionId)?.unlisten()
 		this.sessions.set(sessionId, {
 			assembler: new JsonChunkAssembler(),
 			socket,
@@ -519,17 +521,22 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * where socket event listeners cannot be attached directly. This will initiate cleanup
 	 * and session removal for the affected client.
 	 *
+	 * Pass the socket the error came from whenever you have it, so a superseded socket's error
+	 * after a same-id reconnect doesn't cancel the replacement session.
+	 *
 	 * @param sessionId - Session identifier matching the one used in handleSocketConnect
+	 * @param socket - The socket the error came from, when known
 	 *
 	 * @example
 	 * ```ts
 	 * // In a custom WebSocket handler
 	 * socket.addEventListener('error', () => {
-	 *   room.handleSocketError(sessionId)
+	 *   room.handleSocketError(sessionId, socket)
 	 * })
 	 * ```
 	 */
-	handleSocketError(sessionId: string) {
+	handleSocketError(sessionId: string, socket?: WebSocketMinimal) {
+		if (this.isSupersededSocket(sessionId, socket)) return
 		this.clearSnapshotTimer(sessionId)
 		this.room.handleClose(sessionId)
 	}
@@ -539,19 +546,31 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * environments where socket event listeners cannot be attached directly. This will
 	 * initiate cleanup and session removal for the disconnected client.
 	 *
+	 * Pass the socket the close came from whenever you have it. A client that reconnects under the
+	 * same session id can leave its previous socket half-open, and that socket's late close would
+	 * otherwise cancel the new, live session.
+	 *
 	 * @param sessionId - Session identifier matching the one used in handleSocketConnect
+	 * @param socket - The socket that closed, when known
 	 *
 	 * @example
 	 * ```ts
 	 * // In a custom WebSocket handler
 	 * socket.addEventListener('close', () => {
-	 *   room.handleSocketClose(sessionId)
+	 *   room.handleSocketClose(sessionId, socket)
 	 * })
 	 * ```
 	 */
-	handleSocketClose(sessionId: string) {
+	handleSocketClose(sessionId: string, socket?: WebSocketMinimal) {
+		if (this.isSupersededSocket(sessionId, socket)) return
 		this.clearSnapshotTimer(sessionId)
 		this.room.handleClose(sessionId)
+	}
+
+	private isSupersededSocket(sessionId: string, socket: WebSocketMinimal | undefined) {
+		if (!socket) return false
+		const entry = this.sessions.get(sessionId)
+		return !!entry && entry.socket !== socket
 	}
 
 	/**
@@ -595,6 +614,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	) {
 		const { sessionId, socket, snapshot } = opts
 
+		this.sessions.get(sessionId)?.unlisten()
 		this.sessions.set(sessionId, {
 			assembler: new JsonChunkAssembler(),
 			socket,

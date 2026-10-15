@@ -654,6 +654,42 @@ describe('28. TLSocketRoom (SR)', () => {
 			expect(room.getSessions()[0].isConnected).toBe(false)
 			expect(socket.close).toHaveBeenCalled()
 		})
+
+		it.each(['handleSocketClose', 'handleSocketError'] as const)(
+			"[SR6] %s ignores a superseded socket's late event after a same-id reconnect",
+			(method) => {
+				const oldSocket = createMockSocket()
+				connectSession(room, 'S', oldSocket)
+				const newSocket = createMockSocket()
+				connectSession(room, 'S', newSocket)
+
+				room[method]('S', oldSocket)
+
+				expect(room.getSessions()).toEqual([
+					expect.objectContaining({ sessionId: 'S', isConnected: true }),
+				])
+				expect(newSocket.close).not.toHaveBeenCalled()
+
+				room[method]('S', newSocket)
+				expect(room.getSessions()[0].isConnected).toBe(false)
+			}
+		)
+
+		it("[SR4][SR6] a reconnect detaches the previous socket's listeners", () => {
+			const listeners = new Map<string, (e: any) => void>()
+			const oldSocket = createMockSocket({
+				addEventListener: vi.fn((type: string, fn: (e: any) => void) => listeners.set(type, fn)),
+				removeEventListener: vi.fn((type: string, fn: (e: any) => void) => {
+					if (listeners.get(type) === fn) listeners.delete(type)
+				}),
+			})
+			connectSession(room, 'S', oldSocket)
+			expect([...listeners.keys()].sort()).toEqual(['close', 'error', 'message'])
+
+			connectSession(room, 'S', createMockSocket())
+
+			expect(listeners.size).toBe(0)
+		})
 	})
 
 	describe('session reporting', () => {
