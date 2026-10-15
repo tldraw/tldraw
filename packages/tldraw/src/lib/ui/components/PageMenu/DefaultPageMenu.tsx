@@ -375,6 +375,9 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 		const mut = rMutables.current
 		setPointerCapture(currentTarget, e)
+		// A drag released over another row gets no click to clear this, which
+		// would otherwise swallow the next click on a page.
+		mut.justDragged = false
 		mut.status = 'pointing'
 		mut.id = id as TLPageId
 		mut.startIndex = +index
@@ -445,16 +448,33 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		[resetDrag]
 	)
 
-	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent<HTMLButtonElement>) => {
-			// Pointer capture is naturally released on the eventual pointer up,
-			// at which point the idle status makes the up handler a no-op.
-			if (e.key === 'Escape' && rMutables.current.status !== 'idle') {
-				resetDrag()
+	const isDragInProgress = dragState !== null
+
+	// Escape mid-drag cancels only the drag, so the popover's own Escape
+	// dismissal is disabled while dragging. This listens on the document
+	// because the dragged row doesn't always have focus.
+	useEffect(() => {
+		if (!isDragInProgress) return
+		const doc = editor.getContainerDocument()
+		function handleKeyDown(e: KeyboardEvent) {
+			if (e.key !== 'Escape') return
+			const mut = rMutables.current
+			// The pointer is still captured by the row, so its release would
+			// otherwise click it and switch to the dragged page.
+			if (!mut.startedOnDragHandle) {
+				mut.justDragged = true
 			}
-		},
-		[resetDrag]
-	)
+			resetDrag()
+		}
+		doc.addEventListener('keydown', handleKeyDown, true)
+		return () => doc.removeEventListener('keydown', handleKeyDown, true)
+	}, [editor, isDragInProgress, resetDrag])
+
+	// Closing the menu unmounts the rows while one may still hold pointer
+	// capture, so their pointer up and cancel handlers never run (#11112).
+	useEffect(() => {
+		if (!isOpen) resetDrag()
+	}, [isOpen, resetDrag])
 
 	const shouldUseWindowPrompt = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer
 	const shouldUseDragHandle = !isReadonlyMode && isCoarsePointer
@@ -536,7 +556,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				side="bottom"
 				align="start"
 				sideOffset={0}
-				disableEscapeKeyDown={editingPageId !== null}
+				disableEscapeKeyDown={editingPageId !== null || isDragInProgress}
 			>
 				<div className="tlui-page-menu__wrapper">
 					<div
@@ -616,7 +636,6 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 														onPointerMove={handlePointerMove}
 														onPointerUp={handlePointerUp}
 														onPointerCancel={handlePointerCancel}
-														onKeyDown={handleKeyDown}
 														tooltip={msg('context-menu.reorder')}
 														title={msg('context-menu.reorder')}
 													>
@@ -640,10 +659,6 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 													data-id={page.id}
 													data-index={index}
 													onKeyDown={(e) => {
-														if (e.key === 'Escape') {
-															handleKeyDown(e)
-															return
-														}
 														if (e.key === 'Enter' && isCurrentPage) {
 															startRenamingPage(page.id, page.name)
 															editor.markEventAsHandled(e)
