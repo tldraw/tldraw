@@ -15,7 +15,6 @@ beforeEach(async () => {
 	editor = result.editor
 
 	act(() => {
-		editor.renamePage(editor.getCurrentPageId(), 'Page 1')
 		for (let i = 2; i <= 5; i++) {
 			editor.createPage({ name: `Page ${i}` })
 		}
@@ -27,6 +26,7 @@ afterEach(() => {
 })
 
 const ORIGINAL_ORDER = ['Page 1', 'Page 2', 'Page 3', 'Page 4', 'Page 5']
+const RESTING_OFFSETS = [0, 36, 72, 108, 144]
 
 // jsdom's default pointerType is '', which tldraw treats as a coarse pointer, and the page menu
 // only lets fine pointers drag rows directly.
@@ -40,13 +40,19 @@ function getListContent() {
 	return document.querySelector('.tlui-page-menu__list__content')
 }
 
-function getRow(name: string) {
-	const page = editor.getPages().find((p) => p.name === name)!
-	return document.querySelector<HTMLElement>(`[data-pageid="${page.id}"]`)!
+// Each row's vertical offset, in page order.
+function getRowOffsets() {
+	return editor.getPages().map((p) => {
+		const row = document.querySelector<HTMLElement>(`[data-pageid="${p.id}"]`)!
+		return Number(row.style.transform.match(/translateY\((-?[\d.]+)px\)/)![1])
+	})
 }
 
 function getRowButton(name: string) {
-	return getRow(name).querySelector<HTMLElement>('.tlui-page-menu__item__button')!
+	const page = editor.getPages().find((p) => p.name === name)!
+	return document.querySelector<HTMLElement>(
+		`[data-pageid="${page.id}"] .tlui-page-menu__item__button`
+	)!
 }
 
 async function openPageMenu() {
@@ -62,7 +68,7 @@ function dragPage2DownTwoRows() {
 	fireEvent.pointerDown(button, { ...MOUSE, button: 0, clientY: 100 })
 	fireEvent.pointerMove(button, { ...MOUSE, clientY: 172 })
 	expect(getListContent()?.getAttribute('data-dragging')).toBe('true')
-	expect(getRow('Page 2').style.transform).toBe('translateY(108px)')
+	expect(getRowOffsets()).toEqual([0, 108, 36, 72, 144])
 	return button
 }
 
@@ -75,8 +81,7 @@ describe('pressing Escape while drag-reordering pages (#11112)', () => {
 
 		expect(getListContent()).not.toBeNull()
 		expect(getListContent()?.getAttribute('data-dragging')).toBe('false')
-		expect(getRow('Page 2').style.transform).toBe('translateY(36px)')
-		expect(getRow('Page 3').style.transform).toBe('translateY(72px)')
+		expect(getRowOffsets()).toEqual(RESTING_OFFSETS)
 
 		// The row still holds pointer capture, so the release lands on it.
 		fireEvent.pointerUp(button, { ...MOUSE, clientY: 172 })
@@ -89,6 +94,21 @@ describe('pressing Escape while drag-reordering pages (#11112)', () => {
 		// With no drag in progress, Escape closes the menu as usual.
 		fireEvent.keyDown(button, { key: 'Escape' })
 		expect(getListContent()).toBeNull()
+	})
+
+	it('cancels only the drag when the body has focus', async () => {
+		await openPageMenu()
+		const button = dragPage2DownTwoRows()
+		;(document.activeElement as HTMLElement | null)?.blur()
+		expect(document.activeElement).toBe(document.body)
+
+		fireEvent.keyDown(document.body, { key: 'Escape' })
+
+		expect(getListContent()).not.toBeNull()
+		expect(getRowOffsets()).toEqual(RESTING_OFFSETS)
+
+		fireEvent.pointerUp(button, { ...MOUSE, clientY: 172 })
+		expect(getPageNames()).toEqual(ORIGINAL_ORDER)
 	})
 
 	it('still lets the next click switch pages when the release lands on another row', async () => {
@@ -119,7 +139,7 @@ it('does not leave a drag behind when the menu closes mid-drag', async () => {
 
 	await openPageMenu()
 	expect(getListContent()?.getAttribute('data-dragging')).toBe('false')
-	expect(getRow('Page 2').style.transform).toBe('translateY(36px)')
+	expect(getRowOffsets()).toEqual(RESTING_OFFSETS)
 
 	// Hovering with no button held must not pick the row back up.
 	fireEvent.pointerMove(getRowButton('Page 2'), { ...MOUSE, clientY: 250 })

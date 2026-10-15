@@ -229,8 +229,10 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		startY: 0,
 		startScrollTop: 0,
 		lastClientY: 0,
-		// Set true on pointer-up after a drag, so the synthetic click that
-		// follows pointer-up doesn't also navigate to the dragged page.
+		// Set true when a drag ends, whether dropped or cancelled with Escape,
+		// so the click that follows the release doesn't also navigate to the
+		// dragged page. Cleared on pointer down: a release over another row
+		// gets no click, and a stale flag would swallow the next click.
 		justDragged: false,
 		startedOnDragHandle: false,
 		// Whether an auto-scroll rAF is in flight; the loop reschedules itself
@@ -375,8 +377,6 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 		const mut = rMutables.current
 		setPointerCapture(currentTarget, e)
-		// A drag released over another row gets no click to clear this, which
-		// would otherwise swallow the next click on a page.
 		mut.justDragged = false
 		mut.status = 'pointing'
 		mut.id = id as TLPageId
@@ -452,15 +452,17 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	// Escape mid-drag cancels only the drag, so the popover's own Escape
 	// dismissal is disabled while dragging. This listens on the document
-	// because the dragged row doesn't always have focus.
+	// because the dragged row doesn't always have focus, and stops the event
+	// so other Escape handlers (like the one above that closes menus when
+	// the body has focus) don't close the menu too.
 	useEffect(() => {
 		if (!isDragInProgress) return
 		const doc = editor.getContainerDocument()
 		function handleKeyDown(e: KeyboardEvent) {
 			if (e.key !== 'Escape') return
+			e.stopPropagation()
 			const mut = rMutables.current
-			// The pointer is still captured by the row, so its release would
-			// otherwise click it and switch to the dragged page.
+			// The row still holds pointer capture, so its release will click it.
 			if (!mut.startedOnDragHandle) {
 				mut.justDragged = true
 			}
@@ -567,7 +569,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 					>
 						<div
 							className="tlui-page-menu__list__content"
-							data-dragging={dragState !== null}
+							data-dragging={isDragInProgress}
 							style={{ height: autoFitListHeight }}
 						>
 							{pages.map((page, index) => {
