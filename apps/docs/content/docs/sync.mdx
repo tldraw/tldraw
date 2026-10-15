@@ -115,7 +115,7 @@ room.handleSocketConnect({ sessionId, socket })
 // If your platform doesn't let the room add listeners to the socket itself
 // (Bun.serve, Cloudflare hibernation), forward events by hand:
 room.handleSocketMessage(sessionId, message)
-room.handleSocketClose(sessionId)
+room.handleSocketClose(sessionId, socket)
 ```
 
 <Callout type="info">
