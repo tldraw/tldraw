@@ -769,12 +769,15 @@ export class TLFileDurableObject extends DurableObject {
 
 			// If the DO was hibernating, this session was never re-added to the room.
 			// Resume it briefly so the room can broadcast presence removal to other clients.
-			if (attachment.snapshot && !room.getSessionSnapshot(attachment.sessionId)) {
+			// Re-read after the await: a same-id reconnect during boot clears this socket's snapshot,
+			// and resuming from the stale copy would hand the new session to this closing socket.
+			const latest = this.getSocketAttachment(ws)
+			if (latest?.snapshot && !room.getSessionSnapshot(attachment.sessionId)) {
 				room.handleSocketResume({
 					sessionId: attachment.sessionId,
 					socket: ws,
-					snapshot: attachment.snapshot,
-					meta: attachment.meta,
+					snapshot: latest.snapshot,
+					meta: latest.meta,
 				})
 			}
 
