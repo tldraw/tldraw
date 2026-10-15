@@ -21,7 +21,11 @@
 			"target": "cloudflare",
 			"host": "agent.templates.tldraw.dev",
 			"secrets": [
-				"OPENROUTER_API_KEY"
+				"ANTHROPIC_API_KEY",
+				"OPENAI_API_KEY",
+				"GOOGLE_API_KEY",
+				"ANTHROPIC_BASE_URL",
+				"OPENAI_BASE_URL"
 			]
 		},
 		"scripts": {
@@ -38,6 +42,7 @@
 	},
 	"dependencies": {
 		"@ai-sdk/anthropic": "^2.0.80",
+		"@ai-sdk/google": "^2.0.74",
 		"@ai-sdk/openai": "^2.0.106",
 		"@cloudflare/vite-plugin": "^1.29.1",
 		"@google/generative-ai": "^0.24.1",

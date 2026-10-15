@@ -1,7 +1,17 @@
 import { AnthropicProvider, AnthropicProviderOptions, createAnthropic } from '@ai-sdk/anthropic'
+import {
+	createGoogleGenerativeAI,
+	GoogleGenerativeAIProvider,
+	GoogleGenerativeAIProviderOptions,
+} from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider, OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
 import { LanguageModel, ModelMessage, streamText } from 'ai'
-import { AgentModelDefinition, AgentModelName, getAgentModelDefinition } from '../../shared/models'
+import {
+	AgentModelDefinition,
+	AgentModelName,
+	getAgentModelDefinition,
+	isValidModelName,
+} from '../../shared/models'
 import { DebugPart } from '../../shared/schema/PromptPartDefinitions'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
@@ -15,17 +25,15 @@ import { closeAndParseJson } from './closeAndParseJson'
 export class AgentService {
 	openai: OpenAIProvider
 	anthropic: AnthropicProvider
+	google: GoogleGenerativeAIProvider
 
 	constructor(env: Environment) {
-		// OpenRouter serves both the OpenAI Responses and Anthropic Messages APIs, so one key reaches every model.
-		const baseURL = 'https://openrouter.ai/api/v1'
-		const apiKey = env.OPENROUTER_API_KEY
-		this.openai = createOpenAI({ baseURL, apiKey })
+		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY, baseURL: env.OPENAI_BASE_URL })
 		this.anthropic = createAnthropic({
-			baseURL,
-			apiKey,
-			headers: { Authorization: `Bearer ${apiKey}` },
+			apiKey: env.ANTHROPIC_API_KEY,
+			baseURL: env.ANTHROPIC_BASE_URL,
 		})
+		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
 	}
 
 	getModel(modelName: AgentModelName): LanguageModel {
@@ -53,8 +61,12 @@ export class AgentService {
 			throw new Error('Model is a string, not a LanguageModel')
 		}
 
-		const { provider } = model
-		const modelDefinition = getAgentModelDefinition(modelName)
+		const { modelId, provider } = model
+		if (!isValidModelName(modelId)) {
+			throw new Error(`Model ${modelId} is not in AGENT_MODEL_DEFINITIONS`)
+		}
+
+		const modelDefinition = getAgentModelDefinition(modelId)
 		const systemPrompt = buildSystemPrompt(prompt)
 
 		// Build messages with provider-specific options
@@ -121,7 +133,8 @@ export class AgentService {
 			})
 
 			const canForceResponseStart =
-				provider === 'anthropic.messages' && modelDefinition.supportsPrefill
+				(provider === 'anthropic.messages' || provider === 'google.generative-ai') &&
+				modelDefinition.supportsPrefill
 			let buffer = canForceResponseStart ? '{"actions": [{"_type":' : ''
 			let cursor = 0
 			let maybeIncompleteAction: AgentAction | null = null
@@ -201,6 +214,12 @@ function getProviderOptions(definition: AgentModelDefinition): StreamTextProvide
 						definition.thinking === 'adaptive' ? { type: 'adaptive' } : { type: 'disabled' },
 					...(definition.effort ? { effort: definition.effort } : {}),
 				} satisfies AnthropicProviderOptions,
+			}
+		case 'google':
+			return {
+				google: {
+					thinkingConfig: { thinkingLevel: definition.thinkingLevel },
+				} satisfies GoogleGenerativeAIProviderOptions,
 			}
 		case 'openai':
 			return {

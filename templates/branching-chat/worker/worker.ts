@@ -1,11 +1,11 @@
-import { createOpenAI } from '@ai-sdk/openai'
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { ExecutionContext } from '@cloudflare/workers-types'
 import { generateText, ModelMessage, smoothStream, streamText } from 'ai'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { AutoRouter, error, IRequest } from 'itty-router'
 import { Environment } from './types'
 
-const MODEL_ID = 'google/gemini-3.8-flash'
+const MODEL_ID = 'gemini-3.8-flash'
 
 // Worker (handles AI requests directly)
 export default class extends WorkerEntrypoint<Environment> {
@@ -23,10 +23,7 @@ export default class extends WorkerEntrypoint<Environment> {
 	}
 
 	private getModel(env: Environment) {
-		return createOpenAI({
-			baseURL: 'https://openrouter.ai/api/v1',
-			apiKey: env.OPENROUTER_API_KEY,
-		})(MODEL_ID)
+		return createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY })(MODEL_ID)
 	}
 
 	// Generate a new response from the model

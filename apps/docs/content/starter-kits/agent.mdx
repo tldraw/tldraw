@@ -25,13 +25,15 @@ To build with an agent starter kit, run this command in your terminal:
 npm create tldraw@latest -- --template agent
 ```
 
-Then create a `.dev.vars` file in the project root with an API key from [OpenRouter](https://openrouter.ai/settings/keys). The agent reaches every model through OpenRouter:
+Then create a `.dev.vars` file in the project root with API keys for the model providers you want to use:
 
 ```
-OPENROUTER_API_KEY=<your key>
+ANTHROPIC_API_KEY=<your key>
+GOOGLE_API_KEY=<your key>
+OPENAI_API_KEY=<your key>
 ```
 
-We recommend Anthropic models for best results.
+We recommend Anthropic for best results. Get an API key from the [Anthropic dashboard](https://console.anthropic.com/settings/keys).
 
 ---
 
@@ -566,7 +568,7 @@ To add support for a different model, add the model's definition to `AGENT_MODEL
 ```tsx
 'claude-sonnet-5': {
 	name: 'claude-sonnet-5',
-	id: 'anthropic/claude-sonnet-5',
+	id: 'claude-sonnet-5',
 	provider: 'anthropic',
 	supportsPrefill: false,
 	supportsTemperature: false,

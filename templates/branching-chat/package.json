@@ -21,7 +21,7 @@
 			"target": "cloudflare",
 			"host": "branching-chat.templates.tldraw.dev",
 			"secrets": [
-				"OPENROUTER_API_KEY"
+				"GOOGLE_GENERATIVE_AI_API_KEY"
 			]
 		},
 		"scripts": {
@@ -37,7 +37,7 @@
 		"build-types": "tsc"
 	},
 	"dependencies": {
-		"@ai-sdk/openai": "^2.0.106",
+		"@ai-sdk/google": "^2.0.74",
 		"@cloudflare/vite-plugin": "^1.29.1",
 		"ai": "^5.0.194",
 		"classnames": "^2.5.1",

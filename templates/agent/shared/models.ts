@@ -1,8 +1,5 @@
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
-/**
- * The API format used to reach a model through OpenRouter: Anthropic Messages or OpenAI Responses.
- */
-export type AgentModelProvider = 'openai' | 'anthropic'
+export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
 
 /** Adaptive-thinking mode passed to the Anthropic provider. */
 export type AnthropicThinking = 'adaptive' | 'disabled'
@@ -13,9 +10,11 @@ export type AnthropicEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 /** Reasoning effort passed to the OpenAI provider. */
 export type OpenAIReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
+/** Thinking level passed to the Google provider. */
+export type GeminiThinkingLevel = 'low' | 'medium' | 'high'
+
 interface BaseAgentModelDefinition {
 	name: AgentModelName
-	/** The OpenRouter model id. */
 	id: string
 
 	/**
@@ -38,18 +37,26 @@ export interface AnthropicModelDefinition extends BaseAgentModelDefinition {
 	effort?: AnthropicEffort
 }
 
+export interface GoogleModelDefinition extends BaseAgentModelDefinition {
+	provider: 'google'
+	thinkingLevel: GeminiThinkingLevel
+}
+
 export interface OpenAIModelDefinition extends BaseAgentModelDefinition {
 	provider: 'openai'
 	reasoningEffort: OpenAIReasoningEffort
 }
 
-export type AgentModelDefinition = AnthropicModelDefinition | OpenAIModelDefinition
+export type AgentModelDefinition =
+	| AnthropicModelDefinition
+	| GoogleModelDefinition
+	| OpenAIModelDefinition
 
 export const AGENT_MODEL_DEFINITIONS = {
 	// Anthropic models
 	'claude-opus-5': {
 		name: 'claude-opus-5',
-		id: 'anthropic/claude-opus-5',
+		id: 'claude-opus-5',
 		provider: 'anthropic',
 		supportsPrefill: false,
 		supportsTemperature: false,
@@ -59,7 +66,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 
 	'claude-sonnet-5': {
 		name: 'claude-sonnet-5',
-		id: 'anthropic/claude-sonnet-5',
+		id: 'claude-sonnet-5',
 		provider: 'anthropic',
 		supportsPrefill: false,
 		supportsTemperature: false,
@@ -69,7 +76,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 
 	'claude-haiku-4-5': {
 		name: 'claude-haiku-4-5',
-		id: 'anthropic/claude-haiku-4.5',
+		id: 'claude-haiku-4-5',
 		provider: 'anthropic',
 		supportsPrefill: true,
 		supportsTemperature: true,
@@ -79,17 +86,17 @@ export const AGENT_MODEL_DEFINITIONS = {
 	// Google models
 	'gemini-3.8-flash': {
 		name: 'gemini-3.8-flash',
-		id: 'google/gemini-3.8-flash',
-		provider: 'openai',
+		id: 'gemini-3.8-flash',
+		provider: 'google',
 		supportsPrefill: false,
 		supportsTemperature: false,
-		reasoningEffort: 'low',
+		thinkingLevel: 'low',
 	},
 
 	// OpenAI models
 	'gpt-5.6-sol': {
 		name: 'gpt-5.6-sol',
-		id: 'openai/gpt-5.6-sol',
+		id: 'gpt-5.6-sol',
 		provider: 'openai',
 		supportsPrefill: false,
 		supportsTemperature: false,
@@ -98,7 +105,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 
 	'gpt-5.6-terra': {
 		name: 'gpt-5.6-terra',
-		id: 'openai/gpt-5.6-terra',
+		id: 'gpt-5.6-terra',
 		provider: 'openai',
 		supportsPrefill: false,
 		supportsTemperature: false,
@@ -107,7 +114,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 
 	'gpt-5.6-luna': {
 		name: 'gpt-5.6-luna',
-		id: 'openai/gpt-5.6-luna',
+		id: 'gpt-5.6-luna',
 		provider: 'openai',
 		supportsPrefill: false,
 		supportsTemperature: false,
