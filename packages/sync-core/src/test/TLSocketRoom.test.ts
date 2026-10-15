@@ -690,6 +690,22 @@ describe('28. TLSocketRoom (SR)', () => {
 
 			expect(listeners.size).toBe(0)
 		})
+
+		it.each(['close', 'error'] as const)(
+			'[SR4][SR6] firing the attached %s listener cancels the session',
+			(type) => {
+				const listeners = new Map<string, (e: any) => void>()
+				const socket = createMockSocket({
+					addEventListener: vi.fn((t: string, fn: (e: any) => void) => listeners.set(t, fn)),
+				})
+				connectSession(room, 'S', socket)
+
+				listeners.get(type)!(new Event(type))
+
+				expect(room.getSessions()[0].isConnected).toBe(false)
+				expect(socket.close).toHaveBeenCalled()
+			}
+		)
 	})
 
 	describe('session reporting', () => {
