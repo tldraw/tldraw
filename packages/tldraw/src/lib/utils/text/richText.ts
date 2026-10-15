@@ -66,8 +66,8 @@ export function getTipTapDefaultExtensions(
 				openOnClick: false,
 				autolink: true,
 			},
-			// Every enabled block type belongs here: anything missing gets an empty paragraph
-			// appended after it that the user can't delete (#7641 for lists, #11113 for headings).
+			// List every enabled block type: a missing one gets an empty paragraph appended after it
+			// that the user can't delete (#7641 for lists, #11113 for headings).
 			trailingNode: {
 				notAfter: ['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem'],
 			},

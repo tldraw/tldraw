@@ -134,7 +134,6 @@ describe('isEditingRichTextList', () => {
 describe('trailing node', () => {
 	const blockTypesOf = (textEditor: TextEditor) => textEditor.getJSON().content?.map((n) => n.type)
 
-	// Covers every enabled block type so that enabling a new one can't bring back #7641 / #11113.
 	it('does not append an empty paragraph after any enabled block type', () => {
 		const textEditor = new TextEditor({ extensions: tipTapDefaultExtensions, content: '<p></p>' })
 		try {
