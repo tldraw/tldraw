@@ -15,7 +15,6 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 import { CommandPaletteStoreProvider } from './CommandPaletteContext'
-import { CommandPaletteFeatureFlags } from './CommandPaletteFeatureFlags'
 import { commandPaletteFlags } from './commandPaletteFlags'
 import { addCommandPaletteRecent, getCommandPaletteRecents } from './commandPaletteRecents'
 import {
@@ -483,8 +482,6 @@ export function CommandPaletteShell({ onClose, children }: CommandPaletteShellPr
 					)}
 					<div hidden>
 						<TldrawUiMenuContextProvider type="command-palette" sourceId="command-palette">
-							{/* First, so its pinned row leads other pinned items, e.g. tldraw.com's notifications. */}
-							<CommandPaletteFeatureFlags />
 							{children}
 						</TldrawUiMenuContextProvider>
 					</div>

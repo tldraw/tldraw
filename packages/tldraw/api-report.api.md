@@ -803,6 +803,9 @@ export function CommandPaletteEditGroup(): JSX.Element;
 // @public (undocumented)
 export function CommandPaletteExportGroup(): JSX.Element;
 
+// @internal
+export function CommandPaletteFeatureFlagsPanel(): JSX.Element | null;
+
 // @internal (undocumented)
 export interface CommandPaletteFlags {
     // (undocumented)

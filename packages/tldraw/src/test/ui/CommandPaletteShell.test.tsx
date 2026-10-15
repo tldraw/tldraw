@@ -145,16 +145,13 @@ describe('CommandPaletteShell', () => {
 		const selected = () =>
 			rendered.getAllByRole('option').find((el) => el.getAttribute('aria-selected') === 'true')
 				?.dataset.testid
-		// The pinned feature flags row comes first.
-		await waitFor(() =>
-			expect(selected()).toBe('command-palette.submenu.Command palette feature flags')
-		)
+		await waitFor(() => expect(selected()).toBe('command-palette.item.alpha'))
 		press(input, 'ArrowUp')
 		expect(selected()).toBe('command-palette.item.beta')
 		press(input, 'ArrowDown')
-		expect(selected()).toBe('command-palette.submenu.Command palette feature flags')
-		press(input, 'Tab')
 		expect(selected()).toBe('command-palette.item.alpha')
+		press(input, 'Tab')
+		expect(selected()).toBe('command-palette.item.beta')
 	})
 
 	it('shows the shortcut instead of the disabled reason when reasons are off', async () => {
@@ -263,9 +260,8 @@ describe('CommandPaletteShell', () => {
 				{item('beta', 'Beta')}
 			</>
 		)
-		// Below the pinned feature flags row.
 		await waitFor(() =>
-			expect(rendered.getAllByRole('option')[1].dataset.testid).toBe('command-palette.recent.beta')
+			expect(rendered.getAllByRole('option')[0].dataset.testid).toBe('command-palette.recent.beta')
 		)
 	})
 
@@ -604,12 +600,12 @@ describe('CommandPaletteShell', () => {
 			expect(scrollIntoView).toHaveBeenCalledTimes(1)
 			expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' })
 			expect(scrollIntoView.mock.contexts[0]).toBe(
-				rendered.getByTestId('command-palette.item.alpha')
+				rendered.getByTestId('command-palette.item.beta')
 			)
 			scrollIntoView.mockClear()
-			fireEvent.pointerMove(rendered.getByTestId('command-palette.item.beta'))
+			fireEvent.pointerMove(rendered.getByTestId('command-palette.item.alpha'))
 			await waitFor(() =>
-				expect(rendered.getByTestId('command-palette.item.beta').dataset.highlighted).toBe('true')
+				expect(rendered.getByTestId('command-palette.item.alpha').dataset.highlighted).toBe('true')
 			)
 			expect(scrollIntoView).not.toHaveBeenCalled()
 		} finally {

@@ -3,6 +3,7 @@ import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
+	CommandPaletteFeatureFlagsPanel,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
 	Editor,
@@ -341,9 +342,12 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
-			InFrontOfTheCanvas: commentingEnabled
-				? () => <CommentsOnCanvas fileId={fileId} />
-				: undefined,
+			InFrontOfTheCanvas: () => (
+				<>
+					{commentingEnabled && <CommentsOnCanvas fileId={fileId} />}
+					<CommandPaletteFeatureFlagsPanel />
+				</>
+			),
 		}
 	}, [fileId, commentingEnabled])
 

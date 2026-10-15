@@ -1,146 +1,163 @@
-import { Atom, useValue } from '@tldraw/editor'
-import { memo } from 'react'
-import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
+import { Atom, useEditor, useValue } from '@tldraw/editor'
+import { useLayoutEffect, useState } from 'react'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
+import {
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '../primitives/TldrawUiDropdownMenu'
 import {
 	CommandPalettePosition,
 	CommandPaletteTopSection,
 	commandPaletteFlags,
 } from './commandPaletteFlags'
-import { CommandPaletteItemRegistration } from './CommandPaletteItemRegistration'
 
-function FlagItem({
+function FlagToggle({ label, title, flag }: { label: string; title: string; flag: Atom<boolean> }) {
+	const checked = useValue(flag)
+	return (
+		<TldrawUiButton type="menu" title={title} onClick={() => flag.set(!flag.get())}>
+			<TldrawUiButtonCheck checked={checked} />
+			<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
+		</TldrawUiButton>
+	)
+}
+
+function FlagChoice<T extends string>({
 	id,
 	label,
-	description,
 	flag,
+	choices,
 }: {
 	id: string
 	label: string
-	description: string
-	flag: Atom<boolean>
+	flag: Atom<T>
+	choices: { value: T; label: string }[]
 }) {
-	const checked = useValue(flag)
-	return (
-		<CommandPaletteItemRegistration
-			id={`command-palette-flag-${id}`}
-			label={label}
-			description={description}
-			checked={checked}
-			disabled={false}
-			pinned
-			onSelect={() => {
-				flag.set(!flag.get())
-			}}
-		/>
-	)
-}
-
-interface Choice<T> {
-	value: T
-	label: string
-	description: string
-}
-
-// One row per value of a pick-one flag, checked when it's the current one.
-function ChoiceItem<T extends string>({
-	id,
-	flag,
-	value,
-	label,
-	description,
-}: Choice<T> & { id: string; flag: Atom<T> }) {
 	const current = useValue(flag)
 	return (
-		<CommandPaletteItemRegistration
-			id={`command-palette-flag-${id}-${value}`}
-			label={label}
-			description={description}
-			checked={current === value}
-			disabled={false}
-			pinned
-			onSelect={() => {
-				flag.set(value)
-			}}
-		/>
+		<div className="tlui-command-palette-flags__choice">
+			<span className="tlui-command-palette-flags__choice-label">{label}</span>
+			<TldrawUiDropdownMenuRoot id={`command-palette-flag-${id}`}>
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton type="normal" title={label}>
+						<TldrawUiButtonLabel>
+							{choices.find((choice) => choice.value === current)?.label}
+						</TldrawUiButtonLabel>
+						<TldrawUiButtonIcon icon="chevron-down" small />
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuContent side="bottom" align="end">
+					{choices.map((choice) => (
+						<TldrawUiDropdownMenuItem key={choice.value}>
+							<TldrawUiButton type="menu" onClick={() => flag.set(choice.value)}>
+								<TldrawUiButtonCheck checked={choice.value === current} />
+								<TldrawUiButtonLabel>{choice.label}</TldrawUiButtonLabel>
+							</TldrawUiButton>
+						</TldrawUiDropdownMenuItem>
+					))}
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiDropdownMenuRoot>
+		</div>
 	)
 }
 
-const TOP_SECTIONS: Choice<CommandPaletteTopSection>[] = [
-	{
-		value: 'recent',
-		label: 'Top: Recent',
-		description: "Recently run commands lead the list, and aren't repeated in it.",
-	},
-	{
-		value: 'suggested',
-		label: 'Top: Suggested',
-		description: 'Commands for what is selected lead the list, and break ties in search.',
-	},
-	{ value: 'none', label: 'Top: Nothing', description: 'The list starts with the groups.' },
+const TOP_SECTIONS: { value: CommandPaletteTopSection; label: string }[] = [
+	{ value: 'recent', label: 'Recent' },
+	{ value: 'suggested', label: 'Suggested' },
+	{ value: 'none', label: 'Nothing' },
 ]
 
-const POSITIONS: Choice<CommandPalettePosition>[] = [
-	{ value: 'top', label: 'Position: Top', description: 'Opens in the upper part of the screen.' },
-	{ value: 'center', label: 'Position: Center', description: 'Opens in the middle of the screen.' },
-	{
-		value: 'bottom',
-		label: 'Position: Bottom',
-		description: 'Opens lower down, closer to the toolbar.',
-	},
+const POSITIONS: { value: CommandPalettePosition; label: string }[] = [
+	{ value: 'top', label: 'Top' },
+	{ value: 'center', label: 'Center' },
+	{ value: 'bottom', label: 'Bottom' },
 ]
 
-// Memo: items re-register on every render, and each registration re-renders the shell.
-/** Testing only: palette design variants, untranslated. @internal */
-export const CommandPaletteFeatureFlags = memo(function CommandPaletteFeatureFlags() {
+/**
+ * Testing only: toggles for the palette's design variants, untranslated. Meant for
+ * `InFrontOfTheCanvas`; sits under the helper buttons (back to content and the like).
+ *
+ * @internal
+ */
+export function CommandPaletteFeatureFlagsPanel() {
+	const editor = useEditor()
+	const [position, setPosition] = useState<{ top: number; left: number } | null>(null)
+
+	// The helper buttons grow and shrink as buttons come and go, so follow their bottom edge.
+	useLayoutEffect(() => {
+		const container = editor.getContainer()
+		const helperButtons = container.querySelector('.tlui-helper-buttons')
+		if (!helperButtons) return
+		const update = () => {
+			const bounds = container.getBoundingClientRect()
+			const { bottom, left } = helperButtons.getBoundingClientRect()
+			setPosition((prev) => {
+				const next = { top: bottom - bounds.top, left: left - bounds.left }
+				return prev?.top === next.top && prev.left === next.left ? prev : next
+			})
+		}
+		update()
+		const observer = new ResizeObserver(update)
+		observer.observe(helperButtons)
+		observer.observe(container)
+		return () => observer.disconnect()
+	}, [editor])
+
+	if (!position) return null
+
 	return (
-		<TldrawUiMenuSubmenu id="command-palette-feature-flags" label="Command palette feature flags">
-			<FlagItem
-				id="checkmarks-on-right"
-				label="Checkmarks on the right"
-				description="Off: every row keeps a check slot on the left, so labels line up."
-				flag={commandPaletteFlags.checkmarksOnRight}
+		<div
+			className="tlui-command-palette-flags"
+			style={{ top: position.top, left: position.left }}
+			onPointerDown={editor.markEventAsHandled}
+		>
+			<div className="tlui-command-palette-flags__title">Command palette flags</div>
+			<FlagChoice
+				id="top"
+				label="Top section"
+				flag={commandPaletteFlags.topSection}
+				choices={TOP_SECTIONS}
 			/>
-			{TOP_SECTIONS.map((choice) => (
-				<ChoiceItem key={choice.value} id="top" flag={commandPaletteFlags.topSection} {...choice} />
-			))}
-			<FlagItem
-				id="show-group-headings"
-				label="Show group headings"
-				description="Heads each group while browsing, like Recent. Off: groups run together."
+			<FlagChoice
+				id="position"
+				label="Position"
+				flag={commandPaletteFlags.position}
+				choices={POSITIONS}
+			/>
+			<FlagToggle
+				label="Group headings"
+				title="Heads each group while browsing, like Recent."
 				flag={commandPaletteFlags.showGroupHeadings}
 			/>
-			<FlagItem
-				id="show-icons"
-				label="Show icons"
-				description="An icon before each label, from the item's menu icon. Rows without one keep the space."
+			<FlagToggle
+				label="Icons"
+				title="An icon before each label, from the item's menu icon."
 				flag={commandPaletteFlags.showIcons}
 			/>
-			<FlagItem
-				id="show-disabled-reasons"
-				label="Show disabled reasons"
-				description="A highlighted unavailable command says why, e.g. Select a shape first."
+			<FlagToggle
+				label="Disabled reasons"
+				title="A highlighted unavailable command says why, e.g. Select a shape first."
 				flag={commandPaletteFlags.showDisabledReasons}
 			/>
-			<FlagItem
-				id="group-submenus"
+			<FlagToggle
 				label="Group submenus"
-				description="One row per submenu that opens its items. Off: every item gets its own row."
+				title="One row per submenu that opens its items. Off: every item gets its own row."
 				flag={commandPaletteFlags.groupSubmenus}
 			/>
-			<FlagItem
-				id="name-new-files"
+			<FlagToggle
+				label="Checkmarks on the right"
+				title="Off: every row keeps a check slot on the left, so labels line up."
+				flag={commandPaletteFlags.checkmarksOnRight}
+			/>
+			<FlagToggle
 				label="Name files in the palette"
-				description="tldraw.com: New file and Rename file ask for the name here. Off: rename in the file header."
+				title="tldraw.com: New file and Rename file ask for the name here."
 				flag={commandPaletteFlags.nameNewFiles}
 			/>
-			{POSITIONS.map((choice) => (
-				<ChoiceItem
-					key={choice.value}
-					id="position"
-					flag={commandPaletteFlags.position}
-					{...choice}
-				/>
-			))}
-		</TldrawUiMenuSubmenu>
+		</div>
 	)
-})
+}
