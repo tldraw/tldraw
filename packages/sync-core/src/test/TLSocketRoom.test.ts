@@ -656,22 +656,32 @@ describe('28. TLSocketRoom (SR)', () => {
 		})
 
 		it.each(['handleSocketClose', 'handleSocketError'] as const)(
-			"[SR6] %s ignores a superseded socket's late event after a same-id reconnect",
+			"[SR6][SR12] %s ignores a superseded socket's late event after a same-id reconnect",
 			(method) => {
-				const oldSocket = createMockSocket()
-				connectSession(room, 'S', oldSocket)
-				const newSocket = createMockSocket()
-				connectSession(room, 'S', newSocket)
+				vi.useFakeTimers()
+				try {
+					const onSessionSnapshot = vi.fn()
+					const room = new TLSocketRoom({ onSessionSnapshot })
+					const oldSocket = createMockSocket()
+					connectSession(room, 'S', oldSocket)
+					const newSocket = createMockSocket()
+					connectSession(room, 'S', newSocket)
 
-				room[method]('S', oldSocket)
+					room[method]('S', oldSocket)
 
-				expect(room.getSessions()).toEqual([
-					expect.objectContaining({ sessionId: 'S', isConnected: true }),
-				])
-				expect(newSocket.close).not.toHaveBeenCalled()
+					expect(room.getSessions()).toEqual([
+						expect.objectContaining({ sessionId: 'S', isConnected: true }),
+					])
+					expect(newSocket.close).not.toHaveBeenCalled()
+					// the live session's pending snapshot survives the superseded event
+					vi.advanceTimersByTime(5100)
+					expect(onSessionSnapshot).toHaveBeenCalledTimes(1)
 
-				room[method]('S', newSocket)
-				expect(room.getSessions()[0].isConnected).toBe(false)
+					room[method]('S', newSocket)
+					expect(room.getSessions()[0].isConnected).toBe(false)
+				} finally {
+					vi.useRealTimers()
+				}
 			}
 		)
 
