@@ -23,14 +23,6 @@ export function asColor(color: string): IFocusedColor {
 		return color as IFocusedColor
 	}
 
-	switch (color) {
-		case 'pink': {
-			return 'light-violet'
-		}
-		case 'light-pink': {
-			return 'light-violet'
-		}
-	}
-
+	if (color === 'pink' || color === 'light-pink') return 'light-violet'
 	return 'black'
 }

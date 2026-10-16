@@ -36,20 +36,18 @@ class TargetShapeIdle extends StateNode {
 	static override id = 'idle'
 
 	override onPointerMove() {
-		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
-		const shape = this.editor.getShapeAtPoint(currentPagePoint, { hitInside: true })
-		if (shape) {
-			this.editor.setHintingShapes([shape])
-		} else {
-			this.editor.setHintingShapes([])
-		}
+		const shape = this.getShapeAtPointer()
+		this.editor.setHintingShapes(shape ? [shape] : [])
 	}
 
 	override onPointerDown() {
-		const shape = this.editor.getShapeAtPoint(this.editor.inputs.getCurrentPagePoint(), {
+		this.parent.transition('pointing', { shape: this.getShapeAtPointer() })
+	}
+
+	private getShapeAtPointer() {
+		return this.editor.getShapeAtPoint(this.editor.inputs.getCurrentPagePoint(), {
 			hitInside: true,
 		})
-		this.parent.transition('pointing', { shape })
 	}
 }
 
@@ -57,17 +55,15 @@ class TargetShapePointing extends StateNode {
 	static override id = 'pointing'
 
 	private shape: TLShape | undefined = undefined
-	private initialScreenPoint: VecModel | undefined = undefined
 	private initialPagePoint: VecModel | undefined = undefined
 
-	override onEnter({ shape }: { shape: TLShape }) {
-		this.initialScreenPoint = this.editor.inputs.getCurrentScreenPoint().clone()
+	override onEnter({ shape }: { shape: TLShape | undefined }) {
 		this.initialPagePoint = this.editor.inputs.getCurrentPagePoint().clone()
 		this.shape = shape
 	}
 
 	override onPointerMove() {
-		if (!this.initialScreenPoint) return
+		if (!this.initialPagePoint) return
 		if (this.editor.inputs.getIsDragging()) {
 			this.parent.transition('dragging', { initialPagePoint: this.initialPagePoint })
 		}
@@ -76,8 +72,7 @@ class TargetShapePointing extends StateNode {
 	override onPointerUp() {
 		this.editor.setHintingShapes([])
 		if (this.shape) {
-			const agents = AgentAppAgentsManager.getAgents(this.editor)
-			for (const agent of agents) {
+			for (const agent of AgentAppAgentsManager.getAgents(this.editor)) {
 				agent.context.add({
 					type: 'shape',
 					shape: convertTldrawShapeToFocusedShape(this.editor, this.shape),
@@ -108,29 +103,20 @@ class TargetShapeDragging extends StateNode {
 
 	override onPointerUp() {
 		this.editor.setHintingShapes([])
-		this.editor.updateInstanceState({
-			brush: null,
-		})
+		this.editor.updateInstanceState({ brush: null })
 
 		if (!this.bounds) throw new Error('Bounds not set')
-		const agents = AgentAppAgentsManager.getAgents(this.editor)
-		if (this.shapes.length <= 3) {
-			for (const shape of this.shapes) {
-				for (const agent of agents) {
-					agent.context.add({
-						type: 'shape',
-						shape: convertTldrawShapeToFocusedShape(this.editor, shape),
-						source: 'user',
-					})
+		// A few shapes go in individually; many go in as one group
+		for (const agent of AgentAppAgentsManager.getAgents(this.editor)) {
+			const focusedShapes = this.shapes.map((shape) =>
+				convertTldrawShapeToFocusedShape(this.editor, shape)
+			)
+			if (focusedShapes.length <= 3) {
+				for (const shape of focusedShapes) {
+					agent.context.add({ type: 'shape', shape, source: 'user' })
 				}
-			}
-		} else {
-			for (const agent of agents) {
-				agent.context.add({
-					type: 'shapes',
-					shapes: this.shapes.map((shape) => convertTldrawShapeToFocusedShape(this.editor, shape)),
-					source: 'user',
-				})
+			} else {
+				agent.context.add({ type: 'shapes', shapes: focusedShapes, source: 'user' })
 			}
 		}
 		this.editor.setCurrentTool('select')
@@ -138,25 +124,14 @@ class TargetShapeDragging extends StateNode {
 
 	updateBounds() {
 		if (!this.initialPagePoint) return
-		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
-		const x = Math.min(this.initialPagePoint.x, currentPagePoint.x)
-		const y = Math.min(this.initialPagePoint.y, currentPagePoint.y)
-		const w = Math.abs(currentPagePoint.x - this.initialPagePoint.x)
-		const h = Math.abs(currentPagePoint.y - this.initialPagePoint.y)
+		const bounds = Box.FromPoints([this.initialPagePoint, this.editor.inputs.getCurrentPagePoint()])
+		this.bounds = bounds.toJson()
+		this.editor.updateInstanceState({ brush: this.bounds })
 
-		this.editor.updateInstanceState({
-			brush: { x, y, w, h },
-		})
-
-		this.bounds = { x, y, w, h }
-
-		const bounds = new Box(x, y, w, h)
 		const shapesInBounds = this.editor.getCurrentPageShapesSorted().filter((shape) => {
 			const geometry = this.editor.getShapeGeometry(shape)
-			const pageTransform = this.editor.getShapePageTransform(shape)
-			const shapeTransform = pageTransform.clone().invert()
-			const boundsInShapeSpace = shapeTransform.applyToPoints(bounds.corners)
-			return geometry.overlapsPolygon(boundsInShapeSpace)
+			const shapeTransform = this.editor.getShapePageTransform(shape).clone().invert()
+			return geometry.overlapsPolygon(shapeTransform.applyToPoints(bounds.corners))
 		})
 
 		this.shapes = shapesInBounds

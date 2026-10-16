@@ -1,4 +1,3 @@
-import { TLBindingId } from 'tldraw'
 import {
 	convertFocusedShapeToTldrawShape,
 	convertSimpleIdToTldrawId,
@@ -38,21 +37,8 @@ export const UpdateActionUtil = registerActionUtil(
 				if (update.toId) {
 					update.toId = helpers.ensureShapeIdExists(update.toId)
 				}
-
-				if ('x1' in update) {
-					update.x1 = helpers.ensureValueIsNumber(update.x1) ?? 0
-				}
-				if ('y1' in update) {
-					update.y1 = helpers.ensureValueIsNumber(update.y1) ?? 0
-				}
-				if ('x2' in update) {
-					update.x2 = helpers.ensureValueIsNumber(update.x2) ?? 0
-				}
-				if ('y2' in update) {
-					update.y2 = helpers.ensureValueIsNumber(update.y2) ?? 0
-				}
-				if ('bend' in update) {
-					update.bend = helpers.ensureValueIsNumber(update.bend) ?? 0
+				for (const key of ['x1', 'y1', 'x2', 'y2', 'bend'] as const) {
+					if (key in update) update[key] = helpers.ensureValueIsNumber(update[key]) ?? 0
 				}
 			}
 
@@ -85,20 +71,13 @@ export const UpdateActionUtil = registerActionUtil(
 			// Handle arrow bindings if they exist
 			if (result.bindings) {
 				// First, clean up existing bindings
-				const existingBindings = editor.getBindingsFromShape(shapeId, 'arrow')
-				for (const binding of existingBindings) {
-					editor.deleteBinding(binding.id as TLBindingId)
+				for (const binding of editor.getBindingsFromShape(shapeId, 'arrow')) {
+					editor.deleteBinding(binding.id)
 				}
 
 				// Create new bindings
 				for (const binding of result.bindings) {
-					editor.createBinding({
-						type: binding.type,
-						fromId: binding.fromId,
-						toId: binding.toId,
-						props: binding.props,
-						meta: binding.meta,
-					})
+					editor.createBinding(binding)
 				}
 			}
 		}

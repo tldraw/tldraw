@@ -24,96 +24,61 @@ function getDiffShapesFromDiff(diff: RecordsDiff<TLRecord>): TLShape[] {
 
 	// If there are many shapes in the diff, don't show shadows (for performance reasons)
 	const showShadows = numberOfShapes < 20
+	const shadow = showShadows ? '-shadow' : ''
 
-	for (const key in diff.removed) {
-		const id = key as TLShapeId
-		const prevShape = diff.removed[id]
+	for (const prevShape of Object.values(diff.removed)) {
 		if (prevShape.typeName !== 'shape') continue
-		const shape = {
-			...prevShape,
-			opacity: showShadows ? prevShape.opacity : prevShape.opacity / 2,
-			meta: { ...prevShape.meta, changeType: showShadows ? 'delete-shadow' : 'delete' },
-		}
-
-		if ('dash' in shape.props) {
-			shape.props = {
-				...shape.props,
-				dash: 'solid',
-			}
-		}
-
-		diffShapes.push(shape)
+		diffShapes.push(
+			withProps(
+				{
+					...prevShape,
+					opacity: showShadows ? prevShape.opacity : prevShape.opacity / 2,
+					meta: { ...prevShape.meta, changeType: `delete${shadow}` },
+				},
+				{ dash: 'solid' }
+			)
+		)
 	}
 
-	for (const key in diff.updated) {
-		const id = key as TLShapeId
-
-		const prevBefore = diff.updated[id][0]
-		const prevAfter = diff.updated[id][1]
+	for (const [prevBefore, prevAfter] of Object.values(diff.updated)) {
 		if (prevBefore.typeName !== 'shape' || prevAfter.typeName !== 'shape') continue
-
-		const before = {
-			...prevBefore,
-			id: (id + '-before') as TLShapeId,
-			opacity: prevAfter.opacity / 2,
-			meta: {
-				...prevBefore.meta,
-				changeType: showShadows ? 'update-before-shadow' : 'update-before',
-			},
-		}
-
-		const after = {
-			...prevAfter,
-			meta: {
-				...prevAfter.meta,
-				changeType: showShadows ? 'update-after-shadow' : 'update-after',
-			},
-		}
-
-		if ('dash' in before.props) {
-			before.props = {
-				...before.props,
-				dash: 'dashed',
-			}
-		}
-		if ('fill' in before.props) {
-			before.props = {
-				...before.props,
-				fill: 'none',
-			}
-		}
-		if ('dash' in after.props) {
-			after.props = {
-				...after.props,
-				dash: 'solid',
-			}
-		}
-
-		diffShapes.push(before)
-		diffShapes.push(after)
+		diffShapes.push(
+			withProps(
+				{
+					...prevBefore,
+					id: `${prevBefore.id}-before` as TLShapeId,
+					opacity: prevAfter.opacity / 2,
+					meta: { ...prevBefore.meta, changeType: `update-before${shadow}` },
+				},
+				{ dash: 'dashed', fill: 'none' }
+			),
+			withProps(
+				{ ...prevAfter, meta: { ...prevAfter.meta, changeType: `update-after${shadow}` } },
+				{ dash: 'solid' }
+			)
+		)
 	}
 
-	for (const key in diff.added) {
-		const id = key as TLShapeId
-		const prevShape = diff.added[id]
+	for (const prevShape of Object.values(diff.added)) {
 		if (prevShape.typeName !== 'shape') continue
-		const shape = {
-			...prevShape,
-			meta: {
-				...prevShape.meta,
-				changeType: showShadows ? 'create-shadow' : 'create',
-			},
-		}
-		if ('dash' in shape.props) {
-			shape.props = {
-				...shape.props,
-				dash: 'solid',
-			}
-		}
-		diffShapes.push(shape)
+		diffShapes.push(
+			withProps(
+				{ ...prevShape, meta: { ...prevShape.meta, changeType: `create${shadow}` } },
+				{ dash: 'solid' }
+			)
+		)
 	}
 
 	return diffShapes
+}
+
+// Only overrides props the shape actually has, so e.g. `fill` is left alone on shapes without one
+function withProps(shape: TLShape, overrides: { dash?: 'solid' | 'dashed'; fill?: 'none' }) {
+	const props: Record<string, unknown> = { ...shape.props }
+	for (const [key, value] of Object.entries(overrides)) {
+		if (key in props) props[key] = value
+	}
+	return { ...shape, props } as TLShape
 }
 
 const DiffShapeWrapper = forwardRef(function DiffShapeWrapper(

@@ -25,12 +25,12 @@ export interface AgentModeNode {
  * 1. Add the mode to AGENT_MODE_DEFINITIONS in AgentModeDefinitions.ts
  * 2. Add an entry here with the lifecycle hooks you need
  */
-const _AGENT_MODE_CHART: Record<AgentModeDefinition['type'], AgentModeNode> = {
+const AGENT_MODE_CHART: Record<AgentModeDefinition['type'], AgentModeNode> = {
 	idling: {
 		onPromptStart(agent) {
 			agent.mode.setMode('working')
 		},
-		onEnter(agent, _fromMode) {
+		onEnter(agent) {
 			agent.todos.reset()
 			agent.userAction.clearHistory()
 		},
@@ -50,7 +50,7 @@ const _AGENT_MODE_CHART: Record<AgentModeDefinition['type'], AgentModeNode> = {
 			}
 		},
 
-		onExit(agent, _toMode) {
+		onExit(agent) {
 			// Unlock all shapes created during the prompt when exiting working mode
 			agent.lints.unlockCreatedShapes()
 		},
@@ -64,12 +64,9 @@ const _AGENT_MODE_CHART: Record<AgentModeDefinition['type'], AgentModeNode> = {
 			}
 		},
 
-		onPromptEnd(agent, _request) {
+		onPromptEnd(agent) {
 			// Check if there are incomplete todos
-			const todoList = agent.todos.getTodos()
-			const incompleteTodos = todoList.filter((item) => item.status !== 'done')
-
-			if (incompleteTodos.length > 0) {
+			if (agent.todos.getTodos().some((item) => item.status !== 'done')) {
 				// Schedule continuation to complete remaining work
 				agent.schedule(
 					"Continue until all your todo items are marked as done. If you've completed the work, mark them as done, otherwise keep going."
@@ -91,7 +88,7 @@ const _AGENT_MODE_CHART: Record<AgentModeDefinition['type'], AgentModeNode> = {
 			agent.mode.setMode('idling')
 		},
 
-		onPromptCancel(agent, _request) {
+		onPromptCancel(agent) {
 			// Return to idling on cancel
 			agent.mode.setMode('idling')
 		},
@@ -103,5 +100,5 @@ const _AGENT_MODE_CHART: Record<AgentModeDefinition['type'], AgentModeNode> = {
  * This function helps TypeScript resolve types correctly with circular imports.
  */
 export function getModeNode(mode: AgentModeType): AgentModeNode {
-	return _AGENT_MODE_CHART[mode]
+	return AGENT_MODE_CHART[mode]
 }
