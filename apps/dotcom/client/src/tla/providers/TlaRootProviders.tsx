@@ -219,11 +219,11 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					components={components}
 					onUiEvent={handleAppLevelUiEvent}
 				>
+					<PutI18nInApp />
 					<_Tooltip.Provider>{children}</_Tooltip.Provider>
 					<DefaultDialogs />
 					<DefaultToasts />
 					<DefaultA11yAnnouncer />
-					<PutI18nInApp />
 					<PutToastsInApp />
 					<WorkspaceInviteHandler />
 					{currentEditor && <TlaCookieConsent />}
@@ -233,12 +233,17 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 	)
 }
 
-// The app outlives any render, so the adapter is handed to it rather than reached for. Same
-// shape as `PutToastsInApp` below.
+// The app outlives any render, so the adapter is handed to it rather than reached for. Ahead of
+// `children`, so the adapter is there for their first render; the locale goes in a layout effect,
+// since it's a signal they may be subscribed to, and lands before paint.
 function PutI18nInApp() {
 	const i18n = useTldrawI18n()
 	const app = useMaybeApp()
+	const locale = i18n().locale
 	if (app) app.i18n = i18n
+	useLayoutEffect(() => {
+		app?.locale$.set(locale)
+	}, [app, locale])
 	return null
 }
 

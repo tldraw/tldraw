@@ -261,6 +261,12 @@ export class TldrawApp {
 	 * reached for: this class outlives any render and has no hooks available.
 	 */
 	i18n: TLI18nAdapter | null = null
+	/**
+	 * The user's locale, alongside `i18n`, as a signal. The adapter keeps its identity across a
+	 * language switch, so a `useValue` over a date it formatted never recomputed: the sidebar's
+	 * fallback file names stayed English, and stayed in the old language after a switch.
+	 */
+	readonly locale$ = atom<string>('app locale', 'en')
 	trackEvent: TLAppUiContextType
 	navigate: ReturnType<typeof useNavigate>
 
@@ -1017,7 +1023,7 @@ export class TldrawApp {
 		const createdAt = new Date(time)
 		const format = getDateFormat(createdAt)
 		// `Intl` directly: a locale is all a date needs, and it's the one thing `TLI18n` carries.
-		const locale = this.i18n?.().locale ?? 'en'
+		const locale = this.locale$.get()
 		return new Intl.DateTimeFormat(locale, format).format(createdAt)
 	}
 

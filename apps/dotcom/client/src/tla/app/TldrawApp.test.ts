@@ -1,6 +1,7 @@
-import { atom, promiseWithResolve } from 'tldraw'
+import { atom, computed, promiseWithResolve } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { markFirstLoad } from '../../utils/firstLoad'
+import { getDateFormat } from '../utils/dates'
 import { TldrawApp } from './TldrawApp'
 import { ZeroLogBuffer } from './ZeroLogBuffer'
 
@@ -397,5 +398,21 @@ describe('TldrawApp.msg', () => {
 		}
 		expect(app.msg(added, { total: 1 })).toBe('Added 1 .tldr file.')
 		expect(app.msg(added, { total: 3 })).toBe('Added 3 .tldr files.')
+	})
+})
+
+describe('TldrawApp.getFallbackFileName', () => {
+	// The sidebar reads this through `useValue`. The i18n adapter keeps its identity across a
+	// language switch, so a name formatted from it stayed English, and stayed after a switch.
+	it('follows the locale signal', () => {
+		const app = Object.assign(createAppStub(), { locale$: atom('app locale', 'en') })
+		const time = new Date(2026, 0, 15).getTime()
+		const name = computed('file name', () => app.getFallbackFileName(time))
+		const english = name.get()
+		app.locale$.set('fr')
+		expect(name.get()).not.toBe(english)
+		expect(name.get()).toBe(
+			new Intl.DateTimeFormat('fr', getDateFormat(new Date(time))).format(new Date(time))
+		)
 	})
 })
