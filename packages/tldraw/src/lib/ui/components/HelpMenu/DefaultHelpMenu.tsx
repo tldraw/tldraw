@@ -1,4 +1,4 @@
-import { usePassThroughWheelEvents } from '@tldraw/editor'
+import { defineMessages, usePassThroughWheelEvents } from '@tldraw/editor'
 import { ReactNode, memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -12,6 +12,10 @@ import {
 	TldrawUiDropdownMenuTrigger,
 } from '../primitives/TldrawUiDropdownMenu'
 import { DefaultHelpMenuContent } from './DefaultHelpMenuContent'
+
+const messages = defineMessages({
+	helpMenuTitle: { id: 'help-menu.title', defaultMessage: 'Help and resources' },
+})
 
 /** @public */
 export interface TLUiHelpMenuProps {
@@ -37,7 +41,11 @@ export const DefaultHelpMenu = memo(function DefaultHelpMenu({ children }: TLUiH
 		<div ref={ref} className="tlui-help-menu">
 			<TldrawUiDropdownMenuRoot id="help menu">
 				<TldrawUiDropdownMenuTrigger>
-					<TldrawUiButton type="help" title={msg('help-menu.title')} data-testid="help-menu.button">
+					<TldrawUiButton
+						type="help"
+						title={msg(messages.helpMenuTitle)}
+						data-testid="help-menu.button"
+					>
 						<TldrawUiButtonIcon icon="question-mark" small />
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>

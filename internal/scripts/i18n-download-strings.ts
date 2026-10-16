@@ -159,12 +159,19 @@ async function i18nDownloadTldrawStrings() {
 	const dirPath = path.resolve(__dirname, '../../assets/translations')
 	console.log('Downloading tldraw project files...')
 
+	// The upload sends `detect_icu_plurals`, so a plural in main.json is stored as a plural key with
+	// a form per category. These two ask for it back as ICU rather than Lokalise's own shape;
+	// without them a translated plural returns in a syntax the SDK can't parse, and the round trip
+	// would overwrite a working catalog with a broken one. `format` stays `json`: the SDK's catalog
+	// is flat, where `json_structured` would nest it and carry metadata.
 	const bundleUrl = await getAsyncBundleUrl(
 		projectId,
 		{
 			format: 'json',
 			original_filenames: true,
 			export_empty_as: 'skip',
+			plural_format: 'icu',
+			placeholder_format: 'icu',
 		},
 		apiKey
 	)

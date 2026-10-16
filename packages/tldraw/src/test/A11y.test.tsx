@@ -1,4 +1,5 @@
 import { createShapeId, toRichText } from '@tldraw/editor'
+import { createIntl } from 'react-intl'
 import { Mock, vi } from 'vitest'
 import { generateShapeAnnouncementMessage } from '../lib/ui/components/A11y'
 import { TestEditor } from './TestEditor'
@@ -10,17 +11,27 @@ describe('A11y Shape Announcements', () => {
 	beforeEach(() => {
 		editor = new TestEditor()
 
-		// Create a simple translation mock
-		mockTranslate = vi.fn((key) => {
-			if (key === 'a11y.multiple-shapes') return '{num} shapes selected'
-			if (key === 'a11y.shape') return 'Shape'
-			if (key === 'a11y.text') return 'Text'
-			if (key === 'a11y.shape-index') return '{num} of {total}'
-			if (key === 'a11y.shape-image') return 'image'
-			if (key === 'a11y.shape-video') return 'video'
-			if (key.startsWith('geo-style.')) return key.split('.')[1]
-			if (key.startsWith('tool.')) return key.split('.')[1]
-			return key
+		// Formats through real ICU like `useTranslation` does, so a malformed message here fails the
+		// test rather than announcing its own placeholders.
+		//
+		// A shape's name no longer comes through here: each util returns its own via `getShapeName`,
+		// resolved against the editor's i18n. So "Rectangle" and "Image" below are the catalogue's
+		// real text, where this stub would have produced the key's last segment.
+		const intl = createIntl({ locale: 'en', defaultLocale: 'en', messages: {} })
+		mockTranslate = vi.fn((key: string, values?: Record<string, unknown>) => {
+			let defaultMessage = key
+			if (key === 'a11y.multiple-shapes')
+				defaultMessage = '{num, plural, one {# shape selected} other {# shapes selected}}'
+			else if (key === 'a11y.shape') defaultMessage = 'Shape'
+			else if (key === 'a11y.text') defaultMessage = 'Text'
+			else if (key === 'a11y.shape-index') defaultMessage = '{num} of {total}'
+			else if (key === 'a11y.shape-image') defaultMessage = 'image'
+			else if (key === 'a11y.shape-video') defaultMessage = 'video'
+			else if (key.startsWith('geo-style.')) defaultMessage = key.split('.')[1]
+			else if (key.startsWith('tool.')) defaultMessage = key.split('.')[1]
+			// The message is chosen above, so it can't be the literal the rule wants here.
+			// eslint-disable-next-line tldraw/enforce-default-message
+			return intl.formatMessage({ id: key, defaultMessage }, values as any)
 		})
 	})
 
@@ -69,7 +80,7 @@ describe('A11y Shape Announcements', () => {
 			msg: mockTranslate,
 		})
 
-		expect(message).toBe('Hello, rectangle. 1 of 1')
+		expect(message).toBe('Hello, Rectangle. 1 of 1')
 	})
 
 	it('announces image shape with alt text', () => {
@@ -87,7 +98,7 @@ describe('A11y Shape Announcements', () => {
 			msg: mockTranslate,
 		})
 
-		expect(message).toBe('A test image, image. 1 of 1')
+		expect(message).toBe('A test image, Image. 1 of 1')
 	})
 
 	it('returns empty string when no shapes are selected', () => {
@@ -99,5 +110,28 @@ describe('A11y Shape Announcements', () => {
 		})
 
 		expect(message).toBe('')
+	})
+
+	// Each util names itself. Only the convention is left in A11y: a shape that doesn't override
+	// `getShapeName` is announced by its tool's label.
+	it('lets a shape name itself, and falls back to the tool label otherwise', () => {
+		const geo = createShapeId('geo')
+		const note = createShapeId('note')
+		editor.createShapes([
+			{ id: geo, type: 'geo', x: 0, y: 0, props: { geo: 'ellipse' } },
+			{ id: note, type: 'note', x: 200, y: 0 },
+		])
+
+		// geo names itself by which geo it is, not by its shared type
+		expect(editor.getShapeUtil('geo').getShapeName(editor.getShape(geo)!)).toBe('Ellipse')
+		// a note doesn't override, so A11y's convention supplies the name
+		expect(editor.getShapeUtil('note').getShapeName(editor.getShape(note)!)).toBeUndefined()
+		expect(
+			generateShapeAnnouncementMessage({
+				editor,
+				selectedShapeIds: [note],
+				msg: mockTranslate,
+			})
+		).toContain('note')
 	})
 })

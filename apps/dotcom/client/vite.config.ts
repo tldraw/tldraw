@@ -114,6 +114,12 @@ export default defineConfig((env) => ({
 		thumbnailScreenshotPlugin(),
 		zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
 		react(),
+		// `ast: true` precompiles this app's own messages, which is why it doesn't need the ICU
+		// parser for them. It can't be aliased away (`icu-messageformat-parser/no-parser.js`) all
+		// the same: the SDK's catalogue ships as raw ICU strings, and without a parser every one of
+		// them that has a placeholder formats to its own source — a screen reader announced
+		// "{num, plural, one {# shape selected} other {# shapes selected}}" verbatim. The parser
+		// measured 8.5KB gzipped across the bundle, which is the price of that not happening.
 		formatjs({
 			idInterpolationPattern: '[md5:contenthash:hex:10]',
 			additionalComponentNames: ['F'],
@@ -130,11 +136,6 @@ export default defineConfig((env) => ({
 		),
 	],
 	publicDir: './public',
-	resolve: {
-		alias: {
-			'@formatjs/icu-messageformat-parser': '@formatjs/icu-messageformat-parser/no-parser.js',
-		},
-	},
 	build: {
 		// output source maps to .map files and include //sourceMappingURL comments in JavaScript files
 		// these get uploaded to Sentry and can be used for debugging

@@ -1,7 +1,7 @@
 import {
 	debugFlags,
+	defineMessages,
 	Editor,
-	TLGeoShape,
 	TLShapeId,
 	unsafe__withoutCapture,
 	useContainer,
@@ -15,6 +15,21 @@ import { useA11y } from '../context/a11y'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { suppressBackToContent } from './HelperButtons/BackToContent'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
+
+const messages = defineMessages({
+	a11yMultipleShapes: {
+		id: 'a11y.multiple-shapes',
+		// Only ever read with two or more shapes, so English shows one form. Still a plural, because
+		// other languages distinguish within "many" — see the gate in `internal/scripts/i18n-extract.ts`.
+		defaultMessage: '{num, plural, one {# shape selected} other {# shapes selected}}',
+	},
+	a11yShapeIndex: { id: 'a11y.shape-index', defaultMessage: '{num} of {total}' },
+	a11ySkipToMainContent: {
+		id: 'a11y.skip-to-main-content',
+		defaultMessage: 'Move focus to canvas',
+	},
+	a11yStatus: { id: 'a11y.status', defaultMessage: 'Status' },
+})
 
 export function SkipToMainContent() {
 	const editor = useEditor()
@@ -51,7 +66,7 @@ export function SkipToMainContent() {
 			className="tl-skip-to-main-content"
 			onClick={handleNavigateToFirstShape}
 		>
-			{msg('a11y.skip-to-main-content')}
+			{msg(messages.a11ySkipToMainContent)}
 		</TldrawUiButton>
 	)
 }
@@ -68,7 +83,7 @@ export const DefaultA11yAnnouncer = memo(function TldrawUiA11yAnnouncer() {
 	return (
 		msg.msg && (
 			<div
-				aria-label={translation('a11y.status')}
+				aria-label={translation(messages.a11yStatus.id)}
 				aria-live={msg.priority || 'assertive'}
 				role="status"
 				aria-hidden="false"
@@ -97,7 +112,7 @@ export function generateShapeAnnouncementMessage(args: {
 	const numShapes = selectedShapeIds.length
 
 	if (numShapes > 1) {
-		return msg('a11y.multiple-shapes').replace('{num}', numShapes.toString())
+		return msg(messages.a11yMultipleShapes.id, { num: numShapes })
 	}
 	if (numShapes !== 1) return ''
 
@@ -107,20 +122,18 @@ export function generateShapeAnnouncementMessage(args: {
 
 	const shapeUtil = editor.getShapeUtil(shape.type)
 
-	// Yeah, yeah this is a bit of a hack, we should get better translations.
-	const shapeType =
-		shape.type === 'geo'
-			? msg(`geo-style.${(shape as TLGeoShape).props.geo}`)
-			: shape.type === 'image' || shape.type === 'video'
-				? msg(`a11y.shape-${shape.type}`)
-				: msg(`tool.${shape.type}`)
+	// Each shape names itself. Only the convention is left here: a shape that doesn't override
+	// `getShapeName` is announced by its tool's label, which is how every built-in but geo, the
+	// two media shapes and bookmark gets its name.
+	const shapeType = shapeUtil.getShapeName(shape) ?? msg(`tool.${shape.type}`)
 
 	// Get shape index in reading order
 	const readingOrderShapes = editor.getCurrentPageShapesInReadingOrder()
-	const currentShapeIndex = (readingOrderShapes.findIndex((s) => s.id === shapeId) + 1).toString()
-	const shapeIndex = msg('a11y.shape-index')
-		.replace('{num}', currentShapeIndex)
-		.replace('{total}', readingOrderShapes.length.toString())
+	const currentShapeIndex = readingOrderShapes.findIndex((s) => s.id === shapeId) + 1
+	const shapeIndex = msg(messages.a11yShapeIndex.id, {
+		num: currentShapeIndex,
+		total: readingOrderShapes.length,
+	})
 
 	// Get describing text (alt text or shape text)
 	const describingText = shapeUtil.getAriaDescriptor(shape) || shapeUtil.getText(shape) || ''

@@ -1,12 +1,10 @@
 import { LANGUAGES, fetch } from '@tldraw/editor'
 import { TLUiAssetUrls } from '../../assetUrls'
-import { DEFAULT_TRANSLATION } from './defaultTranslation'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
 
-// The default language (english) must have a value for every message.
-// Other languages may have missing messages. If the application finds
-// a missing message for the current language, it will use the english
-// translation instead.
+// English isn't fetched: it's the `defaultMessage` of every declared message, which
+// `TldrawUiTranslationProvider` layers underneath whatever this returns. Other languages may
+// have missing messages, and fall back to that English.
 
 /* ----------------- (do not change) ---------------- */
 
@@ -21,10 +19,11 @@ export interface TLUiTranslation {
 	readonly dir: 'rtl' | 'ltr'
 }
 
-const EN_TRANSLATION: TLUiTranslation = {
+/** @internal */
+export const EN_TRANSLATION: TLUiTranslation = {
 	locale: 'en',
 	label: 'English',
-	messages: DEFAULT_TRANSLATION as TLUiTranslation['messages'],
+	messages: {} as TLUiTranslation['messages'],
 	dir: 'ltr',
 }
 
@@ -33,13 +32,6 @@ export async function fetchTranslation(
 	locale: TLUiTranslation['locale'],
 	assetUrls: TLUiAssetUrls
 ): Promise<TLUiTranslation> {
-	const mainRes = await fetch(assetUrls.translations.en)
-
-	if (!mainRes.ok) {
-		console.warn(`No main translations found.`)
-		return EN_TRANSLATION
-	}
-
 	if (locale === 'en') {
 		return EN_TRANSLATION
 	}
@@ -59,18 +51,19 @@ export async function fetchTranslation(
 		return EN_TRANSLATION
 	}
 
-	const missing = Object.keys(EN_TRANSLATION.messages).filter(
-		(key) => !messages[key as TLUiTranslationKey]
-	)
-
-	if (missing.length > 0 && process.env.NODE_ENV === 'development') {
-		console.warn(`Language ${locale}: missing messages for keys:\n${missing.join('\n')}`)
+	// The only reader of en.json, so it's fetched only here.
+	if (process.env.NODE_ENV === 'development') {
+		const main: Record<string, string> = await (await fetch(assetUrls.translations.en)).json()
+		const missing = Object.keys(main).filter((key) => !messages[key as TLUiTranslationKey])
+		if (missing.length > 0) {
+			console.warn(`Language ${locale}: missing messages for keys:\n${missing.join('\n')}`)
+		}
 	}
 
 	return {
 		locale,
 		label: language.label,
 		dir: RTL_LANGUAGES.has(language.locale) ? 'rtl' : 'ltr',
-		messages: { ...EN_TRANSLATION.messages, ...messages },
+		messages,
 	}
 }
