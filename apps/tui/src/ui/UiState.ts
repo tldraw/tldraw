@@ -29,6 +29,10 @@ export interface PromptState {
 	/** Current Tab-completion candidates for `path` prompts, if any. */
 	completions: string[]
 	completionIndex: number
+	/** Position while browsing earlier answers with the arrow keys; undefined = the draft. */
+	historyIndex?: number
+	/** What was typed before browsing history, restored when stepping past the newest entry. */
+	draft?: string
 }
 
 export type PopupState =
