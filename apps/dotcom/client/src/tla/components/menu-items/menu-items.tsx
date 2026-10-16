@@ -11,6 +11,7 @@ import {
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
 	useDialogs,
+	useCommandPaletteActiveItemId,
 	useDirection,
 	useMaybeEditor,
 	useTranslation,
@@ -23,7 +24,7 @@ import { signoutAnalytics } from '../../../utils/analytics'
 import { isDevelopmentEnv } from '../../../utils/env'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { UI_THEMES } from '../../themes/ui-themes'
-import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { defineMessages, isInternalLocale, useMsg } from '../../utils/i18n'
 import {
@@ -187,6 +188,53 @@ function UIThemeMenuCheckboxItem({
 function useUIThemeIds() {
 	const editor = useMaybeEditor()
 	return useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [editor])
+}
+
+function useUIThemeChoices() {
+	const themeIds = useUIThemeIds()
+	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
+	const defaultThemeLabel = useMsg(messages.colorThemeDefault)
+	const trackEvent = useTldrawAppUiEvents()
+	return themeIds.map((id) => ({
+		id,
+		label: id === 'default' ? defaultThemeLabel : (THEME_NAMES[id] ?? id),
+		checked: colorTheme === id,
+		select(source: TLAppUiEventSource) {
+			updateLocalSessionState(() => ({ colorTheme: id }))
+			trackEvent('set-color-theme', { source, theme: id })
+		},
+	}))
+}
+
+// Highlighting a color theme previews it, like hovering one in the menu. Closing the palette
+// without choosing unmounts this and drops the preview.
+function UIThemeCommandPalettePreview({ themeIds }: { themeIds: string[] }) {
+	const activeId = useCommandPaletteActiveItemId()
+	const themeId = themeIds.find((id) => activeId === `ui-theme-${id}`) ?? null
+	useEffect(() => setColorThemePreview(themeId), [themeId])
+	useEffect(() => () => setColorThemePreview(null), [])
+	return null
+}
+
+export function UIThemeCommandPaletteSubmenu() {
+	const choices = useUIThemeChoices()
+	const colorThemeLabel = useMsg(messages.colorTheme)
+	if (choices.length === 0) return null
+	return (
+		<TldrawUiMenuSubmenu id="tla-color-theme" label={colorThemeLabel}>
+			<UIThemeCommandPalettePreview themeIds={choices.map((choice) => choice.id)} />
+			{choices.map((choice) => (
+				<TldrawUiMenuCheckboxItem
+					key={choice.id}
+					id={`ui-theme-${choice.id}`}
+					label={choice.label}
+					checked={choice.checked}
+					readonlyOk
+					onSelect={() => choice.select('command-palette')}
+				/>
+			))}
+		</TldrawUiMenuSubmenu>
+	)
 }
 
 export function UIThemeSubmenu() {

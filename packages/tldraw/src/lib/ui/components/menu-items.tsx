@@ -337,7 +337,7 @@ export function MoveToPageMenu() {
 						key={page.id}
 						disabled={currentPageId === page.id}
 						label={page.name.length > 30 ? `${page.name.slice(0, 30)}…` : page.name}
-						onSelect={() => {
+						onSelect={(source) => {
 							editor.markHistoryStoppingPoint('move_shapes_to_page')
 							editor.moveShapesToPage(editor.getSelectedShapeIds(), page.id)
 
@@ -359,7 +359,7 @@ export function MoveToPageMenu() {
 									],
 								})
 							}
-							trackEvent('move-to-page', { source: 'context-menu' })
+							trackEvent('move-to-page', { source })
 						}}
 					/>
 				))}

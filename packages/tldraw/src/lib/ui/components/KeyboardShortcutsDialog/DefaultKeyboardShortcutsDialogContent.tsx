@@ -1,5 +1,6 @@
 import { noop } from '@tldraw/editor'
 import { useShowCollaborationUi } from '../../hooks/useCollaborationStatus'
+import { CommandPaletteMenuItem } from '../CommandPalette/CommandPaletteMenuItem'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
@@ -46,6 +47,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="delete" />
 				<TldrawUiMenuActionItem actionId="duplicate" />
 				<TldrawUiMenuActionItem actionId="print" />
+				<CommandPaletteMenuItem />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.view" id="view">
 				<TldrawUiMenuActionItem actionId="select-zoom-tool" />

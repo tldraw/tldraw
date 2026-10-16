@@ -200,7 +200,7 @@ export function useCommentNotifications() {
 }
 
 /** Deep link to a comment's file, anchored to its shape (when shape-anchored) so its popover opens. */
-function commentLink(fileId: string, shapeId: string | null | undefined, commentId: string) {
+export function commentLink(fileId: string, shapeId: string | null | undefined, commentId: string) {
 	const base = `${routes.tlaFile(fileId)}?comment=${encodeURIComponent(commentId)}`
 	if (!shapeId) return base
 	const d = createDeepLinkString({ type: 'shapes', shapeIds: [shapeId as any] })

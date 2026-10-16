@@ -143,6 +143,12 @@
       "value": "Send feedback"
     }
   ],
+  "0e4a10d921": [
+    {
+      "type": 0,
+      "value": "Mark all notifications as read"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -177,6 +183,12 @@
     {
       "type": 0,
       "value": "Notification options"
+    }
+  ],
+  "15bf4fead9": [
+    {
+      "type": 0,
+      "value": "Switch workspace"
     }
   ],
   "181b90f889": [
@@ -317,10 +329,22 @@
       "value": "Back to tldraw"
     }
   ],
+  "32811caa8c": [
+    {
+      "type": 0,
+      "value": "Duplicate file"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "Please try refreshing the page."
+    }
+  ],
+  "34082694d2": [
+    {
+      "type": 0,
+      "value": "File name"
     }
   ],
   "344a7f427f": [
@@ -333,6 +357,12 @@
     {
       "type": 0,
       "value": "Manage"
+    }
+  ],
+  "35ad6d54d5": [
+    {
+      "type": 0,
+      "value": "Publish file"
     }
   ],
   "375396d6e5": [
@@ -377,6 +407,12 @@
       "value": "Color theme"
     }
   ],
+  "42212cc6ca": [
+    {
+      "type": 0,
+      "value": "Workspace settings…"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -415,6 +451,12 @@
       "value": "Thanks for helping us improve tldraw!"
     }
   ],
+  "4630b65bb2": [
+    {
+      "type": 0,
+      "value": "Move file to"
+    }
+  ],
   "46de2de6bb": [
     {
       "type": 0,
@@ -437,6 +479,12 @@
     {
       "type": 0,
       "value": "Name"
+    }
+  ],
+  "4a8165368a": [
+    {
+      "type": 0,
+      "value": "Copy published link"
     }
   ],
   "4d0d3ddec9": [
@@ -535,6 +583,12 @@
     {
       "type": 0,
       "value": "Create a workspace"
+    }
+  ],
+  "5653ebed2e": [
+    {
+      "type": 0,
+      "value": "Go to file"
     }
   ],
   "5677e381d2": [
@@ -786,6 +840,12 @@
       "value": "Please reload"
     }
   ],
+  "76ec4e4ed9": [
+    {
+      "type": 0,
+      "value": "Copy file link"
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
@@ -820,6 +880,12 @@
     {
       "type": 0,
       "value": "User manual"
+    }
+  ],
+  "7ba39bd412": [
+    {
+      "type": 0,
+      "value": "Share…"
     }
   ],
   "7be10fc592": [
@@ -1018,6 +1084,12 @@
       "value": "? This action cannot be undone."
     }
   ],
+  "91f3a2c0e4": [
+    {
+      "type": 0,
+      "value": "Files"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1172,6 +1244,12 @@
       "value": "Cookie policy"
     }
   ],
+  "a4bef6414b": [
+    {
+      "type": 0,
+      "value": "Toggle comments sidebar"
+    }
+  ],
   "a4d3b161ce": [
     {
       "type": 0,
@@ -1226,6 +1304,12 @@
       "value": "File limit reached"
     }
   ],
+  "ac863f346e": [
+    {
+      "type": 0,
+      "value": "App"
+    }
+  ],
   "af3dc88931": [
     {
       "type": 0,
@@ -1260,6 +1344,12 @@
       "value": " replied"
     }
   ],
+  "b0ad6a6123": [
+    {
+      "type": 0,
+      "value": "New workspace…"
+    }
+  ],
   "b1c94ca2fb": [
     {
       "type": 0,
@@ -1276,6 +1366,12 @@
     {
       "type": 0,
       "value": "File is full"
+    }
+  ],
+  "b3205c1e45": [
+    {
+      "type": 0,
+      "value": "Open notifications panel"
     }
   ],
   "b357b524e7": [
@@ -1376,6 +1472,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "bd8aac2696": [
+    {
+      "type": 0,
+      "value": "Current file"
     }
   ],
   "c17466812d": [
@@ -1506,6 +1608,12 @@
       "value": " reacted to your comment"
     }
   ],
+  "d28d6bbc42": [
+    {
+      "type": 0,
+      "value": "Unpublish file"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1522,6 +1630,12 @@
     {
       "type": 0,
       "value": "Toggle sidebar"
+    }
+  ],
+  "d5e92609cf": [
+    {
+      "type": 0,
+      "value": "Workspaces"
     }
   ],
   "d638a3344b": [
