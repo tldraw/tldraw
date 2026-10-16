@@ -30,23 +30,9 @@ export class CubicBezier2d extends Polyline2d {
 	}
 
 	override getVertices() {
-		const vertices = [] as Vec[]
-		const { _a: a, _b: b, _c: c, _d: d } = this
-		// we'll always use ten vertices for each bezier curve
+		const vertices: Vec[] = []
 		for (let i = 0, n = this._resolution; i <= n; i++) {
-			const t = i / n
-			vertices.push(
-				new Vec(
-					(1 - t) * (1 - t) * (1 - t) * a.x +
-						3 * ((1 - t) * (1 - t)) * t * b.x +
-						3 * (1 - t) * (t * t) * c.x +
-						t * t * t * d.x,
-					(1 - t) * (1 - t) * (1 - t) * a.y +
-						3 * ((1 - t) * (1 - t)) * t * b.y +
-						3 * (1 - t) * (t * t) * c.y +
-						t * t * t * d.y
-				)
-			)
+			vertices.push(CubicBezier2d.GetAtT(this, i / n))
 		}
 		return vertices
 	}
@@ -54,11 +40,9 @@ export class CubicBezier2d extends Polyline2d {
 	nearestPoint(A: VecLike): Vec {
 		let nearest: Vec | undefined
 		let dist = Infinity
-		let d: number
-		let p: Vec
 		for (const edge of this.segments) {
-			p = edge.nearestPoint(A)
-			d = Vec.Dist2(p, A)
+			const p = edge.nearestPoint(A)
+			const d = Vec.Dist2(p, A)
 			if (d < dist) {
 				nearest = p
 				dist = d

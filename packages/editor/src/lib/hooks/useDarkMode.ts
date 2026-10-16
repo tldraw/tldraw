@@ -12,19 +12,10 @@ export function useDarkMode() {
 	const forceSrgb = useValue(debugFlags.forceSrgb)
 
 	React.useEffect(() => {
-		if (colorMode === 'dark') {
-			container.setAttribute('data-color-mode', 'dark')
-			container.classList.remove('tl-theme__light')
-			container.classList.add('tl-theme__dark')
-		} else {
-			container.setAttribute('data-color-mode', 'light')
-			container.classList.remove('tl-theme__dark')
-			container.classList.add('tl-theme__light')
-		}
-		if (forceSrgb) {
-			container.classList.add('tl-theme__force-sRGB')
-		} else {
-			container.classList.remove('tl-theme__force-sRGB')
-		}
+		const isDark = colorMode === 'dark'
+		container.setAttribute('data-color-mode', colorMode)
+		container.classList.toggle('tl-theme__dark', isDark)
+		container.classList.toggle('tl-theme__light', !isDark)
+		container.classList.toggle('tl-theme__force-sRGB', forceSrgb)
 	}, [editor, container, forceSrgb, colorMode])
 }

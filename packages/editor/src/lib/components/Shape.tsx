@@ -58,8 +58,6 @@ export const Shape = memo(function Shape({
 		clipPath: 'none',
 		width: 0,
 		height: 0,
-		x: 0,
-		y: 0,
 	})
 
 	useQuickReactor(
@@ -79,9 +77,7 @@ export const Shape = memo(function Shape({
 			}
 
 			// Page transform
-			const pageTransform = editor.getShapePageTransform(id)
-			const transform = Mat.toCssString(pageTransform)
-			const bounds = editor.getShapeGeometry(shape).bounds
+			const transform = Mat.toCssString(editor.getShapePageTransform(id))
 
 			// Update if the tranform has changed
 			if (transform !== prev.transform) {
@@ -91,6 +87,7 @@ export const Shape = memo(function Shape({
 			}
 
 			// Width / Height
+			const bounds = editor.getShapeGeometry(shape).bounds
 			const width = Math.max(bounds.width, 1)
 			const height = Math.max(bounds.height, 1)
 
@@ -152,7 +149,7 @@ export const Shape = memo(function Shape({
 				</ShapeWrapper>
 			)}
 			<ShapeWrapper ref={containerRef} shape={shape} isBackground={false}>
-				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
+				<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
 					<InnerShape shape={shape} util={util} />
 				</OptionalErrorBoundary>
 				{util.getAppOwnedElement && <ContentElementSlot id={id} util={util} />}
@@ -276,8 +273,5 @@ export const InnerShapeBackground = memo(
 			[util, shape.id]
 		)
 	},
-	(prev, next) =>
-		prev.shape.props === next.shape.props &&
-		prev.shape.meta === next.shape.meta &&
-		prev.util === next.util
+	(prev, next) => areShapesContentEqual(prev.shape, next.shape) && prev.util === next.util
 )

@@ -143,8 +143,7 @@ export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMe
 		(el as HTMLElement).isContentEditable ||
 		tagName === 'input' ||
 		tagName === 'textarea' ||
-		(includeButtonsAndMenus && tagName === 'select') ||
-		(includeButtonsAndMenus && tagName === 'button') ||
+		(includeButtonsAndMenus && (tagName === 'select' || tagName === 'button')) ||
 		el.classList.contains('tlui-slider__thumb')
 	)
 }

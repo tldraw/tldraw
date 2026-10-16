@@ -67,20 +67,16 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	component(shape: TLGroupShape) {
 		const isErasing = this.editor.getErasingShapeIds().includes(shape.id)
 
-		const { hintingShapeIds } = this.editor.getCurrentPageState()
-		const isHintingOtherGroup =
-			hintingShapeIds.length > 0 &&
-			hintingShapeIds.some(
-				(id) => id !== shape.id && this.editor.isShapeOfType(this.editor.getShape(id)!, 'group')
-			)
-
-		const isFocused = this.editor.getCurrentPageState().focusedGroupId !== shape.id
+		const { hintingShapeIds, focusedGroupId } = this.editor.getCurrentPageState()
+		const isHintingOtherGroup = hintingShapeIds.some(
+			(id) => id !== shape.id && this.editor.isShapeOfType(this.editor.getShape(id)!, 'group')
+		)
 
 		if (
 			!isErasing && // always show the outline while we're erasing the group
 			// show the outline while the group is focused unless something outside of the group is being hinted
 			// this happens dropping shapes from a group onto some outside group
-			(isFocused || isHintingOtherGroup)
+			(focusedGroupId !== shape.id || isHintingOtherGroup)
 		) {
 			return null
 		}
@@ -138,19 +134,14 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 
 	override onChildrenChange(group: TLGroupShape) {
 		const children = this.editor.getSortedChildIdsForParent(group.id)
-		if (children.length === 0) {
-			if (this.editor.getCurrentPageState().focusedGroupId === group.id) {
-				this.editor.popFocusedGroupId()
-			}
-			this.editor.deleteShapes([group.id])
-			return
-		} else if (children.length === 1) {
-			if (this.editor.getCurrentPageState().focusedGroupId === group.id) {
-				this.editor.popFocusedGroupId()
-			}
-			this.editor.reparentShapes(children, group.parentId, group.index)
-			this.editor.deleteShapes([group.id])
-			return
+		if (children.length > 1) return
+
+		if (this.editor.getCurrentPageState().focusedGroupId === group.id) {
+			this.editor.popFocusedGroupId()
 		}
+		if (children.length === 1) {
+			this.editor.reparentShapes(children, group.parentId, group.index)
+		}
+		this.editor.deleteShapes([group.id])
 	}
 }

@@ -44,8 +44,6 @@ interface AnnounceMessage {
 
 type Message = SyncMessage | AnnounceMessage
 
-type UnpackPromise<T> = T extends Promise<infer U> ? U : T
-
 const msg = (msg: Message) => msg
 
 /** @internal */
@@ -79,7 +77,6 @@ export class TLLocalSyncClient {
 	readonly sessionId: string
 	readonly serializedSchema: SerializedSchema
 	private isDebugging = false
-	private readonly documentTypes: ReadonlySet<string>
 	private readonly $sessionStateSnapshot: Signal<TLSessionStateSnapshot | null>
 	/** @internal */
 	readonly db: LocalIndexedDb
@@ -170,17 +167,11 @@ export class TLLocalSyncClient {
 		}
 
 		this.connect(onLoad, onLoadError)
-
-		this.documentTypes = new Set(
-			Object.values(this.store.schema.types)
-				.filter((t) => t.scope === 'document')
-				.map((t) => t.typeName)
-		)
 	}
 
 	private async connect(onLoad: (client: this) => void, onLoadError: (error: Error) => void) {
 		this.debug('connecting')
-		let data: UnpackPromise<ReturnType<LocalIndexedDb['load']>> | undefined
+		let data: Awaited<ReturnType<LocalIndexedDb['load']>> | undefined
 
 		const handleMessage = (msg: Message) => {
 			// if their schema is earlier than ours, we need to tell them so they can refresh
@@ -275,7 +266,7 @@ export class TLLocalSyncClient {
 				}
 
 				const records = Object.values(migrationResult.value).filter((r) =>
-					this.documentTypes.has(r.typeName)
+					this.store.scopedTypes.document.has(r.typeName)
 				)
 				if (records.length > 0) {
 					// 3. Merge the changes into the REAL STORE
