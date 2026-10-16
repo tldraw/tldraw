@@ -33,13 +33,9 @@ function findWorkflowRegions(editor: Editor): WorkflowRegion[] {
 	const visitedNodes = new Set<TLShapeId>()
 
 	// Recursively visit connected nodes to build workflow regions
-	function visit(node: NodeShape, currentWorkflow?: Set<TLShapeId>) {
+	function visit(node: NodeShape, currentWorkflow: Set<TLShapeId> = new Set()) {
 		if (visitedNodes.has(node.id)) return
 		visitedNodes.add(node.id)
-
-		if (!currentWorkflow) {
-			currentWorkflow = new Set()
-		}
 
 		workflowSetsByShape.set(node.id, currentWorkflow)
 		currentWorkflow.add(node.id)
@@ -111,13 +107,9 @@ function WorkflowRegion({ workflow }: { workflow: WorkflowRegion }) {
 			if (!execution) return false
 
 			// Check if any node in this workflow is executing
-			for (const nodeId of workflow.nodes) {
-				if (execution.getNodeStatus(nodeId) === 'executing') {
-					return true
-				}
-			}
-
-			return false
+			return Array.from(workflow.nodes).some(
+				(nodeId) => execution.getNodeStatus(nodeId) === 'executing'
+			)
 		},
 		[editor, workflow]
 	)
@@ -133,9 +125,8 @@ function WorkflowRegion({ workflow }: { workflow: WorkflowRegion }) {
 			if (camera.z < 0.25) {
 				ref.current.style.display = 'none'
 				return
-			} else {
-				ref.current.style.display = 'block'
 			}
+			ref.current.style.display = 'block'
 
 			// Transform workflow bounds from page space to viewport space
 			const position = editor.pageToViewport(workflow.bounds)
