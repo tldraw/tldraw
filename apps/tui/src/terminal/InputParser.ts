@@ -50,7 +50,13 @@ export interface ReplyEvent {
 	data?: Record<string, number | string>
 }
 
-export type TerminalEvent = KeyEvent | MouseEvent | PasteEvent | FocusEvent | ResizeEvent | ReplyEvent
+export type TerminalEvent =
+	| KeyEvent
+	| MouseEvent
+	| PasteEvent
+	| FocusEvent
+	| ResizeEvent
+	| ReplyEvent
 
 export interface InputParserOptions {
 	/** Wait after a chunk that ends in a lone ESC before calling it the Escape key. Default 35. */
@@ -415,6 +421,13 @@ export class InputParser {
 				return
 			}
 			if (this.pendingKind === 'none') return
+			if (this.pasteActive) {
+				// A chunk ended inside what looked like the paste end mark but the rest never came:
+				// those bytes are paste content, and the paste itself keeps waiting for its cap.
+				for (const b of this.pending) this.pasteBytes.push(b)
+				this.clearPending()
+				return
+			}
 			if (this.pendingKind === 'esc') {
 				const count = this.pending.length
 				this.clearPending()
@@ -546,7 +559,12 @@ export class InputParser {
 		}
 		const ch = String.fromCharCode(b)
 		const shifted = isShiftedChar(ch)
-		this.emitKey(ch, codeForKey(ch), shifted ? { ...mods, shift: true } : mods, alt ? undefined : ch)
+		this.emitKey(
+			ch,
+			codeForKey(ch),
+			shifted ? { ...mods, shift: true } : mods,
+			alt ? undefined : ch
+		)
 	}
 
 	private emitKey(
@@ -661,7 +679,13 @@ export class InputParser {
 		return j - i + 1
 	}
 
-	private dispatchCsi(prefix: number, paramStr: string, final: number, alt: boolean, raw: string): void {
+	private dispatchCsi(
+		prefix: number,
+		paramStr: string,
+		final: number,
+		alt: boolean,
+		raw: string
+	): void {
 		const params = parseParams(paramStr)
 		const ch = String.fromCharCode(final)
 		switch (ch) {
@@ -694,7 +718,7 @@ export class InputParser {
 				return
 			}
 			case 'Z':
-				this.emitKey('Tab', 'Tab', { ...xtermMods(param(params, 0, 0, 1)), shift: true, alt })
+				this.emitKey('Tab', 'Tab', { ...xtermMods(param(params, 1, 0, 1)), shift: true, alt })
 				return
 			case 'I':
 				if (prefix === 0 && params.length === 0) this.emit({ type: 'focus', focused: true })
@@ -818,7 +842,13 @@ export class InputParser {
 	): void {
 		const functional = KITTY_KEYS[cp]
 		if (functional) {
-			this.emitKey(functional[0], functional[1], mods, cp === 13 || cp === 9 ? undefined : text, event)
+			this.emitKey(
+				functional[0],
+				functional[1],
+				mods,
+				cp === 13 || cp === 9 ? undefined : text,
+				event
+			)
 			return
 		}
 		if (cp === 32) {
@@ -841,7 +871,8 @@ export class InputParser {
 		}
 		if (isShiftedChar(key)) mods = { ...mods, shift: true }
 		const code = codeForKey(baseCh.length === 1 ? baseCh.toLowerCase() : baseCh)
-		const insert = text ?? (mods.ctrl || mods.alt ? undefined : key)
+		// Without the terminal's own text field, only an unmodified (or shift-only) key inserts.
+		const insert = text ?? (mods.ctrl || mods.alt || mods.meta ? undefined : key)
 		this.emitKey(key, code, mods, insert, event)
 	}
 
@@ -907,7 +938,13 @@ export class InputParser {
 		return INCOMPLETE
 	}
 
-	private emitMouse(b: number, col: number, row: number, releaseFinal: boolean, x10: boolean): void {
+	private emitMouse(
+		b: number,
+		col: number,
+		row: number,
+		releaseFinal: boolean,
+		x10: boolean
+	): void {
 		if (b < 0) return
 		const shift = (b & 4) !== 0
 		const alt = (b & 8) !== 0

@@ -52,7 +52,8 @@ export function backgroundFromColorFgBg(env: NodeJS.ProcessEnv): ColorScheme | n
 	if (!Number.isFinite(bg)) return null
 	if (bg === 7 || bg === 15) return 'light'
 	if (bg >= 0 && bg <= 8) return 'dark'
-	return bg >= 9 ? 'light' : null
+	// Bright colour backgrounds (9–14) say nothing reliable about contrast.
+	return null
 }
 
 export function isLightBackground(rgb: Rgb): boolean {

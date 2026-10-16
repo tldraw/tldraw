@@ -121,6 +121,8 @@ export class Screen {
 	private linesDirty = false
 	private readonly lineStyles: LineStyle[] = [{ fg: -1, weight: 'light' }]
 	private readonly lineStyleKeys = new Map<string, number>()
+	private lastLineStyle: LineStyle | null = null
+	private lastLineStyleIdx = 0
 	private sideTable: string[] = []
 	private sideIndex = new Map<string, number>()
 	private clipStack: Rect[] = []
@@ -377,9 +379,14 @@ export class Screen {
 		}
 		const r = intersect(this.clip, rect)
 		if (r.w <= 0 || r.h <= 0) return
-		const right = rect.x + rect.w
+		const right = r.x + r.w
+		const rectRight = rect.x + rect.w
+		// Start on the rect's own glyph grid so a clipped wide fill keeps its column parity.
+		const start = rect.x + Math.floor((r.x - rect.x) / w) * w
 		for (let y = r.y; y < r.y + r.h; y++) {
-			for (let x = r.x; x < right; x += w) this.putMeasured(x, y, glyph, w, style)
+			for (let x = start; x < right && x + w <= rectRight; x += w) {
+				this.putMeasured(x, y, glyph, w, style)
+			}
 		}
 	}
 
@@ -405,8 +412,8 @@ export class Screen {
 	blendBg(col: number, row: number, rgb: Rgb, alpha: number): void {
 		if (!this.inClip(col, row)) return
 		const b = this.back
-		const i = row * this.cols + col
-		if (b.wide[i] === WIDE_CONTINUATION) return
+		let i = row * this.cols + col
+		if (b.wide[i] === WIDE_CONTINUATION) i--
 		const base = b.bg[i] === -1 ? this.background : b.bg[i]
 		const v = blend(rgb, base, alpha)
 		b.bg[i] = v
@@ -414,13 +421,24 @@ export class Screen {
 	}
 
 	private internLineStyle(style: LineStyle): number {
-		const key = `${style.fg}|${style.weight}|${style.dash ?? 'solid'}`
+		// Rasterizers pass one style for every cell of a shape; skip the key build when it still
+		// matches the last interned entry (compared by value, since callers may mutate the object).
+		const dash = style.dash ?? 'solid'
+		if (style === this.lastLineStyle) {
+			const last = this.lineStyles[this.lastLineStyleIdx]
+			if (last.fg === style.fg && last.weight === style.weight && last.dash === dash) {
+				return this.lastLineStyleIdx
+			}
+		}
+		const key = `${style.fg}|${style.weight}|${dash}`
 		let idx = this.lineStyleKeys.get(key)
 		if (idx === undefined) {
 			idx = this.lineStyles.length
-			this.lineStyles.push({ fg: style.fg, weight: style.weight, dash: style.dash ?? 'solid' })
+			this.lineStyles.push({ fg: style.fg, weight: style.weight, dash })
 			this.lineStyleKeys.set(key, idx)
 		}
+		this.lastLineStyle = style
+		this.lastLineStyleIdx = idx
 		return idx
 	}
 
@@ -611,7 +629,8 @@ export class Screen {
 		if (!this.sgrKnown) return false
 		for (let k = from; k < to; k++) {
 			if (b.wide[k] !== 0) return false
-			if (b.fg[k] !== this.sgrFg || b.bg[k] !== this.sgrBg || b.attrs[k] !== this.sgrAttrs) return false
+			if (b.fg[k] !== this.sgrFg || b.bg[k] !== this.sgrBg || b.attrs[k] !== this.sgrAttrs)
+				return false
 		}
 		return true
 	}

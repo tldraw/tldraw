@@ -73,7 +73,24 @@ const BOX_LIGHT = [' ', '╵', '╶', '└', '╷', '│', '┌', '├', '╴', 
 const BOX_HEAVY = [' ', '╹', '╺', '┗', '╻', '┃', '┏', '┣', '╸', '┛', '━', '┻', '┓', '┫', '┳', '╋']
 const BOX_DOUBLE = [' ', '║', '═', '╚', '║', '║', '╔', '╠', '═', '╝', '═', '╩', '╗', '╣', '╦', '╬']
 const BOX_ASCII = [' ', '|', '-', '+', '|', '|', '+', '+', '-', '+', '-', '+', '+', '+', '+', '+']
-const BOX_ASCII_HEAVY = [' ', '|', '=', '+', '|', '|', '+', '+', '=', '+', '=', '+', '+', '+', '+', '+']
+const BOX_ASCII_HEAVY = [
+	' ',
+	'|',
+	'=',
+	'+',
+	'|',
+	'|',
+	'+',
+	'+',
+	'=',
+	'+',
+	'=',
+	'+',
+	'+',
+	'+',
+	'+',
+	'+',
+]
 
 const QUADRANTS = ['', '▘', '▝', '▀', '▖', '▌', '▞', '▛', '▗', '▚', '▐', '▜', '▄', '▙', '▟', '█']
 const QUADRANTS_ASCII = [
@@ -235,7 +252,11 @@ const ASCII: GlyphSet = {
 	caretRight: '>',
 }
 
-export const GLYPHS: Readonly<Record<GlyphTier, GlyphSet>> = { rich: RICH, safe: SAFE, ascii: ASCII }
+export const GLYPHS: Readonly<Record<GlyphTier, GlyphSet>> = {
+	rich: RICH,
+	safe: SAFE,
+	ascii: ASCII,
+}
 
 export function getGlyphs(tier: GlyphTier): GlyphSet {
 	return GLYPHS[tier]
@@ -244,7 +265,8 @@ export function getGlyphs(tier: GlyphTier): GlyphSet {
 /** Every drawable glyph in a set (tables flattened, empty entries dropped), for tests. */
 export function listTierGlyphs(set: GlyphSet): string[] {
 	const out: string[] = []
-	for (const value of Object.values(set)) {
+	for (const [key, value] of Object.entries(set)) {
+		if (key === 'tier') continue
 		if (typeof value === 'string') {
 			if (value.length > 0) out.push(value)
 		} else if (Array.isArray(value)) {

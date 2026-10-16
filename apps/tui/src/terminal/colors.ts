@@ -236,7 +236,11 @@ export function hslToRgb(hDeg: number, s: number, l: number): Rgb {
 	if (s === 0) return packRgb(l * 255, l * 255, l * 255)
 	const q = l < 0.5 ? l * (1 + s) : l + s - l * s
 	const p = 2 * l - q
-	return packRgb(hueToRgb(p, q, h + 1 / 3) * 255, hueToRgb(p, q, h) * 255, hueToRgb(p, q, h - 1 / 3) * 255)
+	return packRgb(
+		hueToRgb(p, q, h + 1 / 3) * 255,
+		hueToRgb(p, q, h) * 255,
+		hueToRgb(p, q, h - 1 / 3) * 255
+	)
 }
 
 function hueToRgb(p: number, q: number, t: number): number {
@@ -294,13 +298,22 @@ export function relativeLuminance(rgb: Rgb): number {
 
 const CUBE_LEVELS = [0, 95, 135, 175, 215, 255]
 
+// xterm's own 256colres mapping: levels 95..255 are 40 apart, so truncating (v - 35) / 40 picks the
+// nearest one (135 → 2, 155 → 3); rounding would skip level 2 for v = 135.
 function nearestCubeLevel(v: number): number {
 	if (v < 48) return 0
 	if (v < 115) return 1
-	return Math.min(5, Math.round((v - 35) / 40))
+	return Math.min(5, Math.floor((v - 35) / 40))
 }
 
-function distanceSq(r1: number, g1: number, b1: number, r2: number, g2: number, b2: number): number {
+function distanceSq(
+	r1: number,
+	g1: number,
+	b1: number,
+	r2: number,
+	g2: number,
+	b2: number
+): number {
 	const dr = r1 - r2
 	const dg = g1 - g2
 	const db = b1 - b2
@@ -328,8 +341,8 @@ export function quantize256(rgb: Rgb): number {
 
 // xterm's default palette for the 16 ANSI colours.
 const ANSI16: readonly Rgb[] = [
-	0x000000, 0xcd0000, 0x00cd00, 0xcdcd00, 0x0000ee, 0xcd00cd, 0x00cdcd, 0xe5e5e5, 0x7f7f7f, 0xff0000,
-	0x00ff00, 0xffff00, 0x5c5cff, 0xff00ff, 0x00ffff, 0xffffff,
+	0x000000, 0xcd0000, 0x00cd00, 0xcdcd00, 0x0000ee, 0xcd00cd, 0x00cdcd, 0xe5e5e5, 0x7f7f7f,
+	0xff0000, 0x00ff00, 0xffff00, 0x5c5cff, 0xff00ff, 0x00ffff, 0xffffff,
 ]
 
 /** Nearest of the 16 ANSI colours (0–7 normal, 8–15 bright). */
@@ -363,7 +376,11 @@ export function xterm256Rgb(index: number): Rgb {
 	}
 	if (index >= 16) {
 		const n = index - 16
-		return packRgb(CUBE_LEVELS[Math.floor(n / 36)], CUBE_LEVELS[Math.floor(n / 6) % 6], CUBE_LEVELS[n % 6])
+		return packRgb(
+			CUBE_LEVELS[Math.floor(n / 36)],
+			CUBE_LEVELS[Math.floor(n / 6) % 6],
+			CUBE_LEVELS[n % 6]
+		)
 	}
 	return ANSI16[index]
 }
@@ -387,7 +404,8 @@ export function detectColorMode(env: NodeJS.ProcessEnv): ColorMode {
 	const colorterm = (env.COLORTERM ?? '').toLowerCase()
 	if (colorterm === 'truecolor' || colorterm === '24bit') return '24bit'
 	const term = (env.TERM ?? '').toLowerCase()
-	if (term.includes('direct') || term.includes('truecolor') || term.includes('24bit')) return '24bit'
+	if (term.includes('direct') || term.includes('truecolor') || term.includes('24bit'))
+		return '24bit'
 	const program = (env.TERM_PROGRAM ?? '').toLowerCase()
 	if (TRUECOLOR_PROGRAMS.has(program)) return '24bit'
 	for (const name of TRUECOLOR_ENV_VARS) {

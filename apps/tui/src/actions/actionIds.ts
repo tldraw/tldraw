@@ -1,0 +1,217 @@
+/**
+ * Every user-triggerable action in the TUI, by stable id. Menus, the context menu, the toolbar,
+ * the help overlay and the shortcut table all reference these ids; `actions/actions.ts` maps
+ * them to implementations. Keeping the ids and their display metadata here lets the chrome and
+ * the input controller be built independently.
+ */
+export const ACTION_IDS = [
+	'file.new',
+	'file.open',
+	'file.save',
+	'file.save-as',
+	'file.export-text',
+	'app.quit',
+	'edit.undo',
+	'edit.redo',
+	'edit.cut',
+	'edit.copy',
+	'edit.paste',
+	'edit.duplicate',
+	'edit.delete',
+	'edit.select-all',
+	'edit.select-none',
+	'edit.group',
+	'edit.ungroup',
+	'edit.toggle-group',
+	'edit.toggle-lock',
+	'edit.unlock-all',
+	'edit.edit-text',
+	'arrange.align-left',
+	'arrange.align-center-horizontal',
+	'arrange.align-right',
+	'arrange.align-top',
+	'arrange.align-center-vertical',
+	'arrange.align-bottom',
+	'arrange.distribute-horizontal',
+	'arrange.distribute-vertical',
+	'arrange.stretch-horizontal',
+	'arrange.stretch-vertical',
+	'arrange.flip-horizontal',
+	'arrange.flip-vertical',
+	'arrange.rotate-cw',
+	'arrange.rotate-ccw',
+	'arrange.pack',
+	'arrange.stack-horizontal',
+	'arrange.stack-vertical',
+	'arrange.bring-to-front',
+	'arrange.bring-forward',
+	'arrange.send-backward',
+	'arrange.send-to-back',
+	'view.zoom-in',
+	'view.zoom-out',
+	'view.zoom-to-fit',
+	'view.zoom-to-selection',
+	'view.zoom-to-100',
+	'view.toggle-grid',
+	'view.toggle-snap',
+	'view.toggle-dark-mode',
+	'view.toggle-pointer-mode',
+	'view.toggle-style-panel',
+	'view.toggle-debug',
+	'tool.select',
+	'tool.hand',
+	'tool.draw',
+	'tool.eraser',
+	'tool.arrow',
+	'tool.line',
+	'tool.text',
+	'tool.note',
+	'tool.frame',
+	'tool.rectangle',
+	'tool.ellipse',
+	'tool.geo',
+	'tool.laser',
+	'tool.highlight',
+	'page.new',
+	'page.rename',
+	'page.duplicate',
+	'page.delete',
+	'page.prev',
+	'page.next',
+	'page.switch',
+	'ui.menu',
+	'ui.context-menu',
+	'ui.help',
+	'ui.geo-picker',
+	'ui.pages',
+	'ui.style-panel',
+	'modifier.toggle-shift',
+	'modifier.toggle-alt',
+	'modifier.toggle-ctrl',
+] as const
+
+export type ActionId = (typeof ACTION_IDS)[number]
+
+/** An action plus its optional argument (a page id for `page.switch`, a geo type for `tool.geo`). */
+export interface ActionInvocation {
+	id: ActionId
+	arg?: string
+}
+
+export interface ActionMeta {
+	id: ActionId
+	/** Sentence-case label for menus and the help overlay. */
+	label: string
+	/**
+	 * Legacy-safe shortcut shown in menus and help: every terminal can send it. `kbdFull` is the
+	 * tldraw chord that only works when the kitty keyboard protocol or modifyOtherKeys is active.
+	 */
+	kbd?: string
+	kbdFull?: string
+}
+
+function meta(id: ActionId, label: string, kbd?: string, kbdFull?: string): ActionMeta {
+	return { id, label, kbd, kbdFull }
+}
+
+export const ACTION_META: Record<ActionId, ActionMeta> = {
+	'file.new': meta('file.new', 'New', 'ctrl+n'),
+	'file.open': meta('file.open', 'Open…', 'ctrl+o'),
+	'file.save': meta('file.save', 'Save', 'ctrl+s'),
+	'file.save-as': meta('file.save-as', 'Save as…', undefined, 'ctrl+shift+s'),
+	'file.export-text': meta('file.export-text', 'Export as text…', 'ctrl+e'),
+	'app.quit': meta('app.quit', 'Quit', 'ctrl+q'),
+	'edit.undo': meta('edit.undo', 'Undo', 'ctrl+z'),
+	'edit.redo': meta('edit.redo', 'Redo', 'ctrl+y', 'ctrl+shift+z'),
+	'edit.cut': meta('edit.cut', 'Cut', 'ctrl+x'),
+	'edit.copy': meta('edit.copy', 'Copy', 'ctrl+c'),
+	'edit.paste': meta('edit.paste', 'Paste', 'ctrl+v'),
+	'edit.duplicate': meta('edit.duplicate', 'Duplicate', 'ctrl+d'),
+	'edit.delete': meta('edit.delete', 'Delete', 'del'),
+	'edit.select-all': meta('edit.select-all', 'Select all', 'ctrl+a'),
+	'edit.select-none': meta('edit.select-none', 'Select none', 'esc'),
+	'edit.group': meta('edit.group', 'Group', 'ctrl+g'),
+	'edit.ungroup': meta('edit.ungroup', 'Ungroup', 'ctrl+g', 'ctrl+shift+g'),
+	'edit.toggle-group': meta('edit.toggle-group', 'Group or ungroup', 'ctrl+g'),
+	'edit.toggle-lock': meta('edit.toggle-lock', 'Lock or unlock', 'shift+l'),
+	'edit.unlock-all': meta('edit.unlock-all', 'Unlock all'),
+	'edit.edit-text': meta('edit.edit-text', 'Edit text', 'enter'),
+	'arrange.align-left': meta('arrange.align-left', 'Align left', 'alt+a'),
+	'arrange.align-center-horizontal': meta(
+		'arrange.align-center-horizontal',
+		'Align center horizontally',
+		'alt+h'
+	),
+	'arrange.align-right': meta('arrange.align-right', 'Align right', 'alt+d'),
+	'arrange.align-top': meta('arrange.align-top', 'Align top', 'alt+w'),
+	'arrange.align-center-vertical': meta(
+		'arrange.align-center-vertical',
+		'Align center vertically',
+		'alt+v'
+	),
+	'arrange.align-bottom': meta('arrange.align-bottom', 'Align bottom', 'alt+s'),
+	'arrange.distribute-horizontal': meta(
+		'arrange.distribute-horizontal',
+		'Distribute horizontally',
+		'alt+shift+h'
+	),
+	'arrange.distribute-vertical': meta(
+		'arrange.distribute-vertical',
+		'Distribute vertically',
+		'alt+shift+v'
+	),
+	'arrange.stretch-horizontal': meta('arrange.stretch-horizontal', 'Stretch horizontally'),
+	'arrange.stretch-vertical': meta('arrange.stretch-vertical', 'Stretch vertically'),
+	'arrange.flip-horizontal': meta('arrange.flip-horizontal', 'Flip horizontally', 'shift+h'),
+	'arrange.flip-vertical': meta('arrange.flip-vertical', 'Flip vertically', 'shift+v'),
+	'arrange.rotate-cw': meta('arrange.rotate-cw', 'Rotate clockwise', 'shift+.'),
+	'arrange.rotate-ccw': meta('arrange.rotate-ccw', 'Rotate counterclockwise', 'shift+,'),
+	'arrange.pack': meta('arrange.pack', 'Pack'),
+	'arrange.stack-horizontal': meta('arrange.stack-horizontal', 'Stack horizontally'),
+	'arrange.stack-vertical': meta('arrange.stack-vertical', 'Stack vertically'),
+	'arrange.bring-to-front': meta('arrange.bring-to-front', 'Bring to front', ']'),
+	'arrange.bring-forward': meta('arrange.bring-forward', 'Bring forward', '}', 'alt+]'),
+	'arrange.send-backward': meta('arrange.send-backward', 'Send backward', '{', 'alt+['),
+	'arrange.send-to-back': meta('arrange.send-to-back', 'Send to back', '['),
+	'view.zoom-in': meta('view.zoom-in', 'Zoom in', '='),
+	'view.zoom-out': meta('view.zoom-out', 'Zoom out', '-'),
+	'view.zoom-to-fit': meta('view.zoom-to-fit', 'Zoom to fit', 'shift+1'),
+	'view.zoom-to-selection': meta('view.zoom-to-selection', 'Zoom to selection', 'shift+2'),
+	'view.zoom-to-100': meta('view.zoom-to-100', 'Zoom to 100%', 'shift+0'),
+	'view.toggle-grid': meta('view.toggle-grid', 'Grid', "'"),
+	'view.toggle-snap': meta('view.toggle-snap', 'Snap mode', '"'),
+	'view.toggle-dark-mode': meta('view.toggle-dark-mode', 'Dark mode', 'ctrl+/'),
+	'view.toggle-pointer-mode': meta('view.toggle-pointer-mode', 'Keyboard pointer mode', 'F8'),
+	'view.toggle-style-panel': meta('view.toggle-style-panel', 'Style panel', 's'),
+	'view.toggle-debug': meta('view.toggle-debug', 'Debug info'),
+	'tool.select': meta('tool.select', 'Select', 'v'),
+	'tool.hand': meta('tool.hand', 'Hand', 'h'),
+	'tool.draw': meta('tool.draw', 'Draw', 'd'),
+	'tool.eraser': meta('tool.eraser', 'Eraser', 'e'),
+	'tool.arrow': meta('tool.arrow', 'Arrow', 'a'),
+	'tool.line': meta('tool.line', 'Line', 'l'),
+	'tool.text': meta('tool.text', 'Text', 't'),
+	'tool.note': meta('tool.note', 'Note', 'n'),
+	'tool.frame': meta('tool.frame', 'Frame', 'f'),
+	'tool.rectangle': meta('tool.rectangle', 'Rectangle', 'r'),
+	'tool.ellipse': meta('tool.ellipse', 'Ellipse', 'o'),
+	'tool.geo': meta('tool.geo', 'Shape', 'g'),
+	'tool.laser': meta('tool.laser', 'Laser', 'k'),
+	'tool.highlight': meta('tool.highlight', 'Highlighter', 'shift+d'),
+	'page.new': meta('page.new', 'New page'),
+	'page.rename': meta('page.rename', 'Rename page', 'F2'),
+	'page.duplicate': meta('page.duplicate', 'Duplicate page'),
+	'page.delete': meta('page.delete', 'Delete page'),
+	'page.prev': meta('page.prev', 'Previous page', 'pgup', 'alt+left'),
+	'page.next': meta('page.next', 'Next page', 'pgdn', 'alt+right'),
+	'page.switch': meta('page.switch', 'Go to page'),
+	'ui.menu': meta('ui.menu', 'Menu', 'm'),
+	'ui.context-menu': meta('ui.context-menu', 'Context menu', 'F10'),
+	'ui.help': meta('ui.help', 'Keyboard shortcuts', '?'),
+	'ui.geo-picker': meta('ui.geo-picker', 'Shape picker', 'g'),
+	'ui.pages': meta('ui.pages', 'Pages', 'F4'),
+	'ui.style-panel': meta('ui.style-panel', 'Style panel', 's'),
+	'modifier.toggle-shift': meta('modifier.toggle-shift', 'Hold shift', 'F5'),
+	'modifier.toggle-alt': meta('modifier.toggle-alt', 'Hold alt', 'F6'),
+	'modifier.toggle-ctrl': meta('modifier.toggle-ctrl', 'Hold ctrl', 'F7'),
+}

@@ -67,12 +67,16 @@ describe('Path2DPolyfill svg parser', () => {
 	it('converts relative arcs (dot arrowhead / scribble dot) into a circle', () => {
 		// arrowheads.ts:97-99 and ScribbleOverlayUtil.ts:97 emit this shape.
 		const r = 5
-		const p = new Path2DPolyfill(`M ${0},${5} a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 -${r * 2},0`)
+		const p = new Path2DPolyfill(
+			`M ${0},${5} a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 -${r * 2},0`
+		)
 		expect(p.ops.filter((op) => op.type === 'cubic').length).toBeGreaterThanOrEqual(4)
 		const subpaths = p.flatten(null, 0.05)
 		expect(subpaths).toHaveLength(1)
+		// A cubic Bézier quarter arc deviates from the true circle by up to 0.027% of the radius
+		// (0.0014 here), so the radial check needs a tolerance of 0.005, not 0.0005.
 		for (const [x, y] of pointsOf(subpaths[0])) {
-			expect(Math.hypot(x - 5, y - 5)).toBeCloseTo(r, 3)
+			expect(Math.hypot(x - 5, y - 5)).toBeCloseTo(r, 2)
 		}
 		const b = boundsOf(subpaths)
 		expect(b.minX).toBeCloseTo(0, 3)
@@ -90,8 +94,8 @@ describe('Path2DPolyfill svg parser', () => {
 		// Both arcs end at (5,5); the sweep flag picks which side of the chord the arc bulges to.
 		expect(cwPts[cwPts.length - 1][0]).toBeCloseTo(5, 3)
 		expect(cwPts[cwPts.length - 1][1]).toBeCloseTo(5, 3)
-		expect(mid(cw)[0] - mid(cw)[1]).toBeGreaterThan(0.5)
-		expect(mid(ccw)[0] - mid(ccw)[1]).toBeLessThan(-0.5)
+		expect(mid(cwPts)[0] - mid(cwPts)[1]).toBeGreaterThan(0.5)
+		expect(mid(ccwPts)[0] - mid(ccwPts)[1]).toBeLessThan(-0.5)
 	})
 
 	it('stops at malformed data without throwing', () => {
@@ -157,8 +161,8 @@ describe('Path2DPolyfill canvas methods', () => {
 		const last = pts[pts.length - 1]
 		expect(last[0]).toBeCloseTo(10, 4)
 		expect(last[1]).toBeCloseTo(2, 4)
-		// Every arc point is 2 away from the corner centre (8, 2).
-		for (const [x, y] of pts.slice(2)) expect(Math.hypot(x - 8, y - 2)).toBeCloseTo(2, 3)
+		// Every arc point is 2 away from the corner centre (8, 2), within the Bézier arc error.
+		for (const [x, y] of pts.slice(2)) expect(Math.hypot(x - 8, y - 2)).toBeCloseTo(2, 2)
 	})
 
 	it('ellipse flattens to the right bounds', () => {
@@ -227,7 +231,12 @@ describe('Path2DPolyfill.flatten', () => {
 	})
 
 	it('getBounds reports the flattened extent', () => {
-		expect(new Path2DPolyfill('M1 2 L5 8').getBounds()).toEqual({ minX: 1, minY: 2, maxX: 5, maxY: 8 })
+		expect(new Path2DPolyfill('M1 2 L5 8').getBounds()).toEqual({
+			minX: 1,
+			minY: 2,
+			maxX: 5,
+			maxY: 8,
+		})
 		expect(new Path2DPolyfill().getBounds()).toBeNull()
 	})
 })

@@ -68,7 +68,10 @@ export class FakeTerminal {
 	}
 
 	feed(bytes: Uint8Array | string): void {
-		this.input.emit('data', typeof bytes === 'string' ? Buffer.from(bytes, 'utf8') : Buffer.from(bytes))
+		this.input.emit(
+			'data',
+			typeof bytes === 'string' ? Buffer.from(bytes, 'utf8') : Buffer.from(bytes)
+		)
 	}
 
 	resize(cols: number, rows: number): void {
@@ -125,7 +128,10 @@ export function ansiToGrid(ansi: string, cols: number, rows: number): string[] {
 				const params = ansi.slice(i + 2, j)
 				const final = ansi[j]
 				i = j + 1
-				const nums = params.replace(/^[<=>?]/, '').split(';').map((p) => (p === '' ? NaN : Number(p)))
+				const nums = params
+					.replace(/^[<=>?]/, '')
+					.split(';')
+					.map((p) => (p === '' ? NaN : Number(p)))
 				const p0 = Number.isNaN(nums[0]) ? 1 : nums[0]
 				if (/^[<=>?]/.test(params)) continue
 				switch (final) {

@@ -3,7 +3,6 @@ import { ColorMode, Rgb } from './colors'
 import { EventSink, InputParser, InputParserOptions, TerminalEvent } from './InputParser'
 import {
 	ambiguousWideFromCpr,
-	backgroundFromColorFgBg,
 	defaultOsc52,
 	isGnuScreen,
 	isUtf8Locale,
@@ -123,7 +122,7 @@ export class Terminal {
 		this.dispatchBound = (e) => this.dispatch(e)
 		this.onDataBound = (chunk) => this.onData(chunk)
 		this.onResizeBound = () => this.onResize()
-		this.onDrainBound = () => this.onDrain()
+		this.onDrainBound = () => this.handleDrain()
 	}
 
 	private capabilitiesFromEnv(): TerminalCapabilities {
@@ -324,14 +323,23 @@ export class Terminal {
 		}
 		add('uncaughtException', crash)
 		add('unhandledRejection', crash)
-		add('SIGCONT', () => {
-			// Resumed after an external SIGTSTP: the shell left the terminal in cooked mode on the
-			// main screen, so re-enter everything and ask the app for a full repaint.
-			this.enterModes()
-			this.enableKeyboardProtocol()
-			this.started = true
-			for (const fn of this.resumeListeners) fn()
-		})
+		add('SIGCONT', () => this.resume())
+	}
+
+	/**
+	 * Re-enters the terminal after an external SIGTSTP left it in cooked mode on the main screen,
+	 * then asks the app for a full repaint through `onResume`.
+	 */
+	resume(): void {
+		this.enterModes()
+		// Kitty keeps a per-screen mode stack that survived the stop; pop our old entry before
+		// pushing again so stop() still leaves the stack balanced (a pop on an empty stack is a no-op).
+		if (this.kittyPushed) this.rawWrite('\x1b[<u')
+		this.kittyPushed = false
+		this.mokEnabled = false
+		this.enableKeyboardProtocol()
+		this.started = true
+		for (const fn of this.resumeListeners) fn()
 	}
 
 	onEvent(fn: EventSink): () => void {
@@ -413,7 +421,7 @@ export class Terminal {
 		this.dispatch({ type: 'resize', cols, rows })
 	}
 
-	private onDrain(): void {
+	private handleDrain(): void {
 		this.needDrain = false
 		this.stopDrainPoll()
 		this.notifyDrain()

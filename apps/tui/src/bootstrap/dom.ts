@@ -64,6 +64,12 @@ const FORCED_GLOBALS = ['localStorage', 'sessionStorage']
 let installed: DomGlobals | null = null
 let fallbackFrames: AnimationFrameProvider | null = null
 
+type AnyFn = (...args: unknown[]) => unknown
+
+function forwardToGlobal(name: 'setTimeout' | 'clearTimeout' | 'setInterval' | 'clearInterval') {
+	return (...args: unknown[]) => (globalThis as unknown as Record<string, AnyFn>)[name](...args)
+}
+
 function define(target: object, key: string, value: unknown) {
 	Object.defineProperty(target, key, {
 		configurable: true,
@@ -154,11 +160,12 @@ export function installDomGlobals(opts: InstallDomGlobalsOptions = {}): DomGloba
 	// `@tldraw/utils` Timers schedules through window.setTimeout/setInterval (timers.ts:82,103) but
 	// Timers.dispose clears with the bare Node functions (timers.ts:197-199). jsdom timer ids are not
 	// Node timer ids, so without this alias every editor timer leaks on dispose (verified: 13 timers
-	// including a 60 ms CollaboratorsManager interval).
-	w.setTimeout = globalThis.setTimeout
-	w.clearTimeout = globalThis.clearTimeout
-	w.setInterval = globalThis.setInterval
-	w.clearInterval = globalThis.clearInterval
+	// including a 60 ms CollaboratorsManager interval). The forwarders look the global up per call
+	// so a swapped global (vitest fake timers) is seen on both sides instead of only on the bare one.
+	w.setTimeout = forwardToGlobal('setTimeout')
+	w.clearTimeout = forwardToGlobal('clearTimeout')
+	w.setInterval = forwardToGlobal('setInterval')
+	w.clearInterval = forwardToGlobal('clearInterval')
 
 	define(globalThis, 'window', win)
 	define(globalThis, 'document', win.document)
@@ -193,7 +200,8 @@ export function installDomGlobals(opts: InstallDomGlobalsOptions = {}): DomGloba
 	installPath2D(win)
 
 	// environment.ts:62 probes `CSS.supports` for display-p3; false keeps the sRGB highlight colours.
-	if (w.CSS === undefined) w.CSS = { supports: () => false }
+	// jsdom has no CSS object, so one stub is shared by the window and the global (whichever exists).
+	if (w.CSS === undefined) w.CSS = g.CSS ?? { supports: () => false }
 	if (g.CSS === undefined) g.CSS = w.CSS
 
 	if (opts.seedLocalStorage) {
