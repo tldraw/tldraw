@@ -26,13 +26,9 @@ function findPipelineRegions(editor: Editor): PipelineRegion[] {
 	const regionsByShape = new Map<TLShapeId, Set<TLShapeId>>()
 	const visitedNodes = new Set<TLShapeId>()
 
-	function visit(node: NodeShape, currentRegion?: Set<TLShapeId>) {
+	function visit(node: NodeShape, currentRegion: Set<TLShapeId> = new Set()) {
 		if (visitedNodes.has(node.id)) return
 		visitedNodes.add(node.id)
-
-		if (!currentRegion) {
-			currentRegion = new Set()
-		}
 
 		regionsByShape.set(node.id, currentRegion)
 		currentRegion.add(node.id)
@@ -92,14 +88,7 @@ function PipelineRegionComponent({ region }: { region: PipelineRegion }) {
 		() => {
 			const execution = executionState.get(editor).runningGraph
 			if (!execution) return false
-
-			for (const nodeId of region.nodes) {
-				if (execution.getNodeStatus(nodeId) === 'executing') {
-					return true
-				}
-			}
-
-			return false
+			return [...region.nodes].some((nodeId) => execution.getNodeStatus(nodeId) === 'executing')
 		},
 		[editor, region]
 	)
@@ -113,9 +102,8 @@ function PipelineRegionComponent({ region }: { region: PipelineRegion }) {
 			if (camera.z < 0.25) {
 				ref.current.style.display = 'none'
 				return
-			} else {
-				ref.current.style.display = 'block'
 			}
+			ref.current.style.display = 'block'
 
 			const position = editor.pageToViewport(region.bounds)
 			ref.current.style.transform = `translate(${position.x}px, ${position.y}px)`

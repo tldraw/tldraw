@@ -1,6 +1,8 @@
 import { IRequest } from 'itty-router'
+import { jsonResponse } from '../jsonResponse'
 import { getProvider } from '../providers'
 import type { GenerateParams } from '../providers'
+import { resolveImage } from '../providers/types'
 
 /**
  * Request body for the /api/generate endpoint.
@@ -37,17 +39,11 @@ interface GenerateRequest {
 export async function handleGenerate(request: IRequest, env: Env) {
 	const body = (await request.json()) as GenerateRequest
 
-	if (!body.prompt) {
-		return new Response(JSON.stringify({ error: 'prompt is required' }), {
-			status: 400,
-			headers: { 'Content-Type': 'application/json' },
-		})
-	}
+	if (!body.prompt) return jsonResponse({ error: 'prompt is required' }, 400)
 
 	const [providerName, modelId] = (body.model ?? 'flux:flux-dev').split(':')
 
 	try {
-		const provider = getProvider(providerName)
 		const params: GenerateParams = {
 			modelId: modelId ?? '',
 			prompt: body.prompt,
@@ -60,44 +56,21 @@ export async function handleGenerate(request: IRequest, env: Env) {
 			referenceImageUrl: body.referenceImageUrl,
 		}
 
-		let result = await provider.generate(params, env)
+		let result = await getProvider(providerName).generate(params, env)
 
 		// Optionally persist the image to R2.
 		if (env.IMAGE_BUCKET && result.imageUrl?.startsWith('data:')) {
 			const imageId = `gen_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-			const blob = dataUrlToBlob(result.imageUrl)
+			const { blob } = await resolveImage(result.imageUrl, env)
 			await env.IMAGE_BUCKET.put(imageId, blob, {
 				httpMetadata: { contentType: 'image/png' },
 			})
 			result = { ...result, imageUrl: `/api/images/${imageId}` }
 		}
 
-		return new Response(JSON.stringify(result), {
-			headers: { 'Content-Type': 'application/json' },
-		})
+		return jsonResponse(result)
 	} catch (e: any) {
 		console.error('Generate error:', e)
-		return new Response(JSON.stringify({ error: e.message ?? 'Generation failed' }), {
-			status: 500,
-			headers: { 'Content-Type': 'application/json' },
-		})
+		return jsonResponse({ error: e.message ?? 'Generation failed' }, 500)
 	}
-}
-
-// ---------------------------------------------------------------------------
-// Utilities
-// ---------------------------------------------------------------------------
-
-function dataUrlToBlob(dataUrl: string): ArrayBuffer {
-	const [header, base64] = dataUrl.split(',')
-	if (header.includes('base64')) {
-		const binary = atob(base64)
-		const bytes = new Uint8Array(binary.length)
-		for (let i = 0; i < binary.length; i++) {
-			bytes[i] = binary.charCodeAt(i)
-		}
-		return bytes.buffer as ArrayBuffer
-	}
-	// For SVG data URLs, just encode as UTF-8
-	return new TextEncoder().encode(decodeURIComponent(base64)).buffer as ArrayBuffer
 }
