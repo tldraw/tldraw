@@ -1,10 +1,11 @@
+#!/usr/bin/env npx tsx
 /**
  * Lists existing comments and docs that may have gone stale because of this branch.
  * The added-comment sweep in ../SKILL.md misses these: they sit next to changed code,
  * or name a changed declaration, but are not part of the diff themselves.
  *
  * Usage (from the repo root):
- *   node --experimental-strip-types skills/write-pr/scripts/touched-comments.mts [base]
+ *   npx tsx skills/write-pr/scripts/touched-comments.ts [base]
  *
  * base defaults to origin/main. Example output:
  *

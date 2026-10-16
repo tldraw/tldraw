@@ -297,7 +297,7 @@ Pre-flight rather than post-review because it is cheap now and expensive later. 
 Added comments are half the problem. Reviewers more often flag comments, docs and test names the diff left untouched that no longer match it: a doc comment above a function whose behavior changed, a `catch` log message that now covers more calls, a docs page still teaching the old pattern. Run:
 
 ```bash
-node --experimental-strip-types skills/write-pr/scripts/touched-comments.mts
+npx tsx skills/write-pr/scripts/touched-comments.ts
 ```
 
 It lists unchanged comments within a few lines of each change, and docs that name a declaration the diff added, removed or renamed. For each one, check every claim it makes against the new code, and fix or delete it. Then do the same for the PR description: every sentence describing behavior ("X now does Y", "the health check recovers Z", a schedule, a count) must be true of the final diff, not the first draft.
