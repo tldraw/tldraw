@@ -89,20 +89,7 @@ The `order` property defines the article's order in its category. Uncategorized 
 
 ### Author
 
-The `author` must refer to an author named in the `content/authors.json` file.
-
-An author looks like this:
-
-```json
-"steveruizok": {
-	"name": "Steve Ruiz",
-	"email": "steve@tldraw.com",
-	"twitter": "steveruizok",
-	"image": "steve_ruiz.jpg"
-}
-```
-
-The image should refer to an image in `public/avatars`.
+The `author` records who wrote the article, usually as a GitHub username. It is stored in the content database as metadata but is not displayed anywhere on the site.
 
 ### Date
 
