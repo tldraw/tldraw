@@ -10,6 +10,7 @@
 	"references": [
 		{ "path": "../driver" },
 		{ "path": "../editor" },
+		{ "path": "../rich-text-layout" },
 		{ "path": "../state" },
 		{ "path": "../store" },
 		{ "path": "../tlschema" }

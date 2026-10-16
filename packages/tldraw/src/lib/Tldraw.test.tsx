@@ -1,6 +1,7 @@
 import { act, screen } from '@testing-library/react'
 import { BaseBoxShapeUtil, Editor, StateNode, TLStateNodeConstructor } from '@tldraw/editor'
 import { useState } from 'react'
+import { vi } from 'vitest'
 import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,
@@ -8,6 +9,51 @@ import {
 import { Tldraw } from './Tldraw'
 
 describe('<Tldraw />', () => {
+	it('supplies the default measurer and allows DOM-only measurement', async () => {
+		const native = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+		expect(native.editor.textMeasure.injected).not.toBeNull()
+		native.rendered.unmount()
+
+		const dom = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw textMeasurer="dom" onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+		expect(dom.editor.textMeasure.injected).toBeNull()
+		dom.rendered.unmount()
+	})
+
+	it('preserves an explicit measurer and disposes a factory-created measurer with its editor', async () => {
+		const size = { x: 0, y: 0, w: 10, h: 20, scrollWidth: 0 }
+		const measurer = {
+			measureText: () => size,
+			measureHtml: () => size,
+			measureHtmlBatch: () => [],
+			measureTextSpans: () => [],
+			dispose: vi.fn(),
+		}
+		const custom = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw textMeasurer={measurer} onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+		expect(custom.editor.textMeasure.injected).toBe(measurer)
+		custom.rendered.unmount()
+		expect(measurer.dispose).toHaveBeenCalledTimes(1)
+
+		measurer.dispose.mockClear()
+		const factory = vi.fn(() => measurer)
+		const created = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw textMeasurer={factory} onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+		expect(factory).toHaveBeenCalledExactlyOnceWith(created.editor)
+		expect(created.editor.textMeasure.injected).toBe(measurer)
+		created.rendered.unmount()
+		expect(measurer.dispose).toHaveBeenCalledTimes(1)
+	})
+
 	it('Renders without crashing', async () => {
 		await renderTldrawComponent(
 			<Tldraw>
