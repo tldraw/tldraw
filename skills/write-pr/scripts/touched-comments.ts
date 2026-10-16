@@ -21,11 +21,19 @@ const base = process.argv[2] ?? 'origin/main'
 const CONTEXT_LINES = 8
 const CODE_FILES = ['*.ts', '*.tsx', '*.js', '*.mjs', '*.cjs', '*.sql', '*.sh', '*.yml', '*.yaml']
 const COMMENT_LINE = /^\s*(\/\/|\/\*|\*|#|--)/
+// Column 0 only, so locals inside functions and tests don't count as declarations.
 const DECLARATION =
-	/^[-+]\s*(?:export\s+)?(?:default\s+)?(?:async\s+)?(?:function|const|class|interface|type|enum)\s+([A-Za-z_]\w*)/
+	/^[-+](?:export\s+)?(?:default\s+)?(?:declare\s+)?(?:abstract\s+)?(?:async\s+)?(?:function\*?|const|let|class|interface|type|enum|namespace)\s+([A-Za-z_$][\w$]*)/
+// One-tab class or interface member with a one-line signature. Needs a body, a return type or a
+// modifier, so a call statement like `\tdoThing(x)` inside a function doesn't match.
+const MEMBER =
+	/^[-+]\t(?:@\w+(?:\([^)]*\))?\s+)?((?:(?:public|private|protected|static|readonly|abstract|override|declare|async|get|set)\s+)*)\*?([A-Za-z_$][\w$]*)\??(?:<[^()]*>)?\([^()]*\)\s*(:[^=]+?)?\s*(\{)?\s*$/
+const CONTROL_KEYWORDS = new Set(['if', 'for', 'while', 'switch', 'catch', 'return', 'function'])
+// Ignore the user's git config: an external diff tool, noprefix or forced colour all break parsing.
+const DIFF_FLAGS = ['--no-ext-diff', '--no-color', '--src-prefix=a/', '--dst-prefix=b/']
 
 function git(...args: string[]): string {
-	return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+	return execFileSync('git', ['-c', 'core.quotePath=false', ...args], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
 }
 
 /**
@@ -33,7 +41,15 @@ function git(...args: string[]): string {
  * Only modified files: in a new file every comment is part of the diff already.
  */
 function nearbyComments(): string[] {
-	const diff = git('diff', `${base}...HEAD`, `-U${CONTEXT_LINES}`, '--diff-filter=M', '--', ...CODE_FILES)
+	const diff = git(
+		'diff',
+		...DIFF_FLAGS,
+		`${base}...HEAD`,
+		`-U${CONTEXT_LINES}`,
+		'--diff-filter=MR',
+		'--',
+		...CODE_FILES
+	)
 	const found: string[] = []
 	let file = ''
 	let lineNumber = 0
@@ -66,17 +82,27 @@ function nearbyComments(): string[] {
 }
 
 /**
- * Names of declarations the diff added, removed or renamed. Only camelCase and PascalCase
- * names, so the docs search doesn't match everyday words like `data` or `id`.
+ * Names of declarations the diff added, removed or renamed. Skips lowercase single words like
+ * `data` or `id` and short all-caps names like `ID`, which match everyday prose in docs.
  */
 function changedDeclarations(): string[] {
-	const diff = git('diff', `${base}...HEAD`, '-U0', '--', '*.ts', '*.tsx')
+	const diff = git('diff', ...DIFF_FLAGS, `${base}...HEAD`, '-U0', '--', '*.ts', '*.tsx')
 	const names = new Set<string>()
 	for (const line of diff.split('\n')) {
-		const name = line.match(DECLARATION)?.[1]
-		if (name && /[a-z][A-Z]|^[A-Z][a-z]+[A-Z]/.test(name)) names.add(name)
+		const name = declarationName(line)
+		if (name && /[a-z][A-Z]|^[A-Z]\w*[a-z]|^[A-Z][A-Z0-9_]{3,}$/.test(name)) names.add(name)
 	}
 	return [...names].sort()
+}
+
+function declarationName(line: string): string | undefined {
+	const declaration = line.match(DECLARATION)
+	if (declaration) return declaration[1]
+	const member = line.match(MEMBER)
+	if (!member) return undefined
+	const [, modifiers, name, returnType, body] = member
+	if (CONTROL_KEYWORDS.has(name)) return undefined
+	return modifiers || returnType || body ? name : undefined
 }
 
 /** Docs lines that mention any of the names, skipping generated and historical files. */
@@ -86,15 +112,15 @@ function docsNaming(names: string[]): string[] {
 	const excluded = [
 		':!**/CHANGELOG.md',
 		':!**/*.api.md',
-		':!**/DOCS.md',
 		':!apps/docs/content/releases/**',
 	]
 	try {
-		const out = git('grep', '-n', '-w', ...patterns, '--', '*.md', '*.mdx', ...excluded)
+		const out = git('grep', '--no-color', '-n', '-w', ...patterns, '--', '*.md', '*.mdx', ...excluded)
 		return out.trim().split('\n')
-	} catch {
-		// git grep exits 1 when nothing matches
-		return []
+	} catch (error) {
+		// git grep exits 1 when nothing matches; anything else is a real failure
+		if ((error as { status?: number }).status === 1) return []
+		throw error
 	}
 }
 

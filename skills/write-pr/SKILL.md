@@ -300,7 +300,7 @@ Added comments are half the problem. Reviewers more often flag comments, docs an
 npx tsx skills/write-pr/scripts/touched-comments.ts
 ```
 
-It lists unchanged comments within a few lines of each change, and docs that name a declaration the diff added, removed or renamed. For each one, check every claim it makes against the new code, and fix or delete it. Then do the same for the PR description: every sentence describing behavior ("X now does Y", "the health check recovers Z", a schedule, a count) must be true of the final diff, not the first draft.
+It lists unchanged comments within a few lines of each change, and docs that name a declaration the diff added, removed or renamed. For each one, check every claim it makes against the new code, and fix or delete it. The script doesn't cover test names, so read the `describe`/`it` titles around changed tests yourself. Then do the same for the PR description: every sentence describing behavior ("X now does Y", "the health check recovers Z", a schedule, a count) must be true of the final diff, not the first draft.
 
 ## Human notes (preserve exactly)
 
