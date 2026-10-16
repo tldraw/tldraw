@@ -1,0 +1,54 @@
+{
+	"name": "@tldraw/tui",
+	"description": "tldraw in the terminal.",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"author": {
+		"name": "tldraw Inc.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": ["tldraw", "terminal", "tui", "whiteboard", "canvas"],
+	"bin": {
+		"tldraw-tui": "./bin/tldraw-tui.mjs"
+	},
+	"scripts": {
+		"dev": "pnpm exec tsx src/index.ts",
+		"start": "node bin/tldraw-tui.mjs",
+		"build": "pnpm exec tsx scripts/build.ts",
+		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
+	},
+	"dependencies": {
+		"@tldraw/editor": "workspace:*",
+		"@tldraw/state": "workspace:*",
+		"@tldraw/tlschema": "workspace:*",
+		"@tldraw/utils": "workspace:*",
+		"get-east-asian-width": "^1.2.0",
+		"jsdom": "^29.1.1",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
+		"tldraw": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/jsdom": "^30.0.0",
+		"@types/node": "^22.15.31",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"esbuild": "^0.28.0",
+		"vitest": "^5.0.0"
+	}
+}

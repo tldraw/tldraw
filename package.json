@@ -40,6 +40,7 @@
 		"dev-docs": "turbo run dev --filter='./apps/docs'",
 		"dev-huppy": "turbo run dev --filter='./internal/huppy'",
 		"dev-template": "./internal/scripts/dev-template.sh",
+		"dev-tui": "pnpm --dir apps/tui dev",
 		"build": "turbo run build",
 		"build-app": "turbo run build --filter='./apps/dotcom/client'",
 		"build-docs": "turbo run build --filter='./apps/docs'",
