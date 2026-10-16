@@ -1,6 +1,8 @@
 import { createShapeId } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { ACTION_META } from '../actions/actionIds'
+import { ACTION_META, type ActionId } from '../actions/actionIds'
+import { matchShortcut, parseChord } from '../input/keymap'
+import { codeForKey, type KeyEvent } from '../terminal/InputParser'
 import { createTestContext, type TestContext } from '../test/testContext'
 import {
 	MENU_IDS,
@@ -173,5 +175,45 @@ describe('menus', () => {
 		// Items with an argument (page switches) never show a shortcut.
 		expect(menuItemKbd({ action: { id: 'page.switch', arg: 'page:x' } }, 'legacy')).toBeUndefined()
 		expect(menuItemKbd({ label: 'Arrange', submenu: [] }, 'legacy')).toBeUndefined()
+	})
+
+	it('shows only shortcuts the keymap binds to the item, or routes to it', () => {
+		// Keys the input controller routes itself (keymap.ts PRIMARY_EXCLUDED): ctrl+g groups or
+		// ungroups, Enter is forwarded to the select tool, `s` opens the style panel either way.
+		const routed: Partial<Record<ActionId, ActionId | null>> = {
+			'edit.group': 'edit.toggle-group',
+			'edit.ungroup': 'edit.toggle-group',
+			'edit.edit-text': null,
+			'view.toggle-style-panel': 'ui.style-panel',
+		}
+		const check = (items: readonly MenuItem[], encoding: 'legacy' | 'full') => {
+			for (const entry of items) {
+				if (entry.submenu) check(entry.submenu, encoding)
+				const kbd = menuItemKbd(entry, encoding)
+				if (!entry.action || kbd === undefined) continue
+				const chord = parseChord(kbd)
+				const event: KeyEvent = {
+					type: 'key',
+					key: chord.key,
+					code: codeForKey(chord.key),
+					shift: chord.shift,
+					ctrl: chord.ctrl,
+					alt: chord.alt,
+					meta: false,
+				}
+				const id = entry.action.id
+				const allowed: Array<ActionId | null> = [id]
+				if (id in routed) allowed.push(routed[id] ?? null)
+				const match = matchShortcut(event, encoding)
+				expect(allowed, `${id}: ${kbd} (${encoding})`).toContain(match ? match.id : null)
+			}
+		}
+		const id = createShapeId()
+		ctx.editor.createShape({ id, type: 'geo', x: 0, y: 0 })
+		ctx.editor.select(id)
+		for (const encoding of ['legacy', 'full'] as const) {
+			for (const menu of MENU_IDS) check(menuItems(menu, ctx.editor), encoding)
+			check(contextMenuItems(ctx.editor), encoding)
+		}
 	})
 })

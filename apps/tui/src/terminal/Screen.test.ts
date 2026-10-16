@@ -643,3 +643,69 @@ describe('Screen flush', () => {
 		expect(replay[2]).toBe('└────┘  ●●')
 	})
 })
+
+describe('Screen isEmptyCell', () => {
+	it('is true only for cells nothing has touched since the last clear', () => {
+		const s = make(6, 3)
+		expect(s.isEmptyCell(0, 0)).toBe(true)
+		s.put(1, 0, 'a')
+		s.put(2, 0, ' ', { fg: 0xff0000 })
+		s.setBg(3, 0, 0x00ff00)
+		s.blendBg(4, 0, 0x0000ff, 0.1)
+		s.line(5, 0, LINE_E | LINE_W, LIGHT)
+		s.put(0, 1, '漢')
+		s.put(3, 1, ' ', { inverse: true })
+		expect(s.isEmptyCell(1, 0)).toBe(false)
+		expect(s.isEmptyCell(2, 0)).toBe(false)
+		expect(s.isEmptyCell(3, 0)).toBe(false)
+		expect(s.isEmptyCell(4, 0)).toBe(false)
+		// A line cell counts as drawn before its glyph is resolved.
+		expect(s.isEmptyCell(5, 0)).toBe(false)
+		// Both halves of a wide glyph.
+		expect(s.isEmptyCell(0, 1)).toBe(false)
+		expect(s.isEmptyCell(1, 1)).toBe(false)
+		expect(s.isEmptyCell(2, 1)).toBe(true)
+		expect(s.isEmptyCell(3, 1)).toBe(false)
+		expect(s.isEmptyCell(-1, 0)).toBe(false)
+		expect(s.isEmptyCell(6, 0)).toBe(false)
+		expect(s.isEmptyCell(0, 3)).toBe(false)
+		s.clear()
+		for (let col = 0; col < 6; col++) expect(s.isEmptyCell(col, 0)).toBe(true)
+		expect(s.isEmptyCell(1, 1)).toBe(true)
+	})
+
+	it('measures emptiness against the style clear() used', () => {
+		const s = make(3, 1)
+		s.clear({ fg: 0x112233, bg: 0x445566, bold: true })
+		expect(s.isEmptyCell(0, 0)).toBe(true)
+		s.put(1, 0, ' ', { bold: false })
+		s.setFg(2, 0, -1)
+		expect(s.isEmptyCell(1, 0)).toBe(false)
+		expect(s.isEmptyCell(2, 0)).toBe(false)
+		s.resize(3, 1)
+		expect(s.isEmptyCell(1, 0)).toBe(true)
+		s.put(0, 0, ' ', { fg: 0x112233 })
+		expect(s.isEmptyCell(0, 0)).toBe(false)
+	})
+
+	it('agrees with getCell on a busy screen', () => {
+		const s = make(40, 10)
+		box(s, { x: 2, y: 1, w: 10, h: 5 })
+		s.text(3, 2, 'hello world', { fg: 0xabcdef })
+		s.fillRect({ x: 20, y: 2, w: 5, h: 3 }, ' ', { bg: 0x123456 })
+		s.put(30, 5, '漢')
+		for (let row = 0; row < s.rows; row++) {
+			for (let col = 0; col < s.cols; col++) {
+				const cell = s.getCell(col, row)!
+				const untouched =
+					cell.glyph === ' ' &&
+					!cell.wide &&
+					cell.style.fg === -1 &&
+					cell.style.bg === -1 &&
+					cell.style.bold === undefined &&
+					cell.style.inverse === undefined
+				expect(s.isEmptyCell(col, row), `${col},${row}`).toBe(untouched)
+			}
+		}
+	})
+})

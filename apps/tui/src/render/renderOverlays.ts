@@ -42,8 +42,8 @@ function getCanvas(screen: Screen, canvas: Rect, opts: RenderOptions): TerminalC
 
 /**
  * Grid dots at the pitch of the smallest `gridSteps` entry that is at least 4 columns and 2 rows
- * apart on screen (DefaultGrid.tsx fades layers by zoom instead). Dots go only on empty cells so
- * the grid can be drawn after the shapes.
+ * apart on screen (DefaultGrid.tsx fades layers by zoom instead). Dots go only on cells nothing
+ * has drawn on yet, so the grid can be drawn after the shapes.
  */
 export function renderGrid(
 	editor: Editor,
@@ -77,8 +77,7 @@ export function renderGrid(
 		const row = canvas.y + Math.floor((sy + cam.y * cam.z) / CELL_H)
 		for (let sx = startX; sx < maxX; sx += pitch) {
 			const col = canvas.x + Math.floor((sx + cam.x * cam.z) / CELL_W)
-			const cell = screen.getCell(col, row)
-			if (cell && cell.glyph === ' ' && cell.style.bg === -1) screen.put(col, row, glyph, gridStyle)
+			if (screen.isEmptyCell(col, row)) screen.put(col, row, glyph, gridStyle)
 		}
 	}
 }

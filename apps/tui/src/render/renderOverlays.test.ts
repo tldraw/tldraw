@@ -1,8 +1,8 @@
 import { createShapeId, toRichText } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { parseColor } from '../terminal/colors'
-import { Screen } from '../terminal/Screen'
+import { LINE_E, LINE_W, Screen } from '../terminal/Screen'
 import { TestContext, createTestContext } from '../test/testContext'
 import { OverlayRenderOptions, renderGrid, renderOverlays } from './renderOverlays'
 import { renderShapes } from './renderShapes'
@@ -141,6 +141,24 @@ describe('renderOverlays', () => {
 		expect(screen.getCell(5, 1)!.glyph).toBe(' ')
 		expect(screen.getCell(10, 1)!.glyph).toBe('·')
 		expect(screen.getCell(10, 6)!.glyph).toBe('·')
+	})
+
+	it('keeps grid dots off every cell something drew on, without reading cells back', () => {
+		const editor = ctx.editor
+		editor.updateInstanceState({ isGridMode: true })
+		screen.clear()
+		// At zoom 1 the dots land on columns 0, 5, 10, … of row 1.
+		screen.put(5, 1, ' ', { fg: 0xff0000 }) // a space inside a label
+		screen.blendBg(10, 1, 0x0000ff, 0.1) // the brush
+		screen.line(15, 1, LINE_E | LINE_W, { fg: 0, weight: 'light' }) // an unresolved box edge
+		const getCell = vi.spyOn(screen, 'getCell')
+		renderGrid(editor, screen, ctx.layout.canvas, opts)
+		expect(getCell).not.toHaveBeenCalled()
+		expect(screen.getCell(0, 1)!.glyph).toBe('·')
+		expect(screen.getCell(5, 1)!.glyph).toBe(' ')
+		expect(screen.getCell(10, 1)!.glyph).toBe(' ')
+		expect(screen.getCell(15, 1)!.glyph).toBe('─')
+		expect(screen.getCell(20, 1)!.glyph).toBe('·')
 	})
 
 	it('draws the cursor glyph in pointer mode and for non-default cursors', () => {

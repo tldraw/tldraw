@@ -13,11 +13,9 @@ import type { AppContext } from '../app/context'
 import { getShapePlaintext } from '../editor/richText'
 import { exportTextFile, loadTldrFile, saveTldrFile } from '../file/tldrFile'
 import { canvasCenterCell } from '../input/pointer'
+import { STYLE_PANEL_MIN_COLS } from '../render/renderChrome'
 import type { ModifierName } from '../ui/UiState'
 import type { ActionId, ActionInvocation } from './actionIds'
-
-/** The docked style panel needs this many columns (spec §6); narrower terminals get the popup. */
-const DOCKED_STYLE_PANEL_MIN_COLS = 110
 
 const FLIPPABLE_TYPES: ReadonlySet<string> = new Set([
 	'group',
@@ -646,7 +644,7 @@ function toggleStylePanel(ctx: AppContext) {
 	// A wide terminal docks the panel as soon as there is something to style; otherwise the popup.
 	if (
 		!ui.stylePanelOpen.get() &&
-		layout.cols >= DOCKED_STYLE_PANEL_MIN_COLS &&
+		layout.cols >= STYLE_PANEL_MIN_COLS &&
 		editor.getSharedStyles().size > 0
 	) {
 		ui.stylePanelOpen.set(true)

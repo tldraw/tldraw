@@ -128,6 +128,10 @@ export class Screen {
 	private clipStack: Rect[] = []
 	private clip: Rect
 	private full = true
+	// The style `clear()` filled the back buffer with; `isEmptyCell` compares against it.
+	private clearFg: Rgb = -1
+	private clearBg: Rgb = -1
+	private clearAttrs = 0
 
 	private colorMode: ColorMode
 	private glyphSet: GlyphSet
@@ -206,6 +210,9 @@ export class Screen {
 		this.sideIndex = new Map()
 		this.clipStack = []
 		this.clip = { x: 0, y: 0, w: this.cols, h: this.rows }
+		this.clearFg = -1
+		this.clearBg = -1
+		this.clearAttrs = 0
 		this.setFullRedraw()
 	}
 
@@ -216,10 +223,13 @@ export class Screen {
 
 	clear(style?: Partial<CellStyle>): void {
 		const b = this.back
+		this.clearFg = style?.fg ?? -1
+		this.clearBg = style?.bg ?? -1
+		this.clearAttrs = style ? attrsFromStyle(0, style) : 0
 		b.glyph.fill(SPACE)
-		b.fg.fill(style?.fg ?? -1)
-		b.bg.fill(style?.bg ?? -1)
-		b.attrs.fill(style ? attrsFromStyle(0, style) : 0)
+		b.fg.fill(this.clearFg)
+		b.bg.fill(this.clearBg)
+		b.attrs.fill(this.clearAttrs)
 		b.wide.fill(0)
 		if (this.lineCellCount > 0) {
 			this.lineMask.fill(0)
@@ -479,6 +489,25 @@ export class Screen {
 		} finally {
 			this.clip = this.clipStack.pop()!
 		}
+	}
+
+	/**
+	 * True when nothing has drawn on the cell since the last `clear()`: no glyph, colour, attribute,
+	 * wide pair or line segment. Late passes (the grid) use it to stay off shapes without the object
+	 * `getCell` allocates per call.
+	 */
+	isEmptyCell(col: number, row: number): boolean {
+		if (col < 0 || row < 0 || col >= this.cols || row >= this.rows) return false
+		const i = row * this.cols + col
+		const b = this.back
+		return (
+			b.glyph[i] === SPACE &&
+			b.wide[i] === 0 &&
+			this.lineMask[i] === 0 &&
+			b.fg[i] === this.clearFg &&
+			b.bg[i] === this.clearBg &&
+			b.attrs[i] === this.clearAttrs
+		)
 	}
 
 	getCell(col: number, row: number): Cell | undefined {
