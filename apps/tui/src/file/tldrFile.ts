@@ -1,3 +1,4 @@
+import { mkdirSync, renameSync, writeFileSync } from 'node:fs'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -142,18 +143,23 @@ export interface StorageLike {
 	getItem(key: string): string | null
 }
 
-/** Writes the current preferences back to the prefs file (JSON object keyed like localStorage). */
-export async function persistPrefs(
+/**
+ * Writes the current preferences back to the prefs file (JSON object keyed like localStorage).
+ * Synchronous on purpose: it runs on the quit path right before the terminal is restored and the
+ * process exits, and from the SIGINT/SIGTERM handlers, where nothing asynchronous completes.
+ */
+export function persistPrefs(
 	storage: StorageLike = globalThis.localStorage,
 	path = getPrefsPath()
-): Promise<FileResult> {
+): FileResult {
 	try {
 		const value = storage.getItem(USER_PREFS_STORAGE_KEY)
 		if (value === null) return { ok: true }
-		await writeFileAtomic(
-			path,
-			JSON.stringify({ [USER_PREFS_STORAGE_KEY]: value }, null, '\t') + '\n'
-		)
+		const resolved = resolve(path)
+		mkdirSync(dirname(resolved), { recursive: true })
+		const tmp = `${resolved}.${process.pid}.tmp`
+		writeFileSync(tmp, JSON.stringify({ [USER_PREFS_STORAGE_KEY]: value }, null, '\t') + '\n')
+		renameSync(tmp, resolved)
 		return { ok: true }
 	} catch (e) {
 		return { ok: false, error: `Could not save preferences: ${describeError(e)}` }
@@ -224,16 +230,22 @@ export function exportText(
 	return request ? renderToText(editor, request) : ''
 }
 
+export interface ExportTextOk extends FileOk {
+	/** What was written, so the caller can also offer it to the clipboard. */
+	text: string
+}
+
 export async function exportTextFile(
 	editor: Editor,
 	path: string,
 	renderToText: RenderToText,
 	opts: ExportTextOptions = {}
-): Promise<FileResult> {
+): Promise<ExportTextOk | FileError> {
 	try {
 		const text = exportText(editor, renderToText, opts)
-		await writeFileAtomic(resolve(path), text.endsWith('\n') ? text : text + '\n')
-		return { ok: true }
+		const out = text.endsWith('\n') ? text : text + '\n'
+		await writeFileAtomic(resolve(path), out)
+		return { ok: true, text: out }
 	} catch (e) {
 		return { ok: false, error: `Could not export ${path}: ${describeError(e)}` }
 	}

@@ -26,7 +26,9 @@ export interface Appearance {
 /**
  * Turns the probe results and the command line into the look of the session: colour scheme
  * (`--light/--dark` > OSC 11 > COLORFGBG > dark), glyph tier, colour depth (the terminal already
- * applied `--color`), sub-cell stroke glyphs and the shortcut encoding.
+ * applied `--color`), sub-cell stroke glyphs and the shortcut encoding. Only a kitty reply proves
+ * the full encoding up front; modifyOtherKeys is a request most terminals ignore, so that path
+ * starts legacy and the input controller switches when an encoded key arrives.
  */
 export function resolveAppearance(input: AppearanceInput): Appearance {
 	const { capabilities, env } = input
@@ -42,7 +44,7 @@ export function resolveAppearance(input: AppearanceInput): Appearance {
 		glyphTier,
 		colorDepth: capabilities.truecolor,
 		stroke,
-		keyboardEncoding: capabilities.kitty || capabilities.modifyOtherKeys ? 'full' : 'legacy',
+		keyboardEncoding: capabilities.kitty ? 'full' : 'legacy',
 	}
 }
 

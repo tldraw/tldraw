@@ -5,6 +5,21 @@ import { sgrMouse, sleep, startTestApp, waitFrames, type TestApp } from './appHa
 // Thresholds are loose for CI; the medians land far below them on a quiet machine.
 const FIRST_WRITE_MS = 15
 const SMALL_FRAME_BYTES = 512
+const IDLE_THREAD_CPU_MS = 50
+
+interface ThreadCpu {
+	threadCpuUsage?(previous?: NodeJS.CpuUsage): NodeJS.CpuUsage
+}
+
+// Node 22.15+ can measure the CPU of this thread alone, which is what the idle test is about:
+// process.cpuUsage also counts the other vitest workers in this process, so a busy suite trips
+// it however idle the app is. @types/node 22.16 does not declare it yet.
+const perThreadCpu = typeof (process as ThreadCpu).threadCpuUsage === 'function'
+
+function cpuUsage(previous?: NodeJS.CpuUsage): NodeJS.CpuUsage {
+	const p = process as NodeJS.Process & ThreadCpu
+	return p.threadCpuUsage ? p.threadCpuUsage(previous) : p.cpuUsage(previous)
+}
 
 let t: TestApp | null = null
 
@@ -74,17 +89,17 @@ describe('input latency', () => {
 		expect(t.frame.isParked()).toBe(true)
 		t.fake.clearWrites()
 		const framesBefore = t.frame.getStats().frames
-		// Event loop utilization is per thread; process.cpuUsage would also count the other vitest
-		// workers running in this process.
 		const eluBefore = perfHooks.eventLoopUtilization()
-		const cpuBefore = process.cpuUsage()
+		const cpuBefore = cpuUsage()
 		await sleep(500)
 		const elu = perfHooks.eventLoopUtilization(eluBefore)
-		const cpu = process.cpuUsage(cpuBefore)
+		const cpu = cpuUsage(cpuBefore)
 		expect(t.frame.getStats().frames - framesBefore).toBe(0)
 		expect(t.fake.getWrites()).toHaveLength(0)
 		expect(elu.utilization).toBeLessThan(0.1)
-		expect((cpu.user + cpu.system) / 1000).toBeLessThan(1000)
+		// Per thread this is 10% of the window, like the ELU bound; the process-wide fallback can
+		// only be a sanity bound because it includes the other workers.
+		expect((cpu.user + cpu.system) / 1000).toBeLessThan(perThreadCpu ? IDLE_THREAD_CPU_MS : 1000)
 	})
 
 	it('pans on a wheel event within one frame', async () => {

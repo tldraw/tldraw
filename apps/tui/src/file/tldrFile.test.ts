@@ -165,25 +165,28 @@ describe('preferences', () => {
 		expect(await readPrefsSeed(mixed)).toEqual({ [USER_PREFS_STORAGE_KEY]: '{"a":1}' })
 	})
 
-	it('persistPrefs writes the storage value as a seed readPrefsSeed reads back', async () => {
+	it('persistPrefs writes the storage value synchronously as a seed readPrefsSeed reads back', async () => {
 		const path = join(dir, 'prefs', 'prefs.json')
 		const storage = {
 			getItem: (key: string) => (key === USER_PREFS_STORAGE_KEY ? '{"x":1}' : null),
 		}
-		expect(await persistPrefs(storage, path)).toEqual({ ok: true })
+		// Synchronous on purpose: it runs between the last frame and process.exit on quit.
+		expect(persistPrefs(storage, path)).toEqual({ ok: true })
 		expect(await readPrefsSeed(path)).toEqual({ [USER_PREFS_STORAGE_KEY]: '{"x":1}' })
 		expect(await readFile(path, 'utf8')).toMatch(/\n$/)
 
 		// Nothing stored yet: no file is written and the call still succeeds.
 		const untouched = join(dir, 'prefs', 'untouched.json')
-		expect(await persistPrefs({ getItem: () => null }, untouched)).toEqual({ ok: true })
+		expect(persistPrefs({ getItem: () => null }, untouched)).toEqual({ ok: true })
 		await expect(stat(untouched)).rejects.toThrow()
+		// An unwritable path is reported, never thrown.
+		expect(persistPrefs(storage, join(path, 'inside-a-file.json'))).toMatchObject({ ok: false })
 	})
 
 	it('captures the preferences tldraw wrote to localStorage for the editor', async () => {
 		makeEditor('dark')
 		const path = join(dir, 'prefs', 'real.json')
-		expect(await persistPrefs(globalThis.localStorage, path)).toEqual({ ok: true })
+		expect(persistPrefs(globalThis.localStorage, path)).toEqual({ ok: true })
 		const seed = await readPrefsSeed(path)
 		const stored = JSON.parse(seed[USER_PREFS_STORAGE_KEY]) as {
 			user: { colorScheme: string; edgeScrollSpeed: number }
@@ -248,7 +251,10 @@ describe('export as text', () => {
 		expect(seen).toHaveLength(1)
 
 		const path = join(dir, 'export', 'page.txt')
-		expect(await exportTextFile(editor, path, render, { padCells: 0 })).toEqual({ ok: true })
+		expect(await exportTextFile(editor, path, render, { padCells: 0 })).toEqual({
+			ok: true,
+			text: '10x2\n',
+		})
 		expect(await readFile(path, 'utf8')).toBe('10x2\n')
 	})
 })

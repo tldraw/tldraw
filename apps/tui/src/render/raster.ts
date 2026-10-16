@@ -281,8 +281,16 @@ export class SubCellRaster {
 		}
 	}
 
-	/** Writes the accumulated glyphs in `style` and clears the buffer. */
-	flush(screen: Screen, style: Partial<CellStyle>, visible: CellTest | null = null): void {
+	/**
+	 * Writes the accumulated glyphs in `style` and clears the buffer. With `merge` a cell the shape
+	 * pass already drew on is only recoloured (`Screen.putMerged`).
+	 */
+	flush(
+		screen: Screen,
+		style: Partial<CellStyle>,
+		visible: CellTest | null = null,
+		merge = false
+	): void {
 		const bits = this.bits
 		const touched = this.touched
 		const cols = this.cols
@@ -315,7 +323,9 @@ export class SubCellRaster {
 										? g.diagonalUp
 										: '+'
 			}
-			if (glyph !== ' ') screen.put(col, row, glyph, style)
+			if (glyph === ' ') continue
+			if (merge) screen.putMerged(col, row, glyph, style)
+			else screen.put(col, row, glyph, style)
 		}
 		this.count = 0
 	}
@@ -334,11 +344,12 @@ export function drawLineRun(
 	r1: number,
 	horizontal: boolean,
 	style: LineStyle,
-	visible: CellTest | null = null
+	visible: CellTest | null = null,
+	merge = false
 ): void {
 	if (horizontal) {
 		if (c0 === c1) {
-			if (!visible || visible(c0, r0)) screen.line(c0, r0, LINE_E | LINE_W, style)
+			if (!visible || visible(c0, r0)) screen.line(c0, r0, LINE_E | LINE_W, style, merge)
 			return
 		}
 		const step = c1 > c0 ? 1 : -1
@@ -346,12 +357,12 @@ export function drawLineRun(
 		const toPrev = step > 0 ? LINE_W : LINE_E
 		for (let c = c0; ; c += step) {
 			const mask = c === c0 ? toNext : c === c1 ? toPrev : LINE_E | LINE_W
-			if (!visible || visible(c, r0)) screen.line(c, r0, mask, style)
+			if (!visible || visible(c, r0)) screen.line(c, r0, mask, style, merge)
 			if (c === c1) break
 		}
 	} else {
 		if (r0 === r1) {
-			if (!visible || visible(c0, r0)) screen.line(c0, r0, LINE_N | LINE_S, style)
+			if (!visible || visible(c0, r0)) screen.line(c0, r0, LINE_N | LINE_S, style, merge)
 			return
 		}
 		const step = r1 > r0 ? 1 : -1
@@ -359,7 +370,7 @@ export function drawLineRun(
 		const toPrev = step > 0 ? LINE_N : LINE_S
 		for (let r = r0; ; r += step) {
 			const mask = r === r0 ? toNext : r === r1 ? toPrev : LINE_N | LINE_S
-			if (!visible || visible(c0, r)) screen.line(c0, r, mask, style)
+			if (!visible || visible(c0, r)) screen.line(c0, r, mask, style, merge)
 			if (r === r1) break
 		}
 	}
@@ -378,19 +389,20 @@ function connectCells(
 	rB: number,
 	verticalFirst: boolean,
 	style: LineStyle,
-	visible: CellTest | null
+	visible: CellTest | null,
+	merge: boolean
 ): void {
 	if (cA === cB && rA === rB) return
 	if (rA === rB) {
-		drawLineRun(screen, cA, rA, cB, rB, true, style, visible)
+		drawLineRun(screen, cA, rA, cB, rB, true, style, visible, merge)
 	} else if (cA === cB) {
-		drawLineRun(screen, cA, rA, cB, rB, false, style, visible)
+		drawLineRun(screen, cA, rA, cB, rB, false, style, visible, merge)
 	} else if (verticalFirst) {
-		drawLineRun(screen, cA, rA, cA, rB, false, style, visible)
-		drawLineRun(screen, cA, rB, cB, rB, true, style, visible)
+		drawLineRun(screen, cA, rA, cA, rB, false, style, visible, merge)
+		drawLineRun(screen, cA, rB, cB, rB, true, style, visible, merge)
 	} else {
-		drawLineRun(screen, cA, rA, cB, rA, true, style, visible)
-		drawLineRun(screen, cB, rA, cB, rB, false, style, visible)
+		drawLineRun(screen, cA, rA, cB, rA, true, style, visible, merge)
+		drawLineRun(screen, cB, rA, cB, rB, false, style, visible, merge)
 	}
 }
 
@@ -405,7 +417,8 @@ const AXIS_SHARE_FOR_BOX = 0.5
  * its near-axis segments through the line layer (so rectangles and elbows get corners) and the
  * rest through the sub-cell raster; curves and 'subcell' use the raster only. Sub-cell glyphs
  * are written before the line cells so a cell with both keeps the box glyph (the line layer
- * resolves last).
+ * resolves last). `merge` is for overlay strokes over shapes: cells the shapes drew on keep their
+ * glyph, weight and dash and only take the stroke colour.
  */
 export function strokePolyline(
 	screen: Screen,
@@ -415,7 +428,8 @@ export function strokePolyline(
 	mode: 'auto' | 'subcell',
 	lineStyle: LineStyle,
 	cellStyle: Partial<CellStyle>,
-	visible: CellTest | null = null
+	visible: CellTest | null = null,
+	merge = false
 ): void {
 	const pts = poly.points
 	const n = poly.count
@@ -455,7 +469,7 @@ export function strokePolyline(
 		}
 		raster.line(x0, y0, x1, y1, heavy, dash)
 	}
-	if (!raster.isEmpty()) raster.flush(screen, cellStyle, visible)
+	if (!raster.isEmpty()) raster.flush(screen, cellStyle, visible, merge)
 	if (!hasAxis) return
 
 	// Pass 2: axis runs through the line layer.
@@ -477,14 +491,14 @@ export function strokePolyline(
 		const rB = Math.floor(y1)
 		if (kind === SEG_TINY) {
 			// A sub-cell-sized step (flattened corner arc): keep the neighbouring runs connected.
-			connectCells(screen, cA, rA, cB, rB, lastKind === SEG_VERTICAL, lineStyle, visible)
+			connectCells(screen, cA, rA, cB, rB, lastKind === SEG_VERTICAL, lineStyle, visible, merge)
 		} else if (kind === SEG_HORIZONTAL) {
-			drawLineRun(screen, cA, rA, cB, rA, true, lineStyle, visible)
-			if (rB !== rA) drawLineRun(screen, cB, rA, cB, rB, false, lineStyle, visible)
+			drawLineRun(screen, cA, rA, cB, rA, true, lineStyle, visible, merge)
+			if (rB !== rA) drawLineRun(screen, cB, rA, cB, rB, false, lineStyle, visible, merge)
 			lastKind = kind
 		} else {
-			drawLineRun(screen, cA, rA, cA, rB, false, lineStyle, visible)
-			if (cB !== cA) drawLineRun(screen, cA, rB, cB, rB, true, lineStyle, visible)
+			drawLineRun(screen, cA, rA, cA, rB, false, lineStyle, visible, merge)
+			if (cB !== cA) drawLineRun(screen, cA, rB, cB, rB, true, lineStyle, visible, merge)
 			lastKind = kind
 		}
 	}

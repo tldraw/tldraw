@@ -117,12 +117,15 @@ describe('renderShapes', () => {
 		expect(screen.getCell(10, 3)!.style.bg).toBe(parseColor('#dce1f8')!.rgb)
 		expect(screen.getCell(40, 3)!.glyph).toBe('░')
 		expect(screen.getCell(40, 3)!.style.bg).toBe(-1)
-		// A 'fill' fill paints the colour's fill variant and the label in the contrast colour.
+		// A 'fill' fill paints the colour's fill variant; the label keeps its own labelColor, as in
+		// GeoShapeUtil (a black label follows the theme text colour).
 		expect(screen.getCell(70, 3)!.style.bg).toBe(parseColor('#099268')!.rgb)
 		const row = screen.toText().split('\n')[3]
 		const col = row.indexOf('go')
 		expect(col).toBeGreaterThan(60)
-		expect(screen.getCell(col, 3)!.style.fg).toBe(WHITE)
+		expect(screen.getCell(col, 3)!.style.fg).toBe(
+			parseColor(ctx.editor.getCurrentTheme().colors.light.text)!.rgb
+		)
 	})
 
 	it('renders a straight axis-aligned arrow with box glyphs and an arrowhead', () => {
@@ -461,19 +464,31 @@ describe('renderShapes', () => {
 			])
 			render()
 			expect(
-				locateCaret(editor, screen, ctx.layout.canvas, opts, { shapeId: text, caret: 2 })
+				locateCaret(editor, screen, ctx.layout.canvas, opts, {
+					shapeId: text,
+					caret: 2,
+					selectAll: false,
+				})
 			).toEqual({
 				col: 12,
 				row: 3,
 			})
 			expect(
-				locateCaret(editor, screen, ctx.layout.canvas, opts, { shapeId: geo, caret: 5 })
+				locateCaret(editor, screen, ctx.layout.canvas, opts, {
+					shapeId: geo,
+					caret: 5,
+					selectAll: false,
+				})
 			).toEqual({
 				col: 15,
 				row: 14,
 			})
 			expect(
-				locateCaret(editor, screen, ctx.layout.canvas, opts, { shapeId: createShapeId(), caret: 0 })
+				locateCaret(editor, screen, ctx.layout.canvas, opts, {
+					shapeId: createShapeId(),
+					caret: 0,
+					selectAll: false,
+				})
 			).toBeNull()
 		})
 	})

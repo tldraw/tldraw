@@ -78,6 +78,8 @@ export interface EditCaret {
 	shapeId: TLShapeId
 	/** Caret index in the plaintext of the shape being edited (grapheme-aware). */
 	caret: number
+	/** The whole text is selected (Enter, edit-text): the label is drawn inverted and typing replaces it. */
+	selectAll: boolean
 }
 
 export interface UiError {

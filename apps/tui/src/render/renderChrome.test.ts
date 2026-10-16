@@ -446,7 +446,8 @@ describe('renderChrome docked style panel', () => {
 			ctrl: false,
 			alt: false,
 		})
-		expect((ctx.editor.getShape(id)!.props as { fill: string }).fill).toBe('lined-fill')
+		// Stepping back from 'none' wraps to the last value in tldraw's order.
+		expect((ctx.editor.getShape(id)!.props as { fill: string }).fill).toBe('fill')
 	})
 
 	it('keeps the panel inside its 18 columns', () => {
@@ -455,6 +456,28 @@ describe('renderChrome docked style panel', () => {
 		const panel = layout.stylePanel!
 		for (const line of lines.slice(1, 29)) {
 			expect(line.length).toBeLessThanOrEqual(panel.x + panel.w)
+		}
+	})
+})
+
+describe('renderChrome ascii tier', () => {
+	it('keeps menu labels, hints and the help title free of typographic characters', () => {
+		const ctx = createTestContext({ glyphs: 'ascii' })
+		try {
+			const glyphs = ctx.glyphs
+			ctx.ui.openPopup({ kind: 'menu', menu: 'file', index: 0, submenu: null, submenuIndex: 0 })
+			let text = render(ctx, 100, 30, { glyphs }).lines.join('\n')
+			expect(text).toContain('Open...')
+			expect(text).not.toContain('…')
+			ctx.ui.closePopup()
+			text = render(ctx, 100, 30, { glyphs }).status
+			expect(text).toContain('? help * m menu')
+			ctx.ui.openPopup({ kind: 'help', tab: 1, scroll: 0 })
+			text = render(ctx, 100, 30, { glyphs }).lines.join('\n')
+			expect(text).toContain('Keyboard shortcuts * legacy keys')
+			expect(text).not.toMatch(/[·…×–]/)
+		} finally {
+			ctx.dispose()
 		}
 	})
 })
@@ -519,7 +542,7 @@ describe('renderChrome popups', () => {
 		const text = lines.join('\n')
 		expect(text).toContain('Style')
 		expect(text).toContain('[██]')
-		expect(text).toContain('none semi solid pattern fill lined-fill')
+		expect(text).toContain('none semi solid pattern lined-fill fill')
 		const fillRow = lines.findIndex((l) => l.includes('none semi solid'))
 		const noneCol = lines[fillRow].indexOf('none')
 		expect(screen.getCell(noneCol, fillRow)!.style.bold).toBe(true)

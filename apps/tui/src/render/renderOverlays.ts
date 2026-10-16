@@ -6,7 +6,7 @@ import { GlyphSet } from '../terminal/chars'
 import { CellStyle, Rect, Screen } from '../terminal/Screen'
 import type { Cell, EditCaret } from '../ui/UiState'
 import { getTextMask } from './raster'
-import { RenderOptions, locateCaret } from './renderShapes'
+import { RenderOptions, invertEditedLabel, locateCaret } from './renderShapes'
 import { TerminalCanvas } from './TerminalCanvas'
 import { gridRgb } from './theme'
 
@@ -21,6 +21,9 @@ export interface OverlayRenderOptions extends RenderOptions {
 
 const MIN_GRID_PITCH_COLS = 4
 const MIN_GRID_PITCH_ROWS = 2
+// Overlays drawn as outlines over shapes they must not hide; the rest (brush, snaps, scribbles,
+// arrow hints) draw on top like they do in tldraw.
+const MERGED_OVERLAYS: ReadonlySet<string> = new Set(['shape_indicator', 'selection_foreground'])
 const gridStyle: Partial<CellStyle> = { fg: -1 }
 const cursorStyle: Partial<CellStyle> = { fg: -1, inverse: true }
 const canvases = new WeakMap<Screen, TerminalCanvas>()
@@ -167,16 +170,21 @@ export function renderOverlays(
 		ctx.setTransform(cam.z, 0, 0, cam.z, cam.z * cam.x, cam.z * cam.y)
 		for (const { util, overlays } of entries) {
 			ctx.save()
+			ctx.mergeStrokes = overlays.length > 0 && MERGED_OVERLAYS.has(overlays[0].type)
 			try {
 				util.render(canvasCtx, overlays)
 			} finally {
 				ctx.restore()
+				ctx.mergeStrokes = false
 			}
 		}
 	})
 
 	let caretCell: Cell | null = null
-	if (opts.editCaret) caretCell = locateCaret(editor, screen, canvas, opts, opts.editCaret)
+	if (opts.editCaret) {
+		caretCell = locateCaret(editor, screen, canvas, opts, opts.editCaret)
+		if (opts.editCaret.selectAll) invertEditedLabel(editor, screen, canvas, opts, opts.editCaret)
+	}
 
 	const pointer = opts.pointerCell
 	if (pointer && inRect(pointer, canvas)) {

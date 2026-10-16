@@ -1,9 +1,11 @@
 /**
  * The TUI's `requestAnimationFrame`. tldraw's TickManager re-arms a rAF every frame through
  * `@tldraw/utils` FpsScheduler (throttle.ts:50-81), which gates ticks at floor(1000/120)·0.9 =
- * 7.2 ms of Date.now() time. Frames must therefore be spaced at least 1000/maxFps apart with
- * maxFps ≤ 120, or TickManager skips ticks and the frame renders stale pointer state; below 30 fps
- * drags feel broken. Idle time parks the loop completely instead of ticking at 30 fps forever.
+ * 7.2 ms of Date.now() time. Consecutive live frames must therefore be spaced at least 1000/maxFps
+ * apart with maxFps ≤ 120, or TickManager skips ticks and the frame renders stale pointer state;
+ * below 30 fps drags feel broken. Idle time parks the loop completely instead of ticking at 30 fps
+ * forever, and a resume after a park runs at once: the parking frame drew nothing, so there is
+ * nothing to space against (the App flushes a skipped tick itself).
  */
 
 export interface FrameSchedulerOptions {
@@ -268,7 +270,10 @@ export class FrameScheduler {
 		this.idleFrames = alive ? 0 : this.idleFrames + 1
 		if (this.idleFrames >= 2) {
 			// Park: queued callbacks (TickManager's next tick) wait until kick() or a new request.
+			// The resume must not wait out this frame's interval: input arriving within one frame of
+			// the park would otherwise idle for up to 16 ms behind a frame that rendered nothing.
 			this.parked = true
+			this.lastFrameStart = -Infinity
 			return
 		}
 		this.parked = false

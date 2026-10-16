@@ -262,6 +262,19 @@ export function getGlyphs(tier: GlyphTier): GlyphSet {
 	return GLYPHS[tier]
 }
 
+/**
+ * Chrome text for the ascii tier: labels and hints are written with the typographic characters the
+ * rich tier shows (`Open…`, `? help · m menu`, `10×`), which are mojibake in a non-UTF-8 locale.
+ */
+export function asciiSafe(set: GlyphSet, s: string): string {
+	if (set.tier !== 'ascii') return s
+	return s
+		.replace(/…/g, '...')
+		.replace(/[·•]/g, '*')
+		.replace(/[–—]/g, '-')
+		.replace(/×/g, 'x')
+}
+
 /** Every drawable glyph in a set (tables flattened, empty entries dropped), for tests. */
 export function listTierGlyphs(set: GlyphSet): string[] {
 	const out: string[] = []

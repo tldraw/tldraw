@@ -421,7 +421,8 @@ describe('popup controller', () => {
 			expect((ctx.editor.getShape(id)!.props as { color: string }).color).toBe('grey')
 			popups.handleInput(key('ArrowLeft'))
 			popups.handleInput(key('ArrowLeft'))
-			expect((ctx.editor.getShape(id)!.props as { color: string }).color).toBe('white')
+			// Wraps past black to the last listed colour; white is hidden like in tldraw's panel.
+			expect((ctx.editor.getShape(id)!.props as { color: string }).color).toBe('red')
 			// Letter keys jump to a row; the next shape style follows too.
 			popups.handleInput(key('f'))
 			const m = model()
@@ -432,7 +433,7 @@ describe('popup controller', () => {
 			expect(ctx.editor.getStyleForNextShape(m.rows[m.focused].prop!)).toBe('semi')
 			popups.handleInput(key('o'))
 			popups.handleInput(key('ArrowLeft'))
-			expect(ctx.editor.getShape(id)!.opacity).toBeCloseTo(0.9)
+			expect(ctx.editor.getShape(id)!.opacity).toBeCloseTo(0.75)
 			expect(popups.handleInput(key('Enter'))).toEqual({ consumed: true })
 			expect(ctx.ui.popup.get()).toBeNull()
 			// Each change is its own undo step.

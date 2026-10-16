@@ -143,7 +143,7 @@ const PRIMARY_EXCLUDED: ReadonlySet<ActionId> = new Set<ActionId>([
 	'view.toggle-style-panel',
 ])
 
-/** Always-on bindings the help overlay does not list separately. */
+/** Aliases beyond each action's `kbd`; the help overlay lists them next to the primary key. */
 const EXTRA_BINDINGS: ReadonlyArray<[spec: string, id: ActionId]> = [
 	['+', 'view.zoom-in'],
 	['ctrl+=', 'view.zoom-in'],

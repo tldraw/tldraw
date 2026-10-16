@@ -43,7 +43,8 @@ describe('style rows', () => {
 			'labelColor',
 		])
 		const byId = Object.fromEntries(rows.map((r) => [r.id, r]))
-		expect(byId.color.values).toHaveLength(13)
+		expect(byId.color.values).toHaveLength(12)
+		expect(byId.color.values).not.toContain('white')
 		expect(byId.color.isColor).toBe(true)
 		expect(byId.color.current).toBe('black')
 		expect(byId.dash.values).toEqual(['draw', 'solid', 'dashed', 'dotted'])
@@ -51,18 +52,8 @@ describe('style rows', () => {
 		expect(byId.horizontalAlign.label).toBe('align')
 		expect(byId.geo.values).toEqual([...GeoShapeGeoStyle.values])
 		expect(byId.opacity.values).toEqual(OPACITY_STEPS.map(String))
-		expect(byId.opacity.display).toEqual([
-			'10%',
-			'20%',
-			'30%',
-			'40%',
-			'50%',
-			'60%',
-			'70%',
-			'80%',
-			'90%',
-			'100%',
-		])
+		expect(byId.opacity.display).toEqual(['10%', '25%', '50%', '75%', '100%'])
+		expect(byId.fill.values).toEqual(['none', 'semi', 'solid', 'pattern', 'lined-fill', 'fill'])
 		expect(byId.opacity.current).toBe('1')
 		expect(byId.fill.jumpKey).toBe('f')
 	})
@@ -92,20 +83,21 @@ describe('style rows', () => {
 		expect(buildStyleRows(ctx.editor).map((r) => r.id)).toContain('spline')
 	})
 
-	it('applies to the selection and the next shapes without touching isChangingStyle', () => {
+	it('applies to the selection and the next shapes and previews through isChangingStyle', () => {
 		const id = geo()
 		ctx.editor.select(id)
 		const rows = buildStyleRows(ctx.editor)
 		applyStyleValue(ctx.editor, rows.find((r) => r.id === 'fill')!, 'pattern')
 		expect((ctx.editor.getShape(id)!.props as { fill: string }).fill).toBe('pattern')
 		expect(ctx.editor.getStyleForNextShape(DefaultFillStyle)).toBe('pattern')
-		expect(ctx.editor.getInstanceState().isChangingStyle).toBe(false)
+		// Like StylePanelContext: hides the selection indicator for a second so the change shows.
+		expect(ctx.editor.getInstanceState().isChangingStyle).toBe(true)
 		// Unknown values are ignored.
 		applyStyleValue(ctx.editor, rows.find((r) => r.id === 'fill')!, 'nope')
 		expect((ctx.editor.getShape(id)!.props as { fill: string }).fill).toBe('pattern')
-		applyStyleValue(ctx.editor, rows.find((r) => r.id === 'opacity')!, '0.3')
-		expect(ctx.editor.getShape(id)!.opacity).toBeCloseTo(0.3)
-		expect(ctx.editor.getInstanceState().opacityForNextShape).toBeCloseTo(0.3)
+		applyStyleValue(ctx.editor, rows.find((r) => r.id === 'opacity')!, '0.25')
+		expect(ctx.editor.getShape(id)!.opacity).toBeCloseTo(0.25)
+		expect(ctx.editor.getInstanceState().opacityForNextShape).toBeCloseTo(0.25)
 	})
 
 	it('only sets the next-shape style outside the select tool', () => {

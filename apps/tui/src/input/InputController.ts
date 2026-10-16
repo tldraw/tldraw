@@ -84,7 +84,10 @@ export class InputController {
 	private hintRegionHint: string | null = null
 	private lastCtrlC = -Infinity
 	private lastGeoKey = -Infinity
+	/** Shape whose text tldraw asked to select before its edit session existed (Enter in Idle). */
+	private pendingSelectAll: TLShapeId | null = null
 	private disposed = false
+	private readonly onSelectAllTextBound: (info: { shapeId: TLShapeId }) => void
 
 	constructor(private readonly ctx: AppContext) {
 		this.editor = ctx.editor
@@ -96,6 +99,10 @@ export class InputController {
 			if (id === (this.session ? this.session.shapeId : null)) return
 			unsafe__withoutCapture(() => this.syncSession(id))
 		})
+		// What RichTextArea does in the browser: Enter, double click and the edit-text action ask
+		// for the whole text to be selected so the first keystroke replaces it.
+		this.onSelectAllTextBound = ({ shapeId }) => this.onSelectAllText(shapeId)
+		this.editor.on('select-all-text', this.onSelectAllTextBound)
 	}
 
 	getEditSession(): TextEditSession | null {
@@ -113,6 +120,7 @@ export class InputController {
 		if (this.disposed) return
 		this.disposed = true
 		this.stopWatchingEditing()
+		this.editor.off('select-all-text', this.onSelectAllTextBound)
 		if (this.session) {
 			this.session.end()
 			this.session = null
@@ -131,9 +139,22 @@ export class InputController {
 			case 'reply':
 				return
 		}
+		// Mouse reports that arrive although none were requested (a multiplexer forwarding them)
+		// must not move the keyboard pointer.
+		if (event.type === 'mouse' && !this.ctx.capabilities.mouse) return
 		if (event.type === 'key') {
-			if (!event.release && !this.ctx.ui.firstKeySeen.get()) this.ctx.ui.firstKeySeen.set(true)
+			if (!event.release) {
+				if (!this.ctx.ui.firstKeySeen.get()) this.ctx.ui.firstKeySeen.set(true)
+				// A key encoded by modifyOtherKeys or the kitty protocol proves the terminal honours
+				// the request: from here the tldraw chords are shown and matched.
+				if (event.encoding && this.ctx.ui.keyboardEncoding.get() !== 'full') {
+					this.ctx.ui.keyboardEncoding.set('full')
+				}
+				this.clearTransientHint()
+			}
 			if (!this.session && this.tryGeoCycle(event)) return
+		} else if (event.type === 'mouse' && event.action === 'down') {
+			this.clearTransientHint()
 		}
 		if (this.ctx.ui.popup.get() !== null) {
 			if (event.type === 'mouse') this.setHoverCanvas(false)
@@ -354,6 +375,16 @@ export class InputController {
 		if (this.hintRegionHint !== null) ui.setHint(this.hintRegionHint)
 	}
 
+	/**
+	 * Action hints ('Saved …', 'ctrl+q quits') are toasts: the next key press or click dismisses
+	 * them, so the status bar can return to the selected shape's text. Hover hints are kept.
+	 */
+	private clearTransientHint() {
+		const { ui } = this.ctx
+		const hint = ui.hint.get()
+		if (hint !== null && hint !== this.hintRegionHint) ui.setHint(null)
+	}
+
 	private setHoverCanvas(hovering: boolean) {
 		if (this.hoverCanvas === hovering) return
 		this.hoverCanvas = hovering
@@ -466,24 +497,30 @@ export class InputController {
 			key === 'ArrowDown' ||
 			(key !== ' ' && [...key].length === 1)
 		if (!forward) return
-		const mods = this.modifiers.current(this.mods)
-		// Nudging reads `inputs.keys.has('ShiftLeft')` (Idle.ts:749-752), not the event flag.
-		this.modifiers.sync(mods)
+		// The event's own bits count as held for this one key: nudging reads
+		// `inputs.keys.has('ShiftLeft')` (Idle.ts:749-752), not the event flag, and the terminal
+		// reports shift+arrow as a modifier bit with no Shift key event around it.
+		const mods = this.modifiers.effective(event.shift, event.alt, event.ctrl, this.mods)
 		const info: TLKeyboardEventInfo = {
 			type: 'keyboard',
-			name: event.repeat ? 'key_repeat' : 'key_down',
+			// Always a press: a repeat without a key_down leaves `inputs.keys` empty and the nudge
+			// reads nothing (the synthetic key_up below already released the previous press).
+			name: 'key_down',
 			key,
 			code: event.code || codeForKey(key),
-			shiftKey: event.shift || mods.shift,
-			altKey: event.alt || mods.alt,
-			ctrlKey: event.ctrl || mods.ctrl,
+			shiftKey: mods.shift,
+			altKey: mods.alt,
+			ctrlKey: mods.ctrl,
 			metaKey: false,
-			accelKey: event.ctrl || mods.ctrl,
+			accelKey: mods.ctrl,
 		}
-		// One transaction for the pair: each dispatch commits on its own otherwise (latency#13).
+		// One transaction for the whole exchange: each dispatch commits on its own otherwise
+		// (latency#13). The one-shot modifiers leave `inputs.keys` again right after the pair.
 		this.editor.run(() => {
+			this.modifiers.sync(mods)
 			this.editor.dispatch(info)
-			if (!event.repeat) this.editor.dispatch({ ...info, name: 'key_up' })
+			this.editor.dispatch({ ...info, name: 'key_up' })
+			this.modifiers.sync(this.modifiers.current(this.mods))
 		})
 	}
 
@@ -633,6 +670,21 @@ export class InputController {
 		}
 		if (id === null) return
 		const shape = this.editor.getShape(id)
-		if (shape) this.session = new TextEditSession(this.ctx, shape)
+		if (!shape) return
+		this.session = new TextEditSession(this.ctx, shape)
+		if (this.pendingSelectAll === id) this.session.selectAll()
+		this.pendingSelectAll = null
+	}
+
+	/**
+	 * Enter dispatches inside `editor.run`, so the event arrives before the reaction creates the
+	 * session; the edit-text action runs it synchronously, so the session may already exist.
+	 */
+	private onSelectAllText(shapeId: TLShapeId) {
+		if (this.session && this.session.shapeId === shapeId) {
+			this.session.selectAll()
+			return
+		}
+		this.pendingSelectAll = shapeId
 	}
 }

@@ -2,13 +2,16 @@ import { GlyphTier } from './chars'
 import { ColorMode, detectColorMode, packRgb, relativeLuminance, Rgb } from './colors'
 
 /**
- * Startup probe, sent inside the alternate screen before the first paint: a `─` at (1,1) followed
+ * Startup probe, sent inside the alternate screen before the first paint: a `─` at (2,1) followed
  * by DECXCPR (`CSI ?6n`; a column of 3 means ambiguous-width glyphs render wide), the kitty keyboard
  * query (`CSI ? u`), the background query (`OSC 11 ; ?`) and finally DA1 (`CSI c`) as a fence:
  * every terminal answers DA1, and it answers in order, so its reply means the earlier queries that
- * were going to be answered have been.
+ * were going to be answered have been. Row 2, not 1: st answers DECXCPR with a plain `CSI r;cR`,
+ * which for row 1 is byte-identical to a modified F3 key.
  */
-export const PROBE_SEQUENCE = '\x1b[1;1H─\x1b[?6n\x1b[?u\x1b]11;?\x1b\\\x1b[c'
+export const PROBE_SEQUENCE = '\x1b[2;1H─\x1b[?6n\x1b[?u\x1b]11;?\x1b\\\x1b[c'
+/** Erases the probe glyph; the first paint would cover it but may be a second away. */
+export const PROBE_ERASE = '\x1b[2;1H \x1b[H'
 export const PROBE_TIMEOUT_MS = 100
 export const KITTY_FLAGS = 27 // disambiguate | report events | report all keys | report text
 

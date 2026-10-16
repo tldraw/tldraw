@@ -39,6 +39,16 @@ function typed(ch: string, extra: Partial<KeyEvent> = {}): KeyEvent {
 	return key(ch, codeForKey(ch), { text: ch, ...extra })
 }
 
+/** A key that arrived in the kitty encoding. */
+function kitty(k: string, code: string, extra: Partial<KeyEvent> = {}): KeyEvent {
+	return key(k, code, { encoding: 'kitty', ...extra })
+}
+
+/** A key that arrived as xterm `CSI 27 ; m ; k ~`. */
+function mok(k: string, code: string, extra: Partial<KeyEvent> = {}): KeyEvent {
+	return key(k, code, { encoding: 'mok', ...extra })
+}
+
 function mouse(
 	action: MouseEvent['action'],
 	button: MouseEvent['button'],
@@ -182,23 +192,51 @@ describe('escape key heuristics', () => {
 		expect(events).toEqual([typed('x'), key('ArrowUp', 'ArrowUp')])
 		expect(parser.hasPending()).toBe(false)
 		expect(parse(['x\x1b', 'a']).events).toEqual([typed('x'), key('a', 'KeyA', { alt: true })])
-		// Two Escapes at the same instant are indistinguishable from auto-repeat.
-		expect(parse(['x\x1b', '\x1b']).events).toEqual([
-			typed('x'),
-			key('Escape', 'Escape'),
-			key('Escape', 'Escape', { repeat: true }),
-		])
+		// ESC ESC at the end of a chunk is held too (ESC ESC [ A is a meta arrow); the timer then
+		// releases one Escape per byte, and two at the same instant look like auto-repeat.
+		const { parser: two, events: twoEvents } = parse(['x\x1b', '\x1b'], { now: () => 1000 })
+		expect(twoEvents).toEqual([typed('x')])
+		expect(two.pendingTimeoutMs()).toBe(35)
+		const more: TerminalEvent[] = []
+		two.flushPending((e) => more.push(e))
+		expect(more).toEqual([key('Escape', 'Escape'), key('Escape', 'Escape', { repeat: true })])
+		expect(parse(['\x1b\x1b', '[A']).events).toEqual([key('ArrowUp', 'ArrowUp', { alt: true })])
 	})
 
-	it('uses a custom esc timeout and zero while the kitty protocol is active', () => {
+	it('uses a custom esc timeout', () => {
 		const t = 0
 		const { parser } = parse(['a\x1b'], { now: () => t, escTimeoutMs: 10 })
 		expect(parser.pendingTimeoutMs()).toBe(10)
+	})
+
+	it('holds a trailing ESC as a partial sequence under the kitty protocol, never as Escape', () => {
+		// With flag 1 (disambiguate) the Escape key arrives as CSI 27 u, so a bare ESC can only be
+		// the first byte of a sequence the next chunk completes.
+		let t = 0
 		const kitty = new InputParser({ now: () => t })
 		kitty.setKittyActive(true)
 		expect(kitty.isKittyActive()).toBe(true)
-		kitty.feed(bytes('a\x1b'), () => {})
-		expect(kitty.pendingTimeoutMs()).toBe(0)
+		const events: TerminalEvent[] = []
+		const sink = (e: TerminalEvent) => events.push(e)
+		kitty.feed(bytes('a\x1b'), sink)
+		expect(events).toEqual([typed('a')])
+		expect(kitty.pendingTimeoutMs()).toBe(500)
+		kitty.feed(bytes('[<35;42;10M'), sink)
+		expect(events).toEqual([typed('a'), mouse('move', -1, 41, 9)])
+
+		// A chunk that is exactly ESC waits as well, instead of the legacy Escape shortcut.
+		kitty.feed(bytes('\x1b'), sink)
+		expect(events).toHaveLength(2)
+		kitty.feed(bytes('[A'), sink)
+		expect(events[2]).toEqual(key('ArrowUp', 'ArrowUp'))
+
+		// A dangling ESC is discarded when the rest never comes, not reinterpreted as Escape.
+		kitty.feed(bytes('x\x1b'), sink)
+		t = 600
+		const flushed: TerminalEvent[] = []
+		kitty.flushPending((e) => flushed.push(e))
+		expect(flushed).toEqual([])
+		expect(kitty.hasPending()).toBe(false)
 	})
 
 	it('a partial sequence waits 500 ms and is then discarded, never reinterpreted', () => {
@@ -268,11 +306,13 @@ describe('alt chords', () => {
 		])
 	})
 
-	it('ESC ESC is two Escapes and ESC ESC [ A is alt+ArrowUp', () => {
-		expect(parse(['\x1b\x1b']).events).toEqual([
-			key('Escape', 'Escape'),
-			key('Escape', 'Escape', { repeat: true }),
-		])
+	it('ESC ESC is two Escapes after the timer and ESC ESC [ A is alt+ArrowUp', () => {
+		const { parser, events } = parse(['\x1b\x1b'], { now: () => 1000 })
+		expect(events).toEqual([])
+		expect(parser.hasPending()).toBe(true)
+		const more: TerminalEvent[] = []
+		parser.flushPending((e) => more.push(e))
+		expect(more).toEqual([key('Escape', 'Escape'), key('Escape', 'Escape', { repeat: true })])
 		expect(one('\x1b\x1b[A')).toEqual(key('ArrowUp', 'ArrowUp', { alt: true }))
 		expect(one('\x1b\x1bOB')).toEqual(key('ArrowDown', 'ArrowDown', { alt: true }))
 		expect(parse(['\x1b\x1bq']).events).toEqual([
@@ -351,6 +391,44 @@ describe('CSI and SS3 keys', () => {
 		expect(one('\x1b[1;3S')).toEqual(key('F4', 'F4', { alt: true }))
 		expect(one('\x1b[15;2~')).toEqual(key('F5', 'F5', { shift: true }))
 		expect(one('\x1b[21;3~')).toEqual(key('F10', 'F10', { alt: true }))
+		// Linux console (terminfo linux kf1–kf5).
+		expect(one('\x1b[[A')).toEqual(key('F1', 'F1'))
+		expect(one('\x1b[[B')).toEqual(key('F2', 'F2'))
+		expect(one('\x1b[[C')).toEqual(key('F3', 'F3'))
+		expect(one('\x1b[[D')).toEqual(key('F4', 'F4'))
+		expect(one('\x1b[[E')).toEqual(key('F5', 'F5'))
+		expect(one('\x1b\x1b[[A')).toEqual(key('F1', 'F1', { alt: true }))
+		expect(parse(['\x1b[[', 'A']).events).toEqual([key('F1', 'F1')])
+		// Anything else after ESC [ [ keeps today's unknown-reply behaviour.
+		expect(parse(['\x1b[[x']).events).toEqual([
+			{ type: 'reply', kind: 'unknown', raw: '\x1b[[' },
+			typed('x'),
+		])
+	})
+
+	it('never throws on code points past U+10FFFF and keeps the valid part of the key', () => {
+		for (const seq of [
+			'\x1b[1114112u',
+			'\x1b[97;;1114112u',
+			'\x1b[27;5;4294967296~',
+			`\x1b[${'9'.repeat(400)}u`,
+		]) {
+			const events: TerminalEvent[] = []
+			expect(() => new InputParser().feed(bytes(seq), (e) => events.push(e))).not.toThrow()
+			expect(events).toEqual(
+				seq.includes(';;')
+					? [kitty('a', 'KeyA', { text: 'a' })]
+					: [{ type: 'reply', kind: 'unknown', raw: seq }]
+			)
+		}
+		// A garbage alternate key keeps the key; the boundary values still decode.
+		expect(one('\x1b[97:99999999999;2u')).toEqual(kitty('A', 'KeyA', { shift: true, text: 'A' }))
+		expect(one('\x1b[1114111u')).toMatchObject({
+			key: '\u{10ffff}',
+			text: '\u{10ffff}',
+			encoding: 'kitty',
+		})
+		expect(one('\x1b[57376u')).toEqual(kitty('F13', 'F13'))
 	})
 
 	it('reports unknown CSI sequences as replies instead of dropping or mistyping them', () => {
@@ -366,79 +444,79 @@ describe('CSI and SS3 keys', () => {
 
 describe('xterm modifyOtherKeys', () => {
 	it('decodes CSI 27 ; mods ; codepoint ~', () => {
-		expect(one('\x1b[27;5;13~')).toEqual(key('Enter', 'Enter', { ctrl: true }))
-		expect(one('\x1b[27;6;103~')).toEqual(key('G', 'KeyG', { ctrl: true, shift: true }))
-		expect(one('\x1b[27;3;91~')).toEqual(key('[', 'BracketLeft', { alt: true }))
-		expect(one('\x1b[27;5;61~')).toEqual(key('=', 'Equal', { ctrl: true }))
-		expect(one('\x1b[27;5;39~')).toEqual(key("'", 'Quote', { ctrl: true }))
-		expect(one('\x1b[27;2;97~')).toEqual(key('A', 'KeyA', { shift: true, text: 'A' }))
-		expect(one('\x1b[27;5;32~')).toEqual(key(' ', 'Space', { ctrl: true }))
+		expect(one('\x1b[27;5;13~')).toEqual(mok('Enter', 'Enter', { ctrl: true }))
+		expect(one('\x1b[27;6;103~')).toEqual(mok('G', 'KeyG', { ctrl: true, shift: true }))
+		expect(one('\x1b[27;3;91~')).toEqual(mok('[', 'BracketLeft', { alt: true }))
+		expect(one('\x1b[27;5;61~')).toEqual(mok('=', 'Equal', { ctrl: true }))
+		expect(one('\x1b[27;5;39~')).toEqual(mok("'", 'Quote', { ctrl: true }))
+		expect(one('\x1b[27;2;97~')).toEqual(mok('A', 'KeyA', { shift: true, text: 'A' }))
+		expect(one('\x1b[27;5;32~')).toEqual(mok(' ', 'Space', { ctrl: true }))
 	})
 })
 
 describe('kitty keyboard protocol', () => {
 	it('decodes Escape as CSI 27 u and the functional keys', () => {
-		expect(one('\x1b[27u')).toEqual(key('Escape', 'Escape'))
-		expect(one('\x1b[13u')).toEqual(key('Enter', 'Enter'))
-		expect(one('\x1b[13;5u')).toEqual(key('Enter', 'Enter', { ctrl: true }))
-		expect(one('\x1b[9;2u')).toEqual(key('Tab', 'Tab', { shift: true }))
-		expect(one('\x1b[127;3u')).toEqual(key('Backspace', 'Backspace', { alt: true }))
-		expect(one('\x1b[57417u')).toEqual(key('ArrowLeft', 'ArrowLeft'))
-		expect(one('\x1b[57426;5u')).toEqual(key('Delete', 'Delete', { ctrl: true }))
-		expect(one('\x1b[57414u')).toEqual(key('Enter', 'NumpadEnter'))
-		expect(one('\x1b[57376u')).toEqual(key('F13', 'F13'))
+		expect(one('\x1b[27u')).toEqual(kitty('Escape', 'Escape'))
+		expect(one('\x1b[13u')).toEqual(kitty('Enter', 'Enter'))
+		expect(one('\x1b[13;5u')).toEqual(kitty('Enter', 'Enter', { ctrl: true }))
+		expect(one('\x1b[9;2u')).toEqual(kitty('Tab', 'Tab', { shift: true }))
+		expect(one('\x1b[127;3u')).toEqual(kitty('Backspace', 'Backspace', { alt: true }))
+		expect(one('\x1b[57417u')).toEqual(kitty('ArrowLeft', 'ArrowLeft'))
+		expect(one('\x1b[57426;5u')).toEqual(kitty('Delete', 'Delete', { ctrl: true }))
+		expect(one('\x1b[57414u')).toEqual(kitty('Enter', 'NumpadEnter'))
+		expect(one('\x1b[57376u')).toEqual(kitty('F13', 'F13'))
 	})
 
 	it('decodes letters with the base layout key for shortcuts and the text field for insertion', () => {
-		expect(one('\x1b[97;5u')).toEqual(key('a', 'KeyA', { ctrl: true }))
-		expect(one('\x1b[97:65;2u')).toEqual(key('A', 'KeyA', { shift: true, text: 'A' }))
-		expect(one('\x1b[97;;97u')).toEqual(key('a', 'KeyA', { text: 'a' }))
-		expect(one('\x1b[97;1;97u')).toEqual(key('a', 'KeyA', { text: 'a' }))
-		expect(one('\x1b[1072:1040:97u')).toEqual(key('а', 'KeyA', { text: 'а' }))
-		expect(one('\x1b[1072:1040:97;2u')).toEqual(key('А', 'KeyA', { shift: true, text: 'А' }))
-		expect(one('\x1b[97;3u')).toEqual(key('a', 'KeyA', { alt: true }))
-		expect(one('\x1b[97;7u')).toEqual(key('a', 'KeyA', { alt: true, ctrl: true }))
-		expect(one('\x1b[97;9u')).toEqual(key('a', 'KeyA', { meta: true }))
-		expect(one('\x1b[97;33u')).toEqual(key('a', 'KeyA', { meta: true }))
+		expect(one('\x1b[97;5u')).toEqual(kitty('a', 'KeyA', { ctrl: true }))
+		expect(one('\x1b[97:65;2u')).toEqual(kitty('A', 'KeyA', { shift: true, text: 'A' }))
+		expect(one('\x1b[97;;97u')).toEqual(kitty('a', 'KeyA', { text: 'a' }))
+		expect(one('\x1b[97;1;97u')).toEqual(kitty('a', 'KeyA', { text: 'a' }))
+		expect(one('\x1b[1072:1040:97u')).toEqual(kitty('а', 'KeyA', { text: 'а' }))
+		expect(one('\x1b[1072:1040:97;2u')).toEqual(kitty('А', 'KeyA', { shift: true, text: 'А' }))
+		expect(one('\x1b[97;3u')).toEqual(kitty('a', 'KeyA', { alt: true }))
+		expect(one('\x1b[97;7u')).toEqual(kitty('a', 'KeyA', { alt: true, ctrl: true }))
+		expect(one('\x1b[97;9u')).toEqual(kitty('a', 'KeyA', { meta: true }))
+		expect(one('\x1b[97;33u')).toEqual(kitty('a', 'KeyA', { meta: true }))
 	})
 
 	it('decodes punctuation, digits and space', () => {
-		expect(one('\x1b[91;3u')).toEqual(key('[', 'BracketLeft', { alt: true }))
-		expect(one('\x1b[93u')).toEqual(key(']', 'BracketRight', { text: ']' }))
-		expect(one('\x1b[61;2u')).toEqual(key('+', 'Equal', { shift: true, text: '+' }))
-		expect(one('\x1b[61:43;2u')).toEqual(key('+', 'Equal', { shift: true, text: '+' }))
-		expect(one('\x1b[47;2u')).toEqual(key('?', 'Slash', { shift: true, text: '?' }))
-		expect(one('\x1b[49u')).toEqual(key('1', 'Digit1', { text: '1' }))
-		expect(one('\x1b[49;2u')).toEqual(key('!', 'Digit1', { shift: true, text: '!' }))
-		expect(one('\x1b[32u')).toEqual(key(' ', 'Space', { text: ' ' }))
-		expect(one('\x1b[32;5u')).toEqual(key(' ', 'Space', { ctrl: true }))
-		expect(one('\x1b[32;3u')).toEqual(key(' ', 'Space', { alt: true }))
+		expect(one('\x1b[91;3u')).toEqual(kitty('[', 'BracketLeft', { alt: true }))
+		expect(one('\x1b[93u')).toEqual(kitty(']', 'BracketRight', { text: ']' }))
+		expect(one('\x1b[61;2u')).toEqual(kitty('+', 'Equal', { shift: true, text: '+' }))
+		expect(one('\x1b[61:43;2u')).toEqual(kitty('+', 'Equal', { shift: true, text: '+' }))
+		expect(one('\x1b[47;2u')).toEqual(kitty('?', 'Slash', { shift: true, text: '?' }))
+		expect(one('\x1b[49u')).toEqual(kitty('1', 'Digit1', { text: '1' }))
+		expect(one('\x1b[49;2u')).toEqual(kitty('!', 'Digit1', { shift: true, text: '!' }))
+		expect(one('\x1b[32u')).toEqual(kitty(' ', 'Space', { text: ' ' }))
+		expect(one('\x1b[32;5u')).toEqual(kitty(' ', 'Space', { ctrl: true }))
+		expect(one('\x1b[32;3u')).toEqual(kitty(' ', 'Space', { alt: true }))
 	})
 
 	it('reports repeat and release events', () => {
-		expect(one('\x1b[97;1:2u')).toEqual(key('a', 'KeyA', { text: 'a', repeat: true }))
-		expect(one('\x1b[97;1:3u')).toEqual(key('a', 'KeyA', { release: true }))
-		expect(one('\x1b[97;5:3u')).toEqual(key('a', 'KeyA', { ctrl: true, release: true }))
+		expect(one('\x1b[97;1:2u')).toEqual(kitty('a', 'KeyA', { text: 'a', repeat: true }))
+		expect(one('\x1b[97;1:3u')).toEqual(kitty('a', 'KeyA', { release: true }))
+		expect(one('\x1b[97;5:3u')).toEqual(kitty('a', 'KeyA', { ctrl: true, release: true }))
 		expect(one('\x1b[1;5:3A')).toEqual(key('ArrowUp', 'ArrowUp', { ctrl: true, release: true }))
 		expect(one('\x1b[1;1:2B')).toEqual(key('ArrowDown', 'ArrowDown', { repeat: true }))
 		expect(one('\x1b[3;1:3~')).toEqual(key('Delete', 'Delete', { release: true }))
-		expect(one('\x1b[27;1:3u')).toEqual(key('Escape', 'Escape', { release: true }))
+		expect(one('\x1b[27;1:3u')).toEqual(kitty('Escape', 'Escape', { release: true }))
 	})
 
 	it('reports modifier keys pressed alone so holds can drive latches', () => {
-		expect(one('\x1b[57441;2u')).toEqual(key('Shift', 'ShiftLeft', { shift: true }))
+		expect(one('\x1b[57441;2u')).toEqual(kitty('Shift', 'ShiftLeft', { shift: true }))
 		expect(one('\x1b[57441;2:3u')).toEqual(
-			key('Shift', 'ShiftLeft', { shift: true, release: true })
+			kitty('Shift', 'ShiftLeft', { shift: true, release: true })
 		)
-		expect(one('\x1b[57442;5u')).toEqual(key('Control', 'ControlLeft', { ctrl: true }))
-		expect(one('\x1b[57443;3u')).toEqual(key('Alt', 'AltLeft', { alt: true }))
-		expect(one('\x1b[57447;2u')).toEqual(key('Shift', 'ShiftRight', { shift: true }))
-		expect(one('\x1b[57444;9u')).toEqual(key('Meta', 'MetaLeft', { meta: true }))
+		expect(one('\x1b[57442;5u')).toEqual(kitty('Control', 'ControlLeft', { ctrl: true }))
+		expect(one('\x1b[57443;3u')).toEqual(kitty('Alt', 'AltLeft', { alt: true }))
+		expect(one('\x1b[57447;2u')).toEqual(kitty('Shift', 'ShiftRight', { shift: true }))
+		expect(one('\x1b[57444;9u')).toEqual(kitty('Meta', 'MetaLeft', { meta: true }))
 	})
 
 	it('ignores lock-key modifier bits and a zero code point', () => {
-		expect(one('\x1b[97;65u')).toEqual(key('a', 'KeyA', { text: 'a' }))
-		expect(one('\x1b[97;129u')).toEqual(key('a', 'KeyA', { text: 'a' }))
+		expect(one('\x1b[97;65u')).toEqual(kitty('a', 'KeyA', { text: 'a' }))
+		expect(one('\x1b[97;129u')).toEqual(kitty('a', 'KeyA', { text: 'a' }))
 		expect(parse(['\x1b[0u']).events).toEqual([])
 	})
 
@@ -647,6 +725,20 @@ describe('focus and replies', () => {
 		})
 		expect(one('\x1b]10;x\x07')).toEqual({ type: 'reply', kind: 'unknown', raw: '\x1b]10;x' })
 		expect(one('\x1bPabc\x1b\\')).toEqual({ type: 'reply', kind: 'unknown', raw: '\x1bPabc\x1b\\' })
+	})
+
+	it('accepts the 8-bit string terminator and drops C1 controls typed as text', () => {
+		// A terminal answering OSC with 0x9c must not swallow the keys that follow for 500 ms.
+		expect(parse([[...bytes('\x1b]11;#ffffff'), 0x9c, ...bytes('a')]]).events).toEqual([
+			{ type: 'reply', kind: 'osc11', raw: '\x1b]11;#ffffff', data: { color: '#ffffff' } },
+			typed('a'),
+		])
+		expect(parse([[...bytes('\x1bPabc'), 0x9c, ...bytes('b')]]).events).toEqual([
+			{ type: 'reply', kind: 'unknown', raw: '\x1bPabc\x9c' },
+			typed('b'),
+		])
+		// U+009B (CSI as a C1 control, UTF-8 encoded) is not insertable text.
+		expect(parse(['a\u009bb']).events).toEqual([typed('a'), typed('b')])
 	})
 
 	it('keeps parsing input that follows a reply in the same chunk', () => {

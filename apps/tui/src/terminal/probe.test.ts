@@ -21,8 +21,9 @@ import {
 } from './probe'
 
 describe('probe sequence', () => {
-	it('writes a box glyph at (1,1) then DECXCPR, the kitty query, OSC 11 and the DA1 fence last', () => {
-		expect(PROBE_SEQUENCE.startsWith('\x1b[1;1H─')).toBe(true)
+	it('writes a box glyph at (2,1) then DECXCPR, the kitty query, OSC 11 and the DA1 fence last', () => {
+		// Row 2: st answers DECXCPR with a plain CSI r;cR, which on row 1 reads as a modified F3.
+		expect(PROBE_SEQUENCE.startsWith('\x1b[2;1H─')).toBe(true)
 		const cpr = PROBE_SEQUENCE.indexOf('\x1b[?6n')
 		const kitty = PROBE_SEQUENCE.indexOf('\x1b[?u')
 		const osc = PROBE_SEQUENCE.indexOf('\x1b]11;?\x1b\\')

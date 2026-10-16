@@ -2,7 +2,12 @@ import { App } from '../App'
 import type { DomGlobals } from '../bootstrap/dom'
 import type { FrameScheduler } from '../bootstrap/frame'
 import { getPrefsPath, readPrefsSeed } from '../file/tldrFile'
-import { Terminal, type InputLike, type OutputLike } from '../terminal/Terminal'
+import {
+	Terminal,
+	type InputLike,
+	type OutputLike,
+	type TerminalCapabilities,
+} from '../terminal/Terminal'
 import type { CliOptions } from './cli'
 
 export interface RunCliDeps {
@@ -11,6 +16,10 @@ export interface RunCliDeps {
 	env?: NodeJS.ProcessEnv
 	input?: InputLike
 	output?: OutputLike
+	/** A terminal `index.ts` already started so the probe overlapped the module load. */
+	terminal?: Terminal
+	/** Its pending `start()`, awaited here so a start failure surfaces before the editor is built. */
+	starting?: Promise<TerminalCapabilities>
 	onQuit?(code: number): void
 }
 
@@ -29,14 +38,17 @@ export async function runCli(options: CliOptions, deps: RunCliDeps): Promise<App
 		deps.dom.window.localStorage.setItem(key, value)
 	}
 
-	const terminal = new Terminal({
-		input: deps.input ?? process.stdin,
-		output: deps.output ?? (process.stdout as unknown as OutputLike),
-		env,
-		mouse: options.mouse,
-		processHandlers: true,
-		colorMode: options.color ?? undefined,
-	})
+	const terminal =
+		deps.terminal ??
+		new Terminal({
+			input: deps.input ?? process.stdin,
+			output: deps.output ?? (process.stdout as unknown as OutputLike),
+			env,
+			mouse: options.mouse,
+			processHandlers: true,
+			colorMode: options.color ?? undefined,
+		})
+	if (deps.starting) await deps.starting
 	const app = new App({
 		terminal,
 		frame: deps.frame,

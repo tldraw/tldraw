@@ -47,6 +47,7 @@ describe('menus', () => {
 			'Zoom to 100%',
 			'Grid',
 			'Snap mode',
+			'Tool lock',
 			'Dark mode',
 			'Keyboard pointer mode',
 			'Style panel',
@@ -97,8 +98,8 @@ describe('menus', () => {
 		expect(items[2].separator).toBe(true)
 		const pages = pageItems(ctx.editor)
 		expect(pages[0].action).toEqual({ id: 'page.switch', arg: ctx.editor.getPages()[0].id })
-		expect(pages[0].checked!(ctx.editor, ctx.ui)).toBe(true)
-		expect(pages[1].checked!(ctx.editor, ctx.ui)).toBe(false)
+		expect(pages[0].checked!(ctx.editor, ctx.ui, 100)).toBe(true)
+		expect(pages[1].checked!(ctx.editor, ctx.ui, 100)).toBe(false)
 	})
 
 	it('enables items by selection and history', () => {
@@ -130,15 +131,25 @@ describe('menus', () => {
 
 	it('checks the view toggles from the editor and the UI state', () => {
 		const find = (label: string) => MENUS.view.find((i) => menuItemLabel(i) === label)!
-		expect(find('Grid').checked!(ctx.editor, ctx.ui)).toBe(false)
+		expect(find('Grid').checked!(ctx.editor, ctx.ui, 100)).toBe(false)
 		ctx.editor.updateInstanceState({ isGridMode: true })
-		expect(find('Grid').checked!(ctx.editor, ctx.ui)).toBe(true)
-		expect(find('Style panel').checked!(ctx.editor, ctx.ui)).toBe(true)
+		expect(find('Grid').checked!(ctx.editor, ctx.ui, 100)).toBe(true)
+		expect(find('Tool lock').checked!(ctx.editor, ctx.ui, 100)).toBe(false)
+		ctx.editor.updateInstanceState({ isToolLocked: true })
+		expect(find('Tool lock').checked!(ctx.editor, ctx.ui, 100)).toBe(true)
+		// The style panel is checked only while the docked panel is actually on screen.
+		expect(find('Style panel').action).toEqual({ id: 'ui.style-panel' })
+		expect(find('Style panel').checked!(ctx.editor, ctx.ui, 120)).toBe(false)
+		const id = createShapeId()
+		ctx.editor.createShape({ id, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+		ctx.editor.select(id)
+		expect(find('Style panel').checked!(ctx.editor, ctx.ui, 120)).toBe(true)
+		expect(find('Style panel').checked!(ctx.editor, ctx.ui, 100)).toBe(false)
 		ctx.ui.stylePanelOpen.set(false)
-		expect(find('Style panel').checked!(ctx.editor, ctx.ui)).toBe(false)
-		expect(find('Dark mode').checked!(ctx.editor, ctx.ui)).toBe(false)
+		expect(find('Style panel').checked!(ctx.editor, ctx.ui, 120)).toBe(false)
+		expect(find('Dark mode').checked!(ctx.editor, ctx.ui, 100)).toBe(false)
 		ctx.editor.setColorMode('dark')
-		expect(find('Dark mode').checked!(ctx.editor, ctx.ui)).toBe(true)
+		expect(find('Dark mode').checked!(ctx.editor, ctx.ui, 100)).toBe(true)
 	})
 
 	it('builds the context menu for a selection and for none', () => {

@@ -146,6 +146,12 @@ export class TerminalCanvas {
 	readonly canvas: { width: number; height: number }
 	readonly strokeMode: StrokeMode
 	readonly background: Rgb
+	/**
+	 * Strokes recolour cells the shape pass drew on instead of replacing them. Set for the selection
+	 * and shape indicator overlays, which tldraw draws as thin outlines over a still-visible stroke;
+	 * one glyph per cell makes recolouring the closest reading of that.
+	 */
+	mergeStrokes = false
 
 	private readonly screen: Screen
 	private readonly glyphs: GlyphSet
@@ -218,6 +224,7 @@ export class TerminalCanvas {
 		this.lineDashOffset = 0
 		this.lastGlyphCol = -1
 		this.lastGlyphRow = -1
+		this.mergeStrokes = false
 		this.beginPath()
 	}
 
@@ -603,10 +610,26 @@ export class TerminalCanvas {
 		return this.clips.length > 0 ? this.visibleFn : null
 	}
 
-	/** True when the polylines fit inside a single cell in both axes (handles are 8 px = 1 col). */
-	private isTiny(): boolean {
+	/**
+	 * True when the polylines fit inside a single cell in both axes (handles are 8 px = 1 col), or
+	 * form one quad whose edges are no longer than a cell: a rotated handle's bounding box spans two
+	 * cells, but it is still one handle.
+	 */
+	private isTiny(polys: readonly Poly[]): boolean {
 		const b = this.bounds
-		return b.maxX - b.minX <= 1 + 1e-6 && b.maxY - b.minY <= 1 + 1e-6
+		if (b.maxX - b.minX <= 1 + 1e-6 && b.maxY - b.minY <= 1 + 1e-6) return true
+		if (polys.length !== 1 || b.maxX - b.minX > Math.SQRT2 || b.maxY - b.minY > Math.SQRT2 / 2) {
+			return false
+		}
+		const { points, count } = polys[0]
+		if (count !== 4 && count !== 5) return false
+		for (let i = 0; i < 4; i++) {
+			const j = (i + 1) % 4
+			const dx = (points[j * 2] - points[i * 2]) * this.cellW
+			const dy = (points[j * 2 + 1] - points[i * 2 + 1]) * this.cellH
+			if (Math.hypot(dx, dy) > this.cellW + 0.5) return false
+		}
+		return true
 	}
 
 	private tinyGlyph(polys: readonly Poly[], external: boolean): string {
@@ -649,7 +672,7 @@ export class TerminalCanvas {
 		const alpha = color.alpha * this.globalAlpha
 		if (alpha <= 0) return
 		const b = this.bounds
-		if (this.isTiny()) {
+		if (this.isTiny(polys)) {
 			const col = Math.floor((b.minX + b.maxX) / 2)
 			const row = Math.floor((b.minY + b.maxY) / 2)
 			this.putGlyph(col, row, this.tinyGlyph(polys, external), color.rgb, alpha < DIM_ALPHA)
@@ -673,12 +696,16 @@ export class TerminalCanvas {
 		const alpha = color.alpha * this.globalAlpha
 		if (alpha <= 0) return
 		const b = this.bounds
-		if (this.isTiny()) {
-			// A sub-cell outline (handle borders, snap crosses): one glyph unless a tiny fill just
-			// drew the handle in this cell.
+		if (this.isTiny(polys)) {
+			// A sub-cell outline (handle borders, snap crosses): one glyph. When a tiny fill just drew
+			// the handle in this cell, the border colour wins: tldraw fills handles with the canvas
+			// background, which would make the glyph invisible on the painted canvas.
 			const col = Math.floor((b.minX + b.maxX) / 2)
 			const row = Math.floor((b.minY + b.maxY) / 2)
-			if (col === this.lastGlyphCol && row === this.lastGlyphRow) return
+			if (col === this.lastGlyphCol && row === this.lastGlyphRow) {
+				if (color.rgb !== -1 && this.strokeVisible(col, row)) this.screen.setFg(col, row, color.rgb)
+				return
+			}
 			this.putGlyph(col, row, this.glyphs.cursorPointer, color.rgb, alpha < DIM_ALPHA)
 			return
 		}
@@ -696,7 +723,17 @@ export class TerminalCanvas {
 		// Closed subpaths already repeat their first point (Path2DPolyfill.flatten), so every
 		// polyline is stroked open.
 		for (const poly of polys) {
-			strokePolyline(this.screen, this.raster, poly, false, 'auto', style, this.cellStyle, visible)
+			strokePolyline(
+				this.screen,
+				this.raster,
+				poly,
+				false,
+				'auto',
+				style,
+				this.cellStyle,
+				visible,
+				this.mergeStrokes
+			)
 		}
 	}
 

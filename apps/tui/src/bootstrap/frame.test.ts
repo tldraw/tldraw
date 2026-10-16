@@ -142,6 +142,31 @@ describe('FrameScheduler with fake timers', () => {
 		expect(s.getStats().parked).toBe(true)
 	})
 
+	it('resumes a parked loop at once instead of waiting out the parking frame', () => {
+		const s = create({ maxFps: 60 })
+		let calls = 0
+		const loop = () => {
+			calls++
+			s.requestFrame(loop)
+		}
+		s.requestFrame(loop)
+		vi.advanceTimersByTime(100)
+		expect(calls).toBe(2)
+		expect(s.getStats().parked).toBe(true)
+		// Input 2 ms after the parking frame: the resumed frame runs on the next immediate, not
+		// 14 ms later, because the parking frame drew nothing worth spacing against.
+		vi.advanceTimersByTime(2)
+		s.kick()
+		vi.advanceTimersByTime(0)
+		expect(calls).toBe(3)
+		expect(s.getStats().parked).toBe(false)
+		// Normal spacing resumes between live frames.
+		vi.advanceTimersByTime(FRAME_MS_60 - 2)
+		expect(calls).toBe(3)
+		vi.advanceTimersByTime(3)
+		expect(calls).toBe(4)
+	})
+
 	it('resumes a parked loop when a new frame is requested', () => {
 		const s = create()
 		const first = vi.fn()

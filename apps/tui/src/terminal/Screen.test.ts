@@ -474,11 +474,12 @@ describe('Screen flush', () => {
 		expect(s.flush()).toBe(`${CUP(1, 1)}a${CUP(1, 3)}b`)
 	})
 
-	it('tracks the cursor past a wide glyph and rewrites both halves of a broken pair', () => {
+	it('re-addresses the cursor after a wide glyph and rewrites both halves of a broken pair', () => {
 		const s = make(4, 1)
 		s.put(0, 0, '字')
 		s.put(2, 0, 'a')
-		expect(s.flush()).toBe(`${CUP(1, 1)}\x1b[0m字a `)
+		// Not every terminal advances two cells for a wide glyph, so the next cell gets a CUP.
+		expect(s.flush()).toBe(`${CUP(1, 1)}\x1b[0m字${CUP(1, 3)}a `)
 		s.put(1, 0, 'b')
 		expect(s.flush()).toBe(`${CUP(1, 1)} b`)
 		s.put(0, 0, '字')
@@ -641,6 +642,79 @@ describe('Screen flush', () => {
 		expect(replay).toEqual(s.toText().split('\n'))
 		expect(replay[1]).toBe('│ho日│')
 		expect(replay[2]).toBe('└────┘  ●●')
+	})
+})
+
+describe('Screen layer snapshot', () => {
+	it('restores the saved back buffer and line layer, so a frame can start from the shape pass', () => {
+		const s = make(12, 4)
+		s.clear({ bg: 0x101011 })
+		box(s, { x: 0, y: 0, w: 6, h: 3 }, { fg: 0xff0000, weight: 'heavy', dash: 'dashed' })
+		s.text(1, 1, 'hi', { fg: 0x00ff00 })
+		s.saveLayer()
+		// Overlays and chrome draw on top ...
+		s.line(0, 0, LINE_E | LINE_W, LIGHT)
+		s.put(1, 1, 'X')
+		s.fillRect({ x: 0, y: 3, w: 12, h: 1 }, ' ', { bg: 0xffffff })
+		expect(s.getCell(1, 1)!.glyph).toBe('X')
+		// ... and the next frame starts again from the shapes only.
+		expect(s.restoreLayer()).toBe(true)
+		expect(s.getCell(1, 1)).toEqual({ glyph: 'h', style: { fg: 0x00ff00, bg: 0x101011 } })
+		expect(s.getCell(0, 0)!.glyph).toBe('┏')
+		expect(s.getCell(2, 0)!.glyph).toBe('╍')
+		expect(s.getCell(0, 3)!.style.bg).toBe(0x101011)
+		expect(s.isEmptyCell(8, 1)).toBe(true)
+		expect(s.isEmptyCell(0, 0)).toBe(false)
+		// Line cells survive as unresolved lines: a later merged stroke still finds their style.
+		s.line(2, 0, LINE_E | LINE_W, { fg: 0x0000ff, weight: 'light' }, true)
+		expect(s.getCell(2, 0)).toEqual({ glyph: '╍', style: { fg: 0x0000ff, bg: 0x101011 } })
+		s.resize(12, 4)
+		expect(s.restoreLayer()).toBe(false)
+	})
+})
+
+describe('Screen merged strokes', () => {
+	it('line() with merge keeps the existing weight and dash and only recolours', () => {
+		const s = make(6, 2)
+		s.line(0, 0, LINE_E | LINE_W, { fg: 0xff0000, weight: 'heavy', dash: 'dashed' })
+		s.line(0, 0, LINE_E | LINE_W, { fg: 0x0000ff, weight: 'light' }, true)
+		expect(s.getCell(0, 0)).toEqual({ glyph: '╍', style: { fg: 0x0000ff, bg: -1 } })
+		// A plain line still replaces the style (last style wins).
+		s.line(0, 0, LINE_E | LINE_W, { fg: 0x0000ff, weight: 'light' })
+		expect(s.getCell(0, 0)!.glyph).toBe('─')
+		// Merging onto a glyph (an arrowhead) recolours it instead of turning it into a box line.
+		s.put(2, 0, '►', { fg: 0xff0000 })
+		s.line(2, 0, LINE_E | LINE_W, { fg: 0x0000ff, weight: 'light' }, true)
+		expect(s.getCell(2, 0)).toEqual({ glyph: '►', style: { fg: 0x0000ff, bg: -1 } })
+		// An empty cell (or one with only a background) gets the line as usual.
+		s.setBg(4, 0, 0x123456)
+		s.line(4, 0, LINE_N | LINE_S, { fg: 0x0000ff, weight: 'light' }, true)
+		s.line(5, 0, LINE_N | LINE_S, { fg: 0x0000ff, weight: 'light' }, true)
+		expect(s.getCell(4, 0)!.glyph).toBe('│')
+		expect(s.getCell(5, 0)!.glyph).toBe('│')
+	})
+
+	it('putMerged recolours occupied cells and writes empty ones', () => {
+		const s = make(4, 1)
+		s.put(0, 0, '►', { fg: 0xff0000 })
+		s.line(1, 0, LINE_E | LINE_W, { fg: 0xff0000, weight: 'heavy' })
+		s.putMerged(0, 0, '⠁', { fg: 0x0000ff })
+		s.putMerged(1, 0, '⠁', { fg: 0x0000ff })
+		s.putMerged(2, 0, '⠁', { fg: 0x0000ff })
+		expect(s.getCell(0, 0)).toEqual({ glyph: '►', style: { fg: 0x0000ff, bg: -1 } })
+		expect(s.getCell(1, 0)).toEqual({ glyph: '━', style: { fg: 0x0000ff, bg: -1 } })
+		expect(s.getCell(2, 0)).toEqual({ glyph: '⠁', style: { fg: 0x0000ff, bg: -1 } })
+	})
+
+	it('invert() adds inverse video to a cell and both halves of a wide glyph', () => {
+		const s = make(4, 1)
+		s.text(0, 0, 'a日', { fg: 0xff0000 })
+		s.invert(0, 0)
+		s.invert(2, 0)
+		expect(s.getCell(0, 0)!.style.inverse).toBe(true)
+		expect(s.getCell(1, 0)!.style.inverse).toBe(true)
+		expect(s.getCell(2, 0)!.style.inverse).toBe(true)
+		expect(s.getCell(3, 0)!.style.inverse).toBeUndefined()
 	})
 })
 

@@ -485,19 +485,80 @@ describe('InputController', () => {
 				'key_down:ArrowRight',
 				'key_up:ArrowRight',
 			])
+			// A repeat is a press too: tldraw's nudge reads `inputs.keys`, which the synthetic key_up
+			// of the previous press already emptied, so a bare key_repeat would nudge nothing.
 			input.handleEvent(key('ArrowRight', { repeat: true }))
+			expect(editor.getShape(id)!.x).toBe(82)
 			expect(
 				events()
 					.slice(2)
 					.map((e) => e.name)
-			).toEqual(['key_repeat'])
+			).toEqual(['key_down', 'key_up'])
 			input.handleEvent(key(' '))
 			input.handleEvent(key('j'))
 			expect(
 				events()
-					.slice(3)
+					.slice(4)
 					.map((e) => `${e.name}:${e.detail}`)
 			).toEqual(['key_down:KeyJ', 'key_up:KeyJ'])
+		})
+
+		it('nudges by the major step for shift+arrow from the terminal, without a latch', () => {
+			const id = createGeo(100, 80)
+			editor.select(id)
+			// Legacy terminals report shift+arrow as a modifier bit (ESC [ 1 ; 2 C), no Shift key event.
+			input.handleEvent(key('ArrowRight', { shift: true }))
+			expect(editor.getShape(id)!.x).toBe(110)
+			expect(events().map((e) => `${e.name}:${e.detail}`)).toEqual([
+				'key_down:ShiftLeft',
+				'key_down:ArrowRight',
+				'key_up:ArrowRight',
+				'key_up:ShiftLeft',
+			])
+			// The one-shot shift leaves inputs.keys again: the next plain arrow is a minor nudge.
+			expect(editor.inputs.keys.has('ShiftLeft')).toBe(false)
+			input.handleEvent(key('ArrowRight'))
+			expect(editor.getShape(id)!.x).toBe(111)
+			editor.updateInstanceState({ isGridMode: true })
+			input.handleEvent(key('ArrowRight', { shift: true }))
+			expect(editor.getShape(id)!.x).toBe(111 + editor.getDocumentSettings().gridSize * 5)
+		})
+
+		it('switches to the full keyboard encoding when an encoded key arrives', () => {
+			expect(ctx.ui.keyboardEncoding.get()).toBe('legacy')
+			input.handleEvent(key('v'))
+			expect(ctx.ui.keyboardEncoding.get()).toBe('legacy')
+			const a = createGeo(300, 80)
+			editor.select(a)
+			input.handleEvent(key('Delete'))
+			input.handleEvent(key('z', { ctrl: true }))
+			expect(editor.getCurrentPageShapes()).toHaveLength(1)
+			// ctrl+shift+z arrives as CSI 27;6;122~ only on terminals that honour modifyOtherKeys; a
+			// legacy terminal sends 0x1a for it, which is ctrl+z.
+			input.handleEvent(key('Z', { ctrl: true, shift: true, encoding: 'mok' }))
+			expect(ctx.ui.keyboardEncoding.get()).toBe('full')
+			expect(editor.getCurrentPageShapes()).toHaveLength(0)
+		})
+
+		it('ignores mouse reports when mouse reporting was not requested', () => {
+			ctx.capabilities.mouse = false
+			ctx.ui.pointerMode.set(true)
+			ctx.ui.pointerCell.set({ col: 5, row: 5 })
+			input.handleEvent(mouse('move', -1, 40, 10))
+			input.handleEvent(mouse('down', 0, 40, 10))
+			expect(ctx.ui.pointerCell.get()).toEqual({ col: 5, row: 5 })
+			expect(events()).toHaveLength(0)
+		})
+
+		it('dismisses action hints on the next key press but keeps hover hints', () => {
+			ctx.ui.setHint('Saved /tmp/x.tldr')
+			input.handleEvent(key('v'))
+			expect(ctx.ui.hint.get()).toBeNull()
+			ctx.hotRegions = [{ id: 'tool', rect: { x: 0, y: 0, w: 5, h: 1 }, hint: 'Select' }]
+			input.handleEvent(mouse('move', -1, 2, 0))
+			expect(ctx.ui.hint.get()).toBe('Select')
+			input.handleEvent(key('v'))
+			expect(ctx.ui.hint.get()).toBe('Select')
 		})
 
 		it('routes everything to an open popup and runs the action it returns', () => {
@@ -605,7 +666,7 @@ describe('InputController', () => {
 			expect(session!.getCaret()).toBe(1)
 			input.handleEvent(key('x'))
 			expect(getShapePlaintext(editor, editor.getShape(id)!)).toBe('hxi')
-			expect(ctx.ui.editCaret.get()).toEqual({ shapeId: id, caret: 2 })
+			expect(ctx.ui.editCaret.get()).toEqual({ shapeId: id, caret: 2, selectAll: false })
 			// Shortcut letters are text while editing.
 			expect(editor.getCurrentToolId()).toBe('select')
 			input.handleEvent(key('Escape'))
@@ -614,6 +675,39 @@ describe('InputController', () => {
 			expect(ctx.ui.editCaret.get()).toBeNull()
 			expect(getShapePlaintext(editor, editor.getShape(id)!)).toBe('hxi')
 			expect(editor.getSelectedShapeIds()).toEqual([id])
+		})
+
+		it('selects the whole label on Enter so typing replaces it, like tldraw', () => {
+			const id = createGeo(80, 80)
+			editor.select(id)
+			input.handleEvent(key('Enter'))
+			for (const ch of 'foo') input.handleEvent(key(ch))
+			input.handleEvent(key('Escape'))
+			expect(getShapePlaintext(editor, editor.getShape(id)!)).toBe('foo')
+			editor.select(id)
+			input.handleEvent(key('Enter'))
+			expect(input.getEditSession()!.isAllSelected()).toBe(true)
+			expect(ctx.ui.editCaret.get()).toEqual({ shapeId: id, caret: 3, selectAll: true })
+			for (const ch of 'bar') input.handleEvent(key(ch))
+			input.handleEvent(key('Escape'))
+			expect(getShapePlaintext(editor, editor.getShape(id)!)).toBe('bar')
+			// Double click places the caret instead; the selection does not survive a caret move.
+			editor.select(id)
+			editor.setEditingShape(id)
+			expect(input.getEditSession()!.isAllSelected()).toBe(false)
+			editor.setEditingShape(null)
+		})
+
+		it('finishes a frame rename on Enter and never stores a newline in the name', () => {
+			const id = createShapeId()
+			editor.createShape({ id, type: 'frame', x: 0, y: 0, props: { w: 300, h: 200, name: 'Plan' } })
+			editor.select(id)
+			editor.setEditingShape(id)
+			input.handleEvent({ type: 'paste', text: ' a\nb' })
+			expect((editor.getShape(id)!.props as { name: string }).name).toBe('Plan a b')
+			input.handleEvent(key('Enter'))
+			expect(editor.getEditingShapeId()).toBeNull()
+			expect((editor.getShape(id)!.props as { name: string }).name).toBe('Plan a b')
 		})
 
 		it('follows editing started elsewhere and pastes into the session', () => {

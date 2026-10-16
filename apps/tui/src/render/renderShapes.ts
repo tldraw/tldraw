@@ -682,7 +682,7 @@ function labelSpec(f: Frame, shape: TLShape, entry: ShapeCacheEntry, out: LabelS
 			out.valign = toAlign(geo.props.verticalAlign)
 			out.padX = Math.round(LABEL_PADDING * f.kx)
 			out.padY = Math.round(LABEL_PADDING * f.ky)
-			out.fg = labelRgb(colors, geo.props.labelColor, geo.props.fill)
+			out.fg = labelRgb(colors, geo.props.labelColor)
 			return true
 		}
 		case 'text': {
@@ -692,7 +692,7 @@ function labelSpec(f: Frame, shape: TLShape, entry: ShapeCacheEntry, out: LabelS
 			out.text = renderPlaintextFromRichText(f.editor, text.props.richText)
 			out.align = toAlign(text.props.textAlign)
 			out.valign = 'start'
-			out.fg = labelRgb(colors, text.props.color, null)
+			out.fg = labelRgb(colors, text.props.color)
 			return true
 		}
 		case 'note': {
@@ -720,7 +720,7 @@ function labelSpec(f: Frame, shape: TLShape, entry: ShapeCacheEntry, out: LabelS
 			out.text = renderPlaintextFromRichText(f.editor, arrow.props.richText)
 			out.align = 'center'
 			out.valign = 'center'
-			out.fg = labelRgb(colors, arrow.props.labelColor, null)
+			out.fg = labelRgb(colors, arrow.props.labelColor)
 			out.bg = f.background
 			return true
 		}
@@ -1068,6 +1068,47 @@ export function caretLineAndColumn(
 	return { line: 0, column: 0 }
 }
 
+/** The laid-out label of the shape being edited, as renderShapes placed it this frame. */
+function editedLabel(
+	editor: Editor,
+	screen: Screen,
+	canvas: Rect,
+	opts: RenderOptions,
+	caret: EditCaret
+): { text: string; placement: LabelPlacement } | null {
+	const shape = editor.getShape(caret.shapeId)
+	if (!shape) return null
+	const f = beginFrame(editor, screen, canvas, opts)
+	return unsafe__withoutCapture(() => {
+		const entry = ensureEntry(f, shape)
+		if (!entry || entry.parts.length === 0) return null
+		const spec = labelSpecScratch
+		if (!labelSpec(f, shape, entry, spec)) return null
+		const placement = placeLabel(f, entry, spec)
+		return placement ? { text: spec.text, placement } : null
+	})
+}
+
+/** Inverts the label cells of the shape being edited: the terminal's reading of a select-all. */
+export function invertEditedLabel(
+	editor: Editor,
+	screen: Screen,
+	canvas: Rect,
+	opts: RenderOptions,
+	caret: EditCaret
+): void {
+	const label = editedLabel(editor, screen, canvas, opts, caret)
+	if (!label) return
+	const { placement } = label
+	for (let i = 0; i < placement.lines.length; i++) {
+		const row = placement.row0 + i
+		if (row < canvas.y || row >= canvas.y + canvas.h) continue
+		for (let c = placement.cols[i]; c < placement.cols[i] + placement.widths[i]; c++) {
+			if (c >= canvas.x && c < canvas.x + canvas.w) screen.invert(c, row)
+		}
+	}
+}
+
 /**
  * The terminal cell of the text caret of the shape being edited, laid out exactly like
  * renderShapes draws it (call after renderShapes in the same frame). Null when the shape has no
@@ -1080,17 +1121,12 @@ export function locateCaret(
 	opts: RenderOptions,
 	caret: EditCaret
 ): Cell | null {
-	const shape = editor.getShape(caret.shapeId)
-	if (!shape) return null
-	const f = beginFrame(editor, screen, canvas, opts)
+	const label = editedLabel(editor, screen, canvas, opts, caret)
+	if (!label) return null
+	const { text, placement } = label
 	return unsafe__withoutCapture(() => {
-		const entry = ensureEntry(f, shape)
-		if (!entry || entry.parts.length === 0) return null
-		const spec = labelSpecScratch
-		if (!labelSpec(f, shape, entry, spec)) return null
-		const placement = placeLabel(f, entry, spec)
-		if (!placement) return null
-		const { line, column } = caretLineAndColumn(spec.text, placement.lines, caret.caret)
+		const f = frameScratch
+		const { line, column } = caretLineAndColumn(text, placement.lines, caret.caret)
 		const lineGraphemes = graphemes(placement.lines[line])
 		const offset = stringWidth(lineGraphemes.slice(0, column).join(''), f.ambiguousWide)
 		const col = placement.cols[line] + offset

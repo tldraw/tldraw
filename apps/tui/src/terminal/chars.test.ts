@@ -1,6 +1,7 @@
 import { eastAsianWidthType } from 'get-east-asian-width'
 import { describe, expect, it } from 'vitest'
 import {
+	asciiSafe,
 	brailleGlyph,
 	getGlyphs,
 	GLYPH_TIERS,
@@ -177,5 +178,13 @@ describe('quadrantGlyph', () => {
 
 	it('ignores bits above the low four', () => {
 		expect(quadrantGlyph(GLYPHS.rich, 16 | 1)).toBe('▘')
+	})
+})
+
+describe('asciiSafe', () => {
+	it('rewrites typographic chrome text for the ascii tier only', () => {
+		expect(asciiSafe(GLYPHS.ascii, 'Open… · 10× – done')).toBe('Open... * 10x - done')
+		expect(asciiSafe(GLYPHS.rich, 'Open… · 10×')).toBe('Open… · 10×')
+		expect(asciiSafe(GLYPHS.safe, 'Open…')).toBe('Open…')
 	})
 })

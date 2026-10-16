@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs'
 import { basename } from 'node:path'
-import { Box, type Editor } from '@tldraw/editor'
+import { Box, type Editor, type TLBinding, type TLShape, type TLShapeId } from '@tldraw/editor'
 import {
 	EffectScheduler,
 	computed,
@@ -85,10 +85,34 @@ interface InstanceSnapshot {
 	zoomBrush: unknown
 	scribbles: unknown
 	isGridMode: boolean
+	isToolLocked: boolean
 	screenBounds: unknown
 	isFocusMode: boolean
 	isDebugMode: boolean
 	stylesForNextShape: unknown
+}
+
+/**
+ * Everything renderShapes reads, by identity or value. While none of it changes (hover, selection,
+ * status-bar coordinates, overlays) the shape layer saved in the Screen is restored instead of
+ * re-rasterizing every visible shape.
+ */
+interface ShapeLayerKey {
+	shapes: readonly TLShape[]
+	bindings: unknown
+	erasing: readonly TLShapeId[]
+	theme: unknown
+	colorMode: 'light' | 'dark'
+	background: Rgb
+	camX: number
+	camY: number
+	camZ: number
+	canvasX: number
+	canvasY: number
+	canvasW: number
+	canvasH: number
+	cols: number
+	rows: number
 }
 
 interface Session {
@@ -105,6 +129,11 @@ interface Session {
 	appearance: Appearance
 	renderOpts: RenderOptions
 	overlayOpts: OverlayRenderOptions
+	/** One query for the session: `store.query.records` builds a new computed per call. */
+	bindings: Computed<TLBinding[]>
+	layerKey: ShapeLayerKey | null
+	/** Shapes drawn when the layer was last rendered (debug stats on cached frames). */
+	layerRendered: number
 }
 
 interface DebugWindow {
@@ -248,13 +277,33 @@ export class App {
 	async start(): Promise<void> {
 		if (this.started) return
 		this.started = true
-		const { terminal, frame, ui } = this
+		const { terminal } = this
 
 		// Before awaiting start(): keys typed during the ≤100 ms probe are dispatched immediately.
 		this.disposers.push(terminal.onEvent(this.onTerminalEventBound))
 		const probed = await terminal.start()
 		if (this.disposed) return
+		this.disposers.push(terminal.onExit(() => this.persistPrefsNow()))
+		let session: Session | null = null
+		try {
+			session = this.createSession(probed)
+			await this.openInitialFile(session.editor)
+			if (this.disposed) {
+				session.tui.dispose()
+				return
+			}
+			this.startFrameLoop(session)
+		} catch (error) {
+			// The terminal is already in the alternate screen: restore it before the caller prints
+			// the error, or the message lands on the alternate screen and vanishes with it.
+			if (session && this.session !== session) session.tui.dispose()
+			this.dispose()
+			throw error
+		}
+	}
 
+	private createSession(probed: TerminalCapabilities): Session {
+		const { terminal, ui } = this
 		const capabilities: TerminalCapabilities = {
 			...probed,
 			osc52: this.opts.osc52 ?? probed.osc52,
@@ -289,12 +338,6 @@ export class App {
 		ui.keyboardEncoding.set(appearance.keyboardEncoding)
 		ui.debug.set(this.debug)
 		if (this.debug) ui.debugStats = emptyDebugStats()
-
-		await this.openInitialFile(editor)
-		if (this.disposed) {
-			tui.dispose()
-			return
-		}
 
 		const ctx: AppContext = {
 			editor,
@@ -337,6 +380,7 @@ export class App {
 					zoomBrush: s.zoomBrush,
 					scribbles: s.scribbles,
 					isGridMode: s.isGridMode,
+					isToolLocked: s.isToolLocked,
 					screenBounds: s.screenBounds,
 					isFocusMode: s.isFocusMode,
 					isDebugMode: s.isDebugMode,
@@ -363,7 +407,11 @@ export class App {
 			scheduleEffect: (exec) => this.scheduleRender(exec),
 		})
 		const input = new InputController(ctx)
-		this.session = {
+		if (this.opts.pointerMode || !capabilities.mouse) {
+			ui.pointerMode.set(true)
+			ui.pointerCell.set(canvasCenterCell(this.layout))
+		}
+		return {
 			editor,
 			tui,
 			screen,
@@ -377,12 +425,17 @@ export class App {
 			appearance,
 			renderOpts,
 			overlayOpts,
+			bindings: editor.store.query.records('binding'),
+			layerKey: null,
+			layerRendered: 0,
 		}
+	}
 
-		if (this.opts.pointerMode || !capabilities.mouse) {
-			ui.pointerMode.set(true)
-			ui.pointerCell.set(canvasCenterCell(this.layout))
-		}
+	/** Makes the session live: input reaches the editor and the render effect follows the store. */
+	private startFrameLoop(s: Session): void {
+		const { terminal, frame, ui } = this
+		const { editor, screen, effect } = s
+		this.session = s
 
 		// Installed after the initial load so opening a file does not count as an edit.
 		this.disposers.push(
@@ -439,21 +492,27 @@ export class App {
 		this.ui.showError(result.error, performance.now())
 	}
 
-	/** Stops the terminal, persists preferences, tears everything down and reports the exit code. */
+	/**
+	 * Persists preferences, restores the terminal, tears everything down and reports the exit code,
+	 * all synchronously: an event-loop turn between the restore sequence and the exit would let a
+	 * frame the quitting keystroke scheduled (or a frame still queued in the stream) reach the
+	 * shell's screen.
+	 */
 	quit(code = 0): void {
 		if (this.quitting) return
 		this.quitting = true
-		this.terminal.stop()
-		const finish = () => {
-			this.dispose()
-			this.opts.onQuit?.(code)
-		}
+		this.dirty = false
+		this.pendingExec = null
+		this.persistPrefsNow()
+		this.dispose()
+		this.opts.onQuit?.(code)
+	}
+
+	private persistPrefsNow(): void {
 		const prefsPath = this.opts.prefsPath ?? null
-		if (prefsPath) {
-			persistPrefs(this.dom.window.localStorage, prefsPath).then(finish, finish)
-		} else {
-			finish()
-		}
+		if (!prefsPath || this.disposed) return
+		const result = persistPrefs(this.dom.window.localStorage, prefsPath)
+		if (!result.ok && this.debug) process.stderr.write(`tldraw-tui: ${result.error}\n`)
 	}
 
 	/** Restores the terminal and releases everything. Never exits the process. */
@@ -501,17 +560,20 @@ export class App {
 		s.effect.execute()
 	}
 
-	/** The frame loop keeps running while this is true; two false answers in a row park it. */
+	/**
+	 * The frame loop keeps running while this is true; two false answers in a row park it. A shown
+	 * error does not count: its expiry timer asks for the one frame that clears it.
+	 */
 	shouldKeepAlive(): boolean {
-		if (this.dirty) return true
+		if (this.quitting || this.disposed) return false
+		if (this.dirty && !this.renderSuspended) return true
 		const s = this.session
 		if (!s || s.editor.isDisposed) return false
 		const { editor } = s
 		return (
 			editor.listenerCount('tick') > s.tui.tickListenerBaseline ||
 			editor.getCameraState() === 'moving' ||
-			editor.getInstanceState().scribbles.length > 0 ||
-			this.ui.error.get() !== null
+			editor.getInstanceState().scribbles.length > 0
 		)
 	}
 
@@ -530,9 +592,14 @@ export class App {
 	// ------------------------------------------------------------------------------------------
 
 	private onTerminalEvent(event: TerminalEvent): void {
-		if (this.disposed || event.type === 'reply') return
+		if (this.disposed || this.quitting || event.type === 'reply') return
 		const s = this.session
 		if (!s) {
+			// ctrl+c typed while the editor loads: raw mode already swallowed the signal.
+			if (event.type === 'key' && event.ctrl && event.key === 'c' && !event.release) {
+				this.quit(130)
+				return
+			}
 			this.earlyEvents.push(event)
 			return
 		}
@@ -541,13 +608,19 @@ export class App {
 			// Latency is measured from the start of the latest input chunk to the write it causes.
 			if (!this.chunkEndQueued) this.inputStamp = process.hrtime.bigint()
 		}
-		this.renderSuspended = false
-		if (event.type === 'resize') {
-			this.onResize(event.cols, event.rows)
-		} else if (event.type === 'focus' && event.focused) {
-			s.screen.setFullRedraw()
+		if (this.renderSuspended) {
+			// Input ends the suspension; the frame it asks for retries the render once.
+			this.renderSuspended = false
+			this.requestRender()
 		}
-		s.input.handleEvent(event)
+		if (event.type === 'resize') this.onResize(event.cols, event.rows)
+		try {
+			s.input.handleEvent(event)
+		} catch (error) {
+			// A tool or shape util threw on this event: tldraw's error boundary would keep the editor
+			// alive in the browser, so the status bar reports it here and the document stays.
+			this.reportError(error)
+		}
 		// Everything one stdin chunk decodes arrives synchronously; the microtask runs once after it.
 		if (!this.chunkEndQueued) {
 			this.chunkEndQueued = true
@@ -558,7 +631,7 @@ export class App {
 	private endInputChunk(): void {
 		this.chunkEndQueued = false
 		const s = this.session
-		if (!s || this.disposed) return
+		if (!s || this.disposed || this.quitting) return
 		s.input.flushFrame()
 		this.frame.kick()
 	}
@@ -585,6 +658,7 @@ export class App {
 	// ------------------------------------------------------------------------------------------
 
 	private scheduleRender(exec: () => void): void {
+		if (this.disposed || this.quitting) return
 		this.pendingExec = exec
 		if (!this.dirty) {
 			this.dirty = true
@@ -593,7 +667,7 @@ export class App {
 	}
 
 	requestRender(): void {
-		if (this.disposed) return
+		if (this.disposed || this.quitting) return
 		if (!this.dirty) {
 			this.dirty = true
 			this.frame.kick()
@@ -607,33 +681,44 @@ export class App {
 
 	private onAfterFrame(info: FrameInfo): void {
 		const s = this.session
-		if (!s || this.disposed) return
+		if (!s || this.disposed || this.quitting) return
 		this.frameStart = info.frameStart
 		if (!this.ticked && this.inputSinceTick && !s.editor.isDisposed) {
-			// TickManager skipped this frame (FpsScheduler gate): flush queued pointer moves so the
-			// frame is never stale. Elapsed 0 is a pure flush (Editor._flushEventsForTick).
+			// TickManager skipped this frame (FpsScheduler gate; a frame resumed right after the loop
+			// parked lands inside it): flush queued pointer moves so the frame is never stale.
+			// Elapsed 0 is a pure flush (Editor._flushEventsForTick).
 			this.inputSinceTick = false
-			s.editor.emit('tick', 0)
+			try {
+				s.editor.emit('tick', 0)
+			} catch (error) {
+				this.reportError(error)
+			}
 		}
 		this.ticked = false
 		this.totals.frames++
 		this.debugWindow.frames++
-		if (this.dirty && !this.renderSuspended) {
-			this.dirty = false
-			const exec = this.pendingExec
-			this.pendingExec = null
-			const t0 = this.debug ? performance.now() : 0
-			try {
-				if (exec) exec()
-				else s.effect.execute()
-				this.renderFailures = 0
-			} catch (error) {
-				this.onRenderError(error)
-			}
-			if (this.debug) {
-				const ms = performance.now() - t0
-				this.debugWindow.frameMs += ms
-				this.totals.renderMs += ms
+		if (this.dirty) {
+			if (this.renderSuspended) {
+				// Dropped, not deferred: a dirty flag that stays set keeps the loop awake at full rate.
+				this.dirty = false
+				this.pendingExec = null
+			} else {
+				this.dirty = false
+				const exec = this.pendingExec
+				this.pendingExec = null
+				const t0 = this.debug ? performance.now() : 0
+				try {
+					if (exec) exec()
+					else s.effect.execute()
+					this.renderFailures = 0
+				} catch (error) {
+					this.onRenderError(error)
+				}
+				if (this.debug) {
+					const ms = performance.now() - t0
+					this.debugWindow.frameMs += ms
+					this.totals.renderMs += ms
+				}
 			}
 		}
 		// Input that changed nothing visible produced no write to measure against.
@@ -642,15 +727,19 @@ export class App {
 	}
 
 	private onRenderError(error: unknown): void {
-		const message = error instanceof Error ? error.message : String(error)
 		// The error itself schedules a render; a second consecutive failure stops the retry loop
 		// until the next input so a broken frame cannot spin at full rate.
 		this.renderFailures++
 		if (this.renderFailures >= 2) this.renderSuspended = true
+		this.reportError(error)
+	}
+
+	private reportError(error: unknown): void {
+		const message = error instanceof Error ? error.message : String(error)
 		this.ui.showError(message, performance.now())
 		if (this.debug) {
 			const text = error instanceof Error ? (error.stack ?? error.message) : String(error)
-			process.stderr.write(`tldraw-tui render error: ${text}\n`)
+			process.stderr.write(`tldraw-tui error: ${text}\n`)
 		}
 	}
 
@@ -703,13 +792,16 @@ export class App {
 		// because it derives from these (per-shape geometry from the shape records, menu state
 		// from selection and locks, the toolbar from the tool path, …).
 		const colorMode = editor.getColorMode()
-		editor.getCamera()
+		const cam = editor.getCamera()
 		editor.getCurrentPageState()
-		editor.getCurrentPageRenderingShapesSorted()
+		const shapes = editor.getCurrentPageRenderingShapesSorted()
+		// Arrow bodies follow their bindings, which can change without any shape on the page changing.
+		const bindings = s.bindings.get()
+		const erasing = editor.getErasingShapeIds()
 		editor.overlays.getActiveOverlayEntries()
 		editor.overlays.getHoveredOverlayId()
 		editor.getPath()
-		editor.getCurrentTheme()
+		const theme = editor.getCurrentTheme()
 		editor.getDocumentSettings()
 		editor.getPages()
 		editor.getCanUndo()
@@ -724,7 +816,6 @@ export class App {
 		let t3 = 0
 		let bytes = 0
 		unsafe__withoutCapture(() => {
-			screen.clear()
 			const { renderOpts, overlayOpts } = s
 			renderOpts.colorMode = colorMode
 			renderOpts.background = this.background
@@ -734,8 +825,35 @@ export class App {
 			overlayOpts.pointerCell = snap.pointerCell
 			overlayOpts.pointerMode = snap.pointerMode
 			overlayOpts.showCursorGlyph = snap.focused
+			const key: ShapeLayerKey = {
+				shapes,
+				bindings,
+				erasing,
+				theme,
+				colorMode,
+				background: this.background,
+				camX: cam.x,
+				camY: cam.y,
+				camZ: cam.z,
+				canvasX: layout.canvas.x,
+				canvasY: layout.canvas.y,
+				canvasW: layout.canvas.w,
+				canvasH: layout.canvas.h,
+				cols: screen.cols,
+				rows: screen.rows,
+			}
 			screen.withClip(layout.canvas, () => {
-				rendered = renderShapes(editor, screen, layout.canvas, renderOpts).rendered
+				if (s.layerKey && sameLayerKey(s.layerKey, key) && screen.restoreLayer()) {
+					rendered = s.layerRendered
+				} else {
+					// The canvas carries the theme background (tldraw paints it too), so a scheme that
+					// differs from the terminal's own background still shows its colours on the right base.
+					screen.clear({ bg: this.background })
+					rendered = renderShapes(editor, screen, layout.canvas, renderOpts).rendered
+					screen.saveLayer()
+					s.layerKey = key
+					s.layerRendered = rendered
+				}
 				if (measure) t1 = performance.now()
 				caretCell = renderOverlays(editor, screen, layout.canvas, overlayOpts).caretCell
 			})
@@ -814,6 +932,7 @@ export class App {
 		s.editor.setColorMode(mode)
 		this.background = paletteRgb(getThemeColors(s.editor, mode), 'background')
 		s.screen.configure({ background: this.background })
+		s.layerKey = null
 		this.requestRender()
 	}
 
@@ -850,6 +969,26 @@ export class App {
 				`${stats.bytesWritten} bytes in ${stats.writeCount} writes\n`
 		)
 	}
+}
+
+function sameLayerKey(a: ShapeLayerKey, b: ShapeLayerKey): boolean {
+	return (
+		a.shapes === b.shapes &&
+		a.bindings === b.bindings &&
+		a.erasing === b.erasing &&
+		a.theme === b.theme &&
+		a.colorMode === b.colorMode &&
+		a.background === b.background &&
+		a.camX === b.camX &&
+		a.camY === b.camY &&
+		a.camZ === b.camZ &&
+		a.canvasX === b.canvasX &&
+		a.canvasY === b.canvasY &&
+		a.canvasW === b.canvasW &&
+		a.canvasH === b.canvasH &&
+		a.cols === b.cols &&
+		a.rows === b.rows
+	)
 }
 
 function snapshotUiAll(ui: UiState): UiFrameSnapshot {

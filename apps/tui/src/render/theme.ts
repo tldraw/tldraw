@@ -89,39 +89,33 @@ export function shapeRgb(colors: TLThemeColors, color: string, variant: ColorVar
 export interface FillLook {
 	kind: 'none' | 'bg' | 'pattern' | 'lined'
 	rgb: Rgb
-	/** Labels over this fill use the theme's contrast colour. */
-	contrastLabel: boolean
 }
 
-const NO_FILL: FillLook = { kind: 'none', rgb: -1, contrastLabel: false }
+const NO_FILL: FillLook = { kind: 'none', rgb: -1 }
 
 export function fillLook(colors: TLThemeColors, fill: TLDefaultFillStyle, color: string): FillLook {
 	switch (fill) {
 		case 'semi':
-			return { kind: 'bg', rgb: paletteRgb(colors, 'solid'), contrastLabel: false }
+			return { kind: 'bg', rgb: paletteRgb(colors, 'solid') }
 		case 'solid':
-			return { kind: 'bg', rgb: shapeRgb(colors, color, 'semi'), contrastLabel: false }
+			return { kind: 'bg', rgb: shapeRgb(colors, color, 'semi') }
 		case 'fill':
-			return { kind: 'bg', rgb: shapeRgb(colors, color, 'fill'), contrastLabel: true }
+			return { kind: 'bg', rgb: shapeRgb(colors, color, 'fill') }
 		case 'pattern':
-			return { kind: 'pattern', rgb: shapeRgb(colors, color, 'pattern'), contrastLabel: false }
+			return { kind: 'pattern', rgb: shapeRgb(colors, color, 'pattern') }
 		case 'lined-fill':
-			return { kind: 'lined', rgb: shapeRgb(colors, color, 'linedFill'), contrastLabel: false }
+			return { kind: 'lined', rgb: shapeRgb(colors, color, 'linedFill') }
 		default:
 			return NO_FILL
 	}
 }
 
 /**
- * Label text colour: the `solid` variant of `labelColor`, except that black follows the theme's
- * text colour, and labels over a `fill` fill use the contrast colour like tldraw does.
+ * Label text colour: the `solid` variant of `labelColor` (GeoShapeUtil.getDefaultDisplayValues),
+ * except that black follows the theme's text colour. The fill is not consulted: tldraw lets a
+ * user put a yellow label on a blue fill.
  */
-export function labelRgb(
-	colors: TLThemeColors,
-	labelColor: string,
-	fill: TLDefaultFillStyle | null
-): Rgb {
-	if (fill === 'fill') return paletteRgb(colors, 'selectedContrast')
+export function labelRgb(colors: TLThemeColors, labelColor: string): Rgb {
 	if (labelColor === 'black') return paletteRgb(colors, 'text')
 	return shapeRgb(colors, labelColor, 'solid')
 }

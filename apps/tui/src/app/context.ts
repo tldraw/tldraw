@@ -63,6 +63,8 @@ export interface TerminalLike {
 	showCursorAt(col: number, row: number): void
 	hideCursor(): void
 	getSize(): { cols: number; rows: number }
+	/** OSC 52; false when the terminal clipboard is unavailable or the text is too large. */
+	copyToClipboard(text: string): boolean
 }
 
 export interface AppClipboard {

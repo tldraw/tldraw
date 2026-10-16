@@ -64,6 +64,8 @@ export interface TestContext extends AppContext {
 	layout: ChromeLayout
 	hotRegions: HotRegion[]
 	cursor: { col: number; row: number } | null
+	/** Texts handed to the terminal clipboard (OSC 52). */
+	clipboardWrites: string[]
 	renders: number
 	quits: number
 	colorModes: Array<'light' | 'dark'>
@@ -123,6 +125,10 @@ export function createTestContext(opts: TestContextOptions = {}): TestContext {
 			getSize() {
 				return { cols, rows }
 			},
+			copyToClipboard(text) {
+				ctx.clipboardWrites.push(text)
+				return true
+			},
 		},
 		capabilities,
 		glyphs: getGlyphs(opts.glyphs ?? 'rich'),
@@ -153,6 +159,7 @@ export function createTestContext(opts: TestContextOptions = {}): TestContext {
 		layout,
 		hotRegions: [],
 		cursor: null,
+		clipboardWrites: [],
 		renders: 0,
 		quits: 0,
 		colorModes: [],

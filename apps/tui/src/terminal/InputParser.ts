@@ -12,6 +12,11 @@ export interface KeyEvent {
 	text?: string
 	release?: boolean
 	repeat?: boolean
+	/**
+	 * Set when the key arrived in an extended encoding (xterm modifyOtherKeys `CSI 27 ; m ; k ~`,
+	 * kitty `CSI k ; m u`): proof that the terminal honours the protocol the app asked for.
+	 */
+	encoding?: 'mok' | 'kitty'
 }
 
 export interface MouseEvent {
@@ -73,8 +78,22 @@ export interface InputParserOptions {
 export type EventSink = (e: TerminalEvent) => void
 
 const ESC = 0x1b
+// 8-bit string terminator; terminals that answer OSC with it instead of ESC \ exist.
+const ST8 = 0x9c
 const INCOMPLETE = -1
 const PASTE_END = [0x1b, 0x5b, 0x32, 0x30, 0x31, 0x7e] // CSI 201 ~
+const MAX_CODE_POINT = 0x10ffff
+
+/** CSI parameters are unbounded; String.fromCodePoint throws past U+10FFFF (and on Infinity). */
+function isCodePoint(n: number): boolean {
+	return Number.isInteger(n) && n >= 0 && n <= MAX_CODE_POINT
+}
+
+/** C1 controls (U+0080–U+009F) arrive as text when a terminal uses 8-bit controls; never insertable. */
+function isC1Control(g: string): boolean {
+	const c = g.codePointAt(0)!
+	return c >= 0x80 && c <= 0x9f
+}
 
 /**
  * DOM `KeyboardEvent.code` for a key name, modelled on `KEY_CODES` in
@@ -471,17 +490,22 @@ export class InputParser {
 			if (buf[i] === ESC) {
 				const r = this.parseEscape(buf, i, n, false)
 				if (r === INCOMPLETE) {
-					if (n - i === 1) {
-						if (n === 1 && !hadPending) {
+					const rest = n - i
+					if (rest <= 2 && (rest === 1 || buf[i + 1] === ESC) && !this.kittyActive) {
+						// One or two bare ESCs end the chunk: Escape presses, or the start of a sequence
+						// the next chunk completes (ESC ESC [ A is a meta arrow).
+						if (rest === 1 && n === 1 && !hadPending) {
 							// Terminals write a whole sequence per write(), so a chunk that is exactly
 							// ESC is the Escape key; waiting would only add latency.
 							this.emitKey('Escape', 'Escape', NO_MODS)
 						} else {
-							this.pending = [ESC]
+							this.pending = Array.from(buf.subarray(i))
 							this.pendingKind = 'esc'
-							this.pendingDeadline = this.time + (this.kittyActive ? 0 : this.escTimeoutMs)
+							this.pendingDeadline = this.time + this.escTimeoutMs
 						}
 					} else {
+						// Under the kitty protocol Escape arrives as CSI 27 u, so a trailing ESC can only
+						// be a split sequence: held like any partial, never emitted as the key.
 						this.pending = Array.from(buf.subarray(i))
 						this.pendingKind = 'partial'
 						this.pendingDeadline = this.time + this.partialTimeoutMs
@@ -514,7 +538,7 @@ export class InputParser {
 		}
 		for (const g of graphemes(s)) {
 			if (g.length === 1 && g.charCodeAt(0) < 0x80) this.emitLegacyByte(g.charCodeAt(0), false)
-			else this.emitKey(g, 'Unidentified', NO_MODS, g)
+			else if (!isC1Control(g)) this.emitKey(g, 'Unidentified', NO_MODS, g)
 		}
 	}
 
@@ -572,7 +596,8 @@ export class InputParser {
 		code: string,
 		mods: Mods,
 		text?: string,
-		event: 'press' | 'repeat' | 'release' = 'press'
+		event: 'press' | 'repeat' | 'release' = 'press',
+		encoding?: KeyEvent['encoding']
 	): void {
 		const e: KeyEvent = {
 			type: 'key',
@@ -584,6 +609,7 @@ export class InputParser {
 			meta: mods.meta,
 		}
 		if (text !== undefined && event !== 'release') e.text = text
+		if (encoding) e.encoding = encoding
 		if (event === 'release') {
 			e.release = true
 			this.lastKeySig = null
@@ -616,11 +642,8 @@ export class InputParser {
 			case 0x58:
 				return this.parseStringSequence(buf, i, n)
 			case ESC: {
-				if (i + 2 >= n) {
-					this.emitKey('Escape', 'Escape', NO_MODS)
-					this.emitKey('Escape', 'Escape', NO_MODS)
-					return 2
-				}
+				// Two ESCs ending a chunk are held like one (feedInner): the rest may still arrive.
+				if (i + 2 >= n) return INCOMPLETE
 				const b2 = buf[i + 2]
 				if (b2 === 0x5b || b2 === 0x4f) {
 					const r = this.parseEscape(buf, i + 1, n, true)
@@ -656,6 +679,17 @@ export class InputParser {
 
 	private parseCsi(buf: Uint8Array, i: number, n: number, alt: boolean): number {
 		let j = i + 2
+		if (j < n && buf[j] === 0x5b) {
+			// Linux console F1–F5 (terminfo linux kf1–kf5): ESC [ [ A–E. '[' is otherwise a legal CSI
+			// final byte, so the generic scan would end the sequence here and type the letter.
+			if (j + 1 >= n) return INCOMPLETE
+			const f = buf[j + 1]
+			if (f >= 0x41 && f <= 0x45) {
+				const name = `F${f - 0x40}`
+				this.emitKey(name, name, alt ? { ...NO_MODS, alt: true } : NO_MODS)
+				return 4
+			}
+		}
 		let prefix = 0
 		if (j < n && buf[j] >= 0x3c && buf[j] <= 0x3f) {
 			prefix = buf[j]
@@ -740,7 +774,7 @@ export class InputParser {
 					this.emitReply('unknown', raw)
 					return
 				}
-				this.dispatchKittyKey(params, alt)
+				this.dispatchKittyKey(params, alt, raw)
 				return
 			case 'c':
 				this.emitReply(prefix === 0x3f ? 'da1' : 'unknown', raw, { params: paramStr })
@@ -792,7 +826,7 @@ export class InputParser {
 			const mods = xtermMods(param(params, 1, 0, 1))
 			if (alt) mods.alt = true
 			const cp = param(params, 2, 0, 0)
-			this.emitCodePointKey(cp, undefined, undefined, mods, undefined, 'press')
+			this.emitCodePointKey(cp, undefined, undefined, mods, undefined, 'press', 'mok', raw)
 			return
 		}
 		const name = TILDE_KEYS[n]
@@ -803,10 +837,11 @@ export class InputParser {
 		this.emitNamedKey(name, params, 1, alt)
 	}
 
-	private dispatchKittyKey(params: number[][], alt: boolean): void {
+	private dispatchKittyKey(params: number[][], alt: boolean, raw: string): void {
 		const cp = param(params, 0, 0, 0)
-		const shifted = param(params, 0, 1, -1)
-		const base = param(params, 0, 2, -1)
+		// A garbage alternate key must not lose the key itself; a garbage text code point is skipped.
+		const shifted = isCodePoint(param(params, 0, 1, -1)) ? param(params, 0, 1, -1) : -1
+		const base = isCodePoint(param(params, 0, 2, -1)) ? param(params, 0, 2, -1) : -1
 		const modsValue = param(params, 1, 0, 1)
 		const bits = Math.max(0, modsValue - 1)
 		const mods: Mods = {
@@ -820,7 +855,8 @@ export class InputParser {
 		const textParams = params[2]
 		if (textParams && textParams.length > 0 && textParams[0] !== -1) {
 			text = ''
-			for (const t of textParams) if (t > 0) text += String.fromCodePoint(t)
+			for (const t of textParams) if (t > 0 && isCodePoint(t)) text += String.fromCodePoint(t)
+			if (text.length === 0) text = undefined
 		}
 		this.emitCodePointKey(
 			cp,
@@ -828,7 +864,9 @@ export class InputParser {
 			base === -1 ? undefined : base,
 			mods,
 			text,
-			event
+			event,
+			'kitty',
+			raw
 		)
 	}
 
@@ -838,7 +876,9 @@ export class InputParser {
 		base: number | undefined,
 		mods: Mods,
 		text: string | undefined,
-		event: 'press' | 'repeat' | 'release'
+		event: 'press' | 'repeat' | 'release',
+		encoding: KeyEvent['encoding'],
+		raw: string
 	): void {
 		const functional = KITTY_KEYS[cp]
 		if (functional) {
@@ -847,15 +887,27 @@ export class InputParser {
 				functional[1],
 				mods,
 				cp === 13 || cp === 9 ? undefined : text,
-				event
+				event,
+				encoding
 			)
 			return
 		}
 		if (cp === 32) {
-			this.emitKey(' ', 'Space', mods, text ?? (mods.ctrl || mods.alt ? undefined : ' '), event)
+			this.emitKey(
+				' ',
+				'Space',
+				mods,
+				text ?? (mods.ctrl || mods.alt ? undefined : ' '),
+				event,
+				encoding
+			)
 			return
 		}
 		if (cp <= 0) return
+		if (!isCodePoint(cp)) {
+			this.emitReply('unknown', raw)
+			return
+		}
 		const baseCh = String.fromCodePoint(base ?? cp)
 		let key: string
 		if (text !== undefined && text.length > 0 && !mods.ctrl) key = text
@@ -873,7 +925,7 @@ export class InputParser {
 		const code = codeForKey(baseCh.length === 1 ? baseCh.toLowerCase() : baseCh)
 		// Without the terminal's own text field, only an unmodified (or shift-only) key inserts.
 		const insert = text ?? (mods.ctrl || mods.alt || mods.meta ? undefined : key)
-		this.emitKey(key, code, mods, insert, event)
+		this.emitKey(key, code, mods, insert, event, encoding)
 	}
 
 	private parseSs3(buf: Uint8Array, i: number, n: number, alt: boolean): number {
@@ -899,7 +951,7 @@ export class InputParser {
 		let termLen = 0
 		while (j < n) {
 			const b = buf[j]
-			if (b === 0x07) {
+			if (b === 0x07 || b === ST8) {
 				end = j
 				termLen = 1
 				break
@@ -926,6 +978,10 @@ export class InputParser {
 	private parseStringSequence(buf: Uint8Array, i: number, n: number): number {
 		let j = i + 2
 		while (j < n) {
+			if (buf[j] === ST8) {
+				this.emitReply('unknown', asciiOf(buf, i, j + 1))
+				return j + 1 - i
+			}
 			if (buf[j] === ESC) {
 				if (j + 1 >= n) return INCOMPLETE
 				if (buf[j + 1] === 0x5c) {

@@ -2,7 +2,7 @@ import { basename } from 'node:path'
 import type { Editor } from '@tldraw/editor'
 import type { ChromeDensity, ChromeLayout, HotRegion } from '../app/context'
 import { getShapePlaintext } from '../editor/richText'
-import { getGlyphs, type GlyphSet } from '../terminal/chars'
+import { asciiSafe, getGlyphs, type GlyphSet } from '../terminal/chars'
 import { parseColor, type Rgb } from '../terminal/colors'
 import type { CellStyle, Rect, Screen } from '../terminal/Screen'
 import type { TerminalCapabilities } from '../terminal/Terminal'
@@ -19,7 +19,13 @@ import {
 	SWATCH_WIDTH,
 } from '../ui/popups'
 import { promptLabelText } from '../ui/prompt'
-import { buildStyleRows, stepStyleValue, swatchColor } from '../ui/stylePanel'
+import {
+	STYLE_PANEL_MIN_COLS,
+	buildStyleRows,
+	stepStyleValue,
+	stylesRelevant,
+	swatchColor,
+} from '../ui/stylePanel'
 import {
 	TOOL_ITEMS,
 	TOOLBAR_ICONS,
@@ -60,20 +66,15 @@ export interface ChromeContext {
 	env?: NodeJS.ProcessEnv
 }
 
+export { STYLE_PANEL_MIN_COLS, stylesRelevant } from '../ui/stylePanel'
+
 export const STYLE_PANEL_WIDTH = 18
-export const STYLE_PANEL_MIN_COLS = 110
 export const COORDS_MIN_COLS = 100
 export const HINT_MIN_COLS = 120
 export const FIRST_RUN_HINT = '? help · m menu'
 
 export function densityFor(cols: number): ChromeDensity {
 	return cols >= 120 ? 'full' : cols >= 90 ? 'compact' : 'minimal'
-}
-
-/** Styles are relevant when something is selected or a tool that creates shapes is active. */
-export function stylesRelevant(editor: Editor): boolean {
-	if (editor.getSelectedShapeIds().length > 0) return true
-	return !!editor.root.getCurrent()?.shapeType
 }
 
 export function layoutChrome(
@@ -307,6 +308,14 @@ function renderStatus(
 			id: 'status.snap',
 		})
 	}
+	if (editor.getInstanceState().isToolLocked) {
+		right.push({
+			text: 'lock',
+			style: accent,
+			action: { id: 'view.toggle-tool-lock' },
+			id: 'status.lock',
+		})
+	}
 	if (ui.debug.get() && ctx.debugStats) {
 		const s = ctx.debugStats
 		right.push({
@@ -361,7 +370,9 @@ function renderStatus(
 		left.push({ text: `${Math.round(p.x)},${Math.round(p.y)}`, style: muted })
 	}
 	const hint = statusHint(ctx)
-	if (hint && (cols >= HINT_MIN_COLS || hint.firstRun)) left.push({ text: hint.text, style: muted })
+	if (hint && (cols >= HINT_MIN_COLS || hint.firstRun)) {
+		left.push({ text: asciiSafe(glyphs, hint.text), style: muted })
+	}
 
 	// Drop segments from the right until the left side fits; the first one is truncated instead.
 	let count = left.length
@@ -408,15 +419,30 @@ function statusHint(ctx: ChromeContext): StatusHint | null {
 	return null
 }
 
+interface PromptLayout {
+	/** Column where the value starts. */
+	x: number
+	/** Cells of the value hidden on the left so the caret stays on screen. */
+	scroll: number
+	caretOffset: number
+}
+
+/** A value longer than the row scrolls so the caret is always visible (an ellipsis marks the cut). */
+function layoutPrompt(prompt: PromptState, cols: number): PromptLayout {
+	const x = 1 + stringWidth(promptLabelText(prompt)) + 1
+	const caretOffset = stringWidth(graphemes(prompt.value).slice(0, prompt.caret).join(''))
+	const available = Math.max(1, cols - 1 - x)
+	const scroll = caretOffset >= available ? caretOffset - available + 1 : 0
+	return { x, scroll, caretOffset }
+}
+
 /** Terminal cell of the prompt caret, for placing the real cursor (IME, blink). */
 export function getPromptCaretCell(
 	layout: ChromeLayout,
 	prompt: PromptState
 ): { col: number; row: number } {
-	const label = promptLabelText(prompt)
-	const before = graphemes(prompt.value).slice(0, prompt.caret).join('')
-	const col = Math.min(layout.cols - 1, 1 + stringWidth(label) + 1 + stringWidth(before))
-	return { col, row: layout.statusRow }
+	const { x, scroll, caretOffset } = layoutPrompt(prompt, layout.cols)
+	return { col: Math.min(layout.cols - 1, x + caretOffset - scroll), row: layout.statusRow }
 }
 
 function renderPrompt(
@@ -432,9 +458,18 @@ function renderPrompt(
 	x += screen.text(x, row, label, { fg: pal.accent, bg: pal.bg, bold: true }, cols - x)
 	if (prompt.spec.kind === 'confirm') return
 	x += 1
+	const { scroll } = layoutPrompt(prompt, cols)
 	const parts = graphemes(prompt.value)
 	const base: CellStyle = { fg: pal.text, bg: pal.bg }
-	for (let i = 0; i < parts.length && x < cols; i++) {
+	let skipped = 0
+	let i = 0
+	// Drop whole graphemes from the left until the hidden width is reached, then mark the cut.
+	while (i < parts.length && skipped < scroll) skipped += stringWidth(parts[i++])
+	if (scroll > 0 && x < cols) {
+		screen.put(x, row, ctx.glyphs.ellipsis, { fg: pal.muted, bg: pal.bg })
+		x += 1
+	}
+	for (; i < parts.length && x < cols; i++) {
 		const caret = i === prompt.caret
 		screen.text(x, row, parts[i], caret ? { ...base, inverse: true } : base, cols - x)
 		x += stringWidth(parts[i])
@@ -628,7 +663,7 @@ function drawList(
 			if (item.checked) screen.put(x, y, glyphs.check, style)
 			x += 2
 		}
-		screen.text(x, y, item.label, style, innerW - 2)
+		screen.text(x, y, asciiSafe(glyphs, item.label), style, innerW - 2)
 		if (item.kbd) {
 			const kx = right - 1 - stringWidth(item.kbd) - (item.submenu ? 2 : 0)
 			screen.text(kx, y, item.kbd, selected ? style : { ...style, fg: pal.muted })
@@ -705,7 +740,7 @@ function renderPopup(
 				rect,
 				glyphs,
 				pal,
-				`${model.title} · ${encodingLabel(ctx.ui.keyboardEncoding.get())}`
+				asciiSafe(glyphs, `${model.title} · ${encodingLabel(ctx.ui.keyboardEncoding.get())}`)
 			)
 			for (let i = 0; i < model.tabs.length; i++) {
 				const tab = model.tabs[i]
@@ -728,7 +763,8 @@ function renderPopup(
 					continue
 				}
 				const kbdW = stringWidth(line.kbd)
-				screen.text(innerX, y, fitText(line.text, innerW - kbdW - 1, glyphs.ellipsis), {
+				const text = asciiSafe(glyphs, line.text)
+				screen.text(innerX, y, fitText(text, innerW - kbdW - 1, glyphs.ellipsis), {
 					fg: pal.text,
 					bg: pal.bg,
 				})
@@ -742,10 +778,15 @@ function renderPopup(
 			}
 			for (let i = 0; i < model.footer.length; i++) {
 				const y = rect.y + rect.h - 1 - model.footer.length + i
-				screen.text(innerX, y, fitText(model.footer[i], innerW, glyphs.ellipsis), {
-					fg: pal.muted,
-					bg: pal.bg,
-				})
+				screen.text(
+					innerX,
+					y,
+					fitText(asciiSafe(glyphs, model.footer[i]), innerW, glyphs.ellipsis),
+					{
+						fg: pal.muted,
+						bg: pal.bg,
+					}
+				)
 			}
 			drawScrollMarks(
 				screen,

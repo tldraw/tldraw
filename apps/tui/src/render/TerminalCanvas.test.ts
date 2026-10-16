@@ -83,6 +83,42 @@ describe('TerminalCanvas', () => {
 		expect(screen.getCell(12, 4)!.glyph).toBe('◗')
 	})
 
+	it('draws a rotated handle as one square in the border colour', () => {
+		const { screen, ctx } = setup()
+		ctx.translate(80, 48)
+		ctx.rotate(Math.PI / 12)
+		// SelectionForegroundOverlayUtil: an 8 px square filled with the canvas background and
+		// stroked in the selection colour; rotated, its bounding box spans two cells.
+		ctx.fillStyle = '#ffffff'
+		ctx.strokeStyle = 'hsl(214, 84%, 56%)'
+		ctx.fillRect(-4, -4, 8, 8)
+		ctx.strokeRect(-4, -4, 8, 8)
+		const text = screen.toText()
+		expect([...text].filter((g) => g === '■')).toHaveLength(1)
+		expect(text).not.toMatch(/[┌┐└┘├┤]/)
+		expect(screen.getCell(10, 3)!.glyph).toBe('■')
+		expect(screen.getCell(10, 3)!.style.fg).toBe(parseColor('hsl(214, 84%, 56%)')!.rgb)
+	})
+
+	it('recolours shape cells instead of restroking them when mergeStrokes is set', () => {
+		const { screen, ctx } = setup()
+		// The shape pass drew a dashed heavy outline and an arrowhead.
+		screen.line(0, 0, 2, { fg: 0xff0000, weight: 'heavy', dash: 'dashed' })
+		screen.line(1, 0, 2 | 8, { fg: 0xff0000, weight: 'heavy', dash: 'dashed' })
+		screen.put(2, 0, '►', { fg: 0xff0000 })
+		ctx.mergeStrokes = true
+		ctx.strokeStyle = '#0000ff'
+		ctx.beginPath()
+		ctx.moveTo(0, 8)
+		ctx.lineTo(32, 8)
+		ctx.stroke()
+		expect(screen.getCell(1, 0)).toMatchObject({ glyph: '╍', style: { fg: 0x0000ff } })
+		expect(screen.getCell(2, 0)).toMatchObject({ glyph: '►', style: { fg: 0x0000ff } })
+		expect(screen.getCell(3, 0)).toMatchObject({ glyph: '─', style: { fg: 0x0000ff } })
+		ctx.reset({ x: 0, y: 0, w: 20, h: 10 })
+		expect(ctx.mergeStrokes).toBe(false)
+	})
+
 	it('strokes a large arc as sub-cell glyphs with no box lines', () => {
 		const { screen, ctx } = setup(40, 20)
 		ctx.beginPath()

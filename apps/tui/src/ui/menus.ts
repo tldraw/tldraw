@@ -1,6 +1,7 @@
 import type { Editor } from '@tldraw/editor'
 import { ACTION_META, type ActionInvocation } from '../actions/actionIds'
 import { getShapePlaintext } from '../editor/richText'
+import { STYLE_PANEL_MIN_COLS, stylesRelevant } from './stylePanel'
 import type { MenuId, UiState } from './UiState'
 
 export interface MenuItem {
@@ -10,8 +11,8 @@ export interface MenuItem {
 	submenu?: MenuItem[]
 	separator?: boolean
 	enabled?(editor: Editor): boolean
-	/** Toggle items show a check mark when this returns true. */
-	checked?(editor: Editor, ui: UiState): boolean
+	/** Toggle items show a check mark when this returns true; `cols` is the terminal width. */
+	checked?(editor: Editor, ui: UiState, cols: number): boolean
 	/** Items without an action show this in the status bar when chosen. */
 	hint?: string
 }
@@ -132,10 +133,15 @@ export const MENUS: Readonly<Record<MenuId, readonly MenuItem[]>> = {
 		SEPARATOR,
 		item('view.toggle-grid', { checked: (editor) => editor.getInstanceState().isGridMode }),
 		item('view.toggle-snap', { checked: (editor) => editor.user.getIsSnapMode() }),
+		item('view.toggle-tool-lock', { checked: (editor) => editor.getInstanceState().isToolLocked }),
 		item('view.toggle-dark-mode', { checked: (editor) => editor.getColorMode() === 'dark' }),
 		SEPARATOR,
 		item('view.toggle-pointer-mode', { checked: (_editor, ui) => ui.pointerMode.get() }),
-		item('view.toggle-style-panel', { checked: (_editor, ui) => ui.stylePanelOpen.get() }),
+		// The same action as the `s` key it shows; checked only while the docked panel is on screen.
+		item('ui.style-panel', {
+			checked: (editor, ui, cols) =>
+				cols >= STYLE_PANEL_MIN_COLS && ui.stylePanelOpen.get() && stylesRelevant(editor),
+		}),
 		item('view.toggle-debug', { checked: (_editor, ui) => ui.debug.get() }),
 	],
 	pages: [

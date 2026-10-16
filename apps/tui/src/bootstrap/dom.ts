@@ -1,5 +1,12 @@
-import { JSDOM } from 'jsdom'
+import { createRequire } from 'node:module'
 import { installPath2D } from './path2d'
+
+// `require` at call time rather than `import`: esbuild hoists a static import of the external jsdom
+// to the top of the bundle, which would load its ~900 CommonJS files before index.ts can enter the
+// terminal (and before `--help` can print).
+function loadJsdom(): typeof import('jsdom') {
+	return createRequire(import.meta.url)('jsdom')
+}
 
 export interface DomGlobals {
 	window: Window & typeof globalThis
@@ -150,6 +157,7 @@ export function installDomGlobals(opts: InstallDomGlobalsOptions = {}): DomGloba
 
 	// pretendToBeVisual is deliberately off: it would add a setInterval-driven rAF competing with the
 	// FrameScheduler.
+	const { JSDOM } = loadJsdom()
 	const dom = new JSDOM('<!doctype html><html><body></body></html>', {
 		url: opts.url ?? 'http://localhost/',
 	})

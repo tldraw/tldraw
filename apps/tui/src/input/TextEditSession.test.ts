@@ -39,7 +39,7 @@ describe('TextEditSession', () => {
 		const session = new TextEditSession(ctx, geo)
 		expect(session.getText()).toBe('')
 		expect(session.getCaret()).toBe(0)
-		expect(ctx.ui.editCaret.get()).toEqual({ shapeId: geo.id, caret: 0 })
+		expect(ctx.ui.editCaret.get()).toEqual({ shapeId: geo.id, caret: 0, selectAll: false })
 		session.end()
 		expect(ctx.ui.editCaret.get()).toBeNull()
 	})
@@ -49,7 +49,7 @@ describe('TextEditSession', () => {
 		type(session, 'héllo')
 		expect(session.getText()).toBe('héllo')
 		expect(getShapePlaintext(ctx.editor, ctx.editor.getShape(geo.id)!)).toBe('héllo')
-		expect(ctx.ui.editCaret.get()).toEqual({ shapeId: geo.id, caret: 5 })
+		expect(ctx.ui.editCaret.get()).toEqual({ shapeId: geo.id, caret: 5, selectAll: false })
 
 		session.handleKey(key('Enter'))
 		type(session, 'world')
@@ -126,6 +126,63 @@ describe('TextEditSession', () => {
 		session.handleKey(key('Backspace'))
 		session.insert('nning')
 		expect((ctx.editor.getShape(id) as TLFrameShape).props.name).toBe('Planning')
+	})
+
+	it('keeps a frame name single-line: Enter finishes, pasted newlines become spaces', () => {
+		const id = createShapeId()
+		ctx.editor.createShape<TLFrameShape>({
+			id,
+			type: 'frame',
+			x: 0,
+			y: 0,
+			props: { w: 300, h: 200, name: 'Plan' },
+		})
+		const session = new TextEditSession(ctx, ctx.editor.getShape(id)!)
+		expect(session.handleKey(key('Enter'))).toBe('complete')
+		expect((ctx.editor.getShape(id) as TLFrameShape).props.name).toBe('Plan')
+		session.insert(' a\nb\r\nc')
+		expect((ctx.editor.getShape(id) as TLFrameShape).props.name).toBe('Plan a b c')
+	})
+
+	it('replaces the whole text after selectAll and collapses the selection on caret moves', () => {
+		const session = new TextEditSession(ctx, geo)
+		session.insert('old name')
+		session.selectAll()
+		expect(session.isAllSelected()).toBe(true)
+		expect(ctx.ui.editCaret.get()).toEqual({ shapeId: geo.id, caret: 8, selectAll: true })
+		type(session, 'new')
+		expect(session.getText()).toBe('new')
+		expect(session.isAllSelected()).toBe(false)
+
+		session.selectAll()
+		session.handleKey(key('Backspace'))
+		expect(session.getText()).toBe('')
+		expect(session.isAllSelected()).toBe(false)
+		// Nothing to select in an empty text.
+		session.selectAll()
+		expect(session.isAllSelected()).toBe(false)
+
+		session.insert('abc')
+		session.selectAll()
+		session.handleKey(key('ArrowLeft'))
+		expect(session.getCaret()).toBe(0)
+		expect(session.isAllSelected()).toBe(false)
+		type(session, 'x')
+		expect(session.getText()).toBe('xabc')
+		session.selectAll()
+		session.handleKey(key('Delete'))
+		expect(session.getText()).toBe('')
+	})
+
+	it('moves between lines by visual column so wide glyphs keep the caret in place', () => {
+		const session = new TextEditSession(ctx, geo)
+		session.insert('ab日本c\n123456')
+		// Caret after '4' (column 4 of line 2) goes up to column 4 of line 1: after '日' (2 cells).
+		session.setCaret(10)
+		session.handleKey(key('ArrowUp'))
+		expect(session.getCaret()).toBe(3)
+		session.handleKey(key('ArrowDown'))
+		expect(session.getCaret()).toBe(10)
 	})
 })
 

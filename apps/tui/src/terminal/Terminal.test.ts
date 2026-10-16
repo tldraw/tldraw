@@ -1,8 +1,28 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { FakeTerminal } from '../test/FakeTerminal'
 import { TerminalEvent } from './InputParser'
 import { KITTY_FLAGS, PROBE_SEQUENCE } from './probe'
 import { Terminal, TerminalOptions } from './Terminal'
+
+// `writeSync` is what the restore goes through; tests swap the implementation to simulate a tty
+// whose kernel buffer is full (EAGAIN) or accepts only part of the sequence.
+const fsMock = vi.hoisted(() => ({
+	writeSync: null as ((fd: number, data: Uint8Array) => number) | null,
+}))
+vi.mock('node:fs', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('node:fs')>()
+	return {
+		...actual,
+		writeSync: (fd: number, data: Uint8Array) =>
+			fsMock.writeSync ? fsMock.writeSync(fd, data) : actual.writeSync(fd, data),
+	}
+})
+
+function eagain(): NodeJS.ErrnoException {
+	const error: NodeJS.ErrnoException = new Error('EAGAIN: resource temporarily unavailable')
+	error.code = 'EAGAIN'
+	return error
+}
 
 const ENTER = '\x1b[?1049h\x1b[?25l\x1b[?7l\x1b[?1004h\x1b[?2004h'
 const MOUSE_ON = '\x1b[?1000h\x1b[?1002h\x1b[?1003h\x1b[?1006h'
@@ -11,12 +31,15 @@ const KITTY_PUSH = `\x1b[>${KITTY_FLAGS}u`
 const MOK_ON = '\x1b[>4;2m'
 const DA1 = '\x1b[?62;22c'
 
-function restoreSequence(opts: { kitty?: boolean; mok?: boolean } = {}): string {
+function restoreSequence(
+	opts: { kitty?: boolean; mok?: boolean; mouseOff?: boolean } = {}
+): string {
 	let seq = '\x1b[?2026l'
 	if (opts.kitty) seq += '\x1b[<u'
 	if (opts.mok) seq += '\x1b[>4m'
 	seq += '\x1b[?1003l\x1b[?1002l\x1b[?1000l\x1b[?1006l'
-	seq += '\x1b[?2004l\x1b[?1004l\x1b[?1007h'
+	seq += '\x1b[?2004l\x1b[?1004l'
+	if (opts.mouseOff) seq += '\x1b[?1007h'
 	seq += '\x1b[0m\x1b[?25h\x1b[?7h\x1b[?1049l'
 	return seq
 }
@@ -51,6 +74,7 @@ async function startProbing(fake: FakeTerminal, opts: Partial<TerminalOptions> =
 
 afterEach(() => {
 	for (const t of live.splice(0)) t.dispose()
+	fsMock.writeSync = null
 })
 
 describe('Terminal start', () => {
@@ -107,6 +131,43 @@ describe('Terminal start', () => {
 		expect(fake.getOutput()).toBe(`${ENTER}${MOUSE_OFF}\x1b[H${MOK_ON}`)
 		expect(caps.mouse).toBe(false)
 		expect(caps.hover).toBe(false)
+		// Only a mode the app changed is put back: with the mouse on, alternate scroll is untouched.
+		fake.clearWrites()
+		t.stop()
+		expect(fake.getOutput()).toBe(restoreSequence({ mok: true, mouseOff: true }))
+	})
+
+	it('does not re-enter the modes when start() is called again while the probe is open', async () => {
+		const fake = new FakeTerminal()
+		const { t, started } = await startProbing(fake)
+		const again = t.start()
+		expect(fake.getOutput()).toBe(`${ENTER}${MOUSE_ON}\x1b[H${PROBE_SEQUENCE}`)
+		fake.feed(DA1)
+		expect(await again).toBe(await started)
+		expect(fake.getOutput().split('\x1b[?1049h')).toHaveLength(2)
+	})
+
+	it('installs the process handlers before entering the modes', async () => {
+		const before = process.listenerCount('uncaughtException')
+		const fake = new FakeTerminal()
+		const { started } = await startProbing(fake, { processHandlers: true })
+		// The alternate screen is on and the probe is still open, yet a crash would already restore.
+		expect(fake.getOutput().includes('\x1b[?1049h')).toBe(true)
+		expect(process.listenerCount('uncaughtException')).toBe(before + 1)
+		fake.feed(DA1)
+		await started
+	})
+
+	it('queues events decoded before the first listener and drops replies', async () => {
+		const fake = new FakeTerminal()
+		const { t, started } = await startProbing(fake)
+		fake.feed('q\x1b[?1;2R' + DA1 + '\x1b[<0;2;3M')
+		await started
+		const events: TerminalEvent[] = []
+		t.onEvent((e) => events.push(e))
+		expect(events.map((e) => (e.type === 'key' ? e.key : e.type))).toEqual(['q', 'mouse'])
+		fake.feed('r')
+		expect(events).toHaveLength(3)
 	})
 
 	it('derives capabilities from the environment', async () => {
@@ -143,6 +204,7 @@ describe('Terminal start', () => {
 			exit: process.listenerCount('exit'),
 			sigcont: process.listenerCount('SIGCONT'),
 			sighup: process.listenerCount('SIGHUP'),
+			sigtstp: process.listenerCount('SIGTSTP'),
 			rejection: process.listenerCount('unhandledRejection'),
 		}
 		const t = create(new FakeTerminal(), { processHandlers: true })
@@ -150,12 +212,32 @@ describe('Terminal start', () => {
 		expect(process.listenerCount('exit')).toBe(before.exit + 1)
 		expect(process.listenerCount('SIGCONT')).toBe(before.sigcont + 1)
 		expect(process.listenerCount('SIGHUP')).toBe(before.sighup + 1)
+		expect(process.listenerCount('SIGTSTP')).toBe(before.sigtstp + 1)
 		expect(process.listenerCount('unhandledRejection')).toBe(before.rejection + 1)
 		t.dispose()
 		expect(process.listenerCount('exit')).toBe(before.exit)
 		expect(process.listenerCount('SIGCONT')).toBe(before.sigcont)
 		expect(process.listenerCount('SIGHUP')).toBe(before.sighup)
+		expect(process.listenerCount('SIGTSTP')).toBe(before.sigtstp)
 		expect(process.listenerCount('unhandledRejection')).toBe(before.rejection)
+	})
+
+	it('runs the exit hooks from the signal handlers before restoring', async () => {
+		const fake = new FakeTerminal()
+		const t = create(fake, { processHandlers: true })
+		await t.start()
+		const order: string[] = []
+		const off = t.onExit(() => order.push(`hook:${fake.input.rawMode}`))
+		const exit = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never)
+		try {
+			process.emit('SIGTERM')
+		} finally {
+			exit.mockRestore()
+		}
+		expect(order).toEqual(['hook:true'])
+		expect(fake.input.rawMode).toBe(false)
+		expect(fake.getOutput().endsWith('\x1b[?1049l')).toBe(true)
+		off()
 	})
 })
 
@@ -175,7 +257,7 @@ describe('Terminal probe', () => {
 		expect(caps.modifyOtherKeys).toBe(false)
 		// The probe glyph is erased, then the kitty flags are pushed; modifyOtherKeys stays off.
 		expect(fake.getOutput().slice(`${ENTER}${MOUSE_ON}\x1b[H${PROBE_SEQUENCE}`.length)).toBe(
-			`\x1b[1;1H \x1b[H${KITTY_PUSH}`
+			`\x1b[2;1H \x1b[H${KITTY_PUSH}`
 		)
 		expect(t.isStarted()).toBe(true)
 	})
@@ -190,7 +272,7 @@ describe('Terminal probe', () => {
 		expect(caps.background).toBeNull()
 		expect(caps.modifyOtherKeys).toBe(true)
 		expect(fake.getOutput().includes(KITTY_PUSH)).toBe(false)
-		expect(fake.getOutput().endsWith(`\x1b[1;1H \x1b[H${MOK_ON}`)).toBe(true)
+		expect(fake.getOutput().endsWith(`\x1b[2;1H \x1b[H${MOK_ON}`)).toBe(true)
 	})
 
 	it('accepts replies that arrive interleaved with user input and still delivers the input', async () => {
@@ -216,7 +298,7 @@ describe('Terminal probe', () => {
 		const caps = await started
 		expect(caps.kitty).toBe(false)
 		expect(caps.background).toBeNull()
-		expect(fake.getOutput().endsWith(`\x1b[1;1H \x1b[H${MOK_ON}`)).toBe(true)
+		expect(fake.getOutput().endsWith(`\x1b[2;1H \x1b[H${MOK_ON}`)).toBe(true)
 	})
 
 	it('ignores replies that arrive after the probe settled', async () => {
@@ -329,16 +411,22 @@ describe('Terminal input', () => {
 		expect(events).toEqual([{ type: 'paste', text: 'abc' }])
 	})
 
-	it('turns the esc timeout off once kitty is negotiated', async () => {
+	it('holds a trailing ESC for the rest of its sequence once kitty is negotiated', async () => {
 		const fake = new FakeTerminal()
 		const { t, started } = await startProbing(fake)
 		fake.feed('\x1b[?1u' + DA1)
 		await started
 		const events: TerminalEvent[] = []
 		t.onEvent((e) => events.push(e))
-		fake.feed('a\x1b')
+		// Escape itself arrives as CSI 27 u under kitty, so a split mouse report must not become it.
+		fake.feed('\x1b[<35;41;10M\x1b')
+		expect(events).toHaveLength(1)
+		await wait(5)
+		fake.feed('[<35;42;10M')
 		expect(events).toHaveLength(2)
-		expect(events[1]).toMatchObject({ type: 'key', key: 'Escape' })
+		expect(events[1]).toMatchObject({ type: 'mouse', action: 'move', col: 41, row: 9 })
+		fake.feed('\x1b[27u')
+		expect(events[2]).toMatchObject({ type: 'key', key: 'Escape', encoding: 'kitty' })
 	})
 })
 
@@ -490,6 +578,59 @@ describe('Terminal stop', () => {
 		// writeSync on an invalid fd throws; the stream write is the fallback.
 		t.stop()
 		expect(fake.getWrites().map((w) => w.data)).toEqual([restoreSequence({ mok: true })])
+	})
+
+	it('retries the fd write through EAGAIN and partial writes instead of queueing on the stream', async () => {
+		const fake = new FakeTerminal()
+		const output = fake.output as typeof fake.output & { fd?: number }
+		output.fd = 7
+		const t = create(fake)
+		await t.start()
+		fake.clearWrites()
+		const received: Buffer[] = []
+		let calls = 0
+		fsMock.writeSync = (fd, data) => {
+			expect(fd).toBe(7)
+			calls++
+			// A full kernel buffer twice, then a partial write, then the rest.
+			if (calls <= 2) throw eagain()
+			const n = calls === 3 ? 10 : data.length
+			received.push(Buffer.from(data.subarray(0, n)))
+			return n
+		}
+		t.stop()
+		expect(Buffer.concat(received).toString()).toBe(restoreSequence({ mok: true }))
+		expect(calls).toBe(4)
+		// Nothing went through the stream: process.exit() would have discarded it.
+		expect(fake.getWrites()).toEqual([])
+		expect(fake.input.rawMode).toBe(false)
+	})
+
+	it('writes nothing to the terminal once stopped', async () => {
+		const fake = new FakeTerminal()
+		const t = create(fake)
+		await t.start()
+		t.showCursorAt(1, 1)
+		t.stop()
+		fake.clearWrites()
+		t.write('\x1b[?2026h\x1b[30;2Hstale frame\x1b[?2026l')
+		t.showCursorAt(3, 4)
+		t.hideCursor()
+		expect(t.copyToClipboard('x')).toBe(false)
+		expect(fake.getWrites()).toEqual([])
+	})
+
+	it('copies to the clipboard with OSC 52 when the capability is on', async () => {
+		const fake = new FakeTerminal()
+		const t = create(fake, { env: { KITTY_WINDOW_ID: '1' } })
+		await t.start()
+		fake.clearWrites()
+		expect(t.copyToClipboard('hi there')).toBe(true)
+		expect(fake.getOutput()).toBe(`\x1b]52;c;${Buffer.from('hi there').toString('base64')}\x07`)
+		expect(t.copyToClipboard('x'.repeat(70000))).toBe(false)
+		const plain = create(new FakeTerminal())
+		await plain.start()
+		expect(plain.copyToClipboard('hi')).toBe(false)
 	})
 })
 

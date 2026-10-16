@@ -11,9 +11,9 @@ import { GeoShapeGeoStyle, PageRecordType } from '@tldraw/tlschema'
 import { defaultHandleExternalTextContent, startEditingShapeWithRichText } from 'tldraw'
 import type { AppContext } from '../app/context'
 import { getShapePlaintext } from '../editor/richText'
-import { exportTextFile, loadTldrFile, saveTldrFile } from '../file/tldrFile'
+import { exportTextFile, loadTldrFile, saveTldrFile, watchDocumentChanges } from '../file/tldrFile'
 import { canvasCenterCell } from '../input/pointer'
-import { STYLE_PANEL_MIN_COLS } from '../render/renderChrome'
+import { STYLE_PANEL_MIN_COLS } from '../ui/stylePanel'
 import type { ModifierName } from '../ui/UiState'
 import type { ActionId, ActionInvocation } from './actionIds'
 
@@ -371,6 +371,9 @@ function execute(ctx: AppContext, invocation: ActionInvocation): void | Promise<
 		case 'view.toggle-snap':
 			editor.user.updateUserPreferences({ isSnapMode: !editor.user.getIsSnapMode() })
 			return
+		case 'view.toggle-tool-lock':
+			editor.updateInstanceState({ isToolLocked: !editor.getInstanceState().isToolLocked })
+			return
 		case 'view.toggle-dark-mode':
 			ctx.setColorMode(editor.getColorMode() === 'dark' ? 'light' : 'dark')
 			return
@@ -551,9 +554,19 @@ function startEditingSelectedShape(editor: Editor) {
 }
 
 function copySelection(ctx: AppContext) {
-	const content = ctx.editor.getContentFromCurrentPage(ctx.editor.getSelectedShapeIds())
+	const { editor } = ctx
+	const content = editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
 	ctx.clipboard.content = content ?? null
 	ctx.clipboard.text = null
+	// What tldraw puts on the system clipboard as text/plain: the shapes' text, one per line.
+	if (ctx.capabilities.osc52) {
+		const lines: string[] = []
+		for (const shape of editor.getSelectedShapes()) {
+			const text = getShapePlaintext(editor, shape)
+			if (text) lines.push(text)
+		}
+		if (lines.length > 0) ctx.terminal.copyToClipboard(lines.join('\n'))
+	}
 }
 
 function paste(ctx: AppContext) {
@@ -706,16 +719,41 @@ function saveDocument(ctx: AppContext, as: boolean): Promise<boolean> {
 	})
 }
 
+/**
+ * Clean means "the file matches the document now". The snapshot is taken when the save starts and
+ * input keeps flowing during the write, so an edit made meanwhile must leave the document dirty: a
+ * watcher registered for the duration sees it (`store.listen` first flushes the history that was
+ * pending before the snapshot, so an earlier edit cannot re-dirty the saved document later).
+ */
 async function writeDocument(ctx: AppContext, path: string): Promise<boolean> {
-	const result = await saveTldrFile(ctx.editor, path)
+	const { editor, ui } = ctx
+	let editedDuringWrite = false
+	const stop = watchDocumentChanges(editor, () => (editedDuringWrite = true))
+	let result: Awaited<ReturnType<typeof saveTldrFile>>
+	try {
+		result = await saveTldrFile(editor, path)
+		// Store listeners run on the next frame; deliver what the write window produced now.
+		editor.store._flushHistory()
+	} finally {
+		stop()
+	}
 	if (!result.ok) {
-		ctx.ui.showError(result.error, ctx.now())
+		ui.showError(result.error, ctx.now())
 		return false
 	}
-	ctx.ui.filePath.set(path)
-	ctx.ui.dirty.set(false)
-	ctx.ui.setHint(`Saved ${path}`)
+	ui.filePath.set(path)
+	if (!editedDuringWrite) ui.dirty.set(false)
+	ui.setHint(`Saved ${path}`)
 	return true
+}
+
+/**
+ * Replacing the document is a store change the dirty watcher would report on the next frame, after
+ * the flag was cleared; flushing first delivers it now so the clear is the last word.
+ */
+function markClean(ctx: AppContext): void {
+	ctx.editor.store._flushHistory()
+	ctx.ui.dirty.set(false)
 }
 
 function openDocument(ctx: AppContext): Promise<void> {
@@ -734,7 +772,7 @@ function openDocument(ctx: AppContext): Promise<void> {
 						return
 					}
 					ctx.ui.filePath.set(path)
-					ctx.ui.dirty.set(false)
+					markClean(ctx)
 					ctx.ui.setHint(`Opened ${path}`)
 				} finally {
 					resolve()
@@ -753,7 +791,7 @@ function newDocument(ctx: AppContext) {
 		editor.setCamera({ x: 0, y: 0, z: 1 }, { immediate: true })
 	})
 	ui.filePath.set(null)
-	ui.dirty.set(false)
+	markClean(ctx)
 	ui.setHint('New document')
 }
 
@@ -773,8 +811,15 @@ function exportDocumentText(ctx: AppContext): Promise<void> {
 					const result = await exportTextFile(ctx.editor, path, ctx.renderToText, {
 						selectionOnly,
 					})
-					if (result.ok) ctx.ui.setHint(`Exported ${path}`)
-					else ctx.ui.showError(result.error, ctx.now())
+					if (!result.ok) {
+						ctx.ui.showError(result.error, ctx.now())
+						return
+					}
+					let hint = `Exported ${path}`
+					if (ctx.capabilities.osc52 && ctx.terminal.copyToClipboard(result.text)) {
+						hint += ` ${ctx.glyphs.bullet} sent to terminal clipboard`
+					}
+					ctx.ui.setHint(hint)
 				} finally {
 					resolve()
 				}

@@ -2,7 +2,7 @@ import type { TLShape, TLShapeId, TLShapePartial } from '@tldraw/editor'
 import type { AppContext } from '../app/context'
 import { getShapePlaintext, plaintextToRichText } from '../editor/richText'
 import type { KeyEvent } from '../terminal/InputParser'
-import { graphemes } from '../terminal/width'
+import { graphemes, stringWidth } from '../terminal/width'
 
 export type EditKeyResult = 'consumed' | 'complete'
 
@@ -10,17 +10,20 @@ export type EditKeyResult = 'consumed' | 'complete'
  * Plain-text editing of the shape `editor.getEditingShapeId()` points at. tldraw's own editor is
  * TipTap in a contenteditable, which does not exist headlessly, so this keeps the text as grapheme
  * clusters with a caret index, writes every change back as `richText` (frames: `name`) and
- * publishes the caret through `ui.editCaret` for the renderer. Starting and ending the session is
- * the input controller's job; it follows `getEditingShapeId()`.
+ * publishes the caret through `ui.editCaret` for the renderer. The only selection is "everything"
+ * (what tldraw asks for on Enter and the edit-text action); it collapses on the first caret move.
+ * Starting and ending the session is the input controller's job; it follows `getEditingShapeId()`.
  */
 export class TextEditSession {
 	readonly shapeId: TLShapeId
 	private readonly shapeType: string
-	private readonly isFrame: boolean
+	/** Frame names are single-line fields (FrameLabelInput is an `<input>`): Enter finishes, newlines become spaces. */
+	private readonly singleLine: boolean
 	/** False for editable shapes without text (video, embed): keys are swallowed, nothing is written. */
 	private readonly hasText: boolean
 	private cells: string[]
 	private caret: number
+	private allSelected = false
 
 	constructor(
 		private readonly ctx: AppContext,
@@ -28,11 +31,11 @@ export class TextEditSession {
 	) {
 		this.shapeId = shape.id
 		this.shapeType = shape.type
-		this.isFrame = shape.type === 'frame'
+		this.singleLine = shape.type === 'frame'
 		const text = getShapePlaintext(ctx.editor, shape)
 		this.hasText = text !== null
 		this.cells = text ? graphemes(text) : []
-		// tldraw selects all text on Enter; without a selection model the caret goes to the end.
+		// Double click places the caret at the end; Enter and edit-text select all (`selectAll`).
 		this.caret = this.cells.length
 		this.publishCaret()
 	}
@@ -46,8 +49,22 @@ export class TextEditSession {
 		return this.caret
 	}
 
+	/** Whether the whole text is selected, so the next insertion or deletion replaces it. */
+	isAllSelected(): boolean {
+		return this.allSelected
+	}
+
 	setCaret(index: number): void {
+		this.allSelected = false
 		this.caret = Math.max(0, Math.min(this.cells.length, index))
+		this.publishCaret()
+	}
+
+	/** Selects the whole text (tldraw's `select-all-text`); a no-op on an empty text. */
+	selectAll(): void {
+		if (this.cells.length === 0) return
+		this.allSelected = true
+		this.caret = this.cells.length
 		this.publishCaret()
 	}
 
@@ -59,9 +76,16 @@ export class TextEditSession {
 
 	insert(text: string): void {
 		if (text.length === 0) return
-		const added = graphemes(text)
-		this.cells.splice(this.caret, 0, ...added)
-		this.caret += added.length
+		const clean = this.singleLine ? text.replace(/\r\n|\r|\n/g, ' ') : text
+		const added = graphemes(clean)
+		if (this.allSelected) {
+			this.cells = added
+			this.caret = added.length
+			this.allSelected = false
+		} else {
+			this.cells.splice(this.caret, 0, ...added)
+			this.caret += added.length
+		}
 		this.commit()
 	}
 
@@ -72,27 +96,31 @@ export class TextEditSession {
 				return 'complete'
 			case 'Enter':
 				// alt+Enter is `ESC CR` on every alt-as-meta terminal; ctrl+Enter needs full keys.
-				if (event.alt || event.ctrl) return 'complete'
+				if (event.alt || event.ctrl || this.singleLine) return 'complete'
 				this.insert('\n')
 				return 'consumed'
 			case 'Backspace':
-				if (event.ctrl || event.alt) this.deleteWordBack()
+				if (this.allSelected) this.deleteAll()
+				else if (event.ctrl || event.alt) this.deleteWordBack()
 				else this.deleteBack()
 				return 'consumed'
 			case 'Delete':
-				this.deleteForward()
+				if (this.allSelected) this.deleteAll()
+				else this.deleteForward()
 				return 'consumed'
 			case 'ArrowLeft':
-				this.setCaret(this.caret - 1)
+				this.setCaret(this.allSelected ? 0 : this.caret - 1)
 				return 'consumed'
 			case 'ArrowRight':
-				this.setCaret(this.caret + 1)
+				this.setCaret(this.allSelected ? this.cells.length : this.caret + 1)
 				return 'consumed'
 			case 'ArrowUp':
-				this.moveLine(-1)
+				if (this.allSelected) this.setCaret(0)
+				else this.moveLine(-1)
 				return 'consumed'
 			case 'ArrowDown':
-				this.moveLine(1)
+				if (this.allSelected) this.setCaret(this.cells.length)
+				else this.moveLine(1)
 				return 'consumed'
 			case 'Home':
 				this.setCaret(event.ctrl ? 0 : this.lineStart(this.caret))
@@ -106,6 +134,13 @@ export class TextEditSession {
 		const text = insertableText(event)
 		if (text !== null) this.insert(text)
 		return 'consumed'
+	}
+
+	private deleteAll() {
+		this.cells = []
+		this.caret = 0
+		this.allSelected = false
+		this.commit()
 	}
 
 	private deleteBack() {
@@ -143,9 +178,10 @@ export class TextEditSession {
 		return i
 	}
 
+	/** Up/down keep the visual column (cell width), not the grapheme index: wide glyphs count twice. */
 	private moveLine(delta: number) {
 		const start = this.lineStart(this.caret)
-		const column = this.caret - start
+		const column = stringWidth(this.cells.slice(start, this.caret).join(''))
 		let target: number
 		if (delta < 0) {
 			if (start === 0) {
@@ -161,13 +197,22 @@ export class TextEditSession {
 			}
 			target = end + 1
 		}
-		this.setCaret(Math.min(target + column, this.lineEnd(target)))
+		const targetEnd = this.lineEnd(target)
+		let index = target
+		let width = 0
+		while (index < targetEnd) {
+			const w = stringWidth(this.cells[index])
+			if (width + w > column) break
+			width += w
+			index++
+		}
+		this.setCaret(index)
 	}
 
 	private commit() {
 		if (this.hasText) {
 			const text = this.getText()
-			const props = this.isFrame ? { name: text } : { richText: plaintextToRichText(text) }
+			const props = this.singleLine ? { name: text } : { richText: plaintextToRichText(text) }
 			this.ctx.editor.updateShape({
 				id: this.shapeId,
 				type: this.shapeType,
@@ -178,7 +223,11 @@ export class TextEditSession {
 	}
 
 	private publishCaret() {
-		this.ctx.ui.editCaret.set({ shapeId: this.shapeId, caret: this.caret })
+		this.ctx.ui.editCaret.set({
+			shapeId: this.shapeId,
+			caret: this.caret,
+			selectAll: this.allSelected,
+		})
 	}
 }
 

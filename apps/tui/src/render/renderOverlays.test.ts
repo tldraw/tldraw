@@ -6,6 +6,7 @@ import { LINE_E, LINE_W, Screen } from '../terminal/Screen'
 import { TestContext, createTestContext } from '../test/testContext'
 import { OverlayRenderOptions, renderGrid, renderOverlays } from './renderOverlays'
 import { renderShapes } from './renderShapes'
+import { getThemeColors, shapeRgb } from './theme'
 
 const WHITE = 0xffffff
 
@@ -69,11 +70,74 @@ describe('renderOverlays', () => {
 		expect(count('■')).toBeGreaterThanOrEqual(4)
 		expect(screen.getCell(0, 1)!.glyph).toBe('■')
 		expect(screen.getCell(25, 7)!.glyph).toBe('■')
-		// The indicator re-strokes the outline in the selection colour.
+		// Handles are drawn in the selection colour (tldraw's border), not the canvas background.
+		expect(screen.getCell(0, 1)!.style.fg).toBe(parseColor('hsl(214, 84%, 56%)')!.rgb)
+		// The indicator recolours the outline in the selection colour.
 		expect(screen.getCell(12, 1)!.glyph).toBe('─')
 		expect(screen.getCell(12, 1)!.style.fg).toBe(parseColor('hsl(214, 84%, 56%)')!.rgb)
 		// The label survives the indicator pass.
 		expect(screen.toText().split('\n')[4]).toContain('Hello')
+	})
+
+	it('keeps the dash, weight and arrowheads of a selected or hovered shape under the indicator', () => {
+		const editor = ctx.editor
+		const rect = createShapeId()
+		editor.createShape({
+			id: rect,
+			type: 'geo',
+			x: 0,
+			y: 0,
+			props: { w: 200, h: 100, dash: 'dashed', size: 'xl', color: 'red' },
+		})
+		const arrow = createShapeId()
+		editor.createShape({
+			id: arrow,
+			type: 'arrow',
+			x: 0,
+			y: 200,
+			props: { start: { x: 0, y: 0 }, end: { x: 240, y: 0 }, dash: 'dashed', color: 'red' },
+		})
+		render()
+		const red = shapeRgb(getThemeColors(editor, 'light'), 'red', 'solid')
+		const blue = parseColor('hsl(214, 84%, 56%)')!.rgb
+		expect(screen.getCell(12, 1)).toMatchObject({ glyph: '╍', style: { fg: red } })
+		expect(screen.getCell(0, 4)).toMatchObject({ glyph: '╏', style: { fg: red } })
+		const headCol = screen.toText().split('\n')[13].indexOf('►')
+		expect(headCol).toBeGreaterThan(20)
+		expect(screen.getCell(headCol, 13)).toMatchObject({ glyph: '►', style: { fg: red } })
+		expect(screen.getCell(headCol - 2, 13)).toMatchObject({ glyph: '╌', style: { fg: red } })
+
+		// Selected: same glyphs, selection colour (the indicator and the selection box coincide).
+		// The arrow's end handle takes the arrowhead cell, as the handle dot does in tldraw.
+		editor.select(rect, arrow)
+		render()
+		expect(screen.getCell(12, 1)).toMatchObject({ glyph: '╍', style: { fg: blue } })
+		expect(screen.getCell(0, 4)).toMatchObject({ glyph: '╏', style: { fg: blue } })
+		expect(screen.getCell(headCol - 2, 13)).toMatchObject({ glyph: '╌', style: { fg: blue } })
+
+		// Hovered: the indicator alone, so the arrowhead shows through it.
+		editor.selectNone()
+		editor.updateInstanceState({ isHoveringCanvas: true })
+		editor.setHoveredShape(rect)
+		render()
+		expect(screen.getCell(12, 1)).toMatchObject({ glyph: '╍', style: { fg: blue } })
+		expect(screen.getCell(0, 4)).toMatchObject({ glyph: '╏', style: { fg: blue } })
+		editor.setHoveredShape(arrow)
+		render()
+		expect(screen.getCell(headCol, 13)).toMatchObject({ glyph: '►', style: { fg: blue } })
+		expect(screen.getCell(headCol - 2, 13)).toMatchObject({ glyph: '╌', style: { fg: blue } })
+	})
+
+	it('draws the handles of a rotated selection as single squares', () => {
+		const editor = ctx.editor
+		const id = createShapeId()
+		editor.createShape({ id, type: 'geo', x: 80, y: 64, props: { w: 160, h: 112 } })
+		editor.select(id)
+		editor.rotateShapesBy([id], Math.PI / 12)
+		render()
+		expect(count('■')).toBe(4)
+		const text = screen.toText()
+		for (const stub of ['┌', '┐', '└', '┘', '├', '┤']) expect(text).not.toContain(stub)
 	})
 
 	it('keeps a selected text shape readable under its indicator', () => {
@@ -204,8 +268,16 @@ describe('renderOverlays', () => {
 			y: 32,
 			props: { richText: toRichText('hello') },
 		})
-		opts.editCaret = { shapeId: id, caret: 3 }
+		opts.editCaret = { shapeId: id, caret: 3, selectAll: false }
 		expect(render().caretCell).toEqual({ col: 13, row: 3 })
+		expect(screen.getCell(11, 3)!.style.inverse).toBeUndefined()
+		// A select-all shows as inverse video over the label cells.
+		opts.editCaret = { shapeId: id, caret: 5, selectAll: true }
+		render()
+		expect(screen.toText().split('\n')[3]).toContain('hello')
+		expect(screen.getCell(10, 3)!.style.inverse).toBe(true)
+		expect(screen.getCell(14, 3)!.style.inverse).toBe(true)
+		expect(screen.getCell(15, 3)!.style.inverse).toBeUndefined()
 		opts.editCaret = null
 		expect(render().caretCell).toBeNull()
 	})

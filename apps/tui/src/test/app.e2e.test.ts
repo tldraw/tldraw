@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { TLGeoShape } from '@tldraw/editor'
 import { renderPlaintextFromRichText } from 'tldraw'
@@ -49,6 +50,9 @@ describe('App end to end', () => {
 		expect(grid[29]).toContain('100%')
 		// The first paint is a full frame wrapped in synchronized output.
 		expect(t.fake.getOutput()).toContain('\x1b[?2026h')
+		// No kitty reply: legacy until a key proves the terminal honours modifyOtherKeys.
+		expect(t.app.getContext().ui.keyboardEncoding.get()).toBe('legacy')
+		t.fake.feed('\x1b[27;6;122~')
 		expect(t.app.getContext().ui.keyboardEncoding.get()).toBe('full')
 	})
 
@@ -198,7 +202,9 @@ describe('App end to end', () => {
 	})
 
 	it('asks before quitting a dirty document and quits on n', async () => {
-		t = await startTestApp()
+		// The CLI persists preferences on quit; without a prefs path the teardown took another route.
+		const prefsDir = mkdtempSync(join(tmpdir(), 'tldraw-tui-prefs-'))
+		t = await startTestApp({ app: { prefsPath: join(prefsDir, 'prefs.json') } })
 		const { ui } = t.app.getContext()
 		await drawRect(t)
 		expect(ui.dirty.get()).toBe(true)
@@ -207,12 +213,66 @@ describe('App end to end', () => {
 		expect(t.quits).toEqual([])
 		expect(ui.popup.get()?.kind).toBe('prompt')
 		expect(t.fake.grid()[29]).toContain('Unsaved changes')
+		// A person reads the prompt before answering: the loop parks, so the frame the answer
+		// schedules would run on the next immediate, before any asynchronous teardown finished.
+		await sleep(80)
+		expect(t.frame.isParked()).toBe(true)
 		t.fake.feed('n')
 		for (let i = 0; i < 50 && t.quits.length === 0; i++) await sleep(10)
 		expect(t.quits).toEqual([0])
+		await sleep(30)
 		const output = t.fake.getOutput()
 		expect(output.endsWith('\x1b[?1049l')).toBe(true)
 		expect(t.fake.input.rawMode).toBe(false)
+		expect(existsSync(join(prefsDir, 'prefs.json'))).toBe(true)
+		rmSync(prefsDir, { recursive: true, force: true })
+	})
+
+	it('expands ~ in path prompts and saves into the home directory', async () => {
+		const home = mkdtempSync(join(tmpdir(), 'tldraw-tui-home-'))
+		t = await startTestApp({ app: { env: { HOME: home, XDG_CONFIG_HOME: home } } })
+		const { ui } = t.app.getContext()
+		await drawRect(t)
+		t.fake.feed(CTRL_S)
+		await waitFrames(t, 2)
+		t.fake.feed('~/drawing.tldr')
+		t.fake.feed(ENTER)
+		const path = join(home, 'drawing.tldr')
+		for (let i = 0; i < 50 && !existsSync(path); i++) await sleep(10)
+		expect(existsSync(path)).toBe(true)
+		expect(existsSync(join(process.cwd(), '~'))).toBe(false)
+		await waitFrames(t, 2)
+		expect(ui.filePath.get()).toBe(path)
+		rmSync(home, { recursive: true, force: true })
+	})
+
+	it('locks a tool with q so it stays active after drawing', async () => {
+		t = await startTestApp()
+		const { editor } = t.app.getContext()
+		t.fake.feed('q')
+		await waitFrames(t, 2)
+		expect(editor.getInstanceState().isToolLocked).toBe(true)
+		expect(t.fake.grid()[29]).toContain('lock')
+		await drawRect(t, 10, 5, 20, 10)
+		expect(editor.getCurrentToolId()).toBe('geo')
+		await dragLeft(t, 30, 5, 40, 10)
+		expect(editor.getCurrentPageShapes()).toHaveLength(2)
+		expect(editor.getCurrentToolId()).toBe('geo')
+		t.fake.feed('q')
+		await waitFrames(t, 2)
+		expect(editor.getInstanceState().isToolLocked).toBe(false)
+		expect(t.fake.grid()[29]).not.toContain('lock')
+	})
+
+	it('keeps the status hint of the selected shape text once an action hint is dismissed', async () => {
+		t = await startTestApp({ cols: 130, rows: 30 })
+		const { ui } = t.app.getContext()
+		ui.setHint('Saved somewhere')
+		await waitFrames(t, 2)
+		expect(t.fake.grid()[29]).toContain('Saved somewhere')
+		await drawRect(t)
+		await waitFrames(t, 2)
+		expect(t.fake.grid()[29]).not.toContain('Saved somewhere')
 	})
 
 	it('shows the fps field in the status row with debug on', async () => {

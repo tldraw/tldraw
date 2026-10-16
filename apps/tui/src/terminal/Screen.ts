@@ -91,6 +91,18 @@ class CellBuffer {
 	}
 }
 
+/** A copy of the back buffer and the line layer taken after the shape pass (`saveLayer`). */
+interface LayerSnapshot {
+	cells: CellBuffer
+	lineMask: Uint8Array
+	lineStyleIdx: Uint16Array
+	lineCellCount: number
+	linesDirty: boolean
+	clearFg: Rgb
+	clearBg: Rgb
+	clearAttrs: number
+}
+
 function intersect(a: Rect, b: Rect): Rect {
 	const x = Math.max(a.x, b.x)
 	const y = Math.max(a.y, b.y)
@@ -123,6 +135,8 @@ export class Screen {
 	private readonly lineStyleKeys = new Map<string, number>()
 	private lastLineStyle: LineStyle | null = null
 	private lastLineStyleIdx = 0
+	private readonly mergedLineStyle: LineStyle = { fg: -1, weight: 'light', dash: 'solid' }
+	private layer: LayerSnapshot | null = null
 	private sideTable: string[] = []
 	private sideIndex = new Map<string, number>()
 	private clipStack: Rect[] = []
@@ -208,6 +222,7 @@ export class Screen {
 		this.linesDirty = false
 		this.sideTable = []
 		this.sideIndex = new Map()
+		this.layer = null
 		this.clipStack = []
 		this.clip = { x: 0, y: 0, w: this.cols, h: this.rows }
 		this.clearFg = -1
@@ -219,6 +234,52 @@ export class Screen {
 	setFullRedraw(): void {
 		this.full = true
 		this.sgrKnown = false
+	}
+
+	/**
+	 * Copies the back buffer and the unresolved line layer so `restoreLayer` can start a later frame
+	 * from this state instead of redrawing it. The line style table and the grapheme side table only
+	 * grow until `resize`, so the saved indices stay valid; `resize` drops the snapshot.
+	 */
+	saveLayer(): void {
+		const size = this.cols * this.rows
+		let layer = this.layer
+		if (!layer) {
+			layer = {
+				cells: new CellBuffer(size),
+				lineMask: new Uint8Array(size),
+				lineStyleIdx: new Uint16Array(size),
+				lineCellCount: 0,
+				linesDirty: false,
+				clearFg: -1,
+				clearBg: -1,
+				clearAttrs: 0,
+			}
+			this.layer = layer
+		}
+		layer.cells.copyFrom(this.back)
+		layer.lineMask.set(this.lineMask)
+		layer.lineStyleIdx.set(this.lineStyleIdx)
+		layer.lineCellCount = this.lineCellCount
+		layer.linesDirty = this.linesDirty
+		layer.clearFg = this.clearFg
+		layer.clearBg = this.clearBg
+		layer.clearAttrs = this.clearAttrs
+	}
+
+	/** Replaces the back buffer with the saved layer; false when none was saved since the last resize. */
+	restoreLayer(): boolean {
+		const layer = this.layer
+		if (!layer) return false
+		this.back.copyFrom(layer.cells)
+		this.lineMask.set(layer.lineMask)
+		this.lineStyleIdx.set(layer.lineStyleIdx)
+		this.lineCellCount = layer.lineCellCount
+		this.linesDirty = layer.linesDirty
+		this.clearFg = layer.clearFg
+		this.clearBg = layer.clearBg
+		this.clearAttrs = layer.clearAttrs
+		return true
 	}
 
 	clear(style?: Partial<CellStyle>): void {
@@ -418,6 +479,16 @@ export class Screen {
 		if (b.wide[i] === WIDE_LEAD) b.fg[i + 1] = fg
 	}
 
+	/** Turns inverse video on for a cell (a text selection), keeping its glyph and colours. */
+	invert(col: number, row: number): void {
+		if (!this.inClip(col, row)) return
+		const b = this.back
+		let i = row * this.cols + col
+		if (b.wide[i] === WIDE_CONTINUATION) i--
+		b.attrs[i] |= ATTR_INVERSE
+		if (b.wide[i] === WIDE_LEAD) b.attrs[i + 1] |= ATTR_INVERSE
+	}
+
 	/** Alpha-blends `rgb` over the cell's background (the terminal default counts as `background`). */
 	blendBg(col: number, row: number, rgb: Rgb, alpha: number): void {
 		if (!this.inClip(col, row)) return
@@ -452,15 +523,60 @@ export class Screen {
 		return idx
 	}
 
-	/** ORs `mask` into the cell's line layer; the glyph is chosen at flush. Last style wins. */
-	line(col: number, row: number, mask: LineMask, style: LineStyle): void {
+	/**
+	 * ORs `mask` into the cell's line layer; the glyph is chosen at flush. Last style wins, unless
+	 * `merge` is set: then a cell that already has a line keeps its weight and dash and only takes the
+	 * new colour, and a cell holding a glyph (an arrowhead, a braille curve) is only recoloured. That
+	 * is how a selection indicator sits on top of a shape without hiding its dash, size or arrowhead.
+	 */
+	line(col: number, row: number, mask: LineMask, style: LineStyle, merge = false): void {
 		if ((mask & 15) === 0 || !this.inClip(col, row)) return
 		const i = row * this.cols + col
+		if (merge) {
+			if (this.lineMask[i] !== 0) {
+				this.lineMask[i] |= mask & 15
+				this.recolourLine(i, style.fg)
+				return
+			}
+			if (this.back.glyph[i] !== SPACE || this.back.wide[i] !== 0) {
+				this.back.fg[i] = style.fg
+				return
+			}
+		}
 		this.breakWide(i)
 		if (this.lineMask[i] === 0) this.lineCellCount++
 		this.lineMask[i] |= mask & 15
 		this.lineStyleIdx[i] = this.internLineStyle(style)
 		this.linesDirty = true
+	}
+
+	/** A line cell's colour lives in its interned style (resolveLines writes it back), not in `fg`. */
+	private recolourLine(i: number, fg: Rgb): void {
+		const current = this.lineStyles[this.lineStyleIdx[i]]
+		const merged = this.mergedLineStyle
+		merged.fg = fg
+		merged.weight = current.weight
+		merged.dash = current.dash ?? 'solid'
+		this.lineStyleIdx[i] = this.internLineStyle(merged)
+		this.linesDirty = true
+	}
+
+	/**
+	 * `put` for overlay strokes drawn on top of shapes: a cell that already holds a glyph or a line
+	 * segment only takes the new foreground colour, so the shape's own glyph stays legible.
+	 */
+	putMerged(col: number, row: number, glyph: string, style: Partial<CellStyle>): void {
+		if (!this.inClip(col, row)) return
+		const i = row * this.cols + col
+		if (this.lineMask[i] !== 0) {
+			if (style.fg !== undefined) this.recolourLine(i, style.fg)
+			return
+		}
+		if (this.back.glyph[i] !== SPACE || this.back.wide[i] !== 0) {
+			if (style.fg !== undefined) this.setFg(col, row, style.fg)
+			return
+		}
+		this.put(col, row, glyph, style)
 	}
 
 	resolveLines(): void {
@@ -635,8 +751,10 @@ export class Screen {
 			}
 			this.emitCell(out, i)
 			cursorCol += w === WIDE_LEAD ? 2 : 1
-			// Past the last column the cursor position depends on autowrap; force a CUP next time.
-			if (cursorCol >= cols) cursorRow = -1
+			// Past the last column the cursor position depends on autowrap, and after a wide glyph on
+			// how many cells the terminal gave it (xterm and the Linux console render some presentation
+			// sequences narrow); force a CUP next time in both cases.
+			if (cursorCol >= cols || w === WIDE_LEAD) cursorRow = -1
 		}
 
 		if (out.length === 0) {

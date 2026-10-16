@@ -26,6 +26,7 @@ import {
 import {
 	PromptHistory,
 	createPromptState,
+	expandHome,
 	promptBackspace,
 	promptCaretToEnd,
 	promptCaretToStart,
@@ -151,7 +152,8 @@ function listItemsFrom(
 	entries: readonly MenuItem[],
 	editor: Editor,
 	ui: UiState | null,
-	encoding: KeyboardEncoding
+	encoding: KeyboardEncoding,
+	cols: number
 ): ListItem[] {
 	const out: ListItem[] = []
 	for (const entry of entries) {
@@ -174,7 +176,7 @@ function listItemsFrom(
 			action: entry.action,
 			enabled: isMenuItemEnabled(entry, editor),
 			separator: false,
-			checked: entry.checked && ui ? entry.checked(editor, ui) : false,
+			checked: entry.checked && ui ? entry.checked(editor, ui, cols) : false,
 			submenu: entry.submenu ?? null,
 			hint: entry.hint,
 		})
@@ -280,7 +282,13 @@ function buildMenuModel(
 ): PopupModel {
 	const menubar = buildMenubar(mc.cols, popup.menu)
 	const entry = menubar.entries.find((e) => e.id === popup.menu)
-	const items = listItemsFrom(menuItems(popup.menu, mc.editor), mc.editor, mc.ui, mc.encoding)
+	const items = listItemsFrom(
+		menuItems(popup.menu, mc.editor),
+		mc.editor,
+		mc.ui,
+		mc.encoding,
+		mc.cols
+	)
 	const selected = items[popup.index] ? popup.index : firstSelectable(items)
 	const list = placeList(
 		items,
@@ -296,7 +304,7 @@ function buildMenuModel(
 		const parentIndex = items.findIndex((item) => item.submenu && item.label === popup.submenu)
 		const parent = parentIndex >= 0 ? items[parentIndex] : null
 		if (parent && parent.submenu) {
-			const subItems = listItemsFrom(parent.submenu, mc.editor, mc.ui, mc.encoding)
+			const subItems = listItemsFrom(parent.submenu, mc.editor, mc.ui, mc.encoding, mc.cols)
 			const subSelected = subItems[popup.submenuIndex]
 				? popup.submenuIndex
 				: firstSelectable(subItems)
@@ -327,7 +335,7 @@ function geoItems(editor: Editor): ListItem[] {
 
 function pagesPopupItems(mc: PopupModelContext): ListItem[] {
 	const entries = menuItems('pages', mc.editor)
-	return listItemsFrom(entries, mc.editor, mc.ui, mc.encoding)
+	return listItemsFrom(entries, mc.editor, mc.ui, mc.encoding, mc.cols)
 }
 
 function buildHelpModel(
@@ -499,7 +507,13 @@ export function buildPopupModel(popup: PopupState, mc: PopupModelContext): Popup
 		case 'menu':
 			return buildMenuModel(popup, mc)
 		case 'context': {
-			const items = listItemsFrom(contextMenuItems(mc.editor), mc.editor, mc.ui, mc.encoding)
+			const items = listItemsFrom(
+				contextMenuItems(mc.editor),
+				mc.editor,
+				mc.ui,
+				mc.encoding,
+				mc.cols
+			)
 			const selected = items[popup.index] ? popup.index : firstSelectable(items)
 			const list = placeList(items, selected, popup.col, popup.row, mc.cols, mc.rows, false)
 			return { kind: 'context', rect: list.rect, list, title: null }
@@ -930,7 +944,11 @@ class PopupControllerImpl implements PopupController {
 			case 'Enter': {
 				this.closeAll()
 				this.history.push(spec.label, state.value)
-				void spec.onSubmit(state.value)
+				// Path prompts promise `~` expansion (Tab completion already did it); the typed form
+				// stays in the history so recall shows what the user wrote.
+				const value =
+					spec.kind === 'path' ? expandHome(state.value.trim(), this.ctx.env) : state.value
+				void spec.onSubmit(value)
 				return CONSUMED
 			}
 			case 'Tab':
@@ -1170,7 +1188,8 @@ class PopupControllerImpl implements PopupController {
 			menuItems(menu, this.ctx.editor),
 			this.ctx.editor,
 			this.ctx.ui,
-			'legacy'
+			'legacy',
+			this.ctx.getLayout().cols
 		)
 		this.set({ kind: 'menu', menu, index: firstSelectable(items), submenu: null, submenuIndex: 0 })
 	}
@@ -1180,7 +1199,8 @@ class PopupControllerImpl implements PopupController {
 			contextMenuItems(this.ctx.editor),
 			this.ctx.editor,
 			this.ctx.ui,
-			'legacy'
+			'legacy',
+			this.ctx.getLayout().cols
 		)
 		this.set({ kind: 'context', col, row, index: firstSelectable(items) })
 	}
