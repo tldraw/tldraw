@@ -12,6 +12,19 @@ const FIRST_POINT_2D_B64_LENGTH = 12
 // Pressure value supplied when decoding non-pressure (2D) paths
 const DEFAULT_PRESSURE = 0.5
 
+// The largest finite Float16. A delta beyond this would overflow to Infinity when stored,
+// and a single non-finite delta poisons every later point on decode: Infinity accumulates,
+// and an opposite-signed delta after it produces NaN. Those coordinates then render as
+// invalid svg path data and the whole stroke silently disappears (#10662).
+const FLOAT16_MAX = 65504
+
+// Saturate a coordinate delta to the finite Float16 range before storing it. Values just
+// above FLOAT16_MAX would still round to a finite Float16, but clamping at the exactly
+// representable maximum keeps native and fallback setFloat16 behavior identical.
+function clampDeltaToFloat16(d: number): number {
+	return d > FLOAT16_MAX ? FLOAT16_MAX : d < -FLOAT16_MAX ? -FLOAT16_MAX : d
+}
+
 /** Draw segment path encoded with 2 dimensions, XY — the constant pressure Z is dropped. @public */
 export const DIM_2D = 2
 /** Draw segment path encoded with 3 dimensions, XYZ. @public */
@@ -384,7 +397,11 @@ export class b64Vecs {
 		dataView.setFloat32(4, first.y, true)
 		dataView.setFloat32(8, first.z ?? 0.5, true)
 
-		// Subsequent points are Float16 deltas from the previous point
+		// Subsequent points are Float16 deltas from the previous point. `prevX`/`prevY`
+		// track the decoder's accumulated position, which only differs from the input
+		// point when a delta had to be saturated to stay a finite Float16 — the shortfall
+		// then carries into the next delta so the stroke converges back toward the true
+		// positions instead of staying offset for the rest of the path.
 		let prevX = first.x
 		let prevY = first.y
 		let prevZ = first.z ?? 0.5
@@ -393,13 +410,18 @@ export class b64Vecs {
 			const p = points[i]
 			const z = p.z ?? 0.5
 
+			const rawDx = p.x - prevX
+			const rawDy = p.y - prevY
+			const dx = clampDeltaToFloat16(rawDx)
+			const dy = clampDeltaToFloat16(rawDy)
+
 			const offset = firstPointBytes + (i - 1) * 6
-			setFloat16(dataView, offset, p.x - prevX)
-			setFloat16(dataView, offset + 2, p.y - prevY)
+			setFloat16(dataView, offset, dx)
+			setFloat16(dataView, offset + 2, dy)
 			setFloat16(dataView, offset + 4, z - prevZ)
 
-			prevX = p.x
-			prevY = p.y
+			prevX = dx === rawDx ? p.x : prevX + dx
+			prevY = dy === rawDy ? p.y : prevY + dy
 			prevZ = z
 		}
 
@@ -523,16 +545,21 @@ export class b64Vecs {
 		dataView.setFloat32(0, first.x, true)
 		dataView.setFloat32(4, first.y, true)
 
+		// See encodePoints for why deltas are saturated and how the shortfall carries.
 		let prevX = first.x
 		let prevY = first.y
 
 		for (let i = 1; i < points.length; i++) {
 			const p = points[i]
+			const rawDx = p.x - prevX
+			const rawDy = p.y - prevY
+			const dx = clampDeltaToFloat16(rawDx)
+			const dy = clampDeltaToFloat16(rawDy)
 			const offset = firstPointBytes + (i - 1) * 4
-			setFloat16(dataView, offset, p.x - prevX)
-			setFloat16(dataView, offset + 2, p.y - prevY)
-			prevX = p.x
-			prevY = p.y
+			setFloat16(dataView, offset, dx)
+			setFloat16(dataView, offset + 2, dy)
+			prevX = dx === rawDx ? p.x : prevX + dx
+			prevY = dy === rawDy ? p.y : prevY + dy
 		}
 
 		return uint8ArrayToBase64(buffer)

@@ -245,6 +245,68 @@ describe('b64Vecs delta encoding', () => {
 			expect(decoded[1].y).toBeCloseTo(-198, 2)
 		})
 
+		it('saturates deltas beyond the Float16 range instead of decoding to Infinity/NaN', () => {
+			// A delta larger than 65504 (Float16 max) used to overflow to Infinity when
+			// stored, poisoning every later point on decode: Infinity accumulates, and an
+			// opposite-signed delta after it produces NaN. See #10662.
+			const points: VecModel[] = [
+				{ x: 0, y: 0, z: 0.5 },
+				{ x: 70000, y: 80000, z: 0.5 },
+				{ x: 0, y: 0, z: 0.5 },
+			]
+
+			const decoded = b64Vecs.decodePoints(b64Vecs.encodePoints(points))
+
+			expect(decoded).toHaveLength(3)
+			for (const p of decoded) {
+				expect(Number.isFinite(p.x)).toBe(true)
+				expect(Number.isFinite(p.y)).toBe(true)
+			}
+			expect(decoded[1].x).toBe(65504)
+			expect(decoded[1].y).toBe(65504)
+			// The return delta saturates too, so the endpoint lands back at the origin.
+			expect(decoded[2].x).toBe(0)
+			expect(decoded[2].y).toBe(0)
+		})
+
+		it('carries the saturation shortfall so later points converge to the true positions', () => {
+			// One oversized jump, then small steps: the clamped stroke should catch up
+			// within a couple of points rather than staying offset for the rest of the path.
+			const points: VecModel[] = [
+				{ x: 0, y: 0, z: 0.5 },
+				{ x: 100000, y: 0, z: 0.5 },
+				{ x: 100001, y: 1, z: 0.5 },
+				{ x: 100002, y: 2, z: 0.5 },
+			]
+
+			const decoded = b64Vecs.decodePoints(b64Vecs.encodePoints(points))
+
+			// 100000 - 65504 = 34496 shortfall, plus the next 1-unit step, recovered at
+			// the next delta (Float16 precision at ~34000 is 32).
+			expect(decoded[1].x).toBe(65504)
+			expect(decoded[2].x).toBeCloseTo(100001, -2)
+			expect(decoded[3].x).toBeCloseTo(100002, -2)
+		})
+
+		it('saturates deltas in the 2D encoding too', () => {
+			const points: VecModel[] = [
+				{ x: 0, y: 0 },
+				{ x: -90000, y: 70000 },
+				{ x: 0, y: 0 },
+			]
+
+			const decoded = b64Vecs.decodePoints2D(b64Vecs.encodePoints2D(points))
+
+			for (const p of decoded) {
+				expect(Number.isFinite(p.x)).toBe(true)
+				expect(Number.isFinite(p.y)).toBe(true)
+			}
+			expect(decoded[1].x).toBe(-65504)
+			expect(decoded[1].y).toBe(65504)
+			expect(decoded[2].x).toBe(0)
+			expect(decoded[2].y).toBe(0)
+		})
+
 		it('handles zero deltas', () => {
 			const points: VecModel[] = [
 				{ x: 100, y: 100, z: 0.5 },
