@@ -7,6 +7,7 @@ import { useChatMessageStorage } from '@/hooks/useChatMessageStorage'
 import { uploadMessageContents } from '@/utils/uploadMessageContents'
 import { useChatInputState } from '../hooks/useChatInputState'
 import { useScrollToBottom } from '../hooks/useScrollToBottom'
+import { requireApiKey } from './ApiKeySettings'
 import { ChatInput } from './ChatInput'
 import { ImageClickTarget } from './ChatMessage'
 import { ClearChatIcon } from './ClearChatIcon'
@@ -38,9 +39,14 @@ function ChatInner({
 		transport: new DefaultChatTransport({
 			api: '/api/chat',
 			prepareSendMessagesRequest: async (options) => {
-				const { messagesToSend, messagesToSave } = await uploadMessageContents(options.messages)
+				const apiKey = requireApiKey('google')
+				const { messagesToSend, messagesToSave } = await uploadMessageContents(
+					options.messages,
+					apiKey
+				)
 				chat.setMessages(messagesToSave)
 				return {
+					headers: { 'x-ai-api-key': apiKey },
 					body: {
 						...options.body,
 						id: options.id,

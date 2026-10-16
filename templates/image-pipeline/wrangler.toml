@@ -23,7 +23,4 @@ binding = 'IMAGE_BUCKET'
 bucket_name = 'image-pipeline'
 preview_bucket_name = 'image-pipeline-preview'
 
-# Environment variables for AI provider API keys.
-# Set these with: wrangler secret put REPLICATE_API_TOKEN
-# Or use a .dev.vars file for local development:
-#   REPLICATE_API_TOKEN=...
+# Provider API keys are supplied by users in the app.

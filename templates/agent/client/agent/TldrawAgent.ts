@@ -1,6 +1,7 @@
 import { Editor, RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord } from 'tldraw'
 import { convertTldrawShapeToFocusedShape } from '../../shared/format/convertTldrawShapeToFocusedShape'
-import { AgentModelName } from '../../shared/models'
+import { getModelName } from '../../shared/getModelName'
+import { AgentModelName, getAgentModelDefinition } from '../../shared/models'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentInput } from '../../shared/types/AgentInput'
 import { AgentPrompt, BaseAgentPrompt } from '../../shared/types/AgentPrompt'
@@ -11,6 +12,7 @@ import { PromptPart } from '../../shared/types/PromptPart'
 import { Streaming } from '../../shared/types/Streaming'
 import { TodoItem } from '../../shared/types/TodoItem'
 import { AgentHelpers } from '../AgentHelpers'
+import { requireApiKey } from '../components/ApiKeySettings'
 import { getModeNode } from '../modes/AgentModeChart'
 import { AgentModeType } from '../modes/AgentModeDefinitions'
 import { getPromptPartUtilsRecord, PromptPartUtil } from '../parts/PromptPartUtil'
@@ -683,14 +685,20 @@ export class TldrawAgent {
 		prompt: BaseAgentPrompt
 		signal: AbortSignal
 	}): AsyncGenerator<Streaming<AgentAction>> {
+		const apiKey = requireApiKey(
+			getAgentModelDefinition(getModelName(prompt as AgentPrompt)).provider
+		)
 		const res = await fetch('/stream', {
 			method: 'POST',
 			body: JSON.stringify(prompt),
 			headers: {
 				'Content-Type': 'application/json',
+				'x-ai-api-key': apiKey,
 			},
 			signal,
 		})
+
+		if (!res.ok) throw new Error(await res.text())
 
 		if (!res.body) {
 			throw Error('No body in response')

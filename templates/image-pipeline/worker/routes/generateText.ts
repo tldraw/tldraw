@@ -11,21 +11,16 @@ interface GenerateTextRequest {
  *
  * Takes an optional input (image or text) and a prompt, then calls
  * google/gemini-3.5-flash on Replicate to generate text.
- * Falls back to a placeholder if no API token is configured.
  */
 export async function handleGenerateText(request: IRequest, env: Env) {
+	const apiKey = request.headers.get('x-ai-api-key')?.trim()
+	if (!apiKey) return Response.json({ error: 'A Replicate API key is required.' }, { status: 401 })
+
 	const body = (await request.json()) as GenerateTextRequest
 
 	if (!body.prompt) {
 		return new Response(JSON.stringify({ error: 'prompt is required' }), {
 			status: 400,
-			headers: { 'Content-Type': 'application/json' },
-		})
-	}
-
-	const apiToken = env.REPLICATE_API_TOKEN
-	if (!apiToken) {
-		return new Response(JSON.stringify(generateTextPlaceholder(body)), {
 			headers: { 'Content-Type': 'application/json' },
 		})
 	}
@@ -69,7 +64,7 @@ export async function handleGenerateText(request: IRequest, env: Env) {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					Authorization: `Bearer ${apiToken}`,
+					Authorization: `Bearer ${apiKey}`,
 					Prefer: 'wait',
 				},
 				body: JSON.stringify({ input }),
@@ -94,23 +89,5 @@ export async function handleGenerateText(request: IRequest, env: Env) {
 			status: 500,
 			headers: { 'Content-Type': 'application/json' },
 		})
-	}
-}
-
-function generateTextPlaceholder(body: GenerateTextRequest): { text: string } {
-	const inputStr = body.input != null ? String(body.input) : null
-	const isImage =
-		inputStr != null &&
-		(inputStr.startsWith('data:image/') ||
-			inputStr.startsWith('/api/images/') ||
-			inputStr.startsWith('https://') ||
-			inputStr.startsWith('http://'))
-	const inputDesc = inputStr
-		? isImage
-			? '[image provided]'
-			: `[text: "${inputStr.slice(0, 40)}${inputStr.length > 40 ? '...' : ''}"]`
-		: '[no input]'
-	return {
-		text: `[Placeholder] Prompt: "${body.prompt.slice(0, 60)}${body.prompt.length > 60 ? '...' : ''}" | Input: ${inputDesc} — Set REPLICATE_API_TOKEN for real text generation.`,
 	}
 }

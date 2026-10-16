@@ -7,13 +7,6 @@ import { Environment } from '../environment'
 import { AgentService } from './AgentService'
 
 export class AgentDurableObject extends DurableObject<Environment> {
-	service: AgentService
-
-	constructor(ctx: DurableObjectState, env: Environment) {
-		super(ctx, env)
-		this.service = new AgentService(this.env) // swap this with your own service
-	}
-
 	private readonly router = AutoRouter({
 		catch: (e) => {
 			console.error(e)
@@ -33,6 +26,10 @@ export class AgentDurableObject extends DurableObject<Environment> {
 	 * @returns A Promise that resolves to a Response object containing the streamed changes.
 	 */
 	private async stream(request: Request): Promise<Response> {
+		const apiKey = request.headers.get('x-ai-api-key')?.trim()
+		if (!apiKey) return new Response('An API key is required.', { status: 401 })
+		// A service belongs to one request: never retain a user key on the shared Durable Object.
+		const service = new AgentService(apiKey)
 		const encoder = new TextEncoder()
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()
@@ -43,7 +40,7 @@ export class AgentDurableObject extends DurableObject<Environment> {
 			try {
 				const prompt = (await request.json()) as AgentPrompt
 
-				for await (const change of this.service.stream(prompt)) {
+				for await (const change of service.stream(prompt)) {
 					response.changes.push(change)
 					const data = `data: ${JSON.stringify(change)}\n\n`
 					await writer.write(encoder.encode(data))

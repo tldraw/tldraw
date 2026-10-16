@@ -14,10 +14,12 @@ interface UpscaleRequest {
 /**
  * POST /api/upscale
  *
- * Upscales an image using an AI upscaler. Falls back to a placeholder
- * if no API key is configured.
+ * Upscales an image using an AI upscaler.
  */
 export async function handleUpscale(request: IRequest, env: Env) {
+	const apiKey = request.headers.get('x-ai-api-key')?.trim()
+	if (!apiKey) return Response.json({ error: 'A Replicate API key is required.' }, { status: 401 })
+
 	const body = (await request.json()) as UpscaleRequest
 
 	if (!body.imageUrl) {
@@ -42,7 +44,7 @@ export async function handleUpscale(request: IRequest, env: Env) {
 			)
 		}
 
-		const result = await provider.upscale(params, env)
+		const result = await provider.upscale(params, env, apiKey)
 
 		return new Response(JSON.stringify(result), {
 			headers: { 'Content-Type': 'application/json' },

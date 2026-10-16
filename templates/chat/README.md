@@ -28,16 +28,11 @@ Key interactions include:
 - Draw, sketch, and create diagrams to supplement conversations
 - Annotate images and visual content directly on the canvas
 
-## Environment setup
+## API keys
 
-Create a `.env.local` file in the root directory and add your Google Generative API key:
+Open the app and enter your Google API key in **API key settings**. Reopen the dialog with the **API keys** button to update or remove keys. Usage is billed to your provider account.
 
-```
-GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key_here
-```
-
-Get your API key from [Google AI Studio](https://aistudio.google.com/apikey).
-You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
+Keys are saved in this browser, separate from canvas and chat data, and sent through the app’s server only for AI requests. The server requires a user-supplied key; no server-side provider secrets are needed.
 
 ## File structure
 

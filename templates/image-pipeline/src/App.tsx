@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createShapeId, Editor, TLComponents, Tldraw, TldrawOptions } from 'tldraw'
+import { ApiKeySettings } from './components/ApiKeySettings'
 import { ImagePipelineSidebar } from './components/ImagePipelineSidebar.tsx'
 import { OnCanvasNodePicker } from './components/OnCanvasNodePicker.tsx'
 import { PipelineRegions } from './components/PipelineRegions.tsx'
@@ -36,6 +37,7 @@ function App() {
 
 	return (
 		<div className="image-pipeline-layout" style={{ position: 'fixed', inset: 0 }}>
+			<ApiKeySettings />
 			<div className="image-pipeline-sidebar">
 				{editor ? <ImagePipelineSidebar editor={editor} /> : <div />}
 			</div>

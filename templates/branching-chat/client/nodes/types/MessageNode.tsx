@@ -1,6 +1,7 @@
 import { ModelMessage } from 'ai'
 import { useCallback } from 'react'
 import { T, TldrawUiButton, TldrawUiButtonIcon, TldrawUiInput, useEditor } from 'tldraw'
+import { requireApiKey } from '../../components/ApiKeySettings'
 import { HandleIcon } from '../../components/icons/HandleIcon'
 import { SendIcon } from '../../components/icons/SendIcon'
 import { NODE_HEIGHT_PX, NODE_WIDTH_PX } from '../../constants'
@@ -100,9 +101,10 @@ function MessageNodeComponent({ node, shape }: NodeComponentProps<MessageNode>) 
 			try {
 				const response = await fetch('/stream', {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
+					headers: { 'Content-Type': 'application/json', 'x-ai-api-key': requireApiKey('google') },
 					body: JSON.stringify(messages),
 				})
+				if (!response.ok) throw new Error(await response.text())
 				if (!response.body) return
 
 				const reader = response.body.getReader()
@@ -125,7 +127,16 @@ function MessageNodeComponent({ node, shape }: NodeComponentProps<MessageNode>) 
 						assistantMessage: accumulatedText,
 					}))
 				}
+				if (!accumulatedText)
+					throw new Error(
+						'No response received. Check your Google API key in Settings and try again.'
+					)
 			} catch (e) {
+				updateNode<MessageNode>(editor, shape, (node) => ({
+					...node,
+					assistantMessage:
+						e instanceof Error ? e.message : 'Could not generate a response. Try again.',
+				}))
 				console.error(e)
 			}
 		})()

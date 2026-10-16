@@ -7,6 +7,10 @@ interface UploadedMetadata {
 }
 
 const UPLOAD_METADATA_KEY = 'tldraw_uploaded'
+// Google file URLs are private to the key that uploaded them. Only reuse uploads
+// made with this session's key; never save credentials in message metadata.
+let uploadKey: string | undefined
+const sessionUploads = new Set<string>()
 
 /**
  * Vercel limits us to 4.5mb uploads. We upload files to Google GenAI to avoid this limitation.
@@ -18,7 +22,11 @@ const UPLOAD_METADATA_KEY = 'tldraw_uploaded'
  * 1. The messages to send to the server - these have the file data URLs replaced with uploaded versions.
  * 2. The messages we use locally - these store the upload for re-use in `providerMetadata`, but keep the originals for display or when the uploads expire.
  */
-export async function uploadMessageContents(messages: UIMessage[]) {
+export async function uploadMessageContents(messages: UIMessage[], apiKey: string) {
+	if (uploadKey !== apiKey) {
+		uploadKey = apiKey
+		sessionUploads.clear()
+	}
 	const now = new Date().toISOString()
 	const messagesToSend = []
 	const messagesToSave = []
@@ -31,7 +39,7 @@ export async function uploadMessageContents(messages: UIMessage[]) {
 		for (const part of message.parts) {
 			if (part.type === 'file' && part.url.startsWith('data:')) {
 				const metadata = getUploadedMetadata(part)
-				if (metadata && metadata.expiresAt > now) {
+				if (metadata && metadata.expiresAt > now && sessionUploads.has(metadata.uploadedUrl)) {
 					partsToSend.push({ ...part, url: metadata.uploadedUrl })
 					partsToSave.push(part)
 				} else {
@@ -43,12 +51,18 @@ export async function uploadMessageContents(messages: UIMessage[]) {
 							method: 'POST',
 							body: await FileHelpers.urlToBlob(part.url),
 							headers: {
+								'x-ai-api-key': apiKey,
 								'Content-Type': part.mediaType,
 								'x-file-name': part.filename || 'image.png',
 							},
 						})
 
+						if (!response.ok)
+							throw new Error(
+								'File upload failed. Check your Google API key in Settings and try again.'
+							)
 						const data: UploadedMetadata = await response.json()
+						if (uploadKey === apiKey) sessionUploads.add(data.uploadedUrl)
 
 						partToSend.url = data.uploadedUrl
 						if (partToSend.providerMetadata) {

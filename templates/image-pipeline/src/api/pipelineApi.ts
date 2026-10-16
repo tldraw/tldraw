@@ -1,3 +1,4 @@
+import { requireApiKey } from '../components/ApiKeySettings'
 /**
  * Frontend API client for calling the Cloudflare Worker backend.
  * Each function corresponds to a worker endpoint.
@@ -22,13 +23,12 @@ export interface GenerateResult {
 
 /**
  * Call the /api/generate endpoint to create an AI-generated image.
- * Falls back to a local placeholder if the worker is not available.
  */
 export async function apiGenerate(params: GenerateParams): Promise<GenerateResult> {
 	try {
 		const response = await fetch('/api/generate', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: { 'Content-Type': 'application/json', 'x-ai-api-key': requireApiKey('replicate') },
 			body: JSON.stringify(params),
 		})
 
@@ -60,7 +60,7 @@ export async function apiUpscale(params: UpscaleParams): Promise<UpscaleResult> 
 	try {
 		const response = await fetch('/api/upscale', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: { 'Content-Type': 'application/json', 'x-ai-api-key': requireApiKey('replicate') },
 			body: JSON.stringify(params),
 		})
 
@@ -93,7 +93,7 @@ export async function apiIPAdapter(params: IPAdapterParams): Promise<IPAdapterRe
 	try {
 		const response = await fetch('/api/ip-adapter', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: { 'Content-Type': 'application/json', 'x-ai-api-key': requireApiKey('replicate') },
 			body: JSON.stringify(params),
 		})
 
@@ -127,7 +127,7 @@ export async function apiStyleTransfer(params: StyleTransferParams): Promise<Sty
 	try {
 		const response = await fetch('/api/style-transfer', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: { 'Content-Type': 'application/json', 'x-ai-api-key': requireApiKey('replicate') },
 			body: JSON.stringify(params),
 		})
 
@@ -153,7 +153,6 @@ export interface GenerateTextResult {
 
 /**
  * Call the /api/generate-text endpoint to generate text from a multimodal AI model.
- * Falls back to a local placeholder if the worker is not available.
  */
 export async function apiGenerateText(params: GenerateTextParams): Promise<GenerateTextResult> {
 	// Coerce input to string so the worker always receives a string
@@ -164,7 +163,7 @@ export async function apiGenerateText(params: GenerateTextParams): Promise<Gener
 	try {
 		const response = await fetch('/api/generate-text', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: { 'Content-Type': 'application/json', 'x-ai-api-key': requireApiKey('replicate') },
 			body: JSON.stringify(coercedParams),
 		})
 

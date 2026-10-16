@@ -5,6 +5,7 @@ import { BrainIcon } from '../../shared/icons/BrainIcon'
 import { ChevronDownIcon } from '../../shared/icons/ChevronDownIcon'
 import { AGENT_MODEL_DEFINITIONS, AgentModelName } from '../../shared/models'
 import { useAgent } from '../agent/TldrawAgentAppProvider'
+import { openApiKeySettings } from './ApiKeySettings'
 import { ContextItemTag } from './ContextItemTag'
 import { SelectionTag } from './SelectionTag'
 
@@ -112,6 +113,28 @@ export function ChatInput({
 							</select>
 							<ChevronDownIcon />
 						</div>
+						<button
+							type="button"
+							className="chat-api-settings"
+							aria-label="API key settings"
+							title="API key settings"
+							onClick={openApiKeySettings}
+						>
+							<svg
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="1.8"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								aria-hidden="true"
+							>
+								<path d="m9.5 3-.5 2a7 7 0 0 0-1.7 1L5.3 5.4 2.8 9.6l1.5 1.4a8 8 0 0 0 0 2l-1.5 1.4 2.5 4.2 2-.6a7 7 0 0 0 1.7 1l.5 2h5l.5-2a7 7 0 0 0 1.7-1l2 .6 2.5-4.2-1.5-1.4a8 8 0 0 0 0-2l1.5-1.4-2.5-4.2-2 .6A7 7 0 0 0 15 5l-.5-2z" />
+								<circle cx="12" cy="12" r="3" />
+							</svg>
+						</button>
 					</div>
 					<button className="chat-input-submit" disabled={inputValue === '' && !isGenerating}>
 						{isGenerating && inputValue === '' ? '◼' : '⬆'}

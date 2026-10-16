@@ -1,10 +1,13 @@
-import { google } from '@ai-sdk/google'
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { convertToModelMessages, streamText, UIMessage } from 'ai'
 
 // Allow streaming responses up to 60 seconds
 export const maxDuration = 60
 
 export async function POST(req: Request) {
+	const apiKey = req.headers.get('x-ai-api-key')?.trim()
+	if (!apiKey) return new Response('A Google API key is required.', { status: 401 })
+	const google = createGoogleGenerativeAI({ apiKey })
 	const { messages }: { messages: UIMessage[] } = await req.json()
 
 	const result = streamText({
