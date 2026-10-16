@@ -2655,6 +2655,10 @@ export class LaserTool extends StateNode {
     onEnter(): void;
     // (undocumented)
     onExit(): void;
+    startScribble(): {
+        scribbleId: string;
+        sessionId: string;
+    };
 }
 
 // @public (undocumented)
