@@ -2,6 +2,7 @@ import { useContainer } from '@tldraw/editor'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode, memo } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useMenuWheelPassThrough } from '../../hooks/useMenuWheelPassThrough'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -16,6 +17,7 @@ export interface TLUiMainMenuProps {
 /** @public @react */
 export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiMainMenuProps) {
 	const container = useContainer()
+	const setMenuContent = useMenuWheelPassThrough()
 	const [isOpen, onOpenChange] = useMenuIsOpen('main menu')
 	const msg = useTranslation()
 	const dir = useDirection()
@@ -34,6 +36,7 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 			</_DropdownMenu.Trigger>
 			<_DropdownMenu.Portal container={container}>
 				<_DropdownMenu.Content
+					ref={setMenuContent}
 					className="tlui-menu"
 					side="bottom"
 					align="start"
