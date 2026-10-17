@@ -1,8 +1,16 @@
 /* The comments layer renders through `EditorPortal`, so its pieces can pick their own layer rather
-   than the one the component is mounted in. Pins live in the canvas-in-front layer (beneath the UI
-   panels at z-index 300), so the toolbar and style panel draw over them; the open thread's popover
-   goes to the menus layer instead (`.tlui-cmt-canvas-popover`) so it isn't clipped. Click-through
-   except on its own children. */
+   than the one the component is mounted in. Every piece stays beneath the UI panels (z-index 300),
+   so the toolbar and style panel stay visible and clickable while a thread is open: pins in the
+   canvas-in-front layer, and the surfaces that float above them on the shared layer below.
+   Click-through except on its own children. */
+
+.tl-container {
+	/* The layer shared by the comment surfaces that float over the canvas — the hover preview, the
+	   open thread's popover, and the placement composer. Derived from the panels slot rather than a
+	   literal, so these can't drift above the UI panels if that slot moves. */
+	--tlui-cmt-layer-floating: calc(var(--tl-layer-panels) - 10);
+}
+
 .tlui-cmt-canvas-layer {
 	position: absolute;
 	inset: 0;
@@ -189,7 +197,7 @@
    marker — the pin would appear pressed just for being hovered. */
 .tlui-cmt-canvas-preview {
 	position: absolute;
-	z-index: var(--tl-layer-menus);
+	z-index: var(--tlui-cmt-layer-floating);
 	pointer-events: auto;
 }
 
@@ -198,9 +206,9 @@
    Invisible, part of the panel's hover region, and only present while the panel is.
 
    It spans the gap and stops there. Reaching any further would put it over the marker itself, and
-   since it sits in the menus layer — above the pins — it would take the marker's hover and clicks:
-   the pin would go dead exactly where it looks most alive. The marker needs no covering anyway, as
-   it carries the same hover handlers.
+   since it sits above the pins it would take the marker's hover and clicks: the pin would go dead
+   exactly where it looks most alive. The marker needs no covering anyway, as it carries the same
+   hover handlers.
 
    The gap is the panel's own offset (`--tlui-cmt-preview-offset`, set from `POPOVER_OFFSET` so
    there's one source) less however far the marker reaches toward it, per variant below. */
@@ -403,19 +411,19 @@
 	transform: none;
 }
 
-/* The open thread's popover — portaled to the menus layer (above the UI), positioned at the pin. */
+/* The open thread's popover — portaled to the floating comment layer, positioned at the pin. */
 .tlui-cmt-canvas-popover {
 	position: absolute;
-	z-index: var(--tl-layer-menus);
+	z-index: var(--tlui-cmt-layer-floating);
 	pointer-events: auto;
 }
 
-/* The placement composer — a distinct floating view (portaled to the menus layer, below the click
-   point): a draft avatar pin beside a pill field that is itself the surface (no wrapping panel).
-   Scoped here so the in-thread reply composer keeps its own squarer look. */
+/* The placement composer — a distinct floating view (portaled to the floating comment layer, below
+   the click point): a draft avatar pin beside a pill field that is itself the surface (no wrapping
+   panel). Scoped here so the in-thread reply composer keeps its own squarer look. */
 .tlui-cmt-canvas-composer {
 	position: absolute;
-	z-index: var(--tl-layer-menus);
+	z-index: var(--tlui-cmt-layer-floating);
 	pointer-events: auto;
 	/* Anchor the draft avatar bottom-left like the pins it becomes: it is a pin wide and sits 4px
 	   into the row, so its bottom-left corner is 4px right of and 4px + a pin below the composer's
@@ -537,10 +545,11 @@
 	margin-bottom: 4px;
 }
 
-/* The comments list panel — a right-side surface shown while the comments sidebar is open. Below
-   the popover layer, so an open thread still draws over it. Its top aligns flush with the style
-   panel (48px from the top, clearing the share panel) and it sizes to its content, scrolling past
-   max-height rather than stretching the full canvas height. */
+/* The comments list panel — a right-side surface shown while the comments sidebar is open. On the
+   panels layer, above the floating comment surfaces, so an open thread near the right edge tucks
+   behind it. Its top aligns flush with the style panel (48px from the top, clearing the share
+   panel) and it sizes to its content, scrolling past max-height rather than stretching the full
+   canvas height. */
 .tlui-cmt-canvas-sidebar {
 	position: absolute;
 	top: 48px;
