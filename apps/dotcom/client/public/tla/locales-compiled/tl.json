@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "I-drag ang file sa sidebar sa page na ito. O piliin ang opsyong 'Mag-import ng file' mula sa menu ng user."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1326,6 +1320,12 @@
     {
       "type": 0,
       "value": "May-ari"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "I-drag ang file papunta sa sidebar sa pahinang ito. O piliin ang opsyong 'I-import ang file' mula sa menu na File sa kaliwang itaas."
     }
   ],
   "b758336699": [

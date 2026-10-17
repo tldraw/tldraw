@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Lucrăm la compatibilitatea fișierelor de la <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Trageți fișierul în bara laterală de pe această pagină. Sau selectați opțiunea „Importați fișierul” din meniul utilizatorului."
-  },
   "043973ec1f": {
     "translation": "Mai ai probleme? {GetHelpLink}"
   },
@@ -536,6 +533,9 @@
   },
   "b6f4a2ec63": {
     "translation": "Proprietar"
+  },
+  "b74dbb40c5": {
+    "translation": "Trageți fișierul în bara laterală de pe această pagină. Sau selectați opțiunea „Importați fișierul” din meniul Fișier din stânga sus."
   },
   "b758336699": {
     "translation": "Copiați linkul"

@@ -37,12 +37,6 @@
       "value": " alkalmazásból származó fájlok támogatásán."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Húzza a fájlt az oldal oldalsávjába. Vagy válassza a „Fájl importálása” opciót a felhasználói menüből."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1302,6 +1296,12 @@
     {
       "type": 0,
       "value": "Tulajdonos"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Húzd a fájlt az oldalsávba ezen az oldalon. Vagy válaszd a „Fájl importálása” lehetőséget a bal felső sarokban található Fájl menüből."
     }
   ],
   "b758336699": [

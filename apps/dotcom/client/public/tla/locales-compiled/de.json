@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Ziehen Sie die Datei in die Seitenleiste auf dieser Seite. Oder wählen Sie im Benutzermenü Option „Datei importieren“."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1298,6 +1292,12 @@
     {
       "type": 0,
       "value": "Eigentümer"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Ziehen Sie die Datei in die Seitenleiste dieser Seite. Alternativ können Sie im Menü „Datei“ oben links die Option „Datei importieren“ auswählen."
     }
   ],
   "b758336699": [

@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Kéo tệp vào thanh bên ở trang này. Hoặc chọn tùy chọn 'Nhập tệp' từ menu người dùng."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1294,6 +1288,12 @@
     {
       "type": 0,
       "value": "Người sở hữu"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Kéo tệp vào thanh bên trên trang này. Hoặc chọn tùy chọn 'Nhập tệp' từ menu Tệp ở góc trên bên trái."
     }
   ],
   "b758336699": [
