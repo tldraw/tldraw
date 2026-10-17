@@ -24,7 +24,7 @@ permissions:
 
 jobs:
   update-release-notes:
-    name: 'Update release notes with Claude Code'
+    name: 'Update release notes with Gemini CLI'
     timeout-minutes: 30
     runs-on: ubuntu-latest
 
@@ -75,14 +75,15 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
-      - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install Gemini CLI
+        run: npm install -g @google/gemini-cli@0.61.0
 
       - name: Run update-release-notes skill
         run: |
-          claude --dangerously-skip-permissions --print "/update-release-notes"
+          gemini --yolo --prompt "Read skills/update-release-notes/SKILL.md and follow its instructions. <skill-dir> is skills/update-release-notes."
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
       - name: Check for changes
