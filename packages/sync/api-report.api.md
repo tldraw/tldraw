@@ -5,6 +5,7 @@
 ```ts
 
 import { Editor } from 'tldraw';
+import { Signal } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
 import { TLObjectStoreAccess } from '@tldraw/sync-core';
 import { TLPersistentClientSocket } from '@tldraw/sync-core';
@@ -65,6 +66,7 @@ export interface UseSyncOptionsBase {
     onMount?(editor: Editor): void;
     // @internal
     roomId?: string;
+    syncFps?: number | Signal<number>;
     themes?: Partial<TLThemes>;
     // @internal (undocumented)
     trackAnalyticsEvent?(name: string, data: {
