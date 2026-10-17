@@ -1,0 +1,37 @@
+.prune-panel {
+	position: absolute;
+	top: 60px;
+	right: 12px;
+	width: 248px;
+	padding: 14px;
+	background: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 10px;
+	box-shadow: var(--tl-shadow-2);
+	font-size: 13px;
+	z-index: 300;
+	pointer-events: all;
+}
+
+.prune-panel__stats {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	row-gap: 6px;
+}
+
+.prune-panel__warn {
+	color: var(--tl-color-warning);
+}
+
+.prune-panel__actions {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-top: 14px;
+}
+
+.prune-panel__note {
+	margin-top: 14px;
+	margin-bottom: 0;
+	color: var(--tl-color-text-3);
+}
