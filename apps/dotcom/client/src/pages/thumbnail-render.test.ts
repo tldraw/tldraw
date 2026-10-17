@@ -7,9 +7,10 @@ import {
 	defaultShapeUtils,
 	defaultTldrawOptions,
 } from 'tldraw'
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	SHAPES_NOT_ON_PAGE,
+	acquireThumbnailRenderData,
 	exportThumbnailImage,
 	prepareLiveCapture,
 	setThumbnailError,
@@ -134,5 +135,39 @@ describe('signalThumbnailReady', () => {
 		expect(document.body.dataset.thumbnailReady).toBeUndefined()
 		expect(document.documentElement.dataset.thumbnailReady).toBeUndefined()
 		expect(document.body.dataset.thumbnailError).toBe(SHAPES_NOT_ON_PAGE)
+	})
+})
+
+describe('the failure beacon', () => {
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
+	// Browser Run reports only that the capture element was missing, so the page's own reason and how
+	// far it got are the only way a failure can be told apart from any other.
+	it('reports the first error once, with the last phase the page completed', async () => {
+		// What the page had marked when each request went out: the beacon has to leave before the
+		// error marker, which is what ends the Browser Run session.
+		const markedAtSend: (string | undefined)[] = []
+		const fetchMock = vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => {
+			markedAtSend.push(document.body.dataset.thumbnailError)
+			return new Response(null, { status: 404 })
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		const data = await acquireThumbnailRenderData(
+			new URL('https://x.test/__thumbnail-render?token=t')
+		)
+		expect(data).toEqual({ ok: false, message: 'Could not load render job (404)' })
+		setThumbnailError('Could not load render job (404)')
+		setThumbnailError('a later failure')
+
+		const beacons = fetchMock.mock.calls.filter(([url]) =>
+			String(url).endsWith('/api/app/thumbnail-render/result')
+		)
+		expect(beacons.map(([, init]) => JSON.parse(init!.body as string))).toEqual([
+			{ token: 't', error: { message: 'Could not load render job (404)', phase: 'boot' } },
+		])
+		expect(markedAtSend).toEqual([undefined, undefined])
 	})
 })
