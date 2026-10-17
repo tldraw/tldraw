@@ -139,7 +139,6 @@ export const RemoveBackgroundButton = track(function RemoveBackgroundButton({
 	)
 })
 
-/** Clears the original/cutout pair when the image is replaced with a different asset. */
 export function BackgroundRemovalSideEffects() {
 	const editor = useEditor()
 	useEffect(() => {

@@ -35,7 +35,16 @@ export async function fetchBackgroundRemovedImage(
 	}
 
 	const contentType = fetched.headers.get('content-type') ?? ''
-	if (!fetched.ok || !fetched.body || !contentType.startsWith('image/')) {
+	// A failed transform still returns the original image. Cf-Resized is how we tell them apart.
+	const resized = fetched.headers.get('cf-resized') ?? ''
+	if (
+		!fetched.ok ||
+		!fetched.body ||
+		!contentType.startsWith('image/') ||
+		!resized ||
+		resized.includes('err=')
+	) {
+		await fetched.body?.cancel()
 		return new Response('Failed to remove background', { status: 502 })
 	}
 

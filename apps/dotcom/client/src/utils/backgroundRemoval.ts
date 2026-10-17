@@ -9,11 +9,8 @@ import {
 } from 'tldraw'
 import { USER_CONTENT_URL } from './config'
 
-/** Shape meta: the asset before background removal. */
 export const BG_ORIGINAL_ASSET_ID = 'bgOriginalAssetId'
-/** Shape meta: the asset after background removal. */
 export const BG_REMOVED_ASSET_ID = 'bgRemovedAssetId'
-/** Asset meta: whether a scan found a non-opaque pixel. */
 export const HAS_TRANSPARENT_PIXELS = 'hasTransparentPixels'
 
 const OPAQUE_MIME_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/pjpeg'])
@@ -41,10 +38,7 @@ export function isOpaqueImageMimeType(mimeType: string | null): boolean {
 	return !!mimeType && OPAQUE_MIME_TYPES.has(mimeType)
 }
 
-/**
- * Object name for an asset stored on this app's user-content host, or null when background
- * removal can't run (a different host, a data url, or a path we wouldn't want to fetch).
- */
+/** Null for a different host, a data url, or a path we wouldn't want to fetch. */
 export function userContentObjectName(
 	src: string | null | undefined,
 	userContentUrl = USER_CONTENT_URL
@@ -75,7 +69,7 @@ export function removeBackgroundRequestPath(objectName: string): string {
 	return `/api/app/uploads/${encodeURIComponent(objectName)}/remove-background`
 }
 
-/** True when any sampled pixel is not fully opaque. `data` is RGBA. */
+/** `data` is RGBA. */
 export function pixelsHaveTransparency(data: Uint8ClampedArray): boolean {
 	// Step four pixels at a time. A cutout's empty background is large enough to hit;
 	// a photo's fully opaque pixels are not.
@@ -146,10 +140,6 @@ function pngFileName(name: string): string {
 	return `${trimmed.replace(/\.[^.]+$/, '')}.png`
 }
 
-/**
- * Toggle between the original image and its cutout. The first click asks the sync worker
- * to run Cloudflare's foreground segmentation and stores the PNG as a new asset.
- */
 export async function toggleImageBackground(
 	editor: Editor,
 	shapeId: TLImageShape['id']

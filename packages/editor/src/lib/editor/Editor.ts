@@ -9645,9 +9645,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const assets: TLAsset[] = []
 			const seenAssetIds = new Set<TLAssetId>()
 			for (const shape of shapes) {
-				// props.assetId is the image on screen. meta can point at another asset for the
-				// same shape (the background-removal original or cutout). Copy both so the pair
-				// still resolves after a paste.
+				// Leave meta out and a paste drops the background-removal pair.
 				if ('assetId' in shape.props && shape.props.assetId) {
 					seenAssetIds.add(shape.props.assetId)
 				}
@@ -11691,7 +11689,12 @@ function pushShapeWithDescendants(editor: Editor, id: TLShapeId, result: TLShape
  * When `shapes` already holds ids this returns that same array, not a copy, so a caller that
  * mutates the result (for example to sort it) must copy it first.
  */
-/** Asset ids stored on a shape, including ones that live in meta rather than props.assetId. */
+function toShapeIds(shapes: TLShapeId[] | TLShape[]): TLShapeId[] {
+	return typeof shapes[0] === 'string'
+		? (shapes as TLShapeId[])
+		: (shapes as TLShape[]).map((shape) => shape.id)
+}
+
 function collectReferencedAssetIds(value: unknown, into: Set<TLAssetId>) {
 	if (typeof value === 'string') {
 		if (AssetRecordType.isId(value)) into.add(value)
@@ -11703,12 +11706,6 @@ function collectReferencedAssetIds(value: unknown, into: Set<TLAssetId>) {
 	}
 	if (!value || typeof value !== 'object') return
 	for (const item of Object.values(value)) collectReferencedAssetIds(item, into)
-}
-
-function toShapeIds(shapes: TLShapeId[] | TLShape[]): TLShapeId[] {
-	return typeof shapes[0] === 'string'
-		? (shapes as TLShapeId[])
-		: (shapes as TLShape[]).map((shape) => shape.id)
 }
 
 /**

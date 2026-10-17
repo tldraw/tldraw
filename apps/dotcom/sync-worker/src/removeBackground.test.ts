@@ -3,7 +3,7 @@ import { fetchBackgroundRemovedImage } from './removeBackground'
 function imageResponse() {
 	return new Response(new Uint8Array([1, 2, 3]), {
 		status: 200,
-		headers: { 'content-type': 'image/png' },
+		headers: { 'content-type': 'image/png', 'cf-resized': 'internal=ok' },
 	})
 }
 
@@ -40,6 +40,24 @@ describe('fetchBackgroundRemovedImage', () => {
 	it('fails when the transform does not return an image', async () => {
 		const fetchImage = vi.fn(
 			async () => new Response('nope', { status: 200, headers: { 'content-type': 'text/plain' } })
+		)
+
+		const response = await fetchBackgroundRemovedImage(
+			'https://tldrawusercontent.com',
+			'abc-photo.png',
+			fetchImage
+		)
+
+		expect(response.status).toBe(502)
+	})
+
+	it('fails when Cloudflare returns the original image with a resize error', async () => {
+		const fetchImage = vi.fn(
+			async () =>
+				new Response(new Uint8Array([1, 2, 3]), {
+					status: 200,
+					headers: { 'content-type': 'image/png', 'cf-resized': 'err=9408' },
+				})
 		)
 
 		const response = await fetchBackgroundRemovedImage(
