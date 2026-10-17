@@ -80,7 +80,7 @@ editor.selectAdjacentShape('up')
 editor.selectAdjacentShape('down')
 ```
 
-Cardinal directions score candidate shapes by distance and by how far they sit off the axis of travel, then pick the lowest score. If the selection is inside a group or frame, only siblings in that container are considered. Shapes whose util returns `false` from [ShapeUtil#canTabTo](?) are skipped. In the default UI, Tab and Shift+Tab move to the next and previous shape, and Cmd/Ctrl+Arrow moves by direction.
+Cardinal directions score candidate shapes by distance and by how far they sit off the axis of travel, then pick the lowest score. If the selection is inside a group or frame, only siblings in that container are considered. Shapes whose util returns `false` from [ShapeUtil#canTabTo](?) are skipped, as are locked shapes unless the `selectLockedShapes` option is enabled. In the default UI, Tab and Shift+Tab move to the next and previous shape, and Cmd/Ctrl+Arrow moves by direction.
 
 ### Hierarchical selection
 
