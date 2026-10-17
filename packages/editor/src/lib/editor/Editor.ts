@@ -16,6 +16,7 @@ import {
 	reverseRecordsDiff,
 } from '@tldraw/store'
 import {
+	AssetRecordType,
 	CameraRecordType,
 	InstancePageStateRecordType,
 	PageRecordType,
@@ -9646,12 +9647,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const assets: TLAsset[] = []
 			const seenAssetIds = new Set<TLAssetId>()
 			for (const shape of shapes) {
-				if (!('assetId' in shape.props)) continue
-
-				const assetId = shape.props.assetId
-				if (!assetId || seenAssetIds.has(assetId)) continue
-
-				seenAssetIds.add(assetId)
+				// Leave meta out and a paste drops the background-removal pair.
+				if ('assetId' in shape.props && shape.props.assetId) {
+					seenAssetIds.add(shape.props.assetId)
+				}
+				collectReferencedAssetIds(shape.meta, seenAssetIds)
+			}
+			for (const assetId of seenAssetIds) {
 				const asset = this.getAsset(assetId)
 				if (!asset) continue
 				assets.push(asset)
@@ -11693,6 +11695,19 @@ function toShapeIds(shapes: TLShapeId[] | TLShape[]): TLShapeId[] {
 	return typeof shapes[0] === 'string'
 		? (shapes as TLShapeId[])
 		: (shapes as TLShape[]).map((shape) => shape.id)
+}
+
+function collectReferencedAssetIds(value: unknown, into: Set<TLAssetId>) {
+	if (typeof value === 'string') {
+		if (AssetRecordType.isId(value)) into.add(value)
+		return
+	}
+	if (Array.isArray(value)) {
+		for (const item of value) collectReferencedAssetIds(item, into)
+		return
+	}
+	if (!value || typeof value !== 'object') return
+	for (const item of Object.values(value)) collectReferencedAssetIds(item, into)
 }
 
 /**

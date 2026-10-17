@@ -29,6 +29,7 @@ import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
 import { createPostgresConnectionPool, getPostgresConnection } from './postgres'
+import { fetchBackgroundRemovedImage } from './removeBackground'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
@@ -189,6 +190,11 @@ const router = createRouter<Environment>()
 	.get('/app/file/:roomId/download', forwardRoomRequest)
 	.get('/app/file/:boardId/thumbnail', getBoardThumbnail)
 	.get('/app/publish/:roomId', getPublishedFile)
+	.get('/app/uploads/:objectName/remove-background', async (request, env) => {
+		const userContentUrl = env.USER_CONTENT_URL
+		if (!userContentUrl) return new Response('Missing USER_CONTENT_URL', { status: 500 })
+		return fetchBackgroundRemovedImage(userContentUrl, request.params.objectName)
+	})
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({
 			request,

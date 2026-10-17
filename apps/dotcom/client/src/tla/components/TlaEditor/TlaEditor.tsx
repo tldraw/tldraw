@@ -56,6 +56,7 @@ import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallba
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { BackgroundRemovalSideEffects, RemoveBackgroundButton } from './RemoveBackgroundButton'
 import { SneakyCommentDeepLink } from './sneaky/SneakyCommentDeepLink'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from './sneaky/SneakyDebugModeToast'
@@ -96,6 +97,7 @@ export const components: TLComponents = {
 	// No loading screen on tla editors: the editor only mounts once it's ready,
 	// so a spinner would only flash before the content appears.
 	LoadingScreen: null,
+	ImageToolbarExtra: RemoveBackgroundButton,
 }
 
 interface TlaEditorProps {
@@ -373,6 +375,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				overrides={editorOverrides}
 				getShapeVisibility={getShapeVisibility}
 			>
+				<BackgroundRemovalSideEffects />
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
 				<SneakyToolSwitcher />
