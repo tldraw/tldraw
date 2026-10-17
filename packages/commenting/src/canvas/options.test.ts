@@ -60,7 +60,8 @@ describe('CommentTool.configure', () => {
 })
 
 // A minimal editor stub: getCommentingOptions reads the comment tool's `options` off
-// getStateDescendant, and commitCommentMutation forwards to run().
+// getStateDescendant, commitCommentMutation forwards to run(), and its license gate asks whether
+// commenting is licensed.
 function stubEditor(options: CommentingOptions) {
 	const runCalls: Array<{ history: unknown }> = []
 	const editor = {
@@ -70,6 +71,8 @@ function stubEditor(options: CommentingOptions) {
 			fn()
 			return editor
 		},
+		isLicenseValidationPending: () => false,
+		isLicensedFeatureEnabled: () => true,
 	} as unknown as Editor
 	return { editor, runCalls }
 }

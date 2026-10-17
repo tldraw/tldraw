@@ -1,12 +1,14 @@
 import {
 	BoxModel,
 	Editor,
+	react,
 	StateNode,
 	TLCommentAnchor,
 	TLStateNodeConstructor,
 	TLUiOverrides,
 	VecLike,
 } from 'tldraw'
+import { canRunCommenting, warnUnlicensedCommenting } from './license'
 import { type CommentingOptions, defaultCommentingOptions, getCommentingOptions } from './options'
 import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
 import { commentTargetShapeAt, regionPinPoint, shapeAnchorAt } from './thread-state'
@@ -91,7 +93,29 @@ export class CommentTool extends StateNode {
 	 */
 	options: CommentingOptions = defaultCommentingOptions
 
+	private disposeLicenseGate?: () => void
+
 	override onEnter() {
+		// The tool is entered, not rendered, so nothing above it has checked the license.
+		const disposeReaction = react('comment tool license', () => {
+			if (canRunCommenting(this.editor)) return
+			warnUnlicensedCommenting('the comment tool')
+			// Deferred: this runs inside the reaction that observed validation resolving, and leaving
+			// a tool must not happen mid-computation.
+			this.editor.timers.requestAnimationFrame(() => {
+				if (this.editor.isDisposed) return
+				if (this.editor.getCurrentToolId() === CommentTool.id) this.editor.setCurrentTool('select')
+			})
+		})
+		// `dispose()` never exits the state tree, so an editor torn down with this tool active would
+		// leave the reaction attached — holding the editor, and firing against a dead store when
+		// validation resolves.
+		const dispose = () => {
+			this.editor.disposables.delete(dispose)
+			disposeReaction()
+		}
+		this.editor.disposables.add(dispose)
+		this.disposeLicenseGate = dispose
 		this.editor.setCursor({ type: 'comment', rotation: 0 })
 		// Placing comments is canvas-focused — the thread list gets out of the way while the tool is
 		// active. Reopened via its own control (a button), never by leaving the tool.
@@ -99,6 +123,8 @@ export class CommentTool extends StateNode {
 	}
 
 	override onExit() {
+		this.disposeLicenseGate?.()
+		this.disposeLicenseGate = undefined
 		// Drop the hover hint painted while pointing at shapes (see CommentIdle). The cursor resets
 		// when the next tool takes over. The draft composer and region draft belong to the tool, so
 		// they leave with it; the draft's text survives in the comment draft store.
