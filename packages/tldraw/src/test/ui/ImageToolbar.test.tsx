@@ -1,15 +1,20 @@
 import { act, fireEvent, screen } from '@testing-library/react'
-import { createShapeId, Editor, TLImageShape } from '@tldraw/editor'
+import { createShapeId, Editor, TldrawOptions, TLImageShape } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
 let editor: Editor
+const onClipboardPasteRaw = vi.fn<NonNullable<TldrawOptions['onClipboardPasteRaw']>>(() => false)
 const imageId = createShapeId('image') as TLImageShape['id']
 
 beforeEach(async () => {
-	const result = await renderTldrawComponentWithEditor((onMount) => <Tldraw onMount={onMount} />, {
-		waitForPatterns: false,
-	})
+	const result = await renderTldrawComponentWithEditor(
+		(onMount) => <Tldraw options={{ onClipboardPasteRaw }} onMount={onMount} />,
+		{
+			waitForPatterns: false,
+		}
+	)
 	editor = result.editor
 
 	act(() => {
@@ -20,6 +25,7 @@ beforeEach(async () => {
 
 afterEach(() => {
 	editor?.dispose()
+	onClipboardPasteRaw.mockClear()
 })
 
 async function enterCropMode() {
@@ -54,5 +60,29 @@ describe('Image toolbar in crop mode', () => {
 		expect(editor.getCroppingShapeId()).toBe(null)
 		expect(editor.isIn('select.idle')).toBe(true)
 		expect(editor.getSelectedShapeIds()).toEqual([imageId])
+	})
+})
+
+describe('Pasting in crop mode', () => {
+	it('handles the paste when the zoom slider has focus', async () => {
+		const thumb = await enterCropMode()
+		thumb.focus()
+		expect(document.activeElement).toBe(thumb)
+
+		fireEvent.paste(thumb)
+
+		expect(onClipboardPasteRaw).toHaveBeenCalledTimes(1)
+	})
+
+	it('leaves the paste to a focused text input', async () => {
+		await enterCropMode()
+		const input = document.createElement('input')
+		document.body.appendChild(input)
+		input.focus()
+
+		fireEvent.paste(input)
+
+		expect(onClipboardPasteRaw).not.toHaveBeenCalled()
+		input.remove()
 	})
 })
