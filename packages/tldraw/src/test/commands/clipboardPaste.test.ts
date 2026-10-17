@@ -572,11 +572,12 @@ describe('pasting a link onto the selected shape', () => {
 		return (content as TLUrlExternalContent).shapeId
 	}
 
-	async function pasteText(text: string, type = 'text/plain') {
+	async function pasteText(text: string, type = 'text/plain', onPasteLinkOntoShape?: () => void) {
 		await handlePasteFromClipboardApi({
 			editor,
 			clipboardItems: [makeClipboardItem({ [type]: text })],
 			clipboardPasteSource: 'clipboard-read',
+			onPasteLinkOntoShape,
 		})
 	}
 
@@ -589,6 +590,21 @@ describe('pasting a link onto the selected shape', () => {
 		await pasteText(URL)
 
 		expect(pastedShapeId(spy)).toBe(id)
+	})
+
+	it('reports a link pasted onto the selected shape', async () => {
+		mockPutExternalContent()
+		const onPasteLinkOntoShape = vi.fn()
+		const id = createShapeId()
+		createGeo(id)
+
+		editor.select(id)
+		await pasteText(URL, 'text/plain', onPasteLinkOntoShape)
+		expect(onPasteLinkOntoShape).toHaveBeenCalledTimes(1)
+
+		editor.selectNone()
+		await pasteText(URL, 'text/plain', onPasteLinkOntoShape)
+		expect(onPasteLinkOntoShape).toHaveBeenCalledTimes(1)
 	})
 
 	it('reaches the link through the uri-list and html clipboard types too', async () => {
