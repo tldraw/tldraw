@@ -182,9 +182,7 @@ export function useDocumentEvents() {
 					// Don't do anything if we open menus open
 					if (editor.menus.getOpenMenus().length > 0) return
 
-					if (editor.inputs.keys.has('Escape')) {
-						// noop
-					} else {
+					if (!editor.inputs.keys.has('Escape')) {
 						editor.inputs.keys.add('Escape')
 
 						editor.cancel()
@@ -204,20 +202,8 @@ export function useDocumentEvents() {
 				}
 			}
 
-			const info: TLKeyboardEventInfo = {
-				type: 'keyboard',
-				name: e.repeat ? 'key_repeat' : 'key_down',
-				key: e.key,
-				code: e.code,
-				shiftKey: e.shiftKey,
-				altKey: e.altKey,
-				ctrlKey: e.metaKey || e.ctrlKey,
-				metaKey: e.metaKey,
-				accelKey: isAccelKey(e),
-			}
-
 			heldKeysRef.current.set(e.code, e.key)
-			editor.dispatch(info)
+			editor.dispatch(getKeyboardInfo(e, e.repeat ? 'key_repeat' : 'key_down'))
 		}
 
 		const handleKeyUp = (e: KeyboardEvent) => {
@@ -232,20 +218,8 @@ export function useDocumentEvents() {
 				return
 			}
 
-			const info: TLKeyboardEventInfo = {
-				type: 'keyboard',
-				name: 'key_up',
-				key: e.key,
-				code: e.code,
-				shiftKey: e.shiftKey,
-				altKey: e.altKey,
-				ctrlKey: e.metaKey || e.ctrlKey,
-				metaKey: e.metaKey,
-				accelKey: isAccelKey(e),
-			}
-
 			heldKeysRef.current.delete(e.code)
-			editor.dispatch(info)
+			editor.dispatch(getKeyboardInfo(e, 'key_up'))
 		}
 
 		function handleTouchStart(e: TouchEvent) {
@@ -348,4 +322,18 @@ function areShortcutsDisabled(editor: Editor) {
 		editor.menus.hasOpenMenus() ||
 		activeElementShouldCaptureKeys(true, editor.getContainerDocument())
 	)
+}
+
+function getKeyboardInfo(e: KeyboardEvent, name: TLKeyboardEventInfo['name']): TLKeyboardEventInfo {
+	return {
+		type: 'keyboard',
+		name,
+		key: e.key,
+		code: e.code,
+		shiftKey: e.shiftKey,
+		altKey: e.altKey,
+		ctrlKey: e.metaKey || e.ctrlKey,
+		metaKey: e.metaKey,
+		accelKey: isAccelKey(e),
+	}
 }

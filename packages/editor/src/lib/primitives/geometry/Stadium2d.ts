@@ -9,10 +9,7 @@ import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 export class Stadium2d extends Geometry2d {
 	private _w: number
 	private _h: number
-	private _a: Arc2d
-	private _b: Edge2d
-	private _c: Arc2d
-	private _d: Edge2d
+	private _parts: [Arc2d, Edge2d, Arc2d, Edge2d]
 
 	constructor(
 		public config: Omit<Geometry2dOptions, 'isClosed'> & {
@@ -27,56 +24,54 @@ export class Stadium2d extends Geometry2d {
 
 		if (h > w) {
 			const r = w / 2
-			this._a = new Arc2d({
+			const a = new Arc2d({
 				start: new Vec(0, r),
 				end: new Vec(w, r),
 				center: new Vec(w / 2, r),
 				sweepFlag: 1,
 				largeArcFlag: 1,
 			})
-			this._b = new Edge2d({ start: new Vec(w, r), end: new Vec(w, h - r) })
-			this._c = new Arc2d({
+			const b = new Edge2d({ start: new Vec(w, r), end: new Vec(w, h - r) })
+			const c = new Arc2d({
 				start: new Vec(w, h - r),
 				end: new Vec(0, h - r),
 				center: new Vec(w / 2, h - r),
 				sweepFlag: 1,
 				largeArcFlag: 1,
 			})
-			this._d = new Edge2d({ start: new Vec(0, h - r), end: new Vec(0, r) })
+			const d = new Edge2d({ start: new Vec(0, h - r), end: new Vec(0, r) })
+			this._parts = [a, b, c, d]
 		} else {
 			const r = h / 2
-			this._a = new Arc2d({
+			const a = new Arc2d({
 				start: new Vec(r, h),
 				end: new Vec(r, 0),
 				center: new Vec(r, r),
 				sweepFlag: 1,
 				largeArcFlag: 1,
 			})
-			this._b = new Edge2d({ start: new Vec(r, 0), end: new Vec(w - r, 0) })
-			this._c = new Arc2d({
+			const b = new Edge2d({ start: new Vec(r, 0), end: new Vec(w - r, 0) })
+			const c = new Arc2d({
 				start: new Vec(w - r, 0),
 				end: new Vec(w - r, h),
 				center: new Vec(w - r, r),
 				sweepFlag: 1,
 				largeArcFlag: 1,
 			})
-			this._d = new Edge2d({ start: new Vec(w - r, h), end: new Vec(r, h) })
+			const d = new Edge2d({ start: new Vec(w - r, h), end: new Vec(r, h) })
+			this._parts = [a, b, c, d]
 		}
 	}
 
 	nearestPoint(A: VecLike): Vec {
 		let nearest: Vec | undefined
 		let dist = Infinity
-		let _d: number
-		let p: Vec
-
-		const { _a: a, _b: b, _c: c, _d: d } = this
-		for (const part of [a, b, c, d]) {
-			p = part.nearestPoint(A)
-			_d = Vec.Dist2(p, A)
-			if (_d < dist) {
+		for (const part of this._parts) {
+			const p = part.nearestPoint(A)
+			const d = Vec.Dist2(p, A)
+			if (d < dist) {
 				nearest = p
-				dist = _d
+				dist = d
 			}
 		}
 		if (!nearest) throw Error('nearest point not found')
@@ -84,9 +79,8 @@ export class Stadium2d extends Geometry2d {
 	}
 
 	override distanceToPoint(point: VecLike, hitInside = false): number {
-		const { _a: a, _b: b, _c: c, _d: d } = this
 		let minDist = Infinity
-		for (const part of [a, b, c, d]) {
+		for (const part of this._parts) {
 			const dist = part.distanceToPoint(point)
 			if (dist < minDist) minDist = dist
 		}
@@ -97,16 +91,15 @@ export class Stadium2d extends Geometry2d {
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
-		const { _a: a, _b: b, _c: c, _d: d } = this
-		return [a, b, c, d].some((edge) => edge.hitTestLineSegment(A, B))
+		return this._parts.some((part) => part.hitTestLineSegment(A, B))
 	}
 
 	getVertices() {
-		const { _a: a, _b: b, _c: c, _d: d } = this
-		return [a, b, c, d].reduce<Vec[]>((a, p) => {
-			a.push(...p.vertices)
-			return a
-		}, [])
+		const vertices: Vec[] = []
+		for (const part of this._parts) {
+			vertices.push(...part.vertices)
+		}
+		return vertices
 	}
 
 	getBounds() {
@@ -120,7 +113,6 @@ export class Stadium2d extends Geometry2d {
 	}
 
 	getSvgPathData() {
-		const { _a: a, _b: b, _c: c, _d: d } = this
-		return [a, b, c, d].map((p, i) => p.getSvgPathData(i === 0)).join(' ') + ' Z'
+		return this._parts.map((p, i) => p.getSvgPathData(i === 0)).join(' ') + ' Z'
 	}
 }

@@ -1920,7 +1920,7 @@ export abstract class Geometry2d {
     // (undocumented)
     abstract nearestPoint(point: VecLike, _filters?: Geometry2dFilters): Vec;
     // (undocumented)
-    overlapsPolygon(_polygon: VecLike[]): boolean;
+    overlapsPolygon(polygon: VecLike[]): boolean;
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
@@ -3765,7 +3765,7 @@ export interface TLDragShapesOverInfo {
 }
 
 // @public
-export const TldrawEditor: React_3.MemoExoticComponent<({ store, components, className, user: _user, options: _options, textOptions: _textOptions, deepLinks: _deepLinks, ...rest }: TldrawEditorProps) => JSX.Element>;
+export const TldrawEditor: MemoExoticComponent<({ store, components, className, user: _user, options: _options, textOptions: _textOptions, deepLinks: _deepLinks, ...rest }: TldrawEditorProps) => JSX.Element>;
 
 // @public
 export interface TldrawEditorBaseProps {

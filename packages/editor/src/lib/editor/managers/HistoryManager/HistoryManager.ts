@@ -125,7 +125,7 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	// History
-	_undo({ pushToRedoStack, toMark = undefined }: { pushToRedoStack: boolean; toMark?: string }) {
+	_undo({ pushToRedoStack, toMark }: { pushToRedoStack: boolean; toMark?: string }) {
 		const previousState = this.state
 		const previousIsReplaying = this._isReplaying
 		this.state = HistoryRecorderState.Paused
@@ -278,7 +278,7 @@ export class HistoryManager<R extends UnknownRecord> {
 			top = top.tail
 		}
 
-		if (!top.head || top.head?.id !== id) {
+		if (!top.head) {
 			console.error('Could not find mark to squash to: ', id)
 			return this
 		}
