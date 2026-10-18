@@ -60,7 +60,7 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement | null>) {
  * MIT License: https://github.com/excalidraw/excalidraw/blob/master/LICENSE
  * https://github.com/excalidraw/excalidraw/blob/48c3465b19f10ec755b3eb84e21a01a468e96e43/packages/excalidraw/utils.ts#L600
  */
-const getNearestScrollableContainer = (element: HTMLElement): HTMLElement | Document => {
+export function getNearestScrollableContainer(element: HTMLElement): HTMLElement | Document {
 	const doc = element.ownerDocument
 	const win = getOwnerWindow(element)
 	let parent = element.parentElement
@@ -68,15 +68,18 @@ const getNearestScrollableContainer = (element: HTMLElement): HTMLElement | Docu
 		if (parent === doc.body) {
 			return doc
 		}
-		const { overflowY } = win.getComputedStyle(parent)
-		const hasScrollableContent = parent.scrollHeight > parent.clientHeight
-		if (
-			hasScrollableContent &&
-			(overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay')
-		) {
+		const { overflowX, overflowY } = win.getComputedStyle(parent)
+		const hasScrollableContent =
+			(parent.scrollWidth > parent.clientWidth && isScrollableOverflow(overflowX)) ||
+			(parent.scrollHeight > parent.clientHeight && isScrollableOverflow(overflowY))
+		if (hasScrollableContent) {
 			return parent
 		}
 		parent = parent.parentElement
 	}
 	return doc
+}
+
+function isScrollableOverflow(overflow: string) {
+	return overflow === 'auto' || overflow === 'scroll' || overflow === 'overlay'
 }
