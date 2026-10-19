@@ -110,9 +110,16 @@ export class FontManager {
 		return this.fontLoadEpoch.get()
 	}
 
+	private isFontLoadEpochBumpPending = false
+
 	private setFontState(font: TLFontFace, state: FontState['state']) {
-		transact(() => {
-			this.fontStates.update(font, (s) => ({ ...s, state }))
+		this.fontStates.update(font, (s) => ({ ...s, state }))
+		// Each bump rebuilds the whole spatial index, and fonts finish loading in
+		// separate callbacks, so coalesce loads that land in the same frame.
+		if (this.isFontLoadEpochBumpPending) return
+		this.isFontLoadEpochBumpPending = true
+		this.editor.timers.requestAnimationFrame(() => {
+			this.isFontLoadEpochBumpPending = false
 			this.fontLoadEpoch.update((n) => n + 1)
 		})
 	}

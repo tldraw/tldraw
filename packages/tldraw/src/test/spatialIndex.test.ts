@@ -158,7 +158,27 @@ describe('SpatialIndexManager - bounds epoch', () => {
 		const tracker = trackSpatialIndexInvalidations(editor, editor.getViewportPageBounds())
 
 		await editor.fonts.ensureFontIsLoaded(DefaultFontFaces.tldraw_draw.normal.normal)
+		vi.advanceTimersToNextFrame()
 
+		expect(tracker.delta).toBe(1)
+		tracker.stop()
+	})
+
+	it('ticks once for fonts that finish loading in the same frame', async () => {
+		// Each tick is a full rebuild, so a burst of font loads must not rebuild once per font.
+		editor.createShapes([{ id: createShapeId('text'), type: 'text', x: 100, y: 100 }])
+		editor.getShapeIdsInsideBounds(editor.getViewportPageBounds())
+
+		const tracker = trackSpatialIndexInvalidations(editor, editor.getViewportPageBounds())
+
+		await Promise.all([
+			editor.fonts.ensureFontIsLoaded(DefaultFontFaces.tldraw_draw.normal.normal),
+			editor.fonts.ensureFontIsLoaded(DefaultFontFaces.tldraw_sans.normal.normal),
+			editor.fonts.ensureFontIsLoaded(DefaultFontFaces.tldraw_serif.normal.normal),
+		])
+		expect(tracker.delta).toBe(0)
+
+		vi.advanceTimersToNextFrame()
 		expect(tracker.delta).toBe(1)
 		tracker.stop()
 	})
