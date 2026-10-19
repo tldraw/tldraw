@@ -1,9 +1,11 @@
+import type { ClassDB } from 'mermaid/dist/diagrams/class/classDb.d.ts'
 import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
 import type { MindmapNode } from 'mermaid/dist/diagrams/mindmap/mindmapTypes.js'
 import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
 import type { Actor, Box, Message } from 'mermaid/dist/diagrams/sequence/types.js'
 import type { StateStmt } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
 import type { DiagramMermaidBlueprint, MermaidBlueprintNode, MermaidDiagramKind } from './blueprint'
+import { classToBlueprint, parseClassDiagramLayout } from './classDiagram'
 import {
 	defaultMermaidNodeRenderSpec,
 	resolveMermaidNodeRender,
@@ -1892,5 +1894,211 @@ describe('mindmapToBlueprint', () => {
 		const bp = mindmapToBlueprint(layout, tree, emptySvg)
 
 		expect(findNodeByLabel(bp, 'Root')!.color).toBe('black')
+	})
+})
+
+// ---------------------------------------------------------------------------
+// Class diagram tests
+// ---------------------------------------------------------------------------
+
+describe('classToBlueprint', () => {
+	// Rendered by the installed mermaid, so a change to its class ids or relation encoding shows up here.
+	async function classBlueprint(source: string) {
+		const svgPrototype = SVGElement.prototype as any
+		// jsdom lays out no text; mermaid only needs some size for it to render.
+		svgPrototype.getBBox = function () {
+			return { x: 0, y: 0, width: (this.textContent ?? '').length * 8, height: 16 }
+		}
+		svgPrototype.getComputedTextLength = function () {
+			return (this.textContent ?? '').length * 8
+		}
+		try {
+			const mermaid = (await import('mermaid')).default
+			mermaid.initialize({ startOnLoad: false })
+			const { svg } = await mermaid.render('mermaid-0', source)
+			const container = document.createElement('div')
+			container.innerHTML = svg
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			const db = (await mermaid.mermaidAPI.getDiagramFromText(source)).db as ClassDB
+			const layout = parseClassDiagramLayout(container.querySelector('svg')!)
+			return classToBlueprint(layout, db.getClasses(), db.getRelations())
+		} finally {
+			delete svgPrototype.getBBox
+			delete svgPrototype.getComputedTextLength
+		}
+	}
+
+	it('maps classes to rectangles labelled with annotations, attributes, and methods', async () => {
+		const bp = await classBlueprint(`classDiagram
+    class Box~T~ {
+        <<interface>>
+        +List~int~ items
+        +open() bool
+    }
+    class Empty`)
+
+		expect(bp.diagramKind).toBe('class')
+		const box = findNode(bp, 'Box')!
+		expect(box).toMatchObject({
+			kind: 'class',
+			label: '«interface»<br>Box&lt;T&gt;<br><br>+List&lt;int&gt; items<br><br>+open() : bool',
+			align: 'start',
+			verticalAlign: 'start',
+		})
+		expect(box.classBox).toEqual({
+			annotations: ['interface'],
+			name: 'Box<T>',
+			attributes: [{ text: '+List<int> items' }],
+			methods: [{ text: '+open() : bool' }],
+		})
+		expect(box.w).toBeGreaterThan(0)
+		expectNodeGeo(box, 'rectangle', 'class')
+		expect(findNode(bp, 'Empty')).toMatchObject({
+			label: 'Empty',
+			align: 'middle',
+			verticalAlign: 'middle',
+		})
+	})
+
+	it('marks static and abstract members', async () => {
+		const bp = await classBlueprint(`classDiagram
+    class Counter {
+        +int total$
+        +reset()$
+        +step()*
+    }`)
+
+		expect(findNode(bp, 'Counter')!.classBox).toMatchObject({
+			attributes: [{ text: '+int total', classifier: 'static' }],
+			methods: [
+				{ text: '+reset()', classifier: 'static' },
+				{ text: '+step()', classifier: 'abstract' },
+			],
+		})
+	})
+
+	it('maps each relation to arrowheads, fill, and dash', async () => {
+		const bp = await classBlueprint(`classDiagram
+    Animal <|-- Duck
+    Duck ..|> Swimmer
+    Zoo *-- Animal
+    Zoo o-- Keeper
+    Duck ..> Water
+    Zoo -- Ticket`)
+
+		const relation = (from: string, to: string) => {
+			const { arrowheadStart, arrowheadEnd, fill, dash } = findEdge(bp, from, to)!
+			return { arrowheadStart, arrowheadEnd, fill, dash }
+		}
+		expect(relation('Animal', 'Duck')).toEqual({
+			arrowheadStart: 'triangle',
+			arrowheadEnd: 'none',
+			fill: 'none',
+			dash: 'solid',
+		})
+		expect(relation('Duck', 'Swimmer')).toEqual({
+			arrowheadStart: 'none',
+			arrowheadEnd: 'triangle',
+			fill: 'none',
+			dash: 'dashed',
+		})
+		expect(relation('Zoo', 'Animal')).toEqual({
+			arrowheadStart: 'diamond',
+			arrowheadEnd: 'none',
+			fill: 'fill',
+			dash: 'solid',
+		})
+		expect(relation('Zoo', 'Keeper')).toEqual({
+			arrowheadStart: 'diamond',
+			arrowheadEnd: 'none',
+			fill: 'none',
+			dash: 'solid',
+		})
+		expect(relation('Duck', 'Water')).toEqual({
+			arrowheadStart: 'none',
+			arrowheadEnd: 'arrow',
+			fill: 'none',
+			dash: 'dashed',
+		})
+		expect(relation('Zoo', 'Ticket')).toEqual({
+			arrowheadStart: 'none',
+			arrowheadEnd: 'none',
+			fill: 'none',
+			dash: 'solid',
+		})
+	})
+
+	it('keeps each multiplicity with its end of the relation', async () => {
+		// Mermaid can't place multiplicities without real text layout, so the layout is made up here.
+		const source = `classDiagram
+    Order "1" *-- "many" Line : contains
+    Order -- "1" Invoice
+    Order --> Customer : placed by`
+		const mermaid = (await import('mermaid')).default
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		const db = (await mermaid.mermaidAPI.getDiagramFromText(source)).db as ClassDB
+		const layout = diagramLayout(
+			[...db.getClasses().keys()].map((id, i) => node(id, i * 200, 0, 100, 60))
+		)
+
+		const bp = classToBlueprint(layout, db.getClasses(), db.getRelations())
+
+		expect(
+			bp.edges.map(({ startLabel, label, endLabel }) => ({ startLabel, label, endLabel }))
+		).toEqual([
+			{ startLabel: '1', label: 'contains', endLabel: 'many' },
+			{ startLabel: undefined, label: undefined, endLabel: '1' },
+			{ startLabel: undefined, label: 'placed by', endLabel: undefined },
+		])
+	})
+
+	it('loops a relation to itself out of the side mermaid drew it from', async () => {
+		// Mermaid's three self-loop paths, written by hand: mermaid can't place the label in jsdom.
+		const path = (id: string, points: [number, number][]) =>
+			`<path data-id="${id}" data-points="${btoa(JSON.stringify(points.map(([x, y]) => ({ x, y }))))}" />`
+		const container = document.createElement('div')
+		container.innerHTML = `<svg>
+			<g class="node" id="mermaid-0-classId-Node-0" transform="translate(100,50)"><rect width="100" height="60" /></g>
+			${path('Node-cyclic-special-1', [
+				[90, 80],
+				[90, 120],
+			])}
+			${path('Node-cyclic-special-mid', [
+				[90, 120],
+				[100, 140],
+				[110, 120],
+			])}
+			${path('Node-cyclic-special-2', [
+				[110, 120],
+				[110, 80],
+			])}
+		</svg>`
+		const layout = parseClassDiagramLayout(container.querySelector('svg')!)
+		const mermaid = (await import('mermaid')).default
+		const source = `classDiagram
+    Node --> Node : next`
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		const db = (await mermaid.mermaidAPI.getDiagramFromText(source)).db as ClassDB
+
+		const bp = classToBlueprint(layout, db.getClasses(), db.getRelations())
+
+		expect(layout.edges.map((e) => [e.id, e.start, e.end, e.points.length])).toEqual([
+			['Node-cyclic-special-mid', 'Node', 'Node', 7],
+		])
+		// Out of the bottom, as mermaid drew it, rather than the renderer's default on the right.
+		const loop = findEdge(bp, 'Node', 'Node')!
+		expect(loop).toMatchObject({ anchorStartY: 1, anchorEndY: 1, label: 'next' })
+		expect(loop.anchorStartX).toBeLessThan(loop.anchorEndX!)
+	})
+
+	it('claims the path mermaid drew for each of several relations between the same classes', async () => {
+		const bp = await classBlueprint(`classDiagram
+    A --> B : one
+    A --> B : two`)
+
+		expect(bp.edges.map((e) => [e.startNodeId, e.endNodeId, e.label])).toEqual([
+			['A', 'B', 'one'],
+			['A', 'B', 'two'],
+		])
 	})
 })

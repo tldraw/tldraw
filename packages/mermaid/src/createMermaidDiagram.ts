@@ -1,9 +1,11 @@
+import type { ClassDB } from 'mermaid/dist/diagrams/class/classDb.d.ts'
 import type { FlowDB } from 'mermaid/dist/diagrams/flowchart/flowDb.d.ts'
 import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
 import type { MindmapDB } from 'mermaid/dist/diagrams/mindmap/mindmapDb.d.ts'
 import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
 import type { StateDB } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
 import { Editor } from 'tldraw'
+import { classToBlueprint, parseClassDiagramLayout } from './classDiagram'
 import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
 import { createLabelWidthMeasurer } from './mermaidNodeCreateShape'
 import { mindmapToBlueprint, parseMindmapLayout } from './mindmapDiagram'
@@ -150,6 +152,13 @@ export async function createMermaidDiagram(
 				const classes = db.getClasses()
 				const layout = parseStateDiagramLayout(liveSvg)
 				blueprint = stateToBlueprint(layout, states, relations, classes)
+				break
+			}
+			case 'class':
+			case 'classDiagram': {
+				const db = diagramResult.db as ClassDB
+				const layout = parseClassDiagramLayout(liveSvg)
+				blueprint = classToBlueprint(layout, db.getClasses(), db.getRelations())
 				break
 			}
 			case 'mindmap': {

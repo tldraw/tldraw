@@ -41,6 +41,7 @@ function mapEdgeTypeToArrowhead(type: string | undefined): TLArrowShapeArrowhead
 
 const FRAME_TOP_PAD = 14
 const NODE_ID = /^flowchart-(.+)-\d+$/
+const EDGE_ID = /(?:^|-)L_(.+)_\d+$/
 
 function buildHierarchy(subGraphs: FlowSubGraph[]) {
 	const subGraphIds = new Set(subGraphs.map((subGraph) => subGraph.id))
@@ -59,14 +60,19 @@ function buildHierarchy(subGraphs: FlowSubGraph[]) {
 }
 
 /**
- * Split mermaid's edge id, `L_<start>_<end>_<n>`, back into the two ids it joins. Node ids can
- * contain underscores themselves, so the split is ambiguous: `L_a_b_c_0` joins `a` to `b_c` in a
- * diagram with those, and `a_b` to `c` in one with those. A diagram with all four settles it the
- * only way left, by which pair the path was actually drawn between. `centers` holds everything an
- * edge can end on, subgraphs as well as nodes, since mermaid links those too.
+ * Split mermaid's edge id, `L_<start>_<end>_<n>` (`id_…` in a class diagram), back into the two ids
+ * it joins. Node ids can contain underscores themselves, so the split is ambiguous: `L_a_b_c_0`
+ * joins `a` to `b_c` in a diagram with those, and `a_b` to `c` in one with those. A diagram with all
+ * four settles it the only way left, by which pair the path was actually drawn between. `centers`
+ * holds everything an edge can end on, subgraphs as well as nodes, since mermaid links those too.
  */
-function parseEdgeId(dataId: string, points: Vec2[], centers: Map<string, Vec2>) {
-	const match = dataId.match(/(?:^|-)L_(.+)_\d+$/)
+export function parseEdgeId(
+	dataId: string,
+	points: Vec2[],
+	centers: Map<string, Vec2>,
+	pattern = EDGE_ID
+) {
+	const match = dataId.match(pattern)
 	if (!match) return null
 
 	const joined = match[1]

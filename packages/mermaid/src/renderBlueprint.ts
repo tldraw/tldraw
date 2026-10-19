@@ -1,4 +1,13 @@
-import { createShapeId, Editor, IndexKey, TLLineShape, TLShapeId, toRichText, Vec } from 'tldraw'
+import {
+	createShapeId,
+	Editor,
+	IndexKey,
+	TLLineShape,
+	TLShapeId,
+	TLTextShape,
+	toRichText,
+	Vec,
+} from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
@@ -6,8 +15,10 @@ import type {
 	MermaidBlueprintNode,
 	MermaidNodeRenderMapper,
 } from './blueprint'
+import { MERMAID_CLASS_SHAPE_TYPE } from './classShape'
 import { resolveMermaidNodeRender } from './defaultMermaidNodeRenderSpec'
 import { defaultCreateMermaidNodeFromBlueprint } from './mermaidNodeCreateShape'
+import { MERMAID_MULTIPLICITY_BINDING_TYPE } from './multiplicityBinding'
 import { orderTopDown, sanitizeDiagramText } from './utils'
 
 /** @public */
@@ -21,6 +32,8 @@ export interface BlueprintRenderingOptions {
 	mapNodeToRenderSpec?: MermaidNodeRenderMapper
 }
 
+const CLASS_SHAPE_RENDER = { variant: 'shape', type: MERMAID_CLASS_SHAPE_TYPE, props: {} } as const
+
 const defaultBlueprintRenderingOptions = {
 	centerOnPosition: true,
 }
@@ -33,7 +46,11 @@ export function renderBlueprint(
 ) {
 	const options = { ...defaultBlueprintRenderingOptions, ...opts }
 	const { nodes, edges, lines, diagramKind } = blueprint
-	const mapper = options.mapNodeToRenderSpec
+	// Class boxes fall back to a labelled rectangle in apps that haven't registered the class shape.
+	const hasClassShape = editor.hasShapeUtil(MERMAID_CLASS_SHAPE_TYPE)
+	const mapper: MermaidNodeRenderMapper = (input) =>
+		options.mapNodeToRenderSpec?.(input) ??
+		(hasClassShape && input.node.classBox ? CLASS_SHAPE_RENDER : undefined)
 
 	const bounds = computeBlueprintBounds(nodes, lines)
 	const center =
@@ -103,10 +120,14 @@ export function renderBlueprint(
 	// One call, so the background nodes keep the blueprint's order among themselves.
 	if (backgroundIds.length > 0) editor.sendToBack(backgroundIds)
 
+	const hasEndLabelBinding = !!editor.bindingUtils[MERMAID_MULTIPLICITY_BINDING_TYPE]
 	const arrowIds: TLShapeId[] = []
 	for (const edge of edges) {
-		const arrowId = createArrowFromEdge(editor, edge, shapeIds)
-		if (arrowId) arrowIds.push(arrowId)
+		const arrowEdge = hasEndLabelBinding ? edge : { ...edge, label: foldEndLabels(edge) }
+		const arrowId = createArrowFromEdge(editor, arrowEdge, shapeIds)
+		if (!arrowId) continue
+		arrowIds.push(arrowId)
+		if (hasEndLabelBinding) arrowIds.push(...createEndLabels(editor, edge, arrowId, shapeIds))
 	}
 
 	// Create sub-groups and track which shape IDs are consumed by a group
@@ -197,6 +218,7 @@ function createArrowFromEdge(
 		size: edge.size ?? ('m' as const),
 		arrowheadEnd: edge.arrowheadEnd ?? ('arrow' as const),
 		...(edge.arrowheadStart && { arrowheadStart: edge.arrowheadStart }),
+		...(edge.fill && { fill: edge.fill }),
 		color: edge.color ?? ('black' as const),
 		...(labelText && { richText: toRichText(sanitizeDiagramText(labelText)) }),
 	}
@@ -281,6 +303,51 @@ function createArrowFromEdge(
 		])
 	})
 	return arrowId
+}
+
+// An arrow has only a middle label: `1 — has — many`.
+function foldEndLabels({ label, startLabel, endLabel }: MermaidBlueprintEdge) {
+	if (!startLabel && !endLabel) return label
+	return [startLabel, label, endLabel].filter(Boolean).join(' — ')
+}
+
+function createEndLabels(
+	editor: Editor,
+	edge: MermaidBlueprintEdge,
+	arrowId: TLShapeId,
+	shapeIds: Map<string, TLShapeId>
+): TLShapeId[] {
+	const labelIds: TLShapeId[] = []
+	const watched = new Set([arrowId, shapeIds.get(edge.startNodeId), shapeIds.get(edge.endNodeId)])
+	for (const [terminal, text] of [
+		['start', edge.startLabel],
+		['end', edge.endLabel],
+	] as const) {
+		if (!text) continue
+		const labelId = createShapeId()
+		editor.createShape<TLTextShape>({
+			id: labelId,
+			type: 'text',
+			props: {
+				richText: toRichText(sanitizeDiagramText(text)),
+				size: 's',
+				color: edge.color ?? 'black',
+				autoSize: true,
+			},
+		})
+		editor.createBindings(
+			[...watched]
+				.filter((fromId) => fromId !== undefined)
+				.map((fromId) => ({
+					type: MERMAID_MULTIPLICITY_BINDING_TYPE,
+					fromId,
+					toId: labelId,
+					props: { arrowId, terminal },
+				}))
+		)
+		labelIds.push(labelId)
+	}
+	return labelIds
 }
 
 function makeArrowBinding(

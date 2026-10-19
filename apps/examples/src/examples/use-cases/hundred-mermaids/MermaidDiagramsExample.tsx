@@ -1,3 +1,4 @@
+import { MermaidClassShapeUtil, MermaidMultiplicityBindingUtil } from '@tldraw/mermaid'
 import { useCallback } from 'react'
 import {
 	Editor,
@@ -23,7 +24,12 @@ const MERMAID_CONFIG = {
 	state: { useMaxWidth: false },
 	mindmap: { useMaxWidth: false },
 	sequence: { useMaxWidth: false },
+	class: { useMaxWidth: false },
 }
+
+// [5]
+const shapeUtils = [MermaidClassShapeUtil]
+const bindingUtils = [MermaidMultiplicityBindingUtil]
 
 const components: TLComponents = {
 	TopPanel: TopPanel,
@@ -32,7 +38,7 @@ const components: TLComponents = {
 export default function MermaidDiagramsExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw components={components} />
+			<Tldraw components={components} shapeUtils={shapeUtils} bindingUtils={bindingUtils} />
 		</div>
 	)
 }
@@ -187,8 +193,9 @@ the SVG we render for comparison has an intrinsic size we can read back. `create
 merges `mermaidConfig` over its own defaults and calls `mermaid.initialize` for us.
 
 [2]
-Both `@tldraw/mermaid` and mermaid itself are large, so they are loaded on first click rather
-than on page load.
+Mermaid is large, so it is loaded on first click rather than on page load. `@tldraw/mermaid`
+itself is small and is imported up front, since its shape and binding utils must be registered
+when the editor is created.
 
 [3]
 `createMermaidDiagram` parses the Mermaid source and creates native tldraw shapes (geo shapes,
@@ -198,4 +205,9 @@ it created so we can measure it and lay out the next diagram.
 [4]
 For comparison, the same source is also rendered by Mermaid to an SVG, which is turned into an
 image asset and placed next to the native version at the same height.
+
+[5]
+`MermaidClassShapeUtil` draws classes as UML class boxes, and `MermaidMultiplicityBindingUtil`
+keeps multiplicities (`1`, `*`) beside their end of each relation. Without them, classes are
+labelled rectangles and multiplicities go in the arrow's label.
 */

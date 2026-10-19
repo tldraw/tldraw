@@ -4,17 +4,28 @@
 
 ```ts
 
+import { BaseBoxShapeUtil } from 'tldraw';
+import { BindingOnCreateOptions } from 'tldraw';
+import { BindingOnShapeChangeOptions } from 'tldraw';
+import { BindingOnShapeDeleteOptions } from 'tldraw';
+import { BindingUtil } from 'tldraw';
 import { Editor } from 'tldraw';
+import { JSX } from 'react/jsx-runtime';
+import { RecordProps } from 'tldraw';
+import { SvgExportContext } from 'tldraw';
 import type { TLArrowShapeArrowheadStyle } from 'tldraw';
-import type { TLDefaultColorStyle } from 'tldraw';
+import { TLBinding } from 'tldraw';
+import { TLDefaultColorStyle } from 'tldraw';
 import type { TLDefaultDashStyle } from 'tldraw';
 import type { TLDefaultFillStyle } from 'tldraw';
+import { TLDefaultFontStyle } from 'tldraw';
 import type { TLDefaultHorizontalAlignStyle } from 'tldraw';
-import type { TLDefaultSizeStyle } from 'tldraw';
+import { TLDefaultSizeStyle } from 'tldraw';
 import type { TLDefaultVerticalAlignStyle } from 'tldraw';
+import { TLFontFace } from 'tldraw';
 import type { TLGeoShapeGeoStyle } from 'tldraw';
-import type { TLShape } from 'tldraw';
-import type { TLShapeId } from 'tldraw';
+import { TLShape } from 'tldraw';
+import { TLShapeId } from 'tldraw';
 
 // @public (undocumented)
 export interface BlueprintRenderingOptions {
@@ -52,6 +63,15 @@ export interface DiagramMermaidBlueprint {
 }
 
 // @public
+export function getMermaidClassShapeSize(editor: Editor, props: TLMermaidClassShapeProps): {
+    h: number;
+    w: number;
+};
+
+// @public (undocumented)
+export const MERMAID_CLASS_SHAPE_TYPE = "mermaid-class";
+
+// @public
 export const MERMAID_MINDMAP_NODE_TYPE: {
     readonly BANG: 5;
     readonly CIRCLE: 3;
@@ -61,6 +81,9 @@ export const MERMAID_MINDMAP_NODE_TYPE: {
     readonly RECT: 2;
     readonly ROUNDED_RECT: 1;
 };
+
+// @public (undocumented)
+export const MERMAID_MULTIPLICITY_BINDING_TYPE = "mermaid-multiplicity";
 
 // @public (undocumented)
 export interface MermaidBlueprintEdge {
@@ -86,7 +109,10 @@ export interface MermaidBlueprintEdge {
         value: string;
     };
     // (undocumented)
+    endLabel?: string;
+    // (undocumented)
     endNodeId: string;
+    fill?: TLDefaultFillStyle;
     // (undocumented)
     isExact?: boolean;
     // (undocumented)
@@ -99,6 +125,7 @@ export interface MermaidBlueprintEdge {
     label?: string;
     // (undocumented)
     size?: TLDefaultSizeStyle;
+    startLabel?: string;
     // (undocumented)
     startNodeId: string;
 }
@@ -128,6 +155,7 @@ export interface MermaidBlueprintNode {
     // (undocumented)
     align?: TLDefaultHorizontalAlignStyle;
     background?: boolean;
+    classBox?: MermaidClassBox;
     // (undocumented)
     color?: TLDefaultColorStyle;
     // (undocumented)
@@ -165,6 +193,48 @@ export type MermaidBlueprintNodeRenderSpec = {
     geo: TLGeoShapeGeoStyle;
 };
 
+// @public
+export interface MermaidClassBox {
+    // (undocumented)
+    annotations: string[];
+    // (undocumented)
+    attributes: MermaidClassMember[];
+    // (undocumented)
+    methods: MermaidClassMember[];
+    // (undocumented)
+    name: string;
+}
+
+// @public
+export interface MermaidClassMember {
+    // (undocumented)
+    classifier?: 'abstract' | 'static';
+    // (undocumented)
+    text: string;
+}
+
+// @public
+export class MermaidClassShapeUtil extends BaseBoxShapeUtil<TLMermaidClassShape> {
+    // (undocumented)
+    canEdit(): boolean;
+    // (undocumented)
+    component(shape: TLMermaidClassShape): JSX.Element;
+    // (undocumented)
+    getDefaultProps(): TLMermaidClassShapeProps;
+    // (undocumented)
+    getFontFaces(shape: TLMermaidClassShape): TLFontFace[];
+    // (undocumented)
+    getIndicatorPath(shape: TLMermaidClassShape): Path2D;
+    // (undocumented)
+    getText(shape: TLMermaidClassShape): string;
+    // (undocumented)
+    static props: RecordProps<TLMermaidClassShape>;
+    // (undocumented)
+    toSvg(shape: TLMermaidClassShape, ctx: SvgExportContext): JSX.Element;
+    // (undocumented)
+    static type: string;
+}
+
 // @public (undocumented)
 export class MermaidDiagramError extends Error {
     constructor(diagramType: string, type: 'parse' | 'unsupported');
@@ -175,7 +245,7 @@ export class MermaidDiagramError extends Error {
 }
 
 // @public
-export type MermaidDiagramKind = 'flowchart' | 'mindmap' | 'sequence' | 'state';
+export type MermaidDiagramKind = 'class' | 'flowchart' | 'mindmap' | 'sequence' | 'state';
 
 // @public (undocumented)
 export interface MermaidDiagramOptions {
@@ -185,6 +255,22 @@ export interface MermaidDiagramOptions {
     mermaidConfig?: Record<string, any>;
     // (undocumented)
     onUnsupportedDiagram?(svg: string): Promise<void>;
+}
+
+// @public
+export class MermaidMultiplicityBindingUtil extends BindingUtil<TLMermaidMultiplicityBinding> {
+    // (undocumented)
+    getDefaultProps(): Partial<TLMermaidMultiplicityBindingProps>;
+    // (undocumented)
+    onAfterChangeFromShape({ binding, }: BindingOnShapeChangeOptions<TLMermaidMultiplicityBinding>): void;
+    // (undocumented)
+    onAfterCreate({ binding }: BindingOnCreateOptions<TLMermaidMultiplicityBinding>): void;
+    // (undocumented)
+    onBeforeDeleteFromShape({ binding, shape, }: BindingOnShapeDeleteOptions<TLMermaidMultiplicityBinding>): void;
+    // (undocumented)
+    static props: RecordProps<TLMermaidMultiplicityBinding>;
+    // (undocumented)
+    static type: string;
 }
 
 // @public
@@ -219,6 +305,34 @@ export function renderBlueprint(editor: Editor, blueprint: DiagramMermaidBluepri
 
 // @public
 export function resolveMermaidNodeRender(diagramKind: MermaidDiagramKind, node: MermaidBlueprintNode, mapper?: MermaidNodeRenderMapper | undefined): MermaidBlueprintNodeRenderSpec;
+
+// @public (undocumented)
+export type TLMermaidClassShape = TLShape<typeof MERMAID_CLASS_SHAPE_TYPE>;
+
+// @public (undocumented)
+export interface TLMermaidClassShapeProps extends MermaidClassBox {
+    // (undocumented)
+    color: TLDefaultColorStyle;
+    // (undocumented)
+    font: TLDefaultFontStyle;
+    // (undocumented)
+    h: number;
+    // (undocumented)
+    size: TLDefaultSizeStyle;
+    // (undocumented)
+    w: number;
+}
+
+// @public (undocumented)
+export type TLMermaidMultiplicityBinding = TLBinding<typeof MERMAID_MULTIPLICITY_BINDING_TYPE>;
+
+// @public (undocumented)
+export interface TLMermaidMultiplicityBindingProps {
+    // (undocumented)
+    arrowId: TLShapeId;
+    // (undocumented)
+    terminal: 'end' | 'start';
+}
 
 // (No @packageDocumentation comment for this package)
 

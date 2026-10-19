@@ -5,7 +5,7 @@ priority: 10
 keywords: [mermaid, diagram]
 ---
 
-Convert over a hundred Mermaid flowcharts, state diagrams, mind maps, and sequence diagrams into native tldraw shapes.
+Convert over a hundred Mermaid flowcharts, state diagrams, mind maps, sequence diagrams, and class diagrams into native tldraw shapes.
 
 ---
 

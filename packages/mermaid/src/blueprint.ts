@@ -8,12 +8,13 @@ import type {
 	TLDefaultVerticalAlignStyle,
 	TLGeoShapeGeoStyle,
 } from 'tldraw'
+import type { MermaidClassBox } from './classShape'
 
 /**
  * Which Mermaid diagram family produced this blueprint (used by default geo tables and mapper dispatch).
  * @public
  */
-export type MermaidDiagramKind = 'flowchart' | 'state' | 'sequence' | 'mindmap'
+export type MermaidDiagramKind = 'flowchart' | 'state' | 'sequence' | 'mindmap' | 'class'
 
 /**
  * Optional hook: return a custom render spec for this node, or `undefined` to use the package default mapper.
@@ -93,6 +94,8 @@ export interface MermaidBlueprintNode {
 	 * participant box, would hide them.
 	 */
 	background?: boolean
+	/** A class diagram's class: the sections {@link MermaidClassShapeUtil} draws. */
+	classBox?: MermaidClassBox
 }
 
 /** @public */
@@ -100,9 +103,17 @@ export interface MermaidBlueprintEdge {
 	startNodeId: string
 	endNodeId: string
 	label?: string
+	/**
+	 * Text beside each end, such as a class diagram's multiplicities. Bound to the arrow's ends when
+	 * {@link MermaidMultiplicityBindingUtil} is registered, folded into `label` otherwise.
+	 */
+	startLabel?: string
+	endLabel?: string
 	bend: number
 	arrowheadEnd?: TLArrowShapeArrowheadStyle
 	arrowheadStart?: TLArrowShapeArrowheadStyle
+	/** Fills closed arrowheads (triangles, diamonds). `none`, the default, leaves them hollow. */
+	fill?: TLDefaultFillStyle
 	dash?: TLDefaultDashStyle
 	size?: TLDefaultSizeStyle
 	color?: TLDefaultColorStyle

@@ -1424,4 +1424,76 @@ sequenceDiagram
     "   "
     Filled`,
 	],
+	[
+		`classDiagram
+    Animal <|-- Duck
+    Animal <|-- Fish
+    Animal <|-- Zebra
+    class Animal {
+        +int age
+        +String gender
+        +isMammal() bool
+        +mate()
+    }
+    class Duck {
+        +String beakColor
+        +swim()
+        +quack()
+    }
+    class Fish {
+        -int sizeInFeet
+        -canEat()
+    }
+    class Zebra {
+        +bool is_wild
+        +run()
+    }`,
+		`classDiagram
+    class Shape {
+        <<interface>>
+        +area() double
+    }
+    class Circle {
+        +double radius
+    }
+    class Square {
+        +double side
+    }
+    Circle ..|> Shape
+    Square ..|> Shape`,
+		`classDiagram
+    Car *-- Engine
+    Car *-- "4" Wheel
+    Car o-- Driver
+    Driver ..> License`,
+		`classDiagram
+    Customer "1" --> "*" Order : places
+    Order "1" *-- "1..*" LineItem : contains
+    LineItem "*" --> "1" Product
+    class Order {
+        +Date placedAt
+        +total() Money
+    }`,
+		`classDiagram
+    class Repository~T~ {
+        <<abstract>>
+        -List~T~ items
+        +find(id) T
+        +save(T item)
+    }
+    class UserRepository
+    Repository~T~ <|-- UserRepository`,
+		`classDiagram
+    direction LR
+    Controller --> Service
+    Service --> Repository
+    Repository ..> Database
+    Service ..> Logger
+    Controller ..> Logger`,
+		`classDiagram
+    class Node {
+        +Node next
+    }
+    Node --> Node : next`,
+	],
 ]
