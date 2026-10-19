@@ -271,6 +271,15 @@ describe('TaskItemToggleExtension', () => {
 		])
 	})
 
+	it('toggles on Meta+Enter where Mod means Ctrl', () => {
+		// The shape handlers stand down for Meta+Enter off Apple platforms too (isAccelKey), so the
+		// toggle has to answer it there or the press does nothing. jsdom isn't an Apple platform.
+		const textEditor = new TextEditor({ extensions: tipTapDefaultExtensions, content: doc() })
+		textEditor.commands.setTextSelection(posIn(textEditor, 'sibling'))
+		textEditor.commands.keyboardShortcut('Meta-Enter')
+		expect(checkedStates(textEditor)).toContainEqual(['sibling', true])
+	})
+
 	it('ticks nothing when the cursor is outside every task item', () => {
 		// The extension has to decline here rather than reach for the nearest item: tldraw's
 		// shape-level handlers own Cmd+Enter outside a task list, finishing the edit or adding the
