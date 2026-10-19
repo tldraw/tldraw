@@ -893,6 +893,9 @@ input,
 	display: block;
 	width: 1.08em;
 	height: 1.08em;
+	/* The box art is centered at 60% of the span, leaving room above for a tick to break out of it;
+	   lift it so the box itself, not the span, is centered on the line. */
+	translate: 0 -10%;
 }
 
 /**
