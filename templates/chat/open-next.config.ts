@@ -1,6 +1,6 @@
 import { defineCloudflareConfig } from '@opennextjs/cloudflare'
 
 const config = defineCloudflareConfig()
-config.buildCommand = 'yarn build'
+config.buildCommand = 'pnpm build'
 
 export default config

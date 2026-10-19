@@ -40,7 +40,7 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"ai": "^5.0.194",
-		"next": "^16.3.3",
+		"next": "^16.3.0",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"react-markdown": "^10.1.0",
@@ -50,6 +50,6 @@
 	},
 	"devDependencies": {
 		"@opennextjs/cloudflare": "^1.20.6",
-		"wrangler": "^4.128.0"
+		"wrangler": "^4.75.0"
 	}
 }
