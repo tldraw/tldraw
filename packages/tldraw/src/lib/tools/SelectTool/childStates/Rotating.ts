@@ -54,7 +54,6 @@ export class Rotating extends StateNode {
 		// Watch for changes made to the rotating shapes from outside this interaction.
 		this.changeTracker.start(snapshot.shapeSnapshots.map((s) => s.shape.id))
 
-		// Trigger a pointer move
 		const newSelectionRotation = this._getRotationFromPointerPosition({
 			snapToNearestDegree: false,
 		})
@@ -62,7 +61,7 @@ export class Rotating extends StateNode {
 		this.changeTracker.ignoreChanges(() => {
 			applyRotationToSnapshotShapes({
 				editor: this.editor,
-				delta: this._getRotationFromPointerPosition({ snapToNearestDegree: false }),
+				delta: newSelectionRotation,
 				snapshot: this.snapshot,
 				stage: 'start',
 			})
@@ -106,8 +105,6 @@ export class Rotating extends StateNode {
 	override onCancel() {
 		this.cancel()
 	}
-
-	// ---
 
 	private update() {
 		this.changeTracker.ignoreChanges(this.updateShapes)

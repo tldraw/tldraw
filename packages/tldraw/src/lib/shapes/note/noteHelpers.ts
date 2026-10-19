@@ -9,6 +9,7 @@ import {
 	createShapeId,
 	toRichText,
 } from '@tldraw/editor'
+import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
 
 /** @internal */
 export const CLONE_HANDLE_MARGIN = 0
@@ -270,11 +271,21 @@ export function getNoteShapeForAdjacentPosition(
 		nextNote = editor.getShape(id)!
 	}
 
+	return nextNote
+}
+
+/**
+ * Start editing a note reached via Tab, Ctrl/Cmd+Enter, or a clone handle, and bring it on
+ * screen if it landed outside the viewport.
+ *
+ * @internal */
+export function startEditingAdjacentNote(editor: Editor, note: TLShape) {
+	startEditingShapeWithRichText(editor, note, { selectAll: true })
+	// Zooming before the note is selected pans to the source note instead (#10428).
 	editor.zoomToSelectionIfOffscreen(16, {
 		animation: {
 			duration: editor.options.animationMediumMs,
 		},
 		inset: 0,
 	})
-	return nextNote
 }

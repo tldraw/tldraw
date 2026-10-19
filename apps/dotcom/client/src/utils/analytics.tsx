@@ -7,7 +7,13 @@ import { useLocation } from 'react-router-dom'
 import { atom, getFromLocalStorage, react, setInLocalStorage, useValue, warnOnce } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
 import { useSignUpTracking } from '../tla/hooks/useSignUpTracking'
-import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/FeatureFlagPoller'
+import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/featureFlags'
+import {
+	commonRoom,
+	configureCommonRoom,
+	shouldUseCommonRoom,
+	trackCommonRoomPageview,
+} from './common-room-signals'
 
 // Local storage key for cookie consent
 export const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
@@ -88,10 +94,11 @@ function filterProperties(value: { [key: string]: any }) {
 }
 
 /**
- * App feature flags for PostHog event properties; null until `/api/app/feature-flags` has settled once.
+ * App feature flags for PostHog event properties; null until `/api/app/feature-flags` has succeeded, so a failed
+ * fetch doesn't report its defaults as real "off" values.
  * Only used for signed-in users — percentage flags are not evaluated for anonymous requests on the server.
- * We attach here (not via setPersonProperties) so each event reflects the latest values when flags
- * change mid-session from polling. Person-level cohorts from flags alone would need extra sync.
+ * We attach here (not via setPersonProperties) so each event carries the values this page load
+ * evaluated. Person-level cohorts from flags alone would need extra sync.
  */
 function getAppFeatureFlagEventProperties(): Record<string, boolean> | null {
 	if (!hasResolvedFlagsOnce()) return null
@@ -131,6 +138,8 @@ export function configureAnalytics(
 	consent: boolean,
 	user: { id: string; name: string; email: string } | undefined
 ) {
+	configureCommonRoom(consent, user)
+
 	configurePosthog({
 		optedIn: consent,
 		user,
@@ -174,16 +183,13 @@ function configurePosthog(options: AnalyticsOptions) {
 				Object.assign(props, flagProps)
 			}
 
-			const redactedProperties = filterProperties(props)
-			payload.properties = redactedProperties
+			payload.properties = filterProperties(props)
 
 			// $set
-			const redactedSet = filterProperties(payload.$set || {})
-			payload.$set = redactedSet
+			payload.$set = filterProperties(payload.$set || {})
 
 			// $set_once
-			const redactedSetOnce = filterProperties(payload.$set_once || {})
-			payload.$set_once = redactedSetOnce
+			payload.$set_once = filterProperties(payload.$set_once || {})
 
 			return payload
 		},
@@ -213,9 +219,17 @@ function configurePosthog(options: AnalyticsOptions) {
 			})
 		}
 		posthog.opt_in_capturing()
-	} else if (currentOptionsPosthog?.optedIn) {
-		posthog.setPersonProperties({ analytics_consent: false })
-		posthog.opt_out_capturing()
+	} else if (cookieConsent.get()?.analytics === false) {
+		// Keyed on stored consent, not the previous options: a persisted PostHog opt-in would
+		// otherwise survive a reload with consent already off, and a first reject never engages
+		// cookieless_mode.
+		if (currentOptionsPosthog?.optedIn) {
+			posthog.setPersonProperties({ analytics_consent: false })
+		}
+		// An explicit opt-out is already persisted and opt_out_capturing emits its own $pageview.
+		if (posthog.get_explicit_consent_status() !== 'denied') {
+			posthog.opt_out_capturing()
+		}
 	}
 
 	currentOptionsPosthog = options
@@ -307,9 +321,9 @@ function getGA4() {
 export function trackEvent(name: string, data?: { [key: string]: any }) {
 	getPosthog()?.capture(name, data)
 
-	// Send pageviews to both platforms, but other app-specific events only to PostHog
 	if (name === '$pageview') {
 		getGA4()?.event('page_view', data)
+		trackCommonRoomPageview()
 	}
 
 	// Track new-account sign-ups in GA4 as well as PostHog. This is the conversion
@@ -417,6 +431,7 @@ function useTrackPageViews() {
 }
 
 export function signoutAnalytics() {
+	if (shouldUseCommonRoom) commonRoom.reset()
 	if (shouldUsePosthog) posthog.reset()
 	if (shouldUseGA4) ReactGA.reset()
 }

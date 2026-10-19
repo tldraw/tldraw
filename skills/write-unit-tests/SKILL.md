@@ -25,9 +25,9 @@ For the available `TestEditor` methods, read the class itself rather than a list
 Each package has its own `TestEditor`, and they are not interchangeable: `packages/editor/src/lib/test/TestEditor.ts` has no default shapes or tools, `packages/tldraw/src/test/TestEditor.ts` wires up the full SDK. Import from the package you're testing in.
 
 ```bash
-cd packages/tldraw && yarn test run
-cd packages/tldraw && yarn test run --grep "SelectTool"
-cd packages/tldraw && yarn test          # watch mode
+cd packages/tldraw && pnpm test run
+cd packages/tldraw && pnpm test run -t "SelectTool"
+cd packages/tldraw && pnpm test          # watch mode
 ```
 
 ## Placement
@@ -54,6 +54,12 @@ See `packages/editor/src/lib/editor/Editor.test.ts` for the full pattern.
 **Dispose the editor in `afterEach`.** `editor?.dispose()` releases the reactive subscriptions and timers the editor holds; without it they leak across tests in the same file. Suites that build up shapes also tend to clear them in `beforeEach` so each test starts from a known page.
 
 **Always `mockRestore()` a `vi.spyOn` on the editor.** Editor instances outlive individual assertions within a suite, so an unrestored spy silently changes later tests.
+
+**Restore anything global in `finally` or `afterEach`.** `process.env.NODE_ENV`, `vi.useFakeTimers()` (back to `vi.useRealTimers()`), Postgres `search_path`, `window` globals. Restoring at the end of the test body leaks into every later test when an assertion throws.
+
+**No dates relative to now against a fixed cutoff.** A test that builds `Date.now() - 1 day` and compares it to a hardcoded launch date starts failing on its own. Use fixed dates or `vi.setSystemTime`.
+
+**Prove the test can fail.** Assert the specific outcome (the count, which element has focus, that messages still arrive after reconnect), not just that something exists. Exercise the production path, not a stand-in built for the test, and cover the failure branch of new code, not only the happy one. A test that only passes because it asserts before async validation lands is not a test.
 
 ## Conventions
 

@@ -4,21 +4,10 @@ import { expect, test } from '../fixtures/scenario-test'
 test.describe.configure({ mode: 'parallel' })
 
 test.describe('auth dialog scenarios', () => {
-	test('visitor can open and close the sign-in dialog without signing in', async ({ visitor }) => {
-		await visitor.homePage.expectSignInButtonVisible()
-		await visitor.homePage.signInButton.click()
-		await visitor.signInDialog.expectInitialElements()
-
-		await visitor.signInDialog.emailInput.fill('partial@example.com')
-		await visitor.page.keyboard.press('Escape')
-
-		await expect(visitor.signInDialog.emailInput).not.toBeVisible()
-		await visitor.homePage.expectSignInButtonVisible()
-	})
-
-	test('visitor cannot submit empty or malformed email from the sign-in dialog', async ({
+	test('visitor cannot submit an empty or malformed email, and can close the sign-in dialog', async ({
 		visitor,
 	}) => {
+		await visitor.goto()
 		await visitor.homePage.expectSignInButtonVisible()
 		await visitor.homePage.signInButton.click()
 		await visitor.signInDialog.expectInitialElements()
@@ -31,5 +20,11 @@ test.describe('auth dialog scenarios', () => {
 		await visitor.signInDialog.continueWithEmailButton.click()
 		await expect(visitor.signInDialog.emailInput).toBeVisible()
 		await expect(visitor.signInDialog.codeInput).not.toBeVisible()
+
+		await visitor.signInDialog.emailInput.fill('partial@example.com')
+		await visitor.page.keyboard.press('Escape')
+
+		await expect(visitor.signInDialog.emailInput).not.toBeVisible()
+		await visitor.homePage.expectSignInButtonVisible()
 	})
 })

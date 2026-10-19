@@ -13,6 +13,9 @@ export async function upload(request: IRequest, env: Environment): Promise<Respo
 	const fileId = searchParams.get('fileId')
 	if (!fileId) return Response.json({ error: 'File id is required' }, { status: 400 })
 
+	const objectName = request.params.objectName
+	if (!objectName) return Response.json({ error: 'Object name is required' }, { status: 400 })
+
 	const db = createPostgresConnectionPool(env, 'sync-worker')
 	let canWrite = false
 	try {
@@ -23,9 +26,6 @@ export async function upload(request: IRequest, env: Environment): Promise<Respo
 	if (!canWrite) {
 		return Response.json({ error: 'Could not upload the file' }, { status: 403 })
 	}
-
-	const objectName = request.params.objectName
-	if (!objectName) return Response.json({ error: 'Object name is required' }, { status: 400 })
 
 	const res = await handleUserAssetUpload({
 		body,

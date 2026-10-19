@@ -80,9 +80,7 @@ export const TldrawUiToolbarButton = React.forwardRef<HTMLButtonElement, TLUiToo
 			</_Toolbar.Button>
 		)
 
-		const tooltipContent = tooltip || props.title
-
-		return <TldrawUiTooltip content={tooltipContent}>{button}</TldrawUiTooltip>
+		return <TldrawUiTooltip content={tooltip || props.title}>{button}</TldrawUiTooltip>
 	}
 )
 

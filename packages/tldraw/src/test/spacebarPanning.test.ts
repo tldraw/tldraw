@@ -81,6 +81,16 @@ it('When holding spacebar, pressing the arrow keys moves over by one viewport', 
 	editor.keyUp(' ')
 })
 
+it('When the camera is locked, spacebar + arrow keys do not move the camera', () => {
+	editor.setCameraOptions({ isLocked: true })
+	editor.user.updateUserPreferences({ animationSpeed: 0 })
+	editor.keyDown(' ')
+	editor.keyDown('ArrowRight')
+	editor.keyUp('ArrowRight')
+	expect(editor.getViewportPageBounds()).toEqual({ x: -0, y: -0, w: 1080, h: 720 })
+	editor.keyUp(' ')
+})
+
 describe('When cancelling while spacebar is held', () => {
 	it('keeps panning through a cancel while the pointer is down', () => {
 		editor.keyDown(' ')

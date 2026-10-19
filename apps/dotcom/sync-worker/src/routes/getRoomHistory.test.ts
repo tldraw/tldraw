@@ -1,9 +1,36 @@
 import { IRequest } from 'itty-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createFakeR2 } from '../test/fakeR2'
 import { Environment } from '../types'
+import { segmentCustomMetadata } from '../versionChain'
+import { listVersionTimestamps } from '../versionChainRead'
 import { getMonthPrefix, getPreviousMonth, getRoomHistory } from './getRoomHistory'
 
 vi.mock('../utils/tla/getAuth', () => ({ requireAdminAccessToRequest: vi.fn() }))
+
+describe('history listing', () => {
+	it('shows keyframes and every version inside a segment as one list', async () => {
+		const chainBucket = createFakeR2()
+		const roomKey = 'app_rooms/slug'
+
+		await chainBucket.put(`${roomKey}/2026-09-01T00:00:00.000Z.k`, '{}')
+		// One segment object standing for two versions — the listing must expand it, not report
+		// the segment's own key as a version.
+		await chainBucket.put(`${roomKey}/2026-09-01T00:00:08.000Z.s`, '{}', {
+			customMetadata: segmentCustomMetadata({
+				keyframeKey: `${roomKey}/2026-09-01T00:00:00.000Z.k`,
+				firstSeq: 1,
+				timestamps: ['2026-09-01T00:00:08.000Z', '2026-09-01T00:00:16.000Z'],
+			}),
+		})
+
+		expect(await listVersionTimestamps({ chainBucket, roomKey, prefix: '2026-0' })).toEqual([
+			'2026-09-01T00:00:16.000Z',
+			'2026-09-01T00:00:08.000Z',
+			'2026-09-01T00:00:00.000Z',
+		])
+	})
+})
 
 describe('getMonthPrefix', () => {
 	it('uses the UTC month at a local month boundary', () => {
@@ -30,13 +57,13 @@ describe('getPreviousMonth', () => {
 async function listHistory(timestamps: string[], offset: string) {
 	const list = vi.fn(async ({ prefix }: { prefix: string }) => ({
 		objects: timestamps
-			.map((timestamp) => ({ key: `app_rooms/board/${timestamp}` }))
+			.map((timestamp) => ({ key: `app_rooms/board/${timestamp}.k` }))
 			.filter(({ key }) => key.startsWith(prefix)),
 		truncated: false,
 	}))
 	const response = await getRoomHistory(
 		{ params: { roomId: 'board' }, query: { offset } } as unknown as IRequest,
-		{ ROOMS_HISTORY_EPHEMERAL: { list } } as unknown as Environment,
+		{ ROOMS_HISTORY: { list } } as unknown as Environment,
 		true
 	)
 	expect(response.status).toBe(200)

@@ -1,4 +1,4 @@
-import { createShapeId, TLHighlightShape } from '@tldraw/editor'
+import { Circle2d, createShapeId, TLHighlightShape } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { createDrawSegments, pointsToBase64 } from '../../utils/test-helpers'
 
@@ -25,6 +25,16 @@ describe('HighlightShapeUtil dot detection', () => {
 		])
 		return editor.getShape(shapeId) as TLHighlightShape
 	}
+
+	describe('empty segments', () => {
+		it('treats a shape created from its default props as a dot', () => {
+			editor.createShape({ id: shapeId, type: 'highlight' })
+			const shape = editor.getShape<TLHighlightShape>(shapeId)!
+			expect(shape.props.segments).toEqual([])
+			expect(editor.getShapeGeometry(shape)).toBeInstanceOf(Circle2d)
+			expect(editor.getShapeAtPoint({ x: 0, y: 0 })?.id).toBe(shapeId)
+		})
+	})
 
 	describe('getIsDot behavior via hideResizeHandles', () => {
 		it('treats a shape with one segment and zero points as a dot', () => {
@@ -142,5 +152,52 @@ describe('HighlightShapeUtil dot detection', () => {
 			const util = editor.getShapeUtil('highlight')
 			expect(util.hideResizeHandles(shape)).toBe(true)
 		})
+	})
+})
+
+describe('HighlightShapeUtil getInterpolatedProps', () => {
+	const segments = createDrawSegments([
+		[
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10, y: 10, z: 0.5 },
+		],
+	])
+
+	function createHighlightShape(id: string, props: Partial<TLHighlightShape['props']>) {
+		const shapeId = createShapeId(id)
+		editor.createShapes([{ id: shapeId, type: 'highlight', props: { segments, ...props } }])
+		return editor.getShape(shapeId) as TLHighlightShape
+	}
+
+	it('takes discrete props from the nearer shape', () => {
+		const start = createHighlightShape('start', { color: 'red', size: 's', scale: 1 })
+		const end = createHighlightShape('end', { color: 'blue', size: 'xl', scale: 3 })
+		const util = editor.getShapeUtil('highlight')
+
+		expect(util.getInterpolatedProps!(start, end, 0.25)).toMatchObject({
+			color: 'red',
+			size: 's',
+			scale: 1.5,
+		})
+		expect(util.getInterpolatedProps!(start, end, 0.75)).toMatchObject({
+			color: 'blue',
+			size: 'xl',
+			scale: 2.5,
+		})
+	})
+
+	it('interpolates from a shape created with default props, which has no segments', () => {
+		// https://github.com/tldraw/tldraw/issues/10737
+		const emptyId = createShapeId('empty')
+		editor.createShapes([{ id: emptyId, type: 'highlight' }])
+		const empty = editor.getShape<TLHighlightShape>(emptyId)!
+		const end = createHighlightShape('end', {})
+		expect(empty.props.segments).toEqual([])
+		const util = editor.getShapeUtil('highlight')
+
+		expect(() => util.getInterpolatedProps!(empty, end, 0.5)).not.toThrow()
+		expect(util.getInterpolatedProps!(empty, end, 1).segments).toEqual(end.props.segments)
+		expect(() => util.getInterpolatedProps!(end, empty, 0.5)).not.toThrow()
+		expect(util.getInterpolatedProps!(end, empty, 0).segments).toEqual(end.props.segments)
 	})
 })

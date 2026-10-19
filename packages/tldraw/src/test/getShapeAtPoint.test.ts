@@ -255,3 +255,34 @@ describe('frame-like shapes with a plain geometry', () => {
 		expect(editor.getShapeAtPoint({ x: 98, y: 150 }, { margin: 4 })?.id).toBe(ids.frame1)
 	})
 })
+
+describe('shapes bigger than the viewport', () => {
+	beforeEach(() => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapes())
+	})
+
+	it('hits the edge of a hollow shape whose bounds contain the viewport', () => {
+		editor.createShape({
+			id: ids.box1,
+			type: 'geo',
+			x: -1000,
+			y: -1000,
+			props: { w: 5000, h: 5000 },
+		})
+		// on the left edge
+		expect(editor.getShapeAtPoint({ x: -1000, y: 500 })?.id).toBe(ids.box1)
+		// but its empty interior must still miss, since the pointer is "inside" it everywhere
+		expect(editor.getShapeAtPoint({ x: 500, y: 500 })?.id).toBe(undefined)
+	})
+
+	it('hits the body of an arrow whose bounds contain the viewport', () => {
+		editor.createShape({
+			id: ids.box1,
+			type: 'arrow',
+			x: -1000,
+			y: -1000,
+			props: { start: { x: 0, y: 0 }, end: { x: 5000, y: 5000 } },
+		})
+		expect(editor.getShapeAtPoint({ x: 0, y: 0 }, { margin: 4 })?.id).toBe(ids.box1)
+	})
+})

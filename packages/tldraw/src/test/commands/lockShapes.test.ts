@@ -164,6 +164,66 @@ describe('Locked shapes', () => {
 	})
 })
 
+describe('Children of locked shapes', () => {
+	it('Can be selected with select all', () => {
+		editor.select(ids.groupedBoxA)
+		editor.selectAll()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.groupedBoxA, ids.groupedBoxB])
+	})
+
+	it('Cannot be grouped, without throwing', () => {
+		const shapeCount = editor.getCurrentPageShapes().length
+
+		expect(() => editor.groupShapes([ids.groupedBoxA, ids.groupedBoxB])).not.toThrow()
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount)
+		expect(editor.getShape(ids.groupedBoxA)!.parentId).toBe(ids.lockedGroup)
+	})
+
+	it('Cannot be deleted', () => {
+		const shapeCount = editor.getCurrentPageShapes().length
+		editor.deleteShapes([ids.groupedBoxA])
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount)
+		expect(editor.getShape(ids.groupedBoxA)).toBeDefined()
+	})
+
+	it('Cannot be duplicated', () => {
+		const shapeCount = editor.getCurrentPageShapes().length
+		editor.duplicateShapes([ids.groupedBoxA])
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount)
+	})
+
+	it('Cannot be ungrouped', () => {
+		const innerGroup = createShapeId('innerGroup')
+		editor.createShapes([
+			{ id: innerGroup, type: 'group', parentId: ids.lockedGroup },
+			{ id: createShapeId('innerBox'), type: 'geo', parentId: innerGroup, x: 1000, y: 1000 },
+		])
+		expect(editor.getShape(innerGroup)).toBeDefined()
+
+		editor.ungroupShapes([innerGroup])
+		expect(editor.getShape(innerGroup)).toBeDefined()
+		expect(editor.getShape(createShapeId('innerBox'))!.parentId).toBe(innerGroup)
+	})
+
+	it('Can be deleted, duplicated and grouped when forced', () => {
+		editor.run(
+			() => {
+				const shapeCount = editor.getCurrentPageShapes().length
+				editor.duplicateShapes([ids.groupedBoxA])
+				expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
+
+				editor.groupShapes([ids.groupedBoxA, ids.groupedBoxB])
+				expect(editor.getShape(ids.groupedBoxA)!.parentId).not.toBe(ids.lockedGroup)
+				expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 2)
+
+				editor.deleteShapes([ids.groupedBoxA])
+				expect(editor.getShape(ids.groupedBoxA)).toBeUndefined()
+			},
+			{ ignoreShapeLock: true }
+		)
+	})
+})
+
 describe('Unlocking', () => {
 	it('Can unlock shapes', () => {
 		editor.setSelectedShapes([ids.lockedShapeA, ids.lockedShapeB])

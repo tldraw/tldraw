@@ -1,5 +1,6 @@
-import { ExtractShapeByProps, T, TLShape, track, useEditor } from '@tldraw/editor'
+import { T, TLShape, track, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { isShapeWithLink, TLShapeWithLink } from '../../utils/shapes/shapes'
 import { TLUiDialogProps } from '../context/dialogs'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
@@ -25,15 +26,15 @@ function validateUrl(url: string) {
 	return { isValid: false, hasProtocol: false }
 }
 
-type ShapeWithUrl = ExtractShapeByProps<{ url: string }>
-
-function isShapeWithUrl(shape: TLShape | null | undefined): shape is ShapeWithUrl {
-	return !!(shape && 'url' in shape.props && typeof shape.props.url === 'string')
+function getUrlInputState(url: string) {
+	const { isValid, hasProtocol } = validateUrl(url)
+	const safe = isValid ? (hasProtocol ? url : 'https://' + url) : 'https://'
+	return { actual: url, safe, valid: isValid }
 }
 
-function assertShapeWithUrl(shape: TLShape | null | undefined): asserts shape is ShapeWithUrl {
-	if (!isShapeWithUrl(shape)) {
-		throw new Error('Shape is not a valid ShapeWithUrl')
+function assertShapeWithLink(shape: TLShape | null | undefined): asserts shape is TLShapeWithLink {
+	if (!isShapeWithLink(shape)) {
+		throw new Error('Shape is not a valid TLShapeWithLink')
 	}
 }
 
@@ -41,15 +42,15 @@ export const EditLinkDialog = track(function EditLinkDialog({ onClose }: TLUiDia
 	const editor = useEditor()
 
 	const selectedShape = editor.getOnlySelectedShape()
-	const hasShapeWithUrl = isShapeWithUrl(selectedShape)
+	const hasShapeWithLink = isShapeWithLink(selectedShape)
 
 	// The shape can be deleted or deselected from under the open dialog (a collaborator, or a
 	// keypress reaching the canvas). Returning null on its own would leave an empty dialog frame.
 	useEffect(() => {
-		if (!hasShapeWithUrl) onClose()
-	}, [hasShapeWithUrl, onClose])
+		if (!hasShapeWithLink) onClose()
+	}, [hasShapeWithLink, onClose])
 
-	if (!hasShapeWithUrl) {
+	if (!hasShapeWithLink) {
 		return null
 	}
 
@@ -59,7 +60,7 @@ export const EditLinkDialog = track(function EditLinkDialog({ onClose }: TLUiDia
 export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	onClose,
 	selectedShape,
-}: TLUiDialogProps & { selectedShape: ShapeWithUrl }) {
+}: TLUiDialogProps & { selectedShape: TLShapeWithLink }) {
 	const editor = useEditor()
 	const msg = useTranslation()
 
@@ -72,48 +73,20 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	const rInitialValue = useRef(selectedShape.props.url)
 
 	const [urlInputState, setUrlInputState] = useState(() => {
-		const urlValidResult = validateUrl(selectedShape.props.url)
-
-		const initialValue =
-			urlValidResult.isValid === true
-				? urlValidResult.hasProtocol
-					? selectedShape.props.url
-					: 'https://' + selectedShape.props.url
-				: 'https://'
-
-		return {
-			actual: initialValue,
-			safe: initialValue,
-			valid: true,
-		}
+		const { safe } = getUrlInputState(selectedShape.props.url)
+		return { actual: safe, safe, valid: true }
 	})
 
 	const handleChange = useCallback((rawValue: string) => {
 		// Just auto-correct double https:// from a bad paste.
-		const fixedRawValue = rawValue.replace(/https?:\/\/(https?:\/\/)/, (_match, arg1) => {
-			return arg1
-		})
-
-		const urlValidResult = validateUrl(fixedRawValue)
-
-		const safeValue =
-			urlValidResult.isValid === true
-				? urlValidResult.hasProtocol
-					? fixedRawValue
-					: 'https://' + fixedRawValue
-				: 'https://'
-
-		setUrlInputState({
-			actual: fixedRawValue,
-			safe: safeValue,
-			valid: urlValidResult.isValid,
-		})
+		const fixedRawValue = rawValue.replace(/https?:\/\/(https?:\/\/)/, '$1')
+		setUrlInputState(getUrlInputState(fixedRawValue))
 	}, [])
 
 	const handleClear = useCallback(() => {
 		const onlySelectedShape = editor.getOnlySelectedShape()
 		if (!onlySelectedShape) return
-		assertShapeWithUrl(onlySelectedShape)
+		assertShapeWithLink(onlySelectedShape)
 		editor.updateShapes([
 			{ id: onlySelectedShape.id, type: onlySelectedShape.type, props: { url: '' } },
 		])
@@ -124,20 +97,17 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 		const onlySelectedShape = editor.getOnlySelectedShape()
 
 		if (!onlySelectedShape) return
-		assertShapeWithUrl(onlySelectedShape)
+		assertShapeWithLink(onlySelectedShape)
 
-		// ? URL is a magic value
-		if (onlySelectedShape && 'url' in onlySelectedShape.props) {
-			// Here would be a good place to validate the next shape—would setting the empty
-			if (onlySelectedShape.props.url !== urlInputState.safe) {
-				editor.updateShapes([
-					{
-						id: onlySelectedShape.id,
-						type: onlySelectedShape.type,
-						props: { url: urlInputState.safe },
-					},
-				])
-			}
+		// Here would be a good place to validate the next shape—would setting the empty
+		if (onlySelectedShape.props.url !== urlInputState.safe) {
+			editor.updateShapes([
+				{
+					id: onlySelectedShape.id,
+					type: onlySelectedShape.type,
+					props: { url: urlInputState.safe },
+				},
+			])
 		}
 		onClose()
 	}, [editor, onClose, urlInputState])
@@ -181,7 +151,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 					<TldrawUiButtonLabel>{msg('edit-link-dialog.cancel')}</TldrawUiButtonLabel>
 				</TldrawUiButton>
 				{isRemoving ? (
-					<TldrawUiButton type={'danger'} onTouchEnd={handleClear} onClick={handleClear}>
+					<TldrawUiButton type="danger" onTouchEnd={handleClear} onClick={handleClear}>
 						<TldrawUiButtonLabel>{msg('edit-link-dialog.clear')}</TldrawUiButtonLabel>
 					</TldrawUiButton>
 				) : (
