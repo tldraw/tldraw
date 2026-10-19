@@ -30,6 +30,7 @@ export class PointingResizeHandle extends StateNode {
 	static override id = 'pointing_resize_handle'
 
 	private info = {} as PointingResizeHandleInfo
+	private pendingDoubleClick: TLClickEventInfo | null = null
 
 	private updateCursor() {
 		const cursorType = CursorTypeMap[this.info.handle!]
@@ -41,6 +42,7 @@ export class PointingResizeHandle extends StateNode {
 
 	override onEnter(info: PointingResizeHandleInfo) {
 		this.info = info
+		this.pendingDoubleClick = null
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
@@ -67,9 +69,17 @@ export class PointingResizeHandle extends StateNode {
 	}
 
 	override onPointerUp() {
+		if (this.pendingDoubleClick) {
+			this.parent.transition('idle')
+			this.parent.getCurrent()?.handleEvent(this.pendingDoubleClick)
+			return
+		}
 		this.complete()
 	}
 
+	// A double click's 'down' phase arrives while the second press is still held. Acting on it
+	// immediately would steal a press that is about to become a drag (#9499), so it is deferred
+	// to pointer up.
 	override onDoubleClick(info: TLClickEventInfo) {
 		if (
 			this.editor.inputs.getShiftKey() ||
@@ -80,8 +90,7 @@ export class PointingResizeHandle extends StateNode {
 			return
 		}
 
-		this.parent.transition('idle')
-		this.parent.getCurrent()?.handleEvent(info)
+		this.pendingDoubleClick = info
 	}
 
 	override onCancel() {

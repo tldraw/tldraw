@@ -164,8 +164,18 @@ const handleText = (
 ) => {
 	const validUrlList = getValidHttpURLList(data)
 	if (validUrlList) {
-		for (const url of validUrlList) {
-			pasteUrl(editor, url, point, sources, clipboardPasteSource)
+		if (validUrlList.length === 1) {
+			pasteUrl(editor, validUrlList[0], point, sources, clipboardPasteSource)
+		} else {
+			// A shape can only hold one link, so several links at once always become bookmarks.
+			editor.markHistoryStoppingPoint('paste')
+			for (const url of validUrlList) {
+				putPastedExternalContent(
+					editor,
+					{ type: 'url', point, url, sources },
+					{ source: clipboardPasteSource, point }
+				)
+			}
 		}
 	} else if (isValidHttpURL(data)) {
 		pasteUrl(editor, data, point, sources, clipboardPasteSource)

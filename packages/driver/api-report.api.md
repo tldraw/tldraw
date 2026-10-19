@@ -10,7 +10,7 @@ import { SelectionHandle } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
-import { TLPageId } from '@tldraw/tlschema';
+import { TLPageId } from '@tldraw/editor';
 import { TLPinchEventInfo } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';

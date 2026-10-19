@@ -6,10 +6,12 @@ import {
 	isMintedRenderToken,
 	markRenderTokenServed,
 	renderJobAccess,
+	renderParamsForJob,
 	verifyThumbnailRenderToken,
 } from '../../utils/renderTokens'
 import { getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileRoomSnapshot } from './getSharedFile'
+import { sliceSnapshotForRender } from './sliceSnapshotForRender'
 import { reportThumbnailError } from './thumbnailShared'
 
 // Serves snapshot data to the thumbnail render page. Only accepts short-lived render tokens
@@ -94,22 +96,13 @@ export async function getThumbnailSnapshot(
 		}
 	}
 
+	const records = snapshot.documents.map((d) => d.state) as TLRecord[]
 	return json({
 		error: false,
-		records: snapshot.documents.map((d) => d.state) as TLRecord[],
+		// The rest of the board costs parse, migration and store load inside the Browser Run budget.
+		records: sliceSnapshotForRender(records, job) ?? records,
 		schema: snapshot.schema,
-		renderParams: {
-			...(job.camera ? { camera: job.camera } : null),
-			...(job.pageId ? { pageId: job.pageId } : null),
-			...(job.shapeIds ? { shapeIds: job.shapeIds } : null),
-			...(job.mode ? { mode: job.mode } : null),
-			x: job.x,
-			y: job.y,
-			z: job.z,
-			width: job.width,
-			height: job.height,
-			theme: job.theme,
-		},
+		renderParams: renderParamsForJob(job),
 	})
 }
 

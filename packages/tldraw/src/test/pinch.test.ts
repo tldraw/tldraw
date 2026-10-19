@@ -137,3 +137,41 @@ describe('Pinch preserves the pre-gesture selection', () => {
 		expect(editor.getEditingShapeId()).toBe(ids.box1)
 	})
 })
+
+describe('Pinch with a locked camera', () => {
+	beforeEach(() => {
+		editor.setCameraOptions({ isLocked: true })
+	})
+
+	it('does not move the camera', () => {
+		pinchZoom(250, 50, 2)
+		editor.expectCameraToBe(0, 0, 1)
+	})
+
+	it('still tracks the gesture, so the first finger does not change the selection', () => {
+		editor.select(ids.box1)
+		editor.pointerMove(250, 50)
+		editor.pointerDown()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+		editor.pinchStart(250, 50, 1, 0, 0, 0)
+		expect(editor.inputs.getIsPinching()).toBe(true)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+		editor.pinchTo(250, 50, 2, 0, 0, 0).pinchEnd(250, 50, 2, 0, 0, 0)
+		expect(editor.inputs.getIsPinching()).toBe(false)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+	})
+
+	it('moves the camera again when unlocked mid-gesture', () => {
+		editor.pinchStart(250, 50, 1, 0, 0, 0).pinchTo(250, 50, 2, 0, 0, 0).forceTick()
+		editor.expectCameraToBe(0, 0, 1)
+
+		editor.setCameraOptions({ isLocked: false })
+		editor.pinchTo(250, 50, 2, 0, 0, 0).forceTick()
+		expect(editor.getZoomLevel()).toBe(2)
+
+		editor.pinchEnd(250, 50, 2, 0, 0, 0)
+		expect(editor.inputs.getIsPinching()).toBe(false)
+	})
+})

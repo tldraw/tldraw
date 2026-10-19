@@ -17,7 +17,8 @@
 			"order": 5
 		},
 		"scripts": {
-			"lint": null
+			"lint": null,
+			"build-types": null
 		}
 	},
 	"scripts": {
@@ -27,7 +28,8 @@
 		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
 		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
 		"start": "next start",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc"
 	},
 	"dependencies": {
 		"@ai-sdk/openai": "^2.0.106",

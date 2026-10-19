@@ -252,37 +252,46 @@ function DeleteUser() {
 		setProgressLog([]) // Only clear log when starting a new deletion
 		setIsComplete(false)
 
+		// fetch rather than EventSource: the endpoint is a POST (EventSource can only issue GETs),
+		// so the SSE frames are parsed off the response body here.
 		try {
-			const eventSource = new EventSource(
-				`/api/app/admin/delete_user_sse?q=${encodeURIComponent(userId)}`
+			const response = await fetch(
+				`/api/app/admin/delete_user_sse?q=${encodeURIComponent(userId)}`,
+				{ method: 'POST' }
 			)
-
-			eventSource.onmessage = (event) => {
-				const data = JSON.parse(event.data)
-
-				const timestamp = new Date(data.timestamp).toLocaleTimeString()
-				const logEntry = `[${timestamp}] ${data.message}`
-
-				setProgressLog((prev) => [...prev, logEntry])
-
-				if (data.type === 'complete') {
-					setIsComplete(true)
-					setIsDeleting(false)
-					eventSource.close()
-				} else if (data.type === 'error') {
-					setError(data.message)
-					setIsDeleting(false)
-					eventSource.close()
-				}
+			if (!response.ok || !response.body) {
+				throw new Error(`Delete failed: ${response.status}`)
 			}
 
-			eventSource.onerror = () => {
-				setError('Connection failed')
-				setIsDeleting(false)
-				eventSource.close()
+			const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+			// Frames are separated by a blank line and can be split across reads, so hold the
+			// trailing partial frame until the rest of it arrives.
+			let buffer = ''
+			for (;;) {
+				const { done, value } = await reader.read()
+				if (done) break
+				buffer += value
+
+				let boundary = buffer.indexOf('\n\n')
+				for (; boundary !== -1; boundary = buffer.indexOf('\n\n')) {
+					const frame = buffer.slice(0, boundary)
+					buffer = buffer.slice(boundary + 2)
+					if (!frame.startsWith('data: ')) continue
+
+					const data = JSON.parse(frame.slice('data: '.length))
+					const timestamp = new Date(data.timestamp).toLocaleTimeString()
+					setProgressLog((prev) => [...prev, `[${timestamp}] ${data.message}`])
+
+					if (data.type === 'complete') {
+						setIsComplete(true)
+					} else if (data.type === 'error') {
+						setError(data.message)
+					}
+				}
 			}
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Unknown error occurred')
+		} finally {
 			setIsDeleting(false)
 		}
 	}, [])

@@ -55,7 +55,19 @@ export function DefaultDebugMenuContent({
 	return (
 		<>
 			<TldrawUiMenuGroup id="items">
-				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label="Hard reset" />
+				<TldrawUiMenuItem
+					id="hard-reset"
+					onSelect={() => {
+						if (
+							window.confirm(
+								'Hard reset will delete all tldraw data stored in this browser, including every document and your preferences. This cannot be undone.'
+							)
+						) {
+							hardResetEditor()
+						}
+					}}
+					label="Hard reset"
+				/>
 				<TldrawUiMenuItem
 					id="add-toast"
 					onSelect={() => {
@@ -256,23 +268,23 @@ const DebugFlagToggle = track(function DebugFlagToggle({
 	)
 })
 
-let t = 0
-
-function createNShapes(editor: Editor, n: number) {
+/** @internal */
+export function createNShapes(editor: Editor, n: number) {
 	const gap = editor.options.adjacentShapeMargin
 	const shapesToCreate: TLShapePartial[] = Array(n)
 	const cols = Math.floor(Math.sqrt(n))
+	const { x, y } = editor.getViewportPageBounds()
 
 	for (let i = 0; i < n; i++) {
-		t++
 		shapesToCreate[i] = {
-			id: createShapeId('box' + t),
+			id: createShapeId(),
 			type: 'geo',
-			x: (i % cols) * (100 + gap),
-			y: Math.floor(i / cols) * (100 + gap),
+			x: x + (i % cols) * (100 + gap),
+			y: y + Math.floor(i / cols) * (100 + gap),
 		}
 	}
 
+	editor.markHistoryStoppingPoint('create n shapes')
 	editor.run(() => {
 		// allow this to trigger the max shapes alert
 		editor.createShapes(shapesToCreate).setSelectedShapes(shapesToCreate.map((s) => s.id))

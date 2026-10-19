@@ -230,6 +230,7 @@ export async function captureThumbnailScreenshot(
 		width,
 		height,
 		telemetry,
+		capture,
 		content,
 	}: {
 		/** Which pipeline is asking. Signed into the job; namespaces the minted-token record. */
@@ -253,6 +254,12 @@ export async function captureThumbnailScreenshot(
 		 * definition a screenshot render.
 		 */
 		telemetry: { source: BrowserRunSessionContext['source']; reason?: OgImageRenderReason }
+		/**
+		 * `live` skips the in-page export and lets the screenshot rasterize the live canvas, after the
+		 * page has pruned it to the requested shapes. Signed into the job so the render page reads it
+		 * with the rest of its parameters. See ThumbnailRenderParams.
+		 */
+		capture?: 'live'
 		/** What the board holds, for the ledger (see summarizeSnapshotContent). Never identifies it. */
 		content?: RenderContentSummary
 	}
@@ -269,6 +276,7 @@ export async function captureThumbnailScreenshot(
 		camera: 'content',
 		...(pageId ? { pageId } : null),
 		...(shapeIds?.length ? { shapeIds } : null),
+		...(capture ? { capture } : null),
 		// Ignored while `camera` is 'content', which is what every surface mints; carried because the
 		// job type keeps the explicit-viewport path available (see ThumbnailRenderJob).
 		x: 0,
@@ -284,7 +292,7 @@ export async function captureThumbnailScreenshot(
 		return await runRenderSession(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
 			width,
 			height,
-			session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason },
+			session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason, capture },
 			content,
 			pageReached: (since) => wasRenderTokenServedSince(env, job, token, since),
 		})
@@ -304,6 +312,8 @@ export interface BrowserRunSessionContext {
 	mode: 'measure' | 'screenshot'
 	/** The queue trigger, on sessions the queue runs. Request-path sessions have none. */
 	reason?: OgImageRenderReason
+	/** `live` when the render was asked to rasterize the live canvas; absent means the page exports. */
+	capture?: 'live'
 }
 
 /**
@@ -400,7 +410,7 @@ function writeBrowserRunSessionTelemetry(
 		height: number
 		/** `reached` on every session that produced a capture; see wasRenderTokenServedSince for the rest. */
 		page: RenderPageReach
-		/** See TimedCapture.browserMsUsed. */
+		/** See TimedCapture.browserMsUsed; 0 for sessions that died before a response. */
 		browserMsUsed: number
 		content?: RenderContentSummary
 	}
@@ -413,6 +423,9 @@ function writeBrowserRunSessionTelemetry(
 			`reason:${session.reason ?? 'none'}`,
 			// Appended: existing blob positions must not shift.
 			`page:${page}`,
+			// Appended after `page:` for the same reason. `none` on measures, which draw nothing; a
+			// screenshot render exports unless it asked for live.
+			`capture:${session.mode === 'measure' ? 'none' : (session.capture ?? 'export')}`,
 		],
 		doubles: [
 			width,
@@ -834,7 +847,10 @@ export async function putThumbnailPng(
 export function writeScreenshotTelemetry(
 	env: Environment,
 	data: {
-		source: 'mcp' | 'og' | 'queue'
+		// 'board_view' is the authenticated owner-facing thumbnail route (getBoardThumbnail.ts): kept
+		// apart from 'og' because the two surfaces have different cache populations and different
+		// callers, and folding them together would make the OG hit-rate panel unreadable.
+		source: 'mcp' | 'og' | 'queue' | 'board_view'
 		/**
 		 * Which trigger asked for this render — what attributes a render to publishing or editing.
 		 * Only meaningful on queue datapoints; the request paths have no trigger and record `none`.

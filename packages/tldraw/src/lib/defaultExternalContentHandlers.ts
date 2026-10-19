@@ -35,6 +35,7 @@ import { FONT_SIZES, TEXT_PROPS, getFontFamily } from './shapes/shared/default-s
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
+import { isShapeWithLink } from './utils/shapes/shapes'
 import { renderHtmlFromRichTextForMeasurement, renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
@@ -595,7 +596,7 @@ export async function defaultHandleExternalTextContent(
 /** @public */
 export async function defaultHandleExternalUrlContent(
 	editor: Editor,
-	{ point, url }: { point?: VecLike; url: string },
+	{ point, url, shapeId }: { point?: VecLike; url: string; shapeId?: TLShapeId },
 	{ toasts, msg }: TLDefaultExternalContentHandlerOpts
 ) {
 	// Bookmark shapes validate their `url` prop with T.linkUrl, so a url we can't
@@ -612,6 +613,17 @@ export async function defaultHandleExternalUrlContent(
 			severity: 'error',
 		})
 		return
+	}
+
+	// A url aimed at a shape decorates that shape: no bookmark, and no embed even when the url is
+	// one we could embed, since the user aimed it at something that already exists.
+	if (shapeId) {
+		const shape = editor.getShape(shapeId)
+		if (isShapeWithLink(shape)) {
+			editor.updateShapes([{ id: shape.id, type: shape.type, props: { url } }])
+			editor.select(shape.id)
+			return
+		}
 	}
 
 	// try to paste as an embed first
