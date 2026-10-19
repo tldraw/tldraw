@@ -1,5 +1,6 @@
-import { defineMessages, T, TLShape, track, useEditor } from '@tldraw/editor'
+import { defineMessages, TLShape, track, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { normalizeLinkUrl } from '../../utils/linkUrl'
 import { isShapeWithLink, TLShapeWithLink } from '../../utils/shapes/shapes'
 import { TLUiDialogProps } from '../context/dialogs'
 import { F } from '../context/i18n'
@@ -14,22 +15,9 @@ import {
 } from './primitives/TldrawUiDialog'
 import { TldrawUiInput } from './primitives/TldrawUiInput'
 
-// A url can either be invalid, or valid with a protocol, or valid without a protocol.
-// For example, "aol.com" would be valid with a protocol ()
-function validateUrl(url: string) {
-	if (T.linkUrl.isValid(url)) {
-		return { isValid: true, hasProtocol: true }
-	}
-	if (T.linkUrl.isValid('https://' + url)) {
-		return { isValid: true, hasProtocol: false }
-	}
-	return { isValid: false, hasProtocol: false }
-}
-
 function getUrlInputState(url: string) {
-	const { isValid, hasProtocol } = validateUrl(url)
-	const safe = isValid ? (hasProtocol ? url : 'https://' + url) : 'https://'
-	return { actual: url, safe, valid: isValid }
+	const normalized = normalizeLinkUrl(url)
+	return { actual: url, safe: normalized ?? '', valid: normalized !== null }
 }
 
 function assertShapeWithLink(shape: TLShape | null | undefined): asserts shape is TLShapeWithLink {
@@ -82,9 +70,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	})
 
 	const handleChange = useCallback((rawValue: string) => {
-		// Just auto-correct double https:// from a bad paste.
-		const fixedRawValue = rawValue.replace(/https?:\/\/(https?:\/\/)/, '$1')
-		setUrlInputState(getUrlInputState(fixedRawValue))
+		setUrlInputState(getUrlInputState(rawValue))
 	}, [])
 
 	const handleClear = useCallback(() => {
@@ -103,7 +89,9 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 		if (!onlySelectedShape) return
 		assertShapeWithLink(onlySelectedShape)
 
-		// Here would be a good place to validate the next shape—would setting the empty
+		// Enter reaches here even while the save button is disabled.
+		if (!urlInputState.valid) return
+
 		if (onlySelectedShape.props.url !== urlInputState.safe) {
 			editor.updateShapes([
 				{
