@@ -31,8 +31,9 @@ import { Geometry2dOptions } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
 import { HTMLAttributes } from 'react';
-import { IndexKey } from '@tldraw/editor';
-import { JsonObject } from '@tldraw/editor';
+import { IndexKey } from '@tldraw/utils';
+import { IndexKey as IndexKey_2 } from '@tldraw/editor';
+import { JsonObject } from '@tldraw/utils';
 import { JSX } from 'react/jsx-runtime';
 import { JSXElementConstructor } from 'react';
 import { LANGUAGES } from '@tldraw/editor';
@@ -170,7 +171,7 @@ import { TLUserId } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
-import { Validator } from '@tldraw/editor';
+import { Validator } from '@tldraw/validate';
 import { Vec } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
 import { VecModel } from '@tldraw/editor';
@@ -2874,7 +2875,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     onBeforeCreate(next: TLNoteShape): {
         id: TLShapeId;
-        index: IndexKey;
+        index: IndexKey_2;
         isLocked: boolean;
         meta: JsonObject;
         opacity: TLOpacityType;
