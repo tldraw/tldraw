@@ -12,15 +12,8 @@ const FIRST_POINT_2D_B64_LENGTH = 12
 // Pressure value supplied when decoding non-pressure (2D) paths
 const DEFAULT_PRESSURE = 0.5
 
-// The largest finite Float16. A delta beyond this would overflow to Infinity when stored,
-// and a single non-finite delta poisons every later point on decode: Infinity accumulates,
-// and an opposite-signed delta after it produces NaN. Those coordinates then render as
-// invalid svg path data and the whole stroke silently disappears (#10662).
 const FLOAT16_MAX = 65504
 
-// Saturate a coordinate delta to the finite Float16 range before storing it. Values just
-// above FLOAT16_MAX would still round to a finite Float16, but clamping at the exactly
-// representable maximum keeps native and fallback setFloat16 behavior identical.
 function clampDeltaToFloat16(d: number): number {
 	return d > FLOAT16_MAX ? FLOAT16_MAX : d < -FLOAT16_MAX ? -FLOAT16_MAX : d
 }
@@ -397,11 +390,7 @@ export class b64Vecs {
 		dataView.setFloat32(4, first.y, true)
 		dataView.setFloat32(8, first.z ?? 0.5, true)
 
-		// Subsequent points are Float16 deltas from the previous point. `prevX`/`prevY`
-		// track the decoder's accumulated position, which only differs from the input
-		// point when a delta had to be saturated to stay a finite Float16 — the shortfall
-		// then carries into the next delta so the stroke converges back toward the true
-		// positions instead of staying offset for the rest of the path.
+		// Subsequent points are Float16 deltas from the previous point
 		let prevX = first.x
 		let prevY = first.y
 		let prevZ = first.z ?? 0.5
@@ -545,7 +534,6 @@ export class b64Vecs {
 		dataView.setFloat32(0, first.x, true)
 		dataView.setFloat32(4, first.y, true)
 
-		// See encodePoints for why deltas are saturated and how the shortfall carries.
 		let prevX = first.x
 		let prevY = first.y
 

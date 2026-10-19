@@ -246,9 +246,6 @@ describe('b64Vecs delta encoding', () => {
 		})
 
 		it('saturates deltas beyond the Float16 range instead of decoding to Infinity/NaN', () => {
-			// A delta larger than 65504 (Float16 max) used to overflow to Infinity when
-			// stored, poisoning every later point on decode: Infinity accumulates, and an
-			// opposite-signed delta after it produces NaN. See #10662.
 			const points: VecModel[] = [
 				{ x: 0, y: 0, z: 0.5 },
 				{ x: 70000, y: 80000, z: 0.5 },
@@ -264,14 +261,11 @@ describe('b64Vecs delta encoding', () => {
 			}
 			expect(decoded[1].x).toBe(65504)
 			expect(decoded[1].y).toBe(65504)
-			// The return delta saturates too, so the endpoint lands back at the origin.
 			expect(decoded[2].x).toBe(0)
 			expect(decoded[2].y).toBe(0)
 		})
 
 		it('carries the saturation shortfall so later points converge to the true positions', () => {
-			// One oversized jump, then small steps: the clamped stroke should catch up
-			// within a couple of points rather than staying offset for the rest of the path.
 			const points: VecModel[] = [
 				{ x: 0, y: 0, z: 0.5 },
 				{ x: 100000, y: 0, z: 0.5 },
@@ -281,8 +275,6 @@ describe('b64Vecs delta encoding', () => {
 
 			const decoded = b64Vecs.decodePoints(b64Vecs.encodePoints(points))
 
-			// 100000 - 65504 = 34496 shortfall, plus the next 1-unit step, recovered at
-			// the next delta (Float16 precision at ~34000 is 32).
 			expect(decoded[1].x).toBe(65504)
 			expect(decoded[2].x).toBeCloseTo(100001, -2)
 			expect(decoded[3].x).toBeCloseTo(100002, -2)

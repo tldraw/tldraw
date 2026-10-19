@@ -30,10 +30,6 @@ describe('svg path data is well formed', () => {
 	})
 })
 
-// A draw shape stores its points b64Vecs-delta-encoded. A stroke spanning hundreds of thousands
-// of units has point deltas beyond the Float16 range; these used to decode as Infinity/NaN,
-// which the fast path writer emitted as NUL characters, so the browser rejected the whole `d`
-// attribute and the stroke rendered nothing. See #10662.
 describe('a stroke spanning hundreds of thousands of units', () => {
 	it.each(CORPUS.filter((c) => c.kind === 'draw').map((c) => [c.id, c] as const))(
 		'%s scaled up and roundtripped through b64Vecs renders well-formed path data',
