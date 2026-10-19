@@ -197,6 +197,16 @@ describe('createBookmarkFromUrl', () => {
 		expect(createdAsset?.type).toBe('bookmark')
 	})
 
+	it('does not fetch metadata for a deep link', async () => {
+		const fetchSpy = vi.spyOn(editor, 'getAssetForExternalContent')
+
+		const result = await createBookmarkFromUrl(editor, { url: 'vscode://file/src/index.ts' })
+
+		assert(result.ok, 'Failed to create bookmark')
+		expect(editor.getShape<TLBookmarkShape>(result.value.id)!.props.assetId).toBe(null)
+		expect(fetchSpy).not.toHaveBeenCalled()
+	})
+
 	it('creates a bookmark shape with default center when no center provided', async () => {
 		const url = 'https://example.com'
 		const viewportCenter = { x: 500, y: 300 }
@@ -555,6 +565,33 @@ describe('changing a bookmark url', () => {
 			await vi.advanceTimersByTimeAsync(600)
 			expect(fetchSpy).toHaveBeenCalledWith({ type: 'url', url: urlC })
 			expect(editor.getShape<TLBookmarkShape>(id)!.props.assetId).toBe(assetC)
+		} finally {
+			vi.useRealTimers()
+		}
+	})
+
+	it('does not fetch metadata when the url changes to a deep link', async () => {
+		vi.useFakeTimers()
+		try {
+			const urlA = 'https://a.example.com'
+			const assetA = createBookmarkAsset(urlA, 'short')
+			const id = createShapeId()
+			editor.createShape<TLBookmarkShape>({
+				id,
+				type: 'bookmark',
+				props: { url: urlA, assetId: assetA },
+			})
+			const fetchSpy = vi.spyOn(editor, 'getAssetForExternalContent')
+
+			editor.updateShape<TLBookmarkShape>({
+				id,
+				type: 'bookmark',
+				props: { url: 'codex://threads/1' },
+			})
+
+			await vi.advanceTimersByTimeAsync(600)
+			expect(fetchSpy).not.toHaveBeenCalled()
+			expect(editor.getShape<TLBookmarkShape>(id)!.props.assetId).toBe(null)
 		} finally {
 			vi.useRealTimers()
 		}
