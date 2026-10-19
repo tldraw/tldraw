@@ -33,12 +33,6 @@
       "value": " adresinden gelen dosyalar için destek üzerinde çalışıyoruz."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Dosyayı bu sayfadaki kenar çubuğuna sürükleyin. Veya kullanıcı menüsünden 'Dosyayı içe aktar' seçeneğini seçin."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1278,6 +1272,12 @@
     {
       "type": 0,
       "value": "Mal sahibi"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Dosyayı bu sayfanın kenar çubuğuna sürükleyin. Veya sol üst köşedeki Dosya menüsünden 'Dosya içe aktar' seçeneğini seçin."
     }
   ],
   "b758336699": [

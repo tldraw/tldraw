@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Vi arbejder på understøttelse af filer fra <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Træk filen ind i sidebjælken på denne side. Eller vælg indstillingen 'Importer fil' fra brugermenuen."
-  },
   "043973ec1f": {
     "translation": "Har du stadig problemer? {GetHelpLink}"
   },
@@ -536,6 +533,9 @@
   },
   "b6f4a2ec63": {
     "translation": "Ejer"
+  },
+  "b74dbb40c5": {
+    "translation": "Træk filen ind i sidebjælken på denne side. Eller vælg 'Importer fil' i menuen Filer øverst til venstre."
   },
   "b758336699": {
     "translation": "Kopiér link"

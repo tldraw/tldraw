@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Wir arbeiten an der Unterstützung für Dateien von <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Ziehen Sie die Datei in die Seitenleiste auf dieser Seite. Oder wählen Sie im Benutzermenü Option „Datei importieren“."
-  },
   "043973ec1f": {
     "translation": "Immer noch Probleme? {GetHelpLink}"
   },
@@ -536,6 +533,9 @@
   },
   "b6f4a2ec63": {
     "translation": "Eigentümer"
+  },
+  "b74dbb40c5": {
+    "translation": "Ziehen Sie die Datei in die Seitenleiste dieser Seite. Alternativ können Sie im Menü „Datei“ oben links die Option „Datei importieren“ auswählen."
   },
   "b758336699": {
     "translation": "Link kopieren"
