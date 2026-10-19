@@ -7,6 +7,7 @@ import {
 	generateText,
 	InputRule,
 	JSONContent,
+	type KeyboardShortcutCommand,
 } from '@tiptap/core'
 import { Code } from '@tiptap/extension-code'
 import { Highlight } from '@tiptap/extension-highlight'
@@ -50,34 +51,38 @@ export const KeyboardShiftEnterTweakExtension = Extension.create({
 export const TaskItemToggleExtension = Extension.create({
 	name: 'taskItemToggleHandler',
 	addKeyboardShortcuts() {
-		return {
-			'Mod-Enter': ({ editor }) =>
-				editor.commands.command(({ tr, state, dispatch }) => {
-					// Keyed by position so an item is only collected once. We look up from each
-					// textblock rather than collecting every taskItem in the range: a cursor inside a
-					// nested item is also "between" its parent item, which shouldn't tick as well.
-					const items = new Map<number, ProseMirrorNode>()
-					state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
-						if (!node.isTextblock) return true
-						const $pos = state.doc.resolve(pos)
-						for (let depth = $pos.depth; depth > 0; depth--) {
-							if ($pos.node(depth).type.name === 'taskItem') {
-								items.set($pos.before(depth), $pos.node(depth))
-								break
-							}
+		const toggle: KeyboardShortcutCommand = ({ editor }) =>
+			editor.commands.command(({ tr, state, dispatch }) => {
+				// Keyed by position so an item is only collected once. We look up from each
+				// textblock rather than collecting every taskItem in the range: a cursor inside a
+				// nested item is also "between" its parent item, which shouldn't tick as well.
+				const items = new Map<number, ProseMirrorNode>()
+				state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
+					if (!node.isTextblock) return true
+					const $pos = state.doc.resolve(pos)
+					for (let depth = $pos.depth; depth > 0; depth--) {
+						if ($pos.node(depth).type.name === 'taskItem') {
+							items.set($pos.before(depth), $pos.node(depth))
+							break
 						}
-						return false
-					})
-
-					if (items.size === 0) return false
-					if (!dispatch) return true
-
-					const checked = !items.values().next().value!.attrs.checked
-					for (const [pos, node] of items) {
-						tr.setNodeMarkup(pos, undefined, { ...node.attrs, checked })
 					}
-					return true
-				}),
+					return false
+				})
+
+				if (items.size === 0) return false
+				if (!dispatch) return true
+
+				const checked = !items.values().next().value!.attrs.checked
+				for (const [pos, node] of items) {
+					tr.setNodeMarkup(pos, undefined, { ...node.attrs, checked })
+				}
+				return true
+			})
+		return {
+			'Mod-Enter': toggle,
+			// Off Apple platforms `Mod` is only Ctrl, but the shape handlers treat Meta as the accel key
+			// there too (isAccelKey) and stand down for it, so Meta+Enter would otherwise do nothing.
+			'Meta-Enter': toggle,
 		}
 	},
 })
