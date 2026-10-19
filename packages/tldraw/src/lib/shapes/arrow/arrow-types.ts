@@ -17,6 +17,7 @@ export interface ArrowShapeUtilDisplayValues {
 	patternFillFallbackColor: string
 	labelColor: string
 	labelFontFamily: string
+	labelCheckboxStyle: Record<string, string> | undefined
 	labelFontSize: number
 	labelLineHeight: number
 	labelPadding: number

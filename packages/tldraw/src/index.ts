@@ -261,7 +261,7 @@ export {
 	type ASPECT_RATIO_OPTION,
 	type CropBoxOptions,
 } from './lib/shapes/shared/crop'
-export { getFontFamily } from './lib/shapes/shared/default-shape-constants'
+export { getFontCheckboxStyle, getFontFamily } from './lib/shapes/shared/default-shape-constants'
 export {
 	allDefaultFontFaces,
 	DefaultFontFaces,
@@ -847,6 +847,7 @@ export {
 	renderHtmlFromRichTextWithExtensions,
 	renderPlaintextFromRichText,
 	renderRichTextFromHTML,
+	TaskItemToggleExtension,
 	tipTapDefaultExtensions,
 } from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'

@@ -4,6 +4,7 @@ import {
 	TLEventInfo,
 	TLRichText,
 	TLShapeId,
+	isAccelKey,
 	openWindow,
 	preventDefault,
 	resolveLineHeightPx,
@@ -13,7 +14,11 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { useMemo } from 'react'
-import { renderHtmlFromRichText } from '../../utils/text/richText'
+import {
+	renderHtmlFromRichText,
+	richTextHasTaskList,
+	toggleTaskItemInRichText,
+} from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
 import { isLegacyAlign } from './legacyProps'
 import { useEditableRichText } from './useEditableRichText'
@@ -23,6 +28,8 @@ export interface RichTextLabelProps {
 	shapeId: TLShapeId
 	type: ExtractShapeByProps<{ richText: TLRichText }>['type']
 	fontFamily: string
+	/** Custom properties that draw task list checkboxes in the font's style; see `getFontCheckboxStyle`. */
+	checkboxStyle?: Record<string, string>
 	fontSize: number
 	lineHeight: number
 	textAlign: 'start' | 'center' | 'end'
@@ -55,6 +62,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	richText,
 	labelColor,
 	fontFamily,
+	checkboxStyle,
 	fontSize,
 	lineHeight,
 	textAlign,
@@ -98,7 +106,9 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		[editor]
 	)
 
-	const handlePointerDown = (e: React.MouseEvent<HTMLDivElement>) => {
+	const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+		if (handleTaskItemPointerDown(e)) return
+
 		const HTMLElementCtor = editor.getContainerWindow().HTMLElement
 		if (
 			e.target instanceof HTMLElementCtor &&
@@ -121,6 +131,54 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 			}
 			editor.on('event', handlePointerUp)
 		}
+	}
+
+	/**
+	 * Ticks a checkbox in one click, without entering edit mode first. The static HTML has no
+	 * ProseMirror behind it and its checkboxes don't take pointer events (see editor.css), so the hit
+	 * test is by the labels' rects. The canvas is told to ignore the press, so it doesn't also select
+	 * the shape or start a drag, and the item flips on pointer up over the same box, like a click.
+	 */
+	const handleTaskItemPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+		if (!selectToolActive || isEditing || editor.getIsReadonly()) return false
+		// Modifiers mean selection: shift-click to add the shape, and so on.
+		if (e.button !== 0 || e.shiftKey || e.altKey || isAccelKey(e)) return false
+		const shape = editor.getShape(shapeId)
+		if (!shape || editor.isShapeOrAncestorLocked(shape)) return false
+
+		const root = e.currentTarget
+		const index = getTaskItemIndexAtPoint(root, e.clientX, e.clientY)
+		if (index === -1) return false
+
+		editor.markEventAsHandled(e)
+		const win = editor.getContainerWindow()
+		// A press can end in pointercancel instead of pointerup; a listener left behind then fires on
+		// the next mouse press (mice reuse one pointerId) and toggles the item a second time.
+		const removeListeners = () => {
+			win.removeEventListener('pointerup', handlePointerUp)
+			win.removeEventListener('pointercancel', handlePointerCancel)
+		}
+		const handlePointerCancel = (cancel: PointerEvent) => {
+			if (cancel.pointerId === e.pointerId) removeListeners()
+		}
+		const handlePointerUp = (up: PointerEvent) => {
+			if (up.pointerId !== e.pointerId) return
+			removeListeners()
+			if (getTaskItemIndexAtPoint(root, up.clientX, up.clientY) !== index) return
+
+			const current = editor.getShape(shapeId)
+			const currentRichText = (current?.props as { richText?: TLRichText } | undefined)?.richText
+			if (!currentRichText) return
+			editor.markHistoryStoppingPoint('toggle task item')
+			editor.updateShape({
+				id: shapeId,
+				type,
+				props: { richText: toggleTaskItemInRichText(currentRichText, index) },
+			})
+		}
+		win.addEventListener('pointerup', handlePointerUp)
+		win.addEventListener('pointercancel', handlePointerCancel)
+		return true
 	}
 
 	// Should be guarded higher up so that this doesn't render... but repeated here. This should never be true.
@@ -167,6 +225,8 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 						minHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
 						// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css).
 						'--tl-rich-text-heading-line-height': lineHeight,
+						// Several KB of mask art; only text with checkboxes needs it.
+						...(richText && richTextHasTaskList(richText) && checkboxStyle),
 						minWidth: Math.ceil(textWidth || 0),
 						color: labelColor,
 						width: textWidth ? Math.ceil(textWidth) : undefined,
@@ -209,6 +269,8 @@ export interface RichTextSVGProps {
 	richText: TLRichText
 	fontSize: number
 	fontFamily: string
+	/** Custom properties that draw task list checkboxes in the font's style; see `getFontCheckboxStyle`. */
+	checkboxStyle?: Record<string, string>
 	lineHeight: number
 	textAlign: 'start' | 'center' | 'end'
 	verticalAlign: 'start' | 'middle' | 'end'
@@ -228,6 +290,7 @@ export function RichTextSVG({
 	richText,
 	fontSize,
 	fontFamily,
+	checkboxStyle,
 	lineHeight,
 	textAlign,
 	verticalAlign,
@@ -262,6 +325,7 @@ export function RichTextSVG({
 		lineHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
 		// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css).
 		'--tl-rich-text-heading-line-height': lineHeight,
+		...(richTextHasTaskList(richText) && checkboxStyle),
 		textAlign,
 		width: '100%',
 		wordWrap: 'break-word' as const,
@@ -287,4 +351,37 @@ export function RichTextSVG({
 			</div>
 		</foreignObject>
 	)
+}
+
+/**
+ * The document-order index of the task item whose checkbox is under the point, or -1.
+ *
+ * On a rotated shape the client rects are axis-aligned bounds that overlap their neighbors' corners,
+ * so the nearest center wins among the rects containing the point. The boxes are smaller than the
+ * line spacing, so a point inside a box is always nearest its own center.
+ */
+function getTaskItemIndexAtPoint(root: HTMLElement, clientX: number, clientY: number) {
+	const labels = root.querySelectorAll('li[data-type="taskItem"] > label')
+	let index = -1
+	let bestDistance = Infinity
+	for (let i = 0; i < labels.length; i++) {
+		const rect = labels[i].getBoundingClientRect()
+		if (
+			clientX < rect.left ||
+			clientX > rect.right ||
+			clientY < rect.top ||
+			clientY > rect.bottom
+		) {
+			continue
+		}
+		const distance = Math.hypot(
+			clientX - (rect.left + rect.right) / 2,
+			clientY - (rect.top + rect.bottom) / 2
+		)
+		if (distance < bestDistance) {
+			bestDistance = distance
+			index = i
+		}
+	}
+	return index
 }
