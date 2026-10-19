@@ -69,8 +69,11 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 		return { actual: safe, safe, valid: true }
 	})
 
+	const [showInvalid, setShowInvalid] = useState(false)
+
 	const handleChange = useCallback((rawValue: string) => {
 		setUrlInputState(getUrlInputState(rawValue))
+		setShowInvalid(false)
 	}, [])
 
 	const handleClear = useCallback(() => {
@@ -90,7 +93,11 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 		assertShapeWithLink(onlySelectedShape)
 
 		// Enter reaches here even while the save button is disabled.
-		if (!urlInputState.valid) return
+		if (!urlInputState.valid) {
+			setShowInvalid(true)
+			rInput.current?.focus()
+			return
+		}
 
 		if (onlySelectedShape.props.url !== urlInputState.safe) {
 			editor.updateShapes([
@@ -134,10 +141,10 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 						onCancel={handleCancel}
 					/>
 					<div>
-						{urlInputState.valid ? (
-							<F defaultMessage="Links will open in a new tab." id="edit-link-dialog.detail" />
-						) : (
+						{showInvalid ? (
 							<F defaultMessage="A link must be a valid URL." id="edit-link-dialog.invalid-url" />
+						) : (
+							<F defaultMessage="Links will open in a new tab." id="edit-link-dialog.detail" />
 						)}
 					</div>
 				</div>

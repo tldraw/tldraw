@@ -24,6 +24,7 @@ export interface LinkEditorProps {
 export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEditorProps) {
 	const editor = useEditor()
 	const [value, setValue] = useState(initialValue)
+	const [isInvalid, setIsInvalid] = useState(false)
 	const msg = useTranslation()
 	const ref = useRef<HTMLInputElement>(null)
 	const trackEvent = useUiEvents()
@@ -40,7 +41,11 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 		(link: string) => {
 			const href = normalizeLinkUrl(link)
 			// Leave the input open so the user can fix what they typed.
-			if (href === null) return
+			if (href === null) {
+				setIsInvalid(true)
+				ref.current?.focus()
+				return
+			}
 			if (href === '') {
 				handleRemoveLink()
 				return
@@ -90,7 +95,13 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 
 	useEffect(() => {
 		setValue(initialValue)
+		setIsInvalid(false)
 	}, [initialValue])
+
+	const handleValueChange = useCallback((nextValue: string) => {
+		setValue(nextValue)
+		setIsInvalid(false)
+	}, [])
 
 	return (
 		<>
@@ -98,10 +109,10 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 				ref={ref}
 				data-testid="rich-text.link-input"
 				className={classNames('tlui-rich-text__toolbar-link-input', {
-					'tlui-rich-text__toolbar-link-input--invalid': normalizedValue === null,
+					'tlui-rich-text__toolbar-link-input--invalid': isInvalid,
 				})}
 				value={value}
-				onValueChange={setValue}
+				onValueChange={handleValueChange}
 				onComplete={handleLinkComplete}
 				onCancel={onClose}
 				placeholder="example.com"
