@@ -57,17 +57,17 @@ describe('§15 URL validators', () => {
 		expect(() => T.httpUrl.validate(undefined)).toThrow('Expected string, got undefined')
 	})
 
-	it('[UR7] linkUrl accepts app deep links written as scheme://, but never unsafe protocols', () => {
+	it('[UR7] linkUrl accepts deep links into allow-listed apps, and no other scheme', () => {
 		expect(T.linkUrl.validate('codex://threads/abc-123')).toBe('codex://threads/abc-123')
 		expect(T.linkUrl.validate('vscode://file/src/index.ts')).toBe('vscode://file/src/index.ts')
 		expect(T.linkUrl.validate('Slack://open')).toBe('Slack://open')
+		expect(T.linkUrl.validate('spotify:track:abc')).toBe('spotify:track:abc')
 
 		expect(() => T.linkUrl.validate('localhost:3000')).toThrow('(invalid protocol)')
-		expect(() => T.linkUrl.validate('spotify:track:abc')).toThrow('(invalid protocol)')
+		expect(() => T.linkUrl.validate('someapp://open')).toThrow('(invalid protocol)')
 		expect(() => T.linkUrl.validate('javascript://%0aalert(1)')).toThrow('(invalid protocol)')
 		expect(() => T.linkUrl.validate('JavaScript://%0aalert(1)')).toThrow('(invalid protocol)')
 		expect(() => T.linkUrl.validate('data://text/html,hi')).toThrow('(invalid protocol)')
 		expect(() => T.linkUrl.validate('file:///etc/passwd')).toThrow('(invalid protocol)')
-		expect(() => T.linkUrl.validate('vbscript://x')).toThrow('(invalid protocol)')
 	})
 })

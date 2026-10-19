@@ -129,7 +129,7 @@ Rules marked **dev** describe assertions that run only in development builds (`N
 - **UR4** Strings starting with `/` or `./` are parsed against a dummy `http:` origin and therefore validate against all three; other relative forms (`../x`, `foo`) are rejected.
 - **UR5** Protocol matching is case-insensitive: `HTTP://example.com` validates, `JAVASCRIPT:alert(1)` does not.
 - **UR6** All three are string validators first: non-strings fail with the P1 message.
-- **UR7** `linkUrl` also accepts app deep links: any other protocol written as `scheme://` (`codex://threads/1`, `vscode://file/x`). A protocol without the `//` (`localhost:3000`, `spotify:track:1`) is still rejected, and `javascript:`, `vbscript:`, `data:`, `blob:`, `file:`, `filesystem:`, and `about:` are rejected even with it.
+- **UR7** `linkUrl` also accepts deep links into a fixed allow list of desktop apps, such as `codex:`, `vscode:`, `slack:`, and `figma:` (see `validLinkProtocols`). Any other scheme is rejected, whether or not it is written with `//` (`localhost:3000`, `someapp://open`, `javascript://%0aalert(1)`).
 
 ## 16. Index keys (IK)
 
