@@ -939,16 +939,6 @@ input,
 	mask-image: var(--tl-checkbox-tick);
 }
 
-/**
- * Only the item's own paragraphs, not the whole content div: a nested task list lives in there too,
- * and its children carry their own checked state. `text-decoration` can't be undone by a descendant
- * once it's set on an ancestor, so striking the div through would strike its sub-items as well.
- */
-.tl-rich-text ul[data-type='taskList'] > li[data-checked='true'] > div > p {
-	opacity: 0.6;
-	text-decoration: line-through;
-}
-
 .tl-rich-text h1,
 .tl-rich-text h2,
 .tl-rich-text h3,

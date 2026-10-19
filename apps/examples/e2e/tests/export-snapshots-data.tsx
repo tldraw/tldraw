@@ -123,7 +123,7 @@ export const taskList = {
 			type: 'taskList',
 			attrs: { dir: 'auto' },
 			content: [
-				['done, and struck through', true],
+				['done', true],
 				['still to do', false],
 				['a long one that wraps onto a second line', true],
 			].map(([text, checked]) => ({
