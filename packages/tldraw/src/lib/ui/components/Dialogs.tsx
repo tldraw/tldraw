@@ -50,12 +50,10 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 							const target = e.detail.originalEvent.target
 							const pressedDialog =
 								target instanceof Element ? target.closest('.tlui-dialog__content') : null
-							if (pressedDialog && pressedDialog !== contentRef.current) {
-								e.preventDefault()
-								return
-							}
-
-							if (preventBackgroundClose) {
+							if (
+								preventBackgroundClose ||
+								(pressedDialog && pressedDialog !== contentRef.current)
+							) {
 								e.preventDefault()
 							}
 						}}

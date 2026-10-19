@@ -43,7 +43,6 @@ ZERO_QUERY_URL = "__ZERO_QUERY_URL"
 ZERO_ENABLE_CRUD_MUTATIONS = "false"
 ZERO_UPSTREAM_MAX_CONNS = "__VS_UPSTREAM_MAX_CONNS"
 ZERO_CVR_MAX_CONNS = "__VS_CVR_MAX_CONNS"
-ZERO_CHANGE_MAX_CONNS = "__VS_CHANGE_MAX_CONNS"
 ZERO_LOG_LEVEL = "warn"
 OTEL_TRACES_EXPORTER = "none"
 DO_NOT_TRACK = "1"
@@ -52,3 +51,6 @@ OTEL_RESOURCE_ATTRIBUTES = "service.name=zero-vs,service.namespace=dotcom,deploy
 ZERO_LITESTREAM_CONFIG_PATH = "/etc/litestream.yml"
 ZERO_LITESTREAM_BACKUP_URL = "s3://__ZERO_R2_BUCKET_NAME/__BACKUP_PATH"
 ZERO_LITESTREAM_ENDPOINT = "__ZERO_R2_ENDPOINT"
+# Read back by flyDeployGate.ts to skip a deploy whose inputs are unchanged. Bump the marker to
+# force one: marker 1
+TLDRAW_DEPLOY_INPUT_HASH = "__DEPLOY_INPUT_HASH"

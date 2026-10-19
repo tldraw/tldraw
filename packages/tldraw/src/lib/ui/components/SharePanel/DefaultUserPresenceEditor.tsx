@@ -62,9 +62,7 @@ export function DefaultUserPresenceEditor() {
 				<>
 					<div
 						className="tlui-people-menu__user__name"
-						onDoubleClick={() => {
-							if (!isEditingName) setIsEditingName(true)
-						}}
+						onDoubleClick={() => setIsEditingName(true)}
 					>
 						{userName || msg('people-menu.anonymous-user')}
 					</div>

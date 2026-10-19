@@ -16,6 +16,8 @@ import type { TLEventMap } from '../types/emit-types'
  * - Reaction (`react(...)` from `@tldraw/state`): `this.register(react(...))`
  * - DOM listener: `this.register(() => el.removeEventListener(...))`
  * - Other resource (cache, index, child manager): `this.register(() => x.dispose())`
+ * - Resource held only part of the time (a listener attached while subscribers exist):
+ *   `this.register(...)` on attach and `this.unregister(...)` on detach, see `PerformanceManager`
  *
  * For timeouts, intervals, and animation frames prefer `editor.timers` (context-grouped
  * and auto-disposed) over raw `setTimeout`. For cleanup on the editor itself rather than a
@@ -41,15 +43,25 @@ export abstract class EditorManager {
 	}
 
 	/**
+	 * Run a registered teardown now instead of at `dispose()`. A teardown that is no longer
+	 * registered (already run by `dispose()`, or never registered) is skipped, so nothing is
+	 * torn down twice.
+	 */
+	protected unregister(dispose: () => void): void {
+		if (this.disposables.delete(dispose)) dispose()
+	}
+
+	/**
 	 * Subscribe to an editor bus event and register the matching unsubscribe, so the listener
-	 * is removed automatically on `dispose()`.
+	 * is removed automatically on `dispose()`. Returns that unsubscribe, for passing to
+	 * {@link EditorManager.unregister} to detach it before `dispose()`.
 	 */
 	protected addEditorEvent<E extends keyof TLEventMap>(
 		event: E,
 		fn: (...args: TLEventMap[E]) => void
-	): void {
+	): () => void {
 		this.editor.on(event, fn as any)
-		this.register(() => this.editor.off(event, fn as any))
+		return this.register(() => this.editor.off(event, fn as any))
 	}
 
 	/** @internal */

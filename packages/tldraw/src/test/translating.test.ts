@@ -1099,6 +1099,63 @@ describe('Snap-between behavior', () => {
 		expect(pointLines[1].points).toHaveLength(6)
 	})
 
+	it('shows both horizontal snap-betweens when their breadths only touch', () => {
+		// ┌───┐       ┌───┐
+		// │ A ├──┼──┤ B │  ┌───┐
+		// ├───┤       ├───┤  │ X │ ◄─── drag
+		// │ C ├──┼──┤ D │  └───┘
+		// └───┘       └───┘
+		// the A-B and C-D gaps share the same span but their breadths only meet at
+		// y=10, which is not an overlap, so neither center snap hides the other
+		editor.createShapes([
+			box(ids.box1, 0, 0),
+			box(ids.box2, 20, 0),
+			box(ids.line1, 0, 10),
+			box(ids.boxD, 20, 10),
+			box(ids.boxX, 50, 0, 4, 20),
+		])
+
+		editor.pointerDown(52, 10, ids.boxX).pointerMove(16, 10, { ctrlKey: true })
+		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 13, y: 0 })
+
+		const { gapLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
+		expect(gapLines).toHaveLength(2)
+		expect(gapLines.map((line) => line.direction)).toEqual(['horizontal', 'horizontal'])
+		expect(gapLines[0].gaps).toHaveLength(2)
+		expect(gapLines[1].gaps).toHaveLength(2)
+	})
+
+	it('shows both vertical snap-betweens when their breadths only touch', () => {
+		// ┌───┬───┐
+		// │ A │ B │
+		// └─┬─┴─┬─┘
+		//   ┼   ┼
+		// ┌─┴─┬─┴─┐
+		// │ C │ D │
+		// └───┴───┘
+		//
+		// ┌───────┐
+		// │   X   │ ◄─── drag
+		// └───────┘
+		// vertical mirror of the horizontal case above; both axes must agree
+		editor.createShapes([
+			box(ids.box1, 0, 0),
+			box(ids.box2, 10, 0),
+			box(ids.line1, 0, 20),
+			box(ids.boxD, 10, 20),
+			box(ids.boxX, 0, 50, 20, 4),
+		])
+
+		editor.pointerDown(10, 52, ids.boxX).pointerMove(10, 16, { ctrlKey: true })
+		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 0, y: 13 })
+
+		const { gapLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
+		expect(gapLines).toHaveLength(2)
+		expect(gapLines.map((line) => line.direction)).toEqual(['vertical', 'vertical'])
+		expect(gapLines[0].gaps).toHaveLength(2)
+		expect(gapLines[1].gaps).toHaveLength(2)
+	})
+
 	it('should not snap horizontally if the shape is larger than the gap', () => {
 		//        ┌─────┐             ┌─────┐
 		//        │     │             │     │
@@ -2359,6 +2416,115 @@ describe('cloning mid-drag', () => {
 		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'geo')).toHaveLength(1)
 		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.frame1)
 	})
+})
+
+describe('when shapes disappear mid-drag', () => {
+	it('does not crash when a bound arrow being translated is deleted', () => {
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{
+				id: ids.lineA,
+				type: 'arrow',
+				x: 200,
+				y: 200,
+				props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } },
+			},
+		])
+		editor.createBindings([
+			{
+				fromId: ids.lineA,
+				toId: ids.box1,
+				type: 'arrow',
+				props: {
+					terminal: 'start',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+					snap: 'none',
+				},
+			},
+		])
+		editor.select(ids.lineA)
+		editor.pointerDown(250, 250, { target: 'shape', shape: editor.getShape(ids.lineA) })
+		editor.pointerMove(260, 260)
+		editor.expectToBeIn('select.translating')
+
+		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.lineA]))
+
+		expect(() => editor.pointerMove(270, 270)).not.toThrow()
+		expect(() => editor.pointerUp(270, 270)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not crash when the drop target is deleted', () => {
+		editor.createShapes([
+			{ id: ids.frame1, type: 'frame', x: 500, y: 0, props: { w: 200, h: 200 } },
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+		])
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.box1) })
+		editor.pointerMove(600, 100)
+		vi.advanceTimersByTime(300)
+		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.frame1)
+
+		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.frame1]))
+
+		expect(() => {
+			editor.pointerMove(610, 110)
+			vi.advanceTimersByTime(300)
+			editor.pointerUp(610, 110)
+		}).not.toThrow()
+		editor.expectToBeIn('select.idle')
+		// The dragged shape shouldn't be left orphaned under the deleted frame
+		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getCurrentPageShapeIds().has(ids.box1)).toBe(true)
+	})
+
+	it('keeps the shape where it is when the drop target is deleted and the pointer lifts', () => {
+		editor.createShapes([
+			{ id: ids.frame1, type: 'frame', x: 500, y: 0, props: { w: 200, h: 200 } },
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+		])
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.box1) })
+		editor.pointerMove(600, 100)
+		vi.advanceTimersByTime(300)
+		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.frame1)
+		expect(editor.getShapePageBounds(ids.box1)).toMatchObject({ x: 550, y: 50 })
+
+		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.frame1]))
+
+		// No pointer move after the delete, so nothing re-runs moveShapesToPoint: the
+		// reparent onto the page has to preserve the shape's page position by itself.
+		editor.pointerUp(600, 100)
+
+		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShapePageBounds(ids.box1)).toMatchObject({ x: 550, y: 50 })
+	})
+})
+
+it('returns to idle after a creating translate with no onCreate', () => {
+	editor.createShape({ type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+	const shape = editor.getLastCreatedShape()
+	editor.select(shape)
+	editor.pointerMove(50, 50)
+	editor.setCurrentTool('select.translating', {
+		type: 'pointer',
+		button: 0,
+		altKey: false,
+		ctrlKey: false,
+		metaKey: false,
+		accelKey: false,
+		isPen: false,
+		name: 'pointer_move',
+		point: { x: 50, y: 50 },
+		pointerId: 0,
+		shape,
+		shiftKey: false,
+		target: 'shape',
+		isCreating: true,
+	} satisfies TranslatingInfo)
+	editor.pointerMove(100, 100)
+	editor.pointerUp(100, 100)
+	editor.expectToBeIn('select.idle')
 })
 
 it('preserves z-indexes when translating', () => {

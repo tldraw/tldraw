@@ -1,23 +1,9 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
-import { useCallback, useMemo } from 'react'
-import { Editor, TLComponents, Tldraw, TLStoreSnapshot } from 'tldraw'
-import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
-import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
-import { useHandleUiEvents } from '../../../utils/analytics'
-import { assetUrls } from '../../../utils/assetUrls'
-import { embedShapeUtils } from '../../../utils/embedShapeUtil'
-import { globalEditor } from '../../../utils/globalEditor'
-import { useMaybeApp } from '../../hooks/useAppState'
-import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
+import { useMemo } from 'react'
+import { TLComponents, TLStoreSnapshot } from 'tldraw'
 import { F } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
-import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
-import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
-import { SneakyLegacySetDocumentTitle } from './sneaky/SneakyLegacytSetDocumentTitle'
-import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
-import { TlaEditorWrapper } from './TlaEditorWrapper'
-import { useFileEditorOverrides } from './useFileEditorOverrides'
+import { TlaLegacySnapshotEditor } from './TlaLegacySnapshotEditor'
 
 export function TlaHistorySnapshotEditor({
 	fileSlug,
@@ -28,46 +14,6 @@ export function TlaHistorySnapshotEditor({
 	snapshot: TLStoreSnapshot
 	onRestore(): Promise<void>
 }) {
-	return (
-		<>
-			<SneakySetDocumentTitle />
-			<ReadyWrapper key={fileSlug}>
-				<TlaEditorInner snapshot={snapshot} onRestore={onRestore} />
-			</ReadyWrapper>
-		</>
-	)
-}
-
-function TlaEditorInner({
-	snapshot,
-	onRestore,
-}: {
-	snapshot: TLStoreSnapshot
-	onRestore(): Promise<void>
-}) {
-	const app = useMaybeApp()
-
-	const setIsReady = useSetIsReady()
-
-	// make sure this runs before the editor is instantiated
-	useLegacyUrlParams()
-
-	const handleUiEvent = useHandleUiEvents()
-
-	const fileSystemUiOverrides = useFileEditorOverrides({})
-
-	const handleMount = useCallback(
-		(editor: Editor) => {
-			;(window as any).app = editor
-			;(window as any).editor = editor
-			// Register the editor globally
-			globalEditor.set(editor)
-			editor.updateInstanceState({ isReadonly: true })
-			setIsReady()
-		},
-		[setIsReady]
-	)
-
 	const components = useMemo((): TLComponents => {
 		return {
 			ErrorFallback: TlaEditorErrorFallback,
@@ -97,26 +43,5 @@ function TlaEditorInner({
 		}
 	}, [onRestore])
 
-	return (
-		<TlaEditorWrapper>
-			<Tldraw
-				className="tla-editor"
-				licenseKey={getLicenseKey()}
-				snapshot={snapshot}
-				assetUrls={assetUrls}
-				shapeUtils={embedShapeUtils}
-				onMount={handleMount}
-				overrides={[fileSystemUiOverrides]}
-				initialState={'hand'}
-				onUiEvent={handleUiEvent}
-				components={components}
-				options={{ actionShortcutsLocation: 'toolbar', deepLinks: true }}
-			>
-				<ThemeUpdater />
-				<SneakyDarkModeSync />
-				<SneakyLegacySetDocumentTitle />
-				{app && <SneakyTldrawFileDropHandler />}
-			</Tldraw>
-		</TlaEditorWrapper>
-	)
+	return <TlaLegacySnapshotEditor fileSlug={fileSlug} snapshot={snapshot} components={components} />
 }

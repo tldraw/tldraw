@@ -1973,3 +1973,118 @@ it('does not get drop children of nested frame if they are occluded from the out
 
 	expect(editor.getShape(rect1)?.parentId).toBe(frame2Id)
 })
+
+describe('When double-clicking a frame edge', () => {
+	it('fits the frame to its content without moving the children', () => {
+		const frameId = createShapeId()
+		const boxId = createShapeId()
+		editor.createShapes([
+			{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 800, h: 600 } },
+			{ id: boxId, type: 'geo', parentId: frameId, x: 300, y: 200, props: { w: 100, h: 100 } },
+		])
+		editor.select(frameId)
+
+		const boxPageBoundsBefore = editor.getShapePageBounds(boxId)!
+
+		editor.doubleClick(800, 300, { target: 'selection', handle: 'right' })
+
+		// The frame fits the content horizontally (100 wide plus 10 of padding either
+		// side) and moves right to compensate; its height is left alone
+		expect(editor.getShapePageBounds(frameId)).toMatchObject({ x: 290, y: 0, w: 120, h: 600 })
+		expect(editor.getShapePageBounds(boxId)).toMatchObject(boxPageBoundsBefore)
+	})
+
+	it('keeps the children in place when the frame is rotated', () => {
+		const frameId = createShapeId()
+		const boxId = createShapeId()
+		editor.createShapes([
+			{ id: frameId, type: 'frame', x: 0, y: 0, rotation: Math.PI / 2, props: { w: 800, h: 600 } },
+			{ id: boxId, type: 'geo', parentId: frameId, x: 300, y: 200, props: { w: 100, h: 100 } },
+		])
+		editor.select(frameId)
+
+		const boxPageBoundsBefore = editor.getShapePageBounds(boxId)!
+
+		const bounds = editor.getSelectionPageBounds()!
+		editor.doubleClick(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' })
+
+		// The frame moved by the same 290 as above, but along its own rotated x axis
+		const frame = editor.getShape(frameId)!
+		expect(frame.x).toBeCloseTo(0)
+		expect(frame.y).toBeCloseTo(290)
+
+		const boxPageBoundsAfter = editor.getShapePageBounds(boxId)!
+		expect(boxPageBoundsAfter.x).toBeCloseTo(boxPageBoundsBefore.x)
+		expect(boxPageBoundsAfter.y).toBeCloseTo(boxPageBoundsBefore.y)
+	})
+})
+
+describe('Undoing a double-click fit to content', () => {
+	let frameId: TLShapeId
+	let boxId: TLShapeId
+
+	beforeEach(() => {
+		boxId = createRect({ pos: [300, 300], size: [100, 100] })
+		// Drawn with the tool so the frame's creation is a marked undo step the fit could leak into
+		frameId = dragCreateFrame({ down: [100, 100], move: [600, 600], up: [600, 600] })
+		expect(editor.getShape(boxId)).toMatchObject({ parentId: frameId, x: 200, y: 200 })
+	})
+
+	it('undoes a corner double-click as its own step', () => {
+		const frameBefore = editor.getShape(frameId)!
+		const boxBefore = editor.getShape(boxId)!
+
+		editor.doubleClick(100, 100, { target: 'selection', handle: 'top_left' })
+		const frameAfter = editor.getShape(frameId)!
+		const boxAfter = editor.getShape(boxId)!
+		expect(frameAfter).toMatchObject({ x: 290, y: 290, props: { w: 120, h: 120 } })
+		expect(boxAfter).toMatchObject({ x: 10, y: 10 })
+
+		// The first undo unfits the frame rather than deleting it
+		editor.undo()
+		expect(editor.getShape(frameId)).toEqual(frameBefore)
+		expect(editor.getShape(boxId)).toEqual(boxBefore)
+
+		editor.redo()
+		expect(editor.getShape(frameId)).toEqual(frameAfter)
+		expect(editor.getShape(boxId)).toEqual(boxAfter)
+		editor.undo()
+
+		editor.undo()
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(boxId)).toMatchObject({
+			parentId: editor.getCurrentPageId(),
+			x: 300,
+			y: 300,
+		})
+	})
+
+	it('undoes an edge double-click as its own step, children included', () => {
+		const frameBefore = editor.getShape(frameId)!
+		const boxBefore = editor.getShape(boxId)!
+
+		editor.doubleClick(600, 350, { target: 'selection', handle: 'right' })
+		const frameAfter = editor.getShape(frameId)!
+		const boxAfter = editor.getShape(boxId)!
+		expect(frameAfter).toMatchObject({ x: 290, y: 100, props: { w: 120, h: 500 } })
+		expect(boxAfter).toMatchObject({ x: 10, y: 200 })
+
+		// The children are moved before the frame is, but one undo reverts both
+		editor.undo()
+		expect(editor.getShape(frameId)).toEqual(frameBefore)
+		expect(editor.getShape(boxId)).toEqual(boxBefore)
+
+		editor.redo()
+		expect(editor.getShape(frameId)).toEqual(frameAfter)
+		expect(editor.getShape(boxId)).toEqual(boxAfter)
+		editor.undo()
+
+		editor.undo()
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(boxId)).toMatchObject({
+			parentId: editor.getCurrentPageId(),
+			x: 300,
+			y: 300,
+		})
+	})
+})

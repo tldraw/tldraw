@@ -1,6 +1,5 @@
 import {
 	Box,
-	HALF_PI,
 	SelectionHandle,
 	ShapeWithCrop,
 	StateNode,
@@ -13,6 +12,7 @@ import {
 } from '@tldraw/editor'
 import { getCropBox, getDefaultCrop, getUncroppedSize } from '../../../../../shapes/shared/crop'
 import { GestureShapeChangeTracker } from '../../../GestureShapeChangeTracker'
+import { isRightAngleRotation } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type Snapshot = ReturnType<Cropping['createSnapshot']>
@@ -136,7 +136,7 @@ export class Cropping extends StateNode {
 		editor.snaps.clearIndicators()
 		const shouldSnap = editor.user.getIsSnapMode() ? !isHoldingAccel : isHoldingAccel
 		let didSnap = false
-		if (shouldSnap && initialSelectionPageBounds && selectionRotation % HALF_PI === 0) {
+		if (shouldSnap && initialSelectionPageBounds && isRightAngleRotation(selectionRotation)) {
 			const { nudge } = editor.snaps.shapeBounds.snapResizeShapes({
 				dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
 				initialSelectionPageBounds,
@@ -148,7 +148,9 @@ export class Cropping extends StateNode {
 			didSnap = true
 		}
 
-		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
+		// The crop lives in the shape's own space, so the page-space drag comes off by the shape's
+		// page rotation; its local rotation alone is wrong inside a rotated frame or group
+		const change = currentPagePoint.clone().sub(originPagePoint).rot(-selectionRotation)
 
 		const crop = shape.props.crop ?? getDefaultCrop()
 		const uncroppedSize = getUncroppedSize(shape.props, crop)

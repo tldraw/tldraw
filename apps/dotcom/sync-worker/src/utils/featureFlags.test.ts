@@ -1,5 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ensureUser } from '../routes/tla/initUser'
 import {
+	canUseMcpServer,
+	resetFeatureFlagCacheForTests,
 	evaluateFlagForUser,
 	getAllFeatureFlagValues,
 	getFeatureFlagValue,
@@ -12,6 +15,23 @@ import {
 vi.mock('./tla/getAuth', () => ({
 	getAuth: vi.fn(),
 }))
+
+// canUseMcpServer takes the account's email from ensureUser when the flag does not cover them.
+vi.mock('../routes/tla/initUser', () => ({
+	ensureUser: vi.fn(async () => ({ outcome: 'no_clerk_user' })),
+}))
+
+vi.mock('../postgres', () => ({
+	createPostgresConnectionPool: () => ({ destroy: async () => {} }),
+}))
+
+beforeEach(() => resetFeatureFlagCacheForTests())
+
+function kvDown() {
+	return vi.fn(async () => {
+		throw new Error('KV down')
+	})
+}
 
 function makeEnv(
 	kvData: Record<string, string> = {},
@@ -160,8 +180,11 @@ describe('evaluateFlagForUser (allowlist)', () => {
 		expect(evaluateFlagForUser(flag(['user-1', 'user-2']), 'test', 'user-3')).toBe(false)
 	})
 
-	it('is off for everyone when the master toggle is off', () => {
-		expect(evaluateFlagForUser(flag(['user-1'], false), 'test', 'user-1')).toBe(false)
+	// Allowlists have no master toggle — the list is the control. Values stored while they did still
+	// carry `enabled`, and obeying a stale `false` would lock out a list that reads as granting.
+	it('ignores a stored enabled from before the toggle was removed', () => {
+		const stale = { ...flag(['user-1']), enabled: false } as any
+		expect(evaluateFlagForUser(stale, 'test', 'user-1')).toBe(true)
 	})
 
 	it('is off for an anonymous caller', () => {
@@ -274,15 +297,79 @@ describe('getFeatureFlagValue', () => {
 		expect(evaluateFlagForUser(value, 'mcp_server_access', 'user-1')).toBe(false)
 	})
 
-	it('returns defaults on KV error', async () => {
-		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-		const env = makeEnv()
-		env.FEATURE_FLAGS.get = vi.fn(async () => {
-			throw new Error('KV down')
+	// Same rule as `type`: a save writes the whole value back, so the description a flag was first
+	// stored with would otherwise outlive every later edit to the defaults table, and the admin panel
+	// would go on describing a control by a name the code had already renamed.
+	it('discards a stored description in favour of the current default', async () => {
+		const env = makeEnv({
+			mcp_server_access: JSON.stringify({
+				type: 'allowlist',
+				enabled: true,
+				description: 'Allow everyone opens it to every signed-in account',
+			}),
 		})
+		const value = await getFeatureFlagValue(env as any, 'mcp_server_access')
+		expect(value.description).toContain('Allow all')
+		expect(value.description).not.toContain('Allow everyone')
+	})
+
+	it('reads a value that is not JSON as the defaults', async () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const env = makeEnv({ rum_enabled: '{not json' })
 		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
-		expect(value).toMatchObject({ type: 'percentage', enabled: false })
+		expect(value).toMatchObject({ type: 'percentage', enabled: false, percentage: 0 })
 		consoleSpy.mockRestore()
+	})
+})
+
+describe('getFeatureFlagValue caching and failure', () => {
+	let consoleSpy: ReturnType<typeof vi.spyOn>
+	beforeEach(() => {
+		consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.useFakeTimers()
+	})
+	afterEach(() => {
+		consoleSpy.mockRestore()
+		vi.useRealTimers()
+	})
+
+	it('reads KV once per flag within the cache window, then again after it', async () => {
+		const env = makeEnv({ rum_enabled: JSON.stringify({ enabled: true, percentage: 10 }) })
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(env.FEATURE_FLAGS.get).toHaveBeenCalledTimes(1)
+
+		vi.advanceTimersByTime(30_000)
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(env.FEATURE_FLAGS.get).toHaveBeenCalledTimes(2)
+	})
+
+	it('returns the defaults on KV error when nothing is cached', async () => {
+		const env = makeEnv()
+		env.FEATURE_FLAGS.get = kvDown()
+		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(value).toMatchObject({ type: 'percentage', enabled: false, percentage: 0 })
+	})
+
+	it('does not cache the fallback from a failed read', async () => {
+		const env = makeEnv({ rum_enabled: JSON.stringify({ enabled: true, percentage: 10 }) })
+		const get = env.FEATURE_FLAGS.get
+		env.FEATURE_FLAGS.get = kvDown()
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+
+		env.FEATURE_FLAGS.get = get
+		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(value).toMatchObject({ enabled: true, percentage: 10 })
+	})
+
+	it('serves the last cached value, however old, on KV error', async () => {
+		const env = makeEnv({ rum_enabled: JSON.stringify({ enabled: true, percentage: 10 }) })
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+
+		vi.advanceTimersByTime(10 * 60_000)
+		env.FEATURE_FLAGS.get = kvDown()
+		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(value).toMatchObject({ enabled: true, percentage: 10 })
 	})
 })
 
@@ -323,6 +410,37 @@ describe('setFeatureFlag', () => {
 		expect(JSON.parse(env.FEATURE_FLAGS.put.mock.calls[0][1]).users).toEqual([
 			{ userId: 'user-2', email: 'two@example.com' },
 		])
+	})
+
+	it('reads the current value from KV, not the cache', async () => {
+		const env = makeEnv({ rum_enabled: JSON.stringify({ enabled: false, percentage: 10 }) })
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+		env.FEATURE_FLAGS.get = vi.fn(async () => JSON.stringify({ enabled: false, percentage: 50 }))
+
+		await setFeatureFlag(env as any, 'rum_enabled', { type: 'percentage', enabled: true })
+
+		expect(JSON.parse(env.FEATURE_FLAGS.put.mock.calls[0][1])).toMatchObject({
+			enabled: true,
+			percentage: 50,
+		})
+	})
+
+	it('refreshes the cache with what it wrote', async () => {
+		const env = makeEnv()
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+		await setFeatureFlag(env as any, 'rum_enabled', { type: 'percentage', percentage: 30 })
+
+		env.FEATURE_FLAGS.get = kvDown()
+		expect(await getFeatureFlagValue(env as any, 'rum_enabled')).toMatchObject({ percentage: 30 })
+	})
+
+	it('fails rather than saving over defaults when KV is down', async () => {
+		const env = makeEnv()
+		env.FEATURE_FLAGS.get = kvDown()
+		await expect(
+			setFeatureFlag(env as any, 'rum_enabled', { type: 'percentage', enabled: true })
+		).rejects.toThrow('KV down')
+		expect(env.FEATURE_FLAGS.put).not.toHaveBeenCalled()
 	})
 
 	// A field that means nothing for this flag's type is refused rather than dropped. It used to be
@@ -385,7 +503,7 @@ describe('getFeatureFlags (route handler)', () => {
 		expect(body.rum_enabled.enabled).toBe(false)
 	})
 
-	it('forces legacy zero_enabled/zero_kill_switch flags on for old client bundles, even unauthenticated', async () => {
+	it('forces legacy zero_enabled/zero_kill_switch/commenting_enabled flags for old client bundles, even unauthenticated', async () => {
 		const { getAuth } = await import('./tla/getAuth')
 		vi.mocked(getAuth).mockResolvedValue(null)
 
@@ -395,6 +513,7 @@ describe('getFeatureFlags (route handler)', () => {
 
 		expect(body.zero_enabled.enabled).toBe(true)
 		expect(body.zero_kill_switch.enabled).toBe(false)
+		expect(body.commenting_enabled.enabled).toBe(true)
 		expect(body.rum_enabled).toBeDefined()
 	})
 })
@@ -414,14 +533,202 @@ describe('getAllFeatureFlagValues', () => {
 		expect(flags.rum_enabled.description).toBeTruthy()
 	})
 
+	it('reads KV, not the isolate cache', async () => {
+		const env = makeEnv({ rum_enabled: JSON.stringify({ enabled: false, percentage: 10 }) })
+		await getFeatureFlagValue(env as any, 'rum_enabled')
+		env.FEATURE_FLAGS.get = vi.fn(async () => JSON.stringify({ enabled: true, percentage: 50 }))
+
+		const flags = await getAllFeatureFlagValues(env as any)
+		expect(flags.rum_enabled).toMatchObject({ enabled: true, percentage: 50 })
+	})
+
 	it('returns all flags even when KV is empty', async () => {
 		const env = makeEnv()
 		const flags = await getAllFeatureFlagValues(env as any)
 
 		expect(Object.keys(flags).sort()).toEqual([
-			'commenting_enabled',
+			'load_rum',
 			'mcp_server_access',
 			'rum_enabled',
+			'version_chain',
 		])
+	})
+})
+
+describe('allowEveryone', () => {
+	// Checked ahead of the list so a flag can be opened to everyone without first emptying a list the
+	// operator will want back when they close it again.
+	it('admits anyone when set, whatever the list holds', () => {
+		const flag = {
+			type: 'allowlist' as const,
+			users: [{ userId: 'someone-else', email: 'x@example.com' }],
+			allowEveryone: true,
+			enabled: true,
+			description: '',
+		}
+		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'not-on-the-list')).toBe(true)
+	})
+
+	// Same as above from the other side: a stale `enabled: false` does not hold back allow all either.
+	it('admits everyone despite a stored enabled from before the toggle was removed', () => {
+		const flag = {
+			type: 'allowlist' as const,
+			users: [],
+			allowEveryone: true,
+			enabled: false,
+			description: '',
+		}
+		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'anyone')).toBe(true)
+	})
+
+	// Absent reads as false: a value stored before this field existed must not start admitting
+	// everyone the moment the code that understands it is deployed.
+	it('treats a stored value without the field as closed', () => {
+		const flag = {
+			type: 'allowlist' as const,
+			users: [],
+			enabled: true,
+			description: '',
+		}
+		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'anyone')).toBe(false)
+	})
+})
+
+describe('canUseMcpServer', () => {
+	const withEmail = (email: string) =>
+		vi.mocked(ensureUser).mockResolvedValueOnce({ outcome: 'existing', email })
+
+	beforeEach(() => {
+		vi.mocked(ensureUser).mockClear()
+	})
+
+	it('admits a verified @tldraw.com account the flag does not name', async () => {
+		withEmail('someone@tldraw.com')
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
+	})
+
+	it('is case-insensitive about the domain', async () => {
+		withEmail('Someone@TLDRAW.com')
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
+	})
+
+	// The obvious near-miss: a domain that merely ends the same way is a different company.
+	it('refuses a lookalike domain', async () => {
+		withEmail('someone@nottldraw.com')
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
+	})
+
+	it('refuses everyone else', async () => {
+		withEmail('someone@example.com')
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
+	})
+
+	it('admits a @tldraw.com account whose rows it just created', async () => {
+		vi.mocked(ensureUser).mockResolvedValueOnce({ outcome: 'created', email: 'someone@tldraw.com' })
+		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
+	})
+
+	// A token whose account no longer exists is refused, not turned into a 500.
+	it.each(['no_clerk_user', 'no_email', 'rate_limited'] as const)(
+		'refuses when ensureUser returns %s',
+		async (outcome) => {
+			vi.mocked(ensureUser).mockResolvedValueOnce({ outcome })
+			expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
+		}
+	)
+
+	it('still admits staff and refuses everyone else when the flag is unreadable', async () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const env = makeEnv()
+		env.FEATURE_FLAGS.get = kvDown()
+
+		withEmail('someone@tldraw.com')
+		expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+		withEmail('someone@example.com')
+		expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
+		consoleSpy.mockRestore()
+	})
+
+	describe('when KV fails after the flag was cached', () => {
+		let consoleSpy: ReturnType<typeof vi.spyOn>
+		beforeEach(() => {
+			consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			vi.useFakeTimers()
+		})
+		afterEach(() => {
+			consoleSpy.mockRestore()
+			vi.useRealTimers()
+		})
+
+		async function warmThenBreak(stored: object) {
+			const env = makeEnv({ mcp_server_access: JSON.stringify(stored) })
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+			vi.advanceTimersByTime(30_000)
+			env.FEATURE_FLAGS.get = kvDown()
+			return env
+		}
+
+		it.each([
+			['an individual grant', { users: [{ userId: 'user-1', email: 'someone@example.com' }] }],
+			['allowEveryone', { users: [], allowEveryone: true }],
+		])('does not keep admitting through %s', async (_, stored) => {
+			const env = await warmThenBreak(stored)
+			withEmail('someone@example.com')
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
+		})
+
+		// Stale-on-error reads (the flags route) must not re-arm the cached grant for this check.
+		it('does not keep admitting after a stale-on-error read of the flag', async () => {
+			const env = await warmThenBreak({ users: [], allowEveryone: true })
+			await getFeatureFlagValue(env as any, 'mcp_server_access')
+			withEmail('someone@example.com')
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
+		})
+
+		it('still admits staff', async () => {
+			const env = await warmThenBreak({ users: [], allowEveryone: true })
+			withEmail('someone@tldraw.com')
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+		})
+	})
+
+	// Every account the check sees gets its rows and home workspace, whatever the domain and
+	// whether or not it is admitted.
+	it.each([
+		['a @tldraw.com account', 'someone@tldraw.com', false, true],
+		['any other account', 'someone@example.com', false, false],
+		['any other account the flag grants', 'someone@example.com', true, true],
+	])('ensures the rows of %s', async (_, email, granted, admitted) => {
+		const env = granted
+			? makeEnv({ mcp_server_access: JSON.stringify({ users: [], allowEveryone: true }) })
+			: makeEnv()
+		withEmail(email)
+		expect(await canUseMcpServer(env as any, 'user-1')).toBe(admitted)
+		expect(ensureUser).toHaveBeenCalledWith(env, expect.anything(), 'user-1')
+	})
+
+	describe('for an account the flag grants', () => {
+		const grantedEnv = () =>
+			makeEnv({ mcp_server_access: JSON.stringify({ users: [], allowEveryone: true }) })
+
+		// Granted accounts can sign up on the consent screen too, and need a workspace like anyone.
+		it('ensures their rows once per isolate', async () => {
+			const env = grantedEnv()
+			withEmail('someone@example.com')
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+			expect(ensureUser).toHaveBeenCalledTimes(1)
+		})
+
+		it('admits them and retries the rows next time when ensuring fails', async () => {
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			const env = grantedEnv()
+			vi.mocked(ensureUser).mockRejectedValueOnce(new Error('Postgres down'))
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+			withEmail('someone@example.com')
+			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
+			expect(ensureUser).toHaveBeenCalledTimes(2)
+			consoleSpy.mockRestore()
+		})
 	})
 })

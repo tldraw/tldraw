@@ -1,3 +1,5 @@
+import { COMMON_ROOM_SNIPPET_CSP_HASH } from '../../../../../internal/shared/common-room-signals'
+
 export const cspDirectives: { [key: string]: string[] } = {
 	'default-src': [`'self'`],
 	'connect-src': [
@@ -33,6 +35,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://stats.g.doubleclick.net',
 		'https://*.google-analytics.com',
 		'https://api.reo.dev',
+		'https://api.cr-relay.com',
 		'https://fonts.googleapis.com',
 		// asset uploads/serving
 		'https://tldrawusercontent.com',
@@ -44,6 +47,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'script-src': [
 		`'self'`,
+		`'${COMMON_ROOM_SNIPPET_CSP_HASH}'`,
 		'https://challenges.cloudflare.com',
 		'https://*.clerk.accounts.dev',
 		'https://clerk.tldraw.com',
@@ -56,6 +60,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.google-analytics.com',
 		'https://analytics.tldraw.com',
 		'https://static.reo.dev',
+		'https://cdn.cr-relay.com',
 	],
 	'worker-src': [`'self'`, `blob:`],
 	'style-src': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],

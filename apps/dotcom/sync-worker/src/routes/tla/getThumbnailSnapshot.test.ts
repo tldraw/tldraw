@@ -106,6 +106,68 @@ describe('getThumbnailSnapshot', () => {
 		expect(body.renderParams).toMatchObject({ camera: 'content', pageId: 'page:abc' })
 	})
 
+	it('sends only the records the targeted page draws', async () => {
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue({
+			documents: [
+				{ state: { id: 'document:document', typeName: 'document' } },
+				{ state: { id: 'page:a', typeName: 'page' } },
+				{ state: { id: 'page:b', typeName: 'page' } },
+				{
+					state: {
+						id: 'shape:onA',
+						typeName: 'shape',
+						parentId: 'page:a',
+						props: { assetId: 'asset:pic' },
+					},
+				},
+				{ state: { id: 'shape:onB', typeName: 'shape', parentId: 'page:b', props: {} } },
+				{ state: { id: 'asset:pic', typeName: 'asset', type: 'image' } },
+				{ state: { id: 'asset:elsewhere', typeName: 'asset', type: 'image' } },
+			].map((d) => ({ ...d, lastChangedClock: 0 })),
+			schema: { schemaVersion: 2, sequences: {} },
+			clock: 0,
+		} as any)
+
+		const response = await getThumbnailSnapshot(
+			makeRequest(await mintToken({ pageId: 'page:a' })),
+			env
+		)
+
+		const body = (await response.json()) as any
+		expect(body.records.map((r: { id: string }) => r.id)).toEqual([
+			'document:document',
+			'page:a',
+			'shape:onA',
+			'asset:pic',
+		])
+	})
+
+	it('sends the whole board when the slice cannot vouch for itself', async () => {
+		// The requested shape sits on another page, so a slice of page:a would not be closed. The
+		// render page refuses this job itself; the route just must not hand it a partial board.
+		const documents = [
+			{ state: { id: 'page:a', typeName: 'page' }, lastChangedClock: 0 },
+			{ state: { id: 'page:b', typeName: 'page' }, lastChangedClock: 0 },
+			{
+				state: { id: 'shape:onB', typeName: 'shape', parentId: 'page:b', props: {} },
+				lastChangedClock: 0,
+			},
+		]
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue({
+			documents,
+			schema: { schemaVersion: 2, sequences: {} },
+			clock: 0,
+		} as any)
+
+		const response = await getThumbnailSnapshot(
+			makeRequest(await mintToken({ pageId: 'page:a', shapeIds: ['shape:onB'] })),
+			env
+		)
+
+		const body = (await response.json()) as any
+		expect(body.records).toEqual(documents.map((d) => d.state))
+	})
+
 	it('returns 404 when the token targets a page that no longer exists in the snapshot', async () => {
 		// A shared file's live snapshot can lose the targeted page to a concurrent edit between the
 		// token being minted and the render reloading the snapshot. Rendering a different page would

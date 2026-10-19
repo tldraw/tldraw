@@ -62,7 +62,7 @@ fi
 
 # Build widget first
 echo "Building widget..."
-yarn build:widget
+pnpm build:widget
 
 # 3. Start cloudflared in the background, forwarding the tunnel to the local worker
 cloudflared tunnel --url "http://localhost:$PORT" run --cred-file "$CRED_FILE" "$TUNNEL_NAME" &
