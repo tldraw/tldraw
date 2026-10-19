@@ -7,6 +7,7 @@ import {
 	TLBookmarkShape,
 	TLShapeId,
 	TLShapePartial,
+	T,
 	createShapeId,
 	debounce,
 	getHashForString,
@@ -16,6 +17,12 @@ export const BOOKMARK_WIDTH = 300
 export const BOOKMARK_HEIGHT = 320
 export const BOOKMARK_JUST_URL_HEIGHT = 46
 const SHORT_BOOKMARK_HEIGHT = 101
+
+// Only http(s) pages have metadata to fetch. A bookmark asset's `src` is a `T.srcUrl`, which
+// rejects deep links like `vscode://file/…` and `mailto:`, so those stay url-only bookmarks.
+function canUnfurlUrl(url: string) {
+	return T.httpUrl.isValid(url)
+}
 
 export function getBookmarkHeight(editor: Editor, assetId?: TLAssetId | null) {
 	const asset = (assetId ? editor.getAsset(assetId) : null) as TLBookmarkAsset | null
@@ -120,6 +127,7 @@ async function _createBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmark
 	if (editor.isDisposed) return
 
 	const { url } = shape.props
+	if (!canUnfurlUrl(url)) return
 
 	// Create the asset using the external content manager's createAssetFromUrl method.
 	// This may be overwritten by the user (for example, we overwrite it on tldraw.com)
@@ -230,6 +238,8 @@ export async function createBookmarkFromUrl(
 }
 
 async function hydrateBookmarkShape(editor: Editor, shapeId: TLShapeId, url: string) {
+	if (!canUnfurlUrl(url)) return
+
 	let asset
 	try {
 		asset = await editor.getAssetForExternalContent({ type: 'url', url })
