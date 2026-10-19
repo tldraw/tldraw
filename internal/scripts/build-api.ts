@@ -3,6 +3,7 @@ import { glob } from 'glob'
 import isCI from 'is-ci'
 import { rimraf } from 'rimraf'
 import { exec } from './lib/exec'
+import { restoreModuleAugmentations } from './lib/module-augmentations'
 import { sortUnions } from './lib/sort-unions'
 
 async function buildApi(sourcePackageDir: string) {
@@ -56,6 +57,11 @@ async function buildApi(sourcePackageDir: string) {
 
 		process.exit(1)
 	}
+
+	restoreModuleAugmentations(path.join(sourcePackageDir, '.tsbuild-api'), [
+		path.join(sourcePackageDir, 'api', 'public.d.ts'),
+		path.join(sourcePackageDir, 'api', 'internal.d.ts'),
+	])
 }
 
 buildApi(process.cwd())
