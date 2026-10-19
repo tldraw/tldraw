@@ -199,6 +199,9 @@ importers:
       '@microsoft/api-extractor':
         specifier: ^7.55.2
         version: 7.55.2(@types/node@22.16.0)
+      '@playwright/test':
+        specifier: ^1.61.0
+        version: 1.61.0
       '@swc/core':
         specifier: ^1.15.18
         version: 1.15.18(@swc/helpers@0.5.23)
@@ -600,8 +603,8 @@ importers:
         specifier: ^4.95.1
         version: 4.101.21(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@rocicorp/zero':
-        specifier: 1.9.0
-        version: 1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
+        specifier: 1.10.0
+        version: 1.10.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
       '@sentry/integrations':
         specifier: ^7.120.3
         version: 7.120.3
@@ -794,8 +797,8 @@ importers:
         specifier: ^3.17.1
         version: 3.17.1(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@rocicorp/zero':
-        specifier: 1.9.0
-        version: 1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
+        specifier: 1.10.0
+        version: 1.10.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
       '@supabase/supabase-js':
         specifier: ^2.48.1
         version: 2.48.1
@@ -1559,8 +1562,8 @@ importers:
   packages/dotcom-shared:
     dependencies:
       '@rocicorp/zero':
-        specifier: 1.9.0
-        version: 1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
+        specifier: 1.10.0
+        version: 1.10.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
       '@tldraw/state':
         specifier: workspace:*
         version: link:../state
@@ -7688,11 +7691,6 @@ packages:
 
   '@rocicorp/zero@1.10.0':
     resolution: {integrity: sha512-u+0mrWEP0IBAQY4lbtnhNjpyjee5zSTNxpeY9j14apME1PYshmhdTvbNwmyaoumvBt9MrQGCEr5y7W6utj+Vjg==}
-    engines: {node: '>=22'}
-    hasBin: true
-
-  '@rocicorp/zero@1.9.0':
-    resolution: {integrity: sha512-2huSS0rHOEfzjPP5K7SrndBuJfchhBCW3VHiSnPhTpmtH9ivvA44jqbBygCN9/d44pP9T2dzNxghiYiIWGMn5A==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -21634,64 +21632,6 @@ snapshots:
       node-gyp-build: 4.8.4
 
   '@rocicorp/zero@1.10.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)':
-    dependencies:
-      '@badrap/valita': 0.3.11
-      '@databases/escape-identifier': 1.0.3
-      '@databases/sql': 3.3.0
-      '@dotenvx/dotenvx': 1.39.0
-      '@drdgvhbh/postgres-error-codes': 0.0.6
-      '@fastify/cors': 10.1.0
-      '@fastify/websocket': 11.0.2
-      '@google-cloud/precise-date': 4.0.0
-      '@opentelemetry/api': 1.9.0
-      '@opentelemetry/api-logs': 0.218.0
-      '@opentelemetry/auto-instrumentations-node': 0.76.0(@opentelemetry/api@1.9.0)(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
-      '@opentelemetry/exporter-metrics-otlp-http': 0.218.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/resources': 2.8.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-metrics': 2.8.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-node': 0.218.0(@opentelemetry/api@1.9.0)(supports-color@10.2.2)
-      '@opentelemetry/sdk-trace-node': 2.8.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/semantic-conventions': 1.41.1
-      '@postgresql-typed/oids': 0.2.0
-      '@rocicorp/lock': 1.0.4
-      '@rocicorp/logger': 6.1.0
-      '@rocicorp/resolver': 1.0.2
-      '@rocicorp/zero-sqlite3': 1.1.4
-      '@standard-schema/spec': 1.1.0
-      '@types/basic-auth': 1.1.8
-      '@types/ws': 8.18.1
-      basic-auth: 2.0.1
-      chalk-template: 1.1.0
-      chokidar: 4.0.3
-      cloudevents: 10.0.0
-      command-line-args: 6.0.1
-      command-line-usage: 7.0.3
-      compare-utf8: 0.2.0
-      defu: 6.1.7
-      eventemitter3: 5.0.4
-      fastify: 5.8.5
-      is-in-subnet: 4.0.1
-      jose: 5.10.0
-      js-xxhash: 4.0.0
-      json-custom-numbers: 3.1.1
-      kasi: 1.1.1
-      nanoid: 5.1.16
-      oxfmt: 0.45.0
-      parse-prometheus-text-format: 1.1.1
-      pg-format: pg-format-fix@1.0.5
-      postgres: 3.4.7
-      semver: 7.8.5
-      url-pattern: 1.0.3
-      urlpattern-polyfill: 10.1.0
-      ws: 8.21.0
-    transitivePeerDependencies:
-      - '@75lb/nature'
-      - '@opentelemetry/core'
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
-  '@rocicorp/zero@1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)':
     dependencies:
       '@badrap/valita': 0.3.11
       '@databases/escape-identifier': 1.0.3
