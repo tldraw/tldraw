@@ -2267,6 +2267,10 @@ tldraw? probably.
 	width: 148px;
 }
 
+.tlui-rich-text__toolbar-link-input--invalid {
+	color: var(--tl-color-danger);
+}
+
 .tlui-media__toolbar-alt-text-input {
 	margin-left: 12px;
 	/*

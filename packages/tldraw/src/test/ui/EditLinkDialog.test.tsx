@@ -75,3 +75,29 @@ it('closes itself when the shape is deselected while the dialog is open', async 
 
 	await expectDialogClosed()
 })
+
+function submitLink(value: string) {
+	const input = document.querySelector('.tlui-edit-link-dialog__input') as HTMLInputElement
+	fireEvent.change(input, { target: { value } })
+	fireEvent.keyDown(input, { key: 'Enter' })
+}
+
+it.each([
+	['mailto:hello@tldraw.com', 'mailto:hello@tldraw.com'],
+	['codex://threads/abc-123', 'codex://threads/abc-123'],
+	['example.com', 'https://example.com'],
+	['', ''],
+])('saves %j as %j', async (input, expected) => {
+	editor = await renderWithOpenDialog()
+	act(() => submitLink(input))
+	await expectDialogClosed()
+	expect(editor.getShape(shapeId)!.props).toMatchObject({ url: expected })
+})
+
+it('keeps the dialog open and the link unchanged when enter is pressed on an invalid url', async () => {
+	editor = await renderWithOpenDialog()
+	act(() => submitLink('hello'))
+	await act(async () => {})
+	expect(getDialogFrame()).not.toBeNull()
+	expect(editor.getShape(shapeId)!.props).toMatchObject({ url: 'https://tldraw.com' })
+})
