@@ -1,4 +1,4 @@
-import { TLDefaultSizeStyle, TLTheme } from '@tldraw/editor'
+import { TLDefaultSizeStyle, TLTheme, TLThemeFontCheckbox } from '@tldraw/editor'
 
 /** @internal */
 export const TEXT_PROPS = {
@@ -57,6 +57,10 @@ export function getFontFamily(theme: TLTheme, font: string): string {
 
 const CHECKBOX_BOX_SLOTS = 6
 
+// A new object per call would defeat RichTextLabel's memo, re-rendering every draw-font label
+// on each frame of a drag.
+const checkboxStyles = new WeakMap<TLThemeFontCheckbox, Record<string, string>>()
+
 /**
  * The custom properties that draw task list checkboxes in a font's own style, from its theme entry.
  * Set them on an element containing rich text. Returns nothing for a font without its own
@@ -70,21 +74,24 @@ export function getFontCheckboxStyle(
 ): Record<string, string> | undefined {
 	const checkbox = theme.fonts[font as keyof typeof theme.fonts]?.checkbox
 	if (!checkbox) return undefined
-	const style: Record<string, string> = {}
+	let style = checkboxStyles.get(checkbox)
+	if (style) return style
+	style = {}
 	const { boxes, tick } = checkbox
 	if (boxes && boxes.length > 0) {
-		// The stylesheet cycles a fixed set of slots by list position; fill them all by cycling
-		// through however many boxes the font has, so three boxes run 1-2-3-1-2-3.
+		// The stylesheet cycles a fixed number of slots, so every slot needs a box.
 		for (let i = 0; i < CHECKBOX_BOX_SLOTS; i++) {
 			style[`--tl-checkbox-box-${i + 1}`] = cssUrl(boxes[i % boxes.length])
 		}
 	}
 	if (tick) style['--tl-checkbox-tick'] = cssUrl(tick)
+	checkboxStyles.set(checkbox, style)
 	return style
 }
 
 function cssUrl(url: string) {
-	return `url(${JSON.stringify(url)})`
+	const escaped = url.replace(/[\\"\n\r\f]/g, (c) => `\\${c.charCodeAt(0).toString(16)} `)
+	return `url("${escaped}")`
 }
 
 /** @internal */
