@@ -1,4 +1,5 @@
 import { useComputed, useValue } from '@tldraw/state-react'
+import { areArraysShallowEqual } from '@tldraw/utils'
 import { uniq } from '../utils/uniq'
 import { useEditor } from './useEditor'
 
@@ -17,7 +18,7 @@ export function usePeerIds() {
 	const $userIds = useComputed(
 		'userIds',
 		() => uniq(editor.getVisibleCollaborators().map((p) => p.userId)).sort(),
-		{ isEqual: (a, b) => a.join(',') === b.join?.(',') },
+		{ isEqual: areArraysShallowEqual },
 		[editor]
 	)
 

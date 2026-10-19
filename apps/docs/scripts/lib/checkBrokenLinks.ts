@@ -15,6 +15,11 @@ const INTERNAL_REWRITES: Record<string, string> = {
 	'/installation': '/getting-started/installation',
 }
 
+// Section and category paths are not pages: only article paths are generated
+// (dynamicParams = false) and page.tsx 404s for anything else. These section roots are
+// reachable only because next.config.js redirects them to an article.
+const REDIRECTED_SECTION_PATHS = ['/docs', '/examples', '/reference', '/starter-kits']
+
 // Path prefixes that are served by another system (e.g. the marketing site)
 // rather than this Next.js app, so they will never appear in the docs DB.
 // Matches the prefix as an exact path OR as a parent of a subpath:
@@ -131,6 +136,12 @@ function tryRedirect(urlPath: string): string | null {
 	return null
 }
 
+function anchorNotFoundReason(fragment: string, path: string, slugs: Set<string> | undefined) {
+	const reason = `anchor #${fragment} not found in ${path}`
+	const caseMismatch = slugs && [...slugs].find((s) => s.toLowerCase() === fragment.toLowerCase())
+	return caseMismatch ? `${reason} (heading ids are case-sensitive, use #${caseMismatch})` : reason
+}
+
 export async function checkBrokenLinks(): Promise<number> {
 	const db = await connect({ mode: 'readonly' })
 
@@ -140,17 +151,12 @@ export async function checkBrokenLinks(): Promise<number> {
 	const articles = await db.all<{ path: string | null; content: string }[]>(
 		'SELECT path, content FROM articles'
 	)
-	const sections = await db.all<{ path: string }[]>('SELECT path FROM sections')
-	const categories = await db.all<{ path: string | null }[]>('SELECT path FROM categories')
 
 	for (const row of articles) {
 		if (row.path) validPaths.add(row.path)
 	}
-	for (const row of sections) {
-		if (row.path) validPaths.add(row.path)
-	}
-	for (const row of categories) {
-		if (row.path) validPaths.add(row.path)
+	for (const path of REDIRECTED_SECTION_PATHS) {
+		validPaths.add(path)
 	}
 
 	// Add internal rewrite sources (these are valid URLs that rewrite to DB paths)
@@ -176,24 +182,25 @@ export async function checkBrokenLinks(): Promise<number> {
 		if (a.path) articlePathById.set(a.id, a.path)
 	}
 
+	// Rendered heading ids keep their case (rehype-slug runs with `maintainCase: true`), so
+	// `#custom-shapes` is a dead anchor on a page whose heading id is `Custom-shapes` (#10256).
 	for (const h of headings) {
 		const articlePath = articlePathById.get(h.articleId)
 		if (!articlePath) continue
-		const loweredSlug = h.slug.toLowerCase()
 		let slugs = headingMap.get(articlePath)
 		if (!slugs) {
 			slugs = new Set()
 			headingMap.set(articlePath, slugs)
 		}
-		slugs.add(loweredSlug)
-		// Also index by lowercase path for case-insensitive lookups
+		slugs.add(h.slug)
+		// Also index by lowercase path for case-insensitive path lookups
 		const lowerPath = articlePath.toLowerCase()
 		let lowerSlugs = headingMap.get(lowerPath)
 		if (!lowerSlugs) {
 			lowerSlugs = new Set()
 			headingMap.set(lowerPath, lowerSlugs)
 		}
-		lowerSlugs.add(loweredSlug)
+		lowerSlugs.add(h.slug)
 	}
 
 	// Also build heading map for rewrite destinations
@@ -218,7 +225,7 @@ export async function checkBrokenLinks(): Promise<number> {
 			// Split path and fragment
 			const hashIdx = url.indexOf('#')
 			const urlPath = hashIdx >= 0 ? url.slice(0, hashIdx) : url
-			const fragment = hashIdx >= 0 ? url.slice(hashIdx + 1).toLowerCase() : null
+			const fragment = hashIdx >= 0 ? url.slice(hashIdx + 1) : null
 
 			// Skip paths served by an external system (marketing site etc.)
 			// — they will never appear in the docs DB but are still valid in production.
@@ -232,7 +239,7 @@ export async function checkBrokenLinks(): Promise<number> {
 						articlePath: article.path,
 						line,
 						url,
-						reason: `anchor #${fragment} not found in ${article.path}`,
+						reason: anchorNotFoundReason(fragment, article.path, slugs),
 					})
 				}
 				continue
@@ -280,7 +287,7 @@ export async function checkBrokenLinks(): Promise<number> {
 						articlePath: article.path,
 						line,
 						url,
-						reason: `anchor #${fragment} not found in ${resolvedPath}`,
+						reason: anchorNotFoundReason(fragment, resolvedPath, slugs),
 					})
 				}
 			}

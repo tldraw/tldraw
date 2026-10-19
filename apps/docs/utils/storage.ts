@@ -12,7 +12,6 @@ import { useCallback, useLayoutEffect, useState } from 'react'
  * @public
  */
 export function useLocalStorageState<T = any>(key: string, defaultValue: T) {
-	const [isLoaded, setIsLoaded] = useState(false)
 	const [state, setState] = useState<T>(defaultValue)
 
 	useLayoutEffect(() => {
@@ -24,7 +23,6 @@ export function useLocalStorageState<T = any>(key: string, defaultValue: T) {
 				console.error(`Could not restore value ${key} from local storage.`)
 			}
 		}
-		setIsLoaded(true)
 	}, [key])
 
 	const updateValue = useCallback(
@@ -38,5 +36,5 @@ export function useLocalStorageState<T = any>(key: string, defaultValue: T) {
 		[key]
 	)
 
-	return [state, updateValue, isLoaded] as const
+	return [state, updateValue] as const
 }

@@ -80,6 +80,9 @@ async function snapshotTest(page: Page, api: ApiFixture) {
 			omitBackground: true,
 			clip,
 			fullPage: true,
+			// Rasterizing the exported SVG moves box outlines by a pixel now and then, about 0.2% of the
+			// image (#10758). Mermaid layout is also checked by position in `e2e/mermaid-readability`.
+			maxDiffPixelRatio: 0.003,
 		})
 	})
 	await api.exportAsSvg()

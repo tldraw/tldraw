@@ -19,22 +19,27 @@ export class Brushing extends StateNode {
 	static override id = 'brushing'
 	static override trackPerformance = true
 
-	info = {} as TLPointerEventInfo & { target: 'canvas' }
-
 	initialSelectedShapeIds: TLShapeId[] = []
 	excludedShapeIds = new Set<TLShapeId>()
 	isWrapMode = false
+	private didMarkHistory = false
 
 	viewportDidChange = false
+	// No-op until onEnter installs the reactor, so onExit can always call it
 	cleanupViewportChangeReactor() {
 		void null
-	} // cleanup function for the viewport reactor
+	}
 
-	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
+	override onEnter(info: TLPointerEventInfo & { target: 'canvas'; didMarkHistory?: boolean }) {
 		const { editor } = this
 		const altKey = editor.inputs.getAltKey()
 
+		this.didMarkHistory = info.didMarkHistory ?? false
 		this.isWrapMode = editor.user.getIsWrapMode()
+
+		// Accel-pressing a resize or rotate handle brushes instead of resizing or rotating,
+		// and the handle's hover cursor would otherwise stay up for the whole brush.
+		editor.setCursor({ type: 'default', rotation: 0 })
 
 		this.viewportDidChange = false
 
@@ -64,7 +69,6 @@ export class Brushing extends StateNode {
 				.map((shape) => shape.id)
 		)
 
-		this.info = info
 		this.initialSelectedShapeIds = editor.getSelectedShapeIds().slice()
 		this.hitTestShapes()
 		isInitialCheck = false
@@ -122,13 +126,13 @@ export class Brushing extends StateNode {
 		const originPagePoint = editor.inputs.getOriginPagePoint()
 		const currentPagePoint = editor.inputs.getCurrentPagePoint()
 		const shiftKey = editor.inputs.getShiftKey()
-		const ctrlKey = editor.inputs.getCtrlKey()
+		const accelKey = editor.inputs.getAccelKey()
 
 		// We'll be collecting shape ids of selected shapes; if we're holding shift key, we start from our initial shapes
 		const results = new Set(shiftKey ? this.initialSelectedShapeIds : [])
 
 		// In wrap mode, we need to completely enclose a shape to select it
-		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
+		const isWrapping = isWrapMode ? !accelKey : accelKey
 
 		// Set the brush to contain the current and origin points
 		const brush = Box.FromPoints([originPagePoint, currentPagePoint])
@@ -170,10 +174,7 @@ export class Brushing extends StateNode {
 				editor.updateInstanceState({ brush: { ...brush.toJson() } })
 			}
 
-			const current = editor.getSelectedShapeIds()
-			if (current.length !== results.size || current.some((id) => !results.has(id))) {
-				editor.setSelectedShapes(Array.from(results))
-			}
+			this.selectBrushedShapes(results)
 			return
 		}
 
@@ -228,10 +229,22 @@ export class Brushing extends StateNode {
 			editor.updateInstanceState({ brush: { ...brush.toJson() } })
 		}
 
+		this.selectBrushedShapes(results)
+	}
+
+	private selectBrushedShapes(results: Set<TLShapeId>) {
+		const { editor } = this
 		const current = editor.getSelectedShapeIds()
-		if (current.length !== results.size || current.some((id) => !results.has(id))) {
-			editor.setSelectedShapes(Array.from(results))
+		if (current.length === results.size && current.every((id) => results.has(id))) return
+
+		// Without a stopping point the brush selection merges into the previous history entry
+		// and undo reverts that edit too (#10412). Marking here, right before the first real
+		// selection change, keeps a brush that hits nothing out of the undo stack.
+		if (!this.didMarkHistory) {
+			editor.markHistoryStoppingPoint('brushing')
+			this.didMarkHistory = true
 		}
+		editor.setSelectedShapes(Array.from(results))
 	}
 
 	override onInterrupt() {

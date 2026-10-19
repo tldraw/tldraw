@@ -1,4 +1,5 @@
 import { atom, computed } from '@tldraw/state'
+import { WeakCache } from '@tldraw/utils'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { VecLike } from '../../primitives/Vec'
 import type { Editor } from '../Editor'
@@ -119,7 +120,7 @@ export class OverlayManager {
 	// while getActiveOverlayEntries() keeps returning the same overlay
 	// instances; when its reactive deps change, getOverlays() emits fresh
 	// objects and stale entries fall out by GC.
-	private _geometryCache = new WeakMap<TLOverlay, Geometry2d | null>()
+	private _geometryCache = new WeakCache<TLOverlay, Geometry2d | null>()
 
 	/**
 	 * Get hit-test geometry for an overlay, cached by overlay identity. Lets
@@ -130,12 +131,7 @@ export class OverlayManager {
 	 * @public
 	 */
 	getOverlayGeometry(overlay: TLOverlay): Geometry2d | null {
-		const cached = this._geometryCache.get(overlay)
-		if (cached !== undefined) return cached
-		const util = this.getOverlayUtil(overlay)
-		const geometry = util.getGeometry(overlay)
-		this._geometryCache.set(overlay, geometry)
-		return geometry
+		return this._geometryCache.get(overlay, (o) => this.getOverlayUtil(o).getGeometry(o))
 	}
 
 	/**

@@ -9,6 +9,41 @@ export const MAX_CONCURRENT_ENTITIES = 5
 // waiting on it and moves on; a timed-out effect is treated as a failure and retried later.
 export const EFFECT_TIMEOUT_MS = 30_000
 
+// Gates which failed attempts get reported (e.g. to Sentry): the first (immediate visibility)
+// and the one that parks the row (data loss). Every attempt in between is a retry-in-progress,
+// not new information, and under a sustained outage reporting all of them would burn the
+// Sentry rate limit and could crowd out the parking events that matter most.
+export function shouldReportEffectFailure(attempts: number): boolean {
+	return attempts === 0 || attempts + 1 >= MAX_ATTEMPTS
+}
+
+// Row-stored form of a failed attempt's error. Capped so a runaway message (a stringified
+// response body, say) can't bloat the table.
+export const MAX_LAST_ERROR_LENGTH = 500
+export function formatOutboxError(error: unknown): string {
+	let text: string
+	try {
+		text = describeError(error)
+		// One level of cause: pg and fetch errors put the useful part (ECONNREFUSED, the dial
+		// target) there, and for attempts 2..n this column is the only record of it.
+		if (error instanceof Error && error.cause !== undefined) {
+			text += ` (cause: ${describeError(error.cause)})`
+		}
+	} catch {
+		text = `[unformattable ${typeof error}]`
+	}
+	// Written in the same UPDATE as the attempts bump, so it must never be what fails it:
+	// PG TEXT rejects NUL bytes.
+	return text.replaceAll('\u0000', '').slice(0, MAX_LAST_ERROR_LENGTH)
+}
+
+function describeError(error: unknown): string {
+	if (error instanceof Error) return `${error.name}: ${error.message}`
+	// JSON.stringify returns undefined (not a string) when toJSON() returns undefined.
+	if (typeof error === 'object' && error !== null) return JSON.stringify(error) ?? String(error)
+	return String(error)
+}
+
 export interface OutboxDeps {
 	getBatch(): Promise<TlaEffectOutbox[]> // WHERE attempts < MAX_ATTEMPTS AND ("nextRetryAt" IS NULL OR "nextRetryAt" <= now()) ORDER BY id LIMIT 50
 	deleteRow(id: number): Promise<void>
@@ -16,7 +51,8 @@ export interface OutboxDeps {
 	// The implementation must both back off the failed row AND defer its later same-entity
 	// siblings (see the drainOutbox comment) so per-entity ordering holds across drains, not just
 	// within one.
-	bumpAttempts(row: TlaEffectOutbox): Promise<void>
+	// `error` is stored on the row as lastError (see migration 051 for why).
+	bumpAttempts(row: TlaEffectOutbox, error: unknown): Promise<void>
 	deleteParkedRowsOlderThan(days: number): Promise<void>
 	process(row: TlaEffectOutbox): Promise<void> // dispatches by tableName (wired in the DO)
 	onError(error: unknown, row: TlaEffectOutbox): void
@@ -71,8 +107,10 @@ async function processWithTimeout(deps: OutboxDeps, row: TlaEffectOutbox): Promi
 		await deps.deleteRow(row.id)
 		return true
 	} catch (error) {
-		await deps.bumpAttempts(row)
+		// Report first: if the bump UPDATE itself fails (DB down), the effect's own error would
+		// otherwise never be reported with row context.
 		deps.onError(error, row)
+		await deps.bumpAttempts(row, error)
 		return false
 	} finally {
 		if (timer) clearTimeout(timer)

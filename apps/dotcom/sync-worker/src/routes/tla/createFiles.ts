@@ -39,13 +39,11 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 			tombstones: {},
 		}
 
-		const serializedSnapshot = JSON.stringify(snapshot)
-
 		// Create a new slug for the room
 		const newSlug = uniqueId()
 
 		// Bang the snapshot into the database
-		await env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot)
+		await env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), JSON.stringify(snapshot))
 
 		slugs.push(newSlug)
 	}

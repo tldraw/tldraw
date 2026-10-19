@@ -7,9 +7,11 @@ import { getGlobalWindow } from '../../../utils/dom'
 /** @public */
 export class UserPreferencesManager {
 	systemColorScheme = atom<'dark' | 'light'>('systemColorScheme', 'light')
+	private readonly systemPrefersReducedMotion = atom('systemPrefersReducedMotion', false)
 	disposables = new Set<() => void>()
 	dispose() {
 		this.disposables.forEach((d) => d())
+		this.disposables.clear()
 	}
 	constructor(
 		private readonly user: TLCurrentUser,
@@ -30,6 +32,16 @@ export class UserPreferencesManager {
 		}
 		darkModeMediaQuery?.addEventListener('change', handleChange)
 		this.disposables.add(() => darkModeMediaQuery?.removeEventListener('change', handleChange))
+
+		const reducedMotionMediaQuery = getGlobalWindow().matchMedia('(prefers-reduced-motion: reduce)')
+		this.systemPrefersReducedMotion.set(!!reducedMotionMediaQuery?.matches)
+		const handleReducedMotionChange = (e: MediaQueryListEvent) => {
+			this.systemPrefersReducedMotion.set(e.matches)
+		}
+		reducedMotionMediaQuery?.addEventListener('change', handleReducedMotionChange)
+		this.disposables.add(() =>
+			reducedMotionMediaQuery?.removeEventListener('change', handleReducedMotionChange)
+		)
 	}
 
 	updateUserPreferences(userPreferences: Partial<TLUserPreferences>) {
@@ -80,7 +92,12 @@ export class UserPreferencesManager {
 	}
 
 	@computed getAnimationSpeed() {
-		return this.user.userPreferences.get().animationSpeed ?? defaultUserPreferences.animationSpeed
+		// Until the user explicitly sets a speed, follow the OS reduce-motion setting live rather
+		// than the value `defaultUserPreferences` captured at module load.
+		return (
+			this.user.userPreferences.get().animationSpeed ??
+			(this.systemPrefersReducedMotion.get() ? 0 : 1)
+		)
 	}
 
 	@computed getAreKeyboardShortcutsEnabled() {

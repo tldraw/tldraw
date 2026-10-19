@@ -87,7 +87,7 @@ The shape stores the original URL and renders the embed version.
 
 ## Fallback to bookmarks
 
-When you paste a URL that no embed definition recognizes, the default URL handler creates a [bookmark shape](/sdk-features/default-shapes#bookmark) instead of an embed. An existing embed shape whose URL doesn't match any definition still renders the URL in an iframe, using the stricter sandbox for unknown sources.
+When you paste a URL that no embed definition recognizes, the default URL handler creates a [bookmark shape](/sdk-features/default-shapes#Bookmark) instead of an embed. An existing embed shape whose URL doesn't match any definition still renders the URL in an iframe, using the stricter sandbox for unknown sources.
 
 Use [getEmbedInfo](?) to check whether a URL is embeddable before creating a shape:
 
@@ -202,7 +202,7 @@ export default function App() {
 
 ## Embed-on-paste behavior
 
-By default, pasting a URL from a supported service creates an embed shape. Set `embedOnPaste: false` in the embed definition to create a bookmark instead.
+By default, pasting a URL from a supported service creates an embed shape. Set `embedOnPaste: false` in the embed definition to create a bookmark instead. Pasting while a single shape that can hold a link is selected sets that shape's link rather than creating either.
 
 The tldraw embed definition sets `embedOnPaste: false`, so pasting a tldraw.com URL creates a bookmark. Separately, embed shapes refuse to render a nested tldraw canvas when the page itself is running inside an iframe, which prevents infinite nesting.
 
@@ -221,6 +221,6 @@ Embed shapes render as blank rectangles in SVG exports. The iframe content can't
 ## Related articles
 
 - [Default shapes](/sdk-features/default-shapes) — Overview of all built-in shape types
-- [Bookmark shape](/sdk-features/default-shapes#bookmark) — URL link cards (fallback for non-embeddable URLs)
+- [Bookmark shape](/sdk-features/default-shapes#Bookmark) — URL link cards (fallback for non-embeddable URLs)
 - [External content handling](/sdk-features/external-content) — Handling pasted and dropped content
 - [Custom embeds example](/examples/configuration/custom-embed) — Add a custom embed definition for a new service

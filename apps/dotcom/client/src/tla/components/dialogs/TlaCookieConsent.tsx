@@ -9,20 +9,16 @@ import styles from './dialogs.module.css'
 
 const MANAGE_COOKIES_DIALOG = 'manageCookiesDialog'
 
-type ConsentCheckResult = 'requires-consent' | 'no-consent-needed'
-
-/**
- * Checks if consent is required based on CloudFlare geolocation headers
- * @returns Promise<'requires-consent' | 'no-consent-needed'> - 'requires-consent' if explicit consent is required, 'no-consent-needed' if confident it's not
- */
-async function shouldRequireConsent(): Promise<ConsentCheckResult> {
+// Asks the consent worker (which reads Cloudflare geolocation headers) whether this
+// region needs explicit consent. Any failure falls back to requiring it.
+async function shouldRequireConsent(): Promise<boolean> {
 	try {
 		const response = await fetch('https://consent.tldraw.xyz')
 		if (response.ok) {
 			const data = await response.json()
 			// Worker returns { requires_consent: boolean, country_code: string }
 			if (typeof data.requires_consent === 'boolean') {
-				return data.requires_consent ? 'requires-consent' : 'no-consent-needed'
+				return data.requires_consent
 			}
 		}
 	} catch (error) {
@@ -31,7 +27,7 @@ async function shouldRequireConsent(): Promise<ConsentCheckResult> {
 	}
 
 	// Conservative default: require consent
-	return 'requires-consent'
+	return true
 }
 
 export const TlaCookieConsent = memo(function TlaCookieConsent() {
@@ -42,18 +38,18 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 		[dialogs]
 	)
 	const [consent, updateConsent] = useAnalyticsConsent()
-	const [requiresConsent, setRequiresConsent] = useState<ConsentCheckResult | null>(null)
+	const [requiresConsent, setRequiresConsent] = useState<boolean | null>(null)
 	const [animationComplete, setAnimationComplete] = useState(false)
 
 	// Check if consent is required based on user's location
 	useEffect(() => {
 		if (consent !== null) return
 
-		shouldRequireConsent().then((value: ConsentCheckResult) => {
+		shouldRequireConsent().then((value) => {
 			setRequiresConsent(value)
 
 			// Only update consent if it's not required
-			if (value === 'no-consent-needed') {
+			if (!value) {
 				updateConsent(true /* opted-in b/c region doesn't require explicit consent */)
 			}
 		})
@@ -61,7 +57,7 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 
 	// Enable pointer events after animation nearly completes
 	useEffect(() => {
-		if (requiresConsent !== 'requires-consent') return
+		if (!requiresConsent) return
 
 		const timer = setTimeout(() => {
 			setAnimationComplete(true)
@@ -69,14 +65,6 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 
 		return () => clearTimeout(timer)
 	}, [requiresConsent])
-
-	const handleAccept = useCallback(() => {
-		updateConsent(true)
-	}, [updateConsent])
-
-	const handleReject = useCallback(() => {
-		updateConsent(false)
-	}, [updateConsent])
 
 	const handleCustomize = useCallback(() => {
 		addDialog({
@@ -86,23 +74,20 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 	}, [addDialog])
 
 	// Don't show banner if:
-	if (
-		// - User has already made a consent choice
-		consent !== null ||
-		// - We haven't determined if consent is required yet
-		requiresConsent === null ||
-		// - Consent is not required in user's region
-		requiresConsent === 'no-consent-needed'
-	)
-		return null
+	// - User has already made a consent choice
+	// - We haven't determined if consent is required yet
+	// - Consent is not required in user's region
+	if (consent !== null || !requiresConsent) return null
 
 	return (
+		// If the manage cookies dialog is shown, hide the cookie consent banner but don't remove it
+		// or else the animation will replay when it reappears
 		<div
 			className={styles.cookieConsentWrapper}
 			style={{
 				opacity: isManageCookiesDialogShown ? 0 : 1,
 				pointerEvents: animationComplete ? 'auto' : 'none',
-			}} // If the manage cookies dialog is shown, hide the cookie consent banner but don't remove it or else the animation will replay when it reappears
+			}}
 		>
 			<div className={styles.cookieConsent} data-testid="tla-cookie-consent">
 				<p className={styles.cookieText}>
@@ -111,7 +96,7 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 				<div className={styles.cookieButtonsRow}>
 					<button
 						className={classNames('tla-button-text', styles.cookieButton, styles.hoverable)}
-						onClick={handleReject}
+						onClick={() => updateConsent(false)}
 					>
 						<F defaultMessage="Opt out" />
 					</button>
@@ -129,7 +114,7 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 								styles.cookieAcceptButton,
 								styles.hoverable
 							)}
-							onClick={handleAccept}
+							onClick={() => updateConsent(true)}
 						>
 							<div className={styles.cookieAcceptButtonTextWrapper}>
 								<div className={styles.cookieAcceptButtonText}>

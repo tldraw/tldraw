@@ -4,6 +4,7 @@
 	"exclude": ["node_modules", "docs", ".tsbuild*"],
 	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src" },
 	"references": [
+		{ "path": "../editor" },
 		{ "path": "../state" },
 		{ "path": "../store" },
 		{ "path": "../tldraw" },

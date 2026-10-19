@@ -1,3 +1,4 @@
+import { PageRecordType } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
@@ -382,6 +383,137 @@ describe('LaserTool', () => {
 
 			// Should have scribbles from both (before first fades)
 			expect(editor.getInstanceState().scribbles.length).toBeGreaterThan(initialScribbleCount)
+		})
+	})
+
+	describe('Page changes', () => {
+		it('clears the trail when the current page changes', () => {
+			editor.setCurrentTool('laser')
+
+			editor.pointerDown(0, 0)
+			for (let i = 1; i <= 10; i++) {
+				editor.pointerMove(i * 5, i * 5)
+				vi.advanceTimersByTime(16)
+			}
+			editor.pointerUp()
+			expect(editor.getInstanceState().scribbles.length).toBeGreaterThan(0)
+
+			const page2Id = PageRecordType.createId('page2')
+			editor.createPage({ id: page2Id, name: 'Page 2' })
+			editor.setCurrentPage(page2Id)
+			vi.advanceTimersByTime(16)
+
+			expect(editor.getInstanceState().scribbles).toEqual([])
+		})
+
+		it('starts a fresh session on the new page after a page change', () => {
+			editor.setCurrentTool('laser')
+
+			editor.pointerDown(0, 0)
+			editor.pointerMove(10, 10)
+			vi.advanceTimersByTime(16)
+			editor.pointerUp()
+
+			const page2Id = PageRecordType.createId('page2')
+			editor.createPage({ id: page2Id, name: 'Page 2' })
+			editor.setCurrentPage(page2Id)
+			vi.advanceTimersByTime(16)
+
+			editor.pointerDown(0, 50)
+			for (let i = 1; i <= 10; i++) {
+				editor.pointerMove(i * 5, 50 + i * 5)
+				vi.advanceTimersByTime(16)
+			}
+			editor.pointerUp()
+
+			// Only the stroke drawn on the new page is visible
+			expect(editor.getInstanceState().scribbles.length).toBe(1)
+		})
+	})
+
+	describe('Session timing out mid-stroke', () => {
+		// A backgrounded tab or a throttled mobile browser stalls the frame loop, so the lasering
+		// state's tick handler never gets to extend the session and its idle timeout fires while the
+		// pointer is still down (#10125). The session then fades out and is removed.
+		function stallTicks(ms: number) {
+			const extendSession = vi.spyOn(editor.scribbles, 'extendSession').mockImplementation(() => {})
+			vi.advanceTimersByTime(ms)
+			extendSession.mockRestore()
+		}
+
+		function fadeOutSessionMidStroke() {
+			stallTicks(editor.options.laserDelayMs + editor.options.laserFadeoutMs + 200)
+			expect(editor.getInstanceState().scribbles).toEqual([])
+		}
+
+		it('continues the stroke in a fresh session instead of throwing', () => {
+			const startSession = vi.spyOn(editor.scribbles, 'startSession')
+			editor.setCurrentTool('laser')
+			editor.pointerDown(0, 0)
+			editor.pointerMove(10, 10)
+			editor.expectToBeIn('laser.lasering')
+			const firstSessionId = startSession.mock.results[0].value
+
+			fadeOutSessionMidStroke()
+			expect(editor.scribbles.isSessionActive(firstSessionId)).toBe(false)
+
+			expect(() => editor.pointerMove(20, 20)).not.toThrow()
+			editor.expectToBeIn('laser.lasering')
+			expect(startSession).toHaveBeenCalledTimes(2)
+			const secondSessionId = startSession.mock.results[1].value
+			expect(editor.scribbles.isSessionActive(secondSessionId)).toBe(true)
+
+			for (let i = 3; i <= 10; i++) {
+				editor.pointerMove(i * 10, i * 10)
+			}
+			const scribbles = editor.getInstanceState().scribbles
+			expect(scribbles.length).toBe(1)
+			expect(scribbles[0].points.length).toBeGreaterThan(0)
+
+			expect(() => editor.pointerUp()).not.toThrow()
+			editor.expectToBeIn('laser.idle')
+		})
+
+		it('continues the stroke in a fresh session while the timed-out one is still fading', () => {
+			const startSession = vi.spyOn(editor.scribbles, 'startSession')
+			editor.setCurrentTool('laser')
+			editor.pointerDown(0, 0)
+			for (let i = 1; i <= 10; i++) {
+				editor.pointerMove(i * 10, i * 10)
+				vi.advanceTimersByTime(16)
+			}
+			const firstSessionId = startSession.mock.results[0].value
+
+			// Stop just past the idle timeout: each fade tick drops at least one point, so a short
+			// trail is gone long before laserFadeoutMs.
+			stallTicks(editor.options.laserDelayMs + 50)
+			expect(editor.scribbles.isSessionActive(firstSessionId)).toBe(false)
+			const [fadingScribble] = editor.getInstanceState().scribbles
+			expect(fadingScribble).toMatchObject({ state: 'stopping' })
+
+			editor.pointerMove(110, 110)
+			expect(startSession).toHaveBeenCalledTimes(2)
+			const secondSessionId = startSession.mock.results[1].value
+			expect(editor.scribbles.isSessionActive(secondSessionId)).toBe(true)
+
+			vi.advanceTimersByTime(editor.options.laserFadeoutMs + 200)
+			const scribbles = editor.getInstanceState().scribbles
+			expect(scribbles.length).toBe(1)
+			expect(scribbles[0].id).not.toBe(fadingScribble.id)
+
+			editor.pointerUp()
+			editor.expectToBeIn('laser.idle')
+		})
+
+		it('finishes the stroke without throwing when the session is gone on pointer up', () => {
+			editor.setCurrentTool('laser')
+			editor.pointerDown(0, 0)
+			editor.pointerMove(10, 10)
+
+			fadeOutSessionMidStroke()
+
+			expect(() => editor.pointerUp()).not.toThrow()
+			editor.expectToBeIn('laser.idle')
 		})
 	})
 

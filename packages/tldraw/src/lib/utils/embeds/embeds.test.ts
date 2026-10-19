@@ -137,6 +137,15 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		url: 'https://lite.tldraw.com/something',
 		match: false,
 	},
+	// hostname patterns are anchored: a lookalike host must not inherit the tldraw sandbox
+	{
+		url: 'https://tldraw.com.evil.io/r/choochoo',
+		match: false,
+	},
+	{
+		url: 'https://nottldraw.com/r/choochoo',
+		match: false,
+	},
 	// codesandbox
 	{
 		url: 'https://codesandbox.io/s/breathing-dots-checkpoint-7-nor86',

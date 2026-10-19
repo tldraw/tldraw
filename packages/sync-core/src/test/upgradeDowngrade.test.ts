@@ -413,6 +413,27 @@ it('[HS3] out-of-date clients will receive incompatibility errors', () => {
 	expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 })
 
+it.each([
+	['a v2 schema without sequences', { schemaVersion: 2 }],
+	['a v2 schema with null sequences', { schemaVersion: 2, sequences: null }],
+	['a null schema', null],
+])('[HS3] clients sending %s are rejected as too old', (_, schema) => {
+	const server = new TestServer(schemaV3)
+	const id = 'test_malformed_schema'
+	const socket = mockSocket()
+
+	server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+	server.room.handleMessage(id, {
+		type: 'connect',
+		connectRequestId: 'test',
+		lastServerClock: 0,
+		protocolVersion: getTlsyncProtocolVersion(),
+		schema: schema as any,
+	})
+
+	expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+})
+
 it('[HS2] clients using an out-of-date protocol will receive compatibility errors', () => {
 	const actualVersion = getTlsyncProtocolVersion()
 	mockGetTlsyncProtocolVersion.mockReturnValue(actualVersion + 1)

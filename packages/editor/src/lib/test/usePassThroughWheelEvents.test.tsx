@@ -22,11 +22,27 @@ function Culled() {
 	return <button ref={ref} data-testid="marker" />
 }
 
+/**
+ * The shape the navigation panel has: a pass-through root wrapping another pass-through root (the
+ * minimap).
+ */
+function Nested() {
+	const outer = useRef<HTMLDivElement>(null)
+	const inner = useRef<HTMLButtonElement>(null)
+	usePassThroughWheelEvents(outer)
+	usePassThroughWheelEvents(inner)
+	return (
+		<div ref={outer}>
+			<button ref={inner} data-testid="marker" />
+		</div>
+	)
+}
+
 describe('usePassThroughWheelEvents', () => {
-	async function renderEditor() {
+	async function renderEditor(InFrontOfTheCanvas = Culled) {
 		const store = createTLStore({ shapeUtils: [], bindingUtils: [] })
 		await act(async () => {
-			render(<TldrawEditor store={store} components={{ InFrontOfTheCanvas: Culled }} />)
+			render(<TldrawEditor store={store} components={{ InFrontOfTheCanvas }} />)
 		})
 		return document.querySelector(`.${TL_CONTAINER_CLASS}`)!
 	}
@@ -61,6 +77,13 @@ describe('usePassThroughWheelEvents', () => {
 		for (let i = 0; i < 3; i++) {
 			await act(async () => rerender())
 		}
+		expect(wheelOverMarker(container)).toHaveLength(1)
+	})
+
+	// Issue #10441: the original event keeps bubbling after the inner root redispatches it, so
+	// without a flag on it the outer root would redispatch it again.
+	it('redispatches once when the element is inside another pass-through element', async () => {
+		const container = await renderEditor(Nested)
 		expect(wheelOverMarker(container)).toHaveLength(1)
 	})
 

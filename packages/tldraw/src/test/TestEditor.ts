@@ -45,8 +45,8 @@ import { shapesFromJsx } from './test-jsx'
 
 declare module 'vitest' {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	interface Matchers<T = any> {
-		toCloselyMatchObject(expected: any, roundToNearest?: number): void
+	interface Matchers<R extends void | Promise<void> = void | Promise<void>, T = unknown> {
+		toCloselyMatchObject(expected: any, roundToNearest?: number): R
 	}
 }
 

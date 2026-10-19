@@ -1,6 +1,7 @@
 import {
 	PageRecordType,
 	TLPageId,
+	clamp,
 	releasePointerCapture,
 	setPointerCapture,
 	useEditor,
@@ -142,9 +143,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	}, [])
 
 	useEffect(() => {
-		const onResize = () => updateAvailableHeight()
-		window.addEventListener('resize', onResize)
-		return () => window.removeEventListener('resize', onResize)
+		window.addEventListener('resize', updateAvailableHeight)
+		return () => window.removeEventListener('resize', updateAvailableHeight)
 	}, [updateAvailableHeight])
 
 	useEffect(() => {
@@ -229,8 +229,10 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		startY: 0,
 		startScrollTop: 0,
 		lastClientY: 0,
-		// Set true on pointer-up after a drag, so the synthetic click that
-		// follows pointer-up doesn't also navigate to the dragged page.
+		// Set true when a drag ends, whether dropped or cancelled with Escape,
+		// so the click that follows the release doesn't also navigate to the
+		// dragged page. Cleared on pointer down: a release over another row
+		// gets no click, and a stale flag would swallow the next click.
 		justDragged: false,
 		startedOnDragHandle: false,
 		// Whether an auto-scroll rAF is in flight; the loop reschedules itself
@@ -288,17 +290,10 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			const rawOffsetY = clientY - mut.startY + (scrollTop - mut.startScrollTop)
 			// Clamp the dragged row's visible position to the first/last slot
 			// so its transform never extends the popover scroll area.
-			const minDragY = 0
 			const maxDragY = (pages.length - 1) * PAGE_MENU_ITEM_HEIGHT
-			const dragY = Math.max(
-				minDragY,
-				Math.min(maxDragY, mut.startIndex * PAGE_MENU_ITEM_HEIGHT + rawOffsetY)
-			)
+			const dragY = clamp(mut.startIndex * PAGE_MENU_ITEM_HEIGHT + rawOffsetY, 0, maxDragY)
 			const offsetY = dragY - mut.startIndex * PAGE_MENU_ITEM_HEIGHT
-			const dragIndex = Math.max(
-				0,
-				Math.min(Math.round(dragY / PAGE_MENU_ITEM_HEIGHT), pages.length - 1)
-			)
+			const dragIndex = clamp(Math.round(dragY / PAGE_MENU_ITEM_HEIGHT), 0, pages.length - 1)
 			mut.dragIndex = dragIndex
 			mut.lastClientY = clientY
 			setDragState({ id: mut.id, startIndex: mut.startIndex, dragIndex, offsetY })
@@ -337,23 +332,22 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		// as the cursor approaches and passes the edge of the container.
 		const overshootTop = PAGE_MENU_AUTO_SCROLL_ZONE - fromTop
 		const overshootBottom = PAGE_MENU_AUTO_SCROLL_ZONE - fromBottom
-		let dy = 0
+		let overshoot = 0
+		let direction = 0
 		if (overshootTop > 0 && container.scrollTop > 0) {
-			const t = Math.min(1, overshootTop / PAGE_MENU_AUTO_SCROLL_RAMP_DISTANCE)
-			const speed =
-				PAGE_MENU_MIN_AUTO_SCROLL_SPEED +
-				(PAGE_MENU_MAX_AUTO_SCROLL_SPEED - PAGE_MENU_MIN_AUTO_SCROLL_SPEED) * t
-			dy = -Math.ceil(speed)
+			overshoot = overshootTop
+			direction = -1
 		} else if (overshootBottom > 0 && container.scrollTop < maxScroll) {
-			const t = Math.min(1, overshootBottom / PAGE_MENU_AUTO_SCROLL_RAMP_DISTANCE)
+			overshoot = overshootBottom
+			direction = 1
+		}
+		if (direction !== 0) {
+			const t = Math.min(1, overshoot / PAGE_MENU_AUTO_SCROLL_RAMP_DISTANCE)
 			const speed =
 				PAGE_MENU_MIN_AUTO_SCROLL_SPEED +
 				(PAGE_MENU_MAX_AUTO_SCROLL_SPEED - PAGE_MENU_MIN_AUTO_SCROLL_SPEED) * t
-			dy = Math.ceil(speed)
-		}
-		if (dy !== 0) {
 			const before = container.scrollTop
-			container.scrollTop = Math.max(0, Math.min(maxScroll, before + dy))
+			container.scrollTop = clamp(before + direction * Math.ceil(speed), 0, maxScroll)
 			if (container.scrollTop !== before) {
 				updateDragFromPointer(mut.lastClientY)
 			}
@@ -383,6 +377,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 		const mut = rMutables.current
 		setPointerCapture(currentTarget, e)
+		mut.justDragged = false
 		mut.status = 'pointing'
 		mut.id = id as TLPageId
 		mut.startIndex = +index
@@ -411,6 +406,14 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		[ensureAutoScrollLoop, updateDragFromPointer]
 	)
 
+	const resetDrag = useCallback(() => {
+		const mut = rMutables.current
+		mut.status = 'idle'
+		mut.id = null
+		mut.startedOnDragHandle = false
+		setDragState(null)
+	}, [])
+
 	const handlePointerUp = useCallback(
 		(e: React.PointerEvent<HTMLButtonElement>) => {
 			const mut = rMutables.current
@@ -421,12 +424,9 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				}
 			}
 			releasePointerCapture(e.currentTarget, e)
-			mut.status = 'idle'
-			mut.id = null
-			mut.startedOnDragHandle = false
-			setDragState(null)
+			resetDrag()
 		},
-		[editor, trackEvent]
+		[editor, trackEvent, resetDrag]
 	)
 
 	const handleItemContextMenu = useCallback(
@@ -440,29 +440,55 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		[closePageItemSubmenus, editor]
 	)
 
-	const handlePointerCancel = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-		const mut = rMutables.current
-		releasePointerCapture(e.currentTarget, e)
-		mut.status = 'idle'
-		mut.id = null
-		mut.startedOnDragHandle = false
-		setDragState(null)
-	}, [])
+	const handlePointerCancel = useCallback(
+		(e: React.PointerEvent<HTMLButtonElement>) => {
+			releasePointerCapture(e.currentTarget, e)
+			resetDrag()
+		},
+		[resetDrag]
+	)
 
-	const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLButtonElement>) => {
-		const mut = rMutables.current
-		// Pointer capture is naturally released on the eventual pointer up,
-		// at which point the idle status makes the up handler a no-op.
-		if (e.key === 'Escape' && mut.status !== 'idle') {
-			mut.status = 'idle'
-			mut.id = null
-			mut.startedOnDragHandle = false
-			setDragState(null)
+	const isDragInProgress = dragState !== null
+
+	// Escape mid-drag cancels only the drag, so the popover's own Escape
+	// dismissal is disabled while dragging. This listens on the document
+	// because the dragged row doesn't always have focus, and stops the event
+	// so other Escape handlers (like the one above that closes menus when
+	// the body has focus) don't close the menu too.
+	useEffect(() => {
+		if (!isDragInProgress) return
+		const doc = editor.getContainerDocument()
+		function handleKeyDown(e: KeyboardEvent) {
+			if (e.key !== 'Escape') return
+			e.stopPropagation()
+			const mut = rMutables.current
+			// The row still holds pointer capture, so its release will click it.
+			if (!mut.startedOnDragHandle) {
+				mut.justDragged = true
+			}
+			resetDrag()
 		}
-	}, [])
+		doc.addEventListener('keydown', handleKeyDown, true)
+		return () => doc.removeEventListener('keydown', handleKeyDown, true)
+	}, [editor, isDragInProgress, resetDrag])
+
+	// Closing the menu unmounts the rows while one may still hold pointer
+	// capture, so their pointer up and cancel handlers never run (#11112).
+	useEffect(() => {
+		if (!isOpen) resetDrag()
+	}, [isOpen, resetDrag])
 
 	const shouldUseWindowPrompt = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer
 	const shouldUseDragHandle = !isReadonlyMode && isCoarsePointer
+	const rowDragHandlers =
+		isReadonlyMode || isCoarsePointer
+			? undefined
+			: {
+					onPointerDown: handlePointerDown,
+					onPointerMove: handlePointerMove,
+					onPointerUp: handlePointerUp,
+					onPointerCancel: handlePointerCancel,
+				}
 
 	const startRenamingPage = useCallback(
 		(id: TLPageId, currentName: string) => {
@@ -507,6 +533,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	const changePage = useCallback(
 		(id: TLPageId) => {
+			editor.markHistoryStoppingPoint('change-page')
 			editor.setCurrentPage(id)
 			trackEvent('change-page', { source: 'page-menu' })
 		},
@@ -531,7 +558,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				side="bottom"
 				align="start"
 				sideOffset={0}
-				disableEscapeKeyDown={editingPageId !== null}
+				disableEscapeKeyDown={editingPageId !== null || isDragInProgress}
 			>
 				<div className="tlui-page-menu__wrapper">
 					<div
@@ -542,7 +569,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 					>
 						<div
 							className="tlui-page-menu__list__content"
-							data-dragging={dragState !== null}
+							data-dragging={isDragInProgress}
 							style={{ height: autoFitListHeight }}
 						>
 							{pages.map((page, index) => {
@@ -611,7 +638,6 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 														onPointerMove={handlePointerMove}
 														onPointerUp={handlePointerUp}
 														onPointerCancel={handlePointerCancel}
-														onKeyDown={handleKeyDown}
 														tooltip={msg('context-menu.reorder')}
 														title={msg('context-menu.reorder')}
 													>
@@ -629,27 +655,12 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 														changePage(page.id)
 													}}
 													onDoubleClick={() => startRenamingPage(page.id, page.name)}
-													onPointerDown={
-														isReadonlyMode || shouldUseDragHandle ? undefined : handlePointerDown
-													}
-													onPointerMove={
-														isReadonlyMode || shouldUseDragHandle ? undefined : handlePointerMove
-													}
-													onPointerUp={
-														isReadonlyMode || shouldUseDragHandle ? undefined : handlePointerUp
-													}
-													onPointerCancel={
-														isReadonlyMode || shouldUseDragHandle ? undefined : handlePointerCancel
-													}
+													{...rowDragHandlers}
 													tooltip={msg('page-menu.go-to-page')}
 													title={msg('page-menu.go-to-page')}
 													data-id={page.id}
 													data-index={index}
 													onKeyDown={(e) => {
-														if (e.key === 'Escape') {
-															handleKeyDown(e)
-															return
-														}
 														if (e.key === 'Enter' && isCurrentPage) {
 															startRenamingPage(page.id, page.name)
 															editor.markEventAsHandled(e)

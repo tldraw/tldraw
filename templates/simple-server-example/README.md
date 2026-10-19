@@ -2,7 +2,7 @@
 
 This is a simple example of a backend for [tldraw sync](https://tldraw.dev/docs/sync) with a Node server.
 
-Run `yarn dev` in this folder to start the server + client.
+Run `npm run dev` in this folder to start the server + client.
 
 Room data is automatically persisted to SQLite databases in the `.rooms` directory using `SQLiteSyncStorage`.
 

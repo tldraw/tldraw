@@ -272,5 +272,34 @@ describe('NodeSqliteWrapper', () => {
 			// the write was rolled back
 			expect(wrapper.prepare('SELECT * FROM test').all()).toEqual([])
 		})
+
+		it('[NW2] rolls back when COMMIT itself fails, so the connection is not left inside a transaction', () => {
+			// simulate a COMMIT failure (SQLITE_BUSY, I/O error) at the driver level
+			const failingDb = {
+				exec: (sql: string) => {
+					if (sql === 'COMMIT') throw new Error('SQLITE_BUSY: database is locked')
+					return db.exec(sql)
+				},
+				prepare: (sql: string) => db.prepare(sql),
+			}
+			const failingWrapper = new NodeSqliteWrapper(failingDb as any)
+
+			expect(() =>
+				failingWrapper.transaction(() => {
+					failingWrapper
+						.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)')
+						.run(1, 'alice', 100)
+				})
+			).toThrow('SQLITE_BUSY')
+
+			// rolled back, and the next transaction can BEGIN normally
+			expect(wrapper.prepare('SELECT * FROM test').all()).toEqual([])
+			expect(() =>
+				wrapper.transaction(() => {
+					wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(2, 'bob', 200)
+				})
+			).not.toThrow()
+			expect(wrapper.prepare<{ id: number }>('SELECT id FROM test').all()).toEqual([{ id: 2 }])
+		})
 	})
 })

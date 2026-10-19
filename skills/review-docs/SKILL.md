@@ -257,7 +257,7 @@ Instructions:
 
 5. Apply style fixes
 
-6. Run prettier: yarn prettier --write $ARGUMENTS
+6. Run prettier: pnpm exec prettier --write $ARGUMENTS
 
 DO NOT:
 - Add new sections

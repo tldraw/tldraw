@@ -321,6 +321,48 @@ describe('custom handle snapping', () => {
 			expect(editor.snaps.getIndicators()).toHaveLength(0)
 			expect(handlePosition()).toMatchObject({ x: 251, y: 251 })
 		})
+
+		test('lands on the snap target when the dragged shape is rotated', () => {
+			// Rotating the line around its start puts its end handle at page (0, 100); the snap
+			// nudge is in page space and must come off by the shape's own rotation.
+			editor.updateShape<TLLineShape>({
+				id: ids.line,
+				type: 'line',
+				rotation: Math.PI / 2,
+				props: {
+					points: {
+						a1: { id: 'a1', index: 'a1' as IndexKey, x: 0, y: 0 },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: 100, y: 0 },
+					},
+				},
+			})
+			editor.updateShape({ id: ids.test2, type: TEST2_TYPE, x: 10, y: 110 })
+			const line = editor.select(ids.line).getOnlySelectedShape()! as TLLineShape
+			const endHandle = editor.getShapeHandles(line)!.at(-1)!
+			const endHandlePagePoint = editor.getShapePageTransform(line).applyToPoint(endHandle)
+			editor.pointerDown(endHandlePagePoint.x, endHandlePagePoint.y, {
+				target: 'handle',
+				shape: line,
+				handle: endHandle,
+			})
+			editor.pointerMove(7, 109, undefined, { ctrlKey: true })
+			expect(editor.snaps.getIndicators()).toHaveLength(1)
+			const shape = editor.getShape<TLLineShape>(ids.line)!
+			const handle = editor.getShapeHandles(shape)!.at(-1)!
+			const pagePoint = editor.getShapePageTransform(shape).applyToPoint(handle)
+			expect(pagePoint.x).toBeCloseTo(10)
+			expect(pagePoint.y).toBeCloseTo(110)
+		})
+
+		test("doesn't snap to a shape's label geometry", () => {
+			// a note's geometry is its body plus a label rectangle inside it; the label
+			// (50,69 100x62 in shape space here) is not an outline to snap to
+			editor.createShape({ id: createShapeId('note'), type: 'note', x: 400, y: 400 })
+			startDraggingHandle()
+			editor.pointerMove(452, 500, undefined, { ctrlKey: true })
+			expect(editor.snaps.getIndicators()).toHaveLength(0)
+			expect(handlePosition()).toMatchObject({ x: 452, y: 500 })
+		})
 	})
 
 	describe('with empty handleSnapGeometry.outline', () => {

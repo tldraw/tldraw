@@ -84,5 +84,9 @@ export class SelectTool extends StateNode {
 		if (this.editor.getCurrentPageState().editingShapeId) {
 			this.editor.setEditingShape(null)
 		}
+		// Leaving crop mode for another tool would otherwise keep the image in its cropping state
+		if (this.editor.getCroppingShapeId()) {
+			this.editor.setCroppingShape(null)
+		}
 	}
 }
