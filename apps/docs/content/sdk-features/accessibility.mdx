@@ -64,7 +64,7 @@ Users can navigate between shapes using the keyboard. With a shape selected, Tab
 
 Tldraw determines reading order by analyzing shape positions on the canvas. Shapes are grouped into rows based on their vertical position, then sorted left-to-right within each row. This creates a natural top-to-bottom, left-to-right reading order similar to text. You can access this order programmatically with [Editor#getCurrentPageShapesInReadingOrder](?). Locked shapes are left out of the reading order unless the `selectLockedShapes` option is enabled, so keyboard navigation never lands on a shape that clicking would skip.
 
-A "Skip to main content" link appears when users Tab into the editor. It selects the first shape on the canvas and zooms to it.
+A "Move focus to canvas" button appears when users Tab into the editor. It selects the first shape in reading order and zooms to it.
 
 ### Excluding shapes from keyboard navigation
 
