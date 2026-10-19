@@ -1,7 +1,9 @@
+import type { Editor, TLShape } from 'tldraw'
 import { describe, expect, it, vi } from 'vitest'
 import type { DiagramMermaidBlueprint } from './blueprint'
-import { MermaidClassShapeUtil } from './classShape'
+import type { TLMermaidClassShape } from './classShape'
 import { renderBlueprint } from './renderBlueprint'
+import { createEditor } from './test/createEditor'
 
 function mockEditor() {
 	const bounds = (w: number, h: number) => ({
@@ -102,90 +104,26 @@ describe('renderBlueprint', () => {
 		expect(editor.sendToBack).toHaveBeenCalledExactlyOnceWith([created[1].id, created[2].id])
 	})
 
-	describe('class boxes', () => {
+	describe('class diagrams', () => {
 		const blueprint: DiagramMermaidBlueprint = {
 			diagramKind: 'class',
 			nodes: [
 				{
-					id: 'Animal',
+					id: 'Order',
 					kind: 'class',
 					x: 0,
 					y: 0,
 					w: 200,
 					h: 200,
-					label: 'Animal<br><br>+int age',
+					label: 'Order<br><br>+total() Money',
 					classBox: {
 						annotations: [],
-						name: 'Animal',
-						attributes: [{ text: '+int age' }],
-						methods: [{ text: '+count() int', classifier: 'static' }],
+						name: 'Order',
+						attributes: [],
+						methods: [{ text: '+total() Money', classifier: 'static' }],
 					},
 				},
-			],
-			edges: [],
-		}
-
-		function classShapeEditor(hasClassShape: boolean) {
-			const editor = mockEditor()
-			editor.hasShapeUtil = vi.fn((type: string) => hasClassShape && type === 'mermaid-class')
-			editor.getShapeUtil = vi.fn(() => ({
-				getDefaultProps: MermaidClassShapeUtil.prototype.getDefaultProps,
-			}))
-			editor.getCurrentTheme = vi.fn(() => ({
-				fontSize: 16,
-				lineHeight: 1.35,
-				strokeWidth: 2,
-				fonts: { draw: { fontFamily: 'tldraw_draw' } },
-			}))
-			editor.textMeasure = { measureText: vi.fn((text: string) => ({ w: text.length * 10 })) }
-			return editor
-		}
-
-		it('draws a class box, sized to its lines and centred where mermaid put it', () => {
-			const editor = classShapeEditor(true)
-
-			renderBlueprint(editor, blueprint, { position: { x: 0, y: 0 }, centerOnPosition: false })
-
-			const [shape] = editor.createShape.mock.calls[0]
-			expect(shape.type).toBe('mermaid-class')
-			expect(shape.props).toMatchObject({
-				name: 'Animal',
-				attributes: [{ text: '+int age' }],
-				methods: [{ text: '+count() int', classifier: 'static' }],
-			})
-			expect(shape.x + shape.props.w / 2).toBe(100)
-			expect(shape.y + shape.props.h / 2).toBe(100)
-		})
-
-		it('falls back to a labelled rectangle when the class shape is not registered', () => {
-			const editor = classShapeEditor(false)
-
-			renderBlueprint(editor, blueprint, { position: { x: 0, y: 0 }, centerOnPosition: false })
-
-			const [shape] = editor.createShape.mock.calls[0]
-			expect(shape).toMatchObject({ type: 'geo', props: { geo: 'rectangle', w: 200, h: 200 } })
-		})
-
-		it('lets a mapper choose the shape over the class box', () => {
-			const editor = classShapeEditor(true)
-
-			renderBlueprint(editor, blueprint, {
-				position: { x: 0, y: 0 },
-				centerOnPosition: false,
-				mapNodeToRenderSpec: () => ({ variant: 'geo', geo: 'ellipse' }),
-			})
-
-			const [shape] = editor.createShape.mock.calls[0]
-			expect(shape).toMatchObject({ type: 'geo', props: { geo: 'ellipse' } })
-		})
-	})
-
-	describe('end labels', () => {
-		const blueprint: DiagramMermaidBlueprint = {
-			diagramKind: 'class',
-			nodes: [
-				{ id: 'Order', kind: 'class', x: 0, y: 0, w: 80, h: 40 },
-				{ id: 'Line', kind: 'class', x: 200, y: 0, w: 80, h: 40 },
+				{ id: 'Line', kind: 'class', x: 400, y: 0, w: 80, h: 40, label: 'Line' },
 			],
 			edges: [
 				{
@@ -198,47 +136,71 @@ describe('renderBlueprint', () => {
 				},
 			],
 		}
-		const arrowLabel = (editor: any) => {
-			const arrow = editor.createShape.mock.calls.find(([s]: any) => s.type === 'arrow')[0]
-			return arrow.props.richText.content[0].content[0].text
-		}
-
-		it('folds them into the arrow label when the end label binding is not registered', () => {
-			const editor = mockEditor()
-
+		const render = (editor: Editor) =>
 			renderBlueprint(editor, blueprint, { position: { x: 0, y: 0 }, centerOnPosition: false })
+		const shapesOfType = (editor: Editor, type: string) =>
+			editor.getCurrentPageShapes().filter((shape) => shape.type === type)
+		const text = (editor: Editor, shape: TLShape) => editor.getShapeUtil(shape).getText(shape)
 
-			expect(arrowLabel(editor)).toBe('1 — has — *')
-			expect(editor.createShape.mock.calls.filter(([s]: any) => s.type === 'text')).toEqual([])
+		it('draws a class box sized to its lines, centred where mermaid put it', () => {
+			const editor = createEditor()
+			render(editor)
+
+			const order = shapesOfType(editor, 'mermaid-class').find(
+				(shape) => (shape as TLMermaidClassShape).props.name === 'Order'
+			) as TLMermaidClassShape
+			expect(order.props).toMatchObject({
+				name: 'Order',
+				methods: [{ text: '+total() Money', classifier: 'static' }],
+			})
+			expect(order.props.w).toBeLessThan(200)
+			// Mermaid centred Order at x = 100 and Line at x = 440.
+			const [line] = shapesOfType(editor, 'geo')
+			const centerX = (shape: TLShape) => editor.getShapePageBounds(shape)!.center.x
+			expect(centerX(line) - centerX(order)).toBe(340)
 		})
 
-		it('binds a label to each end, watching the arrow and both shapes it joins', () => {
-			const editor = mockEditor()
-			editor.bindingUtils = { 'mermaid-multiplicity': {} }
+		it('falls back to labelled rectangles and a folded arrow label without the mermaid utils', () => {
+			const editor = createEditor({ withMermaidUtils: false })
+			render(editor)
 
-			renderBlueprint(editor, blueprint, { position: { x: 0, y: 0 }, centerOnPosition: false })
-
-			expect(arrowLabel(editor)).toBe('has')
-			const labels = editor.createShape.mock.calls
-				.map(([s]: any) => s)
-				.filter((s: any) => s.type === 'text')
-			expect(labels.map((s: any) => s.props.richText.content[0].content[0].text)).toEqual([
-				'1',
-				'*',
+			expect(shapesOfType(editor, 'geo').map((shape) => text(editor, shape))).toEqual([
+				'Order\n\n+total() Money',
+				'Line',
 			])
-			const endLabelBindings = editor.createBindings.mock.calls
-				.flatMap(([bindings]: any) => bindings)
-				.filter((b: any) => b.type === 'mermaid-multiplicity')
-			expect(endLabelBindings.map((b: any) => [b.toId === labels[0].id, b.props.terminal])).toEqual(
-				[
-					[true, 'start'],
-					[true, 'start'],
-					[true, 'start'],
-					[false, 'end'],
-					[false, 'end'],
-					[false, 'end'],
-				]
-			)
+			expect(shapesOfType(editor, 'arrow').map((shape) => text(editor, shape))).toEqual([
+				'1 — has — *',
+			])
+			expect(shapesOfType(editor, 'text')).toEqual([])
+		})
+
+		it('lets a mapper choose the shape over the class box', () => {
+			const editor = createEditor()
+			renderBlueprint(editor, blueprint, {
+				position: { x: 0, y: 0 },
+				centerOnPosition: false,
+				mapNodeToRenderSpec: () => ({ variant: 'geo', geo: 'ellipse' }),
+			})
+
+			expect(shapesOfType(editor, 'mermaid-class')).toEqual([])
+		})
+
+		it('puts the end labels beside the arrow, bound to it, with the title in the middle', () => {
+			const editor = createEditor()
+			render(editor)
+
+			const [arrow] = shapesOfType(editor, 'arrow')
+			expect(text(editor, arrow)).toBe('has')
+			const labels = shapesOfType(editor, 'text')
+			expect(labels.map((shape) => text(editor, shape))).toEqual(['1', '*'])
+			expect(
+				labels.map(
+					(label) =>
+						editor
+							.getBindingsToShape(label, 'mermaid-end-label')
+							.find((binding) => binding.fromId === arrow.id)?.props
+				)
+			).toEqual([{ terminal: 'start' }, { terminal: 'end' }])
 		})
 	})
 })

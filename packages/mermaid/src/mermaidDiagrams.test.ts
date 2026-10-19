@@ -1902,6 +1902,12 @@ describe('mindmapToBlueprint', () => {
 // ---------------------------------------------------------------------------
 
 describe('classToBlueprint', () => {
+	async function parseClassDb(source: string) {
+		const mermaid = (await import('mermaid')).default
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		return (await mermaid.mermaidAPI.getDiagramFromText(source)).db as ClassDB
+	}
+
 	// Rendered by the installed mermaid, so a change to its class ids or relation encoding shows up here.
 	async function classBlueprint(source: string) {
 		const svgPrototype = SVGElement.prototype as any
@@ -1918,8 +1924,7 @@ describe('classToBlueprint', () => {
 			const { svg } = await mermaid.render('mermaid-0', source)
 			const container = document.createElement('div')
 			container.innerHTML = svg
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			const db = (await mermaid.mermaidAPI.getDiagramFromText(source)).db as ClassDB
+			const db = await parseClassDb(source)
 			const layout = parseClassDiagramLayout(container.querySelector('svg')!)
 			return classToBlueprint(layout, db.getClasses(), db.getRelations())
 		} finally {
@@ -2034,9 +2039,7 @@ describe('classToBlueprint', () => {
     Order "1" *-- "many" Line : contains
     Order -- "1" Invoice
     Order --> Customer : placed by`
-		const mermaid = (await import('mermaid')).default
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		const db = (await mermaid.mermaidAPI.getDiagramFromText(source)).db as ClassDB
+		const db = await parseClassDb(source)
 		const layout = diagramLayout(
 			[...db.getClasses().keys()].map((id, i) => node(id, i * 200, 0, 100, 60))
 		)
@@ -2074,11 +2077,8 @@ describe('classToBlueprint', () => {
 			])}
 		</svg>`
 		const layout = parseClassDiagramLayout(container.querySelector('svg')!)
-		const mermaid = (await import('mermaid')).default
-		const source = `classDiagram
-    Node --> Node : next`
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		const db = (await mermaid.mermaidAPI.getDiagramFromText(source)).db as ClassDB
+		const db = await parseClassDb(`classDiagram
+    Node --> Node : next`)
 
 		const bp = classToBlueprint(layout, db.getClasses(), db.getRelations())
 

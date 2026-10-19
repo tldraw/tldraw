@@ -8,7 +8,6 @@ import type {
 	TLDefaultVerticalAlignStyle,
 	TLGeoShapeGeoStyle,
 } from 'tldraw'
-import type { MermaidClassBox } from './classShape'
 
 /**
  * Which Mermaid diagram family produced this blueprint (used by default geo tables and mapper dispatch).
@@ -66,6 +65,27 @@ export interface DiagramMermaidBlueprint {
 }
 
 /**
+ * One attribute or method line in a class box. Mermaid marks static members with `$` (drawn
+ * underlined) and abstract ones with `*` (drawn in italics).
+ * @public
+ */
+export interface MermaidClassMember {
+	text: string
+	classifier?: 'static' | 'abstract'
+}
+
+/**
+ * The contents of a UML class box: a header (annotations and name), then attributes, then methods.
+ * @public
+ */
+export interface MermaidClassBox {
+	annotations: string[]
+	name: string
+	attributes: MermaidClassMember[]
+	methods: MermaidClassMember[]
+}
+
+/**
  * One node in the blueprint: layout and semantic kind from Mermaid (materialization is resolved at {@link renderBlueprint} via `mapNodeToRenderSpec` or defaults).
  * @public
  */
@@ -104,10 +124,11 @@ export interface MermaidBlueprintEdge {
 	endNodeId: string
 	label?: string
 	/**
-	 * Text beside each end, such as a class diagram's multiplicities. Bound to the arrow's ends when
-	 * {@link MermaidMultiplicityBindingUtil} is registered, folded into `label` otherwise.
+	 * Text beside the arrow's start, such as a class diagram's multiplicity. Kept there when
+	 * {@link MermaidEndLabelBindingUtil} is registered, folded into `label` otherwise.
 	 */
 	startLabel?: string
+	/** Like `startLabel`, beside the arrow's end. */
 	endLabel?: string
 	bend: number
 	arrowheadEnd?: TLArrowShapeArrowheadStyle

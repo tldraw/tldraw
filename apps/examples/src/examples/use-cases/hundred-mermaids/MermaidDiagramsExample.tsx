@@ -1,4 +1,4 @@
-import { MermaidClassShapeUtil, MermaidMultiplicityBindingUtil } from '@tldraw/mermaid'
+import { MermaidClassShapeUtil, MermaidEndLabelBindingUtil } from '@tldraw/mermaid'
 import { useCallback } from 'react'
 import {
 	Editor,
@@ -29,7 +29,7 @@ const MERMAID_CONFIG = {
 
 // [5]
 const shapeUtils = [MermaidClassShapeUtil]
-const bindingUtils = [MermaidMultiplicityBindingUtil]
+const bindingUtils = [MermaidEndLabelBindingUtil]
 
 const components: TLComponents = {
 	TopPanel: TopPanel,
@@ -207,7 +207,7 @@ For comparison, the same source is also rendered by Mermaid to an SVG, which is 
 image asset and placed next to the native version at the same height.
 
 [5]
-`MermaidClassShapeUtil` draws classes as UML class boxes, and `MermaidMultiplicityBindingUtil`
+`MermaidClassShapeUtil` draws classes as UML class boxes, and `MermaidEndLabelBindingUtil`
 keeps multiplicities (`1`, `*`) beside their end of each relation. Without them, classes are
 labelled rectangles and multiplicities go in the arrow's label.
 */

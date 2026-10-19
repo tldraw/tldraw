@@ -17,8 +17,8 @@ import type {
 } from './blueprint'
 import { MERMAID_CLASS_SHAPE_TYPE } from './classShape'
 import { resolveMermaidNodeRender } from './defaultMermaidNodeRenderSpec'
+import { MERMAID_END_LABEL_BINDING_TYPE } from './endLabelBinding'
 import { defaultCreateMermaidNodeFromBlueprint } from './mermaidNodeCreateShape'
-import { MERMAID_MULTIPLICITY_BINDING_TYPE } from './multiplicityBinding'
 import { orderTopDown, sanitizeDiagramText } from './utils'
 
 /** @public */
@@ -46,7 +46,6 @@ export function renderBlueprint(
 ) {
 	const options = { ...defaultBlueprintRenderingOptions, ...opts }
 	const { nodes, edges, lines, diagramKind } = blueprint
-	// Class boxes fall back to a labelled rectangle in apps that haven't registered the class shape.
 	const hasClassShape = editor.hasShapeUtil(MERMAID_CLASS_SHAPE_TYPE)
 	const mapper: MermaidNodeRenderMapper = (input) =>
 		options.mapNodeToRenderSpec?.(input) ??
@@ -120,14 +119,14 @@ export function renderBlueprint(
 	// One call, so the background nodes keep the blueprint's order among themselves.
 	if (backgroundIds.length > 0) editor.sendToBack(backgroundIds)
 
-	const hasEndLabelBinding = !!editor.bindingUtils[MERMAID_MULTIPLICITY_BINDING_TYPE]
+	const hasEndLabelBinding = !!editor.bindingUtils[MERMAID_END_LABEL_BINDING_TYPE]
 	const arrowIds: TLShapeId[] = []
 	for (const edge of edges) {
 		const arrowEdge = hasEndLabelBinding ? edge : { ...edge, label: foldEndLabels(edge) }
 		const arrowId = createArrowFromEdge(editor, arrowEdge, shapeIds)
 		if (!arrowId) continue
 		arrowIds.push(arrowId)
-		if (hasEndLabelBinding) arrowIds.push(...createEndLabels(editor, edge, arrowId, shapeIds))
+		if (hasEndLabelBinding) arrowIds.push(...createEndLabels(editor, edge, arrowId))
 	}
 
 	// Create sub-groups and track which shape IDs are consumed by a group
@@ -311,14 +310,8 @@ function foldEndLabels({ label, startLabel, endLabel }: MermaidBlueprintEdge) {
 	return [startLabel, label, endLabel].filter(Boolean).join(' — ')
 }
 
-function createEndLabels(
-	editor: Editor,
-	edge: MermaidBlueprintEdge,
-	arrowId: TLShapeId,
-	shapeIds: Map<string, TLShapeId>
-): TLShapeId[] {
+function createEndLabels(editor: Editor, edge: MermaidBlueprintEdge, arrowId: TLShapeId) {
 	const labelIds: TLShapeId[] = []
-	const watched = new Set([arrowId, shapeIds.get(edge.startNodeId), shapeIds.get(edge.endNodeId)])
 	for (const [terminal, text] of [
 		['start', edge.startLabel],
 		['end', edge.endLabel],
@@ -335,16 +328,12 @@ function createEndLabels(
 				autoSize: true,
 			},
 		})
-		editor.createBindings(
-			[...watched]
-				.filter((fromId) => fromId !== undefined)
-				.map((fromId) => ({
-					type: MERMAID_MULTIPLICITY_BINDING_TYPE,
-					fromId,
-					toId: labelId,
-					props: { arrowId, terminal },
-				}))
-		)
+		editor.createBinding({
+			type: MERMAID_END_LABEL_BINDING_TYPE,
+			fromId: arrowId,
+			toId: labelId,
+			props: { terminal },
+		})
 		labelIds.push(labelId)
 	}
 	return labelIds

@@ -8,27 +8,33 @@ import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
 	MermaidBlueprintNode,
+	MermaidClassBox,
+	MermaidClassMember,
 } from './blueprint'
-import type { MermaidClassBox, MermaidClassMember } from './classShape'
-import { parseEdgeId } from './flowchartDiagram'
 import {
 	buildNodeCentersFromSvg,
 	claimEdge,
 	getSelfLoopEdgeLayout,
 	parseAllEdgePointsFromSvg,
 	parseDomId,
+	parseEdgeId,
 	parseEdgeLabelsFromSvg,
 	type ParsedDiagramLayout,
 	type ParsedEdge,
 	parseNodesFromSvg,
 	scaleLayout,
 } from './svgParsing'
-import { dropDanglingEdges, getArrowBend, LAYOUT_SCALE, sanitizeDiagramText } from './utils'
+import {
+	dropDanglingEdges,
+	escapeHtml,
+	getArrowBend,
+	LAYOUT_SCALE,
+	sanitizeDiagramText,
+} from './utils'
 
 const NODE_ID = /^classId-(.+)-\d+$/
 const EDGE_ID = /(?:^|-)id_(.+)_\d+$/
-// Mermaid draws a class's relation to itself as three paths, `-1`, `-mid` (carrying the title's
-// label), and `-2`, in that order.
+// A self-relation is three paths, `-1`, `-mid` (which carries the label) and `-2`, joined in that order.
 const SELF_LOOP_SEGMENT_ID = /^(?:mermaid-\d+-)?(.+)-cyclic-special-(1|mid|2)$/
 
 // Mermaid's `relationType` values. A relation end with no marker is the string `'none'`.
@@ -94,11 +100,6 @@ function joinSelfLoopSegments(edges: ParsedEdge[]): ParsedEdge[] {
 	return out
 }
 
-// Labels are read as HTML, and member text such as `List<int> items` would lose its generic.
-function escapeHtml(text: string) {
-	return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
-
 function toClassMember(member: ClassMember): MermaidClassMember {
 	const { displayText } = member.getDisplayDetails()
 	if (member.classifier === '$') return { text: displayText, classifier: 'static' }
@@ -116,7 +117,7 @@ function getClassBox(classNode: ClassNode): MermaidClassBox {
 	}
 }
 
-// For the labelled rectangle drawn when the class shape isn't registered.
+// Read as HTML, where member text such as `List<int> items` would lose its generic.
 function getClassLabel({ annotations, name, attributes, methods }: MermaidClassBox): string {
 	const header = [...annotations.map((annotation) => `«${annotation}»`), name]
 	const sections = [attributes, methods]

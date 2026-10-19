@@ -1,5 +1,6 @@
 import {
 	BaseBoxShapeUtil,
+	createShapePropsMigrationSequence,
 	DefaultColorStyle,
 	DefaultFontFaces,
 	DefaultFontStyle,
@@ -20,32 +21,15 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import type { MermaidClassBox, MermaidClassMember } from './blueprint'
 
 /** @public */
-export const MERMAID_CLASS_SHAPE_TYPE = 'mermaid-class'
+export const MERMAID_CLASS_SHAPE_TYPE = 'mermaid-class' as const
 
 /**
- * One attribute or method line in a class box. Mermaid marks static members with `$` (drawn
- * underlined) and abstract ones with `*` (drawn in italics).
+ * A {@link MermaidClassBox} plus the box's size and styles.
  * @public
  */
-export interface MermaidClassMember {
-	text: string
-	classifier?: 'static' | 'abstract'
-}
-
-/**
- * The contents of a UML class box: a header (annotations and name), then attributes, then methods.
- * @public
- */
-export interface MermaidClassBox {
-	annotations: string[]
-	name: string
-	attributes: MermaidClassMember[]
-	methods: MermaidClassMember[]
-}
-
-/** @public */
 export interface TLMermaidClassShapeProps extends MermaidClassBox {
 	w: number
 	h: number
@@ -68,7 +52,7 @@ const memberValidator = T.object({
 	classifier: T.literalEnum('static', 'abstract').optional(),
 })
 
-// Geo and note shapes' label and outline multipliers, so a class box matches their scale.
+// Copied from tldraw's internal default-shape-constants.ts, so a class box matches geo and note shapes.
 const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = { s: 1.125, m: 1.375, l: 1.625, xl: 2 }
 const STROKE_SIZES: Record<TLDefaultSizeStyle, number> = { s: 1, m: 1.75, l: 2.5, xl: 5 }
 
@@ -140,10 +124,7 @@ function getRowFontStyle(row: ClassBoxRow) {
 	}
 }
 
-/**
- * The size a class box needs to fit every line without wrapping.
- * @public
- */
+// The shape doesn't resize itself, so this sizes it when it's created.
 export function getMermaidClassShapeSize(
 	editor: Editor,
 	props: TLMermaidClassShapeProps
@@ -172,6 +153,7 @@ export function getMermaidClassShapeSize(
  */
 export class MermaidClassShapeUtil extends BaseBoxShapeUtil<TLMermaidClassShape> {
 	static override type = MERMAID_CLASS_SHAPE_TYPE
+	static override migrations = createShapePropsMigrationSequence({ sequence: [] })
 	static override props: RecordProps<TLMermaidClassShape> = {
 		w: T.nonZeroNumber,
 		h: T.nonZeroNumber,
@@ -196,10 +178,6 @@ export class MermaidClassShapeUtil extends BaseBoxShapeUtil<TLMermaidClassShape>
 			attributes: [],
 			methods: [],
 		}
-	}
-
-	override canEdit() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLMermaidClassShape) {

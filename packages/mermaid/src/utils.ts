@@ -61,6 +61,10 @@ export function sanitizeDiagramText(text: string): string {
 	return (doc.body.textContent ?? '').trim()
 }
 
+export function escapeHtml(text: string) {
+	return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
 /** Scale factor applied to parsed SVG layout (nodes, clusters, edges). */
 export const LAYOUT_SCALE = 1.25
 

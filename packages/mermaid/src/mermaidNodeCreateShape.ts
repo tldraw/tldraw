@@ -8,12 +8,12 @@ import {
 import type {
 	MermaidBlueprintNode,
 	MermaidBlueprintNodeRenderSpec,
+	MermaidClassBox,
 	MermaidDiagramKind,
 } from './blueprint'
 import {
 	getMermaidClassShapeSize,
 	MERMAID_CLASS_SHAPE_TYPE,
-	type MermaidClassBox,
 	type TLMermaidClassShapeProps,
 } from './classShape'
 import { sanitizeDiagramText } from './utils'
@@ -43,8 +43,14 @@ export function defaultCreateMermaidNodeFromBlueprint(
 	args: MermaidNodeCreateFunctionArgs
 ): TLShape {
 	const { editor, node, shapeId, x, y, parentShapeId, render } = args
-	if (render.variant === 'shape' && render.type === MERMAID_CLASS_SHAPE_TYPE && node.classBox) {
-		return createMermaidClassShape(args, node.classBox, render.props)
+	if (render.variant === 'shape' && render.type === MERMAID_CLASS_SHAPE_TYPE) {
+		const classBox = node.classBox ?? {
+			annotations: [],
+			name: sanitizeDiagramText(node.label ?? node.id),
+			attributes: [],
+			methods: [],
+		}
+		return createMermaidClassShape(args, classBox, render.props)
 	}
 	const baseProps = {
 		w: node.w,

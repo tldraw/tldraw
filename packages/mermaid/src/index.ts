@@ -6,24 +6,23 @@ export type {
 	MermaidBlueprintLineNode,
 	MermaidBlueprintNode,
 	MermaidBlueprintNodeRenderSpec,
+	MermaidClassBox,
+	MermaidClassMember,
 	MermaidDiagramKind,
 	MermaidNodeRenderMapper,
 } from './blueprint'
 export {
-	getMermaidClassShapeSize,
 	MERMAID_CLASS_SHAPE_TYPE,
 	MermaidClassShapeUtil,
-	type MermaidClassBox,
-	type MermaidClassMember,
 	type TLMermaidClassShape,
 	type TLMermaidClassShapeProps,
 } from './classShape'
 export {
-	MERMAID_MULTIPLICITY_BINDING_TYPE,
-	MermaidMultiplicityBindingUtil,
-	type TLMermaidMultiplicityBinding,
-	type TLMermaidMultiplicityBindingProps,
-} from './multiplicityBinding'
+	MERMAID_END_LABEL_BINDING_TYPE,
+	MermaidEndLabelBindingUtil,
+	type TLMermaidEndLabelBinding,
+	type TLMermaidEndLabelBindingProps,
+} from './endLabelBinding'
 export { createMermaidDiagram, MermaidDiagramError } from './createMermaidDiagram'
 export type { MermaidDiagramOptions } from './createMermaidDiagram'
 export {

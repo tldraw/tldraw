@@ -1,11 +1,11 @@
-import { MermaidClassShapeUtil, MermaidMultiplicityBindingUtil } from '@tldraw/mermaid'
+import { MermaidClassShapeUtil, MermaidEndLabelBindingUtil } from '@tldraw/mermaid'
 import { useEffect } from 'react'
 import { Tldraw, defaultHandleExternalTextContent, useEditor, useToasts } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // Optional: without these, class diagrams fall back to rectangles with multiplicities in the arrow's label.
 const shapeUtils = [MermaidClassShapeUtil]
-const bindingUtils = [MermaidMultiplicityBindingUtil]
+const bindingUtils = [MermaidEndLabelBindingUtil]
 
 export default function MermaidPastingExample() {
 	return (

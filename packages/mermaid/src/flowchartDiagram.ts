@@ -23,12 +23,12 @@ import {
 	parseAllEdgePointsFromSvg,
 	parseClustersFromSvg,
 	parseDomId,
+	parseEdgeId,
 	parseEdgeLabelsFromSvg,
 	type ParsedDiagramLayout,
 	parseNodesFromSvg,
 	scaleLayout,
 	stripDiagramIdPrefix,
-	type Vec2,
 } from './svgParsing'
 import { dropDanglingEdges, getArrowBend, LAYOUT_SCALE, orderTopDown } from './utils'
 
@@ -59,58 +59,13 @@ function buildHierarchy(subGraphs: FlowSubGraph[]) {
 	return { nodeToSubGraph, subGraphParent }
 }
 
-/**
- * Split mermaid's edge id, `L_<start>_<end>_<n>` (`id_…` in a class diagram), back into the two ids
- * it joins. Node ids can contain underscores themselves, so the split is ambiguous: `L_a_b_c_0`
- * joins `a` to `b_c` in a diagram with those, and `a_b` to `c` in one with those. A diagram with all
- * four settles it the only way left, by which pair the path was actually drawn between. `centers`
- * holds everything an edge can end on, subgraphs as well as nodes, since mermaid links those too.
- */
-export function parseEdgeId(
-	dataId: string,
-	points: Vec2[],
-	centers: Map<string, Vec2>,
-	pattern = EDGE_ID
-) {
-	const match = dataId.match(pattern)
-	if (!match) return null
-
-	const joined = match[1]
-	const last = points[points.length - 1]
-	let best: { start: string; end: string } | undefined
-	let bestDistance = Infinity
-	for (let at = joined.indexOf('_'); at > 0; at = joined.indexOf('_', at + 1)) {
-		const start = joined.slice(0, at)
-		const end = joined.slice(at + 1)
-		const startCenter = centers.get(start)
-		const endCenter = centers.get(end)
-		if (!startCenter || !endCenter) continue
-
-		const distance = last
-			? Math.hypot(points[0].x - startCenter.x, points[0].y - startCenter.y) +
-				Math.hypot(last.x - endCenter.x, last.y - endCenter.y)
-			: 0
-		if (distance < bestDistance) {
-			bestDistance = distance
-			best = { start, end }
-		}
-	}
-	if (best) return best
-
-	// An id naming no pair the diagram drew, such as an edge to a node mermaid left out. Splitting at
-	// the last underscore is right whenever the end id has none, and leaves the edge to be matched by
-	// proximity when it isn't.
-	const at = joined.lastIndexOf('_')
-	return at > 0 ? { start: joined.slice(0, at), end: joined.slice(at + 1) } : null
-}
-
 /** Parse flowchart-specific SVG layout data for use by {@link flowchartToBlueprint}. */
 export function parseFlowchartLayout(root: Element): ParsedDiagramLayout {
 	const nodes = parseNodesFromSvg(root, '.node', (domId) => parseDomId(domId, NODE_ID))
 	const clusters = parseClustersFromSvg(root, '.cluster', stripDiagramIdPrefix)
 	const centers = buildNodeCentersFromSvg(nodes, clusters)
 	const edges = parseAllEdgePointsFromSvg(root, (dataId, points) =>
-		parseEdgeId(dataId, points, centers)
+		parseEdgeId(dataId, points, centers, EDGE_ID)
 	)
 	const layout = { nodes, clusters, edges, edgeLabels: parseEdgeLabelsFromSvg(root) }
 	scaleLayout(layout, LAYOUT_SCALE)
