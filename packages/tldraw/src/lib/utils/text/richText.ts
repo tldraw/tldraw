@@ -9,6 +9,7 @@ import {
 } from '@tiptap/core'
 import { Code } from '@tiptap/extension-code'
 import { Highlight } from '@tiptap/extension-highlight'
+import { Typography } from '@tiptap/extension-typography'
 import { Node } from '@tiptap/pm/model'
 import { StarterKit, type StarterKitOptions } from '@tiptap/starter-kit'
 import {
@@ -20,6 +21,8 @@ import {
 	WeakCache,
 } from '@tldraw/editor'
 import { DefaultFontFaces } from '../../shapes/shared/defaultFonts'
+import { LiteralTypingExtension } from './literalTyping'
+import { WrapSelectionExtension } from './wrapSelection'
 
 /** @public */
 export const KeyboardShiftEnterTweakExtension = Extension.create({
@@ -63,13 +66,17 @@ export function getTipTapDefaultExtensions(
 				openOnClick: false,
 				autolink: true,
 			},
-			// Prevent trailing paragraph insertion after lists (fixes #7641)
+			// List every enabled block type: a missing one gets an empty paragraph appended after it
+			// that the user can't delete (#7641 for lists, #11113 for headings).
 			trailingNode: {
-				notAfter: ['paragraph', 'bulletList', 'orderedList', 'listItem'],
+				notAfter: ['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem'],
 			},
 			...starterKitOptions,
 		}),
 		Highlight,
+		Typography,
+		LiteralTypingExtension,
+		WrapSelectionExtension,
 		KeyboardShiftEnterTweakExtension,
 
 		// N.B. We disable the text direction core extension in RichTextArea,

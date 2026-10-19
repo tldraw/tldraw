@@ -34,6 +34,7 @@ describe('ClickManager', () => {
 		vi.useFakeTimers()
 		mockTimers = {
 			setTimeout: vi.fn((fn, delay) => setTimeout(fn, delay)),
+			clearTimeout: vi.fn((id) => clearTimeout(id)),
 		}
 
 		const mockCurrentScreenPoint = new Vec(0, 0)

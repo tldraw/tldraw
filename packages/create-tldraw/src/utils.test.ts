@@ -9,7 +9,7 @@ import {
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { emptyDir, isDirEmpty } from './utils'
+import { emptyDir, isDirEmpty, parseCliArgs } from './utils'
 
 describe('isDirEmpty', () => {
 	let tempDir: string
@@ -69,5 +69,60 @@ describe('emptyDir', () => {
 		expect(readdirSync(tempDir)).toEqual(['.git'])
 		expect(existsSync(join(tempDir, '.git', 'HEAD'))).toBe(true)
 		expect(isDirEmpty(tempDir)).toBe(true)
+	})
+})
+
+describe('parseCliArgs', () => {
+	it('leaves telemetry on when the flag is absent', () => {
+		expect(parseCliArgs([])).toEqual({
+			help: false,
+			template: undefined,
+			telemetry: true,
+			targetDir: undefined,
+		})
+	})
+
+	it('turns telemetry off for --no-telemetry', () => {
+		expect(parseCliArgs(['--no-telemetry'])).toEqual({
+			help: false,
+			template: undefined,
+			telemetry: false,
+			targetDir: undefined,
+		})
+	})
+
+	// Without `no-telemetry` declared as a boolean the parser reads the directory as the flag's value.
+	it('keeps the directory when it follows --no-telemetry', () => {
+		expect(parseCliArgs(['--no-telemetry', 'my-app'])).toEqual({
+			help: false,
+			template: undefined,
+			telemetry: false,
+			targetDir: 'my-app',
+		})
+	})
+
+	it('reads the template from -t, --template and --template=', () => {
+		expect(parseCliArgs(['-t', 'agent']).template).toBe('agent')
+		expect(parseCliArgs(['--template', 'agent']).template).toBe('agent')
+		expect(parseCliArgs(['--template=agent']).template).toBe('agent')
+	})
+
+	it('reads help from -h and --help', () => {
+		expect(parseCliArgs(['-h']).help).toBe(true)
+		expect(parseCliArgs(['--help']).help).toBe(true)
+	})
+
+	// Bare arguments are coerced by the parser, so a numeric directory comes back as a number.
+	it('keeps an all-digit directory as a string', () => {
+		expect(parseCliArgs(['2026']).targetDir).toBe('2026')
+	})
+
+	it('accepts a directory, a template and --no-telemetry together', () => {
+		expect(parseCliArgs(['.', '-t', 'basic', '--no-telemetry'])).toEqual({
+			help: false,
+			template: 'basic',
+			telemetry: false,
+			targetDir: '.',
+		})
 	})
 })

@@ -7,15 +7,17 @@ import type {
 import { buildClassDefColorMap, type ParsedNodeColors, toNodeColorProps } from './colors'
 import {
 	buildNodeCentersFromSvg,
-	claimNearestEdgeBend,
+	claimEdge,
+	getSelfLoopEdgeLayout,
 	parseAllEdgePointsFromSvg,
 	parseClustersFromSvg,
 	parseDomId,
+	parseEdgeLabelsFromSvg,
 	type ParsedDiagramLayout,
 	parseNodesFromSvg,
 	scaleLayout,
 } from './svgParsing'
-import { dropDanglingEdges, LAYOUT_SCALE, orderTopDown } from './utils'
+import { dropDanglingEdges, getArrowBend, LAYOUT_SCALE, orderTopDown } from './utils'
 
 interface DiagramEdge {
 	id1: string
@@ -231,8 +233,9 @@ export function parseStateDiagramLayout(root: Element): ParsedDiagramLayout {
 	const edges = parseAllEdgePointsFromSvg(root, (dataId) =>
 		/(?:^|-)edge\d+$/.test(dataId) ? { start: '', end: '' } : null
 	)
-	scaleLayout(nodes, clusters, edges, LAYOUT_SCALE)
-	return { nodes, clusters, edges }
+	const layout = { nodes, clusters, edges, edgeLabels: parseEdgeLabelsFromSvg(root) }
+	scaleLayout(layout, LAYOUT_SCALE)
+	return layout
 }
 
 /** Convert a parsed Mermaid state diagram into a tldraw blueprint of nodes and edges. */
@@ -362,18 +365,24 @@ export function stateToBlueprint(
 
 	const claimed = new Set<number>()
 	for (const edge of allEdges) {
-		const bend = claimNearestEdgeBend(
-			svgEdges,
-			claimed,
-			nodeCenters.get(edge.id1),
-			nodeCenters.get(edge.id2)
-		)
+		const svgEdge = claimEdge(svgEdges, claimed, {
+			startId: edge.id1,
+			endId: edge.id2,
+			startCenter: nodeCenters.get(edge.id1),
+			endCenter: nodeCenters.get(edge.id2),
+		})
+		const svgNode = svgNodes.get(edge.id1)
+		const selfLoop =
+			edge.id1 === edge.id2 && svgEdge && svgNode
+				? getSelfLoopEdgeLayout(svgEdge, svgNode, layout.edgeLabels)
+				: undefined
 		const isNoteEdge = edge.id2.endsWith('----note') || edge.id1.endsWith('----note')
 		blueprintEdges.push({
 			startNodeId: edge.id1,
 			endNodeId: edge.id2,
 			label: edge.relationTitle,
-			bend,
+			bend: svgEdge ? getArrowBend(svgEdge) : 0,
+			...selfLoop,
 			...(isNoteEdge && { dash: 'dotted' as const, arrowheadEnd: 'none' as const }),
 		})
 	}

@@ -9,7 +9,7 @@
 	"files": [],
 	"type": "module",
 	"dependencies": {
-		"@rocicorp/zero": "1.9.0",
+		"@rocicorp/zero": "1.10.0",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
@@ -29,10 +29,11 @@
 		"vitest": "^5.0.0"
 	},
 	"scripts": {
-		"test-ci": "yarn run -T vitest run --passWithNoTests",
-		"test": "yarn run -T vitest --passWithNoTests",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
 	},
 	"engines": {
 		"node": ">=22.12.0"

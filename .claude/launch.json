@@ -3,19 +3,19 @@
 	"configurations": [
 		{
 			"name": "examples",
-			"runtimeExecutable": "yarn",
+			"runtimeExecutable": "pnpm",
 			"runtimeArgs": ["dev"],
 			"port": 5420
 		},
 		{
 			"name": "dotcom-app",
-			"runtimeExecutable": "yarn",
+			"runtimeExecutable": "pnpm",
 			"runtimeArgs": ["dev-app"],
 			"port": 3000
 		},
 		{
 			"name": "docs",
-			"runtimeExecutable": "yarn",
+			"runtimeExecutable": "pnpm",
 			"runtimeArgs": ["dev-docs"],
 			"port": 3001
 		}

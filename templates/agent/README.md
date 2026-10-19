@@ -18,9 +18,9 @@ We recommend using Anthropic for best results. Get your API key from the [Anthro
 
 ## Local development
 
-Install dependencies with `yarn` or `npm install`.
+Install dependencies with `npm install`.
 
-Run the development server with `yarn dev` or `npm run dev`.
+Run the development server with `npm run dev`.
 
 Open `http://localhost:5173/` in your browser to see the app.
 

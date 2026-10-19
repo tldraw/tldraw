@@ -90,7 +90,7 @@ TipTap handles the rich text editing experience. The editor appears when users d
 
 ### Default extensions
 
-[tipTapDefaultExtensions](?) is TipTap's StarterKit plus tldraw's customizations: the `Highlight` mark, a Shift+Enter tweak, and automatic text direction for right-to-left languages. StarterKit is configured to disable blockquotes, code blocks, and horizontal rules; headings, lists, links, and the standard marks stay on. Links don't open on click during editing, which prevents accidental navigation.
+[tipTapDefaultExtensions](?) is TipTap's StarterKit plus tldraw's customizations: the `Highlight` mark, TipTap's `Typography` rules, [WrapSelectionExtension](?), a Shift+Enter tweak, and automatic text direction for right-to-left languages. StarterKit is configured to disable blockquotes, code blocks, and horizontal rules; headings, lists, links, and the standard marks stay on. Links don't open on click during editing, which prevents accidental navigation.
 
 To tweak StarterKit without losing tldraw's extensions, build the list with [getTipTapDefaultExtensions](?), which accepts StarterKit options:
 
@@ -99,6 +99,20 @@ import { getTipTapDefaultExtensions } from 'tldraw'
 
 // The default set, minus headings
 const extensions = getTipTapDefaultExtensions({ heading: false })
+```
+
+### Typography
+
+Typography rewrites punctuation as it's typed: quotes curl, `--` becomes an em dash, `...` an ellipsis, `->` an arrow. Backspace immediately after a rewrite restores what was typed. `WrapSelectionExtension` handles the other half: with text selected, typing either half of a bracket or quote pair wraps the selection rather than replacing it, so selecting `hello` and pressing `¡` — or the `!` that closes it, which is on every keyboard — gives `¡hello!`. See [defaultWrappingPairs](?) for the pairs, which the extension's `pairs` option replaces.
+
+Code is the exception to both. Typing inside inline code, or between a backtick and the closing one that turns the text into code, leaves punctuation as typed, so `` `say "hi"` `` keeps its straight quotes. Wrapping code in quotes uses straight ones too, and a backtick over a selection toggles the code mark on it instead of wrapping it in literal backticks. Text in a monospace font, such as a shape with the mono font, keeps straight quotes as well, both when typed and when wrapping; the other rewrites still apply there.
+
+To opt out of either, filter it from the list — both are separate entries in the array, unlike the StarterKit sub-extensions:
+
+```typescript
+import { getTipTapDefaultExtensions } from 'tldraw'
+
+const extensions = getTipTapDefaultExtensions().filter((e) => e.name !== 'typography')
 ```
 
 ### Custom extensions

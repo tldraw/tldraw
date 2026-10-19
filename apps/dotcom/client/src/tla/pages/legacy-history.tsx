@@ -1,12 +1,11 @@
-import { captureException } from '@sentry/react'
 import { ROOM_PREFIX, type HistoryResponseBody } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
-import { useRouteError } from 'react-router-dom'
-import { fetch } from 'tldraw'
+import { useParams, useRouteError } from 'react-router-dom'
 import { BoardHistoryLog } from '../../components/BoardHistoryLog/BoardHistoryLog'
-import { defineLoader } from '../../utils/defineLoader'
+import { captureRouteError } from '../../utils/routeErrors'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
+import { useFetchJson } from '../hooks/useFetchJson'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { toggleSidebar } from '../utils/local-session-state'
 
@@ -16,34 +15,21 @@ History here should work in an identical way to its previous implementation.
 
 // todo: Add top bar for anon users (branding, sign in, etc)
 
-const { loader, useMaybeData } = defineLoader(async (args) => {
-	const boardId = args.params.boardId
-
-	if (!boardId) return null
-
-	const result = await fetch(`/api/${ROOM_PREFIX}/${boardId}/history`)
-	if (!result.ok) return null
-	const data = await result.json()
-
-	return { data, boardId } as { data: HistoryResponseBody; boardId: string }
-})
-
-export { loader }
-
 export function ErrorBoundary() {
 	const error = useRouteError()
 	useEffect(() => {
-		captureException(error)
+		captureRouteError(error)
 	}, [error])
 	return <Component error={error} />
 }
 
 export function Component({ error: _error }: { error?: unknown }) {
-	const data = useMaybeData()
+	const { boardId } = useParams<{ boardId: string }>()
+	const data = useFetchJson<HistoryResponseBody>(`/api/${ROOM_PREFIX}/${boardId}/history`)
 
 	const userId = useMaybeApp()?.userId
 
-	const error = _error || !data
+	const error = _error || data === null
 
 	useEffect(() => {
 		if (error && userId) {
@@ -52,12 +38,13 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
-	return error ? (
-		<TlaFileError error={error} />
-	) : (
+	if (error) return <TlaFileError error={error} />
+	if (!data) return null
+
+	return (
 		<TlaAnonLayout>
 			<BoardHistoryLog
-				data={data.data.timestamps.map((timestamp) => ({ timestamp, href: `./${timestamp}` }))}
+				data={data.timestamps.map((timestamp) => ({ timestamp, href: `./${timestamp}` }))}
 			/>
 		</TlaAnonLayout>
 	)

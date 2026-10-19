@@ -251,6 +251,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.pentagon': 'Pentagon',
 	'tool.rectangle': 'Rectangle',
 	'tool.rhombus': 'Rhombus',
+	'tool.rhombus-2': 'Rhombus left',
 	'tool.star': 'Star',
 	'tool.trapezoid': 'Trapezoid',
 	'tool.triangle': 'Triangle',
@@ -414,6 +415,8 @@ export const DEFAULT_TRANSLATION = {
 	'shortcuts-dialog.collaboration': 'Collaboration',
 	'shortcuts-dialog.a11y': 'Accessibility',
 	'shortcuts-dialog.text-formatting': 'Text formatting',
+	'shortcuts-dialog.disabled-notice':
+		'Keyboard shortcuts are turned off. Turn them back on under Preferences > Accessibility.',
 	'style-panel.title': 'Styles',
 	'style-panel.align': 'Align',
 	'style-panel.label-align': 'Label align',

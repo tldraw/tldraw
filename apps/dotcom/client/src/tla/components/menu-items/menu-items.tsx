@@ -66,6 +66,7 @@ const messages = defineMessages({
 
 export function SignOutMenuItem() {
 	const auth = useAuth()
+	const app = useMaybeApp()
 
 	const trackEvent = useTldrawAppUiEvents()
 
@@ -73,9 +74,17 @@ export function SignOutMenuItem() {
 
 	const handleSignout = useCallback(() => {
 		signoutAnalytics()
-		auth.signOut().then(resetLocalSessionStateButKeepTheme)
+		auth
+			.signOut()
+			.then(async () => {
+				resetLocalSessionStateButKeepTheme()
+				// After sign-out rather than before: an IndexedDB delete waits for every connection to
+				// the database to close, and other tabs only drop theirs once Clerk propagates sign-out.
+				await app?.deleteLocalData()
+			})
+			.catch((err) => console.error('Sign out failed:', err))
 		trackEvent('sign-out-clicked', { source: 'sidebar' })
-	}, [auth, trackEvent])
+	}, [auth, app, trackEvent])
 
 	if (!auth.isSignedIn) return
 	return (
@@ -313,7 +322,7 @@ export function ImportFileActionItem() {
 
 	return (
 		<TldrawUiMenuItem
-			id="about"
+			id="import-file"
 			label={importFileMsg}
 			readonlyOk
 			onSelect={async () => {
@@ -321,7 +330,7 @@ export function ImportFileActionItem() {
 				if (!editor) return
 				if (!app) return
 
-				trackEvent('import-tldr-file', { source: 'account-menu' })
+				trackEvent('import-tldr-file', { source: 'file-menu' })
 
 				try {
 					// tldraw offline files are selectable so that we can explain why we can't open them
@@ -336,7 +345,7 @@ export function ImportFileActionItem() {
 					if (!tldrawFiles.length) return
 
 					app.uploadTldrFiles(tldrawFiles, {
-						source: 'account-menu',
+						source: 'file-menu',
 						onFirstFileUploaded: (fileId) => {
 							navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
 						},

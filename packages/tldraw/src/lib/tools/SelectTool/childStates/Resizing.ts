@@ -1,6 +1,5 @@
 import {
 	Box,
-	HALF_PI,
 	Mat,
 	SelectionCorner,
 	SelectionEdge,
@@ -23,6 +22,7 @@ import {
 import { getEnclosedShapeIds } from '../../../shapes/frame/FrameShapeTool'
 import { batchMeasureGeoLabels, setBatchLabelSizeCache } from '../../../shapes/geo/GeoShapeUtil'
 import { GestureShapeChangeTracker } from '../GestureShapeChangeTracker'
+import { isRightAngleRotation } from '../selectHelpers'
 
 export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -338,7 +338,7 @@ export class Resizing extends StateNode {
 
 		const shouldSnap = editor.user.getIsSnapMode() ? !isHoldingAccel : isHoldingAccel
 
-		if (shouldSnap && selectionRotation % HALF_PI === 0) {
+		if (shouldSnap && isRightAngleRotation(selectionRotation)) {
 			const { nudge } = editor.snaps.shapeBounds.snapResizeShapes({
 				dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
 				initialSelectionPageBounds: initialSelectionPageBounds,
@@ -360,8 +360,6 @@ export class Resizing extends StateNode {
 
 		// calculate the scale by measuring the current distance between the drag handle and the scale origin
 		// and dividing by the original distance between the drag handle and the scale origin
-
-		// bug: for edges, the page point doesn't matter, the
 
 		const distanceFromScaleOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage).rot(
 			-selectionRotation
@@ -536,8 +534,6 @@ export class Resizing extends StateNode {
 
 		this.editor.setHintingShapes(hintingShapeIds)
 	}
-
-	// ---
 
 	private updateCursor({
 		dragHandle,
