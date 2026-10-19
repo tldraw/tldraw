@@ -14,7 +14,11 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { useMemo } from 'react'
-import { renderHtmlFromRichText, toggleTaskItemInRichText } from '../../utils/text/richText'
+import {
+	renderHtmlFromRichText,
+	richTextHasTaskList,
+	toggleTaskItemInRichText,
+} from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
 import { isLegacyAlign } from './legacyProps'
 import { useEditableRichText } from './useEditableRichText'
@@ -221,7 +225,8 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 						minHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
 						// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css).
 						'--tl-rich-text-heading-line-height': lineHeight,
-						...checkboxStyle,
+						// Several KB of mask art; only text with checkboxes needs it.
+						...(richText && richTextHasTaskList(richText) && checkboxStyle),
 						minWidth: Math.ceil(textWidth || 0),
 						color: labelColor,
 						width: textWidth ? Math.ceil(textWidth) : undefined,
@@ -320,7 +325,7 @@ export function RichTextSVG({
 		lineHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
 		// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css).
 		'--tl-rich-text-heading-line-height': lineHeight,
-		...checkboxStyle,
+		...(richTextHasTaskList(richText) && checkboxStyle),
 		textAlign,
 		width: '100%',
 		wordWrap: 'break-word' as const,
