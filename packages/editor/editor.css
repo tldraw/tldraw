@@ -899,10 +899,7 @@ input,
  * The box and the tick take a pseudo-element each: a mask clips everything its element paints,
  * pseudo-elements included, so masking the span with the box would erase the tick inside it.
  *
- * Both are images drawn across the whole span, so where the tick sits against the box is part of
- * the art rather than the stylesheet. A font can supply its own through the theme, which sets
- * `--tl-checkbox-box-1` to `-6` (cycled by position, so a list needn't repeat one box) and
- * `--tl-checkbox-tick`; anything left unset falls back to the standard box and tick.
+ * The numbered box slots and the tick come from the font's theme entry (see getFontCheckboxStyle).
  */
 .tl-rich-text ul[data-type='taskList'] > li > label > span::before,
 .tl-rich-text ul[data-type='taskList'] > li > label > input:checked + span::after {
