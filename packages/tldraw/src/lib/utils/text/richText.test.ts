@@ -5,6 +5,7 @@ import {
 	isEditingRichTextTaskItem,
 	isEmptyRichText,
 	renderHtmlFromRichTextWithExtensions,
+	richTextHasTaskList,
 	TaskItemToggleExtension,
 	tipTapDefaultExtensions,
 	toggleTaskItemInRichText,
@@ -363,6 +364,42 @@ describe('task item shortcut', () => {
 
 	it('leaves the brackets as typed inside a task item', () => {
 		expect(typeText(taskList([false, '']), '[ ] a')).toBe(taskList([false, '[ ] a']))
+	})
+})
+
+describe('richTextHasTaskList', () => {
+	it('is false for text without a task list', () => {
+		expect(richTextHasTaskList(toRichText('hello'))).toBe(false)
+	})
+
+	it('finds a task list nested inside another list', () => {
+		const richText = {
+			type: 'doc',
+			content: [
+				{
+					type: 'bulletList',
+					content: [
+						{
+							type: 'listItem',
+							content: [
+								{ type: 'paragraph', content: [{ type: 'text', text: 'outer' }] },
+								{
+									type: 'taskList',
+									content: [
+										{
+											type: 'taskItem',
+											attrs: { checked: false },
+											content: [{ type: 'paragraph', content: [{ type: 'text', text: 'inner' }] }],
+										},
+									],
+								},
+							],
+						},
+					],
+				},
+			],
+		} as TLRichText
+		expect(richTextHasTaskList(richText)).toBe(true)
 	})
 })
 

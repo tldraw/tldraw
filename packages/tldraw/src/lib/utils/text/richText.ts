@@ -311,6 +311,17 @@ export function toggleTaskItemInRichText(richText: TLRichText, index: number): T
 	return visit(richText as JSONContent) as TLRichText
 }
 
+const hasTaskListCache = new WeakCache<TLRichText, boolean>()
+
+/** @internal */
+export function richTextHasTaskList(richText: TLRichText) {
+	return hasTaskListCache.get(richText, () => {
+		const visit = (node: JSONContent): boolean =>
+			node.type === 'taskList' || !!node.content?.some(visit)
+		return visit(richText as JSONContent)
+	})
+}
+
 /**
  * Renders plaintext from a rich text string.
  * @param editor - The editor instance.
