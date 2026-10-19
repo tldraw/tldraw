@@ -1841,6 +1841,8 @@ export class FontManager {
     dispose(): void;
     // (undocumented)
     ensureFontIsLoaded(font: TLFontFace): Promise<void>;
+    // @internal (undocumented)
+    getFontLoadEpoch(): number;
     // (undocumented)
     getShapeFontFaces(shape: TLShape | TLShapeId): TLFontFace[];
     // (undocumented)
