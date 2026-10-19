@@ -161,8 +161,15 @@ describe('renderBlueprint', () => {
 		})
 
 		it('falls back to labelled rectangles and a folded arrow label without the mermaid utils', () => {
+			const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 			const editor = createEditor({ withMermaidUtils: false })
 			render(editor)
+
+			expect(warn.mock.calls.map(([message]) => message)).toEqual([
+				expect.stringContaining('Pass MermaidClassShapeUtil'),
+				expect.stringContaining('Pass MermaidEndLabelBindingUtil'),
+			])
+			warn.mockRestore()
 
 			expect(shapesOfType(editor, 'geo').map((shape) => text(editor, shape))).toEqual([
 				'Order\n\n+total() Money',
@@ -172,6 +179,15 @@ describe('renderBlueprint', () => {
 				'1 — has — *',
 			])
 			expect(shapesOfType(editor, 'text')).toEqual([])
+		})
+
+		it('explains a mapper asking for the class shape when it is not registered', () => {
+			const editor = createEditor({ withMermaidUtils: false })
+			expect(() =>
+				renderBlueprint(editor, blueprint, {
+					mapNodeToRenderSpec: () => ({ variant: 'shape', type: 'mermaid-class', props: {} }),
+				})
+			).toThrow("MermaidClassShapeUtil isn't in the editor's shapeUtils")
 		})
 
 		it('lets a mapper choose the shape over the class box', () => {

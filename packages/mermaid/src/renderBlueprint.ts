@@ -1,3 +1,4 @@
+import { warnOnce } from '@tldraw/utils'
 import {
 	createShapeId,
 	Editor,
@@ -47,6 +48,12 @@ export function renderBlueprint(
 	const options = { ...defaultBlueprintRenderingOptions, ...opts }
 	const { nodes, edges, lines, diagramKind } = blueprint
 	const hasClassShape = editor.hasShapeUtil(MERMAID_CLASS_SHAPE_TYPE)
+	// A mapper means the app chose how nodes render, so falling back is no surprise.
+	if (!hasClassShape && !options.mapNodeToRenderSpec && nodes.some((node) => node.classBox)) {
+		warnOnce(
+			"Mermaid class diagram drawn with plain rectangles. Pass MermaidClassShapeUtil to the editor's shapeUtils to draw UML class boxes."
+		)
+	}
 	const mapper: MermaidNodeRenderMapper = (input) =>
 		options.mapNodeToRenderSpec?.(input) ??
 		(hasClassShape && input.node.classBox ? CLASS_SHAPE_RENDER : undefined)
@@ -120,6 +127,11 @@ export function renderBlueprint(
 	if (backgroundIds.length > 0) editor.sendToBack(backgroundIds)
 
 	const hasEndLabelBinding = !!editor.bindingUtils[MERMAID_END_LABEL_BINDING_TYPE]
+	if (!hasEndLabelBinding && edges.some((edge) => edge.startLabel || edge.endLabel)) {
+		warnOnce(
+			"Mermaid multiplicities folded into the arrow's label. Pass MermaidEndLabelBindingUtil to the editor's bindingUtils to keep them beside each end."
+		)
+	}
 	const arrowIds: TLShapeId[] = []
 	for (const edge of edges) {
 		const arrowEdge = hasEndLabelBinding ? edge : { ...edge, label: foldEndLabels(edge) }

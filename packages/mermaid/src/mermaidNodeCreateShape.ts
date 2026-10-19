@@ -86,6 +86,11 @@ function createMermaidClassShape(
 	classBox: MermaidClassBox,
 	overrides: Record<string, unknown>
 ): TLShape {
+	if (!editor.hasShapeUtil(MERMAID_CLASS_SHAPE_TYPE)) {
+		throw new Error(
+			`A render spec asked for a ${MERMAID_CLASS_SHAPE_TYPE} shape, but MermaidClassShapeUtil isn't in the editor's shapeUtils.`
+		)
+	}
 	const props = {
 		...editor.getShapeUtil(MERMAID_CLASS_SHAPE_TYPE).getDefaultProps(),
 		...classBox,
