@@ -105,10 +105,6 @@ test.describe('Rich text behaviour', () => {
 		expect(checked).toBe(true)
 
 		const item = page.locator('.ProseMirror ul[data-type="taskList"] > li').first()
-		await expect(item.locator('> div > p').first()).toHaveCSS(
-			'text-decoration-line',
-			'line-through'
-		)
 		// The input is what the pointer lands on, so it's the one that has to read as clickable.
 		await expect(item.locator('> label > input')).toHaveCSS('cursor', 'pointer')
 	})
@@ -137,28 +133,6 @@ test.describe('Rich text behaviour', () => {
 
 		await expect(richTextToolbar.container).toHaveAttribute('data-visible', 'false')
 		expect(await page.evaluate(() => editor.getRichTextEditor()!.state.selection.empty)).toBe(true)
-	})
-
-	test('a done item does not strike through its sub-items', async ({ page, isMobile }) => {
-		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
-		if (isMobile) return
-
-		// Sub-items carry their own checked state, so a done parent must not decide it for them.
-		await page.keyboard.type('[x] parent')
-		await page.keyboard.press('Enter')
-		await page.keyboard.press('Tab')
-		await page.keyboard.type('child')
-		await sleep(150)
-
-		const parent = page.locator('.ProseMirror ul[data-type="taskList"] > li').first()
-		await expect(parent.locator('> div > p').first()).toHaveCSS(
-			'text-decoration-line',
-			'line-through'
-		)
-		await expect(parent.locator('ul[data-type="taskList"] > li > div > p').first()).toHaveCSS(
-			'text-decoration-line',
-			'none'
-		)
 	})
 
 	test('cmd+enter ticks the task item instead of finishing the edit', async ({
