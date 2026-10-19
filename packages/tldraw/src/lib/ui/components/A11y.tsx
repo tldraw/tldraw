@@ -115,8 +115,8 @@ export function generateShapeAnnouncementMessage(args: {
 				? msg(`a11y.shape-${shape.type}`)
 				: msg(`tool.${shape.type}`)
 
-	// A selected shape outside the reading order (locked, or canTabTo false) has no position
-	// to announce, and "0 of N" would be wrong
+	// A selected shape outside the page's reading order (a container's child, or canTabTo
+	// false) has no position to announce, and "0 of N" would be wrong
 	const readingOrderShapes = editor.getCurrentPageShapesInReadingOrder()
 	const indexInReadingOrder = readingOrderShapes.findIndex((s) => s.id === shapeId)
 	const shapeIndex =

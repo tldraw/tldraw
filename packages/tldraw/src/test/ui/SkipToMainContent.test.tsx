@@ -34,7 +34,7 @@ describe('Move focus to canvas', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([box1])
 	})
 
-	it('skips locked shapes', () => {
+	it('selects a locked first shape', () => {
 		const locked = createShapeId()
 		const unlocked = createShapeId()
 		act(() => {
@@ -46,16 +46,6 @@ describe('Move focus to canvas', () => {
 
 		moveFocusToCanvas()
 
-		expect(editor.getSelectedShapeIds()).toEqual([unlocked])
-	})
-
-	it('selects nothing when every shape is locked', () => {
-		act(() => {
-			editor.createShapes([{ id: createShapeId(), type: 'geo', x: 0, y: 0, isLocked: true }])
-		})
-
-		moveFocusToCanvas()
-
-		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getSelectedShapeIds()).toEqual([locked])
 	})
 })
