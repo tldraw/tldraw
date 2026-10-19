@@ -148,9 +148,18 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 
 		editor.markEventAsHandled(e)
 		const win = editor.getContainerWindow()
+		// A press can end in pointercancel instead of pointerup; a listener left behind then fires on
+		// the next mouse press (mice reuse one pointerId) and toggles the item a second time.
+		const removeListeners = () => {
+			win.removeEventListener('pointerup', handlePointerUp)
+			win.removeEventListener('pointercancel', handlePointerCancel)
+		}
+		const handlePointerCancel = (cancel: PointerEvent) => {
+			if (cancel.pointerId === e.pointerId) removeListeners()
+		}
 		const handlePointerUp = (up: PointerEvent) => {
 			if (up.pointerId !== e.pointerId) return
-			win.removeEventListener('pointerup', handlePointerUp)
+			removeListeners()
 			if (getTaskItemIndexAtPoint(root, up.clientX, up.clientY) !== index) return
 
 			const current = editor.getShape(shapeId)
@@ -164,6 +173,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 			})
 		}
 		win.addEventListener('pointerup', handlePointerUp)
+		win.addEventListener('pointercancel', handlePointerCancel)
 		return true
 	}
 
@@ -338,19 +348,35 @@ export function RichTextSVG({
 	)
 }
 
-/** The document-order index of the task item whose checkbox is under the point, or -1. */
+/**
+ * The document-order index of the task item whose checkbox is under the point, or -1.
+ *
+ * On a rotated shape the client rects are axis-aligned bounds that overlap their neighbors' corners,
+ * so the nearest center wins among the rects containing the point. The boxes are smaller than the
+ * line spacing, so a point inside a box is always nearest its own center.
+ */
 function getTaskItemIndexAtPoint(root: HTMLElement, clientX: number, clientY: number) {
 	const labels = root.querySelectorAll('li[data-type="taskItem"] > label')
+	let index = -1
+	let bestDistance = Infinity
 	for (let i = 0; i < labels.length; i++) {
 		const rect = labels[i].getBoundingClientRect()
 		if (
-			clientX >= rect.left &&
-			clientX <= rect.right &&
-			clientY >= rect.top &&
-			clientY <= rect.bottom
+			clientX < rect.left ||
+			clientX > rect.right ||
+			clientY < rect.top ||
+			clientY > rect.bottom
 		) {
-			return i
+			continue
+		}
+		const distance = Math.hypot(
+			clientX - (rect.left + rect.right) / 2,
+			clientY - (rect.top + rect.bottom) / 2
+		)
+		if (distance < bestDistance) {
+			bestDistance = distance
+			index = i
 		}
 	}
-	return -1
+	return index
 }
