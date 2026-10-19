@@ -3,8 +3,7 @@ import { TLThemeFontCheckbox } from '@tldraw/tlschema'
 /**
  * The draw font's checkboxes: draw-dash rectangles and a freehand tick, taken off the canvas so a
  * checkbox reads as drawn alongside the shapes around it. Each box is two passes around the same
- * rectangle, which is where its uneven weight comes from, and the tick is filled rather than
- * stroked so it tapers at both ends.
+ * rectangle, which is where its uneven weight comes from.
  */
 export const DRAW_FONT_CHECKBOX: TLThemeFontCheckbox = {
 	boxes: [
@@ -15,5 +14,5 @@ export const DRAW_FONT_CHECKBOX: TLThemeFontCheckbox = {
 		"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Csvg x='0' y='20' width='96' height='80' viewBox='-2.58 -3.98 33.53 33.53' overflow='visible'%3E%3Cpath d='M 7.4122 -1.0816 L 20.5836 -0.3961 Q 27.5836 -0.3961 27.5836 6.1039 L 28.6339 20.1467 Q 28.6339 26.6467 21.6339 26.6467 L 6.717 26.007 Q -0.283 26.007 -0.283 19.507 L 0.4122 5.4184 Q 0.4122 -1.0816 7.4122 -1.0816 M 7.8241 -0.7087 L 20.7916 0.2964 Q 27.7916 0.2964 27.7916 6.7964 L 27.0591 19.2197 Q 27.0591 25.7197 20.0591 25.7197 L 7.4822 26.3218 Q 0.4822 26.3218 0.4822 19.8218 L 0.8241 5.7913 Q 0.8241 -0.7087 7.8241 -0.7087' fill='none' stroke='%23000' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%3C/svg%3E",
 		"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Csvg x='0' y='20' width='96' height='80' viewBox='-2.94 -3.81 33.53 33.53' overflow='visible'%3E%3Cpath d='M 6.1214 -0.381 L 21.2459 0.7554 Q 28.2459 0.7554 28.2459 7.2554 L 28.5419 18.8817 Q 28.5419 25.3817 21.5419 25.3817 L 8.1179 26.2372 Q 1.1179 26.2372 1.1179 19.7372 L -0.8786 6.119 Q -0.8786 -0.381 6.1214 -0.381 M 6.3687 -0.5776 L 21.2599 -0.5987 Q 28.2599 -0.5987 28.2599 5.9013 L 27.3476 19.5423 Q 27.3476 26.0423 20.3476 26.0423 L 6.1089 26.506 Q -0.8911 26.506 -0.8911 20.006 L -0.6313 5.9224 Q -0.6313 -0.5776 6.3687 -0.5776' fill='none' stroke='%23000' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%3C/svg%3E",
 	],
-	tick: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Csvg x='32' y='4' width='61' height='69' viewBox='-3.29 -17.7 24.09 27.72' overflow='visible'%3E%3Cpath d='M2.1,-2.73 t3.82,3.1 3.82,3.11 a3.64,3.64 0 0 1 -4.41,5.8 t-3.71,-3.27 -3.72,-3.28 a3.45,3.45 0 0 1 4.2,-5.46 ZM4.11,5.13 t1.42,-4.26 4.91,-10.45 3.49,-6.19 a3.65,3.65 0 0 1 6.48,3.36 t-2.27,3.91 -3.86,7.17 -2.45,6.11 -.87,2.85 a3.64,3.64 0 0 1 -6.85,-2.5 Z' fill='%23000'/%3E%3C/svg%3E%3C/svg%3E",
+	tick: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Csvg x='26' y='11' width='64' height='71' viewBox='-2.3 -12.05 17.4 18.95' overflow='visible'%3E%3Cpath d='M1.93,-1.23 t1.64,2.17 1.65,2.16 a2.41,2.41 0 0 1 -3.86,2.91 t-1.64,-2.39 -1.65,-2.39 a2.28,2.28 0 0 1 3.86,-2.46 ZM3.01,2.16 t0,0 .01,0 a2.42,2.42 0 0 1 .57,4.79 t0,0 -.01,0 a2.41,2.41 0 0 1 -.57,-4.79 ZM.93,4.14 t.13,-.83 1.08,-2.74 2.78,-4.47 3.98,-4.97 2.14,-2.42 a2.37,2.37 0 0 1 3.59,3.09 t-1.76,1.84 -3.33,4.06 -2.6,4.14 -1.14,2.52 -.11,.61 a2.42,2.42 0 0 1 -4.76,-.83 Z' fill='%23000'/%3E%3C/svg%3E%3C/svg%3E",
 }
