@@ -2,11 +2,7 @@ import { TLNoteShape } from '@tldraw/editor'
 import { ComponentType } from 'react'
 import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
 
-/**
- * Props for the {@link DefaultNoteShapeAttribution} component.
- *
- * @public
- */
+/** @public */
 export interface TLNoteShapeAttributionProps {
 	/** The note shape the attribution belongs to. */
 	shape: TLNoteShape

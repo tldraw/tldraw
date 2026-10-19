@@ -83,7 +83,8 @@ export function createSentry(ctx: Context, env: SentryEnvironment, request?: Req
 		request,
 		requestDataOptions: {
 			allowedHeaders: ['user-agent'],
-			allowedSearchParams: /(.*)/,
+			// WebSocket upgrades can't set headers, so tokens ride in the query string: keep them out of Sentry
+			allowedSearchParams: /^(?!.*(token|secret|session|key|auth|password)).*$/i,
 		},
 	})
 }

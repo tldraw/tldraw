@@ -5,7 +5,7 @@
 // the frame, runs a scenario module, then trims the setup frames and transcodes
 // with ffmpeg.
 //
-// Usage (from the repo root, with `yarn dev` serving localhost:5420):
+// Usage (from the repo root, with `pnpm dev` serving localhost:5420):
 //   node skills/write-pr/scripts/record-interaction.mjs <scenario.mjs> <out.mp4> [--url URL] [--keep-ui]
 //
 // The scenario module default-exports `async (page, helpers) => {}`. See
@@ -16,7 +16,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { chromium } from 'playwright'
+import { chromium } from '@playwright/test'
 
 const args = process.argv.slice(2)
 const positional = args.filter((a) => !a.startsWith('--'))
@@ -44,16 +44,17 @@ try {
 	browser = await chromium.launch()
 } catch (e) {
 	console.error(
-		'Could not launch Chromium. Install scripts are disabled in this repo, so run `yarn playwright install chromium` once first.'
+		'Could not launch Chromium. Install scripts are disabled in this repo, so run `pnpm exec playwright install chromium` once first.'
 	)
 	throw e
 }
 
+let context
 let rawPath
 let recordingStartedAt
 let scenarioStartedAt
 try {
-	const context = await browser.newContext({
+	context = await browser.newContext({
 		viewport: { width: WIDTH, height: HEIGHT },
 		deviceScaleFactor: 1,
 		recordVideo: { dir: tmpDir, size: { width: WIDTH, height: HEIGHT } },
@@ -113,9 +114,13 @@ try {
 
 	rawPath = await page.video().path()
 } finally {
-	// Closing the context is what flushes the recording to disk, so it has to run
-	// even when the scenario throws; otherwise a failed attempt leaks a browser.
-	await browser.close()
+	// Without context.close() the .webm is never finalized and ffmpeg can't parse
+	// it. Both closes must run even when the scenario throws, or a browser leaks.
+	try {
+		await context?.close()
+	} finally {
+		await browser.close()
+	}
 }
 
 const trimSeconds = ((scenarioStartedAt - recordingStartedAt) / 1000).toFixed(2)

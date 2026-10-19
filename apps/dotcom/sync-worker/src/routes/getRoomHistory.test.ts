@@ -8,13 +8,11 @@ import { getMonthPrefix, getPreviousMonth, getRoomHistory } from './getRoomHisto
 
 vi.mock('../utils/tla/getAuth', () => ({ requireAdminAccessToRequest: vi.fn() }))
 
-describe('history listing during the transition', () => {
-	it('shows legacy versions, keyframes and every version inside a segment as one list', async () => {
+describe('history listing', () => {
+	it('shows keyframes and every version inside a segment as one list', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		const roomKey = 'app_rooms/slug'
 
-		await legacyBucket.put(`${roomKey}/2026-08-01T00:00:00.000Z`, '{}')
 		await chainBucket.put(`${roomKey}/2026-09-01T00:00:00.000Z.k`, '{}')
 		// One segment object standing for two versions — the listing must expand it, not report
 		// the segment's own key as a version.
@@ -26,13 +24,10 @@ describe('history listing during the transition', () => {
 			}),
 		})
 
-		expect(
-			await listVersionTimestamps({ chainBucket, legacyBucket, roomKey, prefix: '2026-0' })
-		).toEqual([
+		expect(await listVersionTimestamps({ chainBucket, roomKey, prefix: '2026-0' })).toEqual([
 			'2026-09-01T00:00:16.000Z',
 			'2026-09-01T00:00:08.000Z',
 			'2026-09-01T00:00:00.000Z',
-			'2026-08-01T00:00:00.000Z',
 		])
 	})
 })
@@ -62,17 +57,13 @@ describe('getPreviousMonth', () => {
 async function listHistory(timestamps: string[], offset: string) {
 	const list = vi.fn(async ({ prefix }: { prefix: string }) => ({
 		objects: timestamps
-			.map((timestamp) => ({ key: `app_rooms/board/${timestamp}` }))
+			.map((timestamp) => ({ key: `app_rooms/board/${timestamp}.k` }))
 			.filter(({ key }) => key.startsWith(prefix)),
 		truncated: false,
 	}))
 	const response = await getRoomHistory(
 		{ params: { roomId: 'board' }, query: { offset } } as unknown as IRequest,
-		{
-			// An empty chain bucket: these tests cover the month walk over legacy copies alone.
-			ROOMS_HISTORY: { list: async () => ({ objects: [], truncated: false }) },
-			ROOMS_HISTORY_EPHEMERAL: { list },
-		} as unknown as Environment,
+		{ ROOMS_HISTORY: { list } } as unknown as Environment,
 		true
 	)
 	expect(response.status).toBe(200)

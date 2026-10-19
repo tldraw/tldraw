@@ -49,6 +49,37 @@ describe('TLSelectTool.Idle', () => {
 		editor.expectToBeIn('select.pointing_canvas')
 	})
 
+	it('Does not select a locked group by clicking one of its children', () => {
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		const groupId = createShapeId('group')
+		editor.createShapes([
+			{ id: a, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100, fill: 'solid' } },
+			{ id: b, type: 'geo', x: 500, y: 300, props: { w: 100, h: 100, fill: 'solid' } },
+		])
+		editor.groupShapes([a, b], { groupId })
+		editor.updateShape({ id: groupId, type: 'group', isLocked: true })
+		editor.selectNone()
+		editor.pointerDown(350, 350).pointerUp(350, 350)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
+	it('Does not select a locked group by double clicking one of its children', () => {
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		const groupId = createShapeId('group')
+		editor.createShapes([
+			{ id: a, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100, fill: 'solid' } },
+			{ id: b, type: 'geo', x: 500, y: 300, props: { w: 100, h: 100, fill: 'solid' } },
+		])
+		editor.groupShapes([a, b], { groupId })
+		editor.updateShape({ id: groupId, type: 'group', isLocked: true })
+		editor.selectNone()
+		editor.doubleClick(350, 350)
+		// Same as double clicking a locked shape: it acts like the canvas and creates text
+		expect(editor.getOnlySelectedShape()?.type).toBe('text')
+	})
+
 	it('Returns to idle when a canvas press is cancelled', () => {
 		editor.pointerDown(10, 10, { target: 'canvas' })
 		editor.expectToBeIn('select.pointing_canvas')
@@ -1088,6 +1119,66 @@ describe('When double clicking the selection edge', () => {
 
 		expect(editor.getEditingShapeId()).toBe(id)
 		expect(editor.getInstanceState().cursor.type).toBe('default')
+	})
+})
+
+describe('When a second press on a resize handle arrives as a double click', () => {
+	// The click manager reports a second press inside the double-click window as a pointer down
+	// followed by a double_click 'down'. The double click must not steal a press that becomes a
+	// drag (#9499 fixed the same thing for shape handles).
+	function pressAgain(handle: 'bottom_right' | 'bottom_right_rotate') {
+		editor.pointerDown(200, 200, { target: 'selection', handle })
+		editor.dispatch({
+			type: 'click',
+			name: 'double_click',
+			phase: 'down',
+			point: { x: 200, y: 200 },
+			pointerId: 1,
+			button: 0,
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+			target: 'selection',
+			handle,
+		})
+	}
+
+	it('still resizes when the second press becomes a drag', () => {
+		editor.select(ids.box1)
+		editor
+			.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right' })
+			.pointerUp(200, 200)
+		pressAgain('bottom_right')
+		editor.expectToBeIn('select.pointing_resize_handle')
+		editor.pointerMove(250, 250)
+		editor.expectToBeIn('select.resizing')
+		editor.pointerUp(250, 250)
+		expect(editor.getShape(ids.box1)!.props).toMatchObject({ w: 150, h: 150 })
+	})
+
+	it('still rotates when the second press on a rotate handle becomes a drag', () => {
+		editor.select(ids.box1)
+		editor
+			.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right_rotate' })
+			.pointerUp(200, 200)
+		pressAgain('bottom_right_rotate')
+		editor.expectToBeIn('select.pointing_rotate_handle')
+		editor.pointerMove(250, 100)
+		editor.expectToBeIn('select.rotating')
+	})
+
+	it('acts on the double click on pointer up when the second press is released in place', () => {
+		editor.select(ids.box1)
+		editor
+			.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right' })
+			.pointerUp(200, 200)
+		pressAgain('bottom_right')
+		editor.expectToBeIn('select.pointing_resize_handle')
+		editor.pointerUp(200, 200)
+		editor.expectToBeIn('select.editing_shape')
+		expect(editor.getEditingShapeId()).toBe(ids.box1)
 	})
 })
 

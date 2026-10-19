@@ -31,6 +31,11 @@ export function isAllowedOrigin(origin: string) {
 	if (origin.endsWith('-tldraw.vercel.app')) return origin
 	if (origin === 'https://tldrawusercontent.com') return origin
 	if (origin.endsWith('.tldrawusercontent.com')) return origin
+	// The sandbox ChatGPT and Codex render an MCP app's view in. The tldraw plugin's view opens
+	// the file sync socket from there, presenting an MCP access token (see getMcpTokenAuth). Each
+	// app gets its own host under this suffix, and the Codex desktop app uses its own scheme
+	// (`codex-sandbox://…`), which is why this matches the suffix rather than a full origin.
+	if (origin.endsWith('.web-sandbox.oaiusercontent.com')) return origin
 	return undefined
 }
 

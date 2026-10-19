@@ -135,6 +135,39 @@ describe('useSyncDemo', () => {
 		})
 	})
 
+	describe('asset resolution', () => {
+		function resolveImage(props: Record<string, unknown>, scale: number) {
+			const assetStore = vi.mocked(useSync).mock.calls[0][0].assets
+			const asset = {
+				type: 'image',
+				props: { src: 'https://demo.tldraw.xyz/uploads/image', ...props },
+			}
+			return assetStore.resolve!(asset as TLAsset, {
+				screenScale: scale,
+				steppedScreenScale: scale,
+				dpr: 1,
+				networkEffectiveType: '4g',
+				shouldResolveToOriginal: false,
+			})
+		}
+
+		it.each([
+			{ mimeType: 'image/png', w: 2000, h: 1500, fileSize: 1000, scale: 0.5, expected: '?w=1000' },
+			{ mimeType: 'image/jpeg', w: 2000, h: 1500, fileSize: 1000, scale: 0.5, expected: '?w=1000' },
+			{ mimeType: 'image/webp', w: 2000, h: 1500, fileSize: 1000, scale: 0.5, expected: '?w=1000' },
+			{ mimeType: 'image/jpeg', w: 399, h: 400, fileSize: 1000, scale: 0.5, expected: '' },
+			{ mimeType: 'image/jpeg', w: 2000, h: 1500, fileSize: 1000, scale: 0.75, expected: '' },
+		])(
+			'should resize $mimeType at $w × $h and $scale scale',
+			async ({ expected, scale, ...props }) => {
+				useSyncDemo({ roomId: 'test-room', host: 'https://demo.server.com' })
+				expect(await resolveImage(props, scale)).toBe(
+					`https://images.tldraw.xyz/demo.tldraw.xyz/uploads/image${expected}`
+				)
+			}
+		)
+	})
+
 	describe('bookmark asset creation', () => {
 		it('should create bookmark assets with metadata when successful', async () => {
 			const mockEditor = { registerExternalAssetHandler: vi.fn() } as any

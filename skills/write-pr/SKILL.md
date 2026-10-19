@@ -147,7 +147,7 @@ When a bug fix or improvement changes how a canvas interaction behaves — a dra
 
 `scripts/record-interaction.mjs` records a scripted interaction against the running examples app as a 16:9 MP4. It hides the tldraw chrome, injects a visible cursor (headless recordings have none), runs a scenario module, trims the setup frames, and transcodes with ffmpeg. `scripts/example-scenario.mjs` is a starting point; copy it to a scratch location and change the body to the interaction the PR affects. Do not commit scenarios.
 
-It needs ffmpeg on the path and a Playwright Chromium build. Install scripts are disabled in this repo, so the browser is not downloaded by `yarn install`; run `yarn playwright install chromium` once. Then, from the repo root with `yarn dev` serving the examples app:
+It needs ffmpeg on the path and a Playwright Chromium build. Install scripts are disabled in this repo, so the browser is not downloaded by `pnpm install`; run `pnpm exec playwright install chromium` once. Then, from the repo root with `pnpm dev` serving the examples app:
 
 ```bash
 # After: the current branch
@@ -252,7 +252,7 @@ Create a table that includes net LOC changes for each of the following sections.
 - Documentation — docs site and examples (`apps/docs/`, `apps/examples/`)
 - Apps — application code (`apps/dotcom/`, `apps/mcp-app/`, `apps/vscode/`, etc.), excluding e2e tests
 - Templates — starter templates (`templates/`)
-- Config/tooling — config files, lock files, lint config, CI, build scripts (`.oxlintrc.json`, `yarn.lock`, etc.)
+- Config/tooling — config files, lock files, lint config, CI, build scripts (`.oxlintrc.json`, `pnpm-lock.yaml`, etc.)
 
 ```md
 ### Code changes
@@ -291,6 +291,16 @@ The mechanism is on screen already. What isn't is what goes wrong without it. A 
 Leave alone, or trim at most: diagrams, enumerated case lists where the list is the specification, provenance (an issue number, "we tried X and it did Y"), and anything carrying an invariant. In `packages/*`, doc comments on the `@public` surface are the API reference — hold them to the same "says something the code doesn't" bar, but they are a deliverable, not overhead.
 
 Pre-flight rather than post-review because it is cheap now and expensive later. A comment restating its own code reads as padding, costs a review round-trip to remove, and once merged nobody goes back for it. Explaining the change is the PR body's job — the diff is not where that belongs.
+
+### Stale neighbours
+
+Added comments are half the problem. Reviewers more often flag comments, docs and test names the diff left untouched that no longer match it: a doc comment above a function whose behavior changed, a `catch` log message that now covers more calls, a docs page still teaching the old pattern. Run:
+
+```bash
+npx tsx skills/write-pr/scripts/touched-comments.ts
+```
+
+It lists unchanged comments within a few lines of each change, and docs that name a declaration the diff added, removed or renamed. For each one, check every claim it makes against the new code, and fix or delete it. The script doesn't cover test names, so read the `describe`/`it` titles around changed tests yourself. Then do the same for the PR description: every sentence describing behavior ("X now does Y", "the health check recovers Z", a schedule, a count) must be true of the final diff, not the first draft.
 
 ## Human notes (preserve exactly)
 
