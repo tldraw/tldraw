@@ -396,17 +396,31 @@ describe('file actions', () => {
 		expect(ctx.ui.error.get()?.message).toMatch(/Could not read/)
 	})
 
-	it('exports the rendered text to a file', async () => {
+	it('exports the viewport, selection or document as text or an image', async () => {
 		ctx.renderToText = () => 'ABC'
 		createGeo(ctx.editor, 80, 80)
 		const path = join(dir, 'out.txt')
 		const exporting = performAction(ctx, { id: 'file.export-text' })
+		const scope = lastPrompt(ctx)
+		expect(scope.kind).toBe('confirm')
+		expect(scope.choices?.map((c) => c.key)).toEqual(['v', 'd'])
+		await scope.onSubmit('d')
 		const prompt = lastPrompt(ctx)
-		expect(prompt.label).toBe('Export as text: ')
+		expect(prompt.label).toBe('Export to (.txt, .svg or .png): ')
 		await prompt.onSubmit(path)
 		await exporting
 		expect(await readFile(path, 'utf8')).toBe('ABC\n')
 		expect(ctx.ui.hint.get()).toBe(`Exported ${path}`)
+
+		ctx.editor.selectAll()
+		const svgPath = join(dir, 'out.svg')
+		const exportingSvg = performAction(ctx, { id: 'file.export-text' })
+		const svgScope = lastPrompt(ctx)
+		expect(svgScope.choices?.map((c) => c.key)).toEqual(['v', 's', 'd'])
+		await svgScope.onSubmit('s')
+		await lastPrompt(ctx).onSubmit(svgPath)
+		await exportingSvg
+		expect(await readFile(svgPath, 'utf8')).toMatch(/^<svg/)
 	})
 
 	it('asks to confirm before quitting, opening or starting new with unsaved changes', async () => {

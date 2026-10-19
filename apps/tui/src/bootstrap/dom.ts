@@ -133,6 +133,59 @@ function createMatchMedia(query: string): MediaQueryList {
 
 // Node's native BroadcastChannel pins the event loop forever: TLUserPreferences.ts:246-248 opens one
 // at import time whenever the global exists and NODE_ENV !== 'test'.
+// SVG export (capture/) collects fonts through FontFace and document.fonts (FontManager.ts:157-196,
+// FontEmbedder.ts), neither of which jsdom has. Faces never load: rendered text uses system fonts.
+class FontFaceStub {
+	status = 'loaded'
+	loaded: Promise<FontFaceStub>
+	constructor(
+		readonly family: string,
+		readonly source: string,
+		descriptors: Record<string, string> = {}
+	) {
+		Object.assign(this, descriptors)
+		this.loaded = Promise.resolve(this)
+	}
+	load() {
+		return this.loaded
+	}
+}
+
+function createFontFaceSet() {
+	const faces = new Set<unknown>()
+	return {
+		ready: Promise.resolve(),
+		status: 'loaded',
+		add(face: unknown) {
+			faces.add(face)
+			return this
+		},
+		delete(face: unknown) {
+			return faces.delete(face)
+		},
+		has(face: unknown) {
+			return faces.has(face)
+		},
+		clear() {
+			faces.clear()
+		},
+		check() {
+			return true
+		},
+		load() {
+			return Promise.resolve([])
+		},
+		forEach(fn: (face: unknown) => void) {
+			faces.forEach((face) => fn(face))
+		},
+		[Symbol.iterator]() {
+			return faces[Symbol.iterator]()
+		},
+		addEventListener() {},
+		removeEventListener() {},
+	}
+}
+
 class BroadcastChannelStub {
 	onmessage: null | ((e: unknown) => void) = null
 	onmessageerror: null | ((e: unknown) => void) = null
@@ -211,6 +264,15 @@ export function installDomGlobals(opts: InstallDomGlobalsOptions = {}): DomGloba
 	// jsdom has no CSS object, so one stub is shared by the window and the global (whichever exists).
 	if (w.CSS === undefined) w.CSS = g.CSS ?? { supports: () => false }
 	if (g.CSS === undefined) g.CSS = w.CSS
+
+	// jsdom has no fetch; tldraw's export fetches image assets through window.fetch.
+	if (typeof w.fetch !== 'function' && typeof g.fetch === 'function') w.fetch = g.fetch
+
+	if (w.FontFace === undefined) w.FontFace = g.FontFace ?? FontFaceStub
+	if (g.FontFace === undefined) g.FontFace = w.FontFace
+	if (!('fonts' in win.document)) {
+		Object.defineProperty(win.document, 'fonts', { configurable: true, value: createFontFaceSet() })
+	}
 
 	if (opts.seedLocalStorage) {
 		for (const [key, value] of Object.entries(opts.seedLocalStorage)) {

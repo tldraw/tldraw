@@ -1,6 +1,8 @@
 import { App } from '../App'
 import type { DomGlobals } from '../bootstrap/dom'
 import type { FrameScheduler } from '../bootstrap/frame'
+import { captureToFile } from '../capture/capture'
+import type { CaptureScope } from '../capture/types'
 import { getPrefsPath, readPrefsSeed } from '../file/tldrFile'
 import {
 	Terminal,
@@ -64,5 +66,23 @@ export async function runCli(options: CliOptions, deps: RunCliDeps): Promise<App
 		onQuit: deps.onQuit ?? ((code) => process.exit(code)),
 	})
 	await app.start()
+	if (options.capture) watchCaptureSignal(app, options.capture, options.captureScope)
 	return app
+}
+
+/**
+ * `--capture PATH`: SIGUSR1 writes the canvas to PATH, so a script or agent driving the app through
+ * a terminal can look at it (`kill -USR1 <pid>`). The status bar confirms each capture.
+ */
+function watchCaptureSignal(app: App, path: string, scope: CaptureScope) {
+	process.on('SIGUSR1', () => {
+		const ctx = app.getContext()
+		void captureToFile(ctx.editor, path, { scope, renderToText: ctx.renderToText }).then(
+			(result) => {
+				if (result.ok) ctx.ui.setHint(`Captured ${result.path}`)
+				else ctx.ui.showError(result.error, ctx.now())
+				ctx.requestRender()
+			}
+		)
+	})
 }

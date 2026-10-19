@@ -179,6 +179,8 @@ export interface ExportTextOptions {
 	maxRows?: number
 	/** Blank cells around the content, default 1. */
 	padCells?: number
+	/** Zoom to draw at, default the editor's current zoom. */
+	zoom?: number
 }
 
 export interface ExportTextRequest {
@@ -204,7 +206,7 @@ export function computeExportRequest(
 	const maxCols = opts.maxCols ?? 4000
 	const maxRows = opts.maxRows ?? 1000
 	const pad = opts.padCells ?? 1
-	let zoom = editor.getZoomLevel()
+	let zoom = opts.zoom ?? editor.getZoomLevel()
 	const innerCols = Math.max(1, maxCols - pad * 2)
 	const innerRows = Math.max(1, maxRows - pad * 2)
 	zoom = Math.min(zoom, (innerCols * CELL_W) / content.w, (innerRows * CELL_H) / content.h)

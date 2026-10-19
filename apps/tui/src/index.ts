@@ -1,4 +1,4 @@
-import { parseArgs, usage } from './app/cli'
+import { parseArgs, parseRenderArgs, renderUsage, usage } from './app/cli'
 import { installDomGlobals } from './bootstrap/dom'
 import { FrameScheduler } from './bootstrap/frame'
 import { Terminal, type OutputLike } from './terminal/Terminal'
@@ -7,7 +7,24 @@ import { Terminal, type OutputLike } from './terminal/Terminal'
 // and `BroadcastChannel` while its modules evaluate, so the DOM globals must exist first and the
 // App is loaded with a dynamic import below. The terminal layer imports neither.
 
-const parsed = parseArgs(process.argv.slice(2))
+const argv = process.argv.slice(2)
+
+if (argv[0] === 'render') {
+	const render = parseRenderArgs(argv.slice(1))
+	if (!render.ok) {
+		process.stderr.write(`tldraw-tui render: ${render.error}\n\n${renderUsage()}`)
+		process.exit(2)
+	}
+	if (render.options.help) {
+		process.stdout.write(renderUsage())
+		process.exit(0)
+	}
+	installDomGlobals()
+	const { runRender } = await import('./app/render')
+	process.exit(await runRender(render.options, { stdout: process.stdout, stderr: process.stderr }))
+}
+
+const parsed = parseArgs(argv)
 if (!parsed.ok) {
 	process.stderr.write(`tldraw-tui: ${parsed.error}\n\n${usage()}`)
 	process.exit(2)

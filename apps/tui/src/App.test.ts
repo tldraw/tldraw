@@ -5,7 +5,7 @@ import { createShapeId } from '@tldraw/editor'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { App } from './App'
 import { resolveAppearance, strokeForTier } from './app/appearance'
-import { parseArgs, usage } from './app/cli'
+import { parseArgs, parseRenderArgs, usage } from './app/cli'
 import { getDomGlobals } from './bootstrap/dom'
 import { FrameScheduler } from './bootstrap/frame'
 import { Terminal, type TerminalCapabilities } from './terminal/Terminal'
@@ -98,6 +98,9 @@ describe('parseArgs', () => {
 			'--no-mouse',
 			'--osc52',
 			'--debug',
+			'--capture',
+			'shot.png',
+			'--capture-scope=document',
 		])
 		expect(result).toEqual({
 			ok: true,
@@ -111,8 +114,55 @@ describe('parseArgs', () => {
 				osc52: true,
 				debug: true,
 				help: false,
+				capture: 'shot.png',
+				captureScope: 'document',
 			},
 		})
+	})
+
+	it('parses render options', () => {
+		expect(
+			parseRenderArgs([
+				'a.tldr',
+				'--scope',
+				'selection',
+				'--select',
+				'abc,shape:def',
+				'-o',
+				'out.png',
+				'--size=80x24',
+				'--center',
+				'10,-20',
+				'--zoom',
+				'0.5',
+				'--dark',
+				'--scale',
+				'1',
+			])
+		).toEqual({
+			ok: true,
+			options: {
+				filePath: 'a.tldr',
+				scope: 'selection',
+				format: null,
+				out: 'out.png',
+				cols: 80,
+				rows: 24,
+				center: { x: 10, y: -20 },
+				zoom: 0.5,
+				select: ['abc', 'shape:def'],
+				page: null,
+				scheme: 'dark',
+				glyphs: 'rich',
+				scale: 1,
+				help: false,
+			},
+		})
+		expect(parseRenderArgs([])).toMatchObject({ ok: false, error: 'render needs a .tldr file' })
+		expect(parseRenderArgs(['a.tldr', '--scope', 'selection'])).toMatchObject({ ok: false })
+		expect(parseRenderArgs(['a.tldr', '--format', 'gif'])).toMatchObject({ ok: false })
+		expect(parseRenderArgs(['a.tldr', '--size', '5x5'])).toMatchObject({ ok: false })
+		expect(parseRenderArgs(['--help'])).toMatchObject({ ok: true, options: { help: true } })
 	})
 
 	it('rejects bad values and unknown options', () => {

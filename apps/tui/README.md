@@ -1,6 +1,6 @@
 # tldraw TUI
 
-tldraw in the terminal. The app runs the real tldraw editor headlessly in Node (under jsdom) and draws it with box-drawing and braille characters, so the tools, selection, snapping, arrows and bindings, undo history, styles and pages behave like tldraw.com. It reads and writes `.tldr` files and exports the canvas as plain text.
+tldraw in the terminal. The app runs the real tldraw editor headlessly in Node (under jsdom) and draws it with box-drawing and braille characters, so the tools, selection, snapping, arrows and bindings, undo history, styles and pages behave like tldraw.com. It reads and writes `.tldr` files and exports the canvas as text, SVG or PNG.
 
 Single player only. Images, video, embeds and bookmarks are drawn as placeholders, and text is plain (no rich formatting).
 
@@ -29,6 +29,25 @@ Flags:
 | `--no-mouse`                 | Do not request mouse reporting; drive the pointer from the keyboard (see below)         |
 | `--osc52`, `--no-osc52`      | Offer exported and copied text to the terminal clipboard (on by default where it works) |
 | `--debug`                    | Show frames per second, frame time, bytes per frame and input latency in the status bar |
+| `--capture PATH`             | On `SIGUSR1`, write the canvas to `PATH` (`.txt`, `.svg` or `.png`)                     |
+| `--capture-scope SCOPE`      | What `--capture` writes: `viewport` (default), `selection` or `document`                |
+
+## Rendering and capturing
+
+Agents and scripts can look at a drawing without a terminal. `render` loads a `.tldr` file into a headless editor and writes it as text or as an image:
+
+```bash
+tldraw-tui render diagram.tldr                                # viewport as text, to stdout
+tldraw-tui render diagram.tldr --scope document -o doc.png    # whole page as a PNG
+tldraw-tui render diagram.tldr --scope selection --select box1,box2 -o sel.svg
+tldraw-tui render diagram.tldr --center 400,200 --zoom 0.5 --size 120x40
+```
+
+- **Scope**: `viewport` (default) is what the app's canvas would show at `--size` cells (default 100×28), zoomed to fit like the app does when it opens a file, or placed with `--center` and `--zoom`. `selection` needs `--select` with shape ids. `document` is the whole page; `--page` picks another page.
+- **Format**: `text` is the terminal rendering (box-drawing and braille). `svg` is tldraw's own SVG export with labels converted to SVG text. `png` is that SVG rasterized at 2× (`--scale` changes it). The format comes from `--format`, else from the `--out` extension, else text.
+- Images use a monospace system font for labels and lay text out with that font's metrics, so wrapping can differ slightly from tldraw.com, which uses its own fonts. Remote image assets are downloaded when they are embedded.
+
+In the app, `ctrl+e` exports: choose viewport, selection or document, then a path ending in `.txt`, `.svg` or `.png`. To capture a running session from outside (for example an agent driving the app through a pseudo-terminal), start it with `--capture PATH` and send `kill -USR1 <pid>`; the status bar confirms each capture.
 
 ## Using it
 
@@ -116,7 +135,7 @@ Next page stops at the last page instead of creating a new one; New page, Duplic
 | `F5`, `F6`, `F7`             | Latch shift, alt, ctrl                                                            |
 | `F8`, `ctrl+space`           | Keyboard pointer mode                                                             |
 | `ctrl+s`, `ctrl+o`, `ctrl+n` | Save (asks for a path when untitled), open, new                                   |
-| `ctrl+e`                     | Export the page, or the selection, as text                                        |
+| `ctrl+e`                     | Export the viewport, selection or page as text, SVG or PNG                        |
 | `ctrl+q`                     | Quit (`ctrl+c` pressed twice within a second also quits when nothing is selected) |
 
 Save as… is in the File menu (`ctrl+shift+s` with full keys). New, open and quit ask about unsaved changes: `y` saves, `n` discards, `esc` cancels.
@@ -140,7 +159,7 @@ Keyboard pointer mode (`F8`, `ctrl+space` or `--no-mouse`): arrows move the poin
 - Colour scheme: `--light`/`--dark`, else the background the terminal reports (OSC 11), else `COLORFGBG`, else dark. The canvas is painted with the scheme's own background colour (as tldraw does), so a scheme that differs from the terminal's background, or toggling dark mode with `ctrl+/`, still shows every shape on the right base.
 - Glyphs: the rich set by default; the safe set (no dingbats or supplemental arrows) on Terminal.app, `TERM=linux` and GNU screen; ASCII when the locale is not UTF-8 or the terminal renders ambiguous-width glyphs two cells wide. `--glyphs` overrides.
 - GNU screen: hover is off and the mouse arrives in the X10 encoding, which breaks past column 95 in UTF-8 locales.
-- Clipboard: exported text, and the text of copied shapes, is also sent to the terminal clipboard with OSC 52 (up to 64 KB) when kitty, WezTerm, Alacritty or Windows Terminal is detected, or with `--osc52`; `--no-osc52` turns it off. The status bar says "sent to terminal clipboard" after an export.
+- Clipboard: exported text (not images), and the text of copied shapes, is also sent to the terminal clipboard with OSC 52 (up to 64 KB) when kitty, WezTerm, Alacritty or Windows Terminal is detected, or with `--osc52`; `--no-osc52` turns it off. The status bar says "sent to terminal clipboard" after an export.
 - Preferences such as snap mode persist in `$XDG_CONFIG_HOME/tldraw-tui/prefs.json` (default `~/.config/tldraw-tui/prefs.json`), also when the app exits on `SIGINT` or `SIGTERM`. The colour scheme follows the terminal (or `--light`/`--dark`) on every start rather than the saved preference.
 - Quitting restores the terminal before the process exits even when the terminal is slow to read, and nothing is drawn on the shell's screen after the alternate screen is left.
 

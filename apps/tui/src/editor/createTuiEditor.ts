@@ -16,7 +16,7 @@ import {
 	tipTapDefaultExtensions,
 } from 'tldraw'
 import { CELL_H, CELL_W, TUI_CAMERA_OPTIONS, TUI_EDITOR_OPTIONS } from './constants'
-import { installMonospaceTextMeasure } from './textMeasure'
+import { installMonospaceTextMeasure, type TextMetrics } from './textMeasure'
 
 export interface TuiEditor {
 	editor: Editor
@@ -36,6 +36,8 @@ export interface CreateTuiEditorOptions {
 	/** Canvas size in cells; the App updates it on resize. Default 80 × 24. */
 	cols?: number
 	rows?: number
+	/** Text measurement; cells by default. Image capture uses font metrics (capture/svgText.ts). */
+	textMetrics?: TextMetrics
 }
 
 /** The default overlays minus the four collaborator utils (single-player app). */
@@ -102,7 +104,11 @@ export function createTuiEditor(opts: CreateTuiEditorOptions): TuiEditor {
 	// React wrapper normally does this.
 	registerDefaultSideEffects(editor)
 	// Before any geometry read: the measurer feeds TextShapeUtil autosize and every label size.
-	installMonospaceTextMeasure(editor)
+	installMonospaceTextMeasure(editor, opts.textMetrics)
+	// SVG export embeds each font by downloading it from tldraw's CDN (FontManager
+	// toEmbeddedCssDeclaration). Captures rasterize with system fonts and flatten labels to a
+	// monospace family (capture/svgText.ts), so the download is wasted time and needs a network.
+	editor.fonts.toEmbeddedCssDeclaration = async () => ''
 	const tickListenerBaseline = editor.listenerCount('tick')
 
 	editor.user.updateUserPreferences({ edgeScrollSpeed: 0, colorScheme: opts.colorMode })

@@ -30,14 +30,7 @@ describe('menus', () => {
 
 	it('defines the five menubar menus with the expected items', () => {
 		expect(MENU_IDS).toEqual(['file', 'edit', 'view', 'pages', 'help'])
-		expect(labels(MENUS.file)).toEqual([
-			'New',
-			'Open…',
-			'Save',
-			'Save as…',
-			'Export as text…',
-			'Quit',
-		])
+		expect(labels(MENUS.file)).toEqual(['New', 'Open…', 'Save', 'Save as…', 'Export…', 'Quit'])
 		expect(labels(MENUS.edit)).toContain('Arrange')
 		expect(labels(MENUS.view)).toEqual([
 			'Zoom in',

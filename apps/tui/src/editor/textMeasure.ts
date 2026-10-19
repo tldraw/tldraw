@@ -248,17 +248,46 @@ function parsePadding(padding: string | number | undefined): number {
 	return Number.isFinite(n) ? n : 0
 }
 
-function measureBox(text: string, opts: TLMeasureTextOpts): TLMeasuredTextSize {
+/**
+ * How wide a character and how tall a line are, in page px. The terminal draws every glyph in one
+ * cell whatever the font size, so the app measures in cells; image capture renders real font sizes
+ * in a monospace font, so it measures with the font's advance instead (see capture/svgText.ts).
+ */
+export interface TextMetrics {
+	charWidth(fontSize: number): number
+	lineHeight(fontSize: number, lineHeight: number): number
+}
+
+export const CELL_TEXT_METRICS: TextMetrics = {
+	charWidth: () => CELL_W,
+	lineHeight: () => CELL_H,
+}
+
+/** Advance of DejaVu Sans Mono, Menlo and Consolas, as a fraction of the font size. */
+export const MONOSPACE_ADVANCE = 0.6
+
+export const FONT_TEXT_METRICS: TextMetrics = {
+	charWidth: (fontSize) => fontSize * MONOSPACE_ADVANCE,
+	lineHeight: (fontSize, lineHeight) => Math.round(fontSize * lineHeight),
+}
+
+function measureBox(
+	text: string,
+	opts: TLMeasureTextOpts,
+	metrics: TextMetrics
+): TLMeasuredTextSize {
+	const charW = metrics.charWidth(opts.fontSize)
+	const lineH = metrics.lineHeight(opts.fontSize, opts.lineHeight)
 	const pad = parsePadding(opts.padding)
 	const maxWidthCells =
 		opts.maxWidth === null || opts.maxWidth === undefined
 			? null
-			: Math.max(1, Math.floor((opts.maxWidth - pad * 2) / CELL_W))
+			: Math.max(1, Math.floor((opts.maxWidth - pad * 2) / charW))
 	const layout = layoutText(text, { maxWidthCells })
-	let contentW = layout.widthCells * CELL_W
+	let contentW = layout.widthCells * charW
 	if (opts.minWidth) contentW = Math.max(contentW, opts.minWidth)
 	const w = contentW + pad * 2
-	const h = layout.heightCells * CELL_H + pad * 2
+	const h = layout.heightCells * lineH + pad * 2
 	return { x: 0, y: 0, w, h, scrollWidth: opts.measureScrollWidth ? w : 0 }
 }
 
@@ -268,36 +297,42 @@ function measureBox(text: string, opts: TLMeasureTextOpts): TLMeasuredTextSize {
  * `measureHtml` with TipTap HTML, geo batch resizing calls `measureHtmlBatch`, frame headings call
  * `measureTextSpans`, and `measureText` is only a convenience wrapper.
  */
-export function installMonospaceTextMeasure(editor: Editor): void {
+export function installMonospaceTextMeasure(
+	editor: Editor,
+	metrics: TextMetrics = CELL_TEXT_METRICS
+): void {
 	const textMeasure = editor.textMeasure
 
 	textMeasure.measureHtml = (html: string, opts: TLMeasureTextOpts) =>
-		measureBox(htmlToText(html), opts)
+		measureBox(htmlToText(html), opts, metrics)
 
-	textMeasure.measureText = (text: string, opts: TLMeasureTextOpts) => measureBox(text, opts)
+	textMeasure.measureText = (text: string, opts: TLMeasureTextOpts) =>
+		measureBox(text, opts, metrics)
 
 	textMeasure.measureHtmlBatch = (requests: BatchMeasurementRequest[]) =>
-		requests.map(({ html, opts }) => measureBox(htmlToText(html), opts))
+		requests.map(({ html, opts }) => measureBox(htmlToText(html), opts, metrics))
 
 	textMeasure.measureTextSpans = (text: string, opts: TLMeasureTextSpanOpts) => {
 		if (text === '') return []
 		const pad = opts.padding ?? 0
 		const innerW = opts.width - pad * 2
-		const maxWidthCells = Math.max(1, Math.floor(innerW / CELL_W))
+		const charW = metrics.charWidth(opts.fontSize)
+		const lineH = metrics.lineHeight(opts.fontSize, opts.lineHeight)
+		const maxWidthCells = Math.max(1, Math.floor(innerW / charW))
 		const layout = layoutText(text, {
 			maxWidthCells,
 			overflow: opts.overflow,
 			maxLines: opts.overflow === 'wrap' ? undefined : 1,
 		})
 		return layout.lines.map((line, i) => {
-			const lineW = stringWidth(line) * CELL_W
+			const lineW = stringWidth(line) * charW
 			let x = pad
 			if (opts.textAlign === 'middle' || opts.textAlign === 'middle-legacy') {
 				x = pad + Math.max(0, (innerW - lineW) / 2)
 			} else if (opts.textAlign === 'end' || opts.textAlign === 'end-legacy') {
 				x = pad + Math.max(0, innerW - lineW)
 			}
-			return { text: line, box: { x, y: pad + i * CELL_H, w: lineW, h: CELL_H } }
+			return { text: line, box: { x, y: pad + i * lineH, w: lineW, h: lineH } }
 		})
 	}
 }

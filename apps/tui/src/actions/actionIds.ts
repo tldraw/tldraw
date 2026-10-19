@@ -120,7 +120,7 @@ export const ACTION_META: Record<ActionId, ActionMeta> = {
 	'file.open': meta('file.open', 'Open…', 'ctrl+o'),
 	'file.save': meta('file.save', 'Save', 'ctrl+s'),
 	'file.save-as': meta('file.save-as', 'Save as…', undefined, 'ctrl+shift+s'),
-	'file.export-text': meta('file.export-text', 'Export as text…', 'ctrl+e'),
+	'file.export-text': meta('file.export-text', 'Export…', 'ctrl+e'),
 	'app.quit': meta('app.quit', 'Quit', 'ctrl+q'),
 	'edit.undo': meta('edit.undo', 'Undo', 'ctrl+z'),
 	'edit.redo': meta('edit.redo', 'Redo', 'ctrl+y', 'ctrl+shift+z'),

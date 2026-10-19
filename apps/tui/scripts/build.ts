@@ -25,7 +25,7 @@ await build({
 	platform: 'node',
 	format: 'esm',
 	target: 'node22',
-	external: ['jsdom'],
+	external: ['jsdom', 'sharp'],
 	define: { 'process.env.NODE_ENV': '"production"' },
 	loader: { '.css': 'empty' },
 	logLevel: 'warning',

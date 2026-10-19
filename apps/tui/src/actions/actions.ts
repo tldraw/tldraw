@@ -10,8 +10,10 @@ import {
 import { GeoShapeGeoStyle, PageRecordType } from '@tldraw/tlschema'
 import { defaultHandleExternalTextContent, startEditingShapeWithRichText } from 'tldraw'
 import type { AppContext } from '../app/context'
+import { captureToFile } from '../capture/capture'
+import type { CaptureScope } from '../capture/types'
 import { getShapePlaintext } from '../editor/richText'
-import { exportTextFile, loadTldrFile, saveTldrFile, watchDocumentChanges } from '../file/tldrFile'
+import { loadTldrFile, saveTldrFile, watchDocumentChanges } from '../file/tldrFile'
 import { canvasCenterCell } from '../input/pointer'
 import { STYLE_PANEL_MIN_COLS } from '../ui/stylePanel'
 import type { ModifierName } from '../ui/UiState'
@@ -28,7 +30,8 @@ const FLIPPABLE_TYPES: ReadonlySet<string> = new Set([
 
 const SAVE_PROMPT = 'Save as: '
 const OPEN_PROMPT = 'Open: '
-const EXPORT_PROMPT = 'Export as text: '
+const EXPORT_SCOPE_PROMPT = 'Export'
+const EXPORT_PROMPT = 'Export to (.txt, .svg or .png): '
 const RENAME_PAGE_PROMPT = 'Rename page: '
 const UNSAVED_PROMPT = 'Unsaved changes — save? (y/n/esc)'
 
@@ -195,7 +198,7 @@ function execute(ctx: AppContext, invocation: ActionInvocation): void | Promise<
 		case 'file.save-as':
 			return saveDocument(ctx, true).then(() => undefined)
 		case 'file.export-text':
-			return exportDocumentText(ctx)
+			return exportDocument(ctx)
 		case 'app.quit':
 			return confirmIfDirty(ctx, () => ctx.quit())
 
@@ -795,10 +798,32 @@ function newDocument(ctx: AppContext) {
 	ui.setHint('New document')
 }
 
-function exportDocumentText(ctx: AppContext): Promise<void> {
+function exportDocument(ctx: AppContext): Promise<void> {
+	const hasSelection = ctx.editor.getSelectedShapeIds().length > 0
+	const choices = [
+		{ key: 'v', label: 'Viewport' },
+		...(hasSelection ? [{ key: 's', label: 'Selection' }] : []),
+		{ key: 'd', label: 'Document' },
+	]
+	const scopes: Record<string, CaptureScope> = { v: 'viewport', s: 'selection', d: 'document' }
+	return new Promise<void>((resolve) => {
+		ctx.popups.prompt({
+			kind: 'confirm',
+			label: EXPORT_SCOPE_PROMPT,
+			choices,
+			onSubmit: (key) => {
+				const scope = scopes[key.toLowerCase()]
+				if (!scope) return resolve()
+				promptExportPath(ctx, scope).then(resolve, resolve)
+			},
+			onCancel: resolve,
+		})
+	})
+}
+
+function promptExportPath(ctx: AppContext, scope: CaptureScope): Promise<void> {
 	const current = ctx.ui.filePath.get()
 	const initial = current ? current.replace(/\.tldr$/i, '') + '.txt' : ''
-	const selectionOnly = ctx.editor.getSelectedShapeIds().length > 0
 	return new Promise<void>((resolve) => {
 		ctx.popups.prompt({
 			kind: 'path',
@@ -808,15 +833,16 @@ function exportDocumentText(ctx: AppContext): Promise<void> {
 				try {
 					const path = value.trim()
 					if (!path) return
-					const result = await exportTextFile(ctx.editor, path, ctx.renderToText, {
-						selectionOnly,
+					const result = await captureToFile(ctx.editor, path, {
+						scope,
+						renderToText: ctx.renderToText,
 					})
 					if (!result.ok) {
 						ctx.ui.showError(result.error, ctx.now())
 						return
 					}
 					let hint = `Exported ${path}`
-					if (ctx.capabilities.osc52 && ctx.terminal.copyToClipboard(result.text)) {
+					if (result.text && ctx.capabilities.osc52 && ctx.terminal.copyToClipboard(result.text)) {
 						hint += ` ${ctx.glyphs.bullet} sent to terminal clipboard`
 					}
 					ctx.ui.setHint(hint)
