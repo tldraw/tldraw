@@ -13,6 +13,7 @@ import {
 } from '@tiptap/core'
 import { Code } from '@tiptap/extension-code'
 import { Highlight } from '@tiptap/extension-highlight'
+import { Typography } from '@tiptap/extension-typography'
 import { Node } from '@tiptap/pm/model'
 import { EditorState } from '@tiptap/pm/state'
 import { StarterKit, type StarterKitOptions } from '@tiptap/starter-kit'
@@ -25,6 +26,8 @@ import {
 	WeakCache,
 } from '@tldraw/editor'
 import { DefaultFontFaces } from '../../shapes/shared/defaultFonts'
+import { LiteralTypingExtension } from './literalTyping'
+import { WrapSelectionExtension } from './wrapSelection'
 
 /** @public */
 export const KeyboardShiftEnterTweakExtension = Extension.create({
@@ -71,13 +74,17 @@ export function getTipTapDefaultExtensions(
 				// must do the same rather than tiptap's `http` default.
 				defaultProtocol: 'https',
 			},
-			// Prevent trailing paragraph insertion after lists (fixes #7641)
+			// List every enabled block type: a missing one gets an empty paragraph appended after it
+			// that the user can't delete (#7641 for lists, #11113 for headings).
 			trailingNode: {
-				notAfter: ['paragraph', 'bulletList', 'orderedList', 'listItem'],
+				notAfter: ['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem'],
 			},
 			...starterKitOptions,
 		}),
 		Highlight,
+		Typography,
+		LiteralTypingExtension,
+		WrapSelectionExtension,
 		KeyboardShiftEnterTweakExtension,
 
 		// N.B. We disable the text direction core extension in RichTextArea,
@@ -165,12 +172,21 @@ export function isEmptyRichText(richText: TLRichText) {
 }
 
 /**
- * Whether the editor's active rich text selection is inside a bullet or ordered list.
+ * Whether the editor's active rich text selection is inside a list.
+ *
+ * `taskList` isn't in the default extension set, but when it is added its list items bind Tab and
+ * Shift-Tab themselves. Leaving it out here lets our own Tab handling run alongside TipTap's, so a
+ * single keypress both indents the text and nests the item.
+ *
  * @internal
  */
 export function isEditingRichTextList(editor: Editor) {
 	const textEditor = editor.getRichTextEditor()
-	return !!(textEditor?.isActive('bulletList') || textEditor?.isActive('orderedList'))
+	return !!(
+		textEditor?.isActive('bulletList') ||
+		textEditor?.isActive('orderedList') ||
+		textEditor?.isActive('taskList')
+	)
 }
 
 function isListNode(node: Node) {

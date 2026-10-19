@@ -8,6 +8,7 @@ import {
 	TLSocketServerSentEvent,
 	getTlsyncProtocolVersion,
 } from '../lib/protocol'
+import { TLSocketRoom } from '../lib/TLSocketRoom'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
 import { RoomSnapshot, TLRoomSocket, TLSyncRoom } from '../lib/TLSyncRoom'
 
@@ -353,6 +354,40 @@ describe('object store lane', () => {
 			const late = connectSession(room, 'late', { clear: false })
 			const connectMsg = late.__messages.find((m: any) => m.type === 'connect') as any
 			expect(Object.keys(connectMsg.diff).sort()).toEqual([doc.id, note.id].sort())
+		})
+
+		it('[US1][US3] updateStore sees and can delete object-lane records', async () => {
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			const socketRoom = new TLSocketRoom<R, void>({
+				schema,
+				storage: new InMemorySyncStorage<R>({
+					snapshot: { documents: [], clock: 0, documentClock: 0, schema: schema.serialize() },
+					objectTypes: ['note'],
+				}),
+				objectTypes: ['note'],
+			})
+			disposables.push(() => socketRoom.close())
+			const doc = Doc.create({ title: 'canvas' })
+			const note = Note.create({ text: 'annotation' })
+			socketRoom.storage.transaction((txn) => {
+				txn.set(doc.id, doc)
+				txn.set(note.id, note)
+			})
+
+			// the update context reads both lanes, not just the document snapshot
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			await socketRoom.updateStore((store) => {
+				expect(store.get(note.id)).toEqual(note)
+				expect(
+					store
+						.getAll()
+						.map((r) => r.id)
+						.sort()
+				).toEqual([doc.id, note.id].sort())
+				store.delete(note.id)
+			})
+			expect(socketRoom.getRecord(note.id)).toBeUndefined()
+			expect(socketRoom.getRecord(doc.id)).toEqual(doc)
 		})
 	})
 

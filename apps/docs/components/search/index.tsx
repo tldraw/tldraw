@@ -1,9 +1,9 @@
 'use client'
 
+import { debounce } from '@tldraw/utils'
 import { useRouter } from 'next/navigation'
 import { InstantSearch, useHits, useSearchBox } from 'react-instantsearch'
 import { SearchEntry, SearchIndexName, getSearchIndexName } from '@/utils/algolia'
-import { debounce } from '@/utils/debounce'
 import { searchClient } from '@/utils/search-api'
 import SearchDialog from './SearchDialog'
 

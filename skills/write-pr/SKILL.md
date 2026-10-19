@@ -141,6 +141,56 @@ This PR fixes a bug where <symptom a user or developer would hit>.
 
 tldraw/tldraw#10117, #10118, and #10119 are worked examples of bug fixes in this shape.
 
+### Before and after recordings
+
+When a bug fix or improvement changes how a canvas interaction behaves — a drag, resize, rotate, crop, handle, or tool gesture that a reviewer would otherwise have to run locally to see — put a short recording in each of the Before and After sections. Prose describes the mechanism; the recordings show the symptom and its absence, and reviewers trust them more than a description of a jump or a jitter. Skip this for changes that are not visible on the canvas (data, API, docs, tooling).
+
+`scripts/record-interaction.mjs` records a scripted interaction against the running examples app as a 16:9 MP4. It hides the tldraw chrome, injects a visible cursor (headless recordings have none), runs a scenario module, trims the setup frames, and transcodes with ffmpeg. `scripts/example-scenario.mjs` is a starting point; copy it to a scratch location and change the body to the interaction the PR affects. Do not commit scenarios.
+
+It needs ffmpeg on the path and a Playwright Chromium build. Install scripts are disabled in this repo, so the browser is not downloaded by `pnpm install`; run `pnpm exec playwright install chromium` once. Then, from the repo root with `pnpm dev` serving the examples app:
+
+```bash
+# After: the current branch
+node skills/write-pr/scripts/record-interaction.mjs <scenario.mjs> <scratch>/after.mp4
+
+# Before: main's versions of the files this branch modifies, hot-reloaded by vite
+git diff --name-only --diff-filter=M origin/main...HEAD | xargs git checkout origin/main --
+sleep 10
+node skills/write-pr/scripts/record-interaction.mjs <scenario.mjs> <scratch>/before.mp4
+git diff --name-only --diff-filter=M origin/main...HEAD | xargs git checkout HEAD --
+git status --porcelain   # must be empty before continuing
+```
+
+Restrict the checkout to modified files: checking out a whole directory from `main` also stages files that only exist there, and files added on this branch have no `main` version to restore. Only use this approach when the working tree is clean.
+
+Rules for the recordings themselves:
+
+- **Same scenario for both.** The two videos must differ only in the code under test, so the reviewer compares like with like. Record After first, confirm the scenario shows the behavior, then record Before.
+- **Make the symptom unmissable.** Pick inputs that exaggerate the bug — a large rotation, a long drag, a non-square shape. A 15 degree turn that shifts a shape by a few pixels reads as nothing at video scale.
+- **Check the frames before attaching.** Pull a contact sheet (`ffmpeg -i before.mp4 -vf "select='not(mod(n\,15))',scale=320:-1,tile=6x3" -frames:v 1 sheet.png`) and look at it. A Before recording that looks identical to After usually means the checkout did not take effect, not that the bug is subtle.
+- **No burned-in labels.** The `### Before` and `### After` headings already say which is which.
+- **Keep them short.** A few seconds of setup, the interaction, a beat at the end. Under ten seconds each.
+
+Attach with `gh pr create` or `gh pr edit` (gh 2.99 or later, run inside the repo, absolute paths). Reference each file in the body as the only content of its paragraph, directly under the heading it illustrates, and gh rewrites the reference to the uploaded asset:
+
+```bash
+gh pr edit <number> --body-file body.md --attach /abs/path/before.mp4 --attach /abs/path/after.mp4
+```
+
+```md
+### Before
+
+<mechanism>
+
+![Before](/abs/path/before.mp4)
+
+### After
+
+<behavior now>
+
+![After](/abs/path/after.mp4)
+```
+
 ### Change type
 
 - Tick exactly one type with `[x]`
@@ -202,7 +252,7 @@ Create a table that includes net LOC changes for each of the following sections.
 - Documentation — docs site and examples (`apps/docs/`, `apps/examples/`)
 - Apps — application code (`apps/dotcom/`, `apps/mcp-app/`, `apps/vscode/`, etc.), excluding e2e tests
 - Templates — starter templates (`templates/`)
-- Config/tooling — config files, lock files, lint config, CI, build scripts (`.oxlintrc.json`, `yarn.lock`, etc.)
+- Config/tooling — config files, lock files, lint config, CI, build scripts (`.oxlintrc.json`, `pnpm-lock.yaml`, etc.)
 
 ```md
 ### Code changes
@@ -241,6 +291,16 @@ The mechanism is on screen already. What isn't is what goes wrong without it. A 
 Leave alone, or trim at most: diagrams, enumerated case lists where the list is the specification, provenance (an issue number, "we tried X and it did Y"), and anything carrying an invariant. In `packages/*`, doc comments on the `@public` surface are the API reference — hold them to the same "says something the code doesn't" bar, but they are a deliverable, not overhead.
 
 Pre-flight rather than post-review because it is cheap now and expensive later. A comment restating its own code reads as padding, costs a review round-trip to remove, and once merged nobody goes back for it. Explaining the change is the PR body's job — the diff is not where that belongs.
+
+### Stale neighbours
+
+Added comments are half the problem. Reviewers more often flag comments, docs and test names the diff left untouched that no longer match it: a doc comment above a function whose behavior changed, a `catch` log message that now covers more calls, a docs page still teaching the old pattern. Run:
+
+```bash
+npx tsx skills/write-pr/scripts/touched-comments.ts
+```
+
+It lists unchanged comments within a few lines of each change, and docs that name a declaration the diff added, removed or renamed. For each one, check every claim it makes against the new code, and fix or delete it. The script doesn't cover test names, so read the `describe`/`it` titles around changed tests yourself. Then do the same for the PR description: every sentence describing behavior ("X now does Y", "the health check recovers Z", a schedule, a count) must be true of the final diff, not the first draft.
 
 ## Human notes (preserve exactly)
 

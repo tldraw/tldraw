@@ -6,9 +6,7 @@ function file(partial: Partial<TlaFile>): TlaFile {
 	return {
 		id: 'f1',
 		name: 'file',
-		ownerId: 'u1',
 		ownerName: '',
-		ownerAvatar: '',
 		thumbnail: '',
 		shared: true,
 		sharedLinkType: 'edit',
@@ -105,6 +103,7 @@ function effectRow(partial: Partial<TlaEffectOutbox>): TlaEffectOutbox {
 		attempts: 0,
 		createdAt: new Date(0),
 		nextRetryAt: null,
+		lastError: null,
 		...partial,
 	}
 }

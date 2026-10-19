@@ -626,3 +626,100 @@ describe('atomic operations (AO)', () => {
 		])
 	})
 })
+
+describe('remote attribution (AO)', () => {
+	it('[AO8] changes made by operationComplete handlers after a remote operation are attributed to user', () => {
+		store.put([book1, book2])
+		const log: string[] = []
+		store.addHistoryInterceptor((_entry, source) => log.push('history:' + source))
+		store.sideEffects.registerAfterChangeHandler('book', (_prev, _next, source) =>
+			log.push('afterChange:' + source)
+		)
+		let once = true
+		store.sideEffects.registerOperationCompleteHandler((source) => {
+			log.push('operationComplete:' + source)
+			if (once) {
+				once = false
+				store.put([{ ...book2, title: 'renamed' }])
+			}
+		})
+
+		store.mergeRemoteChanges(() => store.remove([book1Id]))
+
+		expect(log).toEqual([
+			'history:remote',
+			'operationComplete:remote',
+			'history:user',
+			'afterChange:user',
+			'operationComplete:user',
+			// the integrity check after the merge is its own (empty) user operation
+			'operationComplete:user',
+		])
+	})
+})
+
+describe('handler removal during dispatch (SE)', () => {
+	it('[SE1] a handler that removes itself while running does not stop later handlers from running', () => {
+		const calls: string[] = []
+		const removeA = store.sideEffects.registerAfterCreateHandler('book', () => {
+			calls.push('A')
+			removeA()
+		})
+		store.sideEffects.registerAfterCreateHandler('book', () => calls.push('B'))
+
+		store.put([book1])
+		expect(calls).toEqual(['A', 'B'])
+
+		store.put([book2])
+		expect(calls).toEqual(['A', 'B', 'B'])
+	})
+
+	it('[SE1] an operationComplete handler that removes itself does not skip the next one', () => {
+		const calls: string[] = []
+		const removeA = store.sideEffects.registerOperationCompleteHandler(() => {
+			calls.push('A')
+			removeA()
+		})
+		store.sideEffects.registerOperationCompleteHandler(() => calls.push('B'))
+
+		store.put([book1])
+		expect(calls).toEqual(['A', 'B'])
+	})
+
+	// The two tests below pin the other half of SE1: a list edit made mid-dispatch is not seen by the
+	// dispatch it happens in. Removal is deliberately not a way to cancel a handler for the event in
+	// flight, so don't "fix" these to match the pre-copy-on-write behaviour without changing SE1 too.
+
+	it('[SE1] removing a later handler mid-dispatch only takes effect from the next event', () => {
+		const calls: string[] = []
+		let removeB = () => {}
+		store.sideEffects.registerAfterCreateHandler('book', () => {
+			calls.push('A')
+			removeB()
+		})
+		removeB = store.sideEffects.registerAfterCreateHandler('book', () => calls.push('B'))
+
+		store.put([book1])
+		expect(calls).toEqual(['A', 'B'])
+
+		store.put([book2])
+		expect(calls).toEqual(['A', 'B', 'A'])
+	})
+
+	it('[SE1] registering a handler mid-dispatch only takes effect from the next event', () => {
+		const calls: string[] = []
+		let hasRegistered = false
+		store.sideEffects.registerAfterCreateHandler('book', () => {
+			calls.push('A')
+			if (hasRegistered) return
+			hasRegistered = true
+			store.sideEffects.registerAfterCreateHandler('book', () => calls.push('B'))
+		})
+
+		store.put([book1])
+		expect(calls).toEqual(['A'])
+
+		store.put([book2])
+		expect(calls).toEqual(['A', 'A', 'B'])
+	})
+})

@@ -78,6 +78,56 @@ test.describe('Rich text behaviour', () => {
 		}
 	})
 
+	test('keeps text visible when ProseMirror hides the selection', async ({ page, isMobile }) => {
+		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
+		if (isMobile) return
+
+		// Triple clicking a list's bullet gives ProseMirror a NodeSelection over the whole list. It
+		// then hides the native selection, and our ::selection rule would go on painting the text in
+		// the selected-contrast color with no highlight behind it, leaving it invisible.
+		await page.keyboard.type('- aeouaeou')
+		await page.keyboard.press('Enter')
+		await page.keyboard.type('second item')
+		await sleep(150)
+
+		const item = page.locator('.ProseMirror ul > li').first()
+		const box = (await item.boundingBox())!
+		await page.mouse.click(box.x - 4, box.y + box.height / 2, { clickCount: 3 })
+		await sleep(250)
+
+		const state = await page.evaluate(() => {
+			// Which ::selection rules that set a text color still apply to the editor right now?
+			// Reading it off the live stylesheet rather than a hard-coded selector, so the test
+			// keeps meaning what it says if the rule is rewritten.
+			const input = document.querySelector('.tl-text-input')!
+			const colouring: string[] = []
+			for (const sheet of Array.from(document.styleSheets)) {
+				let rules
+				try {
+					rules = sheet.cssRules
+				} catch {
+					continue // cross-origin sheet
+				}
+				for (const rule of Array.from(rules) as CSSStyleRule[]) {
+					if (!rule.selectorText?.includes('::selection')) continue
+					if (!rule.style?.color) continue
+					const originating = rule.selectorText.replaceAll('::selection', '')
+					if (input.matches(originating)) colouring.push(rule.selectorText)
+				}
+			}
+			return {
+				selection: editor.getRichTextEditor()!.state.selection.constructor.name,
+				hidden: !!document.querySelector('.ProseMirror.ProseMirror-hideselection'),
+				colouring,
+			}
+		})
+
+		expect(state.selection).toBe('NodeSelection')
+		expect(state.hidden).toBe(true)
+		// With no highlight to sit behind it, nothing may recolor the text.
+		expect(state.colouring).toEqual([])
+	})
+
 	test('adding and removing a link', async ({ page, toolbar, richTextToolbar, isMobile }) => {
 		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
 		if (isMobile) return

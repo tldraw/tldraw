@@ -1,6 +1,6 @@
 import { isAccelKey, preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
 import { useEffect, useMemo, useState } from 'react'
-import { useUiEvents } from '../../context/events'
+import { TLUiEventMap, useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
@@ -60,11 +60,11 @@ export function DefaultRichTextToolbarContent({
 
 	// todo: we could make this a prop
 	const actions = useMemo(() => {
-		function handleOp(name: string, op: string) {
+		function handleOp(name: TLUiEventMap['rich-text']['operation'], op: string) {
 			// Check if the editor view is available before calling operations
 			if (!textEditor.view) return
 
-			trackEvent('rich-text', { operation: name as any, source })
+			trackEvent('rich-text', { operation: name, source })
 			// @ts-expect-error typing this is annoying at the moment.
 			textEditor.chain().focus()[op]().run()
 		}
@@ -80,7 +80,7 @@ export function DefaultRichTextToolbarContent({
 			{
 				name: 'italic',
 				onSelect() {
-					handleOp('bold', 'toggleItalic')
+					handleOp('italic', 'toggleItalic')
 				},
 			},
 			// { name: 'underline', onSelect() { handleOp('underline', 'toggleUnderline') }},
@@ -88,7 +88,7 @@ export function DefaultRichTextToolbarContent({
 			{
 				name: 'code',
 				onSelect() {
-					handleOp('bold', 'toggleCode')
+					handleOp('code', 'toggleCode')
 				},
 			},
 			onEditLinkStart
@@ -108,7 +108,7 @@ export function DefaultRichTextToolbarContent({
 			{
 				name: 'highlight',
 				onSelect() {
-					handleOp('bulletList', 'toggleHighlight')
+					handleOp('highlight', 'toggleHighlight')
 				},
 			},
 		].filter(Boolean) as {

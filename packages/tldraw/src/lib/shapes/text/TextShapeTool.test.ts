@@ -298,6 +298,21 @@ describe('When resizing', () => {
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
 
+	it('removes the pending text shape when another tool is selected mid-drag', () => {
+		editor.setCurrentTool('text')
+		editor.pointerDown(0, 0)
+		vi.advanceTimersByTime(200)
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('select.resizing')
+		expect(editor.getCurrentPageShapes().length).toBe(1)
+		editor.setCurrentTool('geo')
+		editor.expectToBeIn('geo.idle')
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.pointerUp(100, 100)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+	})
+
 	it('preserves the top left when the text has a fixed width', () => {
 		editor.setCurrentTool('text')
 		const x = 0

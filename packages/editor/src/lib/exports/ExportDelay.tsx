@@ -1,4 +1,4 @@
-import { bind, sleep } from '@tldraw/utils'
+import { bind, noop, promiseWithResolve, sleep } from '@tldraw/utils'
 
 /**
  * Export delay is a helper class that allows you to wait for a set of promises to resolve before
@@ -11,8 +11,20 @@ import { bind, sleep } from '@tldraw/utils'
 export class ExportDelay {
 	private isResolved = false
 	private readonly promisesToWaitFor: Promise<void>[] = []
+	private readonly failure = promiseWithResolve<never>()
 
-	constructor(private readonly maxDelayTimeMs: number) {}
+	constructor(private readonly maxDelayTimeMs: number) {
+		// only observed inside `resolve`, so a `fail` before then would otherwise be an unhandled rejection
+		this.failure.catch(noop)
+	}
+
+	/**
+	 * Abort the export: `resolve` rejects with this error instead of waiting out the delay and
+	 * snapshotting a broken svg.
+	 */
+	@bind fail(error: unknown): void {
+		this.failure.reject(error)
+	}
 
 	@bind waitUntil(promise: Promise<void>): void {
 		if (this.isResolved) {
@@ -40,9 +52,9 @@ export class ExportDelay {
 		const timeoutPromise = sleep(this.maxDelayTimeMs).then(() => 'timeout' as const)
 		const resolvePromise = this.resolvePromises().then(() => 'resolved' as const)
 
-		const result = await Promise.race([timeoutPromise, resolvePromise])
+		const result = await Promise.race([timeoutPromise, resolvePromise, this.failure])
 		if (result === 'timeout') {
-			console.warn('[tldraw] Export delay timed out after ${this.maxDelayTimeMs}ms')
+			console.warn(`[tldraw] Export delay timed out after ${this.maxDelayTimeMs}ms`)
 		}
 
 		this.isResolved = true

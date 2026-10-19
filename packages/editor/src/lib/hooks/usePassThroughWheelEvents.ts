@@ -70,6 +70,9 @@ export function usePassThroughWheelEvents(ref: RefObject<HTMLElement | null>) {
 		const newEvent = new WheelEvent('wheel', e as any)
 		;(newEvent as any).isSpecialRedispatchedEvent = true
 		cvs.dispatchEvent(newEvent)
+		// Flag the original too: it keeps bubbling, and an enclosing pass-through root (the
+		// navigation panel around the minimap) would otherwise redispatch it a second time.
+		;(e as any).isSpecialRedispatchedEvent = true
 	})
 
 	// The element the listener is currently on, which isn't necessarily `ref.current`: a `RefObject`

@@ -1,18 +1,11 @@
 import { ReactNode, useCallback } from 'react'
-import {
-	EditorPortal,
-	TLComment,
-	TLCommentThread,
-	useEditor,
-	useTranslation,
-	useValue,
-} from 'tldraw'
+import { EditorPortal, TLCommentThread, useEditor, useTranslation, useValue } from 'tldraw'
 import { CommentListItemProps, CommentListItemRenderProps, CommentsList } from '../ui/comments-list'
 import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { CommentsFilterMenu } from './comments-filter-menu'
 import { CommentsVisibilityToggle } from './comments-visibility-toggle'
 import { type CommentingContext } from './context'
-import { useComments, useCommentThreads } from './hooks'
+import { getCommentsByThread, useCommentThreads } from './hooks'
 import { useCommentingEnabled } from './license'
 import { useCommentingOptions } from './options'
 import { richTextToPlaintext } from './rich-text'
@@ -53,7 +46,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 	const commentingEnabled = useCommentingEnabled()
 	const msg = useTranslation()
 	const threads = useCommentThreads(editor)
-	const comments = useComments(editor)
+	const byThread = useValue('comments by thread', () => getCommentsByThread(editor).get(), [editor])
 	const currentPageId = useValue('page id', () => editor.getCurrentPageId(), [editor])
 	const open = useValue('sidebar open', () => commentsSidebarOpen.get(editor), [editor])
 	const openId = useValue('open thread', () => openThreadId.get(editor), [editor])
@@ -65,14 +58,6 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 	)
 
 	if (!commentingEnabled || !open) return null
-
-	// Group comments by thread (they arrive oldest-first, so [0] is each thread's first comment).
-	const byThread = new Map<string, TLComment[]>()
-	for (const comment of comments) {
-		const list = byThread.get(comment.threadId) ?? []
-		list.push(comment)
-		byThread.set(comment.threadId, list)
-	}
 
 	// Page scoping is treated as scoping, not a filter: an empty page reads "no comments yet",
 	// while a list emptied by the toggles below reads "nothing matches your filters".

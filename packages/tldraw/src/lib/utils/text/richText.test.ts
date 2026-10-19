@@ -1,8 +1,9 @@
-import { getSchema } from '@tiptap/core'
+import { Editor as TextEditor, Extensions, getSchema, JSONContent } from '@tiptap/core'
 import { Node } from '@tiptap/pm/model'
-import { TLRichText, toRichText } from '@tldraw/editor'
+import { Editor, TLRichText, toRichText } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import {
+	isEditingRichTextList,
 	isEmptyRichText,
 	renderHtmlFromRichTextWithExtensions,
 	renderPlaintextFromRichText,
@@ -10,6 +11,7 @@ import {
 	renderRichTextFromHTML,
 	tipTapDefaultExtensions,
 } from './richText'
+import { TaskItem, TaskList } from './tiptap'
 
 let editor: TestEditor
 
@@ -248,5 +250,84 @@ describe('renderRichTextFromHTML', () => {
 				'<p><a href="/docs">a</a> <a href="./docs">b</a> <a href="#top">c</a> <a href="?q=1">d</a></p>'
 			)
 		).toEqual(['/docs', './docs', '#top', '?q=1'])
+	})
+})
+
+describe('isEditingRichTextList', () => {
+	const editingWith = (extensions: Extensions, content: JSONContent) => {
+		const textEditor = new TextEditor({ extensions, content })
+		return { getRichTextEditor: () => textEditor } as unknown as Editor
+	}
+
+	const listItem = (type: string, itemType: string): JSONContent => ({
+		type,
+		content: [
+			{ type: itemType, content: [{ type: 'paragraph', content: [{ type: 'text', text: 'a' }] }] },
+		],
+	})
+
+	it('is false in a plain paragraph', () => {
+		const editor = editingWith(tipTapDefaultExtensions, toRichText('a') as JSONContent)
+		expect(isEditingRichTextList(editor)).toBe(false)
+	})
+
+	it('is true in the default lists', () => {
+		for (const [list, item] of [
+			['bulletList', 'listItem'],
+			['orderedList', 'listItem'],
+		]) {
+			const editor = editingWith(tipTapDefaultExtensions, {
+				type: 'doc',
+				content: [listItem(list, item)],
+			})
+			expect(isEditingRichTextList(editor)).toBe(true)
+		}
+	})
+
+	it('is true in a task list, whose items bind Tab themselves', () => {
+		// Without this, our Tab handler runs alongside TaskItem's and one keypress both indents the
+		// text and nests the item.
+		const editor = editingWith([...tipTapDefaultExtensions, TaskList, TaskItem], {
+			type: 'doc',
+			content: [listItem('taskList', 'taskItem')],
+		})
+		expect(isEditingRichTextList(editor)).toBe(true)
+	})
+})
+
+describe('trailing node', () => {
+	const blockTypesOf = (textEditor: TextEditor) => textEditor.getJSON().content?.map((n) => n.type)
+
+	it('does not append an empty paragraph after any enabled block type', () => {
+		const textEditor = new TextEditor({ extensions: tipTapDefaultExtensions, content: '<p></p>' })
+		try {
+			const blockTypes = Object.values(textEditor.schema.nodes).filter((type) =>
+				type.isInGroup('block')
+			)
+			expect(blockTypes.map((type) => type.name)).toContain('heading')
+			for (const type of blockTypes) {
+				const { state } = textEditor
+				textEditor.view.dispatch(
+					state.tr.replaceWith(0, state.doc.content.size, type.createAndFill()!)
+				)
+				expect(blockTypesOf(textEditor)).toEqual([type.name])
+			}
+		} finally {
+			textEditor.destroy()
+		}
+	})
+
+	it('lets the user delete the empty line under a heading', () => {
+		const textEditor = new TextEditor({
+			extensions: tipTapDefaultExtensions,
+			content: '<h1>Heading</h1><p></p>',
+		})
+		try {
+			textEditor.commands.setTextSelection(textEditor.state.doc.content.size - 1)
+			textEditor.commands.keyboardShortcut('Backspace')
+			expect(blockTypesOf(textEditor)).toEqual(['heading'])
+		} finally {
+			textEditor.destroy()
+		}
 	})
 })

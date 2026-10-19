@@ -113,16 +113,16 @@ describe('UserPreferencesManager', () => {
 			const mockAddEventListener = vi.fn()
 			let changeHandler: (e: MediaQueryListEvent) => void
 
-			mockMatchMedia.mockReturnValue({
+			mockMatchMedia.mockImplementation((query: string) => ({
 				matches: false,
 				addEventListener: (event: string, handler: any) => {
-					if (event === 'change') {
+					if (event === 'change' && query === '(prefers-color-scheme: dark)') {
 						changeHandler = handler
 					}
 					mockAddEventListener(event, handler)
 				},
 				removeEventListener: vi.fn(),
-			})
+			}))
 
 			userPreferencesManager = new UserPreferencesManager(mockUser, 'system')
 
@@ -366,6 +366,67 @@ describe('UserPreferencesManager', () => {
 				expect(userPreferencesManager.getAnimationSpeed()).toBe(
 					defaultUserPreferences.animationSpeed
 				)
+			})
+
+			describe('following the OS reduce-motion setting', () => {
+				let reducedMotionChangeHandler: ((e: MediaQueryListEvent) => void) | undefined
+				let osPrefersReducedMotion: boolean
+
+				const mountWithOs = (prefersReducedMotion: boolean) => {
+					osPrefersReducedMotion = prefersReducedMotion
+					reducedMotionChangeHandler = undefined
+					mockMatchMedia.mockImplementation((query: string) => {
+						const isReducedMotion = query === '(prefers-reduced-motion: reduce)'
+						return {
+							matches: isReducedMotion ? osPrefersReducedMotion : false,
+							addEventListener: (event: string, handler: any) => {
+								if (isReducedMotion && event === 'change') reducedMotionChangeHandler = handler
+							},
+							removeEventListener: vi.fn(),
+						}
+					})
+					userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
+				}
+
+				it('resolves an unset speed to 0 when the OS prefers reduced motion', () => {
+					userPreferencesAtom.set({ ...mockUserPreferences, animationSpeed: null })
+					mountWithOs(true)
+					expect(userPreferencesManager.getAnimationSpeed()).toBe(0)
+				})
+
+				it('tracks a live OS change while the speed is unset', () => {
+					userPreferencesAtom.set({ ...mockUserPreferences, animationSpeed: null })
+					mountWithOs(false)
+					expect(userPreferencesManager.getAnimationSpeed()).toBe(1)
+
+					reducedMotionChangeHandler!({ matches: true } as MediaQueryListEvent)
+					expect(userPreferencesManager.getAnimationSpeed()).toBe(0)
+
+					reducedMotionChangeHandler!({ matches: false } as MediaQueryListEvent)
+					expect(userPreferencesManager.getAnimationSpeed()).toBe(1)
+				})
+
+				it('ignores the OS once the user has set a speed explicitly', () => {
+					userPreferencesAtom.set({ ...mockUserPreferences, animationSpeed: 1 })
+					mountWithOs(true)
+					expect(userPreferencesManager.getAnimationSpeed()).toBe(1)
+
+					userPreferencesAtom.set({ ...mockUserPreferences, animationSpeed: 0 })
+					reducedMotionChangeHandler!({ matches: false } as MediaQueryListEvent)
+					expect(userPreferencesManager.getAnimationSpeed()).toBe(0)
+				})
+
+				it('removes the reduce-motion listener on dispose', () => {
+					const removeEventListener = vi.fn()
+					mockMatchMedia.mockReturnValue({
+						matches: false,
+						addEventListener: vi.fn(),
+						removeEventListener,
+					})
+					userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
+					userPreferencesManager.dispose()
+					expect(removeEventListener).toHaveBeenCalledTimes(2)
+				})
 			})
 		})
 

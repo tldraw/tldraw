@@ -144,3 +144,36 @@ describe('emptyMap (IM)', () => {
 		expect(empty.get('anything')).toBeUndefined()
 	})
 })
+
+describe('ImmutableMap: key hashing and equality (IM)', () => {
+	it('[IM3] string keys named after Object.prototype members are ordinary keys', () => {
+		const keys = [
+			'a',
+			'b',
+			'c',
+			'd',
+			'e',
+			'f',
+			'g',
+			'h',
+			'constructor',
+			'toString',
+			'__proto__',
+			'hasOwnProperty',
+			'',
+		]
+		let map = new ImmutableMap<string, number>()
+		keys.forEach((key, i) => (map = map.set(key, i)))
+		expect(map.size).toBe(keys.length)
+		keys.forEach((key, i) => expect(map.get(key)).toBe(i))
+		expect(new Set(map.keys())).toEqual(new Set(keys))
+	})
+
+	it('[IM3] key equality is SameValueZero: 0 and -0 are one key, NaN equals NaN', () => {
+		let map = new ImmutableMap<number, string>()
+		map = map.set(0, 'zero').set(NaN, 'nan')
+		expect(map.get(-0)).toBe('zero')
+		expect(map.set(-0, 'neg').size).toBe(2)
+		expect(map.get(NaN)).toBe('nan')
+	})
+})

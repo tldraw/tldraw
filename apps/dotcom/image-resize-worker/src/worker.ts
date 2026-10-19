@@ -6,6 +6,7 @@ import {
 	isAllowedOrigin,
 	notFound,
 	parseRequestQuery,
+	type SentryEnvironment,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 
@@ -17,9 +18,12 @@ declare const caches: {
 	}
 }
 
-interface Environment {
+// SENTRY_DSN, TLDRAW_ENV, WORKER_NAME and CF_VERSION_METADATA come from SentryEnvironment. The
+// version metadata binding below is half of what createSentry needs; the deploy script still passes
+// no SENTRY_DSN for this worker, so createSentry throws rather than reporting, and an unhandled
+// error here surfaces as a worker exception. Wiring up a DSN is a config change only.
+interface Environment extends SentryEnvironment {
 	IS_LOCAL?: string
-	SENTRY_DSN?: undefined
 	MULTIPLAYER_SERVER?: string
 
 	SYNC_WORKER: Fetcher
@@ -38,7 +42,7 @@ function useServiceBinding(env: Environment, origin: string) {
 }
 
 export default class Worker extends WorkerEntrypoint<Environment> {
-	readonly router = createRouter()
+	readonly router = createRouter<Environment>()
 		.get('/:origin/:path+', async (request) => {
 			const { origin, path } = request.params
 			const query = parseRequestQuery(request, queryValidator)
@@ -68,7 +72,9 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 					const etag = cachedResponse.headers.get('etag')
 					if (ifNoneMatch && etag) {
 						const parsedEtag = parseEtag(etag)
-						for (const tag of ifNoneMatch.split(', ')) {
+						// An unparseable etag matches nothing; without this, two unparseable tags
+						// compare equal as `null === null` and every request gets a 304.
+						for (const tag of parsedEtag === null ? [] : ifNoneMatch.split(', ')) {
 							if (parseEtag(tag) === parsedEtag) {
 								return new Response(null, { status: 304 })
 							}
@@ -134,6 +140,6 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 }
 
 function parseEtag(etag: string) {
-	const match = etag.match(/^(?:W\/)"(.*)"$/)
+	const match = etag.match(/^(?:W\/)?"(.*)"$/)
 	return match ? match[1] : null
 }

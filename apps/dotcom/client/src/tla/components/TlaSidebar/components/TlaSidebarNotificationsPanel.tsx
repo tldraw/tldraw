@@ -180,8 +180,8 @@ function NotificationsOverflowMenu({
 }
 
 /**
- * Comments and reactions surfaced as notifications, merged from the `comments` and `reactions`
- * synced queries and sorted by timestamp. {@link categorizeCommentNotifications} and
+ * Comments and reactions surfaced as notifications, merged from the comment feeds and the
+ * `reactions` synced query and sorted by timestamp. {@link categorizeCommentNotifications} and
  * {@link buildReactionNotifications} do the per-feed shaping. Shared by trigger button and panel.
  */
 export function useCommentNotifications() {
