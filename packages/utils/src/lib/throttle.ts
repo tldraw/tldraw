@@ -229,6 +229,13 @@ export function throttleToNextFrame(fn: () => void): () => void {
 /**
  * A function returned by {@link throttle}.
  *
+ * @example
+ * ```ts
+ * class Saver {
+ *   save: ThrottledFunction<() => void> = throttle(() => this.persist(), 1000)
+ * }
+ * ```
+ *
  * @public
  */
 export interface ThrottledFunction<F extends (...args: any[]) => any> {

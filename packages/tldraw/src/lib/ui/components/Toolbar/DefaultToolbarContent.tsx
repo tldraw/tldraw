@@ -53,11 +53,17 @@ export function useIsToolSelected(tool: TLUiToolItem | undefined) {
 		() => {
 			if (!tool) return false
 			const activeToolId = editor.getCurrentToolId()
-			if (activeToolId === 'geo') {
-				return geo === editor.getSharedStyles().getAsKnownValue(GeoShapeGeoStyle)
-			} else {
-				return activeToolId === tool.id
+			if (geo) {
+				// A tool masking itself as `geo` (the zoom tool does) has no shape type of its own,
+				// so its shared styles come back empty
+				return (
+					activeToolId === 'geo' &&
+					geo ===
+						(editor.getSharedStyles().getAsKnownValue(GeoShapeGeoStyle) ??
+							editor.getStyleForNextShape(GeoShapeGeoStyle))
+				)
 			}
+			return activeToolId === tool.id
 		},
 		[editor, tool?.id, geo]
 	)

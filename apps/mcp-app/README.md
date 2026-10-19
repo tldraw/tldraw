@@ -31,10 +31,10 @@ The widget build depends on generated files (`editor-api.json`, `method-map.json
 
 ```bash
 # from the repo root
-yarn build
+pnpm build
 ```
 
-This produces the `.tsbuild/` output that `yarn extract-api` reads from. The `build` and `dev` scripts run `extract-api` automatically, so you don't need to call it separately.
+This produces the `.tsbuild/` output that `pnpm extract-api` reads from. The `build` and `dev` scripts run `extract-api` automatically, so you don't need to call it separately.
 
 ### Package scripts
 
@@ -42,12 +42,12 @@ Run all commands from `apps/mcp-app`.
 
 | Command           | What it does                                                                                                    |
 | ----------------- | --------------------------------------------------------------------------------------------------------------- |
-| `yarn build`      | Build the widget HTML                                                                                           |
-| `yarn dev`        | Build widget + start local Cloudflare worker (HTTP MCP on `localhost:8787`)                                     |
-| `yarn dev:tunnel` | Build widget + start a stable named Cloudflare tunnel + local worker with `WORKER_ORIGIN` set to the tunnel URL |
-| `yarn deploy`     | Build widget + deploy the Cloudflare worker to production                                                       |
+| `pnpm build`      | Build the widget HTML                                                                                           |
+| `pnpm dev`        | Build widget + start local Cloudflare worker (HTTP MCP on `localhost:8787`)                                     |
+| `pnpm dev:tunnel` | Build widget + start a stable named Cloudflare tunnel + local worker with `WORKER_ORIGIN` set to the tunnel URL |
+| `pnpm run deploy` | Build widget + deploy the Cloudflare worker to production                                                       |
 
-`yarn dev:tunnel` requires the `cloudflared` CLI to be installed on your machine and a one-time `cloudflared tunnel login`. It serves a stable per-user hostname (`<user>-mcp-app-dev.tldraw.xyz`) via a named tunnel, so the URL you register in hosted MCP clients stays the same across runs instead of changing every time. The user slug defaults to `whoami`; override it (or the zone/port) with `MCP_TUNNEL_USER`, `MCP_TUNNEL_ZONE`, and `PORT`. The zone must be a Cloudflare-hosted zone (`tldraw.xyz` is; `tldraw.dev`/`tldraw.com` are on Vercel and won't work).
+`pnpm dev:tunnel` requires the `cloudflared` CLI to be installed on your machine and a one-time `cloudflared tunnel login`. It serves a stable per-user hostname (`<user>-mcp-app-dev.tldraw.xyz`) via a named tunnel, so the URL you register in hosted MCP clients stays the same across runs instead of changing every time. The user slug defaults to `whoami`; override it (or the zone/port) with `MCP_TUNNEL_USER`, `MCP_TUNNEL_ZONE`, and `PORT`. The zone must be a Cloudflare-hosted zone (`tldraw.xyz` is; `tldraw.dev`/`tldraw.com` are on Vercel and won't work).
 
 The worker defaults to production-safe behavior in `wrangler.toml`, including setting `MCP_IS_DEV="false"`. Local HTTP dev scripts override that with `MCP_IS_DEV=true` so local Claude/ChatGPT connectors suppress `ui.domain` while production deployments keep it enabled.
 
@@ -110,12 +110,12 @@ First-time setup (once per machine):
 
 Then, each session:
 
-1. Run `yarn dev:tunnel` in `apps/mcp-app`
+1. Run `pnpm dev:tunnel` in `apps/mcp-app`
 2. It serves your stable hostname, e.g. `https://<user>-mcp-app-dev.tldraw.xyz` (the first run also creates the named tunnel and its DNS route)
 3. In ChatGPT web (not the desktop app), go to **Apps** and add your app using that URL
 4. You can then test in both ChatGPT web and the desktop or mobile apps
 
-Because the hostname is stable per user, you only add the app in ChatGPT once — subsequent `yarn dev:tunnel` runs reuse the same URL.
+Because the hostname is stable per user, you only add the app in ChatGPT once — subsequent `pnpm dev:tunnel` runs reuse the same URL.
 
 `dev:tunnel` automatically wires `WORKER_ORIGIN` to the stable tunnel URL and sets `MCP_IS_DEV=true` for the local worker.
 
@@ -124,9 +124,13 @@ Because the hostname is stable per user, you only add the app in ChatGPT once �
 1. Make code changes in `apps/mcp-app`
 2. Run the relevant script (`dev` or `dev:tunnel`)
 3. Disconnect and reconnect the MCP server in your client (or reload the page/app)
-4. When making widget changes, make sure to rebuild, either by running `yarn build` or rerunning any of the dev scripts.
+4. When making widget changes, make sure to rebuild, either by running `pnpm build` or rerunning any of the dev scripts.
 
 Reconnecting the server after changes is the most reliable way to pick up new code, especially when the widget HTML changes.
+
+## Session storage lifecycle
+
+Each MCP session is a `TldrawMCP` Durable Object. It keeps up to `MAX_CHECKPOINTS` (50) canvas snapshots and destroys itself after `IDLE_TTL_MS` (7 days) without a checkpoint save — a schedule armed in `init()` and re-armed on every check.
 
 ## Contact
 
@@ -135,32 +139,3 @@ Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
 ## Community
 
 Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
-
-## Session storage lifecycle
-
-Each MCP session is a `TldrawMCP` Durable Object. It keeps up to `MAX_CHECKPOINTS` (50) canvas snapshots and destroys itself after `IDLE_TTL_MS` (7 days) without a checkpoint save — a schedule armed in `init()` and re-armed on every check. Sessions created before this shipped never wake on their own; prune them with the admin endpoint.
-
-### Pruning legacy sessions
-
-Everything runs from `apps/mcp-app` on your machine; nothing in CI touches it.
-
-Env vars the scripts read (put them in your shell or a local `.env` you source; all gitignored outputs land in `apps/mcp-app/`):
-
-| Var                     | Used by      | What                                                                                                                               |
-| ----------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `CLOUDFLARE_ACCOUNT_ID` | `prune:list` | tldraw's Cloudflare account id (dashboard URL, or `wrangler whoami`)                                                               |
-| `CLOUDFLARE_API_TOKEN`  | `prune:list` | API token with **Workers Scripts: Read** on that account; only lists DO namespaces and object ids                                  |
-| `MCP_PRUNE_ADMIN_TOKEN` | `prune:run`  | the value you set as the worker secret below; sent as the bearer to `/admin/prune`                                                 |
-| `MCP_WORKER_ORIGIN`     | `prune:run`  | optional, defaults to `https://tldraw-mcp-app.tldraw.workers.dev`; point at `http://localhost:8787` to rehearse against `yarn dev` |
-
-Steps:
-
-1. Set the secret once on the worker: `npx wrangler secret put MCP_PRUNE_ADMIN_TOKEN` (needs a Cloudflare login with access to `tldraw-mcp-app`; any long random string, e.g. `openssl rand -hex 32`). It is a worker secret, not a GitHub Actions secret: `.github/workflows/deploy-mcp-app.yml` only runs `wrangler deploy` on pushes to `production`, and worker secrets survive deploys. The endpoint 404s until it exists.
-2. `yarn prune:list` → `prune-ids.txt`, one DO id per line for every object with stored data. Page-based walk of the CF API, resumable by re-running.
-3. `yarn prune:run --dry-run` → idle histogram, no writes. Results append to `prune-dry-run.jsonl`; re-running resumes from it and reports the whole file.
-4. Prune, staged: `yarn prune:run --max-idle 30d`, watch the storage graph, then `--max-idle 7d`. Below 7d needs `--force` (the endpoint enforces the same floor). Results append to `prune-results.jsonl`; re-running re-evaluates kept ids and skips only the ones already condemned. Exit code is non-zero if any id errored; auth/route errors abort on the first batch.
-5. Rotate `MCP_PRUNE_ADMIN_TOKEN` (`npx wrangler secret put MCP_PRUNE_ADMIN_TOKEN` with a new value, or `npx wrangler secret delete MCP_PRUNE_ADMIN_TOKEN`) after the prune; the route stays but it should not keep a live token between runs.
-
-To rehearse locally: `yarn dev` in another shell with `--var MCP_PRUNE_ADMIN_TOKEN:dev-token` added to the `wrangler dev` line (or run `npx wrangler dev --var MCP_PRUNE_ADMIN_TOKEN:dev-token --var MCP_IS_DEV:true`), then `MCP_WORKER_ORIGIN=http://localhost:8787 MCP_PRUNE_ADMIN_TOKEN=dev-token yarn prune:run --dry-run` against a hand-written `prune-ids.txt` (get ids from `GET /admin/do-id?session=<mcp-session-id>`, dev-only). `prune-integration.test.ts` does this end to end.
-
-Expect the `destroyed` error fingerprint in Workers observability to spike during a prune (one event per wiped DO — the SDK's teardown abort) and `session_start` to stay flat; if `session_start` during the run exceeds roughly 1% of condemns, stop the run: condemned DOs are being resurrected.

@@ -24,6 +24,14 @@ export const INTERNAL_POINTER_IDS = {
 	CAMERA_MOVE: -10,
 } as const
 
+/**
+ * Per-tick tuning constants (`cameraSlideFriction`, `edgeScrollSpeed`) assume a 60 Hz tick. Scaling
+ * motion by `elapsed / FRAME_MS_60HZ` keeps that feel on displays with other refresh rates.
+ *
+ * @internal
+ */
+export const FRAME_MS_60HZ = 1000 / 60
+
 /** @public */
 export const SIDES = ['top', 'right', 'bottom', 'left'] as const
 

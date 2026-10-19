@@ -3,7 +3,7 @@ import { makeEnv } from '../lib/makeEnv'
 import { nicelog } from '../lib/nicelog'
 
 // Delete orphaned per-PR advanced cert packs (pr-NNNN-* hostnames) for CLOSED PRs only.
-// Usage: CLOUDFLARE_API_TOKEN=xxx yarn tsx internal/scripts/cloudflare/ssl-cleanup.ts <zone_name> [--delete]
+// Usage: CLOUDFLARE_API_TOKEN=xxx pnpm exec tsx internal/scripts/cloudflare/ssl-cleanup.ts <zone_name> [--delete]
 // Default is dry-run. Token needs "Zone: Read" + "SSL and Certificates: Edit";
 // gh CLI must be authed for tldraw/tldraw.
 

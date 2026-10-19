@@ -3,7 +3,15 @@ import * as Clerk from '@clerk/elements/common'
 import * as SignIn from '@clerk/elements/sign-in'
 import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { ChangeEvent, ReactNode, useCallback, useEffect, useState, type FormEvent } from 'react'
+import {
+	ChangeEvent,
+	ReactNode,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+	type FormEvent,
+} from 'react'
 import {
 	exhaustiveSwitchError,
 	TldrawUiDialogBody,
@@ -193,19 +201,15 @@ function TlaEnterEmailStep({
 			</div>
 			<div className={styles.authDescription}>
 				{inviteInfo ? (
-					<>
-						<F
-							defaultMessage="You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue."
-							values={{
-								workspaceName: inviteInfo.workspaceName,
-								strong: (chunks) => <strong>{chunks}</strong>,
-							}}
-						/>
-					</>
+					<F
+						defaultMessage="You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue."
+						values={{
+							workspaceName: inviteInfo.workspaceName,
+							strong: (chunks) => <strong>{chunks}</strong>,
+						}}
+					/>
 				) : (
-					<>
-						<F defaultMessage="Create a free account to save your files and tldraw with your teammates." />
-					</>
+					<F defaultMessage="Create a free account to save your files and tldraw with your teammates." />
 				)}
 			</div>
 			<SignIn.Root routing="virtual">
@@ -309,9 +313,10 @@ function TlaVerificationCodeStep({
 	const { setActive, client } = useClerk()
 	const [resendCooldown, setResendCooldown] = useState(0)
 	const [resendError, setResendError] = useState<string | null>(null)
+	const codeInputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
-		if (resendCooldown <= 0 || typeof window === 'undefined') return
+		if (resendCooldown <= 0) return
 		const timer = window.setInterval(() => {
 			setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1))
 		}, 1000)
@@ -321,69 +326,41 @@ function TlaVerificationCodeStep({
 	const handleCodeChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {
 			const next = e.target.value.replace(/[^0-9]/g, '').slice(0, 6)
-			if (next.length > 6) return
 			if (state.isSubmitting) return
 
 			setState((s) => ({ ...s, error: '', code: next }))
 
 			// If the length is 6, we need to submit the code
-			if (next.length === 6) {
-				if (state.isSubmitting) return
+			if (next.length < 6) return
 
-				setState((s) => ({ ...s, isSubmitting: true, error: null }))
+			setState((s) => ({ ...s, isSubmitting: true, error: null }))
 
-				if (isSignUpFlow) {
-					client.signUp
-						.attemptEmailAddressVerification({
-							code: next,
-						})
-						.then(async (s) => {
-							if (s.status === 'complete') {
-								await setActive({ session: s.createdSessionId })
-								onComplete()
-								return
-							}
-							setState((prev) => ({ ...prev, isSubmitting: false }))
-							onClose?.()
-						})
-						.catch((e) => {
-							const error = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code'
-							setState((s) => ({
-								...s,
-								code: '',
-								isSubmitting: false,
-								error,
-							}))
-						})
-					return
-				}
+			const attempt:
+				| Promise<{ status: string | null; createdSessionId: string | null }>
+				| undefined = isSignUpFlow
+				? client.signUp.attemptEmailAddressVerification({ code: next })
+				: client.signIn?.attemptFirstFactor({ strategy: 'email_code', code: next })
+			if (!attempt) return
 
-				if (client.signIn) {
-					client.signIn
-						.attemptFirstFactor({
-							strategy: 'email_code',
-							code: next,
-						})
-						.then(async (r: any) => {
-							if (r.status === 'complete') {
-								await setActive({ session: r.createdSessionId })
-								onComplete()
-								return
-							}
-							setState((prev) => ({ ...prev, isSubmitting: false }))
-							onClose?.()
-						})
-						.catch((e) => {
-							const error = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code'
-							setState((s) => ({
-								...s,
-								code: '',
-								isSubmitting: false,
-								error,
-							}))
-						})
-				}
-			}
+			attempt
+				.then(async (r) => {
+					if (r.status === 'complete') {
+						await setActive({ session: r.createdSessionId })
+						onComplete()
+						return
+					}
+					setState((prev) => ({ ...prev, isSubmitting: false }))
+					onClose?.()
+				})
+				.catch((e) => {
+					const error = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code'
+					setState((s) => ({
+						...s,
+						code: '',
+						isSubmitting: false,
+						error,
+					}))
+				})
 		},
 		[state, client, isSignUpFlow, setActive, onComplete, onClose]
 	)
@@ -405,8 +382,7 @@ function TlaVerificationCodeStep({
 				})
 			}
 			setResendCooldown(30)
-		} catch (_e: any) {
-			const e = _e as any
+		} catch (e: any) {
 			setResendError(
 				e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Unable to resend code'
 			)
@@ -419,13 +395,7 @@ function TlaVerificationCodeStep({
 				<F defaultMessage="Check your email for a verification code." />
 			</p>
 
-			<div
-				className={styles.authVerificationWrapper}
-				onClick={() => {
-					const el = document.getElementById('tla-verification-code') as HTMLInputElement | null
-					el?.focus()
-				}}
-			>
+			<div className={styles.authVerificationWrapper} onClick={() => codeInputRef.current?.focus()}>
 				<div className={styles.authOtpBoxes} aria-hidden>
 					{Array.from({ length: 6 }).map((_, i) => {
 						const isFilled = state.code[i]
@@ -447,6 +417,7 @@ function TlaVerificationCodeStep({
 					})}
 				</div>
 				<input
+					ref={codeInputRef}
 					id="tla-verification-code"
 					data-testid="tla-verification-code-input"
 					type="text"

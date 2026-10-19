@@ -1,14 +1,18 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { RoomNotFoundError, settleWithin, shouldSkipMissingRoomEffect } from './roomEffectHelpers'
+import {
+	clearSupersededSessionSnapshots,
+	FileEffectStallError,
+	RoomNotFoundError,
+	settleWithin,
+	shouldSkipMissingRoomEffect,
+} from './roomEffectHelpers'
 
 function file(partial: Partial<TlaFile>): TlaFile {
 	return {
 		id: 'f1',
 		name: 'file',
-		ownerId: 'u1',
 		ownerName: '',
-		ownerAvatar: '',
 		thumbnail: '',
 		shared: true,
 		sharedLinkType: 'edit',
@@ -78,5 +82,64 @@ describe('settleWithin', () => {
 		reject(new Error('late'))
 		// A late rejection must not become an unhandled rejection.
 		await vi.runAllTimersAsync()
+	})
+})
+
+describe('FileEffectStallError', () => {
+	it('names the boot sub-stage and its age when the boot is still in progress', () => {
+		const error = new FileEffectStallError(
+			'slug-1',
+			'insert',
+			'storage-load:comments',
+			25000,
+			30000
+		)
+		expect(error.message).toBe(
+			'file insert effect for slug-1 still pending after 30000ms at boot stage storage-load:comments (25000ms in stage)'
+		)
+	})
+
+	it('reports post-boot work when there is no boot stage', () => {
+		const error = new FileEffectStallError('slug-1', 'update', null, null, 30000)
+		expect(error.message).toBe(
+			'file update effect for slug-1 still pending after 30000ms in post-boot work'
+		)
+	})
+})
+
+describe('clearSupersededSessionSnapshots', () => {
+	function socket(attachment: unknown) {
+		let value = attachment
+		return {
+			deserializeAttachment: () => value,
+			serializeAttachment: vi.fn((next: unknown) => {
+				value = next
+			}),
+		}
+	}
+
+	it('leaves only the current socket resumable for its session', () => {
+		const snapshot = { presenceId: 'p1' }
+		const superseded = socket({ sessionId: 's1', meta: {}, snapshot })
+		const current = socket({ sessionId: 's1', meta: {}, snapshot })
+		const otherSession = socket({ sessionId: 's2', meta: {}, snapshot })
+		const noSnapshot = socket({ sessionId: 's1', meta: {}, snapshot: null })
+		const unattached = socket(null)
+
+		clearSupersededSessionSnapshots(
+			[superseded, current, otherSession, noSnapshot, unattached],
+			's1',
+			current
+		)
+
+		expect(superseded.deserializeAttachment()).toEqual({
+			sessionId: 's1',
+			meta: {},
+			snapshot: null,
+		})
+		expect(current.deserializeAttachment()).toEqual({ sessionId: 's1', meta: {}, snapshot })
+		expect(otherSession.deserializeAttachment()).toEqual({ sessionId: 's2', meta: {}, snapshot })
+		expect(noSnapshot.serializeAttachment).not.toHaveBeenCalled()
+		expect(unattached.serializeAttachment).not.toHaveBeenCalled()
 	})
 })

@@ -36,7 +36,7 @@ they're cached on cloudflare's edge network to reduce costs and make serving the
 
 ## Development
 
-To install dependencies, run `yarn`. To start a local development server, run `yarn dev`. This will
+To install dependencies, run `npm install`. To start a local development server, run `npm run dev`. This will
 start a [`vite`](https://vitejs.dev/) dev server running both your application frontend, and the
 cloudflare workers backend via the [cloudflare vite
 plugin](https://developers.cloudflare.com/workers/vite-plugin/). The app & server should now be
@@ -89,7 +89,7 @@ To deploy this example, you'll need to create a cloudflare account and create an
 uploaded images and videos. Update `bucket_name = 'tldraw-content'` in
 [`wrangler.toml`](./wrangler.toml) with the name of your new bucket.
 
-To actually deploy the app, first create a production build using `yarn build`. Then, run `yarn
+To actually deploy the app, first create a production build using `npm run build`. Then, run `npx
 wrangler deploy`. This will deploy the backend worker along with the frontend app to cloudflare.
 This should give you a workers.dev URL, but you can also [configure a custom
 domain](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).

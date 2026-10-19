@@ -16,7 +16,7 @@ import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { SynchronousStorage } from '@tldraw/store';
-import { ThrottledFunction } from 'tldraw';
+import { ThrottledFunction } from '@tldraw/utils';
 import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
@@ -153,6 +153,7 @@ export class JsonChunkAssembler {
         error: Error;
     } | null;
     state: 'idle' | {
+        charsReceived: number;
         chunksReceived: string[];
         totalChunks: number;
     };
@@ -513,7 +514,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         sessionId: string;
     }>;
     getSessionSnapshot(sessionId: string): null | SessionStateSnapshot;
-    handleSocketClose(sessionId: string): void;
+    handleSocketClose(sessionId: string, socket?: WebSocketMinimal): void;
     handleSocketConnect(opts: {
         isReadonly?: boolean;
         objectAccess?: TLObjectStoreAccess;
@@ -522,8 +523,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     } & (SessionMeta extends void ? object : {
         meta: SessionMeta;
     })): void;
-    handleSocketError(sessionId: string): void;
-    handleSocketMessage(sessionId: string, message: AllowSharedBufferSource | string): void;
+    handleSocketError(sessionId: string, socket?: WebSocketMinimal): void;
+    handleSocketMessage(sessionId: string, message: AllowSharedBufferSource | string, socket?: WebSocketMinimal): void;
     handleSocketResume(opts: {
         sessionId: string;
         snapshot: SessionStateSnapshot;
@@ -683,6 +684,7 @@ export const TLSyncErrorCloseEventCode: 4099;
 
 // @public
 export const TLSyncErrorCloseEventReason: {
+    readonly MESSAGE_TOO_LARGE: 'MESSAGE_TOO_LARGE';
     readonly RATE_LIMITED: 'RATE_LIMITED';
     readonly CLIENT_TOO_OLD: 'CLIENT_TOO_OLD';
     readonly INVALID_RECORD: 'INVALID_RECORD';

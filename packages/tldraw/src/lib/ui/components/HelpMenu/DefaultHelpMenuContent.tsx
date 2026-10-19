@@ -13,6 +13,7 @@ export function DefaultHelpMenuContent() {
 		</>
 	)
 }
+
 /** @public @react */
 export function KeyboardShortcutsMenuItem() {
 	const { KeyboardShortcutsDialog } = useTldrawUiComponents()

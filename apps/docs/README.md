@@ -19,8 +19,8 @@ The files are also provided in this repo.
 
 You can build the markdown and API content using the following scripts:
 
-- `yarn refresh-everything` to reset the database, generate the markdown from the API docs, and populate the database with articles from both the regular content and the generated API content
-- `yarn refresh-content` to generate just the regular content
+- `pnpm refresh-everything` to reset the database, generate the markdown from the API docs, and populate the database with articles from both the regular content and the generated API content
+- `pnpm refresh-content` to generate just the regular content
 
 # Content
 
@@ -89,20 +89,7 @@ The `order` property defines the article's order in its category. Uncategorized 
 
 ### Author
 
-The `author` must refer to an author named in the `content/authors.json` file.
-
-An author looks like this:
-
-```json
-"steveruizok": {
-	"name": "Steve Ruiz",
-	"email": "steve@tldraw.com",
-	"twitter": "steveruizok",
-	"image": "steve_ruiz.jpg"
-}
-```
-
-The image should refer to an image in `public/avatars`.
+The `author` records who wrote the article, usually as a GitHub username. It is stored in the content database as metadata but is not displayed anywhere on the site.
 
 ### Date
 
@@ -118,7 +105,7 @@ The `keywords` are used to find an article through the site's search feature.
 
 ## Auto-generated content
 
-The auto-generated docs content is created using [tsdoc](https://tsdoc.org/) and [API extractor](https://api-extractor.com/). The source is the API documentation created by `yarn build` or `yarn build-api`. The output is placed in the `gen` folder.
+The auto-generated docs content is created using [tsdoc](https://tsdoc.org/) and [API extractor](https://api-extractor.com/). The source is the API documentation created by `pnpm build` or `pnpm build-api`. The output is placed in the `gen` folder.
 
 ## Release notes
 
