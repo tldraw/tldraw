@@ -12,7 +12,7 @@ import {
 	FeatureFlags,
 	fetchFeatureFlags,
 	wasAuthenticated,
-} from '../utils/FeatureFlagPoller'
+} from '../utils/featureFlags'
 
 const appContext = createContext<TldrawApp | null>(null)
 // Anonymous trees never mount the provider, so they read the default: not loading.

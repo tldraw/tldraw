@@ -768,7 +768,7 @@ export const defaultTldrawOptions: {
         readonly step: 1;
     }];
     readonly handleRadius: 12;
-    readonly hitTestMargin: 3;
+    readonly hitTestMargin: 4.5;
     readonly laserDelayMs: 1200;
     readonly laserFadeoutMs: 500;
     readonly longPressDurationMs: 500;
@@ -1827,6 +1827,8 @@ export class FontManager {
     dispose(): void;
     // (undocumented)
     ensureFontIsLoaded(font: TLFontFace): Promise<void>;
+    // @internal (undocumented)
+    getFontLoadEpoch(): number;
     // (undocumented)
     getShapeFontFaces(shape: TLShape | TLShapeId): TLFontFace[];
     // (undocumented)

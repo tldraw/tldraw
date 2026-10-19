@@ -40,7 +40,6 @@ import { useUITheme } from '../hooks/useUITheme'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { hasNotAcceptedLegal } from '../utils/auth'
-import { FeatureFlagPoller } from '../utils/FeatureFlagPoller'
 import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
 	getLocalSessionState,
@@ -339,7 +338,6 @@ function SignedInProvider({
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
-				<FeatureFlagPoller />
 				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
@@ -348,7 +346,6 @@ function SignedInProvider({
 
 	return (
 		<>
-			<FeatureFlagPoller />
 			<AppStateProvider>
 				<UserProvider>
 					<ThemeContainer onThemeChange={onThemeChange}>

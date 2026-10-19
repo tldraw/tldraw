@@ -1,7 +1,7 @@
 {
 	"name": "tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "5.4.2",
+	"version": "5.5.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -49,7 +49,8 @@
 		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "pnpm pack",
-		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts"
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc --build"
 	},
 	"files": [
 		"tldraw.css"
@@ -87,7 +88,6 @@
 		"@types/react-dom": "^19.2.3",
 		"fake-indexeddb": "^4.0.2",
 		"jest-diff": "^30.4.1",
-		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"resize-observer-polyfill": "^1.5.1",

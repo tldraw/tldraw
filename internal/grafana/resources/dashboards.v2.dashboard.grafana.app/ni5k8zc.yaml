@@ -225,8 +225,7 @@ spec:
 
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
-                        AND blob1 IN ('room_create', 'room_reopen', 'enter', 'leave',
-                        'last_out')
+                        AND blob1 IN ('room_reopen', 'enter', 'leave', 'last_out')
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
@@ -240,8 +239,7 @@ spec:
 
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
-                        AND blob1 IN ('room_create', 'room_reopen', 'enter', 'leave',
-                        'last_out')
+                        AND blob1 IN ('room_reopen', 'enter', 'leave', 'last_out')
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
@@ -948,14 +946,16 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, blob1 as stage, avg(double1) as avg_ms
+                        SECOND) as date, blob1 as stage, quantileWeighted(0.5, double1,
+                        _sample_interval) as p50, quantileWeighted(0.95, double1, _sample_interval)
+                        as p95
 
                         FROM 'MEASURE'
 
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
                         AND blob1 IN ('on_request_total', 'on_request_auth', 'on_request_rate_limit',
-                        'on_request_group_check', 'on_request_get_room')
+                        'on_request_get_room', 'forward_room_request')
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
@@ -963,14 +963,16 @@ spec:
 
                         ORDER BY date ASC"
                       rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, blob1 as stage, avg(double1) as avg_ms
+                        SECOND) as date, blob1 as stage, quantileWeighted(0.5, double1,
+                        _sample_interval) as p50, quantileWeighted(0.95, double1, _sample_interval)
+                        as p95
 
                         FROM 'MEASURE'
 
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
                         AND blob1 IN ('on_request_total', 'on_request_auth', 'on_request_rate_limit',
-                        'on_request_group_check', 'on_request_get_room')
+                        'on_request_get_room', 'forward_room_request')
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
@@ -986,11 +988,12 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: Average duration of each stage of a room connect request (auth,
-          rate limit, group check, get room, total).
+        description: p50 and p95 of each connect stage, weighted by _sample_interval.
+          forward_room_request is the worker's wall time around the room call; minus
+          on_request_total it is routing + room wake.
         id: 13
         links: []
-        title: Connect request latency breakdown
+        title: Connect request latency breakdown (p50/p95)
         vizConfig:
           group: timeseries
           kind: VizConfig
@@ -1213,7 +1216,7 @@ spec:
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
                         AND blob1 IN ('on_request_total', 'on_request_auth', 'on_request_rate_limit',
-                        'on_request_group_check', 'on_request_get_room', 'get_file_record',
+                        'on_request_get_room', 'get_file_record',
                         'get_file_record_error', 'db_load_total', 'db_load_total_error',
                         'db_load_r2_fetch', 'db_load_supabase_fetch', 'db_load_create_from_source', 'db_load_comments',
                         'create_from_source_fetch_total', 'create_from_source_r2_put',
@@ -1231,7 +1234,7 @@ spec:
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
                         AND blob1 IN ('on_request_total', 'on_request_auth', 'on_request_rate_limit',
-                        'on_request_group_check', 'on_request_get_room', 'get_file_record',
+                        'on_request_get_room', 'get_file_record',
                         'get_file_record_error', 'db_load_total', 'db_load_total_error',
                         'db_load_r2_fetch', 'db_load_supabase_fetch', 'db_load_create_from_source', 'db_load_comments',
                         'create_from_source_fetch_total', 'create_from_source_r2_put',
@@ -3894,7 +3897,7 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, if(blob3 = 'ok', 'ok', concat(blob3, ':', blob4))
+                        SECOND) as date, if(blob3 = 'ok', 'ok', format('{}:{}', blob3, blob4))
                         as result, count() as total
 
                         FROM 'MEASURE'
@@ -3909,7 +3912,7 @@ spec:
 
                         ORDER BY date ASC"
                       rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, if(blob3 = 'ok', 'ok', concat(blob3, ':', blob4))
+                        SECOND) as date, if(blob3 = 'ok', 'ok', format('{}:{}', blob3, blob4))
                         as result, count() as total
 
                         FROM 'MEASURE'
@@ -3932,9 +3935,9 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Retired-chain verification. Fail reasons: missing | legacy-fallback
-          | head-mismatch | error. Any fail means a reconstruction did not reproduce
-          the persisted state.'
+        description: 'Retired-chain verification. Fail reasons: missing | head-mismatch
+          | error. Any fail means a reconstruction did not reproduce the persisted
+          state.'
         id: 51
         links: []
         title: Verify results
@@ -4382,10 +4385,12 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: Every timer the sync worker wrote for one page load. Paste the load
-          id from the browser console ([first-load] <id> total ...) into the load_id
-          variable. Boot stages (db_load_*, room_start) appear only when that load booted
-          the room; init_user carries the id in blob4 and its outcome in blob3.
+        description: Every timer the sync worker wrote for one sync connect. Paste the
+          connect_id (printed as "connect_id ..." on the [first-load] / [file-load] console
+          line, or the connect_id property on the PostHog event) into the load_id variable;
+          the load id itself only matches init_user. Rows are sampled, so some can be missing.
+          Boot stages (db_load_*, room_start) appear only when that connect booted the room;
+          init_user carries the load id in blob4 and its outcome in blob3.
         id: 55
         links: []
         title: One load ($load_id)
@@ -4874,10 +4879,11 @@ spec:
         current:
           text: ''
           value: ''
-        description: A first_load id from the browser console, to list every sync worker
-          timer for that page load in the "One load" panel.
+        description: A connect_id from the [first-load] / [file-load] console line or the
+          PostHog event, to list every sync worker timer for that connect in the "One load"
+          panel.
         hide: dontHide
-        label: 'Load id (from the first_load console line)'
+        label: 'Connect id (connect_id from the console line or PostHog)'
         name: load_id
         query: ''
         skipUrlSync: false

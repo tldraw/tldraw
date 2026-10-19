@@ -301,6 +301,10 @@ export class Idle extends StateNode {
 								hitInside: false,
 								hitLocked: this.editor.options.selectLockedShapes,
 								renderingOnly: true,
+								// A child of a locked group would otherwise drill into (select) the locked group
+								filter: (shape) =>
+									this.editor.options.selectLockedShapes ||
+									!this.editor.isShapeOrAncestorLocked(shape),
 							}))
 
 				if (hitShape) {
@@ -353,21 +357,22 @@ export class Idle extends StateNode {
 						break
 					}
 
-					// Test edges for an onDoubleClickEdge handler
-					if (isEdge) {
-						const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
+					// Mark first: handlers can write to the store themselves (the frame util moves its
+					// children), and those writes would otherwise join the previous undo step
+					if (isEdge && util.onDoubleClickEdge) {
+						this.editor.markHistoryStoppingPoint('double click edge')
+						const change = util.onDoubleClickEdge(onlySelectedShape, info)
 						if (change) {
-							this.editor.markHistoryStoppingPoint('double click edge')
 							this.editor.updateShapes([change])
 							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
 							return
 						}
 					}
 
-					if (isCorner) {
-						const change = util.onDoubleClickCorner?.(onlySelectedShape, info)
+					if (isCorner && util.onDoubleClickCorner) {
+						this.editor.markHistoryStoppingPoint('double click corner')
+						const change = util.onDoubleClickCorner(onlySelectedShape, info)
 						if (change) {
-							this.editor.markHistoryStoppingPoint('double click corner')
 							this.editor.updateShapes([change])
 							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
 							return
@@ -511,7 +516,10 @@ export class Idle extends StateNode {
 					return
 				}
 
-				this.editor.selectNone()
+				if (selectedShapeIds.length > 0) {
+					this.editor.markHistoryStoppingPoint('selecting none')
+					this.editor.selectNone()
+				}
 				break
 			}
 			case 'shape': {
@@ -640,6 +648,7 @@ export class Idle extends StateNode {
 
 				// On enter, if every selected shape is a group, then select all of the children of the groups
 				if (selectedShapes.every((shape) => this.editor.isShapeOfType(shape, 'group'))) {
+					this.editor.markHistoryStoppingPoint('selecting group children')
 					this.editor.setSelectedShapes(
 						selectedShapes.flatMap((shape) => this.editor.getSortedChildIdsForParent(shape.id))
 					)

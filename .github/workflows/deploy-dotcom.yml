@@ -140,6 +140,11 @@ jobs:
           echo "POSTGRES_URL=$POSTGRES_URL" >> "$GITHUB_ENV"
           echo "POSTGRES_URL_NON_POOLING=$POSTGRES_URL_NON_POOLING" >> "$GITHUB_ENV"
 
+      - name: Restore build tool caches
+        uses: ./.github/actions/build-cache
+        with:
+          name: test-tools
+
       - name: Build types
         run: pnpm build-types
 
@@ -152,6 +157,9 @@ jobs:
         env:
           RELEASE_COMMIT_HASH: ${{ github.sha }}
           GH_TOKEN: ${{ github.token }}
+          # Set this variable to "true" on the GitHub environment to redeploy zero-cache even when its
+          # inputs are unchanged (see internal/scripts/lib/flyDeployGate.ts), then clear it.
+          ZERO_FORCE_DEPLOY: ${{ vars.ZERO_FORCE_DEPLOY || 'false' }}
 
           APP_ORIGIN: ${{ vars.APP_ORIGIN }}
           ASSET_UPLOAD: ${{ vars.ASSET_UPLOAD }}

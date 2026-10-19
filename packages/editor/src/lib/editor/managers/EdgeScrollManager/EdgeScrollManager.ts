@@ -47,8 +47,8 @@ export class EdgeScrollManager {
 						? EASINGS.easeInCubic(
 								Math.min(
 									1,
-									this._edgeScrollDuration /
-										(editor.options.edgeScrollDelay + editor.options.edgeScrollEaseDuration)
+									(this._edgeScrollDuration - editor.options.edgeScrollDelay) /
+										editor.options.edgeScrollEaseDuration
 								)
 							)
 						: 1

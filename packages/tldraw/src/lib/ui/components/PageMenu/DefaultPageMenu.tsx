@@ -229,8 +229,10 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		startY: 0,
 		startScrollTop: 0,
 		lastClientY: 0,
-		// Set true on pointer-up after a drag, so the synthetic click that
-		// follows pointer-up doesn't also navigate to the dragged page.
+		// Set true when a drag ends, whether dropped or cancelled with Escape,
+		// so the click that follows the release doesn't also navigate to the
+		// dragged page. Cleared on pointer down: a release over another row
+		// gets no click, and a stale flag would swallow the next click.
 		justDragged: false,
 		startedOnDragHandle: false,
 		// Whether an auto-scroll rAF is in flight; the loop reschedules itself
@@ -375,6 +377,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 		const mut = rMutables.current
 		setPointerCapture(currentTarget, e)
+		mut.justDragged = false
 		mut.status = 'pointing'
 		mut.id = id as TLPageId
 		mut.startIndex = +index
@@ -445,16 +448,35 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		[resetDrag]
 	)
 
-	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent<HTMLButtonElement>) => {
-			// Pointer capture is naturally released on the eventual pointer up,
-			// at which point the idle status makes the up handler a no-op.
-			if (e.key === 'Escape' && rMutables.current.status !== 'idle') {
-				resetDrag()
+	const isDragInProgress = dragState !== null
+
+	// Escape mid-drag cancels only the drag, so the popover's own Escape
+	// dismissal is disabled while dragging. This listens on the document
+	// because the dragged row doesn't always have focus, and stops the event
+	// so other Escape handlers (like the one above that closes menus when
+	// the body has focus) don't close the menu too.
+	useEffect(() => {
+		if (!isDragInProgress) return
+		const doc = editor.getContainerDocument()
+		function handleKeyDown(e: KeyboardEvent) {
+			if (e.key !== 'Escape') return
+			e.stopPropagation()
+			const mut = rMutables.current
+			// The row still holds pointer capture, so its release will click it.
+			if (!mut.startedOnDragHandle) {
+				mut.justDragged = true
 			}
-		},
-		[resetDrag]
-	)
+			resetDrag()
+		}
+		doc.addEventListener('keydown', handleKeyDown, true)
+		return () => doc.removeEventListener('keydown', handleKeyDown, true)
+	}, [editor, isDragInProgress, resetDrag])
+
+	// Closing the menu unmounts the rows while one may still hold pointer
+	// capture, so their pointer up and cancel handlers never run (#11112).
+	useEffect(() => {
+		if (!isOpen) resetDrag()
+	}, [isOpen, resetDrag])
 
 	const shouldUseWindowPrompt = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer
 	const shouldUseDragHandle = !isReadonlyMode && isCoarsePointer
@@ -536,7 +558,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				side="bottom"
 				align="start"
 				sideOffset={0}
-				disableEscapeKeyDown={editingPageId !== null}
+				disableEscapeKeyDown={editingPageId !== null || isDragInProgress}
 			>
 				<div className="tlui-page-menu__wrapper">
 					<div
@@ -547,7 +569,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 					>
 						<div
 							className="tlui-page-menu__list__content"
-							data-dragging={dragState !== null}
+							data-dragging={isDragInProgress}
 							style={{ height: autoFitListHeight }}
 						>
 							{pages.map((page, index) => {
@@ -616,7 +638,6 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 														onPointerMove={handlePointerMove}
 														onPointerUp={handlePointerUp}
 														onPointerCancel={handlePointerCancel}
-														onKeyDown={handleKeyDown}
 														tooltip={msg('context-menu.reorder')}
 														title={msg('context-menu.reorder')}
 													>
@@ -640,10 +661,6 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 													data-id={page.id}
 													data-index={index}
 													onKeyDown={(e) => {
-														if (e.key === 'Escape') {
-															handleKeyDown(e)
-															return
-														}
 														if (e.key === 'Enter' && isCurrentPage) {
 															startRenamingPage(page.id, page.name)
 															editor.markEventAsHandled(e)

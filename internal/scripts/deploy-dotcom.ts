@@ -17,6 +17,12 @@ import {
 import { Discord } from './lib/discord'
 import { exec } from './lib/exec'
 import { REPO_ROOT } from './lib/file'
+import {
+	FlyDeployInputs,
+	getDeployedInputHash,
+	hashFlyDeployInputs,
+	stampDeployInputHash,
+} from './lib/flyDeployGate'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 
@@ -96,6 +102,7 @@ const env = makeEnv([
 	'PLAIN_WORKSPACE_ID',
 	'DEPLOY_ZERO',
 	'ZERO_ADMIN_PASSWORD',
+	'ZERO_FORCE_DEPLOY',
 	'ZERO_R2_ENDPOINT',
 	'ZERO_R2_BUCKET_NAME',
 	'ZERO_R2_ACCESS_KEY_ID',
@@ -103,6 +110,11 @@ const env = makeEnv([
 	'ZERO_OTEL_EXPORTER_OTLP_ENDPOINT',
 	'ZERO_OTEL_EXPORTER_OTLP_HEADERS',
 ])
+
+assert(
+	env.ZERO_FORCE_DEPLOY === 'true' || env.ZERO_FORCE_DEPLOY === 'false',
+	'ZERO_FORCE_DEPLOY must be true or false'
+)
 
 // Multinode (flyio-multinode) is for staging + production, previews use single as it is faster / cheaper
 const deployZero =
@@ -281,6 +293,7 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // Staging: Supabase Micro (60 max_connections, 200 pooled clients)
 // Preview: Supabase branch instance (~60 max_connections per branch, isolated)
 // Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
+// Change-db connections have no cap: Zero opens 5 plus 1 per view-syncer catching up.
 
 // Fly.io VM sizes per environment.
 // Production uses performance (dedicated) CPUs for both RM and VS; staging uses shared.
@@ -302,7 +315,7 @@ const zeroVmSizes = {
 		rm: { cpus: 1, memory: '2gb', cpuKind: 'performance' },
 		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
-		vsMinMachines: 9,
+		vsMinMachines: 13,
 		killTimeout: '5m',
 	},
 	preview: { single: { cpus: 2, memory: '2gb' } },
@@ -310,22 +323,21 @@ const zeroVmSizes = {
 
 const zeroConnectionLimits = {
 	staging: {
-		rm: { upstream: 1, cvr: 1, change: 3 },
-		vs: { upstream: 2, cvr: 3, change: 1 },
+		rm: { upstream: 1, cvr: 1 },
+		vs: { upstream: 2, cvr: 3 },
 	},
 	production: {
-		rm: { upstream: 5, cvr: 10, change: 15 },
-		vs: { upstream: 8, cvr: 10, change: 3 },
+		rm: { upstream: 5, cvr: 10 },
+		vs: { upstream: 8, cvr: 10 },
 	},
 	// Previews use Supabase branch DB
 	preview: {
-		single: { upstream: 3, cvr: 5, change: 3 },
+		single: { upstream: 3, cvr: 5 },
 	},
 } as const
 interface ConnLimits {
 	upstream: number
 	cvr: number
-	change: number
 }
 interface SingleNodeConnLimits {
 	single: ConnLimits
@@ -700,16 +712,13 @@ function withStatementTimeout(connString: string): string {
 	return `${connString}${separator}statement_timeout=1800000`
 }
 
-function updateFlyioToml(appName: string): void {
+function renderFlyioToml(appName: string): string {
 	assert('single' in zeroConns, 'single-node connection limits required')
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio.template.toml')
-	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio.toml')
-
 	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
-
 	const zeroAdminPassword = env.ZERO_ADMIN_PASSWORD
 
-	const updatedContent = fileContent
+	return fileContent
 		.replace('__APP_NAME', appName)
 		.replace('__ZERO_VERSION', zeroVersion)
 		.replaceAll(
@@ -721,36 +730,84 @@ function updateFlyioToml(appName: string): void {
 		.replaceAll('__ZERO_ADMIN_PASSWORD', zeroAdminPassword)
 		.replaceAll('__SINGLE_UPSTREAM_MAX_CONNS', String(zeroConns.single.upstream))
 		.replaceAll('__SINGLE_CVR_MAX_CONNS', String(zeroConns.single.cvr))
-		.replaceAll('__SINGLE_CHANGE_MAX_CONNS', String(zeroConns.single.change))
+}
 
-	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
+async function ensureFlyApp(appName: string, appsListOutput: string) {
+	if (appsListOutput.indexOf(appName) === -1) {
+		await exec('flyctl', ['app', 'create', appName, '-o', 'tldraw-gb-ltd'], {
+			pwd: zeroCacheFolder,
+		})
+	}
+}
+
+// Most dotcom deploys don't touch zero-cache; see flyDeployGate.ts for why redeploying anyway
+// hurts. Staging and production only: a preview has no connected clients to bounce, and its zero
+// app can need rebuilding for reasons no input covers, like a reset preview database leaving the
+// replica stale. The gate compares this run's inputs to the stamp on the machines, not to the
+// machines' actual state, so a change made out of band (`fly secrets set`, `fly scale`) stays
+// unreconciled until an input changes. Set the ZERO_FORCE_DEPLOY variable on the GitHub
+// environment to push a deploy through regardless.
+async function deployFlyAppIfChanged({
+	appName,
+	configFile,
+	inputs,
+}: {
+	appName: string
+	configFile: string
+	inputs: FlyDeployInputs
+}) {
+	const forced = env.ZERO_FORCE_DEPLOY === 'true' || !!previewId
+	const hash = hashFlyDeployInputs(inputs)
+	const deployed = forced ? null : await getDeployedInputHash(appName)
+	if (deployed?.reason === 'stamped' && deployed.hash === hash) {
+		nicelog(`${appName}: deploy inputs unchanged (${hash.slice(0, 12)}), skipping fly deploy`)
+		await discord.message(`${appName}: deploy inputs unchanged, skipping fly deploy`)
+		return
+	}
+	const from = !deployed
+		? 'not checked'
+		: deployed.reason === 'stamped'
+			? deployed.hash.slice(0, 12)
+			: `no stamp: ${deployed.reason}`
+	nicelog(`${appName}: deploying (${from} -> ${hash.slice(0, 12)}${forced ? ', forced' : ''})`)
+	fs.writeFileSync(
+		path.join(zeroCacheFolder, configFile),
+		stampDeployInputHash(inputs.config, hash),
+		'utf-8'
+	)
+	if (inputs.dockerfile) {
+		fs.writeFileSync(
+			path.join(inputs.dockerfile.contextDir, 'Dockerfile'),
+			inputs.dockerfile.content,
+			'utf-8'
+		)
+	}
+	if (inputs.secrets) await stageZeroFlySecrets(appName, inputs.secrets)
+	await exec('flyctl', ['deploy', '-a', appName, '-c', configFile], { pwd: zeroCacheFolder })
 }
 
 async function deployZeroViaFlyIo() {
 	if (!flyioAppName) {
 		throw new Error('Fly.io app name is not defined')
 	}
-	updateFlyioToml(flyioAppName)
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
-	if (apps.indexOf(flyioAppName) === -1) {
-		await exec('flyctl', ['app', 'create', flyioAppName, '-o', 'tldraw-gb-ltd'], {
-			pwd: zeroCacheFolder,
-		})
-	}
-	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
+	await ensureFlyApp(flyioAppName, apps)
+	await deployFlyAppIfChanged({
+		appName: flyioAppName,
+		configFile: 'flyio.toml',
+		inputs: { config: renderFlyioToml(flyioAppName) },
+	})
 }
 
 // See https://zero.rocicorp.dev/docs/deployment for Zero deployment config reference
-function updateFlyioReplicationManagerToml(appName: string, backupPath: string): void {
+function renderFlyioReplicationManagerToml(appName: string, backupPath: string): string {
 	assert('rm' in zeroConns, 'multi-node connection limits required')
 	assert('rm' in zeroVm, 'multi-node VM sizes required')
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio-replication-manager.template.toml')
-	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-replication-manager.toml')
-
 	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
 	const zeroAdminPassword = env.ZERO_ADMIN_PASSWORD
 
-	const updatedContent = fileContent
+	return fileContent
 		.replaceAll('__APP_NAME', appName)
 		.replaceAll('__BACKUP_PATH', backupPath)
 		.replace('__ZERO_VERSION', zeroVersion)
@@ -762,7 +819,6 @@ function updateFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 		.replaceAll('__RM_UPSTREAM_MAX_CONNS', String(zeroConns.rm.upstream))
 		.replaceAll('__RM_CVR_MAX_CONNS', String(zeroConns.rm.cvr))
-		.replaceAll('__RM_CHANGE_MAX_CONNS', String(zeroConns.rm.change))
 		.replaceAll('__CPU_KIND', zeroVm.rm.cpuKind ?? 'shared')
 		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.rm.memory)
@@ -770,24 +826,20 @@ function updateFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__KILL_TIMEOUT', zeroVm.killTimeout)
 		.replaceAll('__TLDRAW_ENV', env.TLDRAW_ENV)
 		.replaceAll('__ZERO_VERSION', zeroVersion)
-
-	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
 
-function updateFlyioViewSyncerToml(
+function renderFlyioViewSyncerToml(
 	appName: string,
 	replManagerUri: string,
 	backupPath: string
-): void {
+): string {
 	assert('vs' in zeroConns, 'multi-node connection limits required')
 	assert('vs' in zeroVm, 'multi-node VM sizes required')
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio-view-syncer.template.toml')
-	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-view-syncer.toml')
-
 	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
 	const zeroAdminPassword = env.ZERO_ADMIN_PASSWORD
 
-	const updatedContent = fileContent
+	return fileContent
 		.replaceAll('__APP_NAME', appName)
 		.replaceAll('__BACKUP_PATH', backupPath)
 		.replace('__ZERO_VERSION', zeroVersion)
@@ -802,7 +854,6 @@ function updateFlyioViewSyncerToml(
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 		.replaceAll('__VS_UPSTREAM_MAX_CONNS', String(zeroConns.vs.upstream))
 		.replaceAll('__VS_CVR_MAX_CONNS', String(zeroConns.vs.cvr))
-		.replaceAll('__VS_CHANGE_MAX_CONNS', String(zeroConns.vs.change))
 		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
 		.replaceAll('__CPU_KIND', zeroVm.vs.cpuKind ?? 'shared')
@@ -811,15 +862,18 @@ function updateFlyioViewSyncerToml(
 		.replaceAll('__KILL_TIMEOUT', zeroVm.killTimeout)
 		.replaceAll('__TLDRAW_ENV', env.TLDRAW_ENV)
 		.replaceAll('__ZERO_VERSION', zeroVersion)
+}
 
-	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
-
-	// Also process the Dockerfile template to inject the Zero version
+// The view-syncer image; the replication manager runs the stock Zero image.
+function renderDockerfile(): string {
 	const dockerfileTemplate = path.join(zeroCacheFolder, 'Dockerfile.template')
-	const dockerfilePath = path.join(zeroCacheFolder, 'Dockerfile')
-	const dockerfileContent = fs.readFileSync(dockerfileTemplate, 'utf-8')
-	const updatedDockerfile = dockerfileContent.replace('__ZERO_VERSION', zeroVersion)
-	fs.writeFileSync(dockerfilePath, updatedDockerfile, 'utf-8')
+	return fs.readFileSync(dockerfileTemplate, 'utf-8').replace('__ZERO_VERSION', zeroVersion)
+}
+
+async function stageZeroFlySecrets(appName: string, secrets: string[]) {
+	await exec('flyctl', ['secrets', 'set', '--stage', ...secrets, '-a', appName], {
+		pwd: zeroCacheFolder,
+	})
 }
 
 async function deployZeroViaFlyIoMultiNode() {
@@ -828,69 +882,38 @@ async function deployZeroViaFlyIoMultiNode() {
 	}
 
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
+	const backupPath = previewId ?? env.TLDRAW_ENV
+	const secrets = [
+		`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+		`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+		`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+		`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
+		// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
+		`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
+		`AWS_SECRET_ACCESS_KEY=${env.ZERO_R2_SECRET_ACCESS_KEY}`,
+		`OTEL_EXPORTER_OTLP_ENDPOINT=${env.ZERO_OTEL_EXPORTER_OTLP_ENDPOINT}`,
+		`OTEL_EXPORTER_OTLP_HEADERS=${env.ZERO_OTEL_EXPORTER_OTLP_HEADERS}`,
+	]
 
 	// Deploy replication manager first
-	const backupPath = previewId ?? env.TLDRAW_ENV
-	updateFlyioReplicationManagerToml(flyioReplAppName, backupPath)
-	if (apps.indexOf(flyioReplAppName) === -1) {
-		await exec('flyctl', ['app', 'create', flyioReplAppName, '-o', 'tldraw-gb-ltd'], {
-			pwd: zeroCacheFolder,
-		})
-	}
-	await exec(
-		'flyctl',
-		[
-			'secrets',
-			'set',
-			'--stage',
-			`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
-			`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
-			`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
-			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
-			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
-			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
-			`AWS_SECRET_ACCESS_KEY=${env.ZERO_R2_SECRET_ACCESS_KEY}`,
-			`OTEL_EXPORTER_OTLP_ENDPOINT=${env.ZERO_OTEL_EXPORTER_OTLP_ENDPOINT}`,
-			`OTEL_EXPORTER_OTLP_HEADERS=${env.ZERO_OTEL_EXPORTER_OTLP_HEADERS}`,
-			'-a',
-			flyioReplAppName,
-		],
-		{ pwd: zeroCacheFolder }
-	)
-	await exec('flyctl', ['deploy', '-a', flyioReplAppName, '-c', 'flyio-replication-manager.toml'], {
-		pwd: zeroCacheFolder,
+	await ensureFlyApp(flyioReplAppName, apps)
+	await deployFlyAppIfChanged({
+		appName: flyioReplAppName,
+		configFile: 'flyio-replication-manager.toml',
+		inputs: { config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath), secrets },
 	})
 
 	// Deploy view syncer with reference to replication manager
 	const replManagerUri = `http://${flyioReplAppName}.internal:4849`
-	updateFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath)
-	if (apps.indexOf(flyioAppName) === -1) {
-		await exec('flyctl', ['app', 'create', flyioAppName, '-o', 'tldraw-gb-ltd'], {
-			pwd: zeroCacheFolder,
-		})
-	}
-	await exec(
-		'flyctl',
-		[
-			'secrets',
-			'set',
-			'--stage',
-			`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
-			`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
-			`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
-			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
-			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
-			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
-			`AWS_SECRET_ACCESS_KEY=${env.ZERO_R2_SECRET_ACCESS_KEY}`,
-			`OTEL_EXPORTER_OTLP_ENDPOINT=${env.ZERO_OTEL_EXPORTER_OTLP_ENDPOINT}`,
-			`OTEL_EXPORTER_OTLP_HEADERS=${env.ZERO_OTEL_EXPORTER_OTLP_HEADERS}`,
-			'-a',
-			flyioAppName,
-		],
-		{ pwd: zeroCacheFolder }
-	)
-	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio-view-syncer.toml'], {
-		pwd: zeroCacheFolder,
+	await ensureFlyApp(flyioAppName, apps)
+	await deployFlyAppIfChanged({
+		appName: flyioAppName,
+		configFile: 'flyio-view-syncer.toml',
+		inputs: {
+			config: renderFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath),
+			dockerfile: { content: renderDockerfile(), contextDir: zeroCacheFolder },
+			secrets,
+		},
 	})
 	assert('vsMinMachines' in zeroVm, 'multi-node VM sizes required')
 	await exec(

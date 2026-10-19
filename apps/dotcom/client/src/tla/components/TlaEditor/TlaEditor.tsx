@@ -28,13 +28,19 @@ import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/S
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
-import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
+import {
+	boardSizeFields,
+	estimateFileSizeBucket,
+	useRoomLoadTracking,
+} from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
-import { FIRST_LOAD_DEBUG_FLAG, markFirstLoad, reportFirstLoad } from '../../../utils/firstLoad'
+import { reportFileLoad } from '../../../utils/fileLoad'
+import { markFirstLoad, reportFirstLoad } from '../../../utils/firstLoad'
 import { globalEditor } from '../../../utils/globalEditor'
+import { LOADS_DEBUG_FLAG } from '../../../utils/loadTracker'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
@@ -59,7 +65,7 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
-import { useFileSyncStore } from './TlaFileSyncHost'
+import { useFileLoad, useFileSyncStore } from './TlaFileSyncHost'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
@@ -111,6 +117,8 @@ export function TlaEditor(props: TlaEditorProps) {
 }
 
 function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps) {
+	const fileLoad = useFileLoad()
+	fileLoad.mark('editor-rendered')
 	markFirstLoad('editor-rendered')
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
@@ -161,6 +169,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			markFirstLoad('editor-mounted')
+			fileLoad.mark('editor-mounted')
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
 			trackShareLinkOpen(app, fileId, isEmbed)
@@ -176,7 +185,15 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			if (!app) {
 				setIsReady()
 				markFirstLoad('board-visible')
-				reportFirstLoad({ email: null, flagEnabled: false, trackEvent })
+				fileLoad.mark('board-visible')
+				const size = boardSizeFields(editor)
+				reportFirstLoad({ email: null, flagEnabled: false, trackEvent, fileLoad, extra: size })
+				reportFileLoad(fileLoad, {
+					email: null,
+					flagEnabled: false,
+					trackEvent,
+					extra: { file_size_bucket: estimateFileSizeBucket(editor), ...size },
+				})
 				return
 			}
 
@@ -235,10 +252,20 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 					if (abortController.signal.aborted) return
 					setIsReady()
 					markFirstLoad('board-visible')
+					fileLoad.mark('board-visible')
+					const size = boardSizeFields(editor)
 					reportFirstLoad({
 						email: app?.email,
-						flagEnabled: app?.isFirstLoadRumEnabled ?? false,
+						flagEnabled: app?.isLoadRumEnabled ?? false,
 						trackEvent,
+						fileLoad,
+						extra: size,
+					})
+					reportFileLoad(fileLoad, {
+						email: app?.email,
+						flagEnabled: app?.isLoadRumEnabled ?? false,
+						trackEvent,
+						extra: { file_size_bucket: estimateFileSizeBucket(editor), ...size },
 					})
 				})
 
@@ -250,6 +277,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		},
 		[
 			addDialog,
+			fileLoad,
 			trackRoomLoaded,
 			trackNewRoomCreation,
 			trackShareLinkOpen,
@@ -361,7 +389,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 const DOTCOM_DEBUG_FLAGS = {
 	...debugFlags,
-	logFirstLoad: createDebugValue(FIRST_LOAD_DEBUG_FLAG, { defaults: { all: false } }),
+	logLoads: createDebugValue(LOADS_DEBUG_FLAG, { defaults: { all: false } }),
 }
 
 function CustomDebugMenu() {
@@ -375,7 +403,7 @@ function CustomDebugMenu() {
 			<A11yAudit />
 			{!isReadOnly && app && user?.isTldraw && (
 				<TldrawUiMenuItem
-					id="user-manual"
+					id="file-history"
 					label="File history"
 					readonlyOk
 					onSelect={() => {

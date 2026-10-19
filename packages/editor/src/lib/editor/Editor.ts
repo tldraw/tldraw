@@ -2522,6 +2522,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _selectShapesAndZoom(ids: TLShapeId[]) {
+		// setSelectedShapes is a no-op for an unchanged selection (Tab with a single shape,
+		// Ctrl+arrow with no neighbour); marking anyway would leave an empty stopping point
+		// that makes undo available with nothing to undo
+		const selectedShapeIds = this.getSelectedShapeIds()
+		const isSelectionChanging =
+			ids.length !== selectedShapeIds.length || ids.some((id) => !selectedShapeIds.includes(id))
+		if (isSelectionChanging) {
+			this.markHistoryStoppingPoint('selecting adjacent shape')
+		}
 		this.setSelectedShapes(ids)
 		this.zoomToSelectionIfOffscreen(256, {
 			animation: {
@@ -8185,10 +8194,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		let workingShape: TLShape | null = null
 
+		const initialPagePoint = Mat.applyToPoint(pageTransform, new Vec())
+
 		if (util.onResize && util.canResize(initialShape)) {
 			// get the model changes from the shape util
 			const newPagePoint = this._scalePagePoint(
-				Mat.applyToPoint(pageTransform, new Vec(0, 0)),
+				initialPagePoint,
 				scaleOrigin,
 				scale,
 				scaleAxisRotation
@@ -8208,11 +8219,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			myScale.x = areWidthAndHeightAlignedWithCorrectAxis ? scale.x : scale.y
 			myScale.y = areWidthAndHeightAlignedWithCorrectAxis ? scale.y : scale.x
 
-			// adjust initial model for situations where the parent has moved during the resize
-			// e.g. groups
-			const initialPagePoint = Mat.applyToPoint(pageTransform, new Vec())
-
-			// need to adjust the shape's x and y points in case the parent has moved since start of resizing
+			// need to adjust the shape's x and y points in case the parent has moved since start of
+			// resizing, e.g. groups
 			const { x, y } = this.getPointInParentSpace(initialShape.id, initialPagePoint)
 
 			workingShape = initialShape
@@ -8269,29 +8277,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 			scaleAxisRotation
 		)
 
-		const initialPageCenterInParentSpace = this.getPointInParentSpace(
-			initialShape.id,
-			initialPageCenter
+		// A parent-space delta added to the shape's initial x/y would double-count the parent's own
+		// move during the same gesture — a repositioned group carries its children with it (#10617).
+		const repositionedPagePoint = Vec.Add(
+			newPageCenter,
+			Vec.Sub(initialPagePoint, initialPageCenter)
 		)
-		const newPageCenterInParentSpace = this.getPointInParentSpace(initialShape.id, newPageCenter)
-
-		const delta = Vec.Sub(newPageCenterInParentSpace, initialPageCenterInParentSpace)
+		const repositionedLocalPoint = this.getPointInParentSpace(
+			initialShape.id,
+			repositionedPagePoint
+		)
 
 		if (workingShape) {
 			// the util's onResize ran but returned no change; keep the working update (which may
 			// include changes from onResizeStart / onResizeEnd) and reposition the shape
 			return {
 				...workingShape,
-				x: initialShape.x + delta.x,
-				y: initialShape.y + delta.y,
+				x: repositionedLocalPoint.x,
+				y: repositionedLocalPoint.y,
 			}
 		}
 
 		return {
 			id,
 			type: initialShape.type as any,
-			x: initialShape.x + delta.x,
-			y: initialShape.y + delta.y,
+			x: repositionedLocalPoint.x,
+			y: repositionedLocalPoint.y,
 		}
 	}
 
@@ -11559,7 +11570,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 						break
 					}
 					case 'key_repeat': {
-						// noop
+						// A repeat is the only positive evidence that a key is still physically
+						// down, so it is also the only way one we lost track of can get back in.
+						// A key still held when Meta is released is dropped there on the
+						// assumption macOS ate its keyup; this is what corrects that.
+						inputs.keys.add(info.code)
 						break
 					}
 				}

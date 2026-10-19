@@ -1,14 +1,7 @@
 import { DB } from '@tldraw/dotcom-shared'
-import {
-	CompiledQuery,
-	DatabaseConnection,
-	Kysely,
-	PostgresAdapter,
-	PostgresIntrospector,
-	PostgresQueryCompiler,
-	QueryResult,
-} from 'kysely'
+import { Kysely } from 'kysely'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createFakeKysely } from '../../test/fakeKysely'
 import { Environment } from '../../types'
 import { RENAME_BOARD_FORBIDDEN_MESSAGE, RENAME_BOARD_NOT_FOUND_MESSAGE } from './boardTools'
 
@@ -46,44 +39,10 @@ const { renameBoardForUser } = await import('./renameBoard')
 
 const env = { BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: 'postgres://test' } as Environment
 
-// A real Kysely on a driver that records the SQL and hands back queued result sets in order.
 function mockPool(resultSets: unknown[][]) {
-	const queries: CompiledQuery[] = []
-	const queued = [...resultSets]
-	const destroy = vi.fn(async () => {})
-	const connection: DatabaseConnection = {
-		async executeQuery<R>(compiled: CompiledQuery<unknown>): Promise<QueryResult<R>> {
-			queries.push(compiled)
-			return { rows: (queued.shift() ?? []) as R[] }
-		},
-		async *streamQuery() {},
-	}
-	const db = new Kysely<DB>({
-		dialect: {
-			createAdapter: () => new PostgresAdapter(),
-			createIntrospector: (instance) => new PostgresIntrospector(instance),
-			createQueryCompiler: () => new PostgresQueryCompiler(),
-			createDriver: () => ({
-				async init() {},
-				async acquireConnection() {
-					return connection
-				},
-				async beginTransaction() {
-					queries.push(CompiledQuery.raw('begin'))
-				},
-				async commitTransaction() {
-					queries.push(CompiledQuery.raw('commit'))
-				},
-				async rollbackTransaction() {
-					queries.push(CompiledQuery.raw('rollback'))
-				},
-				async releaseConnection() {},
-				destroy,
-			}),
-		},
-	})
-	vi.mocked(createPostgresConnectionPool).mockReturnValue(db)
-	return { queries, destroy }
+	const fake = createFakeKysely(resultSets)
+	vi.mocked(createPostgresConnectionPool).mockReturnValue(fake.db)
+	return fake
 }
 
 const USER_ID = 'user_2abcdefghijklmno'
