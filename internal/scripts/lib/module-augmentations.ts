@@ -5,17 +5,25 @@ import { glob } from 'glob'
 import { parse, print } from 'recast'
 
 /**
- * api-extractor drops `declare module '…'` and `declare global` blocks from its rollups, so a
- * package registering a shape type through `TLGlobalShapePropsMap` would publish typings that no
- * longer know it. Copy them back onto the end of each rollup.
+ * api-extractor drops `declare module '…'` blocks from its rollups, so a package registering a shape
+ * type through `TLGlobalShapePropsMap` would publish typings that no longer know it. Copy the ones
+ * augmenting tldraw's own modules back onto the end of each rollup. Others stay out: editor's
+ * `declare module 'react'` narrows `id` to `SafeId`, and would break consumers' own `id` props.
  */
 export function restoreModuleAugmentations(tsbuildDir: string, rollupFiles: string[]) {
 	const blocks: string[] = []
-	// Tests register throwaway shapes this way too.
+	// Tests register throwaway shapes this way too, and those mustn't ship.
 	const files = glob.sync(path.join(tsbuildDir, '**/*.d.ts'), {
 		ignore: ['**/*.test.d.ts', '**/*.spec.d.ts', '**/test/**', '**/__tests__/**'],
 	})
-	for (const file of files.sort()) {
+	// Incremental builds leave a deleted or renamed source's output behind, with a block naming
+	// exports the rollup no longer has.
+	const srcDir = path.join(path.dirname(tsbuildDir), 'src')
+	const hasSource = (file: string) => {
+		const stem = path.join(srcDir, path.relative(tsbuildDir, file).replace(/\.d\.ts$/, ''))
+		return existsSync(`${stem}.ts`) || existsSync(`${stem}.tsx`)
+	}
+	for (const file of files.filter(hasSource).sort()) {
 		const code = parse(readFileSync(file, 'utf8'), {
 			parser: require('recast/parsers/typescript'),
 		})
@@ -34,9 +42,7 @@ export function restoreModuleAugmentations(tsbuildDir: string, rollupFiles: stri
 }
 
 function isAugmentation(statement: namedTypes.TSModuleDeclaration) {
-	// `declare module 'x' {}` names a string; `declare global {}` is the identifier `global`.
-	return (
-		namedTypes.StringLiteral.check(statement.id) ||
-		(namedTypes.Identifier.check(statement.id) && statement.id.name === 'global')
-	)
+	if (!namedTypes.StringLiteral.check(statement.id)) return false
+	const name = statement.id.value
+	return name === 'tldraw' || name.startsWith('@tldraw/')
 }
