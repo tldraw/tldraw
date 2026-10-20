@@ -3,6 +3,7 @@ import { DragEvent, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tlmenus } from 'tldraw'
 import { routes } from '../../routeDefs'
+import { tokenOrUndefinedWhenOffline } from '../utils/auth'
 import { useRejectTldrawOfflineFiles } from '../utils/tldrawOfflineFiles'
 import { useApp } from './useAppState'
 
@@ -20,7 +21,7 @@ export function useTldrFileDrop() {
 			const droppedFiles = e.dataTransfer?.files ? Array.from(e.dataTransfer.files) : []
 			if (!droppedFiles.length) return
 
-			const token = await auth.getToken()
+			const token = await tokenOrUndefinedWhenOffline(() => auth.getToken())
 			if (!token) {
 				return
 			}
