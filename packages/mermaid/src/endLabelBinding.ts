@@ -40,10 +40,9 @@ const ACROSS_LINE = 6
 
 /**
  * Keeps a label, such as a class diagram's multiplicity (`1`, `*`, `0..1`), beside one end of an
- * arrow. Bind the label from the arrow, and the util parents it to the shape at that end, so it
- * moves with that shape and anything holding it. The util also binds it from both shapes the arrow
- * joins, since an arrow's own record doesn't change when only a shape it's bound to moves, and it
- * slides along the edge as the line turns. Dragging the label away snaps it back on the next change.
+ * arrow. Bind the label from the arrow: the util parents it to the shape at that end, and binds it
+ * from both shapes the arrow joins, since an arrow's own record doesn't change when only a shape it's
+ * bound to moves. A label dragged away snaps back on the next change.
  * @public
  */
 export class MermaidEndLabelBindingUtil extends BindingUtil<TLMermaidEndLabelBinding> {
@@ -80,12 +79,7 @@ export class MermaidEndLabelBindingUtil extends BindingUtil<TLMermaidEndLabelBin
 		const arrow = getLabelArrow(editor, labelId)
 		const label = editor.getShape(labelId)
 		if (!label || !arrow) return
-		if (binding.fromId === arrow.id) {
-			watchArrowTargets(editor, label, arrow, binding.props)
-			// Follow the arrow onto whatever its end is dragged to.
-			const target = getArrowBindings(editor, arrow)[binding.props.terminal]?.toId
-			if (target && label.parentId !== target) editor.reparentShapes([labelId], target)
-		}
+		if (binding.fromId === arrow.id) followArrowTargets(editor, label, arrow, binding.props)
 		placeEndLabel(editor, editor.getShape(labelId)!, arrow, binding.props.terminal)
 	}
 }
@@ -98,14 +92,16 @@ function getLabelArrow(editor: Editor, labelId: TLShapeId): TLArrowShape | undef
 	return undefined
 }
 
-// Bind the label from whatever the arrow joins now, so it follows an arrow dragged onto another shape.
-function watchArrowTargets(
+// Live in, and watch, whatever the arrow joins now, so the label follows an arrow dragged elsewhere.
+function followArrowTargets(
 	editor: Editor,
 	label: TLShape,
 	arrow: TLArrowShape,
 	props: TLMermaidEndLabelBindingProps
 ) {
 	const { start, end } = getArrowBindings(editor, arrow)
+	const parent = (props.terminal === 'start' ? start : end)?.toId
+	if (parent && label.parentId !== parent) editor.reparentShapes([label.id], parent)
 	const targets = new Set([start?.toId, end?.toId].filter((id) => id !== undefined))
 	const watching = editor
 		.getBindingsToShape(label.id, MERMAID_END_LABEL_BINDING_TYPE)

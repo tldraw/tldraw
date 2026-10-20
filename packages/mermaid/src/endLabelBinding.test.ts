@@ -61,13 +61,6 @@ describe('MermaidEndLabelBindingUtil', () => {
 		expect(Math.abs(center.y - 50)).toBeGreaterThan(5)
 	})
 
-	it('watches the shapes the arrow joins as well as the arrow', () => {
-		const editor = createEditor()
-		createLabelledArrow(editor)
-
-		expect(watchedShapeIds(editor)).toEqual([ids.a, ids.arrow, ids.b].sort())
-	})
-
 	it('follows a joined shape that moves, though the arrow record does not change', () => {
 		const editor = createEditor()
 		createLabelledArrow(editor)

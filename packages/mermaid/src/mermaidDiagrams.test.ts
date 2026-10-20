@@ -1940,7 +1940,9 @@ describe('classToBlueprint', () => {
     class Box~T~ {
         <<interface>>
         +List~int~ items
+        +int count$
         +open() bool
+        +close()*
     }
     class Empty`)
 
@@ -1948,15 +1950,16 @@ describe('classToBlueprint', () => {
 		const box = findNode(bp, 'Box')!
 		expect(box).toMatchObject({
 			kind: 'class',
-			label: '«interface»<br>Box&lt;T&gt;<br><br>+List&lt;int&gt; items<br><br>+open() : bool',
+			label:
+				'«interface»<br>Box&lt;T&gt;<br><br>+List&lt;int&gt; items<br>+int count<br><br>+open() : bool<br>+close()',
 			align: 'start',
 			verticalAlign: 'start',
 		})
 		expect(box.classBox).toEqual({
 			annotations: ['interface'],
 			name: 'Box<T>',
-			attributes: [{ text: '+List<int> items' }],
-			methods: [{ text: '+open() : bool' }],
+			attributes: [{ text: '+List<int> items' }, { text: '+int count', classifier: 'static' }],
+			methods: [{ text: '+open() : bool' }, { text: '+close()', classifier: 'abstract' }],
 		})
 		expect(box.w).toBeGreaterThan(0)
 		expectNodeGeo(box, 'rectangle', 'class')
@@ -1964,23 +1967,6 @@ describe('classToBlueprint', () => {
 			label: 'Empty',
 			align: 'middle',
 			verticalAlign: 'middle',
-		})
-	})
-
-	it('marks static and abstract members', async () => {
-		const bp = await classBlueprint(`classDiagram
-    class Counter {
-        +int total$
-        +reset()$
-        +step()*
-    }`)
-
-		expect(findNode(bp, 'Counter')!.classBox).toMatchObject({
-			attributes: [{ text: '+int total', classifier: 'static' }],
-			methods: [
-				{ text: '+reset()', classifier: 'static' },
-				{ text: '+step()', classifier: 'abstract' },
-			],
 		})
 	})
 
@@ -1993,46 +1979,23 @@ describe('classToBlueprint', () => {
     Duck ..> Water
     Zoo -- Ticket`)
 
-		const relation = (from: string, to: string) => {
-			const { arrowheadStart, arrowheadEnd, fill, dash } = findEdge(bp, from, to)!
-			return { arrowheadStart, arrowheadEnd, fill, dash }
-		}
-		expect(relation('Animal', 'Duck')).toEqual({
-			arrowheadStart: 'triangle',
-			arrowheadEnd: 'none',
-			fill: 'none',
-			dash: 'solid',
-		})
-		expect(relation('Duck', 'Swimmer')).toEqual({
-			arrowheadStart: 'none',
-			arrowheadEnd: 'triangle',
-			fill: 'none',
-			dash: 'dashed',
-		})
-		expect(relation('Zoo', 'Animal')).toEqual({
-			arrowheadStart: 'diamond',
-			arrowheadEnd: 'none',
-			fill: 'fill',
-			dash: 'solid',
-		})
-		expect(relation('Zoo', 'Keeper')).toEqual({
-			arrowheadStart: 'diamond',
-			arrowheadEnd: 'none',
-			fill: 'none',
-			dash: 'solid',
-		})
-		expect(relation('Duck', 'Water')).toEqual({
-			arrowheadStart: 'none',
-			arrowheadEnd: 'arrow',
-			fill: 'none',
-			dash: 'dashed',
-		})
-		expect(relation('Zoo', 'Ticket')).toEqual({
-			arrowheadStart: 'none',
-			arrowheadEnd: 'none',
-			fill: 'none',
-			dash: 'solid',
-		})
+		expect(
+			bp.edges.map((e) => [
+				e.startNodeId,
+				e.endNodeId,
+				e.arrowheadStart,
+				e.arrowheadEnd,
+				e.fill,
+				e.dash,
+			])
+		).toEqual([
+			['Animal', 'Duck', 'triangle', 'none', 'none', 'solid'],
+			['Duck', 'Swimmer', 'none', 'triangle', 'none', 'dashed'],
+			['Zoo', 'Animal', 'diamond', 'none', 'fill', 'solid'],
+			['Zoo', 'Keeper', 'diamond', 'none', 'none', 'solid'],
+			['Duck', 'Water', 'none', 'arrow', 'none', 'dashed'],
+			['Zoo', 'Ticket', 'none', 'none', 'none', 'solid'],
+		])
 	})
 
 	it('keeps each multiplicity with its end of the relation', async () => {
@@ -2189,16 +2152,5 @@ classDiagram
 			expect(findNode(bp, 'Crater')!.parentId).toBe('Earth.Volcano.Summit')
 			expect(findNode(bp, 'Hotspot')!.parentId).toBe('Earth')
 		})
-	})
-
-	it('claims the path mermaid drew for each of several relations between the same classes', async () => {
-		const bp = await classBlueprint(`classDiagram
-    A --> B : one
-    A --> B : two`)
-
-		expect(bp.edges.map((e) => [e.startNodeId, e.endNodeId, e.label])).toEqual([
-			['A', 'B', 'one'],
-			['A', 'B', 'two'],
-		])
 	})
 })

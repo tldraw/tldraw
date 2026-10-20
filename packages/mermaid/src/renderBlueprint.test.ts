@@ -181,24 +181,20 @@ describe('renderBlueprint', () => {
 			expect(shapesOfType(editor, 'text')).toEqual([])
 		})
 
-		it('explains a mapper asking for the class shape when it is not registered', () => {
-			const editor = createEditor({ withMermaidUtils: false })
-			expect(() =>
-				renderBlueprint(editor, blueprint, {
-					mapNodeToRenderSpec: () => ({ variant: 'shape', type: 'mermaid-class', props: {} }),
-				})
-			).toThrow("MermaidClassShapeUtil isn't in the editor's shapeUtils")
-		})
-
-		it('lets a mapper choose the shape over the class box', () => {
+		it('lets a mapper choose the shape, and explains one asking for an unregistered class shape', () => {
 			const editor = createEditor()
 			renderBlueprint(editor, blueprint, {
 				position: { x: 0, y: 0 },
 				centerOnPosition: false,
 				mapNodeToRenderSpec: () => ({ variant: 'geo', geo: 'ellipse' }),
 			})
-
 			expect(shapesOfType(editor, 'mermaid-class')).toEqual([])
+
+			expect(() =>
+				renderBlueprint(createEditor({ withMermaidUtils: false }), blueprint, {
+					mapNodeToRenderSpec: () => ({ variant: 'shape', type: 'mermaid-class', props: {} }),
+				})
+			).toThrow("MermaidClassShapeUtil isn't in the editor's shapeUtils")
 		})
 
 		it('puts the end labels beside the arrow, bound to it, with the title in the middle', () => {

@@ -149,9 +149,8 @@ export interface ClassDiagramHierarchyNode {
 }
 
 /**
- * Mermaid routes a class's relation to itself through spare ranks, as a hairpin that can run
- * hundreds of pixels past the class. A tldraw arrow can only bend into an arc, and an arc that deep
- * swells into a circle over the rest of the diagram, so keep the loop near the class instead.
+ * Mermaid can route a class's relation to itself as a hairpin hundreds of pixels long. A tldraw arc
+ * that deep swells into a circle over the rest of the diagram.
  */
 function capSelfLoop<T extends { bend: number }>(loop: T | undefined, node: ParsedNode) {
 	if (!loop) return undefined

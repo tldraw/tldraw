@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { Tldraw, defaultHandleExternalTextContent, useEditor, useToasts } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// Optional: without these, class diagrams fall back to rectangles with multiplicities in the arrow's label.
+// Optional: without them, class diagrams fall back to rectangles and folded labels.
 const shapeUtils = [MermaidClassShapeUtil]
 const bindingUtils = [MermaidEndLabelBindingUtil]
 

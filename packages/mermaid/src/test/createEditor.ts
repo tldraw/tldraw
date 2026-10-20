@@ -11,7 +11,7 @@ import {
 import { MermaidClassShapeUtil } from '../classShape'
 import { MermaidEndLabelBindingUtil } from '../endLabelBinding'
 
-/** A real editor, with the class shape and end label binding registered unless `withMermaidUtils` is false. */
+/** A real editor, with the mermaid shape and binding utils unless `withMermaidUtils` is false. */
 export function createEditor({ withMermaidUtils = true } = {}) {
 	const shapeUtils = withMermaidUtils
 		? [...defaultShapeUtils, MermaidClassShapeUtil]
