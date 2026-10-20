@@ -2093,6 +2093,40 @@ describe('classToBlueprint', () => {
 		expect(loop.anchorStartX).toBeLessThan(loop.anchorEndX!)
 	})
 
+	it('keeps a self-loop near its class when mermaid routes it far away', async () => {
+		// Mermaid can run a self-loop hundreds of pixels down through spare ranks.
+		const path = (id: string, points: [number, number][]) =>
+			`<path data-id="${id}" data-points="${btoa(JSON.stringify(points.map(([x, y]) => ({ x, y }))))}" />`
+		const container = document.createElement('div')
+		container.innerHTML = `<svg>
+			<g class="node" id="mermaid-0-classId-Node-0" transform="translate(100,50)"><rect width="100" height="60" /></g>
+			${path('Node-cyclic-special-1', [
+				[90, 80],
+				[90, 500],
+			])}
+			${path('Node-cyclic-special-mid', [
+				[90, 500],
+				[100, 700],
+				[110, 500],
+			])}
+			${path('Node-cyclic-special-2', [
+				[110, 500],
+				[110, 80],
+			])}
+		</svg>`
+		const db = await parseClassDb(`classDiagram
+    Node --> Node : next`)
+
+		const bp = classToBlueprint(
+			parseClassDiagramLayout(container.querySelector('svg')!),
+			db.getClasses(),
+			db.getRelations()
+		)
+
+		// Half the class's larger side, scaled with the layout: 100 × 1.25 / 2.
+		expect(Math.abs(findEdge(bp, 'Node', 'Node')!.bend)).toBeCloseTo(62.5)
+	})
+
 	describe('namespaces', () => {
 		const source = (hierarchical: boolean) => `---
 config:
