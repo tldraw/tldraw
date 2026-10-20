@@ -118,9 +118,8 @@ export function isPlainDoubleClickDown(editor: Editor, info: TLClickEventInfo) {
  * Call `start` in `onEnter`, or a double click whose press became a drag replays on the next plain
  * click. Add new users to `deferredDoubleClick.test.ts`.
  *
- * Specific to the select tool: replay hands the event to the parent's `idle` child, which
- * hit-tests double clicks on handles, selection and shapes. Other tools have no pointing states
- * where a second press can become a drag, so they act on double clicks directly.
+ * Only the select tool needs this: its pointing states are the only ones where a second press
+ * can become a drag, so other tools act on double clicks directly.
  *
  * @internal
  */
@@ -141,6 +140,11 @@ export class DeferredDoubleClick {
 		}
 	}
 
+	/**
+	 * Returns true when it consumed the pointer up. Assumes the select tool's layout: the parent
+	 * (`select`, or `select.crop`) has an `idle` child that hit-tests double clicks on handles,
+	 * selection and shapes.
+	 */
 	replay() {
 		if (!this.info) return false
 		const { parent } = this.state
