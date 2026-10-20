@@ -55,13 +55,16 @@ export interface TLUiMessageProps extends TLI18nMessageInput {
  * @public @react
  */
 export function F({ values, ...descriptor }: TLUiMessageProps) {
+	// Without a plugin to inject one, react-intl throws on a missing id. Same default as
+	// `defineMessages`, so the id an untransformed `<F>` looks up is the one it was declared under.
+	const id = descriptor.id ?? descriptor.defaultMessage
 	return (
 		// Inline, so the marker span doesn't disturb the layout around it. Why it's here at all is
 		// on `F` above.
 		<span className="i18n-msg">
 			{/* The rule can't see a spread; `F`'s own callers are what it needs to check. */}
 			{/* eslint-disable-next-line tldraw/enforce-default-message */}
-			<FormattedMessage {...descriptor} values={values} />
+			<FormattedMessage {...descriptor} id={id} values={values} />
 		</span>
 	)
 }

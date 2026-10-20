@@ -1,4 +1,4 @@
-import { LANGUAGES, fetch } from '@tldraw/editor'
+import { LANGUAGES, fetch, getDeclaredMessages } from '@tldraw/editor'
 import { TLUiAssetUrls } from '../../assetUrls'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
 
@@ -51,10 +51,10 @@ export async function fetchTranslation(
 		return EN_TRANSLATION
 	}
 
-	// The only reader of en.json, so it's fetched only here.
 	if (process.env.NODE_ENV === 'development') {
-		const main: Record<string, string> = await (await fetch(assetUrls.translations.en)).json()
-		const missing = Object.keys(main).filter((key) => !messages[key as TLUiTranslationKey])
+		const missing = Object.keys(getDeclaredMessages()).filter(
+			(key) => !messages[key as TLUiTranslationKey]
+		)
 		if (missing.length > 0) {
 			console.warn(`Language ${locale}: missing messages for keys:\n${missing.join('\n')}`)
 		}

@@ -59,6 +59,11 @@ describe('F', () => {
 		})
 		expect(screen.getByText('Kopieer')).toBeTruthy()
 	})
+
+	it('renders its English when given no id', () => {
+		render(<F defaultMessage="Hello there" />, { wrapper: withProvider() })
+		expect(screen.getByText('Hello there')).toBeTruthy()
+	})
 })
 
 describe('TldrawUiTranslationProvider', () => {
