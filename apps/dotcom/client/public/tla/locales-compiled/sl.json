@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Povlecite datoteko v stransko vrstico na tej strani. Ali pa v uporabniškem meniju izberite možnost 'Uvozi datoteko'."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1328,6 +1322,12 @@
     {
       "type": 0,
       "value": "Lastnik"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Povlecite datoteko v stransko vrstico na tej strani. Ali pa v meniju Datoteka v zgornjem levem kotu izberite možnost »Uvozi datoteko«."
     }
   ],
   "b758336699": [

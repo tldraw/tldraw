@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Povucite datoteku u bočnu traku na ovoj stranici. Ili odaberite opciju 'Uvezi datoteku' iz korisničkog izbornika."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1313,6 +1307,12 @@
     {
       "type": 0,
       "value": "Vlasnik"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Povucite datoteku u bočnu traku na ovoj stranici. Ili odaberite opciju 'Uvezi datoteku' iz izbornika Datoteka u gornjem lijevom kutu."
     }
   ],
   "b758336699": [

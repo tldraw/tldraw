@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Arrastre el archivo hasta la barra lateral de esta página o seleccione la opción \"Importar archivo\" del menú de usuario."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1306,6 +1300,12 @@
     {
       "type": 0,
       "value": "Dueño"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Arrastra el archivo a la barra lateral de esta página. O selecciona la opción \"Importar archivo\" en el menú \"Archivo\" de la esquina superior izquierda."
     }
   ],
   "b758336699": [

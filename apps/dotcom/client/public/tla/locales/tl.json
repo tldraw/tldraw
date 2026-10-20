@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Nagsusumikap kaming suportahan ang mga file mula sa <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "I-drag ang file sa sidebar sa page na ito. O piliin ang opsyong 'Mag-import ng file' mula sa menu ng user."
-  },
   "043973ec1f": {
     "translation": "Nahihirapan pa rin? {GetHelpLink}"
   },
@@ -536,6 +533,9 @@
   },
   "b6f4a2ec63": {
     "translation": "May-ari"
+  },
+  "b74dbb40c5": {
+    "translation": "I-drag ang file papunta sa sidebar sa pahinang ito. O piliin ang opsyong 'I-import ang file' mula sa menu na File sa kaliwang itaas."
   },
   "b758336699": {
     "translation": "Kopyahin ang link"

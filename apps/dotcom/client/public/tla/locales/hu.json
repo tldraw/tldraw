@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Dolgozunk a(z) <a><strong>{appName}</strong></a> alkalmazásból származó fájlok támogatásán."
   },
-  "03b3e13197": {
-    "translation": "Húzza a fájlt az oldal oldalsávjába. Vagy válassza a „Fájl importálása” opciót a felhasználói menüből."
-  },
   "043973ec1f": {
     "translation": "Még mindig gondja van? {GetHelpLink}"
   },
@@ -536,6 +533,9 @@
   },
   "b6f4a2ec63": {
     "translation": "Tulajdonos"
+  },
+  "b74dbb40c5": {
+    "translation": "Húzd a fájlt az oldalsávba ezen az oldalon. Vagy válaszd a „Fájl importálása” lehetőséget a bal felső sarokban található Fájl menüből."
   },
   "b758336699": {
     "translation": "Link másolása"

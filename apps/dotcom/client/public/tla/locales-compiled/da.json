@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Træk filen ind i sidebjælken på denne side. Eller vælg indstillingen 'Importer fil' fra brugermenuen."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1306,6 +1300,12 @@
     {
       "type": 0,
       "value": "Ejer"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Træk filen ind i sidebjælken på denne side. Eller vælg 'Importer fil' i menuen Filer øverst til venstre."
     }
   ],
   "b758336699": [

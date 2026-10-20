@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Přetáhněte soubor na postranní panel na této stránce. Nebo vyberte možnost Importovat soubor z uživatelské nabídky."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -1328,6 +1322,12 @@
     {
       "type": 0,
       "value": "Majitel"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Přetáhněte soubor do postranního panelu na této stránce. Nebo vyberte možnost „Importovat soubor“ z nabídky Soubor vlevo nahoře."
     }
   ],
   "b758336699": [
