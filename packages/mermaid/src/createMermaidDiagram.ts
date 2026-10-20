@@ -158,7 +158,7 @@ export async function createMermaidDiagram(
 			case 'classDiagram': {
 				const db = diagramResult.db as ClassDB
 				const layout = parseClassDiagramLayout(liveSvg)
-				blueprint = classToBlueprint(layout, db.getClasses(), db.getRelations())
+				blueprint = classToBlueprint(layout, db.getClasses(), db.getRelations(), db.getData().nodes)
 				break
 			}
 			case 'mindmap': {

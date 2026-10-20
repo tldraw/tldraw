@@ -1904,6 +1904,8 @@ describe('mindmapToBlueprint', () => {
 describe('classToBlueprint', () => {
 	async function parseClassDb(source: string) {
 		const mermaid = (await import('mermaid')).default
+		// Applies the diagram's own config, as createMermaidDiagram does before reading the db.
+		await mermaid.parse(source)
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		return (await mermaid.mermaidAPI.getDiagramFromText(source)).db as ClassDB
 	}
@@ -2089,6 +2091,70 @@ describe('classToBlueprint', () => {
 		const loop = findEdge(bp, 'Node', 'Node')!
 		expect(loop).toMatchObject({ anchorStartY: 1, anchorEndY: 1, label: 'next' })
 		expect(loop.anchorStartX).toBeLessThan(loop.anchorEndX!)
+	})
+
+	describe('namespaces', () => {
+		const source = (hierarchical: boolean) => `---
+config:
+  class:
+    hierarchicalNamespaces: ${hierarchical}
+---
+classDiagram
+    namespace Earth.Volcano.Summit {
+        class Crater
+    }
+    namespace Earth {
+        class Hotspot
+    }
+    Hotspot --> Crater`
+		// Clusters as mermaid places them: Summit's top sits just under Volcano's, which is under Earth's.
+		const layout = (clusterIds: string[]) =>
+			diagramLayout(
+				[node('Hotspot', 100, 100, 80, 40), node('Crater', 100, 300, 80, 40)],
+				clusterIds.map((id, i) => cluster(id, 0, 200 + i * 20, 400, 300 - i * 40))
+			)
+		const frames = (bp: DiagramMermaidBlueprint) =>
+			bp.nodes
+				.filter((n) => n.kind === 'namespace')
+				.map(({ id, label, parentId }) => ({ id, label, parentId }))
+
+		it('nests frames named after each level by default', async () => {
+			const db = await parseClassDb(source(true))
+			const bp = classToBlueprint(
+				layout(['Earth', 'Earth.Volcano', 'Earth.Volcano.Summit']),
+				db.getClasses(),
+				db.getRelations(),
+				db.getData().nodes
+			)
+
+			expect(frames(bp)).toEqual([
+				{ id: 'Earth', label: 'Earth', parentId: undefined },
+				{ id: 'Earth.Volcano', label: 'Volcano', parentId: 'Earth' },
+				{ id: 'Earth.Volcano.Summit', label: 'Summit', parentId: 'Earth.Volcano' },
+			])
+			expect(findNode(bp, 'Crater')!.parentId).toBe('Earth.Volcano.Summit')
+			// Each parent grows upward so its child frame clears its name.
+			const top = (id: string) => findNode(bp, id)!.y
+			expect(top('Earth.Volcano.Summit') - top('Earth.Volcano')).toBeGreaterThanOrEqual(50)
+			expect(top('Earth.Volcano') - top('Earth')).toBeGreaterThanOrEqual(50)
+		})
+
+		it('draws only the declared namespaces, flat and named in full, when not hierarchical', async () => {
+			const db = await parseClassDb(source(false))
+			const bp = classToBlueprint(
+				layout(['Earth', 'Earth.Volcano.Summit']),
+				db.getClasses(),
+				db.getRelations(),
+				db.getData().nodes
+			)
+
+			expect(frames(bp)).toEqual([
+				{ id: 'Earth', label: 'Earth', parentId: undefined },
+				{ id: 'Earth.Volcano.Summit', label: 'Earth.Volcano.Summit', parentId: undefined },
+			])
+			expect(findNode(bp, 'Crater')!.parentId).toBe('Earth.Volcano.Summit')
+			expect(findNode(bp, 'Hotspot')!.parentId).toBe('Earth')
+		})
 	})
 
 	it('claims the path mermaid drew for each of several relations between the same classes', async () => {

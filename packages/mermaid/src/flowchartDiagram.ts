@@ -30,7 +30,7 @@ import {
 	scaleLayout,
 	stripDiagramIdPrefix,
 } from './svgParsing'
-import { dropDanglingEdges, getArrowBend, LAYOUT_SCALE, orderTopDown } from './utils'
+import { dropDanglingEdges, FRAME_TOP_PAD, getArrowBend, LAYOUT_SCALE, orderTopDown } from './utils'
 
 function mapEdgeTypeToArrowhead(type: string | undefined): TLArrowShapeArrowheadStyle {
 	if (type?.includes('circle')) return 'dot'
@@ -39,7 +39,6 @@ function mapEdgeTypeToArrowhead(type: string | undefined): TLArrowShapeArrowhead
 	return 'arrow'
 }
 
-const FRAME_TOP_PAD = 14
 const NODE_ID = /^flowchart-(.+)-\d+$/
 const EDGE_ID = /(?:^|-)L_(.+)_\d+$/
 

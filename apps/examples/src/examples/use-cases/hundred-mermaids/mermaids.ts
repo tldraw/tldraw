@@ -1495,5 +1495,23 @@ sequenceDiagram
         +Node next
     }
     Node --> Node : next`,
+		`classDiagram
+    namespace Earth.Volcano.Summit {
+        class Crater {
+            +erupt()
+        }
+    }
+    namespace Earth.Volcano.Slope {
+        class LavaFlow {
+            +buildLand()
+        }
+    }
+    namespace Earth {
+        class Hotspot {
+            +meltRock()
+        }
+    }
+    Hotspot --> Crater : feeds
+    Hotspot --> LavaFlow : feeds`,
 	],
 ]

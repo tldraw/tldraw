@@ -16,6 +16,7 @@ import {
 	claimEdge,
 	getSelfLoopEdgeLayout,
 	parseAllEdgePointsFromSvg,
+	parseClustersFromSvg,
 	parseDomId,
 	parseEdgeId,
 	parseEdgeLabelsFromSvg,
@@ -23,12 +24,15 @@ import {
 	type ParsedEdge,
 	parseNodesFromSvg,
 	scaleLayout,
+	stripDiagramIdPrefix,
 } from './svgParsing'
 import {
 	dropDanglingEdges,
 	escapeHtml,
+	FRAME_TOP_PAD,
 	getArrowBend,
 	LAYOUT_SCALE,
+	orderTopDown,
 	sanitizeDiagramText,
 } from './utils'
 
@@ -62,7 +66,8 @@ function mapRelationTypeToArrowhead(type: number | string): TLArrowShapeArrowhea
 /** Parse class diagram SVG layout data for use by {@link classToBlueprint}. */
 export function parseClassDiagramLayout(root: Element): ParsedDiagramLayout {
 	const nodes = parseNodesFromSvg(root, '.node', (domId) => parseDomId(domId, NODE_ID))
-	const centers = buildNodeCentersFromSvg(nodes, new Map())
+	const clusters = parseClustersFromSvg(root, '.cluster', stripDiagramIdPrefix)
+	const centers = buildNodeCentersFromSvg(nodes, clusters)
 	const edges = parseAllEdgePointsFromSvg(root, (dataId, points) => {
 		const selfLoop = dataId.match(SELF_LOOP_SEGMENT_ID)
 		if (selfLoop) return { start: selfLoop[1], end: selfLoop[1] }
@@ -70,7 +75,7 @@ export function parseClassDiagramLayout(root: Element): ParsedDiagramLayout {
 	})
 	const layout = {
 		nodes,
-		clusters: new Map(),
+		clusters,
 		edges: joinSelfLoopSegments(edges),
 		edgeLabels: parseEdgeLabelsFromSvg(root),
 	}
@@ -130,17 +135,80 @@ function getMultiplicity(title: string) {
 	return title && title !== 'none' ? title : undefined
 }
 
+/**
+ * The frames and parents mermaid drew, from `ClassDB.getData().nodes`. It has already resolved
+ * `hierarchicalNamespaces`: nested frames with short names, or only the declared namespaces with
+ * their full dotted names.
+ */
+export interface ClassDiagramHierarchyNode {
+	id: string
+	label?: string
+	isGroup: boolean
+	parentId?: string
+}
+
+// Mermaid leaves less room above a nested namespace than tldraw's frame label takes, so the child
+// frame would hide its parent's name.
+const NAMESPACE_LABEL_ROOM = 50
+
+/** Grow each namespace upward until its child namespaces clear its label, innermost first. */
+function makeRoomForNamespaceLabels(nodes: MermaidBlueprintNode[]) {
+	const frames = nodes.filter((node) => node.kind === 'namespace')
+	const byId = new Map(frames.map((frame) => [frame.id, frame]))
+	const depth = (frame: MermaidBlueprintNode) => {
+		let count = 0
+		for (let id = frame.parentId; id && byId.has(id); id = byId.get(id)!.parentId) count++
+		return count
+	}
+	for (const frame of [...frames].sort((a, b) => depth(b) - depth(a))) {
+		const children = frames.filter((child) => child.parentId === frame.id)
+		if (children.length === 0) continue
+		const top = Math.min(...children.map((child) => child.y)) - NAMESPACE_LABEL_ROOM
+		if (top >= frame.y) continue
+		frame.h += frame.y - top
+		frame.y = top
+	}
+}
+
 /** Convert a parsed Mermaid class diagram into a tldraw blueprint of nodes and edges. */
 export function classToBlueprint(
 	layout: ParsedDiagramLayout,
 	classes: Map<string, ClassNode>,
-	relations: ClassRelation[]
+	relations: ClassRelation[],
+	hierarchy: ClassDiagramHierarchyNode[] = []
 ): DiagramMermaidBlueprint {
 	const { nodes: svgNodes, edges: svgEdges } = layout
 	const nodeCenters = buildNodeCentersFromSvg(svgNodes, layout.clusters)
+	const parentOf = new Map(hierarchy.map((node) => [node.id, node.parentId]))
 
 	const nodes: MermaidBlueprintNode[] = []
 	const blueprintEdges: MermaidBlueprintEdge[] = []
+
+	const namespaces = hierarchy.filter((node) => node.isGroup)
+	for (const namespace of orderTopDown(
+		namespaces,
+		(node) => node.id,
+		(node) => node.parentId
+	)) {
+		const cluster = layout.clusters.get(namespace.id)
+		if (!cluster) continue
+		nodes.push({
+			id: namespace.id,
+			kind: 'namespace',
+			x: cluster.topLeft.x,
+			y: cluster.topLeft.y - FRAME_TOP_PAD,
+			w: cluster.width,
+			h: cluster.height + FRAME_TOP_PAD,
+			parentId: namespace.parentId,
+			label: namespace.label || namespace.id,
+			fill: 'semi',
+			color: 'black',
+			dash: 'draw',
+			size: 's',
+			align: 'middle',
+			verticalAlign: 'start',
+		})
+	}
 
 	for (const [id, classNode] of classes) {
 		const svgNode = svgNodes.get(id)
@@ -155,6 +223,7 @@ export function classToBlueprint(
 			y: svgNode.center.y - svgNode.height / 2,
 			w: svgNode.width,
 			h: svgNode.height,
+			parentId: parentOf.get(id),
 			label: getClassLabel(classBox),
 			classBox,
 			align: hasMembers ? 'start' : 'middle',
@@ -196,5 +265,6 @@ export function classToBlueprint(
 		})
 	}
 
+	makeRoomForNamespaceLabels(nodes)
 	return { diagramKind: 'class', nodes, edges: dropDanglingEdges(nodes, blueprintEdges) }
 }

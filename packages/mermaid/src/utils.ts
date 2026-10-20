@@ -65,6 +65,9 @@ export function escapeHtml(text: string) {
 	return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
+/** Room above a frame's cluster for its label, which tldraw draws inside the frame. */
+export const FRAME_TOP_PAD = 14
+
 /** Scale factor applied to parsed SVG layout (nodes, clusters, edges). */
 export const LAYOUT_SCALE = 1.25
 
