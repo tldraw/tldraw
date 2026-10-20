@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { FpsScheduler, fpsThrottle, throttleToNextFrame } from './throttle'
+import { FpsScheduler, fpsThrottle, throttle, throttleToNextFrame } from './throttle'
 
 describe('FpsScheduler class', () => {
 	let rafCallbacks: Array<FrameRequestCallback> = []
@@ -439,5 +439,189 @@ describe('real-world scenarios', () => {
 		flushAnimationFrames()
 
 		expect(soloSyncFn).toHaveBeenCalledTimes(2)
+	})
+})
+
+describe('throttle', () => {
+	beforeEach(() => {
+		vi.useFakeTimers()
+	})
+	afterEach(() => {
+		vi.useRealTimers()
+	})
+
+	it('invokes on the leading edge and coalesces calls into one trailing call', () => {
+		const fn = vi.fn((x: number) => x * 2)
+		const throttled = throttle(fn, 100)
+
+		expect(throttled(1)).toBe(2)
+		expect(fn).toHaveBeenCalledTimes(1)
+
+		expect(throttled(2)).toBe(2) // returns the last result
+		expect(throttled(3)).toBe(2)
+		expect(fn).toHaveBeenCalledTimes(1)
+
+		vi.advanceTimersByTime(99)
+		expect(fn).toHaveBeenCalledTimes(1)
+		vi.advanceTimersByTime(1)
+		expect(fn).toHaveBeenCalledTimes(2)
+		expect(fn).toHaveBeenLastCalledWith(3)
+		expect(throttled(4)).toBe(6) // result of the trailing call
+	})
+
+	it('does not schedule a trailing call when there was only a leading call', () => {
+		const fn = vi.fn()
+		const throttled = throttle(fn, 100)
+		throttled()
+		vi.advanceTimersByTime(1000)
+		expect(fn).toHaveBeenCalledTimes(1)
+	})
+
+	it('starts a new window after the trailing call', () => {
+		const fn = vi.fn()
+		const throttled = throttle(fn, 100)
+		throttled('a')
+		throttled('b')
+		vi.advanceTimersByTime(100) // trailing 'b' at t=100
+		expect(fn).toHaveBeenCalledTimes(2)
+
+		throttled('c') // inside the window started at t=100
+		expect(fn).toHaveBeenCalledTimes(2)
+		vi.advanceTimersByTime(100)
+		expect(fn).toHaveBeenCalledTimes(3)
+		expect(fn).toHaveBeenLastCalledWith('c')
+
+		vi.advanceTimersByTime(100) // window fully elapsed, next call is leading again
+		throttled('d')
+		expect(fn).toHaveBeenCalledTimes(4)
+		expect(fn).toHaveBeenLastCalledWith('d')
+	})
+
+	it('is leading again once a full window has passed', () => {
+		const fn = vi.fn()
+		const throttled = throttle(fn, 100)
+		throttled()
+		vi.advanceTimersByTime(100)
+		throttled()
+		expect(fn).toHaveBeenCalledTimes(2)
+	})
+
+	it('cancel drops the pending trailing call and resets the window', () => {
+		const fn = vi.fn()
+		const throttled = throttle(fn, 100)
+		throttled(1)
+		throttled(2)
+		throttled.cancel()
+		vi.advanceTimersByTime(1000)
+		expect(fn).toHaveBeenCalledTimes(1)
+
+		throttled(3) // leading again immediately after cancel
+		expect(fn).toHaveBeenCalledTimes(2)
+		expect(fn).toHaveBeenLastCalledWith(3)
+	})
+
+	it('flush runs the pending trailing call immediately', () => {
+		const fn = vi.fn((x: number) => x)
+		const throttled = throttle(fn, 100)
+		throttled(1)
+		throttled(2)
+		expect(throttled.flush()).toBe(2)
+		expect(fn).toHaveBeenCalledTimes(2)
+		expect(fn).toHaveBeenLastCalledWith(2)
+		vi.advanceTimersByTime(1000)
+		expect(fn).toHaveBeenCalledTimes(2)
+	})
+
+	it('flush without a pending call returns the last result', () => {
+		const fn = vi.fn((x: number) => x)
+		const throttled = throttle(fn, 100)
+		expect(throttled.flush()).toBeUndefined()
+		throttled(5)
+		expect(throttled.flush()).toBe(5)
+		expect(fn).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('throttle options', () => {
+	beforeEach(() => {
+		vi.useFakeTimers()
+	})
+	afterEach(() => {
+		vi.useRealTimers()
+	})
+
+	it('trailing: false drops calls inside the window and never schedules a trailing call', () => {
+		const fn = vi.fn()
+		const throttled = throttle(fn, 100, { trailing: false })
+		throttled(1)
+		throttled(2)
+		throttled(3)
+		expect(fn).toHaveBeenCalledTimes(1)
+		vi.advanceTimersByTime(1000)
+		expect(fn).toHaveBeenCalledTimes(1)
+		throttled(4)
+		expect(fn).toHaveBeenCalledTimes(2)
+		expect(fn).toHaveBeenLastCalledWith(4)
+	})
+
+	it('forwards this to the wrapped function', () => {
+		const obj = {
+			seen: [] as unknown[],
+			method: throttle(function (this: any) {
+				this.seen.push(this)
+			}, 100),
+		}
+		obj.method()
+		obj.method()
+		vi.advanceTimersByTime(100)
+		expect(obj.seen).toEqual([obj, obj])
+	})
+
+	it('recovers when the wall clock is set backwards', () => {
+		const fn = vi.fn()
+		const throttled = throttle(fn, 100)
+		throttled()
+		vi.setSystemTime(Date.now() - 60 * 60 * 1000)
+		throttled()
+		expect(fn).toHaveBeenCalledTimes(2)
+	})
+
+	it('wait: 0 invokes synchronously on every call', () => {
+		const fn = vi.fn()
+		const throttled = throttle(fn, 0)
+		throttled(1)
+		throttled(2)
+		throttled(3)
+		expect(fn).toHaveBeenCalledTimes(3)
+		expect(fn).toHaveBeenLastCalledWith(3)
+	})
+
+	it('leading: false with flush runs the deferred call immediately', () => {
+		const fn = vi.fn((x: number) => x)
+		const throttled = throttle(fn, 100, { leading: false })
+		throttled(1)
+		expect(fn).not.toHaveBeenCalled()
+		expect(throttled.flush()).toBe(1)
+		expect(fn).toHaveBeenCalledTimes(1)
+		vi.advanceTimersByTime(1000)
+		expect(fn).toHaveBeenCalledTimes(1)
+	})
+
+	it('leading: false defers the first call to the end of the window with the latest args', () => {
+		const fn = vi.fn()
+		const throttled = throttle(fn, 100, { leading: false })
+		throttled(1)
+		throttled(2)
+		expect(fn).not.toHaveBeenCalled()
+		vi.advanceTimersByTime(99)
+		expect(fn).not.toHaveBeenCalled()
+		vi.advanceTimersByTime(1)
+		expect(fn).toHaveBeenCalledTimes(1)
+		expect(fn).toHaveBeenLastCalledWith(2)
+
+		throttled(3) // still inside the window that started with the trailing call
+		vi.advanceTimersByTime(100)
+		expect(fn).toHaveBeenCalledTimes(2)
+		expect(fn).toHaveBeenLastCalledWith(3)
 	})
 })

@@ -93,6 +93,5 @@ about persisted document content and not things like the camera or selection.
 
 [3]
 Compare the two versions of an updated shape and list the top-level and `props` fields that
-changed. Nested values like `richText` need a deep comparison, so this uses `isEqual`, which
-tldraw re-exports from lodash.
+changed. Nested values like `richText` need a deep comparison, so this uses tldraw's `isEqual`.
 */

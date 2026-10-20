@@ -241,6 +241,26 @@ export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[])
 }
 
 /**
+ * Remove duplicate values from an array, keeping the first occurrence of each. Values are compared
+ * with `SameValueZero` semantics (like `Set`), so `NaN` is deduplicated and objects are compared by
+ * reference. Use {@link dedupe} when you need a custom equality function.
+ *
+ * @param array - The array (or array-like) to deduplicate; `null` and `undefined` yield `[]`
+ * @returns A new array with duplicate values removed
+ *
+ * @example
+ * ```ts
+ * uniq([1, 2, 2, 3, 1]) // [1, 2, 3]
+ * uniq(['a', 'b', 'a']) // ['a', 'b']
+ * ```
+ * @public
+ */
+export function uniq<T>(array: ArrayLike<T> | null | undefined): T[] {
+	if (!array) return []
+	return Array.from(new Set(Array.from(array)))
+}
+
+/**
  * Merge custom entries with defaults, replacing defaults that have matching keys.
  *
  * Combines two arrays by keeping all custom entries and only the default entries
