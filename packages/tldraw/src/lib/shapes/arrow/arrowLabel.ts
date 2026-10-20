@@ -20,7 +20,7 @@ import {
 	pointInPolygon,
 	toRichText,
 } from '@tldraw/editor'
-import { isEmptyRichText, renderHtmlFromRichTextForMeasurement } from '../../utils/text/richText'
+import { isEmptyRichText, createRichTextMeasurementRequest } from '../../utils/text/richText'
 import { LABEL_TO_ARROW_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getDisplayValues } from '../shared/getDisplayValues'
 import type { ArrowShapeUtilDisplayValues } from './arrow-types'
@@ -64,12 +64,12 @@ const labelSizeCache = createComputedCache(
 		let height = 0
 
 		const bodyGeom = getArrowBodyGeometry(editor, shape)
-		// We use 'i' as a default label to measure against as a minimum width.
-		const isEmpty = isEmptyRichText(shape.props.richText)
-		const html = renderHtmlFromRichTextForMeasurement(
-			editor,
-			isEmpty ? toRichText('i') : shape.props.richText
-		)
+		// We use 'i' as a default label to measure against as a minimum width. The same document
+		// must go to `richText` below, since a headless measurer lays that out instead of the html.
+		const richTextToMeasure = isEmptyRichText(shape.props.richText)
+			? toRichText('i')
+			: shape.props.richText
+		const request = createRichTextMeasurementRequest(editor, richTextToMeasure)
 
 		const bodyBounds = bodyGeom.bounds
 
@@ -77,7 +77,7 @@ const labelSizeCache = createComputedCache(
 		const fontSize = dv.labelFontSize * shape.props.scale
 
 		// First we measure the text with no constraints
-		const { w, h } = editor.textMeasure.measureHtml(html, {
+		const { w, h } = editor.textMeasure.measureRichText(request, {
 			...TEXT_PROPS,
 			lineHeight: dv.labelLineHeight,
 			fontFamily: dv.labelFontFamily,
@@ -108,7 +108,7 @@ const labelSizeCache = createComputedCache(
 		}
 
 		if (shouldSquish) {
-			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureHtml(html, {
+			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureRichText(request, {
 				...TEXT_PROPS,
 				lineHeight: dv.labelLineHeight,
 				fontFamily: dv.labelFontFamily,
