@@ -783,6 +783,9 @@ export class CollaboratorShapeIndicatorOverlayUtil extends OverlayUtil<TLCollabo
 export function ColorSchemeMenu(): JSX.Element;
 
 // @public
+export const COMMAND_PALETTE_MENU_ID = "command palette";
+
+// @public
 export function CommandPaletteActionGroup({ group, label }: TLUiCommandPaletteActionGroupProps): JSX.Element;
 
 // @public (undocumented)
@@ -867,6 +870,9 @@ export interface CommandPalettePromptItemProps {
 
 // @public (undocumented)
 export function CommandPaletteSelectionGroup(): JSX.Element;
+
+// @public
+export function CommandPaletteShell({ onClose, children }: TLUiCommandPaletteShellProps): JSX.Element;
 
 // @public
 export function CommandPaletteStylesGroup(): JSX.Element | null;
@@ -4817,6 +4823,12 @@ export interface TLUiCommandPaletteActionGroupProps {
 export interface TLUiCommandPaletteProps {
     // (undocumented)
     children?: ReactNode;
+}
+
+// @public (undocumented)
+export interface TLUiCommandPaletteShellProps {
+    children: ReactNode;
+    onClose(): void;
 }
 
 // @public (undocumented)

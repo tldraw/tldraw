@@ -17,8 +17,8 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useEffect } from 'react'
-import { isCommandPaletteMounted } from '../components/CommandPalette/commandPaletteMount'
 import { useActions } from '../context/actions'
+import { useTldrawUiComponents } from '../context/components'
 import { splitKbd } from '../kbd-utils'
 import { useCommentingEnabled } from './useCommentingEnabled'
 import { useReadonly } from './useReadonly'
@@ -42,6 +42,7 @@ export function useKeyboardShortcuts() {
 	const tools = useTools()
 	// The comment tool's shortcut is gated by the same license as its toolbar button.
 	const commentingEnabled = useCommentingEnabled()
+	const hasCommandPalette = !!useTldrawUiComponents().CommandPalette
 	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
 	useEffect(() => {
 		if (!isFocused) return
@@ -65,8 +66,8 @@ export function useKeyboardShortcuts() {
 
 			register(getHotkeysStringFromKbd(action.kbd), (event) => {
 				if (areShortcutsDisabled(editor) && !action.isRequiredA11yAction) return
-				// Without a mounted palette, leave Cmd+K to the browser or host app.
-				if (action.id === 'open-command-palette' && !isCommandPaletteMounted(editor)) return
+				// Without a palette, leave Cmd+K to the browser or host app.
+				if (action.id === 'open-command-palette' && !hasCommandPalette) return
 				preventDefault(event)
 				action.onSelect('kbd')
 			})
@@ -175,7 +176,7 @@ export function useKeyboardShortcuts() {
 			body.removeEventListener('keydown', handleKeyDown)
 			body.removeEventListener('keyup', handleKeyUp)
 		}
-	}, [actions, tools, isReadonlyMode, editor, isFocused, commentingEnabled])
+	}, [actions, tools, isReadonlyMode, editor, isFocused, commentingEnabled, hasCommandPalette])
 }
 
 function dispatchCommaPointerEvent(

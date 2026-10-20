@@ -240,6 +240,20 @@ function MyCommandPalette() {
 
 A command shows once, wherever it's placed first, so placing an action yourself takes it out of the catch-all at the end. `DefaultCommandPaletteContent` is made of exported groups, such as `CommandPaletteEditGroup` and `CommandPaletteViewGroup`, ending with `<CommandPaletteActionGroup />`, the catch-all. If you list the groups yourself, end with it too, or actions you don't place won't appear. `CommandPaletteToolsGroup` lists one item per tool, after the commands. Pass `CommandPalette: null` to turn the palette off.
 
+To change how the palette opens or where it sits, build your own the way `DefaultCommandPalette` does: read the open state with `useMenuIsOpen(COMMAND_PALETTE_MENU_ID)` and render `CommandPaletteShell` while it's open. The `open-command-palette` action (Cmd+K) only marks that menu open, so a palette component must close through the same hook, or the open menu keeps keyboard shortcuts disabled.
+
+```tsx
+function MyCommandPalette() {
+	const [isOpen, onOpenChange] = useMenuIsOpen(COMMAND_PALETTE_MENU_ID)
+	if (!isOpen) return null
+	return (
+		<CommandPaletteShell onClose={() => onOpenChange(false)}>
+			<DefaultCommandPaletteContent />
+		</CommandPaletteShell>
+	)
+}
+```
+
 For long or async lists, read the query with `useCommandPaletteQuery()` and render only your best matches. `getCommandPaletteMatchScore` matches the same way the palette does.
 
 Items that aren't actions take the same `disabledReason` prop.

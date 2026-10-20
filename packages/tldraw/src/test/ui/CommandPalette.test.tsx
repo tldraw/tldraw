@@ -2,7 +2,6 @@ import { act, fireEvent, waitFor } from '@testing-library/react'
 import { createShapeId, Editor, toRichText } from '@tldraw/editor'
 import { TLComponents, Tldraw } from '../../lib/Tldraw'
 import { CommandPaletteMenuItem } from '../../lib/ui/components/CommandPalette/CommandPaletteMenuItem'
-import { isCommandPaletteMounted } from '../../lib/ui/components/CommandPalette/commandPaletteMount'
 import { TldrawUiMenuContextProvider } from '../../lib/ui/components/primitives/menus/TldrawUiMenuContext'
 import {
 	renderTldrawComponent,
@@ -134,23 +133,6 @@ describe('command palette', () => {
 		expect(input.value).toBe('')
 		const options = rendered.getAllByRole('option')
 		expect(options[0].getAttribute('aria-selected')).toBe('true')
-	})
-
-	it('tracks per editor whether a palette is mounted', async () => {
-		const editors: Editor[] = []
-		await renderTldrawComponent(
-			<>
-				<Tldraw onMount={(editor) => void (editors[0] = editor)} />
-				<Tldraw
-					onMount={(editor) => void (editors[1] = editor)}
-					components={{ CommandPalette: null }}
-				/>
-			</>,
-			{ waitForPatterns: false }
-		)
-		await waitFor(() => expect(editors.filter(Boolean)).toHaveLength(2))
-		expect(isCommandPaletteMounted(editors[0])).toBe(true)
-		expect(isCommandPaletteMounted(editors[1])).toBe(false)
 	})
 
 	it('shows its menu entry only when the palette exists', async () => {

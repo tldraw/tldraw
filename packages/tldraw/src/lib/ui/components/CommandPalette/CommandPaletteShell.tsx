@@ -16,6 +16,7 @@ import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 import { CommandPaletteStoreProvider } from './CommandPaletteContext'
 import { commandPaletteFlags } from './commandPaletteFlags'
+import { COMMAND_PALETTE_MENU_ID } from './commandPaletteMenuId'
 import { addCommandPaletteRecent, getCommandPaletteRecents } from './commandPaletteRecents'
 import {
 	CommandPaletteRow,
@@ -31,15 +32,26 @@ import {
 
 type SelectableRow = Extract<CommandPaletteRow, { type: 'item' | 'submenu' }>
 
-/** @internal */
-export interface CommandPaletteShellProps {
+/** @public */
+export interface TLUiCommandPaletteShellProps {
+	/** Called when the user dismisses the palette or runs a command. */
 	onClose(): void
+	/** The palette's items, as `TldrawUiMenu*` components and `CommandPalette*` groups. */
 	children: ReactNode
 }
 
-/** @internal */
-export function CommandPaletteShell({ onClose, children }: CommandPaletteShellProps) {
+/**
+ * The command palette's input, list and keyboard handling. Render it while the palette is open, as
+ * `DefaultCommandPalette` does, to build a palette that opens differently or sits elsewhere.
+ *
+ * @public @react
+ */
+export function CommandPaletteShell({ onClose, children }: TLUiCommandPaletteShellProps) {
 	const editor = useEditor()
+	// The open action marks the menu open through editor.menus directly, which useMenuIsOpen's
+	// unmount cleanup doesn't track; going away while open would otherwise leave every shortcut
+	// disabled.
+	useEffect(() => () => editor.menus.deleteOpenMenu(COMMAND_PALETTE_MENU_ID), [editor])
 	const msg = useTranslation()
 	const dir = useDirection()
 	const [store] = useState(() => new CommandPaletteStore())

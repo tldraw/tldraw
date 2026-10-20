@@ -29,10 +29,7 @@ import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
-import {
-	COMMAND_PALETTE_MENU_ID,
-	isCommandPaletteMounted,
-} from '../components/CommandPalette/commandPaletteMount'
+import { COMMAND_PALETTE_MENU_ID } from '../components/CommandPalette/commandPaletteMenuId'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { isMinimapCollapsed, toggleMinimap } from '../components/NavigationPanel/minimapCollapsed'
@@ -285,7 +282,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.open-command-palette',
 				kbd: 'cmd+k,ctrl+k',
 				readonlyOk: true,
-				isAvailable: isCommandPaletteMounted,
+				// Opening marks a menu open, which disables every shortcut until the palette clears it,
+				// so the action must not run where no palette will render.
+				isAvailable: () => !!components.CommandPalette,
 				onSelect(source) {
 					trackEvent('open-command-palette', { source })
 					editor.complete()
