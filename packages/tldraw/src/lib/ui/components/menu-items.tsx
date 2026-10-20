@@ -1,4 +1,4 @@
-import { useEditor, useValue } from '@tldraw/editor'
+import { defineMessages, useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../context/actions'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
@@ -9,11 +9,23 @@ import {
 } from '../hooks/menu-hooks'
 import { useSomeActionsEnabled, useSomeActionsAvailable } from '../hooks/useActionState'
 import { useReadonly } from '../hooks/useReadonly'
+import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuActionCheckboxItem } from './primitives/menus/TldrawUiMenuActionCheckboxItem'
 import { TldrawUiMenuActionItem } from './primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from './primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
+
+const messages = defineMessages({
+	contextMenuArrange: { id: 'context-menu.arrange', defaultMessage: 'Arrange' },
+	contextMenuCopyAs: { id: 'context-menu.copy-as', defaultMessage: 'Copy as' },
+	contextMenuEdit: { id: 'context-menu.edit', defaultMessage: 'Edit' },
+	contextMenuExportAs: { id: 'context-menu.export-as', defaultMessage: 'Export as' },
+	contextMenuMoveToPage: { id: 'context-menu.move-to-page', defaultMessage: 'Move to page' },
+	movedToPageAction: { id: 'toast.moved-to-page.action', defaultMessage: 'Go back' },
+	movedToPageDesc: { id: 'toast.moved-to-page.desc', defaultMessage: 'Moved to {page}.' },
+	movedToPageTitle: { id: 'toast.moved-to-page.title', defaultMessage: 'Changed page' },
+})
 
 /* -------------------- Selection ------------------- */
 
@@ -137,7 +149,7 @@ export function CopyAsMenuGroup() {
 	return (
 		<TldrawUiMenuSubmenu
 			id="copy-as"
-			label="context-menu.copy-as"
+			label={messages.contextMenuCopyAs.id}
 			size="small"
 			disabled={!atLeastOneShapeOnPage}
 		>
@@ -161,7 +173,7 @@ export function ExportAsMenuGroup() {
 	if (!actions['export-as-svg'] && !actions['export-as-png']) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="export-as" label="context-menu.export-as" size="small">
+		<TldrawUiMenuSubmenu id="export-as" label={messages.contextMenuExportAs.id} size="small">
 			<TldrawUiMenuGroup id="export-as-group">
 				<TldrawUiMenuActionItem actionId="export-as-svg" />
 				<TldrawUiMenuActionItem actionId="export-as-png" />
@@ -244,7 +256,7 @@ export function EditMenuSubmenu() {
 	if (!hasSelection || !show) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="edit" label="context-menu.edit" size="small">
+		<TldrawUiMenuSubmenu id="edit" label={messages.contextMenuEdit.id} size="small">
 			{EDIT_ACTIONS.map((id) => (
 				<TldrawUiMenuActionItem key={id} actionId={id} whenDisabled="hide" />
 			))}
@@ -291,7 +303,7 @@ export function ArrangeMenuSubmenu() {
 	if (!hasSelection || !show) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="arrange" label="context-menu.arrange" size="small">
+		<TldrawUiMenuSubmenu id="arrange" label={messages.contextMenuArrange.id} size="small">
 			{ARRANGE_GROUPS.map((group) => (
 				<ActionGroup key={group.id} id={group.id} actionIds={group.actionIds} />
 			))}
@@ -318,6 +330,7 @@ export function ReorderMenuSubmenu() {
 /** @public @react */
 export function MoveToPageMenu() {
 	const editor = useEditor()
+	const msg = useTranslation()
 	const pages = useValue('pages', () => editor.getPages(), [editor])
 	const currentPageId = useValue('current page id', () => editor.getCurrentPageId(), [editor])
 	const { addToast } = useToasts()
@@ -329,7 +342,7 @@ export function MoveToPageMenu() {
 	if (isReadonlyMode) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="move-to-page" label="context-menu.move-to-page" size="small">
+		<TldrawUiMenuSubmenu id="move-to-page" label={messages.contextMenuMoveToPage.id} size="small">
 			<TldrawUiMenuGroup id="pages">
 				{pages.map((page) => (
 					<TldrawUiMenuItem
@@ -345,11 +358,11 @@ export function MoveToPageMenu() {
 
 							if (toPage) {
 								addToast({
-									title: 'Changed page',
-									description: `Moved to ${toPage.name}.`,
+									title: msg(messages.movedToPageTitle),
+									description: msg(messages.movedToPageDesc, { page: toPage.name }),
 									actions: [
 										{
-											label: 'Go back',
+											label: msg(messages.movedToPageAction),
 											type: 'primary',
 											onClick: () => {
 												editor.markHistoryStoppingPoint('change-page')

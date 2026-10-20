@@ -2,7 +2,14 @@ import { useAuth } from '@clerk/clerk-react'
 import { addBreadcrumb, captureException } from '@sentry/react'
 import { SubmitFeedbackRequestBody } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
+import { useIntl } from 'react-intl'
 import {
+	defineMessages,
+	deleteFromLocalStorage,
+	F,
+	fetch,
+	getFromLocalStorage,
+	setInLocalStorage,
 	TldrawUiButton,
 	TldrawUiButtonCheck,
 	TldrawUiButtonLabel,
@@ -11,13 +18,8 @@ import {
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
-	deleteFromLocalStorage,
-	fetch,
-	getFromLocalStorage,
-	setInLocalStorage,
 	useToasts,
 } from 'tldraw'
-import { F, defineMessages, useIntl } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import styles from './dialogs.module.css'
 

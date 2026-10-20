@@ -1,4 +1,5 @@
 import {
+	defineMessages,
 	Box,
 	DefaultColorStyle,
 	DefaultFillStyle,
@@ -64,6 +65,234 @@ import {
 } from './action-predicates'
 import { useTldrawUiComponents } from './components'
 import { TLUiEventSource, useUiEvents } from './events'
+
+// The action labels, declared so they reach the catalog. An action's `label` is data the menu
+// components translate, not an element, so these can't be `<F>`; referencing the descriptor's id
+// keeps the string extractable and the prop a plain key, which is what an app overriding one
+// passes.
+const messages = defineMessages({
+	a11yAdjustShapeStyles: { id: 'a11y.adjust-shape-styles', defaultMessage: 'Adjust shape styles' },
+	a11yEnlargeShape: { id: 'a11y.enlarge-shape', defaultMessage: 'Enlarge shape' },
+	a11yRepeatShape: { id: 'a11y.repeat-shape', defaultMessage: 'Repeat shape' },
+	a11yShrinkShape: { id: 'a11y.shrink-shape', defaultMessage: 'Shrink shape' },
+	actionAlignBottom: { id: 'action.align-bottom', defaultMessage: 'Align bottom' },
+	actionAlignCenterHorizontal: {
+		id: 'action.align-center-horizontal',
+		defaultMessage: 'Align horizontally',
+	},
+	actionAlignCenterHorizontalShort: {
+		id: 'action.align-center-horizontal.short',
+		defaultMessage: 'Align H',
+	},
+	actionAlignCenterVertical: {
+		id: 'action.align-center-vertical',
+		defaultMessage: 'Align vertically',
+	},
+	actionAlignCenterVerticalShort: {
+		id: 'action.align-center-vertical.short',
+		defaultMessage: 'Align V',
+	},
+	actionAlignLeft: { id: 'action.align-left', defaultMessage: 'Align left' },
+	actionAlignRight: { id: 'action.align-right', defaultMessage: 'Align right' },
+	actionAlignTop: { id: 'action.align-top', defaultMessage: 'Align top' },
+	actionBackToContent: { id: 'action.back-to-content', defaultMessage: 'Back to content' },
+	actionBringForward: { id: 'action.bring-forward', defaultMessage: 'Bring forward' },
+	actionBringToFront: { id: 'action.bring-to-front', defaultMessage: 'Bring to front' },
+	actionConvertToBookmark: {
+		id: 'action.convert-to-bookmark',
+		defaultMessage: 'Convert to bookmark',
+	},
+	actionConvertToEmbed: { id: 'action.convert-to-embed', defaultMessage: 'Convert to embed' },
+	actionCopy: { id: 'action.copy', defaultMessage: 'Copy' },
+	actionCopyAsJson: { id: 'action.copy-as-json', defaultMessage: 'Copy as JSON' },
+	actionCopyAsJsonShort: { id: 'action.copy-as-json.short', defaultMessage: 'JSON' },
+	actionCopyAsPng: { id: 'action.copy-as-png', defaultMessage: 'Copy as PNG' },
+	actionCopyAsPngShort: { id: 'action.copy-as-png.short', defaultMessage: 'PNG' },
+	actionCopyAsSvg: { id: 'action.copy-as-svg', defaultMessage: 'Copy as SVG' },
+	actionCopyAsSvgShort: { id: 'action.copy-as-svg.short', defaultMessage: 'SVG' },
+	actionCopyHoveredStyles: {
+		id: 'action.copy-hovered-styles',
+		defaultMessage: 'Copy hovered styles',
+	},
+	actionCut: { id: 'action.cut', defaultMessage: 'Cut' },
+	actionDelete: { id: 'action.delete', defaultMessage: 'Delete' },
+	actionDistributeHorizontal: {
+		id: 'action.distribute-horizontal',
+		defaultMessage: 'Distribute horizontally',
+	},
+	actionDistributeHorizontalShort: {
+		id: 'action.distribute-horizontal.short',
+		defaultMessage: 'Distribute H',
+	},
+	actionDistributeVertical: {
+		id: 'action.distribute-vertical',
+		defaultMessage: 'Distribute vertically',
+	},
+	actionDistributeVerticalShort: {
+		id: 'action.distribute-vertical.short',
+		defaultMessage: 'Distribute V',
+	},
+	actionDownloadOriginal: { id: 'action.download-original', defaultMessage: 'Download original' },
+	actionDuplicate: { id: 'action.duplicate', defaultMessage: 'Duplicate' },
+	actionEditLink: { id: 'action.edit-link', defaultMessage: 'Edit link…' },
+	actionEnhancedA11yMode: {
+		id: 'action.enhanced-a11y-mode',
+		defaultMessage: 'Toggle enhanced accessibility mode',
+	},
+	actionEnhancedA11yModeMenu: {
+		id: 'action.enhanced-a11y-mode.menu',
+		defaultMessage: 'Enhanced accessibility mode',
+	},
+	actionExitPenMode: { id: 'action.exit-pen-mode', defaultMessage: 'Exit pen mode' },
+	actionExportAllAsPng: { id: 'action.export-all-as-png', defaultMessage: 'Export as PNG' },
+	actionExportAllAsPngShort: { id: 'action.export-all-as-png.short', defaultMessage: 'PNG' },
+	actionExportAllAsSvg: { id: 'action.export-all-as-svg', defaultMessage: 'Export as SVG' },
+	actionExportAllAsSvgShort: { id: 'action.export-all-as-svg.short', defaultMessage: 'SVG' },
+	actionExportAsPng: { id: 'action.export-as-png', defaultMessage: 'Export as PNG' },
+	actionExportAsPngShort: { id: 'action.export-as-png.short', defaultMessage: 'PNG' },
+	actionExportAsSvg: { id: 'action.export-as-svg', defaultMessage: 'Export as SVG' },
+	actionExportAsSvgShort: { id: 'action.export-as-svg.short', defaultMessage: 'SVG' },
+	actionFitFrameToContent: { id: 'action.fit-frame-to-content', defaultMessage: 'Fit to content' },
+	actionFlattenToImage: { id: 'action.flatten-to-image', defaultMessage: 'Flatten' },
+	actionFlipHorizontal: { id: 'action.flip-horizontal', defaultMessage: 'Flip horizontally' },
+	actionFlipHorizontalShort: { id: 'action.flip-horizontal.short', defaultMessage: 'Flip H' },
+	actionFlipVertical: { id: 'action.flip-vertical', defaultMessage: 'Flip vertically' },
+	actionFlipVerticalShort: { id: 'action.flip-vertical.short', defaultMessage: 'Flip V' },
+	actionFrameSelection: { id: 'action.frame-selection', defaultMessage: 'Frame selection' },
+	actionGroup: { id: 'action.group', defaultMessage: 'Group' },
+	actionInsertEmbed: { id: 'action.insert-embed', defaultMessage: 'Insert embed…' },
+	actionInsertMedia: { id: 'action.insert-media', defaultMessage: 'Upload media…' },
+	actionOpenCursorChat: { id: 'action.open-cursor-chat', defaultMessage: 'Cursor chat' },
+	actionOpenEmbedLink: { id: 'action.open-embed-link', defaultMessage: 'Open link' },
+	actionOpenKbdShortcuts: { id: 'action.open-kbd-shortcuts', defaultMessage: 'Keyboard shortcuts' },
+	actionPack: { id: 'action.pack', defaultMessage: 'Pack' },
+	actionPaste: { id: 'action.paste', defaultMessage: 'Paste' },
+	actionPasteErrorDescription: {
+		id: 'action.paste-error-description',
+		defaultMessage:
+			'Could not paste due to missing clipboard permissions. Please enable the permissions and try again.',
+	},
+	actionPasteErrorTitle: { id: 'action.paste-error-title', defaultMessage: 'Pasting failed' },
+	actionPrint: { id: 'action.print', defaultMessage: 'Print…' },
+	actionRedo: { id: 'action.redo', defaultMessage: 'Redo' },
+	actionRemoveFrame: { id: 'action.remove-frame', defaultMessage: 'Remove frame' },
+	actionRotateCcw: { id: 'action.rotate-ccw', defaultMessage: 'Rotate counterclockwise' },
+	actionRotateCw: { id: 'action.rotate-cw', defaultMessage: 'Rotate clockwise' },
+	actionSelectAll: { id: 'action.select-all', defaultMessage: 'Select all' },
+	actionSelectNone: { id: 'action.select-none', defaultMessage: 'Select none' },
+	actionSelectZoomTool: { id: 'action.select-zoom-tool', defaultMessage: 'Zoom' },
+	actionSendBackward: { id: 'action.send-backward', defaultMessage: 'Send backward' },
+	actionSendToBack: { id: 'action.send-to-back', defaultMessage: 'Send to back' },
+	actionStackHorizontal: { id: 'action.stack-horizontal', defaultMessage: 'Stack horizontally' },
+	actionStackHorizontalShort: { id: 'action.stack-horizontal.short', defaultMessage: 'Stack H' },
+	actionStackVertical: { id: 'action.stack-vertical', defaultMessage: 'Stack vertically' },
+	actionStackVerticalShort: { id: 'action.stack-vertical.short', defaultMessage: 'Stack V' },
+	actionStopFollowing: { id: 'action.stop-following', defaultMessage: 'Stop following' },
+	actionStretchHorizontal: {
+		id: 'action.stretch-horizontal',
+		defaultMessage: 'Stretch horizontally',
+	},
+	actionStretchHorizontalShort: {
+		id: 'action.stretch-horizontal.short',
+		defaultMessage: 'Stretch H',
+	},
+	actionStretchVertical: { id: 'action.stretch-vertical', defaultMessage: 'Stretch vertically' },
+	actionStretchVerticalShort: { id: 'action.stretch-vertical.short', defaultMessage: 'Stretch V' },
+	actionToggleAutoSize: { id: 'action.toggle-auto-size', defaultMessage: 'Toggle auto size' },
+	actionToggleDarkMode: { id: 'action.toggle-dark-mode', defaultMessage: 'Toggle dark mode' },
+	actionToggleDarkModeMenu: { id: 'action.toggle-dark-mode.menu', defaultMessage: 'Dark mode' },
+	actionToggleDebugMode: { id: 'action.toggle-debug-mode', defaultMessage: 'Toggle debug mode' },
+	actionToggleDebugModeMenu: { id: 'action.toggle-debug-mode.menu', defaultMessage: 'Debug mode' },
+	actionToggleDynamicSizeMode: {
+		id: 'action.toggle-dynamic-size-mode',
+		defaultMessage: 'Toggle dynamic size',
+	},
+	actionToggleDynamicSizeModeMenu: {
+		id: 'action.toggle-dynamic-size-mode.menu',
+		defaultMessage: 'Dynamic size',
+	},
+	actionToggleEdgeScrolling: {
+		id: 'action.toggle-edge-scrolling',
+		defaultMessage: 'Toggle edge scrolling',
+	},
+	actionToggleEdgeScrollingMenu: {
+		id: 'action.toggle-edge-scrolling.menu',
+		defaultMessage: 'Edge scrolling',
+	},
+	actionToggleFocusMode: { id: 'action.toggle-focus-mode', defaultMessage: 'Toggle focus mode' },
+	actionToggleFocusModeMenu: { id: 'action.toggle-focus-mode.menu', defaultMessage: 'Focus mode' },
+	actionToggleGrid: { id: 'action.toggle-grid', defaultMessage: 'Toggle grid' },
+	actionToggleGridMenu: { id: 'action.toggle-grid.menu', defaultMessage: 'Show grid' },
+	actionToggleInvertZoom: {
+		id: 'action.toggle-invert-zoom',
+		defaultMessage: 'Toggle invert mouse zoom',
+	},
+	actionToggleInvertZoomMenu: {
+		id: 'action.toggle-invert-zoom.menu',
+		defaultMessage: 'Invert mouse zoom',
+	},
+	actionToggleKeyboardShortcuts: {
+		id: 'action.toggle-keyboard-shortcuts',
+		defaultMessage: 'Toggle keyboard shortcuts',
+	},
+	actionToggleKeyboardShortcutsMenu: {
+		id: 'action.toggle-keyboard-shortcuts.menu',
+		defaultMessage: 'Enable keyboard shortcuts',
+	},
+	actionToggleLock: { id: 'action.toggle-lock', defaultMessage: 'Toggle locked' },
+	actionTogglePasteAtCursor: {
+		id: 'action.toggle-paste-at-cursor',
+		defaultMessage: 'Toggle paste at cursor',
+	},
+	actionTogglePasteAtCursorMenu: {
+		id: 'action.toggle-paste-at-cursor.menu',
+		defaultMessage: 'Paste at cursor',
+	},
+	actionToggleReduceMotion: {
+		id: 'action.toggle-reduce-motion',
+		defaultMessage: 'Toggle reduce motion',
+	},
+	actionToggleReduceMotionMenu: {
+		id: 'action.toggle-reduce-motion.menu',
+		defaultMessage: 'Reduce motion',
+	},
+	actionToggleSnapMode: { id: 'action.toggle-snap-mode', defaultMessage: 'Toggle always snap' },
+	actionToggleSnapModeMenu: { id: 'action.toggle-snap-mode.menu', defaultMessage: 'Always snap' },
+	actionToggleToolLock: { id: 'action.toggle-tool-lock', defaultMessage: 'Toggle tool lock' },
+	actionToggleToolLockMenu: { id: 'action.toggle-tool-lock.menu', defaultMessage: 'Tool lock' },
+	actionToggleTransparent: {
+		id: 'action.toggle-transparent',
+		defaultMessage: 'Toggle transparent background',
+	},
+	actionToggleTransparentContextMenu: {
+		id: 'action.toggle-transparent.context-menu',
+		defaultMessage: 'Transparent',
+	},
+	actionToggleTransparentMenu: {
+		id: 'action.toggle-transparent.menu',
+		defaultMessage: 'Transparent',
+	},
+	actionToggleWrapMode: { id: 'action.toggle-wrap-mode', defaultMessage: 'Toggle select on wrap' },
+	actionToggleWrapModeMenu: {
+		id: 'action.toggle-wrap-mode.menu',
+		defaultMessage: 'Select on wrap',
+	},
+	actionUndo: { id: 'action.undo', defaultMessage: 'Undo' },
+	actionUngroup: { id: 'action.ungroup', defaultMessage: 'Ungroup' },
+	actionUnlockAll: { id: 'action.unlock-all', defaultMessage: 'Unlock all' },
+	actionZoomIn: { id: 'action.zoom-in', defaultMessage: 'Zoom in' },
+	actionZoomOut: { id: 'action.zoom-out', defaultMessage: 'Zoom out' },
+	actionZoomTo100: { id: 'action.zoom-to-100', defaultMessage: 'Zoom to 100%' },
+	actionZoomToFit: { id: 'action.zoom-to-fit', defaultMessage: 'Zoom to fit' },
+	actionZoomToSelection: { id: 'action.zoom-to-selection', defaultMessage: 'Zoom to selection' },
+	colorStyleWhite: { id: 'color-style.white', defaultMessage: 'White' },
+	contextPagesNewPage: { id: 'context.pages.new-page', defaultMessage: 'New page' },
+	documentDefaultName: { id: 'document.default-name', defaultMessage: 'Untitled' },
+	fillStyleFill: { id: 'fill-style.fill', defaultMessage: 'Fill' },
+	fillStyleLinedFill: { id: 'fill-style.lined-fill', defaultMessage: 'Lined fill' },
+	pageMenuNewPageInitialName: { id: 'page-menu.new-page-initial-name', defaultMessage: 'Page 1' },
+	toolReplaceMedia: { id: 'tool.replace-media', defaultMessage: 'Replace media…' },
+})
 
 /** @public */
 export interface TLUiActionItem<
@@ -146,7 +375,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const a11y = useA11y()
 	const msg = useTranslation()
 
-	const defaultDocumentName = helpers.msg('document.default-name')
+	const defaultDocumentName = helpers.msg(messages.documentDefaultName)
 
 	const rContextMenuPagePoint = React.useRef<Vec | null>(null)
 
@@ -215,8 +444,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				?.then(onRead)
 				.catch(() => {
 					helpers.addToast({
-						title: helpers.msg('action.paste-error-title'),
-						description: helpers.msg('action.paste-error-description'),
+						title: helpers.msg(messages.actionPasteErrorTitle),
+						description: helpers.msg(messages.actionPasteErrorDescription),
 						severity: 'error',
 					})
 				})
@@ -226,7 +455,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'edit-link',
 				isEnabled: (editor) => editor.isIn('select') && hasLinkShapeSelected(editor),
-				label: 'action.edit-link',
+				label: messages.actionEditLink.id,
 				icon: 'link',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -239,7 +468,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'insert-embed',
-				label: 'action.insert-embed',
+				label: messages.actionInsertEmbed.id,
 				kbd: 'cmd+i,ctrl+i',
 				onSelect(source) {
 					trackEvent('insert-embed', { source })
@@ -248,7 +477,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'open-kbd-shortcuts',
-				label: 'action.open-kbd-shortcuts',
+				label: messages.actionOpenKbdShortcuts.id,
 				kbd: 'cmd+alt+/,ctrl+alt+/',
 				onSelect(source) {
 					const { KeyboardShortcutsDialog } = components
@@ -259,7 +488,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'insert-media',
-				label: 'action.insert-media',
+				label: messages.actionInsertMedia.id,
 				kbd: 'cmd+u,ctrl+u',
 				onSelect(source) {
 					trackEvent('insert-media', { source })
@@ -269,7 +498,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'undo',
 				isEnabled: (editor) => editor.getCanUndo(),
-				label: 'action.undo',
+				label: messages.actionUndo.id,
 				icon: 'undo',
 				kbd: 'cmd+z,ctrl+z',
 				onSelect(source) {
@@ -280,7 +509,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'redo',
 				isEnabled: (editor) => editor.getCanRedo(),
-				label: 'action.redo',
+				label: messages.actionRedo.id,
 				icon: 'redo',
 				kbd: 'cmd+shift+z,ctrl+shift+z',
 				onSelect(source) {
@@ -292,9 +521,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'export-as-svg',
 				isEnabled: hasShapesOnPage,
 				label: {
-					default: 'action.export-as-svg',
-					menu: 'action.export-as-svg.short',
-					['context-menu']: 'action.export-as-svg.short',
+					default: messages.actionExportAsSvg.id,
+					menu: messages.actionExportAsSvgShort.id,
+					['context-menu']: messages.actionExportAsSvgShort.id,
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -308,9 +537,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'export-as-png',
 				isEnabled: hasShapesOnPage,
 				label: {
-					default: 'action.export-as-png',
-					menu: 'action.export-as-png.short',
-					['context-menu']: 'action.export-as-png.short',
+					default: messages.actionExportAsPng.id,
+					menu: messages.actionExportAsPngShort.id,
+					['context-menu']: messages.actionExportAsPngShort.id,
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -324,9 +553,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'export-all-as-svg',
 				isEnabled: hasShapesOnPage,
 				label: {
-					default: 'action.export-all-as-svg',
-					menu: 'action.export-all-as-svg.short',
-					['context-menu']: 'action.export-all-as-svg.short',
+					default: messages.actionExportAllAsSvg.id,
+					menu: messages.actionExportAllAsSvgShort.id,
+					['context-menu']: messages.actionExportAllAsSvgShort.id,
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -340,9 +569,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'export-all-as-png',
 				isEnabled: hasShapesOnPage,
 				label: {
-					default: 'action.export-all-as-png',
-					menu: 'action.export-all-as-png.short',
-					['context-menu']: 'action.export-all-as-png.short',
+					default: messages.actionExportAllAsPng.id,
+					menu: messages.actionExportAllAsPngShort.id,
+					['context-menu']: messages.actionExportAllAsPngShort.id,
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -356,9 +585,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'copy-as-svg',
 				isEnabled: hasShapesOnPage,
 				label: {
-					default: 'action.copy-as-svg',
-					menu: 'action.copy-as-svg.short',
-					['context-menu']: 'action.copy-as-svg.short',
+					default: messages.actionCopyAsSvg.id,
+					menu: messages.actionCopyAsSvgShort.id,
+					['context-menu']: messages.actionCopyAsSvgShort.id,
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -373,9 +602,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isAvailable: canWriteClipboard,
 				isEnabled: hasShapesOnPage,
 				label: {
-					default: 'action.copy-as-png',
-					menu: 'action.copy-as-png.short',
-					['context-menu']: 'action.copy-as-png.short',
+					default: messages.actionCopyAsPng.id,
+					menu: messages.actionCopyAsPngShort.id,
+					['context-menu']: messages.actionCopyAsPngShort.id,
 				},
 				readonlyOk: true,
 				kbd: 'cmd+shift+c,ctrl+shift+c',
@@ -391,9 +620,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isAvailable: (editor) => editor.getInstanceState().isDebugMode,
 				isEnabled: hasShapesOnPage,
 				label: {
-					default: 'action.copy-as-json',
-					menu: 'action.copy-as-json.short',
-					['context-menu']: 'action.copy-as-json.short',
+					default: messages.actionCopyAsJson.id,
+					menu: messages.actionCopyAsJsonShort.id,
+					['context-menu']: messages.actionCopyAsJsonShort.id,
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -406,7 +635,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'toggle-auto-size',
 				isEnabled: (editor) => editor.isIn('select') && canToggleAutoSize(editor),
-				label: 'action.toggle-auto-size',
+				label: messages.actionToggleAutoSize.id,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -438,7 +667,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const s = editor.getOnlySelectedShape()
 					return !!s && editor.isShapeOfType(s, 'embed')
 				},
-				label: 'action.open-embed-link',
+				label: messages.actionOpenEmbedLink.id,
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('open-embed-link', { source })
@@ -459,7 +688,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'select-zoom-tool',
-				label: 'action.select-zoom-tool',
+				label: messages.actionSelectZoomTool.id,
 				readonlyOk: true,
 				kbd: 'z, !z',
 				onSelect(source) {
@@ -484,7 +713,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'convert-to-bookmark',
 				isEnabled: (editor) => editor.isIn('select') && isOnlyEmbedWithUrlSelected(editor),
-				label: 'action.convert-to-bookmark',
+				label: messages.actionConvertToBookmark.id,
 				async onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -523,7 +752,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'convert-to-embed',
 				isEnabled: (editor) => editor.isIn('select') && isOnlyEmbeddableBookmarkSelected(editor),
-				label: 'action.convert-to-embed',
+				label: messages.actionConvertToEmbed.id,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -575,7 +804,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'duplicate',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
 				kbd: 'cmd+d,ctrl+d',
-				label: 'action.duplicate',
+				label: messages.actionDuplicate.id,
 				icon: 'duplicate',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -622,7 +851,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'ungroup',
 				isEnabled: (editor) => editor.isIn('select') && isUngroupAllowed(editor),
-				label: 'action.ungroup',
+				label: messages.actionUngroup.id,
 				kbd: 'cmd+shift+g,ctrl+shift+g',
 				icon: 'ungroup',
 				onSelect(source) {
@@ -637,7 +866,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'group',
 				isEnabled: (editor) => editor.isIn('select') && isGroupAllowed(editor),
-				label: 'action.group',
+				label: messages.actionGroup.id,
 				kbd: 'cmd+g,ctrl+g',
 				icon: 'group',
 				onSelect(source) {
@@ -658,7 +887,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'frame-selection',
 				isEnabled: (editor) => editor.isIn('select') && canFrameSelection(editor),
-				label: 'action.frame-selection',
+				label: messages.actionFrameSelection.id,
 				kbd: 'cmd+alt+g,ctrl+alt+g',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -719,7 +948,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'remove-frame',
 				isEnabled: (editor) => editor.isIn('select') && areAllSelectedFrameLike(editor),
-				label: 'action.remove-frame',
+				label: messages.actionRemoveFrame.id,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 
@@ -740,7 +969,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'fit-frame-to-content',
 				isEnabled: (editor) => editor.isIn('select') && canFitFrameToContent(editor),
-				label: 'action.fit-frame-to-content',
+				label: messages.actionFitFrameToContent.id,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 
@@ -755,7 +984,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'align-left',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 2),
-				label: 'action.align-left',
+				label: messages.actionAlignLeft.id,
 				kbd: 'alt+A',
 				icon: 'align-left',
 				onSelect(source) {
@@ -770,8 +999,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'align-center-horizontal',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 2),
 				label: {
-					default: 'action.align-center-horizontal',
-					['context-menu']: 'action.align-center-horizontal.short',
+					default: messages.actionAlignCenterHorizontal.id,
+					['context-menu']: messages.actionAlignCenterHorizontalShort.id,
 				},
 				kbd: 'alt+H',
 				icon: 'align-center-horizontal',
@@ -788,7 +1017,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'align-right',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 2),
-				label: 'action.align-right',
+				label: messages.actionAlignRight.id,
 				kbd: 'alt+D',
 				icon: 'align-right',
 				onSelect(source) {
@@ -803,8 +1032,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'align-center-vertical',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 2),
 				label: {
-					default: 'action.align-center-vertical',
-					['context-menu']: 'action.align-center-vertical.short',
+					default: messages.actionAlignCenterVertical.id,
+					['context-menu']: messages.actionAlignCenterVerticalShort.id,
 				},
 				kbd: 'alt+V',
 				icon: 'align-center-vertical',
@@ -821,7 +1050,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'align-top',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 2),
-				label: 'action.align-top',
+				label: messages.actionAlignTop.id,
 				icon: 'align-top',
 				kbd: 'alt+W',
 				onSelect(source) {
@@ -835,7 +1064,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'align-bottom',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 2),
-				label: 'action.align-bottom',
+				label: messages.actionAlignBottom.id,
 				icon: 'align-bottom',
 				kbd: 'alt+S',
 				onSelect(source) {
@@ -850,8 +1079,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'distribute-horizontal',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 3),
 				label: {
-					default: 'action.distribute-horizontal',
-					['context-menu']: 'action.distribute-horizontal.short',
+					default: messages.actionDistributeHorizontal.id,
+					['context-menu']: messages.actionDistributeHorizontalShort.id,
 				},
 				icon: 'distribute-horizontal',
 				kbd: 'alt+shift+h',
@@ -869,8 +1098,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'distribute-vertical',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 3),
 				label: {
-					default: 'action.distribute-vertical',
-					['context-menu']: 'action.distribute-vertical.short',
+					default: messages.actionDistributeVertical.id,
+					['context-menu']: messages.actionDistributeVerticalShort.id,
 				},
 				icon: 'distribute-vertical',
 				kbd: 'alt+shift+V',
@@ -888,8 +1117,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'stretch-horizontal',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 2),
 				label: {
-					default: 'action.stretch-horizontal',
-					['context-menu']: 'action.stretch-horizontal.short',
+					default: messages.actionStretchHorizontal.id,
+					['context-menu']: messages.actionStretchHorizontalShort.id,
 				},
 				icon: 'stretch-horizontal',
 				onSelect(source) {
@@ -906,8 +1135,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'stretch-vertical',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 2),
 				label: {
-					default: 'action.stretch-vertical',
-					['context-menu']: 'action.stretch-vertical.short',
+					default: messages.actionStretchVertical.id,
+					['context-menu']: messages.actionStretchVerticalShort.id,
 				},
 				icon: 'stretch-vertical',
 				onSelect(source) {
@@ -924,8 +1153,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.isIn('select') &&
 					(hasUnlockedSelection(editor, 2) || isOnlyFlippableShapeSelected(editor)),
 				label: {
-					default: 'action.flip-horizontal',
-					['context-menu']: 'action.flip-horizontal.short',
+					default: messages.actionFlipHorizontal.id,
+					['context-menu']: messages.actionFlipHorizontalShort.id,
 				},
 				kbd: 'shift+h',
 				onSelect(source) {
@@ -941,7 +1170,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) =>
 					editor.isIn('select') &&
 					(hasUnlockedSelection(editor, 2) || isOnlyFlippableShapeSelected(editor)),
-				label: { default: 'action.flip-vertical', ['context-menu']: 'action.flip-vertical.short' },
+				label: {
+					default: messages.actionFlipVertical.id,
+					['context-menu']: messages.actionFlipVerticalShort.id,
+				},
 				kbd: 'shift+v',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -954,7 +1186,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'pack',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 2),
-				label: 'action.pack',
+				label: messages.actionPack.id,
 				icon: 'pack',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -970,8 +1202,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'stack-vertical',
 				isEnabled: (editor) => editor.isIn('select') && hasThreeStackableShapes(editor),
 				label: {
-					default: 'action.stack-vertical',
-					['context-menu']: 'action.stack-vertical.short',
+					default: messages.actionStackVertical.id,
+					['context-menu']: messages.actionStackVerticalShort.id,
 				},
 				icon: 'stack-vertical',
 				onSelect(source) {
@@ -988,8 +1220,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'stack-horizontal',
 				isEnabled: (editor) => editor.isIn('select') && hasThreeStackableShapes(editor),
 				label: {
-					default: 'action.stack-horizontal',
-					['context-menu']: 'action.stack-horizontal.short',
+					default: messages.actionStackHorizontal.id,
+					['context-menu']: messages.actionStackHorizontalShort.id,
 				},
 				icon: 'stack-horizontal',
 				onSelect(source) {
@@ -1005,7 +1237,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'bring-to-front',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
-				label: 'action.bring-to-front',
+				label: messages.actionBringToFront.id,
 				kbd: ']',
 				icon: 'bring-to-front',
 				onSelect(source) {
@@ -1020,7 +1252,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'bring-forward',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
-				label: 'action.bring-forward',
+				label: messages.actionBringForward.id,
 				icon: 'bring-forward',
 				kbd: 'alt+]',
 				onSelect(source) {
@@ -1035,7 +1267,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'send-backward',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
-				label: 'action.send-backward',
+				label: messages.actionSendBackward.id,
 				icon: 'send-backward',
 				kbd: 'alt+[',
 				onSelect(source) {
@@ -1050,7 +1282,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'send-to-back',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
-				label: 'action.send-to-back',
+				label: messages.actionSendToBack.id,
 				icon: 'send-to-back',
 				kbd: '[',
 				onSelect(source) {
@@ -1065,7 +1297,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'cut',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
-				label: 'action.cut',
+				label: messages.actionCut.id,
 				kbd: 'cmd+x,ctrl+x',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1077,7 +1309,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'copy',
 				isEnabled: canApplySelection,
-				label: 'action.copy',
+				label: messages.actionCopy.id,
 				kbd: 'cmd+c,ctrl+c',
 				readonlyOk: true,
 				onSelect(source) {
@@ -1090,7 +1322,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'paste',
 				isAvailable: canReadClipboard,
-				label: 'action.paste',
+				label: messages.actionPaste.id,
 				kbd: 'cmd+v,ctrl+v',
 				onSelect(source) {
 					// Resolve the point before the clipboard read: the menu closes, and clears
@@ -1108,7 +1340,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				// Cmd+Option+V: paste at cursor (or center if paste-at-cursor pref is on)
 				id: 'paste-at-cursor',
-				label: 'action.paste',
+				label: messages.actionPaste.id,
 				kbd: '$?v',
 				onSelect(source) {
 					const pasteAtCursor = !editor.user.getIsPasteAtCursorMode()
@@ -1122,7 +1354,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				// Cmd+Shift+Option+V: paste plain text at cursor (or center if pref is on)
 				id: 'paste-plain-text-at-cursor',
-				label: 'action.paste',
+				label: messages.actionPaste.id,
 				kbd: '$!?v',
 				onSelect() {
 					const pasteAtCursor = !editor.user.getIsPasteAtCursorMode()
@@ -1143,7 +1375,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'select-all',
 				isEnabled: hasShapesOnPage,
-				label: 'action.select-all',
+				label: messages.actionSelectAll.id,
 				kbd: 'cmd+a,ctrl+a',
 				readonlyOk: true,
 				onSelect(source) {
@@ -1160,7 +1392,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'select-none',
 				isEnabled: canApplySelection,
-				label: 'action.select-none',
+				label: messages.actionSelectNone.id,
 				readonlyOk: true,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1174,7 +1406,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'delete',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
-				label: 'action.delete',
+				label: messages.actionDelete.id,
 				kbd: '⌫,del',
 				icon: 'trash',
 				onSelect(source) {
@@ -1189,7 +1421,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'rotate-cw',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
-				label: 'action.rotate-cw',
+				label: messages.actionRotateCw.id,
 				icon: 'rotate-cw',
 				kbd: 'shift+.,shift+alt+.',
 				onSelect(source) {
@@ -1209,7 +1441,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'rotate-ccw',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
-				label: 'action.rotate-ccw',
+				label: messages.actionRotateCcw.id,
 				icon: 'rotate-ccw',
 				// omg double comma
 				kbd: 'shift+,,shift+alt+,',
@@ -1229,7 +1461,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'zoom-in',
-				label: 'action.zoom-in',
+				label: messages.actionZoomIn.id,
 				kbd: 'cmd+=,ctrl+=,=',
 				readonlyOk: true,
 				onSelect(source) {
@@ -1241,7 +1473,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'zoom-in-on-cursor',
-				label: 'action.zoom-in',
+				label: messages.actionZoomIn.id,
 				kbd: 'shift+cmd+=,shift+ctrl+=,shift+=',
 				readonlyOk: true,
 				onSelect(source) {
@@ -1253,7 +1485,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'zoom-out',
-				label: 'action.zoom-out',
+				label: messages.actionZoomOut.id,
 				kbd: 'cmd+-,ctrl+-,-',
 				readonlyOk: true,
 				onSelect(source) {
@@ -1265,7 +1497,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'zoom-out-on-cursor',
-				label: 'action.zoom-out',
+				label: messages.actionZoomOut.id,
 				kbd: 'shift+cmd+-,shift+ctrl+-,shift+-',
 				readonlyOk: true,
 				onSelect(source) {
@@ -1278,7 +1510,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-to-100',
 				isEnabled: (editor) => editor.getEfficientZoomLevel() !== 1,
-				label: 'action.zoom-to-100',
+				label: messages.actionZoomTo100.id,
 				icon: 'reset-zoom',
 				kbd: 'shift+0',
 				readonlyOk: true,
@@ -1292,7 +1524,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-to-fit',
 				isEnabled: hasShapesOnPage,
-				label: 'action.zoom-to-fit',
+				label: messages.actionZoomToFit.id,
 				kbd: 'shift+1',
 				readonlyOk: true,
 				onSelect(source) {
@@ -1303,7 +1535,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-to-selection',
 				isEnabled: canApplySelection,
-				label: 'action.zoom-to-selection',
+				label: messages.actionZoomToSelection.id,
 				kbd: 'shift+2',
 				readonlyOk: true,
 				onSelect(source) {
@@ -1318,8 +1550,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-snap-mode',
 				isChecked: (editor) => editor.user.getIsSnapMode(),
 				label: {
-					default: 'action.toggle-snap-mode',
-					menu: 'action.toggle-snap-mode.menu',
+					default: messages.actionToggleSnapMode.id,
+					menu: messages.actionToggleSnapModeMenu.id,
 				},
 				onSelect(source) {
 					trackEvent('toggle-snap-mode', { source })
@@ -1331,8 +1563,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-dark-mode',
 				isChecked: (editor) => editor.user.getIsDarkMode(),
 				label: {
-					default: 'action.toggle-dark-mode',
-					menu: 'action.toggle-dark-mode.menu',
+					default: messages.actionToggleDarkMode.id,
+					menu: messages.actionToggleDarkModeMenu.id,
 				},
 				kbd: 'cmd+/,ctrl+/',
 				readonlyOk: true,
@@ -1349,8 +1581,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-wrap-mode',
 				isChecked: (editor) => editor.user.getIsWrapMode(),
 				label: {
-					default: 'action.toggle-wrap-mode',
-					menu: 'action.toggle-wrap-mode.menu',
+					default: messages.actionToggleWrapMode.id,
+					menu: messages.actionToggleWrapModeMenu.id,
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -1365,8 +1597,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-dynamic-size-mode',
 				isChecked: (editor) => editor.user.getIsDynamicResizeMode(),
 				label: {
-					default: 'action.toggle-dynamic-size-mode',
-					menu: 'action.toggle-dynamic-size-mode.menu',
+					default: messages.actionToggleDynamicSizeMode.id,
+					menu: messages.actionToggleDynamicSizeModeMenu.id,
 				},
 				readonlyOk: false,
 				onSelect(source) {
@@ -1381,8 +1613,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-paste-at-cursor',
 				isChecked: (editor) => editor.user.getIsPasteAtCursorMode(),
 				label: {
-					default: 'action.toggle-paste-at-cursor',
-					menu: 'action.toggle-paste-at-cursor.menu',
+					default: messages.actionTogglePasteAtCursor.id,
+					menu: messages.actionTogglePasteAtCursorMenu.id,
 				},
 				readonlyOk: false,
 				onSelect(source) {
@@ -1397,8 +1629,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-reduce-motion',
 				isChecked: (editor) => editor.user.getAnimationSpeed() === 0,
 				label: {
-					default: 'action.toggle-reduce-motion',
-					menu: 'action.toggle-reduce-motion.menu',
+					default: messages.actionToggleReduceMotion.id,
+					menu: messages.actionToggleReduceMotionMenu.id,
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -1413,8 +1645,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-keyboard-shortcuts',
 				isChecked: (editor) => editor.user.getAreKeyboardShortcutsEnabled(),
 				label: {
-					default: 'action.toggle-keyboard-shortcuts',
-					menu: 'action.toggle-keyboard-shortcuts.menu',
+					default: messages.actionToggleKeyboardShortcuts.id,
+					menu: messages.actionToggleKeyboardShortcutsMenu.id,
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -1429,8 +1661,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'enhanced-a11y-mode',
 				isChecked: (editor) => editor.user.getEnhancedA11yMode(),
 				label: {
-					default: 'action.enhanced-a11y-mode',
-					menu: 'action.enhanced-a11y-mode.menu',
+					default: messages.actionEnhancedA11yMode.id,
+					menu: messages.actionEnhancedA11yModeMenu.id,
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -1445,8 +1677,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-edge-scrolling',
 				isChecked: (editor) => editor.user.getEdgeScrollSpeed() !== 0,
 				label: {
-					default: 'action.toggle-edge-scrolling',
-					menu: 'action.toggle-edge-scrolling.menu',
+					default: messages.actionToggleEdgeScrolling.id,
+					menu: messages.actionToggleEdgeScrollingMenu.id,
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -1462,8 +1694,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) => editor.user.getUserPreferences().inputMode === 'mouse',
 				isChecked: (editor) => editor.user.getIsZoomDirectionInverted(),
 				label: {
-					default: 'action.toggle-invert-zoom',
-					menu: 'action.toggle-invert-zoom.menu',
+					default: messages.actionToggleInvertZoom.id,
+					menu: messages.actionToggleInvertZoomMenu.id,
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -1478,9 +1710,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-transparent',
 				isChecked: (editor) => !editor.getInstanceState().exportBackground,
 				label: {
-					default: 'action.toggle-transparent',
-					menu: 'action.toggle-transparent.menu',
-					['context-menu']: 'action.toggle-transparent.context-menu',
+					default: messages.actionToggleTransparent.id,
+					menu: messages.actionToggleTransparentMenu.id,
+					['context-menu']: messages.actionToggleTransparentContextMenu.id,
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -1495,8 +1727,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-tool-lock',
 				isChecked: (editor) => editor.getInstanceState().isToolLocked,
 				label: {
-					default: 'action.toggle-tool-lock',
-					menu: 'action.toggle-tool-lock.menu',
+					default: messages.actionToggleToolLock.id,
+					menu: messages.actionToggleToolLockMenu.id,
 				},
 				kbd: 'q',
 				onSelect(source) {
@@ -1508,7 +1740,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'unlock-all',
 				isEnabled: hasLockedShapesOnPage,
-				label: 'action.unlock-all',
+				label: messages.actionUnlockAll.id,
 				onSelect(source) {
 					trackEvent('unlock-all', { source })
 					const updates = [] as TLShapePartial[]
@@ -1527,8 +1759,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-focus-mode',
 				isChecked: (editor) => editor.getInstanceState().isFocusMode,
 				label: {
-					default: 'action.toggle-focus-mode',
-					menu: 'action.toggle-focus-mode.menu',
+					default: messages.actionToggleFocusMode.id,
+					menu: messages.actionToggleFocusModeMenu.id,
 				},
 				readonlyOk: true,
 				kbd: 'cmd+.,ctrl+.',
@@ -1550,8 +1782,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-grid',
 				isChecked: (editor) => editor.getInstanceState().isGridMode,
 				label: {
-					default: 'action.toggle-grid',
-					menu: 'action.toggle-grid.menu',
+					default: messages.actionToggleGrid.id,
+					menu: messages.actionToggleGridMenu.id,
 				},
 				readonlyOk: true,
 				kbd: "cmd+',ctrl+'",
@@ -1565,8 +1797,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-debug-mode',
 				isChecked: (editor) => editor.getInstanceState().isDebugMode,
 				label: {
-					default: 'action.toggle-debug-mode',
-					menu: 'action.toggle-debug-mode.menu',
+					default: messages.actionToggleDebugMode.id,
+					menu: messages.actionToggleDebugModeMenu.id,
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -1580,7 +1812,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'print',
 				isEnabled: hasShapesOnPage,
-				label: 'action.print',
+				label: messages.actionPrint.id,
 				kbd: 'cmd+p,ctrl+p',
 				readonlyOk: true,
 				onSelect(source) {
@@ -1591,7 +1823,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'exit-pen-mode',
 				isAvailable: (editor) => editor.getInstanceState().isPenMode,
-				label: 'action.exit-pen-mode',
+				label: messages.actionExitPenMode.id,
 				icon: 'cross-2',
 				readonlyOk: true,
 				onSelect(source) {
@@ -1602,7 +1834,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'stop-following',
 				isAvailable: (editor) => !!editor.getInstanceState().followingUserId,
-				label: 'action.stop-following',
+				label: messages.actionStopFollowing.id,
 				icon: 'cross-2',
 				readonlyOk: true,
 				onSelect(source) {
@@ -1613,7 +1845,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'back-to-content',
 				isAvailable: isContentOffscreen,
-				label: 'action.back-to-content',
+				label: messages.actionBackToContent.id,
 				icon: 'arrow-left',
 				readonlyOk: true,
 				onSelect(source) {
@@ -1629,7 +1861,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'toggle-lock',
 				isEnabled: canApplySelection,
-				label: 'action.toggle-lock',
+				label: messages.actionToggleLock.id,
 				kbd: 'shift+l',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1642,14 +1874,14 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'move-to-new-page',
 				isEnabled: (editor) =>
 					hasUnlockedSelection(editor, 1) && editor.getPages().length < editor.options.maxPages,
-				label: 'context.pages.new-page',
+				label: messages.contextPagesNewPage.id,
 				onSelect(source) {
 					const newPageId = PageRecordType.createId()
 					const ids = editor.getSelectedShapeIds()
 					editor.run(() => {
 						editor.markHistoryStoppingPoint('move_shapes_to_page')
 						editor.createPage({
-							name: helpers.msg('page-menu.new-page-initial-name'),
+							name: helpers.msg(messages.pageMenuNewPageInitialName),
 							id: newPageId,
 						})
 						editor.moveShapesToPage(ids, newPageId)
@@ -1659,7 +1891,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'select-white-color',
-				label: 'color-style.white',
+				label: messages.colorStyleWhite.id,
 				kbd: 'alt+t',
 				onSelect(source) {
 					setStyleShortcut(DefaultColorStyle, 'white', 'change-color', source)
@@ -1667,7 +1899,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'select-fill-fill',
-				label: 'fill-style.fill',
+				label: messages.fillStyleFill.id,
 				kbd: 'alt+f',
 				onSelect(source) {
 					setStyleShortcut(DefaultFillStyle, 'fill', 'change-fill', source)
@@ -1675,7 +1907,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'select-fill-lined-fill',
-				label: 'fill-style.lined-fill',
+				label: messages.fillStyleLinedFill.id,
 				kbd: 'alt+shift+f',
 				onSelect(source) {
 					setStyleShortcut(DefaultFillStyle, 'lined-fill', 'change-fill', source)
@@ -1684,7 +1916,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'flatten-to-image',
 				isEnabled: canFlatten,
-				label: 'action.flatten-to-image',
+				label: messages.actionFlattenToImage.id,
 				kbd: 'shift+f',
 				onSelect: async (source) => {
 					const ids = editor.getSelectedShapeIds()
@@ -1748,7 +1980,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							editor.markHistoryStoppingPoint('creating page')
 							const newPageId = PageRecordType.createId()
 							editor.createPage({
-								name: helpers.msg('page-menu.new-page-initial-name'),
+								name: helpers.msg(messages.pageMenuNewPageInitialName),
 								id: newPageId,
 							})
 							editor.setCurrentPage(newPageId)
@@ -1763,7 +1995,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'adjust-shape-styles',
-				label: 'a11y.adjust-shape-styles',
+				label: messages.a11yAdjustShapeStyles.id,
 				kbd: 'cmd+Enter,ctrl+Enter',
 				isRequiredA11yAction: true,
 				onSelect: async (source) => {
@@ -1822,7 +2054,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'enlarge-shapes',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
-				label: 'a11y.enlarge-shape',
+				label: messages.a11yEnlargeShape.id,
 				kbd: 'cmd+alt+shift+=,ctrl+alt+shift+=',
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
@@ -1833,7 +2065,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'shrink-shapes',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
-				label: 'a11y.shrink-shape',
+				label: messages.a11yShrinkShape.id,
 				kbd: 'cmd+alt+shift+-,ctrl+alt+shift+-',
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
@@ -1844,7 +2076,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'a11y-repeat-shape-announce',
 				kbd: 'alt+r',
-				label: 'a11y.repeat-shape',
+				label: messages.a11yRepeatShape.id,
 				isRequiredA11yAction: true,
 				readonlyOk: true,
 				onSelect: async (source) => {
@@ -1867,7 +2099,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'image-replace',
-				label: 'tool.replace-media',
+				label: messages.toolReplaceMedia.id,
 				icon: 'arrow-cycle',
 				readonlyOk: false,
 				onSelect: async (source) => {
@@ -1877,7 +2109,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'video-replace',
-				label: 'tool.replace-media',
+				label: messages.toolReplaceMedia.id,
 				icon: 'arrow-cycle',
 				readonlyOk: false,
 				onSelect: async (source) => {
@@ -1888,7 +2120,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'download-original',
 				isEnabled: hasDownloadableMediaSelected,
-				label: 'action.download-original',
+				label: messages.actionDownloadOriginal.id,
 				readonlyOk: true,
 				onSelect: async (source) => {
 					const selectedShapes = editor.getSelectedShapes()
@@ -1932,7 +2164,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'copy-hovered-styles',
-				label: 'action.copy-hovered-styles',
+				label: messages.actionCopyHoveredStyles.id,
 				kbd: 'shift+q',
 				async onSelect(source) {
 					const shape = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
@@ -1965,7 +2197,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'open-cursor-chat',
 				isAvailable: (editor) => !editor.getInstanceState().isCoarsePointer,
 				isEnabled: (editor) => editor.isIn('select'),
-				label: 'action.open-cursor-chat',
+				label: messages.actionOpenCursorChat.id,
 				readonlyOk: true,
 				kbd: '/',
 				onSelect(source) {

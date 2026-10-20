@@ -1,13 +1,13 @@
 import { useAuth } from '@clerk/clerk-react'
 import { TlaFile } from '@tldraw/dotcom-shared'
 import { useCallback, useState } from 'react'
+import { FormattedRelativeTime } from 'react-intl'
 import { useParams } from 'react-router-dom'
-import { useEditor } from 'tldraw'
+import { F, useEditor } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
-import { F, FormattedRelativeTime } from '../../../utils/i18n'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,

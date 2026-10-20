@@ -1,9 +1,10 @@
 import {
-	PageRecordType,
-	TLPageId,
 	clamp,
+	defineMessages,
+	PageRecordType,
 	releasePointerCapture,
 	setPointerCapture,
+	TLPageId,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -25,6 +26,19 @@ import {
 import { onMovePage } from './edit-pages-shared'
 import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
+
+const messages = defineMessages({
+	pageMenuNewPageInitialName: { id: 'page-menu.new-page-initial-name', defaultMessage: 'Page 1' },
+	actionRename: { id: 'action.rename', defaultMessage: 'Rename' },
+	contextMenuReorder: { id: 'context-menu.reorder', defaultMessage: 'Reorder' },
+	pageMenuCreateNewPage: { id: 'page-menu.create-new-page', defaultMessage: 'Create new page' },
+	pageMenuGoToPage: { id: 'page-menu.go-to-page', defaultMessage: 'Go to page' },
+	pageMenuMaxPagesReached: {
+		id: 'page-menu.max-pages-reached',
+		defaultMessage: 'Maximum pages reached',
+	},
+	pageMenuResize: { id: 'page-menu.resize', defaultMessage: 'Resize page list' },
+})
 
 const PAGE_MENU_LIST_HEIGHT_KEY = 'tldraw_page_menu_list_height'
 const MAX_PAGE_MENU_RENDER_HEIGHT = 800
@@ -157,7 +171,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const renderedListHeight = Math.min(userListHeight ?? autoFitListHeight, renderCap)
 	const hasReachedMaxPages = pages.length >= editor.options.maxPages
 	const createPageButtonLabel = msg(
-		hasReachedMaxPages ? 'page-menu.max-pages-reached' : 'page-menu.create-new-page'
+		hasReachedMaxPages ? messages.pageMenuMaxPagesReached : messages.pageMenuCreateNewPage
 	)
 
 	const handleResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -494,7 +508,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		(id: TLPageId, currentName: string) => {
 			if (isReadonlyMode) return
 			if (shouldUseWindowPrompt) {
-				const name = window.prompt(msg('action.rename'), currentName)
+				const name = window.prompt(msg(messages.actionRename), currentName)
 				if (name && name !== currentName) {
 					editor.renamePage(id, name)
 					trackEvent('rename-page', { source: 'page-menu' })
@@ -510,11 +524,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		if (isReadonlyMode) return
 
 		const newPageId = PageRecordType.createId()
-		const initialName = msg('page-menu.new-page-initial-name')
+		const initialName = msg(messages.pageMenuNewPageInitialName)
 		let name = initialName
 
 		if (shouldUseWindowPrompt) {
-			const result = window.prompt(msg('page-menu.create-new-page'), initialName)
+			const result = window.prompt(msg(messages.pageMenuCreateNewPage), initialName)
 			if (result === null) return
 			name = result || initialName
 		}
@@ -638,8 +652,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 														onPointerMove={handlePointerMove}
 														onPointerUp={handlePointerUp}
 														onPointerCancel={handlePointerCancel}
-														tooltip={msg('context-menu.reorder')}
-														title={msg('context-menu.reorder')}
+														tooltip={msg(messages.contextMenuReorder)}
+														title={msg(messages.contextMenuReorder)}
 													>
 														<TldrawUiButtonIcon icon="drag-handle-dots" small />
 													</TldrawUiButton>
@@ -656,8 +670,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 													}}
 													onDoubleClick={() => startRenamingPage(page.id, page.name)}
 													{...rowDragHandlers}
-													tooltip={msg('page-menu.go-to-page')}
-													title={msg('page-menu.go-to-page')}
+													tooltip={msg(messages.pageMenuGoToPage)}
+													title={msg(messages.pageMenuGoToPage)}
 													data-id={page.id}
 													data-index={index}
 													onKeyDown={(e) => {
@@ -693,7 +707,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						onDoubleClick={handleResizeDoubleClick}
 						role="separator"
 						aria-orientation="horizontal"
-						aria-label={msg('page-menu.resize')}
+						aria-label={msg(messages.pageMenuResize)}
 					/>
 					<TldrawUiButton
 						type="menu"
