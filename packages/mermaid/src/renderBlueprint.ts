@@ -138,7 +138,7 @@ export function renderBlueprint(
 		const arrowId = createArrowFromEdge(editor, arrowEdge, shapeIds)
 		if (!arrowId) continue
 		arrowIds.push(arrowId)
-		if (hasEndLabelBinding) arrowIds.push(...createEndLabels(editor, edge, arrowId))
+		if (hasEndLabelBinding) createEndLabels(editor, edge, arrowId, shapeIds)
 	}
 
 	// Create sub-groups and track which shape IDs are consumed by a group
@@ -322,17 +322,23 @@ function foldEndLabels({ label, startLabel, endLabel }: MermaidBlueprintEdge) {
 	return [startLabel, label, endLabel].filter(Boolean).join(' — ')
 }
 
-function createEndLabels(editor: Editor, edge: MermaidBlueprintEdge, arrowId: TLShapeId) {
-	const labelIds: TLShapeId[] = []
-	for (const [terminal, text] of [
-		['start', edge.startLabel],
-		['end', edge.endLabel],
+// Each label is a child of the shape at its end, so it moves with that shape and anything holding it.
+function createEndLabels(
+	editor: Editor,
+	edge: MermaidBlueprintEdge,
+	arrowId: TLShapeId,
+	shapeIds: Map<string, TLShapeId>
+) {
+	for (const [terminal, text, nodeId] of [
+		['start', edge.startLabel, edge.startNodeId],
+		['end', edge.endLabel, edge.endNodeId],
 	] as const) {
 		if (!text) continue
 		const labelId = createShapeId()
 		editor.createShape<TLTextShape>({
 			id: labelId,
 			type: 'text',
+			parentId: shapeIds.get(nodeId),
 			props: {
 				richText: toRichText(sanitizeDiagramText(text)),
 				size: 's',
@@ -346,9 +352,7 @@ function createEndLabels(editor: Editor, edge: MermaidBlueprintEdge, arrowId: TL
 			toId: labelId,
 			props: { terminal },
 		})
-		labelIds.push(labelId)
 	}
-	return labelIds
 }
 
 function makeArrowBinding(

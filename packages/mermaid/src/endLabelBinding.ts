@@ -40,9 +40,10 @@ const ACROSS_LINE = 6
 
 /**
  * Keeps a label, such as a class diagram's multiplicity (`1`, `*`, `0..1`), beside one end of an
- * arrow. Bind the label from the arrow; the util also binds it from the shapes the arrow joins,
- * since an arrow's own record doesn't change when only a shape it's bound to moves. The label
- * follows the arrow, so dragging it away snaps it back on the next change.
+ * arrow. Bind the label from the arrow, and the util parents it to the shape at that end, so it
+ * moves with that shape and anything holding it. The util also binds it from both shapes the arrow
+ * joins, since an arrow's own record doesn't change when only a shape it's bound to moves, and it
+ * slides along the edge as the line turns. Dragging the label away snaps it back on the next change.
  * @public
  */
 export class MermaidEndLabelBindingUtil extends BindingUtil<TLMermaidEndLabelBinding> {
@@ -74,11 +75,18 @@ export class MermaidEndLabelBindingUtil extends BindingUtil<TLMermaidEndLabelBin
 	}
 
 	private update(binding: TLMermaidEndLabelBinding) {
-		const label = this.editor.getShape(binding.toId)
-		const arrow = label && getLabelArrow(this.editor, label.id)
+		const { editor } = this
+		const labelId = binding.toId
+		const arrow = getLabelArrow(editor, labelId)
+		const label = editor.getShape(labelId)
 		if (!label || !arrow) return
-		if (binding.fromId === arrow.id) watchArrowTargets(this.editor, label, arrow, binding.props)
-		placeEndLabel(this.editor, label, arrow, binding.props.terminal)
+		if (binding.fromId === arrow.id) {
+			watchArrowTargets(editor, label, arrow, binding.props)
+			// Follow the arrow onto whatever its end is dragged to.
+			const target = getArrowBindings(editor, arrow)[binding.props.terminal]?.toId
+			if (target && label.parentId !== target) editor.reparentShapes([labelId], target)
+		}
+		placeEndLabel(editor, editor.getShape(labelId)!, arrow, binding.props.terminal)
 	}
 }
 

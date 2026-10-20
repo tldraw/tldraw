@@ -102,18 +102,35 @@ describe('MermaidEndLabelBindingUtil', () => {
 		editor.updateShape<TLArrowShape>({ id: ids.arrow, type: 'arrow', props: { bend: 0 } })
 
 		expect(watchedShapeIds(editor)).toEqual([ids.a, ids.arrow, ids.c].sort())
+		expect(editor.getShape(ids.label)!.parentId).toBe(ids.c)
 		const before = labelCenter(editor)
 		editor.updateShape({ id: ids.c, type: 'geo', x: 400, y: 700 })
 		expect(labelCenter(editor).y).toBeGreaterThan(before.y + 100)
 	})
 
-	it('deletes the label with its arrow, but not with a shape the arrow joins', () => {
+	it('lives in the shape at its end, so it moves live with anything holding that shape', () => {
 		const editor = createEditor()
 		createLabelledArrow(editor)
+		expect(editor.getShape(ids.label)!.parentId).toBe(ids.b)
 
-		editor.deleteShape(ids.b)
+		const frame = createShapeId('frame')
+		editor.createShape({ id: frame, type: 'geo', x: 300, y: -100, props: { w: 300, h: 300 } })
+		editor.reparentShapes([ids.b], frame)
+		const before = labelCenter(editor)
+		editor.updateShape({ id: frame, type: 'geo', x: 300, y: 200 })
+
+		expect(labelCenter(editor).y).toBe(before.y + 300)
+	})
+
+	it('goes with its arrow or the shape at its end, but not the shape at the other end', () => {
+		const editor = createEditor()
+		createLabelledArrow(editor)
+		editor.deleteShape(ids.a)
 		expect(editor.getShape(ids.label)).toBeDefined()
+		editor.deleteShape(ids.b)
+		expect(editor.getShape(ids.label)).toBeUndefined()
 
+		createLabelledArrow(editor)
 		editor.deleteShape(ids.arrow)
 		expect(editor.getShape(ids.label)).toBeUndefined()
 	})
