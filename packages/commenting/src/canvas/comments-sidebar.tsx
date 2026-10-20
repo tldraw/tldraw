@@ -166,11 +166,11 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				header={header ?? msg(messages.commentsTitle)}
 				headerAction={
 					<div className="tlui-cmt-list__header-actions">
+						<CommentsVisibilityToggle />
 						<CommentsFilterMenu
 							canFilterByAuthor={currentUserId !== null}
 							canFilterByUnread={isCommentUnread !== undefined}
 						/>
-						<CommentsVisibilityToggle />
 					</div>
 				}
 				empty={
