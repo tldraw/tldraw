@@ -2307,12 +2307,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			firstParentId &&
 			selectedShapeIds.every((shapeId) => this.getShape(shapeId)?.parentId === firstParentId) &&
 			!isPageId(firstParentId)
-		// Locked shapes (and children of locked containers) can't be selected by clicking or
-		// select all, so traversal skips them too
-		const filteredShapes = this.getCurrentPageShapes().filter(
-			(shape) =>
-				!this.isShapeOrAncestorLocked(shape) &&
-				(isSelectedWithinContainer ? shape.parentId === firstParentId : isPageId(shape.parentId))
+		const filteredShapes = this.getCurrentPageShapes().filter((shape) =>
+			isSelectedWithinContainer ? shape.parentId === firstParentId : isPageId(shape.parentId)
 		)
 		const readingOrderShapes = this._getShapesInReadingOrder(filteredShapes)
 		const currentShapeId: TLShapeId | undefined =
@@ -2323,8 +2319,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let adjacentShapeId: TLShapeId
 		if (direction === 'next' || direction === 'prev') {
 			const shapeIds = readingOrderShapes.map((shape) => shape.id)
-			// Every candidate can be filtered out (e.g. a locked shape is selected and nothing
-			// else is unlocked); indexing an empty list would hand getShape undefined
+			// Every candidate can be filtered out (e.g. every util returns false from canTabTo);
+			// indexing an empty list would hand getShape undefined
 			if (shapeIds.length === 0) return
 
 			const currentIndex = currentShapeId ? shapeIds.indexOf(currentShapeId) : -1
@@ -2348,6 +2344,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Generates a reading order for shapes based on rows grouping.
 	 * Tries to keep a natural reading order (left-to-right, top-to-bottom).
+	 * Shapes whose util returns `false` from {@link ShapeUtil.canTabTo} are left out. Locked
+	 * shapes are included, so keyboard users can reach them to unlock them.
 	 *
 	 * @public
 	 */

@@ -127,19 +127,24 @@ export function generateShapeAnnouncementMessage(args: {
 	// two media shapes and bookmark gets its name.
 	const shapeType = shapeUtil.getShapeName(shape) ?? msg(`tool.${shape.type}`)
 
-	// Get shape index in reading order
+	// A selected shape outside the page's reading order (a container's child, or canTabTo
+	// false) has no position to announce, and "0 of N" would be wrong
 	const readingOrderShapes = editor.getCurrentPageShapesInReadingOrder()
-	const currentShapeIndex = readingOrderShapes.findIndex((s) => s.id === shapeId) + 1
-	const shapeIndex = msg(messages.a11yShapeIndex.id, {
-		num: currentShapeIndex,
-		total: readingOrderShapes.length,
-	})
+	const indexInReadingOrder = readingOrderShapes.findIndex((s) => s.id === shapeId)
+	const shapeIndex =
+		indexInReadingOrder === -1
+			? ''
+			: ' ' +
+				msg(messages.a11yShapeIndex.id, {
+					num: indexInReadingOrder + 1,
+					total: readingOrderShapes.length,
+				})
 
 	// Get describing text (alt text or shape text)
 	const describingText = shapeUtil.getAriaDescriptor(shape) || shapeUtil.getText(shape) || ''
 
 	// Build the full announcement
-	return (describingText ? `${describingText}, ` : '') + `${shapeType}. ${shapeIndex}`
+	return (describingText ? `${describingText}, ` : '') + `${shapeType}.${shapeIndex}`
 }
 
 /** @public */

@@ -101,6 +101,44 @@ describe('A11y Shape Announcements', () => {
 		expect(message).toBe('A test image, Image. 1 of 1')
 	})
 
+	it('counts locked shapes in the shape count', () => {
+		const box1 = createShapeId('box1')
+		const locked = createShapeId('locked')
+		const box2 = createShapeId('box2')
+
+		editor.createShapes([
+			{ id: box1, type: 'geo', x: 0, y: 0 },
+			{ id: locked, type: 'geo', x: 100, y: 0, isLocked: true },
+			{ id: box2, type: 'geo', x: 200, y: 0 },
+		])
+
+		const message = generateShapeAnnouncementMessage({
+			editor,
+			selectedShapeIds: [locked],
+			msg: mockTranslate,
+		})
+
+		expect(message).toBe('Rectangle. 2 of 3')
+	})
+
+	it('announces a shape outside the reading order without a position', () => {
+		const frame = createShapeId('frame')
+		const child = createShapeId('child')
+
+		editor.createShapes([
+			{ id: frame, type: 'frame', x: 0, y: 0, props: { w: 400, h: 200 } },
+			{ id: child, type: 'geo', x: 10, y: 10, parentId: frame },
+		])
+
+		const message = generateShapeAnnouncementMessage({
+			editor,
+			selectedShapeIds: [child],
+			msg: mockTranslate,
+		})
+
+		expect(message).toBe('Rectangle.')
+	})
+
 	it('returns empty string when no shapes are selected', () => {
 		// Get announcement for empty selection
 		const message = generateShapeAnnouncementMessage({

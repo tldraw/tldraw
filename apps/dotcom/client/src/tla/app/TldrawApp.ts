@@ -1471,7 +1471,7 @@ export class TldrawApp {
 		// `||` not `??`: File.name is never nullish, so the document-name fallback was unreachable
 		// and a file called `.tldr` would reach createFile with an empty name (bad_request).
 		const name =
-			file.name.replace(/\.tldr$/, '').trim() ||
+			file.name.replace(/\.tldr$/i, '').trim() ||
 			Object.values(snapshot.store)
 				.find((d): d is TLDocument => d.typeName === 'document')
 				?.name?.trim() ||
