@@ -305,19 +305,21 @@ export interface TLUiActionItem<
 	id: string
 	kbd?: string
 	label?: TransationKey | { [key: string]: TransationKey }
+	/** When `true`, the action runs while the editor is readonly. Defaults to `false`. */
 	readonlyOk?: boolean
 	checkbox?: boolean
 	isRequiredA11yAction?: boolean
 	/**
 	 * Whether the action exists in the current context at all, e.g. clipboard support or debug
-	 * mode. Menus hide the item when it returns false (the keyboard shortcuts dialog still lists
-	 * it); keyboard shortcuts ignore it. Must be pure and read only editor state.
+	 * mode. When false, menus hide the item (the keyboard shortcuts dialog still lists it) and the
+	 * action doesn't run from a menu, a shortcut or `useActions()`. Must be pure and read only
+	 * editor state.
 	 */
 	isAvailable?(editor: Editor): boolean
 	/**
-	 * Whether the action can run now. Menus disable or hide the item when it returns false;
-	 * keyboard shortcuts ignore it. Must be pure and read only editor state: menus re-run it when
-	 * that state changes, so anything else it reads goes stale.
+	 * Whether the action can run now. When false, menus disable or hide the item and the action
+	 * doesn't run from a menu, a shortcut or `useActions()`. Must be pure and read only editor
+	 * state: menus re-run it when that state changes, so anything else it reads goes stale.
 	 */
 	isEnabled?(editor: Editor): boolean
 	/** For checkbox actions: whether the item shows as checked. Must be pure and read only editor state. */
@@ -354,6 +356,33 @@ function makeActions(actions: TLUiActionItem[]) {
 	return Object.fromEntries(actions.map((action) => [action.id, action])) as TLUiActionsContextType
 }
 
+/**
+ * Wraps every action so it only runs when {@link isActionRunnable} for the action under its key,
+ * however it's called. Copies of a gated action keep that gate: menu items destructure `onSelect`,
+ * so a copy's own predicates couldn't be honoured consistently. Returns new objects: overrides may
+ * return the same object on every render, which must not be wrapped twice.
+ *
+ * @internal
+ */
+export function gateActions(
+	editor: Editor,
+	actions: TLUiActionsContextType
+): TLUiActionsContextType {
+	const gated: TLUiActionsContextType = {}
+	for (const [key, action] of Object.entries(actions)) {
+		const { onSelect } = action
+		gated[key] = {
+			...action,
+			onSelect(source) {
+				const self = gated[key]
+				if (!isActionRunnable(editor, self)) return
+				return onSelect.call(self, source)
+			},
+		}
+	}
+	return gated
+}
+
 function getExportName(editor: Editor, defaultName: string) {
 	// When we don't have any shapes selected, we want to use the document name
 	if (editor.getSelectedShapeIds().length === 0) {
@@ -385,25 +414,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
 		const editor = _editor as Editor
 		if (!editor) return {}
-		function mustGoBackToSelectToolFirst() {
-			if (!editor.isIn('select')) {
-				editor.complete()
-				editor.setCurrentTool('select')
-				return false // false will still let the action happen, true will stop it
-				// todo: remove this return value once we're suuuuure
-			}
-
-			return false
-		}
-
-		function canApplySelectionAction() {
-			return editor.isIn('select') && editor.getSelectedShapeIds().length > 0
-		}
-
 		function scaleShapes(scaleFactor: number) {
-			if (!canApplySelectionAction()) return
-			if (mustGoBackToSelectToolFirst()) return
-
 			editor.markHistoryStoppingPoint('resize shapes')
 
 			editor.run(() => {
@@ -533,9 +544,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionEditLink.id,
 				icon: 'link',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('edit-link', { source })
 					editor.markHistoryStoppingPoint('edit-link')
 					helpers.addDialog({ component: EditLinkDialog })
@@ -712,9 +720,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) => editor.isIn('select') && canToggleAutoSize(editor),
 				label: messages.actionToggleAutoSize.id,
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('toggle-auto-size', { source })
 					editor.markHistoryStoppingPoint('toggling auto size')
 					editor.run(() => {
@@ -790,9 +795,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) => editor.isIn('select') && isOnlyEmbedWithUrlSelected(editor),
 				label: messages.actionConvertToBookmark.id,
 				async onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('convert-to-bookmark', { source })
 					const shapes = editor.getSelectedShapes()
 
@@ -829,9 +831,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) => editor.isIn('select') && isOnlyEmbeddableBookmarkSelected(editor),
 				label: messages.actionConvertToEmbed.id,
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('convert-to-embed', { source })
 
 					editor.run(() => {
@@ -882,9 +881,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionDuplicate.id,
 				icon: 'duplicate',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('duplicate-shapes', { source })
 					const instanceState = editor.getInstanceState()
 					let ids: TLShapeId[]
@@ -977,8 +973,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) => editor.isIn('select') && canFitFrameToContent(editor),
 				label: messages.actionFitFrameToContent.id,
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-
 					trackEvent('fit-frame-to-content', { source })
 					const onlySelectedShape = editor.getOnlySelectedShape()
 					if (onlySelectedShape && editor.isShapeFrameLike(onlySelectedShape)) {
@@ -994,9 +988,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'alt+A',
 				icon: 'align-left',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('align-shapes', { operation: 'left', source })
 					updateSelectedShapes('align left', (ids) => editor.alignShapes(ids, 'left'))
 				},
@@ -1011,9 +1002,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'alt+H',
 				icon: 'align-center-horizontal',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('align-shapes', { operation: 'center-horizontal', source })
 					updateSelectedShapes('align center horizontal', (ids) =>
 						editor.alignShapes(ids, 'center-horizontal')
@@ -1027,9 +1015,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'alt+D',
 				icon: 'align-right',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('align-shapes', { operation: 'right', source })
 					updateSelectedShapes('align right', (ids) => editor.alignShapes(ids, 'right'))
 				},
@@ -1044,9 +1029,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'alt+V',
 				icon: 'align-center-vertical',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('align-shapes', { operation: 'center-vertical', source })
 					updateSelectedShapes('align center vertical', (ids) =>
 						editor.alignShapes(ids, 'center-vertical')
@@ -1060,9 +1042,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'align-top',
 				kbd: 'alt+W',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('align-shapes', { operation: 'top', source })
 					updateSelectedShapes('align top', (ids) => editor.alignShapes(ids, 'top'))
 				},
@@ -1074,9 +1053,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'align-bottom',
 				kbd: 'alt+S',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('align-shapes', { operation: 'bottom', source })
 					updateSelectedShapes('align bottom', (ids) => editor.alignShapes(ids, 'bottom'))
 				},
@@ -1091,9 +1067,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'distribute-horizontal',
 				kbd: 'alt+shift+h',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('distribute-shapes', { operation: 'horizontal', source })
 					updateSelectedShapes('distribute horizontal', (ids) =>
 						editor.distributeShapes(ids, 'horizontal')
@@ -1110,9 +1083,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'distribute-vertical',
 				kbd: 'alt+shift+V',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('distribute-shapes', { operation: 'vertical', source })
 					updateSelectedShapes('distribute vertical', (ids) =>
 						editor.distributeShapes(ids, 'vertical')
@@ -1128,9 +1098,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				icon: 'stretch-horizontal',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('stretch-shapes', { operation: 'horizontal', source })
 					updateSelectedShapes('stretch horizontal', (ids) =>
 						editor.stretchShapes(ids, 'horizontal')
@@ -1146,9 +1113,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				icon: 'stretch-vertical',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('stretch-shapes', { operation: 'vertical', source })
 					updateSelectedShapes('stretch vertical', (ids) => editor.stretchShapes(ids, 'vertical'))
 				},
@@ -1164,9 +1128,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				kbd: 'shift+h',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('flip-shapes', { operation: 'horizontal', source })
 					updateSelectedShapes('flip horizontal', (ids) => editor.flipShapes(ids, 'horizontal'))
 				},
@@ -1182,9 +1143,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				kbd: 'shift+v',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('flip-shapes', { operation: 'vertical', source })
 					updateSelectedShapes('flip vertical', (ids) => editor.flipShapes(ids, 'vertical'))
 				},
@@ -1195,9 +1153,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionPack.id,
 				icon: 'pack',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('pack-shapes', { source })
 					updateSelectedShapes('pack', (ids) =>
 						editor.packShapes(ids, editor.options.adjacentShapeMargin)
@@ -1213,9 +1168,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				icon: 'stack-vertical',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('stack-shapes', { operation: 'vertical', source })
 					updateSelectedShapes('stack-vertical', (ids) =>
 						editor.stackShapes(ids, 'vertical', editor.options.adjacentShapeMargin)
@@ -1231,9 +1183,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				icon: 'stack-horizontal',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('stack-shapes', { operation: 'horizontal', source })
 					updateSelectedShapes('stack-horizontal', (ids) =>
 						editor.stackShapes(ids, 'horizontal', editor.options.adjacentShapeMargin)
@@ -1247,9 +1196,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: ']',
 				icon: 'bring-to-front',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('reorder-shapes', { operation: 'toFront', source })
 					editor.markHistoryStoppingPoint('bring to front')
 					editor.bringToFront(editor.getSelectedShapeIds())
@@ -1262,9 +1208,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'bring-forward',
 				kbd: 'alt+]',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('reorder-shapes', { operation: 'forward', source })
 					editor.markHistoryStoppingPoint('bring forward')
 					editor.bringForward(editor.getSelectedShapeIds())
@@ -1277,9 +1220,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'send-backward',
 				kbd: 'alt+[',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('reorder-shapes', { operation: 'backward', source })
 					editor.markHistoryStoppingPoint('send backward')
 					editor.sendBackward(editor.getSelectedShapeIds())
@@ -1292,9 +1232,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'send-to-back',
 				kbd: '[',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('reorder-shapes', { operation: 'toBack', source })
 					editor.markHistoryStoppingPoint('send to back')
 					editor.sendToBack(editor.getSelectedShapeIds())
@@ -1306,9 +1243,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionCut.id,
 				kbd: 'cmd+x,ctrl+x',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					helpers.cut(source)
 				},
 			},
@@ -1319,9 +1253,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'cmd+c,ctrl+c',
 				readonlyOk: true,
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					helpers.copy(source)
 				},
 			},
@@ -1386,7 +1317,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					editor.run(() => {
-						if (mustGoBackToSelectToolFirst()) return
+						if (!editor.isIn('select')) {
+							editor.complete()
+							editor.setCurrentTool('select')
+						}
 
 						trackEvent('select-all-shapes', { source })
 
@@ -1401,9 +1335,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionSelectNone.id,
 				readonlyOk: true,
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('select-none-shapes', { source })
 					editor.markHistoryStoppingPoint('select none')
 					editor.selectNone()
@@ -1416,9 +1347,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '⌫,del',
 				icon: 'trash',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('delete-shapes', { source })
 					editor.markHistoryStoppingPoint('delete')
 					editor.deleteShapes(editor.getSelectedShapeIds())
@@ -1431,9 +1359,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'rotate-cw',
 				kbd: 'shift+.,shift+alt+.',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					const isFine = editor.inputs.getAltKey()
 					trackEvent('rotate-cw', { source, fine: isFine })
 					updateSelectedShapes('rotate-cw', (ids) => {
@@ -1452,9 +1377,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				// omg double comma
 				kbd: 'shift+,,shift+alt+,',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					const isFine = editor.inputs.getAltKey()
 					trackEvent('rotate-ccw', { source, fine: isFine })
 					updateSelectedShapes('rotate-ccw', (ids) => {
@@ -1545,9 +1467,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'shift+2',
 				readonlyOk: true,
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
 					trackEvent('zoom-to-selection', { source })
 					editor.zoomToSelection({ animation: { duration: editor.options.animationMediumMs } })
 				},
@@ -1870,7 +1789,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionToggleLock.id,
 				kbd: 'shift+l',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
 					editor.markHistoryStoppingPoint('locking')
 					trackEvent('toggle-lock', { source })
 					editor.toggleLock(editor.getSelectedShapeIds())
@@ -2001,12 +1919,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'adjust-shape-styles',
+				isEnabled: canApplySelection,
 				label: messages.a11yAdjustShapeStyles.id,
 				kbd: 'cmd+Enter,ctrl+Enter',
 				isRequiredA11yAction: true,
 				onSelect: async (source) => {
-					if (!canApplySelectionAction()) return
-
 					const onlySelectedShape = editor.getOnlySelectedShape()
 					if (
 						onlySelectedShape &&
@@ -2029,12 +1946,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'a11y-open-context-menu',
+				isEnabled: canApplySelection,
 				kbd: 'cmd+shift+Enter,ctrl+shift+Enter',
 				isRequiredA11yAction: true,
 				readonlyOk: true,
 				onSelect: async (source) => {
-					if (!canApplySelectionAction()) return
-
 					// For multiple shapes or a single shape, get the selection bounds
 					const selectionBounds = editor.getSelectionPageBounds()
 					if (!selectionBounds) return
@@ -2063,7 +1979,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.a11yEnlargeShape.id,
 				kbd: 'cmd+alt+shift+=,ctrl+alt+shift+=',
 				onSelect: async (source) => {
-					if (!canApplySelectionAction()) return
 					scaleShapes(1.1)
 					trackEvent('enlarge-shapes', { source })
 				},
@@ -2074,7 +1989,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.a11yShrinkShape.id,
 				kbd: 'cmd+alt+shift+-,ctrl+alt+shift+-',
 				onSelect: async (source) => {
-					if (!canApplySelectionAction()) return
 					scaleShapes(1 / 1.1)
 					trackEvent('shrink-shapes', { source })
 				},
@@ -2202,17 +2116,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			actionItems.push({
 				id: 'open-cursor-chat',
 				isAvailable: (editor) => !editor.getInstanceState().isCoarsePointer,
-				isEnabled: (editor) => editor.isIn('select'),
 				label: messages.actionOpenCursorChat.id,
 				readonlyOk: true,
 				kbd: '/',
 				onSelect(source) {
 					trackEvent('open-cursor-chat', { source })
-
-					// Don't open cursor chat if we're on a touch device
-					if (editor.getInstanceState().isCoarsePointer) {
-						return
-					}
 
 					// wait a frame before opening as otherwise the open context menu will close it
 					editor.timers.requestAnimationFrame(() => {
@@ -2223,7 +2131,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		const actions = makeActions(actionItems)
-		finalActions.current = overrides ? overrides(editor, actions, helpers) : actions
+		const overriddenActions = overrides ? overrides(editor, actions, helpers) : actions
+		finalActions.current = gateActions(editor, overriddenActions)
 		return finalActions.current
 	}, [
 		helpers,
