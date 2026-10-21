@@ -197,7 +197,7 @@ describe('createBookmarkFromUrl', () => {
 		expect(createdAsset?.type).toBe('bookmark')
 	})
 
-	it('does not fetch metadata for a deep link', async () => {
+	it('does not fetch metadata for an app link', async () => {
 		const fetchSpy = vi.spyOn(editor, 'getAssetForExternalContent')
 
 		const result = await createBookmarkFromUrl(editor, { url: 'vscode://file/src/index.ts' })
@@ -570,7 +570,7 @@ describe('changing a bookmark url', () => {
 		}
 	})
 
-	it('does not fetch metadata when the url changes to a deep link', async () => {
+	it('does not fetch metadata when the url changes to an app link', async () => {
 		vi.useFakeTimers()
 		try {
 			const urlA = 'https://a.example.com'

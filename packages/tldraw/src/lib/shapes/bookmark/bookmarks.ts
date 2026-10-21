@@ -19,7 +19,7 @@ export const BOOKMARK_JUST_URL_HEIGHT = 46
 const SHORT_BOOKMARK_HEIGHT = 101
 
 // Only http(s) pages have metadata to fetch. A bookmark asset's `src` is a `T.srcUrl`, which
-// rejects deep links like `vscode://file/…` and `mailto:`, so those stay url-only bookmarks.
+// rejects app links like `vscode://file/…` and `mailto:`, so those stay url-only bookmarks.
 function canUnfurlUrl(url: string) {
 	return T.httpUrl.isValid(url)
 }

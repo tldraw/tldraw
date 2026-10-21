@@ -66,7 +66,7 @@ export function getTipTapDefaultExtensions(
 			link: {
 				openOnClick: false,
 				autolink: true,
-				// TipTap strips hrefs outside its own protocol list, which would drop app deep links
+				// TipTap strips hrefs outside its own protocol list, which would drop app links
 				// (`vscode://…`) that shape links accept.
 				isAllowedUri: (url, { defaultValidate }) => defaultValidate(url) || T.linkUrl.isValid(url),
 			},
