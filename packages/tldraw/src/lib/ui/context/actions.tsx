@@ -41,6 +41,7 @@ import { TLUiOverrideHelpers, useDefaultHelpers } from '../overrides'
 import { useA11y } from './a11y'
 import {
 	areAllSelectedFrameLike,
+	areAllSelectedFrames,
 	canApplySelectionAction as canApplySelection,
 	canApplyToUnlockedSelection,
 	canFitFrameToContent,
@@ -63,6 +64,7 @@ import {
 	isUngroupAllowed,
 	supportsDownloadingOriginal,
 } from './action-predicates'
+import { isActionRunnable } from './action-state'
 import { useTldrawUiComponents } from './components'
 import { TLUiEventSource, useUiEvents } from './events'
 
@@ -449,6 +451,79 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						severity: 'error',
 					})
 				})
+		}
+
+		// Toggles dispatch through the final map, or overrides of the actions they pick would be skipped.
+		const finalActions: { current?: TLUiActionsContextType } = {}
+
+		function getGroupToggleAction(editor: Editor): 'group' | 'ungroup' | null {
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			const action =
+				onlySelectedShape && editor.isShapeOfType(onlySelectedShape, 'group') ? 'ungroup' : 'group'
+			return isActionRunnable(editor, finalActions.current?.[action]) ? action : null
+		}
+
+		function getFrameToggleAction(editor: Editor): 'frame-selection' | 'remove-frame' | null {
+			const action = areAllSelectedFrames(editor) ? 'remove-frame' : 'frame-selection'
+			return isActionRunnable(editor, finalActions.current?.[action]) ? action : null
+		}
+
+		function ungroupSelectedShapes(source: TLUiEventSource) {
+			trackEvent('ungroup-shapes', { source })
+			editor.markHistoryStoppingPoint('ungroup')
+			editor.ungroupShapes(editor.getSelectedShapeIds())
+		}
+
+		function groupSelectedShapes(source: TLUiEventSource) {
+			trackEvent('group-shapes', { source })
+			editor.markHistoryStoppingPoint('group')
+			editor.groupShapes(editor.getSelectedShapeIds())
+		}
+
+		function frameSelectedShapes(source: TLUiEventSource) {
+			// Unlike group, a single shape can be framed, so there is no two-shape minimum.
+			const ids = getFrameableShapeIds(editor, editor.getSelectedShapeIds())
+			if (ids.length === 0) return
+
+			const shapes = compact(ids.map((id) => editor.getShape(id)))
+			const pageBounds = editor.getShapesPageBounds(ids)
+			if (!pageBounds) return
+			// Frame props reject zero dimensions, which a lone horizontal arrow or a dot has. The
+			// frame is fitted to its content with padding below, so a placeholder size is fine here.
+			const { w, h } = Box.ZeroFix(pageBounds)
+
+			trackEvent('frame-selection', { source })
+			editor.markHistoryStoppingPoint('frame-selection')
+
+			const parentId = editor.findCommonAncestor(shapes) ?? editor.getCurrentPageId()
+
+			const frameId = createShapeId()
+			const padding = 25 / editor.getZoomLevel()
+
+			editor.run(() => {
+				editor.createShapes([
+					{
+						id: frameId,
+						type: 'frame',
+						parentId,
+						x: pageBounds.x,
+						y: pageBounds.y,
+						props: { w, h },
+					},
+				])
+				editor.reparentShapes(ids, frameId)
+				fitFrameToContent(editor, frameId, { padding })
+				editor.select(frameId)
+			})
+		}
+
+		function removeSelectedFrames(source: TLUiEventSource) {
+			trackEvent('remove-frame', { source })
+			editor.markHistoryStoppingPoint('remove-frame')
+			removeFrame(
+				editor,
+				editor.getSelectedShapes().map((shape) => shape.id)
+			)
 		}
 
 		const actionItems: TLUiActionItem<TLUiTranslationKey, TLUiIconType>[] = [
@@ -854,116 +929,47 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionUngroup.id,
 				kbd: 'cmd+shift+g,ctrl+shift+g',
 				icon: 'ungroup',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('ungroup-shapes', { source })
-					editor.markHistoryStoppingPoint('ungroup')
-					editor.ungroupShapes(editor.getSelectedShapeIds())
-				},
+				onSelect: ungroupSelectedShapes,
 			},
 			{
 				id: 'group',
 				isEnabled: (editor) => editor.isIn('select') && isGroupAllowed(editor),
 				label: messages.actionGroup.id,
+				icon: 'group',
+				onSelect: groupSelectedShapes,
+			},
+			{
+				id: 'toggle-group',
+				isEnabled: (editor) => editor.isIn('select') && getGroupToggleAction(editor) !== null,
+				label: messages.actionGroup.id,
 				kbd: 'cmd+g,ctrl+g',
 				icon: 'group',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('group-shapes', { source })
-					const onlySelectedShape = editor.getOnlySelectedShape()
-					if (onlySelectedShape && editor.isShapeOfType(onlySelectedShape, 'group')) {
-						editor.markHistoryStoppingPoint('ungroup')
-						editor.ungroupShapes(editor.getSelectedShapeIds())
-					} else {
-						editor.markHistoryStoppingPoint('group')
-						editor.groupShapes(editor.getSelectedShapeIds())
-					}
+					const action = getGroupToggleAction(editor)
+					if (action) return finalActions.current?.[action].onSelect(source)
 				},
 			},
 			{
 				id: 'frame-selection',
 				isEnabled: (editor) => editor.isIn('select') && canFrameSelection(editor),
 				label: messages.actionFrameSelection.id,
-				kbd: 'cmd+alt+g,ctrl+alt+g',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					const selectedShapes = editor.getSelectedShapes()
-
-					// If all selected shapes are frames, remove them (toggle behavior)
-					if (
-						selectedShapes.length > 0 &&
-						selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))
-					) {
-						trackEvent('remove-frame', { source })
-						editor.markHistoryStoppingPoint('remove-frame')
-						removeFrame(
-							editor,
-							selectedShapes.map((shape) => shape.id)
-						)
-						return
-					}
-
-					// Unlike group, a single shape can be framed, so there is no two-shape minimum.
-					const ids = getFrameableShapeIds(editor, editor.getSelectedShapeIds())
-					if (ids.length === 0) return
-
-					const shapes = compact(ids.map((id) => editor.getShape(id)))
-					const pageBounds = editor.getShapesPageBounds(ids)
-					if (!pageBounds) return
-					// Frame props reject zero dimensions, which a lone horizontal arrow or a dot has. The
-					// frame is fitted to its content with padding below, so a placeholder size is fine here.
-					const { w, h } = Box.ZeroFix(pageBounds)
-
-					trackEvent('frame-selection', { source })
-					editor.markHistoryStoppingPoint('frame-selection')
-
-					const parentId = editor.findCommonAncestor(shapes) ?? editor.getCurrentPageId()
-
-					const frameId = createShapeId()
-					const padding = 25 / editor.getZoomLevel()
-
-					editor.run(() => {
-						editor.createShapes([
-							{
-								id: frameId,
-								type: 'frame',
-								parentId,
-								x: pageBounds.x,
-								y: pageBounds.y,
-								props: { w, h },
-							},
-						])
-						editor.reparentShapes(ids, frameId)
-						fitFrameToContent(editor, frameId, { padding })
-						editor.select(frameId)
-					})
-				},
+				onSelect: frameSelectedShapes,
 			},
 			{
 				id: 'remove-frame',
 				isEnabled: (editor) => editor.isIn('select') && areAllSelectedFrameLike(editor),
 				label: messages.actionRemoveFrame.id,
+				kbd: 'cmd+alt+shift+g,ctrl+alt+shift+g',
+				onSelect: removeSelectedFrames,
+			},
+			{
+				id: 'toggle-frame',
+				isEnabled: (editor) => editor.isIn('select') && getFrameToggleAction(editor) !== null,
+				label: messages.actionFrameSelection.id,
+				kbd: 'cmd+alt+g,ctrl+alt+g',
 				onSelect(source) {
-					if (!canApplySelectionAction()) return
-
-					trackEvent('remove-frame', { source })
-					const selectedShapes = editor.getSelectedShapes()
-					if (
-						selectedShapes.length > 0 &&
-						selectedShapes.every((shape) => editor.isShapeFrameLike(shape))
-					) {
-						editor.markHistoryStoppingPoint('remove-frame')
-						removeFrame(
-							editor,
-							selectedShapes.map((shape) => shape.id)
-						)
-					}
+					const action = getFrameToggleAction(editor)
+					if (action) return finalActions.current?.[action].onSelect(source)
 				},
 			},
 			{
@@ -2217,12 +2223,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		const actions = makeActions(actionItems)
-
-		if (overrides) {
-			return overrides(editor, actions, helpers)
-		}
-
-		return actions
+		finalActions.current = overrides ? overrides(editor, actions, helpers) : actions
+		return finalActions.current
 	}, [
 		helpers,
 		_editor,
