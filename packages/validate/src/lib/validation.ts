@@ -1900,14 +1900,14 @@ const validLinkProtocols = new Set([
 
 /**
  * Validator for URLs that are safe to use as user-facing links. Accepts http, https, and mailto
- * protocols, and deep links into a fixed set of desktop apps (such as `vscode://file/…`).
+ * protocols, and app links that open a fixed set of desktop apps (such as `vscode://file/…`).
  * This validator provides security by rejecting potentially dangerous protocols like javascript:.
  *
  * @example
  * ```ts
  * const link = T.linkUrl.validate("https://example.com") // Valid
  * const email = T.linkUrl.validate("mailto:user@example.com") // Valid
- * const deepLink = T.linkUrl.validate("vscode://file/src/index.ts") // Valid
+ * const appLink = T.linkUrl.validate("vscode://file/src/index.ts") // Valid
  * T.linkUrl.validate("") // Valid (empty string allowed)
  * T.linkUrl.validate("javascript:alert(1)") // Throws ValidationError (unsafe protocol)
  * ```

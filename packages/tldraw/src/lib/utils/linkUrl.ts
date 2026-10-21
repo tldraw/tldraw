@@ -6,7 +6,7 @@ const emailRegex = /^[^\s@/:]+@[^\s@/:]+\.[^\s@/:]+$/
  * Turn what a user typed into a link field into the url to store, or null if it isn't a link.
  * Shared by the shape link dialog and the rich text link editor so both accept the same input.
  *
- * - Anything `T.linkUrl` accepts is kept as typed, so `mailto:` and app deep links (`vscode://…`)
+ * - Anything `T.linkUrl` accepts is kept as typed, so `mailto:` and app links (`vscode://…`)
  *   are never rewritten.
  * - An email address becomes a `mailto:` link.
  * - A bare host (`example.com`, `localhost:3000`) gets `https://`. A word with no dot, like

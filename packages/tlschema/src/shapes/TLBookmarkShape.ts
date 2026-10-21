@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
-import { isPreDeepLinkUrl } from '../misc/linkUrl'
+import { isPreAppLinkUrl } from '../misc/linkUrl'
 import { TLAssetId } from '../records/TLAsset'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
@@ -72,7 +72,7 @@ export const bookmarkShapeProps: RecordProps<TLBookmarkShape> = {
 const Versions = createShapePropsMigrationIds('bookmark', {
 	NullAssetId: 1,
 	MakeUrlsValid: 2,
-	AllowDeepLinkUrls: 3,
+	AllowAppLinkUrls: 3,
 })
 
 /**
@@ -111,12 +111,12 @@ export const bookmarkShapeMigrations = createShapePropsMigrationSequence({
 			},
 		},
 		{
-			id: Versions.AllowDeepLinkUrls,
+			id: Versions.AllowAppLinkUrls,
 			up: (_props) => {
 				// noop: every url valid before is still valid
 			},
 			down: (props) => {
-				if (!isPreDeepLinkUrl(props.url)) {
+				if (!isPreAppLinkUrl(props.url)) {
 					props.url = ''
 				}
 			},

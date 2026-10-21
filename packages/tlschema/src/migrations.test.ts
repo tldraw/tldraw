@@ -1426,20 +1426,20 @@ describe('Make urls valid for all the shapes', () => {
 	}
 })
 
-describe('Allow deep link urls for all the shapes', () => {
+describe('Allow app link urls for all the shapes', () => {
 	const migrations = [
-		['bookmark shape', getTestMigration(bookmarkShapeVersions.AllowDeepLinkUrls)],
-		['geo shape', getTestMigration(geoShapeVersions.AllowDeepLinkUrls)],
-		['image shape', getTestMigration(imageShapeVersions.AllowDeepLinkUrls)],
-		['note shape', getTestMigration(noteShapeVersions.AllowDeepLinkUrls)],
-		['video shape', getTestMigration(videoShapeVersions.AllowDeepLinkUrls)],
+		['bookmark shape', getTestMigration(bookmarkShapeVersions.AllowAppLinkUrls)],
+		['geo shape', getTestMigration(geoShapeVersions.AllowAppLinkUrls)],
+		['image shape', getTestMigration(imageShapeVersions.AllowAppLinkUrls)],
+		['note shape', getTestMigration(noteShapeVersions.AllowAppLinkUrls)],
+		['video shape', getTestMigration(videoShapeVersions.AllowAppLinkUrls)],
 	] as const
 
 	for (const [shapeName, { up, down }] of migrations) {
 		it(`works for ${shapeName}`, () => {
-			const deepLink = { props: { url: 'codex://threads/1' } }
-			expect(up(deepLink)).toEqual(deepLink)
-			expect(down(deepLink)).toEqual({ props: { url: '' } })
+			const appLink = { props: { url: 'codex://threads/1' } }
+			expect(up(appLink)).toEqual(appLink)
+			expect(down(appLink)).toEqual({ props: { url: '' } })
 
 			for (const url of ['', 'https://example.com', 'mailto:a@b.com', '/foo', './foo']) {
 				expect(down({ props: { url } })).toEqual({ props: { url } })
