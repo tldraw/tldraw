@@ -199,6 +199,9 @@ importers:
       '@microsoft/api-extractor':
         specifier: ^7.55.2
         version: 7.55.2(@types/node@22.16.0)
+      '@playwright/test':
+        specifier: ^1.61.0
+        version: 1.61.0
       '@swc/core':
         specifier: ^1.15.18
         version: 1.15.18(@swc/helpers@0.5.23)
@@ -600,8 +603,8 @@ importers:
         specifier: ^4.95.1
         version: 4.101.21(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@rocicorp/zero':
-        specifier: 1.9.0
-        version: 1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
+        specifier: 1.10.0
+        version: 1.10.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
       '@sentry/integrations':
         specifier: ^7.120.3
         version: 7.120.3
@@ -666,8 +669,8 @@ importers:
         specifier: ^1.3.0
         version: 1.3.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       react-intl:
-        specifier: ^8.1.3
-        version: 8.1.3(@types/react@19.2.7)(react@19.2.1)(typescript@5.9.3)
+        specifier: ^12.1.4
+        version: 12.1.4(@types/react@19.2.7)(react@19.2.1)
       react-markdown:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.2.7)(react@19.2.1)(supports-color@10.2.2)
@@ -683,7 +686,7 @@ importers:
         version: 2.2.33(@playwright/test@1.61.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@formatjs/cli':
         specifier: ^6.5.1
-        version: 6.5.1(@vue/compiler-core@3.5.17)(vue@3.5.17(typescript@5.9.3))
+        version: 6.5.1(@vue/compiler-core@3.5.17)(vue@3.5.17(typescript@7.0.2))
       '@formatjs/unplugin':
         specifier: ^1.1.0
         version: 1.1.3(@emnapi/core@1.10.0)(@emnapi/runtime@1.11.3)(esbuild@0.28.2)(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(webpack@5.105.2(@swc/core@1.15.18(@swc/helpers@0.5.23))(esbuild@0.28.2))
@@ -794,8 +797,8 @@ importers:
         specifier: ^3.17.1
         version: 3.17.1(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@rocicorp/zero':
-        specifier: 1.9.0
-        version: 1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
+        specifier: 1.10.0
+        version: 1.10.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
       '@supabase/supabase-js':
         specifier: ^2.48.1
         version: 2.48.1
@@ -1559,8 +1562,8 @@ importers:
   packages/dotcom-shared:
     dependencies:
       '@rocicorp/zero':
-        specifier: 1.9.0
-        version: 1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
+        specifier: 1.10.0
+        version: 1.10.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
       '@tldraw/state':
         specifier: workspace:*
         version: link:../state
@@ -2023,7 +2026,13 @@ importers:
       radix-ui:
         specifier: ^1.4.2
         version: 1.4.2(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      react-intl:
+        specifier: ^12.1.4
+        version: 12.1.4(@types/react@19.2.7)(react@19.2.1)
     devDependencies:
+      '@formatjs/cli':
+        specifier: ^6.5.1
+        version: 6.5.1(@vue/compiler-core@3.5.17)(vue@3.5.17(typescript@7.0.2))
       '@peculiar/webcrypto':
         specifier: ^1.5.0
         version: 1.5.0
@@ -4501,6 +4510,9 @@ packages:
   '@formatjs/fast-memoize@3.1.1':
     resolution: {integrity: sha512-CbNbf+tlJn1baRnPkNePnBqTLxGliG6DDgNa/UtV66abwIjwsliPMOt0172tzxABYzSuxZBZfcp//qI8AvBWPg==}
 
+  '@formatjs/fast-memoize@3.1.7':
+    resolution: {integrity: sha512-zXfhLpvA6T7+efdt9JLbBwZ00tT7NsBMDVnDu8rpHeNNv8KfRZAMo2gkG0k9lK/Nzc//3kJ9pImsfuJxk3KhUA==}
+
   '@formatjs/icu-messageformat-parser@2.11.4':
     resolution: {integrity: sha512-7kR78cRrPNB4fjGFZg3Rmj5aah8rQj9KPzuLsmcSn4ipLXQvC04keycTI1F7kJYDwIXtT2+7IDEto842CfZBtw==}
 
@@ -4509,6 +4521,9 @@ packages:
 
   '@formatjs/icu-messageformat-parser@3.5.1':
     resolution: {integrity: sha512-sSDmSvmmoVQ92XqWb499KrIhv/vLisJU8ITFrx7T7NZHUmMY7EL9xgRowAosaljhqnj/5iufG24QrdzB6X3ItA==}
+
+  '@formatjs/icu-messageformat-parser@3.5.21':
+    resolution: {integrity: sha512-Vnl7IOSyMRaP4Pjv48etkT2nlcIwzh4QWIa3hewzGlZZPBbft+TbMir4MijpDViOLN/1hvkGC10oYMuilsG+fw==}
 
   '@formatjs/icu-messageformat-parser@3.5.3':
     resolution: {integrity: sha512-HJWZ9S6JWey6iY5+YXE3Kd0ofWU1sC2KTTp56e1168g/xxWvVvr8k9G4fexIgwYV9wbtjY7kGYK5FjoWB3B2OQ==}
@@ -4521,6 +4536,9 @@ packages:
 
   '@formatjs/icu-skeleton-parser@2.1.1':
     resolution: {integrity: sha512-PSFABlcNefjI6yyk8f7nyX1DC7NHmq6WaCHZLySEXBrXuLOB2f935YsnzuPjlz+ibhb9yWTdPeVX1OVcj24w2Q==}
+
+  '@formatjs/icu-skeleton-parser@2.1.12':
+    resolution: {integrity: sha512-ca7tZMLpfHX3sUD7hP6gE/qr6Iq89EDd3ZLeRhbsB7r0UD55DGJq+tmFLzrGrnx5StahUevQmQQVtbDRHsfDHA==}
 
   '@formatjs/icu-skeleton-parser@2.1.3':
     resolution: {integrity: sha512-9mFp8TJ166ZM2pcjKwsBWXrDnOJGT7vMEScVgLygUODPOsE8S6f/FHoacvrlHK1B4dYZk8vSCNruyPU64AfgJQ==}
@@ -4545,13 +4563,8 @@ packages:
       typescript:
         optional: true
 
-  '@formatjs/intl@4.1.2':
-    resolution: {integrity: sha512-V60fNY/X/7zqmRffr7qPwscGmVGYDmlKF069mSQ2a/7fE22q602NtIfOQY8vzRA63Gr/O/U6vjRVBHMabrnA9A==}
-    peerDependencies:
-      typescript: ^5.6.0
-    peerDependenciesMeta:
-      typescript:
-        optional: true
+  '@formatjs/intl@6.1.3':
+    resolution: {integrity: sha512-fBxQVx6wi0f3iibauVFKr/uY+BJR0Z64Zuu6SB+p8hmxjqZoX2u4/RPYaKnFMut2+kNPIeGOaaKDHQ5odnXsZQ==}
 
   '@formatjs/ts-transformer@3.13.23':
     resolution: {integrity: sha512-9ufpij2uHlc/yzb2WDOswaslTQQ7nOIE7aDLWErmc7Kpm5uPU6MihSuEa//DVoNoOD+fywYkbqsZnDjvXeLuAQ==}
@@ -7691,11 +7704,6 @@ packages:
     engines: {node: '>=22'}
     hasBin: true
 
-  '@rocicorp/zero@1.9.0':
-    resolution: {integrity: sha512-2huSS0rHOEfzjPP5K7SrndBuJfchhBCW3VHiSnPhTpmtH9ivvA44jqbBygCN9/d44pP9T2dzNxghiYiIWGMn5A==}
-    engines: {node: '>=22'}
-    hasBin: true
-
   '@rolldown/binding-android-arm64@1.0.0-rc.1':
     resolution: {integrity: sha512-He6ZoCfv5D7dlRbrhNBkuMVIHd0GDnjJwbICE1OWpG7G3S2gmJ+eXkcNLJjzjNDpeI2aRy56ou39AJM9AD8YFA==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -8968,11 +8976,6 @@ packages:
 
   '@types/hogan.js@3.0.5':
     resolution: {integrity: sha512-/uRaY3HGPWyLqOyhgvW9Aa43BNnLZrNeQxl2p8wqId4UHMfPKolSB+U7BlZyO1ng7MkLnyEAItsBzCG0SDhqrA==}
-
-  '@types/hoist-non-react-statics@3.3.7':
-    resolution: {integrity: sha512-PQTyIulDkIDro8P+IHbKCsw7U2xxBYflVzW/FgWdCAePD9xGSidgA76/GeJ6lBKoblyhf9pBY763gbrN+1dI8g==}
-    peerDependencies:
-      '@types/react': '*'
 
   '@types/http-cache-semantics@4.0.4':
     resolution: {integrity: sha512-1m0bIFVc7eJWyve9S0RnuRgcQqF/Xd5QsUZAZeQFr1Q3/p9JWoQQEqmVy+DPTNpGXwhgIetAoYF8JSc33q29QA==}
@@ -12413,6 +12416,9 @@ packages:
   intl-messageformat@11.1.2:
     resolution: {integrity: sha512-ucSrQmZGAxfiBHfBRXW/k7UC8MaGFlEj4Ry1tKiDcmgwQm1y3EDl40u+4VNHYomxJQMJi9NEI3riDRlth96jKg==}
 
+  intl-messageformat@12.1.3:
+    resolution: {integrity: sha512-JXi5wk8R/oSECKyxSIZ00VS8KG6MZkHM0qU4NS7RrvIWWXkiv3wVqGlCvEvyXiDvKlt2yqwZMiZGIv+I8rrnZQ==}
+
   invariant@2.2.4:
     resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==}
 
@@ -14623,15 +14629,11 @@ packages:
       react: '>= 16.8.0 < 20'
       react-dom: '>= 16.8.0 < 20'
 
-  react-intl@8.1.3:
-    resolution: {integrity: sha512-eL1/d+uQdnapirynOGAriW0K9uAoyarjRGL3V9LaTRuohNSvPgCfJX06EZl5M52h/Hu7Gz7A1sD7dNHcos1lNg==}
+  react-intl@12.1.4:
+    resolution: {integrity: sha512-huK6iXamrEJ4D011VCmO+/CyzFtSKeF7eqcHW1dVe3t2wpgB/Iscl6CoMso/YLItX3Qh/gcVQMXNbbhpGbCrUw==}
     peerDependencies:
-      '@types/react': '19'
-      react: '19'
-      typescript: ^5.6.0
-    peerDependenciesMeta:
-      typescript:
-        optional: true
+      '@types/react': '>=18.0.0'
+      react: '>=18.0.0'
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -18424,10 +18426,10 @@ snapshots:
     transitivePeerDependencies:
       - ts-jest
 
-  '@formatjs/cli@6.5.1(@vue/compiler-core@3.5.17)(vue@3.5.17(typescript@5.9.3))':
+  '@formatjs/cli@6.5.1(@vue/compiler-core@3.5.17)(vue@3.5.17(typescript@7.0.2))':
     optionalDependencies:
       '@vue/compiler-core': 3.5.17
-      vue: 3.5.17(typescript@5.9.3)
+      vue: 3.5.17(typescript@7.0.2)
 
   '@formatjs/ecma402-abstract@2.2.4':
     dependencies:
@@ -18469,6 +18471,8 @@ snapshots:
 
   '@formatjs/fast-memoize@3.1.1': {}
 
+  '@formatjs/fast-memoize@3.1.7': {}
+
   '@formatjs/icu-messageformat-parser@2.11.4':
     dependencies:
       '@formatjs/ecma402-abstract': 2.3.6
@@ -18486,6 +18490,10 @@ snapshots:
       '@formatjs/ecma402-abstract': 3.1.1
       '@formatjs/icu-skeleton-parser': 2.1.1
       tslib: 2.8.1
+
+  '@formatjs/icu-messageformat-parser@3.5.21':
+    dependencies:
+      '@formatjs/icu-skeleton-parser': 2.1.12
 
   '@formatjs/icu-messageformat-parser@3.5.3':
     dependencies:
@@ -18506,6 +18514,8 @@ snapshots:
     dependencies:
       '@formatjs/ecma402-abstract': 3.1.1
       tslib: 2.8.1
+
+  '@formatjs/icu-skeleton-parser@2.1.12': {}
 
   '@formatjs/icu-skeleton-parser@2.1.3':
     dependencies:
@@ -18538,15 +18548,11 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.3
 
-  '@formatjs/intl@4.1.2(typescript@5.9.3)':
+  '@formatjs/intl@6.1.3':
     dependencies:
-      '@formatjs/ecma402-abstract': 3.1.1
-      '@formatjs/fast-memoize': 3.1.0
-      '@formatjs/icu-messageformat-parser': 3.5.1
-      intl-messageformat: 11.1.2
-      tslib: 2.8.1
-    optionalDependencies:
-      typescript: 5.9.3
+      '@formatjs/fast-memoize': 3.1.7
+      '@formatjs/icu-messageformat-parser': 3.5.21
+      intl-messageformat: 12.1.3
 
   '@formatjs/ts-transformer@3.13.23':
     dependencies:
@@ -21691,64 +21697,6 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@rocicorp/zero@1.9.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)':
-    dependencies:
-      '@badrap/valita': 0.3.11
-      '@databases/escape-identifier': 1.0.3
-      '@databases/sql': 3.3.0
-      '@dotenvx/dotenvx': 1.39.0
-      '@drdgvhbh/postgres-error-codes': 0.0.6
-      '@fastify/cors': 10.1.0
-      '@fastify/websocket': 11.0.2
-      '@google-cloud/precise-date': 4.0.0
-      '@opentelemetry/api': 1.9.0
-      '@opentelemetry/api-logs': 0.218.0
-      '@opentelemetry/auto-instrumentations-node': 0.76.0(@opentelemetry/api@1.9.0)(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.0))(supports-color@10.2.2)
-      '@opentelemetry/exporter-metrics-otlp-http': 0.218.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/resources': 2.8.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-metrics': 2.8.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-node': 0.218.0(@opentelemetry/api@1.9.0)(supports-color@10.2.2)
-      '@opentelemetry/sdk-trace-node': 2.8.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/semantic-conventions': 1.41.1
-      '@postgresql-typed/oids': 0.2.0
-      '@rocicorp/lock': 1.0.4
-      '@rocicorp/logger': 6.1.0
-      '@rocicorp/resolver': 1.0.2
-      '@rocicorp/zero-sqlite3': 1.1.4
-      '@standard-schema/spec': 1.1.0
-      '@types/basic-auth': 1.1.8
-      '@types/ws': 8.18.1
-      basic-auth: 2.0.1
-      chalk-template: 1.1.0
-      chokidar: 4.0.3
-      cloudevents: 10.0.0
-      command-line-args: 6.0.1
-      command-line-usage: 7.0.3
-      compare-utf8: 0.2.0
-      defu: 6.1.7
-      eventemitter3: 5.0.4
-      fastify: 5.8.5
-      is-in-subnet: 4.0.1
-      jose: 5.10.0
-      js-xxhash: 4.0.0
-      json-custom-numbers: 3.1.1
-      kasi: 1.1.1
-      nanoid: 5.1.16
-      oxfmt: 0.45.0
-      parse-prometheus-text-format: 1.1.1
-      pg-format: pg-format-fix@1.0.5
-      postgres: 3.4.7
-      semver: 7.8.5
-      url-pattern: 1.0.3
-      urlpattern-polyfill: 10.1.0
-      ws: 8.21.0
-    transitivePeerDependencies:
-      - '@75lb/nature'
-      - '@opentelemetry/core'
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
   '@rolldown/binding-android-arm64@1.0.0-rc.1':
     optional: true
 
@@ -23154,11 +23102,6 @@ snapshots:
   '@types/history@4.7.11': {}
 
   '@types/hogan.js@3.0.5': {}
-
-  '@types/hoist-non-react-statics@3.3.7(@types/react@19.2.7)':
-    dependencies:
-      '@types/react': 19.2.7
-      hoist-non-react-statics: 3.3.2
 
   '@types/http-cache-semantics@4.0.4': {}
 
@@ -27414,6 +27357,11 @@ snapshots:
       '@formatjs/icu-messageformat-parser': 3.5.1
       tslib: 2.8.1
 
+  intl-messageformat@12.1.3:
+    dependencies:
+      '@formatjs/fast-memoize': 3.1.7
+      '@formatjs/icu-messageformat-parser': 3.5.21
+
   invariant@2.2.4:
     dependencies:
       loose-envify: 1.4.0
@@ -30157,19 +30105,13 @@ snapshots:
       react-dom: 19.2.1(react@19.2.1)
       react-instantsearch-core: 7.15.1(algoliasearch@4.24.0)(react@19.2.1)
 
-  react-intl@8.1.3(@types/react@19.2.7)(react@19.2.1)(typescript@5.9.3):
+  react-intl@12.1.4(@types/react@19.2.7)(react@19.2.1):
     dependencies:
-      '@formatjs/ecma402-abstract': 3.1.1
-      '@formatjs/icu-messageformat-parser': 3.5.1
-      '@formatjs/intl': 4.1.2(typescript@5.9.3)
-      '@types/hoist-non-react-statics': 3.3.7(@types/react@19.2.7)
+      '@formatjs/icu-messageformat-parser': 3.5.21
+      '@formatjs/intl': 6.1.3
       '@types/react': 19.2.7
-      hoist-non-react-statics: 3.3.2
-      intl-messageformat: 11.1.2
+      intl-messageformat: 12.1.3
       react: 19.2.1
-      tslib: 2.8.1
-    optionalDependencies:
-      typescript: 5.9.3
 
   react-is@16.13.1: {}
 

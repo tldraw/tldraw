@@ -66,9 +66,10 @@ export function getTipTapDefaultExtensions(
 				openOnClick: false,
 				autolink: true,
 			},
-			// Prevent trailing paragraph insertion after lists (fixes #7641)
+			// List every enabled block type: a missing one gets an empty paragraph appended after it
+			// that the user can't delete (#7641 for lists, #11113 for headings).
 			trailingNode: {
-				notAfter: ['paragraph', 'bulletList', 'orderedList', 'listItem'],
+				notAfter: ['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem'],
 			},
 			...starterKitOptions,
 		}),

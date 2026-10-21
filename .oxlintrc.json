@@ -386,7 +386,8 @@
 						"paths": [
 							{
 								"name": "react-intl",
-								"message": "Please import useIntl from src/utils/intl instead."
+								"importNames": ["FormattedMessage", "defineMessages"],
+								"message": "Use F and defineMessages from 'tldraw' instead. The SDK's F renders the pseudo-locales and the marker span the language-debug overlay looks for; react-intl's does neither."
 							},
 							{
 								"name": "lodash",
@@ -422,8 +423,15 @@
 			}
 		},
 		{
+			"files": ["packages/**/*"],
+			"rules": {
+				"tldraw/no-bare-translation-key": "error"
+			}
+		},
+		{
 			"files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts"],
 			"rules": {
+				"tldraw/no-bare-translation-key": "off",
 				"tldraw/no-restricted-properties": "off",
 				"no-restricted-globals": "off",
 				"react/jsx-key": "off",

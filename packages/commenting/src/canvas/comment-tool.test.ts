@@ -330,3 +330,14 @@ describe('comment tool anchoring to frames', () => {
 		expect(editor.getHintingShapeIds()).toEqual([])
 	})
 })
+
+describe('commentToolOverrides', () => {
+	// The label is data the toolbar puts through `msg()`, so free text here renders as itself in
+	// every locale and the extractor never sees it — which is how this one shipped as 'Comment'
+	// and stayed English everywhere. It has to be a declared id.
+	it('labels the tool with a translatable id', () => {
+		makeEditor()
+		const tools = commentToolOverrides.tools!(editor, {}, {} as never)
+		expect(tools.comment.label).toBe('tool.comment')
+	})
+})

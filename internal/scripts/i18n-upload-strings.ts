@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { LokaliseApi, QueuedProcess } from '@lokalise/node-api'
+import { Key, LokaliseApi, QueuedProcess } from '@lokalise/node-api'
 
 // Pushes the English source strings to Lokalise and orders machine translations
 // for anything still untranslated (see i18n-download-strings.ts for the other
@@ -11,6 +11,9 @@ import { LokaliseApi, QueuedProcess } from '@lokalise/node-api'
 //   - the tldraw SDK project (LOKALISE_TLDRAW_PROJECT_ID), source assets/translations/main.json
 // Only the dotcom project orders translations automatically; SDK orders are
 // still placed by hand.
+//
+// Both halves order (or report) two things: keys with a missing translation, and keys whose English
+// was reworded — see SOURCE_CHANGED_TAG for why the second needs asking for separately.
 
 const UPLOAD_POLL_INTERVAL_MS = 2000
 const UPLOAD_MAX_POLLS = 120
@@ -18,6 +21,20 @@ const UPLOAD_MAX_POLLS = 120
 const PAGE_LIMIT = 500
 /** Anything pricier than this wants a human to look at it first. */
 const MAX_ORDER_TOTAL = 10
+
+/**
+ * Tag Lokalise applies to a key whose English changed.
+ *
+ * A reworded key keeps its existing translations, so it isn't untranslated and `filter_untranslated`
+ * skips it — which meant nothing ever looked at it again. Translations then go quietly wrong rather
+ * than missing, which is the worse failure: when `comments.cluster-label` became an ICU plural,
+ * Russian kept a string that only reads correctly from 5 up.
+ *
+ * SDK ids are authored and stable, so this is the only signal a reword gives. dotcom's are content
+ * hashes, where a reword already lands as a new key, but it's tagged the same way so both projects
+ * read alike.
+ */
+const SOURCE_CHANGED_TAG = 'source-changed'
 
 function formatError(error: unknown) {
 	if (error instanceof Error) {
@@ -95,6 +112,17 @@ async function uploadFile(
 		lang_iso: 'en',
 		detect_icu_plurals: true,
 		cleanup_mode: cleanupMode,
+		// Without it Lokalise keeps the English it already holds for an existing key, so a reworded
+		// string never lands and `tag_updated_keys` never fires.
+		replace_modified: true,
+		// Tag only what Lokalise counts as updated — a key whose English differs from the English
+		// it already held. `tag_inserted_keys` defaults to true, so it has to be turned off by hand:
+		// a brand-new key is untranslated and gets ordered on that basis, and tagging it as well
+		// would only mean untagging it again for nothing.
+		tags: [SOURCE_CHANGED_TAG],
+		tag_updated_keys: true,
+		tag_inserted_keys: false,
+		tag_skipped_keys: false,
 	})
 
 	if (!uploadResult.process_id) {
@@ -137,20 +165,63 @@ async function listUntranslatedKeyIds(lokaliseApi: LokaliseApi, projectId: strin
 	return keyIds
 }
 
+/** Keys Lokalise tagged on upload because their English changed. Paginated, as the lists above are. */
+async function listSourceChangedKeys(lokaliseApi: LokaliseApi, projectId: string) {
+	const keys: Key[] = []
+	let cursor: string | undefined
+	do {
+		const result = await lokaliseApi.keys().list({
+			project_id: projectId,
+			filter_tags: SOURCE_CHANGED_TAG,
+			pagination: 'cursor',
+			limit: PAGE_LIMIT,
+			...(cursor ? { cursor } : {}),
+		})
+		keys.push(...result.items)
+		cursor = result.hasNextCursor() ? (result.nextCursor ?? undefined) : undefined
+	} while (cursor)
+	return keys
+}
+
+/**
+ * Drops the tag once a retranslation has been ordered, so the next push to main doesn't order the
+ * same keys again. Writes each key's other tags back, because `merge_tags: false` is a replace.
+ */
+async function clearSourceChangedTag(lokaliseApi: LokaliseApi, projectId: string, keys: Key[]) {
+	if (!keys.length) return
+	await lokaliseApi.keys().bulk_update(
+		{
+			keys: keys.map((key) => ({
+				key_id: key.key_id,
+				tags: (key.tags ?? []).filter((tag) => tag !== SOURCE_CHANGED_TAG),
+				merge_tags: false,
+			})),
+		},
+		{ project_id: projectId }
+	)
+	console.log(`  Cleared the ${SOURCE_CHANGED_TAG} tag from ${keys.length} key(s).`)
+}
+
 async function orderDotcomTranslations(lokaliseApi: LokaliseApi, projectId: string) {
 	const teamId = getEnv('LOKALISE_TEAM_ID')
 	const cardId = getEnv('LOKALISE_CARD_ID')
 
 	const targetLanguageIsos = await listTargetLanguageIsos(lokaliseApi, projectId)
-	const allProjectUntranslatedKeys = await listUntranslatedKeyIds(lokaliseApi, projectId)
+	const untranslatedKeyIds = await listUntranslatedKeyIds(lokaliseApi, projectId)
+	const sourceChangedKeys = await listSourceChangedKeys(lokaliseApi, projectId)
+	// A reworded key can also be untranslated in some languages and not others, so dedupe.
+	const keysToOrder = [
+		...new Set([...untranslatedKeyIds, ...sourceChangedKeys.map((key) => key.key_id)]),
+	]
 
-	if (!allProjectUntranslatedKeys.length) {
-		console.log('No new strings to translate.')
+	if (!keysToOrder.length) {
+		console.log('No new or reworded strings to translate.')
 		return
 	}
 
 	console.log(
-		`Found ${allProjectUntranslatedKeys.length} untranslated key(s) across ${targetLanguageIsos.length} language(s).`
+		`Found ${untranslatedKeyIds.length} untranslated and ${sourceChangedKeys.length} reworded ` +
+			`key(s) across ${targetLanguageIsos.length} language(s).`
 	)
 
 	const orderDetails = {
@@ -160,7 +231,7 @@ async function orderDotcomTranslations(lokaliseApi: LokaliseApi, projectId: stri
 		briefing: 'Please translate the following keys',
 		source_language_iso: 'en',
 		target_language_isos: targetLanguageIsos,
-		keys: allProjectUntranslatedKeys,
+		keys: keysToOrder,
 		provider_slug: 'google',
 		translation_tier: 1,
 	}
@@ -179,14 +250,15 @@ async function orderDotcomTranslations(lokaliseApi: LokaliseApi, projectId: stri
 	// Lokalise won't accept an order that prices out at 0, so there's nothing to
 	// place here. Log enough to diagnose it: the usual cause is that the keys are
 	// untranslated but not billable (already covered by translation memory, or
-	// sitting in an open order from a previous run).
+	// sitting in an open order from a previous run). A reworded key can price at 0
+	// for a further reason — it still holds a translation in every language, so
+	// there may be nothing Lokalise considers missing. Then the retranslation has
+	// to be ordered by hand, and the tag stays on the key until it is.
 	if (placeTranslationOrderDryRun.total === 0) {
 		console.log(
 			`There are strings to translate but the dry run priced them at 0, so Lokalise won't take the order.`
 		)
-		console.log(
-			`  Untranslated keys (${allProjectUntranslatedKeys.length}): ${allProjectUntranslatedKeys.join(', ')}`
-		)
+		console.log(`  Keys in the order (${keysToOrder.length}): ${keysToOrder.join(', ')}`)
 		console.log(
 			`  Target languages (${targetLanguageIsos.length}): ${targetLanguageIsos.join(', ')}`
 		)
@@ -214,6 +286,33 @@ async function orderDotcomTranslations(lokaliseApi: LokaliseApi, projectId: stri
 		}
 	)
 	console.log('Finished placing order for new strings.')
+	// Only once the order is placed: the tag is the one thing that would bring these back on the
+	// next run, so clearing it earlier would lose them if the order threw.
+	//
+	// Clearing on a placed order means "we asked", not "it was retranslated" — these key ids were
+	// in the order, but whether Lokalise retranslates a language that already holds text isn't
+	// visible from here. Clearing anyway, because the alternative is re-ordering the same keys on
+	// every push to main; if a reword ever comes back untranslated, that's the thing to revisit.
+	await clearSourceChangedTag(lokaliseApi, projectId, sourceChangedKeys)
+}
+
+/**
+ * The SDK project has no automated ordering, so a reworded string can only be reported. The tag
+ * stays on the key: it's the to-do list for the next manual order, and nothing else records that a
+ * translation is stale rather than absent.
+ */
+async function reportSdkSourceChanges(lokaliseApi: LokaliseApi, projectId: string) {
+	const keys = await listSourceChangedKeys(lokaliseApi, projectId)
+	if (!keys.length) {
+		console.log('No reworded SDK strings awaiting a manual order.')
+		return
+	}
+	console.log(
+		`\n${keys.length} SDK key(s) have a changed English string and still hold their old ` +
+			`translations. Include them in the next manual order, then clear the ` +
+			`'${SOURCE_CHANGED_TAG}' tag:`
+	)
+	for (const key of keys) console.log(`  ${key.key_name.web || key.key_id}`)
 }
 
 async function i18nUploadStrings() {
@@ -244,6 +343,7 @@ async function i18nUploadStrings() {
 		filename: 'main.json',
 		cleanupMode: true,
 	})
+	await reportSdkSourceChanges(lokaliseApi, tldrawProjectId)
 }
 
 i18nUploadStrings().catch((error) => {
