@@ -187,7 +187,8 @@ export interface ThumbnailRenderTimingsRequestBody {
 }
 
 /** The last render page phase that completed before a failure, in the order the page runs them. */
-export type ThumbnailRenderPhase = 'boot' | 'data' | 'mount' | 'settle'
+export const THUMBNAIL_RENDER_PHASES = ['boot', 'data', 'mount', 'settle'] as const
+export type ThumbnailRenderPhase = (typeof THUMBNAIL_RENDER_PHASES)[number]
 
 /**
  * The render page's failure beacon, POSTed to the result route when the page marks
