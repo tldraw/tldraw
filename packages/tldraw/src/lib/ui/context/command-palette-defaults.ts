@@ -119,6 +119,8 @@ const NOT_IN_PALETTE = [
 	'crop-image',
 	'video-replace',
 	'copy-hovered-styles',
+	'toggle-group',
+	'toggle-frame',
 ]
 
 const PLACEMENT = new Map<string, TLUiActionItem['commandPalette']>([

@@ -4,25 +4,27 @@ import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
 	CommandPaletteFeatureFlagsPanel,
+	createDebugValue,
+	createSessionStateSnapshotSignal,
+	debugFlags,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
+	defineMessages,
 	Editor,
-	TLComponents,
-	TLSessionStateSnapshot,
-	TLUiDialogsContextType,
-	Tldraw,
-	TldrawUiMenuItem,
-	createSessionStateSnapshotSignal,
-	createDebugValue,
-	debugFlags,
 	react,
 	throttle,
+	TLComponents,
+	Tldraw,
+	TldrawUiMenuItem,
+	TLSessionStateSnapshot,
 	tltime,
+	TLUiDialogsContextType,
 	useAtom,
 	useDialogs,
 	useEditor,
 	useEvent,
 	useToasts,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
@@ -49,7 +51,6 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
-import { defineMessages, useMsg } from '../../utils/i18n'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { TlaCommandPalette } from '../TlaCommandPalette/TlaCommandPalette'
@@ -120,6 +121,7 @@ export function TlaEditor(props: TlaEditorProps) {
 }
 
 function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps) {
+	const msg = useTranslation()
 	const fileLoad = useFileLoad()
 	fileLoad.mark('editor-rendered')
 	markFirstLoad('editor-rendered')
@@ -130,12 +132,11 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 	const setIsReady = useSetIsReady()
 	const { addToast } = useToasts()
-	const slurpFailedMsg = useMsg(messages.slurpFailed)
 	const showSlurpFailure = useEvent(() => {
 		addToast({
 			id: 'local-file-restore-failed',
 			severity: 'warning',
-			title: slurpFailedMsg,
+			title: msg(messages.slurpFailed),
 			keepOpen: true,
 		})
 	})

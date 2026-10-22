@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { useDialogs } from 'tldraw'
+import { TLDRAW_FILE_EXTENSION, useDialogs } from 'tldraw'
 import { TlaTldrawOfflineFileDialog } from '../components/dialogs/TlaTldrawOfflineFileDialog'
 
 /**
@@ -8,6 +8,10 @@ import { TlaTldrawOfflineFileDialog } from '../components/dialogs/TlaTldrawOffli
  * one.
  */
 export const TLDRAW_OFFLINE_FILE_EXTENSION = '.tldraw'
+
+export function isTldrFile(file: File) {
+	return file.name.toLowerCase().endsWith(TLDRAW_FILE_EXTENSION)
+}
 
 /**
  * Returns a function that drops any tldraw offline files from a list and tells the user why,

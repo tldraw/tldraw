@@ -23,11 +23,13 @@ import {
 	TLRichText,
 	TldrawUiMenuSubmenu,
 	commandPaletteFlags,
+	defineMessages,
 	getCommandPaletteMatchScore,
 	useCommandPaletteQuery,
 	useDialogs,
 	useEditor,
 	useToasts,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
@@ -39,7 +41,6 @@ import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
-import { defineMessages, useMsg } from '../../utils/i18n'
 import {
 	getIsSidebarOpen,
 	isDesktopSidebarLayout,
@@ -130,14 +131,15 @@ export function TlaCommandPalette() {
 }
 
 function TlaFilesGroup() {
+	const msg = useTranslation()
 	const app = useApp()
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
 	const query = useCommandPaletteQuery()
 	const currentFileId = useCurrentFileId()
-	const filesLbl = useMsg(messages.files)
-	const goToFileLbl = useMsg(messages.goToFile)
-	const myWorkspaceLbl = useMsg(messages.myWorkspace)
+	const filesLbl = msg(messages.files)
+	const goToFileLbl = msg(messages.goToFile)
+	const myWorkspaceLbl = msg(messages.myWorkspace)
 
 	const results = useValue(
 		'command palette files',
@@ -210,13 +212,14 @@ function TlaFilesGroup() {
 }
 
 function TlaCurrentFileGroup() {
+	const msg = useTranslation()
 	const app = useApp()
 	const fileId = useCurrentFileId()
 	const activeWorkspaceId = useActiveWorkspaceId()
 	const createFile = useHandleSidebarCreateFile()
-	const currentFileLbl = useMsg(messages.currentFile)
-	const newFileLbl = useMsg(messages.newFile)
-	const fileNamePlaceholder = useMsg(messages.fileNamePlaceholder)
+	const currentFileLbl = msg(messages.currentFile)
+	const newFileLbl = msg(messages.newFile)
+	const fileNamePlaceholder = msg(messages.fileNamePlaceholder)
 	const nameNewFiles = useValue(commandPaletteFlags.nameNewFiles)
 	const fileName = useValue('file name', () => app.getFileName(fileId ?? null), [app, fileId])
 	const startRename = useStartFileRename(fileId, fileName)
@@ -254,6 +257,7 @@ function TlaCurrentFileGroup() {
 }
 
 function TlaShareGroup() {
+	const msg = useTranslation()
 	const app = useApp()
 	const editor = useEditor()
 	const { addToast } = useToasts()
@@ -261,13 +265,13 @@ function TlaShareGroup() {
 	const isAdmin = useHasFileAdminRights(fileId)
 	const commentingEnabled = useIsCommentingEnabled()
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
-	const shareLbl = useMsg(messages.share)
-	const shareFileLbl = useMsg(messages.shareFile)
-	const publishLbl = useMsg(messages.publish)
-	const unpublishLbl = useMsg(messages.unpublish)
-	const copyPublishedLbl = useMsg(messages.copyPublishedLink)
-	const copiedLbl = useMsg(messages.copied)
-	const commentsSidebarLbl = useMsg(messages.commentsSidebar)
+	const shareLbl = msg(messages.share)
+	const shareFileLbl = msg(messages.shareFile)
+	const publishLbl = msg(messages.publish)
+	const unpublishLbl = msg(messages.unpublish)
+	const copyPublishedLbl = msg(messages.copyPublishedLink)
+	const copiedLbl = msg(messages.copied)
+	const commentsSidebarLbl = msg(messages.commentsSidebar)
 
 	if (!fileId || !file) return null
 
@@ -315,11 +319,12 @@ const MAX_NOTIFICATIONS = 20
 // Pinned under the feature flags while anything is unread, as one row that opens to the
 // notifications, newest first, with the unread ones marked like in the sidebar.
 function TlaNotificationsGroup() {
+	const msg = useTranslation()
 	const app = useApp()
 	const navigate = useNavigate()
 	const { notifications, unreadCount } = useCommentNotifications()
-	const notificationsLbl = useMsg(messages.notifications)
-	const unknownAuthorLbl = useMsg(messages.unknownAuthor)
+	const notificationsLbl = msg(messages.notifications)
+	const unknownAuthorLbl = msg(messages.unknownAuthor)
 	if (!unreadCount) return null
 	// A comment can be notified about twice (the comment and reactions to it); list it once.
 	const seen = new Set<string>()
@@ -352,12 +357,13 @@ function TlaNotificationsGroup() {
 }
 
 function TlaAppGroup() {
+	const msg = useTranslation()
 	const app = useMaybeApp()
 	const editor = useEditor()
 	const trackEvent = useTldrawAppUiEvents()
-	const appLbl = useMsg(messages.app)
-	const toggleSidebarLbl = useMsg(messages.toggleSidebar)
-	const openNotificationsLbl = useMsg(messages.openNotifications)
+	const appLbl = msg(messages.app)
+	const toggleSidebarLbl = msg(messages.toggleSidebar)
+	const openNotificationsLbl = msg(messages.openNotifications)
 
 	return (
 		<TldrawUiMenuGroup id="tla-app" label={appLbl}>
@@ -390,9 +396,10 @@ function TlaAppGroup() {
 }
 
 function TlaMarkAllReadItem() {
+	const msg = useTranslation()
 	const app = useApp()
 	const { notifications, unreadCount } = useCommentNotifications()
-	const markAllReadLbl = useMsg(messages.markAllRead)
+	const markAllReadLbl = msg(messages.markAllRead)
 	if (unreadCount === 0) return null
 	return (
 		<TldrawUiMenuItem
@@ -407,6 +414,7 @@ function TlaMarkAllReadItem() {
 }
 
 function TlaWorkspacesGroup() {
+	const msg = useTranslation()
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const activeWorkspaceId = useActiveWorkspaceId()
@@ -415,12 +423,12 @@ function TlaWorkspacesGroup() {
 	const memberships = useValue('memberships', () => app.getWorkspaceMemberships(), [app])
 	const homeWorkspaceId = app.getHomeWorkspaceId()
 	const activeMembership = memberships.find((m) => m.groupId === activeWorkspaceId)
-	const workspacesLbl = useMsg(messages.workspaces)
-	const switchLbl = useMsg(messages.switchWorkspace)
-	const myWorkspaceLbl = useMsg(messages.myWorkspace)
-	const newWorkspaceLbl = useMsg(messages.newWorkspace)
-	const settingsLbl = useMsg(messages.workspaceSettings)
-	const copyInviteLbl = useMsg(messages.copyInviteLink)
+	const workspacesLbl = msg(messages.workspaces)
+	const switchLbl = msg(messages.switchWorkspace)
+	const myWorkspaceLbl = msg(messages.myWorkspace)
+	const newWorkspaceLbl = msg(messages.newWorkspace)
+	const settingsLbl = msg(messages.workspaceSettings)
+	const copyInviteLbl = msg(messages.copyInviteLink)
 	const canCopyInvite =
 		activeWorkspaceId !== homeWorkspaceId && (activeMembership?.group?.inviteLinkEnabled ?? true)
 
@@ -472,10 +480,11 @@ function TlaWorkspacesGroup() {
 }
 
 function TlaAccountGroup() {
+	const msg = useTranslation()
 	const app = useMaybeApp()
 	const { addDialog } = useDialogs()
-	const accountLbl = useMsg(messages.account)
-	const signInLbl = useMsg(messages.signIn)
+	const accountLbl = msg(messages.account)
+	const signInLbl = msg(messages.signIn)
 
 	return (
 		<TldrawUiMenuGroup id="tla-account" label={accountLbl}>

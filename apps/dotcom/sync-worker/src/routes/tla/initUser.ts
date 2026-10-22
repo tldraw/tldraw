@@ -1,6 +1,7 @@
 import { isClerkAPIResponseError } from '@clerk/backend/errors'
 import { DB } from '@tldraw/dotcom-shared'
 import { IndexKey } from '@tldraw/utils'
+import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { Transaction } from 'kysely'
 import { createPostgresConnectionPool } from '../../postgres'
@@ -8,7 +9,13 @@ import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { LOAD_ID_HEADER, parseLoadId } from '../../utils/loadId'
 import { isRateLimited } from '../../utils/rateLimit'
-import { getClerkClient } from '../../utils/tla/getAuth'
+import {
+	getBearerToken,
+	getClerkClient,
+	isOAuthAccessToken,
+	requireAuth,
+	verifyOAuthAccessToken,
+} from '../../utils/tla/getAuth'
 
 type EnsureUserResult =
 	| { outcome: 'existing' | 'created' | 'repaired'; email: string }
@@ -23,6 +30,30 @@ const OUTCOME_RESPONSES: Record<EnsureUserOutcome, { body: string; status: numbe
 	rate_limited: { body: 'Rate limited', status: 429 },
 	no_clerk_user: { body: 'Clerk user not found', status: 404 },
 	no_email: { body: 'Clerk user has no email address', status: 400 },
+}
+
+/**
+ * `POST /app/:userId/init`. tldraw.com's app calls it with a session token. The tldraw plugin for
+ * ChatGPT calls it from its own worker with the OAuth access token the host hands it, for an
+ * account that signed up on the consent screen and has never opened tldraw.com. Routed on the
+ * token's `typ`, as the thumbnail route is, so each request is verified once.
+ *
+ * No `mcp_server_access` check on the access token: like the session path, any Clerk account gets
+ * its rows. It also keeps creation here, where `init_user` records it, rather than inside that
+ * check, which creates missing rows itself.
+ */
+export async function handleInitUser(req: IRequest, env: Environment): Promise<Response> {
+	const token = getBearerToken(req)
+	let userId: string
+	if (token && isOAuthAccessToken(token)) {
+		const auth = await verifyOAuthAccessToken(req, env)
+		if (!auth.ok) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+		userId = auth.userId
+	} else {
+		userId = (await requireAuth(req, env)).userId
+	}
+	if (req.params.userId !== userId) return notFound()
+	return initUser(req, env)
 }
 
 export async function initUser(req: IRequest, env: Environment): Promise<Response> {

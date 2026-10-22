@@ -40,7 +40,7 @@ function readActionState(editor: Editor, action: TLUiActionItem): TLUiActionStat
 			return run()
 		} catch (error) {
 			threw = true
-			reportThrowingPredicate(action, name, error)
+			reportThrowingPredicate(editor, action, name, error)
 			return fallback
 		}
 	}
@@ -55,12 +55,19 @@ function readActionState(editor: Editor, action: TLUiActionItem): TLUiActionStat
 	return { available, enabled: enabled && !threw, checked }
 }
 
-const reportedPredicates = new Set<string>()
+const reportedPredicates = new WeakMap<Editor, Set<string>>()
 
-function reportThrowingPredicate(action: TLUiActionItem, name: string, error: unknown) {
+function reportThrowingPredicate(
+	editor: Editor,
+	action: TLUiActionItem,
+	name: string,
+	error: unknown
+) {
 	const key = `${action.id}:${name}`
-	if (reportedPredicates.has(key)) return
-	reportedPredicates.add(key)
+	let reported = reportedPredicates.get(editor)
+	if (!reported) reportedPredicates.set(editor, (reported = new Set()))
+	if (reported.has(key)) return
+	reported.add(key)
 	console.error(`The "${action.id}" action's ${name} threw`, error)
 }
 
@@ -73,17 +80,14 @@ function reportThrowingPredicate(action: TLUiActionItem, name: string, error: un
 export function isActionRunnable(editor: Editor, action: TLUiActionItem | undefined): boolean {
 	if (!action) return false
 	if (editor.getIsReadonly() && !action.readonlyOk) return false
-	return (
-		passes(action, 'isAvailable', () => !action.isAvailable || action.isAvailable(editor)) &&
-		passes(action, 'isEnabled', () => !action.isEnabled || action.isEnabled(editor))
-	)
+	return passes(editor, action, 'isAvailable') && passes(editor, action, 'isEnabled')
 }
 
-function passes(action: TLUiActionItem, name: string, run: () => boolean) {
+function passes(editor: Editor, action: TLUiActionItem, name: 'isAvailable' | 'isEnabled') {
 	try {
-		return run()
+		return !action[name] || action[name](editor)
 	} catch (error) {
-		reportThrowingPredicate(action, name, error)
+		reportThrowingPredicate(editor, action, name, error)
 		return false
 	}
 }

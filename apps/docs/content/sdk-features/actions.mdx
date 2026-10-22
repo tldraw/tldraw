@@ -113,7 +113,8 @@ The default actions cover most editing operations you'd expect in a canvas appli
 | Category    | Action ids                                                                                                                                                                 |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Editing     | `undo`, `redo`, `duplicate`, `delete`, `copy`, `cut`, `paste`                                                                                                              |
-| Grouping    | `group`, `ungroup`                                                                                                                                                         |
+| Grouping    | `group`, `ungroup`, `toggle-group`                                                                                                                                         |
+| Frames      | `frame-selection`, `remove-frame`, `toggle-frame`, `fit-frame-to-content`                                                                                                  |
 | Arrangement | `bring-to-front`, `bring-forward`, `send-backward`, `send-to-back`, `align-left`, `align-center-horizontal`, `align-right`, `distribute-horizontal`, `distribute-vertical` |
 | Export      | `export-as-svg`, `export-as-png`, `copy-as-svg`, `copy-as-png`                                                                                                             |
 | Zoom        | `zoom-in`, `zoom-out`, `zoom-to-100`, `zoom-to-fit`, `zoom-to-selection`, `select-zoom-tool`                                                                               |
@@ -145,7 +146,9 @@ function App() {
 }
 ```
 
-The `copy`, `cut`, and `paste` shortcuts are handled by native clipboard events rather than the `kbd` system, so changing their `kbd` has no effect.
+The `copy`, `cut`, and `paste` shortcuts are handled by native clipboard events rather than the `kbd` system, so changing their `kbd` or `isEnabled` has no effect on them.
+
+Cmd+G and Cmd+Alt+G belong to `toggle-group` and `toggle-frame`, which run `group` or `ungroup`, and `frame-selection` or `remove-frame`, depending on the selection. To change or remove those shortcuts, override the toggle actions, not `group` or `frame-selection`.
 
 ### Modifying behavior
 
@@ -310,7 +313,7 @@ actions['make-red'] = {
 }
 ```
 
-Menus, keyboard shortcuts and `onSelect` calls on actions from `useActions()` all respect `isEnabled`, so `onSelect` doesn't need to check it again.
+Menus, keyboard shortcuts and `onSelect` calls on actions from `useActions()` all respect `isEnabled`, so `onSelect` doesn't need to check it again. The gate comes from the action as `overrides` returned it, so changing `isEnabled` on a copy of an action from `useActions()` doesn't change when it runs; override it instead. The exception is the copy, cut and paste shortcuts: they come from native clipboard events, which don't check the action's `isEnabled`.
 
 When you change a built-in action, spread the original so it keeps its `isAvailable`, `isEnabled` and `isChecked`:
 
@@ -358,7 +361,7 @@ The `source` parameter tells you where the action was triggered. Use this for an
 actions['custom-action'] = {
 	id: 'custom-action',
 	label: 'action.custom',
-	kbd: 'cmd+k,ctrl+k',
+	kbd: 'cmd+m,ctrl+m',
 	onSelect(source) {
 		trackEvent('custom-action', { source })
 		// source: 'kbd', 'menu', 'context-menu', 'toolbar', 'quick-actions', 'zoom-menu', etc.

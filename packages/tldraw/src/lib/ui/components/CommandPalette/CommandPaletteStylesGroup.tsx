@@ -10,6 +10,7 @@ import {
 	DefaultSizeStyle,
 	DefaultTextAlignStyle,
 	DefaultVerticalAlignStyle,
+	defineMessages,
 	GeoShapeGeoStyle,
 	kickoutOccludedShapes,
 	LineShapeSplineStyle,
@@ -23,13 +24,18 @@ import { getColorStyleItems, getFontStyleItems, STYLES } from '../../../styles'
 import { useUiEvents } from '../../context/events'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
-import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { styleMessageId, stylePanelMessages } from '../../styleMessages'
 import { TldrawUiMenuCheckboxItem } from '../primitives/menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 
 const OPACITIES = [0.1, 0.25, 0.5, 0.75, 1] as const
+
+const messages = defineMessages({
+	arrowheadStart: { id: 'command-palette.arrowhead-start', defaultMessage: 'Start arrowhead' },
+	arrowheadEnd: { id: 'command-palette.arrowhead-end', defaultMessage: 'End arrowhead' },
+})
 
 /**
  * The style panel's styles, one submenu each, for the selection or, with nothing selected, the next
@@ -71,7 +77,7 @@ export function CommandPaletteStylesGroup() {
 
 	// Custom theme colors, fonts and geo types have no translation, so they show their value.
 	const valueLabel = (uiType: string, value: string) => {
-		const key = `${uiType}-style.${value}` as TLUiTranslationKey
+		const key = styleMessageId(uiType, value)
 		const label = msg(key)
 		return label === key ? value : label
 	}
@@ -103,15 +109,15 @@ export function CommandPaletteStylesGroup() {
 	const values = <T extends string>(items: readonly { value: T }[]) => items.map((i) => i.value)
 
 	return (
-		<TldrawUiMenuGroup id="command-palette-styles" label="style-panel.title">
-			{picker('color', msg('style-panel.color'), DefaultColorStyle, 'color', values(colors))}
+		<TldrawUiMenuGroup id="command-palette-styles" label={stylePanelMessages.title.id}>
+			{picker('color', msg(stylePanelMessages.color), DefaultColorStyle, 'color', values(colors))}
 			{opacity !== undefined && (
-				<TldrawUiMenuSubmenu id="style-opacity" label={msg('style-panel.opacity')}>
+				<TldrawUiMenuSubmenu id="style-opacity" label={msg(stylePanelMessages.opacity)}>
 					{OPACITIES.map((value) => (
 						<TldrawUiMenuCheckboxItem
 							key={value}
 							id={`style-opacity-${value}`}
-							label={msg(`opacity-style.${value}`)}
+							label={msg(styleMessageId('opacity', value))}
 							checked={opacity.type === 'shared' && opacity.value === value}
 							onSelect={() => {
 								editor.run(() => {
@@ -127,60 +133,60 @@ export function CommandPaletteStylesGroup() {
 			)}
 			{picker(
 				'fill',
-				msg('style-panel.fill'),
+				msg(stylePanelMessages.fill),
 				DefaultFillStyle,
 				'fill',
 				values([...STYLES.fill, ...STYLES.fillExtra])
 			)}
-			{picker('dash', msg('style-panel.dash'), DefaultDashStyle, 'dash', values(STYLES.dash))}
-			{picker('size', msg('style-panel.size'), DefaultSizeStyle, 'size', values(STYLES.size))}
-			{picker('font', msg('style-panel.font'), DefaultFontStyle, 'font', values(fonts))}
+			{picker('dash', msg(stylePanelMessages.dash), DefaultDashStyle, 'dash', values(STYLES.dash))}
+			{picker('size', msg(stylePanelMessages.size), DefaultSizeStyle, 'size', values(STYLES.size))}
+			{picker('font', msg(stylePanelMessages.font), DefaultFontStyle, 'font', values(fonts))}
 			{picker(
 				'align',
-				msg('style-panel.align'),
+				msg(stylePanelMessages.align),
 				DefaultTextAlignStyle,
 				'align',
 				values(STYLES.textAlign)
 			)}
 			{picker(
 				'label-align',
-				msg('style-panel.label-align'),
+				msg(stylePanelMessages['label-align']),
 				DefaultHorizontalAlignStyle,
 				'align',
 				values(STYLES.horizontalAlign)
 			)}
 			{picker(
 				'vertical-align',
-				msg('style-panel.vertical-align'),
+				msg(stylePanelMessages['vertical-align']),
 				DefaultVerticalAlignStyle,
 				'verticalAlign',
 				values(STYLES.verticalAlign)
 			)}
-			{picker('geo', msg('style-panel.geo'), GeoShapeGeoStyle, 'geo', geoTypes)}
+			{picker('geo', msg(stylePanelMessages.geo), GeoShapeGeoStyle, 'geo', geoTypes)}
 			{picker(
 				'arrow-kind',
-				msg('style-panel.arrow-kind'),
+				msg(stylePanelMessages['arrow-kind']),
 				ArrowShapeKindStyle,
 				'arrow-kind',
 				values(STYLES.arrowKind)
 			)}
 			{picker(
 				'arrowhead-start',
-				msg('command-palette.arrowhead-start'),
+				msg(messages.arrowheadStart),
 				ArrowShapeArrowheadStartStyle,
 				'arrowheadStart',
 				values(STYLES.arrowheadStart)
 			)}
 			{picker(
 				'arrowhead-end',
-				msg('command-palette.arrowhead-end'),
+				msg(messages.arrowheadEnd),
 				ArrowShapeArrowheadEndStyle,
 				'arrowheadEnd',
 				values(STYLES.arrowheadEnd)
 			)}
 			{picker(
 				'spline',
-				msg('style-panel.spline'),
+				msg(stylePanelMessages.spline),
 				LineShapeSplineStyle,
 				'spline',
 				values(STYLES.spline)

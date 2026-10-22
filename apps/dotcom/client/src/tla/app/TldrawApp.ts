@@ -39,23 +39,28 @@ import {
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
+import { createIntl, type IntlShape } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import {
-	Atom,
-	Signal,
-	TLDocument,
-	TLUiToastsContextType,
-	TLUserPreferences,
 	assertExists,
 	atom,
+	Atom,
 	computed,
 	createTLCurrentUser,
 	createTLSchema,
 	dataUrlToFile,
 	defaultUserPreferences,
+	defineMessages,
 	getUserPreferences,
 	parseTldrawJsonFile,
 	react,
+	Signal,
+	TLDocument,
+	TLI18nAdapter,
+	TLI18nMessage,
+	TLI18nValues,
+	TLUiToastsContextType,
+	TLUserPreferences,
 	transact,
 } from 'tldraw'
 import { routes } from '../../routeDefs'
@@ -69,7 +74,6 @@ import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
 import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/featureFlags'
-import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import {
 	clearLastVisitedFile,
 	getLastVisitedFileId,
@@ -154,6 +158,14 @@ export function msUntilTokenRefresh(token: string | undefined, now = Date.now())
 	const remaining = msUntilExpiry(token, now)
 	if (remaining === null) return FALLBACK_TOKEN_REFRESH_MS
 	return Math.max(MIN_TOKEN_REFRESH_MS, remaining / 2)
+}
+
+// `locale` matches `defaultLocale` so a message missing from the empty catalog falls back to its
+// English without a MISSING_TRANSLATION per call, and is formatted with English plural rules.
+let englishIntl: IntlShape | undefined
+function getEnglishIntl() {
+	englishIntl ??= createIntl({ locale: 'en', defaultLocale: 'en', messages: {} })
+	return englishIntl
 }
 
 export class TldrawApp {
@@ -244,6 +256,17 @@ export class TldrawApp {
 	}
 
 	toasts: TLUiToastsContextType | null = null
+	/**
+	 * The editor's i18n, put here by `PutI18nInApp` once the provider has it. Held rather than
+	 * reached for: this class outlives any render and has no hooks available.
+	 */
+	i18n: TLI18nAdapter | null = null
+	/**
+	 * The user's locale, alongside `i18n`, as a signal. The adapter keeps its identity across a
+	 * language switch, so a `useValue` over a date it formatted never recomputed: the sidebar's
+	 * fallback file names stayed English, and stayed in the old language after a switch.
+	 */
+	readonly locale$ = atom<string>('app locale', 'en')
 	trackEvent: TLAppUiContextType
 	navigate: ReturnType<typeof useNavigate>
 
@@ -618,9 +641,10 @@ export class TldrawApp {
 				'{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}',
 		},
 		addingTldrFiles: {
-			// no need for pluralization, if there was only one file we navigated to it
-			// so there's no need to show a toast.
-			defaultMessage: 'Added {total} .tldr files.',
+			// A single file navigates instead of toasting, so English only ever shows the plural.
+			// Still a plural — see the gate in `internal/scripts/i18n-extract.ts` for why "never
+			// one" isn't a reason to skip it.
+			defaultMessage: '{total, plural, one {Added # .tldr file.} other {Added # .tldr files.}}',
 		},
 	})
 
@@ -638,8 +662,8 @@ export class TldrawApp {
 		const code = error.type === 'zero' ? ZErrorCode.offline_error : (error.message as ZErrorCode)
 		const descriptor = this.getMessage(code)
 		this.toasts?.addToast({
-			title: this.getIntl().formatMessage(this.messages.mutation_error_toast_title),
-			description: this.getIntl().formatMessage(descriptor),
+			title: this.msg(this.messages.mutation_error_toast_title),
+			description: this.msg(descriptor),
 		})
 	}, 3000)
 
@@ -863,8 +887,8 @@ export class TldrawApp {
 	private showMaxFilesToast() {
 		trackEvent('max-files-reached')
 		this.toasts?.addToast({
-			title: this.getIntl().formatMessage(this.messages.max_files_title),
-			description: this.getIntl().formatMessage(this.messages.max_files_reached),
+			title: this.msg(this.messages.max_files_title),
+			description: this.msg(this.messages.max_files_reached),
 			keepOpen: true,
 		})
 	}
@@ -897,7 +921,7 @@ export class TldrawApp {
 
 		const seed = this.createFile({
 			workspaceId,
-			name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
+			name: this.msg(this.messages.new_workspace_file_name),
 			createSource: WELCOME_CREATE_SOURCE,
 		})
 		this.workspaceWelcomeFileSeeds.set(workspaceId, seed)
@@ -1002,7 +1026,9 @@ export class TldrawApp {
 	getFallbackFileName(time: number) {
 		const createdAt = new Date(time)
 		const format = getDateFormat(createdAt)
-		return this.getIntl().formatDate(createdAt, format)
+		// `Intl` directly: a locale is all a date needs, and it's the one thing `TLI18n` carries.
+		const locale = this.locale$.get()
+		return new Intl.DateTimeFormat(locale, format).format(createdAt)
 	}
 
 	getFileName(file: TlaFile | string | null, useDateFallback: false): string | undefined
@@ -1269,16 +1295,16 @@ export class TldrawApp {
 		return { app, userId: user.id }
 	}
 
-	getIntl() {
-		const intl = createIntl()
-		if (intl) return intl
-		// intl should exists since IntlWrapper should create it before we get here, but let's use this just in case
-		setupCreateIntl({
-			defaultLocale: 'en',
-			locale: this.user$.get()?.locale ?? 'en',
-			messages: {},
-		})
-		return createIntl()!
+	/**
+	 * Translates a message in the user's locale. Until `PutI18nInApp` hands over the editor's
+	 * i18n — app creation, a user switch — it formats the English instead, values and all.
+	 * `translateMessage` alone returns the default message unformatted there, which put a plural
+	 * toast's own ICU source on screen.
+	 */
+	msg(message: TLI18nMessage, values?: TLI18nValues) {
+		const i18n = this.i18n?.()
+		if (i18n) return i18n.translate(message, values)
+		return getEnglishIntl().formatMessage(message, values)
 	}
 
 	async uploadTldrFiles(
@@ -1327,7 +1353,7 @@ export class TldrawApp {
 			if (getApproxPercentage() > 50) return
 			uploadingToastId = this.toasts?.addToast({
 				severity: 'info',
-				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
+				title: this.msg(this.messages.uploadingTldrFiles, {
 					total: totalFiles,
 					uploaded: uploadedFiles + 1,
 				}),
@@ -1365,7 +1391,7 @@ export class TldrawApp {
 				if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
 				this.toasts?.addToast({
 					severity: 'error',
-					title: this.getIntl().formatMessage(this.messages.unknown_error),
+					title: this.msg(this.messages.unknown_error),
 					keepOpen: true,
 				})
 				console.error(res.error)
@@ -1374,7 +1400,7 @@ export class TldrawApp {
 			}
 
 			updateToast({
-				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
+				title: this.msg(this.messages.uploadingTldrFiles, {
 					total: totalFiles,
 					uploaded: ++uploadedFiles + 1,
 				}),
@@ -1394,7 +1420,7 @@ export class TldrawApp {
 		if (totalFiles > 1) {
 			this.toasts?.addToast({
 				severity: 'success',
-				title: this.getIntl().formatMessage(this.messages.addingTldrFiles, {
+				title: this.msg(this.messages.addingTldrFiles, {
 					total: files.length,
 				}),
 				keepOpen: true,
@@ -1471,7 +1497,7 @@ export class TldrawApp {
 		// `||` not `??`: File.name is never nullish, so the document-name fallback was unreachable
 		// and a file called `.tldr` would reach createFile with an empty name (bad_request).
 		const name =
-			file.name.replace(/\.tldr$/, '').trim() ||
+			file.name.replace(/\.tldr$/i, '').trim() ||
 			Object.values(snapshot.store)
 				.find((d): d is TLDocument => d.typeName === 'document')
 				?.name?.trim() ||

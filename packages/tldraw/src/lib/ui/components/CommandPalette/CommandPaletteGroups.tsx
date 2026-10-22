@@ -1,4 +1,4 @@
-import { PageRecordType, useEditor, useValue } from '@tldraw/editor'
+import { defineMessages, PageRecordType, useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../../context/actions'
 import { useUiEvents } from '../../context/events'
 import { useReadonly } from '../../hooks/useReadonly'
@@ -17,6 +17,29 @@ import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 import { TldrawUiMenuToolItem } from '../primitives/menus/TldrawUiMenuToolItem'
 import { CommandPalettePathProvider } from './CommandPaletteContext'
 import { CommandPalettePromptItem } from './CommandPalettePromptItem'
+
+const messages = defineMessages({
+	selection: { id: 'command-palette.selection', defaultMessage: 'Selection' },
+	arrange: { id: 'context-menu.arrange', defaultMessage: 'Arrange' },
+	edit: { id: 'menu.edit', defaultMessage: 'Edit' },
+	view: { id: 'menu.view', defaultMessage: 'View' },
+	pages: { id: 'page-menu.title', defaultMessage: 'Pages' },
+	goToPage: { id: 'command-palette.go-to-page', defaultMessage: 'Go to page' },
+	newPage: { id: 'context.pages.new-page', defaultMessage: 'New page' },
+	maxPagesReached: { id: 'page-menu.max-pages-reached', defaultMessage: 'Maximum pages reached' },
+	newPageInitialName: { id: 'page-menu.new-page-initial-name', defaultMessage: 'Page 1' },
+	renamePage: { id: 'command-palette.rename-page', defaultMessage: 'Rename page' },
+	pageName: { id: 'command-palette.page-name', defaultMessage: 'Page name' },
+	duplicatePage: { id: 'command-palette.duplicate-page', defaultMessage: 'Duplicate page' },
+	deletePage: { id: 'command-palette.delete-page', defaultMessage: 'Delete page' },
+	onlyPage: { id: 'command-palette.reason.only-page', defaultMessage: 'This is the only page' },
+	moveToPage: { id: 'context-menu.move-to-page', defaultMessage: 'Move to page' },
+	export: { id: 'command-palette.export', defaultMessage: 'Export' },
+	tools: { id: 'command-palette.tools', defaultMessage: 'Tools' },
+	preferences: { id: 'menu.preferences', defaultMessage: 'Preferences' },
+	accessibility: { id: 'menu.accessibility', defaultMessage: 'Accessibility' },
+	help: { id: 'help-menu.title', defaultMessage: 'Help and resources' },
+})
 
 /** @public */
 export interface TLUiCommandPaletteActionGroupProps {
@@ -59,23 +82,23 @@ export function CommandPaletteActionGroup({ group, label }: TLUiCommandPaletteAc
 
 /** @public @react */
 export function CommandPaletteSelectionGroup() {
-	return <CommandPaletteActionGroup group="selection" label="command-palette.selection" />
+	return <CommandPaletteActionGroup group="selection" label={messages.selection.id} />
 }
 
 /** @public @react */
 export function CommandPaletteArrangeGroup() {
-	return <CommandPaletteActionGroup group="arrange" label="context-menu.arrange" />
+	return <CommandPaletteActionGroup group="arrange" label={messages.arrange.id} />
 }
 
 /** @public @react */
 export function CommandPaletteEditGroup() {
-	return <CommandPaletteActionGroup group="edit" label="menu.edit" />
+	return <CommandPaletteActionGroup group="edit" label={messages.edit.id} />
 }
 
 /** @public @react */
 export function CommandPaletteViewGroup() {
 	return (
-		<TldrawUiMenuGroup id="command-palette-view" label="menu.view">
+		<TldrawUiMenuGroup id="command-palette-view" label={messages.view.id}>
 			<CommandPaletteActionGroup group="view" />
 			<ColorSchemeMenu />
 		</TldrawUiMenuGroup>
@@ -97,8 +120,8 @@ export function CommandPalettePagesGroup() {
 	if (maxPages <= 1) return null
 
 	return (
-		<TldrawUiMenuGroup id="command-palette-pages" label="page-menu.title">
-			<TldrawUiMenuSubmenu id="go-to-page" label="command-palette.go-to-page">
+		<TldrawUiMenuGroup id="command-palette-pages" label={messages.pages.id}>
+			<TldrawUiMenuSubmenu id="go-to-page" label={messages.goToPage.id}>
 				{pages
 					.filter((page) => page.id !== currentPageId)
 					.map((page) => (
@@ -118,14 +141,14 @@ export function CommandPalettePagesGroup() {
 			{!isReadonly && (
 				<TldrawUiMenuItem
 					id="new-page"
-					label="context.pages.new-page"
+					label={messages.newPage.id}
 					disabled={pages.length >= maxPages}
-					disabledReason="page-menu.max-pages-reached"
+					disabledReason={messages.maxPagesReached.id}
 					onSelect={(source) => {
 						const id = PageRecordType.createId()
 						editor.run(() => {
 							editor.markHistoryStoppingPoint('creating page')
-							editor.createPage({ name: msg('page-menu.new-page-initial-name'), id })
+							editor.createPage({ name: msg(messages.newPageInitialName), id })
 							editor.setCurrentPage(id)
 						})
 						trackEvent('new-page', { source })
@@ -136,8 +159,8 @@ export function CommandPalettePagesGroup() {
 				<>
 					<CommandPalettePromptItem
 						id="rename-page"
-						label={msg('command-palette.rename-page')}
-						placeholder={msg('command-palette.page-name')}
+						label={msg(messages.renamePage)}
+						placeholder={msg(messages.pageName)}
 						initialValue={currentPageName}
 						onSubmit={(name) => {
 							if (!name || name === currentPageName) return
@@ -148,9 +171,9 @@ export function CommandPalettePagesGroup() {
 					/>
 					<TldrawUiMenuItem
 						id="duplicate-page"
-						label="command-palette.duplicate-page"
+						label={messages.duplicatePage.id}
 						disabled={pages.length >= maxPages}
-						disabledReason="page-menu.max-pages-reached"
+						disabledReason={messages.maxPagesReached.id}
 						onSelect={(source) => {
 							editor.markHistoryStoppingPoint('creating page')
 							editor.duplicatePage(currentPageId, PageRecordType.createId())
@@ -159,9 +182,9 @@ export function CommandPalettePagesGroup() {
 					/>
 					<TldrawUiMenuItem
 						id="delete-page"
-						label="command-palette.delete-page"
+						label={messages.deletePage.id}
 						disabled={pages.length <= 1}
-						disabledReason="command-palette.reason.only-page"
+						disabledReason={messages.onlyPage.id}
 						onSelect={(source) => {
 							editor.markHistoryStoppingPoint('deleting page')
 							editor.deletePage(currentPageId)
@@ -184,7 +207,7 @@ function MoveToPageItems() {
 	])
 	if (hasSelection) return <MoveToPageMenu />
 	return (
-		<TldrawUiMenuSubmenu id="move-to-page" label="context-menu.move-to-page">
+		<TldrawUiMenuSubmenu id="move-to-page" label={messages.moveToPage.id}>
 			<TldrawUiMenuActionItem actionId="move-to-new-page" />
 		</TldrawUiMenuSubmenu>
 	)
@@ -192,7 +215,7 @@ function MoveToPageItems() {
 
 /** @public @react */
 export function CommandPaletteExportGroup() {
-	return <CommandPaletteActionGroup group="export" label="command-palette.export" />
+	return <CommandPaletteActionGroup group="export" label={messages.export.id} />
 }
 
 // Covered by the insert media and insert embed actions.
@@ -204,7 +227,7 @@ export function CommandPaletteToolsGroup() {
 	const tools = useTools()
 	const currentToolId = useValue('current tool', () => editor.getCurrentToolId(), [editor])
 	return (
-		<TldrawUiMenuGroup id="command-palette-tools" label="command-palette.tools">
+		<TldrawUiMenuGroup id="command-palette-tools" label={messages.tools.id}>
 			<CommandPalettePathProvider showIcons>
 				{Object.values(tools)
 					.filter((tool) => !EXCLUDED_TOOLS.has(tool.id) && tool.id !== currentToolId)
@@ -219,9 +242,9 @@ export function CommandPaletteToolsGroup() {
 /** @public @react */
 export function CommandPalettePreferencesGroup() {
 	return (
-		<TldrawUiMenuGroup id="command-palette-preferences" label="menu.preferences">
+		<TldrawUiMenuGroup id="command-palette-preferences" label={messages.preferences.id}>
 			<CommandPaletteActionGroup group="preferences" />
-			<TldrawUiMenuSubmenu id="accessibility" label="menu.accessibility">
+			<TldrawUiMenuSubmenu id="accessibility" label={messages.accessibility.id}>
 				<CommandPaletteActionGroup group="accessibility" />
 			</TldrawUiMenuSubmenu>
 			<InputModeMenu />
@@ -233,7 +256,7 @@ export function CommandPalettePreferencesGroup() {
 /** @public @react */
 export function CommandPaletteHelpGroup() {
 	return (
-		<TldrawUiMenuGroup id="command-palette-help" label="help-menu.title">
+		<TldrawUiMenuGroup id="command-palette-help" label={messages.help.id}>
 			<KeyboardShortcutsMenuItem />
 			<CommandPaletteActionGroup group="help" />
 		</TldrawUiMenuGroup>

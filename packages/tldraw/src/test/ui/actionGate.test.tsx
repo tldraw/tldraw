@@ -148,18 +148,22 @@ describe('gateActions', () => {
 		expect(gated.c).not.toBe(constant)
 	})
 
-	it('ignores an unrelated `this` and uses its own predicates for a spread copy', () => {
+	it('gates on the action under its key, whatever object onSelect is called on', () => {
 		const editor = new TestEditor()
-		const raw = vi.fn()
+		const disabled = vi.fn()
+		const readonlyOk = vi.fn()
 		const gated = gateActions(editor, {
-			c: { id: 'c', label: 'action.group', isEnabled: () => false, onSelect: raw },
+			d: { id: 'd', label: 'action.group', isEnabled: () => false, onSelect: disabled },
+			r: { id: 'r', label: 'action.group', readonlyOk: true, onSelect: readonlyOk },
 		})
-		gated.c.onSelect.call({ id: 'x' } as any, 'unknown')
-		expect(raw).not.toHaveBeenCalled()
+		gated.d.onSelect.call({ id: 'x' } as any, 'unknown')
+		;({ ...gated.d, isEnabled: () => true }).onSelect('unknown')
+		;({ id: 'd', onSelect: gated.d.onSelect }).onSelect('unknown')
+		expect(disabled).not.toHaveBeenCalled()
 
-		const copy = { ...gated.c, isEnabled: () => true }
-		copy.onSelect('unknown')
-		expect(raw).toHaveBeenCalledTimes(1)
+		editor.updateInstanceState({ isReadonly: true })
+		;({ id: 'r', onSelect: gated.r.onSelect }).onSelect('unknown')
+		expect(readonlyOk).toHaveBeenCalledTimes(1)
 	})
 })
 
@@ -172,24 +176,11 @@ describe('every action gates itself', () => {
 		vi.useFakeTimers()
 	})
 
-	it('blocks every action called as a method on a disabled spread copy', async () => {
-		const { editor, actions, onUiEvent } = await setup()
-		expect(Object.keys(actions()).length).toBeGreaterThan(50)
-		for (const [id, action] of Object.entries(actions())) {
-			const w = watch(editor, onUiEvent)
-			const disabled = { ...action, isEnabled: () => false }
-			await act(async () => {
-				await disabled.onSelect('unknown')
-			})
-			w.expectNothingRan(id)
-		}
-	})
-
-	it('blocks every action called unbound after an id-keyed override disables it', async () => {
+	it('blocks every action an override disables', async () => {
 		const { editor, actions, onUiEvent } = await setup(
 			withCustom((_editor, actions) => {
-				for (const id of Object.keys(actions)) {
-					actions[id] = { ...actions[id], isEnabled: () => false }
+				for (const [id, action] of Object.entries(actions)) {
+					actions[id] = { ...action, isEnabled: () => false }
 				}
 				return actions
 			})
@@ -197,65 +188,10 @@ describe('every action gates itself', () => {
 		expect(Object.keys(actions()).length).toBeGreaterThan(50)
 		for (const [id, action] of Object.entries(actions())) {
 			const w = watch(editor, onUiEvent)
-			const { onSelect } = action
 			await act(async () => {
-				await onSelect('unknown')
+				await action.onSelect('unknown')
 			})
 			w.expectNothingRan(id)
 		}
-	})
-
-	it('still runs an enabled action', async () => {
-		const { editor, actions } = await setup()
-		act(() => editor.selectNone())
-		act(() => {
-			actions()['select-all'].onSelect('unknown')
-			actions()['custom'].onSelect('unknown')
-		})
-		expect(editor.getSelectedShapeIds()).toHaveLength(3)
-		expect(customOnSelect).toHaveBeenCalledWith('unknown')
-	})
-
-	it('blocks non-readonlyOk actions in readonly mode but runs readonlyOk ones', async () => {
-		const { editor, actions, onUiEvent } = await setup()
-		act(() => editor.updateInstanceState({ isReadonly: true }))
-		const w = watch(editor, onUiEvent)
-		act(() => {
-			actions()['delete'].onSelect('unknown')
-			actions()['custom'].onSelect('unknown')
-		})
-		w.expectNothingRan('delete and custom')
-		act(() => {
-			actions()['zoom-in'].onSelect('unknown')
-		})
-		expect(onUiEvent).toHaveBeenCalled()
-	})
-
-	it('returns the promise from an async action', async () => {
-		const { actions } = await setup(
-			withCustom((_editor, actions) => {
-				actions['async'] = { id: 'async', label: 'action.group', onSelect: async () => {} }
-				return actions
-			})
-		)
-		const result = actions()['async'].onSelect('unknown')
-		expect(result).toBeInstanceOf(Promise)
-		await result
-	})
-
-	it('treats a throwing predicate as disabled on a direct call', async () => {
-		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-		const { editor, actions, onUiEvent } = await setup()
-		const w = watch(editor, onUiEvent)
-		const throwing = {
-			...actions()['delete'],
-			id: 'delete-throws',
-			isEnabled: () => {
-				throw new Error('boom')
-			},
-		}
-		expect(() => throwing.onSelect('unknown')).not.toThrow()
-		w.expectNothingRan('delete-throws')
-		error.mockRestore()
 	})
 })

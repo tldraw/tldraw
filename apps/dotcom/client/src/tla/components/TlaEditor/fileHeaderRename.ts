@@ -1,8 +1,8 @@
 import { useCallback } from 'react'
+import { useIntl } from 'react-intl'
 import { atom, useMaybeEditor } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
-import { useIntl } from '../../utils/i18n'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 
 // The id of the file whose header name is being edited, so a rename can't carry over to another file.

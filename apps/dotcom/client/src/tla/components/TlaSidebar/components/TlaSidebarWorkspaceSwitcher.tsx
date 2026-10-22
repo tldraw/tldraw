@@ -3,11 +3,13 @@ import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	defineMessages,
 	uniqueId,
 	useContainer,
 	useDialogs,
 	useGlobalMenuIsOpen,
 	useMaybeEditor,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
@@ -15,7 +17,6 @@ import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
-import { defineMessages, useMsg } from '../../../utils/i18n'
 import { CreateWorkspaceDialog } from '../../dialogs/CreateWorkspaceDialog'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
@@ -34,11 +35,12 @@ const messages = defineMessages({
  * it active (the active workspace is derived from the open file).
  */
 export function TlaSidebarWorkspaceSwitcher() {
+	const msg = useTranslation()
 	const app = useApp()
 	const homeWorkspaceId = app.getHomeWorkspaceId()
 	const activeWorkspaceId = useActiveWorkspaceId()
 	const isHome = activeWorkspaceId === homeWorkspaceId
-	const myWorkspaceLbl = useMsg(messages.myWorkspace)
+	const myWorkspaceLbl = msg(messages.myWorkspace)
 
 	const workspaces = useValue(
 		'workspaceMemberships',
@@ -82,7 +84,6 @@ export function TlaSidebarWorkspaceSwitcher() {
 	)
 	const switchToWorkspace = useSwitchToWorkspace()
 	const handleCreateWorkspace = useCreateWorkspaceDialog()
-	const createWorkspaceLbl = useMsg(messages.createWorkspace)
 	const container = useContainer()
 
 	return (
@@ -149,7 +150,9 @@ export function TlaSidebarWorkspaceSwitcher() {
 							>
 								<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
 									<TlaIcon icon="plus" />
-									<span className={styles.sidebarTruncatedText}>{createWorkspaceLbl}</span>
+									<span className={styles.sidebarTruncatedText}>
+										{msg(messages.createWorkspace)}
+									</span>
 								</span>
 							</_DropdownMenu.Item>
 						</_DropdownMenu.Content>

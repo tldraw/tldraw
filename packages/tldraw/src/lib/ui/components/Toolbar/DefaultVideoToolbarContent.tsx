@@ -1,10 +1,16 @@
-import { TLVideoShape, track, useEditor, useValue } from '@tldraw/editor'
+import { defineMessages, TLVideoShape, track, useEditor, useValue } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useActions } from '../../context/actions'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
+
+const messages = defineMessages({
+	actionDownloadOriginal: { id: 'action.download-original', defaultMessage: 'Download original' },
+	toolReplaceMedia: { id: 'tool.replace-media', defaultMessage: 'Replace media…' },
+	toolMediaAltText: { id: 'tool.media-alt-text', defaultMessage: 'Alternative text' },
+})
 
 /** @public */
 export interface DefaultVideoToolbarContentProps {
@@ -46,7 +52,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 			{!isReadonly && (
 				<TldrawUiToolbarButton
 					type="icon"
-					title={msg('tool.replace-media')}
+					title={msg(messages.toolReplaceMedia)}
 					onClick={handleVideoReplace}
 					data-testid="tool.video-replace"
 				>
@@ -55,7 +61,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 			)}
 			<TldrawUiToolbarButton
 				type="icon"
-				title={msg('action.download-original')}
+				title={msg(messages.actionDownloadOriginal)}
 				onClick={handleVideoDownload}
 				data-testid="tool.video-download"
 			>
@@ -65,7 +71,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 				<TldrawUiToolbarButton
 					type="icon"
 					isActive={!!altText}
-					title={msg('tool.media-alt-text')}
+					title={msg(messages.toolMediaAltText)}
 					data-testid="tool.video-alt-text"
 					onClick={() => {
 						trackEvent('alt-text-start', { source })

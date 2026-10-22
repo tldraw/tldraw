@@ -39,7 +39,7 @@ editor.groupShapes([shapeId1, shapeId2], {
 })
 ```
 
-Grouping requires at least two shapes. The method does nothing if you pass fewer, and it skips [locked shapes](/sdk-features/locked-shapes). Users can also group shapes with Ctrl+G (Cmd+G on Mac).
+Grouping requires at least two shapes. The method does nothing if you pass fewer, and it skips [locked shapes](/sdk-features/locked-shapes). Users can also group shapes with Ctrl+G (Cmd+G on Mac). Pressing the shortcut again with the resulting group selected ungroups it. The shortcut belongs to the `toggle-group` action, so override that action to rebind it.
 
 The new group is positioned at the top-left of the combined bounds of all grouped shapes. It takes the z-index of the topmost grouped shape, so it sits where that shape was in its parent's layer stack.
 

@@ -5,6 +5,8 @@ import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	CommandPalettePromptItem,
+	defineMessages,
+	getIncrementedName,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -14,11 +16,11 @@ import {
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
 	commandPaletteFlags,
-	getIncrementedName,
 	uniqueId,
 	useDialogs,
 	useMaybeEditor,
 	useToasts,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
@@ -29,7 +31,6 @@ import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
-import { defineMessages, useMsg } from '../../utils/i18n'
 import { CreateWorkspaceDialog } from '../dialogs/CreateWorkspaceDialog'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu'
@@ -124,13 +125,14 @@ export function FileItems({
 	// Keeps these ids from colliding with other menus' items in the command palette.
 	idPrefix?: string
 }) {
+	const msg = useTranslation()
 	const app = useApp()
 	const editor = useMaybeEditor()
 	const { addDialog } = useDialogs()
 	const navigate = useNavigate()
 	const { addToast } = useToasts()
 	const trackEvent = useTldrawAppUiEvents()
-	const copiedMsg = useMsg(messages.copied)
+	const copiedMsg = msg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
 	const isPinned = useIsFilePinned(fileId, workspaceId ?? '')
 	const activeWorkspaceId = useActiveWorkspaceId()
@@ -227,12 +229,12 @@ export function FileItems({
 		downloadAppFile(fileId)
 	}, [fileId, source, trackEvent])
 
-	const copyLinkMsg = useMsg(inPalette ? messages.copyFileLink : messages.copyLink)
-	const renameMsg = useMsg(inPalette ? messages.renameFile : messages.rename)
-	const duplicateMsg = useMsg(inPalette ? messages.duplicateFile : messages.duplicate)
-	const pinMsg = useMsg(messages.pin)
-	const unpinMsg = useMsg(messages.unpin)
-	const deleteOrForgetMsg = useMsg(
+	const copyLinkMsg = msg(inPalette ? messages.copyFileLink : messages.copyLink)
+	const renameMsg = msg(inPalette ? messages.renameFile : messages.rename)
+	const duplicateMsg = msg(inPalette ? messages.duplicateFile : messages.duplicate)
+	const pinMsg = msg(messages.pin)
+	const unpinMsg = msg(messages.unpin)
+	const deleteOrForgetMsg = msg(
 		hasAdminRights
 			? inPalette
 				? messages.deleteFile
@@ -241,11 +243,11 @@ export function FileItems({
 				? messages.forgetFile
 				: messages.forget
 	)
-	const moveToMsg = useMsg(messages.moveFileTo)
-	const fileNameMsg = useMsg(messages.fileName)
+	const moveToMsg = msg(messages.moveFileTo)
+	const fileNameMsg = msg(messages.fileName)
 	const nameInPalette = useValue(commandPaletteFlags.nameNewFiles)
-	const downloadFile = useMsg(editorMessages.downloadFile)
-	const myWorkspaceMsg = useMsg(messages.myWorkspace)
+	const downloadFile = msg(editorMessages.downloadFile)
+	const myWorkspaceMsg = msg(messages.myWorkspace)
 
 	return (
 		<Fragment>

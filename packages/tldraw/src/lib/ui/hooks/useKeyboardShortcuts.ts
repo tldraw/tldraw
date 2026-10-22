@@ -24,7 +24,8 @@ import { useCommentingEnabled } from './useCommentingEnabled'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
-const SKIP_KBDS = [
+/** @internal */
+export const SKIP_KBDS = [
 	// we set these in useNativeClipboardEvents instead
 	'copy',
 	'cut',

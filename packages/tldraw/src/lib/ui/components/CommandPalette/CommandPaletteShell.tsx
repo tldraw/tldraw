@@ -1,4 +1,4 @@
-import { useEditor, useValue } from '@tldraw/editor'
+import { defineMessages, useEditor, useValue } from '@tldraw/editor'
 import {
 	ReactNode,
 	useCallback,
@@ -29,6 +29,17 @@ import {
 	CommandPaletteStore,
 	CommandPaletteSubmenu,
 } from './CommandPaletteStore'
+
+const messages = defineMessages({
+	title: { id: 'command-palette.title', defaultMessage: 'Command palette' },
+	placeholder: { id: 'command-palette.placeholder', defaultMessage: 'Search…' },
+	noResults: { id: 'command-palette.no-results', defaultMessage: 'No results' },
+	recent: { id: 'command-palette.recent', defaultMessage: 'Recent' },
+	suggested: { id: 'command-palette.suggested', defaultMessage: 'Suggested' },
+	cancel: { id: 'command-palette.cancel', defaultMessage: 'Cancel' },
+	checked: { id: 'ui.checked', defaultMessage: 'Checked' },
+	unchecked: { id: 'ui.unchecked', defaultMessage: 'Unchecked' },
+})
 
 type SelectableRow = Extract<CommandPaletteRow, { type: 'item' | 'submenu' }>
 
@@ -96,7 +107,7 @@ export function CommandPaletteShell({ onClose, children }: TLUiCommandPaletteShe
 					type: 'item',
 					key: 'prompt:cancel',
 					entry: { ...prompt, id: 'command-palette-cancel', prompt: undefined, kbd: '[[Esc]]' },
-					label: msg('command-palette.cancel'),
+					label: msg(messages.cancel),
 					icon: 'arrow-right',
 					recent: false,
 				},
@@ -109,7 +120,7 @@ export function CommandPaletteShell({ onClose, children }: TLUiCommandPaletteShe
 		return getCommandPaletteBrowseRows(
 			entries,
 			topIds,
-			msg(topSection === 'suggested' ? 'command-palette.suggested' : 'command-palette.recent'),
+			msg(topSection === 'suggested' ? messages.suggested : messages.recent),
 			{ showRecents: topSection !== 'none', groupSubmenus, showGroupHeadings }
 		)
 	}, [
@@ -395,7 +406,7 @@ export function CommandPaletteShell({ onClose, children }: TLUiCommandPaletteShe
 					style={anchor ? { top: anchor.top, width: anchor.width } : undefined}
 					data-wide={showGroupHeadings || undefined}
 					role="dialog"
-					aria-label={msg('command-palette.title')}
+					aria-label={msg(messages.title)}
 					data-testid="command-palette"
 					// Only the input takes focus: a mousedown elsewhere would blur it, and it owns all key handling.
 					onMouseDown={(e) => {
@@ -414,7 +425,7 @@ export function CommandPaletteShell({ onClose, children }: TLUiCommandPaletteShe
 							aria-controls={listboxId}
 							aria-autocomplete="list"
 							aria-activedescendant={activeRow ? optionId(clampedIndex) : undefined}
-							placeholder={prompt?.prompt?.placeholder ?? msg('command-palette.placeholder')}
+							placeholder={prompt?.prompt?.placeholder ?? msg(messages.placeholder)}
 							autoComplete="off"
 							spellCheck={false}
 							value={query}
@@ -445,7 +456,7 @@ export function CommandPaletteShell({ onClose, children }: TLUiCommandPaletteShe
 						ref={rList}
 						id={listboxId}
 						role="listbox"
-						aria-label={prompt?.name ?? submenu?.label ?? msg('command-palette.title')}
+						aria-label={prompt?.name ?? submenu?.label ?? msg(messages.title)}
 						className="tlui-command-palette__list"
 						data-more={canScrollDown ? '' : undefined}
 						onScroll={updateScroll}
@@ -490,7 +501,7 @@ export function CommandPaletteShell({ onClose, children }: TLUiCommandPaletteShe
 						})}
 					</div>
 					{selectableRows.length === 0 && (
-						<div className="tlui-command-palette__empty">{msg('command-palette.no-results')}</div>
+						<div className="tlui-command-palette__empty">{msg(messages.noResults)}</div>
 					)}
 					<div hidden>
 						<TldrawUiMenuContextProvider type="command-palette" sourceId="command-palette">
@@ -589,7 +600,7 @@ function CommandPaletteRowView({
 					<TldrawUiIcon
 						icon={marked ? 'check' : 'none'}
 						small
-						label={msg(marked ? 'ui.checked' : 'ui.unchecked')}
+						label={msg(marked ? messages.checked : messages.unchecked)}
 					/>
 				) : (
 					(checkSlot || iconSlot || (entry.showIcon && entry.icon) || row.icon) && (
@@ -606,7 +617,7 @@ function CommandPaletteRowView({
 					{row.detail && <span className="tlui-command-palette__detail">{row.detail}</span>}
 				</span>
 				{marked && checkmarksOnRight && (
-					<TldrawUiIcon icon="check" small label={msg('ui.checked')} />
+					<TldrawUiIcon icon="check" small label={msg(messages.checked)} />
 				)}
 				{/* In the shortcut's place, so showing it doesn't change the row's height. */}
 				{showReason ? (

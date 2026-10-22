@@ -1,5 +1,6 @@
 import {
 	approximately,
+	defineMessages,
 	isEqual,
 	kickoutOccludedShapes,
 	TLImageShape,
@@ -21,7 +22,15 @@ import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionIt
 import { TldrawUiMenuCheckboxItem } from '../primitives/menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
+import { aspectRatioMessages } from '../Toolbar/DefaultImageToolbarContent'
 import { CommandPalettePromptItem } from './CommandPalettePromptItem'
+
+const messages = defineMessages({
+	toolImageToolbarTitle: { id: 'tool.image-toolbar-title', defaultMessage: 'Image tools' },
+	toolAspectRatio: { id: 'tool.aspect-ratio', defaultMessage: 'Aspect ratio' },
+	toolMediaAltText: { id: 'tool.media-alt-text', defaultMessage: 'Alternative text' },
+	toolMediaAltTextDesc: { id: 'tool.media-alt-text-desc', defaultMessage: 'Give a description…' },
+})
 
 // Same rule as the image toolbar's aspect ratio menu.
 function isAspectRatioChecked(image: TLImageShape, aspectRatio: ASPECT_RATIO_OPTION) {
@@ -74,15 +83,15 @@ export function CommandPaletteImageGroup() {
 	}
 
 	return (
-		<TldrawUiMenuGroup id="command-palette-image" label="tool.image-toolbar-title">
+		<TldrawUiMenuGroup id="command-palette-image" label={messages.toolImageToolbarTitle.id}>
 			<TldrawUiMenuActionItem actionId="image-replace" />
 			<TldrawUiMenuActionItem actionId="crop-image" />
-			<TldrawUiMenuSubmenu id="aspect-ratio" label="tool.aspect-ratio">
+			<TldrawUiMenuSubmenu id="aspect-ratio" label={messages.toolAspectRatio.id}>
 				{ASPECT_RATIO_OPTIONS.map((aspectRatio) => (
 					<TldrawUiMenuCheckboxItem
 						key={aspectRatio}
 						id={`aspect-ratio-${aspectRatio}`}
-						label={`tool.aspect-ratio.${aspectRatio}`}
+						label={aspectRatioMessages[aspectRatio].id}
 						checked={isAspectRatioChecked(image, aspectRatio)}
 						onSelect={() => setAspectRatio(aspectRatio)}
 					/>
@@ -90,8 +99,8 @@ export function CommandPaletteImageGroup() {
 			</TldrawUiMenuSubmenu>
 			<CommandPalettePromptItem
 				id="image-alt-text"
-				label={msg('tool.media-alt-text')}
-				placeholder={msg('tool.media-alt-text-desc')}
+				label={msg(messages.toolMediaAltText)}
+				placeholder={msg(messages.toolMediaAltTextDesc)}
 				initialValue={image.props.altText}
 				onSubmit={(altText) => {
 					if (altText === image.props.altText) return

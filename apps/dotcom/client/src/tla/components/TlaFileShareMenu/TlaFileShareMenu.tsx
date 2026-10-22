@@ -2,6 +2,7 @@ import { commentsSidebarOpen } from '@tldraw/commenting'
 import { ReactNode, useCallback } from 'react'
 import {
 	Editor,
+	F,
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
@@ -10,7 +11,6 @@ import {
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { F } from '../../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import {
 	TLA_MENU_POSITION,

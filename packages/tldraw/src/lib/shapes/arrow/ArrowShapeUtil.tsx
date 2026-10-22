@@ -690,6 +690,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	private readonly _resizeInitialBindings = new WeakCache<TLArrowShape, TLArrowBindings>()
 
+	override canFlip() {
+		return true
+	}
+
 	override onResize(shape: TLArrowShape, info: TLResizeInfo<TLArrowShape>) {
 		const { scaleX, scaleY } = info
 
