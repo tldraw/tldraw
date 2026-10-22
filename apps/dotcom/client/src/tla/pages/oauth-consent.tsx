@@ -1,10 +1,11 @@
-import { OAuthConsent, Show } from '@clerk/react'
+import { OAuthConsent, Show, useUser } from '@clerk/react'
 import { useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useNavigate } from 'react-router-dom'
 import { routes } from '../../routeDefs'
 import { bootedOnOAuthConsent } from '../../utils/clerkUi'
 import { TlaLogo } from '../components/TlaLogo/TlaLogo'
+import { hasNotAcceptedLegal } from '../utils/auth'
 import { OPEN_SIGN_IN, setRedirect } from '../utils/redirect'
 import styles from './oauth-consent.module.css'
 
@@ -22,23 +23,38 @@ export function Component() {
 				<meta name="robots" content="noindex" />
 			</Helmet>
 			<Show when="signed-in">
-				<TlaLogo className={styles.logo} />
-				<OAuthConsent appearance={{ variables: { colorPrimary: '#1d1d1d' } }} />
+				<ConsentOnceLegalAccepted />
 			</Show>
 			<Show when="signed-out">
-				<SignInThenReturn />
+				<ReturnViaRoot openSignIn />
 			</Show>
 		</div>
 	)
 }
 
-// Clerk signs users in before sending them here, so this is a direct visit or an expired session.
-// `/` ignores Clerk's `redirect_url`, so the way back rides on the app's own post-sign-in redirect.
-function SignInThenReturn() {
+// The legal terms dialog lives in the app's providers, which this route sits outside, so a new
+// user would otherwise grant consent without ever accepting them.
+function ConsentOnceLegalAccepted() {
+	const { user } = useUser()
+	if (hasNotAcceptedLegal(user)) return <ReturnViaRoot />
+	return (
+		<>
+			<TlaLogo className={styles.logo} />
+			<OAuthConsent appearance={{ variables: { colorPrimary: '#1d1d1d' } }} />
+		</>
+	)
+}
+
+// `/` signs the user in (it ignores Clerk's `redirect_url`) or shows the legal terms, then comes
+// back here through the app's own post-sign-in redirect.
+function ReturnViaRoot({ openSignIn = false }: { openSignIn?: boolean }) {
 	const navigate = useNavigate()
 	useEffect(() => {
 		setRedirect(window.location.pathname + window.location.search)
-		navigate(routes.tlaRoot(), { replace: true, state: { [OPEN_SIGN_IN]: true } })
-	}, [navigate])
+		navigate(routes.tlaRoot(), {
+			replace: true,
+			state: openSignIn ? { [OPEN_SIGN_IN]: true } : null,
+		})
+	}, [navigate, openSignIn])
 	return null
 }

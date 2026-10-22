@@ -1,4 +1,4 @@
-import { useAuth, useClerk } from '@clerk/react'
+import { useAuth, useClerk, useUser } from '@clerk/react'
 import { commentToolOverrides } from '@tldraw/commenting'
 import { useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -15,6 +15,7 @@ import { components } from '../components/TlaEditor/TlaEditor'
 import { VIA_LAST_FILE_CACHE } from '../components/TlaEditor/TlaFileSyncHost'
 import { useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
+import { hasNotAcceptedLegal } from '../utils/auth'
 import { startCachedFileVisit } from '../utils/cachedFileVisit'
 import { importFromUrl } from '../utils/importFromUrl'
 import { getLastVisitedFileId } from '../utils/local-session-state'
@@ -25,6 +26,7 @@ import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '..
 export function Component() {
 	const app = useMaybeApp()
 	const isAppLoading = useIsAppLoading()
+	const legalPending = hasNotAcceptedLegal(useUser().user)
 	const { userId } = useAuth()
 	const navigate = useNavigate()
 	const location = useLocation()
@@ -52,6 +54,9 @@ export function Component() {
 			// Check for redirect-to first (set by OAuth sign-in)
 			const redirectTo = getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
 			if (redirectTo) {
+				// The redirect can leave the app's providers (the OAuth consent page does), taking the
+				// legal terms dialog with it. Hold it until the terms are accepted.
+				if (legalPending) return
 				clearRedirectOnSignIn()
 				if (redirectTo.startsWith('/')) {
 					navigate(redirectTo, { replace: true })
@@ -109,7 +114,7 @@ export function Component() {
 		}
 
 		handleFileOperations()
-	}, [app, navigate, location])
+	}, [app, navigate, location, legalPending])
 
 	// A signed-in user must never see the scratch editor: it would start slurp detection on
 	// whatever is in the local doc.
