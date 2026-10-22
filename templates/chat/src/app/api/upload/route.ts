@@ -1,27 +1,53 @@
-import { GoogleGenAI } from '@google/genai'
-
 export async function POST(req: Request) {
-	const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
+	const apiKey = process.env.OPENAI_API_KEY
 	if (!apiKey) {
-		return new Response('GOOGLE_GENERATIVE_AI_API_KEY is not set', { status: 500 })
+		return Response.json({ error: 'OPENAI_API_KEY is not set' }, { status: 500 })
 	}
 
 	const contentType = req.headers.get('content-type')
 	if (!contentType) {
-		return new Response('content-type is not set', { status: 400 })
+		return Response.json({ error: 'content-type is not set' }, { status: 400 })
 	}
 
-	const displayName = req.headers.get('x-file-name')
-	if (!displayName) {
-		return new Response('x-file-name is not set', { status: 400 })
+	const encodedFileName = req.headers.get('x-file-name')
+	if (!encodedFileName) {
+		return Response.json({ error: 'x-file-name is not set' }, { status: 400 })
+	}
+	let displayName: string
+	try {
+		displayName = decodeURIComponent(encodedFileName)
+	} catch {
+		return Response.json({ error: 'x-file-name is not valid URI encoding' }, { status: 400 })
 	}
 
-	const ai = new GoogleGenAI({ apiKey })
+	const formData = new FormData()
+	formData.set('file', await req.blob(), displayName)
+	formData.set('purpose', 'vision')
+	formData.set('expires_after[anchor]', 'created_at')
+	formData.set('expires_after[seconds]', '86400')
 
-	const file = await ai.files.upload({
-		file: await req.blob(),
-		config: { mimeType: contentType, displayName },
+	const response = await fetch('https://api.openai.com/v1/files', {
+		method: 'POST',
+		headers: { Authorization: `Bearer ${apiKey}` },
+		body: formData,
+		signal: req.signal,
 	})
 
-	return Response.json({ uploadedUrl: file.uri, expiresAt: file.expirationTime })
+	if (!response.ok) {
+		return Response.json(
+			{ error: 'OpenAI could not upload the image. Check your API key and try again.' },
+			{ status: 502 }
+		)
+	}
+
+	const file: { id: string; expires_at: number } = await response.json()
+	if (!file.id?.startsWith('file-') || !Number.isFinite(file.expires_at)) {
+		return Response.json({ error: 'OpenAI returned an invalid file upload.' }, { status: 502 })
+	}
+
+	return Response.json({
+		provider: 'openai',
+		fileId: file.id,
+		expiresAt: new Date(file.expires_at * 1000).toISOString(),
+	})
 }

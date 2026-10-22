@@ -172,6 +172,7 @@ export function CommentComposer({
 
 	const editor = useEditor(
 		{
+			immediatelyRender: false,
 			extensions,
 			content: (value ?? EMPTY_COMMENT) as JSONContent,
 			editable: interactive,

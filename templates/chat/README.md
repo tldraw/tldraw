@@ -18,7 +18,7 @@ Open `http://localhost:3000/` in your browser to see the app.
 This starter kit demonstrates how to build an AI chat application that uses tldraw to provide sketches and annotated image to the model. The app features:
 
 - Integrated whiteboard for providing visual context
-- Image annotation and markup
+- Image annotation, markup, and comment threads
 - Easy switching between text chat and visual canvas input
 
 Key interactions include:
@@ -27,17 +27,26 @@ Key interactions include:
 - Click the whiteboard button to open the tldraw canvas
 - Draw, sketch, and create diagrams to supplement conversations
 - Annotate images and visual content directly on the canvas
+- Select Comment in the sketch toolbar (or press C), then click the canvas to start a thread; comments are saved in the editable sketch
+- Press S, then draw a loop around part of a sketch or image to cut it out as its own piece you can drag, duplicate, or copy
 
 ## Environment setup
 
-Create a `.env.local` file in the root directory and add your Google Generative API key:
+Create a `.env.local` file in the root directory and add your OpenAI API key:
 
 ```
-GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-Get your API key from [Google AI Studio](https://aistudio.google.com/apikey).
+Get your API key from the [OpenAI dashboard](https://platform.openai.com/api-keys).
+Chat uses the OpenAI Responses API with `gpt-5.6-terra` by default. Set `OPENAI_MODEL` to use another model that supports image inputs and the OpenAI image generation tool.
+Ask the chat to generate an image, or send `/random-cat` to generate a cat picture. Click response images to open the image editor, then choose Markup to annotate them. Image generation requires access to OpenAI’s image generation tool.
+Sketches and images are uploaded to OpenAI separately and expire after 24 hours; the original images and editable sketches remain in local chat history.
 You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
+
+Set `FAL_KEY` in the server environment to enable Layerize through [FAL Seedream](https://fal.ai/models/bytedance/seedream/v5/pro/layerize). Right-click an image in chat or on the canvas and choose Layerize. Once every layer has downloaded, the canvas replaces the original with separate image shapes in one undo step. The key stays on the server.
+
+Commenting is available in local development. For a deployed app, set `NEXT_PUBLIC_TLDRAW_LICENSE_KEY` to a tldraw license key that includes commenting.
 
 ## File structure
 
