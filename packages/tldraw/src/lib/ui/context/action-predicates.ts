@@ -77,7 +77,6 @@ export function isOnlyFlippableShapeSelected(editor: Editor) {
 	return util.canFlip(shape) && util.canBeLaidOut(shape, { type: 'flip', shapes: [shape] })
 }
 
-// Flip's onSelect checks this too: shortcuts skip isEnabled.
 /** @internal */
 export function canFlipSelection(editor: Editor) {
 	return (
@@ -99,11 +98,21 @@ export function hasLinkShapeSelected(editor: Editor) {
 
 /** @internal */
 export function canFrameSelection(editor: Editor) {
-	const selected = editor.getSelectedShapes()
-	if (selected.length === 0) return false
-	// An all-frame selection unframes instead; remove-frame covers that.
-	if (selected.every((s) => editor.isShapeOfType(s, 'frame'))) return false
+	if (editor.getSelectedShapeIds().length === 0) return false
+	// An all-frame selection is disabled; remove-frame covers it.
+	if (areAllSelectedFrames(editor)) return false
 	return getFrameableShapeIds(editor, editor.getSelectedShapeIds()).length > 0
+}
+
+/**
+ * Strictly `frame`, unlike {@link areAllSelectedFrameLike}: the frame toggle shortcut wraps custom
+ * frame-like shapes rather than removing them.
+ *
+ * @internal
+ */
+export function areAllSelectedFrames(editor: Editor) {
+	const selected = editor.getSelectedShapes()
+	return selected.length > 0 && selected.every((s) => editor.isShapeOfType(s, 'frame'))
 }
 
 /** @internal */

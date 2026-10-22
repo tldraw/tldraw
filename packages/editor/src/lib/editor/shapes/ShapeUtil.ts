@@ -201,6 +201,24 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	createShapeForAsset?(asset: TLAsset, position: VecModel): TLShapePartial | null
 
 	/**
+	 * The shape's name, translated, as a screen reader should announce it.
+	 *
+	 * Return `undefined` — the default — and the shape is announced by its tool's label, under the
+	 * `tool.<type>` convention. Override this when the name isn't that: a geo shape is a "Rectangle"
+	 * or an "Ellipse" rather than a "Shape", so it names itself from its geo style.
+	 *
+	 * Resolve the name through {@link translateMessage} and the editor's `i18n` rather than
+	 * returning English, so it follows the user's locale and still reads as words when an app
+	 * supplies no translations.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	getShapeName(_shape: Shape): string | undefined {
+		return undefined
+	}
+
+	/**
 	 * Get the shape's geometry.
 	 *
 	 * @param shape - The shape.

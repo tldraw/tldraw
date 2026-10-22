@@ -3,14 +3,23 @@ import { createShapeId } from '@tldraw/editor'
 import { Tldraw } from '../../lib/Tldraw'
 import { FrameSelectionMenuItem } from '../../lib/ui/components/menu-items'
 import { TldrawUiMenuContextProvider } from '../../lib/ui/components/primitives/menus/TldrawUiMenuContext'
+import { TLUiOverrides } from '../../lib/ui/overrides'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
 // The keyboard-shortcuts menu context renders items without a Radix menu root, so the item's
-// visibility gate can be asserted straight from its test id instead of opening a submenu.
+// visibility gate can be asserted straight from its test id instead of opening a submenu. That
+// context only renders items with a kbd, and frame-selection's chord lives on toggle-frame.
+const overrides: TLUiOverrides = {
+	actions(_editor, actions) {
+		actions['frame-selection'].kbd = 'cmd+alt+g,ctrl+alt+g'
+		return actions
+	},
+}
+
 async function setup() {
 	const { editor } = await renderTldrawComponentWithEditor(
 		(onMount) => (
-			<Tldraw onMount={onMount}>
+			<Tldraw onMount={onMount} overrides={overrides}>
 				<TldrawUiMenuContextProvider type="keyboard-shortcuts" sourceId="kbd">
 					<FrameSelectionMenuItem />
 				</TldrawUiMenuContextProvider>

@@ -206,9 +206,6 @@
   "54286b1d01": {
     "translation": "Collaborator limit reached"
   },
-  "545241e7dd": {
-    "translation": "{count} unread"
-  },
   "550b25cc0c": {
     "translation": "Could not restore your local drawing. Try reloading this page."
   },
@@ -383,9 +380,6 @@
   "85a082de1b": {
     "translation": "Please refresh the page to get the latest version of tldraw."
   },
-  "86353d2c41": {
-    "translation": "Added {total} .tldr files."
-  },
   "86c66437fd": {
     "translation": "Rename file"
   },
@@ -454,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "You have been invited to join <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# unread} other {# unread}}"
   },
   "a0da245992": {
     "translation": "Export the content as a .tldr file: Select 'Download' in the top left menu."
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "Learn more about sharing."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {Added # .tldr file.} other {Added # .tldr files.}}"
+  },
   "c303bd1095": {
     "translation": "Unable to publish the file."
   },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Long String"
   },
   "c6a00f137b": {
     "translation": "Invite"
@@ -659,9 +656,6 @@
   },
   "ec611e9a08": {
     "translation": "Account menu"
-  },
-  "ed53713239": {
-    "translation": "i18n: Accented"
   },
   "ed75712b0e": {
     "translation": "Duplicate"
