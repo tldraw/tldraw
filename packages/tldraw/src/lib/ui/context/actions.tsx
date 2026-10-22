@@ -46,6 +46,7 @@ import {
 	canApplyToUnlockedSelection,
 	canFitFrameToContent,
 	canFlatten,
+	canFlipSelection,
 	canFrameSelection,
 	canReadClipboard,
 	canToggleAutoSize,
@@ -60,7 +61,6 @@ import {
 	isGroupAllowed,
 	isOnlyEmbeddableBookmarkSelected,
 	isOnlyEmbedWithUrlSelected,
-	isOnlyFlippableShapeSelected,
 	isUngroupAllowed,
 	supportsDownloadingOriginal,
 } from './action-predicates'
@@ -1119,9 +1119,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'flip-horizontal',
-				isEnabled: (editor) =>
-					editor.isIn('select') &&
-					(hasUnlockedSelection(editor, 2) || isOnlyFlippableShapeSelected(editor)),
+				isEnabled: canFlipSelection,
 				label: {
 					default: messages.actionFlipHorizontal.id,
 					['context-menu']: messages.actionFlipHorizontalShort.id,
@@ -1134,9 +1132,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'flip-vertical',
-				isEnabled: (editor) =>
-					editor.isIn('select') &&
-					(hasUnlockedSelection(editor, 2) || isOnlyFlippableShapeSelected(editor)),
+				isEnabled: canFlipSelection,
 				label: {
 					default: messages.actionFlipVertical.id,
 					['context-menu']: messages.actionFlipVerticalShort.id,

@@ -521,6 +521,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return [getFillDefForCanvas()]
 	}
 
+	override canFlip() {
+		return true
+	}
+
 	override onResize(
 		shape: TLGeoShape,
 		{ handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>
