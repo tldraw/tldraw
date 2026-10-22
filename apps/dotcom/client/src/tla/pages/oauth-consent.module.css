@@ -1,3 +1,5 @@
+/* Colours are literals: this route renders outside the app's providers, so the tla and tl colour
+   variables are never defined here. */
 .page {
 	min-height: 100dvh;
 	display: flex;
@@ -6,13 +8,13 @@
 	align-items: center;
 	justify-content: center;
 	padding: 16px;
-	background: var(--tla-color-sidebar, #f5f5f5);
+	background: #f5f5f5;
 }
 
-/* Nested to outrank TlaLogo's own size, whose stylesheet may load later. The tl colour
-   variables aren't in scope on this route; the fallback matches OAuthConsent's colorPrimary. */
+/* Nested to outrank TlaLogo's own size, whose stylesheet may load later. The colour matches
+   OAuthConsent's colorPrimary. */
 .page .logo {
 	width: 108px;
 	height: 36px;
-	background-color: var(--tl-color-text-0, #1d1d1d);
+	background-color: #1d1d1d;
 }
