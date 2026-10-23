@@ -32,8 +32,7 @@ export class TldrawAgentApp {
 	/**
 	 * Handle crash and dispose events.
 	 */
-	private handleCrash = () => this.dispose()
-	private handleDispose = () => this.dispose()
+	private handleEditorGone = () => this.dispose()
 
 	private _editor: Editor | null
 
@@ -57,8 +56,8 @@ export class TldrawAgentApp {
 		this._editor = editor
 		this.agents = new AgentAppAgentsManager(this)
 		this.persistence = new AgentAppPersistenceManager(this)
-		editor.on('crash', this.handleCrash)
-		editor.on('dispose', this.handleDispose)
+		editor.on('crash', this.handleEditorGone)
+		editor.on('dispose', this.handleEditorGone)
 	}
 
 	/**
@@ -66,8 +65,8 @@ export class TldrawAgentApp {
 	 */
 	dispose() {
 		if (!this._editor) return
-		this._editor.off('crash', this.handleCrash)
-		this._editor.off('dispose', this.handleDispose)
+		this._editor.off('crash', this.handleEditorGone)
+		this._editor.off('dispose', this.handleEditorGone)
 		this.persistence.dispose()
 		this.agents.dispose()
 		this._editor = null

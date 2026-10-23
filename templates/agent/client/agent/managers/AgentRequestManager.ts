@@ -168,14 +168,6 @@ export class AgentRequestManager extends BaseAgentManager {
 	}
 
 	/**
-	 * Get the cancel function for the current request.
-	 * @returns The cancel function, or null if none.
-	 */
-	getCancelFn() {
-		return this.cancelFn
-	}
-
-	/**
 	 * Cancel the current request if one is active.
 	 * Clears both active and scheduled requests.
 	 */
