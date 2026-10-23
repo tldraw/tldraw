@@ -235,11 +235,7 @@ function CustomToolbar() {
 	const isRhombusSelected = useIsToolSelected(tools['rhombus-2'])
 	return (
 		<DefaultToolbar>
-			<TldrawUiMenuItem
-				{...tools['rhombus-2']}
-				label="geo-style.rhombus-2"
-				isSelected={isRhombusSelected}
-			/>
+			<TldrawUiMenuItem {...tools['rhombus-2']} isSelected={isRhombusSelected} />
 			<DefaultToolbarContent />
 			<TldrawUiButton
 				type="icon"
@@ -346,8 +342,7 @@ the style of shapes, such as color, stroke width, and opacity.
 
 [11]
 The toolbar contains the tools used to create and select shapes. Here we add the left-leaning
-rhombus geo shape at the front and a "delete all" button at the end. There is no `tool.rhombus-2`
-translation key, so the item reuses the style panel's `geo-style.rhombus-2` label.
+rhombus geo shape at the front and a "delete all" button at the end.
 
 [12]
 The zoom menu is in the bottom left of the tldraw component. The button that opens it is labeled

@@ -192,3 +192,9 @@ const clipboardReadable =
 export function canReadClipboard() {
 	return clipboardReadable
 }
+
+/** @internal */
+export function isOnlyTextSelected(editor: Editor) {
+	const shape = editor.getOnlySelectedShape()
+	return !!shape && editor.isShapeOfType(shape, 'text')
+}

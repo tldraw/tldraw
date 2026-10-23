@@ -30,8 +30,11 @@ import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
+import { COMMAND_PALETTE_MENU_ID } from '../components/CommandPalette/commandPaletteMenuId'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { isMinimapCollapsed, toggleMinimap } from '../components/NavigationPanel/minimapCollapsed'
+import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from '../constants'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -65,6 +68,7 @@ import {
 	supportsDownloadingOriginal,
 } from './action-predicates'
 import { isActionRunnable } from './action-state'
+import { withCommandPaletteDefaults } from './command-palette-defaults'
 import { useTldrawUiComponents } from './components'
 import { TLUiEventSource, useUiEvents } from './events'
 
@@ -73,6 +77,13 @@ import { TLUiEventSource, useUiEvents } from './events'
 // keeps the string extractable and the prop a plain key, which is what an app overriding one
 // passes.
 const messages = defineMessages({
+	actionOpenCommandPalette: {
+		id: 'action.open-command-palette',
+		defaultMessage: 'Command palette',
+	},
+	actionToggleMinimap: { id: 'action.toggle-minimap', defaultMessage: 'Toggle minimap' },
+	actionToggleMinimapMenu: { id: 'action.toggle-minimap.menu', defaultMessage: 'Show minimap' },
+	toolImageCrop: { id: 'tool.image-crop', defaultMessage: 'Crop image' },
 	a11yAdjustShapeStyles: { id: 'a11y.adjust-shape-styles', defaultMessage: 'Adjust shape styles' },
 	a11yEnlargeShape: { id: 'a11y.enlarge-shape', defaultMessage: 'Enlarge shape' },
 	a11yRepeatShape: { id: 'a11y.repeat-shape', defaultMessage: 'Repeat shape' },
@@ -324,6 +335,11 @@ export interface TLUiActionItem<
 	isEnabled?(editor: Editor): boolean
 	/** For checkbox actions: whether the item shows as checked. Must be pure and read only editor state. */
 	isChecked?(editor: Editor): boolean
+	/**
+	 * Where the command palette lists the action. `false` leaves it out, `{ group }` lists it in the
+	 * `CommandPaletteActionGroup` with that group. Without it, the palette's catch-all group lists it.
+	 */
+	commandPalette?: false | { group?: string }
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
 
@@ -567,6 +583,23 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!KeyboardShortcutsDialog) return
 					trackEvent('open-kbd-shortcuts', { source })
 					helpers.addDialog({ component: KeyboardShortcutsDialog })
+				},
+			},
+			{
+				id: 'open-command-palette',
+				label: messages.actionOpenCommandPalette.id,
+				kbd: 'cmd+k,ctrl+k',
+				readonlyOk: true,
+				// Opening marks a menu open, which disables every shortcut until the palette clears it,
+				// so the action must not run where no palette will render.
+				isAvailable: () => !!components.CommandPalette,
+				onSelect(source) {
+					trackEvent('open-command-palette', { source })
+					editor.complete()
+					// DefaultPageMenu clears open menus on keydown while body is focused, closing the palette.
+					const doc = editor.getContainerDocument()
+					if (doc.activeElement === doc.body) editor.getContainer().focus()
+					editor.menus.addOpenMenu(COMMAND_PALETTE_MENU_ID)
 				},
 			},
 			{
@@ -1700,6 +1733,25 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'toggle-minimap',
+				label: {
+					default: messages.actionToggleMinimap.id,
+					menu: messages.actionToggleMinimapMenu.id,
+				},
+				// The navigation panel only shows the minimap from tablet width up.
+				isAvailable: (editor) =>
+					!!components.Minimap &&
+					!!components.NavigationPanel &&
+					editor.getViewportScreenBounds().width > PORTRAIT_BREAKPOINTS[PORTRAIT_BREAKPOINT.TABLET],
+				isChecked: (editor) => !isMinimapCollapsed(editor),
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-minimap', { source })
+					toggleMinimap(editor)
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-grid',
 				isChecked: (editor) => editor.getInstanceState().isGridMode,
 				label: {
@@ -2014,6 +2066,20 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'crop-image',
+				label: messages.toolImageCrop.id,
+				isAvailable: (editor) => {
+					if (!editor.isIn('select')) return false
+					const shape = editor.getOnlySelectedShape()
+					return !!shape && shape.type === 'image' && !shape.isLocked
+				},
+				readonlyOk: false,
+				onSelect(source) {
+					trackEvent('crop-image', { source })
+					editor.setCurrentTool('select.crop.idle')
+				},
+			},
+			{
 				id: 'image-replace',
 				label: messages.toolReplaceMedia.id,
 				icon: 'arrow-cycle',
@@ -2126,7 +2192,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			})
 		}
 
-		const actions = makeActions(actionItems)
+		const actions = makeActions(withCommandPaletteDefaults(actionItems))
 		const overriddenActions = overrides ? overrides(editor, actions, helpers) : actions
 		finalActions.current = gateActions(editor, overriddenActions)
 		return finalActions.current

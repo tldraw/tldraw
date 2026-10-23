@@ -328,6 +328,10 @@ export {
 	type TLUiActionsMenuProps,
 } from './lib/ui/components/ActionsMenu/DefaultActionsMenu'
 export {
+	DefaultCommandPalette,
+	type TLUiCommandPaletteProps,
+} from './lib/ui/components/CommandPalette/DefaultCommandPalette'
+export {
 	AlignMenuItems,
 	DefaultActionsMenuContent,
 	DistributeMenuItems,
@@ -375,6 +379,48 @@ export {
 	DefaultKeyboardShortcutsDialog,
 	type TLUiKeyboardShortcutsDialogProps,
 } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
+export { CommandPaletteMenuItem } from './lib/ui/components/CommandPalette/CommandPaletteMenuItem'
+export { COMMAND_PALETTE_MENU_ID } from './lib/ui/components/CommandPalette/commandPaletteMenuId'
+export {
+	CommandPaletteShell,
+	type TLUiCommandPaletteShellProps,
+} from './lib/ui/components/CommandPalette/CommandPaletteShell'
+export {
+	CommandPaletteCollapsed,
+	CommandPalettePinned,
+	useCommandPaletteActiveItemId,
+	useCommandPaletteQuery,
+	type CommandPaletteCollapsedProps,
+	type CommandPalettePinnedProps,
+} from './lib/ui/components/CommandPalette/CommandPaletteContext'
+export {
+	commandPaletteFlags,
+	type CommandPaletteFlags,
+	type CommandPalettePosition,
+	type CommandPaletteTopSection,
+} from './lib/ui/components/CommandPalette/commandPaletteFlags'
+export { CommandPaletteFeatureFlagsPanel } from './lib/ui/components/CommandPalette/CommandPaletteFeatureFlags'
+export {
+	CommandPalettePromptItem,
+	type CommandPalettePromptItemProps,
+} from './lib/ui/components/CommandPalette/CommandPalettePromptItem'
+export {
+	CommandPaletteActionGroup,
+	CommandPaletteArrangeGroup,
+	CommandPaletteEditGroup,
+	CommandPaletteExportGroup,
+	CommandPaletteHelpGroup,
+	CommandPalettePagesGroup,
+	CommandPalettePreferencesGroup,
+	CommandPaletteSelectionGroup,
+	CommandPaletteToolsGroup,
+	CommandPaletteViewGroup,
+	type TLUiCommandPaletteActionGroupProps,
+} from './lib/ui/components/CommandPalette/CommandPaletteGroups'
+export { CommandPaletteImageGroup } from './lib/ui/components/CommandPalette/CommandPaletteImageGroup'
+export { CommandPaletteStylesGroup } from './lib/ui/components/CommandPalette/CommandPaletteStylesGroup'
+export { getCommandPaletteMatchScore } from './lib/ui/components/CommandPalette/commandPaletteSearch'
+export { DefaultCommandPaletteContent } from './lib/ui/components/CommandPalette/DefaultCommandPaletteContent'
 export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 export { LanguageMenu } from './lib/ui/components/LanguageMenu'
 export { InputModeMenu } from './lib/ui/components/InputModeMenu'

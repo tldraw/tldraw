@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom'
 import {
 	AccessibilityMenu,
 	ColorSchemeMenu,
+	CommandPaletteMenuItem,
 	DefaultPageMenu,
 	defineMessages,
 	EditSubmenu,
@@ -64,6 +65,7 @@ import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import { editorMessages } from './editor-messages'
+import { fileHeaderRenaming, useStartFileRename } from './fileHeaderRename'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
@@ -212,7 +214,6 @@ function TlaEditorTopLeftPanelSignedIn() {
 	const msg = useTranslation()
 	const editor = useEditor()
 	const intl = useIntl()
-	const [isRenaming, setIsRenaming] = useState(false)
 	const pageMenuLbl = msg(messages.pageMenu)
 
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
@@ -223,6 +224,19 @@ function TlaEditorTopLeftPanelSignedIn() {
 	const app = useApp()
 	// Undefined on legacy routes (/r, /ro, /v, /s): the file-bound actions have nothing to act on.
 	const fileId = useCurrentFileId()
+	const isRenaming = useValue(
+		'is renaming',
+		() => !!fileId && fileHeaderRenaming.get() === fileId,
+		[fileId]
+	)
+	const stopRenaming = useCallback(() => fileHeaderRenaming.set(null), [])
+	// Otherwise coming back to this file later would reopen a rename left open.
+	useEffect(
+		() => () => {
+			if (fileHeaderRenaming.get() === fileId) fileHeaderRenaming.set(null)
+		},
+		[fileId]
+	)
 	const fileName = useValue(
 		'fileName',
 		// TODO(david): This is a temporary fix for allowing guests to see the file name.
@@ -240,7 +254,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 	const handleFileNameChange = useCallback(
 		(name: string) => {
 			if (!isOwner || !fileId) return
-			setIsRenaming(false)
+			stopRenaming()
 			// only actually update the name if name is a value, otherwise keep the previous name
 			if (name) {
 				// don't allow guests to update the file name
@@ -248,20 +262,11 @@ function TlaEditorTopLeftPanelSignedIn() {
 				editor.updateDocumentSettings({ name })
 			}
 		},
-		[app, editor, fileId, isOwner]
+		[app, editor, fileId, isOwner, stopRenaming]
 	)
 
-	const handleRenameAction = () => {
-		if (getIsCoarsePointer()) {
-			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
-			if (newName && fileId) {
-				app.updateFile(fileId, { name: newName })
-			}
-		} else {
-			setIsRenaming(true)
-		}
-	}
-	const handleRenameEnd = () => setIsRenaming(false)
+	const handleRenameAction = useStartFileRename(fileId, fileName)
+	const handleRenameEnd = stopRenaming
 
 	return (
 		<>
@@ -493,6 +498,7 @@ function TlaPreferencesGroup() {
 			</TldrawUiMenuSubmenu>
 			<LanguageMenu />
 			<KeyboardShortcutsMenuItem />
+			<CommandPaletteMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }

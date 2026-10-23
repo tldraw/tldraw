@@ -5,6 +5,7 @@ import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { CommandPaletteItemRegistration } from '../../CommandPalette/CommandPaletteItemRegistration'
 import { TldrawUiIcon, TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
@@ -30,6 +31,7 @@ export interface TLUiMenuCheckboxItemProps<
 	toggle?: boolean
 	checked?: boolean
 	disabled?: boolean
+	disabledReason?: TranslationKey
 }
 
 /** @public @react */
@@ -39,12 +41,14 @@ export function TldrawUiMenuCheckboxItem<
 >({
 	id,
 	kbd,
+	icon,
 	label,
 	lang,
 	readonlyOk,
 	onSelect,
 	toggle = false,
 	disabled = false,
+	disabledReason,
 	checked = false,
 }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
@@ -107,6 +111,21 @@ export function TldrawUiMenuCheckboxItem<
 				>
 					{content}
 				</_ContextMenu.CheckboxItem>
+			)
+		}
+		case 'command-palette': {
+			if (!labelStr) return null
+			return (
+				<CommandPaletteItemRegistration
+					id={id}
+					label={labelStr}
+					kbd={kbd}
+					icon={icon}
+					checked={checked}
+					disabled={disabled}
+					disabledReason={disabledReason ? msg(disabledReason as TLUiTranslationKey) : undefined}
+					onSelect={onSelect}
+				/>
 			)
 		}
 		default: {

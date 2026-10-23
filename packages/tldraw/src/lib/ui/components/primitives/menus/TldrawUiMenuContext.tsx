@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useMemo } from 'react'
 import { TLUiEventSource } from '../../../context/events'
 
 /** @public */
@@ -11,6 +11,7 @@ export type TLUiMenuContextType =
 	| 'helper-buttons'
 	| 'toolbar'
 	| 'toolbar-overflow'
+	| 'command-palette'
 
 const menuContext = createContext<{
 	type: TLUiMenuContextType
@@ -39,5 +40,8 @@ export function TldrawUiMenuContextProvider({
 	sourceId,
 	children,
 }: TLUiMenuContextProviderProps) {
-	return <menuContext.Provider value={{ type, sourceId }}>{children}</menuContext.Provider>
+	// Stable value: the palette shell re-renders on every store change, and fresh context would
+	// re-run every item registration and loop.
+	const value = useMemo(() => ({ type, sourceId }), [type, sourceId])
+	return <menuContext.Provider value={value}>{children}</menuContext.Provider>
 }
