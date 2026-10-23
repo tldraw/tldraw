@@ -2,6 +2,8 @@ import { AssetRecordType, TLBookmarkShape, createShapeId, getHashForString } fro
 import { vi } from 'vitest'
 import { defaultHandleExternalUrlAsset } from '../lib/defaultExternalContentHandlers'
 import {
+	BOOKMARK_HEIGHT,
+	SHORT_BOOKMARK_HEIGHT,
 	createBookmarkFromUrl,
 	getBookmarkHeight,
 	getBookmarkShapeHeight,
@@ -88,6 +90,7 @@ describe('The URL formatter', () => {
 		expect(getHumanReadableAddress(d.props.url)).toBe('github.com')
 		expect(getHumanReadableAddress(e.props.url)).toBe('github.com')
 		expect(getHumanReadableAddress(f.props.url)).toBe('github.com')
+		expect(getHumanReadableAddress('vscode://file/src/index.ts')).toBe('vscode')
 	})
 
 	it("Doesn't resize bookmarks", () => {
@@ -203,7 +206,10 @@ describe('createBookmarkFromUrl', () => {
 		const result = await createBookmarkFromUrl(editor, { url: 'vscode://file/src/index.ts' })
 
 		assert(result.ok, 'Failed to create bookmark')
-		expect(editor.getShape<TLBookmarkShape>(result.value.id)!.props.assetId).toBe(null)
+		expect(editor.getShape<TLBookmarkShape>(result.value.id)!.props).toMatchObject({
+			assetId: null,
+			h: SHORT_BOOKMARK_HEIGHT,
+		})
 		expect(fetchSpy).not.toHaveBeenCalled()
 	})
 
@@ -528,7 +534,7 @@ describe('changing a bookmark url', () => {
 		expect(editor.getShape<TLBookmarkShape>(id)!.props).toMatchObject({
 			url: urlB,
 			assetId: assetB,
-			h: getBookmarkHeight(editor, assetB),
+			h: getBookmarkHeight(editor, assetB, urlB),
 		})
 		expect(fetchSpy).not.toHaveBeenCalled()
 	})
@@ -559,7 +565,7 @@ describe('changing a bookmark url', () => {
 			expect(editor.getShape<TLBookmarkShape>(id)!.props).toMatchObject({
 				url: urlC,
 				assetId: null,
-				h: getBookmarkHeight(editor, null),
+				h: getBookmarkHeight(editor, null, urlC),
 			})
 
 			await vi.advanceTimersByTimeAsync(600)
@@ -591,7 +597,19 @@ describe('changing a bookmark url', () => {
 
 			await vi.advanceTimersByTimeAsync(600)
 			expect(fetchSpy).not.toHaveBeenCalled()
-			expect(editor.getShape<TLBookmarkShape>(id)!.props.assetId).toBe(null)
+			expect(editor.getShape<TLBookmarkShape>(id)!.props).toMatchObject({
+				assetId: null,
+				h: SHORT_BOOKMARK_HEIGHT,
+			})
+
+			// Back to an http url, it shows the loading placeholder until the new asset arrives.
+			fetchSpy.mockResolvedValue(undefined)
+			editor.updateShape<TLBookmarkShape>({
+				id,
+				type: 'bookmark',
+				props: { url: 'https://c.example.com' },
+			})
+			expect(editor.getShape<TLBookmarkShape>(id)!.props.h).toBe(BOOKMARK_HEIGHT)
 		} finally {
 			vi.useRealTimers()
 		}
