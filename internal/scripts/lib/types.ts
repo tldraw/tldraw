@@ -8,6 +8,9 @@ export const TemplateDeployConfig = T.object({
 	target: T.literalEnum('cloudflare'),
 	// The hostname the demo is served from. Must match the custom domain route in wrangler.toml.
 	host: T.string,
+	// Worker secrets the demo needs, uploaded with each deploy. Each value comes from the deploy
+	// environment variable TEMPLATES_<TEMPLATE>_<SECRET>, e.g. TEMPLATES_AGENT_OPENROUTER_API_KEY.
+	secrets: T.arrayOf(T.string).optional(),
 })
 export type TemplateDeployConfig = T.TypeOf<typeof TemplateDeployConfig>
 
