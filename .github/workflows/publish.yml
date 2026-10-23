@@ -322,6 +322,8 @@ jobs:
           license-key: ${{ secrets.TEMPLATES_TLDRAW_LICENSE_KEY }}
           cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          agent-openrouter-api-key: ${{ secrets.TEMPLATES_AGENT_OPENROUTER_API_KEY }}
+          google-api-key: ${{ secrets.TEMPLATES_GOOGLE_API_KEY }}
 
       - name: Notify Discord on failure
         if: failure()
