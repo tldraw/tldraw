@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
 	createComment,
 	createCommentThread,
+	defineMessages,
 	Editor,
 	EditorPortal,
 	TLRichText,
@@ -26,6 +27,11 @@ import { type CommentingContext } from './context'
 import { useIsMobileCommenting, useMobilePlacement } from './mobile-placement'
 import { useCanComment, useCommentingOptions } from './options'
 import { pendingComment } from './state'
+
+const messages = defineMessages({
+	commentsSend: { id: 'comments.send', defaultMessage: 'Send' },
+	commentsAddPlaceholder: { id: 'comments.add-placeholder', defaultMessage: 'Add a comment…' },
+})
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
@@ -140,8 +146,8 @@ export function PendingComposer({
 				{canComment ? (
 					<CommentComposer
 						author={me ?? UNKNOWN_COMMENT_AUTHOR}
-						placeholder={msg('comments.add-placeholder')}
-						sendLabel={msg('comments.send')}
+						placeholder={msg(messages.commentsAddPlaceholder)}
+						sendLabel={msg(messages.commentsSend)}
 						value={text}
 						onChange={(value) => {
 							setText(value)

@@ -40,7 +40,10 @@ minimumReleaseAge: 10080
 # Keep Zero's deployed versions available while backend and frontend upgrades roll out separately.
 minimumReleaseAgeExclude:
   - '@rocicorp/zero@1.10.0'
-  - '@rocicorp/zero@1.11.0'
+  - '@rocicorp/zero@1.11.2'
+  # Pulled in by @rocicorp/zero@1.11.2. Remove once they clear the gate (2026-10-23T20:25Z).
+  - '@opentelemetry/auto-instrumentations-node@0.81.2'
+  - '@opentelemetry/instrumentation-winston@0.68.1'
 
 overrides:
   '@types/node': ^22.15.31
