@@ -1,5 +1,5 @@
 import type { TLContent } from '@tldraw/editor'
-import { shapeIdValidator, type TLShapeId } from '@tldraw/tlschema'
+import { shapeIdValidator } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
 
 /** A named list of items. Where it is stored is up to the source that provides it. */
@@ -35,21 +35,12 @@ export const CURRENT_ITEM_CONTENT_FORMAT_VERSION = 1
  * The shapes an item places, in a versioned envelope. Anything an item needs beyond shapes
  * arrives as a new `formatVersion`, so the way collections are listed and stored doesn't change.
  *
- * Shape ids inside `content` must stay the same when an item gets a new version: placed copies
- * point back at them through {@link TLPlacedItemLink.sourceShapeId}.
+ * Shape ids inside `content` must stay the same when an item gets a new version, so copies placed
+ * from an older version can later be matched shape by shape to the new one.
  */
 export interface TLCollectionItemContent {
 	formatVersion: 1
 	content: TLContent
-}
-
-/** Stored as `meta.collectionItem` on every shape placed from an item. */
-export interface TLPlacedItemLink {
-	itemId: string
-	/** The item version this shape was placed from. */
-	version: number
-	/** This shape's id inside the item's content. */
-	sourceShapeId: TLShapeId
 }
 
 const nonEmptyString = T.string.check((value) => {
@@ -112,9 +103,3 @@ export function parseCollectionItemContent(value: unknown): TLCollectionItemCont
 	}
 	return itemContentValidator.validate(value)
 }
-
-export const placedItemLinkValidator: T.Validator<TLPlacedItemLink> = T.object({
-	itemId: nonEmptyString,
-	version: T.positiveInteger,
-	sourceShapeId: shapeIdValidator,
-})

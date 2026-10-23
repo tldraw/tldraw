@@ -5,7 +5,6 @@ import {
 	collectionItemValidator,
 	collectionValidator,
 	parseCollectionItemContent,
-	placedItemLinkValidator,
 } from './schema'
 
 const shapeId = createShapeId('box')
@@ -115,18 +114,5 @@ describe('parseCollectionItemContent', () => {
 
 	it('rejects unknown envelope fields, so a newer format cannot pass as the current one', () => {
 		expect(() => parseCollectionItemContent(itemContent({ parameters: [] }))).toThrow()
-	})
-})
-
-describe('placedItemLinkValidator', () => {
-	it('accepts a link to a shape inside an item', () => {
-		const link = { itemId: 'item_1', version: 3, sourceShapeId: shapeId }
-		expect(placedItemLinkValidator.validate(link)).toEqual(link)
-	})
-
-	it('rejects a source id that is not a shape id', () => {
-		expect(() =>
-			placedItemLinkValidator.validate({ itemId: 'item_1', version: 3, sourceShapeId: 'abc' })
-		).toThrow()
 	})
 })

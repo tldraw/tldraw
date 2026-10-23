@@ -4,9 +4,7 @@ export {
 	collectionItemValidator,
 	collectionValidator,
 	parseCollectionItemContent,
-	placedItemLinkValidator,
 	type TLCollection,
 	type TLCollectionItem,
 	type TLCollectionItemContent,
-	type TLPlacedItemLink,
 } from './lib/schema'
