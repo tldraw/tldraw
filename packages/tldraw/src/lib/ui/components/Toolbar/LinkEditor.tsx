@@ -1,5 +1,7 @@
 import { defineMessages, openWindow, preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
+import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { normalizeLinkUrl } from '../../../utils/linkUrl'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
@@ -22,20 +24,35 @@ export interface LinkEditorProps {
 export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEditorProps) {
 	const editor = useEditor()
 	const [value, setValue] = useState(initialValue)
+	const [isInvalid, setIsInvalid] = useState(false)
 	const msg = useTranslation()
 	const ref = useRef<HTMLInputElement>(null)
 	const trackEvent = useUiEvents()
 	const source = 'rich-text-menu'
-	const linkifiedValue = value.startsWith('http') ? value : `https://${value}`
+	const normalizedValue = normalizeLinkUrl(value)
+
+	const handleRemoveLink = useCallback(() => {
+		trackEvent('rich-text', { operation: 'link-remove', source })
+		textEditor.chain().unsetLink().focus().run()
+		onClose()
+	}, [trackEvent, source, textEditor, onClose])
 
 	const handleLinkComplete = useCallback(
 		(link: string) => {
-			trackEvent('rich-text', { operation: 'link-edit', source })
-			if (!link.startsWith('http://') && !link.startsWith('https://')) {
-				link = `https://${link}`
+			const href = normalizeLinkUrl(link)
+			// Leave the input open so the user can fix what they typed.
+			if (href === null) {
+				setIsInvalid(true)
+				ref.current?.focus()
+				return
+			}
+			if (href === '') {
+				handleRemoveLink()
+				return
 			}
 
-			textEditor.chain().setLink({ href: link }).run()
+			trackEvent('rich-text', { operation: 'link-edit', source })
+			textEditor.chain().setLink({ href }).run()
 			// N.B. We shouldn't focus() on mobile because it causes the
 			// Return key to replace the link with a newline :facepalm:
 			if (editor.getInstanceState().isCoarsePointer) {
@@ -45,20 +62,14 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 			}
 			onClose()
 		},
-		[trackEvent, source, textEditor, editor, onClose]
+		[trackEvent, source, textEditor, editor, onClose, handleRemoveLink]
 	)
 
 	const handleVisitLink = () => {
 		trackEvent('rich-text', { operation: 'link-visit', source })
-		openWindow(linkifiedValue, '_blank')
+		if (normalizedValue) openWindow(normalizedValue, '_blank')
 		onClose()
 	}
-
-	const handleRemoveLink = useCallback(() => {
-		trackEvent('rich-text', { operation: 'link-remove', source })
-		textEditor.chain().unsetLink().focus().run()
-		onClose()
-	}, [trackEvent, source, textEditor, onClose])
 
 	useEffect(() => {
 		const doc = editor.getContainerDocument()
@@ -66,17 +77,17 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 			const toolbar = doc.querySelector('.tlui-rich-text__toolbar')
 			if (toolbar?.contains(e.target as Node)) return
 			// If the pointer down is not in the toolbar, complete the link
-			if (value) {
-				handleLinkComplete(value)
+			if (normalizedValue === null) {
+				onClose()
 			} else {
-				handleRemoveLink()
+				handleLinkComplete(value)
 			}
 		}
 		doc.addEventListener('pointerdown', handlePointerDown, { capture: true })
 		return () => {
 			doc.removeEventListener('pointerdown', handlePointerDown, { capture: true })
 		}
-	}, [editor, handleLinkComplete, handleRemoveLink, value])
+	}, [editor, handleLinkComplete, onClose, normalizedValue, value])
 
 	useEffect(() => {
 		ref.current?.focus()
@@ -84,16 +95,24 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 
 	useEffect(() => {
 		setValue(initialValue)
+		setIsInvalid(false)
 	}, [initialValue])
+
+	const handleValueChange = useCallback((nextValue: string) => {
+		setValue(nextValue)
+		setIsInvalid(false)
+	}, [])
 
 	return (
 		<>
 			<TldrawUiInput
 				ref={ref}
 				data-testid="rich-text.link-input"
-				className="tlui-rich-text__toolbar-link-input"
+				className={classNames('tlui-rich-text__toolbar-link-input', {
+					'tlui-rich-text__toolbar-link-input--invalid': isInvalid,
+				})}
 				value={value}
-				onValueChange={setValue}
+				onValueChange={handleValueChange}
 				onComplete={handleLinkComplete}
 				onCancel={onClose}
 				placeholder="example.com"
@@ -105,7 +124,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 				type="icon"
 				onPointerDown={preventDefault}
 				onClick={handleVisitLink}
-				disabled={!value}
+				disabled={!normalizedValue}
 			>
 				<TldrawUiButtonIcon small icon="external-link" />
 			</TldrawUiButton>

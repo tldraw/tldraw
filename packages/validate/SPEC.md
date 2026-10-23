@@ -123,12 +123,13 @@ Rules marked **dev** describe assertions that run only in development builds (`N
 
 ## 15. URL validators (UR)
 
-- **UR1** `linkUrl` accepts the empty string and absolute URLs with `http:`, `https:`, or `mailto:` protocols; other protocols are rejected with `(invalid protocol)` and unparseable strings with `Expected a valid url, got <string>`.
+- **UR1** `linkUrl` accepts the empty string and absolute URLs with `http:`, `https:`, or `mailto:` protocols (and app links, UR7); other protocols are rejected with `(invalid protocol)` and unparseable strings with `Expected a valid url, got <string>`.
 - **UR2** `srcUrl` is the same with the allowed protocols `http:`, `https:`, `data:`, and `asset:`.
 - **UR3** `httpUrl` is the same with only `http:` and `https:` allowed.
 - **UR4** Strings starting with `/` or `./` are parsed against a dummy `http:` origin and therefore validate against all three; other relative forms (`../x`, `foo`) are rejected.
 - **UR5** Protocol matching is case-insensitive: `HTTP://example.com` validates, `JAVASCRIPT:alert(1)` does not.
 - **UR6** All three are string validators first: non-strings fail with the P1 message.
+- **UR7** `linkUrl` also accepts app links that open a fixed allow list of desktop apps, such as `codex:`, `vscode:`, `slack:`, and `figma:` (see `validLinkProtocols`). Any other scheme is rejected, whether or not it is written with `//` (`localhost:3000`, `someapp://open`, `javascript://%0aalert(1)`).
 
 ## 16. Index keys (IK)
 

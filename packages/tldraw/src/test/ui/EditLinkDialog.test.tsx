@@ -75,3 +75,38 @@ it('closes itself when the shape is deselected while the dialog is open', async 
 
 	await expectDialogClosed()
 })
+
+function submitLink(value: string) {
+	const input = document.querySelector('.tlui-edit-link-dialog__input') as HTMLInputElement
+	fireEvent.change(input, { target: { value } })
+	fireEvent.keyDown(input, { key: 'Enter' })
+}
+
+it.each([
+	['mailto:hello@tldraw.com', 'mailto:hello@tldraw.com'],
+	['codex://threads/abc-123', 'codex://threads/abc-123'],
+	['example.com', 'https://example.com'],
+	['', ''],
+])('saves %j as %j', async (input, expected) => {
+	editor = await renderWithOpenDialog()
+	act(() => submitLink(input))
+	await expectDialogClosed()
+	expect(editor.getShape(shapeId)!.props).toMatchObject({ url: expected })
+})
+
+it('shows the invalid url message only once enter is pressed, and keeps the link unchanged', async () => {
+	editor = await renderWithOpenDialog()
+	const input = document.querySelector('.tlui-edit-link-dialog__input') as HTMLInputElement
+
+	act(() => fireEvent.change(input, { target: { value: 'hello' } }))
+	expect(screen.queryByText('edit-link-dialog.invalid-url')).toBeNull()
+
+	act(() => fireEvent.keyDown(input, { key: 'Enter' }))
+	await act(async () => {})
+	expect(getDialogFrame()).not.toBeNull()
+	expect(screen.queryByText('edit-link-dialog.invalid-url')).not.toBeNull()
+	expect(editor.getShape(shapeId)!.props).toMatchObject({ url: 'https://tldraw.com' })
+
+	act(() => fireEvent.change(input, { target: { value: 'hello.com' } }))
+	expect(screen.queryByText('edit-link-dialog.invalid-url')).toBeNull()
+})

@@ -1,5 +1,6 @@
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
+import { isPreAppLinkUrl } from '../misc/linkUrl'
 import { TLAssetId } from '../records/TLAsset'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
@@ -106,6 +107,7 @@ const Versions = createShapePropsMigrationIds('video', {
 	MakeUrlsValid: 2,
 	AddAltText: 3,
 	AddAutoplay: 4,
+	AllowAppLinkUrls: 5,
 })
 
 /**
@@ -173,6 +175,17 @@ export const videoShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.autoplay
+			},
+		},
+		{
+			id: Versions.AllowAppLinkUrls,
+			up: (_props) => {
+				// noop: every url valid before is still valid
+			},
+			down: (props) => {
+				if (!isPreAppLinkUrl(props.url)) {
+					props.url = ''
+				}
 			},
 		},
 	],

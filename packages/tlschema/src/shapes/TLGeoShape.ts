@@ -1,4 +1,5 @@
 import { T } from '@tldraw/validate'
+import { isPreAppLinkUrl } from '../misc/linkUrl'
 import { TLRichText, richTextValidator, toRichText } from '../misc/TLRichText'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
@@ -203,6 +204,7 @@ const geoShapeVersions = createShapePropsMigrationIds('geo', {
 	AddRichText: 10,
 	AddRichTextAttrs: 11,
 	AddFlipProps: 12,
+	AllowAppLinkUrls: 13,
 })
 
 /**
@@ -336,6 +338,17 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 			down: (props) => {
 				delete props.flipX
 				delete props.flipY
+			},
+		},
+		{
+			id: geoShapeVersions.AllowAppLinkUrls,
+			up: (_props) => {
+				// noop: every url valid before is still valid
+			},
+			down: (props) => {
+				if (!isPreAppLinkUrl(props.url)) {
+					props.url = ''
+				}
 			},
 		},
 	],
