@@ -37,6 +37,13 @@ allowBuilds:
 
 # Newly published versions must be at least 7 days old before pnpm will pick them (minutes).
 minimumReleaseAge: 10080
+# Keep Zero's deployed versions available while backend and frontend upgrades roll out separately.
+minimumReleaseAgeExclude:
+  - '@rocicorp/zero@1.10.0'
+  - '@rocicorp/zero@1.11.2'
+  # Pulled in by @rocicorp/zero@1.11.2. Remove once they clear the gate (2026-10-23T20:25Z).
+  - '@opentelemetry/auto-instrumentations-node@0.81.2'
+  - '@opentelemetry/instrumentation-winston@0.68.1'
 
 overrides:
   '@types/node': ^22.15.31
@@ -48,6 +55,9 @@ overrides:
   '@octokit/plugin-paginate-rest@11.3.1': 11.4.1
   'undici@7.24.4': 7.28.0
   'ip-address@10.1.0': 10.2.0
+  # `ai` pins 1.9.0 and Zero needs ^1.9.1. Two copies split vitest (an optional peer) into two
+  # instances, and tests that import the other copy fail inside expect().
+  '@opentelemetry/api': 1.9.1
 
 patchedDependencies:
   '@microsoft/tsdoc@0.15.1': patches/@microsoft__tsdoc@0.15.1.patch

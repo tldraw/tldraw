@@ -22,7 +22,7 @@ vi.mock('./src/lib/ui/hooks/useTranslation/useTranslation', async () => {
 			dir: 'ltr',
 			messages: {},
 		}),
-		useTranslation: () => (key) => key || '', // Return the key itself as the translation
+		useTranslation: () => (message) => (typeof message === 'object' ? message.id : message || ''),
 	}
 })
 
@@ -74,20 +74,8 @@ Object.defineProperty(global.URL, 'createObjectURL', {
 	value: () => 'mock-object-url',
 })
 
-// Extract version from package.json (same as original setup)
-const { version } = require('./package.json')
-
-// Window fetch mock for network requests - handles translation loading
+// Window fetch mock for network requests - handles icon and font loading
 window.fetch = async (input, init) => {
-	if (input === `https://cdn.tldraw.com/${version}/translations/en.json`) {
-		const { DEFAULT_TRANSLATION } =
-			await import('./src/lib/ui/hooks/useTranslation/defaultTranslation.ts')
-		return {
-			ok: true,
-			json: async () => DEFAULT_TRANSLATION,
-		}
-	}
-
 	if (input === '/icons/icon/icon-names.json') {
 		return {
 			ok: true,

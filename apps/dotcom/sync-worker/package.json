@@ -24,7 +24,7 @@
 	},
 	"dependencies": {
 		"@clerk/backend": "^3.17.1",
-		"@rocicorp/zero": "1.9.0",
+		"@rocicorp/zero": "1.10.0",
 		"@supabase/supabase-js": "^2.48.1",
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/store": "workspace:*",

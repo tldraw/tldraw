@@ -1,3 +1,4 @@
+import { ThumbnailRenderPhase } from '@tldraw/dotcom-shared'
 import { createSentry } from '@tldraw/worker-shared'
 import { Environment } from '../../types'
 
@@ -73,6 +74,21 @@ export class BrowserRenderError extends Error {
 		this.detail = options.detail
 		this.durationMs = options.durationMs
 		this.timeoutMs = options.timeoutMs
+	}
+}
+
+// The render page's own `data-thumbnail-error`, reported by its failure beacon. The page's message
+// stays out of `message` for the same Sentry grouping reason as BrowserRenderError: one issue, with
+// the reasons in its events.
+export class RenderPageError extends Error {
+	readonly detail: string
+	readonly phase: ThumbnailRenderPhase
+
+	constructor(options: { detail: string; phase: ThumbnailRenderPhase }) {
+		super('Render page failed')
+		this.name = 'RenderPageError'
+		this.detail = options.detail
+		this.phase = options.phase
 	}
 }
 
@@ -163,6 +179,9 @@ export type ThumbnailErrorSurface =
 	| 'mcp_cluster_index_write'
 	// The authenticated owner-facing thumbnail route (getBoardThumbnail.ts).
 	| 'board_view'
+	// The render page's failure beacon. Pairs with an og_queue or mcp_screenshot failure from the same
+	// session, which only knows Browser Run's side of it.
+	| 'render_page'
 
 // Every thumbnail/OG surface swallows its own errors — the OG route falls back to the default image,
 // the snapshot route 404s, the MCP tools return a tool error, the queue retries or drops. Right for
@@ -234,6 +253,9 @@ function safeRequestContext(request: Request | undefined): Record<string, unknow
 // file a new Sentry issue per distinct detail string. Without them an event says only "Browser
 // Rendering screenshot failed (422)", which is true of a crash, an OOM render and a timeout alike.
 function browserRenderContextOf(error: unknown): Record<string, unknown> | null {
+	if (error instanceof RenderPageError) {
+		return { render_page_error: error.detail, render_page_phase: error.phase }
+	}
 	if (!(error instanceof BrowserRenderError)) return null
 	return {
 		browser_render_status: error.status,
