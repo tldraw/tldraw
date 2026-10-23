@@ -29,8 +29,11 @@ export class AgentService {
 	google: GoogleGenerativeAIProvider
 
 	constructor(env: Environment) {
-		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY })
-		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
+		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY, baseURL: env.OPENAI_BASE_URL })
+		this.anthropic = createAnthropic({
+			apiKey: env.ANTHROPIC_API_KEY,
+			baseURL: env.ANTHROPIC_BASE_URL,
+		})
 		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
 	}
 
@@ -322,6 +325,9 @@ function getProviderOptions(definition: AgentModelDefinition): StreamTextProvide
 					reasoningEffort: definition.reasoningEffort,
 					// Stream reasoning summaries, which reach the client as think actions.
 					reasoningSummary: 'auto',
+					// Resend earlier response items in full instead of by id, so later steps of a turn also
+					// work through gateways that keep no responses, such as OpenRouter.
+					store: false,
 				} satisfies OpenAIResponsesProviderOptions,
 			}
 	}
