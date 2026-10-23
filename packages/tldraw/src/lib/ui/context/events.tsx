@@ -132,6 +132,7 @@ export interface TLUiEventMap {
 	'copy-link': null
 	'drag-tool': { id: string }
 	'image-replace': null
+	'remove-background': null
 	'video-replace': null
 	'open-kbd-shortcuts': null
 	'rich-text': {
