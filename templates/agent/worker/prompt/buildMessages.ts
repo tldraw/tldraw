@@ -1,4 +1,4 @@
-import { ModelMessage, UserContent } from 'ai'
+import { ImagePart, ModelMessage, TextPart, ToolCallPart, ToolResultPart } from 'ai'
 import { AgentMessage, AgentMessageContent } from '../../shared/types/AgentMessage'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { getPromptPartDefinition, PromptPart } from '../../shared/types/PromptPart'
@@ -70,29 +70,57 @@ function defaultBuildMessagesFromPart(part: PromptPart): AgentMessage[] {
 }
 
 /**
- * Convert AgentMessage[] to ModelMessage[] for the AI SDK
+ * Convert AgentMessage[] to ModelMessage[] for the AI SDK. Past actions become calls to their tools.
+ * Consecutive actions share one assistant turn, followed by one message with every result: a long
+ * history of one call per turn teaches some models (Gemini) to make one call per response.
  */
 function toModelMessages(agentMessages: AgentMessage[]): ModelMessage[] {
-	return agentMessages.map((tlMessage) => {
-		const content: UserContent = []
+	const messages: ModelMessage[] = []
+	let toolCallCount = 0
+	// The tool-call turn that the next actions join, until another message comes between.
+	let toolTurn: { calls: ToolCallPart[]; results: ToolResultPart[] } | null = null
+
+	for (const tlMessage of agentMessages) {
+		const content: (TextPart | ImagePart)[] = []
+		const toolCalls: ToolCallPart[] = []
 
 		for (const contentItem of tlMessage.content) {
 			if (contentItem.type === 'image') {
-				content.push({
-					type: 'image',
-					image: contentItem.image!,
+				content.push({ type: 'image', image: contentItem.image! })
+			} else if (contentItem.type === 'action') {
+				const { _type, ...input } = contentItem.action!
+				toolCalls.push({
+					type: 'tool-call',
+					toolCallId: `history-${toolCallCount++}`,
+					toolName: _type,
+					input,
 				})
 			} else {
-				content.push({
-					type: 'text',
-					text: contentItem.text!,
-				})
+				content.push({ type: 'text', text: contentItem.text! })
 			}
 		}
 
-		return {
-			role: tlMessage.role,
-			content,
-		} as ModelMessage
-	})
+		if (content.length > 0) {
+			messages.push({ role: tlMessage.role, content } as ModelMessage)
+			toolTurn = null
+		}
+		if (toolCalls.length > 0) {
+			if (!toolTurn) {
+				toolTurn = { calls: [], results: [] }
+				messages.push({ role: 'assistant', content: toolTurn.calls })
+				messages.push({ role: 'tool', content: toolTurn.results })
+			}
+			for (const { toolCallId, toolName } of toolCalls) {
+				toolTurn.results.push({
+					type: 'tool-result',
+					toolCallId,
+					toolName,
+					output: { type: 'text', value: 'ok' },
+				})
+			}
+			toolTurn.calls.push(...toolCalls)
+		}
+	}
+
+	return messages
 }

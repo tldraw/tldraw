@@ -18,12 +18,6 @@ interface BaseAgentModelDefinition {
 	id: string
 
 	/**
-	 * Whether the model accepts a prefilled assistant turn to force the JSON start.
-	 * Opus 4.6+ and Sonnet 4.6+ reject last-assistant-turn prefills (400).
-	 */
-	supportsPrefill: boolean
-
-	/**
 	 * Whether the model accepts a `temperature` sampling parameter.
 	 * Opus 4.7+ and Sonnet 5 removed `temperature`/`top_p`/`top_k` (sending them is a 400).
 	 */
@@ -58,7 +52,6 @@ export const AGENT_MODEL_DEFINITIONS = {
 		name: 'claude-opus-5',
 		id: 'claude-opus-5',
 		provider: 'anthropic',
-		supportsPrefill: false,
 		supportsTemperature: false,
 		thinking: 'adaptive',
 		effort: 'medium',
@@ -68,7 +61,6 @@ export const AGENT_MODEL_DEFINITIONS = {
 		name: 'claude-sonnet-5',
 		id: 'claude-sonnet-5',
 		provider: 'anthropic',
-		supportsPrefill: false,
 		supportsTemperature: false,
 		thinking: 'adaptive',
 		effort: 'low',
@@ -78,7 +70,6 @@ export const AGENT_MODEL_DEFINITIONS = {
 		name: 'claude-haiku-4-5',
 		id: 'claude-haiku-4-5',
 		provider: 'anthropic',
-		supportsPrefill: true,
 		supportsTemperature: true,
 		thinking: 'disabled',
 	},
@@ -88,7 +79,6 @@ export const AGENT_MODEL_DEFINITIONS = {
 		name: 'gemini-3.8-flash',
 		id: 'gemini-3.8-flash',
 		provider: 'google',
-		supportsPrefill: false,
 		supportsTemperature: false,
 		thinkingLevel: 'low',
 	},
@@ -98,7 +88,6 @@ export const AGENT_MODEL_DEFINITIONS = {
 		name: 'gpt-5.6-sol',
 		id: 'gpt-5.6-sol',
 		provider: 'openai',
-		supportsPrefill: false,
 		supportsTemperature: false,
 		reasoningEffort: 'medium',
 	},
@@ -107,7 +96,6 @@ export const AGENT_MODEL_DEFINITIONS = {
 		name: 'gpt-5.6-terra',
 		id: 'gpt-5.6-terra',
 		provider: 'openai',
-		supportsPrefill: false,
 		supportsTemperature: false,
 		reasoningEffort: 'high',
 	},
@@ -116,7 +104,6 @@ export const AGENT_MODEL_DEFINITIONS = {
 		name: 'gpt-5.6-luna',
 		id: 'gpt-5.6-luna',
 		provider: 'openai',
-		supportsPrefill: false,
 		supportsTemperature: false,
 		reasoningEffort: 'max',
 	},
