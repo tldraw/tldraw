@@ -659,6 +659,28 @@ export class TldrawAgent {
 					return
 				}
 				this.onError(e)
+			} finally {
+				// The stream can end on an action that never completed, such as a tool call that failed
+				// validation, or a stream error. Revert its changes and remove it from the chat history.
+				if (incompleteDiff && !cancelled) {
+					const inverseDiff = reverseRecordsDiff(incompleteDiff)
+					this.setIsActingOnEditor(true)
+					try {
+						editor.run(
+							() => {
+								editor.store.applyDiff(inverseDiff)
+								this.lints.trackShapesFromDiff(inverseDiff)
+							},
+							{ ignoreShapeLock: true, history: 'ignore' }
+						)
+					} finally {
+						this.setIsActingOnEditor(false)
+					}
+					this.chat.update((items) => {
+						const last = items.at(-1)
+						return last?.type === 'action' && !last.action.complete ? items.slice(0, -1) : items
+					})
+				}
 			}
 		})()
 

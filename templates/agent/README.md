@@ -570,7 +570,7 @@ The system prompt lives in `worker/prompt/buildSystemPrompt.ts`. Edit the sectio
 
 The system prompt is rebuilt for each step in the agentic loop depending on which actions and parts are available in the agent's current mode. If you add new actions or parts, you can give the model more detailed instructions for how to use them in `worker/prompt/sections/rules-section.ts`.
 
-The schema showing the actions the agent can output is also automatically added to the system prompt.
+Each action the agent can take in its current mode is sent to the model as a tool, named after the action's `_type`, with the action's schema as its parameters.
 
 ## Change to a different model
 
@@ -591,7 +591,6 @@ Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts`.
 	name: 'claude-sonnet-5',
 	id: 'claude-sonnet-5',
 	provider: 'anthropic',
-	supportsPrefill: false,
 	supportsTemperature: false,
 	thinking: 'adaptive',
 	effort: 'low',

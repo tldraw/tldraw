@@ -1,3 +1,5 @@
+import type { AgentAction } from './AgentAction'
+
 export interface AgentMessage {
 	role: 'user' | 'assistant'
 	content: AgentMessageContent[]
@@ -5,7 +7,9 @@ export interface AgentMessage {
 }
 
 export interface AgentMessageContent {
-	type: 'text' | 'image'
+	type: 'text' | 'image' | 'action'
 	text?: string
 	image?: string
+	/** A past action, sent to the model as a call to that action's tool. */
+	action?: AgentAction
 }

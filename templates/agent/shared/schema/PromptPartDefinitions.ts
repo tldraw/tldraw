@@ -278,28 +278,16 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 			}
 		}
 		case 'action': {
-			const { action } = item
-			let text: string
-			switch (action._type) {
-				case 'message': {
-					text = action.text || '<message data lost>'
-					break
-				}
-				case 'think': {
-					text = '[THOUGHT]: ' + (action.text || '<thought data lost>')
-					break
-				}
-				default: {
-					const { complete: _complete, time: _time, ...rawAction } = action || {}
-					text = '[ACTION]: ' + JSON.stringify(rawAction)
-					break
+			const { complete: _complete, time: _time, ...rest } = item.action
+			const action = rest as AgentAction
+			if (action._type === 'message') {
+				return {
+					role: 'assistant',
+					content: [{ type: 'text', text: action.text || '<message data lost>' }],
+					priority,
 				}
 			}
-			return {
-				role: 'assistant',
-				content: [{ type: 'text', text }],
-				priority,
-			}
+			return { role: 'assistant', content: [{ type: 'action', action }], priority }
 		}
 	}
 }
