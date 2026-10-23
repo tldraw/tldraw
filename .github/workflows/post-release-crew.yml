@@ -45,12 +45,13 @@ jobs:
         env:
           DISCORD_RELEASE_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK_URL }}
 
-      - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code@2.1.206
+      - name: Install Gemini CLI
+        run: npm install -g @google/gemini-cli@0.61.0
 
       - name: Run dotcom-release-crew skill
-        run: claude --dangerously-skip-permissions --print "/dotcom-release-crew"
+        run: gemini --yolo --prompt "Read skills/dotcom-release-crew/SKILL.md and follow its instructions."
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
           GH_TOKEN: ${{ github.token }}
           DISCORD_RELEASE_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK_URL }}

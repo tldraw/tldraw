@@ -42,10 +42,24 @@ jobs:
           cat /tmp/issue_with_type.json >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Triage Issue with Claude
-        uses: anthropics/claude-code-action@v1
+      - name: Triage Issue with Gemini
+        uses: google-github-actions/run-gemini-cli@v0
+        env:
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
+          GH_TOKEN: ${{ github.token }}
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_cli_version: '0.61.0'
+          github_issue_number: ${{ env.ISSUE_NUMBER }}
+          settings: |-
+            {
+              "model": {
+                "maxSessionTurns": 25
+              },
+              "tools": {
+                "core": ["run_shell_command(gh issue)", "run_shell_command(gh api)"]
+              }
+            }
           prompt: |
             You are an issue triage bot for the tldraw repository. Tidy up issue #${{ env.ISSUE_NUMBER }}.
 
@@ -119,4 +133,3 @@ jobs:
 
             ## Output format
             Use the GitHub CLI (`gh`) to make any changes. Do NOT add comments to the issue.
-          claude_args: '--allowedTools "Bash(gh issue:*),Bash(gh api:*)"'
