@@ -55,6 +55,9 @@ overrides:
   '@octokit/plugin-paginate-rest@11.3.1': 11.4.1
   'undici@7.24.4': 7.28.0
   'ip-address@10.1.0': 10.2.0
+  # `ai` pins 1.9.0 and Zero needs ^1.9.1. Two copies split vitest (an optional peer) into two
+  # instances, and tests that import the other copy fail inside expect().
+  '@opentelemetry/api': 1.9.1
 
 patchedDependencies:
   '@microsoft/tsdoc@0.15.1': patches/@microsoft__tsdoc@0.15.1.patch
