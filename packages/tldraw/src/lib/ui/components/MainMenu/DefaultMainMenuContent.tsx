@@ -1,3 +1,4 @@
+import { defineMessages } from '@tldraw/editor'
 import { useActions } from '../../context/actions'
 import { AccessibilityMenu } from '../AccessibilityMenu'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
@@ -37,6 +38,13 @@ import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionIt
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 
+const messages = defineMessages({
+	contextMenuExportAllAs: { id: 'context-menu.export-all-as', defaultMessage: 'Export' },
+	menuEdit: { id: 'menu.edit', defaultMessage: 'Edit' },
+	menuPreferences: { id: 'menu.preferences', defaultMessage: 'Preferences' },
+	menuView: { id: 'menu.view', defaultMessage: 'View' },
+})
+
 /** @public @react */
 export function DefaultMainMenuContent() {
 	return (
@@ -60,7 +68,7 @@ export function ExportFileContentSubMenu() {
 	if (!actions['export-all-as-svg'] && !actions['export-all-as-png']) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="export-all-as" label="context-menu.export-all-as" size="small">
+		<TldrawUiMenuSubmenu id="export-all-as" label={messages.contextMenuExportAllAs.id} size="small">
 			<TldrawUiMenuGroup id="export-all-as-group">
 				<TldrawUiMenuActionItem actionId="export-all-as-svg" />
 				<TldrawUiMenuActionItem actionId="export-all-as-png" />
@@ -75,7 +83,7 @@ export function ExportFileContentSubMenu() {
 /** @public @react */
 export function EditSubmenu() {
 	return (
-		<TldrawUiMenuSubmenu id="edit" label="menu.edit">
+		<TldrawUiMenuSubmenu id="edit" label={messages.menuEdit.id}>
 			<UndoRedoGroup />
 			<ClipboardMenuGroup />
 			<ConversionsMenuGroup />
@@ -128,7 +136,7 @@ export function UndoRedoGroup() {
 /** @public @react */
 export function ViewSubmenu() {
 	return (
-		<TldrawUiMenuSubmenu id="view" label="menu.view">
+		<TldrawUiMenuSubmenu id="view" label={messages.menuView.id}>
 			<TldrawUiMenuGroup id="view-actions">
 				<TldrawUiMenuActionItem actionId="zoom-in" />
 				<TldrawUiMenuActionItem actionId="zoom-out" />
@@ -156,7 +164,7 @@ export function ExtrasGroup() {
 export function PreferencesGroup() {
 	return (
 		<TldrawUiMenuGroup id="preferences">
-			<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
+			<TldrawUiMenuSubmenu id="preferences" label={messages.menuPreferences.id}>
 				<TldrawUiMenuGroup id="preferences-actions">
 					<ToggleSnapModeItem />
 					<ToggleToolLockItem />
