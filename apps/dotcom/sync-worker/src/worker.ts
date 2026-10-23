@@ -411,9 +411,20 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	}
 
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
-		// The pool is only needed for asset-upload messages, so create it lazily: OG image render
-		// batches should not open database connections they never use.
-		let db: ReturnType<typeof createPostgresConnectionPool> | undefined
+		// One invocation-scoped pool for the whole batch, shared by both message types, so reads that
+		// land close together — a message's resolve and the snapshot read behind it, a run of asset
+		// inserts — share a connect instead of paying one each. Created eagerly: pg.Pool opens no connection
+		// until the first query, so a batch that never queries still costs nothing, and construction
+		// cannot fail inside one message's catch and be retried under that message's policy. The
+		// pool's `max: 1` is correct here: the loop below is sequential, so there is never a second
+		// query in flight.
+		//
+		// The default short idle timeout is deliberate: a render capture takes far longer, so pg-pool
+		// reaps the client — freeing its Supavisor slot — during every capture rather than pinning a
+		// mostly-idle connection for the whole batch. A render message pays a reconnect after its
+		// capture; that's the price of not stacking held connections on the replicator's and DOs'
+		// under bursty consumer concurrency.
+		const db = createPostgresConnectionPool(this.env, 'sync-worker-queue')
 		try {
 			for (const message of batch.messages) {
 				switch (message.body.type) {
@@ -422,7 +433,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 							await handleOgImageRenderMessage(
 								this.env,
 								message as Message<OgImageRenderQueueMessage>,
-								this.ctx
+								{ ctx: this.ctx, db }
 							)
 						} catch (e) {
 							// handleOgImageRenderMessage settles the message itself; this guards the batch loop
@@ -441,7 +452,6 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 					case 'asset-upload': {
 						const { objectName, fileId, userId } = message.body
 						try {
-							db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
 							await db
 								.insertInto('asset')
 								.values({ objectName, fileId, userId })
@@ -466,7 +476,13 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				}
 			}
 		} finally {
-			await db?.destroy()
+			// Destroy rather than letting clients idle out: every message the loop reached is settled
+			// by now (an unknown-type throw above exits mid-batch and the queue redelivers), and an
+			// open client lingering for the pool's idle timeout holds a Supavisor slot for nothing.
+			// Best effort — the batch's outcome is already decided, so a teardown error must not
+			// resurface as a batch failure. (Previously the asset-upload pool was never destroyed at
+			// all and leaned on the 5s idle timeout.)
+			await db.destroy().catch(() => {})
 		}
 	}
 }

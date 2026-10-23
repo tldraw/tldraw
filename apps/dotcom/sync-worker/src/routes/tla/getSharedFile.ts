@@ -1,5 +1,7 @@
+import { DB } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { createPostgresConnectionPool } from '../../postgres'
+import { Kysely } from 'kysely'
+import { withPostgres } from '../../postgres'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment, ThumbnailBoardAccess } from '../../types'
 import { isTestFile } from '../../utils/tla/isTestFile'
@@ -12,23 +14,21 @@ export interface SharedFileInfo {
 
 // Look up an app file directly by its id (the `:slug` in tldraw.com/f/:slug) without loading the
 // room snapshot. Returns null when the file is unknown.
+//
+// `db` is an invocation-scoped pool a caller may lend; withPostgres holds the ownership contract.
 export async function getSharedFileInfo(
 	env: Environment,
-	slug: string
+	slug: string,
+	db?: Kysely<DB>
 ): Promise<SharedFileInfo | null> {
-	// createPostgresConnectionPool news up a pg.Pool; destroy it so idle pools don't pile up in the
-	// isolate across MCP resolves, OG image requests, and queue re-resolves.
-	const db = createPostgresConnectionPool(env, 'getSharedFileInfo')
-	try {
-		const file = await db
+	const file = await withPostgres(env, 'getSharedFileInfo', db, (db) =>
+		db
 			.selectFrom('file')
 			.select(['id', 'shared', 'isDeleted'])
 			.where('id', '=', slug)
 			.executeTakeFirst()
-		return file ?? null
-	} finally {
-		await db.destroy()
-	}
+	)
+	return file ?? null
 }
 
 /**
@@ -79,13 +79,20 @@ export function isFileViewableFor(
  *
  * Pass it only where the resolve is genuinely adjacent to the read. Anywhere else, the freshness is
  * the point.
+ *
+ * `db` shares a connection, never the answer: when the row must be fetched, the fetch rides the
+ * supplied pool instead of opening its own, but it still happens.
  */
 export async function getSharedFileRoomSnapshot(
 	env: Environment,
 	slug: string,
-	{ access, file: resolvedFile }: { access: ThumbnailBoardAccess; file?: SharedFileInfo }
+	{
+		access,
+		file: resolvedFile,
+		db,
+	}: { access: ThumbnailBoardAccess; file?: SharedFileInfo; db?: Kysely<DB> }
 ): Promise<RoomSnapshot | undefined> {
-	const file = resolvedFile ?? (await getSharedFileInfo(env, slug))
+	const file = resolvedFile ?? (await getSharedFileInfo(env, slug, db))
 	if (!isFileViewableFor(file, access)) {
 		throw Error(access === 'public' ? 'not shared' : 'not renderable')
 	}
