@@ -39,7 +39,7 @@
 		"@clerk/clerk-react": "^5.53.3",
 		"@clerk/elements": "^0.23.74",
 		"@clerk/types": "^4.95.1",
-		"@rocicorp/zero": "1.10.0",
+		"@rocicorp/zero": "1.11.2",
 		"@sentry/integrations": "^7.120.3",
 		"@sentry/react": "^7.120.3",
 		"@tldraw/assets": "workspace:*",
