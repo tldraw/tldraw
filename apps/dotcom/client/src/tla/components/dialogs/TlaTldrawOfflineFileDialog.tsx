@@ -1,4 +1,5 @@
 import {
+	F,
 	TLDRAW_FILE_EXTENSION,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -8,7 +9,6 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
-import { F } from '../../utils/i18n'
 import { TLDRAW_OFFLINE_FILE_EXTENSION } from '../../utils/tldrawOfflineFiles'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 

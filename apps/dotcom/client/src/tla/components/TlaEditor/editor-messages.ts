@@ -1,4 +1,4 @@
-import { defineMessages } from '../../utils/i18n'
+import { defineMessages } from 'tldraw'
 
 export const editorMessages = defineMessages({
 	file: { defaultMessage: 'File' },

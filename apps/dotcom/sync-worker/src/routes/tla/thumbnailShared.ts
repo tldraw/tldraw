@@ -1,3 +1,4 @@
+import { ThumbnailRenderPhase } from '@tldraw/dotcom-shared'
 import { createSentry } from '@tldraw/worker-shared'
 import { Environment } from '../../types'
 
@@ -81,9 +82,9 @@ export class BrowserRenderError extends Error {
 // the reasons in its events.
 export class RenderPageError extends Error {
 	readonly detail: string
-	readonly phase: string
+	readonly phase: ThumbnailRenderPhase
 
-	constructor(options: { detail: string; phase: string }) {
+	constructor(options: { detail: string; phase: ThumbnailRenderPhase }) {
 		super('Render page failed')
 		this.name = 'RenderPageError'
 		this.detail = options.detail

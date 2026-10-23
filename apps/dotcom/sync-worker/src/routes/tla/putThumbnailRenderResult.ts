@@ -1,7 +1,7 @@
 import {
 	THUMBNAIL_RENDER_ERROR_MAX_LENGTH,
+	THUMBNAIL_RENDER_PHASES,
 	ThumbnailRenderErrorRequestBody,
-	ThumbnailRenderPhase,
 	ThumbnailRenderResultRequestBody,
 	ThumbnailRenderTimingsRequestBody,
 } from '@tldraw/dotcom-shared'
@@ -12,8 +12,6 @@ import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { ShapeMeasurement } from './boardTools'
 import { putRenderResult } from './thumbnailRender'
 import { RenderPageError, reportThumbnailError } from './thumbnailShared'
-
-const RENDER_PHASES: readonly ThumbnailRenderPhase[] = ['boot', 'data', 'mount', 'settle']
 
 // How measurements get out of the browser.
 //
@@ -90,7 +88,7 @@ export async function putThumbnailRenderResult(
 	// after.
 	if ('error' in body) {
 		const { message, phase } = body.error ?? {}
-		if (!body.token || typeof message !== 'string' || !RENDER_PHASES.includes(phase)) {
+		if (!body.token || typeof message !== 'string' || !THUMBNAIL_RENDER_PHASES.includes(phase)) {
 			return Response.json(
 				{ error: true, message: 'token, error.message and error.phase are required' },
 				{ status: 400 }

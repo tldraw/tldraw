@@ -1,5 +1,11 @@
-import { RecursivePartial, defaultUserPreferences, track, useMaybeEditor } from '@tldraw/editor'
-import { ReactNode } from 'react'
+import {
+	EditorI18nFallbackContext,
+	RecursivePartial,
+	defaultUserPreferences,
+	track,
+	useMaybeEditor,
+} from '@tldraw/editor'
+import { ReactNode, useContext, useLayoutEffect } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
 import { TldrawUiTooltipProvider } from '../components/primitives/TldrawUiTooltip'
 import { ToolsProvider } from '../hooks/useTools'
@@ -17,6 +23,7 @@ import { BreakPointProvider } from './breakpoints'
 import { TLUiComponents, TldrawUiComponentsProvider } from './components'
 import { TldrawUiDialogsProvider } from './dialogs'
 import { TLUiEventHandler, TldrawUiEventsProvider } from './events'
+import { useTldrawI18n } from './i18n'
 import { TldrawUiToastsProvider } from './toasts'
 
 /** @public */
@@ -78,6 +85,7 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 					overrides={useMergedTranslationOverrides(overrides)}
 					locale={editor?.user.getLocale() ?? defaultUserPreferences.locale}
 				>
+					<SupplyEditorI18n />
 					<TldrawUiTooltipProvider>
 						<TldrawUiEventsProvider onEvent={onUiEvent}>
 							<TldrawUiToastsProvider>
@@ -109,4 +117,19 @@ function InternalProviders({
 			<ToolsProvider overrides={mergedOverrides.tools}>{children}</ToolsProvider>
 		</ActionsProvider>
 	)
+}
+
+// Hands the editor this UI's translations when its host passed none — a `<TldrawEditor>` and
+// `<TldrawUi>` composed by hand. See `EditorI18nFallbackContext`.
+function SupplyEditorI18n() {
+	const slot = useContext(EditorI18nFallbackContext)
+	const i18n = useTldrawI18n()
+	useLayoutEffect(() => {
+		if (!slot) return
+		slot.current = i18n
+		return () => {
+			if (slot.current === i18n) slot.current = null
+		}
+	}, [slot, i18n])
+	return null
 }

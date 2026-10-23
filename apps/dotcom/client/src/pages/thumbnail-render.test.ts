@@ -10,7 +10,6 @@ import {
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	SHAPES_NOT_ON_PAGE,
-	acquireThumbnailRenderData,
 	exportThumbnailImage,
 	prepareLiveCapture,
 	setThumbnailError,
@@ -139,6 +138,11 @@ describe('signalThumbnailReady', () => {
 })
 
 describe('the failure beacon', () => {
+	// The page's state is module-scoped because it renders once; a fresh module per test is a fresh page.
+	beforeEach(() => {
+		vi.resetModules()
+	})
+
 	afterEach(() => {
 		vi.unstubAllGlobals()
 	})
@@ -154,6 +158,7 @@ describe('the failure beacon', () => {
 			return new Response(null, { status: 404 })
 		})
 		vi.stubGlobal('fetch', fetchMock)
+		const { acquireThumbnailRenderData, setThumbnailError } = await import('./thumbnail-render')
 
 		const data = await acquireThumbnailRenderData(
 			new URL('https://x.test/__thumbnail-render?token=t')
