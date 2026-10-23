@@ -126,9 +126,7 @@ function moveNodesIfNeeded(editor: Editor, newNodeId: TLShapeId, rootNodeId: TLS
 
 		// if this node isn't colliding with the expanded parent node, it's already far enough away
 		// and we don't need to do anything!
-		if (!nodeBounds.collides(parentExpandedBounds)) {
-			return
-		}
+		if (!nodeBounds.collides(parentExpandedBounds)) return
 
 		// we need to nudge this node to the right to make room for the new node.
 		const newNudgeAmount = parentExpandedBounds.right - nodeBounds.left
@@ -139,8 +137,8 @@ function moveNodesIfNeeded(editor: Editor, newNodeId: TLShapeId, rootNodeId: TLS
 
 		// now, we traverse the downstream connections from this node and nudge them all if needed.
 		nodeBounds.translate({ x: newNudgeAmount, y: 0 }).expandBy(DEFAULT_NODE_SPACING_PX)
-		for (const connection of Object.values(getNodePortConnections(editor, node))) {
-			if (!connection || connection.terminal !== 'start') continue
+		for (const connection of getNodePortConnections(editor, node)) {
+			if (connection.terminal !== 'start') continue
 			visit(connection.connectedShapeId, nodeBounds)
 		}
 	}
