@@ -2,6 +2,7 @@ import classNames from 'classnames'
 import { TLShapeId, useEditor, useValue, VecModel } from 'tldraw'
 import { PORT_TYPE_COLORS, PortDataType } from '../constants'
 import { getNodePorts } from '../nodes/nodePorts'
+import { arePortDataTypesCompatible } from './portCompatibility'
 import { portState } from './portState'
 
 export type PortId = string
@@ -59,14 +60,9 @@ export function Port({ shapeId, portId }: { shapeId: TLShapeId; portId: PortId }
 			if (eligiblePorts.terminal !== port.terminal) return false
 			if (eligiblePorts.excludeNodes?.has(shapeId)) return false
 			// type compatibility: 'any' matches everything, otherwise types must match
-			if (
-				eligiblePorts.dataType &&
-				eligiblePorts.dataType !== 'any' &&
-				port.dataType !== 'any' &&
-				eligiblePorts.dataType !== port.dataType
+			return (
+				!eligiblePorts.dataType || arePortDataTypesCompatible(eligiblePorts.dataType, port.dataType)
 			)
-				return false
-			return true
 		},
 		[editor, shapeId, port.terminal, port.dataType]
 	)
