@@ -1,4 +1,7 @@
 import {
+	THUMBNAIL_RENDER_ERROR_MAX_LENGTH,
+	THUMBNAIL_RENDER_PHASES,
+	ThumbnailRenderErrorRequestBody,
 	ThumbnailRenderResultRequestBody,
 	ThumbnailRenderTimingsRequestBody,
 } from '@tldraw/dotcom-shared'
@@ -8,6 +11,7 @@ import { writeDataPoint } from '../../utils/analytics'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { ShapeMeasurement } from './boardTools'
 import { putRenderResult } from './thumbnailRender'
+import { RenderPageError, reportThumbnailError } from './thumbnailShared'
 
 // How measurements get out of the browser.
 //
@@ -19,13 +23,18 @@ import { putRenderResult } from './thumbnailRender'
 // that asked for it.
 export async function putThumbnailRenderResult(
 	request: IRequest,
-	env: Environment
+	env: Environment,
+	ctx?: ExecutionContext
 ): Promise<Response> {
-	let body: ThumbnailRenderResultRequestBody | ThumbnailRenderTimingsRequestBody
+	let body:
+		| ThumbnailRenderResultRequestBody
+		| ThumbnailRenderTimingsRequestBody
+		| ThumbnailRenderErrorRequestBody
 	try {
 		body = (await request.json()) as
 			| ThumbnailRenderResultRequestBody
 			| ThumbnailRenderTimingsRequestBody
+			| ThumbnailRenderErrorRequestBody
 	} catch {
 		return Response.json({ error: true, message: 'Invalid JSON body' }, { status: 400 })
 	}
@@ -71,6 +80,45 @@ export async function putThumbnailRenderResult(
 			blobs: [`surface:${job.surface ?? 'og'}`],
 			doubles: stamps,
 		})
+		return Response.json({ error: false })
+	}
+
+	// The render page's failure beacon. Same auth as the timings beacon above, for the same reasons:
+	// the page sends it as it marks the error, which ends the session the worker is about to clean up
+	// after.
+	if ('error' in body) {
+		const { message, phase } = body.error ?? {}
+		if (!body.token || typeof message !== 'string' || !THUMBNAIL_RENDER_PHASES.includes(phase)) {
+			return Response.json(
+				{ error: true, message: 'token, error.message and error.phase are required' },
+				{ status: 400 }
+			)
+		}
+		const job = await verifyThumbnailRenderToken(env, body.token)
+		if (!job) {
+			return Response.json({ error: true, message: 'Invalid render token' }, { status: 403 })
+		}
+		const surface = job.surface ?? 'og'
+		const mode = job.mode ?? 'screenshot'
+		// The message goes to Sentry only: it is free text, and Analytics Engine blobs must stay
+		// bounded.
+		writeDataPoint(undefined, env.MEASURE, env, 'render_page_error', {
+			blobs: [`surface:${surface}`, `mode:${mode}`, `phase:${phase}`],
+		})
+		reportThumbnailError(
+			new RenderPageError({ detail: message.slice(0, THUMBNAIL_RENDER_ERROR_MAX_LENGTH), phase }),
+			{
+				ctx,
+				env,
+				surface: 'render_page',
+				extras: {
+					render_surface: surface,
+					render_mode: mode,
+					// Matches browser_run_session, where a measure draws nothing: `capture:none`.
+					render_capture: mode === 'measure' ? 'none' : (job.capture ?? 'export'),
+				},
+			}
+		)
 		return Response.json({ error: false })
 	}
 
