@@ -19,6 +19,12 @@ inputs:
   cloudflare-api-token:
     description: Cloudflare API token with workers permissions (CLOUDFLARE_API_TOKEN)
     required: true
+  agent-openrouter-api-key:
+    description: OpenRouter key for the agent demo's OpenAI and Anthropic models (TEMPLATES_AGENT_OPENROUTER_API_KEY)
+    required: true
+  google-api-key:
+    description: Google AI key for the Gemini models in the agent and branching-chat demos (TEMPLATES_GOOGLE_API_KEY)
+    required: true
 
 runs:
   using: composite
@@ -45,6 +51,14 @@ runs:
         TEMPLATES_TLDRAW_LICENSE_KEY: ${{ inputs.license-key }}
         CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare-api-token }}
         CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare-account-id }}
+        # The agent demo sends OpenAI and Anthropic requests through OpenRouter, so one capped key
+        # covers both. OpenRouter doesn't serve Google's API, so Gemini uses a Google key.
+        TEMPLATES_AGENT_OPENAI_API_KEY: ${{ inputs.agent-openrouter-api-key }}
+        TEMPLATES_AGENT_ANTHROPIC_API_KEY: ${{ inputs.agent-openrouter-api-key }}
+        TEMPLATES_AGENT_OPENAI_BASE_URL: https://openrouter.ai/api/v1
+        TEMPLATES_AGENT_ANTHROPIC_BASE_URL: https://openrouter.ai/api/v1
+        TEMPLATES_AGENT_GOOGLE_API_KEY: ${{ inputs.google-api-key }}
+        TEMPLATES_BRANCHING_CHAT_GOOGLE_GENERATIVE_AI_API_KEY: ${{ inputs.google-api-key }}
       run: |
         cd templates
         all_templates=$(ls -d */ | cut -f1 -d'/')

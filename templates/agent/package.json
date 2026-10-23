@@ -19,7 +19,14 @@
 		},
 		"deploy": {
 			"target": "cloudflare",
-			"host": "agent.templates.tldraw.dev"
+			"host": "agent.templates.tldraw.dev",
+			"secrets": [
+				"ANTHROPIC_API_KEY",
+				"OPENAI_API_KEY",
+				"GOOGLE_API_KEY",
+				"ANTHROPIC_BASE_URL",
+				"OPENAI_BASE_URL"
+			]
 		},
 		"scripts": {
 			"lint": null,
