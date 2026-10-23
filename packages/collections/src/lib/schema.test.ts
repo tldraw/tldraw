@@ -65,6 +65,15 @@ describe('collectionItemValidator', () => {
 		expect(collectionItemValidator.validate(withThumbnail)).toEqual(withThumbnail)
 	})
 
+	it('accepts an item without a name', () => {
+		const { name: _name, ...unnamed } = item
+		expect(collectionItemValidator.validate(unnamed)).toEqual(unnamed)
+	})
+
+	it('rejects a blank name, so leaving it out stays the only way to say there is none', () => {
+		expect(() => collectionItemValidator.validate({ ...item, name: '  ' })).toThrow()
+	})
+
 	it("rejects a null thumbnail, so '' stays the only way to say there isn't one", () => {
 		expect(() => collectionItemValidator.validate({ ...item, thumbnailUrl: null })).toThrow()
 	})

@@ -21,7 +21,11 @@ export interface TLCollection {
 export interface TLCollectionItem {
 	id: string
 	collectionId: string
-	name: string
+	/**
+	 * Left out when nobody has named the item: adding from the canvas shouldn't force a name.
+	 * The UI decides what to show instead. When present it is never blank.
+	 */
+	name?: string
 	/** `''` until a thumbnail has been rendered for this item's current version. */
 	thumbnailUrl: string
 	/** Increases every time the item's content is replaced. */
@@ -56,7 +60,7 @@ export const collectionValidator: T.Validator<TLCollection> = T.object({
 export const collectionItemValidator: T.Validator<TLCollectionItem> = T.object({
 	id: nonEmptyString,
 	collectionId: nonEmptyString,
-	name: nonEmptyString,
+	name: nonEmptyString.optional(),
 	thumbnailUrl: T.string,
 	version: T.positiveInteger,
 })
