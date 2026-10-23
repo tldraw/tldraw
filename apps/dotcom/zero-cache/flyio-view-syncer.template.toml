@@ -50,6 +50,7 @@ OTEL_NODE_RESOURCE_DETECTORS = "env,host,os"
 OTEL_RESOURCE_ATTRIBUTES = "service.name=zero-vs,service.namespace=dotcom,deployment.environment=__TLDRAW_ENV,service.version=__ZERO_VERSION"
 ZERO_LITESTREAM_CONFIG_PATH = "/etc/litestream.yml"
 ZERO_LITESTREAM_BACKUP_URL = "s3://__ZERO_R2_BUCKET_NAME/__BACKUP_PATH"
+ZERO_LITESTREAM_BACKUP_USING_V5 = "false"
 ZERO_LITESTREAM_ENDPOINT = "__ZERO_R2_ENDPOINT"
 # Read back by flyDeployGate.ts to skip a deploy whose inputs are unchanged. Bump the marker to
 # force one: marker 1
