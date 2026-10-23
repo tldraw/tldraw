@@ -16,7 +16,7 @@ import {
 export const BOOKMARK_WIDTH = 300
 export const BOOKMARK_HEIGHT = 320
 export const BOOKMARK_JUST_URL_HEIGHT = 46
-const SHORT_BOOKMARK_HEIGHT = 101
+export const SHORT_BOOKMARK_HEIGHT = 101
 
 // Only http(s) pages have metadata to fetch. A bookmark asset's `src` is a `T.srcUrl`, which
 // rejects app links like `vscode://file/…` and `mailto:`, so those stay url-only bookmarks.
@@ -24,7 +24,19 @@ function canUnfurlUrl(url: string) {
 	return T.httpUrl.isValid(url)
 }
 
-export function getBookmarkHeight(editor: Editor, assetId?: TLAssetId | null) {
+/**
+ * Whether a bookmark without an asset will never get one, rather than still loading. Without
+ * this, an app link bookmark shows the loading placeholder forever.
+ */
+export function isUrlOnlyBookmarkUrl(url: string) {
+	return url !== '' && !canUnfurlUrl(url)
+}
+
+export function getBookmarkHeight(
+	editor: Editor,
+	assetId: TLAssetId | null | undefined,
+	url: string
+) {
 	const asset = (assetId ? editor.getAsset(assetId) : null) as TLBookmarkAsset | null
 
 	if (asset) {
@@ -35,6 +47,8 @@ export function getBookmarkHeight(editor: Editor, assetId?: TLAssetId | null) {
 				return SHORT_BOOKMARK_HEIGHT
 			}
 		}
+	} else if (isUrlOnlyBookmarkUrl(url)) {
+		return SHORT_BOOKMARK_HEIGHT
 	}
 
 	return BOOKMARK_HEIGHT
@@ -43,7 +57,10 @@ export function getBookmarkHeight(editor: Editor, assetId?: TLAssetId | null) {
 export function setBookmarkHeight(editor: Editor, shape: TLBookmarkShape) {
 	return {
 		...shape,
-		props: { ...shape.props, h: getBookmarkHeight(editor, shape.props.assetId) },
+		props: {
+			...shape.props,
+			h: getBookmarkHeight(editor, shape.props.assetId, shape.props.url),
+		},
 	}
 }
 
@@ -51,6 +68,8 @@ export function setBookmarkHeight(editor: Editor, shape: TLBookmarkShape) {
 export function getHumanReadableAddress(url: string) {
 	try {
 		const objUrl = new URL(url)
+		// An app link's host (`file` in `vscode://file/…`) doesn't say where it goes, but its app does.
+		if (isUrlOnlyBookmarkUrl(url)) return objUrl.protocol.slice(0, -1)
 		// we want the hostname without any www
 		return objUrl.hostname.replace(/^www\./, '')
 	} catch {
@@ -120,7 +139,7 @@ export function getResolvedBookmarkAssetId(
 export function getBookmarkShapeHeight(editor: Editor, shape: TLBookmarkShape): number {
 	const resolvedAssetId = getResolvedBookmarkAssetId(editor, shape.props.assetId, shape.props.url)
 	if (resolvedAssetId === shape.props.assetId) return shape.props.h
-	return getBookmarkHeight(editor, resolvedAssetId)
+	return getBookmarkHeight(editor, resolvedAssetId, shape.props.url)
 }
 
 async function _createBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) {
@@ -208,7 +227,7 @@ export async function createBookmarkFromUrl(
 				url,
 				assetId: existingAsset?.id ?? null,
 				w: BOOKMARK_WIDTH,
-				h: getBookmarkHeight(editor, existingAsset?.id),
+				h: getBookmarkHeight(editor, existingAsset?.id, url),
 			},
 		}
 
