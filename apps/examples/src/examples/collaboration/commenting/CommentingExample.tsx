@@ -6,7 +6,6 @@ import {
 	filterMentionMembers,
 	MentionMember,
 } from '@tldraw/commenting'
-import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import { commentSchemaRecords, createTLSchema, createTLStore, TLComponents, Tldraw } from 'tldraw'
 import '@tldraw/commenting/commenting.css'
@@ -66,7 +65,6 @@ export default function CommentingExample() {
 			<Tldraw
 				// Commenting is a licensed feature. Every feature is enabled in local development, but a
 				// deployed app needs a license key that includes commenting — swap in your own key here.
-				licenseKey={getLicenseKey()}
 				store={store}
 				tools={COMMENT_TOOLS}
 				overrides={[commentToolOverrides]}
