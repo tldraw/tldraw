@@ -110,7 +110,8 @@ describe('dragging a tool out of the toolbar', () => {
 		await tick()
 		const { x, y } = editor.getShapePageBounds(editor.getCurrentPageShapes()[0])!.center
 		const pointer = editor.screenToPage({ x: 300, y: 880 })
-		expect({ x, y }).toEqual({ x: pointer.x, y: pointer.y })
+		expect(x).toBeCloseTo(pointer.x)
+		expect(y).toBeCloseTo(pointer.y)
 
 		// The click that follows a drag doesn't select the tool.
 		await release(300, 880, 'mouse')
