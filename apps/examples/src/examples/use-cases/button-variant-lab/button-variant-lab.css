@@ -1,0 +1,344 @@
+/* Top toolbar: add-variant chips */
+
+.variant-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 8px;
+	padding: 5px 8px;
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-4);
+	box-shadow: var(--tl-shadow-2);
+	pointer-events: all;
+}
+
+.variant-toolbar__label {
+	font-size: 11px;
+	font-weight: 500;
+	color: var(--tl-color-text-3);
+	padding: 0 4px 0 6px;
+}
+
+.variant-toolbar__chip {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	border: none;
+	background: var(--tl-color-muted-2);
+	color: var(--tl-color-text-1);
+	font: inherit;
+	font-size: 12px;
+	padding: 5px 12px;
+	border-radius: 99px;
+	cursor: pointer;
+}
+
+.variant-toolbar__chip:hover {
+	background: var(--tl-color-muted-1);
+}
+
+.variant-toolbar__chip:active {
+	transform: translateY(0.5px);
+}
+
+.variant-toolbar__chip-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+	flex-shrink: 0;
+}
+
+/* Token inspector */
+
+/* the inspector renders inside DefaultStylePanel, which provides the panel
+   chrome and scrolling; widen the panel only when it hosts the inspector */
+.tlui-style-panel__wrapper:has(.token-inspector) {
+	width: 264px;
+	max-width: 264px;
+}
+
+.token-inspector {
+	display: flex;
+	flex-direction: column;
+}
+
+/* divider before the default style panel content in a mixed selection */
+.token-inspector:not(:last-child) {
+	border-bottom: 1px solid var(--tl-color-divider);
+}
+
+.token-inspector__header {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 10px 12px 10px;
+}
+
+.token-inspector__title {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--tl-color-text-1);
+}
+
+.token-inspector__scopes {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 2px;
+	padding: 2px;
+	background: var(--tl-color-muted-2);
+	border-radius: 8px;
+}
+
+.token-inspector__scope {
+	border: none;
+	background: transparent;
+	font: inherit;
+	font-size: 11px;
+	padding: 4px 0;
+	border-radius: 6px;
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+}
+
+.token-inspector__scope[data-active='true'] {
+	background: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-1);
+	font-weight: 500;
+}
+
+.token-inspector__scope:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+.token-inspector__context {
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+}
+
+.token-inspector__rows {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 10px 12px;
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+.token-row {
+	display: grid;
+	grid-template-columns: 76px 1fr 20px;
+	align-items: center;
+	gap: 6px;
+}
+
+.token-row__label {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+}
+
+.token-row__dot {
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background: var(--tl-color-selected);
+	flex-shrink: 0;
+}
+
+.token-row__field {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 6px;
+	padding: 2px 6px;
+	background: var(--tl-color-low);
+}
+
+.token-row__field:focus-within {
+	border-color: var(--tl-color-selected);
+}
+
+.token-row__input {
+	border: none;
+	outline: none;
+	background: transparent;
+	font: inherit;
+	font-size: 12px;
+	color: var(--tl-color-text-1);
+	width: 100%;
+	min-width: 0;
+	padding: 2px 0;
+}
+
+.token-row__input::placeholder {
+	color: var(--tl-color-text-3);
+	font-style: italic;
+}
+
+/* the swatch sits on a checkerboard so transparent values read as such */
+.token-row__swatch {
+	position: relative;
+	width: 16px;
+	height: 16px;
+	border-radius: 4px;
+	flex-shrink: 0;
+	cursor: pointer;
+	background: repeating-conic-gradient(#d0d0d0 0% 25%, #ffffff 0% 50%) 0 0 / 8px 8px;
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+	overflow: hidden;
+}
+
+.token-row__swatch-fill {
+	position: absolute;
+	inset: 0;
+}
+
+.token-row__swatch input {
+	position: absolute;
+	inset: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.token-row__reset {
+	border: none;
+	background: transparent;
+	color: var(--tl-color-text-3);
+	font-size: 13px;
+	line-height: 1;
+	padding: 3px;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.token-row__reset:hover {
+	background: var(--tl-color-muted-2);
+	color: var(--tl-color-text-1);
+}
+
+.token-row__reset:disabled {
+	visibility: hidden;
+}
+
+/* Component source section */
+
+.token-inspector__source-toggle {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	border: none;
+	border-top: 1px solid var(--tl-color-divider);
+	background: transparent;
+	font: inherit;
+	font-size: 11px;
+	font-weight: 500;
+	color: var(--tl-color-text-1);
+	padding: 9px 12px;
+	cursor: pointer;
+}
+
+.token-inspector__source-toggle:hover {
+	background: var(--tl-color-muted-2);
+}
+
+.token-inspector__source {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 6px;
+	padding: 0 12px 10px;
+}
+
+.token-inspector__source-textarea {
+	width: 100%;
+	height: 176px;
+	resize: vertical;
+	font-family: ui-monospace, monospace;
+	font-size: 11px;
+	line-height: 1.5;
+	tab-size: 2;
+	white-space: pre;
+	overflow: auto;
+	color: var(--tl-color-text-1);
+	background: var(--tl-color-low);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 6px;
+	padding: 8px;
+}
+
+.token-inspector__source-textarea:focus {
+	outline: none;
+	border-color: var(--tl-color-selected);
+}
+
+.token-inspector__source-reset {
+	border: none;
+	background: var(--tl-color-muted-2);
+	color: var(--tl-color-text-1);
+	font: inherit;
+	font-size: 11px;
+	padding: 4px 10px;
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+.token-inspector__source-reset:hover {
+	background: var(--tl-color-muted-1);
+}
+
+.token-inspector__source-reset:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+/* Button frame shape */
+
+.button-frame-shape {
+	display: flex;
+	flex-direction: column;
+	background: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.button-frame-iframe {
+	flex: 1;
+	/* iframes have an intrinsic min-height of 150px; without this the
+	   content overflows the shape bounds and the caption gets clipped */
+	min-height: 0;
+	width: 100%;
+	border: none;
+}
+
+.button-frame-caption {
+	display: flex;
+	justify-content: space-between;
+	padding: 4px 8px;
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+.button-frame-caption__variant {
+	text-transform: capitalize;
+	font-weight: 500;
+}
+
+.button-frame-hint {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	padding: 3px 8px;
+	font-size: 10px;
+	color: var(--tl-color-text-3);
+	background: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 99px;
+	pointer-events: none;
+}
