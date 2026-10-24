@@ -334,6 +334,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canEdit(shape: TLArrowShape): boolean;
     // (undocumented)
+    canFlip(): boolean;
+    // (undocumented)
     canSnap(shape: TLArrowShape): boolean;
     // (undocumented)
     component(shape: TLArrowShape): JSX.Element | null;
@@ -1586,6 +1588,8 @@ export class DrawShapeTool extends StateNode {
 // @public (undocumented)
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
+    canFlip(): boolean;
+    // (undocumented)
     component(shape: TLDrawShape): JSX.Element;
     // (undocumented)
     expandSelectionOutlinePx(shape: TLDrawShape): number;
@@ -2115,6 +2119,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     canEdit(shape: TLGeoShape): boolean;
     // (undocumented)
+    canFlip(): boolean;
+    // (undocumented)
     component(shape: TLGeoShape): JSX.Element;
     // (undocumented)
     static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
@@ -2502,6 +2508,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     backgroundComponent(shape: TLHighlightShape): JSX.Element;
     // (undocumented)
+    canFlip(): boolean;
+    // (undocumented)
     component(shape: TLHighlightShape): JSX.Element;
     // (undocumented)
     getDefaultProps(): TLHighlightShape['props'];
@@ -2594,6 +2602,8 @@ export interface ImageShapeOptions extends ShapeOptionsWithDisplayValues<TLImage
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop(shape: TLImageShape): boolean;
+    // (undocumented)
+    canFlip(): boolean;
     // (undocumented)
     component(shape: TLImageShape): JSX.Element;
     // (undocumented)
@@ -2694,6 +2704,8 @@ export class LineShapeTool extends StateNode {
 
 // @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
+    // (undocumented)
+    canFlip(): boolean;
     // (undocumented)
     component(shape: TLLineShape): JSX.Element;
     // (undocumented)
@@ -4652,7 +4664,6 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     } | TransationKey;
     // (undocumented)
     onSelect(source: TLUiEventSource): Promise<void> | void;
-    // (undocumented)
     readonlyOk?: boolean;
 }
 
@@ -5525,7 +5536,6 @@ export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>;
 
 // @public (undocumented)
 export interface TLUiOverrides {
-    // (undocumented)
     actions?(editor: Editor, actions: TLUiActionsContextType, helpers: TLUiOverrideHelpers): TLUiActionsContextType;
     // (undocumented)
     tools?(editor: Editor, tools: TLUiToolsContextType, helpers: TLUiOverrideHelpers): TLUiToolsContextType;

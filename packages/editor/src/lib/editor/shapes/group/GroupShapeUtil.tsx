@@ -17,6 +17,10 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		return true
 	}
 
+	override canFlip() {
+		return true
+	}
+
 	override canBind() {
 		return false
 	}

@@ -1,6 +1,9 @@
 import { act } from '@testing-library/react'
-import { createShapeId, Editor, TLShapeId } from '@tldraw/editor'
+import { atom, createShapeId, createTLStore, Editor, TLShapeId } from '@tldraw/editor'
 import { useEffect } from 'react'
+import { vi } from 'vitest'
+import { defaultBindingUtils } from '../../lib/defaultBindingUtils'
+import { defaultShapeUtils } from '../../lib/defaultShapeUtils'
 import { Tldraw } from '../../lib/Tldraw'
 import { TLUiActionsContextType, useActions } from '../../lib/ui/context/actions'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
@@ -231,6 +234,45 @@ describe('built-in action isEnabled', () => {
 			})
 			expect(actions()['flip-horizontal'].isEnabled!(editor)).toBe(false)
 		})
+
+		describe.each([
+			['flip-horizontal', 'horizontal', 'x'],
+			['flip-vertical', 'vertical', 'y'],
+		] as const)('%s shortcut', (actionId, direction, axis) => {
+			it('flips a lone shape that can flip', async () => {
+				const { editor, actions } = await setup()
+				act(() => {
+					editor.createShape(geo(g1))
+					editor.select(g1)
+				})
+				const flipShapes = vi.spyOn(editor, 'flipShapes')
+				act(() => actions()[actionId].onSelect('kbd'))
+				expect(flipShapes).toHaveBeenCalledExactlyOnceWith([g1], direction)
+			})
+
+			it('ignores a lone shape that cannot flip', async () => {
+				const { editor, actions } = await setup()
+				act(() => {
+					editor.createShape({ id: g1, type: 'text', x: 0, y: 0 })
+					editor.select(g1)
+				})
+				expect(actions()[actionId].isEnabled!(editor)).toBe(false)
+				const flipShapes = vi.spyOn(editor, 'flipShapes')
+				act(() => actions()[actionId].onSelect('kbd'))
+				expect(flipShapes).not.toHaveBeenCalled()
+			})
+
+			it('still moves shapes that cannot flip in a mixed selection', async () => {
+				const { editor, actions } = await setup()
+				act(() => {
+					editor.createShapes([geo(g1), { id: g2, type: 'text', x: 200, y: 200 }])
+					editor.select(g1, g2)
+				})
+				act(() => actions()[actionId].onSelect('kbd'))
+				expect(editor.getShape(g1)![axis]).toBeGreaterThan(0)
+				expect(editor.getShape(g2)![axis]).toBeLessThan(200)
+			})
+		})
 	})
 
 	it('select-all needs shapes but not the select tool', async () => {
@@ -342,5 +384,64 @@ describe('purity and stability', () => {
 		act(() => editor.select(a, b))
 		act(() => editor.selectNone())
 		expect(captured.length).toBe(count)
+	})
+})
+
+it('cursor chat runs outside the select tool', async () => {
+	const store = createTLStore({
+		shapeUtils: defaultShapeUtils,
+		bindingUtils: defaultBindingUtils,
+		collaboration: { status: atom('status', 'online' as const) },
+	})
+	let captured: TLUiActionsContextType = {}
+	const { editor } = await renderTldrawComponentWithEditor(
+		(onMount) => (
+			<Tldraw store={store} onMount={onMount}>
+				<ActionCapturer
+					onCapture={(a) => {
+						captured = a
+					}}
+				/>
+			</Tldraw>
+		),
+		{ waitForPatterns: false }
+	)
+	act(() => editor.setCurrentTool('draw'))
+	act(() => {
+		captured['open-cursor-chat'].onSelect('kbd')
+	})
+	await act(async () => {
+		await new Promise((r) => requestAnimationFrame(r))
+	})
+	expect(editor.getInstanceState().isChatting).toBe(true)
+})
+
+describe('toggle actions', () => {
+	it('return the promise from an async group override', async () => {
+		const done = Promise.resolve()
+		let actions!: TLUiActionsContextType
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<Tldraw
+					onMount={onMount}
+					overrides={{
+						actions(_editor, defaults) {
+							defaults['group'] = { ...defaults['group'], onSelect: () => done }
+							return defaults
+						},
+					}}
+				>
+					<ActionCapturer
+						onCapture={(a) => {
+							actions = a
+						}}
+					/>
+				</Tldraw>
+			),
+			{ waitForPatterns: false }
+		)
+		seed(editor)
+		act(() => editor.select(a, b))
+		expect(actions['toggle-group'].onSelect('kbd')).toBe(done)
 	})
 })
