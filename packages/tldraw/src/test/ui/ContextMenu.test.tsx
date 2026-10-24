@@ -67,6 +67,46 @@ it('reopens after tldraw closes the menu itself', async () => {
 	await screen.findByTestId('context-menu')
 })
 
+describe('returning focus on close', () => {
+	async function openMenu() {
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+		editor.getContainer().focus()
+		fireEvent.contextMenu(await screen.findByTestId('canvas'))
+		await screen.findByTestId('context-menu')
+		return editor
+	}
+
+	// Radix restores focus in a setTimeout after the content unmounts.
+	async function flushRadixFocusReturn() {
+		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+	}
+
+	it('returns focus to the canvas when nothing else claimed it', async () => {
+		const editor = await openMenu()
+
+		act(() => editor.menus.clearOpenMenus())
+		await flushRadixFocusReturn()
+
+		expect(document.activeElement).toBe(editor.getContainer())
+	})
+
+	it('does not steal focus from an element a menu item focused', async () => {
+		const editor = await openMenu()
+		// Stands in for cursor chat's input, which an item focuses as the menu closes.
+		const input = document.createElement('input')
+		editor.getContainer().appendChild(input)
+
+		act(() => editor.menus.clearOpenMenus())
+		input.focus()
+		await flushRadixFocusReturn()
+
+		expect(document.activeElement).toBe(input)
+	})
+})
+
 // A touch long-press (coarse pointer) opens the menu only in the select tool. In any
 // other tool the long-press belongs to that tool's gesture, so the menu stays closed.
 // The instance's isCoarsePointer is synced from tlenv, so flip that to simulate touch.
