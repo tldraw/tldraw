@@ -1747,6 +1747,12 @@ importers:
         specifier: 11.16.1
         version: 11.16.1
     devDependencies:
+      '@types/react':
+        specifier: ^19.2.7
+        version: 19.2.7
+      react:
+        specifier: ^19.2.1
+        version: 19.2.1
       tldraw:
         specifier: workspace:*
         version: link:../tldraw

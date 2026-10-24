@@ -1,4 +1,14 @@
-import { createShapeId, Editor, IndexKey, TLLineShape, TLShapeId, toRichText, Vec } from 'tldraw'
+import { warnOnce } from '@tldraw/utils'
+import {
+	createShapeId,
+	Editor,
+	IndexKey,
+	TLLineShape,
+	TLShapeId,
+	TLTextShape,
+	toRichText,
+	Vec,
+} from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
@@ -6,7 +16,9 @@ import type {
 	MermaidBlueprintNode,
 	MermaidNodeRenderMapper,
 } from './blueprint'
+import { MERMAID_CLASS_SHAPE_TYPE } from './classShape'
 import { resolveMermaidNodeRender } from './defaultMermaidNodeRenderSpec'
+import { MERMAID_END_LABEL_BINDING_TYPE } from './endLabelBinding'
 import { defaultCreateMermaidNodeFromBlueprint } from './mermaidNodeCreateShape'
 import { orderTopDown, sanitizeDiagramText } from './utils'
 
@@ -21,6 +33,8 @@ export interface BlueprintRenderingOptions {
 	mapNodeToRenderSpec?: MermaidNodeRenderMapper
 }
 
+const CLASS_SHAPE_RENDER = { variant: 'shape', type: MERMAID_CLASS_SHAPE_TYPE, props: {} } as const
+
 const defaultBlueprintRenderingOptions = {
 	centerOnPosition: true,
 }
@@ -33,7 +47,16 @@ export function renderBlueprint(
 ) {
 	const options = { ...defaultBlueprintRenderingOptions, ...opts }
 	const { nodes, edges, lines, diagramKind } = blueprint
-	const mapper = options.mapNodeToRenderSpec
+	const hasClassShape = editor.hasShapeUtil(MERMAID_CLASS_SHAPE_TYPE)
+	// A mapper means the app chose how nodes render, so falling back is no surprise.
+	if (!hasClassShape && !options.mapNodeToRenderSpec && nodes.some((node) => node.classBox)) {
+		warnOnce(
+			"Mermaid class diagram drawn with plain rectangles. Pass MermaidClassShapeUtil to the editor's shapeUtils to draw UML class boxes."
+		)
+	}
+	const mapper: MermaidNodeRenderMapper = (input) =>
+		options.mapNodeToRenderSpec?.(input) ??
+		(hasClassShape && input.node.classBox ? CLASS_SHAPE_RENDER : undefined)
 
 	const bounds = computeBlueprintBounds(nodes, lines)
 	const center =
@@ -103,10 +126,19 @@ export function renderBlueprint(
 	// One call, so the background nodes keep the blueprint's order among themselves.
 	if (backgroundIds.length > 0) editor.sendToBack(backgroundIds)
 
+	const hasEndLabelBinding = !!editor.bindingUtils[MERMAID_END_LABEL_BINDING_TYPE]
+	if (!hasEndLabelBinding && edges.some((edge) => edge.startLabel || edge.endLabel)) {
+		warnOnce(
+			"Mermaid multiplicities folded into the arrow's label. Pass MermaidEndLabelBindingUtil to the editor's bindingUtils to keep them beside each end."
+		)
+	}
 	const arrowIds: TLShapeId[] = []
 	for (const edge of edges) {
-		const arrowId = createArrowFromEdge(editor, edge, shapeIds)
-		if (arrowId) arrowIds.push(arrowId)
+		const arrowEdge = hasEndLabelBinding ? edge : { ...edge, label: foldEndLabels(edge) }
+		const arrowId = createArrowFromEdge(editor, arrowEdge, shapeIds)
+		if (!arrowId) continue
+		arrowIds.push(arrowId)
+		if (hasEndLabelBinding) createEndLabels(editor, edge, arrowId, shapeIds)
 	}
 
 	// Create sub-groups and track which shape IDs are consumed by a group
@@ -197,6 +229,7 @@ function createArrowFromEdge(
 		size: edge.size ?? ('m' as const),
 		arrowheadEnd: edge.arrowheadEnd ?? ('arrow' as const),
 		...(edge.arrowheadStart && { arrowheadStart: edge.arrowheadStart }),
+		...(edge.fill && { fill: edge.fill }),
 		color: edge.color ?? ('black' as const),
 		...(labelText && { richText: toRichText(sanitizeDiagramText(labelText)) }),
 	}
@@ -281,6 +314,45 @@ function createArrowFromEdge(
 		])
 	})
 	return arrowId
+}
+
+// An arrow has only a middle label: `1 — has — many`.
+function foldEndLabels({ label, startLabel, endLabel }: MermaidBlueprintEdge) {
+	if (!startLabel && !endLabel) return label
+	return [startLabel, label, endLabel].filter(Boolean).join(' — ')
+}
+
+// Each label is a child of the shape at its end, so it moves with that shape and anything holding it.
+function createEndLabels(
+	editor: Editor,
+	edge: MermaidBlueprintEdge,
+	arrowId: TLShapeId,
+	shapeIds: Map<string, TLShapeId>
+) {
+	for (const [terminal, text, nodeId] of [
+		['start', edge.startLabel, edge.startNodeId],
+		['end', edge.endLabel, edge.endNodeId],
+	] as const) {
+		if (!text) continue
+		const labelId = createShapeId()
+		editor.createShape<TLTextShape>({
+			id: labelId,
+			type: 'text',
+			parentId: shapeIds.get(nodeId),
+			props: {
+				richText: toRichText(sanitizeDiagramText(text)),
+				size: 's',
+				color: edge.color ?? 'black',
+				autoSize: true,
+			},
+		})
+		editor.createBinding({
+			type: MERMAID_END_LABEL_BINDING_TYPE,
+			fromId: arrowId,
+			toId: labelId,
+			props: { terminal },
+		})
+	}
 }
 
 function makeArrowBinding(
