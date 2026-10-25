@@ -24,7 +24,7 @@ function loadState(root) {
 	return state
 }
 
-export function plan(root, selectedLocales) {
+export function plan(root, selectedLocales, { includeCurrent = false } = {}) {
 	const state = loadState(root)
 	const supported = read(resolve(root, 'assets/translations/languages.json'))
 		.map(({ locale }) => locale)
@@ -75,7 +75,7 @@ export function plan(root, selectedLocales) {
 								? 'translationChanged'
 								: 'current'
 				counts[reason]++
-				if (reason === 'current') continue
+				if (reason === 'current' && !includeCurrent) continue
 				entries.push({
 					project,
 					locale,
@@ -93,11 +93,11 @@ export function plan(root, selectedLocales) {
 	return { version: 1, counts, entries, obsolete, unsupported }
 }
 
-export function record(root, approvals) {
+function updateState(root, approvals, invalidate) {
 	if (!Array.isArray(approvals) || !approvals.length)
 		throw new Error('Expected nonempty approval array')
 	const locales = [...new Set(approvals.map(({ locale }) => locale))]
-	const pending = plan(root, locales)
+	const pending = plan(root, locales, { includeCurrent: true })
 	const byId = new Map(
 		pending.entries.map((entry) => [
 			JSON.stringify([entry.project, entry.locale, entry.key]),
@@ -111,14 +111,16 @@ export function record(root, approvals) {
 		const entry = byId.get(id)
 		if (seen.has(id)) throw new Error(`Duplicate approval: ${id}`)
 		seen.add(id)
-		if (!entry || entry.reason === 'missing') throw new Error(`No translated pending entry: ${id}`)
+		if (!entry || entry.reason === 'missing') throw new Error(`No translated source entry: ${id}`)
 		if (
 			approval.sourceHash !== entry.sourceHash ||
 			approval.translationHash !== entry.translationHash
 		) {
 			throw new Error(`Source or translation changed since review: ${id}`)
 		}
-		state.entries[id] = { sourceHash: entry.sourceHash, translationHash: entry.translationHash }
+		if (invalidate) delete state.entries[id]
+		else
+			state.entries[id] = { sourceHash: entry.sourceHash, translationHash: entry.translationHash }
 	}
 	state.entries = Object.fromEntries(
 		Object.entries(state.entries).sort(([a], [b]) => a.localeCompare(b))
@@ -128,16 +130,32 @@ export function record(root, approvals) {
 	writeFileSync(path, JSON.stringify(state, null, 2) + '\n')
 }
 
+export function record(root, approvals) {
+	updateState(root, approvals, false)
+}
+
+export function invalidate(root, entries) {
+	updateState(root, entries, true)
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
 	const [command, ...args] = process.argv.slice(2)
 	try {
-		if (command === 'plan' && args.length <= 1) {
-			console.log(JSON.stringify(plan(process.cwd(), args[0]?.split(',')), null, 2))
-		} else if (command === 'record' && args.length === 1) {
-			record(process.cwd(), read(resolve(args[0])))
+		const includeCurrent = args.includes('--all')
+		const positional = args.filter((arg) => arg !== '--all')
+		if (
+			command === 'plan' &&
+			positional.length <= 1 &&
+			!positional.some((arg) => arg.startsWith('--'))
+		) {
+			console.log(
+				JSON.stringify(plan(process.cwd(), positional[0]?.split(','), { includeCurrent }), null, 2)
+			)
+		} else if ((command === 'record' || command === 'invalidate') && args.length === 1) {
+			updateState(process.cwd(), read(resolve(args[0])), command === 'invalidate')
 		} else {
 			throw new Error(
-				'Usage: node skills/translate/scripts/translation-state.mjs plan [es,fr] | record <approved.json>'
+				'Usage: node skills/translate/scripts/translation-state.mjs plan [es,fr] [--all] | record <approved.json> | invalidate <unresolved.json>'
 			)
 		}
 	} catch (error) {

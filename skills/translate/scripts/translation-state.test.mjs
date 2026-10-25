@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { test } from 'node:test'
-import { plan, record, statePath } from './translation-state.mjs'
+import { invalidate, plan, record, statePath } from './translation-state.mjs'
 
 function fixture(t) {
 	const root = mkdtempSync(join(tmpdir(), 'translation-state-test-'))
@@ -66,7 +66,7 @@ test('rejects stale or empty approvals without partially advancing the ledger', 
 	const p = plan(root, ['es'])
 	assert.throws(
 		() => record(root, [find(p, 'abc'), find(p, 'paste')]),
-		/No translated pending entry/
+		/No translated source entry/
 	)
 	assert.equal(readFileSync(join(root, statePath), 'utf8'), previous)
 	const approved = find(p, 'abc')
@@ -113,4 +113,45 @@ test('reports unsupported locale files without changing or translating them', (t
 		JSON.parse(readFileSync(join(root, 'assets/translations/zz.json'))).copy,
 		'Preserve me'
 	)
+})
+
+test('full review includes current entries without resetting state and can retain them', (t) => {
+	const { root } = fixture(t)
+	record(root, [find(plan(root, ['es']), 'copy')])
+	const before = readFileSync(join(root, statePath), 'utf8')
+	assert.equal(find(plan(root, ['es']), 'copy'), undefined)
+	const full = plan(root, ['es'], { includeCurrent: true })
+	assert.equal(full.entries.length, 3)
+	assert.equal(find(full, 'copy').reason, 'current')
+	assert.equal(readFileSync(join(root, statePath), 'utf8'), before)
+	record(root, [find(full, 'copy')])
+	assert.equal(readFileSync(join(root, statePath), 'utf8'), before)
+	assert.equal(plan(root, ['es']).counts.current, 1)
+})
+
+test('full review approvals still reject edits made after review', (t) => {
+	const { root, write } = fixture(t)
+	record(root, [find(plan(root, ['es']), 'copy')])
+	const approved = find(plan(root, ['es'], { includeCurrent: true }), 'copy')
+	write('assets/translations/es.json', { copy: 'New unreviewed wording' })
+	assert.throws(() => record(root, [approved]), /changed since review/)
+	assert.equal(find(plan(root, ['es']), 'copy').reason, 'translationChanged')
+})
+
+test('invalidating an unresolved review exposes only that key to later incremental runs', (t) => {
+	const { root, write } = fixture(t)
+	record(root, [find(plan(root, ['es']), 'copy'), find(plan(root, ['es']), 'abc')])
+	const unresolved = find(plan(root, ['es'], { includeCurrent: true }), 'copy')
+	const before = readFileSync(join(root, 'assets/translations/es.json'), 'utf8')
+	invalidate(root, [unresolved])
+	assert.equal(find(plan(root, ['es']), 'copy').reason, 'unverified')
+	assert.equal(find(plan(root, ['es']), 'abc'), undefined)
+	assert.equal(readFileSync(join(root, 'assets/translations/es.json'), 'utf8'), before)
+	const approved = find(plan(root, ['es'], { includeCurrent: true }), 'abc')
+	write('apps/dotcom/client/public/tla/locales/es.json', {
+		abc: { translation: 'Changed externally' },
+	})
+	const state = readFileSync(join(root, statePath), 'utf8')
+	assert.throws(() => invalidate(root, [approved]), /changed since review/)
+	assert.equal(readFileSync(join(root, statePath), 'utf8'), state)
 })
