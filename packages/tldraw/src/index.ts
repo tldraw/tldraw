@@ -375,6 +375,7 @@ export {
 	DefaultKeyboardShortcutsDialog,
 	type TLUiKeyboardShortcutsDialogProps,
 } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
+export { getCommandPaletteMatchScore } from './lib/ui/components/CommandPalette/commandPaletteSearch'
 export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 export { LanguageMenu } from './lib/ui/components/LanguageMenu'
 export { InputModeMenu } from './lib/ui/components/InputModeMenu'

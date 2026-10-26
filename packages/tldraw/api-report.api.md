@@ -2374,6 +2374,9 @@ export function getAssetInfo(editor: Editor, file: File, assetId?: TLAssetId): P
 // @public
 export function getColorStyleItems(colors: TLThemeColors): StyleValuesForUi<string>;
 
+// @public
+export function getCommandPaletteMatchScore(query: string, label: string, path?: readonly string[]): number;
+
 // @public (undocumented)
 export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T>, opts?: CropBoxOptions): {
     id: TLShapeId;
