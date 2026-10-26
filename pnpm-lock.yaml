@@ -1484,6 +1484,22 @@ importers:
         specifier: ^19.2.1
         version: 19.2.1(react@19.2.1)
 
+  packages/collections:
+    dependencies:
+      '@tldraw/editor':
+        specifier: workspace:*
+        version: link:../editor
+      '@tldraw/tlschema':
+        specifier: workspace:*
+        version: link:../tlschema
+      '@tldraw/validate':
+        specifier: workspace:*
+        version: link:../validate
+    devDependencies:
+      vitest:
+        specifier: ^5.0.0
+        version: 5.0.0(@edge-runtime/vm@3.2.0)(@opentelemetry/api@1.9.1)(@types/node@22.16.0)(@vitest/coverage-v8@5.0.0)(@vitest/ui@5.0.0)(jsdom@29.1.1)(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
+
   packages/commenting:
     dependencies:
       '@tiptap/core':
@@ -6110,6 +6126,7 @@ packages:
   '@opentelemetry/sdk-trace@2.12.0':
     resolution: {integrity: sha512-ImVuRQ6faOsTi1Wna88s2avgrrf/iDgXPigIeynkUhjstMuoQUDOJXgkez2j1mlU4btjXcXBGa+q7qKFYR3GsA==}
     engines: {node: ^18.19.0 || >=20.6.0}
+    deprecated: Use @opentelemetry/sdk-trace package
     peerDependencies:
       '@opentelemetry/api': 1.9.1
 

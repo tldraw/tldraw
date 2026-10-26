@@ -731,6 +731,14 @@ export class TldrawApp {
 		return this.getWorkspaceMemberships().find((g) => g.groupId === workspaceId)
 	}
 
+	// Home also lists legacy and guest files, but not ones owned by a workspace the user is in (mislinked rows).
+	private isFileListedInWorkspace(workspaceId: string, file: TlaFile) {
+		const owningGroupId = file.owningGroupId
+		if (owningGroupId === workspaceId) return true
+		if (workspaceId !== this.getHomeWorkspaceId()) return false
+		return owningGroupId == null || !this.getWorkspaceMembership(owningGroupId)
+	}
+
 	getWorkspaceFilesSorted(workspaceId: string) {
 		const membership = this.getWorkspaceMembership(workspaceId)
 		if (!membership) return []
@@ -744,17 +752,13 @@ export class TldrawApp {
 		// a workspace's welcome file mirrored during the create-workspace race), and opening it
 		// from home would bounce the user into that workspace. Guarding here keeps such rows out
 		// of the list even before they're cleaned up.
-		const homeWorkspaceId = this.getHomeWorkspaceId()
 		const groupFiles = membership.groupFiles.filter((f): f is TlaGroupFile & { file: TlaFile } => {
 			// A group_file row can outlive (or arrive before) its file: the file may be deleted,
 			// not yet synced, or filtered out server-side because the user can no longer read it.
 			// The `file` relationship is a nullable Zero `.one()`, so guard before dereferencing.
 			// The type predicate narrows `file` to non-undefined for the rest of the function.
 			if (!f.file) return false
-			const owningGroupId = f.file.owningGroupId
-			if (owningGroupId === workspaceId) return true
-			if (workspaceId !== homeWorkspaceId) return false
-			return owningGroupId == null || !this.getWorkspaceMembership(owningGroupId)
+			return this.isFileListedInWorkspace(workspaceId, f.file)
 		})
 
 		const pinned = groupFiles.filter((f) => f.index !== null)
