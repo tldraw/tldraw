@@ -24,6 +24,7 @@ export type TLUiEventSource =
 	| 'rich-text-menu'
 	| 'image-toolbar'
 	| 'video-toolbar'
+	| 'command-palette'
 	| 'unknown'
 
 /** @public */

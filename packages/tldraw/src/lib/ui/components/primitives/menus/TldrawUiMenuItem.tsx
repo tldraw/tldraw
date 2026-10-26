@@ -17,6 +17,7 @@ import { TLUiToolItem } from '../../../hooks/useTools'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { kbdStr } from '../../../kbd-utils'
+import { CommandPaletteItemRegistration } from '../../CommandPalette/CommandPaletteItemRegistration'
 import { Spinner } from '../../Spinner'
 import { TldrawUiButton } from '../Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../Button/TldrawUiButtonIcon'
@@ -276,6 +277,20 @@ export function TldrawUiMenuItem<
 				>
 					<TldrawUiButtonIcon icon={icon!} />
 				</TldrawUiToolbarButton>
+			)
+		}
+		case 'command-palette': {
+			// The palette only lists what can run now.
+			if (!labelStr || disabled) return null
+			return (
+				<CommandPaletteItemRegistration
+					id={id}
+					label={labelStr}
+					kbd={kbd}
+					icon={iconLeft ?? icon}
+					isSelected={isSelected}
+					onSelect={onSelect}
+				/>
 			)
 		}
 		default: {

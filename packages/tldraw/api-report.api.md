@@ -790,6 +790,24 @@ export class CollaboratorShapeIndicatorOverlayUtil extends OverlayUtil<TLCollabo
 export function ColorSchemeMenu(): JSX.Element;
 
 // @public
+export function CommandPaletteCollapsed({ children }: CommandPaletteCollapsedProps): JSX.Element;
+
+// @public (undocumented)
+export interface CommandPaletteCollapsedProps {
+    // (undocumented)
+    children: ReactNode;
+}
+
+// @public
+export function CommandPalettePinned({ children }: CommandPalettePinnedProps): JSX.Element;
+
+// @public (undocumented)
+export interface CommandPalettePinnedProps {
+    // (undocumented)
+    children: ReactNode;
+}
+
+// @public
 export function CommentToolbarItem(): JSX.Element | null;
 
 // @public
@@ -4344,7 +4362,7 @@ export function TldrawUiMenuActionCheckboxItem({ actionId, whenDisabled, disable
 export function TldrawUiMenuActionItem({ actionId, whenDisabled, disabled, ...rest }: TLUiMenuActionItemProps): JSX.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, lang, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX.Element | null;
+export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, icon, label, lang, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX.Element;
@@ -4356,7 +4374,7 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, onDragStart, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
+export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, icon, children, }: TLUiMenuSubmenuProps<Translation>): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
 
 // @public (undocumented)
 export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX.Element | null;
@@ -5300,7 +5318,7 @@ export interface TLUiEventMap {
 }
 
 // @public (undocumented)
-export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'document-name' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'image-toolbar' | 'kbd' | 'main-menu' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'rich-text-menu' | 'share-menu' | 'style-panel' | 'toolbar' | 'unknown' | 'video-toolbar' | 'zoom-menu';
+export type TLUiEventSource = 'actions-menu' | 'command-palette' | 'context-menu' | 'debug-panel' | 'dialog' | 'document-name' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'image-toolbar' | 'kbd' | 'main-menu' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'rich-text-menu' | 'share-menu' | 'style-panel' | 'toolbar' | 'unknown' | 'video-toolbar' | 'zoom-menu';
 
 // @public (undocumented)
 export interface TLUiHelperButtonsProps {
@@ -5470,7 +5488,7 @@ export interface TLUiMenuContextProviderProps {
 }
 
 // @public (undocumented)
-export type TLUiMenuContextType = 'context-menu' | 'helper-buttons' | 'icons' | 'keyboard-shortcuts' | 'menu' | 'small-icons' | 'toolbar-overflow' | 'toolbar';
+export type TLUiMenuContextType = 'command-palette' | 'context-menu' | 'helper-buttons' | 'icons' | 'keyboard-shortcuts' | 'menu' | 'small-icons' | 'toolbar-overflow' | 'toolbar';
 
 // @public (undocumented)
 export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
@@ -5510,6 +5528,7 @@ export interface TLUiMenuSubmenuProps<Translation extends string = string> {
     children: ReactNode;
     // (undocumented)
     disabled?: boolean;
+    icon?: string | TLUiIconJsx;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -6475,6 +6494,12 @@ export function useCanUndo(): boolean;
 
 // @public (undocumented)
 export function useCollaborationStatus(): "offline" | "online" | null;
+
+// @internal
+export function useCommandPaletteActiveItemId(): null | string;
+
+// @public
+export function useCommandPaletteQuery(): string;
 
 // @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;

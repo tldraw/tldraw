@@ -375,6 +375,14 @@ export {
 	DefaultKeyboardShortcutsDialog,
 	type TLUiKeyboardShortcutsDialogProps,
 } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
+export {
+	CommandPaletteCollapsed,
+	CommandPalettePinned,
+	useCommandPaletteActiveItemId,
+	useCommandPaletteQuery,
+	type CommandPaletteCollapsedProps,
+	type CommandPalettePinnedProps,
+} from './lib/ui/components/CommandPalette/CommandPaletteContext'
 export { getCommandPaletteMatchScore } from './lib/ui/components/CommandPalette/commandPaletteSearch'
 export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 export { LanguageMenu } from './lib/ui/components/LanguageMenu'
