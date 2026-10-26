@@ -47,9 +47,12 @@ import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { handleInitUser } from './routes/tla/initUser'
 import {
+	MCP_BOARDS_PATH,
+	MCP_BOARDS_PROTECTED_RESOURCE_METADATA_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
 	getMcpProtectedResourceMetadata,
+	isMcpHostRequest,
 	mcpCorsPreflight,
 	withMcpCors,
 } from './routes/tla/mcpAuth'
@@ -292,18 +295,31 @@ const router = createRouter<Environment>()
 	})
 	.all('*', notFound)
 
+// The MCP host (`mcp.tldraw.com`) serves MCP servers and nothing else, one per path. A router of its
+// own rather than routes on the main one, so no API route is reachable through the host and no
+// server's path can collide with one.
+const mcpHostRouter = createRouter<Environment>()
+	.options(MCP_BOARDS_PATH, mcpCorsPreflight)
+	.options(MCP_BOARDS_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
+	.all(MCP_BOARDS_PATH, async (req, env, ctx) => withMcpCors(await mcpServer(req, env, ctx)))
+	.get(MCP_BOARDS_PROTECTED_RESOURCE_METADATA_PATH, (req, env) =>
+		withMcpCors(getMcpProtectedResourceMetadata(req, env))
+	)
+	.all('*', notFound)
+
 export default class Worker extends WorkerEntrypoint<Environment> {
 	override async fetch(request: Request): Promise<Response> {
+		const onMcpHost = isMcpHostRequest(request, this.env)
 		// if we get a request that starts with /api/, strip it before handling.
 		const url = new URL(request.url)
 		const pathname = url.pathname.replace(/^\/api\//, '/')
-		if (pathname !== url.pathname) {
+		if (!onMcpHost && pathname !== url.pathname) {
 			url.pathname = pathname
 			request = new Request(url.toString(), request)
 		}
 
 		return await handleApiRequest({
-			router,
+			router: onMcpHost ? mcpHostRouter : router,
 			request,
 			env: this.env,
 			ctx: this.ctx,

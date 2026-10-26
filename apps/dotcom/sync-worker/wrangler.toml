@@ -161,6 +161,7 @@ HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
 MCP_SERVER_URL = "https://staging.tldraw.com/api/app/mcp"
+MCP_HOST_ORIGIN = "https://staging-mcp.tldraw.com"
 MCP_SEARCH_NAME_MATCHING_ENABLED = "true"
 # Staging joins previews in trialling live-canvas capture (see THUMBNAIL_RENDER_LIVE_CAPTURE in
 # types.ts). Previews are too short-lived and too lightly used to produce the render_page_timings
@@ -178,6 +179,7 @@ HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://www.tldraw.com"
 MCP_SERVER_URL = "https://www.tldraw.com/api/app/mcp"
+MCP_HOST_ORIGIN = "https://mcp.tldraw.com"
 # Off while the unindexed `name ILIKE '%term%'` scan it drives is still being watched: it is the one
 # part of search no index reaches, so a term matching nothing reads every board in the caller's
 # scope. Off, the tool lists rather than searches and advertises no query — it does not accept a
@@ -210,6 +212,12 @@ pattern = "staging.tldraw.com/.well-known/oauth-protected-resource"
 zone_name = "tldraw.com"
 pattern = "staging.tldraw.com/.well-known/mcp/*"
 
+# The MCP host, which this worker owns whole: its own router answers every path (see mcpHostRouter
+# in worker.ts). A more specific pattern can still hand a path to another worker.
+[[env.staging.routes]]
+zone_name = "tldraw.com"
+pattern = "staging-mcp.tldraw.com/*"
+
 [[env.staging.routes]]
 custom_domain = true
 pattern = "staging-sync.tldraw.xyz"
@@ -230,6 +238,10 @@ pattern = "www.tldraw.com/.well-known/oauth-protected-resource"
 [[env.production.routes]]
 zone_name = "tldraw.com"
 pattern = "www.tldraw.com/.well-known/mcp/*"
+
+[[env.production.routes]]
+zone_name = "tldraw.com"
+pattern = "mcp.tldraw.com/*"
 
 [[env.production.routes]]
 custom_domain = true

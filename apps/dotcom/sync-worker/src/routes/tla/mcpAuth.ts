@@ -41,6 +41,27 @@ export const MCP_PROTECTED_RESOURCE_METADATA_PATH = `/.well-known/oauth-protecte
 export const MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH = '/.well-known/oauth-protected-resource'
 
 /**
+ * The board server's path on the MCP host (`MCP_HOST_ORIGIN`, `mcp.tldraw.com` in production): the
+ * same server as `MCP_RESOURCE_PATH`, under a URL short enough to type into a connector UI.
+ *
+ * The MCP host gives each server its own path so more can join it later, which is why it serves no
+ * path-less metadata: that document can describe only one resource per origin.
+ */
+export const MCP_BOARDS_PATH = '/boards'
+
+export const MCP_BOARDS_PROTECTED_RESOURCE_METADATA_PATH = `/.well-known/oauth-protected-resource${MCP_BOARDS_PATH}`
+
+/**
+ * Whether a request arrived on the MCP host rather than through `/api` on the web app. Matched
+ * against configuration, so a forged `Host` can only pick which of our own URLs is advertised, never
+ * name one of its own.
+ */
+export function isMcpHostRequest(request: Request, env: Environment): boolean {
+	if (!env.MCP_HOST_ORIGIN) return false
+	return new URL(request.url).host === new URL(env.MCP_HOST_ORIGIN).host
+}
+
+/**
  * The scopes a client should ask for, named in both the `WWW-Authenticate` challenge and the RFC
  * 9728 metadata.
  *
@@ -83,6 +104,8 @@ export const MCP_SCOPES = ['openid', 'profile', 'email', 'offline_access'] as co
  * local dev and tests, where there is no configured origin and no attacker to speak of.
  */
 export function getMcpResourceUrl(request: Request, env: Environment): string {
+	if (isMcpHostRequest(request, env))
+		return new URL(MCP_BOARDS_PATH, env.MCP_HOST_ORIGIN).toString()
 	if (env.MCP_SERVER_URL) return env.MCP_SERVER_URL
 	return new URL(MCP_RESOURCE_PATH, new URL(request.url).origin).toString()
 }
@@ -204,7 +227,9 @@ export function mcpUnauthorized(
 	{ error, description }: { error?: string; description?: string } = {}
 ): Response {
 	const metadataUrl = new URL(
-		MCP_PROTECTED_RESOURCE_METADATA_PATH,
+		isMcpHostRequest(request, env)
+			? MCP_BOARDS_PROTECTED_RESOURCE_METADATA_PATH
+			: MCP_PROTECTED_RESOURCE_METADATA_PATH,
 		getMcpResourceUrl(request, env)
 	).toString()
 	// `scope` before the error parameters because it is the one a first-contact client acts on: it is
