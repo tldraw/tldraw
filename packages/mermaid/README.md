@@ -115,7 +115,7 @@ Helpers: **`defaultMermaidNodeRenderSpec`**, **`resolveMermaidNodeRender`**, **`
 - **`MermaidBlueprintNode`** — layout, semantic `kind`, and style fields (materialization is chosen at render time).
 - **`MermaidBlueprintNodeRenderSpec`** — `variant: 'geo'` + `geo`, `variant: 'text'`, or `variant: 'shape'` + `type` + `props`.
 - **`MermaidDiagramKind`** — `'flowchart' | 'state' | 'sequence' | 'mindmap'`.
-- **`MermaidBlueprintEdge`** — an arrow with start/end node IDs, arc or elbow kind, bend, arrowheads, dash style, anchor positions, and label position.
+- **`MermaidBlueprintEdge`** — an arrow with start/end node IDs, bend, arrowheads, dash style, and anchor positions.
 - **`MermaidBlueprintLineNode`** — a vertical or horizontal line (used for sequence diagram lifelines).
 - **`BlueprintRenderingOptions`** — position, centering, and optional `mapNodeToRenderSpec` for `renderBlueprint` / `createMermaidDiagram`.
 - **`MermaidNodeCreateFunctionArgs`** — argument object for **`defaultCreateMermaidNodeFromBlueprint`** (includes resolved **`render`** spec).
@@ -132,7 +132,7 @@ flowchart LR
 ```
 
 1. **Parse and lay out** — pele parses the text into a typed model and renders it to an SVG, measuring text in tldraw's own font so boxes fit their labels. The SVG is mounted offscreen so `getBBox()` works.
-2. **Extract blueprint** — a diagram-specific converter reads positions from the SVG, where every node, edge and label carries its model id, and combines them with the parsed model, producing a `DiagramMermaidBlueprint`. Edges become elbow arrows anchored where pele routed them.
+2. **Extract blueprint** — a diagram-specific converter reads positions from the SVG, where every node, edge and label carries its model id, and combines them with the parsed model, producing a `DiagramMermaidBlueprint`. Each edge's bend is taken from the route pele drew for it.
 3. **Create shapes** — `renderBlueprint` resolves each node’s materialization spec (mapper or default), then creates tldraw shapes (geo or custom), plus arrows, lines, frames, and groups.
 
 ## Example: paste handler

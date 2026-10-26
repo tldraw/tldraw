@@ -147,8 +147,8 @@ export function getLayoutFontSize(editor: Editor) {
 
 /**
  * Measures layout text in tldraw's font so boxes and edge gaps fit tldraw's wider labels. With
- * `edgeLabelMargin`, edge-sized text reports that much wider, since tldraw wraps an elbow's label
- * once the arrow is barely longer than it.
+ * `edgeLabelMargin`, edge-sized text reports that much wider: tldraw wraps an arrow's label once
+ * the arrow is barely longer than it.
  */
 export function createLayoutTextMeasurer(editor: Editor, opts: { edgeLabelMargin?: number } = {}) {
 	const font = getGeoLabelFont(editor)

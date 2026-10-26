@@ -13,6 +13,14 @@ import { BlueprintRenderingOptions, renderBlueprint } from './renderBlueprint'
 import { parseSequenceLayout, sequenceToBlueprint } from './sequenceDiagram'
 import { parseStateDiagramLayout, stateToBlueprint } from './stateDiagram'
 
+// tldraw squeezes an arrow's label unless the arrow is 32 longer at each end (`getArrowLabelSize`),
+// and only for arrows wider than tall, so only left-to-right layouts get the room.
+const ARROW_LABEL_MARGIN = 64
+
+function arrowLabelRoom(direction: string | undefined) {
+	return { edgeLabelMargin: direction === 'LR' || direction === 'RL' ? ARROW_LABEL_MARGIN : 0 }
+}
+
 /** @public */
 export class MermaidDiagramError extends Error {
 	constructor(
@@ -22,14 +30,6 @@ export class MermaidDiagramError extends Error {
 		super(`mermaid diagram error: ${diagramType}`)
 		this.name = 'MermaidDiagramError'
 	}
-}
-
-// tldraw squeezes an elbow's label unless the arrow is 32 longer at each end (`getArrowLabelSize`),
-// and only for arrows wider than tall, so only left-to-right layouts get the room.
-const ELBOW_LABEL_MARGIN = 64
-
-function elbowLabelRoom(direction: string | undefined) {
-	return { edgeLabelMargin: direction === 'LR' || direction === 'RL' ? ELBOW_LABEL_MARGIN : 0 }
 }
 
 /** @public */
@@ -80,7 +80,7 @@ export async function createMermaidDiagram(
 				const flowchart = model as FlowchartModel
 				blueprint = await withMountedPeleSvg(
 					text,
-					layoutOptions(elbowLabelRoom(flowchart.direction)),
+					layoutOptions(arrowLabelRoom(flowchart.direction)),
 					(root) =>
 						flowchartToBlueprint(
 							parseFlowchartLayout(root, flowchart),
@@ -97,7 +97,7 @@ export async function createMermaidDiagram(
 				const state = model as StateModel
 				blueprint = await withMountedPeleSvg(
 					text,
-					layoutOptions(elbowLabelRoom(state.direction)),
+					layoutOptions(arrowLabelRoom(state.direction)),
 					(root) =>
 						stateToBlueprint(
 							parseStateDiagramLayout(root),

@@ -15,7 +15,6 @@ import { parsePeleLayout } from './peleDiagram'
 import {
 	buildNodeCentersFromSvg,
 	claimEdge,
-	getElbowEdgeLayout,
 	getSelfLoopEdgeLayout,
 	type ParsedDiagramLayout,
 } from './svgParsing'
@@ -150,7 +149,6 @@ export function flowchartToBlueprint(
 	}
 
 	// Edges: match model edges to the paths the layout drew for them, and take each one's route
-	const boxes = new Map(nodes.map((node) => [node.id, node]))
 	const claimed = new Set<number>()
 	for (const edge of edges) {
 		const svgEdge = claimEdge(svgEdges, claimed, {
@@ -164,12 +162,6 @@ export function flowchartToBlueprint(
 			edge.start === edge.end && svgEdge && svgNode
 				? getSelfLoopEdgeLayout(svgEdge, svgNode, layout.edgeLabels)
 				: undefined
-		const startBox = boxes.get(edge.start)
-		const endBox = boxes.get(edge.end)
-		const elbow =
-			!selfLoop && svgEdge && startBox && endBox && edge.start !== edge.end
-				? getElbowEdgeLayout(svgEdge, startBox, endBox, layout.edgeLabels.get(svgEdge.id))
-				: undefined
 		const cssOverrides = parseCssStyles(edge.style ?? defaultEdgeStyle)
 		const arrowheadEnd = mapEdgeTypeToArrowhead(edge.type)
 
@@ -179,7 +171,6 @@ export function flowchartToBlueprint(
 			label: edge.text,
 			bend: svgEdge ? getArrowBend(svgEdge) : 0,
 			...selfLoop,
-			...elbow,
 			arrowheadEnd,
 			arrowheadStart: edge.type?.includes('double_arrow') ? arrowheadEnd : undefined,
 			dash: cssOverrides.dashOverride ?? (edge.stroke === 'dotted' ? 'dotted' : 'solid'),

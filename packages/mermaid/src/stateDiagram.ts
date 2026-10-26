@@ -9,7 +9,6 @@ import { parsePeleLayout } from './peleDiagram'
 import {
 	buildNodeCentersFromSvg,
 	claimEdge,
-	getElbowEdgeLayout,
 	getSelfLoopEdgeLayout,
 	type ParsedDiagramLayout,
 } from './svgParsing'
@@ -359,7 +358,6 @@ export function stateToBlueprint(
 		nodes.push(...stateToNodes(state, rect, parentOf.get(id), stateColorMap.get(id)))
 	}
 
-	const boxes = new Map(nodes.map((node) => [node.id, node]))
 	const claimed = new Set<number>()
 	for (const edge of allEdges) {
 		const svgEdge = claimEdge(svgEdges, claimed, {
@@ -373,12 +371,6 @@ export function stateToBlueprint(
 			edge.id1 === edge.id2 && svgEdge && svgNode
 				? getSelfLoopEdgeLayout(svgEdge, svgNode, layout.edgeLabels)
 				: undefined
-		const startBox = boxes.get(edge.id1)
-		const endBox = boxes.get(edge.id2)
-		const elbow =
-			!selfLoop && svgEdge && startBox && endBox && edge.id1 !== edge.id2
-				? getElbowEdgeLayout(svgEdge, startBox, endBox, layout.edgeLabels.get(svgEdge.id))
-				: undefined
 		const isNoteEdge = edge.id2.endsWith('----note') || edge.id1.endsWith('----note')
 		blueprintEdges.push({
 			startNodeId: edge.id1,
@@ -386,7 +378,6 @@ export function stateToBlueprint(
 			label: edge.relationTitle,
 			bend: svgEdge ? getArrowBend(svgEdge) : 0,
 			...selfLoop,
-			...elbow,
 			...(isNoteEdge && { dash: 'dotted' as const, arrowheadEnd: 'none' as const }),
 		})
 	}

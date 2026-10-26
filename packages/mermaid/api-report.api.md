@@ -85,7 +85,6 @@ export interface MermaidBlueprintEdge {
         type: 'autonumber';
         value: string;
     };
-    elbowMidPoint?: number;
     // (undocumented)
     endNodeId: string;
     // (undocumented)
@@ -96,10 +95,8 @@ export interface MermaidBlueprintEdge {
     isPrecise?: boolean;
     // (undocumented)
     isPreciseEnd?: boolean;
-    kind?: 'arc' | 'elbow';
     // (undocumented)
     label?: string;
-    labelPosition?: number;
     // (undocumented)
     size?: TLDefaultSizeStyle;
     // (undocumented)

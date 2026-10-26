@@ -105,12 +105,6 @@ export interface MermaidBlueprintEdge {
 	endNodeId: string
 	label?: string
 	bend: number
-	/** Draw the edge as a right-angled elbow arrow instead of an arc. `bend` is ignored for elbows. */
-	kind?: 'arc' | 'elbow'
-	/** Where an elbow's middle segment sits between its two ends, from 0 to 1. Defaults to halfway. */
-	elbowMidPoint?: number
-	/** Where the label sits along the arrow, from 0 to 1. Defaults to the middle. */
-	labelPosition?: number
 	arrowheadEnd?: TLArrowShapeArrowheadStyle
 	arrowheadStart?: TLArrowShapeArrowheadStyle
 	dash?: TLDefaultDashStyle
