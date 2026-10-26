@@ -11,9 +11,10 @@ import type { KeyframeReason } from './versionChain'
 // so a Worker can call the Quick Actions endpoints (`screenshot`, `pdf`, …) straight through the
 // binding — no API token, no @cloudflare/puppeteer. Requires compatibility_date >= 2026-03-24. Not
 // in @cloudflare/workers-types yet, so the small surface we use is declared here; it resolves to a
-// standard `Response` (PNG bytes for `screenshot`, with an `X-Browser-Ms-Used` header).
+// standard `Response` (PNG bytes for `screenshot`, `{ success, result: "<html>…" }` JSON for
+// `content`, with an `X-Browser-Ms-Used` header).
 export interface BrowserBinding {
-	quickAction(action: 'screenshot', options: unknown): Promise<Response>
+	quickAction(action: 'screenshot' | 'content', options: unknown): Promise<Response>
 }
 
 // This type isn't available in @cloudflare/workers-types yet
@@ -152,6 +153,9 @@ export interface Environment {
 	// the page exporting itself. Skips the export phase, the expensive part on heavy boards, at the
 	// cost of the export path's pixel-exact sizing. Off everywhere it is unset.
 	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
+	// 'true' pushes the board's records into the render page with the screenshot request, instead of
+	// the page fetching them back from the snapshot route. Off everywhere it is unset.
+	THUMBNAIL_RENDER_PUSH: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected

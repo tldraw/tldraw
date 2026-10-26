@@ -23,6 +23,7 @@ import {
 	isOgImageRepairOnCooldown,
 } from './ogImageQueue'
 import {
+	blobValuesOf,
 	blobsWithPrefix,
 	clusterIndexStoreOf,
 	failureBlobsOf,
@@ -36,6 +37,7 @@ import {
 	screenshotOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
+import { getRenderPushFallbackKey } from './thumbnailRender'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -396,6 +398,7 @@ describe('deleteBoardThumbnails', () => {
 			// Two of them, as two concurrent MCP captures of different pages would leave.
 			await bucket.put(mcpTokenKey(board.kind, board.slug, 'page:a'), new Uint8Array().buffer)
 			await bucket.put(mcpTokenKey(board.kind, board.slug, 'page:b'), new Uint8Array().buffer)
+			await bucket.put(getRenderPushFallbackKey(board), new Uint8Array().buffer)
 		}
 	}
 
@@ -448,6 +451,7 @@ describe('deleteBoardThumbnails', () => {
 				ogTokenKey('published', 'published-slug'),
 				mcpTokenKey('published', 'published-slug', 'page:a'),
 				mcpTokenKey('published', 'published-slug', 'page:b'),
+				getRenderPushFallbackKey({ kind: 'published', slug: 'published-slug' }),
 			].sort()
 		)
 	})
@@ -504,6 +508,167 @@ describe('handleOgImageRenderMessage', () => {
 		).toEqual({
 			version: '1751234567890',
 			createdAt: expect.any(String),
+		})
+	})
+
+	describe('pushing the records into the render page', () => {
+		const board = { kind: 'published', slug: 'board' } as const
+		// Run as the page would, so a script that evaluates differently from JSON.parse fails here.
+		function runPushedScript(script: string) {
+			const window: Record<string, unknown> = {}
+			new Function('window', script)(window)
+			return window.__TLDRAW_RENDER__ as any
+		}
+
+		function arrange(overrides: Partial<Record<string, unknown>> = {}) {
+			vi.mocked(getPublishedFileInfo).mockResolvedValue({
+				id: 'file-1',
+				published: true,
+				lastPublished: 42,
+			})
+			vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(
+				makeSnapshot([
+					{ id: 'page:one', index: 'a1', shapes: 2 },
+					{ id: 'page:two', index: 'a2', shapes: 3 },
+				])
+			)
+			return makeEnv({
+				THUMBNAILS: makeFakeThumbnailsBucket(),
+				THUMBNAIL_RENDER_PUSH: 'true',
+				...overrides,
+			})
+		}
+
+		function requestsOf(env: ReturnType<typeof makeEnv>) {
+			return screenshotOf(env).mock.calls.map((call) => {
+				const body = call[1] as { url: string; addScriptTag?: { content: string }[] }
+				const script = body.addScriptTag?.[0]?.content
+				return {
+					push: new URL(body.url).searchParams.get('push'),
+					payload: script ? runPushedScript(script) : undefined,
+				}
+			})
+		}
+
+		it("injects the rendered page's records and announces the push on the URL", async () => {
+			const env = arrange()
+
+			await handleOgImageRenderMessage(env, makeMessage(board))
+
+			const [request] = requestsOf(env)
+			expect(request.push).toBe('1')
+			expect(request.payload).toMatchObject({
+				error: false,
+				renderParams: { pageId: 'page:one', camera: 'content' },
+			})
+			// Sliced to the rendered page, the same as the snapshot route would answer.
+			const shapeIds = request.payload.records
+				.filter((record: { typeName: string }) => record.typeName === 'shape')
+				.map((record: { id: string }) => record.id)
+			expect(shapeIds).toEqual(['shape:page:one-0', 'shape:page:one-1'])
+			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['push'])
+		})
+
+		it('pushes a "__proto__" key as a property, the way the fetch delivers it', async () => {
+			const env = arrange()
+			const snapshot = makeSnapshot([{ id: 'page:one', index: 'a1', shapes: 1 }])
+			snapshot.documents[1].state.meta = JSON.parse('{"__proto__":{"label":"example"}}')
+			vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(snapshot)
+
+			await handleOgImageRenderMessage(env, makeMessage(board))
+
+			const [request] = requestsOf(env)
+			const page = request.payload.records.find(
+				(record: { id: string }) => record.id === 'page:one'
+			)
+			expect(Object.keys(page.meta)).toEqual(['__proto__'])
+			expect(Object.getPrototypeOf(page.meta)).toBe(Object.prototype)
+		})
+
+		it('leaves the page to fetch when push is off', async () => {
+			const env = arrange({ THUMBNAIL_RENDER_PUSH: undefined })
+
+			await handleOgImageRenderMessage(env, makeMessage(board))
+
+			expect(requestsOf(env)).toEqual([{ push: null, payload: undefined }])
+			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
+		})
+
+		it('falls back to the fetch when the binding refuses the request as too large', async () => {
+			let calls = 0
+			const env = arrange({
+				BROWSER: makeBrowserBinding(async () => {
+					if (calls++ === 0) {
+						throw new Error('Serialized RPC arguments or return values are limited to 32MiB')
+					}
+					return new Response(new Uint8Array([1, 2, 3]), { status: 200 })
+				}),
+			})
+			const message = makeMessage(board)
+
+			await handleOgImageRenderMessage(env, message)
+
+			expect(requestsOf(env).map((request) => request.push)).toEqual(['1', null])
+			expect(requestsOf(env)[1].payload).toBeUndefined()
+			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['push_fallback'])
+			expect(message.ack).toHaveBeenCalledTimes(1)
+		})
+
+		it('fetches on the next attempt after a pushed capture times out, and only then', async () => {
+			vi.spyOn(console, 'error').mockImplementation(() => {})
+			let calls = 0
+			const env = arrange({
+				BROWSER: makeBrowserBinding(async () =>
+					calls++ === 0
+						? new Response('{"errors":[{"message":"waitForSelector timeout"}]}', { status: 422 })
+						: new Response(new Uint8Array([1, 2, 3]), { status: 200 })
+				),
+			})
+
+			const first = makeMessage(board, 1)
+			await handleOgImageRenderMessage(env, first)
+			expect(first.retry).toHaveBeenCalledTimes(1)
+
+			const second = makeMessage(board, 2)
+			await handleOgImageRenderMessage(env, second)
+			expect(second.ack).toHaveBeenCalledTimes(1)
+
+			expect(requestsOf(env).map((request) => request.push)).toEqual(['1', null])
+			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual([
+				'push',
+				'push_fallback',
+			])
+			expect(sessionsOf(env).map((session) => session.outcome)).toEqual(['browser_timeout', 'ok'])
+		})
+
+		it('keeps pushing after a pushed capture fails for a reason other than a timeout', async () => {
+			vi.spyOn(console, 'error').mockImplementation(() => {})
+			let calls = 0
+			const env = arrange({
+				BROWSER: makeBrowserBinding(async () =>
+					calls++ === 0
+						? new Response('{"errors":[{"message":"page crashed"}]}', { status: 500 })
+						: new Response(new Uint8Array([1, 2, 3]), { status: 200 })
+				),
+			})
+
+			await handleOgImageRenderMessage(env, makeMessage(board, 1))
+			await handleOgImageRenderMessage(env, makeMessage(board, 2))
+
+			expect(requestsOf(env).map((request) => request.push)).toEqual(['1', '1'])
+		})
+
+		it('does not retry a pushed capture that failed for any other reason', async () => {
+			vi.spyOn(console, 'error').mockImplementation(() => {})
+			const env = arrange({
+				BROWSER: makeBrowserBinding(async () => {
+					throw new Error('browser session failed')
+				}),
+			})
+
+			await handleOgImageRenderMessage(env, makeMessage(board))
+
+			expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
 		})
 	})
 

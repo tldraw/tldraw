@@ -16,6 +16,17 @@ export const THUMBNAIL_SETTLED_SELECTOR = '[data-thumbnail-ready="true"], [data-
 // <body> so it resolves to a single element (both <html> and <body> carry the ready marker).
 const THUMBNAIL_CAPTURE_SELECTOR = 'body[data-thumbnail-ready="true"]'
 
+// Shared so the worker and the page cannot drift: a mismatched name is silent, the page just fetches.
+export const THUMBNAIL_RENDER_GLOBAL = '__TLDRAW_RENDER__'
+
+// Tells the page a push is coming. Without it every pull render would wait for a push that never
+// lands. Set only by getThumbnailRenderRequestBase, alongside the script itself.
+export const THUMBNAIL_RENDER_PUSH_PARAM = 'push'
+
+// Where a measure page leaves its result for the worker's `/content` read. The page clears
+// everything else first, so the response stays the size of the answer rather than of the push.
+export const THUMBNAIL_MEASURE_RESULT_ID = 'tldraw-measure-result'
+
 // Builds the `/screenshot` request body. `timeoutMs` is granted to navigation and to the
 // settle+export wait *individually* — these are per-phase timers, not a cap on the call. They
 // exist so Browser Run gives up on a dead page early; bounding the call as a whole is the
@@ -27,16 +38,61 @@ export function getThumbnailScreenshotRequestBody({
 	width,
 	height,
 	timeoutMs,
+	injectedScript,
 }: {
 	renderUrl: string
 	width: number
 	height: number
 	timeoutMs: number
+	/** Run in the page after navigation; how the worker pushes the records in. */
+	injectedScript?: string
 }) {
-	const headers = getThumbnailScreenshotExtraHeaders(renderUrl)
 	return {
-		url: renderUrl,
+		...getThumbnailRenderRequestBase({ renderUrl, width, height, timeoutMs, injectedScript }),
+		// Capture the success-only element (it fills the viewport, so this matches a full-viewport
+		// screenshot). On a failure it's absent, so the capture errors out immediately instead of
+		// screenshotting the error page. `selector` targets an element without waiting (waitForSelector
+		// is the wait), so a missing element fails fast rather than re-waiting the timeout.
+		selector: THUMBNAIL_CAPTURE_SELECTOR,
+		screenshotOptions: {
+			type: 'png',
+		},
+	}
+}
+
+// Builds the `/content` request body for a measure. Same page, wait and timeouts as a screenshot;
+// the answer is the page's HTML, read for THUMBNAIL_MEASURE_RESULT_ID or the error marker.
+export function getThumbnailContentRequestBody(
+	options: Parameters<typeof getThumbnailRenderRequestBase>[0]
+) {
+	return {
+		...getThumbnailRenderRequestBase(options),
+		// Browser Run caches quick action responses for a few seconds by default, keyed on the request.
+		cacheTTL: 0,
+	}
+}
+
+function getThumbnailRenderRequestBase({
+	renderUrl,
+	width,
+	height,
+	timeoutMs,
+	injectedScript,
+}: {
+	renderUrl: string
+	width: number
+	height: number
+	timeoutMs: number
+	/** Run in the page after navigation; how the worker pushes the records in. */
+	injectedScript?: string
+}) {
+	const url = new URL(renderUrl)
+	if (injectedScript) url.searchParams.set(THUMBNAIL_RENDER_PUSH_PARAM, '1')
+	const headers = getThumbnailScreenshotExtraHeaders(url.toString())
+	return {
+		url: url.toString(),
 		...(headers ? { setExtraHTTPHeaders: headers } : null),
+		...(injectedScript ? { addScriptTag: [{ content: injectedScript }] } : null),
 		viewport: {
 			width,
 			height,
@@ -61,14 +117,6 @@ export function getThumbnailScreenshotRequestBody({
 		waitForSelector: {
 			selector: THUMBNAIL_SETTLED_SELECTOR,
 			timeout: timeoutMs,
-		},
-		// Capture the success-only element (it fills the viewport, so this matches a full-viewport
-		// screenshot). On a failure it's absent, so the capture errors out immediately instead of
-		// screenshotting the error page. `selector` targets an element without waiting (waitForSelector
-		// above is the wait), so a missing element fails fast rather than re-waiting the timeout.
-		selector: THUMBNAIL_CAPTURE_SELECTOR,
-		screenshotOptions: {
-			type: 'png',
 		},
 	}
 }

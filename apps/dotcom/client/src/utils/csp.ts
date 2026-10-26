@@ -73,6 +73,18 @@ export const csp = Object.keys(cspDirectives)
 	.map((directive) => `${directive} ${cspDirectives[directive].join(' ')}`)
 	.join('; ')
 
+// The thumbnail render page's policy: the app's, plus inline script, which Browser Run's
+// addScriptTag needs to push the records in. Without it the browser blocks the push silently and
+// every render fetches. Confined to that route, which has no user session for a script to reach.
+export const thumbnailRenderCsp = Object.keys(cspDirectives)
+	.map((directive) => {
+		const values = cspDirectives[directive]
+		if (directive === 'script-src')
+			return `${directive} ${[...values, `'unsafe-inline'`].join(' ')}`
+		return `${directive} ${values.join(' ')}`
+	})
+	.join('; ')
+
 export const cspDev = Object.keys(cspDirectives)
 	.filter((key) => key !== 'report-uri')
 	.map((directive) => {
