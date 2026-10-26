@@ -757,6 +757,54 @@ describe('workspace mutations', () => {
 		expect(s.group.length).toBe(0)
 	})
 
+	describe('cannot take over an existing id', () => {
+		const victimId = 'user_victim123456789'
+		const groupId = 'group_aaa11112222bbb'
+
+		async function expectNoTakeover(s: ReturnType<typeof makeStore>, id: string) {
+			const groupUsersBefore = [...s.group_user]
+			const { tx } = createMockTx(s)
+			await expectForbidden(() => createMutators(userId).createWorkspace(tx, { id, name: 'Mine' }))
+			expect(s.group_user).toEqual(groupUsersBefore)
+		}
+
+		it("another user's workspace", async () => {
+			await expectNoTakeover(
+				makeStore({
+					user: [makeUser({ id: userId }), makeUser({ id: victimId })],
+					group: [makeGroup({ id: groupId })],
+					group_user: [makeGroupUser({ userId: victimId, groupId, role: 'owner' })],
+				}),
+				groupId
+			)
+		})
+
+		it('a deleted workspace', async () => {
+			await expectNoTakeover(
+				makeStore({
+					user: [makeUser({ id: userId })],
+					group: [makeGroup({ id: groupId, isDeleted: true })],
+				}),
+				groupId
+			)
+		})
+
+		it("another user's home workspace", async () => {
+			await expectNoTakeover(
+				makeStore({
+					user: [makeUser({ id: userId }), makeUser({ id: victimId })],
+					group: [makeGroup({ id: victimId })],
+					group_user: [makeGroupUser({ userId: victimId, groupId: victimId, role: 'owner' })],
+				}),
+				victimId
+			)
+		})
+
+		it("a user's home id before their user row exists", async () => {
+			await expectNoTakeover(makeStore({ user: [makeUser({ id: userId })] }), victimId)
+		})
+	})
+
 	it('owner can update workspace name', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = makeStore({
@@ -1171,6 +1219,16 @@ describe('home workspace special case', () => {
 		await expectForbidden(() =>
 			m.setWorkspaceMemberRole(tx, { workspaceId: userId, targetUserId: targetId, role: 'owner' })
 		)
+	})
+
+	it('cannot remove members from home workspace, even with another owner', async () => {
+		const s = homeState({ secondOwnerId: 'user_second12345678' })
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectForbidden(() =>
+			m.removeWorkspaceMember(tx, { workspaceId: userId, targetUserId: 'user_second12345678' })
+		)
+		expect(s.group_user.length).toBe(2)
 	})
 })
 
