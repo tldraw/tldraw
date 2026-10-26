@@ -31,7 +31,7 @@ interface FlatState {
 
 function getEffectiveType(state: StateStmt): string {
 	if (state.type && state.type !== 'default') return state.type
-	// Mermaid auto-generates start/end pseudo-state ids ending with "_start"
+	// The parser auto-generates start/end pseudo-state ids ending with "_start"
 	// or "_end", optionally followed by a disambiguation digit (e.g. "_start2").
 	if (/_start\d*$/.test(state.id)) return 'start'
 	if (/_end\d*$/.test(state.id)) return 'end'
@@ -97,7 +97,7 @@ function flattenStateHierarchy(
 
 			for (const stmt of state.doc) {
 				if (typeof stmt === 'string') {
-					// Mermaid emits raw strings for stereotyped state declarations
+					// The parser emits raw strings for stereotyped state declarations
 					// like `state H <<history>>` — the ID and stereotype are stored
 					// as separate plain string entries.  Look up the state in the
 					// top-level map so it gets proper parentage.

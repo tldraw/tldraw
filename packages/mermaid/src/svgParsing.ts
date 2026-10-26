@@ -47,7 +47,7 @@ export interface ParsedDiagramLayout {
 	edgeLabels: Map<string, ParsedEdgeLabel>
 }
 
-function parseTranslate(attr: string | null): Vec2 {
+export function parseTranslate(attr: string | null): Vec2 {
 	// Matches SVG translate transforms, e.g. transform="translate(123.45, 67.8)".
 	// Handles scientific notation (1.2e+3). Group 1 = x offset, group 2 = y offset.
 	const match = attr?.match(/translate\(\s*([\d.e+-]+)[,\s]+([\d.e+-]+)\s*\)/)
@@ -187,8 +187,7 @@ const EDGE_SLIDE_INSET = 0.1
 /**
  * Bind an edge as an elbow arrow that follows the layout's route: it leaves and enters its shapes
  * where the route does, jogs where the route jogs, and carries its label where the layout put it.
- * Pele gives each edge its own port on a node's side, so anchoring there keeps parallel edges apart;
- * left to tldraw's defaults, the jogs and labels of neighbouring edges land on top of each other.
+ * Left to tldraw's defaults, neighbouring edges' jogs and labels land on top of each other.
  */
 export function getElbowEdgeLayout(
 	svgEdge: ParsedEdge,
@@ -211,11 +210,8 @@ export function getElbowEdgeLayout(
 	const start = toAnchor(first, startBox)
 	const end = toAnchor(last, endBox)
 
-	// Pele gives a labelled edge's label its own slot and detours the route through it, out and
-	// back. An elbow jogs only once, so it would cut straight across, piling neighbouring labels on
-	// top of each other. Instead, each end that can slide along its side to line up with the label
-	// does, and the one jog goes on the far side of the label from the end that did, so the label
-	// sits on a straight run through the slot the layout kept for it.
+	// Pele detours a labelled route through the label's slot, which a single-jog elbow would cut
+	// across, piling labels together. Slide an end to line up with the label and jog on its far side.
 	let throughLabel: { elbowMidPoint?: number; labelPosition: number } | undefined
 	if (label) {
 		const vertical = start.y === 0 || start.y === 1

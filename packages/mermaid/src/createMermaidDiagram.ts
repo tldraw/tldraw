@@ -24,10 +24,8 @@ export class MermaidDiagramError extends Error {
 	}
 }
 
-// How much longer than its label tldraw needs an elbow arrow to be before it stops squeezing the
-// label: 32 at each end, from `getArrowLabelSize`. It only squeezes arrows wider than they are tall,
-// so only a left-to-right layout needs the room; elsewhere it would push the slot the layout keeps
-// for each label out past the nodes the edge joins.
+// tldraw squeezes an elbow's label unless the arrow is 32 longer at each end (`getArrowLabelSize`),
+// and only for arrows wider than tall, so only left-to-right layouts get the room.
 const ELBOW_LABEL_MARGIN = 64
 
 function elbowLabelRoom(direction: string | undefined) {
@@ -60,9 +58,9 @@ export async function createMermaidDiagram(
 	const pele = await loadPele()
 	const type = pele.detectType(text)
 	if (!type) throw new MermaidDiagramError('not a mermaid diagram', 'parse')
-	await pele.load(type)
 	let model
 	try {
+		await pele.load(type)
 		model = pele.parse(text)
 	} catch {
 		throw new MermaidDiagramError(type, 'parse')

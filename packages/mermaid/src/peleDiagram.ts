@@ -1,6 +1,7 @@
 import type { RenderOptions } from 'pele'
 import {
 	getAccumulatedTranslate,
+	parseTranslate,
 	type ParsedCluster,
 	type ParsedDiagramLayout,
 	type ParsedEdge,
@@ -38,7 +39,7 @@ export async function parsePeleDiagram(text: string) {
 export async function withMountedPeleSvg<T>(
 	text: string,
 	options: RenderOptions,
-	read: (root: SVGSVGElement, svg: string) => T
+	read: (root: SVGSVGElement) => T
 ): Promise<T> {
 	const pele = await loadPele()
 	// Rendered from the source rather than its parsed model: pele ignores `options.config` when
@@ -56,7 +57,7 @@ export async function withMountedPeleSvg<T>(
 		offscreen.innerHTML = svg
 		const root = offscreen.querySelector('svg')
 		if (!root) throw new Error('pele produced no svg')
-		return read(root, svg)
+		return read(root)
 	} finally {
 		offscreen.remove()
 	}
@@ -82,9 +83,10 @@ export function parsePeleLayout(
 
 	const nodes = new Map<string, ParsedNode>()
 	for (const el of root.querySelectorAll('.pele-node[data-id], .pele-note[data-id]')) {
+		// Resolved before any skip: the mindmap resolver counts calls to tell repeated names apart.
+		const id = nodeId(el.getAttribute('data-id')!)
 		const shape = el.firstElementChild
 		if (!shape) continue
-		const id = nodeId(el.getAttribute('data-id')!)
 		const origin = getOrigin(el)
 		const box = getShapeBox(shape)
 		nodes.set(id, {
@@ -148,10 +150,8 @@ function num(el: Element, attr: string) {
 /** The element's own translate plus its ancestors'. */
 export function getOrigin(el: Element): Vec2 {
 	const ancestor = getAccumulatedTranslate(el)
-	const match = el.getAttribute('transform')?.match(/translate\(\s*([\d.e+-]+)[,\s]+([\d.e+-]+)/)
-	return match
-		? { x: ancestor.x + parseFloat(match[1]), y: ancestor.y + parseFloat(match[2]) }
-		: ancestor
+	const self = parseTranslate(el.getAttribute('transform'))
+	return { x: ancestor.x + self.x, y: ancestor.y + self.y }
 }
 
 /** Bounds of a node's outline, relative to the node's origin. */

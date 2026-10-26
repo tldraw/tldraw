@@ -359,7 +359,7 @@ describe('flowchartToBlueprint', () => {
 		expect(bp.edges[0].bend).not.toBe(0)
 	})
 
-	it('loops out of the side mermaid routed it and reaches out to its label', () => {
+	it('loops out of the side the layout routed it and reaches out to its label', () => {
 		// Node spans x 60–140, y 80–120. Mermaid's loop leaves and re-enters its bottom edge, the
 		// side facing the next rank in a top-down chart, and dips 30 below it; its label is centred
 		// 45 below that edge.
@@ -385,7 +385,7 @@ describe('flowchartToBlueprint', () => {
 		).edges[0]
 
 		// The label stays on the arrow. tldraw centres it on the middle of the arc, so the loop
-		// reaches the label's centre rather than stopping at mermaid's depth.
+		// reaches the label's centre rather than stopping at the layout's depth.
 		expect(withLabel.label).toBe('next page')
 		expect(withLabel.bend).toBe(45)
 		// A loop on a top or bottom edge is wider than tall, which is when tldraw wraps its label to
@@ -614,7 +614,7 @@ describe('stateToBlueprint', () => {
 		const loop = stateToBlueprint(layout, states, relations).edges[0]
 
 		// A loop on a side edge is taller than wide, so tldraw gives its label the full 16em cap and
-		// its ends stay where mermaid put them.
+		// its ends stay where the layout put them.
 		expect(loop).toMatchObject({
 			anchorStartX: 1,
 			anchorStartY: 0.125,
@@ -1337,7 +1337,7 @@ describe('sequenceToBlueprint', () => {
 		expect(findNode(bp, 'actor-bottom-A')!.y).toBe(twoActorLayout().actorLayouts[0].bottomY)
 	})
 
-	describe('rows measured from mermaid', () => {
+	describe('rows measured from the layout', () => {
 		/** Where an edge meets the lifelines it is bound to. */
 		function edgeYs(bp: DiagramMermaidBlueprint, label: string) {
 			const edge = bp.edges.find((e) => e.label === label)!
@@ -1348,7 +1348,7 @@ describe('sequenceToBlueprint', () => {
 			return [lineY(edge.startNodeId, edge.anchorStartY!), lineY(edge.endNodeId, edge.anchorEndY!)]
 		}
 
-		it('gives a tall note the room mermaid gave it', () => {
+		it('gives a tall note the room the layout gave it', () => {
 			const layout = actorLayout([-150, 150], [{ x: 0, y: 0, w: 120, h: 150 }], {
 				rowYs: new Map([
 					[0, -110],
@@ -1374,7 +1374,7 @@ describe('sequenceToBlueprint', () => {
 
 		it("keeps a created and destroyed participant's boxes apart", () => {
 			const layout = actorLayout([-150, 150], [], {
-				// Mermaid pushes the rows after a lifecycle box down by half the box's height.
+				// The layout pushes the rows after a lifecycle box down by half the box's height.
 				rowYs: new Map([
 					[0, -140],
 					[1, -130],
@@ -1405,7 +1405,7 @@ describe('sequenceToBlueprint', () => {
 			expect({ y: lifeline.y, endY: lifeline.endY }).toEqual({ y: -55, endY: 50 })
 		})
 
-		it("draws a fragment's frame and sections where mermaid did", () => {
+		it("draws a fragment's frame and sections where the layout did", () => {
 			const layout = actorLayout([-150, 150], [], {
 				rowYs: new Map([
 					[0, -120],
@@ -1433,7 +1433,7 @@ describe('sequenceToBlueprint', () => {
 			expect(findNode(bp, 'fragment-0-section-1')!.y).toBeGreaterThan(60)
 		})
 
-		it('spaces every row evenly when mermaid did not draw one of them', () => {
+		it('spaces every row evenly when the layout did not draw one of them', () => {
 			const partlyMeasured = actorLayout([-150, 150], [], { rowYs: new Map([[0, -140]]) })
 			const actors = new Map([actor('Alice'), actor('Bob')])
 			const messages = [

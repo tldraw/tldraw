@@ -146,13 +146,9 @@ export function getLayoutFontSize(editor: Editor) {
 }
 
 /**
- * Lets the layout measure text the way tldraw draws it, in tldraw's font rather than its own, so it
- * leaves room for the wider hand-drawn face: boxes fit their labels and gaps fit their edge labels.
- * Widths are measured at the size tldraw draws and returned in layout space.
- *
- * With `edgeLabelMargin`, text set smaller than a node's label (an edge's) is reported that much
- * wider, so the layout leaves room for it along the edge. tldraw squeezes an elbow arrow's label to
- * the arrow's length less a margin, so an edge only as long as its label wraps it mid-word.
+ * Measures layout text in tldraw's font so boxes and edge gaps fit tldraw's wider labels. With
+ * `edgeLabelMargin`, edge-sized text reports that much wider, since tldraw wraps an elbow's label
+ * once the arrow is barely longer than it.
  */
 export function createLayoutTextMeasurer(editor: Editor, opts: { edgeLabelMargin?: number } = {}) {
 	const font = getGeoLabelFont(editor)
