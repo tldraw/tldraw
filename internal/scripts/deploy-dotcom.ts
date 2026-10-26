@@ -293,6 +293,7 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // Staging: Supabase Micro (60 max_connections, 200 pooled clients)
 // Preview: Supabase branch instance (~60 max_connections per branch, isolated)
 // Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
+// Change-db connections have no cap: Zero opens 5 plus 1 per view-syncer catching up.
 
 // Fly.io VM sizes per environment.
 // Production uses performance (dedicated) CPUs for both RM and VS; staging uses shared.
@@ -322,22 +323,21 @@ const zeroVmSizes = {
 
 const zeroConnectionLimits = {
 	staging: {
-		rm: { upstream: 1, cvr: 1, change: 3 },
-		vs: { upstream: 2, cvr: 3, change: 1 },
+		rm: { upstream: 1, cvr: 1 },
+		vs: { upstream: 2, cvr: 3 },
 	},
 	production: {
-		rm: { upstream: 5, cvr: 10, change: 15 },
-		vs: { upstream: 8, cvr: 10, change: 3 },
+		rm: { upstream: 5, cvr: 10 },
+		vs: { upstream: 8, cvr: 10 },
 	},
 	// Previews use Supabase branch DB
 	preview: {
-		single: { upstream: 3, cvr: 5, change: 3 },
+		single: { upstream: 3, cvr: 5 },
 	},
 } as const
 interface ConnLimits {
 	upstream: number
 	cvr: number
-	change: number
 }
 interface SingleNodeConnLimits {
 	single: ConnLimits
@@ -731,7 +731,6 @@ function renderFlyioToml(appName: string): string {
 		.replaceAll('__ZERO_ADMIN_PASSWORD', zeroAdminPassword)
 		.replaceAll('__SINGLE_UPSTREAM_MAX_CONNS', String(zeroConns.single.upstream))
 		.replaceAll('__SINGLE_CVR_MAX_CONNS', String(zeroConns.single.cvr))
-		.replaceAll('__SINGLE_CHANGE_MAX_CONNS', String(zeroConns.single.change))
 }
 
 async function ensureFlyApp(appName: string, appsListOutput: string) {
@@ -821,7 +820,6 @@ function renderFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 		.replaceAll('__RM_UPSTREAM_MAX_CONNS', String(zeroConns.rm.upstream))
 		.replaceAll('__RM_CVR_MAX_CONNS', String(zeroConns.rm.cvr))
-		.replaceAll('__RM_CHANGE_MAX_CONNS', String(zeroConns.rm.change))
 		.replaceAll('__CPU_KIND', zeroVm.rm.cpuKind ?? 'shared')
 		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.rm.memory)
@@ -857,7 +855,6 @@ function renderFlyioViewSyncerToml(
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 		.replaceAll('__VS_UPSTREAM_MAX_CONNS', String(zeroConns.vs.upstream))
 		.replaceAll('__VS_CVR_MAX_CONNS', String(zeroConns.vs.cvr))
-		.replaceAll('__VS_CHANGE_MAX_CONNS', String(zeroConns.vs.change))
 		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
 		.replaceAll('__CPU_KIND', zeroVm.vs.cpuKind ?? 'shared')

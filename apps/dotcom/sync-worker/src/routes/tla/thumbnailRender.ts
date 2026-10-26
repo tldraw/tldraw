@@ -643,7 +643,7 @@ async function runRenderSession(
 			transport,
 			content,
 		})
-		throw new RenderPageError(pageError)
+		throw new RenderPageError({ detail: pageError })
 	}
 	if (buffer.byteLength === 0) {
 		// The session ran to completion — the spend is real — it just produced nothing usable.
