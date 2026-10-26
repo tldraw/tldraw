@@ -1,14 +1,5 @@
 import { VecModel } from './geometry-types'
 
-// Each point = 3 Float16s = 6 bytes = 8 base64 chars (legacy format)
-const _POINT_B64_LENGTH = 8
-
-// First point in delta encoding = 3 Float32s = 12 bytes = 16 base64 chars
-const FIRST_POINT_B64_LENGTH = 16
-
-// First point in 2D delta encoding = 2 Float32s = 8 bytes = 12 base64 chars (incl. padding)
-const FIRST_POINT_2D_B64_LENGTH = 12
-
 // Pressure value supplied when decoding non-pressure (2D) paths
 const DEFAULT_PRESSURE = 0.5
 
@@ -272,9 +263,265 @@ export function numberToFloat16Bits(value: number): number {
 }
 
 /**
- * Utilities for encoding and decoding points using base64 and Float16 encoding.
- * Provides functions for converting between VecModel arrays and compact base64 strings,
- * as well as individual point encoding/decoding operations.
+/*
+ * Path format (draw shape version PredictiveEncoding and later)
+ *
+ * Every coordinate is snapped to a fixed grid of 1/100 unit, which the draw tool
+ * already records on (Vec.toFixed), so its input round-trips exactly. Each point is
+ * predicted from the last two (constant velocity), and only the prediction error
+ * is stored:
+ *
+ *   residual[i] = (q[i] - q[i-1]) - (q[i-1] - q[i-2])     with q[-1] = q[-2] = 0
+ *
+ * so the first residual is the first point's absolute value and the second is a
+ * plain delta. Residuals are interleaved per point (x, y[, z]), zigzag-mapped to
+ * unsigned, and written as little-endian varints straight into the base64
+ * alphabet: each char carries 5 value bits plus a continue bit (32). Freehand
+ * residuals are mostly < 16, so one char per value is the common case.
+ *
+ * There is no header or length. A path is append-only: adding a point appends
+ * chars and never rewrites earlier ones. Decoding reads values until the string ends.
+ *
+ * Compared to the Float16 delta format this replaced, paths are ~half the size
+ * and don't accumulate error along the stroke, since quantizing happens before
+ * differencing.
+ */
+
+const GRID = 100
+const CONTINUE_BIT = 32
+const VALUE_BITS = 31
+// A zigzag of a 53-bit integer needs at most 11 five-bit chars.
+const MAX_CHARS_PER_POINT = 33
+
+const RESIDUAL_CHAR_CODES = new Uint8Array(64)
+for (let i = 0; i < 64; i++) RESIDUAL_CHAR_CODES[i] = BASE64_CHARS.charCodeAt(i)
+
+let encodeBuffer = new Uint8Array(1024)
+let encodeLength = 0
+
+// Non-finite input would otherwise poison every later point through the running sums.
+function quantize(value: number): number {
+	return Number.isFinite(value) ? Math.round(value * GRID) : 0
+}
+
+function writeResidual(n: number): void {
+	let v = n >= 0 ? n * 2 : -n * 2 - 1
+	while (v >= CONTINUE_BIT) {
+		// `& VALUE_BITS` is exact past 2^31: ToInt32 keeps the low bits of any safe integer.
+		encodeBuffer[encodeLength++] = RESIDUAL_CHAR_CODES[(v & VALUE_BITS) | CONTINUE_BIT]
+		v = v < 0x80000000 ? v >>> 5 : Math.floor(v / 32)
+	}
+	encodeBuffer[encodeLength++] = RESIDUAL_CHAR_CODES[v]
+}
+
+const latin1Decoder = typeof TextDecoder === 'function' ? new TextDecoder('latin1') : null
+
+function takeEncodedString(): string {
+	const chars = encodeBuffer.subarray(0, encodeLength)
+	if (latin1Decoder) return latin1Decoder.decode(chars)
+	let result = ''
+	for (let i = 0; i < chars.length; i += 8192) {
+		result += String.fromCharCode.apply(null, chars.subarray(i, i + 8192) as unknown as number[])
+	}
+	return result
+}
+
+function encodeResidualPath(points: VecModel[], dim: 2 | 3): string {
+	if (points.length === 0) return ''
+	encodeLength = 0
+
+	let x = 0
+	let y = 0
+	let z = 0
+	let dx = 0
+	let dy = 0
+	let dz = 0
+	for (let i = 0; i < points.length; i++) {
+		if (encodeLength + MAX_CHARS_PER_POINT > encodeBuffer.length) {
+			const grown = new Uint8Array(encodeBuffer.length * 2)
+			grown.set(encodeBuffer)
+			encodeBuffer = grown
+		}
+		const p = points[i]
+		const nx = quantize(p.x)
+		const ny = quantize(p.y)
+		writeResidual(nx - x - dx)
+		writeResidual(ny - y - dy)
+		dx = nx - x
+		dy = ny - y
+		x = nx
+		y = ny
+		if (dim === DIM_3D) {
+			const nz = quantize(p.z ?? DEFAULT_PRESSURE)
+			writeResidual(nz - z - dz)
+			dz = nz - z
+			z = nz
+		}
+	}
+
+	return takeEncodedString()
+}
+
+// Decoder cursor, shared so readResidual can return a plain number.
+let readIndex = 0
+
+// Reading past the end yields 0 and leaves readIndex > path.length, which callers
+// use to detect a truncated point.
+function readResidual(path: string): number {
+	let char = B64_LOOKUP[path.charCodeAt(readIndex++)]
+	let v = char & VALUE_BITS
+	let scale = CONTINUE_BIT
+	while (char & CONTINUE_BIT) {
+		char = B64_LOOKUP[path.charCodeAt(readIndex++)]
+		v += (char & VALUE_BITS) * scale
+		scale *= CONTINUE_BIT
+	}
+	return v % 2 === 0 ? v / 2 : -(v + 1) / 2
+}
+
+function decodeResidualPath(path: string, dim: 2 | 3, lastOnly: boolean): VecModel[] {
+	const result: VecModel[] = []
+	const length = path.length
+	readIndex = 0
+
+	let x = 0
+	let y = 0
+	let z = dim === DIM_3D ? 0 : DEFAULT_PRESSURE * GRID
+	let dx = 0
+	let dy = 0
+	let dz = 0
+	while (readIndex < length) {
+		dx += readResidual(path)
+		dy += readResidual(path)
+		x += dx
+		y += dy
+		if (dim === DIM_3D) {
+			dz += readResidual(path)
+			z += dz
+		}
+		if (!lastOnly) result.push({ x: x / GRID, y: y / GRID, z: z / GRID })
+	}
+	if (lastOnly && length > 0) result.push({ x: x / GRID, y: y / GRID, z: z / GRID })
+	return result
+}
+
+function legacyDeltaEncodePoints3D(points: VecModel[]): string {
+	if (points.length === 0) return ''
+
+	// First point: 3 Float32s = 12 bytes
+	// Remaining points: 3 Float16s each = 6 bytes each
+	const firstPointBytes = 12
+	const deltaBytes = (points.length - 1) * 6
+	const totalBytes = firstPointBytes + deltaBytes
+
+	const buffer = new Uint8Array(totalBytes)
+	const dataView = new DataView(buffer.buffer)
+
+	// First point is stored as Float32 for full precision
+	const first = points[0]
+	dataView.setFloat32(0, first.x, true) // little-endian
+	dataView.setFloat32(4, first.y, true)
+	dataView.setFloat32(8, first.z ?? 0.5, true)
+
+	// Subsequent points are Float16 deltas from the previous point
+	let prevX = first.x
+	let prevY = first.y
+	let prevZ = first.z ?? 0.5
+
+	for (let i = 1; i < points.length; i++) {
+		const p = points[i]
+		const z = p.z ?? 0.5
+
+		const offset = firstPointBytes + (i - 1) * 6
+		setFloat16(dataView, offset, p.x - prevX)
+		setFloat16(dataView, offset + 2, p.y - prevY)
+		setFloat16(dataView, offset + 4, z - prevZ)
+
+		prevX = p.x
+		prevY = p.y
+		prevZ = z
+	}
+
+	return uint8ArrayToBase64(buffer)
+}
+
+function legacyDeltaDecodePoints3D(base64: string): VecModel[] {
+	if (base64.length === 0) return []
+
+	const bytes = base64ToUint8Array(base64)
+	const dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+	const result: VecModel[] = []
+
+	// First point is Float32 (12 bytes)
+	let x = dataView.getFloat32(0, true)
+	let y = dataView.getFloat32(4, true)
+	let z = dataView.getFloat32(8, true)
+	result.push({ x, y, z })
+
+	// Subsequent points are Float16 deltas - accumulate to get absolute positions
+	const firstPointBytes = 12
+	for (let offset = firstPointBytes; offset < bytes.length; offset += 6) {
+		x += getFloat16(dataView, offset)
+		y += getFloat16(dataView, offset + 2)
+		z += getFloat16(dataView, offset + 4)
+		result.push({ x, y, z })
+	}
+
+	return result
+}
+
+function legacyDeltaEncodePoints2D(points: VecModel[]): string {
+	if (points.length === 0) return ''
+
+	const firstPointBytes = 8
+	const deltaBytes = (points.length - 1) * 4
+	const buffer = new Uint8Array(firstPointBytes + deltaBytes)
+	const dataView = new DataView(buffer.buffer)
+
+	const first = points[0]
+	dataView.setFloat32(0, first.x, true)
+	dataView.setFloat32(4, first.y, true)
+
+	let prevX = first.x
+	let prevY = first.y
+
+	for (let i = 1; i < points.length; i++) {
+		const p = points[i]
+		const offset = firstPointBytes + (i - 1) * 4
+		setFloat16(dataView, offset, p.x - prevX)
+		setFloat16(dataView, offset + 2, p.y - prevY)
+		prevX = p.x
+		prevY = p.y
+	}
+
+	return uint8ArrayToBase64(buffer)
+}
+
+function legacyDeltaDecodePoints2D(base64: string): VecModel[] {
+	if (base64.length === 0) return []
+
+	const bytes = base64ToUint8Array(base64)
+	const dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+	const result: VecModel[] = []
+
+	let x = dataView.getFloat32(0, true)
+	let y = dataView.getFloat32(4, true)
+	result.push({ x, y, z: DEFAULT_PRESSURE })
+
+	const firstPointBytes = 8
+	for (let offset = firstPointBytes; offset < bytes.length; offset += 4) {
+		x += getFloat16(dataView, offset)
+		y += getFloat16(dataView, offset + 2)
+		result.push({ x, y, z: DEFAULT_PRESSURE })
+	}
+
+	return result
+}
+
+/**
+ * Utilities for encoding and decoding draw and highlight segment paths. Paths are
+ * compact base64-alphabet strings: points snapped to a 1/100 unit grid, stored as
+ * prediction residuals. See the format notes in `b64Vecs.ts`.
  *
  * @public
  */
@@ -350,287 +597,148 @@ export class b64Vecs {
 	}
 
 	/**
-	 * Encode an array of VecModels using delta encoding for improved precision.
-	 * The first point is stored as Float32 (high precision for absolute position),
-	 * subsequent points are stored as Float16 deltas from the previous point.
-	 * This provides full precision for the starting position and excellent precision
-	 * for deltas between consecutive points (which are typically small values).
+	 * Encode points in the Float16 delta format used by draw and highlight shapes from
+	 * the Base64 migration up to PredictiveEncoding: a Float32 first point, then Float16
+	 * deltas. Each delta is taken from the original previous point, so decoding error
+	 * accumulates along the stroke.
 	 *
-	 * Format:
-	 * - First point: 3 Float32 values = 12 bytes = 16 base64 chars
-	 * - Delta points: 3 Float16 values each = 6 bytes = 8 base64 chars each
+	 * @param points - The points to encode
+	 * @param dim - `2` drops z, `3` (default) keeps it
+	 * @internal Used only by migrations
+	 */
+	static _legacyDeltaEncodePoints(points: VecModel[], dim?: 2 | 3): string {
+		return dim === DIM_2D ? legacyDeltaEncodePoints2D(points) : legacyDeltaEncodePoints3D(points)
+	}
+
+	/**
+	 * Decode a path written by {@link b64Vecs._legacyDeltaEncodePoints}.
+	 *
+	 * @param base64 - The legacy delta path
+	 * @param dim - `2` supplies z = 0.5, `3` (default) reads z
+	 * @internal Used only by migrations
+	 */
+	static _legacyDeltaDecodePoints(base64: string, dim?: 2 | 3): VecModel[] {
+		return dim === DIM_2D ? legacyDeltaDecodePoints2D(base64) : legacyDeltaDecodePoints3D(base64)
+	}
+
+	/**
+	 * Encode points as a segment path. Coordinates are rounded to the nearest 1/100
+	 * unit; non-finite values are stored as 0.
 	 *
 	 * @param points - An array of VecModel objects to encode
-	 * @param dim - Encoding dimension; `2` routes through the 2D variant (drops z), `3` (default) keeps x, y, z
-	 * @returns A base64-encoded string containing delta-encoded points
+	 * @param dim - `2` drops z (pressure), `3` (default) keeps it; a missing z encodes as 0.5
+	 * @returns The encoded path
 	 * @public
 	 */
 	static encodePoints(points: VecModel[], dim?: 2 | 3): string {
-		if (dim === DIM_2D) return b64Vecs.encodePoints2D(points)
-		if (points.length === 0) return ''
-
-		// First point: 3 Float32s = 12 bytes
-		// Remaining points: 3 Float16s each = 6 bytes each
-		const firstPointBytes = 12
-		const deltaBytes = (points.length - 1) * 6
-		const totalBytes = firstPointBytes + deltaBytes
-
-		const buffer = new Uint8Array(totalBytes)
-		const dataView = new DataView(buffer.buffer)
-
-		// First point is stored as Float32 for full precision
-		const first = points[0]
-		dataView.setFloat32(0, first.x, true) // little-endian
-		dataView.setFloat32(4, first.y, true)
-		dataView.setFloat32(8, first.z ?? 0.5, true)
-
-		// Subsequent points are Float16 deltas from the previous point
-		let prevX = first.x
-		let prevY = first.y
-		let prevZ = first.z ?? 0.5
-
-		for (let i = 1; i < points.length; i++) {
-			const p = points[i]
-			const z = p.z ?? 0.5
-
-			const offset = firstPointBytes + (i - 1) * 6
-			setFloat16(dataView, offset, p.x - prevX)
-			setFloat16(dataView, offset + 2, p.y - prevY)
-			setFloat16(dataView, offset + 4, z - prevZ)
-
-			prevX = p.x
-			prevY = p.y
-			prevZ = z
-		}
-
-		return uint8ArrayToBase64(buffer)
+		return encodeResidualPath(points, dim === DIM_2D ? DIM_2D : DIM_3D)
 	}
 
 	/**
-	 * Decode a delta-encoded base64 string back to an array of absolute VecModels.
-	 * The first point is stored as Float32 (high precision), subsequent points are
-	 * Float16 deltas that are accumulated to reconstruct absolute positions.
+	 * Decode a segment path back to absolute points.
 	 *
-	 * @param base64 - The base64-encoded string containing delta-encoded point data
-	 * @param dim - Encoding dimension; `2` expects x/y only (z supplied as 0.5), `3` (default) expects x/y/z
-	 * @returns An array of VecModel objects with absolute coordinates
+	 * @param path - A path written by {@link b64Vecs.encodePoints}
+	 * @param dim - The dimension the path was encoded with; `2` supplies z = 0.5
+	 * @returns The decoded points
 	 * @public
 	 */
-	static decodePoints(base64: string, dim?: 2 | 3): VecModel[] {
-		if (dim === DIM_2D) return b64Vecs.decodePoints2D(base64)
-		if (base64.length === 0) return []
-
-		const bytes = base64ToUint8Array(base64)
-		const dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-		const result: VecModel[] = []
-
-		// First point is Float32 (12 bytes)
-		let x = dataView.getFloat32(0, true)
-		let y = dataView.getFloat32(4, true)
-		let z = dataView.getFloat32(8, true)
-		result.push({ x, y, z })
-
-		// Subsequent points are Float16 deltas - accumulate to get absolute positions
-		const firstPointBytes = 12
-		for (let offset = firstPointBytes; offset < bytes.length; offset += 6) {
-			x += getFloat16(dataView, offset)
-			y += getFloat16(dataView, offset + 2)
-			z += getFloat16(dataView, offset + 4)
-			result.push({ x, y, z })
-		}
-
-		return result
+	static decodePoints(path: string, dim?: 2 | 3): VecModel[] {
+		return decodeResidualPath(path, dim === DIM_2D ? DIM_2D : DIM_3D, false)
 	}
 
 	/**
-	 * Get the first point from a delta-encoded base64 string.
-	 * The first point is stored as Float32 for full precision.
+	 * Get the first point of a segment path without decoding the rest.
 	 *
-	 * @param b64Points - The delta-encoded base64 string
-	 * @param dim - Encoding dimension; `2` expects x/y only (z supplied as 0.5), `3` (default) expects x/y/z
-	 * @returns The first point as a VecModel, or null if the string is too short
+	 * @param path - A path written by {@link b64Vecs.encodePoints}
+	 * @param dim - The dimension the path was encoded with; `2` supplies z = 0.5
+	 * @returns The first point, or null if the path holds no complete point
 	 * @public
 	 */
-	static decodeFirstPoint(b64Points: string, dim?: 2 | 3): VecModel | null {
-		if (dim === DIM_2D) return b64Vecs.decodeFirstPoint2D(b64Points)
-		// First point needs 16 base64 chars (12 bytes as Float32)
-		if (b64Points.length < FIRST_POINT_B64_LENGTH) return null
-
-		const bytes = base64ToUint8Array(b64Points.slice(0, FIRST_POINT_B64_LENGTH))
-		const dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-
-		return {
-			x: dataView.getFloat32(0, true),
-			y: dataView.getFloat32(4, true),
-			z: dataView.getFloat32(8, true),
-		}
+	static decodeFirstPoint(path: string, dim?: 2 | 3): VecModel | null {
+		if (path.length === 0) return null
+		readIndex = 0
+		const x = readResidual(path)
+		const y = readResidual(path)
+		const z = dim === DIM_2D ? DEFAULT_PRESSURE * GRID : readResidual(path)
+		if (readIndex > path.length) return null
+		return { x: x / GRID, y: y / GRID, z: z / GRID }
 	}
 
 	/**
-	 * Get the last point from a delta-encoded base64 string.
-	 * Requires decoding all points to accumulate deltas.
+	 * Get the last point of a segment path. Reads the whole path but allocates only
+	 * the result.
 	 *
-	 * @param b64Points - The delta-encoded base64 string
-	 * @param dim - Encoding dimension; `2` expects x/y only (z supplied as 0.5), `3` (default) expects x/y/z
-	 * @returns The last point as a VecModel, or null if the string is too short
+	 * @param path - A path written by {@link b64Vecs.encodePoints}
+	 * @param dim - The dimension the path was encoded with; `2` supplies z = 0.5
+	 * @returns The last point, or null if the path is empty
 	 * @public
 	 */
-	static decodeLastPoint(b64Points: string, dim?: 2 | 3): VecModel | null {
-		if (dim === DIM_2D) return b64Vecs.decodeLastPoint2D(b64Points)
-		if (b64Points.length < FIRST_POINT_B64_LENGTH) return null
-
-		const bytes = base64ToUint8Array(b64Points)
-		const dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-
-		// Start with first point (Float32)
-		let x = dataView.getFloat32(0, true)
-		let y = dataView.getFloat32(4, true)
-		let z = dataView.getFloat32(8, true)
-
-		// Accumulate all Float16 deltas to get the last point
-		const firstPointBytes = 12
-		for (let offset = firstPointBytes; offset < bytes.length; offset += 6) {
-			x += getFloat16(dataView, offset)
-			y += getFloat16(dataView, offset + 2)
-			z += getFloat16(dataView, offset + 4)
-		}
-
-		return { x, y, z }
+	static decodeLastPoint(path: string, dim?: 2 | 3): VecModel | null {
+		return decodeResidualPath(path, dim === DIM_2D ? DIM_2D : DIM_3D, true)[0] ?? null
 	}
 
 	/**
-	 * Encode an array of VecModels as 2D delta-encoded points, dropping z entirely.
-	 * Use for draw shapes from devices that don't report pressure, where z is a
-	 * constant 0.5 and storing it wastes ~33% of per-point bytes.
+	 * Encode points as a 2D segment path. Same as `encodePoints(points, 2)`.
 	 *
-	 * Format:
-	 * - First point: 2 Float32 values (x, y) = 8 bytes
-	 * - Delta points: 2 Float16 values (dx, dy) = 4 bytes each
-	 *
-	 * @param points - An array of VecModel objects to encode (z is discarded)
-	 * @returns A base64-encoded string containing 2D delta-encoded points
+	 * @param points - The points to encode (z is discarded)
+	 * @returns The encoded path
 	 * @public
 	 */
 	static encodePoints2D(points: VecModel[]): string {
-		if (points.length === 0) return ''
-
-		const firstPointBytes = 8
-		const deltaBytes = (points.length - 1) * 4
-		const buffer = new Uint8Array(firstPointBytes + deltaBytes)
-		const dataView = new DataView(buffer.buffer)
-
-		const first = points[0]
-		dataView.setFloat32(0, first.x, true)
-		dataView.setFloat32(4, first.y, true)
-
-		let prevX = first.x
-		let prevY = first.y
-
-		for (let i = 1; i < points.length; i++) {
-			const p = points[i]
-			const offset = firstPointBytes + (i - 1) * 4
-			setFloat16(dataView, offset, p.x - prevX)
-			setFloat16(dataView, offset + 2, p.y - prevY)
-			prevX = p.x
-			prevY = p.y
-		}
-
-		return uint8ArrayToBase64(buffer)
+		return encodeResidualPath(points, DIM_2D)
 	}
 
 	/**
-	 * Decode a 2D delta-encoded base64 string back to an array of absolute VecModels.
-	 * The z coordinate is always set to 0.5 (the default pressure value) so downstream
-	 * consumers don't need a separate code path.
+	 * Decode a 2D segment path. Same as `decodePoints(path, 2)`.
 	 *
-	 * @param base64 - The base64-encoded string containing 2D delta-encoded point data
-	 * @returns An array of VecModel objects with absolute (x, y) and z = 0.5
+	 * @param path - A 2D path written by {@link b64Vecs.encodePoints}
+	 * @returns The decoded points, each with z = 0.5
 	 * @public
 	 */
-	static decodePoints2D(base64: string): VecModel[] {
-		if (base64.length === 0) return []
-
-		const bytes = base64ToUint8Array(base64)
-		const dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-		const result: VecModel[] = []
-
-		let x = dataView.getFloat32(0, true)
-		let y = dataView.getFloat32(4, true)
-		result.push({ x, y, z: DEFAULT_PRESSURE })
-
-		const firstPointBytes = 8
-		for (let offset = firstPointBytes; offset < bytes.length; offset += 4) {
-			x += getFloat16(dataView, offset)
-			y += getFloat16(dataView, offset + 2)
-			result.push({ x, y, z: DEFAULT_PRESSURE })
-		}
-
-		return result
+	static decodePoints2D(path: string): VecModel[] {
+		return decodeResidualPath(path, DIM_2D, false)
 	}
 
 	/**
-	 * Get the first point from a 2D delta-encoded base64 string.
+	 * Get the first point of a 2D segment path. Same as `decodeFirstPoint(path, 2)`.
 	 *
-	 * @param b64Points - The 2D delta-encoded base64 string
-	 * @returns The first point with z = 0.5, or null if the string is too short
+	 * @param path - A 2D path written by {@link b64Vecs.encodePoints}
+	 * @returns The first point with z = 0.5, or null if the path holds no complete point
 	 * @public
 	 */
-	static decodeFirstPoint2D(b64Points: string): VecModel | null {
-		if (b64Points.length < FIRST_POINT_2D_B64_LENGTH) return null
-
-		const bytes = base64ToUint8Array(b64Points.slice(0, FIRST_POINT_2D_B64_LENGTH))
-		const dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-
-		return {
-			x: dataView.getFloat32(0, true),
-			y: dataView.getFloat32(4, true),
-			z: DEFAULT_PRESSURE,
-		}
+	static decodeFirstPoint2D(path: string): VecModel | null {
+		return b64Vecs.decodeFirstPoint(path, DIM_2D)
 	}
 
 	/**
-	 * Get the last point from a 2D delta-encoded base64 string.
-	 * Requires decoding all points to accumulate deltas.
+	 * Get the last point of a 2D segment path. Same as `decodeLastPoint(path, 2)`.
 	 *
-	 * @param b64Points - The 2D delta-encoded base64 string
-	 * @returns The last point with z = 0.5, or null if the string is too short
+	 * @param path - A 2D path written by {@link b64Vecs.encodePoints}
+	 * @returns The last point with z = 0.5, or null if the path is empty
 	 * @public
 	 */
-	static decodeLastPoint2D(b64Points: string): VecModel | null {
-		if (b64Points.length < FIRST_POINT_2D_B64_LENGTH) return null
-
-		const bytes = base64ToUint8Array(b64Points)
-		const dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-
-		let x = dataView.getFloat32(0, true)
-		let y = dataView.getFloat32(4, true)
-
-		const firstPointBytes = 8
-		for (let offset = firstPointBytes; offset < bytes.length; offset += 4) {
-			x += getFloat16(dataView, offset)
-			y += getFloat16(dataView, offset + 2)
-		}
-
-		return { x, y, z: DEFAULT_PRESSURE }
+	static decodeLastPoint2D(path: string): VecModel | null {
+		return b64Vecs.decodeLastPoint(path, DIM_2D)
 	}
 
 	/**
-	 * Whether an encoded path contains only a single point (a "dot"), inferred from
-	 * the encoded length without decoding — cheap enough for the render path.
+	 * Whether a path holds at most one point (a "dot"). Counts value terminators
+	 * and stops after the second point starts, so it is cheap enough for the
+	 * render path.
 	 *
-	 * The single-point length depends on the encoding dimension, so this takes the
-	 * segment's `dim`: a one-point path is `FIRST_POINT_B64_LENGTH` chars (3D) or
-	 * `FIRST_POINT_2D_B64_LENGTH` chars (2D). Keeping this beside the layout constants
-	 * is deliberate — it is the single source of truth for "how long is one point", so
-	 * callers never hard-code a length threshold (which silently breaks when a new
-	 * encoding is added).
-	 *
-	 * @param b64Points - The encoded path string
-	 * @param dim - Encoding dimension; `2` for (x, y), `3` (default) for (x, y, z)
-	 * @returns true if the path encodes exactly one point
+	 * @param path - A path written by {@link b64Vecs.encodePoints}
+	 * @param dim - The dimension the path was encoded with
+	 * @returns true if the path encodes zero or one points
 	 * @public
 	 */
-	static isSinglePoint(b64Points: string, dim?: 2 | 3): boolean {
-		return b64Points.length <= (dim === DIM_2D ? FIRST_POINT_2D_B64_LENGTH : FIRST_POINT_B64_LENGTH)
+	static isSinglePoint(path: string, dim?: 2 | 3): boolean {
+		const valuesPerPoint = dim === DIM_2D ? DIM_2D : DIM_3D
+		let values = 0
+		for (let i = 0; i < path.length; i++) {
+			if ((B64_LOOKUP[path.charCodeAt(i)] & CONTINUE_BIT) === 0 && ++values > valuesPerPoint) {
+				return false
+			}
+		}
+		return true
 	}
 }

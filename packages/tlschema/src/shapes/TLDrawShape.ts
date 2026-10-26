@@ -146,6 +146,7 @@ const Versions = createShapePropsMigrationIds('draw', {
 	Base64: 3,
 	LegacyPointsConversion: 4,
 	OmitNonPressureZ: 5,
+	PredictiveEncoding: 6,
 })
 
 /**
@@ -207,7 +208,7 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 					const vecModels = Array.isArray(points) ? points : b64Vecs._legacyDecodePoints(points)
 					return {
 						...rest,
-						path: b64Vecs.encodePoints(vecModels),
+						path: b64Vecs._legacyDeltaEncodePoints(vecModels),
 					}
 				})
 				props.scaleX = props.scaleX ?? 1
@@ -219,7 +220,7 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 					const { path, ...rest } = segment
 					return {
 						...rest,
-						points: b64Vecs.decodePoints(path),
+						points: b64Vecs._legacyDeltaDecodePoints(path),
 					}
 				})
 				delete props.scaleX
@@ -239,7 +240,7 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 					const vecModels = Array.isArray(points) ? points : b64Vecs._legacyDecodePoints(points)
 					return {
 						...rest,
-						path: b64Vecs.encodePoints(vecModels),
+						path: b64Vecs._legacyDeltaEncodePoints(vecModels),
 					}
 				})
 			},
@@ -263,18 +264,43 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 					if (segment.dim === undefined) return segment
 					const { dim, ...rest } = segment
 					return dim === DIM_2D
-						? { ...rest, path: b64Vecs.encodePoints(b64Vecs.decodePoints(segment.path, DIM_2D)) }
+						? {
+								...rest,
+								path: b64Vecs._legacyDeltaEncodePoints(
+									b64Vecs._legacyDeltaDecodePoints(segment.path, DIM_2D)
+								),
+							}
 						: rest
 				})
+			},
+		},
+		{
+			id: Versions.PredictiveEncoding,
+			up: (props) => {
+				props.segments = props.segments.map((segment: any) => ({
+					...segment,
+					path: b64Vecs.encodePoints(
+						b64Vecs._legacyDeltaDecodePoints(segment.path, segment.dim),
+						segment.dim
+					),
+				}))
+			},
+			down: (props) => {
+				props.segments = props.segments.map((segment: any) => ({
+					...segment,
+					path: b64Vecs._legacyDeltaEncodePoints(
+						b64Vecs.decodePoints(segment.path, segment.dim),
+						segment.dim
+					),
+				}))
 			},
 		},
 	],
 })
 
 /**
- * Compress legacy draw shape segments by converting VecModel[] points to delta-encoded base64 format.
- * This function is useful for converting old draw shape data to the new compressed format.
- * Uses delta encoding for improved Float16 precision.
+ * Compress legacy draw shape segments by converting VecModel[] points to encoded paths.
+ * This function is useful for converting old draw shape data to the current format.
  *
  * @public
  */

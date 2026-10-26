@@ -5,6 +5,7 @@ import { imageAssetVersions } from './assets/TLImageAsset'
 import { videoAssetVersions } from './assets/TLVideoAsset'
 import { arrowBindingVersions } from './bindings/TLArrowBinding'
 import { b64Vecs } from './misc/b64Vecs'
+import { VecModel } from './misc/geometry-types'
 import { toRichText } from './misc/TLRichText'
 import { assetVersions } from './records/TLAsset'
 import { cameraVersions } from './records/TLCamera'
@@ -2331,6 +2332,9 @@ describe('TLVideoAsset AddAutoplay', () => {
 	})
 })
 
+// Draw and highlight paths before PredictiveEncoding used the Float16 delta format.
+const legacyDelta2D = (points: VecModel[]) => b64Vecs._legacyDeltaEncodePoints(points, 2)
+
 describe('Base64 encoding for draw shape', () => {
 	const { up, down } = getTestMigration(drawShapeVersions.Base64)
 
@@ -2351,14 +2355,14 @@ describe('Base64 encoding for draw shape', () => {
 		expect(typeof result.props.segments[0].path).toBe('string')
 		expect(result.props.segments[0].points).toBeUndefined()
 
-		const decodedPoints = b64Vecs.decodePoints(result.props.segments[0].path)
+		const decodedPoints = b64Vecs._legacyDeltaDecodePoints(result.props.segments[0].path)
 		expect(decodedPoints.length).toBe(2)
 		expect(decodedPoints[0].x).toBeCloseTo(0, 0)
 		expect(decodedPoints[1].x).toBeCloseTo(10, 0)
 	})
 
 	test('down converts path back to VecModel[] array in points', () => {
-		const path = b64Vecs.encodePoints([
+		const path = b64Vecs._legacyDeltaEncodePoints([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.6 },
 		])
@@ -2392,7 +2396,7 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 		expect(result.props.segments[0].path).toBeDefined()
 		expect(result.props.segments[0].points).toBeUndefined()
 
-		const decodedPoints = b64Vecs.decodePoints(result.props.segments[0].path)
+		const decodedPoints = b64Vecs._legacyDeltaDecodePoints(result.props.segments[0].path)
 		expect(decodedPoints.length).toBe(2)
 		expect(decodedPoints[0].x).toBeCloseTo(0, 0)
 		expect(decodedPoints[1].x).toBeCloseTo(10, 0)
@@ -2422,11 +2426,11 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 		expect(result.props.segments[1].path).toBeDefined()
 		expect(result.props.segments[1].points).toBeUndefined()
 
-		const decoded1 = b64Vecs.decodePoints(result.props.segments[0].path)
+		const decoded1 = b64Vecs._legacyDeltaDecodePoints(result.props.segments[0].path)
 		expect(decoded1[0].x).toBeCloseTo(0, 0)
 		expect(decoded1[1].x).toBeCloseTo(10, 0)
 
-		const decoded2 = b64Vecs.decodePoints(result.props.segments[1].path)
+		const decoded2 = b64Vecs._legacyDeltaDecodePoints(result.props.segments[1].path)
 		expect(decoded2[0].x).toBeCloseTo(20, 0)
 		expect(decoded2[1].x).toBeCloseTo(30, 0)
 	})
@@ -2443,7 +2447,7 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 		const absoluteBase64 = b64Vecs._legacyEncodePoints([{ x: 100, y: 200, z: 0.75 }])
 		const result = up({ props: { segments: [{ type: 'free', points: absoluteBase64 }] } })
 
-		const decodedPoints = b64Vecs.decodePoints(result.props.segments[0].path)
+		const decodedPoints = b64Vecs._legacyDeltaDecodePoints(result.props.segments[0].path)
 		expect(decodedPoints.length).toBe(1)
 		expect(decodedPoints[0].x).toBeCloseTo(100, 0)
 		expect(decodedPoints[0].y).toBeCloseTo(200, 0)
@@ -2451,7 +2455,7 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 	})
 
 	test('up leaves already-converted path unchanged', () => {
-		const deltaPath = b64Vecs.encodePoints([
+		const deltaPath = b64Vecs._legacyDeltaEncodePoints([
 			{ x: 100, y: 200, z: 0.5 },
 			{ x: 101, y: 201, z: 0.6 },
 		])
@@ -2462,7 +2466,7 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 	})
 
 	test('down is a no-op (handled by Base64 down migration)', () => {
-		const deltaPath = b64Vecs.encodePoints([
+		const deltaPath = b64Vecs._legacyDeltaEncodePoints([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.6 },
 		])
@@ -2491,7 +2495,7 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 		expect(result.props.segments[0].points).toBeUndefined()
 
 		// Verify the new format is decodable and produces valid data
-		const decoded = b64Vecs.decodePoints(result.props.segments[0].path)
+		const decoded = b64Vecs._legacyDeltaDecodePoints(result.props.segments[0].path)
 		expect(decoded).toHaveLength(3)
 
 		// Data is valid (not NaN, not Infinity)
@@ -2559,7 +2563,7 @@ describe('Base64 encoding for highlight shape', () => {
 	})
 
 	test('down converts path back to VecModel[] array in points', () => {
-		const path = b64Vecs.encodePoints([
+		const path = b64Vecs._legacyDeltaEncodePoints([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.6 },
 		])
@@ -2611,13 +2615,13 @@ describe('LegacyPointsConversion migration for highlight shape', () => {
 		expect(result.props.segments[0].points).toBeUndefined()
 		expect(result.props.segments[1].path).toBeDefined()
 
-		const decoded1 = b64Vecs.decodePoints(result.props.segments[0].path)
+		const decoded1 = b64Vecs._legacyDeltaDecodePoints(result.props.segments[0].path)
 		expect(decoded1[0].x).toBeCloseTo(0, 0)
 		expect(decoded1[1].x).toBeCloseTo(10, 0)
 	})
 
 	test('up leaves already-converted path unchanged', () => {
-		const deltaPath = b64Vecs.encodePoints([
+		const deltaPath = b64Vecs._legacyDeltaEncodePoints([
 			{ x: 100, y: 200, z: 0.5 },
 			{ x: 101, y: 201, z: 0.6 },
 		])
@@ -2627,7 +2631,7 @@ describe('LegacyPointsConversion migration for highlight shape', () => {
 	})
 
 	test('down is a no-op (handled by Base64 down migration)', () => {
-		const deltaPath = b64Vecs.encodePoints([
+		const deltaPath = b64Vecs._legacyDeltaEncodePoints([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.6 },
 		])
@@ -2685,7 +2689,7 @@ describe('OmitNonPressureZ migration for draw shape', () => {
 	const { up, down } = getTestMigration(drawShapeVersions.OmitNonPressureZ)
 
 	test('up is a no-op for 3D segments (absent dim reads as 3D)', () => {
-		const path = b64Vecs.encodePoints([
+		const path = b64Vecs._legacyDeltaEncodePoints([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.5 },
 		])
@@ -2694,7 +2698,7 @@ describe('OmitNonPressureZ migration for draw shape', () => {
 	})
 
 	test('up leaves a 2D segment untouched', () => {
-		const path = b64Vecs.encodePoints2D([
+		const path = legacyDelta2D([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.5 },
 		])
@@ -2709,18 +2713,18 @@ describe('OmitNonPressureZ migration for draw shape', () => {
 			{ x: 20, y: 4, z: 0.5 },
 		]
 		const result = down({
-			props: { segments: [{ type: 'free', path: b64Vecs.encodePoints2D(points), dim: 2 }] },
+			props: { segments: [{ type: 'free', path: legacyDelta2D(points), dim: 2 }] },
 		})
 
 		expect(result.props.segments[0].dim).toBeUndefined()
-		const decoded = b64Vecs.decodePoints(result.props.segments[0].path)
+		const decoded = b64Vecs._legacyDeltaDecodePoints(result.props.segments[0].path)
 		expect(decoded.length).toBe(3)
 		expect(decoded[2].x).toBeCloseTo(20, 0)
 		expect(decoded[0].z).toBe(0.5)
 	})
 
 	test('down leaves a 3D segment (no dim) unchanged', () => {
-		const path = b64Vecs.encodePoints([
+		const path = b64Vecs._legacyDeltaEncodePoints([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.6 },
 		])
@@ -2729,7 +2733,7 @@ describe('OmitNonPressureZ migration for draw shape', () => {
 	})
 
 	test('down strips an explicit dim: 3 without re-encoding the (already 3D) path', () => {
-		const path = b64Vecs.encodePoints([
+		const path = b64Vecs._legacyDeltaEncodePoints([
 			{ x: 1, y: 2, z: 0.6 },
 			{ x: 3, y: 4, z: 0.7 },
 		])
@@ -2739,11 +2743,11 @@ describe('OmitNonPressureZ migration for draw shape', () => {
 	})
 
 	test('down handles mixed 2D and 3D segments', () => {
-		const path3D = b64Vecs.encodePoints([
+		const path3D = b64Vecs._legacyDeltaEncodePoints([
 			{ x: 1, y: 2, z: 0.6 },
 			{ x: 3, y: 4, z: 0.7 },
 		])
-		const path2D = b64Vecs.encodePoints2D([
+		const path2D = legacyDelta2D([
 			{ x: 5, y: 6, z: 0.5 },
 			{ x: 7, y: 8, z: 0.5 },
 		])
@@ -2757,7 +2761,7 @@ describe('OmitNonPressureZ migration for draw shape', () => {
 		})
 		expect(result.props.segments[0]).toEqual({ type: 'free', path: path3D })
 		expect(result.props.segments[1].dim).toBeUndefined()
-		expect(b64Vecs.decodePoints(result.props.segments[1].path).length).toBe(2)
+		expect(b64Vecs._legacyDeltaDecodePoints(result.props.segments[1].path).length).toBe(2)
 	})
 })
 
@@ -2765,7 +2769,7 @@ describe('OmitNonPressureZ migration for highlight shape', () => {
 	const { up, down } = getTestMigration(highlightShapeVersions.OmitNonPressureZ)
 
 	test('up is a no-op', () => {
-		const path = b64Vecs.encodePoints2D([
+		const path = legacyDelta2D([
 			{ x: 0, y: 0, z: 0.5 },
 			{ x: 10, y: 10, z: 0.5 },
 		])
@@ -2774,15 +2778,65 @@ describe('OmitNonPressureZ migration for highlight shape', () => {
 	})
 
 	test('down re-encodes a 2D segment to 3D and strips dim', () => {
-		const path2D = b64Vecs.encodePoints2D([
+		const path2D = legacyDelta2D([
 			{ x: 5, y: 6, z: 0.5 },
 			{ x: 12, y: 9, z: 0.5 },
 		])
 		const result = down({ props: { segments: [{ type: 'free', path: path2D, dim: 2 }] } })
 		expect(result.props.segments[0].dim).toBeUndefined()
-		expect(b64Vecs.decodePoints(result.props.segments[0].path).length).toBe(2)
+		expect(b64Vecs._legacyDeltaDecodePoints(result.props.segments[0].path).length).toBe(2)
 	})
 })
+
+for (const [shape, versions] of [
+	['draw', drawShapeVersions],
+	['highlight', highlightShapeVersions],
+] as const) {
+	describe(`PredictiveEncoding migration for ${shape} shape`, () => {
+		const { up, down } = getTestMigration(versions.PredictiveEncoding)
+		const points3D = [
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10.25, y: -3.5, z: 0.62 },
+			{ x: 21, y: -6.75, z: 0.7 },
+		]
+		const points2D = points3D.map((p) => ({ ...p, z: 0.5 }))
+
+		test('up re-encodes 3D and 2D segments, keeping type and dim', () => {
+			const result = up({
+				props: {
+					segments: [
+						{ type: 'free', path: b64Vecs._legacyDeltaEncodePoints(points3D) },
+						{ type: 'straight', path: legacyDelta2D(points2D), dim: 2 },
+					],
+				},
+			})
+			expect(result.props.segments).toEqual([
+				{ type: 'free', path: b64Vecs.encodePoints(points3D) },
+				{ type: 'straight', path: b64Vecs.encodePoints(points2D, 2), dim: 2 },
+			])
+		})
+
+		test('up leaves empty paths empty', () => {
+			const result = up({ props: { segments: [{ type: 'free', path: '' }] } })
+			expect(result.props.segments).toEqual([{ type: 'free', path: '' }])
+		})
+
+		test('down re-encodes back to the legacy delta format', () => {
+			const result = down({
+				props: {
+					segments: [
+						{ type: 'free', path: b64Vecs.encodePoints(points3D) },
+						{ type: 'straight', path: b64Vecs.encodePoints(points2D, 2), dim: 2 },
+					],
+				},
+			})
+			expect(result.props.segments).toEqual([
+				{ type: 'free', path: b64Vecs._legacyDeltaEncodePoints(points3D) },
+				{ type: 'straight', path: legacyDelta2D(points2D), dim: 2 },
+			])
+		})
+	})
+}
 
 describe('DrawShapeSegment dim validation', () => {
 	test('accepts dim 2, 3, or absent; rejects other values', () => {

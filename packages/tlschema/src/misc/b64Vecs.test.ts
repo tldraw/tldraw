@@ -10,7 +10,7 @@ import { VecModel } from './geometry-types'
 
 const hasNativeFloat16 = typeof (DataView.prototype as any).getFloat16 === 'function'
 
-describe('b64Vecs delta encoding', () => {
+describe('legacy Float16 delta encoding (migrations only)', () => {
 	describe('precision advantage over legacy encoding', () => {
 		/**
 		 * Float16 has 10 mantissa bits, so at value ~10000 the step size is 8.
@@ -39,8 +39,8 @@ describe('b64Vecs delta encoding', () => {
 			const legacyDelta1 = Math.abs(legacyDecoded[1].x - legacyDecoded[0].x)
 
 			// Delta encoding: preserves the small deltas
-			const deltaEncoded = b64Vecs.encodePoints(points)
-			const deltaDecoded = b64Vecs.decodePoints(deltaEncoded)
+			const deltaEncoded = b64Vecs._legacyDeltaEncodePoints(points)
+			const deltaDecoded = b64Vecs._legacyDeltaDecodePoints(deltaEncoded)
 
 			const deltaDelta1 = Math.abs(deltaDecoded[1].x - deltaDecoded[0].x)
 			const deltaDelta2 = Math.abs(deltaDecoded[2].x - deltaDecoded[1].x)
@@ -72,7 +72,9 @@ describe('b64Vecs delta encoding', () => {
 			// All these points collapse to 49984 or 50016 in legacy encoding
 
 			const legacyDecoded = b64Vecs._legacyDecodePoints(b64Vecs._legacyEncodePoints(points))
-			const deltaDecoded = b64Vecs.decodePoints(b64Vecs.encodePoints(points))
+			const deltaDecoded = b64Vecs._legacyDeltaDecodePoints(
+				b64Vecs._legacyDeltaEncodePoints(points)
+			)
 
 			// Calculate total path length for each encoding
 			let legacyLength = 0
@@ -107,8 +109,8 @@ describe('b64Vecs delta encoding', () => {
 			const preciseValue = 123456.789
 			const points: VecModel[] = [{ x: preciseValue, y: preciseValue, z: 0.5 }]
 
-			const encoded = b64Vecs.encodePoints(points)
-			const decoded = b64Vecs.decodePoints(encoded)
+			const encoded = b64Vecs._legacyDeltaEncodePoints(points)
+			const decoded = b64Vecs._legacyDeltaDecodePoints(encoded)
 
 			// Float32 should preserve ~7 significant digits
 			expect(decoded[0].x).toBeCloseTo(preciseValue, 2)
@@ -127,18 +129,18 @@ describe('b64Vecs delta encoding', () => {
 	describe('delta encoding format', () => {
 		it('uses correct byte sizes: 12 bytes for first point, 6 bytes per delta', () => {
 			// Single point: 3 Float32s = 12 bytes = 16 base64 chars
-			const onePoint = b64Vecs.encodePoints([{ x: 0, y: 0, z: 0.5 }])
+			const onePoint = b64Vecs._legacyDeltaEncodePoints([{ x: 0, y: 0, z: 0.5 }])
 			expect(onePoint.length).toBe(16)
 
 			// Two points: 12 bytes + 6 bytes = 18 bytes = 24 base64 chars
-			const twoPoints = b64Vecs.encodePoints([
+			const twoPoints = b64Vecs._legacyDeltaEncodePoints([
 				{ x: 0, y: 0, z: 0.5 },
 				{ x: 1, y: 1, z: 0.5 },
 			])
 			expect(twoPoints.length).toBe(24)
 
 			// Three points: 12 bytes + 6 bytes + 6 bytes = 24 bytes = 32 base64 chars
-			const threePoints = b64Vecs.encodePoints([
+			const threePoints = b64Vecs._legacyDeltaEncodePoints([
 				{ x: 0, y: 0, z: 0.5 },
 				{ x: 1, y: 1, z: 0.5 },
 				{ x: 2, y: 2, z: 0.5 },
@@ -147,8 +149,8 @@ describe('b64Vecs delta encoding', () => {
 		})
 
 		it('empty array produces empty string', () => {
-			expect(b64Vecs.encodePoints([])).toBe('')
-			expect(b64Vecs.decodePoints('')).toEqual([])
+			expect(b64Vecs._legacyDeltaEncodePoints([])).toBe('')
+			expect(b64Vecs._legacyDeltaDecodePoints('')).toEqual([])
 		})
 
 		it('defaults z to 0.5 when undefined', () => {
@@ -156,57 +158,10 @@ describe('b64Vecs delta encoding', () => {
 				{ x: 0, y: 0 },
 				{ x: 1, y: 1 },
 			]
-			const decoded = b64Vecs.decodePoints(b64Vecs.encodePoints(points))
+			const decoded = b64Vecs._legacyDeltaDecodePoints(b64Vecs._legacyDeltaEncodePoints(points))
 
 			expect(decoded[0].z).toBe(0.5)
 			expect(decoded[1].z).toBe(0.5)
-		})
-	})
-
-	describe('decodeFirstPoint', () => {
-		it('extracts first point without full decode', () => {
-			const points: VecModel[] = [
-				{ x: 100, y: 200, z: 0.75 },
-				{ x: 101, y: 201, z: 0.8 },
-			]
-			const encoded = b64Vecs.encodePoints(points)
-			const first = b64Vecs.decodeFirstPoint(encoded)
-
-			expect(first).toEqual({ x: 100, y: 200, z: 0.75 })
-		})
-
-		it('returns null for insufficient data', () => {
-			expect(b64Vecs.decodeFirstPoint('')).toBeNull()
-			expect(b64Vecs.decodeFirstPoint('AAAA')).toBeNull() // Only 4 chars, need 16
-		})
-	})
-
-	describe('decodeLastPoint', () => {
-		it('accumulates deltas to get last point', () => {
-			const points: VecModel[] = [
-				{ x: 0, y: 0, z: 0.5 },
-				{ x: 10, y: 20, z: 0.6 },
-				{ x: 30, y: 50, z: 0.7 },
-			]
-			const encoded = b64Vecs.encodePoints(points)
-			const last = b64Vecs.decodeLastPoint(encoded)
-
-			expect(last!.x).toBeCloseTo(30, 2)
-			expect(last!.y).toBeCloseTo(50, 2)
-			expect(last!.z).toBeCloseTo(0.7, 2)
-		})
-
-		it('returns first point when only one point exists', () => {
-			const points: VecModel[] = [{ x: 42, y: 84, z: 0.5 }]
-			const encoded = b64Vecs.encodePoints(points)
-			const last = b64Vecs.decodeLastPoint(encoded)
-
-			expect(last).toEqual({ x: 42, y: 84, z: 0.5 })
-		})
-
-		it('returns null for insufficient data', () => {
-			expect(b64Vecs.decodeLastPoint('')).toBeNull()
-			expect(b64Vecs.decodeLastPoint('AAAA')).toBeNull()
 		})
 	})
 
@@ -221,7 +176,7 @@ describe('b64Vecs delta encoding', () => {
 				{ x: 114, y: 110, z: 0.6 },
 			]
 
-			const decoded = b64Vecs.decodePoints(b64Vecs.encodePoints(points))
+			const decoded = b64Vecs._legacyDeltaDecodePoints(b64Vecs._legacyDeltaEncodePoints(points))
 
 			expect(decoded).toHaveLength(points.length)
 			for (let i = 0; i < points.length; i++) {
@@ -237,7 +192,7 @@ describe('b64Vecs delta encoding', () => {
 				{ x: -99, y: -198, z: 0.5 },
 			]
 
-			const decoded = b64Vecs.decodePoints(b64Vecs.encodePoints(points))
+			const decoded = b64Vecs._legacyDeltaDecodePoints(b64Vecs._legacyDeltaEncodePoints(points))
 
 			expect(decoded[0].x).toBe(-100)
 			expect(decoded[0].y).toBe(-200)
@@ -252,7 +207,7 @@ describe('b64Vecs delta encoding', () => {
 				{ x: 100, y: 100, z: 0.5 }, // Same point again
 			]
 
-			const decoded = b64Vecs.decodePoints(b64Vecs.encodePoints(points))
+			const decoded = b64Vecs._legacyDeltaDecodePoints(b64Vecs._legacyDeltaEncodePoints(points))
 
 			expect(decoded[0]).toEqual({ x: 100, y: 100, z: 0.5 })
 			expect(decoded[1]).toEqual({ x: 100, y: 100, z: 0.5 })
@@ -313,7 +268,7 @@ describe('native/fallback interoperability', () => {
 			]
 
 			// Encode with production (may use native)
-			const productionEncoded = b64Vecs.encodePoints(points)
+			const productionEncoded = b64Vecs._legacyDeltaEncodePoints(points)
 
 			// Decode with fallback
 			const bytes = fallbackBase64ToUint8Array(productionEncoded)
@@ -341,7 +296,7 @@ describe('native/fallback interoperability', () => {
 			const fallbackEncoded = fallbackUint8ArrayToBase64(bytes)
 
 			// Decode with production
-			const decoded = b64Vecs.decodePoints(fallbackEncoded)
+			const decoded = b64Vecs._legacyDeltaDecodePoints(fallbackEncoded)
 
 			expect(decoded).toHaveLength(2)
 			expect(decoded[0].x).toBe(50)
@@ -416,7 +371,7 @@ describe('native/fallback interoperability', () => {
 			]
 
 			// Encode with production
-			const encoded = b64Vecs.encodePoints(original)
+			const encoded = b64Vecs._legacyDeltaEncodePoints(original)
 
 			// Convert through fallback (decode then encode)
 			const bytes = fallbackBase64ToUint8Array(encoded)
@@ -426,7 +381,7 @@ describe('native/fallback interoperability', () => {
 			expect(reEncoded).toBe(encoded)
 
 			// And decode back to same points
-			const decoded = b64Vecs.decodePoints(reEncoded)
+			const decoded = b64Vecs._legacyDeltaDecodePoints(reEncoded)
 			expect(decoded).toHaveLength(original.length)
 			for (let i = 0; i < original.length; i++) {
 				expect(decoded[i].x).toBeCloseTo(original[i].x, 2)
@@ -479,64 +434,6 @@ describe('b64Vecs legacy encoding', () => {
 	})
 })
 
-describe('2D encoding (skip-pressure)', () => {
-	it('round-trips x and y, supplies z = 0.5', () => {
-		const points: VecModel[] = [
-			{ x: 1000, y: 2000, z: 0.5 },
-			{ x: 1013, y: 2008, z: 0.5 },
-			{ x: 1027, y: 2011, z: 0.5 },
-		]
-		const decoded = b64Vecs.decodePoints2D(b64Vecs.encodePoints2D(points))
-		expect(decoded.length).toBe(3)
-		for (let i = 0; i < points.length; i++) {
-			expect(decoded[i].x).toBeCloseTo(points[i].x, 1)
-			expect(decoded[i].y).toBeCloseTo(points[i].y, 1)
-			expect(decoded[i].z).toBe(0.5)
-		}
-	})
-
-	it('encodePoints/decodePoints route through 2D when dim = 2', () => {
-		const points: VecModel[] = [
-			{ x: 10, y: 20, z: 0.5 },
-			{ x: 15, y: 28, z: 0.5 },
-		]
-		expect(b64Vecs.encodePoints(points, 2)).toBe(b64Vecs.encodePoints2D(points))
-		const decoded = b64Vecs.decodePoints(b64Vecs.encodePoints(points, 2), 2)
-		expect(decoded[1].z).toBe(0.5)
-		expect(decoded[1].x).toBeCloseTo(15, 1)
-	})
-
-	it('is ~33% smaller than 3D for the same points', () => {
-		const points: VecModel[] = Array.from({ length: 100 }, (_, i) => ({
-			x: i * 2.5,
-			y: 50 + i,
-			z: 0.5,
-		}))
-		const bytes3D = fallbackBase64ToUint8Array(b64Vecs.encodePoints(points)).length
-		const bytes2D = fallbackBase64ToUint8Array(b64Vecs.encodePoints2D(points)).length
-		const saving = 1 - bytes2D / bytes3D
-		expect(saving).toBeGreaterThan(0.3)
-		expect(saving).toBeLessThan(0.36)
-	})
-
-	it('decodeFirstPoint2D / decodeLastPoint2D match decodePoints2D (incl. via dim routing)', () => {
-		const points: VecModel[] = [
-			{ x: 5, y: 6, z: 0.5 },
-			{ x: 12, y: 9, z: 0.5 },
-			{ x: 20, y: 4, z: 0.5 },
-		]
-		const path = b64Vecs.encodePoints(points, 2)
-		const all = b64Vecs.decodePoints2D(path)
-		expect(b64Vecs.decodeFirstPoint(path, 2)).toEqual(all[0])
-		expect(b64Vecs.decodeLastPoint(path, 2)).toEqual(all[all.length - 1])
-	})
-
-	it('empty input returns empty', () => {
-		expect(b64Vecs.encodePoints2D([])).toBe('')
-		expect(b64Vecs.decodePoints2D('')).toEqual([])
-	})
-})
-
 describe('padding-aware fallback base64', () => {
 	it('matches Node Buffer for every trailing-byte remainder', () => {
 		for (let len = 0; len < 32; len++) {
@@ -557,32 +454,189 @@ describe('padding-aware fallback base64', () => {
 	})
 })
 
+describe('legacy Float16 delta encoding, 2D', () => {
+	it('round-trips x and y and supplies z = 0.5', () => {
+		const points: VecModel[] = [
+			{ x: 1000, y: 2000, z: 0.5 },
+			{ x: 1013, y: 2008, z: 0.5 },
+		]
+		const decoded = b64Vecs._legacyDeltaDecodePoints(b64Vecs._legacyDeltaEncodePoints(points, 2), 2)
+		expect(decoded).toEqual(points)
+	})
+})
+
+// A deterministic freehand-like stroke on the draw tool's 0.01 grid.
+function makeStroke(n: number, seed = 1): VecModel[] {
+	let s = seed
+	const rand = () => ((s = (s * 16807) % 2147483647) / 2147483647) * 2 - 1
+	const points: VecModel[] = []
+	let x = 0
+	let y = 0
+	let vx = 2
+	let vy = 1
+	let z = 0.5
+	for (let i = 0; i < n; i++) {
+		points.push({
+			x: Math.round(x * 100) / 100,
+			y: Math.round(y * 100) / 100,
+			z: Math.round(z * 100) / 100,
+		})
+		vx += rand() * 0.15
+		vy += rand() * 0.15
+		x += vx
+		y += vy
+		z = Math.min(1.25, Math.max(0, z + rand() * 0.05))
+	}
+	return points
+}
+
+describe('b64Vecs path encoding', () => {
+	it('round-trips points on the 0.01 grid exactly, in 3D and 2D', () => {
+		const points = makeStroke(500)
+		expect(b64Vecs.decodePoints(b64Vecs.encodePoints(points))).toEqual(points)
+		expect(b64Vecs.decodePoints(b64Vecs.encodePoints(points, 2), 2)).toEqual(
+			points.map((p) => ({ ...p, z: 0.5 }))
+		)
+	})
+
+	it('does not drift along long strokes, unlike the legacy delta format', () => {
+		const points = makeStroke(600).map((p) => ({
+			x: Math.round((p.x + 5000) * 100) / 100,
+			y: Math.round((p.y - 5000) * 100) / 100,
+			z: p.z,
+		}))
+		const last = points[points.length - 1]
+
+		expect(b64Vecs.decodeLastPoint(b64Vecs.encodePoints(points))).toEqual(last)
+
+		const legacyLast = b64Vecs
+			._legacyDeltaDecodePoints(b64Vecs._legacyDeltaEncodePoints(points))
+			.at(-1)!
+		expect(Math.abs(legacyLast.x - last.x) + Math.abs(legacyLast.y - last.y)).toBeGreaterThan(0.005)
+	})
+
+	it('is less than half the size of the legacy delta format for a freehand stroke', () => {
+		const points = makeStroke(300)
+		const size = b64Vecs.encodePoints(points).length
+		expect(size).toBeLessThan(b64Vecs._legacyDeltaEncodePoints(points).length / 2)
+	})
+
+	it('rounds off-grid values to the nearest 0.01', () => {
+		const decoded = b64Vecs.decodePoints(
+			b64Vecs.encodePoints([
+				{ x: 1.234, y: -5.678, z: 0.333 },
+				{ x: 1.236, y: -5.672, z: 0.337 },
+			])
+		)
+		expect(decoded).toEqual([
+			{ x: 1.23, y: -5.68, z: 0.33 },
+			{ x: 1.24, y: -5.67, z: 0.34 },
+		])
+	})
+
+	it('handles coordinates far beyond 32-bit residuals', () => {
+		const points: VecModel[] = [
+			{ x: 1e11, y: -1e11, z: 0.5 },
+			{ x: -1e11, y: 1e11, z: 0.5 },
+			{ x: 123456789.01, y: -0.01, z: 1.25 },
+		]
+		expect(b64Vecs.decodePoints(b64Vecs.encodePoints(points))).toEqual(points)
+	})
+
+	it('stores non-finite values as 0 so they do not corrupt later points', () => {
+		const decoded = b64Vecs.decodePoints(
+			b64Vecs.encodePoints([
+				{ x: 0, y: 0, z: 0.5 },
+				{ x: NaN, y: Infinity, z: 0.5 },
+				{ x: 3, y: 4, z: 0.5 },
+			])
+		)
+		expect(decoded).toEqual([
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 3, y: 4, z: 0.5 },
+		])
+	})
+
+	it('defaults a missing z to 0.5', () => {
+		expect(b64Vecs.decodePoints(b64Vecs.encodePoints([{ x: 1, y: 2 }]))).toEqual([
+			{ x: 1, y: 2, z: 0.5 },
+		])
+	})
+
+	it('encodes empty input as an empty string', () => {
+		expect(b64Vecs.encodePoints([])).toBe('')
+		expect(b64Vecs.decodePoints('')).toEqual([])
+		expect(b64Vecs.decodeFirstPoint('')).toBeNull()
+		expect(b64Vecs.decodeLastPoint('')).toBeNull()
+	})
+
+	it('is append-only: a prefix of the points encodes to a prefix of the path', () => {
+		const points = makeStroke(50)
+		const full = b64Vecs.encodePoints(points)
+		for (let n = 1; n < points.length; n++) {
+			expect(full.startsWith(b64Vecs.encodePoints(points.slice(0, n)))).toBe(true)
+		}
+	})
+
+	it('only uses base64 alphabet characters', () => {
+		expect(b64Vecs.encodePoints(makeStroke(200))).toMatch(/^[A-Za-z0-9+/]*$/)
+	})
+
+	it('decodeFirstPoint and decodeLastPoint match decodePoints, in 3D and 2D', () => {
+		const points = makeStroke(40)
+		for (const dim of [2, 3] as const) {
+			const path = b64Vecs.encodePoints(points, dim)
+			const all = b64Vecs.decodePoints(path, dim)
+			expect(b64Vecs.decodeFirstPoint(path, dim)).toEqual(all[0])
+			expect(b64Vecs.decodeLastPoint(path, dim)).toEqual(all[all.length - 1])
+		}
+	})
+
+	it('decodeFirstPoint returns null for a truncated point', () => {
+		const path = b64Vecs.encodePoints([{ x: 1000, y: 1000, z: 0.5 }])
+		expect(b64Vecs.decodeFirstPoint(path.slice(0, -1))).toBeNull()
+	})
+
+	it('2D helpers match dim = 2 routing', () => {
+		const points = makeStroke(10)
+		const path = b64Vecs.encodePoints(points, 2)
+		expect(b64Vecs.encodePoints2D(points)).toBe(path)
+		expect(b64Vecs.decodePoints2D(path)).toEqual(b64Vecs.decodePoints(path, 2))
+		expect(b64Vecs.decodeFirstPoint2D(path)).toEqual(b64Vecs.decodeFirstPoint(path, 2))
+		expect(b64Vecs.decodeLastPoint2D(path)).toEqual(b64Vecs.decodeLastPoint(path, 2))
+	})
+})
+
 describe('isSinglePoint', () => {
 	const mk = (n: number, dim?: 2 | 3) =>
 		b64Vecs.encodePoints(
-			Array.from({ length: n }, (_, i) => ({ x: i, y: i, z: 0.5 })),
+			Array.from({ length: n }, (_, i) => ({ x: i * 1000, y: i * 1000, z: 0.5 })),
 			dim
 		)
 
-	it('is true only for a single point, across 2D and 3D', () => {
-		expect(b64Vecs.isSinglePoint(mk(1, 3), 3)).toBe(true)
-		expect(b64Vecs.isSinglePoint(mk(2, 3), 3)).toBe(false)
-		expect(b64Vecs.isSinglePoint(mk(1, 2), 2)).toBe(true)
-		expect(b64Vecs.isSinglePoint(mk(2, 2), 2)).toBe(false)
-		expect(b64Vecs.isSinglePoint(mk(3, 2), 2)).toBe(false)
+	it('is true only for zero or one point, across 2D and 3D', () => {
+		for (const dim of [2, 3] as const) {
+			expect(b64Vecs.isSinglePoint('', dim)).toBe(true)
+			expect(b64Vecs.isSinglePoint(mk(1, dim), dim)).toBe(true)
+			expect(b64Vecs.isSinglePoint(mk(2, dim), dim)).toBe(false)
+			expect(b64Vecs.isSinglePoint(mk(3, dim), dim)).toBe(false)
+		}
 	})
 
-	it('regression: a 2-point 2D stroke is not a dot (the old `< 24` check failed here)', () => {
-		const twoPoint2D = b64Vecs.encodePoints(
+	it('counts values, not characters', () => {
+		// One far-away 3D point takes more characters than two nearby 2D points.
+		const farDot = b64Vecs.encodePoints([{ x: 99999, y: 99999, z: 0.5 }])
+		const nearPair = b64Vecs.encodePoints(
 			[
 				{ x: 0, y: 0, z: 0.5 },
-				{ x: 4, y: 1, z: 0.5 },
+				{ x: 0.01, y: 0, z: 0.5 },
 			],
 			2
 		)
-		expect(twoPoint2D.length).toBe(16) // same length as a 3D dot
-		expect(twoPoint2D.length < 24).toBe(true) // the old buggy heuristic would call this a dot
-		expect(b64Vecs.isSinglePoint(twoPoint2D, 2)).toBe(false) // the fix
+		expect(farDot.length).toBeGreaterThan(nearPair.length)
+		expect(b64Vecs.isSinglePoint(farDot, 3)).toBe(true)
+		expect(b64Vecs.isSinglePoint(nearPair, 2)).toBe(false)
 	})
 
 	it('defaults to 3D when dim is omitted', () => {

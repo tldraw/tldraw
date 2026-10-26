@@ -184,29 +184,24 @@ describe('DrawShapeUtil dot detection', () => {
 		})
 	})
 
-	describe('base64 encoding boundary conditions', () => {
-		it('correctly handles the boundary at exactly 24 base64 characters (2 points)', () => {
-			// First point is 16 base64 chars (Float32), delta points are 8 chars each (Float16)
-			// 2 points = 24 characters, which should NOT be a dot
-			const twoPointsBase64 = pointsToBase64([
+	describe('path length does not decide dot detection', () => {
+		it('treats two nearby points as a stroke, even though their path is short', () => {
+			const twoPoints = pointsToBase64([
 				{ x: 0, y: 0, z: 0.5 },
 				{ x: 1, y: 1, z: 0.5 },
 			])
-			expect(twoPointsBase64.length).toBe(24)
+			const onePointFarAway = pointsToBase64([{ x: 99999, y: 99999, z: 0.5 }])
+			expect(twoPoints.length).toBeLessThan(onePointFarAway.length)
 
-			const shape = createDrawShape([{ type: 'free', path: twoPointsBase64 }])
-			const util = editor.getShapeUtil('draw')
-			expect(util.hideResizeHandles(shape)).toBe(false)
+			const shape = createDrawShape([{ type: 'free', path: twoPoints }])
+			expect(editor.getShapeUtil('draw').hideResizeHandles(shape)).toBe(false)
 		})
 
-		it('correctly handles the boundary at exactly 16 base64 characters (1 point)', () => {
-			// 1 point = 16 characters (Float32 first point), which should be a dot
-			const onePointBase64 = pointsToBase64([{ x: 0, y: 0, z: 0.5 }])
-			expect(onePointBase64.length).toBe(16)
+		it('treats a single point as a dot, even when its path is long', () => {
+			const onePoint = pointsToBase64([{ x: 99999, y: 99999, z: 0.5 }])
 
-			const shape = createDrawShape([{ type: 'free', path: onePointBase64 }])
-			const util = editor.getShapeUtil('draw')
-			expect(util.hideResizeHandles(shape)).toBe(true)
+			const shape = createDrawShape([{ type: 'free', path: onePoint }])
+			expect(editor.getShapeUtil('draw').hideResizeHandles(shape)).toBe(true)
 		})
 	})
 })
