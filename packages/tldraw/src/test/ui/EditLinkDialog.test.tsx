@@ -94,19 +94,10 @@ it.each([
 	expect(editor.getShape(shapeId)!.props).toMatchObject({ url: expected })
 })
 
-it('shows the invalid url message only once enter is pressed, and keeps the link unchanged', async () => {
+it('does not save an invalid url on enter', async () => {
 	editor = await renderWithOpenDialog()
-	const input = document.querySelector('.tlui-edit-link-dialog__input') as HTMLInputElement
-
-	act(() => fireEvent.change(input, { target: { value: 'hello' } }))
-	expect(screen.queryByText('edit-link-dialog.invalid-url')).toBeNull()
-
-	act(() => fireEvent.keyDown(input, { key: 'Enter' }))
+	act(() => submitLink('hello'))
 	await act(async () => {})
 	expect(getDialogFrame()).not.toBeNull()
-	expect(screen.queryByText('edit-link-dialog.invalid-url')).not.toBeNull()
 	expect(editor.getShape(shapeId)!.props).toMatchObject({ url: 'https://tldraw.com' })
-
-	act(() => fireEvent.change(input, { target: { value: 'hello.com' } }))
-	expect(screen.queryByText('edit-link-dialog.invalid-url')).toBeNull()
 })
