@@ -2,7 +2,7 @@ import { useId, useLayoutEffect, useRef } from 'react'
 import { TLUiEventSource } from '../../context/events'
 import { TLUiIconJsx } from '../primitives/TldrawUiIcon'
 import { useCommandPalettePath, useCommandPaletteStore } from './CommandPaletteContext'
-import { CommandPalettePrompt } from './CommandPaletteStore'
+import { CommandPalettePrompt, CommandPaletteSearch } from './CommandPaletteStore'
 
 /** @internal */
 export interface CommandPaletteItemRegistrationProps {
@@ -12,6 +12,7 @@ export interface CommandPaletteItemRegistrationProps {
 	checked?: boolean
 	isSelected?: boolean
 	prompt?: CommandPalettePrompt
+	search?: CommandPaletteSearch
 	icon?: string | TLUiIconJsx
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }

@@ -399,6 +399,11 @@ export {
 	type CommandPalettePromptItemProps,
 } from './lib/ui/components/CommandPalette/CommandPalettePromptItem'
 export {
+	CommandPaletteSearchItem,
+	type CommandPaletteSearchItemProps,
+} from './lib/ui/components/CommandPalette/CommandPaletteSearchItem'
+export { type CommandPaletteSearchResult } from './lib/ui/components/CommandPalette/CommandPaletteStore'
+export {
 	CommandPaletteActionGroup,
 	CommandPaletteArrangeGroup,
 	CommandPaletteEditGroup,

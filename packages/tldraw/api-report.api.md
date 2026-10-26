@@ -852,6 +852,35 @@ export interface CommandPalettePromptItemProps {
     placeholder: string;
 }
 
+// @internal
+export function CommandPaletteSearchItem({ id, label, placeholder, icon, getResults, }: CommandPaletteSearchItemProps): JSX.Element | null;
+
+// @internal (undocumented)
+export interface CommandPaletteSearchItemProps {
+    getResults(query: string): CommandPaletteSearchResult[];
+    // (undocumented)
+    icon?: string | TLUiIconJsx;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    label: string;
+    // (undocumented)
+    placeholder: string;
+}
+
+// @internal (undocumented)
+export interface CommandPaletteSearchResult {
+    detail?: string;
+    // (undocumented)
+    icon?: string | TLUiIconJsx;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    label: string;
+    // (undocumented)
+    onSelect(): void;
+}
+
 // @public (undocumented)
 export function CommandPaletteSelectionGroup(): JSX.Element;
 

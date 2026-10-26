@@ -20,6 +20,22 @@ export interface CommandPalettePrompt {
 }
 
 /** @internal */
+export interface CommandPaletteSearchResult {
+	id: string
+	label: string
+	/** Muted text after the label, e.g. where the hit is. */
+	detail?: string
+	icon?: string | TLUiIconJsx
+	onSelect(): void
+}
+
+/** @internal */
+export interface CommandPaletteSearch {
+	placeholder: string
+	getResults(query: string): CommandPaletteSearchResult[]
+}
+
+/** @internal */
 export interface CommandPaletteEntry {
 	id: string
 	/** Display text, including the submenu prefix. */
@@ -40,6 +56,8 @@ export interface CommandPaletteEntry {
 	pinned?: boolean
 	/** Asks for text in the palette before running, instead of running on select. */
 	prompt?: CommandPalettePrompt
+	/** Opens its own search in the palette, listing hits instead of entries. */
+	search?: CommandPaletteSearch
 	onSelect(source: TLUiEventSource): Promise<void> | void
 	marker: Element | null
 }
@@ -59,9 +77,9 @@ export class CommandPaletteStore {
 	readonly query = atom('command palette query', '')
 	/** The submenu opened from a grouped submenu row, or null at the top level. */
 	readonly submenu = atom<CommandPaletteSubmenu | null>('command palette submenu', null)
-	/** The item whose prompt is open, or null. */
+	/** The item whose prompt or search is open, or null. */
 	readonly prompt = atom<CommandPaletteEntry | null>('command palette prompt', null)
-	/** The id of the highlighted item, or null when a submenu row, a prompt or nothing is. */
+	/** The id of the highlighted item, or null when a submenu row, a prompt, a search hit or nothing is. */
 	readonly activeItemId = atom<string | null>('command palette active item', null)
 
 	set(token: string, entry: CommandPaletteEntry) {

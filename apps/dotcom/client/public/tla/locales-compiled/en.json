@@ -651,6 +651,12 @@
       "value": "Copy"
     }
   ],
+  "6036d0a8b8": [
+    {
+      "type": 0,
+      "value": "Board"
+    }
+  ],
   "608e9d366e": [
     {
       "type": 0,
@@ -768,6 +774,12 @@
     {
       "type": 0,
       "value": "This week"
+    }
+  ],
+  "714a6ed9b1": [
+    {
+      "type": 0,
+      "value": "Search text on the board…"
     }
   ],
   "71a29b007b": [
@@ -1598,6 +1610,12 @@
     {
       "type": 0,
       "value": "Learn more about publishing."
+    }
+  ],
+  "cf854cbc82": [
+    {
+      "type": 0,
+      "value": "Search board"
     }
   ],
   "d0e3556476": [

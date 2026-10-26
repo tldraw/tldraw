@@ -19,6 +19,8 @@ import {
 	CommandPaletteSelectionGroup,
 	CommandPaletteStylesGroup,
 	CommandPalettePromptItem,
+	CommandPaletteSearchItem,
+	CommandPaletteSearchResult,
 	CommandPaletteToolsGroup,
 	CommandPaletteViewGroup,
 	DefaultCommandPalette,
@@ -33,6 +35,7 @@ import {
 	useDialogs,
 	useEditor,
 	useToasts,
+	useTools,
 	useTranslation,
 	useValue,
 } from 'tldraw'
@@ -77,6 +80,9 @@ import notificationStyles from '../TlaSidebar/components/notifications.module.cs
 
 const MAX_FILE_RESULTS = 8
 const MAX_RECENT_FILES = 5
+const MAX_BOARD_RESULTS = 50
+// Characters of context kept before a match that's cut into.
+const MATCH_LEAD = 16
 
 const messages = defineMessages({
 	files: { defaultMessage: 'Files' },
@@ -105,6 +111,9 @@ const messages = defineMessages({
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
 	account: { defaultMessage: 'Account' },
 	signIn: { defaultMessage: 'Sign in' },
+	board: { defaultMessage: 'Board' },
+	searchBoard: { defaultMessage: 'Search board' },
+	searchBoardPlaceholder: { defaultMessage: 'Search text on the board…' },
 })
 
 export function TlaCommandPalette() {
@@ -118,6 +127,7 @@ export function TlaCommandPalette() {
 			<CommandPaletteStylesGroup />
 			{app && <TlaFilesGroup />}
 			{app && <TlaCurrentFileGroup />}
+			<TlaBoardGroup />
 			<CommandPalettePagesGroup />
 			{app && <TlaShareGroup />}
 			<TlaAppGroup />
@@ -243,6 +253,67 @@ function TlaCurrentFileGroup() {
 				/>
 			)}
 			<ImportFileActionItem source="command-palette" />
+		</TldrawUiMenuGroup>
+	)
+}
+
+function TlaBoardGroup() {
+	const msg = useTranslation()
+	const editor = useEditor()
+	const tools = useTools()
+	const boardLbl = msg(messages.board)
+	const searchBoardLbl = msg(messages.searchBoard)
+	const placeholder = msg(messages.searchBoardPlaceholder)
+
+	// The current page's hits come first; the rest are named by their page.
+	const getResults = (query: string) => {
+		const needle = query.toLowerCase()
+		const currentPageId = editor.getCurrentPageId()
+		const pages = editor.getPages()
+		const ordered = [
+			...pages.filter((page) => page.id === currentPageId),
+			...pages.filter((page) => page.id !== currentPageId),
+		]
+		const results: CommandPaletteSearchResult[] = []
+		for (const page of ordered) {
+			for (const id of editor.getPageShapeIds(page.id)) {
+				const shape = editor.getShape(id)
+				if (!shape) continue
+				const text = editor.getShapeUtil(shape).getText(shape)?.replace(/\s+/g, ' ').trim()
+				const index = text?.toLowerCase().indexOf(needle) ?? -1
+				if (!text || index === -1) continue
+				results.push({
+					id: shape.id,
+					// The row's end is cut off, so a match deep in a long text starts the label.
+					label: index > MATCH_LEAD ? `…${text.slice(index - MATCH_LEAD)}` : text,
+					detail: page.id === currentPageId ? undefined : page.name,
+					icon: tools[shape.type === 'geo' ? shape.props.geo : shape.type]?.icon,
+					onSelect() {
+						if (editor.getCurrentPageId() !== page.id) editor.setCurrentPage(page.id)
+						const bounds = editor.getShapePageBounds(shape)
+						if (!bounds) return
+						// Like zoom to selection, without selecting it.
+						editor.zoomToBounds(bounds, {
+							targetZoom: 1,
+							animation: { duration: editor.options.animationMediumMs },
+						})
+					},
+				})
+				if (results.length === MAX_BOARD_RESULTS) return results
+			}
+		}
+		return results
+	}
+
+	return (
+		<TldrawUiMenuGroup id="tla-board" label={boardLbl}>
+			<CommandPaletteSearchItem
+				id="tla-search-board"
+				label={searchBoardLbl}
+				placeholder={placeholder}
+				icon="search"
+				getResults={getResults}
+			/>
 		</TldrawUiMenuGroup>
 	)
 }

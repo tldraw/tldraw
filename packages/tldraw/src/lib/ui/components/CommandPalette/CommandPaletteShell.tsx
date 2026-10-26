@@ -80,6 +80,7 @@ export function CommandPaletteShell({
 	const entries = useValue(store.entries)
 	const submenu = useValue(store.submenu)
 	const prompt = useValue(store.prompt)
+	const search = prompt?.search
 	const [activeIndex, setActiveIndex] = useState(0)
 	const rClampedIndex = useRef(0)
 	const rPalette = useRef<HTMLDivElement>(null)
@@ -89,8 +90,24 @@ export function CommandPaletteShell({
 	const [anchor, setAnchor] = useState<{ top: number; width: number } | null>(null)
 	const rScrollToActive = useRef(false)
 	const listboxId = useId()
+	// Only the query reruns a search, so the list can't shift under the highlight as the document
+	// changes.
+	const searchResults = useMemo(
+		() => (search && query.trim() ? search.getResults(query.trim()) : null),
+		[search, query]
+	)
 
 	const rows = useMemo((): CommandPaletteRow[] => {
+		if (prompt && search) {
+			return (searchResults ?? []).map((hit) => ({
+				type: 'item',
+				key: `search:${hit.id}`,
+				entry: { ...prompt, id: `${prompt.id}:${hit.id}`, icon: hit.icon, onSelect: hit.onSelect },
+				label: hit.label,
+				detail: hit.detail,
+				recent: false,
+			}))
+		}
 		// Spells out what Enter does, and offers a way back.
 		if (prompt) {
 			const value = query.trim()
@@ -117,7 +134,7 @@ export function CommandPaletteShell({
 		if (submenu) return getCommandPaletteSubmenuRows(entries, submenu.key, query, recentIds)
 		if (query.trim()) return getCommandPaletteSearchRows(entries, query, recentIds)
 		return getCommandPaletteBrowseRows(entries, recentIds, msg(messages.recent))
-	}, [entries, prompt, submenu, query, recentIds, msg])
+	}, [entries, prompt, search, searchResults, submenu, query, recentIds, msg])
 	const selectableRows = useMemo(
 		() => rows.filter((row): row is SelectableRow => row.type === 'item' || row.type === 'submenu'),
 		[rows]
@@ -150,6 +167,8 @@ export function CommandPaletteShell({
 	useEffect(() => {
 		store.activeItemId.set(activeItemId)
 	}, [store, activeItemId])
+	const awaitingQuery = !!search && !query.trim()
+	const backLabel = prompt?.search ? prompt.name : !prompt && submenu ? submenu.label : null
 	const optionId = (index: number) => `${listboxId}-option-${index}`
 
 	const updateScroll = useCallback(() => {
@@ -283,7 +302,7 @@ export function CommandPaletteShell({
 				return
 			}
 			const { entry } = row
-			if (entry.prompt && !prompt) {
+			if ((entry.prompt || entry.search) && !prompt) {
 				openPrompt(entry)
 				rInput.current?.focus()
 				return
@@ -293,7 +312,8 @@ export function CommandPaletteShell({
 			onClose()
 			if (entry.prompt) entry.prompt.onSubmit(store.query.get().trim())
 			else entry.onSelect('command-palette')
-			addCommandPaletteRecent(entry.id)
+			// A search hit is remembered as the search that found it.
+			addCommandPaletteRecent(prompt?.id ?? entry.id)
 			restoreFocus()
 		},
 		[onClose, restoreFocus, openSubmenu, openPrompt, prompt, store, back]
@@ -352,7 +372,7 @@ export function CommandPaletteShell({
 			case 'ArrowLeft': {
 				const input = e.currentTarget
 				const atStart = input.selectionStart === 0 && input.selectionEnd === 0
-				if (!prompt && submenu && atStart) {
+				if ((search || (!prompt && submenu)) && atStart) {
 					e.preventDefault()
 					back()
 				}
@@ -395,7 +415,9 @@ export function CommandPaletteShell({
 				>
 					<div className="tlui-command-palette__search">
 						{/* Not a search while naming something. */}
-						{!prompt && <TldrawUiIcon aria-hidden="true" label="" icon="search" small />}
+						{(!prompt || search) && (
+							<TldrawUiIcon aria-hidden="true" label="" icon="search" small />
+						)}
 						<input
 							ref={rInput}
 							className="tlui-input tlui-command-palette__input"
@@ -405,7 +427,7 @@ export function CommandPaletteShell({
 							aria-controls={listboxId}
 							aria-autocomplete="list"
 							aria-activedescendant={activeRow ? optionId(clampedIndex) : undefined}
-							placeholder={prompt?.prompt?.placeholder ?? msg(messages.placeholder)}
+							placeholder={(prompt?.prompt ?? search)?.placeholder ?? msg(messages.placeholder)}
 							autoComplete="off"
 							spellCheck={false}
 							value={query}
@@ -413,7 +435,7 @@ export function CommandPaletteShell({
 							onKeyDown={handleKeyDown}
 						/>
 					</div>
-					{submenu && !prompt && (
+					{backLabel && (
 						<div
 							className="tlui-command-palette__heading tlui-command-palette__back"
 							data-testid="command-palette.back"
@@ -425,8 +447,8 @@ export function CommandPaletteShell({
 								icon={dir === 'rtl' ? 'chevron-right' : 'chevron-left'}
 								small
 							/>
-							{submenu.label}
-							{/* Says how to leave, since the submenu has no Cancel row. */}
+							{backLabel}
+							{/* Says how to leave, since there is no Cancel row. */}
 							<span className="tlui-command-palette__back-kbd">
 								<TldrawUiKbd>[[Esc]]</TldrawUiKbd>
 							</span>
@@ -476,7 +498,7 @@ export function CommandPaletteShell({
 							)
 						})}
 					</div>
-					{selectableRows.length === 0 && (
+					{selectableRows.length === 0 && !awaitingQuery && (
 						<div className="tlui-command-palette__empty">{msg(messages.noResults)}</div>
 					)}
 					<div hidden>
