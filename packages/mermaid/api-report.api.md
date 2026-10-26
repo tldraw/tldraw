@@ -85,6 +85,7 @@ export interface MermaidBlueprintEdge {
         type: 'autonumber';
         value: string;
     };
+    elbowMidPoint?: number;
     // (undocumented)
     endNodeId: string;
     // (undocumented)
@@ -95,8 +96,10 @@ export interface MermaidBlueprintEdge {
     isPrecise?: boolean;
     // (undocumented)
     isPreciseEnd?: boolean;
+    kind?: 'arc' | 'elbow';
     // (undocumented)
     label?: string;
+    labelPosition?: number;
     // (undocumented)
     size?: TLDefaultSizeStyle;
     // (undocumented)
@@ -163,6 +166,8 @@ export type MermaidBlueprintNodeRenderSpec = {
 } | {
     variant: 'geo';
     geo: TLGeoShapeGeoStyle;
+} | {
+    variant: 'text';
 };
 
 // @public (undocumented)
@@ -181,7 +186,6 @@ export type MermaidDiagramKind = 'flowchart' | 'mindmap' | 'sequence' | 'state';
 export interface MermaidDiagramOptions {
     // (undocumented)
     blueprintRender?: BlueprintRenderingOptions;
-    // (undocumented)
     mermaidConfig?: Record<string, any>;
     // (undocumented)
     onUnsupportedDiagram?(svg: string): Promise<void>;

@@ -1,4 +1,5 @@
 import { createMermaidDiagram, MermaidDiagramError } from './createMermaidDiagram'
+import { parsePeleDiagram } from './peleDiagram'
 
 describe('createMermaidDiagram', () => {
 	it('throws MermaidDiagramError for invalid input', async () => {
@@ -15,59 +16,55 @@ describe('createMermaidDiagram', () => {
 		})
 	})
 
+	it('throws a parse error for a known diagram type with broken syntax', async () => {
+		await expect(createMermaidDiagram({} as any, 'flowchart LR\n  A -->')).rejects.toMatchObject({
+			diagramType: 'flowchart',
+			type: 'parse',
+		})
+	})
+
+	it('hands diagram types it cannot convert to onUnsupportedDiagram as an SVG', async () => {
+		const pie = 'pie title Pets\n  "Dogs" : 386\n  "Cats" : 85'
+		const onUnsupportedDiagram = vi.fn(async (_svg: string) => {})
+
+		await createMermaidDiagram({} as any, pie, { onUnsupportedDiagram })
+
+		expect(onUnsupportedDiagram).toHaveBeenCalledOnce()
+		expect(onUnsupportedDiagram.mock.calls[0][0]).toMatch(/^<svg[^>]*class="pele pele-pie"/)
+		await expect(createMermaidDiagram({} as any, pie)).rejects.toMatchObject({
+			diagramType: 'pie',
+			type: 'unsupported',
+		})
+	})
+
 	describe('config set inside the diagram', () => {
-		// The config mermaid lays `source` out with, after our `initialize` and its own directives.
-		async function effectiveConfig(source: string, mermaidConfig?: Record<string, any>) {
-			// Runs our `mermaid.initialize` and then fails to parse, leaving mermaid configured.
-			await expect(
-				createMermaidDiagram({} as any, 'not a diagram at all', { mermaidConfig })
-			).rejects.toThrow()
-			const mermaid = (await import('mermaid')).default
-			await mermaid.parse(source)
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			return mermaid.mermaidAPI.getConfig()
+		const source = `flowchart LR
+    A[Some label] --> B[Another label]`
+
+		async function width(text: string, config?: Record<string, any>) {
+			const { pele } = (await parsePeleDiagram(text))!
+			return pele.render(text, { fontSize: 25, config }).width
 		}
 
-		const directive = `%%{init: {
-  "securityLevel": "loose",
-  "themeVariables": { "fontSize": "16px", "primaryColor": "#eef7ff" }
-}}%%
-stateDiagram-v2
-    [*] --> Draft`
-
-		const frontmatter = `---
-config:
-  securityLevel: loose
-  themeVariables:
-    fontSize: 16px
-    primaryColor: "#eef7ff"
----
-stateDiagram-v2
-    [*] --> Draft`
-
 		it.each([
-			['an init directive', directive],
-			['frontmatter', frontmatter],
-		])('cannot shrink the layout font size from %s', async (_, source) => {
-			const config = await effectiveConfig(source)
-
+			['an init directive', `%%{init: {"themeVariables": {"fontSize": "10px"}}}%%\n${source}`],
+			['frontmatter', `---\nconfig:\n  themeVariables:\n    fontSize: 10px\n---\n${source}`],
+		])('cannot shrink the layout font size from %s', async (_, text) => {
 			// A smaller layout font sizes every box for text narrower than tldraw draws it.
-			expect(config.themeVariables.fontSize).not.toBe('16px')
-			// Only the font size is locked; the rest of the diagram's styling still applies.
-			expect(config.themeVariables.primaryColor).toBe('#eef7ff')
-			// Mermaid's own secure keys still apply alongside ours.
-			expect(config.securityLevel).not.toBe('loose')
+			expect(await width(text)).toBe(await width(source))
 		})
 
-		it('keeps secure keys the host passes in', async () => {
-			const config = await effectiveConfig(
-				`%%{init: {"theme": "dark"}}%%
-stateDiagram-v2
-    [*] --> Draft`,
-				{ secure: ['theme'] }
+		it("applies the host's layout settings when the diagram sets none", async () => {
+			expect(await width(source, { flowchart: { rankSpacing: 300 } })).toBeGreaterThan(
+				await width(source)
 			)
+		})
 
-			expect(config.theme).not.toBe('dark')
+		it("outranks the host's layout settings", async () => {
+			const spaced = `---\nconfig:\n  flowchart:\n    rankSpacing: 300\n---\n${source}`
+
+			expect(await width(spaced, { flowchart: { rankSpacing: 10 } })).toBe(await width(spaced))
+			expect(await width(spaced)).toBeGreaterThan(await width(source))
 		})
 	})
 })

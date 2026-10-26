@@ -11,7 +11,7 @@ Paste Mermaid source onto the canvas and get native tldraw shapes.
 
 A custom `text` external content handler (`editor.registerExternalContentHandler`) checks whether pasted text looks like a Mermaid diagram. If it does, `createMermaidDiagram` from `@tldraw/mermaid` turns it into geo shapes, arrows, and text; otherwise the default text handler runs.
 
-Flowcharts, state diagrams, sequence diagrams, and mind maps become native shapes. Other diagram types are rendered by Mermaid to SVG and pasted as an image, with a toast to say so.
+Flowcharts, state diagrams, sequence diagrams, and mind maps become native shapes. Other diagram types are rendered to SVG and pasted as an image, with a toast to say so.
 
 Try copying this and pasting it onto the canvas:
 

@@ -4,7 +4,7 @@ const BEND_SCALE = -1.8
 const MAX_ARROW_BEND = 200
 
 /**
- * Extrapolate a bend value for tldraw arrows from Mermaid edge path waypoints.
+ * Extrapolate a bend value for tldraw arrows from the layout's edge path waypoints.
  * Uses perpendicular distance from chord to mid-points, scaled and clamped.
  */
 /** Signed perpendicular distance from the chord between `points`' two ends to `point`. */
@@ -37,9 +37,10 @@ export function getArrowBend(edgeData: { points: { x: number; y: number }[] }) {
 }
 
 /**
- * A self-loop's bend: out to the centre of mermaid's label, and never shallower than mermaid drew
- * the loop. tldraw sets an arrow's label on the middle of its arc, so reaching the label's centre is
- * what puts the text where mermaid did; a loop at mermaid's own depth centres it on the node's edge.
+ * A self-loop's bend: out to the centre of the layout's label, and never shallower than the layout
+ * drew the loop. tldraw sets an arrow's label on the middle of its arc, so reaching the label's
+ * centre is what puts the text where the layout did; a loop at the layout's own depth centres it on
+ * the node's edge.
  * The amplification in {@link getArrowBend} is left out, as it suits a line between two shapes.
  */
 export function getSelfLoopBend(

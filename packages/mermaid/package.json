@@ -50,7 +50,7 @@
 	"dependencies": {
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"mermaid": "11.16.1"
+		"pele": "1.5.2"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.2.1",

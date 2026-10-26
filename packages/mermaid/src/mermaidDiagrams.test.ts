@@ -1,8 +1,4 @@
-import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
-import type { MindmapNode } from 'mermaid/dist/diagrams/mindmap/mindmapTypes.js'
-import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
-import type { Actor, Box, Message } from 'mermaid/dist/diagrams/sequence/types.js'
-import type { StateStmt } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
+import type { FlowchartModel, MindmapModel, SequenceModel, StateModel } from 'pele'
 import type { DiagramMermaidBlueprint, MermaidBlueprintNode, MermaidDiagramKind } from './blueprint'
 import {
 	defaultMermaidNodeRenderSpec,
@@ -14,12 +10,15 @@ import {
 	mindmapToBlueprint,
 	type ParsedMindmapLayout,
 } from './mindmapDiagram'
+import { parsePeleDiagram } from './peleDiagram'
 import {
 	countSequenceEvents,
 	LINETYPE,
 	PLACEMENT,
 	sequenceToBlueprint,
 	type ParsedSequenceLayout,
+	type SequenceActor as Actor,
+	type SequenceMessage as Message,
 } from './sequenceDiagram'
 import { stateToBlueprint } from './stateDiagram'
 import type { ParsedCluster, ParsedDiagramLayout, ParsedEdge, ParsedNode } from './svgParsing'
@@ -27,6 +26,12 @@ import type { ParsedCluster, ParsedDiagramLayout, ParsedEdge, ParsedNode } from 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+type FlowVertex = FlowchartModel['nodes'] extends Map<string, infer V> ? V : never
+type FlowEdge = FlowchartModel['edges'][number]
+type FlowSubGraph = FlowchartModel['subgraphs'][number]
+type StateStmt = StateModel['states'] extends Map<string, infer S> ? S : never
+type MindmapNode = MindmapModel['nodes'][number]
 
 function node(id: string, cx: number, cy: number, w: number, h: number): ParsedNode {
 	return { id, center: { x: cx, y: cy }, width: w, height: h }
@@ -133,28 +138,24 @@ function expectResolvedRender(
 // ---------------------------------------------------------------------------
 
 describe('flowchartToBlueprint', () => {
-	it('gives each edge between the same two nodes the path mermaid drew for it', () => {
-		// Mermaid fans parallel edges out and draws them in source order. Their ends all sit on the
-		// same two nodes, so matching by proximity gave the first edge the middle path, whose ends lie
-		// nearest both centers, and pushed the rest along (#10794).
+	it('gives each edge between the same two nodes the route pele drew for it', () => {
+		// Pele gives parallel edges their own ports along a node's side. Each edge has to claim its own
+		// path, or they all bind to the same spot and draw on top of each other (#10794).
 		const layout = diagramLayout(
 			[node('A', 20, 20, 40, 40), node('B', 220, 20, 40, 40)],
 			[],
 			[
 				edge('A', 'B', [
-					[40, 2],
-					[120, -30],
-					[200, 2],
+					[40, 10],
+					[200, 10],
 				]),
 				edge('A', 'B', [
 					[40, 20],
-					[120, 20],
 					[200, 20],
 				]),
 				edge('A', 'B', [
-					[40, 38],
-					[120, 70],
-					[200, 38],
+					[40, 30],
+					[200, 30],
 				]),
 			]
 		)
@@ -166,53 +167,36 @@ describe('flowchartToBlueprint', () => {
 			flowEdge('A', 'B', { text: 'three' }),
 		])
 
-		const bends = bp.edges.map((e) => Math.round(e.bend ?? 0))
-		expect(bends[1]).toBeCloseTo(0)
-		expect(bends[0]).toBeLessThan(0)
-		expect(bends[2]).toBeCloseTo(-bends[0])
+		expect(bp.edges.map((e) => [e.label, e.anchorStartY, e.anchorEndY])).toEqual([
+			['one', 0.25, 0.25],
+			['two', 0.5, 0.5],
+			['three', 0.75, 0.75],
+		])
 	})
 
-	it('names each path after the nodes it joins, in source order, in the installed mermaid', async () => {
-		// What the test above relies on to claim the right path. A mermaid upgrade that renames paths
-		// or reorders them leaves that test green while every parallel edge takes someone else's curve
-		// again, because the ids stop matching and claiming falls back to proximity.
-		const svgPrototype = SVGElement.prototype as any
-		// jsdom lays out no text; mermaid only needs some size for it to render.
-		svgPrototype.getBBox = function () {
-			return { x: 0, y: 0, width: (this.textContent ?? '').length * 8, height: 16 }
-		}
-		svgPrototype.getComputedTextLength = function () {
-			return (this.textContent ?? '').length * 8
-		}
-		try {
-			const mermaid = (await import('mermaid')).default
-			mermaid.initialize({ startOnLoad: false })
-			const source = `flowchart LR
+	it('matches each path to its edge by the id pele gives it, in the installed pele', async () => {
+		// What the test above relies on to claim the right path. A pele upgrade that renamed its
+		// paths would leave that test green while every parallel edge fell back to proximity.
+		const source = `flowchart LR
     A -->|one| B
     A -->|two| B
     A -->|three| B`
-			// The id shape a conversion renders with: mermaid prefixes every element id with it, and
-			// the parsers only strip a `mermaid-<n>-` prefix.
-			const { svg } = await mermaid.render('mermaid-0', source)
-			const container = document.createElement('div')
-			container.innerHTML = svg
+		const { pele, model } = (await parsePeleDiagram(source))!
+		const flowchart = model as FlowchartModel
+		const container = document.createElement('div')
+		container.innerHTML = pele.render(flowchart).svg
 
-			const layout = parseFlowchartLayout(container.querySelector('svg')!)
+		const layout = parseFlowchartLayout(container.querySelector('svg')!, flowchart)
 
-			expect(layout.edges.map((e) => [e.start, e.end])).toEqual([
-				['A', 'B'],
-				['A', 'B'],
-				['A', 'B'],
-			])
-			// Each path's label names the edge it was drawn for, so labels in path order are source order.
-			const labelledInPathOrder = layout.edges.map(
-				(e) => container.querySelector(`.edgeLabel .label[data-id="${e.id}"]`)?.textContent
-			)
-			expect(labelledInPathOrder).toEqual(['one', 'two', 'three'])
-		} finally {
-			delete svgPrototype.getBBox
-			delete svgPrototype.getComputedTextLength
-		}
+		expect(layout.edges.map((e) => [e.start, e.end])).toEqual([
+			['A', 'B'],
+			['A', 'B'],
+			['A', 'B'],
+		])
+		const labelledInPathOrder = layout.edges.map(
+			(e) => container.querySelector(`.pele-edge-label[data-id="${e.id}"]`)?.textContent
+		)
+		expect(labelledInPathOrder).toEqual(['one', 'two', 'three'])
 	})
 
 	it('maps nodes with correct id, label, default geo render spec, and positions', () => {
@@ -323,23 +307,35 @@ describe('flowchartToBlueprint', () => {
 		expect(findNode(bp, 'b1')!.parentId).toBe('sg2')
 	})
 
-	it('computes bend for curved edges', () => {
+	it('draws edges between two nodes as elbow arrows, anchored where the route meets each node', () => {
+		// A spans x -20–20 and B x 180–220; the route leaves A's right side low down and enters
+		// B's top.
 		const layout = diagramLayout(
-			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
+			[node('A', 0, 0, 40, 40), node('B', 200, 100, 40, 40)],
 			[],
 			[
 				edge('A', 'B', [
-					[20, 0],
-					[100, -50],
-					[180, 0],
+					[20, 10],
+					[200, 10],
+					[200, 80],
 				]),
 			]
 		)
-		const vertices = new Map([vertex('A'), vertex('B')])
-		const edges = [flowEdge('A', 'B')]
 
-		const bp = flowchartToBlueprint(layout, vertices, edges)
-		expect(bp.edges[0].bend).not.toBe(0)
+		const bp = flowchartToBlueprint(layout, new Map([vertex('A'), vertex('B')]), [
+			flowEdge('A', 'B'),
+		])
+
+		expect(bp.edges[0]).toMatchObject({
+			kind: 'elbow',
+			bend: 0,
+			anchorStartX: 1,
+			anchorStartY: 0.75,
+			anchorEndX: 0.5,
+			anchorEndY: 0,
+			isExact: false,
+			isPrecise: true,
+		})
 	})
 
 	it('handles self-loop edges with non-zero bend', () => {
@@ -408,23 +404,14 @@ describe('flowchartToBlueprint', () => {
 		expect(withoutLabel.bend).toBe(30)
 	})
 
-	it('leaves anchors alone on edges between two nodes', () => {
-		const labelBox = { x: 90, y: 30, w: 40, h: 20 }
-		const layout = diagramLayout(
-			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
-			[],
-			[
-				edge('A', 'B', [
-					[20, 0],
-					[180, 0],
-				]),
-			],
-			new Map([['L_A_B', labelBox]])
-		)
-		const edges = [flowEdge('A', 'B', { text: 'go' })]
+	it('draws an edge with no path to go on as a plain arc between centres', () => {
+		const layout = diagramLayout([node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)])
 
-		const bp = flowchartToBlueprint(layout, new Map([vertex('A'), vertex('B')]), edges)
+		const bp = flowchartToBlueprint(layout, new Map([vertex('A'), vertex('B')]), [
+			flowEdge('A', 'B'),
+		])
 
+		expect(bp.edges[0]).not.toHaveProperty('kind')
 		expect(bp.edges[0]).not.toHaveProperty('anchorStartX')
 	})
 
@@ -476,6 +463,20 @@ describe('flowchartToBlueprint', () => {
 
 		const bp = flowchartToBlueprint(layout, vertices, edges)
 		expect(bp.edges[0].dash).toBe('dashed')
+	})
+
+	it('applies the default link style to edges with no style of their own', () => {
+		const vertices = new Map([vertex('A'), vertex('B')])
+		const edges = [flowEdge('A', 'B'), flowEdge('A', 'B', { style: ['stroke:#00f'] })]
+
+		const bp = flowchartToBlueprint(twoNodeLayout(), vertices, edges, [], undefined, [
+			'stroke-dasharray:5',
+		])
+
+		expect(bp.edges.map((e) => [e.dash, e.color])).toEqual([
+			['dashed', undefined],
+			['solid', 'blue'],
+		])
 	})
 
 	it('maps dotted stroke to dotted dash', () => {
@@ -566,6 +567,15 @@ describe('stateToBlueprint', () => {
 			} as StateStmt,
 		]
 	}
+
+	it('breaks a state name at each \\n written in it', () => {
+		const layout = diagramLayout([node('Drafting', 0, 0, 120, 60)])
+		const states = new Map([stateStmt('Drafting', { descriptions: ['Drafting\\nwith autosave'] })])
+
+		const bp = stateToBlueprint(layout, states, [])
+
+		expect(findNode(bp, 'Drafting')!.label).toBe('Drafting\nwith autosave')
+	})
 
 	it('maps leaf states with correct geo and labels', () => {
 		const layout = diagramLayout([
@@ -719,15 +729,14 @@ describe('stateToBlueprint', () => {
 		expect(findNode(bp, 'Idle')!.color).toBe('light-green')
 	})
 
-	it('computes edge bend from SVG edge waypoints', () => {
+	it('draws transitions as elbow arrows anchored where the route meets each state', () => {
 		const layout = diagramLayout(
 			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
 			[],
 			[
 				edge('', '', [
-					[0, 0],
-					[100, -40],
-					[200, 0],
+					[20, 0],
+					[180, 0],
 				]),
 			]
 		)
@@ -735,7 +744,15 @@ describe('stateToBlueprint', () => {
 		const relations = [{ id1: 'A', id2: 'B' }]
 
 		const bp = stateToBlueprint(layout, states, relations)
-		expect(findEdge(bp, 'A', 'B')!.bend).not.toBe(0)
+		// Leaf states are drawn 20 wider than pele's box, so the route ends just inside them; the
+		// ends are pushed out onto the side they face.
+		expect(findEdge(bp, 'A', 'B')).toMatchObject({
+			kind: 'elbow',
+			anchorStartX: 1,
+			anchorStartY: 0.5,
+			anchorEndX: 0,
+			anchorEndY: 0.5,
+		})
 	})
 
 	it('filters out edges referencing missing nodes', () => {
@@ -784,7 +801,7 @@ describe('sequenceToBlueprint', () => {
 		return { type, from, to, message } as Message
 	}
 
-	/** An `autonumber` directive in the shape mermaid's parser produces. */
+	/** An `autonumber` directive in the shape pele's parser produces. */
 	function autonumberMsg(opts: { start?: number; step?: number; visible: boolean }): Message {
 		return { type: LINETYPE.AUTONUMBER, message: opts } as unknown as Message
 	}
@@ -1442,8 +1459,10 @@ describe('sequenceToBlueprint', () => {
 	})
 
 	describe('participant boxes', () => {
+		type Box = NonNullable<Actor['box']>
+
 		function participantBox(opts: Partial<Box> = {}): Box {
-			return { name: '', wrap: false, fill: 'transparent', actorKeys: [], ...opts }
+			return { name: '', fill: 'transparent', ...opts }
 		}
 
 		function boxed(key: string, box: Box): [string, Actor] {
@@ -1526,22 +1545,19 @@ describe('sequenceToBlueprint', () => {
 			expect(right.x).toBe(120)
 		})
 
-		it('draws one box per box statement mermaid parses', async () => {
-			// Participants are grouped by the `Box` object mermaid's parser shares between them, which
-			// the tests above build by hand. Parsing real source catches a parser that stops sharing it
+		it('draws one box per box statement pele parses', async () => {
+			// Participants are grouped by the box object the parser shares between them, which the
+			// tests above build by hand. Parsing real source catches a parser that stops sharing it
 			// (one box per participant) as well as grouping by name (same-named boxes merged).
-			const mermaid = (await import('mermaid')).default
-			// Registers mermaid's diagram types, as a conversion does before parsing.
-			mermaid.initialize({ startOnLoad: false })
 			const convert = async (source: string) => {
-				// eslint-disable-next-line @typescript-eslint/no-deprecated
-				const db = (await mermaid.mermaidAPI.getDiagramFromText(source)).db as SequenceDB
-				const actorKeys = db.getActorKeys()
+				const { model } = (await parsePeleDiagram(source))!
+				const sequence = model as SequenceModel
+				const actorKeys = [...sequence.actors.keys()]
 				const bp = sequenceToBlueprint(
 					actorLayout(actorKeys.map((_, i) => i * 300)),
-					db.getActors(),
+					sequence.actors,
 					actorKeys,
-					db.getMessages()
+					sequence.messages
 				)
 				return boxNodes(bp).map((box) => [
 					box.label,
@@ -1552,8 +1568,6 @@ describe('sequenceToBlueprint', () => {
 				])
 			}
 
-			// No box colors here: mermaid only splits a color off the label with the browser's CSS
-			// parser, and jsdom's rejects mixed-case names, so `box Aqua Frontend` reads as one label.
 			expect(
 				await convert(`sequenceDiagram
     box Frontend
@@ -1635,6 +1649,7 @@ function mindmapNode(
 ): MindmapNode {
 	return {
 		id,
+		nodeId: `n${id}`,
 		descr,
 		type: opts.type ?? 0,
 		level: opts.level ?? 0,
@@ -1642,6 +1657,17 @@ function mindmapNode(
 		isRoot: opts.isRoot ?? false,
 		children: opts.children ?? [],
 	} as MindmapNode
+}
+
+/** Pele's model lists every node, each still holding its children. */
+function mindmapModel(root: MindmapNode): MindmapModel {
+	const nodes: MindmapNode[] = []
+	const visit = (node: MindmapNode) => {
+		nodes.push(node)
+		node.children.forEach(visit)
+	}
+	visit(root)
+	return { type: 'mindmap', title: undefined, nodes }
 }
 
 function mindmapLayout(nodes: ParsedNode[]): ParsedMindmapLayout {
@@ -1652,21 +1678,82 @@ function mindmapLayout(nodes: ParsedNode[]): ParsedMindmapLayout {
 
 const emptySvg = document.createElement('div')
 
+/** Pele draws each branch's outline in its color; nodes are keyed by the id written in the source. */
 function mockSvgWithColors(colors: Map<string, string>): Element {
 	const root = document.createElement('div')
-	for (const [id, fill] of colors) {
+	for (const [id, stroke] of colors) {
 		const group = document.createElement('div')
-		group.classList.add('node')
-		group.setAttribute('id', `node_${id}`)
+		group.classList.add('pele-node')
+		group.setAttribute('data-id', `n${id}`)
 		const rect = document.createElement('rect')
-		rect.style.fill = fill
+		rect.style.stroke = stroke
 		group.appendChild(rect)
 		root.appendChild(group)
 	}
 	return root
 }
 
+/** Pele marks the nodes it draws as text alone, with no outline. */
+function bareTextSvg(...ids: number[]): Element {
+	const root = document.createElement('div')
+	for (const id of ids) {
+		const group = document.createElement('div')
+		group.classList.add('pele-node', 'pele-shape-text')
+		group.setAttribute('data-id', `n${id}`)
+		root.appendChild(group)
+	}
+	return root
+}
+
 describe('mindmapToBlueprint', () => {
+	it('boxes an unbracketed node only when pele drew it with an outline', () => {
+		const layout = mindmapLayout([
+			node('0', 0, 0, 100, 50),
+			node('1', 150, 0, 80, 40),
+			node('2', 300, 0, 60, 30),
+		])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			children: [
+				mindmapNode(1, 'Branch', {
+					level: 1,
+					children: [mindmapNode(2, 'Leaf', { level: 2 })],
+				}),
+			],
+		})
+
+		const bp = mindmapToBlueprint(layout, mindmapModel(tree), bareTextSvg(2))
+
+		const specOf = (label: string) =>
+			defaultMermaidNodeRenderSpec('mindmap', findNodeByLabel(bp, label)!.kind)
+		expect(specOf('Root')).toEqual({ variant: 'geo', geo: 'rectangle' })
+		expect(specOf('Branch')).toEqual({ variant: 'geo', geo: 'rectangle' })
+		expect(specOf('Leaf')).toEqual({ variant: 'text' })
+	})
+
+	it('drops the quotes around a quoted label', () => {
+		const layout = mindmapLayout([node('0', 0, 0, 100, 50)])
+		const tree = mindmapNode(0, '"A quoted root"', { isRoot: true })
+
+		const bp = mindmapToBlueprint(layout, mindmapModel(tree), emptySvg)
+
+		expect(bp.nodes[0].label).toBe('A quoted root')
+	})
+
+	it("widens a box to fit its longest word in tldraw's font", () => {
+		const layout = mindmapLayout([node('0', 0, 0, 100, 50)])
+		const tree = mindmapNode(0, 'An extraordinarily long root', { isRoot: true })
+		const measured: string[] = []
+
+		const bp = mindmapToBlueprint(layout, mindmapModel(tree), emptySvg, (text, size) => {
+			measured.push(text)
+			return size === 'l' ? 240 : 160
+		})
+
+		expect(measured).toEqual(['extraordinarily'])
+		expect(bp.nodes[0]).toMatchObject({ x: -120, w: 240 })
+	})
+
 	it('maps root and child nodes with correct labels and positions', () => {
 		const layout = mindmapLayout([
 			node('0', 0, 0, 120, 60),
@@ -1683,7 +1770,7 @@ describe('mindmapToBlueprint', () => {
 			],
 		})
 
-		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+		const bp = mindmapToBlueprint(layout, mindmapModel(tree), emptySvg)
 
 		expect(bp.diagramKind).toBe('mindmap')
 		expect(bp.nodes).toHaveLength(3)
@@ -1719,7 +1806,7 @@ describe('mindmapToBlueprint', () => {
 			],
 		})
 
-		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+		const bp = mindmapToBlueprint(layout, mindmapModel(tree), emptySvg)
 
 		expect(bp.edges).toHaveLength(2)
 		for (const e of bp.edges) {
@@ -1755,7 +1842,7 @@ describe('mindmapToBlueprint', () => {
 			],
 		})
 
-		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+		const bp = mindmapToBlueprint(layout, mindmapModel(tree), emptySvg)
 
 		expect(bp.edges).toHaveLength(3)
 		expect(findEdge(bp, '0', '1')!.size).toBe('l')
@@ -1787,9 +1874,11 @@ describe('mindmapToBlueprint', () => {
 			],
 		})
 
-		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+		const bp = mindmapToBlueprint(layout, mindmapModel(tree), bareTextSvg(1))
 
-		expectNodeGeo(findNodeByLabel(bp, 'Default')!, 'rectangle', 'mindmap')
+		expect(defaultMermaidNodeRenderSpec('mindmap', findNodeByLabel(bp, 'Default')!.kind)).toEqual({
+			variant: 'text',
+		})
 		expectNodeGeo(findNodeByLabel(bp, 'Rect')!, 'rectangle', 'mindmap')
 		expectNodeGeo(findNodeByLabel(bp, 'Circle')!, 'ellipse', 'mindmap')
 		expectNodeGeo(findNodeByLabel(bp, 'Cloud')!, 'cloud', 'mindmap')
@@ -1807,7 +1896,7 @@ describe('mindmapToBlueprint', () => {
 			],
 		})
 
-		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+		const bp = mindmapToBlueprint(layout, mindmapModel(tree), emptySvg)
 
 		const round = findNodeByLabel(bp, 'Round')!
 		expect(round.w).toBe(round.h)
@@ -1831,7 +1920,7 @@ describe('mindmapToBlueprint', () => {
 		})
 		const svg = mockSvgWithColors(new Map([['1', 'rgb(224, 49, 49)']]))
 
-		const bp = mindmapToBlueprint(layout, tree, svg)
+		const bp = mindmapToBlueprint(layout, mindmapModel(tree), svg)
 
 		expect(findNodeByLabel(bp, 'With Color')!.color).toBe('red')
 		expect(findNodeByLabel(bp, 'No Color')!.color).toBe('black')
@@ -1846,7 +1935,7 @@ describe('mindmapToBlueprint', () => {
 		})
 		const svg = mockSvgWithColors(new Map([['1', 'rgb(9, 146, 104)']]))
 
-		const bp = mindmapToBlueprint(layout, tree, svg)
+		const bp = mindmapToBlueprint(layout, mindmapModel(tree), svg)
 
 		expect(bp.edges).toHaveLength(1)
 		expect(bp.edges[0].color).toBe('green')
@@ -1860,7 +1949,7 @@ describe('mindmapToBlueprint', () => {
 			children: [mindmapNode(1, 'Child', { level: 1, section: 0 })],
 		})
 
-		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+		const bp = mindmapToBlueprint(layout, mindmapModel(tree), emptySvg)
 
 		for (const n of bp.nodes) {
 			expect(n.fill).toBe('solid')
@@ -1876,7 +1965,7 @@ describe('mindmapToBlueprint', () => {
 			children: [mindmapNode(1, 'Missing', { level: 1, section: 0 })],
 		})
 
-		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+		const bp = mindmapToBlueprint(layout, mindmapModel(tree), emptySvg)
 
 		expect(bp.nodes).toHaveLength(1)
 		expect(bp.edges).toHaveLength(0)
@@ -1889,7 +1978,7 @@ describe('mindmapToBlueprint', () => {
 			level: 0,
 		})
 
-		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+		const bp = mindmapToBlueprint(layout, mindmapModel(tree), emptySvg)
 
 		expect(findNodeByLabel(bp, 'Root')!.color).toBe('black')
 	})

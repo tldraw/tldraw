@@ -4,6 +4,8 @@ Convert [Mermaid](https://mermaid.js.org/) diagram syntax into native, editable 
 
 Instead of rendering a static SVG, `@tldraw/mermaid` parses Mermaid text and creates real geo shapes, arrows, frames, and groups on the tldraw canvas — so users can move, resize, restyle, and connect them like any other shape.
 
+Diagrams are parsed and laid out by [pele](https://pele.run), a small Mermaid renderer, rather than the `mermaid` library. Pele reads the same syntax with its own layout, so a diagram can look different from Mermaid's rendering of it.
+
 ## Installation
 
 ```bash
@@ -62,9 +64,9 @@ When `centerOnPosition` is `true` (the default), the diagram's center aligns wit
 | Flowchart        | `flowchart`, `graph` | Geo shapes, arrows, subgraph frames                                        |
 | Sequence diagram | `sequenceDiagram`    | Actor shapes, lifelines, signal arrows, fragment frames, participant boxes |
 | State diagram    | `stateDiagram-v2`    | State shapes, transitions, compound state frames, fork/join, choice        |
-| Mindmap          | `mindmap`            | Colored geo shapes, parent-child edges, tree hierarchy                     |
+| Mindmap          | `mindmap`            | Colored geo shapes and text, parent-child edges, tree hierarchy            |
 
-Unsupported diagram types (pie, gantt, class, ER, etc.) can be handled with the `onUnsupportedDiagram` callback — for example, to fall back to SVG import:
+Unsupported diagram types (pie, gantt, class, ER, etc.) can be handled with the `onUnsupportedDiagram` callback, which receives the diagram rendered as SVG — for example, to import it as an image:
 
 ```tsx
 await createMermaidDiagram(editor, text, {
@@ -78,12 +80,12 @@ await createMermaidDiagram(editor, text, {
 
 ### `createMermaidDiagram(editor, text, options?)`
 
-Parses Mermaid text, extracts layout from the rendered SVG, builds a blueprint, and creates tldraw shapes.
+Parses Mermaid text, lays it out with pele, builds a blueprint from the layout, and creates tldraw shapes.
 
 - **`editor`** — a tldraw `Editor` instance.
 - **`text`** — Mermaid diagram source text.
 - **`options`** — optional `MermaidDiagramOptions`:
-  - `mermaidConfig` — Mermaid configuration overrides (theme, spacing, etc.).
+  - `mermaidConfig` — layout settings keyed by diagram type, as in Mermaid's config (for example `flowchart.nodeSpacing`, `state.rankSpacing`). A diagram's own frontmatter config takes precedence.
   - `blueprintRender` — positioning (`position`, `centerOnPosition`) and optional `mapNodeToRenderSpec` (see below).
   - `onUnsupportedDiagram(svg)` — callback when the diagram type isn't natively supported.
 
@@ -99,7 +101,7 @@ Error class with `type: 'parse' | 'unsupported'` and `diagramType` properties.
 
 ### Customizing node shapes
 
-Blueprint nodes carry layout and semantic `kind` only. At **`renderBlueprint`** time, each node is mapped to a **`MermaidBlueprintNodeRenderSpec`**: either `{ variant: 'geo', geo }` (defaults use the same built-in tables as before) or `{ variant: 'shape', type, props }` for any shape type registered on your editor.
+Blueprint nodes carry layout and semantic `kind` only. At **`renderBlueprint`** time, each node is mapped to a **`MermaidBlueprintNodeRenderSpec`**: `{ variant: 'geo', geo }` (the built-in defaults), `{ variant: 'text' }` for a bare label (the default for mindmap nodes written without brackets), or `{ variant: 'shape', type, props }` for any shape type registered on your editor.
 
 Pass **`mapNodeToRenderSpec`** on **`blueprintRender`** (or to `renderBlueprint` directly) with a callback `(input) => spec | undefined`. **`input`** includes `diagramKind`, `nodeId`, `kind`, and the full **`node`**. Return `undefined` to keep the package default for that node. **`defaultCreateMermaidNodeFromBlueprint`** then merges the spec with layout (size, colors, label text) and calls **`editor.createShape`** once per node.
 
@@ -111,9 +113,9 @@ Helpers: **`defaultMermaidNodeRenderSpec`**, **`resolveMermaidNodeRender`**, **`
 
 - **`DiagramMermaidBlueprint`** — `{ diagramKind, nodes, edges, lines?, groups? }`.
 - **`MermaidBlueprintNode`** — layout, semantic `kind`, and style fields (materialization is chosen at render time).
-- **`MermaidBlueprintNodeRenderSpec`** — `variant: 'geo'` + `geo`, or `variant: 'shape'` + `type` + `props`.
+- **`MermaidBlueprintNodeRenderSpec`** — `variant: 'geo'` + `geo`, `variant: 'text'`, or `variant: 'shape'` + `type` + `props`.
 - **`MermaidDiagramKind`** — `'flowchart' | 'state' | 'sequence' | 'mindmap'`.
-- **`MermaidBlueprintEdge`** — an arrow with start/end node IDs, bend, arrowheads, dash style, and anchor positions.
+- **`MermaidBlueprintEdge`** — an arrow with start/end node IDs, arc or elbow kind, bend, arrowheads, dash style, anchor positions, and label position.
 - **`MermaidBlueprintLineNode`** — a vertical or horizontal line (used for sequence diagram lifelines).
 - **`BlueprintRenderingOptions`** — position, centering, and optional `mapNodeToRenderSpec` for `renderBlueprint` / `createMermaidDiagram`.
 - **`MermaidNodeCreateFunctionArgs`** — argument object for **`defaultCreateMermaidNodeFromBlueprint`** (includes resolved **`render`** spec).
@@ -124,13 +126,13 @@ The conversion happens in three stages:
 
 ```mermaid
 flowchart LR
-    MermaidText["Mermaid text"] --> ParseRender["Parse and render SVG"]
+    MermaidText["Mermaid text"] --> ParseRender["Parse and lay out"]
     ParseRender --> ExtractBlueprint["Extract blueprint"]
     ExtractBlueprint --> CreateShapes["Create tldraw shapes"]
 ```
 
-1. **Parse and render** — Mermaid parses the text and renders an SVG into an offscreen DOM element, giving us accurate layout positions via `getBBox()`.
-2. **Extract blueprint** — a diagram-specific converter reads positions from the SVG and semantic data from Mermaid's internal database, producing a `DiagramMermaidBlueprint`.
+1. **Parse and lay out** — pele parses the text into a typed model and renders it to an SVG, measuring text in tldraw's own font so boxes fit their labels. The SVG is mounted offscreen so `getBBox()` works.
+2. **Extract blueprint** — a diagram-specific converter reads positions from the SVG, where every node, edge and label carries its model id, and combines them with the parsed model, producing a `DiagramMermaidBlueprint`. Edges become elbow arrows anchored where pele routed them.
 3. **Create shapes** — `renderBlueprint` resolves each node’s materialization spec (mapper or default), then creates tldraw shapes (geo or custom), plus arrows, lines, frames, and groups.
 
 ## Example: paste handler
@@ -177,7 +179,7 @@ The regex above is a simplified check. On tldraw.com the detection is handled by
 
 ## Lazy loading
 
-The `mermaid` dependency is roughly 2 MB. The paste handler above already lazy-loads with `await import('@tldraw/mermaid')` — the package is only fetched when the pasted text matches a Mermaid keyword. For your own integration, the same pattern applies: pre-screen with a lightweight regex, then dynamic-import the package only when needed.
+`createMermaidDiagram` loads pele on first call, and only the parser and layout for the diagram type being converted. The paste handler above also lazy-loads the package itself with `await import('@tldraw/mermaid')`, so it is only fetched when the pasted text matches a Mermaid keyword. For your own integration, the same pattern applies: pre-screen with a lightweight regex, then dynamic-import the package only when needed.
 
 ## Examples
 

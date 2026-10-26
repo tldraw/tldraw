@@ -21,7 +21,7 @@ export interface ParsedCluster {
 }
 
 export interface ParsedEdge {
-	/** Mermaid's `data-id` for the path, shared with the edge's label in the SVG. */
+	/** The path's `data-id`, shared with the edge's label in the SVG. */
 	id: string
 	start: string
 	end: string
@@ -47,23 +47,6 @@ export interface ParsedDiagramLayout {
 	edgeLabels: Map<string, ParsedEdgeLabel>
 }
 
-type NodeIdParser = (domId: string) => string
-type EdgeIdParser = (dataId: string, points: Vec2[]) => { start: string; end: string } | null
-
-// Mermaid >= 11.15 prefixes every rendered element id with the diagram id
-// (`mermaid-0-flowchart-A-0` instead of `flowchart-A-0`); older versions do not.
-const DIAGRAM_ID_PREFIX = /^mermaid-\d+-/
-
-export function stripDiagramIdPrefix(domId: string): string {
-	return domId.replace(DIAGRAM_ID_PREFIX, '')
-}
-
-/** Extract the first capture group of `pattern` from a dom id, tolerating the diagram-id prefix. */
-export function parseDomId(domId: string, pattern: RegExp): string {
-	const bareId = stripDiagramIdPrefix(domId)
-	return bareId.match(pattern)?.[1] ?? bareId
-}
-
 function parseTranslate(attr: string | null): Vec2 {
 	// Matches SVG translate transforms, e.g. transform="translate(123.45, 67.8)".
 	// Handles scientific notation (1.2e+3). Group 1 = x offset, group 2 = y offset.
@@ -81,166 +64,6 @@ export function getAccumulatedTranslate(el: Element): Vec2 {
 		y += t.y
 	}
 	return { x, y }
-}
-
-function getBBoxSize(el: Element | null): { w: number; h: number } | undefined {
-	if (!el) return undefined
-	try {
-		const bbox = (el as SVGGraphicsElement).getBBox()
-		if (bbox.width > 0 && bbox.height > 0) return { w: bbox.width, h: bbox.height }
-	} catch {
-		// not a live SVG element (e.g. jsdom)
-	}
-	return undefined
-}
-
-/**
- * Extract element dimensions from a live SVG element using getBBox(),
- * falling back to attribute parsing for non-browser environments (jsdom).
- */
-function getNodeDimensions(groupEl: Element): { w: number; h: number } {
-	const bbox = getBBoxSize(groupEl.querySelector('.label-container')) ?? getBBoxSize(groupEl)
-	if (bbox) return bbox
-
-	const rect = groupEl.querySelector('rect')
-	if (rect) {
-		const w = parseFloat(rect.getAttribute('width') || '0')
-		const h = parseFloat(rect.getAttribute('height') || '0')
-		if (w > 0 && h > 0) return { w, h }
-	}
-	const poly = groupEl.querySelector('polygon')
-	if (poly) {
-		const pts = (poly.getAttribute('points') || '')
-			.trim()
-			.split(/\s+/)
-			.map((pointStr) => pointStr.split(',').map(Number))
-		let minX = Infinity
-		let maxX = -Infinity
-		let minY = Infinity
-		let maxY = -Infinity
-		for (const [px, py] of pts) {
-			minX = Math.min(minX, px)
-			maxX = Math.max(maxX, px)
-			minY = Math.min(minY, py)
-			maxY = Math.max(maxY, py)
-		}
-		if (maxX > minX && maxY > minY) return { w: maxX - minX, h: maxY - minY }
-	}
-	const circle = groupEl.querySelector('circle')
-	if (circle) {
-		const r = parseFloat(circle.getAttribute('r') || '0')
-		if (r > 0) return { w: r * 2, h: r * 2 }
-	}
-	const ellipse = groupEl.querySelector('ellipse')
-	if (ellipse) {
-		const w = parseFloat(ellipse.getAttribute('rx') || '0') * 2
-		const h = parseFloat(ellipse.getAttribute('ry') || '0') * 2
-		if (w > 0 && h > 0) return { w, h }
-	}
-	return { w: 0, h: 0 }
-}
-
-export function parseNodesFromSvg(
-	root: Element,
-	selector: string,
-	idParser: NodeIdParser
-): Map<string, ParsedNode> {
-	const out = new Map<string, ParsedNode>()
-	for (const groupEl of root.querySelectorAll(selector)) {
-		const id = idParser(groupEl.getAttribute('id') || '')
-		const self = parseTranslate(groupEl.getAttribute('transform'))
-		const ancestor = getAccumulatedTranslate(groupEl)
-		const { w, h } = getNodeDimensions(groupEl)
-		out.set(id, {
-			id,
-			center: { x: ancestor.x + self.x, y: ancestor.y + self.y },
-			width: w,
-			height: h,
-		})
-	}
-	return out
-}
-
-export function parseClustersFromSvg(
-	root: Element,
-	selector: string,
-	idParser: NodeIdParser
-): Map<string, ParsedCluster> {
-	const out = new Map<string, ParsedCluster>()
-	for (const groupEl of root.querySelectorAll(selector)) {
-		const id = idParser(groupEl.getAttribute('id') || '')
-		const rect = groupEl.querySelector('rect')
-		if (!rect) continue
-		const rx = parseFloat(rect.getAttribute('x') || '0')
-		const ry = parseFloat(rect.getAttribute('y') || '0')
-		const w = parseFloat(rect.getAttribute('width') || '0')
-		const h = parseFloat(rect.getAttribute('height') || '0')
-		const self = parseTranslate(groupEl.getAttribute('transform'))
-		const ancestor = getAccumulatedTranslate(groupEl)
-		out.set(id, {
-			id,
-			topLeft: { x: ancestor.x + self.x + rx, y: ancestor.y + self.y + ry },
-			width: w,
-			height: h,
-		})
-	}
-	return out
-}
-
-/**
- * Parse every SVG edge path in DOM order (matching mermaid's edge list order).
- * Unlike the old per-pair map, this preserves all parallel edges individually.
- */
-export function parseAllEdgePointsFromSvg(root: Element, parser: EdgeIdParser): ParsedEdge[] {
-	const out: ParsedEdge[] = []
-	for (const path of root.querySelectorAll('path[data-points]')) {
-		const dataId = path.getAttribute('data-id') || path.getAttribute('id') || ''
-		const dataPoints = path.getAttribute('data-points')
-		if (!dataPoints) continue
-		try {
-			const points = JSON.parse(atob(dataPoints))
-			const ancestor = getAccumulatedTranslate(path as Element)
-			for (const point of points) {
-				point.x += ancestor.x
-				point.y += ancestor.y
-			}
-			// Parsed after the points, which an id parser may need to place an ambiguous id.
-			const parsed = parser(dataId, points)
-			if (!parsed) continue
-			out.push({ id: dataId, start: parsed.start, end: parsed.end, points })
-		} catch {
-			/* ignore malformed data */
-		}
-	}
-	return out
-}
-
-/**
- * Parse the box mermaid laid each edge label out in, keyed by the `data-id` it shares with its
- * path. Edges without text still get an empty label group, which is skipped.
- */
-export function parseEdgeLabelsFromSvg(root: Element): Map<string, ParsedEdgeLabel> {
-	const out = new Map<string, ParsedEdgeLabel>()
-	for (const label of root.querySelectorAll('.edgeLabel .label[data-id]')) {
-		const size = getBBoxSize(label) ?? getForeignObjectSize(label)
-		if (!size) continue
-		const ancestor = getAccumulatedTranslate(label)
-		const self = parseTranslate(label.getAttribute('transform'))
-		out.set(label.getAttribute('data-id')!, {
-			x: ancestor.x + self.x,
-			y: ancestor.y + self.y,
-			w: size.w,
-			h: size.h,
-		})
-	}
-	return out
-}
-
-function getForeignObjectSize(el: Element): { w: number; h: number } | undefined {
-	const foreignObject = el.querySelector('foreignObject')
-	const w = parseFloat(foreignObject?.getAttribute('width') || '0')
-	const h = parseFloat(foreignObject?.getAttribute('height') || '0')
-	return w > 0 && h > 0 ? { w, h } : undefined
 }
 
 /**
@@ -264,14 +87,14 @@ export function buildNodeCentersFromSvg(
 }
 
 /**
- * Claim the path mermaid drew for an edge between two nodes, or undefined when nothing matches.
- * Each path is claimed at most once.
+ * Claim the path the layout drew for an edge between two nodes, or undefined when nothing
+ * matches. Each path is claimed at most once.
  *
- * Mermaid names a flowchart's paths after the two nodes they join and emits them in the order it
- * drew them, so the nth edge between a pair of nodes is the nth unclaimed path carrying their ids.
- * Paths with no ids to go on, such as a state diagram's `edge<N>`, fall back to whichever ends lie
- * nearest the two node centers. That fallback picks the wrong path when several ends sit equally
- * close, which is what parallel edges do (#10794).
+ * A flowchart's paths carry the two node ids they join, in source order, so the nth edge between a
+ * pair of nodes is the nth unclaimed path carrying their ids. Paths with no ids to go on, such as a
+ * state diagram's `edge<N>`, fall back to whichever ends lie nearest the two node centers. That
+ * fallback picks the wrong path when several ends sit equally close, which is what parallel edges
+ * do (#10794).
  */
 export function claimEdge(
 	svgEdges: ParsedEdge[],
@@ -320,9 +143,8 @@ export function claimEdge(
 const SELF_LOOP_EDGE_SPREAD = 0.4
 
 /**
- * Where a self-loop leaves and re-enters its node, and how far out it reaches. Mermaid loops out of
- * the side facing the next rank (the bottom of a top-down chart, the right of a left-to-right one)
- * with the label just beyond; anywhere else, loop and label land on the node.
+ * Where a self-loop leaves and re-enters its node, and how far out it reaches, following the side
+ * the layout looped out of, with the label just beyond.
  */
 export function getSelfLoopEdgeLayout(
 	svgEdge: ParsedEdge,
@@ -357,6 +179,144 @@ export function getSelfLoopEdgeLayout(
 		anchorEndX: end.x,
 		anchorEndY: end.y,
 	}
+}
+
+/** How far from a node's corners an edge may slide along its side, as a fraction of that side. */
+const EDGE_SLIDE_INSET = 0.1
+
+/**
+ * Bind an edge as an elbow arrow that follows the layout's route: it leaves and enters its shapes
+ * where the route does, jogs where the route jogs, and carries its label where the layout put it.
+ * Pele gives each edge its own port on a node's side, so anchoring there keeps parallel edges apart;
+ * left to tldraw's defaults, the jogs and labels of neighbouring edges land on top of each other.
+ */
+export function getElbowEdgeLayout(
+	svgEdge: ParsedEdge,
+	startBox: { x: number; y: number; w: number; h: number },
+	endBox: { x: number; y: number; w: number; h: number },
+	label?: ParsedEdgeLabel
+) {
+	const { points } = svgEdge
+	if (points.length < 2) return undefined
+	// The route stops short of a node by its arrowhead, so push its end out onto the nearest side.
+	const toAnchor = (point: Vec2, box: { x: number; y: number; w: number; h: number }) => {
+		const x = box.w > 0 ? clamp((point.x - box.x) / box.w, 0, 1) : 0.5
+		const y = box.h > 0 ? clamp((point.y - box.y) / box.h, 0, 1) : 0.5
+		const toSideX = Math.min(x, 1 - x) * box.w
+		const toSideY = Math.min(y, 1 - y) * box.h
+		return toSideY <= toSideX ? { x, y: Math.round(y) } : { x: Math.round(x), y }
+	}
+	const first = points[0]
+	const last = points[points.length - 1]
+	const start = toAnchor(first, startBox)
+	const end = toAnchor(last, endBox)
+
+	// Pele gives a labelled edge's label its own slot and detours the route through it, out and
+	// back. An elbow jogs only once, so it would cut straight across, piling neighbouring labels on
+	// top of each other. Instead, each end that can slide along its side to line up with the label
+	// does, and the one jog goes on the far side of the label from the end that did, so the label
+	// sits on a straight run through the slot the layout kept for it.
+	let throughLabel: { elbowMidPoint?: number; labelPosition: number } | undefined
+	if (label) {
+		const vertical = start.y === 0 || start.y === 1
+		const across = (point: Vec2) => (vertical ? point.x : point.y)
+		const along = (point: Vec2) => (vertical ? point.y : point.x)
+		const center = { x: label.x + label.w / 2, y: label.y + label.h / 2 }
+		const slide = (box: { x: number; y: number; w: number; h: number }) => {
+			const t = vertical ? (center.x - box.x) / box.w : (center.y - box.y) / box.h
+			return t >= EDGE_SLIDE_INSET && t <= 1 - EDGE_SLIDE_INSET ? t : undefined
+		}
+		const startSlide = slide(startBox)
+		const endSlide = slide(endBox)
+		const from = along(first)
+		const to = along(last)
+		const labelAlong = along(center)
+		const labelHalf = (vertical ? label.h : label.w) / 2
+		const between = (labelAlong - from) * (labelAlong - to) < 0
+		const sameAxis = (end.y === 0 || end.y === 1) === vertical
+		if (between && sameAxis && (startSlide !== undefined || endSlide !== undefined)) {
+			const set = (anchor: { x: number; y: number }, t: number) =>
+				vertical ? (anchor.x = t) : (anchor.y = t)
+			if (startSlide !== undefined) set(start, startSlide)
+			if (endSlide !== undefined) set(end, endSlide)
+			const dir = Math.sign(to - from)
+			// Jog halfway between the label and the end that could not line up with it.
+			const jog =
+				startSlide === undefined
+					? (from + labelAlong - dir * labelHalf) / 2
+					: endSlide === undefined
+						? (to + labelAlong + dir * labelHalf) / 2
+						: undefined
+			const startAcross = startSlide !== undefined ? across(center) : across(first)
+			const endAcross = endSlide !== undefined ? across(center) : across(last)
+			const sideways = Math.abs(endAcross - startAcross)
+			const total = Math.abs(to - from) + sideways
+			const toLabel = Math.abs(labelAlong - from) + (startSlide === undefined ? sideways : 0)
+			throughLabel = {
+				elbowMidPoint: jog === undefined ? undefined : clamp((jog - from) / (to - from), 0, 1),
+				labelPosition: total > 0 ? toLabel / total : 0.5,
+			}
+		}
+	}
+
+	return {
+		kind: 'elbow' as const,
+		bend: 0,
+		anchorStartX: start.x,
+		anchorStartY: start.y,
+		anchorEndX: end.x,
+		anchorEndY: end.y,
+		isExact: false,
+		isPrecise: true,
+		...(throughLabel ?? {
+			elbowMidPoint: getElbowMidPoint(points),
+			labelPosition:
+				label &&
+				getPositionAlongRoute(points, { x: label.x + label.w / 2, y: label.y + label.h / 2 }),
+		}),
+	}
+}
+
+/**
+ * Where a route's middle segment crosses between its ends, as tldraw's `elbowMidPoint` measures it:
+ * the longest run across the direction the route leaves its start in.
+ */
+function getElbowMidPoint(points: Vec2[]): number | undefined {
+	const first = points[0]
+	const last = points[points.length - 1]
+	const leavesVertically = Math.abs(points[1].y - first.y) >= Math.abs(points[1].x - first.x)
+	const span = leavesVertically ? last.y - first.y : last.x - first.x
+	if (Math.abs(span) < 1) return undefined
+
+	let crossing: number | undefined
+	let longest = 0
+	for (let i = 1; i < points.length; i++) {
+		const along = leavesVertically ? points[i].x - points[i - 1].x : points[i].y - points[i - 1].y
+		const across = leavesVertically ? points[i].y - points[i - 1].y : points[i].x - points[i - 1].x
+		if (Math.abs(across) > 1 || Math.abs(along) <= longest) continue
+		longest = Math.abs(along)
+		crossing = leavesVertically ? points[i].y : points[i].x
+	}
+	if (crossing === undefined) return undefined
+	return clamp((crossing - (leavesVertically ? first.y : first.x)) / span, 0, 1)
+}
+
+/** How far along a route the point nearest `target` lies, as a fraction of the route's length. */
+function getPositionAlongRoute(points: Vec2[], target: Vec2): number | undefined {
+	let total = 0
+	let best = { distance: Infinity, at: 0 }
+	for (let i = 1; i < points.length; i++) {
+		const a = points[i - 1]
+		const b = points[i]
+		const length = Math.hypot(b.x - a.x, b.y - a.y)
+		const t = length
+			? clamp(((target.x - a.x) * (b.x - a.x) + (target.y - a.y) * (b.y - a.y)) / length ** 2, 0, 1)
+			: 0
+		const distance = Math.hypot(a.x + (b.x - a.x) * t - target.x, a.y + (b.y - a.y) * t - target.y)
+		if (distance < best.distance) best = { distance, at: total + length * t }
+		total += length
+	}
+	return total > 0 ? best.at / total : undefined
 }
 
 // ---------------------------------------------------------------------------

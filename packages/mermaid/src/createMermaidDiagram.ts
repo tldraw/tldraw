@@ -1,17 +1,17 @@
-import type { FlowDB } from 'mermaid/dist/diagrams/flowchart/flowDb.d.ts'
-import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
-import type { MindmapDB } from 'mermaid/dist/diagrams/mindmap/mindmapDb.d.ts'
-import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
-import type { StateDB } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
+import type { FlowchartModel, MindmapModel, SequenceModel, StateModel } from 'pele'
 import { Editor } from 'tldraw'
+import type { DiagramMermaidBlueprint } from './blueprint'
 import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
-import { createLabelWidthMeasurer } from './mermaidNodeCreateShape'
+import {
+	createLabelWidthMeasurer,
+	createLayoutTextMeasurer,
+	getLayoutFontSize,
+} from './mermaidNodeCreateShape'
 import { mindmapToBlueprint, parseMindmapLayout } from './mindmapDiagram'
+import { loadPele, withMountedPeleSvg } from './peleDiagram'
 import { BlueprintRenderingOptions, renderBlueprint } from './renderBlueprint'
-import { countSequenceEvents, parseSequenceLayout, sequenceToBlueprint } from './sequenceDiagram'
+import { parseSequenceLayout, sequenceToBlueprint } from './sequenceDiagram'
 import { parseStateDiagramLayout, stateToBlueprint } from './stateDiagram'
-
-let nextMermaidId = 0
 
 /** @public */
 export class MermaidDiagramError extends Error {
@@ -24,30 +24,31 @@ export class MermaidDiagramError extends Error {
 	}
 }
 
-// Inflate the font size so Mermaid's layout engine allocates larger nodes,
-// compensating for tldraw's hand-drawn font being wider than Mermaid's default.
-const FONT_INFLATE = 1.4
+// How much longer than its label tldraw needs an elbow arrow to be before it stops squeezing the
+// label: 32 at each end, from `getArrowLabelSize`. It only squeezes arrows wider than they are tall,
+// so only a left-to-right layout needs the room; elsewhere it would push the slot the layout keeps
+// for each label out past the nodes the edge joins.
+const ELBOW_LABEL_MARGIN = 64
 
-const MERMAID_CONFIG = {
-	startOnLoad: false,
-	flowchart: { nodeSpacing: 80, rankSpacing: 80, padding: 20 },
-	state: { nodeSpacing: 80, rankSpacing: 80, padding: 20 },
-	mindmap: { padding: 20 },
-	sequence: { actorMargin: 50, noteMargin: 20 },
-	themeVariables: { fontSize: `${18 * FONT_INFLATE}px` },
+function elbowLabelRoom(direction: string | undefined) {
+	return { edgeLabelMargin: direction === 'LR' || direction === 'RL' ? ELBOW_LABEL_MARGIN : 0 }
 }
 
 /** @public */
 export interface MermaidDiagramOptions {
+	/**
+	 * Layout settings, keyed by diagram type the way Mermaid's config is (`flowchart`, `state`,
+	 * `sequence`, …), passed to the layout as is; a diagram's own frontmatter config outranks them.
+	 */
 	mermaidConfig?: Record<string, any>
 	blueprintRender?: BlueprintRenderingOptions
 	onUnsupportedDiagram?(svg: string): Promise<void>
 }
 
 /**
- * Parse mermaid text and create tldraw shapes for supported diagram types.
- * Returns the SVG string for supported diagrams, or `null` when the diagram type
- * is unsupported (after calling `onUnsupportedDiagram` if provided).
+ * Parse Mermaid text and create tldraw shapes for supported diagram types (flowchart, state,
+ * sequence and mindmap). Other diagram types are rendered to SVG and handed to
+ * `onUnsupportedDiagram`, or rejected when it isn't given.
  * Throws {@link MermaidDiagramError} if parsing fails.
  * @public
  */
@@ -56,129 +57,96 @@ export async function createMermaidDiagram(
 	text: string,
 	options: MermaidDiagramOptions = {}
 ): Promise<void> {
-	// load mermaid lazily: it's a large, ESM-only dependency only needed when a
-	// diagram is actually created. a dynamic import() works from CommonJS (unlike
-	// a static import, which compiles to require(<esm>) and throws
-	// ERR_REQUIRE_ESM on Node <20.19, Jest, and ts-node) and avoids pulling
-	// mermaid in when @tldraw/mermaid is merely imported.
-	const mermaid = (await import('mermaid')).default
-
-	mermaid.initialize({
-		...MERMAID_CONFIG,
-		...(options.mermaidConfig ?? {}),
-		flowchart: { ...MERMAID_CONFIG.flowchart, ...options.mermaidConfig?.flowchart },
-		state: { ...MERMAID_CONFIG.state, ...options.mermaidConfig?.state },
-		mindmap: { ...MERMAID_CONFIG.mindmap, ...options.mermaidConfig?.mindmap },
-		sequence: { ...MERMAID_CONFIG.sequence, ...options.mermaidConfig?.sequence },
-		themeVariables: { ...MERMAID_CONFIG.themeVariables, ...options.mermaidConfig?.themeVariables },
-		// A diagram's own `%%{init}%%` or frontmatter config outranks `initialize`, so one that sets
-		// `fontSize` undoes FONT_INFLATE: every box is measured small while tldraw still draws its
-		// wider face, and labels break mid-word. Mermaid strips `secure` keys from in-diagram config
-		// at any depth, and keeps its own defaults alongside the ones listed here.
-		secure: [...(options.mermaidConfig?.secure ?? []), 'fontSize'],
-	})
-
-	const parsedResult = await mermaid.parse(text, { suppressErrors: true })
-
-	if (!parsedResult) {
-		throw new MermaidDiagramError('not a mermaid diagram', 'parse')
-	}
-
-	const offscreen = document.createElement('div')
-	Object.assign(offscreen.style, {
-		position: 'absolute',
-		left: '-9999px',
-		top: '-9999px',
-		overflow: 'hidden',
-	})
-	document.body.appendChild(offscreen)
-
+	const pele = await loadPele()
+	const type = pele.detectType(text)
+	if (!type) throw new MermaidDiagramError('not a mermaid diagram', 'parse')
+	await pele.load(type)
+	let model
 	try {
-		const parsedSvg = (await mermaid.render(`mermaid-${nextMermaidId++}`, text, offscreen)).svg
+		model = pele.parse(text)
+	} catch {
+		throw new MermaidDiagramError(type, 'parse')
+	}
+	const config = options.mermaidConfig
+	// Only built for the types converted to shapes: it reads tldraw's fonts off the editor.
+	const layoutOptions = (opts?: { edgeLabelMargin?: number }) => ({
+		fontSize: getLayoutFontSize(editor),
+		measurer: createLayoutTextMeasurer(editor, opts),
+		config,
+	})
 
-		// Reuse the live SVG that mermaid.render() already mounted into the
-		// offscreen container.  This avoids a second DOM mount and ensures
-		// getBBox() works for every diagram type (state diagrams in particular
-		// lack explicit dimension attributes and rely on live layout).
-		let liveSvg = offscreen.querySelector('svg')
-
-		if (!liveSvg) {
-			offscreen.innerHTML = parsedSvg
-			liveSvg = offscreen.querySelector('svg')
-			if (!liveSvg) {
-				throw new MermaidDiagramError(parsedResult.diagramType, 'parse')
-			}
-		}
-
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		const diagramResult = await mermaid.mermaidAPI.getDiagramFromText(text)
-
-		let blueprint
-		switch (parsedResult.diagramType) {
-			case 'flowchart-v2': {
-				const db = diagramResult.db as FlowDB
-				const vertices = db.getVertices() as Map<string, FlowVertex>
-				const edges = db.getEdges() as FlowEdge[]
-				const subGraphs = db.getSubGraphs() as FlowSubGraph[]
-				const classes = db.getClasses()
-				const layout = parseFlowchartLayout(liveSvg)
-				blueprint = flowchartToBlueprint(layout, vertices, edges, subGraphs, classes)
-				break
-			}
-			case 'sequence': {
-				const db = diagramResult.db as SequenceDB
-				const actors = db.getActors()
-				const actorKeys = db.getActorKeys()
-				const messages = db.getMessages()
-				const layout = parseSequenceLayout(liveSvg, actorKeys.length, countSequenceEvents(messages))
-				blueprint = sequenceToBlueprint(
-					layout,
-					actors,
-					actorKeys,
-					messages,
-					db.getCreatedActors(),
-					db.getDestroyedActors(),
-					createLabelWidthMeasurer(editor)
+	let blueprint: DiagramMermaidBlueprint | undefined
+	try {
+		switch (type) {
+			case 'flowchart': {
+				const flowchart = model as FlowchartModel
+				blueprint = await withMountedPeleSvg(
+					text,
+					layoutOptions(elbowLabelRoom(flowchart.direction)),
+					(root) =>
+						flowchartToBlueprint(
+							parseFlowchartLayout(root, flowchart),
+							flowchart.nodes,
+							flowchart.edges,
+							flowchart.subgraphs,
+							flowchart.classes,
+							flowchart.defaultEdgeStyle
+						)
 				)
 				break
 			}
-			case 'state':
-			case 'stateDiagram': {
-				const db = diagramResult.db as StateDB
-				const states = db.getStates()
-				const relations = db.getRelations()
-				const classes = db.getClasses()
-				const layout = parseStateDiagramLayout(liveSvg)
-				blueprint = stateToBlueprint(layout, states, relations, classes)
+			case 'state': {
+				const state = model as StateModel
+				blueprint = await withMountedPeleSvg(
+					text,
+					layoutOptions(elbowLabelRoom(state.direction)),
+					(root) =>
+						stateToBlueprint(
+							parseStateDiagramLayout(root),
+							state.states,
+							state.relations,
+							state.classes
+						)
+				)
 				break
 			}
 			case 'mindmap': {
-				const db = diagramResult.db as MindmapDB
-				const tree = db.getMindmap()
-				if (tree) {
-					db.assignSections(tree)
-					const layout = parseMindmapLayout(liveSvg)
-					blueprint = mindmapToBlueprint(layout, tree, liveSvg)
-				}
+				const mindmap = model as MindmapModel
+				blueprint = await withMountedPeleSvg(text, layoutOptions(), (root) =>
+					mindmapToBlueprint(
+						parseMindmapLayout(root, mindmap),
+						mindmap,
+						root,
+						createLabelWidthMeasurer(editor)
+					)
+				)
+				break
+			}
+			case 'sequence': {
+				const sequence = model as SequenceModel
+				blueprint = await withMountedPeleSvg(text, layoutOptions(), (root) =>
+					sequenceToBlueprint(
+						parseSequenceLayout(root, sequence),
+						sequence.actors,
+						[...sequence.actors.keys()],
+						sequence.messages,
+						sequence.createdActors,
+						sequence.destroyedActors,
+						createLabelWidthMeasurer(editor)
+					)
+				)
 				break
 			}
 			default:
-				if (options.onUnsupportedDiagram) {
-					await options.onUnsupportedDiagram(parsedSvg)
-				} else {
-					throw new MermaidDiagramError(parsedResult.diagramType, 'unsupported')
-				}
-				break
-		}
-
-		if (blueprint) {
-			renderBlueprint(editor, blueprint, options.blueprintRender)
+				if (!options.onUnsupportedDiagram) throw new MermaidDiagramError(type, 'unsupported')
+				await options.onUnsupportedDiagram(pele.render(text, { config }).svg)
+				return
 		}
 	} catch (e) {
 		if (e instanceof MermaidDiagramError) throw e
 		console.error(e)
-		throw new MermaidDiagramError(parsedResult.diagramType, 'parse')
-	} finally {
-		offscreen.remove()
+		throw new MermaidDiagramError(type, 'parse')
 	}
+
+	if (blueprint) renderBlueprint(editor, blueprint, options.blueprintRender)
 }

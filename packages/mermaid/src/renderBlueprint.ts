@@ -198,6 +198,9 @@ function createArrowFromEdge(
 		arrowheadEnd: edge.arrowheadEnd ?? ('arrow' as const),
 		...(edge.arrowheadStart && { arrowheadStart: edge.arrowheadStart }),
 		color: edge.color ?? ('black' as const),
+		...(edge.kind && { kind: edge.kind }),
+		...(edge.elbowMidPoint !== undefined && { elbowMidPoint: edge.elbowMidPoint }),
+		...(edge.labelPosition !== undefined && { labelPosition: edge.labelPosition }),
 		...(labelText && { richText: toRichText(sanitizeDiagramText(labelText)) }),
 	}
 
@@ -276,8 +279,8 @@ function createArrowFromEdge(
 			},
 		})
 		editor.createBindings([
-			makeArrowBinding(arrowId, startShapeId, 'start', start),
-			makeArrowBinding(arrowId, endShapeId, 'end', end),
+			makeArrowBinding(arrowId, startShapeId, 'start', start, edge.kind),
+			makeArrowBinding(arrowId, endShapeId, 'end', end, edge.kind),
 		])
 	})
 	return arrowId
@@ -287,13 +290,21 @@ function makeArrowBinding(
 	arrowId: TLShapeId,
 	targetId: TLShapeId,
 	terminal: 'start' | 'end',
-	{ anchor, isExact, isPrecise }: ArrowTerminal
+	{ anchor, isExact, isPrecise }: ArrowTerminal,
+	kind: MermaidBlueprintEdge['kind']
 ) {
 	return {
 		fromId: arrowId,
 		toId: targetId,
 		type: 'arrow' as const,
-		props: { terminal, normalizedAnchor: anchor, isExact, isPrecise },
+		props: {
+			terminal,
+			normalizedAnchor: anchor,
+			isExact,
+			isPrecise,
+			// Without it, an elbow picks its own side and point on the shape and ignores the anchor.
+			...(kind === 'elbow' && { snap: 'edge-point' as const }),
+		},
 	}
 }
 

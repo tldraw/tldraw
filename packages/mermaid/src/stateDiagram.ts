@@ -1,23 +1,21 @@
-import type { StateStmt, StyleClass } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
+import type { StateModel } from 'pele'
 import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
 	MermaidBlueprintNode,
 } from './blueprint'
 import { buildClassDefColorMap, type ParsedNodeColors, toNodeColorProps } from './colors'
+import { parsePeleLayout } from './peleDiagram'
 import {
 	buildNodeCentersFromSvg,
 	claimEdge,
+	getElbowEdgeLayout,
 	getSelfLoopEdgeLayout,
-	parseAllEdgePointsFromSvg,
-	parseClustersFromSvg,
-	parseDomId,
-	parseEdgeLabelsFromSvg,
 	type ParsedDiagramLayout,
-	parseNodesFromSvg,
-	scaleLayout,
 } from './svgParsing'
-import { dropDanglingEdges, getArrowBend, LAYOUT_SCALE, orderTopDown } from './utils'
+import { dropDanglingEdges, getArrowBend, orderTopDown } from './utils'
+
+type StateStmt = StateModel['states'] extends Map<string, infer S> ? S : never
 
 interface DiagramEdge {
 	id1: string
@@ -40,13 +38,19 @@ function getEffectiveType(state: StateStmt): string {
 	return state.type || 'default'
 }
 
+function joinDescription(description: string | string[]) {
+	const joined = Array.isArray(description) ? description.join('\n') : description
+	// A `\n` written in a state's name is a line break, which pele leaves as text.
+	return joined.replace(/\\n/g, '\n')
+}
+
 const UNLABELED_TYPES = new Set(['start', 'end'])
 
 function getStateLabel(state: StateStmt): string {
 	if (state.descriptions && state.descriptions.length > 0) {
-		return state.descriptions.join('\n')
+		return joinDescription(state.descriptions)
 	}
-	if (state.description) return state.description
+	if (state.description) return joinDescription(state.description)
 	if (UNLABELED_TYPES.has(getEffectiveType(state))) return ''
 	return state.id
 }
@@ -86,7 +90,7 @@ function flattenStateHierarchy(
 				continue
 			}
 
-			result.compoundLabels.set(id, state.description || id)
+			result.compoundLabels.set(id, (state.description && joinDescription(state.description)) || id)
 
 			const childStates = new Map<string, StateStmt>()
 			const childRelations: DiagramEdge[] = []
@@ -99,7 +103,7 @@ function flattenStateHierarchy(
 					// top-level map so it gets proper parentage.
 					const topState = topLevelStates.get(stmt)
 					if (topState && !childStates.has(stmt)) childStates.set(stmt, topState)
-				} else if (stmt.stmt === 'state' || stmt.stmt === 'default') {
+				} else if (stmt.stmt === 'state') {
 					const stateEntry = stmt as StateStmt
 					childStates.set(stateEntry.id, stateEntry)
 				} else if (stmt.stmt === 'relation') {
@@ -223,27 +227,19 @@ function stateToNodes(
 
 const FRAME_PAD = 24
 const FRAME_TOP = 54
-const STATE_ID = /^state-(.+)-\d+$/
-
-/** Parse state-diagram SVG layout data for use by {@link stateToBlueprint}. */
+/** Parse pele's state diagram SVG for use by {@link stateToBlueprint}. */
 export function parseStateDiagramLayout(root: Element): ParsedDiagramLayout {
-	const parseId = (domId: string) => parseDomId(domId, STATE_ID)
-	const nodes = parseNodesFromSvg(root, '.node', parseId)
-	const clusters = parseClustersFromSvg(root, '.statediagram-cluster', parseId)
-	const edges = parseAllEdgePointsFromSvg(root, (dataId) =>
-		/(?:^|-)edge\d+$/.test(dataId) ? { start: '', end: '' } : null
-	)
-	const layout = { nodes, clusters, edges, edgeLabels: parseEdgeLabelsFromSvg(root) }
-	scaleLayout(layout, LAYOUT_SCALE)
-	return layout
+	// pele numbers note ids (`Idle----note-5`); the blueprint names a state's note `Idle----note`.
+	// Transitions carry no state ids, so they're matched to relations by proximity.
+	return parsePeleLayout(root, { nodeId: (id) => id.replace(/----note-\d+$/, '----note') })
 }
 
-/** Convert a parsed Mermaid state diagram into a tldraw blueprint of nodes and edges. */
+/** Convert a parsed state diagram into a tldraw blueprint of nodes and edges. */
 export function stateToBlueprint(
 	layout: ParsedDiagramLayout,
 	states: Map<string, StateStmt>,
 	relations: DiagramEdge[],
-	classDefs?: Map<string, StyleClass>
+	classDefs?: StateModel['classes']
 ): DiagramMermaidBlueprint {
 	const stateColorMap = buildClassDefColorMap(classDefs ?? new Map(), states)
 	const { nodes: svgNodes, clusters: svgClusters, edges: svgEdges } = layout
@@ -256,7 +252,7 @@ export function stateToBlueprint(
 
 	// Collect notes attached to states and add them as synthetic leaf nodes + edges.
 	for (const [id, state] of states) {
-		const note = (state as StateStmt & { note?: { position?: string; text: string } }).note
+		const note = state.note
 		if (!note) continue
 
 		const noteId = `${id}----note`
@@ -281,8 +277,8 @@ export function stateToBlueprint(
 	)
 	const frameBounds = new Map<string, Rect>()
 
-	// Use SVG cluster bounds as the authoritative frame size. Mermaid's
-	// layout already accounts for label width, padding, and special nodes
+	// Use SVG cluster bounds as the authoritative frame size. The layout
+	// already accounts for label width, padding, and special nodes
 	// like <<history>> that are rendered outside the visual cluster.
 	// Fall back to child-based computation only when no SVG cluster exists.
 	// Children are visited first (bottom-up) so nested frames are already sized.
@@ -320,7 +316,7 @@ export function stateToBlueprint(
 	}
 
 	// Un-parent any leaf state whose center falls outside its parent frame.
-	// Mermaid renders some pseudo-states (e.g. <<history>>) outside the
+	// The layout can render pseudo-states (e.g. <<history>>) outside the
 	// visual compound cluster even though they're declared inside it.
 	for (const [id, rect] of nodeLayout) {
 		const pid = parentOf.get(id)
@@ -363,6 +359,7 @@ export function stateToBlueprint(
 		nodes.push(...stateToNodes(state, rect, parentOf.get(id), stateColorMap.get(id)))
 	}
 
+	const boxes = new Map(nodes.map((node) => [node.id, node]))
 	const claimed = new Set<number>()
 	for (const edge of allEdges) {
 		const svgEdge = claimEdge(svgEdges, claimed, {
@@ -376,6 +373,12 @@ export function stateToBlueprint(
 			edge.id1 === edge.id2 && svgEdge && svgNode
 				? getSelfLoopEdgeLayout(svgEdge, svgNode, layout.edgeLabels)
 				: undefined
+		const startBox = boxes.get(edge.id1)
+		const endBox = boxes.get(edge.id2)
+		const elbow =
+			!selfLoop && svgEdge && startBox && endBox && edge.id1 !== edge.id2
+				? getElbowEdgeLayout(svgEdge, startBox, endBox, layout.edgeLabels.get(svgEdge.id))
+				: undefined
 		const isNoteEdge = edge.id2.endsWith('----note') || edge.id1.endsWith('----note')
 		blueprintEdges.push({
 			startNodeId: edge.id1,
@@ -383,6 +386,7 @@ export function stateToBlueprint(
 			label: edge.relationTitle,
 			bend: svgEdge ? getArrowBend(svgEdge) : 0,
 			...selfLoop,
+			...elbow,
 			...(isNoteEdge && { dash: 'dotted' as const, arrowheadEnd: 'none' as const }),
 		})
 	}

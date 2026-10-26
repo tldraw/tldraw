@@ -20,8 +20,6 @@ export type MermaidReadabilityFinding =
 	| { check: 'missing text'; text: string }
 	| { check: 'label not rendered'; label: string }
 
-let nextSvgId = 0
-
 // A text run's client rect spans the font's full ascent and descent, which is well clear of the
 // glyphs. Two labels stacked a line apart touch at those edges without any ink colliding, so
 // overlaps are measured against this inner part of each line instead.
@@ -38,10 +36,10 @@ export async function checkMermaidReadability(
 	await createMermaidDiagram(editor, definition, {
 		blueprintRender: { position: { x: 0, y: 0 }, centerOnPosition: false },
 	})
-	// Only text and element counts are read from this, which mermaid's layout config doesn't change.
-	const { default: mermaid } = await import('mermaid')
-	const { svg } = await mermaid.render(`mermaid-readability-${nextSvgId++}`, definition)
-	const mermaidSvg = new DOMParser().parseFromString(svg, 'image/svg+xml').documentElement
+	// Only text is read from this, which layout settings don't change.
+	const { renderAsync } = await import('pele/lazy')
+	const { svg } = await renderAsync(definition)
+	const renderedSvg = new DOMParser().parseFromString(svg, 'image/svg+xml').documentElement
 
 	editor.selectNone()
 	editor.zoomToFit({ immediate: true })
@@ -72,7 +70,7 @@ export async function checkMermaidReadability(
 	}
 
 	findings.push(...findOverlaps(editor, shapes, lines))
-	findings.push(...findMissingText(editor, shapes, mermaidSvg))
+	findings.push(...findMissingText(editor, shapes, renderedSvg))
 
 	return [...new Map(findings.map((finding) => [JSON.stringify(finding), finding])).values()]
 }
@@ -155,9 +153,9 @@ function findMidWordBreaks(element: Element) {
 
 /**
  * Includes the label's own shape outline, which catches text spilling out of it. Lines only count
- * when the arrow is bound to them: lifelines cross message and frame labels in mermaid's own
+ * when the arrow is bound to them: lifelines cross message and frame labels in the layout's own
  * rendering too. Nor do participant boxes count for other shapes' labels: a message between two
- * boxes has to cross an edge, and mermaid draws it the same. The boxes are the only geo shapes
+ * boxes has to cross an edge, and the layout draws it the same. The boxes are the only geo shapes
  * that wholly contain a line starting at the header row: a frame contains its own section
  * separators, and a lifeline that `create` started part way down.
  */
@@ -248,15 +246,17 @@ function getWords(text: string) {
 }
 
 /**
- * Every piece of text mermaid draws should appear somewhere in the converted shapes. Words are
+ * Every piece of text the layout draws should appear somewhere in the converted shapes. Words are
  * compared rather than whole strings because the conversion legitimately joins some runs, such as
  * a frame's keyword and its condition, or a message's sequence number and its text.
  */
-function findMissingText(editor: Editor, shapes: TLShape[], mermaidSvg: Element) {
+function findMissingText(editor: Editor, shapes: TLShape[], renderedSvg: Element) {
 	const available = shapes.flatMap((shape) => getWords(getText(editor, shape)))
 	const runs = [
-		...mermaidSvg.querySelectorAll('foreignObject'),
-		...[...mermaidSvg.querySelectorAll('text')].flatMap((text) => {
+		...renderedSvg.querySelectorAll('foreignObject'),
+		// A text drawn with no fill is a halo pele puts under a cluster title an edge crosses, a
+		// second copy of the title rather than more text.
+		...[...renderedSvg.querySelectorAll('text:not([fill="none"])')].flatMap((text) => {
 			const spans = [...text.querySelectorAll('tspan')]
 			return spans.length ? spans : [text]
 		}),

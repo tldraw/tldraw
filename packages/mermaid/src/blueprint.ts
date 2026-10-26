@@ -32,7 +32,7 @@ export type MermaidNodeRenderMapper = (input: {
 }) => MermaidBlueprintNodeRenderSpec | undefined
 
 /**
- * Instructions for creating one blueprint node on the canvas: geo variant or custom shape type + props.
+ * Instructions for creating one blueprint node on the canvas: geo variant, bare text, or custom shape type + props.
  * Merged with layout-derived props in {@link defaultCreateMermaidNodeFromBlueprint}.
  * @public
  */
@@ -41,6 +41,10 @@ export type MermaidBlueprintNodeRenderSpec =
 			/** Use tldraw’s built-in geo shape; `geo` selects the variant (rectangle, diamond, …). */
 			variant: 'geo'
 			geo: TLGeoShapeGeoStyle
+	  }
+	| {
+			/** Use tldraw's text shape: the label alone, with no outline, centred on the node's box. */
+			variant: 'text'
 	  }
 	| {
 			/** Use any shape type registered on the editor (including custom ShapeUtils). */
@@ -101,6 +105,12 @@ export interface MermaidBlueprintEdge {
 	endNodeId: string
 	label?: string
 	bend: number
+	/** Draw the edge as a right-angled elbow arrow instead of an arc. `bend` is ignored for elbows. */
+	kind?: 'arc' | 'elbow'
+	/** Where an elbow's middle segment sits between its two ends, from 0 to 1. Defaults to halfway. */
+	elbowMidPoint?: number
+	/** Where the label sits along the arrow, from 0 to 1. Defaults to the middle. */
+	labelPosition?: number
 	arrowheadEnd?: TLArrowShapeArrowheadStyle
 	arrowheadStart?: TLArrowShapeArrowheadStyle
 	dash?: TLDefaultDashStyle
