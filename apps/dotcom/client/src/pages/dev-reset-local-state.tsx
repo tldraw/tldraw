@@ -1,5 +1,5 @@
 /* eslint-disable tldraw/jsx-no-literals, tldraw/no-direct-storage */
-import { useClerk } from '@clerk/clerk-react'
+import { useClerk } from '@clerk/react'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'

@@ -1,11 +1,12 @@
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth, useClerk, useUser } from '@clerk/react'
 import { commentToolOverrides } from '@tldraw/commenting'
 import { useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { assert, getFromSessionStorage, omit, react } from 'tldraw'
+import { assert, getFromSessionStorage, omit, react, useDialogs } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
+import { TlaSignInDialog } from '../components/dialogs/TlaSignInDialog'
 import { TlaAnonDotDevLink } from '../components/TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { useAnonCommentToolOverrides } from '../components/TlaEditor/CommentsOnCanvas'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
@@ -14,16 +15,18 @@ import { components } from '../components/TlaEditor/TlaEditor'
 import { VIA_LAST_FILE_CACHE } from '../components/TlaEditor/TlaFileSyncHost'
 import { useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
+import { hasNotAcceptedLegal } from '../utils/auth'
 import { startCachedFileVisit } from '../utils/cachedFileVisit'
 import { importFromUrl } from '../utils/importFromUrl'
 import { getLastVisitedFileId } from '../utils/local-session-state'
-import { clearRedirectOnSignIn } from '../utils/redirect'
+import { clearRedirectOnSignIn, OPEN_SIGN_IN } from '../utils/redirect'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
 
 export function Component() {
 	const app = useMaybeApp()
 	const isAppLoading = useIsAppLoading()
+	const legalPending = hasNotAcceptedLegal(useUser().user)
 	const { userId } = useAuth()
 	const navigate = useNavigate()
 	const location = useLocation()
@@ -51,6 +54,9 @@ export function Component() {
 			// Check for redirect-to first (set by OAuth sign-in)
 			const redirectTo = getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
 			if (redirectTo) {
+				// The redirect can leave the app's providers (the OAuth consent page does), taking the
+				// legal terms dialog with it. Hold it until the terms are accepted.
+				if (legalPending) return
 				clearRedirectOnSignIn()
 				if (redirectTo.startsWith('/')) {
 					navigate(redirectTo, { replace: true })
@@ -108,7 +114,7 @@ export function Component() {
 		}
 
 		handleFileOperations()
-	}, [app, navigate, location])
+	}, [app, navigate, location, legalPending])
 
 	// A signed-in user must never see the scratch editor: it would start slurp detection on
 	// whatever is in the local doc.
@@ -119,6 +125,7 @@ export function Component() {
 }
 
 function LocalTldraw() {
+	useOpenSignInFromLocationState()
 	// No comments exist on the scratch board — the button is only a sign-in prompt, so the tool
 	// itself stays unregistered and the anon override repoints its item at the sign-in dialog.
 	const anonCommentToolOverrides = useAnonCommentToolOverrides()
@@ -153,4 +160,22 @@ function LocalTldraw() {
 			</LocalEditor>
 		</TlaAnonLayout>
 	)
+}
+
+function useOpenSignInFromLocationState() {
+	const dialogs = useDialogs()
+	const clerk = useClerk()
+	const location = useLocation()
+	const navigate = useNavigate()
+	useEffect(() => {
+		if (!location.state?.[OPEN_SIGN_IN]) return
+		navigate('.', { replace: true, state: omit(location.state, [OPEN_SIGN_IN]) })
+		dialogs.addDialog({
+			component: TlaSignInDialog,
+			// Dismissed without signing in: a redirect left behind would hijack a later sign-in.
+			onClose: () => {
+				if (!clerk.isSignedIn) clearRedirectOnSignIn()
+			},
+		})
+	}, [clerk, dialogs, location, navigate])
 }

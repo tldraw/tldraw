@@ -104,6 +104,10 @@ function socialPreviewRoute(multiplayerServerUrl: string) {
 // It uses a vitest snapshot file because deriving the set of routes from our
 // react-router config works fine in our test environment, but is tricky to get running in this
 // build script environment for various reasons (no global React, tsx being weird about decorators, etc).
+function caseInsensitive(literal: string) {
+	return literal.replace(/[a-z]/g, (c) => `[${c}${c.toUpperCase()}]`)
+}
+
 function loadSpaRoutes() {
 	const routesJson = require('../src/__snapshots__/routes.test.tsx.snap')['the_routes 1']
 	const routes = T.arrayOf(
@@ -266,6 +270,14 @@ async function build() {
 							Link: '</.well-known/api-catalog>; rel="api-catalog"',
 							'Access-Control-Allow-Origin': '*',
 						},
+					},
+					// The OAuth consent page is a clickjacking target: framed invisibly, an Allow click
+					// grants a third-party app access to the account. Clerk requires it unframeable.
+					// Any casing and trailing slashes, as React Router renders the page on all of them.
+					{
+						src: `^/${caseInsensitive('oauth-consent')}/*$`,
+						continue: true,
+						headers: { 'X-Frame-Options': 'DENY' },
 					},
 					{
 						src: '^/\\.well-known/ai-catalog\\.json$',
