@@ -790,13 +790,11 @@ describe('workspace mutations', () => {
 		})
 
 		it("another user's home workspace", async () => {
+			// No 'user_' prefix and no group row, so only the user-id check can reject it.
+			const homeId = 'victimhome1234567890'
 			await expectNoTakeover(
-				makeStore({
-					user: [makeUser({ id: userId }), makeUser({ id: victimId })],
-					group: [makeGroup({ id: victimId })],
-					group_user: [makeGroupUser({ userId: victimId, groupId: victimId, role: 'owner' })],
-				}),
-				victimId
+				makeStore({ user: [makeUser({ id: userId }), makeUser({ id: homeId })] }),
+				homeId
 			)
 		})
 
