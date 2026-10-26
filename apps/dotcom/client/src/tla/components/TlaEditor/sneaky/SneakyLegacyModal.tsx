@@ -3,6 +3,7 @@ import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
+	F,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
@@ -15,7 +16,6 @@ import {
 import { routes } from '../../../../routeDefs'
 import { trackEvent } from '../../../../utils/analytics'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { F } from '../../../utils/i18n'
 import { useGetFileName, useRoomInfo } from '../TlaEditorTopRightPanel'
 import styles from './sneaky-legacy-modal.module.css'
 

@@ -1,3 +1,4 @@
+import { defineMessages } from '@tldraw/editor'
 import {
 	ToggleEnhancedA11yModeItem,
 	ToggleKeyboardShortcutsItem,
@@ -6,10 +7,14 @@ import {
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
 
+const messages = defineMessages({
+	menuAccessibility: { id: 'menu.accessibility', defaultMessage: 'Accessibility' },
+})
+
 /** @public @react */
 export function AccessibilityMenu() {
 	return (
-		<TldrawUiMenuSubmenu id="help menu accessibility" label="menu.accessibility">
+		<TldrawUiMenuSubmenu id="help menu accessibility" label={messages.menuAccessibility.id}>
 			<TldrawUiMenuGroup id="accessibility">
 				<ToggleReduceMotionItem />
 				<ToggleKeyboardShortcutsItem />

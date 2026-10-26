@@ -1,6 +1,7 @@
 import { useAuth } from '@clerk/react'
 import { useNavigate } from 'react-router-dom'
 import {
+	F,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
@@ -14,7 +15,6 @@ import { routes } from '../../../routeDefs'
 import { useApp } from '../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { F } from '../../utils/i18n'
 
 export function TlaDeleteFileDialog({
 	fileId,

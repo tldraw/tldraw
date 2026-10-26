@@ -10,9 +10,11 @@ import {
 	Editor,
 	TLShapeId,
 	TLStateNodeConstructor,
+	TLUiOverrideHelpers,
+	TLUiToolsContextType,
 } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { CommentTool, startCommentAt } from './comment-tool'
+import { CommentTool, commentToolOverrides, startCommentAt } from './comment-tool'
 import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
 
 /**
@@ -197,6 +199,37 @@ describe('startCommentAt', () => {
 	})
 })
 
+describe('commentToolOverrides', () => {
+	let driver: Driver
+
+	function getCommentTool() {
+		const tools = commentToolOverrides.tools!(
+			editor,
+			{} as TLUiToolsContextType,
+			{} as TLUiOverrideHelpers
+		)
+		return tools.comment
+	}
+
+	beforeEach(() => {
+		driver = makeEditor()
+	})
+
+	it('opens the composer where the context menu was opened, not at the live pointer', () => {
+		driver.pointerDown(400, 300).pointerUp(400, 300)
+		driver.pointerMove(600, 500)
+		getCommentTool().onSelect('context-menu')
+		expect(editor.isIn('comment.idle')).toBe(true)
+		expect(pendingComment.get(editor)?.point).toEqual({ x: 400, y: 300 })
+	})
+
+	it('only enters the tool from other sources', () => {
+		getCommentTool().onSelect('quick-actions')
+		expect(editor.isIn('comment.idle')).toBe(true)
+		expect(pendingComment.get(editor)).toBeNull()
+	})
+})
+
 describe('comment tool placement hints with regions enabled', () => {
 	it('clears the hint when a drag becomes a region', () => {
 		const driver = makeEditor(CommentTool.configure({ enableRegions: true }))
@@ -295,5 +328,16 @@ describe('comment tool anchoring to frames', () => {
 		// ...and dragging back off the frame clears it.
 		driver.pointerMove(50, 400)
 		expect(editor.getHintingShapeIds()).toEqual([])
+	})
+})
+
+describe('commentToolOverrides', () => {
+	// The label is data the toolbar puts through `msg()`, so free text here renders as itself in
+	// every locale and the extractor never sees it — which is how this one shipped as 'Comment'
+	// and stayed English everywhere. It has to be a declared id.
+	it('labels the tool with a translatable id', () => {
+		makeEditor()
+		const tools = commentToolOverrides.tools!(editor, {}, {} as never)
+		expect(tools.comment.label).toBe('tool.comment')
 	})
 })

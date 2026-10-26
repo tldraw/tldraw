@@ -1,4 +1,4 @@
-import { preventDefault, useContainer } from '@tldraw/editor'
+import { defineMessages, preventDefault, useContainer } from '@tldraw/editor'
 import classNames from 'classnames'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode } from 'react'
@@ -8,6 +8,10 @@ import { TldrawUiButton } from './Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from './Button/TldrawUiButtonLabel'
 import { TldrawUiIcon } from './TldrawUiIcon'
+
+const messages = defineMessages({
+	uiChecked: { id: 'ui.checked', defaultMessage: 'Checked' },
+})
 
 /** @public */
 export interface TLUiDropdownMenuRootProps {
@@ -206,7 +210,7 @@ export function TldrawUiDropdownMenuIndicator() {
 
 	return (
 		<_DropdownMenu.ItemIndicator dir={dir} asChild>
-			<TldrawUiIcon label={msg('ui.checked')} icon="check" />
+			<TldrawUiIcon label={msg(messages.uiChecked)} icon="check" />
 		</_DropdownMenu.ItemIndicator>
 	)
 }
@@ -257,7 +261,7 @@ export function TldrawUiDropdownMenuCheckboxItem({
 		>
 			<div className="tlui-button__checkbox__indicator">
 				<_DropdownMenu.ItemIndicator dir={dir}>
-					<TldrawUiIcon label={msg('ui.checked')} icon="check" small />
+					<TldrawUiIcon label={msg(messages.uiChecked)} icon="check" small />
 				</_DropdownMenu.ItemIndicator>
 			</div>
 			{children}

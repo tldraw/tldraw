@@ -74,6 +74,7 @@
 		"e2e-dotcom-smoke-x10": "pnpm --filter dotcom e2e-smoke-x10",
 		"e2e-dotcom-all-x10": "pnpm --filter dotcom e2e-all-x10",
 		"i18n-check": "i18n-check",
+		"i18n-extract": "tsx internal/scripts/i18n-extract.ts",
 		"i18n-upload-strings": "tsx internal/scripts/i18n-upload-strings.ts",
 		"i18n-download-strings": "tsx internal/scripts/i18n-download-strings.ts",
 		"i18n-fix-strings": "tsx internal/scripts/i18n-fix-strings.ts"
@@ -95,6 +96,7 @@
 	"devDependencies": {
 		"@lingual/i18n-check": "^0.5.5",
 		"@microsoft/api-extractor": "^7.55.2",
+		"@playwright/test": "^1.61.0",
 		"@swc/core": "^1.15.18",
 		"@tldraw/scripts": "workspace:*",
 		"@types/adm-zip": "^0.5.7",

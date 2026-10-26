@@ -2,23 +2,26 @@ import { useAuth, useUser as useClerkUser } from '@clerk/react'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { IntlProvider, useIntl } from 'react-intl'
 import { Outlet, useMatches } from 'react-router-dom'
 import {
 	ContainerProvider,
 	DefaultA11yAnnouncer,
 	DefaultDialogs,
 	DefaultToasts,
+	defineMessages,
 	EditorContext,
-	RTL_LANGUAGES,
-	TLUiEventHandler,
-	TldrawUiA11yProvider,
-	TldrawUiContextProvider,
 	fetch,
 	react,
+	RTL_LANGUAGES,
 	runtime,
 	setRuntimeOverrides,
+	TldrawUiA11yProvider,
+	TldrawUiContextProvider,
 	tlenvReactive,
+	TLUiEventHandler,
 	useDialogs,
+	useTldrawI18n,
 	useToasts,
 	useValue,
 } from 'tldraw'
@@ -36,11 +39,10 @@ import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/Maybe
 import { components } from '../components/TlaEditor/TlaEditor'
 import { WorkspaceInviteHandler } from '../components/WorkspaceInviteHandler'
 import { AppStateProvider, useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
+import '../styles/tla.css'
 import { useUITheme } from '../hooks/useUITheme'
 import { UserProvider } from '../hooks/useUser'
-import '../styles/tla.css'
 import { hasNotAcceptedLegal } from '../utils/auth'
-import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
 	getLocalSessionState,
 	resetLocalSessionStateButKeepTheme,
@@ -196,10 +198,6 @@ function IntlWrapper({ children, locale }: { children: ReactNode; locale: string
 		}
 	}, [locale])
 
-	const defaultLocale = 'en'
-	// createIntl is used in non-React locations.
-	setupCreateIntl({ defaultLocale, locale, messages })
-
 	return (
 		<IntlProvider defaultLocale={locale} locale={locale} messages={messages}>
 			{children}
@@ -221,6 +219,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					components={components}
 					onUiEvent={handleAppLevelUiEvent}
 				>
+					<PutI18nInApp />
 					<_Tooltip.Provider>{children}</_Tooltip.Provider>
 					<DefaultDialogs />
 					<DefaultToasts />
@@ -232,6 +231,20 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 			</TldrawUiA11yProvider>
 		</EditorContext.Provider>
 	)
+}
+
+// The app outlives any render, so the adapter is handed to it rather than reached for. Ahead of
+// `children`, so the adapter is there for their first render; the locale goes in a layout effect,
+// since it's a signal they may be subscribed to, and lands before paint.
+function PutI18nInApp() {
+	const i18n = useTldrawI18n()
+	const app = useMaybeApp()
+	const locale = i18n().locale
+	if (app) app.i18n = i18n
+	useLayoutEffect(() => {
+		app?.locale$.set(locale)
+	}, [app, locale])
+	return null
 }
 
 function PutToastsInApp() {

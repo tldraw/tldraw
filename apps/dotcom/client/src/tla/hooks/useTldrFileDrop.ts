@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { tlmenus } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { tokenOrUndefinedWhenOffline } from '../utils/auth'
-import { useRejectTldrawOfflineFiles } from '../utils/tldrawOfflineFiles'
+import { isTldrFile, useRejectTldrawOfflineFiles } from '../utils/tldrawOfflineFiles'
 import { useApp } from './useAppState'
 
 export function useTldrFileDrop() {
@@ -27,7 +27,7 @@ export function useTldrFileDrop() {
 			}
 
 			const files = rejectTldrawOfflineFiles(droppedFiles)
-			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
+			const tldrawFiles = files.filter(isTldrFile)
 			if (!tldrawFiles.length) {
 				return
 			}

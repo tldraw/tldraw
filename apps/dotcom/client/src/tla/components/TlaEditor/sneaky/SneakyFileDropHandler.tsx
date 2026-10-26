@@ -6,7 +6,7 @@ import { defaultHandleExternalFileContent, useEditor, useToasts, useTranslation 
 import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { useCurrentFileId } from '../../../hooks/useCurrentFileId'
-import { useRejectTldrawOfflineFiles } from '../../../utils/tldrawOfflineFiles'
+import { isTldrFile, useRejectTldrawOfflineFiles } from '../../../utils/tldrawOfflineFiles'
 
 export const SneakyTldrawFileDropHandler = memo(function SneakyTldrawFileDropHandler() {
 	const editor = useEditor()
@@ -22,7 +22,7 @@ export const SneakyTldrawFileDropHandler = memo(function SneakyTldrawFileDropHan
 		if (!app) return
 		editor.registerExternalContentHandler('files', async (content) => {
 			const files = rejectTldrawOfflineFiles(content.files)
-			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
+			const tldrawFiles = files.filter(isTldrFile)
 			if (tldrawFiles.length > 0) {
 				// Drop into the open file's workspace only if the user can add files there; a guest on
 				// a shared board would otherwise upload the snapshot and then have createFile refused.

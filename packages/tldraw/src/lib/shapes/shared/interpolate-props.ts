@@ -17,6 +17,16 @@ export function interpolateSegments(
 		endPoints.push(...b64Vecs.decodePoints(segment.path, segment.dim))
 	)
 
+	// When only one side has points (e.g. a shape created with default props has no
+	// segments), collapse the empty side onto the other side's first point so the
+	// stroke grows out of (or shrinks into) that point. Without this, the padding
+	// loop below reads index -1 and the interpolation dereferences undefined.
+	if (startPoints.length === 0 && endPoints.length > 0) {
+		startPoints.push(endPoints[0])
+	} else if (endPoints.length === 0 && startPoints.length > 0) {
+		endPoints.push(startPoints[0])
+	}
+
 	const maxLength = Math.max(startPoints.length, endPoints.length)
 	const pointsToUseStart: VecModel[] = []
 	const pointsToUseEnd: VecModel[] = []
