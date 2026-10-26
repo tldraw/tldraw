@@ -33,6 +33,8 @@ import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { COMMAND_PALETTE_MENU_ID } from '../components/CommandPalette/commandPaletteMenuId'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { isMinimapCollapsed, toggleMinimap } from '../components/NavigationPanel/minimapCollapsed'
+import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from '../constants'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -78,6 +80,7 @@ const messages = defineMessages({
 		id: 'action.open-command-palette',
 		defaultMessage: 'Command palette',
 	},
+	actionToggleMinimap: { id: 'action.toggle-minimap', defaultMessage: 'Toggle minimap' },
 	a11yAdjustShapeStyles: { id: 'a11y.adjust-shape-styles', defaultMessage: 'Adjust shape styles' },
 	a11yEnlargeShape: { id: 'a11y.enlarge-shape', defaultMessage: 'Enlarge shape' },
 	a11yRepeatShape: { id: 'a11y.repeat-shape', defaultMessage: 'Repeat shape' },
@@ -1720,6 +1723,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						})
 					})
 				},
+			},
+			{
+				id: 'toggle-minimap',
+				label: messages.actionToggleMinimap.id,
+				// The navigation panel only shows the minimap from tablet width up.
+				isAvailable: (editor) =>
+					!!components.Minimap &&
+					!!components.NavigationPanel &&
+					editor.getViewportScreenBounds().width > PORTRAIT_BREAKPOINTS[PORTRAIT_BREAKPOINT.TABLET],
+				isChecked: (editor) => !isMinimapCollapsed(editor),
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-minimap', { source })
+					toggleMinimap(editor)
+				},
+				checkbox: true,
 			},
 			{
 				id: 'toggle-grid',

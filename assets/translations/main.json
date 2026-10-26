@@ -122,6 +122,7 @@
 	"action.toggle-keyboard-shortcuts": "Toggle keyboard shortcuts",
 	"action.toggle-keyboard-shortcuts.menu": "Enable keyboard shortcuts",
 	"action.toggle-lock": "Toggle locked",
+	"action.toggle-minimap": "Toggle minimap",
 	"action.toggle-mouse": "Mouse",
 	"action.toggle-paste-at-cursor": "Toggle paste at cursor",
 	"action.toggle-paste-at-cursor.menu": "Paste at cursor",
