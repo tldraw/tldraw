@@ -398,6 +398,8 @@ export {
 	CommandPalettePromptItem,
 	type CommandPalettePromptItemProps,
 } from './lib/ui/components/CommandPalette/CommandPalettePromptItem'
+export { CommandPaletteImageGroup } from './lib/ui/components/CommandPalette/CommandPaletteImageGroup'
+export { CommandPaletteStylesGroup } from './lib/ui/components/CommandPalette/CommandPaletteStylesGroup'
 export { getCommandPaletteMatchScore } from './lib/ui/components/CommandPalette/commandPaletteSearch'
 export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 export { LanguageMenu } from './lib/ui/components/LanguageMenu'

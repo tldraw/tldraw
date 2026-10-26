@@ -192,6 +192,8 @@
 	"color-style.violet": "Violet",
 	"color-style.white": "White",
 	"color-style.yellow": "Yellow",
+	"command-palette.arrowhead-end": "End arrowhead",
+	"command-palette.arrowhead-start": "Start arrowhead",
 	"command-palette.cancel": "Cancel",
 	"command-palette.no-results": "No results",
 	"command-palette.placeholder": "Search…",

@@ -81,6 +81,7 @@ const messages = defineMessages({
 		defaultMessage: 'Command palette',
 	},
 	actionToggleMinimap: { id: 'action.toggle-minimap', defaultMessage: 'Toggle minimap' },
+	toolImageCrop: { id: 'tool.image-crop', defaultMessage: 'Crop image' },
 	a11yAdjustShapeStyles: { id: 'a11y.adjust-shape-styles', defaultMessage: 'Adjust shape styles' },
 	a11yEnlargeShape: { id: 'a11y.enlarge-shape', defaultMessage: 'Enlarge shape' },
 	a11yRepeatShape: { id: 'a11y.repeat-shape', defaultMessage: 'Repeat shape' },
@@ -2052,6 +2053,19 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						})
 						trackEvent('a11y-repeat-shape-announce', { source })
 					}
+				},
+			},
+			{
+				id: 'crop-image',
+				label: messages.toolImageCrop.id,
+				isAvailable: (editor) => {
+					if (!editor.isIn('select')) return false
+					const shape = editor.getOnlySelectedShape()
+					return !!shape && shape.type === 'image' && !shape.isLocked
+				},
+				onSelect(source) {
+					trackEvent('crop-image', { source })
+					editor.setCurrentTool('select.crop.idle')
 				},
 			},
 			{

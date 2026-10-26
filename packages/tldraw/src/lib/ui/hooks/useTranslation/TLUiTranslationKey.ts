@@ -196,6 +196,8 @@ export type TLUiTranslationKey =
 	| 'color-style.violet'
 	| 'color-style.white'
 	| 'color-style.yellow'
+	| 'command-palette.arrowhead-end'
+	| 'command-palette.arrowhead-start'
 	| 'command-palette.cancel'
 	| 'command-palette.no-results'
 	| 'command-palette.placeholder'

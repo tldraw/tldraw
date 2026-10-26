@@ -57,7 +57,7 @@ export interface DefaultImageToolbarContentProps {
 // Keyed on the option rather than written at the call site, which used to compose the id from
 // `aspectRatio` and so hid every one of these from the extractor. The `Record` keeps it complete:
 // a new option won't compile until it has a label.
-const aspectRatioMessages: Record<ASPECT_RATIO_OPTION, TLI18nMessage> = defineMessages({
+export const aspectRatioMessages: Record<ASPECT_RATIO_OPTION, TLI18nMessage> = defineMessages({
 	original: { id: 'tool.aspect-ratio.original', defaultMessage: 'Original' },
 	square: { id: 'tool.aspect-ratio.square', defaultMessage: 'Square (1:1)' },
 	circle: { id: 'tool.aspect-ratio.circle', defaultMessage: 'Circle (1:1)' },
