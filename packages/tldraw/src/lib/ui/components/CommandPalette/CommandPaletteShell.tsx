@@ -283,6 +283,7 @@ export function CommandPaletteShell({
 				return
 			}
 			const { entry } = row
+			if (entry.disabled) return
 			if (entry.prompt && !prompt) {
 				openPrompt(entry)
 				rInput.current?.focus()
@@ -541,12 +542,16 @@ function CommandPaletteRowView({
 
 	const { entry } = row
 	const marked = entry.checked ?? entry.isSelected
+	const reasonId = `${id}-reason`
+	const showReason = isActive && entry.disabled && !!entry.disabledReason
 	return (
 		<div
 			ref={rRow}
 			id={id}
 			role="option"
 			aria-selected={isActive}
+			aria-disabled={entry.disabled || undefined}
+			aria-describedby={showReason ? reasonId : undefined}
 			data-highlighted={isActive || undefined}
 			data-testid={`command-palette.${row.recent ? 'recent' : 'item'}.${entry.id}`}
 			className="tlui-command-palette__item"
@@ -573,7 +578,14 @@ function CommandPaletteRowView({
 					{row.label}
 					{row.detail && <span className="tlui-command-palette__detail">{row.detail}</span>}
 				</span>
-				{entry.kbd && <TldrawUiKbd>{entry.kbd}</TldrawUiKbd>}
+				{/* In the shortcut's place, so showing it doesn't change the row's height. */}
+				{showReason ? (
+					<span id={reasonId} className="tlui-command-palette__reason">
+						{entry.disabledReason}
+					</span>
+				) : (
+					entry.kbd && <TldrawUiKbd>{entry.kbd}</TldrawUiKbd>
+				)}
 			</span>
 		</div>
 	)

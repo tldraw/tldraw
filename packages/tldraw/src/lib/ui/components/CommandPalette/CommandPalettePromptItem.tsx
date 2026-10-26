@@ -31,6 +31,7 @@ export function CommandPalettePromptItem({
 		<CommandPaletteItemRegistration
 			id={id}
 			label={label}
+			disabled={false}
 			prompt={{ placeholder, initialValue, onSubmit }}
 			onSelect={() => {}}
 		/>

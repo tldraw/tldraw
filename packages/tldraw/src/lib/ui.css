@@ -2503,6 +2503,11 @@ tldraw? probably.
 	opacity: 1;
 }
 
+.tlui-command-palette__item[aria-disabled='true'] {
+	color: var(--tl-color-text-disabled);
+	cursor: default;
+}
+
 .tlui-command-palette__row {
 	display: flex;
 	align-items: center;
@@ -2525,6 +2530,14 @@ tldraw? probably.
 .tlui-command-palette__detail {
 	margin-inline-start: var(--tl-space-3);
 	color: var(--tl-color-text-3);
+}
+
+.tlui-command-palette__reason {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 11px;
 }
 
 .tlui-command-palette__list:empty {

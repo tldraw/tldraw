@@ -25,11 +25,14 @@ const messages = defineMessages({
 	pages: { id: 'page-menu.title', defaultMessage: 'Pages' },
 	goToPage: { id: 'command-palette.go-to-page', defaultMessage: 'Go to page' },
 	newPage: { id: 'context.pages.new-page', defaultMessage: 'New page' },
+	maxPagesReached: { id: 'page-menu.max-pages-reached', defaultMessage: 'Maximum pages reached' },
 	newPageInitialName: { id: 'page-menu.new-page-initial-name', defaultMessage: 'Page 1' },
 	renamePage: { id: 'command-palette.rename-page', defaultMessage: 'Rename page' },
 	pageName: { id: 'command-palette.page-name', defaultMessage: 'Page name' },
 	duplicatePage: { id: 'command-palette.duplicate-page', defaultMessage: 'Duplicate page' },
 	deletePage: { id: 'command-palette.delete-page', defaultMessage: 'Delete page' },
+	onlyPage: { id: 'command-palette.reason.only-page', defaultMessage: 'This is the only page' },
+	moveToPage: { id: 'context-menu.move-to-page', defaultMessage: 'Move to page' },
 	export: { id: 'command-palette.export', defaultMessage: 'Export' },
 	tools: { id: 'command-palette.tools', defaultMessage: 'Tools' },
 	preferences: { id: 'menu.preferences', defaultMessage: 'Preferences' },
@@ -139,6 +142,7 @@ export function CommandPalettePagesGroup() {
 					id="new-page"
 					label={messages.newPage.id}
 					disabled={pages.length >= maxPages}
+					disabledReason={messages.maxPagesReached.id}
 					onSelect={(source) => {
 						const id = PageRecordType.createId()
 						editor.run(() => {
@@ -168,6 +172,7 @@ export function CommandPalettePagesGroup() {
 						id="duplicate-page"
 						label={messages.duplicatePage.id}
 						disabled={pages.length >= maxPages}
+						disabledReason={messages.maxPagesReached.id}
 						onSelect={(source) => {
 							editor.markHistoryStoppingPoint('creating page')
 							editor.duplicatePage(currentPageId, PageRecordType.createId())
@@ -178,6 +183,7 @@ export function CommandPalettePagesGroup() {
 						id="delete-page"
 						label={messages.deletePage.id}
 						disabled={pages.length <= 1}
+						disabledReason={messages.onlyPage.id}
 						onSelect={(source) => {
 							editor.markHistoryStoppingPoint('deleting page')
 							editor.deletePage(currentPageId)
@@ -186,8 +192,23 @@ export function CommandPalettePagesGroup() {
 					/>
 				</>
 			)}
-			<MoveToPageMenu />
+			<MoveToPageItems />
 		</TldrawUiMenuGroup>
+	)
+}
+
+// The menu's Move to page renders nothing without a selection, so the palette lists its new page
+// item on its own to say why.
+function MoveToPageItems() {
+	const editor = useEditor()
+	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
+		editor,
+	])
+	if (hasSelection) return <MoveToPageMenu />
+	return (
+		<TldrawUiMenuSubmenu id="move-to-page" label={messages.moveToPage.id}>
+			<TldrawUiMenuActionItem actionId="move-to-new-page" />
+		</TldrawUiMenuSubmenu>
 	)
 }
 

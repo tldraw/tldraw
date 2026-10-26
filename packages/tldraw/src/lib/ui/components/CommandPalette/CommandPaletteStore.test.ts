@@ -10,6 +10,7 @@ function entry(id: string, marker: Element | null): CommandPaletteEntry {
 		submenu: null,
 		section: null,
 		heading: null,
+		disabled: false,
 		onSelect: vi.fn(),
 		marker,
 	}
@@ -43,8 +44,9 @@ describe('CommandPaletteStore', () => {
 		const [marker] = markers(1)
 		const store = new CommandPaletteStore()
 		store.set('t', entry('a', marker))
-		store.set('t', { ...entry('a', marker), label: 'renamed' })
-		expect(store.entries.get().map((e) => e.label)).toEqual(['renamed'])
+		store.set('t', { ...entry('a', marker), disabled: true })
+		expect(store.entries.get()).toHaveLength(1)
+		expect(store.entries.get()[0].disabled).toBe(true)
 	})
 
 	it('drops an entry when it unregisters', () => {

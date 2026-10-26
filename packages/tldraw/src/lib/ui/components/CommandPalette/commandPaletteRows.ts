@@ -19,6 +19,16 @@ export type CommandPaletteRow =
 	  }
 	| { type: 'submenu'; key: string; submenu: CommandPaletteSubmenu }
 
+// Browsing lists only what can run now. Search also lists a disabled entry when it can say why, so
+// it never shows a greyed row it can't explain.
+function enabled(entries: readonly CommandPaletteEntry[]) {
+	return entries.filter((entry) => !entry.disabled)
+}
+
+function explainable(entries: readonly CommandPaletteEntry[]) {
+	return entries.filter((entry) => !entry.disabled || !!entry.disabledReason)
+}
+
 function itemRow(entry: CommandPaletteEntry, label = entry.label): CommandPaletteRow {
 	return { type: 'item', key: `item:${entry.id}`, entry, label, recent: false }
 }
@@ -82,8 +92,9 @@ export function getCommandPaletteBrowseRows(
 	recentHeading: string
 ): CommandPaletteRow[] {
 	const rows: CommandPaletteRow[] = []
-	const pinned = entries.filter((entry) => entry.pinned)
-	const unpinned = entries.filter((entry) => !entry.pinned)
+	const runnable = enabled(entries)
+	const pinned = runnable.filter((entry) => entry.pinned)
+	const unpinned = runnable.filter((entry) => !entry.pinned)
 
 	if (pinned.length) {
 		rows.push(...listEntries(pinned))
@@ -126,7 +137,8 @@ export function getCommandPaletteSearchRows(
 	query: string,
 	recentIds: readonly string[]
 ): CommandPaletteRow[] {
-	const ranked = rankCommandPaletteEntries(entries, query, recentIds)
+	const shown = explainable(entries)
+	const ranked = rankCommandPaletteEntries(shown, query, recentIds)
 
 	// An item stays a row when the query names it ("page 2", "move to page 2"). When the query also
 	// matches the submenu's own name ("page", "file"), or only its path ("preferences"), the items fold
@@ -135,7 +147,7 @@ export function getCommandPaletteSearchRows(
 		getCommandPaletteMatchScore(query, submenu.label) === 0 &&
 		(getCommandPaletteMatchScore(query, entry.name) > 0 ||
 			getCommandPaletteMatchScore(query, entry.label) > 0)
-	const grouped = getGroupedSubmenuKeys(entries)
+	const grouped = getGroupedSubmenuKeys(shown)
 	const added = new Set<string>()
 	const rows: CommandPaletteRow[] = []
 	for (const entry of ranked) {
@@ -167,7 +179,7 @@ export function getCommandPaletteSubmenuRows(
 	if (!query.trim()) {
 		const rows: CommandPaletteRow[] = []
 		let previous: CommandPaletteEntry | undefined
-		for (const entry of inSubmenu) {
+		for (const entry of enabled(inSubmenu)) {
 			if (previous && previous.section !== entry.section) {
 				rows.push({ type: 'separator', key: `separator:${entry.id}` })
 			}
@@ -176,7 +188,13 @@ export function getCommandPaletteSubmenuRows(
 		}
 		return rows
 	}
-	const rankable = inSubmenu.map((entry) => ({ id: entry.id, label: entry.name, path: [], entry }))
+	const rankable = explainable(inSubmenu).map((entry) => ({
+		id: entry.id,
+		label: entry.name,
+		path: [],
+		disabled: entry.disabled,
+		entry,
+	}))
 	return rankCommandPaletteEntries(rankable, query, recentIds).map(({ entry }) =>
 		itemRow(entry, entry.name)
 	)

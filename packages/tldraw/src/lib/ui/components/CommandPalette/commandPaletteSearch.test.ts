@@ -41,7 +41,7 @@ describe('getCommandPaletteMatchScore', () => {
 })
 
 describe('rankCommandPaletteEntries', () => {
-	const entry = (id: string, label: string) => ({ id, label, path: [] })
+	const entry = (id: string, label: string, disabled = false) => ({ id, label, path: [], disabled })
 
 	it('drops non-matches and orders by score', () => {
 		const ranked = rankCommandPaletteEntries(
@@ -59,6 +59,15 @@ describe('rankCommandPaletteEntries', () => {
 			[]
 		)
 		expect(ranked.map((e) => e.id)).toEqual(['red', 'light-red'])
+	})
+
+	it('puts disabled matches after enabled ones', () => {
+		const ranked = rankCommandPaletteEntries(
+			[entry('a', 'Align', true), entry('b', 'Realign')],
+			'align',
+			[]
+		)
+		expect(ranked.map((e) => e.id)).toEqual(['b', 'a'])
 	})
 
 	it('breaks ties by recency, then by original order', () => {
@@ -80,6 +89,7 @@ describe('rankCommandPaletteEntries', () => {
 			label,
 			name,
 			path: [],
+			disabled: false,
 		})
 		const ranked = rankCommandPaletteEntries(
 			[
@@ -95,7 +105,7 @@ describe('rankCommandPaletteEntries', () => {
 
 	it('matches the full prefixed label', () => {
 		const ranked = rankCommandPaletteEntries(
-			[{ id: 'dark', label: 'Theme: Dark', name: 'Dark', path: [] }],
+			[{ id: 'dark', label: 'Theme: Dark', name: 'Dark', path: [], disabled: false }],
 			'theme dark',
 			[]
 		)

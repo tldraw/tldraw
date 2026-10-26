@@ -14,7 +14,7 @@ So far this release adds a command palette (Cmd/Ctrl+K), adds a `ThrottledFuncti
 
 ### Command palette
 
-Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, pages, preferences and more. Recently used commands come first. Actions, including your custom ones, are listed automatically. The palette is a `CommandPalette` component slot built from the same menu items as the other menus, so you place commands by wrapping `DefaultCommandPalette`, the same way you customize the main menu. Cmd/Ctrl+K is now bound by default; pass `components={{ CommandPalette: null }}` to turn the palette and its shortcut off.
+Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, pages, preferences and more. Recently used commands come first, and commands that can't run right now explain why in search. Actions, including your custom ones, are listed automatically. The palette is a `CommandPalette` component slot built from the same menu items as the other menus, so you place commands by wrapping `DefaultCommandPalette`, the same way you customize the main menu. Cmd/Ctrl+K is now bound by default; pass `components={{ CommandPalette: null }}` to turn the palette and its shortcut off.
 
 ## API changes
 
@@ -22,7 +22,7 @@ Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, p
 - Add the `CommandPalette` component slot with `DefaultCommandPalette`, `DefaultCommandPaletteContent`, the `CommandPalette*Group` components, `CommandPaletteMenuItem`, `useCommandPaletteQuery` and `getCommandPaletteMatchScore`. The new `open-command-palette` action opens it.
 - Add `CommandPaletteStylesGroup`, which sets the style panel's styles from the palette, and `CommandPaletteImageGroup`, with the image toolbar's commands.
 - Add the `toggle-minimap` and `crop-image` actions. The minimap's open state is now shared between the navigation panel and the action.
-- Add `'command-palette'` to `TLUiMenuContextType` and `TLUiEventSource`.
+- Add `'command-palette'` to `TLUiMenuContextType` and `TLUiEventSource`, and `disabledReason` to `TldrawUiMenuItem`, `TldrawUiMenuCheckboxItem` and their action variants.
 - Add a `position` prop to `DefaultCommandPalette` and `CommandPaletteShell`: `'bottom'` (the default, just above the toolbar), `'center'` or `'top'`.
 - Add `commandPalette` to `TLUiActionItem`, and `CommandPaletteActionGroup`, which lists the actions placed in a group, or every action not opted out when given no group.
 - Add `CommandPalettePinned`, `CommandPaletteCollapsed` and `CommandPalettePromptItem`, and an `icon` prop on `TldrawUiMenuSubmenu`, to shape how items appear in the command palette.

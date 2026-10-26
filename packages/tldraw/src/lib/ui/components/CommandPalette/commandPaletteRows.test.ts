@@ -16,6 +16,7 @@ function entry(id: string, overrides: Partial<CommandPaletteEntry> = {}): Comman
 		submenu: null,
 		section: null,
 		heading: null,
+		disabled: false,
 		onSelect: vi.fn(),
 		marker: null,
 		...overrides,
@@ -44,19 +45,24 @@ const submenuEntries = [
 ]
 
 describe('getCommandPaletteBrowseRows', () => {
-	it('lists entries in order', () => {
+	it('lists enabled entries in order, hiding disabled ones', () => {
 		const rows = getCommandPaletteBrowseRows(
-			[entry('undo', { path: ['Edit'] }), entry('grid', { path: ['View'] }), entry('loose')],
+			[
+				entry('undo', { path: ['Edit'] }),
+				entry('redo', { path: ['Edit'], disabled: true, disabledReason: 'x' }),
+				entry('grid', { path: ['View'] }),
+				entry('loose'),
+			],
 			[],
 			'Recent'
 		)
 		expect(describeRows(rows)).toEqual(['undo', 'grid', 'loose'])
 	})
 
-	it('shows recents first and only there, skipping ids that are gone', () => {
+	it('shows recents first and only there, skipping ids that are disabled or gone', () => {
 		const rows = getCommandPaletteBrowseRows(
-			[entry('undo'), entry('grid')],
-			['gone', 'undo'],
+			[entry('undo'), entry('redo', { disabled: true }), entry('grid')],
+			['gone', 'redo', 'undo'],
 			'Recent'
 		)
 		expect(describeRows(rows)).toEqual(['# Recent', 'recent undo', '---', 'grid'])
@@ -148,17 +154,35 @@ describe('getCommandPaletteBrowseRows', () => {
 })
 
 describe('getCommandPaletteSearchRows', () => {
-	it('ranks matches', () => {
+	it('ranks matches, including disabled ones that can say why, after enabled ones', () => {
 		const rows = getCommandPaletteSearchRows(
 			[
 				entry('realign', { label: 'Realign', path: ['Arrange'] }),
-				entry('align', { label: 'Align', path: ['Arrange'] }),
+				entry('align', { label: 'Align', path: ['Arrange'], disabled: true, disabledReason: 'x' }),
+				entry('unalign', { label: 'Unalign', path: ['Arrange'], disabled: true }),
 				entry('zoom', { label: 'Zoom in' }),
 			],
 			'align',
 			[]
 		)
-		expect(rows.map((row) => row.type === 'item' && row.entry.id)).toEqual(['align', 'realign'])
+		expect(rows.map((row) => row.type === 'item' && row.entry.id)).toEqual(['realign', 'align'])
+	})
+
+	it('groups a submenu by the items search can show', () => {
+		const rows = getCommandPaletteSearchRows(
+			[
+				entry('move-1', { label: 'Move to page: Page 1', name: 'Page 1', submenu: moveTo }),
+				entry('move-new', {
+					label: 'Move to page: New page',
+					name: 'New page',
+					submenu: moveTo,
+					disabled: true,
+				}),
+			],
+			'move',
+			[]
+		)
+		expect(describeRows(rows)).toEqual(['Move to page: Page 1'])
 	})
 
 	it('folds items matched only by their submenu name into the submenu row', () => {
@@ -194,8 +218,13 @@ describe('getCommandPaletteSearchRows', () => {
 })
 
 describe('getCommandPaletteSubmenuRows', () => {
-	it("lists the submenu's items by their own names", () => {
-		const rows = getCommandPaletteSubmenuRows(submenuEntries, moveTo.key, '', [])
+	it("lists the submenu's enabled items by their own names", () => {
+		const rows = getCommandPaletteSubmenuRows(
+			[...submenuEntries, entry('move-new', { name: 'New page', submenu: moveTo, disabled: true })],
+			moveTo.key,
+			'',
+			[]
+		)
 		expect(describeRows(rows)).toEqual(['Page 1', 'Page 2'])
 	})
 

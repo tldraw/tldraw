@@ -11,6 +11,8 @@ export interface CommandPaletteItemRegistrationProps {
 	kbd?: string
 	checked?: boolean
 	isSelected?: boolean
+	disabled: boolean
+	disabledReason?: string
 	prompt?: CommandPalettePrompt
 	icon?: string | TLUiIconJsx
 	onSelect(source: TLUiEventSource): Promise<void> | void
@@ -23,7 +25,7 @@ export function CommandPaletteItemRegistration(props: CommandPaletteItemRegistra
 	const token = useId()
 	const rMarker = useRef<HTMLSpanElement>(null)
 
-	// No deps: re-register every render so label, checked state and onSelect stay current.
+	// No deps: re-register every render so label, disabled state and onSelect stay current.
 	useLayoutEffect(() => {
 		// Prefixed here so rows, recents and search matching all see the same label.
 		const label = submenu ? `${submenu.label}: ${props.label}` : props.label

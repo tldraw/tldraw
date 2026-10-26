@@ -47,6 +47,7 @@ export interface CommandPaletteRankable {
 	/** The label without any submenu prefix. */
 	name?: string
 	path: readonly string[]
+	disabled: boolean
 }
 
 // An exact match on the bare name ("dark") must stay near the top even though the displayed label
@@ -86,6 +87,7 @@ export function rankCommandPaletteEntries<T extends CommandPaletteRankable>(
 		.filter(({ score }) => score > 0)
 		.sort(
 			(a, b) =>
+				Number(a.entry.disabled) - Number(b.entry.disabled) ||
 				b.score - a.score ||
 				a.untouched - b.untouched ||
 				recency(a.entry.id) - recency(b.entry.id) ||

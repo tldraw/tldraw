@@ -53,25 +53,64 @@ async function renderPalette({
 }
 
 describe('default command palette content', () => {
-	it('lists frame commands only while a frame is selected', async () => {
+	it('explains why align is unavailable with nothing selected', async () => {
+		const { rendered, search } = await renderPalette()
+		search('align left')
+		const row = await rendered.findByTestId('command-palette.item.align-left')
+		expect(row.getAttribute('aria-disabled')).toBe('true')
+		await rendered.findByText('Select at least 2 shapes')
+	})
+
+	it('explains that frame commands need a frame, and enables them for one', async () => {
 		const { editor, rendered, search } = await renderPalette()
 		search('remove frame')
-		await rendered.findByTestId('command-palette.input')
-		expect(rendered.queryByTestId('command-palette.item.remove-frame')).toBeNull()
+		const row = () => rendered.getByTestId('command-palette.item.remove-frame')
+		await waitFor(() => expect(row().getAttribute('aria-disabled')).toBe('true'))
+		await rendered.findByText('Select a frame first')
 		act(() => {
+			editor.createShapes([{ type: 'geo', x: 0, y: 0 }])
+			editor.selectAll()
+		})
+		expect(row().getAttribute('aria-disabled')).toBe('true')
+		act(() => {
+			editor.selectNone()
 			editor.createShapes([{ type: 'frame', x: 400, y: 0 }])
 			editor.select(editor.getCurrentPageShapes().find((shape) => shape.type === 'frame')!)
 		})
-		await rendered.findByTestId('command-palette.item.remove-frame')
+		await waitFor(() => expect(row().getAttribute('aria-disabled')).toBeNull())
 	})
 
-	it('aligns two selected shapes, and only then lists align', async () => {
+	it('explains kind-specific commands instead of hiding them', async () => {
+		const { editor, rendered, search } = await renderPalette()
+		const reasons = {
+			ungroup: 'Select a group first',
+			'toggle-auto-size': 'Select a text shape first',
+			'download-original': 'Select an image or video first',
+			'convert-to-embed': 'Select a bookmark first',
+			'convert-to-bookmark': 'Select an embed first',
+			'edit-link': 'Select one linkable shape first',
+		}
+		for (const [id, reason] of Object.entries(reasons)) {
+			search(id.replace(/-/g, ' '))
+			const row = await rendered.findByTestId(`command-palette.item.${id}`)
+			expect(row.getAttribute('aria-disabled')).toBe('true')
+			fireEvent.pointerMove(row)
+			await rendered.findByText(reason)
+		}
+		act(() => {
+			editor.createShapes([{ type: 'note', x: 0, y: 0 }])
+			editor.selectAll()
+		})
+		search('flip horizontal')
+		const flip = await rendered.findByTestId('command-palette.item.flip-horizontal')
+		fireEvent.pointerMove(flip)
+		await rendered.findByText("This shape can't be flipped")
+	})
+
+	it('aligns two selected shapes', async () => {
 		const { editor, search, enter, rendered } = await renderPalette()
 		const a = createShapeId()
 		const b = createShapeId()
-		search('align left')
-		await rendered.findByTestId('command-palette.input')
-		expect(rendered.queryByTestId('command-palette.item.align-left')).toBeNull()
 		act(() => {
 			editor.createShapes([
 				{ id: a, type: 'geo', x: 0, y: 0 },
@@ -80,7 +119,11 @@ describe('default command palette content', () => {
 			editor.select(a, b)
 		})
 		search('align left')
-		await rendered.findByTestId('command-palette.item.align-left')
+		await waitFor(() =>
+			expect(
+				rendered.getByTestId('command-palette.item.align-left').getAttribute('aria-disabled')
+			).toBeNull()
+		)
 		enter()
 		expect(editor.getShape(a)!.x).toBe(editor.getShape(b)!.x)
 	})
@@ -153,10 +196,6 @@ describe('default command palette content', () => {
 
 	it('leaves out editing commands in readonly mode', async () => {
 		const { editor, rendered, search } = await renderPalette()
-		act(() => {
-			editor.createShapes([{ type: 'geo', x: 0, y: 0 }])
-			editor.selectAll()
-		})
 		search('delete')
 		await rendered.findByTestId('command-palette.item.delete')
 		act(() => editor.updateInstanceState({ isReadonly: true }))
@@ -190,7 +229,7 @@ describe('default command palette content', () => {
 		)
 	})
 
-	it('renames, duplicates and deletes the current page, but not the only one', async () => {
+	it('renames, duplicates and deletes the current page', async () => {
 		const { editor, rendered, input, search, enter } = await renderPalette()
 		search('rename page')
 		enter()
@@ -202,14 +241,18 @@ describe('default command palette content', () => {
 		fireEvent.keyDown(input, { key: 'Escape' })
 
 		search('delete page')
-		await rendered.findByTestId('command-palette.input')
-		expect(rendered.queryByTestId('command-palette.item.delete-page')).toBeNull()
+		const del = await rendered.findByTestId('command-palette.item.delete-page')
+		expect(del.getAttribute('aria-disabled')).toBe('true')
 
 		search('duplicate page')
 		enter()
 		expect(editor.getPages()).toHaveLength(2)
 		search('delete page')
-		await rendered.findByTestId('command-palette.item.delete-page')
+		await waitFor(() =>
+			expect(
+				rendered.getByTestId('command-palette.item.delete-page').getAttribute('aria-disabled')
+			).toBeNull()
+		)
 		enter()
 		expect(editor.getPages()).toHaveLength(1)
 	})
@@ -306,28 +349,43 @@ describe('default command palette content', () => {
 			expect(rendered.queryByTestId('command-palette.item.secret')).toBeNull()
 		})
 
-		it('lists a placed custom action only while it is enabled', async () => {
+		it('gates custom actions, explained by the reason on their placed item', async () => {
 			const { editor, rendered, search, enter } = await renderPalette({
 				overrides,
 				content: (
 					<>
 						<TldrawUiMenuGroup id="colors" label="Colors">
-							<TldrawUiMenuActionItem actionId="make-red" />
+							<TldrawUiMenuActionItem
+								actionId="make-red"
+								disabledReason="command-palette.reason.select-shape"
+							/>
 						</TldrawUiMenuGroup>
 						<DefaultCommandPaletteContent />
 					</>
 				),
 			})
 			search('make red')
-			await rendered.findByTestId('command-palette.input')
-			expect(rendered.queryByTestId('command-palette.item.make-red')).toBeNull()
+			const row = await rendered.findByTestId('command-palette.item.make-red')
+			expect(row.getAttribute('aria-disabled')).toBe('true')
+			fireEvent.pointerMove(row)
+			await rendered.findByText('Select a shape first')
 			act(() => {
 				editor.createShapes([{ type: 'geo', x: 0, y: 0 }])
 				editor.selectAll()
 			})
-			await rendered.findByTestId('command-palette.item.make-red')
+			await waitFor(() => expect(row.getAttribute('aria-disabled')).toBeNull())
 			enter()
 			expect(makeRed).toHaveBeenCalled()
+		})
+
+		it('leaves disabled actions without a reason out of search', async () => {
+			const { editor, rendered, search } = await renderPalette({ overrides })
+			act(() => editor.setCurrentTool('draw'))
+			search('make red')
+			await rendered.findByTestId('command-palette.input')
+			await waitFor(() =>
+				expect(rendered.queryByTestId('command-palette.item.make-red')).toBeNull()
+			)
 		})
 
 		it('lists a group where it is placed, and only once', async () => {
@@ -346,6 +404,22 @@ describe('default command palette content', () => {
 			expect(ids.indexOf('command-palette.item.make-blue')).toBeLessThan(
 				ids.indexOf('command-palette.item.zoom-in')
 			)
+		})
+
+		it('asks for the select tool before the selection outside it', async () => {
+			const { editor, rendered, search } = await renderPalette()
+			act(() => {
+				editor.createShapes([
+					{ type: 'geo', x: 0, y: 0 },
+					{ type: 'geo', x: 200, y: 0 },
+				])
+				editor.selectAll()
+				editor.setCurrentTool('draw')
+			})
+			search('align left')
+			const row = await rendered.findByTestId('command-palette.item.align-left')
+			fireEvent.pointerMove(row)
+			await rendered.findByText('Switch to the select tool first')
 		})
 	})
 })

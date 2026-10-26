@@ -64,6 +64,10 @@ export interface TLUiMenuItemProps<
 	 */
 	disabled?: boolean
 	/**
+	 * Why the item is disabled. The command palette shows it when the item is highlighted.
+	 */
+	disabledReason?: TranslationKey
+	/**
 	 * Prevent the menu from closing when the item is clicked
 	 */
 	noClose?: boolean
@@ -87,6 +91,7 @@ export function TldrawUiMenuItem<
 	IconType extends string = string,
 >({
 	disabled = false,
+	disabledReason,
 	spinner = false,
 	readonlyOk = false,
 	id,
@@ -280,8 +285,7 @@ export function TldrawUiMenuItem<
 			)
 		}
 		case 'command-palette': {
-			// The palette only lists what can run now.
-			if (!labelStr || disabled) return null
+			if (!labelStr) return null
 			return (
 				<CommandPaletteItemRegistration
 					id={id}
@@ -289,6 +293,8 @@ export function TldrawUiMenuItem<
 					kbd={kbd}
 					icon={iconLeft ?? icon}
 					isSelected={isSelected}
+					disabled={disabled}
+					disabledReason={disabledReason ? msg(disabledReason as TLUiTranslationKey) : undefined}
 					onSelect={onSelect}
 				/>
 			)

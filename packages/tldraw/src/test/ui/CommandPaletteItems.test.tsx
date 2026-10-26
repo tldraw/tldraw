@@ -5,6 +5,7 @@ import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import { CommandPaletteStoreProvider } from '../../lib/ui/components/CommandPalette/CommandPaletteContext'
 import { CommandPaletteStore } from '../../lib/ui/components/CommandPalette/CommandPaletteStore'
+import { TldrawUiMenuActionItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuCheckboxItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuContextProvider } from '../../lib/ui/components/primitives/menus/TldrawUiMenuContext'
 import { TldrawUiMenuGroup } from '../../lib/ui/components/primitives/menus/TldrawUiMenuGroup'
@@ -42,16 +43,22 @@ describe('menu items in the command palette', () => {
 				<TldrawUiMenuSubmenu id="theme" label="menu.theme">
 					<TldrawUiMenuCheckboxItem id="dark" label="theme.dark" checked onSelect={() => {}} />
 				</TldrawUiMenuSubmenu>
-				<TldrawUiMenuItem id="redo-item" label="action.redo" disabled onSelect={() => {}} />
+				<TldrawUiMenuItem
+					id="redo-item"
+					label="action.redo"
+					disabled
+					disabledReason="command-palette.reason.nothing-to-redo"
+					onSelect={() => {}}
+				/>
 			</TldrawUiMenuGroup>
 		)
-		// Disabled items don't register: the palette only lists what can run now.
-		await waitFor(() => expect(ids()).toEqual(['undo-item', 'dark']))
-		const [undo, dark] = store.entries.get()
+		await waitFor(() => expect(ids()).toEqual(['undo-item', 'dark', 'redo-item']))
+		const [undo, dark, redo] = store.entries.get()
 		expect(undo).toMatchObject({
 			label: 'Undo',
 			path: ['Edit'],
 			kbd: 'cmd+z',
+			disabled: false,
 			submenu: null,
 		})
 		expect(dark).toMatchObject({
@@ -61,6 +68,7 @@ describe('menu items in the command palette', () => {
 			checked: true,
 			submenu: { label: 'Theme' },
 		})
+		expect(redo).toMatchObject({ disabled: true, disabledReason: 'Nothing to redo' })
 		undo.onSelect('command-palette')
 		expect(onUndo).toHaveBeenCalledWith('command-palette')
 	})
@@ -75,6 +83,22 @@ describe('menu items in the command palette', () => {
 		)
 		await waitFor(() => expect(ids()).toEqual(['x']))
 		expect(store.entries.get()[0].label).toBe('Redo')
+	})
+
+	it('pass a disabled reason through action items', async () => {
+		const { store, ids } = await renderItems(
+			<TldrawUiMenuActionItem
+				actionId="undo"
+				disabled
+				disabledReason="command-palette.reason.nothing-to-undo"
+			/>
+		)
+		await waitFor(() => expect(ids()).toEqual(['undo']))
+		expect(store.entries.get()[0]).toMatchObject({
+			label: 'Undo',
+			disabled: true,
+			disabledReason: 'Nothing to undo',
+		})
 	})
 
 	it('drop out in readonly mode unless they are readonlyOk', async () => {

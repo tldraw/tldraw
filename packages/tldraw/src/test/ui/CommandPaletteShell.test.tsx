@@ -152,7 +152,21 @@ describe('CommandPaletteShell', () => {
 		expect(selected()).toBe('command-palette.item.beta')
 	})
 
-	it('hides disabled items, both browsing and searching', async () => {
+	it('shows the reason for a disabled item and does not run it', async () => {
+		const onSelect = vi.fn()
+		const { rendered, input } = await renderShell(
+			item('redo', 'Redo', onSelect, {
+				disabled: true,
+				disabledReason: 'command-palette.reason.nothing-to-redo',
+			})
+		)
+		type(input, 'redo')
+		await rendered.findByText('Nothing to redo')
+		press(input, 'Enter')
+		expect(onSelect).not.toHaveBeenCalled()
+	})
+
+	it('hides disabled items without a reason, both browsing and searching', async () => {
 		const { rendered, input } = await renderShell(
 			<>
 				{item('alpha', 'Alpha')}

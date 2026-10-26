@@ -36,6 +36,8 @@ export interface CommandPaletteEntry {
 	kbd?: string
 	checked?: boolean
 	isSelected?: boolean
+	disabled: boolean
+	disabledReason?: string
 	/** Listed first, above recents, on an empty query. */
 	pinned?: boolean
 	/** Asks for text in the palette before running, instead of running on select. */
