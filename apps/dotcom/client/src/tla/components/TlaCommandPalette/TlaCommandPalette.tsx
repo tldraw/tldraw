@@ -1,4 +1,9 @@
-import { CommentsMenuItem, richTextToPlaintext, toggleCommentsSidebar } from '@tldraw/commenting'
+import {
+	CommentsMenuItem,
+	richTextToPlaintext,
+	toggleCommentsSidebar,
+	useCommentsSidebarOpen,
+} from '@tldraw/commenting'
 import { useNavigate } from 'react-router-dom'
 import {
 	CommandPaletteActionGroup,
@@ -236,7 +241,7 @@ function TlaCurrentFileGroup() {
 					idPrefix="file-"
 				/>
 			)}
-			<ImportFileActionItem />
+			<ImportFileActionItem source="command-palette" />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -246,9 +251,11 @@ function TlaShareGroup() {
 	const app = useApp()
 	const editor = useEditor()
 	const { addToast } = useToasts()
+	const trackEvent = useTldrawAppUiEvents()
 	const fileId = useCurrentFileId()
 	const isAdmin = useHasFileAdminRights(fileId)
 	const commentingEnabled = useIsCommentingEnabled()
+	const commentsSidebarOpen = useCommentsSidebarOpen()
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 	const shareLbl = msg(messages.share)
 	const shareFileLbl = msg(messages.shareFile)
@@ -266,13 +273,24 @@ function TlaShareGroup() {
 				id="tla-share-file"
 				label={shareFileLbl}
 				readonlyOk
-				onSelect={() => openShareMenu(editor, fileId)}
+				onSelect={() => {
+					openShareMenu(editor, fileId)
+					trackEvent('open-share-menu', { source: 'command-palette' })
+				}}
 			/>
 			{isAdmin && (
 				<TldrawUiMenuItem
 					id="tla-publish"
 					label={file.published ? unpublishLbl : publishLbl}
-					onSelect={() => (file.published ? app.unpublishFile(fileId) : app.publishFile(fileId))}
+					onSelect={() => {
+						if (file.published) {
+							app.unpublishFile(fileId)
+							trackEvent('unpublish-file', { source: 'command-palette' })
+						} else {
+							app.publishFile(fileId)
+							trackEvent('publish-file', { source: 'command-palette' })
+						}
+					}}
 				/>
 			)}
 			{file.published && file.publishedSlug && (
@@ -283,6 +301,7 @@ function TlaShareGroup() {
 					onSelect={() => {
 						copyTextToClipboard(routes.tlaPublish(file.publishedSlug!, { asUrl: true }))
 						addToast({ id: 'copied-published-link', title: copiedLbl })
+						trackEvent('copy-publish-link', { source: 'command-palette' })
 					}}
 				/>
 			)}
@@ -292,7 +311,13 @@ function TlaShareGroup() {
 					id="tla-comments-sidebar"
 					label={commentsSidebarLbl}
 					readonlyOk
-					onSelect={() => toggleCommentsSidebar(editor)}
+					onSelect={() => {
+						toggleCommentsSidebar(editor)
+						trackEvent('toggle-comments-sidebar', {
+							source: 'command-palette',
+							open: !commentsSidebarOpen,
+						})
+					}}
 				/>
 			)}
 		</TldrawUiMenuGroup>
@@ -375,7 +400,7 @@ function TlaAppGroup() {
 			)}
 			{app && <TlaMarkAllReadItem />}
 			<GiveUsFeedbackMenuItem />
-			<UserManualMenuItem icon={false} />
+			<UserManualMenuItem icon={false} source="command-palette" />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -485,7 +510,7 @@ function TlaAccountGroup() {
 				/>
 			)}
 			{!app && <TldrawUiMenuActionItem actionId="save-file-copy" />}
-			<SignOutMenuItem />
+			<SignOutMenuItem source="command-palette" />
 		</TldrawUiMenuGroup>
 	)
 }

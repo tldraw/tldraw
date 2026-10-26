@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import {
 	defineMessages,
 	TLDRAW_FILE_EXTENSION,
+	TLUiEventSource,
 	TldrawUiIcon,
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuGroup,
@@ -63,7 +64,7 @@ const messages = defineMessages({
 	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
 })
 
-export function SignOutMenuItem() {
+export function SignOutMenuItem({ source = 'sidebar' }: { source?: TLAppUiEventSource } = {}) {
 	const msg = useTranslation()
 	const auth = useAuth()
 	const app = useMaybeApp()
@@ -81,8 +82,8 @@ export function SignOutMenuItem() {
 				await app?.deleteLocalData()
 			})
 			.catch((err) => console.error('Sign out failed:', err))
-		trackEvent('sign-out-clicked', { source: 'sidebar' })
-	}, [auth, app, trackEvent])
+		trackEvent('sign-out-clicked', { source })
+	}, [auth, app, trackEvent, source])
 
 	if (!auth.isSignedIn) return
 	return (
@@ -316,9 +317,15 @@ export function CookieConsentMenuItem() {
 	)
 }
 
-export function UserManualMenuItem({ icon = true }: { icon?: boolean } = {}) {
+export function UserManualMenuItem({
+	icon = true,
+	source = 'main-menu',
+}: {
+	icon?: boolean
+	source?: TLUiEventSource
+} = {}) {
 	const msg = useTranslation()
-	const openAndTrack = useOpenUrlAndTrack('main-menu')
+	const openAndTrack = useOpenUrlAndTrack(source)
 	return (
 		<TldrawUiMenuItem
 			id="user-manual"
@@ -363,7 +370,9 @@ export function LegalSummaryMenuItem() {
 	)
 }
 
-export function ImportFileActionItem() {
+export function ImportFileActionItem({
+	source = 'file-menu',
+}: { source?: TLAppUiEventSource } = {}) {
 	const msg = useTranslation()
 	const trackEvent = useTldrawAppUiEvents()
 	const app = useMaybeApp()
@@ -382,7 +391,7 @@ export function ImportFileActionItem() {
 				if (!editor) return
 				if (!app) return
 
-				trackEvent('import-tldr-file', { source: 'file-menu' })
+				trackEvent('import-tldr-file', { source })
 
 				try {
 					// tldraw offline files are selectable so that we can explain why we can't open them
@@ -397,7 +406,7 @@ export function ImportFileActionItem() {
 					if (!tldrawFiles.length) return
 
 					app.uploadTldrFiles(tldrawFiles, {
-						source: 'file-menu',
+						source,
 						onFirstFileUploaded: (fileId) => {
 							navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
 						},
