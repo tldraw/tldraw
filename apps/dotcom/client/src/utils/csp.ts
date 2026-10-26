@@ -80,12 +80,16 @@ export const csp = Object.keys(cspDirectives)
 
 // The thumbnail render page's policy: the app's, plus inline script, which Browser Run's
 // addScriptTag needs to push the records in. Without it the browser blocks the push silently and
-// every render fetches. Confined to that route, which has no user session for a script to reach.
+// every render fetches (each push times out, then falls back). Confined to that route, which has no
+// user session for a script to reach. Hashes and nonces go: a browser ignores 'unsafe-inline' in any
+// list that has one, and the page loads none of the snippets they allow.
 export const thumbnailRenderCsp = Object.keys(cspDirectives)
 	.map((directive) => {
 		const values = cspDirectives[directive]
-		if (directive === 'script-src')
-			return `${directive} ${[...values, `'unsafe-inline'`].join(' ')}`
+		if (directive === 'script-src') {
+			const sources = values.filter((value) => !/^'(sha(256|384|512)|nonce)-/.test(value))
+			return `${directive} ${[...sources, `'unsafe-inline'`].join(' ')}`
+		}
 		return `${directive} ${values.join(' ')}`
 	})
 	.join('; ')
