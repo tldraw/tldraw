@@ -1090,13 +1090,35 @@ export class TldrawApp {
 		})
 	}
 
+	@computed
+	getFilesById(): Map<string, TlaFile | null> {
+		const files = new Map<string, TlaFile | null>()
+		for (const membership of this.getWorkspaceMemberships()) {
+			for (const groupFile of membership.groupFiles) {
+				if (!files.has(groupFile.fileId)) files.set(groupFile.fileId, groupFile.file ?? null)
+			}
+		}
+		return files
+	}
+
+	@computed({ isEqual })
+	getSearchableFiles(): Array<{ fileId: string; workspaceId: string }> {
+		const seen = new Set<string>()
+		const files: Array<{ fileId: string; workspaceId: string }> = []
+		for (const membership of this.getWorkspaceMemberships()) {
+			for (const groupFile of membership.groupFiles) {
+				if (!groupFile.file || seen.has(groupFile.fileId)) continue
+				if (!this.isFileListedInWorkspace(membership.groupId, groupFile.file)) continue
+				seen.add(groupFile.fileId)
+				files.push({ fileId: groupFile.fileId, workspaceId: membership.groupId })
+			}
+		}
+		return files
+	}
+
 	getFile(fileId?: string): TlaFile | null {
 		if (!fileId) return null
-		for (const membership of this.getWorkspaceMemberships()) {
-			const groupFile = membership.groupFiles.find((gf) => gf.fileId === fileId)
-			if (groupFile) return groupFile.file ?? null
-		}
-		return null
+		return this.getFilesById().get(fileId) ?? null
 	}
 
 	canUpdateFile(fileId: string): boolean {
