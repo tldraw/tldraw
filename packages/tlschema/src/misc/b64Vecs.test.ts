@@ -261,7 +261,7 @@ describe('native/fallback interoperability', () => {
 			expect(mixedDecoded.length).toBe(3)
 		})
 
-		it('cross-decodes: fallback encode → production decode works', () => {
+		it('cross-decodes: production encode → fallback decode works', () => {
 			const points: VecModel[] = [
 				{ x: 100, y: 200, z: 0.5 },
 				{ x: 105, y: 210, z: 0.6 },
@@ -541,6 +541,22 @@ describe('b64Vecs path encoding', () => {
 			{ x: 123456789.01, y: -0.01, z: 1.25 },
 		]
 		expect(b64Vecs.decodePoints(b64Vecs.encodePoints(points))).toEqual(points)
+	})
+
+	it('clamps values past the safe range instead of corrupting the stroke', () => {
+		const huge = 2 ** 49 / 100
+		const decoded = b64Vecs.decodePoints(
+			b64Vecs.encodePoints([
+				{ x: 0, y: 0, z: 0.5 },
+				{ x: 1e300, y: -45035996273705, z: 0.5 },
+				{ x: 1, y: 2, z: 0.3 },
+			])
+		)
+		expect(decoded).toEqual([
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: huge, y: -huge, z: 0.5 },
+			{ x: 1, y: 2, z: 0.3 },
+		])
 	})
 
 	it('stores non-finite values as 0 so they do not corrupt later points', () => {

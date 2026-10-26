@@ -262,7 +262,6 @@ export function numberToFloat16Bits(value: number): number {
 	return (sign << 15) | (expBiased << 10) | frac
 }
 
-/**
 /*
  * Path format (draw shape version PredictiveEncoding and later)
  *
@@ -288,9 +287,12 @@ export function numberToFloat16Bits(value: number): number {
  */
 
 const GRID = 100
+const RADIX = 32
 const CONTINUE_BIT = 32
-const VALUE_BITS = 31
-// A zigzag of a 53-bit integer needs at most 11 five-bit chars.
+const VALUE_MASK = 31
+// Keeps every residual (up to 4x a value) and its zigzag (2x) below 2^53, so the
+// sign bit survives and no value needs more than 11 chars. ~5.6e12 canvas units.
+const MAX_QUANTIZED = 2 ** 49
 const MAX_CHARS_PER_POINT = 33
 
 const RESIDUAL_CHAR_CODES = new Uint8Array(64)
@@ -301,15 +303,21 @@ let encodeLength = 0
 
 // Non-finite input would otherwise poison every later point through the running sums.
 function quantize(value: number): number {
-	return Number.isFinite(value) ? Math.round(value * GRID) : 0
+	if (!Number.isFinite(value)) return 0
+	const q = Math.round(value * GRID)
+	return q > MAX_QUANTIZED ? MAX_QUANTIZED : q < -MAX_QUANTIZED ? -MAX_QUANTIZED : q
+}
+
+function toDim(dim: 2 | 3 | undefined): 2 | 3 {
+	return dim === DIM_2D ? DIM_2D : DIM_3D
 }
 
 function writeResidual(n: number): void {
 	let v = n >= 0 ? n * 2 : -n * 2 - 1
 	while (v >= CONTINUE_BIT) {
-		// `& VALUE_BITS` is exact past 2^31: ToInt32 keeps the low bits of any safe integer.
-		encodeBuffer[encodeLength++] = RESIDUAL_CHAR_CODES[(v & VALUE_BITS) | CONTINUE_BIT]
-		v = v < 0x80000000 ? v >>> 5 : Math.floor(v / 32)
+		// `& VALUE_MASK` is exact past 2^31: ToInt32 keeps the low bits of any safe integer.
+		encodeBuffer[encodeLength++] = RESIDUAL_CHAR_CODES[(v & VALUE_MASK) | CONTINUE_BIT]
+		v = v < 0x80000000 ? v >>> 5 : Math.floor(v / RADIX)
 	}
 	encodeBuffer[encodeLength++] = RESIDUAL_CHAR_CODES[v]
 }
@@ -369,12 +377,12 @@ let readIndex = 0
 // use to detect a truncated point.
 function readResidual(path: string): number {
 	let char = B64_LOOKUP[path.charCodeAt(readIndex++)]
-	let v = char & VALUE_BITS
-	let scale = CONTINUE_BIT
+	let v = char & VALUE_MASK
+	let scale = RADIX
 	while (char & CONTINUE_BIT) {
 		char = B64_LOOKUP[path.charCodeAt(readIndex++)]
-		v += (char & VALUE_BITS) * scale
-		scale *= CONTINUE_BIT
+		v += (char & VALUE_MASK) * scale
+		scale *= RADIX
 	}
 	return v % 2 === 0 ? v / 2 : -(v + 1) / 2
 }
@@ -520,8 +528,8 @@ function legacyDeltaDecodePoints2D(base64: string): VecModel[] {
 
 /**
  * Utilities for encoding and decoding draw and highlight segment paths. Paths are
- * compact base64-alphabet strings: points snapped to a 1/100 unit grid, stored as
- * prediction residuals. See the format notes in `b64Vecs.ts`.
+ * compact base64-alphabet strings: points snapped to a 1/100 unit grid, each stored
+ * as the difference from a prediction made from the two points before it.
  *
  * @public
  */
@@ -623,7 +631,7 @@ export class b64Vecs {
 
 	/**
 	 * Encode points as a segment path. Coordinates are rounded to the nearest 1/100
-	 * unit; non-finite values are stored as 0.
+	 * unit and clamped to about ±5.6e12; non-finite values are stored as 0.
 	 *
 	 * @param points - An array of VecModel objects to encode
 	 * @param dim - `2` drops z (pressure), `3` (default) keeps it; a missing z encodes as 0.5
@@ -631,7 +639,7 @@ export class b64Vecs {
 	 * @public
 	 */
 	static encodePoints(points: VecModel[], dim?: 2 | 3): string {
-		return encodeResidualPath(points, dim === DIM_2D ? DIM_2D : DIM_3D)
+		return encodeResidualPath(points, toDim(dim))
 	}
 
 	/**
@@ -643,7 +651,7 @@ export class b64Vecs {
 	 * @public
 	 */
 	static decodePoints(path: string, dim?: 2 | 3): VecModel[] {
-		return decodeResidualPath(path, dim === DIM_2D ? DIM_2D : DIM_3D, false)
+		return decodeResidualPath(path, toDim(dim), false)
 	}
 
 	/**
@@ -674,7 +682,7 @@ export class b64Vecs {
 	 * @public
 	 */
 	static decodeLastPoint(path: string, dim?: 2 | 3): VecModel | null {
-		return decodeResidualPath(path, dim === DIM_2D ? DIM_2D : DIM_3D, true)[0] ?? null
+		return decodeResidualPath(path, toDim(dim), true)[0] ?? null
 	}
 
 	/**
@@ -732,7 +740,7 @@ export class b64Vecs {
 	 * @public
 	 */
 	static isSinglePoint(path: string, dim?: 2 | 3): boolean {
-		const valuesPerPoint = dim === DIM_2D ? DIM_2D : DIM_3D
+		const valuesPerPoint = toDim(dim)
 		let values = 0
 		for (let i = 0; i < path.length; i++) {
 			if ((B64_LOOKUP[path.charCodeAt(i)] & CONTINUE_BIT) === 0 && ++values > valuesPerPoint) {

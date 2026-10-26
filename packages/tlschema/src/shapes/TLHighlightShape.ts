@@ -1,5 +1,6 @@
 import { T } from '@tldraw/validate'
 import { DIM_2D, b64Vecs } from '../misc/b64Vecs'
+import { VecModel } from '../misc/geometry-types'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
@@ -209,13 +210,16 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.PredictiveEncoding,
 			up: (props) => {
-				props.segments = props.segments.map((segment: any) => ({
-					...segment,
-					path: b64Vecs.encodePoints(
-						b64Vecs._legacyDeltaDecodePoints(segment.path, segment.dim),
-						segment.dim
-					),
-				}))
+				props.segments = props.segments.map((segment: any) => {
+					let points: VecModel[]
+					try {
+						points = b64Vecs._legacyDeltaDecodePoints(segment.path, segment.dim)
+					} catch {
+						// A truncated path throws; failing here would reject the whole document.
+						points = []
+					}
+					return { ...segment, path: b64Vecs.encodePoints(points, segment.dim) }
+				})
 			},
 			down: (props) => {
 				props.segments = props.segments.map((segment: any) => ({

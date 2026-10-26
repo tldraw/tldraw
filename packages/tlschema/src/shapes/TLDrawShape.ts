@@ -18,8 +18,8 @@ export interface TLDrawShapeSegment {
 	/** Type of drawing segment - 'free' for freehand curves, 'straight' for line segments */
 	type: 'free' | 'straight'
 	/**
-	 * Delta-encoded base64 path data.
-	 * First point stored as Float32 (12 bytes) for precision, subsequent points as Float16 deltas (6 bytes each).
+	 * Encoded point data; read and write it with `b64Vecs.decodePoints` and
+	 * `b64Vecs.encodePoints`, passing `dim`.
 	 */
 	path: string
 	/**
@@ -277,13 +277,16 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.PredictiveEncoding,
 			up: (props) => {
-				props.segments = props.segments.map((segment: any) => ({
-					...segment,
-					path: b64Vecs.encodePoints(
-						b64Vecs._legacyDeltaDecodePoints(segment.path, segment.dim),
-						segment.dim
-					),
-				}))
+				props.segments = props.segments.map((segment: any) => {
+					let points: VecModel[]
+					try {
+						points = b64Vecs._legacyDeltaDecodePoints(segment.path, segment.dim)
+					} catch {
+						// A truncated path throws; failing here would reject the whole document.
+						points = []
+					}
+					return { ...segment, path: b64Vecs.encodePoints(points, segment.dim) }
+				})
 			},
 			down: (props) => {
 				props.segments = props.segments.map((segment: any) => ({

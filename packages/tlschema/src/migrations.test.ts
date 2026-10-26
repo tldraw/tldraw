@@ -2494,7 +2494,7 @@ describe('LegacyPointsConversion migration for draw shape', () => {
 		expect(result.props.segments[0].path).toBeDefined()
 		expect(result.props.segments[0].points).toBeUndefined()
 
-		// Verify the new format is decodable and produces valid data
+		// Verify the delta path is decodable and produces valid data
 		const decoded = b64Vecs._legacyDeltaDecodePoints(result.props.segments[0].path)
 		expect(decoded).toHaveLength(3)
 
@@ -2814,6 +2814,11 @@ for (const [shape, versions] of [
 				{ type: 'free', path: b64Vecs.encodePoints(points3D) },
 				{ type: 'straight', path: b64Vecs.encodePoints(points2D, 2), dim: 2 },
 			])
+		})
+
+		test('up empties a malformed path instead of throwing', () => {
+			const result = up({ props: { segments: [{ type: 'free', path: 'AAAA' }] } })
+			expect(result.props.segments).toEqual([{ type: 'free', path: '' }])
 		})
 
 		test('up leaves empty paths empty', () => {
