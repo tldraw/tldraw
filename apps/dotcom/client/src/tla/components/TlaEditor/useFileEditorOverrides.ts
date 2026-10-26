@@ -75,6 +75,8 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					label: 'action.save-copy',
 					readonlyOk: true,
 					kbd: 'cmd+s,ctrl+s',
+					// Only swallows Cmd+S.
+					commandPalette: false,
 					onSelect() {
 						trackEvent('save-project-no-action', { source: 'kbd' })
 					},
@@ -83,6 +85,9 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					id: 'save-file-copy',
 					label: intl.formatMessage(messages.downloadFile),
 					readonlyOk: true,
+					// The palette's file commands already download a signed-in user's file; signed out, the
+					// palette places this action itself.
+					commandPalette: false,
 					async onSelect() {
 						trackEvent('download-file', { source: '' })
 						if (app && fileSlug) {
@@ -99,6 +104,8 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					id: 'copy-to-my-files',
 					label: intl.formatMessage(messages.copyToMyfiles),
 					readonlyOk: true,
+					// Only for legacy rooms, from their own button.
+					commandPalette: false,
 					async onSelect() {
 						if (!copySource) return
 						const defaultName = getEditorFileName(app, fileSlug, editor, untitledProject)

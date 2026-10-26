@@ -47,6 +47,7 @@ import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import {
 	getIsSidebarOpen,
+	getIsSidebarOpenMobile,
 	isDesktopSidebarLayout,
 	toggleMobileSidebar,
 	toggleSidebar,
@@ -326,7 +327,7 @@ function TlaShareGroup() {
 
 const MAX_NOTIFICATIONS = 20
 
-// Pinned under the feature flags while anything is unread, as one row that opens to the
+// Pinned above the other commands while anything is unread, as one row that opens to the
 // notifications, newest first, with the unread ones marked like in the sidebar.
 function TlaNotificationsGroup() {
 	const msg = useTranslation()
@@ -384,9 +385,13 @@ function TlaAppGroup() {
 					kbd="cmd+\,ctrl+\"
 					readonlyOk
 					onSelect={() => {
-						if (isDesktopSidebarLayout()) toggleSidebar()
+						const isDesktop = isDesktopSidebarLayout()
+						if (isDesktop) toggleSidebar()
 						else toggleMobileSidebar()
-						trackEvent('sidebar-toggle', { value: getIsSidebarOpen(), source: 'command-palette' })
+						trackEvent('sidebar-toggle', {
+							value: isDesktop ? getIsSidebarOpen() : getIsSidebarOpenMobile(),
+							source: 'command-palette',
+						})
 					}}
 				/>
 			)}
@@ -425,6 +430,7 @@ function TlaMarkAllReadItem() {
 
 function TlaWorkspacesGroup() {
 	const msg = useTranslation()
+	const trackEvent = useTldrawAppUiEvents()
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const activeWorkspaceId = useActiveWorkspaceId()
@@ -473,6 +479,8 @@ function TlaWorkspacesGroup() {
 							<WorkspaceSettingsDialog workspaceId={activeWorkspaceId} onClose={onClose} />
 						),
 					})
+					// Same event the sidebar's settings button sends.
+					trackEvent('open-share-menu', { source: 'command-palette' })
 				}}
 			/>
 			{canCopyInvite && (
