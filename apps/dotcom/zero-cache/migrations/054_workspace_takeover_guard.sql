@@ -1,14 +1,9 @@
--- Backstop for the workspace mutators. Zero's server insert is ON CONFLICT DO NOTHING, so a missed
--- id check in createWorkspace turns into an owner row in someone else's workspace. Two rules:
---   1. A home workspace (group id = user id) has one member, its user. The 'user_' prefix covers a
---      home whose user row doesn't exist yet.
---   2. An owner row may only be inserted into a live group with no other members, i.e. by the
---      group's creator. Later owners are promotions (UPDATE), and invites insert members.
---      Same-user rows pass so concurrent first sign-ins still hit ON CONFLICT DO NOTHING.
--- Idempotent, so it can be applied by hand ahead of the deploy.
+-- Zero's server insert is ON CONFLICT DO NOTHING, so reusing a workspace id would add the caller as
+-- its owner. Only a user may join their home, and owners are inserted only by a group's creator.
 CREATE OR REPLACE FUNCTION public.reject_workspace_takeover() RETURNS TRIGGER AS $$
 BEGIN
   IF NEW."groupId" <> NEW."userId" AND (
+    -- also covers a home whose user row doesn't exist yet
     NEW."groupId" LIKE 'user\_%'
     OR EXISTS (SELECT 1 FROM public."user" WHERE "id" = NEW."groupId")
   ) THEN
@@ -18,6 +13,7 @@ BEGIN
 
   IF NEW."role" = 'owner' AND (
     NOT EXISTS (SELECT 1 FROM public."group" WHERE "id" = NEW."groupId" AND NOT "isDeleted")
+    -- the same user passes, so concurrent first sign-ins still reach ON CONFLICT DO NOTHING
     OR EXISTS (
       SELECT 1 FROM public."group_user"
       WHERE "groupId" = NEW."groupId" AND "userId" <> NEW."userId"
