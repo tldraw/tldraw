@@ -604,8 +604,8 @@ importers:
         specifier: ^4.95.1
         version: 4.101.21(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@rocicorp/zero':
-        specifier: 1.11.2
-        version: 1.11.2(@opentelemetry/core@2.12.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)
+        specifier: 1.11.3
+        version: 1.11.3(@opentelemetry/core@2.12.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)
       '@sentry/integrations':
         specifier: ^7.120.3
         version: 7.120.3
@@ -798,8 +798,8 @@ importers:
         specifier: ^3.17.1
         version: 3.17.1(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@rocicorp/zero':
-        specifier: 1.11.2
-        version: 1.11.2(@opentelemetry/core@2.12.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)
+        specifier: 1.11.3
+        version: 1.11.3(@opentelemetry/core@2.12.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)
       '@supabase/supabase-js':
         specifier: ^2.48.1
         version: 2.48.1
@@ -878,8 +878,8 @@ importers:
   apps/dotcom/zero-cache:
     dependencies:
       '@rocicorp/zero':
-        specifier: 1.11.2
-        version: 1.11.2(@opentelemetry/core@2.12.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)
+        specifier: 1.11.3
+        version: 1.11.3(@opentelemetry/core@2.12.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)
       kysely:
         specifier: ^0.28.12
         version: 0.28.17
@@ -1579,8 +1579,8 @@ importers:
   packages/dotcom-shared:
     dependencies:
       '@rocicorp/zero':
-        specifier: 1.11.2
-        version: 1.11.2(@opentelemetry/core@2.12.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)
+        specifier: 1.11.3
+        version: 1.11.3(@opentelemetry/core@2.12.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)
       '@tldraw/state':
         specifier: workspace:*
         version: link:../state
@@ -7702,8 +7702,8 @@ packages:
     engines: {bun: '>=1.1.0', node: 22.x || 24.x}
     hasBin: true
 
-  '@rocicorp/zero@1.11.2':
-    resolution: {integrity: sha512-UFxbi5hZlyNRVkZWEF6f3GBk/FtRI7wzghaVQ0D0T2GYSynTtZWBnOa0/Zyq6RkjbFXsJZQCksdGaKFv6fQUWA==}
+  '@rocicorp/zero@1.11.3':
+    resolution: {integrity: sha512-xP3yPX5q2zauLaZyPICoV7j/16PsyTixTyv85Kj/aFUT48JIyOHrAjsthHlpZhe46XbSlXHzDGSuqIjuwVJmHQ==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -21614,7 +21614,7 @@ snapshots:
     dependencies:
       node-gyp-build: 4.8.4
 
-  '@rocicorp/zero@1.11.2(@opentelemetry/core@2.12.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)':
+  '@rocicorp/zero@1.11.3(@opentelemetry/core@2.12.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)':
     dependencies:
       '@badrap/valita': 0.5.5
       '@databases/escape-identifier': 1.0.3
