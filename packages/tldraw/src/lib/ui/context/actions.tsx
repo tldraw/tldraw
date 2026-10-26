@@ -68,6 +68,7 @@ import {
 	supportsDownloadingOriginal,
 } from './action-predicates'
 import { isActionRunnable } from './action-state'
+import { withCommandPaletteDefaults } from './command-palette-defaults'
 import { useTldrawUiComponents } from './components'
 import { TLUiEventSource, useUiEvents } from './events'
 
@@ -333,6 +334,11 @@ export interface TLUiActionItem<
 	isEnabled?(editor: Editor): boolean
 	/** For checkbox actions: whether the item shows as checked. Must be pure and read only editor state. */
 	isChecked?(editor: Editor): boolean
+	/**
+	 * Where the command palette lists the action. `false` leaves it out, `{ group }` lists it in the
+	 * `CommandPaletteActionGroup` with that group. Without it, the palette's catch-all group lists it.
+	 */
+	commandPalette?: false | { group?: string }
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
 
@@ -2181,7 +2187,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			})
 		}
 
-		const actions = makeActions(actionItems)
+		const actions = makeActions(withCommandPaletteDefaults(actionItems))
 		const overriddenActions = overrides ? overrides(editor, actions, helpers) : actions
 		finalActions.current = gateActions(editor, overriddenActions)
 		return finalActions.current
