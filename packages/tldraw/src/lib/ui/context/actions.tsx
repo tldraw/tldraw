@@ -30,6 +30,7 @@ import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
+import { COMMAND_PALETTE_MENU_ID } from '../components/CommandPalette/commandPaletteMenuId'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
@@ -73,6 +74,10 @@ import { TLUiEventSource, useUiEvents } from './events'
 // keeps the string extractable and the prop a plain key, which is what an app overriding one
 // passes.
 const messages = defineMessages({
+	actionOpenCommandPalette: {
+		id: 'action.open-command-palette',
+		defaultMessage: 'Command palette',
+	},
 	a11yAdjustShapeStyles: { id: 'a11y.adjust-shape-styles', defaultMessage: 'Adjust shape styles' },
 	a11yEnlargeShape: { id: 'a11y.enlarge-shape', defaultMessage: 'Enlarge shape' },
 	a11yRepeatShape: { id: 'a11y.repeat-shape', defaultMessage: 'Repeat shape' },
@@ -567,6 +572,23 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!KeyboardShortcutsDialog) return
 					trackEvent('open-kbd-shortcuts', { source })
 					helpers.addDialog({ component: KeyboardShortcutsDialog })
+				},
+			},
+			{
+				id: 'open-command-palette',
+				label: messages.actionOpenCommandPalette.id,
+				kbd: 'cmd+k,ctrl+k',
+				readonlyOk: true,
+				// Opening marks a menu open, which disables every shortcut until the palette clears it,
+				// so the action must not run where no palette will render.
+				isAvailable: () => !!components.CommandPalette,
+				onSelect(source) {
+					trackEvent('open-command-palette', { source })
+					editor.complete()
+					// DefaultPageMenu clears open menus on keydown while body is focused, closing the palette.
+					const doc = editor.getContainerDocument()
+					if (doc.activeElement === doc.body) editor.getContainer().focus()
+					editor.menus.addOpenMenu(COMMAND_PALETTE_MENU_ID)
 				},
 			},
 			{
