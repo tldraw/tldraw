@@ -85,6 +85,8 @@ export interface MermaidBlueprintEdge {
         type: 'autonumber';
         value: string;
     };
+    // @internal
+    elbowMidPoint?: number;
     // (undocumented)
     endNodeId: string;
     // (undocumented)
@@ -95,8 +97,12 @@ export interface MermaidBlueprintEdge {
     isPrecise?: boolean;
     // (undocumented)
     isPreciseEnd?: boolean;
+    // @internal
+    kind?: 'arc' | 'elbow';
     // (undocumented)
     label?: string;
+    // @internal
+    labelPosition?: number;
     // (undocumented)
     size?: TLDefaultSizeStyle;
     // (undocumented)
@@ -183,6 +189,8 @@ export type MermaidDiagramKind = 'flowchart' | 'mindmap' | 'sequence' | 'state';
 export interface MermaidDiagramOptions {
     // (undocumented)
     blueprintRender?: BlueprintRenderingOptions;
+    // @internal
+    edgeRouting?: 'arc' | 'elbow';
     mermaidConfig?: Record<string, any>;
     // (undocumented)
     onUnsupportedDiagram?(svg: string): Promise<void>;

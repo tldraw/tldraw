@@ -329,6 +329,43 @@ describe('flowchartToBlueprint', () => {
 		expect(bp.edges[0].bend).not.toBe(0)
 	})
 
+	it('draws edges between two nodes as elbow arrows, anchored where the route meets each node', () => {
+		// A spans x -20–20 and B x 180–220; the route leaves A's right side low down and enters
+		// B's top.
+		const layout = diagramLayout(
+			[node('A', 0, 0, 40, 40), node('B', 200, 100, 40, 40)],
+			[],
+			[
+				edge('A', 'B', [
+					[20, 10],
+					[200, 10],
+					[200, 80],
+				]),
+			]
+		)
+
+		const bp = flowchartToBlueprint(
+			layout,
+			new Map([vertex('A'), vertex('B')]),
+			[flowEdge('A', 'B')],
+			[],
+			undefined,
+			undefined,
+			'elbow'
+		)
+
+		expect(bp.edges[0]).toMatchObject({
+			kind: 'elbow',
+			bend: 0,
+			anchorStartX: 1,
+			anchorStartY: 0.75,
+			anchorEndX: 0.5,
+			anchorEndY: 0,
+			isExact: false,
+			isPrecise: true,
+		})
+	})
+
 	it('handles self-loop edges with non-zero bend', () => {
 		const layout = diagramLayout(
 			[node('D', 100, 100, 80, 40)],
@@ -746,6 +783,32 @@ describe('stateToBlueprint', () => {
 
 		const bp = stateToBlueprint(layout, states, relations)
 		expect(findEdge(bp, 'A', 'B')!.bend).not.toBe(0)
+	})
+
+	it('draws transitions as elbow arrows anchored where the route meets each state', () => {
+		const layout = diagramLayout(
+			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
+			[],
+			[
+				edge('', '', [
+					[20, 0],
+					[180, 0],
+				]),
+			]
+		)
+		const states = new Map([stateStmt('A'), stateStmt('B')])
+		const relations = [{ id1: 'A', id2: 'B' }]
+
+		const bp = stateToBlueprint(layout, states, relations, undefined, 'elbow')
+		// Leaf states are drawn 20 wider than pele's box, so the route ends just inside them; the
+		// ends are pushed out onto the side they face.
+		expect(findEdge(bp, 'A', 'B')).toMatchObject({
+			kind: 'elbow',
+			anchorStartX: 1,
+			anchorStartY: 0.5,
+			anchorEndX: 0,
+			anchorEndY: 0.5,
+		})
 	})
 
 	it('filters out edges referencing missing nodes', () => {
