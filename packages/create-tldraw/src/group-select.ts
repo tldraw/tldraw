@@ -7,6 +7,7 @@
 
 import process from 'node:process'
 import { WriteStream } from 'node:tty'
+import { styleText } from 'node:util'
 import { SelectPrompt } from '@clack/core'
 import {
 	Option,
@@ -16,7 +17,6 @@ import {
 	SelectOptions,
 	symbol,
 } from '@clack/prompts'
-import picocolors from 'picocolors'
 import { wrapAnsi } from './wrap-ansi'
 
 export type GroupSelectOption<Value> = Option<Value> & {
@@ -32,7 +32,7 @@ function limit(
 	contents: string,
 	rows: number,
 	focusCharacter: string,
-	truncateLine = picocolors.dim('...')
+	truncateLine = styleText('dim', '...')
 ) {
 	const lines = contents.split('\n')
 	const focusLine = Math.max(
@@ -64,14 +64,16 @@ function limit(
 }
 
 export function groupSelect<Value>(opts: GroupSelectOptions<Value>) {
+	const getLabel = (option: GroupSelectOption<Value>) => option.label ?? String(option.value)
+
 	const opt = (option: GroupSelectOption<Value>, state: 'inactive' | 'active') => {
-		const label = option.label ?? String(option.value)
+		const label = getLabel(option)
 
 		if (state !== 'active') {
-			return [picocolors.dim(S_RADIO_INACTIVE), ' ', picocolors.dim(label)].join('')
+			return [styleText('dim', S_RADIO_INACTIVE), ' ', styleText('dim', label)].join('')
 		}
 
-		return [picocolors.green(S_RADIO_ACTIVE), ' ', picocolors.bold(label)].join('')
+		return [styleText('green', S_RADIO_ACTIVE), ' ', styleText('bold', label)].join('')
 	}
 
 	return new SelectPrompt({
@@ -81,23 +83,23 @@ export function groupSelect<Value>(opts: GroupSelectOptions<Value>) {
 		output: opts.output,
 		initialValue: opts.initialValue,
 		render() {
-			const title = `${picocolors.gray(S_BAR)}\n${symbol(this.state)}  ${picocolors.bold(opts.message)}\n`
+			const title = `${styleText('gray', S_BAR)}\n${symbol(this.state)}  ${styleText('bold', opts.message)}\n`
 
 			if (this.state === 'submit') {
 				return [
 					title,
-					picocolors.gray(S_BAR),
+					styleText('gray', S_BAR),
 					'  ',
-					picocolors.dim(this.options[this.cursor].label),
+					styleText('dim', getLabel(this.options[this.cursor])),
 				].join('')
 			} else if (this.state === 'cancel') {
 				return [
 					title,
-					picocolors.gray(S_BAR),
+					styleText('gray', S_BAR),
 					'  ',
-					picocolors.strikethrough(picocolors.dim(this.options[this.cursor].label)),
+					styleText('strikethrough', styleText('dim', getLabel(this.options[this.cursor]))),
 					'\n',
-					picocolors.gray(S_BAR),
+					styleText('gray', S_BAR),
 				].join('')
 			}
 
@@ -107,11 +109,11 @@ export function groupSelect<Value>(opts: GroupSelectOptions<Value>) {
 
 			for (const option of this.options) {
 				if (option.group !== previousGroup) {
-					if (previousGroup) body.push(picocolors.cyan(S_BAR), '\n')
-					body.push(picocolors.cyan(S_BAR), '  ', option.group, '\n')
+					if (previousGroup) body.push(styleText('cyan', S_BAR), '\n')
+					body.push(styleText('cyan', S_BAR), '  ', option.group, '\n')
 				}
 				body.push(
-					picocolors.cyan(S_BAR),
+					styleText('cyan', S_BAR),
 					'  ',
 					opt(option, option === selectedOption ? 'active' : 'inactive'),
 					'\n'
@@ -120,24 +122,24 @@ export function groupSelect<Value>(opts: GroupSelectOptions<Value>) {
 			}
 
 			// Add the description as the last line
-			body.push(picocolors.cyan(S_BAR), '\n', picocolors.cyan(S_BAR), '  ', selectedOption.hint)
+			body.push(styleText('cyan', S_BAR), '\n', styleText('cyan', S_BAR), '  ', selectedOption.hint)
 
 			const output = opts.output ?? process.stdout
 			const columns = output instanceof WriteStream ? output.columns : 80
 			const rows = output instanceof WriteStream ? output.rows : 10
 
 			const wrapped = wrapAnsi(body.join(''), columns, {
-				indent: [picocolors.cyan(S_BAR), '    '].join(''),
+				indent: [styleText('cyan', S_BAR), '    '].join(''),
 			})
 
 			const limited = limit(
 				wrapped,
 				rows - 3,
 				S_RADIO_ACTIVE,
-				[picocolors.cyan(S_BAR), picocolors.dim(' ...')].join('')
+				[styleText('cyan', S_BAR), styleText('dim', ' ...')].join('')
 			)
 
-			return [title, picocolors.cyan(S_BAR), '\n', limited].join('')
+			return [title, styleText('cyan', S_BAR), '\n', limited].join('')
 		},
 	}).prompt() as Promise<Value | symbol>
 }
