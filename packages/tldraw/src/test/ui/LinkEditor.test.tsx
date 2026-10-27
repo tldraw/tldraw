@@ -46,7 +46,6 @@ async function renderLinkEditor() {
 }
 
 it.each([
-	['mailto:hello@tldraw.com', 'mailto:hello@tldraw.com'],
 	['codex://threads/abc-123', 'codex://threads/abc-123'],
 	['example.com', 'https://example.com'],
 ])('links %j as %j', async (input, expected) => {

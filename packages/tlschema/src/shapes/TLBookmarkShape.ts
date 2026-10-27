@@ -113,7 +113,7 @@ export const bookmarkShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.AllowAppLinkUrls,
 			up: (_props) => {
-				// noop: every url valid before is still valid
+				// noop
 			},
 			down: (props) => {
 				if (!isPreAppLinkUrl(props.url)) {

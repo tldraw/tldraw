@@ -343,7 +343,7 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: geoShapeVersions.AllowAppLinkUrls,
 			up: (_props) => {
-				// noop: every url valid before is still valid
+				// noop
 			},
 			down: (props) => {
 				if (!isPreAppLinkUrl(props.url)) {

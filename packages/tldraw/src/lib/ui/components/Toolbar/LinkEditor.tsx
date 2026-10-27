@@ -40,7 +40,6 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 	const handleLinkComplete = useCallback(
 		(link: string) => {
 			const href = normalizeLinkUrl(link)
-			// Leave the input open so the user can fix what they typed.
 			if (href === null) {
 				setIsInvalid(true)
 				ref.current?.focus()
