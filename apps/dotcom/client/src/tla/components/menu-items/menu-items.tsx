@@ -22,15 +22,11 @@ import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
 import { isDevelopmentEnv } from '../../../utils/env'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useColorThemeOptions, useSelectColorTheme } from '../../hooks/useColorThemes'
 import { useSignOut } from '../../hooks/useSignOut'
-import { UI_THEMES } from '../../themes/ui-themes'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
-import {
-	getLocalSessionState,
-	setColorThemePreview,
-	updateLocalSessionState,
-} from '../../utils/local-session-state'
+import { getLocalSessionState, setColorThemePreview } from '../../utils/local-session-state'
 import {
 	TLDRAW_OFFLINE_FILE_EXTENSION,
 	useRejectTldrawOfflineFiles,
@@ -55,7 +51,6 @@ const messages = defineMessages({
 	submitFeedback: { defaultMessage: 'Send feedback' },
 	// color theme
 	colorTheme: { defaultMessage: 'Color theme' },
-	colorThemeDefault: { defaultMessage: 'Default' },
 	// debug
 	appDebugFlags: { defaultMessage: 'App debug flags' },
 	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
@@ -120,10 +115,6 @@ function ThemeMenuGroup() {
 	)
 }
 
-const THEME_NAMES: Record<string, string> = Object.fromEntries(
-	UI_THEMES.map(({ id, name }) => [id, name])
-)
-
 function UIThemeMenuCheckboxItem({
 	checked,
 	label,
@@ -164,16 +155,8 @@ function UIThemeMenuCheckboxItem({
 	)
 }
 
-function useUIThemeIds() {
-	const editor = useMaybeEditor()
-	return useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [editor])
-}
-
 export function UIThemeSubmenu() {
 	const msg = useTranslation()
-	const themeIds = useUIThemeIds()
-
-	if (themeIds.length === 0) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="ui-theme" label={msg(messages.colorTheme)}>
@@ -183,16 +166,12 @@ export function UIThemeSubmenu() {
 }
 
 function UIThemeMenuGroup() {
-	const msg = useTranslation()
 	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
-	const trackEvent = useTldrawAppUiEvents()
 	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
-	const defaultThemeLabel = msg(messages.colorThemeDefault)
-	const themeIds = useUIThemeIds()
+	const options = useColorThemeOptions()
+	const selectColorTheme = useSelectColorTheme()
 
 	useEffect(() => clearThemePreview, [clearThemePreview])
-
-	if (themeIds.length === 0) return null
 
 	return (
 		<div
@@ -200,20 +179,13 @@ function UIThemeMenuGroup() {
 			onPointerCancel={clearThemePreview}
 			onPointerLeave={clearThemePreview}
 		>
-			{themeIds.map((id) => (
+			{options.map(({ value, label }) => (
 				<UIThemeMenuCheckboxItem
-					key={id}
-					label={id === 'default' ? defaultThemeLabel : (THEME_NAMES[id] ?? id)}
-					checked={colorTheme === id}
-					onPreview={() => setColorThemePreview(id)}
-					onSelect={() => {
-						updateLocalSessionState(() => ({ colorTheme: id }))
-						clearThemePreview()
-						trackEvent('set-color-theme', {
-							source: 'user-preferences',
-							theme: id,
-						})
-					}}
+					key={value}
+					label={label}
+					checked={colorTheme === value}
+					onPreview={() => setColorThemePreview(value)}
+					onSelect={() => selectColorTheme(value)}
 				/>
 			))}
 		</div>
