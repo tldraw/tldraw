@@ -58,6 +58,9 @@ const CANONICAL_TLDRAW_HOSTS = [
 	'tldraw.xyz',
 ]
 
+/** Our VS Code extension, whose webviews are served from `vscode-webview:` with a random hostname. */
+const CANONICAL_VSCODE_EXTENSION_ID = 'tldraw-org.tldraw-vscode'
+
 /** Marks a license as the keyless canonical-host grant, which is never tracked. */
 const CANONICAL_HOST_LICENSE_ID = 'tldraw-canonical-host'
 
@@ -236,8 +239,12 @@ export class LicenseManager {
 		return host === 'localhost' || host === '::1' || /^127(?:\.\d{1,3}){3}$/.test(host)
 	}
 
-	/** Whether the page is served from one of tldraw's own domains, or a subdomain of one. */
+	/** Whether the page is served from one of tldraw's own domains, a subdomain of one, or our VS Code extension. */
 	private isCanonicalTldrawHost() {
+		if (window.location.protocol === 'vscode-webview:') {
+			const extensionId = new URL(window.location.href).searchParams.get('extensionId')
+			return extensionId === CANONICAL_VSCODE_EXTENSION_ID
+		}
 		const hostname = window.location.hostname.toLowerCase()
 		return CANONICAL_TLDRAW_HOSTS.some((host) => hostname === host || hostname.endsWith(`.${host}`))
 	}
