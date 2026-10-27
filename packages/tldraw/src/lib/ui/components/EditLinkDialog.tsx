@@ -115,8 +115,9 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 		onClose()
 	}, [onClose])
 
-	// Are we going from a valid state to an invalid state?
-	const isRemoving = rInitialValue.current && !urlInputState.valid
+	const isEmpty = urlInputState.valid && urlInputState.safe === ''
+	// Only an empty field clears a link, so a typo can't delete it.
+	const isRemoving = !!rInitialValue.current && isEmpty
 
 	return (
 		<>
@@ -164,7 +165,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 				) : (
 					<TldrawUiButton
 						type="primary"
-						disabled={!urlInputState.valid}
+						disabled={!urlInputState.valid || isEmpty}
 						onTouchEnd={handleComplete}
 						onClick={handleComplete}
 					>

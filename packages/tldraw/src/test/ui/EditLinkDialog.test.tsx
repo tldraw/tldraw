@@ -20,14 +20,14 @@ const components: TLComponents = {
 
 const shapeId = createShapeId('box')
 
-async function renderWithOpenDialog() {
+async function renderWithOpenDialog(url = 'https://tldraw.com') {
 	const { editor } = await renderTldrawComponentWithEditor(
 		(onMount) => <Tldraw components={components} onMount={onMount} />,
 		{ waitForPatterns: false }
 	)
 
 	act(() => {
-		editor.createShape({ id: shapeId, type: 'geo', props: { url: 'https://tldraw.com' } })
+		editor.createShape({ id: shapeId, type: 'geo', props: { url } })
 		editor.select(shapeId)
 	})
 
@@ -83,8 +83,6 @@ function submitLink(value: string) {
 }
 
 it.each([
-	['mailto:hello@tldraw.com', 'mailto:hello@tldraw.com'],
-	['codex://threads/abc-123', 'codex://threads/abc-123'],
 	['example.com', 'https://example.com'],
 	['', ''],
 ])('saves %j as %j', async (input, expected) => {
@@ -94,10 +92,37 @@ it.each([
 	expect(editor.getShape(shapeId)!.props).toMatchObject({ url: expected })
 })
 
-it('does not save an invalid url on enter', async () => {
-	editor = await renderWithOpenDialog()
-	act(() => submitLink('hello'))
-	await act(async () => {})
-	expect(getDialogFrame()).not.toBeNull()
-	expect(editor.getShape(shapeId)!.props).toMatchObject({ url: 'https://tldraw.com' })
+it.each(['https://tldraw.com', ''])(
+	'does not save an invalid url on enter when the link was %j',
+	async (url) => {
+		editor = await renderWithOpenDialog(url)
+		act(() => submitLink('hello'))
+		await act(async () => {})
+		expect(getDialogFrame()).not.toBeNull()
+		expect(screen.getByText('A link must be a valid URL.')).toBeTruthy()
+		expect(editor.getShape(shapeId)!.props).toMatchObject({ url })
+	}
+)
+
+function getSubmitButton() {
+	const footer = document.querySelector('.tlui-dialog__footer__actions')!
+	const buttons = footer.querySelectorAll('button')
+	const button = buttons[buttons.length - 1]
+	return { label: button.textContent, disabled: button.disabled }
+}
+
+it.each([
+	['', '', { label: 'Continue', disabled: true }],
+	['', 'example.com', { label: 'Continue', disabled: false }],
+	['', 'hello', { label: 'Continue', disabled: true }],
+	['https://tldraw.com', '', { label: 'Clear', disabled: false }],
+	['https://tldraw.com', 'example.com', { label: 'Continue', disabled: false }],
+	['https://tldraw.com', 'hello', { label: 'Continue', disabled: true }],
+])('with link %j and input %j, the submit button is %j', async (url, input, expected) => {
+	editor = await renderWithOpenDialog(url)
+	const field = document.querySelector('.tlui-edit-link-dialog__input') as HTMLInputElement
+	act(() => {
+		fireEvent.change(field, { target: { value: input } })
+	})
+	expect(getSubmitButton()).toEqual(expected)
 })
