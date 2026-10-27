@@ -92,8 +92,6 @@ export default function CommentShapePrecisionExample() {
 			<Tldraw
 				// [2]
 				key={mode}
-				// Commenting is a licensed feature. Every feature is enabled in local development, but a
-				// deployed app needs a license key that includes commenting — swap in your own key here.
 				store={store}
 				onMount={handleMount}
 				tools={MODE_TOOLS[mode]}

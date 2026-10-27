@@ -63,8 +63,6 @@ export default function CommentingExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				// Commenting is a licensed feature. Every feature is enabled in local development, but a
-				// deployed app needs a license key that includes commenting — swap in your own key here.
 				store={store}
 				tools={COMMENT_TOOLS}
 				overrides={[commentToolOverrides]}

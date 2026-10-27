@@ -68,8 +68,6 @@ export default function CommentingMobileExample() {
 				// from the narrow viewport — the thread popover and composer position themselves against
 				// the visual viewport, riding up rather than hiding behind the software keyboard.
 				forceMobile
-				// Commenting is a licensed feature. Every feature is enabled in local development, but a
-				// deployed app needs a license key that includes commenting — swap in your own key here.
 				store={store}
 				tools={COMMENT_TOOLS}
 				overrides={[commentToolOverrides]}
