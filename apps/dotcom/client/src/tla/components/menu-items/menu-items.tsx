@@ -20,15 +20,14 @@ import {
 } from 'tldraw'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
-import { signoutAnalytics } from '../../../utils/analytics'
 import { isDevelopmentEnv } from '../../../utils/env'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useSignOut } from '../../hooks/useSignOut'
 import { UI_THEMES } from '../../themes/ui-themes'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import {
 	getLocalSessionState,
-	resetLocalSessionStateButKeepTheme,
 	setColorThemePreview,
 	updateLocalSessionState,
 } from '../../utils/local-session-state'
@@ -65,23 +64,7 @@ const messages = defineMessages({
 export function SignOutMenuItem() {
 	const msg = useTranslation()
 	const auth = useAuth()
-	const app = useMaybeApp()
-
-	const trackEvent = useTldrawAppUiEvents()
-
-	const handleSignout = useCallback(() => {
-		signoutAnalytics()
-		auth
-			.signOut()
-			.then(async () => {
-				resetLocalSessionStateButKeepTheme()
-				// After sign-out rather than before: an IndexedDB delete waits for every connection to
-				// the database to close, and other tabs only drop theirs once Clerk propagates sign-out.
-				await app?.deleteLocalData()
-			})
-			.catch((err) => console.error('Sign out failed:', err))
-		trackEvent('sign-out-clicked', { source: 'sidebar' })
-	}, [auth, app, trackEvent])
+	const handleSignout = useSignOut('sidebar')
 
 	if (!auth.isSignedIn) return
 	return (
