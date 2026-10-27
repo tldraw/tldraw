@@ -38,7 +38,6 @@
 	},
 	"devDependencies": {
 		"@tldraw/assets": "workspace:*",
-		"@types/fs-extra": "^11.0.4",
 		"@types/node": "^22.15.31",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
@@ -47,7 +46,6 @@
 		"create-serve": "1.0.1",
 		"dotenv": "^16.4.7",
 		"esbuild": "^0.28.0",
-		"fs-extra": "^11.3.0",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*"

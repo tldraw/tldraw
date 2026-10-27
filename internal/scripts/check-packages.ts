@@ -1,6 +1,6 @@
 import { existsSync } from 'fs'
 import path, { join, relative } from 'path'
-import kleur from 'kleur'
+import { styleText } from 'util'
 import {
 	REPO_ROOT,
 	readFileIfExists,
@@ -116,13 +116,13 @@ async function checkPackageJsonScripts({
 				nicelog(
 					[
 						'❌ ',
-						kleur.red(`${name}: `),
-						kleur.blue(`$ pnpm ${scriptName}`),
-						kleur.grey(' -> '),
-						kleur.red(actualScript ?? '<missing>'),
-						kleur.gray(' (expected: '),
-						kleur.green(expectedScript),
-						kleur.gray(')'),
+						styleText('red', `${name}: `),
+						styleText('blue', `$ pnpm ${scriptName}`),
+						styleText('gray', ' -> '),
+						styleText('red', actualScript ?? '<missing>'),
+						styleText('gray', ' (expected: '),
+						styleText('green', expectedScript),
+						styleText('gray', ')'),
 					].join('')
 				)
 				packageScripts[scriptName] = expectedScript
@@ -132,10 +132,10 @@ async function checkPackageJsonScripts({
 				nicelog(
 					[
 						'✅ ',
-						kleur.green(`${name}: `),
-						kleur.blue(`$ pnpm ${scriptName}`),
-						kleur.grey(' -> '),
-						kleur.green(actualScript ?? '<missing>'),
+						styleText('green', `${name}: `),
+						styleText('blue', `$ pnpm ${scriptName}`),
+						styleText('gray', ' -> '),
+						styleText('green', actualScript ?? '<missing>'),
 					].join('')
 				)
 			}
@@ -146,14 +146,14 @@ async function checkPackageJsonScripts({
 		if (fix) {
 			for (const { packageJson, name, relativePath } of packages) {
 				if (needsFix.has(name)) {
-					nicelog(kleur.yellow(`Fixing ${name}...`))
+					nicelog(styleText('yellow', `Fixing ${name}...`))
 					await writeJsonFile(path.join(REPO_ROOT, relativePath, 'package.json'), packageJson)
 				}
 			}
-			nicelog(kleur.yellow(`Fixed ${errorCount} errors`))
+			nicelog(styleText('yellow', `Fixed ${errorCount} errors`))
 			return true
 		} else {
-			nicelog(kleur.red(`Found ${errorCount} errors`))
+			nicelog(styleText('red', `Found ${errorCount} errors`))
 			return false
 		}
 	}
@@ -217,10 +217,10 @@ async function checkTsConfigs({
 				nicelog(
 					[
 						'❌ ',
-						kleur.red(`${workspace.name}: `),
-						kleur.blue(relative(process.cwd(), tsconfigPath)),
-						kleur.grey(' has unnecessary reference(s) to '),
-						kleur.red([...currentRefs].join(', ')),
+						styleText('red', `${workspace.name}: `),
+						styleText('blue', relative(process.cwd(), tsconfigPath)),
+						styleText('gray', ' has unnecessary reference(s) to '),
+						styleText('red', [...currentRefs].join(', ')),
 					].join('')
 				)
 			}
@@ -234,10 +234,10 @@ async function checkTsConfigs({
 				nicelog(
 					[
 						'❌ ',
-						kleur.red(`${workspace.name}: `),
-						kleur.blue(relative(process.cwd(), tsconfigPath)),
-						kleur.grey(' is missing reference(s) to '),
-						kleur.red(missingRefs.join(', ')),
+						styleText('red', `${workspace.name}: `),
+						styleText('blue', relative(process.cwd(), tsconfigPath)),
+						styleText('gray', ' is missing reference(s) to '),
+						styleText('red', missingRefs.join(', ')),
 					].join('')
 				)
 				nicelog('The references entry should look like this:')
@@ -246,7 +246,7 @@ async function checkTsConfigs({
 		}
 
 		if (currentRefs.size === 0 && missingRefs.length === 0) {
-			nicelog(['✅ ', kleur.green(`${workspace.name}`)].join(''))
+			nicelog(['✅ ', styleText('green', `${workspace.name}`)].join(''))
 		}
 	}
 	if (numErrors > 0) {
@@ -280,7 +280,7 @@ async function checkLibraryContents({
 		const sourceFilePath = join(path, 'src', 'index.ts')
 		const sourceFileContents = await readFileIfExists(sourceFilePath)
 		if (!sourceFileContents) {
-			nicelog(['⏩ ', kleur.blue(`${name}: `), 'skipped (no src/index.ts)'].join(''))
+			nicelog(['⏩ ', styleText('blue', `${name}: `), 'skipped (no src/index.ts)'].join(''))
 			continue
 		}
 
@@ -293,7 +293,7 @@ async function checkLibraryContents({
 		].join('\n')
 
 		if (sourceFileContents.includes(search)) {
-			nicelog(['✅ ', kleur.green(name)].join(''))
+			nicelog(['✅ ', styleText('green', name)].join(''))
 			continue
 		}
 
@@ -314,18 +314,18 @@ async function checkLibraryContents({
 			nicelog(
 				[
 					'⚠️ ',
-					kleur.yellow(`${name}: `),
+					styleText('yellow', `${name}: `),
 					'added call to ',
-					kleur.blue('registerTldrawLibraryVersion'),
+					styleText('blue', 'registerTldrawLibraryVersion'),
 				].join('')
 			)
 		} else {
 			nicelog(
 				[
 					'❌ ',
-					kleur.red(`${name}: `),
+					styleText('red', `${name}: `),
 					'missing call to ',
-					kleur.blue('registerTldrawLibraryVersion'),
+					styleText('blue', 'registerTldrawLibraryVersion'),
 				].join('')
 			)
 		}
@@ -333,10 +333,10 @@ async function checkLibraryContents({
 
 	if (errorCount) {
 		if (fix) {
-			nicelog(kleur.yellow(`Fixed ${errorCount} errors`))
+			nicelog(styleText('yellow', `Fixed ${errorCount} errors`))
 			return true
 		} else {
-			nicelog(kleur.red(`Found ${errorCount} errors`))
+			nicelog(styleText('red', `Found ${errorCount} errors`))
 			return false
 		}
 	}
@@ -360,7 +360,7 @@ async function checkProductMetadata({
 	let errorCount = 0
 	const error = (name: string, message: string) => {
 		errorCount++
-		nicelog(['❌ ', kleur.red(`${name}: `), message].join(''))
+		nicelog(['❌ ', styleText('red', `${name}: `), message].join(''))
 	}
 
 	const licenseManagerSource = await readFileIfExists(
@@ -385,7 +385,7 @@ async function checkProductMetadata({
 			if (!existsSync(licensePath)) {
 				if (fix) {
 					await writeStringFile(licensePath, LICENSE_POINTER_CONTENTS)
-					nicelog(['⚠️ ', kleur.yellow(`${name}: `), 'added missing LICENSE.md'].join(''))
+					nicelog(['⚠️ ', styleText('yellow', `${name}: `), 'added missing LICENSE.md'].join(''))
 				} else {
 					error(name, 'is missing LICENSE.md (run `pnpm check-packages --fix`)')
 				}
@@ -462,11 +462,11 @@ async function checkProductMetadata({
 	}
 
 	if (errorCount) {
-		nicelog(kleur.red(`Found ${errorCount} errors`))
+		nicelog(styleText('red', `Found ${errorCount} errors`))
 		return false
 	}
 
-	nicelog(['✅ ', kleur.green('product metadata ok')].join(''))
+	nicelog(['✅ ', styleText('green', 'product metadata ok')].join(''))
 	return true
 }
 
@@ -518,7 +518,7 @@ async function checkDependencyVersions({
 	const changed = new Set<Package>()
 	const report = (name: string, message: string) => {
 		errorCount++
-		nicelog([fix ? '⚠️ ' : '❌ ', (fix ? kleur.yellow : kleur.red)(`${name}: `), message].join(''))
+		nicelog([fix ? '⚠️ ' : '❌ ', styleText(fix ? 'yellow' : 'red', `${name}: `), message].join(''))
 	}
 
 	const root = await getRootPackage()
@@ -584,8 +584,11 @@ async function checkDependencyVersions({
 	if (errorCount) {
 		nicelog(
 			fix
-				? kleur.yellow(`Fixed ${errorCount} errors. Run \`pnpm\` to update the lockfile.`)
-				: kleur.red(`Found ${errorCount} errors. Run \`pnpm check-packages --fix\` to fix them.`)
+				? styleText('yellow', `Fixed ${errorCount} errors. Run \`pnpm\` to update the lockfile.`)
+				: styleText(
+						'red',
+						`Found ${errorCount} errors. Run \`pnpm check-packages --fix\` to fix them.`
+					)
 		)
 		return fix
 	}

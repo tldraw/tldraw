@@ -1,6 +1,5 @@
 import fs from 'fs'
 import { join } from 'path'
-import fse from 'fs-extra'
 import { exists, getDirname } from './path'
 
 const vscodeDir = getDirname(import.meta.url, '../../')
@@ -13,7 +12,7 @@ export async function copyEditor({ log }: { log(opts: any): void }) {
 	const dest = join(extensionRoot, 'editor')
 
 	log({ cmd: 'copy', args: { source, dest } })
-	await fse.copy(source, dest)
+	await fs.promises.cp(source, dest, { recursive: true })
 }
 
 export async function removeDistDirectory({ log }: { log(opts: any): void }) {

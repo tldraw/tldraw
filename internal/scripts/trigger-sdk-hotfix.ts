@@ -1,4 +1,4 @@
-import kleur from 'kleur'
+import { styleText } from 'util'
 import { Octokit } from 'octokit'
 import * as semver from 'semver'
 import { formatDiff, getAnyPackageDiff } from './lib/didAnyPackageChange'
@@ -172,8 +172,8 @@ async function main() {
 
 			const diff = await getAnyPackageDiff(version.format())
 			if (diff) {
-				let message = kleur.red().bold(`・ERROR・`)
-				message += `\nCannot cherry-pick docs changes from PR '${kleur.cyan().bold(pr.title)}' https://github.com/tldraw/tldraw/pulls/${pr}`
+				let message = styleText(['red', 'bold'], `・ERROR・`)
+				message += `\nCannot cherry-pick docs changes from PR '${styleText(['cyan', 'bold'], pr.title)}' https://github.com/tldraw/tldraw/pulls/${pr}`
 				message += '\nThis PR contains changes to the SDK.\n\n'
 				let formattedDiff = formatDiff(diff)
 				// truncate long diffs for discord's sake, it's not that valuable to see the whole thing

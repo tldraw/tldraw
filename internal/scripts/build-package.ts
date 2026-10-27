@@ -1,10 +1,9 @@
-import { copyFileSync, existsSync } from 'fs'
+import { copyFileSync, existsSync, rmSync } from 'fs'
 import path from 'path'
 import { pathToFileURL } from 'url'
+import { styleText } from 'util'
 import { build } from 'esbuild'
 import { glob } from 'glob'
-import kleur from 'kleur'
-import rimraf from 'rimraf'
 import { addJsExtensions } from './lib/add-extensions'
 import { readJsonIfExists } from './lib/file'
 
@@ -22,7 +21,7 @@ async function buildPackage({ sourcePackageDir }: { sourcePackageDir: string }) 
 		throw new Error(`No src/index.ts file found in '${sourcePackageDir}'!`)
 	}
 
-	rimraf.sync(path.join(sourcePackageDir, 'dist'))
+	rmSync(path.join(sourcePackageDir, 'dist'), { recursive: true, force: true })
 
 	// then copy over the source .ts files
 	const sourceFiles = glob
@@ -88,7 +87,7 @@ async function buildLibrary({
 }) {
 	const dirName = `dist-${info.moduleSystem}`
 	const outdir = path.join(sourcePackageDir, dirName)
-	rimraf.sync(outdir)
+	rmSync(outdir, { recursive: true, force: true })
 
 	const define: Record<string, string> = {}
 	if (process.env.TLDRAW_BEMO_URL) {
@@ -120,7 +119,7 @@ async function buildLibrary({
 	}
 
 	if (res.errors.length) {
-		console.error(kleur.red('Build failed with errors:'))
+		console.error(styleText('red', 'Build failed with errors:'))
 		console.error(res.errors)
 		throw new Error('esm build failed')
 	}

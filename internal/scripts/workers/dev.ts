@@ -2,9 +2,8 @@ import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
 import { readFileSync } from 'fs'
 import { createServer } from 'net'
 import { resolve } from 'path'
-import kleur from 'kleur'
+import { stripVTControlCharacters, styleText } from 'util'
 import { lock } from 'proper-lockfile'
-import stripAnsi from 'strip-ansi'
 import * as toml from 'toml'
 import { killProcessTree } from '../lib/kill-tree'
 import { WORKER_EXTERNAL_DEPS } from '../lib/worker-externals'
@@ -41,11 +40,11 @@ class MiniflareMonitor {
 		})
 
 		this.process.stdout.on('data', (data: Buffer) => {
-			this.handleOutput(stripAnsi(data.toString().replace('\r', '').trim()))
+			this.handleOutput(stripVTControlCharacters(data.toString().replace('\r', '').trim()))
 		})
 
 		this.process.stderr.on('data', (data: Buffer) => {
-			this.handleOutput(stripAnsi(data.toString().replace('\r', '').trim()), true)
+			this.handleOutput(stripVTControlCharacters(data.toString().replace('\r', '').trim()), true)
 		})
 	}
 
@@ -135,9 +134,9 @@ class SizeReporter {
 			clearTimeout(this.nextTick)
 			this.nextTick = setTimeout(() => {
 				console.log(
-					kleur.bold(kleur.yellow('worker')),
+					styleText(['bold', 'yellow'], 'worker'),
 					'is roughly',
-					kleur.bold(kleur.cyan(Math.floor(this.size / 1024) + 'kb')),
+					styleText(['bold', 'cyan'], Math.floor(this.size / 1024) + 'kb'),
 					'(minified)\n'
 				)
 				this.size = 0
@@ -192,13 +191,13 @@ async function ensurePortFreeOrExit(port: number) {
 	} catch (err: any) {
 		if (err?.code === 'EADDRINUSE') {
 			console.error(
-				`\n${kleur.red(kleur.bold(`✖ Port ${port} is already in use.`))}\n\n` +
-					`This worker (${kleur.cyan(process.cwd())}) needs port ${port}, but another\n` +
+				`\n${styleText(['red', 'bold'], `✖ Port ${port} is already in use.`)}\n\n` +
+					`This worker (${styleText('cyan', process.cwd())}) needs port ${port}, but another\n` +
 					`process is already listening on it. Wrangler would silently fall back to a random\n` +
 					`port, but the rest of the dev stack expects ${port} — so /api requests from the\n` +
 					`client would either 404 or hit the wrong worker.\n\n` +
 					`Find what's holding it:\n` +
-					`  ${kleur.bold(`lsof -nP -iTCP:${port} -sTCP:LISTEN`)}\n\n` +
+					`  ${styleText('bold', `lsof -nP -iTCP:${port} -sTCP:LISTEN`)}\n\n` +
 					`Then stop that process and re-run.\n`
 			)
 		} else {

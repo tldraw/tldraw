@@ -239,9 +239,6 @@ importers:
       adm-zip:
         specifier: ^0.6.0
         version: 0.6.0
-      fs-extra:
-        specifier: ^11.3.0
-        version: 11.3.2
       husky:
         specifier: ^8.0.3
         version: 8.0.3
@@ -266,9 +263,6 @@ importers:
       oxlint-tsgolint:
         specifier: ^0.23.0
         version: 0.23.0
-      rimraf:
-        specifier: ^4.4.1
-        version: 4.4.1
       tsx:
         specifier: ^4.19.2
         version: 4.22.4
@@ -487,9 +481,6 @@ importers:
       remark-mdx:
         specifier: ^3.1.0
         version: 3.1.0(supports-color@10.2.2)
-      rimraf:
-        specifier: ^4.4.1
-        version: 4.4.1
       shiki:
         specifier: ^1.29.1
         version: 1.29.1
@@ -727,9 +718,6 @@ importers:
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
-      fast-glob:
-        specifier: ^3.3.3
-        version: 3.3.3
       identity-obj-proxy:
         specifier: ^3.0.0
         version: 3.0.0
@@ -887,9 +875,6 @@ importers:
       concurrently:
         specifier: ^9.1.2
         version: 9.2.0
-      dotenv:
-        specifier: ^16.4.7
-        version: 16.4.7
       tsx:
         specifier: ^4.19.2
         version: 4.22.4
@@ -1135,9 +1120,6 @@ importers:
       '@tldraw/assets':
         specifier: workspace:*
         version: link:../../../packages/assets
-      '@types/fs-extra':
-        specifier: ^11.0.4
-        version: 11.0.4
       '@types/node':
         specifier: ^22.15.31
         version: 22.16.0
@@ -1162,9 +1144,6 @@ importers:
       esbuild:
         specifier: ^0.28.0
         version: 0.28.2
-      fs-extra:
-        specifier: ^11.3.0
-        version: 11.3.2
       react:
         specifier: ^19.2.1
         version: 19.2.1
@@ -1180,22 +1159,13 @@ importers:
       cheerio:
         specifier: ^1.0.0
         version: 1.2.0
-      node-fetch:
-        specifier: ^2.7.0
-        version: 2.7.0(encoding@0.1.13)
     devDependencies:
       '@tldraw/editor':
         specifier: workspace:*
         version: link:../../../packages/editor
-      '@types/fs-extra':
-        specifier: ^11.0.4
-        version: 11.0.4
       '@types/lodash':
         specifier: ^4.17.14
         version: 4.17.25
-      '@types/node-fetch':
-        specifier: ^2.6.12
-        version: 2.6.12
       '@types/react':
         specifier: ^19.2.7
         version: 19.2.7
@@ -1211,9 +1181,6 @@ importers:
       esbuild:
         specifier: ^0.28.0
         version: 0.28.2
-      fs-extra:
-        specifier: ^11.3.0
-        version: 11.3.2
       lodash:
         specifier: ^4.17.21
         version: 4.18.1
@@ -1315,15 +1282,9 @@ importers:
       '@tldraw/validate':
         specifier: workspace:*
         version: link:../../packages/validate
-      '@types/minimist':
-        specifier: ^1.2.5
-        version: 1.2.5
       '@types/proper-lockfile':
         specifier: ^4.1.4
         version: 4.1.4
-      '@types/tmp':
-        specifier: ^0.2.6
-        version: 0.2.6
       diff:
         specifier: ^9.0.0
         version: 9.0.0
@@ -1342,9 +1303,6 @@ importers:
       mime:
         specifier: ^4.0.6
         version: 4.0.6
-      minimist:
-        specifier: ^1.2.8
-        version: 1.2.8
       nanoid:
         specifier: ^5.1.16
         version: 5.1.16
@@ -1357,15 +1315,9 @@ importers:
       proper-lockfile:
         specifier: ^4.1.2
         version: 4.1.2
-      strip-ansi:
-        specifier: ^7.1.0
-        version: 7.1.0
       tar:
         specifier: ^7.5.11
         version: 7.5.22
-      tmp:
-        specifier: ^0.2.3
-        version: 0.2.7
       toml:
         specifier: ^3.0.0
         version: 3.0.0
@@ -1397,9 +1349,6 @@ importers:
       ast-types:
         specifier: ^0.14.2
         version: 0.14.2
-      cross-fetch:
-        specifier: ^3.2.0
-        version: 3.2.0(encoding@0.1.13)
       esbuild:
         specifier: ^0.28.0
         version: 0.28.2
@@ -1412,9 +1361,6 @@ importers:
       is-ci:
         specifier: ^3.0.1
         version: 3.0.1
-      kleur:
-        specifier: ^4.1.5
-        version: 4.1.5
       oxfmt:
         specifier: ^0.41.0
         version: 0.41.0
@@ -1424,9 +1370,6 @@ importers:
       recast:
         specifier: ^0.22.0
         version: 0.22.0
-      rimraf:
-        specifier: ^4.4.1
-        version: 4.4.1
       semver:
         specifier: ^7.6.3
         version: 7.8.5
@@ -2099,9 +2042,6 @@ importers:
         specifier: workspace:*
         version: link:../validate
     devDependencies:
-      kleur:
-        specifier: ^4.1.5
-        version: 4.1.5
       react:
         specifier: ^19.2.1
         version: 19.2.1
@@ -9581,9 +9521,6 @@ packages:
   '@types/minimatch@5.1.2':
     resolution: {integrity: sha512-K0VQKziLUWkVKiRVrx4a40iPaxTUefQmjtkQofBkYRcoaaL/8rhwDWww9qWbrgicNOgnpIsMxyNIUM4+n6dUIA==}
 
-  '@types/minimist@1.2.5':
-    resolution: {integrity: sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag==}
-
   '@types/mocha@10.0.10':
     resolution: {integrity: sha512-xPyYSz1cMPnJQhl0CLMH68j3gprKZaTjG3s5Vi+fDgx+uhG9NOXwbVt52eFS8ECyXhyKcjDLCBEqBExKuiZb7Q==}
 
@@ -9595,9 +9532,6 @@ packages:
 
   '@types/mysql@2.15.27':
     resolution: {integrity: sha512-YfWiV16IY0OeBfBCk8+hXKmdTKrKlwKN1MNKAPBu5JYxLwBEZl7QzeEpGnlZb3VMGJrrGmB84gXiH+ofs/TezA==}
-
-  '@types/node-fetch@2.6.12':
-    resolution: {integrity: sha512-8nneRWKCg3rMtF69nLQJnOYUcbafYeFSjqkw3jCRLsqkWFlHaoQrr5mXmofFGOx3DKn7UfmBMyov8ySvLRVldA==}
 
   '@types/node@22.16.0':
     resolution: {integrity: sha512-B2egV9wALML1JCpv3VQoQ+yesQKAmNMBIAY7OteVrikcOcAkWm+dGL6qpeCktPjAv6N1JLnhbNiqS35UpFyBsQ==}
@@ -9687,9 +9621,6 @@ packages:
 
   '@types/tedious@4.0.14':
     resolution: {integrity: sha512-KHPsfX/FoVbUGbyYvk1q9MMQHLPeRZhRJZdO45Q4YjvFkv4hMNghCWTvy7rdKessBsmtz4euWCWAB6/tVpI1Iw==}
-
-  '@types/tmp@0.2.6':
-    resolution: {integrity: sha512-chhaNf2oKHlRkDGt+tiKE2Z5aJ6qalm7Z9rlLdBwmOiAAf09YQvvoLXjWK4HWPF1xU/fqvMgfNfpVoBscA/tKA==}
 
   '@types/topojson-client@3.1.5':
     resolution: {integrity: sha512-C79rySTyPxnQNNguTZNI1Ct4D7IXgvyAs3p9HPecnl6mNrJ5+UhvGNYcZfpROYV2lMHI48kJPxwR+F9C6c7nmw==}
@@ -11306,9 +11237,6 @@ packages:
     engines: {node: '>=10.14', npm: '>=6', yarn: '>=1'}
     hasBin: true
 
-  cross-fetch@3.2.0:
-    resolution: {integrity: sha512-Q+xVJLoGOeIMXZmbUK4HYk+69cQH6LudR0Vu/pRm2YlU/hDV9CiS0gKUMaWY5f2NeUH9C1nV3bsTlCo0FsTV1Q==}
-
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
@@ -12563,11 +12491,6 @@ packages:
   glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
     engines: {node: '>=12'}
-    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
-
-  glob@9.3.5:
-    resolution: {integrity: sha512-e1LleDykUz2Iu+MTYdkSsuWX8lvAjAcs0Xef0lNIu0S2wOAzuTxCJtcd9S3cijlwYF18EsU3rzb8jPVobxDh9Q==}
-    engines: {node: '>=16 || 14 >=14.17'}
     deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   globalthis@1.0.4:
@@ -13997,10 +13920,6 @@ packages:
     resolution: {integrity: sha512-7o1wEA2RyMP7Iu7GNba9vc0RWWGACJOCZBJX2GJWip0ikV+wcOsgVuY9uE8CPiyQhkGFSlhuSkZPavN7u1c2Fw==}
     engines: {node: '>=10'}
 
-  minimatch@8.0.7:
-    resolution: {integrity: sha512-V+1uQNdzybxa14e/p00HZnQNNcTjnRJjDxg2V8wtkjFctq4M7hXFws4oekyTP0Jebeq7QYtpFyOeBAjc88zvYg==}
-    engines: {node: '>=16 || 14 >=14.17'}
-
   minimatch@9.0.9:
     resolution: {integrity: sha512-OBwBN9AL4dqmETlpS2zasx+vTeWclWzkblfZk7KTA5j3jeOONz/tRCnZomUyvNg83wL5Zv9Ss6HMJXAgL8R2Yg==}
     engines: {node: '>=16 || 14 >=14.17'}
@@ -14030,10 +13949,6 @@ packages:
 
   minipass@3.3.6:
     resolution: {integrity: sha512-DxiNidxSEK+tHG6zOIklvNOwm3hvCrbUrdtzY74U6HKTJxvIDfOUL5W5P2Ghd3DTkhhKPYGqeNUIh5qcM4YBfw==}
-    engines: {node: '>=8'}
-
-  minipass@4.2.8:
-    resolution: {integrity: sha512-fNzuVyifolSLFL4NzpF+wEF4qrgqaaKX0haXPQEdQ7NKAN+WecoKMHV09YcuL/DHxrUsYQOK3MiuDf7Ip2OXfQ==}
     engines: {node: '>=8'}
 
   minipass@5.0.0:
@@ -15449,11 +15364,6 @@ packages:
   rimraf@3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
     deprecated: Rimraf versions prior to v4 are no longer supported
-    hasBin: true
-
-  rimraf@4.4.1:
-    resolution: {integrity: sha512-Gk8NlF062+T9CqNGn6h4tls3k6T1+/nXdOcSZVikNVtlRdYpA7wRJJMoXmuvOnLW844rPjdQ7JgXCYM6PPC/og==}
-    engines: {node: '>=14'}
     hasBin: true
 
   rimraf@5.0.10:
@@ -24386,8 +24296,6 @@ snapshots:
 
   '@types/minimatch@5.1.2': {}
 
-  '@types/minimist@1.2.5': {}
-
   '@types/mocha@10.0.10': {}
 
   '@types/ms@0.7.34': {}
@@ -24399,11 +24307,6 @@ snapshots:
   '@types/mysql@2.15.27':
     dependencies:
       '@types/node': 22.16.0
-
-  '@types/node-fetch@2.6.12':
-    dependencies:
-      '@types/node': 22.16.0
-      form-data: 4.0.6
 
   '@types/node@22.16.0':
     dependencies:
@@ -24502,8 +24405,6 @@ snapshots:
   '@types/tedious@4.0.14':
     dependencies:
       '@types/node': 22.16.0
-
-  '@types/tmp@0.2.6': {}
 
   '@types/topojson-client@3.1.5':
     dependencies:
@@ -26517,12 +26418,6 @@ snapshots:
     dependencies:
       cross-spawn: 7.0.6
 
-  cross-fetch@3.2.0(encoding@0.1.13):
-    dependencies:
-      node-fetch: 2.7.0(encoding@0.1.13)
-    transitivePeerDependencies:
-      - encoding
-
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -28066,13 +27961,6 @@ snapshots:
       inherits: 2.0.4
       minimatch: 5.1.9
       once: 1.4.0
-
-  glob@9.3.5:
-    dependencies:
-      fs.realpath: 1.0.0
-      minimatch: 8.0.7
-      minipass: 4.2.8
-      path-scurry: 1.11.1
 
   globalthis@1.0.4:
     dependencies:
@@ -29884,10 +29772,6 @@ snapshots:
     dependencies:
       brace-expansion: 2.1.1
 
-  minimatch@8.0.7:
-    dependencies:
-      brace-expansion: 2.1.1
-
   minimatch@9.0.9:
     dependencies:
       brace-expansion: 2.1.1
@@ -29926,8 +29810,6 @@ snapshots:
   minipass@3.3.6:
     dependencies:
       yallist: 4.0.0
-
-  minipass@4.2.8: {}
 
   minipass@5.0.0: {}
 
@@ -31717,10 +31599,6 @@ snapshots:
   rimraf@3.0.2:
     dependencies:
       glob: 7.2.3
-
-  rimraf@4.4.1:
-    dependencies:
-      glob: 9.3.5
 
   rimraf@5.0.10:
     dependencies:

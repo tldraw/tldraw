@@ -82,7 +82,6 @@
 		"@vercel/build-utils": "13.20.0",
 		"@vitejs/plugin-react": "^6.0.1",
 		"dotenv": "^16.4.7",
-		"fast-glob": "^3.3.3",
 		"identity-obj-proxy": "^3.0.0",
 		"json5": "^2.2.3",
 		"kysely": "^0.28.12",
