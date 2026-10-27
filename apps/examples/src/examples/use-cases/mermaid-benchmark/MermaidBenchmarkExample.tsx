@@ -128,6 +128,7 @@ function BenchmarkPanel() {
 			})
 		}
 
+		editor.deleteShapes([...editor.getCurrentPageShapeIds()])
 		setResults((previous) => ({ ...next, firstLoad: next.firstLoad ?? previous?.firstLoad }))
 		setStatus('')
 	}, [editor])
@@ -142,7 +143,8 @@ function BenchmarkPanel() {
 	)
 }
 
-const ms = (value: number) => `${value < 10 ? value.toFixed(1) : Math.round(value)} ms`
+const ms = (value: number) =>
+	value < 0.1 ? '< 0.1 ms' : `${value < 10 ? value.toFixed(1) : Math.round(value)} ms`
 const kb = (value: number) => `${Math.round(value)} KB`
 
 function ResultsTable({ results }: { results: Results }) {
