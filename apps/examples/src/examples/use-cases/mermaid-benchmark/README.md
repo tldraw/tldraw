@@ -9,9 +9,9 @@ Measure how long pasting Mermaid takes, and compare pele's layout engine with me
 
 ---
 
-`@tldraw/mermaid` lays diagrams out with [pele](https://pele.run). This page times the same paths a paste goes through:
+`@tldraw/mermaid` lays diagrams out with [pele](https://pele.run). This page shows two things:
 
-- **First load** downloads the code a first paste needs. It is measured once per page load, so reload the page to measure it again. Byte counts are what the network actually transferred, and are zero when the browser served the code from its cache.
-- **Warm** runs repeat every diagram from the "Hundreds of Mermaid diagrams" example and report the median per diagram type.
+- **Layout engine, pele vs mermaid.** Both engines lay out the same diagrams as SVG, without creating tldraw shapes, so the numbers compare like for like. The first load is each engine's download and start-up plus one diagram, measured once per page load; reload the page to measure it again. Downloads are what the network actually transferred, and say "cached" when the browser served the code from its cache.
+- **Pasting into tldraw with pele.** What a whole paste costs, from text to tldraw shapes. There is no mermaid column, because `@tldraw/mermaid` no longer runs on mermaid.
 
-For each, the full paste (pele, from text to tldraw shapes) sits next to an engine-only comparison: pele and mermaid each laying the same diagram out as an SVG, without creating any shapes.
+Warm numbers are the median per diagram over every diagram in the "Hundreds of Mermaid diagrams" example.

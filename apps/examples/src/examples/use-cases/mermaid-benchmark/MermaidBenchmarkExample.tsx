@@ -14,8 +14,9 @@ interface FirstLoad {
 }
 
 interface Results {
-	firstLoad?: { pelePaste: FirstLoad; mermaidEngine: FirstLoad }
-	warm: { type: string; pelePaste: number; peleEngine: number; mermaidEngine: number }[]
+	firstLoad?: { pele: FirstLoad; mermaid: FirstLoad }
+	engine: { type: string; pele: number; mermaid: number }[]
+	paste: { type: string; ms: number }[]
 }
 
 const components: TLComponents = {
@@ -34,7 +35,7 @@ export default function MermaidBenchmarkExample() {
 let firstLoadMeasured = false
 
 // [2]
-async function measureFirstLoad<T>(run: () => Promise<T>): Promise<FirstLoad> {
+async function measureFirstLoad(run: () => Promise<unknown>): Promise<FirstLoad> {
 	const start = performance.now()
 	await run()
 	const ms = performance.now() - start
@@ -54,7 +55,8 @@ async function loadMermaid() {
 
 let nextMermaidId = 0
 
-async function mermaidEngine(mermaid: Awaited<ReturnType<typeof loadMermaid>>, text: string) {
+async function mermaidLayout(text: string) {
+	const mermaid = await loadMermaid()
 	const container = document.createElement('div')
 	container.style.cssText = 'position:absolute;left:-9999px;top:-9999px'
 	document.body.appendChild(container)
@@ -63,6 +65,11 @@ async function mermaidEngine(mermaid: Awaited<ReturnType<typeof loadMermaid>>, t
 	} finally {
 		container.remove()
 	}
+}
+
+async function peleLayout(text: string) {
+	const { renderAsync } = await import('pele/lazy')
+	await renderAsync(text)
 }
 
 async function pelePaste(editor: Editor, text: string) {
@@ -80,7 +87,7 @@ async function median(run: () => Promise<unknown>) {
 		await run()
 		times.push(performance.now() - start)
 	}
-	return times.sort((a, b) => a - b)[Math.floor(times.length / 2)]
+	return medianOf(times)
 }
 
 function medianOf(values: number[]) {
@@ -94,38 +101,31 @@ function BenchmarkPanel() {
 	const [results, setResults] = useState<Results | null>(null)
 
 	const run = useCallback(async () => {
-		const next: Results = { warm: [] }
+		const next: Results = { engine: [], paste: [] }
 		const firstDiagram = mermaidDefinitions[0][0]
 
 		// [3]
 		if (!firstLoadMeasured) {
 			firstLoadMeasured = true
 			setStatus('Measuring first load…')
-			const pelePasteLoad = await measureFirstLoad(() => pelePaste(editor, firstDiagram))
-			const mermaidLoad = await measureFirstLoad(async () =>
-				mermaidEngine(await loadMermaid(), firstDiagram)
-			)
-			next.firstLoad = { pelePaste: pelePasteLoad, mermaidEngine: mermaidLoad }
+			next.firstLoad = {
+				pele: await measureFirstLoad(() => peleLayout(firstDiagram)),
+				mermaid: await measureFirstLoad(() => mermaidLayout(firstDiagram)),
+			}
 		}
 
-		const mermaid = await loadMermaid()
-		const { renderAsync } = await import('pele/lazy')
 		for (const [group, type] of TYPES.entries()) {
 			setStatus(`Timing ${type.toLowerCase()} diagrams…`)
+			const pele: number[] = []
+			const mermaid: number[] = []
 			const paste: number[] = []
-			const peleEngine: number[] = []
-			const mermaidLayout: number[] = []
 			for (const text of mermaidDefinitions[group]) {
+				pele.push(await median(() => peleLayout(text)))
+				mermaid.push(await median(() => mermaidLayout(text)))
 				paste.push(await median(() => pelePaste(editor, text)))
-				peleEngine.push(await median(() => renderAsync(text)))
-				mermaidLayout.push(await median(() => mermaidEngine(mermaid, text)))
 			}
-			next.warm.push({
-				type,
-				pelePaste: medianOf(paste),
-				peleEngine: medianOf(peleEngine),
-				mermaidEngine: medianOf(mermaidLayout),
-			})
+			next.engine.push({ type, pele: medianOf(pele), mermaid: medianOf(mermaid) })
+			next.paste.push({ type, ms: medianOf(paste) })
 		}
 
 		editor.deleteShapes([...editor.getCurrentPageShapeIds()])
@@ -138,63 +138,69 @@ function BenchmarkPanel() {
 			<TldrawUiButton type="normal" onClick={run} disabled={!!status}>
 				{status || 'Run benchmark'}
 			</TldrawUiButton>
-			{results && <ResultsTable results={results} />}
+			{results && <ResultsTables results={results} />}
 		</div>
 	)
 }
 
 const ms = (value: number) =>
 	value < 0.1 ? '< 0.1 ms' : `${value < 10 ? value.toFixed(1) : Math.round(value)} ms`
-const kb = (value: number) => `${Math.round(value)} KB`
 
-function ResultsTable({ results }: { results: Results }) {
-	const { firstLoad, warm } = results
+function download({ transferKb, decodedKb }: FirstLoad) {
+	if (transferKb < 1 && decodedKb > 0) return `cached (${Math.round(decodedKb)} KB)`
+	return `${Math.round(transferKb)} KB (${Math.round(decodedKb)} KB unpacked)`
+}
+
+function ResultsTables({ results }: { results: Results }) {
+	const { firstLoad, engine, paste } = results
 	return (
 		<div className="mermaid-benchmark__results">
-			{firstLoad && (
-				<table>
-					<caption>First load (reload the page to measure again)</caption>
-					<thead>
-						<tr>
-							<th />
-							<th>Time</th>
-							<th>Transferred</th>
-							<th>Decoded</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<th>Pele paste</th>
-							<td>{ms(firstLoad.pelePaste.ms)}</td>
-							<td>{kb(firstLoad.pelePaste.transferKb)}</td>
-							<td>{kb(firstLoad.pelePaste.decodedKb)}</td>
-						</tr>
-						<tr>
-							<th>Mermaid engine only</th>
-							<td>{ms(firstLoad.mermaidEngine.ms)}</td>
-							<td>{kb(firstLoad.mermaidEngine.transferKb)}</td>
-							<td>{kb(firstLoad.mermaidEngine.decodedKb)}</td>
-						</tr>
-					</tbody>
-				</table>
-			)}
 			<table>
-				<caption>Warm, median per diagram</caption>
+				<caption>Layout engine: same diagrams to SVG, no tldraw shapes</caption>
 				<thead>
 					<tr>
 						<th />
-						<th>Pele paste</th>
-						<th>Pele engine</th>
-						<th>Mermaid engine</th>
+						<th>Pele</th>
+						<th>Mermaid</th>
 					</tr>
 				</thead>
 				<tbody>
-					{warm.map((row) => (
+					{firstLoad && (
+						<>
+							<tr>
+								<th>First load, time</th>
+								<td>{ms(firstLoad.pele.ms)}</td>
+								<td>{ms(firstLoad.mermaid.ms)}</td>
+							</tr>
+							<tr>
+								<th>First load, downloaded</th>
+								<td>{download(firstLoad.pele)}</td>
+								<td>{download(firstLoad.mermaid)}</td>
+							</tr>
+						</>
+					)}
+					{engine.map((row) => (
+						<tr key={row.type}>
+							<th>{row.type}, median</th>
+							<td>{ms(row.pele)}</td>
+							<td>{ms(row.mermaid)}</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+			<table>
+				<caption>Pasting into tldraw with pele: layout + shapes</caption>
+				<thead>
+					<tr>
+						<th />
+						<th>Median</th>
+					</tr>
+				</thead>
+				<tbody>
+					{paste.map((row) => (
 						<tr key={row.type}>
 							<th>{row.type}</th>
-							<td>{ms(row.pelePaste)}</td>
-							<td>{ms(row.peleEngine)}</td>
-							<td>{ms(row.mermaidEngine)}</td>
+							<td>{ms(row.ms)}</td>
 						</tr>
 					))}
 				</tbody>
@@ -205,16 +211,16 @@ function ResultsTable({ results }: { results: Results }) {
 
 /*
 [1]
-The first paste downloads and starts up the code it needs, which only happens once per page
-load. Later runs skip the first-load measurement rather than report a warm number as a cold one.
+Loading an engine's code happens once per page load. Later runs skip the first-load measurement
+rather than report a warm number as a cold one; reload the page to measure it again.
 
 [2]
 Resource timings list every file fetched while the run was going. `transferSize` is what came
-over the network (compressed, and zero for the browser cache); `decodedBodySize` is the code's
-size once unpacked.
+over the network (compressed, and zero when the browser cache served it); `decodedBodySize` is
+the code's size once unpacked.
 
 [3]
-Pele's paste is measured first, on a flowchart, so it loads pele's core and its flowchart
-code. Mermaid is then timed loading and laying out the same flowchart to SVG, which is only
-the engine's share of a paste: it creates no tldraw shapes.
+Each engine's first load is the download and start-up of its code plus laying out one flowchart,
+so the two are measured the same way. A paste's first load adds this package's own code on top
+of pele's.
 */
