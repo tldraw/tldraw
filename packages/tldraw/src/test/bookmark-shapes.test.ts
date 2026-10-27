@@ -576,7 +576,11 @@ describe('changing a bookmark url', () => {
 		}
 	})
 
-	it('does not fetch metadata when the url changes to an app link', async () => {
+	it.each([
+		['codex://threads/1', SHORT_BOOKMARK_HEIGHT],
+		['/relative/path', SHORT_BOOKMARK_HEIGHT],
+		['', BOOKMARK_HEIGHT],
+	])('does not fetch metadata when the url changes to %j', async (url, h) => {
 		vi.useFakeTimers()
 		try {
 			const urlA = 'https://a.example.com'
@@ -589,30 +593,31 @@ describe('changing a bookmark url', () => {
 			})
 			const fetchSpy = vi.spyOn(editor, 'getAssetForExternalContent')
 
-			editor.updateShape<TLBookmarkShape>({
-				id,
-				type: 'bookmark',
-				props: { url: 'codex://threads/1' },
-			})
+			editor.updateShape<TLBookmarkShape>({ id, type: 'bookmark', props: { url } })
 
 			await vi.advanceTimersByTimeAsync(600)
 			expect(fetchSpy).not.toHaveBeenCalled()
-			expect(editor.getShape<TLBookmarkShape>(id)!.props).toMatchObject({
-				assetId: null,
-				h: SHORT_BOOKMARK_HEIGHT,
-			})
-
-			// Back to an http url, it shows the loading placeholder until the new asset arrives.
-			fetchSpy.mockResolvedValue(undefined)
-			editor.updateShape<TLBookmarkShape>({
-				id,
-				type: 'bookmark',
-				props: { url: 'https://c.example.com' },
-			})
-			expect(editor.getShape<TLBookmarkShape>(id)!.props.h).toBe(BOOKMARK_HEIGHT)
+			expect(editor.getShape<TLBookmarkShape>(id)!.props).toMatchObject({ url, assetId: null, h })
 		} finally {
 			vi.useRealTimers()
 		}
+	})
+
+	it('shows the loading placeholder when an app link changes to an http url', () => {
+		const id = createShapeId()
+		editor.createShape<TLBookmarkShape>({
+			id,
+			type: 'bookmark',
+			props: { url: 'codex://threads/1' },
+		})
+		vi.spyOn(editor, 'getAssetForExternalContent').mockResolvedValue(undefined)
+
+		editor.updateShape<TLBookmarkShape>({
+			id,
+			type: 'bookmark',
+			props: { url: 'https://c.example.com' },
+		})
+		expect(editor.getShape<TLBookmarkShape>(id)!.props.h).toBe(BOOKMARK_HEIGHT)
 	})
 })
 
