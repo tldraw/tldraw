@@ -2,7 +2,7 @@ import { CommentsMenuItem } from '@tldraw/commenting'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useIntl } from 'react-intl'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
 	AccessibilityMenu,
 	ColorSchemeMenu,
@@ -43,10 +43,13 @@ import {
 	ZoomToFitMenuItem,
 	ZoomToSelectionMenuItem,
 } from 'tldraw'
+import { routes } from '../../../routeDefs'
+import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
+import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
@@ -93,6 +96,7 @@ function TlaViewSubmenu() {
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
 	pageMenu: { defaultMessage: 'Page menu' },
+	home: { defaultMessage: 'Home' },
 })
 
 const SEPARATOR = '/'
@@ -216,6 +220,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 	const pageMenuLbl = msg(messages.pageMenu)
 
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
+	const isUiV3 = useIsUiV3()
 
 	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
 	const isOwner = useHasFileAdminRights(fileSlug)
@@ -265,8 +270,12 @@ function TlaEditorTopLeftPanelSignedIn() {
 
 	return (
 		<>
-			{/* spacer for the sidebar toggle button */}
-			{isEmbed ? null : <div style={{ width: 40, flexShrink: 0 }} />}
+			{isEmbed ? null : isUiV3 ? (
+				<TlaEditorHomeButton />
+			) : (
+				// spacer for the sidebar toggle button
+				<div style={{ width: 40, flexShrink: 0 }} />
+			)}
 			<TlaFileNameEditor
 				source="file-header"
 				isRenaming={isRenaming}
@@ -315,6 +324,24 @@ function TlaEditorTopLeftPanelSignedIn() {
 				</TldrawUiMenuGroup>
 			</TlaFileMenu>
 		</>
+	)
+}
+
+function TlaEditorHomeButton() {
+	const msg = useTranslation()
+	const navigate = useNavigate()
+	const workspaceId = useActiveWorkspaceId()
+	const lbl = msg(messages.home)
+	return (
+		<TldrawUiButton
+			type="icon"
+			tooltip={lbl}
+			title={lbl}
+			onClick={() => navigate(routes.tlaWorkspace(workspaceId))}
+			data-testid="tla-editor-home-button"
+		>
+			<TlaIcon icon="tldraw" />
+		</TldrawUiButton>
 	)
 }
 
