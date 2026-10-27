@@ -609,6 +609,9 @@ importers:
       '@tldraw/assets':
         specifier: workspace:*
         version: link:../../../packages/assets
+      '@tldraw/collections':
+        specifier: workspace:*
+        version: link:../../../packages/collections
       '@tldraw/commenting':
         specifier: workspace:*
         version: link:../../../packages/commenting

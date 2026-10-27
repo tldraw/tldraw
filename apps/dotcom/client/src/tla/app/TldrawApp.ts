@@ -205,6 +205,7 @@ export class TldrawApp {
 	/** The signed-in account's email, for the load report gate. */
 	readonly email: string | null
 	readonly isLoadRumEnabled: boolean
+	readonly isCollectionsEnabled: boolean
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -293,6 +294,7 @@ export class TldrawApp {
 		this.getToken = getToken
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
+		this.isCollectionsEnabled = flags.collections?.enabled ?? false
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
 		if (window.navigator.webdriver) {

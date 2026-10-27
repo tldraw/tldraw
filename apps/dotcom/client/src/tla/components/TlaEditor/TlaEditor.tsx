@@ -51,6 +51,7 @@ import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
+import { TlaCollectionsProvider } from '../TlaCollections/TlaCollectionsProvider'
 import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
@@ -355,33 +356,35 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 	return (
 		<TlaEditorWrapper>
-			<Tldraw
-				className="tla-editor"
-				store={store}
-				assetUrls={assetUrls}
-				shapeUtils={embedShapeUtils}
-				tools={commentingEnabled ? tlaCommentTools : undefined}
-				user={app?.tlUser}
-				onMount={handleMount}
-				onUiEvent={handleUiEvent}
-				components={instanceComponents}
-				options={{
-					actionShortcutsLocation: 'toolbar',
-					deepLinks: deepLinks ? true : undefined,
-				}}
-				overrides={editorOverrides}
-				getShapeVisibility={getShapeVisibility}
-			>
-				<ThemeUpdater />
-				<SneakyDarkModeSync />
-				<SneakyToolSwitcher />
-				<SneakyMermaidHandler />
-				{app && <SneakyTldrawFileDropHandler />}
-				<SneakyLargeFileHander />
-				<SneakyDebugModeToast />
-				{commentingEnabled && <SneakyCommentDeepLink />}
-				<TlaAnonDotDevLink />
-			</Tldraw>
+			<TlaCollectionsProvider>
+				<Tldraw
+					className="tla-editor"
+					store={store}
+					assetUrls={assetUrls}
+					shapeUtils={embedShapeUtils}
+					tools={commentingEnabled ? tlaCommentTools : undefined}
+					user={app?.tlUser}
+					onMount={handleMount}
+					onUiEvent={handleUiEvent}
+					components={instanceComponents}
+					options={{
+						actionShortcutsLocation: 'toolbar',
+						deepLinks: deepLinks ? true : undefined,
+					}}
+					overrides={editorOverrides}
+					getShapeVisibility={getShapeVisibility}
+				>
+					<ThemeUpdater />
+					<SneakyDarkModeSync />
+					<SneakyToolSwitcher />
+					<SneakyMermaidHandler />
+					{app && <SneakyTldrawFileDropHandler />}
+					<SneakyLargeFileHander />
+					<SneakyDebugModeToast />
+					{commentingEnabled && <SneakyCommentDeepLink />}
+					<TlaAnonDotDevLink />
+				</Tldraw>
+			</TlaCollectionsProvider>
 		</TlaEditorWrapper>
 	)
 }
