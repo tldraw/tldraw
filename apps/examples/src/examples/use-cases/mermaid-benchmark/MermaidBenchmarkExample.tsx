@@ -49,7 +49,8 @@ async function measureFirstLoad(run: () => Promise<unknown>): Promise<FirstLoad>
 
 async function loadMermaid() {
 	const { default: mermaid } = await import('mermaid')
-	mermaid.initialize({ startOnLoad: false })
+	// [4]
+	mermaid.initialize({ startOnLoad: false, layout: 'dagre', state: { layout: 'dagre' } })
 	return mermaid
 }
 
@@ -223,4 +224,9 @@ the code's size once unpacked.
 Each engine's first load is the download and start-up of its code plus laying out one flowchart,
 so the two are measured the same way. A paste's first load adds this package's own code on top
 of pele's.
+
+[4]
+Mermaid 12 lays diagrams out with ELK by default, which alone is a 2.5 MB download. Dagre, its
+older layout and the one mermaid 11 used, ships with it too, and only the layout in use is
+downloaded, so this keeps mermaid to the smaller of the two.
 */
