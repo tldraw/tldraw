@@ -52,7 +52,6 @@ describe('collectionItemValidator', () => {
 		id: 'item_1',
 		collectionId: 'col_1',
 		name: 'Card',
-		thumbnailUrl: '',
 		version: 1,
 	}
 
@@ -74,7 +73,8 @@ describe('collectionItemValidator', () => {
 		expect(() => collectionItemValidator.validate({ ...item, name: '  ' })).toThrow()
 	})
 
-	it("rejects a null thumbnail, so '' stays the only way to say there isn't one", () => {
+	it('rejects a blank or null thumbnail, so leaving it out stays the only way to say there is none', () => {
+		expect(() => collectionItemValidator.validate({ ...item, thumbnailUrl: '' })).toThrow()
 		expect(() => collectionItemValidator.validate({ ...item, thumbnailUrl: null })).toThrow()
 	})
 
@@ -84,7 +84,6 @@ describe('collectionItemValidator', () => {
 				id: 'item_1',
 				collectionId: 'col_1',
 				name: 'Card',
-				thumbnailUrl: '',
 				version: 1.5,
 			})
 		).toThrow()

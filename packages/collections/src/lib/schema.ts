@@ -8,7 +8,7 @@ export interface TLCollection {
 	name: string
 	/**
 	 * True for collections users can't change, such as a prefab pack shipped with an app.
-	 * Nothing enforces it yet, so sources can leave it out; absent means false.
+	 * Sources can leave it out; absent means false.
 	 */
 	readOnly?: boolean
 }
@@ -26,9 +26,9 @@ export interface TLCollectionItem {
 	 * The UI decides what to show instead. When present it is never blank.
 	 */
 	name?: string
-	/** `''` until a thumbnail has been rendered for this item's current version. */
-	thumbnailUrl: string
-	/** Increases every time the item's content is replaced. */
+	/** Left out when the item has no thumbnail. When present it is never blank. */
+	thumbnailUrl?: string
+	/** Always 1 for now: items aren't replaced. To change one, delete it and add it again. */
 	version: number
 }
 
@@ -38,9 +38,6 @@ export const CURRENT_ITEM_CONTENT_FORMAT_VERSION = 1
 /**
  * The shapes an item places, in a versioned envelope. Anything an item needs beyond shapes
  * arrives as a new `formatVersion`, so the way collections are listed and stored doesn't change.
- *
- * Shape ids inside `content` must stay the same when an item gets a new version, so copies placed
- * from an older version can later be matched shape by shape to the new one.
  */
 export interface TLCollectionItemContent {
 	formatVersion: 1
@@ -61,7 +58,7 @@ export const collectionItemValidator: T.Validator<TLCollectionItem> = T.object({
 	id: nonEmptyString,
 	collectionId: nonEmptyString,
 	name: nonEmptyString.optional(),
-	thumbnailUrl: T.string,
+	thumbnailUrl: nonEmptyString.optional(),
 	version: T.positiveInteger,
 })
 

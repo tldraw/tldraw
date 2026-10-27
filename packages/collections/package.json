@@ -9,7 +9,9 @@
 	"type": "module",
 	"dependencies": {
 		"@tldraw/editor": "workspace:*",
+		"@tldraw/state": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
+		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*"
 	},
 	"devDependencies": {

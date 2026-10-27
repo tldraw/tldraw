@@ -3,5 +3,11 @@
 	"include": ["src"],
 	"exclude": ["node_modules", ".tsbuild*"],
 	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src" },
-	"references": [{ "path": "../editor" }, { "path": "../tlschema" }, { "path": "../validate" }]
+	"references": [
+		{ "path": "../editor" },
+		{ "path": "../state" },
+		{ "path": "../tlschema" },
+		{ "path": "../utils" },
+		{ "path": "../validate" }
+	]
 }

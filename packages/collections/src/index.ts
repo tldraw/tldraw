@@ -1,4 +1,15 @@
 export {
+	CollectionNotFoundError,
+	CollectionPermissionError,
+	type CollectionSource,
+	type TLCollectionAction,
+	type TLNewCollectionItem,
+} from './lib/CollectionSource'
+export {
+	InMemoryCollectionSource,
+	type InMemoryCollectionSourceOptions,
+} from './lib/InMemoryCollectionSource'
+export {
 	CollectionItemContentTooNewError,
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
 	collectionItemValidator,

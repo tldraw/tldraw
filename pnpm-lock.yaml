@@ -1480,9 +1480,15 @@ importers:
       '@tldraw/editor':
         specifier: workspace:*
         version: link:../editor
+      '@tldraw/state':
+        specifier: workspace:*
+        version: link:../state
       '@tldraw/tlschema':
         specifier: workspace:*
         version: link:../tlschema
+      '@tldraw/utils':
+        specifier: workspace:*
+        version: link:../utils
       '@tldraw/validate':
         specifier: workspace:*
         version: link:../validate
