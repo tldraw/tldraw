@@ -15,7 +15,6 @@ import {
 	useDirection,
 	useMaybeEditor,
 	useTranslation,
-	useUiEvents,
 	useValue,
 } from 'tldraw'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
@@ -33,12 +32,14 @@ import {
 } from '../../utils/tldrawOfflineFiles'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
+import { TlaSettingsDialog } from '../dialogs/TlaSettingsDialog'
 
 const messages = defineMessages({
 	help: { defaultMessage: 'Help' },
 	// user menu
 	accountMenu: { defaultMessage: 'User settings' },
 	signOut: { defaultMessage: 'Sign out' },
+	settings: { defaultMessage: 'Settings' },
 	importFile: { defaultMessage: 'Import file…' },
 	// account menu
 	getHelp: { defaultMessage: 'User manual' },
@@ -71,46 +72,6 @@ export function SignOutMenuItem() {
 				label={msg(messages.signOut)}
 				readonlyOk
 			/>
-		</TldrawUiMenuGroup>
-	)
-}
-
-const COLOR_SCHEMES = [
-	{ colorScheme: 'light' as const, label: 'theme.light' },
-	{ colorScheme: 'dark' as const, label: 'theme.dark' },
-	{ colorScheme: 'system' as const, label: 'theme.system' },
-]
-
-function ThemeMenuGroup() {
-	const editor = useMaybeEditor()
-	const trackEvent = useUiEvents()
-	const currentColorScheme = useValue(
-		'colorScheme',
-		() =>
-			editor
-				? (editor.user.getUserPreferences().colorScheme ??
-					(editor.user.getIsDarkMode() ? 'dark' : 'light'))
-				: 'system',
-		[editor]
-	)
-
-	if (!editor) return null
-
-	return (
-		<TldrawUiMenuGroup id="theme">
-			{COLOR_SCHEMES.map(({ colorScheme, label }) => (
-				<TldrawUiMenuCheckboxItem
-					id={`color-scheme-${colorScheme}`}
-					key={colorScheme}
-					label={label}
-					checked={colorScheme === currentColorScheme}
-					readonlyOk
-					onSelect={() => {
-						editor.user.updateUserPreferences({ colorScheme })
-						trackEvent('color-scheme', { source: 'menu', value: colorScheme })
-					}}
-				/>
-			))}
 		</TldrawUiMenuGroup>
 	)
 }
@@ -192,17 +153,18 @@ function UIThemeMenuGroup() {
 	)
 }
 
-export function ThemeSubmenu() {
-	const editor = useMaybeEditor()
-	if (!editor) return null
-
+export function SettingsMenuItem() {
+	const msg = useTranslation()
+	const { addDialog } = useDialogs()
 	return (
-		<TldrawUiMenuSubmenu id="theme" label="menu.theme">
-			<div className="tlui-language-menu">
-				<ThemeMenuGroup />
-				<UIThemeMenuGroup />
-			</div>
-		</TldrawUiMenuSubmenu>
+		<TldrawUiMenuItem
+			id="settings"
+			label={msg(messages.settings)}
+			readonlyOk
+			onSelect={() => {
+				addDialog({ component: () => <TlaSettingsDialog /> })
+			}}
+		/>
 	)
 }
 

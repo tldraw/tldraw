@@ -2,7 +2,6 @@ import classNames from 'classnames'
 import {
 	defineMessages,
 	F,
-	LanguageMenu,
 	preventDefault,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
@@ -19,8 +18,8 @@ import {
 	CookieConsentMenuItem,
 	DebugMenuGroup,
 	LegalSummaryMenuItem,
+	SettingsMenuItem,
 	SignOutMenuItem,
-	ThemeSubmenu,
 	UserManualMenuItem,
 } from '../../menu-items/menu-items'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
@@ -82,9 +81,8 @@ export function TlaUserSettingsMenu() {
 				>
 					{user && (
 						<>
-							<TldrawUiMenuGroup id="preferences">
-								<ThemeSubmenu />
-								<LanguageMenu />
+							<TldrawUiMenuGroup id="settings">
+								<SettingsMenuItem />
 							</TldrawUiMenuGroup>
 							<DebugMenuGroup />
 						</>
