@@ -154,8 +154,8 @@ export function CommandPalettePagesGroup() {
 				<>
 					<CommandPalettePromptItem
 						id="rename-page"
-						label={msg(messages.renamePage)}
-						placeholder={msg(messages.pageName)}
+						label={messages.renamePage.id}
+						placeholder={messages.pageName.id}
 						initialValue={currentPageName}
 						onSubmit={(name) => {
 							if (!name || name === currentPageName) return

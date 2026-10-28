@@ -826,7 +826,7 @@ export function CommandPalettePinned({ children }: TLUiCommandPalettePinnedProps
 export function CommandPalettePreferencesGroup(): JSX.Element;
 
 // @public
-export function CommandPalettePromptItem({ id, label, placeholder, initialValue, onSubmit, }: TLUiCommandPalettePromptItemProps): JSX.Element | null;
+export function CommandPalettePromptItem<TranslationKey extends string = string>({ id, label, placeholder, initialValue, onSubmit, }: TLUiCommandPalettePromptItemProps<TranslationKey>): JSX.Element | null;
 
 // @public (undocumented)
 export function CommandPaletteSelectionGroup(): JSX.Element;
@@ -4813,15 +4813,17 @@ export interface TLUiCommandPalettePinnedProps {
 export type TLUiCommandPalettePosition = 'bottom' | 'center' | 'top';
 
 // @public (undocumented)
-export interface TLUiCommandPalettePromptItemProps {
+export interface TLUiCommandPalettePromptItemProps<TranslationKey extends string = string> {
     // (undocumented)
     id: string;
     initialValue?: string;
-    // (undocumented)
-    label: string;
+    label: {
+        [key: string]: TranslationKey;
+    } | TranslationKey;
     onSubmit(value: string): void;
-    // (undocumented)
-    placeholder: string;
+    placeholder: {
+        [key: string]: TranslationKey;
+    } | TranslationKey;
 }
 
 // @public (undocumented)

@@ -13,8 +13,12 @@ import { defaultShapeTools } from '../../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../../lib/defaultShapeUtils'
 import { defaultTools } from '../../lib/defaultTools'
 import { Tldraw } from '../../lib/Tldraw'
-import { CommandPaletteActionGroup } from '../../lib/ui/components/CommandPalette/CommandPaletteGroups'
-import { CommandPaletteToolsGroup } from '../../lib/ui/components/CommandPalette/CommandPaletteGroups'
+import {
+	CommandPaletteActionGroup,
+	CommandPalettePagesGroup,
+	CommandPaletteToolsGroup,
+} from '../../lib/ui/components/CommandPalette/CommandPaletteGroups'
+import { CommandPalettePromptItem } from '../../lib/ui/components/CommandPalette/CommandPalettePromptItem'
 import { CommandPaletteShell } from '../../lib/ui/components/CommandPalette/CommandPaletteShell'
 import { DefaultCommandPaletteContent } from '../../lib/ui/components/CommandPalette/DefaultCommandPaletteContent'
 import { TldrawUiMenuActionItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuActionItem'
@@ -223,6 +227,34 @@ describe('default command palette content', () => {
 		await rendered.findByTestId('command-palette.item.delete-page')
 		enter()
 		expect(editor.getPages()).toHaveLength(1)
+	})
+
+	it('translates prompt labels and placeholders, passing plain text through', async () => {
+		const { rendered, input, search, enter } = await renderPalette({
+			content: (
+				<>
+					<CommandPalettePagesGroup />
+					<CommandPalettePromptItem
+						id="rename-board"
+						label="Rename board"
+						placeholder="Board name"
+						onSubmit={() => {}}
+					/>
+				</>
+			),
+		})
+		search('rename page')
+		const renamePage = await rendered.findByTestId('command-palette.item.rename-page')
+		expect(renamePage.textContent).toBe('Rename page')
+		enter()
+		await waitFor(() => expect(input.placeholder).toBe('Page name'))
+		fireEvent.keyDown(input, { key: 'Escape' })
+
+		search('rename board')
+		const renameBoard = await rendered.findByTestId('command-palette.item.rename-board')
+		expect(renameBoard.textContent).toBe('Rename board')
+		enter()
+		await waitFor(() => expect(input.placeholder).toBe('Board name'))
 	})
 
 	it("sets the selection's styles, checking the current value", async () => {
