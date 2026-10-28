@@ -120,7 +120,7 @@ export function Component() {
 			<Helmet>
 				<title>Dialog inventory — dev</title>
 			</Helmet>
-			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
+			<style>{SPECIMEN_CSS + PAGE_CSS}</style>
 
 			<IsolationProviders>
 				<div className="page">

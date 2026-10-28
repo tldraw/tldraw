@@ -31,7 +31,7 @@ export function Component() {
 			<Helmet>
 				<title>Empty states — dev</title>
 			</Helmet>
-			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
+			<style>{SPECIMEN_CSS + PAGE_CSS}</style>
 
 			<IsolationProviders>
 				<div className="page">
@@ -325,7 +325,7 @@ const PAGE_CSS = `
 .matrix th { color: var(--tl-color-text-3); font-weight: 500; }
 .listStage { width: 100%; max-width: 260px; background: var(--tl-color-panel); border-radius: 6px; }
 .sidebarStage { width: 100%; max-width: 260px; background: var(--tl-color-panel); border-radius: 6px; }
-.grid.grid--dialogs { grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); }
+.grid--dialogs { grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); }
 .dialogCardStage { position: relative; transform: translateZ(0); width: 100%; min-height: 210px; display: flex; align-items: center; justify-content: center; padding: 16px; border-radius: 8px; background: var(--tl-color-low); overflow: hidden; }
 .dialogCardStage .tlui-dialog__content { position: static; width: 100%; min-width: 0; max-width: 340px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
 `

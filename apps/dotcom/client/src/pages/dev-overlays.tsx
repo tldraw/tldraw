@@ -94,7 +94,7 @@ export function Component() {
 			<Helmet>
 				<title>Feedback & overlays — dev</title>
 			</Helmet>
-			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
+			<style>{SPECIMEN_CSS + PAGE_CSS}</style>
 
 			<div className="page">
 				<DevComponentsNav />
