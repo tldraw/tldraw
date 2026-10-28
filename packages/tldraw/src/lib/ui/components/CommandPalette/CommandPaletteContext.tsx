@@ -35,9 +35,9 @@ export function useCommandPaletteQuery(): string {
 }
 
 /**
- * The id of the item highlighted in the command palette, by keyboard or pointer, or null. For
- * tldraw.com's theme preview. Internal because previewing anything stored in the document would
- * sync each highlight and add it to history.
+ * The id of the item highlighted in the command palette, by keyboard or pointer, or null.
+ * Internal because previewing anything stored in the document would sync each highlight and add
+ * it to history.
  *
  * @internal
  */
