@@ -2,7 +2,7 @@
 import { Helmet } from 'react-helmet-async'
 import 'tldraw/tldraw.css'
 import '../tla/styles/tla.css'
-import { SPECIMEN_CSS } from './dev-components-kit'
+import { AdminScope, Specimen, SPECIMEN_CSS } from './dev-components-kit'
 import { DevComponentsNav } from './dev-components-nav'
 
 /**
@@ -48,6 +48,7 @@ export function Component() {
 						<Stat n="2" label="parallel shadow scales" accent />
 						<Stat n="4" label="rungs each (1–4)" />
 						<Stat n="1" label="hidden dark-mode divergence" accent />
+						<Stat n="3" label="one-off tokens outside the scales" />
 					</div>
 				</section>
 
@@ -112,6 +113,55 @@ export function Component() {
 						<div className="dark-box" style={{ boxShadow: 'var(--tla-shadow-2)' }}>
 							--tla-shadow-2<span className="dark-box__sub">app · maroon-tinted</span>
 						</div>
+					</div>
+				</section>
+
+				<section className="section">
+					<h2 className="section__title">Outside both scales (live)</h2>
+					<p className="section__note">
+						Three shadow tokens that belong to neither scale. The commenting package defines two on{' '}
+						<code>.tl-container</code>; the admin panel has its own, on its own design language.
+					</p>
+					<div className="grid">
+						<Specimen
+							label="--tlui-cmt-marker-shadow"
+							code="0 1px 2px hsl(0 0% 0% / 28%), 0 2px 6px hsl(0 0% 0% / 14%)"
+							meta="comment pins and badges"
+							source="commenting/src/ui/comments.css:530"
+						>
+							<div className="pin-box" style={{ boxShadow: 'var(--tlui-cmt-marker-shadow)' }} />
+						</Specimen>
+						<Specimen
+							label="--tlui-cmt-pill-shadow"
+							code="0 0 0 1px var(--tl-color-divider), 0 1px 3px hsl(0 0% 0% / 0.05)"
+							meta="floating pills over a panel"
+							source="commenting/src/ui/comments.css:542"
+						>
+							<div className="pill-box" style={{ boxShadow: 'var(--tlui-cmt-pill-shadow)' }}>
+								pill
+							</div>
+						</Specimen>
+						<Specimen
+							label="--admin-shadow"
+							code="2px 3px 0 0 rgba(0,0,0,.2), 0 0 0 1px rgba(0,0,0,.04)"
+							meta="hard offset, no blur — a different geometry altogether"
+							source="admin/admin.module.css:12"
+						>
+							<AdminScope>
+								<div className="admin-box" style={{ boxShadow: 'var(--admin-shadow)' }}>
+									card
+								</div>
+							</AdminScope>
+						</Specimen>
+					</div>
+					<div className="callout">
+						The commenting package ran into the same bundling problem from the other side. The
+						marker shadow exists to get <code>--tl-shadow-3</code>&rsquo;s depth <em>without</em>{' '}
+						its inset ring, which &ldquo;reads as a white border on a coloured pin&rdquo; (
+						<code>comments.css:528</code>). And its hover cards can&rsquo;t re-tint the ring either:{' '}
+						<code>--tl-shadow-3</code> is declared on the container, so its <code>var()</code> is
+						substituted there and descendants inherit the finished white. They layer a second ring
+						of the new surface on top instead (<code>canvas.css:282</code>).
 					</div>
 				</section>
 
@@ -224,6 +274,10 @@ const PAGE_CSS = `
 .stat__label { font-size: 12px; color: var(--tl-color-text-1); margin-top: 4px; }
 .shadowGrid { display: grid; grid-template-columns: 180px repeat(4, 1fr); gap: 20px 24px; align-items: center; max-width: 760px; }
 .shadowGrid__label { font-family: ui-monospace, monospace; font-size: 12px; color: var(--tl-color-text-1); }
+.grid + .callout { margin-top: 20px; }
+.pin-box { width: var(--tlui-cmt-marker-size); height: var(--tlui-cmt-marker-size); border-radius: 50% 50% 50% 0; background: var(--tl-color-panel); }
+.pill-box { padding: 4px 12px; border-radius: 999px; background: var(--tl-color-panel); font-family: ui-monospace, monospace; font-size: 12px; color: var(--tl-color-text-3); }
+.admin-box { padding: 12px 20px; background: var(--admin-surface); font-size: 12px; }
 .chip-box { height: 64px; border-radius: 8px; background: var(--tl-color-panel); display: flex; align-items: center; justify-content: center; font-family: ui-monospace, monospace; font-size: 13px; color: var(--tl-color-text-3); }
 .callout { font-size: 13px; line-height: 1.7; color: var(--tl-color-text-1); background: var(--tl-color-low); border: 1px solid var(--tl-color-divider); border-radius: 8px; padding: 16px 18px; max-width: 900px; }
 .callout strong { color: var(--tl-color-text-0); font-weight: 600; }
