@@ -1,4 +1,4 @@
-import { TLArrowShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
+import { TLArrowShape, TLShapeId, Vec, createShapeId, toRichText } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { ArrowShapeUtil } from '../lib/shapes/arrow/ArrowShapeUtil'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
@@ -954,6 +954,52 @@ describe('When the bound shape changes size', () => {
 		expect(editor.getShapePageBounds(ids.box1)!.w).toBeCloseTo(300)
 		expect(endAnchor().x).toBeCloseTo(10 / 300)
 		expect(endAnchor().y).toBeCloseTo(10 / 500)
+	})
+
+	it('keeps the anchor in place when the arrow is resized along with the shape', () => {
+		// arrow1 runs from (200, 50) to the box, so the selection is 200 wide and 100 tall
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		editor.select(ids.box1, ids.arrow1)
+		editor.pointerDown(200, 100, { target: 'selection', handle: 'bottom_right' })
+		editor.pointerMove(250, 150)
+		editor.pointerMove(400, 300)
+		editor.pointerUp()
+		const { w, h } = editor.getShapePageBounds(ids.box1)!
+		expect(w).toBeCloseTo(200)
+		expect(endAnchor().x * w).toBeCloseTo(10)
+		expect(endAnchor().y * h).toBeCloseTo(10)
+	})
+
+	it('still mirrors the anchor when the arrow and shape are flipped together', () => {
+		bindArrowEnd({ x: 0.1, y: 0.5 })
+		editor.select(ids.box1, ids.arrow1)
+		editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
+		expect(endAnchor().x).toBeCloseTo(0.9)
+		expect(endAnchor().y).toBeCloseTo(0.5)
+	})
+
+	it('keeps an anchor in place when an auto-sized text shape grows', () => {
+		editor.createShape({
+			id: ids.box2,
+			type: 'text',
+			x: 0,
+			y: 300,
+			props: { richText: toRichText('hi'), autoSize: true },
+		})
+		const before = editor.getShapeGeometry(ids.box2).bounds
+		bindArrowEnd({ x: 0.1, y: 0.1 }, true, ids.box2)
+
+		editor.updateShape({
+			id: ids.box2,
+			type: 'text',
+			props: { richText: toRichText('hello there\nsecond line') },
+		})
+
+		const after = editor.getShapeGeometry(ids.box2).bounds
+		expect(after.w).toBeGreaterThan(before.w)
+		expect(after.h).toBeGreaterThan(before.h)
+		expect(endAnchor().x * after.w).toBeCloseTo(0.1 * before.w)
+		expect(endAnchor().y * after.h).toBeCloseTo(0.1 * before.h)
 	})
 
 	describe('with preciseAnchorResizeBehavior: proportional', () => {
