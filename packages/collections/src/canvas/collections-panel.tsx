@@ -1,6 +1,8 @@
 import {
 	defineMessages,
 	EditorPortal,
+	TldrawUiButton,
+	TldrawUiButtonIcon,
 	useEditor,
 	useToasts,
 	useTranslation,
@@ -13,6 +15,7 @@ import { ItemGrid } from '../ui/item-grid'
 import { CollectionSourceContext } from './context'
 import { placeCollectionItem } from './place-item'
 import { activeCollectionId, collectionsPanelOpen } from './state'
+import { useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
 	title: { id: 'collections.title', defaultMessage: 'Collections' },
@@ -22,6 +25,7 @@ const messages = defineMessages({
 		defaultMessage: 'Nothing saved here yet.',
 	},
 	untitledItem: { id: 'collections.untitled-item', defaultMessage: 'Untitled' },
+	addSelection: { id: 'collections.add-selection', defaultMessage: 'Add selection' },
 	placeErrorTitle: { id: 'collections.place-error.title', defaultMessage: "Couldn't place item" },
 	placeErrorDescription: {
 		id: 'collections.place-error.description',
@@ -53,6 +57,15 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 		source,
 		currentId,
 	])
+	const canAdd = useValue(
+		'can add to collection',
+		() =>
+			currentId !== undefined &&
+			editor.getSelectedShapeIds().length > 0 &&
+			source.can('addItem', currentId),
+		[editor, source, currentId]
+	)
+	const saveSelection = useSaveSelection(source)
 
 	if (!open) return null
 
@@ -83,6 +96,15 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 									onValueChange={(id) => activeCollectionId.set(editor, id)}
 									label={msg(messages.title)}
 								/>
+								<TldrawUiButton
+									type="icon"
+									disabled={!canAdd}
+									tooltip={msg(messages.addSelection)}
+									title={msg(messages.addSelection)}
+									onClick={() => saveSelection(current.id)}
+								>
+									<TldrawUiButtonIcon icon="plus" small />
+								</TldrawUiButton>
 							</header>
 							<ItemGrid
 								items={items.map((item) => ({

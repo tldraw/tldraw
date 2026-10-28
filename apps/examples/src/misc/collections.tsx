@@ -1,13 +1,17 @@
 import {
+	AddToCollectionMenuItem,
 	CollectionsPanel,
 	CollectionRecordType,
 	CollectionsPanelButton,
 	collectionsPanelOpen,
 	InMemoryCollectionSource,
+	saveShapesToCollection,
 	type TLCollectionId,
 } from '@tldraw/collections'
 import {
 	createShapeId,
+	DefaultContextMenu,
+	DefaultContextMenuContent,
 	DefaultPageMenu,
 	Editor,
 	TLComponents,
@@ -48,7 +52,11 @@ const geo = (x: number, y: number, props: GeoProps): TLShapePartial<TLGeoShape> 
 	props,
 })
 
-const SAMPLES: { collectionId: TLCollectionId; name?: string; shapes: TLShapePartial<TLGeoShape>[] }[] = [
+const SAMPLES: {
+	collectionId: TLCollectionId
+	name?: string
+	shapes: TLShapePartial<TLGeoShape>[]
+}[] = [
 	{
 		collectionId: WIREFRAMES,
 		name: 'Button',
@@ -86,15 +94,11 @@ async function seedSamples(editor: Editor) {
 	for (const sample of SAMPLES) {
 		const ids = sample.shapes.map((shape) => shape.id)
 		editor.run(() => editor.createShapes(sample.shapes), { history: 'ignore' })
-		const content = editor.getContentFromCurrentPage(ids)
-		const { blob } = await editor.toImage(ids, { format: 'png', background: false })
-		editor.run(() => editor.deleteShapes(ids), { history: 'ignore' })
-		if (!content) continue
-		await source.addItem(sample.collectionId, {
-			name: sample.name,
-			content: { formatVersion: 1, content },
-			thumbnail: blob,
-		})
+		try {
+			await saveShapesToCollection(editor, source, sample.collectionId, ids, sample.name)
+		} finally {
+			editor.run(() => editor.deleteShapes(ids), { history: 'ignore' })
+		}
 	}
 }
 
@@ -102,6 +106,12 @@ let seeding: Promise<void> | undefined
 
 const components: TLComponents = {
 	InFrontOfTheCanvas: () => <CollectionsPanel source={source} />,
+	ContextMenu: (props) => (
+		<DefaultContextMenu {...props}>
+			<AddToCollectionMenuItem source={source} />
+			<DefaultContextMenuContent />
+		</DefaultContextMenu>
+	),
 	PageMenu: () => (
 		<>
 			<DefaultPageMenu />
@@ -118,11 +128,7 @@ const handleMount = (editor: Editor) => {
 export default function Collections() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
-				persistenceKey="collections"
-				components={components}
-				onMount={handleMount}
-			/>
+			<Tldraw persistenceKey="collections" components={components} onMount={handleMount} />
 		</div>
 	)
 }
