@@ -151,6 +151,7 @@ function TlaFilesGroup() {
 	const trackEvent = useTldrawAppUiEvents()
 	const query = useCommandPaletteQuery()
 	const currentFileId = useCurrentFileId()
+	const activeWorkspaceId = useActiveWorkspaceId()
 	const filesLbl = msg(messages.files)
 	const goToFileLbl = msg(messages.goToFile)
 	const myWorkspaceLbl = msg(messages.myWorkspace)
@@ -164,15 +165,18 @@ function TlaFilesGroup() {
 			const entries = (files: typeof searchable) =>
 				files.map((file) => {
 					const name = app.getFileName(file.fileId)
-					const workspace = workspaceName(file.workspaceId)
+					// Files in the workspace you're in need no name, like the current page's hits.
+					const workspace =
+						file.workspaceId === activeWorkspaceId ? undefined : workspaceName(file.workspaceId)
 					// Same prefixed label and path the palette ranks by, so a query it would match isn't
 					// filtered out here.
 					const label = `${goToFileLbl}: ${name}`
+					const path = workspace ? [filesLbl, goToFileLbl, workspace] : [filesLbl, goToFileLbl]
 					return {
 						...file,
 						name,
 						workspace,
-						score: getCommandPaletteMatchScore(query, label, [filesLbl, workspace]),
+						score: getCommandPaletteMatchScore(query, label, path),
 					}
 				})
 			if (!query.trim()) {
@@ -194,7 +198,7 @@ function TlaFilesGroup() {
 				.sort((a, b) => b.score - a.score)
 				.slice(0, MAX_FILE_RESULTS)
 		},
-		[app, query, myWorkspaceLbl, currentFileId, filesLbl, goToFileLbl]
+		[app, query, myWorkspaceLbl, currentFileId, activeWorkspaceId, filesLbl, goToFileLbl]
 	)
 
 	if (results.length === 0) return null
@@ -202,23 +206,18 @@ function TlaFilesGroup() {
 	return (
 		<TldrawUiMenuGroup id="tla-files" label={filesLbl}>
 			<TldrawUiMenuSubmenu id="tla-go-to-file" label={goToFileLbl}>
-				{/* One group per file keeps results in order while putting the workspace in its search path. */}
 				{results.map((file) => (
-					<TldrawUiMenuGroup
+					<TldrawUiMenuItem
 						key={file.fileId}
-						id={`tla-file-${file.fileId}`}
-						label={file.workspace}
-					>
-						<TldrawUiMenuItem
-							id={`file:${file.fileId}`}
-							label={file.name}
-							readonlyOk
-							onSelect={() => {
-								trackEvent('click-file-link', { source: 'command-palette' })
-								navigate(routes.tlaFile(file.fileId))
-							}}
-						/>
-					</TldrawUiMenuGroup>
+						id={`file:${file.fileId}`}
+						label={file.name}
+						detail={file.workspace}
+						readonlyOk
+						onSelect={() => {
+							trackEvent('click-file-link', { source: 'command-palette' })
+							navigate(routes.tlaFile(file.fileId))
+						}}
+					/>
 				))}
 			</TldrawUiMenuSubmenu>
 		</TldrawUiMenuGroup>
@@ -405,6 +404,7 @@ function TlaNotificationsGroup() {
 	const app = useApp()
 	const navigate = useNavigate()
 	const { notifications, unreadCount } = useCommentNotifications()
+	const currentFileId = useCurrentFileId()
 	const notificationsLbl = msg(messages.notifications)
 	const unknownAuthorLbl = msg(messages.unknownAuthor)
 	if (!unreadCount) return null
@@ -425,6 +425,11 @@ function TlaNotificationsGroup() {
 							id={`notification:${comment.id}`}
 							iconLeft={unread ? unreadIcon : undefined}
 							label={`${comment.authorName || unknownAuthorLbl}: ${richTextToPlaintext(comment.body as TLRichText)}`}
+							detail={
+								comment.fileId === currentFileId
+									? undefined
+									: app.getFileName(comment.fileId) || undefined
+							}
 							readonlyOk
 							onSelect={() => {
 								if (unread) app.markCommentRead(comment.id)

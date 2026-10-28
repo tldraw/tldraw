@@ -218,4 +218,21 @@ describe('getCommandPaletteSubmenuRows', () => {
 		)
 		expect(getCommandPaletteSubmenuRows(submenuEntries, moveTo.key, 'move', [])).toEqual([])
 	})
+
+	it('shows and matches the detail', () => {
+		const files = { key: 'go-to-file', label: 'Go to file' }
+		const entries = [
+			entry('a', { name: 'Roadmap', submenu: files, detail: 'Acme' }),
+			entry('b', { name: 'Roadmap', submenu: files, detail: 'Globex' }),
+		]
+		const details = (rows: CommandPaletteRow[]) =>
+			rows.map((row) => (row.type === 'item' ? [row.label, row.detail] : row.type))
+		expect(details(getCommandPaletteSubmenuRows(entries, files.key, '', []))).toEqual([
+			['Roadmap', 'Acme'],
+			['Roadmap', 'Globex'],
+		])
+		expect(details(getCommandPaletteSubmenuRows(entries, files.key, 'roadmap glo', []))).toEqual([
+			['Roadmap', 'Globex'],
+		])
+	})
 })

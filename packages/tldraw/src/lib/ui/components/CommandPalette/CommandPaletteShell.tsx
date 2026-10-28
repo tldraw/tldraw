@@ -87,7 +87,7 @@ export function CommandPaletteShell({
 	const rInput = useRef<HTMLInputElement>(null)
 	const rList = useRef<HTMLDivElement>(null)
 	const [canScrollDown, setCanScrollDown] = useState(false)
-	const [anchor, setAnchor] = useState<{ top: number; width: number } | null>(null)
+	const [anchor, setAnchor] = useState<{ top: number; bottom: number; width: number } | null>(null)
 	const rScrollToActive = useRef(false)
 	const listboxId = useId()
 	// Only the query reruns a search, so the list can't shift under the highlight as the document
@@ -207,8 +207,13 @@ export function CommandPaletteShell({
 		const bounds = container.getBoundingClientRect()
 		const { top, bottom, width } = toolbar.getBoundingClientRect()
 		const gap = bounds.bottom - bottom
-		const next = { top: Math.max(8, top - bounds.top - gap - palette.offsetHeight), width }
-		setAnchor((prev) => (prev?.top === next.top && prev.width === next.width ? prev : next))
+		const limit = top - bounds.top - gap
+		const next = { top: Math.max(8, limit - palette.offsetHeight), bottom: limit, width }
+		setAnchor((prev) =>
+			prev?.top === next.top && prev.bottom === next.bottom && prev.width === next.width
+				? prev
+				: next
+		)
 	}, [editor, position, query, submenu, prompt, rows])
 
 	// Radix menus give focus back to their trigger a frame after closing, which would take it from
@@ -404,7 +409,17 @@ export function CommandPaletteShell({
 					ref={rPalette}
 					className="tlui-command-palette"
 					data-position={position}
-					style={anchor ? { top: anchor.top, width: anchor.width } : undefined}
+					style={
+						anchor
+							? {
+									top: anchor.top,
+									width: anchor.width,
+									// A submenu's back heading or a prompt would otherwise push the palette over the
+									// toolbar; the list shrinks instead. Not while browsing, where it is measured.
+									maxHeight: query || submenu || prompt ? anchor.bottom - anchor.top : undefined,
+								}
+							: undefined
+					}
 					role="dialog"
 					aria-label={msg(messages.title)}
 					data-testid="command-palette"

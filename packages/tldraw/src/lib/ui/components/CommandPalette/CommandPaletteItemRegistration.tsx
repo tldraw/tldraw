@@ -11,6 +11,7 @@ export interface CommandPaletteItemRegistrationProps {
 	kbd?: string
 	checked?: boolean
 	isSelected?: boolean
+	detail?: string
 	prompt?: CommandPalettePrompt
 	search?: CommandPaletteSearch
 	icon?: string | TLUiIconJsx
@@ -32,7 +33,7 @@ export function CommandPaletteItemRegistration(props: CommandPaletteItemRegistra
 			...props,
 			label,
 			name: props.label,
-			path,
+			path: props.detail ? [...path, props.detail] : path,
 			submenu,
 			section,
 			heading,
