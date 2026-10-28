@@ -2,7 +2,7 @@ import { useTldrawUiMenuContext } from '../primitives/menus/TldrawUiMenuContext'
 import { CommandPaletteItemRegistration } from './CommandPaletteItemRegistration'
 
 /** @public */
-export interface CommandPalettePromptItemProps {
+export interface TLUiCommandPalettePromptItemProps {
 	id: string
 	label: string
 	placeholder: string
@@ -24,7 +24,7 @@ export function CommandPalettePromptItem({
 	placeholder,
 	initialValue,
 	onSubmit,
-}: CommandPalettePromptItemProps) {
+}: TLUiCommandPalettePromptItemProps) {
 	const { type } = useTldrawUiMenuContext()
 	if (type !== 'command-palette') return null
 	return (

@@ -391,12 +391,12 @@ export {
 	CommandPalettePinned,
 	useCommandPaletteActiveItemId,
 	useCommandPaletteQuery,
-	type CommandPaletteCollapsedProps,
-	type CommandPalettePinnedProps,
+	type TLUiCommandPaletteCollapsedProps,
+	type TLUiCommandPalettePinnedProps,
 } from './lib/ui/components/CommandPalette/CommandPaletteContext'
 export {
 	CommandPalettePromptItem,
-	type CommandPalettePromptItemProps,
+	type TLUiCommandPalettePromptItemProps,
 } from './lib/ui/components/CommandPalette/CommandPalettePromptItem'
 export {
 	CommandPaletteActionGroup,

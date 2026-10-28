@@ -117,12 +117,12 @@ export function CommandPalettePathProvider({
 }
 
 /** @public */
-export interface CommandPalettePinnedProps {
+export interface TLUiCommandPalettePinnedProps {
 	children: ReactNode
 }
 
 /** @public */
-export interface CommandPaletteCollapsedProps {
+export interface TLUiCommandPaletteCollapsedProps {
 	children: ReactNode
 }
 
@@ -132,7 +132,7 @@ export interface CommandPaletteCollapsedProps {
  *
  * @public @react
  */
-export function CommandPalettePinned({ children }: CommandPalettePinnedProps) {
+export function CommandPalettePinned({ children }: TLUiCommandPalettePinnedProps) {
 	return <CommandPalettePathProvider pinned>{children}</CommandPalettePathProvider>
 }
 
@@ -143,6 +143,6 @@ export function CommandPalettePinned({ children }: CommandPalettePinnedProps) {
  *
  * @public @react
  */
-export function CommandPaletteCollapsed({ children }: CommandPaletteCollapsedProps) {
+export function CommandPaletteCollapsed({ children }: TLUiCommandPaletteCollapsedProps) {
 	return <CommandPalettePathProvider collapseSubmenu>{children}</CommandPalettePathProvider>
 }
