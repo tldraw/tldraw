@@ -528,6 +528,55 @@ describe('handleOgImageRenderMessage', () => {
 		expect(job).toMatchObject({ pageId: 'page:full' })
 	})
 
+	it('skips the capture and removes the stale image when no page has content', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'file-1', shared: true, isDeleted: false })
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(
+			makeSnapshot([
+				{ id: 'page:one', index: 'a1', shapes: 0 },
+				{ id: 'page:two', index: 'a2', shapes: 0 },
+			])
+		)
+		const board = { kind: 'shared_file', slug: 'file-1' } as const
+		const bucket = makeFakeThumbnailsBucket()
+		const cacheKey = getOgImageCacheKey(board)
+		await bucket.put(cacheKey, new Uint8Array([9]).buffer, {
+			customMetadata: { version: 'before-the-erase', createdAt: String(Date.now()) },
+		})
+		await enqueueOgImageRender(makeEnv({ THUMBNAILS: bucket }), board, { reason: 'edit' })
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(), THUMBNAILS: bucket })
+		const message = makeMessage({ ...board, reason: 'edit' })
+
+		await handleOgImageRenderMessage(env, message)
+
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+		// Image and pending marker both gone, so the routes fall back and the next edit can enqueue.
+		expect([...bucket.store.keys()]).toEqual([])
+		expect(message.ack).toHaveBeenCalledTimes(1)
+		expect(message.retry).not.toHaveBeenCalled()
+		expect(failureBlobsOf(env)).toEqual(['failure:board_empty'])
+		expect(sessionsOf(env)).toEqual([])
+	})
+
+	it('arms the repair cooldown when a crawler-triggered job finds no content, and only then', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(
+			makeSnapshot([{ id: 'page:main', index: 'a1', shapes: 0 }])
+		)
+		const board = { kind: 'published', slug: 'board' } as const
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'publish' }))
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(false)
+
+		await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'crawler' }))
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(true)
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+	})
+
 	// The render page reads the snapshot through the same functions, so a board with no persisted
 	// content here has none there either — the capture would 404 and come back as a render failure
 	// having spent a Browser Run slot to learn it. Fail before the render instead, and let the

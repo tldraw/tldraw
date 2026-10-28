@@ -101,6 +101,7 @@ describe('FontManager', () => {
 			getCurrentPageShapeIds: vi.fn(() => new Set()),
 			getShape: vi.fn(),
 			getContainerDocument: vi.fn(() => document),
+			timers: { requestAnimationFrame: vi.fn() },
 			isDisposed: false,
 		} as any
 

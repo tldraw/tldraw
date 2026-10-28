@@ -49,9 +49,10 @@ export interface Environment {
 	ASSETS: Fetcher
 
 	ROOMS: R2Bucket
+	// Full copies of every version written before cut-over. Nothing reads it any more; room deletes
+	// still sweep it so a deleted board's content does not outlive the board.
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket
-	// Delta chains. ROOMS_HISTORY_EPHEMERAL keeps every version written before cut-over, so both
-	// buckets stay on the read path until the standing history is compacted.
+	// Delta chains: every version of every room.
 	ROOMS_HISTORY: R2Bucket
 	// The room-history migration's cold archive of every board's pre-migration history. Only
 	// hard deletes touch it.
@@ -246,7 +247,7 @@ export type TLServerEvent =
 			type: 'version_chain_verify'
 	  } & (
 			| { outcome: 'ok' }
-			| { outcome: 'fail'; reason: 'missing' | 'legacy-fallback' | 'head-mismatch' | 'error' }
+			| { outcome: 'fail'; reason: 'missing' | 'head-mismatch' | 'error' }
 			// Not a failure: the chain was left unchecked because reconstructing it here would risk
 			// the isolate's memory. Carries the keyframe size so the threshold can be tuned.
 			| { outcome: 'skipped'; reason: 'keyframe-size'; keyframeBytes: number }

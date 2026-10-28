@@ -1,4 +1,5 @@
 import {
+	defineMessages,
 	preventDefault,
 	useContainer,
 	useEditor,
@@ -21,6 +22,10 @@ import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultContextMenuContent } from './DefaultContextMenuContent'
+
+const messages = defineMessages({
+	contextMenuTitle: { id: 'context-menu.title', defaultMessage: 'Context menu' },
+})
 
 // Controlled `open`: tldraw can close the menu itself (MenuClickCapture's
 // clearOpenMenus), and radix >=2.3.0 only fires onOpenChange on real state
@@ -171,7 +176,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 					<_ContextMenu.Content
 						className="tlui-menu tlui-scrollable"
 						data-testid="context-menu"
-						aria-label={msg('context-menu.title')}
+						aria-label={msg(messages.contextMenuTitle)}
 						alignOffset={-4}
 						collisionPadding={4}
 						onContextMenu={preventDefault}

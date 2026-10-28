@@ -1,8 +1,7 @@
 import classNames from 'classnames'
 import { ReactNode, useCallback } from 'react'
-import { useDialogs } from 'tldraw'
+import { defineMessages, useDialogs, useTranslation } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
-import { defineMessages, useMsg } from '../../../utils/i18n'
 import { WorkspaceSettingsDialog } from '../../dialogs/WorkspaceSettingsDialog'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { useHandleSidebarCreateFile } from './TlaSidebarCreateFileButton'
@@ -21,11 +20,10 @@ const messages = defineMessages({
  * see WorkspaceSettingsDialog.)
  */
 export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: string }) {
+	const msg = useTranslation()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
 	const handleCreateFile = useHandleSidebarCreateFile()
-	const newBoardLbl = useMsg(messages.newFile)
-	const settingsLbl = useMsg(messages.workspaceSettings)
 
 	const handleSettings = useCallback(() => {
 		addDialog({
@@ -41,13 +39,13 @@ export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: strin
 			<TlaSidebarSearch />
 			<TlaSidebarActionButton
 				icon="edit"
-				label={newBoardLbl}
+				label={msg(messages.newFile)}
 				onClick={handleCreateFile}
 				testId="tla-sidebar-new-board"
 			/>
 			<TlaSidebarActionButton
 				icon="settings"
-				label={settingsLbl}
+				label={msg(messages.workspaceSettings)}
 				onClick={handleSettings}
 				testId="tla-sidebar-workspace-settings"
 			/>

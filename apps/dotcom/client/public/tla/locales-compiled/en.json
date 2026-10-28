@@ -493,16 +493,6 @@
       "value": "Collaborator limit reached"
     }
   ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " unread"
-    }
-  ],
   "550b25cc0c": [
     {
       "type": 0,
@@ -936,20 +926,6 @@
       "value": "Please refresh the page to get the latest version of tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Added "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " .tldr files."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1128,6 +1104,38 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "a0a19d5145": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " unread"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " unread"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a0da245992": [
@@ -1390,6 +1398,46 @@
       "value": "Learn more about sharing."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Added "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr file."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Added "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr files."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1400,12 +1448,6 @@
     {
       "type": 0,
       "value": "Essential cookies"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Long String"
     }
   ],
   "c6a00f137b": [
@@ -1688,12 +1730,6 @@
     {
       "type": 0,
       "value": "Account menu"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Accented"
     }
   ],
   "ed75712b0e": [

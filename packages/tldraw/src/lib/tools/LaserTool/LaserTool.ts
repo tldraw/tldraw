@@ -50,4 +50,19 @@ export class LaserTool extends StateNode {
 
 		return this.sessionId
 	}
+
+	/**
+	 * Add a new laser scribble to the current session, starting a fresh session first if there is
+	 * none or the current one is fading.
+	 */
+	startScribble(): { sessionId: string; scribbleId: string } {
+		const sessionId = this.getSessionId()
+		const scribble = this.editor.scribbles.addScribbleToSession(sessionId, {
+			color: 'laser',
+			opacity: 0.7,
+			size: 4,
+			taper: false,
+		})
+		return { sessionId, scribbleId: scribble.id }
+	}
 }

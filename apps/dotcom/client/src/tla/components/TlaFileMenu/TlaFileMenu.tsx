@@ -4,6 +4,8 @@ import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	defineMessages,
+	getIncrementedName,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -12,11 +14,11 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
-	getIncrementedName,
 	uniqueId,
 	useDialogs,
 	useMaybeEditor,
 	useToasts,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
@@ -27,7 +29,6 @@ import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
-import { defineMessages, useMsg } from '../../utils/i18n'
 import { CreateWorkspaceDialog } from '../dialogs/CreateWorkspaceDialog'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu'
@@ -111,13 +112,14 @@ export function FileItems({
 	onRenameAction(): void
 	workspaceId: string | null
 }) {
+	const msg = useTranslation()
 	const app = useApp()
 	const editor = useMaybeEditor()
 	const { addDialog } = useDialogs()
 	const navigate = useNavigate()
 	const { addToast } = useToasts()
 	const trackEvent = useTldrawAppUiEvents()
-	const copiedMsg = useMsg(messages.copied)
+	const copiedMsg = msg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
 	const isPinned = useIsFilePinned(fileId, workspaceId ?? '')
 	const activeWorkspaceId = useActiveWorkspaceId()
@@ -212,44 +214,42 @@ export function FileItems({
 		downloadAppFile(fileId)
 	}, [fileId, source, trackEvent])
 
-	const copyLinkMsg = useMsg(messages.copyLink)
-	const renameMsg = useMsg(messages.rename)
-	const duplicateMsg = useMsg(messages.duplicate)
-	const pinMsg = useMsg(messages.pin)
-	const unpinMsg = useMsg(messages.unpin)
-	const deleteOrForgetMsg = useMsg(hasAdminRights ? messages.delete : messages.forget)
-	const downloadFile = useMsg(editorMessages.downloadFile)
-	const myWorkspaceMsg = useMsg(messages.myWorkspace)
+	const unpinMsg = msg(messages.unpin)
 
 	return (
 		<Fragment>
 			<TldrawUiMenuGroup id="file-actions">
 				{/* todo: in published rooms, support copying link */}
 				<TldrawUiMenuItem
-					label={copyLinkMsg}
+					label={msg(messages.copyLink)}
 					id="copy-link"
 					readonlyOk
 					onSelect={handleCopyLinkClick}
 				/>
 				{hasAdminRights && (
-					<TldrawUiMenuItem label={renameMsg} id="rename" readonlyOk onSelect={onRenameAction} />
+					<TldrawUiMenuItem
+						label={msg(messages.rename)}
+						id="rename"
+						readonlyOk
+						onSelect={onRenameAction}
+					/>
 				)}
 				{/* todo: in published rooms, support duplication / forking */}
 				<TldrawUiMenuItem
-					label={duplicateMsg}
+					label={msg(messages.duplicate)}
 					id="duplicate"
 					readonlyOk
 					onSelect={handleDuplicateClick}
 				/>
 				<TldrawUiMenuItem
-					label={downloadFile}
+					label={msg(editorMessages.downloadFile)}
 					id="download-file"
 					readonlyOk
 					onSelect={handleDownloadClick}
 				/>
 				{workspaceId && (
 					<TldrawUiMenuItem
-						label={isPinned ? unpinMsg : pinMsg}
+						label={isPinned ? unpinMsg : msg(messages.pin)}
 						id="pin-unpin"
 						readonlyOk
 						onSelect={handlePinUnpinClick}
@@ -262,7 +262,7 @@ export function FileItems({
 						<TldrawUiMenuGroup id="workspaces">
 							<TldrawUiMenuCheckboxItem
 								key="my-files"
-								label={homeWorkspaceName ?? myWorkspaceMsg}
+								label={homeWorkspaceName ?? msg(messages.myWorkspace)}
 								id="my-files"
 								readonlyOk
 								checked={fileWorkspaceId === homeWorkspaceId}
@@ -323,7 +323,7 @@ export function FileItems({
 				)}
 				{workspaceId && (
 					<TldrawUiMenuItem
-						label={deleteOrForgetMsg}
+						label={msg(hasAdminRights ? messages.delete : messages.forget)}
 						id="delete"
 						readonlyOk
 						onSelect={handleDeleteClick}

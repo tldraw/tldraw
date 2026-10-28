@@ -26,7 +26,8 @@ function createAppStub({
 		abortController: new AbortController(),
 		toasts: { addToast, removeToast: vi.fn(), toasts: { update: vi.fn() } },
 		messages: {},
-		getIntl: () => ({ formatMessage: () => '' }),
+		// Translation isn't what these assert, and `messages` is empty, so stub it out as before.
+		msg: () => '',
 		trackEvent: vi.fn(),
 		uploadTldrFile,
 	})

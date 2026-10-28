@@ -1,17 +1,19 @@
 // oxlint-disable typescript/no-empty-object-type
 import {
 	BaseBoxShapeUtil,
+	bookmarkShapeMigrations,
+	bookmarkShapeProps,
+	defineMessages,
 	HTMLContainer,
+	lerp,
 	Rectangle2d,
 	T,
 	TLAssetId,
 	TLBookmarkAsset,
 	TLBookmarkShape,
 	TLBookmarkShapeProps,
-	bookmarkShapeMigrations,
-	bookmarkShapeProps,
-	lerp,
 	tlenv,
+	translateMessage,
 	useEditor,
 	useSvgExportContext,
 } from '@tldraw/editor'
@@ -41,6 +43,10 @@ export interface BookmarkShapeOptions extends ShapeOptionsWithDisplayValues<
 	BookmarkShapeUtilDisplayValues
 > {}
 
+const messages = defineMessages({
+	name: { id: 'tool.bookmark', defaultMessage: 'Bookmark' },
+})
+
 /** @public */
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	static override type = 'bookmark' as const
@@ -54,6 +60,10 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		getCustomDisplayValues(): Partial<BookmarkShapeUtilDisplayValues> {
 			return {}
 		},
+	}
+
+	override getShapeName() {
+		return translateMessage(this.editor.i18n(), messages.name)
 	}
 
 	override canResize(shape: TLBookmarkShape) {

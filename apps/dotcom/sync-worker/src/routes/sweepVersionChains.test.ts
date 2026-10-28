@@ -54,12 +54,7 @@ function snapshot(clock: number, ids: string[]): RoomSnapshot {
 	}
 }
 
-async function seedChain(
-	chainBucket: R2Bucket,
-	legacyBucket: R2Bucket,
-	roomKey: string,
-	versions: RoomSnapshot[]
-) {
+async function seedChain(chainBucket: R2Bucket, roomKey: string, versions: RoomSnapshot[]) {
 	let chain: ChainState | null = null
 	let pending: PendingDelta[] = []
 	for (let i = 0; i < versions.length; i++) {
@@ -76,16 +71,11 @@ async function seedChain(
 		})
 		chain = result.chain
 		pending = result.pending
-		await legacyBucket.put(`${roomKey}/${iso}`, JSON.stringify(versions[i]))
 	}
 }
 
-function env(chainBucket: R2Bucket, legacyBucket: R2Bucket): Environment {
-	return {
-		ROOMS_HISTORY: chainBucket,
-		ROOMS_HISTORY_EPHEMERAL: legacyBucket,
-		MEASURE: undefined,
-	} as unknown as Environment
+function env(chainBucket: R2Bucket): Environment {
+	return { ROOMS_HISTORY: chainBucket, MEASURE: undefined } as unknown as Environment
 }
 
 const versions = [snapshot(1, ['shape:a']), snapshot(2, ['shape:a', 'shape:b'])]
@@ -99,12 +89,11 @@ describe('sweepVersionChains', () => {
 
 	it('reports a healthy room as verified with no failures', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
-		await seedChain(chainBucket, legacyBucket, 'app_rooms/file1', versions)
+		await seedChain(chainBucket, 'app_rooms/file1', versions)
 		files.rows = [{ id: 'file1', updatedAt: 100 }]
 
 		const result = await sweepVersionChains({
-			env: env(chainBucket, legacyBucket),
+			env: env(chainBucket),
 			rooms: 10,
 			readsPerRoom: 50,
 		})
@@ -119,11 +108,10 @@ describe('sweepVersionChains', () => {
 
 	it('counts a room with no chain as swept but not verified', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		files.rows = [{ id: 'file1', updatedAt: 100 }]
 
 		const result = await sweepVersionChains({
-			env: env(chainBucket, legacyBucket),
+			env: env(chainBucket),
 			rooms: 10,
 			readsPerRoom: 50,
 		})
@@ -134,63 +122,26 @@ describe('sweepVersionChains', () => {
 		expect(result.failed).toBe(0)
 	})
 
-	it('reports a room whose chain disagrees with its legacy copy', async () => {
+	it('reports a room whose chain cannot be replayed', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
-		await seedChain(chainBucket, legacyBucket, 'app_rooms/file1', versions)
-		// Rewrite one full copy so the chain replay and the legacy record disagree.
-		await legacyBucket.put(
-			'app_rooms/file1/2026-09-01T00:00:01.000Z',
-			JSON.stringify(snapshot(2, ['shape:a', 'shape:z']))
-		)
+		await seedChain(chainBucket, 'app_rooms/file1', versions)
+		await chainBucket.delete('app_rooms/file1/2026-09-01T00:00:00.000Z.k')
 		files.rows = [{ id: 'file1', updatedAt: 100 }]
 
-		const result = await sweepVersionChains({
-			env: env(chainBucket, legacyBucket),
-			rooms: 10,
-			readsPerRoom: 50,
-		})
+		const result = await sweepVersionChains({ env: env(chainBucket), rooms: 10, readsPerRoom: 50 })
 
 		expect(result.failed).toBe(1)
-		expect(result.failures).toEqual([
-			{ fileId: 'file1', reason: 'mismatch', detail: 'mismatch at 2026-09-01T00:00:01.000Z' },
+		expect(result.failures.map(({ fileId, reason }) => ({ fileId, reason }))).toEqual([
+			{ fileId: 'file1', reason: 'chain-error' },
 		])
 	})
 
-	it('does not fail a room whose legacy copy cannot be read', async () => {
-		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
-		await seedChain(chainBucket, legacyBucket, 'app_rooms/file1', versions)
-		// Corrupt one full copy: the comparison for that version cannot run, but the chain itself
-		// replays and hashes clean.
-		await legacyBucket.put('app_rooms/file1/2026-09-01T00:00:01.000Z', 'not json')
-		files.rows = [{ id: 'file1', updatedAt: 100 }]
-		const measure = { writeDataPoint: vi.fn() }
-
-		const result = await sweepVersionChains({
-			env: { ...env(chainBucket, legacyBucket), MEASURE: measure } as unknown as Environment,
-			rooms: 10,
-			readsPerRoom: 50,
-		})
-
-		// A legacy object that will not read is not a broken chain, so it must not count as a failure
-		// or emit the `fail` datapoint the verify-failures alert pages on.
-		expect(result.failed).toBe(0)
-		expect(result.failures).toEqual([])
-		expect(result.legacyReadFailures).toBe(1)
-		const verifyPoints = measure.writeDataPoint.mock.calls
-			.map(([point]) => point.blobs)
-			.filter((blobs) => blobs[0] === 'version_chain_verify')
-		expect(verifyPoints).toEqual([])
-	})
-
 	it('skips test files without reading R2 and still advances the cursor past them', async () => {
-		const legacyBucket = createFakeR2()
 		const list = vi.fn()
 		files.rows = [{ id: 'test_file1', updatedAt: 100 }]
 
 		const result = await sweepVersionChains({
-			env: env({ list } as unknown as R2Bucket, legacyBucket),
+			env: env({ list } as unknown as R2Bucket),
 			rooms: 1,
 			readsPerRoom: 50,
 		})
@@ -203,15 +154,14 @@ describe('sweepVersionChains', () => {
 
 	it('returns a cursor when the page is full and resumes from it', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
-		await seedChain(chainBucket, legacyBucket, 'app_rooms/file1', versions)
+		await seedChain(chainBucket, 'app_rooms/file1', versions)
 		files.rows = [
 			{ id: 'file1', updatedAt: 200 },
 			{ id: 'file2', updatedAt: 100 },
 		]
 
 		const first = await sweepVersionChains({
-			env: env(chainBucket, legacyBucket),
+			env: env(chainBucket),
 			rooms: 1,
 			readsPerRoom: 50,
 		})
@@ -222,24 +172,21 @@ describe('sweepVersionChains', () => {
 
 	it('resumes at the room the read budget stopped on rather than past it', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		files.rows = [
 			{ id: 'file1', updatedAt: 300 },
 			{ id: 'file2', updatedAt: 200 },
 			{ id: 'file3', updatedAt: 100 },
 		]
 		verifier.stub = async () => ({
-			checked: 1,
 			replayed: 1,
 			reads: 900,
 			complete: true,
 			mismatches: [],
 			errors: [],
-			legacyReadFailures: [],
 		})
 
 		const result = await sweepVersionChains({
-			env: env(chainBucket, legacyBucket),
+			env: env(chainBucket),
 			rooms: 3,
 			readsPerRoom: 50,
 		})
@@ -252,23 +199,20 @@ describe('sweepVersionChains', () => {
 
 	it('keeps the cursor when the budget stops the walk on the last page', async () => {
 		const chainBucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		files.rows = [
 			{ id: 'file1', updatedAt: 300 },
 			{ id: 'file2', updatedAt: 200 },
 		]
 		verifier.stub = async () => ({
-			checked: 1,
 			replayed: 1,
 			reads: 900,
 			complete: true,
 			mismatches: [],
 			errors: [],
-			legacyReadFailures: [],
 		})
 
 		const result = await sweepVersionChains({
-			env: env(chainBucket, legacyBucket),
+			env: env(chainBucket),
 			rooms: 10,
 			readsPerRoom: 50,
 		})

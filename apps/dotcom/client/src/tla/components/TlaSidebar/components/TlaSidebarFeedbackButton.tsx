@@ -1,6 +1,5 @@
 import classNames from 'classnames'
-import { useDialogs } from 'tldraw'
-import { defineMessages, useMsg } from '../../../utils/i18n'
+import { defineMessages, useDialogs, useTranslation } from 'tldraw'
 import { SubmitFeedbackDialog } from '../../dialogs/SubmitFeedbackDialog'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
@@ -10,8 +9,8 @@ const messages = defineMessages({
 })
 
 export function TlaSidebarFeedbackButton() {
+	const msg = useTranslation()
 	const { addDialog } = useDialogs()
-	const lbl = useMsg(messages.submitFeedback)
 	return (
 		<button
 			className={classNames(styles.sidebarLinkButton, styles.hoverable, 'tla-text_ui__regular')}
@@ -21,7 +20,7 @@ export function TlaSidebarFeedbackButton() {
 			}}
 		>
 			<TlaIcon icon="feedback" />
-			<span className={styles.sidebarLinkButtonLabel}>{lbl}</span>
+			<span className={styles.sidebarLinkButtonLabel}>{msg(messages.submitFeedback)}</span>
 		</button>
 	)
 }

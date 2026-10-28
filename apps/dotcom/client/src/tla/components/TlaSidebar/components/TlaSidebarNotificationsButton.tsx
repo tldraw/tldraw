@@ -1,11 +1,12 @@
 import {
+	defineMessages,
 	TldrawUiButton,
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 	useMenuIsOpen,
+	useTranslation,
 } from 'tldraw'
-import { defineMessages, useMsg } from '../../../utils/i18n'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
@@ -19,16 +20,19 @@ const NOTIFICATIONS_MENU_ID = 'sidebar-notifications'
 
 const messages = defineMessages({
 	notifications: { defaultMessage: 'Notifications' },
-	unreadNotifications: { defaultMessage: '{count} unread' },
+	// Both forms read the same in English, where "unread" doesn't inflect. Declared anyway, so a
+	// translator gets the slots for languages where the adjective agrees with the count.
+	unreadNotifications: {
+		defaultMessage: '{count, plural, one {# unread} other {# unread}}',
+	},
 })
 
 /** Opens the notifications popover (comments across the user's files), with an unread badge. */
 export function TlaSidebarNotificationsButton() {
+	const msg = useTranslation()
 	const { unreadCount } = useCommentNotifications()
 	// Same id as the popover, so we can dismiss it when a notification is opened.
 	const [, onOpenChange] = useMenuIsOpen(NOTIFICATIONS_MENU_ID)
-	const label = useMsg(messages.notifications)
-	const unreadLabel = useMsg(messages.unreadNotifications, { count: unreadCount })
 
 	return (
 		<TldrawUiPopover id={NOTIFICATIONS_MENU_ID}>
@@ -37,10 +41,15 @@ export function TlaSidebarNotificationsButton() {
 					type="icon"
 					className={styles.sidebarCreateFileButton}
 					data-testid="tla-notifications-button"
-					title={label}
+					title={msg(messages.notifications)}
 				>
 					<TlaIcon icon="notification" />
-					{unreadCount > 0 && <span className={notifications.badge} aria-label={unreadLabel} />}
+					{unreadCount > 0 && (
+						<span
+							className={notifications.badge}
+							aria-label={msg(messages.unreadNotifications, { count: unreadCount })}
+						/>
+					)}
 				</TldrawUiButton>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent

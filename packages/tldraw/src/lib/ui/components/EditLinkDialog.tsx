@@ -1,8 +1,8 @@
-import { T, TLShape, track, useEditor } from '@tldraw/editor'
+import { defineMessages, T, TLShape, track, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { isShapeWithLink, TLShapeWithLink } from '../../utils/shapes/shapes'
 import { TLUiDialogProps } from '../context/dialogs'
-import { useTranslation } from '../hooks/useTranslation/useTranslation'
+import { F } from '../context/i18n'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
 import {
@@ -38,6 +38,11 @@ function assertShapeWithLink(shape: TLShape | null | undefined): asserts shape i
 	}
 }
 
+const messages = defineMessages({
+	// `TldrawUiInput` takes its label as data, not as an element, so this one can't be an `<F>`.
+	url: { id: 'edit-link-dialog.url', defaultMessage: 'URL' },
+})
+
 export const EditLinkDialog = track(function EditLinkDialog({ onClose }: TLUiDialogProps) {
 	const editor = useEditor()
 
@@ -62,7 +67,6 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	selectedShape,
 }: TLUiDialogProps & { selectedShape: TLShapeWithLink }) {
 	const editor = useEditor()
-	const msg = useTranslation()
 
 	const rInput = useRef<HTMLInputElement>(null)
 
@@ -122,7 +126,9 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	return (
 		<>
 			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>{msg('edit-link-dialog.title')}</TldrawUiDialogTitle>
+				<TldrawUiDialogTitle>
+					<F defaultMessage="Edit link" id="edit-link-dialog.title" />
+				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody>
@@ -130,7 +136,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 					<TldrawUiInput
 						ref={rInput}
 						className="tlui-edit-link-dialog__input"
-						label="edit-link-dialog.url"
+						label={messages.url.id}
 						autoFocus
 						autoSelect
 						placeholder="https://example.com"
@@ -140,19 +146,25 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 						onCancel={handleCancel}
 					/>
 					<div>
-						{urlInputState.valid
-							? msg('edit-link-dialog.detail')
-							: msg('edit-link-dialog.invalid-url')}
+						{urlInputState.valid ? (
+							<F defaultMessage="Links will open in a new tab." id="edit-link-dialog.detail" />
+						) : (
+							<F defaultMessage="A link must be a valid URL." id="edit-link-dialog.invalid-url" />
+						)}
 					</div>
 				</div>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="normal" onClick={handleCancel} onTouchEnd={handleCancel}>
-					<TldrawUiButtonLabel>{msg('edit-link-dialog.cancel')}</TldrawUiButtonLabel>
+					<TldrawUiButtonLabel>
+						<F defaultMessage="Cancel" id="edit-link-dialog.cancel" />
+					</TldrawUiButtonLabel>
 				</TldrawUiButton>
 				{isRemoving ? (
 					<TldrawUiButton type="danger" onTouchEnd={handleClear} onClick={handleClear}>
-						<TldrawUiButtonLabel>{msg('edit-link-dialog.clear')}</TldrawUiButtonLabel>
+						<TldrawUiButtonLabel>
+							<F defaultMessage="Clear" id="edit-link-dialog.clear" />
+						</TldrawUiButtonLabel>
 					</TldrawUiButton>
 				) : (
 					<TldrawUiButton
@@ -161,7 +173,9 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 						onTouchEnd={handleComplete}
 						onClick={handleComplete}
 					>
-						<TldrawUiButtonLabel>{msg('edit-link-dialog.save')}</TldrawUiButtonLabel>
+						<TldrawUiButtonLabel>
+							<F defaultMessage="Continue" id="edit-link-dialog.save" />
+						</TldrawUiButtonLabel>
 					</TldrawUiButton>
 				)}
 			</TldrawUiDialogFooter>

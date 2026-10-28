@@ -351,24 +351,11 @@ async function copyTranslations() {
 		languagesFile
 	)
 
-	// main.ts
-
-	const defaultTranslation = await readJsonIfExists(join(sourceFolderPath, 'main.json'))!
-	const defaultTranslationFilePath = join(uiPath, 'defaultTranslation.ts')
-	const defaultTranslationFile = `
-		/** @internal */
-		export const DEFAULT_TRANSLATION = ${JSON.stringify(defaultTranslation)}
-	`
-	await writeCodeFile(
-		'internal/scripts/refresh-assets.ts',
-		'typescript',
-		defaultTranslationFilePath,
-		defaultTranslationFile
-	)
-
 	// translationKeys.ts
 
-	const translationKeys = Object.keys(defaultTranslation).map((key) => `'${key}'`)
+	const mainTranslation = await readJsonIfExists(join(sourceFolderPath, 'main.json'))!
+
+	const translationKeys = Object.keys(mainTranslation).map((key) => `'${key}'`)
 	const translationKeysFilePath = join(uiPath, 'TLUiTranslationKey.ts')
 	const translationKeysFile = `
 		/** @public */

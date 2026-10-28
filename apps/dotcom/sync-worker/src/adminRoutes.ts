@@ -22,7 +22,7 @@ import { getUploadObjectName } from './assetAssociation'
 import { summarizeSnapshotDocuments } from './fileStats'
 import { MAX_ATTEMPTS } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
-import { getR2KeyForRoom } from './r2'
+import { getR2KeyForRoom, R2ListOptionsWithInclude } from './r2'
 import { sweepVersionChainsRoute } from './routes/sweepVersionChains'
 import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
@@ -42,6 +42,7 @@ import {
 	setFeatureFlag,
 } from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
+import { parseVersionKey, readSegmentRef } from './versionChain'
 
 /**
  * Resolves the admin's emails to user ids once, at save time, so the request path only ever has to
@@ -312,8 +313,8 @@ export const adminRoutes = createRouter<Environment>()
 	// hash of the room name, but the room object stores its own identity, so it is asked directly —
 	// a never-initialized id resolves to null. A slug (anything that isn't 64-char hex) is hashed
 	// forward via idFromName. The brief wake is storage-read only; no room boot. Persist history
-	// comes from the version-cache bucket: one timestamped snapshot per persist, so save cadence
-	// separates an actively edited room from a parked tab holding a socket open.
+	// comes from the version chain: one version per persist, so save cadence separates an actively
+	// edited room from a parked tab holding a socket open.
 	.get('/app/admin/resolve-do-id/:objectIdOrSlug', async (res, env) => {
 		const param = res.params.objectIdOrSlug
 		let objectId: string
@@ -342,47 +343,56 @@ export const adminRoutes = createRouter<Environment>()
 		const info = await roomDo.__admin__getDocumentInfo()
 		if (!info) return json({ objectId, match: null, history: null })
 
-		// Stream the stats instead of collecting objects, so any number of snapshots fits. Keys are
-		// ISO timestamps (oldest first); min/max tracking keeps the newest save correct either way.
-		const prefix = `${getR2KeyForRoom({ slug: info.slug, isApp: info.isApp })}/`
+		// Stream the stats instead of collecting objects, so any number of versions fits. A segment
+		// holds many versions, named in its metadata; its key names only the first.
+		const roomKey = getR2KeyForRoom({ slug: info.slug, isApp: info.isApp })
 		let saves = 0
 		let totalBytes = 0
-		let firstAt: number | null = null
-		let lastAt: number | null = null
-		let latestSize: number | null = null
+		let firstAt: string | null = null
+		let lastAt: string | null = null
 		let cursor: string | undefined
 		let pages = 0
 		let listTruncated = false
 		do {
-			const page = await env.ROOMS_HISTORY_EPHEMERAL.list({ prefix, cursor })
+			const options: R2ListOptionsWithInclude = {
+				prefix: `${roomKey}/`,
+				cursor,
+				include: ['customMetadata'],
+			}
+			const page = await env.ROOMS_HISTORY.list(options as R2ListOptions)
 			for (const obj of page.objects) {
-				saves++
 				totalBytes += obj.size
-				const t = obj.uploaded.getTime()
-				if (firstAt === null || t < firstAt) firstAt = t
-				if (lastAt === null || t > lastAt) {
-					lastAt = t
-					latestSize = obj.size
+				const parsed = parseVersionKey(obj.key)
+				if (!parsed) continue
+				const timestamps =
+					parsed.kind === 'keyframe'
+						? [parsed.timestamp]
+						: (readSegmentRef(obj.customMetadata)?.timestamps ?? [parsed.timestamp])
+				for (const t of timestamps) {
+					saves++
+					if (firstAt === null || t < firstAt) firstAt = t
+					if (lastAt === null || t > lastAt) lastAt = t
 				}
 			}
 			cursor = page.truncated ? page.cursor : undefined
-			// subrequest backstop: 500 pages = 500k snapshots, far beyond any real room
+			// subrequest backstop: far beyond any real room's chain
 			if (++pages >= 500 && cursor) {
 				listTruncated = true
 				break
 			}
 		} while (cursor)
+		const latestSize = (await env.ROOMS.head(roomKey))?.size ?? null
 
 		return json({
 			objectId,
 			match: info,
 			history: {
 				saves,
-				firstSaveAt: firstAt !== null ? new Date(firstAt).toISOString() : null,
-				lastSaveAt: lastAt !== null ? new Date(lastAt).toISOString() : null,
+				firstSaveAt: firstAt,
+				lastSaveAt: lastAt,
 				avgSecondsBetweenSaves:
 					saves > 1 && firstAt !== null && lastAt !== null
-						? Math.round((lastAt - firstAt) / 1000 / (saves - 1))
+						? Math.round((Date.parse(lastAt) - Date.parse(firstAt)) / 1000 / (saves - 1))
 						: null,
 				latestSizeBytes: latestSize,
 				totalSizeBytes: totalBytes,

@@ -1,12 +1,11 @@
 import { useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { TldrawUiButton, tltime } from 'tldraw'
+import { TldrawUiButton, tltime, useTranslation } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
-import { useMsg } from '../../../utils/i18n'
 import { toggleMobileSidebar } from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { messages } from './sidebar-shared'
@@ -46,7 +45,8 @@ export function useHandleSidebarCreateFile() {
 }
 
 export function TlaSidebarCreateFileButton() {
-	const createTitle = useMsg(messages.create)
+	const msg = useTranslation()
+	const createTitle = msg(messages.create)
 	const handleSidebarCreate = useHandleSidebarCreateFile()
 
 	return (

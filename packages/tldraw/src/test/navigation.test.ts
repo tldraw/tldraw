@@ -1027,7 +1027,8 @@ describe('Shape navigation', () => {
 
 	// 7. Additional edge cases and regression tests
 	describe('locked shapes', () => {
-		it('skips locked shapes when navigating with next and prev', () => {
+		// Keyboard users reach locked shapes so they can unlock them from the menu or with Shift+L
+		it('reaches locked shapes when navigating with next and prev', () => {
 			editor.createShapes([
 				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
 				{ id: ids.box2, type: 'geo', x: 100, y: 0, isLocked: true },
@@ -1037,13 +1038,16 @@ describe('Shape navigation', () => {
 			editor.select(ids.box1)
 
 			editor.selectAdjacentShape('next')
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+			editor.selectAdjacentShape('next')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
 
 			editor.selectAdjacentShape('prev')
-			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
 		})
 
-		it('skips locked shapes when navigating in a cardinal direction', () => {
+		it('reaches locked shapes when navigating in a cardinal direction', () => {
 			editor.createShapes([
 				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
 				{ id: ids.box2, type: 'geo', x: 100, y: 0, isLocked: true },
@@ -1053,86 +1057,42 @@ describe('Shape navigation', () => {
 			editor.select(ids.box1)
 
 			editor.selectAdjacentShape('right')
-			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
-
-			editor.selectAdjacentShape('left')
-			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		})
-
-		it('keeps the current selection when every other shape is locked', () => {
-			editor.createShapes([
-				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
-				{ id: ids.box2, type: 'geo', x: 100, y: 0, isLocked: true },
-			])
-
-			editor.select(ids.box1)
-
-			editor.selectAdjacentShape('next')
-			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
 
 			editor.selectAdjacentShape('right')
-			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
 		})
 
-		it('keeps a selected locked shape when nothing else is selectable', () => {
-			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, isLocked: true }])
-
-			editor.setSelectedShapes([ids.box1])
-
-			expect(() => editor.selectAdjacentShape('next')).not.toThrow()
-			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-
-			expect(() => editor.selectAdjacentShape('right')).not.toThrow()
-			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		})
-
-		it('skips children of a locked frame when navigating with next and prev', () => {
-			editor.createShapes([
-				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
-				{ id: ids.frame1, type: 'frame', x: 200, y: 0, props: { w: 200, h: 200 }, isLocked: true },
-				{ id: ids.box2, type: 'geo', x: 10, y: 10, parentId: ids.frame1 },
-				{ id: ids.box3, type: 'geo', x: 110, y: 10, parentId: ids.frame1 },
-			])
-
-			// A child of the locked frame is selected, e.g. programmatically; the other child is
-			// locked by its ancestor, so traversal has nowhere to go
-			editor.setSelectedShapes([ids.box2])
-
-			editor.selectAdjacentShape('next')
-			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
-
-			editor.selectAdjacentShape('prev')
-			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
-		})
-
-		it('skips children of a locked frame when navigating in a cardinal direction', () => {
+		it('reaches children of a locked frame', () => {
 			editor.createShapes([
 				{ id: ids.frame1, type: 'frame', x: 0, y: 0, props: { w: 400, h: 200 }, isLocked: true },
 				{ id: ids.box1, type: 'geo', x: 10, y: 10, parentId: ids.frame1 },
 				{ id: ids.box2, type: 'geo', x: 200, y: 10, parentId: ids.frame1 },
 			])
 
-			editor.setSelectedShapes([ids.box1])
-
-			editor.selectAdjacentShape('right')
+			editor.setSelectedShapes([ids.frame1])
+			editor.selectFirstChildShape()
 			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		})
-
-		it('skips locked shapes when navigating within a container', () => {
-			editor.createShapes([
-				{ id: ids.frame1, type: 'frame', x: 0, y: 0, props: { w: 400, h: 200 } },
-				{ id: ids.box1, type: 'geo', x: 10, y: 10, parentId: ids.frame1 },
-				{ id: ids.box2, type: 'geo', x: 120, y: 10, parentId: ids.frame1, isLocked: true },
-				{ id: ids.box3, type: 'geo', x: 230, y: 10, parentId: ids.frame1 },
-			])
-
-			editor.select(ids.box1)
 
 			editor.selectAdjacentShape('next')
-			expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
 
 			editor.selectAdjacentShape('left')
 			expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		})
+
+		it('includes locked shapes in the reading order', () => {
+			editor.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 100, y: 0, isLocked: true },
+				{ id: ids.box3, type: 'geo', x: 200, y: 0 },
+			])
+
+			expect(editor.getCurrentPageShapesInReadingOrder().map((shape) => shape.id)).toEqual([
+				ids.box1,
+				ids.box2,
+				ids.box3,
+			])
 		})
 	})
 

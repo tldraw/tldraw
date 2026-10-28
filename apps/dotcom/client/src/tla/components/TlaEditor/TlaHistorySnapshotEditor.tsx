@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
-import { TLComponents, TLStoreSnapshot } from 'tldraw'
-import { F } from '../../utils/i18n'
+import { F, TLComponents, TLStoreSnapshot } from 'tldraw'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaLegacySnapshotEditor } from './TlaLegacySnapshotEditor'

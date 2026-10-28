@@ -78,6 +78,7 @@ export class TldrawDurableObject extends DurableObject {
 					socket: ws,
 					snapshot: attachment.snapshot,
 				})
+				this.sessionIdToWs.set(attachment.sessionId, ws)
 			}
 		}
 		return this.room
@@ -108,9 +109,23 @@ export class TldrawDurableObject extends DurableObject {
 		const attachment: SocketAttachment = { sessionId, snapshot: null }
 		serverWebSocket.serializeAttachment(attachment)
 
+		// Resume first: a cold boot that skipped the old socket would give this session a fresh
+		// presence id, and the old one's presence would never be removed for other clients.
+		const room = this.getOrCreateRoom()
+
+		// A client reconnecting under the same session id can leave its old socket open. Clear that
+		// socket's snapshot so a resume after hibernation can't pick it over this one, which would
+		// make the room ignore this socket's messages.
+		for (const ws of this.ctx.getWebSockets()) {
+			if (ws !== serverWebSocket && getAttachment(ws)?.sessionId === sessionId) {
+				ws.serializeAttachment(attachment)
+			}
+		}
+		this.sessionIdToWs.set(sessionId, serverWebSocket)
+
 		// Connect to the room. The first webSocketMessage from the client will
 		// complete the handshake and trigger debounced snapshot storage.
-		this.getOrCreateRoom().handleSocketConnect({ sessionId, socket: serverWebSocket })
+		room.handleSocketConnect({ sessionId, socket: serverWebSocket })
 
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
@@ -121,8 +136,8 @@ export class TldrawDurableObject extends DurableObject {
 		const attachment = getAttachment(ws)
 		if (!attachment) return
 
-		this.sessionIdToWs.set(attachment.sessionId, ws)
-		this.getOrCreateRoom().handleSocketMessage(attachment.sessionId, message)
+		// pass the socket so a superseded socket's in-flight messages can't corrupt the new one's
+		this.getOrCreateRoom().handleSocketMessage(attachment.sessionId, message, ws)
 	}
 
 	override async webSocketClose(ws: WebSocket) {
@@ -137,7 +152,9 @@ export class TldrawDurableObject extends DurableObject {
 		const attachment = getAttachment(ws)
 		if (!attachment) return
 
-		this.sessionIdToWs.delete(attachment.sessionId)
+		if (this.sessionIdToWs.get(attachment.sessionId) === ws) {
+			this.sessionIdToWs.delete(attachment.sessionId)
+		}
 
 		const room = this.getOrCreateRoom()
 
@@ -152,6 +169,6 @@ export class TldrawDurableObject extends DurableObject {
 			})
 		}
 
-		room[method](attachment.sessionId)
+		room[method](attachment.sessionId, ws)
 	}
 }

@@ -19,8 +19,8 @@ export function getPreviousMonth(date: Date): Date {
 
 /**
  * The chain index is listed once per request and threaded through: this handler probes up to
- * three dozen month prefixes, and each probe re-listing the whole chain (plus an uncapped legacy
- * walk) turned a ~7-listing request into hundreds on rooms with long histories.
+ * three dozen month prefixes, and each probe re-listing the whole chain turned a ~7-listing
+ * request into hundreds on rooms with long histories.
  */
 interface HistorySource {
 	env: Environment
@@ -35,7 +35,6 @@ async function fetchTimestampsForPrefix(
 ): Promise<string[]> {
 	return await listVersionTimestamps({
 		chainBucket: source.env.ROOMS_HISTORY,
-		legacyBucket: source.env.ROOMS_HISTORY_EPHEMERAL,
 		roomKey: source.roomKey,
 		prefix,
 		index: source.index,

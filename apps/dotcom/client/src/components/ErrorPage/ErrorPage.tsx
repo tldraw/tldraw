@@ -1,14 +1,23 @@
 import { Component, ReactNode } from 'react'
+import { FormattedMessage, IntlProvider } from 'react-intl'
 import { Link } from 'react-router-dom'
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
-import { F, IntlProvider } from '../../tla/utils/i18n'
+// react-intl's FormattedMessage rather than the SDK's `F`, which everything else here uses. This
+// page renders when the app has failed, so it's reachable from the entry chunk, and importing the
+// SDK would put the whole editor in front of first paint — `routePreloadPlugin` fails the build for
+// it. Nothing is lost: this page is outside the editor, so the marker span that the language-debug
+// overlay looks for has nothing to act on here.
 import { isInIframe } from '../../utils/iFrame'
 
 const GoBackLink = () => {
 	const inIframe = isInIframe()
 	return (
 		<Link to={'/'} target={inIframe ? '_blank' : '_self'}>
-			{inIframe ? <F defaultMessage="Open tldraw" /> : <F defaultMessage="Back to tldraw" />}
+			{inIframe ? (
+				<FormattedMessage defaultMessage="Open tldraw" />
+			) : (
+				<FormattedMessage defaultMessage="Back to tldraw" />
+			)}
 		</Link>
 	)
 }

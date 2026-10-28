@@ -1,4 +1,5 @@
 import {
+	defineMessages,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuGroup,
@@ -11,6 +12,12 @@ import {
 	useValue,
 } from 'tldraw'
 import { commentsHidden, toggleCommentsHidden } from './state'
+
+const messages = defineMessages({
+	commentsMoreOptions: { id: 'comments.more-options', defaultMessage: 'More options' },
+	commentsHide: { id: 'comments.hide', defaultMessage: 'Hide comments' },
+	commentsShow: { id: 'comments.show', defaultMessage: 'Show comments' },
+})
 
 // A keyboard-shortcut glyph, not translatable copy — kept out of JSX as a constant.
 const HIDE_SHORTCUT = '⇧C'
@@ -28,11 +35,11 @@ export function CommentsOverflowMenu() {
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton
 					type="icon"
-					tooltip={msg('comments.more-options')}
-					title={msg('comments.more-options')}
+					tooltip={msg(messages.commentsMoreOptions)}
+					title={msg(messages.commentsMoreOptions)}
 					className="tlui-cmt-header-btn"
 				>
-					<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+					<TldrawUiIcon icon="dots-vertical" label={msg(messages.commentsMoreOptions)} small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			<TldrawUiDropdownMenuContent
@@ -49,7 +56,7 @@ export function CommentsOverflowMenu() {
 							className="tlui-cmt-menu-item"
 							onClick={() => toggleCommentsHidden(editor)}
 						>
-							<span>{hidden ? msg('comments.show') : msg('comments.hide')}</span>
+							<span>{hidden ? msg(messages.commentsShow) : msg(messages.commentsHide)}</span>
 							<span className="tlui-cmt-menu-item__shortcut">{HIDE_SHORTCUT}</span>
 						</button>
 					</TldrawUiDropdownMenuItem>

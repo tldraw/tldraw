@@ -8,9 +8,10 @@ import {
 	useState,
 } from 'react'
 import {
-	type BoxModel,
+	defineMessages,
 	Editor,
 	TLCommentThread,
+	type BoxModel,
 	useContainer,
 	usePassThroughWheelEvents,
 	useTranslation,
@@ -19,7 +20,7 @@ import {
 import { CommentPin } from '../ui/comment-pin'
 import { forwardPointerEventToCanvas, isCanvasPanGesture } from './canvas-events'
 import { commitCommentMutation } from './comment-mutations'
-import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
+import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { getCommentingOptions, useCanComment, useCommentingOptions } from './options'
@@ -45,6 +46,15 @@ import {
 	shapeAnchorAt,
 } from './thread-state'
 import { POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
+
+const messages = defineMessages({
+	commentsUnknownAuthor: { id: 'comments.unknown-author', defaultMessage: 'Someone' },
+	commentsPinLabel: { id: 'comments.pin-label', defaultMessage: 'Comment by {name}' },
+	commentsPinLabelResolved: {
+		id: 'comments.pin-label-resolved',
+		defaultMessage: 'Resolved comment by {name}',
+	},
+})
 
 /** The opened popover has a header row the hover preview lacks, so it opens this much higher — the
  *  first comment then lands where the preview's sat. Re-measure if the header height or the preview
@@ -195,8 +205,11 @@ export const ThreadPin = memo(function ThreadPin({
 		<Avatar author={threadAuthor ?? UNKNOWN_COMMENT_AUTHOR} />
 	)
 	const pinLabel = msg(
-		thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label'
-	).replace('{name}', threadAuthor?.name ?? UNKNOWN_AUTHOR)
+		thread.resolved ? messages.commentsPinLabelResolved : messages.commentsPinLabel,
+		{
+			name: threadAuthor?.name ?? msg(messages.commentsUnknownAuthor),
+		}
+	)
 
 	// Drag the marker to move the thread: position is overridden locally while dragging, then re-anchored
 	// on drop. A region translates keeping its size; a barely-moved pointer is a click.

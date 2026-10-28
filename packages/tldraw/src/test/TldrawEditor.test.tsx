@@ -1,4 +1,4 @@
-import { act, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import {
 	BaseBoxShapeTool,
 	BaseBoxShapeUtil,
@@ -21,6 +21,7 @@ import { vi } from 'vitest'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
 import { Tldraw } from '../lib/Tldraw'
+import { TldrawUi } from '../lib/ui/TldrawUi'
 import { createDrawSegments } from '../lib/utils/test-helpers'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
 import {
@@ -868,5 +869,69 @@ describe('Custom shapes', () => {
 
 		// Is the editor's current tool correct?
 		expect(editor.getCurrentToolId()).toBe('card')
+	})
+})
+
+describe('<TldrawEditor /> i18n', () => {
+	const rectangle = { id: 'tool.rectangle', defaultMessage: 'Rectangle' }
+	const adapterSaying = (word: string) => () => ({
+		locale: 'en',
+		dir: 'ltr' as const,
+		translate: () => word,
+	})
+
+	// An adapter written inline is a new function on every render. It used to sit among the deps
+	// that recreate the editor, so each render threw away camera, selection and undo history.
+	it('keeps the same editor when the adapter changes identity', async () => {
+		let mounts = 0
+		let editor: Editor | undefined
+		const onMount = (e: Editor) => {
+			mounts++
+			editor = e
+		}
+		const props = { tools: defaultTools, initialState: 'select', onMount } as const
+		const { rerender } = await renderTldrawComponent(
+			<TldrawEditor {...props} i18n={adapterSaying('first')} />,
+			{ waitForPatterns: false }
+		)
+		rerender(<TldrawEditor {...props} i18n={adapterSaying('second')} />)
+		await act(async () => {})
+
+		expect(mounts).toBe(1)
+		// …and it still reads whichever adapter is current.
+		expect(editor!.i18n().translate(rectangle)).toBe('second')
+	})
+
+	// The `i18n` prop is new, so an app composing <TldrawEditor> and <TldrawUi> by hand doesn't pass
+	// one — and shape names now resolve through the editor's i18n, so they fell back to English.
+	it('falls back to the UI translations when the host passes none', async () => {
+		let resolve!: (e: Editor) => void
+		const mounted = new Promise<Editor>((r) => (resolve = r))
+		render(
+			<TldrawEditor shapeUtils={defaultShapeUtils} tools={defaultTools} onMount={resolve}>
+				<TldrawUi overrides={{ translations: { en: { 'tool.rectangle': 'Rechteck' } } }} />
+			</TldrawEditor>
+		)
+		const editor = await mounted
+		await act(async () => {})
+		expect(editor.i18n().translate(rectangle)).toBe('Rechteck')
+	})
+
+	it('prefers an i18n prop over the UI translations', async () => {
+		let resolve!: (e: Editor) => void
+		const mounted = new Promise<Editor>((r) => (resolve = r))
+		render(
+			<TldrawEditor
+				shapeUtils={defaultShapeUtils}
+				tools={defaultTools}
+				onMount={resolve}
+				i18n={adapterSaying('from the prop')}
+			>
+				<TldrawUi overrides={{ translations: { en: { 'tool.rectangle': 'Rechteck' } } }} />
+			</TldrawEditor>
+		)
+		const editor = await mounted
+		await act(async () => {})
+		expect(editor.i18n().translate(rectangle)).toBe('from the prop')
 	})
 })

@@ -1,5 +1,7 @@
 import {
 	BaseBoxShapeUtil,
+	createShapeId,
+	defineMessages,
 	HTMLContainer,
 	MediaHelpers,
 	SvgExportContext,
@@ -7,14 +9,14 @@ import {
 	TLShapePartial,
 	TLVideoAsset,
 	TLVideoShape,
-	VecModel,
-	WeakCache,
-	createShapeId,
+	translateMessage,
 	useEditor,
 	useEditorComponents,
 	useIsEditing,
+	VecModel,
 	videoShapeMigrations,
 	videoShapeProps,
+	WeakCache,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } from 'react'
@@ -41,6 +43,10 @@ export interface VideoShapeOptions extends ShapeOptionsWithDisplayValues<
 	autoplay: boolean
 }
 
+const messages = defineMessages({
+	name: { id: 'a11y.shape-video', defaultMessage: 'Video' },
+})
+
 /** @public */
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	static override type = 'video' as const
@@ -56,6 +62,10 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		getCustomDisplayValues(): Partial<VideoShapeUtilDisplayValues> {
 			return {}
 		},
+	}
+
+	override getShapeName() {
+		return translateMessage(this.editor.i18n(), messages.name)
 	}
 
 	override canEdit(shape: TLVideoShape) {

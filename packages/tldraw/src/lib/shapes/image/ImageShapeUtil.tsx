@@ -1,14 +1,24 @@
 // oxlint-disable typescript/no-empty-object-type
 import {
 	BaseBoxShapeUtil,
+	createShapeId,
+	defineMessages,
 	Editor,
 	Ellipse2d,
+	fetch,
 	FileHelpers,
 	Geometry2d,
+	getGlobalDocument,
 	HTMLContainer,
 	Image,
+	imageShapeMigrations,
+	imageShapeProps,
+	lerp,
 	MediaHelpers,
+	modulate,
 	Rectangle2d,
+	resizeBox,
+	structuredClone,
 	SvgExportContext,
 	TLAsset,
 	TLAssetId,
@@ -17,21 +27,13 @@ import {
 	TLImageShapeProps,
 	TLResizeInfo,
 	TLShapePartial,
-	Vec,
-	VecModel,
-	WeakCache,
-	createShapeId,
-	fetch,
-	getGlobalDocument,
-	imageShapeMigrations,
-	imageShapeProps,
-	lerp,
-	modulate,
-	resizeBox,
-	structuredClone,
+	translateMessage,
 	useEditor,
 	useUniqueSafeId,
 	useValue,
+	Vec,
+	VecModel,
+	WeakCache,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { memo, useEffect, useState } from 'react'
@@ -62,6 +64,10 @@ export interface ImageShapeOptions extends ShapeOptionsWithDisplayValues<
 	ImageShapeUtilDisplayValues
 > {}
 
+const messages = defineMessages({
+	name: { id: 'a11y.shape-image', defaultMessage: 'Image' },
+})
+
 /** @public */
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override type = 'image' as const
@@ -76,6 +82,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		getCustomDisplayValues(): Partial<ImageShapeUtilDisplayValues> {
 			return {}
 		},
+	}
+
+	override getShapeName() {
+		return translateMessage(this.editor.i18n(), messages.name)
 	}
 
 	override isAspectRatioLocked(shape: TLImageShape) {
@@ -166,6 +176,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 	override getAriaDescriptor(shape: TLImageShape) {
 		return shape.props.altText
+	}
+
+	override canFlip() {
+		return true
 	}
 
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {

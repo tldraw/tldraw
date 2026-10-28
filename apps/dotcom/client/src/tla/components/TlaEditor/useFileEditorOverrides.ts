@@ -1,17 +1,18 @@
 import { useMemo } from 'react'
+import { useIntl } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import {
+	downloadFile,
 	Editor,
+	serializeTldrawJsonBlob,
 	TLDRAW_FILE_EXTENSION,
 	TLUiOverrides,
-	downloadFile,
-	serializeTldrawJsonBlob,
+	useTranslation,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { useIntl, useMsg } from '../../utils/i18n'
 import { editorMessages as messages } from './editor-messages'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 
@@ -49,8 +50,9 @@ export function getEditorFileName(
 }
 
 export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
+	const msg = useTranslation()
 	const app = useMaybeApp()
-	const untitledProject = useMsg(messages.untitledProject)
+	const untitledProject = msg(messages.untitledProject)
 	const intl = useIntl()
 	const navigate = useNavigate()
 	const trackEvent = useHandleUiEvents()

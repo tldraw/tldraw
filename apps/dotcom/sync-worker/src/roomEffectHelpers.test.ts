@@ -1,6 +1,7 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+	clearSupersededSessionSnapshots,
 	FileEffectStallError,
 	RoomNotFoundError,
 	settleWithin,
@@ -103,5 +104,42 @@ describe('FileEffectStallError', () => {
 		expect(error.message).toBe(
 			'file update effect for slug-1 still pending after 30000ms in post-boot work'
 		)
+	})
+})
+
+describe('clearSupersededSessionSnapshots', () => {
+	function socket(attachment: unknown) {
+		let value = attachment
+		return {
+			deserializeAttachment: () => value,
+			serializeAttachment: vi.fn((next: unknown) => {
+				value = next
+			}),
+		}
+	}
+
+	it('leaves only the current socket resumable for its session', () => {
+		const snapshot = { presenceId: 'p1' }
+		const superseded = socket({ sessionId: 's1', meta: {}, snapshot })
+		const current = socket({ sessionId: 's1', meta: {}, snapshot })
+		const otherSession = socket({ sessionId: 's2', meta: {}, snapshot })
+		const noSnapshot = socket({ sessionId: 's1', meta: {}, snapshot: null })
+		const unattached = socket(null)
+
+		clearSupersededSessionSnapshots(
+			[superseded, current, otherSession, noSnapshot, unattached],
+			's1',
+			current
+		)
+
+		expect(superseded.deserializeAttachment()).toEqual({
+			sessionId: 's1',
+			meta: {},
+			snapshot: null,
+		})
+		expect(current.deserializeAttachment()).toEqual({ sessionId: 's1', meta: {}, snapshot })
+		expect(otherSession.deserializeAttachment()).toEqual({ sessionId: 's2', meta: {}, snapshot })
+		expect(noSnapshot.serializeAttachment).not.toHaveBeenCalled()
+		expect(unattached.serializeAttachment).not.toHaveBeenCalled()
 	})
 })

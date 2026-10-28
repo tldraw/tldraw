@@ -1,10 +1,18 @@
-import { TLUserId, track, useEditor, usePresence } from '@tldraw/editor'
+import { defineMessages, TLUserId, track, useEditor, usePresence } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
+
+const messages = defineMessages({
+	peopleMenuAnonymousUser: { id: 'people-menu.anonymous-user', defaultMessage: 'New user' },
+	peopleMenuAvatarColor: { id: 'people-menu.avatar-color', defaultMessage: 'Avatar color' },
+	peopleMenuFollow: { id: 'people-menu.follow', defaultMessage: 'Following' },
+	peopleMenuFollowing: { id: 'people-menu.following', defaultMessage: 'Following' },
+	peopleMenuLeading: { id: 'people-menu.leading', defaultMessage: 'Following you' },
+})
 
 /** @public */
 export interface TLUiPeopleMenuItemProps {
@@ -47,9 +55,13 @@ export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
 				onClick={() => editor.zoomToUser(userId)}
 				onDoubleClick={handleFollowClick}
 			>
-				<TldrawUiIcon label={msg('people-menu.avatar-color')} icon="color" color={presence.color} />
+				<TldrawUiIcon
+					label={msg(messages.peopleMenuAvatarColor)}
+					icon="color"
+					color={presence.color}
+				/>
 				<div className="tlui-people-menu__name">
-					{presence.userName?.trim() || msg('people-menu.anonymous-user')}
+					{presence.userName?.trim() || msg(messages.peopleMenuAnonymousUser)}
 				</div>
 			</TldrawUiButton>
 			<TldrawUiButton
@@ -57,10 +69,10 @@ export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
 				className="tlui-people-menu__item__follow"
 				title={
 					theyAreFollowingYou
-						? msg('people-menu.leading')
+						? msg(messages.peopleMenuLeading)
 						: youAreFollowingThem
-							? msg('people-menu.following')
-							: msg('people-menu.follow')
+							? msg(messages.peopleMenuFollowing)
+							: msg(messages.peopleMenuFollow)
 				}
 				onClick={handleFollowClick}
 				disabled={theyAreFollowingYou}

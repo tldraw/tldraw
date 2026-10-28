@@ -1,4 +1,5 @@
 import {
+	F,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
@@ -8,7 +9,6 @@ import {
 	TldrawUiDialogTitle,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
-import { F } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 
 export function SlurpFailure({

@@ -2,7 +2,6 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../r2'
-import { canonicalJson } from '../snapshotUtils'
 import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
@@ -12,9 +11,6 @@ import { loadChainIndex, readSegmentDeltas, SegmentIndexEntry } from '../version
 import { applySnapshotDelta, versionEnvelopeHash } from '../versionDelta'
 
 export interface VerifyResult {
-	/** Versions compared against a legacy full copy. Zero once dual-write is off. */
-	checked: number
-	/** Versions replayed, whether or not a legacy copy existed to compare them against. */
 	replayed: number
 	/** R2 reads spent, listing included. */
 	reads: number
@@ -24,44 +20,33 @@ export interface VerifyResult {
 	 * verified nothing — this is what says that result is not a clean room.
 	 */
 	complete: boolean
+	/** Versions whose replayed state does not match the hash recorded with their delta. */
 	mismatches: string[]
-	/** Chain faults only: a version that cannot be reconstructed from what is in the bucket. */
+	/** Chain faults: a version that cannot be reconstructed from what is in the bucket. */
 	errors: Array<{ timestamp: string; message: string }>
-	/**
-	 * Versions the legacy comparison could not check. Not chain faults: a legacy copy that will not
-	 * read says nothing about the chain, and counting it as one would page on R2 flakes.
-	 */
-	legacyReadFailures: Array<{ timestamp: string; message: string }>
 }
 
 /**
- * Compares every reconstructable version against the full copy dual-write left in the legacy
- * bucket. This is the gate on turning the full copies off — until it runs clean on live traffic,
- * the only evidence the encoding is exact comes from a 16-room sample.
+ * Replays every chain in a room and checks each version against the hash recorded with its delta
+ * (see versionEnvelopeHash), so a chain that would fail a history read is found before a read hits
+ * it.
  *
- * It keeps running after cut-over on the recorded hash alone, which is why `limit` counts R2 reads
- * and not comparisons: with no legacy copies left to compare against, a comparison counter never
- * moves and the walk would never stop.
+ * A keyframe carries no recorded hash, so one with no deltas after it is checked only for decoding:
+ * a keyframe that parses but holds the wrong board passes.
  */
 export async function verifyRoomVersions({
 	chainBucket,
-	legacyBucket,
 	roomKey,
 	limit,
 }: {
 	chainBucket: R2Bucket
-	legacyBucket: R2Bucket
 	roomKey: string
 	limit: number
 }): Promise<VerifyResult> {
 	const { entries, ops, rejected } = await loadChainIndex(chainBucket, roomKey)
 
-	// A set: a version can fail both the hash check and the legacy comparison, and it is one
-	// mismatch, not two.
-	const mismatches = new Set<string>()
+	const mismatches: string[] = []
 	const errors: Array<{ timestamp: string; message: string }> = []
-	const legacyReadFailures: Array<{ timestamp: string; message: string }> = []
-	let checked = 0
 	let replayed = 0
 	// Flagged at the break sites, not derived from `reads >= limit` at the end: the budget may
 	// overshoot on the version in flight, and a run that replayed everything is complete even so.
@@ -73,32 +58,9 @@ export async function verifyRoomVersions({
 	// reads one version costs. That is noise against the subrequest cap; an unbounded walk is not.
 	const withinBudget = () => reads < limit
 
-	const compareToLegacy = async (snapshot: RoomSnapshot, timestamp: string) => {
-		let expected: RoomSnapshot
-		try {
-			reads++
-			const legacyObject = await legacyBucket.get(`${roomKey}/${timestamp}`)
-			// Nothing to compare against for versions written before dual-write started, or for any
-			// version at all once it stops.
-			if (!legacyObject) return
-			expected = (await decodeVersionBody(legacyObject)) as RoomSnapshot
-		} catch (e: any) {
-			// Caught here, not in the callers: their catches mark the chain broken and stop the
-			// replay, and a flaky legacy read is neither.
-			legacyReadFailures.push({
-				timestamp,
-				message: `legacy copy read failed: ${String(e?.message ?? e)}`,
-			})
-			return
-		}
-		checked++
-		if (canonical(snapshot) !== canonical(expected)) mismatches.add(timestamp)
-	}
-
-	// Each chain replays once, front to back, comparing every intermediate state against the
-	// legacy full copy at the same timestamp. Reconstructing per version would refetch the same
-	// keyframe and segments once per version — quadratic over a chain for no extra coverage,
-	// since this fold is exactly the fold reconstruction performs.
+	// Each chain replays once, front to back, checking every intermediate state. Reconstructing per
+	// version would refetch the same keyframe and segments once per version — quadratic over a
+	// chain for no extra coverage, since this fold is exactly the fold reconstruction performs.
 	//
 	// Segments are grouped under their keyframe and ordered by sequence, exactly as reconstruction
 	// orders them — never by key. Keys are wall-clock timestamps, and a durable object re-created
@@ -112,9 +74,9 @@ export async function verifyRoomVersions({
 		.sort((a, b) => b.key.localeCompare(a.key))
 
 	// A segment whose keyframe is not in the index belongs to no walk below, so without this a
-	// clean result would hide versions that 500 once the legacy copies are off. Judged against the
-	// index rather than what the walk claimed, and before the budget can stop anything: it costs no
-	// reads, and an early break must not misreport unwalked segments as orphans.
+	// clean result would hide versions that 500 on read. Judged against the index rather than what
+	// the walk claimed, and before the budget can stop anything: it costs no reads, and an early
+	// break must not misreport unwalked segments as orphans.
 	const keyframeKeys = new Set(keyframes.map((keyframe) => keyframe.key))
 	for (const entry of entries) {
 		if (entry.kind === 'segment' && !keyframeKeys.has(entry.keyframeKey)) {
@@ -155,7 +117,6 @@ export async function verifyRoomVersions({
 			if (!object) throw new Error(`keyframe ${keyframe.key} is missing`)
 			state = (await decodeVersionBody(object)) as RoomSnapshot
 			replayed++
-			await compareToLegacy(state, keyframe.timestamps[0])
 		} catch (e: any) {
 			errors.push({ timestamp: keyframe.timestamps[0], message: String(e?.message ?? e) })
 			continue
@@ -183,10 +144,7 @@ export async function verifyRoomVersions({
 					}
 					state = applySnapshotDelta(state, delta)
 					replayed++
-					// Intra-chain check, independent of the legacy copies — after cut-over the
-					// recorded hash is the only witness (see versionEnvelopeHash).
-					if (delta.hash !== versionEnvelopeHash(state)) mismatches.add(t)
-					await compareToLegacy(state, t)
+					if (delta.hash !== versionEnvelopeHash(state)) mismatches.push(t)
 				}
 				expectedSeq += segment.timestamps.length
 			} catch (e: any) {
@@ -198,31 +156,7 @@ export async function verifyRoomVersions({
 		}
 	}
 
-	return {
-		checked,
-		replayed,
-		reads,
-		complete,
-		mismatches: [...mismatches],
-		errors,
-		legacyReadFailures,
-	}
-}
-
-/** Record order is unstable between persists, so compare content and not serialization order. */
-function canonical(snapshot: RoomSnapshot): string {
-	return JSON.stringify({
-		clock: snapshot.clock,
-		documentClock: snapshot.documentClock,
-		// The schema decides how a restore migrates, so a reconstruction that dropped or swapped
-		// it must read as a mismatch, not a pass.
-		schema: canonicalJson(snapshot.schema ?? null),
-		tombstoneHistoryStartsAtClock: snapshot.tombstoneHistoryStartsAtClock,
-		tombstones: Object.fromEntries(Object.entries(snapshot.tombstones ?? {}).sort()),
-		documents: [...snapshot.documents]
-			.sort((a, b) => String(a.state.id).localeCompare(String(b.state.id)))
-			.map((d) => [d.state.id, d.lastChangedClock, canonicalJson(d.state)]),
-	})
+	return { replayed, reads, complete, mismatches, errors }
 }
 
 export async function verifyVersionChainRoute(
@@ -247,7 +181,6 @@ export async function verifyVersionChainRoute(
 	const limit = Math.min(Number.isFinite(requested) && requested > 0 ? requested : 200, 900)
 	const result = await verifyRoomVersions({
 		chainBucket: env.ROOMS_HISTORY,
-		legacyBucket: env.ROOMS_HISTORY_EPHEMERAL,
 		roomKey: getR2KeyForRoom({ slug: roomId, isApp }),
 		limit,
 	})

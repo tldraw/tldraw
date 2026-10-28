@@ -1,4 +1,4 @@
-import { useEditor, useValue } from '@tldraw/editor'
+import { defineMessages, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useActions } from '../../context/actions'
@@ -8,6 +8,10 @@ import { kbdStr } from '../../kbd-utils'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiTooltip } from '../primitives/TldrawUiTooltip'
+
+const messages = defineMessages({
+	actionToggleToolLock: { id: 'action.toggle-tool-lock', defaultMessage: 'Toggle tool lock' },
+})
 
 /** @public */
 export interface ToggleToolLockedButtonProps {
@@ -30,8 +34,8 @@ export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonP
 
 	const toggleLockAction = actions['toggle-tool-lock']
 	const tooltipContent = toggleLockAction?.kbd
-		? `${msg('action.toggle-tool-lock')} ${kbdStr(toggleLockAction.kbd)}`
-		: msg('action.toggle-tool-lock')
+		? `${msg(messages.actionToggleToolLock)} ${kbdStr(toggleLockAction.kbd)}`
+		: msg(messages.actionToggleToolLock)
 
 	return (
 		<TldrawUiTooltip content={tooltipContent}>

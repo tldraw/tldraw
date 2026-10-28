@@ -1,11 +1,13 @@
 import { CommentsMenuItem } from '@tldraw/commenting'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useIntl } from 'react-intl'
 import { useParams } from 'react-router-dom'
 import {
 	AccessibilityMenu,
 	ColorSchemeMenu,
 	DefaultPageMenu,
+	defineMessages,
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
@@ -13,17 +15,8 @@ import {
 	KeyboardShortcutsMenuItem,
 	LanguageMenu,
 	PreferencesGroup,
-	ToggleDebugModeItem,
-	ToggleDynamicSizeModeItem,
-	ToggleEdgeScrollingItem,
-	ToggleFocusModeItem,
-	ToggleGridItem,
-	TogglePasteAtCursorItem,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
-	ToggleSnapModeItem,
-	ToggleToolLockItem,
-	ToggleWrapModeItem,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -32,13 +25,23 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuSubmenu,
-	ZoomTo100MenuItem,
-	ZoomToFitMenuItem,
-	ZoomToSelectionMenuItem,
+	ToggleDebugModeItem,
+	ToggleDynamicSizeModeItem,
+	ToggleEdgeScrollingItem,
+	ToggleFocusModeItem,
+	ToggleGridItem,
+	TogglePasteAtCursorItem,
+	ToggleSnapModeItem,
+	ToggleToolLockItem,
+	ToggleWrapModeItem,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
+	useTranslation,
 	useValue,
+	ZoomTo100MenuItem,
+	ZoomToFitMenuItem,
+	ZoomToSelectionMenuItem,
 } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
@@ -46,7 +49,6 @@ import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
-import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
@@ -111,7 +113,8 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 }
 
 function TlaEditorTopLeftPanelAnonymous() {
-	const pageMenuLbl = useMsg(messages.pageMenu)
+	const msg = useTranslation()
+	const pageMenuLbl = msg(messages.pageMenu)
 	// GOTCHA: 'anonymous' doesn't always mean logged out
 	// we show this version of the panel for published files as well.
 	const app = useMaybeApp()
@@ -206,11 +209,11 @@ function TlaEditorTopLeftPanelAnonymous() {
 }
 
 function TlaEditorTopLeftPanelSignedIn() {
+	const msg = useTranslation()
 	const editor = useEditor()
 	const intl = useIntl()
 	const [isRenaming, setIsRenaming] = useState(false)
-	const pageMenuLbl = useMsg(messages.pageMenu)
-	const fileSubmenuMsg = useMsg(editorMessages.file)
+	const pageMenuLbl = msg(messages.pageMenu)
 
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
@@ -292,7 +295,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 			>
 				<TldrawUiMenuGroup id="regular-stuff">
 					{fileId && (
-						<TldrawUiMenuSubmenu id="file" label={fileSubmenuMsg}>
+						<TldrawUiMenuSubmenu id="file" label={msg(editorMessages.file)}>
 							<FileItems
 								source="file-header"
 								fileId={fileId}
@@ -449,7 +452,7 @@ function TlaFileNameEditorInput({
 }
 
 function SignInMenuItem() {
-	const msg = useMsg(messages.signIn)
+	const msg = useTranslation()
 	const { addDialog } = useDialogs()
 
 	return (
@@ -460,7 +463,7 @@ function SignInMenuItem() {
 				addDialog({ component: TlaSignInDialog })
 			}}
 		>
-			<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
+			<TldrawUiButtonLabel>{msg(messages.signIn)}</TldrawUiButtonLabel>
 			<TlaIcon icon="sign-in" />
 		</TldrawUiButton>
 	)

@@ -15,6 +15,8 @@ import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
+	defineMessages,
+	F,
 	PeopleMenu,
 	TldrawUiButton,
 	useDialogs,
@@ -27,7 +29,6 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
@@ -51,7 +52,7 @@ export function TlaEditorTopRightPanel({
 	isAnonUser: boolean
 	context: TopRightPanelContext
 }) {
-	const ctaString = useMsg(ctaMessages.signInToShare)
+	const msg = useTranslation()
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 	const fileId = useCurrentFileId()
@@ -79,7 +80,7 @@ export function TlaEditorTopRightPanel({
 					onClick={() => {
 						trackEvent('sign-up-clicked', {
 							source: 'anon-landing-page',
-							ctaMessage: ctaString,
+							ctaMessage: msg(ctaMessages.signInToShare),
 						})
 						addDialog({ component: TlaSignInDialog })
 					}}
@@ -124,12 +125,13 @@ export function TlaEditorTopRightPanel({
  * viewer is signed out.
  */
 function CommentsSidebarButton() {
+	const msg = useTranslation()
 	const editor = useEditor()
 	const trackEvent = useTldrawAppUiEvents()
 	const commentingEnabled = useCommentingEnabled()
 	const commentingEnabledForUser = useIsCommentingEnabled()
 	const open = useCommentsSidebarOpen()
-	const label = useMsg(commentsMessages.comments)
+	const label = msg(commentsMessages.comments)
 
 	if (!commentingEnabled || !commentingEnabledForUser) return null
 
@@ -229,8 +231,9 @@ function SignedOutShareButton({
 	fileId?: string
 	context: TopRightPanelContext
 }) {
+	const msg = useTranslation()
 	const trackEvent = useTldrawAppUiEvents()
-	const shareLbl = useMsg(signedOutShareMessages.share)
+	const shareLbl = msg(signedOutShareMessages.share)
 
 	return (
 		<TlaFileShareMenu fileId={fileId} context={context} source="anon">

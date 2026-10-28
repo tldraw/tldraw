@@ -11,6 +11,7 @@ import {
 	mergeArraysAndReplaceDefaults,
 	useEditor,
 	useEditorComponents,
+	useEvent,
 	useOnMount,
 	useShallowArrayIdentity,
 	useShallowObjectIdentity,
@@ -321,7 +322,9 @@ function InsideOfEditorAndUiContext({
 }) {
 	const editor = useEditor()
 	const toasts = useToasts()
-	const msg = useTranslation()
+	// The handlers are registered once, at mount, so they must read the current translation
+	// rather than the one in place then, which is English until the locale's catalog loads.
+	const msg = useEvent(useTranslation())
 	const trackEvent = useUiEvents()
 
 	useOnMount(() => {

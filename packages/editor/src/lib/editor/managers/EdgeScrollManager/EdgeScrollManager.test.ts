@@ -164,6 +164,23 @@ describe('EdgeScrollManager', () => {
 			edgeScrollManager.updateEdgeScrolling(150)
 			expect(editor.setCamera).toHaveBeenCalled()
 		})
+
+		it('should start easing after the edge scroll delay', () => {
+			mockInputs.setCurrentScreenPoint(new Vec(0, 300))
+
+			edgeScrollManager.updateEdgeScrolling(200)
+			expect(editor.setCamera).not.toHaveBeenCalled()
+
+			// 20ms into a 200ms cubic ease, the speed factor is 0.1³.
+			edgeScrollManager.updateEdgeScrolling(20)
+			expect((editor.setCamera.mock.calls[0][0] as Vec).x).toBeCloseTo(0.03)
+
+			editor.setCamera.mockClear()
+
+			// The ease reaches full speed 200ms after the delay.
+			edgeScrollManager.updateEdgeScrolling(180)
+			expect((editor.setCamera.mock.calls[0][0] as Vec).x).toBeCloseTo(270)
+		})
 	})
 
 	describe('edge proximity detection', () => {

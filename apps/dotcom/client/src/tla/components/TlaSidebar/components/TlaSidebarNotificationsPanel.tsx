@@ -9,9 +9,12 @@ import {
 	summarizeReactions,
 } from '@tldraw/commenting'
 import { ReactNode, useCallback, useState } from 'react'
+import { useIntl } from 'react-intl'
 import { Link } from 'react-router-dom'
 import {
 	createDeepLinkString,
+	defineMessages,
+	F,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -22,11 +25,11 @@ import {
 	TldrawUiMenuItem,
 	TldrawUiTooltip,
 	TLRichText,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { defineMessages, F, useIntl, useMsg } from '../../../utils/i18n'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
@@ -134,16 +137,17 @@ function NotificationsOverflowMenu({
 	onMarkAllRead(): void
 	hasUnread: boolean
 }) {
-	const moreLbl = useMsg(messages.moreOptions)
-	const allLbl = useMsg(messages.filterAll)
-	const unreadLbl = useMsg(messages.filterUnread)
-	const markAllReadLbl = useMsg(messages.markAllRead)
+	const msg = useTranslation()
 
 	return (
 		<TldrawUiDropdownMenuRoot id="notifications-overflow">
 			<TldrawUiMenuContextProvider type="menu" sourceId="menu">
 				<TldrawUiDropdownMenuTrigger>
-					<TldrawUiButton type="icon" title={moreLbl} className="tlui-cmt-header-btn">
+					<TldrawUiButton
+						type="icon"
+						title={msg(messages.moreOptions)}
+						className="tlui-cmt-header-btn"
+					>
 						<TlaIcon icon="dots-vertical-strong" />
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
@@ -151,14 +155,14 @@ function NotificationsOverflowMenu({
 					<TldrawUiMenuGroup id="notifications-filter">
 						<TldrawUiMenuCheckboxItem
 							id="filter-all"
-							label={allLbl}
+							label={msg(messages.filterAll)}
 							checked={filter === 'all'}
 							onSelect={() => onFilterChange('all')}
 							readonlyOk
 						/>
 						<TldrawUiMenuCheckboxItem
 							id="filter-unread"
-							label={unreadLbl}
+							label={msg(messages.filterUnread)}
 							checked={filter === 'unread'}
 							onSelect={() => onFilterChange('unread')}
 							readonlyOk
@@ -167,7 +171,7 @@ function NotificationsOverflowMenu({
 					<TldrawUiMenuGroup id="notifications-actions">
 						<TldrawUiMenuItem
 							id="mark-all-read"
-							label={markAllReadLbl}
+							label={msg(messages.markAllRead)}
 							onSelect={onMarkAllRead}
 							disabled={!hasUnread}
 							readonlyOk
@@ -213,13 +217,10 @@ function commentLink(fileId: string, shapeId: string | null | undefined, comment
  * you're being notified), the comment preview and any reaction pills beneath, and an unread dot.
  */
 export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
+	const msg = useTranslation()
 	const app = useMaybeApp()
 	const { notifications, unreadCount } = useCommentNotifications()
 	const [filter, setFilter] = useState<NotificationFilter>('all')
-	const title = useMsg(messages.title)
-	const closeLbl = useMsg(messages.close)
-	const empty = useMsg(messages.empty)
-	const unknownAuthor = useMsg(messages.unknownAuthor)
 	const { locale } = useIntl()
 
 	const visible = filter === 'unread' ? notifications.filter((n) => n.unread) : notifications
@@ -231,7 +232,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 			author: {
 				// never fall back to the raw id: an opaque uuid as a byline reads as a bug, and the rest
 				// of the commenting UI says "Someone" for an unresolvable author
-				name: c.authorName || unknownAuthor,
+				name: c.authorName || msg(messages.unknownAuthor),
 				color: c.authorColor || undefined,
 			},
 			preview: richTextToPlaintext(c.body as TLRichText),
@@ -277,7 +278,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 		<div className={styles.wrap}>
 			<CommentsList
 				items={items}
-				header={title}
+				header={msg(messages.title)}
 				headerAction={
 					<div className="tlui-cmt-list__header-actions">
 						<NotificationsOverflowMenu
@@ -288,7 +289,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 						/>
 						<TldrawUiButton
 							type="icon"
-							title={closeLbl}
+							title={msg(messages.close)}
 							className="tlui-cmt-header-btn"
 							onClick={onClose}
 						>
@@ -296,7 +297,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 						</TldrawUiButton>
 					</div>
 				}
-				empty={empty}
+				empty={msg(messages.empty)}
 				renderItem={(item) => {
 					const n = notificationById.get(item.id)
 					return (
