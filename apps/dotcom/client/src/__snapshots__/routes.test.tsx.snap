@@ -27,6 +27,10 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/dev/components/buttons/?$",
   },
   {
+    "reactRouterPattern": "/dev/components/commenting",
+    "vercelRouterPattern": "^/dev/components/commenting/?$",
+  },
+  {
     "reactRouterPattern": "/dev/components/dialogs",
     "vercelRouterPattern": "^/dev/components/dialogs/?$",
   },

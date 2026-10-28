@@ -72,6 +72,9 @@ export function DevComponentsNav(): ReactNode {
 			<a href="/dev/components/shadows" style={link}>
 				shadows
 			</a>
+			<a href="/dev/components/commenting" style={link}>
+				commenting
+			</a>
 		</nav>
 	)
 }
