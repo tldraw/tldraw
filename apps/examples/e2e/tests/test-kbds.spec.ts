@@ -144,6 +144,10 @@ test.describe('Keyboard Shortcuts', () => {
 	})
 
 	test('Zoom to 100', async () => {
+		// zoom-to-100 is disabled at 100%
+		await page.evaluate(() => {
+			editor.setCamera({ ...editor.getCamera(), z: 2 })
+		})
 		await page.keyboard.press('Shift+0')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 			name: 'reset-zoom',

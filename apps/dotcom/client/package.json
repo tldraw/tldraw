@@ -36,9 +36,7 @@
 		"build-types": "tsc --build"
 	},
 	"dependencies": {
-		"@clerk/clerk-react": "^5.53.3",
-		"@clerk/elements": "^0.23.74",
-		"@clerk/types": "^4.95.1",
+		"@clerk/react": "^6.17.6",
 		"@rocicorp/zero": "1.10.0",
 		"@sentry/integrations": "^7.120.3",
 		"@sentry/react": "^7.120.3",

@@ -212,6 +212,10 @@ export class PenShapeUtil extends ShapeUtil<PenShape> {
 		})
 	}
 
+	override canFlip() {
+		return true
+	}
+
 	override onResize(shape: PenShape, { scaleX, scaleY }: TLResizeInfo<PenShape>) {
 		const scale = (p: VecModel) => ({ x: p.x * scaleX, y: p.y * scaleY })
 		return {

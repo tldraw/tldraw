@@ -46,13 +46,26 @@ jobs:
         env:
           DISCORD_MARKETING_WEBHOOK_URL: ${{ secrets.DISCORD_MARKETING_WEBHOOK_URL }}
 
+      - name: Install ripgrep
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+
       - name: Install Gemini CLI
         run: npm install -g @google/gemini-cli@0.61.0
+
+      # On Actions, Gemini CLI strips every env var it doesn't allowlist from its shell commands, so
+      # the skill sees no webhook and skips the post. Names matching /TOKEN/ can't be allowlisted at
+      # all, so gh gets a stored login instead of GH_TOKEN.
+      - name: Configure Gemini CLI
+        run: |
+          mkdir -p ~/.gemini
+          echo '{"security":{"environmentVariableRedaction":{"allowed":["DISCORD_MARKETING_WEBHOOK_URL"]}}}' > ~/.gemini/settings.json
+          gh auth login --with-token <<< "$GH_LOGIN_TOKEN"
+        env:
+          GH_LOGIN_TOKEN: ${{ github.token }}
 
       - name: Run dotcom-release-marketing skill
         run: gemini --yolo --prompt "Read skills/dotcom-release-marketing/SKILL.md and follow its instructions."
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_CLI_TRUST_WORKSPACE: 'true'
-          GH_TOKEN: ${{ github.token }}
           DISCORD_MARKETING_WEBHOOK_URL: ${{ secrets.DISCORD_MARKETING_WEBHOOK_URL }}

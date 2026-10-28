@@ -23,7 +23,8 @@ import { useCommentingEnabled } from './useCommentingEnabled'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
-const SKIP_KBDS = [
+/** @internal */
+export const SKIP_KBDS = [
 	// we set these in useNativeClipboardEvents instead
 	'copy',
 	'cut',
@@ -57,6 +58,8 @@ export function useKeyboardShortcuts() {
 		// Except those that in SKIP_KBDS!
 		for (const action of Object.values(actions)) {
 			if (!action.kbd) continue
+			// Not redundant with the action gate: unregistered chords fall through to the browser
+			// (e.g. cmd+D bookmarks), while a registered but blocked one is default-prevented.
 			if (isReadonlyMode && !action.readonlyOk) continue
 			if (SKIP_KBDS.includes(action.id)) continue
 

@@ -1,5 +1,5 @@
-import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
-import type { UserResource } from '@clerk/types'
+import { useAuth, useUser as useClerkUser } from '@clerk/react'
+import type { UserResource } from '@clerk/react/types'
 import { ReactNode, createContext, useContext, useMemo } from 'react'
 import { assert, useShallowObjectIdentity } from 'tldraw'
 

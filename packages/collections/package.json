@@ -1,0 +1,28 @@
+{
+	"name": "@tldraw/collections",
+	"description": "Collections of reusable shapes for tldraw. Unreleased: private until the release PR flips it.",
+	"version": "0.0.0",
+	"private": true,
+	"main": "./src/index.ts",
+	"types": "./.tsbuild/index.d.ts",
+	"files": [],
+	"type": "module",
+	"dependencies": {
+		"@tldraw/editor": "workspace:*",
+		"@tldraw/tlschema": "workspace:*",
+		"@tldraw/validate": "workspace:*"
+	},
+	"devDependencies": {
+		"vitest": "^5.0.0"
+	},
+	"scripts": {
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
+	},
+	"engines": {
+		"node": ">=22.12.0"
+	}
+}

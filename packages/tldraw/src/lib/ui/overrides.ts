@@ -130,6 +130,10 @@ export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>
 
 /** @public */
 export interface TLUiOverrides {
+	/**
+	 * The `actions` passed in aren't gated yet: calling one's `onSelect` here skips the readonly
+	 * check, `isAvailable` and `isEnabled`.
+	 */
 	actions?(
 		editor: Editor,
 		actions: TLUiActionsContextType,
