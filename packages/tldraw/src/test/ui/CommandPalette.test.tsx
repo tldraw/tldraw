@@ -1,6 +1,8 @@
 import { act, fireEvent, waitFor } from '@testing-library/react'
 import { createShapeId, Editor, toRichText } from '@tldraw/editor'
+import { StrictMode } from 'react'
 import { TLComponents, Tldraw } from '../../lib/Tldraw'
+import { COMMAND_PALETTE_MENU_ID } from '../../lib/ui/components/CommandPalette/commandPaletteMenuId'
 import { CommandPaletteMenuItem } from '../../lib/ui/components/CommandPalette/CommandPaletteMenuItem'
 import { TldrawUiMenuContextProvider } from '../../lib/ui/components/primitives/menus/TldrawUiMenuContext'
 import {
@@ -37,6 +39,27 @@ describe('command palette', () => {
 		pressCmdK(editor)
 		const input = (await rendered.findByTestId('command-palette.input')) as HTMLInputElement
 		expect(document.activeElement).toBe(input)
+		fireEvent.keyDown(input, { key: 'Escape' })
+		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
+		expect(editor.menus.getOpenMenus()).toEqual([])
+	})
+
+	it('stays open under StrictMode and leaves no open menu once closed', async () => {
+		const { editor, rendered } = await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<StrictMode>
+					<Tldraw onMount={onMount} />
+				</StrictMode>
+			),
+			{ waitForPatterns: false }
+		)
+		act(() => editor.updateInstanceState({ isFocused: true }))
+		pressCmdK(editor)
+		await act(async () => {
+			await new Promise((r) => setTimeout(r, 50))
+		})
+		const input = rendered.getByTestId('command-palette.input')
+		expect(editor.menus.isMenuOpen(COMMAND_PALETTE_MENU_ID)).toBe(true)
 		fireEvent.keyDown(input, { key: 'Escape' })
 		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
 		expect(editor.menus.getOpenMenus()).toEqual([])

@@ -1,4 +1,4 @@
-import { defineMessages, useEditor, useValue } from '@tldraw/editor'
+import { defineMessages, Editor, useEditor, useValue } from '@tldraw/editor'
 import {
 	ReactNode,
 	useCallback,
@@ -67,10 +67,18 @@ export function CommandPaletteShell({
 	children,
 }: TLUiCommandPaletteShellProps) {
 	const editor = useEditor()
-	// The open action marks the menu open through editor.menus directly, which useMenuIsOpen's
-	// unmount cleanup doesn't track; going away while open would otherwise leave every shortcut
-	// disabled.
-	useEffect(() => () => editor.menus.deleteOpenMenu(COMMAND_PALETTE_MENU_ID), [editor])
+	// Unmounting while marked open would leave every shortcut disabled. StrictMode's simulated
+	// remount runs that cleanup too, so restore the mark only if it was set on first mount; a plain
+	// mount must not mark it, or the default palette opens alongside a hand-mounted shell.
+	const rMountedOpen = useRef<{ editor: Editor; isOpen: boolean } | null>(null)
+	useEffect(() => {
+		if (rMountedOpen.current?.editor !== editor) {
+			rMountedOpen.current = { editor, isOpen: editor.menus.isMenuOpen(COMMAND_PALETTE_MENU_ID) }
+		} else if (rMountedOpen.current.isOpen) {
+			editor.menus.addOpenMenu(COMMAND_PALETTE_MENU_ID)
+		}
+		return () => editor.menus.deleteOpenMenu(COMMAND_PALETTE_MENU_ID)
+	}, [editor])
 	const msg = useTranslation()
 	const dir = useDirection()
 	const [store] = useState(() => new CommandPaletteStore())
