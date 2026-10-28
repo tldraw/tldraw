@@ -145,6 +145,26 @@ describe('getCommandPaletteBrowseRows', () => {
 		)
 		expect(describeRows(search)).toEqual(['> Notifications'])
 	})
+
+	it('keeps collapsed submenu items out of recents', () => {
+		const news = { key: 'news', label: 'Notifications', collapsed: true }
+		const rows = getCommandPaletteBrowseRows(
+			[
+				entry('n1', { label: 'Notifications: Alice: hi', name: 'Alice: hi', submenu: news }),
+				entry('undo'),
+				entry('grid'),
+			],
+			['n1', 'grid'],
+			'Recent'
+		)
+		expect(describeRows(rows)).toEqual([
+			'# Recent',
+			'recent grid',
+			'---',
+			'> Notifications',
+			'undo',
+		])
+	})
 })
 
 describe('getCommandPaletteSearchRows', () => {
