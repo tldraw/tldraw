@@ -25,7 +25,9 @@ test.describe('command palette', () => {
 		await owner.page.getByTestId('canvas').click({ position: { x: 300, y: 300 } })
 		await owner.page.keyboard.press('ControlOrMeta+k')
 		const firstId = first.url.split('/f/')[1]
-		await expect(owner.page.getByTestId(`command-palette.item.file:${firstId}`)).toHaveCount(0)
+		await expect(input).toBeFocused()
+		// It was run above, so an empty query would list it under Recent, not as an item.
+		await expect(owner.page.getByTestId(`command-palette.recent.file:${firstId}`)).toHaveCount(0)
 		await input.fill(secondName)
 		await owner.page.keyboard.press('Enter')
 		await expect(owner.page).toHaveURL(second.url)
