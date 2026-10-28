@@ -4,11 +4,7 @@ import { COMMAND_PALETTE_MENU_ID } from './commandPaletteMenuId'
 import { CommandPaletteShell, TLUiCommandPalettePosition } from './CommandPaletteShell'
 import { DefaultCommandPaletteContent } from './DefaultCommandPaletteContent'
 
-/**
- * Props for the `CommandPalette` slot.
- *
- * @public
- */
+/** @public */
 export interface TLUiCommandPaletteProps {
 	/** Where the palette opens. Defaults to `'bottom'`, just above a horizontal toolbar. */
 	position?: TLUiCommandPalettePosition

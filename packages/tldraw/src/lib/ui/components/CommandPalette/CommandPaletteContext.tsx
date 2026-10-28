@@ -116,21 +116,13 @@ export function CommandPalettePathProvider({
 	return <PathContext.Provider value={value}>{children}</PathContext.Provider>
 }
 
-/**
- * Props for {@link CommandPalettePinned}.
- *
- * @public
- */
+/** @public */
 export interface TLUiCommandPalettePinnedProps {
 	/** The items to pin. */
 	children: ReactNode
 }
 
-/**
- * Props for {@link CommandPaletteCollapsed}.
- *
- * @public
- */
+/** @public */
 export interface TLUiCommandPaletteCollapsedProps {
 	/** The submenu to keep collapsed. */
 	children: ReactNode
