@@ -304,10 +304,13 @@ export function CommandPaletteShell({
 			// Close first so dialogs aren't stacked under the palette; stay in this handler so
 			// clipboard writes and file pickers keep the user gesture.
 			onClose()
-			if (entry.prompt) entry.prompt.onSubmit(store.query.get().trim())
-			else entry.onSelect('command-palette')
-			addCommandPaletteRecent(entry.id)
-			restoreFocus()
+			try {
+				if (entry.prompt) entry.prompt.onSubmit(store.query.get().trim())
+				else entry.onSelect('command-palette')
+				addCommandPaletteRecent(entry.id)
+			} finally {
+				restoreFocus()
+			}
 		},
 		[onClose, restoreFocus, openSubmenu, openPrompt, prompt, store, back]
 	)

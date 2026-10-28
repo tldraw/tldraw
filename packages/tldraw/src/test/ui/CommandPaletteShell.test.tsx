@@ -484,6 +484,34 @@ describe('CommandPaletteShell', () => {
 		expect(document.activeElement).toBe(editor.getContainer())
 	})
 
+	it('returns focus to the editor, without recording a recent, when an item throws', async () => {
+		const { editor, input } = await renderShell(
+			item(
+				'alpha',
+				'Alpha',
+				vi.fn(() => {
+					throw new Error('boom')
+				})
+			)
+		)
+		// React reports event handler errors to window instead of rethrowing them.
+		const errors: unknown[] = []
+		const onError = (e: ErrorEvent) => {
+			e.preventDefault()
+			errors.push(e.error)
+		}
+		window.addEventListener('error', onError)
+		try {
+			type(input, 'alp')
+			press(input, 'Enter')
+		} finally {
+			window.removeEventListener('error', onError)
+		}
+		expect(errors).toEqual([new Error('boom')])
+		expect(document.activeElement).toBe(editor.getContainer())
+		expect(getCommandPaletteRecents()).toEqual([])
+	})
+
 	it('returns focus to the editor after Escape and after Cmd+K', async () => {
 		const { editor, input } = await renderShell(item('alpha', 'Alpha'))
 		press(input, 'Escape')
