@@ -266,7 +266,7 @@ function TlaBoardGroup() {
 
 	// The current page's hits come first; the rest are named by their page.
 	const getResults = (query: string) => {
-		const needle = query.toLowerCase()
+		const needle = query.replace(/\s+/g, ' ').toLowerCase()
 		const currentPageId = editor.getCurrentPageId()
 		const pages = editor.getPages()
 		const ordered = [
