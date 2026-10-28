@@ -1,15 +1,23 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { ReactNode } from 'react'
 import { Helmet } from 'react-helmet-async'
+import { TldrawUiButton } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 import { TlaCtaButton } from '../tla/components/TlaCtaButton/TlaCtaButton'
+import { TlaIcon } from '../tla/components/TlaIcon/TlaIcon'
+import { TlaSidebarActionButton } from '../tla/components/TlaSidebar/components/TlaSidebarWorkspaceActions'
+import { AdminButton } from './admin/AdminButton'
+import { AdminScope } from './dev-components-kit'
 import { DevComponentsNav } from './dev-components-nav'
+import { IsolationProviders } from './dev-editor-harness'
 import dialogStyles from '../tla/components/dialogs/dialogs.module.css'
 import inviteStyles from '../tla/components/dialogs/TlaInviteDialog.module.css'
 import menuStyles from '../tla/components/tla-menu/menu.module.css'
-import '../tla/styles/tla.css'
+import topStyles from '../tla/components/TlaEditor/top.module.css'
+import notificationStyles from '../tla/components/TlaSidebar/components/notifications.module.css'
 import sidebarStyles from '../tla/components/TlaSidebar/sidebar.module.css'
+import '../tla/styles/tla.css'
 
 /**
  * Dev-only inventory of every button in the dotcom app, rendered together so
@@ -103,227 +111,335 @@ export function Component() {
 			</Helmet>
 			<style>{PAGE_CSS}</style>
 
-			<div className="page">
-				<DevComponentsNav />
-				<header className="page__header">
-					<h1 className="page__title">Button inventory</h1>
-					<p className="page__lede">
-						Every button in the dotcom app, rendered together. The point is to see where the styling
-						diverges — height, radius, weight, fill mechanism, and hover token are annotated under
-						each. Real components and real CSS classes, so divergences are real.
-					</p>
-				</header>
+			<IsolationProviders>
+				<div className="page">
+					<DevComponentsNav />
+					<header className="page__header">
+						<h1 className="page__title">Button inventory</h1>
+						<p className="page__lede">
+							Every button in the dotcom app, rendered together. The point is to see where the
+							styling diverges — height, radius, weight, fill mechanism, and hover token are
+							annotated under each. Real components and real CSS classes, so divergences are real.
+						</p>
+					</header>
 
-				{/* The punchline: the divergence matrix. */}
-				<section className="section">
-					<h2 className="section__title">Divergence matrix</h2>
-					<p className="section__note">
-						An &ldquo;accent solid button&rdquo; exists in three different geometries (rows 1–3).
-					</p>
-					<table className="matrix">
-						<thead>
-							<tr>
-								<th>button</th>
-								<th>height</th>
-								<th>radius</th>
-								<th>weight</th>
-								<th>fill</th>
-								<th>hover</th>
-							</tr>
-						</thead>
-						<tbody>
-							{MATRIX.map((r) => (
-								<tr key={r[0]} data-accent={r[6] === 'accent' || undefined}>
-									<td>{r[0]}</td>
-									<td>{r[1]}</td>
-									<td>{r[2]}</td>
-									<td>{r[3]}</td>
-									<td>{r[4]}</td>
-									<td>{r[5]}</td>
+					{/* The punchline: the divergence matrix. */}
+					<section className="section">
+						<h2 className="section__title">Divergence matrix</h2>
+						<p className="section__note">
+							An &ldquo;accent solid button&rdquo; exists in three different geometries (rows 1–3).
+						</p>
+						<table className="matrix">
+							<thead>
+								<tr>
+									<th>button</th>
+									<th>height</th>
+									<th>radius</th>
+									<th>weight</th>
+									<th>fill</th>
+									<th>hover</th>
 								</tr>
-							))}
-						</tbody>
-					</table>
-				</section>
+							</thead>
+							<tbody>
+								{MATRIX.map((r) => (
+									<tr key={r[0]} data-accent={r[6] === 'accent' || undefined}>
+										<td>{r[0]}</td>
+										<td>{r[1]}</td>
+										<td>{r[2]}</td>
+										<td>{r[3]}</td>
+										<td>{r[4]}</td>
+										<td>{r[5]}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</section>
 
-				<Section
-					title="TlaButton — the app primitive"
-					note="One component, prop axes: variant (primary / secondary / cta) × ghost × big. Note that variant='cta' here is the stub: identical to primary except font-weight 600."
-					api="variant?: 'primary' | 'secondary' | 'cta', ghost?, big?, isLoading?, icon? (UNUSED — no call site passes it), iconRight? (2 uses), iconRightClassName? (1 use) — plus all native <button> attributes (onClick, disabled, type, …)"
-					source="defined in tla/components/TlaButton/TlaButton.tsx · used in ~10 files: WorkspaceSettingsDialog, TlaInviteExpiredDialog, TlaFileShareMenu (export / publish tabs), ErrorPage, StoreErrorScreen, admin, MaybeForceUserRefresh, TlaRootProviders"
-				>
-					<Specimen
-						label="variant='primary'"
-						code={`<TlaButton variant="primary">`}
-						meta="h32 · r4 · w500 · fill primary · hover primary-hover"
+					<Section
+						title="TlaButton — the app primitive"
+						note="One component, prop axes: variant (primary / secondary / cta) × ghost × big. Note that variant='cta' here is the stub: identical to primary except font-weight 600."
+						api="variant?: 'primary' | 'secondary' | 'cta', ghost?, big?, isLoading?, icon? (UNUSED — no call site passes it), iconRight? (2 uses), iconRightClassName? (1 use) — plus all native <button> attributes (onClick, disabled, type, …)"
+						source="defined in tla/components/TlaButton/TlaButton.tsx · used in ~10 files: WorkspaceSettingsDialog, TlaInviteExpiredDialog, TlaFileShareMenu (export / publish tabs), ErrorPage, StoreErrorScreen, admin, MaybeForceUserRefresh, TlaRootProviders"
 					>
-						<TlaButton variant="primary">Continue</TlaButton>
-					</Specimen>
-					<Specimen
-						label="variant='secondary'"
-						code={`<TlaButton variant="secondary">`}
-						meta="h32 · r4 · w500 · secondary bg + border · hover secondary-hover"
-					>
-						<TlaButton variant="secondary">Cancel</TlaButton>
-					</Specimen>
-					<Specimen
-						label="variant='cta' (stub)"
-						code={`<TlaButton variant="cta">`}
-						meta="h32 · r4 · w600 · fill primary · hover primary-hover ⚠ = primary + bold"
-					>
-						<TlaButton variant="cta">Get started</TlaButton>
-					</Specimen>
-					<Specimen
-						label="variant='primary' big"
-						code={`<TlaButton variant="primary" big>`}
-						meta="h36 · r6 · w500 — note radius jumps 4→6"
-					>
-						<TlaButton variant="primary" big>
-							Continue
-						</TlaButton>
-					</Specimen>
-					<Specimen
-						label="variant='primary' ghost"
-						code={`<TlaButton variant="primary" ghost>`}
-						meta="transparent · text primary · hover muted halo"
-					>
-						<TlaButton variant="primary" ghost>
-							Continue
-						</TlaButton>
-					</Specimen>
-					<Specimen
-						label="variant='secondary' ghost"
-						code={`<TlaButton variant="secondary" ghost>`}
-						meta="transparent · text secondary · no border"
-					>
-						<TlaButton variant="secondary" ghost>
-							Cancel
-						</TlaButton>
-					</Specimen>
-					<Specimen
-						label="isLoading"
-						code={`<TlaButton variant="primary" isLoading>`}
-						meta="spinner swaps in; onClick suppressed"
-					>
-						<TlaButton variant="primary" isLoading>
-							Saving
-						</TlaButton>
-					</Specimen>
-				</Section>
+						<Specimen
+							label="variant='primary'"
+							code={`<TlaButton variant="primary">`}
+							meta="h32 · r4 · w500 · fill primary · hover primary-hover"
+						>
+							<TlaButton variant="primary">Continue</TlaButton>
+						</Specimen>
+						<Specimen
+							label="variant='secondary'"
+							code={`<TlaButton variant="secondary">`}
+							meta="h32 · r4 · w500 · secondary bg + border · hover secondary-hover"
+						>
+							<TlaButton variant="secondary">Cancel</TlaButton>
+						</Specimen>
+						<Specimen
+							label="variant='cta' (stub)"
+							code={`<TlaButton variant="cta">`}
+							meta="h32 · r4 · w600 · fill primary · hover primary-hover ⚠ = primary + bold"
+						>
+							<TlaButton variant="cta">Get started</TlaButton>
+						</Specimen>
+						<Specimen
+							label="variant='primary' big"
+							code={`<TlaButton variant="primary" big>`}
+							meta="h36 · r6 · w500 — note radius jumps 4→6"
+						>
+							<TlaButton variant="primary" big>
+								Continue
+							</TlaButton>
+						</Specimen>
+						<Specimen
+							label="variant='primary' ghost"
+							code={`<TlaButton variant="primary" ghost>`}
+							meta="transparent · text primary · hover muted halo"
+						>
+							<TlaButton variant="primary" ghost>
+								Continue
+							</TlaButton>
+						</Specimen>
+						<Specimen
+							label="variant='secondary' ghost"
+							code={`<TlaButton variant="secondary" ghost>`}
+							meta="transparent · text secondary · no border"
+						>
+							<TlaButton variant="secondary" ghost>
+								Cancel
+							</TlaButton>
+						</Specimen>
+						<Specimen
+							label="isLoading"
+							code={`<TlaButton variant="primary" isLoading>`}
+							meta="spinner swaps in; onClick suppressed"
+						>
+							<TlaButton variant="primary" isLoading>
+								Saving
+							</TlaButton>
+						</Specimen>
+					</Section>
 
-				<Section
-					title="TlaCtaButton — the separate CTA component (#9194)"
-					note="A whole second component for the prominent call-to-action. Fills via a ::before pseudo-element (not background-color) so it can layer over the canvas. This is the real CTA — bigger and heavier than TlaButton's cta stub above."
-					api="canvas?, secondary? — plus all native <button> attributes. Note: no variant/size/icon props — a different, smaller API than TlaButton, for overlapping intent."
-					source="defined in tla/components/TlaCtaButton/TlaCtaButton.tsx · used in 5 files: TlaSignInDialog, TlaLegalAcceptance, TlaEditorTopRightPanel, TlaHistorySnapshotEditor, TlaFileError"
-				>
-					<Specimen
-						label="<TlaCtaButton>"
-						code={`<TlaCtaButton>`}
-						meta="h36 · r6 (::before) · w600 · pad 0 16 · hover primary-hover"
+					<Section
+						title="TlaCtaButton — the separate CTA component (#9194)"
+						note="A whole second component for the prominent call-to-action. Fills via a ::before pseudo-element (not background-color) so it can layer over the canvas. This is the real CTA — bigger and heavier than TlaButton's cta stub above."
+						api="canvas?, secondary? — plus all native <button> attributes. Note: no variant/size/icon props — a different, smaller API than TlaButton, for overlapping intent."
+						source="defined in tla/components/TlaCtaButton/TlaCtaButton.tsx · used in 5 files: TlaSignInDialog, TlaLegalAcceptance, TlaEditorTopRightPanel, TlaHistorySnapshotEditor, TlaFileError"
 					>
-						<TlaCtaButton>
-							<span>Get started</span>
-						</TlaCtaButton>
-					</Specimen>
-					<Specimen
-						label="canvas"
-						code={`<TlaCtaButton canvas>`}
-						meta="+ ::after background halo so it reads over the infinite canvas"
-					>
-						<TlaCtaButton canvas>
-							<span>Share</span>
-						</TlaCtaButton>
-					</Specimen>
-					<Specimen
-						label="secondary"
-						code={`<TlaCtaButton secondary>`}
-						meta="muted ::before + border · text-0 · hover muted-1"
-					>
-						<TlaCtaButton secondary>
-							<span>Maybe later</span>
-						</TlaCtaButton>
-					</Specimen>
-				</Section>
+						<Specimen
+							label="<TlaCtaButton>"
+							code={`<TlaCtaButton>`}
+							meta="h36 · r6 (::before) · w600 · pad 0 16 · hover primary-hover"
+						>
+							<TlaCtaButton>
+								<span>Get started</span>
+							</TlaCtaButton>
+						</Specimen>
+						<Specimen
+							label="canvas"
+							code={`<TlaCtaButton canvas>`}
+							meta="+ ::after background halo so it reads over the infinite canvas"
+						>
+							<TlaCtaButton canvas>
+								<span>Share</span>
+							</TlaCtaButton>
+						</Specimen>
+						<Specimen
+							label="secondary"
+							code={`<TlaCtaButton secondary>`}
+							meta="muted ::before + border · text-0 · hover muted-1"
+						>
+							<TlaCtaButton secondary>
+								<span>Maybe later</span>
+							</TlaCtaButton>
+						</Specimen>
+					</Section>
 
-				<Section
-					title="Bespoke raw <button>s (#9193 / #9190)"
-					note="Hand-styled buttons that never adopted a component, each with its own module CSS. Heights and hover treatments diverge from both TlaButton and each other."
-					api="none — these are raw <button> elements with a CSS-module class. No component, no variant/loading/icon props; only native <button> attributes. The styling lives in CSS, not a shared API."
-				>
-					<Specimen
-						label=".sidebarActionButton"
-						code={`<button className={styles.sidebarActionButton}>`}
-						meta="h36 · no border · gap6 · hover ::after muted-2"
-						source="sidebar.module.css · rendered by TlaSidebarSearch, TlaSidebarWorkspaceActions"
+					<Section
+						title="TlaSidebarActionButton — the sidebar row"
+						note="The .sidebarActionButton class, now wrapped in an exported component (#9565) so the Clear search row reuses the workspace-action row. TlaSidebarSearch still writes the same classNames by hand."
+						api="icon?: string · label: ReactNode · onClick · testId"
+						source="TlaSidebarWorkspaceActions.tsx:56 · used by TlaSidebarWorkspaceActions (×2), TlaSidebarRecentFiles · raw class still in TlaSidebarSearch.tsx:85"
 					>
-						<button className={sidebarStyles.sidebarActionButton}>New file</button>
-					</Specimen>
-					<Specimen
-						label=".sidebarLinkButton"
-						code={`<button className={styles.sidebarLinkButton}>`}
-						meta="h36 · pad 0 8 · text-0"
-						source="sidebar.module.css · rendered by TlaSidebarFeedbackButton"
+						<Specimen
+							label="with icon"
+							code={`<TlaSidebarActionButton icon="edit" label="New file" />`}
+							meta="h36 · no border · gap6 · hover ::after muted-2"
+							source="TlaSidebarWorkspaceActions.tsx:40"
+						>
+							<TlaSidebarActionButton
+								icon="edit"
+								label="New file"
+								onClick={noop}
+								testId="dev-new-file"
+							/>
+						</Specimen>
+						<Specimen
+							label="label only"
+							code={`<TlaSidebarActionButton label="Clear search" />`}
+							meta="shown under search results"
+							source="TlaSidebarRecentFiles.tsx:118"
+						>
+							<TlaSidebarActionButton
+								label="Clear search"
+								onClick={noop}
+								testId="dev-clear-search"
+							/>
+						</Specimen>
+					</Section>
+
+					<Section
+						title="SDK TldrawUiButton + a bespoke class"
+						note="The newest buttons start from the SDK icon button and restyle it with a CSS-module class, rather than using TlaButton or a raw <button>. Each sizes itself to 36px, against the SDK button's 40px."
+						api="TldrawUiButton type='icon' (title, tooltip, aria-pressed, …) + className"
 					>
-						<button className={sidebarStyles.sidebarLinkButton}>Give feedback</button>
-					</Specimen>
-					<Specimen
-						label=".sidebarWorkspaceSwitcherTrigger"
-						code={`<button className={styles.sidebarWorkspaceSwitcherTrigger}>`}
-						meta="h36 · full width"
-						source="sidebar.module.css · rendered by TlaSidebarWorkspaceSwitcher"
+						<Specimen
+							label="notifications trigger"
+							code={`<TldrawUiButton type="icon" className={styles.sidebarCreateFileButton}>`}
+							meta="borrows the new-file button's class · unread dot is notifications.module.css .badge"
+							source="TlaSidebarNotificationsButton.tsx:40"
+						>
+							<TldrawUiButton
+								type="icon"
+								className={sidebarStyles.sidebarCreateFileButton}
+								title="Notifications"
+								style={{ position: 'relative' }}
+							>
+								<TlaIcon icon="notification" />
+								<span className={notificationStyles.badge} />
+							</TldrawUiButton>
+						</Specimen>
+						<Specimen
+							label="comments sidebar toggle"
+							code={`<TldrawUiButton type="icon" className={styles.commentsSidebarButton} aria-pressed>`}
+							meta="36px chip on background · r8 · open state = gradient wash"
+							source="TlaEditorTopRightPanel.tsx:139 · top.module.css:208"
+						>
+							<div style={{ display: 'flex', gap: 8 }}>
+								<TldrawUiButton
+									type="icon"
+									className={topStyles.commentsSidebarButton}
+									aria-pressed={false}
+									title="Comments"
+								>
+									<TlaIcon icon="comment" />
+								</TldrawUiButton>
+								<TldrawUiButton
+									type="icon"
+									className={topStyles.commentsSidebarButton}
+									aria-pressed
+									title="Comments (open)"
+								>
+									<TlaIcon icon="comment" />
+								</TldrawUiButton>
+							</div>
+						</Specimen>
+					</Section>
+
+					<Section
+						title="AdminButton — the admin panel's own"
+						note="The admin panel is on its own internal design language (--admin-* tokens), so it has its own button rather than TlaButton. Rendered inside .adminLayout so the tokens resolve."
+						api="variant?: 'primary' | 'secondary' | 'danger' · isLoading?: boolean (renders '…') · native <button> attributes"
+						source="pages/admin/AdminButton.tsx:4 · used across pages/admin/*"
 					>
-						<button className={sidebarStyles.sidebarWorkspaceSwitcherTrigger}>Workspace</button>
-					</Specimen>
-					<Specimen
-						label=".inlineButton"
-						code={`<button className={styles.inlineButton}>`}
-						meta="text · pad 4 0 · w500 · hover UNDERLINE (no fill/height)"
-						source="dialogs.module.css · rendered by WorkspaceSettingsDialog"
+						{ADMIN_VARIANTS.map(([variant, isLoading, label]) => (
+							<Specimen
+								key={`${variant}-${isLoading}`}
+								label={isLoading ? `${variant} isLoading` : variant}
+								code={`<AdminButton variant="${variant}"${isLoading ? ' isLoading' : ''}>`}
+								meta={isLoading ? "children replaced by '…', disabled" : 'admin.module.css .btn'}
+							>
+								<AdminScope>
+									<AdminButton variant={variant} isLoading={isLoading}>
+										{label}
+									</AdminButton>
+								</AdminScope>
+							</Specimen>
+						))}
+					</Section>
+
+					<Section
+						title="Bespoke raw <button>s (#9193 / #9190)"
+						note="Hand-styled buttons that never adopted a component, each with its own module CSS. Heights and hover treatments diverge from both TlaButton and each other."
+						api="none — these are raw <button> elements with a CSS-module class. No component, no variant/loading/icon props; only native <button> attributes. The styling lives in CSS, not a shared API."
 					>
-						<button className={dialogStyles.inlineButton}>Regenerate link</button>
-					</Specimen>
-					<Specimen
-						label=".inlineButton .inlineButtonDanger"
-						code={`<button className={cn(styles.inlineButton, styles.inlineButtonDanger)}>`}
-						meta="text · color danger · hover underline"
-						source="dialogs.module.css · rendered by WorkspaceSettingsDialog"
-					>
-						<button className={`${dialogStyles.inlineButton} ${dialogStyles.inlineButtonDanger}`}>
-							Delete workspace
-						</button>
-					</Specimen>
-					<Specimen
-						label=".menuTabsTab"
-						code={`<button className={styles.menuTabsTab} data-active>`}
-						meta="h40 · tab style · active underline"
-						source="tla-menu/menu.module.css · rendered by tla-menu.tsx (TlaMenuTabs)"
-					>
-						<button className={menuStyles.menuTabsTab} data-active>
-							Export
-						</button>
-					</Specimen>
-					<Specimen
-						label=".acceptButton"
-						code={`<button className={styles.acceptButton}>`}
-						meta="width 100% · w500 · cta-hover token (a 4th hover treatment)"
-						source="dialogs/TlaInviteDialog.module.css · rendered by TlaInviteDialog"
-					>
-						<button className={inviteStyles.acceptButton}>Accept invite</button>
-					</Specimen>
-					<Specimen
-						label="global .tla-button-text"
-						code={`<button className="tla-button-text">`}
-						meta="shared text-button class (cookie consent, etc.)"
-						source="global class in tla/styles/tla.css · e.g. rendered by TlaCookieConsent"
-					>
-						<button className="tla-button-text">Opt out</button>
-					</Specimen>
-				</Section>
-			</div>
+						<Specimen
+							label=".sidebarLinkButton"
+							code={`<button className={styles.sidebarLinkButton}>`}
+							meta="h36 · pad 0 8 · text-0"
+							source="sidebar.module.css · rendered by TlaSidebarFeedbackButton"
+						>
+							<button className={sidebarStyles.sidebarLinkButton}>Give feedback</button>
+						</Specimen>
+						<Specimen
+							label=".sidebarWorkspaceSwitcherTrigger"
+							code={`<button className={styles.sidebarWorkspaceSwitcherTrigger}>`}
+							meta="h36 · full width"
+							source="sidebar.module.css · rendered by TlaSidebarWorkspaceSwitcher"
+						>
+							<button className={sidebarStyles.sidebarWorkspaceSwitcherTrigger}>Workspace</button>
+						</Specimen>
+						<Specimen
+							label=".inlineButton"
+							code={`<button className={styles.inlineButton}>`}
+							meta="text · pad 4 0 · w500 · hover UNDERLINE (no fill/height)"
+							source="dialogs.module.css · rendered by WorkspaceSettingsDialog"
+						>
+							<button className={dialogStyles.inlineButton}>Regenerate link</button>
+						</Specimen>
+						<Specimen
+							label=".inlineButton .inlineButtonDanger"
+							code={`<button className={cn(styles.inlineButton, styles.inlineButtonDanger)}>`}
+							meta="text · color danger · hover underline"
+							source="dialogs.module.css · rendered by WorkspaceSettingsDialog"
+						>
+							<button className={`${dialogStyles.inlineButton} ${dialogStyles.inlineButtonDanger}`}>
+								Delete workspace
+							</button>
+						</Specimen>
+						<Specimen
+							label=".menuTabsTab"
+							code={`<button className={styles.menuTabsTab} data-active>`}
+							meta="h40 · tab style · active underline"
+							source="tla-menu/menu.module.css · rendered by tla-menu.tsx (TlaMenuTabs)"
+						>
+							<button className={menuStyles.menuTabsTab} data-active>
+								Export
+							</button>
+						</Specimen>
+						<Specimen
+							label=".acceptButton"
+							code={`<button className={styles.acceptButton}>`}
+							meta="width 100% · w500 · cta-hover token (a 4th hover treatment)"
+							source="dialogs/TlaInviteDialog.module.css · rendered by TlaInviteDialog"
+						>
+							<button className={inviteStyles.acceptButton}>Accept invite</button>
+						</Specimen>
+						<Specimen
+							label="global .tla-button-text"
+							code={`<button className="tla-button-text">`}
+							meta="shared text-button class (cookie consent, etc.)"
+							source="global class in tla/styles/tla.css · e.g. rendered by TlaCookieConsent"
+						>
+							<button className="tla-button-text">Opt out</button>
+						</Specimen>
+					</Section>
+				</div>
+			</IsolationProviders>
 		</div>
 	)
 }
+
+const noop = () => {}
+
+const ADMIN_VARIANTS: ReadonlyArray<
+	readonly ['primary' | 'secondary' | 'danger', boolean, string]
+> = [
+	['primary', false, 'Find user'],
+	['secondary', false, 'Download'],
+	['danger', false, 'Delete'],
+	['primary', true, 'Find user'],
+]
 
 const MATRIX: ReadonlyArray<readonly [string, string, string, string, string, string, string]> = [
 	['TlaButton primary', '32px', 'r1 / 4px', '500', 'background-color', 'primary-hover', 'accent'],
@@ -341,6 +457,17 @@ const MATRIX: ReadonlyArray<readonly [string, string, string, string, string, st
 	['TlaButton big', '36px', 'r2 / 6px', '500', 'background-color', 'primary-hover', 'accent'],
 	['TlaCtaButton secondary', '36px', '6px (::before)', '600', '::before pseudo', 'muted-1', ''],
 	['.sidebarActionButton', '36px', '—', '—', 'none (::after hover)', 'muted-2 halo', ''],
+	[
+		'.sidebarCreateFileButton (notifications)',
+		'36px',
+		'— / ::after 4px',
+		'—',
+		'none (::after hover)',
+		'muted-0 pill',
+		'',
+	],
+	['.commentsSidebarButton', '36px', '8px', '—', 'background', 'gradient wash when open', ''],
+	['AdminButton', '32px', '4px', '550', 'per variant', 'admin-hover / #333', ''],
 	['.inlineButton', 'auto', '—', '500', 'none (text)', 'underline', ''],
 	['.menuTabsTab', '40px', '—', '—', 'none (text)', 'active underline', ''],
 	['.acceptButton', 'auto', '—', '500', 'background-color', 'cta-hover', ''],
