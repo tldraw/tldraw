@@ -238,6 +238,7 @@ function TlaCurrentFileGroup() {
 					fileId={fileId}
 					workspaceId={activeWorkspaceId}
 					idPrefix="file-"
+					inPalette
 				/>
 			)}
 			<ImportFileActionItem source="command-palette" />

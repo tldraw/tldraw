@@ -19,7 +19,6 @@ import {
 	useDialogs,
 	useMaybeEditor,
 	useToasts,
-	useTldrawUiMenuContext,
 	useTranslation,
 	useValue,
 } from 'tldraw'
@@ -117,6 +116,7 @@ export function FileItems({
 	onRenameAction,
 	workspaceId,
 	idPrefix = '',
+	inPalette = false,
 }: {
 	source: TLAppUiEventSource
 	fileId: string
@@ -126,6 +126,7 @@ export function FileItems({
 	// The palette keeps one entry per id: unprefixed, duplicate/delete clash with the SDK actions
 	// and one of each pair silently vanishes.
 	idPrefix?: string
+	inPalette?: boolean
 }) {
 	const msg = useTranslation()
 	const app = useApp()
@@ -156,7 +157,6 @@ export function FileItems({
 	// (This is the workspace the file belongs to, which is not necessarily one the current user
 	// can write to — for that, see activeWorkspaceId above.)
 	const fileWorkspaceId = file?.owningGroupId ?? homeWorkspaceId
-	const inPalette = useTldrawUiMenuContext().type === 'command-palette'
 	const homeWorkspaceName = workspaceMemberships.find((g) => g.groupId === homeWorkspaceId)?.group
 		?.name
 	const moveToWorkspaces = workspaceMemberships.filter(
