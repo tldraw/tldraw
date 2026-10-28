@@ -15,6 +15,7 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
+	TLUiMenuContextType,
 	uniqueId,
 	useDialogs,
 	useMaybeEditor,
@@ -116,7 +117,7 @@ export function FileItems({
 	onRenameAction,
 	workspaceId,
 	idPrefix = '',
-	inPalette = false,
+	menuType = 'menu',
 }: {
 	source: TLAppUiEventSource
 	fileId: string
@@ -126,8 +127,9 @@ export function FileItems({
 	// The palette keeps one entry per id: unprefixed, duplicate/delete clash with the SDK actions
 	// and one of each pair silently vanishes.
 	idPrefix?: string
-	inPalette?: boolean
+	menuType?: TLUiMenuContextType
 }) {
+	const inPalette = menuType === 'command-palette'
 	const msg = useTranslation()
 	const app = useApp()
 	const editor = useMaybeEditor()
