@@ -420,10 +420,10 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		// query in flight.
 		//
 		// The default short idle timeout is deliberate: a render capture takes far longer, so pg-pool
-		// reaps the client — freeing its Supavisor slot — during every capture rather than pinning a
-		// mostly-idle connection for the whole batch. A render message pays a reconnect after its
-		// capture; that's the price of not stacking held connections on the replicator's and DOs'
-		// under bursty consumer concurrency.
+		// reaps the client — freeing its upstream connection, whether Hyperdrive or the pooler — during
+		// every capture rather than pinning a mostly-idle connection for the whole batch. A render
+		// message pays a reconnect after its capture; that's the price of not stacking held connections
+		// on the durable objects' under bursty consumer concurrency.
 		const db = createPostgresConnectionPool(this.env, 'sync-worker-queue')
 		try {
 			for (const message of batch.messages) {
@@ -478,10 +478,9 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		} finally {
 			// Destroy rather than letting clients idle out: every message the loop reached is settled
 			// by now (an unknown-type throw above exits mid-batch and the queue redelivers), and an
-			// open client lingering for the pool's idle timeout holds a Supavisor slot for nothing.
-			// Best effort — the batch's outcome is already decided, so a teardown error must not
-			// resurface as a batch failure. (Previously the asset-upload pool was never destroyed at
-			// all and leaned on the 5s idle timeout.)
+			// open client lingering for the pool's idle timeout holds an upstream connection for
+			// nothing. Best effort — the batch's outcome is already decided, so a teardown error must
+			// not resurface as a batch failure.
 			await db.destroy().catch(() => {})
 		}
 	}

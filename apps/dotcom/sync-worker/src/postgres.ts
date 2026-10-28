@@ -33,7 +33,7 @@ export function createPostgresConnectionPool(
 		 * How long a client may sit idle before pg-pool tears it down. The default suits pools whose
 		 * queries come back-to-back. A pool that lives across long non-Postgres work keeps it
 		 * deliberately: the queue batch loop's render captures outlive it, so the client is reaped —
-		 * freeing its Supavisor slot — rather than pinned idle, at the cost of a reconnect after.
+		 * freeing its upstream connection — rather than pinned idle, at the cost of a reconnect after.
 		 */
 		idleTimeoutMillis = 5_000,
 	}: { max?: number; idleTimeoutMillis?: number } = {}
