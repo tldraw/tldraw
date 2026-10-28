@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "We werken aan ondersteuning voor bestanden van <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Sleep het bestand naar de zijbalk op deze pagina. Of selecteer de optie 'Bestand importeren' in het gebruikersmenu."
-  },
   "043973ec1f": {
     "translation": "Nog steeds problemen? {GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "Limiet voor bijdragers bereikt"
   },
-  "545241e7dd": {
-    "translation": "{count} ongelezen"
-  },
   "550b25cc0c": {
     "translation": "Uw lokale tekening kon niet worden hersteld. Probeer deze pagina opnieuw te laden."
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "Vernieuw de pagina om de nieuwste versie van tldraw te verkrijgen."
   },
-  "86353d2c41": {
-    "translation": "{total} .tldr-bestanden toegevoegd."
-  },
   "86c66437fd": {
     "translation": "Bestand hernoemen"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Je bent uitgenodigd om deel te nemen aan <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# ongelezen} other {# ongelezen}}"
   },
   "a0da245992": {
     "translation": "Exporteer de inhoud als een .tldr-bestand: Selecteer 'Downloaden' in het menu linksboven."
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Eigenaar"
   },
+  "b74dbb40c5": {
+    "translation": "Sleep het bestand naar de zijbalk op deze pagina. Of selecteer de optie 'Bestand importeren' in het menu 'Bestand' linksboven."
+  },
   "b758336699": {
     "translation": "Link kopiëren"
   },
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "Meer informatie over delen."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {# .tldr-bestand toegevoegd.} other {# .tldr-bestanden toegevoegd.}}"
+  },
   "c303bd1095": {
     "translation": "Het bestand kan niet worden gepubliceerd."
   },
   "c4b39a1cc3": {
     "translation": "Essentiële cookies"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Lange reeks"
   },
   "c6a00f137b": {
     "translation": "Uitnodiging"
@@ -592,7 +589,7 @@
     "translation": "Meer informatie over publiceren."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> en {count, plural, one {# other} other {# others}} reageerden op je reactie"
+    "translation": "<name>{author}</name> en {count, plural, one {# ander} other {# anderen}} reageerden op je reactie"
   },
   "d3d2e61733": {
     "translation": "Sluiten"
@@ -649,7 +646,7 @@
     "translation": "Annuleren"
   },
   "eb1e2b0542": {
-    "translation": "Vraag de eigenaar van de werkplek om een ​​nieuwe."
+    "translation": "Vraag de eigenaar van de werkplek om een nieuwe."
   },
   "ebfe9ce86e": {
     "translation": "Gisteren"
@@ -659,9 +656,6 @@
   },
   "ec611e9a08": {
     "translation": "Accountmenu"
-  },
-  "ed53713239": {
-    "translation": "i18n: Geaccentueerd"
   },
   "ed75712b0e": {
     "translation": "Duplicaat"
@@ -691,7 +685,7 @@
     "translation": "Verwijderen"
   },
   "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> en {count, plural, one {# other} other {# others}} reageerden op je reactie"
+    "translation": "<name>{a}</name>, <name>{b}</name> en {count, plural, one {# ander} other {# anderen}} reageerden op je reactie"
   },
   "f4f70727dc": {
     "translation": "Instellingen"

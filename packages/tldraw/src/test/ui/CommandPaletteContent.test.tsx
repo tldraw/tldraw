@@ -1,16 +1,34 @@
-import { act, fireEvent, waitFor } from '@testing-library/react'
-import { Box, createShapeId, deleteFromLocalStorage, TLImageShape } from '@tldraw/editor'
+import { act, fireEvent, render, waitFor } from '@testing-library/react'
+import {
+	atom,
+	Box,
+	createShapeId,
+	createTLStore,
+	deleteFromLocalStorage,
+	Editor,
+	TldrawEditor,
+	TLImageShape,
+} from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { vi } from 'vitest'
+import { defaultBindingUtils } from '../../lib/defaultBindingUtils'
+import { defaultShapeTools } from '../../lib/defaultShapeTools'
+import { defaultShapeUtils } from '../../lib/defaultShapeUtils'
+import { defaultTools } from '../../lib/defaultTools'
 import { Tldraw } from '../../lib/Tldraw'
-import { CommandPaletteActionGroup } from '../../lib/ui/components/CommandPalette/CommandPaletteGroups'
-import { CommandPaletteToolsGroup } from '../../lib/ui/components/CommandPalette/CommandPaletteGroups'
+import {
+	CommandPaletteActionGroup,
+	CommandPalettePagesGroup,
+	CommandPaletteToolsGroup,
+} from '../../lib/ui/components/CommandPalette/CommandPaletteGroups'
+import { CommandPalettePromptItem } from '../../lib/ui/components/CommandPalette/CommandPalettePromptItem'
 import { CommandPaletteShell } from '../../lib/ui/components/CommandPalette/CommandPaletteShell'
 import { DefaultCommandPaletteContent } from '../../lib/ui/components/CommandPalette/DefaultCommandPaletteContent'
 import { TldrawUiMenuActionItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from '../../lib/ui/components/primitives/menus/TldrawUiMenuGroup'
 import { TLUiActionsContextType, useActions } from '../../lib/ui/context/actions'
 import { TLUiOverrides } from '../../lib/ui/overrides'
+import { TldrawUi } from '../../lib/ui/TldrawUi'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
 vi.mock('../../lib/ui/hooks/useTranslation/useTranslation', async () =>
@@ -214,6 +232,34 @@ describe('default command palette content', () => {
 		expect(editor.getPages()).toHaveLength(1)
 	})
 
+	it('translates prompt labels and placeholders, passing plain text through', async () => {
+		const { rendered, input, search, enter } = await renderPalette({
+			content: (
+				<>
+					<CommandPalettePagesGroup />
+					<CommandPalettePromptItem
+						id="rename-board"
+						label="Rename board"
+						placeholder="Board name"
+						onSubmit={() => {}}
+					/>
+				</>
+			),
+		})
+		search('rename page')
+		const renamePage = await rendered.findByTestId('command-palette.item.rename-page')
+		expect(renamePage.textContent).toBe('Rename page')
+		enter()
+		await waitFor(() => expect(input.placeholder).toBe('Page name'))
+		fireEvent.keyDown(input, { key: 'Escape' })
+
+		search('rename board')
+		const renameBoard = await rendered.findByTestId('command-palette.item.rename-board')
+		expect(renameBoard.textContent).toBe('Rename board')
+		enter()
+		await waitFor(() => expect(input.placeholder).toBe('Board name'))
+	})
+
 	it("sets the selection's styles, checking the current value", async () => {
 		const { editor, rendered, search, enter } = await renderPalette()
 		act(() => {
@@ -232,6 +278,34 @@ describe('default command palette content', () => {
 		search('start arrowhead')
 		await rendered.findByTestId('command-palette.input')
 		expect(rendered.queryByTestId('command-palette.item.style-arrowhead-start-dot')).toBeNull()
+	})
+
+	it('opens in an editor without the geo shape', async () => {
+		let editor!: Editor
+		const rendered = render(
+			<TldrawEditor
+				shapeUtils={defaultShapeUtils.filter((util) => util.type !== 'geo')}
+				tools={[...defaultTools, ...defaultShapeTools.filter((tool) => tool.id !== 'geo')]}
+				initialState="select"
+				onMount={(e) => {
+					editor = e
+				}}
+			>
+				<TldrawUi />
+			</TldrawEditor>
+		)
+		await waitFor(() => expect(editor).toBeDefined())
+		act(() => {
+			editor.updateInstanceState({ isFocused: true })
+			editor
+				.getContainerDocument()
+				.body.dispatchEvent(
+					new KeyboardEvent('keydown', { bubbles: true, key: 'k', code: 'KeyK', metaKey: true })
+				)
+		})
+		const input = await rendered.findByTestId('command-palette.input')
+		fireEvent.change(input, { target: { value: 'color red' } })
+		await rendered.findByTestId('command-palette.item.style-color-red')
 	})
 
 	it('offers the image toolbar commands while one image is selected', async () => {
@@ -292,7 +366,22 @@ describe('default command palette content', () => {
 				actions = useActions()
 				return null
 			}
-			await renderPalette({ content: <Probe /> })
+			// Collaboration and the default palette slot add the conditional actions.
+			const store = createTLStore({
+				shapeUtils: defaultShapeUtils,
+				bindingUtils: defaultBindingUtils,
+				collaboration: { status: atom('status', 'online' as const) },
+			})
+			await renderTldrawComponentWithEditor(
+				(onMount) => (
+					<Tldraw store={store} onMount={onMount}>
+						<Probe />
+					</Tldraw>
+				),
+				{ waitForPatterns: false }
+			)
+			expect(actions['open-cursor-chat']).toBeDefined()
+			expect(actions['open-command-palette']).toBeDefined()
 			const unplaced = Object.values(actions)
 				.filter((action) => action.commandPalette === undefined)
 				.map((action) => action.id)

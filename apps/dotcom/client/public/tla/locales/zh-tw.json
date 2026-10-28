@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "我們正在努力支援來自 <a><strong>{appName}</strong></a> 的檔案。"
   },
-  "03b3e13197": {
-    "translation": "將檔案拖曳到本頁面的側邊欄，或從使用者選單中選取「匯入檔案」。"
-  },
   "043973ec1f": {
     "translation": "仍有問題嗎？{GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "已達到協作者人數上限"
   },
-  "545241e7dd": {
-    "translation": "{count} 未讀"
-  },
   "550b25cc0c": {
     "translation": "無法復原您的本機繪圖。請嘗試重新載入此頁面。"
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "請重新整理頁面以取得最新版本的 tldraw。"
   },
-  "86353d2c41": {
-    "translation": "新增了 {total} 個 .tldr 檔案。"
-  },
   "86c66437fd": {
     "translation": "重新命名文件"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "您已被邀請加入<strong>{workspaceName}</strong>。"
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, other {# 則未讀}}"
   },
   "a0da245992": {
     "translation": "將內容匯出為 .tldr 檔案：在左上角選單中選擇“下載”。"
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "擁有者"
   },
+  "b74dbb40c5": {
+    "translation": "將文件拖曳到此頁面的側邊欄中。或者，從左上角的「檔案」選單中選擇「匯入檔案」選項。"
+  },
   "b758336699": {
     "translation": "複製連結"
   },
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "瞭解有關共享的更多資訊。"
   },
+  "c26f17786f": {
+    "translation": "{total, plural, other {已新增 # 個 .tldr 檔案。}}"
+  },
   "c303bd1095": {
     "translation": "無法發布此檔案。"
   },
   "c4b39a1cc3": {
     "translation": "必備 Cookie"
-  },
-  "c655b27b1e": {
-    "translation": "i18n：長字串"
   },
   "c6a00f137b": {
     "translation": "邀請"
@@ -592,7 +589,7 @@
     "translation": "瞭解有關發布的更多資訊。"
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> 和 {count, plural, one {# other} other {# others}} 對您的評論做出了回應"
+    "translation": "<name>{author}</name> 和{count, plural, other {另外 # 人}}對您的評論做出了回應"
   },
   "d3d2e61733": {
     "translation": "關閉"
@@ -660,9 +657,6 @@
   "ec611e9a08": {
     "translation": "帳號選單"
   },
-  "ed53713239": {
-    "translation": "i18n：已強調"
-  },
   "ed75712b0e": {
     "translation": "複製"
   },
@@ -691,7 +685,7 @@
     "translation": "刪除"
   },
   "f476ba8646": {
-    "translation": "<name>{a}</name>、<name>{b}</name> 和 {count, plural, one {# other} other {# others}} 對您的評論做出了回應"
+    "translation": "<name>{a}</name>、<name>{b}</name> 和{count, plural, other {另外 # 人}}對您的評論做出了回應"
   },
   "f4f70727dc": {
     "translation": "設定"

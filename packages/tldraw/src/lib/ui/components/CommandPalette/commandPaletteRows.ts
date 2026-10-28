@@ -99,7 +99,7 @@ export function getCommandPaletteBrowseRows(
 
 	const recent = recentIds
 		.map((id) => unpinned.find((entry) => entry.id === id))
-		.filter((entry): entry is CommandPaletteEntry => !!entry)
+		.filter((entry): entry is CommandPaletteEntry => !!entry && !entry.submenu?.collapsed)
 		.slice(0, MAX_COMMAND_PALETTE_RECENTS)
 	if (recent.length) {
 		rows.push({ type: 'heading', key: 'heading:recent', label: recentHeading })
