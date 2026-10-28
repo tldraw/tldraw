@@ -1834,7 +1834,7 @@ describe('translating a shape with a bound shape', () => {
 						type: 'arrow',
 						x: -100,
 						y: 100,
-						// Where the pointer was released, not the box's centre that the binding aims at
+						// Not the box's centre the binding aims at, so a stale end shows once the arrow unbinds
 						props: { start: { x: 0, y: 0 }, end: { x: 360, y: 150 } },
 					},
 				])
@@ -1856,13 +1856,13 @@ describe('translating a shape with a bound shape', () => {
 			const info = getArrowInfo(editor, arrow)!
 			const pageTransform = editor.getShapePageTransform(arrow)
 			return {
-				start: Vec.ToFixed(pageTransform.applyToPoint(info.start.handle)),
-				end: Vec.ToFixed(pageTransform.applyToPoint(info.end.handle)),
+				start: pageTransform.applyToPoint(info.start.handle),
+				end: pageTransform.applyToPoint(info.end.handle),
 			}
 		}
 
 		it('keeps an arrow pointing the same way once it unbinds', () => {
-			expect(getTerminalPagePoints()).toMatchObject({
+			expect(getTerminalPagePoints()).toCloselyMatchObject({
 				start: { x: -100, y: 100 },
 				end: { x: 200, y: 200 },
 			})
@@ -1871,11 +1871,11 @@ describe('translating a shape with a bound shape', () => {
 			editor.keyDown('Alt').pointerMove(-50, 110)
 			editor.keyUp('Alt')
 			vi.advanceTimersByTime(500)
-			// Far enough that the box's centre, where the arrow points, leaves the box
+			// Far enough that the arrow's end leaves the box and it unbinds
 			editor.pointerMove(60, 110)
 
 			expect(getArrowBindings(editor, editor.getShape<TLArrowShape>(arrow1)!).end).toBeUndefined()
-			expect(getTerminalPagePoints()).toMatchObject({
+			expect(getTerminalPagePoints()).toCloselyMatchObject({
 				start: { x: 30, y: 100 },
 				end: { x: 330, y: 200 },
 			})
@@ -1887,7 +1887,7 @@ describe('translating a shape with a bound shape', () => {
 			vi.advanceTimersByTime(500)
 			editor.pointerMove(-40, 110)
 
-			expect(getTerminalPagePoints()).toMatchObject({
+			expect(getTerminalPagePoints()).toCloselyMatchObject({
 				start: { x: -70, y: 100 },
 				end: { x: 230, y: 200 },
 			})
