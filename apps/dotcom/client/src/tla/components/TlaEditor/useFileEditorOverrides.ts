@@ -85,9 +85,9 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					id: 'save-file-copy',
 					label: intl.formatMessage(messages.downloadFile),
 					readonlyOk: true,
-					// The palette's file commands already download a signed-in user's file; signed out, the
-					// palette places this action itself.
-					commandPalette: false,
+					// Signed in on a file, TlaCommandPalette's file commands already download it. Every
+					// other palette must list this action, or download has no palette entry.
+					commandPalette: app && fileSlug ? false : undefined,
 					async onSelect() {
 						trackEvent('download-file', { source: '' })
 						if (app && fileSlug) {
