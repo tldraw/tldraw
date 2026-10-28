@@ -17,6 +17,7 @@ describe('isAllowedOrigin', () => {
 		// The sandbox ChatGPT and Codex render MCP app views in; Codex desktop has its own scheme.
 		'https://abc123.web-sandbox.oaiusercontent.com',
 		'codex-sandbox://mcp-server-tldraw-abc123.web-sandbox.oaiusercontent.com',
+		'https://abc123.claudemcpcontent.com',
 	])('allows %s', (origin) => {
 		expect(isAllowedOrigin(origin)).toBe(origin)
 	})
@@ -26,6 +27,9 @@ describe('isAllowedOrigin', () => {
 		'https://tldraw.com.evil.com',
 		'https://oaiusercontent.com',
 		'https://web-sandbox.oaiusercontent.com.evil.com',
+		'https://claudemcpcontent.com',
+		'https://abc123.claudemcpcontent.com.evil.com',
+		'http://abc123.claudemcpcontent.com',
 		'',
 	])('rejects %s', (origin) => {
 		expect(isAllowedOrigin(origin)).toBeUndefined()
@@ -51,6 +55,18 @@ describe('blockUnknownOrigins', () => {
 	it('blocks a request from an unknown origin', async () => {
 		const response = await blockUnknownOrigins(request({ origin: 'https://evil.com' }), env)
 		expect(response?.status).toBe(403)
+	})
+
+	it('allows a Zero query with a forwarded Claude MCP sandbox origin', async () => {
+		expect(
+			await blockUnknownOrigins(
+				request(
+					{ origin: 'https://abc123.claudemcpcontent.com' },
+					'https://www.tldraw.com/api/app/zero/query'
+				),
+				env
+			)
+		).toBeUndefined()
 	})
 
 	// Browsers omit Origin on a top-level GET navigation, so a link followed from another site

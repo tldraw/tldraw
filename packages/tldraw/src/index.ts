@@ -380,7 +380,6 @@ export {
 	type TLUiKeyboardShortcutsDialogProps,
 } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 export { CommandPaletteMenuItem } from './lib/ui/components/CommandPalette/CommandPaletteMenuItem'
-export { COMMAND_PALETTE_MENU_ID } from './lib/ui/components/CommandPalette/commandPaletteMenuId'
 export {
 	CommandPaletteShell,
 	type TLUiCommandPalettePosition,
@@ -391,12 +390,12 @@ export {
 	CommandPalettePinned,
 	useCommandPaletteActiveItemId,
 	useCommandPaletteQuery,
-	type CommandPaletteCollapsedProps,
-	type CommandPalettePinnedProps,
+	type TLUiCommandPaletteCollapsedProps,
+	type TLUiCommandPalettePinnedProps,
 } from './lib/ui/components/CommandPalette/CommandPaletteContext'
 export {
 	CommandPalettePromptItem,
-	type CommandPalettePromptItemProps,
+	type TLUiCommandPalettePromptItemProps,
 } from './lib/ui/components/CommandPalette/CommandPalettePromptItem'
 export {
 	CommandPaletteSearchItem,

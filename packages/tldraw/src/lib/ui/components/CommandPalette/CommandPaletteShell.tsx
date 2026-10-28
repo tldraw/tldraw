@@ -14,7 +14,6 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 import { CommandPaletteStoreProvider } from './CommandPaletteContext'
-import { COMMAND_PALETTE_MENU_ID } from './commandPaletteMenuId'
 import { addCommandPaletteRecent, getCommandPaletteRecents } from './commandPaletteRecents'
 import {
 	CommandPaletteRow,
@@ -40,13 +39,22 @@ const messages = defineMessages({
 
 type SelectableRow = Extract<CommandPaletteRow, { type: 'item' | 'submenu' }>
 
-/** @public */
+/**
+ * Where the command palette opens.
+ *
+ * @public
+ */
 export type TLUiCommandPalettePosition = 'top' | 'center' | 'bottom'
 
-/** @public */
+/**
+ * Props for {@link CommandPaletteShell}.
+ *
+ * @public
+ */
 export interface TLUiCommandPaletteShellProps {
 	/**
-	 * Where the palette opens. `'bottom'`, the default, sits just above the toolbar at its width.
+	 * Where the palette opens. `'bottom'`, the default, sits just above the toolbar at its width when
+	 * the toolbar is horizontal; otherwise it's centered.
 	 */
 	position?: TLUiCommandPalettePosition
 	/** Called when the user dismisses the palette or runs a command. */
@@ -56,8 +64,8 @@ export interface TLUiCommandPaletteShellProps {
 }
 
 /**
- * The command palette's input, list and keyboard handling. Render it while the palette is open, as
- * `DefaultCommandPalette` does, to build a palette that opens differently or sits elsewhere.
+ * The command palette's input, list and keyboard handling. Render it from a custom `CommandPalette`
+ * slot, passing the slot's `onClose`, to build a palette that looks or sits differently.
  *
  * @public @react
  */
@@ -67,10 +75,6 @@ export function CommandPaletteShell({
 	children,
 }: TLUiCommandPaletteShellProps) {
 	const editor = useEditor()
-	// The open action marks the menu open through editor.menus directly, which useMenuIsOpen's
-	// unmount cleanup doesn't track; going away while open would otherwise leave every shortcut
-	// disabled.
-	useEffect(() => () => editor.menus.deleteOpenMenu(COMMAND_PALETTE_MENU_ID), [editor])
 	const msg = useTranslation()
 	const dir = useDirection()
 	const [store] = useState(() => new CommandPaletteStore())
@@ -111,6 +115,7 @@ export function CommandPaletteShell({
 		// Spells out what Enter does, and offers a way back.
 		if (prompt) {
 			const value = query.trim()
+			const icon = dir === 'rtl' ? 'arrow-left' : 'arrow-right'
 			return [
 				{
 					type: 'item',
@@ -118,7 +123,7 @@ export function CommandPaletteShell({
 					entry: prompt,
 					label: prompt.name,
 					detail: value ? `“${value}”` : undefined,
-					icon: 'arrow-right',
+					icon,
 					recent: false,
 				},
 				{
@@ -126,7 +131,7 @@ export function CommandPaletteShell({
 					key: 'prompt:cancel',
 					entry: { ...prompt, id: 'command-palette-cancel', prompt: undefined, kbd: '[[Esc]]' },
 					label: msg(messages.cancel),
-					icon: 'arrow-right',
+					icon,
 					recent: false,
 				},
 			]
@@ -134,7 +139,7 @@ export function CommandPaletteShell({
 		if (submenu) return getCommandPaletteSubmenuRows(entries, submenu.key, query, recentIds)
 		if (query.trim()) return getCommandPaletteSearchRows(entries, query, recentIds)
 		return getCommandPaletteBrowseRows(entries, recentIds, msg(messages.recent))
-	}, [entries, prompt, search, searchResults, submenu, query, recentIds, msg])
+	}, [entries, prompt, search, searchResults, submenu, query, recentIds, msg, dir])
 	const selectableRows = useMemo(
 		() => rows.filter((row): row is SelectableRow => row.type === 'item' || row.type === 'submenu'),
 		[rows]
@@ -196,13 +201,16 @@ export function CommandPaletteShell({
 	// Bottom position, like Figma: as wide as the toolbar, with the gap between the browsing palette
 	// and the toolbar matching the toolbar's gap to the bottom edge. Measured while browsing and kept
 	// while searching, so the input stays put as results shrink. Only set when it changes: a new
-	// object would re-render the registered items, change the rows and measure again, forever.
+	// object would re-render the registered items, change the rows and measure again, forever. A
+	// vertical toolbar is a narrow column, so it falls back to the CSS box.
 	useLayoutEffect(() => {
 		if (position !== 'bottom') return setAnchor(null)
 		if (query || submenu || prompt) return
 		const container = editor.getContainer()
 		const palette = rPalette.current
-		const toolbar = container.querySelector('.tlui-main-toolbar__inner')
+		const toolbar = container.querySelector(
+			'.tlui-main-toolbar--horizontal .tlui-main-toolbar__inner'
+		)
 		if (!palette || !toolbar) return setAnchor(null)
 		const bounds = container.getBoundingClientRect()
 		const { top, bottom, width } = toolbar.getBoundingClientRect()
@@ -315,11 +323,15 @@ export function CommandPaletteShell({
 			// Close first so dialogs aren't stacked under the palette; stay in this handler so
 			// clipboard writes and file pickers keep the user gesture.
 			onClose()
-			if (entry.prompt) entry.prompt.onSubmit(store.query.get().trim())
-			else entry.onSelect('command-palette')
-			// A search hit is remembered as the search that found it.
-			addCommandPaletteRecent(prompt?.id ?? entry.id)
-			restoreFocus()
+			try {
+				if (entry.prompt) entry.prompt.onSubmit(store.query.get().trim())
+				else entry.onSelect('command-palette')
+				// A search hit is remembered as the search that found it.
+				const recent = prompt ?? entry
+				if (!recent.submenu?.collapsed) addCommandPaletteRecent(recent.id)
+			} finally {
+				restoreFocus()
+			}
 		},
 		[onClose, restoreFocus, openSubmenu, openPrompt, prompt, store, back]
 	)
@@ -333,7 +345,14 @@ export function CommandPaletteShell({
 			rScrollToActive.current = true
 			setActiveIndex((Math.max(clampedIndex, 0) + delta + count) % count)
 		}
-		switch (e.key) {
+		// In RTL the query's end is on the left, so the submenu keys mirror, as in Radix menus.
+		const key =
+			dir === 'rtl' && e.key === 'ArrowLeft'
+				? 'ArrowRight'
+				: dir === 'rtl' && e.key === 'ArrowRight'
+					? 'ArrowLeft'
+					: e.key
+		switch (key) {
 			case 'ArrowDown':
 				e.preventDefault()
 				move(1)

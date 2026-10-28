@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import { fileOpen } from 'browser-fs-access'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useCallback, useEffect, useState } from 'react'

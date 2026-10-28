@@ -35,9 +35,9 @@ export function useCommandPaletteQuery(): string {
 }
 
 /**
- * The id of the item highlighted in the command palette, by keyboard or pointer, or null. For
- * tldraw.com's theme preview. Internal because previewing anything stored in the document would
- * sync each highlight and add it to history.
+ * The id of the item highlighted in the command palette, by keyboard or pointer, or null.
+ * Internal because previewing anything stored in the document would sync each highlight and add
+ * it to history.
  *
  * @internal
  */
@@ -116,13 +116,23 @@ export function CommandPalettePathProvider({
 	return <PathContext.Provider value={value}>{children}</PathContext.Provider>
 }
 
-/** @public */
-export interface CommandPalettePinnedProps {
+/**
+ * Props for {@link CommandPalettePinned}.
+ *
+ * @public
+ */
+export interface TLUiCommandPalettePinnedProps {
+	/** The items to pin. */
 	children: ReactNode
 }
 
-/** @public */
-export interface CommandPaletteCollapsedProps {
+/**
+ * Props for {@link CommandPaletteCollapsed}.
+ *
+ * @public
+ */
+export interface TLUiCommandPaletteCollapsedProps {
+	/** The submenu to keep collapsed. */
 	children: ReactNode
 }
 
@@ -132,7 +142,7 @@ export interface CommandPaletteCollapsedProps {
  *
  * @public @react
  */
-export function CommandPalettePinned({ children }: CommandPalettePinnedProps) {
+export function CommandPalettePinned({ children }: TLUiCommandPalettePinnedProps) {
 	return <CommandPalettePathProvider pinned>{children}</CommandPalettePathProvider>
 }
 
@@ -143,6 +153,6 @@ export function CommandPalettePinned({ children }: CommandPalettePinnedProps) {
  *
  * @public @react
  */
-export function CommandPaletteCollapsed({ children }: CommandPaletteCollapsedProps) {
+export function CommandPaletteCollapsed({ children }: TLUiCommandPaletteCollapsedProps) {
 	return <CommandPalettePathProvider collapseSubmenu>{children}</CommandPalettePathProvider>
 }

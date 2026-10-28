@@ -1,11 +1,13 @@
-import { fireEvent, waitFor, within } from '@testing-library/react'
-import { deleteFromLocalStorage } from '@tldraw/editor'
-import { ReactNode } from 'react'
+import { act, fireEvent, waitFor, within } from '@testing-library/react'
+import { deleteFromLocalStorage, useValue } from '@tldraw/editor'
+import { ReactNode, useState } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import {
+	CommandPaletteCollapsed,
 	CommandPalettePinned,
 	useCommandPaletteActiveItemId,
+	useCommandPaletteStore,
 } from '../../lib/ui/components/CommandPalette/CommandPaletteContext'
 import { CommandPalettePromptItem } from '../../lib/ui/components/CommandPalette/CommandPalettePromptItem'
 import {
@@ -21,15 +23,28 @@ import { TldrawUiMenuCheckboxItem } from '../../lib/ui/components/primitives/men
 import { TldrawUiMenuGroup } from '../../lib/ui/components/primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from '../../lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'
+import { DefaultToolbar } from '../../lib/ui/components/Toolbar/DefaultToolbar'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
+const mockDir = vi.hoisted(() => ({ current: null as 'ltr' | 'rtl' | null }))
+
 // setupVitest mocks useTranslation to echo keys; these tests assert the English strings.
-vi.mock('../../lib/ui/hooks/useTranslation/useTranslation', async () =>
-	vi.importActual('../../lib/ui/hooks/useTranslation/useTranslation')
-)
+vi.mock('../../lib/ui/hooks/useTranslation/useTranslation', async () => {
+	const actual = await vi.importActual<
+		typeof import('../../lib/ui/hooks/useTranslation/useTranslation')
+	>('../../lib/ui/hooks/useTranslation/useTranslation')
+	return {
+		...actual,
+		useDirection: () => {
+			const dir = actual.useDirection()
+			return mockDir.current ?? dir
+		},
+	}
+})
 
 afterEach(() => {
 	deleteFromLocalStorage('tldraw-command-palette-recents')
+	mockDir.current = null
 })
 
 async function renderShell(
@@ -169,6 +184,53 @@ describe('CommandPaletteShell', () => {
 	it('opens where its position says', async () => {
 		const { rendered } = await renderShell(item('alpha', 'Alpha'), vi.fn(), 'top')
 		expect(rendered.getByTestId('command-palette').dataset.position).toBe('top')
+	})
+
+	describe('bottom position', () => {
+		// jsdom has no layout: give the toolbar a box, and everything else the 1000px-tall container's.
+		async function renderWithToolbar(orientation: 'horizontal' | 'vertical') {
+			const toolbarBox =
+				orientation === 'horizontal'
+					? { top: 940, bottom: 988, left: 250, right: 750, width: 500, height: 48 }
+					: { top: 8, bottom: 400, left: 8, right: 56, width: 48, height: 392 }
+			vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
+				function (this: Element) {
+					const box = this.classList.contains('tlui-main-toolbar__inner')
+						? toolbarBox
+						: { top: 0, bottom: 1000, left: 0, right: 1000, width: 1000, height: 1000 }
+					return { ...box, x: box.left, y: box.top, toJSON: () => box } as DOMRect
+				}
+			)
+			const { rendered } = await renderTldrawComponentWithEditor(
+				(onMount) => (
+					<Tldraw
+						onMount={onMount}
+						components={{ Toolbar: () => <DefaultToolbar orientation={orientation} /> }}
+					>
+						<CommandPaletteShell onClose={vi.fn()}>{item('alpha', 'Alpha')}</CommandPaletteShell>
+					</Tldraw>
+				),
+				{ waitForPatterns: false }
+			)
+			await rendered.findByTestId('command-palette.item.alpha')
+			expect(rendered.container.querySelector(`.tlui-main-toolbar--${orientation}`)).not.toBeNull()
+			return rendered.getByTestId('command-palette')
+		}
+
+		afterEach(() => {
+			vi.restoreAllMocks()
+		})
+
+		it('sits above a horizontal toolbar at its width', async () => {
+			const palette = await renderWithToolbar('horizontal')
+			await waitFor(() => expect(palette.style.width).toBe('500px'))
+		})
+
+		it('ignores a vertical toolbar', async () => {
+			const palette = await renderWithToolbar('vertical')
+			expect(palette.style.width).toBe('')
+			expect(palette.style.top).toBe('')
+		})
 	})
 
 	it('fades the list while there is more content below', async () => {
@@ -335,6 +397,37 @@ describe('CommandPaletteShell', () => {
 		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
 		input.setSelectionRange(0, 0)
 		press(input, 'ArrowLeft')
+		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+		expect(input.value).toBe('many')
+	})
+
+	it('swaps the submenu arrow keys in RTL', async () => {
+		mockDir.current = 'rtl'
+		const { rendered, input } = await renderShell(
+			<TldrawUiMenuSubmenu id="many" label="Many">
+				{['a', 'b'].map((id) => item(id, `Option ${id}`))}
+			</TldrawUiMenuSubmenu>
+		)
+		type(input, 'many')
+		await rendered.findByTestId('command-palette.submenu.Many')
+		input.setSelectionRange(4, 4)
+		press(input, 'ArrowRight')
+		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+		input.setSelectionRange(2, 2)
+		press(input, 'ArrowLeft')
+		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+		input.setSelectionRange(4, 4)
+		press(input, 'ArrowLeft')
+		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
+		type(input, 'b')
+		input.setSelectionRange(0, 0)
+		press(input, 'ArrowLeft')
+		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
+		input.setSelectionRange(1, 1)
+		press(input, 'ArrowRight')
+		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
+		input.setSelectionRange(0, 0)
+		press(input, 'ArrowRight')
 		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
 		expect(input.value).toBe('many')
 	})
@@ -532,6 +625,49 @@ describe('CommandPaletteShell', () => {
 		expect(document.activeElement).toBe(editor.getContainer())
 	})
 
+	it('does not record items run from a collapsed submenu', async () => {
+		const onSelect = vi.fn()
+		const { rendered } = await renderShell(
+			<CommandPaletteCollapsed>
+				<TldrawUiMenuSubmenu id="news" label="News">
+					{item('note', 'Note', onSelect)}
+				</TldrawUiMenuSubmenu>
+			</CommandPaletteCollapsed>
+		)
+		fireEvent.click(await rendered.findByTestId('command-palette.submenu.News'))
+		fireEvent.click(rendered.getByTestId('command-palette.item.note'))
+		expect(onSelect).toHaveBeenCalled()
+		expect(getCommandPaletteRecents()).toEqual([])
+	})
+
+	it('returns focus to the editor, without recording a recent, when an item throws', async () => {
+		const { editor, input } = await renderShell(
+			item(
+				'alpha',
+				'Alpha',
+				vi.fn(() => {
+					throw new Error('boom')
+				})
+			)
+		)
+		// React reports event handler errors to window instead of rethrowing them.
+		const errors: unknown[] = []
+		const onError = (e: ErrorEvent) => {
+			e.preventDefault()
+			errors.push(e.error)
+		}
+		window.addEventListener('error', onError)
+		try {
+			type(input, 'alp')
+			press(input, 'Enter')
+		} finally {
+			window.removeEventListener('error', onError)
+		}
+		expect(errors).toEqual([new Error('boom')])
+		expect(document.activeElement).toBe(editor.getContainer())
+		expect(getCommandPaletteRecents()).toEqual([])
+	})
+
 	it('returns focus to the editor after Escape and after Cmd+K', async () => {
 		const { editor, input } = await renderShell(item('alpha', 'Alpha'))
 		press(input, 'Escape')
@@ -575,5 +711,66 @@ describe('CommandPaletteShell', () => {
 		} finally {
 			Element.prototype.scrollIntoView = original
 		}
+	})
+
+	it('settles when items re-render every time the palette does', async () => {
+		let renders = 0
+		function RerendersWithPalette() {
+			const store = useCommandPaletteStore()
+			useValue(store.entries)
+			renders++
+			return (
+				<>
+					{item('alpha', 'Alpha')}
+					{item('beta', 'Beta')}
+				</>
+			)
+		}
+		const { rendered } = await renderShell(<RerendersWithPalette />)
+		await rendered.findByTestId('command-palette.item.beta')
+		expect(renders).toBeLessThan(10)
+	})
+
+	it("runs a prompt's latest onSubmit, even if it changes while the prompt is open", async () => {
+		const calls: string[] = []
+		let setCount = (_n: number) => {}
+		function Counter() {
+			const [count, _setCount] = useState(0)
+			setCount = _setCount
+			return (
+				<CommandPalettePromptItem
+					id="new"
+					label="New file"
+					placeholder="File name"
+					onSubmit={(value) => calls.push(`${value} ${count}`)}
+				/>
+			)
+		}
+		const { rendered, input } = await renderShell(<Counter />)
+		fireEvent.click(await rendered.findByTestId('command-palette.item.new'))
+		act(() => setCount(1))
+		type(input, 'Plans')
+		press(input, 'Enter')
+		expect(calls).toEqual(['Plans 1'])
+	})
+
+	it('runs the latest onSelect after it changes', async () => {
+		const calls: number[] = []
+		let setCount = (_n: number) => {}
+		function Counter() {
+			const [count, _setCount] = useState(0)
+			setCount = _setCount
+			return item(
+				'alpha',
+				'Alpha',
+				vi.fn(() => calls.push(count))
+			)
+		}
+		const { rendered, input } = await renderShell(<Counter />)
+		await rendered.findByTestId('command-palette.item.alpha')
+		act(() => setCount(1))
+		type(input, 'alp')
+		press(input, 'Enter')
+		expect(calls).toEqual([1])
 	})
 })

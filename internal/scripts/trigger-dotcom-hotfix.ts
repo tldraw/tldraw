@@ -113,8 +113,8 @@ This PR cherry-picks the changes from the original PR to the hotfixes branch for
 		const maxWaitTimeMs = 15 * 60 * 1000
 		const startTime = Date.now()
 
-		// Wait for 5 minutes initially, then check every 15 seconds (our checks take at least 5 mins)
-		await new Promise((resolve) => setTimeout(resolve, 5 * 60 * 1000))
+		// Wait for 2 minutes initially, then check every 15 seconds (our checks usually take 3+ mins)
+		await new Promise((resolve) => setTimeout(resolve, 2 * 60 * 1000))
 
 		let checkedForMissingChecks = false
 

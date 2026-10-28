@@ -71,6 +71,52 @@ function compareByDocumentPosition(a: CommandPaletteEntry, b: CommandPaletteEntr
 	return a.marker.compareDocumentPosition(b.marker) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1
 }
 
+const same = (a: unknown, b: unknown) => a === b
+
+// Typed over every key, so a new entry field fails to compile until it says how it compares.
+const entryFieldEquals: {
+	[K in keyof Required<CommandPaletteEntry>]: (
+		a: CommandPaletteEntry[K],
+		b: CommandPaletteEntry[K]
+	) => boolean
+} = {
+	id: same,
+	label: same,
+	name: same,
+	path: (a, b) => a.length === b.length && a.every((part, i) => part === b[i]),
+	submenu: (a, b) =>
+		a === b ||
+		(!!a &&
+			!!b &&
+			a.key === b.key &&
+			a.label === b.label &&
+			a.icon === b.icon &&
+			a.collapsed === b.collapsed),
+	section: same,
+	heading: same,
+	icon: same,
+	kbd: same,
+	checked: same,
+	isSelected: same,
+	detail: same,
+	pinned: same,
+	prompt: (a, b) =>
+		a === b ||
+		(!!a &&
+			!!b &&
+			a.placeholder === b.placeholder &&
+			a.initialValue === b.initialValue &&
+			a.onSubmit === b.onSubmit),
+	onSelect: same,
+	marker: same,
+}
+
+function areEntriesEqual(a: CommandPaletteEntry, b: CommandPaletteEntry) {
+	return (Object.keys(entryFieldEquals) as (keyof CommandPaletteEntry)[]).every((key) =>
+		(entryFieldEquals[key] as (a: unknown, b: unknown) => boolean)(a[key], b[key])
+	)
+}
+
 /** @internal */
 export class CommandPaletteStore {
 	private readonly registrations = new Map<string, CommandPaletteEntry>()
@@ -84,7 +130,10 @@ export class CommandPaletteStore {
 	/** The id of the highlighted item, or null when a submenu row, a prompt, a search hit or nothing is. */
 	readonly activeItemId = atom<string | null>('command palette active item', null)
 
+	/** Items register on every render, so an unchanged entry must not bump, or the palette loops. */
 	set(token: string, entry: CommandPaletteEntry) {
+		const current = this.registrations.get(token)
+		if (current && areEntriesEqual(current, entry)) return
 		this.registrations.set(token, entry)
 		this.version.update((v) => v + 1)
 	}

@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useRef } from 'react'
+import { useCallback, useId, useLayoutEffect, useRef } from 'react'
 import { TLUiEventSource } from '../../context/events'
 import { TLUiIconJsx } from '../primitives/TldrawUiIcon'
 import { useCommandPalettePath, useCommandPaletteStore } from './CommandPaletteContext'
@@ -25,12 +25,31 @@ export function CommandPaletteItemRegistration(props: CommandPaletteItemRegistra
 	const token = useId()
 	const rMarker = useRef<HTMLSpanElement>(null)
 
-	// No deps: re-register every render so label, checked state and onSelect stay current.
+	// Stable wrappers, so new inline callbacks don't count as changes yet the latest one still runs,
+	// even from an entry the palette is holding, like an open prompt.
+	const rProps = useRef(props)
+	const onSelect = useCallback((source: TLUiEventSource) => rProps.current.onSelect(source), [])
+	const onSubmit = useCallback((value: string) => rProps.current.prompt?.onSubmit(value), [])
+
+	// No deps: re-register every render so label and checked state stay current.
 	useLayoutEffect(() => {
+		rProps.current = props
+		const { id, kbd, checked, isSelected, detail, prompt, icon } = props
 		// Prefixed here so rows, recents and search matching all see the same label.
 		const label = submenu ? `${submenu.label}: ${props.label}` : props.label
 		store.set(token, {
-			...props,
+			id,
+			kbd,
+			checked,
+			isSelected,
+			detail,
+			icon,
+			prompt: prompt && {
+				placeholder: prompt.placeholder,
+				initialValue: prompt.initialValue,
+				onSubmit,
+			},
+			onSelect,
 			label,
 			name: props.label,
 			path: props.detail ? [...path, props.detail] : path,

@@ -34,6 +34,7 @@ export interface TLUiMenuItemProps<
 	TranslationKey extends string = string,
 	IconType extends string = string,
 > {
+	/** In the command palette, unique across the whole palette: the first item with an id wins. */
 	id: string
 	/**
 	 * The icon to display on the item. Icons are only shown in certain menu types.
