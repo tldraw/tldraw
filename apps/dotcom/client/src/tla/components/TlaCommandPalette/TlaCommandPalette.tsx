@@ -449,8 +449,12 @@ function TlaWorkspacesGroup() {
 	const newWorkspaceLbl = msg(messages.newWorkspace)
 	const settingsLbl = msg(messages.workspaceSettings)
 	const copyInviteLbl = msg(messages.copyInviteLink)
+	const activeGroup = activeMembership?.group
+	// A new workspace has no invite secret until the server confirms it, so there's nothing to copy.
 	const canCopyInvite =
-		activeWorkspaceId !== homeWorkspaceId && (activeMembership?.group?.inviteLinkEnabled ?? true)
+		activeWorkspaceId !== homeWorkspaceId &&
+		!!activeGroup?.inviteSecret &&
+		(activeGroup.inviteLinkEnabled ?? true)
 
 	return (
 		<TldrawUiMenuGroup id="tla-workspaces" label={workspacesLbl}>
