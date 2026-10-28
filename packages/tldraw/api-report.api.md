@@ -826,33 +826,7 @@ export function CommandPalettePreferencesGroup(): JSX.Element;
 export function CommandPalettePromptItem<TranslationKey extends string = string>({ id, label, placeholder, initialValue, onSubmit, }: TLUiCommandPalettePromptItemProps<TranslationKey>): JSX.Element | null;
 
 // @internal
-export function CommandPaletteSearchItem({ id, label, placeholder, icon, getResults, }: CommandPaletteSearchItemProps): JSX.Element | null;
-
-// @internal (undocumented)
-export interface CommandPaletteSearchItemProps {
-    getResults(query: string): CommandPaletteSearchResult[];
-    // (undocumented)
-    icon?: string | TLUiIconJsx;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    label: string;
-    // (undocumented)
-    placeholder: string;
-}
-
-// @internal (undocumented)
-export interface CommandPaletteSearchResult {
-    detail?: string;
-    // (undocumented)
-    icon?: string | TLUiIconJsx;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    label: string;
-    // (undocumented)
-    onSelect(): void;
-}
+export function CommandPaletteSearchItem({ id, label, placeholder, icon, getResults, }: TLUiCommandPaletteSearchItemProps): JSX.Element | null;
 
 // @public
 export function CommandPaletteSelectionGroup(): JSX.Element;
@@ -4854,6 +4828,32 @@ export interface TLUiCommandPaletteProps {
     children?: ReactNode;
     onClose?(): void;
     position?: TLUiCommandPalettePosition;
+}
+
+// @internal (undocumented)
+export interface TLUiCommandPaletteSearchItemProps {
+    getResults(query: string): TLUiCommandPaletteSearchResult[];
+    // (undocumented)
+    icon?: string | TLUiIconJsx;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    label: string;
+    // (undocumented)
+    placeholder: string;
+}
+
+// @internal (undocumented)
+export interface TLUiCommandPaletteSearchResult {
+    detail?: string;
+    // (undocumented)
+    icon?: string | TLUiIconJsx;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    label: string;
+    // (undocumented)
+    onSelect(): void;
 }
 
 // @public

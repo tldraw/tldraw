@@ -20,7 +20,7 @@ export interface CommandPalettePrompt {
 }
 
 /** @internal */
-export interface CommandPaletteSearchResult {
+export interface TLUiCommandPaletteSearchResult {
 	id: string
 	label: string
 	/** Muted text after the label, e.g. where the hit is. */
@@ -32,7 +32,7 @@ export interface CommandPaletteSearchResult {
 /** @internal */
 export interface CommandPaletteSearch {
 	placeholder: string
-	getResults(query: string): CommandPaletteSearchResult[]
+	getResults(query: string): TLUiCommandPaletteSearchResult[]
 }
 
 /** @internal */

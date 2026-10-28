@@ -1,4 +1,4 @@
-import { CommandPaletteSearchResult, Editor, TLUiToolsContextType } from 'tldraw'
+import { TLUiCommandPaletteSearchResult, Editor, TLUiToolsContextType } from 'tldraw'
 
 export const MAX_BOARD_RESULTS = 50
 // Characters kept before the match when a label's start is trimmed.
@@ -9,7 +9,7 @@ export function getBoardSearchResults(
 	editor: Editor,
 	query: string,
 	tools: TLUiToolsContextType
-): CommandPaletteSearchResult[] {
+): TLUiCommandPaletteSearchResult[] {
 	const needle = query.replace(/\s+/g, ' ').toLowerCase()
 	const currentPageId = editor.getCurrentPageId()
 	const pages = editor.getPages()
@@ -17,7 +17,7 @@ export function getBoardSearchResults(
 		...pages.filter((page) => page.id === currentPageId),
 		...pages.filter((page) => page.id !== currentPageId),
 	]
-	const results: CommandPaletteSearchResult[] = []
+	const results: TLUiCommandPaletteSearchResult[] = []
 	for (const page of ordered) {
 		for (const id of editor.getPageShapeIds(page.id)) {
 			const shape = editor.getShape(id)

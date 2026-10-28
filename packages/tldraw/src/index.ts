@@ -399,9 +399,9 @@ export {
 } from './lib/ui/components/CommandPalette/CommandPalettePromptItem'
 export {
 	CommandPaletteSearchItem,
-	type CommandPaletteSearchItemProps,
+	type TLUiCommandPaletteSearchItemProps,
 } from './lib/ui/components/CommandPalette/CommandPaletteSearchItem'
-export { type CommandPaletteSearchResult } from './lib/ui/components/CommandPalette/CommandPaletteStore'
+export { type TLUiCommandPaletteSearchResult } from './lib/ui/components/CommandPalette/CommandPaletteStore'
 export {
 	CommandPaletteActionGroup,
 	CommandPaletteArrangeGroup,

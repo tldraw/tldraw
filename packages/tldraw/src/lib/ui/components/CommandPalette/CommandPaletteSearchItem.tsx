@@ -1,10 +1,10 @@
 import { useTldrawUiMenuContext } from '../primitives/menus/TldrawUiMenuContext'
 import { TLUiIconJsx } from '../primitives/TldrawUiIcon'
 import { CommandPaletteItemRegistration } from './CommandPaletteItemRegistration'
-import { CommandPaletteSearchResult } from './CommandPaletteStore'
+import { TLUiCommandPaletteSearchResult } from './CommandPaletteStore'
 
 /** @internal */
-export interface CommandPaletteSearchItemProps {
+export interface TLUiCommandPaletteSearchItemProps {
 	id: string
 	label: string
 	placeholder: string
@@ -13,7 +13,7 @@ export interface CommandPaletteSearchItemProps {
 	 * The hits for the trimmed, non-empty query, shown in this order without ranking or a cap. Runs
 	 * again only when the query changes.
 	 */
-	getResults(query: string): CommandPaletteSearchResult[]
+	getResults(query: string): TLUiCommandPaletteSearchResult[]
 }
 
 /**
@@ -28,7 +28,7 @@ export function CommandPaletteSearchItem({
 	placeholder,
 	icon,
 	getResults,
-}: CommandPaletteSearchItemProps) {
+}: TLUiCommandPaletteSearchItemProps) {
 	const { type } = useTldrawUiMenuContext()
 	if (type !== 'command-palette') return null
 	return (
