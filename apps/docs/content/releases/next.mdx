@@ -23,7 +23,7 @@ Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, p
 - Add `CommandPaletteStylesGroup`, which sets the style panel's styles from the palette, and `CommandPaletteImageGroup`, with the image toolbar's commands.
 - Add the `toggle-minimap` and `crop-image` actions. The minimap's open state is now shared between the navigation panel and the action.
 - Add `'command-palette'` to `TLUiMenuContextType` and `TLUiEventSource`.
-- Add a `position` prop to `DefaultCommandPalette` and `CommandPaletteShell`: `'bottom'` (the default, just above the toolbar), `'center'` or `'top'`.
+- Add a `position` prop to `DefaultCommandPalette` and `CommandPaletteShell`: `'bottom'` (the default, just above a horizontal toolbar), `'center'` or `'top'`.
 - Add `commandPalette` to `TLUiActionItem`, and `CommandPaletteActionGroup`, which lists the actions placed in a group, or every action not opted out when given no group.
 - Add `CommandPalettePinned`, `CommandPaletteCollapsed` and `CommandPalettePromptItem`, an `icon` prop on `TldrawUiMenuSubmenu` and a `detail` prop on `TldrawUiMenuItem`, to shape how items appear in the command palette.
 - Add a `ThrottledFunction<T>` type to `@tldraw/utils` for annotating the result of `throttle`. `throttle` now returns this type, with the same runtime behavior. ([#10927](https://github.com/tldraw/tldraw/pull/10927))

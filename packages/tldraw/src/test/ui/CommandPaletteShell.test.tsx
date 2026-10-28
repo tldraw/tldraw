@@ -20,6 +20,7 @@ import { TldrawUiMenuCheckboxItem } from '../../lib/ui/components/primitives/men
 import { TldrawUiMenuGroup } from '../../lib/ui/components/primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from '../../lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'
+import { DefaultToolbar } from '../../lib/ui/components/Toolbar/DefaultToolbar'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
 const mockDir = vi.hoisted(() => ({ current: null as 'ltr' | 'rtl' | null }))
@@ -180,6 +181,53 @@ describe('CommandPaletteShell', () => {
 	it('opens where its position says', async () => {
 		const { rendered } = await renderShell(item('alpha', 'Alpha'), vi.fn(), 'top')
 		expect(rendered.getByTestId('command-palette').dataset.position).toBe('top')
+	})
+
+	describe('bottom position', () => {
+		// jsdom has no layout: give the toolbar a box, and everything else the 1000px-tall container's.
+		async function renderWithToolbar(orientation: 'horizontal' | 'vertical') {
+			const toolbarBox =
+				orientation === 'horizontal'
+					? { top: 940, bottom: 988, left: 250, right: 750, width: 500, height: 48 }
+					: { top: 8, bottom: 400, left: 8, right: 56, width: 48, height: 392 }
+			vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
+				function (this: Element) {
+					const box = this.classList.contains('tlui-main-toolbar__inner')
+						? toolbarBox
+						: { top: 0, bottom: 1000, left: 0, right: 1000, width: 1000, height: 1000 }
+					return { ...box, x: box.left, y: box.top, toJSON: () => box } as DOMRect
+				}
+			)
+			const { rendered } = await renderTldrawComponentWithEditor(
+				(onMount) => (
+					<Tldraw
+						onMount={onMount}
+						components={{ Toolbar: () => <DefaultToolbar orientation={orientation} /> }}
+					>
+						<CommandPaletteShell onClose={vi.fn()}>{item('alpha', 'Alpha')}</CommandPaletteShell>
+					</Tldraw>
+				),
+				{ waitForPatterns: false }
+			)
+			await rendered.findByTestId('command-palette.item.alpha')
+			expect(rendered.container.querySelector(`.tlui-main-toolbar--${orientation}`)).not.toBeNull()
+			return rendered.getByTestId('command-palette')
+		}
+
+		afterEach(() => {
+			vi.restoreAllMocks()
+		})
+
+		it('sits above a horizontal toolbar at its width', async () => {
+			const palette = await renderWithToolbar('horizontal')
+			await waitFor(() => expect(palette.style.width).toBe('500px'))
+		})
+
+		it('ignores a vertical toolbar', async () => {
+			const palette = await renderWithToolbar('vertical')
+			expect(palette.style.width).toBe('')
+			expect(palette.style.top).toBe('')
+		})
 	})
 
 	it('fades the list while there is more content below', async () => {

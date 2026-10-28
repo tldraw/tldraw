@@ -46,7 +46,8 @@ export type TLUiCommandPalettePosition = 'top' | 'center' | 'bottom'
 /** @public */
 export interface TLUiCommandPaletteShellProps {
 	/**
-	 * Where the palette opens. `'bottom'`, the default, sits just above the toolbar at its width.
+	 * Where the palette opens. `'bottom'`, the default, sits just above the toolbar at its width when
+	 * the toolbar is horizontal; otherwise it's centered.
 	 */
 	position?: TLUiCommandPalettePosition
 	/** Called when the user dismisses the palette or runs a command. */
@@ -186,13 +187,16 @@ export function CommandPaletteShell({
 	// Bottom position, like Figma: as wide as the toolbar, with the gap between the browsing palette
 	// and the toolbar matching the toolbar's gap to the bottom edge. Measured while browsing and kept
 	// while searching, so the input stays put as results shrink. Only set when it changes: a new
-	// object would re-render the registered items, change the rows and measure again, forever.
+	// object would re-render the registered items, change the rows and measure again, forever. A
+	// vertical toolbar is a narrow column, so it falls back to the CSS box.
 	useLayoutEffect(() => {
 		if (position !== 'bottom') return setAnchor(null)
 		if (query || submenu || prompt) return
 		const container = editor.getContainer()
 		const palette = rPalette.current
-		const toolbar = container.querySelector('.tlui-main-toolbar__inner')
+		const toolbar = container.querySelector(
+			'.tlui-main-toolbar--horizontal .tlui-main-toolbar__inner'
+		)
 		if (!palette || !toolbar) return setAnchor(null)
 		const bounds = container.getBoundingClientRect()
 		const { top, bottom, width } = toolbar.getBoundingClientRect()
