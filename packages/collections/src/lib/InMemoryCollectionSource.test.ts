@@ -3,9 +3,21 @@ import { createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CollectionNotFoundError, CollectionPermissionError } from './CollectionSource'
 import { InMemoryCollectionSource } from './InMemoryCollectionSource'
-import type { TLCollectionItemContent } from './schema'
+import {
+	CollectionItemRecordType,
+	CollectionRecordType,
+	type TLCollectionItemContent,
+} from './schema'
 
 const shapeId = createShapeId('box')
+const pack = CollectionRecordType.createId('pack')
+const card = CollectionItemRecordType.createId('card')
+const missingCollection = CollectionRecordType.createId('nope')
+const missingItem = CollectionItemRecordType.createId('nope')
+
+const prefabs = () => CollectionRecordType.create({ id: pack, name: 'Prefabs', readOnly: true })
+const cardItem = () =>
+	CollectionItemRecordType.create({ id: card, collectionId: pack, name: 'Card' })
 
 function content(): TLCollectionItemContent {
 	return {
@@ -46,9 +58,8 @@ describe('InMemoryCollectionSource', () => {
 			content: content(),
 		})
 
-		expect(source.getItems(collection.id)).toEqual([
-			{ id: item.id, collectionId: collection.id, name: 'Card', version: 1 },
-		])
+		expect(item).toMatchObject({ collectionId: collection.id, name: 'Card', version: 1 })
+		expect(source.getItems(collection.id)).toEqual([item])
 		expect(await source.getItemContent(item.id)).toEqual(content())
 	})
 
@@ -56,11 +67,8 @@ describe('InMemoryCollectionSource', () => {
 		const source = new InMemoryCollectionSource()
 		const collection = await source.createCollection('Wireframes')
 		const item = await source.addItem(collection.id, { content: content() })
-		expect(item).toStrictEqual({
-			id: item.id,
-			collectionId: collection.id,
-			version: 1,
-		})
+		expect(item.collectionId).toBe(collection.id)
+		expect(item).not.toHaveProperty('name')
 	})
 
 	it('gives thumbnails a url', async () => {
@@ -87,8 +95,8 @@ describe('InMemoryCollectionSource', () => {
 
 	it('reports a missing item as not found, not as forbidden', async () => {
 		const source = new InMemoryCollectionSource({ readOnly: true })
-		await expect(source.renameItem('nope', 'Name')).rejects.toThrow(CollectionNotFoundError)
-		await expect(source.deleteItem('nope')).rejects.toThrow(CollectionNotFoundError)
+		await expect(source.renameItem(missingItem, 'Name')).rejects.toThrow(CollectionNotFoundError)
+		await expect(source.deleteItem(missingItem)).rejects.toThrow(CollectionNotFoundError)
 	})
 
 	describe('thumbnail urls', () => {
@@ -152,62 +160,64 @@ describe('InMemoryCollectionSource', () => {
 
 	it('reports a missing collection as not found, not as forbidden', async () => {
 		const source = new InMemoryCollectionSource()
-		await expect(source.renameCollection('nope', 'Name')).rejects.toThrow(CollectionNotFoundError)
-		await expect(source.addItem('nope', { name: 'A', content: content() })).rejects.toThrow(
+		await expect(source.renameCollection(missingCollection, 'Name')).rejects.toThrow(
 			CollectionNotFoundError
 		)
+		await expect(
+			source.addItem(missingCollection, { name: 'A', content: content() })
+		).rejects.toThrow(CollectionNotFoundError)
 	})
 
 	it('answers no for a collection that does not exist', () => {
 		const source = new InMemoryCollectionSource()
-		expect(source.can('addItem', 'nope')).toBe(false)
+		expect(source.can('addItem', missingCollection)).toBe(false)
 	})
 
 	it('refuses every write when read-only, but items stay usable', async () => {
 		const source = new InMemoryCollectionSource({
 			readOnly: true,
 			initial: {
-				collections: [{ id: 'pack', name: 'Prefabs', readOnly: true }],
-				items: [{ id: 'card', collectionId: 'pack', name: 'Card', version: 1 }],
-				contents: { card: content() },
+				collections: [prefabs()],
+				items: [cardItem()],
+				contents: { [card]: content() },
 			},
 		})
 		expect(source.can('createCollection')).toBe(false)
-		expect(source.can('addItem', 'pack')).toBe(false)
+		expect(source.can('addItem', pack)).toBe(false)
 		await expect(source.createCollection('New')).rejects.toThrow(CollectionPermissionError)
-		await expect(source.deleteItem('card')).rejects.toThrow(CollectionPermissionError)
-		await expect(source.renameItem('card', 'New')).rejects.toThrow(CollectionPermissionError)
-		await expect(source.deleteCollection('pack')).rejects.toThrow(CollectionPermissionError)
-		expect(await source.getItemContent('card')).toEqual(content())
+		await expect(source.deleteItem(card)).rejects.toThrow(CollectionPermissionError)
+		await expect(source.renameItem(card, 'New')).rejects.toThrow(CollectionPermissionError)
+		await expect(source.deleteCollection(pack)).rejects.toThrow(CollectionPermissionError)
+		expect(await source.getItemContent(card)).toEqual(content())
 	})
 
 	it('refuses writes to a read-only collection in a writable source', async () => {
 		const source = new InMemoryCollectionSource({
 			initial: {
-				collections: [{ id: 'pack', name: 'Prefabs', readOnly: true }],
+				collections: [prefabs()],
 				items: [],
 				contents: {},
 			},
 		})
 		expect(source.can('createCollection')).toBe(true)
-		expect(source.can('addItem', 'pack')).toBe(false)
-		await expect(source.addItem('pack', { name: 'A', content: content() })).rejects.toThrow(
+		expect(source.can('addItem', pack)).toBe(false)
+		await expect(source.addItem(pack, { name: 'A', content: content() })).rejects.toThrow(
 			CollectionPermissionError
 		)
 	})
 
 	it('rejects starting data with items that have no collection or no content', () => {
-		const item = { id: 'card', collectionId: 'pack', version: 1 }
+		const item = cardItem()
 		expect(
 			() =>
 				new InMemoryCollectionSource({
-					initial: { collections: [], items: [item], contents: { card: content() } },
+					initial: { collections: [], items: [item], contents: { [card]: content() } },
 				})
 		).toThrow(/missing collection/)
 		expect(
 			() =>
 				new InMemoryCollectionSource({
-					initial: { collections: [{ id: 'pack', name: 'Prefabs' }], items: [item], contents: {} },
+					initial: { collections: [prefabs()], items: [item], contents: {} },
 				})
 		).toThrow(/no content/)
 	})
@@ -217,7 +227,7 @@ describe('InMemoryCollectionSource', () => {
 			() =>
 				new InMemoryCollectionSource({
 					initial: {
-						collections: [{ id: 'x', name: '', readOnly: false }],
+						collections: [{ ...prefabs(), name: '' }],
 						items: [],
 						contents: {},
 					},
@@ -256,15 +266,16 @@ describe('InMemoryCollectionSource', () => {
 	})
 
 	it('rejects starting data with content no item lists, or duplicate ids', () => {
-		const collection = { id: 'pack', name: 'Prefabs' }
-		const item = { id: 'card', collectionId: 'pack', version: 1 }
+		const collection = prefabs()
+		const item = cardItem()
+		const orphan = CollectionItemRecordType.createId('orphan')
 		expect(
 			() =>
 				new InMemoryCollectionSource({
 					initial: {
 						collections: [collection],
 						items: [item],
-						contents: { card: content(), orphan: content() },
+						contents: { [card]: content(), [orphan]: content() },
 					},
 				})
 		).toThrow(/orphan has no item/)
@@ -273,17 +284,17 @@ describe('InMemoryCollectionSource', () => {
 				new InMemoryCollectionSource({
 					initial: { collections: [collection, collection], items: [], contents: {} },
 				})
-		).toThrow(/Duplicate collection ids/)
+		).toThrow(/Duplicate ids/)
 		expect(
 			() =>
 				new InMemoryCollectionSource({
 					initial: {
 						collections: [collection],
 						items: [item, item],
-						contents: { card: content() },
+						contents: { [card]: content() },
 					},
 				})
-		).toThrow(/Duplicate item ids/)
+		).toThrow(/Duplicate ids/)
 	})
 
 	it('keeps its own copy of item content', async () => {

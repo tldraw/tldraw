@@ -1,5 +1,6 @@
-import { atom, computed, transact, type Computed } from '@tldraw/state'
-import { structuredClone, uniqueId } from '@tldraw/utils'
+import type { Computed } from '@tldraw/state'
+import { Store, StoreSchema } from '@tldraw/store'
+import { structuredClone } from '@tldraw/utils'
 import {
 	CollectionNotFoundError,
 	CollectionPermissionError,
@@ -8,12 +9,18 @@ import {
 	type TLNewCollectionItem,
 } from './CollectionSource'
 import {
+	CollectionItemRecordType,
+	collectionItemMigrations,
 	collectionItemValidator,
-	collectionValidator,
+	collectionMigrations,
+	CollectionRecordType,
 	parseCollectionItemContent,
 	type TLCollection,
+	type TLCollectionId,
 	type TLCollectionItem,
 	type TLCollectionItemContent,
+	type TLCollectionItemId,
+	type TLCollectionRecord,
 } from './schema'
 
 export interface InMemoryCollectionSourceOptions {
@@ -22,55 +29,56 @@ export interface InMemoryCollectionSourceOptions {
 	initial?: {
 		collections: TLCollection[]
 		items: TLCollectionItem[]
-		contents: Record<string, TLCollectionItemContent>
+		contents: Record<TLCollectionItemId, TLCollectionItemContent>
 	}
 	/** Makes every collection read-only, like a prefab pack. Items can still be used. */
 	readOnly?: boolean
 }
 
+const schema = StoreSchema.create<TLCollectionRecord>(
+	{ collection: CollectionRecordType, 'collection-item': CollectionItemRecordType },
+	{ migrations: [collectionMigrations, collectionItemMigrations] }
+)
+
 /**
  * A source that keeps everything in memory. Used for tests, for building UI before a backend
  * exists, and as the reference for how a source should behave.
+ *
+ * Collections and items live in a tldraw `Store`, which validates them and freezes them in
+ * development. Item content and thumbnails stay outside it: content can be large, and thumbnails
+ * are object URLs that have to be released.
  */
 export class InMemoryCollectionSource implements CollectionSource {
 	readonly id: string
 	private readonly readOnly: boolean
-	private readonly collections = atom<TLCollection[]>('collections', [])
-	private readonly items = atom<TLCollectionItem[]>('collection items', [])
-	private readonly contents = new Map<string, TLCollectionItemContent>()
-	private readonly thumbnailUrls = new Map<string, string>()
-	private readonly itemsByCollection = new Map<string, Computed<TLCollectionItem[]>>()
+	private readonly store = new Store<TLCollectionRecord>({ schema, props: {} })
+	private readonly collections = this.store.query.records('collection')
+	private readonly itemsByCollection = new Map<TLCollectionId, Computed<TLCollectionItem[]>>()
+	private readonly contents = new Map<TLCollectionItemId, TLCollectionItemContent>()
+	private readonly thumbnailUrls = new Map<TLCollectionItemId, string>()
 
 	constructor(options: InMemoryCollectionSourceOptions = {}) {
 		this.id = options.id ?? 'in-memory'
 		this.readOnly = options.readOnly ?? false
 		if (options.initial) {
-			const collections = options.initial.collections.map((c) => collectionValidator.validate(c))
-			const items = options.initial.items.map((i) => collectionItemValidator.validate(i))
+			const { collections, items, contents } = options.initial
 			// Bad starting data would only fail later, in the UI, so it is checked as a whole up front.
 			// Content without a listed item is refused too: it could be loaded by id without being
 			// listed, which breaks "a collection someone may not use is simply not listed".
-			if (new Set(collections.map((c) => c.id)).size !== collections.length) {
-				throw new Error('Duplicate collection ids in starting data')
-			}
-			if (new Set(items.map((i) => i.id)).size !== items.length) {
-				throw new Error('Duplicate item ids in starting data')
-			}
+			const ids = [...collections, ...items].map((r) => r.id)
+			if (new Set(ids).size !== ids.length) throw new Error('Duplicate ids in starting data')
 			for (const item of items) {
 				if (!collections.some((c) => c.id === item.collectionId)) {
 					throw new Error(`Item ${item.id} belongs to missing collection ${item.collectionId}`)
 				}
-				if (!(item.id in options.initial.contents)) {
-					throw new Error(`Item ${item.id} has no content`)
-				}
+				if (!(item.id in contents)) throw new Error(`Item ${item.id} has no content`)
 			}
-			for (const itemId of Object.keys(options.initial.contents)) {
+			for (const itemId of Object.keys(contents)) {
 				if (!items.some((i) => i.id === itemId)) throw new Error(`Content ${itemId} has no item`)
 			}
-			this.collections.set(collections)
-			this.items.set(items)
-			for (const [itemId, content] of Object.entries(options.initial.contents)) {
-				this.contents.set(itemId, parseCollectionItemContent(content))
+			this.store.put([...collections, ...items])
+			for (const [itemId, content] of Object.entries(contents)) {
+				this.contents.set(itemId as TLCollectionItemId, parseCollectionItemContent(content))
 			}
 		}
 	}
@@ -79,16 +87,14 @@ export class InMemoryCollectionSource implements CollectionSource {
 		return this.collections.get()
 	}
 
-	// Cached per collection, and only a new array when that collection's items change, so a change
-	// in one collection doesn't re-render every open listing.
-	getItems(collectionId: string) {
+	// One query per collection, kept so its result stays the same array until that collection's
+	// items change: a change in one collection doesn't re-render every open listing.
+	getItems(collectionId: TLCollectionId) {
 		let items = this.itemsByCollection.get(collectionId)
 		if (!items) {
-			items = computed(
-				`collection items ${collectionId}`,
-				() => this.items.get().filter((item) => item.collectionId === collectionId),
-				{ isEqual: sameItems }
-			)
+			items = this.store.query.records('collection-item', () => ({
+				collectionId: { eq: collectionId },
+			}))
 			this.itemsByCollection.set(collectionId, items)
 		}
 		return items.get()
@@ -96,14 +102,14 @@ export class InMemoryCollectionSource implements CollectionSource {
 
 	// Copied in and out, as a server would: mutating what a caller passed or got back can't
 	// change what is stored.
-	async getItemContent(itemId: string) {
+	async getItemContent(itemId: TLCollectionItemId) {
 		const content = this.contents.get(itemId)
 		if (!content) throw new CollectionNotFoundError(itemId)
 		return structuredClone(content)
 	}
 
-	can(action: TLCollectionAction, collectionId?: string) {
-		const collection = collectionId === undefined ? undefined : this.findCollection(collectionId)
+	can(action: TLCollectionAction, collectionId?: TLCollectionId) {
+		const collection = collectionId === undefined ? undefined : this.store.get(collectionId)
 		if (collectionId !== undefined && !collection) return false
 		if (this.readOnly) return false
 		return !collection?.readOnly
@@ -111,63 +117,58 @@ export class InMemoryCollectionSource implements CollectionSource {
 
 	async createCollection(name: string) {
 		this.assertCan('createCollection')
-		const collection = collectionValidator.validate({ id: uniqueId(), name })
-		this.collections.update((all) => [...all, collection])
+		const collection = CollectionRecordType.create({ name })
+		this.store.put([collection])
 		return collection
 	}
 
-	async renameCollection(collectionId: string, name: string) {
+	async renameCollection(collectionId: TLCollectionId, name: string) {
 		const collection = this.getCollection(collectionId)
 		this.assertCan('renameCollection', collectionId)
-		const renamed = collectionValidator.validate({ ...collection, name })
-		this.collections.update((all) => all.map((c) => (c.id === collectionId ? renamed : c)))
+		this.store.put([{ ...collection, name }])
 	}
 
-	async deleteCollection(collectionId: string) {
+	async deleteCollection(collectionId: TLCollectionId) {
 		this.getCollection(collectionId)
 		this.assertCan('deleteCollection', collectionId)
-		transact(() => {
-			for (const item of this.getItems(collectionId)) this.forgetItem(item.id)
-			this.items.update((all) => all.filter((i) => i.collectionId !== collectionId))
-			this.collections.update((all) => all.filter((c) => c.id !== collectionId))
-		})
+		const items = this.getItems(collectionId)
+		for (const item of items) this.forgetItem(item.id)
+		this.store.remove([collectionId, ...items.map((item) => item.id)])
 		this.itemsByCollection.delete(collectionId)
 	}
 
-	async addItem(collectionId: string, newItem: TLNewCollectionItem) {
+	async addItem(collectionId: TLCollectionId, newItem: TLNewCollectionItem) {
 		this.getCollection(collectionId)
 		this.assertCan('addItem', collectionId)
-		const id = uniqueId()
 		const content = parseCollectionItemContent(newItem.content)
-		let item = collectionItemValidator.validate({
-			id,
-			collectionId,
-			...(newItem.name === undefined ? {} : { name: newItem.name }),
-			version: 1,
-		})
+		let item = collectionItemValidator.validate(
+			CollectionItemRecordType.create({
+				collectionId,
+				...(newItem.name === undefined ? {} : { name: newItem.name }),
+			})
+		)
 		// Created only after validation, so a rejected item can't leak its blob.
 		if (newItem.thumbnail) {
 			const thumbnailUrl = URL.createObjectURL(newItem.thumbnail)
-			this.thumbnailUrls.set(id, thumbnailUrl)
+			this.thumbnailUrls.set(item.id, thumbnailUrl)
 			item = { ...item, thumbnailUrl }
 		}
-		this.contents.set(id, structuredClone(content))
-		this.items.update((all) => [...all, item])
+		this.contents.set(item.id, structuredClone(content))
+		this.store.put([item])
 		return item
 	}
 
-	async renameItem(itemId: string, name: string) {
+	async renameItem(itemId: TLCollectionItemId, name: string) {
 		const item = this.getItem(itemId)
 		this.assertCan('renameItem', item.collectionId)
-		const renamed = collectionItemValidator.validate({ ...item, name })
-		this.items.update((all) => all.map((i) => (i.id === itemId ? renamed : i)))
+		this.store.put([{ ...item, name }])
 	}
 
-	async deleteItem(itemId: string) {
+	async deleteItem(itemId: TLCollectionItemId) {
 		const item = this.getItem(itemId)
 		this.assertCan('deleteItem', item.collectionId)
 		this.forgetItem(itemId)
-		this.items.update((all) => all.filter((i) => i.id !== itemId))
+		this.store.remove([itemId])
 	}
 
 	/** Releases every thumbnail URL this source created. Call it when throwing the source away. */
@@ -176,35 +177,27 @@ export class InMemoryCollectionSource implements CollectionSource {
 		this.thumbnailUrls.clear()
 	}
 
-	private findCollection(collectionId: string) {
-		return this.collections.get().find((c) => c.id === collectionId)
-	}
-
-	private getCollection(collectionId: string) {
-		const collection = this.findCollection(collectionId)
+	private getCollection(collectionId: TLCollectionId) {
+		const collection = this.store.get(collectionId)
 		if (!collection) throw new CollectionNotFoundError(collectionId)
 		return collection
 	}
 
-	private getItem(itemId: string) {
-		const item = this.items.get().find((i) => i.id === itemId)
+	private getItem(itemId: TLCollectionItemId) {
+		const item = this.store.get(itemId)
 		if (!item) throw new CollectionNotFoundError(itemId)
 		return item
 	}
 
-	private assertCan(action: TLCollectionAction, collectionId?: string) {
+	private assertCan(action: TLCollectionAction, collectionId?: TLCollectionId) {
 		if (!this.can(action, collectionId)) throw new CollectionPermissionError(action, collectionId)
 	}
 
 	// Object URLs keep their blob alive until revoked, so a deleted item would otherwise leak it.
-	private forgetItem(itemId: string) {
+	private forgetItem(itemId: TLCollectionItemId) {
 		this.contents.delete(itemId)
 		const url = this.thumbnailUrls.get(itemId)
 		if (url) URL.revokeObjectURL(url)
 		this.thumbnailUrls.delete(itemId)
 	}
-}
-
-function sameItems(a: TLCollectionItem[], b: TLCollectionItem[]) {
-	return a.length === b.length && a.every((item, i) => item === b[i])
 }

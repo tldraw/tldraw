@@ -1,4 +1,10 @@
-import type { TLCollection, TLCollectionItem, TLCollectionItemContent } from './schema'
+import type {
+	TLCollection,
+	TLCollectionId,
+	TLCollectionItem,
+	TLCollectionItemContent,
+	TLCollectionItemId,
+} from './schema'
 
 /**
  * A change a user can try to make. Sources answer {@link CollectionSource.can}.
@@ -35,23 +41,23 @@ export interface CollectionSource {
 
 	/** The collections this user may see. */
 	getCollections(): TLCollection[]
-	getItems(collectionId: string): TLCollectionItem[]
+	getItems(collectionId: TLCollectionId): TLCollectionItem[]
 	/** Loads an item's content. Kept separate from the listing because content can be large. */
-	getItemContent(itemId: string): Promise<TLCollectionItemContent>
+	getItemContent(itemId: TLCollectionItemId): Promise<TLCollectionItemContent>
 
 	/**
 	 * Whether the current user may do `action`. With a `collectionId`, answers for that
 	 * collection; without one, for the source as a whole (e.g. may they create collections).
 	 */
-	can(action: TLCollectionAction, collectionId?: string): boolean
+	can(action: TLCollectionAction, collectionId?: TLCollectionId): boolean
 
 	createCollection(name: string): Promise<TLCollection>
-	renameCollection(collectionId: string, name: string): Promise<void>
-	deleteCollection(collectionId: string): Promise<void>
+	renameCollection(collectionId: TLCollectionId, name: string): Promise<void>
+	deleteCollection(collectionId: TLCollectionId): Promise<void>
 
-	addItem(collectionId: string, item: TLNewCollectionItem): Promise<TLCollectionItem>
-	renameItem(itemId: string, name: string): Promise<void>
-	deleteItem(itemId: string): Promise<void>
+	addItem(collectionId: TLCollectionId, item: TLNewCollectionItem): Promise<TLCollectionItem>
+	renameItem(itemId: TLCollectionItemId, name: string): Promise<void>
+	deleteItem(itemId: TLCollectionItemId): Promise<void>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */

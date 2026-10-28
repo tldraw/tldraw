@@ -1483,6 +1483,9 @@ importers:
       '@tldraw/state':
         specifier: workspace:*
         version: link:../state
+      '@tldraw/store':
+        specifier: workspace:*
+        version: link:../store
       '@tldraw/tlschema':
         specifier: workspace:*
         version: link:../tlschema

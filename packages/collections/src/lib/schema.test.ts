@@ -2,7 +2,9 @@ import { createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import {
 	CollectionItemContentTooNewError,
+	CollectionItemRecordType,
 	collectionItemValidator,
+	CollectionRecordType,
 	collectionValidator,
 	parseCollectionItemContent,
 } from './schema'
@@ -24,42 +26,41 @@ function itemContent(overrides: Record<string, unknown> = {}) {
 }
 
 describe('collectionValidator', () => {
-	it('accepts a collection', () => {
-		const collection = { id: 'col_1', name: 'Wireframes', readOnly: false }
-		expect(collectionValidator.validate(collection)).toEqual(collection)
+	const collection = CollectionRecordType.create({
+		id: CollectionRecordType.createId('wireframes'),
+		name: 'Wireframes',
 	})
 
-	it('accepts a collection that leaves readOnly out', () => {
-		const collection = { id: 'col_1', name: 'Wireframes' }
+	it('accepts a collection, with readOnly left out or set', () => {
 		expect(collectionValidator.validate(collection)).toEqual(collection)
+		expect(collectionValidator.validate({ ...collection, readOnly: true })).toEqual({
+			...collection,
+			readOnly: true,
+		})
 	})
 
 	it('rejects a blank name', () => {
-		expect(() =>
-			collectionValidator.validate({ id: 'col_1', name: '  ', readOnly: false })
-		).toThrow()
+		expect(() => collectionValidator.validate({ ...collection, name: '  ' })).toThrow()
+	})
+
+	it('rejects an id that is not a collection id', () => {
+		expect(() => collectionValidator.validate({ ...collection, id: 'wireframes' })).toThrow()
 	})
 
 	it('rejects unknown properties', () => {
-		expect(() =>
-			collectionValidator.validate({ id: 'col_1', name: 'Icons', readOnly: false, color: 'red' })
-		).toThrow()
+		expect(() => collectionValidator.validate({ ...collection, color: 'red' })).toThrow()
 	})
 })
 
 describe('collectionItemValidator', () => {
-	const item = {
-		id: 'item_1',
-		collectionId: 'col_1',
+	const item = CollectionItemRecordType.create({
+		id: CollectionItemRecordType.createId('card'),
+		collectionId: CollectionRecordType.createId('wireframes'),
 		name: 'Card',
-		version: 1,
-	}
-
-	it('accepts an item without a thumbnail', () => {
-		expect(collectionItemValidator.validate(item)).toEqual(item)
 	})
 
-	it('accepts an item with a thumbnail', () => {
+	it('accepts an item, with or without a thumbnail', () => {
+		expect(collectionItemValidator.validate(item)).toEqual(item)
 		const withThumbnail = { ...item, thumbnailUrl: 'https://x/t.png' }
 		expect(collectionItemValidator.validate(withThumbnail)).toEqual(withThumbnail)
 	})
@@ -69,24 +70,20 @@ describe('collectionItemValidator', () => {
 		expect(collectionItemValidator.validate(unnamed)).toEqual(unnamed)
 	})
 
-	it('rejects a blank name, so leaving it out stays the only way to say there is none', () => {
+	it('rejects a blank name or thumbnail, so leaving them out is the only way to say there is none', () => {
 		expect(() => collectionItemValidator.validate({ ...item, name: '  ' })).toThrow()
-	})
-
-	it('rejects a blank or null thumbnail, so leaving it out stays the only way to say there is none', () => {
 		expect(() => collectionItemValidator.validate({ ...item, thumbnailUrl: '' })).toThrow()
 		expect(() => collectionItemValidator.validate({ ...item, thumbnailUrl: null })).toThrow()
 	})
 
-	it('rejects a non-integer version', () => {
+	it('rejects a collection id that is not a collection id', () => {
 		expect(() =>
-			collectionItemValidator.validate({
-				id: 'item_1',
-				collectionId: 'col_1',
-				name: 'Card',
-				version: 1.5,
-			})
+			collectionItemValidator.validate({ ...item, collectionId: 'wireframes' })
 		).toThrow()
+	})
+
+	it('rejects a non-integer version', () => {
+		expect(() => collectionItemValidator.validate({ ...item, version: 1.5 })).toThrow()
 	})
 })
 
