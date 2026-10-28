@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Povlecite datoteko v stransko vrstico na tej strani. Ali pa v uporabniškem meniju izberite možnost 'Uvozi datoteko'."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -497,16 +491,6 @@
     {
       "type": 0,
       "value": "Dosežena je omejitev sodelavcev"
-    }
-  ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " neprebranih"
     }
   ],
   "550b25cc0c": [
@@ -964,20 +948,6 @@
       "value": "Prosimo, osvežite stran, da dobite najnovejšo različico tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Dodane "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " datoteke .tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1158,6 +1128,46 @@
       "value": "."
     }
   ],
+  "a0a19d5145": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " neprebrano"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " neprebrano"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -1330,6 +1340,12 @@
       "value": "Lastnik"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Povlecite datoteko v stransko vrstico na tej strani. Ali pa v meniju Datoteka v zgornjem levem kotu izberite možnost »Uvozi datoteko«."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1420,6 +1436,54 @@
       "value": "Preberite več o skupni rabi."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodana datoteka "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodanih "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " datotek .tldr."
+            }
+          ]
+        },
+        "two": {
+          "value": [
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1430,12 +1494,6 @@
     {
       "type": 0,
       "value": "Bistveni piškotki"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: dolg niz"
     }
   ],
   "c6a00f137b": [
@@ -1718,12 +1776,6 @@
     {
       "type": 0,
       "value": "Meni računa"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Naglašeno"
     }
   ],
   "ed75712b0e": [

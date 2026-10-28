@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Povucite datoteku u bočnu traku na ovoj stranici. Ili odaberite opciju 'Uvezi datoteku' iz korisničkog izbornika."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -495,16 +489,6 @@
       "value": "Dosegnuto je ograničenje broja suradnika"
     }
   ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " nepročitano"
-    }
-  ],
   "550b25cc0c": [
     {
       "type": 0,
@@ -949,20 +933,6 @@
       "value": "Osvježite stranicu kako biste dobili najnoviju verziju tldraw-a."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Dodane "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " .tldr datoteke."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1143,6 +1113,42 @@
       "value": "."
     }
   ],
+  "a0a19d5145": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " nepročitano"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " nepročitano"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -1315,6 +1321,12 @@
       "value": "Vlasnik"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Povucite datoteku u bočnu traku na ovoj stranici. Ili odaberite opciju 'Uvezi datoteku' iz izbornika Datoteka u gornjem lijevom kutu."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1401,6 +1413,50 @@
       "value": "Saznajte više o dijeljenju."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodana je "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr datoteka."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodano "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr datoteka."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1411,12 +1467,6 @@
     {
       "type": 0,
       "value": "Osnovni kolačići"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Dugi niz"
     }
   ],
   "c6a00f137b": [
@@ -1699,12 +1749,6 @@
     {
       "type": 0,
       "value": "Izbornik računa"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Naglasak"
     }
   ],
   "ed75712b0e": [

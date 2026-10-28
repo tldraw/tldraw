@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Pracujemy nad obsługą plików z <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Przeciągnij plik na pasek boczny na tej stronie lub wybierz opcję „Importuj plik” z menu użytkownika."
-  },
   "043973ec1f": {
     "translation": "Nadal masz problem? {GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "Osiągnięto limit współpracowników"
   },
-  "545241e7dd": {
-    "translation": "{count} nieprzeczytane"
-  },
   "550b25cc0c": {
     "translation": "Nie udało się przywrócić lokalnego rysunku. Spróbuj odświeżyć tę stronę."
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "Odśwież stronę, aby pobrać najnowszą wersję tldraw."
   },
-  "86353d2c41": {
-    "translation": "Dodano pliki {total} .tldr."
-  },
   "86c66437fd": {
     "translation": "Zmień nazwę pliku"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Zostałeś zaproszony do dołączenia do <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# nieprzeczytane} few {} many {} other {# nieprzeczytane}}"
   },
   "a0da245992": {
     "translation": "Eksportuj zawartość jako plik .tldr: Wybierz „Pobierz” w menu u góry po lewej stronie."
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Właściciel"
   },
+  "b74dbb40c5": {
+    "translation": "Przeciągnij plik na pasek boczny na tej stronie. Możesz też wybrać opcję „Importuj plik” z menu Plik w lewym górnym rogu."
+  },
   "b758336699": {
     "translation": "Kopiuj link"
   },
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "Dowiedz się więcej o udostępnianiu."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {Dodano plik #.tldr.} few {} many {} other {Dodano pliki #.tldr.}}"
+  },
   "c303bd1095": {
     "translation": "Nie można opublikować pliku."
   },
   "c4b39a1cc3": {
     "translation": "Niezbędne pliki cookie"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Długi ciąg"
   },
   "c6a00f137b": {
     "translation": "Zaproś"
@@ -659,9 +656,6 @@
   },
   "ec611e9a08": {
     "translation": "Menu konta"
-  },
-  "ed53713239": {
-    "translation": "i18n: akcentowany"
   },
   "ed75712b0e": {
     "translation": "Duplikat"

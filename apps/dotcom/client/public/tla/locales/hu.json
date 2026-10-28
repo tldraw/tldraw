@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Dolgozunk a(z) <a><strong>{appName}</strong></a> alkalmazásból származó fájlok támogatásán."
   },
-  "03b3e13197": {
-    "translation": "Húzza a fájlt az oldal oldalsávjába. Vagy válassza a „Fájl importálása” opciót a felhasználói menüből."
-  },
   "043973ec1f": {
     "translation": "Még mindig gondja van? {GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "Elérte az együttműködők korlátját"
   },
-  "545241e7dd": {
-    "translation": "{count} olvasatlan"
-  },
   "550b25cc0c": {
     "translation": "Nem sikerült visszaállítani a helyi rajzot. Próbálja meg újratölteni az oldalt."
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "Kérjük, frissítse az oldalt a tldraw legújabb verziójának letöltéséhez."
   },
-  "86353d2c41": {
-    "translation": "{total} .tldr fájl hozzáadva."
-  },
   "86c66437fd": {
     "translation": "Fájl átnevezése"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Meghívtak a(z) <strong>{workspaceName}</strong> munkaterületre."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# olvasatlan} other {# olvasatlan}}"
   },
   "a0da245992": {
     "translation": "Exportáld a tartalmat .tldr fájlként: Válaszd a „Letöltés” ​​lehetőséget a bal felső menüben."
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Tulajdonos"
   },
+  "b74dbb40c5": {
+    "translation": "Húzd a fájlt az oldalsávba ezen az oldalon. Vagy válaszd a „Fájl importálása” lehetőséget a bal felső sarokban található Fájl menüből."
+  },
   "b758336699": {
     "translation": "Link másolása"
   },
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "További információ a megosztásról."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {Hozzáadott # .tldr fájl.} other {Hozzáadott # .tldr fájl.}}"
+  },
   "c303bd1095": {
     "translation": "Nem lehet közzétenni a fájlt."
   },
   "c4b39a1cc3": {
     "translation": "Alapvető sütik"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Hosszú karakterlánc"
   },
   "c6a00f137b": {
     "translation": "Meghív"
@@ -659,9 +656,6 @@
   },
   "ec611e9a08": {
     "translation": "Fiók menü"
-  },
-  "ed53713239": {
-    "translation": "i18n: Ékezetes"
   },
   "ed75712b0e": {
     "translation": "Másolat"

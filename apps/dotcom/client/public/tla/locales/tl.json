@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Nagsusumikap kaming suportahan ang mga file mula sa <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "I-drag ang file sa sidebar sa page na ito. O piliin ang opsyong 'Mag-import ng file' mula sa menu ng user."
-  },
   "043973ec1f": {
     "translation": "Nahihirapan pa rin? {GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "Naabot na ang limitasyon ng collaborator"
   },
-  "545241e7dd": {
-    "translation": "{count} hindi pa nababasa"
-  },
   "550b25cc0c": {
     "translation": "Hindi maibalik ang iyong lokal na drawing. Subukang i-reload ang pahinang ito."
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "Paki-refresh ang page para makuha ang pinakabagong bersyon ng tldraw."
   },
-  "86353d2c41": {
-    "translation": "Nagdagdag ng {total} .tldr file."
-  },
   "86c66437fd": {
     "translation": "Palitan ang pangalan ng file"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Inaanyayahan kang sumali sa <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, zero {} one {# hindi pa nababasa} two {} few {} many {} other {# hindi pa nababasa}}"
   },
   "a0da245992": {
     "translation": "I-export ang nilalaman bilang isang .tldr file: Piliin ang 'I-download' sa kaliwang menu sa itaas."
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "May-ari"
   },
+  "b74dbb40c5": {
+    "translation": "I-drag ang file papunta sa sidebar sa pahinang ito. O piliin ang opsyong 'I-import ang file' mula sa menu na File sa kaliwang itaas."
+  },
   "b758336699": {
     "translation": "Kopyahin ang link"
   },
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "Matuto pa tungkol sa pagbabahagi."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, zero {} one {Idinagdag ang # .tldr file.} two {} few {} many {} other {Nagdagdag ng # na .tldr na file.}}"
+  },
   "c303bd1095": {
     "translation": "Hindi ma-publish ang file."
   },
   "c4b39a1cc3": {
     "translation": "Mahahalagang cookies"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Mahabang String"
   },
   "c6a00f137b": {
     "translation": "Mag-imbita"
@@ -659,9 +656,6 @@
   },
   "ec611e9a08": {
     "translation": "Menu ng account"
-  },
-  "ed53713239": {
-    "translation": "i18n: Accented"
   },
   "ed75712b0e": {
     "translation": "Duplicate"

@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "저희는 <a><strong>{appName}</strong></a>에서 제공하는 파일에 대한 지원을 개발 중입니다."
   },
-  "03b3e13197": {
-    "translation": "이 페이지의 사이드바로 파일을 드래그하세요. 또는 사용자 메뉴에서 '파일 가져오기' 옵션을 선택합니다."
-  },
   "043973ec1f": {
     "translation": "여전히 문제가 있나요? {GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "공동 작업자 정원 도달"
   },
-  "545241e7dd": {
-    "translation": "{count} 읽지 않음"
-  },
   "550b25cc0c": {
     "translation": "로컬 도면을 복원할 수 없습니다. 페이지를 새로고침해 보세요."
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "최신 tldraw 버전을 받으려면 페이지를 새로 고침해 주세요."
   },
-  "86353d2c41": {
-    "translation": "{total}개의 .tldr 파일을 추가했습니다."
-  },
   "86c66437fd": {
     "translation": "파일 이름 바꾸기"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "귀하는 <strong>{workspaceName}</strong>에 초대되었습니다."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, other {# 읽지 않음}}"
   },
   "a0da245992": {
     "translation": "콘텐츠를 .tldr 파일로 내보내려면 왼쪽 상단 메뉴에서 '다운로드'를 선택하세요."
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "소유자"
   },
+  "b74dbb40c5": {
+    "translation": "파일을 이 페이지의 사이드바에 드래그하거나, 왼쪽 상단의 파일 메뉴에서 '파일 가져오기' 옵션을 선택하세요."
+  },
   "b758336699": {
     "translation": "링크 복사"
   },
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "공유에 대해 자세히 알아보세요."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, other {#개의 .tldr 파일을 추가했습니다.}}"
+  },
   "c303bd1095": {
     "translation": "이 파일을 게시할 수 없습니다."
   },
   "c4b39a1cc3": {
     "translation": "필수 쿠키"
-  },
-  "c655b27b1e": {
-    "translation": "i18n(국제화): 롱 스트링"
   },
   "c6a00f137b": {
     "translation": "초대"
@@ -659,9 +656,6 @@
   },
   "ec611e9a08": {
     "translation": "계정 메뉴"
-  },
-  "ed53713239": {
-    "translation": "i18n(국제화): 강조됨"
   },
   "ed75712b0e": {
     "translation": "복제"

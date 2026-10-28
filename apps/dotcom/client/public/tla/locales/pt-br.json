@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Estamos trabalhando no suporte para arquivos de <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Arraste o arquivo para a barra lateral desta página. Ou selecione a opção \"Importar arquivo\" no menu do usuário."
-  },
   "043973ec1f": {
     "translation": "Ainda está com dificuldades? {GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "O limite de colaboradores foi atingido"
   },
-  "545241e7dd": {
-    "translation": "{count} não lido"
-  },
   "550b25cc0c": {
     "translation": "Não foi possível restaurar seu desenho local. Tente recarregar esta página."
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "Atualize a página para obter a versão mais recente do tldraw."
   },
-  "86353d2c41": {
-    "translation": "Adicionados {total} arquivos .tldr."
-  },
   "86c66437fd": {
     "translation": "Renomear arquivo"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Você foi convidado(a) a participar do <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# não lido} other {# não lido}}"
   },
   "a0da245992": {
     "translation": "Exporte o conteúdo como um arquivo .tldr: Selecione \"Download\" no menu superior esquerdo."
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Proprietário"
   },
+  "b74dbb40c5": {
+    "translation": "Arraste o arquivo para a barra lateral desta página. Ou selecione a opção \"Importar arquivo\" no menu Arquivo, no canto superior esquerdo."
+  },
   "b758336699": {
     "translation": "Copiar link"
   },
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "Saiba mais sobre como compartilhar."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {Adicionado arquivo #.tldr.} other {Adicionados arquivos #.tldr.}}"
+  },
   "c303bd1095": {
     "translation": "Não foi possível publicar o arquivo."
   },
   "c4b39a1cc3": {
     "translation": "Cookies essenciais"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Sequência de caracteres longa"
   },
   "c6a00f137b": {
     "translation": "Convidar"
@@ -659,9 +656,6 @@
   },
   "ec611e9a08": {
     "translation": "Guia da conta"
-  },
-  "ed53713239": {
-    "translation": "i18n: Acentuado"
   },
   "ed75712b0e": {
     "translation": "Duplicar"

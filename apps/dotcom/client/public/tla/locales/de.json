@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Wir arbeiten an der Unterstützung für Dateien von <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Ziehen Sie die Datei in die Seitenleiste auf dieser Seite. Oder wählen Sie im Benutzermenü Option „Datei importieren“."
-  },
   "043973ec1f": {
     "translation": "Immer noch Probleme? {GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "Limit für Mitwirkende erreicht"
   },
-  "545241e7dd": {
-    "translation": "{count} ungelesen"
-  },
   "550b25cc0c": {
     "translation": "Ihre lokale Zeichnung konnte nicht wiederhergestellt werden. Versuchen Sie, diese Seite neu zu laden."
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "Bitte aktualisieren Sie die Seite und holden Sie sich die neueste Version von tldraw."
   },
-  "86353d2c41": {
-    "translation": "{total} .tldr-Dateien hinzugefügt."
-  },
   "86c66437fd": {
     "translation": "Datei umbenennen"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Sie wurden eingeladen, dem <strong>{workspaceName}</strong> beizutreten."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# ungelesen} other {# ungelesen}}"
   },
   "a0da245992": {
     "translation": "Exportieren Sie den Inhalt als .tldr-Datei: Wählen Sie im Menü oben links „Herunterladen“."
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Eigentümer"
   },
+  "b74dbb40c5": {
+    "translation": "Ziehen Sie die Datei in die Seitenleiste dieser Seite. Alternativ können Sie im Menü „Datei“ oben links die Option „Datei importieren“ auswählen."
+  },
   "b758336699": {
     "translation": "Link kopieren"
   },
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "Erfahren Sie mehr über das Teilen."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {# .tldr-Datei hinzugefügt.} other {# .tldr-Dateien hinzugefügt.}}"
+  },
   "c303bd1095": {
     "translation": "Diese Datei kann nicht veröffentlicht werden."
   },
   "c4b39a1cc3": {
     "translation": "Notwendige Cookies"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Langer String"
   },
   "c6a00f137b": {
     "translation": "Einladen"
@@ -659,9 +656,6 @@
   },
   "ec611e9a08": {
     "translation": "Kontomenü"
-  },
-  "ed53713239": {
-    "translation": "i18n: akzentuiert"
   },
   "ed75712b0e": {
     "translation": "Duplizieren"

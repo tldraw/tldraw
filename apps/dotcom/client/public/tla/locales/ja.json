@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "<a><strong>{appName}</strong></a> からのファイルのサポートに取り組んでいます。"
   },
-  "03b3e13197": {
-    "translation": "このページのサイドバーにファイルをドラッグします。または、ユーザーメニューから [ファイルをインポート] オプションを選択します。"
-  },
   "043973ec1f": {
     "translation": "問題が解決しませんか？{GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "共同作業者の上限に達しました"
   },
-  "545241e7dd": {
-    "translation": "{count} 未読"
-  },
   "550b25cc0c": {
     "translation": "ローカル図面を復元できませんでした。ページを再読み込みしてください。"
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "tldrawの最新バージョンを取得するには、ページを再読み込みしてください。"
   },
-  "86353d2c41": {
-    "translation": "{total} 個の .tldr ファイルを追加しました。"
-  },
   "86c66437fd": {
     "translation": "ファイル名を変更する"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "あなたは<strong>{workspaceName}</strong>への参加に招待されました。"
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, other {# 未読}}"
   },
   "a0da245992": {
     "translation": "コンテンツを .tldr ファイルとしてエクスポートします。左上のメニューで「ダウンロード」を選択します。"
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "所有者"
   },
+  "b74dbb40c5": {
+    "translation": "ファイルをこのページのサイドバーにドラッグしてください。または、左上の「ファイル」メニューから「ファイルのインポート」を選択してください。"
+  },
   "b758336699": {
     "translation": "リンクをコピー"
   },
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "共有についてさらに詳しく。"
   },
+  "c26f17786f": {
+    "translation": "{total, plural, other {# 個の .tldr ファイルを追加しました。}}"
+  },
   "c303bd1095": {
     "translation": "ファイルを公開できません"
   },
   "c4b39a1cc3": {
     "translation": "必須クッキー"
-  },
-  "c655b27b1e": {
-    "translation": "i18n：長い文字列"
   },
   "c6a00f137b": {
     "translation": "招待する"
@@ -659,9 +656,6 @@
   },
   "ec611e9a08": {
     "translation": "アカウントメニュー"
-  },
-  "ed53713239": {
-    "translation": "i18n：アクセント付き"
   },
   "ed75712b0e": {
     "translation": "複製する"

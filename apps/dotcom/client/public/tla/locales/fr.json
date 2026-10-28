@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Nous travaillons à la prise en charge des fichiers provenant de <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Faites glisser le fichier vers la barre latérale de cette page. Vous pouvez également sélectionner l'option « Importer un fichier » dans le menu utilisateur."
-  },
   "043973ec1f": {
     "translation": "Vous rencontrez encore des difficultés ? {GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "Limite de collaborateurs atteinte"
   },
-  "545241e7dd": {
-    "translation": "{count} non lu"
-  },
   "550b25cc0c": {
     "translation": "Impossible de restaurer votre dessin local. Veuillez recharger cette page."
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "Veuillez rafraîchir la page pour obtenir la dernière version de tldraw."
   },
-  "86353d2c41": {
-    "translation": "Ajout de {total} fichiers .tldr."
-  },
   "86c66437fd": {
     "translation": "Renommer le fichier"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Vous avez été invité à rejoindre <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# non lu} other {# non lu}}"
   },
   "a0da245992": {
     "translation": "Exporter le contenu sous forme de fichier .tldr : sélectionnez « Télécharger » dans le menu en haut à gauche."
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Propriétaire"
   },
+  "b74dbb40c5": {
+    "translation": "Faites glisser le fichier dans la barre latérale de cette page. Ou sélectionnez l'option « Importer un fichier » dans le menu Fichier en haut à gauche."
+  },
   "b758336699": {
     "translation": "Copier le lien"
   },
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "En savoir plus sur le partage."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {Ajout du fichier # .tldr.} other {Ajout de fichiers # .tldr.}}"
+  },
   "c303bd1095": {
     "translation": "Impossible de publier le fichier."
   },
   "c4b39a1cc3": {
     "translation": "Cookies essentiels"
-  },
-  "c655b27b1e": {
-    "translation": "i18n : chaîne longue"
   },
   "c6a00f137b": {
     "translation": "Inviter"
@@ -659,9 +656,6 @@
   },
   "ec611e9a08": {
     "translation": "Menu du compte"
-  },
-  "ed53713239": {
-    "translation": "i18n : avec accents"
   },
   "ed75712b0e": {
     "translation": "Dupliquer"

@@ -8,20 +8,17 @@
   "029f235f01": {
     "translation": "我们正在努力支持来自 <a><strong>{appName}</strong></a> 的文件。"
   },
-  "03b3e13197": {
-    "translation": "将文件拖放到本页面的侧边栏，或在用户菜单中选择“导入文件”选项。"
-  },
   "043973ec1f": {
-    "translation": "仍然有问题？{GetHelpLink}"
+    "translation": "仍有问题？{GetHelpLink}"
   },
   "04a2dd56d6": {
-    "translation": "邀请队友"
+    "translation": "邀请团队成员"
   },
   "05b2656486": {
     "translation": "<name>{author}</name> 提到了你"
   },
   "05f43078e9": {
-    "translation": "您已达到工作区数量上限。您需要先删除旧工作区，才能创建新工作区。"
+    "translation": "你已达到工作区数量上限。你需要先删除旧工作区，才能创建新工作区。"
   },
   "06b9281e39": {
     "translation": "自动"
@@ -33,7 +30,7 @@
     "translation": "请求次数过多，请稍后再试。"
   },
   "08bd40c754": {
-    "translation": "帐户"
+    "translation": "账号"
   },
   "093ac7483a": {
     "translation": "尚无法打开 {extension} 文件"
@@ -63,7 +60,7 @@
     "translation": "发布"
   },
   "12a6766ba1": {
-    "translation": "解压文件"
+    "translation": "取消置顶文件"
   },
   "13ddd375ad": {
     "translation": "导出为"
@@ -87,13 +84,13 @@
     "translation": "工作区名称"
   },
   "23dcace54a": {
-    "translation": "您已被邀请加入<strong>{workspaceName}</strong>。创建免费帐户以继续。"
+    "translation": "你已被邀请加入<strong>{workspaceName}</strong>。创建免费帐户以继续。"
   },
   "250ddea65c": {
-    "translation": "关于tldraw"
+    "translation": "关于 tldraw"
   },
   "2755e3ab39": {
-    "translation": "<name>{author}</name> 在您的白板上发表了评论"
+    "translation": "<name>{author}</name> 在你的白板上发表了评论"
   },
   "28b2464e1f": {
     "translation": "无法提交反馈"
@@ -102,7 +99,7 @@
     "translation": "上传失败"
   },
   "2a1167f869": {
-    "translation": "欢迎来到您的工作区"
+    "translation": "欢迎来到你的工作区"
   },
   "2a37324bb4": {
     "translation": "搜索..."
@@ -123,7 +120,7 @@
     "translation": "查看此文件需要登录。"
   },
   "31418ce4ad": {
-    "translation": "国际化：高亮缺失部分"
+    "translation": "i18n: 高亮缺失"
   },
   "324a0f3182": {
     "translation": "返回tldraw"
@@ -141,13 +138,13 @@
     "translation": "移除成员"
   },
   "3bc7d6ea2f": {
-    "translation": "继续通过电子邮件"
+    "translation": "使用电子邮箱继续"
   },
   "3bd1b98dbd": {
     "translation": "无法发布更改。"
   },
   "3c5e891bff": {
-    "translation": "已固定"
+    "translation": "已置顶"
   },
   "3d0238bf16": {
     "translation": "全部接受"
@@ -156,28 +153,28 @@
     "translation": "不支持的 Mermaid 图"
   },
   "402bf0c47e": {
-    "translation": "颜色主题"
+    "translation": "配色主题"
   },
   "42e53c47c1": {
     "translation": "请联系所有者请求访问权限。"
   },
   "44db318ee5": {
-    "translation": "在Discord上寻求帮助"
+    "translation": "在 Discord 上寻求帮助"
   },
   "454aad3b3c": {
-    "translation": "您确定要删除<strong>{fileName}</strong>吗？"
+    "translation": "你确定要删除<strong>{fileName}</strong>吗？"
   },
   "46137245cd": {
-    "translation": "感谢您帮助我们改进 tldraw！"
+    "translation": "感谢你帮助我们改进 tldraw！"
   },
   "46de2de6bb": {
     "translation": "接受使用条款"
   },
   "477df802ca": {
-    "translation": "要继续编辑，请将文件复制到您的文件中。"
+    "translation": "要继续编辑，请将文件复制到你的文件中。"
   },
   "47f493a590": {
-    "translation": "针文件"
+    "translation": "置顶文件"
   },
   "49ee308734": {
     "translation": "姓名"
@@ -189,13 +186,13 @@
     "translation": "重新加载"
   },
   "5097d89907": {
-    "translation": "不支持的图表，将生成 SVG 格式的图表。"
+    "translation": "不支持的图示，将生成 SVG 格式的图示。"
   },
   "50db1b7e1e": {
     "translation": "无法取消发布文件。"
   },
   "51317dcad5": {
-    "translation": "这是您的私人工作区。创建新工作区即可邀请团队成员。"
+    "translation": "这是你的私人工作区。创建新工作区即可邀请团队成员。"
   },
   "517bb809d9": {
     "translation": "页面菜单"
@@ -209,11 +206,8 @@
   "54286b1d01": {
     "translation": "协作者达到上限"
   },
-  "545241e7dd": {
-    "translation": "{count} 未读"
-  },
   "550b25cc0c": {
-    "translation": "无法恢复您的本地绘图。请尝试重新加载此页面。"
+    "translation": "无法恢复你的本地绘图。请尝试重新加载此页面。"
   },
   "554a05155c": {
     "translation": "仍有问题？<a>报告问题</a>"
@@ -234,19 +228,19 @@
     "translation": "分享"
   },
   "5bec508475": {
-    "translation": "检测到旧版浏览器。请更新您的浏览器以使用此应用。"
+    "translation": "检测到旧版浏览器。请更新你的浏览器以使用此应用。"
   },
   "5bff3c9c88": {
     "translation": "我的工作区"
   },
   "5bffeebf03": {
-    "translation": "<name>{author}</name> 对您的评论做出了回应"
+    "translation": "<name>{author}</name> 对你的评论做出了回应"
   },
   "5d04a002ea": {
     "translation": "无法连接"
   },
   "5d26ae7550": {
-    "translation": "在您登录前创建的部分内容未能成功上传。"
+    "translation": "你在登录前创建的部分内容上传失败。"
   },
   "5f3c333678": {
     "translation": "已提交反馈"
@@ -255,7 +249,7 @@
     "translation": "复制"
   },
   "608e9d366e": {
-    "translation": "你已经全部跟上了。"
+    "translation": "已查看所有通知。"
   },
   "60a68c29d6": {
     "translation": "登录发表评论"
@@ -285,7 +279,7 @@
     "translation": "新文件"
   },
   "6832ac5936": {
-    "translation": "请输入您的电子邮件地址"
+    "translation": "请输入你的电子邮件地址"
   },
   "694f82ed9d": {
     "translation": "删除工作区"
@@ -294,19 +288,19 @@
     "translation": "帮助"
   },
   "6dc0836c1b": {
-    "translation": "您没有执行此操作的必要权限。"
+    "translation": "你没有执行此操作所需的权限。"
   },
   "6dfc62f621": {
-    "translation": "要手动导入内容，请参阅以下步骤："
+    "translation": "请按照以下步骤手动导入内容："
   },
   "70a6facb9d": {
     "translation": "本周"
   },
   "71a29b007b": {
-    "translation": "tldraw 有 bug、问题或想法吗？欢迎告诉我们！"
+    "translation": "在使用 tldraw 时发现了错误、遇到了问题，或有改进建议？欢迎告诉我们！"
   },
   "73ab799383": {
-    "translation": "当前版本的tldraw不受支持。"
+    "translation": "当前版本的 tldraw 不受支持。"
   },
   "7408cf0d7b": {
     "translation": "请重新加载页面"
@@ -315,7 +309,7 @@
     "translation": "未找到文件"
   },
   "752b79f137": {
-    "translation": "您已达到文件数量上限。您需要先删除旧文件，然后才能创建新文件。"
+    "translation": "你已达到文件数量上限。你需要先删除旧文件，然后才能创建新文件。"
   },
   "7542d62aac": {
     "translation": "全部标记为已读"
@@ -336,10 +330,10 @@
     "translation": "无效请求。"
   },
   "7827371d1a": {
-    "translation": "这个匿名 tldraw 多人游戏文件现在处于只读状态。要继续编辑，请登录并将其复制到您的文件中。"
+    "translation": "这个匿名 tldraw 多人游戏文件现在处于只读状态。要继续编辑，请登录并将其复制到你的文件中。"
   },
   "78e9815992": {
-    "translation": "知道了"
+    "translation": "明白了"
   },
   "797799f35e": {
     "translation": "在 GitHub 上提交问题"
@@ -372,10 +366,10 @@
     "translation": "新工作区"
   },
   "815e116a2e": {
-    "translation": "tldraw 有 bug、问题或想法吗？请告诉我们！填写此表单，如有需要，我们会通过电子邮件与您联系。您也可以<discord>在 Discord 上与我们聊天</discord>，或<github>在 GitHub 上提交问题</github>。"
+    "translation": "在使用 tldraw 时发现了错误、遇到了问题，或有改进建议？欢迎告诉我们！请填写此表单。如有需要，我们会通过电子邮件与你联系。你也可以<discord>在 Discord 上与我们交流</discord>，或<github>在 GitHub 上提交问题</github>。"
   },
   "81666c6e4a": {
-    "translation": "您确定要删除<strong>{fileName}</strong>吗？"
+    "translation": "你确定要删除<strong>{fileName}</strong>吗？"
   },
   "8413c683b4": {
     "translation": "评论"
@@ -384,25 +378,22 @@
     "translation": "成员"
   },
   "85a082de1b": {
-    "translation": "请刷新页面，获取最新版tldraw。"
-  },
-  "86353d2c41": {
-    "translation": "添加了 {total} 个 .tldr 文件。"
+    "translation": "请刷新页面，获取最新版 tldraw。"
   },
   "86c66437fd": {
     "translation": "重命名文件"
   },
   "87fdb09de6": {
-    "translation": "您已经是此工作区的成员。"
+    "translation": "你已经是此工作区的成员。"
   },
   "88bf6ab42c": {
     "translation": "此邀请链接已过期。"
   },
   "8c2d3d730c": {
-    "translation": "请查看您的电子邮件，您会收到验证码。"
+    "translation": "请查收电子邮箱中的验证码。"
   },
   "8eb2c00e96": {
-    "translation": "与您分享"
+    "translation": "与你分享"
   },
   "8ff3d0a705": {
     "translation": "请求达到上限"
@@ -414,7 +405,7 @@
     "translation": "重命名"
   },
   "90646db02d": {
-    "translation": "您确定要删除<strong>{workspaceName}</strong>吗？此操作无法撤销。"
+    "translation": "你确定要删除<strong>{workspaceName}</strong>吗？此操作无法撤销。"
   },
   "95aacd4d4a": {
     "translation": "使用 Google 登录"
@@ -441,10 +432,10 @@
     "translation": "删除文件"
   },
   "9c228b6834": {
-    "translation": "您似乎已离线。请检查您的网络连接并重试。"
+    "translation": "你似乎已离线。请检查你的网络连接并重试。"
   },
   "9ccb565b86": {
-    "translation": "我们的身份验证服务连接出现问题。这通常是暂时的。请尝试刷新页面。"
+    "translation": "连接身份验证服务时遇到问题。这通常是暂时性的。请尝试刷新页面。"
   },
   "9ceb927baa": {
     "translation": "发布此文件"
@@ -456,10 +447,13 @@
     "translation": "选择退出"
   },
   "a078644c42": {
-    "translation": "您已被邀请加入<strong>{workspaceName}</strong>。"
+    "translation": "你已被邀请加入<strong>{workspaceName}</strong>。"
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, other {# 条未读}}"
   },
   "a0da245992": {
-    "translation": "将内容导出为 .tldr 文件：在左上角菜单中选择“下载”。"
+    "translation": "将内容导出为 .tldr 文件：在左上角菜单中选择「下载」。"
   },
   "a104439641": {
     "translation": "内边距"
@@ -468,7 +462,7 @@
     "translation": "深色"
   },
   "a1c915578c": {
-    "translation": "您寻找的文件不存在。"
+    "translation": "你要找的文件不存在。"
   },
   "a239905023": {
     "translation": "导出图片"
@@ -508,7 +502,7 @@
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
-    "translation": "最新发布<date></date>"
+    "translation": "最新发布 <date></date>"
   },
   "b028909917": {
     "translation": "来宾用户"
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "所有者"
   },
+  "b74dbb40c5": {
+    "translation": "将文件拖入此页面的侧边栏，或在左上角的「文件」菜单中选择「导入文件」。"
+  },
   "b758336699": {
     "translation": "复制链接"
   },
@@ -550,7 +547,7 @@
     "translation": "{total, plural, other {正在上传 {uploaded} 个 .tldr 文件（共 {total} 个）…}}"
   },
   "bc88b0e89e": {
-    "translation": "由{ownerName}分享"
+    "translation": "由 {ownerName} 分享"
   },
   "c17466812d": {
     "translation": "管理工作区"
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "详细了解分享。"
   },
+  "c26f17786f": {
+    "translation": "{total, plural, other {已添加 # 个 .tldr 文件。}}"
+  },
   "c303bd1095": {
     "translation": "无法发布文件。"
   },
   "c4b39a1cc3": {
     "translation": "必需 Cookie"
-  },
-  "c655b27b1e": {
-    "translation": "i18n：长字符串"
   },
   "c6a00f137b": {
     "translation": "邀请"
@@ -589,10 +586,10 @@
     "translation": "此文件已接近大小上限。请考虑删除部分内容或新建一个文件。"
   },
   "cea291e45e": {
-    "translation": "详细了解发布。"
+    "translation": "了解有关发布的更多信息。"
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> 和 {count, plural, one {# other} other {# others}} 对您的评论做出了回应"
+    "translation": "<name>{author}</name> 和 {count, plural, one {# other} other {# others}} 对你的评论做出了回应"
   },
   "d3d2e61733": {
     "translation": "关闭"
@@ -625,7 +622,7 @@
     "translation": "离开工作区"
   },
   "dfdb78a4e4": {
-    "translation": "App调试标记"
+    "translation": "App 调试标记"
   },
   "e0aa021e21": {
     "translation": "好的"
@@ -640,7 +637,7 @@
     "translation": "服务条款"
   },
   "e65b2dcb6f": {
-    "translation": "<name>{a}</name> 和 <name>{b}</name> 对您的评论做出了回应"
+    "translation": "<name>{a}</name> 和 <name>{b}</name> 对你的评论做出了回应"
   },
   "e81c4e4f2b": {
     "translation": "或者"
@@ -649,19 +646,16 @@
     "translation": "取消"
   },
   "eb1e2b0542": {
-    "translation": "请向工作空间所有者申请新的。"
+    "translation": "请向工作区所有者申请一个新的。"
   },
   "ebfe9ce86e": {
     "translation": "昨天"
   },
   "ec59b960ea": {
-    "translation": "此文件的活跃协作者数量已达到上限。"
+    "translation": "此文件的当前协作人数已达到上限。"
   },
   "ec611e9a08": {
-    "translation": "账户菜单"
-  },
-  "ed53713239": {
-    "translation": "i18n：允许特殊字符"
+    "translation": "账号菜单"
   },
   "ed75712b0e": {
     "translation": "复制"
@@ -679,25 +673,25 @@
     "translation": "已选择"
   },
   "f09b16bc5f": {
-    "translation": "我们使用 cookie 来让您保持登录状态、同步您的文件并收集分析数据以帮助我们改进 tldraw。"
+    "translation": "我们使用 cookie 来让你保持登录状态、同步你的文件并收集分析数据以帮助我们改进 tldraw。"
   },
   "f0e8bff6f9": {
     "translation": "用户设置"
   },
   "f2569594b2": {
-    "translation": "我们使用这些 cookie 来保存您的文件和设置。"
+    "translation": "我们使用这些 cookie 来保存你的文件和设置。"
   },
   "f2a6c498fb": {
     "translation": "删除"
   },
   "f476ba8646": {
-    "translation": "<name>{a}</name>、<name>{b}</name> 和 {count, plural, one {# other} other {# others}} 对您的评论做出了回应"
+    "translation": "<name>{a}</name>、<name>{b}</name> 和 {count, plural, one {# other} other {# others}} 对你的评论做出了回应"
   },
   "f4f70727dc": {
     "translation": "设置"
   },
   "f5ddc8d9c1": {
-    "translation": "目前，您可以<a>导出为 {extension} 文件</a>以便在此处使用。"
+    "translation": "目前，你可以<a>导出为 {extension} 文件</a>以便在此处使用。"
   },
   "fa2ead697d": {
     "translation": "隐私政策"
@@ -706,16 +700,16 @@
     "translation": "查看者"
   },
   "fc9d47046b": {
-    "translation": "您确定要离开此工作区吗？"
+    "translation": "你确定要离开此工作区吗？"
   },
   "fed5ec05eb": {
     "translation": "链接已复制"
   },
   "ff2fefd3c6": {
-    "translation": "您确定要从此工作区中删除 {name} 吗？"
+    "translation": "你确定要从此工作区中删除 {name} 吗？"
   },
   "ff52811b98": {
-    "translation": "创建免费帐户，即可保存文件并与队友一起绘制图形。"
+    "translation": "创建免费账户，即可保存文件，并与团队成员在 tldraw 上协作绘图。"
   },
   "ffcd73e997": {
     "translation": "导入文件…"

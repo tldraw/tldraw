@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Arraste o arquivo para a barra lateral desta página. Ou selecione a opção \"Importar arquivo\" no menu do usuário."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -495,16 +489,6 @@
       "value": "O limite de colaboradores foi atingido"
     }
   ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " não lido"
-    }
-  ],
   "550b25cc0c": [
     {
       "type": 0,
@@ -938,20 +922,6 @@
       "value": "Atualize a página para obter a versão mais recente do tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Adicionados "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " arquivos .tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1132,6 +1102,38 @@
       "value": "."
     }
   ],
+  "a0a19d5145": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " não lido"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " não lido"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -1304,6 +1306,12 @@
       "value": "Proprietário"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Arraste o arquivo para a barra lateral desta página. Ou selecione a opção \"Importar arquivo\" no menu Arquivo, no canto superior esquerdo."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1386,6 +1394,46 @@
       "value": "Saiba mais sobre como compartilhar."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Adicionado arquivo "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": ".tldr."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Adicionados arquivos "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": ".tldr."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1396,12 +1444,6 @@
     {
       "type": 0,
       "value": "Cookies essenciais"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Sequência de caracteres longa"
     }
   ],
   "c6a00f137b": [
@@ -1684,12 +1726,6 @@
     {
       "type": 0,
       "value": "Guia da conta"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Acentuado"
     }
   ],
   "ed75712b0e": [
