@@ -122,7 +122,8 @@ export function FileItems({
 	// Not needed in the command palette, which asks for the new name itself.
 	onRenameAction?(): void
 	workspaceId: string | null
-	// Keeps these ids from colliding with other menus' items in the command palette.
+	// The palette keeps one entry per id: unprefixed, duplicate/delete clash with the SDK actions
+	// and one of each pair silently vanishes.
 	idPrefix?: string
 }) {
 	const msg = useTranslation()
@@ -149,12 +150,11 @@ export function FileItems({
 
 	// A file lives in exactly one workspace. The "Move to" menu is a checklist of every
 	// destination — the home workspace plus each non-home workspace — with the file's own
-	// workspace checked. The home workspace is rendered separately (it's always the first item),
-	// labelled with its own name like any other workspace.
+	// workspace checked (hidden in the palette). The home workspace is rendered separately (it's
+	// always the first item), labelled with its own name like any other workspace.
 	// (This is the workspace the file belongs to, which is not necessarily one the current user
 	// can write to — for that, see activeWorkspaceId above.)
 	const fileWorkspaceId = file?.owningGroupId ?? homeWorkspaceId
-	// In the palette every row must do something, so the file's current workspace is hidden.
 	const inPalette = source === 'command-palette'
 	const homeWorkspaceName = workspaceMemberships.find((g) => g.groupId === homeWorkspaceId)?.group
 		?.name
@@ -314,6 +314,7 @@ export function FileItems({
 						size="small"
 					>
 						<TldrawUiMenuGroup id={`${idPrefix}workspaces`}>
+							{/* In the palette every row must do something, so the file's current workspace is hidden. */}
 							{!(inPalette && fileWorkspaceId === homeWorkspaceId) && (
 								<TldrawUiMenuCheckboxItem
 									key="my-files"
