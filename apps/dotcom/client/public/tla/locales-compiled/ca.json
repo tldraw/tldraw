@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Arrossegueu el fitxer a la barra lateral d'aquesta pàgina. O seleccioneu l'opció \"Importa fitxer\" al menú d'usuari."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -495,16 +489,6 @@
       "value": "S'ha arribat al límit de col·laboradors"
     }
   ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " sense llegir"
-    }
-  ],
   "550b25cc0c": [
     {
       "type": 0,
@@ -938,20 +922,6 @@
       "value": "Actualitzeu la pàgina per obtenir la darrera versió de tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "S'han afegit "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " fitxers .tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1132,6 +1102,38 @@
       "value": "."
     }
   ],
+  "a0a19d5145": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " sense llegir"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " sense llegir"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -1304,6 +1306,12 @@
       "value": "propietari"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Arrossegueu el fitxer a la barra lateral d'aquesta pàgina. O seleccioneu l'opció \"Importa fitxer\" al menú Fitxer a la part superior esquerra."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1386,6 +1394,46 @@
       "value": "Més informació sobre com compartir."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "S'ha afegit "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " fitxer .tldr."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "S'han afegit "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " fitxers .tldr."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1396,12 +1444,6 @@
     {
       "type": 0,
       "value": "Galetes essencials"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: cadena llarga"
     }
   ],
   "c6a00f137b": [
@@ -1477,7 +1519,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " persona més"
             }
           ]
         },
@@ -1488,7 +1530,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " persones més"
             }
           ]
         }
@@ -1686,12 +1728,6 @@
       "value": "Menú del compte"
     }
   ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Accentuat"
-    }
-  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1799,7 +1835,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " persona més"
             }
           ]
         },
@@ -1810,7 +1846,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " persones més"
             }
           ]
         }
