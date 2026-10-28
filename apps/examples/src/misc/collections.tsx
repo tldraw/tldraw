@@ -5,7 +5,7 @@ import {
 	collectionsPanelOpen,
 	InMemoryCollectionSource,
 } from '@tldraw/collections'
-import { Editor, TLComponents, Tldraw } from 'tldraw'
+import { DefaultPageMenu, Editor, TLComponents, Tldraw } from 'tldraw'
 import '@tldraw/collections/collections.css'
 import 'tldraw/tldraw.css'
 
@@ -24,10 +24,11 @@ const source = new InMemoryCollectionSource({
 
 const components: TLComponents = {
 	InFrontOfTheCanvas: () => <CollectionsPanel source={source} />,
-	SharePanel: () => (
-		<div className="tlui-share-zone" draggable={false}>
+	PageMenu: () => (
+		<>
+			<DefaultPageMenu />
 			<CollectionsPanelButton />
-		</div>
+		</>
 	),
 }
 
