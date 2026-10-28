@@ -483,7 +483,7 @@ function TlaWorkspacesGroup() {
 						),
 					})
 					// Same event the sidebar's settings button sends.
-					trackEvent('open-share-menu', { source: 'command-palette' })
+					trackEvent('open-workspace-settings', { source: 'command-palette' })
 				}}
 			/>
 			{canCopyInvite && (
