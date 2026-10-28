@@ -66,10 +66,10 @@ function ConsentForm() {
 	useEffect(() => {
 		sendOAuthConsentBeacon('page_shown')
 	}, [])
-	// Clerk owns the form POST and redirects the browser away on both allow and deny, so there is no
-	// reliable allow/deny signal to capture here (its onAllow/onDeny are deprecated and don't fire in
-	// this mode). A granted consent shows up downstream as mcp_server_initialize; a denied or abandoned
-	// one is this page_shown with no such connect.
+	// Clerk owns the form POST and redirects the browser away on both allow and deny (no callback, no
+	// correlation id), so consent completion isn't observable here — a denial and an abandonment both
+	// look like a page_shown with nothing after it. page_shown just counts that the form rendered.
+	// (onAllow/onDeny are deprecated and don't fire in this mode.)
 	return (
 		<>
 			<TlaLogo className={styles.logo} />

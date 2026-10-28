@@ -4476,11 +4476,11 @@ spec:
             queryOptions: {}
             transformations: []
         description: mcp_oauth_consent events by outcome, written by the OAuth consent
-          page (apps/dotcom/client .../oauth-consent.tsx). page_shown is the funnel
-          denominator; reload_guard should stay at zero (see the stat beside this);
+          page (apps/dotcom/client .../oauth-consent.tsx). page_shown counts the form
+          rendering; reload_guard should stay at zero (see the stat beside this);
           redirect_signed_out / redirect_legal are the bounce-to-root detours. Allow vs
-          deny happens inside Clerk and is not visible here — a granted consent surfaces
-          as mcp_server_initialize (see "Consent shown vs connected").
+          deny happens inside Clerk and is not observable here, so these are
+          page-activity counts, not a consent-completion funnel.
         id: 56
         links: []
         title: OAuth consent outcomes
@@ -4635,120 +4635,6 @@ spec:
               showPercentChange: false
               textMode: auto
               wideLayout: true
-          version: 13.2.0-29854286369
-    panel-58:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: time_series
-                      formatAs: time_series
-                      intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, countIf(blob1 = 'mcp_oauth_consent' AND blob3 =
-                        'outcome:page_shown') as consent_shown, countIf(blob1 =
-                        'mcp_server_initialize') as connected FROM 'MEASURE' WHERE
-                        timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 IN ('mcp_oauth_consent', 'mcp_server_initialize') AND
-                        blob2 = '${environment}-tldraw-multiplayer' GROUP BY date ORDER BY
-                        date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, countIf(blob1 = 'mcp_oauth_consent' AND blob3 =
-                        'outcome:page_shown') as consent_shown, countIf(blob1 =
-                        'mcp_server_initialize') as connected FROM 'MEASURE' WHERE
-                        timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 IN ('mcp_oauth_consent', 'mcp_server_initialize') AND
-                        blob2 = '${environment}-tldraw-multiplayer' GROUP BY date ORDER BY
-                        date ASC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: The end-to-end funnel. consent_shown is page_shown from this page;
-          connected is mcp_server_initialize from the MCP server once a client finishes
-          OAuth and reconnects with a token. The gap between the two is denied, abandoned,
-          or stuck-in-Clerk consents — which have no signal of their own.
-        id: 58
-        links: []
-        title: Consent shown vs connected
-        vizConfig:
-          group: timeseries
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: palette-classic
-                custom:
-                  axisBorderShow: false
-                  axisCenteredZero: false
-                  axisColorMode: text
-                  axisLabel: ''
-                  axisPlacement: auto
-                  barAlignment: 0
-                  barWidthFactor: 0.8
-                  drawStyle: line
-                  fillOpacity: 10
-                  gradientMode: none
-                  hideFrom:
-                    legend: false
-                    tooltip: false
-                    viz: false
-                  insertNulls: false
-                  lineInterpolation: linear
-                  lineWidth: 1
-                  pointSize: 5
-                  scaleDistribution:
-                    type: linear
-                  showPoints: auto
-                  showValues: false
-                  spanNulls: false
-                  stacking:
-                    group: A
-                    mode: none
-                  thresholdsStyle:
-                    mode: 'off'
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-              overrides: []
-            options:
-              annotations:
-                clustering: -1
-                multiLane: false
-              legend:
-                calcs: []
-                displayMode: list
-                enableFacetedFilter: false
-                overflow: ellipsis
-                placement: bottom
-                showLegend: true
-              tooltip:
-                hideZeros: false
-                maxHeight: 600
-                mode: multi
-                sort: desc
           version: 13.2.0-29854286369
   layout:
     kind: RowsLayout
@@ -5166,7 +5052,7 @@ spec:
                         kind: ElementReference
                         name: panel-56
                       height: 8
-                      width: 12
+                      width: 18
                       x: 0
                       y: 0
                   - kind: GridLayoutItem
@@ -5176,17 +5062,8 @@ spec:
                         name: panel-57
                       height: 8
                       width: 6
-                      x: 12
+                      x: 18
                       y: 0
-                  - kind: GridLayoutItem
-                    spec:
-                      element:
-                        kind: ElementReference
-                        name: panel-58
-                      height: 8
-                      width: 12
-                      x: 0
-                      y: 8
             title: OAuth consent
   links: []
   liveNow: false

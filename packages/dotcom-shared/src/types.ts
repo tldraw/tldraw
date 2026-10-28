@@ -220,12 +220,14 @@ export interface ThumbnailRenderResultRequestBody {
  * has booted, so it cannot use PostHog and instead POSTs one of these to the beacon route as a
  * fire-and-forget datapoint. It is the only direct visibility we have into the page itself.
  *
- * - `page_shown`: the consent form actually mounted (signed in, legal accepted). The funnel's
- *   denominator. Whether the user then allows or denies happens inside Clerk, which owns the form POST
- *   and redirects the browser away on either, so it is not observable here — a granted consent
- *   surfaces downstream when the client connects (`mcp_server_initialize`), and a denied or abandoned
- *   one is a `page_shown` with no such connect. (Clerk's `onAllow`/`onDeny` callbacks are deprecated
- *   and do not fire in its URL-param redirect mode, so there is no reliable client-side allow/deny.)
+ * - `page_shown`: the consent form actually mounted (signed in, legal accepted). Counts how often the
+ *   page is reached and renders. Whether the user then allows or denies happens inside Clerk, which
+ *   owns the form POST and redirects the browser away on either — we get no callback and no correlation
+ *   id back, so consent *completion* is not observable here. These are page-activity counts, not a
+ *   consent funnel: a denial and an abandonment both look like a `page_shown` with nothing after it,
+ *   and no downstream event cleanly means "this user finished consent" (`mcp_server_initialize` is
+ *   legacy-protocol only and also fires on reconnects that reuse an existing token). Clerk's
+ *   `onAllow`/`onDeny` props are deprecated and don't fire in its URL-param redirect mode.
  * - `reload_guard`: the page was reached by client-side navigation with no Clerk UI bundle, so it hard
  *   reloaded. A spike means every OAuth user is in a reload loop — the one failure the page was
  *   otherwise silent about.
