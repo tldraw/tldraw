@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
@@ -15,6 +16,7 @@ import { ItemGrid } from '../ui/item-grid'
 import { CollectionSourceContext } from './context'
 import { placeCollectionItem } from './place-item'
 import { activeCollectionId, collectionsPanelOpen } from './state'
+import { useItemDrag } from './use-item-drag'
 import { useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
@@ -40,7 +42,8 @@ export interface CollectionsPanelProps {
 
 /**
  * A floating panel on the left of the canvas for browsing a {@link CollectionSource}, shown while
- * {@link collectionsPanelOpen} is set. Clicking an item places a copy of it on the canvas.
+ * {@link collectionsPanelOpen} is set. Clicking an item places a copy of it in the middle of the
+ * viewport; dragging one out drops it under the pointer.
  * @public @react
  */
 export function CollectionsPanel({ source }: CollectionsPanelProps) {
@@ -66,18 +69,21 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 		[editor, source, currentId]
 	)
 	const saveSelection = useSaveSelection(source)
+	const placeItem = useCallback(
+		(itemId: TLCollectionItemId) => {
+			placeCollectionItem(editor, source, itemId).catch(() => {
+				addToast({
+					title: msg(messages.placeErrorTitle),
+					description: msg(messages.placeErrorDescription),
+					severity: 'error',
+				})
+			})
+		},
+		[editor, source, addToast, msg]
+	)
+	const getItemProps = useItemDrag(source, placeItem)
 
 	if (!open) return null
-
-	const placeItem = (itemId: TLCollectionItemId) => {
-		placeCollectionItem(editor, source, itemId).catch(() => {
-			addToast({
-				title: msg(messages.placeErrorTitle),
-				description: msg(messages.placeErrorDescription),
-				severity: 'error',
-			})
-		})
-	}
 
 	return (
 		<CollectionSourceContext.Provider value={source}>
@@ -112,7 +118,7 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 									label: item.name ?? msg(messages.untitledItem),
 									thumbnailUrl: item.thumbnailUrl,
 								}))}
-								onSelectItem={placeItem}
+								getItemProps={getItemProps}
 								empty={msg(messages.emptyCollection)}
 							/>
 						</>

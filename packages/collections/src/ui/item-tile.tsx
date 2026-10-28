@@ -1,15 +1,16 @@
+import { ButtonHTMLAttributes } from 'react'
+
 /** @public */
-export interface ItemTileProps {
+export interface ItemTileProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 	/** Shown under the thumbnail and used as the button's accessible name. */
 	label: string
 	thumbnailUrl?: string
-	onSelect(): void
 }
 
 /** @public @react */
-export function ItemTile({ label, thumbnailUrl, onSelect }: ItemTileProps) {
+export function ItemTile({ label, thumbnailUrl, ...buttonProps }: ItemTileProps) {
 	return (
-		<button type="button" className="tlui-collections-tile" onClick={onSelect}>
+		<button type="button" className="tlui-collections-tile" {...buttonProps}>
 			<span className="tlui-collections-tile__thumbnail">
 				{thumbnailUrl && <img src={thumbnailUrl} alt="" draggable={false} />}
 			</span>
