@@ -325,8 +325,7 @@ function TlaShareGroup() {
 
 const MAX_NOTIFICATIONS = 20
 
-// Pinned above the other commands while anything is unread, as one row that opens to the
-// notifications, newest first, with the unread ones marked like in the sidebar.
+// Newest first; pinned only while browsing.
 function TlaNotificationsGroup() {
 	const msg = useTranslation()
 	const app = useApp()
