@@ -41,7 +41,8 @@ test.describe('command palette', () => {
 	test('labels file results with "Go to file"', async ({ owner, scenario }) => {
 		const fileName = scenario.name('palette label')
 		const file = await scenario.createPersonalFile(owner, fileName)
-		await scenario.createPersonalFile(owner, scenario.name('palette label other'))
+		const other = await scenario.createPersonalFile(owner, scenario.name('palette label other'))
+		const otherId = other.url.split('/f/')[1]
 
 		await owner.page.getByTestId('canvas').click({ position: { x: 300, y: 300 } })
 		await owner.page.keyboard.press('ControlOrMeta+k')
@@ -55,6 +56,7 @@ test.describe('command palette', () => {
 		await owner.page.getByTestId('canvas').click({ position: { x: 300, y: 300 } })
 		await owner.page.keyboard.press('ControlOrMeta+k')
 		await owner.page.getByTestId('command-palette.input').fill(fileName)
+		await expect(owner.page.getByTestId(`command-palette.item.file:${otherId}`)).toBeVisible()
 		await expect(owner.page.getByTestId(`command-palette.item.file:${fileId}`)).toHaveCount(0)
 		await owner.page.keyboard.press('Escape')
 	})
