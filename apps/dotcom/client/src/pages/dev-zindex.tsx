@@ -21,6 +21,7 @@ interface Rung {
 	z: number
 	sdk?: string[] // SDK --tl-layer-* names at this value
 	dotcom?: string[] // dotcom magic-number sites at this value
+	commenting?: string[] // @tldraw/commenting layers, set relative to the SDK tokens
 }
 
 // Sorted high → low (top of the stack first), curated to the rungs dotcom competes with.
@@ -30,11 +31,16 @@ const LADDER: Rung[] = [
 	{ z: 700, sdk: ['cursor'] },
 	{ z: 650, sdk: ['toasts'] },
 	{ z: 500, sdk: ['canvas-overlays'] },
-	{ z: 400, sdk: ['menus'] },
-	{ z: 300, sdk: ['panels', 'canvas-shapes'] },
+	{
+		z: 400,
+		sdk: ['menus'],
+		commenting: ['comment preview', 'comment popover', 'comment composer'],
+	},
+	{ z: 300, sdk: ['panels', 'canvas-shapes'], commenting: ['comments sidebar'] },
 	{ z: 250, sdk: ['menu-click-capture', 'canvas-in-front'], dotcom: ['TlaSidebarLayout'] },
 	{ z: 248, sdk: ['watermark'] },
 	{ z: 245, sdk: ['collaborators'] },
+	{ z: 240, commenting: ['canvas layer = collaborators − 5'] },
 	{ z: 150, sdk: ['canvas-grid'] },
 	{ z: 100, sdk: ['canvas-background', 'overlays-selection-fg'], dotcom: ['TlaSidebar ×2'] },
 	{ z: 99, dotcom: ['TlaSidebar'] },
@@ -73,7 +79,8 @@ export function Component() {
 				<section className="section">
 					<div className="stats">
 						<Stat n="~30" label="SDK --tl-layer-* tokens" />
-						<Stat n="51" label="dotcom literal z-index" accent />
+						{/* z-index: <n> / zIndex: <n> literals across apps/dotcom/client, excluding the gallery */}
+						<Stat n="50" label="dotcom literal z-index" accent />
 						<Stat n="4" label="dotcom uses the tokens" />
 						<Stat n="10000" label="highest magic number" accent />
 					</div>
@@ -83,8 +90,11 @@ export function Component() {
 					<h2 className="section__title">The stacking order</h2>
 					<p className="section__note">
 						The SDK ladder (green) with dotcom's magic numbers (orange) placed on the same number
-						line. Rows where an <strong>orange lands on a green</strong> are collisions — a bare
-						number that happens to equal a named layer, with no way to tell if that was intended.
+						line, and the commenting package's layers (blue), which it sets relative to the SDK
+						tokens (<code>var(--tl-layer-menus)</code>,{' '}
+						<code>calc(var(--tl-layer-collaborators) - 5)</code>) instead of as numbers. Rows where
+						an <strong>orange lands on a green</strong> are collisions — a bare number that happens
+						to equal a named layer, with no way to tell if that was intended.
 					</p>
 					<div className="ladder">
 						{LADDER.map((r) => (
@@ -98,6 +108,11 @@ export function Component() {
 									))}
 									{r.dotcom?.map((n) => (
 										<span key={n} className="chip chip--dotcom">
+											{n}
+										</span>
+									))}
+									{r.commenting?.map((n) => (
+										<span key={n} className="chip chip--commenting">
 											{n}
 										</span>
 									))}
@@ -214,7 +229,7 @@ const OFFENDERS: ReadonlyArray<readonly [string, string, string, boolean]> = [
 	],
 	['TlaSidebar/sidebar.module.css:8,173', '100', 'canvas-background / selection-fg', true],
 	['TlaSidebar/sidebar.module.css:32', '99', '(just below 100)', false],
-	['sidebar.module.css:548', 'var(--tl-layer-menus)', '✓ uses the token', false],
+	['sidebar.module.css:552', 'var(--tl-layer-menus)', '✓ uses the token', false],
 	['tla-menu/menu.module.css:134', 'var(--tl-layer-canvas-overlays)', '✓ uses the token', false],
 	['dialogs.module.css:166', 'var(--tl-layer-toasts)', '✓ uses the token', false],
 	[
@@ -257,6 +272,7 @@ const PAGE_CSS = `
 .rung__bars { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
 .chip { font-family: ui-monospace, monospace; font-size: 11px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
 .chip--sdk { background: color-mix(in srgb, var(--tl-color-success, #2a9d3c) 16%, transparent); color: var(--tl-color-success, #2a9d3c); }
+.chip--commenting { background: color-mix(in srgb, var(--tl-color-primary) 14%, transparent); color: var(--tl-color-primary); }
 .chip--dotcom { background: color-mix(in srgb, var(--tl-color-warning, #cb4b16) 18%, transparent); color: var(--tl-color-warning, #cb4b16); font-weight: 600; }
 .rung__flag { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--tl-color-warning, #cb4b16); font-weight: 600; }
 .callout { font-size: 13px; line-height: 1.7; color: var(--tl-color-text-1); background: var(--tl-color-low); border: 1px solid var(--tl-color-divider); border-radius: 8px; padding: 16px 18px; max-width: 900px; }
