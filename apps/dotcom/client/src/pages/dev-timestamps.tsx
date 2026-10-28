@@ -1,21 +1,23 @@
+import { formatFullDateTime, formatRelativeTime } from '@tldraw/commenting'
 /* eslint-disable tldraw/jsx-no-literals, react/no-unescaped-entities */
 import { ReactNode } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { FormattedRelativeTime, useIntl } from 'react-intl'
 import 'tldraw/tldraw.css'
 import '../tla/styles/tla.css'
+import { getDateFormat } from '../tla/utils/dates'
 import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 import { DevComponentsNav } from './dev-components-nav'
 import { IsolationProviders } from './dev-editor-harness'
 
 /**
  * Dev-only inventory of how the dotcom app renders dates & times. There is NO
- * shared Timestamp component — each call site formats its own way, via five
- * different mechanisms, and they disagree on locale (two hardcode en-GB, two
- * follow the user locale via react-intl, one uses the browser default). The SDK
- * renders no user-facing dates at all (only internal new Date() for logic), so a
- * Timestamp primitive belongs in the app layer. All five are rendered live off
- * one reference instant so the divergence is real.
+ * shared Timestamp component — each call site formats its own way, and they
+ * disagree on locale (some hardcode en-GB or English, some follow the app
+ * locale, some use the browser default). The SDK renders no user-facing dates at
+ * all (only internal new Date() for logic), so a Timestamp primitive belongs in
+ * the app layer. The specimens render live off one reference instant so the
+ * divergence is real.
  *
  * Candidate primitive for a design system. Route: /dev/components/timestamps.
  */
@@ -36,20 +38,16 @@ const enGBFull = new Intl.DateTimeFormat('en-GB', {
 }).format(REF)
 const browserTime = REF.toLocaleTimeString()
 
-/** The react-intl absolute path (locale-aware), as TldrawApp uses it. */
-const IntlAbsolute = (): ReactNode => {
-	const intl = useIntl()
-	return (
-		<>
-			{intl.formatDate(REF, {
-				year: 'numeric',
-				month: 'short',
-				day: 'numeric',
-				hour: 'numeric',
-				minute: 'numeric',
-			})}
-		</>
-	)
+/** The app-locale absolute path, as TldrawApp.getFallbackFileName formats it. */
+const AppLocaleAbsolute = (): ReactNode => {
+	const { locale } = useIntl()
+	return <>{new Intl.DateTimeFormat(locale, getDateFormat(REF)).format(REF)}</>
+}
+
+/** The commenting package's full date, with the app locale as the notifications tooltip passes it. */
+const CommentingFullDate = (): ReactNode => {
+	const { locale } = useIntl()
+	return <>{formatFullDateTime(REF.toISOString(), locale)}</>
 }
 
 export function Component() {
@@ -70,22 +68,26 @@ export function Component() {
 						<h1 className="page__title">Dates &amp; timestamps</h1>
 						<p className="page__lede">
 							There is <strong>no shared Timestamp component</strong>. Every date/time is formatted
-							ad-hoc at the call site — <strong>five different mechanisms</strong> that disagree on
-							locale. All five below render the <em>same</em> reference instant (~3 days ago), live,
-							so the divergence is real, not drawn.
+							ad-hoc at the call site — <strong>{MECHANISMS} different mechanisms</strong> that
+							disagree on locale. The specimens below render the <em>same</em> reference instant (~3
+							days ago), live, so the divergence is real, not drawn.
 						</p>
 					</header>
 
 					<section className="section">
 						<div className="stats">
-							<Stat n="5" label="formatting mechanisms" accent />
-							<Stat n="0" label="shared components / utils" />
-							<Stat n="2" label="hardcode en-GB (locale bug)" accent />
+							<Stat n={String(MECHANISMS)} label="formatting mechanisms" accent />
+							<Stat n="1" label="shared util (@tldraw/commenting format-time)" />
+							<Stat
+								n={String(byLocale('hardcoded en-GB'))}
+								label="hardcode en-GB (locale bug)"
+								accent
+							/>
 						</div>
 					</section>
 
 					<section className="section">
-						<h2 className="section__title">Same instant, five renderings (live)</h2>
+						<h2 className="section__title">Same instant, each rendering (live)</h2>
 						<p className="section__note">
 							One <code>Date</code> ({REF.toISOString()}), formatted by each mechanism the app
 							actually uses.
@@ -95,7 +97,7 @@ export function Component() {
 								label="Intl.DateTimeFormat — month/year"
 								code={`Intl.DateTimeFormat('en-GB', { year, month: 'long' })`}
 								meta="hardcoded en-GB · ignores user locale"
-								source="BoardHistoryLog.tsx:14"
+								source="BoardHistoryLog.tsx:17"
 							>
 								<span className="ts">{enGBMonthYear}</span>
 							</Specimen>
@@ -103,25 +105,25 @@ export function Component() {
 								label="Intl.DateTimeFormat — full"
 								code={`Intl.DateTimeFormat('en-GB', { …y m d h m s })`}
 								meta="hardcoded en-GB · ignores user locale"
-								source="BoardHistoryLog.tsx:87"
+								source="BoardHistoryLog.tsx:18"
 							>
 								<span className="ts">{enGBFull}</span>
 							</Specimen>
 							<Specimen
-								label="react-intl formatDate"
-								code={`intl.formatDate(date, format)`}
-								meta="locale-aware (follows the app language)"
-								source="TldrawApp.ts:727"
+								label="Intl.DateTimeFormat — app locale"
+								code={`new Intl.DateTimeFormat(locale, getDateFormat(date))`}
+								meta="follows the app language · format depends on age"
+								source="TldrawApp.ts:1031"
 							>
 								<span className="ts">
-									<IntlAbsolute />
+									<AppLocaleAbsolute />
 								</span>
 							</Specimen>
 							<Specimen
 								label="react-intl FormattedRelativeTime"
 								code={`<FormattedRelativeTime value={s} numeric="auto" updateIntervalInSeconds={15} />`}
 								meta="locale-aware · auto-updates · picks the human unit"
-								source="TlaPublishTab.tsx:122"
+								source="TlaPublishTab.tsx:120"
 							>
 								<span className="ts">
 									<FormattedRelativeTime
@@ -139,6 +141,24 @@ export function Component() {
 							>
 								<span className="ts">{browserTime}</span>
 							</Specimen>
+							<Specimen
+								label="commenting formatRelativeTime"
+								code={`formatRelativeTime(iso)`}
+								meta="Intl.RelativeTimeFormat narrow · called without a locale, so always English"
+								source="commenting format-time.ts:30 · TlaSidebarNotificationsPanel.tsx:328"
+							>
+								<span className="ts">{formatRelativeTime(REF.toISOString())}</span>
+							</Specimen>
+							<Specimen
+								label="commenting formatFullDateTime"
+								code={`formatFullDateTime(iso, locale)`}
+								meta="dateStyle full + timeStyle short · app locale"
+								source="commenting format-time.ts:59 · TlaSidebarNotificationsPanel.tsx:327"
+							>
+								<span className="ts">
+									<CommentingFullDate />
+								</span>
+							</Specimen>
 						</div>
 					</section>
 
@@ -146,15 +166,18 @@ export function Component() {
 						<h2 className="section__title">The locale drift</h2>
 						<div className="callout">
 							This isn&rsquo;t just style — the mechanisms <strong>disagree on behaviour</strong>.
-							Two call sites{' '}
+							{byLocale('hardcoded en-GB')} call sites{' '}
 							<strong>
 								hardcode <code>en-GB</code>
 							</strong>{' '}
-							(British format regardless of the user&rsquo;s language); two go through{' '}
-							<strong>react-intl</strong> and follow the app locale; one uses the{' '}
-							<strong>browser default</strong>. So the same product shows dates differently
-							depending on which screen you&rsquo;re on. A single <code>&lt;Timestamp&gt;</code>{' '}
-							that reads locale from context fixes the drift as a side effect.
+							(British format regardless of the user&rsquo;s language); {byLocale('English only')}{' '}
+							are <strong>English only</strong>; {byLocale('user locale')} follow the app locale;
+							and {byLocale('browser default')} use the <strong>browser default</strong>. The
+							notifications panel shows both behaviours side by side: its tooltip follows the app
+							locale, but the relative time it hovers over is always English. So the same product
+							shows dates differently depending on which screen you&rsquo;re on. A single{' '}
+							<code>&lt;Timestamp&gt;</code> that reads locale from context fixes the drift as a
+							side effect.
 						</div>
 					</section>
 
@@ -231,12 +254,22 @@ const SITES: ReadonlyArray<readonly [string, string, string, string]> = [
 		'hardcoded en-GB',
 		'29 Jun 2026, 14:30:00',
 	],
-	['TldrawApp.formatFileDate', 'intl.formatDate', 'user locale', 'dynamic (getDateFormat)'],
+	[
+		'TldrawApp.getFallbackFileName',
+		'Intl.DateTimeFormat(app locale)',
+		'user locale',
+		'dynamic (getDateFormat)',
+	],
 	['TlaPublishTab', 'FormattedRelativeTime', 'user locale', 'relative — "3 days ago"'],
 	['admin (log)', 'toLocaleTimeString', 'browser default', 'time only'],
 	['admin (tables)', 'toLocaleString', 'browser default', 'date + time'],
 	['admin (durable object)', 'formatAgo (hand-rolled)', 'English only', 'relative — "3m ago"'],
+	['notifications (time)', 'commenting formatRelativeTime', 'English only', 'relative — "3d ago"'],
+	['notifications (tooltip)', 'commenting formatFullDateTime', 'user locale', 'full date + time'],
 ]
+
+const MECHANISMS = new Set(SITES.map((r) => r[1])).size
+const byLocale = (locale: string) => SITES.filter((r) => r[2] === locale).length
 
 const PAGE_CSS = `
 .page {
