@@ -260,7 +260,7 @@ function MyCommandPalette() {
 }
 ```
 
-For long or async lists, read the query with `useCommandPaletteQuery()` and render only your best matches. `getCommandPaletteMatchScore` matches the same way the palette does.
+For long or async lists, read the query with `useCommandPaletteQuery()` and render only your best matches. `getCommandPaletteMatchScore` matches the same items the palette does, but the palette adds its own tiebreaks to the order, so rely only on 0 meaning no match and a higher score meaning a better one.
 
 A few components shape how items appear in the palette. Outside it they render their children unchanged, so a group can be shared with other menus.
 
