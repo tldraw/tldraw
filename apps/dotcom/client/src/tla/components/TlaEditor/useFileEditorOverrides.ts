@@ -75,7 +75,6 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					label: 'action.save-copy',
 					readonlyOk: true,
 					kbd: 'cmd+s,ctrl+s',
-					// Only swallows Cmd+S.
 					commandPalette: false,
 					onSelect() {
 						trackEvent('save-project-no-action', { source: 'kbd' })
