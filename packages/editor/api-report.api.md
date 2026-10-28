@@ -8,7 +8,7 @@ import { Atom } from '@tldraw/state';
 import { AtomSet } from '@tldraw/store';
 import { Awaitable } from '@tldraw/utils';
 import { BoxModel } from '@tldraw/tlschema';
-import type { ChangeSource } from '@tldraw/store';
+import { ChangeSource } from '@tldraw/store';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { CustomRecordInfo } from '@tldraw/tlschema';

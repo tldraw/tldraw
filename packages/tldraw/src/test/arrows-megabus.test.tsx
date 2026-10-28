@@ -770,6 +770,32 @@ describe('Moving a bound arrow', () => {
 	})
 })
 
+const createBoxAndArrow = () => {
+	editor.createShape({ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+	editor.createShape({
+		id: ids.arrow1,
+		type: 'arrow',
+		x: 200,
+		y: 50,
+		props: { start: { x: 0, y: 0 }, end: { x: -150, y: 0 } },
+	})
+}
+
+const bindArrowEnd = (
+	normalizedAnchor: { x: number; y: number },
+	isPrecise = true,
+	toId: TLShapeId = ids.box1
+) => {
+	editor.createBinding({
+		type: 'arrow',
+		fromId: ids.arrow1,
+		toId,
+		props: { terminal: 'end', isExact: false, isPrecise, normalizedAnchor, snap: 'none' },
+	})
+}
+
+const endBinding = () => getArrowBindings(editor, editor.getShape<TLArrowShape>(ids.arrow1)!).end!
+
 describe('When the bound shape changes geometry', () => {
 	// the local point that a precise binding's anchor maps to within the bound shape's geometry
 	const getAnchorLocalPoint = (toId: TLShapeId, normalizedAnchor: { x: number; y: number }) => {
@@ -783,27 +809,7 @@ describe('When the bound shape changes geometry', () => {
 		return geometry.hitTestPoint(getAnchorLocalPoint(toId, normalizedAnchor), 0, true)
 	}
 
-	beforeEach(() => {
-		editor.createShape({ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
-		editor.createShape({
-			id: ids.arrow1,
-			type: 'arrow',
-			x: 200,
-			y: 50,
-			props: { start: { x: 0, y: 0 }, end: { x: -150, y: 0 } },
-		})
-	})
-
-	const bindArrowEnd = (normalizedAnchor: { x: number; y: number }, isPrecise = true) => {
-		editor.createBinding({
-			type: 'arrow',
-			fromId: ids.arrow1,
-			toId: ids.box1,
-			props: { terminal: 'end', isExact: false, isPrecise, normalizedAnchor, snap: 'none' },
-		})
-	}
-
-	const endBinding = () => getArrowBindings(editor, editor.getShape<TLArrowShape>(ids.arrow1)!).end!
+	beforeEach(createBoxAndArrow)
 
 	it('re-snaps a precise anchor that ends up outside the new geometry', () => {
 		// anchor near the top-left corner: inside a rectangle, but outside a triangle
@@ -853,30 +859,9 @@ describe('When the bound shape changes geometry', () => {
 })
 
 describe('When the bound shape changes size', () => {
-	const setUp = () => {
-		editor.createShape({ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
-		editor.createShape({
-			id: ids.arrow1,
-			type: 'arrow',
-			x: 200,
-			y: 50,
-			props: { start: { x: 0, y: 0 }, end: { x: -150, y: 0 } },
-		})
-	}
+	beforeEach(createBoxAndArrow)
 
-	beforeEach(setUp)
-
-	const bindArrowEnd = (normalizedAnchor: { x: number; y: number }, isPrecise = true) => {
-		editor.createBinding({
-			type: 'arrow',
-			fromId: ids.arrow1,
-			toId: ids.box1,
-			props: { terminal: 'end', isExact: false, isPrecise, normalizedAnchor, snap: 'none' },
-		})
-	}
-
-	const endAnchor = () =>
-		getArrowBindings(editor, editor.getShape<TLArrowShape>(ids.arrow1)!).end!.props.normalizedAnchor
+	const endAnchor = () => endBinding().props.normalizedAnchor
 
 	const resizeBox = (w: number, h: number) =>
 		editor.updateShape({ id: ids.box1, type: 'geo', props: { w, h } })
@@ -926,6 +911,13 @@ describe('When the bound shape changes size', () => {
 		expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
 	})
 
+	it('scales the anchor proportionally on a stroke', () => {
+		editor.createShape({ id: ids.box2, type: 'line', x: 0, y: 300 })
+		bindArrowEnd({ x: 0.2, y: 0.2 }, true, ids.box2)
+		editor.resizeShape(ids.box2, { x: 3, y: 1 })
+		expect(endAnchor()).toEqual({ x: 0.2, y: 0.2 })
+	})
+
 	it('does not touch imprecise anchors', () => {
 		bindArrowEnd({ x: 0.1, y: 0.1 }, false)
 		resizeBox(200, 400)
@@ -933,7 +925,6 @@ describe('When the bound shape changes size', () => {
 	})
 
 	it('does not adjust anchors for remote changes', () => {
-		// the client that made the change already sent its binding update along with it
 		bindArrowEnd({ x: 0.1, y: 0.1 })
 		editor.store.mergeRemoteChanges(() => resizeBox(200, 400))
 		expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
@@ -965,13 +956,18 @@ describe('When the bound shape changes size', () => {
 		expect(endAnchor().y).toBeCloseTo(10 / 500)
 	})
 
-	it('scales the anchor proportionally with preciseAnchorResizeBehavior: proportional', () => {
-		editor = new TestEditor({
-			shapeUtils: [ArrowShapeUtil.configure({ preciseAnchorResizeBehavior: 'proportional' })],
+	describe('with preciseAnchorResizeBehavior: proportional', () => {
+		beforeEach(() => {
+			editor = new TestEditor({
+				shapeUtils: [ArrowShapeUtil.configure({ preciseAnchorResizeBehavior: 'proportional' })],
+			})
+			createBoxAndArrow()
 		})
-		setUp()
-		bindArrowEnd({ x: 0.1, y: 0.1 })
-		resizeBox(200, 400)
-		expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
+
+		it('keeps the anchor proportional', () => {
+			bindArrowEnd({ x: 0.1, y: 0.1 })
+			resizeBox(200, 400)
+			expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
+		})
 	})
 })

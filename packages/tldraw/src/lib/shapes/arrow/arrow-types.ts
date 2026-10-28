@@ -113,8 +113,11 @@ export interface ArrowShapeOptions extends ShapeOptionsWithDisplayValues<
 	 * What a precise binding's anchor does when the shape it's bound to changes size, for example
 	 * when it's resized or its label grows it.
 	 * - `'nearest-corner'`: on each axis the anchor keeps its distance from the nearer edge, so the
-	 *   arrow stays where it was put. Anchors at the middle of an axis stay in the middle.
-	 * - `'proportional'`: the anchor keeps its relative position within the shape's bounds.
+	 *   arrow stays where it was put. Anchors at the middle of an axis stay in the middle, and a
+	 *   shape that shrinks past an anchor stops it at the middle. Scaled shapes and strokes (draw,
+	 *   line) stay proportional.
+	 * - `'proportional'`: the anchor keeps its relative position within the shape's bounds. This
+	 *   was the behavior before this option existed.
 	 */
 	readonly preciseAnchorResizeBehavior: 'nearest-corner' | 'proportional'
 

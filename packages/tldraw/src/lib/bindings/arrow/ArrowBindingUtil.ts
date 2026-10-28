@@ -86,31 +86,31 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		reason,
 		source,
 	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
-		// Translating or rotating a shape leaves its props alone, so this skips the common case without
-		// measuring any geometry.
-		if (
-			binding.props.isPrecise &&
-			source === 'user' &&
-			shapeBefore.props !== shapeAfter.props &&
-			!this.editor.isReplayingHistory() &&
-			this.editor.getShapeUtil<ArrowShapeUtil>('arrow').options.preciseAnchorResizeBehavior ===
-				'nearest-corner'
-		) {
-			keepAnchorDistanceFromNearestEdges(this.editor, binding, shapeBefore, shapeAfter)
-		}
+		if (binding.props.isPrecise && !this.editor.isReplayingHistory()) {
+			let nextBinding = binding
+			// Moves and rotations leave props alone; bail before measuring geometry.
+			if (
+				source === 'user' &&
+				shapeBefore.props !== shapeAfter.props &&
+				this.editor.getShapeUtil<ArrowShapeUtil>('arrow').options.preciseAnchorResizeBehavior ===
+					'nearest-corner'
+			) {
+				nextBinding = keepAnchorFixedToNearestCorner(this.editor, binding, shapeBefore, shapeAfter)
+				if (nextBinding !== binding) this.editor.updateBinding(nextBinding)
+			}
 
-		// When a bound geo shape's geo type changes (e.g. rectangle to triangle) its outline can move
-		// out from under a precise anchor, leaving the arrow floating off the shape. Re-snap the anchor
-		// to the new geometry.
-		if (
-			binding.props.isPrecise &&
-			shapeBefore.type === 'geo' &&
-			shapeAfter.type === 'geo' &&
-			shapeBefore.props.geo !== shapeAfter.props.geo &&
-			this.editor.isIn('select.idle') &&
-			!this.editor.isReplayingHistory()
-		) {
-			updateBindingAnchorIfOutsideShape(this.editor, binding, shapeAfter)
+			// When a bound geo shape's geo type changes (e.g. rectangle to triangle) its outline can
+			// move out from under a precise anchor, leaving the arrow floating off the shape. A fixed
+			// distance from a corner of the bounds can do the same on an ellipse or triangle. Re-snap
+			// the anchor to the new geometry.
+			const didGeoChange =
+				shapeBefore.type === 'geo' &&
+				shapeAfter.type === 'geo' &&
+				shapeBefore.props.geo !== shapeAfter.props.geo &&
+				this.editor.isIn('select.idle')
+			if (nextBinding !== binding || didGeoChange) {
+				updateBindingAnchorIfOutsideShape(this.editor, nextBinding, shapeAfter)
+			}
 		}
 
 		if (
@@ -182,45 +182,41 @@ function updateBindingAnchorIfOutsideShape(
 }
 
 /**
- * A precise anchor is stored as a fraction of the bound shape's bounds, so on its own it slides
- * proportionally when the shape changes size: an arrow placed 20px from a corner ends up 40px away
- * after doubling the shape. Rewrite the anchor so that on each axis it keeps its distance from the
- * nearer edge instead.
+ * Precise anchors are fractions of the bound shape's bounds, so they slide when it changes size (20px
+ * from a corner becomes 40px after doubling). Keep each axis's distance from its nearer edge instead.
  *
- * This runs per change, so it is lossy: shrinking a shape past an anchor parks it in the middle of
- * that axis, and growing the shape back does not restore it.
+ * Lossy: this works from the previous change, not the start of a gesture, so shrinking past an
+ * anchor parks it mid-axis and growing back doesn't restore it.
  */
-function keepAnchorDistanceFromNearestEdges(
+function keepAnchorFixedToNearestCorner(
 	editor: Editor,
 	binding: TLArrowBinding,
 	shapeBefore: TLShape,
 	shapeAfter: TLShape
-) {
-	// A scale change zooms the whole shape, contents included, so the anchor should zoom with it.
-	if (
-		(shapeBefore.props as { scale?: number }).scale !==
-		(shapeAfter.props as { scale?: number }).scale
-	) {
-		return
-	}
+): TLArrowBinding {
+	// A scale change zooms the whole shape, and strokes (draw, line) scale their points with it, so
+	// only a proportional anchor stays on them.
+	const scaleProps = ['scale', 'scaleX', 'scaleY']
+	const propsBefore = shapeBefore.props as Record<string, unknown>
+	const propsAfter = shapeAfter.props as Record<string, unknown>
+	if (scaleProps.some((key) => propsBefore[key] !== propsAfter[key])) return binding
 
-	// The cached geometry has already moved on to shapeAfter.
+	const geometryAfter = editor.getShapeGeometry(shapeAfter)
+	if (!geometryAfter.isClosed) return binding
+
+	// getShapeGeometry is cached by id and already reflects shapeAfter.
 	const before = editor.getShapeUtil(shapeBefore).getGeometry(shapeBefore).bounds
-	const after = editor.getShapeGeometry(shapeAfter).bounds
-	if (approximately(before.w, after.w) && approximately(before.h, after.h)) return
+	const after = geometryAfter.bounds
+	if (approximately(before.w, after.w) && approximately(before.h, after.h)) return binding
 
 	const { normalizedAnchor } = binding.props
 	const nextAnchor = {
 		x: keepDistanceFromNearestEdge(normalizedAnchor.x, before.w, after.w),
 		y: keepDistanceFromNearestEdge(normalizedAnchor.y, before.h, after.h),
 	}
-	if (Vec.Equals(nextAnchor, normalizedAnchor)) return
+	if (Vec.Equals(nextAnchor, normalizedAnchor)) return binding
 
-	const nextBinding = { ...binding, props: { ...binding.props, normalizedAnchor: nextAnchor } }
-	editor.updateBinding(nextBinding)
-	// On a non-rectangular outline (an ellipse, a triangle) a fixed distance from a corner of the
-	// bounds can land outside the shape.
-	updateBindingAnchorIfOutsideShape(editor, nextBinding, shapeAfter)
+	return { ...binding, props: { ...binding.props, normalizedAnchor: nextAnchor } }
 }
 
 /**
