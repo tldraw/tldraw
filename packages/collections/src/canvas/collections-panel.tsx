@@ -13,7 +13,6 @@ import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionItemId } from '../lib/schema'
 import { CollectionPicker } from '../ui/collection-picker'
 import { ItemGrid } from '../ui/item-grid'
-import { CollectionSourceContext } from './context'
 import { placeCollectionItem } from './place-item'
 import { activeCollectionId, collectionsPanelOpen } from './state'
 import { useItemDrag } from './use-item-drag'
@@ -86,52 +85,50 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 	if (!open) return null
 
 	return (
-		<CollectionSourceContext.Provider value={source}>
-			<EditorPortal>
-				<section
-					className="tlui-collections-panel"
-					aria-label={msg(messages.title)}
-					onContextMenu={(e) => e.stopPropagation()}
-				>
-					{current ? (
-						<>
-							<header className="tlui-collections-panel__header">
-								<CollectionPicker
-									collections={collections}
-									value={current.id}
-									onValueChange={(id) => activeCollectionId.set(editor, id)}
-									label={msg(messages.title)}
-								/>
-								<TldrawUiButton
-									type="icon"
-									disabled={!canAdd}
-									tooltip={msg(messages.addSelection)}
-									title={msg(messages.addSelection)}
-									onClick={() => saveSelection(current.id)}
-								>
-									<TldrawUiButtonIcon icon="plus" small />
-								</TldrawUiButton>
-							</header>
-							<ItemGrid
-								items={items.map((item) => ({
-									id: item.id,
-									label: item.name ?? msg(messages.untitledItem),
-									thumbnailUrl: item.thumbnailUrl,
-								}))}
-								getItemProps={getItemProps}
-								empty={msg(messages.emptyCollection)}
+		<EditorPortal>
+			<section
+				className="tlui-collections-panel"
+				aria-label={msg(messages.title)}
+				onContextMenu={(e) => e.stopPropagation()}
+			>
+				{current ? (
+					<>
+						<header className="tlui-collections-panel__header">
+							<CollectionPicker
+								collections={collections}
+								value={current.id}
+								onValueChange={(id) => activeCollectionId.set(editor, id)}
+								label={msg(messages.title)}
 							/>
-						</>
-					) : (
-						<>
-							<header className="tlui-collections-panel__header">
-								<span className="tlui-collections-panel__title">{msg(messages.title)}</span>
-							</header>
-							<p className="tlui-collections-panel__empty">{msg(messages.empty)}</p>
-						</>
-					)}
-				</section>
-			</EditorPortal>
-		</CollectionSourceContext.Provider>
+							<TldrawUiButton
+								type="icon"
+								disabled={!canAdd}
+								tooltip={msg(messages.addSelection)}
+								title={msg(messages.addSelection)}
+								onClick={() => saveSelection(current.id)}
+							>
+								<TldrawUiButtonIcon icon="plus" small />
+							</TldrawUiButton>
+						</header>
+						<ItemGrid
+							items={items.map((item) => ({
+								id: item.id,
+								label: item.name ?? msg(messages.untitledItem),
+								thumbnailUrl: item.thumbnailUrl,
+							}))}
+							getItemProps={getItemProps}
+							empty={msg(messages.emptyCollection)}
+						/>
+					</>
+				) : (
+					<>
+						<header className="tlui-collections-panel__header">
+							<span className="tlui-collections-panel__title">{msg(messages.title)}</span>
+						</header>
+						<p className="tlui-collections-panel__empty">{msg(messages.empty)}</p>
+					</>
+				)}
+			</section>
+		</EditorPortal>
 	)
 }

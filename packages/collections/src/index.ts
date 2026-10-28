@@ -4,7 +4,6 @@ export {
 } from './canvas/add-to-collection-menu-item'
 export { CollectionsPanel, type CollectionsPanelProps } from './canvas/collections-panel'
 export { CollectionsPanelButton } from './canvas/collections-panel-button'
-export { useCollectionSource } from './canvas/context'
 export { placeCollectionItem } from './canvas/place-item'
 export { saveShapesToCollection } from './canvas/save-shapes'
 export { activeCollectionId, collectionsPanelOpen, toggleCollectionsPanel } from './canvas/state'
