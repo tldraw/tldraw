@@ -32,7 +32,7 @@ Check every new or changed translation for:
    - "Following" someone's viewport as following on social media.
    - "Forget" (remove from a list) as "delete".
 2. **Wrong form for the UI.** Button labels and menu items need the form the language uses for controls — usually the imperative or a verbal noun, not an infinitive, a first-person verb ("I go back"), or an informal command. Tool names are nouns, not imperatives.
-3. **References to other UI labels.** A string that names another part of the UI ("Preferences > Accessibility", "the File menu", "'Import file'") must use that locale's actual labels. Look them up in the same locale file (`menu.preferences`, `menu.accessibility`, `menu.file`, …) and grep for the labels the English names.
+3. **References to other UI labels.** A string that names another part of the UI ("Preferences > Accessibility", "the File menu", "'Import file'") must use that locale's actual labels. Find the label's key by grepping the English file for the label's text (`main.json` for the SDK, `en.json` for dotcom, whose keys are hashes), then read that key in the same locale file.
 4. **Untranslated or half-translated text.** English left inside a translation, such as `# other` / `# others` inside a plural, or a whole string left in English. Brand names, product names and common loanwords (PNG, SVG, Discord, tldraw, often "laser", "frame") are fine.
 5. **Plural grammar.** In an ICU plural, each form must agree with its count in that language — for example Russian `one {# ответ} few {# ответа} many {# ответов}`. Never require `many` for fr, es, it, pt or ca; it only applies to large round numbers there.
 6. **Consistency.** A term should match how the same locale already says it elsewhere: grep the locale file for the English word's other translations. Flag a mix of formal and informal address (zh 您 and 你, de Sie and du) within one change.
@@ -62,7 +62,7 @@ Value rules:
 
 - **Placeholders.** Write plain placeholders in Lokalise's native form, `[%1$s:name]`, in both `english` and `value`, keeping the English name: `{page}` in the repo is `[%1$s:page]` here.
 - **Whole-string plurals.** When the English is one plural that is the whole string (`{count, plural, one {# reply} other {# replies}}`), the key is a plural key in Lokalise, and `value` is a map of forms: `{ one: '# ответ', few: '# ответа', many: '# ответов', other: '# ответа' }`. Include every form the language needs.
-- **Plurals inside a sentence, exact matches (`=1`) or nested plurals.** The key is a plain key and `value` is the full ICU string, written as in the repo.
+- **Plurals inside a sentence, exact matches (`=1`) or nested plurals.** The key is a plain key and `value` is one string: plain placeholders stay in native form and only the plural or select is raw ICU, for example `<name>[%1$s:author]</name> and {count, plural, one {# other} other {# others}} reacted`.
 - **Keys and English.** Never translate ICU keywords, placeholder names or tag names.
 
 ## Output

@@ -12,6 +12,17 @@ import { execFileSync } from 'node:child_process'
 
 const [base = 'HEAD~1', head = 'HEAD'] = process.argv.slice(2)
 
+// A missing ref would read as "no catalogs", listing every string as new and spending the whole
+// review on it, so fail instead.
+for (const ref of [base, head]) {
+	try {
+		execFileSync('git', ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], { stdio: 'ignore' })
+	} catch {
+		console.error(`Unknown git ref: ${ref}`)
+		process.exit(1)
+	}
+}
+
 const PROJECTS = [
 	{ name: 'sdk', dir: 'assets/translations', english: 'main.json' },
 	{ name: 'dotcom', dir: 'apps/dotcom/client/public/tla/locales', english: 'en.json' },
@@ -24,13 +35,8 @@ function git(...args) {
 
 /** A catalog as key -> text. SDK catalogs are flat; dotcom's entries are `{ translation }`. */
 function readCatalog(ref, file) {
-	let json
-	try {
-		json = JSON.parse(git('show', `${ref}:${file}`))
-	} catch {
-		return {}
-	}
-	if (Array.isArray(json)) return {}
+	if (!git('ls-tree', '--name-only', ref, '--', file).trim()) return {}
+	const json = JSON.parse(git('show', `${ref}:${file}`))
 	const catalog = {}
 	for (const [key, value] of Object.entries(json)) {
 		const text = typeof value === 'string' ? value : value?.translation
@@ -39,13 +45,14 @@ function readCatalog(ref, file) {
 	return catalog
 }
 
-const cell = (text) =>
-	text === undefined ? '—' : text.replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\n/g, '↵')
+// Escape only what breaks a table row: the reviewer reads this raw and copies text into fixes.
+const cell = (text) => (text === undefined ? '—' : text.replace(/\|/g, '\\|').replace(/\n/g, '↵'))
 
 const out = []
 let total = 0
 for (const project of PROJECTS) {
 	const english = readCatalog(head, `${project.dir}/${project.english}`)
+	const englishBefore = readCatalog(base, `${project.dir}/${project.english}`)
 	const files = git('ls-tree', '--name-only', head, `${project.dir}/`)
 		.split('\n')
 		.filter((file) => file.endsWith('.json') && !NOT_LOCALES.has(file.split('/').pop()))
@@ -69,9 +76,24 @@ for (const project of PROJECTS) {
 	out.push(`# ${project.name} (\`${project.dir}\`)`, '')
 	out.push(`${changed.length} key(s) with new or changed translations.`, '')
 	for (const [key, rows] of changed.sort(([a], [b]) => a.localeCompare(b))) {
-		out.push(`## \`${key}\``, '', `English: ${cell(english[key])}`, '')
+		const reworded = englishBefore[key] !== undefined && englishBefore[key] !== english[key]
+		out.push(`## \`${key}\``, '', `English: ${english[key] ?? '—'}`)
+		if (reworded) out.push(`English before: ${englishBefore[key]}`)
+		out.push('')
 		out.push('| locale | before | after |', '| --- | --- | --- |')
 		for (const row of rows) out.push(`| ${row.locale} | ${cell(row.before)} | ${cell(row.after)} |`)
+		out.push('')
+	}
+	// A reword whose translations didn't change leaves them describing the old English.
+	const stale = Object.keys(english).filter(
+		(key) =>
+			englishBefore[key] !== undefined && englishBefore[key] !== english[key] && !byKey.has(key)
+	)
+	if (stale.length) {
+		out.push('English reworded, translations unchanged (check they still fit):', '')
+		for (const key of stale) {
+			out.push(`- \`${key}\`: ${englishBefore[key]} → ${english[key]}`)
+		}
 		out.push('')
 	}
 	if (removed.length) {

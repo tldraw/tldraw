@@ -74,11 +74,11 @@ jobs:
           git add "*.json"
           git commit --no-verify -m '[automated] update i18n strings'
           git push --set-upstream origin update-i18n-strings
-          gh pr create --title "[automated] update i18n strings" --body "This PR updates the i18n strings.
+          pr_url=$(gh pr create --title "[automated] update i18n strings" --body "This PR updates the i18n strings.
 
           ### Change type
-          - [x] \`other\`" --base main --head update-i18n-strings
-          echo "pr_number=$(gh pr view update-i18n-strings --json number --jq .number)" >> "$GITHUB_OUTPUT"
+          - [x] \`other\`" --base main --head update-i18n-strings)
+          echo "pr_number=${pr_url##*/}" >> "$GITHUB_OUTPUT"
 
       - name: Notify Discord on failure
         if: failure()
@@ -122,6 +122,7 @@ jobs:
           npm install -g @anthropic-ai/claude-code@2.1.305
           claude -p "Follow skills/review-translations/SKILL.md to review the translations listed in changed-strings.md, which its script produced for this PR's commit. Reply with only the review." \
             --tools Read,Grep,Glob \
+            --disallowedTools 'Read(//proc/**)' 'Read(//sys/**)' \
             --model opus \
             --max-budget-usd 10 \
             --output-format text > "$RUNNER_TEMP/review.md"
@@ -130,10 +131,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ needs.download.outputs.pr_number }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           if [ ! -s "$RUNNER_TEMP/review.md" ]; then
             echo "Claude returned no review."
             exit 0
+          fi
+          # A string can tell Claude to read /proc/self/environ, which holds the key. GitHub masks
+          # secrets in logs but not in comment bodies, so never post a review that carries one.
+          if grep -qF "$ANTHROPIC_API_KEY" "$RUNNER_TEMP/review.md" || grep -qE 'sk-ant-[A-Za-z0-9_-]{20,}' "$RUNNER_TEMP/review.md"; then
+            echo "The review contains an API key; not posting it."
+            exit 1
           fi
           {
             echo '## Translation review'
