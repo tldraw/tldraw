@@ -24,7 +24,7 @@ permissions:
 
 jobs:
   update-release-notes:
-    name: 'Update release notes with Claude Code'
+    name: 'Update release notes with Gemini CLI'
     timeout-minutes: 30
     runs-on: ubuntu-latest
 
@@ -36,9 +36,13 @@ jobs:
           app_id: ${{ secrets.HUPPY_APP_ID }}
           private_key: ${{ secrets.HUPPY_PRIVATE_KEY }}
 
+      # Pinned to main: a production push would otherwise check out production, and
+      # a branch cut from it drags every production-only commit into the PR. The
+      # skill reads origin/production itself.
       - name: Check out code
         uses: actions/checkout@v6
         with:
+          ref: main
           persist-credentials: false
           fetch-depth: 0
           token: ${{ steps.generate_token.outputs.token }}
@@ -75,20 +79,21 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
-      - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install Gemini CLI
+        run: npm install -g @google/gemini-cli@0.61.0
 
       - name: Run update-release-notes skill
         run: |
-          claude --dangerously-skip-permissions --print "/update-release-notes"
+          gemini --yolo --prompt "Read skills/update-release-notes/SKILL.md and follow its instructions. <skill-dir> is skills/update-release-notes."
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
       - name: Check for changes
         id: changes
         run: |
-          if [ -z "$(git status --porcelain)" ]; then
+          if [ -z "$(git status --porcelain -- apps/docs/)" ]; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
@@ -97,7 +102,7 @@ jobs:
       - name: Commit and push
         if: steps.changes.outputs.has_changes == 'true'
         run: |
-          git add -A
+          git add apps/docs/
           git commit -m "Update release notes"
           git push -u origin "${{ steps.branch.outputs.branch_name }}"
 
