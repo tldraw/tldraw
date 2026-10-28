@@ -396,8 +396,7 @@ function TlaShareGroup() {
 
 const MAX_NOTIFICATIONS = 20
 
-// Pinned above the other commands while anything is unread, as one row that opens to the
-// notifications, newest first, with the unread ones marked like in the sidebar.
+// Newest first; pinned only while browsing.
 function TlaNotificationsGroup() {
 	const msg = useTranslation()
 	const app = useApp()
@@ -407,11 +406,7 @@ function TlaNotificationsGroup() {
 	const notificationsLbl = msg(messages.notifications)
 	const unknownAuthorLbl = msg(messages.unknownAuthor)
 	if (!unreadCount) return null
-	// A comment can be notified about twice (the comment and reactions to it); list it once.
-	const seen = new Set<string>()
-	const listed = notifications
-		.filter((n) => !seen.has(n.comment.id) && seen.add(n.comment.id))
-		.slice(0, MAX_NOTIFICATIONS)
+	const listed = notifications.slice(0, MAX_NOTIFICATIONS)
 	const unreadIcon = <span className={notificationStyles.paletteUnreadIcon} />
 
 	return (
@@ -520,8 +515,12 @@ function TlaWorkspacesGroup() {
 	const newWorkspaceLbl = msg(messages.newWorkspace)
 	const settingsLbl = msg(messages.workspaceSettings)
 	const copyInviteLbl = msg(messages.copyInviteLink)
+	const activeGroup = activeMembership?.group
+	// A new workspace has no invite secret until the server confirms it, so there's nothing to copy.
 	const canCopyInvite =
-		activeWorkspaceId !== homeWorkspaceId && (activeMembership?.group?.inviteLinkEnabled ?? true)
+		activeWorkspaceId !== homeWorkspaceId &&
+		!!activeGroup?.inviteSecret &&
+		(activeGroup.inviteLinkEnabled ?? true)
 
 	return (
 		<TldrawUiMenuGroup id="tla-workspaces" label={workspacesLbl}>
@@ -555,7 +554,7 @@ function TlaWorkspacesGroup() {
 						),
 					})
 					// Same event the sidebar's settings button sends.
-					trackEvent('open-share-menu', { source: 'command-palette' })
+					trackEvent('open-workspace-settings', { source: 'command-palette' })
 				}}
 			/>
 			{canCopyInvite && (
@@ -564,7 +563,7 @@ function TlaWorkspacesGroup() {
 					label={copyInviteLbl}
 					readonlyOk
 					onSelect={() => {
-						app.copyWorkspaceInvite(activeWorkspaceId)
+						app.copyWorkspaceInvite(activeWorkspaceId, { source: 'command-palette' })
 					}}
 				/>
 			)}

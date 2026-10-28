@@ -31,7 +31,7 @@ export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: strin
 				<WorkspaceSettingsDialog workspaceId={workspaceId} onClose={onClose} />
 			),
 		})
-		trackEvent('open-share-menu', { source: 'sidebar' })
+		trackEvent('open-workspace-settings', { source: 'sidebar' })
 	}, [addDialog, workspaceId, trackEvent])
 
 	return (

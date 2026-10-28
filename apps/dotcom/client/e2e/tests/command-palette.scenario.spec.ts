@@ -25,7 +25,9 @@ test.describe('command palette', () => {
 		await owner.page.getByTestId('canvas').click({ position: { x: 300, y: 300 } })
 		await owner.page.keyboard.press('ControlOrMeta+k')
 		const firstId = first.url.split('/f/')[1]
-		await expect(owner.page.getByTestId(`command-palette.item.file:${firstId}`)).toHaveCount(0)
+		await expect(input).toBeFocused()
+		// It was run above, so an empty query would list it under Recent, not as an item.
+		await expect(owner.page.getByTestId(`command-palette.recent.file:${firstId}`)).toHaveCount(0)
 		await input.fill(secondName)
 		await owner.page.keyboard.press('Enter')
 		await expect(owner.page).toHaveURL(second.url)
@@ -39,7 +41,8 @@ test.describe('command palette', () => {
 	test('labels file results with "Go to file"', async ({ owner, scenario }) => {
 		const fileName = scenario.name('palette label')
 		const file = await scenario.createPersonalFile(owner, fileName)
-		await scenario.createPersonalFile(owner, scenario.name('palette label other'))
+		const other = await scenario.createPersonalFile(owner, scenario.name('palette label other'))
+		const otherId = other.url.split('/f/')[1]
 
 		await owner.page.getByTestId('canvas').click({ position: { x: 300, y: 300 } })
 		await owner.page.keyboard.press('ControlOrMeta+k')
@@ -53,6 +56,7 @@ test.describe('command palette', () => {
 		await owner.page.getByTestId('canvas').click({ position: { x: 300, y: 300 } })
 		await owner.page.keyboard.press('ControlOrMeta+k')
 		await owner.page.getByTestId('command-palette.input').fill(fileName)
+		await expect(owner.page.getByTestId(`command-palette.item.file:${otherId}`)).toBeVisible()
 		await expect(owner.page.getByTestId(`command-palette.item.file:${fileId}`)).toHaveCount(0)
 		await owner.page.keyboard.press('Escape')
 	})
@@ -115,14 +119,14 @@ test.describe('command palette', () => {
 		await expect(owner.page).not.toHaveURL(file.url)
 		await owner.sidebar.expectActiveWorkspace(workspaceName)
 
-		// The file never moved: it is still in the home workspace.
-		const stillInHome = await owner.page.evaluate((id) => {
+		const { owningGroupId, homeId } = await owner.page.evaluate((id) => {
 			const app = (window as any).app
-			return (
-				(app.getFile(id)?.owningGroupId ?? app.getHomeWorkspaceId()) === app.getHomeWorkspaceId()
-			)
+			return {
+				owningGroupId: app.getFile(id)?.owningGroupId ?? null,
+				homeId: app.getHomeWorkspaceId(),
+			}
 		}, fileId)
-		expect(stillInHome).toBe(true)
+		expect(owningGroupId).toBe(homeId)
 	})
 
 	test('offers the file delete next to the shape delete', async ({ owner, scenario }) => {
