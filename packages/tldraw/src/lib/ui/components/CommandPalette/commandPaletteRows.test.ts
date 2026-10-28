@@ -62,6 +62,23 @@ describe('getCommandPaletteBrowseRows', () => {
 		expect(describeRows(rows)).toEqual(['# Recent', 'recent undo', '---', 'grid'])
 	})
 
+	it('fills the recents from further down when earlier ids are gone or collapsed', () => {
+		const notifications = { key: 'notifications', label: 'Notifications', collapsed: true }
+		const kept = ['a', 'b', 'c', 'd', 'e', 'f']
+		const rows = getCommandPaletteBrowseRows(
+			[entry('note', { submenu: notifications }), ...kept.map((id) => entry(id))],
+			['gone-1', 'gone-2', 'note', 'gone-3', ...kept],
+			'Recent'
+		)
+		expect(describeRows(rows)).toEqual([
+			'# Recent',
+			...kept.slice(0, 5).map((id) => `recent ${id}`),
+			'---',
+			'> Notifications',
+			'f',
+		])
+	})
+
 	it('drops the separator when every entry is recent', () => {
 		const rows = getCommandPaletteBrowseRows([entry('undo')], ['undo'], 'Recent')
 		expect(describeRows(rows)).toEqual(['# Recent', 'recent undo'])

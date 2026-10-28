@@ -799,13 +799,7 @@ export function CommandPaletteActionGroup({ group, label }: TLUiCommandPaletteAc
 export function CommandPaletteArrangeGroup(): JSX.Element;
 
 // @public
-export function CommandPaletteCollapsed({ children }: CommandPaletteCollapsedProps): JSX.Element;
-
-// @public (undocumented)
-export interface CommandPaletteCollapsedProps {
-    // (undocumented)
-    children: ReactNode;
-}
+export function CommandPaletteCollapsed({ children }: TLUiCommandPaletteCollapsedProps): JSX.Element;
 
 // @public (undocumented)
 export function CommandPaletteEditGroup(): JSX.Element;
@@ -826,31 +820,13 @@ export function CommandPaletteMenuItem(): JSX.Element | null;
 export function CommandPalettePagesGroup(): JSX.Element | null;
 
 // @public
-export function CommandPalettePinned({ children }: CommandPalettePinnedProps): JSX.Element;
-
-// @public (undocumented)
-export interface CommandPalettePinnedProps {
-    // (undocumented)
-    children: ReactNode;
-}
+export function CommandPalettePinned({ children }: TLUiCommandPalettePinnedProps): JSX.Element;
 
 // @public (undocumented)
 export function CommandPalettePreferencesGroup(): JSX.Element;
 
 // @public
-export function CommandPalettePromptItem({ id, label, placeholder, initialValue, onSubmit, }: CommandPalettePromptItemProps): JSX.Element | null;
-
-// @public (undocumented)
-export interface CommandPalettePromptItemProps {
-    // (undocumented)
-    id: string;
-    initialValue?: string;
-    // (undocumented)
-    label: string;
-    onSubmit(value: string): void;
-    // (undocumented)
-    placeholder: string;
-}
+export function CommandPalettePromptItem({ id, label, placeholder, initialValue, onSubmit, }: TLUiCommandPalettePromptItemProps): JSX.Element | null;
 
 // @public (undocumented)
 export function CommandPaletteSelectionGroup(): JSX.Element;
@@ -4822,7 +4798,31 @@ export interface TLUiCommandPaletteActionGroupProps {
 }
 
 // @public (undocumented)
+export interface TLUiCommandPaletteCollapsedProps {
+    // (undocumented)
+    children: ReactNode;
+}
+
+// @public (undocumented)
+export interface TLUiCommandPalettePinnedProps {
+    // (undocumented)
+    children: ReactNode;
+}
+
+// @public (undocumented)
 export type TLUiCommandPalettePosition = 'bottom' | 'center' | 'top';
+
+// @public (undocumented)
+export interface TLUiCommandPalettePromptItemProps {
+    // (undocumented)
+    id: string;
+    initialValue?: string;
+    // (undocumented)
+    label: string;
+    onSubmit(value: string): void;
+    // (undocumented)
+    placeholder: string;
+}
 
 // @public (undocumented)
 export interface TLUiCommandPaletteProps {

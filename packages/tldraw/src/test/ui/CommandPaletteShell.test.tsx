@@ -4,6 +4,7 @@ import { ReactNode } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import {
+	CommandPaletteCollapsed,
 	CommandPalettePinned,
 	useCommandPaletteActiveItemId,
 } from '../../lib/ui/components/CommandPalette/CommandPaletteContext'
@@ -573,6 +574,21 @@ describe('CommandPaletteShell', () => {
 		type(input, 'alp')
 		press(input, 'Enter')
 		expect(document.activeElement).toBe(editor.getContainer())
+	})
+
+	it('does not record items run from a collapsed submenu', async () => {
+		const onSelect = vi.fn()
+		const { rendered } = await renderShell(
+			<CommandPaletteCollapsed>
+				<TldrawUiMenuSubmenu id="news" label="News">
+					{item('note', 'Note', onSelect)}
+				</TldrawUiMenuSubmenu>
+			</CommandPaletteCollapsed>
+		)
+		fireEvent.click(await rendered.findByTestId('command-palette.submenu.News'))
+		fireEvent.click(rendered.getByTestId('command-palette.item.note'))
+		expect(onSelect).toHaveBeenCalled()
+		expect(getCommandPaletteRecents()).toEqual([])
 	})
 
 	it('returns focus to the editor, without recording a recent, when an item throws', async () => {
