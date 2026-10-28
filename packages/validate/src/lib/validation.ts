@@ -1892,11 +1892,25 @@ const blockedLinkProtocols = new Set([
 	'file:',
 	'about:',
 	'view-source:',
+	'chrome:',
+	'chrome-extension:',
+	'moz-extension:',
+	'resource:',
+	'jar:',
 	// tldraw's local asset store, not something a link can open
 	'asset:',
-	// Windows protocol handlers used for remote code execution (CVE-2022-30190, "Follina")
+	// Windows protocol handlers with known remote code execution exploits, such as CVE-2022-30190
+	// ("Follina") through `ms-msdt:` and `search-ms:`
 	'ms-msdt:',
 	'search-ms:',
+	'search:',
+	'ms-officecmd:',
+	'ms-appinstaller:',
+	'shell:',
+	'hcp:',
+	'ms-its:',
+	'its:',
+	'mk:',
 ])
 
 // `localhost:3000` and `example.com:8080` parse as a `localhost:` or `example.com:` scheme. Ports
