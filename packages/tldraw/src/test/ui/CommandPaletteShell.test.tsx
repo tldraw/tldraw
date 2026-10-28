@@ -16,7 +16,7 @@ import {
 } from '../../lib/ui/components/CommandPalette/commandPaletteRecents'
 import {
 	CommandPaletteShell,
-	TLUiCommandPalettePosition,
+	TLUiCommandPaletteShellProps,
 } from '../../lib/ui/components/CommandPalette/CommandPaletteShell'
 import { TldrawUiMenuCheckboxItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from '../../lib/ui/components/primitives/menus/TldrawUiMenuGroup'
@@ -49,12 +49,12 @@ afterEach(() => {
 async function renderShell(
 	children: ReactNode,
 	onClose: () => void = vi.fn(),
-	position?: TLUiCommandPalettePosition
+	props: Pick<TLUiCommandPaletteShellProps, 'position' | 'suggestions'> = {}
 ) {
 	const { editor, rendered } = await renderTldrawComponentWithEditor(
 		(onMount) => (
 			<Tldraw onMount={onMount}>
-				<CommandPaletteShell position={position} onClose={onClose}>
+				<CommandPaletteShell {...props} onClose={onClose}>
 					{children}
 				</CommandPaletteShell>
 			</Tldraw>
@@ -181,7 +181,7 @@ describe('CommandPaletteShell', () => {
 	})
 
 	it('opens where its position says', async () => {
-		const { rendered } = await renderShell(item('alpha', 'Alpha'), vi.fn(), 'top')
+		const { rendered } = await renderShell(item('alpha', 'Alpha'), vi.fn(), { position: 'top' })
 		expect(rendered.getByTestId('command-palette').dataset.position).toBe('top')
 	})
 
@@ -300,6 +300,31 @@ describe('CommandPaletteShell', () => {
 		)
 		await waitFor(() =>
 			expect(rendered.getAllByRole('option')[0].dataset.testid).toBe('command-palette.recent.beta')
+		)
+	})
+
+	it("leaves out recents while browsing with suggestions 'none', keeping pinned items and search", async () => {
+		addCommandPaletteRecent('beta')
+		const { rendered, input } = await renderShell(
+			<>
+				{item('alpha', 'Alpha')}
+				{item('beta', 'Beta')}
+				<CommandPalettePinned>{item('unread', 'Unread thing')}</CommandPalettePinned>
+			</>,
+			vi.fn(),
+			{ suggestions: 'none' }
+		)
+		await rendered.findByTestId('command-palette.item.beta')
+		const palette = within(rendered.getByTestId('command-palette'))
+		expect(palette.queryByText('Recent')).toBeNull()
+		expect(rendered.queryByTestId('command-palette.recent.beta')).toBeNull()
+		expect(rendered.getByTestId('command-palette.item.unread')).toBeTruthy()
+
+		type(input, 'alp')
+		await waitFor(() =>
+			expect(rendered.getAllByRole('option').map((el) => el.dataset.testid)).toEqual([
+				'command-palette.item.alpha',
+			])
 		)
 	})
 

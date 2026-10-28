@@ -246,6 +246,8 @@ function TopCommandPalette(props: TLUiCommandPaletteProps) {
 ;<Tldraw components={{ CommandPalette: TopCommandPalette }} />
 ```
 
+While the query is empty, the palette lists recent commands first. Pass `suggestions="none"` to leave them out.
+
 To build your own palette, render `CommandPaletteShell` from the `CommandPalette` slot. The slot is mounted only while the palette is open, and gets an `onClose` prop that closes it:
 
 ```tsx

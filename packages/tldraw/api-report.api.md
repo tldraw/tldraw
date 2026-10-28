@@ -829,7 +829,7 @@ export function CommandPalettePromptItem<TranslationKey extends string = string>
 export function CommandPaletteSelectionGroup(): JSX.Element;
 
 // @public
-export function CommandPaletteShell({ position, onClose, children, }: TLUiCommandPaletteShellProps): JSX.Element;
+export function CommandPaletteShell({ position, suggestions, onClose, children, }: TLUiCommandPaletteShellProps): JSX.Element;
 
 // @public
 export function CommandPaletteStylesGroup(): JSX.Element | null;
@@ -1191,7 +1191,7 @@ export const defaultAssetUtils: readonly [typeof ImageAssetUtil, typeof VideoAss
 export const defaultBindingUtils: readonly [typeof ArrowBindingUtil];
 
 // @public
-export const DefaultCommandPalette: MemoExoticComponent<({ position, onClose, children, }: TLUiCommandPaletteProps) => JSX.Element>;
+export const DefaultCommandPalette: MemoExoticComponent<({ position, suggestions, onClose, children, }: TLUiCommandPaletteProps) => JSX.Element>;
 
 // @public
 export function DefaultCommandPaletteContent(): JSX.Element;
@@ -4825,6 +4825,7 @@ export interface TLUiCommandPaletteProps {
     children?: ReactNode;
     onClose?(): void;
     position?: TLUiCommandPalettePosition;
+    suggestions?: TLUiCommandPaletteSuggestions;
 }
 
 // @public (undocumented)
@@ -4832,7 +4833,11 @@ export interface TLUiCommandPaletteShellProps {
     children: ReactNode;
     onClose(): void;
     position?: TLUiCommandPalettePosition;
+    suggestions?: TLUiCommandPaletteSuggestions;
 }
+
+// @public
+export type TLUiCommandPaletteSuggestions = 'none' | 'recent';
 
 // @public (undocumented)
 export interface TLUiComponents {

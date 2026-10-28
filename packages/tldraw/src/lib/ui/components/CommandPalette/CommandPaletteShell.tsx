@@ -46,6 +46,13 @@ type SelectableRow = Extract<CommandPaletteRow, { type: 'item' | 'submenu' }>
  */
 export type TLUiCommandPalettePosition = 'top' | 'center' | 'bottom'
 
+/**
+ * What the command palette shows above its list while browsing.
+ *
+ * @public
+ */
+export type TLUiCommandPaletteSuggestions = 'recent' | 'none'
+
 /** @public */
 export interface TLUiCommandPaletteShellProps {
 	/**
@@ -53,6 +60,11 @@ export interface TLUiCommandPaletteShellProps {
 	 * the toolbar is horizontal; otherwise it's centered.
 	 */
 	position?: TLUiCommandPalettePosition
+	/**
+	 * What shows above the list while the query is empty. `'recent'`, the default, lists recently
+	 * run commands; `'none'` shows nothing. Recents still rank search results either way.
+	 */
+	suggestions?: TLUiCommandPaletteSuggestions
 	/** Called when the user dismisses the palette or runs a command. */
 	onClose(): void
 	/** The palette's items, as `TldrawUiMenu*` components and `CommandPalette*` groups. */
@@ -67,6 +79,7 @@ export interface TLUiCommandPaletteShellProps {
  */
 export function CommandPaletteShell({
 	position = 'bottom',
+	suggestions = 'recent',
 	onClose,
 	children,
 }: TLUiCommandPaletteShellProps) {
@@ -117,8 +130,12 @@ export function CommandPaletteShell({
 		}
 		if (submenu) return getCommandPaletteSubmenuRows(entries, submenu.key, query, recentIds)
 		if (query.trim()) return getCommandPaletteSearchRows(entries, query, recentIds)
-		return getCommandPaletteBrowseRows(entries, recentIds, msg(messages.recent))
-	}, [entries, prompt, submenu, query, recentIds, msg, dir])
+		return getCommandPaletteBrowseRows(
+			entries,
+			suggestions === 'recent' ? recentIds : [],
+			msg(messages.recent)
+		)
+	}, [entries, prompt, submenu, query, recentIds, suggestions, msg, dir])
 	const selectableRows = useMemo(
 		() => rows.filter((row): row is SelectableRow => row.type === 'item' || row.type === 'submenu'),
 		[rows]
