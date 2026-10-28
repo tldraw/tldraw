@@ -10,8 +10,10 @@ export interface ItemTileRenaming {
 
 /** @public */
 export interface ItemTileProps {
-	/** Shown under the thumbnail and used as the button's accessible name. */
-	label: string
+	/** Shown under the thumbnail. Unnamed items show no label. */
+	name?: string
+	/** The button's accessible name: the item's name, or a description for an unnamed item. */
+	accessibleLabel: string
 	thumbnailUrl?: string
 	/** Props for the tile's button: its click, pointer and drag handlers. */
 	buttonProps?: ButtonHTMLAttributes<HTMLButtonElement>
@@ -22,7 +24,14 @@ export interface ItemTileProps {
 }
 
 /** @public @react */
-export function ItemTile({ label, thumbnailUrl, buttonProps, menu, renaming }: ItemTileProps) {
+export function ItemTile({
+	name,
+	accessibleLabel,
+	thumbnailUrl,
+	buttonProps,
+	menu,
+	renaming,
+}: ItemTileProps) {
 	const thumbnail = (
 		<span className="tlui-collections-tile__thumbnail">
 			{thumbnailUrl && <img src={thumbnailUrl} alt="" draggable={false} />}
@@ -33,15 +42,25 @@ export function ItemTile({ label, thumbnailUrl, buttonProps, menu, renaming }: I
 		<div className="tlui-collections-tile">
 			{renaming ? (
 				<>
-					<button type="button" className="tlui-collections-tile__button" {...buttonProps}>
+					<button
+						type="button"
+						className="tlui-collections-tile__button"
+						aria-label={accessibleLabel}
+						{...buttonProps}
+					>
 						{thumbnail}
 					</button>
 					<RenameInput className="tlui-collections-tile__input" {...renaming} />
 				</>
 			) : (
-				<button type="button" className="tlui-collections-tile__button" {...buttonProps}>
+				<button
+					type="button"
+					className="tlui-collections-tile__button"
+					aria-label={accessibleLabel}
+					{...buttonProps}
+				>
 					{thumbnail}
-					<span className="tlui-collections-tile__label">{label}</span>
+					{name && <span className="tlui-collections-tile__label">{name}</span>}
 				</button>
 			)}
 			{menu && <div className="tlui-collections-tile__menu">{menu}</div>}

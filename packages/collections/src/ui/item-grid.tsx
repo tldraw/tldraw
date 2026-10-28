@@ -4,9 +4,10 @@ import { ItemTile } from './item-tile'
 /** @public */
 export interface ItemGridItem<Id extends string = string> {
 	id: Id
-	label: string
-	/** The item's own name, if it has one. Renaming starts from it rather than from `label`. */
+	/** Shown under the thumbnail when present. */
 	name?: string
+	/** The tile's accessible name: the item's name, or a description for an unnamed item. */
+	accessibleLabel: string
 	thumbnailUrl?: string
 }
 
@@ -42,7 +43,8 @@ export function ItemGrid<Id extends string>({
 			{items.map((item) => (
 				<li key={item.id}>
 					<ItemTile
-						label={item.label}
+						name={item.name}
+						accessibleLabel={item.accessibleLabel}
 						thumbnailUrl={item.thumbnailUrl}
 						buttonProps={getItemProps(item.id)}
 						// No menu while renaming: a closing menu hands focus back to its trigger, which would

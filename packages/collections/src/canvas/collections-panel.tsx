@@ -25,11 +25,16 @@ const messages = defineMessages({
 		id: 'collections.empty-collection',
 		defaultMessage: 'Nothing saved here yet.',
 	},
-	untitledItem: { id: 'collections.untitled-item', defaultMessage: 'Untitled' },
+	unnamedItem: { id: 'collections.unnamed-item', defaultMessage: 'Unnamed item' },
 	deleteItemTitle: { id: 'collections.delete-item-dialog.title', defaultMessage: 'Delete item' },
 	deleteItemBody: {
 		id: 'collections.delete-item-dialog.body',
 		defaultMessage: 'Delete “{name}” from this collection? Copies already placed on canvases stay.',
+	},
+	deleteUnnamedItemBody: {
+		id: 'collections.delete-unnamed-item-dialog.body',
+		defaultMessage:
+			'Delete this item from this collection? Copies already placed on canvases stay.',
 	},
 	placeErrorTitle: { id: 'collections.place-error.title', defaultMessage: "Couldn't place item" },
 	placeErrorDescription: {
@@ -140,8 +145,8 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 					<ItemGrid
 						items={items.map((item) => ({
 							id: item.id,
-							label: item.name ?? msg(messages.untitledItem),
 							name: item.name,
+							accessibleLabel: item.name ?? msg(messages.unnamedItem),
 							thumbnailUrl: item.thumbnailUrl,
 						}))}
 						getItemProps={getItemProps}
@@ -156,7 +161,11 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 													component: ({ onClose }) => (
 														<ConfirmDeleteDialog
 															title={msg(messages.deleteItemTitle)}
-															body={msg(messages.deleteItemBody, { name: item.label })}
+															body={
+																item.name
+																	? msg(messages.deleteItemBody, { name: item.name })
+																	: msg(messages.deleteUnnamedItemBody)
+															}
 															onClose={onClose}
 															onConfirm={() =>
 																source
