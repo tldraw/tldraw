@@ -336,11 +336,7 @@ function TlaNotificationsGroup() {
 	const notificationsLbl = msg(messages.notifications)
 	const unknownAuthorLbl = msg(messages.unknownAuthor)
 	if (!unreadCount) return null
-	// A comment can be notified about twice (the comment and reactions to it); list it once.
-	const seen = new Set<string>()
-	const listed = notifications
-		.filter((n) => !seen.has(n.comment.id) && seen.add(n.comment.id))
-		.slice(0, MAX_NOTIFICATIONS)
+	const listed = notifications.slice(0, MAX_NOTIFICATIONS)
 	const unreadIcon = <span className={notificationStyles.paletteUnreadIcon} />
 
 	return (
