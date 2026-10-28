@@ -10,7 +10,7 @@ import { DefaultCommandPaletteContent } from './DefaultCommandPaletteContent'
  * @public
  */
 export interface TLUiCommandPaletteProps {
-	/** Where the palette opens. Defaults to `'bottom'`, just above the toolbar. */
+	/** Where the palette opens. Defaults to `'bottom'`, just above a horizontal toolbar. */
 	position?: TLUiCommandPalettePosition
 	/** Closes the palette. The `CommandPalette` slot is mounted only while the palette is open. */
 	onClose?(): void
