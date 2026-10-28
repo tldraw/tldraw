@@ -192,7 +192,7 @@ const HARDCODED: ReadonlyArray<{ px: number; selector: string; source: string; i
 		{ px: 14, selector: '.modalContent', source: 'MaybeForceUserRefresh.module.css:18' },
 		{
 			px: 14,
-			selector: '<div style={{ fontSize: 14 }}>',
+			selector: '<strong style={{ fontSize: 14 }}>',
 			source: 'SlurpFailure.tsx:27',
 			inline: true,
 		},
@@ -202,10 +202,14 @@ const HARDCODED: ReadonlyArray<{ px: number; selector: string; source: string; i
 		{ px: 16, selector: '.modalTitle', source: 'MaybeForceUserRefresh.module.css:29' },
 		{ px: 16, selector: '.tla select', source: 'tla.css:16' },
 		{ px: 20, selector: '.authOtpBox', source: 'auth.module.css:201' },
+		{ px: 11, selector: '.time', source: 'notifications.module.css:50' },
+		{ px: 12, selector: '.preview', source: 'notifications.module.css:56' },
+		{ px: 13, selector: '.byline', source: 'notifications.module.css:32' },
 	]
 
-const DISTINCT = [11, 12, 14, 16, 20]
-const ALL_SIZES = [11, 12, 14, 16, 20, 24]
+const sortedUnique = (sizes: number[]) => [...new Set(sizes)].sort((a, b) => a - b)
+const DISTINCT = sortedUnique(HARDCODED.map((h) => h.px))
+const ALL_SIZES = sortedUnique([...DISTINCT, ...CLASSES.map((c) => c.px)])
 const COUNT_12 = HARDCODED.filter((h) => h.px === 12).length
 
 const PAGE_CSS = `
