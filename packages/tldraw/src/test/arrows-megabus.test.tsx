@@ -1,5 +1,6 @@
 import { TLArrowShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { ArrowShapeUtil } from '../lib/shapes/arrow/ArrowShapeUtil'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 
@@ -848,5 +849,129 @@ describe('When the bound shape changes geometry', () => {
 
 		editor.redo()
 		expect(endBinding().props.normalizedAnchor).toMatchObject(resnapped)
+	})
+})
+
+describe('When the bound shape changes size', () => {
+	const setUp = () => {
+		editor.createShape({ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+		editor.createShape({
+			id: ids.arrow1,
+			type: 'arrow',
+			x: 200,
+			y: 50,
+			props: { start: { x: 0, y: 0 }, end: { x: -150, y: 0 } },
+		})
+	}
+
+	beforeEach(setUp)
+
+	const bindArrowEnd = (normalizedAnchor: { x: number; y: number }, isPrecise = true) => {
+		editor.createBinding({
+			type: 'arrow',
+			fromId: ids.arrow1,
+			toId: ids.box1,
+			props: { terminal: 'end', isExact: false, isPrecise, normalizedAnchor, snap: 'none' },
+		})
+	}
+
+	const endAnchor = () =>
+		getArrowBindings(editor, editor.getShape<TLArrowShape>(ids.arrow1)!).end!.props.normalizedAnchor
+
+	const resizeBox = (w: number, h: number) =>
+		editor.updateShape({ id: ids.box1, type: 'geo', props: { w, h } })
+
+	it('keeps a precise anchor the same distance from its nearest corner', () => {
+		// 10px from the left and top edges
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		resizeBox(200, 400)
+		expect(endAnchor()).toEqual({ x: 10 / 200, y: 10 / 400 })
+	})
+
+	it('measures from the far edges when the anchor is nearer to them', () => {
+		// 10px from the right edge, 20px from the bottom edge
+		bindArrowEnd({ x: 0.9, y: 0.8 })
+		resizeBox(200, 400)
+		expect(endAnchor()).toEqual({ x: 1 - 10 / 200, y: 1 - 20 / 400 })
+	})
+
+	it('keeps an anchor in the middle of an axis in the middle', () => {
+		bindArrowEnd({ x: 0.5, y: 0.1 })
+		resizeBox(200, 400)
+		expect(endAnchor()).toEqual({ x: 0.5, y: 10 / 400 })
+	})
+
+	it('stops at the middle when the shape shrinks past the anchor', () => {
+		// 40px from the left edge, which is past the middle of a 60px wide shape
+		bindArrowEnd({ x: 0.4, y: 0.1 })
+		resizeBox(60, 100)
+		expect(endAnchor()).toEqual({ x: 0.5, y: 0.1 })
+	})
+
+	it('keeps an anchor near the top in place when a label grows the shape', () => {
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		editor.updateShape({ id: ids.box1, type: 'geo', props: { growY: 100 } })
+		expect(endAnchor()).toEqual({ x: 0.1, y: 10 / 200 })
+	})
+
+	it('does not touch the anchor when the shape is moved', () => {
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		editor.updateShape({ id: ids.box1, type: 'geo', x: 300, y: 300, rotation: 1 })
+		expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
+	})
+
+	it('scales the anchor proportionally when the shape is scaled', () => {
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		editor.updateShape({ id: ids.box1, type: 'geo', props: { w: 200, h: 200, scale: 2 } })
+		expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
+	})
+
+	it('does not touch imprecise anchors', () => {
+		bindArrowEnd({ x: 0.1, y: 0.1 }, false)
+		resizeBox(200, 400)
+		expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
+	})
+
+	it('does not adjust anchors for remote changes', () => {
+		// the client that made the change already sent its binding update along with it
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		editor.store.mergeRemoteChanges(() => resizeBox(200, 400))
+		expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
+	})
+
+	it('restores the original anchor on undo', () => {
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+
+		editor.markHistoryStoppingPoint()
+		resizeBox(200, 400)
+		expect(endAnchor()).toEqual({ x: 10 / 200, y: 10 / 400 })
+
+		editor.undo()
+		expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
+
+		editor.redo()
+		expect(endAnchor()).toEqual({ x: 10 / 200, y: 10 / 400 })
+	})
+
+	it('keeps the anchor in place through an interactive resize', () => {
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		editor.select(ids.box1)
+		editor.pointerDown(100, 100, { target: 'selection', handle: 'bottom_right' })
+		editor.pointerMove(150, 150)
+		editor.pointerMove(300, 500)
+		editor.pointerUp()
+		expect(editor.getShapePageBounds(ids.box1)!.w).toBeCloseTo(300)
+		expect(endAnchor().x).toBeCloseTo(10 / 300)
+		expect(endAnchor().y).toBeCloseTo(10 / 500)
+	})
+
+	it('scales the anchor proportionally with preciseAnchorResizeBehavior: proportional', () => {
+		editor = new TestEditor({
+			shapeUtils: [ArrowShapeUtil.configure({ preciseAnchorResizeBehavior: 'proportional' })],
+		})
+		setUp()
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		resizeBox(200, 400)
+		expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
 	})
 })

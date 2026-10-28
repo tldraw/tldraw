@@ -157,6 +157,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		hoverPreciseTimeout: 600,
 		pointingPreciseTimeout: 320,
+		preciseAnchorResizeBehavior: 'nearest-corner',
 		shouldBeExact(editor: Editor) {
 			return editor.inputs.getAltKey()
 		},
