@@ -46,11 +46,7 @@ type SelectableRow = Extract<CommandPaletteRow, { type: 'item' | 'submenu' }>
  */
 export type TLUiCommandPalettePosition = 'top' | 'center' | 'bottom'
 
-/**
- * Props for {@link CommandPaletteShell}.
- *
- * @public
- */
+/** @public */
 export interface TLUiCommandPaletteShellProps {
 	/**
 	 * Where the palette opens. `'bottom'`, the default, sits just above the toolbar at its width when

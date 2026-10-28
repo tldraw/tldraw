@@ -4788,18 +4788,18 @@ export interface TLUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElemen
     type: 'danger' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'tool';
 }
 
-// @public
+// @public (undocumented)
 export interface TLUiCommandPaletteActionGroupProps {
     group?: string;
     label?: string;
 }
 
-// @public
+// @public (undocumented)
 export interface TLUiCommandPaletteCollapsedProps {
     children: ReactNode;
 }
 
-// @public
+// @public (undocumented)
 export interface TLUiCommandPalettePinnedProps {
     children: ReactNode;
 }
@@ -4807,7 +4807,7 @@ export interface TLUiCommandPalettePinnedProps {
 // @public
 export type TLUiCommandPalettePosition = 'bottom' | 'center' | 'top';
 
-// @public
+// @public (undocumented)
 export interface TLUiCommandPalettePromptItemProps<TranslationKey extends string = string> {
     id: string;
     initialValue?: string;
@@ -4820,14 +4820,14 @@ export interface TLUiCommandPalettePromptItemProps<TranslationKey extends string
     } | TranslationKey;
 }
 
-// @public
+// @public (undocumented)
 export interface TLUiCommandPaletteProps {
     children?: ReactNode;
     onClose?(): void;
     position?: TLUiCommandPalettePosition;
 }
 
-// @public
+// @public (undocumented)
 export interface TLUiCommandPaletteShellProps {
     children: ReactNode;
     onClose(): void;

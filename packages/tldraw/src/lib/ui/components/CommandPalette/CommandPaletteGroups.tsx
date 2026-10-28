@@ -37,11 +37,7 @@ const messages = defineMessages({
 	help: { id: 'help-menu.title', defaultMessage: 'Help and resources' },
 })
 
-/**
- * Props for {@link CommandPaletteActionGroup}.
- *
- * @public
- */
+/** @public */
 export interface TLUiCommandPaletteActionGroupProps {
 	/**
 	 * Lists the actions whose `commandPalette.group` is this. Without it, the group is the
