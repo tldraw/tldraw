@@ -47,9 +47,12 @@ export function Component() {
 
 				<section className="section">
 					<div className="stats">
-						<Stat n="17" label="sidebar components" />
-						<Stat n="5" label="DS-only (no bespoke)" />
-						<Stat n="9" label="distinct bespoke button/trigger classes" accent />
+						<Stat n={String(ROWS.length)} label="sidebar components" />
+						<Stat
+							n={String(ROWS.filter((r) => r.bespoke.length === 0).length)}
+							label="DS-only (no bespoke)"
+						/>
+						<Stat n={String(VOCAB.length)} label="distinct bespoke button/trigger classes" accent />
 					</div>
 				</section>
 
@@ -132,7 +135,11 @@ export function Component() {
 }
 
 const ROWS: ReadonlyArray<{ name: string; ds: string[]; bespoke: string[] }> = [
-	{ name: 'TlaSidebar (parent)', ds: [], bespoke: ['<button> overlay (all:unset, keep-raw)'] },
+	{
+		name: 'TlaSidebar (parent)',
+		ds: [],
+		bespoke: ['<button> overlay (all:unset, keep-raw)', 'inline-styled top-row flex wrapper'],
+	},
 	{ name: 'TlaSidebarWorkspaceLink', ds: ['TlaLogo'], bespoke: ['.sidebarWorkspaceButton'] },
 	{
 		name: 'TlaSidebarWorkspaceSwitcher',
@@ -142,14 +149,42 @@ const ROWS: ReadonlyArray<{ name: string; ds: string[]; bespoke: string[] }> = [
 	{
 		name: 'TlaSidebarWorkspaceActions',
 		ds: ['TlaIcon'],
-		bespoke: ['<button> .sidebarActionButton'],
+		bespoke: ['<button> .sidebarActionButton, exported as TlaSidebarActionButton'],
 	},
 	{
 		name: 'TlaSidebarCreateFileButton',
 		ds: ['TlaIcon', 'TldrawUiButton'],
 		bespoke: ['.sidebarCreateFileButton'],
 	},
-	{ name: 'TlaSidebarRecentFiles', ds: [], bespoke: [] },
+	{
+		name: 'TlaSidebarNotificationsButton',
+		ds: ['TlaIcon', 'TldrawUiButton', 'TldrawUiPopover', 'TLA_MENU_POSITION'],
+		bespoke: ['.sidebarCreateFileButton (borrowed)', '.badge'],
+	},
+	{
+		name: 'TlaSidebarNotificationsPanel',
+		ds: [
+			'CommentsList',
+			'Reactions',
+			'TldrawUiDropdownMenu',
+			'TldrawUiMenuCheckboxItem',
+			'TldrawUiButton',
+			'TldrawUiTooltip',
+			'TlaIcon',
+		],
+		bespoke: [
+			'.wrap (300px)',
+			'.byline 13 / .time 11 / .preview 12px',
+			'.pin (copies .tlui-cmt-pin)',
+			'.unreadDot',
+			'<Link> wearing .tlui-cmt-list__item',
+		],
+	},
+	{
+		name: 'TlaSidebarRecentFiles',
+		ds: ['TlaSidebarActionButton'],
+		bespoke: ['.sidebarSearchEmpty'],
+	},
 	{
 		name: 'TlaSidebarFileSection',
 		ds: ['TlaIcon', 'TldrawUiButton'],
