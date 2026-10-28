@@ -5611,7 +5611,6 @@ export interface TLUiMenuItemProps<TranslationKey extends string = string, IconT
     disabled?: boolean;
     icon?: IconType | TLUiIconJsx;
     iconLeft?: IconType | TLUiIconJsx;
-    // (undocumented)
     id: string;
     isSelected?: boolean;
     kbd?: string;
