@@ -36,11 +36,9 @@ export function openShareMenu(editor: Editor, fileId: string) {
 	// Opening here skips the popover's onOpenChange, so mirror what the header does on open.
 	editor.complete()
 	commentsSidebarOpen.set(editor, false)
-	// The header isn't rendered in focus mode; open on the next frame, once it is.
+	// No header in focus mode. Its popover reads the menus atom on mount, so it opens once shown.
 	if (editor.getInstanceState().isFocusMode) editor.updateInstanceState({ isFocusMode: false })
-	editor.timers.requestAnimationFrame(() =>
-		editor.menus.addOpenMenu(getShareMenuId(fileId, FILE_HEADER_SHARE_SOURCE))
-	)
+	editor.menus.addOpenMenu(getShareMenuId(fileId, FILE_HEADER_SHARE_SOURCE))
 }
 
 export function TlaFileShareMenu({
