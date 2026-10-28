@@ -26,6 +26,7 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TLRichText,
+	TLUiCommandPaletteProps,
 	TldrawUiMenuSubmenu,
 	defineMessages,
 	getCommandPaletteMatchScore,
@@ -107,10 +108,10 @@ const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
 })
 
-export function TlaCommandPalette() {
+export function TlaCommandPalette(props: TLUiCommandPaletteProps) {
 	const app = useMaybeApp()
 	return (
-		<DefaultCommandPalette>
+		<DefaultCommandPalette {...props}>
 			{app && <TlaNotificationsGroup />}
 			<CommandPaletteSelectionGroup />
 			<CommandPaletteArrangeGroup />
@@ -221,16 +222,14 @@ function TlaCurrentFileGroup() {
 	const activeWorkspaceId = useActiveWorkspaceId()
 	const createFile = useHandleSidebarCreateFile()
 	const currentFileLbl = msg(messages.currentFile)
-	const newFileLbl = msg(messages.newFile)
-	const fileNamePlaceholder = msg(messages.fileNamePlaceholder)
 	const hasFile = useValue('has file', () => !!app.getFile(fileId), [app, fileId])
 
 	return (
 		<TldrawUiMenuGroup id="tla-current-file" label={currentFileLbl}>
 			<CommandPalettePromptItem
 				id="tla-new-file"
-				label={newFileLbl}
-				placeholder={fileNamePlaceholder}
+				label={messages.newFile.id}
+				placeholder={messages.fileNamePlaceholder.id}
 				onSubmit={(name) => createFile({ name, source: 'command-palette' })}
 			/>
 			{fileId && hasFile && (

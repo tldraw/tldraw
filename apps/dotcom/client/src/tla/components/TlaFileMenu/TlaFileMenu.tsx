@@ -244,7 +244,6 @@ export function FileItems({
 				: messages.forget
 	)
 	const moveToMsg = msg(messages.moveFileTo)
-	const fileNameMsg = msg(messages.fileName)
 	const downloadFile = msg(editorMessages.downloadFile)
 	const myWorkspaceMsg = msg(messages.myWorkspace)
 
@@ -262,8 +261,8 @@ export function FileItems({
 					(inPalette ? (
 						<CommandPalettePromptItem
 							id={`${idPrefix}rename`}
-							label={renameMsg}
-							placeholder={fileNameMsg}
+							label={messages.renameFile.id}
+							placeholder={messages.fileName.id}
 							initialValue={app.getFileName(fileId)}
 							onSubmit={(name) => {
 								if (!name) return
