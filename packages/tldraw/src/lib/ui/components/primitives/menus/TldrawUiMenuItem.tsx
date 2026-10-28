@@ -76,6 +76,11 @@ export interface TLUiMenuItemProps<
 	 */
 	isSelected?: boolean
 	/**
+	 * Muted text after the label in the command palette, such as where the item lives. Search
+	 * matches it too. Other menus don't show it.
+	 */
+	detail?: string
+	/**
 	 * The function to call when the item is dragged. If this is provided, the item will be draggable.
 	 */
 	onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void
@@ -97,6 +102,7 @@ export function TldrawUiMenuItem<
 	onSelect,
 	noClose,
 	isSelected,
+	detail,
 	onDragStart,
 }: TLUiMenuItemProps<TranslationKey, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
@@ -289,6 +295,7 @@ export function TldrawUiMenuItem<
 					kbd={kbd}
 					icon={iconLeft ?? icon}
 					isSelected={isSelected}
+					detail={detail}
 					onSelect={onSelect}
 				/>
 			)

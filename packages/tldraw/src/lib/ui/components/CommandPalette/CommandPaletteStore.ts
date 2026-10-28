@@ -36,6 +36,8 @@ export interface CommandPaletteEntry {
 	kbd?: string
 	checked?: boolean
 	isSelected?: boolean
+	/** Muted text after the label, e.g. the workspace a file is in. Also in `path`, for search. */
+	detail?: string
 	/** Listed first, above recents, on an empty query. */
 	pinned?: boolean
 	/** Asks for text in the palette before running, instead of running on select. */

@@ -65,6 +65,16 @@ describe('menu items in the command palette', () => {
 		expect(onUndo).toHaveBeenCalledWith('command-palette')
 	})
 
+	it('register their detail, and search it like the path', async () => {
+		const { store, ids } = await renderItems(
+			<TldrawUiMenuGroup id="files" label="menu.edit">
+				<TldrawUiMenuItem id="file" label="action.undo" detail="Acme" onSelect={() => {}} />
+			</TldrawUiMenuGroup>
+		)
+		await waitFor(() => expect(ids()).toEqual(['file']))
+		expect(store.entries.get()[0]).toMatchObject({ detail: 'Acme', path: ['Edit', 'Acme'] })
+	})
+
 	it('use the command palette label variant', async () => {
 		const { store, ids } = await renderItems(
 			<TldrawUiMenuItem

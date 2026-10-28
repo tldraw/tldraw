@@ -267,6 +267,7 @@ A few components shape how items appear in the palette. Outside it they render t
 - `CommandPalettePinned` lists the items inside first, above recent commands, while browsing.
 - `CommandPaletteCollapsed` keeps the submenu inside as one row you open, even with a single item, and keeps its items out of top-level search results.
 - `TldrawUiMenuSubmenu` takes an `icon`, shown on the submenu's row.
+- `TldrawUiMenuItem` takes a `detail`, muted text after its label, such as the workspace a file is in. Search matches it too.
 - `CommandPalettePromptItem` asks for text before running, such as a name. Its `onSubmit` gets the trimmed text, and `initialValue` fills the input with the current value, selected.
 
 ```tsx
