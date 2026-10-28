@@ -4413,7 +4413,7 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, detail, onDragStart, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, icon, children, }: TLUiMenuSubmenuProps<Translation>): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
+export function TldrawUiMenuSubmenu<Translation extends string = string, IconType extends string = string>({ id, disabled, label, size, icon, children, }: TLUiMenuSubmenuProps<Translation, IconType>): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
 
 // @public (undocumented)
 export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX.Element | null;
@@ -5623,12 +5623,12 @@ export interface TLUiMenuItemProps<TranslationKey extends string = string, IconT
 }
 
 // @public (undocumented)
-export interface TLUiMenuSubmenuProps<Translation extends string = string> {
+export interface TLUiMenuSubmenuProps<Translation extends string = string, IconType extends string = string> {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
     disabled?: boolean;
-    icon?: string | TLUiIconJsx;
+    icon?: IconType | TLUiIconJsx;
     // (undocumented)
     id: string;
     // (undocumented)

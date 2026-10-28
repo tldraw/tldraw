@@ -1,7 +1,9 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import {
+	atom,
 	Box,
 	createShapeId,
+	createTLStore,
 	deleteFromLocalStorage,
 	Editor,
 	TldrawEditor,
@@ -9,6 +11,7 @@ import {
 } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { vi } from 'vitest'
+import { defaultBindingUtils } from '../../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../../lib/defaultShapeUtils'
 import { defaultTools } from '../../lib/defaultTools'
@@ -363,7 +366,22 @@ describe('default command palette content', () => {
 				actions = useActions()
 				return null
 			}
-			await renderPalette({ content: <Probe /> })
+			// Collaboration and the default palette slot add the conditional actions.
+			const store = createTLStore({
+				shapeUtils: defaultShapeUtils,
+				bindingUtils: defaultBindingUtils,
+				collaboration: { status: atom('status', 'online' as const) },
+			})
+			await renderTldrawComponentWithEditor(
+				(onMount) => (
+					<Tldraw store={store} onMount={onMount}>
+						<Probe />
+					</Tldraw>
+				),
+				{ waitForPatterns: false }
+			)
+			expect(actions['open-cursor-chat']).toBeDefined()
+			expect(actions['open-command-palette']).toBeDefined()
 			const unplaced = Object.values(actions)
 				.filter((action) => action.commandPalette === undefined)
 				.map((action) => action.id)
