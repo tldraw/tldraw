@@ -82,7 +82,7 @@ import notificationStyles from '../TlaSidebar/components/notifications.module.cs
 const MAX_FILE_RESULTS = 8
 const MAX_RECENT_FILES = 5
 const MAX_BOARD_RESULTS = 50
-// Characters of context kept before a match that's cut into.
+// Characters kept before the match when a label's start is trimmed.
 const MATCH_LEAD = 16
 
 const messages = defineMessages({
@@ -283,7 +283,7 @@ function TlaBoardGroup() {
 				if (!text || index === -1) continue
 				results.push({
 					id: shape.id,
-					// The row's end is cut off, so a match deep in a long text starts the label.
+					// Rows clip their end, so trim the start to keep a late match in view.
 					label: index > MATCH_LEAD ? `…${text.slice(index - MATCH_LEAD)}` : text,
 					detail: page.id === currentPageId ? undefined : page.name,
 					icon: tools[shape.type === 'geo' ? shape.props.geo : shape.type]?.icon,
