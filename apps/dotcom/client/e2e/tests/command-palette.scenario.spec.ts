@@ -119,14 +119,14 @@ test.describe('command palette', () => {
 		await expect(owner.page).not.toHaveURL(file.url)
 		await owner.sidebar.expectActiveWorkspace(workspaceName)
 
-		// The file never moved: it is still in the home workspace.
-		const stillInHome = await owner.page.evaluate((id) => {
+		const { owningGroupId, homeId } = await owner.page.evaluate((id) => {
 			const app = (window as any).app
-			return (
-				(app.getFile(id)?.owningGroupId ?? app.getHomeWorkspaceId()) === app.getHomeWorkspaceId()
-			)
+			return {
+				owningGroupId: app.getFile(id)?.owningGroupId ?? null,
+				homeId: app.getHomeWorkspaceId(),
+			}
 		}, fileId)
-		expect(stillInHome).toBe(true)
+		expect(owningGroupId).toBe(homeId)
 	})
 
 	test('offers the file delete next to the shape delete', async ({ owner, scenario }) => {
