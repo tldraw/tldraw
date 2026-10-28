@@ -1,0 +1,42 @@
+/* Floats on the left below the main menu, mirroring the comments sidebar on the right: 48px from
+   the top, sized to its content and scrolling past max-height. */
+.tlui-collections-panel {
+	position: absolute;
+	top: 48px;
+	left: 8px;
+	width: 240px;
+	max-height: calc(100% - 56px);
+	z-index: var(--tl-layer-panels);
+	pointer-events: auto;
+	display: flex;
+	flex-direction: column;
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-4);
+	box-shadow: var(--tl-shadow-3);
+	overflow: hidden;
+	color: var(--tl-color-text-1);
+	font-size: 12px;
+}
+
+.tlui-collections-panel__header {
+	padding: 12px;
+	font-weight: 600;
+}
+
+.tlui-collections-panel__empty {
+	margin: 0;
+	padding: 0 12px 12px;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-collections-panel__list {
+	margin: 0;
+	padding: 0 4px 4px;
+	list-style: none;
+	overflow-y: auto;
+}
+
+.tlui-collections-panel__list > li {
+	padding: 8px;
+	border-radius: var(--tl-radius-2);
+}

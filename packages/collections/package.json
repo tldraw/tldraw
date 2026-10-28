@@ -5,7 +5,10 @@
 	"private": true,
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
-	"files": [],
+	"style": "./collections.css",
+	"files": [
+		"collections.css"
+	],
 	"type": "module",
 	"dependencies": {
 		"@tldraw/editor": "workspace:*",
@@ -13,9 +16,14 @@
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"@tldraw/validate": "workspace:*"
+		"@tldraw/validate": "workspace:*",
+		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
 		"vitest": "^5.0.0"
 	},
 	"scripts": {
@@ -27,5 +35,9 @@
 	},
 	"engines": {
 		"node": ">=22.12.0"
+	},
+	"peerDependencies": {
+		"react": "^18.2.0 || ^19.2.1",
+		"react-dom": "^18.2.0 || ^19.2.1"
 	}
 }
