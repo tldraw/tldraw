@@ -188,7 +188,7 @@ After editing `next.mdx` (and any archive files), commit and push from the tldra
 cd /tmp/tldraw
 BRANCH="update-release-notes-$(date -u +%Y%m%d-%H%M)"
 git checkout -b "$BRANCH"
-git add apps/docs/content/releases/ apps/docs/content/getting-started/releases.mdx
+git add apps/docs/content/
 git commit -m "docs(releases): update release notes"
 git push -u origin "$BRANCH"
 ```
