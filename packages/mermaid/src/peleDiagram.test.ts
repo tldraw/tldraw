@@ -1,5 +1,5 @@
 import type { FlowchartModel, MindmapModel, StateModel } from 'pele'
-import { parseFlowchartLayout } from './flowchartDiagram'
+import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
 import { parseMindmapLayout } from './mindmapDiagram'
 import { parsePathPoints, parsePeleDiagram, parsePeleLayout } from './peleDiagram'
 import { parseStateDiagramLayout } from './stateDiagram'
@@ -47,6 +47,25 @@ describe('parsePeleLayout', () => {
 		const group = layout.clusters.get('S1')!
 		expect(circle.center.x).toBeGreaterThan(group.topLeft.x)
 		expect(circle.center.x).toBeLessThan(group.topLeft.x + group.width)
+	})
+
+	it('keeps the lines the layout wrapped a label into', async () => {
+		const text = `flowchart TD
+  A[System validates whether the currently selected shipping address is complete] -->|a fairly long edge label that should wrap somewhere| B[Done]`
+		const { root, model } = await render(text)
+
+		const flowchart = model as FlowchartModel
+		const layout = parseFlowchartLayout(root, flowchart)
+		const bp = flowchartToBlueprint(layout, flowchart.nodes, flowchart.edges)
+
+		const label = bp.nodes.find((node) => node.id === 'A')!.label!
+		expect(label.split('\n').length).toBeGreaterThan(1)
+		expect(label.replace(/\n/g, ' ')).toBe(
+			'System validates whether the currently selected shipping address is complete'
+		)
+		expect(bp.edges[0].label!.split('\n').length).toBeGreaterThan(1)
+		expect(bp.edges[0].labelPosition).toBeGreaterThan(0)
+		expect(bp.edges[0].labelPosition).toBeLessThan(1)
 	})
 
 	it('scales positions by LAYOUT_SCALE', () => {

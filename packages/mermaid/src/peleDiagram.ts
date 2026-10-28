@@ -94,6 +94,7 @@ export function parsePeleLayout(
 			center: { x: origin.x + box.x + box.w / 2, y: origin.y + box.y + box.h / 2 },
 			width: box.w,
 			height: box.h,
+			lines: getLabelLines(el.querySelector('text.pele-label')),
 		})
 	}
 
@@ -135,12 +136,24 @@ export function parsePeleLayout(
 			y: origin.y + num(rect, 'y'),
 			w: num(rect, 'width'),
 			h: num(rect, 'height'),
+			lines: getLabelLines(el.querySelector('text')),
 		})
 	}
 
 	const layout = { nodes, clusters, edges, edgeLabels }
 	scaleLayout(layout, LAYOUT_SCALE)
 	return layout
+}
+
+/**
+ * A label's lines where the layout wrapped it, one `<tspan>` each. Keeping them stops tldraw from
+ * wrapping the label again somewhere else, which can push a word past the edge of its box.
+ */
+function getLabelLines(text: Element | null): string[] | undefined {
+	if (!text) return undefined
+	const spans = [...text.children].filter((child) => child.tagName.toLowerCase() === 'tspan')
+	const lines = (spans.length ? spans : [text]).map((line) => line.textContent ?? '')
+	return lines.some((line) => line.trim()) ? lines : undefined
 }
 
 function num(el: Element, attr: string) {

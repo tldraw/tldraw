@@ -10,6 +10,7 @@ import {
 	buildNodeCentersFromSvg,
 	claimEdge,
 	getElbowEdgeLayout,
+	getPositionAlongRoute,
 	getSelfLoopEdgeLayout,
 	type ParsedDiagramLayout,
 } from './svgParsing'
@@ -357,7 +358,9 @@ export function stateToBlueprint(
 		const rect = nodeLayout.get(id)
 		if (!rect) continue
 
-		nodes.push(...stateToNodes(state, rect, parentOf.get(id), stateColorMap.get(id)))
+		const lines = state.label ? svgNodes.get(id)?.lines : undefined
+		const labelled = lines ? { ...state, label: lines.join('\n') } : state
+		nodes.push(...stateToNodes(labelled, rect, parentOf.get(id), stateColorMap.get(id)))
 	}
 
 	const boxes = new Map(nodes.map((node) => [node.id, node]))
@@ -381,11 +384,20 @@ export function stateToBlueprint(
 				? getElbowEdgeLayout(svgEdge, startBox, endBox, layout.edgeLabels.get(svgEdge.id))
 				: undefined
 		const isNoteEdge = edge.id2.endsWith('----note') || edge.id1.endsWith('----note')
+		const label = svgEdge && layout.edgeLabels.get(svgEdge.id)
 		blueprintEdges.push({
 			startNodeId: edge.id1,
 			endNodeId: edge.id2,
-			label: edge.relationTitle,
+			label: label?.lines?.join('\n') ?? edge.relationTitle,
 			bend: svgEdge ? getArrowBend(svgEdge) : 0,
+			// Where the layout drew the label along the route; a loop places its label with its bend.
+			labelPosition:
+				label && svgEdge && !selfLoop
+					? getPositionAlongRoute(svgEdge.points, {
+							x: label.x + label.w / 2,
+							y: label.y + label.h / 2,
+						})
+					: undefined,
 			...selfLoop,
 			...elbow,
 			...(isNoteEdge && { dash: 'dotted' as const, arrowheadEnd: 'none' as const }),

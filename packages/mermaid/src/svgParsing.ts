@@ -11,6 +11,8 @@ export interface ParsedNode {
 	center: Vec2
 	width: number
 	height: number
+	/** The label's lines, broken where the layout wrapped them. */
+	lines?: string[]
 }
 
 export interface ParsedCluster {
@@ -33,6 +35,8 @@ export interface ParsedEdgeLabel {
 	y: number
 	w: number
 	h: number
+	/** The label's lines, broken where the layout wrapped them. */
+	lines?: string[]
 }
 
 /**
@@ -298,7 +302,7 @@ function getElbowMidPoint(points: Vec2[]): number | undefined {
 }
 
 /** How far along a route the point nearest `target` lies, as a fraction of the route's length. */
-function getPositionAlongRoute(points: Vec2[], target: Vec2): number | undefined {
+export function getPositionAlongRoute(points: Vec2[], target: Vec2): number | undefined {
 	let total = 0
 	let best = { distance: Infinity, at: 0 }
 	for (let i = 1; i < points.length; i++) {

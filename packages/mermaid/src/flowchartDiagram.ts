@@ -16,6 +16,7 @@ import {
 	buildNodeCentersFromSvg,
 	claimEdge,
 	getElbowEdgeLayout,
+	getPositionAlongRoute,
 	getSelfLoopEdgeLayout,
 	type ParsedDiagramLayout,
 } from './svgParsing'
@@ -142,7 +143,7 @@ export function flowchartToBlueprint(
 			w,
 			h,
 			parentId: nodeToSubGraph.get(id),
-			label: vertex.text || undefined,
+			label: svgNode.lines?.join('\n') ?? (vertex.text || undefined),
 			...toNodeColorProps(nodeColorMap.get(id) ?? parseNodeInlineColor(vertex.styles)),
 			align: 'middle',
 			verticalAlign: 'middle',
@@ -171,14 +172,24 @@ export function flowchartToBlueprint(
 			edgeRouting === 'elbow' && !selfLoop && svgEdge && startBox && endBox
 				? getElbowEdgeLayout(svgEdge, startBox, endBox, layout.edgeLabels.get(svgEdge.id))
 				: undefined
+		const label = svgEdge && layout.edgeLabels.get(svgEdge.id)
+		// Where the layout drew the label along the route; a loop places its label with its bend.
+		const labelPosition =
+			label && svgEdge && !selfLoop
+				? getPositionAlongRoute(svgEdge.points, {
+						x: label.x + label.w / 2,
+						y: label.y + label.h / 2,
+					})
+				: undefined
 		const cssOverrides = parseCssStyles(edge.style ?? defaultEdgeStyle)
 		const arrowheadEnd = mapEdgeTypeToArrowhead(edge.type)
 
 		blueprintEdges.push({
 			startNodeId: edge.start,
 			endNodeId: edge.end,
-			label: edge.text,
+			label: label?.lines?.join('\n') ?? edge.text,
 			bend: svgEdge ? getArrowBend(svgEdge) : 0,
+			labelPosition,
 			...selfLoop,
 			...elbow,
 			arrowheadEnd,
