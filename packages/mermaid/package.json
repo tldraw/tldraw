@@ -50,7 +50,7 @@
 	"dependencies": {
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"pele": "1.5.2"
+		"pele": "1.8.0"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.2.1",

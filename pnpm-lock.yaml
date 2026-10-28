@@ -981,8 +981,8 @@ importers:
         specifier: ^4.10.38
         version: 4.10.38
       pele:
-        specifier: 1.5.2
-        version: 1.5.2
+        specifier: 1.8.0
+        version: 1.8.0
       radix-ui:
         specifier: ^1.4.2
         version: 1.4.2(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -1747,8 +1747,8 @@ importers:
         specifier: workspace:*
         version: link:../utils
       pele:
-        specifier: 1.5.2
-        version: 1.5.2
+        specifier: 1.8.0
+        version: 1.8.0
     devDependencies:
       tldraw:
         specifier: workspace:*
@@ -14756,8 +14756,8 @@ packages:
     resolution: {integrity: sha512-peBp3qZyuS6cNIJ2akRNG1uo1WJ1d0wTxg/fxMdZ0BqCVhx242bSFHM9eNqflfJVS9SsgkzgT/1UgnsurBOTMg==}
     engines: {node: '>=14.16'}
 
-  pele@1.5.2:
-    resolution: {integrity: sha512-t1XarodlFluWbSy8eXE4PnkFNXUaP1qLUUKJANHiZpTM0VgDoLCEv9CENj3iHM8s507QXyRdSJFMDiZCmkvtGg==}
+  pele@1.8.0:
+    resolution: {integrity: sha512-AYmHttE70cwNJVXdfPMCANGivFlmc3bGGpMG0GqH5S5vE3RgtEuLlkqbhRfe94Csv/ZEd1TUbv2dMUHpw4p1Bg==}
     engines: {node: '>=20'}
 
   pend@1.2.0:
@@ -30918,7 +30918,7 @@ snapshots:
 
   peek-readable@5.4.2: {}
 
-  pele@1.5.2: {}
+  pele@1.8.0: {}
 
   pend@1.2.0: {}
 
