@@ -59,6 +59,7 @@ import {
 	MCP_SERVER_CARD_WELL_KNOWN_PATH,
 	getMcpServerCard,
 } from './routes/tla/mcpServerCard'
+import { postOAuthConsentBeacon } from './routes/tla/oauthConsentBeacon'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import { upload } from './routes/tla/uploads'
@@ -220,6 +221,9 @@ const router = createRouter<Environment>()
 	.all('/app/social-preview/:prefix/:slug/image', getOgImage)
 	.get('/app/thumbnail-render/snapshot', getThumbnailSnapshot)
 	.post('/app/thumbnail-render/result', putThumbnailRenderResult)
+	// The self-hosted OAuth consent page's fire-and-forget telemetry. Same-origin only (after the
+	// origin check above), unauthenticated, closed-vocabulary body — see postOAuthConsentBeacon.
+	.post('/app/oauth-consent-beacon', postOAuthConsentBeacon)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)

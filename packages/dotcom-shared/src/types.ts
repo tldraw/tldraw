@@ -213,6 +213,37 @@ export interface ThumbnailRenderResultRequestBody {
 	bounds: Record<string, ThumbnailShapeMeasurement>
 }
 
+/**
+ * What the self-hosted OAuth consent page reports about itself, as a closed vocabulary. The page
+ * (apps/dotcom/client/src/tla/pages/oauth-consent.tsx) renders Clerk's `<OAuthConsent>` for MCP and
+ * plugin sign-ins; it sits outside the app's analytics providers and can run before Clerk's UI bundle
+ * has booted, so it cannot use PostHog and instead POSTs one of these to the beacon route as a
+ * fire-and-forget datapoint. It is the only direct visibility we have into the page itself.
+ *
+ * - `page_shown`: the consent form actually mounted (signed in, legal accepted). The funnel's
+ *   denominator. Whether the user then allows or denies happens inside Clerk, which owns the form POST
+ *   and redirects the browser away on either, so it is not observable here — a granted consent
+ *   surfaces downstream when the client connects (`mcp_server_initialize`), and a denied or abandoned
+ *   one is a `page_shown` with no such connect. (Clerk's `onAllow`/`onDeny` callbacks are deprecated
+ *   and do not fire in its URL-param redirect mode, so there is no reliable client-side allow/deny.)
+ * - `reload_guard`: the page was reached by client-side navigation with no Clerk UI bundle, so it hard
+ *   reloaded. A spike means every OAuth user is in a reload loop — the one failure the page was
+ *   otherwise silent about.
+ * - `redirect_signed_out` / `redirect_legal`: bounced to `/` to sign in, or to accept the legal terms.
+ */
+export const OAUTH_CONSENT_OUTCOMES = [
+	'page_shown',
+	'reload_guard',
+	'redirect_signed_out',
+	'redirect_legal',
+] as const
+export type OAuthConsentOutcome = (typeof OAUTH_CONSENT_OUTCOMES)[number]
+
+/** Body of POST /app/oauth-consent-beacon. One bounded outcome; see OAUTH_CONSENT_OUTCOMES. */
+export interface OAuthConsentBeaconRequestBody {
+	outcome: OAuthConsentOutcome
+}
+
 export type ThumbnailSnapshotResponseBody =
 	| {
 			error: false
