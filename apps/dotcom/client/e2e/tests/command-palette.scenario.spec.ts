@@ -57,6 +57,34 @@ test.describe('command palette', () => {
 		await owner.page.keyboard.press('Escape')
 	})
 
+	test("names the workspace of files outside the one you're in", async ({ owner, scenario }) => {
+		const fileName = scenario.name('palette same name')
+		const home = await scenario.createPersonalFile(owner, fileName)
+		const homeId = home.url.split('/f/')[1]
+		await owner.sidebar.createWorkspace(
+			scenario.name('palette detail ws').trim().slice(0, MAX_WORKSPACE_NAME_LENGTH)
+		)
+		await owner.sidebar.createNewDocument(fileName)
+		await owner.sidebar.expectFileActive(fileName)
+		const workspaceFileId = owner.page.url().split('/f/')[1]
+		// The current file is never offered, so stand on another one.
+		await owner.sidebar.createNewDocument(scenario.name('palette detail other'))
+
+		await owner.page.getByTestId('canvas').click({ position: { x: 300, y: 300 } })
+		await owner.page.keyboard.press('ControlOrMeta+k')
+		await owner.page.getByTestId('command-palette.input').fill(fileName)
+		const detail = (fileId: string) =>
+			owner.page
+				.getByTestId(`command-palette.item.file:${fileId}`)
+				.locator('.tlui-command-palette__detail')
+		await expect(detail(homeId)).toHaveText('My workspace')
+		await expect(
+			owner.page.getByTestId(`command-palette.item.file:${workspaceFileId}`)
+		).toBeVisible()
+		await expect(detail(workspaceFileId)).toHaveCount(0)
+		await owner.page.keyboard.press('Escape')
+	})
+
 	test('tells switching workspace apart from moving the file', async ({ owner, scenario }) => {
 		const workspaceName = scenario.name('palette ws').trim().slice(0, MAX_WORKSPACE_NAME_LENGTH)
 		const file = await scenario.createPersonalFile(owner, scenario.name('palette ws file'))
