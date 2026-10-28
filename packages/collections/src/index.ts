@@ -1,7 +1,11 @@
 export { CollectionsPanel, type CollectionsPanelProps } from './canvas/collections-panel'
 export { CollectionsPanelButton } from './canvas/collections-panel-button'
 export { useCollectionSource } from './canvas/context'
-export { collectionsPanelOpen, toggleCollectionsPanel } from './canvas/state'
+export { placeCollectionItem } from './canvas/place-item'
+export { activeCollectionId, collectionsPanelOpen, toggleCollectionsPanel } from './canvas/state'
+export { CollectionPicker, type CollectionPickerProps } from './ui/collection-picker'
+export { ItemGrid, type ItemGridItem, type ItemGridProps } from './ui/item-grid'
+export { ItemTile, type ItemTileProps } from './ui/item-tile'
 export {
 	CollectionNotFoundError,
 	CollectionPermissionError,
