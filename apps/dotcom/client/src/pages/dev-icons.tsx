@@ -51,9 +51,9 @@ export function Component() {
 					<section className="section">
 						<h2 className="section__title">Usage</h2>
 						<div className="stats">
-							<Stat n="28" label="TlaIcon (dotcom sprite)" />
+							<Stat n="32" label="TlaIcon (dotcom sprite)" />
 							<Stat n="6" label="TldrawUiIcon (SDK)" />
-							<Stat n="1" label="inline <svg>" />
+							<Stat n="2" label="inline <svg>" />
 						</div>
 					</section>
 
@@ -201,9 +201,10 @@ export function Component() {
 							editor&rsquo;s <code>AssetUrlsProvider</code>. So the dotcom app, which renders chrome{' '}
 							<em>outside</em> the editor, needs its own icon component and its own sprite —{' '}
 							<strong>partly justified</strong>. But the two can&rsquo;t share an icon set, and a
-							design-system icon would have to bridge both. The lone inline <code>&lt;svg&gt;</code>{' '}
-							(ErrorPage&rsquo;s two-colour face) is a genuine exception: a monochrome mask
-							can&rsquo;t render it, and it must work offline.
+							design-system icon would have to bridge both. The two inline SVGs — ErrorPage&rsquo;s
+							two-colour face, and the sign-in dialog&rsquo;s Google logo as a data URI on an{' '}
+							<code>&lt;img&gt;</code> — are genuine exceptions: a monochrome mask can&rsquo;t
+							render either, and the error page must work offline.
 						</div>
 					</section>
 				</div>
@@ -256,6 +257,7 @@ const ALL_ICONS = [
 	'link-strong',
 	'manual',
 	'more',
+	'notification',
 	'pin',
 	'pin-strong',
 	'plus',
@@ -282,7 +284,8 @@ const ALL_ICONS = [
 	'update',
 ] as const
 
-// Icons referenced in code — static snapshot from icon= / iconLeft= / iconRight= literals
+// Icons referenced in code — static snapshot from icon / iconLeft / iconRight literals (JSX
+// attributes and object properties)
 // intersected with the sprite. Regenerate by grepping those attributes; a few data-driven
 // names may not be captured, so treat this as a floor.
 const USED = new Set<string>([
@@ -301,6 +304,7 @@ const USED = new Set<string>([
 	'feedback',
 	'group',
 	'help-circle',
+	'notification',
 	'pin',
 	'plus',
 	'search',
@@ -322,13 +326,13 @@ const ROWS: ReadonlyArray<readonly [string, string, string, string]> = [
 		'source',
 		'0_merged_tla.svg (bundled)',
 		'AssetUrlsProvider (per icon)',
-		'inline in the component',
+		'inline, or a data URI on an <img>',
 	],
 	['sizing', '15px default · free via CSS/style', 'small / tiny booleans', 'whatever the svg sets'],
 	['colour', 'currentColor', 'color prop / currentColor', 'fill in the markup'],
 	['a11y', 'aria-hidden + optional ariaLabel', 'label required', 'manual'],
 	['context', 'none — sprite imported', 'needs the editor asset context', 'none'],
-	['where', 'dotcom UI (28)', 'SDK-derived UI (6)', 'ErrorPage two-colour (1)'],
+	['where', 'dotcom UI (32)', 'SDK-derived UI (6)', 'ErrorPage face · Google sign-in logo (2)'],
 ]
 
 const PAGE_CSS = `
