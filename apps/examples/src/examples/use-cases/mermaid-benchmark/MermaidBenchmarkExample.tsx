@@ -47,17 +47,21 @@ async function measureFirstLoad(run: () => Promise<unknown>): Promise<FirstLoad>
 	return { ms, transferKb: sum('transferSize'), decodedKb: sum('decodedBodySize') }
 }
 
-async function loadMermaid() {
+async function loadMermaid(text: string) {
 	const { default: mermaid } = await import('mermaid')
 	// [4]
-	mermaid.initialize({ startOnLoad: false, layout: 'dagre', state: { layout: 'dagre' } })
+	mermaid.initialize(
+		/^\s*mindmap/.test(text)
+			? { startOnLoad: false }
+			: { startOnLoad: false, layout: 'dagre', state: { layout: 'dagre' } }
+	)
 	return mermaid
 }
 
 let nextMermaidId = 0
 
 async function mermaidLayout(text: string) {
-	const mermaid = await loadMermaid()
+	const mermaid = await loadMermaid(text)
 	const container = document.createElement('div')
 	container.style.cssText = 'position:absolute;left:-9999px;top:-9999px'
 	document.body.appendChild(container)
@@ -228,5 +232,6 @@ of pele's.
 [4]
 Mermaid 12 lays diagrams out with ELK by default, which alone is a 2.5 MB download. Dagre, its
 older layout and the one mermaid 11 used, ships with it too, and only the layout in use is
-downloaded, so this keeps mermaid to the smaller of the two.
+downloaded, so this keeps mermaid to the smaller of the two. Mindmaps are left alone: they use
+their own cytoscape layout unless a layout is set, and setting one would switch them to dagre.
 */
