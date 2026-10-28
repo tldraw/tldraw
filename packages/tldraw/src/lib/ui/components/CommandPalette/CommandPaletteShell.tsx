@@ -96,16 +96,17 @@ export function CommandPaletteShell({
 	const listboxId = useId()
 	// Only the query reruns a search, so the list can't shift under the highlight as the document
 	// changes.
+	const searchQuery = query.trim()
 	const searchResults = useMemo(() => {
-		if (!search || !query.trim()) return null
+		if (!search || !searchQuery) return null
 		// Runs during render, so a throw would take down the whole editor rather than the search.
 		try {
-			return search.getResults(query.trim())
+			return search.getResults(searchQuery)
 		} catch (error) {
 			console.error('Command palette search threw', error)
 			return []
 		}
-	}, [search, query])
+	}, [search, searchQuery])
 
 	const rows = useMemo((): CommandPaletteRow[] => {
 		if (prompt && search) {

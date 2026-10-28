@@ -553,6 +553,23 @@ describe('CommandPaletteShell', () => {
 		expect(rendered.getByTestId('command-palette.item.find')).toBeTruthy()
 	})
 
+	it('reruns a search only when the trimmed query changes', async () => {
+		const getResults = vi.fn(() => [])
+		const { rendered, input } = await renderShell(
+			<CommandPaletteSearchItem
+				id="find"
+				label="Search board"
+				placeholder="Search text"
+				getResults={getResults}
+			/>
+		)
+		fireEvent.click(await rendered.findByTestId('command-palette.item.find'))
+		type(input, 'ab')
+		type(input, 'ab ')
+		type(input, ' ab ')
+		expect(getResults.mock.calls).toEqual([['ab']])
+	})
+
 	it('shows no hits and keeps the editor up when a search throws', async () => {
 		const error = new Error('boom')
 		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
