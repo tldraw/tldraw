@@ -234,9 +234,9 @@ function MyCommandPalette() {
 ;<Tldraw components={{ CommandPalette: MyCommandPalette }} />
 ```
 
-A command shows once, wherever it's placed first, so placing an action yourself takes it out of the catch-all at the end. `DefaultCommandPaletteContent` is made of exported groups, such as `CommandPaletteEditGroup` and `CommandPaletteViewGroup`, ending with `<CommandPaletteActionGroup />`, the catch-all. If you list the groups yourself, end with it too, or actions you don't place won't appear. `CommandPaletteToolsGroup` lists one item per tool, after the commands. Pass `CommandPalette: null` to turn the palette off.
+A command shows once, wherever it's placed first, so placing an action yourself takes it out of the catch-all at the end. `DefaultCommandPaletteContent` is made of exported groups, such as `CommandPaletteEditGroup` and `CommandPaletteViewGroup`, ending with `<CommandPaletteActionGroup />`, the catch-all. If you list the groups yourself, end with it too, or actions you don't place won't appear. The catch-all lists every available action with a label, custom ones included, so set `commandPalette: false` on internal or shortcut-only actions to leave them out. `CommandPaletteToolsGroup` lists one item per tool, after the editing commands and before preferences and help. Pass `CommandPalette: null` to turn the palette off.
 
-The palette opens just above the toolbar. Pass `position="center"` or `position="top"` to `DefaultCommandPalette` to open it elsewhere:
+The palette opens just above the toolbar when it's horizontal, and centered otherwise. Pass `position="center"` or `position="top"` to `DefaultCommandPalette` to open it elsewhere:
 
 ```tsx
 function TopCommandPalette(props: TLUiCommandPaletteProps) {
@@ -246,27 +246,26 @@ function TopCommandPalette(props: TLUiCommandPaletteProps) {
 ;<Tldraw components={{ CommandPalette: TopCommandPalette }} />
 ```
 
-To change how the palette opens, build your own the way `DefaultCommandPalette` does: read the open state with `useMenuIsOpen(COMMAND_PALETTE_MENU_ID)` and render `CommandPaletteShell` while it's open. The `open-command-palette` action (Cmd+K) only marks that menu open, so a palette component must close through the same hook, or the open menu keeps keyboard shortcuts disabled.
+To build your own palette, render `CommandPaletteShell` from the `CommandPalette` slot. The slot is mounted only while the palette is open, and gets an `onClose` prop that closes it:
 
 ```tsx
-function MyCommandPalette() {
-	const [isOpen, onOpenChange] = useMenuIsOpen(COMMAND_PALETTE_MENU_ID)
-	if (!isOpen) return null
+function MyCommandPalette({ onClose }: TLUiCommandPaletteProps) {
 	return (
-		<CommandPaletteShell onClose={() => onOpenChange(false)}>
+		<CommandPaletteShell onClose={onClose!}>
 			<DefaultCommandPaletteContent />
 		</CommandPaletteShell>
 	)
 }
 ```
 
-For long or async lists, read the query with `useCommandPaletteQuery()` and render only your best matches. `getCommandPaletteMatchScore` matches the same way the palette does.
+For long or async lists, read the query with `useCommandPaletteQuery()` and render only your best matches. `getCommandPaletteMatchScore` matches the same items the palette does, but the palette adds its own tiebreaks to the order, so rely only on 0 meaning no match and a higher score meaning a better one.
 
 A few components shape how items appear in the palette. Outside it they render their children unchanged, so a group can be shared with other menus.
 
 - `CommandPalettePinned` lists the items inside first, above recent commands, while browsing.
 - `CommandPaletteCollapsed` keeps the submenu inside as one row you open, even with a single item, and keeps its items out of top-level search results.
 - `TldrawUiMenuSubmenu` takes an `icon`, shown on the submenu's row.
+- `TldrawUiMenuItem` takes a `detail`, muted text after its label, such as the workspace a file is in. Search matches it too.
 - `CommandPalettePromptItem` asks for text before running, such as a name. Its `onSubmit` gets the trimmed text, and `initialValue` fills the input with the current value, selected.
 
 ```tsx

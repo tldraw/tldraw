@@ -15,8 +15,9 @@ function includesAtWordStart(text: string, word: string) {
 }
 
 /**
- * Scores a query against an item label (and path): 5 exact, 4 prefix, 3 word-start, 2 word match,
- * 1 path match, 0 none. An empty query scores 0.
+ * Scores how well a query matches an item's label and, failing that, its path. Returns 0 for no
+ * match (including an empty query); higher means a better match. Case- and accent-insensitive.
+ * Exact values may change between releases.
  *
  * @public
  */
@@ -25,6 +26,8 @@ export function getCommandPaletteMatchScore(
 	label: string,
 	path: readonly string[] = []
 ): number {
+	// Current tiers: 5 exact label, 4 label prefix, 3 every word starts a label word (any order),
+	// 2 every word is a label substring, 1 every word is in the label or path.
 	const normalizedQuery = normalizeCommandPaletteText(query)
 	if (!normalizedQuery) return 0
 	const normalizedLabel = normalizeCommandPaletteText(label)

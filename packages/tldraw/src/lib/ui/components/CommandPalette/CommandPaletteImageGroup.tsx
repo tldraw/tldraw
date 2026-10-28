@@ -17,7 +17,6 @@ import {
 } from '../../../shapes/shared/crop'
 import { useUiEvents } from '../../context/events'
 import { useReadonly } from '../../hooks/useReadonly'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuCheckboxItem } from '../primitives/menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
@@ -53,7 +52,6 @@ function isAspectRatioChecked(image: TLImageShape, aspectRatio: ASPECT_RATIO_OPT
  */
 export function CommandPaletteImageGroup() {
 	const editor = useEditor()
-	const msg = useTranslation()
 	const trackEvent = useUiEvents()
 	const isReadonly = useReadonly()
 	const image = useValue(
@@ -99,8 +97,8 @@ export function CommandPaletteImageGroup() {
 			</TldrawUiMenuSubmenu>
 			<CommandPalettePromptItem
 				id="image-alt-text"
-				label={msg(messages.toolMediaAltText)}
-				placeholder={msg(messages.toolMediaAltTextDesc)}
+				label={messages.toolMediaAltText.id}
+				placeholder={messages.toolMediaAltTextDesc.id}
 				initialValue={image.props.altText}
 				onSubmit={(altText) => {
 					if (altText === image.props.altText) return

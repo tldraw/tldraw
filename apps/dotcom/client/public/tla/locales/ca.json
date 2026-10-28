@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Estem treballant per aconseguir compatibilitat amb els fitxers de <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Arrossegueu el fitxer a la barra lateral d'aquesta pàgina. O seleccioneu l'opció \"Importa fitxer\" al menú d'usuari."
-  },
   "043973ec1f": {
     "translation": "Encara tens problemes? {GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "S'ha arribat al límit de col·laboradors"
   },
-  "545241e7dd": {
-    "translation": "{count} sense llegir"
-  },
   "550b25cc0c": {
     "translation": "No s'ha pogut restaurar el dibuix local. Prova de tornar a carregar aquesta pàgina."
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "Actualitzeu la pàgina per obtenir la darrera versió de tldraw."
   },
-  "86353d2c41": {
-    "translation": "S'han afegit {total} fitxers .tldr."
-  },
   "86c66437fd": {
     "translation": "Canvia el nom del fitxer"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Has estat convidat a unir-te a <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# sense llegir} other {# sense llegir}}"
   },
   "a0da245992": {
     "translation": "Exporteu el contingut com a fitxer .tldr: seleccioneu \"Descarrega\" al menú superior esquerre."
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "propietari"
   },
+  "b74dbb40c5": {
+    "translation": "Arrossegueu el fitxer a la barra lateral d'aquesta pàgina. O seleccioneu l'opció \"Importa fitxer\" al menú Fitxer a la part superior esquerra."
+  },
   "b758336699": {
     "translation": "Copia l'enllaç"
   },
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "Més informació sobre com compartir."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {S'ha afegit # fitxer .tldr.} other {S'han afegit # fitxers .tldr.}}"
+  },
   "c303bd1095": {
     "translation": "No es pot publicar el fitxer."
   },
   "c4b39a1cc3": {
     "translation": "Galetes essencials"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: cadena llarga"
   },
   "c6a00f137b": {
     "translation": "Convidar"
@@ -592,7 +589,7 @@
     "translation": "Més informació sobre la publicació."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> i {count, plural, one {# other} other {# others}} han reaccionat al teu comentari"
+    "translation": "<name>{author}</name> i {count, plural, one {# persona més} other {# persones més}} han reaccionat al teu comentari"
   },
   "d3d2e61733": {
     "translation": "Tancar"
@@ -660,9 +657,6 @@
   "ec611e9a08": {
     "translation": "Menú del compte"
   },
-  "ed53713239": {
-    "translation": "i18n: Accentuat"
-  },
   "ed75712b0e": {
     "translation": "Duplicat"
   },
@@ -691,7 +685,7 @@
     "translation": "Suprimeix"
   },
   "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> i {count, plural, one {# other} other {# others}} han reaccionat al teu comentari"
+    "translation": "<name>{a}</name>, <name>{b}</name> i {count, plural, one {# persona més} other {# persones més}} han reaccionat al teu comentari"
   },
   "f4f70727dc": {
     "translation": "Configuració"

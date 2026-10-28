@@ -790,69 +790,42 @@ export class CollaboratorShapeIndicatorOverlayUtil extends OverlayUtil<TLCollabo
 export function ColorSchemeMenu(): JSX.Element;
 
 // @public
-export const COMMAND_PALETTE_MENU_ID = "command palette";
-
-// @public
 export function CommandPaletteActionGroup({ group, label }: TLUiCommandPaletteActionGroupProps): JSX.Element;
 
-// @public (undocumented)
+// @public
 export function CommandPaletteArrangeGroup(): JSX.Element;
 
 // @public
-export function CommandPaletteCollapsed({ children }: CommandPaletteCollapsedProps): JSX.Element;
+export function CommandPaletteCollapsed({ children }: TLUiCommandPaletteCollapsedProps): JSX.Element;
 
-// @public (undocumented)
-export interface CommandPaletteCollapsedProps {
-    // (undocumented)
-    children: ReactNode;
-}
-
-// @public (undocumented)
+// @public
 export function CommandPaletteEditGroup(): JSX.Element;
 
-// @public (undocumented)
+// @public
 export function CommandPaletteExportGroup(): JSX.Element;
 
-// @public (undocumented)
+// @public
 export function CommandPaletteHelpGroup(): JSX.Element;
 
 // @public
 export function CommandPaletteImageGroup(): JSX.Element | null;
 
-// @public (undocumented)
+// @public
 export function CommandPaletteMenuItem(): JSX.Element | null;
 
-// @public (undocumented)
+// @public
 export function CommandPalettePagesGroup(): JSX.Element | null;
 
 // @public
-export function CommandPalettePinned({ children }: CommandPalettePinnedProps): JSX.Element;
+export function CommandPalettePinned({ children }: TLUiCommandPalettePinnedProps): JSX.Element;
 
-// @public (undocumented)
-export interface CommandPalettePinnedProps {
-    // (undocumented)
-    children: ReactNode;
-}
-
-// @public (undocumented)
+// @public
 export function CommandPalettePreferencesGroup(): JSX.Element;
 
 // @public
-export function CommandPalettePromptItem({ id, label, placeholder, initialValue, onSubmit, }: CommandPalettePromptItemProps): JSX.Element | null;
+export function CommandPalettePromptItem<TranslationKey extends string = string>({ id, label, placeholder, initialValue, onSubmit, }: TLUiCommandPalettePromptItemProps<TranslationKey>): JSX.Element | null;
 
-// @public (undocumented)
-export interface CommandPalettePromptItemProps {
-    // (undocumented)
-    id: string;
-    initialValue?: string;
-    // (undocumented)
-    label: string;
-    onSubmit(value: string): void;
-    // (undocumented)
-    placeholder: string;
-}
-
-// @public (undocumented)
+// @public
 export function CommandPaletteSelectionGroup(): JSX.Element;
 
 // @public
@@ -861,10 +834,10 @@ export function CommandPaletteShell({ position, onClose, children, }: TLUiComman
 // @public
 export function CommandPaletteStylesGroup(): JSX.Element | null;
 
-// @public (undocumented)
+// @public
 export function CommandPaletteToolsGroup(): JSX.Element;
 
-// @public (undocumented)
+// @public
 export function CommandPaletteViewGroup(): JSX.Element;
 
 // @public
@@ -1217,8 +1190,8 @@ export const defaultAssetUtils: readonly [typeof ImageAssetUtil, typeof VideoAss
 // @public (undocumented)
 export const defaultBindingUtils: readonly [typeof ArrowBindingUtil];
 
-// @public (undocumented)
-export const DefaultCommandPalette: MemoExoticComponent<({ position, children, }: TLUiCommandPaletteProps) => JSX.Element | null>;
+// @public
+export const DefaultCommandPalette: MemoExoticComponent<({ position, onClose, children, }: TLUiCommandPaletteProps) => JSX.Element>;
 
 // @public
 export function DefaultCommandPaletteContent(): JSX.Element;
@@ -4437,10 +4410,10 @@ export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiM
 export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGroupProps): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, onDragStart, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX.Element | null;
+export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, detail, onDragStart, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, icon, children, }: TLUiMenuSubmenuProps<Translation>): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
+export function TldrawUiMenuSubmenu<Translation extends string = string, IconType extends string = string>({ id, disabled, label, size, icon, children, }: TLUiMenuSubmenuProps<Translation, IconType>): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
 
 // @public (undocumented)
 export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX.Element | null;
@@ -4815,23 +4788,46 @@ export interface TLUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElemen
     type: 'danger' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'tool';
 }
 
-// @public (undocumented)
+// @public
 export interface TLUiCommandPaletteActionGroupProps {
     group?: string;
     label?: string;
 }
 
-// @public (undocumented)
+// @public
+export interface TLUiCommandPaletteCollapsedProps {
+    children: ReactNode;
+}
+
+// @public
+export interface TLUiCommandPalettePinnedProps {
+    children: ReactNode;
+}
+
+// @public
 export type TLUiCommandPalettePosition = 'bottom' | 'center' | 'top';
 
-// @public (undocumented)
+// @public
+export interface TLUiCommandPalettePromptItemProps<TranslationKey extends string = string> {
+    id: string;
+    initialValue?: string;
+    label: {
+        [key: string]: TranslationKey;
+    } | TranslationKey;
+    onSubmit(value: string): void;
+    placeholder: {
+        [key: string]: TranslationKey;
+    } | TranslationKey;
+}
+
+// @public
 export interface TLUiCommandPaletteProps {
-    // (undocumented)
     children?: ReactNode;
+    onClose?(): void;
     position?: TLUiCommandPalettePosition;
 }
 
-// @public (undocumented)
+// @public
 export interface TLUiCommandPaletteShellProps {
     children: ReactNode;
     onClose(): void;
@@ -5605,10 +5601,10 @@ export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
 
 // @public (undocumented)
 export interface TLUiMenuItemProps<TranslationKey extends string = string, IconType extends string = string> {
+    detail?: string;
     disabled?: boolean;
     icon?: IconType | TLUiIconJsx;
     iconLeft?: IconType | TLUiIconJsx;
-    // (undocumented)
     id: string;
     isSelected?: boolean;
     kbd?: string;
@@ -5623,12 +5619,12 @@ export interface TLUiMenuItemProps<TranslationKey extends string = string, IconT
 }
 
 // @public (undocumented)
-export interface TLUiMenuSubmenuProps<Translation extends string = string> {
+export interface TLUiMenuSubmenuProps<Translation extends string = string, IconType extends string = string> {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
     disabled?: boolean;
-    icon?: string | TLUiIconJsx;
+    icon?: IconType | TLUiIconJsx;
     // (undocumented)
     id: string;
     // (undocumented)

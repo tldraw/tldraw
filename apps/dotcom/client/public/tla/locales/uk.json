@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Ми працюємо над підтримкою файлів з <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Перетягніть файл на бічну панель на цій сторінці. Або виберіть опцію «Імпортувати файл» у меню користувача."
-  },
   "043973ec1f": {
     "translation": "Все ще виникають проблеми? {GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "Досягнуто ліміту співавторів"
   },
-  "545241e7dd": {
-    "translation": "Непрочитані {count}"
-  },
   "550b25cc0c": {
     "translation": "Не вдалося відновити ваш локальний малюнок. Спробуйте перезавантажити цю сторінку."
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "Оновіть сторінку, щоб отримати останню версію tldraw."
   },
-  "86353d2c41": {
-    "translation": "Додано файли .tldr {total}."
-  },
   "86c66437fd": {
     "translation": "Перейменувати файл"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Вас запросили приєднатися до <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# непрочитане} few {# непрочитані} many {# непрочитаних} other {# непрочитаних}}"
   },
   "a0da245992": {
     "translation": "Експортуйте вміст як файл .tldr: виберіть «Завантажити» у верхньому лівому меню."
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Власник"
   },
+  "b74dbb40c5": {
+    "translation": "Перетягніть файл на бічну панель на цій сторінці. Або виберіть опцію «Імпортувати файл» у меню «Файл» у верхньому лівому куті."
+  },
   "b758336699": {
     "translation": "Копіювати посилання"
   },
@@ -547,7 +544,7 @@
     "translation": "Запрошення вимкнено"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {Завантаження файлу .tldr…} few {} many {} other {Завантаження {uploaded} із {total} файлів .tldr…}}"
+    "translation": "{total, plural, one {Завантаження файлу .tldr…} few {Завантаження {uploaded} із {total} файлів .tldr…} many {Завантаження {uploaded} із {total} файлів .tldr…} other {Завантаження {uploaded} із {total} файлів .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Поділився {ownerName}"
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "Докладніше про те, як поділитися."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {Додано # файл .tldr.} few {Додано # файли .tldr.} many {Додано # файлів .tldr.} other {Додано # файлу .tldr.}}"
+  },
   "c303bd1095": {
     "translation": "Не вдалося опублікувати файл."
   },
   "c4b39a1cc3": {
     "translation": "Основні файли cookie"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Довгий рядок"
   },
   "c6a00f137b": {
     "translation": "Запросити"
@@ -592,7 +589,7 @@
     "translation": "Докладніше про публікацію."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> та {count, plural, one {# other} other {# others}} відреагували на ваш коментар"
+    "translation": "<name>{author}</name> та {count, plural, one {ще # особа} few {ще # особи} many {ще # осіб} other {ще # особи}} відреагували на ваш коментар"
   },
   "d3d2e61733": {
     "translation": "Закрити"
@@ -660,9 +657,6 @@
   "ec611e9a08": {
     "translation": "Меню облікового запису"
   },
-  "ed53713239": {
-    "translation": "i18n: Наголошений"
-  },
   "ed75712b0e": {
     "translation": "Дублювати"
   },
@@ -691,7 +685,7 @@
     "translation": "Видалити"
   },
   "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> та {count, plural, one {# other} other {# others}} відреагували на ваш коментар"
+    "translation": "<name>{a}</name>, <name>{b}</name> та {count, plural, one {ще # особа} few {ще # особи} many {ще # осіб} other {ще # особи}} відреагували на ваш коментар"
   },
   "f4f70727dc": {
     "translation": "Налаштування"

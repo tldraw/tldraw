@@ -20,7 +20,14 @@ export type CommandPaletteRow =
 	| { type: 'submenu'; key: string; submenu: CommandPaletteSubmenu }
 
 function itemRow(entry: CommandPaletteEntry, label = entry.label): CommandPaletteRow {
-	return { type: 'item', key: `item:${entry.id}`, entry, label, recent: false }
+	return {
+		type: 'item',
+		key: `item:${entry.id}`,
+		entry,
+		label,
+		detail: entry.detail,
+		recent: false,
+	}
 }
 
 function submenuRow(submenu: CommandPaletteSubmenu): CommandPaletteRow {
@@ -92,7 +99,7 @@ export function getCommandPaletteBrowseRows(
 
 	const recent = recentIds
 		.map((id) => unpinned.find((entry) => entry.id === id))
-		.filter((entry): entry is CommandPaletteEntry => !!entry)
+		.filter((entry): entry is CommandPaletteEntry => !!entry && !entry.submenu?.collapsed)
 		.slice(0, MAX_COMMAND_PALETTE_RECENTS)
 	if (recent.length) {
 		rows.push({ type: 'heading', key: 'heading:recent', label: recentHeading })
@@ -102,6 +109,7 @@ export function getCommandPaletteBrowseRows(
 				key: `recent:${entry.id}`,
 				entry,
 				label: entry.label,
+				detail: entry.detail,
 				recent: true,
 			})
 		}
@@ -176,7 +184,12 @@ export function getCommandPaletteSubmenuRows(
 		}
 		return rows
 	}
-	const rankable = inSubmenu.map((entry) => ({ id: entry.id, label: entry.name, path: [], entry }))
+	const rankable = inSubmenu.map((entry) => ({
+		id: entry.id,
+		label: entry.name,
+		path: entry.detail ? [entry.detail] : [],
+		entry,
+	}))
 	return rankCommandPaletteEntries(rankable, query, recentIds).map(({ entry }) =>
 		itemRow(entry, entry.name)
 	)

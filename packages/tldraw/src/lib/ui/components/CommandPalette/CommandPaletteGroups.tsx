@@ -37,7 +37,11 @@ const messages = defineMessages({
 	help: { id: 'help-menu.title', defaultMessage: 'Help and resources' },
 })
 
-/** @public */
+/**
+ * Props for {@link CommandPaletteActionGroup}.
+ *
+ * @public
+ */
 export interface TLUiCommandPaletteActionGroupProps {
 	/**
 	 * Lists the actions whose `commandPalette.group` is this. Without it, the group is the
@@ -76,22 +80,39 @@ export function CommandPaletteActionGroup({ group, label }: TLUiCommandPaletteAc
 	)
 }
 
-/** @public @react */
+/**
+ * Commands on the selection, such as delete, duplicate, group and lock, while shapes are
+ * selected.
+ *
+ * @public @react
+ */
 export function CommandPaletteSelectionGroup() {
 	return <CommandPaletteActionGroup group="selection" label={messages.selection.id} />
 }
 
-/** @public @react */
+/**
+ * Align, distribute, stack, reorder, flip and rotate commands, while shapes are selected.
+ *
+ * @public @react
+ */
 export function CommandPaletteArrangeGroup() {
 	return <CommandPaletteActionGroup group="arrange" label={messages.arrange.id} />
 }
 
-/** @public @react */
+/**
+ * Undo, redo, paste, select all, unlock all, and insert media or embed.
+ *
+ * @public @react
+ */
 export function CommandPaletteEditGroup() {
 	return <CommandPaletteActionGroup group="edit" label={messages.edit.id} />
 }
 
-/** @public @react */
+/**
+ * Zoom, grid, focus mode and minimap toggles, and the color scheme submenu.
+ *
+ * @public @react
+ */
 export function CommandPaletteViewGroup() {
 	return (
 		<TldrawUiMenuGroup id="command-palette-view" label={messages.view.id}>
@@ -101,7 +122,12 @@ export function CommandPaletteViewGroup() {
 	)
 }
 
-/** @public @react */
+/**
+ * Go to page, new page, rename, duplicate or delete the current page, and move the selection to
+ * another page. Renders nothing when `maxPages` is 1; read-only users only get go to page.
+ *
+ * @public @react
+ */
 export function CommandPalettePagesGroup() {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -154,8 +180,8 @@ export function CommandPalettePagesGroup() {
 				<>
 					<CommandPalettePromptItem
 						id="rename-page"
-						label={msg(messages.renamePage)}
-						placeholder={msg(messages.pageName)}
+						label={messages.renamePage.id}
+						placeholder={messages.pageName.id}
 						initialValue={currentPageName}
 						onSubmit={(name) => {
 							if (!name || name === currentPageName) return
@@ -191,7 +217,11 @@ export function CommandPalettePagesGroup() {
 	)
 }
 
-/** @public @react */
+/**
+ * Copy and export as image or JSON, and print.
+ *
+ * @public @react
+ */
 export function CommandPaletteExportGroup() {
 	return <CommandPaletteActionGroup group="export" label={messages.export.id} />
 }
@@ -199,7 +229,12 @@ export function CommandPaletteExportGroup() {
 // Covered by the insert media and insert embed actions.
 const EXCLUDED_TOOLS = new Set(['asset', 'embed'])
 
-/** @public @react */
+/**
+ * One item per tool, except the current one and the media and embed tools, which the edit
+ * group covers.
+ *
+ * @public @react
+ */
 export function CommandPaletteToolsGroup() {
 	const editor = useEditor()
 	const tools = useTools()
@@ -215,7 +250,11 @@ export function CommandPaletteToolsGroup() {
 	)
 }
 
-/** @public @react */
+/**
+ * Preference toggles, an accessibility submenu, input mode and language.
+ *
+ * @public @react
+ */
 export function CommandPalettePreferencesGroup() {
 	return (
 		<TldrawUiMenuGroup id="command-palette-preferences" label={messages.preferences.id}>
@@ -229,7 +268,11 @@ export function CommandPalettePreferencesGroup() {
 	)
 }
 
-/** @public @react */
+/**
+ * Keyboard shortcuts, plus exit pen mode, stop following and cursor chat when they apply.
+ *
+ * @public @react
+ */
 export function CommandPaletteHelpGroup() {
 	return (
 		<TldrawUiMenuGroup id="command-palette-help" label={messages.help.id}>

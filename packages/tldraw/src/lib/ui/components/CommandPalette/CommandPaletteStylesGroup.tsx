@@ -58,10 +58,14 @@ export function CommandPaletteStylesGroup() {
 	const fonts = useValue('font items', () => getFontStyleItems(editor.getCurrentTheme()), [editor])
 	if (isReadonly || !styles) return null
 
-	const geoTypes = Object.keys({
-		...defaultGeoTypeDefinitions,
-		...editor.getShapeUtil<GeoShapeUtil>('geo').options.customGeoTypes,
-	})
+	// The geo util is absent from editors without geo shapes, where getShapeUtil throws.
+	const geoTypes =
+		styles.get(GeoShapeGeoStyle) === undefined
+			? []
+			: Object.keys({
+					...defaultGeoTypeDefinitions,
+					...editor.getShapeUtil<GeoShapeUtil>('geo').options.customGeoTypes,
+				})
 
 	function setStyle<T>(style: StyleProp<T>, value: T) {
 		editor.run(() => {

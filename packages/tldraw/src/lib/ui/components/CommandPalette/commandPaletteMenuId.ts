@@ -1,8 +1,7 @@
 /**
- * The id the `open-command-palette` action marks open in `editor.menus`. A custom `CommandPalette`
- * component must read it with `useMenuIsOpen` and close through it, or the mark stays set and keeps
- * every keyboard shortcut disabled.
+ * The menu the `open-command-palette` action marks open. `CommandPaletteSlot` mounts the palette
+ * while it's set; left set, it disables every keyboard shortcut.
  *
- * @public
+ * @internal
  */
 export const COMMAND_PALETTE_MENU_ID = 'command palette'

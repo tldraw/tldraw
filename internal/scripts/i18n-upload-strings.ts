@@ -9,10 +9,9 @@ import { Key, LokaliseApi, QueuedProcess } from '@lokalise/node-api'
 // Two Lokalise projects are in play:
 //   - the dotcom project (LOKALISE_PROJECT_ID), source apps/dotcom/client/public/tla/locales/en.json
 //   - the tldraw SDK project (LOKALISE_TLDRAW_PROJECT_ID), source assets/translations/main.json
-// Only the dotcom project orders translations automatically; SDK orders are
-// still placed by hand.
+// Both projects order machine translations automatically.
 //
-// Both halves order (or report) two things: keys with a missing translation, and keys whose English
+// Both halves order two things: keys with a missing translation, and keys whose English
 // was reworded — see SOURCE_CHANGED_TAG for why the second needs asking for separately.
 
 const UPLOAD_POLL_INTERVAL_MS = 2000
@@ -202,7 +201,7 @@ async function clearSourceChangedTag(lokaliseApi: LokaliseApi, projectId: string
 	console.log(`  Cleared the ${SOURCE_CHANGED_TAG} tag from ${keys.length} key(s).`)
 }
 
-async function orderDotcomTranslations(lokaliseApi: LokaliseApi, projectId: string) {
+async function orderTranslations(lokaliseApi: LokaliseApi, projectId: string, label: string) {
 	const teamId = getEnv('LOKALISE_TEAM_ID')
 	const cardId = getEnv('LOKALISE_CARD_ID')
 
@@ -215,12 +214,12 @@ async function orderDotcomTranslations(lokaliseApi: LokaliseApi, projectId: stri
 	]
 
 	if (!keysToOrder.length) {
-		console.log('No new or reworded strings to translate.')
+		console.log(`No new or reworded ${label} strings to translate.`)
 		return
 	}
 
 	console.log(
-		`Found ${untranslatedKeyIds.length} untranslated and ${sourceChangedKeys.length} reworded ` +
+		`Found ${untranslatedKeyIds.length} untranslated ${label} and ${sourceChangedKeys.length} reworded ` +
 			`key(s) across ${targetLanguageIsos.length} language(s).`
 	)
 
@@ -236,7 +235,7 @@ async function orderDotcomTranslations(lokaliseApi: LokaliseApi, projectId: stri
 		translation_tier: 1,
 	}
 
-	console.log('Placing test order for new strings...')
+	console.log(`Placing test order for new ${label} strings...`)
 	const placeTranslationOrderDryRun = await lokaliseApi.orders().create(
 		{
 			...orderDetails,
@@ -267,15 +266,17 @@ async function orderDotcomTranslations(lokaliseApi: LokaliseApi, projectId: stri
 		return
 	}
 
+	// Fail the job, but let the other project's upload and order still run.
 	if (placeTranslationOrderDryRun.total > MAX_ORDER_TOTAL) {
 		console.error(
-			`Cost of translations (${placeTranslationOrderDryRun.total}) is exceeding expectations (${MAX_ORDER_TOTAL}). Place a manual order.`
+			`Cost of ${label} translations (${placeTranslationOrderDryRun.total}) is exceeding expectations (${MAX_ORDER_TOTAL}). Place a manual order.`
 		)
-		process.exit(1)
+		process.exitCode = 1
+		return
 	}
 
 	console.log(
-		`Placing actual order for new strings (total: ${placeTranslationOrderDryRun.total})...`
+		`Placing actual order for new ${label} strings (total: ${placeTranslationOrderDryRun.total})...`
 	)
 	await lokaliseApi.orders().create(
 		{
@@ -285,7 +286,7 @@ async function orderDotcomTranslations(lokaliseApi: LokaliseApi, projectId: stri
 			team_id: teamId,
 		}
 	)
-	console.log('Finished placing order for new strings.')
+	console.log(`Finished placing order for new ${label} strings.`)
 	// Only once the order is placed: the tag is the one thing that would bring these back on the
 	// next run, so clearing it earlier would lose them if the order threw.
 	//
@@ -294,25 +295,6 @@ async function orderDotcomTranslations(lokaliseApi: LokaliseApi, projectId: stri
 	// visible from here. Clearing anyway, because the alternative is re-ordering the same keys on
 	// every push to main; if a reword ever comes back untranslated, that's the thing to revisit.
 	await clearSourceChangedTag(lokaliseApi, projectId, sourceChangedKeys)
-}
-
-/**
- * The SDK project has no automated ordering, so a reworded string can only be reported. The tag
- * stays on the key: it's the to-do list for the next manual order, and nothing else records that a
- * translation is stale rather than absent.
- */
-async function reportSdkSourceChanges(lokaliseApi: LokaliseApi, projectId: string) {
-	const keys = await listSourceChangedKeys(lokaliseApi, projectId)
-	if (!keys.length) {
-		console.log('No reworded SDK strings awaiting a manual order.')
-		return
-	}
-	console.log(
-		`\n${keys.length} SDK key(s) have a changed English string and still hold their old ` +
-			`translations. Include them in the next manual order, then clear the ` +
-			`'${SOURCE_CHANGED_TAG}' tag:`
-	)
-	for (const key of keys) console.log(`  ${key.key_name.web || key.key_id}`)
 }
 
 async function i18nUploadStrings() {
@@ -326,11 +308,9 @@ async function i18nUploadStrings() {
 		filename: 'en.json',
 		cleanupMode: true,
 	})
-	await orderDotcomTranslations(lokaliseApi, dotcomProjectId)
+	await orderTranslations(lokaliseApi, dotcomProjectId, 'dotcom')
 
-	// The SDK project has no automated ordering — uploading keeps its source
-	// strings current so a manual order can pick them up. It runs last so a
-	// problem here can't stop the dotcom half of the pipeline.
+	// The SDK runs last so a problem here can't stop the dotcom half of the pipeline.
 	// Cleanup mode deletes keys missing from the uploaded file, which is what
 	// keeps the project matching main.json. Both projects export with
 	// original_filenames, and i18n-download-strings.ts maps every file in a
@@ -343,7 +323,7 @@ async function i18nUploadStrings() {
 		filename: 'main.json',
 		cleanupMode: true,
 	})
-	await reportSdkSourceChanges(lokaliseApi, tldrawProjectId)
+	await orderTranslations(lokaliseApi, tldrawProjectId, 'SDK')
 }
 
 i18nUploadStrings().catch((error) => {
