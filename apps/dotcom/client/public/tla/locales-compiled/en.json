@@ -143,6 +143,12 @@
       "value": "Send feedback"
     }
   ],
+  "0dcda35158": [
+    {
+      "type": 0,
+      "value": "Board menu"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -353,6 +359,12 @@
       "value": "Unable to publish the changes."
     }
   ],
+  "3bf4ed96b1": [
+    {
+      "type": 0,
+      "value": "Recently viewed"
+    }
+  ],
   "3c5e891bff": [
     {
       "type": 0,
@@ -431,6 +443,12 @@
     {
       "type": 0,
       "value": "Pin file"
+    }
+  ],
+  "48b90a52b9": [
+    {
+      "type": 0,
+      "value": "No boards here yet."
     }
   ],
   "49ee308734": [
@@ -932,6 +950,12 @@
       "value": "Rename file"
     }
   ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Untitled workspace"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -944,10 +968,22 @@
       "value": "This invite link has expired"
     }
   ],
+  "8a7fb7458e": [
+    {
+      "type": 0,
+      "value": "Archived boards will appear here."
+    }
+  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Check your email for a verification code."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Home"
     }
   ],
   "8eb2c00e96": [
@@ -1292,6 +1328,12 @@
       "value": "Email address"
     }
   ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Grid view"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1462,6 +1504,12 @@
       "value": "Copy to my workspace"
     }
   ],
+  "c7d7403714": [
+    {
+      "type": 0,
+      "value": "New board"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
@@ -1606,6 +1654,12 @@
       "value": "Theme"
     }
   ],
+  "d789869473": [
+    {
+      "type": 0,
+      "value": "Favorites"
+    }
+  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1696,6 +1750,12 @@
       "value": " reacted to your comment"
     }
   ],
+  "e727b00944": [
+    {
+      "type": 0,
+      "value": "Archive"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1776,6 +1836,12 @@
       "value": "selected"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Shared with me"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1788,6 +1854,12 @@
       "value": "User settings"
     }
   ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "List view"
+    }
+  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1798,6 +1870,12 @@
     {
       "type": 0,
       "value": "Delete"
+    }
+  ],
+  "f2f9a2e98d": [
+    {
+      "type": 0,
+      "value": "Workspace menu"
     }
   ],
   "f476ba8646": [

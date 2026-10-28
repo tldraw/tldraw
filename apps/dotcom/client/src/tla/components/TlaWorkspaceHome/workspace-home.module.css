@@ -1,0 +1,245 @@
+.home {
+	display: flex;
+	flex-direction: column;
+	min-height: 100%;
+	padding: 48px 48px 48px 36px;
+}
+
+/* ---------------------- Header --------------------- */
+
+.header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	height: 36px;
+	padding-left: 10px;
+}
+
+.title {
+	margin: 0;
+	font-family: var(--tla-font-ui);
+	font-size: 24px;
+	font-weight: 700;
+	line-height: 22px;
+	letter-spacing: 0.24px;
+	color: var(--tl-color-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.headerMenuTrigger {
+	height: 32px;
+	width: 32px;
+	min-width: 32px;
+	margin-left: -6px;
+}
+
+.spacer {
+	flex: 1 1 auto;
+}
+
+/* -------------------- Navigation ------------------- */
+
+.navigation {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 12px;
+	margin-bottom: 36px;
+	padding-left: 6px;
+}
+
+.tabs {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: center;
+}
+
+.tab {
+	position: relative;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 10px 6px;
+	color: var(--tl-color-text-1);
+}
+
+.tab[aria-selected='true']::after {
+	content: '';
+	position: absolute;
+	left: 6px;
+	right: 6px;
+	bottom: 6px;
+	height: 1px;
+	background-color: var(--tl-color-text-1);
+}
+
+@media (hover: hover) {
+	.tab:hover {
+		color: var(--tl-color-text-0);
+	}
+}
+
+.viewToggle {
+	display: flex;
+	align-items: center;
+	flex: 0 0 auto;
+	border: 1px solid var(--tla-color-workspace-border);
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.viewToggleButton {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--tl-color-text-0);
+}
+
+.viewToggleButton + .viewToggleButton {
+	border-left: 1px solid var(--tla-color-workspace-border);
+}
+
+.viewToggleButton[aria-pressed='true'] {
+	background-color: var(--tl-color-hint);
+}
+
+.viewToggleButton > span {
+	width: 16px;
+	height: 16px;
+}
+
+/* ---------------------- Boards --------------------- */
+
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 36px;
+	padding: 12px 0 12px 12px;
+}
+
+.list {
+	display: flex;
+	flex-direction: column;
+	padding: 0 0 12px 12px;
+}
+
+.empty {
+	padding: 12px 0 0 16px;
+	color: var(--tl-color-text-3);
+}
+
+.card,
+.row {
+	position: relative;
+	display: flex;
+	background-color: var(--tl-color-panel);
+	overflow: hidden;
+}
+
+.card {
+	flex-direction: column;
+	aspect-ratio: 332 / 273;
+	border: 1px solid var(--tla-color-workspace-border);
+	border-radius: 4px;
+}
+
+.row {
+	border-bottom: 1px solid var(--tla-color-workspace-border);
+}
+
+/* Covers the whole card so it opens on click; the menu trigger sits above it. */
+.cardLink {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+}
+
+.cardLink:focus-visible {
+	outline: 2px solid var(--tl-color-primary);
+	outline-offset: -2px;
+	border-radius: 4px;
+}
+
+.cardPreview {
+	position: relative;
+	flex: 1 1 auto;
+	min-height: 0;
+	background-color: var(--tl-color-background);
+	border-bottom: 1px solid var(--tla-color-workspace-border);
+}
+
+.cardPreviewImage {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.cardFooter {
+	display: flex;
+	align-items: center;
+	flex: 0 0 auto;
+	width: 100%;
+	padding: 11px 4px 11px 16px;
+	font-family: var(--tla-font-ui);
+	font-size: 12px;
+	line-height: 19.2px;
+}
+
+.cardText {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.cardName {
+	font-weight: 700;
+	color: var(--tl-color-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.cardMeta {
+	font-weight: 500;
+	color: var(--tl-color-text-3);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.cardMenuTrigger {
+	position: relative;
+	z-index: 2;
+	height: 32px;
+	width: 32px;
+	min-width: 32px;
+	color: var(--tl-color-text-3);
+	opacity: 0;
+}
+
+.card:hover .cardMenuTrigger,
+.row:hover .cardMenuTrigger,
+.cardMenuTrigger:focus-visible,
+.cardMenuTrigger[data-state='open'] {
+	opacity: 1;
+}
+
+@media (hover: none) {
+	.cardMenuTrigger {
+		opacity: 1;
+	}
+}
+
+@media (max-width: 767px) {
+	.home {
+		padding: 24px 16px;
+	}
+}

@@ -45,6 +45,13 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'Version history written as delta chains; rooms outside it write every version as a whole keyframe. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless. A change reaches a room when its durable object next starts',
 		},
+		ui_v3: {
+			type: 'allowlist',
+			users: [],
+			allowEveryone: false,
+			description:
+				'The tldraw.com v3 UI: a workspace home page with a board grid, and an editor without the sidebar. Read once per page load, so a change reaches a user on their next reload',
+		},
 	}
 }
 

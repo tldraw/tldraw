@@ -1,0 +1,48 @@
+.layout {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: row;
+	background-color: var(--tl-color-panel);
+}
+
+.sidebar {
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 264px;
+	width: 264px;
+	height: 100%;
+	padding-bottom: 4px;
+	background: var(--tla-color-sidebar);
+	border-right: 1px solid var(--tla-color-workspace-border);
+}
+
+:global(.tl-container[dir='rtl']) .sidebar {
+	border-right: none;
+	border-left: 1px solid var(--tla-color-workspace-border);
+}
+
+.main {
+	position: relative;
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 100%;
+	overflow-y: auto;
+}
+
+/* The search row reads as an input here, not an action row. */
+.search > button::before {
+	content: '';
+	position: absolute;
+	inset: 2px 0px;
+	border-radius: 6px;
+	border: 1px solid var(--tl-color-divider);
+	pointer-events: none;
+}
+
+/* TODO: the narrow layout has no design yet; until it does, phones get the board grid alone. */
+@media (max-width: 767px) {
+	.sidebar {
+		display: none;
+	}
+}

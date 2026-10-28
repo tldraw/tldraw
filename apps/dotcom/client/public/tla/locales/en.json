@@ -50,6 +50,9 @@
   "0d1f2bb523": {
     "translation": "Send feedback"
   },
+  "0dcda35158": {
+    "translation": "Board menu"
+  },
   "1063e38cb5": {
     "translation": "Remove"
   },
@@ -143,6 +146,9 @@
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
   },
+  "3bf4ed96b1": {
+    "translation": "Recently viewed"
+  },
   "3c5e891bff": {
     "translation": "Pinned"
   },
@@ -175,6 +181,9 @@
   },
   "47f493a590": {
     "translation": "Pin file"
+  },
+  "48b90a52b9": {
+    "translation": "No boards here yet."
   },
   "49ee308734": {
     "translation": "Name"
@@ -383,14 +392,23 @@
   "86c66437fd": {
     "translation": "Rename file"
   },
+  "8718bcf921": {
+    "translation": "Untitled workspace"
+  },
   "87fdb09de6": {
     "translation": "You are already a member of this workspace"
   },
   "88bf6ab42c": {
     "translation": "This invite link has expired"
   },
+  "8a7fb7458e": {
+    "translation": "Archived boards will appear here."
+  },
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
+  },
+  "8cf04a9734": {
+    "translation": "Home"
   },
   "8eb2c00e96": {
     "translation": "Shared with you"
@@ -522,6 +540,9 @@
   "b357b524e7": {
     "translation": "Email address"
   },
+  "b3d7c37eb8": {
+    "translation": "Grid view"
+  },
   "b48becc771": {
     "translation": "Enable invites"
   },
@@ -570,6 +591,9 @@
   "c6f16003f2": {
     "translation": "Copy to my workspace"
   },
+  "c7d7403714": {
+    "translation": "New board"
+  },
   "c87aacf567": {
     "translation": "Sign out"
   },
@@ -606,6 +630,9 @@
   "d721757161": {
     "translation": "Theme"
   },
+  "d789869473": {
+    "translation": "Favorites"
+  },
   "d876a9fe1a": {
     "translation": "Try Again"
   },
@@ -638,6 +665,9 @@
   },
   "e65b2dcb6f": {
     "translation": "<name>{a}</name> and <name>{b}</name> reacted to your comment"
+  },
+  "e727b00944": {
+    "translation": "Archive"
   },
   "e81c4e4f2b": {
     "translation": "or"
@@ -672,17 +702,26 @@
   "ef7de3f485": {
     "translation": "selected"
   },
+  "f07e75296c": {
+    "translation": "Shared with me"
+  },
   "f09b16bc5f": {
     "translation": "We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw."
   },
   "f0e8bff6f9": {
     "translation": "User settings"
   },
+  "f13001876b": {
+    "translation": "List view"
+  },
   "f2569594b2": {
     "translation": "We use these cookies to save your files and settings."
   },
   "f2a6c498fb": {
     "translation": "Delete"
+  },
+  "f2f9a2e98d": {
+    "translation": "Workspace menu"
   },
   "f476ba8646": {
     "translation": "<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
