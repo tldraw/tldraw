@@ -71,3 +71,9 @@ jobs:
 
           ### Change type
           - [x] \`other\`" --base main --head update-i18n-strings
+
+      - name: Notify Discord on failure
+        if: failure()
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
