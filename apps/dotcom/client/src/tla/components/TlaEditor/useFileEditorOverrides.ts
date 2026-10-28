@@ -104,8 +104,8 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					id: 'copy-to-my-files',
 					label: intl.formatMessage(messages.copyToMyfiles),
 					readonlyOk: true,
-					// Only for legacy rooms, from their own button.
-					commandPalette: false,
+					// Copying needs an account and a legacy or published room to copy from.
+					isAvailable: () => !!app && !!copySource,
 					async onSelect() {
 						if (!copySource) return
 						const defaultName = getEditorFileName(app, fileSlug, editor, untitledProject)
