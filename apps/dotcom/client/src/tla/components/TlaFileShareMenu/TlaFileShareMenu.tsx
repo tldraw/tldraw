@@ -25,6 +25,9 @@ import { TlaInviteTab } from './Tabs/TlaInviteTab'
 import { TlaPublishTab } from './Tabs/TlaPublishTab'
 import styles from './file-share-menu.module.css'
 
+// openShareMenu targets the header popover by id, so the header must render with this source.
+export const FILE_HEADER_SHARE_SOURCE = 'file-header'
+
 export function getShareMenuId(fileId: string | undefined, source: string) {
 	return `share-${fileId}-${source}`
 }
@@ -36,7 +39,7 @@ export function openShareMenu(editor: Editor, fileId: string) {
 	// The header isn't rendered in focus mode; open on the next frame, once it is.
 	if (editor.getInstanceState().isFocusMode) editor.updateInstanceState({ isFocusMode: false })
 	editor.timers.requestAnimationFrame(() =>
-		editor.menus.addOpenMenu(getShareMenuId(fileId, 'file-header'))
+		editor.menus.addOpenMenu(getShareMenuId(fileId, FILE_HEADER_SHARE_SOURCE))
 	)
 }
 
