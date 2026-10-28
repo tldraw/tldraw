@@ -35,7 +35,7 @@ export function CollectionPicker<Id extends string>({
 			<TldrawUiSelectTrigger>
 				<TldrawUiSelectValue>{current?.name}</TldrawUiSelectValue>
 			</TldrawUiSelectTrigger>
-			<TldrawUiSelectContent>
+			<TldrawUiSelectContent className="tlui-collections-picker__content">
 				{collections.map((collection) => (
 					<TldrawUiSelectItem key={collection.id} value={collection.id} label={collection.name} />
 				))}

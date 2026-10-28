@@ -40,6 +40,11 @@
 	font-weight: 500;
 }
 
+/* Flush like tldraw's other menus, which leave the spacing to each item's highlight inset. */
+.tlui-collections-picker__content .tlui-select__viewport {
+	padding: 0px;
+}
+
 .tlui-collections-panel__empty {
 	margin: 0;
 	padding: 24px;
