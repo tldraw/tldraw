@@ -1,4 +1,4 @@
-import { defineMessages, Editor, useEditor, useValue } from '@tldraw/editor'
+import { defineMessages, useEditor, useValue } from '@tldraw/editor'
 import {
 	ReactNode,
 	useCallback,
@@ -14,7 +14,6 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 import { CommandPaletteStoreProvider } from './CommandPaletteContext'
-import { COMMAND_PALETTE_MENU_ID } from './commandPaletteMenuId'
 import { addCommandPaletteRecent, getCommandPaletteRecents } from './commandPaletteRecents'
 import {
 	CommandPaletteRow,
@@ -57,8 +56,8 @@ export interface TLUiCommandPaletteShellProps {
 }
 
 /**
- * The command palette's input, list and keyboard handling. Render it while the palette is open, as
- * `DefaultCommandPalette` does, to build a palette that opens differently or sits elsewhere.
+ * The command palette's input, list and keyboard handling. Render it from a custom `CommandPalette`
+ * slot, passing the slot's `onClose`, to build a palette that looks or sits differently.
  *
  * @public @react
  */
@@ -68,18 +67,6 @@ export function CommandPaletteShell({
 	children,
 }: TLUiCommandPaletteShellProps) {
 	const editor = useEditor()
-	// Unmounting while marked open would leave every shortcut disabled. StrictMode's simulated
-	// remount runs that cleanup too, so restore the mark only if it was set on first mount; a plain
-	// mount must not mark it, or the default palette opens alongside a hand-mounted shell.
-	const rMountedOpen = useRef<{ editor: Editor; isOpen: boolean } | null>(null)
-	useEffect(() => {
-		if (rMountedOpen.current?.editor !== editor) {
-			rMountedOpen.current = { editor, isOpen: editor.menus.isMenuOpen(COMMAND_PALETTE_MENU_ID) }
-		} else if (rMountedOpen.current.isOpen) {
-			editor.menus.addOpenMenu(COMMAND_PALETTE_MENU_ID)
-		}
-		return () => editor.menus.deleteOpenMenu(COMMAND_PALETTE_MENU_ID)
-	}, [editor])
 	const msg = useTranslation()
 	const dir = useDirection()
 	const [store] = useState(() => new CommandPaletteStore())

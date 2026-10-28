@@ -790,9 +790,6 @@ export class CollaboratorShapeIndicatorOverlayUtil extends OverlayUtil<TLCollabo
 export function ColorSchemeMenu(): JSX.Element;
 
 // @public
-export const COMMAND_PALETTE_MENU_ID = "command palette";
-
-// @public
 export function CommandPaletteActionGroup({ group, label }: TLUiCommandPaletteActionGroupProps): JSX.Element;
 
 // @public (undocumented)
@@ -1194,7 +1191,7 @@ export const defaultAssetUtils: readonly [typeof ImageAssetUtil, typeof VideoAss
 export const defaultBindingUtils: readonly [typeof ArrowBindingUtil];
 
 // @public (undocumented)
-export const DefaultCommandPalette: MemoExoticComponent<({ position, children, }: TLUiCommandPaletteProps) => JSX.Element | null>;
+export const DefaultCommandPalette: MemoExoticComponent<({ position, onClose, children, }: TLUiCommandPaletteProps) => JSX.Element>;
 
 // @public
 export function DefaultCommandPaletteContent(): JSX.Element;
@@ -4830,6 +4827,7 @@ export interface TLUiCommandPalettePromptItemProps<TranslationKey extends string
 export interface TLUiCommandPaletteProps {
     // (undocumented)
     children?: ReactNode;
+    onClose?(): void;
     position?: TLUiCommandPalettePosition;
 }
 

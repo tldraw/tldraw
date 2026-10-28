@@ -1,9 +1,13 @@
 import { act, fireEvent, waitFor } from '@testing-library/react'
 import { createShapeId, Editor, toRichText } from '@tldraw/editor'
-import { StrictMode } from 'react'
+import { StrictMode, useState } from 'react'
 import { TLComponents, Tldraw } from '../../lib/Tldraw'
 import { COMMAND_PALETTE_MENU_ID } from '../../lib/ui/components/CommandPalette/commandPaletteMenuId'
 import { CommandPaletteMenuItem } from '../../lib/ui/components/CommandPalette/CommandPaletteMenuItem'
+import {
+	DefaultCommandPalette,
+	TLUiCommandPaletteProps,
+} from '../../lib/ui/components/CommandPalette/DefaultCommandPalette'
 import { TldrawUiMenuContextProvider } from '../../lib/ui/components/primitives/menus/TldrawUiMenuContext'
 import {
 	renderTldrawComponent,
@@ -31,6 +35,22 @@ function pressCmdK(editor: Editor, init: KeyboardEventInit = { metaKey: true }) 
 		editor.getContainerDocument().body.dispatchEvent(event)
 	})
 	return event
+}
+
+function expectUndoShortcutWorks(editor: Editor) {
+	const id = createShapeId()
+	act(() => {
+		editor.markHistoryStoppingPoint()
+		editor.createShape({ id, type: 'geo', x: 0, y: 0 })
+	})
+	act(() => {
+		editor
+			.getContainerDocument()
+			.body.dispatchEvent(
+				new KeyboardEvent('keydown', { bubbles: true, key: 'z', code: 'KeyZ', metaKey: true })
+			)
+	})
+	expect(editor.getShape(id)).toBeUndefined()
 }
 
 describe('command palette', () => {
@@ -173,5 +193,69 @@ describe('command palette', () => {
 		withPalette.unmount()
 		const withoutPalette = await renderEntry({ CommandPalette: null })
 		expect(withoutPalette.queryByTestId('kbd.open-command-palette')).toBeNull()
+	})
+})
+
+describe('custom command palette slot', () => {
+	it('mounts while open and closes through onClose', async () => {
+		function ButtonPalette({ onClose }: TLUiCommandPaletteProps) {
+			return (
+				<button data-testid="custom-palette" onClick={onClose}>
+					close
+				</button>
+			)
+		}
+		const { editor, rendered } = await setup({ CommandPalette: ButtonPalette })
+		expect(rendered.queryByTestId('custom-palette')).toBeNull()
+		pressCmdK(editor)
+		fireEvent.click(await rendered.findByTestId('custom-palette'))
+		await waitFor(() => expect(rendered.queryByTestId('custom-palette')).toBeNull())
+		expect(editor.menus.getOpenMenus()).toEqual([])
+		expectUndoShortcutWorks(editor)
+	})
+
+	it('unmounts a slot that ignores onClose when open menus are cleared', async () => {
+		function InertPalette() {
+			return <div data-testid="custom-palette" />
+		}
+		const { editor, rendered } = await setup({ CommandPalette: InertPalette })
+		pressCmdK(editor)
+		await rendered.findByTestId('custom-palette')
+		act(() => editor.menus.clearOpenMenus())
+		await waitFor(() => expect(rendered.queryByTestId('custom-palette')).toBeNull())
+		expect(editor.menus.getOpenMenus()).toEqual([])
+		expectUndoShortcutWorks(editor)
+	})
+
+	it('closes a DefaultCommandPalette that gets no props on Escape', async () => {
+		function TopPalette() {
+			return <DefaultCommandPalette position="top" />
+		}
+		const { editor, rendered } = await setup({ CommandPalette: TopPalette })
+		pressCmdK(editor)
+		const input = await rendered.findByTestId('command-palette.input')
+		fireEvent.keyDown(input, { key: 'Escape' })
+		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
+		expect(editor.menus.getOpenMenus()).toEqual([])
+		expectUndoShortcutWorks(editor)
+	})
+
+	it('clears the open mark when the UI hides while the palette is open', async () => {
+		let setHideUi: (hideUi: boolean) => void = () => {}
+		function App({ onMount }: { onMount(editor: Editor): void }) {
+			const [hideUi, _setHideUi] = useState(false)
+			setHideUi = _setHideUi
+			return <Tldraw onMount={onMount} hideUi={hideUi} />
+		}
+		const { editor, rendered } = await renderTldrawComponentWithEditor(
+			(onMount) => <App onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+		act(() => editor.updateInstanceState({ isFocused: true }))
+		pressCmdK(editor)
+		await rendered.findByTestId('command-palette')
+		act(() => setHideUi(true))
+		expect(rendered.queryByTestId('command-palette')).toBeNull()
+		expect(editor.menus.getOpenMenus()).toEqual([])
 	})
 })

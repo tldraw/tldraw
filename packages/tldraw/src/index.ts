@@ -380,7 +380,6 @@ export {
 	type TLUiKeyboardShortcutsDialogProps,
 } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 export { CommandPaletteMenuItem } from './lib/ui/components/CommandPalette/CommandPaletteMenuItem'
-export { COMMAND_PALETTE_MENU_ID } from './lib/ui/components/CommandPalette/commandPaletteMenuId'
 export {
 	CommandPaletteShell,
 	type TLUiCommandPalettePosition,
