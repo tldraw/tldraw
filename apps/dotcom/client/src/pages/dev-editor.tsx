@@ -47,10 +47,14 @@ export function Component() {
 
 				<section className="section">
 					<div className="stats">
-						<Stat n="3" label="SDK slots overridden" />
-						<Stat n="5" label="editor variants (<Tldraw> wrappers)" />
-						<Stat n="3" label="bespoke chrome classes" accent />
-						<Stat n="8" label="Sneaky* behavior injections" />
+						<Stat n={String(SLOTS.length)} label="SDK slots overridden" />
+						<Stat n={String(VARIANTS.length)} label="editor variants (<Tldraw> wrappers)" />
+						<Stat
+							n={String(PANELS.flatMap((p) => p.bespoke).filter((b) => b.startsWith('.')).length)}
+							label="bespoke chrome classes"
+							accent
+						/>
+						<Stat n={String(SNEAKY.length)} label="Sneaky* behavior injections" />
 					</div>
 				</section>
 
@@ -92,8 +96,10 @@ export function Component() {
 				<section className="section">
 					<h2 className="section__title">Override-panel consumption</h2>
 					<p className="section__note">
-						The two slots that hold real chrome. Green = design-system primitive; orange = bespoke
-						class / raw element. This is the editor&rsquo;s entire bespoke surface — three classes.
+						The two slots that hold real chrome, plus <code>CommentsOnCanvas</code>, which mounts
+						the commenting package&rsquo;s canvas UI and configures its comment tool rather than
+						overriding a slot. Green = design-system primitive; orange = bespoke class / raw
+						element. This is the editor&rsquo;s entire bespoke surface — three classes.
 					</p>
 					<table className="cmap">
 						<thead>
@@ -220,21 +226,28 @@ const SLOTS: ReadonlyArray<{ slot: string; override: string; note: string }> = [
 
 const PANELS: ReadonlyArray<{ name: string; ds: string[]; bespoke: string[] }> = [
 	{
-		name: 'TlaEditorTopLeftPanel (466)',
+		name: 'TlaEditorTopLeftPanel (498)',
 		ds: [
 			'TlaIcon',
 			'TlaLogo',
 			'TldrawUiButton',
 			'TldrawUiInput',
 			'TldrawUiDropdownMenu',
+			'TldrawUiMenuSubmenu (View)',
+			'CommentsMenuItem',
 			'ExternalLink',
 		],
-		bespoke: ['<button>', '.topLeftMainMenuTrigger', '.topLeftPanelButton'],
+		bespoke: ['<button>', '.topLeftMainMenuTrigger'],
 	},
 	{
-		name: 'TlaEditorTopRightPanel (183)',
+		name: 'TlaEditorTopRightPanel (252)',
 		ds: ['TlaCtaButton', 'TlaIcon', 'TldrawUiButton'],
-		bespoke: ['.topRightAnonShareButton'],
+		bespoke: ['.topRightAnonShareButton', '.commentsSidebarButton'],
+	},
+	{
+		name: 'CommentsOnCanvas (327)',
+		ds: ['CanvasComments', 'CanvasCommentsSidebar', 'CommentTool.configure', 'TlaCtaButton'],
+		bespoke: [],
 	},
 ]
 
@@ -267,6 +280,12 @@ const SNEAKY: ReadonlyArray<{ name: string; does: string; ui?: string }> = [
 	{ name: 'SneakyDebugModeToast', does: 'shows a debug-mode toast', ui: 'addToast' },
 	{ name: 'SneakyLargeFileHandler', does: 'warns on too-large files', ui: 'TldrawUiDialog' },
 	{ name: 'SneakyLegacyModal', does: 'legacy-changes acknowledgement', ui: 'TldrawUiDialog' },
+	{
+		name: 'SneakyMermaidHandler',
+		does: 'reads Mermaid text from pasted HTML; toasts when unsupported',
+		ui: 'addToast',
+	},
+	{ name: 'SneakyCommentDeepLink', does: 'opens the ?comment= thread on load', ui: 'addToast' },
 ]
 
 const PAGE_CSS = `
