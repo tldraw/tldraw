@@ -553,6 +553,28 @@ describe('CommandPaletteShell', () => {
 		expect(rendered.getByTestId('command-palette.item.find')).toBeTruthy()
 	})
 
+	it('shows no hits and keeps the editor up when a search throws', async () => {
+		const error = new Error('boom')
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const { rendered, input } = await renderShell(
+			<CommandPaletteSearchItem
+				id="find"
+				label="Search board"
+				placeholder="Search text"
+				getResults={() => {
+					throw error
+				}}
+			/>
+		)
+		fireEvent.click(await rendered.findByTestId('command-palette.item.find'))
+		type(input, 'a')
+		expect(rendered.container.querySelector('.tl-error-boundary')).toBeNull()
+		expect(rendered.getByTestId('command-palette')).toBeTruthy()
+		expect(rendered.getByText('No results')).toBeTruthy()
+		expect(consoleError).toHaveBeenCalledWith(expect.any(String), error)
+		consoleError.mockRestore()
+	})
+
 	it('gives every row one leading slot, shared by the icon and the check', async () => {
 		const { rendered } = await renderShell(
 			<>
