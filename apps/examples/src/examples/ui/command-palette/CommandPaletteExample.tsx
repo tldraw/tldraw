@@ -80,8 +80,10 @@ at the end of the default content; placing it in a group below takes it out of t
 [2]
 Wrap `DefaultCommandPalette` and keep `DefaultCommandPaletteContent` to add commands without
 rebuilding the palette. Items are the same `TldrawUiMenu*` components the other menus use.
-Forward the slot's props so it still gets `onClose`, and pass `position` to open the palette at
-the top instead of above the toolbar.
+Forward the slot's props so it still gets `onClose`.
+
+`position` sets where the palette opens: `'top'`, `'center'`, or `'bottom'`, the default, just
+above the toolbar.
 
 [3]
 A submenu is one row you open to see its items. Its items still show up when you search, so
