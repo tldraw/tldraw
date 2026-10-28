@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'

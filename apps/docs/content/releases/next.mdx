@@ -2,46 +2,24 @@
 title: Next release
 description: Changes coming in the next release
 author: tldraw
-date: 09/30/2026
+date: 10/28/2026
 order: 0
 status: published
-last_version: v5.5.0
+last_version: v5.6.0
 ---
 
-So far this release adds a `ThrottledFunction` type to `@tldraw/utils`, thins the hinted shape outline, and fixes bugs in resizing, page duplication, local persistence, the store, and sync.
+So far this release lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, and improves crop mode and VS Code extension licensing.
 
 ## API changes
 
 - 💥 Add `ShapeUtil.canFlip(shape)`, which decides whether the flip menu items and shift+H / shift+V act on a single selected shape. It defaults to `false`, so a lone custom shape no longer gets the flip menu items or shortcuts. If your shape changes when flipped (for example it handles negative scale in `onResize`), add `override canFlip() { return true }` to its util. Multi-shape flips are unchanged. ([#11041](https://github.com/tldraw/tldraw/pull/11041))
-- Add a `ThrottledFunction<T>` type to `@tldraw/utils` for annotating the result of `throttle`. `throttle` now returns this type, with the same runtime behavior. ([#10927](https://github.com/tldraw/tldraw/pull/10927))
 - 💥 Move the Cmd+G and Cmd+Alt+G shortcuts from the `group` and `frame-selection` actions to new `toggle-group` and `toggle-frame` actions, which pick `group` or `ungroup`, and `frame-selection` or `remove-frame`, from the selection. `group` and `frame-selection` no longer have a `kbd`, so menus no longer show a shortcut next to them. To rebind or disable these shortcuts, override `actions['toggle-group']` or `actions['toggle-frame']` instead, for example `actions['toggle-group'].kbd = 'cmd+k,ctrl+k'` or `delete actions['toggle-group']`; setting `kbd` on `group` or `frame-selection` now registers a separate shortcut that only groups or frames. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
-- Add `isAvailable(editor)`, `isEnabled(editor)` and `isChecked(editor)` to actions. Menu items built with `TldrawUiMenuActionItem` and `TldrawUiMenuActionCheckboxItem` read them: an unavailable action is hidden, a disabled one is greyed out or hidden depending on `whenDisabled: 'hide' | 'disable'`. `useSomeActionsEnabled` returns whether any of the given actions is available and enabled, so a submenu can hide when none of its items can run. If you replace a built-in action with a new object instead of spreading it, it loses its gating, and a toggle's checkbox always shows as unchecked. ([#11038](https://github.com/tldraw/tldraw/pull/11038))
-- `TldrawUiMenuActionItem` now disables itself when its action's `isEnabled` returns false, so custom menus that render built-in actions grey them out when they can't run. The public menu item wrappers, such as `GroupMenuItem`, `FrameSelectionMenuItem` and `ArrangeMenuSubmenu`, now also hide outside the select tool, where their actions do nothing. ([#11038](https://github.com/tldraw/tldraw/pull/11038))
 - Actions don't run when `isAvailable` or `isEnabled` returns false, or when the editor is readonly and the action isn't `readonlyOk`, whether they're triggered from a menu, a keyboard shortcut or an `onSelect` call on an action from `useActions()`. The copy, cut and paste shortcuts still come from native clipboard events and aren't gated. If your app calls a custom action directly in readonly mode, set `readonlyOk: true` on it. An override that replaces a built-in's `onSelect`, in place or by spreading it, keeps the built-in's `isEnabled`, so the action no longer runs from a shortcut or `useActions()` when that returns false; override `isEnabled` too if your `onSelect` handles that case. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
 
 ## Improvements
 
-- Menus no longer offer actions that would do nothing: grouping locked shapes, flipping a locked shape, unlocking when nothing is locked, exporting all shapes on an empty page, moving to a new page at the page limit, and grouping an arrow away from a shape it's bound to. The main menu hides Paste, instead of disabling it, in browsers that can't read the clipboard. ([#11038](https://github.com/tldraw/tldraw/pull/11038))
 - Keyboard shortcuts no longer do things the menus don't allow: Shift+H and Shift+V no longer flip a lone text, Shift+F no longer flattens a lone image, Cmd+A and Cmd+P do nothing on an empty page, and Cmd+G no longer groups an arrow away from a shape it's bound to. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
 - Add Cmd+Alt+Shift+G as an explicit Remove frame shortcut. Cmd+G and Cmd+Alt+G continue to toggle grouping and framing when the selection allows the corresponding action. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
 - Cursor chat opens with `/` in any tool, and its menu item shows in any tool. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
-- Draw the hinted outline around shapes, such as a frame you're dragging a shape into, at 2px instead of 2.5px. ([#10952](https://github.com/tldraw/tldraw/pull/10952))
-- Speed up `store.query.index()` and `store.query.ids()` updates by no longer allocating for each change. ([#10228](https://github.com/tldraw/tldraw/pull/10228))
-
-## Bug fixes
-
-- Fix the edge scrolling preference showing as off when edge scrolling is on at a speed other than 1, such as 0.5 or 2. ([#11038](https://github.com/tldraw/tldraw/pull/11038))
-- Fix three resize issues: flipping a rotated selection gave its children the wrong rotation, shapes not aligned with the selection received `onResizeStart` and `onResizeEnd` more than once, and `resizeBox` slid the fixed edge when a shape hit its `maxWidth` or `maxHeight`. ([#10351](https://github.com/tldraw/tldraw/pull/10351))
-- Fix duplicating a page moving its shapes when they were off screen, and starting the new page with the current page's camera instead of the duplicated page's. ([#10465](https://github.com/tldraw/tldraw/pull/10465))
-- Fix the arrow tool's precise mode carrying over when you move to a different target shape. ([#10244](https://github.com/tldraw/tldraw/pull/10244))
-- Fix holding Cmd/Ctrl+Shift+Arrow switching from selecting a parent or child to selecting the adjacent shape once the key starts repeating. ([#10184](https://github.com/tldraw/tldraw/pull/10184))
-- Fix `editor.setCursor` throwing for the rotate and resize cursor types, and hex cursor colors breaking SVG cursors. ([#10350](https://github.com/tldraw/tldraw/pull/10350))
-- Fix edits being lost when an editor remounts with the same `persistenceKey` while the previous one is still saving. ([#10752](https://github.com/tldraw/tldraw/pull/10752))
-- Fix store changes made in the last frame before a listener is removed never reaching that listener. ([#10802](https://github.com/tldraw/tldraw/pull/10802))
-- Fix a reaction that writes to the store re-running on every unrelated store change. ([#10236](https://github.com/tldraw/tldraw/pull/10236))
-- Fix undo restoring an in-between state after a single `put` updated the same record twice. ([#10203](https://github.com/tldraw/tldraw/pull/10203))
-- Fix `migrateStoreSnapshot` throwing on a malformed persisted schema instead of returning a migration error. ([#10220](https://github.com/tldraw/tldraw/pull/10220))
-- Fix migrations rerunning on records when a persisted schema's sequence version isn't a number. ([#10917](https://github.com/tldraw/tldraw/pull/10917))
-- Fix a resumed sync session on a hibernating host skipping the version checks made on first connect, so after a server redeploy a client could be sent changes its schema couldn't handle. It's now rejected with `SERVER_TOO_OLD` or `CLIENT_TOO_OLD`, as on connect. ([#10122](https://github.com/tldraw/tldraw/pull/10122))
-- Fix a record field set to `undefined` getting the sync session kicked with `INVALID_RECORD`, and ignore `__proto__` keys in incoming changes. ([#10118](https://github.com/tldraw/tldraw/pull/10118))
-- Fix older sync clients (protocol version 7) silently falling out of sync when the server sent them text-append changes they don't support. ([#10095](https://github.com/tldraw/tldraw/pull/10095))
+- Exit crop mode when clicking any shape other than the one being cropped, instead of moving the crop to the clicked image. ([#10832](https://github.com/tldraw/tldraw/pull/10832))
+- Treat the tldraw VS Code extension as a tldraw-owned host for keyless licensing. ([#11179](https://github.com/tldraw/tldraw/pull/11179))
