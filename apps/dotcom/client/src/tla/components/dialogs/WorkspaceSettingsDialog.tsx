@@ -168,7 +168,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 
 	const handleCopyInviteLink = async () => {
 		if (copiedInviteLink) return
-		if (!app.copyWorkspaceInvite(workspaceId, false)) return
+		if (!app.copyWorkspaceInvite(workspaceId, { showToast: false })) return
 		setCopiedInviteLink(true)
 		setTimeout(() => setCopiedInviteLink(false), 1000)
 	}

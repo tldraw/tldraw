@@ -497,7 +497,7 @@ function TlaWorkspacesGroup() {
 					label={copyInviteLbl}
 					readonlyOk
 					onSelect={() => {
-						app.copyWorkspaceInvite(activeWorkspaceId)
+						app.copyWorkspaceInvite(activeWorkspaceId, { source: 'command-palette' })
 					}}
 				/>
 			)}

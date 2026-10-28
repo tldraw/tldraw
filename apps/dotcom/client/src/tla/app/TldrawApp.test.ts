@@ -416,3 +416,33 @@ describe('TldrawApp.getFallbackFileName', () => {
 		)
 	})
 })
+
+describe('TldrawApp.copyWorkspaceInvite', () => {
+	function createInviteAppStub() {
+		return Object.assign(createAppStub(), {
+			trackEvent: vi.fn(),
+			getHomeWorkspaceId: () => 'home',
+			getWorkspaceMembership: () => ({ group: { inviteSecret: 'secret' } }),
+		})
+	}
+
+	beforeEach(() => {
+		vi.stubGlobal('navigator', { clipboard: { writeText: vi.fn() } })
+	})
+
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
+	it('reports the caller as the source', () => {
+		const app = createInviteAppStub()
+		expect(app.copyWorkspaceInvite('workspace', { source: 'command-palette' })).toBe(true)
+		expect(app.trackEvent).toHaveBeenCalledWith('copy-share-link', { source: 'command-palette' })
+	})
+
+	it('reports the sidebar by default', () => {
+		const app = createInviteAppStub()
+		expect(app.copyWorkspaceInvite('workspace')).toBe(true)
+		expect(app.trackEvent).toHaveBeenCalledWith('copy-share-link', { source: 'sidebar' })
+	})
+})

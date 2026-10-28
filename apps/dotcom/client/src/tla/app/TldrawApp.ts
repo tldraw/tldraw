@@ -1516,7 +1516,13 @@ export class TldrawApp {
 	})
 
 	/** Returns false when there is no invite link to copy yet (e.g. right after creation). */
-	copyWorkspaceInvite(workspaceId: string, showToast = true): boolean {
+	copyWorkspaceInvite(
+		workspaceId: string,
+		{
+			showToast = true,
+			source = 'sidebar',
+		}: { showToast?: boolean; source?: TLAppUiEventSource } = {}
+	): boolean {
 		// The home workspace can't be invited to.
 		if (workspaceId === this.getHomeWorkspaceId()) return false
 		const group = this.getWorkspaceMembership(workspaceId)?.group
@@ -1531,7 +1537,7 @@ export class TldrawApp {
 			})
 		}
 
-		this.trackEvent('copy-share-link', { source: 'sidebar' })
+		this.trackEvent('copy-share-link', { source })
 		return true
 	}
 
