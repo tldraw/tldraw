@@ -288,9 +288,11 @@ function TlaBoardGroup() {
 					detail: page.id === currentPageId ? undefined : page.name,
 					icon: tools[shape.type === 'geo' ? shape.props.geo : shape.type]?.icon,
 					onSelect() {
-						if (editor.getCurrentPageId() !== page.id) editor.setCurrentPage(page.id)
-						const bounds = editor.getShapePageBounds(shape)
-						if (!bounds) return
+						// Results stay frozen while the palette is open, so the shape may be gone or moved.
+						const pageId = editor.getAncestorPageId(shape.id)
+						const bounds = editor.getShapePageBounds(shape.id)
+						if (!pageId || !bounds) return
+						if (editor.getCurrentPageId() !== pageId) editor.setCurrentPage(pageId)
 						// Like zoom to selection, without selecting it.
 						editor.zoomToBounds(bounds, {
 							targetZoom: 1,
