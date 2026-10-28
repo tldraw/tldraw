@@ -107,6 +107,8 @@ const entryFieldEquals: {
 			a.placeholder === b.placeholder &&
 			a.initialValue === b.initialValue &&
 			a.onSubmit === b.onSubmit),
+	search: (a, b) =>
+		a === b || (!!a && !!b && a.placeholder === b.placeholder && a.getResults === b.getResults),
 	onSelect: same,
 	marker: same,
 }

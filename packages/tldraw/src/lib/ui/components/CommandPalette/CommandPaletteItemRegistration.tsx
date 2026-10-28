@@ -30,11 +30,15 @@ export function CommandPaletteItemRegistration(props: CommandPaletteItemRegistra
 	const rProps = useRef(props)
 	const onSelect = useCallback((source: TLUiEventSource) => rProps.current.onSelect(source), [])
 	const onSubmit = useCallback((value: string) => rProps.current.prompt?.onSubmit(value), [])
+	const getResults = useCallback(
+		(query: string) => rProps.current.search?.getResults(query) ?? [],
+		[]
+	)
 
 	// No deps: re-register every render so label and checked state stay current.
 	useLayoutEffect(() => {
 		rProps.current = props
-		const { id, kbd, checked, isSelected, detail, prompt, icon } = props
+		const { id, kbd, checked, isSelected, detail, prompt, search, icon } = props
 		// Prefixed here so rows, recents and search matching all see the same label.
 		const label = submenu ? `${submenu.label}: ${props.label}` : props.label
 		store.set(token, {
@@ -49,6 +53,7 @@ export function CommandPaletteItemRegistration(props: CommandPaletteItemRegistra
 				initialValue: prompt.initialValue,
 				onSubmit,
 			},
+			search: search && { placeholder: search.placeholder, getResults },
 			onSelect,
 			label,
 			name: props.label,
