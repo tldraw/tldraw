@@ -9,7 +9,8 @@ export { saveShapesToCollection } from './canvas/save-shapes'
 export { activeCollectionId, collectionsPanelOpen, toggleCollectionsPanel } from './canvas/state'
 export { CollectionPicker, type CollectionPickerProps } from './ui/collection-picker'
 export { ItemGrid, type ItemGridItem, type ItemGridProps } from './ui/item-grid'
-export { ItemTile, type ItemTileProps } from './ui/item-tile'
+export { ItemMenu, type ItemMenuProps } from './ui/item-menu'
+export { ItemTile, type ItemTileProps, type ItemTileRenaming } from './ui/item-tile'
 export {
 	CollectionNotFoundError,
 	CollectionPermissionError,

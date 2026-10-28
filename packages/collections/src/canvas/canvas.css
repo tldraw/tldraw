@@ -63,24 +63,65 @@
 }
 
 .tlui-collections-tile {
-	all: unset;
-	box-sizing: border-box;
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
-	width: 100%;
 	padding: 4px;
 	border-radius: var(--tl-radius-2);
-	cursor: pointer;
 }
 
 .tlui-collections-tile:hover {
 	background: var(--tl-color-muted-2);
 }
 
-.tlui-collections-tile:focus-visible {
+.tlui-collections-tile__button {
+	all: unset;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	width: 100%;
+	cursor: pointer;
+}
+
+.tlui-collections-tile__button:focus-visible {
 	outline: 2px solid var(--tl-color-selected);
-	outline-offset: -2px;
+	outline-offset: 2px;
+	border-radius: var(--tl-radius-1);
+}
+
+/* The ⋯ sits over the thumbnail's corner, shown while the tile is hovered or focused, or its menu
+   is open. */
+.tlui-collections-tile__menu {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	opacity: 0;
+}
+
+.tlui-collections-tile:hover .tlui-collections-tile__menu,
+.tlui-collections-tile:focus-within .tlui-collections-tile__menu,
+.tlui-collections-tile__menu:has([data-state='open']) {
+	opacity: 1;
+}
+
+.tlui-collections-tile__menu-button {
+	height: 28px;
+	width: 28px;
+	min-width: 28px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+}
+
+.tlui-collections-tile .tlui-input__wrapper {
+	height: auto;
+}
+
+.tlui-input.tlui-collections-tile__input {
+	height: 15px;
+	max-height: 15px;
+	padding: 0px 2px;
 }
 
 .tlui-collections-tile__thumbnail {

@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
@@ -13,6 +13,7 @@ import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionItemId } from '../lib/schema'
 import { CollectionPicker } from '../ui/collection-picker'
 import { ItemGrid } from '../ui/item-grid'
+import { ItemMenu } from '../ui/item-menu'
 import { placeCollectionItem } from './place-item'
 import { activeCollectionId, collectionsPanelOpen } from './state'
 import { useItemDrag } from './use-item-drag'
@@ -31,6 +32,19 @@ const messages = defineMessages({
 	placeErrorDescription: {
 		id: 'collections.place-error.description',
 		defaultMessage: 'It may have been deleted. Try again, or pick another item.',
+	},
+	renameErrorTitle: {
+		id: 'collections.rename-error.title',
+		defaultMessage: "Couldn't rename item",
+	},
+	deleteErrorTitle: {
+		id: 'collections.delete-error.title',
+		defaultMessage: "Couldn't delete item",
+	},
+	changeErrorDescription: {
+		id: 'collections.change-error.description',
+		defaultMessage:
+			'You may not be allowed to change this collection, or the item no longer exists.',
 	},
 })
 
@@ -81,6 +95,36 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 		[editor, source, addToast, msg]
 	)
 	const getItemProps = useItemDrag(source, placeItem)
+	const [renamingId, setRenamingId] = useState<TLCollectionItemId>()
+	const canRename = useValue(
+		'can rename items',
+		() => currentId !== undefined && source.can('renameItem', currentId),
+		[source, currentId]
+	)
+	const canDelete = useValue(
+		'can delete items',
+		() => currentId !== undefined && source.can('deleteItem', currentId),
+		[source, currentId]
+	)
+	const showChangeError = useCallback(
+		(title: string) => {
+			addToast({ title, description: msg(messages.changeErrorDescription), severity: 'error' })
+		},
+		[addToast, msg]
+	)
+	const renameItem = useCallback(
+		(itemId: TLCollectionItemId, name: string) => {
+			setRenamingId(undefined)
+			const item = items.find((i) => i.id === itemId)
+			const trimmed = name.trim()
+			// Names are never blank, so clearing the input keeps the old name rather than removing it.
+			if (!item || trimmed === '' || trimmed === item.name) return
+			source
+				.renameItem(itemId, trimmed)
+				.catch(() => showChangeError(msg(messages.renameErrorTitle)))
+		},
+		[items, source, showChangeError, msg]
+	)
 
 	if (!open) return null
 
@@ -114,9 +158,27 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 							items={items.map((item) => ({
 								id: item.id,
 								label: item.name ?? msg(messages.untitledItem),
+								name: item.name,
 								thumbnailUrl: item.thumbnailUrl,
 							}))}
 							getItemProps={getItemProps}
+							renderItemMenu={(item) => (
+								<ItemMenu
+									id={item.id}
+									onRename={canRename ? () => setRenamingId(item.id) : undefined}
+									onDelete={
+										canDelete
+											? () =>
+													source
+														.deleteItem(item.id)
+														.catch(() => showChangeError(msg(messages.deleteErrorTitle)))
+											: undefined
+									}
+								/>
+							)}
+							renamingId={renamingId}
+							onRename={renameItem}
+							onCancelRename={() => setRenamingId(undefined)}
 							empty={msg(messages.emptyCollection)}
 						/>
 					</>
