@@ -45,7 +45,9 @@ export function ItemGrid<Id extends string>({
 						label={item.label}
 						thumbnailUrl={item.thumbnailUrl}
 						buttonProps={getItemProps(item.id)}
-						menu={renderItemMenu?.(item)}
+						// No menu while renaming: a closing menu hands focus back to its trigger, which would
+						// blur the input straight away.
+						menu={item.id === renamingId ? undefined : renderItemMenu?.(item)}
 						renaming={
 							item.id === renamingId && onRename && onCancelRename
 								? {

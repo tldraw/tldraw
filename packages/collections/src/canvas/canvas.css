@@ -146,3 +146,20 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+
+.tlui-collections-panel__header-actions {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.tlui-collections-panel__header .tlui-input__wrapper {
+	flex: 1;
+	min-width: 0;
+	height: 40px;
+}
+
+.tlui-input.tlui-collections-panel__rename {
+	padding: 0px 12px;
+	font-weight: 500;
+}

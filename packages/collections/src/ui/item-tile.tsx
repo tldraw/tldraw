@@ -1,5 +1,5 @@
-import { ButtonHTMLAttributes, ReactNode, useEffect, useRef } from 'react'
-import { TldrawUiInput } from 'tldraw'
+import { ButtonHTMLAttributes, ReactNode } from 'react'
+import { RenameInput } from './rename-input'
 
 /** @public */
 export interface ItemTileRenaming {
@@ -23,17 +23,6 @@ export interface ItemTileProps {
 
 /** @public @react */
 export function ItemTile({ label, thumbnailUrl, buttonProps, menu, renaming }: ItemTileProps) {
-	// Enter completes the rename and unmounts the input, which then blurs: finish only once.
-	const finished = useRef(false)
-	useEffect(() => {
-		if (renaming) finished.current = false
-	}, [renaming])
-	const finish = (complete: () => void) => {
-		if (finished.current) return
-		finished.current = true
-		complete()
-	}
-
 	const thumbnail = (
 		<span className="tlui-collections-tile__thumbnail">
 			{thumbnailUrl && <img src={thumbnailUrl} alt="" draggable={false} />}
@@ -47,15 +36,7 @@ export function ItemTile({ label, thumbnailUrl, buttonProps, menu, renaming }: I
 					<button type="button" className="tlui-collections-tile__button" {...buttonProps}>
 						{thumbnail}
 					</button>
-					<TldrawUiInput
-						className="tlui-collections-tile__input"
-						defaultValue={renaming.defaultValue}
-						autoFocus
-						autoSelect
-						onComplete={(name) => finish(() => renaming.onComplete(name))}
-						onBlur={(name) => finish(() => renaming.onComplete(name))}
-						onCancel={() => finish(renaming.onCancel)}
-					/>
+					<RenameInput className="tlui-collections-tile__input" {...renaming} />
 				</>
 			) : (
 				<button type="button" className="tlui-collections-tile__button" {...buttonProps}>
