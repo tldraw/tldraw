@@ -21,10 +21,10 @@ import { IsolationProviders } from './dev-editor-harness'
  * Dev-only inventory of the dotcom form controls — the tla-menu settings-control
  * set (Switch / Select / Tabs / Control rows). These are the inputs of the
  * "settings panel" half of the menus story, shown here with their full props
- * and states. All render live under IsolationProviders (dotcom react-intl + a
- * container element + the SDK UI context), no editor needed: Select needs the
- * container for its portal, ControlInfoTooltip needs react-intl for useMsg, the
- * rest need only the SDK UI context.
+ * and states. All render live under IsolationProviders (the dotcom message
+ * catalogue + a container element + the SDK UI context), no editor needed: Select
+ * needs the container for its portal, ControlInfoTooltip reads a dotcom message
+ * through useTranslation, the rest need only the SDK UI context.
  *
  * Route: /dev/components/form-controls. Companion to the menus page.
  */

@@ -1,9 +1,9 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { ReactNode } from 'react'
-import { ContainerProvider, Tldraw, TldrawUiContextProvider } from 'tldraw'
-import 'tldraw/tldraw.css'
-import translationsEnJson from '../../public/tla/locales-compiled/en.json'
 import { IntlProvider } from 'react-intl'
+import 'tldraw/tldraw.css'
+import { ContainerProvider, Tldraw, TldrawUiContextProvider } from 'tldraw'
+import translationsEnJson from '../../public/tla/locales-compiled/en.json'
 
 /**
  * Shared harnesses for rendering otherwise-mocked dotcom components live in the
@@ -32,8 +32,10 @@ const Providers = ({
 }
 
 /**
- * Lightweight: dotcom react-intl (so useMsg works) + the SDK UI context (assets,
- * tooltips, SDK translations) + a container element (so useContainer resolves,
+ * Lightweight: the dotcom message catalogue (the SDK translation provider merges a
+ * parent IntlProvider's messages into its own, so dotcom strings resolve through
+ * useTranslation and <F>) + the SDK UI context (assets, tooltips, SDK
+ * translations) + a container element (so useContainer resolves,
  * e.g. TlaMenuSelect). No editor. Use to wrap a whole page so its components
  * render live. document.body is a fine portal container for a dev page.
  */

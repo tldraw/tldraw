@@ -181,10 +181,13 @@ const LOADERS = [
 	'TlaButton.tsx',
 	'BoardHistoryLog.tsx',
 	'file-share-menu-primitives.tsx',
-	'TlaPublishTab.tsx',
-	'admin.tsx',
 	'file-history.tsx',
-	'file-pierre-history.tsx',
+	'admin/AdminButton.tsx',
+	'admin/EffectsSection.tsx',
+	'admin/FileStats.tsx',
+	'admin/FilesSection.tsx',
+	'admin/FlagsSection.tsx',
+	'admin/UsersSection.tsx',
 ]
 
 const PAGE_CSS = `

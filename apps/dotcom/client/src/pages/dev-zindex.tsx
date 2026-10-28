@@ -33,7 +33,8 @@ const LADDER: Rung[] = [
 	{ z: 400, sdk: ['menus'] },
 	{ z: 300, sdk: ['panels', 'canvas-shapes'] },
 	{ z: 250, sdk: ['menu-click-capture', 'canvas-in-front'], dotcom: ['TlaSidebarLayout'] },
-	{ z: 200, sdk: ['watermark'] },
+	{ z: 248, sdk: ['watermark'] },
+	{ z: 245, sdk: ['collaborators'] },
 	{ z: 150, sdk: ['canvas-grid'] },
 	{ z: 100, sdk: ['canvas-background', 'overlays-selection-fg'], dotcom: ['TlaSidebar ×2'] },
 	{ z: 99, dotcom: ['TlaSidebar'] },
@@ -140,8 +141,8 @@ export function Component() {
 					<div className="callout">
 						Even within the SDK the scale is doubled: a <strong>canvas</strong> ladder (
 						<code>
-							canvas-background 100 → watermark 200 → canvas-in-front 250 → canvas-shapes 300 →
-							canvas-overlays 500 → canvas-blocker 10000
+							canvas-background 100 → collaborators 245 → watermark 248 → canvas-in-front 250 →
+							canvas-shapes 300 → canvas-overlays 500 → canvas-blocker 10000
 						</code>
 						) and a <strong>UI</strong> ladder (
 						<code>

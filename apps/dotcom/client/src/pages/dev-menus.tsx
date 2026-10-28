@@ -49,8 +49,9 @@ const noop = () => {}
 
 /**
  * Every tla-menu part rendered live under the page's IsolationProviders
- * (react-intl + a container element + the SDK UI context). Select needs the
- * container, ControlInfoTooltip needs react-intl, the rest only the UI context.
+ * (the dotcom message catalogue + a container element + the SDK UI context).
+ * Select needs the container, ControlInfoTooltip a dotcom message, the rest only
+ * the UI context.
  */
 const renderLive = (name: string): ReactNode => {
 	switch (name) {
@@ -209,9 +210,10 @@ export function Component() {
 						<h2 className="section__title">tla-menu — all {TLA_PARTS.length} parts</h2>
 						<p className="section__note">
 							The settings-panel system (in <code>tla/components/tla-menu/tla-menu.tsx</code>). All
-							parts render live under <code>IsolationProviders</code> (react-intl for{' '}
-							<code>useMsg</code>, a container element for <code>useContainer</code>, and the SDK UI
-							context) — no editor needed. <code>meta</code> shows the role and dotcom usage count.
+							parts render live under <code>IsolationProviders</code> (the dotcom message catalogue
+							for <code>useTranslation</code>, a container element for <code>useContainer</code>,
+							and the SDK UI context) — no editor needed. <code>meta</code> shows the role and
+							dotcom usage count.
 						</p>
 						<div className="grid">
 							{TLA_PARTS.map((p) => {
