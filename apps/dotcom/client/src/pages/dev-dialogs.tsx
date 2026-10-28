@@ -138,12 +138,12 @@ export function Component() {
 					<section className="section">
 						<h2 className="section__title">Adoption</h2>
 						<p className="section__note">
-							12 of 13 dialogs compose the SDK <code>TldrawUiDialog*</code> parts. One is bespoke
-							(and documented).
+							{SDK_COUNT} of {DIALOGS.length} dialogs compose the SDK <code>TldrawUiDialog*</code>{' '}
+							parts. One is bespoke (and documented).
 						</p>
 						<div className="stats">
-							<Stat n="12" label="use TldrawUiDialog primitive" good />
-							<Stat n="1" label="bespoke modal (justified)" />
+							<Stat n={String(SDK_COUNT)} label="use TldrawUiDialog primitive" good />
+							<Stat n={String(DIALOGS.length - SDK_COUNT)} label="bespoke modal (justified)" />
 						</div>
 					</section>
 
@@ -182,7 +182,7 @@ export function Component() {
 							</div>
 							<div>
 								<span className="k">width</span>
-								body width set two ways — style={'{{'} maxWidth {'}}'} (6) vs className (8); see
+								body width set two ways — style={'{{'} maxWidth {'}}'} (7) vs className (8); see
 								below
 							</div>
 						</div>
@@ -220,12 +220,12 @@ export function Component() {
 					<section className="section">
 						<h2 className="section__title">Width divergence (the real cleanup)</h2>
 						<p className="section__note">
-							Two inconsistencies at once. <strong>Mechanism</strong>: 6 bodies set width via inline{' '}
+							Two inconsistencies at once. <strong>Mechanism</strong>: 7 bodies set width via inline{' '}
 							<code>
 								style={'{{'} maxWidth {'}}'}
 							</code>
 							, 8 via a <code>className</code> — same goal, two idioms in sibling files.{' '}
-							<strong>Value</strong>: <code>maxWidth: 350</code> is hand-typed inline 5 times, with
+							<strong>Value</strong>: <code>maxWidth: 350</code> is hand-typed inline 6 times, with
 							no shared rung. A single <code>size</code> prop (or one width class) collapses both.
 						</p>
 						<table className="matrix">
@@ -275,6 +275,8 @@ const Stat = ({ n, label, good }: { n: string; label: string; good?: boolean }):
 
 const DIALOGS: ReadonlyArray<readonly [string, string, string, string]> = [
 	['ConfirmDialog', 'TldrawUiDialog', '300', 'generic confirm'],
+	['SlurpFailure', 'TldrawUiDialog', '350', 'local files failed to upload on sign-in'],
+	['TlaTldrawOfflineFileDialog', 'TldrawUiDialog', '350', 'tldraw offline file not supported yet'],
 	['CreateWorkspaceDialog', 'TldrawUiDialog', '350', 'create a workspace'],
 	['TlaDeleteFileDialog', 'TldrawUiDialog', '350', 'delete-file confirm'],
 	['SneakyLargeFileHandler', 'TldrawUiDialog', '350', 'large-file warning'],
@@ -283,14 +285,22 @@ const DIALOGS: ReadonlyArray<readonly [string, string, string, string]> = [
 	['SubmitFeedbackDialog', 'TldrawUiDialog', '— (500)', 'feedback form (textarea)'],
 	['TlaInviteDialog', 'TldrawUiDialog', '— (500)', 'accept workspace invite'],
 	['TlaInviteExpiredDialog', 'TldrawUiDialog', '— (500)', 'invite expired'],
+	[
+		'TlaLegalAcceptance',
+		'TldrawUiDialog',
+		'— (legalBody)',
+		'accept terms of use · reopens until accepted',
+	],
 	['TlaManageCookiesDialog', 'TldrawUiDialog', '— (500)', 'cookie settings'],
 	['WorkspaceSettingsDialog', 'TldrawUiDialog', '— (500)', 'workspace settings (large)'],
 	['SneakyLegacyModal', 'TldrawUiDialog', '— (500)', 'legacy editor modal'],
 	['MaybeForceUserRefresh', 'bespoke', 'full-screen', 'force-refresh outdated client'],
 ]
 
+const SDK_COUNT = DIALOGS.filter((d) => d[1] === 'TldrawUiDialog').length
+
 const WIDTHS: ReadonlyArray<readonly [string, string, string]> = [
-	['350px', '5', 'drift — hand-typed inline, no shared class'],
+	['350px', '6', 'drift — hand-typed inline, no shared class'],
 	['300px', '1', 'ConfirmDialog'],
 	['450px', '1', 'auth (sign-in)'],
 	['500px', 'default', '.dialogBody base'],
