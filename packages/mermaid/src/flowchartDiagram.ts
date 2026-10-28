@@ -11,6 +11,7 @@ import {
 	parseNodeInlineColor,
 	toNodeColorProps,
 } from './colors'
+import type { MeasureLabelSize } from './mermaidNodeCreateShape'
 import { parsePeleLayout } from './peleDiagram'
 import {
 	buildNodeCentersFromSvg,
@@ -66,6 +67,30 @@ function buildHierarchy(subGraphs: FlowSubGraph[]) {
 	return { nodeToSubGraph, subGraphParent }
 }
 
+/** The most a diamond or circle grows to fit its label, so one long label can't swamp the chart. */
+const MAX_SHAPE_GROWTH = 4
+
+/**
+ * How much a diamond or circle has to grow, around its centre, for its label to fit inside its
+ * outline. tldraw sets the label in the shape's bounding box, so a label sized for a box spills
+ * past a diamond's slanted sides or a circle's curve. Other shapes are already the label's size.
+ */
+function getGrowthToFitLabel(
+	type: string | undefined,
+	w: number,
+	h: number,
+	label: { w: number; h: number }
+) {
+	let grow = 1
+	if (type === 'diamond') {
+		// A point is inside the diamond when |x| / (w/2) + |y| / (h/2) <= 1; the label's corners must be.
+		grow = label.w / w + label.h / h
+	} else if (type === 'circle' || type === 'doublecircle') {
+		grow = Math.hypot(label.w, label.h) / w
+	}
+	return Math.min(Math.max(grow, 1), MAX_SHAPE_GROWTH)
+}
+
 /** Parse pele's flowchart SVG for use by {@link flowchartToBlueprint}. */
 export function parseFlowchartLayout(root: Element, model: FlowchartModel): ParsedDiagramLayout {
 	const edgesById = new Map(model.edges.map((edge) => [edge.id, edge]))
@@ -84,9 +109,17 @@ export function flowchartToBlueprint(
 	edges: FlowEdge[],
 	subGraphs?: FlowSubGraph[],
 	classDefs?: Map<string, { styles: string[] }>,
-	/** `linkStyle default`, which pele keeps apart from the edges it applies to. */
-	defaultEdgeStyle?: string[],
-	edgeRouting: 'arc' | 'elbow' = 'arc'
+	{
+		defaultEdgeStyle,
+		edgeRouting = 'arc',
+		measureLabel,
+	}: {
+		/** `linkStyle default`, which pele keeps apart from the edges it applies to. */
+		defaultEdgeStyle?: string[]
+		edgeRouting?: 'arc' | 'elbow'
+		/** Measures a label in tldraw's font, to grow diamonds and circles until theirs fits. */
+		measureLabel?: MeasureLabelSize
+	} = {}
 ): DiagramMermaidBlueprint {
 	const nodeColorMap = buildClassDefColorMap(classDefs ?? new Map(), vertices)
 	const { nodes: svgNodes, clusters: svgClusters, edges: svgEdges } = layout
@@ -134,6 +167,12 @@ export function flowchartToBlueprint(
 		if (vertex.type === 'circle' || vertex.type === 'doublecircle') {
 			w = h = Math.max(w, h)
 		}
+		const label = svgNode.lines?.join('\n') ?? (vertex.text || undefined)
+		if (label && measureLabel) {
+			const grow = getGrowthToFitLabel(vertex.type, w, h, measureLabel(label, 'm'))
+			w *= grow
+			h *= grow
+		}
 
 		nodes.push({
 			id,
@@ -143,7 +182,7 @@ export function flowchartToBlueprint(
 			w,
 			h,
 			parentId: nodeToSubGraph.get(id),
-			label: svgNode.lines?.join('\n') ?? (vertex.text || undefined),
+			label,
 			...toNodeColorProps(nodeColorMap.get(id) ?? parseNodeInlineColor(vertex.styles)),
 			align: 'middle',
 			verticalAlign: 'middle',

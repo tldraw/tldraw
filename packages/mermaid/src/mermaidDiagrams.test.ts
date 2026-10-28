@@ -276,6 +276,29 @@ describe('flowchartToBlueprint', () => {
 		}
 	})
 
+	it('grows a diamond or circle around its centre until its label fits inside it', () => {
+		const layout = diagramLayout([
+			node('D', 100, 100, 100, 50),
+			node('C', 300, 100, 60, 60),
+			node('R', 500, 100, 100, 50),
+		])
+		const vertices = new Map([
+			vertex('D', { type: 'diamond', text: 'Is it?' }),
+			vertex('C', { type: 'circle', text: 'Go' }),
+			vertex('R', { type: 'rect', text: 'Box' }),
+		])
+		const measureLabel = () => ({ w: 80, h: 40 })
+
+		const bp = flowchartToBlueprint(layout, vertices, [], [], undefined, { measureLabel })
+
+		// A label's corner sits inside a diamond when w/W + h/H <= 1: 80/100 + 40/50 = 1.6.
+		expect(findNode(bp, 'D')).toMatchObject({ w: 160, h: 80, x: 20, y: 60 })
+		// A circle's diameter must cover the label's diagonal, hypot(80, 40) ≈ 89.4.
+		expect(findNode(bp, 'C')!.w).toBeCloseTo(Math.hypot(80, 40))
+		expect(findNode(bp, 'C')!.h).toBe(findNode(bp, 'C')!.w)
+		expect(findNode(bp, 'R')).toMatchObject({ w: 100, h: 50 })
+	})
+
 	it('handles circle type with equal width/height', () => {
 		const layout = diagramLayout([node('C', 100, 100, 60, 80)])
 		const vertices = new Map([vertex('C', { type: 'circle' })])
@@ -350,8 +373,7 @@ describe('flowchartToBlueprint', () => {
 			[flowEdge('A', 'B')],
 			[],
 			undefined,
-			undefined,
-			'elbow'
+			{ edgeRouting: 'elbow' }
 		)
 
 		expect(bp.edges[0]).toMatchObject({
@@ -506,9 +528,9 @@ describe('flowchartToBlueprint', () => {
 		const vertices = new Map([vertex('A'), vertex('B')])
 		const edges = [flowEdge('A', 'B'), flowEdge('A', 'B', { style: ['stroke:#00f'] })]
 
-		const bp = flowchartToBlueprint(twoNodeLayout(), vertices, edges, [], undefined, [
-			'stroke-dasharray:5',
-		])
+		const bp = flowchartToBlueprint(twoNodeLayout(), vertices, edges, [], undefined, {
+			defaultEdgeStyle: ['stroke-dasharray:5'],
+		})
 
 		expect(bp.edges.map((e) => [e.dash, e.color])).toEqual([
 			['dashed', undefined],

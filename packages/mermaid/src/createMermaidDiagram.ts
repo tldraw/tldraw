@@ -3,6 +3,7 @@ import { Editor } from 'tldraw'
 import type { DiagramMermaidBlueprint } from './blueprint'
 import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
 import {
+	createLabelSizeMeasurer,
 	createLabelWidthMeasurer,
 	createLayoutTextMeasurer,
 	getLayoutFontSize,
@@ -94,8 +95,11 @@ export async function createMermaidDiagram(
 							flowchart.edges,
 							flowchart.subgraphs,
 							flowchart.classes,
-							flowchart.defaultEdgeStyle,
-							options.edgeRouting
+							{
+								defaultEdgeStyle: flowchart.defaultEdgeStyle,
+								edgeRouting: options.edgeRouting,
+								measureLabel: createLabelSizeMeasurer(editor),
+							}
 						)
 				)
 				break

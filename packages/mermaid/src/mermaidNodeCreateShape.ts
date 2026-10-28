@@ -107,13 +107,21 @@ export type MeasureLabelWidth = (label: string, size: TLDefaultSizeStyle) => num
  * too narrow for the same text.
  */
 export function createLabelWidthMeasurer(editor: Editor): MeasureLabelWidth {
+	const measure = createLabelSizeMeasurer(editor)
+	return (label, size) => measure(label, size).w
+}
+
+/** The size a geo shape's label takes, padding included, as {@link createLabelWidthMeasurer} measures it. */
+export type MeasureLabelSize = (label: string, size: TLDefaultSizeStyle) => { w: number; h: number }
+
+export function createLabelSizeMeasurer(editor: Editor): MeasureLabelSize {
 	const util = editor.getShapeUtil<GeoShapeUtil>('geo')
 	const defaultProps = util.getDefaultProps()
 	return (label, size) => {
 		const shape = { type: 'geo', props: { ...defaultProps, size } } as TLGeoShape
 		const dv = getDisplayValues(util, shape)
 		const richText = toRichText(sanitizeDiagramText(label))
-		const { w } = editor.textMeasure.measureHtml(
+		const { w, h } = editor.textMeasure.measureHtml(
 			renderHtmlFromRichTextForMeasurement(editor, richText),
 			{
 				fontStyle: 'normal',
@@ -125,7 +133,7 @@ export function createLabelWidthMeasurer(editor: Editor): MeasureLabelWidth {
 				maxWidth: null,
 			}
 		)
-		return Math.ceil(w + dv.labelPadding * 2)
+		return { w: Math.ceil(w + dv.labelPadding * 2), h: Math.ceil(h + dv.labelPadding * 2) }
 	}
 }
 
