@@ -509,6 +509,7 @@ export {
 } from './lib/ui/components/primitives/menus/TldrawUiMenuCheckboxItem'
 export {
 	TldrawUiMenuContextProvider,
+	useTldrawUiMenuContext,
 	type TLUiMenuContextProviderProps,
 	type TLUiMenuContextType,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuContext'

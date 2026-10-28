@@ -6754,6 +6754,12 @@ export function useTldrawI18n(): TLI18nAdapter;
 export function useTldrawUiComponents(): TLUiComponents;
 
 // @public (undocumented)
+export function useTldrawUiMenuContext(): {
+    sourceId: TLUiEventSource;
+    type: TLUiMenuContextType;
+};
+
+// @public (undocumented)
 export function useTldrawUiOrientation(): TldrawUiOrientationContext;
 
 // @public (undocumented)

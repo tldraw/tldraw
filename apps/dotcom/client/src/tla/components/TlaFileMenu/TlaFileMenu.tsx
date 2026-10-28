@@ -19,6 +19,7 @@ import {
 	useDialogs,
 	useMaybeEditor,
 	useToasts,
+	useTldrawUiMenuContext,
 	useTranslation,
 	useValue,
 } from 'tldraw'
@@ -155,7 +156,7 @@ export function FileItems({
 	// (This is the workspace the file belongs to, which is not necessarily one the current user
 	// can write to — for that, see activeWorkspaceId above.)
 	const fileWorkspaceId = file?.owningGroupId ?? homeWorkspaceId
-	const inPalette = source === 'command-palette'
+	const inPalette = useTldrawUiMenuContext().type === 'command-palette'
 	const homeWorkspaceName = workspaceMemberships.find((g) => g.groupId === homeWorkspaceId)?.group
 		?.name
 	const moveToWorkspaces = workspaceMemberships.filter(
