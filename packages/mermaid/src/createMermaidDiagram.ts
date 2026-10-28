@@ -42,12 +42,6 @@ export interface MermaidDiagramOptions {
 	mermaidConfig?: Record<string, any>
 	blueprintRender?: BlueprintRenderingOptions
 	onUnsupportedDiagram?(svg: string): Promise<void>
-	/**
-	 * Draw flowchart and state edges as elbow arrows that follow the layout's right-angled routes,
-	 * instead of arcs. Experimental, for comparing the two in the examples app.
-	 * @internal
-	 */
-	edgeRouting?: 'arc' | 'elbow'
 }
 
 /**
@@ -97,7 +91,6 @@ export async function createMermaidDiagram(
 							flowchart.classes,
 							{
 								defaultEdgeStyle: flowchart.defaultEdgeStyle,
-								edgeRouting: options.edgeRouting,
 								measureLabel: createLabelSizeMeasurer(editor),
 							}
 						)
@@ -114,8 +107,7 @@ export async function createMermaidDiagram(
 							parseStateDiagramLayout(root),
 							state.states,
 							state.relations,
-							state.classes,
-							options.edgeRouting
+							state.classes
 						)
 				)
 				break

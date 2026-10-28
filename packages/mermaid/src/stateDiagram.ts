@@ -9,7 +9,6 @@ import { parsePeleLayout } from './peleDiagram'
 import {
 	buildNodeCentersFromSvg,
 	claimEdge,
-	getElbowEdgeLayout,
 	getPositionAlongRoute,
 	getSelfLoopEdgeLayout,
 	type ParsedDiagramLayout,
@@ -240,8 +239,7 @@ export function stateToBlueprint(
 	layout: ParsedDiagramLayout,
 	states: Map<string, StateStmt>,
 	relations: DiagramEdge[],
-	classDefs?: StateModel['classes'],
-	edgeRouting: 'arc' | 'elbow' = 'arc'
+	classDefs?: StateModel['classes']
 ): DiagramMermaidBlueprint {
 	const stateColorMap = buildClassDefColorMap(classDefs ?? new Map(), states)
 	const { nodes: svgNodes, clusters: svgClusters, edges: svgEdges } = layout
@@ -363,7 +361,6 @@ export function stateToBlueprint(
 		nodes.push(...stateToNodes(labelled, rect, parentOf.get(id), stateColorMap.get(id)))
 	}
 
-	const boxes = new Map(nodes.map((node) => [node.id, node]))
 	const claimed = new Set<number>()
 	for (const edge of allEdges) {
 		const svgEdge = claimEdge(svgEdges, claimed, {
@@ -376,12 +373,6 @@ export function stateToBlueprint(
 		const selfLoop =
 			edge.id1 === edge.id2 && svgEdge && svgNode
 				? getSelfLoopEdgeLayout(svgEdge, svgNode, layout.edgeLabels)
-				: undefined
-		const startBox = boxes.get(edge.id1)
-		const endBox = boxes.get(edge.id2)
-		const elbow =
-			edgeRouting === 'elbow' && !selfLoop && svgEdge && startBox && endBox
-				? getElbowEdgeLayout(svgEdge, startBox, endBox, layout.edgeLabels.get(svgEdge.id))
 				: undefined
 		const isNoteEdge = edge.id2.endsWith('----note') || edge.id1.endsWith('----note')
 		const label = svgEdge && layout.edgeLabels.get(svgEdge.id)
@@ -399,7 +390,6 @@ export function stateToBlueprint(
 						})
 					: undefined,
 			...selfLoop,
-			...elbow,
 			...(isNoteEdge && { dash: 'dotted' as const, arrowheadEnd: 'none' as const }),
 		})
 	}

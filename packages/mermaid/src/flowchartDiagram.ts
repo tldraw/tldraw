@@ -16,7 +16,6 @@ import { parsePeleLayout } from './peleDiagram'
 import {
 	buildNodeCentersFromSvg,
 	claimEdge,
-	getElbowEdgeLayout,
 	getPositionAlongRoute,
 	getSelfLoopEdgeLayout,
 	type ParsedDiagramLayout,
@@ -111,12 +110,10 @@ export function flowchartToBlueprint(
 	classDefs?: Map<string, { styles: string[] }>,
 	{
 		defaultEdgeStyle,
-		edgeRouting = 'arc',
 		measureLabel,
 	}: {
 		/** `linkStyle default`, which pele keeps apart from the edges it applies to. */
 		defaultEdgeStyle?: string[]
-		edgeRouting?: 'arc' | 'elbow'
 		/** Measures a label in tldraw's font, to grow diamonds and circles until theirs fits. */
 		measureLabel?: MeasureLabelSize
 	} = {}
@@ -191,7 +188,6 @@ export function flowchartToBlueprint(
 	}
 
 	// Edges: match model edges to the paths the layout drew for them, and take each one's route
-	const boxes = new Map(nodes.map((node) => [node.id, node]))
 	const claimed = new Set<number>()
 	for (const edge of edges) {
 		const svgEdge = claimEdge(svgEdges, claimed, {
@@ -204,12 +200,6 @@ export function flowchartToBlueprint(
 		const selfLoop =
 			edge.start === edge.end && svgEdge && svgNode
 				? getSelfLoopEdgeLayout(svgEdge, svgNode, layout.edgeLabels)
-				: undefined
-		const startBox = boxes.get(edge.start)
-		const endBox = boxes.get(edge.end)
-		const elbow =
-			edgeRouting === 'elbow' && !selfLoop && svgEdge && startBox && endBox
-				? getElbowEdgeLayout(svgEdge, startBox, endBox, layout.edgeLabels.get(svgEdge.id))
 				: undefined
 		const label = svgEdge && layout.edgeLabels.get(svgEdge.id)
 		// Where the layout drew the label along the route; a loop places its label with its bend.
@@ -230,7 +220,6 @@ export function flowchartToBlueprint(
 			bend: svgEdge ? getArrowBend(svgEdge) : 0,
 			labelPosition,
 			...selfLoop,
-			...elbow,
 			arrowheadEnd,
 			arrowheadStart: edge.type?.includes('double_arrow') ? arrowheadEnd : undefined,
 			dash: cssOverrides.dashOverride ?? (edge.stroke === 'dotted' ? 'dotted' : 'solid'),
