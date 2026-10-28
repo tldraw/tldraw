@@ -92,7 +92,7 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          if [ -z "$(git status --porcelain -- apps/docs/content/releases/)" ]; then
+          if [ -z "$(git status --porcelain -- apps/docs/)" ]; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
@@ -101,7 +101,7 @@ jobs:
       - name: Commit and push
         if: steps.changes.outputs.has_changes == 'true'
         run: |
-          git add apps/docs/content/releases/
+          git add apps/docs/
           git commit -m "Update release notes"
           git push -u origin "${{ steps.branch.outputs.branch_name }}"
 
