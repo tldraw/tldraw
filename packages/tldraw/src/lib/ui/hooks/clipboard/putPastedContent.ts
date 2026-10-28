@@ -12,6 +12,22 @@ export async function putPastedExternalContent(
 	content: TLExternalContent<unknown>,
 	meta: PutPastedExternalContentMeta
 ) {
+	const finalContent = await runBeforePasteFromClipboard(editor, content, meta)
+	if (!finalContent) return
+	return editor.putExternalContent(finalContent)
+}
+
+/**
+ * Runs the `onBeforePasteFromClipboard` hook. Returns the content to paste, or null if the hook
+ * cancelled the paste.
+ *
+ * @internal
+ */
+export async function runBeforePasteFromClipboard(
+	editor: Editor,
+	content: TLExternalContent<unknown>,
+	meta: PutPastedExternalContentMeta
+): Promise<TLExternalContent<unknown> | null> {
 	const point =
 		meta.point ??
 		('point' in content ? (content as { point?: VecLike | undefined }).point : undefined)
@@ -23,8 +39,8 @@ export async function putPastedExternalContent(
 			source: meta.source,
 			point,
 		})
-		if (result === false) return
-		if (result != null) content = result
+		if (result === false) return null
+		if (result != null) return result
 	}
-	return editor.putExternalContent(content)
+	return content
 }
