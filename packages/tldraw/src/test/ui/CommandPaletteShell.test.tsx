@@ -1,12 +1,13 @@
-import { fireEvent, waitFor, within } from '@testing-library/react'
-import { deleteFromLocalStorage } from '@tldraw/editor'
-import { ReactNode } from 'react'
+import { act, fireEvent, waitFor, within } from '@testing-library/react'
+import { deleteFromLocalStorage, useValue } from '@tldraw/editor'
+import { ReactNode, useState } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import {
 	CommandPaletteCollapsed,
 	CommandPalettePinned,
 	useCommandPaletteActiveItemId,
+	useCommandPaletteStore,
 } from '../../lib/ui/components/CommandPalette/CommandPaletteContext'
 import { CommandPalettePromptItem } from '../../lib/ui/components/CommandPalette/CommandPalettePromptItem'
 import {
@@ -662,5 +663,66 @@ describe('CommandPaletteShell', () => {
 		} finally {
 			Element.prototype.scrollIntoView = original
 		}
+	})
+
+	it('settles when items re-render every time the palette does', async () => {
+		let renders = 0
+		function RerendersWithPalette() {
+			const store = useCommandPaletteStore()
+			useValue(store.entries)
+			renders++
+			return (
+				<>
+					{item('alpha', 'Alpha')}
+					{item('beta', 'Beta')}
+				</>
+			)
+		}
+		const { rendered } = await renderShell(<RerendersWithPalette />)
+		await rendered.findByTestId('command-palette.item.beta')
+		expect(renders).toBeLessThan(10)
+	})
+
+	it("runs a prompt's latest onSubmit, even if it changes while the prompt is open", async () => {
+		const calls: string[] = []
+		let setCount = (_n: number) => {}
+		function Counter() {
+			const [count, _setCount] = useState(0)
+			setCount = _setCount
+			return (
+				<CommandPalettePromptItem
+					id="new"
+					label="New file"
+					placeholder="File name"
+					onSubmit={(value) => calls.push(`${value} ${count}`)}
+				/>
+			)
+		}
+		const { rendered, input } = await renderShell(<Counter />)
+		fireEvent.click(await rendered.findByTestId('command-palette.item.new'))
+		act(() => setCount(1))
+		type(input, 'Plans')
+		press(input, 'Enter')
+		expect(calls).toEqual(['Plans 1'])
+	})
+
+	it('runs the latest onSelect after it changes', async () => {
+		const calls: number[] = []
+		let setCount = (_n: number) => {}
+		function Counter() {
+			const [count, _setCount] = useState(0)
+			setCount = _setCount
+			return item(
+				'alpha',
+				'Alpha',
+				vi.fn(() => calls.push(count))
+			)
+		}
+		const { rendered, input } = await renderShell(<Counter />)
+		await rendered.findByTestId('command-palette.item.alpha')
+		act(() => setCount(1))
+		type(input, 'alp')
+		press(input, 'Enter')
+		expect(calls).toEqual([1])
 	})
 })
