@@ -15,7 +15,7 @@ import type { TLCollection } from '../lib/schema'
 import { CollectionMenu } from '../ui/collection-menu'
 import { CollectionPicker } from '../ui/collection-picker'
 import { RenameInput } from '../ui/rename-input'
-import { DeleteCollectionDialog } from './delete-collection-dialog'
+import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { activeCollectionId } from './state'
 import { useSaveSelection } from './use-save-selection'
 
@@ -23,6 +23,15 @@ const messages = defineMessages({
 	title: { id: 'collections.title', defaultMessage: 'Collections' },
 	addSelection: { id: 'collections.add-selection', defaultMessage: 'Add selection' },
 	newCollectionName: { id: 'collections.new-collection-name', defaultMessage: 'New collection' },
+	deleteTitle: {
+		id: 'collections.delete-collection-dialog.title',
+		defaultMessage: 'Delete collection',
+	},
+	deleteBody: {
+		id: 'collections.delete-collection-dialog.body',
+		defaultMessage:
+			'Delete “{name}” and its {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay.',
+	},
 	changeErrorTitle: {
 		id: 'collections.collection-error.title',
 		defaultMessage: "Couldn't change collections",
@@ -102,9 +111,9 @@ export function CollectionsPanelHeader({
 		if (!current) return
 		addDialog({
 			component: ({ onClose }) => (
-				<DeleteCollectionDialog
-					name={current.name}
-					itemCount={itemCount}
+				<ConfirmDeleteDialog
+					title={msg(messages.deleteTitle)}
+					body={msg(messages.deleteBody, { name: current.name, count: itemCount })}
 					onClose={onClose}
 					onConfirm={() => source.deleteCollection(current.id).catch(showError)}
 				/>

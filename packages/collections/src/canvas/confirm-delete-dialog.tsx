@@ -11,41 +11,28 @@ import {
 } from 'tldraw'
 
 const messages = defineMessages({
-	title: { id: 'collections.delete-dialog.title', defaultMessage: 'Delete collection' },
-	body: {
-		id: 'collections.delete-dialog.body',
-		defaultMessage:
-			'Delete “{name}” and its {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay.',
-	},
 	cancel: { id: 'collections.delete-dialog.cancel', defaultMessage: 'Cancel' },
 	confirm: { id: 'collections.delete-dialog.confirm', defaultMessage: 'Delete' },
 })
 
-export interface DeleteCollectionDialogProps {
-	name: string
-	itemCount: number
+export interface ConfirmDeleteDialogProps {
+	title: string
+	body: string
 	onClose(): void
 	onConfirm(): void
 }
 
-/** Asks before deleting a collection: unlike shapes, a deleted collection can't be undone. */
-export function DeleteCollectionDialog({
-	name,
-	itemCount,
-	onClose,
-	onConfirm,
-}: DeleteCollectionDialogProps) {
+/** Asks before deleting from a collection: unlike shapes, a deletion there can't be undone. */
+export function ConfirmDeleteDialog({ title, body, onClose, onConfirm }: ConfirmDeleteDialogProps) {
 	const msg = useTranslation()
 
 	return (
 		<>
 			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>{msg(messages.title)}</TldrawUiDialogTitle>
+				<TldrawUiDialogTitle>{title}</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
-				{msg(messages.body, { name, count: itemCount })}
-			</TldrawUiDialogBody>
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>{body}</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="normal" onClick={onClose}>
 					<TldrawUiButtonLabel>{msg(messages.cancel)}</TldrawUiButtonLabel>

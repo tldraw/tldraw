@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
+	useDialogs,
 	useEditor,
 	useToasts,
 	useTranslation,
@@ -12,6 +13,7 @@ import type { TLCollectionItemId } from '../lib/schema'
 import { ItemGrid } from '../ui/item-grid'
 import { ItemMenu } from '../ui/item-menu'
 import { CollectionsPanelHeader } from './collections-panel-header'
+import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { placeCollectionItem } from './place-item'
 import { activeCollectionId, collectionsPanelOpen } from './state'
 import { useItemDrag } from './use-item-drag'
@@ -24,6 +26,11 @@ const messages = defineMessages({
 		defaultMessage: 'Nothing saved here yet.',
 	},
 	untitledItem: { id: 'collections.untitled-item', defaultMessage: 'Untitled' },
+	deleteItemTitle: { id: 'collections.delete-item-dialog.title', defaultMessage: 'Delete item' },
+	deleteItemBody: {
+		id: 'collections.delete-item-dialog.body',
+		defaultMessage: 'Delete “{name}” from this collection? Copies already placed on canvases stay.',
+	},
 	placeErrorTitle: { id: 'collections.place-error.title', defaultMessage: "Couldn't place item" },
 	placeErrorDescription: {
 		id: 'collections.place-error.description',
@@ -59,6 +66,7 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
+	const { addDialog } = useDialogs()
 	const open = useValue('collections panel open', () => collectionsPanelOpen.get(editor), [editor])
 	const collections = useValue('collections', () => source.getCollections(), [source])
 	const activeId = useValue('active collection', () => activeCollectionId.get(editor), [editor])
@@ -144,9 +152,20 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 								onDelete={
 									canDelete
 										? () =>
-												source
-													.deleteItem(item.id)
-													.catch(() => showChangeError(msg(messages.deleteErrorTitle)))
+												addDialog({
+													component: ({ onClose }) => (
+														<ConfirmDeleteDialog
+															title={msg(messages.deleteItemTitle)}
+															body={msg(messages.deleteItemBody, { name: item.label })}
+															onClose={onClose}
+															onConfirm={() =>
+																source
+																	.deleteItem(item.id)
+																	.catch(() => showChangeError(msg(messages.deleteErrorTitle)))
+															}
+														/>
+													),
+												})
 										: undefined
 								}
 							/>
