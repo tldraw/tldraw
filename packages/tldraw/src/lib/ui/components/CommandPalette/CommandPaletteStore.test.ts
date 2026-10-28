@@ -64,4 +64,24 @@ describe('CommandPaletteStore', () => {
 		store.set('t2', entry('mounted', marker))
 		expect(ids(store)).toEqual(['mounted', 'unmounted'])
 	})
+
+	it('ignores a registration equal to the current one', () => {
+		const [marker] = markers(1)
+		const store = new CommandPaletteStore()
+		const onSelect = vi.fn()
+		store.set('t', { ...entry('a', marker), path: ['File'], onSelect })
+		const before = store.entries.get()
+		store.set('t', { ...entry('a', marker), path: ['File'], onSelect })
+		expect(store.entries.get()).toBe(before)
+	})
+
+	it('updates when a registration changes', () => {
+		const [marker] = markers(1)
+		const store = new CommandPaletteStore()
+		store.set('t', entry('a', marker))
+		const before = store.entries.get()
+		store.set('t', { ...entry('a', marker), label: 'renamed', onSelect: before[0].onSelect })
+		expect(store.entries.get()).not.toBe(before)
+		expect(store.entries.get().map((e) => e.label)).toEqual(['renamed'])
+	})
 })

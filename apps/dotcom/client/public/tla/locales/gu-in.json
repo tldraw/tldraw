@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "અમે <a><strong>{appName}</strong></a> માંથી ફાઇલો માટે સપોર્ટ પર કામ કરી રહ્યા છીએ."
   },
-  "03b3e13197": {
-    "translation": "આ પૃષ્ઠ પરની સાઇડબારમાં ફાઇલને ખેંચો. અથવા વપરાશકર્તા મેનૂમાંથી 'ફાઈલ આયાત કરો' વિકલ્પ પસંદ કરો."
-  },
   "043973ec1f": {
     "translation": "હજુ પણ મુશ્કેલી છે? {GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "સહયોગીની મર્યાદા પહોંચી"
   },
-  "545241e7dd": {
-    "translation": "{count} વાંચ્યા વગરની"
-  },
   "550b25cc0c": {
     "translation": "તમારા સ્થાનિક ચિત્રને પુનઃસ્થાપિત કરી શકાયું નથી. આ પૃષ્ઠને ફરીથી લોડ કરવાનો પ્રયાસ કરો."
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "tldraw નું નવીનતમ સંસ્કરણ મેળવવા માટે કૃપા કરીને પૃષ્ઠને તાજું કરો."
   },
-  "86353d2c41": {
-    "translation": "{total} .tldr ફાઇલો ઉમેરી."
-  },
   "86c66437fd": {
     "translation": "ફાઇલનું નામ બદલો"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "તમને <strong>{workspaceName}</strong> માં જોડાવા માટે આમંત્રિત કરવામાં આવ્યા છે."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# વાંચ્યા વગરનું} other {# વાંચ્યા વગરનું}}"
   },
   "a0da245992": {
     "translation": "સામગ્રીને .tldr ફાઇલ તરીકે નિકાસ કરો: ઉપર ડાબા મેનુમાં 'ડાઉનલોડ કરો' પસંદ કરો."
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "માલિક"
   },
+  "b74dbb40c5": {
+    "translation": "આ પેજ પરની સાઇડબારમાં ફાઇલ ખેંચો. અથવા ઉપર ડાબી બાજુએ ફાઇલ મેનૂમાંથી 'ફાઇલ ઇમ્પોર્ટ કરો' વિકલ્પ પસંદ કરો."
+  },
   "b758336699": {
     "translation": "લિંક કૉપિ કરો"
   },
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "શેર કરવા વિશે વધુ જાણો."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {# .tldr ફાઇલ ઉમેરી.} other {# .tldr ફાઇલો ઉમેરી.}}"
+  },
   "c303bd1095": {
     "translation": "ફાઇલ પ્રકાશિત કરવામાં અસમર્થ."
   },
   "c4b39a1cc3": {
     "translation": "આવશ્યક કૂકીઝ"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: લાંબી સ્ટ્રિંગ"
   },
   "c6a00f137b": {
     "translation": "આમંત્રણ આપો"
@@ -592,7 +589,7 @@
     "translation": "પ્રકાશન વિશે વધુ જાણો."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> અને {count, plural, one {# other} other {# others}} એ તમારી ટિપ્પણી પર પ્રતિક્રિયા આપી"
+    "translation": "<name>{author}</name> અને {count, plural, one {# અન્ય} other {# અન્ય}} એ તમારી ટિપ્પણી પર પ્રતિક્રિયા આપી"
   },
   "d3d2e61733": {
     "translation": "બંધ કરો"
@@ -660,9 +657,6 @@
   "ec611e9a08": {
     "translation": "એકાઉન્ટ મેનૂ"
   },
-  "ed53713239": {
-    "translation": "i18n: ઉચ્ચાર"
-  },
   "ed75712b0e": {
     "translation": "ડુપ્લિકેટ"
   },
@@ -691,7 +685,7 @@
     "translation": "કાઢી નાખો"
   },
   "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> અને {count, plural, one {# other} other {# others}} એ તમારી ટિપ્પણી પર પ્રતિક્રિયા આપી"
+    "translation": "<name>{a}</name>, <name>{b}</name> અને {count, plural, one {# અન્ય} other {# અન્ય}} એ તમારી ટિપ્પણી પર પ્રતિક્રિયા આપી"
   },
   "f4f70727dc": {
     "translation": "સેટિંગ્સ"

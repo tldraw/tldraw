@@ -34,6 +34,7 @@ export interface TLUiMenuItemProps<
 	TranslationKey extends string = string,
 	IconType extends string = string,
 > {
+	/** In the command palette, unique across the whole palette: the first item with an id wins. */
 	id: string
 	/**
 	 * The icon to display on the item. Icons are only shown in certain menu types.
@@ -80,6 +81,11 @@ export interface TLUiMenuItemProps<
 	 */
 	isSelected?: boolean
 	/**
+	 * Muted text after the label in the command palette, such as where the item lives. Search
+	 * matches it too. Other menus don't show it.
+	 */
+	detail?: string
+	/**
 	 * The function to call when the item is dragged. If this is provided, the item will be draggable.
 	 */
 	onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void
@@ -102,6 +108,7 @@ export function TldrawUiMenuItem<
 	onSelect,
 	noClose,
 	isSelected,
+	detail,
 	onDragStart,
 }: TLUiMenuItemProps<TranslationKey, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
@@ -295,6 +302,7 @@ export function TldrawUiMenuItem<
 					isSelected={isSelected}
 					disabled={disabled}
 					disabledReason={disabledReason ? msg(disabledReason as TLUiTranslationKey) : undefined}
+					detail={detail}
 					onSelect={onSelect}
 				/>
 			)

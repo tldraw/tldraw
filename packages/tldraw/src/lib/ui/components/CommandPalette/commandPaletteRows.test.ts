@@ -68,6 +68,23 @@ describe('getCommandPaletteBrowseRows', () => {
 		expect(describeRows(rows)).toEqual(['# Recent', 'recent undo', '---', 'grid'])
 	})
 
+	it('fills the recents from further down when earlier ids are gone or collapsed', () => {
+		const notifications = { key: 'notifications', label: 'Notifications', collapsed: true }
+		const kept = ['a', 'b', 'c', 'd', 'e', 'f']
+		const rows = getCommandPaletteBrowseRows(
+			[entry('note', { submenu: notifications }), ...kept.map((id) => entry(id))],
+			['gone-1', 'gone-2', 'note', 'gone-3', ...kept],
+			'Recent'
+		)
+		expect(describeRows(rows)).toEqual([
+			'# Recent',
+			...kept.slice(0, 5).map((id) => `recent ${id}`),
+			'---',
+			'> Notifications',
+			'f',
+		])
+	})
+
 	it('drops the separator when every entry is recent', () => {
 		const rows = getCommandPaletteBrowseRows([entry('undo')], ['undo'], 'Recent')
 		expect(describeRows(rows)).toEqual(['# Recent', 'recent undo'])
@@ -150,6 +167,26 @@ describe('getCommandPaletteBrowseRows', () => {
 			[]
 		)
 		expect(describeRows(search)).toEqual(['> Notifications'])
+	})
+
+	it('keeps collapsed submenu items out of recents', () => {
+		const news = { key: 'news', label: 'Notifications', collapsed: true }
+		const rows = getCommandPaletteBrowseRows(
+			[
+				entry('n1', { label: 'Notifications: Alice: hi', name: 'Alice: hi', submenu: news }),
+				entry('undo'),
+				entry('grid'),
+			],
+			['n1', 'grid'],
+			'Recent'
+		)
+		expect(describeRows(rows)).toEqual([
+			'# Recent',
+			'recent grid',
+			'---',
+			'> Notifications',
+			'undo',
+		])
 	})
 })
 
@@ -246,5 +283,22 @@ describe('getCommandPaletteSubmenuRows', () => {
 			['Page 2']
 		)
 		expect(getCommandPaletteSubmenuRows(submenuEntries, moveTo.key, 'move', [])).toEqual([])
+	})
+
+	it('shows and matches the detail', () => {
+		const files = { key: 'go-to-file', label: 'Go to file' }
+		const entries = [
+			entry('a', { name: 'Roadmap', submenu: files, detail: 'Acme' }),
+			entry('b', { name: 'Roadmap', submenu: files, detail: 'Globex' }),
+		]
+		const details = (rows: CommandPaletteRow[]) =>
+			rows.map((row) => (row.type === 'item' ? [row.label, row.detail] : row.type))
+		expect(details(getCommandPaletteSubmenuRows(entries, files.key, '', []))).toEqual([
+			['Roadmap', 'Acme'],
+			['Roadmap', 'Globex'],
+		])
+		expect(details(getCommandPaletteSubmenuRows(entries, files.key, 'roadmap glo', []))).toEqual([
+			['Roadmap', 'Globex'],
+		])
 	})
 })

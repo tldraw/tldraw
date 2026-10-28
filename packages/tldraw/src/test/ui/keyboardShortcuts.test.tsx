@@ -10,7 +10,7 @@ import {
 } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { vi } from 'vitest'
-import { Tldraw } from '../../lib/Tldraw'
+import { Tldraw, TldrawProps } from '../../lib/Tldraw'
 import { DefaultKeyboardShortcutsDialogContent } from '../../lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 import { TldrawUiMenuContextProvider } from '../../lib/ui/components/primitives/menus/TldrawUiMenuContext'
 import { TLUiActionItem, useActions } from '../../lib/ui/context/actions'
@@ -155,6 +155,25 @@ describe('default keyboard shortcuts', () => {
 			.filter((id) => !idsInDialog.has(id) && !NOT_IN_SHORTCUTS_DIALOG.has(id))
 
 		expect(missing).toEqual([])
+	})
+
+	it('registers the command palette shortcut only when a palette renders', async () => {
+		const ids = async (props: TldrawProps) => {
+			let captured: ShortcutEntry[] = []
+			const rendered = await renderTldrawComponent(
+				<Tldraw {...props}>
+					<ShortcutCapturer onCapture={(entries) => (captured = entries)} />
+				</Tldraw>,
+				{ waitForPatterns: false }
+			)
+			rendered.unmount()
+			return captured.map((entry) => entry.id)
+		}
+		expect(await ids({})).toContain('action.open-command-palette')
+		expect(await ids({ components: { CommandPalette: null } })).not.toContain(
+			'action.open-command-palette'
+		)
+		expect(await ids({ hideUi: true })).not.toContain('action.open-command-palette')
 	})
 })
 

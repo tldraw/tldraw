@@ -1,6 +1,11 @@
 import { deleteFromLocalStorage, setInLocalStorage } from '@tldraw/editor'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { addCommandPaletteRecent, getCommandPaletteRecents } from './commandPaletteRecents'
+import {
+	addCommandPaletteRecent,
+	getCommandPaletteRecents,
+	MAX_COMMAND_PALETTE_RECENTS,
+	MAX_STORED_COMMAND_PALETTE_RECENTS,
+} from './commandPaletteRecents'
 
 const KEY = 'tldraw-command-palette-recents'
 
@@ -21,9 +26,19 @@ describe('command palette recents', () => {
 		expect(getCommandPaletteRecents()).toEqual(['a', 'b'])
 	})
 
-	it('keeps at most five ids', () => {
-		for (const id of ['1', '2', '3', '4', '5', '6']) addCommandPaletteRecent(id)
-		expect(getCommandPaletteRecents()).toEqual(['6', '5', '4', '3', '2'])
+	it('keeps more ids than it shows, up to the stored max', () => {
+		const ids = Array.from({ length: MAX_STORED_COMMAND_PALETTE_RECENTS + 1 }, (_, i) => `${i}`)
+		for (const id of ids) addCommandPaletteRecent(id)
+		expect(getCommandPaletteRecents()).toEqual(
+			ids.reverse().slice(0, MAX_STORED_COMMAND_PALETTE_RECENTS)
+		)
+		expect(MAX_STORED_COMMAND_PALETTE_RECENTS).toBeGreaterThan(MAX_COMMAND_PALETTE_RECENTS)
+	})
+
+	it('caps an over-long stored list on read', () => {
+		const ids = Array.from({ length: MAX_STORED_COMMAND_PALETTE_RECENTS + 5 }, (_, i) => `${i}`)
+		setInLocalStorage(KEY, JSON.stringify(ids))
+		expect(getCommandPaletteRecents()).toEqual(ids.slice(0, MAX_STORED_COMMAND_PALETTE_RECENTS))
 	})
 
 	it('ignores corrupt values', () => {

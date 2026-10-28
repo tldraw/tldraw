@@ -67,6 +67,18 @@ test.describe('command palette', () => {
 		expect(height).toBeLessThanOrEqual(9 * 36 + 4)
 	})
 
+	test('stays above the toolbar in a submenu', async ({ page }) => {
+		// Tall enough that the palette's 60% height cap doesn't hide the overlap.
+		await page.setViewportSize({ width: page.viewportSize()!.width, height: 1000 })
+		await page.keyboard.press('ControlOrMeta+k')
+		await page.getByTestId('command-palette.input').fill('language')
+		await page.keyboard.press('Enter')
+		await expect(page.getByTestId('command-palette.back')).toBeVisible()
+		const palette = await page.getByTestId('command-palette').boundingBox()
+		const toolbar = await page.locator('.tlui-main-toolbar__inner').boundingBox()
+		expect(palette!.y + palette!.height).toBeLessThanOrEqual(toolbar!.y)
+	})
+
 	test('fades the list while more items are below', async ({ page }) => {
 		await page.keyboard.press('ControlOrMeta+k')
 		const input = page.getByTestId('command-palette.input')
