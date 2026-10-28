@@ -102,6 +102,7 @@ export function CommandPaletteShell({
 		// Spells out what Enter does, and offers a way back.
 		if (prompt) {
 			const value = query.trim()
+			const icon = dir === 'rtl' ? 'arrow-left' : 'arrow-right'
 			return [
 				{
 					type: 'item',
@@ -109,7 +110,7 @@ export function CommandPaletteShell({
 					entry: prompt,
 					label: prompt.name,
 					detail: value ? `“${value}”` : undefined,
-					icon: 'arrow-right',
+					icon,
 					recent: false,
 				},
 				{
@@ -117,7 +118,7 @@ export function CommandPaletteShell({
 					key: 'prompt:cancel',
 					entry: { ...prompt, id: 'command-palette-cancel', prompt: undefined, kbd: '[[Esc]]' },
 					label: msg(messages.cancel),
-					icon: 'arrow-right',
+					icon,
 					recent: false,
 				},
 			]
@@ -125,7 +126,7 @@ export function CommandPaletteShell({
 		if (submenu) return getCommandPaletteSubmenuRows(entries, submenu.key, query, recentIds)
 		if (query.trim()) return getCommandPaletteSearchRows(entries, query, recentIds)
 		return getCommandPaletteBrowseRows(entries, recentIds, msg(messages.recent))
-	}, [entries, prompt, submenu, query, recentIds, msg])
+	}, [entries, prompt, submenu, query, recentIds, msg, dir])
 	const selectableRows = useMemo(
 		() => rows.filter((row): row is SelectableRow => row.type === 'item' || row.type === 'submenu'),
 		[rows]
@@ -324,7 +325,14 @@ export function CommandPaletteShell({
 			rScrollToActive.current = true
 			setActiveIndex((Math.max(clampedIndex, 0) + delta + count) % count)
 		}
-		switch (e.key) {
+		// In RTL the query's end is on the left, so the submenu keys mirror, as in Radix menus.
+		const key =
+			dir === 'rtl' && e.key === 'ArrowLeft'
+				? 'ArrowRight'
+				: dir === 'rtl' && e.key === 'ArrowRight'
+					? 'ArrowLeft'
+					: e.key
+		switch (key) {
 			case 'ArrowDown':
 				e.preventDefault()
 				move(1)

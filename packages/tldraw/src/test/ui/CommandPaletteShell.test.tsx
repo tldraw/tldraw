@@ -22,13 +22,25 @@ import { TldrawUiMenuItem } from '../../lib/ui/components/primitives/menus/Tldra
 import { TldrawUiMenuSubmenu } from '../../lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
+const mockDir = vi.hoisted(() => ({ current: null as 'ltr' | 'rtl' | null }))
+
 // setupVitest mocks useTranslation to echo keys; these tests assert the English strings.
-vi.mock('../../lib/ui/hooks/useTranslation/useTranslation', async () =>
-	vi.importActual('../../lib/ui/hooks/useTranslation/useTranslation')
-)
+vi.mock('../../lib/ui/hooks/useTranslation/useTranslation', async () => {
+	const actual = await vi.importActual<
+		typeof import('../../lib/ui/hooks/useTranslation/useTranslation')
+	>('../../lib/ui/hooks/useTranslation/useTranslation')
+	return {
+		...actual,
+		useDirection: () => {
+			const dir = actual.useDirection()
+			return mockDir.current ?? dir
+		},
+	}
+})
 
 afterEach(() => {
 	deleteFromLocalStorage('tldraw-command-palette-recents')
+	mockDir.current = null
 })
 
 async function renderShell(
@@ -334,6 +346,37 @@ describe('CommandPaletteShell', () => {
 		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
 		input.setSelectionRange(0, 0)
 		press(input, 'ArrowLeft')
+		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+		expect(input.value).toBe('many')
+	})
+
+	it('swaps the submenu arrow keys in RTL', async () => {
+		mockDir.current = 'rtl'
+		const { rendered, input } = await renderShell(
+			<TldrawUiMenuSubmenu id="many" label="Many">
+				{['a', 'b'].map((id) => item(id, `Option ${id}`))}
+			</TldrawUiMenuSubmenu>
+		)
+		type(input, 'many')
+		await rendered.findByTestId('command-palette.submenu.Many')
+		input.setSelectionRange(4, 4)
+		press(input, 'ArrowRight')
+		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+		input.setSelectionRange(2, 2)
+		press(input, 'ArrowLeft')
+		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+		input.setSelectionRange(4, 4)
+		press(input, 'ArrowLeft')
+		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
+		type(input, 'b')
+		input.setSelectionRange(0, 0)
+		press(input, 'ArrowLeft')
+		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
+		input.setSelectionRange(1, 1)
+		press(input, 'ArrowRight')
+		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
+		input.setSelectionRange(0, 0)
+		press(input, 'ArrowRight')
 		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
 		expect(input.value).toBe('many')
 	})
