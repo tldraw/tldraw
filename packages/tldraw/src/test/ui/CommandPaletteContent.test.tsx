@@ -1,7 +1,17 @@
-import { act, fireEvent, waitFor } from '@testing-library/react'
-import { Box, createShapeId, deleteFromLocalStorage, TLImageShape } from '@tldraw/editor'
+import { act, fireEvent, render, waitFor } from '@testing-library/react'
+import {
+	Box,
+	createShapeId,
+	deleteFromLocalStorage,
+	Editor,
+	TldrawEditor,
+	TLImageShape,
+} from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { vi } from 'vitest'
+import { defaultShapeTools } from '../../lib/defaultShapeTools'
+import { defaultShapeUtils } from '../../lib/defaultShapeUtils'
+import { defaultTools } from '../../lib/defaultTools'
 import { Tldraw } from '../../lib/Tldraw'
 import { CommandPaletteActionGroup } from '../../lib/ui/components/CommandPalette/CommandPaletteGroups'
 import { CommandPaletteToolsGroup } from '../../lib/ui/components/CommandPalette/CommandPaletteGroups'
@@ -11,6 +21,7 @@ import { TldrawUiMenuActionItem } from '../../lib/ui/components/primitives/menus
 import { TldrawUiMenuGroup } from '../../lib/ui/components/primitives/menus/TldrawUiMenuGroup'
 import { TLUiActionsContextType, useActions } from '../../lib/ui/context/actions'
 import { TLUiOverrides } from '../../lib/ui/overrides'
+import { TldrawUi } from '../../lib/ui/TldrawUi'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
 vi.mock('../../lib/ui/hooks/useTranslation/useTranslation', async () =>
@@ -232,6 +243,34 @@ describe('default command palette content', () => {
 		search('start arrowhead')
 		await rendered.findByTestId('command-palette.input')
 		expect(rendered.queryByTestId('command-palette.item.style-arrowhead-start-dot')).toBeNull()
+	})
+
+	it('opens in an editor without the geo shape', async () => {
+		let editor!: Editor
+		const rendered = render(
+			<TldrawEditor
+				shapeUtils={defaultShapeUtils.filter((util) => util.type !== 'geo')}
+				tools={[...defaultTools, ...defaultShapeTools.filter((tool) => tool.id !== 'geo')]}
+				initialState="select"
+				onMount={(e) => {
+					editor = e
+				}}
+			>
+				<TldrawUi />
+			</TldrawEditor>
+		)
+		await waitFor(() => expect(editor).toBeDefined())
+		act(() => {
+			editor.updateInstanceState({ isFocused: true })
+			editor
+				.getContainerDocument()
+				.body.dispatchEvent(
+					new KeyboardEvent('keydown', { bubbles: true, key: 'k', code: 'KeyK', metaKey: true })
+				)
+		})
+		const input = await rendered.findByTestId('command-palette.input')
+		fireEvent.change(input, { target: { value: 'color red' } })
+		await rendered.findByTestId('command-palette.item.style-color-red')
 	})
 
 	it('offers the image toolbar commands while one image is selected', async () => {
