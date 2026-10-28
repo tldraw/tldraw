@@ -3,6 +3,7 @@ import {
 	DefaultColorStyle,
 	DefaultCommandPaletteContent,
 	TLComponents,
+	TLUiCommandPaletteProps,
 	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuActionItem,
@@ -29,10 +30,10 @@ const overrides: TLUiOverrides = {
 }
 
 // [2]
-function CustomCommandPalette() {
+function CustomCommandPalette(props: TLUiCommandPaletteProps) {
 	const { addToast } = useToasts()
 	return (
-		<DefaultCommandPalette>
+		<DefaultCommandPalette {...props} position="top">
 			<TldrawUiMenuGroup id="colors" label="Colors">
 				<TldrawUiMenuActionItem actionId="make-red" />
 			</TldrawUiMenuGroup>
@@ -79,6 +80,8 @@ at the end of the default content; placing it in a group below takes it out of t
 [2]
 Wrap `DefaultCommandPalette` and keep `DefaultCommandPaletteContent` to add commands without
 rebuilding the palette. Items are the same `TldrawUiMenu*` components the other menus use.
+Forward the slot's props so it still gets `onClose`, and pass `position` to open the palette at
+the top instead of above the toolbar.
 
 [3]
 A submenu is one row you open to see its items. Its items still show up when you search, so
