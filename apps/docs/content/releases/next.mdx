@@ -14,7 +14,7 @@ So far this release adds a command palette (Cmd/Ctrl+K), adds a `ThrottledFuncti
 
 ### Command palette
 
-Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, pages, preferences and more. Recently used commands come first. Actions, including your custom ones, are listed automatically. The palette is a `CommandPalette` component slot built from the same menu items as the other menus, so you place commands by wrapping `DefaultCommandPalette`, the same way you customize the main menu. Cmd/Ctrl+K is now bound by default; pass `components={{ CommandPalette: null }}` to turn the palette and its shortcut off.
+Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, pages, preferences and more. Recently used commands come first. Actions, including your custom ones, are listed automatically; set `commandPalette: false` on internal or shortcut-only actions to leave them out. The palette is a `CommandPalette` component slot built from the same menu items as the other menus, so you place commands by wrapping `DefaultCommandPalette`, the same way you customize the main menu. Cmd/Ctrl+K is now bound by default; pass `components={{ CommandPalette: null }}` to turn the palette and its shortcut off.
 
 ## API changes
 
