@@ -5,8 +5,9 @@ import { TldrawUiInput } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { TlaMenuSwitch } from '../tla/components/tla-menu/tla-menu'
 import '../tla/styles/tla.css'
-import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
+import { AdminScope, Specimen, SPECIMEN_CSS } from './dev-components-kit'
 import { DevComponentsNav } from './dev-components-nav'
+import adminStyles from './admin/admin.module.css'
 
 /**
  * Dev-only inventory of every text-input surface in the dotcom app. Inputs
@@ -38,8 +39,6 @@ const RawInput = ({ el, placeholder }: { el: RawKind; placeholder?: string }): R
 	// The sharing toggle is a real TlaMenuSwitch (a styled switch), not a bare
 	// checkbox — render the actual component so the preview matches the app.
 	if (el === 'switch') return <TlaMenuSwitch id="inp-sharing-switch" checked onChange={() => {}} />
-	// The admin toggles are genuinely plain, unstyled checkboxes.
-	if (el === 'checkbox') return <input type="checkbox" defaultChecked />
 	if (el === 'textarea')
 		return (
 			<textarea
@@ -57,6 +56,26 @@ const RawInput = ({ el, placeholder }: { el: RawKind; placeholder?: string }): R
 		/>
 	)
 }
+
+const AdminField = ({ el, placeholder }: { el: AdminKind; placeholder?: string }): ReactNode => {
+	if (el === 'checkbox') return <input type="checkbox" defaultChecked />
+	if (el === 'radio')
+		return (
+			<label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+				<input type="radio" name="admin-mode" defaultChecked />
+				<span>Allowlist</span>
+			</label>
+		)
+	if (el === 'textarea')
+		return <textarea className={adminStyles.searchInput} rows={4} placeholder={placeholder} />
+	return <input type="text" className={adminStyles.searchInput} placeholder={placeholder} />
+}
+
+const AdminInput = ({ el, placeholder }: { el: AdminKind; placeholder?: string }): ReactNode => (
+	<AdminScope>
+		<AdminField el={el} placeholder={placeholder} />
+	</AdminScope>
+)
 
 export function Component() {
 	return (
@@ -130,12 +149,23 @@ export function Component() {
 						</Specimen>
 					))}
 				</Section>
+
+				<Section
+					title={`Admin panel — all ${ADMIN_INPUTS.length}`}
+					note="The admin panel is on its own internal design language (--admin-* tokens in admin.module.css), not the dotcom one. Its text fields and the allowlist textarea share one .searchInput class; checkboxes and radios are native. Rendered live with the real classes."
+				>
+					{ADMIN_INPUTS.map((i) => (
+						<Specimen key={i.source} label={i.label} code={i.code} meta={i.meta} source={i.source}>
+							<AdminInput el={i.el} placeholder={i.placeholder} />
+						</Specimen>
+					))}
+				</Section>
 			</div>
 		</div>
 	)
 }
 
-type RawKind = 'text' | 'email' | 'numeric' | 'checkbox' | 'switch' | 'textarea'
+type RawKind = 'text' | 'email' | 'numeric' | 'switch' | 'textarea'
 
 const SDK_INPUTS: ReadonlyArray<{
 	label: string
@@ -214,74 +244,132 @@ const RAW_INPUTS: ReadonlyArray<{
 		placeholder: '123456',
 	},
 	{
-		label: 'admin: user lookup',
-		el: 'text',
-		code: 'type="text" ref placeholder="Email or ID"',
-		meta: 'imperative ref + Enter',
-		source: 'admin.tsx:175',
-		placeholder: 'Email or ID',
-	},
-	{
-		label: 'admin: published file',
-		el: 'text',
-		code: 'type="text" ref placeholder="Published file ID"',
-		meta: 'ref read',
-		source: 'admin.tsx:367',
-		placeholder: 'Published file ID',
-	},
-	{
-		label: 'admin: toggle',
-		el: 'checkbox',
-		code: 'type="checkbox"',
-		meta: 'admin toggle',
-		source: 'admin.tsx:509',
-	},
-	{
-		label: 'admin: toggle',
-		el: 'checkbox',
-		code: 'type="checkbox"',
-		meta: 'admin toggle',
-		source: 'admin.tsx:574',
-	},
-	{
-		label: 'admin: text field',
-		el: 'text',
-		code: 'type="text"',
-		meta: 'admin field',
-		source: 'admin.tsx:586',
-		placeholder: '…',
-	},
-	{
-		label: 'admin: file ID',
-		el: 'text',
-		code: 'type="text" ref .searchInput',
-		meta: 'Enter-to-search',
-		source: 'admin.tsx:666',
-		placeholder: 'File ID',
-	},
-	{
-		label: 'admin: file ID',
-		el: 'text',
-		code: 'type="text" ref .searchInput',
-		meta: 'Enter-to-search',
-		source: 'admin.tsx:766',
-		placeholder: 'File ID',
-	},
-	{
-		label: 'admin: user lookup',
-		el: 'text',
-		code: 'type="text" ref placeholder="User ID or Email"',
-		meta: 'ref read',
-		source: 'admin.tsx:844',
-		placeholder: 'User ID or Email',
-	},
-	{
 		label: 'feedback',
 		el: 'textarea',
 		code: '<textarea defaultValue · onInput · ref>',
 		meta: 'multi-line — TldrawUiInput is input-only',
 		source: 'SubmitFeedbackDialog:159',
 		placeholder: 'Tell us more…',
+	},
+]
+
+type AdminKind = 'text' | 'checkbox' | 'radio' | 'textarea'
+
+const ADMIN_INPUTS: ReadonlyArray<{
+	label: string
+	el: AdminKind
+	code: string
+	meta: string
+	source: string
+	placeholder?: string
+}> = [
+	{
+		label: 'user lookup',
+		el: 'text',
+		code: '<input type="text" ref .searchInput>',
+		meta: 'imperative ref + Enter',
+		source: 'admin/UsersSection.tsx:179',
+		placeholder: 'Email or ID',
+	},
+	{
+		label: 'delete user',
+		el: 'text',
+		code: '<input type="text" ref .searchInput>',
+		meta: 'ref read',
+		source: 'admin/UsersSection.tsx:306',
+		placeholder: 'User ID or Email',
+	},
+	{
+		label: 'durable object lookup',
+		el: 'text',
+		code: '<input value onChange .searchInput disabled>',
+		meta: 'the only controlled one · Enter · disabled while running',
+		source: 'admin/FilesSection.tsx:213',
+		placeholder: 'Durable object id (64-char hex) or room slug',
+	},
+	{
+		label: 'welcome template',
+		el: 'text',
+		code: '<input type="text" ref .searchInput>',
+		meta: 'ref read',
+		source: 'admin/FilesSection.tsx:381',
+		placeholder: 'Published file ID',
+	},
+	{
+		label: 'hard delete file',
+		el: 'text',
+		code: '<input type="text" ref .searchInput>',
+		meta: 'ref read',
+		source: 'admin/FilesSection.tsx:436',
+		placeholder: 'File ID',
+	},
+	{
+		label: 'download .tldr',
+		el: 'text',
+		code: '<input type="text" ref .searchInput>',
+		meta: 'ref read',
+		source: 'admin/FilesSection.tsx:515',
+		placeholder: 'File ID',
+	},
+	{
+		label: 'undelete file',
+		el: 'text',
+		code: '<input type="text" ref .searchInput>',
+		meta: 'ref read',
+		source: 'admin/FilesSection.tsx:561',
+		placeholder: 'File ID',
+	},
+	{
+		label: 'asset diagnostics',
+		el: 'text',
+		code: '<input type="text" ref .searchInput>',
+		meta: 'imperative ref + Enter',
+		source: 'admin/FilesSection.tsx:607',
+		placeholder: 'File slug',
+	},
+	{
+		label: 'board stats',
+		el: 'text',
+		code: '<input type="text" ref .searchInput>',
+		meta: 'imperative ref + Enter',
+		source: 'admin/FileStats.tsx:59',
+		placeholder: 'File slug',
+	},
+	{
+		label: 'flag toggle',
+		el: 'checkbox',
+		code: '<input type="checkbox">',
+		meta: 'native, inside .featureFlagLabel',
+		source: 'admin/FlagsSection.tsx:199',
+	},
+	{
+		label: 'flag toggle (rollout)',
+		el: 'checkbox',
+		code: '<input type="checkbox" style={{ cursor }}>',
+		meta: 'native, inline-styled label',
+		source: 'admin/FlagsSection.tsx:438',
+	},
+	{
+		label: 'flag audience mode',
+		el: 'radio',
+		code: '<input type="radio" name="{flag}-mode">',
+		meta: 'native, inline-styled label',
+		source: 'admin/FlagsSection.tsx:348',
+	},
+	{
+		label: 'flag allowlist',
+		el: 'textarea',
+		code: '<textarea rows={4} .searchInput aria-label>',
+		meta: 'a textarea wearing the text-field class',
+		source: 'admin/FlagsSection.tsx:372',
+		placeholder: 'One email per line, e.g. someone@tldraw.com',
+	},
+	{
+		label: 'rollout percent',
+		el: 'text',
+		code: '<input type="text" value={pct} .searchInput>',
+		meta: 'a number held in a text field — no type="number" / inputMode',
+		source: 'admin/FlagsSection.tsx:450',
 	},
 ]
 
@@ -292,7 +380,7 @@ const MATRIX: ReadonlyArray<readonly [string, string, string]> = [
 	['verification code', 'inputMode=numeric', '✗ no inputMode'],
 	['feedback', '<textarea> (multi-line)', '✗ single-line input only'],
 	['sharing toggle', 'type=checkbox · role=switch', '✗ not a text field'],
-	['admin file lookup', 'imperative ref + Enter', '— raw by choice (internal)'],
+	['admin panel', 'its own design language (.searchInput)', '— separate system (internal)'],
 ]
 
 const PAGE_CSS = `

@@ -135,7 +135,7 @@ export function Component() {
 								label="toLocaleTimeString"
 								code={`new Date(t).toLocaleTimeString()`}
 								meta="browser default locale · time only"
-								source="admin.tsx:810"
+								source="admin/UsersSection.tsx:282"
 							>
 								<span className="ts">{browserTime}</span>
 							</Specimen>
@@ -234,6 +234,8 @@ const SITES: ReadonlyArray<readonly [string, string, string, string]> = [
 	['TldrawApp.formatFileDate', 'intl.formatDate', 'user locale', 'dynamic (getDateFormat)'],
 	['TlaPublishTab', 'FormattedRelativeTime', 'user locale', 'relative — "3 days ago"'],
 	['admin (log)', 'toLocaleTimeString', 'browser default', 'time only'],
+	['admin (tables)', 'toLocaleString', 'browser default', 'date + time'],
+	['admin (durable object)', 'formatAgo (hand-rolled)', 'English only', 'relative — "3m ago"'],
 ]
 
 const PAGE_CSS = `

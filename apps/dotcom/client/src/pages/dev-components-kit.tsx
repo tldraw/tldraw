@@ -1,5 +1,21 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { ReactNode } from 'react'
+import adminStyles from './admin/admin.module.css'
+
+/**
+ * The admin panel's .adminLayout, for its --admin-* tokens and paper-grain
+ * background, sized to its content instead of the full-viewport admin page.
+ */
+export function AdminScope({ children }: { children: ReactNode }): ReactNode {
+	return (
+		<div
+			className={adminStyles.adminLayout}
+			style={{ height: 'auto', padding: 12, borderRadius: 6, alignItems: 'center' }}
+		>
+			{children}
+		</div>
+	)
+}
 
 /**
  * Shared specimen card for the /dev/components/* inventory pages, so every
