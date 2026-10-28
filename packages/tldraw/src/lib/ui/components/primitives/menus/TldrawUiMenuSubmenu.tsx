@@ -18,25 +18,34 @@ import { TLUiIconJsx } from '../TldrawUiIcon'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export interface TLUiMenuSubmenuProps<Translation extends string = string> {
+export interface TLUiMenuSubmenuProps<
+	Translation extends string = string,
+	IconType extends string = string,
+> {
 	id: string
 	label?: Translation | { [key: string]: Translation }
 	disabled?: boolean
 	children: ReactNode
 	size?: 'tiny' | 'small' | 'medium' | 'wide'
-	/** Shown before the submenu's row in the command palette. */
-	icon?: string | TLUiIconJsx
+	/**
+	 * Shown on the submenu's row in the command palette. Items listed there as their own rows (the
+	 * only item of an uncollapsed submenu, search hits found by name, recents) show their own icon.
+	 */
+	icon?: IconType | TLUiIconJsx
 }
 
 /** @public @react */
-export function TldrawUiMenuSubmenu<Translation extends string = string>({
+export function TldrawUiMenuSubmenu<
+	Translation extends string = string,
+	IconType extends string = string,
+>({
 	id,
 	disabled = false,
 	label,
 	size = 'small',
 	icon,
 	children,
-}: TLUiMenuSubmenuProps<Translation>) {
+}: TLUiMenuSubmenuProps<Translation, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const container = useContainer()
 	const msg = useTranslation()
