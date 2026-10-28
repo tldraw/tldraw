@@ -18,26 +18,32 @@
 	font-size: 12px;
 }
 
+/* Spaced like the comments sidebar header: the picker's own 12px button padding plus 2px here puts
+   its label 14px in, level with a bare title. */
 .tlui-collections-panel__header {
+	flex-shrink: 0;
 	display: flex;
 	align-items: center;
-	min-height: 40px;
-	padding: 4px;
-	font-weight: 600;
+	justify-content: space-between;
+	gap: 4px;
+	padding: 2px;
+	border-bottom: 1px solid var(--tl-color-divider);
 }
 
-.tlui-collections-panel__header:not(:has(.tlui-select)) {
-	padding: 4px 12px;
+.tlui-collections-panel__title {
+	padding: 0 12px;
+	line-height: 40px;
+	font-weight: 500;
 }
 
-.tlui-collections-picker {
-	flex: 1;
-	min-width: 0;
+.tlui-collections-picker .tlui-select__value {
+	font-weight: 500;
 }
 
 .tlui-collections-panel__empty {
 	margin: 0;
-	padding: 0 12px 12px;
+	padding: 24px;
+	text-align: center;
 	color: var(--tl-color-text-3);
 }
 
@@ -46,7 +52,7 @@
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: 4px;
 	margin: 0;
-	padding: 0 4px 4px;
+	padding: 4px 8px 8px;
 	list-style: none;
 	overflow-y: auto;
 }

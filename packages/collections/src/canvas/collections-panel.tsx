@@ -118,7 +118,9 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 						</>
 					) : (
 						<>
-							<header className="tlui-collections-panel__header">{msg(messages.title)}</header>
+							<header className="tlui-collections-panel__header">
+								<span className="tlui-collections-panel__title">{msg(messages.title)}</span>
+							</header>
 							<p className="tlui-collections-panel__empty">{msg(messages.empty)}</p>
 						</>
 					)}
