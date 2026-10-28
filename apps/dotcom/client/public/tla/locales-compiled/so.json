@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Ku jiid faylka dhinaca bar-side ee boggan. Ama ka dooro 'Faylka Import' ee liiska isticmaalaha."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -495,16 +489,6 @@
       "value": "Xadka wada shaqayntu waa la gaadhay"
     }
   ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " lama akhrin"
-    }
-  ],
   "550b25cc0c": [
     {
       "type": 0,
@@ -938,20 +922,6 @@
       "value": "Fadlan dib u cusbooneysii bogga si aad u hesho nuqulkii ugu dambeeyay ee tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Lagu daray "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " .tldr files."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1132,6 +1102,38 @@
       "value": "."
     }
   ],
+  "a0a19d5145": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " aan la akhrin"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " aan la akhrin"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -1304,6 +1306,12 @@
       "value": "Mulkiilaha"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Faylka u jiid dhinaca dambe ee boggan. Ama dooro ikhtiyaarka 'Soo dejiso faylka' ee ku yaal liiska Faylka ee ku yaal bidixda sare."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1338,7 +1346,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Soo dejinta "
+              "value": "Soo dejinaya "
             },
             {
               "type": 1,
@@ -1346,7 +1354,7 @@
             },
             {
               "type": 0,
-              "value": " ee "
+              "value": " ka mid ah "
             },
             {
               "type": 1,
@@ -1354,7 +1362,7 @@
             },
             {
               "type": 0,
-              "value": " .tldr files…"
+              "value": " fayl .tldr…"
             }
           ]
         }
@@ -1386,6 +1394,46 @@
       "value": "Wax badan ka baro wadaagga"
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Waxaa lagu daray "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " faylka .tldr."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Waxaa lagu daray "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " faylasha .tldr."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1396,12 +1444,6 @@
     {
       "type": 0,
       "value": "Kukiyada muhiimka ah"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Xarig dheer"
     }
   ],
   "c6a00f137b": [
@@ -1684,12 +1726,6 @@
     {
       "type": 0,
       "value": "Liiska xisaabta"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Accent"
     }
   ],
   "ed75712b0e": [

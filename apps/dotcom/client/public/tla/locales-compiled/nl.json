@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Sleep het bestand naar de zijbalk op deze pagina. Of selecteer de optie 'Bestand importeren' in het gebruikersmenu."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -499,16 +493,6 @@
       "value": "Limiet voor bijdragers bereikt"
     }
   ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " ongelezen"
-    }
-  ],
   "550b25cc0c": [
     {
       "type": 0,
@@ -942,16 +926,6 @@
       "value": "Vernieuw de pagina om de nieuwste versie van tldraw te verkrijgen."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " .tldr-bestanden toegevoegd."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1132,6 +1106,38 @@
       "value": "."
     }
   ],
+  "a0a19d5145": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " ongelezen"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " ongelezen"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -1304,6 +1310,12 @@
       "value": "Eigenaar"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Sleep het bestand naar de zijbalk op deze pagina. Of selecteer de optie 'Bestand importeren' in het menu 'Bestand' linksboven."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1386,6 +1398,38 @@
       "value": "Meer informatie over delen."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr-bestand toegevoegd."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr-bestanden toegevoegd."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1396,12 +1440,6 @@
     {
       "type": 0,
       "value": "Essentiële cookies"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Lange reeks"
     }
   ],
   "c6a00f137b": [
@@ -1477,7 +1515,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " ander"
             }
           ]
         },
@@ -1488,7 +1526,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " anderen"
             }
           ]
         }
@@ -1665,7 +1703,7 @@
   "eb1e2b0542": [
     {
       "type": 0,
-      "value": "Vraag de eigenaar van de werkplek om een ​​nieuwe."
+      "value": "Vraag de eigenaar van de werkplek om een nieuwe."
     }
   ],
   "ebfe9ce86e": [
@@ -1684,12 +1722,6 @@
     {
       "type": 0,
       "value": "Accountmenu"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Geaccentueerd"
     }
   ],
   "ed75712b0e": [
@@ -1799,7 +1831,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " ander"
             }
           ]
         },
@@ -1810,7 +1842,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " anderen"
             }
           ]
         }

@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Vi arbejder på understøttelse af filer fra <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Træk filen ind i sidebjælken på denne side. Eller vælg indstillingen 'Importer fil' fra brugermenuen."
-  },
   "043973ec1f": {
     "translation": "Har du stadig problemer? {GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "Samarbejdsgrænsen er nået"
   },
-  "545241e7dd": {
-    "translation": "{count} ulæste"
-  },
   "550b25cc0c": {
     "translation": "Din lokale tegning kunne ikke gendannes. Prøv at genindlæse denne side."
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "Opdater siden for at få den seneste version af tldraw."
   },
-  "86353d2c41": {
-    "translation": "Tilføjet {total} .tldr-filer."
-  },
   "86c66437fd": {
     "translation": "Omdøb fil"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Du er blevet inviteret til at deltage i <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# ulæst} other {# ulæst}}"
   },
   "a0da245992": {
     "translation": "Eksporter indholdet som en .tldr-fil: Vælg 'Download' i menuen øverst til venstre."
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Ejer"
   },
+  "b74dbb40c5": {
+    "translation": "Træk filen ind i sidebjælken på denne side. Eller vælg 'Importer fil' i menuen Filer øverst til venstre."
+  },
   "b758336699": {
     "translation": "Kopiér link"
   },
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "Få mere at vide om deling."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {Tilføjet # .tldr-fil.} other {Tilføjet # .tldr-filer.}}"
+  },
   "c303bd1095": {
     "translation": "Filen kunne ikke udgives."
   },
   "c4b39a1cc3": {
     "translation": "Vigtige cookies"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Lang streng"
   },
   "c6a00f137b": {
     "translation": "Invitere"
@@ -592,7 +589,7 @@
     "translation": "Få mere at vide om udgivelse."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> og {count, plural, one {# other} other {# others}} reagerede på din kommentar"
+    "translation": "<name>{author}</name> og {count, plural, one {# anden} other {# andre}} reagerede på din kommentar"
   },
   "d3d2e61733": {
     "translation": "Tæt"
@@ -649,7 +646,7 @@
     "translation": "Ophæve"
   },
   "eb1e2b0542": {
-    "translation": "Bed ejeren af ​​arbejdsområdet om en ny."
+    "translation": "Bed ejeren af arbejdsområdet om en ny."
   },
   "ebfe9ce86e": {
     "translation": "I går"
@@ -659,9 +656,6 @@
   },
   "ec611e9a08": {
     "translation": "Konto menu"
-  },
-  "ed53713239": {
-    "translation": "i18n: Accent"
   },
   "ed75712b0e": {
     "translation": "Duplikere"
@@ -691,7 +685,7 @@
     "translation": "Slet"
   },
   "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> og {count, plural, one {# other} other {# others}} reagerede på din kommentar"
+    "translation": "<name>{a}</name>, <name>{b}</name> og {count, plural, one {# anden} other {# andre}} reagerede på din kommentar"
   },
   "f4f70727dc": {
     "translation": "Indstillinger"
