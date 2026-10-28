@@ -9,4 +9,4 @@ Add your own commands to the command palette.
 
 ---
 
-Press Cmd+K (Ctrl+K on Windows and Linux) to open the command palette. Actions are listed in the palette on their own; this example wraps `DefaultCommandPalette` to place a custom action in a group of its own and add a plain command.
+Press Cmd+K (Ctrl+K on Windows and Linux) to open the command palette. Actions are listed in the palette on their own; this example wraps `DefaultCommandPalette` to place a custom action in a group of its own and add a submenu you can open.
