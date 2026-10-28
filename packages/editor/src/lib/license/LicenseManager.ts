@@ -29,6 +29,7 @@ export const FLAGS = {
 	FEAT_COLLABORATION: 1 << 6,
 	// Commenting is the first sub-feature of collaboration.
 	FEAT_COMMENTING: 1 << 7,
+	TRACKED: 1 << 8,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -136,7 +137,7 @@ export interface ValidLicenseKeyResult {
 }
 
 /** @internal */
-export type TrackType = 'unlicensed' | 'with_watermark' | 'evaluation' | null
+export type TrackType = 'unlicensed' | 'with_watermark' | 'evaluation' | 'tracked' | null
 
 /** @internal */
 export class LicenseManager {
@@ -301,6 +302,10 @@ export class LicenseManager {
 		// Track evaluation licenses (for analytics, even though no watermark is shown)
 		if (result.isEvaluationLicense) {
 			return 'evaluation'
+		}
+
+		if (this.isFlagEnabled(result.license.flags, FLAGS.TRACKED)) {
+			return 'tracked'
 		}
 
 		// Track licenses that show watermarks
