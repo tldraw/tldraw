@@ -35,6 +35,10 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/dev/components/editor/?$",
   },
   {
+    "reactRouterPattern": "/dev/components/empty",
+    "vercelRouterPattern": "^/dev/components/empty/?$",
+  },
+  {
     "reactRouterPattern": "/dev/components/form-controls",
     "vercelRouterPattern": "^/dev/components/form-controls/?$",
   },
