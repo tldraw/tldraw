@@ -251,16 +251,12 @@ export function UIThemeSubmenu() {
 }
 
 function UIThemeMenuGroup() {
-	const msg = useTranslation()
-	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
-	const trackEvent = useTldrawAppUiEvents()
 	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
-	const defaultThemeLabel = msg(messages.colorThemeDefault)
-	const themeIds = useUIThemeIds()
+	const choices = useUIThemeChoices()
 
 	useEffect(() => clearThemePreview, [clearThemePreview])
 
-	if (themeIds.length === 0) return null
+	if (choices.length === 0) return null
 
 	return (
 		<div
@@ -268,19 +264,15 @@ function UIThemeMenuGroup() {
 			onPointerCancel={clearThemePreview}
 			onPointerLeave={clearThemePreview}
 		>
-			{themeIds.map((id) => (
+			{choices.map((choice) => (
 				<UIThemeMenuCheckboxItem
-					key={id}
-					label={id === 'default' ? defaultThemeLabel : (THEME_NAMES[id] ?? id)}
-					checked={colorTheme === id}
-					onPreview={() => setColorThemePreview(id)}
+					key={choice.id}
+					label={choice.label}
+					checked={choice.checked}
+					onPreview={() => setColorThemePreview(choice.id)}
 					onSelect={() => {
-						updateLocalSessionState(() => ({ colorTheme: id }))
+						choice.select('user-preferences')
 						clearThemePreview()
-						trackEvent('set-color-theme', {
-							source: 'user-preferences',
-							theme: id,
-						})
 					}}
 				/>
 			))}
