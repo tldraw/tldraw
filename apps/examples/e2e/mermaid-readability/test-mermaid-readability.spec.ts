@@ -76,16 +76,7 @@ const KNOWN_PROBLEMS: KnownProblem[] = [
 		// tldraw centres a label on the middle of its arc, which can sit off the straight run the
 		// layout routed and kept clear, so it lands on a node or composite title the edge passes.
 		reason: "A curved edge's label lands on a node or title it passes",
-		findings: [
-			overlap('flowchart', 38, 'Monitor', 'fetch order history from service'),
-			overlap('flowchart', 38, 'fetch order history from service', 'Monitor'),
-			overlap('state', 15, 'reply received', 'WaitingForCustomer'),
-			overlap('state', 15, 'reply received', 'SLA clock may pause here'),
-			overlap('state', 17, 'pen tool', 'Mode'),
-			overlap('state', 17, 'pointer', 'Mode'),
-			overlap('state', 18, 'exit requested', 'Running'),
-			overlap('state', 19, 'legal approves', 'LegalReview'),
-		],
+		findings: [overlap('state', 17, 'pen tool', 'Mode'), overlap('state', 17, 'pointer', 'Mode')],
 	},
 	{
 		reason: 'The labels of a back-and-forth pair of edges touch',
@@ -102,29 +93,14 @@ const KNOWN_PROBLEMS: KnownProblem[] = [
 		reason: 'A label on a short, wide arrow wraps mid-word',
 		findings: [
 			midWordBreak('state', 19, 'legal rejects', 'reject/s'),
-			midWordBreak('state', 24, 'request more changes', 'reque/st'),
-			midWordBreak('state', 24, 'request more changes', 'chang/es'),
+			midWordBreak('state', 24, 'request\nmore\nchanges', 'reque/st'),
+			midWordBreak('state', 24, 'request\nmore\nchanges', 'chang/es'),
 		],
 	},
 	{
 		// A label is part of its arrow, so a self-loop's sits on its loop, which hugs the node.
 		reason: "A self-loop's label overlaps a node tall enough to reach it",
-		findings: [overlap('state', 26, 'type', 'Drafting\nwith autosave\nand validation')],
-	},
-	{
-		reason: 'Font Awesome icon syntax is drawn as text, and the `fa:fa-car` token wraps',
-		findings: [midWordBreak('flowchart', 0, 'fa:fa-car Car', 'f/a')],
-	},
-	{
-		reason: 'A long question wraps past the corners of its diamond',
-		findings: [
-			overlap(
-				'flowchart',
-				28,
-				'File type accepted by the current processing pipeline?',
-				'its own outline'
-			),
-		],
+		findings: [overlap('state', 26, 'close', 'Drafting\nwith autosave\nand validation')],
 	},
 	{
 		// Rows are as tall as the layout's own text needs, and tldraw's labels are taller.
