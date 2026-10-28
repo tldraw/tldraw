@@ -4,12 +4,17 @@ import { COMMAND_PALETTE_MENU_ID } from './commandPaletteMenuId'
 import { CommandPaletteShell, TLUiCommandPalettePosition } from './CommandPaletteShell'
 import { DefaultCommandPaletteContent } from './DefaultCommandPaletteContent'
 
-/** @public */
+/**
+ * Props for the `CommandPalette` slot.
+ *
+ * @public
+ */
 export interface TLUiCommandPaletteProps {
 	/** Where the palette opens. Defaults to `'bottom'`, just above the toolbar. */
 	position?: TLUiCommandPalettePosition
 	/** Closes the palette. The `CommandPalette` slot is mounted only while the palette is open. */
 	onClose?(): void
+	/** Replaces {@link DefaultCommandPaletteContent}. */
 	children?: ReactNode
 }
 
@@ -18,7 +23,11 @@ function useCloseCommandPalette() {
 	return useCallback(() => editor.menus.deleteOpenMenu(COMMAND_PALETTE_MENU_ID), [editor])
 }
 
-/** @public @react */
+/**
+ * A {@link CommandPaletteShell} with {@link DefaultCommandPaletteContent}, or `children` instead.
+ *
+ * @public @react
+ */
 export const DefaultCommandPalette = memo(function DefaultCommandPalette({
 	position,
 	onClose,

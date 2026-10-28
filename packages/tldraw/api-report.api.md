@@ -792,40 +792,40 @@ export function ColorSchemeMenu(): JSX.Element;
 // @public
 export function CommandPaletteActionGroup({ group, label }: TLUiCommandPaletteActionGroupProps): JSX.Element;
 
-// @public (undocumented)
+// @public
 export function CommandPaletteArrangeGroup(): JSX.Element;
 
 // @public
 export function CommandPaletteCollapsed({ children }: TLUiCommandPaletteCollapsedProps): JSX.Element;
 
-// @public (undocumented)
+// @public
 export function CommandPaletteEditGroup(): JSX.Element;
 
-// @public (undocumented)
+// @public
 export function CommandPaletteExportGroup(): JSX.Element;
 
-// @public (undocumented)
+// @public
 export function CommandPaletteHelpGroup(): JSX.Element;
 
 // @public
 export function CommandPaletteImageGroup(): JSX.Element | null;
 
-// @public (undocumented)
+// @public
 export function CommandPaletteMenuItem(): JSX.Element | null;
 
-// @public (undocumented)
+// @public
 export function CommandPalettePagesGroup(): JSX.Element | null;
 
 // @public
 export function CommandPalettePinned({ children }: TLUiCommandPalettePinnedProps): JSX.Element;
 
-// @public (undocumented)
+// @public
 export function CommandPalettePreferencesGroup(): JSX.Element;
 
 // @public
 export function CommandPalettePromptItem<TranslationKey extends string = string>({ id, label, placeholder, initialValue, onSubmit, }: TLUiCommandPalettePromptItemProps<TranslationKey>): JSX.Element | null;
 
-// @public (undocumented)
+// @public
 export function CommandPaletteSelectionGroup(): JSX.Element;
 
 // @public
@@ -834,10 +834,10 @@ export function CommandPaletteShell({ position, onClose, children, }: TLUiComman
 // @public
 export function CommandPaletteStylesGroup(): JSX.Element | null;
 
-// @public (undocumented)
+// @public
 export function CommandPaletteToolsGroup(): JSX.Element;
 
-// @public (undocumented)
+// @public
 export function CommandPaletteViewGroup(): JSX.Element;
 
 // @public
@@ -1190,7 +1190,7 @@ export const defaultAssetUtils: readonly [typeof ImageAssetUtil, typeof VideoAss
 // @public (undocumented)
 export const defaultBindingUtils: readonly [typeof ArrowBindingUtil];
 
-// @public (undocumented)
+// @public
 export const DefaultCommandPalette: MemoExoticComponent<({ position, onClose, children, }: TLUiCommandPaletteProps) => JSX.Element>;
 
 // @public
@@ -4788,30 +4788,27 @@ export interface TLUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElemen
     type: 'danger' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'tool';
 }
 
-// @public (undocumented)
+// @public
 export interface TLUiCommandPaletteActionGroupProps {
     group?: string;
     label?: string;
 }
 
-// @public (undocumented)
+// @public
 export interface TLUiCommandPaletteCollapsedProps {
-    // (undocumented)
     children: ReactNode;
 }
 
-// @public (undocumented)
+// @public
 export interface TLUiCommandPalettePinnedProps {
-    // (undocumented)
     children: ReactNode;
 }
 
-// @public (undocumented)
+// @public
 export type TLUiCommandPalettePosition = 'bottom' | 'center' | 'top';
 
-// @public (undocumented)
+// @public
 export interface TLUiCommandPalettePromptItemProps<TranslationKey extends string = string> {
-    // (undocumented)
     id: string;
     initialValue?: string;
     label: {
@@ -4823,15 +4820,14 @@ export interface TLUiCommandPalettePromptItemProps<TranslationKey extends string
     } | TranslationKey;
 }
 
-// @public (undocumented)
+// @public
 export interface TLUiCommandPaletteProps {
-    // (undocumented)
     children?: ReactNode;
     onClose?(): void;
     position?: TLUiCommandPalettePosition;
 }
 
-// @public (undocumented)
+// @public
 export interface TLUiCommandPaletteShellProps {
     children: ReactNode;
     onClose(): void;

@@ -4,8 +4,13 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { useTldrawUiMenuContext } from '../primitives/menus/TldrawUiMenuContext'
 import { CommandPaletteItemRegistration } from './CommandPaletteItemRegistration'
 
-/** @public */
+/**
+ * Props for {@link CommandPalettePromptItem}.
+ *
+ * @public
+ */
 export interface TLUiCommandPalettePromptItemProps<TranslationKey extends string = string> {
+	/** Keys the item in recents. Only the first palette item with a given id is listed. */
 	id: string
 	/**
 	 * The label to display on the item. If it's a string, it will be translated. If it's an object, the keys will be used as the language keys and the values will be translated.

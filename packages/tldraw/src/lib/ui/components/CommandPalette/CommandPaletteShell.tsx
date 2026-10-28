@@ -39,10 +39,18 @@ const messages = defineMessages({
 
 type SelectableRow = Extract<CommandPaletteRow, { type: 'item' | 'submenu' }>
 
-/** @public */
+/**
+ * Where the command palette opens.
+ *
+ * @public
+ */
 export type TLUiCommandPalettePosition = 'top' | 'center' | 'bottom'
 
-/** @public */
+/**
+ * Props for {@link CommandPaletteShell}.
+ *
+ * @public
+ */
 export interface TLUiCommandPaletteShellProps {
 	/**
 	 * Where the palette opens. `'bottom'`, the default, sits just above the toolbar at its width when
