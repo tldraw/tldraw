@@ -5,6 +5,7 @@ export {
 	type TLCollectionAction,
 	type TLNewCollectionItem,
 } from './lib/CollectionSource'
+export { useCollectionItems, useCollections } from './lib/hooks'
 export {
 	InMemoryCollectionSource,
 	type InMemoryCollectionSourceOptions,

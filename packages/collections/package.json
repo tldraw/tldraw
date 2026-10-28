@@ -10,13 +10,21 @@
 	"dependencies": {
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/state": "workspace:*",
+		"@tldraw/state-react": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*"
 	},
 	"devDependencies": {
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
 		"vitest": "^5.0.0"
+	},
+	"peerDependencies": {
+		"react": "^18.2.0 || ^19.2.1"
 	},
 	"scripts": {
 		"test-ci": "pnpm exec vitest run --passWithNoTests",

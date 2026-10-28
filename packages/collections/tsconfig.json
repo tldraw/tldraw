@@ -6,6 +6,7 @@
 	"references": [
 		{ "path": "../editor" },
 		{ "path": "../state" },
+		{ "path": "../state-react" },
 		{ "path": "../store" },
 		{ "path": "../tlschema" },
 		{ "path": "../utils" },
