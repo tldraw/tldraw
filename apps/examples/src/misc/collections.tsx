@@ -12,7 +12,7 @@ import {
 	createShapeId,
 	DefaultContextMenu,
 	DefaultContextMenuContent,
-	DefaultPageMenu,
+	DefaultMenuPanel,
 	Editor,
 	TLComponents,
 	Tldraw,
@@ -112,11 +112,13 @@ const components: TLComponents = {
 			<DefaultContextMenuContent />
 		</DefaultContextMenu>
 	),
-	PageMenu: () => (
-		<>
-			<DefaultPageMenu />
-			<CollectionsPanelButton />
-		</>
+	MenuPanel: () => (
+		<div style={{ display: 'flex', alignItems: 'flex-start' }}>
+			<DefaultMenuPanel />
+			<div style={{ paddingTop: 2, paddingLeft: 4, pointerEvents: 'all' }}>
+				<CollectionsPanelButton />
+			</div>
+		</div>
 	),
 }
 
