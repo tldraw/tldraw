@@ -585,23 +585,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
-				id: 'open-command-palette',
-				label: messages.actionOpenCommandPalette.id,
-				kbd: 'cmd+k,ctrl+k',
-				readonlyOk: true,
-				// Opening marks a menu open, which disables every shortcut until the palette clears it,
-				// so the action must not run where no palette will render.
-				isAvailable: () => !!components.CommandPalette,
-				onSelect(source) {
-					trackEvent('open-command-palette', { source })
-					editor.complete()
-					// DefaultPageMenu clears open menus on keydown while body is focused, closing the palette.
-					const doc = editor.getContainerDocument()
-					if (doc.activeElement === doc.body) editor.getContainer().focus()
-					editor.menus.addOpenMenu(COMMAND_PALETTE_MENU_ID)
-				},
-			},
-			{
 				id: 'insert-media',
 				label: messages.actionInsertMedia.id,
 				kbd: 'cmd+u,ctrl+u',
@@ -2183,6 +2166,25 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.timers.requestAnimationFrame(() => {
 						editor.updateInstanceState({ isChatting: true })
 					})
+				},
+			})
+		}
+
+		// Opening marks a menu open, which disables every shortcut until the palette clears it,
+		// so the action must not exist where no palette renders.
+		if (components.CommandPalette) {
+			actionItems.push({
+				id: 'open-command-palette',
+				label: messages.actionOpenCommandPalette.id,
+				kbd: 'cmd+k,ctrl+k',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('open-command-palette', { source })
+					editor.complete()
+					// DefaultPageMenu clears open menus on keydown while body is focused, closing the palette.
+					const doc = editor.getContainerDocument()
+					if (doc.activeElement === doc.body) editor.getContainer().focus()
+					editor.menus.addOpenMenu(COMMAND_PALETTE_MENU_ID)
 				},
 			})
 		}
