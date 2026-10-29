@@ -1,12 +1,10 @@
 import { atom, computed } from '@tldraw/editor'
 import { TLUiEventSource } from '../../context/events'
-import { TLUiIconJsx } from '../primitives/TldrawUiIcon'
 
 /** @internal */
 export interface CommandPaletteSubmenu {
 	key: string
 	label: string
-	icon?: string | TLUiIconJsx
 	/** Always one row you open, even with one item, and its items never show outside it. */
 	collapsed?: boolean
 }
@@ -48,7 +46,6 @@ export interface CommandPaletteEntry {
 	section: string | null
 	/** The outermost labelled group the item is in, for group headings. */
 	heading: string | null
-	icon?: string | TLUiIconJsx
 	kbd?: string
 	checked?: boolean
 	isSelected?: boolean
@@ -86,15 +83,9 @@ const entryFieldEquals: {
 	path: (a, b) => a.length === b.length && a.every((part, i) => part === b[i]),
 	submenu: (a, b) =>
 		a === b ||
-		(!!a &&
-			!!b &&
-			a.key === b.key &&
-			a.label === b.label &&
-			a.icon === b.icon &&
-			a.collapsed === b.collapsed),
+		(!!a && !!b && a.key === b.key && a.label === b.label && a.collapsed === b.collapsed),
 	section: same,
 	heading: same,
-	icon: same,
 	kbd: same,
 	checked: same,
 	isSelected: same,

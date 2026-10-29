@@ -826,7 +826,7 @@ export function CommandPalettePreferencesGroup(): JSX.Element;
 export function CommandPalettePromptItem<TranslationKey extends string = string>({ id, label, placeholder, initialValue, readonlyOk, onSubmit, }: TLUiCommandPalettePromptItemProps<TranslationKey>): JSX.Element | null;
 
 // @internal
-export function CommandPaletteSearchItem({ id, label, placeholder, icon, getResults, }: TLUiCommandPaletteSearchItemProps): JSX.Element | null;
+export function CommandPaletteSearchItem({ id, label, placeholder, getResults, }: TLUiCommandPaletteSearchItemProps): JSX.Element | null;
 
 // @public
 export function CommandPaletteSelectionGroup(): JSX.Element;
@@ -4404,7 +4404,7 @@ export function TldrawUiMenuActionCheckboxItem({ actionId, whenDisabled, disable
 export function TldrawUiMenuActionItem({ actionId, whenDisabled, disabled, ...rest }: TLUiMenuActionItemProps): JSX.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, icon, label, lang, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX.Element | null;
+export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, lang, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX.Element;
@@ -4416,7 +4416,7 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, detail, onDragStart, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuSubmenu<Translation extends string = string, IconType extends string = string>({ id, disabled, label, size, icon, children, }: TLUiMenuSubmenuProps<Translation, IconType>): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
+export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
 
 // @public (undocumented)
 export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX.Element | null;
@@ -4836,8 +4836,6 @@ export interface TLUiCommandPaletteProps {
 export interface TLUiCommandPaletteSearchItemProps {
     getResults(query: string): TLUiCommandPaletteSearchResult[];
     // (undocumented)
-    icon?: string | TLUiIconJsx;
-    // (undocumented)
     id: string;
     // (undocumented)
     label: string;
@@ -4848,8 +4846,6 @@ export interface TLUiCommandPaletteSearchItemProps {
 // @internal (undocumented)
 export interface TLUiCommandPaletteSearchResult {
     detail?: string;
-    // (undocumented)
-    icon?: string | TLUiIconJsx;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -5654,12 +5650,11 @@ export interface TLUiMenuItemProps<TranslationKey extends string = string, IconT
 }
 
 // @public (undocumented)
-export interface TLUiMenuSubmenuProps<Translation extends string = string, IconType extends string = string> {
+export interface TLUiMenuSubmenuProps<Translation extends string = string> {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
     disabled?: boolean;
-    icon?: IconType | TLUiIconJsx;
     // (undocumented)
     id: string;
     // (undocumented)

@@ -40,7 +40,6 @@ export function TldrawUiMenuCheckboxItem<
 >({
 	id,
 	kbd,
-	icon,
 	label,
 	lang,
 	readonlyOk,
@@ -118,7 +117,6 @@ export function TldrawUiMenuCheckboxItem<
 					id={id}
 					label={labelStr}
 					kbd={kbd}
-					icon={icon}
 					checked={checked}
 					onSelect={onSelect}
 				/>
