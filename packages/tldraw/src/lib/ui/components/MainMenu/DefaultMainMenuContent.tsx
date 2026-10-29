@@ -13,6 +13,7 @@ import {
 	EditLinkMenuItem,
 	FitFrameToContentMenuItem,
 	FlattenMenuItem,
+	UnflattenMenuItem,
 	GroupMenuItem,
 	RemoveFrameMenuItem,
 	SelectAllMenuItem,
@@ -109,6 +110,7 @@ export function MiscMenuGroup() {
 			<ConvertToEmbedMenuItem />
 			<ConvertToBookmarkMenuItem />
 			<FlattenMenuItem />
+			<UnflattenMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
