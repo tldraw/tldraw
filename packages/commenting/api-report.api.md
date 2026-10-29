@@ -47,6 +47,16 @@ export { Avatar }
 
 export { AvatarProps }
 
+// @internal
+export function buildReactionNotifications<T extends CommentNotificationInput>(comments: readonly T[], userId: null | string | undefined): CommentNotification<T>[];
+
+// @internal
+export function buildStoreCommentNotifications(records: {
+    comments: readonly TLComment[];
+    reactions: readonly TLCommentReaction[];
+    threads: readonly TLCommentThread[];
+}, userId: null | string | undefined, opts?: StoreCommentNotificationsOptions): CommentNotification<StoreCommentNotificationInput>[];
+
 // @public
 export function Byline({ author, date, edited }: BylineProps): JSX.Element;
 
@@ -71,6 +81,14 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps): JSX.El
 export interface CanvasCommentsSidebarProps extends Pick<CommentingContext, 'currentUserId' | 'getThreadHref' | 'isCommentUnread' | 'resolveAuthor'> {
     empty?: ReactNode;
     header?: ReactNode;
+}
+
+// @internal
+export function categorizeCommentNotifications<T extends CommentNotificationInput>(comments: readonly T[], userId: null | string | undefined, opts?: CategorizeCommentNotificationsOptions<T>): CommentNotification<T>[];
+
+// @internal (undocumented)
+export interface CategorizeCommentNotificationsOptions<T extends CommentNotificationInput> {
+    ownsBoard?(comment: T): boolean;
 }
 
 export { CommentAuthor }
@@ -231,6 +249,75 @@ export type CommentModificationContext = {
     readonly currentUserId: null | string;
     readonly editor: Editor;
 } & CommentModification;
+
+// @internal
+export interface CommentNotification<T extends CommentNotificationInput = CommentNotificationInput> {
+    // (undocumented)
+    comment: T;
+    primaryReason: CommentNotificationReason;
+    reasons: CommentNotificationReason[];
+    timestamp: number;
+    unread: boolean;
+}
+
+// @internal
+export interface CommentNotificationContent {
+    // (undocumented)
+    body: string;
+    // (undocumented)
+    title: string;
+}
+
+// @internal
+export interface CommentNotificationInput {
+    // (undocumented)
+    authorId: string;
+    // (undocumented)
+    body: unknown;
+    // (undocumented)
+    createdAt: number;
+    // (undocumented)
+    id: string;
+    reactions?: null | readonly {
+        createdAt: number;
+        emoji: string;
+        userId: string;
+        userName?: string;
+    }[];
+    read?: {
+        readAt?: null | number;
+    } | null;
+    // (undocumented)
+    thread?: {
+        comments?: null | readonly {
+            authorId: string;
+            createdAt: number;
+        }[];
+        createdBy?: null | string;
+    } | null;
+    // (undocumented)
+    threadId: string;
+}
+
+// @internal
+export type CommentNotificationLevel = 'all' | 'mentions-and-replies' | 'mentions';
+
+// @internal
+export type CommentNotificationReason = 'mention' | 'owned-board' | 'reaction' | 'reply';
+
+// @internal (undocumented)
+export interface CommentNotifierOptions<T extends CommentNotificationInput> {
+    // (undocumented)
+    format(notification: CommentNotification<T>): CommentNotificationContent;
+    getNotifications(): readonly CommentNotification<T>[];
+    isEnabled(): boolean;
+    isWindowFocused?(): boolean;
+    lockName?: string;
+    // (undocumented)
+    onClick(notification: CommentNotification<T>): void;
+    shouldShow?(notification: CommentNotification<T>): boolean;
+    show?: ShowCommentNotification<T>;
+}
 
 // @public
 export function CommentPin({ children, resolved, open }: CommentPinProps): JSX.Element;
@@ -464,11 +551,20 @@ export function getLiveCommentThreads(editor: Editor): TLCommentThread[];
 // @public
 export function getRevealThreadPending(editor: Editor): null | string;
 
+// @internal
+export function getStoreCommentNotifications(editor: Editor, userId: null | string | undefined, opts?: StoreCommentNotificationsOptions): CommentNotification<StoreCommentNotificationInput>[];
+
 // @public
 export function isAllowedReactionEmoji(emoji: string, palette?: readonly string[]): boolean;
 
+// @internal
+export function isAtNotificationLevel(notification: CommentNotification<any>, level: CommentNotificationLevel): boolean;
+
 // @public
 export function isOpenInNewTabClick(e: MouseEvent_2): boolean;
+
+// @internal
+export function latestForeignReactionAt(reactions: CommentNotificationInput['reactions'], userId: string): number | undefined;
 
 export { Mention }
 
@@ -481,6 +577,14 @@ export { MentionMember }
 export { MentionProps }
 
 export { MentionSuggestionOptions }
+
+// @internal
+export function mergeCommentFeeds<T extends {
+    id: string;
+}>(...feeds: readonly (readonly T[])[]): T[];
+
+// @internal
+export function mergeNotifications<T extends CommentNotificationInput>(...feeds: readonly CommentNotification<T>[][]): CommentNotification<T>[];
 
 // @public
 export const openThreadId: EditorAtom<null | string>;
@@ -613,6 +717,12 @@ export interface ShapeCommentPrecisionContext {
     readonly shapeId: TLShapeId;
 }
 
+// @internal
+export function showBrowserNotification<T extends CommentNotificationInput>(notification: CommentNotification<T>, content: CommentNotificationContent, onClick: () => void): void;
+
+// @internal
+export type ShowCommentNotification<T extends CommentNotificationInput> = (notification: CommentNotification<T>, content: CommentNotificationContent, onClick: () => void) => void;
+
 // @public
 export interface SidebarFilters {
     onlyCurrentPage: boolean;
@@ -636,6 +746,28 @@ export function sortSidebarRows(rows: readonly SidebarRow[]): readonly SidebarRo
 
 // @public
 export function startCommentAt(editor: Editor, point: VecLike): void;
+
+// @internal
+export function startCommentNotifier<T extends CommentNotificationInput>(opts: CommentNotifierOptions<T>): () => void;
+
+// @internal
+export interface StoreCommentNotificationInput extends CommentNotificationInput {
+    // (undocumented)
+    record: TLComment;
+}
+
+// @internal (undocumented)
+export interface StoreCommentNotificationsOptions {
+    isCommentUnread?(commentId: TLCommentId): boolean;
+    ownsBoard?: boolean;
+}
+
+// @internal
+export function summarizeForeignReactors(reactions: CommentNotificationInput['reactions'], userId: null | string | undefined): {
+    names: string[];
+    others: number;
+    total: number;
+};
 
 // @public
 export function summarizeReactions(reactions: readonly ReactionSummaryInput[], currentUserId?: null | string, resolveName?: (userId: string) => string | undefined, opts?: {

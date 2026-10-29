@@ -185,6 +185,22 @@
       "value": "Create file"
     }
   ],
+  "193cc236a7": [
+    {
+      "type": 1,
+      "value": "author"
+    },
+    {
+      "type": 0,
+      "value": " commented on your board"
+    }
+  ],
+  "1aa0d7cede": [
+    {
+      "type": 0,
+      "value": "All activity"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -433,6 +449,12 @@
       "value": "Pin file"
     }
   ],
+  "4974a07fc2": [
+    {
+      "type": 0,
+      "value": "Mentions only"
+    }
+  ],
   "49ee308734": [
     {
       "type": 0,
@@ -449,6 +471,16 @@
     {
       "type": 0,
       "value": "Reload"
+    }
+  ],
+  "502791de0a": [
+    {
+      "type": 1,
+      "value": "author"
+    },
+    {
+      "type": 0,
+      "value": " mentioned you"
     }
   ],
   "5097d89907": [
@@ -595,6 +627,12 @@
     {
       "type": 0,
       "value": "Copy"
+    }
+  ],
+  "602983f467": [
+    {
+      "type": 0,
+      "value": "Desktop notifications"
     }
   ],
   "608e9d366e": [
@@ -804,6 +842,16 @@
     {
       "type": 0,
       "value": "Default"
+    }
+  ],
+  "7ab2d742a7": [
+    {
+      "type": 1,
+      "value": "author"
+    },
+    {
+      "type": 0,
+      "value": " replied"
     }
   ],
   "7b1329f5ca": [
@@ -1548,6 +1596,12 @@
       "value": " reacted to your comment"
     }
   ],
+  "d15305d7a4": [
+    {
+      "type": 0,
+      "value": "Off"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1898,10 +1952,26 @@
       "value": " to use it here."
     }
   ],
+  "f9ee5b35dc": [
+    {
+      "type": 1,
+      "value": "author"
+    },
+    {
+      "type": 0,
+      "value": " reacted to your comment"
+    }
+  ],
   "fa2ead697d": [
     {
       "type": 0,
       "value": "Privacy Policy"
+    }
+  ],
+  "fa76850f76": [
+    {
+      "type": 0,
+      "value": "Mentions and replies"
     }
   ],
   "fb15c53f22": [

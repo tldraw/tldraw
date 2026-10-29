@@ -143,6 +143,36 @@ export {
 } from './canvas/state'
 export { anchorPagePoint, focusThread, shapeAnchorAt } from './canvas/thread-state'
 
+// Comment notifications: which comments concern a user, read from the editor store or an app's
+// own rows, and a notifier that surfaces new ones while the window is out of focus.
+export {
+	buildReactionNotifications,
+	categorizeCommentNotifications,
+	type CategorizeCommentNotificationsOptions,
+	type CommentNotification,
+	type CommentNotificationInput,
+	type CommentNotificationLevel,
+	type CommentNotificationReason,
+	isAtNotificationLevel,
+	latestForeignReactionAt,
+	mergeCommentFeeds,
+	mergeNotifications,
+	summarizeForeignReactors,
+} from './notifications/comment-notifications'
+export {
+	type CommentNotificationContent,
+	type CommentNotifierOptions,
+	showBrowserNotification,
+	type ShowCommentNotification,
+	startCommentNotifier,
+} from './notifications/notifier'
+export {
+	buildStoreCommentNotifications,
+	getStoreCommentNotifications,
+	type StoreCommentNotificationInput,
+	type StoreCommentNotificationsOptions,
+} from './notifications/store-notifications'
+
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,
 	(globalThis as any).TLDRAW_LIBRARY_VERSION,

@@ -11,6 +11,7 @@ export { MentionList, type MentionListProps, type MentionMember } from './mentio
 // (comments composer, shape rich text) to render mention pills and — when a suggestion is provided —
 // drive the picker.
 export { createMentionExtension, type MentionExtensionOptions } from './mention-extension'
+export { extractMentionIds } from './mention-ids'
 export {
 	createMentionSuggestion,
 	filterMentionMembers,
