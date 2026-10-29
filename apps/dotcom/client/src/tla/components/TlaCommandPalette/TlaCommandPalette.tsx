@@ -74,7 +74,6 @@ import {
 	useCreateWorkspaceDialog,
 	useSwitchToWorkspace,
 } from '../TlaSidebar/components/TlaSidebarWorkspaceSwitcher'
-import notificationStyles from '../TlaSidebar/components/notifications.module.css'
 
 const MAX_FILE_RESULTS = 8
 const MAX_RECENT_FILES = 5
@@ -336,17 +335,15 @@ function TlaNotificationsGroup() {
 	const unknownAuthorLbl = msg(messages.unknownAuthor)
 	if (!unreadCount) return null
 	const listed = notifications.slice(0, MAX_NOTIFICATIONS)
-	const unreadIcon = <span className={notificationStyles.paletteUnreadIcon} />
 
 	return (
 		<CommandPalettePinned>
 			<CommandPaletteCollapsed>
-				<TldrawUiMenuSubmenu id="tla-new-notifications" label={notificationsLbl} icon={unreadIcon}>
+				<TldrawUiMenuSubmenu id="tla-new-notifications" label={notificationsLbl}>
 					{listed.map(({ comment, unread }) => (
 						<TldrawUiMenuItem
 							key={comment.id}
 							id={`notification:${comment.id}`}
-							iconLeft={unread ? unreadIcon : undefined}
 							label={`${comment.authorName || unknownAuthorLbl}: ${richTextToPlaintext(comment.body as TLRichText)}`}
 							detail={
 								comment.fileId === currentFileId
@@ -404,7 +401,7 @@ function TlaAppGroup() {
 			)}
 			{app && <TlaMarkAllReadItem />}
 			<GiveUsFeedbackMenuItem />
-			<UserManualMenuItem icon={false} source="command-palette" />
+			<UserManualMenuItem source="command-palette" />
 		</TldrawUiMenuGroup>
 	)
 }
