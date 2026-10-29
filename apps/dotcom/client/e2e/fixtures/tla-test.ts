@@ -5,7 +5,7 @@ import { OTHER_USERS, USERS } from '../consts'
 import { Database } from './Database'
 import { DeleteFileDialog } from './DeleteFileDialog'
 import { Editor } from './Editor'
-import { getStorageStateFileName } from './helpers'
+import { disableWhatsNewAutoOpen, getStorageStateFileName } from './helpers'
 import { HomePage } from './HomePage'
 import { ImportHelper } from './ImportHelper'
 import { ShareMenu } from './ShareMenu'
@@ -68,6 +68,7 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 			// Make sure we don't get marked as a bot
 			// https://clerk.com/docs/testing/playwright/overview
 			await setupClerkTestingToken({ page })
+			await disableWhatsNewAutoOpen(page.context())
 			await database.reset()
 
 			await homePage.goto()
