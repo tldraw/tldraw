@@ -240,7 +240,7 @@ function MyCommandPalette() {
 
 A command shows once, wherever it's placed first, so placing an action yourself takes it out of the catch-all at the end. `DefaultCommandPaletteContent` is made of exported groups, such as `CommandPaletteEditGroup` and `CommandPaletteViewGroup`, ending with `<CommandPaletteActionGroup />`, the catch-all. If you list the groups yourself, end with it too, or actions you don't place won't appear. The catch-all lists every available action with a label, custom ones included, so set `commandPalette: false` on internal or shortcut-only actions to leave them out. `CommandPaletteToolsGroup` lists one item per tool, after the editing commands and before preferences and help. Pass `CommandPalette: null` to turn the palette off.
 
-The palette opens just above the toolbar when it's horizontal, and in the lower middle of the editor otherwise. Pass `position="center"` or `position="top"` to `DefaultCommandPalette` to open it elsewhere:
+The palette opens in the middle of the editor. Pass `position="top"` or `position="bottom"` to `DefaultCommandPalette` to open it elsewhere; `'bottom'` sits just above the toolbar when it's horizontal, and in the lower middle of the editor otherwise:
 
 ```tsx
 function TopCommandPalette(props: TLUiCommandPaletteProps) {
@@ -264,20 +264,42 @@ function MyCommandPalette({ onClose }: TLUiCommandPaletteProps) {
 }
 ```
 
+`CommandPaletteShell` also works outside an editor, for example on a page that lists documents. There, your app owns the open state and the shortcut, and renders `<CommandPaletteShell onClose={...}>` with its own items while open. Render it inside `TldrawUiContextProvider` and a themed tldraw container (`.tl-container` with a theme class such as `tl-theme__light`) that is positioned, since the palette fills its nearest positioned ancestor. Focus goes back to whatever had it when the palette opened. `DefaultCommandPalette`, the `CommandPalette` slot, Cmd/Ctrl+K and the default groups still need an editor.
+
+```tsx
+function DocumentPalette({ onClose }: { onClose(): void }) {
+	return (
+		<div className="tl-container tl-theme__light" style={{ position: 'fixed', inset: 0 }}>
+			<TldrawUiContextProvider>
+				<CommandPaletteShell onClose={onClose}>
+					{documents.map((doc) => (
+						<TldrawUiMenuItem
+							key={doc.id}
+							id={doc.id}
+							label={doc.name}
+							onSelect={() => open(doc)}
+						/>
+					))}
+				</CommandPaletteShell>
+			</TldrawUiContextProvider>
+		</div>
+	)
+}
+```
+
 For long or async lists, read the query with `useCommandPaletteQuery()` and render only your best matches. `getCommandPaletteMatchScore` matches the same items the palette does, but the palette adds its own tiebreaks to the order, so rely only on 0 meaning no match and a higher score meaning a better one.
 
 A few components shape how items appear in the palette. Outside it they render their children unchanged, so a group can be shared with other menus.
 
 - `CommandPalettePinned` lists the items inside first, above recent commands, while browsing.
 - `CommandPaletteCollapsed` keeps the submenu inside as one row you open, even with a single item, and keeps its items out of top-level search results.
-- `TldrawUiMenuSubmenu` takes an `icon`, shown on the submenu's row.
 - `TldrawUiMenuItem` takes a `detail`, muted text after its label, such as the workspace a file is in. Search matches it too.
 - `CommandPalettePromptItem` asks for text before running, such as a name. Its `onSubmit` gets the trimmed text, and `initialValue` fills the input with the current value, selected.
 
 ```tsx
 <CommandPalettePinned>
 	<CommandPaletteCollapsed>
-		<TldrawUiMenuSubmenu id="inbox" label="Inbox" icon="comment">
+		<TldrawUiMenuSubmenu id="inbox" label="Inbox">
 			{messages.map((message) => (
 				<TldrawUiMenuItem key={message.id} id={message.id} label={message.title} onSelect={open} />
 			))}

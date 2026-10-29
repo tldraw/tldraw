@@ -41,7 +41,6 @@ export function TldrawUiMenuCheckboxItem<
 >({
 	id,
 	kbd,
-	icon,
 	label,
 	lang,
 	readonlyOk,
@@ -120,7 +119,6 @@ export function TldrawUiMenuCheckboxItem<
 					id={id}
 					label={labelStr}
 					kbd={kbd}
-					icon={icon}
 					checked={checked}
 					disabled={disabled}
 					disabledReason={disabledReason ? msg(disabledReason as TLUiTranslationKey) : undefined}

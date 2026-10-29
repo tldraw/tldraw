@@ -1,4 +1,4 @@
-import { act, fireEvent, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, waitFor, within } from '@testing-library/react'
 import { deleteFromLocalStorage, Editor, useValue } from '@tldraw/editor'
 import { ReactNode, useState } from 'react'
 import { vi } from 'vitest'
@@ -23,6 +23,7 @@ import { TldrawUiMenuGroup } from '../../lib/ui/components/primitives/menus/Tldr
 import { TldrawUiMenuItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from '../../lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'
 import { DefaultToolbar } from '../../lib/ui/components/Toolbar/DefaultToolbar'
+import { TldrawUiContextProvider } from '../../lib/ui/context/TldrawUiContextProvider'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
 const mockDir = vi.hoisted(() => ({ current: null as 'ltr' | 'rtl' | null }))
@@ -205,6 +206,13 @@ describe('CommandPaletteShell', () => {
 		await rendered.findByText('No results')
 	})
 
+	it('opens in the center by default', async () => {
+		const { rendered } = await renderShell(item('alpha', 'Alpha'))
+		const palette = rendered.getByTestId('command-palette')
+		expect(palette.dataset.position).toBe('center')
+		expect(palette.style.top).toBe('')
+	})
+
 	it('opens where its position says', async () => {
 		const { rendered } = await renderShell(item('alpha', 'Alpha'), vi.fn(), { position: 'top' })
 		expect(rendered.getByTestId('command-palette').dataset.position).toBe('top')
@@ -231,7 +239,9 @@ describe('CommandPaletteShell', () => {
 						onMount={onMount}
 						components={{ Toolbar: () => <DefaultToolbar orientation={orientation} /> }}
 					>
-						<CommandPaletteShell onClose={vi.fn()}>{item('alpha', 'Alpha')}</CommandPaletteShell>
+						<CommandPaletteShell position="bottom" onClose={vi.fn()}>
+							{item('alpha', 'Alpha')}
+						</CommandPaletteShell>
 					</Tldraw>
 				),
 				{ waitForPatterns: false }
@@ -295,16 +305,6 @@ describe('CommandPaletteShell', () => {
 		press(input, 'Enter')
 		lose(editor.getContainerWindow(), editor.getContainer())
 		expect(isEnterKeyUpSwallowed(editor)).toBe(false)
-	})
-
-	it("shows a submenu's icon on its row", async () => {
-		const { rendered } = await renderShell(
-			<TldrawUiMenuSubmenu id="news" label="News" icon={<span data-testid="news-icon" />}>
-				{['a', 'b'].map((id) => item(id, `Item ${id}`))}
-			</TldrawUiMenuSubmenu>
-		)
-		const row = await rendered.findByTestId('command-palette.submenu.News')
-		expect(within(row).getByTestId('news-icon')).toBeTruthy()
 	})
 
 	it('lists pinned groups first, above recents, under their heading', async () => {
@@ -567,24 +567,30 @@ describe('CommandPaletteShell', () => {
 		expect(onSubmit).not.toHaveBeenCalled()
 	})
 
-	it('gives every row one leading slot, shared by the icon and the check', async () => {
+	it('shows no item icons, and reserves a check slot only in sections with a checkable row', async () => {
 		const { rendered } = await renderShell(
 			<>
 				<TldrawUiMenuGroup id="edit" label="Edit">
 					<TldrawUiMenuItem id="alpha" label="Alpha" iconLeft="plus" onSelect={vi.fn()} />
 					{item('beta', 'Beta')}
 					<TldrawUiMenuCheckboxItem id="grid" label="Grid" checked readonlyOk onSelect={vi.fn()} />
+					<TldrawUiMenuSubmenu id="more" label="More">
+						{['a', 'b'].map((id) => item(id, `Item ${id}`))}
+					</TldrawUiMenuSubmenu>
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="view" label="View">
-					{item('gamma', 'Gamma')}
+					<TldrawUiMenuItem id="gamma" label="Gamma" iconLeft="plus" onSelect={vi.fn()} />
 				</TldrawUiMenuGroup>
 			</>
 		)
 		await rendered.findByText('Edit')
-		for (const id of ['alpha', 'beta', 'grid']) {
-			const row = rendered.getByTestId(`command-palette.item.${id}`)
-			expect(row.querySelectorAll('.tlui-icon')).toHaveLength(1)
-		}
+		const iconCount = (testId: string) =>
+			rendered.getByTestId(testId).querySelectorAll('.tlui-icon').length
+		for (const id of ['alpha', 'beta', 'grid'])
+			expect(iconCount(`command-palette.item.${id}`)).toBe(1)
+		// The check slot plus the chevron.
+		expect(iconCount('command-palette.submenu.More')).toBe(2)
+		expect(iconCount('command-palette.item.gamma')).toBe(0)
 	})
 
 	it('ignores Enter while an IME composition is in progress', async () => {
@@ -786,5 +792,92 @@ describe('CommandPaletteShell', () => {
 		type(input, 'alp')
 		press(input, 'Enter')
 		expect(calls).toEqual([1])
+	})
+})
+
+describe('CommandPaletteShell without an editor', () => {
+	function renderApp() {
+		const onClose = vi.fn()
+		const onSelect = vi.fn()
+		const onSubmit = vi.fn()
+		function App() {
+			const [isOpen, setIsOpen] = useState(false)
+			return (
+				<TldrawUiContextProvider>
+					<button data-testid="opener" onClick={() => setIsOpen(true)}>
+						Open
+					</button>
+					{isOpen && (
+						<CommandPaletteShell
+							position="bottom"
+							onClose={() => {
+								onClose()
+								setIsOpen(false)
+							}}
+						>
+							{item('alpha', 'Alpha')}
+							{item('gamma', 'Gamma', onSelect)}
+							<TldrawUiMenuSubmenu id="more" label="More">
+								{['a', 'b'].map((id) => item(id, `Item ${id}`))}
+							</TldrawUiMenuSubmenu>
+							<CommandPalettePromptItem
+								id="rename"
+								label="Rename"
+								placeholder="Name"
+								onSubmit={onSubmit}
+							/>
+						</CommandPaletteShell>
+					)}
+				</TldrawUiContextProvider>
+			)
+		}
+		const rendered = render(<App />)
+		const open = async () => {
+			const opener = rendered.getByTestId('opener')
+			opener.focus()
+			fireEvent.click(opener)
+			const input = (await rendered.findByTestId('command-palette.input')) as HTMLInputElement
+			await rendered.findByTestId('command-palette.item.gamma')
+			expect(document.activeElement).toBe(input)
+			return { opener, input }
+		}
+		return { rendered, open, onClose, onSelect, onSubmit }
+	}
+
+	it('filters, runs the item on Enter, closes and gives focus back', async () => {
+		const { rendered, open, onClose, onSelect } = renderApp()
+		const { opener, input } = await open()
+		expect(rendered.getByTestId('command-palette.submenu.More')).toBeTruthy()
+		type(input, 'gam')
+		expect(rendered.queryByTestId('command-palette.item.alpha')).toBeNull()
+		press(input, 'Enter')
+		expect(onSelect).toHaveBeenCalledWith('command-palette')
+		expect(onClose).toHaveBeenCalledTimes(1)
+		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
+		expect(document.activeElement).toBe(opener)
+	})
+
+	it('closes on Escape and gives focus back', async () => {
+		const { rendered, open, onClose, onSelect } = renderApp()
+		const { opener, input } = await open()
+		press(input, 'Escape')
+		expect(onClose).toHaveBeenCalledTimes(1)
+		expect(onSelect).not.toHaveBeenCalled()
+		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
+		expect(document.activeElement).toBe(opener)
+	})
+
+	it('opens submenus and submits prompts', async () => {
+		const { rendered, open, onClose, onSubmit } = renderApp()
+		const { input } = await open()
+		fireEvent.click(rendered.getByTestId('command-palette.submenu.More'))
+		await rendered.findByTestId('command-palette.item.a')
+		press(input, 'Escape')
+		expect(onClose).not.toHaveBeenCalled()
+		fireEvent.click(await rendered.findByTestId('command-palette.item.rename'))
+		type(input, 'Plans')
+		press(input, 'Enter')
+		expect(onSubmit).toHaveBeenCalledWith('Plans')
+		expect(onClose).toHaveBeenCalledTimes(1)
 	})
 })

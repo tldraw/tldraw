@@ -1,6 +1,5 @@
 import { useValue } from '@tldraw/editor'
 import { ReactNode, createContext, useContext, useMemo } from 'react'
-import { TLUiIconJsx } from '../primitives/TldrawUiIcon'
 import { CommandPaletteStore, CommandPaletteSubmenu } from './CommandPaletteStore'
 
 const StoreContext = createContext<CommandPaletteStore | null>(null)
@@ -75,7 +74,6 @@ export function useCommandPalettePath() {
 export function CommandPalettePathProvider({
 	label,
 	submenuId,
-	submenuIcon,
 	sectionId,
 	heading,
 	pinned,
@@ -89,8 +87,6 @@ export function CommandPalettePathProvider({
 	label?: string
 	/** Groups the items inside into a submenu keyed by this id. Needs `label`. */
 	submenuId?: string
-	/** Icon on the submenu's row. */
-	submenuIcon?: string | TLUiIconJsx
 	/** Starts a section that an opened submenu separates from its neighbours, like a menu group. */
 	sectionId?: string
 	/** A group label; the outermost one heads its items. */
@@ -111,7 +107,6 @@ export function CommandPalettePathProvider({
 					? {
 							key: [...parent.path, submenuId].join('/'),
 							label,
-							icon: submenuIcon,
 							collapsed: parent.collapseSubmenu,
 						}
 					: parent.submenu,
@@ -120,7 +115,7 @@ export function CommandPalettePathProvider({
 			pinned: parent.pinned || !!pinned,
 			collapseSubmenu: submenuId ? false : parent.collapseSubmenu || !!collapseSubmenu,
 		}),
-		[parent, label, submenuId, submenuIcon, sectionId, heading, pinned, collapseSubmenu]
+		[parent, label, submenuId, sectionId, heading, pinned, collapseSubmenu]
 	)
 	return <PathContext.Provider value={value}>{children}</PathContext.Provider>
 }

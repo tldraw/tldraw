@@ -1,6 +1,5 @@
 import { useCallback, useId, useLayoutEffect, useRef } from 'react'
 import { TLUiEventSource } from '../../context/events'
-import { TLUiIconJsx } from '../primitives/TldrawUiIcon'
 import { useCommandPalettePath, useCommandPaletteStore } from './CommandPaletteContext'
 import { CommandPalettePrompt } from './CommandPaletteStore'
 
@@ -12,7 +11,7 @@ export interface CommandPaletteItemRegistrationProps {
 	label: string
 	/** Shortcut shown at the end of the row. */
 	kbd?: string
-	/** Shows a check mark, or an empty slot when false, in place of the icon. */
+	/** Shows a check mark, or an empty slot when false. */
 	checked?: boolean
 	/** Like `checked`, for menu items; `checked` wins when both are set. */
 	isSelected?: boolean
@@ -24,8 +23,6 @@ export interface CommandPaletteItemRegistrationProps {
 	detail?: string
 	/** Asks for text in the palette before running, instead of running on select. */
 	prompt?: CommandPalettePrompt
-	/** Shown before the label when the row has no check. */
-	icon?: string | TLUiIconJsx
 	/** Runs the item. Always calls the latest one passed, even from an open prompt. */
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
@@ -51,7 +48,7 @@ export function CommandPaletteItemRegistration(props: CommandPaletteItemRegistra
 	// No deps: re-register every render so label, checked and disabled state stay current.
 	useLayoutEffect(() => {
 		rProps.current = props
-		const { id, kbd, checked, isSelected, disabled, disabledReason, detail, prompt, icon } = props
+		const { id, kbd, checked, isSelected, disabled, disabledReason, detail, prompt } = props
 		// Prefixed here so rows, recents and search matching all see the same label.
 		const label = submenu ? `${submenu.label}: ${props.label}` : props.label
 		store.set(token, {
@@ -62,7 +59,6 @@ export function CommandPaletteItemRegistration(props: CommandPaletteItemRegistra
 			disabled,
 			disabledReason,
 			detail,
-			icon,
 			prompt: prompt && {
 				placeholder: prompt.placeholder,
 				initialValue: prompt.initialValue,

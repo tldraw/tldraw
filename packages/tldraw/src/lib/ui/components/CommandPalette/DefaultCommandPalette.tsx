@@ -10,7 +10,7 @@ import { DefaultCommandPaletteContent } from './DefaultCommandPaletteContent'
 
 /** @public */
 export interface TLUiCommandPaletteProps {
-	/** Where the palette opens. Defaults to `'bottom'`, just above a horizontal toolbar. */
+	/** Where the palette opens. Defaults to `'center'`. */
 	position?: TLUiCommandPalettePosition
 	/** What shows above the list while browsing. Defaults to `'recent'`, recently run commands. */
 	suggestions?: TLUiCommandPaletteSuggestions
