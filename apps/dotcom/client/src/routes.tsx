@@ -105,12 +105,12 @@ export function createAppRouter({
 						lazy={() => import('./tla/pages/file')}
 						handle={{ rendersWhileAppLoads: true } satisfies TlaRouteHandle}
 					/>
+					<Route path={ROUTES.tlaFileHistory} lazy={() => import('./tla/pages/file-history')} />
+					<Route
+						path={ROUTES.tlaFileHistorySnapshot}
+						lazy={() => import('./tla/pages/file-history-snapshot')}
+					/>
 					<Route lazy={() => import('./tla/providers/RequireTldrawStaff')}>
-						<Route path={ROUTES.tlaFileHistory} lazy={() => import('./tla/pages/file-history')} />
-						<Route
-							path={ROUTES.tlaFileHistorySnapshot}
-							lazy={() => import('./tla/pages/file-history-snapshot')}
-						/>
 						<Route
 							path={ROUTES.tlaLegacyRoomHistory}
 							lazy={() => import('./tla/pages/legacy-history')}
