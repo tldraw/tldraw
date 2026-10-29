@@ -50,7 +50,7 @@ interface StylePicker<T extends string | number = string | number> {
 
 /**
  * The style panel's styles, one submenu each, for the selection or, with nothing selected, the next
- * shape. Lists only the styles the style panel would show.
+ * shape. Lists only the styles the style panel would show. Needs an editor.
  *
  * @public @react
  */

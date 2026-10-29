@@ -74,7 +74,10 @@ export interface TLUiCommandPaletteShellProps {
 	suggestions?: TLUiCommandPaletteSuggestions
 	/** Called when the user dismisses the palette or runs a command. */
 	onClose(): void
-	/** The palette's items, as `TldrawUiMenu*` components and `CommandPalette*` groups. */
+	/**
+	 * The palette's items, as `TldrawUiMenu*` components and, with an editor, `CommandPalette*`
+	 * groups.
+	 */
 	children: ReactNode
 }
 
