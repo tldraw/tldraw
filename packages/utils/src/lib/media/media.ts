@@ -288,7 +288,8 @@ export class MediaHelpers {
 	 *
 	 * @param blob - A Blob containing the video
 	 * @param doc - Optional document to create elements in
-	 * @returns Promise that resolves to an object with width and height properties
+	 * @returns Promise that resolves to an object with width and height properties. Rejects if the
+	 * video has no dimensions, for example an audio-only file.
 	 * @example
 	 * ```ts
 	 * const file = new File([...], 'video.mp4', { type: 'video/mp4' })
@@ -300,6 +301,11 @@ export class MediaHelpers {
 	static async getVideoSize(blob: Blob, doc?: Document): Promise<{ w: number; h: number }> {
 		return MediaHelpers.usingObjectURL(blob, async (url) => {
 			const video = await MediaHelpers.loadVideo(url, doc)
+			// A file with no video track (e.g. audio-only .webm) loads with a 0x0 size, which
+			// fails video shape validation (#11218).
+			if (!video.videoWidth || !video.videoHeight) {
+				throw new Error('Video has no dimensions')
+			}
 			return { w: video.videoWidth, h: video.videoHeight }
 		})
 	}
