@@ -257,6 +257,10 @@ export type TLServerEvent =
 			type: 'version_chain_error'
 	  }
 	| {
+			/** A version was written but its history index row was not; the list will miss it. */
+			type: 'version_index_error'
+	  }
+	| {
 			type: 'send_message'
 			messageType: string
 			messageLength: number

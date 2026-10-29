@@ -13,6 +13,19 @@ import {
 export interface SessionMeta {
 	storeId: string
 	userId: string | null
+	/** Set for agent connections (MCP clients act as their user, so userId alone can't tell). */
+	agent?: 'mcp'
+}
+
+export function buildSessionMeta(args: {
+	storeId: string | undefined
+	sessionId: string
+	userId: string | null
+	viaMcp: boolean
+}): SessionMeta {
+	const meta: SessionMeta = { storeId: args.storeId ?? args.sessionId, userId: args.userId }
+	if (args.viaMcp) meta.agent = 'mcp'
+	return meta
 }
 
 // The file room's record union, widened to include the object-lane comment records so each

@@ -30,6 +30,11 @@ import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
 import { createPostgresConnectionPool, getPostgresConnection } from './postgres'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
+import {
+	getFileVersionHistory,
+	getFileVersionPoints,
+	saveFileNamedVersion,
+} from './routes/getFileVersionHistory'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
@@ -151,7 +156,12 @@ const router = createRouter<Environment>()
 		getRoomHistorySnapshot(req, env, false)
 	)
 
-	.get(`/${FILE_PREFIX}/:roomId/history`, (req, env) => getRoomHistory(req, env, true))
+	// v=2 is the user-facing session list; without it, the staff page's raw timestamp list.
+	.get(`/${FILE_PREFIX}/:roomId/history`, (req, env) =>
+		req.query?.v === '2' ? getFileVersionHistory(req, env) : getRoomHistory(req, env, true)
+	)
+	.get(`/${FILE_PREFIX}/:roomId/history/points`, getFileVersionPoints)
+	.post(`/${FILE_PREFIX}/:roomId/history/name`, saveFileNamedVersion)
 	// Before the :timestamp route — itty-router matches in order, and `verify` would otherwise be
 	// read as a timestamp.
 	.get(`/${FILE_PREFIX}/:roomId/history/verify`, (req, env) =>
