@@ -2355,8 +2355,9 @@ tldraw? probably.
 .tlui-command-palette {
 	--tlui-command-palette-row: 40px;
 	position: absolute;
-	/* Where the full-height (260px) palette is centered; the top stays put as the list shrinks. On
-	   short screens it rises to stay 100px clear of the bottom toolbar. */
+	/* The top sits 130px above the anchor and stays put as the list shrinks; short screens raise it
+	   to 360px above the bottom, but no higher than 8px. max-height keeps the 368px full palette at
+	   most 60% tall and ending at least 8px above the bottom edge. */
 	--tlui-command-palette-anchor: 65%;
 	top: max(8px, min(calc(var(--tlui-command-palette-anchor) - 130px), calc(100% - 360px)));
 	left: 50%;
