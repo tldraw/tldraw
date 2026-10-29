@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	Mat,
+	TLGeoShape,
 	TLImageAsset,
 	TLImageShape,
 	TLShapeId,
@@ -16,17 +17,14 @@ let editor: TestEditor
 let assetCount = 0
 
 function installFlattenMocks(target: TestEditor) {
-	// flattenShapesToImages calls editor.getSvgString and
-	// editor.getAssetForExternalContent. Mock both to bypass the real export
-	// pipeline (jsdom can't render SVGs and we don't need real pixels — these
-	// tests only care about which shapes end up in which group).
+	// Mock the export pipeline (jsdom can't render SVGs). Keep the uploaded SVG text so unflatten
+	// can fetch it back.
 	vi.spyOn(target, 'getSvgString').mockResolvedValue({
 		svg: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"></svg>',
 		width: 10,
 		height: 10,
 		trimPadding: 0,
 	})
-	// Keep the uploaded SVGs, so unflatten can fetch back what flatten embedded
 	const uploads = new Map<string, string>()
 	vi.spyOn(window, 'fetch').mockImplementation(async (input) => {
 		const svg = uploads.get(String(input))
@@ -195,10 +193,9 @@ describe('unflattenImages', () => {
 
 		await unflattenImages(editor, [imageId])
 
-		const boxes = editor
-			.getSelectedShapes()
+		const boxes = (editor.getSelectedShapes() as TLGeoShape[])
 			.map((s) => ({
-				size: [(s.props as any).w, (s.props as any).h],
+				size: [s.props.w, s.props.h],
 				rotation: editor.getShapePageTransform(s).rotation(),
 				center: editor.getShapePageBounds(s)!.center,
 			}))
@@ -216,20 +213,13 @@ describe('unflattenImages', () => {
 	})
 
 	it.each([
-		['cropped', { crop: { topLeft: { x: 0.1, y: 0 }, bottomRight: { x: 1, y: 1 } } }],
-		['flipped', { flipX: true }],
-		['stretched', 'stretch'],
+		['cropped', () => ({ crop: { topLeft: { x: 0.1, y: 0 }, bottomRight: { x: 1, y: 1 } } })],
+		['flipped', () => ({ flipX: true })],
+		['stretched', (image: TLImageShape) => ({ w: image.props.w * 2 })],
 	] as const)('keeps the image when it was %s', async (_, change) => {
 		const imageId = await flattenBoxes()
-		const image = editor.getShape(imageId)!
-		editor.updateShape({
-			id: imageId,
-			type: 'image',
-			props:
-				change === 'stretch'
-					? { w: (image.props as any).w * 2 }
-					: (change as Record<string, unknown>),
-		})
+		const image = editor.getShape<TLImageShape>(imageId)!
+		editor.updateShape({ id: imageId, type: 'image', props: change(image) })
 
 		const result = await unflattenImages(editor, [imageId])
 
@@ -255,7 +245,7 @@ describe('unflattenImages', () => {
 
 	it('ignores images that were not made by flatten', async () => {
 		const imageId = await flattenBoxes()
-		const assetId = (editor.getShape(imageId)!.props as any).assetId
+		const assetId = editor.getShape<TLImageShape>(imageId)!.props.assetId!
 		editor.updateAssets([{ ...editor.getAsset(assetId)!, meta: {} }])
 
 		const result = await unflattenImages(editor, [imageId])
@@ -300,6 +290,30 @@ describe('unflattenImages', () => {
 		expect(editor.getCurrentPageShapesSorted().map((s) => editor.getShapePageBounds(s)!.x)).toEqual(
 			before
 		)
+	})
+
+	it('keeps the stacking order when a frame now covers part of the original area', async () => {
+		editor.createShapes([box(a, 100, 100), box(b, 300, 100)])
+		const [imageId] = (await flattenShapesToImages(editor, [a, b]))!
+		editor.nudgeShapes([imageId], { x: 1000, y: 0 })
+		editor.createShape({ type: 'frame', x: 250, y: 50, props: { w: 200, h: 200 } })
+
+		await unflattenImages(editor, [imageId])
+
+		const restored = editor.getCurrentPageShapesSorted().filter((s) => s.type === 'geo')
+		expect(restored.map((s) => editor.getShapePageBounds(s)!.x)).toEqual([1100, 1300])
+	})
+
+	it('keeps other selected shapes selected', async () => {
+		const c = createShapeId('c')
+		const imageId = await flattenBoxes()
+		editor.createShapes([box(c, 800, 800)])
+		editor.select(imageId, c)
+
+		await unflattenImages(editor, [imageId])
+
+		expect(editor.getSelectedShapeIds()).toContain(c)
+		expect(editor.getSelectedShapeIds()).toHaveLength(3)
 	})
 
 	it('reports malformed saved shapes as unreadable', async () => {

@@ -13,11 +13,13 @@ import {
 	compact,
 	createShapeId,
 	fetch,
+	isEqual,
 	isShapeId,
 	transact,
 	useEditor,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { getDefaultCrop } from '../../shapes/shared/crop'
 
 export async function flattenShapesToImages(
 	editor: Editor,
@@ -142,12 +144,7 @@ export async function flattenShapesToImages(
 		const svg = embedFlattenSource(svgResult.svg, {
 			type: FLATTEN_SOURCE_TYPE,
 			version: 1,
-			bounds: {
-				x: group.bounds.x - padding,
-				y: group.bounds.y - padding,
-				w: group.bounds.w + padding * 2,
-				h: group.bounds.h + padding * 2,
-			},
+			bounds: Box.ExpandBy(group.bounds, padding).toJson(),
 			content,
 		})
 
@@ -158,7 +155,7 @@ export async function flattenShapesToImages(
 		})) as TLImageAsset
 		if (!asset) continue
 
-		// add it to the group
+		// tag the asset so unflatten can find it
 		group.asset = { ...asset, meta: { ...asset.meta, [FLATTENED_ASSET_META_KEY]: true } }
 	}
 
@@ -234,11 +231,7 @@ export async function flattenShapesToImages(
 	return createdShapeIds
 }
 
-/**
- * Flattened images keep their source in the SVG, not in the store, so a flattened selection costs
- * one record on the page however many shapes it holds. This flag on the asset lets menus show
- * "Unflatten" without fetching the SVG.
- */
+/** Marks assets made by flatten, so menus can show "Unflatten" without fetching the SVG. */
 const FLATTENED_ASSET_META_KEY = 'flattened'
 
 const FLATTEN_SOURCE_TYPE = 'tldraw-flatten-source'
@@ -302,13 +295,12 @@ export function isFlattenedImage(editor: Editor, shape: TLShape): shape is TLIma
 function canRestoreFlattenSource(image: TLImageShape, source: TLFlattenSource) {
 	const { crop, flipX, flipY, w, h } = image.props
 	if (flipX || flipY) return false
+	const defaultCrop = getDefaultCrop()
 	if (
 		crop &&
 		(crop.isCircle ||
-			crop.topLeft.x !== 0 ||
-			crop.topLeft.y !== 0 ||
-			crop.bottomRight.x !== 1 ||
-			crop.bottomRight.y !== 1)
+			!isEqual(crop.topLeft, defaultCrop.topLeft) ||
+			!isEqual(crop.bottomRight, defaultCrop.bottomRight))
 	) {
 		return false
 	}
@@ -317,11 +309,8 @@ function canRestoreFlattenSource(image: TLImageShape, source: TLFlattenSource) {
 	return Math.abs(scaleX - scaleY) <= 0.01 * Math.max(scaleX, scaleY)
 }
 
-/**
- * Resizing a frame doesn't scale its children, so scale every shape in the trees. Each shape
- * uses its page transform from before any of them moved, the same way the select tool scales
- * nested shapes.
- */
+// Resizing a frame doesn't scale its children, so scale every shape. Snapshot every page
+// transform first; once a parent moves, its children's transforms are wrong.
 function scaleShapeTrees(editor: Editor, rootIds: TLShapeId[], scale: number, origin: VecLike) {
 	// breadth-first, so parents come before their children
 	const ordered = [...rootIds]
@@ -393,6 +382,7 @@ export async function unflattenImages(
 	}
 
 	const restoredShapeIds: TLShapeId[] = []
+	const selectionAtStart = editor.getSelectedShapeIds()
 
 	editor.run(() => {
 		for (const { source, image: imageAtStart } of restorable) {
@@ -411,6 +401,7 @@ export async function unflattenImages(
 				error ??= 'unreadable'
 				continue
 			}
+			// in stacking order: put selects the roots in the order it indexed them
 			const ids = editor.getSelectedShapeIds()
 			if (ids.length === 0) {
 				error ??= 'unreadable'
@@ -428,11 +419,20 @@ export async function unflattenImages(
 			}
 			editor.nudgeShapes(ids, Vec.Sub(imageTransform.point(), sourceOrigin))
 			editor.reparentShapes(ids, image.parentId, image.index)
+			// Put may have moved some roots into a frame that covers the original area, and
+			// reparenting orders them by those mixed indices, so restore the stacking order
+			const indices = ids.map((id) => editor.getShape(id)!.index).sort()
+			editor.updateShapes(
+				ids.map((id, i) => ({ id, type: editor.getShape(id)!.type, index: indices[i] }))
+			)
 			editor.deleteShapes([image.id])
 
 			restoredShapeIds.push(...ids)
 		}
-		editor.setSelectedShapes(restoredShapeIds)
+		editor.setSelectedShapes([
+			...selectionAtStart.filter((id) => editor.getShape(id)),
+			...restoredShapeIds,
+		])
 	})
 
 	if (error) return { type: 'error', reason: error }
