@@ -44,12 +44,16 @@ function CustomCommandPalette(props: TLUiCommandPaletteProps) {
 						<TldrawUiMenuItem
 							id="say-hello"
 							label="Say hello"
-							onSelect={() => addToast({ title: 'Hello!' })}
+							onSelect={() => {
+								addToast({ title: 'Hello!' })
+							}}
 						/>
 						<TldrawUiMenuItem
 							id="say-goodbye"
 							label="Say goodbye"
-							onSelect={() => addToast({ title: 'Goodbye!' })}
+							onSelect={() => {
+								addToast({ title: 'Goodbye!' })
+							}}
 						/>
 					</TldrawUiMenuGroup>
 				</TldrawUiMenuSubmenu>
