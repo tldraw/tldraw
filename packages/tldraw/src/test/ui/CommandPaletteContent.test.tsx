@@ -235,16 +235,24 @@ describe('default command palette content', () => {
 		})
 	})
 
+	// The editor re-measures its container every second, and jsdom measures it as ~0 wide, which
+	// drops the real breakpoint mid-test on a slow run.
+	function pinViewport(editor: Editor, bounds: Box) {
+		vi.spyOn(editor, 'updateViewportScreenBounds').mockRestore()
+		act(() => editor.updateViewportScreenBounds(bounds))
+		vi.spyOn(editor, 'updateViewportScreenBounds').mockImplementation(() => editor)
+	}
+
 	it('toggles the minimap, in step with the navigation panel', async () => {
 		realBreakpoint.value = true
 		const { editor, rendered, search, enter } = await renderPalette()
-		act(() => editor.updateViewportScreenBounds(new Box(0, 0, 1400, 900)))
+		pinViewport(editor, new Box(0, 0, 1400, 900))
 		search('minimap')
 		await rendered.findByTestId('command-palette.item.toggle-minimap')
 		expect(rendered.queryByTestId('minimap.zoom-in')).toBeNull()
 		enter()
 		await rendered.findByTestId('minimap.zoom-in')
-		act(() => editor.updateViewportScreenBounds(new Box(0, 0, 500, 800)))
+		pinViewport(editor, new Box(0, 0, 500, 800))
 		search('minimap')
 		await waitFor(() =>
 			expect(rendered.queryByTestId('command-palette.item.toggle-minimap')).toBeNull()
@@ -254,7 +262,7 @@ describe('default command palette content', () => {
 	it('hides toggle minimap when forceMobile hides the minimap', async () => {
 		realBreakpoint.value = true
 		const { editor, rendered, search } = await renderPalette({ forceMobile: true })
-		act(() => editor.updateViewportScreenBounds(new Box(0, 0, 1400, 900)))
+		pinViewport(editor, new Box(0, 0, 1400, 900))
 		search('minimap')
 		await rendered.findByTestId('command-palette.input')
 		expect(rendered.queryByTestId('command-palette.item.toggle-minimap')).toBeNull()
@@ -263,9 +271,7 @@ describe('default command palette content', () => {
 	it('hides toggle minimap in focus mode', async () => {
 		realBreakpoint.value = true
 		const { editor, rendered, search } = await renderPalette()
-		act(() => editor.updateViewportScreenBounds(new Box(0, 0, 1400, 900)))
-		// jsdom would re-measure the viewport to ~0 after the focus mode layout change.
-		vi.spyOn(editor, 'updateViewportScreenBounds').mockImplementation(() => editor)
+		pinViewport(editor, new Box(0, 0, 1400, 900))
 		search('minimap')
 		await rendered.findByTestId('command-palette.item.toggle-minimap')
 		act(() => editor.updateInstanceState({ isFocusMode: true }))
