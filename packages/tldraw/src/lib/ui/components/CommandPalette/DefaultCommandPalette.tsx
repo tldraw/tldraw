@@ -54,6 +54,7 @@ export const DefaultCommandPalette = memo(function DefaultCommandPalette({
 export function CommandPaletteSlot({
 	component: CommandPalette,
 }: {
+	/** The `CommandPalette` slot's component. */
 	component: ComponentType<TLUiCommandPaletteProps>
 }) {
 	const editor = useEditor()

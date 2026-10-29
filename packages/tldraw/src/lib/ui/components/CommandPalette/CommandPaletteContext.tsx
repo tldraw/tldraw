@@ -10,7 +10,9 @@ export function CommandPaletteStoreProvider({
 	store,
 	children,
 }: {
+	/** The open palette's store, which the items inside register their rows with. */
 	store: CommandPaletteStore
+	/** The palette's items. */
 	children: ReactNode
 }) {
 	return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>
@@ -80,8 +82,14 @@ export function CommandPalettePathProvider({
 	collapseSubmenu,
 	children,
 }: {
+	/**
+	 * Added to the search path of the items inside, so searching it finds them. With `submenuId`,
+	 * also the submenu's label.
+	 */
 	label?: string
+	/** Groups the items inside into a submenu keyed by this id. Needs `label`. */
 	submenuId?: string
+	/** Icon on the submenu's row. */
 	submenuIcon?: string | TLUiIconJsx
 	/** Starts a section that an opened submenu separates from its neighbours, like a menu group. */
 	sectionId?: string
@@ -91,6 +99,7 @@ export function CommandPalettePathProvider({
 	pinned?: boolean
 	/** The next submenu inside is always collapsed into one row. */
 	collapseSubmenu?: boolean
+	/** Items and nested providers this level applies to. */
 	children: ReactNode
 }) {
 	const parent = useContext(PathContext)
