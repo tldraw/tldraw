@@ -41,13 +41,14 @@ export const MCP_PROTECTED_RESOURCE_METADATA_PATH = `/.well-known/oauth-protecte
 export const MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH = '/.well-known/oauth-protected-resource'
 
 /**
- * The board server's path on the MCP host (`MCP_HOST_ORIGIN`, `mcp.tldraw.com` in production): the
- * same server as `MCP_RESOURCE_PATH`, under a URL short enough to type into a connector UI.
+ * The board server's path on the MCP host (`MCP_HOST_ORIGIN`, `staging-mcp.tldraw.com` on staging):
+ * the same server as `MCP_RESOURCE_PATH`, under a URL short enough to type into a connector UI.
  *
- * The MCP host gives each server its own path so more can join it later, which is why it serves no
- * path-less metadata: that document can describe only one resource per origin.
+ * The MCP host gives each server its own path so more can join it later (e.g. a codex plugin under
+ * its own path), which is why it serves no path-less metadata: that document can describe only one
+ * resource per origin.
  */
-export const MCP_BOARDS_PATH = '/boards'
+export const MCP_BOARDS_PATH = '/mcp'
 
 export const MCP_BOARDS_PROTECTED_RESOURCE_METADATA_PATH = `/.well-known/oauth-protected-resource${MCP_BOARDS_PATH}`
 

@@ -120,7 +120,7 @@ function makeRequest(
 	return new Request(url, { method: 'POST', headers }) as any
 }
 
-const mcpHostRequest = (path = '/boards') => makeRequest({}, `https://mcp.tldraw.com${path}`)
+const mcpHostRequest = (path = '/mcp') => makeRequest({}, `https://mcp.tldraw.com${path}`)
 
 const bearer = (token: string) => makeRequest({ authorization: `Bearer ${token}` })
 
@@ -175,13 +175,13 @@ describe('MCP host', () => {
 	// A connector validates the metadata against the URL the user typed, so on the host the resource
 	// is the host's URL, not the /api one.
 	it('advertises the boards URL as the resource', async () => {
-		expect(getMcpResourceUrl(mcpHostRequest(), makeEnv())).toBe('https://mcp.tldraw.com/boards')
+		expect(getMcpResourceUrl(mcpHostRequest(), makeEnv())).toBe('https://mcp.tldraw.com/mcp')
 
 		const response = getMcpProtectedResourceMetadata(
 			mcpHostRequest(MCP_BOARDS_PROTECTED_RESOURCE_METADATA_PATH),
 			makeEnv()
 		)
-		expect(await response.json()).toMatchObject({ resource: 'https://mcp.tldraw.com/boards' })
+		expect(await response.json()).toMatchObject({ resource: 'https://mcp.tldraw.com/mcp' })
 	})
 
 	it('points a refusal at the boards metadata on the host', async () => {

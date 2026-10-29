@@ -163,9 +163,10 @@ export interface Environment {
 	// it is derived from the request's own origin, which is fine locally and wrong anywhere a Host
 	// header can be forged — see getMcpResourceUrl.
 	MCP_SERVER_URL: string | undefined
-	// The MCP host's origin (`https://mcp.tldraw.com` in production), where the same server answers at
-	// MCP_BOARDS_PATH. Requests on this host get its own router and advertise its URLs instead of
-	// MCP_SERVER_URL; see isMcpHostRequest. Unset where the host has no route (dev, previews).
+	// The MCP host's origin (`https://staging-mcp.tldraw.com` on staging; production's mcp.tldraw.com
+	// comes later), where the same server answers at MCP_BOARDS_PATH. Requests on this host get their
+	// own router and advertise its URLs instead of MCP_SERVER_URL; see isMcpHostRequest. Unset where
+	// the host has no route (production for now, dev, previews).
 	MCP_HOST_ORIGIN: string | undefined
 	// Overrides the OAuth authorization server advertised to MCP clients. Normally unset: the value is
 	// derived from CLERK_PUBLISHABLE_KEY so it cannot drift from the instance whose tokens we verify.
