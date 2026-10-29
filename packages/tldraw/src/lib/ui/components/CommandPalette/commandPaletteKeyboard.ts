@@ -4,7 +4,8 @@ import { CommandPaletteEntry, CommandPaletteSubmenu } from './CommandPaletteStor
 
 /** @internal */
 export interface CommandPaletteKeyDownOptions {
-	editor: Editor
+	/** Null outside an editor. */
+	editor: Editor | null
 	dir: 'ltr' | 'rtl'
 	query: string
 	prompt: CommandPaletteEntry | null
@@ -15,6 +16,29 @@ export interface CommandPaletteKeyDownOptions {
 	runRow(row: SelectableRow | undefined): void
 	back(): void
 	dismiss(): void
+}
+
+// Focus is back on the editor by keyup, which would start editing the selected shape. The keyup can
+// be lost (a file picker opens, the app loses focus), so a new key press or a window blur stops the
+// swallow before it eats a later, unrelated Enter.
+function swallowEnterKeyUp(editor: Editor) {
+	const win = editor.getContainerWindow()
+	const stop = () => {
+		win.removeEventListener('keyup', swallowKeyUp, true)
+		win.removeEventListener('keydown', stopOnNewPress, true)
+		win.removeEventListener('blur', stop)
+	}
+	const swallowKeyUp = (up: KeyboardEvent) => {
+		if (up.key !== 'Enter') return
+		editor.markEventAsHandled(up)
+		stop()
+	}
+	const stopOnNewPress = (down: KeyboardEvent) => {
+		if (!down.repeat) stop()
+	}
+	win.addEventListener('keyup', swallowKeyUp, true)
+	win.addEventListener('keydown', stopOnNewPress, true)
+	win.addEventListener('blur', stop)
 }
 
 /** @internal */
@@ -55,31 +79,11 @@ export function handleCommandPaletteKeyDown(
 			e.preventDefault()
 			move(e.shiftKey ? -1 : 1)
 			return
-		case 'Enter': {
+		case 'Enter':
 			e.preventDefault()
-			// Focus is back on the editor by keyup, which would start editing the selected shape. The
-			// keyup can be lost (a file picker opens, the app loses focus), so a new key press or a
-			// window blur stops the swallow before it eats a later, unrelated Enter.
-			const win = editor.getContainerWindow()
-			const stop = () => {
-				win.removeEventListener('keyup', swallowKeyUp, true)
-				win.removeEventListener('keydown', stopOnNewPress, true)
-				win.removeEventListener('blur', stop)
-			}
-			const swallowKeyUp = (up: KeyboardEvent) => {
-				if (up.key !== 'Enter') return
-				editor.markEventAsHandled(up)
-				stop()
-			}
-			const stopOnNewPress = (down: KeyboardEvent) => {
-				if (!down.repeat) stop()
-			}
-			win.addEventListener('keyup', swallowKeyUp, true)
-			win.addEventListener('keydown', stopOnNewPress, true)
-			win.addEventListener('blur', stop)
+			if (editor) swallowEnterKeyUp(editor)
 			runRow(activeRow)
 			return
-		}
 		case 'Escape':
 			e.preventDefault()
 			if (prompt || submenu) back()

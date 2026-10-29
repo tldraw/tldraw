@@ -1,4 +1,4 @@
-import { useContainer } from '@tldraw/editor'
+import { useContainerIfExists } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode } from 'react'
 import { unwrapLabel } from '../../../context/actions'
@@ -34,7 +34,8 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	children,
 }: TLUiMenuSubmenuProps<Translation>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
-	const container = useContainer()
+	// The command palette renders submenus outside an editor, with no container.
+	const container = useContainerIfExists()
 	const msg = useTranslation()
 	const dir = useDirection()
 	const labelToUse = unwrapLabel(label, menuType)

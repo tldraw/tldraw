@@ -1,4 +1,4 @@
-import { act, fireEvent, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, waitFor, within } from '@testing-library/react'
 import { deleteFromLocalStorage, Editor, useValue } from '@tldraw/editor'
 import { ReactNode, useState } from 'react'
 import { vi } from 'vitest'
@@ -23,6 +23,7 @@ import { TldrawUiMenuGroup } from '../../lib/ui/components/primitives/menus/Tldr
 import { TldrawUiMenuItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from '../../lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'
 import { DefaultToolbar } from '../../lib/ui/components/Toolbar/DefaultToolbar'
+import { TldrawUiContextProvider } from '../../lib/ui/context/TldrawUiContextProvider'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
 const mockDir = vi.hoisted(() => ({ current: null as 'ltr' | 'rtl' | null }))
@@ -777,5 +778,92 @@ describe('CommandPaletteShell', () => {
 		type(input, 'alp')
 		press(input, 'Enter')
 		expect(calls).toEqual([1])
+	})
+})
+
+describe('CommandPaletteShell without an editor', () => {
+	function renderApp() {
+		const onClose = vi.fn()
+		const onSelect = vi.fn()
+		const onSubmit = vi.fn()
+		function App() {
+			const [isOpen, setIsOpen] = useState(false)
+			return (
+				<TldrawUiContextProvider>
+					<button data-testid="opener" onClick={() => setIsOpen(true)}>
+						Open
+					</button>
+					{isOpen && (
+						<CommandPaletteShell
+							position="bottom"
+							onClose={() => {
+								onClose()
+								setIsOpen(false)
+							}}
+						>
+							{item('alpha', 'Alpha')}
+							{item('gamma', 'Gamma', onSelect)}
+							<TldrawUiMenuSubmenu id="more" label="More">
+								{['a', 'b'].map((id) => item(id, `Item ${id}`))}
+							</TldrawUiMenuSubmenu>
+							<CommandPalettePromptItem
+								id="rename"
+								label="Rename"
+								placeholder="Name"
+								onSubmit={onSubmit}
+							/>
+						</CommandPaletteShell>
+					)}
+				</TldrawUiContextProvider>
+			)
+		}
+		const rendered = render(<App />)
+		const open = async () => {
+			const opener = rendered.getByTestId('opener')
+			opener.focus()
+			fireEvent.click(opener)
+			const input = (await rendered.findByTestId('command-palette.input')) as HTMLInputElement
+			await rendered.findByTestId('command-palette.item.gamma')
+			expect(document.activeElement).toBe(input)
+			return { opener, input }
+		}
+		return { rendered, open, onClose, onSelect, onSubmit }
+	}
+
+	it('filters, runs the item on Enter, closes and gives focus back', async () => {
+		const { rendered, open, onClose, onSelect } = renderApp()
+		const { opener, input } = await open()
+		expect(rendered.getByTestId('command-palette.submenu.More')).toBeTruthy()
+		type(input, 'gam')
+		expect(rendered.queryByTestId('command-palette.item.alpha')).toBeNull()
+		press(input, 'Enter')
+		expect(onSelect).toHaveBeenCalledWith('command-palette')
+		expect(onClose).toHaveBeenCalledTimes(1)
+		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
+		expect(document.activeElement).toBe(opener)
+	})
+
+	it('closes on Escape and gives focus back', async () => {
+		const { rendered, open, onClose, onSelect } = renderApp()
+		const { opener, input } = await open()
+		press(input, 'Escape')
+		expect(onClose).toHaveBeenCalledTimes(1)
+		expect(onSelect).not.toHaveBeenCalled()
+		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
+		expect(document.activeElement).toBe(opener)
+	})
+
+	it('opens submenus and submits prompts', async () => {
+		const { rendered, open, onClose, onSubmit } = renderApp()
+		const { input } = await open()
+		fireEvent.click(rendered.getByTestId('command-palette.submenu.More'))
+		await rendered.findByTestId('command-palette.item.a')
+		press(input, 'Escape')
+		expect(onClose).not.toHaveBeenCalled()
+		fireEvent.click(await rendered.findByTestId('command-palette.item.rename'))
+		type(input, 'Plans')
+		press(input, 'Enter')
+		expect(onSubmit).toHaveBeenCalledWith('Plans')
+		expect(onClose).toHaveBeenCalledTimes(1)
 	})
 })

@@ -260,6 +260,29 @@ function MyCommandPalette({ onClose }: TLUiCommandPaletteProps) {
 }
 ```
 
+`CommandPaletteShell` also works outside an editor, for example on a page that lists documents. There, your app owns the open state and the shortcut, and renders `<CommandPaletteShell onClose={...}>` with its own items while open. Render it inside `TldrawUiContextProvider` and a themed tldraw container (`.tl-container` with a theme class such as `tl-theme__light`) that is positioned, since the palette fills its nearest positioned ancestor. Focus goes back to whatever had it when the palette opened. `DefaultCommandPalette`, the `CommandPalette` slot, Cmd/Ctrl+K and the default groups still need an editor.
+
+```tsx
+function DocumentPalette({ onClose }: { onClose(): void }) {
+	return (
+		<div className="tl-container tl-theme__light" style={{ position: 'fixed', inset: 0 }}>
+			<TldrawUiContextProvider>
+				<CommandPaletteShell onClose={onClose}>
+					{documents.map((doc) => (
+						<TldrawUiMenuItem
+							key={doc.id}
+							id={doc.id}
+							label={doc.name}
+							onSelect={() => open(doc)}
+						/>
+					))}
+				</CommandPaletteShell>
+			</TldrawUiContextProvider>
+		</div>
+	)
+}
+```
+
 For long or async lists, read the query with `useCommandPaletteQuery()` and render only your best matches. `getCommandPaletteMatchScore` matches the same items the palette does, but the palette adds its own tiebreaks to the order, so rely only on 0 meaning no match and a higher score meaning a better one.
 
 A few components shape how items appear in the palette. Outside it they render their children unchanged, so a group can be shared with other menus.
