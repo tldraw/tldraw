@@ -85,7 +85,7 @@ export function getEvalsFixtureScreenshotPlan(
 	snapshot: RoomSnapshot,
 	measurements: Record<string, ShapeMeasurement>
 ): ScreenshotPlanEntry[] {
-	const pages = JSON.parse(textOf(getBoardInfo(snapshot))) as {
+	const pages = JSON.parse(textOf(getBoardInfo(snapshot, null))) as {
 		pages: Array<{ id: string }>
 	}
 	const plan: ScreenshotPlanEntry[] = []
@@ -177,7 +177,8 @@ async function callFixtureTool(
 			case BOARD_INFO_TOOL_NAME: {
 				const { boardId } = parseBoardInfoInput(args)
 				const board = boards.get(boardId)
-				return board ? getBoardInfo(board.snapshot) : toolError(BOARD_NOT_FOUND_MESSAGE)
+				// No file row, so the name comes from the snapshot, as it does for search above.
+				return board ? getBoardInfo(board.snapshot, null) : toolError(BOARD_NOT_FOUND_MESSAGE)
 			}
 			case PAGE_INFO_TOOL_NAME: {
 				const { boardId, page } = parsePageInfoInput(args)

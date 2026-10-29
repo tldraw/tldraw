@@ -61,10 +61,10 @@ vi.mock('../../utils/tla/getAuth', () => ({ hasReadAccessToFile: vi.fn() }))
 // The check hands back the row it read, so the resolution re-applies the gate to it rather than
 // dialling Postgres for the same row again. The granted row is derived from the id asked about, so it
 // stays consistent with the board under test the way the real one would.
-function grantReadAccess() {
+function grantReadAccess(name = 'My Board') {
 	vi.mocked(hasReadAccessToFile).mockImplementation(async (_env, _userId, fileId) => ({
 		ok: true,
-		file: { id: fileId, shared: true, isDeleted: false },
+		file: { id: fileId, name, shared: true, isDeleted: false },
 	}))
 }
 
@@ -952,7 +952,7 @@ describe('get_board_info', () => {
 	// Asserted on the argument rather than a call count, because these tests mock the room-snapshot
 	// reader outright and its internal fallback never runs here.
 	it('hands the resolved file row to the snapshot read instead of re-fetching it', async () => {
-		const file = { id: 'f1', shared: true, isDeleted: false }
+		const file = { id: 'f1', name: 'My Board', shared: true, isDeleted: false }
 		grantReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue(file)
 		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
@@ -964,6 +964,45 @@ describe('get_board_info', () => {
 			'f1',
 			expect.objectContaining({ file })
 		)
+	})
+
+	// The snapshot's `document` name is a mirror the room writes only when the file row is updated, so
+	// reading it reported every board that had not been renamed since creation as unnamed.
+	describe('board name', () => {
+		async function boardInfoName(fileName: string, documentName: string) {
+			grantReadAccess(fileName)
+			vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f1', shared: true, isDeleted: false })
+			vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES, documentName))
+			const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
+			const result = await callTool('get_board_info', { boardId: 'f1' }, env)
+			return JSON.parse(result.content[0].text).name
+		}
+
+		it('reports the name a board was created with, before any rename', async () => {
+			expect(await boardInfoName('Q4 planning scratch', '')).toBe('Q4 planning scratch')
+		})
+
+		// tldraw.com stores this on the row for a board nobody named, so it is the board's real name.
+		it('reports the default name tldraw.com stored for an unnamed board', async () => {
+			expect(await boardInfoName('Wed 5:38 PM', '')).toBe('Wed 5:38 PM')
+		})
+
+		// The mirror catches up only once the room persists; the row is right as soon as it commits.
+		it('reports a rename from the file row, not the mirror', async () => {
+			expect(await boardInfoName('Renamed', 'Old name')).toBe('Renamed')
+		})
+
+		// The same value search_boards reports for the same row, so the two tools cannot disagree.
+		it('reports a blank name the way search_boards does', async () => {
+			expect(await boardInfoName('  ', 'Stale mirror')).toBe('')
+		})
+
+		// No row of its own: viewers and the link preview see the name frozen into the published copy.
+		it('reads a published board’s name from its published snapshot', async () => {
+			mockPublishedBoard(makeSnapshot(PAGES, 'Published title'))
+			const result = await callTool('get_board_info', { boardId: 'abc' })
+			expect(JSON.parse(result.content[0].text).name).toBe('Published title')
+		})
 	})
 
 	it('errors when no board resolves for this caller', async () => {

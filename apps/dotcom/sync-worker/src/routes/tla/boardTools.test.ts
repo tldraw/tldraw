@@ -6,6 +6,7 @@ import {
 	BOARD_SEARCH_PAGE_SIZE,
 	BoardSearchRow,
 	compareBoardSearchOrder,
+	getBoardInfo,
 	getBoardSearchResults,
 	isAfterBoardSearchCursor,
 	parseCreateBoardInput,
@@ -13,6 +14,7 @@ import {
 	parseSearchBoardsInput,
 	resolveCreateBoardWorkspace,
 } from './boardTools'
+import { makeSnapshot } from './screenshotTestHelpers'
 
 function parsedJson(result: ReturnType<typeof getBoardSearchResults>) {
 	const block = result.content[0]
@@ -302,9 +304,9 @@ describe('getBoardSearchResults', () => {
 		expect(result.boards[0]).not.toHaveProperty('workspaceName')
 	})
 
-	// An unnamed board is titled by its creation date on tldraw.com, in the viewer's locale and
-	// timezone. A stand-in title invented here would be one the caller never sees on their own
-	// screen, and one no query could match, since the column holds ''.
+	// Only a board from before tldraw.com stored a default name can hold '', and tldraw.com titles
+	// that by creation date in the viewer's locale and timezone. A stand-in title invented here would
+	// be one the caller never sees on their own screen, and one no query could match.
 	it('reports a blank name as blank rather than inventing one', () => {
 		const result = parsedJson(getBoardSearchResults([makeRow({ name: '  ' })], []))
 		expect(result.boards[0].name).toBe('')
@@ -332,6 +334,32 @@ describe('getBoardSearchResults', () => {
 		const result = getBoardSearchResults([], [])
 		expect(result.isError).toBeUndefined()
 		expect(parsedJson(result)).toEqual({ boardCount: 0, boards: [] })
+	})
+})
+
+describe('getBoardInfo', () => {
+	const PAGES = [{ id: 'page:a', index: 'a1', name: 'Cover', shapes: 1 }]
+	function nameOf(result: ReturnType<typeof getBoardInfo>) {
+		return parsedJson(result).name
+	}
+
+	// The snapshot only mirrors the row after an update, so a board created with a name is blank there.
+	it('takes the name from the file row over the snapshot', () => {
+		expect(nameOf(getBoardInfo(makeSnapshot(PAGES, ''), 'Q4 planning scratch'))).toBe(
+			'Q4 planning scratch'
+		)
+		expect(nameOf(getBoardInfo(makeSnapshot(PAGES, 'Old'), 'Renamed'))).toBe('Renamed')
+	})
+
+	// Not null: an unnamed board reads the same here as it does in search_boards.
+	it('reports a blank file name as blank, not as the mirror', () => {
+		expect(nameOf(getBoardInfo(makeSnapshot(PAGES, 'Stale'), '  '))).toBe('')
+	})
+
+	// Published boards and eval fixtures have no row of their own.
+	it('falls back to the snapshot when there is no file row', () => {
+		expect(nameOf(getBoardInfo(makeSnapshot(PAGES, 'Published'), null))).toBe('Published')
+		expect(nameOf(getBoardInfo(makeSnapshot(PAGES, null), null))).toBe('')
 	})
 })
 
