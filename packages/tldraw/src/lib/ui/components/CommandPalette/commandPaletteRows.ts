@@ -19,6 +19,17 @@ export type CommandPaletteRow =
 	  }
 	| { type: 'submenu'; key: string; submenu: CommandPaletteSubmenu }
 
+/** @internal */
+export type SelectableRow = Extract<CommandPaletteRow, { type: 'item' | 'submenu' }>
+
+/** @internal */
+export interface CommandPaletteSection {
+	key: string
+	heading?: Extract<CommandPaletteRow, { type: 'heading' }>
+	separated?: boolean
+	rows: SelectableRow[]
+}
+
 function itemRow(entry: CommandPaletteEntry, label = entry.label): CommandPaletteRow {
 	return {
 		type: 'item',
@@ -48,8 +59,11 @@ function getGroupedSubmenuKeys(entries: readonly CommandPaletteEntry[]) {
 	return keys
 }
 
+// Pinned and unpinned lists share a section list, so their keys need distinct prefixes or React
+// reuses the wrong section and leaves stale rows behind.
 function listEntries(
 	entries: readonly CommandPaletteEntry[],
+	keyPrefix: string,
 	skip: ReadonlySet<CommandPaletteEntry> = new Set()
 ) {
 	const rows: CommandPaletteRow[] = []
@@ -60,9 +74,13 @@ function listEntries(
 		if (entry.heading !== currentHeading) {
 			// An unlabelled group after a labelled one gets a separator so it doesn't read as part of it.
 			if (entry.heading) {
-				rows.push({ type: 'heading', key: `heading:${rows.length}`, label: entry.heading })
+				rows.push({
+					type: 'heading',
+					key: `${keyPrefix}heading:${rows.length}`,
+					label: entry.heading,
+				})
 			} else if (rows.length) {
-				rows.push({ type: 'separator', key: `separator:${rows.length}` })
+				rows.push({ type: 'separator', key: `${keyPrefix}separator:${rows.length}` })
 			}
 			currentHeading = entry.heading
 		}
@@ -93,7 +111,7 @@ export function getCommandPaletteBrowseRows(
 	const unpinned = entries.filter((entry) => !entry.pinned)
 
 	if (pinned.length) {
-		rows.push(...listEntries(pinned))
+		rows.push(...listEntries(pinned, 'pinned:'))
 		rows.push({ type: 'separator', key: 'separator:pinned' })
 	}
 
@@ -116,7 +134,7 @@ export function getCommandPaletteBrowseRows(
 		rows.push({ type: 'separator', key: 'separator:recent' })
 	}
 
-	const listed = listEntries(unpinned, new Set(recent))
+	const listed = listEntries(unpinned, '', new Set(recent))
 	// A heading over the only section names nothing it needs to tell apart.
 	const groupHeadings = listed.filter((row) => row.type === 'heading')
 	rows.push(
@@ -193,4 +211,49 @@ export function getCommandPaletteSubmenuRows(
 	return rankCommandPaletteEntries(rankable, query, recentIds).map(({ entry }) =>
 		itemRow(entry, entry.name)
 	)
+}
+
+/** @internal */
+export function getCommandPalettePromptRows(
+	prompt: CommandPaletteEntry,
+	query: string,
+	cancelLabel: string,
+	dir: 'ltr' | 'rtl'
+): CommandPaletteRow[] {
+	// Spells out what Enter does, and offers a way back.
+	const value = query.trim()
+	const icon = dir === 'rtl' ? 'arrow-left' : 'arrow-right'
+	return [
+		{
+			type: 'item',
+			key: 'prompt',
+			entry: prompt,
+			label: prompt.name,
+			detail: value ? `“${value}”` : undefined,
+			icon,
+			recent: false,
+		},
+		{
+			type: 'item',
+			key: 'prompt:cancel',
+			entry: { ...prompt, id: 'command-palette-cancel', prompt: undefined, kbd: '[[Esc]]' },
+			label: cancelLabel,
+			icon,
+			recent: false,
+		},
+	]
+}
+
+/** @internal */
+export function getCommandPaletteSections(rows: readonly CommandPaletteRow[]) {
+	const out: CommandPaletteSection[] = []
+	for (const row of rows) {
+		if (row.type === 'heading') out.push({ key: row.key, heading: row, rows: [] })
+		else if (row.type === 'separator') out.push({ key: row.key, separated: true, rows: [] })
+		else {
+			if (!out.length) out.push({ key: 'start', rows: [] })
+			out[out.length - 1].rows.push(row)
+		}
+	}
+	return out
 }

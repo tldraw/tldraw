@@ -6,18 +6,32 @@ import { CommandPalettePrompt } from './CommandPaletteStore'
 
 /** @internal */
 export interface CommandPaletteItemRegistrationProps {
+	/** Keys the row in recents. Only the first row with an id, in palette order, is listed. */
 	id: string
+	/** Translated label. Inside a submenu, shown prefixed with the submenu's label. */
 	label: string
+	/** Shortcut shown at the end of the row. */
 	kbd?: string
+	/** Shows a check mark, or an empty slot when false, in place of the icon. */
 	checked?: boolean
+	/** Like `checked`, for menu items; `checked` wins when both are set. */
 	isSelected?: boolean
+	/** Muted text after the label. Searched too. */
 	detail?: string
+	/** Asks for text in the palette before running, instead of running on select. */
 	prompt?: CommandPalettePrompt
+	/** Shown before the label when the row has no check. */
 	icon?: string | TLUiIconJsx
+	/** Runs the item. Always calls the latest one passed, even from an open prompt. */
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
 
-/** @internal */
+/**
+ * Registers one row with the enclosing palette under the current path. Renders a hidden marker
+ * whose position in the DOM orders the row, so JSX order wins.
+ *
+ * @internal
+ */
 export function CommandPaletteItemRegistration(props: CommandPaletteItemRegistrationProps) {
 	const store = useCommandPaletteStore()
 	const { path, submenu, section, heading, pinned } = useCommandPalettePath()

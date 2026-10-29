@@ -823,7 +823,7 @@ export function CommandPalettePinned({ children }: TLUiCommandPalettePinnedProps
 export function CommandPalettePreferencesGroup(): JSX.Element;
 
 // @public
-export function CommandPalettePromptItem<TranslationKey extends string = string>({ id, label, placeholder, initialValue, onSubmit, }: TLUiCommandPalettePromptItemProps<TranslationKey>): JSX.Element | null;
+export function CommandPalettePromptItem<TranslationKey extends string = string>({ id, label, placeholder, initialValue, readonlyOk, onSubmit, }: TLUiCommandPalettePromptItemProps<TranslationKey>): JSX.Element | null;
 
 // @public
 export function CommandPaletteSelectionGroup(): JSX.Element;
@@ -4818,6 +4818,7 @@ export interface TLUiCommandPalettePromptItemProps<TranslationKey extends string
     placeholder: {
         [key: string]: TranslationKey;
     } | TranslationKey;
+    readonlyOk?: boolean;
 }
 
 // @public (undocumented)
