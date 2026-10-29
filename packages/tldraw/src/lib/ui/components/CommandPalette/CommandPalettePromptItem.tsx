@@ -1,14 +1,11 @@
 import { unwrapLabel } from '../../context/actions'
+import { useReadonly } from '../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { useTldrawUiMenuContext } from '../primitives/menus/TldrawUiMenuContext'
 import { CommandPaletteItemRegistration } from './CommandPaletteItemRegistration'
 
-/**
- * Props for {@link CommandPalettePromptItem}.
- *
- * @public
- */
+/** @public */
 export interface TLUiCommandPalettePromptItemProps<TranslationKey extends string = string> {
 	/** Keys the item in recents. Only the first palette item with a given id is listed. */
 	id: string
@@ -20,6 +17,10 @@ export interface TLUiCommandPalettePromptItemProps<TranslationKey extends string
 	 * The input's placeholder while prompting. Translated like `label`.
 	 */
 	placeholder: TranslationKey | { [key: string]: TranslationKey }
+	/**
+	 * If the editor is in readonly mode and the item is not marked as readonlyok, it will not be rendered.
+	 */
+	readonlyOk?: boolean
 	/** Prefills the input, selected so typing replaces it. */
 	initialValue?: string
 	/** Gets the trimmed text, which may be empty. */
@@ -37,11 +38,13 @@ export function CommandPalettePromptItem<TranslationKey extends string = string>
 	label,
 	placeholder,
 	initialValue,
+	readonlyOk = false,
 	onSubmit,
 }: TLUiCommandPalettePromptItemProps<TranslationKey>) {
 	const { type } = useTldrawUiMenuContext()
 	const msg = useTranslation()
-	if (type !== 'command-palette') return null
+	const isReadonlyMode = useReadonly()
+	if (type !== 'command-palette' || (isReadonlyMode && !readonlyOk)) return null
 	const translate = (text: typeof label) => msg(unwrapLabel(text, type) as TLUiTranslationKey) ?? ''
 	return (
 		<CommandPaletteItemRegistration

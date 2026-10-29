@@ -1,4 +1,4 @@
-import { act, fireEvent, render, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, waitFor, within } from '@testing-library/react'
 import {
 	atom,
 	Box,
@@ -321,6 +321,22 @@ describe('default command palette content', () => {
 		search('start arrowhead')
 		await rendered.findByTestId('command-palette.input')
 		expect(rendered.queryByTestId('command-palette.item.style-arrowhead-start-dot')).toBeNull()
+	})
+
+	it("sets the selection's opacity, checking the current value", async () => {
+		const { editor, rendered, search } = await renderPalette()
+		act(() => {
+			editor.createShapes([{ id: createShapeId('box'), type: 'geo', x: 0, y: 0 }])
+			editor.select(createShapeId('box'))
+		})
+		search('opacity 50')
+		fireEvent.click(await rendered.findByTestId('command-palette.item.style-opacity-0.5'))
+		expect(editor.getShape(createShapeId('box'))!.opacity).toBe(0.5)
+		await waitFor(() =>
+			within(rendered.getByTestId('command-palette.item.style-opacity-0.5')).getByLabelText(
+				'Checked'
+			)
+		)
 	})
 
 	it('opens in an editor without the geo shape', async () => {

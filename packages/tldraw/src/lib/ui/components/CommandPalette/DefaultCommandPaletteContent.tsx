@@ -30,7 +30,6 @@ export function DefaultCommandPaletteContent() {
 			<CommandPaletteViewGroup />
 			<CommandPalettePagesGroup />
 			<CommandPaletteExportGroup />
-			{/* Below the commands: most tools are a key away, so they're mostly found by search. */}
 			<CommandPaletteToolsGroup />
 			<CommandPalettePreferencesGroup />
 			<CommandPaletteHelpGroup />

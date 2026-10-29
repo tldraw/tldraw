@@ -2,7 +2,9 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	CommandPaletteRow,
 	getCommandPaletteBrowseRows,
+	getCommandPalettePromptRows,
 	getCommandPaletteSearchRows,
+	getCommandPaletteSections,
 	getCommandPaletteSubmenuRows,
 } from './commandPaletteRows'
 import { CommandPaletteEntry } from './CommandPaletteStore'
@@ -97,6 +99,22 @@ describe('getCommandPaletteBrowseRows', () => {
 			'Recent'
 		)
 		expect(describeRows(rows)).toEqual(['flag', '---', '# Recent', 'recent grid', '---', 'undo'])
+	})
+
+	it('keys pinned and unpinned headings and separators apart', () => {
+		const rows = getCommandPaletteBrowseRows(
+			[
+				entry('flag', { pinned: true, heading: 'Pinned' }),
+				entry('star', { pinned: true }),
+				entry('undo', { heading: 'Edit' }),
+				entry('grid'),
+				entry('theme', { heading: 'View' }),
+			],
+			['grid'],
+			'Recent'
+		)
+		const keys = rows.map((row) => row.key)
+		expect(new Set(keys).size).toBe(keys.length)
 	})
 
 	it('heads each labelled group, separating unlabelled ones', () => {
@@ -300,5 +318,86 @@ describe('getCommandPaletteSubmenuRows', () => {
 		expect(details(getCommandPaletteSubmenuRows(entries, files.key, 'roadmap glo', []))).toEqual([
 			['Roadmap', 'Globex'],
 		])
+	})
+})
+
+describe('getCommandPalettePromptRows', () => {
+	const rename = entry('rename', {
+		name: 'Rename',
+		kbd: '[[F2]]',
+		prompt: { placeholder: 'Name', onSubmit: vi.fn() },
+	})
+
+	it('shows the trimmed value it will submit, then a cancel row', () => {
+		const rows = getCommandPalettePromptRows(rename, '  Roadmap ', 'Cancel', 'ltr')
+		expect(
+			rows.map((row) => row.type === 'item' && [row.key, row.label, row.detail, row.icon])
+		).toEqual([
+			['prompt', 'Rename', '“Roadmap”', 'arrow-right'],
+			['prompt:cancel', 'Cancel', undefined, 'arrow-right'],
+		])
+	})
+
+	it('leaves out the value while the query is blank', () => {
+		const [row] = getCommandPalettePromptRows(rename, '  ', 'Cancel', 'ltr')
+		expect(row.type === 'item' && row.detail).toBeUndefined()
+	})
+
+	it('gives the cancel row its own entry that runs nothing and shows Esc', () => {
+		const [, cancel] = getCommandPalettePromptRows(rename, '', 'Cancel', 'ltr')
+		expect(cancel.type === 'item' && cancel.entry).toMatchObject({
+			id: 'command-palette-cancel',
+			prompt: undefined,
+			kbd: '[[Esc]]',
+		})
+	})
+
+	it('points the arrows left in RTL', () => {
+		const rows = getCommandPalettePromptRows(rename, '', 'Cancel', 'rtl')
+		expect(rows.map((row) => row.type === 'item' && row.icon)).toEqual(['arrow-left', 'arrow-left'])
+	})
+})
+
+describe('getCommandPaletteSections', () => {
+	const describeSections = (rows: CommandPaletteRow[]) =>
+		getCommandPaletteSections(rows).map((section) => ({
+			key: section.key,
+			heading: section.heading?.label,
+			separated: section.separated,
+			rows: describeRows(section.rows),
+		}))
+
+	it('groups rows under the heading or separator before them', () => {
+		const rows = getCommandPaletteBrowseRows(
+			[
+				entry('undo', { heading: 'Edit' }),
+				entry('redo', { heading: 'Edit' }),
+				entry('grid', { heading: 'View' }),
+				entry('custom'),
+			],
+			[],
+			'Recent'
+		)
+		expect(describeSections(rows)).toEqual([
+			{ key: 'heading:0', heading: 'Edit', separated: undefined, rows: ['undo', 'redo'] },
+			{ key: 'heading:3', heading: 'View', separated: undefined, rows: ['grid'] },
+			{ key: 'separator:5', heading: undefined, separated: true, rows: ['custom'] },
+		])
+	})
+
+	it('starts an unheaded section for rows before any heading', () => {
+		const rows = getCommandPaletteBrowseRows(submenuEntries, [], 'Recent')
+		expect(describeSections(rows)).toEqual([
+			{
+				key: 'start',
+				heading: undefined,
+				separated: undefined,
+				rows: ['> Move to page', 'Theme: Dark', 'Show grid'],
+			},
+		])
+	})
+
+	it('returns no sections for no rows', () => {
+		expect(getCommandPaletteSections([])).toEqual([])
 	})
 })

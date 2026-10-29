@@ -1,9 +1,10 @@
 import { act, fireEvent, waitFor } from '@testing-library/react'
-import { createShapeId, Editor, toRichText } from '@tldraw/editor'
+import { createShapeId, deleteFromLocalStorage, Editor, toRichText } from '@tldraw/editor'
 import { StrictMode, useState } from 'react'
 import { TLComponents, Tldraw } from '../../lib/Tldraw'
 import { COMMAND_PALETTE_MENU_ID } from '../../lib/ui/components/CommandPalette/commandPaletteMenuId'
 import { CommandPaletteMenuItem } from '../../lib/ui/components/CommandPalette/CommandPaletteMenuItem'
+import { addCommandPaletteRecent } from '../../lib/ui/components/CommandPalette/commandPaletteRecents'
 import {
 	DefaultCommandPalette,
 	TLUiCommandPaletteProps,
@@ -52,6 +53,10 @@ function expectUndoShortcutWorks(editor: Editor) {
 	})
 	expect(editor.getShape(id)).toBeUndefined()
 }
+
+afterEach(() => {
+	deleteFromLocalStorage('tldraw-command-palette-recents')
+})
 
 describe('command palette', () => {
 	it('opens on Cmd+K with the input focused and closes on Escape', async () => {
@@ -238,6 +243,17 @@ describe('custom command palette slot', () => {
 		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
 		expect(editor.menus.getOpenMenus()).toEqual([])
 		expectUndoShortcutWorks(editor)
+	})
+
+	it('passes suggestions through to the shell', async () => {
+		addCommandPaletteRecent('toggle-grid')
+		function QuietPalette(props: TLUiCommandPaletteProps) {
+			return <DefaultCommandPalette {...props} suggestions="none" />
+		}
+		const { editor, rendered } = await setup({ CommandPalette: QuietPalette })
+		pressCmdK(editor)
+		await rendered.findByTestId('command-palette.item.toggle-grid')
+		expect(rendered.queryByTestId('command-palette.recent.toggle-grid')).toBeNull()
 	})
 
 	it('clears the open mark when the UI hides while the palette is open', async () => {
