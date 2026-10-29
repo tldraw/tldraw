@@ -512,7 +512,7 @@ describe('buildAgentCommentBody', () => {
 				{ type: 'paragraph', content: [{ type: 'text', text: 'Third *line*' }] },
 			],
 		})
-		expect(AGENT_COMMENT_HEADER).toBe('Comment left by my agent')
+		expect(AGENT_COMMENT_HEADER).toBe('Comment sent by my agent')
 	})
 })
 

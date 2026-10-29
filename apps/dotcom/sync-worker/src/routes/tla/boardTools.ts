@@ -1013,7 +1013,7 @@ export const COMMENT_TEXT_MAX_LENGTH = 5000
  * caller's own account, so without it collaborators could not tell an agent's comment from its
  * user's. Added here rather than asked of the model, so it can be neither forgotten nor forged.
  */
-export const AGENT_COMMENT_HEADER = 'Comment left by my agent'
+export const AGENT_COMMENT_HEADER = 'Comment sent by my agent'
 
 // A published /p/ board is a read-only copy with no comments, and its slug names no file to post on.
 export const COMMENT_BOARD_NOT_FOUND_MESSAGE =
