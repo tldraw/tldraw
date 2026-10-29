@@ -1,4 +1,10 @@
 {
+  "007e6bcc62": [
+    {
+      "type": 0,
+      "value": "Couldn't load updates. Try again later."
+    }
+  ],
   "0095a9fa74": [
     {
       "type": 0,
@@ -67,6 +73,12 @@
     {
       "type": 0,
       "value": " mentioned you"
+    }
+  ],
+  "05e442d0a4": [
+    {
+      "type": 0,
+      "value": "New features and improvements in tldraw."
     }
   ],
   "05f43078e9": [
@@ -321,6 +333,12 @@
     {
       "type": 0,
       "value": "Please try refreshing the page."
+    }
+  ],
+  "33871b6190": [
+    {
+      "type": 0,
+      "value": "What's new"
     }
   ],
   "344a7f427f": [
@@ -722,6 +740,12 @@
       "value": "Have a bug, issue, or idea for tldraw? Let us know!"
     }
   ],
+  "7276dce240": [
+    {
+      "type": 0,
+      "value": "Show this next time"
+    }
+  ],
   "73ab799383": [
     {
       "type": 0,
@@ -932,6 +956,12 @@
       "value": "Rename file"
     }
   ],
+  "87c81df431": [
+    {
+      "type": 0,
+      "value": "New updates"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1084,6 +1114,12 @@
     {
       "type": 0,
       "value": "Opt out"
+    }
+  ],
+  "a051da790b": [
+    {
+      "type": 0,
+      "value": "Open all updates in a new tab"
     }
   ],
   "a078644c42": [
@@ -1384,6 +1420,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "bee0a8cf4d": [
+    {
+      "type": 0,
+      "value": "Nothing here yet."
     }
   ],
   "c17466812d": [
@@ -1774,6 +1816,12 @@
     {
       "type": 0,
       "value": "selected"
+    }
+  ],
+  "f03ab16cd5": [
+    {
+      "type": 0,
+      "value": "Draft"
     }
   ],
   "f09b16bc5f": [
