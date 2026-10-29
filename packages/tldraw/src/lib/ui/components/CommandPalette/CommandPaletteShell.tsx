@@ -1,4 +1,4 @@
-import { defineMessages, useEditor, useValue } from '@tldraw/editor'
+import { defineMessages, useMaybeEditor, useValue } from '@tldraw/editor'
 import {
 	ReactNode,
 	useCallback,
@@ -58,8 +58,9 @@ export type TLUiCommandPaletteSuggestions = 'recent' | 'none'
 /** @public */
 export interface TLUiCommandPaletteShellProps {
 	/**
-	 * Where the palette opens. `'bottom'`, the default, sits just above the toolbar at its width when
-	 * the toolbar is horizontal; otherwise it opens horizontally centered, lower than `'center'`.
+	 * Where the palette opens. Defaults to `'center'`. `'bottom'` sits just above the toolbar at its
+	 * width when the toolbar is horizontal; otherwise it opens horizontally centered, lower than
+	 * `'center'`.
 	 */
 	position?: TLUiCommandPalettePosition
 	/**
@@ -75,17 +76,18 @@ export interface TLUiCommandPaletteShellProps {
 
 /**
  * The command palette's input, list and keyboard handling. Render it from a custom `CommandPalette`
- * slot, passing the slot's `onClose`, to build a palette that looks or sits differently.
+ * slot, passing the slot's `onClose`, to build a palette that looks or sits differently. It also
+ * works without an editor, inside `TldrawUiContextProvider`, where the app opens and closes it.
  *
  * @public @react
  */
 export function CommandPaletteShell({
-	position = 'bottom',
+	position = 'center',
 	suggestions = 'recent',
 	onClose,
 	children,
 }: TLUiCommandPaletteShellProps) {
-	const editor = useEditor()
+	const editor = useMaybeEditor()
 	const msg = useTranslation()
 	const dir = useDirection()
 	const [store] = useState(() => new CommandPaletteStore())
@@ -101,6 +103,8 @@ export function CommandPaletteShell({
 	const rInput = useRef<HTMLInputElement>(null)
 	const rList = useRef<HTMLDivElement>(null)
 	const rScrollToActive = useRef(false)
+	// Without an editor, focus goes back here on close.
+	const rFocusBefore = useRef<HTMLElement | null>(null)
 	const listboxId = useId()
 
 	const rows = useMemo((): CommandPaletteRow[] => {
@@ -150,8 +154,14 @@ export function CommandPaletteShell({
 	useLayoutEffect(() => {
 		const input = rInput.current
 		if (!input) return
+		if (!editor) {
+			const focused = input.ownerDocument.activeElement
+			rFocusBefore.current =
+				focused && focused !== input.ownerDocument.body ? (focused as HTMLElement) : null
+		}
 		input.focus()
-		const win = editor.getContainerWindow()
+		const win = editor ? editor.getContainerWindow() : input.ownerDocument.defaultView
+		if (!win) return
 		const frame = win.requestAnimationFrame(() => input.focus())
 		return () => win.cancelAnimationFrame(frame)
 	}, [editor])
@@ -167,10 +177,12 @@ export function CommandPaletteShell({
 
 	// Don't pull focus back from something the command opened, e.g. a dialog.
 	const restoreFocus = useCallback(() => {
-		const doc = editor.getContainerDocument()
+		const doc = editor ? editor.getContainerDocument() : rFocusBefore.current?.ownerDocument
+		if (!doc) return
 		const focused = doc.activeElement
 		if (!focused || focused === doc.body || rPalette.current?.contains(focused)) {
-			editor.getContainer().focus()
+			if (editor) editor.getContainer().focus()
+			else rFocusBefore.current?.focus()
 		}
 	}, [editor])
 
