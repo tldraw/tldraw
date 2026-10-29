@@ -10,6 +10,7 @@ import {
 	CREATE_BOARD_TOOL_NAME,
 	LIST_WORKSPACES_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
+	PAGE_SCREENSHOT_TOOL_NAME,
 	RENAME_BOARD_TOOL_NAME,
 	SEARCH_BOARDS_TOOL_NAME,
 	ShapeMeasurement,
@@ -28,9 +29,11 @@ import {
 	parseCreateBoardInput,
 	parseListWorkspacesInput,
 	parsePageInfoInput,
+	parsePageScreenshotInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	pickClusterShapes,
+	pickShapesOnPage,
 	resolvePage,
 	toolError,
 	toolPageResult,
@@ -198,23 +201,36 @@ async function callFixtureTool(
 					: resolved.result
 			}
 			case CLUSTER_SCREENSHOT_TOOL_NAME: {
-				const { boardId, page, clusterIds, theme } = parseClusterScreenshotInput(args)
+				const { boardId, page, target, theme } = parseClusterScreenshotInput(args)
 				const board = boards.get(boardId)
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const resolved = resolvePage(board.snapshot, page)
 				if (!resolved.ok) return resolved.result
-				const picked = pickClusterShapes(
-					clusterPage(resolved, board.measurements),
-					clusterIds,
-					page
-				)
+				const picked =
+					target.kind === 'clusters'
+						? pickClusterShapes(clusterPage(resolved, board.measurements), target.clusterIds, page)
+						: pickShapesOnPage(resolved, target.shapeIds, page)
 				if (!picked.ok) return picked.result
-				const png = board.shots[screenshotFileName(clusterIds, theme)]
+				// Fixture shots are built per cluster set, so a call naming shapes has none to serve.
+				const png =
+					target.kind === 'clusters'
+						? board.shots[screenshotFileName(target.clusterIds, theme)]
+						: undefined
 				return png
 					? toolPageResult(resolved.pageName, png)
 					: toolError(
-							`${HARNESS_GAP_MARKER} No screenshot was built for this cluster set. Run against staging or production to see the real render.`
+							`${HARNESS_GAP_MARKER} No screenshot was built for this ${target.kind === 'clusters' ? 'cluster' : 'shape'} set. Run against staging or production to see the real render.`
 						)
+			}
+			case PAGE_SCREENSHOT_TOOL_NAME: {
+				const { boardId, page } = parsePageScreenshotInput(args)
+				const board = boards.get(boardId)
+				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
+				const resolved = resolvePage(board.snapshot, page)
+				if (!resolved.ok) return resolved.result
+				return toolError(
+					`${HARNESS_GAP_MARKER} No page screenshots are built for fixtures. Run against staging or production to see the real render.`
+				)
 			}
 			case LIST_WORKSPACES_TOOL_NAME: {
 				// Parsed so argument errors read as they do in production; a fixture session has no

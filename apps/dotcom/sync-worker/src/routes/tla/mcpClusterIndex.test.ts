@@ -3,11 +3,13 @@ import { describe, expect, it } from 'vitest'
 import { Environment } from '../../types'
 import {
 	ResolvedPageOk,
+	CLUSTER_INDEX_FORMAT_VERSION,
 	ShapeMeasurement,
 	buildClusterIndex,
 	clusterPage,
 	clustersFromIndex,
 	getClusterInfo,
+	getContentBounds,
 	parseClusterIndex,
 } from './boardTools'
 import {
@@ -71,7 +73,7 @@ describe('the stored index', () => {
 		const clusters = clusterPage(page, MEASUREMENTS)
 		const selector = { kind: 'ordinal', ordinal: 0 } as const
 
-		const stored = parseClusterIndex(JSON.stringify(buildClusterIndex(clusters)))!
+		const stored = parseClusterIndex(JSON.stringify(buildClusterIndex(clusters, null)))!
 		const rehydrated = clustersFromIndex(page, stored)!
 
 		expect(getClusterInfo(page, rehydrated, clusters[0].id, selector)).toEqual(
@@ -79,17 +81,23 @@ describe('the stored index', () => {
 		)
 	})
 
-	it('keeps the measured text and drops the measured bounds', () => {
-		const index = buildClusterIndex(clusterPage(makePage(), MEASUREMENTS))
+	it('keeps the measured text and page extent, and drops per-shape bounds', () => {
+		const page = makePage()
+		const index = buildClusterIndex(
+			clusterPage(page, MEASUREMENTS),
+			getContentBounds(page, MEASUREMENTS)
+		)
 
-		// Text is not derivable from the record, so it is stored. Bounds are: they decide which atoms
-		// merge, and that decision is already in `clusters`.
+		// Text is not derivable from the record, so it is stored. Per-shape bounds are: they decide
+		// which atoms merge, and that decision is already in `clusters`. The page's extent is kept so a
+		// whole-page screenshot can frame from the index without measuring again.
 		expect(index.text).toEqual({ 'shape:one': 'Checkout total' })
+		expect(index.bounds).toEqual({ x: 0, y: 0, w: 5080, h: 80 })
 		expect(JSON.stringify(index)).not.toContain('minX')
 	})
 
 	it('refuses a row this build did not write', () => {
-		const index = buildClusterIndex(clusterPage(makePage(), MEASUREMENTS))
+		const index = buildClusterIndex(clusterPage(makePage(), MEASUREMENTS), null)
 
 		expect(parseClusterIndex('not json')).toBeNull()
 		expect(parseClusterIndex('null')).toBeNull()
@@ -100,7 +108,7 @@ describe('the stored index', () => {
 	})
 
 	it('refuses to rebuild for a page that has gained shapes', () => {
-		const index = buildClusterIndex(clusterPage(makePage(), MEASUREMENTS))
+		const index = buildClusterIndex(clusterPage(makePage(), MEASUREMENTS), null)
 
 		// The direction a stored index cannot otherwise notice. Nothing about the index is wrong — it
 		// rebuilds cleanly — it is just short, and answering short is a wrong answer no uncached call
@@ -108,11 +116,11 @@ describe('the stored index', () => {
 		// reported as having no clusters at all.
 		const grown = makePage([...makePage().shapes, makeShape('shape:three', 200)])
 		expect(clustersFromIndex(grown, index)).toBeNull()
-		expect(clustersFromIndex(grown, buildClusterIndex([]))).toBeNull()
+		expect(clustersFromIndex(grown, buildClusterIndex([], null))).toBeNull()
 	})
 
 	it('refuses to rebuild for a page whose shapes it does not name', () => {
-		const index = buildClusterIndex(clusterPage(makePage(), MEASUREMENTS))
+		const index = buildClusterIndex(clusterPage(makePage(), MEASUREMENTS), null)
 
 		expect(clustersFromIndex(makePage(), index)).not.toBeNull()
 		// One shape gone: the board moved under the index in a way its version did not catch, so it is
@@ -127,13 +135,25 @@ describe('reading and writing', () => {
 		const page = makePage()
 		const clusters = clusterPage(page, MEASUREMENTS)
 
-		await writePageClusterIndex({ env }, BOARD, page, buildClusterIndex(clusters), SNAPSHOT_VERSION)
-		expect(await readPageClusters({ env }, BOARD, page, SNAPSHOT_VERSION)).toEqual(clusters)
+		await writePageClusterIndex(
+			{ env },
+			BOARD,
+			page,
+			buildClusterIndex(clusters, null),
+			SNAPSHOT_VERSION
+		)
+		expect(await readPageClusters({ env }, BOARD, page, SNAPSHOT_VERSION)).toEqual({
+			clusters,
+			bounds: null,
+		})
 		expect(namespace.calls.put).toBe(1)
 
 		// The resolved board version can move before R2 does, so it is deliberately not the cache key.
 		const moved = { ...BOARD, version: 'v2' }
-		expect(await readPageClusters({ env }, moved, page, SNAPSHOT_VERSION)).toEqual(clusters)
+		expect(await readPageClusters({ env }, moved, page, SNAPSHOT_VERSION)).toEqual({
+			clusters,
+			bounds: null,
+		})
 
 		// The digest of the snapshot actually read is the key. This catches a publish-gap read where
 		// lastPublished already moved but R2 still held the previous snapshot, even when both snapshots
@@ -142,7 +162,13 @@ describe('reading and writing', () => {
 
 		// And writing under the new snapshot replaces the row rather than adding one, so a file's cache
 		// is bounded by its page count no matter how often it is edited.
-		await writePageClusterIndex({ env }, moved, page, buildClusterIndex(clusters), 'snapshot-v2')
+		await writePageClusterIndex(
+			{ env },
+			moved,
+			page,
+			buildClusterIndex(clusters, null),
+			'snapshot-v2'
+		)
 		expect([...namespace.objects.values()].flatMap((store) => [...store.keys()])).toHaveLength(1)
 	})
 
@@ -150,7 +176,7 @@ describe('reading and writing', () => {
 		const { env, namespace } = makeEnv()
 		const shapes = Array.from({ length: 12000 }, (_, i) => makeShape(`shape:${i}`, i * 200))
 		const page = makePage(shapes)
-		const index = buildClusterIndex(clusterPage(page, {}))
+		const index = buildClusterIndex(clusterPage(page, {}), null)
 
 		expect(JSON.stringify(index).length).toBeGreaterThan(MAX_CLUSTER_INDEX_LENGTH)
 		await writePageClusterIndex({ env }, BOARD, page, index, SNAPSHOT_VERSION)
@@ -182,7 +208,7 @@ describe('reading and writing', () => {
 				{ env },
 				BOARD,
 				page,
-				buildClusterIndex(clusterPage(page, MEASUREMENTS)),
+				buildClusterIndex(clusterPage(page, MEASUREMENTS), null),
 				SNAPSHOT_VERSION
 			)
 		).resolves.toBeUndefined()
@@ -195,7 +221,7 @@ describe('reading and writing', () => {
 			{ env },
 			BOARD,
 			page,
-			buildClusterIndex(clusterPage(page, MEASUREMENTS)),
+			buildClusterIndex(clusterPage(page, MEASUREMENTS), null),
 			SNAPSHOT_VERSION
 		)
 
@@ -203,7 +229,15 @@ describe('reading and writing', () => {
 		// which the cache read catches and reports. Either way the caller measures.
 		for (const store of namespace.objects.values()) {
 			for (const [key, row] of store) {
-				store.set(key, { ...row, payload: '{"v":1,"clusters":[{}],"text":{}}' })
+				store.set(key, {
+					...row,
+					payload: JSON.stringify({
+						v: CLUSTER_INDEX_FORMAT_VERSION,
+						clusters: [{}],
+						text: {},
+						bounds: null,
+					}),
+				})
 			}
 		}
 		expect(await readPageClusters({ env }, BOARD, page, SNAPSHOT_VERSION)).toBeNull()

@@ -30,6 +30,9 @@ import {
 	MCP_SERVER_INFO,
 	getMcpServerInstructions,
 	PAGE_INFO_TOOL_NAME,
+	PAGE_SCREENSHOT_INSET,
+	PAGE_SCREENSHOT_TOOL_NAME,
+	PageRect,
 	RENAME_BOARD_TOOL_NAME,
 	PageSelector,
 	ResolvedPageOk,
@@ -38,11 +41,14 @@ import {
 	buildClusterIndex,
 	clusterPage,
 	describePageSelector,
+	frameScreenshot,
 	getBoardInfo,
 	getBoardSearchResults,
 	getClusterInfo,
+	getContentBounds,
 	getCreatedBoardResult,
 	getPageInfo,
+	getPageScreenshotResult,
 	getToolDefinitions,
 	getWorkspaceListResult,
 	parseBoardInfoInput,
@@ -51,9 +57,11 @@ import {
 	parseCreateBoardInput,
 	parseListWorkspacesInput,
 	parsePageInfoInput,
+	parsePageScreenshotInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	pickClusterShapes,
+	pickShapesOnPage,
 	resolvePage,
 	toolError as modelToolError,
 	toolJsonResult,
@@ -368,6 +376,7 @@ const TOOL_HANDLERS = new Map<
 	[BOARD_INFO_TOOL_NAME, callBoardInfoTool],
 	[PAGE_INFO_TOOL_NAME, callPageInfoTool],
 	[CLUSTER_INFO_TOOL_NAME, callClusterInfoTool],
+	[PAGE_SCREENSHOT_TOOL_NAME, callPageScreenshotTool],
 	[CLUSTER_SCREENSHOT_TOOL_NAME, callClusterScreenshotTool],
 ])
 
@@ -649,6 +658,22 @@ export async function getShapesCacheKey(
 ) {
 	const digest = await sha256([...shapeIds].sort().join(','))
 	return `mcp/${board.kind}/${board.slug}/${board.version}/${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT}/${theme}/shapes-${digest}.png`
+}
+
+// A whole page and a region of one get separate prefixes because only the region's framing can be
+// recomputed from the request: a whole-page entry carries its framing in metadata, so a hit spends
+// no measure render to find out what it covers. The page id is hashed rather than embedded, since a
+// page id is whatever string the document holds.
+export async function getPageScreenshotCacheKey(
+	board: Pick<ResolvedThumbnailBoard, 'kind' | 'slug' | 'version'>,
+	theme: 'light' | 'dark',
+	pageId: string,
+	bounds: PageRect | null
+) {
+	const name = bounds
+		? `region-${await sha256(`${pageId}|${bounds.x},${bounds.y},${bounds.w},${bounds.h}`)}`
+		: `page-${await sha256(pageId)}`
+	return `mcp/${board.kind}/${board.slug}/${board.version}/${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT}/${theme}/${name}.png`
 }
 
 async function callSearchBoardsTool(
@@ -1140,11 +1165,17 @@ async function checkRenameRateLimit(
 }
 
 type PageClustersResult =
-	| { ok: true; clusters: ShapeCluster[]; clusterCacheStatus: 'hit' | 'miss' }
+	| {
+			ok: true
+			clusters: ShapeCluster[]
+			/** The page's content extent, which get_page_screenshot frames on. */
+			contentBounds: PageRect | null
+			clusterCacheStatus: 'hit' | 'miss'
+	  }
 	| { ok: false; result: ToolCallResult }
 
-// How the three clustering tools get a page's clusters, and the one place that decides whether that
-// costs a browser session.
+// How the three clustering tools, and a whole-page screenshot framing on the page's extent, get a
+// page's clusters, and the one place that decides whether that costs a browser session.
 //
 // Clustering needs real geometry, and the only way to get it is to run an editor in Browser
 // Rendering — the same cost as a screenshot. But the answer only moves when the board's content
@@ -1174,12 +1205,15 @@ async function clustersFor(
 		telemetry,
 		request,
 		ctx,
+		pngCacheStatus = 'none',
 	}: {
 		env: Environment
 		userId: string
 		telemetry: McpTelemetryWriter
 		request: Request
 		ctx: ExecutionContext | undefined
+		/** What the PNG cache had done before clustering, for the refusal row: see `cacheStatus`. */
+		pngCacheStatus?: 'miss' | 'none'
 	}
 ): Promise<PageClustersResult> {
 	const cacheContext = { env, request, ctx }
@@ -1189,11 +1223,18 @@ async function clustersFor(
 		resolved.page,
 		resolved.snapshotVersion
 	)
-	if (cached) return { ok: true, clusters: cached, clusterCacheStatus: 'hit' }
+	if (cached) {
+		return {
+			ok: true,
+			clusters: cached.clusters,
+			contentBounds: cached.bounds,
+			clusterCacheStatus: 'hit',
+		}
+	}
 
 	if (await isGlobalBrowserRunRateLimited(env)) {
 		telemetry({
-			cacheStatus: 'none',
+			cacheStatus: pngCacheStatus,
 			clusterCacheStatus: 'miss',
 			rateLimitAllowed: false,
 			failureReason: 'rate_limited_global',
@@ -1212,14 +1253,15 @@ async function clustersFor(
 		surface: 'mcp',
 	})
 	const clusters = clusterPage(resolved.page, measurements)
+	const contentBounds = getContentBounds(resolved.page, measurements)
 	await writePageClusterIndex(
 		cacheContext,
 		resolved.board,
 		resolved.page,
-		buildClusterIndex(clusters),
+		buildClusterIndex(clusters, contentBounds),
 		resolved.snapshotVersion
 	)
-	return { ok: true, clusters, clusterCacheStatus: 'miss' }
+	return { ok: true, clusters, contentBounds, clusterCacheStatus: 'miss' }
 }
 
 async function callClusterInfoTool(
@@ -1274,7 +1316,119 @@ async function callClusterInfoTool(
 	}
 }
 
-// Both shape-set screenshot tools do the same thing once they know which shapes to draw; they differ
+// The guards on a capture, checked on a PNG cache miss only: a hit spends no Browser Run, so the
+// per-board and global limits have nothing to meter. Returns the refusal, or `undefined` to carry on.
+async function checkCaptureRateLimits(
+	env: Environment,
+	boardId: string,
+	userId: string,
+	telemetry: McpTelemetryWriter,
+	clusterCacheStatus: 'hit' | 'miss' | 'none'
+): Promise<ToolCallResult | undefined> {
+	if (
+		await isRateLimited(env.MCP_SERVER_BOARD_RATE_LIMITER, `board:${boardId}`, {
+			fallbackLimit: MCP_PER_BOARD_RATE_LIMIT,
+		})
+	) {
+		telemetry({
+			cacheStatus: 'miss',
+			clusterCacheStatus,
+			rateLimitAllowed: false,
+			failureReason: 'rate_limited_board',
+			callerHash: await sha256(userId),
+		})
+		return toolError(
+			'Rate limited. This board is being screenshotted too frequently.',
+			'rate_limited_board'
+		)
+	}
+	if (await isGlobalBrowserRunRateLimited(env)) {
+		telemetry({
+			cacheStatus: 'miss',
+			clusterCacheStatus,
+			rateLimitAllowed: false,
+			failureReason: 'rate_limited_global',
+			callerHash: await sha256(userId),
+		})
+		return toolError(
+			'Rate limited. Screenshot capacity is busy, try again in a minute.',
+			'rate_limited_global'
+		)
+	}
+	return undefined
+}
+
+function captureMcpScreenshot(
+	env: Environment,
+	resolved: Extract<ResolvedBoardPage, { ok: true }>,
+	{
+		theme,
+		shapeIds,
+		viewport,
+	}: {
+		theme: 'light' | 'dark'
+		shapeIds?: string[]
+		viewport?: { x: number; y: number; z: number }
+	}
+) {
+	return captureThumbnailScreenshot(env, resolved.board, {
+		surface: 'mcp',
+		pageId: resolved.page.pageId,
+		shapeIds,
+		viewport,
+		theme,
+		width: DEFAULT_THUMBNAIL_WIDTH,
+		height: DEFAULT_THUMBNAIL_HEIGHT,
+		telemetry: { source: 'mcp' },
+		content: summarizeSnapshotContent(resolved.snapshot, resolved.page.pageId),
+		// Preview trial (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts): let the screenshot
+		// rasterize the live canvas instead of running editor.toImage in the page. Agent-facing
+		// only — the OG surface keeps the export path's pixel-exact sizing.
+		...(envFlagWord(env.THUMBNAIL_RENDER_LIVE_CAPTURE) === 'true'
+			? { capture: 'live' as const }
+			: null),
+	})
+}
+
+// The render is already paid for and the PNG in hand is what the caller asked for, so a failed cache
+// write must not throw it away — that would turn a working screenshot into a tool error and burn the
+// caller's rate-limit budget for nothing. Reported rather than raised: the caller can't act on it, but
+// a cache that stops absorbing writes means every call re-renders. The page name is URI-encoded
+// because R2 custom metadata is not reliably unicode-safe.
+async function cacheMcpScreenshot(
+	env: Environment,
+	{ request, ctx }: { request: Request; ctx: ExecutionContext | undefined },
+	{
+		cacheKey,
+		base64,
+		resolved,
+		metadata,
+		extras,
+	}: {
+		cacheKey: string
+		base64: string
+		resolved: Extract<ResolvedBoardPage, { ok: true }>
+		metadata?: Record<string, string>
+		extras: Record<string, unknown>
+	}
+) {
+	try {
+		await putThumbnailPng(env.MCP_DATA_BUCKET!, cacheKey, base64, resolved.board.version, {
+			pageName: encodeURIComponent(resolved.page.pageName),
+			...metadata,
+		})
+	} catch (error) {
+		reportThumbnailError(error, {
+			ctx,
+			env,
+			request,
+			surface: 'mcp_screenshot_cache_write',
+			extras,
+		})
+	}
+}
+
+// Both shape-set screenshot modes do the same thing once they know which shapes to draw; they differ
 // only in how they get there — one is handed the ids, the other resolves them from a cluster. That
 // difference is `pickShapes`; everything downstream (rate limits, cache, capture, telemetry) is here.
 async function renderShapeSetScreenshot(
@@ -1307,7 +1461,7 @@ async function renderShapeSetScreenshot(
 			resolved: Extract<ResolvedBoardPage, { ok: true }>,
 			telemetry: McpTelemetryWriter
 		): Promise<
-			| { ok: true; shapeIds: string[]; clusterCacheStatus: 'hit' | 'miss' }
+			| { ok: true; shapeIds: string[]; clusterCacheStatus: 'hit' | 'miss' | 'none' }
 			| { ok: false; result: ReturnType<typeof toolError> }
 		>
 	}
@@ -1318,6 +1472,7 @@ async function renderShapeSetScreenshot(
 	let consultedCache = false
 	// Set once the shapes are picked, since that is the step that either measures or reads the index.
 	let clusterCacheStatus: 'hit' | 'miss' | 'none' = 'none'
+	const sentryExtras = { boardId, page: describePageSelector(page), theme, ...extras }
 
 	try {
 		// Checked before the cache, unlike the two below: this is the per-caller ceiling on calls, not
@@ -1362,74 +1517,21 @@ async function renderShapeSetScreenshot(
 			)
 		}
 
-		// Only cache misses spend Browser Rendering capacity on the capture, so the per-board and
-		// global guards sit here rather than at the top of the tool call.
-		if (
-			await isRateLimited(env.MCP_SERVER_BOARD_RATE_LIMITER, `board:${boardId}`, {
-				fallbackLimit: MCP_PER_BOARD_RATE_LIMIT,
-			})
-		) {
-			telemetry({
-				cacheStatus: 'miss',
-				clusterCacheStatus,
-				rateLimitAllowed: false,
-				failureReason: 'rate_limited_board',
-				callerHash: await sha256(userId),
-			})
-			return toolError(
-				'Rate limited. This board is being screenshotted too frequently.',
-				'rate_limited_board'
-			)
-		}
-		if (await isGlobalBrowserRunRateLimited(env)) {
-			telemetry({
-				cacheStatus: 'miss',
-				clusterCacheStatus,
-				rateLimitAllowed: false,
-				failureReason: 'rate_limited_global',
-				callerHash: await sha256(userId),
-			})
-			return toolError(
-				'Rate limited. Screenshot capacity is busy, try again in a minute.',
-				'rate_limited_global'
-			)
-		}
+		const limited = await checkCaptureRateLimits(
+			env,
+			boardId,
+			userId,
+			telemetry,
+			clusterCacheStatus
+		)
+		if (limited) return limited
 
-		const render = await captureThumbnailScreenshot(env, resolved.board, {
-			surface: 'mcp',
-			pageId: resolved.page.pageId,
-			shapeIds,
-			theme,
-			width: DEFAULT_THUMBNAIL_WIDTH,
-			height: DEFAULT_THUMBNAIL_HEIGHT,
-			telemetry: { source: 'mcp' },
-			content: summarizeSnapshotContent(resolved.snapshot, resolved.page.pageId),
-			// Preview trial (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts): let the screenshot
-			// rasterize the live canvas instead of running editor.toImage in the page. Agent-facing
-			// only — the OG surface keeps the export path's pixel-exact sizing.
-			...(envFlagWord(env.THUMBNAIL_RENDER_LIVE_CAPTURE) === 'true'
-				? { capture: 'live' as const }
-				: null),
-		})
-
-		// The render is already paid for and the PNG in hand is what the caller asked for, so a failed
-		// cache write must not throw it away — that would turn a working screenshot into a tool error
-		// and burn the caller's rate-limit budget for nothing. Reported rather than raised: the caller
-		// can't act on it, but a cache that stops absorbing writes means every call re-renders. The page
-		// name is URI-encoded because R2 custom metadata is not reliably unicode-safe.
-		try {
-			await putThumbnailPng(env.MCP_DATA_BUCKET, cacheKey, render.base64, resolved.board.version, {
-				pageName: encodeURIComponent(resolved.page.pageName),
-			})
-		} catch (error) {
-			reportThumbnailError(error, {
-				ctx,
-				env,
-				request,
-				surface: 'mcp_screenshot_cache_write',
-				extras: { boardId, page: describePageSelector(page), theme, ...extras },
-			})
-		}
+		const render = await captureMcpScreenshot(env, resolved, { theme, shapeIds })
+		await cacheMcpScreenshot(
+			env,
+			{ request, ctx },
+			{ cacheKey, base64: render.base64, resolved, extras: sentryExtras }
+		)
 
 		telemetry({ cacheStatus: 'miss', clusterCacheStatus })
 		return toolPageResult(resolved.page.pageName, render.base64)
@@ -1441,7 +1543,7 @@ async function renderShapeSetScreenshot(
 			request,
 			ctx,
 			surface: 'mcp_screenshot',
-			extras: { boardId, page: describePageSelector(page), theme, ...extras },
+			extras: sentryExtras,
 			summary: 'Screenshot failed',
 			telemetry,
 			cacheStatus: consultedCache ? 'miss' : 'none',
@@ -1451,7 +1553,8 @@ async function renderShapeSetScreenshot(
 }
 
 // The one-call path: a cluster id straight to a picture, without a get_cluster_info round trip to
-// pull its shape ids out first.
+// pull its shape ids out first. Shape ids are resolved from the snapshot alone, so that mode never
+// needs a measure render.
 async function callClusterScreenshotTool(
 	argumentsValue: unknown,
 	request: Request,
@@ -1465,17 +1568,27 @@ async function callClusterScreenshotTool(
 	)
 	if (!parsed.ok) return parsed.result
 	const input = parsed.input
+	const target = input.target
 
 	return renderShapeSetScreenshot(request, env, ctx, {
 		boardId: input.boardId,
 		page: input.page,
 		theme: input.theme,
 		userId,
-		extras: { clusterIds: input.clusterIds.join(',') },
+		extras:
+			target.kind === 'clusters'
+				? { clusterIds: target.clusterIds.join(',') }
+				: { shapeIds: target.shapeIds.join(',') },
 		pickShapes: async (resolved, telemetry) => {
+			if (target.kind === 'shapes') {
+				const picked = pickShapesOnPage(resolved.page, target.shapeIds, input.page)
+				if (picked.ok) return { ...picked, clusterCacheStatus: 'none' }
+				telemetry({ cacheStatus: 'none', failureReason: 'shape_not_found' })
+				return { ...picked, result: withTelemetryReason(picked.result, 'shape_not_found') }
+			}
 			const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
 			if (!clustered.ok) return { ok: false, result: clustered.result }
-			const picked = pickClusterShapes(clustered.clusters, input.clusterIds, input.page)
+			const picked = pickClusterShapes(clustered.clusters, target.clusterIds, input.page)
 			if (picked.ok) return { ...picked, clusterCacheStatus: clustered.clusterCacheStatus }
 			// `cluster_not_found` on both events. The request ledger used to file this as
 			// `failure:shape_not_found` while the per-call event filed the very same refusal as
@@ -1488,6 +1601,149 @@ async function callClusterScreenshotTool(
 			return { ...picked, result: withTelemetryReason(picked.result, 'cluster_not_found') }
 		},
 	})
+}
+
+/** What a page screenshot covers, as get_page_screenshot reports it. */
+interface PageScreenshotFraming {
+	covers: PageRect
+	/** Whole-page shots only. */
+	pageBounds?: PageRect | null
+}
+
+// A whole-page entry's framing travels in its metadata, written by this build. Anything else reads
+// as a miss and is rendered again, rather than served with no account of what it shows.
+function parseCachedFraming(value: string | undefined): PageScreenshotFraming | null {
+	if (!value) return null
+	try {
+		const framing = JSON.parse(value) as PageScreenshotFraming
+		return framing?.covers && typeof framing.covers.w === 'number' ? framing : null
+	} catch {
+		return null
+	}
+}
+
+// A page, or a rectangle of one, with everything in it drawn. Unlike the shape-set modes it sets the
+// render page's camera itself (see frameScreenshot), which is what lets it report what the image
+// covers, and it names no shape ids in the render job, so a page of any size makes a token of the
+// same size.
+async function callPageScreenshotTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const telemetry = mcpTelemetryWriter(env)
+	const parsed = parseToolInput(() => parsePageScreenshotInput(argumentsValue), telemetry)
+	if (!parsed.ok) return parsed.result
+	const { boardId, page, bounds, theme } = parsed.input
+	const sentryExtras = {
+		boardId,
+		page: describePageSelector(page),
+		theme,
+		bounds: bounds ? JSON.stringify(bounds) : 'page',
+	}
+	let consultedCache = false
+	let clusterCacheStatus: 'hit' | 'miss' | 'none' = 'none'
+
+	try {
+		// The same order as renderShapeSetScreenshot, for the reasons given there: the per-caller
+		// budget counts calls, and the access check gates the cache read.
+		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
+		if (refusal) return refusal
+
+		if (!env.MCP_DATA_BUCKET) {
+			throw new Error('MCP_DATA_BUCKET bucket is not configured')
+		}
+
+		const resolved = await resolveBoardPage(env, boardId, page, userId)
+		if (!resolved.ok) {
+			telemetry({ cacheStatus: 'none', failureReason: resolved.reason })
+			return resolved.result
+		}
+
+		const cacheKey = await getPageScreenshotCacheKey(
+			resolved.board,
+			theme,
+			resolved.page.pageId,
+			bounds
+		)
+		consultedCache = true
+		const cached = await env.MCP_DATA_BUCKET.get(cacheKey)
+		const cachedFraming = cached
+			? bounds
+				? { covers: frameScreenshot(bounds, 0).covers }
+				: parseCachedFraming(cached.customMetadata?.framing)
+			: null
+		if (cached && cachedFraming) {
+			telemetry({ cacheStatus: 'hit', clusterCacheStatus })
+			return getPageScreenshotResult(
+				decodeThumbnailPageName(cached.customMetadata?.pageName),
+				arrayBufferToBase64(await cached.arrayBuffer()),
+				cachedFraming
+			)
+		}
+
+		// The whole page frames on its content extent, which only a measure render knows. The cluster
+		// index stores it, so this is free after get_page_info; an empty page has nothing to measure.
+		let pageBounds: PageRect | null = null
+		if (!bounds && resolved.page.shapes.length > 0) {
+			const clustered = await clustersFor(resolved, {
+				env,
+				userId,
+				telemetry,
+				request,
+				ctx,
+				pngCacheStatus: 'miss',
+			})
+			if (!clustered.ok) return clustered.result
+			clusterCacheStatus = clustered.clusterCacheStatus
+			pageBounds = clustered.contentBounds
+		}
+		const frame = bounds
+			? frameScreenshot(bounds, 0)
+			: frameScreenshot(pageBounds, PAGE_SCREENSHOT_INSET)
+		const framing: PageScreenshotFraming = bounds
+			? { covers: frame.covers }
+			: { covers: frame.covers, pageBounds }
+
+		const limited = await checkCaptureRateLimits(
+			env,
+			boardId,
+			userId,
+			telemetry,
+			clusterCacheStatus
+		)
+		if (limited) return limited
+
+		const render = await captureMcpScreenshot(env, resolved, { theme, viewport: frame.camera })
+		await cacheMcpScreenshot(
+			env,
+			{ request, ctx },
+			{
+				cacheKey,
+				base64: render.base64,
+				resolved,
+				metadata: bounds ? undefined : { framing: JSON.stringify(framing) },
+				extras: sentryExtras,
+			}
+		)
+
+		telemetry({ cacheStatus: 'miss', clusterCacheStatus })
+		return getPageScreenshotResult(resolved.page.pageName, render.base64, framing)
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_screenshot',
+			extras: sentryExtras,
+			summary: 'Screenshot failed',
+			telemetry,
+			cacheStatus: consultedCache ? 'miss' : 'none',
+			clusterCacheStatus,
+		})
+	}
 }
 
 interface ToolCallResult extends ToolResult {

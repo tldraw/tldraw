@@ -7,7 +7,7 @@ Issues:
 
 tldraw.com can capture PNG thumbnails of public boards by taking a Cloudflare Browser Rendering `/screenshot` of a tldraw-owned render page, called straight through the `BROWSER` binding's `quickAction` Quick Actions method — no `@cloudflare/puppeteer` and no API token (requires `compatibility_date >= 2026-03-24`). There are two consumers, both served by the sync worker:
 
-- an MCP server at `POST /api/app/mcp` exposing `search_boards`, which finds a caller's boards by name, and a drill-down over four more: `get_board_info` lists a board's pages (id, name, 0-based index, and whether each has content), `get_page_info` lists one page's clusters of shapes, `get_cluster_info` describes the shapes inside one cluster, and `get_cluster_screenshot` returns a content-fit PNG of one or more clusters. **It requires authentication** — see "Authentication on the MCP server"; and
+- an MCP server at `POST /api/app/mcp` exposing `search_boards`, which finds a caller's boards by name, and a drill-down over four more: `get_board_info` lists a board's pages (id, name, 0-based index, and whether each has content), `get_page_info` lists one page's clusters of shapes, `get_cluster_info` describes the shapes inside one cluster, `get_page_screenshot` returns a PNG of a whole page or of a rectangle on it, and `get_cluster_screenshot` returns a content-fit PNG of only the clusters or shapes it is given. **It requires authentication** — see "Authentication on the MCP server"; and
 - a board OG image endpoint, `GET /api/app/social-preview/:prefix/:slug/image`, built for high-traffic paths (link unfurls, crawlers): it serves only from the R2 cache and delegates rendering to a queue consumer, so a request never waits on Browser Run. It lives under the `social-preview` route family alongside the crawler HTML that references it.
 
 Rendering runs through the Browser Rendering `/screenshot` Quick Action, invoked from the worker via the `BROWSER` binding's `quickAction` method (`env.BROWSER.quickAction('screenshot', …)`). Chrome runs in Cloudflare's Browser Rendering fleet, not in the worker isolate. The pipeline never hands the browser a user-provided URL: the worker resolves the board, mints a short-lived signed render job, and the screenshot only ever targets the internal render page with that token. **Rendering is not gated on public viewability — serving is.** A thumbnail is generated for every board, private ones included, so that an owner-facing surface has one to show; the OG image route re-applies the public gate on every request. See "Rendering every board" below for what that means for the render token. The MCP surface exposes page metadata, shape clusters — including their shape records, with rich text flattened to a plain string — and cluster screenshots: no arbitrary selectors or arbitrary URLs, and no board the authenticated caller could not already open in a browser.
@@ -466,14 +466,29 @@ get_cluster_info({
 })
 // → the cluster's label, keywords, and full shape records (rich text flattened to props.text)
 
+get_page_screenshot({
+ boardId: string,
+ page?: number | string,
+ bounds?: { x: number, y: number, w: number, h: number }, // page-space rectangle to zoom into, at most 24000x12600. omit for the whole page
+ theme?: 'light' | 'dark', // default 'light'
+})
+// → text ({ pageName, bounds, pageBounds? }: what the image covers, and the page's extent on whole-page shots) + a 1200x630 PNG with everything in view drawn
+
 get_cluster_screenshot({
  boardId: string,
  page?: number | string,
- clusterIds: string | string[], // one or more cluster ids from get_page_info
+ clusterIds?: string | string[], // one or more cluster ids from get_page_info
+ shapeIds?: string | string[], // instead of clusterIds: up to 100 shape ids from get_cluster_info
  theme?: 'light' | 'dark', // default 'light'
 })
-// → text (page name) + a 1200x630 content-fit PNG of those clusters
+// → text (page name) + a 1200x630 content-fit PNG of only those clusters or shapes
 ```
+
+**The two screenshot tools split on what is drawn, not on how it is named.** `get_cluster_screenshot` draws only what it is given and fits the camera to it, so neighbours never leak in; `get_page_screenshot` draws everything in view, the way the board looks. Each call names exactly one target, and an argument belonging to the other tool is refused with a pointer to it rather than ignored.
+
+`get_page_screenshot` mints the render job's explicit viewport (`camera` omitted, `x`/`y`/`z` set) instead of a content fit, which is what lets it say what the image covers: `frameScreenshot` in `boardTools.ts` computes the camera the way `editor.zoomToBounds` would, with the render page's content margin for a whole page and none for `bounds`. The zoom is kept inside the editor's default zoom steps (5% to 800%), because the render page's `setCamera` clamps outside them around the editor's current camera and the image would show somewhere other than what was reported. So `bounds` is refused past 24000x12600 (1200x630 at 5%), and a whole page larger than that is cropped to its centre, with `bounds` smaller than `pageBounds` in the result. The job names no shape ids, so its token stays the same size however big the page is.
+
+A whole page frames on its content extent, which only a measure knows: the cluster index stores it, so after `get_page_info` the shot costs one capture, and cold it costs a measure and a capture. A `bounds` shot never measures. Both are cached in `MCP_DATA_BUCKET` under `page-{digest of page id}` and `region-{digest of page id and bounds}` beside the shape-set keys; a whole-page entry carries its framing in metadata, so a hit spends nothing. Every capture counts against the per-board limit, so zooming into several regions of one board inside a minute meets it on the third.
 
 `search_boards` covers the same set the other four will open: boards in the caller's own workspace, boards owned by a workspace they can access files in, and boards shared with them by link that they have opened. That is the scope `hasReadAccessToFile` admits, and the relationship only runs one way — everything search returns must be a board the other tools will open, or a model finds a board and cannot interpret being refused it. A published board stays reachable by id; it is simply not discoverable by name.
 
@@ -523,7 +538,7 @@ Three of the four tools have to cluster a page before they can answer anything, 
 
 The answer, though, only moves when the board's content moves. So the first tool to measure a page reduces the render's output to a **cluster index** and stores it; every later call for the same content is served from that.
 
-What is stored, per page (`PageClusterIndex` in `boardTools.ts`): each cluster's id, label, keywords and the ids of its shapes, plus the plain text the editor reported for the shapes that have any. Bounds are deliberately **not** kept — they exist to decide which atoms merge, and that decision is already baked into the cluster membership. The text is kept because it is the one thing that cannot be re-derived: `getShapeText` can approximate it from the stored record, and dropping the editor's answer would quietly change what `get_cluster_info` reports for exactly the shapes the fallback handles worst. Shape _records_ are not stored either; they come from the room snapshot, which every tool call loads anyway.
+What is stored, per page (`PageClusterIndex` in `boardTools.ts`): each cluster's id, label, keywords and the ids of its shapes, the plain text the editor reported for the shapes that have any, and the page's content extent. Per-shape bounds are deliberately **not** kept — they exist to decide which atoms merge, and that decision is already baked into the cluster membership. The extent is one box, kept so `get_page_screenshot` can frame a whole page from the index instead of measuring again. The text is kept because it is the one thing that cannot be re-derived: `getShapeText` can approximate it from the stored record, and dropping the editor's answer would quietly change what `get_cluster_info` reports for exactly the shapes the fallback handles worst. Shape _records_ are not stored either; they come from the room snapshot, which every tool call loads anyway.
 
 **Where it lives: the file's own durable object** (`TLFileDurableObject`, table `mcp_cluster_index`, statements in `mcpClusterIndexStorage.ts`), addressed by `ResolvedThumbnailBoard.fileId` — the slug for a shared file, the parent file for a published board. This is the only durable object hop in the MCP request path; the tools otherwise read the persisted snapshot straight out of R2 and never talk to the object that wrote it. It sits there rather than in R2 beside the PNGs because it is content derived from the room, and the room is what that object owns: the row is strongly consistent, it dies with the file, and it needs no expiry policy.
 

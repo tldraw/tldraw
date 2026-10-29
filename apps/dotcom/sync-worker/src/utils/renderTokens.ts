@@ -55,9 +55,9 @@ export interface ThumbnailRenderJob {
 	 * `content` fits the board's current page content into the requested output size; when omitted, the
 	 * render page uses x/y/z directly.
 	 *
-	 * Every surface mints `content`, so the explicit-viewport path is unexercised in production. Worth
-	 * carrying anyway: the render page ships with the client and deploys separately, so a worker that
-	 * wants to send a viewport can only do so once the client already understands one.
+	 * get_page_screenshot mints the explicit viewport, so it knows what each image covers; every other
+	 * surface mints `content`. The render page ships with the client and deploys separately, which is
+	 * why the viewport path was carried in both before anything sent it.
 	 */
 	camera?: 'content'
 	/**

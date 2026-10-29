@@ -7,8 +7,13 @@ import {
 	BoardSearchRow,
 	compareBoardSearchOrder,
 	getBoardSearchResults,
+	MAX_SCREENSHOT_SHAPE_IDS,
+	PAGE_SCREENSHOT_INSET,
+	frameScreenshot,
 	isAfterBoardSearchCursor,
+	parseClusterScreenshotInput,
 	parseCreateBoardInput,
+	parsePageScreenshotInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	resolveCreateBoardWorkspace,
@@ -430,5 +435,126 @@ describe('resolveCreateBoardWorkspace', () => {
 		expect(result).toMatchObject({ ok: false, reason: 'workspace_not_found' })
 		expect(errorText(result)).toContain('"Design" (id: group-design)')
 		expect(errorText(result)).toContain('"My workspace" (id: user-1, personal)')
+	})
+})
+
+describe('screenshot targets', () => {
+	it('takes cluster ids or shape ids, defaulting the page to the first', () => {
+		expect(parseClusterScreenshotInput({ boardId: 'abc', shapeIds: 'shape:one' })).toEqual({
+			boardId: 'abc',
+			page: { kind: 'ordinal', ordinal: 0 },
+			target: { kind: 'shapes', shapeIds: ['shape:one'] },
+			theme: 'light',
+		})
+		// A model that fills every field sends the unused one empty; that is not a second target.
+		expect(
+			parseClusterScreenshotInput({ boardId: 'abc', clusterIds: ['c'], shapeIds: [], bounds: null })
+				.target
+		).toEqual({ kind: 'clusters', clusterIds: ['c'] })
+	})
+
+	it('refuses a call naming no target, or more than one', () => {
+		expect(() => parseClusterScreenshotInput({ boardId: 'abc' })).toThrow(
+			'clusterIds or shapeIds is required'
+		)
+		expect(() =>
+			parseClusterScreenshotInput({ boardId: 'abc', clusterIds: ['c'], shapeIds: ['shape:s'] })
+		).toThrow('not both')
+		expect(() =>
+			parseClusterScreenshotInput({ boardId: 'abc', bounds: { x: 0, y: 0, w: 1, h: 1 } })
+		).toThrow('call get_page_screenshot with bounds')
+		expect(() => parsePageScreenshotInput({ boardId: 'abc', clusterIds: ['c'] })).toThrow(
+			'call get_cluster_screenshot'
+		)
+		expect(() => parsePageScreenshotInput({ boardId: 'abc', shapeIds: ['shape:s'] })).toThrow(
+			'call get_cluster_screenshot'
+		)
+	})
+
+	it('refuses shape ids that are not shape ids, or too many of them', () => {
+		expect(() => parseClusterScreenshotInput({ boardId: 'abc', shapeIds: ['page:a'] })).toThrow(
+			'shapeIds must be shape ids'
+		)
+		const many = Array.from({ length: MAX_SCREENSHOT_SHAPE_IDS + 1 }, (_, i) => `shape:${i}`)
+		expect(() => parseClusterScreenshotInput({ boardId: 'abc', shapeIds: many })).toThrow(
+			`at most ${MAX_SCREENSHOT_SHAPE_IDS} shapes`
+		)
+	})
+
+	it('takes optional bounds on the page tool', () => {
+		expect(parsePageScreenshotInput({ boardId: 'abc', page: 2 })).toEqual({
+			boardId: 'abc',
+			page: { kind: 'ordinal', ordinal: 2 },
+			bounds: null,
+			theme: 'light',
+		})
+		expect(
+			parsePageScreenshotInput({ boardId: 'abc', bounds: { x: -10, y: 5, w: 300, h: 200 } }).bounds
+		).toEqual({ x: -10, y: 5, w: 300, h: 200 })
+	})
+
+	it('refuses bounds that are malformed or too large for one image', () => {
+		for (const bounds of [
+			{ x: 0, y: 0, w: 0, h: 10 },
+			{ x: 0, y: 0, w: 10 },
+			{ x: '0', y: 0, w: 10, h: 10 },
+			{ x: 0, y: Infinity, w: 10, h: 10 },
+			[0, 0, 10, 10],
+		]) {
+			expect(() => parsePageScreenshotInput({ boardId: 'abc', bounds })).toThrow(
+				'bounds must be a page-space rectangle'
+			)
+		}
+		// 1200x630 at the 5% minimum zoom.
+		expect(() =>
+			parsePageScreenshotInput({ boardId: 'abc', bounds: { x: 0, y: 0, w: 24001, h: 10 } })
+		).toThrow('at most 24000 wide and 12600 tall')
+		expect(
+			parsePageScreenshotInput({ boardId: 'abc', bounds: { x: 0, y: 0, w: 24000, h: 12600 } })
+				.bounds
+		).toEqual({ x: 0, y: 0, w: 24000, h: 12600 })
+	})
+})
+
+describe('frameScreenshot', () => {
+	it('fits a rectangle with the image aspect ratio exactly', () => {
+		expect(frameScreenshot({ x: -50, y: 10, w: 600, h: 315 }, 0)).toEqual({
+			camera: { x: 50, y: -10, z: 2 },
+			covers: { x: -50, y: 10, w: 600, h: 315 },
+		})
+	})
+
+	it('centres a rectangle of another shape and shows extra on the loose axis', () => {
+		const { camera, covers } = frameScreenshot({ x: 0, y: 0, w: 100, h: 630 }, 0)
+		expect(camera.z).toBe(1)
+		expect(covers).toEqual({ x: -550, y: 0, w: 1200, h: 630 })
+	})
+
+	it('stops at the maximum zoom, covering more than a tiny rectangle', () => {
+		const { camera, covers } = frameScreenshot({ x: 100, y: 100, w: 10, h: 10 }, 0)
+		expect(camera.z).toBe(8)
+		expect(covers).toEqual({ x: 30, y: 65.625, w: 150, h: 78.75 })
+	})
+
+	it('stops at the minimum zoom, cropping a huge target to its centre', () => {
+		const { camera, covers } = frameScreenshot({ x: 0, y: 0, w: 100000, h: 1000 }, 0)
+		expect(camera.z).toBe(0.05)
+		expect(covers).toEqual({ x: 38000, y: -5800, w: 24000, h: 12600 })
+	})
+
+	it('leaves the render page’s content margin around a whole page', () => {
+		const { covers } = frameScreenshot(
+			{ x: 0, y: 0, w: 1200 - PAGE_SCREENSHOT_INSET, h: 10 },
+			PAGE_SCREENSHOT_INSET
+		)
+		expect(covers.w).toBeCloseTo(1200)
+		expect(covers.x).toBeCloseTo(-PAGE_SCREENSHOT_INSET / 2)
+	})
+
+	it('shows the origin at 100% when there is nothing to frame', () => {
+		expect(frameScreenshot(null, PAGE_SCREENSHOT_INSET)).toEqual({
+			camera: { x: 0, y: 0, z: 1 },
+			covers: { x: 0, y: 0, w: 1200, h: 630 },
+		})
 	})
 })

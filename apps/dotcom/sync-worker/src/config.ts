@@ -161,9 +161,11 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  *
  * Per-board is far below per-user on purpose: no single board may absorb more than 2 captures a
  * minute. Cache misses only, so this does not bound the usual "screenshot several pages of one board"
- * flow — a repeated capture of the same page is a cache hit. Measures are deliberately *not* counted
- * against it: three of them land on one board in the flow above, so a limit of 2 would refuse the
- * documented path rather than an abusive one. The global limiter is what bounds measure spend.
+ * flow — a repeated capture of the same page is a cache hit. Zooming is the exception: every new
+ * get_page_screenshot rectangle is a miss, so a third region of one board inside a minute is refused.
+ * Measures are deliberately *not* counted against it: three of them land on one board in the flow
+ * above, so a limit of 2 would refuse the documented path rather than an abusive one. The global
+ * limiter is what bounds measure spend.
  *
  * The window matches the period configured on the Cloudflare bindings, which only support 60s (or
  * 10s) periods — this is the one number here that is Cloudflare's rather than ours.
