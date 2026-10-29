@@ -1,10 +1,12 @@
-import { TLShape } from '@tldraw/tlschema'
+import { TLShape, VecModel } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import {
 	boundsGapDistance,
 	getShapeText,
 	labelClusters,
+	ClusterArrowBinding,
 	ClusterBounds,
+	ClusterMeasurement,
 	computeAutoEps,
 	getShapeClusters,
 	MAX_CLUSTERING_ATOMS,
@@ -164,6 +166,166 @@ describe('arrows do not bridge clusters', () => {
 	})
 })
 
+/** An arrow measured from `start` to `end`, with the box the editor would report for it. */
+const drawn = (start: VecModel, end: VecModel): ClusterMeasurement => ({
+	minX: Math.min(start.x, end.x),
+	minY: Math.min(start.y, end.y),
+	maxX: Math.max(start.x, end.x),
+	maxY: Math.max(start.y, end.y),
+	arrow: { start, end },
+})
+
+const binding = (arrowId: string, terminal: 'start' | 'end', toId: string): ClusterArrowBinding =>
+	({ fromId: arrowId, toId, props: { terminal } }) as unknown as ClusterArrowBinding
+
+// Three tight groups, so eps is small: A top left, B bottom right, C in the middle of the box an
+// arrow from A to B would have.
+function threeGroups() {
+	const shapes = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'].map((id) => shape(id))
+	const bounds: Record<string, ClusterMeasurement> = {
+		a1: box(0, 0),
+		a2: box(20, 0),
+		b1: box(3000, 3000),
+		b2: box(3020, 3000),
+		c1: box(1500, 1500),
+		c2: box(1520, 1500),
+	}
+	return { shapes, bounds }
+}
+
+describe('bound arrows join what they connect', () => {
+	// The review board on staging: a row of three boxes joined by two arrows came back as the boxes'
+	// cluster plus two lone arrow clusters.
+	it('puts a row of boxes and the arrows between them in one cluster', () => {
+		const shapes = [shape('a'), shape('b'), shape('c'), arrow('ab'), arrow('bc'), shape('far')]
+		const bounds = {
+			a: box(0, 0, 400, 100),
+			b: box(510, 0, 400, 100),
+			c: box(1020, 0, 400, 100),
+			ab: drawn({ x: 400, y: 50 }, { x: 510, y: 50 }),
+			bc: drawn({ x: 910, y: 50 }, { x: 1020, y: 50 }),
+			far: box(9000, 9000, 400, 100),
+		}
+		const bindings = [
+			binding('ab', 'start', 'a'),
+			binding('ab', 'end', 'b'),
+			binding('bc', 'start', 'b'),
+			binding('bc', 'end', 'c'),
+		]
+		expect(idsOf(getShapeClusters(shapes, PAGE, bounds, bindings))).toEqual(['a,ab,b,bc,c', 'far'])
+	})
+
+	it('joins two groups however far apart they are', () => {
+		const shapes = [shape('a1'), shape('a2'), shape('b1'), shape('b2'), arrow('link')]
+		const bounds = {
+			a1: box(0, 0),
+			a2: box(20, 0),
+			b1: box(9000, 0),
+			b2: box(9020, 0),
+			link: drawn({ x: 30, y: 5 }, { x: 9000, y: 5 }),
+		}
+		const bindings = [binding('link', 'start', 'a2'), binding('link', 'end', 'b1')]
+		expect(idsOf(getShapeClusters(shapes, PAGE, bounds, bindings))).toEqual(['a1,a2,b1,b2,link'])
+	})
+
+	// Bindings are records, so they hold even when the render measured nothing: a bound arrow no
+	// longer comes back as a lone stub at the origin.
+	it('follows bindings without any measurements', () => {
+		const shapes = [shape('a'), shape('b'), arrow('link'), shape('other')]
+		const bindings = [binding('link', 'start', 'a'), binding('link', 'end', 'b')]
+		expect(idsOf(getShapeClusters(shapes, PAGE, {}, bindings))).toEqual(['a,b,link', 'other'])
+		expect(idsOf(getShapeClusters(shapes, PAGE, undefined, bindings))).toEqual([
+			'a,b,link',
+			'other',
+		])
+	})
+
+	it('pulls a frame in whole when an arrow inside it is bound to a shape outside', () => {
+		const shapes = [shape('frame'), shape('child', 'frame'), shape('inner', 'frame'), shape('out')]
+		shapes.push({ id: 'link', parentId: 'frame', type: 'arrow' } as unknown as TLShape)
+		const bindings = [binding('link', 'start', 'inner'), binding('link', 'end', 'out')]
+		expect(idsOf(getShapeClusters(shapes, PAGE, {}, bindings))).toEqual([
+			'child,frame,inner,link,out',
+		])
+	})
+
+	// A bound arrow's box covers whatever lies between its ends; only the binding counts.
+	it('does not pull in what its box covers', () => {
+		const { shapes, bounds } = threeGroups()
+		shapes.push(arrow('link'))
+		bounds.link = drawn({ x: 30, y: 5 }, { x: 3000, y: 3005 })
+		const bindings = [binding('link', 'start', 'a2'), binding('link', 'end', 'b1')]
+		expect(idsOf(getShapeClusters(shapes, PAGE, bounds, bindings))).toEqual([
+			'a1,a2,b1,b2,link',
+			'c1,c2',
+		])
+	})
+
+	it('gives a merged cluster an id from its membership', () => {
+		const shapes = [shape('a'), shape('b'), arrow('link')]
+		const bindings = [binding('link', 'start', 'a'), binding('link', 'end', 'b')]
+		const first = getShapeClusters(shapes, PAGE, {}, bindings)
+		expect(getShapeClusters([...shapes].reverse(), PAGE, {}, bindings).map((c) => c.id)).toEqual(
+			first.map((c) => c.id)
+		)
+	})
+})
+
+describe('unbound arrows join what their ends are near', () => {
+	it('joins the groups at its two ends', () => {
+		const { shapes, bounds } = threeGroups()
+		shapes.push(arrow('link'))
+		bounds.link = drawn({ x: 35, y: 5 }, { x: 2995, y: 3005 })
+		expect(idsOf(getShapeClusters(shapes, PAGE, bounds))).toEqual(['a1,a2,b1,b2,link', 'c1,c2'])
+	})
+
+	// What excluding arrows from proximity used to guard against: the arrow's box covers C entirely,
+	// so by box it would sit at distance zero from C, and contain it.
+	it('does not chain a group its box covers but its ends are far from', () => {
+		const { shapes, bounds } = threeGroups()
+		shapes.push(arrow('link'))
+		bounds.link = drawn({ x: 35, y: 5 }, { x: 2995, y: 3005 })
+		const clusters = idsOf(getShapeClusters(shapes, PAGE, bounds))
+		expect(clusters).toContain('c1,c2')
+	})
+
+	it('joins only the group at its end when the other points into empty space', () => {
+		const { shapes, bounds } = threeGroups()
+		shapes.push(arrow('link'))
+		bounds.link = drawn({ x: 35, y: 5 }, { x: 1000, y: 2500 })
+		expect(idsOf(getShapeClusters(shapes, PAGE, bounds))).toEqual(['a1,a2,link', 'b1,b2', 'c1,c2'])
+	})
+
+	it('joins a group through a free end when the other end is bound elsewhere', () => {
+		const { shapes, bounds } = threeGroups()
+		shapes.push(arrow('link'))
+		// The free start sits in C; the end is bound to B.
+		bounds.link = drawn({ x: 1515, y: 1515 }, { x: 3000, y: 3000 })
+		const bindings = [binding('link', 'end', 'b1')]
+		expect(idsOf(getShapeClusters(shapes, PAGE, bounds, bindings))).toEqual([
+			'a1,a2',
+			'b1,b2,c1,c2,link',
+		])
+	})
+
+	it('stays its own cluster when neither end is near anything', () => {
+		const { shapes, bounds } = threeGroups()
+		shapes.push(arrow('link'))
+		bounds.link = drawn({ x: 600, y: 600 }, { x: 900, y: 900 })
+		expect(idsOf(getShapeClusters(shapes, PAGE, bounds))).toContain('link')
+	})
+
+	it('leaves the threshold to the shapes', () => {
+		const { shapes, bounds } = threeGroups()
+		const without = idsOf(getShapeClusters(shapes, PAGE, bounds))
+		shapes.push(arrow('link'))
+		bounds.link = drawn({ x: 600, y: 600 }, { x: 900, y: 900 })
+		expect(idsOf(getShapeClusters(shapes, PAGE, bounds)).filter((k) => k !== 'link')).toEqual(
+			without
+		)
+	})
+})
+
 describe('containment', () => {
 	it('pulls a shape fully inside another into its cluster', () => {
 		const shapes = [shape('outer'), shape('inner'), shape('far')]
@@ -313,6 +475,123 @@ describe('labelClusters', () => {
 	})
 })
 
+describe('labels lead with the most prominent text', () => {
+	const styled = (id: string, value: string, size = 'm', type = 'text') =>
+		({ id, type, props: { text: value, size, scale: 1 } }) as unknown as TLShape
+
+	// The write-up that prompted weighting: a 45-shape cluster headed "#10949 · Make new images fit
+	// the view" was labelled "image · native size", because the body says "image" more often.
+	it('uses the big title of a write-up rather than its most frequent words', () => {
+		const writeUp = [
+			styled('body1', 'Pasted images now open at native size, not the image size', 's'),
+			styled('title', '#10949 · Make new images fit the view', 'xl'),
+			styled('body2', 'A large image used to land at native size, far past the view', 's'),
+			styled('body3', 'Image placement keeps the image aspect ratio at native size', 's'),
+		]
+		const bounds = {
+			title: box(0, 0, 900, 60),
+			body1: box(0, 100, 900, 30),
+			body2: box(0, 140, 900, 30),
+			body3: box(0, 180, 900, 30),
+		}
+		const [labelled] = labelClusters(
+			[writeUp, [styled('other', 'Pricing table')], [styled('more', 'Onboarding tour')]],
+			bounds
+		)
+		expect(labelled.label.startsWith('#10949 · Make new images fit the view')).toBe(true)
+		// The keywords still come from everything the cluster says.
+		expect(labelled.keywords).toContain('native size')
+	})
+
+	it('prefers larger text over text that comes first', () => {
+		const bounds = { caption: box(0, 0, 200, 20), heading: box(0, 100, 400, 50) }
+		const [labelled] = labelClusters(
+			[[styled('caption', 'draft notes', 's'), styled('heading', 'Quarterly roadmap', 'l')]],
+			bounds
+		)
+		expect(labelled.label).toBe('Quarterly roadmap · draft notes')
+	})
+
+	it('breaks a tie in size by top, then left', () => {
+		const bounds = {
+			right: box(500, 0, 100, 40),
+			below: box(0, 200, 100, 40),
+			topLeft: box(0, 0, 100, 40),
+		}
+		const shapes = [
+			styled('right', 'Second'),
+			styled('below', 'Third'),
+			styled('topLeft', 'First step'),
+		]
+		expect(labelClusters([shapes], bounds)[0].label.startsWith('First step')).toBe(true)
+	})
+
+	it('counts a shape scaled up as larger text', () => {
+		const scaled = {
+			id: 'big',
+			type: 'text',
+			props: { text: 'Scaled heading', size: 'm', scale: 3 },
+		} as unknown as TLShape
+		const bounds = { small: box(0, 0, 100, 20), big: box(0, 100, 300, 60) }
+		const [labelled] = labelClusters([[styled('small', 'note', 'l'), scaled]], bounds)
+		expect(labelled.label.startsWith('Scaled heading')).toBe(true)
+	})
+
+	it('never takes an arrow label as the title', () => {
+		const bounds = { yes: box(0, 0, 40, 20), node: box(0, 100, 200, 100) }
+		const [labelled] = labelClusters(
+			[[styled('yes', 'confirmed', 'xl', 'arrow'), styled('node', 'Ship it', 's', 'geo')]],
+			bounds
+		)
+		expect(labelled.label.startsWith('Ship it')).toBe(true)
+	})
+
+	// Seen on staging boards: the largest text was a sticker emoji, a divider or a bookmark's URL.
+	it.each([
+		['an emoji', styled('big', '🍀', 'xl')],
+		['a divider', styled('big', '-------', 'xl')],
+		['a URL', styled('big', 'https://en.wikipedia.org/wiki/Arrow_(symbol)', 'xl')],
+		['a bookmark', styled('big', 'Arrow (symbol) - Wikipedia', 'xl', 'bookmark')],
+	])('skips %s as the title and takes the next-largest text', (_, decoration) => {
+		const bounds = { big: box(0, 0, 400, 80), heading: box(0, 100, 400, 40) }
+		const [labelled] = labelClusters(
+			[[decoration, styled('heading', 'Sprint retro notes', 'l')]],
+			bounds
+		)
+		expect(labelled.label.startsWith('Sprint retro notes')).toBe(true)
+	})
+
+	it('falls back to decoration when a cluster has no other text', () => {
+		const [labelled] = labelClusters([[styled('a', '🍀', 'xl'), styled('b', '✨', 'm')]], {
+			a: box(0, 0, 80, 80),
+			b: box(100, 0, 40, 40),
+		})
+		expect(labelled.label).toBe('🍀')
+	})
+
+	it('still lets a frame name outrank the largest text', () => {
+		const frame = { id: 'f', type: 'frame', props: { name: 'Login flow' } } as unknown as TLShape
+		const [labelled] = labelClusters([[frame, styled('h', 'Welcome back', 'xl')]], {
+			f: box(0, 0, 1000, 1000),
+			h: box(0, 0, 400, 60),
+		})
+		expect(labelled.label).toBe('Login flow')
+		expect(labelled.keywords[0]).toBe('login flow')
+	})
+
+	it('cuts a long title at a word', () => {
+		const [labelled] = labelClusters([
+			[styled('p', 'We should consider moving the export button somewhere more visible')],
+		])
+		expect(labelled.label.split(' · ')[0]).toBe('We should consider moving the export…')
+	})
+
+	it('drops a keyword the title already says', () => {
+		const [labelled] = labelClusters([[styled('t', 'Checkout payment')], [styled('u', 'Billing')]])
+		expect(labelled.label).toBe('Checkout payment')
+	})
+})
+
 describe('clusters carry their labels', () => {
 	it('labels each cluster relative to the others on the page', () => {
 		const shapes = [
@@ -325,9 +604,7 @@ describe('clusters carry their labels', () => {
 
 		const clusters = getShapeClusters(shapes, PAGE, bounds)
 		expect(clusters).toHaveLength(2)
-		expect(clusters.map((c) => c.label).sort()).toEqual([
-			'invoice · invoice total',
-			'password · password reset',
-		])
+		// Each cluster's first text is its title, and covers every keyword it has.
+		expect(clusters.map((c) => c.label).sort()).toEqual(['invoice total', 'password reset'])
 	})
 })

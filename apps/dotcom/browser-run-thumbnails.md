@@ -457,7 +457,9 @@ get_page_info({
  boardId: string,
  page?: number | string, // 0-based page index or stable page id (see get_board_info). default 0
 })
-// → { name: string, clusterCount: number, clusters: { id: string, label: string, keywords: string[], numberOfShapes: number }[] }
+// → { name: string, bounds?: Bounds, clusterCount: number,
+//     clusters: { id: string, label: string, keywords: string[], numberOfShapes: number, bounds?: Bounds }[] }
+//   Bounds is { x, y, w, h } in page space, integers; omitted when the render measured none of it
 
 get_cluster_info({
  boardId: string,
@@ -521,7 +523,7 @@ The screenshot layer lives in the dotcom sync worker rather than the interactive
 
 ### The cluster index
 
-Three of the four tools have to cluster a page before they can answer anything, and clustering needs two things only an editor can produce: where each shape sits, and what its `ShapeUtil.getText` reports. `get_cluster_info` needs a third: where each arrow is actually drawn, since a bound arrow's record holds only a placeholder stub and its ends depend on the geometry of the shapes it is bound to. Getting them means a **measure render** — a full Browser Run session, the same cost as a screenshot. That used to happen on every call, so the documented drill-down (`get_page_info` → `get_cluster_info` → `get_cluster_screenshot`) spent three of them on one page, and `get_cluster_info` — the tool an agent calls most, often several times over the clusters one page listed — paid full price every time.
+Three of the four tools have to cluster a page before they can answer anything, and clustering needs three things only an editor can produce: where each shape sits, what its `ShapeUtil.getText` reports, and where each arrow is actually drawn, since a bound arrow's record holds only a placeholder stub and its ends depend on the geometry of the shapes it is bound to. Clustering joins an arrow to what its free ends sit near, and `get_cluster_info` reports the ends. Getting them means a **measure render** — a full Browser Run session, the same cost as a screenshot. That used to happen on every call, so the documented drill-down (`get_page_info` → `get_cluster_info` → `get_cluster_screenshot`) spent three of them on one page, and `get_cluster_info` — the tool an agent calls most, often several times over the clusters one page listed — paid full price every time.
 
 The answer, though, only moves when the board's content moves. So the first tool to measure a page reduces the render's output to a **cluster index** and stores it; every later call for the same content is served from that.
 

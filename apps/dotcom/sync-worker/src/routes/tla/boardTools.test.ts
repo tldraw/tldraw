@@ -10,6 +10,7 @@ import {
 	compareBoardSearchOrder,
 	getClusterInfo,
 	getBoardSearchResults,
+	getPageInfo,
 	isAfterBoardSearchCursor,
 	parseCreateBoardInput,
 	parseRenameBoardInput,
@@ -652,5 +653,112 @@ describe('getClusterInfo', () => {
 		const of = shapesOfCluster(MEASUREMENTS, 'shape:a')
 		expect(of('shape:a').props.text).toBe('Start')
 		expect(of('shape:a').props.richText).toBeUndefined()
+	})
+})
+
+describe('getPageInfo', () => {
+	const PAGE = 'page:a'
+
+	const shape = (id: string, x: number, y: number, type = 'geo') => ({
+		typeName: 'shape',
+		id,
+		parentId: PAGE,
+		type,
+		index: 'a1',
+		x,
+		y,
+		rotation: 0,
+		opacity: 1,
+		isLocked: false,
+		meta: {},
+		props: type === 'arrow' ? { start: { x: 0, y: 0 }, end: { x: 2, y: 0 } } : { w: 100, h: 100 },
+	})
+
+	const binding = (id: string, toId: string, terminal: 'start' | 'end') => ({
+		typeName: 'binding',
+		id,
+		type: 'arrow',
+		fromId: 'shape:link',
+		toId,
+		meta: {},
+		props: { terminal, normalizedAnchor: { x: 0.5, y: 0.5 }, isPrecise: false, isExact: false },
+	})
+
+	// Two boxes much too far apart for proximity, joined by a bound arrow; a box of notes on its own;
+	// and a shape the render did not measure.
+	const snapshot = {
+		documents: [
+			{ typeName: 'document', id: 'document:document', name: 'Board' },
+			{ typeName: 'page', id: PAGE, name: 'Cover', index: 'a1' },
+			shape('shape:a', 0, 11),
+			shape('shape:b', 20000, 0),
+			shape('shape:link', 0, 0, 'arrow'),
+			shape('shape:notes', 0, 9000),
+			shape('shape:ghost', 40000, 0),
+			binding('binding:start', 'shape:a', 'start'),
+			binding('binding:end', 'shape:b', 'end'),
+		].map((state) => ({ state })),
+		schema: {},
+	} as any
+
+	const MEASUREMENTS: Record<string, ShapeMeasurement> = {
+		'shape:a': { minX: 0.4, minY: 10.6, maxX: 100.4, maxY: 110.6, text: 'Start' },
+		'shape:b': { minX: 20000, minY: 0, maxX: 20100.5, maxY: 100 },
+		'shape:link': {
+			minX: 100,
+			minY: 50,
+			maxX: 20000,
+			maxY: 51,
+			arrow: { start: { x: 100, y: 50 }, end: { x: 20000, y: 51 } },
+		},
+		'shape:notes': { minX: 0, minY: 9000, maxX: 200, maxY: 9050, text: 'Notes' },
+	}
+
+	it('gives each cluster, and the page, its rounded page-space bounds', () => {
+		const page = resolvePage(snapshot, { kind: 'ordinal', ordinal: 0 })
+		if (!page.ok) throw new Error('Expected the page to resolve')
+		const clusters = clusterPage(page, MEASUREMENTS)
+		const result = getPageInfo(page, { clusters, measurements: MEASUREMENTS })
+		const block = result.content[0]
+		if (block.type !== 'text') throw new Error('Expected a text block')
+
+		expect(JSON.parse(block.text)).toEqual({
+			name: 'Cover',
+			bounds: { x: 0, y: 0, w: 20101, h: 9050 },
+			clusterCount: 3,
+			clusters: [
+				// Joined through the arrow's bindings, at a distance proximity would never bridge.
+				{
+					id: expect.stringMatching(/^cluster:/),
+					label: 'Start',
+					keywords: ['start'],
+					numberOfShapes: 3,
+					bounds: { x: 0, y: 0, w: 20101, h: 111 },
+				},
+				{
+					id: expect.stringMatching(/^cluster:/),
+					label: 'Notes',
+					keywords: ['notes'],
+					numberOfShapes: 1,
+					bounds: { x: 0, y: 9000, w: 200, h: 50 },
+				},
+				// Unmeasured, so it has no position to report rather than an invented one.
+				{ id: expect.stringMatching(/^cluster:/), label: '', keywords: [], numberOfShapes: 1 },
+			],
+		})
+	})
+
+	it('omits the page bounds when nothing was measured', () => {
+		const page = resolvePage(snapshot, { kind: 'ordinal', ordinal: 0 })
+		if (!page.ok) throw new Error('Expected the page to resolve')
+		const block = getPageInfo(page, { clusters: clusterPage(page, {}), measurements: {} })
+			.content[0]
+		if (block.type !== 'text') throw new Error('Expected a text block')
+		const info = JSON.parse(block.text)
+		expect(info).not.toHaveProperty('bounds')
+		// The bindings still hold without a measure.
+		expect(info.clusters.map((c: { numberOfShapes: number }) => c.numberOfShapes)).toEqual([
+			3, 1, 1,
+		])
 	})
 })
