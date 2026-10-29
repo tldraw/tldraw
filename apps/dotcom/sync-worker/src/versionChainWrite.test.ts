@@ -417,6 +417,61 @@ describe('writeVersionChainEntry', () => {
 	})
 })
 
+describe('writeVersionChainEntry delta in result', () => {
+	it('keyframe result carries the delta from previous', async () => {
+		const bucket = createFakeR2()
+		const first = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(0),
+			chain: null,
+			pending: [],
+			previous: null,
+			next: snapshot(1, ['shape:a']),
+			now: 0,
+		})
+		expect(first.delta).toBeNull()
+		const second = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(1),
+			chain: first.chain,
+			pending: first.pending,
+			previous: snapshot(99, ['shape:z']),
+			next: snapshot(100, ['shape:z', 'shape:y']),
+			now: 1000,
+		})
+		expect(second.wrote).toBe('keyframe')
+		expect(Object.keys(second.delta!.diff!)).toEqual(['shape:y'])
+	})
+
+	it('delta result carries its delta', async () => {
+		const bucket = createFakeR2()
+		const first = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(0),
+			chain: null,
+			pending: [],
+			previous: null,
+			next: snapshot(1, ['shape:a']),
+			now: 0,
+		})
+		const second = await writeVersionChainEntry({
+			bucket,
+			roomKey,
+			iso: isoAt(1),
+			chain: first.chain,
+			pending: first.pending,
+			previous: snapshot(1, ['shape:a']),
+			next: snapshot(2, ['shape:a', 'shape:b']),
+			now: 1000,
+		})
+		expect(second.wrote).toBe('delta')
+		expect(second.delta).toBe(second.pending.at(-1)!.delta)
+	})
+})
+
 describe('readOpenSegment', () => {
 	it('returns the deltas the segment holds', async () => {
 		const bucket = createFakeR2()
