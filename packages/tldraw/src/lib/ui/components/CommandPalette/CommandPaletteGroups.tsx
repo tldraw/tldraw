@@ -47,7 +47,8 @@ export interface TLUiCommandPaletteActionGroupProps {
 	group?: string
 	/**
 	 * The group's heading, a translation key or plain text, also searched along with each item's
-	 * label. Without it, the group is a section with no heading.
+	 * label. An enclosing group's label heads it instead. Without one, its items take the enclosing
+	 * group's heading, if any.
 	 */
 	label?: string
 }
