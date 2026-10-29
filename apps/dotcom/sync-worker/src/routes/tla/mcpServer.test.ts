@@ -10,6 +10,7 @@ import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
+	CLUSTER_INFO_MAX_IDS,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
@@ -289,8 +290,21 @@ describe('tool inputs', () => {
 
 	it('parses cluster arguments, accepting one id or several', () => {
 		expect(
-			parseClusterInfoInput({ boardId: 'abc', page: 1, clusterId: 'cluster:one' })
-		).toMatchObject({ boardId: 'abc', clusterId: 'cluster:one' })
+			parseClusterInfoInput({ boardId: 'abc', page: 1, clusterIds: ['cluster:one', 'cluster:two'] })
+		).toMatchObject({ boardId: 'abc', clusterIds: ['cluster:one', 'cluster:two'] })
+		expect(parseClusterInfoInput({ boardId: 'abc', clusterIds: 'cluster:one' })).toMatchObject({
+			clusterIds: ['cluster:one'],
+		})
+		// The argument the tool took before it took several, still sent by clients holding the old list.
+		expect(parseClusterInfoInput({ boardId: 'abc', clusterId: 'cluster:one' })).toMatchObject({
+			clusterIds: ['cluster:one'],
+		})
+		// A repeated id is answered once, in the place it was first asked for.
+		expect(
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ['cluster:b', 'cluster:a', 'cluster:b'] })
+				.clusterIds
+		).toEqual(['cluster:b', 'cluster:a'])
+		expect(() => parseClusterInfoInput({ boardId: 'abc' })).toThrow('clusterIds is required')
 		expect(
 			parseClusterScreenshotInput({
 				boardId: 'abc',
@@ -305,6 +319,16 @@ describe('tool inputs', () => {
 		expect(() => parseClusterScreenshotInput({ boardId: 'abc', clusterIds: [] })).toThrow(
 			'clusterIds is required'
 		)
+	})
+
+	it('refuses more cluster ids than could fit in one get_cluster_info call', () => {
+		const ids = (count: number) => Array.from({ length: count }, (_, i) => `cluster:${i}`)
+		expect(
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ids(CLUSTER_INFO_MAX_IDS) }).clusterIds
+		).toHaveLength(CLUSTER_INFO_MAX_IDS)
+		expect(() =>
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ids(CLUSTER_INFO_MAX_IDS + 1) })
+		).toThrow(`at most ${CLUSTER_INFO_MAX_IDS} ids in one call. Split them across several calls.`)
 	})
 
 	// An unrecognized theme is rejected rather than silently rendered as light, so a caller that
@@ -476,7 +500,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.5.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.6.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -1080,11 +1104,59 @@ describe('page and cluster info', () => {
 		const info = JSON.parse(result.content[0].text)
 
 		expect(info).toMatchObject({
-			clusterId,
 			pageName: 'Cover',
-			numberOfShapes: 1,
-			shapes: [{ id: 'shape:page:a-0' }],
+			clusters: [{ clusterId, numberOfShapes: 1, shapes: [{ id: 'shape:page:a-0' }] }],
 		})
+	})
+
+	// One agent took 44 calls to read a flowchart, one per cluster, under a limit of about ten a
+	// minute. Several ids are one call, and still one measure.
+	it('returns several clusters in the order asked, from one measure', async () => {
+		mockPublishedBoard()
+		// Listed in a different env, so this one has nothing cached and has to measure.
+		const listed = await callTool('get_page_info', { boardId: 'abc' }, makeEnv(), 'user_7b')
+		const [first, second] = JSON.parse(listed.content[0].text).clusters.map((c: any) => c.id)
+		const env = makeEnv()
+
+		const result = await callTool(
+			'get_cluster_info',
+			{ boardId: 'abc', clusterIds: [second, first] },
+			env,
+			'user_7b'
+		)
+
+		expect(JSON.parse(result.content[0].text)).toMatchObject({
+			pageName: 'Cover',
+			clusters: [
+				{ clusterId: second, shapes: [{ id: 'shape:page:a-1' }] },
+				{ clusterId: first, shapes: [{ id: 'shape:page:a-0' }] },
+			],
+		})
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+		expect(blobsWithPrefix(env, 'clusters:')).toEqual(['clusters:miss'])
+	})
+
+	it('refuses the whole call when any cluster id is unknown, naming the missing ones', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		const clusterId = await firstClusterId(env, 'user_7c', 'abc')
+
+		const result = await callTool(
+			'get_cluster_info',
+			{ boardId: 'abc', clusterIds: [clusterId, 'cluster:nope'] },
+			env,
+			'user_7c'
+		)
+
+		expect(result).toMatchObject({
+			isError: true,
+			content: [
+				{
+					text: 'No cluster on page 0 with id "cluster:nope". Call get_page_info to list this page\'s clusters.',
+				},
+			],
+		})
+		expect(failureBlobsOf(env)).toEqual(['failure:none', 'failure:cluster_not_found'])
 	})
 
 	// A shape's rich text is a deeply nested ProseMirror document, and a geo shape's label is not on
@@ -1099,7 +1171,7 @@ describe('page and cluster info', () => {
 
 		const clusterId = await firstClusterId(env, 'user_8', 'abc')
 		const result = await callTool('get_cluster_info', { boardId: 'abc', clusterId }, env, 'user_8')
-		const shape = JSON.parse(result.content[0].text).shapes[0]
+		const shape = JSON.parse(result.content[0].text).clusters[0].shapes[0]
 
 		expect(shape.props.text).toBe('Checkout total')
 		expect(shape.props.richText).toBeUndefined()
@@ -1156,7 +1228,9 @@ describe('cluster index cache', () => {
 		// Served from the index, so this text came out of storage rather than out of a render: it cannot
 		// be re-derived from the stored record.
 		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
-		expect(JSON.parse(result.content[0].text).shapes[0].props.text).toBe('Checkout total')
+		expect(JSON.parse(result.content[0].text).clusters[0].shapes[0].props.text).toBe(
+			'Checkout total'
+		)
 	})
 
 	// Geometry only an editor can resolve — a bound arrow's ends, every shape's page bounds — has to
@@ -1231,7 +1305,7 @@ describe('cluster index cache', () => {
 				'user_ix_geo'
 			)
 			expect(cached.content).toEqual(fresh.content)
-			shapes.push(...JSON.parse(cached.content[0].text).shapes)
+			shapes.push(...JSON.parse(cached.content[0].text).clusters[0].shapes)
 		}
 
 		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])

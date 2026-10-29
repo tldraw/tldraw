@@ -189,7 +189,7 @@ async function callFixtureTool(
 					: resolved.result
 			}
 			case CLUSTER_INFO_TOOL_NAME: {
-				const { boardId, page, clusterId } = parseClusterInfoInput(args)
+				const { boardId, page, clusterIds } = parseClusterInfoInput(args)
 				const board = boards.get(boardId)
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const resolved = resolvePage(board.snapshot, page)
@@ -200,9 +200,9 @@ async function callFixtureTool(
 								clusters: clusterPage(resolved, board.measurements),
 								measurements: board.measurements,
 							},
-							clusterId,
+							clusterIds,
 							page
-						)
+						).result
 					: resolved.result
 			}
 			case CLUSTER_SCREENSHOT_TOOL_NAME: {
