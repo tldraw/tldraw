@@ -9,8 +9,9 @@ import {
 	getShapeText,
 	type TLShapeWithPlainText,
 } from '@tldraw/dotcom-shared'
+import { UnknownRecord } from '@tldraw/store'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { TLShape, isPage, isShape } from '@tldraw/tlschema'
+import { TLCommentAnchor, TLRichText, TLShape, isPage, isShape, toRichText } from '@tldraw/tlschema'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 
 // Everything about this MCP server that a model can perceive: the protocol handshake and its
@@ -49,10 +50,10 @@ export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
 }
 
 const SEARCHING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. read_page_comments lists a page’s comment threads, and write_comment replies in one or starts a new one on a shape or point, posted from your account under a line saying your agent left it. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
 
 const LISTING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. read_page_comments lists a page’s comment threads, and write_comment replies in one or starts a new one on a shape or point, posted from your account under a line saying your agent left it. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
 
 export const SEARCH_BOARDS_TOOL_NAME = 'search_boards'
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
@@ -62,6 +63,8 @@ export const CLUSTER_SCREENSHOT_TOOL_NAME = 'get_cluster_screenshot'
 export const CREATE_BOARD_TOOL_NAME = 'create_board'
 export const RENAME_BOARD_TOOL_NAME = 'rename_board'
 export const LIST_WORKSPACES_TOOL_NAME = 'list_workspaces'
+export const READ_PAGE_COMMENTS_TOOL_NAME = 'read_page_comments'
+export const WRITE_COMMENT_TOOL_NAME = 'write_comment'
 
 export const TOOL_NAMES = [
 	SEARCH_BOARDS_TOOL_NAME,
@@ -72,6 +75,8 @@ export const TOOL_NAMES = [
 	PAGE_INFO_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
+	READ_PAGE_COMMENTS_TOOL_NAME,
+	WRITE_COMMENT_TOOL_NAME,
 ] as const
 
 // What a model is told when the board id it was given leads nowhere. The route decides *whether* a
@@ -116,7 +121,11 @@ export interface EnumeratedPage {
 // "has content" when at least one shape sits directly on it (nested shapes always have a top-level
 // ancestor on their page, so checking direct children is sufficient).
 export function enumerateBoardPages(snapshot: RoomSnapshot): EnumeratedPage[] {
-	const records = snapshot.documents.map((d) => d.state)
+	return enumeratePages(snapshot.documents.map((d) => d.state))
+}
+
+/** {@link enumerateBoardPages} over bare records, for a caller holding a live room. */
+export function enumeratePages(records: readonly UnknownRecord[]): EnumeratedPage[] {
 	const pageRecords = records.filter(isPage)
 	pageRecords.sort((a, b) => (a.index < b.index ? -1 : a.index > b.index ? 1 : 0))
 	const parentIdsWithShapes = new Set(records.filter(isShape).map((s) => s.parentId))
@@ -743,11 +752,7 @@ export function resolvePage(snapshot: RoomSnapshot, page: PageSelector): Resolve
 		return {
 			ok: false,
 			reason: 'page_out_of_range',
-			result: toolError(
-				page.kind === 'id'
-					? `No page with id "${page.id}" on this board. Call get_board_info to list its pages; a page id is stable across reordering, an index is not.`
-					: `Page ${page.ordinal} is out of range: this board has ${pages.length} page(s) (0–${pages.length - 1}). Call get_board_info to list them.`
-			),
+			result: toolError(getPageNotFoundMessage(page, pages.length)),
 		}
 	}
 	return {
@@ -760,6 +765,12 @@ export function resolvePage(snapshot: RoomSnapshot, page: PageSelector): Resolve
 }
 
 export type ResolvedPageOk = Extract<ResolvedPage, { ok: true }>
+
+export function getPageNotFoundMessage(page: PageSelector, pageCount: number) {
+	return page.kind === 'id'
+		? `No page with id "${page.id}" on this board. Call get_board_info to list its pages; a page id is stable across reordering, an index is not.`
+		: `Page ${page.ordinal} is out of range: this board has ${pageCount} page(s) (0–${pageCount - 1}). Call get_board_info to list them.`
+}
 
 // The measure render answers two things a Worker cannot: where each shape sits, and what
 // ShapeUtil.getText says it holds. Bounds drive the linkage; the text is attached to the shapes so
@@ -988,6 +999,300 @@ function toReadableShape(shape: TLShapeWithPlainText) {
 	return { ...rest, props }
 }
 
+// --- Comments -----------------------------------------------------------------------------------
+//
+// tldraw.com's comment threads, read from Postgres (the comment lane's durable store) and written
+// through the file's Durable Object, which applies the same authorizers a socket write meets. This
+// layer only parses, words the refusals, and shapes the results, so the eval harness serves them
+// verbatim.
+
+export const COMMENT_TEXT_MAX_LENGTH = 5000
+
+/**
+ * The line every comment write_comment posts opens with, in italics. The comment is stamped with the
+ * caller's own account, so without it collaborators could not tell an agent's comment from its
+ * user's. Added here rather than asked of the model, so it can be neither forgotten nor forged.
+ */
+export const AGENT_COMMENT_HEADER = 'Comment left by my agent'
+
+// A published /p/ board is a read-only copy with no comments, and its slug names no file to post on.
+export const COMMENT_BOARD_NOT_FOUND_MESSAGE =
+	'No board was found with this id, or this account does not have access to it. Pass the id from the board’s tldraw.com/f/ URL or from search_boards; a published tldraw.com/p/ board has no comments.'
+
+export const COMMENTS_ON_PUBLISHED_BOARD_MESSAGE =
+	'This is a published tldraw.com/p/ board, which has no comments. Pass the id from the board’s tldraw.com/f/ URL instead, if you have access to it.'
+
+/** Where a new comment goes: a reply in a thread, or the first comment of a new thread. */
+export type CommentTarget =
+	| { kind: 'reply'; threadId: string }
+	| { kind: 'shape'; shapeId: string }
+	| { kind: 'point'; page: PageSelector; x: number; y: number }
+
+/**
+ * Why the Durable Object refused a comment write. Structured rather than worded, because the object
+ * is reached over RPC and the wording belongs here; see `getCommentRefusalMessage`.
+ */
+export type CommentWriteRefusal =
+	| { reason: 'not_found' }
+	| { reason: 'board_empty' }
+	| { reason: 'comment_forbidden' }
+	| { reason: 'thread_not_found'; threadId: string }
+	| { reason: 'thread_resolved'; threadId: string }
+	| { reason: 'shape_not_found'; shapeId: string }
+	| { reason: 'page_not_found'; page: PageSelector; pageCount: number }
+
+export function getCommentRefusalMessage(refusal: CommentWriteRefusal): string {
+	switch (refusal.reason) {
+		case 'not_found':
+			return COMMENT_BOARD_NOT_FOUND_MESSAGE
+		case 'board_empty':
+			return BOARD_EMPTY_MESSAGE
+		case 'comment_forbidden':
+			// The one way a caller can reach a board and still not comment: on tldraw.com a view-only
+			// link shows comments but offers no composer.
+			return 'This board is shared with you by a view-only link, so you can read its comments but not post. Its owner can share an edit link, or add you to the workspace that owns it.'
+		case 'thread_not_found':
+			return `No comment thread with id "${refusal.threadId}" on this board. Call read_page_comments to list a page’s threads.`
+		case 'thread_resolved':
+			// As on tldraw.com, where a resolved thread has no reply box: a reply there goes unseen.
+			return `Comment thread "${refusal.threadId}" is resolved, which closes it to replies. Start a new thread instead.`
+		case 'shape_not_found':
+			return `No shape with id "${refusal.shapeId}" on this board. Shape ids come from get_cluster_info or read_page_comments.`
+		case 'page_not_found':
+			return getPageNotFoundMessage(refusal.page, refusal.pageCount)
+	}
+}
+
+export function parseReadPageCommentsInput(input: unknown): {
+	boardId: string
+	page: PageSelector
+} {
+	return parsePageInfoInput(input)
+}
+
+/**
+ * One target, never a guess between several: a model that passes both a thread and a shape has
+ * misread the tool, and posting to either would put its comment somewhere it did not mean.
+ */
+export function parseWriteCommentInput(input: unknown): {
+	boardId: string
+	text: string
+	target: CommentTarget
+} {
+	const value = requireArgumentsObject(input)
+	const boardId = parseBoardId(value.boardId)
+	if (typeof value.text !== 'string' || !value.text.trim()) {
+		throw new Error('text is required: the comment to post')
+	}
+	const text = value.text.trim()
+	if (text.length > COMMENT_TEXT_MAX_LENGTH) {
+		throw new Error(`text must be at most ${COMMENT_TEXT_MAX_LENGTH} characters`)
+	}
+
+	const threadId = optionalString(value.threadId, 'threadId')
+	const shapeId = optionalString(value.shapeId, 'shapeId')
+	const hasPoint = value.x != null || value.y != null
+	const targets = [threadId, shapeId, hasPoint || null].filter(Boolean).length
+	if (targets !== 1) {
+		throw new Error(
+			targets === 0
+				? 'Say where the comment goes: threadId to reply in a thread, shapeId to start one on a shape, or x and y to start one at a point.'
+				: 'Pass only one of threadId, shapeId, or x and y.'
+		)
+	}
+
+	// `page` is ignored for a reply or a shape rather than refused: the thread or the shape already
+	// names its page, and the schema's default would otherwise make every such call fail.
+	if (threadId)
+		return { boardId, text, target: { kind: 'reply', threadId: ensureCommentThreadId(threadId) } }
+	if (shapeId) return { boardId, text, target: { kind: 'shape', shapeId: ensureShapeId(shapeId) } }
+
+	const { x, y } = value
+	if (
+		typeof x !== 'number' ||
+		typeof y !== 'number' ||
+		!Number.isFinite(x) ||
+		!Number.isFinite(y)
+	) {
+		throw new Error('x and y must both be numbers: a point in page coordinates')
+	}
+	return { boardId, text, target: { kind: 'point', page: parsePageSelector(value.page), x, y } }
+}
+
+// A blank string means the same as absent, for the model that fills every field in the schema.
+function optionalString(value: unknown, name: string): string | null {
+	if (value === undefined || value === null || value === '') return null
+	if (typeof value !== 'string') throw new Error(`${name} must be a string`)
+	return value.trim() || null
+}
+
+// Ids are accepted with or without their record prefix, the way the Codex plugin's comment helpers
+// take them: a model copying an id out of prose often drops it.
+function ensureShapeId(id: string) {
+	return id.startsWith('shape:') ? id : `shape:${id}`
+}
+
+function ensureCommentThreadId(id: string) {
+	return id.startsWith('comment-thread:') ? id : `comment-thread:${id}`
+}
+
+/** The posted body: the italic header as its own paragraph, then the text, one paragraph per line. */
+export function buildAgentCommentBody(text: string): TLRichText {
+	const body = toRichText(text)
+	return {
+		...body,
+		content: [
+			{
+				type: 'paragraph',
+				content: [{ type: 'text', text: AGENT_COMMENT_HEADER, marks: [{ type: 'italic' }] }],
+			},
+			...body.content,
+		],
+	}
+}
+
+/**
+ * A comment body as plain text: blocks on their own lines, mentions as `@name`. A stand-in for the
+ * commenting package's renderer, which needs TipTap and the editor, neither of which a Worker has.
+ */
+export function commentBodyToPlainText(body: unknown): string {
+	const blocks: string[] = []
+	let line = ''
+	const visit = (node: unknown) => {
+		if (!node || typeof node !== 'object') return
+		const { type, text, attrs, content } = node as {
+			type?: unknown
+			text?: unknown
+			attrs?: { label?: unknown; id?: unknown }
+			content?: unknown
+		}
+		if (type === 'text' && typeof text === 'string') line += text
+		else if (type === 'mention')
+			line += `@${typeof attrs?.label === 'string' ? attrs.label : 'someone'}`
+		else if (type === 'hardBreak') line += '\n'
+		if (Array.isArray(content)) for (const child of content) visit(child)
+		if (type === 'paragraph' || type === 'heading' || type === 'codeBlock') {
+			blocks.push(line)
+			line = ''
+		}
+	}
+	visit(body)
+	if (line) blocks.push(line)
+	return blocks.join('\n').trim()
+}
+
+export interface CommentThreadRow {
+	id: string
+	anchor: unknown
+	resolvedAt: number | null
+	createdAt: number
+}
+
+/** `authorName` is stamped from the user row by a Postgres trigger. */
+export interface CommentRow {
+	id: string
+	threadId: string
+	authorId: string
+	authorName: string
+	body: unknown
+	createdAt: number
+}
+
+const SHAPE_TEXT_MAX_LENGTH = 200
+
+/**
+ * One page's comment threads, oldest first, each with its comments oldest first. A thread with no
+ * live comment is left out: it is either a draft whose first comment has not landed or one whose
+ * comments were all deleted, and tldraw.com shows neither.
+ */
+export function getPageCommentsResult(
+	page: ResolvedPageOk,
+	threads: CommentThreadRow[],
+	comments: CommentRow[],
+	userId: string
+): ToolResult {
+	const shapes = new Map(page.shapes.map((shape) => [shape.id as string, shape]))
+	const byThread = new Map<string, CommentRow[]>()
+	for (const comment of [...comments].sort(compareCreated)) {
+		const list = byThread.get(comment.threadId)
+		if (list) list.push(comment)
+		else byThread.set(comment.threadId, [comment])
+	}
+
+	const results = [...threads]
+		.sort(compareCreated)
+		.filter((thread) => byThread.has(thread.id))
+		.map((thread) => ({
+			threadId: thread.id,
+			resolved: thread.resolvedAt !== null,
+			anchor: describeCommentAnchor(thread.anchor as TLCommentAnchor, shapes),
+			comments: byThread.get(thread.id)!.map((comment) => ({
+				commentId: comment.id,
+				// tldraw.com's own fallback for an author it cannot name, such as a deleted account.
+				authorName: comment.authorName.trim() || 'Someone',
+				isCurrentUser: comment.authorId === userId,
+				createdAt: new Date(comment.createdAt).toISOString(),
+				text: commentBodyToPlainText(comment.body),
+			})),
+		}))
+
+	return toolJsonResult({
+		pageId: page.pageId,
+		pageName: page.pageName,
+		threadCount: results.length,
+		threads: results,
+	})
+}
+
+function compareCreated(
+	a: { createdAt: number; id: string },
+	b: { createdAt: number; id: string }
+) {
+	return a.createdAt - b.createdAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+}
+
+// A shape anchor's own x and y are normalized within the shape, which reads as page coordinates to
+// anyone who does not know that, so they are dropped. What a model needs is which shape it is, and
+// enough of the shape to recognise it without another call.
+function describeCommentAnchor(anchor: TLCommentAnchor, shapes: Map<string, TLShape>) {
+	switch (anchor?.type) {
+		case 'shape': {
+			const shape = shapes.get(anchor.shapeId)
+			if (!shape) return { type: 'shape', shapeId: anchor.shapeId, shapeMissing: true }
+			const text = getShapeText(shape).trim()
+			return {
+				type: 'shape',
+				shapeId: anchor.shapeId,
+				shapeType: shape.type,
+				...(text ? { shapeText: text.slice(0, SHAPE_TEXT_MAX_LENGTH) } : {}),
+			}
+		}
+		case 'point':
+			return { type: 'point', x: Math.round(anchor.x), y: Math.round(anchor.y) }
+		case 'region':
+			return {
+				type: 'region',
+				x: Math.round(anchor.x),
+				y: Math.round(anchor.y),
+				w: Math.round(anchor.w),
+				h: Math.round(anchor.h),
+			}
+		default:
+			return { type: 'page' }
+	}
+}
+
+export function getWrittenCommentResult(written: {
+	boardId: string
+	threadId: string
+	commentId: string
+	pageId: string
+	newThread: boolean
+	url: string
+}): ToolResult {
+	return toolJsonResult(written)
+}
+
 // --- Tool definitions ---------------------------------------------------------------------------
 
 /**
@@ -1005,6 +1310,8 @@ export function getToolDefinitions(nameMatchingEnabled: boolean) {
 		getPageInfoToolDefinition(),
 		getClusterInfoToolDefinition(),
 		getClusterScreenshotToolDefinition(),
+		getReadPageCommentsToolDefinition(),
+		getWriteCommentToolDefinition(),
 	]
 }
 
@@ -1255,6 +1562,75 @@ function getClusterScreenshotToolDefinition() {
 			required: ['boardId', 'page', 'clusterIds'],
 		},
 		annotations: READ_ONLY_ANNOTATIONS,
+	}
+}
+
+// Not BOARD_ID_PROPERTY: a published /p/ board has no comments.
+const COMMENT_BOARD_ID_PROPERTY = {
+	type: 'string',
+	description:
+		'The id of a tldraw.com board: a boardId from search_boards, or the :slug of a file URL (https://www.tldraw.com/f/:slug).',
+}
+
+function getReadPageCommentsToolDefinition() {
+	return {
+		name: READ_PAGE_COMMENTS_TOOL_NAME,
+		title: 'Read tldraw page comments',
+		description:
+			'List the comment threads on one page of a tldraw.com board, oldest first, resolved ones included. Each thread has its threadId, whether it is resolved, its anchor — a shape (its shapeId, type and text), a point or region in page coordinates, or the page itself — and its comments: commentId, authorName, isCurrentUser (true for comments from your account, including ones your agent left), createdAt and plain text. Reply to a thread by passing its threadId to write_comment.',
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				boardId: COMMENT_BOARD_ID_PROPERTY,
+				page: PAGE_PROPERTY,
+			},
+			required: ['boardId'],
+		},
+		annotations: READ_ONLY_ANNOTATIONS,
+	}
+}
+
+function getWriteCommentToolDefinition() {
+	return {
+		name: WRITE_COMMENT_TOOL_NAME,
+		title: 'Write tldraw comment',
+		description: `Post a comment on a tldraw.com board from your account, opening with an italic line saying your agent left it. Pass threadId to reply in a thread from read_page_comments; resolved threads take no replies. Or start a new thread: shapeId pins it to a shape, and x and y to a point on a page. Returns the threadId and commentId. You can comment on your own boards, your workspaces' boards, and boards shared with you by an edit link.`,
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				boardId: COMMENT_BOARD_ID_PROPERTY,
+				text: {
+					type: 'string',
+					maxLength: COMMENT_TEXT_MAX_LENGTH,
+					description: 'The comment, as plain text. Each line becomes a paragraph.',
+				},
+				threadId: {
+					type: 'string',
+					description: 'Reply in this thread, from read_page_comments.',
+				},
+				shapeId: {
+					type: 'string',
+					description: 'Start a thread on this shape, from get_cluster_info or read_page_comments.',
+				},
+				x: { type: 'number', description: 'Start a thread at this page x coordinate, with y.' },
+				y: { type: 'number', description: 'Start a thread at this page y coordinate, with x.' },
+				page: {
+					type: ['number', 'string'],
+					description:
+						'For a thread at x and y: the page id or 0-based index from get_board_info. Defaults to 0.',
+					default: 0,
+				},
+			},
+			required: ['boardId', 'text'],
+		},
+		annotations: {
+			readOnlyHint: false,
+			idempotentHint: false,
+			openWorldHint: false,
+			destructiveHint: false,
+		},
 	}
 }
 

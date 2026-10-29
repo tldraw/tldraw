@@ -157,4 +157,75 @@ describe('local eval fixture MCP', () => {
 		)
 		expect(new Set(ids).size).toBe(BOARD_SEARCH_PAGE_SIZE + 1)
 	})
+	it('serves read_page_comments from comment records a fixture carries, and refuses writes', async () => {
+		const snapshot = makeSnapshot([{ id: 'page:one', index: 'a1', name: 'One', shapes: 1 }])
+		snapshot.documents.push(
+			{
+				state: {
+					typeName: 'comment-thread',
+					id: 'comment-thread:t',
+					pageId: 'page:one',
+					anchor: { type: 'point', x: 1.4, y: 2.6 },
+					createdBy: 'user_a',
+					createdAt: 1,
+					resolved: null,
+					isDeleted: false,
+					meta: {},
+				},
+			},
+			{
+				state: {
+					typeName: 'comment',
+					id: 'comment:c',
+					threadId: 'comment-thread:t',
+					pageId: 'page:one',
+					authorId: 'user_a',
+					createdAt: 2,
+					editedAt: null,
+					body: {
+						type: 'doc',
+						content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hi' }] }],
+					},
+					isDeleted: false,
+					meta: {},
+				},
+			}
+		)
+		await testRoutes.fetch(
+			request('/app/__test__/evals/sessions/comments/boards/roadmap', 'PUT', {
+				snapshot,
+				measurements: {},
+				shots: {},
+			}),
+			localEnv
+		)
+		const call = async (name: string, args: object) => {
+			const response = await testRoutes.fetch(
+				request('/app/__test__/evals/sessions/comments/mcp', 'POST', {
+					jsonrpc: '2.0',
+					id: 1,
+					method: 'tools/call',
+					params: { name, arguments: args },
+				}),
+				localEnv
+			)
+			return ((await response.json()) as any).result
+		}
+
+		const read = await call('read_page_comments', { boardId: 'roadmap' })
+		expect(JSON.parse(read.content[0].text)).toMatchObject({
+			threadCount: 1,
+			threads: [
+				{
+					threadId: 'comment-thread:t',
+					anchor: { type: 'point', x: 1, y: 3 },
+					comments: [{ commentId: 'comment:c', authorName: 'user_a', text: 'Hi' }],
+				},
+			],
+		})
+
+		const write = await call('write_comment', { boardId: 'roadmap', text: 'Hi', threadId: 't' })
+		expect(write.isError).toBe(true)
+		expect(write.content[0].text).toContain('[harness-gap]')
+	})
 })

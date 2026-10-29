@@ -9,6 +9,7 @@ import {
 	MCP_PER_BOARD_RATE_LIMIT,
 	MCP_PER_USER_RATE_LIMIT,
 	MCP_RATE_LIMIT_WINDOW_MS,
+	MCP_COMMENT_PER_USER_RATE_LIMIT,
 	MCP_CREATE_PER_USER_RATE_LIMIT,
 	MCP_RENAME_PER_USER_RATE_LIMIT,
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
@@ -24,17 +25,20 @@ import {
 	BOARD_INFO_TOOL_NAME,
 	BOARD_NOT_FOUND_MESSAGE,
 	CLUSTER_INFO_TOOL_NAME,
+	COMMENTS_ON_PUBLISHED_BOARD_MESSAGE,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
 	LIST_WORKSPACES_TOOL_NAME,
 	MCP_SERVER_INFO,
 	getMcpServerInstructions,
 	PAGE_INFO_TOOL_NAME,
+	READ_PAGE_COMMENTS_TOOL_NAME,
 	RENAME_BOARD_TOOL_NAME,
 	PageSelector,
 	ResolvedPageOk,
 	SEARCH_BOARDS_TOOL_NAME,
 	ToolResult,
+	WRITE_COMMENT_TOOL_NAME,
 	buildClusterIndex,
 	clusterPage,
 	describePageSelector,
@@ -42,8 +46,10 @@ import {
 	getBoardSearchResults,
 	getClusterInfo,
 	getCreatedBoardResult,
+	getPageCommentsResult,
 	getPageInfo,
 	getToolDefinitions,
+	getWrittenCommentResult,
 	getWorkspaceListResult,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
@@ -51,8 +57,10 @@ import {
 	parseCreateBoardInput,
 	parseListWorkspacesInput,
 	parsePageInfoInput,
+	parseReadPageCommentsInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
+	parseWriteCommentInput,
 	pickClusterShapes,
 	resolvePage,
 	toolError as modelToolError,
@@ -63,6 +71,7 @@ import { createBoardForUser } from './createBoard'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import { readPageClusters, writePageClusterIndex } from './mcpClusterIndex'
+import { readPageCommentRows, writeCommentForUser } from './pageComments'
 import { renameBoardForUser } from './renameBoard'
 import { searchAccessibleBoards } from './searchBoards'
 import {
@@ -169,6 +178,10 @@ function createRateLimitKey(userId: string) {
 
 function renameRateLimitKey(userId: string) {
 	return `rename:${userId}`
+}
+
+function commentRateLimitKey(userId: string) {
+	return `comment:${userId}`
 }
 
 async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
@@ -369,6 +382,8 @@ const TOOL_HANDLERS = new Map<
 	[PAGE_INFO_TOOL_NAME, callPageInfoTool],
 	[CLUSTER_INFO_TOOL_NAME, callClusterInfoTool],
 	[CLUSTER_SCREENSHOT_TOOL_NAME, callClusterScreenshotTool],
+	[READ_PAGE_COMMENTS_TOOL_NAME, callReadPageCommentsTool],
+	[WRITE_COMMENT_TOOL_NAME, callWriteCommentTool],
 ])
 
 export async function mcpServer(
@@ -802,6 +817,92 @@ async function callRenameBoardTool(
 	}
 }
 
+async function callReadPageCommentsTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseReadPageCommentsInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		// Shares search_boards' budget, like list_workspaces: a Postgres read and an R2 read, and no
+		// Browser Run.
+		const refusal = await checkSearchRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		// The snapshot names the page and the shapes threads are pinned to; the threads themselves
+		// live in Postgres, under the file's id.
+		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId)
+		if (!resolved.ok) return resolved.result
+		if (resolved.board.kind === 'published') {
+			return toolError(COMMENTS_ON_PUBLISHED_BOARD_MESSAGE, 'comments_unavailable')
+		}
+
+		const { threads, comments } = await readPageCommentRows(
+			env,
+			resolved.board.fileId,
+			resolved.page.pageId
+		)
+		return getPageCommentsResult(resolved.page, threads, comments, userId)
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_comment_read',
+			extras: { boardId: input.boardId, page: describePageSelector(input.page) },
+			summary: 'Could not read comments',
+			// As for get_board_info: no render, so only the snapshot-read class can honestly apply.
+			recordAs: (reason) => (reason === 'snapshot_read_error' ? reason : 'board_lookup_error'),
+		})
+	}
+}
+
+async function callWriteCommentTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseWriteCommentInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const refusal = await checkCommentRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		const written = await writeCommentForUser(env, userId, input)
+		if (!written.ok) return withTelemetryReason(written.result, written.reason)
+		const boardUrl = `${getPublicOrigin(request as IRequest, env)}/f/${input.boardId}`
+		return getWrittenCommentResult({
+			boardId: input.boardId,
+			threadId: written.threadId,
+			commentId: written.commentId,
+			pageId: written.pageId,
+			newThread: written.newThread,
+			// tldraw.com opens the thread from this, as its own "copy link" does.
+			url: `${boardUrl}?comment=${encodeURIComponent(written.threadId)}`,
+		})
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_comment_write',
+			// The text is something the caller typed, so it stays off the Sentry event.
+			extras: { boardId: input.boardId, target: input.target.kind },
+			summary: 'Could not post the comment',
+			recordAs: () => 'comment_write_error',
+		})
+	}
+}
+
 async function callBoardInfoTool(
 	argumentsValue: unknown,
 	request: Request,
@@ -1136,6 +1237,31 @@ async function checkRenameRateLimit(
 	return toolError(
 		`Rate limited. Renaming boards is limited to about ${MCP_RENAME_PER_USER_RATE_LIMIT} per minute per account.`,
 		'rate_limited_rename'
+	)
+}
+
+/** The per-caller ceiling on `write_comment`. Its own binding because it bounds writes. */
+async function checkCommentRateLimit(
+	env: Environment,
+	userId: string,
+	telemetry: McpTelemetryWriter
+): Promise<ToolCallResult | undefined> {
+	if (
+		!(await isRateLimited(env.MCP_SERVER_COMMENT_RATE_LIMITER, commentRateLimitKey(userId), {
+			fallbackLimit: MCP_COMMENT_PER_USER_RATE_LIMIT,
+		}))
+	) {
+		return undefined
+	}
+	telemetry({
+		cacheStatus: 'none',
+		rateLimitAllowed: false,
+		failureReason: 'rate_limited_comment',
+		callerHash: await sha256(userId),
+	})
+	return toolError(
+		`Rate limited. Posting comments is limited to about ${MCP_COMMENT_PER_USER_RATE_LIMIT} per minute per account.`,
+		'rate_limited_comment'
 	)
 }
 
