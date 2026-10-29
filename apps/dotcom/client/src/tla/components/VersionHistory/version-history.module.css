@@ -1,0 +1,77 @@
+/* Surface, header and rows come from the comments sidebar (tlui-cmt-canvas-sidebar,
+   tlui-cmt-list*); this file only adds what history needs on top. */
+.mode {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+}
+
+.sheet {
+	top: auto;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: auto;
+	max-height: 50%;
+	border-radius: var(--tl-radius-4) var(--tl-radius-4) 0 0;
+}
+
+/* Where the comment rows put an author dot: the live document gets an accent dot. */
+.currentDot {
+	flex-shrink: 0;
+	width: 14px;
+	height: 14px;
+	margin-top: 2px;
+	border-radius: 50%;
+	background: var(--tl-color-primary);
+}
+
+.nested {
+	padding-left: 38px;
+}
+
+.expand {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	padding: 0;
+	border: none;
+	background: none;
+	font: inherit;
+	color: inherit;
+	cursor: pointer;
+}
+
+.expand:hover {
+	color: var(--tl-color-text-1);
+}
+
+.loadMore {
+	width: 100%;
+	padding: 12px 14px;
+	border: none;
+	background: none;
+	font: inherit;
+	font-size: 12px;
+	color: var(--tl-color-primary);
+	text-align: left;
+	cursor: pointer;
+}
+
+.actions {
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 12px 14px;
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+/* A saved version's name leads its row, like a comment's text. */
+.versionName {
+	margin-top: 2px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--tl-color-text-1);
+	overflow-wrap: anywhere;
+}
