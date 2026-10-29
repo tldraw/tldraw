@@ -32,6 +32,59 @@ export interface HistoryResponseBody {
 	hasMore: boolean
 }
 
+/** One author of a version. `userId` is null for signed-out editors on an edit link. */
+export interface HistoryAuthor {
+	userId: string | null
+	agent?: 'mcp'
+}
+
+export interface HistoryUser {
+	name: string
+	color: string
+}
+
+export interface HistoryCheckpoint {
+	ts: string
+	authors: HistoryAuthor[]
+	added: number
+	updated: number
+	removed: number
+	/** Set when someone saved this version under a name. */
+	name?: string
+}
+
+/** A run of edits with no gap over 30 minutes. `end` is the version a restore of it targets. */
+export interface HistorySession {
+	start: string
+	end: string
+	authors: HistoryAuthor[]
+	added: number
+	updated: number
+	removed: number
+	checkpoints: HistoryCheckpoint[]
+	/** Earlier points (one per 5 minutes, newest first) that expanding the session reveals. */
+	points: HistoryCheckpoint[]
+	restore?: { restoreId: string; restoredFrom: string }
+	/** A named version is always a session of its own. */
+	name?: string
+}
+
+export interface HistoryListResponse {
+	sessions: HistorySession[]
+	users: Record<string, HistoryUser>
+	nextCursor: string | null
+}
+
+export interface HistoryRawResponse {
+	versions: HistoryCheckpoint[]
+	nextCursor: string | null
+}
+
+export interface HistoryPointsResponse {
+	points: HistoryCheckpoint[]
+	users: Record<string, HistoryUser>
+}
+
 /* ----------------------- App ---------------------- */
 
 export interface CreateFilesRequestBody {
@@ -281,6 +334,16 @@ export type ConnectStep = (typeof CONNECT_STEPS)[number]
 export type TLCustomServerEvent =
 	| { type: 'persistence_good' }
 	| { type: 'persistence_bad' }
+	// Sent to everyone in a file when someone restores a version. `preRestoreTs` is the version to
+	// restore (with `undoes: restoreId`) to undo it; null when there was nothing to go back to.
+	| {
+			type: 'file_restored'
+			restoreId: string
+			restoredFrom: string
+			preRestoreTs: string | null
+			byUserId: string
+			byName: string
+	  }
 	// Sent once to a session that connected with a `loadId`, feeding the client's first_load and
 	// file_load reports. `d_*`/`t_*` are ms; boot fields only when this connect booted the room.
 	| ({
@@ -303,6 +366,7 @@ export const FEATURE_FLAG_KEYS = [
 	'mcp_server_access',
 	'version_chain',
 	'collections',
+	'version_history',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 

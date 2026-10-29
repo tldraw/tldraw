@@ -1519,6 +1519,43 @@ describe('createFile from source (duplicate) access control', () => {
 		await expectBadRequest(() => duplicate(m, tx, `${FILE_PREFIX}/${sourceId}`))
 	})
 
+	it('version source needs edit access', async () => {
+		const ts = '2026-10-01T00:00:00.000Z'
+		const viewOnly = baseStore(
+			makeFile({ id: sourceId, owningGroupId: otherGroup, shared: true, sharedLinkType: 'view' })
+		)
+		await expectForbidden(() =>
+			duplicate(
+				createMutators(userId),
+				createMockTx(viewOnly, { location: 'server' }).tx,
+				`${FILE_PREFIX}/${sourceId}@${ts}`
+			)
+		)
+		const editLink = baseStore(
+			makeFile({ id: sourceId, owningGroupId: otherGroup, shared: true, sharedLinkType: 'edit' })
+		)
+		await expectValid(() =>
+			duplicate(
+				createMutators(userId),
+				createMockTx(editLink, { location: 'server' }).tx,
+				`${FILE_PREFIX}/${sourceId}@${ts}`
+			)
+		)
+	})
+
+	it('plain source still needs only read access', async () => {
+		const s = baseStore(
+			makeFile({ id: sourceId, owningGroupId: otherGroup, shared: true, sharedLinkType: 'view' })
+		)
+		await expectValid(() =>
+			duplicate(
+				createMutators(userId),
+				createMockTx(s, { location: 'server' }).tx,
+				`${FILE_PREFIX}/${sourceId}`
+			)
+		)
+	})
+
 	it('does not gate non-file createSource prefixes (e.g. published)', async () => {
 		// a published-doc copy uses a different prefix and must still work even
 		// when there is no readable `file` row for the source id

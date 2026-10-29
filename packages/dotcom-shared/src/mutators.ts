@@ -8,6 +8,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import { MAX_NUMBER_OF_WORKSPACES, MAX_WORKSPACE_NAME_LENGTH } from './constants'
+import { parseCreateSource } from './createSource'
 import { Role, can, isRole } from './roles'
 import { FILE_PREFIX } from './routes'
 import {
@@ -147,6 +148,14 @@ async function assertUserCanUpdateFile(tx: Tx, userId: string, file: TlaFile) {
 async function assertUserCanAccessFileById(tx: Tx, userId: string, fileId: string) {
 	const file = await tx.run(zql.file.where('id', '=', fileId).one())
 	await assertUserCanAccessFile(tx, userId, file!)
+}
+
+/** Edit access: workspace member, or anyone on an edit link. */
+async function assertUserCanEditFileById(tx: Tx, userId: string, fileId: string) {
+	const file = await tx.run(zql.file.where('id', '=', fileId).one())
+	assert(file && !file.isDeleted, ZErrorCode.bad_request)
+	if (file.shared && file.sharedLinkType === 'edit') return
+	await assertUserCanUpdateFile(tx, userId, file)
 }
 
 const isBoolean = (value: unknown) => typeof value === 'boolean'
@@ -328,9 +337,12 @@ export function createMutators(userId: string) {
 			// have the source file synced). Other `createSource` prefixes (published,
 			// legacy rooms, local files) are intentionally not gated here.
 			if (tx.location === 'server' && createSource) {
-				const [prefix, sourceFileId] = createSource.split('/')
-				if (prefix === FILE_PREFIX) {
-					await assertUserCanAccessFileById(tx, userId, sourceFileId)
+				const source = parseCreateSource(createSource)
+				assert(source || !createSource.startsWith(`${FILE_PREFIX}/`), ZErrorCode.bad_request)
+				if (source?.prefix === FILE_PREFIX) {
+					// Duplicating a past version is a history action, which needs edit access.
+					if (source.versionTs) await assertUserCanEditFileById(tx, userId, source.id)
+					else await assertUserCanAccessFileById(tx, userId, source.id)
 				}
 			}
 
