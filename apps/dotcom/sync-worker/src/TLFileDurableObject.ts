@@ -47,6 +47,7 @@ import {
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
+	TLRichText,
 	commentSchemaRecords,
 	createTLSchema,
 	defaultShapeSchemas,
@@ -69,7 +70,7 @@ import { IRequest, Router, StatusError } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
 import { collectAssetAssociationChanges } from './assetAssociation'
-import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
+import { SessionMeta, authorizeFileRecord, getFileRoomAccess } from './authorizeFileRecord'
 import {
 	CommentLoadResult,
 	findEmptiedCommentThreads,
@@ -91,6 +92,7 @@ import {
 } from './commentRows'
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
+import { planMcpComment } from './mcpCommentWrite'
 import { TLPostgresPool, getPostgresConnection } from './postgres'
 import { pruneUnusedAssetsForTldr } from './pruneUnusedAssets'
 import {
@@ -108,7 +110,7 @@ import {
 	settleWithin,
 	shouldSkipMissingRoomEffect,
 } from './roomEffectHelpers'
-import { getBoardUsers } from './routes/tla/boardTools'
+import { CommentTarget, CommentWriteRefusal, getBoardUsers } from './routes/tla/boardTools'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
@@ -1197,11 +1199,13 @@ export class TLFileDurableObject extends DurableObject {
 					rateLimitTimer.report('on_request_rate_limit', loadIdBlobs)
 					marks.mark('rate_limit')
 
-					if (!can(role, 'accessFiles') && !file.shared) {
+					const access = getFileRoomAccess(file, role)
+					if (access === 'none') {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 					}
-
-					if (!canEditFile(file, role)) openMode = ROOM_OPEN_MODE.READ_ONLY
+					if (access === 'read') {
+						openMode = ROOM_OPEN_MODE.READ_ONLY
+					}
 				} else {
 					// No file row means every check above was skipped, so admitting the socket would
 					// open the room to anyone holding the id — the R2 blob and the DO's SQLite outlive
@@ -2662,12 +2666,16 @@ export class TLFileDurableObject extends DurableObject {
 		for (const id of diff.deletes) {
 			if (isCommentRecordId(id)) ids.push(id)
 		}
-		if (ids.length === 0) return
+		this.enqueueCommentRecordIds(ids)
+	}
+
+	private enqueueCommentRecordIds(ids: string[]): Promise<void> {
+		if (ids.length === 0) return Promise.resolve()
 		this.ensureCommentOutbox()
 		for (const id of ids) {
 			this.ctx.storage.sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)
 		}
-		this.drainCommentOutbox()
+		return this.drainCommentOutbox()
 	}
 
 	/**
@@ -3617,6 +3625,83 @@ export class TLFileDurableObject extends DurableObject {
 
 	async receiveTabRenderReply(jobId: string, reply: TabRenderReply): Promise<boolean> {
 		return this.tabRenders.receive(jobId, reply)
+	}
+
+	/**
+	 * Posts a comment from the MCP server as `userId` (see `planMcpComment`), gated by the same
+	 * `getFileRoomAccess` rule as a socket connect. The route has already checked the caller can see
+	 * the board, which is what makes initializing a never-opened object's documentInfo safe.
+	 *
+	 * Storage writes do not fire `onCommittedChanges`, so the records are outboxed here, in the same
+	 * synchronous block as the write, as the restore handler's invariants require. The drain is
+	 * awaited so a read_page_comments straight after sees the comment.
+	 */
+	async writeMcpComment({
+		fileId,
+		userId,
+		body,
+		target,
+	}: {
+		fileId: string
+		userId: string
+		body: TLRichText
+		target: CommentTarget
+	}): Promise<
+		| { ok: true; threadId: string; commentId: string; pageId: string; newThread: boolean }
+		| ({ ok: false } & CommentWriteRefusal)
+	> {
+		if (this._documentInfo) {
+			const info = this._documentInfo
+			if (info.deleted || !info.isApp || info.slug !== fileId) {
+				return { ok: false, reason: 'not_found' }
+			}
+		}
+
+		const fileWithRole = this._documentInfo
+			? await this.getAppFileRecordWithRole(userId)
+			: await getFileRecordWithRole(this.db, fileId, userId)
+		if (!fileWithRole || fileWithRole.file.isDeleted) return { ok: false, reason: 'not_found' }
+		const { file, role } = fileWithRole
+		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, { userId }))) {
+			return { ok: false, reason: 'not_found' }
+		}
+		const access = getFileRoomAccess(file, role)
+		if (access === 'none') return { ok: false, reason: 'not_found' }
+
+		// As appFileRecordCreated does for an object that has never been opened.
+		if (!this._documentInfo) {
+			this._fileRecordCache = file
+			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
+		}
+
+		let storage: TLSyncStorage<TLRecord>
+		try {
+			storage = await this.getStorage()
+		} catch (error) {
+			if (error instanceof RoomNotFoundError) return { ok: false, reason: 'board_empty' }
+			throw error
+		}
+
+		const planned = storage.transaction((txn) => {
+			const plan = planMcpComment({
+				room: txn,
+				userId,
+				isReadonly: access === 'read',
+				body,
+				target,
+			})
+			if (plan.ok) {
+				for (const record of plan.records) txn.set(record.id, record as unknown as TLRecord)
+			}
+			return plan
+		}).result
+		if (!planned.ok) return planned
+
+		const { records, ...written } = planned
+		await this.enqueueCommentRecordIds(records.map((record) => record.id)).catch((error) => {
+			this.reportError(error)
+		})
+		return written
 	}
 
 	/**

@@ -134,6 +134,7 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  *   MCP_CREATE_PER_USER_RATE_LIMIT     ->  MCP_SERVER_CREATE_RATE_LIMITER   (limit = 10)
  *   MCP_RENAME_PER_USER_RATE_LIMIT     ->  MCP_SERVER_RENAME_RATE_LIMITER   (limit = 10)
  *   MCP_TAB_PER_USER_RATE_LIMIT        ->  MCP_SERVER_TAB_RATE_LIMITER      (limit = 90)
+ *   MCP_COMMENT_PER_USER_RATE_LIMIT    ->  MCP_SERVER_COMMENT_RATE_LIMITER  (limit = 20)
  *
  * The window matches the period configured on the Cloudflare bindings, which only support 60s (or
  * 10s) periods — this is the one number here that is Cloudflare's rather than ours.
@@ -173,6 +174,11 @@ export const MCP_RENAME_PER_USER_RATE_LIMIT = 10
  */
 export const MCP_TAB_PER_USER_RATE_LIMIT = 90
 
+/**
+ * The `write_comment` budget. A write that collaborators see and are notified of, so it sits below
+ * search; above create and rename because answering a review means replying to many threads in a row.
+ */
+export const MCP_COMMENT_PER_USER_RATE_LIMIT = 20
 export const MCP_RATE_LIMIT_WINDOW_MS = 60_000
 
 /**

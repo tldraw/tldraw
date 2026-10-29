@@ -149,6 +149,8 @@ export function describeThumbnailFailure(reason: string): string {
 			return 'the board could not be saved'
 		case 'board_rename_error':
 			return 'the new name could not be saved'
+		case 'comment_write_error':
+			return 'the comment could not be saved'
 		case 'rate_limiter_unavailable':
 			// Deliberately not phrased as being rate limited: the caller is inside their budget, and a
 			// message saying otherwise would have them back off for a minute that would not help.
@@ -169,6 +171,8 @@ export type ThumbnailErrorSurface =
 	| 'mcp_board_create'
 	| 'mcp_board_rename'
 	| 'mcp_workspace_list'
+	| 'mcp_comment_read'
+	| 'mcp_comment_write'
 	| 'mcp_screenshot'
 	// Reaching the caller's open tab (mcpTabRender.ts), for a reason other than the tab being unable to
 	// help. The caller is told the tab isn't responding.

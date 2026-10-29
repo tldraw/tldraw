@@ -109,6 +109,8 @@ export interface Environment {
 	MCP_SERVER_RENAME_RATE_LIMITER: RateLimit | undefined
 	/** Per-account calls to the tools that go through a board's durable object. Bounds load on a shared board. */
 	MCP_SERVER_TAB_RATE_LIMITER: RateLimit | undefined
+	/** Per-account `write_comment` calls. Bounds writes. */
+	MCP_SERVER_COMMENT_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
