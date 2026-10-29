@@ -19,7 +19,7 @@ export function useCommandPaletteLayout({
 	isBrowsing,
 	rows,
 }: {
-	editor: Editor
+	editor: Editor | null
 	position: TLUiCommandPalettePosition
 	rPalette: RefObject<HTMLDivElement | null>
 	rList: RefObject<HTMLDivElement | null>
@@ -51,9 +51,10 @@ export function useCommandPaletteLayout({
 	// and the toolbar matching the toolbar's gap to the bottom edge. Measured while browsing and kept
 	// while searching, so the input stays put as results shrink. Only set when it changes: a new
 	// object would re-render the registered items, change the rows and measure again, forever. A
-	// vertical toolbar is a narrow column, so it falls back to the CSS box.
+	// vertical toolbar is a narrow column, and outside an editor there is no toolbar, so both fall
+	// back to the CSS box.
 	useLayoutEffect(() => {
-		if (position !== 'bottom') return setAnchor(null)
+		if (position !== 'bottom' || !editor) return setAnchor(null)
 		if (!isBrowsing) return
 		const container = editor.getContainer()
 		const palette = rPalette.current
