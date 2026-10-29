@@ -1,6 +1,6 @@
 import { act, fireEvent, render, waitFor, within } from '@testing-library/react'
 import { deleteFromLocalStorage, Editor, useValue } from '@tldraw/editor'
-import { ReactNode, useState } from 'react'
+import { ReactNode, StrictMode, useEffect, useState } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import {
@@ -206,7 +206,10 @@ describe('CommandPaletteShell', () => {
 
 	describe('bottom position', () => {
 		// jsdom has no layout: give the toolbar a box, and everything else the 1000px-tall container's.
-		async function renderWithToolbar(orientation: 'horizontal' | 'vertical') {
+		async function renderWithToolbar(
+			orientation: 'horizontal' | 'vertical',
+			children: ReactNode = item('alpha', 'Alpha')
+		) {
 			const toolbarBox =
 				orientation === 'horizontal'
 					? { top: 940, bottom: 988, left: 250, right: 750, width: 500, height: 48 }
@@ -219,14 +222,14 @@ describe('CommandPaletteShell', () => {
 					return { ...box, x: box.left, y: box.top, toJSON: () => box } as DOMRect
 				}
 			)
-			const { rendered } = await renderTldrawComponentWithEditor(
+			const { editor, rendered } = await renderTldrawComponentWithEditor(
 				(onMount) => (
 					<Tldraw
 						onMount={onMount}
 						components={{ Toolbar: () => <DefaultToolbar orientation={orientation} /> }}
 					>
 						<CommandPaletteShell position="bottom" onClose={vi.fn()}>
-							{item('alpha', 'Alpha')}
+							{children}
 						</CommandPaletteShell>
 					</Tldraw>
 				),
@@ -234,7 +237,7 @@ describe('CommandPaletteShell', () => {
 			)
 			await rendered.findByTestId('command-palette.item.alpha')
 			expect(rendered.container.querySelector(`.tlui-main-toolbar--${orientation}`)).not.toBeNull()
-			return rendered.getByTestId('command-palette')
+			return { editor, palette: rendered.getByTestId('command-palette') }
 		}
 
 		afterEach(() => {
@@ -242,12 +245,44 @@ describe('CommandPaletteShell', () => {
 		})
 
 		it('sits above a horizontal toolbar at its width', async () => {
-			const palette = await renderWithToolbar('horizontal')
+			const { palette } = await renderWithToolbar('horizontal')
 			await waitFor(() => expect(palette.style.width).toBe('500px'))
 		})
 
+		it('caps a submenu at the browsing height so it stays above the toolbar', async () => {
+			vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(
+				function (this: HTMLElement) {
+					return this.classList.contains('tlui-command-palette') ? 300 : 0
+				}
+			)
+			const { palette } = await renderWithToolbar(
+				'horizontal',
+				<>
+					{item('alpha', 'Alpha')}
+					<TldrawUiMenuSubmenu id="many" label="Many">
+						{['a', 'b'].map((id) => item(id, `Option ${id}`))}
+					</TldrawUiMenuSubmenu>
+				</>
+			)
+			// The toolbar ends 12px above the bottom, so the palette ends 12px above the toolbar.
+			await waitFor(() => expect(palette.style.top).toBe('628px'))
+			expect(palette.style.maxHeight).toBe('')
+			fireEvent.click(within(palette).getByTestId('command-palette.submenu.Many'))
+			await within(palette).findByTestId('command-palette.back')
+			expect(palette.style.top).toBe('628px')
+			expect(palette.style.maxHeight).toBe('300px')
+		})
+
+		it('leaves the toolbar for the top on touch devices', async () => {
+			const { editor, palette } = await renderWithToolbar('horizontal')
+			await waitFor(() => expect(palette.style.width).toBe('500px'))
+			act(() => editor.updateInstanceState({ isCoarsePointer: true }))
+			await waitFor(() => expect(palette.style.width).toBe(''))
+			expect(palette.style.top).toBe('')
+		})
+
 		it('ignores a vertical toolbar', async () => {
-			const palette = await renderWithToolbar('vertical')
+			const { palette } = await renderWithToolbar('vertical')
 			expect(palette.style.width).toBe('')
 			expect(palette.style.top).toBe('')
 		})
@@ -553,12 +588,11 @@ describe('CommandPaletteShell', () => {
 		expect(onSubmit).not.toHaveBeenCalled()
 	})
 
-	it('shows no item icons, and reserves a check slot only in sections with a checkable row', async () => {
-		const { rendered } = await renderShell(
+	it('shows no item icons, and gives every row a check slot', async () => {
+		const { rendered, input } = await renderShell(
 			<>
 				<TldrawUiMenuGroup id="edit" label="Edit">
 					<TldrawUiMenuItem id="alpha" label="Alpha" iconLeft="plus" onSelect={vi.fn()} />
-					{item('beta', 'Beta')}
 					<TldrawUiMenuCheckboxItem id="grid" label="Grid" checked readonlyOk onSelect={vi.fn()} />
 					<TldrawUiMenuSubmenu id="more" label="More">
 						{['a', 'b'].map((id) => item(id, `Item ${id}`))}
@@ -572,11 +606,53 @@ describe('CommandPaletteShell', () => {
 		await rendered.findByText('Edit')
 		const iconCount = (testId: string) =>
 			rendered.getByTestId(testId).querySelectorAll('.tlui-icon').length
-		for (const id of ['alpha', 'beta', 'grid'])
+		for (const id of ['alpha', 'grid', 'gamma'])
 			expect(iconCount(`command-palette.item.${id}`)).toBe(1)
 		// The check slot plus the chevron.
 		expect(iconCount('command-palette.submenu.More')).toBe(2)
-		expect(iconCount('command-palette.item.gamma')).toBe(0)
+		type(input, 'gam')
+		await waitFor(() => expect(rendered.queryByTestId('command-palette.item.grid')).toBeNull())
+		expect(iconCount('command-palette.item.gamma')).toBe(1)
+	})
+
+	it('gives an opened submenu a check slot only when it has something to check', async () => {
+		const { rendered, input } = await renderShell(
+			<>
+				<TldrawUiMenuSubmenu id="pages" label="Pages">
+					{['a', 'b'].map((id) => item(id, `Page ${id}`))}
+				</TldrawUiMenuSubmenu>
+				<TldrawUiMenuSubmenu id="language" label="Language">
+					<TldrawUiMenuCheckboxItem id="en" label="English" checked readonlyOk onSelect={vi.fn()} />
+					{item('de', 'Deutsch')}
+				</TldrawUiMenuSubmenu>
+			</>
+		)
+		const iconCount = (testId: string) =>
+			rendered.getByTestId(testId).querySelectorAll('.tlui-icon').length
+		fireEvent.click(await rendered.findByTestId('command-palette.submenu.Pages'))
+		expect(iconCount('command-palette.item.a')).toBe(0)
+		press(input, 'Escape')
+		fireEvent.click(await rendered.findByTestId('command-palette.submenu.Language'))
+		expect(iconCount('command-palette.item.de')).toBe(1)
+	})
+
+	it('marks checkable rows with aria-checked, keeping the check icon decorative', async () => {
+		const { rendered } = await renderShell(
+			<>
+				<TldrawUiMenuCheckboxItem id="on" label="On" checked readonlyOk onSelect={vi.fn()} />
+				<TldrawUiMenuCheckboxItem id="off" label="Off" checked={false} onSelect={vi.fn()} />
+				{item('current', 'Current', vi.fn(), { isSelected: true })}
+				{item('plain', 'Plain')}
+			</>
+		)
+		await rendered.findByTestId('command-palette.item.plain')
+		const row = (id: string) => rendered.getByTestId(`command-palette.item.${id}`)
+		expect(
+			['on', 'off', 'current', 'plain'].map((id) => row(id).getAttribute('aria-checked'))
+		).toEqual(['true', 'false', 'true', null])
+		for (const id of ['on', 'off', 'current', 'plain']) {
+			expect(row(id).querySelector('.tlui-icon')!.getAttribute('aria-hidden')).toBe('true')
+		}
 	})
 
 	it('ignores Enter while an IME composition is in progress', async () => {
@@ -644,6 +720,23 @@ describe('CommandPaletteShell', () => {
 		fireEvent.click(rendered.getByTestId('command-palette.item.note'))
 		expect(onSelect).toHaveBeenCalled()
 		expect(getCommandPaletteRecents()).toEqual([])
+	})
+
+	it('lists nothing from a submenu with an empty label', async () => {
+		const { rendered, input } = await renderShell(
+			<>
+				{item('alpha', 'Alpha')}
+				<CommandPaletteCollapsed>
+					<TldrawUiMenuSubmenu id="news" label="">
+						{item('note', 'Note')}
+					</TldrawUiMenuSubmenu>
+				</CommandPaletteCollapsed>
+			</>
+		)
+		await rendered.findByTestId('command-palette.item.alpha')
+		expect(rendered.queryByTestId('command-palette.item.note')).toBeNull()
+		type(input, 'note')
+		await waitFor(() => expect(rendered.queryByRole('option')).toBeNull())
 	})
 
 	it('returns focus to the editor, without recording a recent, when an item throws', async () => {
@@ -782,12 +875,19 @@ describe('CommandPaletteShell', () => {
 })
 
 describe('CommandPaletteShell without an editor', () => {
-	function renderApp() {
+	function renderApp({ strict = false } = {}) {
 		const onClose = vi.fn()
 		const onSelect = vi.fn()
 		const onSubmit = vi.fn()
 		function App() {
 			const [isOpen, setIsOpen] = useState(false)
+			useEffect(() => {
+				const onKeyDown = (e: KeyboardEvent) => {
+					if (e.metaKey && e.key === 'k') setIsOpen((open) => !open)
+				}
+				window.addEventListener('keydown', onKeyDown)
+				return () => window.removeEventListener('keydown', onKeyDown)
+			}, [])
 			return (
 				<TldrawUiContextProvider>
 					<button data-testid="opener" onClick={() => setIsOpen(true)}>
@@ -817,7 +917,15 @@ describe('CommandPaletteShell without an editor', () => {
 				</TldrawUiContextProvider>
 			)
 		}
-		const rendered = render(<App />)
+		const rendered = render(
+			strict ? (
+				<StrictMode>
+					<App />
+				</StrictMode>
+			) : (
+				<App />
+			)
+		)
 		const open = async () => {
 			const opener = rendered.getByTestId('opener')
 			opener.focus()
@@ -849,6 +957,23 @@ describe('CommandPaletteShell without an editor', () => {
 		press(input, 'Escape')
 		expect(onClose).toHaveBeenCalledTimes(1)
 		expect(onSelect).not.toHaveBeenCalled()
+		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
+		expect(document.activeElement).toBe(opener)
+	})
+
+	it("closes on Cmd+K without the app's own Cmd+K reopening it", async () => {
+		const { rendered, open, onClose } = renderApp()
+		const { opener, input } = await open()
+		press(input, 'k', { metaKey: true })
+		expect(onClose).toHaveBeenCalledTimes(1)
+		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
+		expect(document.activeElement).toBe(opener)
+	})
+
+	it('gives focus back under StrictMode', async () => {
+		const { rendered, open } = renderApp({ strict: true })
+		const { opener, input } = await open()
+		press(input, 'Escape')
 		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
 		expect(document.activeElement).toBe(opener)
 	})

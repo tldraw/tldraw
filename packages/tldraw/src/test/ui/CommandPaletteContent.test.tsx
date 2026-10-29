@@ -1,11 +1,14 @@
-import { act, fireEvent, render, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import {
 	atom,
+	BaseBoxShapeUtil,
 	Box,
 	createShapeId,
 	createTLStore,
 	deleteFromLocalStorage,
 	Editor,
+	GeoShapeGeoStyle,
+	T,
 	TldrawEditor,
 	TLImageShape,
 } from '@tldraw/editor'
@@ -35,7 +38,26 @@ vi.mock('../../lib/ui/hooks/useTranslation/useTranslation', async () =>
 	vi.importActual('../../lib/ui/hooks/useTranslation/useTranslation')
 )
 
+// setupVitest pins useBreakpoint to desktop; minimap tests opt into the real one.
+const realBreakpoint = vi.hoisted(() => ({ value: false }))
+vi.mock('../../lib/ui/context/breakpoints', async () => {
+	const actual = await vi.importActual<typeof import('../../lib/ui/context/breakpoints')>(
+		'../../lib/ui/context/breakpoints'
+	)
+	return {
+		...actual,
+		useBreakpoint: () => (realBreakpoint.value ? actual.useBreakpoint() : 7),
+	}
+})
+
+const commentingEnabled = vi.hoisted(() => ({ value: true }))
+vi.mock('../../lib/ui/hooks/useCommentingEnabled', () => ({
+	useCommentingEnabled: () => commentingEnabled.value,
+}))
+
 afterEach(() => {
+	commentingEnabled.value = true
+	realBreakpoint.value = false
 	deleteFromLocalStorage('tldraw-command-palette-recents')
 	deleteFromLocalStorage('minimap')
 })
@@ -45,7 +67,9 @@ async function renderPalette({
 	onUiEvent,
 	overrides,
 	content = <DefaultCommandPaletteContent />,
+	forceMobile,
 }: {
+	forceMobile?: boolean
 	maxPages?: number
 	onUiEvent?(name: string, data: unknown): void
 	overrides?: TLUiOverrides
@@ -57,6 +81,7 @@ async function renderPalette({
 				onMount={onMount}
 				onUiEvent={onUiEvent}
 				overrides={overrides}
+				forceMobile={forceMobile}
 				options={maxPages === undefined ? undefined : { maxPages }}
 			>
 				<CommandPaletteShell onClose={() => {}}>{content}</CommandPaletteShell>
@@ -163,6 +188,23 @@ describe('default command palette content', () => {
 		await rendered.findByTestId('command-palette.item.rectangle')
 	})
 
+	it('lists the comment tool only while commenting is enabled', async () => {
+		const overrides: TLUiOverrides = {
+			tools(_editor, tools) {
+				tools.comment = { id: 'comment', icon: 'comment', label: 'tool.comment', onSelect() {} }
+				return tools
+			},
+		}
+		const enabled = await renderPalette({ overrides, content: <CommandPaletteToolsGroup /> })
+		await enabled.rendered.findByTestId('command-palette.item.comment')
+		enabled.rendered.unmount()
+
+		commentingEnabled.value = false
+		const disabled = await renderPalette({ overrides, content: <CommandPaletteToolsGroup /> })
+		await disabled.rendered.findByTestId('command-palette.item.rectangle')
+		expect(disabled.rendered.queryByTestId('command-palette.item.comment')).toBeNull()
+	})
+
 	it('hides the pages group when the editor allows one page', async () => {
 		const { rendered, search } = await renderPalette({ maxPages: 1 })
 		search('new page')
@@ -194,6 +236,7 @@ describe('default command palette content', () => {
 	})
 
 	it('toggles the minimap, in step with the navigation panel', async () => {
+		realBreakpoint.value = true
 		const { editor, rendered, search, enter } = await renderPalette()
 		act(() => editor.updateViewportScreenBounds(new Box(0, 0, 1400, 900)))
 		search('minimap')
@@ -206,6 +249,29 @@ describe('default command palette content', () => {
 		await waitFor(() =>
 			expect(rendered.queryByTestId('command-palette.item.toggle-minimap')).toBeNull()
 		)
+	})
+
+	it('hides toggle minimap when forceMobile hides the minimap', async () => {
+		realBreakpoint.value = true
+		const { editor, rendered, search } = await renderPalette({ forceMobile: true })
+		act(() => editor.updateViewportScreenBounds(new Box(0, 0, 1400, 900)))
+		search('minimap')
+		await rendered.findByTestId('command-palette.input')
+		expect(rendered.queryByTestId('command-palette.item.toggle-minimap')).toBeNull()
+	})
+
+	it('hides toggle minimap in focus mode', async () => {
+		realBreakpoint.value = true
+		const { editor, rendered, search } = await renderPalette()
+		act(() => editor.updateViewportScreenBounds(new Box(0, 0, 1400, 900)))
+		// jsdom would re-measure the viewport to ~0 after the focus mode layout change.
+		vi.spyOn(editor, 'updateViewportScreenBounds').mockImplementation(() => editor)
+		search('minimap')
+		await rendered.findByTestId('command-palette.item.toggle-minimap')
+		act(() => editor.updateInstanceState({ isFocusMode: true }))
+		search('minimap')
+		await rendered.findByTestId('command-palette.input')
+		expect(rendered.queryByTestId('command-palette.item.toggle-minimap')).toBeNull()
 	})
 
 	it('renames, duplicates and deletes the current page, but not the only one', async () => {
@@ -290,9 +356,9 @@ describe('default command palette content', () => {
 		fireEvent.click(await rendered.findByTestId('command-palette.item.style-opacity-0.5'))
 		expect(editor.getShape(createShapeId('box'))!.opacity).toBe(0.5)
 		await waitFor(() =>
-			within(rendered.getByTestId('command-palette.item.style-opacity-0.5')).getByLabelText(
-				'Checked'
-			)
+			expect(
+				rendered.getByTestId('command-palette.item.style-opacity-0.5').getAttribute('aria-checked')
+			).toBe('true')
 		)
 	})
 
@@ -322,6 +388,51 @@ describe('default command palette content', () => {
 		const input = await rendered.findByTestId('command-palette.input')
 		fireEvent.change(input, { target: { value: 'color red' } })
 		await rendered.findByTestId('command-palette.item.style-color-red')
+	})
+
+	it('opens on a shape with the geo style in an editor without the geo shape', async () => {
+		class GeoLikeShapeUtil extends BaseBoxShapeUtil<any> {
+			static override type = 'geo-like'
+			static override props = { w: T.number, h: T.number, geo: GeoShapeGeoStyle }
+			getDefaultProps() {
+				return { w: 100, h: 100, geo: 'rectangle' }
+			}
+			component() {
+				return null
+			}
+			getIndicatorPath() {
+				return undefined
+			}
+		}
+		let editor!: Editor
+		const rendered = render(
+			<TldrawEditor
+				shapeUtils={[GeoLikeShapeUtil]}
+				tools={defaultTools}
+				initialState="select"
+				onMount={(e) => {
+					editor = e
+				}}
+			>
+				{/* The style panel's own geo picker needs the geo util too. */}
+				<TldrawUi components={{ StylePanel: null }} />
+			</TldrawEditor>
+		)
+		await waitFor(() => expect(editor).toBeDefined())
+		act(() => {
+			const id = createShapeId('geo-like')
+			editor.createShapes([{ id, type: 'geo-like' as any, x: 0, y: 0 }])
+			editor.select(id)
+			editor.updateInstanceState({ isFocused: true })
+			editor
+				.getContainerDocument()
+				.body.dispatchEvent(
+					new KeyboardEvent('keydown', { bubbles: true, key: 'k', code: 'KeyK', metaKey: true })
+				)
+		})
+		const input = await rendered.findByTestId('command-palette.input')
+		fireEvent.change(input, { target: { value: 'opacity 50' } })
+		await rendered.findByTestId('command-palette.item.style-opacity-0.5')
 	})
 
 	it('offers the image toolbar commands while one image is selected', async () => {
