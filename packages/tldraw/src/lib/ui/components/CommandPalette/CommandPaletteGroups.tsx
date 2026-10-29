@@ -1,6 +1,7 @@
 import { defineMessages, PageRecordType, useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../../context/actions'
 import { useUiEvents } from '../../context/events'
+import { useCommentingEnabled } from '../../hooks/useCommentingEnabled'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTools } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -229,8 +230,8 @@ export function CommandPaletteExportGroup() {
 const EXCLUDED_TOOLS = new Set(['asset', 'embed'])
 
 /**
- * One item per tool, except the current one and the media and embed tools, which the edit
- * group covers.
+ * One item per tool, except the current one, the media and embed tools, which the edit group
+ * covers, and the comment tool while commenting is off.
  *
  * @public @react
  */
@@ -238,10 +239,16 @@ export function CommandPaletteToolsGroup() {
 	const editor = useEditor()
 	const tools = useTools()
 	const currentToolId = useValue('current tool', () => editor.getCurrentToolId(), [editor])
+	const commentingEnabled = useCommentingEnabled()
 	return (
 		<TldrawUiMenuGroup id="command-palette-tools" label={messages.tools.id}>
 			{Object.values(tools)
-				.filter((tool) => !EXCLUDED_TOOLS.has(tool.id) && tool.id !== currentToolId)
+				.filter(
+					(tool) =>
+						!EXCLUDED_TOOLS.has(tool.id) &&
+						tool.id !== currentToolId &&
+						(tool.id !== 'comment' || commentingEnabled)
+				)
 				.map((tool) => (
 					<TldrawUiMenuToolItem key={tool.id} toolId={tool.id} />
 				))}

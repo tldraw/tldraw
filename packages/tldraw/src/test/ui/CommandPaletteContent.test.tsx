@@ -35,7 +35,13 @@ vi.mock('../../lib/ui/hooks/useTranslation/useTranslation', async () =>
 	vi.importActual('../../lib/ui/hooks/useTranslation/useTranslation')
 )
 
+const commentingEnabled = vi.hoisted(() => ({ value: true }))
+vi.mock('../../lib/ui/hooks/useCommentingEnabled', () => ({
+	useCommentingEnabled: () => commentingEnabled.value,
+}))
+
 afterEach(() => {
+	commentingEnabled.value = true
 	deleteFromLocalStorage('tldraw-command-palette-recents')
 	deleteFromLocalStorage('minimap')
 })
@@ -161,6 +167,23 @@ describe('default command palette content', () => {
 			{ waitForPatterns: false }
 		)
 		await rendered.findByTestId('command-palette.item.rectangle')
+	})
+
+	it('lists the comment tool only while commenting is enabled', async () => {
+		const overrides: TLUiOverrides = {
+			tools(_editor, tools) {
+				tools.comment = { id: 'comment', icon: 'comment', label: 'tool.comment', onSelect() {} }
+				return tools
+			},
+		}
+		const enabled = await renderPalette({ overrides, content: <CommandPaletteToolsGroup /> })
+		await enabled.rendered.findByTestId('command-palette.item.comment')
+		enabled.rendered.unmount()
+
+		commentingEnabled.value = false
+		const disabled = await renderPalette({ overrides, content: <CommandPaletteToolsGroup /> })
+		await disabled.rendered.findByTestId('command-palette.item.rectangle')
+		expect(disabled.rendered.queryByTestId('command-palette.item.comment')).toBeNull()
 	})
 
 	it('hides the pages group when the editor allows one page', async () => {
