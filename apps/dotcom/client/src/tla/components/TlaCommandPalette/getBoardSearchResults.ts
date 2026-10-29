@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/react'
 import { TLUiCommandPaletteSearchResult, Editor, TLUiToolsContextType } from 'tldraw'
 
 export const MAX_BOARD_RESULTS = 50
@@ -18,11 +19,25 @@ export function getBoardSearchResults(
 		...pages.filter((page) => page.id !== currentPageId),
 	]
 	const results: TLUiCommandPaletteSearchResult[] = []
+	let reported = false
 	for (const page of ordered) {
 		for (const id of editor.getPageShapeIds(page.id)) {
 			const shape = editor.getShape(id)
 			if (!shape) continue
-			const text = editor.getShapeUtil(shape).getText(shape)?.replace(/\s+/g, ' ').trim()
+			let text: string | undefined
+			try {
+				text = editor.getShapeUtil(shape).getText(shape)?.replace(/\s+/g, ' ').trim()
+			} catch (error) {
+				// Malformed rich text throws in getText; one bad shape must not blank the whole search.
+				if (!reported) {
+					reported = true
+					captureException(error, {
+						tags: { operation: 'board-search-get-text' },
+						extra: { shapeId: shape.id, shapeType: shape.type },
+					})
+				}
+				continue
+			}
 			const index = text?.toLowerCase().indexOf(needle) ?? -1
 			if (!text || index === -1) continue
 			results.push({

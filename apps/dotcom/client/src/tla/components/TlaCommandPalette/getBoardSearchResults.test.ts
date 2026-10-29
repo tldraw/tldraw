@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/react'
 import {
 	Editor,
 	TLShapeId,
@@ -10,8 +11,10 @@ import {
 	tipTapDefaultExtensions,
 	toRichText,
 } from 'tldraw'
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MAX_BOARD_RESULTS, getBoardSearchResults } from './getBoardSearchResults'
+
+vi.mock('@sentry/react', () => ({ captureException: vi.fn() }))
 
 const tools = {
 	text: { icon: 'tool-text' },
@@ -47,6 +50,7 @@ beforeEach(() => {
 
 afterEach(() => {
 	editor.dispose()
+	vi.mocked(captureException).mockClear()
 })
 
 function createText(id: TLShapeId, text: string, x = 0) {
@@ -144,6 +148,26 @@ describe('getBoardSearchResults', () => {
 			label: 'match current',
 			detail: undefined,
 			icon: 'tool-text',
+		})
+	})
+
+	it('skips shapes whose text throws and reports it once', () => {
+		const goodId = createShapeId('good')
+		const error = new Error('Empty text nodes are not allowed')
+		vi.spyOn(editor.getShapeUtil('geo'), 'getText').mockImplementation(() => {
+			throw error
+		})
+		editor.createShape({ id: createShapeId('bad-1'), type: 'geo', props: { geo: 'rectangle' } })
+		editor.createShape({ id: createShapeId('bad-2'), type: 'geo', props: { geo: 'rectangle' } })
+		createText(goodId, 'still found', 300)
+
+		expect(search('found')).toEqual([
+			{ id: goodId, label: 'still found', detail: undefined, icon: 'tool-text' },
+		])
+		expect(captureException).toHaveBeenCalledTimes(1)
+		expect(captureException).toHaveBeenCalledWith(error, {
+			tags: { operation: 'board-search-get-text' },
+			extra: { shapeId: createShapeId('bad-1'), shapeType: 'geo' },
 		})
 	})
 
