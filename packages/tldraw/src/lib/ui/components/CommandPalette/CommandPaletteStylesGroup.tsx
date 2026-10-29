@@ -101,7 +101,7 @@ function useCommandPaletteStylePickers(): StylePicker[] | null {
 
 	// The geo util is absent from editors without geo shapes, where getShapeUtil throws.
 	const geoTypes =
-		styles.get(GeoShapeGeoStyle) === undefined
+		styles.get(GeoShapeGeoStyle) === undefined || !editor.hasShapeUtil('geo')
 			? []
 			: Object.keys({
 					...defaultGeoTypeDefinitions,

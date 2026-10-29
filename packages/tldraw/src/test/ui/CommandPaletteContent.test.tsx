@@ -1,11 +1,14 @@
 import { act, fireEvent, render, waitFor, within } from '@testing-library/react'
 import {
 	atom,
+	BaseBoxShapeUtil,
 	Box,
 	createShapeId,
 	createTLStore,
 	deleteFromLocalStorage,
 	Editor,
+	GeoShapeGeoStyle,
+	T,
 	TldrawEditor,
 	TLImageShape,
 } from '@tldraw/editor'
@@ -385,6 +388,51 @@ describe('default command palette content', () => {
 		const input = await rendered.findByTestId('command-palette.input')
 		fireEvent.change(input, { target: { value: 'color red' } })
 		await rendered.findByTestId('command-palette.item.style-color-red')
+	})
+
+	it('opens on a shape with the geo style in an editor without the geo shape', async () => {
+		class GeoLikeShapeUtil extends BaseBoxShapeUtil<any> {
+			static override type = 'geo-like'
+			static override props = { w: T.number, h: T.number, geo: GeoShapeGeoStyle }
+			getDefaultProps() {
+				return { w: 100, h: 100, geo: 'rectangle' }
+			}
+			component() {
+				return null
+			}
+			getIndicatorPath() {
+				return undefined
+			}
+		}
+		let editor!: Editor
+		const rendered = render(
+			<TldrawEditor
+				shapeUtils={[GeoLikeShapeUtil]}
+				tools={defaultTools}
+				initialState="select"
+				onMount={(e) => {
+					editor = e
+				}}
+			>
+				{/* The style panel's own geo picker needs the geo util too. */}
+				<TldrawUi components={{ StylePanel: null }} />
+			</TldrawEditor>
+		)
+		await waitFor(() => expect(editor).toBeDefined())
+		act(() => {
+			const id = createShapeId('geo-like')
+			editor.createShapes([{ id, type: 'geo-like' as any, x: 0, y: 0 }])
+			editor.select(id)
+			editor.updateInstanceState({ isFocused: true })
+			editor
+				.getContainerDocument()
+				.body.dispatchEvent(
+					new KeyboardEvent('keydown', { bubbles: true, key: 'k', code: 'KeyK', metaKey: true })
+				)
+		})
+		const input = await rendered.findByTestId('command-palette.input')
+		fireEvent.change(input, { target: { value: 'opacity 50' } })
+		await rendered.findByTestId('command-palette.item.style-opacity-0.5')
 	})
 
 	it('offers the image toolbar commands while one image is selected', async () => {
