@@ -1,6 +1,6 @@
 import { act, fireEvent, render, waitFor, within } from '@testing-library/react'
 import { deleteFromLocalStorage, Editor, useValue } from '@tldraw/editor'
-import { ReactNode, StrictMode, useState } from 'react'
+import { ReactNode, StrictMode, useEffect, useState } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import {
@@ -835,6 +835,13 @@ describe('CommandPaletteShell without an editor', () => {
 		const onSubmit = vi.fn()
 		function App() {
 			const [isOpen, setIsOpen] = useState(false)
+			useEffect(() => {
+				const onKeyDown = (e: KeyboardEvent) => {
+					if (e.metaKey && e.key === 'k') setIsOpen((open) => !open)
+				}
+				window.addEventListener('keydown', onKeyDown)
+				return () => window.removeEventListener('keydown', onKeyDown)
+			}, [])
 			return (
 				<TldrawUiContextProvider>
 					<button data-testid="opener" onClick={() => setIsOpen(true)}>
@@ -904,6 +911,15 @@ describe('CommandPaletteShell without an editor', () => {
 		press(input, 'Escape')
 		expect(onClose).toHaveBeenCalledTimes(1)
 		expect(onSelect).not.toHaveBeenCalled()
+		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
+		expect(document.activeElement).toBe(opener)
+	})
+
+	it("closes on Cmd+K without the app's own Cmd+K reopening it", async () => {
+		const { rendered, open, onClose } = renderApp()
+		const { opener, input } = await open()
+		press(input, 'k', { metaKey: true })
+		expect(onClose).toHaveBeenCalledTimes(1)
 		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
 		expect(document.activeElement).toBe(opener)
 	})
