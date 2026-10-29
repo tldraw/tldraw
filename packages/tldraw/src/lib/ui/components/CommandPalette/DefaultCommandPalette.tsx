@@ -1,19 +1,14 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { ComponentType, ReactNode, memo, useCallback, useEffect } from 'react'
 import { COMMAND_PALETTE_MENU_ID } from './commandPaletteMenuId'
-import {
-	CommandPaletteShell,
-	TLUiCommandPalettePosition,
-	TLUiCommandPaletteSuggestions,
-} from './CommandPaletteShell'
+import { CommandPaletteShell, TLUiCommandPaletteShellProps } from './CommandPaletteShell'
 import { DefaultCommandPaletteContent } from './DefaultCommandPaletteContent'
 
 /** @public */
-export interface TLUiCommandPaletteProps {
-	/** Where the palette opens. Defaults to `'center'`. */
-	position?: TLUiCommandPalettePosition
-	/** What shows above the list while browsing. Defaults to `'recent'`, recently run commands. */
-	suggestions?: TLUiCommandPaletteSuggestions
+export interface TLUiCommandPaletteProps extends Pick<
+	TLUiCommandPaletteShellProps,
+	'position' | 'suggestions'
+> {
 	/** Closes the palette. The `CommandPalette` slot is mounted only while the palette is open. */
 	onClose?(): void
 	/** Replaces {@link DefaultCommandPaletteContent}. */
