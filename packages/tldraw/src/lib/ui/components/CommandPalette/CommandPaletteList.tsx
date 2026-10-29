@@ -4,9 +4,15 @@ import { useDirection, useTranslation } from '../../hooks/useTranslation/useTran
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 import { CommandPaletteSection, SelectableRow } from './commandPaletteRows'
+import { CommandPaletteEntry } from './CommandPaletteStore'
 
 const getMark = (row: SelectableRow) =>
-	row.type === 'item' ? (row.entry.checked ?? row.entry.isSelected) : undefined
+	row.type === 'item' ? getCommandPaletteEntryMark(row.entry) : undefined
+
+/** @internal */
+export function getCommandPaletteEntryMark(entry: CommandPaletteEntry) {
+	return entry.checked ?? entry.isSelected
+}
 
 const messages = defineMessages({
 	checked: { id: 'ui.checked', defaultMessage: 'Checked' },
@@ -22,7 +28,7 @@ export function getCommandPaletteOptionId(listboxId: string, index: number) {
 export function CommandPaletteList({
 	listboxId,
 	sections,
-	reserveCheckSlot,
+	hasCheckSlot,
 	indexByKey,
 	activeIndex,
 	rScrollToActive,
@@ -31,7 +37,7 @@ export function CommandPaletteList({
 }: {
 	listboxId: string
 	sections: CommandPaletteSection[]
-	reserveCheckSlot: boolean
+	hasCheckSlot: boolean
 	indexByKey: ReadonlyMap<string, number>
 	activeIndex: number
 	rScrollToActive: RefObject<boolean>
@@ -39,9 +45,6 @@ export function CommandPaletteList({
 	onRun(row: SelectableRow): void
 }) {
 	return sections.map((section, sectionIndex) => {
-		// Only sections with a checkable row reserve the check slot, so their labels line up. Search
-		// always reserves it, or labels would shift as hits come and go with each keystroke.
-		const hasCheckSlot = reserveCheckSlot || section.rows.some((row) => getMark(row) !== undefined)
 		const options = section.rows.map((row) => {
 			const index = indexByKey.get(row.key)!
 			return (

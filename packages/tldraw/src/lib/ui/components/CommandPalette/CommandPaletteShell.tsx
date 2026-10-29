@@ -15,7 +15,11 @@ import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 import { CommandPaletteStoreProvider } from './CommandPaletteContext'
 import { handleCommandPaletteKeyDown } from './commandPaletteKeyboard'
-import { CommandPaletteList, getCommandPaletteOptionId } from './CommandPaletteList'
+import {
+	CommandPaletteList,
+	getCommandPaletteEntryMark,
+	getCommandPaletteOptionId,
+} from './CommandPaletteList'
 import { addCommandPaletteRecent, getCommandPaletteRecents } from './commandPaletteRecents'
 import {
 	CommandPaletteRow,
@@ -135,6 +139,14 @@ export function CommandPaletteShell({
 	}, [store, activeItemId])
 
 	const isBrowsing = !query && !submenu && !prompt
+	// Every row keeps a check slot so labels line up, except in an opened submenu with nothing to
+	// check, like a list of pages.
+	const hasCheckSlot =
+		!submenu ||
+		entries.some(
+			(entry) =>
+				entry.submenu?.key === submenu.key && getCommandPaletteEntryMark(entry) !== undefined
+		)
 	const { anchor, canScrollDown, onListScroll } = useCommandPaletteLayout({
 		editor,
 		position,
@@ -371,7 +383,7 @@ export function CommandPaletteShell({
 						<CommandPaletteList
 							listboxId={listboxId}
 							sections={sections}
-							reserveCheckSlot={!!query}
+							hasCheckSlot={hasCheckSlot}
 							indexByKey={indexByKey}
 							activeIndex={clampedIndex}
 							rScrollToActive={rScrollToActive}

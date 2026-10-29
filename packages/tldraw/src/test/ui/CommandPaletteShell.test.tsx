@@ -553,12 +553,11 @@ describe('CommandPaletteShell', () => {
 		expect(onSubmit).not.toHaveBeenCalled()
 	})
 
-	it('shows no item icons, and reserves a check slot only in sections with a checkable row', async () => {
-		const { rendered } = await renderShell(
+	it('shows no item icons, and gives every row a check slot', async () => {
+		const { rendered, input } = await renderShell(
 			<>
 				<TldrawUiMenuGroup id="edit" label="Edit">
 					<TldrawUiMenuItem id="alpha" label="Alpha" iconLeft="plus" onSelect={vi.fn()} />
-					{item('beta', 'Beta')}
 					<TldrawUiMenuCheckboxItem id="grid" label="Grid" checked readonlyOk onSelect={vi.fn()} />
 					<TldrawUiMenuSubmenu id="more" label="More">
 						{['a', 'b'].map((id) => item(id, `Item ${id}`))}
@@ -572,36 +571,34 @@ describe('CommandPaletteShell', () => {
 		await rendered.findByText('Edit')
 		const iconCount = (testId: string) =>
 			rendered.getByTestId(testId).querySelectorAll('.tlui-icon').length
-		for (const id of ['alpha', 'beta', 'grid'])
+		for (const id of ['alpha', 'grid', 'gamma'])
 			expect(iconCount(`command-palette.item.${id}`)).toBe(1)
 		// The check slot plus the chevron.
 		expect(iconCount('command-palette.submenu.More')).toBe(2)
-		expect(iconCount('command-palette.item.gamma')).toBe(0)
+		type(input, 'gam')
+		await waitFor(() => expect(rendered.queryByTestId('command-palette.item.grid')).toBeNull())
+		expect(iconCount('command-palette.item.gamma')).toBe(1)
 	})
 
-	it('keeps the check slot in search, so labels do not shift as hits change', async () => {
+	it('gives an opened submenu a check slot only when it has something to check', async () => {
 		const { rendered, input } = await renderShell(
 			<>
-				{item('rectangle', 'Rectangle')}
-				<TldrawUiMenuCheckboxItem
-					id="reduce-motion"
-					label="Reduce motion"
-					checked={false}
-					readonlyOk
-					onSelect={vi.fn()}
-				/>
+				<TldrawUiMenuSubmenu id="pages" label="Pages">
+					{['a', 'b'].map((id) => item(id, `Page ${id}`))}
+				</TldrawUiMenuSubmenu>
+				<TldrawUiMenuSubmenu id="language" label="Language">
+					<TldrawUiMenuCheckboxItem id="en" label="English" checked readonlyOk onSelect={vi.fn()} />
+					{item('de', 'Deutsch')}
+				</TldrawUiMenuSubmenu>
 			</>
 		)
-		const iconCount = () =>
-			rendered.getByTestId('command-palette.item.rectangle').querySelectorAll('.tlui-icon').length
-		type(input, 're')
-		await rendered.findByTestId('command-palette.item.reduce-motion')
-		expect(iconCount()).toBe(1)
-		type(input, 'rec')
-		await waitFor(() =>
-			expect(rendered.queryByTestId('command-palette.item.reduce-motion')).toBeNull()
-		)
-		expect(iconCount()).toBe(1)
+		const iconCount = (testId: string) =>
+			rendered.getByTestId(testId).querySelectorAll('.tlui-icon').length
+		fireEvent.click(await rendered.findByTestId('command-palette.submenu.Pages'))
+		expect(iconCount('command-palette.item.a')).toBe(0)
+		press(input, 'Escape')
+		fireEvent.click(await rendered.findByTestId('command-palette.submenu.Language'))
+		expect(iconCount('command-palette.item.de')).toBe(1)
 	})
 
 	it('ignores Enter while an IME composition is in progress', async () => {
