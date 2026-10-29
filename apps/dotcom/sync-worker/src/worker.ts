@@ -70,6 +70,7 @@ import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, getZeroAuth, getMcpTokenAuth } from './utils/tla/getAuth'
 import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
 import { createMcpMutators } from './utils/tla/mcpMutators'
+import { getWhatsNew } from './whatsNew'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -211,6 +212,7 @@ const router = createRouter<Environment>()
 	})
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
+	.get('/app/whats-new', getWhatsNew)
 	// The MCP endpoint and its discovery metadata are registered at the top of this router, ahead of
 	// the origin check. See there.
 	// The board's rendered social preview image, referenced by the og:image tags getSocialPreview
