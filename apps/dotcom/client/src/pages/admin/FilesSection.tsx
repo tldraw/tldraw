@@ -1,5 +1,5 @@
-import { AdminFileAssetsResponseBody } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect, useState } from 'react'
+import { AdminFileAssetsResponseBody, AdminFileResponseBody } from '@tldraw/dotcom-shared'
+import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
@@ -76,6 +76,26 @@ function InspectFile() {
 }
 
 function FilePage({ fileId }: { fileId: string }) {
+	// null while loading; 'none' for a legacy room, which has no file row
+	const [file, setFile] = useState(null as AdminFileResponseBody | 'none' | null)
+	const [error, setError] = useState(null as string | null)
+
+	useEffect(() => {
+		fetch(`/api/app/admin/file/${encodeURIComponent(fileId)}`)
+			.then(async (res) => {
+				if (res.status === 404) return setFile('none')
+				if (!res.ok) return setError(await getResponseError(res))
+				setFile((await res.json()) as AdminFileResponseBody)
+			})
+			.catch((err) => setError(err instanceof Error ? err.message : 'Failed to load file'))
+	}, [fileId])
+
+	const setIsDeleted = useCallback(
+		(isDeleted: boolean) =>
+			setFile((file) => (file && file !== 'none' ? { ...file, isDeleted } : file)),
+		[]
+	)
+
 	return (
 		<>
 			<section className={styles.adminSection}>
@@ -83,6 +103,10 @@ function FilePage({ fileId }: { fileId: string }) {
 				<h3 className={styles.sectionTitle}>
 					File <code>{fileId}</code>
 				</h3>
+				{error && <div className={styles.errorMessage}>{error}</div>}
+				{file === null && !error && <p>Loading…</p>}
+				{file === 'none' && <p>No file row. This is a legacy room.</p>}
+				{file && file !== 'none' && <FileSummary file={file} />}
 			</section>
 			<section className={styles.adminSection}>
 				<h3 className={styles.sectionTitle}>Room</h3>
@@ -105,7 +129,7 @@ function FilePage({ fileId }: { fileId: string }) {
 			</section>
 			<section className={styles.adminSection}>
 				<h3 className={styles.sectionTitle}>Delete and restore</h3>
-				<SoftDeleteFile fileId={fileId} />
+				<SoftDeleteFile fileId={fileId} file={file} onDeletedChange={setIsDeleted} />
 			</section>
 			<section className={styles.adminSection}>
 				<h3 className={styles.sectionTitle}>Danger zone</h3>
@@ -474,23 +498,66 @@ function DownloadTldrFile({ fileId, legacy }: { fileId: string; legacy: boolean 
 	)
 }
 
-function SoftDeleteFile({ fileId }: { fileId: string }) {
-	// null while loading; 'none' for a legacy room, which has no file row
-	const [status, setStatus] = useState(null as 'live' | 'deleted' | 'none' | null)
+function formatTime(value: number) {
+	return value ? new Date(value).toLocaleString() : '—'
+}
+
+function FileSummary({ file }: { file: AdminFileResponseBody }) {
+	const sharing = file.shared ? `Link can ${file.sharedLinkType}` : 'Not shared'
+	const publishing = file.published
+		? `Published /p/${file.publishedSlug} (last ${formatTime(file.lastPublished)})`
+		: 'Not published'
+	const fields: Array<[string, ReactNode]> = [
+		['Name', file.name || '(untitled)'],
+		['Status', file.isDeleted ? 'Soft-deleted' : 'Live'],
+		[
+			'Owners',
+			file.owners.length
+				? file.owners.map((owner) => (
+						<div key={owner.id}>
+							{owner.name} &lt;{owner.email}&gt; <code>{owner.id}</code>
+						</div>
+					))
+				: 'none',
+		],
+		[
+			'Workspace',
+			file.workspace
+				? `${file.workspace.name} (${file.workspace.id})${file.workspace.isDeleted ? ', deleted' : ''}`
+				: 'none',
+		],
+		['Created', formatTime(file.createdAt)],
+		['Last updated', formatTime(file.updatedAt)],
+		['Sharing', sharing],
+		['Publishing', publishing],
+		['Empty', file.isEmpty ? 'Yes' : 'No'],
+		['Created from', file.createSource ?? '—'],
+	]
+	return (
+		<div className={styles.summaryGrid}>
+			{fields.map(([label, value]) => (
+				<div key={label} className={styles.summaryItem}>
+					<span className={styles.fieldLabel}>{label}</span>
+					<span className={styles.fieldValue}>{value}</span>
+				</div>
+			))}
+		</div>
+	)
+}
+
+function SoftDeleteFile({
+	fileId,
+	file,
+	onDeletedChange,
+}: {
+	fileId: string
+	file: AdminFileResponseBody | 'none' | null
+	onDeletedChange(isDeleted: boolean): void
+}) {
+	const status = file === null || file === 'none' ? file : file.isDeleted ? 'deleted' : 'live'
 	const [error, setError] = useState(null as string | null)
 	const [successMessage, setSuccessMessage] = useTransientMessage()
 	const [isBusy, setIsBusy] = useState(false)
-
-	useEffect(() => {
-		fetch(`/api/app/admin/file/${encodeURIComponent(fileId)}`)
-			.then(async (res) => {
-				if (res.status === 404) return setStatus('none')
-				if (!res.ok) return setError(await getResponseError(res))
-				const file = (await res.json()) as { isDeleted: boolean }
-				setStatus(file.isDeleted ? 'deleted' : 'live')
-			})
-			.catch((err) => setError(err instanceof Error ? err.message : 'Failed to load file'))
-	}, [fileId])
 
 	const run = useCallback(async () => {
 		const action = status === 'deleted' ? 'undelete_file' : 'soft_delete_file'
@@ -510,12 +577,12 @@ function SoftDeleteFile({ fileId }: { fileId: string }) {
 				setError(await getResponseError(res))
 				return
 			}
-			setStatus(action === 'soft_delete_file' ? 'deleted' : 'live')
+			onDeletedChange(action === 'soft_delete_file')
 			setSuccessMessage(action === 'soft_delete_file' ? 'File soft-deleted' : 'File undeleted')
 		} finally {
 			setIsBusy(false)
 		}
-	}, [fileId, status, setSuccessMessage])
+	}, [fileId, status, setSuccessMessage, onDeletedChange])
 
 	return (
 		<div className={styles.fileOperation}>

@@ -1,5 +1,6 @@
 import {
 	AdminFileAssetsResponseBody,
+	AdminFileResponseBody,
 	AdminFileStatsResponseBody,
 	AdminOutboxRowsResponseBody,
 	AdminOutboxStatsResponseBody,
@@ -527,11 +528,48 @@ export const adminRoutes = createRouter<Environment>()
 		const pg = createPostgresConnectionPool(env, '/app/admin/file')
 		const file = await pg
 			.selectFrom('file')
-			.select(['id', 'isDeleted'])
+			.select([
+				'id',
+				'name',
+				'owningGroupId',
+				'createdAt',
+				'updatedAt',
+				'isDeleted',
+				'isEmpty',
+				'shared',
+				'sharedLinkType',
+				'published',
+				'publishedSlug',
+				'lastPublished',
+				'createSource',
+			])
 			.where('id', '=', fileId)
 			.executeTakeFirst()
 		if (!file) return new Response('File not found', { status: 404 })
-		return json(file)
+		const { owningGroupId, ...rest } = file
+		const [workspace, owners] = owningGroupId
+			? await Promise.all([
+					pg
+						.selectFrom('group')
+						.select(['id', 'name', 'isDeleted'])
+						.where('id', '=', owningGroupId)
+						.executeTakeFirst(),
+					pg
+						.selectFrom('group_user')
+						.innerJoin('user', 'user.id', 'group_user.userId')
+						.select(['user.id', 'user.name', 'user.email'])
+						.where('group_user.groupId', '=', owningGroupId)
+						.where('group_user.role', '=', 'owner')
+						.execute(),
+				])
+			: [undefined, []]
+		const body: AdminFileResponseBody = {
+			...rest,
+			createSource: rest.createSource ?? null,
+			workspace: workspace ?? null,
+			owners,
+		}
+		return json(body)
 	})
 	// The same soft delete an owner's delete does: cleanup_deleted_file_trigger drops the file's
 	// file_state and group_file rows, and the outbox trigger records the change for the room.

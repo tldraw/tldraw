@@ -450,6 +450,30 @@ export interface AdminFileAssetsResponseBody {
 }
 
 /**
+ * Response of the admin file endpoint: the file row's metadata and who owns it, so an admin can
+ * confirm they have the right file without opening it. Unlike the board-stats report, this names
+ * people, so keep it out of issues and support replies.
+ */
+export interface AdminFileResponseBody {
+	id: string
+	name: string
+	createdAt: number
+	updatedAt: number
+	isDeleted: boolean
+	isEmpty: boolean
+	shared: boolean
+	sharedLinkType: string
+	published: boolean
+	publishedSlug: string
+	lastPublished: number
+	createSource: string | null
+	/** null for a file with no owning workspace */
+	workspace: { id: string; name: string; isDeleted: boolean } | null
+	/** the owning workspace's owners */
+	owners: { id: string; name: string; email: string }[]
+}
+
+/**
  * Response of the admin board-stats endpoint: the shape of a board without its contents.
  *
  * Every field is a count, an enum tally, a size, or a timestamp. Nothing here is text a user typed,
