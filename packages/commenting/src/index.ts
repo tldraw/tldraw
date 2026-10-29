@@ -155,7 +155,6 @@ export {
 	type CommentNotificationReason,
 	isAtNotificationLevel,
 	latestForeignReactionAt,
-	mergeCommentFeeds,
 	mergeNotifications,
 	summarizeForeignReactors,
 } from './notifications/comment-notifications'
@@ -167,7 +166,6 @@ export {
 	startCommentNotifier,
 } from './notifications/notifier'
 export {
-	buildStoreCommentNotifications,
 	getStoreCommentNotifications,
 	type StoreCommentNotificationInput,
 	type StoreCommentNotificationsOptions,

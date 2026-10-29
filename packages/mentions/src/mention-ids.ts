@@ -1,9 +1,6 @@
 /**
- * Collects the member ids `@`-mentioned in a rich-text body. Mentions are the `mention` nodes
- * {@link createMentionExtension} writes into the body JSON — `{ type: 'mention', attrs: { id, label } }`
- * — where `attrs.id` is the mentioned member's id. Duplicate mentions of the same member collapse to
- * one id. Any non-conforming input yields no mentions, so callers can pass bodies held as any JSON
- * type.
+ * The member ids `@`-mentioned in a rich-text body (the `mention` nodes {@link createMentionExtension}
+ * writes), deduped. Non-conforming input yields none, so bodies typed as any JSON can be passed.
  * @internal
  */
 export function extractMentionIds(body: unknown): string[] {

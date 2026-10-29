@@ -244,7 +244,6 @@ function NotificationsPanel() {
 
 	const unreadCount = notifications.filter((n) => n.unread).length
 
-	// The newest thread you started, for Ada to reply into.
 	const replyTarget = useMemo(
 		() =>
 			threads
@@ -304,28 +303,39 @@ function NotificationsPanel() {
 				</p>
 			) : (
 				<ul className="comment-notifications__list">
-					{notifications.map(({ comment: { record: comment }, primaryReason, unread }) => (
-						<li key={comment.id}>
-							<button
-								className="comment-notifications__row"
-								data-unread={unread}
-								// [6]
-								onClick={() => revealThread(editor, comment.id)}
-							>
-								<Avatar author={resolveAuthor(comment.authorId)} />
-								<span className="comment-notifications__body">
-									<span className="comment-notifications__meta">
-										<b>{resolveAuthor(comment.authorId).name}</b> {REASON_LABEL[primaryReason]} ·{' '}
-										{formatRelativeTime(new Date(comment.createdAt).toISOString())}
-									</span>
-									<span className="comment-notifications__preview">
-										{richTextToPlaintext(comment.body, resolveName)}
-									</span>
-								</span>
-								{unread && <span className="comment-notifications__dot" />}
-							</button>
-						</li>
-					))}
+					{notifications.map(
+						({ comment: { record: comment, reactions }, primaryReason, timestamp, unread }) => {
+							// a reaction entry is about who reacted, and when, not the (your own) comment's author
+							const actorId =
+								primaryReason === 'reaction'
+									? ([...(reactions ?? [])]
+											.filter((r) => r.userId !== ME)
+											.sort((a, b) => b.createdAt - a.createdAt)[0]?.userId ?? comment.authorId)
+									: comment.authorId
+							return (
+								<li key={comment.id}>
+									<button
+										className="comment-notifications__row"
+										data-unread={unread}
+										// [6]
+										onClick={() => revealThread(editor, comment.id)}
+									>
+										<Avatar author={resolveAuthor(actorId)} />
+										<span className="comment-notifications__body">
+											<span className="comment-notifications__meta">
+												<b>{resolveAuthor(actorId).name}</b> {REASON_LABEL[primaryReason]} ·{' '}
+												{formatRelativeTime(new Date(timestamp).toISOString())}
+											</span>
+											<span className="comment-notifications__preview">
+												{richTextToPlaintext(comment.body, resolveName)}
+											</span>
+										</span>
+										{unread && <span className="comment-notifications__dot" />}
+									</button>
+								</li>
+							)
+						}
+					)}
 				</ul>
 			)}
 
@@ -443,8 +453,9 @@ why: it mentions you, it replies in a thread you started or joined, it's on a bo
 it's read inside one: `useValue` here, a `react` inside the notifier.
 
 These reasons only see the board that's open. A hosted app that wants a feed across every board
-resolves them server-side over its own rows, with the same rules: `categorizeCommentNotifications`
-takes any rows shaped like a comment joined with its thread and reactions.
+syncs its own rows and runs the same rules over them: `categorizeCommentNotifications` and
+`buildReactionNotifications` take any rows shaped like a comment joined with its thread and
+reactions.
 
 [3]
 `startCommentNotifier` turns the same feed into operating-system notifications. It only shows what's

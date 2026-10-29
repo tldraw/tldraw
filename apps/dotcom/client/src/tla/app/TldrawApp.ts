@@ -477,6 +477,14 @@ export class TldrawApp {
 			this.reactions$,
 			this.materializeQuery<QueryResultType<typeof queries.reactions>>(queries.reactions())
 		)
+		// Only one tab notifies, so a level changed in another tab has to reach it.
+		const onStorage = (e: StorageEvent) => {
+			if (e.key === DESKTOP_NOTIFICATIONS_KEY) {
+				this.desktopNotificationLevel$.set(readDesktopNotificationLevel())
+			}
+		}
+		window.addEventListener('storage', onStorage)
+		this.disposables.push(() => window.removeEventListener('storage', onStorage))
 		this.disposables.push(
 			startCommentNotifier<CommentNotificationInput>({
 				getNotifications: () => this.getCommentNotifications(),
@@ -496,10 +504,7 @@ export class TldrawApp {
 		)
 	}
 
-	/**
-	 * Comments and reactions surfaced as notifications, merged from the comment feeds and the
-	 * reactions feed, newest first.
-	 */
+	/** Comment and reaction notifications, newest first. */
 	getCommentNotifications(): CommentNotification<CommentNotificationInput>[] {
 		return mergeNotifications<CommentNotificationInput>(
 			categorizeCommentNotifications(this.getComments(), this.userId),

@@ -9,7 +9,6 @@ import { routes } from '../../../../routeDefs'
 export {
 	buildReactionNotifications,
 	latestForeignReactionAt,
-	mergeCommentFeeds,
 	mergeNotifications,
 	summarizeForeignReactors,
 	type CommentNotification,
@@ -17,10 +16,9 @@ export {
 } from '@tldraw/commenting'
 
 /**
- * The comment fields dotcom's notifications need: the SDK's input plus what the cross-file Zero
- * feed joins in for rendering and routing. Both feeds yield these: the merged comment feeds carry
- * other people's comments that concern the caller, `reactions` the caller's own that were reacted
- * to.
+ * The SDK's input plus the fields dotcom's Zero feeds join in for rendering and routing. Comment
+ * feeds carry others' comments that concern the caller; `reactions` carries the caller's own
+ * reacted-to comments.
  */
 export interface CommentNotificationInput extends BaseCommentNotificationInput {
 	authorName?: string | null
@@ -45,8 +43,24 @@ export function categorizeCommentNotifications<T extends CommentNotificationInpu
 	userId: string | undefined | null
 ): CommentNotification<T>[] {
 	return categorize(comments, userId, {
-		ownsBoard: (c) => !!userId && c.file?.owningGroupId === userId,
+		ownsBoard: (c) => c.file?.owningGroupId === userId,
 	})
+}
+
+/** Unions the per-reason Zero feeds: a comment matching several reasons arrives in each. */
+export function mergeCommentFeeds<T extends { id: string }>(
+	...feeds: readonly (readonly T[])[]
+): T[] {
+	const seen = new Set<string>()
+	const merged: T[] = []
+	for (const feed of feeds) {
+		for (const comment of feed) {
+			if (seen.has(comment.id)) continue
+			seen.add(comment.id)
+			merged.push(comment)
+		}
+	}
+	return merged
 }
 
 /** Deep link to a comment's file, anchored to its shape (when shape-anchored) so its popover opens. */

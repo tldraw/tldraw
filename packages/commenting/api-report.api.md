@@ -50,13 +50,6 @@ export { AvatarProps }
 // @internal
 export function buildReactionNotifications<T extends CommentNotificationInput>(comments: readonly T[], userId: null | string | undefined): CommentNotification<T>[];
 
-// @internal
-export function buildStoreCommentNotifications(records: {
-    comments: readonly TLComment[];
-    reactions: readonly TLCommentReaction[];
-    threads: readonly TLCommentThread[];
-}, userId: null | string | undefined, opts?: StoreCommentNotificationsOptions): CommentNotification<StoreCommentNotificationInput>[];
-
 // @public
 export function Byline({ author, date, edited }: BylineProps): JSX.Element;
 
@@ -577,11 +570,6 @@ export { MentionMember }
 export { MentionProps }
 
 export { MentionSuggestionOptions }
-
-// @internal
-export function mergeCommentFeeds<T extends {
-    id: string;
-}>(...feeds: readonly (readonly T[])[]): T[];
 
 // @internal
 export function mergeNotifications<T extends CommentNotificationInput>(...feeds: readonly CommentNotification<T>[][]): CommentNotification<T>[];

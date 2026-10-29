@@ -75,8 +75,7 @@ export interface CategorizeCommentNotificationsOptions<T extends CommentNotifica
  * The reply reason only applies to comments from strictly after the user joined the thread:
  * earlier ones are context they saw when joining, not notifications. The strict compare assumes
  * `createdAt` increases within a thread, so a new comment can never tie with the reader's join.
- * Post-join replies stay once responded to; read receipts, not membership, handle their unread
- * state.
+ * Post-join replies stay after the user responds; read receipts handle their unread state.
  * @internal
  */
 export function categorizeCommentNotifications<T extends CommentNotificationInput>(
@@ -142,7 +141,6 @@ export function summarizeForeignReactors(
 			byId.set(r.userId, { name: r.userName, newest: r.createdAt })
 	}
 	const ordered = [...byId.values()].sort((a, b) => b.newest - a.newest)
-	// typeof guard: rows from a source that doesn't carry names arrive without it
 	const names = ordered
 		.map((e) => e.name)
 		.filter((n): n is string => typeof n === 'string' && n !== '')
@@ -212,22 +210,6 @@ export function isAtNotificationLevel(
 		case 'mentions':
 			return notification.reasons.includes('mention')
 	}
-}
-
-/** Unions per-reason comment feeds: a comment matching several reasons arrives in each. @internal */
-export function mergeCommentFeeds<T extends { id: string }>(
-	...feeds: readonly (readonly T[])[]
-): T[] {
-	const seen = new Set<string>()
-	const merged: T[] = []
-	for (const feed of feeds) {
-		for (const comment of feed) {
-			if (seen.has(comment.id)) continue
-			seen.add(comment.id)
-			merged.push(comment)
-		}
-	}
-	return merged
 }
 
 /** Merges notification lists newest-first. @internal */

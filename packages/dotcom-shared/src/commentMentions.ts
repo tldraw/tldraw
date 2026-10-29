@@ -4,9 +4,10 @@
  * `attrs.id` is the mentioned member's user id. Duplicate mentions of the same member collapse to
  * one id.
  *
- * Shared between the sync-worker (which extracts mention rows into the `comment_mention` table
- * when draining comment records to Postgres, so the notifications query can filter "comments that
- * mention me" server-side) and the client (which labels notification rows). The body is typed
+ * Used by the sync-worker, which extracts mention rows into the `comment_mention` table when
+ * draining comment records to Postgres, so the notifications query can filter "comments that
+ * mention me" server-side. The client uses the same function from `@tldraw/mentions`, which the
+ * worker can't import: that package pulls in React and TipTap. The body is typed
  * `unknown` because callers hold it as different JSON types (TLRichText, ReadonlyJSONValue, raw
  * Postgres JSONB); any non-conforming input just yields no mentions.
  */

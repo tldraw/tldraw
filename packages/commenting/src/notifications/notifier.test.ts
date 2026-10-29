@@ -72,8 +72,8 @@ describe('startCommentNotifier', () => {
 
 	it('shows a reaction again when a newer one re-dates the entry', () => {
 		const { feed, shownIds } = setup()
-		feed.set([entry('a', 1001)])
-		feed.set([entry('a', 1005)])
+		feed.set([entry('a', 1001, true, ['reaction'])])
+		feed.set([entry('a', 1005, true, ['reaction'])])
 		expect(shownIds()).toEqual(['a', 'a'])
 	})
 

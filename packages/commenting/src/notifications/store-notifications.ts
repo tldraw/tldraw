@@ -33,8 +33,6 @@ export interface StoreCommentNotificationsOptions {
  * The comment records that concern `userId`, as notifications, newest first. Pure over the
  * records so it can be tested without an editor; {@link getStoreCommentNotifications} reads them
  * from a store.
- *
- * Store records carry no read receipts; pass the host's `isCommentUnread` for those.
  * @internal
  */
 export function buildStoreCommentNotifications(

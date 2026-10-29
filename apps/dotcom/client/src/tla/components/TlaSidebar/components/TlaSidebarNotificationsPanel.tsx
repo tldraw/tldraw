@@ -219,11 +219,7 @@ function NotificationsOverflowMenu({
 	)
 }
 
-/**
- * Comments and reactions surfaced as notifications, merged from the comment feeds and the
- * `reactions` synced query and sorted by timestamp. {@link categorizeCommentNotifications} and
- * {@link buildReactionNotifications} do the per-feed shaping. Shared by trigger button and panel.
- */
+/** The app's comment notifications and their unread count, shared by the trigger button and the panel. */
 export function useCommentNotifications() {
 	const app = useMaybeApp()
 	return useValue(
