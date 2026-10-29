@@ -237,6 +237,7 @@ function TlaCurrentFileGroup() {
 				id="tla-new-file"
 				label={messages.newFile.id}
 				placeholder={messages.fileNamePlaceholder.id}
+				readonlyOk
 				onSubmit={(name) => createFile({ name, source: 'command-palette' })}
 			/>
 			{fileId && hasFile && (
@@ -244,7 +245,6 @@ function TlaCurrentFileGroup() {
 					source="command-palette"
 					fileId={fileId}
 					workspaceId={activeWorkspaceId}
-					idPrefix="file-"
 					menuType="command-palette"
 				/>
 			)}

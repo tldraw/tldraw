@@ -1,17 +1,19 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { ComponentType, ReactNode, memo, useCallback, useEffect } from 'react'
 import { COMMAND_PALETTE_MENU_ID } from './commandPaletteMenuId'
-import { CommandPaletteShell, TLUiCommandPalettePosition } from './CommandPaletteShell'
+import {
+	CommandPaletteShell,
+	TLUiCommandPalettePosition,
+	TLUiCommandPaletteSuggestions,
+} from './CommandPaletteShell'
 import { DefaultCommandPaletteContent } from './DefaultCommandPaletteContent'
 
-/**
- * Props for the `CommandPalette` slot.
- *
- * @public
- */
+/** @public */
 export interface TLUiCommandPaletteProps {
-	/** Where the palette opens. Defaults to `'bottom'`, just above the toolbar. */
+	/** Where the palette opens. Defaults to `'bottom'`, just above a horizontal toolbar. */
 	position?: TLUiCommandPalettePosition
+	/** What shows above the list while browsing. Defaults to `'recent'`, recently run commands. */
+	suggestions?: TLUiCommandPaletteSuggestions
 	/** Closes the palette. The `CommandPalette` slot is mounted only while the palette is open. */
 	onClose?(): void
 	/** Replaces {@link DefaultCommandPaletteContent}. */
@@ -30,27 +32,29 @@ function useCloseCommandPalette() {
  */
 export const DefaultCommandPalette = memo(function DefaultCommandPalette({
 	position,
+	suggestions,
 	onClose,
 	children,
 }: TLUiCommandPaletteProps) {
 	// Wrappers that don't forward props still need a way to close.
 	const close = useCloseCommandPalette()
 	return (
-		<CommandPaletteShell position={position} onClose={onClose ?? close}>
+		<CommandPaletteShell position={position} suggestions={suggestions} onClose={onClose ?? close}>
 			{children ?? <DefaultCommandPaletteContent />}
 		</CommandPaletteShell>
 	)
 })
 
 /**
- * Mounts the `CommandPalette` slot while the palette is open. Stays mounted itself, so a slot that
- * never calls `onClose` still can't leave the menu marked open, which disables every shortcut.
+ * Mounts the `CommandPalette` slot while the palette is open. Clears the open mark if it unmounts
+ * while open, so hiding the UI can't leave every shortcut disabled.
  *
  * @internal
  */
 export function CommandPaletteSlot({
 	component: CommandPalette,
 }: {
+	/** The `CommandPalette` slot's component. */
 	component: ComponentType<TLUiCommandPaletteProps>
 }) {
 	const editor = useEditor()

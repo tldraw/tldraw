@@ -2,6 +2,7 @@ import {
 	ArrowShapeArrowheadEndStyle,
 	ArrowShapeArrowheadStartStyle,
 	ArrowShapeKindStyle,
+	compact,
 	DefaultColorStyle,
 	DefaultDashStyle,
 	DefaultFillStyle,
@@ -14,6 +15,7 @@ import {
 	GeoShapeGeoStyle,
 	kickoutOccludedShapes,
 	LineShapeSplineStyle,
+	SharedStyle,
 	StyleProp,
 	useEditor,
 	useValue,
@@ -37,6 +39,15 @@ const messages = defineMessages({
 	arrowheadEnd: { id: 'command-palette.arrowhead-end', defaultMessage: 'End arrowhead' },
 })
 
+interface StylePicker<T extends string | number = string | number> {
+	id: string
+	label: string
+	values: readonly T[]
+	current: SharedStyle<T>
+	labelFor(value: T): string
+	onSelect(value: T): void
+}
+
 /**
  * The style panel's styles, one submenu each, for the selection or, with nothing selected, the next
  * shape. Lists only the styles the style panel would show.
@@ -44,10 +55,40 @@ const messages = defineMessages({
  * @public @react
  */
 export function CommandPaletteStylesGroup() {
+	const isReadonly = useReadonly()
+	const pickers = useCommandPaletteStylePickers()
+	if (isReadonly || !pickers) return null
+	return (
+		<TldrawUiMenuGroup id="command-palette-styles" label={stylePanelMessages.title.id}>
+			{pickers.map((picker) => (
+				<CommandPaletteStylePicker key={picker.id} picker={picker} />
+			))}
+		</TldrawUiMenuGroup>
+	)
+}
+
+function CommandPaletteStylePicker({ picker }: { picker: StylePicker }) {
+	const { id, label, values, current } = picker
+	return (
+		<TldrawUiMenuSubmenu id={`style-${id}`} label={label}>
+			{values.map((value) => (
+				<TldrawUiMenuCheckboxItem
+					key={value}
+					id={`style-${id}-${value}`}
+					label={picker.labelFor(value)}
+					checked={current.type === 'shared' && current.value === value}
+					onSelect={() => picker.onSelect(value)}
+				/>
+			))}
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+/** The pickers for the styles that apply, in style panel order; null when no styles apply. */
+function useCommandPaletteStylePickers(): StylePicker[] | null {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const trackEvent = useUiEvents()
-	const isReadonly = useReadonly()
 	const styles = useRelevantStyles()
 	const opacity = useValue('opacity', () => editor.getSharedOpacity(), [editor])
 	const colors = useValue(
@@ -56,7 +97,7 @@ export function CommandPaletteStylesGroup() {
 		[editor]
 	)
 	const fonts = useValue('font items', () => getFontStyleItems(editor.getCurrentTheme()), [editor])
-	if (isReadonly || !styles) return null
+	if (!styles) return null
 
 	// The geo util is absent from editors without geo shapes, where getShapeUtil throws.
 	const geoTypes =
@@ -86,115 +127,141 @@ export function CommandPaletteStylesGroup() {
 		return label === key ? value : label
 	}
 
-	const picker = <T extends string>(
-		id: string,
-		label: string,
-		style: StyleProp<T>,
-		uiType: string,
+	const stylePicker = <T extends string>({
+		id,
+		label,
+		style,
+		uiType,
+		values,
+	}: {
+		id: string
+		label: string
+		style: StyleProp<T>
+		uiType: string
 		values: readonly T[]
-	) => {
+	}): StylePicker<T> | null => {
 		const current = styles.get(style)
 		if (current === undefined) return null
-		return (
-			<TldrawUiMenuSubmenu id={`style-${id}`} label={label}>
-				{values.map((value) => (
-					<TldrawUiMenuCheckboxItem
-						key={value}
-						id={`style-${id}-${value}`}
-						label={valueLabel(uiType, value)}
-						checked={current.type === 'shared' && current.value === value}
-						onSelect={() => setStyle(style, value)}
-					/>
-				))}
-			</TldrawUiMenuSubmenu>
-		)
+		return {
+			id,
+			label,
+			values,
+			current,
+			labelFor: (value) => valueLabel(uiType, value),
+			onSelect: (value) => setStyle(style, value),
+		}
 	}
 
-	const values = <T extends string>(items: readonly { value: T }[]) => items.map((i) => i.value)
+	const valuesOf = <T extends string>(items: readonly { value: T }[]) => items.map((i) => i.value)
 
-	return (
-		<TldrawUiMenuGroup id="command-palette-styles" label={stylePanelMessages.title.id}>
-			{picker('color', msg(stylePanelMessages.color), DefaultColorStyle, 'color', values(colors))}
-			{opacity !== undefined && (
-				<TldrawUiMenuSubmenu id="style-opacity" label={msg(stylePanelMessages.opacity)}>
-					{OPACITIES.map((value) => (
-						<TldrawUiMenuCheckboxItem
-							key={value}
-							id={`style-opacity-${value}`}
-							label={msg(styleMessageId('opacity', value))}
-							checked={opacity.type === 'shared' && opacity.value === value}
-							onSelect={() => {
-								editor.run(() => {
-									editor.markHistoryStoppingPoint('set opacity')
-									if (editor.isIn('select')) editor.setOpacityForSelectedShapes(value)
-									editor.setOpacityForNextShapes(value)
-								})
-								trackEvent('set-style', { source: 'command-palette', id: 'opacity', value })
-							}}
-						/>
-					))}
-				</TldrawUiMenuSubmenu>
-			)}
-			{picker(
-				'fill',
-				msg(stylePanelMessages.fill),
-				DefaultFillStyle,
-				'fill',
-				values([...STYLES.fill, ...STYLES.fillExtra])
-			)}
-			{picker('dash', msg(stylePanelMessages.dash), DefaultDashStyle, 'dash', values(STYLES.dash))}
-			{picker('size', msg(stylePanelMessages.size), DefaultSizeStyle, 'size', values(STYLES.size))}
-			{picker('font', msg(stylePanelMessages.font), DefaultFontStyle, 'font', values(fonts))}
-			{picker(
-				'align',
-				msg(stylePanelMessages.align),
-				DefaultTextAlignStyle,
-				'align',
-				values(STYLES.textAlign)
-			)}
-			{picker(
-				'label-align',
-				msg(stylePanelMessages['label-align']),
-				DefaultHorizontalAlignStyle,
-				'align',
-				values(STYLES.horizontalAlign)
-			)}
-			{picker(
-				'vertical-align',
-				msg(stylePanelMessages['vertical-align']),
-				DefaultVerticalAlignStyle,
-				'verticalAlign',
-				values(STYLES.verticalAlign)
-			)}
-			{picker('geo', msg(stylePanelMessages.geo), GeoShapeGeoStyle, 'geo', geoTypes)}
-			{picker(
-				'arrow-kind',
-				msg(stylePanelMessages['arrow-kind']),
-				ArrowShapeKindStyle,
-				'arrow-kind',
-				values(STYLES.arrowKind)
-			)}
-			{picker(
-				'arrowhead-start',
-				msg(messages.arrowheadStart),
-				ArrowShapeArrowheadStartStyle,
-				'arrowheadStart',
-				values(STYLES.arrowheadStart)
-			)}
-			{picker(
-				'arrowhead-end',
-				msg(messages.arrowheadEnd),
-				ArrowShapeArrowheadEndStyle,
-				'arrowheadEnd',
-				values(STYLES.arrowheadEnd)
-			)}
-			{picker(
-				'spline',
-				msg(stylePanelMessages.spline),
-				LineShapeSplineStyle,
-				'spline',
-				values(STYLES.spline)
-			)}
-		</TldrawUiMenuGroup>
-	)
+	const opacityPicker: StylePicker<number> = {
+		id: 'opacity',
+		label: msg(stylePanelMessages.opacity),
+		values: OPACITIES,
+		current: opacity,
+		labelFor: (value) => msg(styleMessageId('opacity', value)),
+		onSelect: (value) => {
+			editor.run(() => {
+				editor.markHistoryStoppingPoint('set opacity')
+				if (editor.isIn('select')) editor.setOpacityForSelectedShapes(value)
+				editor.setOpacityForNextShapes(value)
+			})
+			trackEvent('set-style', { source: 'command-palette', id: 'opacity', value })
+		},
+	}
+
+	return compact<StylePicker | null>([
+		stylePicker({
+			id: 'color',
+			label: msg(stylePanelMessages.color),
+			style: DefaultColorStyle,
+			uiType: 'color',
+			values: valuesOf(colors),
+		}),
+		opacityPicker,
+		stylePicker({
+			id: 'fill',
+			label: msg(stylePanelMessages.fill),
+			style: DefaultFillStyle,
+			uiType: 'fill',
+			values: valuesOf([...STYLES.fill, ...STYLES.fillExtra]),
+		}),
+		stylePicker({
+			id: 'dash',
+			label: msg(stylePanelMessages.dash),
+			style: DefaultDashStyle,
+			uiType: 'dash',
+			values: valuesOf(STYLES.dash),
+		}),
+		stylePicker({
+			id: 'size',
+			label: msg(stylePanelMessages.size),
+			style: DefaultSizeStyle,
+			uiType: 'size',
+			values: valuesOf(STYLES.size),
+		}),
+		stylePicker({
+			id: 'font',
+			label: msg(stylePanelMessages.font),
+			style: DefaultFontStyle,
+			uiType: 'font',
+			values: valuesOf(fonts),
+		}),
+		stylePicker({
+			id: 'align',
+			label: msg(stylePanelMessages.align),
+			style: DefaultTextAlignStyle,
+			uiType: 'align',
+			values: valuesOf(STYLES.textAlign),
+		}),
+		stylePicker({
+			id: 'label-align',
+			label: msg(stylePanelMessages['label-align']),
+			style: DefaultHorizontalAlignStyle,
+			uiType: 'align',
+			values: valuesOf(STYLES.horizontalAlign),
+		}),
+		stylePicker({
+			id: 'vertical-align',
+			label: msg(stylePanelMessages['vertical-align']),
+			style: DefaultVerticalAlignStyle,
+			uiType: 'verticalAlign',
+			values: valuesOf(STYLES.verticalAlign),
+		}),
+		stylePicker({
+			id: 'geo',
+			label: msg(stylePanelMessages.geo),
+			style: GeoShapeGeoStyle,
+			uiType: 'geo',
+			values: geoTypes,
+		}),
+		stylePicker({
+			id: 'arrow-kind',
+			label: msg(stylePanelMessages['arrow-kind']),
+			style: ArrowShapeKindStyle,
+			uiType: 'arrow-kind',
+			values: valuesOf(STYLES.arrowKind),
+		}),
+		stylePicker({
+			id: 'arrowhead-start',
+			label: msg(messages.arrowheadStart),
+			style: ArrowShapeArrowheadStartStyle,
+			uiType: 'arrowheadStart',
+			values: valuesOf(STYLES.arrowheadStart),
+		}),
+		stylePicker({
+			id: 'arrowhead-end',
+			label: msg(messages.arrowheadEnd),
+			style: ArrowShapeArrowheadEndStyle,
+			uiType: 'arrowheadEnd',
+			values: valuesOf(STYLES.arrowheadEnd),
+		}),
+		stylePicker({
+			id: 'spline',
+			label: msg(stylePanelMessages.spline),
+			style: LineShapeSplineStyle,
+			uiType: 'spline',
+			values: valuesOf(STYLES.spline),
+		}),
+	])
 }

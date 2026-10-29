@@ -14,18 +14,25 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 import { CommandPaletteStoreProvider } from './CommandPaletteContext'
+import { handleCommandPaletteKeyDown } from './commandPaletteKeyboard'
+import { CommandPaletteList, getCommandPaletteOptionId } from './CommandPaletteList'
 import { addCommandPaletteRecent, getCommandPaletteRecents } from './commandPaletteRecents'
 import {
 	CommandPaletteRow,
 	getCommandPaletteBrowseRows,
+	getCommandPalettePromptRows,
+	getCommandPaletteSearchHitRows,
 	getCommandPaletteSearchRows,
+	getCommandPaletteSections,
 	getCommandPaletteSubmenuRows,
+	SelectableRow,
 } from './commandPaletteRows'
 import {
 	CommandPaletteEntry,
 	CommandPaletteStore,
 	CommandPaletteSubmenu,
 } from './CommandPaletteStore'
+import { useCommandPaletteLayout } from './useCommandPaletteLayout'
 
 const messages = defineMessages({
 	title: { id: 'command-palette.title', defaultMessage: 'Command palette' },
@@ -33,11 +40,7 @@ const messages = defineMessages({
 	noResults: { id: 'command-palette.no-results', defaultMessage: 'No results' },
 	recent: { id: 'command-palette.recent', defaultMessage: 'Recent' },
 	cancel: { id: 'command-palette.cancel', defaultMessage: 'Cancel' },
-	checked: { id: 'ui.checked', defaultMessage: 'Checked' },
-	unchecked: { id: 'ui.unchecked', defaultMessage: 'Unchecked' },
 })
-
-type SelectableRow = Extract<CommandPaletteRow, { type: 'item' | 'submenu' }>
 
 /**
  * Where the command palette opens.
@@ -47,16 +50,24 @@ type SelectableRow = Extract<CommandPaletteRow, { type: 'item' | 'submenu' }>
 export type TLUiCommandPalettePosition = 'top' | 'center' | 'bottom'
 
 /**
- * Props for {@link CommandPaletteShell}.
+ * What the command palette shows above its list while browsing.
  *
  * @public
  */
+export type TLUiCommandPaletteSuggestions = 'recent' | 'none'
+
+/** @public */
 export interface TLUiCommandPaletteShellProps {
 	/**
 	 * Where the palette opens. `'bottom'`, the default, sits just above the toolbar at its width when
-	 * the toolbar is horizontal; otherwise it's centered.
+	 * the toolbar is horizontal; otherwise it opens horizontally centered, lower than `'center'`.
 	 */
 	position?: TLUiCommandPalettePosition
+	/**
+	 * What shows above the list while the query is empty. `'recent'`, the default, lists recently
+	 * run commands; `'none'` shows nothing. Recents still rank search results either way.
+	 */
+	suggestions?: TLUiCommandPaletteSuggestions
 	/** Called when the user dismisses the palette or runs a command. */
 	onClose(): void
 	/** The palette's items, as `TldrawUiMenu*` components and `CommandPalette*` groups. */
@@ -71,6 +82,7 @@ export interface TLUiCommandPaletteShellProps {
  */
 export function CommandPaletteShell({
 	position = 'bottom',
+	suggestions = 'recent',
 	onClose,
 	children,
 }: TLUiCommandPaletteShellProps) {
@@ -90,8 +102,6 @@ export function CommandPaletteShell({
 	const rPalette = useRef<HTMLDivElement>(null)
 	const rInput = useRef<HTMLInputElement>(null)
 	const rList = useRef<HTMLDivElement>(null)
-	const [canScrollDown, setCanScrollDown] = useState(false)
-	const [anchor, setAnchor] = useState<{ top: number; bottom: number; width: number } | null>(null)
 	const rScrollToActive = useRef(false)
 	const listboxId = useId()
 	// Only the query reruns a search, so the list can't shift under the highlight as the document
@@ -109,65 +119,21 @@ export function CommandPaletteShell({
 	}, [search, searchQuery])
 
 	const rows = useMemo((): CommandPaletteRow[] => {
-		if (prompt && search) {
-			return (searchResults ?? []).map((hit) => ({
-				type: 'item',
-				key: `search:${hit.id}`,
-				entry: { ...prompt, id: `${prompt.id}:${hit.id}`, icon: hit.icon, onSelect: hit.onSelect },
-				label: hit.label,
-				detail: hit.detail,
-				recent: false,
-			}))
-		}
-		// Spells out what Enter does, and offers a way back.
-		if (prompt) {
-			const value = query.trim()
-			const icon = dir === 'rtl' ? 'arrow-left' : 'arrow-right'
-			return [
-				{
-					type: 'item',
-					key: 'prompt',
-					entry: prompt,
-					label: prompt.name,
-					detail: value ? `“${value}”` : undefined,
-					icon,
-					recent: false,
-				},
-				{
-					type: 'item',
-					key: 'prompt:cancel',
-					entry: { ...prompt, id: 'command-palette-cancel', prompt: undefined, kbd: '[[Esc]]' },
-					label: msg(messages.cancel),
-					icon,
-					recent: false,
-				},
-			]
-		}
+		if (prompt && search) return getCommandPaletteSearchHitRows(prompt, searchResults ?? [])
+		if (prompt) return getCommandPalettePromptRows(prompt, query, msg(messages.cancel), dir)
 		if (submenu) return getCommandPaletteSubmenuRows(entries, submenu.key, query, recentIds)
 		if (query.trim()) return getCommandPaletteSearchRows(entries, query, recentIds)
-		return getCommandPaletteBrowseRows(entries, recentIds, msg(messages.recent))
-	}, [entries, prompt, search, searchResults, submenu, query, recentIds, msg, dir])
+		return getCommandPaletteBrowseRows(
+			entries,
+			suggestions === 'recent' ? recentIds : [],
+			msg(messages.recent)
+		)
+	}, [entries, prompt, search, searchResults, submenu, query, recentIds, suggestions, msg, dir])
 	const selectableRows = useMemo(
 		() => rows.filter((row): row is SelectableRow => row.type === 'item' || row.type === 'submenu'),
 		[rows]
 	)
-	const sections = useMemo(() => {
-		const out: {
-			key: string
-			heading?: Extract<CommandPaletteRow, { type: 'heading' }>
-			separated?: boolean
-			rows: SelectableRow[]
-		}[] = []
-		for (const row of rows) {
-			if (row.type === 'heading') out.push({ key: row.key, heading: row, rows: [] })
-			else if (row.type === 'separator') out.push({ key: row.key, separated: true, rows: [] })
-			else {
-				if (!out.length) out.push({ key: 'start', rows: [] })
-				out[out.length - 1].rows.push(row)
-			}
-		}
-		return out
-	}, [rows])
+	const sections = useMemo(() => getCommandPaletteSections(rows), [rows])
 	const indexByKey = useMemo(
 		() => new Map(selectableRows.map((row, index) => [row.key, index])),
 		[selectableRows]
@@ -181,55 +147,21 @@ export function CommandPaletteShell({
 	}, [store, activeItemId])
 	const awaitingQuery = !!search && !query.trim()
 	const backLabel = prompt?.search ? prompt.name : !prompt && submenu ? submenu.label : null
-	const optionId = (index: number) => `${listboxId}-option-${index}`
 
-	const updateScroll = useCallback(() => {
-		const list = rList.current
-		if (!list) return
-		const { scrollHeight, scrollTop, clientHeight } = list
-		setCanScrollDown(scrollHeight - scrollTop - clientHeight > 1)
-	}, [])
-	useLayoutEffect(() => {
-		const list = rList.current
-		if (!list || typeof ResizeObserver === 'undefined') return
-		const observer = new ResizeObserver(updateScroll)
-		observer.observe(list)
-		return () => observer.disconnect()
-	}, [updateScroll])
-	useLayoutEffect(() => {
-		updateScroll()
-	}, [rows, updateScroll])
+	const isBrowsing = !query && !submenu && !prompt
+	const { anchor, canScrollDown, onListScroll } = useCommandPaletteLayout({
+		editor,
+		position,
+		rPalette,
+		rList,
+		isBrowsing,
+		rows,
+	})
 	// Runs after the rows' own layout effects: only keyboard and query changes scroll the active
 	// row, so hovering a half-visible row doesn't make the list jump.
 	useLayoutEffect(() => {
 		rScrollToActive.current = false
 	})
-
-	// Bottom position, like Figma: as wide as the toolbar, with the gap between the browsing palette
-	// and the toolbar matching the toolbar's gap to the bottom edge. Measured while browsing and kept
-	// while searching, so the input stays put as results shrink. Only set when it changes: a new
-	// object would re-render the registered items, change the rows and measure again, forever. A
-	// vertical toolbar is a narrow column, so it falls back to the CSS box.
-	useLayoutEffect(() => {
-		if (position !== 'bottom') return setAnchor(null)
-		if (query || submenu || prompt) return
-		const container = editor.getContainer()
-		const palette = rPalette.current
-		const toolbar = container.querySelector(
-			'.tlui-main-toolbar--horizontal .tlui-main-toolbar__inner'
-		)
-		if (!palette || !toolbar) return setAnchor(null)
-		const bounds = container.getBoundingClientRect()
-		const { top, bottom, width } = toolbar.getBoundingClientRect()
-		const gap = bounds.bottom - bottom
-		const limit = top - bounds.top - gap
-		const next = { top: Math.max(8, limit - palette.offsetHeight), bottom: limit, width }
-		setAnchor((prev) =>
-			prev?.top === next.top && prev.bottom === next.bottom && prev.width === next.width
-				? prev
-				: next
-		)
-	}, [editor, position, query, submenu, prompt, rows])
 
 	// Radix menus give focus back to their trigger a frame after closing, which would take it from
 	// the input when the palette is opened from the main menu.
@@ -343,84 +275,11 @@ export function CommandPaletteShell({
 		[onClose, restoreFocus, openSubmenu, openPrompt, prompt, store, back]
 	)
 
-	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		// oxlint-disable-next-line typescript/no-deprecated -- Safari sends IME-confirming Enter with isComposing false, keyCode 229
-		if (e.nativeEvent.isComposing || e.keyCode === 229) return
+	const move = (delta: number) => {
 		const count = selectableRows.length
-		const move = (delta: number) => {
-			if (!count) return
-			rScrollToActive.current = true
-			setActiveIndex((Math.max(clampedIndex, 0) + delta + count) % count)
-		}
-		// In RTL the query's end is on the left, so the submenu keys mirror, as in Radix menus.
-		const key =
-			dir === 'rtl' && e.key === 'ArrowLeft'
-				? 'ArrowRight'
-				: dir === 'rtl' && e.key === 'ArrowRight'
-					? 'ArrowLeft'
-					: e.key
-		switch (key) {
-			case 'ArrowDown':
-				e.preventDefault()
-				move(1)
-				return
-			case 'ArrowUp':
-				e.preventDefault()
-				move(-1)
-				return
-			case 'Tab':
-				e.preventDefault()
-				move(e.shiftKey ? -1 : 1)
-				return
-			case 'Enter': {
-				e.preventDefault()
-				// Focus is back on the editor by keyup, which would start editing the selected shape.
-				const win = editor.getContainerWindow()
-				const swallowKeyUp = (up: KeyboardEvent) => {
-					if (up.key !== 'Enter') return
-					editor.markEventAsHandled(up)
-					win.removeEventListener('keyup', swallowKeyUp, true)
-				}
-				win.addEventListener('keyup', swallowKeyUp, true)
-				runRow(activeRow)
-				return
-			}
-			case 'Escape':
-				e.preventDefault()
-				if (prompt || submenu) back()
-				else dismiss()
-				return
-			// Like a menu, but only at the input's edges, so the caret still moves through the query.
-			case 'ArrowRight': {
-				const input = e.currentTarget
-				const atEnd = input.selectionStart === query.length && input.selectionEnd === query.length
-				if (!prompt && activeRow?.type === 'submenu' && atEnd) {
-					e.preventDefault()
-					runRow(activeRow)
-				}
-				return
-			}
-			case 'ArrowLeft': {
-				const input = e.currentTarget
-				const atStart = input.selectionStart === 0 && input.selectionEnd === 0
-				if ((search || (!prompt && submenu)) && atStart) {
-					e.preventDefault()
-					back()
-				}
-				return
-			}
-			case 'Backspace':
-				if ((prompt || submenu) && !query) {
-					e.preventDefault()
-					back()
-				}
-				return
-			default:
-				if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-					e.preventDefault()
-					dismiss()
-				}
-		}
+		if (!count) return
+		rScrollToActive.current = true
+		setActiveIndex((Math.max(clampedIndex, 0) + delta + count) % count)
 	}
 
 	return (
@@ -442,7 +301,7 @@ export function CommandPaletteShell({
 									width: anchor.width,
 									// A submenu's back heading or a prompt would otherwise push the palette over the
 									// toolbar; the list shrinks instead. Not while browsing, where it is measured.
-									maxHeight: query || submenu || prompt ? anchor.bottom - anchor.top : undefined,
+									maxHeight: isBrowsing ? undefined : anchor.bottom - anchor.top,
 								}
 							: undefined
 					}
@@ -467,13 +326,28 @@ export function CommandPaletteShell({
 							aria-expanded
 							aria-controls={listboxId}
 							aria-autocomplete="list"
-							aria-activedescendant={activeRow ? optionId(clampedIndex) : undefined}
+							aria-activedescendant={
+								activeRow ? getCommandPaletteOptionId(listboxId, clampedIndex) : undefined
+							}
 							placeholder={(prompt?.prompt ?? search)?.placeholder ?? msg(messages.placeholder)}
 							autoComplete="off"
 							spellCheck={false}
 							value={query}
 							onChange={(e) => setQuery(e.currentTarget.value)}
-							onKeyDown={handleKeyDown}
+							onKeyDown={(e) =>
+								handleCommandPaletteKeyDown(e, {
+									editor,
+									dir,
+									query,
+									prompt,
+									submenu,
+									activeRow,
+									move,
+									runRow,
+									back,
+									dismiss,
+								})
+							}
 						/>
 					</div>
 					{backLabel && (
@@ -502,42 +376,17 @@ export function CommandPaletteShell({
 						aria-label={prompt?.name ?? submenu?.label ?? msg(messages.title)}
 						className="tlui-command-palette__list"
 						data-more={canScrollDown ? '' : undefined}
-						onScroll={updateScroll}
+						onScroll={onListScroll}
 					>
-						{sections.map((section, sectionIndex) => {
-							const options = section.rows.map((row) => {
-								const index = indexByKey.get(row.key)!
-								return (
-									<CommandPaletteRowView
-										key={row.key}
-										id={optionId(index)}
-										row={row}
-										isActive={index === clampedIndex}
-										rScrollToActive={rScrollToActive}
-										onHover={() => setActiveIndex(index)}
-										onRun={() => runRow(row)}
-									/>
-								)
-							})
-							if (section.separated) {
-								return (
-									<div key={section.key} role="group">
-										<div role="separator" className="tlui-command-palette__separator" />
-										{options}
-									</div>
-								)
-							}
-							if (!section.heading) return options
-							const headingId = `${listboxId}-heading-${sectionIndex}`
-							return (
-								<div key={section.heading.key} role="group" aria-labelledby={headingId}>
-									<div id={headingId} className="tlui-command-palette__heading">
-										{section.heading.label}
-									</div>
-									{options}
-								</div>
-							)
-						})}
+						<CommandPaletteList
+							listboxId={listboxId}
+							sections={sections}
+							indexByKey={indexByKey}
+							activeIndex={clampedIndex}
+							rScrollToActive={rScrollToActive}
+							onHover={setActiveIndex}
+							onRun={runRow}
+						/>
 					</div>
 					{selectableRows.length === 0 && !awaitingQuery && (
 						<div className="tlui-command-palette__empty">{msg(messages.noResults)}</div>
@@ -550,94 +399,5 @@ export function CommandPaletteShell({
 				</div>
 			</div>
 		</CommandPaletteStoreProvider>
-	)
-}
-
-function CommandPaletteRowView({
-	id,
-	row,
-	isActive,
-	rScrollToActive,
-	onHover,
-	onRun,
-}: {
-	id: string
-	row: SelectableRow
-	isActive: boolean
-	rScrollToActive: React.RefObject<boolean>
-	onHover(): void
-	onRun(): void
-}) {
-	const msg = useTranslation()
-	const dir = useDirection()
-	const rRow = useRef<HTMLDivElement>(null)
-	useLayoutEffect(() => {
-		if (isActive && rScrollToActive.current) rRow.current?.scrollIntoView?.({ block: 'nearest' })
-	}, [isActive, rScrollToActive])
-
-	if (row.type === 'submenu') {
-		return (
-			<div
-				ref={rRow}
-				id={id}
-				role="option"
-				aria-selected={isActive}
-				data-highlighted={isActive || undefined}
-				data-testid={`command-palette.submenu.${row.submenu.label}`}
-				className="tlui-command-palette__item"
-				onPointerMove={onHover}
-				onClick={onRun}
-			>
-				<span className="tlui-command-palette__row">
-					<TldrawUiIcon aria-hidden="true" label="" icon={row.submenu.icon ?? 'none'} small />
-					<span className="tlui-command-palette__label">{row.submenu.label}</span>
-					<TldrawUiIcon
-						aria-hidden="true"
-						label=""
-						icon={dir === 'rtl' ? 'chevron-left' : 'chevron-right'}
-						small
-					/>
-				</span>
-			</div>
-		)
-	}
-
-	const { entry } = row
-	const marked = entry.checked ?? entry.isSelected
-	return (
-		<div
-			ref={rRow}
-			id={id}
-			role="option"
-			aria-selected={isActive}
-			data-highlighted={isActive || undefined}
-			data-testid={`command-palette.${row.recent ? 'recent' : 'item'}.${entry.id}`}
-			className="tlui-command-palette__item"
-			onPointerMove={onHover}
-			onClick={onRun}
-		>
-			<span className="tlui-command-palette__row">
-				{/* One leading slot on every row, so labels line up: a check or an icon, never both. */}
-				{marked !== undefined ? (
-					<TldrawUiIcon
-						icon={marked ? 'check' : 'none'}
-						small
-						label={msg(marked ? messages.checked : messages.unchecked)}
-					/>
-				) : (
-					<TldrawUiIcon
-						aria-hidden="true"
-						label=""
-						icon={row.icon ?? (entry.icon || 'none')}
-						small
-					/>
-				)}
-				<span className="tlui-command-palette__label">
-					{row.label}
-					{row.detail && <span className="tlui-command-palette__detail">{row.detail}</span>}
-				</span>
-				{entry.kbd && <TldrawUiKbd>{entry.kbd}</TldrawUiKbd>}
-			</span>
-		</div>
 	)
 }
