@@ -22,8 +22,8 @@ function FilesLanding() {
 	return (
 		<>
 			<section className={styles.adminSection}>
-				<h3 className={styles.sectionTitle}>Open a file</h3>
-				<OpenFile />
+				<h3 className={styles.sectionTitle}>Inspect a file</h3>
+				<InspectFile />
 			</section>
 			<section className={styles.adminSection}>
 				<h3 className={styles.sectionTitle}>Durable object lookup</h3>
@@ -37,12 +37,12 @@ function FilesLanding() {
 	)
 }
 
-function OpenFile() {
+function InspectFile() {
 	const navigate = useNavigate()
 	const [input, setInput] = useState('')
 	const [error, setError] = useState(null as string | null)
 
-	const onOpen = useCallback(() => {
+	const onInspect = useCallback(() => {
 		const fileId = parseFileId(input)
 		if (!fileId) {
 			setError('Paste a file ID, or a tldraw.com /f/ or /r/ link')
@@ -65,10 +65,10 @@ function OpenFile() {
 					className={styles.searchInput}
 					value={input}
 					onChange={(e) => setInput(e.target.value)}
-					onKeyDown={(e) => e.key === 'Enter' && onOpen()}
+					onKeyDown={(e) => e.key === 'Enter' && onInspect()}
 				/>
-				<AdminButton onClick={onOpen} variant="primary">
-					Open
+				<AdminButton onClick={onInspect} variant="primary">
+					Inspect
 				</AdminButton>
 			</div>
 		</div>
