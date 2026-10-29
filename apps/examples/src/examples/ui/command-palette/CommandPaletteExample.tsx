@@ -86,7 +86,7 @@ Wrap `DefaultCommandPalette` and keep `DefaultCommandPaletteContent` to add comm
 rebuilding the palette. Items are the same `TldrawUiMenu*` components the other menus use.
 Forward the slot's props so the palette keeps anything tldraw passes to the slot.
 
-`position` sets where the palette opens: `'top'`, `'center'`, or `'bottom'`, the default, just
+`position` sets where the palette opens: `'center'`, the default, `'top'`, or `'bottom'`, just
 above the toolbar.
 
 [3]
