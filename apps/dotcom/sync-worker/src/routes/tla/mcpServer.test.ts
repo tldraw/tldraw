@@ -1153,8 +1153,8 @@ describe('cluster index cache', () => {
 			'user_ix_text'
 		)
 
-		// Served from the index, so this text came out of storage rather than out of a render — the one
-		// thing in a cluster that cannot be re-derived from the stored record.
+		// Served from the index, so this text came out of storage rather than out of a render: it cannot
+		// be re-derived from the stored record.
 		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
 		expect(JSON.parse(result.content[0].text).shapes[0].props.text).toBe('Checkout total')
 	})

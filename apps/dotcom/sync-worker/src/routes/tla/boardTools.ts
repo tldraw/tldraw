@@ -793,7 +793,7 @@ function getArrowBindingsOf(snapshot: RoomSnapshot, shapes: TLShape[]): TLArrowB
 
 export type ResolvedPageOk = Extract<ResolvedPage, { ok: true }>
 
-// The measure render answers two things a Worker cannot: where each shape sits, and what
+// Clustering takes two of the things the measure render answers: where each shape sits, and what
 // ShapeUtil.getText says it holds. Bounds drive the linkage; the text is attached to the shapes so
 // labelling reads the editor's answer rather than re-deriving one from props.
 export function clusterPage(page: ResolvedPageOk, measurements: Record<string, ShapeMeasurement>) {
