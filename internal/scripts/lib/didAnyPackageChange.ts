@@ -1,9 +1,10 @@
 import assert from 'assert'
-import { writeFileSync } from 'fs'
+import { mkdtempSync, rmSync, writeFileSync } from 'fs'
+import { tmpdir } from 'os'
+import path from 'path'
+import { styleText } from 'util'
 import * as diff from 'diff'
-import kleur from 'kleur'
 import * as tar from 'tar'
-import tmp from 'tmp'
 import { exec } from './exec'
 import { nicelog } from './nicelog'
 import { PackageDetails, getAllPackageDetails } from './publishing'
@@ -14,8 +15,7 @@ async function getPackageFirstDiff(
 	publishedVersion: string
 ): Promise<Diff | null> {
 	assert(process.env.TLDRAW_BEMO_URL, 'TLDRAW_BEMO_URL env var must be set')
-	const dir = tmp.dirSync({ unsafeCleanup: true })
-	const dirPath = dir.name
+	const dirPath = mkdtempSync(path.join(tmpdir(), 'tldraw-package-diff-'))
 	try {
 		const unscopedName = pkg.name.replace('@tldraw/', '')
 		const url = `https://registry.npmjs.org/${pkg.name}/-/${unscopedName}-${publishedVersion}.tgz`
@@ -49,7 +49,7 @@ async function getPackageFirstDiff(
 
 		return getManifestFirstDiff(pkg.name, publishedManifest, localManifest)
 	} finally {
-		dir.removeCallback()
+		rmSync(dirPath, { recursive: true, force: true })
 	}
 }
 
@@ -136,23 +136,23 @@ function getTarballManifestSync(tarballPath: string) {
 }
 
 export function formatDiff(diff: Diff) {
-	let message = kleur.cyan().bold(diff.packageName) + ' changed:'
+	let message = styleText(['cyan', 'bold'], diff.packageName) + ' changed:'
 	switch (diff.type) {
 		case 'added':
-			message += `\n    New file added ${kleur.green().bold(diff.filePath)}`
+			message += `\n    New file added ${styleText(['green', 'bold'], diff.filePath)}`
 			break
 		case 'removed':
-			message += `\n    File removed ${kleur.red().bold(diff.filePath)}`
+			message += `\n    File removed ${styleText(['red', 'bold'], diff.filePath)}`
 			break
 		case 'changed':
-			message += `\n    File changed ${kleur.yellow().bold(diff.filePath)}\n\n`
+			message += `\n    File changed ${styleText(['yellow', 'bold'], diff.filePath)}\n\n`
 			message += diff.diff
 				.split('\n')
 				.map((line) => {
 					if (line.startsWith('+')) {
-						return kleur.green(line)
+						return styleText('green', line)
 					} else if (line.startsWith('-')) {
-						return kleur.red(line)
+						return styleText('red', line)
 					} else {
 						return line
 					}

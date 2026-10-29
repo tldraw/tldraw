@@ -82,7 +82,6 @@
 		"remark": "^15.0.1",
 		"remark-gfm": "^4.0.0",
 		"remark-mdx": "^3.1.0",
-		"rimraf": "^4.4.1",
 		"shiki": "^1.29.1",
 		"sqlite": "^5.1.1",
 		"sqlite3": "^5.1.7",
