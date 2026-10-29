@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Lucrăm la compatibilitatea fișierelor de la <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Trageți fișierul în bara laterală de pe această pagină. Sau selectați opțiunea „Importați fișierul” din meniul utilizatorului."
-  },
   "043973ec1f": {
     "translation": "Mai ai probleme? {GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "Limita de colaboratori a fost atinsă"
   },
-  "545241e7dd": {
-    "translation": "{count} necitit"
-  },
   "550b25cc0c": {
     "translation": "Nu s-a putut restaura desenul local. Încercați să reîncărcați această pagină."
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "Vă rugăm să reîmprospătați pagina pentru a obține cea mai recentă versiune de tldraw."
   },
-  "86353d2c41": {
-    "translation": "S-au adăugat {total} fișiere .tldr."
-  },
   "86c66437fd": {
     "translation": "Redenumiți fișierul"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Ai fost invitat(ă) să te alături la <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# necitit} few {# necitite} other {# de necitite}}"
   },
   "a0da245992": {
     "translation": "Exportați conținutul ca fișier .tldr: Selectați „Descărcare” în meniul din stânga sus."
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Proprietar"
   },
+  "b74dbb40c5": {
+    "translation": "Trageți fișierul în bara laterală de pe această pagină. Sau selectați opțiunea „Importați fișierul” din meniul Fișier din stânga sus."
+  },
   "b758336699": {
     "translation": "Copiați linkul"
   },
@@ -547,7 +544,7 @@
     "translation": "Invitațiile sunt dezactivate"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {Se încarcă fișierul .tldr...} few {} other {Se încarcă {uploaded} din {total} fișiere .tldr...}}"
+    "translation": "{total, plural, one {Se încarcă fișierul .tldr…} few {Se încarcă {uploaded} din {total} fișiere .tldr…} other {Se încarcă {uploaded} din {total} fișiere .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Distribuit de {ownerName}"
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "Aflați mai multe despre partajare."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {A fost adăugat # fișier .tldr.} few {Au fost adăugate # fișiere .tldr.} other {Au fost adăugate # de fișiere .tldr.}}"
+  },
   "c303bd1095": {
     "translation": "Nu se poate publica fișierul."
   },
   "c4b39a1cc3": {
     "translation": "Cookie-uri esențiale"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: șir lung"
   },
   "c6a00f137b": {
     "translation": "Invita"
@@ -592,7 +589,7 @@
     "translation": "Aflați mai multe despre publicare."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> și {count, plural, one {# other} other {# others}} au reacționat la comentariul tău"
+    "translation": "<name>{author}</name> și {count, plural, one {# altă persoană} few {# alte persoane} other {# de alte persoane}} au reacționat la comentariul tău"
   },
   "d3d2e61733": {
     "translation": "Aproape"
@@ -660,9 +657,6 @@
   "ec611e9a08": {
     "translation": "meniul cont"
   },
-  "ed53713239": {
-    "translation": "i18n: Accentuat"
-  },
   "ed75712b0e": {
     "translation": "Duplicat"
   },
@@ -691,7 +685,7 @@
     "translation": "Şterge"
   },
   "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> și {count, plural, one {# other} other {# others}} au reacționat la comentariul tău"
+    "translation": "<name>{a}</name>, <name>{b}</name> și {count, plural, one {# altă persoană} few {# alte persoane} other {# de alte persoane}} au reacționat la comentariul tău"
   },
   "f4f70727dc": {
     "translation": "Setări"

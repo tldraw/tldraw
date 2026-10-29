@@ -39,9 +39,9 @@ export function ColorSchemeMenu() {
 						label={label}
 						checked={colorScheme === currentColorScheme}
 						readonlyOk
-						onSelect={() => {
+						onSelect={(source) => {
 							editor.user.updateUserPreferences({ colorScheme })
-							trackEvent('color-scheme', { source: 'menu', value: colorScheme })
+							trackEvent('color-scheme', { source, value: colorScheme })
 						}}
 					/>
 				))}
