@@ -16,7 +16,9 @@ export interface CommandPaletteItemRegistrationProps {
 	checked?: boolean
 	/** Like `checked`, for menu items; `checked` wins when both are set. */
 	isSelected?: boolean
+	/** Can't run. Hidden while browsing; in search, shown greyed only with a `disabledReason`. */
 	disabled: boolean
+	/** Translated reason shown in the shortcut's place while the disabled row is highlighted. */
 	disabledReason?: string
 	/** Muted text after the label. Searched too. */
 	detail?: string
