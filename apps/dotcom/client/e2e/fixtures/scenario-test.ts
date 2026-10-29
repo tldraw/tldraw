@@ -9,7 +9,7 @@ import { Database, getTestUserEmail } from './Database'
 import { DeleteFileDialog } from './DeleteFileDialog'
 import { Editor } from './Editor'
 import { ErrorPage } from './ErrorPages'
-import { getStorageStateFileName } from './helpers'
+import { disableWhatsNewAutoOpen, getStorageStateFileName } from './helpers'
 import { HomePage } from './HomePage'
 import { ImportHelper } from './ImportHelper'
 import { ShareMenu } from './ShareMenu'
@@ -245,12 +245,20 @@ class DotcomActors {
 
 	async open(
 		name: DotcomActorName,
-		opts: { url?: string; allowClipboard?: boolean; goto?: boolean } = {}
+		opts: {
+			url?: string
+			allowClipboard?: boolean
+			goto?: boolean
+			allowWhatsNewAutoOpen?: boolean
+		} = {}
 	) {
 		const account = name === 'visitor' ? undefined : this.actorAccounts[name]
 		const context = await this.browser.newContext({
 			storageState: account?.storageState,
 		})
+		if (!opts.allowWhatsNewAutoOpen) {
+			await disableWhatsNewAutoOpen(context)
+		}
 
 		if (opts.allowClipboard ?? true) {
 			await context.grantPermissions(['clipboard-read', 'clipboard-write'])

@@ -43,6 +43,15 @@ import {
 } from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 import { parseVersionKey, readSegmentRef } from './versionChain'
+import {
+	createWhatsNewUpdate,
+	deleteWhatsNewUpdate,
+	editWhatsNewUpdate,
+	getWhatsNewAdmin,
+	publishWhatsNewUpdate,
+	unpublishWhatsNewUpdate,
+	uploadWhatsNewMedia,
+} from './whatsNew'
 
 /**
  * Resolves the admin's emails to user ids once, at save time, so the request path only ever has to
@@ -417,6 +426,14 @@ export const adminRoutes = createRouter<Environment>()
 		}
 		return json(await roomDo.__admin__closeAllSessions())
 	})
+	.get('/app/admin/whats-new', getWhatsNewAdmin)
+	.post('/app/admin/whats-new', createWhatsNewUpdate)
+	// Before `/:id`, which would otherwise match `media`.
+	.post('/app/admin/whats-new/media', uploadWhatsNewMedia)
+	.post('/app/admin/whats-new/:id', editWhatsNewUpdate)
+	.post('/app/admin/whats-new/:id/publish', publishWhatsNewUpdate)
+	.post('/app/admin/whats-new/:id/unpublish', unpublishWhatsNewUpdate)
+	.post('/app/admin/whats-new/:id/delete', deleteWhatsNewUpdate)
 	.get('/app/admin/feature-flags', async (_req, env) => {
 		return json(await withResolvedAllowlistLabels(env, await getAllFeatureFlagValues(env)))
 	})

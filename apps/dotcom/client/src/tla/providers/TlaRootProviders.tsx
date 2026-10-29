@@ -37,6 +37,7 @@ import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
+import { TlaWhatsNewAutoOpen } from '../components/WhatsNew/TlaWhatsNewAutoOpen'
 import { WorkspaceInviteHandler } from '../components/WorkspaceInviteHandler'
 import { AppStateProvider, useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
 import '../styles/tla.css'
@@ -155,6 +156,7 @@ export function Component() {
 											<Outlet />
 										</AppGate>
 										<LegalTermsAcceptance />
+										<TlaWhatsNewAutoOpen />
 									</InsideOfContainerContext>
 								</ContainerProvider>
 							)}
