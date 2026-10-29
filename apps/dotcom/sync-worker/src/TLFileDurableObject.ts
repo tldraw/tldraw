@@ -198,6 +198,7 @@ import {
 	insertVersionIndexRow,
 	readNewestVersionTs,
 	readVersionIndexRange,
+	readVersionName,
 	setVersionName,
 	tagLatestAsPreRestore,
 	VersionIndexRow,
@@ -993,6 +994,7 @@ export class TLFileDurableObject extends DurableObject {
 			await this.persistToDatabase({ throwOnFailure: true })
 			this.ensureVersionIndex()
 			const preRestoreTs = tagLatestAsPreRestore(this.ctx.storage.sql, restoreId)
+			const restoredFromName = readVersionName(this.ctx.storage.sql, timestamp)
 			this._isRestoring = true
 			try {
 				// The put deliberately carries no version metadata, so null ("looked up, no usable
@@ -1057,7 +1059,7 @@ export class TLFileDurableObject extends DurableObject {
 					.push(() =>
 						this._writeVersionChainEntry(restoredSnapshot, roomKey, restoredTs, false, {
 							window: { authors: [{ userId }], hasUserChanges: true },
-							override: { kind: 'restore', restoreId, restoredFrom: timestamp },
+							override: { kind: 'restore', restoreId, restoredFrom: timestamp, restoredFromName },
 						})
 					)
 					.catch((error) => {
@@ -1074,6 +1076,7 @@ export class TLFileDurableObject extends DurableObject {
 					type: 'file_restored',
 					restoreId,
 					restoredFrom: timestamp,
+					restoredFromName,
 					preRestoreTs,
 					byUserId: userId,
 					byName: user?.name ?? '',

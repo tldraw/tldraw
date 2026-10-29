@@ -34,6 +34,7 @@ export async function backfillVersionIndex(args: {
 				removed: 0,
 				restoreId: null,
 				restoredFrom: null,
+				restoredFromName: null,
 				name: null,
 			})
 		}

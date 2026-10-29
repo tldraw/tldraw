@@ -5,6 +5,7 @@ const event = {
 	type: 'file_restored' as const,
 	restoreId: 'r1',
 	restoredFrom: '2026-10-01T10:00:00.000Z',
+	restoredFromName: null,
 	preRestoreTs: '2026-10-29T10:00:00.000Z',
 	byUserId: 'u1',
 	byName: 'Mitja',

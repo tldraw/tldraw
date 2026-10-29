@@ -16,6 +16,7 @@ function row(min: number, overrides: Partial<VersionIndexRow> = {}): VersionInde
 		removed: 0,
 		restoreId: null,
 		restoredFrom: null,
+		restoredFromName: null,
 		name: null,
 		...overrides,
 	}
@@ -52,6 +53,25 @@ describe('groupSessions', () => {
 		expect(sessions.map((s) => s.end)).toEqual([at(3), at(2), at(1)])
 		expect(sessions[1].restore).toEqual({ restoreId: 'r1', restoredFrom: at(-500) })
 		expect(sessions[0].restore).toBeUndefined()
+	})
+
+	it('restore from a named version carries the name', () => {
+		const { sessions } = groupSessions(
+			desc([
+				row(0, {
+					kind: 'restore',
+					restoreId: 'r1',
+					restoredFrom: at(-500),
+					restoredFromName: 'v3',
+				}),
+			]),
+			{ exhausted: true }
+		)
+		expect(sessions[0].restore).toEqual({
+			restoreId: 'r1',
+			restoredFrom: at(-500),
+			restoredFromName: 'v3',
+		})
 	})
 
 	it('a named version is its own session and carries its name', () => {
