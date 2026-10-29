@@ -516,9 +516,8 @@ function FileSummary({ file }: { file: AdminFileResponseBody }) {
 				? file.owners.map((owner) => (
 						<div key={owner.id}>
 							<Link to={`/admin/users?${new URLSearchParams({ q: owner.id })}`}>
-								{owner.name} &lt;{owner.email}&gt;
-							</Link>{' '}
-							<code>{owner.id}</code>
+								{owner.name} &lt;{owner.email}&gt; <code>{owner.id}</code>
+							</Link>
 						</div>
 					))
 				: 'none',
