@@ -113,7 +113,7 @@ export function CommandPalettePathProvider({
 			section: sectionId ? `${parent.section ?? ''}/${sectionId}` : parent.section,
 			heading: parent.heading ?? heading ?? null,
 			pinned: parent.pinned || !!pinned,
-			collapseSubmenu: submenuId ? false : parent.collapseSubmenu || !!collapseSubmenu,
+			collapseSubmenu: submenuId && label ? false : parent.collapseSubmenu || !!collapseSubmenu,
 		}),
 		[parent, label, submenuId, sectionId, heading, pinned, collapseSubmenu]
 	)

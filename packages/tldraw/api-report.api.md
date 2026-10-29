@@ -4822,11 +4822,9 @@ export interface TLUiCommandPalettePromptItemProps<TranslationKey extends string
 }
 
 // @public (undocumented)
-export interface TLUiCommandPaletteProps {
+export interface TLUiCommandPaletteProps extends Pick<TLUiCommandPaletteShellProps, 'position' | 'suggestions'> {
     children?: ReactNode;
     onClose?(): void;
-    position?: TLUiCommandPalettePosition;
-    suggestions?: TLUiCommandPaletteSuggestions;
 }
 
 // @public (undocumented)

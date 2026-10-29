@@ -1,4 +1,4 @@
-import { Editor } from '@tldraw/editor'
+import { Editor, useValue } from '@tldraw/editor'
 import { RefObject, useCallback, useLayoutEffect, useState } from 'react'
 import { CommandPaletteRow } from './commandPaletteRows'
 import { TLUiCommandPalettePosition } from './CommandPaletteShell'
@@ -52,9 +52,14 @@ export function useCommandPaletteLayout({
 	// while searching, so the input stays put as results shrink. Only set when it changes: a new
 	// object would re-render the registered items, change the rows and measure again, forever. A
 	// vertical toolbar is a narrow column, and outside an editor there is no toolbar, so both fall
-	// back to the CSS box.
+	// back to the CSS box. Touch devices use the CSS box too, which opens at the top.
+	const isCoarsePointer = useValue(
+		'coarse pointer',
+		() => editor?.getInstanceState().isCoarsePointer ?? false,
+		[editor]
+	)
 	useLayoutEffect(() => {
-		if (position !== 'bottom' || !editor) return setAnchor(null)
+		if (position !== 'bottom' || !editor || isCoarsePointer) return setAnchor(null)
 		if (!isBrowsing) return
 		const container = editor.getContainer()
 		const palette = rPalette.current
@@ -72,7 +77,7 @@ export function useCommandPaletteLayout({
 				? prev
 				: next
 		)
-	}, [editor, position, isBrowsing, rPalette, rows])
+	}, [editor, position, isCoarsePointer, isBrowsing, rPalette, rows])
 
 	return { anchor, canScrollDown, onListScroll: updateScroll }
 }

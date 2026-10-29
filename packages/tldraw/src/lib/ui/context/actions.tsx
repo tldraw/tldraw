@@ -22,6 +22,7 @@ import {
 	fetch,
 	kickoutOccludedShapes,
 	openWindow,
+	useAtom,
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
@@ -34,7 +35,7 @@ import { COMMAND_PALETTE_MENU_ID } from '../components/CommandPalette/commandPal
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { isMinimapCollapsed, toggleMinimap } from '../components/NavigationPanel/minimapCollapsed'
-import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from '../constants'
+import { PORTRAIT_BREAKPOINT } from '../constants'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -68,6 +69,7 @@ import {
 	supportsDownloadingOriginal,
 } from './action-predicates'
 import { isActionRunnable } from './action-state'
+import { useBreakpoint } from './breakpoints'
 import { useTldrawUiComponents } from './components'
 import { TLUiEventSource, useUiEvents } from './events'
 
@@ -334,8 +336,9 @@ export interface TLUiActionItem<
 	/** For checkbox actions: whether the item shows as checked. Must be pure and read only editor state. */
 	isChecked?(editor: Editor): boolean
 	/**
-	 * Where the command palette lists the action. `false` leaves it out, `{ group }` lists it in the
-	 * `CommandPaletteActionGroup` with that group. Without it, the palette's catch-all group lists it.
+	 * Where the command palette lists the action. `false` leaves it out; `{ group }` lists it in the
+	 * `CommandPaletteActionGroup` with that group when one is rendered. Otherwise, and without a
+	 * group, the palette's catch-all group lists it.
 	 */
 	commandPalette?: false | { group?: string }
 	onSelect(source: TLUiEventSource): Promise<void> | void
@@ -419,6 +422,13 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const trackEvent = useUiEvents()
 	const a11y = useA11y()
 	const msg = useTranslation()
+
+	// An atom, not a memo dep, so actions don't rebuild on every breakpoint change.
+	const breakpoint = useBreakpoint()
+	const breakpointAtom = useAtom('actions breakpoint', breakpoint)
+	React.useLayoutEffect(() => {
+		breakpointAtom.set(breakpoint)
+	}, [breakpointAtom, breakpoint])
 
 	const defaultDocumentName = helpers.msg(messages.documentDefaultName)
 
@@ -1793,11 +1803,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'toggle-minimap',
 				label: messages.actionToggleMinimap.id,
-				// The navigation panel only shows the minimap from tablet width up.
+				// Mirrors where TldrawUi and DefaultNavigationPanel actually render the minimap.
 				isAvailable: (editor) =>
 					!!components.Minimap &&
 					!!components.NavigationPanel &&
-					editor.getViewportScreenBounds().width > PORTRAIT_BREAKPOINTS[PORTRAIT_BREAKPOINT.TABLET],
+					!editor.getInstanceState().isFocusMode &&
+					breakpointAtom.get() >= PORTRAIT_BREAKPOINT.TABLET,
 				isChecked: (editor) => !isMinimapCollapsed(editor),
 				readonlyOk: true,
 				commandPalette: { group: 'view' },
@@ -2307,6 +2318,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		msg,
 		a11y,
 		components,
+		breakpointAtom,
 	])
 
 	return (

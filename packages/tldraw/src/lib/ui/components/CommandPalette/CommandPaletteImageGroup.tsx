@@ -22,7 +22,7 @@ const messages = defineMessages({
 
 /**
  * The image toolbar's commands, while one unlocked image is selected: replace, crop, aspect ratio
- * and alternative text.
+ * and alternative text. Needs an editor.
  *
  * @public @react
  */
