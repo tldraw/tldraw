@@ -371,6 +371,7 @@ export function CommandPaletteShell({
 						<CommandPaletteList
 							listboxId={listboxId}
 							sections={sections}
+							reserveCheckSlot={!!query}
 							indexByKey={indexByKey}
 							activeIndex={clampedIndex}
 							rScrollToActive={rScrollToActive}

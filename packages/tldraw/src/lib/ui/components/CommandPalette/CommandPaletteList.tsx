@@ -22,6 +22,7 @@ export function getCommandPaletteOptionId(listboxId: string, index: number) {
 export function CommandPaletteList({
 	listboxId,
 	sections,
+	reserveCheckSlot,
 	indexByKey,
 	activeIndex,
 	rScrollToActive,
@@ -30,6 +31,7 @@ export function CommandPaletteList({
 }: {
 	listboxId: string
 	sections: CommandPaletteSection[]
+	reserveCheckSlot: boolean
 	indexByKey: ReadonlyMap<string, number>
 	activeIndex: number
 	rScrollToActive: RefObject<boolean>
@@ -37,8 +39,9 @@ export function CommandPaletteList({
 	onRun(row: SelectableRow): void
 }) {
 	return sections.map((section, sectionIndex) => {
-		// Only sections with a checkable row reserve the check slot, so their labels line up.
-		const hasCheckSlot = section.rows.some((row) => getMark(row) !== undefined)
+		// Only sections with a checkable row reserve the check slot, so their labels line up. Search
+		// always reserves it, or labels would shift as hits come and go with each keystroke.
+		const hasCheckSlot = reserveCheckSlot || section.rows.some((row) => getMark(row) !== undefined)
 		const options = section.rows.map((row) => {
 			const index = indexByKey.get(row.key)!
 			return (

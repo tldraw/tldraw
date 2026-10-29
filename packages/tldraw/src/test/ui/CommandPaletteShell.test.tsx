@@ -579,6 +579,31 @@ describe('CommandPaletteShell', () => {
 		expect(iconCount('command-palette.item.gamma')).toBe(0)
 	})
 
+	it('keeps the check slot in search, so labels do not shift as hits change', async () => {
+		const { rendered, input } = await renderShell(
+			<>
+				{item('rectangle', 'Rectangle')}
+				<TldrawUiMenuCheckboxItem
+					id="reduce-motion"
+					label="Reduce motion"
+					checked={false}
+					readonlyOk
+					onSelect={vi.fn()}
+				/>
+			</>
+		)
+		const iconCount = () =>
+			rendered.getByTestId('command-palette.item.rectangle').querySelectorAll('.tlui-icon').length
+		type(input, 're')
+		await rendered.findByTestId('command-palette.item.reduce-motion')
+		expect(iconCount()).toBe(1)
+		type(input, 'rec')
+		await waitFor(() =>
+			expect(rendered.queryByTestId('command-palette.item.reduce-motion')).toBeNull()
+		)
+		expect(iconCount()).toBe(1)
+	})
+
 	it('ignores Enter while an IME composition is in progress', async () => {
 		const onSelect = vi.fn()
 		const { input } = await renderShell(item('alpha', 'Alpha', onSelect))
