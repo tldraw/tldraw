@@ -8,7 +8,7 @@ import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 import { getPrDetailsAndCommitSha, labelPresent, PullRequest } from './lib/pr-info'
 import { stripSkipCiMarkers } from './lib/skip-ci'
-import { getAllWorkspacePackages, getPackageManager } from './lib/workspace'
+import { getAllWorkspacePackages } from './lib/workspace'
 
 function getEnv() {
 	return makeEnv([
@@ -40,8 +40,8 @@ function getTriggerType(pr: PullRequest): 'none' | 'SDK' | 'docs' {
 	return isDocsOnly ? 'docs' : 'SDK'
 }
 
-// The release branch's pre-commit hook may expect a different package manager than this job set
-// up, and its dependencies aren't installed yet when we commit.
+// The release branch's dependencies aren't installed yet when we commit, so its pre-commit hook
+// would fail.
 const SKIP_HOOKS = ['-c', 'core.hooksPath=/dev/null']
 
 const RELEASE_NOTES_FILE = /^apps\/docs\/content\/releases\/[^/]+\.mdx$/
@@ -142,33 +142,12 @@ async function main() {
 		}
 	)
 
-	const packageManager = getPackageManager()
-	const install = async () => {
-		if (packageManager === 'pnpm') return exec('pnpm', ['install'])
-		// Yarn installs over the job's pnpm node_modules without replacing its layout, so
-		// api-extractor resolves types differently and every prepack build-api fails its report check.
-		await exec('find', [
-			'.',
-			'-name',
-			'node_modules',
-			'-type',
-			'd',
-			'-prune',
-			'-exec',
-			'rm',
-			'-rf',
-			'{}',
-			'+',
-		])
-		return exec('yarn', ['install', '--immutable'])
-	}
-
 	if (triggerType === 'docs') {
 		await discord.step(`Ensuring no SDK changes are present`, async () => {
-			// install again before building packages to make sure everything is ready
+			// run pnpm install again before building packages to make sure everything is ready
 			// in case HEAD included dev dependency changes
-			await install()
-			await exec(packageManager, ['refresh-assets', '--force'])
+			await exec('pnpm', ['install'])
+			await exec('pnpm', ['refresh-assets', '--force'])
 
 			const diff = await getAnyPackageDiff(version.format())
 			if (diff) {
@@ -191,10 +170,10 @@ async function main() {
 		})
 	} else {
 		await discord.step('Running sdk tests', async () => {
-			await install()
+			await exec('pnpm', ['install'])
 			const packages = await getAllWorkspacePackages()
 
-			await exec(packageManager, [
+			await exec('pnpm', [
 				'test',
 				...packages
 					.filter((p) => !p.packageJson.private)
