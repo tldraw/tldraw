@@ -550,3 +550,127 @@
 		grid-template-columns: 1fr;
 	}
 }
+
+/* What's new */
+.whatsNewHeader {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.whatsNewHeader p {
+	margin: 0;
+}
+
+.whatsNewNarrowCol {
+	width: 120px;
+}
+
+.whatsNewRowSelected,
+.whatsNewRowSelected:hover {
+	background: var(--admin-hover);
+	font-weight: 600;
+}
+
+.whatsNewStatusDraft,
+.whatsNewStatusPublished {
+	padding: 1px 6px;
+	border-radius: 4px;
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.whatsNewStatusDraft {
+	color: var(--admin-text-2);
+	background: var(--admin-hover);
+}
+
+.whatsNewStatusPublished {
+	color: var(--admin-surface);
+	background: var(--admin-green);
+}
+
+.whatsNewEditor {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 16px;
+	margin-top: 8px;
+	padding-top: 16px;
+	border-top: 1px solid var(--admin-border-2);
+}
+
+.whatsNewForm {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.whatsNewField {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.whatsNewInput,
+.whatsNewBody {
+	padding: 6px 8px;
+	border: 1px solid var(--admin-border-2);
+	border-radius: 4px;
+	background: var(--admin-surface);
+	font: inherit;
+	color: var(--admin-text);
+}
+
+.whatsNewInput {
+	height: 32px;
+}
+
+.whatsNewBody {
+	min-height: 320px;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 12px;
+	line-height: 1.6;
+	resize: vertical;
+}
+
+.whatsNewInput:focus,
+.whatsNewBody:focus {
+	outline: 1px solid var(--admin-border);
+	outline-offset: -1px;
+}
+
+.whatsNewActions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.whatsNewDelete,
+.whatsNewDelete:hover:not(:disabled) {
+	background: var(--admin-red);
+	color: var(--admin-surface);
+}
+
+.whatsNewDelete:hover:not(:disabled) {
+	filter: brightness(0.92);
+}
+
+.whatsNewActionsEnd {
+	display: flex;
+	gap: 8px;
+}
+
+/* Matches the dialog body's width so line breaks and media sizing read as they will for users. */
+.whatsNewPreview {
+	width: 100%;
+	max-width: 480px;
+	min-height: 360px;
+	padding: 16px;
+	border: 1px solid var(--admin-border-2);
+	border-radius: 8px;
+	background: var(--admin-surface);
+	box-shadow: var(--admin-shadow);
+	overflow: auto;
+}
