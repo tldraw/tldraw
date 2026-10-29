@@ -19,6 +19,17 @@ export type CommandPaletteRow =
 	  }
 	| { type: 'submenu'; key: string; submenu: CommandPaletteSubmenu }
 
+/** @internal */
+export type SelectableRow = Extract<CommandPaletteRow, { type: 'item' | 'submenu' }>
+
+/** @internal */
+export interface CommandPaletteSection {
+	key: string
+	heading?: Extract<CommandPaletteRow, { type: 'heading' }>
+	separated?: boolean
+	rows: SelectableRow[]
+}
+
 function itemRow(entry: CommandPaletteEntry, label = entry.label): CommandPaletteRow {
 	return {
 		type: 'item',
@@ -193,4 +204,49 @@ export function getCommandPaletteSubmenuRows(
 	return rankCommandPaletteEntries(rankable, query, recentIds).map(({ entry }) =>
 		itemRow(entry, entry.name)
 	)
+}
+
+/** @internal */
+export function getCommandPalettePromptRows(
+	prompt: CommandPaletteEntry,
+	query: string,
+	cancelLabel: string,
+	dir: 'ltr' | 'rtl'
+): CommandPaletteRow[] {
+	// Spells out what Enter does, and offers a way back.
+	const value = query.trim()
+	const icon = dir === 'rtl' ? 'arrow-left' : 'arrow-right'
+	return [
+		{
+			type: 'item',
+			key: 'prompt',
+			entry: prompt,
+			label: prompt.name,
+			detail: value ? `“${value}”` : undefined,
+			icon,
+			recent: false,
+		},
+		{
+			type: 'item',
+			key: 'prompt:cancel',
+			entry: { ...prompt, id: 'command-palette-cancel', prompt: undefined, kbd: '[[Esc]]' },
+			label: cancelLabel,
+			icon,
+			recent: false,
+		},
+	]
+}
+
+/** @internal */
+export function getCommandPaletteSections(rows: readonly CommandPaletteRow[]) {
+	const out: CommandPaletteSection[] = []
+	for (const row of rows) {
+		if (row.type === 'heading') out.push({ key: row.key, heading: row, rows: [] })
+		else if (row.type === 'separator') out.push({ key: row.key, separated: true, rows: [] })
+		else {
+			if (!out.length) out.push({ key: 'start', rows: [] })
+			out[out.length - 1].rows.push(row)
+		}
+	}
+	return out
 }
