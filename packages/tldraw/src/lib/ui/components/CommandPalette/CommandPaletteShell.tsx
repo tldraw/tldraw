@@ -15,7 +15,11 @@ import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 import { CommandPaletteStoreProvider } from './CommandPaletteContext'
 import { handleCommandPaletteKeyDown } from './commandPaletteKeyboard'
-import { CommandPaletteList, getCommandPaletteOptionId } from './CommandPaletteList'
+import {
+	CommandPaletteList,
+	getCommandPaletteEntryMark,
+	getCommandPaletteOptionId,
+} from './CommandPaletteList'
 import { addCommandPaletteRecent, getCommandPaletteRecents } from './commandPaletteRecents'
 import {
 	CommandPaletteRow,
@@ -59,9 +63,9 @@ export type TLUiCommandPaletteSuggestions = 'recent' | 'none'
 /** @public */
 export interface TLUiCommandPaletteShellProps {
 	/**
-	 * Where the palette opens. Defaults to `'center'`. `'bottom'` sits just above the toolbar at its
-	 * width when the toolbar is horizontal; otherwise it opens horizontally centered, lower than
-	 * `'center'`.
+	 * Where the palette opens. Defaults to `'center'`. `'top'` sits near the top edge. `'bottom'` sits
+	 * just above the toolbar at its width when the toolbar is horizontal; otherwise it opens lower
+	 * than `'center'`. On touch devices every position opens near the top edge.
 	 */
 	position?: TLUiCommandPalettePosition
 	/**
@@ -71,7 +75,10 @@ export interface TLUiCommandPaletteShellProps {
 	suggestions?: TLUiCommandPaletteSuggestions
 	/** Called when the user dismisses the palette or runs a command. */
 	onClose(): void
-	/** The palette's items, as `TldrawUiMenu*` components and `CommandPalette*` groups. */
+	/**
+	 * The palette's items, as `TldrawUiMenu*` components and, with an editor, `CommandPalette*`
+	 * groups.
+	 */
 	children: ReactNode
 }
 
@@ -153,6 +160,14 @@ export function CommandPaletteShell({
 	const backLabel = prompt?.search ? prompt.name : !prompt && submenu ? submenu.label : null
 
 	const isBrowsing = !query && !submenu && !prompt
+	// Every row keeps a check slot so labels line up, except in an opened submenu with nothing to
+	// check, like a list of pages.
+	const hasCheckSlot =
+		!submenu ||
+		entries.some(
+			(entry) =>
+				entry.submenu?.key === submenu.key && getCommandPaletteEntryMark(entry) !== undefined
+		)
 	const { anchor, canScrollDown, onListScroll } = useCommandPaletteLayout({
 		editor,
 		position,
@@ -172,8 +187,9 @@ export function CommandPaletteShell({
 	useLayoutEffect(() => {
 		const input = rInput.current
 		if (!input) return
-		if (!editor) {
-			const focused = input.ownerDocument.activeElement
+		// StrictMode reruns this with the input focused; keep the element saved by the first run.
+		const focused = input.ownerDocument.activeElement
+		if (!editor && !rPalette.current?.contains(focused)) {
 			rFocusBefore.current =
 				focused && focused !== input.ownerDocument.body ? (focused as HTMLElement) : null
 		}
@@ -393,6 +409,7 @@ export function CommandPaletteShell({
 						<CommandPaletteList
 							listboxId={listboxId}
 							sections={sections}
+							hasCheckSlot={hasCheckSlot}
 							indexByKey={indexByKey}
 							activeIndex={clampedIndex}
 							rScrollToActive={rScrollToActive}

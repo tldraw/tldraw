@@ -117,6 +117,8 @@ export function handleCommandPaletteKeyDown(
 		default:
 			if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
 				e.preventDefault()
+				// Without an editor, the app's own Cmd+K toggle would reopen it.
+				e.stopPropagation()
 				dismiss()
 			}
 	}

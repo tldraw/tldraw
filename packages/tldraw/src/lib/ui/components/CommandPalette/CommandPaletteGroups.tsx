@@ -1,6 +1,7 @@
 import { defineMessages, PageRecordType, useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../../context/actions'
 import { useUiEvents } from '../../context/events'
+import { useCommentingEnabled } from '../../hooks/useCommentingEnabled'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTools } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -46,7 +47,8 @@ export interface TLUiCommandPaletteActionGroupProps {
 	group?: string
 	/**
 	 * The group's heading, a translation key or plain text, also searched along with each item's
-	 * label. Without it, the group is a section with no heading.
+	 * label. An enclosing group's label heads it instead. Without one, its items take the enclosing
+	 * group's heading, if any.
 	 */
 	label?: string
 }
@@ -54,7 +56,7 @@ export interface TLUiCommandPaletteActionGroupProps {
 /**
  * Lists actions in the command palette, in the order they're defined. An action shows once,
  * wherever it's placed first, so a catch-all group at the end only adds the actions nothing
- * earlier listed.
+ * earlier listed. Needs an editor.
  *
  * @public @react
  */
@@ -81,7 +83,7 @@ export function CommandPaletteActionGroup({ group, label }: TLUiCommandPaletteAc
 
 /**
  * Commands on the selection, such as delete, duplicate, group and lock, while shapes are
- * selected.
+ * selected. Needs an editor.
  *
  * @public @react
  */
@@ -91,6 +93,7 @@ export function CommandPaletteSelectionGroup() {
 
 /**
  * Align, distribute, stack, reorder, flip and rotate commands, while shapes are selected.
+ * Needs an editor.
  *
  * @public @react
  */
@@ -99,7 +102,7 @@ export function CommandPaletteArrangeGroup() {
 }
 
 /**
- * Undo, redo, paste, select all, unlock all, and insert media or embed.
+ * Undo, redo, paste, select all, unlock all, and insert media or embed. Needs an editor.
  *
  * @public @react
  */
@@ -108,7 +111,7 @@ export function CommandPaletteEditGroup() {
 }
 
 /**
- * Zoom, grid, focus mode and minimap toggles, and the color scheme submenu.
+ * Zoom, grid, focus mode and minimap toggles, and the color scheme submenu. Needs an editor.
  *
  * @public @react
  */
@@ -124,6 +127,7 @@ export function CommandPaletteViewGroup() {
 /**
  * Go to page, new page, rename, duplicate or delete the current page, and move the selection to
  * another page. Renders nothing when `maxPages` is 1; read-only users only get go to page.
+ * Needs an editor.
  *
  * @public @react
  */
@@ -217,7 +221,8 @@ export function CommandPalettePagesGroup() {
 }
 
 /**
- * Copy and export as image or JSON, and print.
+ * Export as SVG or PNG, copy as SVG, PNG or JSON, the transparent background toggle, and print.
+ * Needs an editor.
  *
  * @public @react
  */
@@ -229,8 +234,8 @@ export function CommandPaletteExportGroup() {
 const EXCLUDED_TOOLS = new Set(['asset', 'embed'])
 
 /**
- * One item per tool, except the current one and the media and embed tools, which the edit
- * group covers.
+ * One item per tool, except the current one, the media and embed tools, which the edit group
+ * covers, and the comment tool while commenting is off. Needs an editor.
  *
  * @public @react
  */
@@ -238,10 +243,16 @@ export function CommandPaletteToolsGroup() {
 	const editor = useEditor()
 	const tools = useTools()
 	const currentToolId = useValue('current tool', () => editor.getCurrentToolId(), [editor])
+	const commentingEnabled = useCommentingEnabled()
 	return (
 		<TldrawUiMenuGroup id="command-palette-tools" label={messages.tools.id}>
 			{Object.values(tools)
-				.filter((tool) => !EXCLUDED_TOOLS.has(tool.id) && tool.id !== currentToolId)
+				.filter(
+					(tool) =>
+						!EXCLUDED_TOOLS.has(tool.id) &&
+						tool.id !== currentToolId &&
+						(tool.id !== 'comment' || commentingEnabled)
+				)
 				.map((tool) => (
 					<TldrawUiMenuToolItem key={tool.id} toolId={tool.id} />
 				))}
@@ -250,7 +261,7 @@ export function CommandPaletteToolsGroup() {
 }
 
 /**
- * Preference toggles, an accessibility submenu, input mode and language.
+ * Preference toggles, an accessibility submenu, input mode and language. Needs an editor.
  *
  * @public @react
  */
@@ -269,6 +280,7 @@ export function CommandPalettePreferencesGroup() {
 
 /**
  * Keyboard shortcuts, plus exit pen mode, stop following and cursor chat when they apply.
+ * Needs an editor.
  *
  * @public @react
  */
