@@ -665,11 +665,11 @@
 /* Matches the dialog body's width so line breaks and media sizing read as they will for users. */
 .whatsNewPreview {
 	width: 100%;
-	max-width: 480px;
+	max-width: 500px;
 	min-height: 360px;
-	padding: 16px;
+	padding: 12px 20px 16px;
 	border: 1px solid var(--admin-border-2);
-	border-radius: 8px;
+	border-radius: 9px;
 	background: var(--admin-surface);
 	box-shadow: var(--admin-shadow);
 	overflow: auto;

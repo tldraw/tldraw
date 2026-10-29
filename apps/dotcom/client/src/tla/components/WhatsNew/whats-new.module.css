@@ -1,8 +1,11 @@
+/* Values from the Figma design: 12px Inter throughout, 19.2px body line height. */
 .update {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 12px;
 	font-family: var(--tla-font-ui);
+	font-size: 12px;
+	line-height: 19.2px;
 	color: var(--tl-color-text-0);
 }
 
@@ -10,24 +13,23 @@
 	display: flex;
 	align-items: baseline;
 	flex-wrap: wrap;
-	gap: 8px;
+	gap: 6px;
 }
 
 .updateTitle {
 	margin: 0;
-	font-size: 14px;
-	font-weight: 600;
-	line-height: 1.3;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 19.2px;
 }
 
 .updateDate {
-	font-size: 12px;
 	font-weight: 500;
 	color: var(--tl-color-text-3);
 }
 
 .draftBadge {
-	padding: 1px 6px;
+	padding: 0 6px;
 	border-radius: 4px;
 	font-size: 11px;
 	font-weight: 600;
@@ -36,29 +38,31 @@
 }
 
 .markdown {
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: 500;
-	line-height: 1.5;
-	color: var(--tl-color-text-1);
+	line-height: 19.2px;
+	color: var(--tl-color-text-0);
 }
 
-.markdown > :first-child {
+.markdown > * {
+	margin: 0;
+}
+
+.markdown > * + * {
+	margin-top: 12px;
+}
+
+/* A list belongs to the paragraph that introduces it. */
+.markdown > p + ul,
+.markdown > p + ol {
 	margin-top: 0;
 }
 
-.markdown > :last-child {
-	margin-bottom: 0;
-}
-
-.markdown p,
+/* `display: block` undoes tldraw's dialog lists, which are flex columns with a gap. */
 .markdown ul,
 .markdown ol {
-	margin: 0 0 8px;
-}
-
-.markdown ul,
-.markdown ol {
-	padding-left: 20px;
+	display: block;
+	padding-left: 18px;
 }
 
 .markdown a {
@@ -69,39 +73,48 @@
 	display: block;
 	max-width: 100%;
 	height: auto;
-	margin: 8px 0;
-	border: 1px solid var(--tl-color-divider);
-	border-radius: 6px;
+	border-radius: 4px;
+	outline: 1px solid rgba(0, 0, 0, 0.1);
+	outline-offset: -1px;
 }
 
 .dialogTitle {
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: 500;
 	color: var(--tl-color-text-0);
 }
 
 .dialogBody {
-	width: min(480px, calc(100vw - 32px));
-	max-height: min(640px, calc(100vh - 200px));
+	width: min(500px, calc(100vw - 32px));
+	max-height: min(600px, calc(100vh - 200px));
 	overflow-y: auto;
+	padding: 12px 20px 16px;
+	border-top: 1px solid var(--tl-color-divider);
+	border-bottom: 1px solid var(--tl-color-divider);
 }
 
 .dialogFooter {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: 8px;
-	padding: 8px 12px;
-	border-top: 1px solid var(--tl-color-divider);
+	min-height: 44px;
+	padding: 0 0 0 12px;
 }
 
 .autoOpen {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	font-size: 13px;
+	gap: 5px;
+	font-size: 12px;
+	font-weight: 500;
 	color: var(--tl-color-text-1);
 	cursor: pointer;
+}
+
+.autoOpen input {
+	width: 13px;
+	height: 13px;
+	margin: 1px;
 }
 
 .dot {
@@ -190,6 +203,11 @@
 	padding-top: 2px;
 	font-size: 12px;
 	color: var(--tl-color-text-3);
+}
+
+.pageEntryContent .markdown {
+	font-size: 13px;
+	line-height: 1.6;
 }
 
 .pageEntryContent {
