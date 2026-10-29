@@ -288,6 +288,10 @@
 	border-left: 2px solid var(--admin-red);
 }
 
+.dangerZone > button {
+	align-self: flex-start;
+}
+
 .deleteContainer {
 	display: flex;
 	gap: 8px;

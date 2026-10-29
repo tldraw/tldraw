@@ -1,5 +1,5 @@
 import { AdminFileAssetsResponseBody } from '@tldraw/dotcom-shared'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
@@ -475,62 +475,71 @@ function DownloadTldrFile({ fileId, legacy }: { fileId: string; legacy: boolean 
 }
 
 function SoftDeleteFile({ fileId }: { fileId: string }) {
+	// null while loading; 'none' for a legacy room, which has no file row
+	const [status, setStatus] = useState(null as 'live' | 'deleted' | 'none' | null)
 	const [error, setError] = useState(null as string | null)
 	const [successMessage, setSuccessMessage] = useTransientMessage()
-	const [busyAction, setBusyAction] = useState(null as 'soft_delete_file' | 'undelete_file' | null)
+	const [isBusy, setIsBusy] = useState(false)
 
-	const run = useCallback(
-		async (action: 'soft_delete_file' | 'undelete_file') => {
-			const prompt =
-				action === 'soft_delete_file'
-					? `Soft-delete file ${fileId}? It leaves every sidebar. Undelete restores it.`
-					: `Undelete file ${fileId}? It reappears in its workspace.`
-			if (!window.confirm(prompt)) return
-			setError(null)
-			setSuccessMessage(null)
-			setBusyAction(action)
-			try {
-				const res = await fetch(`/api/app/admin/${action}/${encodeURIComponent(fileId)}`, {
-					method: 'POST',
-				})
-				if (!res.ok) {
-					setError(await getResponseError(res))
-					return
-				}
-				setSuccessMessage(action === 'soft_delete_file' ? 'File soft-deleted' : 'File undeleted')
-			} finally {
-				setBusyAction(null)
+	useEffect(() => {
+		fetch(`/api/app/admin/file/${encodeURIComponent(fileId)}`)
+			.then(async (res) => {
+				if (res.status === 404) return setStatus('none')
+				if (!res.ok) return setError(await getResponseError(res))
+				const file = (await res.json()) as { isDeleted: boolean }
+				setStatus(file.isDeleted ? 'deleted' : 'live')
+			})
+			.catch((err) => setError(err instanceof Error ? err.message : 'Failed to load file'))
+	}, [fileId])
+
+	const run = useCallback(async () => {
+		const action = status === 'deleted' ? 'undelete_file' : 'soft_delete_file'
+		const prompt =
+			action === 'soft_delete_file'
+				? `Soft-delete file ${fileId}? It leaves every sidebar. Undelete restores it.`
+				: `Undelete file ${fileId}? It reappears in its workspace.`
+		if (!window.confirm(prompt)) return
+		setError(null)
+		setSuccessMessage(null)
+		setIsBusy(true)
+		try {
+			const res = await fetch(`/api/app/admin/${action}/${encodeURIComponent(fileId)}`, {
+				method: 'POST',
+			})
+			if (!res.ok) {
+				setError(await getResponseError(res))
+				return
 			}
-		},
-		[fileId, setSuccessMessage]
-	)
+			setStatus(action === 'soft_delete_file' ? 'deleted' : 'live')
+			setSuccessMessage(action === 'soft_delete_file' ? 'File soft-deleted' : 'File undeleted')
+		} finally {
+			setIsBusy(false)
+		}
+	}, [fileId, status, setSuccessMessage])
 
 	return (
 		<div className={styles.fileOperation}>
 			<p>
-				Soft delete marks the file deleted, the same as an owner deleting it. Undelete restores it.
-				Neither works for legacy rooms.
+				{status === null
+					? 'Loading…'
+					: status === 'none'
+						? 'No file row (legacy room), so soft delete does not apply.'
+						: status === 'deleted'
+							? 'This file is soft-deleted. Undelete restores it to its workspace.'
+							: 'This file is live. Soft delete marks it deleted, the same as an owner deleting it.'}
 			</p>
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
-			<div className={styles.searchContainer}>
-				<AdminButton
-					onClick={() => run('soft_delete_file')}
-					variant="danger"
-					isLoading={busyAction === 'soft_delete_file'}
-					disabled={busyAction !== null}
-				>
+			{status === 'live' && (
+				<AdminButton onClick={run} variant="danger" isLoading={isBusy}>
 					Soft delete
 				</AdminButton>
-				<AdminButton
-					onClick={() => run('undelete_file')}
-					variant="primary"
-					isLoading={busyAction === 'undelete_file'}
-					disabled={busyAction !== null}
-				>
+			)}
+			{status === 'deleted' && (
+				<AdminButton onClick={run} variant="primary" isLoading={isBusy}>
 					Undelete
 				</AdminButton>
-			</div>
+			)}
 		</div>
 	)
 }

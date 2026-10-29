@@ -519,6 +519,20 @@ export const adminRoutes = createRouter<Environment>()
 		}
 		return await hardDeleteAppFile({ pg, file, env })
 	})
+	// 404 for legacy rooms, which have no file row.
+	.get('/app/admin/file/:fileId', async (res, env) => {
+		const fileId = res.params.fileId
+		assert(typeof fileId === 'string', 'fileId is required')
+
+		const pg = createPostgresConnectionPool(env, '/app/admin/file')
+		const file = await pg
+			.selectFrom('file')
+			.select(['id', 'isDeleted'])
+			.where('id', '=', fileId)
+			.executeTakeFirst()
+		if (!file) return new Response('File not found', { status: 404 })
+		return json(file)
+	})
 	// The same soft delete an owner's delete does: cleanup_deleted_file_trigger drops the file's
 	// file_state and group_file rows, and the outbox trigger records the change for the room.
 	.post('/app/admin/soft_delete_file/:fileId', async (res, env) => {
