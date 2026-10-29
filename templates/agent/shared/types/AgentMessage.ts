@@ -12,4 +12,6 @@ export interface AgentMessageContent {
 	image?: string
 	/** A past action, sent to the model as a call to that action's tool. */
 	action?: AgentAction
+	/** What the past action did, sent to the model as the result of its tool call. */
+	result?: string
 }

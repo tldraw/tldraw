@@ -1,4 +1,5 @@
 import { ImagePart, ModelMessage, TextPart, ToolCallPart, ToolResultPart } from 'ai'
+import { CHAT_HISTORY_PRIORITY } from '../../shared/schema/PromptPartDefinitions'
 import { AgentMessage, AgentMessageContent } from '../../shared/types/AgentMessage'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { getPromptPartDefinition, PromptPart } from '../../shared/types/PromptPart'
@@ -15,7 +16,16 @@ export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 	// Sort by priority (higher priority = later in prompt)
 	allMessages.sort((a, b) => a.priority - b.priority)
 
-	return toModelMessages(allMessages)
+	const history = toModelMessages(allMessages.filter((m) => m.priority === CHAT_HISTORY_PRIORITY))
+	const rest = toModelMessages(allMessages.filter((m) => m.priority !== CHAT_HISTORY_PRIORITY))
+
+	// Claude caches only up to a marked message. The next request repeats the history and adds to it.
+	const lastHistoryMessage = history.at(-1)
+	if (lastHistoryMessage) {
+		lastHistoryMessage.providerOptions = { anthropic: { cacheControl: { type: 'ephemeral' } } }
+	}
+
+	return [...history, ...rest]
 }
 
 /**
@@ -72,7 +82,9 @@ function defaultBuildMessagesFromPart(part: PromptPart): AgentMessage[] {
 /**
  * Convert AgentMessage[] to ModelMessage[] for the AI SDK. Past actions become calls to their tools.
  * Consecutive actions share one assistant turn, followed by one message with every result: a long
- * history of one call per turn teaches some models (Gemini) to make one call per response.
+ * history of one call per turn teaches some models (Gemini) to make one call per response. Any other
+ * message ends the turn, including an empty one, such as the prompt of a request that only sends
+ * results back. So each response keeps its own turn, and later requests repeat it unchanged.
  */
 function toModelMessages(agentMessages: AgentMessage[]): ModelMessage[] {
 	const messages: ModelMessage[] = []
@@ -82,7 +94,7 @@ function toModelMessages(agentMessages: AgentMessage[]): ModelMessage[] {
 
 	for (const tlMessage of agentMessages) {
 		const content: (TextPart | ImagePart)[] = []
-		const toolCalls: ToolCallPart[] = []
+		const toolCalls: { call: ToolCallPart; result: string }[] = []
 
 		for (const contentItem of tlMessage.content) {
 			if (contentItem.type === 'image') {
@@ -90,19 +102,22 @@ function toModelMessages(agentMessages: AgentMessage[]): ModelMessage[] {
 			} else if (contentItem.type === 'action') {
 				const { _type, ...input } = contentItem.action!
 				toolCalls.push({
-					type: 'tool-call',
-					toolCallId: `history-${toolCallCount++}`,
-					toolName: _type,
-					input,
+					call: {
+						type: 'tool-call',
+						toolCallId: `history-${toolCallCount++}`,
+						toolName: _type,
+						input,
+					},
+					result: contentItem.result ?? 'Done.',
 				})
 			} else {
 				content.push({ type: 'text', text: contentItem.text! })
 			}
 		}
 
+		if (toolCalls.length === 0) toolTurn = null
 		if (content.length > 0) {
 			messages.push({ role: tlMessage.role, content } as ModelMessage)
-			toolTurn = null
 		}
 		if (toolCalls.length > 0) {
 			if (!toolTurn) {
@@ -110,15 +125,15 @@ function toModelMessages(agentMessages: AgentMessage[]): ModelMessage[] {
 				messages.push({ role: 'assistant', content: toolTurn.calls })
 				messages.push({ role: 'tool', content: toolTurn.results })
 			}
-			for (const { toolCallId, toolName } of toolCalls) {
+			for (const { call, result } of toolCalls) {
+				toolTurn.calls.push(call)
 				toolTurn.results.push({
 					type: 'tool-result',
-					toolCallId,
-					toolName,
-					output: { type: 'text', value: 'ok' },
+					toolCallId: call.toolCallId,
+					toolName: call.toolName,
+					output: { type: 'text', value: result },
 				})
 			}
-			toolTurn.calls.push(...toolCalls)
 		}
 	}
 

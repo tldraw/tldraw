@@ -185,7 +185,12 @@ export const CanvasLintsPartDefinition: PromptPartDefinition<CanvasLintsPart> = 
 }
 
 // ChatHistory
-const CHAT_HISTORY_PRIORITY = -Infinity // history should appear first in the prompt (low priority)
+/**
+ * The history comes before every other part. The other parts (the canvas, the time, the todos)
+ * change between requests, so with the history first, each request starts with the previous one
+ * and the provider can cache it.
+ */
+export const CHAT_HISTORY_PRIORITY = -Infinity
 
 export const ChatHistoryPartDefinition: PromptPartDefinition<ChatHistoryPart> = {
 	type: 'chatHistory',
@@ -254,10 +259,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 				}
 			}
 
-			if (content.length === 0) {
-				return null
-			}
-
+			// An empty prompt, such as one that only sends tool results back, still ends the tool turn.
 			const role =
 				item.promptSource === 'user' || item.promptSource === 'other-agent' ? 'user' : 'assistant'
 			return {
@@ -287,7 +289,13 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 					priority,
 				}
 			}
-			return { role: 'assistant', content: [{ type: 'action', action }], priority }
+			// Earlier reasoning is not sent again, as with the providers' own reasoning.
+			if (action._type === 'think') return null
+			return {
+				role: 'assistant',
+				content: [{ type: 'action', action, result: item.result ?? 'Done.' }],
+				priority,
+			}
 		}
 	}
 }

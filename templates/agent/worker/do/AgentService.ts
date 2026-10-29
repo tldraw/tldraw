@@ -5,7 +5,7 @@ import {
 	GoogleGenerativeAIProviderOptions,
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider, OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
-import { LanguageModel, ModelMessage, stepCountIs, streamText, tool, ToolSet } from 'ai'
+import { LanguageModel, ModelMessage, streamText, tool, ToolSet } from 'ai'
 import z from 'zod'
 import {
 	AgentModelDefinition,
@@ -40,9 +40,16 @@ export class AgentService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async *stream(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentAction>> {
+	/**
+	 * Stream the model's actions. `finish.toolCalls` receives the number of tool calls the model
+	 * made, whose results the client sends back in its next request.
+	 */
+	async *stream(
+		prompt: AgentPrompt,
+		finish: { toolCalls: number }
+	): AsyncGenerator<Streaming<AgentAction>> {
 		try {
-			for await (const event of this.streamActions(prompt)) {
+			for await (const event of this.streamActions(prompt, finish)) {
 				yield event
 			}
 		} catch (error: any) {
@@ -51,7 +58,10 @@ export class AgentService {
 		}
 	}
 
-	private async *streamActions(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentAction>> {
+	private async *streamActions(
+		prompt: AgentPrompt,
+		finish: { toolCalls: number }
+	): AsyncGenerator<Streaming<AgentAction>> {
 		const modelName = getModelName(prompt)
 		const model = this.getModel(modelName)
 
@@ -106,10 +116,9 @@ export class AgentService {
 		const result = streamText({
 			model,
 			messages,
+			// The client carries out each tool call and sends the results in its next request.
 			tools: buildActionTools(prompt),
 			toolChoice: 'auto',
-			// Tools return at once, so a model that waits for tool results can continue.
-			stopWhen: stepCountIs(MAX_STEPS),
 			maxOutputTokens: 8192,
 			// Opus 4.7+ removed `temperature` (and top_p/top_k); sending it returns a 400.
 			...(modelDefinition.supportsTemperature ? { temperature: 0 } : {}),
@@ -218,6 +227,7 @@ export class AgentService {
 					break
 				}
 				case 'tool-call': {
+					finish.toolCalls++
 					if (part.invalid) {
 						// The SDK returns the error to the model, which usually calls the tool again.
 						// Drop this call; the client reverts its partial changes when the next action
@@ -254,8 +264,8 @@ export class AgentService {
 		const closed = closeOpen()
 		if (closed) yield closed
 
-		// A reply with no action would otherwise end the stream with nothing to show.
-		if (actionCount === 0) {
+		// A user's prompt must get an answer. On a follow-up step, an empty reply means the work is done.
+		if (actionCount === 0 && prompt.messages?.requestSource !== 'self') {
 			const finishReason = await result.finishReason
 			throw new Error(
 				finishReason === 'content-filter'
@@ -266,12 +276,9 @@ export class AgentService {
 	}
 }
 
-/** Model requests per turn. Each step after the first sends the whole prompt again. */
-const MAX_STEPS = 4
-
 /**
  * One tool per action the mode allows, named by the action's `_type`. Messages are plain text, so
- * they have no tool. Every tool returns at once.
+ * they have no tool. The tools have no `execute`: the client carries them out.
  */
 function buildActionTools(prompt: AgentPrompt): ToolSet {
 	const modePart = prompt.mode
@@ -286,8 +293,6 @@ function buildActionTools(prompt: AgentPrompt): ToolSet {
 		tools[type] = tool({
 			description: (schema.meta() as ActionMeta | undefined)?.description,
 			inputSchema: schema.omit({ _type: true }),
-			// The client carries out the action. Data it gathers comes in a later request.
-			execute: async () => 'Done. Any data this action gathers comes in your next request.',
 		})
 	}
 	return tools

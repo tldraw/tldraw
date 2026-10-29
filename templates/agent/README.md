@@ -57,6 +57,8 @@ Aside from using the chat panel UI, you can also prompt the agent programmatical
 
 The simplest way is to call the `prompt()` method to start an agentic loop. The agent continues until it finishes the task.
 
+Each action is a tool call. The browser carries out the tool calls as they stream in, then sends their results back to the model in a follow-up request, with a new view of the canvas. The loop ends when the model replies without tool calls. A turn has at most 20 follow-up requests, and near that limit the model is told how many steps it has left.
+
 ```ts
 // Inside a component wrapped by TldrawAgentAppProvider
 const agent = useAgent()
@@ -429,6 +431,24 @@ override async applyAction(action: Streaming<CountryInfoAction>) {
 }
 ```
 
+## Report what an action did
+
+The model reads what each action did as the result of its tool call. By default, the result lists the shapes that the action created, updated or deleted. To report something else, override `getResult` in the action util.
+
+```ts
+override getResult() {
+	return `Number of shapes on the canvas: ${this.editor.getCurrentPageShapes().length}`
+}
+```
+
+When the model asks for something that cannot be done, throw an `ActionFailedError` from `applyAction`. Its message becomes the result, so the model can correct its mistake.
+
+```ts
+if (!existingShape) {
+	throw new ActionFailedError(`Shape ${action.update.shapeId} not found in canvas.`)
+}
+```
+
 ## Sanitize data received from the model
 
 The model can make mistakes. Sometimes this is due to hallucinations, sometimes because the canvas changed since the model last saw it. Either way, an incoming action might contain invalid data.
@@ -563,6 +583,10 @@ override getPart(request: AgentRequest, helpers: AgentHelpers): RandomShapePart 
 	}
 }
 ```
+
+## Limit usage before you deploy
+
+The starter kit has no usage limits. A public deployment pays for every request with your API keys, so add a limit per user, such as a budget of requests or spend, enforced on your server, before you deploy it publicly.
 
 ## Change the system prompt
 

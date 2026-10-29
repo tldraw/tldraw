@@ -2,7 +2,11 @@ import { RecordsDiff, structuredClone, TLRecord } from 'tldraw'
 import { AgentAction } from '../../../shared/types/AgentAction'
 import { ChatHistoryItem } from '../../../shared/types/ChatHistoryItem'
 import { Streaming } from '../../../shared/types/Streaming'
-import { AgentActionUtil, getAgentActionUtilsRecordForMode } from '../../actions/AgentActionUtil'
+import {
+	ActionFailedError,
+	AgentActionUtil,
+	getAgentActionUtilsRecordForMode,
+} from '../../actions/AgentActionUtil'
 import { AgentHelpers } from '../../AgentHelpers'
 import type { TldrawAgent } from '../TldrawAgent'
 import { BaseAgentManager } from './BaseAgentManager'
@@ -99,16 +103,21 @@ export class AgentActionManager extends BaseAgentManager {
 		this.agent.setIsActingOnEditor(true)
 
 		let promise: Promise<void> | null = null
-		let diff: RecordsDiff<TLRecord>
+		let diff: RecordsDiff<TLRecord> = { added: {}, updated: {}, removed: {} }
+		let failure: string | null = null
 		try {
 			diff = editor.store.extractingChanges(() => {
 				promise = util.applyAction(structuredClone(action), helpers) ?? null
 			})
 		} catch (error) {
-			// always toast the error
-			this.agent.onError(error)
 			promise = null
-			throw error // you may not want to throw in productions
+			if (!(error instanceof ActionFailedError)) {
+				// always toast the error
+				this.agent.onError(error)
+				throw error // you may not want to throw in productions
+			}
+			// The model made a mistake, which it reads in the result. This is not an app error.
+			failure = error.message
 		} finally {
 			this.agent.setIsActingOnEditor(false)
 		}
@@ -120,6 +129,7 @@ export class AgentActionManager extends BaseAgentManager {
 				action,
 				diff,
 				acceptance: 'pending',
+				result: action.complete ? (failure ?? util.getResult(action, diff)) : undefined,
 			}
 
 			this.agent.chat.update((historyItems) => {
