@@ -1,5 +1,5 @@
 import { act, fireEvent, waitFor, within } from '@testing-library/react'
-import { deleteFromLocalStorage, useValue } from '@tldraw/editor'
+import { deleteFromLocalStorage, Editor, useValue } from '@tldraw/editor'
 import { ReactNode, useState } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
@@ -16,7 +16,7 @@ import {
 } from '../../lib/ui/components/CommandPalette/commandPaletteRecents'
 import {
 	CommandPaletteShell,
-	TLUiCommandPalettePosition,
+	TLUiCommandPaletteShellProps,
 } from '../../lib/ui/components/CommandPalette/CommandPaletteShell'
 import { TldrawUiMenuCheckboxItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from '../../lib/ui/components/primitives/menus/TldrawUiMenuGroup'
@@ -49,12 +49,12 @@ afterEach(() => {
 async function renderShell(
 	children: ReactNode,
 	onClose: () => void = vi.fn(),
-	position?: TLUiCommandPalettePosition
+	props: Pick<TLUiCommandPaletteShellProps, 'position' | 'suggestions'> = {}
 ) {
 	const { editor, rendered } = await renderTldrawComponentWithEditor(
 		(onMount) => (
 			<Tldraw onMount={onMount}>
-				<CommandPaletteShell position={position} onClose={onClose}>
+				<CommandPaletteShell {...props} onClose={onClose}>
 					{children}
 				</CommandPaletteShell>
 			</Tldraw>
@@ -69,6 +69,17 @@ const type = (input: HTMLInputElement, value: string) =>
 	fireEvent.change(input, { target: { value } })
 const press = (input: HTMLInputElement, key: string, init: KeyboardEventInit = {}) =>
 	fireEvent.keyDown(input, { key, ...init })
+
+// The editor's own keyup handler marks every keyup it sees, so check before it runs.
+function isEnterKeyUpSwallowed(editor: Editor) {
+	const container = editor.getContainer()
+	let swallowed = false
+	const check = (e: Event) => (swallowed = editor.wasEventAlreadyHandled(e))
+	container.addEventListener('keyup', check, true)
+	container.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', bubbles: true }))
+	container.removeEventListener('keyup', check, true)
+	return swallowed
+}
 
 function item(id: string, label: string, onSelect = vi.fn(), extra: object = {}) {
 	return <TldrawUiMenuItem key={id} id={id} label={label} onSelect={onSelect} {...extra} />
@@ -181,7 +192,7 @@ describe('CommandPaletteShell', () => {
 	})
 
 	it('opens where its position says', async () => {
-		const { rendered } = await renderShell(item('alpha', 'Alpha'), vi.fn(), 'top')
+		const { rendered } = await renderShell(item('alpha', 'Alpha'), vi.fn(), { position: 'top' })
 		expect(rendered.getByTestId('command-palette').dataset.position).toBe('top')
 	})
 
@@ -255,9 +266,21 @@ describe('CommandPaletteShell', () => {
 	it("keeps Enter's keyup from reaching the editor after running an item", async () => {
 		const { editor, input } = await renderShell(item('alpha', 'Alpha'))
 		press(input, 'Enter')
-		const keyUp = new KeyboardEvent('keyup', { key: 'Enter', bubbles: true })
-		editor.getContainer().dispatchEvent(keyUp)
-		expect(editor.wasEventAlreadyHandled(keyUp)).toBe(true)
+		expect(isEnterKeyUpSwallowed(editor)).toBe(true)
+	})
+
+	it.each([
+		['the window blurs', (win: Window) => win.dispatchEvent(new Event('blur'))],
+		[
+			'a new key press starts',
+			(_win: Window, container: HTMLElement) =>
+				container.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })),
+		],
+	])("lets a later Enter keyup through when Enter's own keyup is lost and %s", async (_, lose) => {
+		const { editor, input } = await renderShell(item('alpha', 'Alpha'))
+		press(input, 'Enter')
+		lose(editor.getContainerWindow(), editor.getContainer())
+		expect(isEnterKeyUpSwallowed(editor)).toBe(false)
 	})
 
 	it("shows a submenu's icon on its row", async () => {
@@ -300,6 +323,31 @@ describe('CommandPaletteShell', () => {
 		)
 		await waitFor(() =>
 			expect(rendered.getAllByRole('option')[0].dataset.testid).toBe('command-palette.recent.beta')
+		)
+	})
+
+	it("leaves out recents while browsing with suggestions 'none', keeping pinned items and search", async () => {
+		addCommandPaletteRecent('beta')
+		const { rendered, input } = await renderShell(
+			<>
+				{item('alpha', 'Alpha')}
+				{item('beta', 'Beta')}
+				<CommandPalettePinned>{item('unread', 'Unread thing')}</CommandPalettePinned>
+			</>,
+			vi.fn(),
+			{ suggestions: 'none' }
+		)
+		await rendered.findByTestId('command-palette.item.beta')
+		const palette = within(rendered.getByTestId('command-palette'))
+		expect(palette.queryByText('Recent')).toBeNull()
+		expect(rendered.queryByTestId('command-palette.recent.beta')).toBeNull()
+		expect(rendered.getByTestId('command-palette.item.unread')).toBeTruthy()
+
+		type(input, 'alp')
+		await waitFor(() =>
+			expect(rendered.getAllByRole('option').map((el) => el.dataset.testid)).toEqual([
+				'command-palette.item.alpha',
+			])
 		)
 	})
 

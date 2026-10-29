@@ -4,6 +4,7 @@ import { ReactNode } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import { CommandPaletteStoreProvider } from '../../lib/ui/components/CommandPalette/CommandPaletteContext'
+import { CommandPalettePromptItem } from '../../lib/ui/components/CommandPalette/CommandPalettePromptItem'
 import { CommandPaletteStore } from '../../lib/ui/components/CommandPalette/CommandPaletteStore'
 import { TldrawUiMenuCheckboxItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuContextProvider } from '../../lib/ui/components/primitives/menus/TldrawUiMenuContext'
@@ -92,6 +93,19 @@ describe('menu items in the command palette', () => {
 			<>
 				<TldrawUiMenuItem id="edit-only" label="action.undo" onSelect={() => {}} />
 				<TldrawUiMenuItem id="always" label="action.zoom-in" readonlyOk onSelect={() => {}} />
+			</>
+		)
+		await waitFor(() => expect(ids()).toEqual(['edit-only', 'always']))
+		act(() => editor.updateInstanceState({ isReadonly: true }))
+		await waitFor(() => expect(ids()).toEqual(['always']))
+	})
+
+	it('drop prompt items in readonly mode unless they are readonlyOk', async () => {
+		const prompt = { label: 'action.rename', placeholder: 'action.rename', onSubmit: () => {} }
+		const { editor, ids } = await renderItems(
+			<>
+				<CommandPalettePromptItem id="edit-only" {...prompt} />
+				<CommandPalettePromptItem id="always" readonlyOk {...prompt} />
 			</>
 		)
 		await waitFor(() => expect(ids()).toEqual(['edit-only', 'always']))

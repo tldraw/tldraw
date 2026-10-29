@@ -384,6 +384,7 @@ export {
 	CommandPaletteShell,
 	type TLUiCommandPalettePosition,
 	type TLUiCommandPaletteShellProps,
+	type TLUiCommandPaletteSuggestions,
 } from './lib/ui/components/CommandPalette/CommandPaletteShell'
 export {
 	CommandPaletteCollapsed,
