@@ -1,4 +1,5 @@
 import {
+	CommandPaletteActionGroup,
 	DefaultCommandPalette,
 	DefaultColorStyle,
 	DefaultCommandPaletteContent,
@@ -6,7 +7,6 @@ import {
 	TLUiCommandPaletteProps,
 	TLUiOverrides,
 	Tldraw,
-	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
@@ -21,6 +21,7 @@ const overrides: TLUiOverrides = {
 			id: 'make-red',
 			label: 'Make red',
 			isEnabled: (editor) => editor.getSelectedShapeIds().length > 0,
+			commandPalette: { group: 'colors' },
 			onSelect() {
 				editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
 			},
@@ -34,9 +35,7 @@ function CustomCommandPalette(props: TLUiCommandPaletteProps) {
 	const { addToast } = useToasts()
 	return (
 		<DefaultCommandPalette {...props} position="top">
-			<TldrawUiMenuGroup id="colors" label="Colors">
-				<TldrawUiMenuActionItem actionId="make-red" />
-			</TldrawUiMenuGroup>
+			<CommandPaletteActionGroup group="colors" label="Colors" />
 			{/* [3] */}
 			<TldrawUiMenuGroup id="example" label="Example">
 				<TldrawUiMenuSubmenu id="greetings" label="Greetings">
@@ -78,8 +77,9 @@ export default function CommandPaletteExample() {
 /*
 [1]
 Actions are listed in the palette on their own. The palette hides disabled actions, so "Make red"
-only shows up while something is selected. Left alone, it would land in the catch-all
-at the end of the default content; placing it in a group below takes it out of there.
+only shows up while something is selected. Left alone, it would land in the catch-all at the end
+of the default content. `commandPalette: { group }` lists it in the `CommandPaletteActionGroup`
+with that group below instead, and `commandPalette: false` leaves it out of the palette.
 
 [2]
 Wrap `DefaultCommandPalette` and keep `DefaultCommandPaletteContent` to add commands without
