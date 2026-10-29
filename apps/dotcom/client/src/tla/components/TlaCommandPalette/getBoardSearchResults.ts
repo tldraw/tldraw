@@ -47,7 +47,7 @@ export function getBoardSearchResults(
 				detail: page.id === currentPageId ? undefined : page.name,
 				icon: tools[shape.type === 'geo' ? shape.props.geo : shape.type]?.icon,
 				onSelect() {
-					// Results stay frozen while the palette is open, so the shape may be gone or moved.
+					// The shape may be deleted or moved between the last query change and the pick.
 					const pageId = editor.getAncestorPageId(shape.id)
 					const bounds = editor.getShapePageBounds(shape.id)
 					if (!pageId || !bounds) return
