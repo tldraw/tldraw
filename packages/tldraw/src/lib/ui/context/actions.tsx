@@ -336,8 +336,9 @@ export interface TLUiActionItem<
 	/** For checkbox actions: whether the item shows as checked. Must be pure and read only editor state. */
 	isChecked?(editor: Editor): boolean
 	/**
-	 * Where the command palette lists the action. `false` leaves it out, `{ group }` lists it in the
-	 * `CommandPaletteActionGroup` with that group. Without it, the palette's catch-all group lists it.
+	 * Where the command palette lists the action. `false` leaves it out; `{ group }` lists it in the
+	 * `CommandPaletteActionGroup` with that group when one is rendered. Otherwise, and without a
+	 * group, the palette's catch-all group lists it.
 	 */
 	commandPalette?: false | { group?: string }
 	onSelect(source: TLUiEventSource): Promise<void> | void
