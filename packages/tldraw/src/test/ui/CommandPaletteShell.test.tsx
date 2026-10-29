@@ -191,6 +191,13 @@ describe('CommandPaletteShell', () => {
 		await rendered.findByText('No results')
 	})
 
+	it('opens in the center by default', async () => {
+		const { rendered } = await renderShell(item('alpha', 'Alpha'))
+		const palette = rendered.getByTestId('command-palette')
+		expect(palette.dataset.position).toBe('center')
+		expect(palette.style.top).toBe('')
+	})
+
 	it('opens where its position says', async () => {
 		const { rendered } = await renderShell(item('alpha', 'Alpha'), vi.fn(), { position: 'top' })
 		expect(rendered.getByTestId('command-palette').dataset.position).toBe('top')
@@ -217,7 +224,9 @@ describe('CommandPaletteShell', () => {
 						onMount={onMount}
 						components={{ Toolbar: () => <DefaultToolbar orientation={orientation} /> }}
 					>
-						<CommandPaletteShell onClose={vi.fn()}>{item('alpha', 'Alpha')}</CommandPaletteShell>
+						<CommandPaletteShell position="bottom" onClose={vi.fn()}>
+							{item('alpha', 'Alpha')}
+						</CommandPaletteShell>
 					</Tldraw>
 				),
 				{ waitForPatterns: false }

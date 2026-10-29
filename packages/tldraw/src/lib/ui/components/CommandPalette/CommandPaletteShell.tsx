@@ -58,8 +58,9 @@ export type TLUiCommandPaletteSuggestions = 'recent' | 'none'
 /** @public */
 export interface TLUiCommandPaletteShellProps {
 	/**
-	 * Where the palette opens. `'bottom'`, the default, sits just above the toolbar at its width when
-	 * the toolbar is horizontal; otherwise it opens horizontally centered, lower than `'center'`.
+	 * Where the palette opens. Defaults to `'center'`. `'bottom'` sits just above the toolbar at its
+	 * width when the toolbar is horizontal; otherwise it opens horizontally centered, lower than
+	 * `'center'`.
 	 */
 	position?: TLUiCommandPalettePosition
 	/**
@@ -80,7 +81,7 @@ export interface TLUiCommandPaletteShellProps {
  * @public @react
  */
 export function CommandPaletteShell({
-	position = 'bottom',
+	position = 'center',
 	suggestions = 'recent',
 	onClose,
 	children,
