@@ -35,7 +35,6 @@ import {
 	useDialogs,
 	useEditor,
 	useToasts,
-	useTools,
 	useTranslation,
 	useValue,
 } from 'tldraw'
@@ -254,7 +253,6 @@ function TlaCurrentFileGroup() {
 function TlaBoardGroup() {
 	const msg = useTranslation()
 	const editor = useEditor()
-	const tools = useTools()
 	const boardLbl = msg(messages.board)
 	const searchBoardLbl = msg(messages.searchBoard)
 	const placeholder = msg(messages.searchBoardPlaceholder)
@@ -265,8 +263,7 @@ function TlaBoardGroup() {
 				id="tla-search-board"
 				label={searchBoardLbl}
 				placeholder={placeholder}
-				icon="search"
-				getResults={(query) => getBoardSearchResults(editor, query, tools)}
+				getResults={(query) => getBoardSearchResults(editor, query)}
 			/>
 		</TldrawUiMenuGroup>
 	)

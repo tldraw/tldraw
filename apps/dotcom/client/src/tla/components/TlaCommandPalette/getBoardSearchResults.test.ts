@@ -2,7 +2,6 @@ import { captureException } from '@sentry/react'
 import {
 	Editor,
 	TLShapeId,
-	TLUiToolsContextType,
 	createShapeId,
 	createTLStore,
 	defaultAddFontsFromNode,
@@ -15,12 +14,6 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { MAX_BOARD_RESULTS, getBoardSearchResults } from './getBoardSearchResults'
 
 vi.mock('@sentry/react', () => ({ captureException: vi.fn() }))
-
-const tools = {
-	text: { icon: 'tool-text' },
-	note: { icon: 'tool-note' },
-	rectangle: { icon: 'geo-rectangle' },
-} as unknown as TLUiToolsContextType
 
 let editor: Editor
 
@@ -66,11 +59,10 @@ function createOtherPage(name: string) {
 }
 
 function search(query: string) {
-	return getBoardSearchResults(editor, query, tools).map(({ id, label, detail, icon }) => ({
+	return getBoardSearchResults(editor, query).map(({ id, label, detail }) => ({
 		id,
 		label,
 		detail,
-		icon,
 	}))
 }
 
@@ -85,12 +77,12 @@ describe('getBoardSearchResults', () => {
 		createText(currentId, 'apple tart')
 
 		expect(search('apple')).toEqual([
-			{ id: currentId, label: 'apple tart', detail: undefined, icon: 'tool-text' },
-			{ id: otherId, label: 'Apple pie', detail: 'Other page', icon: 'tool-text' },
+			{ id: currentId, label: 'apple tart', detail: undefined },
+			{ id: otherId, label: 'Apple pie', detail: 'Other page' },
 		])
 	})
 
-	it('uses the geo or shape type for the icon', () => {
+	it('finds text in geo and note shapes', () => {
 		const geoId = createShapeId('geo')
 		const noteId = createShapeId('note')
 		editor.createShape({
@@ -106,8 +98,8 @@ describe('getBoardSearchResults', () => {
 		})
 
 		expect(search('label').sort((a, b) => a.id.localeCompare(b.id))).toEqual([
-			{ id: geoId, label: 'box label', detail: undefined, icon: 'geo-rectangle' },
-			{ id: noteId, label: 'note label', detail: undefined, icon: 'tool-note' },
+			{ id: geoId, label: 'box label', detail: undefined },
+			{ id: noteId, label: 'note label', detail: undefined },
 		])
 	})
 
@@ -115,9 +107,7 @@ describe('getBoardSearchResults', () => {
 		const id = createShapeId('spaced')
 		createText(id, 'hello \n\n  world  ')
 
-		expect(search('Hello \t World')).toEqual([
-			{ id, label: 'hello world', detail: undefined, icon: 'tool-text' },
-		])
+		expect(search('Hello \t World')).toEqual([{ id, label: 'hello world', detail: undefined }])
 	})
 
 	it('trims the start of labels whose match is far in', () => {
@@ -127,8 +117,8 @@ describe('getBoardSearchResults', () => {
 		createText(edgeId, `${'b'.repeat(16)}needle`, 300)
 
 		expect(search('needle').sort((a, b) => a.id.localeCompare(b.id))).toEqual([
-			{ id: edgeId, label: `${'b'.repeat(16)}needle`, detail: undefined, icon: 'tool-text' },
-			{ id: lateId, label: `…${'a'.repeat(16)}needle`, detail: undefined, icon: 'tool-text' },
+			{ id: edgeId, label: `${'b'.repeat(16)}needle`, detail: undefined },
+			{ id: lateId, label: `…${'a'.repeat(16)}needle`, detail: undefined },
 		])
 	})
 
@@ -147,7 +137,6 @@ describe('getBoardSearchResults', () => {
 			id: currentId,
 			label: 'match current',
 			detail: undefined,
-			icon: 'tool-text',
 		})
 	})
 
@@ -161,9 +150,7 @@ describe('getBoardSearchResults', () => {
 		editor.createShape({ id: createShapeId('bad-2'), type: 'geo', props: { geo: 'rectangle' } })
 		createText(goodId, 'still found', 300)
 
-		expect(search('found')).toEqual([
-			{ id: goodId, label: 'still found', detail: undefined, icon: 'tool-text' },
-		])
+		expect(search('found')).toEqual([{ id: goodId, label: 'still found', detail: undefined }])
 		expect(captureException).toHaveBeenCalledTimes(1)
 		expect(captureException).toHaveBeenCalledWith(error, {
 			tags: { operation: 'board-search-get-text' },
@@ -178,14 +165,14 @@ describe('getBoardSearchResults', () => {
 			createText(id, 'far away')
 			editor.setCurrentPage(firstPageId)
 
-			getBoardSearchResults(editor, 'far', tools)[0].onSelect()
+			getBoardSearchResults(editor, 'far')[0].onSelect()
 			expect(editor.getCurrentPageId()).toBe(pageId)
 		})
 
 		it('follows a shape moved to another page after the search', () => {
 			const id = createShapeId('moved')
 			createText(id, 'moving target')
-			const [result] = getBoardSearchResults(editor, 'moving', tools)
+			const [result] = getBoardSearchResults(editor, 'moving')
 			const { firstPageId, pageId } = createOtherPage('Other page')
 			editor.setCurrentPage(firstPageId)
 			editor.moveShapesToPage([id], pageId)
@@ -200,7 +187,7 @@ describe('getBoardSearchResults', () => {
 			const { firstPageId } = createOtherPage('Other page')
 			createText(id, 'soon gone')
 			editor.setCurrentPage(firstPageId)
-			const [result] = getBoardSearchResults(editor, 'gone', tools)
+			const [result] = getBoardSearchResults(editor, 'gone')
 			editor.deleteShapes([id])
 			const camera = editor.getCamera()
 

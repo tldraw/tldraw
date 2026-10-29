@@ -23,7 +23,6 @@ export interface TLUiCommandPaletteSearchResult {
 	label: string
 	/** Muted text after the label, e.g. where the hit is. */
 	detail?: string
-	icon?: string | TLUiIconJsx
 	onSelect(): void
 }
 

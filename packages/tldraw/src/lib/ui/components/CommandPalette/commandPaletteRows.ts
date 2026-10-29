@@ -256,7 +256,7 @@ export function getCommandPaletteSearchHitRows(
 	return hits.map((hit) => ({
 		type: 'item',
 		key: `search:${hit.id}`,
-		entry: { ...search, id: `${search.id}:${hit.id}`, icon: hit.icon, onSelect: hit.onSelect },
+		entry: { ...search, id: `${search.id}:${hit.id}`, onSelect: hit.onSelect },
 		label: hit.label,
 		detail: hit.detail,
 		recent: false,

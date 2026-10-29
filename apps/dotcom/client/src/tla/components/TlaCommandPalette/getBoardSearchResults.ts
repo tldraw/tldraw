@@ -1,5 +1,5 @@
 import { captureException } from '@sentry/react'
-import { TLUiCommandPaletteSearchResult, Editor, TLUiToolsContextType } from 'tldraw'
+import { TLUiCommandPaletteSearchResult, Editor } from 'tldraw'
 
 export const MAX_BOARD_RESULTS = 50
 // Characters kept before the match when a label's start is trimmed.
@@ -8,8 +8,7 @@ export const MATCH_LEAD = 16
 // The current page's hits come first; the rest are named by their page.
 export function getBoardSearchResults(
 	editor: Editor,
-	query: string,
-	tools: TLUiToolsContextType
+	query: string
 ): TLUiCommandPaletteSearchResult[] {
 	const needle = query.replace(/\s+/g, ' ').toLowerCase()
 	const currentPageId = editor.getCurrentPageId()
@@ -45,7 +44,6 @@ export function getBoardSearchResults(
 				// Rows clip their end, so trim the start to keep a late match in view.
 				label: index > MATCH_LEAD ? `…${text.slice(index - MATCH_LEAD)}` : text,
 				detail: page.id === currentPageId ? undefined : page.name,
-				icon: tools[shape.type === 'geo' ? shape.props.geo : shape.type]?.icon,
 				onSelect() {
 					// The shape may be deleted or moved between the last query change and the pick.
 					const pageId = editor.getAncestorPageId(shape.id)
