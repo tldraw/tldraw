@@ -111,10 +111,13 @@ test.describe('command palette', () => {
 			hasText: workspaceName,
 		})
 		await expect(moveRow).toContainText(`Move file to: ${workspaceName}`)
-		// The home row matches this query, so only the no-op filter hides it: the file is already there.
+		// The opened submenu lists every target, so only the no-op filter can hide home: the file is
+		// already there.
 		await owner.page.getByTestId('command-palette.input').fill('move file to')
+		await owner.page.getByTestId('command-palette.submenu.Move file to').click()
 		await expect(moveRow).toBeVisible()
 		await expect(owner.page.getByTestId('command-palette.item.file-my-files')).toHaveCount(0)
+		await owner.page.keyboard.press('Escape')
 
 		await owner.page.getByTestId('command-palette.input').fill(`switch workspace ${workspaceName}`)
 		await switchRow.click()
