@@ -46,8 +46,8 @@ export const DefaultCommandPalette = memo(function DefaultCommandPalette({
 })
 
 /**
- * Mounts the `CommandPalette` slot while the palette is open. Stays mounted itself, so a slot that
- * never calls `onClose` still can't leave the menu marked open, which disables every shortcut.
+ * Mounts the `CommandPalette` slot while the palette is open. Clears the open mark if it unmounts
+ * while open, so hiding the UI can't leave every shortcut disabled.
  *
  * @internal
  */
