@@ -2375,17 +2375,18 @@ tldraw? probably.
 	font-size: 12px;
 }
 
-.tlui-command-palette[data-position='top'] {
-	--tlui-command-palette-anchor: 30%;
-}
-
+/* Centers the full 368px palette; shorter lists keep the same top, so the input never moves. */
 .tlui-command-palette[data-position='center'] {
-	--tlui-command-palette-anchor: 50%;
+	top: max(8px, calc(50% - 184px));
+	max-height: 60%;
 }
 
-/* The on-screen keyboard covers the lower half on touch devices. */
+/* The same gap to the edge as the toolbar has below it. The on-screen keyboard covers the lower
+   half on touch devices, so every position uses it there. */
+.tlui-command-palette[data-position='top'],
 .tl-container[data-coarse='true'] .tlui-command-palette {
-	--tlui-command-palette-anchor: 30%;
+	top: calc(var(--tl-space-3) + env(safe-area-inset-top, 0px));
+	max-height: 60%;
 }
 
 /* A bordered box like the sidebar's rename and search inputs; the palette keeps focus on it. */

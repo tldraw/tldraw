@@ -1,17 +1,17 @@
-import { defineMessages } from '@tldraw/editor'
 import { RefObject, useLayoutEffect, useRef } from 'react'
-import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { useDirection } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 import { CommandPaletteSection, SelectableRow } from './commandPaletteRows'
+import { CommandPaletteEntry } from './CommandPaletteStore'
 
 const getMark = (row: SelectableRow) =>
-	row.type === 'item' ? (row.entry.checked ?? row.entry.isSelected) : undefined
+	row.type === 'item' ? getCommandPaletteEntryMark(row.entry) : undefined
 
-const messages = defineMessages({
-	checked: { id: 'ui.checked', defaultMessage: 'Checked' },
-	unchecked: { id: 'ui.unchecked', defaultMessage: 'Unchecked' },
-})
+/** @internal */
+export function getCommandPaletteEntryMark(entry: CommandPaletteEntry) {
+	return entry.checked ?? entry.isSelected
+}
 
 /** @internal */
 export function getCommandPaletteOptionId(listboxId: string, index: number) {
@@ -22,6 +22,7 @@ export function getCommandPaletteOptionId(listboxId: string, index: number) {
 export function CommandPaletteList({
 	listboxId,
 	sections,
+	hasCheckSlot,
 	indexByKey,
 	activeIndex,
 	rScrollToActive,
@@ -30,6 +31,7 @@ export function CommandPaletteList({
 }: {
 	listboxId: string
 	sections: CommandPaletteSection[]
+	hasCheckSlot: boolean
 	indexByKey: ReadonlyMap<string, number>
 	activeIndex: number
 	rScrollToActive: RefObject<boolean>
@@ -37,8 +39,6 @@ export function CommandPaletteList({
 	onRun(row: SelectableRow): void
 }) {
 	return sections.map((section, sectionIndex) => {
-		// Only sections with a checkable row reserve the check slot, so their labels line up.
-		const hasCheckSlot = section.rows.some((row) => getMark(row) !== undefined)
 		const options = section.rows.map((row) => {
 			const index = indexByKey.get(row.key)!
 			return (
@@ -92,7 +92,6 @@ function CommandPaletteRowView({
 	onHover(): void
 	onRun(): void
 }) {
-	const msg = useTranslation()
 	const dir = useDirection()
 	const rRow = useRef<HTMLDivElement>(null)
 	useLayoutEffect(() => {
@@ -100,13 +99,9 @@ function CommandPaletteRowView({
 	}, [isActive, rScrollToActive])
 
 	const mark = getMark(row)
+	// Decorative: the row's aria-checked carries the state.
 	const checkSlot = hasCheckSlot && (
-		<TldrawUiIcon
-			icon={mark ? 'check' : 'none'}
-			small
-			label={mark === undefined ? '' : msg(mark ? messages.checked : messages.unchecked)}
-			aria-hidden={mark === undefined || undefined}
-		/>
+		<TldrawUiIcon icon={mark ? 'check' : 'none'} small label="" aria-hidden="true" />
 	)
 
 	if (row.type === 'submenu') {
@@ -145,6 +140,7 @@ function CommandPaletteRowView({
 			id={id}
 			role="option"
 			aria-selected={isActive}
+			aria-checked={mark}
 			aria-disabled={entry.disabled || undefined}
 			aria-describedby={showReason ? reasonId : undefined}
 			data-highlighted={isActive || undefined}

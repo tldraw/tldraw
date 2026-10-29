@@ -87,7 +87,8 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 			)
 		}
 		case 'command-palette': {
-			if (disabled) return null
+			// An empty label hides the submenu, like an item with one.
+			if (disabled || !labelStr) return null
 			return (
 				<CommandPalettePathProvider label={labelStr} submenuId={id}>
 					{children}
