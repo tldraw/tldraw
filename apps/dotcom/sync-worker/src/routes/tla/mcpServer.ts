@@ -1268,17 +1268,17 @@ async function callClusterInfoTool(
 
 		const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
 		if (!clustered.ok) return clustered.result
-		const result = getClusterInfo(resolved.page, clustered.clustering, input.clusterId, input.page)
-		if (result.isError) {
+		const info = getClusterInfo(resolved.page, clustered.clustering, input.clusterIds, input.page)
+		if (!info.ok) {
 			telemetry({
 				cacheStatus: 'none',
 				clusterCacheStatus: clustered.clusterCacheStatus,
-				failureReason: 'cluster_not_found',
+				failureReason: info.reason,
 			})
-			return withTelemetryReason(result, 'cluster_not_found')
+			return withTelemetryReason(info.result, info.reason)
 		}
 		telemetry({ cacheStatus: 'none', clusterCacheStatus: clustered.clusterCacheStatus })
-		return result
+		return info.result
 	} catch (error) {
 		return toolFailure(error, {
 			env,
@@ -1288,7 +1288,7 @@ async function callClusterInfoTool(
 			extras: {
 				boardId: input.boardId,
 				page: describePageSelector(input.page),
-				clusterId: input.clusterId,
+				clusterIds: input.clusterIds.join(','),
 			},
 			summary: 'Could not read cluster info',
 			telemetry,
