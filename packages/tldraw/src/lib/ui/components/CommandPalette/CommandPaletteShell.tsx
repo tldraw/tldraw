@@ -64,7 +64,7 @@ export interface TLUiCommandPaletteShellProps {
 	/**
 	 * Where the palette opens. Defaults to `'center'`. `'top'` sits near the top edge. `'bottom'` sits
 	 * just above the toolbar at its width when the toolbar is horizontal; otherwise it opens lower
-	 * than `'center'`. On touch devices `'center'` and `'top'` both open near the top edge.
+	 * than `'center'`. On touch devices every position opens near the top edge.
 	 */
 	position?: TLUiCommandPalettePosition
 	/**

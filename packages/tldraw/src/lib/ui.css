@@ -2382,7 +2382,7 @@ tldraw? probably.
 }
 
 /* The same gap to the edge as the toolbar has below it. The on-screen keyboard covers the lower
-   half on touch devices, so they always use it. */
+   half on touch devices, so every position uses it there. */
 .tlui-command-palette[data-position='top'],
 .tl-container[data-coarse='true'] .tlui-command-palette {
 	top: calc(var(--tl-space-3) + env(safe-area-inset-top, 0px));

@@ -219,7 +219,7 @@ describe('CommandPaletteShell', () => {
 					return { ...box, x: box.left, y: box.top, toJSON: () => box } as DOMRect
 				}
 			)
-			const { rendered } = await renderTldrawComponentWithEditor(
+			const { editor, rendered } = await renderTldrawComponentWithEditor(
 				(onMount) => (
 					<Tldraw
 						onMount={onMount}
@@ -234,7 +234,7 @@ describe('CommandPaletteShell', () => {
 			)
 			await rendered.findByTestId('command-palette.item.alpha')
 			expect(rendered.container.querySelector(`.tlui-main-toolbar--${orientation}`)).not.toBeNull()
-			return rendered.getByTestId('command-palette')
+			return { editor, palette: rendered.getByTestId('command-palette') }
 		}
 
 		afterEach(() => {
@@ -242,12 +242,20 @@ describe('CommandPaletteShell', () => {
 		})
 
 		it('sits above a horizontal toolbar at its width', async () => {
-			const palette = await renderWithToolbar('horizontal')
+			const { palette } = await renderWithToolbar('horizontal')
 			await waitFor(() => expect(palette.style.width).toBe('500px'))
 		})
 
+		it('leaves the toolbar for the top on touch devices', async () => {
+			const { editor, palette } = await renderWithToolbar('horizontal')
+			await waitFor(() => expect(palette.style.width).toBe('500px'))
+			act(() => editor.updateInstanceState({ isCoarsePointer: true }))
+			await waitFor(() => expect(palette.style.width).toBe(''))
+			expect(palette.style.top).toBe('')
+		})
+
 		it('ignores a vertical toolbar', async () => {
-			const palette = await renderWithToolbar('vertical')
+			const { palette } = await renderWithToolbar('vertical')
 			expect(palette.style.width).toBe('')
 			expect(palette.style.top).toBe('')
 		})
