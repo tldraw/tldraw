@@ -476,7 +476,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.5.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.6.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 

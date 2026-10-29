@@ -9,6 +9,7 @@ import {
 	clusterPage,
 	clusteringFromIndex,
 	getClusterInfo,
+	getPageInfo,
 	parseClusterIndex,
 } from './boardTools'
 import {
@@ -101,6 +102,24 @@ describe('the stored index', () => {
 				getClusterInfo(page, { clusters, measurements: MEASUREMENTS }, clusterId, selector)
 			)
 		}
+	})
+
+	// Cluster and page bounds are unions of per-shape bounds, which are stored rounded. Rounding each
+	// shape before the union is what keeps a fresh measure's floats from disagreeing with the index.
+	it('lists the page, bounds included, exactly as a fresh measure would', () => {
+		const page = makePage()
+		const clusters = clusterPage(page, MEASUREMENTS)
+		const stored = parseClusterIndex(JSON.stringify(buildClusterIndex(clusters, MEASUREMENTS)))!
+		const rehydrated = clusteringFromIndex(page, stored)!
+
+		const fresh = getPageInfo(page, { clusters, measurements: MEASUREMENTS })
+		expect(getPageInfo(page, rehydrated)).toEqual(fresh)
+		expect(JSON.parse((fresh.content[0] as { text: string }).text).bounds).toEqual({
+			x: 0,
+			y: -1,
+			w: 5081,
+			h: 81,
+		})
 	})
 
 	it('keeps the text, rounded bounds and arrow geometry', () => {

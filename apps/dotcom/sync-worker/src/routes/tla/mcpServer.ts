@@ -868,7 +868,7 @@ async function callPageInfoTool(
 		const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
 		if (!clustered.ok) return clustered.result
 		telemetry({ cacheStatus: 'none', clusterCacheStatus: clustered.clusterCacheStatus })
-		return getPageInfo(resolved.page, clustered.clustering.clusters)
+		return getPageInfo(resolved.page, clustered.clustering)
 	} catch (error) {
 		// Unlike get_board_info, this tool can fail mid-measure, so its failures belong on the same
 		// request ledger as the screenshot tool's. The measure session itself reports separately.
