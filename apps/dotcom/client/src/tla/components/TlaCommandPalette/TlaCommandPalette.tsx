@@ -237,7 +237,6 @@ function TlaCurrentFileGroup() {
 					source="command-palette"
 					fileId={fileId}
 					workspaceId={activeWorkspaceId}
-					idPrefix="file-"
 					menuType="command-palette"
 				/>
 			)}
