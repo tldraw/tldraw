@@ -11,6 +11,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import {
+	BoxModel,
 	TLArrowBinding,
 	TLShape,
 	VecModel,
@@ -41,7 +42,7 @@ export const MCP_PROTOCOL_VERSION = '2025-11-25'
 export const MCP_SERVER_INFO = {
 	name: 'tldraw-boards',
 	title: 'tldraw boards',
-	version: '3.6.0',
+	version: '3.7.0',
 }
 
 /**
@@ -57,10 +58,10 @@ export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
 }
 
 const SEARCHING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
 
 const LISTING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
 
 export const SEARCH_BOARDS_TOOL_NAME = 'search_boards'
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
@@ -870,16 +871,17 @@ function getArrowBindingsOf(snapshot: RoomSnapshot, shapes: TLShape[]): TLArrowB
 
 export type ResolvedPageOk = Extract<ResolvedPage, { ok: true }>
 
-// Clustering takes two of the things the measure render answers: where each shape sits, and what
-// ShapeUtil.getText says it holds. Bounds drive the linkage; the text is attached to the shapes so
-// labelling reads the editor's answer rather than re-deriving one from props.
+// Clustering takes three of the things the measure render answers: where each shape sits, where
+// each arrow's ends are drawn, and what ShapeUtil.getText says a shape holds. Bounds and arrow ends
+// drive the linkage, alongside the page's bindings; the text is attached to the shapes so labelling
+// reads the editor's answer rather than re-deriving one from props.
 export function clusterPage(page: ResolvedPageOk, measurements: Record<string, ShapeMeasurement>) {
 	const shapes: TLShapeWithPlainText[] = page.shapes.map((shape) => {
 		const text = measurements[shape.id as string]?.text
 		return text ? { ...shape, plainText: text } : shape
 	})
 
-	return getShapeClusters(shapes, page.pageId, measurements)
+	return getShapeClusters(shapes, page.pageId, measurements, page.bindings)
 }
 
 // --- The cluster index --------------------------------------------------------------------------
@@ -906,7 +908,14 @@ export function clusterPage(page: ResolvedPageOk, measurements: Record<string, S
 export interface PageClusterIndex {
 	v: number
 	/** `shapeIds` are in `getShapeClusters` order, so a rehydrated cluster reads the same. */
-	clusters: { id: string; label: string; keywords: string[]; shapeIds: string[] }[]
+	clusters: {
+		id: string
+		label: string
+		keywords: string[]
+		shapeIds: string[]
+		/** The cluster's page-space box, absent when the render measured none of its shapes. */
+		bounds?: BoxModel
+	}[]
 	/** The text the measure render's editor reported, by shape id. Absent for shapes with none. */
 	text: Record<string, string>
 	/** Each measured arrow as drawn, by shape id. */
@@ -915,29 +924,66 @@ export interface PageClusterIndex {
 	dimensions: Record<string, MeasuredDimensions>
 }
 
-export const CLUSTER_INDEX_FORMAT_VERSION = 2
+export const CLUSTER_INDEX_FORMAT_VERSION = 3
 
-/** A page's clusters, and the geometry get_cluster_info describes its shapes with, by shape id. */
+/**
+ * A page's clusters, each cluster's box by cluster id, and the geometry get_cluster_info describes
+ * its shapes with, by shape id.
+ */
 export interface PageClustering {
 	clusters: ShapeCluster[]
+	bounds: Record<string, BoxModel>
 	arrows: Record<string, MeasuredArrow>
 	dimensions: Record<string, MeasuredDimensions>
 }
 
-export function getMeasuredGeometry(
+/** A page's clustering from a fresh measure, in the same form a stored index rehydrates to. */
+export function clusteringFromMeasure(
+	clusters: ShapeCluster[],
 	measurements: Record<string, ShapeMeasurement>
-): Omit<PageClustering, 'clusters'> {
+): PageClustering {
+	const bounds: Record<string, BoxModel> = {}
+	for (const cluster of clusters) {
+		const box = toClusterBox(cluster.shapes.map((shape) => measurements[shape.id]))
+		if (box) bounds[cluster.id] = box
+	}
 	const arrows: Record<string, MeasuredArrow> = {}
 	const dimensions: Record<string, MeasuredDimensions> = {}
 	for (const [id, measurement] of Object.entries(measurements)) {
 		if (measurement.arrow) arrows[id] = measurement.arrow
 		if (measurement.dimensions) dimensions[id] = measurement.dimensions
 	}
-	return { arrows, dimensions }
+	return { clusters, bounds, arrows, dimensions }
 }
 
 function roundPoint(point: VecModel): VecModel {
 	return { x: toThousandths(point.x), y: toThousandths(point.y) }
+}
+
+/**
+ * The box around some shapes, rounded the way get_page_info reports it, or null when none were
+ * measured. A cluster's box is stored rather than its shapes' ones: it is all get_page_info reports.
+ */
+function toClusterBox(boxes: (ClusterBounds | undefined)[]): BoxModel | null {
+	let union: ClusterBounds | null = null
+	for (const box of boxes) {
+		if (!box) continue
+		union = union
+			? {
+					minX: Math.min(union.minX, box.minX),
+					minY: Math.min(union.minY, box.minY),
+					maxX: Math.max(union.maxX, box.maxX),
+					maxY: Math.max(union.maxY, box.maxY),
+				}
+			: box
+	}
+	if (!union) return null
+	return {
+		x: toThousandths(union.minX),
+		y: toThousandths(union.minY),
+		w: toThousandths(union.maxX - union.minX),
+		h: toThousandths(union.maxY - union.minY),
+	}
 }
 
 /** Reduces a page's clusters, and the measure they were built from, to the form that is stored. */
@@ -965,12 +1011,16 @@ export function buildClusterIndex(
 
 	return {
 		v: CLUSTER_INDEX_FORMAT_VERSION,
-		clusters: clusters.map((cluster) => ({
-			id: cluster.id,
-			label: cluster.label,
-			keywords: cluster.keywords,
-			shapeIds: cluster.shapes.map((shape) => shape.id),
-		})),
+		clusters: clusters.map((cluster) => {
+			const bounds = toClusterBox(cluster.shapes.map((shape) => measurements[shape.id]))
+			return {
+				id: cluster.id,
+				label: cluster.label,
+				keywords: cluster.keywords,
+				shapeIds: cluster.shapes.map((shape) => shape.id),
+				...(bounds ? { bounds } : null),
+			}
+		}),
 		text,
 		arrows,
 		dimensions,
@@ -1024,6 +1074,7 @@ export function clusteringFromIndex(
 	const clusters: ShapeCluster[] = []
 	const arrows: Record<string, MeasuredArrow> = {}
 	const dimensions: Record<string, MeasuredDimensions> = {}
+	const bounds: Record<string, BoxModel> = {}
 	let named = 0
 
 	for (const cluster of index.clusters) {
@@ -1038,6 +1089,7 @@ export function clusteringFromIndex(
 			if (index.dimensions[shapeId]) dimensions[shapeId] = index.dimensions[shapeId]
 		}
 		named += shapes.length
+		if (cluster.bounds) bounds[cluster.id] = cluster.bounds
 		clusters.push({
 			id: cluster.id,
 			label: cluster.label,
@@ -1047,25 +1099,37 @@ export function clusteringFromIndex(
 		})
 	}
 
-	return named === page.shapes.length ? { clusters, arrows, dimensions } : null
+	return named === page.shapes.length ? { clusters, bounds, arrows, dimensions } : null
 }
 
 // The three clustering tools take clusters, never the render itself: a call served from a stored
 // index and a call served from a fresh render hand in the same thing, and everything from here on is
 // identical.
 
-export function getPageInfo(page: ResolvedPageOk, clusters: ShapeCluster[]): ToolResult {
+export function getPageInfo(
+	page: ResolvedPageOk,
+	{ clusters, bounds }: PageClustering
+): ToolResult {
+	// Bounds let a model see what is near what without opening every cluster. They are omitted
+	// rather than invented for a cluster the render could not measure. The page's box is built from
+	// the clusters' rounded ones, so a stored index and a fresh measure give the same answer.
+	const pageBounds = toClusterBox(
+		Object.values(bounds).map(({ x, y, w, h }) => ({ minX: x, minY: y, maxX: x + w, maxY: y + h }))
+	)
+
 	// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve cluster
 	// ids against a single page, so listing every shape on the board here would hand out ids that
 	// neither of them can look up.
 	return toolJsonResult({
 		name: page.pageName,
+		...(pageBounds ? { bounds: pageBounds } : null),
 		clusterCount: clusters.length,
 		clusters: clusters.map((c) => ({
 			id: c.id,
 			label: c.label,
 			keywords: c.keywords,
 			numberOfShapes: c.numberOfShapes,
+			...(bounds[c.id] ? { bounds: bounds[c.id] } : null),
 		})),
 	})
 }
@@ -1627,7 +1691,7 @@ function getPageInfoToolDefinition() {
 		name: PAGE_INFO_TOOL_NAME,
 		title: 'Get tldraw page info',
 		description:
-			'List the shape clusters on one page of a tldraw.com board you have access to. Each top-level shape is a cluster together with its descendants, so frames and groups stay together while ungrouped shapes remain individually addressable. A cluster\'s label comes from its text or its frame\'s name; one with no text is labelled by what it holds, such as "12 freehand strokes", and handwriting or drawings in it can only be seen with get_cluster_screenshot. Pass cluster ids to get_cluster_info or get_cluster_screenshot.',
+			'List the clusters on one page of a tldraw.com board you have access to. A cluster is a group of shapes that belong together: shapes near each other, shapes inside a frame, group or larger shape, and shapes joined by arrows, together with those arrows. Every shape is in exactly one cluster. Each cluster has an id, a label (its frame name, or else its largest text, the top-left one among equals, then a keyword that sets it apart; one with no text is labelled by what it holds, such as "12 freehand strokes"), keywords drawn from all its text, its shape count, and its page-space bounds {x, y, w, h}; the page’s bounds cover all its content. Use the bounds to see which clusters sit near each other without opening them. Handwriting and drawings can only be seen with get_cluster_screenshot. Pass cluster ids to get_cluster_info or get_cluster_screenshot.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,

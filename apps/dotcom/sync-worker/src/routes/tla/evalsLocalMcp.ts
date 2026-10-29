@@ -19,7 +19,7 @@ import {
 	getBoardSearchResults,
 	clusterPage,
 	getClusterInfo,
-	getMeasuredGeometry,
+	clusteringFromMeasure,
 	getPageInfo,
 	handleMcpJsonRpc,
 	isAfterBoardSearchCursor,
@@ -95,7 +95,9 @@ export function getEvalsFixtureScreenshotPlan(
 		const resolved = resolvePage(snapshot, selector)
 		if (!resolved.ok) continue
 		const clusters = clusterPage(resolved, measurements)
-		const info = JSON.parse(textOf(getPageInfo(resolved, clusters))) as {
+		const info = JSON.parse(
+			textOf(getPageInfo(resolved, clusteringFromMeasure(clusters, measurements)))
+		) as {
 			clusters: Array<{ id: string }>
 		}
 		const clusterIds = info.clusters.map((cluster) => cluster.id)
@@ -187,7 +189,10 @@ async function callFixtureTool(
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const resolved = resolvePage(board.snapshot, page)
 				return resolved.ok
-					? getPageInfo(resolved, clusterPage(resolved, board.measurements))
+					? getPageInfo(
+							resolved,
+							clusteringFromMeasure(clusterPage(resolved, board.measurements), board.measurements)
+						)
 					: resolved.result
 			}
 			case CLUSTER_INFO_TOOL_NAME: {
@@ -198,10 +203,7 @@ async function callFixtureTool(
 				return resolved.ok
 					? getClusterInfo(
 							resolved,
-							{
-								clusters: clusterPage(resolved, board.measurements),
-								...getMeasuredGeometry(board.measurements),
-							},
+							clusteringFromMeasure(clusterPage(resolved, board.measurements), board.measurements),
 							clusterIds,
 							page,
 							cursor

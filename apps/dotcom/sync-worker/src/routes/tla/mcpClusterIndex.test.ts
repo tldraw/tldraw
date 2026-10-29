@@ -9,7 +9,8 @@ import {
 	clusterPage,
 	clusteringFromIndex,
 	getClusterInfo,
-	getMeasuredGeometry,
+	clusteringFromMeasure,
+	getPageInfo,
 	parseClusterIndex,
 } from './boardTools'
 import {
@@ -105,8 +106,26 @@ describe('the stored index', () => {
 
 		const clusterIds = ['shape:one', 'shape:two'].map((shapeId) => clusterIdOf(clusters, shapeId))
 		expect(getClusterInfo(page, rehydrated, clusterIds, selector)).toEqual(
-			getClusterInfo(page, { clusters, ...getMeasuredGeometry(MEASUREMENTS) }, clusterIds, selector)
+			getClusterInfo(page, clusteringFromMeasure(clusters, MEASUREMENTS), clusterIds, selector)
 		)
+	})
+
+	// Cluster boxes are stored rounded, and the page's box is built from them, so a fresh measure's
+	// floats and the index's thousandths have to give the same answer.
+	it('lists the page, bounds included, exactly as a fresh measure would', () => {
+		const page = makePage()
+		const clusters = clusterPage(page, MEASUREMENTS)
+		const stored = parseClusterIndex(JSON.stringify(buildClusterIndex(clusters, MEASUREMENTS)))!
+		const rehydrated = clusteringFromIndex(page, stored)!
+
+		const fresh = getPageInfo(page, clusteringFromMeasure(clusters, MEASUREMENTS))
+		expect(getPageInfo(page, rehydrated)).toEqual(fresh)
+		expect(JSON.parse((fresh.content[0] as { text: string }).text).bounds).toEqual({
+			x: 0.4,
+			y: -0.6,
+			w: 5080.1,
+			h: 80.6,
+		})
 	})
 
 	it('keeps the text and the measured geometry, rounded to thousandths', () => {
