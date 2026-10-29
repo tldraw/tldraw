@@ -20,7 +20,7 @@ import {
 	toRichText,
 } from '@tldraw/tlschema'
 import { describe, expect, it, vi } from 'vitest'
-import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
+import { SessionMeta, authorizeFileRecord, buildSessionMeta } from './authorizeFileRecord'
 
 const pageId = 'page:test' as TLPageId
 
@@ -352,5 +352,19 @@ describe('authorizeFileRecord', () => {
 				next
 			)
 		})
+	})
+})
+
+describe('buildSessionMeta', () => {
+	it('tags sessions that authenticated through MCP', () => {
+		expect(buildSessionMeta({ storeId: 's1', sessionId: 'x', userId: 'u1', viaMcp: true })).toEqual(
+			{ storeId: 's1', userId: 'u1', agent: 'mcp' }
+		)
+	})
+
+	it('leaves browser sessions untagged and falls back to the session id', () => {
+		expect(
+			buildSessionMeta({ storeId: undefined, sessionId: 'x', userId: null, viaMcp: false })
+		).toEqual({ storeId: 'x', userId: null })
 	})
 })

@@ -82,6 +82,13 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'The tldraw.com v3 redesign, and the design switches (beaker menu) for trying ideas within it. The list starts empty, so nobody sees it until they are added. Read once per page load, so a change reaches a user on their next reload',
 		},
+		version_history: {
+			type: 'allowlist',
+			users: [],
+			allowEveryone: false,
+			description:
+				'User-facing version history for editors of a file. Anyone with a verified @tldraw.com email sees it whatever the list says. A change reaches a tab when it next reloads',
+		},
 	}
 }
 
