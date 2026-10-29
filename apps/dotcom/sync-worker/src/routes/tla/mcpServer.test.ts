@@ -476,7 +476,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.4.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.5.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -1157,6 +1157,101 @@ describe('cluster index cache', () => {
 		// thing in a cluster that cannot be re-derived from the stored record.
 		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
 		expect(JSON.parse(result.content[0].text).shapes[0].props.text).toBe('Checkout total')
+	})
+
+	// Geometry only an editor can resolve — a bound arrow's ends, every shape's page bounds — has to
+	// survive the index too, or the second call of a drill-down would describe a different board.
+	it('keeps the measured page bounds and arrow geometry', async () => {
+		const snapshot = makeSnapshot(PAGES)
+		snapshot.documents.push(
+			{
+				state: {
+					typeName: 'shape',
+					id: 'shape:arrow',
+					parentId: 'page:a',
+					type: 'arrow',
+					x: 0,
+					y: 0,
+					rotation: 0,
+					opacity: 1,
+					props: { start: { x: 0, y: 0 }, end: { x: 2, y: 0 }, bend: 0, labelPosition: 0.5 },
+				},
+			},
+			{
+				state: {
+					typeName: 'binding',
+					id: 'binding:end',
+					type: 'arrow',
+					fromId: 'shape:arrow',
+					toId: 'shape:page:a-1',
+					props: {
+						terminal: 'end',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
+						isExact: false,
+						snap: 'none',
+					},
+				},
+			}
+		)
+		mockPublishedBoard(snapshot)
+		const measurements = {
+			'shape:page:a-0': { minX: 0, minY: 0, maxX: 80, maxY: 80 },
+			'shape:page:a-1': { minX: 100, minY: 0, maxX: 180, maxY: 80 },
+			'shape:arrow': {
+				minX: 79.6,
+				minY: 39.5,
+				maxX: 100.4,
+				maxY: 40.5,
+				arrow: { start: { x: 79.6, y: 40.2 }, end: { x: 100.4, y: 39.8 } },
+			},
+		}
+		const measuringEnv = () => {
+			const env = makeEnv()
+			;(env as any).BROWSER = makeMeasuringBrowserBinding(() => env, measurements)
+			return env
+		}
+		const env = measuringEnv()
+
+		const pageInfo = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_ix_geo')
+		const clusterIds = JSON.parse(pageInfo.content[0].text).clusters.map((c: any) => c.id)
+		const shapes: any[] = []
+		for (const clusterId of clusterIds) {
+			const cached = await callTool(
+				'get_cluster_info',
+				{ boardId: 'abc', clusterId },
+				env,
+				'user_ix_geo'
+			)
+			// A new env each time, so this one measures rather than reading an index.
+			const fresh = await callTool(
+				'get_cluster_info',
+				{ boardId: 'abc', clusterId },
+				measuringEnv(),
+				'user_ix_geo'
+			)
+			expect(cached.content).toEqual(fresh.content)
+			shapes.push(...JSON.parse(cached.content[0].text).shapes)
+		}
+
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+		expect(shapes.find((shape) => shape.id === 'shape:arrow')).toMatchObject({
+			pageX: 0,
+			pageY: 0,
+			pageBounds: { x: 80, y: 40, w: 21, h: 1 },
+			arrow: {
+				fromId: null,
+				toId: 'shape:page:a-1',
+				start: { x: 80, y: 40, binding: null },
+				end: { x: 100, y: 40, binding: { normalizedAnchor: { x: 50, y: 50 } } },
+			},
+		})
+		expect(shapes.find((shape) => shape.id === 'shape:page:a-1').pageBounds).toEqual({
+			x: 100,
+			y: 0,
+			w: 80,
+			h: 80,
+		})
 	})
 
 	it('indexes each page separately', async () => {

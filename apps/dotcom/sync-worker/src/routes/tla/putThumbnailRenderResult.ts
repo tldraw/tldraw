@@ -4,12 +4,13 @@ import {
 	ThumbnailRenderErrorRequestBody,
 	ThumbnailRenderResultRequestBody,
 	ThumbnailRenderTimingsRequestBody,
+	ThumbnailShapeMeasurement,
 } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
-import { ShapeMeasurement } from './boardTools'
+import { MeasuredArrow, ShapeMeasurement } from './boardTools'
 import { putRenderResult } from './thumbnailRender'
 import { RenderPageError, reportThumbnailError } from './thumbnailShared'
 
@@ -144,6 +145,7 @@ export async function putThumbnailRenderResult(
 		) {
 			continue
 		}
+		const arrow = readArrow(box.arrow)
 		bounds[shapeId] = {
 			minX: box.x,
 			minY: box.y,
@@ -151,9 +153,28 @@ export async function putThumbnailRenderResult(
 			maxY: box.y + box.h,
 			// Only an editor can answer getText, so whatever it said is kept verbatim.
 			...(typeof box.text === 'string' && box.text ? { text: box.text } : null),
+			...(arrow ? { arrow } : null),
 		}
 	}
 
 	await putRenderResult(env, body.token, bounds)
 	return Response.json({ error: false, stored: Object.keys(bounds).length })
+}
+
+// Malformed arrow geometry is dropped and the shape's bounds kept: get_cluster_info then reports the
+// arrow from its record, as it would for a render page that predates arrow measurement.
+function readArrow(value: ThumbnailShapeMeasurement['arrow']): MeasuredArrow | undefined {
+	if (!value || typeof value !== 'object') return undefined
+	const isPoint = (point: unknown): point is { x: number; y: number } =>
+		!!point &&
+		typeof point === 'object' &&
+		Number.isFinite((point as { x?: unknown }).x) &&
+		Number.isFinite((point as { y?: unknown }).y)
+	if (!isPoint(value.start) || !isPoint(value.end)) return undefined
+	const point = (p: { x: number; y: number }) => ({ x: p.x, y: p.y })
+	return {
+		start: point(value.start),
+		end: point(value.end),
+		...(isPoint(value.label) ? { label: point(value.label) } : null),
+	}
 }

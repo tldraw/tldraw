@@ -15,19 +15,23 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	Box,
 	Editor,
+	Group2d,
 	Image,
 	SerializedSchema,
 	TLPageId,
 	TLRecord,
 	TLShapeId,
 	Tldraw,
+	VecLike,
 	compact,
 	fetch,
 	sleep,
 	useEditor,
+	TLArrowShape,
 	TLAssetId,
 	TLBookmarkShape,
 	AssetRecordType,
+	getArrowInfo,
 	getHashForString,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -617,7 +621,17 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 				const box = editor.getShapePageBounds(id)
 				if (!shape || !box) continue
 				const text = editor.getShapeUtil(shape).getText(shape)
-				bounds[id] = { x: box.x, y: box.y, w: box.w, h: box.h, ...(text ? { text } : null) }
+				const arrow = editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
+					? measureArrow(editor, shape)
+					: undefined
+				bounds[id] = {
+					x: box.x,
+					y: box.y,
+					w: box.w,
+					h: box.h,
+					...(text ? { text } : null),
+					...(arrow ? { arrow } : null),
+				}
 			}
 			await fetch(THUMBNAIL_RESULT_ENDPOINT, {
 				method: 'POST',
@@ -636,6 +650,29 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 	}, [editor, token])
 
 	return null
+}
+
+// Where an arrow is drawn, in page space. A bound arrow's record holds only a placeholder stub; its
+// real ends are resolved against the shapes it is bound to, which needs the editor.
+export function measureArrow(
+	editor: Editor,
+	shape: TLArrowShape
+): ThumbnailShapeMeasurement['arrow'] | undefined {
+	const info = getArrowInfo(editor, shape)
+	if (!info) return undefined
+	const transform = editor.getShapePageTransform(shape)
+	const toPage = (point: VecLike) => {
+		const { x, y } = transform.applyToPoint(point)
+		return { x, y }
+	}
+	const geometry = editor.getShapeGeometry(shape)
+	const labelGeometry =
+		geometry instanceof Group2d ? geometry.children.find((child) => child.isLabel) : undefined
+	return {
+		start: toPage(info.start.point),
+		end: toPage(info.end.point),
+		...(labelGeometry ? { label: toPage(labelGeometry.center) } : null),
+	}
 }
 
 // Exports the exact viewport rectangle through editor.toImage: bounds are the viewport in page

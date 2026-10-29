@@ -1,16 +1,22 @@
 import { MAX_THUMBNAIL_PAGES } from '@tldraw/dotcom-shared'
 import {
 	Editor,
+	TLArrowShape,
+	createBindingId,
 	createShapeId,
 	createTLStore,
+	defaultAddFontsFromNode,
 	defaultBindingUtils,
 	defaultShapeUtils,
 	defaultTldrawOptions,
+	tipTapDefaultExtensions,
+	toRichText,
 } from 'tldraw'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	SHAPES_NOT_ON_PAGE,
 	exportThumbnailImage,
+	measureArrow,
 	prepareLiveCapture,
 	setThumbnailError,
 	signalThumbnailReady,
@@ -97,6 +103,93 @@ describe('prepareLiveCapture', () => {
 		expect(prepareLiveCapture(editor, [renderedId, movedId])).toBe(true)
 		expect([...editor.getCurrentPageShapeIds()]).toEqual([renderedId])
 		expect(document.body.dataset.thumbnailError).toBeUndefined()
+		editor.dispose()
+	})
+})
+
+describe('measureArrow', () => {
+	function setupEditor() {
+		const store = createTLStore({
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+		})
+		return new Editor({
+			store,
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			tools: [],
+			getContainer: () => document.createElement('div'),
+			// An arrow label is rich text, which the editor refuses to lay out without these.
+			options: {
+				text: {
+					addFontsFromNode: defaultAddFontsFromNode,
+					tipTapConfig: { extensions: tipTapDefaultExtensions },
+				},
+			},
+		})
+	}
+
+	// The record of a bound arrow is a stub at its origin; only the editor knows where it runs.
+	it('reports a bound arrow where it is drawn, between the shapes it is bound to', () => {
+		const editor = setupEditor()
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		const arrowId = createShapeId('arrow')
+		editor.createShapes([
+			{ id: a, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: b, type: 'geo', x: 400, y: 0, props: { w: 100, h: 100 } },
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 0,
+				y: 0,
+				props: { start: { x: 0, y: 0 }, end: { x: 2, y: 0 }, richText: toRichText('next') },
+			},
+		])
+		const bind = (toId: typeof a, terminal: 'start' | 'end') => ({
+			id: createBindingId(),
+			type: 'arrow' as const,
+			fromId: arrowId,
+			toId,
+			props: { terminal, normalizedAnchor: { x: 0.5, y: 0.5 }, isPrecise: false, isExact: false },
+		})
+		editor.createBindings([bind(a, 'start'), bind(b, 'end')])
+
+		const measured = measureArrow(editor, editor.getShape<TLArrowShape>(arrowId)!)!
+		// Clipped to each box's edge, along the line between their centres.
+		expect(measured.start.x).toBeGreaterThanOrEqual(100)
+		expect(measured.start.x).toBeLessThan(150)
+		expect(measured.end.x).toBeGreaterThan(350)
+		expect(measured.end.x).toBeLessThanOrEqual(400)
+		expect(measured.start.y).toBeCloseTo(50)
+		expect(measured.end.y).toBeCloseTo(50)
+		// jsdom measures no text, so the label's box is only roughly where a browser would put it.
+		expect(measured.label!.x).toBeGreaterThan(measured.start.x)
+		expect(measured.label!.x).toBeLessThan(measured.end.x)
+		expect(measured.label!.y).toBeCloseTo(50, -1)
+		editor.dispose()
+	})
+
+	it('reports a free arrow inside a frame in page space', () => {
+		const editor = setupEditor()
+		const frame = createShapeId('frame')
+		const arrowId = createShapeId('arrow')
+		editor.createShapes([
+			{ id: frame, type: 'frame', x: 1000, y: 500, props: { w: 400, h: 300 } },
+			{
+				id: arrowId,
+				type: 'arrow',
+				parentId: frame,
+				x: 10,
+				y: 20,
+				props: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
+			},
+		])
+
+		expect(measureArrow(editor, editor.getShape<TLArrowShape>(arrowId)!)).toEqual({
+			start: { x: 1010, y: 520 },
+			end: { x: 1110, y: 520 },
+		})
 		editor.dispose()
 	})
 })

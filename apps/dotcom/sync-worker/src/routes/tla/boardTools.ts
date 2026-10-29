@@ -10,7 +10,7 @@ import {
 	type TLShapeWithPlainText,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { TLShape, isPage, isShape } from '@tldraw/tlschema'
+import { TLArrowBinding, TLShape, VecModel, isBinding, isPage, isShape } from '@tldraw/tlschema'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 
 // Everything about this MCP server that a model can perceive: the protocol handshake and its
@@ -33,7 +33,7 @@ export const MCP_PROTOCOL_VERSION = '2025-11-25'
 export const MCP_SERVER_INFO = {
 	name: 'tldraw-boards',
 	title: 'tldraw boards',
-	version: '3.4.0',
+	version: '3.5.0',
 }
 
 /**
@@ -97,9 +97,24 @@ export const BOARD_EMPTY_MESSAGE = 'This board has no saved content yet.'
 
 // --- Reading a snapshot -------------------------------------------------------------------------
 
-/** What one shape's measure render produced: its page bounds, plus the text its ShapeUtil reported. */
+/**
+ * What one shape's measure render produced: its page bounds, the text its ShapeUtil reported, and
+ * for an arrow, where the editor actually drew it.
+ */
 export interface ShapeMeasurement extends ClusterBounds {
 	text?: string
+	arrow?: MeasuredArrow
+}
+
+/**
+ * An arrow as drawn, in page space. Only an editor can say: a bound arrow's record stores a
+ * placeholder stub, and its real ends depend on the geometry of the shapes it is bound to.
+ */
+export interface MeasuredArrow {
+	start: VecModel
+	end: VecModel
+	/** The centre of the arrow's label, when it has text. */
+	label?: VecModel
 }
 
 // A board page in stable board order. `index` is the 0-based ordinal callers pass to the screenshot
@@ -724,6 +739,11 @@ export type ResolvedPage =
 			pageName: string
 			shapes: TLShape[]
 			/**
+			 * The arrow bindings of this page's arrows, as stored. They are records rather than
+			 * geometry, so get_cluster_info reports them, and clustering can follow them, without a render.
+			 */
+			bindings: TLArrowBinding[]
+			/**
 			 * Every page this board currently has, in board order. Carried because the cluster index is
 			 * stored per page and nothing else would ever tell it a page had been deleted — see
 			 * `pruneMcpClusterIndexRows`.
@@ -750,13 +770,25 @@ export function resolvePage(snapshot: RoomSnapshot, page: PageSelector): Resolve
 			),
 		}
 	}
+	const shapes = getShapesOnPage(snapshot, targetPage.id)
 	return {
 		ok: true,
 		pageId: targetPage.id,
 		pageName: targetPage.name,
-		shapes: getShapesOnPage(snapshot, targetPage.id),
+		shapes,
+		bindings: getArrowBindingsOf(snapshot, shapes),
 		pageIds: pages.map((page) => page.id),
 	}
+}
+
+function getArrowBindingsOf(snapshot: RoomSnapshot, shapes: TLShape[]): TLArrowBinding[] {
+	const shapeIds = new Set<string>(shapes.map((shape) => shape.id))
+	return snapshot.documents
+		.map((d) => d.state)
+		.filter(
+			(record): record is TLArrowBinding =>
+				isBinding(record) && record.type === 'arrow' && shapeIds.has(record.fromId)
+		)
 }
 
 export type ResolvedPageOk = Extract<ResolvedPage, { ok: true }>
@@ -775,19 +807,23 @@ export function clusterPage(page: ResolvedPageOk, measurements: Record<string, S
 
 // --- The cluster index --------------------------------------------------------------------------
 //
-// What a measure render is worth keeping. Clustering a page needs two things only an editor can
-// answer — where each shape sits, and what its ShapeUtil.getText reports — and both cost a full
-// Browser Run session. The *answer* is small and stays true for as long as the board's content does,
-// so it is reduced to this once and stored (mcpClusterIndex.ts), and the three tools that cluster
-// read it back instead of measuring again.
+// What a measure render is worth keeping. Clustering a page and describing its shapes need things
+// only an editor can answer — where each shape sits, where each arrow is drawn, and what its
+// ShapeUtil.getText reports — and all of them cost a full Browser Run session. The *answer* is small
+// and stays true for as long as the board's content does, so it is reduced to this once and stored
+// (mcpClusterIndex.ts), and the three tools that cluster read it back instead of measuring again.
 //
-// Bounds are deliberately not kept: they decide which atoms merge, and that decision is already in
-// `clusters`. The text is, because it is not derivable — `getShapeText` can approximate it from the
-// stored record, but only the editor knows what a shape renders, so dropping it would quietly change
-// what get_cluster_info reports for exactly the shapes a fallback handles worst.
+// Geometry is stored rounded to integers, which is also how every tool reports it. Rounding is
+// idempotent, so a call served from the index and a call served from a fresh render answer
+// identically — `toStoredBounds` is the single place either path rounds bounds.
+
+/** Page-space bounds as stored: `[x, y, w, h]`, each rounded. */
+export type StoredBounds = [x: number, y: number, w: number, h: number]
+/** A page-space point as stored: `[x, y]`, rounded. */
+export type StoredPoint = [x: number, y: number]
 
 /**
- * A page's clustering, reduced to what survives a round trip through storage.
+ * A page's clustering and geometry, reduced to what survives a round trip through storage.
  *
  * Bump `CLUSTER_INDEX_FORMAT_VERSION` whenever this shape changes, or whenever clustering or
  * labelling changes in a way that would make a stored index disagree with a fresh measure — the
@@ -796,20 +832,67 @@ export function clusterPage(page: ResolvedPageOk, measurements: Record<string, S
  */
 export interface PageClusterIndex {
 	v: number
-	/** `shapeIds` are in `getShapeClusters` order, so a rehydrated cluster reads the same. */
-	clusters: { id: string; label: string; keywords: string[]; shapeIds: string[] }[]
+	/**
+	 * `shapeIds` are in `getShapeClusters` order, so a rehydrated cluster reads the same. `bounds` is
+	 * aligned with `shapeIds` rather than keyed by id, which keeps the ids from being stored twice;
+	 * null for a shape the render could not measure.
+	 */
+	clusters: {
+		id: string
+		label: string
+		keywords: string[]
+		shapeIds: string[]
+		bounds: (StoredBounds | null)[]
+	}[]
 	/** The text the measure render's editor reported, by shape id. Absent for shapes with none. */
 	text: Record<string, string>
+	/** Each measured arrow as drawn, by shape id. */
+	arrows: Record<string, { start: StoredPoint; end: StoredPoint; label?: StoredPoint }>
 }
 
-export const CLUSTER_INDEX_FORMAT_VERSION = 1
+export const CLUSTER_INDEX_FORMAT_VERSION = 2
 
-/** Reduces a page's clusters to the form that is stored. */
-export function buildClusterIndex(clusters: ShapeCluster[]): PageClusterIndex {
+/** A page's clusters, and the measurements its shapes are described from. */
+export interface PageClustering {
+	clusters: ShapeCluster[]
+	measurements: Record<string, ShapeMeasurement>
+}
+
+export function toStoredBounds(bounds: ClusterBounds): StoredBounds {
+	return [
+		Math.round(bounds.minX),
+		Math.round(bounds.minY),
+		Math.round(bounds.maxX - bounds.minX),
+		Math.round(bounds.maxY - bounds.minY),
+	]
+}
+
+function toStoredPoint(point: VecModel): StoredPoint {
+	return [Math.round(point.x), Math.round(point.y)]
+}
+
+function fromStoredPoint([x, y]: StoredPoint): VecModel {
+	return { x, y }
+}
+
+/** Reduces a page's clusters, and the measure they were built from, to the form that is stored. */
+export function buildClusterIndex(
+	clusters: ShapeCluster[],
+	measurements: Record<string, ShapeMeasurement>
+): PageClusterIndex {
 	const text: Record<string, string> = {}
+	const arrows: PageClusterIndex['arrows'] = {}
 	for (const cluster of clusters) {
 		for (const shape of cluster.shapes) {
 			if (shape.plainText) text[shape.id] = shape.plainText
+			const arrow = measurements[shape.id]?.arrow
+			if (arrow) {
+				arrows[shape.id] = {
+					start: toStoredPoint(arrow.start),
+					end: toStoredPoint(arrow.end),
+					...(arrow.label ? { label: toStoredPoint(arrow.label) } : null),
+				}
+			}
 		}
 	}
 
@@ -820,8 +903,13 @@ export function buildClusterIndex(clusters: ShapeCluster[]): PageClusterIndex {
 			label: cluster.label,
 			keywords: cluster.keywords,
 			shapeIds: cluster.shapes.map((shape) => shape.id),
+			bounds: cluster.shapes.map((shape) => {
+				const measured = measurements[shape.id]
+				return measured ? toStoredBounds(measured) : null
+			}),
 		})),
 		text,
+		arrows,
 	}
 }
 
@@ -841,14 +929,14 @@ export function parseClusterIndex(json: string): PageClusterIndex | null {
 	}
 	const candidate = value as PageClusterIndex | null
 	if (!candidate || candidate.v !== CLUSTER_INDEX_FORMAT_VERSION) return null
-	if (!Array.isArray(candidate.clusters) || !candidate.text) return null
+	if (!Array.isArray(candidate.clusters) || !candidate.text || !candidate.arrows) return null
 	return candidate
 }
 
 /**
- * Rebuilds full clusters from a stored index and the page it was built for, or null when the two
- * disagree. A null costs one render; serving a mismatch costs a wrong answer that no uncached path
- * could produce, so the check runs in both directions.
+ * Rebuilds full clusters and their measurements from a stored index and the page it was built for,
+ * or null when the two disagree. A null costs one render; serving a mismatch costs a wrong answer
+ * that no uncached path could produce, so the check runs in both directions.
  *
  * Clustering partitions a page — every shape lands in exactly one cluster — so the index and the page
  * agree only if they name the same shapes *and* the same number of them. Naming one the page lacks is
@@ -863,21 +951,45 @@ export function parseClusterIndex(json: string): PageClusterIndex | null {
  * A malformed row throws instead, from reading a field the format promised; the cache read treats
  * that as a miss too.
  */
-export function clustersFromIndex(
+export function clusteringFromIndex(
 	page: ResolvedPageOk,
 	index: PageClusterIndex
-): ShapeCluster[] | null {
+): PageClustering | null {
 	const byId = new Map(page.shapes.map((shape) => [shape.id as string, shape]))
 	const clusters: ShapeCluster[] = []
+	const measurements: Record<string, ShapeMeasurement> = {}
 	let named = 0
 
 	for (const cluster of index.clusters) {
+		if (cluster.bounds.length !== cluster.shapeIds.length) return null
 		const shapes: TLShapeWithPlainText[] = []
-		for (const shapeId of cluster.shapeIds) {
+		for (let i = 0; i < cluster.shapeIds.length; i++) {
+			const shapeId = cluster.shapeIds[i]
 			const shape = byId.get(shapeId)
 			if (!shape) return null
 			const text = index.text[shapeId]
 			shapes.push(text ? { ...shape, plainText: text } : shape)
+
+			const bounds = cluster.bounds[i]
+			if (!bounds) continue
+			const [x, y, w, h] = bounds
+			const arrow = index.arrows[shapeId]
+			measurements[shapeId] = {
+				minX: x,
+				minY: y,
+				maxX: x + w,
+				maxY: y + h,
+				...(text ? { text } : null),
+				...(arrow
+					? {
+							arrow: {
+								start: fromStoredPoint(arrow.start),
+								end: fromStoredPoint(arrow.end),
+								...(arrow.label ? { label: fromStoredPoint(arrow.label) } : null),
+							},
+						}
+					: null),
+			}
 		}
 		named += shapes.length
 		clusters.push({
@@ -889,11 +1001,12 @@ export function clustersFromIndex(
 		})
 	}
 
-	return named === page.shapes.length ? clusters : null
+	return named === page.shapes.length ? { clusters, measurements } : null
 }
 
-// The three clustering tools take clusters, not measurements: a call served from a stored index and
-// a call served from a fresh render hand in the same thing, and everything from here on is identical.
+// The three clustering tools take clusters, never the render itself: a call served from a stored
+// index and a call served from a fresh render hand in the same thing, and everything from here on is
+// identical.
 
 export function getPageInfo(page: ResolvedPageOk, clusters: ShapeCluster[]): ToolResult {
 	// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve cluster
@@ -913,7 +1026,7 @@ export function getPageInfo(page: ResolvedPageOk, clusters: ShapeCluster[]): Too
 
 export function getClusterInfo(
 	page: ResolvedPageOk,
-	clusters: ShapeCluster[],
+	{ clusters, measurements }: PageClustering,
 	clusterId: string,
 	selector: PageSelector
 ): ToolResult {
@@ -924,13 +1037,27 @@ export function getClusterInfo(
 		)
 	}
 
+	const pageTransformOf = getPageTransformResolver(page.shapes)
+	const bindingsByArrow = new Map<string, TLArrowBinding[]>()
+	for (const binding of page.bindings) {
+		const existing = bindingsByArrow.get(binding.fromId)
+		if (existing) existing.push(binding)
+		else bindingsByArrow.set(binding.fromId, [binding])
+	}
+
 	return toolJsonResult({
 		clusterId: cluster.id,
 		label: cluster.label,
 		keywords: cluster.keywords,
 		pageName: page.pageName,
 		numberOfShapes: cluster.numberOfShapes,
-		shapes: cluster.shapes.map(toReadableShape),
+		shapes: cluster.shapes.map((shape) =>
+			toReadableShape(shape, {
+				transform: pageTransformOf(shape),
+				measurement: measurements[shape.id],
+				bindings: bindingsByArrow.get(shape.id) ?? [],
+			})
+		),
 	})
 }
 
@@ -969,23 +1096,198 @@ export function pickClusterShapes(
 	}
 }
 
-// The shape as stored, with one substitution: `props.richText` — a ProseMirror document, deeply
-// nested and unreadable — is dropped in favour of the plain string the editor's ShapeUtil.getText
-// reported for that shape during the measure render. Everything else is passed through untouched, so
-// a caller still sees type, position, rotation, size, colour and the rest exactly as stored.
+// The shape as a model can use it. Starting from the stored record:
 //
-// This matters beyond readability: a geo shape's label is not in `props` at all under any key a
-// Worker could find, so without the editor's answer that text is simply invisible.
-function toReadableShape(shape: TLShapeWithPlainText) {
-	const { plainText, ...rest } = shape
-	const props = { ...(rest.props as Record<string, unknown>) }
+// - Position is in page space. A stored x/y/rotation is relative to the shape's parent, so a shape in
+//   a frame or group would otherwise read as sitting somewhere else entirely, with nothing to say so.
+//   They are replaced by pageX/pageY/pageRotation, and pageBounds is the box the editor measured.
+//   parentId stays, so the hierarchy is still visible.
+// - An arrow gains `arrow`: where the editor drew it and what it is bound to. Its stored
+//   props.start/end are dropped — on a bound arrow they are a placeholder stub at its origin.
+// - `props.richText` — a ProseMirror document, deeply nested and unreadable — is replaced by the plain
+//   string the editor's ShapeUtil.getText reported. A geo shape's label is not in `props` under any
+//   key a Worker could find, so without the editor's answer that text is simply invisible.
+// - Every number is an integer. Fractions that run 0–1 on the record become percentages and angles
+//   become degrees, since rounding either as stored would erase it. `meta` is the app's own data and
+//   is left exactly as stored.
+function toReadableShape(
+	shape: TLShapeWithPlainText,
+	{
+		transform,
+		measurement,
+		bindings,
+	}: {
+		transform: PageTransform
+		measurement: ShapeMeasurement | undefined
+		bindings: TLArrowBinding[]
+	}
+) {
+	const {
+		plainText,
+		id,
+		type,
+		parentId,
+		x: _x,
+		y: _y,
+		rotation: _rotation,
+		opacity,
+		props: storedProps,
+		...rest
+	} = shape
+	const props = { ...(storedProps as Record<string, unknown>) }
 	delete props.richText
-
 	const text = plainText ?? getShapeText(shape)
 	if (text) props.text = text
 	else delete props.text
 
-	return { ...rest, props }
+	const isArrow = type === 'arrow'
+	if (isArrow) {
+		delete props.start
+		delete props.end
+	}
+
+	const bounds = measurement ? toStoredBounds(measurement) : null
+	return {
+		id,
+		type,
+		parentId,
+		pageX: Math.round(transform.x),
+		pageY: Math.round(transform.y),
+		pageRotation: toDegrees(transform.rotation),
+		...(bounds ? { pageBounds: { x: bounds[0], y: bounds[1], w: bounds[2], h: bounds[3] } } : null),
+		...rest,
+		opacity: toPercent(opacity),
+		props: roundProps(props, false),
+		...(isArrow
+			? {
+					arrow: getReadableArrow(
+						storedProps as { start?: VecModel; end?: VecModel },
+						transform,
+						measurement?.arrow,
+						bindings
+					),
+				}
+			: null),
+	}
+}
+
+function getReadableArrow(
+	props: { start?: VecModel; end?: VecModel },
+	transform: PageTransform,
+	measured: MeasuredArrow | undefined,
+	bindings: TLArrowBinding[]
+) {
+	const terminal = (which: 'start' | 'end') => {
+		const binding = bindings.find((b) => b.props.terminal === which)
+		// Without a measure — a fixture, or a render page older than this worker — a free end can still
+		// be placed from the record, since that is all the editor does with it. A bound end cannot.
+		const stored = props[which]
+		const point = measured
+			? measured[which]
+			: !binding && stored
+				? applyPageTransform(transform, stored)
+				: null
+		return {
+			...(point ? { x: Math.round(point.x), y: Math.round(point.y) } : null),
+			binding: binding
+				? {
+						normalizedAnchor: {
+							x: toPercent(binding.props.normalizedAnchor.x),
+							y: toPercent(binding.props.normalizedAnchor.y),
+						},
+						isPrecise: binding.props.isPrecise,
+						isExact: binding.props.isExact,
+						...(binding.props.snap ? { snap: binding.props.snap } : null),
+					}
+				: null,
+		}
+	}
+	const start = terminal('start')
+	const end = terminal('end')
+	return {
+		fromId: bindings.find((b) => b.props.terminal === 'start')?.toId ?? null,
+		toId: bindings.find((b) => b.props.terminal === 'end')?.toId ?? null,
+		start,
+		end,
+		...(measured?.label
+			? { label: { x: Math.round(measured.label.x), y: Math.round(measured.label.y) } }
+			: null),
+	}
+}
+
+// Props whose values run 0–1 on the record, reported as percentages. Everything numeric under one of
+// these keys is a fraction too — an image's crop corners, for instance.
+const FRACTIONAL_PROPS = new Set([
+	'scale',
+	'scaleX',
+	'scaleY',
+	'labelPosition',
+	'elbowMidPoint',
+	'crop',
+])
+
+function roundProps(value: unknown, isFraction: boolean): unknown {
+	if (typeof value === 'number') return isFraction ? toPercent(value) : Math.round(value)
+	if (Array.isArray(value)) return value.map((item) => roundProps(item, isFraction))
+	if (value && typeof value === 'object') {
+		return Object.fromEntries(
+			Object.entries(value).map(([key, item]) => [
+				key,
+				roundProps(item, isFraction || FRACTIONAL_PROPS.has(key)),
+			])
+		)
+	}
+	return value
+}
+
+function toPercent(fraction: number) {
+	return Math.round(fraction * 100)
+}
+
+function toDegrees(radians: number) {
+	const degrees = Math.round((radians * 180) / Math.PI) % 360
+	return degrees < 0 ? degrees + 360 : degrees
+}
+
+interface PageTransform {
+	x: number
+	y: number
+	rotation: number
+}
+
+function applyPageTransform(transform: PageTransform, point: VecModel): VecModel {
+	const cos = Math.cos(transform.rotation)
+	const sin = Math.sin(transform.rotation)
+	return {
+		x: transform.x + point.x * cos - point.y * sin,
+		y: transform.y + point.x * sin + point.y * cos,
+	}
+}
+
+/**
+ * Page transforms composed from the records alone, the way `Editor.getShapePageTransform` composes
+ * them: a shape's local transform is its x, y and rotation, applied inside its parent's. That needs
+ * no editor, so it works for every shape whether or not the render measured it.
+ */
+function getPageTransformResolver(shapes: TLShape[]) {
+	const byId = new Map<string, TLShape>(shapes.map((shape) => [shape.id, shape]))
+	const resolved = new Map<string, PageTransform>()
+	const resolve = (shape: TLShape, depth: number): PageTransform => {
+		const cached = resolved.get(shape.id)
+		if (cached) return cached
+		// Bounded, so a cyclic parentId in a corrupt snapshot ends at a shape treated as top-level.
+		const parent = depth < 100 ? byId.get(shape.parentId) : undefined
+		const parentTransform = parent && resolve(parent, depth + 1)
+		const transform = parentTransform
+			? {
+					...applyPageTransform(parentTransform, shape),
+					rotation: parentTransform.rotation + shape.rotation,
+				}
+			: { x: shape.x, y: shape.y, rotation: shape.rotation }
+		resolved.set(shape.id, transform)
+		return transform
+	}
+	return (shape: TLShape) => resolve(shape, 0)
 }
 
 // --- Tool definitions ---------------------------------------------------------------------------
@@ -1206,7 +1508,7 @@ function getClusterInfoToolDefinition() {
 		name: CLUSTER_INFO_TOOL_NAME,
 		title: 'Get tldraw cluster info',
 		description:
-			"Describe one cluster from get_page_info: its label, keywords, and the full record of every shape it contains — type, position, rotation, size, style and so on. Each shape's rich text document is replaced by `props.text`, the plain string the editor reports for it, which also surfaces text that is not stored on the record at all (a geo shape's label, for instance).",
+			"Describe one cluster from get_page_info: its label, keywords, and every shape it contains. All positions are in page space, whatever the shape's parent: pageX and pageY are the shape's origin on the page, pageRotation its rotation on the page, and pageBounds its axis-aligned box on the page. parentId still names the frame or group a shape sits in. An arrow also has `arrow`: its start and end points as drawn, fromId and toId (the shapes its start and end are bound to, or null when free), each end's binding (normalizedAnchor, isPrecise, isExact, snap) or null, and its label's centre when it has text. `props` holds the rest of the record — size and style in the shape's own unrotated space — with the rich text document replaced by `props.text`, the plain string the editor reports, which also surfaces text not stored on the record (a geo shape's label, for instance). Every number is an integer: lengths in page units, angles in degrees, and values that run 0–1 on the record (opacity, scale, labelPosition, elbowMidPoint, crop, normalizedAnchor) as percentages. `meta` is passed through as stored.",
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,

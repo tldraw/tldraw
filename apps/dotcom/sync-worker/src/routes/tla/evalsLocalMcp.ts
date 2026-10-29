@@ -194,7 +194,15 @@ async function callFixtureTool(
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const resolved = resolvePage(board.snapshot, page)
 				return resolved.ok
-					? getClusterInfo(resolved, clusterPage(resolved, board.measurements), clusterId, page)
+					? getClusterInfo(
+							resolved,
+							{
+								clusters: clusterPage(resolved, board.measurements),
+								measurements: board.measurements,
+							},
+							clusterId,
+							page
+						)
 					: resolved.result
 			}
 			case CLUSTER_SCREENSHOT_TOOL_NAME: {
