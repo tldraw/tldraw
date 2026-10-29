@@ -77,14 +77,14 @@ export default function CommandPaletteExample() {
 
 /*
 [1]
-Actions are listed in the palette on their own, gated by `isEnabled` like everywhere else, so
-"Make red" only shows up while something is selected. Left alone, it would land in the catch-all
+Actions are listed in the palette on their own. The palette hides disabled actions, so "Make red"
+only shows up while something is selected. Left alone, it would land in the catch-all
 at the end of the default content; placing it in a group below takes it out of there.
 
 [2]
 Wrap `DefaultCommandPalette` and keep `DefaultCommandPaletteContent` to add commands without
 rebuilding the palette. Items are the same `TldrawUiMenu*` components the other menus use.
-Forward the slot's props so it still gets `onClose`.
+Forward the slot's props so the palette keeps anything tldraw passes to the slot.
 
 `position` sets where the palette opens: `'top'`, `'center'`, or `'bottom'`, the default, just
 above the toolbar.
