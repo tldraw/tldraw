@@ -546,6 +546,29 @@ describe('labels lead with the most prominent text', () => {
 		expect(labelled.label.startsWith('Ship it')).toBe(true)
 	})
 
+	// Seen on staging boards: the largest text was a sticker emoji, a divider or a bookmark's URL.
+	it.each([
+		['an emoji', styled('big', '🍀', 'xl')],
+		['a divider', styled('big', '-------', 'xl')],
+		['a URL', styled('big', 'https://en.wikipedia.org/wiki/Arrow_(symbol)', 'xl')],
+		['a bookmark', styled('big', 'Arrow (symbol) - Wikipedia', 'xl', 'bookmark')],
+	])('skips %s as the title and takes the next-largest text', (_, decoration) => {
+		const bounds = { big: box(0, 0, 400, 80), heading: box(0, 100, 400, 40) }
+		const [labelled] = labelClusters(
+			[[decoration, styled('heading', 'Sprint retro notes', 'l')]],
+			bounds
+		)
+		expect(labelled.label.startsWith('Sprint retro notes')).toBe(true)
+	})
+
+	it('falls back to decoration when a cluster has no other text', () => {
+		const [labelled] = labelClusters([[styled('a', '🍀', 'xl'), styled('b', '✨', 'm')]], {
+			a: box(0, 0, 80, 80),
+			b: box(100, 0, 40, 40),
+		})
+		expect(labelled.label).toBe('🍀')
+	})
+
 	it('still lets a frame name outrank the largest text', () => {
 		const frame = { id: 'f', type: 'frame', props: { name: 'Login flow' } } as unknown as TLShape
 		const [labelled] = labelClusters([[frame, styled('h', 'Welcome back', 'xl')]], {

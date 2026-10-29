@@ -226,9 +226,28 @@ function getTextScale(shape: TLShapeWithPlainText): number {
 	return (fontSize * scale) / FONT_SIZE_BY_STYLE.m
 }
 
+function getFirstLine(text: string): string {
+	return (text.split('\n').find((part) => part.trim()) ?? '').replace(/\s+/g, ' ').trim()
+}
+
+/** A title needs this many letters, so a sticker emoji or a divider of dashes never names a cluster. */
+const MIN_TITLE_LETTERS = 3
+
+/**
+ * Whether a shape's text can name its cluster. Arrow labels annotate a connection, and a bookmark's
+ * or embed's text is its URL; on real boards the largest text was otherwise often "🍀", "-------" or
+ * a truncated Wikipedia link.
+ */
+function isTitleCandidate(shape: TLShapeWithPlainText, text: string): boolean {
+	if (shape.type === 'arrow' || shape.type === 'bookmark' || shape.type === 'embed') return false
+	const line = getFirstLine(text)
+	if (/^(https?:\/\/|www\.)/i.test(line)) return false
+	return (line.match(/\p{L}/gu)?.length ?? 0) >= MIN_TITLE_LETTERS
+}
+
 /** The first line of `text`, cut at a word boundary once it passes MAX_TITLE_LENGTH. */
 function toTitle(text: string): string {
-	const line = (text.split('\n').find((part) => part.trim()) ?? '').replace(/\s+/g, ' ').trim()
+	const line = getFirstLine(text)
 	if (line.length <= MAX_TITLE_LENGTH) return line
 	const cut = line.slice(0, MAX_TITLE_LENGTH + 1)
 	const lastSpace = cut.lastIndexOf(' ')
@@ -273,9 +292,11 @@ export function labelClusters(
 			return a.order - b.order
 		})
 
-		// The title is the largest text, and the first in reading order among equals. Arrow labels
-		// never qualify: they annotate a connection, they don't name the group.
+		// The title is the largest text that can name a group (see isTitleCandidate), and the first in
+		// reading order among equals. A cluster whose only text is decoration (a sheet of emoji
+		// stickers) still gets its largest piece, rather than an empty label that hides it has text.
 		let title: { text: string; scale: number } | null = null
+		let fallback: { text: string; scale: number } | null = null
 		for (let rank = 0; rank < texts.length; rank++) {
 			const { shape, text } = texts[rank]
 			const scale = getTextScale(shape)
@@ -286,10 +307,12 @@ export function labelClusters(
 				Math.min(2, Math.max(0.5, scale)) * (1 + 0.5 / (1 + rank))
 			)
 			addTokens(tokens, tokenize(text), weight)
-			if (shape.type !== 'arrow' && (!title || scale > title.scale)) title = { text, scale }
+			if ((!title || scale > title.scale) && isTitleCandidate(shape, text)) title = { text, scale }
+			if (shape.type !== 'arrow' && (!fallback || scale > fallback.scale))
+				fallback = { text, scale }
 		}
 
-		return { tokens, frameNames, title }
+		return { tokens, frameNames, title: title ?? fallback }
 	})
 
 	// How many clusters contain each term. This corpus-wide count is what makes the weight
