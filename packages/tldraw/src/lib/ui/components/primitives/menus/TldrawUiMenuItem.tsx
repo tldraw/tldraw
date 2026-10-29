@@ -294,7 +294,6 @@ export function TldrawUiMenuItem<
 					id={id}
 					label={labelStr}
 					kbd={kbd}
-					icon={iconLeft ?? icon}
 					isSelected={isSelected}
 					detail={detail}
 					onSelect={onSelect}

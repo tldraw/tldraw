@@ -14,7 +14,7 @@ export type CommandPaletteRow =
 			recent: boolean
 			/** Muted text after the label, e.g. the value a prompt will submit. */
 			detail?: string
-			/** Replaces the entry's own icon. */
+			/** Leading affordance, e.g. a prompt row's arrow. */
 			icon?: string
 	  }
 	| { type: 'submenu'; key: string; submenu: CommandPaletteSubmenu }

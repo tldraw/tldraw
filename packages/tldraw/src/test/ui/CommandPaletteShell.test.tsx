@@ -283,16 +283,6 @@ describe('CommandPaletteShell', () => {
 		expect(isEnterKeyUpSwallowed(editor)).toBe(false)
 	})
 
-	it("shows a submenu's icon on its row", async () => {
-		const { rendered } = await renderShell(
-			<TldrawUiMenuSubmenu id="news" label="News" icon={<span data-testid="news-icon" />}>
-				{['a', 'b'].map((id) => item(id, `Item ${id}`))}
-			</TldrawUiMenuSubmenu>
-		)
-		const row = await rendered.findByTestId('command-palette.submenu.News')
-		expect(within(row).getByTestId('news-icon')).toBeTruthy()
-	})
-
 	it('lists pinned groups first, above recents, under their heading', async () => {
 		addCommandPaletteRecent('alpha')
 		const { rendered } = await renderShell(
@@ -553,24 +543,30 @@ describe('CommandPaletteShell', () => {
 		expect(onSubmit).not.toHaveBeenCalled()
 	})
 
-	it('gives every row one leading slot, shared by the icon and the check', async () => {
+	it('shows no item icons, and reserves a check slot only in sections with a checkable row', async () => {
 		const { rendered } = await renderShell(
 			<>
 				<TldrawUiMenuGroup id="edit" label="Edit">
 					<TldrawUiMenuItem id="alpha" label="Alpha" iconLeft="plus" onSelect={vi.fn()} />
 					{item('beta', 'Beta')}
 					<TldrawUiMenuCheckboxItem id="grid" label="Grid" checked readonlyOk onSelect={vi.fn()} />
+					<TldrawUiMenuSubmenu id="more" label="More">
+						{['a', 'b'].map((id) => item(id, `Item ${id}`))}
+					</TldrawUiMenuSubmenu>
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="view" label="View">
-					{item('gamma', 'Gamma')}
+					<TldrawUiMenuItem id="gamma" label="Gamma" iconLeft="plus" onSelect={vi.fn()} />
 				</TldrawUiMenuGroup>
 			</>
 		)
 		await rendered.findByText('Edit')
-		for (const id of ['alpha', 'beta', 'grid']) {
-			const row = rendered.getByTestId(`command-palette.item.${id}`)
-			expect(row.querySelectorAll('.tlui-icon')).toHaveLength(1)
-		}
+		const iconCount = (testId: string) =>
+			rendered.getByTestId(testId).querySelectorAll('.tlui-icon').length
+		for (const id of ['alpha', 'beta', 'grid'])
+			expect(iconCount(`command-palette.item.${id}`)).toBe(1)
+		// The check slot plus the chevron.
+		expect(iconCount('command-palette.submenu.More')).toBe(2)
+		expect(iconCount('command-palette.item.gamma')).toBe(0)
 	})
 
 	it('ignores Enter while an IME composition is in progress', async () => {
