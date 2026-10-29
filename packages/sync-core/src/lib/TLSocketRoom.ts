@@ -136,7 +136,13 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * this callback must handle those paths itself.
 	 */
 	// eslint-disable-next-line tldraw/method-signature-style
-	onCommittedChanges?: (args: { diff: TLSyncForwardDiff<R>; documentClock: number }) => void
+	onCommittedChanges?: (args: {
+		diff: TLSyncForwardDiff<R>
+		documentClock: number
+		/** The pushing session, so callers can attribute the change. */
+		sessionId?: string
+		meta?: SessionMeta
+	}) => void
 	/**
 	 * Record type names to serve through the object-store lane instead of the document lane.
 	 * Each must be a document-scoped type registered in the schema. Object-lane writes are gated
