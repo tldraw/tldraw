@@ -59,8 +59,11 @@ function getGroupedSubmenuKeys(entries: readonly CommandPaletteEntry[]) {
 	return keys
 }
 
+// Pinned and unpinned lists share a section list, so their keys need distinct prefixes or React
+// reuses the wrong section and leaves stale rows behind.
 function listEntries(
 	entries: readonly CommandPaletteEntry[],
+	keyPrefix: string,
 	skip: ReadonlySet<CommandPaletteEntry> = new Set()
 ) {
 	const rows: CommandPaletteRow[] = []
@@ -71,9 +74,13 @@ function listEntries(
 		if (entry.heading !== currentHeading) {
 			// An unlabelled group after a labelled one gets a separator so it doesn't read as part of it.
 			if (entry.heading) {
-				rows.push({ type: 'heading', key: `heading:${rows.length}`, label: entry.heading })
+				rows.push({
+					type: 'heading',
+					key: `${keyPrefix}heading:${rows.length}`,
+					label: entry.heading,
+				})
 			} else if (rows.length) {
-				rows.push({ type: 'separator', key: `separator:${rows.length}` })
+				rows.push({ type: 'separator', key: `${keyPrefix}separator:${rows.length}` })
 			}
 			currentHeading = entry.heading
 		}
@@ -104,7 +111,7 @@ export function getCommandPaletteBrowseRows(
 	const unpinned = entries.filter((entry) => !entry.pinned)
 
 	if (pinned.length) {
-		rows.push(...listEntries(pinned))
+		rows.push(...listEntries(pinned, 'pinned:'))
 		rows.push({ type: 'separator', key: 'separator:pinned' })
 	}
 
@@ -127,7 +134,7 @@ export function getCommandPaletteBrowseRows(
 		rows.push({ type: 'separator', key: 'separator:recent' })
 	}
 
-	const listed = listEntries(unpinned, new Set(recent))
+	const listed = listEntries(unpinned, '', new Set(recent))
 	// A heading over the only section names nothing it needs to tell apart.
 	const groupHeadings = listed.filter((row) => row.type === 'heading')
 	rows.push(

@@ -95,6 +95,22 @@ describe('getCommandPaletteBrowseRows', () => {
 		expect(describeRows(rows)).toEqual(['flag', '---', '# Recent', 'recent grid', '---', 'undo'])
 	})
 
+	it('keys pinned and unpinned headings and separators apart', () => {
+		const rows = getCommandPaletteBrowseRows(
+			[
+				entry('flag', { pinned: true, heading: 'Pinned' }),
+				entry('star', { pinned: true }),
+				entry('undo', { heading: 'Edit' }),
+				entry('grid'),
+				entry('theme', { heading: 'View' }),
+			],
+			['grid'],
+			'Recent'
+		)
+		const keys = rows.map((row) => row.key)
+		expect(new Set(keys).size).toBe(keys.length)
+	})
+
 	it('heads each labelled group, separating unlabelled ones', () => {
 		const rows = getCommandPaletteBrowseRows(
 			[
