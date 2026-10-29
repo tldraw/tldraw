@@ -16,7 +16,10 @@ interface CreateAppRouterOptions {
 
 function getDefaultIncludeDevRoutes() {
 	// @ts-ignore this is provided by Vite
-	return import.meta.env.DEV
+	if (import.meta.env.DEV) return true
+	// Also include them on PR preview deploys (pr-<N>-preview-deploy.tldraw.com) so
+	// the /dev/components gallery is shareable, without exposing it in production.
+	return typeof window !== 'undefined' && window.location.hostname.includes('preview-deploy')
 }
 
 export function createAppRouter({
@@ -83,6 +86,29 @@ export function createAppRouter({
 						path="/dev/browser-run-thumbnail"
 						lazy={() => import('./pages/dev-browser-run-thumbnail')}
 					/>
+					<Route path="/dev/components/buttons" lazy={() => import('./pages/dev-buttons')} />
+					<Route path="/dev/components/inputs" lazy={() => import('./pages/dev-inputs')} />
+					<Route path="/dev/components/typography" lazy={() => import('./pages/dev-typography')} />
+					<Route path="/dev/components/dialogs" lazy={() => import('./pages/dev-dialogs')} />
+					<Route path="/dev/components/menus" lazy={() => import('./pages/dev-menus')} />
+					<Route path="/dev/components/icons" lazy={() => import('./pages/dev-icons')} />
+					<Route path="/dev/components/links" lazy={() => import('./pages/dev-links')} />
+					<Route path="/dev/components/overlays" lazy={() => import('./pages/dev-overlays')} />
+					<Route
+						path="/dev/components/form-controls"
+						lazy={() => import('./pages/dev-form-controls')}
+					/>
+					<Route path="/dev/components/presence" lazy={() => import('./pages/dev-presence')} />
+					<Route path="/dev/components/logo" lazy={() => import('./pages/dev-logo')} />
+					<Route path="/dev/components/states" lazy={() => import('./pages/dev-states')} />
+					<Route path="/dev/components/empty" lazy={() => import('./pages/dev-empty')} />
+					<Route path="/dev/components/commenting" lazy={() => import('./pages/dev-commenting')} />
+					<Route path="/dev/components/sidebar" lazy={() => import('./pages/dev-sidebar')} />
+					<Route path="/dev/components/editor" lazy={() => import('./pages/dev-editor')} />
+					<Route path="/dev/components/timestamps" lazy={() => import('./pages/dev-timestamps')} />
+					<Route path="/dev/components/identity" lazy={() => import('./pages/dev-identity')} />
+					<Route path="/dev/components/z-index" lazy={() => import('./pages/dev-zindex')} />
+					<Route path="/dev/components/shadows" lazy={() => import('./pages/dev-shadows')} />
 				</>
 			)}
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
