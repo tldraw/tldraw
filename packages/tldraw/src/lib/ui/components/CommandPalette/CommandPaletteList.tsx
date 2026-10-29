@@ -1,6 +1,5 @@
-import { defineMessages } from '@tldraw/editor'
 import { RefObject, useLayoutEffect, useRef } from 'react'
-import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { useDirection } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 import { CommandPaletteSection, SelectableRow } from './commandPaletteRows'
@@ -13,11 +12,6 @@ const getMark = (row: SelectableRow) =>
 export function getCommandPaletteEntryMark(entry: CommandPaletteEntry) {
 	return entry.checked ?? entry.isSelected
 }
-
-const messages = defineMessages({
-	checked: { id: 'ui.checked', defaultMessage: 'Checked' },
-	unchecked: { id: 'ui.unchecked', defaultMessage: 'Unchecked' },
-})
 
 /** @internal */
 export function getCommandPaletteOptionId(listboxId: string, index: number) {
@@ -98,7 +92,6 @@ function CommandPaletteRowView({
 	onHover(): void
 	onRun(): void
 }) {
-	const msg = useTranslation()
 	const dir = useDirection()
 	const rRow = useRef<HTMLDivElement>(null)
 	useLayoutEffect(() => {
@@ -106,13 +99,9 @@ function CommandPaletteRowView({
 	}, [isActive, rScrollToActive])
 
 	const mark = getMark(row)
+	// Decorative: the row's aria-checked carries the state.
 	const checkSlot = hasCheckSlot && (
-		<TldrawUiIcon
-			icon={mark ? 'check' : 'none'}
-			small
-			label={mark === undefined ? '' : msg(mark ? messages.checked : messages.unchecked)}
-			aria-hidden={mark === undefined || undefined}
-		/>
+		<TldrawUiIcon icon={mark ? 'check' : 'none'} small label="" aria-hidden="true" />
 	)
 
 	if (row.type === 'submenu') {
@@ -149,6 +138,7 @@ function CommandPaletteRowView({
 			id={id}
 			role="option"
 			aria-selected={isActive}
+			aria-checked={mark}
 			data-highlighted={isActive || undefined}
 			data-testid={`command-palette.${row.recent ? 'recent' : 'item'}.${entry.id}`}
 			className="tlui-command-palette__item"

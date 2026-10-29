@@ -1,4 +1,4 @@
-import { act, fireEvent, render, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import {
 	atom,
 	BaseBoxShapeUtil,
@@ -356,9 +356,9 @@ describe('default command palette content', () => {
 		fireEvent.click(await rendered.findByTestId('command-palette.item.style-opacity-0.5'))
 		expect(editor.getShape(createShapeId('box'))!.opacity).toBe(0.5)
 		await waitFor(() =>
-			within(rendered.getByTestId('command-palette.item.style-opacity-0.5')).getByLabelText(
-				'Checked'
-			)
+			expect(
+				rendered.getByTestId('command-palette.item.style-opacity-0.5').getAttribute('aria-checked')
+			).toBe('true')
 		)
 	})
 

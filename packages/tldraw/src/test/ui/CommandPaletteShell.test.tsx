@@ -636,6 +636,25 @@ describe('CommandPaletteShell', () => {
 		expect(iconCount('command-palette.item.de')).toBe(1)
 	})
 
+	it('marks checkable rows with aria-checked, keeping the check icon decorative', async () => {
+		const { rendered } = await renderShell(
+			<>
+				<TldrawUiMenuCheckboxItem id="on" label="On" checked readonlyOk onSelect={vi.fn()} />
+				<TldrawUiMenuCheckboxItem id="off" label="Off" checked={false} onSelect={vi.fn()} />
+				{item('current', 'Current', vi.fn(), { isSelected: true })}
+				{item('plain', 'Plain')}
+			</>
+		)
+		await rendered.findByTestId('command-palette.item.plain')
+		const row = (id: string) => rendered.getByTestId(`command-palette.item.${id}`)
+		expect(
+			['on', 'off', 'current', 'plain'].map((id) => row(id).getAttribute('aria-checked'))
+		).toEqual(['true', 'false', 'true', null])
+		for (const id of ['on', 'off', 'current', 'plain']) {
+			expect(row(id).querySelector('.tlui-icon')!.getAttribute('aria-hidden')).toBe('true')
+		}
+	})
+
 	it('ignores Enter while an IME composition is in progress', async () => {
 		const onSelect = vi.fn()
 		const { input } = await renderShell(item('alpha', 'Alpha', onSelect))
