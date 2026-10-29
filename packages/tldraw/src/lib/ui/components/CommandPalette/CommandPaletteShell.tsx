@@ -166,8 +166,9 @@ export function CommandPaletteShell({
 	useLayoutEffect(() => {
 		const input = rInput.current
 		if (!input) return
-		if (!editor) {
-			const focused = input.ownerDocument.activeElement
+		// StrictMode reruns this with the input focused; keep the element saved by the first run.
+		const focused = input.ownerDocument.activeElement
+		if (!editor && !rPalette.current?.contains(focused)) {
 			rFocusBefore.current =
 				focused && focused !== input.ownerDocument.body ? (focused as HTMLElement) : null
 		}

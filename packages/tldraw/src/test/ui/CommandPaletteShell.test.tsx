@@ -1,6 +1,6 @@
 import { act, fireEvent, render, waitFor, within } from '@testing-library/react'
 import { deleteFromLocalStorage, Editor, useValue } from '@tldraw/editor'
-import { ReactNode, useState } from 'react'
+import { ReactNode, StrictMode, useState } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import {
@@ -829,7 +829,7 @@ describe('CommandPaletteShell', () => {
 })
 
 describe('CommandPaletteShell without an editor', () => {
-	function renderApp() {
+	function renderApp({ strict = false } = {}) {
 		const onClose = vi.fn()
 		const onSelect = vi.fn()
 		const onSubmit = vi.fn()
@@ -864,7 +864,15 @@ describe('CommandPaletteShell without an editor', () => {
 				</TldrawUiContextProvider>
 			)
 		}
-		const rendered = render(<App />)
+		const rendered = render(
+			strict ? (
+				<StrictMode>
+					<App />
+				</StrictMode>
+			) : (
+				<App />
+			)
+		)
 		const open = async () => {
 			const opener = rendered.getByTestId('opener')
 			opener.focus()
@@ -896,6 +904,14 @@ describe('CommandPaletteShell without an editor', () => {
 		press(input, 'Escape')
 		expect(onClose).toHaveBeenCalledTimes(1)
 		expect(onSelect).not.toHaveBeenCalled()
+		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
+		expect(document.activeElement).toBe(opener)
+	})
+
+	it('gives focus back under StrictMode', async () => {
+		const { rendered, open } = renderApp({ strict: true })
+		const { opener, input } = await open()
+		press(input, 'Escape')
 		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
 		expect(document.activeElement).toBe(opener)
 	})
