@@ -219,7 +219,7 @@ export function CommandPalettePagesGroup() {
 }
 
 /**
- * Copy and export as image or JSON, and print.
+ * Export as SVG or PNG, copy as SVG, PNG or JSON, the transparent background toggle, and print.
  *
  * @public @react
  */
