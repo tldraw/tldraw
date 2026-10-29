@@ -35,6 +35,18 @@ vi.mock('../../lib/ui/hooks/useTranslation/useTranslation', async () =>
 	vi.importActual('../../lib/ui/hooks/useTranslation/useTranslation')
 )
 
+// setupVitest pins useBreakpoint to desktop; minimap tests opt into the real one.
+const realBreakpoint = vi.hoisted(() => ({ value: false }))
+vi.mock('../../lib/ui/context/breakpoints', async () => {
+	const actual = await vi.importActual<typeof import('../../lib/ui/context/breakpoints')>(
+		'../../lib/ui/context/breakpoints'
+	)
+	return {
+		...actual,
+		useBreakpoint: () => (realBreakpoint.value ? actual.useBreakpoint() : 7),
+	}
+})
+
 const commentingEnabled = vi.hoisted(() => ({ value: true }))
 vi.mock('../../lib/ui/hooks/useCommentingEnabled', () => ({
 	useCommentingEnabled: () => commentingEnabled.value,
@@ -42,6 +54,7 @@ vi.mock('../../lib/ui/hooks/useCommentingEnabled', () => ({
 
 afterEach(() => {
 	commentingEnabled.value = true
+	realBreakpoint.value = false
 	deleteFromLocalStorage('tldraw-command-palette-recents')
 	deleteFromLocalStorage('minimap')
 })
@@ -51,7 +64,9 @@ async function renderPalette({
 	onUiEvent,
 	overrides,
 	content = <DefaultCommandPaletteContent />,
+	forceMobile,
 }: {
+	forceMobile?: boolean
 	maxPages?: number
 	onUiEvent?(name: string, data: unknown): void
 	overrides?: TLUiOverrides
@@ -63,6 +78,7 @@ async function renderPalette({
 				onMount={onMount}
 				onUiEvent={onUiEvent}
 				overrides={overrides}
+				forceMobile={forceMobile}
 				options={maxPages === undefined ? undefined : { maxPages }}
 			>
 				<CommandPaletteShell onClose={() => {}}>{content}</CommandPaletteShell>
@@ -217,6 +233,7 @@ describe('default command palette content', () => {
 	})
 
 	it('toggles the minimap, in step with the navigation panel', async () => {
+		realBreakpoint.value = true
 		const { editor, rendered, search, enter } = await renderPalette()
 		act(() => editor.updateViewportScreenBounds(new Box(0, 0, 1400, 900)))
 		search('minimap')
@@ -229,6 +246,29 @@ describe('default command palette content', () => {
 		await waitFor(() =>
 			expect(rendered.queryByTestId('command-palette.item.toggle-minimap')).toBeNull()
 		)
+	})
+
+	it('hides toggle minimap when forceMobile hides the minimap', async () => {
+		realBreakpoint.value = true
+		const { editor, rendered, search } = await renderPalette({ forceMobile: true })
+		act(() => editor.updateViewportScreenBounds(new Box(0, 0, 1400, 900)))
+		search('minimap')
+		await rendered.findByTestId('command-palette.input')
+		expect(rendered.queryByTestId('command-palette.item.toggle-minimap')).toBeNull()
+	})
+
+	it('hides toggle minimap in focus mode', async () => {
+		realBreakpoint.value = true
+		const { editor, rendered, search } = await renderPalette()
+		act(() => editor.updateViewportScreenBounds(new Box(0, 0, 1400, 900)))
+		// jsdom would re-measure the viewport to ~0 after the focus mode layout change.
+		vi.spyOn(editor, 'updateViewportScreenBounds').mockImplementation(() => editor)
+		search('minimap')
+		await rendered.findByTestId('command-palette.item.toggle-minimap')
+		act(() => editor.updateInstanceState({ isFocusMode: true }))
+		search('minimap')
+		await rendered.findByTestId('command-palette.input')
+		expect(rendered.queryByTestId('command-palette.item.toggle-minimap')).toBeNull()
 	})
 
 	it('renames, duplicates and deletes the current page, but not the only one', async () => {
