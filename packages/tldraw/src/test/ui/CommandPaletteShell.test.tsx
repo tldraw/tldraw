@@ -668,6 +668,23 @@ describe('CommandPaletteShell', () => {
 		expect(getCommandPaletteRecents()).toEqual([])
 	})
 
+	it('lists nothing from a submenu with an empty label', async () => {
+		const { rendered, input } = await renderShell(
+			<>
+				{item('alpha', 'Alpha')}
+				<CommandPaletteCollapsed>
+					<TldrawUiMenuSubmenu id="news" label="">
+						{item('note', 'Note')}
+					</TldrawUiMenuSubmenu>
+				</CommandPaletteCollapsed>
+			</>
+		)
+		await rendered.findByTestId('command-palette.item.alpha')
+		expect(rendered.queryByTestId('command-palette.item.note')).toBeNull()
+		type(input, 'note')
+		await waitFor(() => expect(rendered.queryByRole('option')).toBeNull())
+	})
+
 	it('returns focus to the editor, without recording a recent, when an item throws', async () => {
 		const { editor, input } = await renderShell(
 			item(
