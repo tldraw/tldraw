@@ -1,17 +1,28 @@
-import { useEffect } from 'react'
-import { useParams, useRouteError } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { useLocation, useParams, useRouteError } from 'react-router-dom'
 import { markFirstLoad } from '../../utils/firstLoad'
 import { captureRouteError } from '../../utils/routeErrors'
 import { TlaEditor } from '../components/TlaEditor/TlaEditor'
 import { TlaFileSyncHost } from '../components/TlaEditor/TlaFileSyncHost'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
+import { FileHistoryMode } from '../components/VersionHistory/FileHistoryMode'
 import { useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
 import { ReadyWrapper } from '../hooks/useIsReady'
+import { useVersionHistoryEnabled } from '../hooks/useVersionHistoryEnabled'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
+import { parseHistoryRoute } from '../utils/historyRoute'
 import { toggleSidebar } from '../utils/local-session-state'
+import styles from './file.module.css'
 
 markFirstLoad('file-chunk-loaded')
+
+const LegacyHistoryList = lazy(() =>
+	import('./file-history').then((m) => ({ default: m.Component }))
+)
+const LegacyHistorySnapshot = lazy(() =>
+	import('./file-history-snapshot').then((m) => ({ default: m.Component }))
+)
 
 export function ErrorBoundary() {
 	const error = useRouteError()
@@ -29,6 +40,8 @@ export function Component({ error }: { error?: unknown }) {
 	const userId = app?.userId
 
 	const errorElem = error ? <TlaFileError error={error} /> : null
+	const history = parseHistoryRoute(useLocation().pathname)
+	const historyEnabled = useVersionHistoryEnabled()
 
 	useEffect(() => {
 		if (error && userId) {
@@ -36,6 +49,16 @@ export function Component({ error }: { error?: unknown }) {
 			toggleSidebar(true)
 		}
 	}, [error, userId])
+
+	const showHistory = history.inHistory && !!historyEnabled
+	// Without the flag, history is the standalone pages, as before.
+	if (history.inHistory && historyEnabled === false) {
+		return (
+			<Suspense fallback={null}>
+				{history.ts ? <LegacyHistorySnapshot /> : <LegacyHistoryList />}
+			</Suspense>
+		)
+	}
 
 	// The embed search param hides the sidebar, and tells share-link tracking this is a host-page
 	// view rather than a link follow, so it has to reach the editor on the anonymous path too.
@@ -71,7 +94,15 @@ export function Component({ error }: { error?: unknown }) {
 	return (
 		<TlaSidebarLayout collapsible isEmbed={isEmbed}>
 			<TlaFileSyncHost key={fileSlug} fileSlug={fileSlug}>
-				{app && <TlaEditor fileSlug={fileSlug} deepLinks isEmbed={isEmbed} />}
+				{app && (
+					<div className={styles.fileArea}>
+						{/* Kept mounted (just hidden) while history is open, so closing it is instant. */}
+						<div className={styles.liveEditor} data-hidden={showHistory || undefined}>
+							<TlaEditor fileSlug={fileSlug} deepLinks isEmbed={isEmbed} />
+						</div>
+						{showHistory && <FileHistoryMode fileSlug={fileSlug} ts={history.ts} />}
+					</div>
+				)}
 			</TlaFileSyncHost>
 		</TlaSidebarLayout>
 	)

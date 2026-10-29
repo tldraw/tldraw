@@ -25,8 +25,10 @@ import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../hooks/useAppState'
+import { useCanEditFile } from '../../hooks/useCanEditFile'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
+import { useVersionHistoryEnabled } from '../../hooks/useVersionHistoryEnabled'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import { CreateWorkspaceDialog } from '../dialogs/CreateWorkspaceDialog'
@@ -40,6 +42,7 @@ const messages = defineMessages({
 	copyLink: { defaultMessage: 'Copy link' },
 	delete: { defaultMessage: 'Delete' },
 	duplicate: { defaultMessage: 'Duplicate' },
+	versionHistory: { defaultMessage: 'Version history' },
 	forget: { defaultMessage: 'Forget' },
 	rename: { defaultMessage: 'Rename' },
 	copy: { defaultMessage: 'Copy' },
@@ -121,6 +124,8 @@ export function FileItems({
 	const trackEvent = useTldrawAppUiEvents()
 	const copiedMsg = msg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
+	const canEdit = useCanEditFile(fileId)
+	const versionHistoryEnabled = useVersionHistoryEnabled()
 	const isPinned = useIsFilePinned(fileId, workspaceId ?? '')
 	const activeWorkspaceId = useActiveWorkspaceId()
 
@@ -214,6 +219,16 @@ export function FileItems({
 		downloadAppFile(fileId)
 	}, [fileId, source, trackEvent])
 
+	const handleVersionHistoryClick = useCallback(() => {
+		trackEvent('open-version-history', { source })
+		// Only the header menu sits inside this file's editor; the sidebar opens at the default view.
+		const view =
+			editor && location.pathname.startsWith(routes.tlaFile(fileId))
+				? { pageId: editor.getCurrentPageId(), camera: editor.getCamera() }
+				: undefined
+		navigate(routes.tlaFileHistory(fileId), { state: { view } })
+	}, [editor, fileId, navigate, source, trackEvent])
+
 	const unpinMsg = msg(messages.unpin)
 
 	return (
@@ -241,6 +256,14 @@ export function FileItems({
 					readonlyOk
 					onSelect={handleDuplicateClick}
 				/>
+				{versionHistoryEnabled && canEdit && (
+					<TldrawUiMenuItem
+						label={msg(messages.versionHistory)}
+						id="version-history"
+						readonlyOk
+						onSelect={handleVersionHistoryClick}
+					/>
+				)}
 				<TldrawUiMenuItem
 					label={msg(editorMessages.downloadFile)}
 					id="download-file"

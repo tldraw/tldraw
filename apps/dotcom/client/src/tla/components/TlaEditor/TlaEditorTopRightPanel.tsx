@@ -26,8 +26,10 @@ import {
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useCanEditFile } from '../../hooks/useCanEditFile'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
+import { useVersionHistoryEnabled } from '../../hooks/useVersionHistoryEnabled'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
@@ -41,6 +43,7 @@ const ctaMessages = defineMessages({
 
 const commentsMessages = defineMessages({
 	comments: { defaultMessage: 'Comments' },
+	versionHistory: { defaultMessage: 'Version history' },
 })
 
 type TopRightPanelContext = 'file' | 'published-file' | 'scratch' | 'legacy'
@@ -97,6 +100,7 @@ export function TlaEditorTopRightPanel({
 			{/* Only file editors mount the comments sidebar (see CommentsOnCanvas); in legacy and
 			    published contexts the button would toggle state nothing reads. */}
 			{context !== 'legacy' && context !== 'published-file' && <CommentsSidebarButton />}
+			{context === 'file' && fileId && <VersionHistorySidebarButton fileId={fileId} />}
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
 				<TlaFileShareMenu
@@ -149,6 +153,41 @@ function CommentsSidebarButton() {
 			}}
 		>
 			<TlaIcon icon="comment" />
+		</TldrawUiButton>
+	)
+}
+
+/**
+ * Opens version history, which, like comments, belongs to the file. Sits next to the comments
+ * toggle so both file-scoped sidebars open from the same spot.
+ */
+function VersionHistorySidebarButton({ fileId }: { fileId: string }) {
+	const msg = useTranslation()
+	const editor = useEditor()
+	const navigate = useNavigate()
+	const trackEvent = useTldrawAppUiEvents()
+	const enabled = useVersionHistoryEnabled()
+	const canEdit = useCanEditFile(fileId)
+	const label = msg(commentsMessages.versionHistory)
+
+	if (!enabled || !canEdit) return null
+
+	return (
+		<TldrawUiButton
+			type="icon"
+			className={styles.commentsSidebarButton}
+			data-testid="tla-version-history-button"
+			aria-pressed={false}
+			tooltip={label}
+			title={label}
+			onClick={() => {
+				trackEvent('open-version-history', { source: 'top-bar' })
+				navigate(routes.tlaFileHistory(fileId), {
+					state: { view: { pageId: editor.getCurrentPageId(), camera: editor.getCamera() } },
+				})
+			}}
+		>
+			<TlaIcon icon="clock" />
 		</TldrawUiButton>
 	)
 }

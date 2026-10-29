@@ -5,6 +5,9 @@
   "00b177e080": {
     "translation": "Accept invitation"
   },
+  "011fedf405": {
+    "translation": "Current version"
+  },
   "029f235f01": {
     "translation": "We’re working on support for files from <a><strong>{appName}</strong></a>."
   },
@@ -71,11 +74,23 @@
   "181b90f889": {
     "translation": "Create file"
   },
+  "1a314386b6": {
+    "translation": "No earlier versions yet"
+  },
+  "1bb56eca2e": {
+    "translation": "{count, plural, one {# editing session} other {# editing sessions}}"
+  },
+  "1cdc076b28": {
+    "translation": "Undo"
+  },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
   },
   "1dd1c5fb7f": {
     "translation": "Today"
+  },
+  "1efa84b231": {
+    "translation": "{count, plural, one {# deleted} other {# deleted}}"
   },
   "1ffd709937": {
     "translation": "A workspace must keep at least one owner. Make someone else an owner first."
@@ -86,11 +101,17 @@
   "23dcace54a": {
     "translation": "You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue."
   },
+  "244ed17da0": {
+    "translation": "Others are editing this file."
+  },
   "250ddea65c": {
     "translation": "About tldraw"
   },
   "2755e3ab39": {
     "translation": "<name>{author}</name> commented on your board"
+  },
+  "277e3cb954": {
+    "translation": "Show earlier versions"
   },
   "28b2464e1f": {
     "translation": "Could not submit feedback"
@@ -103,6 +124,9 @@
   },
   "2a37324bb4": {
     "translation": "Search..."
+  },
+  "2bd339d85e": {
+    "translation": "Restore"
   },
   "2d3cdcfdd4": {
     "translation": "Please try again."
@@ -134,8 +158,17 @@
   "34e34c43ec": {
     "translation": "Manage"
   },
+  "35491517a2": {
+    "translation": "Hide earlier versions"
+  },
   "375396d6e5": {
     "translation": "Remove member"
+  },
+  "38b9b913e0": {
+    "translation": "Only my changes"
+  },
+  "3afc046d61": {
+    "translation": "The file goes back to this version for everyone. You can undo it afterwards."
   },
   "3bc7d6ea2f": {
     "translation": "Continue with email"
@@ -167,6 +200,9 @@
   "46137245cd": {
     "translation": "Thanks for helping us improve tldraw!"
   },
+  "46a692b8c0": {
+    "translation": "Save version"
+  },
   "46de2de6bb": {
     "translation": "Accept terms of use"
   },
@@ -185,8 +221,14 @@
   "4d1c8263ba": {
     "translation": "Reload"
   },
+  "5027e226ad": {
+    "translation": "Version saved"
+  },
   "5097d89907": {
     "translation": "Unsupported diagram, will generate SVG instead"
+  },
+  "50ab383d81": {
+    "translation": "Only named versions"
   },
   "50db1b7e1e": {
     "translation": "Unable to unpublish the file."
@@ -215,6 +257,9 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "55fe2e8ea0": {
+    "translation": "{count, plural, =1 {{a}} =2 {{a} and {b}} =3 {{a}, {b} and {c}} other {{a}, {b}, {c} and {others, plural, one {# other} other {# others}}}}"
+  },
   "5638176be5": {
     "translation": "Create a workspace"
   },
@@ -226,6 +271,9 @@
   },
   "5a95a425f7": {
     "translation": "Share"
+  },
+  "5b66e3c9d6": {
+    "translation": "Restore this version"
   },
   "5bec508475": {
     "translation": "Old browser detected. Please update your browser to use this app."
@@ -241,6 +289,9 @@
   },
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
+  },
+  "5f02f05c74": {
+    "translation": "Loading…"
   },
   "5f3c333678": {
     "translation": "Feedback submitted"
@@ -293,6 +344,9 @@
   "6dfc62f621": {
     "translation": "Follow these steps to import the content manually:"
   },
+  "7079c72c21": {
+    "translation": "Anonymous"
+  },
   "70a6facb9d": {
     "translation": "This week"
   },
@@ -304,6 +358,9 @@
   },
   "7408cf0d7b": {
     "translation": "Please reload the page"
+  },
+  "7446050b84": {
+    "translation": "Agent"
   },
   "74ff4bad28": {
     "translation": "No files found"
@@ -325,6 +382,9 @@
   },
   "7697920637": {
     "translation": "Please reload"
+  },
+  "77486c41d8": {
+    "translation": "Restore this version?"
   },
   "777f9e90cf": {
     "translation": "Invalid request."
@@ -356,8 +416,17 @@
   "7daeced9ff": {
     "translation": "Publish changes"
   },
+  "7e8b8b1687": {
+    "translation": "{name} restored a version from {time}"
+  },
+  "7fa870f65d": {
+    "translation": "{count, plural, one {# shape added} other {# shapes added}}"
+  },
   "7fcdcc6455": {
     "translation": "Forget file"
+  },
+  "7fd01b460f": {
+    "translation": "Show every autosave"
   },
   "801ab24683": {
     "translation": "Download"
@@ -382,6 +451,9 @@
   },
   "86c66437fd": {
     "translation": "Rename file"
+  },
+  "8743196af6": {
+    "translation": "Duplicate this version"
   },
   "87fdb09de6": {
     "translation": "You are already a member of this workspace"
@@ -419,11 +491,17 @@
   "985a4b720f": {
     "translation": "Terms of Use"
   },
+  "98c3c27205": {
+    "translation": "Could not save this version"
+  },
   "9914a0ce04": {
     "translation": "Light"
   },
   "9983381c21": {
     "translation": "Clear search"
+  },
+  "9a70ed5b3e": {
+    "translation": "None of these versions have your changes"
   },
   "9b33f5c63c": {
     "translation": "Didn’t receive a code? <resend>Resend</resend>."
@@ -439,6 +517,9 @@
   },
   "9ceb927baa": {
     "translation": "Publish this file"
+  },
+  "9d5b504622": {
+    "translation": "Restored from {time}"
   },
   "9e076f5885": {
     "translation": "Not found"
@@ -488,6 +569,9 @@
   "a8873770ab": {
     "translation": "File is getting large"
   },
+  "a96e59e542": {
+    "translation": "No named versions yet"
+  },
   "a9ded1e5ce": {
     "translation": "Background"
   },
@@ -499,6 +583,9 @@
   },
   "ab0df9ba36": {
     "translation": "File limit reached"
+  },
+  "abdd82428e": {
+    "translation": "{count, plural, one {# edited} other {# edited}}"
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
@@ -531,6 +618,9 @@
   "b6f4a2ec63": {
     "translation": "Owner"
   },
+  "b70816fd70": {
+    "translation": "Could not load version history"
+  },
   "b74dbb40c5": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the File menu in the top left."
   },
@@ -548,6 +638,9 @@
   },
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
+  },
+  "bff7173c49": {
+    "translation": "{count, plural, one {# comment thread} other {# comment threads}} will be removed."
   },
   "c17466812d": {
     "translation": "Manage workspace"
@@ -576,6 +669,15 @@
   "c8a59e7135": {
     "translation": "Dismiss"
   },
+  "c9cc8cce24": {
+    "translation": "Save"
+  },
+  "cae8d14edd": {
+    "translation": "You"
+  },
+  "cb535b5f9b": {
+    "translation": "Could not restore this version"
+  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -591,6 +693,9 @@
   "d0e3556476": {
     "translation": "<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
   },
+  "d323e5bf9a": {
+    "translation": "{name} ({time})"
+  },
   "d3d2e61733": {
     "translation": "Close"
   },
@@ -599,6 +704,9 @@
   },
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
+  },
+  "d63862d821": {
+    "translation": "Today, {time}"
   },
   "d638a3344b": {
     "translation": "Before you start, please accept our <tos>terms of use</tos> and <privacy>privacy policy</privacy>."
@@ -642,6 +750,9 @@
   "e81c4e4f2b": {
     "translation": "or"
   },
+  "e846c1fda1": {
+    "translation": "Before the client review"
+  },
   "ea4788705e": {
     "translation": "Cancel"
   },
@@ -681,6 +792,9 @@
   "f2569594b2": {
     "translation": "We use these cookies to save your files and settings."
   },
+  "f2578ec33f": {
+    "translation": "History options"
+  },
   "f2a6c498fb": {
     "translation": "Delete"
   },
@@ -692,6 +806,12 @@
   },
   "f5ddc8d9c1": {
     "translation": "For now, you can <a>export as a {extension} file</a> to use it here."
+  },
+  "f6a738f75f": {
+    "translation": "Version history"
+  },
+  "f6b5f35f65": {
+    "translation": "Load more"
   },
   "fa2ead697d": {
     "translation": "Privacy Policy"

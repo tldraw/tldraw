@@ -11,6 +11,12 @@
       "value": "Accept invitation"
     }
   ],
+  "011fedf405": [
+    {
+      "type": 0,
+      "value": "Current version"
+    }
+  ],
   "029f235f01": [
     {
       "type": 0,
@@ -185,6 +191,50 @@
       "value": "Create file"
     }
   ],
+  "1a314386b6": [
+    {
+      "type": 0,
+      "value": "No earlier versions yet"
+    }
+  ],
+  "1bb56eca2e": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " editing session"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " editing sessions"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "1cdc076b28": [
+    {
+      "type": 0,
+      "value": "Undo"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -195,6 +245,38 @@
     {
       "type": 0,
       "value": "Today"
+    }
+  ],
+  "1efa84b231": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " deleted"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " deleted"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "1ffd709937": [
@@ -229,6 +311,12 @@
       "value": ". Create a free account to continue."
     }
   ],
+  "244ed17da0": [
+    {
+      "type": 0,
+      "value": "Others are editing this file."
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -249,6 +337,12 @@
     {
       "type": 0,
       "value": " commented on your board"
+    }
+  ],
+  "277e3cb954": [
+    {
+      "type": 0,
+      "value": "Show earlier versions"
     }
   ],
   "28b2464e1f": [
@@ -273,6 +367,12 @@
     {
       "type": 0,
       "value": "Search..."
+    }
+  ],
+  "2bd339d85e": [
+    {
+      "type": 0,
+      "value": "Restore"
     }
   ],
   "2d3cdcfdd4": [
@@ -335,10 +435,28 @@
       "value": "Manage"
     }
   ],
+  "35491517a2": [
+    {
+      "type": 0,
+      "value": "Hide earlier versions"
+    }
+  ],
   "375396d6e5": [
     {
       "type": 0,
       "value": "Remove member"
+    }
+  ],
+  "38b9b913e0": [
+    {
+      "type": 0,
+      "value": "Only my changes"
+    }
+  ],
+  "3afc046d61": [
+    {
+      "type": 0,
+      "value": "The file goes back to this version for everyone. You can undo it afterwards."
     }
   ],
   "3bc7d6ea2f": [
@@ -415,6 +533,12 @@
       "value": "Thanks for helping us improve tldraw!"
     }
   ],
+  "46a692b8c0": [
+    {
+      "type": 0,
+      "value": "Save version"
+    }
+  ],
   "46de2de6bb": [
     {
       "type": 0,
@@ -451,10 +575,22 @@
       "value": "Reload"
     }
   ],
+  "5027e226ad": [
+    {
+      "type": 0,
+      "value": "Version saved"
+    }
+  ],
   "5097d89907": [
     {
       "type": 0,
       "value": "Unsupported diagram, will generate SVG instead"
+    }
+  ],
+  "50ab383d81": [
+    {
+      "type": 0,
+      "value": "Only named versions"
     }
   ],
   "50db1b7e1e": [
@@ -521,6 +657,122 @@
       "value": "PNG"
     }
   ],
+  "55fe2e8ea0": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 1,
+              "value": "a"
+            }
+          ]
+        },
+        "=2": {
+          "value": [
+            {
+              "type": 1,
+              "value": "a"
+            },
+            {
+              "type": 0,
+              "value": " and "
+            },
+            {
+              "type": 1,
+              "value": "b"
+            }
+          ]
+        },
+        "=3": {
+          "value": [
+            {
+              "type": 1,
+              "value": "a"
+            },
+            {
+              "type": 0,
+              "value": ", "
+            },
+            {
+              "type": 1,
+              "value": "b"
+            },
+            {
+              "type": 0,
+              "value": " and "
+            },
+            {
+              "type": 1,
+              "value": "c"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "a"
+            },
+            {
+              "type": 0,
+              "value": ", "
+            },
+            {
+              "type": 1,
+              "value": "b"
+            },
+            {
+              "type": 0,
+              "value": ", "
+            },
+            {
+              "type": 1,
+              "value": "c"
+            },
+            {
+              "type": 0,
+              "value": " and "
+            },
+            {
+              "offset": 0,
+              "options": {
+                "one": {
+                  "value": [
+                    {
+                      "type": 7
+                    },
+                    {
+                      "type": 0,
+                      "value": " other"
+                    }
+                  ]
+                },
+                "other": {
+                  "value": [
+                    {
+                      "type": 7
+                    },
+                    {
+                      "type": 0,
+                      "value": " others"
+                    }
+                  ]
+                }
+              },
+              "pluralType": "cardinal",
+              "type": 6,
+              "value": "others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "5638176be5": [
     {
       "type": 0,
@@ -543,6 +795,12 @@
     {
       "type": 0,
       "value": "Share"
+    }
+  ],
+  "5b66e3c9d6": [
+    {
+      "type": 0,
+      "value": "Restore this version"
     }
   ],
   "5bec508475": [
@@ -583,6 +841,12 @@
     {
       "type": 0,
       "value": "We failed to upload some of the content you created before you signed in."
+    }
+  ],
+  "5f02f05c74": [
+    {
+      "type": 0,
+      "value": "Loading…"
     }
   ],
   "5f3c333678": [
@@ -710,6 +974,12 @@
       "value": "Follow these steps to import the content manually:"
     }
   ],
+  "7079c72c21": [
+    {
+      "type": 0,
+      "value": "Anonymous"
+    }
+  ],
   "70a6facb9d": [
     {
       "type": 0,
@@ -732,6 +1002,12 @@
     {
       "type": 0,
       "value": "Please reload the page"
+    }
+  ],
+  "7446050b84": [
+    {
+      "type": 0,
+      "value": "Agent"
     }
   ],
   "74ff4bad28": [
@@ -774,6 +1050,12 @@
     {
       "type": 0,
       "value": "Please reload"
+    }
+  ],
+  "77486c41d8": [
+    {
+      "type": 0,
+      "value": "Restore this version?"
     }
   ],
   "777f9e90cf": [
@@ -836,10 +1118,62 @@
       "value": "Publish changes"
     }
   ],
+  "7e8b8b1687": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " restored a version from "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
+  "7fa870f65d": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " shape added"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " shapes added"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "7fcdcc6455": [
     {
       "type": 0,
       "value": "Forget file"
+    }
+  ],
+  "7fd01b460f": [
+    {
+      "type": 0,
+      "value": "Show every autosave"
     }
   ],
   "801ab24683": [
@@ -932,6 +1266,12 @@
       "value": "Rename file"
     }
   ],
+  "8743196af6": [
+    {
+      "type": 0,
+      "value": "Duplicate this version"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1018,6 +1358,12 @@
       "value": "Terms of Use"
     }
   ],
+  "98c3c27205": [
+    {
+      "type": 0,
+      "value": "Could not save this version"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
@@ -1028,6 +1374,12 @@
     {
       "type": 0,
       "value": "Clear search"
+    }
+  ],
+  "9a70ed5b3e": [
+    {
+      "type": 0,
+      "value": "None of these versions have your changes"
     }
   ],
   "9b33f5c63c": [
@@ -1072,6 +1424,16 @@
     {
       "type": 0,
       "value": "Publish this file"
+    }
+  ],
+  "9d5b504622": [
+    {
+      "type": 0,
+      "value": "Restored from "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "9e076f5885": [
@@ -1210,6 +1572,12 @@
       "value": "File is getting large"
     }
   ],
+  "a96e59e542": [
+    {
+      "type": 0,
+      "value": "No named versions yet"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1232,6 +1600,38 @@
     {
       "type": 0,
       "value": "File limit reached"
+    }
+  ],
+  "abdd82428e": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " edited"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " edited"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "af3dc88931": [
@@ -1310,6 +1710,12 @@
       "value": "Owner"
     }
   ],
+  "b70816fd70": [
+    {
+      "type": 0,
+      "value": "Could not load version history"
+    }
+  ],
   "b74dbb40c5": [
     {
       "type": 0,
@@ -1384,6 +1790,42 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "bff7173c49": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " comment thread"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " comment threads"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " will be removed."
     }
   ],
   "c17466812d": [
@@ -1474,6 +1916,24 @@
       "value": "Dismiss"
     }
   ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Save"
+    }
+  ],
+  "cae8d14edd": [
+    {
+      "type": 0,
+      "value": "You"
+    }
+  ],
+  "cb535b5f9b": [
+    {
+      "type": 0,
+      "value": "Could not restore this version"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1548,6 +2008,24 @@
       "value": " reacted to your comment"
     }
   ],
+  "d323e5bf9a": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ("
+    },
+    {
+      "type": 1,
+      "value": "time"
+    },
+    {
+      "type": 0,
+      "value": ")"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1564,6 +2042,16 @@
     {
       "type": 0,
       "value": "Toggle sidebar"
+    }
+  ],
+  "d63862d821": [
+    {
+      "type": 0,
+      "value": "Today, "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "d638a3344b": [
@@ -1702,6 +2190,12 @@
       "value": "or"
     }
   ],
+  "e846c1fda1": [
+    {
+      "type": 0,
+      "value": "Before the client review"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1792,6 +2286,12 @@
     {
       "type": 0,
       "value": "We use these cookies to save your files and settings."
+    }
+  ],
+  "f2578ec33f": [
+    {
+      "type": 0,
+      "value": "History options"
     }
   ],
   "f2a6c498fb": [
@@ -1896,6 +2396,18 @@
     {
       "type": 0,
       "value": " to use it here."
+    }
+  ],
+  "f6a738f75f": [
+    {
+      "type": 0,
+      "value": "Version history"
+    }
+  ],
+  "f6b5f35f65": [
+    {
+      "type": 0,
+      "value": "Load more"
     }
   ],
   "fa2ead697d": [

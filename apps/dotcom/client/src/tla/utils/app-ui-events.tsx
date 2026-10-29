@@ -39,6 +39,7 @@ export interface TLAppUiEventMap {
 	'delete-file': null
 	'rename-file': { name: string }
 	'duplicate-file': null
+	'open-version-history': null
 	'download-file': null
 	'drop-tldr-file': null
 	'import-tldr-file': null

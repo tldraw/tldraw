@@ -1,0 +1,56 @@
+import { defineMessages } from 'tldraw'
+
+export const versionHistoryMessages = defineMessages({
+	title: { defaultMessage: 'Version history' },
+	close: { defaultMessage: 'Close' },
+	currentVersion: { defaultMessage: 'Current version' },
+	today: { defaultMessage: 'Today, {time}' },
+	restoredFrom: { defaultMessage: 'Restored from {time}' },
+	loadMore: { defaultMessage: 'Load more' },
+	loading: { defaultMessage: 'Loading…' },
+	empty: { defaultMessage: 'No earlier versions yet' },
+	failed: { defaultMessage: 'Could not load version history' },
+	showRaw: { defaultMessage: 'Show every autosave' },
+	onlyMine: { defaultMessage: 'Only my changes' },
+	onlyNamed: { defaultMessage: 'Only named versions' },
+	emptyNamed: { defaultMessage: 'No named versions yet' },
+	saveVersion: { defaultMessage: 'Save version' },
+	versionNamePlaceholder: { defaultMessage: 'Before the client review' },
+	versionSaved: { defaultMessage: 'Version saved' },
+	saveFailed: { defaultMessage: 'Could not save this version' },
+	you: { defaultMessage: 'You' },
+	authors: {
+		defaultMessage:
+			'{count, plural, =1 {{a}} =2 {{a} and {b}} =3 {{a}, {b} and {c}} other {{a}, {b}, {c} and {others, plural, one {# other} other {# others}}}}',
+	},
+	emptyMine: { defaultMessage: 'None of these versions have your changes' },
+	anonymous: { defaultMessage: 'Anonymous' },
+	agent: { defaultMessage: 'Agent' },
+	restore: { defaultMessage: 'Restore this version' },
+	duplicate: { defaultMessage: 'Duplicate this version' },
+	restoreTitle: { defaultMessage: 'Restore this version?' },
+	restoreDescription: {
+		defaultMessage: 'The file goes back to this version for everyone. You can undo it afterwards.',
+	},
+	restoreComments: {
+		defaultMessage:
+			'{count, plural, one {# comment thread} other {# comment threads}} will be removed.',
+	},
+	othersEditing: { defaultMessage: 'Others are editing this file.' },
+	restoreConfirm: { defaultMessage: 'Restore' },
+	cancel: { defaultMessage: 'Cancel' },
+	restoredToast: { defaultMessage: '{name} restored a version from {time}' },
+	someone: { defaultMessage: 'Someone' },
+	undo: { defaultMessage: 'Undo' },
+	restoreFailed: { defaultMessage: 'Could not restore this version' },
+	duplicateName: { defaultMessage: '{name} ({time})' },
+	historyOptions: { defaultMessage: 'History options' },
+	sessionCount: {
+		defaultMessage: '{count, plural, one {# editing session} other {# editing sessions}}',
+	},
+	showEarlier: { defaultMessage: 'Show earlier versions' },
+	hideEarlier: { defaultMessage: 'Hide earlier versions' },
+	shapesAdded: { defaultMessage: '{count, plural, one {# shape added} other {# shapes added}}' },
+	shapesEdited: { defaultMessage: '{count, plural, one {# edited} other {# edited}}' },
+	shapesDeleted: { defaultMessage: '{count, plural, one {# deleted} other {# deleted}}' },
+})
