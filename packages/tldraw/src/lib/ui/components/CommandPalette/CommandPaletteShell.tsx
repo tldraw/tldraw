@@ -59,7 +59,7 @@ export type TLUiCommandPaletteSuggestions = 'recent' | 'none'
 export interface TLUiCommandPaletteShellProps {
 	/**
 	 * Where the palette opens. `'bottom'`, the default, sits just above the toolbar at its width when
-	 * the toolbar is horizontal; otherwise it's centered.
+	 * the toolbar is horizontal; otherwise it opens horizontally centered, lower than `'center'`.
 	 */
 	position?: TLUiCommandPalettePosition
 	/**
