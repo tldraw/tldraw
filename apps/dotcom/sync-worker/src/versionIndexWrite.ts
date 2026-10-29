@@ -24,6 +24,7 @@ export function buildVersionIndexRow(args: {
 		...countShapeChanges(args.delta?.diff ?? null),
 		restoreId: null,
 		restoredFrom: null,
+		restoredFromName: null,
 		name: null,
 		...args.override,
 	}

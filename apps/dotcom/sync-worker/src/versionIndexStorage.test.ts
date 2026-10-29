@@ -8,6 +8,7 @@ import {
 	insertVersionIndexRow,
 	readVersionIndexRange,
 	readVersionIndexRows,
+	readVersionName,
 	setVersionIndexMeta,
 	setVersionName,
 	tagLatestAsPreRestore,
@@ -24,6 +25,7 @@ function row(ts: string, overrides: Partial<VersionIndexRow> = {}): VersionIndex
 		removed: 0,
 		restoreId: null,
 		restoredFrom: null,
+		restoredFromName: null,
 		name: null,
 		...overrides,
 	}
@@ -114,6 +116,38 @@ describe('versionIndexStorage', () => {
 		setVersionName(sql, 'a1', null)
 		expect(readVersionIndexRows(sql, { limit: 1, includeSystem: true })[0].name).toBeNull()
 		expect(setVersionName(sql, 'missing', 'x')).toBe(false)
+	})
+
+	it('readVersionName returns the name, or null for unnamed and missing versions', () => {
+		insertVersionIndexRow(sql, row('a1', { name: 'v3' }))
+		insertVersionIndexRow(sql, row('a2'))
+		expect(readVersionName(sql, 'a1')).toBe('v3')
+		expect(readVersionName(sql, 'a2')).toBeNull()
+		expect(readVersionName(sql, 'missing')).toBeNull()
+	})
+
+	it('restoredFromName round-trips', () => {
+		insertVersionIndexRow(
+			sql,
+			row('a2', { kind: 'restore', restoreId: 'r1', restoredFrom: 'a1', restoredFromName: 'v3' })
+		)
+		expect(readVersionIndexRows(sql, { limit: 1, includeSystem: true })[0].restoredFromName).toBe(
+			'v3'
+		)
+	})
+
+	it('adds restored_from_name to a table created before it existed', () => {
+		const old = makeTestSql()
+		old.exec(
+			`CREATE TABLE version_index (ts TEXT PRIMARY KEY, document_clock INTEGER NOT NULL, kind TEXT NOT NULL,
+				authors TEXT NOT NULL, shapes_added INTEGER NOT NULL, shapes_updated INTEGER NOT NULL,
+				shapes_removed INTEGER NOT NULL, restore_id TEXT, restored_from TEXT, name TEXT)`
+		)
+		ensureVersionIndexTables(old)
+		insertVersionIndexRow(old, row('a1', { restoredFromName: 'v3' }))
+		expect(readVersionIndexRows(old, { limit: 1, includeSystem: true })[0].restoredFromName).toBe(
+			'v3'
+		)
 	})
 
 	it('meta get and set', () => {

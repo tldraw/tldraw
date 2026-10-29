@@ -57,6 +57,7 @@ describe('backfillVersionIndex', () => {
 			removed: 0,
 			restoreId: null,
 			restoredFrom: null,
+			restoredFromName: null,
 			name: null,
 		})
 		await backfillVersionIndex({ sql, chainBucket: bucket, roomKey })

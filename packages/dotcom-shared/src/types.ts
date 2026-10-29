@@ -64,7 +64,7 @@ export interface HistorySession {
 	checkpoints: HistoryCheckpoint[]
 	/** Earlier points (one per 5 minutes, newest first) that expanding the session reveals. */
 	points: HistoryCheckpoint[]
-	restore?: { restoreId: string; restoredFrom: string }
+	restore?: { restoreId: string; restoredFrom: string; restoredFromName?: string }
 	/** A named version is always a session of its own. */
 	name?: string
 }
@@ -340,6 +340,7 @@ export type TLCustomServerEvent =
 			type: 'file_restored'
 			restoreId: string
 			restoredFrom: string
+			restoredFromName: string | null
 			preRestoreTs: string | null
 			byUserId: string
 			byName: string

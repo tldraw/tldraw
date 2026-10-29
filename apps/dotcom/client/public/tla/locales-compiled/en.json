@@ -399,6 +399,24 @@
       "value": "Regenerate invite link"
     }
   ],
+  "2fc1425a68": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " restored “"
+    },
+    {
+      "type": 1,
+      "value": "version"
+    },
+    {
+      "type": 0,
+      "value": "”"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -1920,6 +1938,20 @@
     {
       "type": 0,
       "value": "Save"
+    }
+  ],
+  "c9e7a55d3b": [
+    {
+      "type": 0,
+      "value": "Restored from “"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "”"
     }
   ],
   "cae8d14edd": [

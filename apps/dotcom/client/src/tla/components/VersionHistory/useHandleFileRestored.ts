@@ -15,12 +15,18 @@ export function useHandleFileRestored(fileId: string) {
 	return useCallback(
 		(event: Extract<TLCustomServerEvent, { type: 'file_restored' }>) => {
 			const restoredAt = Date.now()
+			const byName = event.byName || intl.formatMessage(messages.someone)
 			addToast(
 				buildRestoredToast(event, {
-					title: intl.formatMessage(messages.restoredToast, {
-						name: event.byName || intl.formatMessage(messages.someone),
-						time: formatVersionTime(event.restoredFrom).time,
-					}),
+					title: event.restoredFromName
+						? intl.formatMessage(messages.restoredNamedToast, {
+								name: byName,
+								version: event.restoredFromName,
+							})
+						: intl.formatMessage(messages.restoredToast, {
+								name: byName,
+								time: formatVersionTime(event.restoredFrom).time,
+							}),
 					undoLabel: intl.formatMessage(messages.undo),
 					onUndo: (body) => {
 						trackEvent('undo-restore-version', {

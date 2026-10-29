@@ -21,6 +21,7 @@ function row(min: number, overrides: Partial<VersionIndexRow> = {}): VersionInde
 		removed: 0,
 		restoreId: null,
 		restoredFrom: null,
+		restoredFromName: null,
 		name: null,
 		...overrides,
 	}

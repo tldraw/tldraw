@@ -52,7 +52,13 @@ function toSession(rowsNewestFirst: VersionIndexRow[]): HistorySession {
 		points: samplePoints(oldestFirst).filter((p) => p.ts !== end),
 		...(first.name ? { name: first.name } : {}),
 		...(first.kind === 'restore' && first.restoreId && first.restoredFrom
-			? { restore: { restoreId: first.restoreId, restoredFrom: first.restoredFrom } }
+			? {
+					restore: {
+						restoreId: first.restoreId,
+						restoredFrom: first.restoredFrom,
+						...(first.restoredFromName ? { restoredFromName: first.restoredFromName } : {}),
+					},
+				}
 			: {}),
 	}
 }

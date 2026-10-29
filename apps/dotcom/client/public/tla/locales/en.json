@@ -140,6 +140,9 @@
   "2e9856a31e": {
     "translation": "Regenerate invite link"
   },
+  "2fc1425a68": {
+    "translation": "{name} restored “{version}”"
+  },
   "31246941ad": {
     "translation": "You need to sign in to view this file."
   },
@@ -671,6 +674,9 @@
   },
   "c9cc8cce24": {
     "translation": "Save"
+  },
+  "c9e7a55d3b": {
+    "translation": "Restored from “{name}”"
   },
   "cae8d14edd": {
     "translation": "You"

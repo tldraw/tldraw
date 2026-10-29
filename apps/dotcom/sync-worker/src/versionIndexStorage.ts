@@ -23,6 +23,8 @@ export interface VersionIndexRow {
 	removed: number
 	restoreId: string | null
 	restoredFrom: string | null
+	/** The restored version's name at restore time, so the label survives a later rename. */
+	restoredFromName: string | null
 	name: string | null
 }
 
@@ -36,6 +38,7 @@ interface DbRow {
 	shapes_removed: number
 	restore_id: string | null
 	restored_from: string | null
+	restored_from_name: string | null
 	name: string | null
 }
 
@@ -54,6 +57,10 @@ export function ensureVersionIndexTables(sql: DoSql) {
 			name TEXT
 		)`
 	)
+	const columns = sql.exec('PRAGMA table_info(version_index)').toArray() as { name: string }[]
+	if (!columns.some((c) => c.name === 'restored_from_name')) {
+		sql.exec('ALTER TABLE version_index ADD COLUMN restored_from_name TEXT')
+	}
 	sql.exec(
 		'CREATE TABLE IF NOT EXISTS version_index_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)'
 	)
@@ -70,6 +77,7 @@ function fromDb(row: DbRow): VersionIndexRow {
 		removed: row.shapes_removed,
 		restoreId: row.restore_id,
 		restoredFrom: row.restored_from,
+		restoredFromName: row.restored_from_name,
 		name: row.name,
 	}
 }
@@ -77,8 +85,8 @@ function fromDb(row: DbRow): VersionIndexRow {
 export function insertVersionIndexRow(sql: DoSql, row: VersionIndexRow) {
 	sql.exec(
 		`INSERT OR IGNORE INTO version_index
-			(ts, document_clock, kind, authors, shapes_added, shapes_updated, shapes_removed, restore_id, restored_from, name)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			(ts, document_clock, kind, authors, shapes_added, shapes_updated, shapes_removed, restore_id, restored_from, restored_from_name, name)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		row.ts,
 		row.documentClock,
 		row.kind,
@@ -88,6 +96,7 @@ export function insertVersionIndexRow(sql: DoSql, row: VersionIndexRow) {
 		row.removed,
 		row.restoreId,
 		row.restoredFrom,
+		row.restoredFromName,
 		row.name
 	)
 }
@@ -122,6 +131,13 @@ export function readVersionIndexRange(sql: DoSql, from: string, to: string): Ver
 		)
 		.toArray() as DbRow[]
 	return rows.map(fromDb)
+}
+
+export function readVersionName(sql: DoSql, ts: string): string | null {
+	const rows = sql.exec('SELECT name FROM version_index WHERE ts = ?', ts).toArray() as {
+		name: string | null
+	}[]
+	return rows[0]?.name ?? null
 }
 
 export function readNewestVersionTs(sql: DoSql): string | null {

@@ -383,11 +383,13 @@ function SessionRow({
 	const earlier = session.points.filter(mine)
 	const canExpand = !session.restore && !session.name && earlier.length > 0
 
-	const preview = session.restore
-		? intl.formatMessage(messages.restoredFrom, {
-				time: formatVersionTime(session.restore.restoredFrom).time,
-			})
-		: undefined
+	const preview = !session.restore
+		? undefined
+		: session.restore.restoredFromName
+			? intl.formatMessage(messages.restoredFromNamed, { name: session.restore.restoredFromName })
+			: intl.formatMessage(messages.restoredFrom, {
+					time: formatVersionTime(session.restore.restoredFrom).time,
+				})
 
 	return (
 		<>
