@@ -612,6 +612,9 @@ describe('CommandPaletteShell', () => {
 		type(input, 'ap')
 		const rows = rendered.getAllByRole('option').map((option) => option.textContent)
 		expect(rows).toEqual(['ApplePage 2', 'ApricotPage 2'])
+		expect(
+			rendered.getByTestId('command-palette.item.find:Apple').querySelector('.tlui-icon')
+		).toBeNull()
 		press(input, 'ArrowDown')
 		press(input, 'Enter')
 		expect(onClose).toHaveBeenCalled()

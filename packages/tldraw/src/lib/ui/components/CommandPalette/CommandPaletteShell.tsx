@@ -161,13 +161,14 @@ export function CommandPaletteShell({
 
 	const isBrowsing = !query && !submenu && !prompt
 	// Every row keeps a check slot so labels line up, except in an opened submenu with nothing to
-	// check, like a list of pages.
+	// check, like a list of pages, and in a search item's hits.
 	const hasCheckSlot =
-		!submenu ||
-		entries.some(
-			(entry) =>
-				entry.submenu?.key === submenu.key && getCommandPaletteEntryMark(entry) !== undefined
-		)
+		!search &&
+		(!submenu ||
+			entries.some(
+				(entry) =>
+					entry.submenu?.key === submenu.key && getCommandPaletteEntryMark(entry) !== undefined
+			))
 	const { anchor, canScrollDown, onListScroll } = useCommandPaletteLayout({
 		editor,
 		position,
