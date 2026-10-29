@@ -16,6 +16,7 @@ import {
 	buildSnapshotDelta,
 	chainHeadHash,
 	SNAPSHOT_DELTA_VERSION,
+	SnapshotDelta,
 	snapshotHashes,
 } from './versionDelta'
 
@@ -24,6 +25,8 @@ interface VersionChainWriteResultBase {
 	/** The open segment's contents after this write — exactly what R2 now holds. */
 	pending: PendingDelta[]
 	bytes: number
+	/** The diff from `previous` to `next`, null when there was no previous or in keyframes-only mode. */
+	delta: SnapshotDelta | null
 }
 
 export type VersionChainWriteResult =
@@ -122,6 +125,7 @@ export async function writeVersionChainEntry({
 			reason: decision.reason,
 			bytes: encoded.body.byteLength,
 			pending: [],
+			delta,
 			chain: {
 				keyframeKey: key,
 				deltaVersion: SNAPSHOT_DELTA_VERSION,
@@ -161,6 +165,7 @@ export async function writeVersionChainEntry({
 		wrote: 'delta',
 		bytes: encoded.body.byteLength,
 		pending: deltas,
+		delta,
 		chain: {
 			...chain!,
 			deltaCount: decision.seq,
