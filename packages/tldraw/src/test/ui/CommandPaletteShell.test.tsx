@@ -206,7 +206,10 @@ describe('CommandPaletteShell', () => {
 
 	describe('bottom position', () => {
 		// jsdom has no layout: give the toolbar a box, and everything else the 1000px-tall container's.
-		async function renderWithToolbar(orientation: 'horizontal' | 'vertical') {
+		async function renderWithToolbar(
+			orientation: 'horizontal' | 'vertical',
+			children: ReactNode = item('alpha', 'Alpha')
+		) {
 			const toolbarBox =
 				orientation === 'horizontal'
 					? { top: 940, bottom: 988, left: 250, right: 750, width: 500, height: 48 }
@@ -226,7 +229,7 @@ describe('CommandPaletteShell', () => {
 						components={{ Toolbar: () => <DefaultToolbar orientation={orientation} /> }}
 					>
 						<CommandPaletteShell position="bottom" onClose={vi.fn()}>
-							{item('alpha', 'Alpha')}
+							{children}
 						</CommandPaletteShell>
 					</Tldraw>
 				),
@@ -244,6 +247,30 @@ describe('CommandPaletteShell', () => {
 		it('sits above a horizontal toolbar at its width', async () => {
 			const { palette } = await renderWithToolbar('horizontal')
 			await waitFor(() => expect(palette.style.width).toBe('500px'))
+		})
+
+		it('caps a submenu at the browsing height so it stays above the toolbar', async () => {
+			vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(
+				function (this: HTMLElement) {
+					return this.classList.contains('tlui-command-palette') ? 300 : 0
+				}
+			)
+			const { palette } = await renderWithToolbar(
+				'horizontal',
+				<>
+					{item('alpha', 'Alpha')}
+					<TldrawUiMenuSubmenu id="many" label="Many">
+						{['a', 'b'].map((id) => item(id, `Option ${id}`))}
+					</TldrawUiMenuSubmenu>
+				</>
+			)
+			// The toolbar ends 12px above the bottom, so the palette ends 12px above the toolbar.
+			await waitFor(() => expect(palette.style.top).toBe('628px'))
+			expect(palette.style.maxHeight).toBe('')
+			fireEvent.click(within(palette).getByTestId('command-palette.submenu.Many'))
+			await within(palette).findByTestId('command-palette.back')
+			expect(palette.style.top).toBe('628px')
+			expect(palette.style.maxHeight).toBe('300px')
 		})
 
 		it('leaves the toolbar for the top on touch devices', async () => {
