@@ -15,6 +15,7 @@ import { CollectionMenu } from '../ui/collection-menu'
 import { CollectionPicker } from '../ui/collection-picker'
 import { RenameInput } from '../ui/rename-input'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
+import type { PrepareItemContent } from './save-shapes'
 import { activeCollectionId, renamingCollectionId } from './state'
 import { useSaveSelection } from './use-save-selection'
 
@@ -43,6 +44,7 @@ const messages = defineMessages({
 
 export interface CollectionsPanelHeaderProps {
 	source: CollectionSource
+	prepareItemContent?: PrepareItemContent
 	collections: TLCollection[]
 	/** The collection the panel shows, or undefined when there are none. */
 	current?: TLCollection
@@ -53,6 +55,7 @@ export interface CollectionsPanelHeaderProps {
 /** The panel's header: the collection picker, adding the selection, and managing collections. */
 export function CollectionsPanelHeader({
 	source,
+	prepareItemContent,
 	collections,
 	current,
 	itemCount,
@@ -61,7 +64,7 @@ export function CollectionsPanelHeader({
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
-	const { saveSelection } = useSaveSelection(source)
+	const { saveSelection } = useSaveSelection(source, prepareItemContent)
 	const currentId = current?.id
 	const renaming = useValue(
 		'renaming collection',

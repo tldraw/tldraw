@@ -5,8 +5,13 @@ export {
 export { CollectionsPanel, type CollectionsPanelProps } from './canvas/collections-panel'
 export { CollectionsPanelButton } from './canvas/collections-panel-button'
 export { placeCollectionItem } from './canvas/place-item'
-export { saveShapesToCollection } from './canvas/save-shapes'
+export {
+	saveShapesToCollection,
+	type PrepareItemContent,
+	type SaveShapesOptions,
+} from './canvas/save-shapes'
 export { activeCollectionId, collectionsPanelOpen, toggleCollectionsPanel } from './canvas/state'
+export { wrapInGroup } from './canvas/wrap-in-group'
 export { CollectionMenu, type CollectionMenuProps } from './ui/collection-menu'
 export { CollectionPicker, type CollectionPickerProps } from './ui/collection-picker'
 export { ItemGrid, type ItemGridItem, type ItemGridProps } from './ui/item-grid'
