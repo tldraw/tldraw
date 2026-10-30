@@ -6,7 +6,7 @@ import { segmentCustomMetadata } from '../versionChain'
 import { listVersionTimestamps } from '../versionChainRead'
 import { getMonthPrefix, getPreviousMonth, getRoomHistory } from './getRoomHistory'
 
-vi.mock('../utils/tla/getAuth', () => ({ requireAdminAccessToRequest: vi.fn() }))
+vi.mock('../utils/tla/requireHistoryAccess', () => ({ requireHistoryAccess: vi.fn() }))
 
 describe('history listing', () => {
 	it('shows keyframes and every version inside a segment as one list', async () => {
