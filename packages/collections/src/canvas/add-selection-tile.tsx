@@ -1,6 +1,7 @@
 import { defineMessages, TldrawUiIcon, useEditor, useTranslation, useValue } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId } from '../lib/schema'
+import type { PrepareItemContent } from './save-shapes'
 import { useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
@@ -11,13 +12,15 @@ const messages = defineMessages({
 export function AddSelectionTile({
 	source,
 	collectionId,
+	prepareItemContent,
 }: {
 	source: CollectionSource
 	collectionId: TLCollectionId
+	prepareItemContent?: PrepareItemContent
 }) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const { saveSelection } = useSaveSelection(source)
+	const { saveSelection } = useSaveSelection(source, prepareItemContent)
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
 		editor,
 	])

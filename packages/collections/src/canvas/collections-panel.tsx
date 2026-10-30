@@ -15,6 +15,7 @@ import { CollectionSection } from './collection-section'
 import { CollectionsPanelHeader } from './collections-panel-header'
 import { NoCollections } from './no-collections'
 import { placeCollectionItem } from './place-item'
+import type { PrepareItemContent } from './save-shapes'
 import { collectionsPanelOpen } from './state'
 import { useItemDrag } from './use-item-drag'
 
@@ -37,6 +38,8 @@ export interface CollectionsPanelProps {
 	 * {@link CollectionMenuItem}s. Shown in a read-only editor too.
 	 */
 	menuItems?: ReactNode
+	/** Changes an item's content before the panel's + saves it, e.g. {@link wrapInGroup}. */
+	prepareItemContent?: PrepareItemContent
 }
 
 /**
@@ -46,7 +49,12 @@ export interface CollectionsPanelProps {
  * the middle of the viewport; dragging one out drops it under the pointer.
  * @public @react
  */
-export function CollectionsPanel({ source, side = 'left', menuItems }: CollectionsPanelProps) {
+export function CollectionsPanel({
+	source,
+	side = 'left',
+	menuItems,
+	prepareItemContent,
+}: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
@@ -90,6 +98,7 @@ export function CollectionsPanel({ source, side = 'left', menuItems }: Collectio
 										source={source}
 										collection={collection}
 										getItemProps={getItemProps}
+										prepareItemContent={prepareItemContent}
 									/>
 								))}
 							</CollectionGroupSection>
