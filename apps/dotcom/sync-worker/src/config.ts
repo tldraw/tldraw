@@ -146,6 +146,7 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  *   MCP_SEARCH_PER_USER_RATE_LIMIT     ->  MCP_SERVER_SEARCH_RATE_LIMITER   (limit = 60)
  *   MCP_CREATE_PER_USER_RATE_LIMIT     ->  MCP_SERVER_CREATE_RATE_LIMITER   (limit = 10)
  *   MCP_RENAME_PER_USER_RATE_LIMIT     ->  MCP_SERVER_RENAME_RATE_LIMITER   (limit = 10)
+ *   MCP_COMMENT_PER_USER_RATE_LIMIT    ->  MCP_SERVER_COMMENT_RATE_LIMITER  (limit = 20)
  *
  * The first of these keyed on client IP until the endpoint required authentication. An account is
  * the better key in both directions: a proxy pool no longer buys a caller more budget, and everyone
@@ -191,6 +192,12 @@ export const MCP_CREATE_PER_USER_RATE_LIMIT = 10
 
 /** The `rename_board` budget. A write, like create, so the same size and well below search. */
 export const MCP_RENAME_PER_USER_RATE_LIMIT = 10
+
+/**
+ * The `write_comment` budget. A write that collaborators see and are notified of, so it sits below
+ * search; above create and rename because answering a review means replying to many threads in a row.
+ */
+export const MCP_COMMENT_PER_USER_RATE_LIMIT = 20
 
 export const MCP_PER_USER_RATE_LIMIT = 10
 export const MCP_PER_BOARD_RATE_LIMIT = 2

@@ -1,6 +1,7 @@
 import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+	MCP_COMMENT_PER_USER_RATE_LIMIT,
 	MCP_CREATE_PER_USER_RATE_LIMIT,
 	MCP_PER_USER_RATE_LIMIT,
 	MCP_RENAME_PER_USER_RATE_LIMIT,
@@ -21,6 +22,7 @@ import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { authenticateMcpRequest } from './mcpAuth'
 import { normalizeMcpClient, resetRateLimitFallbackForTests, mcpServer } from './mcpServer'
+import { readPageCommentRows, writeCommentForUser } from './pageComments'
 import { renameBoardForUser } from './renameBoard'
 import {
 	blobValuesOf,
@@ -83,6 +85,9 @@ vi.mock('./searchBoards', () => ({ searchAccessibleBoards: vi.fn() }))
 vi.mock('./createBoard', () => ({ createBoardForUser: vi.fn() }))
 vi.mock('./listWorkspaces', () => ({ listWorkspacesForUser: vi.fn() }))
 vi.mock('./renameBoard', () => ({ renameBoardForUser: vi.fn() }))
+// Postgres and the file's Durable Object are covered in pageComments.test.ts and
+// mcpCommentWrite.test.ts; these tests are about the dispatch around them.
+vi.mock('./pageComments', () => ({ readPageCommentRows: vi.fn(), writeCommentForUser: vi.fn() }))
 
 beforeEach(() => {
 	vi.mocked(authenticateMcpRequest).mockImplementation(async (request: any) => ({
@@ -334,6 +339,8 @@ describe('MCP server', () => {
 			'get_page_info',
 			'get_cluster_info',
 			'get_cluster_screenshot',
+			'read_page_comments',
+			'write_comment',
 		])
 	})
 })
@@ -625,6 +632,11 @@ describe('search_boards', () => {
 
 		const on = await rpcResult(await mcpServer(makeRpcRequest('initialize'), makeEnv()))
 		expect(on.instructions).toContain('find a board by name')
+
+		for (const instructions of [off.instructions, on.instructions]) {
+			expect(instructions).toContain('read_page_comments')
+			expect(instructions).toContain('write_comment')
+		}
 	})
 
 	// Production runs with name matching off while the unindexed ILIKE scan is being watched. The
@@ -914,6 +926,190 @@ describe('rename_board', () => {
 		expect(blocked.content[0].text).toContain('Renaming boards is limited')
 		expect(renameBoardForUser).toHaveBeenCalledTimes(MCP_RENAME_PER_USER_RATE_LIMIT)
 		expect(failureBlobsOf(env)).toContain('failure:rate_limited_rename')
+	})
+})
+
+describe('read_page_comments', () => {
+	function grantSharedFile() {
+		grantReadAccess()
+		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f1', shared: true, isDeleted: false })
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
+	}
+
+	it('reads the threads on the requested page of the file, marking the caller’s comments', async () => {
+		grantSharedFile()
+		vi.mocked(readPageCommentRows).mockResolvedValue({
+			threads: [
+				{
+					id: 'comment-thread:t',
+					anchor: { type: 'shape', shapeId: 'shape:page:b-0', x: 1, y: 0, isPrecise: false },
+					resolvedAt: null,
+					createdAt: 1,
+				},
+			],
+			comments: [
+				{
+					id: 'comment:c',
+					threadId: 'comment-thread:t',
+					authorId: 'user_me',
+					authorName: 'Me',
+					body: {
+						type: 'doc',
+						content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hi' }] }],
+					},
+					createdAt: Date.UTC(2026, 0, 1),
+				},
+			],
+		})
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
+
+		const result = await callTool('read_page_comments', { boardId: 'f1', page: 1 }, env, 'user_me')
+
+		expect(readPageCommentRows).toHaveBeenCalledWith(env, 'f1', 'page:b')
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			pageId: 'page:b',
+			pageName: 'Ideas',
+			threadCount: 1,
+			threads: [
+				{
+					threadId: 'comment-thread:t',
+					resolved: false,
+					anchor: { type: 'shape', shapeId: 'shape:page:b-0', shapeType: 'geo' },
+					comments: [
+						{
+							commentId: 'comment:c',
+							authorName: 'Me',
+							isCurrentUser: true,
+							createdAt: '2026-01-01T00:00:00.000Z',
+							text: 'Hi',
+						},
+					],
+				},
+			],
+		})
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+	})
+
+	it('refuses a published board, which has no comments', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		const result = await callTool('read_page_comments', { boardId: 'pub' }, env)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('published')
+		expect(readPageCommentRows).not.toHaveBeenCalled()
+		expect(blobValuesOf(env, 'mcp_server_tool_call', 'reason')).toEqual(['comments_unavailable'])
+	})
+
+	it('reports a failed read as a tool error', async () => {
+		grantSharedFile()
+		vi.mocked(readPageCommentRows).mockRejectedValue(new Error('connection refused'))
+		const result = await callTool(
+			'read_page_comments',
+			{ boardId: 'f1' },
+			makeEnv({ ROOMS: makeFakeRoomsBucket() })
+		)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toBe(
+			'Could not read comments: the board database could not be reached.'
+		)
+	})
+})
+
+describe('write_comment', () => {
+	const WRITTEN = {
+		ok: true as const,
+		threadId: 'comment-thread:t',
+		commentId: 'comment:c',
+		pageId: 'page:a',
+		newThread: true,
+	}
+
+	it('posts as the caller and links to the thread on the client origin', async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue(WRITTEN)
+		const env = makeEnv()
+		const result = await callTool(
+			'write_comment',
+			{ boardId: 'board_abc', text: ' Too narrow? ', shapeId: 'box' },
+			env,
+			'user_abc'
+		)
+
+		expect(writeCommentForUser).toHaveBeenCalledWith(env, 'user_abc', {
+			boardId: 'board_abc',
+			text: 'Too narrow?',
+			target: { kind: 'shape', shapeId: 'shape:box' },
+		})
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			boardId: 'board_abc',
+			threadId: 'comment-thread:t',
+			commentId: 'comment:c',
+			pageId: 'page:a',
+			newThread: true,
+			url: 'https://render.example/f/board_abc?comment=comment-thread%3At',
+		})
+	})
+
+	it('passes a permission refusal through with its own telemetry reason', async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue({
+			ok: false,
+			reason: 'comment_forbidden',
+			result: { content: [{ type: 'text', text: 'View-only' }], isError: true },
+		})
+		const env = makeEnv()
+		const result = await callTool(
+			'write_comment',
+			{ boardId: 'board_abc', text: 'Hi', threadId: 't' },
+			env
+		)
+		expect(result).toEqual({ content: [{ type: 'text', text: 'View-only' }], isError: true })
+		expect(blobValuesOf(env, 'mcp_server_tool_call', 'reason')).toEqual(['comment_forbidden'])
+	})
+
+	it('rejects a call with no text or no target before touching the board', async () => {
+		const noText = await callTool('write_comment', { boardId: 'board_abc', threadId: 't' })
+		expect(noText.isError).toBe(true)
+		expect(noText.content[0].text).toContain('text is required')
+		const noTarget = await callTool('write_comment', { boardId: 'board_abc', text: 'Hi' })
+		expect(noTarget.isError).toBe(true)
+		expect(noTarget.content[0].text).toContain('Say where the comment goes')
+		expect(writeCommentForUser).not.toHaveBeenCalled()
+	})
+
+	it('reports a failed write as a tool error', async () => {
+		vi.mocked(writeCommentForUser).mockRejectedValue(new Error('object reset'))
+		const result = await callTool('write_comment', { boardId: 'board_abc', text: 'Hi', x: 1, y: 2 })
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toBe(
+			'Could not post the comment: the comment could not be saved.'
+		)
+	})
+
+	it(`allows ${MCP_COMMENT_PER_USER_RATE_LIMIT} comments per account per minute, then rate limits`, async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue(WRITTEN)
+		const env = makeEnv()
+		const results = []
+		for (let i = 0; i <= MCP_COMMENT_PER_USER_RATE_LIMIT; i++) {
+			results.push(
+				await callTool('write_comment', { boardId: 'b', text: 'Hi', threadId: 't' }, env, 'user_cm')
+			)
+		}
+		expect(results.slice(0, MCP_COMMENT_PER_USER_RATE_LIMIT).map((r) => r.isError)).toEqual(
+			Array(MCP_COMMENT_PER_USER_RATE_LIMIT).fill(undefined)
+		)
+		const blocked = results[MCP_COMMENT_PER_USER_RATE_LIMIT]
+		expect(blocked.isError).toBe(true)
+		expect(blocked.content[0].text).toContain('Posting comments is limited')
+		expect(writeCommentForUser).toHaveBeenCalledTimes(MCP_COMMENT_PER_USER_RATE_LIMIT)
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_comment')
+		// Its own budget: another account is unaffected.
+		const other = await callTool(
+			'write_comment',
+			{ boardId: 'b', text: 'Hi', threadId: 't' },
+			env,
+			'user_x'
+		)
+		expect(other.isError).toBeUndefined()
 	})
 })
 
