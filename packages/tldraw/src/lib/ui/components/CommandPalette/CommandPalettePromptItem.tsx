@@ -50,6 +50,7 @@ export function CommandPalettePromptItem<TranslationKey extends string = string>
 		<CommandPaletteItemRegistration
 			id={id}
 			label={translate(label)}
+			disabled={false}
 			prompt={{ placeholder: translate(placeholder), initialValue, onSubmit }}
 			onSelect={() => {}}
 		/>

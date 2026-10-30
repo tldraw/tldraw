@@ -33,6 +33,8 @@ export interface CommandPaletteEntry {
 	kbd?: string
 	checked?: boolean
 	isSelected?: boolean
+	disabled: boolean
+	disabledReason?: string
 	/** Muted text after the label, e.g. the workspace a file is in. Also in `path`, for search. */
 	detail?: string
 	/** Listed first, above recents, on an empty query. */
@@ -70,6 +72,8 @@ const entryFieldEquals: {
 	kbd: same,
 	checked: same,
 	isSelected: same,
+	disabled: same,
+	disabledReason: same,
 	detail: same,
 	pinned: same,
 	prompt: (a, b) =>
