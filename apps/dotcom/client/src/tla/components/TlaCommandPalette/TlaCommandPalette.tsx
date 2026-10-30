@@ -1,9 +1,5 @@
-import {
-	CommentsMenuItem,
-	richTextToPlaintext,
-	toggleCommentsSidebar,
-	useCommentsSidebarOpen,
-} from '@tldraw/commenting'
+import { CommentsMenuItem, toggleCommentsSidebar, useCommentsSidebarOpen } from '@tldraw/commenting'
+import { useIntl } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import {
 	CommandPaletteActionGroup,
@@ -25,7 +21,6 @@ import {
 	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	TLRichText,
 	TLUiCommandPaletteProps,
 	TldrawUiMenuSubmenu,
 	defineMessages,
@@ -64,6 +59,7 @@ import {
 } from '../menu-items/menu-items'
 import { FileItems } from '../TlaFileMenu/TlaFileMenu'
 import { openShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
+import { formatReactionByline } from '../TlaSidebar/components/commentNotifications'
 import { useHandleSidebarCreateFile } from '../TlaSidebar/components/TlaSidebarCreateFileButton'
 import { openNotificationsPanel } from '../TlaSidebar/components/TlaSidebarNotificationsButton'
 import {
@@ -95,7 +91,6 @@ const messages = defineMessages({
 	toggleSidebar: { defaultMessage: 'Toggle sidebar' },
 	notifications: { defaultMessage: 'Notifications' },
 	openNotifications: { defaultMessage: 'Open notifications panel' },
-	unknownAuthor: { defaultMessage: 'Someone' },
 	markAllRead: { defaultMessage: 'Mark all notifications as read' },
 	workspaces: { defaultMessage: 'Workspaces' },
 	switchWorkspace: { defaultMessage: 'Switch workspace' },
@@ -331,8 +326,8 @@ function TlaNotificationsGroup() {
 	const navigate = useNavigate()
 	const { notifications, unreadCount } = useCommentNotifications()
 	const currentFileId = useCurrentFileId()
+	const intl = useIntl()
 	const notificationsLbl = msg(messages.notifications)
-	const unknownAuthorLbl = msg(messages.unknownAuthor)
 	if (!unreadCount) return null
 	const listed = notifications.slice(0, MAX_NOTIFICATIONS)
 
@@ -340,11 +335,12 @@ function TlaNotificationsGroup() {
 		<CommandPalettePinned>
 			<CommandPaletteCollapsed>
 				<TldrawUiMenuSubmenu id="tla-new-notifications" label={notificationsLbl}>
-					{listed.map(({ comment, unread }) => (
+					{listed.map(({ comment, unread, authorName, preview, reactors }) => (
 						<TldrawUiMenuItem
 							key={comment.id}
 							id={`notification:${comment.id}`}
-							label={`${comment.authorName || unknownAuthorLbl}: ${richTextToPlaintext(comment.body as TLRichText)}`}
+							// a reaction entry's comment is the user's own: name who reacted, not its author
+							label={`${reactors ? formatReactionByline(intl, reactors) : authorName}: ${preview}`}
 							detail={
 								comment.fileId === currentFileId
 									? undefined

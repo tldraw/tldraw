@@ -35,8 +35,10 @@ import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	buildReactionNotifications,
 	categorizeCommentNotifications,
-	CommentNotificationReason,
+	CommentNotification,
+	ForeignReactors,
 	mergeNotifications,
+	reactionBylineMessage,
 	summarizeForeignReactors,
 } from './commentNotifications'
 import styles from './notifications.module.css'
@@ -56,19 +58,15 @@ type NotificationFilter = 'all' | 'unread'
 
 /** Byline for a notification row, phrased by why it's there. `<name>` wraps the author's name. */
 function ReasonByline({
-	reason,
-	author,
-	reactors,
+	notification: n,
 	nameClassName,
 }: {
-	reason: CommentNotificationReason
-	author: string
-	/** Who reacted, for the `reaction` phrasing — see {@link summarizeForeignReactors}. */
-	reactors: { names: string[]; others: number; total: number }
+	notification: EnrichedCommentNotification
 	nameClassName: string
 }) {
 	const name = (chunks: ReactNode) => <span className={nameClassName}>{chunks}</span>
-	switch (reason) {
+	const author = n.authorName
+	switch (n.primaryReason) {
 		case 'mention':
 			return <F defaultMessage="<name>{author}</name> mentioned you" values={{ author, name }} />
 		case 'reply':
@@ -81,46 +79,9 @@ function ReasonByline({
 				/>
 			)
 		case 'reaction': {
-			const { names, others, total } = reactors
-			const [a, b] = names
-			if (names.length === 0) {
-				return (
-					<F
-						defaultMessage="{count, plural, one {Someone reacted to your comment} other {# people reacted to your comment}}"
-						values={{ count: total }}
-					/>
-				)
-			}
-			if (names.length === 1 && others === 0) {
-				return (
-					<F
-						defaultMessage="<name>{author}</name> reacted to your comment"
-						values={{ author: a, name }}
-					/>
-				)
-			}
-			if (names.length === 2 && others === 0) {
-				return (
-					<F
-						defaultMessage="<name>{a}</name> and <name>{b}</name> reacted to your comment"
-						values={{ a, b, name }}
-					/>
-				)
-			}
-			if (names.length === 1) {
-				return (
-					<F
-						defaultMessage="<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
-						values={{ author: a, count: others, name }}
-					/>
-				)
-			}
-			return (
-				<F
-					defaultMessage="<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
-					values={{ a, b, count: others, name }}
-				/>
-			)
+			const { message, values } = reactionBylineMessage(n.reactors!)
+			// eslint-disable-next-line tldraw/enforce-default-message
+			return <F {...message} values={{ ...values, name }} />
 		}
 	}
 }
@@ -183,6 +144,15 @@ function NotificationsOverflowMenu({
 	)
 }
 
+/** A notification plus the display fields every consumer needs. */
+export interface EnrichedCommentNotification extends CommentNotification {
+	/** The comment's author; "Someone" when unresolvable. For a reaction entry that's the user. */
+	authorName: string
+	preview: string
+	/** Who reacted; set on `reaction` entries only. */
+	reactors?: ForeignReactors
+}
+
 /**
  * Comments and reactions surfaced as notifications, merged from the comment feeds and the
  * `reactions` synced query and sorted by timestamp. {@link categorizeCommentNotifications} and
@@ -190,16 +160,30 @@ function NotificationsOverflowMenu({
  */
 export function useCommentNotifications() {
 	const app = useMaybeApp()
+	const msg = useTranslation()
+	const unknownAuthorLbl = msg(messages.unknownAuthor)
 	return useValue(
 		'comment notifications',
 		() => {
-			const comments = categorizeCommentNotifications(app?.getComments() ?? [], app?.userId)
-			const reactionEntries = buildReactionNotifications(app?.getReactions() ?? [], app?.userId)
-			const notifications = mergeNotifications(comments, reactionEntries)
+			const userId = app?.userId
+			const comments = categorizeCommentNotifications(app?.getComments() ?? [], userId)
+			const reactionEntries = buildReactionNotifications(app?.getReactions() ?? [], userId)
+			const notifications = mergeNotifications(comments, reactionEntries).map(
+				(n): EnrichedCommentNotification => ({
+					...n,
+					// never the raw id: an opaque uuid as a byline reads as a bug
+					authorName: n.comment.authorName || unknownAuthorLbl,
+					preview: richTextToPlaintext(n.comment.body as TLRichText),
+					reactors:
+						n.primaryReason === 'reaction'
+							? summarizeForeignReactors(n.comment.reactions, userId)
+							: undefined,
+				})
+			)
 			const unreadCount = notifications.filter((n) => n.unread).length
 			return { notifications, unreadCount }
 		},
-		[app]
+		[app, unknownAuthorLbl]
 	)
 }
 
@@ -229,13 +213,8 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 		const c = n.comment
 		return {
 			id: c.id,
-			author: {
-				// never fall back to the raw id: an opaque uuid as a byline reads as a bug, and the rest
-				// of the commenting UI says "Someone" for an unresolvable author
-				name: c.authorName || msg(messages.unknownAuthor),
-				color: c.authorColor || undefined,
-			},
-			preview: richTextToPlaintext(c.body as TLRichText),
+			author: { name: n.authorName, color: c.authorColor || undefined },
+			preview: n.preview,
 			// the notified-about event: a reaction entry dates from its newest foreign reaction,
 			// not from the (older) comment it decorates
 			date: new Date(n.timestamp).toISOString(),
@@ -317,12 +296,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 							<div className="tlui-cmt-list__item-body">
 								<div className={styles.head}>
 									<span className={styles.byline}>
-										<ReasonByline
-											reason={n?.primaryReason ?? 'owned-board'}
-											author={item.author.name}
-											reactors={summarizeForeignReactors(n?.comment.reactions, app?.userId)}
-											nameClassName={styles.author}
-										/>
+										{n && <ReasonByline notification={n} nameClassName={styles.author} />}
 									</span>
 									<TldrawUiTooltip content={formatFullDateTime(item.date, locale)}>
 										<span className={styles.time}>{formatRelativeTime(item.date)}</span>
