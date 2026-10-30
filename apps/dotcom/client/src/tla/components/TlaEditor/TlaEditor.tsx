@@ -5,6 +5,8 @@ import {
 	createDebugValue,
 	createSessionStateSnapshotSignal,
 	debugFlags,
+	DefaultContextMenu,
+	DefaultContextMenuContent,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
 	defineMessages,
@@ -50,6 +52,10 @@ import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracki
 import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
+import {
+	TlaAddToCollectionMenuItem,
+	TlaCollectionsPanel,
+} from '../TlaCollections/TlaCollectionsPanel'
 import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
@@ -338,9 +344,18 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
-			InFrontOfTheCanvas: commentingEnabled
-				? () => <CommentsOnCanvas fileId={fileId} />
-				: undefined,
+			ContextMenu: (props) => (
+				<DefaultContextMenu {...props}>
+					<TlaAddToCollectionMenuItem />
+					<DefaultContextMenuContent />
+				</DefaultContextMenu>
+			),
+			InFrontOfTheCanvas: () => (
+				<>
+					{commentingEnabled && <CommentsOnCanvas fileId={fileId} />}
+					<TlaCollectionsPanel />
+				</>
+			),
 		}
 	}, [fileId, commentingEnabled])
 

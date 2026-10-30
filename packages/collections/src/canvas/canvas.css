@@ -1,0 +1,165 @@
+/* Floats on the left below the main menu, mirroring the comments sidebar on the right: 48px from
+   the top, sized to its content and scrolling past max-height. */
+.tlui-collections-panel {
+	position: absolute;
+	top: 48px;
+	left: 8px;
+	width: 240px;
+	max-height: calc(100% - 56px);
+	z-index: var(--tl-layer-panels);
+	pointer-events: auto;
+	display: flex;
+	flex-direction: column;
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-4);
+	box-shadow: var(--tl-shadow-3);
+	overflow: hidden;
+	color: var(--tl-color-text-1);
+	font-size: 12px;
+}
+
+/* Spaced like the comments sidebar header: the picker's own 12px button padding plus 2px here puts
+   its label 14px in, level with a bare title. */
+.tlui-collections-panel__header {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 4px;
+	padding: 2px;
+	border-bottom: 1px solid var(--tl-color-divider);
+}
+
+.tlui-collections-panel__title {
+	padding: 0 12px;
+	line-height: 40px;
+	font-weight: 500;
+}
+
+.tlui-collections-picker .tlui-select__value {
+	font-weight: 500;
+}
+
+/* Flush like tldraw's other menus, which leave the spacing to each item's highlight inset. */
+.tlui-collections-picker__content .tlui-select__viewport {
+	padding: 0px;
+}
+
+.tlui-collections-panel__empty {
+	margin: 0;
+	padding: 24px;
+	text-align: center;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-collections-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 4px;
+	margin: 0;
+	padding: 4px 8px 8px;
+	list-style: none;
+	overflow-y: auto;
+}
+
+.tlui-collections-tile {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 4px;
+	border-radius: var(--tl-radius-2);
+}
+
+.tlui-collections-tile:hover {
+	background: var(--tl-color-muted-2);
+}
+
+.tlui-collections-tile__button {
+	all: unset;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	width: 100%;
+	cursor: pointer;
+}
+
+.tlui-collections-tile__button:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+	border-radius: var(--tl-radius-1);
+}
+
+/* The ⋯ sits over the thumbnail's corner, shown while the tile is hovered or focused, or its menu
+   is open. */
+.tlui-collections-tile__menu {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	opacity: 0;
+}
+
+.tlui-collections-tile:hover .tlui-collections-tile__menu,
+.tlui-collections-tile:focus-within .tlui-collections-tile__menu,
+.tlui-collections-tile__menu:has([data-state='open']) {
+	opacity: 1;
+}
+
+.tlui-collections-tile__menu-button {
+	height: 28px;
+	width: 28px;
+	min-width: 28px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+}
+
+.tlui-collections-tile .tlui-input__wrapper {
+	height: auto;
+}
+
+.tlui-input.tlui-collections-tile__input {
+	height: 15px;
+	max-height: 15px;
+	padding: 0px 2px;
+}
+
+.tlui-collections-tile__thumbnail {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	aspect-ratio: 1;
+	border-radius: var(--tl-radius-1);
+	background: var(--tl-color-muted-1);
+	overflow: hidden;
+}
+
+.tlui-collections-tile__thumbnail > img {
+	max-width: 80%;
+	max-height: 80%;
+	object-fit: contain;
+}
+
+.tlui-collections-tile__label {
+	padding: 0 2px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tlui-collections-panel__header-actions {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.tlui-collections-panel__header .tlui-input__wrapper {
+	flex: 1;
+	min-width: 0;
+	height: 40px;
+}
+
+.tlui-input.tlui-collections-panel__rename {
+	padding: 0px 12px;
+	font-weight: 500;
+}

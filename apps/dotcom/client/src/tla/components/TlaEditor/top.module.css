@@ -1,5 +1,19 @@
 /* ------------------- Top left panel ------------------- */
 
+.menuPanelRow {
+	display: flex;
+	align-items: flex-start;
+	max-width: 100%;
+	min-width: 0px;
+}
+
+/* Clears the top left panel's 4px top border so the button lines up with its buttons. */
+.collectionsPanelButton {
+	flex: 0 0 auto;
+	padding: 4px 0px 0px 4px;
+	pointer-events: all;
+}
+
 .topLeftOfflineLogo {
 	color: var(--tl-color-text-0);
 	margin-top: -4px;
