@@ -63,11 +63,7 @@ export function keepConnectionsAtBottom(editor: Editor) {
 			const shapesToMove = []
 			for (; i >= 0; i--) {
 				const child = editor.getShape(childIds[i])
-				if (!child) continue
-
-				if (child.type !== 'connection') {
-					shapesToMove.push(child)
-				}
+				if (child && child.type !== 'connection') shapesToMove.push(child)
 			}
 
 			// the shapesToMove array will be in reverse order, so we need to reverse it:
@@ -85,12 +81,7 @@ export function keepConnectionsAtBottom(editor: Editor) {
 			// now we can create the update partials for those shapes:
 			for (let i = 0; i < shapesToMove.length; i++) {
 				const shape = shapesToMove[i]
-				const newIndex = newIndexes[i]
-				updates.push({
-					id: shape.id,
-					type: shape.type,
-					index: newIndex,
-				} as const)
+				updates.push({ id: shape.id, type: shape.type, index: newIndexes[i] } as const)
 			}
 		}
 

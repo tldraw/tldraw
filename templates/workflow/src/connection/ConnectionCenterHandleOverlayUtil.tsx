@@ -66,7 +66,7 @@ export class ConnectionCenterHandleOverlayUtil extends OverlayUtil<TLConnectionC
 	}
 
 	override getCursor(): TLCursorType {
-		return 'pointer' as TLCursorType
+		return 'pointer'
 	}
 
 	override onPointerDown(overlay: TLConnectionCenterHandleOverlay, _info: TLPointerEventInfo) {

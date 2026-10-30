@@ -1,6 +1,7 @@
 import { Dialog, VisuallyHidden } from 'radix-ui'
 import { useCallback, useMemo, useState } from 'react'
 import {
+	Editor,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiButtonLabel,
@@ -31,6 +32,25 @@ export const onCanvasComponentPickerState = new EditorAtom<OnCanvasComponentPick
 	'on canvas component picker',
 	() => null
 )
+
+/**
+ * The page-space point the picker is anchored to: a terminal of the connection, or its midpoint.
+ * Returns null if the connection no longer exists.
+ */
+function getPickerAnchorInPageSpace(editor: Editor, state: OnCanvasComponentPickerState) {
+	const connection = editor.getShape(state.connectionShapeId)
+	if (!connection || !editor.isShapeOfType(connection, 'connection')) return null
+
+	// Get the connection terminals in connection space
+	const terminals = getConnectionTerminals(editor, connection)
+	const anchorInConnectionSpace =
+		state.location === 'middle'
+			? Vec.Lrp(terminals.start, terminals.end, 0.5)
+			: terminals[state.location]
+
+	// Transform the position from connection space to page space
+	return editor.getShapePageTransform(connection).applyToPoint(anchorInConnectionSpace)
+}
 
 // Component picker that appears when users drag connection handles without connecting to existing ports
 export function OnCanvasComponentPicker() {
@@ -70,7 +90,6 @@ function OnCanvasComponentPickerDialog({
 	const location = useValue('location', () => onCanvasComponentPickerState.get(editor)?.location, [
 		editor,
 	])
-	const shouldRender = !!location
 	const [container, setContainer] = useState<HTMLDivElement | null>(null)
 	// Allow wheel events to pass through to the canvas
 	usePassThroughWheelEvents(useMemo(() => ({ current: container }), [container]))
@@ -80,38 +99,24 @@ function OnCanvasComponentPickerDialog({
 		'OnCanvasComponentPicker',
 		() => {
 			const state = onCanvasComponentPickerState.get(editor)
-			if (!state) return
+			if (!state || !container) return
 
-			if (!container) return
-
-			const connection = editor.getShape(state.connectionShapeId)
-			if (!connection || !editor.isShapeOfType(connection, 'connection')) {
+			const anchorInPageSpace = getPickerAnchorInPageSpace(editor, state)
+			if (!anchorInPageSpace) {
 				onClose()
 				return
 			}
 
-			// Get the connection terminals in connection space
-			const terminals = getConnectionTerminals(editor, connection)
-			const terminalInConnectionSpace =
-				state.location === 'middle'
-					? Vec.Lrp(terminals.start, terminals.end, 0.5)
-					: terminals[state.location]
-
-			// Transform the position from connection space to page space
-			const terminalInPageSpace = editor
-				.getShapePageTransform(connection)
-				.applyToPoint(terminalInConnectionSpace)
-
 			// Transform from page space to viewport space for positioning the dialog
-			const terminalInViewportSpace = editor.pageToViewport(terminalInPageSpace)
-			container.style.transform = `translate(${terminalInViewportSpace.x}px, ${terminalInViewportSpace.y}px) scale(${editor.getZoomLevel()}) `
+			const anchorInViewportSpace = editor.pageToViewport(anchorInPageSpace)
+			container.style.transform = `translate(${anchorInViewportSpace.x}px, ${anchorInViewportSpace.y}px) scale(${editor.getZoomLevel()}) `
 		},
 		[editor, container]
 	)
 
 	return (
 		<Dialog.Root
-			open={shouldRender}
+			open={!!location}
 			modal={false}
 			onOpenChange={(isOpen) => {
 				if (!isOpen) onClose()
@@ -147,7 +152,6 @@ function OnCanvasComponentPickerItem<T extends NodeType>({
 
 	return (
 		<TldrawUiButton
-			key={definition.type}
 			type="menu"
 			className="OnCanvasComponentPicker-button"
 			onPointerDown={editor.markEventAsHandled}
@@ -155,27 +159,12 @@ function OnCanvasComponentPickerItem<T extends NodeType>({
 				const state = onCanvasComponentPickerState.get(editor)
 				if (!state) return
 
-				const connection = editor.getShape(state.connectionShapeId)
-				if (!connection || !editor.isShapeOfType(connection, 'connection')) {
-					onClose()
-					return
-				}
-
 				// Calculate the position where the new node should be created
-				const terminals = getConnectionTerminals(editor, connection)
-				const terminalInConnectionSpace =
-					state.location === 'middle'
-						? Vec.Lrp(terminals.start, terminals.end, 0.5)
-						: terminals[state.location]
-
-				// Transform from connection space to page space
-				const terminalInPageSpace = editor
-					.getShapePageTransform(connection)
-					.applyToPoint(terminalInConnectionSpace)
-
-				// Call the pick handler with the node type and position
-				state.onPick(definition.getDefault(), terminalInPageSpace)
-
+				const anchorInPageSpace = getPickerAnchorInPageSpace(editor, state)
+				if (anchorInPageSpace) {
+					// Call the pick handler with the node type and position
+					state.onPick(definition.getDefault(), anchorInPageSpace)
+				}
 				onClose()
 			}}
 		>
