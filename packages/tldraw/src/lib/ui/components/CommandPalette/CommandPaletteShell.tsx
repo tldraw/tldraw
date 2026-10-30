@@ -162,9 +162,10 @@ export function CommandPaletteShell({
 	// Backing out restores the exact scroll: scrolling the active row into view would park it at an
 	// edge. Waits until the list is tall enough, since rows from useCommandPaletteQuery register a
 	// render late and an early restore would clamp to 0. Re-reads canScrollDown, already read for
-	// these rows. The next query change, arrow key or user scroll drops it. Rows can change while
-	// a submenu is open, so the active row still gets scrolled into view if it ends up hidden,
-	// or Enter would run a row the user can't see.
+	// these rows. The next query change, arrow key or pointer/scroll input drops it. Rows can
+	// change while a submenu is open, so the active row still gets scrolled into view if it ends
+	// up fully hidden, or Enter would run a row the user can't see. Only fully hidden: a partly
+	// clipped row would lose the exact restore to scroll-padding.
 	useLayoutEffect(() => {
 		const list = rList.current
 		const scrollTop = rRestoreScrollTop.current
@@ -177,7 +178,7 @@ export function CommandPaletteShell({
 		if (active) {
 			const row = active.getBoundingClientRect()
 			const visible = list.getBoundingClientRect()
-			if (row.top < visible.top || row.bottom > visible.bottom) {
+			if (row.bottom <= visible.top || row.top >= visible.bottom) {
 				active.scrollIntoView?.({ block: 'nearest' })
 			}
 		}
@@ -426,6 +427,7 @@ export function CommandPaletteShell({
 						onWheel={dropScrollRestore}
 						onTouchMove={dropScrollRestore}
 						onPointerDown={dropScrollRestore}
+						onPointerMove={dropScrollRestore}
 					>
 						<CommandPaletteList
 							listboxId={listboxId}
