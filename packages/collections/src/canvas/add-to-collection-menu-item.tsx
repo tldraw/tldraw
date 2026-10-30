@@ -8,9 +8,14 @@ import {
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import { useSaveSelection } from './use-save-selection'
+import { useSaveToNewCollection } from './use-save-to-new-collection'
 
 const messages = defineMessages({
 	addToCollection: { id: 'collections.add-to-collection', defaultMessage: 'Add to collection' },
+	newCollection: {
+		id: 'collections.add-to-new-collection',
+		defaultMessage: 'New collection',
+	},
 })
 
 /** @public */
@@ -19,9 +24,9 @@ export interface AddToCollectionMenuItemProps {
 }
 
 /**
- * An "Add to collection" submenu listing the collections the selection can be added to. Hidden
- * when nothing is selected or no collection accepts items. Drop it into your context menu, e.g.
- * above `DefaultContextMenuContent`.
+ * An "Add to collection" submenu listing the collections the selection can be added to, and a new
+ * collection when the source allows creating one. Hidden when nothing is selected or there is
+ * nowhere to add it. Drop it into your context menu, e.g. above `DefaultContextMenuContent`.
  * @public @react
  */
 export function AddToCollectionMenuItem({ source }: AddToCollectionMenuItemProps) {
@@ -34,23 +39,38 @@ export function AddToCollectionMenuItem({ source }: AddToCollectionMenuItemProps
 		() => source.getCollections().filter((collection) => source.can('addItem', collection.id)),
 		[source]
 	)
+	const canCreate = useValue('can create collection', () => source.can('createCollection'), [
+		source,
+	])
 	const saveSelection = useSaveSelection(source)
+	const saveToNewCollection = useSaveToNewCollection(source)
 
-	if (!hasSelection || collections.length === 0) return null
+	if (!hasSelection || (collections.length === 0 && !canCreate)) return null
 
 	return (
 		<TldrawUiMenuGroup id="collections">
 			<TldrawUiMenuSubmenu id="add-to-collection" label={messages.addToCollection.id}>
-				<TldrawUiMenuGroup id="add-to-collection-targets">
-					{collections.map((collection) => (
+				{collections.length > 0 && (
+					<TldrawUiMenuGroup id="add-to-collection-targets">
+						{collections.map((collection) => (
+							<TldrawUiMenuItem
+								key={collection.id}
+								id={`add-to-collection-${collection.id}`}
+								label={collection.name}
+								onSelect={() => saveSelection(collection.id)}
+							/>
+						))}
+					</TldrawUiMenuGroup>
+				)}
+				{canCreate && (
+					<TldrawUiMenuGroup id="add-to-new-collection">
 						<TldrawUiMenuItem
-							key={collection.id}
-							id={`add-to-collection-${collection.id}`}
-							label={collection.name}
-							onSelect={() => saveSelection(collection.id)}
+							id="add-to-new-collection"
+							label={messages.newCollection.id}
+							onSelect={saveToNewCollection}
 						/>
-					))}
-				</TldrawUiMenuGroup>
+					</TldrawUiMenuGroup>
+				)}
 			</TldrawUiMenuSubmenu>
 		</TldrawUiMenuGroup>
 	)
