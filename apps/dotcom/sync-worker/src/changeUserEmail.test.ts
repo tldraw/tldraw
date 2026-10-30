@@ -78,7 +78,57 @@ describe('changeUserEmail', () => {
 			email: 'new@example.com',
 			removed: ['old@example.com'],
 			keptLinked: [],
+			problems: [],
 		})
+	})
+
+	it("stores Clerk's form of the address", async () => {
+		const clerk = mockClerk([address('idn_old', 'old@example.com')])
+		clerk.emailAddresses.createEmailAddress.mockResolvedValueOnce(
+			address('idn_new', 'new@example.com')
+		)
+
+		const result = await changeUserEmail(env, 'user_1', 'New@Example.com')
+
+		expect(dbUpdates[0].set).toMatchObject({ email: 'new@example.com' })
+		expect(result.email).toBe('new@example.com')
+	})
+
+	it('reports a failed removal and still updates the user row', async () => {
+		const clerk = mockClerk([address('idn_old', 'old@example.com')])
+		clerk.emailAddresses.deleteEmailAddress.mockRejectedValueOnce(new Error('boom'))
+
+		const result = await changeUserEmail(env, 'user_1', 'new@example.com')
+
+		expect(dbUpdates).toHaveLength(1)
+		expect(result.removed).toEqual([])
+		expect(result.problems).toEqual(['Removing old@example.com from Clerk failed: boom'])
+	})
+
+	it('reports a failed row update and still removes old addresses', async () => {
+		const clerk = mockClerk([address('idn_old', 'old@example.com')])
+		vi.mocked(createPostgresConnectionPool).mockReturnValue({
+			selectFrom: () => ({
+				select: () => ({
+					where: () => ({ where: () => ({ executeTakeFirst: async () => undefined }) }),
+				}),
+			}),
+			updateTable: () => ({
+				set: () => ({
+					where: () => ({
+						execute: async () => {
+							throw new Error('db down')
+						},
+					}),
+				}),
+			}),
+			destroy: async () => {},
+		} as any)
+
+		const result = await changeUserEmail(env, 'user_1', 'new@example.com')
+
+		expect(clerk.emailAddresses.deleteEmailAddress).toHaveBeenCalledWith('idn_old')
+		expect(result.problems).toEqual(['Updating user.email failed: db down'])
 	})
 
 	it('keeps old addresses a social login is linked to', async () => {

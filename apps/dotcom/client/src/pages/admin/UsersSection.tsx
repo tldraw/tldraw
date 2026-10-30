@@ -73,7 +73,17 @@ function ChangeEmail({ user, onChanged }: { user: TlaUser; onChanged(email: stri
 				setError(await getResponseError(res))
 				return
 			}
-			const body = (await res.json()) as { email: string; removed: string[]; keptLinked: string[] }
+			const body = (await res.json()) as {
+				email: string
+				removed: string[]
+				keptLinked: string[]
+				problems: string[]
+			}
+			if (body.problems.length) {
+				setError(
+					`The email changed, but some steps failed. Check them by hand or run the change again: ${body.problems.join(' ')}`
+				)
+			}
 			setResult(
 				[
 					`Email is now ${body.email}.`,
