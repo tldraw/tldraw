@@ -162,13 +162,25 @@ export function CommandPaletteShell({
 	// Backing out restores the exact scroll: scrolling the active row into view would park it at an
 	// edge. Waits until the list is tall enough, since rows from useCommandPaletteQuery register a
 	// render late and an early restore would clamp to 0. Re-reads canScrollDown, already read for
-	// these rows. The next query change, arrow key or user scroll drops it.
+	// these rows. The next query change, arrow key or user scroll drops it. Rows can change while
+	// a submenu is open, so the active row still gets scrolled into view if it ends up hidden,
+	// or Enter would run a row the user can't see.
 	useLayoutEffect(() => {
 		const list = rList.current
 		const scrollTop = rRestoreScrollTop.current
-		if (scrollTop === null || !list || list.scrollHeight - list.clientHeight < scrollTop) return
-		list.scrollTop = scrollTop
-		rRestoreScrollTop.current = null
+		if (scrollTop === null || !list) return
+		if (list.scrollHeight - list.clientHeight >= scrollTop) {
+			list.scrollTop = scrollTop
+			rRestoreScrollTop.current = null
+		}
+		const active = list.querySelector('[data-highlighted]')
+		if (active) {
+			const row = active.getBoundingClientRect()
+			const visible = list.getBoundingClientRect()
+			if (row.top < visible.top || row.bottom > visible.bottom) {
+				active.scrollIntoView?.({ block: 'nearest' })
+			}
+		}
 		onListScroll()
 	})
 	// Runs after the rows' own layout effects: only keyboard and query changes scroll the active

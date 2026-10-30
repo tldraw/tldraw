@@ -398,6 +398,89 @@ describe('CommandPaletteShell', () => {
 		expect(list.scrollTop).toBe(150)
 	})
 
+	// Without a trailing group, the list gets too short for the saved scroll and it never applies.
+	it.each([true, false])(
+		'scrolls the active row into view when the restored scroll would hide it (trailing group: %s)',
+		async (hasTrailingGroup) => {
+			let removeEdit = () => {}
+			function Rows() {
+				const [hasEdit, setHasEdit] = useState(true)
+				removeEdit = () => setHasEdit(false)
+				return (
+					<>
+						{hasEdit && (
+							<TldrawUiMenuGroup id="edit" label="menu.edit">
+								{item('a1', 'A1')}
+								{item('a2', 'A2')}
+							</TldrawUiMenuGroup>
+						)}
+						<TldrawUiMenuGroup id="view" label="menu.view">
+							{['1', '2', '3', '4', '5', '6', '7', '8'].map((n) => item(`b${n}`, `B${n}`))}
+						</TldrawUiMenuGroup>
+						{hasTrailingGroup && (
+							<TldrawUiMenuGroup id="extras" label="menu.extras">
+								{item('c1', 'C1')}
+								{item('c2', 'C2')}
+							</TldrawUiMenuGroup>
+						)}
+						<TldrawUiMenuSubmenu id="many" label="Many">
+							{['x', 'y'].map((id) => item(id, `Option ${id}`))}
+						</TldrawUiMenuSubmenu>
+					</>
+				)
+			}
+			const { rendered, input } = await renderShell(<Rows />)
+			const list = await rendered.findByRole('listbox')
+			await rendered.findByTestId('command-palette.item.b8')
+			// Headings and options are 50px each, in a 250px list.
+			const slots = () =>
+				Array.from(list.querySelectorAll('[role="option"], .tlui-command-palette__heading'))
+			const top = (el: Element) => slots().indexOf(el) * 50
+			let scrollTop = 0
+			const maxScroll = () => Math.max(0, slots().length * 50 - 250)
+			Object.defineProperties(list, {
+				scrollHeight: { configurable: true, get: () => maxScroll() + 250 },
+				clientHeight: { configurable: true, value: 250 },
+				scrollTop: {
+					configurable: true,
+					get: () => (scrollTop = Math.min(scrollTop, maxScroll())),
+					set: (value: number) => (scrollTop = Math.max(0, Math.min(value, maxScroll()))),
+				},
+			})
+			const rect = (y: number, height: number) => ({ top: y, bottom: y + height }) as DOMRect
+			const originalRect = Element.prototype.getBoundingClientRect
+			const originalScroll = Element.prototype.scrollIntoView
+			Element.prototype.getBoundingClientRect = function () {
+				if (this === list) return rect(0, 250)
+				return rect(top(this) - list.scrollTop, 50)
+			}
+			Element.prototype.scrollIntoView = function () {
+				const y = top(this) - list.scrollTop
+				if (y < 0) list.scrollTop += y
+				else if (y + 50 > 250) list.scrollTop += y + 50 - 250
+			}
+			try {
+				for (let i = 0; i < 5; i++) press(input, 'ArrowDown')
+				const active = () => list.querySelector('[data-highlighted]')!
+				list.scrollTop = top(active())
+				fireEvent.scroll(list)
+				const saved = list.scrollTop
+				expect(saved).toBeGreaterThan(0)
+
+				fireEvent.click(rendered.getByTestId('command-palette.submenu.Many'))
+				act(() => removeEdit())
+				press(input, 'Escape')
+				expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+				const y = top(active()) - list.scrollTop
+				expect(y).toBeGreaterThanOrEqual(0)
+				expect(y + 50).toBeLessThanOrEqual(250)
+			} finally {
+				Element.prototype.getBoundingClientRect = originalRect
+				Element.prototype.scrollIntoView = originalScroll
+			}
+		}
+	)
+
 	it("keeps Enter's keyup from reaching the editor after running an item", async () => {
 		const { editor, input } = await renderShell(item('alpha', 'Alpha'))
 		press(input, 'Enter')
