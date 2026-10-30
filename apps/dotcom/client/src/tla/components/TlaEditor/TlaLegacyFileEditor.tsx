@@ -19,6 +19,7 @@ import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallba
 import { TlaEditorLegacySharePanel } from './editor-components/TlaEditorLegacySharePanel'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { BackgroundRemovalSideEffects, RemoveBackgroundButton } from './RemoveBackgroundButton'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLegacyModal } from './sneaky/SneakyLegacyModal'
@@ -34,6 +35,7 @@ const components: TLComponents = {
 	TopPanel: TlaEditorTopPanel,
 	Dialogs: null,
 	Toasts: null,
+	ImageToolbarExtra: RemoveBackgroundButton,
 }
 
 export function TlaLegacyFileEditor({
@@ -121,6 +123,7 @@ function TlaEditorInner({
 				components={components}
 				options={{ actionShortcutsLocation: 'toolbar', deepLinks: true }}
 			>
+				<BackgroundRemovalSideEffects />
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
 				<SneakyLegacySetDocumentTitle />
