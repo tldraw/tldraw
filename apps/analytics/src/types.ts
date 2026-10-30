@@ -1,3 +1,5 @@
+import type { Attribution } from './utils/attribution'
+
 // Expose global functions
 declare global {
 	interface Window {
@@ -9,6 +11,8 @@ declare global {
 			track(name: string, data?: { [key: string]: any }): void
 			gtag(...args: any[]): void
 			getConsentState(): ConsentPreferences
+			// The tl_attribution cookie, or null without analytics consent.
+			getAttribution(): Attribution | null
 			onConsentUpdate(callback: (preferences: ConsentPreferences) => void): () => void
 			trackCopyCode(data: {
 				page_category: string

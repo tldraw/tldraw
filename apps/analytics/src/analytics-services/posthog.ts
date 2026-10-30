@@ -48,6 +48,25 @@ class PosthogAnalyticsService extends AnalyticsService {
 	override trackPageview() {
 		_posthog.capture('$pageview')
 	}
+
+	override trackFormSubmission(data: {
+		enquiry_type: string
+		page_category?: string
+		company_size?: string
+		company_website?: string
+		user_email?: string
+		user_email_sha256?: string
+		user_first_name?: string
+		user_last_name?: string
+		user_phone_number?: string
+	}) {
+		// Ties the visitor's anonymous history to the person HubSpot knows by this email.
+		if (this.isEnabled && data.user_email) {
+			const email = data.user_email.trim().toLowerCase()
+			_posthog.identify(email, { email })
+		}
+		_posthog.capture('form submitted', { form: data.enquiry_type })
+	}
 }
 
 export const posthogService = new PosthogAnalyticsService()
