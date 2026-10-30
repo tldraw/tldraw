@@ -110,6 +110,7 @@ export function CommandPaletteShell({
 	const rInput = useRef<HTMLInputElement>(null)
 	const rList = useRef<HTMLDivElement>(null)
 	const rScrollToActive = useRef(false)
+	const rRestoreScrollTop = useRef<number | null>(null)
 	// Without an editor, focus goes back here on close.
 	const rFocusBefore = useRef<HTMLElement | null>(null)
 	const listboxId = useId()
@@ -158,6 +159,15 @@ export function CommandPaletteShell({
 		isBrowsing,
 		rows,
 	})
+	// Backing out restores the exact scroll: scrolling the active row into view would park it at an
+	// edge. After the rows render, and before canScrollDown is read again.
+	useLayoutEffect(() => {
+		const list = rList.current
+		if (rRestoreScrollTop.current === null || !list) return
+		list.scrollTop = rRestoreScrollTop.current
+		rRestoreScrollTop.current = null
+		onListScroll()
+	})
 	// Runs after the rows' own layout effects: only keyboard and query changes scroll the active
 	// row, so hovering a half-visible row doesn't make the list jump.
 	useLayoutEffect(() => {
@@ -204,9 +214,13 @@ export function CommandPaletteShell({
 
 	// Each level opened on top of another remembers that level's search, so backing out returns to
 	// the same results instead of an empty palette.
-	const rBackTo = useRef<{ query: string; activeIndex: number }[]>([])
+	const rBackTo = useRef<{ query: string; activeIndex: number; scrollTop: number }[]>([])
 	const pushLevel = useCallback(() => {
-		rBackTo.current.push({ query: store.query.get(), activeIndex: rClampedIndex.current })
+		rBackTo.current.push({
+			query: store.query.get(),
+			activeIndex: rClampedIndex.current,
+			scrollTop: rList.current?.scrollTop ?? 0,
+		})
 	}, [store])
 
 	const openSubmenu = useCallback(
@@ -243,6 +257,10 @@ export function CommandPaletteShell({
 		const previous = rBackTo.current.pop()
 		setQuery(previous?.query ?? '')
 		setActiveIndex(previous?.activeIndex ?? 0)
+		if (previous) {
+			rScrollToActive.current = false
+			rRestoreScrollTop.current = previous.scrollTop
+		}
 	}, [prompt, store, setQuery])
 
 	const dismiss = useCallback(() => {

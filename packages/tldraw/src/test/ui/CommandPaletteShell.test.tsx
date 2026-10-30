@@ -308,6 +308,53 @@ describe('CommandPaletteShell', () => {
 		expect(list.hasAttribute('data-more')).toBe(false)
 	})
 
+	it('keeps the scroll position when backing out of a submenu or a prompt', async () => {
+		const original = Element.prototype.scrollIntoView
+		// Like block: 'nearest' on a list scrolled past its first row.
+		Element.prototype.scrollIntoView = function () {
+			const list = this.closest('[role="listbox"]') as HTMLElement
+			list.scrollTop = 0
+		}
+		try {
+			const { rendered, input } = await renderShell(
+				<>
+					{['a', 'b', 'c'].map((id) => item(id, `Item ${id}`))}
+					<TldrawUiMenuSubmenu id="many" label="Many">
+						{['x', 'y'].map((id) => item(id, `Option ${id}`))}
+						<CommandPalettePromptItem id="new" label="New" placeholder="Name" onSubmit={vi.fn()} />
+					</TldrawUiMenuSubmenu>
+				</>
+			)
+			const list = await rendered.findByRole('listbox')
+			for (const [key, value] of Object.entries({ scrollHeight: 500, clientHeight: 250 })) {
+				Object.defineProperty(list, key, { configurable: true, value })
+			}
+			Object.defineProperty(list, 'scrollTop', { configurable: true, writable: true, value: 0 })
+			const scrollTo = (scrollTop: number) => {
+				list.scrollTop = scrollTop
+				fireEvent.scroll(list)
+			}
+
+			scrollTo(250)
+			fireEvent.click(await rendered.findByTestId('command-palette.submenu.Many'))
+			expect(list.scrollTop).toBe(0)
+			expect(list.hasAttribute('data-more')).toBe(true)
+			scrollTo(100)
+			fireEvent.click(rendered.getByTestId('command-palette.item.new'))
+			expect(list.scrollTop).toBe(0)
+
+			press(input, 'Escape')
+			expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
+			expect(list.scrollTop).toBe(100)
+			press(input, 'Escape')
+			expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+			expect(list.scrollTop).toBe(250)
+			expect(list.hasAttribute('data-more')).toBe(false)
+		} finally {
+			Element.prototype.scrollIntoView = original
+		}
+	})
+
 	it("keeps Enter's keyup from reaching the editor after running an item", async () => {
 		const { editor, input } = await renderShell(item('alpha', 'Alpha'))
 		press(input, 'Enter')
