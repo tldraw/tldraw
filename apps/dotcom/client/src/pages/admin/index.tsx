@@ -32,7 +32,7 @@ export function Component() {
 
 	return (
 		<div className={styles.adminLayout}>
-			<Helmet title={`Admin • ${current.label}`} />
+			<Helmet title={`${current.label} • Admin`} />
 			<nav className={styles.adminSidebar}>
 				<div className={styles.adminSidebarTitle}>Admin</div>
 				{SECTIONS.map((s) => (
