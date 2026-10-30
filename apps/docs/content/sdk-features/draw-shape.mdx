@@ -99,7 +99,7 @@ editor.user.updateUserPreferences({ isDynamicSizeMode: true })
 
 ## Shape properties
 
-Draw shapes store their path data in a delta-encoded base64 format. Segments from pens and styluses store x, y, and z (pressure): the first point uses full Float32 precision (12 bytes) and each subsequent point is a Float16 delta (6 bytes). Segments from mice and touch input drop the constant pressure value and store only x and y, marked with `dim: 2` (8 bytes for the first point, 4 bytes per delta).
+Draw shapes store their path data as a compact string. Each value is rounded to 1/100 of a unit, each point is predicted from the two before it, and only the difference from that prediction is stored, as a variable-length number written in base64 characters. Freehand strokes take about three characters per point. Segments from pens and styluses store x, y, and z (pressure). Segments from mice and touch input drop the constant pressure value and store only x and y, marked with `dim: 2`.
 
 | Property     | Type                   | Description                                                              |
 | ------------ | ---------------------- | ------------------------------------------------------------------------ |
@@ -175,7 +175,7 @@ editor.createShape({
 })
 ```
 
-[b64Vecs](?)`.encodePoints` converts an array of point objects to the delta-encoded base64 format; pass `2` as the second argument to store x and y only. Use `b64Vecs.decodePoints(segment.path, segment.dim)` to read points back.
+[b64Vecs](?)`.encodePoints` converts an array of point objects to this format; pass `2` as the second argument to store x and y only. Use `b64Vecs.decodePoints(segment.path, segment.dim)` to read points back.
 
 ## Stroke rendering
 
