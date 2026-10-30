@@ -157,6 +157,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		hoverPreciseTimeout: 600,
 		pointingPreciseTimeout: 320,
+		preciseAnchorResizeBehavior: 'nearest-corner',
 		shouldBeExact(editor: Editor) {
 			return editor.inputs.getAltKey()
 		},
@@ -689,6 +690,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	private readonly _resizeInitialBindings = new WeakCache<TLArrowShape, TLArrowBindings>()
+	private readonly _resizeFlipState = new WeakCache<TLArrowShape, { x: boolean; y: boolean }>()
 
 	override canFlip() {
 		return true
@@ -726,68 +728,32 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const mx = Math.abs(scaleX)
 		const my = Math.abs(scaleY)
 
-		const startNormalizedAnchor = bindings?.start
-			? Vec.From(bindings.start.props.normalizedAnchor)
-			: null
-		const endNormalizedAnchor = bindings?.end ? Vec.From(bindings.end.props.normalizedAnchor) : null
-
-		if (scaleX < 0 && scaleY >= 0) {
-			if (bend !== 0) {
-				bend *= -1
-				bend *= Math.max(mx, my)
-			}
-
-			if (startNormalizedAnchor) {
-				startNormalizedAnchor.x = 1 - startNormalizedAnchor.x
-			}
-
-			if (endNormalizedAnchor) {
-				endNormalizedAnchor.x = 1 - endNormalizedAnchor.x
-			}
-		} else if (scaleX >= 0 && scaleY < 0) {
-			if (bend !== 0) {
-				bend *= -1
-				bend *= Math.max(mx, my)
-			}
-
-			if (startNormalizedAnchor) {
-				startNormalizedAnchor.y = 1 - startNormalizedAnchor.y
-			}
-
-			if (endNormalizedAnchor) {
-				endNormalizedAnchor.y = 1 - endNormalizedAnchor.y
-			}
-		} else if (scaleX >= 0 && scaleY >= 0) {
-			if (bend !== 0) {
-				bend *= Math.max(mx, my)
-			}
-		} else if (scaleX < 0 && scaleY < 0) {
-			if (bend !== 0) {
-				bend *= Math.max(mx, my)
-			}
-
-			if (startNormalizedAnchor) {
-				startNormalizedAnchor.x = 1 - startNormalizedAnchor.x
-				startNormalizedAnchor.y = 1 - startNormalizedAnchor.y
-			}
-
-			if (endNormalizedAnchor) {
-				endNormalizedAnchor.x = 1 - endNormalizedAnchor.x
-				endNormalizedAnchor.y = 1 - endNormalizedAnchor.y
-			}
+		if (bend !== 0) {
+			// flipping on exactly one axis reverses which side the arc bulges toward
+			if (scaleX < 0 !== scaleY < 0) bend *= -1
+			bend *= Math.max(mx, my)
 		}
 
-		if (bindings.start && startNormalizedAnchor) {
-			createOrUpdateArrowBinding(this.editor, shape, bindings.start.toId, {
-				...bindings.start.props,
-				normalizedAnchor: startNormalizedAnchor.toJson(),
-			})
-		}
-		if (bindings.end && endNormalizedAnchor) {
-			createOrUpdateArrowBinding(this.editor, shape, bindings.end.toId, {
-				...bindings.end.props,
-				normalizedAnchor: endNormalizedAnchor.toJson(),
-			})
+		// Mirror the anchors in the store only on the frame the flip state changes. Rewriting the
+		// drag-start anchors every frame would undo the bound shape's own anchor adjustments (see
+		// `preciseAnchorResizeBehavior`), so precise arrows in the selection would scale
+		// proportionally.
+		const flip = this._resizeFlipState.get(info.initialShape, () => ({ x: false, y: false }))
+		const didFlipX = scaleX < 0 !== flip.x
+		const didFlipY = scaleY < 0 !== flip.y
+		flip.x = scaleX < 0
+		flip.y = scaleY < 0
+
+		if (didFlipX || didFlipY) {
+			const currentBindings = getArrowBindings(this.editor, shape)
+			for (const binding of [currentBindings.start, currentBindings.end]) {
+				if (!binding) continue
+				const { x, y } = binding.props.normalizedAnchor
+				createOrUpdateArrowBinding(this.editor, shape, binding.toId, {
+					...binding.props,
+					normalizedAnchor: { x: didFlipX ? 1 - x : x, y: didFlipY ? 1 - y : y },
+				})
+			}
 		}
 
 		const next = {
