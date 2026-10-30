@@ -7,6 +7,7 @@ import {
 	CommandPaletteOnDemand,
 	CommandPalettePinned,
 	useCommandPaletteActiveItemId,
+	useCommandPaletteQuery,
 	useCommandPaletteStore,
 } from '../../lib/ui/components/CommandPalette/CommandPaletteContext'
 import { CommandPalettePromptItem } from '../../lib/ui/components/CommandPalette/CommandPalettePromptItem'
@@ -353,6 +354,48 @@ describe('CommandPaletteShell', () => {
 		} finally {
 			Element.prototype.scrollIntoView = original
 		}
+	})
+
+	it('keeps the scroll position when backing out to rows that register a commit late', async () => {
+		// Rows from useCommandPaletteQuery register in their own layout effects, so the shell only
+		// lists them on the render after the query comes back.
+		function Results() {
+			const query = useCommandPaletteQuery()
+			if (!query) return null
+			return <>{['0', '1', '2', '3', '4', '5', '6', '7'].map((n) => item(`row${n}`, `Row ${n}`))}</>
+		}
+		const { rendered, input } = await renderShell(
+			<>
+				<Results />
+				<TldrawUiMenuSubmenu id="rows" label="Rows">
+					{['x', 'y'].map((id) => item(id, `Option ${id}`))}
+				</TldrawUiMenuSubmenu>
+			</>
+		)
+		const list = await rendered.findByRole('listbox')
+		// 50px a row, and a browser clamps scrollTop to what the rows can hold, keeping the clamp.
+		const maxScroll = () => Math.max(0, within(list).queryAllByRole('option').length * 50 - 250)
+		let scrollTop = 0
+		Object.defineProperties(list, {
+			scrollHeight: { configurable: true, get: () => maxScroll() + 250 },
+			clientHeight: { configurable: true, value: 250 },
+			scrollTop: {
+				configurable: true,
+				get: () => (scrollTop = Math.min(scrollTop, maxScroll())),
+				set: (value: number) => (scrollTop = Math.min(value, maxScroll())),
+			},
+		})
+
+		type(input, 'row')
+		await rendered.findByTestId('command-palette.item.row7')
+		list.scrollTop = 150
+		fireEvent.scroll(list)
+		fireEvent.click(rendered.getByTestId('command-palette.submenu.Rows'))
+		expect(list.scrollTop).toBe(0)
+
+		press(input, 'Escape')
+		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+		expect(list.scrollTop).toBe(150)
 	})
 
 	it("keeps Enter's keyup from reaching the editor after running an item", async () => {

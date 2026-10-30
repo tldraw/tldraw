@@ -160,11 +160,14 @@ export function CommandPaletteShell({
 		rows,
 	})
 	// Backing out restores the exact scroll: scrolling the active row into view would park it at an
-	// edge. After the rows render, and before canScrollDown is read again.
+	// edge. Waits until the list is tall enough, since rows from useCommandPaletteQuery register a
+	// render late and an early restore would clamp to 0. Re-reads canScrollDown, already read for
+	// these rows. The next query change, arrow key or user scroll drops it.
 	useLayoutEffect(() => {
 		const list = rList.current
-		if (rRestoreScrollTop.current === null || !list) return
-		list.scrollTop = rRestoreScrollTop.current
+		const scrollTop = rRestoreScrollTop.current
+		if (scrollTop === null || !list || list.scrollHeight - list.clientHeight < scrollTop) return
+		list.scrollTop = scrollTop
 		rRestoreScrollTop.current = null
 		onListScroll()
 	})
@@ -195,6 +198,7 @@ export function CommandPaletteShell({
 	const setQuery = useCallback(
 		(value: string) => {
 			rScrollToActive.current = true
+			rRestoreScrollTop.current = null
 			store.query.set(value)
 			setActiveIndex(0)
 		},
@@ -301,10 +305,15 @@ export function CommandPaletteShell({
 		[onClose, restoreFocus, openSubmenu, openPrompt, prompt, store, back]
 	)
 
+	const dropScrollRestore = () => {
+		rRestoreScrollTop.current = null
+	}
+
 	const move = (delta: number) => {
 		const count = selectableRows.length
 		if (!count) return
 		rScrollToActive.current = true
+		rRestoreScrollTop.current = null
 		setActiveIndex((Math.max(clampedIndex, 0) + delta + count) % count)
 	}
 
@@ -401,6 +410,10 @@ export function CommandPaletteShell({
 						className="tlui-command-palette__list"
 						data-more={canScrollDown ? '' : undefined}
 						onScroll={onListScroll}
+						// Not onScroll, which also fires when the list shrinks and clamps scrollTop.
+						onWheel={dropScrollRestore}
+						onTouchMove={dropScrollRestore}
+						onPointerDown={dropScrollRestore}
 					>
 						<CommandPaletteList
 							listboxId={listboxId}
