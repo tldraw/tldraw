@@ -1,7 +1,7 @@
 import { useAuth } from '@clerk/clerk-react'
 import { addBreadcrumb, captureException } from '@sentry/react'
 import { SubmitFeedbackRequestBody } from '@tldraw/dotcom-shared'
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useIntl } from 'react-intl'
 import {
 	defineMessages,
@@ -10,9 +10,6 @@ import {
 	fetch,
 	getFromLocalStorage,
 	setInLocalStorage,
-	TldrawUiButton,
-	TldrawUiButtonCheck,
-	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogFooter,
@@ -21,6 +18,8 @@ import {
 	useToasts,
 } from 'tldraw'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
+import { TlaButton } from '../TlaButton/TlaButton'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({
@@ -28,6 +27,7 @@ const messages = defineMessages({
 	thanks: { defaultMessage: 'Thanks for helping us improve tldraw!' },
 	failed: { defaultMessage: 'Could not submit feedback' },
 	tryAgain: { defaultMessage: 'Please try again.' },
+	descriptionPlaceholder: { defaultMessage: 'Please provide as much detail as possible.' },
 })
 
 const descriptionKey = 'tldraw-feedback-description'
@@ -56,40 +56,59 @@ function GithubIssuesLink({ children }: { children: ReactNode }) {
 
 export function SubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 	const isSignedIn = useAuth().isSignedIn
-	if (isSignedIn) {
-		return <SignedInSubmitFeedbackDialog onClose={onClose} />
-	}
-	return <SignedOutSubmitFeedbackDialog />
+	const anchorRef = useRef<HTMLDivElement>(null)
+	useLayoutEffect(() => {
+		const content = anchorRef.current?.closest('.tlui-dialog__content')
+		if (!(content instanceof HTMLElement)) return
+		content.classList.add(styles.feedbackDialog)
+		content.style.alignSelf = 'start'
+		content.style.marginTop = '8vh'
+		content.style.maxHeight = '84vh'
+		return () => content.classList.remove(styles.feedbackDialog)
+	}, [])
+	return (
+		<>
+			<div ref={anchorRef} hidden />
+			{isSignedIn ? (
+				<SignedInSubmitFeedbackDialog onClose={onClose} />
+			) : (
+				<SignedOutSubmitFeedbackDialog />
+			)}
+		</>
+	)
+}
+
+function FeedbackCommunityLinks() {
+	return (
+		<div className={styles.feedbackCommunityLinks}>
+			<DiscordLink>
+				<TlaIcon icon="feedback" />
+				<F defaultMessage="Chat with us on Discord" />
+			</DiscordLink>
+			<GithubIssuesLink>
+				<TlaIcon icon="external" />
+				<F defaultMessage="Submit an issue on GitHub" />
+			</GithubIssuesLink>
+		</div>
+	)
 }
 
 function SignedOutSubmitFeedbackDialog() {
 	return (
-		<div className={styles.dialogContainer}>
+		<>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
 					<F defaultMessage="Send feedback" />
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.dialogBody}>
+			<TldrawUiDialogBody className={styles.feedbackBody}>
 				<p>
 					<F defaultMessage="Have a bug, issue, or idea for tldraw? Let us know!" />
 				</p>
-				<ul>
-					<li>
-						<DiscordLink>
-							<F defaultMessage="Chat with us on Discord" />
-						</DiscordLink>
-					</li>
-					<li>
-						<GithubIssuesLink>
-							<F defaultMessage="Submit an issue on GitHub" />
-						</GithubIssuesLink>
-					</li>
-				</ul>
+				<FeedbackCommunityLinks />
 			</TldrawUiDialogBody>
-			<TldrawUiDialogFooter />
-		</div>
+		</>
 	)
 }
 
@@ -156,49 +175,42 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.dialogBody}>
+			<TldrawUiDialogBody className={styles.feedbackBody}>
 				<p>
-					<F
-						defaultMessage="Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
-						values={{
-							discord: (chunks) => <DiscordLink>{chunks}</DiscordLink>,
-							github: (chunks) => <GithubIssuesLink>{chunks}</GithubIssuesLink>,
-						}}
-					/>
+					<F defaultMessage="Have a bug, issue, or idea for tldraw? Let us know! We’ll follow up over email if needed." />
 				</p>
-				<textarea
-					placeholder="Please provide as much detail as possible."
-					defaultValue={getFromLocalStorage(descriptionKey) ?? undefined}
-					onInput={(e) => {
-						setInLocalStorage(descriptionKey, e.currentTarget.value)
-					}}
-					className={styles.feedbackDialogTextArea}
-					ref={rInput}
-				/>
-			</TldrawUiDialogBody>
-			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-				<div className="tlui-dialog__footer__file-link-checkbox">
-					<TldrawUiButton
-						type="normal"
-						onClick={() => setIncludeFileLink((v) => !v)}
-						className={styles.feedbackDialogCheckbox}
-					>
-						<TldrawUiButtonCheck checked={includeFileLink} />
-						<TldrawUiButtonLabel>
-							<F defaultMessage="Include link to current file" />
-						</TldrawUiButtonLabel>
-					</TldrawUiButton>
+				<div className={styles.feedbackField}>
+					<label htmlFor="feedback-description">
+						<F defaultMessage="Your feedback" />
+					</label>
+					<textarea
+						id="feedback-description"
+						placeholder={intl.formatMessage(messages.descriptionPlaceholder)}
+						defaultValue={getFromLocalStorage(descriptionKey) ?? undefined}
+						onInput={(e) => {
+							setInLocalStorage(descriptionKey, e.currentTarget.value)
+						}}
+						className={styles.feedbackDialogTextArea}
+						ref={rInput}
+					/>
 				</div>
-				<TldrawUiButton type="normal" onClick={onClose}>
-					<TldrawUiButtonLabel>
-						<F defaultMessage="Cancel" />
-					</TldrawUiButtonLabel>
-				</TldrawUiButton>
-				<TldrawUiButton type="primary" onClick={onSubmit} disabled={isSubmitting}>
-					<TldrawUiButtonLabel>
-						<F defaultMessage="Submit" />
-					</TldrawUiButtonLabel>
-				</TldrawUiButton>
+				<label className={styles.feedbackContextOption}>
+					<input
+						type="checkbox"
+						checked={includeFileLink}
+						onChange={(event) => setIncludeFileLink(event.currentTarget.checked)}
+					/>
+					<F defaultMessage="Include link to current file" />
+				</label>
+				<FeedbackCommunityLinks />
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter>
+				<TlaButton variant="secondary" className={styles.feedbackCancel} onClick={onClose}>
+					<F defaultMessage="Cancel" />
+				</TlaButton>
+				<TlaButton className={styles.feedbackSubmit} onClick={onSubmit} disabled={isSubmitting}>
+					<F defaultMessage="Submit" />
+				</TlaButton>
 			</TldrawUiDialogFooter>
 		</>
 	)

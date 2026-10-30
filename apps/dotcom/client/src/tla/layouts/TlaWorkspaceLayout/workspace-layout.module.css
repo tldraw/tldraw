@@ -2,47 +2,175 @@
 	position: absolute;
 	inset: 0;
 	display: flex;
-	flex-direction: row;
-	background-color: var(--tl-color-panel);
-}
-
-.sidebar {
-	display: flex;
 	flex-direction: column;
-	flex: 0 0 264px;
-	width: 264px;
-	height: 100%;
-	padding-bottom: 4px;
-	background: var(--tla-color-sidebar);
-	border-right: 1px solid var(--tla-color-workspace-border);
-}
-
-:global(.tl-container[dir='rtl']) .sidebar {
-	border-right: none;
-	border-left: 1px solid var(--tla-color-workspace-border);
-}
-
-.main {
-	position: relative;
-	flex: 1 1 auto;
-	min-width: 0;
-	height: 100%;
 	overflow-y: auto;
+	background: var(--tl-color-panel);
+	color: var(--tl-color-text-0);
+	font-family: var(--tla-font-ui);
 }
-
-/* The search row reads as an input here, not an action row. */
-.search > button::before {
-	content: '';
-	position: absolute;
-	inset: 2px 0px;
-	border-radius: 6px;
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	min-height: 80px;
+	padding: 16px 4.5%;
+	border-bottom: 1px solid var(--tl-color-divider);
+}
+.workspaceNavigation,
+.utilities {
+	display: flex;
+	align-items: center;
+	gap: 28px;
+	min-width: 0;
+}
+.logoLink {
+	display: flex;
+	flex: 0 0 auto;
+	border-radius: 4px;
+}
+.logo {
+	width: 100px;
+	height: 28px;
+}
+.workspaceSwitcher {
+	flex: 0 1 auto;
+	padding: 0;
+	min-width: 0;
+}
+.workspaceSwitcher > div {
+	min-width: 0;
+}
+.workspaceSwitcher > div > button {
+	width: auto;
+	max-width: min(240px, 100%);
+	min-height: 40px;
+	padding: 0 14px;
 	border: 1px solid var(--tl-color-divider);
-	pointer-events: none;
+	border-radius: 12px;
+	font-size: 14px;
+	gap: 16px;
+}
+.workspaceSwitcher > div > button::after {
+	inset: 0;
+	border-radius: inherit;
+}
+.feedback {
+	padding: 8px 12px;
+	background: color-mix(in srgb, var(--tl-color-text-0) 3%, transparent);
+	border: none;
+	border-radius: 8px;
+	color: inherit;
+	font: inherit;
+	font-size: 14px;
+	cursor: pointer;
+}
+.utilities {
+	flex-shrink: 0;
+}
+.feedback:hover {
+	background: color-mix(in srgb, var(--tl-color-text-0) 6%, transparent);
+}
+.account {
+	width: 40px;
+	min-width: 40px;
+	height: 40px;
+	padding: 0;
+	justify-content: center;
+	border-radius: 50%;
+	background: color-mix(in srgb, var(--tl-color-primary) 12%, var(--tl-color-panel));
+	font-size: 13px;
+	font-weight: 600;
+}
+.main {
+	flex: 1 0 auto;
+	width: min(1320px, 86%);
+	margin: 0 auto;
+	min-width: 0;
+}
+.footer {
+	width: min(1320px, 86%);
+	margin: 40px auto 24px;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 4px 16px;
+	justify-content: center;
+	color: var(--tl-color-text-3);
+}
+.footer a {
+	width: auto;
+	font-size: 12px;
+}
+.footerSeparator::before {
+	content: '·';
+}
+.footerFeedback {
+	font: inherit;
+	font-size: 12px;
+}
+.footerFeedback > span[role='img'] {
+	width: 16px;
+	height: 16px;
+}
+.footerFeedback:focus-visible {
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: 2px;
+}
+.logoLink:focus-visible,
+.feedback:focus-visible {
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: 4px;
+}
+@media (max-width: 767px) {
+	.header {
+		min-height: 68px;
+		padding: 14px 20px;
+		gap: 12px;
+	}
+	.workspaceNavigation,
+	.utilities {
+		gap: 14px;
+	}
+	.logo {
+		width: 80px;
+		height: 24px;
+	}
+	.workspaceSwitcher > div > button {
+		max-width: min(160px, 100%);
+	}
+	.feedback {
+		display: none;
+	}
+	.main,
+	.footer {
+		width: calc(100% - 40px);
+	}
 }
 
-/* TODO: the narrow layout has no design yet; until it does, phones get the board grid alone. */
-@media (max-width: 767px) {
-	.sidebar {
-		display: none;
+.help {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	background: none;
+	color: var(--tl-color-text-3);
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+}
+.help > span {
+	width: 22px;
+	height: 22px;
+}
+.help:focus-visible {
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: 2px;
+}
+@media (max-width: 480px) {
+	.utilities {
+		gap: 8px;
 	}
 }

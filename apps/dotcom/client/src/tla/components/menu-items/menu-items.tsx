@@ -4,7 +4,10 @@ import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	defaultUserPreferences,
 	defineMessages,
+	LANGUAGES,
+	TLUserPreferences,
 	TLDRAW_FILE_EXTENSION,
 	TldrawUiIcon,
 	TldrawUiMenuCheckboxItem,
@@ -103,20 +106,36 @@ const COLOR_SCHEMES = [
 	{ colorScheme: 'system' as const, label: 'theme.system' },
 ]
 
-function ThemeMenuGroup() {
+function useMenuUserPreferences() {
 	const editor = useMaybeEditor()
-	const trackEvent = useUiEvents()
-	const currentColorScheme = useValue(
-		'colorScheme',
+	const app = useMaybeApp()
+	const preferences = useValue(
+		'menu user preferences',
 		() =>
 			editor
-				? (editor.user.getUserPreferences().colorScheme ??
-					(editor.user.getIsDarkMode() ? 'dark' : 'light'))
-				: 'system',
-		[editor]
+				? {
+						...editor.user.getUserPreferences(),
+						colorScheme:
+							editor.user.getUserPreferences().colorScheme ??
+							(editor.user.getIsDarkMode() ? 'dark' : 'light'),
+					}
+				: app?.tlUser.userPreferences.get(),
+		[editor, app]
 	)
+	const updatePreferences = (changes: Partial<TLUserPreferences>) => {
+		if (editor) {
+			editor.user.updateUserPreferences(changes)
+		} else if (app) {
+			app.tlUser.setUserPreferences({ ...app.tlUser.userPreferences.get(), ...changes })
+		}
+	}
+	return { preferences, updatePreferences }
+}
 
-	if (!editor) return null
+function ThemeMenuGroup() {
+	const { preferences, updatePreferences } = useMenuUserPreferences()
+	const trackEvent = useUiEvents()
+	if (!preferences) return null
 
 	return (
 		<TldrawUiMenuGroup id="theme">
@@ -125,15 +144,43 @@ function ThemeMenuGroup() {
 					id={`color-scheme-${colorScheme}`}
 					key={colorScheme}
 					label={label}
-					checked={colorScheme === currentColorScheme}
+					checked={colorScheme === (preferences.colorScheme ?? 'system')}
 					readonlyOk
 					onSelect={() => {
-						editor.user.updateUserPreferences({ colorScheme })
+						updatePreferences({ colorScheme })
 						trackEvent('color-scheme', { source: 'menu', value: colorScheme })
 					}}
 				/>
 			))}
 		</TldrawUiMenuGroup>
+	)
+}
+
+export function AppLanguageMenu() {
+	const { preferences, updatePreferences } = useMenuUserPreferences()
+	const trackEvent = useUiEvents()
+	if (!preferences) return null
+
+	return (
+		<TldrawUiMenuSubmenu id="help menu language" label="menu.language">
+			<TldrawUiMenuGroup id="languages" className="tlui-language-menu">
+				{LANGUAGES.map(({ locale, label }) => (
+					<TldrawUiMenuCheckboxItem
+						id={`language-${locale}`}
+						lang={locale}
+						key={locale}
+						title={locale}
+						label={label}
+						checked={locale === (preferences.locale ?? defaultUserPreferences.locale)}
+						readonlyOk
+						onSelect={() => {
+							updatePreferences({ locale })
+							trackEvent('change-language', { source: 'menu', locale })
+						}}
+					/>
+				))}
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
 	)
 }
 
@@ -183,7 +230,12 @@ function UIThemeMenuCheckboxItem({
 
 function useUIThemeIds() {
 	const editor = useMaybeEditor()
-	return useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [editor])
+	return useValue(
+		'themeIds',
+		() =>
+			editor ? Object.keys(editor.getThemes()) : ['default', ...UI_THEMES.map(({ id }) => id)],
+		[editor]
+	)
 }
 
 export function UIThemeSubmenu() {
@@ -238,8 +290,8 @@ function UIThemeMenuGroup() {
 }
 
 export function ThemeSubmenu() {
-	const editor = useMaybeEditor()
-	if (!editor) return null
+	const { preferences } = useMenuUserPreferences()
+	if (!preferences) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="theme" label="menu.theme">

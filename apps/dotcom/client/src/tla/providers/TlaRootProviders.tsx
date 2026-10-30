@@ -18,6 +18,7 @@ import {
 	setRuntimeOverrides,
 	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
+	TldrawUiTranslationProvider,
 	tlenvReactive,
 	TLUiEventHandler,
 	useDialogs,
@@ -150,7 +151,7 @@ export function Component() {
 						<SignedInProvider onThemeChange={setTheme} onLocaleChange={handleLocaleChange}>
 							{container && (
 								<ContainerProvider container={container}>
-									<InsideOfContainerContext>
+									<InsideOfContainerContext locale={locale}>
 										<AppGate>
 											<Outlet />
 										</AppGate>
@@ -205,7 +206,7 @@ function IntlWrapper({ children, locale }: { children: ReactNode; locale: string
 	)
 }
 
-function InsideOfContainerContext({ children }: { children: ReactNode }) {
+function InsideOfContainerContext({ children, locale }: { children: ReactNode; locale: string }) {
 	const handleAppLevelUiEvent = useCallback<TLUiEventHandler>(() => {
 		// todo, implement handling ui events at the application layer
 	}, [])
@@ -219,14 +220,16 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					components={components}
 					onUiEvent={handleAppLevelUiEvent}
 				>
-					<PutI18nInApp />
-					<_Tooltip.Provider>{children}</_Tooltip.Provider>
-					<DefaultDialogs />
-					<DefaultToasts />
-					<DefaultA11yAnnouncer />
-					<PutToastsInApp />
-					<WorkspaceInviteHandler />
-					{currentEditor && <TlaCookieConsent />}
+					<TldrawUiTranslationProvider locale={locale}>
+						<PutI18nInApp />
+						<_Tooltip.Provider>{children}</_Tooltip.Provider>
+						<DefaultDialogs />
+						<DefaultToasts />
+						<DefaultA11yAnnouncer />
+						<PutToastsInApp />
+						<WorkspaceInviteHandler />
+						{currentEditor && <TlaCookieConsent />}
+					</TldrawUiTranslationProvider>
 				</TldrawUiContextProvider>
 			</TldrawUiA11yProvider>
 		</EditorContext.Provider>
@@ -283,14 +286,6 @@ function SignedInProvider({
 	const auth = useAuth()
 	const intl = useIntl()
 	const { user, isLoaded: isUserLoaded } = useClerkUser()
-	const locale = useValue(
-		'locale',
-		() => globalEditor.get()?.user.getUserPreferences().locale ?? 'en',
-		[]
-	)
-	useEffect(() => {
-		onLocaleChange(locale)
-	}, [locale, onLocaleChange])
 
 	useEffect(() => {
 		if (auth.isLoaded) markFirstLoad('clerk-loaded')
@@ -350,7 +345,7 @@ function SignedInProvider({
 
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return (
-			<ThemeContainer onThemeChange={onThemeChange}>
+			<ThemeContainer onThemeChange={onThemeChange} onLocaleChange={onLocaleChange}>
 				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
@@ -361,7 +356,7 @@ function SignedInProvider({
 		<>
 			<AppStateProvider>
 				<UserProvider>
-					<ThemeContainer onThemeChange={onThemeChange}>
+					<ThemeContainer onThemeChange={onThemeChange} onLocaleChange={onLocaleChange}>
 						<WhenAppReady>
 							<SignedInAnalytics />
 						</WhenAppReady>
@@ -409,12 +404,53 @@ function LegalTermsAcceptance() {
 function ThemeContainer({
 	children,
 	onThemeChange,
+	onLocaleChange,
 }: {
 	children: ReactNode
 	onThemeChange(theme: 'light' | 'dark' | 'system'): void
+	onLocaleChange(locale: string): void
 }) {
+	const app = useMaybeApp()
+	const preferences = useValue(
+		'app preferences',
+		() => globalEditor.get()?.user.getUserPreferences() ?? app?.tlUser.userPreferences.get(),
+		[app]
+	)
+	const locale = preferences?.locale ?? 'en'
+	const colorScheme = useValue(
+		'app color scheme',
+		() => {
+			const editor = globalEditor.get()
+			return editor
+				? editor.user.getIsDarkMode()
+					? 'dark'
+					: 'light'
+				: app?.tlUser.userPreferences.get().colorScheme
+		},
+		[app]
+	)
+	const hasPreferences = !!preferences
 	const theme = useValue('theme', () => getLocalSessionState().theme, [])
 	useUITheme()
+
+	useEffect(() => {
+		onLocaleChange(locale)
+	}, [locale, onLocaleChange])
+
+	useEffect(() => {
+		if (!hasPreferences) return
+		const query = window.matchMedia('(prefers-color-scheme: dark)')
+		const syncTheme = () => {
+			const nextTheme =
+				colorScheme === 'dark' || (colorScheme !== 'light' && query.matches) ? 'dark' : 'light'
+			if (getLocalSessionState().theme !== nextTheme) {
+				updateLocalSessionState(() => ({ theme: nextTheme }))
+			}
+		}
+		syncTheme()
+		query.addEventListener('change', syncTheme)
+		return () => query.removeEventListener('change', syncTheme)
+	}, [colorScheme, hasPreferences])
 
 	useEffect(() => {
 		onThemeChange(theme)

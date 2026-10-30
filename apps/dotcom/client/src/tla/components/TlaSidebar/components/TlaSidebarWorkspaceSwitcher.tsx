@@ -15,9 +15,11 @@ import {
 import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
+import { useWorkspaceName } from '../../../hooks/useWorkspaceName'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { CreateWorkspaceDialog } from '../../dialogs/CreateWorkspaceDialog'
+import { WorkspaceSettingsDialog } from '../../dialogs/WorkspaceSettingsDialog'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
@@ -25,20 +27,22 @@ import styles from '../sidebar.module.css'
 const messages = defineMessages({
 	myWorkspace: { defaultMessage: 'My workspace' },
 	createWorkspace: { defaultMessage: 'New workspace' },
+	manageWorkspace: { defaultMessage: 'Manage workspace' },
 })
 
-/**
- * The fixed top region of the sidebar: a dropdown for switching between the
- * home workspace and the user's other workspaces, followed by action rows for
- * the active workspace. Selecting a workspace opens the file the user most
- * recently had open in it (or its top file if they've visited none), which makes
- * it active (the active workspace is derived from the open file).
- */
-export function TlaSidebarWorkspaceSwitcher() {
+export function TlaSidebarWorkspaceSwitcher({
+	className,
+	destination = 'board',
+}: {
+	className?: string
+	destination?: 'board' | 'workspace'
+} = {}) {
 	const msg = useTranslation()
 	const app = useApp()
 	const homeWorkspaceId = app.getHomeWorkspaceId()
 	const activeWorkspaceId = useActiveWorkspaceId()
+	const displayName = useWorkspaceName(activeWorkspaceId)
+	const homeDisplayName = useWorkspaceName(homeWorkspaceId)
 	const isHome = activeWorkspaceId === homeWorkspaceId
 	const myWorkspaceLbl = msg(messages.myWorkspace)
 
@@ -82,12 +86,13 @@ export function TlaSidebarWorkspaceSwitcher() {
 			[editor]
 		)
 	)
-	const switchToWorkspace = useSwitchToWorkspace()
-	const handleCreateWorkspace = useCreateWorkspaceDialog()
+	const switchToWorkspace = useSwitchToWorkspace(destination)
+	const handleCreateWorkspace = useCreateWorkspaceDialog(destination)
+	const { addDialog } = useDialogs()
 	const container = useContainer()
 
 	return (
-		<div className={styles.sidebarSection}>
+		<div className={classNames(styles.sidebarSection, className)}>
 			<div className={styles.sidebarWorkspaceSwitcherRoot}>
 				<_DropdownMenu.Root open={isOpen} onOpenChange={onOpenChange}>
 					<_DropdownMenu.Trigger asChild>
@@ -103,17 +108,24 @@ export function TlaSidebarWorkspaceSwitcher() {
 								className={classNames(styles.sidebarWorkspaceSwitcherLabel, 'notranslate')}
 								data-testid="tla-active-workspace-name"
 							>
-								{activeWorkspaceName ?? myWorkspaceLbl}
+								{destination === 'workspace'
+									? displayName
+									: (activeWorkspaceName ?? myWorkspaceLbl)}
 							</span>
 							<TlaIcon icon="chevron-up-down" className={styles.sidebarWorkspaceSwitcherChevrons} />
 						</button>
 					</_DropdownMenu.Trigger>
 					<_DropdownMenu.Portal container={container}>
 						<_DropdownMenu.Content
-							className={classNames('tlui-menu', styles.sidebarWorkspaceSwitcherMenu)}
+							className={classNames(
+								'tlui-menu',
+								styles.sidebarWorkspaceSwitcherMenu,
+								destination === 'workspace' && styles.workspaceSwitcherPopover
+							)}
 							side="bottom"
 							align="start"
 							{...TLA_MENU_POSITION}
+							sideOffset={destination === 'workspace' ? 11 : TLA_MENU_POSITION.sideOffset}
 							// When the switcher closes because another menu is opening (e.g. a file's
 							// "…" menu), don't restore focus to our trigger — that focus shift would
 							// dismiss the just-opened menu, making it flash. A plain Escape/outside
@@ -122,39 +134,86 @@ export function TlaSidebarWorkspaceSwitcher() {
 								if (editor?.menus.hasAnyOpenMenus()) e.preventDefault()
 							}}
 						>
-							<WorkspaceSwitcherItem
-								isActive={isHome}
-								onSelect={() => switchToWorkspace(homeWorkspaceId)}
-								testId="tla-workspace-switcher-home"
+							<div
+								className={destination === 'workspace' ? styles.userSettingsPopoverBody : undefined}
 							>
-								{homeWorkspaceName ?? myWorkspaceLbl}
-							</WorkspaceSwitcherItem>
-							{workspaces.map((g) => (
 								<WorkspaceSwitcherItem
-									key={`workspace-${g.group.id}`}
-									isActive={g.group.id === activeWorkspaceId}
-									onSelect={() => switchToWorkspace(g.group.id)}
+									isActive={isHome}
+									onSelect={() => switchToWorkspace(homeWorkspaceId)}
+									testId="tla-workspace-switcher-home"
 								>
-									{g.group.name}
+									{destination === 'workspace'
+										? homeDisplayName
+										: (homeWorkspaceName ?? myWorkspaceLbl)}
 								</WorkspaceSwitcherItem>
-							))}
-							<_DropdownMenu.Separator className={styles.sidebarWorkspaceSwitcherSeparator} />
-							<_DropdownMenu.Item
-								className={classNames(
-									styles.sidebarWorkspaceSwitcherItem,
-									styles.sidebarWorkspaceSwitcherItemCreate,
-									'tla-text_ui__regular'
+								{workspaces.map((g) => (
+									<WorkspaceSwitcherItem
+										key={`workspace-${g.group.id}`}
+										isActive={g.group.id === activeWorkspaceId}
+										onSelect={() => switchToWorkspace(g.group.id)}
+									>
+										{g.group.name}
+									</WorkspaceSwitcherItem>
+								))}
+								<_DropdownMenu.Separator className={styles.sidebarWorkspaceSwitcherSeparator} />
+								{destination === 'workspace' && (
+									<_DropdownMenu.Item
+										className={classNames(
+											styles.sidebarWorkspaceSwitcherItem,
+											'tla-text_ui__regular'
+										)}
+										onSelect={() =>
+											addDialog({
+												component: ({ onClose }) => (
+													<WorkspaceSettingsDialog
+														workspaceId={activeWorkspaceId}
+														onClose={onClose}
+														layout="sections"
+													/>
+												),
+											})
+										}
+									>
+										<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
+											<TlaIcon icon="settings" />
+											<span className={styles.sidebarTruncatedText}>
+												{msg(messages.manageWorkspace)}
+											</span>
+										</span>
+									</_DropdownMenu.Item>
 								)}
-								onSelect={handleCreateWorkspace}
-								data-testid="tla-create-workspace-menu-item"
-							>
-								<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
-									<TlaIcon icon="plus" />
-									<span className={styles.sidebarTruncatedText}>
-										{msg(messages.createWorkspace)}
+								<_DropdownMenu.Item
+									className={classNames(
+										styles.sidebarWorkspaceSwitcherItem,
+										styles.sidebarWorkspaceSwitcherItemCreate,
+										'tla-text_ui__regular'
+									)}
+									onSelect={handleCreateWorkspace}
+									data-testid="tla-create-workspace-menu-item"
+								>
+									<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
+										<TlaIcon icon="plus" />
+										<span className={styles.sidebarTruncatedText}>
+											{msg(messages.createWorkspace)}
+										</span>
 									</span>
-								</span>
-							</_DropdownMenu.Item>
+								</_DropdownMenu.Item>
+							</div>
+							{destination === 'workspace' && (
+								<svg
+									width={14}
+									height={7}
+									viewBox="0 0 14 7"
+									className={classNames(
+										styles.userSettingsPopoverArrow,
+										styles.workspaceSwitcherArrow
+									)}
+									aria-hidden="true"
+								>
+									<path d="M0 -1 V0 L7 7 L14 0 V-1 Z" />
+									<path d="M0 0 L7 7 L14 0" fill="none" />
+								</svg>
+							)}
 						</_DropdownMenu.Content>
 					</_DropdownMenu.Portal>
 				</_DropdownMenu.Root>
@@ -194,12 +253,16 @@ function WorkspaceSwitcherItem({
 	)
 }
 
-function useSwitchToWorkspace() {
+function useSwitchToWorkspace(destination: 'board' | 'workspace' = 'board') {
 	const app = useApp()
 	const navigate = useNavigate()
 
 	return useCallback(
 		async (workspaceId: string) => {
+			if (destination === 'workspace') {
+				navigate(routes.tlaWorkspace(workspaceId))
+				return
+			}
 			// Open the file the user last had open here, not just the top of the pinned-first list.
 			const mostRecentFileId = app.getMostRecentFileId(workspaceId)
 			if (mostRecentFileId) {
@@ -233,15 +296,15 @@ function useSwitchToWorkspace() {
 				navigate(routes.tlaFile(res.value.fileId))
 			}
 		},
-		[app, navigate]
+		[app, navigate, destination]
 	)
 }
 
-function useCreateWorkspaceDialog() {
+function useCreateWorkspaceDialog(destination: 'board' | 'workspace' = 'board') {
 	const app = useApp()
 	const navigate = useNavigate()
 	const { addDialog } = useDialogs()
-	const switchToWorkspace = useSwitchToWorkspace()
+	const switchToWorkspace = useSwitchToWorkspace(destination)
 	const trackEvent = useTldrawAppUiEvents()
 
 	return useCallback(() => {
@@ -262,16 +325,18 @@ function useCreateWorkspaceDialog() {
 						// otherwise create a blank file before the welcome file lands).
 						const res = await app.createWorkspaceWelcomeFile(id)
 						if (res.ok) {
-							navigate(routes.tlaFile(res.value.fileId))
+							navigate(
+								destination === 'workspace'
+									? routes.tlaWorkspace(id)
+									: routes.tlaFile(res.value.fileId)
+							)
 						} else {
-							// Seeding failed; still land the user in the new workspace rather than
-							// leaving them stranded. switchToWorkspace creates a blank file for the
-							// (now empty) workspace and opens it.
+							// A failed welcome file must not strand the user outside their new workspace.
 							await switchToWorkspace(id)
 						}
 					}}
 				/>
 			),
 		})
-	}, [app, addDialog, navigate, switchToWorkspace, trackEvent])
+	}, [app, addDialog, navigate, switchToWorkspace, trackEvent, destination])
 }

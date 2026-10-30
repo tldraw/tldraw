@@ -351,6 +351,24 @@
 
 /* User settings menu */
 
+.userSettingsPopover {
+	overflow: visible;
+	max-height: none;
+}
+.userSettingsPopoverBody {
+	max-height: min(70vh, var(--radix-dropdown-menu-content-available-height));
+	overflow-y: auto;
+	border-radius: inherit;
+}
+.userSettingsPopoverArrow {
+	fill: var(--tl-color-panel);
+	overflow: visible;
+}
+.userSettingsPopoverArrow path:last-child {
+	stroke: var(--tl-color-divider);
+	stroke-width: 1;
+}
+
 .sidebarUserSettingsTrigger {
 	background: none;
 	border: none;
@@ -539,6 +557,27 @@
 	padding: 2px 0px;
 }
 
+.workspaceSwitcherPopover {
+	overflow: visible;
+	max-height: none;
+	padding: 0;
+}
+.workspaceSwitcherPopover > div {
+	padding-block: 2px;
+}
+.workspaceSwitcherArrow {
+	position: absolute;
+	left: calc(24px - 7px);
+	pointer-events: none;
+}
+.workspaceSwitcherPopover[data-side='bottom'] .workspaceSwitcherArrow {
+	top: -7px;
+	transform: rotate(180deg);
+}
+.workspaceSwitcherPopover[data-side='top'] .workspaceSwitcherArrow {
+	bottom: -7px;
+}
+
 /* Like the select dropdown, popper writes `min-width: max-content` inline on the wrapper, so it
    hugs its content; widen it to the trigger width here. !important is unavoidable: an inline
    style outranks every selector, so it is the only way to override it. (A DropdownMenu is always
@@ -565,20 +604,20 @@
 	z-index: 1;
 }
 
-.sidebarWorkspaceSwitcherMenu > * {
+.sidebarWorkspaceSwitcherMenu > div > * {
 	margin-top: -4px;
 	margin-bottom: -4px;
 }
 
-.sidebarWorkspaceSwitcherMenu > *:hover {
+.sidebarWorkspaceSwitcherMenu > div > *:hover {
 	z-index: 2;
 }
 
-.sidebarWorkspaceSwitcherMenu > *:nth-of-type(1) {
+.sidebarWorkspaceSwitcherMenu > div > *:nth-of-type(1) {
 	margin-top: 0px;
 }
 
-.sidebarWorkspaceSwitcherMenu > *:nth-last-of-type(1) {
+.sidebarWorkspaceSwitcherMenu > div > *:nth-last-of-type(1) {
 	margin-bottom: 0px;
 }
 
@@ -623,7 +662,7 @@
 
 /* Override the menu's negative item margins so the separator sits flush
    between the workspace list and the "New workspace" row. */
-.sidebarWorkspaceSwitcherMenu > .sidebarWorkspaceSwitcherSeparator {
+.sidebarWorkspaceSwitcherMenu .sidebarWorkspaceSwitcherSeparator {
 	height: 1px;
 	margin: 6px 0px;
 	background-color: var(--tl-color-divider, rgba(232, 232, 232, 1));

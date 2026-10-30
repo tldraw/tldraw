@@ -191,6 +191,12 @@
       "value": "Create file"
     }
   ],
+  "1d2591253e": [
+    {
+      "type": 0,
+      "value": "Workspace settings"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -445,12 +451,6 @@
       "value": "Pin file"
     }
   ],
-  "48b90a52b9": [
-    {
-      "type": 0,
-      "value": "No boards here yet."
-    }
-  ],
   "49ee308734": [
     {
       "type": 0,
@@ -561,6 +561,12 @@
     {
       "type": 0,
       "value": "Share"
+    }
+  ],
+  "5ac173888a": [
+    {
+      "type": 0,
+      "value": "Leave some feedback"
     }
   ],
   "5bec508475": [
@@ -752,6 +758,12 @@
       "value": "Please reload the page"
     }
   ],
+  "74e92a4dc1": [
+    {
+      "type": 0,
+      "value": "Regenerate link"
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -872,40 +884,6 @@
       "value": "New workspace"
     }
   ],
-  "815e116a2e": [
-    {
-      "type": 0,
-      "value": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "chat with us on Discord"
-        }
-      ],
-      "type": 8,
-      "value": "discord"
-    },
-    {
-      "type": 0,
-      "value": " or "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "submit an issue on GitHub"
-        }
-      ],
-      "type": 8,
-      "value": "github"
-    },
-    {
-      "type": 0,
-      "value": "."
-    }
-  ],
   "81666c6e4a": [
     {
       "type": 0,
@@ -944,6 +922,12 @@
       "value": "Please refresh the page to get the latest version of tldraw."
     }
   ],
+  "85f71c89ae": [
+    {
+      "type": 0,
+      "value": "Read the docs"
+    }
+  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -966,12 +950,6 @@
     {
       "type": 0,
       "value": "This invite link has expired"
-    }
-  ],
-  "8a7fb7458e": [
-    {
-      "type": 0,
-      "value": "Archived boards will appear here."
     }
   ],
   "8c2d3d730c": [
@@ -1028,6 +1006,22 @@
     {
       "type": 0,
       "value": "? This action cannot be undone."
+    }
+  ],
+  "906e5ea01a": [
+    {
+      "type": 0,
+      "value": "Shared by "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "92e36cb6cf": [
+    {
+      "type": 0,
+      "value": "Invite link"
     }
   ],
   "95aacd4d4a": [
@@ -1228,10 +1222,22 @@
       "value": "Leave"
     }
   ],
+  "a588b1abc5": [
+    {
+      "type": 0,
+      "value": "Copied"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
       "value": "Anyone with the link"
+    }
+  ],
+  "a6fb260b8d": [
+    {
+      "type": 0,
+      "value": "Your feedback"
     }
   ],
   "a768caa988": [
@@ -1268,6 +1274,12 @@
     {
       "type": 0,
       "value": "File limit reached"
+    }
+  ],
+  "acf84eea1e": [
+    {
+      "type": 0,
+      "value": "Link copied"
     }
   ],
   "af3dc88931": [
@@ -1334,6 +1346,16 @@
       "value": "Grid view"
     }
   ],
+  "b4795ec590": [
+    {
+      "type": 1,
+      "value": "modifier"
+    },
+    {
+      "type": 0,
+      "value": " K"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1364,10 +1386,22 @@
       "value": "Copy link"
     }
   ],
+  "b7ea061b51": [
+    {
+      "type": 0,
+      "value": "Build with the SDK"
+    }
+  ],
   "ba0318cb81": [
     {
       "type": 0,
       "value": "Sign in to share"
+    }
+  ],
+  "bb8a0099e2": [
+    {
+      "type": 0,
+      "value": "Search your boards…"
     }
   ],
   "bbaaf8b6bf": [
@@ -1426,6 +1460,48 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "bea4c2c8eb": [
+    {
+      "type": 0,
+      "value": "Feedback"
+    }
+  ],
+  "c042e3b259": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " board"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " boards"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " found"
     }
   ],
   "c17466812d": [
@@ -1522,6 +1598,18 @@
       "value": "Dismiss"
     }
   ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Save"
+    }
+  ],
+  "cae8d14edd": [
+    {
+      "type": 0,
+      "value": "You"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1614,6 +1702,12 @@
       "value": "Toggle sidebar"
     }
   ],
+  "d5e92609cf": [
+    {
+      "type": 0,
+      "value": "Workspaces"
+    }
+  ],
   "d638a3344b": [
     {
       "type": 0,
@@ -1678,6 +1772,12 @@
       "value": "Go here to see the content"
     }
   ],
+  "da075431c3": [
+    {
+      "type": 0,
+      "value": "Please provide as much detail as possible."
+    }
+  ],
   "dbbebf3c03": [
     {
       "type": 0,
@@ -1688,6 +1788,12 @@
     {
       "type": 0,
       "value": "Leave workspace"
+    }
+  ],
+  "de85e4ab12": [
+    {
+      "type": 0,
+      "value": "Anyone with this link can join this workspace."
     }
   ],
   "dfdb78a4e4": [
@@ -1754,6 +1860,12 @@
     {
       "type": 0,
       "value": "Archive"
+    }
+  ],
+  "e7fdcad3aa": [
+    {
+      "type": 0,
+      "value": "Have a bug, issue, or idea for tldraw? Let us know! We’ll follow up over email if needed."
     }
   ],
   "e81c4e4f2b": [
@@ -1872,12 +1984,6 @@
       "value": "Delete"
     }
   ],
-  "f2f9a2e98d": [
-    {
-      "type": 0,
-      "value": "Workspace menu"
-    }
-  ],
   "f476ba8646": [
     {
       "children": [
@@ -1976,10 +2082,22 @@
       "value": " to use it here."
     }
   ],
+  "f92965e2c8": [
+    {
+      "type": 0,
+      "value": "Done"
+    }
+  ],
   "fa2ead697d": [
     {
       "type": 0,
       "value": "Privacy Policy"
+    }
+  ],
+  "fabfc25ef8": [
+    {
+      "type": 0,
+      "value": "Get help"
     }
   ],
   "fb15c53f22": [
