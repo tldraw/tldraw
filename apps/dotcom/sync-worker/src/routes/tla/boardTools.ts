@@ -551,12 +551,7 @@ export function getBoardSearchResults(rows: BoardSearchRow[], terms: string[]): 
 		...(hasMore && lastBoard ? { nextCursor: encodeBoardSearchCursor(lastBoard, terms) } : {}),
 		boards: boards.map((row) => ({
 			boardId: row.id,
-			// Reported blank rather than given a stand-in title. tldraw.com shows an unnamed board by
-			// its creation date, formatted in the viewer's locale and timezone — which this worker has
-			// neither of — so any name invented here is one the caller cannot see on their own screen,
-			// and one no query can match, since what the column holds is ''. Trimmed so that a name of
-			// only spaces reads as the absence it is.
-			name: row.name.trim(),
+			name: getReportedBoardName(row.name),
 			// The key the results are sorted by, so a model can see the order rather than guess at it.
 			// Equal to createdAt for a board this account made, and later for one it was shared.
 			addedAt: new Date(row.arrivedAt).toISOString(),
@@ -575,10 +570,22 @@ export function getBoardSearchResults(rows: BoardSearchRow[], terms: string[]): 
 	})
 }
 
-export function getBoardInfo(snapshot: RoomSnapshot): ToolResult {
+// tldraw.com stores its creation-time default ("Wed 5:38 PM") on a board nobody named, so '' only
+// survives on boards older than that default. Those stay blank rather than get a stand-in title:
+// tldraw.com titles them in the viewer's locale and timezone, which the worker has neither of, and
+// no query could match one.
+export function getReportedBoardName(name: string | null | undefined): string {
+	return name?.trim() ?? ''
+}
+
+// `fileName` is the board's `file` row name, the one search_boards reports; null only for a board
+// with no row of its own (published, eval fixture). The snapshot's `document` record is no substitute
+// for a file board: the room copies the row's name onto it only when the row is updated, so it stays
+// empty until the board's first rename.
+export function getBoardInfo(snapshot: RoomSnapshot, fileName: string | null): ToolResult {
 	const pages = enumerateBoardPages(snapshot)
 	return toolJsonResult({
-		name: getDocumentNameFromSnapshot(snapshot),
+		name: getReportedBoardName(fileName ?? getDocumentNameFromSnapshot(snapshot)),
 		pageCount: pages.length,
 		// `id` is the stable handle: it survives page reordering, `index` does not. Either can be
 		// passed as `page` to the other tools.
@@ -1060,7 +1067,7 @@ function getSearchBoardsToolDefinition(nameMatchingEnabled: boolean) {
 	return {
 		name: SEARCH_BOARDS_TOOL_NAME,
 		title: 'Search tldraw boards',
-		description: `Find tldraw.com boards by name: the boards in this account's own workspace, the boards owned by the workspaces it belongs to, and the boards shared with it by link that it has opened. Every term in the query must appear somewhere in the board name, in any order, ignoring case. Search for the distinctive words, not a whole title: a query of more than ${BOARD_SEARCH_MAX_TERMS} words, or longer than ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters, is rejected. Omit the query to list the boards that reached you most recently. Results are ordered by addedAt — when a board joined this account's boards, which is when it was created for its own boards and when the share link was first opened for shared ones — so a board shared this morning leads the list however old it is. createdAt is when the board itself was made, and updatedAt when it last changed, by anyone: an old board can have been edited today, and a board created today may never have been touched since. Each board's source says how you reach it: owned for your own, workspace for one owned by a workspace you belong to, and shared for one somebody sent you a link to. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId that get_board_info and the other tools take. If the result carries a nextCursor there are more boards: call again with the same query and that cursor to get the next page — a cursor only continues the query that produced it. A board with no name comes back with name empty: tldraw.com titles those by their creation date, so no name query can find them — reach them by listing with no query. Matching no boards is a normal empty result, not an error.`,
+		description: `Find tldraw.com boards by name among this account's own boards, its workspaces' boards, and boards shared with it by link that it has opened. Every word of the query must appear in the board name, in any order, ignoring case; use up to ${BOARD_SEARCH_MAX_TERMS} distinctive words (at most ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters), not a whole title. Omit the query to list boards. A board created without a name is named after its creation time in its creator's locale, such as "Wed 5:38 PM", and matches on that like any other name; a few older boards have an empty name and appear only when listing. Results are newest first by addedAt: when the board was created, or for a shared board when its link was first opened. createdAt is when the board was made, and updatedAt when anyone last changed it. source is owned, workspace (a workspace you belong to) or shared (by link). Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId the other tools take. If the result has a nextCursor, call again with the same query and that cursor for the next page. No match is an empty result, not an error.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,

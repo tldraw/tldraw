@@ -364,9 +364,11 @@ function getSubprotocolToken(request: IRequest): string | null {
  * columns. Deliberately not a licence to cache it: it is safe only for a caller re-applying the gate
  * microseconds later inside one function, which is exactly where `loadBoardSnapshot` already accepts
  * one and where the render page's own read deliberately does not.
+ *
+ * `name` rides along for get_board_info, which would otherwise dial again for it.
  */
 export type ReadAccessToFile =
-	| { ok: true; file: { id: string; shared: boolean; isDeleted: boolean } }
+	| { ok: true; file: { id: string; name: string; shared: boolean; isDeleted: boolean } }
 	| { ok: false }
 
 export async function hasReadAccessToFile(
@@ -379,14 +381,14 @@ export async function hasReadAccessToFile(
 	try {
 		const file = await db
 			.selectFrom('file')
-			.select(['id', 'owningGroupId', 'shared', 'isDeleted'])
+			.select(['id', 'name', 'owningGroupId', 'shared', 'isDeleted'])
 			.where('id', '=', fileId)
 			.executeTakeFirst()
 
 		if (!file || file.isDeleted) return { ok: false }
 		const granted = {
 			ok: true,
-			file: { id: file.id, shared: file.shared, isDeleted: false },
+			file: { id: file.id, name: file.name, shared: file.shared, isDeleted: false },
 		} as const
 		if (file.owningGroupId) {
 			const role = await getRole(db, userId, file.owningGroupId)
