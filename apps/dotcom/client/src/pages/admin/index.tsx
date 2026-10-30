@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async'
 import { Navigate, NavLink, useParams } from 'react-router-dom'
 import { useTldrawCurrentUser } from '../../tla/hooks/useUser'
 import { EffectsSection } from './EffectsSection'
@@ -24,12 +25,14 @@ export function Component() {
 	if (!user?.isTldraw) {
 		return <Navigate to="/" replace />
 	}
-	if (!section || !SECTIONS.some((s) => s.id === section) || (fileId && section !== 'files')) {
+	const current = SECTIONS.find((s) => s.id === section)
+	if (!current || (fileId && section !== 'files')) {
 		return <Navigate to="/admin/users" replace />
 	}
 
 	return (
 		<div className={styles.adminLayout}>
+			<Helmet title={`Admin • ${current.label}`} />
 			<nav className={styles.adminSidebar}>
 				<div className={styles.adminSidebarTitle}>Admin</div>
 				{SECTIONS.map((s) => (
