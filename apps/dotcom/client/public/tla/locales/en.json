@@ -1,4 +1,7 @@
 {
+  "007e6bcc62": {
+    "translation": "Couldn't load updates. Try again later."
+  },
   "0095a9fa74": {
     "translation": "Export"
   },
@@ -19,6 +22,9 @@
   },
   "05b2656486": {
     "translation": "<name>{author}</name> mentioned you"
+  },
+  "05e442d0a4": {
+    "translation": "New features and improvements in tldraw."
   },
   "05f43078e9": {
     "translation": "You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones."
@@ -154,6 +160,9 @@
   },
   "335defdafe": {
     "translation": "Please try refreshing the page."
+  },
+  "33871b6190": {
+    "translation": "What's new"
   },
   "344a7f427f": {
     "translation": "Editor"
@@ -356,6 +365,9 @@
   "71a29b007b": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know!"
   },
+  "7276dce240": {
+    "translation": "Show this next time"
+  },
   "73ab799383": {
     "translation": "This version of tldraw is no longer supported."
   },
@@ -458,6 +470,9 @@
   "8743196af6": {
     "translation": "Duplicate this version"
   },
+  "87c81df431": {
+    "translation": "New updates"
+  },
   "87fdb09de6": {
     "translation": "You are already a member of this workspace"
   },
@@ -529,6 +544,9 @@
   },
   "9e93c98d88": {
     "translation": "Opt out"
+  },
+  "a051da790b": {
+    "translation": "Open all updates in a new tab"
   },
   "a078644c42": {
     "translation": "You have been invited to join <strong>{workspaceName}</strong>."
@@ -641,6 +659,9 @@
   },
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
+  },
+  "bee0a8cf4d": {
+    "translation": "Nothing here yet."
   },
   "bff7173c49": {
     "translation": "{count, plural, one {# comment thread} other {# comment threads}} will be removed."
@@ -788,6 +809,9 @@
   },
   "ef7de3f485": {
     "translation": "selected"
+  },
+  "f03ab16cd5": {
+    "translation": "Draft"
   },
   "f09b16bc5f": {
     "translation": "We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw."

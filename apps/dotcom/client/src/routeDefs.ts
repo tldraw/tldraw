@@ -21,6 +21,7 @@ export const ROUTES = {
 	tlaInvite: `/invite/:token`,
 	tlaSsoCallback: `/sso-callback`,
 	tlaOAuthConsent: `/oauth-consent`,
+	tlaWhatsNew: `/whats-new`,
 	// Legacy routes
 	tlaLegacyRoom: '/r/:roomId',
 	tlaLegacyRoomHistory: '/r/:boardId/history',

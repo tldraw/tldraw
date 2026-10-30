@@ -67,6 +67,7 @@ export interface Environment {
 	READONLY_SLUG_TO_SLUG: KVNamespace
 
 	FEATURE_FLAGS: KVNamespace
+	WHATS_NEW: KVNamespace
 
 	CF_VERSION_METADATA: WorkerVersionMetadata
 
