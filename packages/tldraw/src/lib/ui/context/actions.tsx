@@ -590,7 +590,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'open-kbd-shortcuts',
 				label: messages.actionOpenKbdShortcuts.id,
 				kbd: 'cmd+alt+/,ctrl+alt+/',
-				readonlyOk: false,
+				readonlyOk: true,
 				commandPalette: false,
 				onSelect(source) {
 					const { KeyboardShortcutsDialog } = components
