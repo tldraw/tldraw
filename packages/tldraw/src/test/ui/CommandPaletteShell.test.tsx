@@ -754,7 +754,7 @@ describe('CommandPaletteShell', () => {
 		expect(document.activeElement).toBe(editor.getContainer())
 	})
 
-	it('does not record items run from a collapsed submenu', async () => {
+	it('does not record items run from an on-demand submenu', async () => {
 		const onSelect = vi.fn()
 		const { rendered } = await renderShell(
 			<CommandPaletteOnDemand>

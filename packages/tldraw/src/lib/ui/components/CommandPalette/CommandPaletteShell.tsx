@@ -293,7 +293,7 @@ export function CommandPaletteShell({
 			try {
 				if (entry.prompt) entry.prompt.onSubmit(store.query.get().trim())
 				else entry.onSelect('command-palette')
-				if (!entry.submenu?.collapsed) addCommandPaletteRecent(entry.id)
+				if (!entry.submenu?.onDemand) addCommandPaletteRecent(entry.id)
 			} finally {
 				restoreFocus()
 			}

@@ -53,7 +53,7 @@ interface PathContextValue {
 	section: string | null
 	heading: string | null
 	pinned: boolean
-	collapseSubmenu: boolean
+	onDemandSubmenu: boolean
 }
 
 const PathContext = createContext<PathContextValue>({
@@ -62,7 +62,7 @@ const PathContext = createContext<PathContextValue>({
 	section: null,
 	heading: null,
 	pinned: false,
-	collapseSubmenu: false,
+	onDemandSubmenu: false,
 })
 
 /** @internal */
@@ -77,7 +77,7 @@ export function CommandPalettePathProvider({
 	sectionId,
 	heading,
 	pinned,
-	collapseSubmenu,
+	onDemandSubmenu,
 	children,
 }: {
 	/**
@@ -93,8 +93,8 @@ export function CommandPalettePathProvider({
 	heading?: string
 	/** Items inside are listed first, above recents, while browsing. */
 	pinned?: boolean
-	/** The next submenu inside is always collapsed into one row. */
-	collapseSubmenu?: boolean
+	/** The next submenu inside opens on demand: always one row, its items hidden outside it. */
+	onDemandSubmenu?: boolean
 	/** Items and nested providers this level applies to. */
 	children: ReactNode
 }) {
@@ -107,15 +107,15 @@ export function CommandPalettePathProvider({
 					? {
 							key: [...parent.path, submenuId].join('/'),
 							label,
-							collapsed: parent.collapseSubmenu,
+							onDemand: parent.onDemandSubmenu,
 						}
 					: parent.submenu,
 			section: sectionId ? `${parent.section ?? ''}/${sectionId}` : parent.section,
 			heading: parent.heading ?? heading ?? null,
 			pinned: parent.pinned || !!pinned,
-			collapseSubmenu: submenuId && label ? false : parent.collapseSubmenu || !!collapseSubmenu,
+			onDemandSubmenu: submenuId && label ? false : parent.onDemandSubmenu || !!onDemandSubmenu,
 		}),
-		[parent, label, submenuId, sectionId, heading, pinned, collapseSubmenu]
+		[parent, label, submenuId, sectionId, heading, pinned, onDemandSubmenu]
 	)
 	return <PathContext.Provider value={value}>{children}</PathContext.Provider>
 }
@@ -150,5 +150,5 @@ export function CommandPalettePinned({ children }: TLUiCommandPalettePinnedProps
  * @public @react
  */
 export function CommandPaletteOnDemand({ children }: TLUiCommandPaletteOnDemandProps) {
-	return <CommandPalettePathProvider collapseSubmenu>{children}</CommandPalettePathProvider>
+	return <CommandPalettePathProvider onDemandSubmenu>{children}</CommandPalettePathProvider>
 }
