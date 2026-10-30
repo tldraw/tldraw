@@ -52,13 +52,6 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'Shows the collections UI, which is still being built. The list starts empty, so nobody sees it until they are added. A change reaches a tab when it next reloads',
 		},
-		version_history: {
-			type: 'allowlist',
-			users: [],
-			allowEveryone: false,
-			description:
-				'User-facing version history for editors of a file. Anyone with a verified @tldraw.com email sees it whatever the list says. A change reaches a tab when it next reloads',
-		},
 	}
 }
 

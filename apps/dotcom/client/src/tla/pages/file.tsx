@@ -51,7 +51,7 @@ export function Component({ error }: { error?: unknown }) {
 	}, [error, userId])
 
 	const showHistory = history.inHistory && !!historyEnabled
-	// Without the flag, history is the standalone pages, as before.
+	// Signed-out visitors get the standalone history pages, as before.
 	if (history.inHistory && historyEnabled === false) {
 		return (
 			<Suspense fallback={null}>
