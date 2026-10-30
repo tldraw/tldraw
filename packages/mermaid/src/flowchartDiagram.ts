@@ -1,9 +1,4 @@
-import type {
-	FlowClass,
-	FlowEdge,
-	FlowSubGraph,
-	FlowVertex,
-} from 'mermaid/dist/diagrams/flowchart/types.js'
+import type { FlowchartModel } from 'pele'
 import { TLArrowShapeArrowheadStyle } from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
@@ -16,21 +11,17 @@ import {
 	parseNodeInlineColor,
 	toNodeColorProps,
 } from './colors'
+import type { MeasureLabelSize } from './mermaidNodeCreateShape'
+import { parsePeleLayout } from './peleDiagram'
 import {
-	buildNodeCentersFromSvg,
 	claimEdge,
+	getLayoutBox,
+	getPositionAlongRoute,
+	getRouteEndAnchors,
 	getSelfLoopEdgeLayout,
-	parseAllEdgePointsFromSvg,
-	parseClustersFromSvg,
-	parseDomId,
-	parseEdgeLabelsFromSvg,
 	type ParsedDiagramLayout,
-	parseNodesFromSvg,
-	scaleLayout,
-	stripDiagramIdPrefix,
-	type Vec2,
 } from './svgParsing'
-import { dropDanglingEdges, getArrowBend, LAYOUT_SCALE, orderTopDown } from './utils'
+import { dropDanglingEdges, getRouteArcBend, orderTopDown } from './utils'
 
 function mapEdgeTypeToArrowhead(type: string | undefined): TLArrowShapeArrowheadStyle {
 	if (type?.includes('circle')) return 'dot'
@@ -39,9 +30,27 @@ function mapEdgeTypeToArrowhead(type: string | undefined): TLArrowShapeArrowhead
 	return 'arrow'
 }
 
-const FRAME_TOP_PAD = 14
-const NODE_ID = /^flowchart-(.+)-\d+$/
+interface FlowVertex {
+	type?: string
+	text?: string
+	styles: string[]
+	classes: string[]
+}
+interface FlowEdge {
+	start: string
+	end: string
+	type?: string
+	text: string
+	stroke?: string
+	style?: string[]
+}
+interface FlowSubGraph {
+	id: string
+	nodes: string[]
+	title: string
+}
 
+const FRAME_TOP_PAD = 14
 function buildHierarchy(subGraphs: FlowSubGraph[]) {
 	const subGraphIds = new Set(subGraphs.map((subGraph) => subGraph.id))
 	const nodeToSubGraph = new Map<string, string>()
@@ -58,70 +67,60 @@ function buildHierarchy(subGraphs: FlowSubGraph[]) {
 	return { nodeToSubGraph, subGraphParent }
 }
 
+/** The most a diamond or circle grows to fit its label, so one long label can't swamp the chart. */
+const MAX_SHAPE_GROWTH = 4
+
 /**
- * Split mermaid's edge id, `L_<start>_<end>_<n>`, back into the two ids it joins. Node ids can
- * contain underscores themselves, so the split is ambiguous: `L_a_b_c_0` joins `a` to `b_c` in a
- * diagram with those, and `a_b` to `c` in one with those. A diagram with all four settles it the
- * only way left, by which pair the path was actually drawn between. `centers` holds everything an
- * edge can end on, subgraphs as well as nodes, since mermaid links those too.
+ * How much a diamond or circle has to grow, around its centre, for its label to fit inside its
+ * outline. tldraw sets the label in the shape's bounding box, so a label sized for a box spills
+ * past a diamond's slanted sides or a circle's curve. Other shapes are already the label's size.
  */
-function parseEdgeId(dataId: string, points: Vec2[], centers: Map<string, Vec2>) {
-	const match = dataId.match(/(?:^|-)L_(.+)_\d+$/)
-	if (!match) return null
-
-	const joined = match[1]
-	const last = points[points.length - 1]
-	let best: { start: string; end: string } | undefined
-	let bestDistance = Infinity
-	for (let at = joined.indexOf('_'); at > 0; at = joined.indexOf('_', at + 1)) {
-		const start = joined.slice(0, at)
-		const end = joined.slice(at + 1)
-		const startCenter = centers.get(start)
-		const endCenter = centers.get(end)
-		if (!startCenter || !endCenter) continue
-
-		const distance = last
-			? Math.hypot(points[0].x - startCenter.x, points[0].y - startCenter.y) +
-				Math.hypot(last.x - endCenter.x, last.y - endCenter.y)
-			: 0
-		if (distance < bestDistance) {
-			bestDistance = distance
-			best = { start, end }
-		}
+function getGrowthToFitLabel(
+	type: string | undefined,
+	w: number,
+	h: number,
+	label: { w: number; h: number }
+) {
+	let grow = 1
+	if (type === 'diamond') {
+		// A point is inside the diamond when |x| / (w/2) + |y| / (h/2) <= 1; the label's corners must be.
+		grow = label.w / w + label.h / h
+	} else if (type === 'circle' || type === 'doublecircle') {
+		grow = Math.hypot(label.w, label.h) / w
 	}
-	if (best) return best
-
-	// An id naming no pair the diagram drew, such as an edge to a node mermaid left out. Splitting at
-	// the last underscore is right whenever the end id has none, and leaves the edge to be matched by
-	// proximity when it isn't.
-	const at = joined.lastIndexOf('_')
-	return at > 0 ? { start: joined.slice(0, at), end: joined.slice(at + 1) } : null
+	return Math.min(Math.max(grow, 1), MAX_SHAPE_GROWTH)
 }
 
-/** Parse flowchart-specific SVG layout data for use by {@link flowchartToBlueprint}. */
-export function parseFlowchartLayout(root: Element): ParsedDiagramLayout {
-	const nodes = parseNodesFromSvg(root, '.node', (domId) => parseDomId(domId, NODE_ID))
-	const clusters = parseClustersFromSvg(root, '.cluster', stripDiagramIdPrefix)
-	const centers = buildNodeCentersFromSvg(nodes, clusters)
-	const edges = parseAllEdgePointsFromSvg(root, (dataId, points) =>
-		parseEdgeId(dataId, points, centers)
-	)
-	const layout = { nodes, clusters, edges, edgeLabels: parseEdgeLabelsFromSvg(root) }
-	scaleLayout(layout, LAYOUT_SCALE)
-	return layout
+/** Parse pele's flowchart SVG for use by {@link flowchartToBlueprint}. */
+export function parseFlowchartLayout(root: Element, model: FlowchartModel): ParsedDiagramLayout {
+	const edgesById = new Map(model.edges.map((edge) => [edge.id, edge]))
+	return parsePeleLayout(root, {
+		edgeEnds(id) {
+			const edge = edgesById.get(id)
+			return edge && { start: edge.start, end: edge.end }
+		},
+	})
 }
 
-/** Convert a parsed Mermaid flowchart into a tldraw blueprint of nodes and edges. */
+/** Convert a parsed flowchart into a tldraw blueprint of nodes and edges. */
 export function flowchartToBlueprint(
 	layout: ParsedDiagramLayout,
 	vertices: Map<string, FlowVertex>,
 	edges: FlowEdge[],
 	subGraphs?: FlowSubGraph[],
-	classDefs?: Map<string, FlowClass>
+	classDefs?: Map<string, { styles: string[] }>,
+	{
+		defaultEdgeStyle,
+		measureLabel,
+	}: {
+		/** `linkStyle default`, which pele keeps apart from the edges it applies to. */
+		defaultEdgeStyle?: string[]
+		/** Measures a label in tldraw's font, to grow diamonds and circles until theirs fits. */
+		measureLabel?: MeasureLabelSize
+	} = {}
 ): DiagramMermaidBlueprint {
 	const nodeColorMap = buildClassDefColorMap(classDefs ?? new Map(), vertices)
 	const { nodes: svgNodes, clusters: svgClusters, edges: svgEdges } = layout
-	const nodeCenters = buildNodeCentersFromSvg(svgNodes, svgClusters)
 
 	const allSubGraphs = subGraphs || []
 	const { nodeToSubGraph, subGraphParent } = buildHierarchy(allSubGraphs)
@@ -165,6 +164,12 @@ export function flowchartToBlueprint(
 		if (vertex.type === 'circle' || vertex.type === 'doublecircle') {
 			w = h = Math.max(w, h)
 		}
+		const label = svgNode.lines?.join('\n') ?? (vertex.text || undefined)
+		if (label && measureLabel) {
+			const grow = getGrowthToFitLabel(vertex.type, w, h, measureLabel(label, 'm'))
+			w *= grow
+			h *= grow
+		}
 
 		nodes.push({
 			id,
@@ -174,7 +179,7 @@ export function flowchartToBlueprint(
 			w,
 			h,
 			parentId: nodeToSubGraph.get(id),
-			label: vertex.text || undefined,
+			label,
 			...toNodeColorProps(nodeColorMap.get(id) ?? parseNodeInlineColor(vertex.styles)),
 			align: 'middle',
 			verticalAlign: 'middle',
@@ -182,28 +187,50 @@ export function flowchartToBlueprint(
 		})
 	}
 
-	// Edges: match DB edges to the paths mermaid drew for them, and take each one's bend
+	// Edges: match model edges to the paths the layout drew for them, and take each one's route
+	const nodeById = new Map(nodes.map((node) => [node.id, node]))
 	const claimed = new Set<number>()
 	for (const edge of edges) {
+		const startBox = getLayoutBox(layout, edge.start)
+		const endBox = getLayoutBox(layout, edge.end)
 		const svgEdge = claimEdge(svgEdges, claimed, {
 			startId: edge.start,
 			endId: edge.end,
-			startCenter: nodeCenters.get(edge.start),
-			endCenter: nodeCenters.get(edge.end),
+			startBox,
+			endBox,
 		})
 		const svgNode = svgNodes.get(edge.start)
 		const selfLoop =
 			edge.start === edge.end && svgEdge && svgNode
 				? getSelfLoopEdgeLayout(svgEdge, svgNode, layout.edgeLabels)
 				: undefined
-		const cssOverrides = parseCssStyles(edge.style)
+		const label = svgEdge && layout.edgeLabels.get(svgEdge.id)
+		// Where the layout drew the label along the route; a loop places its label with its bend.
+		const labelPosition =
+			label && svgEdge && !selfLoop
+				? getPositionAlongRoute(svgEdge.points, {
+						x: label.x + label.w / 2,
+						y: label.y + label.h / 2,
+					})
+				: undefined
+		const cssOverrides = parseCssStyles(edge.style ?? defaultEdgeStyle)
 		const arrowheadEnd = mapEdgeTypeToArrowhead(edge.type)
 
+		const anchors =
+			svgEdge && !selfLoop && startBox && endBox
+				? getRouteEndAnchors(svgEdge, startBox, endBox)
+				: undefined
+		const bend =
+			svgEdge && anchors
+				? getRouteArcBend(svgEdge.points, nodeById.get(edge.start), nodeById.get(edge.end), anchors)
+				: 0
 		blueprintEdges.push({
 			startNodeId: edge.start,
 			endNodeId: edge.end,
-			label: edge.text,
-			bend: svgEdge ? getArrowBend(svgEdge) : 0,
+			label: label?.lines?.join('\n') ?? edge.text,
+			bend,
+			...anchors,
+			labelPosition,
 			...selfLoop,
 			arrowheadEnd,
 			arrowheadStart: edge.type?.includes('double_arrow') ? arrowheadEnd : undefined,
