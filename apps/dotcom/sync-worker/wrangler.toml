@@ -147,6 +147,8 @@ MCP_SCREENSHOT_TOKEN_SECRET = "local-dev-thumbnail-render-secret"
 # to the client dev server, which drives Playwright. Deployed environments leave this unset and use
 # the BROWSER binding.
 LOCAL_SCREENSHOT_SERVICE_URL = "http://localhost:3000/__screenshot"
+# The local screenshot service injects addScriptTag like Browser Run, so dev exercises push too.
+THUMBNAIL_RENDER_PUSH = "true"
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
 
@@ -166,6 +168,9 @@ MCP_SEARCH_NAME_MATCHING_ENABLED = "true"
 # types.ts). Previews are too short-lived and too lightly used to produce the render_page_timings
 # volume the trial is judged on; production stays on the export until it is.
 THUMBNAIL_RENDER_LIVE_CAPTURE = "true"
+# Staging trials pushing the board's records into the render page (see THUMBNAIL_RENDER_PUSH in
+# types.ts) ahead of production, which stays on the fetch until staging's numbers are in.
+THUMBNAIL_RENDER_PUSH = "true"
 
 # production gets the proper name
 [env.production]

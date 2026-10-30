@@ -17,6 +17,7 @@ import { enumerateBoardPages } from './boardTools'
 import {
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
+	getRenderPushFallbackKey,
 	loadBoardSnapshot,
 	putThumbnailPng,
 	resolveThumbnailBoard,
@@ -203,7 +204,11 @@ export async function deleteBoardThumbnails(
 	// slug would address `og/published//light.png` — some other board's neighbourhood, not this one's.
 	if (publishedSlug) boards.push({ kind: 'published', slug: publishedSlug })
 	await Promise.all(
-		boards.flatMap((board) => [deleteOgImage(env, board), deleteRenderTokenRecord(env, board)])
+		boards.flatMap((board) => [
+			deleteOgImage(env, board),
+			deleteRenderTokenRecord(env, board),
+			env.THUMBNAILS?.delete(getRenderPushFallbackKey(board)).catch(() => {}),
+		])
 	)
 }
 
@@ -359,6 +364,7 @@ export async function handleOgImageRenderMessage(
 			// queue's ledger even though the job is signed for the og pipeline.
 			telemetry: { source: 'queue', reason },
 			content: summarizeSnapshotContent(snapshot, pageId),
+			snapshot,
 		})
 		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version)
 		await clearOgImagePendingMarker(env, boardRef)

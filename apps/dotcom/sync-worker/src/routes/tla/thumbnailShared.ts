@@ -77,14 +77,15 @@ export class BrowserRenderError extends Error {
 	}
 }
 
-// The render page's own `data-thumbnail-error`, reported by its failure beacon. The page's message
-// stays out of `message` for the same Sentry grouping reason as BrowserRenderError: one issue, with
-// the reasons in its events.
+// The render page's own `data-thumbnail-error`: from its failure beacon, or read off a measure's
+// `/content` response. The page's message stays out of `message` for the same Sentry grouping reason
+// as BrowserRenderError: one issue, with the reasons in its events.
 export class RenderPageError extends Error {
 	readonly detail: string
-	readonly phase: ThumbnailRenderPhase
+	/** Absent when read off `/content`, which carries the message but not how far the page got. */
+	readonly phase?: ThumbnailRenderPhase
 
-	constructor(options: { detail: string; phase: ThumbnailRenderPhase }) {
+	constructor(options: { detail: string; phase?: ThumbnailRenderPhase }) {
 		super('Render page failed')
 		this.name = 'RenderPageError'
 		this.detail = options.detail
@@ -104,6 +105,7 @@ export function classifyScreenshotFailure(error: unknown): string {
 	if (error instanceof RateLimiterUnavailableError) return 'rate_limiter_unavailable'
 	if (error instanceof BoardSnapshotReadError) return 'snapshot_read_error'
 	if (error instanceof BrowserRenderError) return classifyBrowserRenderFailure(error)
+	if (error instanceof RenderPageError) return 'page_error'
 	const message = error instanceof Error ? error.message : String(error)
 	if (/not configured/i.test(message)) return 'not_configured'
 	if (/timeout|timed out/i.test(message)) return 'browser_timeout'
