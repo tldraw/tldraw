@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
 	defineMessages,
 	getIncrementedName,
@@ -16,7 +15,7 @@ import { CollectionMenu } from '../ui/collection-menu'
 import { CollectionPicker } from '../ui/collection-picker'
 import { RenameInput } from '../ui/rename-input'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
-import { activeCollectionId } from './state'
+import { activeCollectionId, renamingCollectionId } from './state'
 import { useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
@@ -63,9 +62,14 @@ export function CollectionsPanelHeader({
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
 	const saveSelection = useSaveSelection(source)
-	const [renaming, setRenaming] = useState(false)
-	const startRenaming = () => setRenaming(true)
 	const currentId = current?.id
+	const renaming = useValue(
+		'renaming collection',
+		() => currentId !== undefined && renamingCollectionId.get(editor) === currentId,
+		[editor, currentId]
+	)
+	const startRenaming = () => renamingCollectionId.set(editor, currentId ?? null)
+	const stopRenaming = () => renamingCollectionId.set(editor, null)
 
 	const can = useValue(
 		'collection permissions',
@@ -95,12 +99,12 @@ export function CollectionsPanelHeader({
 		)
 		source.createCollection(name).then((collection) => {
 			activeCollectionId.set(editor, collection.id)
-			startRenaming()
+			renamingCollectionId.set(editor, collection.id)
 		}, showError)
 	}
 
 	const renameCollection = (name: string) => {
-		setRenaming(false)
+		stopRenaming()
 		const trimmed = name.trim()
 		// Collection names are never blank, so clearing the input keeps the old name.
 		if (!current || trimmed === '' || trimmed === current.name) return
@@ -145,7 +149,7 @@ export function CollectionsPanelHeader({
 					className="tlui-collections-panel__rename"
 					defaultValue={current.name}
 					onComplete={renameCollection}
-					onCancel={() => setRenaming(false)}
+					onCancel={stopRenaming}
 				/>
 			) : (
 				<CollectionPicker

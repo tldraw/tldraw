@@ -22,3 +22,9 @@ export const activeCollectionId = new EditorAtom<TLCollectionId | null>(
 export function toggleCollectionsPanel(editor: Editor) {
 	collectionsPanelOpen.update(editor, (open) => !open)
 }
+
+/** The collection whose name the panel header is editing, e.g. straight after creating it. */
+export const renamingCollectionId = new EditorAtom<TLCollectionId | null>(
+	'renamingCollectionId',
+	() => null
+)
