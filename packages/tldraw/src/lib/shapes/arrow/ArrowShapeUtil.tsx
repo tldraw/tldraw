@@ -664,7 +664,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				margin: 0,
 				filter: (targetShape) => {
 					return (
-						!targetShape.isLocked &&
+						!this.editor.isShapeOrAncestorLocked(targetShape) &&
 						this.editor.canBindShapes({ fromShape: shape, toShape: targetShape, binding: 'arrow' })
 					)
 				},
