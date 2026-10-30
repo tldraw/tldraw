@@ -193,21 +193,14 @@ export const ChatHistoryPartDefinition: PromptPartDefinition<ChatHistoryPart> = 
 	buildMessages: ({ history }) => {
 		if (history.length === 0) return []
 
-		const messages: AgentMessage[] = []
-
 		// If the last message is from the user, skip it
-		const lastIndex = history.length - 1
-		let end = history.length
-		if (end > 0 && history[lastIndex].type === 'prompt') {
-			end = lastIndex
-		}
+		const end = history[history.length - 1].type === 'prompt' ? history.length - 1 : history.length
 
+		const messages: AgentMessage[] = []
 		for (let i = 0; i < end; i++) {
-			const item = history[i]
-			const message = buildHistoryItemMessage(item, CHAT_HISTORY_PRIORITY)
+			const message = buildHistoryItemMessage(history[i], CHAT_HISTORY_PRIORITY)
 			if (message) messages.push(message)
 		}
-
 		return messages
 	},
 }
@@ -224,34 +217,14 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 				})
 			}
 
-			if (item.contextItems.length > 0) {
-				for (const contextItem of item.contextItems) {
-					switch (contextItem.type) {
-						case 'shape': {
-							const focusedShape = contextItem.shape
-							content.push({
-								type: 'text',
-								text: `[CONTEXT]: ${JSON.stringify(focusedShape)}`,
-							})
-							break
-						}
-						case 'shapes': {
-							const focusedShapes = contextItem.shapes
-							content.push({
-								type: 'text',
-								text: `[CONTEXT]: ${JSON.stringify(focusedShapes)}`,
-							})
-							break
-						}
-						default: {
-							content.push({
-								type: 'text',
-								text: `[CONTEXT]: ${JSON.stringify(contextItem)}`,
-							})
-							break
-						}
-					}
-				}
+			for (const contextItem of item.contextItems) {
+				const value =
+					contextItem.type === 'shape'
+						? contextItem.shape
+						: contextItem.type === 'shapes'
+							? contextItem.shapes
+							: contextItem
+				content.push({ type: 'text', text: `[CONTEXT]: ${JSON.stringify(value)}` })
 			}
 
 			if (content.length === 0) {
@@ -374,11 +347,7 @@ export const DataPartDefinition: PromptPartDefinition<DataPart> = {
 	buildContent: ({ data }) => {
 		if (data.length === 0) return []
 
-		const formattedData = data.map((item) => {
-			return `${JSON.stringify(item)}`
-		})
-
-		return ["Here's the data you requested:", ...formattedData]
+		return ["Here's the data you requested:", ...data.map((item) => JSON.stringify(item))]
 	},
 }
 
@@ -400,9 +369,7 @@ export const MessagesPartDefinition: PromptPartDefinition<MessagesPart> = {
 // ModelName
 export const ModelNamePartDefinition: PromptPartDefinition<ModelNamePart> = {
 	type: 'modelName',
-	getModelName: (part) => {
-		return part.modelName
-	},
+	getModelName: (part) => part.modelName,
 }
 
 // PeripheralShapes

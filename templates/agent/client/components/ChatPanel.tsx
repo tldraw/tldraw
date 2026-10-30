@@ -37,14 +37,10 @@ export function ChatPanel() {
 		[agent]
 	)
 
-	const handleNewChat = useCallback(() => {
-		agent.reset()
-	}, [agent])
-
 	return (
 		<div className="chat-panel tl-theme__dark">
 			<div className="chat-header">
-				<button className="new-chat-button" onClick={handleNewChat}>
+				<button className="new-chat-button" onClick={() => agent.reset()}>
 					+
 				</button>
 			</div>

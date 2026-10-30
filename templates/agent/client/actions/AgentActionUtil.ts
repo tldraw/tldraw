@@ -42,10 +42,11 @@ export function registerActionUtil<T extends AgentActionUtilConstructor<BaseAgen
 
 	if (forModes && forModes.length > 0) {
 		// Mode-specific registration
-		if (!modeRegistry.has(util.type)) {
-			modeRegistry.set(util.type, new Map())
+		let modeMap = modeRegistry.get(util.type)
+		if (!modeMap) {
+			modeMap = new Map()
+			modeRegistry.set(util.type, modeMap)
 		}
-		const modeMap = modeRegistry.get(util.type)!
 		for (const mode of forModes) {
 			if (modeMap.has(mode)) {
 				throw new Error(`Action util for ${util.type} already registered for mode ${mode}`)
@@ -61,28 +62,6 @@ export function registerActionUtil<T extends AgentActionUtilConstructor<BaseAgen
 	}
 
 	return util
-}
-
-/**
- * Get all registered agent action util classes.
- * Returns both default and mode-specific utils (deduplicated).
- */
-export function getAllActionUtils(): AgentActionUtilConstructor<AgentAction>[] {
-	const allUtils = new Set<AgentActionUtilConstructor<BaseAgentAction>>()
-
-	// Add all default utils
-	for (const util of defaultRegistry.values()) {
-		allUtils.add(util)
-	}
-
-	// Add all mode-specific utils
-	for (const modeMap of modeRegistry.values()) {
-		for (const util of modeMap.values()) {
-			allUtils.add(util)
-		}
-	}
-
-	return Array.from(allUtils) as AgentActionUtilConstructor<AgentAction>[]
 }
 
 /**

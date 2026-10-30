@@ -1,4 +1,3 @@
-import { Box } from 'tldraw'
 import { CanvasLintsPart } from '../../shared/schema/PromptPartDefinitions'
 import { AgentRequest } from '../../shared/types/AgentRequest'
 import { AgentHelpers } from '../AgentHelpers'
@@ -9,22 +8,13 @@ export const CanvasLintsPartUtil = registerPromptPartUtil(
 		static override type = 'canvasLints' as const
 
 		override getPart(request: AgentRequest, _helpers: AgentHelpers): CanvasLintsPart {
-			const { editor, agent } = this
-			if (!editor) return { type: 'canvasLints', lints: [] }
-
-			const shapes = editor.getCurrentPageShapesSorted()
-			const contextBoundsBox = Box.From(request.bounds)
-			const shapesInBounds = shapes.filter((shape) => {
-				const bounds = editor.getShapeMaskedPageBounds(shape)
-				if (!bounds) return false
-				return contextBoundsBox.includes(bounds)
-			})
+			const { agent } = this
 
 			// Use created shapes when in working mode, otherwise use shapes in request bounds
 			const shapesToCheck =
 				agent.mode.getCurrentModeType() === 'working'
 					? agent.lints.getCreatedShapes()
-					: shapesInBounds
+					: this.getShapesInBounds(request.bounds)
 
 			// Get unsurfaced lints and mark them as surfaced
 			const lints = agent.lints.getUnsurfacedLintsForShapes(shapesToCheck)

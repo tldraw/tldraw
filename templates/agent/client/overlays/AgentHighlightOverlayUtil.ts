@@ -179,6 +179,7 @@ export class AgentHighlightOverlayUtil extends OverlayUtil<AgentHighlightOverlay
 
 			switch (item.type) {
 				case 'area': {
+					if (!item.bounds) break
 					areaHighlights.push({
 						id,
 						type: 'agent-highlight',

@@ -53,10 +53,8 @@ export class AgentModeManager extends BaseAgentManager {
 			throw new Error(`Agent is already in mode: ${newMode}`)
 		}
 
-		const fromModeNode = this.getCurrentModeNode()
-		const newModeNode = getModeNode(newMode)
-		fromModeNode.onExit?.(this.agent, newMode)
-		newModeNode.onEnter?.(this.agent, fromMode)
+		this.getCurrentModeNode().onExit?.(this.agent, newMode)
+		getModeNode(newMode).onEnter?.(this.agent, fromMode)
 
 		// Update the mode
 		this.$mode.set(newMode)

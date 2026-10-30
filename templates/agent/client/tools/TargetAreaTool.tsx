@@ -1,4 +1,4 @@
-import { BoxModel, StateNode, VecModel } from 'tldraw'
+import { Box, BoxModel, StateNode, VecModel } from 'tldraw'
 import { AgentAppAgentsManager } from '../agent/managers/AgentAppAgentsManager'
 
 export class TargetAreaTool extends StateNode {
@@ -42,24 +42,21 @@ class TargetAreaIdle extends StateNode {
 class TargetAreaPointing extends StateNode {
 	static override id = 'pointing'
 
-	private initialScreenPoint: VecModel | undefined = undefined
 	private initialPagePoint: VecModel | undefined = undefined
 
 	override onEnter() {
-		this.initialScreenPoint = this.editor.inputs.getCurrentScreenPoint().clone()
 		this.initialPagePoint = this.editor.inputs.getCurrentPagePoint().clone()
 	}
 
 	override onPointerMove() {
-		if (!this.initialScreenPoint) return
+		if (!this.initialPagePoint) return
 		if (this.editor.inputs.getIsDragging()) {
 			this.parent.transition('dragging', { initialPagePoint: this.initialPagePoint })
 		}
 	}
 
 	override onPointerUp() {
-		const agents = AgentAppAgentsManager.getAgents(this.editor)
-		for (const agent of agents) {
+		for (const agent of AgentAppAgentsManager.getAgents(this.editor)) {
 			agent.context.add({
 				type: 'point',
 				point: this.editor.inputs.getCurrentPagePoint().clone(),
@@ -86,13 +83,10 @@ class TargetAreaDragging extends StateNode {
 	}
 
 	override onPointerUp() {
-		this.editor.updateInstanceState({
-			brush: null,
-		})
+		this.editor.updateInstanceState({ brush: null })
 
 		if (!this.bounds) throw new Error('Bounds not set')
-		const agents = AgentAppAgentsManager.getAgents(this.editor)
-		for (const agent of agents) {
+		for (const agent of AgentAppAgentsManager.getAgents(this.editor)) {
 			agent.context.add({
 				type: 'area',
 				bounds: this.bounds,
@@ -104,16 +98,11 @@ class TargetAreaDragging extends StateNode {
 
 	updateBounds() {
 		if (!this.initialPagePoint) return
-		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
-		const x = Math.min(this.initialPagePoint.x, currentPagePoint.x)
-		const y = Math.min(this.initialPagePoint.y, currentPagePoint.y)
-		const w = Math.abs(currentPagePoint.x - this.initialPagePoint.x)
-		const h = Math.abs(currentPagePoint.y - this.initialPagePoint.y)
-
-		this.editor.updateInstanceState({
-			brush: { x, y, w, h },
-		})
-
-		this.bounds = { x, y, w, h }
+		const bounds = Box.FromPoints([
+			this.initialPagePoint,
+			this.editor.inputs.getCurrentPagePoint(),
+		]).toJson()
+		this.editor.updateInstanceState({ brush: bounds })
+		this.bounds = bounds
 	}
 }

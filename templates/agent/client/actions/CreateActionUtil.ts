@@ -39,20 +39,8 @@ export const CreateActionUtil = registerActionUtil(
 				if (shape.toId) {
 					shape.toId = helpers.ensureShapeIdExists(shape.toId)
 				}
-				if ('x1' in shape) {
-					shape.x1 = helpers.ensureValueIsNumber(shape.x1) ?? 0
-				}
-				if ('y1' in shape) {
-					shape.y1 = helpers.ensureValueIsNumber(shape.y1) ?? 0
-				}
-				if ('x2' in shape) {
-					shape.x2 = helpers.ensureValueIsNumber(shape.x2) ?? 0
-				}
-				if ('y2' in shape) {
-					shape.y2 = helpers.ensureValueIsNumber(shape.y2) ?? 0
-				}
-				if ('bend' in shape) {
-					shape.bend = helpers.ensureValueIsNumber(shape.bend) ?? 0
+				for (const key of ['x1', 'y1', 'x2', 'y2', 'bend'] as const) {
+					if (key in shape) shape[key] = helpers.ensureValueIsNumber(shape[key]) ?? 0
 				}
 			}
 
@@ -79,16 +67,8 @@ export const CreateActionUtil = registerActionUtil(
 			editor.createShape(result.shape)
 
 			// Handle arrow bindings if they exist
-			if (result.bindings) {
-				for (const binding of result.bindings) {
-					editor.createBinding({
-						type: binding.type,
-						fromId: binding.fromId,
-						toId: binding.toId,
-						props: binding.props,
-						meta: binding.meta,
-					})
-				}
+			for (const binding of result.bindings ?? []) {
+				editor.createBinding(binding)
 			}
 		}
 	}

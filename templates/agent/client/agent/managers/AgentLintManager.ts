@@ -16,8 +16,7 @@ import { BaseAgentManager } from './BaseAgentManager'
  * Generate a unique key for a lint based on its type and shape IDs.
  */
 function getLintKey(lint: AgentCanvasLint): string {
-	const sortedIds = [...lint.shapeIds].sort().join(',')
-	return `${lint.type}:${sortedIds}`
+	return `${lint.type}:${[...lint.shapeIds].sort().join(',')}`
 }
 
 /**
@@ -29,13 +28,13 @@ export class AgentLintManager extends BaseAgentManager {
 	 * Set of shape IDs created during the current prompt chain.
 	 * Persists across nested prompts but clears when a new top-level prompt starts.
 	 */
-	private createdShapeIds: Set<TLShapeId> = new Set()
+	private createdShapeIds = new Set<TLShapeId>()
 
 	/**
 	 * Set of lint keys that have already been surfaced to the agent.
 	 * These won't be shown again in subsequent prompts.
 	 */
-	private surfacedLintKeys: Set<string> = new Set()
+	private surfacedLintKeys = new Set<string>()
 
 	/**
 	 * Reset the lint manager to its initial state.
@@ -50,8 +49,7 @@ export class AgentLintManager extends BaseAgentManager {
 	 * Also clears surfaced lints since we're starting fresh.
 	 */
 	clearCreatedShapes(): void {
-		this.createdShapeIds.clear()
-		this.surfacedLintKeys.clear()
+		this.reset()
 	}
 
 	/**
@@ -94,8 +92,7 @@ export class AgentLintManager extends BaseAgentManager {
 	 */
 	unlockCreatedShapes(): void {
 		const { editor } = this.agent
-		const createdShapes = this.getCreatedShapes()
-		const lockedShapes = createdShapes.filter((shape) => shape.isLocked)
+		const lockedShapes = this.getCreatedShapes().filter((shape) => shape.isLocked)
 		if (lockedShapes.length === 0) return
 
 		editor.run(
@@ -119,8 +116,9 @@ export class AgentLintManager extends BaseAgentManager {
 	 * Get unsurfaced lints for a specific set of shapes.
 	 */
 	getUnsurfacedLintsForShapes(shapes: TLShape[]): AgentCanvasLint[] {
-		const lints = this.detectCanvasLints(shapes)
-		return lints.filter((lint) => !this.surfacedLintKeys.has(getLintKey(lint)))
+		return this.detectCanvasLints(shapes).filter(
+			(lint) => !this.surfacedLintKeys.has(getLintKey(lint))
+		)
 	}
 
 	/**
@@ -141,61 +139,44 @@ export class AgentLintManager extends BaseAgentManager {
 	 * Detect all canvas lints on a set of shapes.
 	 */
 	detectCanvasLints(shapes: TLShape[]): AgentCanvasLint[] {
-		const lints: AgentCanvasLint[] = []
-
 		// Collect shapes for each lint type
-		const growYShapes = this.getShapesWithGrowY(shapes)
-		const overlappingTextGroups = this.getOverlappingTextGroups(shapes)
-		const friendlessArrows = this.getFriendlessArrows(shapes)
-
 		// Convert shapes to lints (converting shape IDs to strings)
-		for (const shape of growYShapes) {
-			lints.push({
-				type: 'growY-on-shape',
-				shapeIds: [convertTldrawIdToSimpleId(shape.id)],
-			})
-		}
-
-		for (const group of overlappingTextGroups) {
-			lints.push({
-				type: 'overlapping-text',
-				shapeIds: group.map((shape) => convertTldrawIdToSimpleId(shape.id)),
-			})
-		}
-
-		for (const arrow of friendlessArrows) {
-			lints.push({
-				type: 'friendless-arrow',
-				shapeIds: [convertTldrawIdToSimpleId(arrow.id)],
-			})
-		}
-
-		return lints
+		return [
+			...this.getShapesWithGrowY(shapes).map(
+				(shape): AgentCanvasLint => ({
+					type: 'growY-on-shape',
+					shapeIds: [convertTldrawIdToSimpleId(shape.id)],
+				})
+			),
+			...this.getOverlappingTextGroups(shapes).map(
+				(group): AgentCanvasLint => ({
+					type: 'overlapping-text',
+					shapeIds: group.map((shape) => convertTldrawIdToSimpleId(shape.id)),
+				})
+			),
+			...this.getFriendlessArrows(shapes).map(
+				(arrow): AgentCanvasLint => ({
+					type: 'friendless-arrow',
+					shapeIds: [convertTldrawIdToSimpleId(arrow.id)],
+				})
+			),
+		]
 	}
 
 	/**
 	 * Get shapes where text exceeds the shape bounds (growY > 0) and overlaps with geo shapes.
 	 */
 	private getShapesWithGrowY(shapes: TLShape[]): TLShape[] {
-		const shapesWithGrowY = shapes.filter((shape) => {
-			if ('growY' in shape.props) {
-				return shape.props.growY > 5 // use 5 because 0 flags shapes that don't need to be changed
-			}
-			return false
-		})
-
 		// Get all geo shapes to check for overlaps
 		const geoShapes = shapes.filter((shape) => shape.type === 'geo')
 
 		// Only return shapes that overlap with any geo shape
-		const result: TLShape[] = []
-		for (const shape of shapesWithGrowY) {
-			const overlapsWithGeo = geoShapes.some((geoShape) => this.shapesOverlap(shape, geoShape))
-			if (overlapsWithGeo) {
-				result.push(shape)
-			}
-		}
-		return result
+		return shapes.filter(
+			(shape) =>
+				'growY' in shape.props &&
+				shape.props.growY > 5 && // use 5 because 0 flags shapes that don't need to be changed
+				geoShapes.some((geoShape) => this.shapesOverlap(shape, geoShape))
+		)
 	}
 
 	/**
@@ -203,18 +184,14 @@ export class AgentLintManager extends BaseAgentManager {
 	 */
 	private getOverlappingTextGroups(shapes: TLShape[]): TLShape[][] {
 		const { editor } = this.agent
-		const groups: TLShape[][] = []
 		const shapesWithText = shapes.filter((shape) => {
 			// Exclude arrows from overlapping text detection
 			if (shape.type === 'arrow') return false
-			const util = editor.getShapeUtil(shape)
-			const text = util.getText(shape)
+			const text = editor.getShapeUtil(shape).getText(shape)
 			return text !== undefined && text.length > 0
 		})
 
-		if (shapesWithText.length < 2) {
-			return groups
-		}
+		if (shapesWithText.length < 2) return []
 
 		// Use union-find to group overlapping shapes
 		const parent = new Map<TLShape, TLShape>()
@@ -240,11 +217,9 @@ export class AgentLintManager extends BaseAgentManager {
 
 		// Check all pairs for overlaps using geometry-based detection
 		for (let i = 0; i < shapesWithText.length; i++) {
-			const shapeA = shapesWithText[i]
 			for (let j = i + 1; j < shapesWithText.length; j++) {
-				const shapeB = shapesWithText[j]
-				if (this.shapesOverlap(shapeA, shapeB)) {
-					union(shapeA, shapeB)
+				if (this.shapesOverlap(shapesWithText[i], shapesWithText[j])) {
+					union(shapesWithText[i], shapesWithText[j])
 				}
 			}
 		}
@@ -253,20 +228,16 @@ export class AgentLintManager extends BaseAgentManager {
 		const rootGroups = new Map<TLShape, TLShape[]>()
 		for (const shape of shapesWithText) {
 			const root = find(shape)
-			if (!rootGroups.has(root)) {
-				rootGroups.set(root, [])
+			const group = rootGroups.get(root)
+			if (group) {
+				group.push(shape)
+			} else {
+				rootGroups.set(root, [shape])
 			}
-			rootGroups.get(root)!.push(shape)
 		}
 
 		// Collect groups with 2+ shapes (overlapping)
-		for (const [, group] of rootGroups) {
-			if (group.length >= 2) {
-				groups.push(group)
-			}
-		}
-
-		return groups
+		return Array.from(rootGroups.values()).filter((group) => group.length >= 2)
 	}
 
 	/**
@@ -274,15 +245,13 @@ export class AgentLintManager extends BaseAgentManager {
 	 */
 	private getFriendlessArrows(shapes: TLShape[]): TLArrowShape[] {
 		const { editor } = this.agent
-		const arrowShapes = shapes.filter((shape) => shape.type === 'arrow') as TLArrowShape[]
-
-		const friendlessArrows = arrowShapes.filter((arrow) => {
-			const bindings = getArrowBindings(editor, arrow)
-			// An arrow is "friendless" if it has no start or end binding
-			return !bindings.start || !bindings.end
-		})
-
-		return friendlessArrows
+		return shapes
+			.filter((shape): shape is TLArrowShape => shape.type === 'arrow')
+			.filter((arrow) => {
+				const bindings = getArrowBindings(editor, arrow)
+				// An arrow is "friendless" if it has no start or end binding
+				return !bindings.start || !bindings.end
+			})
 	}
 
 	// ============================================================================
@@ -303,27 +272,24 @@ export class AgentLintManager extends BaseAgentManager {
 		}
 
 		// Get geometry and transform for shape A
-		const geometryA = editor.getShapeGeometry(shapeA)
 		const pageTransformA = editor.getShapePageTransform(shapeA)
-		const verticesA = pageTransformA.applyToPoints(geometryA.vertices)
+		const verticesA = pageTransformA.applyToPoints(editor.getShapeGeometry(shapeA).vertices)
 
 		// Get clip path if it exists
-		const shapeUtilA = editor.getShapeUtil(shapeA.type)
-		const clipPathA = shapeUtilA.getClipPath?.(shapeA)
+		const clipPathA = editor.getShapeUtil(shapeA.type).getClipPath?.(shapeA)
 		const polygonA = clipPathA
 			? intersectPolygonPolygon(pageTransformA.applyToPoints(clipPathA), verticesA)
 			: verticesA
-
-		if (!polygonA || polygonA.length === 0) {
-			return false
-		}
+		if (!polygonA || polygonA.length === 0) return false
 
 		// Transform polygon A into shape B's local space
-		const pageTransformB = editor.getShapePageTransform(shapeB)
-		const polygonAInShapeBSpace = pageTransformB.clone().invert().applyToPoints(polygonA)
+		const polygonAInShapeBSpace = editor
+			.getShapePageTransform(shapeB)
+			.clone()
+			.invert()
+			.applyToPoints(polygonA)
 
 		// Check if shape B's geometry overlaps with the transformed polygon
-		const geometryB = editor.getShapeGeometry(shapeB)
-		return geometryB.overlapsPolygon(polygonAInShapeBSpace)
+		return editor.getShapeGeometry(shapeB).overlapsPolygon(polygonAInShapeBSpace)
 	}
 }

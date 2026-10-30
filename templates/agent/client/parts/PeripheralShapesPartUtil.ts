@@ -12,17 +12,12 @@ export const PeripheralShapesPartUtil = registerPromptPartUtil(
 		override getPart(request: AgentRequest, helpers: AgentHelpers): PeripheralShapesPart {
 			const { editor } = this
 
-			const shapes = editor.getCurrentPageShapesSorted()
-			const contextBounds = request.bounds
-
-			const contextBoundsBox = Box.From(contextBounds)
+			const contextBoundsBox = Box.From(request.bounds)
 
 			// Get all shapes that are outside the context bounds (these are what we want to peripheralize)
-			const shapesOutsideViewport = shapes.filter((shape) => {
+			const shapesOutsideViewport = editor.getCurrentPageShapesSorted().filter((shape) => {
 				const bounds = editor.getShapeMaskedPageBounds(shape)
-				if (!bounds) return
-				if (contextBoundsBox.includes(bounds)) return
-				return true
+				return bounds ? !contextBoundsBox.includes(bounds) : false
 			})
 
 			// Convert the shapes to peripheral shape cluster format
@@ -31,13 +26,10 @@ export const PeripheralShapesPartUtil = registerPromptPartUtil(
 			})
 
 			// Apply the offset and round the clusters
-			const normalizedClusters = clusters.map((cluster) => {
-				const offsetBounds = helpers.applyOffsetToBox(cluster.bounds)
-				return {
-					numberOfShapes: cluster.numberOfShapes,
-					bounds: helpers.roundBox(offsetBounds),
-				}
-			})
+			const normalizedClusters = clusters.map((cluster) => ({
+				numberOfShapes: cluster.numberOfShapes,
+				bounds: helpers.roundBox(helpers.applyOffsetToBox(cluster.bounds)),
+			}))
 
 			return {
 				type: 'peripheralShapes',
