@@ -14,6 +14,7 @@ import {
 	addCommandPaletteRecent,
 	getCommandPaletteRecents,
 } from '../../lib/ui/components/CommandPalette/commandPaletteRecents'
+import { CommandPaletteSearchItem } from '../../lib/ui/components/CommandPalette/CommandPaletteSearchItem'
 import {
 	CommandPaletteShell,
 	TLUiCommandPaletteShellProps,
@@ -586,6 +587,95 @@ describe('CommandPaletteShell', () => {
 		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
 		expect(input.placeholder).not.toBe('File name')
 		expect(onSubmit).not.toHaveBeenCalled()
+	})
+
+	it('lists the hits of a search item and runs the chosen one, remembering the search', async () => {
+		const onSelect = vi.fn()
+		const onClose = vi.fn()
+		const { rendered, input } = await renderShell(
+			<CommandPaletteSearchItem
+				id="find"
+				label="Search board"
+				placeholder="Search text"
+				getResults={(query) =>
+					['Apple', 'Banana', 'Apricot']
+						.filter((text) => text.toLowerCase().includes(query.toLowerCase()))
+						.map((text) => ({ id: text, label: text, detail: 'Page 2', onSelect }))
+				}
+			/>,
+			onClose
+		)
+		fireEvent.click(await rendered.findByTestId('command-palette.item.find'))
+		expect(input.placeholder).toBe('Search text')
+		expect(rendered.getByTestId('command-palette.back').textContent).toContain('Search board')
+		expect(rendered.queryByText('No results')).toBeNull()
+		type(input, 'ap')
+		const rows = rendered.getAllByRole('option').map((option) => option.textContent)
+		expect(rows).toEqual(['ApplePage 2', 'ApricotPage 2'])
+		expect(
+			rendered.getByTestId('command-palette.item.find:Apple').querySelector('.tlui-icon')
+		).toBeNull()
+		press(input, 'ArrowDown')
+		press(input, 'Enter')
+		expect(onClose).toHaveBeenCalled()
+		expect(onSelect).toHaveBeenCalledTimes(1)
+		expect(getCommandPaletteRecents()).toEqual(['find'])
+	})
+
+	it('backs out of a search item to the palette', async () => {
+		const { rendered, input } = await renderShell(
+			<CommandPaletteSearchItem
+				id="find"
+				label="Search board"
+				placeholder="Search text"
+				getResults={() => []}
+			/>
+		)
+		fireEvent.click(await rendered.findByTestId('command-palette.item.find'))
+		type(input, 'zzz')
+		expect(rendered.getByText('No results')).toBeTruthy()
+		press(input, 'Escape')
+		expect(input.placeholder).not.toBe('Search text')
+		expect(rendered.getByTestId('command-palette.item.find')).toBeTruthy()
+	})
+
+	it('reruns a search only when the trimmed query changes', async () => {
+		const getResults = vi.fn(() => [])
+		const { rendered, input } = await renderShell(
+			<CommandPaletteSearchItem
+				id="find"
+				label="Search board"
+				placeholder="Search text"
+				getResults={getResults}
+			/>
+		)
+		fireEvent.click(await rendered.findByTestId('command-palette.item.find'))
+		type(input, 'ab')
+		type(input, 'ab ')
+		type(input, ' ab ')
+		expect(getResults.mock.calls).toEqual([['ab']])
+	})
+
+	it('shows no hits and keeps the editor up when a search throws', async () => {
+		const error = new Error('boom')
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const { rendered, input } = await renderShell(
+			<CommandPaletteSearchItem
+				id="find"
+				label="Search board"
+				placeholder="Search text"
+				getResults={() => {
+					throw error
+				}}
+			/>
+		)
+		fireEvent.click(await rendered.findByTestId('command-palette.item.find'))
+		type(input, 'a')
+		expect(rendered.container.querySelector('.tl-error-boundary')).toBeNull()
+		expect(rendered.getByTestId('command-palette')).toBeTruthy()
+		expect(rendered.getByText('No results')).toBeTruthy()
+		expect(consoleError).toHaveBeenCalledWith(expect.any(String), error)
+		consoleError.mockRestore()
 	})
 
 	it('shows no item icons, and gives every row a check slot', async () => {

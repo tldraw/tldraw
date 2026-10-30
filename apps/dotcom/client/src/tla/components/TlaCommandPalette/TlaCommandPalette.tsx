@@ -15,6 +15,7 @@ import {
 	CommandPaletteSelectionGroup,
 	CommandPaletteStylesGroup,
 	CommandPalettePromptItem,
+	CommandPaletteSearchItem,
 	CommandPaletteToolsGroup,
 	CommandPaletteViewGroup,
 	DefaultCommandPalette,
@@ -70,6 +71,7 @@ import {
 	useCreateWorkspaceDialog,
 	useSwitchToWorkspace,
 } from '../TlaSidebar/components/TlaSidebarWorkspaceSwitcher'
+import { getBoardSearchResults } from './getBoardSearchResults'
 
 const MAX_FILE_RESULTS = 8
 const MAX_RECENT_FILES = 5
@@ -100,6 +102,9 @@ const messages = defineMessages({
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
 	account: { defaultMessage: 'Account' },
 	signIn: { defaultMessage: 'Sign in' },
+	board: { defaultMessage: 'Board' },
+	searchBoard: { defaultMessage: 'Search board' },
+	searchBoardPlaceholder: { defaultMessage: 'Search text on the board…' },
 })
 
 export function TlaCommandPalette(props: TLUiCommandPaletteProps) {
@@ -113,6 +118,7 @@ export function TlaCommandPalette(props: TLUiCommandPaletteProps) {
 			<CommandPaletteStylesGroup />
 			{app && <TlaFilesGroup />}
 			{app && <TlaCurrentFileGroup />}
+			<TlaBoardGroup />
 			<CommandPalettePagesGroup />
 			{app && <TlaShareGroup />}
 			<TlaAppGroup />
@@ -235,6 +241,25 @@ function TlaCurrentFileGroup() {
 				/>
 			)}
 			<ImportFileActionItem source="command-palette" />
+		</TldrawUiMenuGroup>
+	)
+}
+
+function TlaBoardGroup() {
+	const msg = useTranslation()
+	const editor = useEditor()
+	const boardLbl = msg(messages.board)
+	const searchBoardLbl = msg(messages.searchBoard)
+	const placeholder = msg(messages.searchBoardPlaceholder)
+
+	return (
+		<TldrawUiMenuGroup id="tla-board" label={boardLbl}>
+			<CommandPaletteSearchItem
+				id="tla-search-board"
+				label={searchBoardLbl}
+				placeholder={placeholder}
+				getResults={(query) => getBoardSearchResults(editor, query)}
+			/>
 		</TldrawUiMenuGroup>
 	)
 }

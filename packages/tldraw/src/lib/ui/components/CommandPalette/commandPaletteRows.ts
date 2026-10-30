@@ -1,6 +1,10 @@
 import { MAX_COMMAND_PALETTE_RECENTS } from './commandPaletteRecents'
 import { getCommandPaletteMatchScore, rankCommandPaletteEntries } from './commandPaletteSearch'
-import { CommandPaletteEntry, CommandPaletteSubmenu } from './CommandPaletteStore'
+import {
+	CommandPaletteEntry,
+	CommandPaletteSubmenu,
+	TLUiCommandPaletteSearchResult,
+} from './CommandPaletteStore'
 
 /** @internal */
 export type CommandPaletteRow =
@@ -242,6 +246,21 @@ export function getCommandPalettePromptRows(
 			recent: false,
 		},
 	]
+}
+
+/** @internal */
+export function getCommandPaletteSearchHitRows(
+	search: CommandPaletteEntry,
+	hits: readonly TLUiCommandPaletteSearchResult[]
+): CommandPaletteRow[] {
+	return hits.map((hit) => ({
+		type: 'item',
+		key: `search:${hit.id}`,
+		entry: { ...search, id: `${search.id}:${hit.id}`, onSelect: hit.onSelect },
+		label: hit.label,
+		detail: hit.detail,
+		recent: false,
+	}))
 }
 
 /** @internal */

@@ -1,0 +1,64 @@
+import { captureException } from '@sentry/react'
+import { TLUiCommandPaletteSearchResult, Editor } from 'tldraw'
+
+export const MAX_BOARD_RESULTS = 50
+// Characters kept before the match when a label's start is trimmed.
+export const MATCH_LEAD = 16
+
+// The current page's hits come first; the rest are named by their page.
+export function getBoardSearchResults(
+	editor: Editor,
+	query: string
+): TLUiCommandPaletteSearchResult[] {
+	const needle = query.replace(/\s+/g, ' ').toLowerCase()
+	const currentPageId = editor.getCurrentPageId()
+	const pages = editor.getPages()
+	const ordered = [
+		...pages.filter((page) => page.id === currentPageId),
+		...pages.filter((page) => page.id !== currentPageId),
+	]
+	const results: TLUiCommandPaletteSearchResult[] = []
+	let reported = false
+	for (const page of ordered) {
+		for (const id of editor.getPageShapeIds(page.id)) {
+			const shape = editor.getShape(id)
+			if (!shape) continue
+			let text: string | undefined
+			try {
+				text = editor.getShapeUtil(shape).getText(shape)?.replace(/\s+/g, ' ').trim()
+			} catch (error) {
+				// Malformed rich text throws in getText; one bad shape must not blank the whole search.
+				if (!reported) {
+					reported = true
+					captureException(error, {
+						tags: { operation: 'board-search-get-text' },
+						extra: { shapeId: shape.id, shapeType: shape.type },
+					})
+				}
+				continue
+			}
+			const index = text?.toLowerCase().indexOf(needle) ?? -1
+			if (!text || index === -1) continue
+			results.push({
+				id: shape.id,
+				// Rows clip their end, so trim the start to keep a late match in view.
+				label: index > MATCH_LEAD ? `…${text.slice(index - MATCH_LEAD)}` : text,
+				detail: page.id === currentPageId ? undefined : page.name,
+				onSelect() {
+					// The shape may be deleted or moved between the last query change and the pick.
+					const pageId = editor.getAncestorPageId(shape.id)
+					const bounds = editor.getShapePageBounds(shape.id)
+					if (!pageId || !bounds) return
+					if (editor.getCurrentPageId() !== pageId) editor.setCurrentPage(pageId)
+					// Like zoom to selection, without selecting it.
+					editor.zoomToBounds(bounds, {
+						targetZoom: 1,
+						animation: { duration: editor.options.animationMediumMs },
+					})
+				},
+			})
+			if (results.length === MAX_BOARD_RESULTS) return results
+		}
+	}
+	return results
+}

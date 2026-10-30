@@ -102,7 +102,7 @@ export function handleCommandPaletteKeyDown(
 		case 'ArrowLeft': {
 			const input = e.currentTarget
 			const atStart = input.selectionStart === 0 && input.selectionEnd === 0
-			if (!prompt && submenu && atStart) {
+			if ((prompt?.search || (!prompt && submenu)) && atStart) {
 				e.preventDefault()
 				back()
 			}

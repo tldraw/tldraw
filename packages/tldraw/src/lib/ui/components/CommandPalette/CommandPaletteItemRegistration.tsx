@@ -1,7 +1,7 @@
 import { useCallback, useId, useLayoutEffect, useRef } from 'react'
 import { TLUiEventSource } from '../../context/events'
 import { useCommandPalettePath, useCommandPaletteStore } from './CommandPaletteContext'
-import { CommandPalettePrompt } from './CommandPaletteStore'
+import { CommandPalettePrompt, CommandPaletteSearch } from './CommandPaletteStore'
 
 /** @internal */
 export interface CommandPaletteItemRegistrationProps {
@@ -19,6 +19,8 @@ export interface CommandPaletteItemRegistrationProps {
 	detail?: string
 	/** Asks for text in the palette before running, instead of running on select. */
 	prompt?: CommandPalettePrompt
+	/** Opens its own search in the palette, listing hits instead of entries. */
+	search?: CommandPaletteSearch
 	/** Runs the item. Always calls the latest one passed, even from an open prompt. */
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
@@ -40,11 +42,15 @@ export function CommandPaletteItemRegistration(props: CommandPaletteItemRegistra
 	const rProps = useRef(props)
 	const onSelect = useCallback((source: TLUiEventSource) => rProps.current.onSelect(source), [])
 	const onSubmit = useCallback((value: string) => rProps.current.prompt?.onSubmit(value), [])
+	const getResults = useCallback(
+		(query: string) => rProps.current.search?.getResults(query) ?? [],
+		[]
+	)
 
 	// No deps: re-register every render so label and checked state stay current.
 	useLayoutEffect(() => {
 		rProps.current = props
-		const { id, kbd, checked, isSelected, detail, prompt } = props
+		const { id, kbd, checked, isSelected, detail, prompt, search } = props
 		// Prefixed here so rows, recents and search matching all see the same label.
 		const label = submenu ? `${submenu.label}: ${props.label}` : props.label
 		store.set(token, {
@@ -58,6 +64,7 @@ export function CommandPaletteItemRegistration(props: CommandPaletteItemRegistra
 				initialValue: prompt.initialValue,
 				onSubmit,
 			},
+			search: search && { placeholder: search.placeholder, getResults },
 			onSelect,
 			label,
 			name: props.label,
