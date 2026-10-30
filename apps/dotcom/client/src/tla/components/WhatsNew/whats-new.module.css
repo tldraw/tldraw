@@ -52,9 +52,9 @@
 	margin-top: 12px;
 }
 
-/* A list belongs to the paragraph that introduces it. */
-.markdown > p + ul,
-.markdown > p + ol {
+/* A list belongs to the paragraph that introduces it; markdown wraps images in a paragraph too. */
+.markdown > p:not(:has(.media)) + ul,
+.markdown > p:not(:has(.media)) + ol {
 	margin-top: 0;
 }
 
