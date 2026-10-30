@@ -493,7 +493,7 @@ describe('default command palette content', () => {
 			},
 		}
 
-		it('places or opts out every built-in action, so the catch-all only gets new ones', async () => {
+		it('sets commandPalette and readonlyOk on every built-in action', async () => {
 			let actions: TLUiActionsContextType = {}
 			function Probe() {
 				actions = useActions()
@@ -515,10 +515,18 @@ describe('default command palette content', () => {
 			)
 			expect(actions['open-cursor-chat']).toBeDefined()
 			expect(actions['open-command-palette']).toBeDefined()
-			const unplaced = Object.values(actions)
-				.filter((action) => action.commandPalette === undefined)
-				.map((action) => action.id)
-			expect(unplaced).toEqual([])
+			// Explicit, so a forgotten field can't drop an action into the catch-all or out of readonly.
+			const missing = (field: 'commandPalette' | 'readonlyOk') =>
+				Object.values(actions)
+					.filter((action) => action[field] === undefined)
+					.map((action) => action.id)
+			expect({
+				commandPalette: missing('commandPalette'),
+				readonlyOk: missing('readonlyOk'),
+			}).toEqual({
+				commandPalette: [],
+				readonlyOk: [],
+			})
 		})
 
 		it('lists custom actions in the catch-all, minus opted-out ones', async () => {
