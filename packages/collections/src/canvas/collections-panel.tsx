@@ -15,6 +15,7 @@ import { ItemMenu } from '../ui/item-menu'
 import { CollectionsPanelHeader } from './collections-panel-header'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { placeCollectionItem } from './place-item'
+import type { PrepareItemContent } from './save-shapes'
 import { activeCollectionId, collectionsPanelOpen } from './state'
 import { useItemDrag } from './use-item-drag'
 
@@ -59,6 +60,8 @@ const messages = defineMessages({
 /** @public */
 export interface CollectionsPanelProps {
 	source: CollectionSource
+	/** Changes an item's content before the panel's + saves it, e.g. {@link wrapInGroup}. */
+	prepareItemContent?: PrepareItemContent
 }
 
 /**
@@ -67,7 +70,7 @@ export interface CollectionsPanelProps {
  * viewport; dragging one out drops it under the pointer.
  * @public @react
  */
-export function CollectionsPanel({ source }: CollectionsPanelProps) {
+export function CollectionsPanel({ source, prepareItemContent }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
@@ -137,6 +140,7 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 			>
 				<CollectionsPanelHeader
 					source={source}
+					prepareItemContent={prepareItemContent}
 					collections={collections}
 					current={current}
 					itemCount={items.length}
