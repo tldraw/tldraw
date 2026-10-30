@@ -387,11 +387,11 @@ export {
 	type TLUiCommandPaletteSuggestions,
 } from './lib/ui/components/CommandPalette/CommandPaletteShell'
 export {
-	CommandPaletteCollapsed,
+	CommandPaletteOnDemand,
 	CommandPalettePinned,
 	useCommandPaletteActiveItemId,
 	useCommandPaletteQuery,
-	type TLUiCommandPaletteCollapsedProps,
+	type TLUiCommandPaletteOnDemandProps,
 	type TLUiCommandPalettePinnedProps,
 } from './lib/ui/components/CommandPalette/CommandPaletteContext'
 export {

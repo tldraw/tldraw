@@ -4,7 +4,7 @@ import { ReactNode, StrictMode, useEffect, useState } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import {
-	CommandPaletteCollapsed,
+	CommandPaletteOnDemand,
 	CommandPalettePinned,
 	useCommandPaletteActiveItemId,
 	useCommandPaletteStore,
@@ -757,11 +757,11 @@ describe('CommandPaletteShell', () => {
 	it('does not record items run from a collapsed submenu', async () => {
 		const onSelect = vi.fn()
 		const { rendered } = await renderShell(
-			<CommandPaletteCollapsed>
+			<CommandPaletteOnDemand>
 				<TldrawUiMenuSubmenu id="news" label="News">
 					{item('note', 'Note', onSelect)}
 				</TldrawUiMenuSubmenu>
-			</CommandPaletteCollapsed>
+			</CommandPaletteOnDemand>
 		)
 		fireEvent.click(await rendered.findByTestId('command-palette.submenu.News'))
 		fireEvent.click(rendered.getByTestId('command-palette.item.note'))
@@ -773,11 +773,11 @@ describe('CommandPaletteShell', () => {
 		const { rendered, input } = await renderShell(
 			<>
 				{item('alpha', 'Alpha')}
-				<CommandPaletteCollapsed>
+				<CommandPaletteOnDemand>
 					<TldrawUiMenuSubmenu id="news" label="">
 						{item('note', 'Note')}
 					</TldrawUiMenuSubmenu>
-				</CommandPaletteCollapsed>
+				</CommandPaletteOnDemand>
 			</>
 		)
 		await rendered.findByTestId('command-palette.item.alpha')

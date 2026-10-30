@@ -127,8 +127,8 @@ export interface TLUiCommandPalettePinnedProps {
 }
 
 /** @public */
-export interface TLUiCommandPaletteCollapsedProps {
-	/** The submenu to keep collapsed. */
+export interface TLUiCommandPaletteOnDemandProps {
+	/** The submenu to open on demand. */
 	children: ReactNode
 }
 
@@ -149,6 +149,6 @@ export function CommandPalettePinned({ children }: TLUiCommandPalettePinnedProps
  *
  * @public @react
  */
-export function CommandPaletteCollapsed({ children }: TLUiCommandPaletteCollapsedProps) {
+export function CommandPaletteOnDemand({ children }: TLUiCommandPaletteOnDemandProps) {
 	return <CommandPalettePathProvider collapseSubmenu>{children}</CommandPalettePathProvider>
 }
