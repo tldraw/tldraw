@@ -33,7 +33,7 @@ export const MCP_PROTOCOL_VERSION = '2025-11-25'
 export const MCP_SERVER_INFO = {
 	name: 'tldraw-boards',
 	title: 'tldraw boards',
-	version: '3.4.0',
+	version: '3.5.0',
 }
 
 /**
@@ -49,16 +49,17 @@ export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
 }
 
 const SEARCHING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, get_page_screenshot returns a PNG of a whole page or of any rectangle on it, and get_cluster_screenshot returns a PNG of only the clusters or shapes you name. get_cluster_info describes the shapes inside a cluster when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
 
 const LISTING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, get_page_screenshot returns a PNG of a whole page or of any rectangle on it, and get_cluster_screenshot returns a PNG of only the clusters or shapes you name. get_cluster_info describes the shapes inside a cluster when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
 
 export const SEARCH_BOARDS_TOOL_NAME = 'search_boards'
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
 export const PAGE_INFO_TOOL_NAME = 'get_page_info'
 export const CLUSTER_INFO_TOOL_NAME = 'get_cluster_info'
 export const CLUSTER_SCREENSHOT_TOOL_NAME = 'get_cluster_screenshot'
+export const PAGE_SCREENSHOT_TOOL_NAME = 'get_page_screenshot'
 export const CREATE_BOARD_TOOL_NAME = 'create_board'
 export const RENAME_BOARD_TOOL_NAME = 'rename_board'
 export const LIST_WORKSPACES_TOOL_NAME = 'list_workspaces'
@@ -71,6 +72,7 @@ export const TOOL_NAMES = [
 	BOARD_INFO_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
+	PAGE_SCREENSHOT_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 ] as const
 
@@ -318,19 +320,125 @@ export function parseClusterInfoInput(input: unknown): {
 	}
 }
 
+/** What get_cluster_screenshot draws: whole clusters, or shapes named one by one. */
+export type ShapeScreenshotTarget =
+	| { kind: 'clusters'; clusterIds: string[] }
+	| { kind: 'shapes'; shapeIds: string[] }
+
+// Each id rides in the signed render token, which travels in the render page's URL. Bounded so a
+// call cannot build a URL past what the edge accepts and spend a browser session timing out on it.
+export const MAX_SCREENSHOT_SHAPE_IDS = 100
+
 export function parseClusterScreenshotInput(input: unknown): {
 	boardId: string
 	page: PageSelector
-	clusterIds: string[]
+	target: ShapeScreenshotTarget
 	theme: 'light' | 'dark'
 } {
 	const value = requireArgumentsObject(input)
+	// Refused rather than ignored: a model that sent bounds expects a region and would read a
+	// cluster-fitted picture as one.
+	if (isGiven(value.bounds)) {
+		throw new Error(
+			'get_cluster_screenshot draws only the clusters or shapes you name. To see everything inside a rectangle, call get_page_screenshot with bounds.'
+		)
+	}
+	const hasClusters = isGiven(value.clusterIds)
+	const hasShapes = isGiven(value.shapeIds)
+	if (hasClusters && hasShapes) {
+		throw new Error('Pass clusterIds or shapeIds, not both.')
+	}
+	if (!hasClusters && !hasShapes) {
+		throw new Error(
+			'clusterIds or shapeIds is required: cluster ids from get_page_info, or shape ids from get_cluster_info. To see a whole page, call get_page_screenshot.'
+		)
+	}
 	return {
 		boardId: parseBoardId(value.boardId),
 		page: parsePageSelector(value.page),
-		clusterIds: parseClusterIds(value.clusterIds),
+		target: hasClusters
+			? { kind: 'clusters', clusterIds: parseClusterIds(value.clusterIds) }
+			: { kind: 'shapes', shapeIds: parseShapeIds(value.shapeIds) },
 		theme: parseTheme(value.theme),
 	}
+}
+
+/** A page-space rectangle: `x` and `y` are its top-left corner. */
+export interface PageRect {
+	x: number
+	y: number
+	w: number
+	h: number
+}
+
+export function parsePageScreenshotInput(input: unknown): {
+	boardId: string
+	page: PageSelector
+	bounds: PageRect | null
+	theme: 'light' | 'dark'
+} {
+	const value = requireArgumentsObject(input)
+	if (isGiven(value.clusterIds) || isGiven(value.shapeIds)) {
+		throw new Error(
+			'get_page_screenshot draws everything on the page. To draw only some clusters or shapes, call get_cluster_screenshot.'
+		)
+	}
+	return {
+		boardId: parseBoardId(value.boardId),
+		page: parsePageSelector(value.page),
+		bounds: isGiven(value.bounds) ? parseScreenshotBounds(value.bounds) : null,
+		theme: parseTheme(value.theme),
+	}
+}
+
+// A model that fills every field in a schema sends null or [] for the ones it meant to leave out, so
+// those read as absent when deciding which target a call names.
+function isGiven(value: unknown) {
+	return value !== undefined && value !== null && !(Array.isArray(value) && value.length === 0)
+}
+
+function parseShapeIds(value: unknown): string[] {
+	const ids = typeof value === 'string' ? [value] : value
+	if (!Array.isArray(ids) || ids.length === 0) {
+		throw new Error('shapeIds is required: a shape id, or an array of them')
+	}
+	for (const id of ids) {
+		if (typeof id !== 'string' || !id.startsWith('shape:')) {
+			throw new Error('shapeIds must be shape ids (the "shape:…" ids from get_cluster_info)')
+		}
+	}
+	const unique = [...new Set(ids as string[])]
+	if (unique.length > MAX_SCREENSHOT_SHAPE_IDS) {
+		throw new Error(
+			`shapeIds can name at most ${MAX_SCREENSHOT_SHAPE_IDS} shapes. Pass clusterIds for whole clusters, or call get_page_screenshot with bounds for a region.`
+		)
+	}
+	return unique
+}
+
+function parseScreenshotBounds(value: unknown): PageRect {
+	const rect = value as Partial<Record<keyof PageRect, unknown>>
+	const isNumber = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n)
+	if (
+		!value ||
+		typeof value !== 'object' ||
+		!isNumber(rect.x) ||
+		!isNumber(rect.y) ||
+		!isNumber(rect.w) ||
+		!isNumber(rect.h) ||
+		rect.w <= 0 ||
+		rect.h <= 0
+	) {
+		throw new Error(
+			'bounds must be a page-space rectangle { x, y, w, h }: numbers, with w and h greater than 0'
+		)
+	}
+	if (rect.w > MAX_SCREENSHOT_BOUNDS_WIDTH || rect.h > MAX_SCREENSHOT_BOUNDS_HEIGHT) {
+		throw new Error(
+			`bounds can be at most ${MAX_SCREENSHOT_BOUNDS_WIDTH} wide and ${MAX_SCREENSHOT_BOUNDS_HEIGHT} tall: anything larger does not fit one ${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT} image. Split the area into smaller rectangles, or omit bounds for the whole page.`
+		)
+	}
+	return { x: rect.x, y: rect.y, w: rect.w, h: rect.h }
 }
 
 export const BOARD_NAME_MAX_LENGTH = 200
@@ -472,6 +580,106 @@ export function toolPageResult(name: string, base64: string): ToolResult {
 export function toolJsonResult(value: unknown): ToolResult {
 	return {
 		content: [{ type: 'text', text: JSON.stringify(value) }],
+	}
+}
+
+// get_page_screenshot sets the render page's camera itself rather than asking it to fit content, so
+// the worker knows exactly what each image covers and can tell the model. The render page applies
+// the camera with `editor.setCamera`, which clamps zoom to the editor's default zoom steps. A zoom
+// outside them is clamped around the editor's current camera rather than the target, and the image
+// would show somewhere other than the bounds reported for it, so every frame stays inside them.
+export const SCREENSHOT_MIN_ZOOM = 0.05
+export const SCREENSHOT_MAX_ZOOM = 8
+
+export const MAX_SCREENSHOT_BOUNDS_WIDTH = DEFAULT_THUMBNAIL_WIDTH / SCREENSHOT_MIN_ZOOM
+export const MAX_SCREENSHOT_BOUNDS_HEIGHT = DEFAULT_THUMBNAIL_HEIGHT / SCREENSHOT_MIN_ZOOM
+
+// The margin the render page leaves around a content fit (getRepresentativeContentInset in
+// thumbnail-render.tsx), so a whole-page shot is framed like a cluster shot of the same shapes.
+export const PAGE_SCREENSHOT_INSET = Math.max(
+	48,
+	Math.min(160, DEFAULT_THUMBNAIL_WIDTH * 0.12, DEFAULT_THUMBNAIL_HEIGHT * 0.18)
+)
+
+export interface ScreenshotFrame {
+	camera: { x: number; y: number; z: number }
+	/** The page-space rectangle the image shows, edge to edge. */
+	covers: PageRect
+}
+
+/**
+ * Centres `target` in the image at the largest zoom that fits it, inside `inset` pixels of margin,
+ * the way `editor.zoomToBounds` does. A target too large for the minimum zoom is cropped to its
+ * centre, and `covers` says so by being smaller than it. No target (an empty page) shows the origin
+ * at 100%.
+ */
+export function frameScreenshot(target: PageRect | null, inset: number): ScreenshotFrame {
+	const width = DEFAULT_THUMBNAIL_WIDTH
+	const height = DEFAULT_THUMBNAIL_HEIGHT
+	const z = target
+		? Math.min(
+				SCREENSHOT_MAX_ZOOM,
+				Math.max(
+					SCREENSHOT_MIN_ZOOM,
+					Math.min((width - inset) / target.w, (height - inset) / target.h)
+				)
+			)
+		: 1
+	const x = target ? -target.x + (width - target.w * z) / 2 / z : 0
+	const y = target ? -target.y + (height - target.h * z) / 2 / z : 0
+	// `0 - x` rather than `-x`, which gives -0 for a camera at the origin.
+	return { camera: { x, y, z }, covers: { x: 0 - x, y: 0 - y, w: width / z, h: height / z } }
+}
+
+/** The extent of a page's shapes as the measure render reported them, or null for an empty page. */
+export function getContentBounds(
+	page: ResolvedPageOk,
+	measurements: Record<string, ShapeMeasurement>
+): PageRect | null {
+	let minX = Infinity
+	let minY = Infinity
+	let maxX = -Infinity
+	let maxY = -Infinity
+	for (const shape of page.shapes) {
+		const box = measurements[shape.id as string]
+		if (!box) continue
+		minX = Math.min(minX, box.minX)
+		minY = Math.min(minY, box.minY)
+		maxX = Math.max(maxX, box.maxX)
+		maxY = Math.max(maxY, box.maxY)
+	}
+	return minX <= maxX ? { x: minX, y: minY, w: maxX - minX, h: maxY - minY } : null
+}
+
+// Hundredths of a page unit are below anything a 1200px image can resolve.
+function roundRect(rect: PageRect): PageRect {
+	const round = (n: number) => Math.round(n * 100) / 100
+	return { x: round(rect.x), y: round(rect.y), w: round(rect.w), h: round(rect.h) }
+}
+
+/**
+ * The page tool's answer: the image, preceded by what it covers. `pageBounds` is only known for a
+ * whole-page shot, whose framing is computed from it.
+ */
+export function getPageScreenshotResult(
+	pageName: string,
+	base64: string,
+	{ covers, pageBounds }: { covers: PageRect; pageBounds?: PageRect | null }
+): ToolResult {
+	return {
+		content: [
+			{
+				type: 'text',
+				text: JSON.stringify({
+					pageName,
+					bounds: roundRect(covers),
+					...(pageBounds !== undefined
+						? { pageBounds: pageBounds ? roundRect(pageBounds) : null }
+						: {}),
+				}),
+			},
+			{ type: 'image', data: base64, mimeType: 'image/png' },
+		],
 	}
 }
 
@@ -781,8 +989,10 @@ export function clusterPage(page: ResolvedPageOk, measurements: Record<string, S
 // so it is reduced to this once and stored (mcpClusterIndex.ts), and the three tools that cluster
 // read it back instead of measuring again.
 //
-// Bounds are deliberately not kept: they decide which atoms merge, and that decision is already in
-// `clusters`. The text is, because it is not derivable — `getShapeText` can approximate it from the
+// Per-shape bounds are deliberately not kept: they decide which atoms merge, and that decision is
+// already in `clusters`. The page's overall extent is, because get_page_screenshot frames on it and
+// would otherwise have to measure again to answer from a stored index. The text is kept because it is
+// not derivable — `getShapeText` can approximate it from the
 // stored record, but only the editor knows what a shape renders, so dropping it would quietly change
 // what get_cluster_info reports for exactly the shapes a fallback handles worst.
 
@@ -800,12 +1010,17 @@ export interface PageClusterIndex {
 	clusters: { id: string; label: string; keywords: string[]; shapeIds: string[] }[]
 	/** The text the measure render's editor reported, by shape id. Absent for shapes with none. */
 	text: Record<string, string>
+	/** The page's content extent (see getContentBounds), or null for an empty page. */
+	bounds: PageRect | null
 }
 
-export const CLUSTER_INDEX_FORMAT_VERSION = 1
+export const CLUSTER_INDEX_FORMAT_VERSION = 2
 
 /** Reduces a page's clusters to the form that is stored. */
-export function buildClusterIndex(clusters: ShapeCluster[]): PageClusterIndex {
+export function buildClusterIndex(
+	clusters: ShapeCluster[],
+	bounds: PageRect | null
+): PageClusterIndex {
 	const text: Record<string, string> = {}
 	for (const cluster of clusters) {
 		for (const shape of cluster.shapes) {
@@ -822,6 +1037,7 @@ export function buildClusterIndex(clusters: ShapeCluster[]): PageClusterIndex {
 			shapeIds: cluster.shapes.map((shape) => shape.id),
 		})),
 		text,
+		bounds,
 	}
 }
 
@@ -842,6 +1058,7 @@ export function parseClusterIndex(json: string): PageClusterIndex | null {
 	const candidate = value as PageClusterIndex | null
 	if (!candidate || candidate.v !== CLUSTER_INDEX_FORMAT_VERSION) return null
 	if (!Array.isArray(candidate.clusters) || !candidate.text) return null
+	if (candidate.bounds !== null && typeof candidate.bounds !== 'object') return null
 	return candidate
 }
 
@@ -969,6 +1186,28 @@ export function pickClusterShapes(
 	}
 }
 
+/**
+ * The shapes to draw for a `get_cluster_screenshot` call that names shapes directly. Read off the
+ * snapshot, so unlike clusters it needs no measure render to resolve.
+ */
+export function pickShapesOnPage(
+	page: ResolvedPageOk,
+	shapeIds: string[],
+	selector: PageSelector
+): PickedShapes {
+	const onPage = new Set(page.shapes.map((shape) => shape.id as string))
+	const missing = shapeIds.filter((id) => !onPage.has(id))
+	if (missing.length > 0) {
+		return {
+			ok: false,
+			result: toolError(
+				`No shape on page ${describePageSelector(selector)} with id ${missing.map((id) => `"${id}"`).join(', ')}. Call get_cluster_info to list a cluster's shapes.`
+			),
+		}
+	}
+	return { ok: true, shapeIds }
+}
+
 // The shape as stored, with one substitution: `props.richText` — a ProseMirror document, deeply
 // nested and unreadable — is dropped in favour of the plain string the editor's ShapeUtil.getText
 // reported for that shape during the measure render. Everything else is passed through untouched, so
@@ -1004,6 +1243,7 @@ export function getToolDefinitions(nameMatchingEnabled: boolean) {
 		getBoardInfoToolDefinition(),
 		getPageInfoToolDefinition(),
 		getClusterInfoToolDefinition(),
+		getPageScreenshotToolDefinition(),
 		getClusterScreenshotToolDefinition(),
 	]
 }
@@ -1224,35 +1464,69 @@ function getClusterInfoToolDefinition() {
 	}
 }
 
-function getClusterScreenshotToolDefinition() {
+const THEME_PROPERTY = {
+	type: 'string',
+	enum: ['light', 'dark'],
+	default: 'light',
+}
+
+function getPageScreenshotToolDefinition() {
 	return {
-		name: CLUSTER_SCREENSHOT_TOOL_NAME,
-		title: 'Get tldraw cluster screenshot',
-		description: `Return a ${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT} PNG of one or more clusters from get_page_info, preceded by the page name. The camera fits the clusters requested and only their shapes are drawn, so nothing else on the page appears. Pass several ids to see how those clusters sit relative to each other in a single image. This is the direct route from a cluster id to a picture — get_cluster_info is only needed when the individual shapes matter.`,
+		name: PAGE_SCREENSHOT_TOOL_NAME,
+		title: 'Get tldraw page screenshot',
+		description: `Return a ${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT} PNG of one page with everything on it drawn. Without bounds the camera fits the whole page; pass bounds to zoom into a region, for instance to read small text. The image is preceded by JSON: pageName, and bounds, the page-space rectangle the image shows, so pixel (px, py) is page point (bounds.x + px * bounds.w / ${DEFAULT_THUMBNAIL_WIDTH}, bounds.y + py * bounds.h / ${DEFAULT_THUMBNAIL_HEIGHT}). A whole-page shot also returns pageBounds, the extent of the page's shapes; a page too large for one image is cropped to its centre, and bounds is then smaller than pageBounds. Use these to pick bounds for a closer look. To draw only some clusters or shapes, use get_cluster_screenshot.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
 			properties: {
 				boardId: BOARD_ID_PROPERTY,
-				page: {
-					type: ['number', 'string'],
-					description:
-						'Which page: either its 0-based index or its page id from get_board_info. Ids survive page reordering, indexes do not. Defaults to 0, the first page.',
-					default: 0,
+				page: PAGE_PROPERTY,
+				bounds: {
+					type: 'object',
+					additionalProperties: false,
+					description: `A page-space rectangle for the camera to fit; x and y are its top-left corner. At most ${MAX_SCREENSHOT_BOUNDS_WIDTH} wide and ${MAX_SCREENSHOT_BOUNDS_HEIGHT} tall. Omit for the whole page.`,
+					properties: {
+						x: { type: 'number' },
+						y: { type: 'number' },
+						w: { type: 'number', exclusiveMinimum: 0, maximum: MAX_SCREENSHOT_BOUNDS_WIDTH },
+						h: { type: 'number', exclusiveMinimum: 0, maximum: MAX_SCREENSHOT_BOUNDS_HEIGHT },
+					},
+					required: ['x', 'y', 'w', 'h'],
 				},
+				theme: THEME_PROPERTY,
+			},
+			required: ['boardId'],
+		},
+		annotations: READ_ONLY_ANNOTATIONS,
+	}
+}
+
+function getClusterScreenshotToolDefinition() {
+	return {
+		name: CLUSTER_SCREENSHOT_TOOL_NAME,
+		title: 'Get tldraw cluster screenshot',
+		description: `Return a ${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT} PNG of only the clusters or shapes you name, preceded by the page name. Pass clusterIds from get_page_info or shapeIds from get_cluster_info, not both. The camera fits them and nothing else on the page is drawn; pass several to see how they sit relative to each other. To see everything in a region of the page, use get_page_screenshot.`,
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				boardId: BOARD_ID_PROPERTY,
+				page: PAGE_PROPERTY,
 				clusterIds: {
 					type: 'array',
 					items: { type: 'string' },
 					description:
-						'One or more cluster ids from get_page_info. All of them must be on the given page. A bare string is also accepted for a single cluster.',
+						'One or more cluster ids from get_page_info, all on the given page. A bare string is also accepted for a single cluster.',
 				},
-				theme: {
-					type: 'string',
-					enum: ['light', 'dark'],
-					default: 'light',
+				shapeIds: {
+					type: 'array',
+					items: { type: 'string' },
+					maxItems: MAX_SCREENSHOT_SHAPE_IDS,
+					description: `Instead of clusterIds: up to ${MAX_SCREENSHOT_SHAPE_IDS} shape ids from get_cluster_info, all on the given page. Their descendants are drawn too.`,
 				},
+				theme: THEME_PROPERTY,
 			},
-			required: ['boardId', 'page', 'clusterIds'],
+			required: ['boardId'],
 		},
 		annotations: READ_ONLY_ANNOTATIONS,
 	}

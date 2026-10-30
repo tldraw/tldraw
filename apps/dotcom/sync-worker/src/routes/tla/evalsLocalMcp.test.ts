@@ -71,6 +71,40 @@ describe('local eval fixture MCP', () => {
 		})
 	})
 
+	it('validates screenshot targets as production does, and marks the renders it lacks', async () => {
+		await testRoutes.fetch(
+			request('/app/__test__/evals/sessions/shots/boards/roadmap', 'PUT', {
+				snapshot: makeSnapshot([{ id: 'page:one', index: 'a1', name: 'One', shapes: 1 }]),
+				measurements: {},
+				shots: {},
+			}),
+			localEnv
+		)
+		async function call(name: string, args: object) {
+			const response = await testRoutes.fetch(
+				request('/app/__test__/evals/sessions/shots/mcp', 'POST', {
+					jsonrpc: '2.0',
+					id: 1,
+					method: 'tools/call',
+					params: { name, arguments: { boardId: 'roadmap', ...args } },
+				}),
+				localEnv
+			)
+			return ((await response.json()) as any).result.content[0].text as string
+		}
+
+		expect(await call('get_cluster_screenshot', { shapeIds: ['shape:nope'] })).toContain(
+			'No shape on page 0 with id "shape:nope"'
+		)
+		expect(await call('get_cluster_screenshot', { shapeIds: ['shape:page:one-0'] })).toContain(
+			'[harness-gap]'
+		)
+		expect(await call('get_page_screenshot', { shapeIds: ['shape:page:one-0'] })).toContain(
+			'call get_cluster_screenshot'
+		)
+		expect(await call('get_page_screenshot', {})).toContain('[harness-gap]')
+	})
+
 	it('serves search_boards over the session’s fixture boards', async () => {
 		for (const [boardId, boardName] of [
 			['roadmap', 'Q4 roadmap'],

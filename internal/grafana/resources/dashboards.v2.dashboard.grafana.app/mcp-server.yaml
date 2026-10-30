@@ -24,9 +24,9 @@ spec:
           version: v0
   cursorSync: Crosshair
   description:
-    The authenticated MCP server on the sync worker at POST /app/mcp, which serves get_board_info,
-    get_page_info, get_cluster_info and get_cluster_screenshot for any tldraw.com board the signed-in
-    caller can see. Every request needs an OAuth access token from the tldraw Clerk instance and a
+    The authenticated MCP server on the sync worker at POST /app/mcp, which serves the board tools
+    (search, board, page and cluster info, and page and cluster screenshots) for any tldraw.com board
+    the signed-in caller can see. Every request needs an OAuth access token from the tldraw Clerk instance and a
     user the mcp_server_access flag names; refusals are on the mcp_server_auth_refusal event. Protocol traffic comes from the mcp_server_tool_call and mcp_server_initialize
     events; the render panels are the source:mcp slice of mcp_shared_board_screenshot, whose
     cross-surface view (og and queue too) stays on Dotcom events. This server only — the separate
@@ -1350,9 +1350,8 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Which of the four tools callers actually use: get_board_info, get_page_info,
-          get_cluster_info and get_cluster_screenshot. `unknown` is a call for a tool name
-          this server does not have.'
+        description: 'Which tools callers actually use, one series per tool name. `unknown`
+          is a call for a tool name this server does not have.'
         id: 5
         links: []
         title: Tool calls by tool

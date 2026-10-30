@@ -216,7 +216,8 @@ function getRenderOrigin(env: Environment) {
 	return env.MCP_SCREENSHOT_RENDER_ORIGIN
 }
 
-// Renders one content-fit page of a resolved board through the render page and returns the PNG.
+// Renders one page of a resolved board through the render page and returns the PNG: fitted to its
+// content or to `shapeIds`, or through an explicit `viewport`.
 // Mints the short-lived signed render job, so the browser session only ever visits the
 // tldraw-owned render page; callers decide where (and whether) to cache the result.
 export async function captureThumbnailScreenshot(
@@ -226,6 +227,7 @@ export async function captureThumbnailScreenshot(
 		surface,
 		pageId,
 		shapeIds,
+		viewport,
 		theme,
 		width,
 		height,
@@ -245,6 +247,12 @@ export async function captureThumbnailScreenshot(
 		 * camera to their common bounds and draws only them.
 		 */
 		shapeIds?: string[]
+		/**
+		 * The camera to render through instead of fitting content, so the caller knows exactly what the
+		 * image covers. Ignored by the render page when `shapeIds` is set. The render page clamps zoom
+		 * to the editor's zoom steps, so a caller must keep `z` inside them (see frameScreenshot).
+		 */
+		viewport?: { x: number; y: number; z: number }
 		theme: 'light' | 'dark'
 		width: number
 		height: number
@@ -273,15 +281,14 @@ export async function captureThumbnailScreenshot(
 		// one gate and render it under another.
 		access: board.access,
 		surface,
-		camera: 'content',
+		...(viewport ? null : { camera: 'content' as const }),
 		...(pageId ? { pageId } : null),
 		...(shapeIds?.length ? { shapeIds } : null),
 		...(capture ? { capture } : null),
-		// Ignored while `camera` is 'content', which is what every surface mints; carried because the
-		// job type keeps the explicit-viewport path available (see ThumbnailRenderJob).
-		x: 0,
-		y: 0,
-		z: 1,
+		// Read only when `camera` is absent, which is the explicit-viewport path.
+		x: viewport?.x ?? 0,
+		y: viewport?.y ?? 0,
+		z: viewport?.z ?? 1,
 		width,
 		height,
 		theme,

@@ -235,10 +235,9 @@ function ThumbnailRenderPage({
 						if (!prepareLiveCapture(editor, renderParams.shapeIds)) return
 					}
 					editor.updateInstanceState({ isReadonly: true })
-					// `content` is what every surface asks for today; an explicit viewport is still honoured
-					// (see ThumbnailRenderParams) so the worker can start sending one without waiting on a
-					// separate client deploy to teach this page how to handle it. A shape set overrides
-					// both, framing just those shapes.
+					// An explicit viewport is what the MCP page screenshot sends, so the worker knows what
+					// the image covers; it must stay inside the editor's zoom steps, which setCamera clamps
+					// to. A shape set overrides both, framing just those shapes.
 					if (renderParams.shapeIds?.length) {
 						fitShapesCamera(editor, renderParams.shapeIds, width, height)
 					} else if (renderParams.camera === 'content') {

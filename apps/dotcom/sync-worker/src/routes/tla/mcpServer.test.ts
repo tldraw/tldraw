@@ -10,6 +10,8 @@ import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
+	PAGE_SCREENSHOT_INSET,
+	frameScreenshot,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
@@ -297,13 +299,17 @@ describe('tool inputs', () => {
 				clusterIds: ['cluster:one', 'cluster:two'],
 				theme: 'dark',
 			})
-		).toMatchObject({ boardId: 'abc', clusterIds: ['cluster:one', 'cluster:two'], theme: 'dark' })
+		).toMatchObject({
+			boardId: 'abc',
+			target: { kind: 'clusters', clusterIds: ['cluster:one', 'cluster:two'] },
+			theme: 'dark',
+		})
 		// A bare string is accepted, because asking for one cluster is the common case.
 		expect(
 			parseClusterScreenshotInput({ boardId: 'abc', clusterIds: 'cluster:one' })
-		).toMatchObject({ clusterIds: ['cluster:one'], theme: 'light' })
+		).toMatchObject({ target: { kind: 'clusters', clusterIds: ['cluster:one'] }, theme: 'light' })
 		expect(() => parseClusterScreenshotInput({ boardId: 'abc', clusterIds: [] })).toThrow(
-			'clusterIds is required'
+			'clusterIds or shapeIds is required'
 		)
 	})
 
@@ -321,7 +327,7 @@ describe('tool inputs', () => {
 })
 
 describe('MCP server', () => {
-	it('lists the replacement tools without the old page screenshot tool', async () => {
+	it('lists every tool', async () => {
 		const result = await resultOf(
 			await mcpServer(makeRpcRequest('tools/list', undefined, { userId: 'user_1' }), makeEnv())
 		)
@@ -333,6 +339,7 @@ describe('MCP server', () => {
 			'get_board_info',
 			'get_page_info',
 			'get_cluster_info',
+			'get_page_screenshot',
 			'get_cluster_screenshot',
 		])
 	})
@@ -476,7 +483,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.4.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.5.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -1907,6 +1914,223 @@ describe('shape screenshots', () => {
 
 // The behaviour authenticating this server was for: the gate is "can this caller see this board"
 // rather than "is this board public", which is what makes a user's own private files reachable.
+describe('screenshot targets', () => {
+	it('needs only a board id on either screenshot tool, defaulting the page to the first', async () => {
+		const result = await resultOf(await mcpServer(makeRpcRequest('tools/list'), makeEnv()))
+		for (const name of ['get_page_screenshot', 'get_cluster_screenshot']) {
+			const tool = result.tools.find((tool: any) => tool.name === name)
+			expect(tool.inputSchema.required).toEqual(['boardId'])
+			expect(tool.inputSchema.properties.page.default).toBe(0)
+		}
+	})
+
+	it('screenshots named shapes on the first page without measuring it', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+
+		const result = await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', shapeIds: ['shape:page:a-1'] },
+			env,
+			'user_shapes'
+		)
+
+		expect(result.content).toEqual([
+			{ type: 'text', text: 'Cover' },
+			{ type: 'image', data: 'AQID', mimeType: 'image/png' },
+		])
+		// Shape ids resolve against the snapshot, so the only session is the capture.
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['screenshot'])
+		const job = await verifyThumbnailRenderToken(env, jobTokenOfCall(env, -1))
+		expect(job).toMatchObject({ pageId: 'page:a', shapeIds: ['shape:page:a-1'], camera: 'content' })
+		expect(blobsWithPrefix(env, 'clusters:')).toEqual(['clusters:none'])
+	})
+
+	it('refuses shape ids that are not on the page, naming them, without spending a render', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+
+		const result = await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', shapeIds: ['shape:page:a-0', 'shape:page:b-0'] },
+			env,
+			'user_shapes_missing'
+		)
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('"shape:page:b-0"')
+		expect(result.content[0].text).not.toContain('"shape:page:a-0"')
+		expect(failureBlobsOf(env)).toEqual(['failure:shape_not_found'])
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+	})
+
+	it('refuses a call with more than one target before touching the board', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		const calls: Array<[string, object, string]> = [
+			['get_cluster_screenshot', { clusterIds: ['c'], shapeIds: ['shape:s'] }, 'not both'],
+			['get_cluster_screenshot', {}, 'clusterIds or shapeIds is required'],
+			['get_cluster_screenshot', { bounds: { x: 0, y: 0, w: 10, h: 10 } }, 'get_page_screenshot'],
+			['get_page_screenshot', { clusterIds: ['c'] }, 'get_cluster_screenshot'],
+		]
+
+		for (const [tool, args, message] of calls) {
+			const result = await callTool(tool, { boardId: 'abc', ...args }, env, 'user_targets')
+			expect(result.isError).toBe(true)
+			expect(result.content[0].text).toContain(message)
+		}
+		expect(failureBlobsOf(env)).toEqual(Array(calls.length).fill('failure:invalid_input'))
+		expect(getPublishedFileInfo).not.toHaveBeenCalled()
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+	})
+})
+
+describe('page screenshots', () => {
+	// Page 0's two shapes, as the measure render reports them: together 180 wide and 80 tall.
+	const MEASURED = {
+		'shape:page:a-0': { minX: 0, minY: 0, maxX: 80, maxY: 80 },
+		'shape:page:a-1': { minX: 100, minY: 0, maxX: 180, maxY: 80 },
+	}
+
+	function makePageEnv(measured: Record<string, any> = MEASURED) {
+		const env = makeEnv()
+		;(env as any).BROWSER = makeMeasuringBrowserBinding(() => env, measured)
+		return env
+	}
+
+	function framingOf(result: any) {
+		return JSON.parse(result.content[0].text)
+	}
+
+	it('draws the whole page through an explicit camera and reports what it covers', async () => {
+		mockPublishedBoard()
+		const env = makePageEnv()
+
+		const result = await callTool('get_page_screenshot', { boardId: 'abc' }, env, 'user_page')
+
+		const pageBounds = { x: 0, y: 0, w: 180, h: 80 }
+		const frame = frameScreenshot(pageBounds, PAGE_SCREENSHOT_INSET)
+		expect(framingOf(result)).toEqual({
+			pageName: 'Cover',
+			bounds: {
+				x: expect.closeTo(frame.covers.x, 2),
+				y: expect.closeTo(frame.covers.y, 2),
+				w: expect.closeTo(frame.covers.w, 2),
+				h: expect.closeTo(frame.covers.h, 2),
+			},
+			pageBounds,
+		})
+		expect(result.content[1]).toEqual({ type: 'image', data: 'AQID', mimeType: 'image/png' })
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'screenshot'])
+
+		// The camera is the worker's, not a content fit, and no shape ids ride in the token: its size
+		// does not grow with the page.
+		const job = await verifyThumbnailRenderToken(env, jobTokenOfCall(env, -1))
+		expect(job).toMatchObject({ pageId: 'page:a', ...frame.camera })
+		expect(job!.camera).toBeUndefined()
+		expect(job!.shapeIds).toBeUndefined()
+	})
+
+	it('serves a cached whole page, framing included, without any render', async () => {
+		mockPublishedBoard()
+		const env = makePageEnv()
+		const first = await callTool('get_page_screenshot', { boardId: 'abc' }, env, 'user_page_a')
+		const second = await callTool('get_page_screenshot', { boardId: 'abc' }, env, 'user_page_b')
+
+		expect(second.content).toEqual(first.content)
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'screenshot'])
+		expect(blobsWithPrefix(env, 'cache:')).toEqual(['cache:miss', 'cache:hit'])
+		const bucket = env.MCP_DATA_BUCKET as unknown as { store: Map<string, unknown> }
+		expect([...bucket.store.keys()]).toEqual([
+			expect.stringMatching(/^mcp\/published\/abc\/1751234567890\/1200x630\/light\/page-/),
+		])
+	})
+
+	it('frames from the cluster index after get_page_info, spending only the capture', async () => {
+		mockPublishedBoard()
+		const env = makePageEnv()
+		await callTool('get_page_info', { boardId: 'abc' }, env, 'user_page_index')
+
+		const result = await callTool('get_page_screenshot', { boardId: 'abc' }, env, 'user_page_index')
+
+		expect(framingOf(result).pageBounds).toEqual({ x: 0, y: 0, w: 180, h: 80 })
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'screenshot'])
+		expect(blobsWithPrefix(env, 'clusters:').at(-1)).toBe('clusters:hit')
+	})
+
+	it('reports a page too large for one image as cropped to its centre', async () => {
+		mockPublishedBoard()
+		const env = makePageEnv({
+			'shape:page:a-0': { minX: 0, minY: 0, maxX: 80, maxY: 80 },
+			'shape:page:a-1': { minX: 99920, minY: 0, maxX: 100000, maxY: 80 },
+		})
+
+		const result = await callTool('get_page_screenshot', { boardId: 'abc' }, env, 'user_big')
+
+		// At the 5% minimum zoom the image spans 24000 of the page's 100000.
+		const { bounds, pageBounds } = framingOf(result)
+		expect(pageBounds).toEqual({ x: 0, y: 0, w: 100000, h: 80 })
+		expect(bounds).toEqual({ x: 38000, y: -6260, w: 24000, h: 12600 })
+	})
+
+	it('draws an empty page without measuring it', async () => {
+		mockPublishedBoard()
+		const env = makePageEnv()
+
+		const result = await callTool('get_page_screenshot', { boardId: 'abc', page: 2 }, env, 'user_e')
+
+		expect(framingOf(result)).toEqual({
+			pageName: 'Blank',
+			bounds: { x: 0, y: 0, w: 1200, h: 630 },
+			pageBounds: null,
+		})
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['screenshot'])
+	})
+
+	it('zooms into bounds without measuring, and caches the region', async () => {
+		mockPublishedBoard()
+		const env = makePageEnv()
+		const args = { boardId: 'abc', page: 1, bounds: { x: -50, y: 10, w: 600, h: 315 } }
+
+		const first = await callTool('get_page_screenshot', args, env, 'user_region')
+		const second = await callTool('get_page_screenshot', args, env, 'user_region')
+
+		expect(framingOf(first)).toEqual({
+			pageName: 'Ideas',
+			bounds: { x: -50, y: 10, w: 600, h: 315 },
+		})
+		expect(second.content).toEqual(first.content)
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['screenshot'])
+		const job = await verifyThumbnailRenderToken(env, jobTokenOfCall(env, -1))
+		expect(job).toMatchObject({ pageId: 'page:b', x: 50, y: -10, z: 2 })
+		expect(job!.camera).toBeUndefined()
+		const bucket = env.MCP_DATA_BUCKET as unknown as { store: Map<string, unknown> }
+		expect([...bucket.store.keys()]).toEqual([expect.stringMatching(/\/light\/region-/)])
+	})
+
+	it('counts region captures against the per-board limit', async () => {
+		mockPublishedBoard()
+		const env = makePageEnv()
+
+		const results = []
+		for (const x of [0, 1000, 2000]) {
+			results.push(
+				await callTool(
+					'get_page_screenshot',
+					{ boardId: 'abc', bounds: { x, y: 0, w: 600, h: 315 } },
+					env,
+					'user_regions'
+				)
+			)
+		}
+
+		expect(results.map((result) => result.isError)).toEqual([undefined, undefined, true])
+		expect(results[2].content[0].text).toContain('This board is being screenshotted too frequently')
+		expect(failureBlobsOf(env).at(-1)).toBe('failure:rate_limited_board')
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['screenshot', 'screenshot'])
+	})
+})
+
 describe('per-user board access', () => {
 	const PRIVATE_FILE = { id: 'mine', shared: false, isDeleted: false }
 
