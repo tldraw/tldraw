@@ -1,8 +1,10 @@
-import { AdminFileAssetsResponseBody } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { AdminFileAssetsResponseBody, AdminFileResponseBody } from '@tldraw/dotcom-shared'
+import { ReactNode, useCallback, useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
 import { FileStats } from './FileStats'
+import { parseFileId } from './parseFileId'
 import {
 	formatBytes,
 	formatTally,
@@ -12,40 +14,126 @@ import {
 } from './shared'
 import styles from './admin.module.css'
 
-export function FilesSection() {
+export function FilesSection({ fileId }: { fileId?: string }) {
+	return fileId ? <FilePage key={fileId} fileId={fileId} /> : <FilesLanding />
+}
+
+function FilesLanding() {
 	return (
 		<>
 			<section className={styles.adminSection}>
-				<h3 className={styles.sectionTitle}>Downloads</h3>
-				<div className={styles.fileOperations}>
-					<DownloadTldrFile legacy={false} />
-					<DownloadTldrFile legacy={true} />
-					<CreateLegacyFile />
-				</div>
-			</section>
-			<section className={styles.adminSection}>
-				<h3 className={styles.sectionTitle}>Board stats</h3>
-				<FileStats />
-			</section>
-			<section className={styles.adminSection}>
-				<h3 className={styles.sectionTitle}>Asset diagnostics</h3>
-				<AssetDiagnostics />
-			</section>
-			<section className={styles.adminSection}>
-				<h3 className={styles.sectionTitle}>Undelete file</h3>
-				<UndeleteFileById />
+				<h3 className={styles.sectionTitle}>Inspect a file</h3>
+				<InspectFile />
 			</section>
 			<section className={styles.adminSection}>
 				<h3 className={styles.sectionTitle}>Durable object lookup</h3>
 				<ResolveDoId />
 			</section>
 			<section className={styles.adminSection}>
-				<h3 className={styles.sectionTitle}>Welcome template</h3>
-				<WelcomeTemplate />
+				<h3 className={styles.sectionTitle}>Legacy rooms</h3>
+				<CreateLegacyFile />
+			</section>
+		</>
+	)
+}
+
+function InspectFile() {
+	const navigate = useNavigate()
+	const [input, setInput] = useState('')
+	const [error, setError] = useState(null as string | null)
+
+	const onInspect = useCallback(() => {
+		const fileId = parseFileId(input)
+		if (!fileId) {
+			setError('Paste a file ID, or a tldraw.com /f/ or /r/ link')
+			return
+		}
+		navigate(`/admin/files/${encodeURIComponent(fileId)}`)
+	}, [input, navigate])
+
+	return (
+		<div className={styles.fileOperation}>
+			<p>
+				Paste a file ID or a link to the file. Published (/p/) and read-only (/ro/) links use a
+				different slug, so use the file&apos;s /f/ or /r/ link.
+			</p>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			<div className={styles.searchContainer}>
+				<input
+					type="text"
+					placeholder="File ID or URL"
+					className={styles.searchInput}
+					value={input}
+					onChange={(e) => setInput(e.target.value)}
+					onKeyDown={(e) => e.key === 'Enter' && onInspect()}
+				/>
+				<AdminButton onClick={onInspect} variant="primary">
+					Inspect
+				</AdminButton>
+			</div>
+		</div>
+	)
+}
+
+function FilePage({ fileId }: { fileId: string }) {
+	// null while loading; 'none' for a legacy room, which has no file row
+	const [file, setFile] = useState(null as AdminFileResponseBody | 'none' | null)
+	const [error, setError] = useState(null as string | null)
+
+	useEffect(() => {
+		fetch(`/api/app/admin/file/${encodeURIComponent(fileId)}`)
+			.then(async (res) => {
+				if (res.status === 404) return setFile('none')
+				if (!res.ok) return setError(await getResponseError(res))
+				setFile((await res.json()) as AdminFileResponseBody)
+			})
+			.catch((err) => setError(err instanceof Error ? err.message : 'Failed to load file'))
+	}, [fileId])
+
+	const setIsDeleted = useCallback(
+		(isDeleted: boolean) =>
+			setFile((file) => (file && file !== 'none' ? { ...file, isDeleted } : file)),
+		[]
+	)
+
+	return (
+		<>
+			<section className={styles.adminSection}>
+				<Link to="/admin/files">← All files</Link>
+				<h3 className={styles.sectionTitle}>
+					File <code>{fileId}</code>
+				</h3>
+				{error && <div className={styles.errorMessage}>{error}</div>}
+				{file === null && !error && <p>Loading…</p>}
+				{file === 'none' && <p>No file row. This is a legacy room.</p>}
+				{file && file !== 'none' && <FileSummary file={file} />}
+			</section>
+			<section className={styles.adminSection}>
+				<h3 className={styles.sectionTitle}>Room</h3>
+				<ResolveDoId slug={fileId} />
+			</section>
+			<section className={styles.adminSection}>
+				<h3 className={styles.sectionTitle}>Downloads</h3>
+				<div className={styles.fileOperations}>
+					<DownloadTldrFile fileId={fileId} legacy={false} />
+					<DownloadTldrFile fileId={fileId} legacy={true} />
+				</div>
+			</section>
+			<section className={styles.adminSection}>
+				<h3 className={styles.sectionTitle}>Board stats</h3>
+				<FileStats fileId={fileId} />
+			</section>
+			<section className={styles.adminSection}>
+				<h3 className={styles.sectionTitle}>Asset diagnostics</h3>
+				<AssetDiagnostics fileId={fileId} />
+			</section>
+			<section className={styles.adminSection}>
+				<h3 className={styles.sectionTitle}>Delete and restore</h3>
+				<SoftDeleteFile fileId={fileId} file={file} onDeletedChange={setIsDeleted} />
 			</section>
 			<section className={styles.adminSection}>
 				<h3 className={styles.sectionTitle}>Danger zone</h3>
-				<HardDeleteFile />
+				<HardDeleteFile fileId={fileId} />
 			</section>
 		</>
 	)
@@ -106,9 +194,9 @@ const CF_TLDR_DOC_NAMESPACE_ID = '5864db4344ac4c55bfd94e81dd25a043'
 /**
  * Looks up a room by durable object id (from Cloudflare analytics or the dash) or by room slug,
  * with liveness and persist-history signals. The server distinguishes the two forms and returns
- * the canonical object id either way.
+ * the canonical object id either way. With `slug`, it looks up that one room and shows no input.
  */
-function ResolveDoId() {
+function ResolveDoId({ slug }: { slug?: string }) {
 	const [input, setInput] = useState('')
 	const [isRunning, setIsRunning] = useState(false)
 	const [error, setError] = useState(null as string | null)
@@ -142,6 +230,10 @@ function ResolveDoId() {
 	}, [])
 
 	const onResolve = useCallback(async () => {
+		if (slug) {
+			await resolve(slug)
+			return
+		}
 		const idOrSlug = input.trim()
 		// hex is a subset of the slug charset — catch truncated/uppercase ids before they hash as slugs
 		if (/^[0-9a-fA-F]{16,}$/.test(idOrSlug) && !/^[0-9a-f]{64}$/.test(idOrSlug)) {
@@ -155,7 +247,7 @@ function ResolveDoId() {
 			return
 		}
 		await resolve(idOrSlug)
-	}, [input, resolve])
+	}, [slug, input, resolve])
 
 	const onCopySlug = useCallback(async (slug: string) => {
 		await navigator.clipboard.writeText(slug)
@@ -201,25 +293,34 @@ function ResolveDoId() {
 
 	return (
 		<div>
-			<p>
-				Paste a durable object id (full 64-character hex — dash lists truncate, grab the full id
-				from the search dropdown or GraphQL) or a room slug — either resolves to the room&apos;s
-				activity. <b>Sockets</b> are live tabs; save stats come from the snapshot history bucket.
-				Frequent recent saves = someone editing; sockets with stale saves = parked background tabs;
-				no sockets = idle. The slug is copyable instead of linked — we do not open users&apos;
-				files.
-			</p>
+			{slug ? (
+				<p>
+					Whether anyone is using this file&apos;s room. <b>Sockets</b> are live tabs; save stats
+					come from the snapshot history bucket.
+				</p>
+			) : (
+				<p>
+					Paste a durable object id (full 64-character hex — dash lists truncate, grab the full id
+					from the search dropdown or GraphQL) or a room slug — either resolves to the room&apos;s
+					activity. <b>Sockets</b> are live tabs; save stats come from the snapshot history bucket.
+					Frequent recent saves = someone editing; sockets with stale saves = parked background
+					tabs; no sockets = idle. The slug is copyable instead of linked — we do not open
+					users&apos; files.
+				</p>
+			)}
 			<div className={styles.searchContainer}>
-				<input
-					className={styles.searchInput}
-					placeholder="Durable object id (64-char hex) or room slug"
-					value={input}
-					onChange={(e) => setInput(e.target.value)}
-					onKeyDown={(e) => e.key === 'Enter' && onResolve()}
-					disabled={isRunning}
-				/>
+				{!slug && (
+					<input
+						className={styles.searchInput}
+						placeholder="Durable object id (64-char hex) or room slug"
+						value={input}
+						onChange={(e) => setInput(e.target.value)}
+						onKeyDown={(e) => e.key === 'Enter' && onResolve()}
+						disabled={isRunning}
+					/>
+				)}
 				<AdminButton variant="primary" onClick={onResolve} isLoading={isRunning}>
-					Resolve
+					{slug ? 'Look up room' : 'Resolve'}
 				</AdminButton>
 			</div>
 			{error && <div className={styles.errorMessage}>{error}</div>}
@@ -241,6 +342,11 @@ function ResolveDoId() {
 						>
 							metrics ↗
 						</a>{' '}
+						{!slug && (
+							<>
+								<Link to={`/admin/files/${encodeURIComponent(match.slug)}`}>file tools</Link>{' '}
+							</>
+						)}
 						— {match.isApp ? 'app file' : 'legacy room'}
 						{match.deleted ? ' (deleted)' : ''}
 					</div>
@@ -281,132 +387,12 @@ function ResolveDoId() {
 	)
 }
 
-function WelcomeTemplate() {
-	const inputRef = useRef<HTMLInputElement>(null)
-	const [current, setCurrent] = useState(
-		null as { fileId: string; publishedSlug: string; live?: boolean } | null
-	)
-	const [isLoading, setIsLoading] = useState(true)
+function HardDeleteFile({ fileId }: { fileId: string }) {
 	const [error, setError] = useState(null as string | null)
 	const [successMessage, setSuccessMessage] = useTransientMessage()
-
-	const load = useCallback(async () => {
-		setIsLoading(true)
-		setError(null)
-		try {
-			const res = await fetch('/api/app/admin/welcome-template')
-			if (!res.ok) {
-				setError(await getResponseError(res))
-				return
-			}
-			setCurrent(await res.json())
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Failed to load welcome template')
-		} finally {
-			setIsLoading(false)
-		}
-	}, [])
-
-	useEffect(() => {
-		load()
-	}, [load])
-
-	const onSet = useCallback(async () => {
-		const fileId = inputRef.current?.value?.trim()
-		if (!fileId) {
-			setError('Please enter a published file ID')
-			return
-		}
-		setError(null)
-		setSuccessMessage(null)
-		try {
-			const res = await fetch('/api/app/admin/welcome-template', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ fileId }),
-			})
-			if (!res.ok) {
-				setError(await getResponseError(res))
-				return
-			}
-			setCurrent(await res.json())
-			setSuccessMessage('Welcome template set ✨')
-			inputRef.current!.value = ''
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Failed to set welcome template')
-		}
-	}, [setSuccessMessage])
-
-	const onClear = useCallback(async () => {
-		if (
-			!window.confirm('Clear the welcome template? New workspaces will use the built-in default.')
-		)
-			return
-		setError(null)
-		setSuccessMessage(null)
-		try {
-			const res = await fetch('/api/app/admin/welcome-template/clear', { method: 'POST' })
-			if (!res.ok) {
-				setError(await getResponseError(res))
-				return
-			}
-			setCurrent(null)
-			setSuccessMessage('Welcome template cleared — using the built-in default')
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Failed to clear welcome template')
-		}
-	}, [setSuccessMessage])
-
-	return (
-		<div className={styles.fileOperation}>
-			<p>
-				The file new workspaces fork their first file from. Publish the file first, then set it here
-				by its file ID. Clear it to use the built-in default.
-			</p>
-			{error && <div className={styles.errorMessage}>{error}</div>}
-			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
-			<div className={styles.summaryItem}>
-				<span className={styles.fieldLabel}>Current:</span>
-				<span className={styles.fieldValue}>
-					{isLoading
-						? 'Loading…'
-						: current
-							? `${current.fileId} (published slug ${current.publishedSlug})${
-									current.live ? '' : ' ⚠️ not published — new workspaces fall back to the default'
-								}`
-							: 'none — using the built-in default'}
-				</span>
-			</div>
-			<div className={styles.searchContainer}>
-				<input
-					type="text"
-					placeholder="Published file ID"
-					ref={inputRef}
-					className={styles.searchInput}
-				/>
-				<AdminButton onClick={onSet} variant="primary">
-					Set as welcome template
-				</AdminButton>
-				<AdminButton onClick={onClear} variant="secondary" disabled={!current}>
-					Clear
-				</AdminButton>
-			</div>
-		</div>
-	)
-}
-
-function HardDeleteFile() {
-	const inputRef = useRef<HTMLInputElement>(null)
-	const [error, setError] = useState(null as string | null)
-	const [successMessage, setSuccessMessage] = useTransientMessage()
+	const [isLoading, setIsLoading] = useState(false)
 
 	const onDelete = useCallback(async () => {
-		const fileId = inputRef.current?.value
-		if (!fileId) {
-			setError('Please enter a file ID')
-			return
-		}
-
 		if (
 			!window.confirm(
 				`Are you sure you want to permanently delete file ${fileId}? This action cannot be undone.`
@@ -417,27 +403,29 @@ function HardDeleteFile() {
 
 		setError(null)
 		setSuccessMessage(null)
-		const res = await fetch(`/api/app/admin/hard_delete_file/${fileId}`, {
-			method: 'POST',
-		})
-		if (!res.ok) {
-			setError(await getResponseError(res))
-			return
+		setIsLoading(true)
+		try {
+			const res = await fetch(`/api/app/admin/hard_delete_file/${encodeURIComponent(fileId)}`, {
+				method: 'POST',
+			})
+			if (!res.ok) {
+				setError(await getResponseError(res))
+				return
+			}
+			setSuccessMessage('File deleted successfully! 🧹')
+		} finally {
+			setIsLoading(false)
 		}
-		setSuccessMessage('File deleted successfully! 🧹')
-		inputRef.current!.value = ''
-	}, [setSuccessMessage])
+	}, [fileId, setSuccessMessage])
 
 	return (
 		<div className={styles.dangerZone}>
+			<p>Deletes the file, its snapshots, and its assets. Works for legacy rooms too.</p>
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
-			<div className={styles.deleteContainer}>
-				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
-				<AdminButton onClick={onDelete} variant="danger" className={styles.deleteButton}>
-					Delete (cannot be undone)
-				</AdminButton>
-			</div>
+			<AdminButton onClick={onDelete} variant="danger" isLoading={isLoading}>
+				Hard delete (cannot be undone)
+			</AdminButton>
 		</div>
 	)
 }
@@ -446,6 +434,7 @@ function CreateLegacyFile() {
 	const [isCreating, setIsCreating] = useState(false)
 
 	const handleCreate = useCallback(async () => {
+		if (!window.confirm('Create a new empty legacy room?')) return
 		setIsCreating(true)
 		try {
 			const res = await fetch(`/api/app/admin/create_legacy_file`, { method: 'POST' })
@@ -468,23 +457,17 @@ function CreateLegacyFile() {
 	)
 }
 
-function DownloadTldrFile({ legacy }: { legacy: boolean }) {
-	const inputRef = useRef<HTMLInputElement>(null)
+function DownloadTldrFile({ fileId, legacy }: { fileId: string; legacy: boolean }) {
 	const [error, setError] = useState(null as string | null)
 	const [isDownloading, setIsDownloading] = useState(false)
 
 	const onDownload = useCallback(async () => {
 		setError(null)
-		const fileSlug = inputRef.current?.value
-		if (!fileSlug) {
-			setError('Please enter a file slug')
-			return
-		}
 		const path = legacy ? 'download-legacy-tldr' : 'download-tldr'
 
 		setIsDownloading(true)
 		try {
-			const res = await fetch(`/api/app/admin/${path}/${fileSlug}`)
+			const res = await fetch(`/api/app/admin/${path}/${encodeURIComponent(fileId)}`)
 			if (!res.ok) {
 				setError(await getResponseError(res))
 				return
@@ -495,7 +478,7 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 			const url = window.URL.createObjectURL(blob)
 			const a = document.createElement('a')
 			a.href = url
-			a.download = `${fileSlug}.tldr`
+			a.download = `${fileId}.tldr`
 			document.body.appendChild(a)
 			a.click()
 			window.URL.revokeObjectURL(url)
@@ -503,87 +486,144 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 		} finally {
 			setIsDownloading(false)
 		}
-	}, [legacy])
+	}, [fileId, legacy])
 
 	return (
 		<div className={styles.fileOperation}>
-			<h4 className={styles.subTitle}>
-				{legacy ? 'Download legacy .tldr file' : 'Download .tldr file'}
-			</h4>
 			{error && <div className={styles.errorMessage}>{error}</div>}
-			<div className={styles.downloadContainer}>
-				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
-				<AdminButton onClick={onDownload} variant="primary" isLoading={isDownloading}>
-					Download
-				</AdminButton>
-			</div>
+			<AdminButton onClick={onDownload} variant="primary" isLoading={isDownloading}>
+				{legacy ? 'Download legacy .tldr' : 'Download .tldr'}
+			</AdminButton>
 		</div>
 	)
 }
 
-function UndeleteFileById() {
-	const inputRef = useRef<HTMLInputElement>(null)
+function formatTime(value: number) {
+	return value ? new Date(value).toLocaleString() : '—'
+}
+
+function FileSummary({ file }: { file: AdminFileResponseBody }) {
+	const sharing = file.shared ? `Link can ${file.sharedLinkType}` : 'Not shared'
+	const publishing = file.published
+		? `Published /p/${file.publishedSlug} (last ${formatTime(file.lastPublished)})`
+		: 'Not published'
+	const fields: Array<[string, ReactNode]> = [
+		['Name', file.name || '(untitled)'],
+		['Status', file.isDeleted ? 'Soft-deleted' : 'Live'],
+		[
+			'Owners',
+			file.owners.length
+				? file.owners.map((owner) => (
+						<div key={owner.id}>
+							<Link to={`/admin/users?${new URLSearchParams({ q: owner.id })}`}>
+								{owner.name} &lt;{owner.email}&gt; <code>{owner.id}</code>
+							</Link>
+						</div>
+					))
+				: 'none',
+		],
+		[
+			'Workspace',
+			file.workspace
+				? `${file.workspace.name} (${file.workspace.id})${file.workspace.isDeleted ? ', deleted' : ''}`
+				: 'none',
+		],
+		['Created', formatTime(file.createdAt)],
+		['Last updated', formatTime(file.updatedAt)],
+		['Sharing', sharing],
+		['Publishing', publishing],
+		['Empty', file.isEmpty ? 'Yes' : 'No'],
+		['Created from', file.createSource ?? '—'],
+	]
+	return (
+		<div className={styles.summaryGrid}>
+			{fields.map(([label, value]) => (
+				<div key={label} className={styles.summaryItem}>
+					<span className={styles.fieldLabel}>{label}</span>
+					<span className={styles.fieldValue}>{value}</span>
+				</div>
+			))}
+		</div>
+	)
+}
+
+function SoftDeleteFile({
+	fileId,
+	file,
+	onDeletedChange,
+}: {
+	fileId: string
+	file: AdminFileResponseBody | 'none' | null
+	onDeletedChange(isDeleted: boolean): void
+}) {
+	const status = file === null || file === 'none' ? file : file.isDeleted ? 'deleted' : 'live'
 	const [error, setError] = useState(null as string | null)
 	const [successMessage, setSuccessMessage] = useTransientMessage()
-	const [isLoading, setIsLoading] = useState(false)
+	const [isBusy, setIsBusy] = useState(false)
 
-	const onUndelete = useCallback(async () => {
-		const fileId = inputRef.current?.value?.trim()
-		if (!fileId) {
-			setError('Please enter a file ID')
-			return
-		}
-		if (!window.confirm(`Undelete file ${fileId}?`)) return
+	const run = useCallback(async () => {
+		const action = status === 'deleted' ? 'undelete_file' : 'soft_delete_file'
+		const prompt =
+			action === 'soft_delete_file'
+				? `Soft-delete file ${fileId}? It leaves every sidebar. Undelete restores it.`
+				: `Undelete file ${fileId}? It reappears in its workspace.`
+		if (!window.confirm(prompt)) return
 		setError(null)
 		setSuccessMessage(null)
-		setIsLoading(true)
+		setIsBusy(true)
 		try {
-			const res = await fetch(`/api/app/admin/undelete_file/${encodeURIComponent(fileId)}`, {
+			const res = await fetch(`/api/app/admin/${action}/${encodeURIComponent(fileId)}`, {
 				method: 'POST',
 			})
 			if (!res.ok) {
 				setError(await getResponseError(res))
 				return
 			}
-			setSuccessMessage('File undeleted')
-			inputRef.current!.value = ''
+			onDeletedChange(action === 'soft_delete_file')
+			setSuccessMessage(action === 'soft_delete_file' ? 'File soft-deleted' : 'File undeleted')
 		} finally {
-			setIsLoading(false)
+			setIsBusy(false)
 		}
-	}, [setSuccessMessage])
+	}, [fileId, status, setSuccessMessage, onDeletedChange])
 
 	return (
 		<div className={styles.fileOperation}>
-			<p>Restores a soft-deleted file by ID.</p>
+			<p>
+				{status === null
+					? 'Loading…'
+					: status === 'none'
+						? 'No file row (legacy room), so soft delete does not apply.'
+						: status === 'deleted'
+							? 'This file is soft-deleted. Undelete restores it to its workspace.'
+							: 'This file is live. Soft delete marks it deleted, the same as an owner deleting it.'}
+			</p>
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
-			<div className={styles.searchContainer}>
-				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
-				<AdminButton onClick={onUndelete} variant="primary" isLoading={isLoading}>
+			{status === 'live' && (
+				<AdminButton onClick={run} variant="danger" isLoading={isBusy}>
+					Soft delete
+				</AdminButton>
+			)}
+			{status === 'deleted' && (
+				<AdminButton onClick={run} variant="primary" isLoading={isBusy}>
 					Undelete
 				</AdminButton>
-			</div>
+			)}
 		</div>
 	)
 }
 
-function AssetDiagnostics() {
-	const inputRef = useRef<HTMLInputElement>(null)
+function AssetDiagnostics({ fileId }: { fileId: string }) {
 	const [error, setError] = useState(null as string | null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [report, setReport] = useState(null as AdminFileAssetsResponseBody | null)
 
 	const onCheck = useCallback(async () => {
-		const slug = inputRef.current?.value?.trim()
-		if (!slug) {
-			setError('Please enter a file slug')
-			return
-		}
 		setError(null)
 		setReport(null)
 		setIsLoading(true)
 		try {
-			const res = await fetch(`/api/app/admin/file-assets/${encodeURIComponent(slug)}`)
+			const res = await fetch(`/api/app/admin/file-assets/${encodeURIComponent(fileId)}`)
 			if (!res.ok) {
 				setError(await getResponseError(res))
 				return
@@ -594,7 +634,7 @@ function AssetDiagnostics() {
 		} finally {
 			setIsLoading(false)
 		}
-	}, [])
+	}, [fileId])
 
 	return (
 		<div className={styles.fileOperation}>
@@ -603,20 +643,9 @@ function AssetDiagnostics() {
 				bucket and is associated with the file.
 			</p>
 			{error && <div className={styles.errorMessage}>{error}</div>}
-			<div className={styles.searchContainer}>
-				<input
-					type="text"
-					placeholder="File slug"
-					ref={inputRef}
-					className={styles.searchInput}
-					onKeyDown={(e) => {
-						if (e.key === 'Enter') onCheck()
-					}}
-				/>
-				<AdminButton onClick={onCheck} variant="primary" isLoading={isLoading}>
-					Check assets
-				</AdminButton>
-			</div>
+			<AdminButton onClick={onCheck} variant="primary" isLoading={isLoading}>
+				Check assets
+			</AdminButton>
 			{report && (
 				<>
 					{report.warnings.length > 0 && (
