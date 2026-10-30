@@ -12,6 +12,7 @@ import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../../utils/assetUrls'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { globalEditor } from '../../../utils/globalEditor'
+import { useMaybeApp } from '../../hooks/useAppState'
 import { fetchVersionSnapshot } from '../../utils/versionHistoryApi'
 import { TlaEditorMenuPanel } from '../TlaEditor/editor-components/TlaEditorMenuPanel'
 import { SneakyDarkModeSync } from '../TlaEditor/sneaky/SneakyDarkModeSync'
@@ -56,6 +57,7 @@ export function VersionPreviewEditor({
 	/** Rendered inside the editor, like the comments sidebar. */
 	children?: ReactNode
 }) {
+	const app = useMaybeApp()
 	const sync = useFileSyncStore()
 	const editorRef = useRef<Editor | null>(null)
 	const viewRef = useRef<HistoryView | null>(initialView)
@@ -124,6 +126,7 @@ export function VersionPreviewEditor({
 					snapshot={initial}
 					assetUrls={assetUrls}
 					shapeUtils={embedShapeUtils}
+					user={app?.tlUser}
 					onMount={handleMount}
 					initialState="hand"
 					components={components}
