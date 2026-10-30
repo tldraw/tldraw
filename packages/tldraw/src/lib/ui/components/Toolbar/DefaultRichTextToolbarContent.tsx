@@ -60,7 +60,12 @@ export function DefaultRichTextToolbarContent({
 
 	useEffect(() => {
 		function handleKeyDown(event: KeyboardEvent) {
-			if (onEditLinkStart && isAccelKey(event) && event.shiftKey && event.key === 'k') {
+			if (
+				onEditLinkStart &&
+				isAccelKey(event) &&
+				event.shiftKey &&
+				event.key.toLowerCase() === 'k'
+			) {
 				event.preventDefault()
 				onEditLinkStart()
 			}
