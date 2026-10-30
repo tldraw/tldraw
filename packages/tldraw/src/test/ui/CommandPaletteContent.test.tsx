@@ -26,6 +26,10 @@ import {
 } from '../../lib/ui/components/CommandPalette/CommandPaletteGroups'
 import { CommandPalettePromptItem } from '../../lib/ui/components/CommandPalette/CommandPalettePromptItem'
 import { CommandPaletteShell } from '../../lib/ui/components/CommandPalette/CommandPaletteShell'
+import {
+	StylePicker,
+	useCommandPaletteStylePickers,
+} from '../../lib/ui/components/CommandPalette/CommandPaletteStylesGroup'
 import { DefaultCommandPaletteContent } from '../../lib/ui/components/CommandPalette/DefaultCommandPaletteContent'
 import { TldrawUiMenuActionItem } from '../../lib/ui/components/primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from '../../lib/ui/components/primitives/menus/TldrawUiMenuGroup'
@@ -439,6 +443,42 @@ describe('default command palette content', () => {
 		const input = await rendered.findByTestId('command-palette.input')
 		fireEvent.change(input, { target: { value: 'opacity 50' } })
 		await rendered.findByTestId('command-palette.item.style-opacity-0.5')
+	})
+
+	// Styles are open StyleProps, so the pickers are a hand-kept list that a new default style can miss.
+	it('has a picker for every style of the default shapes', async () => {
+		// Not in the style panel either: labels follow the shape's color.
+		const leftOut = new Set(['tldraw:labelColor'])
+		const pickers = { current: null as StylePicker[] | null }
+		function Probe() {
+			pickers.current = useCommandPaletteStylePickers()
+			return null
+		}
+		const setStyleIds = new Set<string>()
+		const { editor } = await renderPalette({
+			content: <Probe />,
+			onUiEvent: (name, data) => {
+				if (name === 'set-style') setStyleIds.add((data as { id: string }).id)
+			},
+		})
+		const styleIds = new Set<string>()
+		const types = defaultShapeUtils.map((util) => util.type)
+		act(() => {
+			for (const type of types) {
+				const styles = [...editor.styleProps[type].keys()]
+				if (styles.length === 0) continue
+				for (const style of styles) styleIds.add(style.id)
+				editor.createShape({ id: createShapeId(type), type, x: 0, y: 0 })
+			}
+			editor.selectAll()
+		})
+		await waitFor(() => expect(pickers.current).not.toBeNull())
+		act(() => {
+			for (const picker of pickers.current!) picker.onSelect(picker.values[0])
+		})
+		expect([...setStyleIds].filter((id) => id !== 'opacity').sort()).toEqual(
+			[...styleIds].filter((id) => !leftOut.has(id)).sort()
+		)
 	})
 
 	it('offers the image toolbar commands while one image is selected', async () => {
