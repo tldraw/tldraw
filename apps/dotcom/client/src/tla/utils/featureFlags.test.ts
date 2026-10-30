@@ -15,7 +15,6 @@ function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 		mcp_server_access: { enabled: false },
 		version_chain: { enabled: false },
 		collections: { enabled: false },
-		version_history: { enabled: false },
 		...overrides,
 	}
 }

@@ -367,7 +367,6 @@ export const FEATURE_FLAG_KEYS = [
 	'mcp_server_access',
 	'version_chain',
 	'collections',
-	'version_history',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 

@@ -14,7 +14,6 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 	// per-user value here means nothing to the client.
 	version_chain: { enabled: false },
 	collections: { enabled: false },
-	version_history: { enabled: false },
 }
 
 let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }
