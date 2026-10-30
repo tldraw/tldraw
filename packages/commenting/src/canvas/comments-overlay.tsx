@@ -2,6 +2,10 @@ import { isMentionPickerOpen } from '@tldraw/mentions'
 import { Fragment, ReactNode, useCallback, useEffect, useMemo, useRef } from 'react'
 import { EditorPortal, TLCommentThread, useEditor, useValue } from 'tldraw'
 import type { ClusterNode } from '../clustering/types'
+import {
+	DesktopCommentNotificationsOptions,
+	useDesktopCommentNotifications,
+} from '../notifications/desktop-notifications'
 import { registerCommentAnchorLifecycle } from './anchor-lifecycle'
 import { ClusterBadge } from './cluster-badge'
 import { clusterFadeClassName } from './cluster-fade'
@@ -38,7 +42,13 @@ import { ThreadStackPin } from './thread-stack'
  *
  * @public
  */
-export type CanvasCommentsProps = CommentingContext
+export interface CanvasCommentsProps extends CommentingContext {
+	/**
+	 * Desktop notifications for this board's comments that concern the current user, while they're
+	 * looking elsewhere. Off by default. Clicking one opens its thread.
+	 */
+	desktopNotifications?: DesktopCommentNotificationsOptions
+}
 
 /**
  * Which thread's pin a fade node should draw: its own thread for a single pin, `stackOwner` (when
@@ -78,8 +88,9 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	return <CanvasCommentsLayer {...props} />
 }
 
-function CanvasCommentsLayer(props: CommentingContext) {
+function CanvasCommentsLayer({ desktopNotifications, ...props }: CanvasCommentsProps) {
 	const editor = useEditor()
+	useDesktopCommentNotifications(editor, props, desktopNotifications)
 	const options = useCommentingOptions()
 	const allThreads = useCommentThreads(editor)
 	const pending = usePendingComment()

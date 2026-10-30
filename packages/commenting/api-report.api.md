@@ -47,6 +47,9 @@ export { Avatar }
 
 export { AvatarProps }
 
+// @internal
+export function buildReactionNotifications<T extends CommentNotificationInput>(comments: readonly T[], userId: null | string | undefined, opts?: Pick<CategorizeCommentNotificationsOptions<T>, 'isThreadMuted'>): CommentNotification<T>[];
+
 // @public
 export function Byline({ author, date, edited }: BylineProps): JSX.Element;
 
@@ -62,7 +65,9 @@ export interface BylineProps {
 export function CanvasComments(props: CanvasCommentsProps): JSX.Element | null;
 
 // @public
-export type CanvasCommentsProps = CommentingContext;
+export interface CanvasCommentsProps extends CommentingContext {
+    desktopNotifications?: DesktopCommentNotificationsOptions;
+}
 
 // @public
 export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps): JSX.Element | null;
@@ -71,6 +76,15 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps): JSX.El
 export interface CanvasCommentsSidebarProps extends Pick<CommentingContext, 'currentUserId' | 'getThreadHref' | 'isCommentUnread' | 'resolveAuthor'> {
     empty?: ReactNode;
     header?: ReactNode;
+}
+
+// @internal
+export function categorizeCommentNotifications<T extends CommentNotificationInput>(comments: readonly T[], userId: null | string | undefined, opts?: CategorizeCommentNotificationsOptions<T>): CommentNotification<T>[];
+
+// @internal (undocumented)
+export interface CategorizeCommentNotificationsOptions<T extends CommentNotificationInput> {
+    isThreadMuted?(threadId: string): boolean;
+    ownsBoard?(comment: T): boolean;
 }
 
 export { CommentAuthor }
@@ -161,8 +175,10 @@ export interface CommentingContext {
     getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>;
     getThreadHref?(threadId: TLCommentThreadId): string | undefined;
     isCommentUnread?(commentId: TLCommentId): boolean;
+    isThreadMuted?(threadId: TLCommentThreadId): boolean;
     onCommentsRead?(commentIds: TLCommentId[]): void;
     onPostComment?(comment: TLComment): void;
+    onThreadMutedChange?(threadId: TLCommentThreadId, muted: boolean): void;
     renderMentionSuggestion?(member: MentionMember): ReactNode;
     resolveAuthor(id: string): CommentAuthor | undefined;
 }
@@ -231,6 +247,80 @@ export type CommentModificationContext = {
     readonly currentUserId: null | string;
     readonly editor: Editor;
 } & CommentModification;
+
+// @public
+export interface CommentNotification<T extends CommentNotificationInput = CommentNotificationInput> {
+    // (undocumented)
+    comment: T;
+    primaryReason: CommentNotificationReason;
+    reasons: CommentNotificationReason[];
+    timestamp: number;
+    unread: boolean;
+}
+
+// @public
+export interface CommentNotificationInput {
+    // (undocumented)
+    authorId: string;
+    // (undocumented)
+    body: unknown;
+    // (undocumented)
+    createdAt: number;
+    // (undocumented)
+    id: string;
+    reactions?: null | readonly {
+        createdAt: number;
+        emoji: string;
+        userId: string;
+        userName?: string;
+    }[];
+    read?: {
+        readAt?: null | number;
+    } | null;
+    // (undocumented)
+    thread?: {
+        comments?: null | readonly {
+            authorId: string;
+            createdAt: number;
+        }[];
+        createdBy?: null | string;
+    } | null;
+    // (undocumented)
+    threadId: string;
+}
+
+// @public
+export type CommentNotificationLevel = 'all' | 'mentions-and-replies' | 'mentions' | 'off';
+
+// @public
+export interface CommentNotificationMessage {
+    // (undocumented)
+    body: string;
+    // (undocumented)
+    commentId: string;
+    tag: string;
+    // (undocumented)
+    threadId: string;
+    // (undocumented)
+    title: string;
+    url?: string;
+}
+
+// @public
+export type CommentNotificationReason = 'mention' | 'owned-board' | 'reaction' | 'reply';
+
+// @internal (undocumented)
+export interface CommentNotifierOptions<T extends CommentNotificationInput> {
+    deliver?(message: CommentNotificationMessage, open: () => void): void;
+    // (undocumented)
+    format(notification: CommentNotification<T>): CommentNotificationMessage;
+    getLevel(): CommentNotificationLevel;
+    getNotifications(): readonly CommentNotification<T>[];
+    isThreadMuted?(threadId: string): boolean;
+    isWindowFocused?(): boolean;
+    lockName?: string;
+    onOpen(message: CommentNotificationMessage): void;
+}
 
 // @public
 export function CommentPin({ children, resolved, open }: CommentPinProps): JSX.Element;
@@ -401,6 +491,16 @@ export function deleteComment(editor: Editor, comment: TLComment): void;
 export function deleteThread(editor: Editor, thread: TLCommentThread): void;
 
 // @public
+export function deliverBrowserNotification(message: CommentNotificationMessage, open: () => void): void;
+
+// @public (undocumented)
+export interface DesktopCommentNotificationsOptions {
+    deliver?(message: CommentNotificationMessage, open: () => void): void;
+    isWindowFocused?(): boolean;
+    level: CommentNotificationLevel;
+}
+
+// @public
 export function editComment(editor: Editor, comment: TLComment, body: TLRichText): void;
 
 // @public
@@ -465,10 +565,19 @@ export function getLiveCommentThreads(editor: Editor): TLCommentThread[];
 export function getRevealThreadPending(editor: Editor): null | string;
 
 // @public
+export function getStoreCommentNotifications(editor: Editor, userId: null | string | undefined, opts?: StoreCommentNotificationsOptions): CommentNotification<StoreCommentNotificationInput>[];
+
+// @public
 export function isAllowedReactionEmoji(emoji: string, palette?: readonly string[]): boolean;
+
+// @internal
+export function isAtNotificationLevel(notification: CommentNotification<any>, level: CommentNotificationLevel): boolean;
 
 // @public
 export function isOpenInNewTabClick(e: MouseEvent_2): boolean;
+
+// @internal
+export function latestForeignReactionAt(reactions: CommentNotificationInput['reactions'], userId: string): number | undefined;
 
 export { Mention }
 
@@ -481,6 +590,9 @@ export { MentionMember }
 export { MentionProps }
 
 export { MentionSuggestionOptions }
+
+// @internal
+export function mergeNotifications<T extends CommentNotificationInput>(...feeds: readonly CommentNotification<T>[][]): CommentNotification<T>[];
 
 // @public
 export const openThreadId: EditorAtom<null | string>;
@@ -636,6 +748,29 @@ export function sortSidebarRows(rows: readonly SidebarRow[]): readonly SidebarRo
 
 // @public
 export function startCommentAt(editor: Editor, point: VecLike): void;
+
+// @internal
+export function startCommentNotifier<T extends CommentNotificationInput>(opts: CommentNotifierOptions<T>): () => void;
+
+// @public
+export interface StoreCommentNotificationInput extends CommentNotificationInput {
+    // (undocumented)
+    record: TLComment;
+}
+
+// @public (undocumented)
+export interface StoreCommentNotificationsOptions {
+    isCommentUnread?(commentId: TLCommentId): boolean;
+    isThreadMuted?(threadId: TLCommentThreadId): boolean;
+    ownsBoard?: boolean;
+}
+
+// @internal
+export function summarizeForeignReactors(reactions: CommentNotificationInput['reactions'], userId: null | string | undefined): {
+    names: string[];
+    others: number;
+    total: number;
+};
 
 // @public
 export function summarizeReactions(reactions: readonly ReactionSummaryInput[], currentUserId?: null | string, resolveName?: (userId: string) => string | undefined, opts?: {

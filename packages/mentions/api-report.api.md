@@ -39,6 +39,9 @@ export function createMentionExtension({ resolveName, suggestion }?: MentionExte
 // @public
 export function createMentionSuggestion(getSuggestions: (query: string) => MentionMember[] | Promise<MentionMember[]>, options?: MentionSuggestionOptions): Omit<SuggestionOptions<MentionMember, MentionNodeAttrs>, 'editor'>;
 
+// @internal
+export function extractMentionIds(body: unknown): string[];
+
 // @public
 export function filterMentionMembers(members: MentionMember[], query: string): MentionMember[];
 

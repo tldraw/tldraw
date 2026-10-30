@@ -35,6 +35,13 @@ export interface CommentingContext {
 	 * `isCommentUnread` to know what's unread.
 	 */
 	onCommentsRead?(commentIds: TLCommentId[]): void
+	/**
+	 * Whether the current user muted a thread. A muted thread only still notifies about mentions.
+	 * Like read receipts, the host stores it.
+	 */
+	isThreadMuted?(threadId: TLCommentThreadId): boolean
+	/** Called when the user mutes or unmutes a thread. When present, the thread's menu offers it. */
+	onThreadMutedChange?(threadId: TLCommentThreadId, muted: boolean): void
 	/** Resolve the members matching an `@`-query in the composers (sync or async). */
 	getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>
 	/** Override a mention-picker row's content. */
