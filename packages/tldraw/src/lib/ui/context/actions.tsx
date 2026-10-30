@@ -33,7 +33,7 @@ import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
-import { flattenShapesToImages } from '../hooks/useFlatten'
+import { flattenShapesToImages, unflattenImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
@@ -50,6 +50,7 @@ import {
 	canFrameSelection,
 	canReadClipboard,
 	canToggleAutoSize,
+	canUnflatten,
 	canWriteClipboard,
 	hasDownloadableMediaSelected,
 	hasLinkShapeSelected,
@@ -281,6 +282,20 @@ const messages = defineMessages({
 	},
 	actionUndo: { id: 'action.undo', defaultMessage: 'Undo' },
 	actionUngroup: { id: 'action.ungroup', defaultMessage: 'Ungroup' },
+	actionUnflattenImage: { id: 'action.unflatten-image', defaultMessage: 'Unflatten' },
+	actionUnflattenImageErrorTitle: {
+		id: 'action.unflatten-image.error-title',
+		defaultMessage: 'Unflatten failed',
+	},
+	actionUnflattenImageErrorTransformed: {
+		id: 'action.unflatten-image.error-transformed',
+		defaultMessage:
+			'Images that were cropped, flipped or stretched after flattening can’t be unflattened.',
+	},
+	actionUnflattenImageErrorUnreadable: {
+		id: 'action.unflatten-image.error-unreadable',
+		defaultMessage: 'Could not read the shapes saved in this image.',
+	},
 	actionUnlockAll: { id: 'action.unlock-all', defaultMessage: 'Unlock all' },
 	actionZoomIn: { id: 'action.zoom-in', defaultMessage: 'Zoom in' },
 	actionZoomOut: { id: 'action.zoom-out', defaultMessage: 'Zoom out' },
@@ -1853,6 +1868,33 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					if (newShapeIds?.length) {
 						editor.setSelectedShapes(newShapeIds)
+					}
+				},
+			},
+			{
+				id: 'unflatten-image',
+				isEnabled: canUnflatten,
+				label: messages.actionUnflattenImage.id,
+				onSelect: async (source) => {
+					const ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) return
+
+					editor.markHistoryStoppingPoint('unflattening image')
+					trackEvent('unflatten-image', { source })
+
+					const result = await unflattenImages(editor, ids)
+
+					// max-shapes already shows its own toast
+					if (result.type === 'error' && result.reason !== 'max-shapes') {
+						helpers.addToast({
+							title: helpers.msg(messages.actionUnflattenImageErrorTitle),
+							description: helpers.msg(
+								result.reason === 'transformed'
+									? messages.actionUnflattenImageErrorTransformed
+									: messages.actionUnflattenImageErrorUnreadable
+							),
+							severity: 'error',
+						})
 					}
 				},
 			},
