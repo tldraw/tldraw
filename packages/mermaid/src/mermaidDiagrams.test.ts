@@ -174,7 +174,7 @@ describe('flowchartToBlueprint', () => {
 		const bends = bp.edges.map((e) => Math.round(e.bend ?? 0))
 		expect(bends[1]).toBeCloseTo(0)
 		expect(bends[0]).toBeLessThan(0)
-		expect(bends[2]).toBeCloseTo(-bends[0])
+		expect(Math.abs(bends[2] + bends[0])).toBeLessThanOrEqual(1)
 	})
 
 	it('matches each path to its edge by the id pele gives it, in the installed pele', async () => {
@@ -333,6 +333,29 @@ describe('flowchartToBlueprint', () => {
 		expect(findNode(bp, 'b1')!.parentId).toBe('sg2')
 	})
 
+	it('draws an S-shaped route straight', () => {
+		// A layered layout leaves and enters nodes along the flow, so a route between nodes that
+		// aren't lined up is an S. Bending the arrow toward one of its halves bows it out sideways.
+		const layout = diagramLayout(
+			[node('A', 0, 0, 40, 40), node('B', 200, 60, 40, 40)],
+			[],
+			[
+				edge('A', 'B', [
+					[20, 0],
+					[80, 0],
+					[120, 60],
+					[180, 60],
+				]),
+			]
+		)
+
+		const bp = flowchartToBlueprint(layout, new Map([vertex('A'), vertex('B')]), [
+			flowEdge('A', 'B'),
+		])
+
+		expect(bp.edges[0].bend).toBeCloseTo(0)
+	})
+
 	it('computes bend for curved edges', () => {
 		const layout = diagramLayout(
 			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
@@ -418,24 +441,32 @@ describe('flowchartToBlueprint', () => {
 		expect(withoutLabel.bend).toBe(30)
 	})
 
-	it('leaves anchors alone on edges between two nodes', () => {
-		const labelBox = { x: 90, y: 30, w: 40, h: 20 }
+	it("anchors each end where the layout's route meets its node", () => {
 		const layout = diagramLayout(
 			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
 			[],
 			[
 				edge('A', 'B', [
-					[20, 0],
-					[180, 0],
+					[20, 10],
+					[100, 0],
+					[176, -10],
 				]),
-			],
-			new Map([['L_A_B', labelBox]])
+			]
 		)
-		const edges = [flowEdge('A', 'B', { text: 'go' })]
 
-		const bp = flowchartToBlueprint(layout, new Map([vertex('A'), vertex('B')]), edges)
+		const bp = flowchartToBlueprint(layout, new Map([vertex('A'), vertex('B')]), [
+			flowEdge('A', 'B'),
+		])
 
-		expect(bp.edges[0]).not.toHaveProperty('anchorStartX')
+		// Each end aims a quarter of the way in from where the route meets the node.
+		expect(bp.edges[0]).toMatchObject({
+			anchorStartX: 0.875,
+			anchorStartY: 0.6875,
+			anchorEndX: 0.125,
+			anchorEndY: 0.3125,
+			isExact: false,
+			isPrecise: true,
+		})
 	})
 
 	it('filters out edges referencing missing nodes', () => {
@@ -598,6 +629,63 @@ describe('stateToBlueprint', () => {
 		const bp = stateToBlueprint(layout, states, [])
 
 		expect(findNode(bp, 'Drafting')!.label).toBe('Drafting\nwith autosave')
+	})
+
+	it('spreads the ends of a merge across a fork bar drawn wider than its layout box', () => {
+		const layout = diagramLayout(
+			[node('A', 0, 0, 40, 40), node('B', 100, 0, 40, 40), node('J', 50, 100, 20, 8)],
+			[],
+			[
+				edge('A', 'J', [
+					[0, 20],
+					[45, 96],
+				]),
+				edge('B', 'J', [
+					[100, 20],
+					[55, 96],
+				]),
+			]
+		)
+		const states = new Map([stateStmt('A'), stateStmt('B'), stateStmt('J', { type: 'join' })])
+
+		const bp = stateToBlueprint(layout, states, [
+			{ id1: 'A', id2: 'J' },
+			{ id1: 'B', id2: 'J' },
+		])
+
+		expect(bp.edges.map((e) => [e.anchorEndX, e.anchorEndY])).toEqual([
+			[0.3125, 0.125],
+			[0.6875, 0.125],
+		])
+	})
+
+	it("gives a wide state's self-loop its own route, not the one leaving the state", () => {
+		// The loop's ends sit at the state's side, further from its centre than the start of the
+		// route leaving its bottom.
+		const layout = diagramLayout(
+			[node('Drafting', 120, 50, 240, 100), node('Done', 120, 190, 20, 20)],
+			[],
+			[
+				edge('Drafting', 'Drafting', [
+					[240, 40],
+					[270, 30],
+					[270, 70],
+					[242, 62],
+				]),
+				edge('Drafting', 'Done', [
+					[120, 100],
+					[120, 177],
+				]),
+			].map((e, i) => ({ ...e, id: `edge${i}`, start: '', end: '' }))
+		)
+		const states = new Map([stateStmt('Drafting'), stateStmt('Done')])
+
+		const bp = stateToBlueprint(layout, states, [
+			{ id1: 'Drafting', id2: 'Drafting', relationTitle: 'type' },
+			{ id1: 'Drafting', id2: 'Done', relationTitle: 'close' },
+		])
+
+		expect(findEdge(bp, 'Drafting', 'Done')).toMatchObject({ anchorStartX: 0.5, anchorEndX: 0.5 })
 	})
 
 	it('maps leaf states with correct geo and labels', () => {

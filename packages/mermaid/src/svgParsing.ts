@@ -70,24 +70,34 @@ export function getAccumulatedTranslate(el: Element): Vec2 {
 	return { x, y }
 }
 
-/**
- * Build a map of node/cluster id → center (for flowchart and state diagram edge matching).
- */
-export function buildNodeCentersFromSvg(
-	nodes: Map<string, ParsedNode>,
-	clusters: Map<string, ParsedCluster>
-): Map<string, Vec2> {
-	const out = new Map<string, Vec2>()
-	for (const [id, node] of nodes) {
-		out.set(id, { x: node.center.x, y: node.center.y })
+export interface LayoutBox {
+	x: number
+	y: number
+	w: number
+	h: number
+}
+
+/** A node or cluster's box in the layout. */
+export function getLayoutBox(layout: ParsedDiagramLayout, id: string): LayoutBox | undefined {
+	const node = layout.nodes.get(id)
+	if (node) {
+		return {
+			x: node.center.x - node.width / 2,
+			y: node.center.y - node.height / 2,
+			w: node.width,
+			h: node.height,
+		}
 	}
-	for (const [id, cluster] of clusters) {
-		out.set(id, {
-			x: cluster.topLeft.x + cluster.width / 2,
-			y: cluster.topLeft.y + cluster.height / 2,
-		})
-	}
-	return out
+	const cluster = layout.clusters.get(id)
+	return (
+		cluster && { x: cluster.topLeft.x, y: cluster.topLeft.y, w: cluster.width, h: cluster.height }
+	)
+}
+
+function getDistanceToBox(point: Vec2, box: LayoutBox) {
+	const dx = Math.max(box.x - point.x, 0, point.x - (box.x + box.w))
+	const dy = Math.max(box.y - point.y, 0, point.y - (box.y + box.h))
+	return Math.hypot(dx, dy)
 }
 
 /**
@@ -96,14 +106,15 @@ export function buildNodeCentersFromSvg(
  *
  * A flowchart's paths carry the two node ids they join, in source order, so the nth edge between a
  * pair of nodes is the nth unclaimed path carrying their ids. Paths with no ids to go on, such as a
- * state diagram's `edge<N>`, fall back to whichever ends lie nearest the two node centers. That
- * fallback picks the wrong path when several ends sit equally close, which is what parallel edges
- * do (#10794).
+ * state diagram's `edge<N>`, fall back to whichever ends lie nearest the two nodes' boxes. Nearest
+ * the boxes rather than their centres, or a tall node's self-loop claims a path leaving the node,
+ * whose start is nearer the centre than the loop's ends at the node's side. That fallback picks
+ * the wrong path when several ends sit equally close, which is what parallel edges do (#10794).
  */
 export function claimEdge(
 	svgEdges: ParsedEdge[],
 	claimed: Set<number>,
-	edge: { startId: string; endId: string; startCenter?: Vec2; endCenter?: Vec2 }
+	edge: { startId: string; endId: string; startBox?: LayoutBox; endBox?: LayoutBox }
 ): ParsedEdge | undefined {
 	const usable = (svgEdge: ParsedEdge, index: number) =>
 		!claimed.has(index) && svgEdge.points.length >= 2
@@ -119,8 +130,8 @@ export function claimEdge(
 		}
 	}
 
-	const { startCenter, endCenter } = edge
-	if (!startCenter || !endCenter) return undefined
+	const { startBox, endBox } = edge
+	if (!startBox || !endBox) return undefined
 
 	let bestIndex = -1
 	let bestDistance = Infinity
@@ -129,9 +140,7 @@ export function claimEdge(
 
 		const points = svgEdges[i].points
 		const last = points[points.length - 1]
-		const distance =
-			Math.hypot(points[0].x - startCenter.x, points[0].y - startCenter.y) +
-			Math.hypot(last.x - endCenter.x, last.y - endCenter.y)
+		const distance = getDistanceToBox(points[0], startBox) + getDistanceToBox(last, endBox)
 		if (distance < bestDistance) {
 			bestDistance = distance
 			bestIndex = i
@@ -182,6 +191,38 @@ export function getSelfLoopEdgeLayout(
 		anchorStartY: start.y,
 		anchorEndX: end.x,
 		anchorEndY: end.y,
+	}
+}
+
+/** How far from a route's end toward its node's centre an arrow aims, as a share of the way. */
+const ANCHOR_INSET = 0.25
+
+/**
+ * Where an arrow should leave and enter its shapes: where the layout's route does, as a fraction of
+ * each end's box in the layout. Bound to shape centres instead, the edges of a split or merge all
+ * aim for the same point and pinch together; the layout gives each its own place on the side.
+ * Fractions of the layout's box carry over to a shape drawn wider than it, such as a join bar.
+ */
+export function getRouteEndAnchors(svgEdge: ParsedEdge, startBox: LayoutBox, endBox: LayoutBox) {
+	const { points } = svgEdge
+	if (points.length < 2) return undefined
+	// The route stops just outside a node's outline. Aim a quarter of the way in from there, so
+	// tldraw clips the arrow at the drawn outline whatever the shape: a point on the box's side
+	// would sit outside a diamond or circle.
+	const toAnchor = (point: Vec2, box: LayoutBox) => {
+		const x = box.w > 0 ? clamp((point.x - box.x) / box.w, 0, 1) : 0.5
+		const y = box.h > 0 ? clamp((point.y - box.y) / box.h, 0, 1) : 0.5
+		return { x: x + (0.5 - x) * ANCHOR_INSET, y: y + (0.5 - y) * ANCHOR_INSET }
+	}
+	const start = toAnchor(points[0], startBox)
+	const end = toAnchor(points[points.length - 1], endBox)
+	return {
+		anchorStartX: start.x,
+		anchorStartY: start.y,
+		anchorEndX: end.x,
+		anchorEndY: end.y,
+		isExact: false,
+		isPrecise: true,
 	}
 }
 

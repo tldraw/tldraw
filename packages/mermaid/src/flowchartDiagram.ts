@@ -14,13 +14,14 @@ import {
 import type { MeasureLabelSize } from './mermaidNodeCreateShape'
 import { parsePeleLayout } from './peleDiagram'
 import {
-	buildNodeCentersFromSvg,
 	claimEdge,
+	getLayoutBox,
 	getPositionAlongRoute,
+	getRouteEndAnchors,
 	getSelfLoopEdgeLayout,
 	type ParsedDiagramLayout,
 } from './svgParsing'
-import { dropDanglingEdges, getArrowBend, orderTopDown } from './utils'
+import { dropDanglingEdges, getRouteArcBend, orderTopDown } from './utils'
 
 function mapEdgeTypeToArrowhead(type: string | undefined): TLArrowShapeArrowheadStyle {
 	if (type?.includes('circle')) return 'dot'
@@ -120,7 +121,6 @@ export function flowchartToBlueprint(
 ): DiagramMermaidBlueprint {
 	const nodeColorMap = buildClassDefColorMap(classDefs ?? new Map(), vertices)
 	const { nodes: svgNodes, clusters: svgClusters, edges: svgEdges } = layout
-	const nodeCenters = buildNodeCentersFromSvg(svgNodes, svgClusters)
 
 	const allSubGraphs = subGraphs || []
 	const { nodeToSubGraph, subGraphParent } = buildHierarchy(allSubGraphs)
@@ -188,13 +188,16 @@ export function flowchartToBlueprint(
 	}
 
 	// Edges: match model edges to the paths the layout drew for them, and take each one's route
+	const nodeById = new Map(nodes.map((node) => [node.id, node]))
 	const claimed = new Set<number>()
 	for (const edge of edges) {
+		const startBox = getLayoutBox(layout, edge.start)
+		const endBox = getLayoutBox(layout, edge.end)
 		const svgEdge = claimEdge(svgEdges, claimed, {
 			startId: edge.start,
 			endId: edge.end,
-			startCenter: nodeCenters.get(edge.start),
-			endCenter: nodeCenters.get(edge.end),
+			startBox,
+			endBox,
 		})
 		const svgNode = svgNodes.get(edge.start)
 		const selfLoop =
@@ -213,11 +216,20 @@ export function flowchartToBlueprint(
 		const cssOverrides = parseCssStyles(edge.style ?? defaultEdgeStyle)
 		const arrowheadEnd = mapEdgeTypeToArrowhead(edge.type)
 
+		const anchors =
+			svgEdge && !selfLoop && startBox && endBox
+				? getRouteEndAnchors(svgEdge, startBox, endBox)
+				: undefined
+		const bend =
+			svgEdge && anchors
+				? getRouteArcBend(svgEdge.points, nodeById.get(edge.start), nodeById.get(edge.end), anchors)
+				: 0
 		blueprintEdges.push({
 			startNodeId: edge.start,
 			endNodeId: edge.end,
 			label: label?.lines?.join('\n') ?? edge.text,
-			bend: svgEdge ? getArrowBend(svgEdge) : 0,
+			bend,
+			...anchors,
 			labelPosition,
 			...selfLoop,
 			arrowheadEnd,
