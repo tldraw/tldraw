@@ -17,6 +17,7 @@ import {
 	commentSchemaRecords,
 	computed,
 	createUserId,
+	getDefaultUserPresence,
 	getUserPreferences,
 	omit,
 	useEvent,
@@ -35,7 +36,9 @@ import {
 	isCachedFileVisitLive,
 	resolveCachedFileVisit,
 } from '../../utils/cachedFileVisit'
+import { historyModeAtom } from '../../utils/historyRoute'
 import { clearLastVisitedFile, setLastVisitedFile } from '../../utils/local-session-state'
+import { useHandleFileRestored } from '../VersionHistory/useHandleFileRestored'
 
 type FileSyncStore = ReturnType<typeof useSync>
 
@@ -91,6 +94,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		return multiplayerAssetStore({ getFileId: () => fileSlug, getToken: getUserToken })
 	}, [fileSlug, getUserToken])
 	const users = useMemo(() => createPresenceUserStore(userId), [userId])
+	const handleFileRestored = useHandleFileRestored(fileSlug)
 
 	const store = useSync({
 		uri: useCallback(async () => {
@@ -112,15 +116,21 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		// Register the opt-in `comment` record type so comment records sync through the file room.
 		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
 		records: commentSchemaRecords,
+		getUserPresence: (store, user) =>
+			historyModeAtom.get() ? null : getDefaultUserPresence(store, user),
 		onCustomMessageReceived: useCallback(
 			(message: TLCustomServerEvent) => {
 				if (message.type === 'first_load_server') {
 					fileLoad.setServerTimings(message)
 					return
 				}
+				if (message.type === 'file_restored') {
+					handleFileRestored(message)
+					return
+				}
 				trackEvent(message.type)
 			},
-			[fileLoad]
+			[fileLoad, handleFileRestored]
 		),
 		// `load` fires right after the snapshot is applied. An effect on `synced-remote` would wait out
 		// the editor's mount work, seconds on big boards.

@@ -100,16 +100,24 @@ export function createAppRouter({
 						lazy={() => import('./tla/pages/local-file-index')}
 					/>
 					{/* File view */}
+					{/* History is a child of the file route so opening it keeps the file page (sync connection,
+					    editor) mounted; the file page reads the path itself. */}
 					<Route
 						path={ROUTES.tlaFile}
 						lazy={() => import('./tla/pages/file')}
 						handle={{ rendersWhileAppLoads: true } satisfies TlaRouteHandle}
-					/>
-					<Route path={ROUTES.tlaFileHistory} lazy={() => import('./tla/pages/file-history')} />
-					<Route
-						path={ROUTES.tlaFileHistorySnapshot}
-						lazy={() => import('./tla/pages/file-history-snapshot')}
-					/>
+					>
+						<Route
+							path="history"
+							Component={NoOutlet}
+							handle={{ rendersWhileAppLoads: true } satisfies TlaRouteHandle}
+						/>
+						<Route
+							path="history/:timestamp"
+							Component={NoOutlet}
+							handle={{ rendersWhileAppLoads: true } satisfies TlaRouteHandle}
+						/>
+					</Route>
 					<Route lazy={() => import('./tla/providers/RequireTldrawStaff')}>
 						<Route
 							path={ROUTES.tlaLegacyRoomHistory}
@@ -168,4 +176,9 @@ function NoIndex() {
 			<Outlet />
 		</>
 	)
+}
+
+/** A child route with nothing of its own to render: its parent reads the path. */
+function NoOutlet() {
+	return null
 }

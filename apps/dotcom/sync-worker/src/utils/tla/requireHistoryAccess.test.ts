@@ -68,6 +68,16 @@ describe('requireHistoryAccess for app files', () => {
 		expect(destroy).toHaveBeenCalled()
 	})
 
+	it('keeps raw versions staff-only, even for editors', async () => {
+		signedInAs('user-1')
+		canEdit(true)
+		isStaff(false)
+
+		await expect(
+			requireHistoryAccess(request, env, 'file-1', true, { raw: true })
+		).rejects.toMatchObject({ status: 403 })
+	})
+
 	// An edit link grants write access to anyone, signed in or not. History still needs a sign-in.
 	it('refuses a signed-out visitor before checking the file', async () => {
 		signedInAs(null)
