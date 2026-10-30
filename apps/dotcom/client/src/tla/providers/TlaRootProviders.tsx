@@ -63,7 +63,10 @@ function WatermarkOverride() {
 		setRuntimeOverrides({
 			openWindow(url: string, target: string, allowReferrer?: boolean) {
 				if (url.includes('utm_campaign=watermark')) {
-					url = url.replace('utm_source=sdk', 'utm_source=dotcom')
+					// Keeps tldraw.com's own badge apart from the SDK watermark in other people's apps.
+					url = url
+						.replace('utm_source=sdk', 'utm_source=dotcom')
+						.replace('utm_campaign=watermark', 'utm_campaign=made-with-tldraw')
 					trackEvent('click-watermark', { url })
 				}
 				originalOpenWindow(url, target, allowReferrer)
