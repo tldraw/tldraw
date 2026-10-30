@@ -1,10 +1,11 @@
-import { useContainer } from '@tldraw/editor'
+import { useContainerIfExists } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { CommandPalettePathProvider } from '../../CommandPalette/CommandPaletteContext'
 import { TldrawUiButton } from '../Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../Button/TldrawUiButtonLabel'
@@ -33,7 +34,8 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	children,
 }: TLUiMenuSubmenuProps<Translation>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
-	const container = useContainer()
+	// The command palette renders submenus outside an editor, with no container.
+	const container = useContainerIfExists()
 	const msg = useTranslation()
 	const dir = useDirection()
 	const labelToUse = unwrapLabel(label, menuType)
@@ -82,6 +84,15 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 						</_ContextMenu.ContextMenuSubContent>
 					</_ContextMenu.ContextMenuPortal>
 				</ContextMenuSubWithMenu>
+			)
+		}
+		case 'command-palette': {
+			// An empty label hides the submenu, like an item with one.
+			if (disabled || !labelStr) return null
+			return (
+				<CommandPalettePathProvider label={labelStr} submenuId={id}>
+					{children}
+				</CommandPalettePathProvider>
 			)
 		}
 		default: {
