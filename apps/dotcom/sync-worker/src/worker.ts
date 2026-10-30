@@ -32,6 +32,7 @@ import { createPostgresConnectionPool, getPostgresConnection } from './postgres'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import {
 	getFileVersionHistory,
+	seedFileVersionHistory,
 	getFileVersionPoints,
 	saveFileNamedVersion,
 } from './routes/getFileVersionHistory'
@@ -163,6 +164,7 @@ const router = createRouter<Environment>()
 	)
 	.get(`/${FILE_PREFIX}/:roomId/history/points`, getFileVersionPoints)
 	.post(`/${FILE_PREFIX}/:roomId/history/name`, saveFileNamedVersion)
+	.post(`/${FILE_PREFIX}/:roomId/history/dev-seed`, seedFileVersionHistory)
 	// Before the :timestamp route — itty-router matches in order, and `verify` would otherwise be
 	// read as a timestamp.
 	.get(`/${FILE_PREFIX}/:roomId/history/verify`, (req, env) =>

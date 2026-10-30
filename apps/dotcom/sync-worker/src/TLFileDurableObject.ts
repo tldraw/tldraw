@@ -91,6 +91,7 @@ import {
 	upsertCommentThreadRows,
 } from './commentRows'
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
+import { planSeedVersions } from './devSeedVersionHistory'
 import { loadFileVersionSnapshot } from './loadVersionSource'
 import { Logger } from './Logger'
 import {
@@ -179,6 +180,7 @@ import {
 	readNewestVersionTs,
 	readVersionIndexRange,
 	readVersionName,
+	setVersionIndexMeta,
 	setVersionName,
 	tagLatestAsPreRestore,
 	VersionIndexRow,
@@ -3635,6 +3637,53 @@ export class TLFileDurableObject extends DurableObject {
 		if (!ts) throw new StatusError(409, 'Nothing to save yet')
 		setVersionName(sql, ts, opts.name)
 		return { ts }
+	}
+
+	/** Local dev only: replaces this file's history with a fake, backdated one ending in its current state. */
+	async __dev__seedVersionHistory(opts: { fileId: string; userId: string }) {
+		await this.getRoom()
+		await this.persistToDatabase({ throwOnFailure: true })
+		const roomKey = getR2KeyForRoom({ slug: opts.fileId, isApp: true })
+		const others = await this.db
+			.selectFrom('user')
+			.select('id')
+			.where('id', '!=', opts.userId)
+			.orderBy('createdAt', 'desc')
+			.limit(2)
+			.execute()
+		const storage = await this.getStorage()
+		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+		const versions = planSeedVersions({
+			current: storage.getSnapshot(),
+			userIds: [opts.userId, ...others.map((u) => u.id)],
+			now: Date.now(),
+		})
+
+		await this.executionQueue.push(async () => {
+			let cursor: string | undefined
+			do {
+				const page = await this.r2.versionChain.list({ prefix: `${roomKey}/`, cursor })
+				if (page.objects.length) await this.r2.versionChain.delete(page.objects.map((o) => o.key))
+				cursor = page.truncated ? page.cursor : undefined
+			} while (cursor)
+			this.ensureVersionIndex()
+			const sql = this.ctx.storage.sql
+			sql.exec('DELETE FROM version_index')
+			setVersionIndexMeta(sql, 'backfilled', '1')
+			this._lastPersistedSnapshot = null
+			this._lastPersistedHeadHash = null
+			this._versionChain = null
+			this._versionChainLoaded = true
+			this._pendingDeltas = null
+			await this.storage.delete(VERSION_CHAIN_STORAGE_KEY)
+			for (const v of versions) {
+				await this._writeVersionChainEntry(v.snapshot, roomKey, v.iso, false, {
+					window: { authors: v.authors, hasUserChanges: true },
+				})
+				if (v.name) setVersionName(sql, v.iso, v.name)
+			}
+		})
+		return { versions: versions.length }
 	}
 
 	async getVersionPoints(opts: {

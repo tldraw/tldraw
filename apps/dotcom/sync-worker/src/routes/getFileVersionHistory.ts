@@ -3,6 +3,7 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { getRoomDurableObject } from '../utils/durableObjects'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
+import { requireAuth } from '../utils/tla/getAuth'
 import { requireHistoryAccess } from '../utils/tla/requireHistoryAccess'
 
 function queryString(request: IRequest, key: string): string | undefined {
@@ -52,4 +53,16 @@ export async function saveFileNamedVersion(request: IRequest, env: Environment) 
 	}
 	await requireHistoryAccess(request, env, fileId, true)
 	return Response.json(await getRoomDurableObject(env, fileId).saveNamedVersion({ fileId, name }))
+}
+
+/** Local dev only: fills a file you can edit with backdated demo history. */
+export async function seedFileVersionHistory(request: IRequest, env: Environment) {
+	if (!env.IS_LOCAL) return notFound()
+	const fileId = request.params.roomId
+	if (!fileId) return notFound()
+	await requireHistoryAccess(request, env, fileId, true)
+	const { userId } = await requireAuth(request, env)
+	return Response.json(
+		await getRoomDurableObject(env, fileId).__dev__seedVersionHistory({ fileId, userId })
+	)
 }
