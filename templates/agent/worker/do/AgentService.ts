@@ -5,7 +5,16 @@ import {
 	GoogleGenerativeAIProviderOptions,
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider, OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
-import { LanguageModel, ModelMessage, streamText, tool, ToolSet } from 'ai'
+import {
+	JSONParseError,
+	LanguageModel,
+	ModelMessage,
+	NoSuchToolError,
+	streamText,
+	tool,
+	ToolSet,
+	TypeValidationError,
+} from 'ai'
 import z from 'zod'
 import {
 	AgentModelDefinition,
@@ -141,7 +150,7 @@ export class AgentService {
 		// Each action is timed from the end of the one before it, and the first from the request, so
 		// the times add up to the whole turn, including waits for the provider.
 		let lastActionEnd = Date.now()
-		const closeOpen = (): Streaming<AgentAction> | null => {
+		const closeOpen = (): Extract<Streaming<AgentAction>, { complete: true }> | null => {
 			if (!open) return null
 			const { action, startTime, reasoning } = open
 			open = null
@@ -229,10 +238,11 @@ export class AgentService {
 				case 'tool-call': {
 					finish.toolCalls++
 					if (part.invalid) {
-						// The SDK returns the error to the model, which usually calls the tool again.
-						// Drop this call; the client reverts its partial changes when the next action
-						// arrives or the stream ends.
 						console.warn(`Invalid ${part.toolName} call from ${modelId}: ${String(part.error)}`)
+					}
+					if (part.invalid && NoSuchToolError.isInstance(part.error)) {
+						// The mode has no such action, so the client could not act on it. Drop the call; the
+						// client reverts its partial changes when the next action arrives or the stream ends.
 						if (open?.input !== undefined) {
 							open = null
 						} else {
@@ -250,12 +260,18 @@ export class AgentService {
 						if (closed) yield closed
 						startTime = lastActionEnd
 					}
+					// The input of an invalid call is the raw text when it is not JSON.
+					const input = typeof part.input === 'object' && part.input !== null ? part.input : {}
 					open = {
-						action: { ...(part.input as object), _type: part.toolName } as AgentAction,
+						action: { ...input, _type: part.toolName } as AgentAction,
 						startTime,
 					}
 					const closed = closeOpen()
-					if (closed) yield closed
+					if (!closed) break
+					// The tools have no `execute`, so the SDK does not tell the model about an invalid call.
+					// The client records the error as the call's result, without acting on it, and the
+					// model reads it in the next step.
+					yield part.invalid ? { ...closed, invalid: describeInvalidInput(part.error) } : closed
 					break
 				}
 			}
@@ -274,6 +290,18 @@ export class AgentService {
 			)
 		}
 	}
+}
+
+/** What is wrong with an invalid tool call's input, for the model to read and correct. */
+function describeInvalidInput(error: unknown): string {
+	const cause = (error as { cause?: unknown }).cause
+	if (TypeValidationError.isInstance(cause) && cause.cause instanceof z.ZodError) {
+		return `Invalid input, so nothing was done:\n${z.prettifyError(cause.cause)}`
+	}
+	if (JSONParseError.isInstance(cause)) {
+		return 'Invalid input, so nothing was done: the input is not valid JSON.'
+	}
+	return `Invalid input, so nothing was done: ${error instanceof Error ? error.message : String(error)}`
 }
 
 /**

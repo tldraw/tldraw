@@ -124,46 +124,65 @@ export class AgentActionManager extends BaseAgentManager {
 
 		// Add the action to chat history
 		if (util.savesToHistory()) {
-			const historyItem: ChatHistoryItem = {
+			this.addToHistory({
 				type: 'action',
 				action,
 				diff,
 				acceptance: 'pending',
 				result: action.complete ? (failure ?? util.getResult(action, diff)) : undefined,
-			}
-
-			this.agent.chat.update((historyItems) => {
-				// If there are no items, start off the chat history with the first item
-				if (historyItems.length === 0) return [historyItem]
-
-				// Find the last EXTERNAL prompt index (ignore prompts from 'self' which are internal state transitions)
-				const lastPromptIndex = historyItems.findLastIndex(
-					(item) => item.type === 'prompt' && item.promptSource !== 'self'
-				)
-
-				// If the last action is still in progress AND it's after the last external prompt, replace it
-				const lastActionHistoryItemIndex = historyItems.findLastIndex(
-					(item) => item.type === 'action'
-				)
-				const lastActionHistoryItem =
-					lastActionHistoryItemIndex !== -1 ? historyItems[lastActionHistoryItemIndex] : null
-				if (
-					lastActionHistoryItem &&
-					lastActionHistoryItem.type === 'action' &&
-					!lastActionHistoryItem.action.complete &&
-					(lastPromptIndex === -1 || lastActionHistoryItemIndex > lastPromptIndex)
-				) {
-					const newHistoryItems = [...historyItems]
-					// Replace the incomplete action with the complete one (timestamp already set above)
-					newHistoryItems[lastActionHistoryItemIndex] = historyItem
-					return newHistoryItems
-				} else {
-					// Otherwise, just add the new item to the end of the list
-					return [...historyItems, historyItem]
-				}
 			})
 		}
 
 		return { diff, promise }
+	}
+
+	/**
+	 * Record a tool call whose input failed validation, without applying it. The model reads the
+	 * validation error as the call's result.
+	 */
+	recordInvalid(action: Streaming<AgentAction>, error: string) {
+		// The error is the result. Left on the action, it would go back to the model as tool input.
+		const { invalid: _invalid, ...rest } = action as Streaming<AgentAction> & { invalid?: string }
+		this.addToHistory({
+			type: 'action',
+			action: rest as Streaming<AgentAction>,
+			diff: { added: {}, updated: {}, removed: {} },
+			acceptance: 'pending',
+			result: error,
+		})
+	}
+
+	/** Add an action to chat history, in place of the streaming version of it. */
+	private addToHistory(historyItem: ChatHistoryItem) {
+		this.agent.chat.update((historyItems) => {
+			// If there are no items, start off the chat history with the first item
+			if (historyItems.length === 0) return [historyItem]
+
+			// Find the last EXTERNAL prompt index (ignore prompts from 'self' which are internal state transitions)
+			const lastPromptIndex = historyItems.findLastIndex(
+				(item) => item.type === 'prompt' && item.promptSource !== 'self'
+			)
+
+			// If the last action is still in progress AND it's after the last external prompt, replace it
+			const lastActionHistoryItemIndex = historyItems.findLastIndex(
+				(item) => item.type === 'action'
+			)
+			const lastActionHistoryItem =
+				lastActionHistoryItemIndex !== -1 ? historyItems[lastActionHistoryItemIndex] : null
+			if (
+				lastActionHistoryItem &&
+				lastActionHistoryItem.type === 'action' &&
+				!lastActionHistoryItem.action.complete &&
+				(lastPromptIndex === -1 || lastActionHistoryItemIndex > lastPromptIndex)
+			) {
+				const newHistoryItems = [...historyItems]
+				// Replace the incomplete action with the complete one (timestamp already set above)
+				newHistoryItems[lastActionHistoryItemIndex] = historyItem
+				return newHistoryItems
+			} else {
+				// Otherwise, just add the new item to the end of the list
+				return [...historyItems, historyItem]
+			}
+		})
 	}
 }

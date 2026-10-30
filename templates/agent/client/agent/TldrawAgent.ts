@@ -656,6 +656,12 @@ export class TldrawAgent {
 									incompleteDiff = null
 								}
 
+								// A call that failed validation is not applied. The model reads its error.
+								if (action.complete && action.invalid) {
+									this.actions.recordInvalid(action, action.invalid)
+									return
+								}
+
 								// Sanitize the agent's action
 								const transformedAction = actionUtil.sanitizeAction(action, helpers)
 								if (!transformedAction) {
