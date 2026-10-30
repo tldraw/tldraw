@@ -1,10 +1,11 @@
-import { readdir } from 'fs/promises'
+import { mkdtemp, readdir, rm, writeFile } from 'fs/promises'
+import { tmpdir } from 'os'
 import { join } from 'path'
 import { exec } from './lib/exec'
 import { readJsonIfExists, REPO_ROOT } from './lib/file'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
-import { EXPORT_CONFIG_KEY, PackageJson } from './lib/types'
+import { EXPORT_CONFIG_KEY, PackageJson, TemplateDeployConfig } from './lib/types'
 
 const TEMPLATE_DIR = join(REPO_ROOT, 'templates')
 
@@ -66,13 +67,24 @@ async function main() {
 		process.exit(0)
 	}
 
-	await deployToCloudflare(templateName, templateDir)
+	await deployToCloudflare(templateName, templateDir, deployConfig)
 
 	nicelog(`Deployed ${templateName} to https://${deployConfig.host}`)
 }
 
-async function deployToCloudflare(templateName: string, templateDir: string) {
+async function deployToCloudflare(
+	templateName: string,
+	templateDir: string,
+	deployConfig: TemplateDeployConfig
+) {
 	const cloudflareEnv = requireEnv(['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN'])
+
+	const secretNames = deployConfig.secrets ?? []
+	const envPrefix = `TEMPLATES_${templateName.toUpperCase().replace(/-/g, '_')}_`
+	const secretEnv = requireEnv(secretNames.map((name) => envPrefix + name))
+	const secrets = Object.fromEntries(
+		secretNames.map((name) => [name, secretEnv[(envPrefix + name) as keyof typeof secretEnv]])
+	)
 
 	nicelog(`Building ${templateName}...`)
 	await exec('pnpm', ['run', 'build'], {
@@ -83,15 +95,22 @@ async function deployToCloudflare(templateName: string, templateDir: string) {
 	// The route (including the custom domain) comes from the template's own wrangler.toml, which
 	// ships to users too — so the deploy target is described in one place rather than here.
 	nicelog(`Deploying ${templateName} to cloudflare...`)
-	await exec('pnpm', ['exec', 'wrangler', 'deploy'], {
-		pwd: templateDir,
-		env: {
-			...cloudflareEnv,
-			NODE_ENV: 'production',
-			// wrangler needs CI=1 set to prevent it from trying to do interactive prompts
-			CI: '1',
-		},
-	})
+	const secretsDir = await mkdtemp(join(tmpdir(), 'template-secrets-'))
+	const secretsFile = join(secretsDir, 'secrets.json')
+	try {
+		await writeFile(secretsFile, JSON.stringify(secrets))
+		await exec('pnpm', ['exec', 'wrangler', 'deploy', '--secrets-file', secretsFile], {
+			pwd: templateDir,
+			env: {
+				...cloudflareEnv,
+				NODE_ENV: 'production',
+				// wrangler needs CI=1 set to prevent it from trying to do interactive prompts
+				CI: '1',
+			},
+		})
+	} finally {
+		await rm(secretsDir, { recursive: true, force: true })
+	}
 }
 
 main().catch((err) => {
