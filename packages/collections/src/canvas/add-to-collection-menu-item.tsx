@@ -7,6 +7,7 @@ import {
 	useValue,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
+import type { PrepareItemContent } from './save-shapes'
 import { useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
@@ -16,6 +17,8 @@ const messages = defineMessages({
 /** @public */
 export interface AddToCollectionMenuItemProps {
 	source: CollectionSource
+	/** Changes an item's content before it's saved, e.g. {@link wrapInGroup}. */
+	prepareItemContent?: PrepareItemContent
 }
 
 /**
@@ -24,7 +27,10 @@ export interface AddToCollectionMenuItemProps {
  * above `DefaultContextMenuContent`.
  * @public @react
  */
-export function AddToCollectionMenuItem({ source }: AddToCollectionMenuItemProps) {
+export function AddToCollectionMenuItem({
+	source,
+	prepareItemContent,
+}: AddToCollectionMenuItemProps) {
 	const editor = useEditor()
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
 		editor,
@@ -34,7 +40,7 @@ export function AddToCollectionMenuItem({ source }: AddToCollectionMenuItemProps
 		() => source.getCollections().filter((collection) => source.can('addItem', collection.id)),
 		[source]
 	)
-	const saveSelection = useSaveSelection(source)
+	const saveSelection = useSaveSelection(source, prepareItemContent)
 
 	if (!hasSelection || collections.length === 0) return null
 
