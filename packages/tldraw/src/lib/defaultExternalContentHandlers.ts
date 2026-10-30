@@ -203,12 +203,24 @@ export async function defaultHandleExternalFileReplaceContent(
 
 	const hash = getHashForBuffer(await sanitizedFile.arrayBuffer())
 	const assetId = AssetRecordType.createId(hash)
-	editor.createTemporaryAssetPreview(assetId, sanitizedFile)
-	const assetInfoPartial = (await getAssetInfo(editor, sanitizedFile, assetId)) as
-		| TLImageAsset
-		| TLVideoAsset
-		| null
+	// Callers don't await replacement, so an undecodable file (e.g. an audio-only video,
+	// #11218) would otherwise reject unhandled with no toast.
+	let assetInfoPartial: TLImageAsset | TLVideoAsset | null
+	try {
+		assetInfoPartial = (await getAssetInfo(editor, sanitizedFile, assetId)) as
+			| TLImageAsset
+			| TLVideoAsset
+			| null
+	} catch (error) {
+		options.toasts.addToast({
+			title: options.msg(messages.assetsFilesUploadFailed.id),
+			severity: 'error',
+		})
+		console.error(error)
+		return
+	}
 	if (!assetInfoPartial) return
+	editor.createTemporaryAssetPreview(assetId, sanitizedFile)
 	editor.createAssets([assetInfoPartial])
 
 	// And update the shape

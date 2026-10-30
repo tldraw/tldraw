@@ -1,8 +1,9 @@
-import { MediaHelpers, TLImageShape } from '@tldraw/editor'
+import { MediaHelpers, TLImageShape, createShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { defaultAssetUtils } from '../lib/defaultAssetUtils'
 import {
 	defaultHandleExternalFileContent,
+	defaultHandleExternalFileReplaceContent,
 	getAssetInfo,
 } from '../lib/defaultExternalContentHandlers'
 import { TestEditor } from './TestEditor'
@@ -81,6 +82,69 @@ describe('defaultHandleExternalFileContent', () => {
 			severity: 'error',
 		})
 		expect(editor.getCurrentPageShapes()).toHaveLength(0)
+		expect(editor.getAssets()).toHaveLength(0)
+	})
+
+	// An audio-only file has no video track, so the element reports a 0x0 size (#11218).
+	it.each([
+		['audio-only.webm', 'video/webm'],
+		['audio-only.mp4', 'video/mp4'],
+		['audio-only.mov', 'video/quicktime'],
+	])('shows a toast and creates nothing for %s', async (name, type) => {
+		const file = new File(['audio'], name, { type })
+		vi.spyOn(MediaHelpers, 'usingObjectURL').mockImplementation((_blob, fn) => fn('blob:audio'))
+		vi.spyOn(MediaHelpers, 'loadVideo').mockResolvedValue({
+			videoWidth: 0,
+			videoHeight: 0,
+		} as HTMLVideoElement)
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		await defaultHandleExternalFileContent(
+			editor,
+			{ point: { x: 0, y: 0 }, files: [file] },
+			makeOptions()
+		)
+
+		expect(addToast).toHaveBeenCalledTimes(1)
+		expect(addToast).toHaveBeenCalledWith({
+			title: 'assets.files.upload-failed',
+			severity: 'error',
+		})
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
+		expect(editor.getAssets()).toHaveLength(0)
+	})
+})
+
+describe('defaultHandleExternalFileReplaceContent', () => {
+	it('shows a toast and keeps the video when the replacement is audio-only', async () => {
+		const shapeId = createShapeId()
+		editor.createShape({ id: shapeId, type: 'video', props: { w: 160, h: 90 } })
+		const before = editor.getShape(shapeId)
+
+		vi.spyOn(MediaHelpers, 'usingObjectURL').mockImplementation((_blob, fn) => fn('blob:audio'))
+		vi.spyOn(MediaHelpers, 'loadVideo').mockResolvedValue({
+			videoWidth: 0,
+			videoHeight: 0,
+		} as HTMLVideoElement)
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		await defaultHandleExternalFileReplaceContent(
+			editor,
+			{
+				type: 'file-replace',
+				file: new File(['audio'], 'audio-only.webm', { type: 'video/webm' }),
+				shapeId,
+				isImage: false,
+			},
+			makeOptions()
+		)
+
+		expect(addToast).toHaveBeenCalledTimes(1)
+		expect(addToast).toHaveBeenCalledWith({
+			title: 'assets.files.upload-failed',
+			severity: 'error',
+		})
+		expect(editor.getShape(shapeId)).toEqual(before)
 		expect(editor.getAssets()).toHaveLength(0)
 	})
 })
