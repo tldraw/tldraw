@@ -1,7 +1,9 @@
 import { WHATS_NEW_MEDIA_TYPES, WhatsNewStore, WhatsNewUpdate } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { fetch } from 'tldraw'
+import { fetch, useDialogs } from 'tldraw'
+import { TlaWhatsNewDialog } from '../../tla/components/WhatsNew/TlaWhatsNewDialog'
 import { TlaWhatsNewUpdate } from '../../tla/components/WhatsNew/TlaWhatsNewUpdate'
+import { useMaybeApp } from '../../tla/hooks/useAppState'
 import { AdminButton } from './AdminButton'
 import { getResponseError, useTransientMessage } from './shared'
 import styles from './admin.module.css'
@@ -18,6 +20,8 @@ export function WhatsNewSection() {
 	const [successMessage, setSuccessMessage] = useTransientMessage()
 	const bodyRef = useRef<HTMLTextAreaElement>(null)
 	const fileRef = useRef<HTMLInputElement>(null)
+	const app = useMaybeApp()
+	const { addDialog } = useDialogs()
 
 	const selected = store?.updates.find((u) => u.id === selectedId) ?? null
 	// Publish sends no content, so publishing with unsaved edits would ship the last saved body.
@@ -224,6 +228,18 @@ export function WhatsNewSection() {
 						<div className={styles.whatsNewActions}>
 							<AdminButton onClick={() => fileRef.current?.click()} disabled={isBusy}>
 								Upload media
+							</AdminButton>
+							<AdminButton
+								onClick={() => {
+									if (!preview) return
+									addDialog({
+										component: (props) => <TlaWhatsNewDialog {...props} preview={preview} />,
+									})
+								}}
+								// The dialog reads the user's settings from the app.
+								disabled={!app}
+							>
+								Preview in app
 							</AdminButton>
 							<div className={styles.whatsNewActionsEnd}>
 								{selected && (

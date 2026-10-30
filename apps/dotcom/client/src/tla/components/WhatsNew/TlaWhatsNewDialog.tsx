@@ -1,3 +1,4 @@
+import { WhatsNewUpdate } from '@tldraw/dotcom-shared'
 import { useEffect, useRef } from 'react'
 import {
 	defineMessages,
@@ -25,10 +26,14 @@ const messages = defineMessages({
 	openPage: { defaultMessage: 'Open all updates in a new tab' },
 })
 
-export function TlaWhatsNewDialog({
-	onClose,
-	trigger,
-}: TLUiDialogProps & { trigger: 'auto' | 'menu' }) {
+// `preview` (admin) shows that Update instead and has no side effects: no analytics, nothing marked read.
+type TlaWhatsNewDialogProps = TLUiDialogProps &
+	(
+		| { trigger: 'auto' | 'menu'; preview?: undefined }
+		| { trigger?: undefined; preview: WhatsNewUpdate }
+	)
+
+export function TlaWhatsNewDialog({ onClose, trigger, preview }: TlaWhatsNewDialogProps) {
 	const app = useApp()
 	const msg = useTranslation()
 	const trackEvent = useTldrawAppUiEvents()
@@ -37,11 +42,12 @@ export function TlaWhatsNewDialog({
 		app,
 	])
 	// Staff also get Drafts (listed first); auto-open is about the newest Published one.
-	const latest = updates.find((u) => u.status === 'published') ?? updates[0]
+	const latest = preview ?? updates.find((u) => u.status === 'published') ?? updates[0]
 
 	// Once per open, against the Update as first shown.
 	const shownRef = useRef(latest)
 	useEffect(() => {
+		if (!trigger) return
 		trackEvent('whats-new-open', { source: 'whats-new', trigger })
 		const next = shownRef.current ? getSeenAtAfterShowing([shownRef.current]) : null
 		const user = app.getUser()
@@ -61,7 +67,7 @@ export function TlaWhatsNewDialog({
 					title={msg(messages.openPage)}
 					aria-label={msg(messages.openPage)}
 					onClick={() => {
-						trackEvent('whats-new-open-page', { source: 'whats-new' })
+						if (trigger) trackEvent('whats-new-open-page', { source: 'whats-new' })
 						window.open(routes.tlaWhatsNew(), '_blank', 'noopener,noreferrer')
 					}}
 				>
@@ -77,6 +83,7 @@ export function TlaWhatsNewDialog({
 					<input
 						type="checkbox"
 						checked={autoOpen}
+						disabled={!!preview}
 						onChange={(e) => {
 							app.updateUser({ whatsNewAutoOpen: e.target.checked })
 							if (!e.target.checked) {
