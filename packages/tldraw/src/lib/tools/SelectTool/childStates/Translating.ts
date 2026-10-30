@@ -191,6 +191,9 @@ export class Translating extends StateNode {
 		this.markId = this.editor.markHistoryStoppingPoint('translate')
 		// Same as in startCloning: the manager is still tracking the (now deleted) clones
 		this.dragAndDropManager.clear()
+		// The bail undid the originals' onTranslateStart (or it never ran, if alt was held when
+		// the drag began). Without it, an arrow bound to a shape swings around as it moves.
+		this.handleStart()
 		this.updateShapes()
 	}
 
