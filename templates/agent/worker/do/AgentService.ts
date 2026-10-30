@@ -352,7 +352,7 @@ function getProviderOptions(definition: AgentModelDefinition): StreamTextProvide
 		case 'openai':
 			return {
 				openai: {
-					reasoningEffort: definition.reasoningEffort,
+					...(definition.reasoningEffort ? { reasoningEffort: definition.reasoningEffort } : {}),
 					// Stream reasoning summaries, which reach the client as think actions.
 					reasoningSummary: 'auto',
 				} satisfies OpenAIResponsesProviderOptions,

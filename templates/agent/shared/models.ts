@@ -38,7 +38,8 @@ export interface GoogleModelDefinition extends BaseAgentModelDefinition {
 
 export interface OpenAIModelDefinition extends BaseAgentModelDefinition {
 	provider: 'openai'
-	reasoningEffort: OpenAIReasoningEffort
+	/** Reasoning effort; omit to use the model's default. */
+	reasoningEffort?: OpenAIReasoningEffort
 }
 
 export type AgentModelDefinition =
@@ -105,7 +106,6 @@ export const AGENT_MODEL_DEFINITIONS = {
 		id: 'gpt-5.6-luna',
 		provider: 'openai',
 		supportsTemperature: false,
-		reasoningEffort: 'max',
 	},
 } as const
 
