@@ -3,7 +3,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { Environment } from '../../types'
 import { canUseMcpServer } from '../../utils/featureFlags'
 import {
-	MCP_BOARDS_PROTECTED_RESOURCE_METADATA_PATH,
+	ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
 	McpAuthResult,
@@ -178,7 +178,7 @@ describe('MCP host', () => {
 		expect(getMcpResourceUrl(mcpHostRequest(), makeEnv())).toBe('https://mcp.tldraw.com/mcp')
 
 		const response = getMcpProtectedResourceMetadata(
-			mcpHostRequest(MCP_BOARDS_PROTECTED_RESOURCE_METADATA_PATH),
+			mcpHostRequest(ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH),
 			makeEnv()
 		)
 		expect(await response.json()).toMatchObject({ resource: 'https://mcp.tldraw.com/mcp' })
@@ -188,7 +188,7 @@ describe('MCP host', () => {
 		const result = await authenticateMcpRequest(mcpHostRequest(), makeEnv())
 
 		expect(responseOf(result).headers.get('WWW-Authenticate')).toBe(
-			`Bearer resource_metadata="https://mcp.tldraw.com${MCP_BOARDS_PROTECTED_RESOURCE_METADATA_PATH}", ` +
+			`Bearer resource_metadata="https://mcp.tldraw.com${ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH}", ` +
 				`scope="openid profile email offline_access"`
 		)
 	})

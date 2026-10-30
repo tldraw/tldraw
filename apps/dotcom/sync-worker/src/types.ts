@@ -164,7 +164,7 @@ export interface Environment {
 	// header can be forged — see getMcpResourceUrl.
 	MCP_SERVER_URL: string | undefined
 	// The MCP host's origin (`https://staging-mcp.tldraw.com` on staging; production's mcp.tldraw.com
-	// comes later), where the same server answers at MCP_BOARDS_PATH. Requests on this host get their
+	// comes later), where the same server answers at ROOT_MCP_SERVER_PATH. Requests on this host get their
 	// own router and advertise its URLs instead of MCP_SERVER_URL; see isMcpHostRequest. Unset where
 	// the host has no route (production for now, dev, previews).
 	MCP_HOST_ORIGIN: string | undefined

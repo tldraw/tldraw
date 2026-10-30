@@ -47,8 +47,8 @@ import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { handleInitUser } from './routes/tla/initUser'
 import {
-	MCP_BOARDS_PATH,
-	MCP_BOARDS_PROTECTED_RESOURCE_METADATA_PATH,
+	ROOT_MCP_SERVER_PATH,
+	ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
 	getMcpProtectedResourceMetadata,
@@ -299,10 +299,10 @@ const router = createRouter<Environment>()
 // own rather than routes on the main one, so no API route is reachable through the host and no
 // server's path can collide with one.
 const mcpHostRouter = createRouter<Environment>()
-	.options(MCP_BOARDS_PATH, mcpCorsPreflight)
-	.options(MCP_BOARDS_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
-	.all(MCP_BOARDS_PATH, async (req, env, ctx) => withMcpCors(await mcpServer(req, env, ctx)))
-	.get(MCP_BOARDS_PROTECTED_RESOURCE_METADATA_PATH, (req, env) =>
+	.options(ROOT_MCP_SERVER_PATH, mcpCorsPreflight)
+	.options(ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
+	.all(ROOT_MCP_SERVER_PATH, async (req, env, ctx) => withMcpCors(await mcpServer(req, env, ctx)))
+	.get(ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH, (req, env) =>
 		withMcpCors(getMcpProtectedResourceMetadata(req, env))
 	)
 	.all('*', notFound)
