@@ -319,7 +319,7 @@ function TlaShareGroup() {
 
 const MAX_NOTIFICATIONS = 20
 
-// Newest first; pinned only while browsing.
+// Unread only, newest first; pinned only while browsing.
 function TlaNotificationsGroup() {
 	const msg = useTranslation()
 	const app = useApp()
@@ -329,13 +329,13 @@ function TlaNotificationsGroup() {
 	const intl = useIntl()
 	const notificationsLbl = msg(messages.notifications)
 	if (!unreadCount) return null
-	const listed = notifications.slice(0, MAX_NOTIFICATIONS)
+	const listed = notifications.filter((n) => n.unread).slice(0, MAX_NOTIFICATIONS)
 
 	return (
 		<CommandPalettePinned>
 			<CommandPaletteCollapsed>
 				<TldrawUiMenuSubmenu id="tla-new-notifications" label={notificationsLbl}>
-					{listed.map(({ comment, unread, authorName, preview, reactors }) => (
+					{listed.map(({ comment, authorName, preview, reactors }) => (
 						<TldrawUiMenuItem
 							key={comment.id}
 							id={`notification:${comment.id}`}
@@ -348,7 +348,7 @@ function TlaNotificationsGroup() {
 							}
 							readonlyOk
 							onSelect={() => {
-								if (unread) app.markCommentRead(comment.id)
+								app.markCommentRead(comment.id)
 								navigate(commentLink(comment.fileId, comment.thread?.shapeId, comment.id))
 							}}
 						/>
