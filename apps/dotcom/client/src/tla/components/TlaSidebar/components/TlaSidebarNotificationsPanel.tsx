@@ -8,7 +8,7 @@ import {
 	richTextToPlaintext,
 	summarizeReactions,
 } from '@tldraw/commenting'
-import { ReactNode, useCallback, useState } from 'react'
+import { ReactNode, useCallback, useMemo, useState } from 'react'
 import { useIntl } from 'react-intl'
 import { Link } from 'react-router-dom'
 import {
@@ -157,33 +157,45 @@ export interface EnrichedCommentNotification extends CommentNotification {
  * Comments and reactions surfaced as notifications, merged from the comment feeds and the
  * `reactions` synced query and sorted by timestamp. {@link categorizeCommentNotifications} and
  * {@link buildReactionNotifications} do the per-feed shaping. Shared by trigger button and panel.
+ * Kept free of per-row display work: the always-mounted badge reruns this on every Zero update.
  */
 export function useCommentNotifications() {
 	const app = useMaybeApp()
-	const msg = useTranslation()
-	const unknownAuthorLbl = msg(messages.unknownAuthor)
 	return useValue(
 		'comment notifications',
 		() => {
 			const userId = app?.userId
 			const comments = categorizeCommentNotifications(app?.getComments() ?? [], userId)
 			const reactionEntries = buildReactionNotifications(app?.getReactions() ?? [], userId)
-			const notifications = mergeNotifications(comments, reactionEntries).map(
-				(n): EnrichedCommentNotification => ({
-					...n,
-					// never the raw id: an opaque uuid as a byline reads as a bug
-					authorName: n.comment.authorName || unknownAuthorLbl,
-					preview: richTextToPlaintext(n.comment.body as TLRichText),
-					reactors:
-						n.primaryReason === 'reaction'
-							? summarizeForeignReactors(n.comment.reactions, userId)
-							: undefined,
-				})
-			)
+			const notifications = mergeNotifications(comments, reactionEntries)
 			const unreadCount = notifications.filter((n) => n.unread).length
 			return { notifications, unreadCount }
 		},
-		[app, unknownAuthorLbl]
+		[app]
+	)
+}
+
+/** Adds display fields to the rows actually rendered; `rows` must be memoized by the caller. */
+export function useEnrichedNotifications(
+	rows: CommentNotification[]
+): EnrichedCommentNotification[] {
+	const app = useMaybeApp()
+	const msg = useTranslation()
+	const unknownAuthorLbl = msg(messages.unknownAuthor)
+	const userId = app?.userId
+	return useMemo(
+		() =>
+			rows.map((n) => ({
+				...n,
+				// never the raw id: an opaque uuid as a byline reads as a bug
+				authorName: n.comment.authorName || unknownAuthorLbl,
+				preview: richTextToPlaintext(n.comment.body as TLRichText),
+				reactors:
+					n.primaryReason === 'reaction'
+						? summarizeForeignReactors(n.comment.reactions, userId)
+						: undefined,
+			})),
+		[rows, unknownAuthorLbl, userId]
 	)
 }
 
@@ -207,7 +219,11 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 	const [filter, setFilter] = useState<NotificationFilter>('all')
 	const { locale } = useIntl()
 
-	const visible = filter === 'unread' ? notifications.filter((n) => n.unread) : notifications
+	const visibleRows = useMemo(
+		() => (filter === 'unread' ? notifications.filter((n) => n.unread) : notifications),
+		[filter, notifications]
+	)
+	const visible = useEnrichedNotifications(visibleRows)
 
 	const items: CommentListItemProps[] = visible.map((n) => {
 		const c = n.comment

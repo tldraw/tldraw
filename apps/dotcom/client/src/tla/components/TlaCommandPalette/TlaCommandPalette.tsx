@@ -1,4 +1,5 @@
 import { CommentsMenuItem, toggleCommentsSidebar, useCommentsSidebarOpen } from '@tldraw/commenting'
+import { useMemo } from 'react'
 import { useIntl } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -65,6 +66,7 @@ import { openNotificationsPanel } from '../TlaSidebar/components/TlaSidebarNotif
 import {
 	commentLink,
 	useCommentNotifications,
+	useEnrichedNotifications,
 } from '../TlaSidebar/components/TlaSidebarNotificationsPanel'
 import {
 	useCreateWorkspaceDialog,
@@ -328,8 +330,12 @@ function TlaNotificationsGroup() {
 	const currentFileId = useCurrentFileId()
 	const intl = useIntl()
 	const notificationsLbl = msg(messages.notifications)
+	const unreadRows = useMemo(
+		() => notifications.filter((n) => n.unread).slice(0, MAX_NOTIFICATIONS),
+		[notifications]
+	)
+	const listed = useEnrichedNotifications(unreadRows)
 	if (!unreadCount) return null
-	const listed = notifications.filter((n) => n.unread).slice(0, MAX_NOTIFICATIONS)
 
 	return (
 		<CommandPalettePinned>
