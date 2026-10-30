@@ -2259,12 +2259,19 @@ tldraw? probably.
 }
 
 .tlui-rich-text__toolbar-link-input {
-	margin-left: 12px;
+	/* Padding rather than margin, so the invalid outline runs to the toolbar's left edge. */
+	padding-left: 12px;
 	/*
 	 * Nice touch tweak: keep the link editor toolbar the same as the default toolbar.
 	 * This is so the toolbar size stays stable going in and out of the link editor.
 	 */
-	width: 148px;
+	width: 160px;
+}
+
+.tlui-rich-text__toolbar-link-input--invalid {
+	/* An inset shadow rather than a border, so the input doesn't change size. */
+	box-shadow: inset 0 0 0 1px var(--tl-color-danger);
+	border-radius: var(--tl-radius-3) var(--tl-radius-2) var(--tl-radius-2) var(--tl-radius-3);
 }
 
 .tlui-media__toolbar-alt-text-input {

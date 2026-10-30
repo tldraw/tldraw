@@ -1878,26 +1878,72 @@ function parseUrl(str: string) {
 	}
 }
 
-const validLinkProtocols = new Set(['http:', 'https:', 'mailto:'])
+// A block list rather than an allow list: every client and the sync server validate shapes with
+// this, so a scheme accepted by one version and rejected by another breaks shared boards. Blocking
+// a scheme later has the same problem, so only add one here with a migration that blanks it.
+const blockedLinkProtocols = new Set([
+	// Run script or render arbitrary content in the page's origin
+	'javascript:',
+	'vbscript:',
+	'data:',
+	'blob:',
+	'filesystem:',
+	// Reach local files or browser internals
+	'file:',
+	'about:',
+	'view-source:',
+	'chrome:',
+	'chrome-extension:',
+	'moz-extension:',
+	'resource:',
+	'jar:',
+	// tldraw's local asset store, not something a link can open
+	'asset:',
+	// Windows protocol handlers with known remote code execution exploits, such as CVE-2022-30190
+	// ("Follina") through `ms-msdt:` and `search-ms:`
+	'ms-msdt:',
+	'search-ms:',
+	'search:',
+	'ms-officecmd:',
+	'ms-appinstaller:',
+	'shell:',
+	'hcp:',
+	'ms-its:',
+	'its:',
+	'mk:',
+])
+
+// `localhost:3000` and `example.com:8080` parse as a `localhost:` or `example.com:` scheme. Ports
+// are at most five digits, so this doesn't catch phone links like `tel:5551234`.
+const hostWithPortRegex = /^\d{1,5}(?:[/?#]|$)/
 
 /**
- * Validator for URLs that are safe to use as user-facing links. Accepts http, https, and mailto protocols.
- * This validator provides security by rejecting potentially dangerous protocols like javascript:.
+ * Validator for URLs that are safe to use as user-facing links. Accepts http, https, and mailto
+ * links, and app links that open other apps (such as `vscode://file/…`). This validator provides
+ * security by rejecting potentially dangerous protocols like javascript:.
  *
  * @example
  * ```ts
  * const link = T.linkUrl.validate("https://example.com") // Valid
  * const email = T.linkUrl.validate("mailto:user@example.com") // Valid
+ * const appLink = T.linkUrl.validate("vscode://file/src/index.ts") // Valid
  * T.linkUrl.validate("") // Valid (empty string allowed)
  * T.linkUrl.validate("javascript:alert(1)") // Throws ValidationError (unsafe protocol)
+ * T.linkUrl.validate("localhost:3000") // Throws ValidationError (a host, not a protocol)
  * ```
  * @public
  */
 export const linkUrl = string.check((value) => {
 	if (value === '') return
 	const url = parseUrl(value)
+	const protocol = url.protocol.toLowerCase()
 
-	if (!validLinkProtocols.has(url.protocol.toLowerCase())) {
+	if (
+		blockedLinkProtocols.has(protocol) ||
+		// A Windows drive letter, as in `C:/Users`
+		protocol.length === 2 ||
+		hostWithPortRegex.test(url.href.slice(protocol.length))
+	) {
 		throw new ValidationError(
 			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
 		)

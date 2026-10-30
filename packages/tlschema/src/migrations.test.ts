@@ -1426,6 +1426,28 @@ describe('Make urls valid for all the shapes', () => {
 	}
 })
 
+describe('Allow app link urls for all the shapes', () => {
+	const migrations = [
+		['bookmark shape', getTestMigration(bookmarkShapeVersions.AllowAppLinkUrls)],
+		['geo shape', getTestMigration(geoShapeVersions.AllowAppLinkUrls)],
+		['image shape', getTestMigration(imageShapeVersions.AllowAppLinkUrls)],
+		['note shape', getTestMigration(noteShapeVersions.AllowAppLinkUrls)],
+		['video shape', getTestMigration(videoShapeVersions.AllowAppLinkUrls)],
+	] as const
+
+	for (const [shapeName, { up, down }] of migrations) {
+		it(`works for ${shapeName}`, () => {
+			const appLink = { props: { url: 'codex://threads/1' } }
+			expect(up(appLink)).toEqual(appLink)
+			expect(down(appLink)).toEqual({ props: { url: '' } })
+
+			for (const url of ['', 'https://example.com', 'mailto:a@b.com', '/foo', './foo']) {
+				expect(down({ props: { url } })).toEqual({ props: { url } })
+			}
+		})
+	}
+})
+
 describe('Add rich text', () => {
 	const migrations = [
 		['text shape', getTestMigration(textShapeVersions.AddRichText)],
