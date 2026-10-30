@@ -185,7 +185,12 @@ export const CanvasLintsPartDefinition: PromptPartDefinition<CanvasLintsPart> = 
 }
 
 // ChatHistory
-const CHAT_HISTORY_PRIORITY = -Infinity // history should appear first in the prompt (low priority)
+/**
+ * The history comes before every other part. The other parts (the canvas, the time, the todos)
+ * change between requests, so with the history first, each request starts with the previous one
+ * and the provider can cache it.
+ */
+export const CHAT_HISTORY_PRIORITY = -Infinity
 
 export const ChatHistoryPartDefinition: PromptPartDefinition<ChatHistoryPart> = {
 	type: 'chatHistory',
@@ -254,10 +259,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 				}
 			}
 
-			if (content.length === 0) {
-				return null
-			}
-
+			// An empty prompt, such as one that only sends tool results back, still ends the tool turn.
 			const role =
 				item.promptSource === 'user' || item.promptSource === 'other-agent' ? 'user' : 'assistant'
 			return {
@@ -278,26 +280,20 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 			}
 		}
 		case 'action': {
-			const { action } = item
-			let text: string
-			switch (action._type) {
-				case 'message': {
-					text = action.text || '<message data lost>'
-					break
-				}
-				case 'think': {
-					text = '[THOUGHT]: ' + (action.text || '<thought data lost>')
-					break
-				}
-				default: {
-					const { complete: _complete, time: _time, ...rawAction } = action || {}
-					text = '[ACTION]: ' + JSON.stringify(rawAction)
-					break
+			const { complete: _complete, time: _time, ...rest } = item.action
+			const action = rest as AgentAction
+			if (action._type === 'message') {
+				return {
+					role: 'assistant',
+					content: [{ type: 'text', text: action.text || '<message data lost>' }],
+					priority,
 				}
 			}
+			// Earlier reasoning is not sent again, as with the providers' own reasoning.
+			if (action._type === 'think') return null
 			return {
 				role: 'assistant',
-				content: [{ type: 'text', text }],
+				content: [{ type: 'action', action, result: item.result ?? 'Done.' }],
 				priority,
 			}
 		}
