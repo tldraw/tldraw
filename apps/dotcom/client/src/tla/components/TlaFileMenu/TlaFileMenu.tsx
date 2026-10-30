@@ -390,7 +390,7 @@ function FileRenameItem({
 				id={`${idPrefix}rename`}
 				label={messages.renameFile.id}
 				placeholder={messages.fileName.id}
-				initialValue={app.getFileName(fileId)}
+				initialValue={app.getFileName(fileId, false)}
 				onSubmit={(name) => {
 					if (!name) return
 					app.updateFile(fileId, { name })
