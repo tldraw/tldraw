@@ -557,7 +557,6 @@ describe('getAllFeatureFlagValues', () => {
 			'thumbnail_render_push',
 			'ui_v3',
 			'version_chain',
-			'version_history',
 		])
 	})
 

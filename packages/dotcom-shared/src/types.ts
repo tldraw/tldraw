@@ -478,7 +478,6 @@ export const FEATURE_FLAG_KEYS = [
 	'mcp_render_push',
 	'headless_shadow',
 	'ui_v3',
-	'version_history',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
