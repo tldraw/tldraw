@@ -221,3 +221,11 @@
 		margin-left: auto;
 	}
 }
+
+.checkboxField {
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-3);
+	color: var(--tl-color-text-0);
+	cursor: pointer;
+}

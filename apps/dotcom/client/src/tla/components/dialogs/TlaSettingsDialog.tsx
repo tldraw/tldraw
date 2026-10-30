@@ -32,6 +32,7 @@ const messages = defineMessages({
 	name: { defaultMessage: 'Name' },
 	color: { defaultMessage: 'Color' },
 	colorTheme: { defaultMessage: 'Color theme' },
+	whatsNewAutoOpen: { defaultMessage: "Show what's new after updates" },
 })
 
 function setPreferences(app: TldrawApp, prefs: Partial<TLUserPreferences>) {
@@ -202,6 +203,12 @@ function PreferencesPanel() {
 		app,
 	])
 	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
+	const whatsNewAutoOpen = useValue(
+		'whatsNewAutoOpen',
+		() => app.getUser().whatsNewAutoOpen !== false,
+		[app]
+	)
+	const trackAppEvent = useTldrawAppUiEvents()
 
 	useEffect(() => () => setColorThemePreview(null), [])
 
@@ -269,6 +276,20 @@ function PreferencesPanel() {
 					}}
 				/>
 			</div>
+			<label className={styles.checkboxField}>
+				<input
+					type="checkbox"
+					data-testid="tla-settings-whats-new-auto-open"
+					checked={whatsNewAutoOpen}
+					onChange={(e) => {
+						app.updateUser({ whatsNewAutoOpen: e.target.checked })
+						if (!e.target.checked) {
+							trackAppEvent('whats-new-auto-open-disabled', { source: 'user-preferences' })
+						}
+					}}
+				/>
+				{msg(messages.whatsNewAutoOpen)}
+			</label>
 		</>
 	)
 }
