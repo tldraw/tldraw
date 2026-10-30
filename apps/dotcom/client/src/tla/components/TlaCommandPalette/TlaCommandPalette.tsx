@@ -429,20 +429,17 @@ function TlaWorkspacesGroup() {
 	const switchToWorkspace = useSwitchToWorkspace()
 	const createWorkspace = useCreateWorkspaceDialog('command-palette')
 	const memberships = useValue('memberships', () => app.getWorkspaceMemberships(), [app])
-	const homeWorkspaceId = app.getHomeWorkspaceId()
-	const activeMembership = memberships.find((m) => m.groupId === activeWorkspaceId)
 	const workspacesLbl = msg(messages.workspaces)
 	const switchLbl = msg(messages.switchWorkspace)
 	const myWorkspaceLbl = msg(messages.myWorkspace)
 	const newWorkspaceLbl = msg(messages.newWorkspace)
 	const settingsLbl = msg(messages.workspaceSettings)
 	const copyInviteLbl = msg(messages.copyInviteLink)
-	const activeGroup = activeMembership?.group
-	// A new workspace has no invite secret until the server confirms it, so there's nothing to copy.
-	const canCopyInvite =
-		activeWorkspaceId !== homeWorkspaceId &&
-		!!activeGroup?.inviteSecret &&
-		(activeGroup.inviteLinkEnabled ?? true)
+	const canCopyInvite = useValue(
+		'can copy invite',
+		() => app.canCopyWorkspaceInvite(activeWorkspaceId),
+		[app, activeWorkspaceId]
+	)
 
 	return (
 		<TldrawUiMenuGroup id="tla-workspaces" label={workspacesLbl}>
