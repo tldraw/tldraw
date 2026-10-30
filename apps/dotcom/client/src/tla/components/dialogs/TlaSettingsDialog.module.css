@@ -1,0 +1,223 @@
+.dialog {
+	width: max-content;
+	max-width: 100%;
+	/* Shrink with the dialog's max-height on short screens so the panel scrolls instead of clipping. */
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+/* Fixed height so switching tabs doesn't re-center the dialog. */
+.layout {
+	--settings-gutter: var(--tl-space-6);
+	/* Sizes the dialog; shared by every row so switching tabs doesn't change its width. */
+	--settings-column: 300px;
+	display: flex;
+	gap: var(--settings-gutter);
+	flex: 0 1 360px;
+	min-height: 0;
+	padding: var(--tl-space-2) var(--settings-gutter) var(--tl-space-4) var(--tl-space-4);
+}
+
+.nav {
+	display: flex;
+	flex-direction: column;
+	min-width: 140px;
+	flex-shrink: 0;
+}
+
+.tabs {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.tab {
+	all: unset;
+	height: 32px;
+	padding: 0 var(--tl-space-3);
+	border-radius: var(--tl-radius-2);
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+}
+
+.tab[data-state='active'] {
+	background-color: var(--tl-color-muted-2);
+	color: var(--tl-color-text-0);
+}
+
+@media (hover: hover) {
+	.tab:hover {
+		background-color: var(--tl-color-muted-2);
+	}
+}
+
+.tab:focus-visible {
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: -2px;
+}
+
+.signOut {
+	margin-top: auto;
+}
+
+.panel {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--tl-space-4);
+	overflow-y: auto;
+	/* overflow clips both axes; bleed 4px so swatch and focus outlines aren't cut off. */
+	padding: 0 4px;
+	margin: 0 -4px;
+}
+
+/* Radix keeps inactive tab panels mounted with [hidden], which display: flex would override. */
+.panel[hidden] {
+	display: none;
+}
+
+.panelTitle {
+	margin: 0;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	font-family: var(--tla-font-ui);
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.identity {
+	/* Capped like the fields so a long email ellipsizes instead of widening the dialog. */
+	width: var(--settings-column);
+	max-width: 100%;
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-4);
+}
+
+.avatar {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	font-size: 18px;
+	font-weight: 700;
+}
+
+.identityText {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.email {
+	color: var(--tl-color-text-3);
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tl-space-3);
+	width: var(--settings-column);
+	max-width: 100%;
+}
+
+.label {
+	color: var(--tl-color-text-0);
+}
+
+.input {
+	box-sizing: border-box;
+	height: 32px;
+	width: 100%;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-2);
+	background-color: var(--tl-color-muted-0);
+	padding: 0 var(--tl-space-3);
+}
+
+.input:focus {
+	border-color: var(--tl-color-primary);
+}
+
+.swatches {
+	display: flex;
+	gap: 6px;
+}
+
+.swatch {
+	all: unset;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
+.swatch[aria-checked='true'],
+.swatch:focus-visible {
+	outline: 2px solid var(--tl-color-text-0);
+	outline-offset: 2px;
+}
+
+.segmented {
+	display: flex;
+	padding: 2px;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
+	background-color: var(--tl-color-muted-0);
+}
+
+.segment {
+	all: unset;
+	flex: 1;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: var(--tl-radius-2);
+	color: var(--tl-color-text-3);
+	cursor: pointer;
+}
+
+.segment[data-state='on'] {
+	background-color: var(--tl-color-panel);
+	color: var(--tl-color-text-0);
+	box-shadow: var(--tl-shadow-1);
+}
+
+.segment:focus-visible {
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: -2px;
+}
+
+@media (max-width: 600px) {
+	.layout {
+		flex-direction: column;
+	}
+
+	.nav {
+		min-width: 0;
+		flex-direction: row;
+	}
+
+	.tabs {
+		flex-direction: row;
+	}
+
+	.signOut {
+		margin-top: 0;
+		margin-left: auto;
+	}
+}
