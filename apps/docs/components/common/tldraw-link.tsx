@@ -1,40 +1,26 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+
+const POSTHOG_HASH_HOSTNAMES = ['www.tldraw.com', 'tldraw.com']
+
+// tldraw.com only trusts these ids while `ts` is under two minutes old (see posthogHashBootstrap.ts
+// in apps/dotcom), so they are stamped when the link is used rather than when it renders. Rendered
+// ids also ended up in links copied into other pages.
+function addPosthogHash(anchor: HTMLAnchorElement, href: string) {
+	const sessionId = window.posthog?.get_session_id?.()
+	const distinctId = window.posthog?.get_distinct_id?.()
+	if (!sessionId || !distinctId) return
+	const hash = new URLSearchParams({
+		session_id: sessionId,
+		distinct_id: distinctId,
+		ts: String(Date.now()),
+	})
+	anchor.href = `${href}#${hash}`
+}
 
 export function TldrawLink(props: React.ComponentProps<'a'>) {
-	const { href, children } = props
-	const windowObject = typeof window !== 'undefined' ? window : null
-	// Start empty so the first client render matches the server HTML — reading
-	// posthog during render appends `#session_id` to hrefs before hydration and
-	// causes a hydration mismatch whenever posthog loads first.
-	const [sessionId, setSessionId] = useState<string | undefined>(undefined)
-	const [distinctId, setDistinctId] = useState<string | undefined>(undefined)
-
-	useEffect(() => {
-		// Note this href check is intentionally loose, just to avoid
-		// doing this setInterval for every link. We do the real check below.
-		if (sessionId || !href?.includes('tldraw.com')) return
-
-		if (windowObject?.posthog) {
-			setSessionId(windowObject.posthog.get_session_id())
-			setDistinctId(windowObject.posthog.get_distinct_id())
-			return
-		}
-
-		// XXX: have to wait a bit for posthog to be ready.
-		// there's unfortunately no event callback for this.
-		const timeout = setInterval(() => {
-			setSessionId(windowObject?.posthog?.get_session_id())
-			setDistinctId(windowObject?.posthog?.get_distinct_id())
-			clearTimeout(timeout)
-		}, 1000)
-
-		return () => {
-			clearTimeout(timeout)
-		}
-	}, [sessionId, windowObject, href])
+	const { href, children, onClick, onPointerDown } = props
 
 	const isLocalUrl = href?.startsWith('/') || href?.startsWith('#')
 	let maybeParsedUrl
@@ -51,18 +37,29 @@ export function TldrawLink(props: React.ComponentProps<'a'>) {
 			: '_blank'
 	const target = props.target ?? derivedTarget
 
-	let newHref = href
-	if (
-		maybeParsedUrl?.host.includes('tldraw.com') &&
-		sessionId &&
-		distinctId &&
-		!href?.includes('#')
-	) {
-		newHref = `${href}#session_id=${sessionId}&distinct_id=${distinctId}`
+	const posthogHashHref =
+		href && !href.includes('#') && POSTHOG_HASH_HOSTNAMES.includes(maybeParsedUrl?.hostname ?? '')
+			? href
+			: undefined
+
+	// Pointer down comes before navigation, a middle click or the context menu; click covers keyboard.
+	const handlePointerDown = (event: React.PointerEvent<HTMLAnchorElement>) => {
+		if (posthogHashHref) addPosthogHash(event.currentTarget, posthogHashHref)
+		onPointerDown?.(event)
+	}
+	const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+		if (posthogHashHref) addPosthogHash(event.currentTarget, posthogHashHref)
+		onClick?.(event)
 	}
 
 	return (
-		<Link {...props} href={newHref ?? ''} target={target}>
+		<Link
+			{...props}
+			href={href ?? ''}
+			target={target}
+			onPointerDown={handlePointerDown}
+			onClick={handleClick}
+		>
 			{children}
 		</Link>
 	)
