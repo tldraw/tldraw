@@ -159,12 +159,12 @@ export {
 	summarizeForeignReactors,
 } from './notifications/comment-notifications'
 export {
-	type CommentNotificationContent,
+	type CommentNotificationMessage,
 	type CommentNotifierOptions,
-	showBrowserNotification,
-	type ShowCommentNotification,
+	deliverBrowserNotification,
 	startCommentNotifier,
 } from './notifications/notifier'
+export { type DesktopCommentNotificationsOptions } from './notifications/desktop-notifications'
 export {
 	getStoreCommentNotifications,
 	type StoreCommentNotificationInput,

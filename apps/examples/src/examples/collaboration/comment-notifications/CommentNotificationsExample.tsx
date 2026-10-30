@@ -6,19 +6,17 @@ import {
 	CommentNotificationReason,
 	commentToolOverrides,
 	commentTools,
+	deliverBrowserNotification,
 	filterMentionMembers,
 	formatRelativeTime,
 	getStoreCommentNotifications,
-	isAtNotificationLevel,
 	MentionMember,
 	putCommentRecords,
 	revealThread,
 	richTextToPlaintext,
-	showBrowserNotification,
-	startCommentNotifier,
 	useCommentThreads,
 } from '@tldraw/commenting'
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import {
 	atom,
 	commentSchemaRecords,
@@ -31,13 +29,13 @@ import {
 	TLComment,
 	TLCommentId,
 	TLCommentThread,
+	TLCommentThreadId,
 	TLComponents,
 	Tldraw,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TLRichText,
 	toRichText,
-	uniqueId,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -81,6 +79,19 @@ const onCommentsRead = (commentIds: TLCommentId[]) =>
 // waiting for the thread view to report it.
 const onPostComment = (comment: TLComment) => onCommentsRead([comment.id])
 
+// [2]
+const mutedThreads = atom<ReadonlySet<TLCommentThreadId>>('muted threads', new Set())
+
+const isThreadMuted = (threadId: TLCommentThreadId) => mutedThreads.get().has(threadId)
+
+const onThreadMutedChange = (threadId: TLCommentThreadId, muted: boolean) =>
+	mutedThreads.update((prev) => {
+		const next = new Set(prev)
+		if (muted) next.add(threadId)
+		else next.delete(threadId)
+		return next
+	})
+
 /**
  * A comment body of the form `<before>@Name<after>`, as the composer would produce it. Empty
  * `before`/`after` segments are dropped — a zero-length text node is invalid rich text.
@@ -108,17 +119,16 @@ const REASON_LABEL: Record<CommentNotificationReason, string> = {
 	reaction: 'reacted to your comment',
 }
 
-// [2]
-const getNotifications = (editor: Editor) =>
-	getStoreCommentNotifications(editor, ME, { isCommentUnread })
-
 // [3]
-type DesktopLevel = 'off' | CommentNotificationLevel
-const desktopLevel = atom<DesktopLevel>('desktop notification level', 'off')
+const getNotifications = (editor: Editor) =>
+	getStoreCommentNotifications(editor, ME, { isCommentUnread, isThreadMuted })
+
+// [4]
+const desktopLevel = atom<CommentNotificationLevel>('desktop notification level', 'off')
 const alsoWhenFocused = atom('also notify when focused', true)
 const status = atom<string | null>('status', null)
 
-async function setDesktopLevel(level: DesktopLevel) {
+async function setDesktopLevel(level: CommentNotificationLevel) {
 	if (level !== 'off' && (await Notification.requestPermission()) !== 'granted') {
 		status.set('The browser didn’t allow notifications. Check the site’s permissions.')
 		return
@@ -133,35 +143,6 @@ async function sendTestNotification() {
 	}
 	new Notification('Test notification', { body: 'Desktop notifications work in this browser.' })
 	status.set('Test sent. Nothing on screen? See the note above.')
-}
-
-function useDesktopNotifications(editor: Editor) {
-	useEffect(
-		() =>
-			startCommentNotifier({
-				getNotifications: () => getNotifications(editor),
-				isEnabled: () => desktopLevel.get() !== 'off',
-				shouldShow: (n) => {
-					const level = desktopLevel.get()
-					return level !== 'off' && isAtNotificationLevel(n, level)
-				},
-				isWindowFocused: () =>
-					!alsoWhenFocused.get() && document.visibilityState === 'visible' && document.hasFocus(),
-				format: (n) => ({
-					title: `${resolveAuthor(n.comment.authorId).name} ${REASON_LABEL[n.primaryReason]}`,
-					body: richTextToPlaintext(n.comment.record.body, resolveName),
-				}),
-				show: (n, content, onClick) => {
-					showBrowserNotification(n, content, onClick)
-					status.set(`Notification sent: “${content.title}”. Click it to open the thread.`)
-				},
-				onClick: (n) => revealThread(editor, n.comment.record.id),
-				// Each tab of this example has its own in-memory comments, so each needs its own lock.
-				// With a synced store, one shared name keeps N tabs from notifying N times.
-				lockName: `comment-notifications-example:${uniqueId()}`,
-			}),
-		[editor]
-	)
 }
 
 const MINUTE = 60 * 1000
@@ -235,12 +216,11 @@ function handleMount(editor: Editor) {
 function NotificationsPanel() {
 	const editor = useEditor()
 	const threads = useCommentThreads(editor)
-	// [4]
+	// [5]
 	const notifications = useValue('notifications', () => getNotifications(editor), [editor])
 	const level = useValue(desktopLevel)
 	const whenFocused = useValue(alsoWhenFocused)
 	const statusText = useValue(status)
-	useDesktopNotifications(editor)
 
 	const unreadCount = notifications.filter((n) => n.unread).length
 
@@ -256,7 +236,7 @@ function NotificationsPanel() {
 		[threads]
 	)
 
-	// [5]
+	// [6]
 	const postAsAda = (body: TLRichText, thread: TLCommentThread | undefined) => {
 		if (!thread) return
 		const post = () => {
@@ -264,7 +244,7 @@ function NotificationsPanel() {
 			status.set(
 				desktopLevel.get() === 'off'
 					? 'Ada posted. Pick a level above to get a desktop notification too.'
-					: 'Ada posted. No notification at this level.'
+					: 'Ada posted. No notification: check the level, or whether the thread is muted.'
 			)
 			putCommentRecords(editor, [
 				createComment({ threadId: thread.id, pageId: thread.pageId, authorId: 'ada', body }),
@@ -317,7 +297,7 @@ function NotificationsPanel() {
 									<button
 										className="comment-notifications__row"
 										data-unread={unread}
-										// [6]
+										// [7]
 										onClick={() => revealThread(editor, comment.id)}
 									>
 										<Avatar author={resolveAuthor(actorId)} />
@@ -345,7 +325,7 @@ function NotificationsPanel() {
 					<div className="comment-notifications__row-controls">
 						<select
 							value={level}
-							onChange={(e) => setDesktopLevel(e.currentTarget.value as DesktopLevel)}
+							onChange={(e) => setDesktopLevel(e.currentTarget.value as CommentNotificationLevel)}
 						>
 							<option value="off">Off</option>
 							<option value="all">All activity</option>
@@ -394,14 +374,19 @@ function NotificationsPanel() {
 						<TldrawUiButtonLabel>Ada mentions you</TldrawUiButtonLabel>
 					</TldrawUiButton>
 				</div>
+				<p className="comment-notifications__hint">
+					To mute a thread, open it and choose Mute thread from its ⋯ menu. Only mentions get
+					through a muted thread.
+				</p>
 				{statusText && <p className="comment-notifications__status">{statusText}</p>}
 			</div>
 		</div>
 	)
 }
 
-const components: TLComponents = {
-	InFrontOfTheCanvas: () => (
+function Comments() {
+	const level = useValue(desktopLevel)
+	return (
 		<CanvasComments
 			currentUserId={ME}
 			resolveAuthor={resolveAuthor}
@@ -409,8 +394,24 @@ const components: TLComponents = {
 			isCommentUnread={isCommentUnread}
 			onCommentsRead={onCommentsRead}
 			onPostComment={onPostComment}
+			isThreadMuted={isThreadMuted}
+			onThreadMutedChange={onThreadMutedChange}
+			// [8]
+			desktopNotifications={{
+				level,
+				isWindowFocused: () =>
+					!alsoWhenFocused.get() && document.visibilityState === 'visible' && document.hasFocus(),
+				deliver: (message, open) => {
+					deliverBrowserNotification(message, open)
+					status.set(`Notification sent: “${message.title}”. Click it to open the thread.`)
+				},
+			}}
 		/>
-	),
+	)
+}
+
+const components: TLComponents = {
+	InFrontOfTheCanvas: Comments,
 }
 
 export default function CommentNotificationsExample() {
@@ -441,57 +442,49 @@ has *seen* it is one row per (comment, reader), which a real app keeps in its ow
 count survives a reload and follows you between devices.
 
 Here that store is a local atom, so the whole flow runs in memory. An atom rather than React state
-because the two callbacks below are handed to `CanvasComments` once: keeping them stable avoids
-re-creating the comments layer every time something is read, and `useValue` gives the panel its
-reactive read of the same set.
+because the callbacks are handed to `CanvasComments` once: keeping them stable avoids re-creating
+the comments layer every time something is read, and `useValue` gives the panel its reactive read of
+the same set.
 
 [2]
-`getStoreCommentNotifications` reads the comment records and tags each one that concerns you with
-why: it mentions you, it replies in a thread you started or joined, it's on a board you own (pass
-`ownsBoard`), or it's a reaction to your own comment. Passing the same `isCommentUnread` that
-`CanvasComments` takes marks each entry read or unread. It reads signals, so it's reactive wherever
-it's read inside one: `useValue` here, a `react` inside the notifier.
-
-These reasons only see the board that's open. A hosted app that wants a feed across every board
-syncs its own rows and runs the same rules over them: `categorizeCommentNotifications` and
-`buildReactionNotifications` take any rows shaped like a comment joined with its thread and
-reactions.
+Mutes are the host's data too, kept the same way. Passing `onThreadMutedChange` adds Mute thread and
+Unmute thread to a thread's menu; `isThreadMuted` tells the notifications which threads to drop. A
+muted thread still lets mentions through: someone asking for you by name should reach you.
 
 [3]
-`startCommentNotifier` turns the same feed into operating-system notifications. It only shows what's
-newer than when it started and arrives while the window is out of focus, shows each entry once, and
-among several open tabs lets only one notify. `shouldShow` narrows it: `isAtNotificationLevel` maps
-"mentions only" or "mentions and replies" onto the reasons. Clicking a notification calls `onClick`,
-which here reveals the thread.
+`getStoreCommentNotifications` reads the comment records and tags each one that concerns you with
+why: it mentions you, it replies in a thread you started or joined, it's on a board you own (pass
+`ownsBoard`), or it's a reaction to your own comment. It takes the same `isCommentUnread` and
+`isThreadMuted` as `CanvasComments`, and reads signals, so `useValue` keeps the inbox current.
 
-`isWindowFocused` decides what counts as the user looking at the app; the default checks the
-document. The example's checkbox overrides it so you can watch notifications arrive without leaving
-the page, and its `show` wraps the default to report what was sent. The level lives in an atom for
-the example; a real app would keep it with the user's preferences.
-
-A page can't tell when the operating system hides its notifications: the browser reports
-permission as granted and the notification as shown either way. That's why a "Test" button next to
-the setting, with a note on where the system switch lives, is worth having in a real app too.
+These reasons only see the board that's open. A feed across every board is the host's to build from
+its own data.
 
 [4]
-The feed is derived, not stored: nothing needs to be written when a comment arrives.
-
-Read comments stay in the list — the unread dot and the header badge are what clear. Filtering the
-list down to unread only would make the feed lose its history the moment you read it.
+Browsers only show notifications once the user allows them, and only ask in response to a click, so
+the app asks when the user picks a level. The level is a plain string — off, all,
+mentions-and-replies, or mentions — so a real app can keep it with the user's preferences. A page
+can't tell when the operating system hides its notifications: the browser reports permission as
+granted and the notification as shown either way. That's what the Test button is for.
 
 [5]
-Comments are ordinary records, so "someone else commented" is just a write. This stands in for the
-sync connection a real app would have; opening this example in two tabs against a synced store
-would show the same thing arriving on its own. With "Also while this tab is focused" off, Ada waits
-five seconds so you can switch to another app first.
+The feed is derived, not stored: nothing needs to be written when a comment arrives. Read comments
+stay in the list — the unread dot and the header badge are what clear.
 
 [6]
-`revealThread` is the jump-to-thread entry point for anything outside the canvas — this feed, a
-deep link, an email. It's forgiving about timing: `CanvasComments` waits for the records to sync
-in, switches pages, unhides pins, and zooms far enough to split the thread out of any cluster
-before opening it. It takes a thread id or, as here, the id of any comment in it.
+Comments are ordinary records, so "someone else commented" is just a write. This stands in for the
+sync connection a real app would have. With "Also while this tab is focused" off, Ada waits five
+seconds so you can switch to another app first.
 
-Opening the thread is also what marks it read: the thread view reports every unread comment it
-displays through `onCommentsRead`, batched per report, including replies that arrive while it stays
-open.
+[7]
+`revealThread` is the jump-to-thread entry point for anything outside the canvas — this feed, a
+deep link, a notification. It takes a thread id or, as here, the id of any comment in it, and opening
+the thread is also what marks it read.
+
+[8]
+`desktopNotifications` turns the same feed into system notifications while you're looking
+elsewhere. Each one fires once, and clicking it opens its thread. `level` is all most apps pass. The
+example also overrides `isWindowFocused`, so its checkbox can show notifications while you watch, and
+wraps `deliver` to report what was sent. A desktop app would use `deliver` to hand the message, plain
+data, to its main process.
 */

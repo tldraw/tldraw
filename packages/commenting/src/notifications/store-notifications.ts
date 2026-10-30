@@ -1,4 +1,11 @@
-import { Editor, TLComment, TLCommentId, TLCommentReaction, TLCommentThread } from 'tldraw'
+import {
+	Editor,
+	TLComment,
+	TLCommentId,
+	TLCommentReaction,
+	TLCommentThread,
+	TLCommentThreadId,
+} from 'tldraw'
 import {
 	getCommentReactions,
 	getLiveComments,
@@ -12,12 +19,12 @@ import {
 	mergeNotifications,
 } from './comment-notifications'
 
-/** A notification input built from the editor store, carrying its record for routing. @internal */
+/** A notification input built from the editor store, carrying its record for routing. @public */
 export interface StoreCommentNotificationInput extends CommentNotificationInput {
 	record: TLComment
 }
 
-/** @internal */
+/** @public */
 export interface StoreCommentNotificationsOptions {
 	/** Whether the user owns this board, for the `owned-board` reason. */
 	ownsBoard?: boolean
@@ -27,6 +34,8 @@ export interface StoreCommentNotificationsOptions {
 	 * unread either way; the notifier still shows each one once.
 	 */
 	isCommentUnread?(commentId: TLCommentId): boolean
+	/** The host's muted threads, as `CanvasComments` takes them: only mentions get through. */
+	isThreadMuted?(threadId: TLCommentThreadId): boolean
 }
 
 /**
@@ -79,16 +88,20 @@ export function buildStoreCommentNotifications(
 		})
 	}
 
+	const isThreadMuted = opts.isThreadMuted as ((threadId: string) => boolean) | undefined
 	return mergeNotifications(
-		categorizeCommentNotifications(inputs, userId, { ownsBoard: () => opts.ownsBoard ?? false }),
-		buildReactionNotifications(inputs, userId)
+		categorizeCommentNotifications(inputs, userId, {
+			ownsBoard: () => opts.ownsBoard ?? false,
+			isThreadMuted,
+		}),
+		buildReactionNotifications(inputs, userId, { isThreadMuted })
 	)
 }
 
 /**
- * The editor store's comments that concern `userId`, as notifications, newest first. Reactive
- * when read inside a signal context (`react`, `computed`, `useValue`).
- * @internal
+ * The editor store's comments that concern `userId`, as notifications, newest first: the feed for
+ * an inbox. Reactive when read inside a signal context (`react`, `computed`, `useValue`).
+ * @public
  */
 export function getStoreCommentNotifications(
 	editor: Editor,

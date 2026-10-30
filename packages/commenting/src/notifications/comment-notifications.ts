@@ -12,7 +12,7 @@ import { extractMentionIds } from '@tldraw/mentions'
  *
  * A single comment can match more than one; {@link CommentNotification.primaryReason} picks the one
  * shown to the user, in the order mention \> reply \> owned-board (most-to-least specific).
- * @internal
+ * @public
  */
 export type CommentNotificationReason = 'mention' | 'reply' | 'owned-board' | 'reaction'
 
@@ -22,7 +22,7 @@ const REASON_PRIORITY: CommentNotificationReason[] = ['mention', 'reply', 'owned
  * The comment fields notifications need — a structural subset of a `TLComment` joined with its
  * thread and reactions, so the same rules run over the editor store's records or an app's own
  * synced rows.
- * @internal
+ * @public
  */
 export interface CommentNotificationInput {
 	id: string
@@ -45,7 +45,7 @@ export interface CommentNotificationInput {
 		| null
 }
 
-/** A comment that concerns the user, tagged with why. @internal */
+/** A comment that concerns the user, tagged with why. @public */
 export interface CommentNotification<
 	T extends CommentNotificationInput = CommentNotificationInput,
 > {
@@ -66,6 +66,9 @@ export interface CommentNotification<
 export interface CategorizeCommentNotificationsOptions<T extends CommentNotificationInput> {
 	/** Whether the comment is on a board the user owns, for the `owned-board` reason. */
 	ownsBoard?(comment: T): boolean
+	/** Whether the user muted this thread. A muted thread only still notifies about mentions: someone
+	 *  asking for the user by name should reach them. */
+	isThreadMuted?(threadId: string): boolean
 }
 
 /**
@@ -92,8 +95,10 @@ export function categorizeCommentNotifications<T extends CommentNotificationInpu
 
 		const reasons: CommentNotificationReason[] = []
 		if (extractMentionIds(comment.body).includes(userId)) reasons.push('mention')
-		if (comment.createdAt > joinedThreadAt(comment.thread, userId)) reasons.push('reply')
-		if (opts.ownsBoard?.(comment)) reasons.push('owned-board')
+		if (!opts.isThreadMuted?.(comment.threadId)) {
+			if (comment.createdAt > joinedThreadAt(comment.thread, userId)) reasons.push('reply')
+			if (opts.ownsBoard?.(comment)) reasons.push('owned-board')
+		}
 		if (reasons.length === 0) continue
 
 		const primaryReason = REASON_PRIORITY.find((r) => reasons.includes(r))!
@@ -168,13 +173,15 @@ export function latestForeignReactionAt(
  */
 export function buildReactionNotifications<T extends CommentNotificationInput>(
 	comments: readonly T[],
-	userId: string | undefined | null
+	userId: string | undefined | null,
+	opts: Pick<CategorizeCommentNotificationsOptions<T>, 'isThreadMuted'> = {}
 ): CommentNotification<T>[] {
 	if (!userId) return []
 
 	const notifications: CommentNotification<T>[] = []
 	for (const comment of comments) {
 		if (comment.authorId !== userId) continue
+		if (opts.isThreadMuted?.(comment.threadId)) continue
 		const timestamp = latestForeignReactionAt(comment.reactions, userId)
 		if (timestamp === undefined) continue
 		notifications.push({
@@ -190,12 +197,12 @@ export function buildReactionNotifications<T extends CommentNotificationInput>(
 }
 
 /**
- * How much of the feed reaches the user outside the app: everything, only mentions and replies in
- * their threads, or only mentions. Comments on their boards and reactions are the noisy reasons,
- * so they're the first to go.
- * @internal
+ * How much of the feed reaches the user outside the app: nothing, everything, only mentions and
+ * replies in their threads, or only mentions. Comments on their boards and reactions are the noisy
+ * reasons, so they're the first to go. A plain string, so a server can store it.
+ * @public
  */
-export type CommentNotificationLevel = 'all' | 'mentions-and-replies' | 'mentions'
+export type CommentNotificationLevel = 'off' | 'all' | 'mentions-and-replies' | 'mentions'
 
 /** Whether a notification is one the user wants at `level`. @internal */
 export function isAtNotificationLevel(
@@ -203,6 +210,8 @@ export function isAtNotificationLevel(
 	level: CommentNotificationLevel
 ): boolean {
 	switch (level) {
+		case 'off':
+			return false
 		case 'all':
 			return true
 		case 'mentions-and-replies':

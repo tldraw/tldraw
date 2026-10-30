@@ -16,12 +16,12 @@ keywords:
   ]
 ---
 
-Track unread comments, build a notifications feed, and send desktop notifications.
+Track unread comments, mute threads, build a notifications feed, and send desktop notifications.
 
 ---
 
-The commenting layer takes read state from the host: `isCommentUnread` reports it, `onCommentsRead` records receipts for the unread comments a thread view displays, and `revealThread` jumps to a thread from anywhere outside the canvas.
+The commenting layer takes read state and muted threads from the host: `isCommentUnread` and `onCommentsRead` handle read receipts, `isThreadMuted` and `onThreadMutedChange` add Mute thread to each thread's menu, and `revealThread` jumps to a thread from anywhere outside the canvas.
 
-`getStoreCommentNotifications` derives the feed from the comment records, tagging each one with why it concerns you — a mention, a reply in your thread, a reaction to your comment — and checking it against your read state. `startCommentNotifier` turns the same feed into desktop notifications while the window is out of focus.
+`getStoreCommentNotifications` derives a feed from the comment records, tagging each one with why it concerns you: a mention, a reply in your thread, or a reaction to your comment. Pass `desktopNotifications` to `CanvasComments` and the same feed becomes system notifications while you're looking elsewhere. A muted thread only lets mentions through.
 
-Pick a desktop notification level and use the buttons to post as another user. To see the real behavior, untick "Also while this tab is focused" and switch windows during the five-second countdown. Click a row or the notification to jump to the thread and watch it mark itself read.
+Pick a desktop notification level, then use the buttons to post as another user. Mute a thread from its ⋯ menu and post again to see it go quiet. Click a row or a notification to jump to the thread and watch it mark itself read.

@@ -1,12 +1,6 @@
 import { MutatorResultErrorDetails, QueryResultType, TypedView, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
-	CommentNotificationLevel,
-	isAtNotificationLevel,
-	richTextToPlaintext,
-	startCommentNotifier,
-} from '@tldraw/commenting'
-import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
 	FILE_PREFIX,
@@ -36,10 +30,8 @@ import {
 	Result,
 	compact,
 	fetch,
-	getFromLocalStorage,
 	isEqual,
 	promiseWithResolve,
-	setInLocalStorage,
 	sleep,
 	sortByIndex,
 	sortByMaybeIndex,
@@ -67,7 +59,6 @@ import {
 	TLI18nAdapter,
 	TLI18nMessage,
 	TLI18nValues,
-	TLRichText,
 	TLUiToastsContextType,
 	TLUserPreferences,
 	transact,
@@ -78,16 +69,7 @@ import { ZERO_SERVER } from '../../utils/config'
 import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
-import {
-	buildReactionNotifications,
-	categorizeCommentNotifications,
-	CommentNotification,
-	CommentNotificationInput,
-	commentLink,
-	mergeCommentFeeds,
-	mergeNotifications,
-	summarizeForeignReactors,
-} from '../components/TlaSidebar/components/commentNotifications'
+import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNotifications'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
 import { getDateFormat } from '../utils/dates'
@@ -186,22 +168,6 @@ function getEnglishIntl() {
 	return englishIntl
 }
 
-export type DesktopNotificationLevel = 'off' | CommentNotificationLevel
-const DESKTOP_NOTIFICATION_LEVELS: readonly DesktopNotificationLevel[] = [
-	'off',
-	'all',
-	'mentions-and-replies',
-	'mentions',
-]
-const DESKTOP_NOTIFICATIONS_KEY = 'tla-desktop-notifications'
-function readDesktopNotificationLevel(): DesktopNotificationLevel {
-	const stored = getFromLocalStorage(DESKTOP_NOTIFICATIONS_KEY) as DesktopNotificationLevel | null
-	if (!stored || !DESKTOP_NOTIFICATION_LEVELS.includes(stored)) return 'off'
-	// a revoked browser permission reads as off rather than leaving a setting that does nothing
-	if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return 'off'
-	return stored
-}
-
 export class TldrawApp {
 	config = {
 		maxNumberOfFiles: MAX_NUMBER_OF_FILES,
@@ -236,11 +202,6 @@ export class TldrawApp {
 	private readonly comments$: Signal<QueryResultType<typeof queries.homeBoardComments>>
 	/** Like the comment feeds. */
 	private readonly reactions$: Atom<QueryResultType<typeof queries.reactions>>
-	/** Per device, like the browser permission it depends on. */
-	private readonly desktopNotificationLevel$ = atom(
-		'desktop notification level',
-		readDesktopNotificationLevel()
-	)
 	/** The signed-in account's email, for the load report gate. */
 	readonly email: string | null
 	readonly isLoadRumEnabled: boolean
@@ -477,74 +438,6 @@ export class TldrawApp {
 			this.reactions$,
 			this.materializeQuery<QueryResultType<typeof queries.reactions>>(queries.reactions())
 		)
-		// Only one tab notifies, so a level changed in another tab has to reach it.
-		const onStorage = (e: StorageEvent) => {
-			if (e.key === DESKTOP_NOTIFICATIONS_KEY) {
-				this.desktopNotificationLevel$.set(readDesktopNotificationLevel())
-			}
-		}
-		window.addEventListener('storage', onStorage)
-		this.disposables.push(() => window.removeEventListener('storage', onStorage))
-		this.disposables.push(
-			startCommentNotifier<CommentNotificationInput>({
-				getNotifications: () => this.getCommentNotifications(),
-				isEnabled: () => this.desktopNotificationLevel$.get() !== 'off',
-				shouldShow: (n) => {
-					const level = this.desktopNotificationLevel$.get()
-					return level !== 'off' && isAtNotificationLevel(n, level)
-				},
-				format: (n) => this.formatCommentNotification(n),
-				onClick: (n) => {
-					const c = n.comment
-					if (n.unread) this.markCommentRead(c.id)
-					this.navigate(commentLink(c.fileId, c.thread?.shapeId, c.id))
-				},
-				lockName: `tla-comment-notifier:${this.userId}`,
-			})
-		)
-	}
-
-	/** Comment and reaction notifications, newest first. */
-	getCommentNotifications(): CommentNotification<CommentNotificationInput>[] {
-		return mergeNotifications<CommentNotificationInput>(
-			categorizeCommentNotifications(this.getComments(), this.userId),
-			buildReactionNotifications(this.getReactions(), this.userId)
-		)
-	}
-
-	private formatCommentNotification(n: CommentNotification<CommentNotificationInput>) {
-		const c = n.comment
-		const someone = this.msg(this.messages.comment_notification_someone)
-		const author =
-			n.primaryReason === 'reaction'
-				? (summarizeForeignReactors(c.reactions, this.userId).names[0] ?? someone)
-				: c.authorName || someone
-		const title = this.msg(
-			{
-				mention: this.messages.comment_notification_mention,
-				reply: this.messages.comment_notification_reply,
-				'owned-board': this.messages.comment_notification_owned_board,
-				reaction: this.messages.comment_notification_reaction,
-			}[n.primaryReason],
-			{ author }
-		)
-		const preview = richTextToPlaintext(c.body as TLRichText)
-		return { title, body: c.file?.name ? `${c.file.name}: ${preview}` : preview }
-	}
-
-	getDesktopNotificationLevel() {
-		return this.desktopNotificationLevel$.get()
-	}
-
-	/** Turning them on asks for browser permission, and stays off if it isn't granted. */
-	async setDesktopNotificationLevel(level: DesktopNotificationLevel) {
-		if (level !== 'off') {
-			if (typeof Notification === 'undefined') return
-			const permission = await Notification.requestPermission()
-			if (permission !== 'granted') return
-		}
-		this.desktopNotificationLevel$.set(level)
-		setInLocalStorage(DESKTOP_NOTIFICATIONS_KEY, level)
 	}
 
 	/**
@@ -700,11 +593,6 @@ export class TldrawApp {
 	}
 
 	messages = defineMessages({
-		comment_notification_mention: { defaultMessage: '{author} mentioned you' },
-		comment_notification_reply: { defaultMessage: '{author} replied' },
-		comment_notification_owned_board: { defaultMessage: '{author} commented on your board' },
-		comment_notification_reaction: { defaultMessage: '{author} reacted to your comment' },
-		comment_notification_someone: { defaultMessage: 'Someone' },
 		max_workspaces_reached: {
 			defaultMessage:
 				'You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones.',

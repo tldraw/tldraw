@@ -48,7 +48,7 @@ export { Avatar }
 export { AvatarProps }
 
 // @internal
-export function buildReactionNotifications<T extends CommentNotificationInput>(comments: readonly T[], userId: null | string | undefined): CommentNotification<T>[];
+export function buildReactionNotifications<T extends CommentNotificationInput>(comments: readonly T[], userId: null | string | undefined, opts?: Pick<CategorizeCommentNotificationsOptions<T>, 'isThreadMuted'>): CommentNotification<T>[];
 
 // @public
 export function Byline({ author, date, edited }: BylineProps): JSX.Element;
@@ -65,7 +65,9 @@ export interface BylineProps {
 export function CanvasComments(props: CanvasCommentsProps): JSX.Element | null;
 
 // @public
-export type CanvasCommentsProps = CommentingContext;
+export interface CanvasCommentsProps extends CommentingContext {
+    desktopNotifications?: DesktopCommentNotificationsOptions;
+}
 
 // @public
 export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps): JSX.Element | null;
@@ -81,6 +83,7 @@ export function categorizeCommentNotifications<T extends CommentNotificationInpu
 
 // @internal (undocumented)
 export interface CategorizeCommentNotificationsOptions<T extends CommentNotificationInput> {
+    isThreadMuted?(threadId: string): boolean;
     ownsBoard?(comment: T): boolean;
 }
 
@@ -172,8 +175,10 @@ export interface CommentingContext {
     getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>;
     getThreadHref?(threadId: TLCommentThreadId): string | undefined;
     isCommentUnread?(commentId: TLCommentId): boolean;
+    isThreadMuted?(threadId: TLCommentThreadId): boolean;
     onCommentsRead?(commentIds: TLCommentId[]): void;
     onPostComment?(comment: TLComment): void;
+    onThreadMutedChange?(threadId: TLCommentThreadId, muted: boolean): void;
     renderMentionSuggestion?(member: MentionMember): ReactNode;
     resolveAuthor(id: string): CommentAuthor | undefined;
 }
@@ -243,7 +248,7 @@ export type CommentModificationContext = {
     readonly editor: Editor;
 } & CommentModification;
 
-// @internal
+// @public
 export interface CommentNotification<T extends CommentNotificationInput = CommentNotificationInput> {
     // (undocumented)
     comment: T;
@@ -253,15 +258,7 @@ export interface CommentNotification<T extends CommentNotificationInput = Commen
     unread: boolean;
 }
 
-// @internal
-export interface CommentNotificationContent {
-    // (undocumented)
-    body: string;
-    // (undocumented)
-    title: string;
-}
-
-// @internal
+// @public
 export interface CommentNotificationInput {
     // (undocumented)
     authorId: string;
@@ -292,24 +289,37 @@ export interface CommentNotificationInput {
     threadId: string;
 }
 
-// @internal
-export type CommentNotificationLevel = 'all' | 'mentions-and-replies' | 'mentions';
+// @public
+export type CommentNotificationLevel = 'all' | 'mentions-and-replies' | 'mentions' | 'off';
 
-// @internal
+// @public
+export interface CommentNotificationMessage {
+    // (undocumented)
+    body: string;
+    // (undocumented)
+    commentId: string;
+    tag: string;
+    // (undocumented)
+    threadId: string;
+    // (undocumented)
+    title: string;
+    url?: string;
+}
+
+// @public
 export type CommentNotificationReason = 'mention' | 'owned-board' | 'reaction' | 'reply';
 
 // @internal (undocumented)
 export interface CommentNotifierOptions<T extends CommentNotificationInput> {
+    deliver?(message: CommentNotificationMessage, open: () => void): void;
     // (undocumented)
-    format(notification: CommentNotification<T>): CommentNotificationContent;
+    format(notification: CommentNotification<T>): CommentNotificationMessage;
+    getLevel(): CommentNotificationLevel;
     getNotifications(): readonly CommentNotification<T>[];
-    isEnabled(): boolean;
+    isThreadMuted?(threadId: string): boolean;
     isWindowFocused?(): boolean;
     lockName?: string;
-    // (undocumented)
-    onClick(notification: CommentNotification<T>): void;
-    shouldShow?(notification: CommentNotification<T>): boolean;
-    show?: ShowCommentNotification<T>;
+    onOpen(message: CommentNotificationMessage): void;
 }
 
 // @public
@@ -481,6 +491,16 @@ export function deleteComment(editor: Editor, comment: TLComment): void;
 export function deleteThread(editor: Editor, thread: TLCommentThread): void;
 
 // @public
+export function deliverBrowserNotification(message: CommentNotificationMessage, open: () => void): void;
+
+// @public (undocumented)
+export interface DesktopCommentNotificationsOptions {
+    deliver?(message: CommentNotificationMessage, open: () => void): void;
+    isWindowFocused?(): boolean;
+    level: CommentNotificationLevel;
+}
+
+// @public
 export function editComment(editor: Editor, comment: TLComment, body: TLRichText): void;
 
 // @public
@@ -544,7 +564,7 @@ export function getLiveCommentThreads(editor: Editor): TLCommentThread[];
 // @public
 export function getRevealThreadPending(editor: Editor): null | string;
 
-// @internal
+// @public
 export function getStoreCommentNotifications(editor: Editor, userId: null | string | undefined, opts?: StoreCommentNotificationsOptions): CommentNotification<StoreCommentNotificationInput>[];
 
 // @public
@@ -705,12 +725,6 @@ export interface ShapeCommentPrecisionContext {
     readonly shapeId: TLShapeId;
 }
 
-// @internal
-export function showBrowserNotification<T extends CommentNotificationInput>(notification: CommentNotification<T>, content: CommentNotificationContent, onClick: () => void): void;
-
-// @internal
-export type ShowCommentNotification<T extends CommentNotificationInput> = (notification: CommentNotification<T>, content: CommentNotificationContent, onClick: () => void) => void;
-
 // @public
 export interface SidebarFilters {
     onlyCurrentPage: boolean;
@@ -738,15 +752,16 @@ export function startCommentAt(editor: Editor, point: VecLike): void;
 // @internal
 export function startCommentNotifier<T extends CommentNotificationInput>(opts: CommentNotifierOptions<T>): () => void;
 
-// @internal
+// @public
 export interface StoreCommentNotificationInput extends CommentNotificationInput {
     // (undocumented)
     record: TLComment;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface StoreCommentNotificationsOptions {
     isCommentUnread?(commentId: TLCommentId): boolean;
+    isThreadMuted?(threadId: TLCommentThreadId): boolean;
     ownsBoard?: boolean;
 }
 

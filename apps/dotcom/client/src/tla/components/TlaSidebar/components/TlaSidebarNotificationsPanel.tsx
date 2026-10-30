@@ -12,6 +12,7 @@ import { ReactNode, useCallback, useState } from 'react'
 import { useIntl } from 'react-intl'
 import { Link } from 'react-router-dom'
 import {
+	createDeepLinkString,
 	defineMessages,
 	F,
 	TldrawUiButton,
@@ -22,19 +23,20 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	TldrawUiMenuSubmenu,
 	TldrawUiTooltip,
 	TLRichText,
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import { DesktopNotificationLevel } from '../../../app/TldrawApp'
+import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
+	buildReactionNotifications,
+	categorizeCommentNotifications,
 	CommentNotificationReason,
-	commentLink,
+	mergeNotifications,
 	summarizeForeignReactors,
 } from './commentNotifications'
 import styles from './notifications.module.css'
@@ -46,11 +48,6 @@ const messages = defineMessages({
 	filterAll: { defaultMessage: 'All' },
 	filterUnread: { defaultMessage: 'Unread' },
 	markAllRead: { defaultMessage: 'Mark all as read' },
-	desktopNotifications: { defaultMessage: 'Desktop notifications' },
-	desktopOff: { defaultMessage: 'Off' },
-	desktopAll: { defaultMessage: 'All activity' },
-	desktopMentionsAndReplies: { defaultMessage: 'Mentions and replies' },
-	desktopMentions: { defaultMessage: 'Mentions only' },
 	empty: { defaultMessage: 'You’re all caught up.' },
 	unknownAuthor: { defaultMessage: 'Someone' },
 })
@@ -141,18 +138,6 @@ function NotificationsOverflowMenu({
 	hasUnread: boolean
 }) {
 	const msg = useTranslation()
-	const app = useMaybeApp()
-	const desktopLevel = useValue(
-		'desktop notification level',
-		() => app?.getDesktopNotificationLevel() ?? 'off',
-		[app]
-	)
-	const desktopLevels: { level: DesktopNotificationLevel; label: string }[] = [
-		{ level: 'off', label: msg(messages.desktopOff) },
-		{ level: 'all', label: msg(messages.desktopAll) },
-		{ level: 'mentions-and-replies', label: msg(messages.desktopMentionsAndReplies) },
-		{ level: 'mentions', label: msg(messages.desktopMentions) },
-	]
 
 	return (
 		<TldrawUiDropdownMenuRoot id="notifications-overflow">
@@ -192,45 +177,38 @@ function NotificationsOverflowMenu({
 							readonlyOk
 						/>
 					</TldrawUiMenuGroup>
-					{app && typeof Notification !== 'undefined' && (
-						<TldrawUiMenuGroup id="notifications-desktop">
-							<TldrawUiMenuSubmenu
-								id="desktop-notifications"
-								label={msg(messages.desktopNotifications)}
-							>
-								<TldrawUiMenuGroup id="desktop-notification-levels">
-									{desktopLevels.map(({ level, label }) => (
-										<TldrawUiMenuCheckboxItem
-											key={level}
-											id={`desktop-notifications-${level}`}
-											label={label}
-											checked={desktopLevel === level}
-											onSelect={() => app.setDesktopNotificationLevel(level)}
-											readonlyOk
-										/>
-									))}
-								</TldrawUiMenuGroup>
-							</TldrawUiMenuSubmenu>
-						</TldrawUiMenuGroup>
-					)}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>
 	)
 }
 
-/** The app's comment notifications and their unread count, shared by the trigger button and the panel. */
+/**
+ * Comments and reactions surfaced as notifications, merged from the comment feeds and the
+ * `reactions` synced query and sorted by timestamp. {@link categorizeCommentNotifications} and
+ * {@link buildReactionNotifications} do the per-feed shaping. Shared by trigger button and panel.
+ */
 export function useCommentNotifications() {
 	const app = useMaybeApp()
 	return useValue(
 		'comment notifications',
 		() => {
-			const notifications = app?.getCommentNotifications() ?? []
+			const comments = categorizeCommentNotifications(app?.getComments() ?? [], app?.userId)
+			const reactionEntries = buildReactionNotifications(app?.getReactions() ?? [], app?.userId)
+			const notifications = mergeNotifications(comments, reactionEntries)
 			const unreadCount = notifications.filter((n) => n.unread).length
 			return { notifications, unreadCount }
 		},
 		[app]
 	)
+}
+
+/** Deep link to a comment's file, anchored to its shape (when shape-anchored) so its popover opens. */
+function commentLink(fileId: string, shapeId: string | null | undefined, commentId: string) {
+	const base = `${routes.tlaFile(fileId)}?comment=${encodeURIComponent(commentId)}`
+	if (!shapeId) return base
+	const d = createDeepLinkString({ type: 'shapes', shapeIds: [shapeId as any] })
+	return `${base}&d=${d}`
 }
 
 /**

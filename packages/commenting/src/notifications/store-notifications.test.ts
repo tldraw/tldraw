@@ -125,6 +125,25 @@ describe('buildStoreCommentNotifications', () => {
 		])
 	})
 
+	it('keeps only mentions from a muted thread', () => {
+		const result = buildStoreCommentNotifications(
+			{
+				threads: [thread(ME)],
+				comments: [
+					comment('mine', ME, 1),
+					comment('reply', OTHER, 2),
+					comment('ping', OTHER, 3, [ME]),
+				],
+				reactions: [reaction('mine', OTHER, 4)],
+			},
+			ME,
+			{ ownsBoard: true, isThreadMuted: (id) => id === THREAD }
+		)
+		expect(result.map((n) => ({ id: n.comment.id, reasons: n.reasons }))).toEqual([
+			{ id: 'comment:ping', reasons: ['mention'] },
+		])
+	})
+
 	it('skips comments whose thread is gone', () => {
 		expect(
 			buildStoreCommentNotifications(

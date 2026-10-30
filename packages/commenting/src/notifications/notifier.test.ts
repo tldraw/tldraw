@@ -6,7 +6,7 @@ import {
 	CommentNotificationReason,
 	isAtNotificationLevel,
 } from './comment-notifications'
-import { startCommentNotifier } from './notifier'
+import { CommentNotificationMessage, startCommentNotifier } from './notifier'
 
 function entry(
 	id: string,
@@ -25,36 +25,42 @@ function entry(
 
 describe('startCommentNotifier', () => {
 	let focused = false
+	const stops: (() => void)[] = []
 	beforeEach(() => {
 		vi.useFakeTimers({ now: 1000 })
 		focused = false
 		vi.spyOn(document, 'hasFocus').mockImplementation(() => focused)
 	})
 	afterEach(() => {
+		stops.splice(0).forEach((stop) => stop())
 		vi.useRealTimers()
 		vi.restoreAllMocks()
 	})
 
 	function setup(
 		initial: CommentNotification[] = [],
-		enabled = true,
 		initialLevel: CommentNotificationLevel = 'all'
 	) {
 		const feed = atom('feed', initial)
-		const isEnabled = atom('enabled', enabled)
 		const level = atom('level', initialLevel)
-		const show = vi.fn()
-		const onClick = vi.fn()
+		const deliver = vi.fn<(message: CommentNotificationMessage, open: () => void) => void>()
+		const onOpen = vi.fn()
 		const stop = startCommentNotifier({
 			getNotifications: () => feed.get(),
-			isEnabled: () => isEnabled.get(),
-			shouldShow: (n) => isAtNotificationLevel(n, level.get()),
-			format: (n) => ({ title: n.comment.id, body: '' }),
-			onClick,
-			show,
+			getLevel: () => level.get(),
+			format: (n) => ({
+				tag: n.comment.id,
+				title: n.comment.id,
+				body: '',
+				commentId: n.comment.id,
+				threadId: n.comment.threadId,
+			}),
+			onOpen,
+			deliver,
 		})
-		const shownIds = () => show.mock.calls.map(([n]) => n.comment.id)
-		return { feed, isEnabled, level, show, onClick, stop, shownIds }
+		stops.push(stop)
+		const shownIds = () => deliver.mock.calls.map(([message]) => message.commentId)
+		return { feed, level, deliver, onOpen, stop, shownIds }
 	}
 
 	it('treats what is already in the feed, or syncs in with older timestamps, as history', () => {
@@ -89,31 +95,32 @@ describe('startCommentNotifier', () => {
 	it('lets the host decide what counts as focused', () => {
 		focused = true
 		const feed = atom('feed', [] as CommentNotification[])
-		const show = vi.fn()
-		const stop = startCommentNotifier({
-			getNotifications: () => feed.get(),
-			isEnabled: () => true,
-			isWindowFocused: () => false,
-			format: (n) => ({ title: n.comment.id, body: '' }),
-			onClick: () => {},
-			show,
-		})
+		const deliver = vi.fn()
+		stops.push(
+			startCommentNotifier({
+				getNotifications: () => feed.get(),
+				getLevel: () => 'all',
+				isWindowFocused: () => false,
+				format: (n) => ({ tag: '', title: '', body: '', commentId: n.comment.id, threadId: '' }),
+				onOpen: () => {},
+				deliver,
+			})
+		)
 		feed.set([entry('a', 1001)])
-		expect(show).toHaveBeenCalledTimes(1)
-		stop()
+		expect(deliver).toHaveBeenCalledTimes(1)
 	})
 
 	it('does not replay what arrived while switched off', () => {
-		const { feed, isEnabled, shownIds } = setup([], false)
+		const { feed, level, shownIds } = setup([], 'off')
 		feed.set([entry('while-off', 1001)])
 		vi.setSystemTime(2000)
-		isEnabled.set(true)
+		level.set('all')
 		feed.set([entry('after', 2001), entry('while-off', 1001)])
 		expect(shownIds()).toEqual(['after'])
 	})
 
 	it('filters by level, without replaying what it filtered once the level loosens', () => {
-		const { feed, level, shownIds } = setup([], true, 'mentions')
+		const { feed, level, shownIds } = setup([], 'mentions')
 		const board = entry('board', 1001, true, ['owned-board'])
 		const mention = entry('mention', 1002, true, ['mention', 'owned-board'])
 		feed.set([mention, board])
@@ -123,11 +130,34 @@ describe('startCommentNotifier', () => {
 		expect(shownIds()).toEqual(['mention', 'reaction'])
 	})
 
-	it('routes a click to onClick with its entry', () => {
-		const { feed, show, onClick } = setup()
+	it('does not replay what a muted thread held back once unmuted, but lets mentions through', () => {
+		const feed = atom('feed', [] as CommentNotification[])
+		const muted = atom('muted', true)
+		const deliver = vi.fn()
+		stops.push(
+			startCommentNotifier({
+				getNotifications: () => feed.get(),
+				getLevel: () => 'all',
+				isThreadMuted: () => muted.get(),
+				format: (n) => ({ tag: '', title: '', body: '', commentId: n.comment.id, threadId: '' }),
+				onOpen: () => {},
+				deliver,
+			})
+		)
+		const reply = entry('reply', 1001)
+		const mention = entry('mention', 1002, true, ['mention', 'reply'])
+		feed.set([mention, reply])
+		muted.set(false)
+		feed.set([mention, reply])
+		expect(deliver.mock.calls.map(([m]) => m.commentId)).toEqual(['mention'])
+	})
+
+	it('opens the message it delivered', () => {
+		const { feed, deliver, onOpen } = setup()
 		feed.set([entry('a', 1001)])
-		show.mock.calls[0][2]()
-		expect(onClick).toHaveBeenCalledWith(entry('a', 1001))
+		const [message, open] = deliver.mock.calls[0]
+		open()
+		expect(onOpen).toHaveBeenCalledWith(message)
 	})
 
 	it('stops when disposed', () => {
@@ -139,11 +169,11 @@ describe('startCommentNotifier', () => {
 })
 
 describe('isAtNotificationLevel', () => {
-	const levels: CommentNotificationLevel[] = ['all', 'mentions-and-replies', 'mentions']
+	const levels: CommentNotificationLevel[] = ['off', 'all', 'mentions-and-replies', 'mentions']
 	const at = (...reasons: CommentNotificationReason[]) =>
 		levels.filter((level) => isAtNotificationLevel(entry('a', 0, true, reasons), level))
 
-	it('narrows from everything, to mentions and replies, to mentions', () => {
+	it('narrows from everything, to mentions and replies, to mentions, to nothing', () => {
 		expect({
 			mention: at('mention'),
 			reply: at('reply'),
