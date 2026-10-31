@@ -13,7 +13,7 @@ import type {
  * Which Mermaid diagram family produced this blueprint (used by default geo tables and mapper dispatch).
  * @public
  */
-export type MermaidDiagramKind = 'flowchart' | 'state' | 'sequence' | 'mindmap'
+export type MermaidDiagramKind = 'flowchart' | 'state' | 'sequence' | 'mindmap' | 'class'
 
 /**
  * Optional hook: return a custom render spec for this node, or `undefined` to use the package default mapper.
@@ -65,6 +65,27 @@ export interface DiagramMermaidBlueprint {
 }
 
 /**
+ * One attribute or method line in a class box. Mermaid marks static members with `$` (drawn
+ * underlined) and abstract ones with `*` (drawn in italics).
+ * @public
+ */
+export interface MermaidClassMember {
+	text: string
+	classifier?: 'static' | 'abstract'
+}
+
+/**
+ * The contents of a UML class box: a header (annotations and name), then attributes, then methods.
+ * @public
+ */
+export interface MermaidClassBox {
+	annotations: string[]
+	name: string
+	attributes: MermaidClassMember[]
+	methods: MermaidClassMember[]
+}
+
+/**
  * One node in the blueprint: layout and semantic kind from Mermaid (materialization is resolved at {@link renderBlueprint} via `mapNodeToRenderSpec` or defaults).
  * @public
  */
@@ -93,6 +114,8 @@ export interface MermaidBlueprintNode {
 	 * participant box, would hide them.
 	 */
 	background?: boolean
+	/** A class diagram's class: the sections {@link MermaidClassShapeUtil} draws. */
+	classBox?: MermaidClassBox
 }
 
 /** @public */
@@ -100,9 +123,18 @@ export interface MermaidBlueprintEdge {
 	startNodeId: string
 	endNodeId: string
 	label?: string
+	/**
+	 * Text beside the arrow's start, such as a class diagram's multiplicity. Kept there when
+	 * {@link MermaidEndLabelBindingUtil} is registered, folded into `label` otherwise.
+	 */
+	startLabel?: string
+	/** Like `startLabel`, beside the arrow's end. */
+	endLabel?: string
 	bend: number
 	arrowheadEnd?: TLArrowShapeArrowheadStyle
 	arrowheadStart?: TLArrowShapeArrowheadStyle
+	/** Fills closed arrowheads (triangles, diamonds). `none`, the default, leaves them hollow. */
+	fill?: TLDefaultFillStyle
 	dash?: TLDefaultDashStyle
 	size?: TLDefaultSizeStyle
 	color?: TLDefaultColorStyle

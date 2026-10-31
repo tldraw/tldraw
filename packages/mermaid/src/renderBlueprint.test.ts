@@ -14,6 +14,8 @@ function mockEditor() {
 		center: { x: w / 2, y: h / 2 },
 	})
 	const editor = {
+		hasShapeUtil: vi.fn(() => false),
+		bindingUtils: {},
 		createShape: vi.fn(),
 		getShape: vi.fn((id) => ({ id, type: 'geo', x: 0, y: 0 })),
 		getShapePageBounds: vi.fn(() => bounds(80, 40)),

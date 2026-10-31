@@ -75,6 +75,7 @@ const KIND_TO_GEO: Record<MermaidDiagramKind, (kind: string) => TLGeoShapeGeoSty
 	state: stateKindToGeo,
 	sequence: sequenceKindToGeo,
 	mindmap: mindmapKindToGeo,
+	class: () => 'rectangle',
 }
 
 /**
