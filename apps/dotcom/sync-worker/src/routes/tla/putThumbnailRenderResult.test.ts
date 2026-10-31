@@ -164,6 +164,55 @@ describe('the timing beacon', () => {
 	})
 })
 
+describe('the measure result', () => {
+	// The shape keeps the bounds it is clustered on; only the arrow geometry is dropped.
+	it('keeps well-formed arrow geometry and drops malformed geometry without the shape', async () => {
+		const thumbnails = makeFakeThumbnailsBucket()
+		const env = makeScreenshotTestEnv({ THUMBNAILS: thumbnails }) as unknown as Environment
+		const token = await mintThumbnailRenderToken(env, { ...JOB, mode: 'measure' })
+
+		const response = await putThumbnailRenderResult(
+			makeRequest({
+				token,
+				bounds: {
+					'shape:good': {
+						x: 0,
+						y: 0,
+						w: 10,
+						h: 10,
+						arrow: {
+							start: { x: 0, y: 0, z: 0.5 },
+							end: { x: 10, y: 10 },
+							label: { x: 5, y: 5 },
+						},
+					},
+					'shape:bad': {
+						x: 0,
+						y: 0,
+						w: 10,
+						h: 10,
+						arrow: { start: { x: 0, y: null }, end: { x: 10, y: 10 } },
+					},
+				},
+			}),
+			env
+		)
+
+		expect(await response.json()).toEqual({ error: false, stored: 2 })
+		const [stored] = [...thumbnails.store.values()]
+		expect(JSON.parse(new TextDecoder().decode(stored.body))).toEqual({
+			'shape:good': {
+				minX: 0,
+				minY: 0,
+				maxX: 10,
+				maxY: 10,
+				arrow: { start: { x: 0, y: 0 }, end: { x: 10, y: 10 }, label: { x: 5, y: 5 } },
+			},
+			'shape:bad': { minX: 0, minY: 0, maxX: 10, maxY: 10 },
+		})
+	})
+})
+
 describe('the failure beacon', () => {
 	it('records the phase and reports the message to Sentry, not to the dataset', async () => {
 		const env = makeScreenshotTestEnv() as unknown as Environment

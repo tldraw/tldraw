@@ -1,6 +1,7 @@
 import { vi } from 'vitest'
 import { Environment } from '../../types'
 import { base64UrlDecode } from '../../utils/base64'
+import { ShapeMeasurement } from './boardTools'
 
 // Shared fakes for the Browser Run thumbnail / OG image tests (thumbnailRender,
 // mcpServer, ogImageQueue, getOgImage). The R2/browser/queue fakes, snapshot builder
@@ -132,10 +133,7 @@ export function makeFakeQueue() {
 // they all measure the page before clustering it.
 export function makeMeasuringBrowserBinding(
 	env: () => Environment,
-	bounds: Record<
-		string,
-		{ minX: number; minY: number; maxX: number; maxY: number; text?: string }
-	> = {}
+	bounds: Record<string, ShapeMeasurement> = {}
 ) {
 	return makeBrowserBinding(async (body: any) => {
 		const token = new URL(body.url).searchParams.get('token')

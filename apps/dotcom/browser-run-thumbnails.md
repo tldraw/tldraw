@@ -464,7 +464,9 @@ get_cluster_info({
  page?: number | string,
  clusterId: string,
 })
-// → the cluster's label, keywords, and full shape records (rich text flattened to props.text)
+// → the cluster's label, keywords, and its shapes: page-space pageX/pageY/pageRotation/pageBounds,
+//   an `arrow` (drawn ends, bound shape ids, binding props) on arrows, and props with rich text
+//   flattened to props.text. Every number an integer: degrees for angles, percentages for 0–1 values
 
 get_cluster_screenshot({
  boardId: string,
@@ -519,11 +521,11 @@ The screenshot layer lives in the dotcom sync worker rather than the interactive
 
 ### The cluster index
 
-Three of the four tools have to cluster a page before they can answer anything, and clustering needs two things only an editor can produce: where each shape sits, and what its `ShapeUtil.getText` reports. Getting them means a **measure render** — a full Browser Run session, the same cost as a screenshot. That used to happen on every call, so the documented drill-down (`get_page_info` → `get_cluster_info` → `get_cluster_screenshot`) spent three of them on one page, and `get_cluster_info` — the tool an agent calls most, often several times over the clusters one page listed — paid full price every time.
+Three of the four tools have to cluster a page before they can answer anything, and clustering needs two things only an editor can produce: where each shape sits, and what its `ShapeUtil.getText` reports. `get_cluster_info` needs a third: where each arrow is actually drawn, since a bound arrow's record holds only a placeholder stub and its ends depend on the geometry of the shapes it is bound to. Getting them means a **measure render** — a full Browser Run session, the same cost as a screenshot. That used to happen on every call, so the documented drill-down (`get_page_info` → `get_cluster_info` → `get_cluster_screenshot`) spent three of them on one page, and `get_cluster_info` — the tool an agent calls most, often several times over the clusters one page listed — paid full price every time.
 
 The answer, though, only moves when the board's content moves. So the first tool to measure a page reduces the render's output to a **cluster index** and stores it; every later call for the same content is served from that.
 
-What is stored, per page (`PageClusterIndex` in `boardTools.ts`): each cluster's id, label, keywords and the ids of its shapes, plus the plain text the editor reported for the shapes that have any. Bounds are deliberately **not** kept — they exist to decide which atoms merge, and that decision is already baked into the cluster membership. The text is kept because it is the one thing that cannot be re-derived: `getShapeText` can approximate it from the stored record, and dropping the editor's answer would quietly change what `get_cluster_info` reports for exactly the shapes the fallback handles worst. Shape _records_ are not stored either; they come from the room snapshot, which every tool call loads anyway.
+What is stored, per page (`PageClusterIndex` in `boardTools.ts`): each cluster's id, label, keywords and the ids of its shapes, each shape's page bounds (aligned with those ids, so they are not stored twice), the plain text the editor reported for the shapes that have any, and each arrow's drawn ends and label centre. Geometry is stored rounded to integers, which is how `get_cluster_info` reports it; rounding is idempotent, so a call served from the index and one served from a fresh render answer identically. None of it can be re-derived: `getShapeText` can only approximate the text from the stored record, and bounds and arrow ends need an editor. Bounds add roughly 30 UTF-16 units per shape. Shape _records_ and arrow bindings are not stored; they come from the room snapshot, which every tool call loads anyway, and so does each shape's page position, which is composed from the records' own transforms.
 
 **Where it lives: the file's own durable object** (`TLFileDurableObject`, table `mcp_cluster_index`, statements in `mcpClusterIndexStorage.ts`), addressed by `ResolvedThumbnailBoard.fileId` — the slug for a shared file, the parent file for a published board. This is the only durable object hop in the MCP request path; the tools otherwise read the persisted snapshot straight out of R2 and never talk to the object that wrote it. It sits there rather than in R2 beside the PNGs because it is content derived from the room, and the room is what that object owns: the row is strongly consistent, it dies with the file, and it needs no expiry policy.
 

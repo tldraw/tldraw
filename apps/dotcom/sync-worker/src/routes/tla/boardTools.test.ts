@@ -5,13 +5,17 @@ import {
 	CreatableWorkspace,
 	BOARD_SEARCH_PAGE_SIZE,
 	BoardSearchRow,
+	ShapeMeasurement,
+	clusterPage,
 	compareBoardSearchOrder,
+	getClusterInfo,
 	getBoardSearchResults,
 	isAfterBoardSearchCursor,
 	parseCreateBoardInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	resolveCreateBoardWorkspace,
+	resolvePage,
 } from './boardTools'
 
 function parsedJson(result: ReturnType<typeof getBoardSearchResults>) {
@@ -430,5 +434,223 @@ describe('resolveCreateBoardWorkspace', () => {
 		expect(result).toMatchObject({ ok: false, reason: 'workspace_not_found' })
 		expect(errorText(result)).toContain('"Design" (id: group-design)')
 		expect(errorText(result)).toContain('"My workspace" (id: user-1, personal)')
+	})
+})
+
+describe('getClusterInfo', () => {
+	const PAGE = 'page:a'
+
+	function shape(id: string, overrides: Record<string, unknown> = {}) {
+		return {
+			typeName: 'shape',
+			id,
+			parentId: PAGE,
+			type: 'geo',
+			index: 'a1',
+			x: 0,
+			y: 0,
+			rotation: 0,
+			opacity: 1,
+			isLocked: false,
+			meta: {},
+			props: { w: 100, h: 100, scale: 1 },
+			...overrides,
+		}
+	}
+
+	function arrowBinding(id: string, arrowId: string, toId: string, terminal: 'start' | 'end') {
+		return {
+			typeName: 'binding',
+			id,
+			type: 'arrow',
+			fromId: arrowId,
+			toId,
+			meta: {},
+			props: {
+				terminal,
+				normalizedAnchor: { x: 0.25, y: 0.333333 },
+				isPrecise: true,
+				isExact: false,
+				snap: 'none',
+			},
+		}
+	}
+
+	// A frame turned a quarter turn, holding a box; two boxes joined by a bound arrow; and a free arrow
+	// inside the frame. Every case a stored record gets wrong without page space.
+	const records = [
+		{ typeName: 'document', id: 'document:document', name: 'Board' },
+		{ typeName: 'page', id: PAGE, name: 'Cover', index: 'a1' },
+		shape('shape:frame', {
+			type: 'frame',
+			x: 1000.4,
+			y: 500.6,
+			rotation: Math.PI / 2,
+			props: { w: 400.4, h: 299.7, name: 'Flow' },
+		}),
+		shape('shape:inner', { parentId: 'shape:frame', x: 10, y: 20, opacity: 0.55 }),
+		shape('shape:free', {
+			type: 'arrow',
+			parentId: 'shape:frame',
+			x: 50,
+			y: 0,
+			props: {
+				kind: 'arc',
+				start: { x: 0, y: 0 },
+				end: { x: 100, y: 0 },
+				bend: 12.345678901234567,
+				labelPosition: 0.5,
+				elbowMidPoint: 0.5,
+				scale: 1.5,
+			},
+		}),
+		shape('shape:a', { x: 0, y: 0 }),
+		shape('shape:b', { x: 400, y: 0 }),
+		shape('shape:bound', {
+			type: 'arrow',
+			props: {
+				kind: 'arc',
+				start: { x: 0, y: 0 },
+				end: { x: 2, y: 0 },
+				bend: 0,
+				labelPosition: 0.5,
+				elbowMidPoint: 0.5,
+				scale: 1,
+			},
+		}),
+		arrowBinding('binding:start', 'shape:bound', 'shape:a', 'start'),
+		arrowBinding('binding:end', 'shape:bound', 'shape:b', 'end'),
+	]
+	const snapshot = { documents: records.map((state) => ({ state })), schema: {} } as any
+
+	const MEASUREMENTS: Record<string, ShapeMeasurement> = {
+		'shape:frame': { minX: 700.4, minY: 500.6, maxX: 1000.4, maxY: 900.6 },
+		'shape:inner': { minX: 880.4, minY: 510.6, maxX: 980.4, maxY: 610.6 },
+		'shape:free': { minX: 999.6, minY: 550.6, maxX: 1001.2, maxY: 650.6 },
+		'shape:a': { minX: 0, minY: 0, maxX: 100, maxY: 100, text: 'Start' },
+		'shape:b': { minX: 400, minY: 0, maxX: 500, maxY: 100 },
+		'shape:bound': {
+			minX: 100.2,
+			minY: 49.5,
+			maxX: 399.7,
+			maxY: 50.5,
+			arrow: {
+				start: { x: 100.2, y: 50.1 },
+				end: { x: 399.7, y: 49.9 },
+				label: { x: 250.4, y: 50 },
+			},
+		},
+	}
+
+	function shapesOfCluster(measurements: Record<string, ShapeMeasurement>, shapeId: string) {
+		const page = resolvePage(snapshot, { kind: 'ordinal', ordinal: 0 })
+		if (!page.ok) throw new Error('Expected the page to resolve')
+		const clusters = clusterPage(page, measurements)
+		const cluster = clusters.find((c) => c.shapes.some((s) => s.id === shapeId))!
+		const result = getClusterInfo(page, { clusters, measurements }, cluster.id, {
+			kind: 'ordinal',
+			ordinal: 0,
+		})
+		const block = result.content[0]
+		if (block.type !== 'text') throw new Error('Expected a text block')
+		const shapes = JSON.parse(block.text).shapes as any[]
+		return (id: string) => shapes.find((s) => s.id === id)
+	}
+
+	// The stored arrow is a 2-unit stub at the origin; what a model needs is where it is drawn and
+	// what it connects.
+	it('reports a bound arrow as drawn, with what each end is bound to', () => {
+		const bound = shapesOfCluster(MEASUREMENTS, 'shape:bound')('shape:bound')
+
+		expect(bound.arrow).toEqual({
+			fromId: 'shape:a',
+			toId: 'shape:b',
+			start: {
+				x: 100,
+				y: 50,
+				binding: {
+					normalizedAnchor: { x: 25, y: 33 },
+					isPrecise: true,
+					isExact: false,
+					snap: 'none',
+				},
+			},
+			end: {
+				x: 400,
+				y: 50,
+				binding: {
+					normalizedAnchor: { x: 25, y: 33 },
+					isPrecise: true,
+					isExact: false,
+					snap: 'none',
+				},
+			},
+			label: { x: 250, y: 50 },
+		})
+		// The stub is gone rather than left to contradict the resolved ends.
+		expect(bound.props.start).toBeUndefined()
+		expect(bound.props.end).toBeUndefined()
+	})
+
+	it('places every shape in page space, whatever its parent, and keeps the parent', () => {
+		const of = shapesOfCluster(MEASUREMENTS, 'shape:inner')
+
+		expect(of('shape:frame')).toMatchObject({
+			pageX: 1000,
+			pageY: 501,
+			pageRotation: 90,
+			pageBounds: { x: 700, y: 501, w: 300, h: 400 },
+		})
+		// (10, 20) inside a frame at (1000.4, 500.6) turned 90°: x runs down the page, y runs left.
+		expect(of('shape:inner')).toMatchObject({
+			parentId: 'shape:frame',
+			pageX: 980,
+			pageY: 511,
+			pageRotation: 90,
+			pageBounds: { x: 880, y: 511, w: 100, h: 100 },
+		})
+		expect(of('shape:inner').x).toBeUndefined()
+		expect(of('shape:inner').rotation).toBeUndefined()
+	})
+
+	it('rounds every number, and reports fractions as percentages', () => {
+		const of = shapesOfCluster(MEASUREMENTS, 'shape:free')
+
+		expect(of('shape:inner').opacity).toBe(55)
+		expect(of('shape:free').props).toMatchObject({
+			bend: 12,
+			labelPosition: 50,
+			elbowMidPoint: 50,
+			scale: 150,
+		})
+		expect(of('shape:frame').props).toEqual({ w: 400, h: 300, name: 'Flow' })
+	})
+
+	// A fixture, or a render page older than the worker, has no arrow geometry. A free end can still
+	// be placed from the record; a bound one is reported by its binding alone.
+	it('places a free arrow from its record when the render did not measure it', () => {
+		const of = shapesOfCluster(MEASUREMENTS, 'shape:free')
+		// The free arrow sits at (50, 0) in the frame, so its ends run down the page from there.
+		expect(of('shape:free').arrow).toEqual({
+			fromId: null,
+			toId: null,
+			start: { x: 1000, y: 551, binding: null },
+			end: { x: 1000, y: 651, binding: null },
+		})
+
+		const { arrow: _arrow, ...unmeasured } = MEASUREMENTS['shape:bound']
+		const bound = shapesOfCluster(
+			{ ...MEASUREMENTS, 'shape:bound': unmeasured },
+			'shape:bound'
+		)('shape:bound')
+		expect(bound.arrow.fromId).toBe('shape:a')
+		expect(bound.arrow.start).not.toHaveProperty('x')
+		expect(bound.arrow.label).toBeUndefined()
+	})
+
+	it('carries the text the editor reported and drops the rich text', () => {
+		const of = shapesOfCluster(MEASUREMENTS, 'shape:a')
+		expect(of('shape:a').props.text).toBe('Start')
+		expect(of('shape:a').props.richText).toBeUndefined()
 	})
 })

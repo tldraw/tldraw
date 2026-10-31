@@ -1,10 +1,10 @@
-import { ShapeCluster } from '@tldraw/dotcom-shared'
 import { Environment, McpClusterIndexKey } from '../../types'
 import { getRoomDurableObject } from '../../utils/durableObjects'
 import {
 	PageClusterIndex,
+	PageClustering,
 	ResolvedPageOk,
-	clustersFromIndex,
+	clusteringFromIndex,
 	parseClusterIndex,
 } from './boardTools'
 import { ResolvedThumbnailBoard } from './thumbnailRender'
@@ -53,7 +53,7 @@ function keyFor(
 }
 
 /**
- * A page's clusters as stored, or null if there isn't a usable index for it.
+ * A page's clusters and measurements as stored, or null if there isn't a usable index for it.
  *
  * "Usable" is decided here in full — the row exists, it is for this content version, it parses as
  * this build's format, and it names the shapes that are on the page — so a caller gets clusters it
@@ -64,7 +64,7 @@ export async function readPageClusters(
 	board: ResolvedThumbnailBoard,
 	page: ResolvedPageOk,
 	snapshotVersion: string
-): Promise<ShapeCluster[] | null> {
+): Promise<PageClustering | null> {
 	try {
 		const stored = await getRoomDurableObject(env, board.fileId).getMcpClusterIndex(
 			keyFor(board, page.pageId, snapshotVersion)
@@ -74,7 +74,7 @@ export async function readPageClusters(
 		const index = parseClusterIndex(stored)
 		// A row written by a build with a different format, or one that disagrees with the snapshot,
 		// is a miss rather than an error: the next measure overwrites it.
-		return index && clustersFromIndex(page, index)
+		return index && clusteringFromIndex(page, index)
 	} catch (error) {
 		// A cache that cannot be read costs a render, and the caller is about to pay it anyway. Worth
 		// reporting all the same: silently falling back means every call re-measures at full price.
