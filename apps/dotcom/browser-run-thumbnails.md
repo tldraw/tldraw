@@ -7,7 +7,7 @@ Issues:
 
 tldraw.com can capture PNG thumbnails of public boards by taking a Cloudflare Browser Rendering `/screenshot` of a tldraw-owned render page, called straight through the `BROWSER` binding's `quickAction` Quick Actions method — no `@cloudflare/puppeteer` and no API token (requires `compatibility_date >= 2026-03-24`). There are two consumers, both served by the sync worker:
 
-- an MCP server at `POST /api/app/mcp` exposing `search_boards`, which finds a caller's boards by name, and a drill-down over four more: `get_board_info` lists a board's pages (id, name, 0-based index, and whether each has content), `get_page_info` lists one page's clusters of shapes, `get_cluster_info` describes the shapes inside one cluster, and `get_cluster_screenshot` returns a content-fit PNG of one or more clusters. **It requires authentication** — see "Authentication on the MCP server"; and
+- an MCP server at `POST /api/app/mcp` exposing `search_boards`, which finds a caller's boards by name, and a drill-down over four more: `get_board_info` lists a board's pages (id, name, 0-based index, and whether each has content), `get_page_info` lists one page's clusters of shapes, `get_cluster_info` describes the shapes inside one or more clusters, and `get_cluster_screenshot` returns a content-fit PNG of one or more clusters. **It requires authentication** — see "Authentication on the MCP server"; and
 - a board OG image endpoint, `GET /api/app/social-preview/:prefix/:slug/image`, built for high-traffic paths (link unfurls, crawlers): it serves only from the R2 cache and delegates rendering to a queue consumer, so a request never waits on Browser Run. It lives under the `social-preview` route family alongside the crawler HTML that references it.
 
 Rendering runs through the Browser Rendering `/screenshot` Quick Action, invoked from the worker via the `BROWSER` binding's `quickAction` method (`env.BROWSER.quickAction('screenshot', …)`). Chrome runs in Cloudflare's Browser Rendering fleet, not in the worker isolate. The pipeline never hands the browser a user-provided URL: the worker resolves the board, mints a short-lived signed render job, and the screenshot only ever targets the internal render page with that token. **Rendering is not gated on public viewability — serving is.** A thumbnail is generated for every board, private ones included, so that an owner-facing surface has one to show; the OG image route re-applies the public gate on every request. See "Rendering every board" below for what that means for the render token. The MCP surface exposes page metadata, shape clusters — including their shape records, with rich text flattened to a plain string — and cluster screenshots: no arbitrary selectors or arbitrary URLs, and no board the authenticated caller could not already open in a browser.
@@ -462,11 +462,13 @@ get_page_info({
 get_cluster_info({
  boardId: string,
  page?: number | string,
- clusterId: string,
+ clusterIds: string | string[], // up to 100; `clusterId: string` is still accepted
 })
-// → the cluster's label, keywords, and its shapes: page-space pageX/pageY/pageRotation/pageBounds,
-//   an `arrow` (drawn ends, bound shape ids, binding props) on arrows, and props with rich text
-//   flattened to props.text. Every number an integer: degrees for angles, percentages for 0–1 values
+// → { pageName, clusters: [...] }, one entry per id in the order asked: the cluster's label,
+//   keywords, and its shapes: page-space pageX/pageY/pageRotation/pageBounds, an `arrow` (drawn
+//   ends, bound shape ids, binding props) on arrows, and props with rich text flattened to
+//   props.text. Every number an integer: degrees for angles, percentages for 0–1 values.
+//   Refused if any id is unknown, or if several clusters hold more than 100 shapes in all
 
 get_cluster_screenshot({
  boardId: string,

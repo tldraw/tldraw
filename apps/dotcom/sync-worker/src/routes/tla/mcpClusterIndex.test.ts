@@ -95,12 +95,10 @@ describe('the stored index', () => {
 		const stored = parseClusterIndex(JSON.stringify(buildClusterIndex(clusters, MEASUREMENTS)))!
 		const rehydrated = clusteringFromIndex(page, stored)!
 
-		for (const shapeId of ['shape:one', 'shape:two']) {
-			const clusterId = clusterIdOf(clusters, shapeId)
-			expect(getClusterInfo(page, rehydrated, clusterId, selector)).toEqual(
-				getClusterInfo(page, { clusters, measurements: MEASUREMENTS }, clusterId, selector)
-			)
-		}
+		const clusterIds = ['shape:one', 'shape:two'].map((shapeId) => clusterIdOf(clusters, shapeId))
+		expect(getClusterInfo(page, rehydrated, clusterIds, selector)).toEqual(
+			getClusterInfo(page, { clusters, measurements: MEASUREMENTS }, clusterIds, selector)
+		)
 	})
 
 	it('keeps the text, rounded bounds and arrow geometry', () => {
