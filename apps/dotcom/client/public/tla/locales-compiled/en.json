@@ -1474,6 +1474,18 @@
       "value": "Dismiss"
     }
   ],
+  "cb5feb1b73": [
+    {
+      "type": 0,
+      "value": "Color"
+    }
+  ],
+  "cce99c598c": [
+    {
+      "type": 0,
+      "value": "Profile"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1496,6 +1508,12 @@
     {
       "type": 0,
       "value": "Learn more about publishing."
+    }
+  ],
+  "d0834fcec6": [
+    {
+      "type": 0,
+      "value": "Preferences"
     }
   ],
   "d0e3556476": [
