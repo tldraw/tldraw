@@ -121,6 +121,11 @@ export const MAX_THUMBNAIL_DIMENSION = 1600
 // from one place stops them drifting into a state where settle can starve the export of the window.
 export const THUMBNAIL_RENDER_TIMEOUT_MS = 45_000
 export const THUMBNAIL_SETTLE_TIMEOUT_MS = 10_000
+// The render page's own deadline, in page time (from navigation). Page time starts after the worker's
+// clock — Browser Run launches a browser and navigates first — so when this fires the worker has at
+// most two seconds left before it abandons the capture with nothing but "timed out". The page marks
+// its own error instead, and its failure beacon says which phase it stalled after.
+export const THUMBNAIL_PAGE_WATCHDOG_MS = THUMBNAIL_RENDER_TIMEOUT_MS - 2_000
 
 export interface ThumbnailRenderParams {
 	/**
