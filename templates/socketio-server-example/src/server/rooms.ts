@@ -1,7 +1,7 @@
 import { mkdirSync } from 'fs'
+import { DatabaseSync } from 'node:sqlite'
 import { join } from 'path'
 import { NodeSqliteWrapper, SQLiteSyncStorage, TLSocketRoom } from '@tldraw/sync-core'
-import Database from 'better-sqlite3'
 
 // For this example we're saving data to a SQLite database on the local filesystem
 const DIR = './.rooms'
@@ -26,7 +26,7 @@ export function makeOrLoadRoom(roomId: string): TLSocketRoom<any, void> {
 	console.log('loading room', roomId)
 
 	// Open the database - file is created if it doesn't exist
-	const db = new Database(join(DIR, `${roomId}.db`))
+	const db = new DatabaseSync(join(DIR, `${roomId}.db`))
 	const sql = new NodeSqliteWrapper(db)
 	const storage = new SQLiteSyncStorage({ sql })
 
