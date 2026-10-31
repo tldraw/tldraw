@@ -6,12 +6,14 @@ import { useNavigate } from 'react-router-dom'
 import {
 	defineMessages,
 	TLDRAW_FILE_EXTENSION,
+	TLUiEventSource,
 	TldrawUiIcon,
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
 	useDialogs,
+	useCommandPaletteActiveItemId,
 	useDirection,
 	useMaybeEditor,
 	useTranslation,
@@ -24,7 +26,7 @@ import { signoutAnalytics } from '../../../utils/analytics'
 import { isDevelopmentEnv } from '../../../utils/env'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { UI_THEMES } from '../../themes/ui-themes'
-import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import {
 	getLocalSessionState,
@@ -62,7 +64,7 @@ const messages = defineMessages({
 	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
 })
 
-export function SignOutMenuItem() {
+export function SignOutMenuItem({ source = 'sidebar' }: { source?: TLAppUiEventSource } = {}) {
 	const msg = useTranslation()
 	const auth = useAuth()
 	const app = useMaybeApp()
@@ -80,8 +82,8 @@ export function SignOutMenuItem() {
 				await app?.deleteLocalData()
 			})
 			.catch((err) => console.error('Sign out failed:', err))
-		trackEvent('sign-out-clicked', { source: 'sidebar' })
-	}, [auth, app, trackEvent])
+		trackEvent('sign-out-clicked', { source })
+	}, [auth, app, trackEvent, source])
 
 	if (!auth.isSignedIn) return
 	return (
@@ -186,6 +188,55 @@ function useUIThemeIds() {
 	return useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [editor])
 }
 
+function useUIThemeChoices() {
+	const themeIds = useUIThemeIds()
+	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
+	const msg = useTranslation()
+	const defaultThemeLabel = msg(messages.colorThemeDefault)
+	const trackEvent = useTldrawAppUiEvents()
+	return themeIds.map((id) => ({
+		id,
+		label: id === 'default' ? defaultThemeLabel : (THEME_NAMES[id] ?? id),
+		checked: colorTheme === id,
+		select(source: TLAppUiEventSource) {
+			updateLocalSessionState(() => ({ colorTheme: id }))
+			trackEvent('set-color-theme', { source, theme: id })
+		},
+	}))
+}
+
+// Highlighting a color theme previews it, like hovering one in the menu. Closing the palette
+// without choosing unmounts this and drops the preview.
+function UIThemeCommandPalettePreview({ themeIds }: { themeIds: string[] }) {
+	const activeId = useCommandPaletteActiveItemId()
+	const themeId = themeIds.find((id) => activeId === `ui-theme-${id}`) ?? null
+	useEffect(() => setColorThemePreview(themeId), [themeId])
+	useEffect(() => () => setColorThemePreview(null), [])
+	return null
+}
+
+export function UIThemeCommandPaletteSubmenu() {
+	const msg = useTranslation()
+	const choices = useUIThemeChoices()
+	const colorThemeLabel = msg(messages.colorTheme)
+	if (choices.length === 0) return null
+	return (
+		<TldrawUiMenuSubmenu id="tla-color-theme" label={colorThemeLabel}>
+			<UIThemeCommandPalettePreview themeIds={choices.map((choice) => choice.id)} />
+			{choices.map((choice) => (
+				<TldrawUiMenuCheckboxItem
+					key={choice.id}
+					id={`ui-theme-${choice.id}`}
+					label={choice.label}
+					checked={choice.checked}
+					readonlyOk
+					onSelect={() => choice.select('command-palette')}
+				/>
+			))}
+		</TldrawUiMenuSubmenu>
+	)
+}
+
 export function UIThemeSubmenu() {
 	const msg = useTranslation()
 	const themeIds = useUIThemeIds()
@@ -200,16 +251,12 @@ export function UIThemeSubmenu() {
 }
 
 function UIThemeMenuGroup() {
-	const msg = useTranslation()
-	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
-	const trackEvent = useTldrawAppUiEvents()
 	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
-	const defaultThemeLabel = msg(messages.colorThemeDefault)
-	const themeIds = useUIThemeIds()
+	const choices = useUIThemeChoices()
 
 	useEffect(() => clearThemePreview, [clearThemePreview])
 
-	if (themeIds.length === 0) return null
+	if (choices.length === 0) return null
 
 	return (
 		<div
@@ -217,19 +264,15 @@ function UIThemeMenuGroup() {
 			onPointerCancel={clearThemePreview}
 			onPointerLeave={clearThemePreview}
 		>
-			{themeIds.map((id) => (
+			{choices.map((choice) => (
 				<UIThemeMenuCheckboxItem
-					key={id}
-					label={id === 'default' ? defaultThemeLabel : (THEME_NAMES[id] ?? id)}
-					checked={colorTheme === id}
-					onPreview={() => setColorThemePreview(id)}
+					key={choice.id}
+					label={choice.label}
+					checked={choice.checked}
+					onPreview={() => setColorThemePreview(choice.id)}
 					onSelect={() => {
-						updateLocalSessionState(() => ({ colorTheme: id }))
+						choice.select('user-preferences')
 						clearThemePreview()
-						trackEvent('set-color-theme', {
-							source: 'user-preferences',
-							theme: id,
-						})
 					}}
 				/>
 			))}
@@ -266,9 +309,15 @@ export function CookieConsentMenuItem() {
 	)
 }
 
-export function UserManualMenuItem({ icon = true }: { icon?: boolean } = {}) {
+export function UserManualMenuItem({
+	icon = true,
+	source = 'main-menu',
+}: {
+	icon?: boolean
+	source?: TLUiEventSource
+} = {}) {
 	const msg = useTranslation()
-	const openAndTrack = useOpenUrlAndTrack('main-menu')
+	const openAndTrack = useOpenUrlAndTrack(source)
 	return (
 		<TldrawUiMenuItem
 			id="user-manual"
@@ -313,7 +362,9 @@ export function LegalSummaryMenuItem() {
 	)
 }
 
-export function ImportFileActionItem() {
+export function ImportFileActionItem({
+	source = 'file-menu',
+}: { source?: TLAppUiEventSource } = {}) {
 	const msg = useTranslation()
 	const trackEvent = useTldrawAppUiEvents()
 	const app = useMaybeApp()
@@ -332,7 +383,7 @@ export function ImportFileActionItem() {
 				if (!editor) return
 				if (!app) return
 
-				trackEvent('import-tldr-file', { source: 'file-menu' })
+				trackEvent('import-tldr-file', { source })
 
 				try {
 					// tldraw offline files are selectable so that we can explain why we can't open them
@@ -347,7 +398,7 @@ export function ImportFileActionItem() {
 					if (!tldrawFiles.length) return
 
 					app.uploadTldrFiles(tldrawFiles, {
-						source: 'file-menu',
+						source,
 						onFirstFileUploaded: (fileId) => {
 							navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
 						},

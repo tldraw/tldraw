@@ -1,4 +1,5 @@
 import {
+	Editor,
 	defineMessages,
 	TldrawUiButton,
 	TldrawUiPopover,
@@ -7,6 +8,11 @@ import {
 	useMenuIsOpen,
 	useTranslation,
 } from 'tldraw'
+import {
+	isDesktopSidebarLayout,
+	toggleMobileSidebar,
+	toggleSidebar,
+} from '../../../utils/local-session-state'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
@@ -17,6 +23,13 @@ import styles from '../sidebar.module.css'
 import notifications from './notifications.module.css'
 
 const NOTIFICATIONS_MENU_ID = 'sidebar-notifications'
+
+export function openNotificationsPanel(editor: Editor) {
+	// Sidebar opens first: the popover anchors to its button.
+	if (isDesktopSidebarLayout()) toggleSidebar(true)
+	else toggleMobileSidebar(true)
+	editor.timers.requestAnimationFrame(() => editor.menus.addOpenMenu(NOTIFICATIONS_MENU_ID))
+}
 
 const messages = defineMessages({
 	notifications: { defaultMessage: 'Notifications' },

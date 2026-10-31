@@ -31,7 +31,7 @@ import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
-import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
+import { FILE_HEADER_SHARE_SOURCE, TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './top.module.css'
 
@@ -101,7 +101,7 @@ export function TlaEditorTopRightPanel({
 			{context !== 'legacy' && (
 				<TlaFileShareMenu
 					fileId={fileId!}
-					source="file-header"
+					source={FILE_HEADER_SHARE_SOURCE}
 					context={context}
 					onOpenChange={closeSidebarOnShareOpen}
 				>
