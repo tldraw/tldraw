@@ -34,7 +34,7 @@ npm install
 Create a `.env` file in the root directory and add your Google Generative API key:
 
 ```
-GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key_here
+GOOGLE_API_KEY=your_gemini_api_key_here
 ```
 
 Get your API key from [Google AI Studio](https://aistudio.google.com/apikey).
@@ -86,7 +86,7 @@ npm run build
 npx wrangler deploy
 ```
 
-Make sure to set your `GOOGLE_GENERATIVE_AI_API_KEY` in your Cloudflare Workers environment variables.
+Make sure to set your `GOOGLE_API_KEY` in your Cloudflare Workers environment variables.
 
 ## Customization
 

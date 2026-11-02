@@ -141,6 +141,16 @@ Store and schema:
 - Use `apps/dotcom/*-worker` for Cloudflare worker behavior.
 - Use `templates` for starter project changes.
 
+## Template deploys
+
+Templates with a `deploy` entry in their `package.json` deploy to their `deploy.host` from `.github/workflows/deploy-templates.yml` and on release. A template's worker secrets are listed in `deploy.secrets`, by the name the worker reads (for example `GOOGLE_API_KEY`). At deploy time, `internal/scripts/deploy-template.ts` reads each one from the environment variable `TEMPLATES_<TEMPLATE>_<NAME>` (for `branching-chat`, `TEMPLATES_BRANCHING_CHAT_GOOGLE_API_KEY`) and uploads it to Cloudflare. A missing value fails that template's deploy.
+
+To add a secret to a template:
+
+1. Add its name to `deploy.secrets`.
+2. In `.github/actions/deploy-templates/action.yml`, set `TEMPLATES_<TEMPLATE>_<NAME>` from an action input. Templates that share a key, such as the Google key for the agent and branching-chat demos, take it from the same input.
+3. Pass that input from a GitHub secret in the `deploy-production` environment, in both `deploy-templates.yml` and `publish.yml`.
+
 ## Testing guidance
 
 - Unit tests live alongside source files as `*.test.ts`.

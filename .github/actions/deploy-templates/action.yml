@@ -58,7 +58,7 @@ runs:
         TEMPLATES_AGENT_OPENAI_BASE_URL: https://openrouter.ai/api/v1
         TEMPLATES_AGENT_ANTHROPIC_BASE_URL: https://openrouter.ai/api/v1
         TEMPLATES_AGENT_GOOGLE_API_KEY: ${{ inputs.google-api-key }}
-        TEMPLATES_BRANCHING_CHAT_GOOGLE_GENERATIVE_AI_API_KEY: ${{ inputs.google-api-key }}
+        TEMPLATES_BRANCHING_CHAT_GOOGLE_API_KEY: ${{ inputs.google-api-key }}
       run: |
         cd templates
         all_templates=$(ls -d */ | cut -f1 -d'/')

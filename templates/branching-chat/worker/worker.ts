@@ -23,7 +23,7 @@ export default class extends WorkerEntrypoint<Environment> {
 	}
 
 	private getModel(env: Environment) {
-		return createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY })(MODEL_ID)
+		return createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })(MODEL_ID)
 	}
 
 	// Generate a new response from the model
