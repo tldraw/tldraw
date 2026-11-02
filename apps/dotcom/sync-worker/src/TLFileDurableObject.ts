@@ -134,12 +134,12 @@ import {
 	getMcpTokenAuth,
 	MCP_SOCKET_SUBPROTOCOL,
 	requireAdminAccess,
-	requireAdminAccessToRequest,
 	type McpTokenOptions,
 } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getFileRecordWithRole, getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
+import { requireHistoryAccess } from './utils/tla/requireHistoryAccess'
 import { ChainState, isChainHead, PendingDelta } from './versionChain'
 import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
 import {
@@ -685,7 +685,7 @@ export class TLFileDurableObject extends DurableObject {
 		try {
 			return await this.router.fetch(req)
 		} catch (err) {
-			// Auth failures (e.g. non-staff hitting restore) are expected denials, not
+			// Auth failures (e.g. a non-editor hitting restore) are expected denials, not
 			// server errors: return their real status instead of a 500 + Sentry noise.
 			if (err instanceof StatusError) {
 				return new Response(err.message, { status: err.status })
@@ -849,8 +849,8 @@ export class TLFileDurableObject extends DurableObject {
 	async onRestore(req: IRequest) {
 		this._isRestoring = true
 		try {
-			await requireAdminAccessToRequest(req, this.env)
 			const roomId = this.documentInfo.slug
+			await requireHistoryAccess(req, this.env, roomId, this.documentInfo.isApp)
 			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
 			const timestamp = ((await req.json()) as any).timestamp
 			if (!timestamp) {
