@@ -6,6 +6,9 @@ import { saveShapesToCollection } from './save-shapes'
 import { activeCollectionId, collectionsPanelOpen } from './state'
 
 const messages = defineMessages({
+	savedTitle: { id: 'collections.saved.title', defaultMessage: 'Added to collection' },
+	savedDescription: { id: 'collections.saved.description', defaultMessage: 'Added to {name}.' },
+	savedOpen: { id: 'collections.saved.open', defaultMessage: 'Open' },
 	saveErrorTitle: {
 		id: 'collections.save-error.title',
 		defaultMessage: "Couldn't save to collection",
@@ -17,8 +20,9 @@ const messages = defineMessages({
 })
 
 /**
- * Returns a function that saves the current selection to a collection, then shows that collection
- * in the panel. Failures show a toast.
+ * Returns a function that saves the current selection to a collection. With the panel open, the
+ * panel shows that collection; otherwise a toast confirms the save and can open it. Failures show
+ * a toast.
  */
 export function useSaveSelection(source: CollectionSource) {
 	const editor = useEditor()
@@ -31,8 +35,27 @@ export function useSaveSelection(source: CollectionSource) {
 			if (shapeIds.length === 0) return
 			saveShapesToCollection(editor, source, collectionId, shapeIds).then(
 				() => {
-					activeCollectionId.set(editor, collectionId)
-					collectionsPanelOpen.set(editor, true)
+					if (collectionsPanelOpen.get(editor)) {
+						activeCollectionId.set(editor, collectionId)
+						return
+					}
+					const collection = source.getCollections().find(({ id }) => id === collectionId)
+					addToast({
+						title: msg(messages.savedTitle),
+						description: collection
+							? msg(messages.savedDescription, { name: collection.name })
+							: undefined,
+						actions: [
+							{
+								label: msg(messages.savedOpen),
+								type: 'primary',
+								onClick: () => {
+									activeCollectionId.set(editor, collectionId)
+									collectionsPanelOpen.set(editor, true)
+								},
+							},
+						],
+					})
 				},
 				() => {
 					addToast({
