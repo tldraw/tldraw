@@ -19,6 +19,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import { THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../../config'
 import { Environment, ThumbnailBoardKind, envFlagWord } from '../../types'
 import { ThumbnailRenderJob } from '../../utils/renderTokens'
+import { loadDefaultWelcomeSnapshot } from '../../welcome/defaultWelcomeSnapshot'
 import { thumbnailSnapshotBodyFor } from './getThumbnailSnapshot'
 import { loadBoardSnapshot, resolveThumbnailBoard } from './thumbnailRender'
 
@@ -30,13 +31,11 @@ const HOOK_READY = 'typeof window.__tldrawRerender === "function"'
 const READY_SELECTOR = '[data-thumbnail-ready="true"]'
 
 export async function handleHotRenderProbe(request: Request, env: Environment): Promise<Response> {
+	// The gate is the preview-only flag plus public-access resolution: the route exists only on previews
+	// (isolated, ephemeral), defaults to the built-in welcome board, and resolves any requested board
+	// under access:'public'. No bearer, so the benchmark is self-serve.
 	if (envFlagWord(env.BROWSER_RUN_HOT_PROBE) !== 'true') {
 		return new Response('hot render probe is not enabled', { status: 404 })
-	}
-	const header = request.headers.get('authorization')
-	const bearer = header?.startsWith('Bearer ') ? header.slice('Bearer '.length) : null
-	if (!env.HEALTH_CHECK_BEARER_TOKEN || bearer !== env.HEALTH_CHECK_BEARER_TOKEN) {
-		return new Response('unauthorized', { status: 401 })
 	}
 	if (!env.BROWSER) return Response.json({ error: 'no BROWSER binding' }, { status: 500 })
 	if (!env.MCP_SCREENSHOT_RENDER_ORIGIN) {
@@ -49,26 +48,44 @@ export async function handleHotRenderProbe(request: Request, env: Environment): 
 		mode?: 'measure' | 'screenshot'
 		iterations?: number
 	}
-	if (!input.slug) return Response.json({ error: 'slug is required' }, { status: 400 })
-	const kind = input.kind ?? 'shared_file'
 	const mode = input.mode ?? 'measure'
 	const iterations = Math.min(Math.max(input.iterations ?? 3, 1), 10)
 
-	// Resolve + load the board once, and build the push body the warm hook consumes — the same body the
-	// real pipeline pushes, built by the same function, so the warm render draws exactly what a cold one
-	// would.
-	const resolved = await resolveThumbnailBoard(env, kind, input.slug, { access: 'public' })
-	if (!resolved.ok) return Response.json({ error: resolved.reason }, { status: 404 })
-	const board = resolved.board
-	const snapshot = await loadBoardSnapshot(env, board, { access: board.access })
+	// The benchmark board: a provided slug (resolved under the public gate), or — by default — the
+	// committed welcome RoomSnapshot (~142 shapes, text and assets: representative, and needs no seeded
+	// DB board on a fresh preview). Either way the push body is built by the real pipeline's function,
+	// so the warm render draws exactly what a cold one would.
+	let snapshot: RoomSnapshot | null
+	let boardRef: {
+		kind: ThumbnailBoardKind
+		slug: string
+		version: string | number
+		access: 'public'
+	}
+	if (input.slug) {
+		const resolved = await resolveThumbnailBoard(env, input.kind ?? 'shared_file', input.slug, {
+			access: 'public',
+		})
+		if (!resolved.ok) return Response.json({ error: resolved.reason }, { status: 404 })
+		snapshot = await loadBoardSnapshot(env, resolved.board, { access: resolved.board.access })
+		boardRef = {
+			kind: resolved.board.kind,
+			slug: resolved.board.slug,
+			version: resolved.board.version,
+			access: 'public',
+		}
+	} else {
+		snapshot = await loadDefaultWelcomeSnapshot(env)
+		boardRef = { kind: 'shared_file', slug: 'welcome', version: 'welcome', access: 'public' }
+	}
 	if (!snapshot) return Response.json({ error: 'empty board' }, { status: 404 })
 
 	const job: ThumbnailRenderJob = {
 		v: 1,
-		kind: board.kind,
-		slug: board.slug,
-		version: board.version,
-		access: board.access,
+		kind: boardRef.kind,
+		slug: boardRef.slug,
+		version: boardRef.version,
+		access: boardRef.access,
 		surface: 'mcp',
 		...(mode === 'measure'
 			? { mode: 'measure', pageId: firstPageId(snapshot) }
@@ -90,7 +107,7 @@ export async function handleHotRenderProbe(request: Request, env: Environment): 
 	const binding = env.BROWSER as unknown as Parameters<typeof puppeteer.launch>[0]
 	const now = () => Date.now()
 
-	const out: Record<string, unknown> = { mode, slug: input.slug, iterations }
+	const out: Record<string, unknown> = { mode, board: boardRef.slug, iterations }
 
 	// A single render through a given page: push the board, wait for the terminal ready marker.
 	async function renderOnce(page: any) {
