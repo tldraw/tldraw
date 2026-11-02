@@ -1068,7 +1068,7 @@ function getSearchBoardsToolDefinition(nameMatchingEnabled: boolean) {
 	return {
 		name: SEARCH_BOARDS_TOOL_NAME,
 		title: 'Search tldraw boards',
-		description: `Find tldraw.com boards by name among this account's own boards, its workspaces' boards, and boards shared with it by link that it has opened. Every word of the query must appear in the board name, in any order, ignoring case; use up to ${BOARD_SEARCH_MAX_TERMS} distinctive words (at most ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters), not a whole title. Omit the query to list boards. A board created without a name is named after its creation time in its creator's locale, such as "Wed 5:38 PM", and matches on that like any other name; a few older boards have an empty name and appear only when listing. Results are newest first by addedAt: when the board was created, or for a shared board when its link was first opened. createdAt is when the board was made, and updatedAt when anyone last changed it. source is owned, workspace (a workspace you belong to) or shared (by link). Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId the other tools take. If the result has a nextCursor, call again with the same query and that cursor for the next page. No match is an empty result, not an error.`,
+		description: `Find tldraw.com boards by name among this account's own boards, its workspaces' boards, and boards shared with it by link that it has opened. Every word of the query must appear in the board name, in any order, ignoring case; use up to ${BOARD_SEARCH_MAX_TERMS} distinctive words (at most ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters), not a whole title. Omit the query to list boards. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId the other tools take. No match is an empty result, not an error.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -1076,12 +1076,12 @@ function getSearchBoardsToolDefinition(nameMatchingEnabled: boolean) {
 				query: {
 					type: 'string',
 					maxLength: BOARD_SEARCH_MAX_QUERY_LENGTH,
-					description: `Up to ${BOARD_SEARCH_MAX_TERMS} words to match against board names, at most ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters. Every word must appear in the name, in any order. Omit to list your newest boards.`,
+					description: `Up to ${BOARD_SEARCH_MAX_TERMS} words to match against board names, separated by spaces. At most ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters. Every word must appear in the name, in any order. Omit to list your newest boards.`,
 				},
 				cursor: {
 					type: 'string',
 					description:
-						'The nextCursor from a previous search_boards result, to get the next page. Omit for the first page. Keep the query the same across pages; changing it invalidates where you were.',
+						'The nextCursor from a previous search_boards result, to get the next page. Omit for the first page.',
 				},
 			},
 			required: [],
