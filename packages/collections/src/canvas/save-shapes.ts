@@ -7,7 +7,8 @@ import {
 } from '../lib/schema'
 
 /**
- * Saves shapes from the current page to a collection as they are, with a rendered thumbnail.
+ * Saves shapes from the current page to a collection as they are, with a thumbnail rendered in
+ * each colour mode.
  * Their bindings and assets go with them, as when copying, and several shapes keep their layout
  * without being grouped. Rejects with the source's error when the save is refused.
  * @public
@@ -21,10 +22,14 @@ export async function saveShapesToCollection(
 ): Promise<TLCollectionItem> {
 	const content = editor.getContentFromCurrentPage(shapeIds)
 	if (!content) throw new Error('No shapes to save')
-	const { blob } = await editor.toImage(shapeIds, { format: 'png', background: false })
+	const [light, dark] = await Promise.all([
+		editor.toImage(shapeIds, { format: 'png', background: false, darkMode: false }),
+		editor.toImage(shapeIds, { format: 'png', background: false, darkMode: true }),
+	])
 	return source.addItem(collectionId, {
 		name,
 		content: { formatVersion: CURRENT_ITEM_CONTENT_FORMAT_VERSION, content },
-		thumbnail: blob,
+		thumbnail: light.blob,
+		darkThumbnail: dark.blob,
 	})
 }

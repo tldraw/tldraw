@@ -78,8 +78,21 @@ describe('InMemoryCollectionSource', () => {
 			name: 'Card',
 			content: content(),
 			thumbnail: new Blob(['png'], { type: 'image/png' }),
+			darkThumbnail: new Blob(['png'], { type: 'image/png' }),
 		})
 		expect(item.thumbnailUrl).toMatch(/^blob:/)
+		expect(item.darkThumbnailUrl).toMatch(/^blob:/)
+		expect(item.darkThumbnailUrl).not.toBe(item.thumbnailUrl)
+	})
+
+	it('leaves out the dark thumbnail when none is given', async () => {
+		const source = new InMemoryCollectionSource()
+		const collection = await source.createCollection('Wireframes')
+		const item = await source.addItem(collection.id, {
+			content: content(),
+			thumbnail: new Blob(['png'], { type: 'image/png' }),
+		})
+		expect(item).not.toHaveProperty('darkThumbnailUrl')
 	})
 
 	it('renames items and rejects blank names', async () => {
@@ -102,16 +115,18 @@ describe('InMemoryCollectionSource', () => {
 	describe('thumbnail urls', () => {
 		afterEach(() => vi.restoreAllMocks())
 
-		it('releases the url when its item is deleted', async () => {
+		it('releases the urls when their item is deleted', async () => {
 			const revoke = vi.spyOn(URL, 'revokeObjectURL')
 			const source = new InMemoryCollectionSource()
 			const collection = await source.createCollection('Wireframes')
 			const item = await source.addItem(collection.id, {
 				content: content(),
 				thumbnail: new Blob(['png'], { type: 'image/png' }),
+				darkThumbnail: new Blob(['png'], { type: 'image/png' }),
 			})
 			await source.deleteItem(item.id)
 			expect(revoke).toHaveBeenCalledWith(item.thumbnailUrl)
+			expect(revoke).toHaveBeenCalledWith(item.darkThumbnailUrl)
 		})
 
 		it('creates no url for an item that fails validation', async () => {
@@ -123,6 +138,7 @@ describe('InMemoryCollectionSource', () => {
 					name: ' ',
 					content: content(),
 					thumbnail: new Blob(['png']),
+					darkThumbnail: new Blob(['png']),
 				})
 			).rejects.toThrow()
 			expect(create).not.toHaveBeenCalled()
@@ -340,9 +356,11 @@ describe('InMemoryCollectionSource', () => {
 		const item = await source.addItem(collection.id, {
 			content: content(),
 			thumbnail: new Blob(['png']),
+			darkThumbnail: new Blob(['png']),
 		})
 		source.dispose()
 		expect(revoke).toHaveBeenCalledWith(item.thumbnailUrl)
+		expect(revoke).toHaveBeenCalledWith(item.darkThumbnailUrl)
 		revoke.mockRestore()
 	})
 })

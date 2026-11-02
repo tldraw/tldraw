@@ -114,6 +114,7 @@ export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProp
 		},
 		[editor, source, addToast, msg]
 	)
+	const isDarkMode = useValue('is dark mode', () => editor.getColorMode() === 'dark', [editor])
 	const getItemProps = useItemDrag(source, placeItem)
 	const canRename = useValue(
 		'can rename items',
@@ -223,7 +224,7 @@ export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProp
 							id: item.id,
 							name: item.name,
 							accessibleLabel: item.name ?? msg(messages.unnamedItem),
-							thumbnailUrl: item.thumbnailUrl,
+							thumbnailUrl: (isDarkMode && item.darkThumbnailUrl) || item.thumbnailUrl,
 						}))}
 						getItemProps={getTileProps}
 						renderItemMenu={(item) => (

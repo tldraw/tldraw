@@ -39,6 +39,11 @@ export interface TLCollectionItem extends BaseRecord<'collection-item', TLCollec
 	/** Left out when the item has no thumbnail. When present it is never blank. */
 	thumbnailUrl?: string
 	/**
+	 * Shown in place of `thumbnailUrl` in dark mode. Left out when one thumbnail suits both modes,
+	 * such as a photo. When present it is never blank.
+	 */
+	darkThumbnailUrl?: string
+	/**
 	 * When the item was saved, in milliseconds since the epoch. Left out by sources that don't
 	 * track it; orderings by date put those items last.
 	 */
@@ -68,6 +73,7 @@ export const collectionItemValidator: T.Validator<TLCollectionItem> = T.object({
 	collectionId: idValidator<TLCollectionId>('collection'),
 	name: nonEmptyString.optional(),
 	thumbnailUrl: nonEmptyString.optional(),
+	darkThumbnailUrl: nonEmptyString.optional(),
 	createdAt: T.number.optional(),
 	version: T.positiveInteger,
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,

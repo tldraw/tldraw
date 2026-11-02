@@ -55,7 +55,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 	private readonly collections = this.store.query.records('collection')
 	private readonly itemsByCollection = new Map<TLCollectionId, Computed<TLCollectionItem[]>>()
 	private readonly contents = new Map<TLCollectionItemId, TLCollectionItemContent>()
-	private readonly thumbnailUrls = new Map<TLCollectionItemId, string>()
+	private readonly thumbnailUrls = new Map<TLCollectionItemId, string[]>()
 
 	constructor(options: InMemoryCollectionSourceOptions = {}) {
 		this.id = options.id ?? 'in-memory'
@@ -148,12 +148,19 @@ export class InMemoryCollectionSource implements CollectionSource {
 				createdAt: Date.now(),
 			})
 		)
-		// Created only after validation, so a rejected item can't leak its blob.
+		// Created only after validation, so a rejected item can't leak its blobs.
+		const urls: string[] = []
 		if (newItem.thumbnail) {
 			const thumbnailUrl = URL.createObjectURL(newItem.thumbnail)
-			this.thumbnailUrls.set(item.id, thumbnailUrl)
+			urls.push(thumbnailUrl)
 			item = { ...item, thumbnailUrl }
 		}
+		if (newItem.darkThumbnail) {
+			const darkThumbnailUrl = URL.createObjectURL(newItem.darkThumbnail)
+			urls.push(darkThumbnailUrl)
+			item = { ...item, darkThumbnailUrl }
+		}
+		if (urls.length > 0) this.thumbnailUrls.set(item.id, urls)
 		this.contents.set(item.id, structuredClone(content))
 		this.store.put([item])
 		return item
@@ -183,7 +190,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 
 	/** Releases every thumbnail URL this source created. Call it when throwing the source away. */
 	dispose() {
-		for (const url of this.thumbnailUrls.values()) URL.revokeObjectURL(url)
+		for (const urls of this.thumbnailUrls.values()) urls.forEach((url) => URL.revokeObjectURL(url))
 		this.thumbnailUrls.clear()
 	}
 
@@ -206,8 +213,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 	// Object URLs keep their blob alive until revoked, so a deleted item would otherwise leak it.
 	private forgetItem(itemId: TLCollectionItemId) {
 		this.contents.delete(itemId)
-		const url = this.thumbnailUrls.get(itemId)
-		if (url) URL.revokeObjectURL(url)
+		this.thumbnailUrls.get(itemId)?.forEach((url) => URL.revokeObjectURL(url))
 		this.thumbnailUrls.delete(itemId)
 	}
 }

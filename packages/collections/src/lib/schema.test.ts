@@ -59,10 +59,12 @@ describe('collectionItemValidator', () => {
 		name: 'Card',
 	})
 
-	it('accepts an item, with or without a thumbnail', () => {
+	it('accepts an item, with or without thumbnails', () => {
 		expect(collectionItemValidator.validate(item)).toEqual(item)
 		const withThumbnail = { ...item, thumbnailUrl: 'https://x/t.png' }
 		expect(collectionItemValidator.validate(withThumbnail)).toEqual(withThumbnail)
+		const withBoth = { ...withThumbnail, darkThumbnailUrl: 'https://x/t-dark.png' }
+		expect(collectionItemValidator.validate(withBoth)).toEqual(withBoth)
 	})
 
 	it('accepts an item without a name', () => {
@@ -74,6 +76,7 @@ describe('collectionItemValidator', () => {
 		expect(() => collectionItemValidator.validate({ ...item, name: '  ' })).toThrow()
 		expect(() => collectionItemValidator.validate({ ...item, thumbnailUrl: '' })).toThrow()
 		expect(() => collectionItemValidator.validate({ ...item, thumbnailUrl: null })).toThrow()
+		expect(() => collectionItemValidator.validate({ ...item, darkThumbnailUrl: '' })).toThrow()
 	})
 
 	it('rejects a collection id that is not a collection id', () => {
