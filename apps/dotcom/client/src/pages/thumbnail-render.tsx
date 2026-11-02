@@ -131,7 +131,7 @@ export type ThumbnailRenderData =
 			message: string
 	  }
 
-type ThumbnailPushedSnapshot = Extract<ThumbnailSnapshotResponseBody, { error: false }>
+export type ThumbnailPushedSnapshot = Extract<ThumbnailSnapshotResponseBody, { error: false }>
 
 declare global {
 	interface Window {

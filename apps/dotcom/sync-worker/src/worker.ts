@@ -45,6 +45,7 @@ import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
+import { handleHotRenderProbe } from './routes/tla/hotRenderProbe'
 import { handleInitUser } from './routes/tla/initUser'
 import {
 	ROOT_MCP_SERVER_PATH,
@@ -223,6 +224,8 @@ const router = createRouter<Environment>()
 	.all('/app/social-preview/:prefix/:slug/image', getOgImage)
 	.get('/app/thumbnail-render/snapshot', getThumbnailSnapshot)
 	.post('/app/thumbnail-render/result', putThumbnailRenderResult)
+	// Spike (preview only, bearer-gated): warm-browser render benchmark. See hotRenderProbe.ts.
+	.post('/app/hot-render-probe', handleHotRenderProbe)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)

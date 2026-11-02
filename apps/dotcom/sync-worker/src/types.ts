@@ -157,6 +157,10 @@ export interface Environment {
 	// 'true' pushes the board's records into the render page with the screenshot request, instead of
 	// the page fetching them back from the snapshot route. Off everywhere it is unset.
 	THUMBNAIL_RENDER_PUSH: string | undefined
+	// Spike (preview only): 'true' mounts POST /app/hot-render-probe, a bearer-gated benchmark that
+	// keeps a @cloudflare/puppeteer Browser Run session + page warm and re-drives it, to measure
+	// cold-vs-warm render latency. Off everywhere it is unset. See hotRenderProbe.ts.
+	BROWSER_RUN_HOT_PROBE: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected
