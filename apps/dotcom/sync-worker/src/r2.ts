@@ -47,7 +47,7 @@ export function runInline<T>(read: () => Promise<T>): Promise<T> {
 // R2 has honored `include` on list() since compat date 2022-08-04 (this worker's is far past it),
 // but the repo's ambient workers-types entrypoint predates the option — declared locally, same
 // pattern as types.ts.
-type R2ListOptionsWithInclude = R2ListOptions & {
+export type R2ListOptionsWithInclude = R2ListOptions & {
 	include?: Array<'httpMetadata' | 'customMetadata'>
 }
 

@@ -90,3 +90,32 @@ export async function settleWithin(
 		clearTimeout(timer)
 	}
 }
+
+interface AttachedSocket {
+	deserializeAttachment(): unknown
+	serializeAttachment(value: unknown): void
+}
+
+/**
+ * Strips the session snapshot from every socket other than `current` attached to `sessionId`.
+ *
+ * A same-id reconnect leaves the superseded socket open with its snapshot, and a post-hibernation
+ * boot resumes every socket that has one, the last per session id winning in `getWebSockets()`
+ * order, which is unspecified. If the superseded socket won, TLSocketRoom would drop every message
+ * from the live one as coming from a superseded socket (#10132).
+ */
+export function clearSupersededSessionSnapshots(
+	sockets: Iterable<AttachedSocket>,
+	sessionId: string,
+	current: AttachedSocket
+) {
+	for (const ws of sockets) {
+		if (ws === current) continue
+		const attachment = ws.deserializeAttachment() as {
+			sessionId?: string
+			snapshot?: unknown
+		} | null
+		if (attachment?.sessionId !== sessionId || !attachment.snapshot) continue
+		ws.serializeAttachment({ ...attachment, snapshot: null })
+	}
+}

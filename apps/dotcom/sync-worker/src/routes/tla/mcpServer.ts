@@ -1210,6 +1210,7 @@ async function clustersFor(
 
 	const measurements = await measurePageShapes(env, resolved.board, resolved.page.pageId, {
 		surface: 'mcp',
+		snapshot: resolved.snapshot,
 	})
 	const clusters = clusterPage(resolved.page, measurements)
 	await writePageClusterIndex(
@@ -1404,6 +1405,7 @@ async function renderShapeSetScreenshot(
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			telemetry: { source: 'mcp' },
 			content: summarizeSnapshotContent(resolved.snapshot, resolved.page.pageId),
+			snapshot: resolved.snapshot,
 			// Preview trial (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts): let the screenshot
 			// rasterize the live canvas instead of running editor.toImage in the page. Agent-facing
 			// only — the OG surface keeps the export path's pixel-exact sizing.

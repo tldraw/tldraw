@@ -4,8 +4,8 @@ import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../r2'
 import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
-import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
 import { isTestFile } from '../utils/tla/isTestFile'
+import { requireHistoryAccess } from '../utils/tla/requireHistoryAccess'
 import { ChainIndexEntry, listVersionTimestamps, loadChainIndex } from '../versionChainRead'
 
 export function getMonthPrefix(date: Date): string {
@@ -19,8 +19,8 @@ export function getPreviousMonth(date: Date): Date {
 
 /**
  * The chain index is listed once per request and threaded through: this handler probes up to
- * three dozen month prefixes, and each probe re-listing the whole chain (plus an uncapped legacy
- * walk) turned a ~7-listing request into hundreds on rooms with long histories.
+ * three dozen month prefixes, and each probe re-listing the whole chain turned a ~7-listing
+ * request into hundreds on rooms with long histories.
  */
 interface HistorySource {
 	env: Environment
@@ -35,7 +35,6 @@ async function fetchTimestampsForPrefix(
 ): Promise<string[]> {
 	return await listVersionTimestamps({
 		chainBucket: source.env.ROOMS_HISTORY,
-		legacyBucket: source.env.ROOMS_HISTORY_EPHEMERAL,
 		roomKey: source.roomKey,
 		prefix,
 		index: source.index,
@@ -58,7 +57,7 @@ export async function getRoomHistory(
 	if (!roomId) return notFound()
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
 
-	await requireAdminAccessToRequest(request, env)
+	await requireHistoryAccess(request, env, roomId, isApp)
 
 	if (isTestFile(roomId)) {
 		return new Response('Not found', { status: 404 })

@@ -1,9 +1,4 @@
-import {
-	getLicenseKey,
-	ROOM_OPEN_MODE,
-	RoomOpenMode,
-	RoomOpenModeToPath,
-} from '@tldraw/dotcom-shared'
+import { ROOM_OPEN_MODE, RoomOpenMode, RoomOpenModeToPath } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useMemo } from 'react'
 import { commentSchemaRecords, Editor, TLComponents, Tldraw } from 'tldraw'
@@ -116,7 +111,6 @@ function TlaEditorInner({
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
-				licenseKey={getLicenseKey()}
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}

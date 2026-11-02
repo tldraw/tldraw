@@ -1,6 +1,5 @@
-import { useValue } from 'tldraw'
+import { defineMessages, useValue } from 'tldraw'
 import { useGlobalEditor } from '../../../../utils/globalEditor'
-import { defineMessages } from '../../../utils/i18n'
 
 export interface RecentFile {
 	fileId: string

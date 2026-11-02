@@ -1,4 +1,4 @@
-import { usePassThroughWheelEvents } from '@tldraw/editor'
+import { defineMessages, usePassThroughWheelEvents } from '@tldraw/editor'
 import { memo, useCallback, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { unwrapLabel, useActions } from '../../context/actions'
@@ -9,6 +9,14 @@ import { useDirection, useTranslation } from '../../hooks/useTranslation/useTran
 import { kbdStr } from '../../kbd-utils'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
+
+const messages = defineMessages({
+	navigationZoneTitle: { id: 'navigation-zone.title', defaultMessage: 'Navigation' },
+	navigationZoneToggleMinimap: {
+		id: 'navigation-zone.toggle-minimap',
+		defaultMessage: 'Toggle minimap',
+	},
+})
 
 /** @public @react */
 export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
@@ -37,7 +45,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 		<TldrawUiToolbarButton
 			type="icon"
 			data-testid="minimap.toggle-button"
-			title={msg('navigation-zone.toggle-minimap')}
+			title={msg(messages.navigationZoneToggleMinimap)}
 			onClick={toggleMinimap}
 		>
 			<TldrawUiButtonIcon small icon={collapsed !== isRtl ? 'chevron-right' : 'chevron-left'} />
@@ -46,7 +54,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 
 	return (
 		<div ref={ref} className="tlui-navigation-panel">
-			<TldrawUiToolbar orientation="horizontal" label={msg('navigation-zone.title')}>
+			<TldrawUiToolbar orientation="horizontal" label={msg(messages.navigationZoneTitle)}>
 				{ZoomMenu && breakpoint < PORTRAIT_BREAKPOINT.TABLET ? (
 					<ZoomMenu />
 				) : (
