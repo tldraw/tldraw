@@ -110,6 +110,7 @@ export function CommandPaletteShell({
 	const rInput = useRef<HTMLInputElement>(null)
 	const rList = useRef<HTMLDivElement>(null)
 	const rScrollToActive = useRef(false)
+	const rRestoreScrollTop = useRef<number | null>(null)
 	// Without an editor, focus goes back here on close.
 	const rFocusBefore = useRef<HTMLElement | null>(null)
 	const listboxId = useId()
@@ -158,6 +159,31 @@ export function CommandPaletteShell({
 		isBrowsing,
 		rows,
 	})
+	// Backing out restores the exact scroll: scrolling the active row into view would park it at an
+	// edge. Waits until the list is tall enough, since rows from useCommandPaletteQuery register a
+	// render late and an early restore would clamp to 0. Re-reads canScrollDown, already read for
+	// these rows. The next query change, arrow key or pointer/scroll input drops it. Rows can
+	// change while a submenu is open, so the active row still gets scrolled into view if it ends
+	// up fully hidden, or Enter would run a row the user can't see. Only fully hidden: a partly
+	// clipped row would lose the exact restore to scroll-padding.
+	useLayoutEffect(() => {
+		const list = rList.current
+		const scrollTop = rRestoreScrollTop.current
+		if (scrollTop === null || !list) return
+		if (list.scrollHeight - list.clientHeight >= scrollTop) {
+			list.scrollTop = scrollTop
+			rRestoreScrollTop.current = null
+		}
+		const active = list.querySelector('[data-highlighted]')
+		if (active) {
+			const row = active.getBoundingClientRect()
+			const visible = list.getBoundingClientRect()
+			if (row.bottom <= visible.top || row.top >= visible.bottom) {
+				active.scrollIntoView?.({ block: 'nearest' })
+			}
+		}
+		onListScroll()
+	})
 	// Runs after the rows' own layout effects: only keyboard and query changes scroll the active
 	// row, so hovering a half-visible row doesn't make the list jump.
 	useLayoutEffect(() => {
@@ -185,6 +211,7 @@ export function CommandPaletteShell({
 	const setQuery = useCallback(
 		(value: string) => {
 			rScrollToActive.current = true
+			rRestoreScrollTop.current = null
 			store.query.set(value)
 			setActiveIndex(0)
 		},
@@ -204,9 +231,13 @@ export function CommandPaletteShell({
 
 	// Each level opened on top of another remembers that level's search, so backing out returns to
 	// the same results instead of an empty palette.
-	const rBackTo = useRef<{ query: string; activeIndex: number }[]>([])
+	const rBackTo = useRef<{ query: string; activeIndex: number; scrollTop: number }[]>([])
 	const pushLevel = useCallback(() => {
-		rBackTo.current.push({ query: store.query.get(), activeIndex: rClampedIndex.current })
+		rBackTo.current.push({
+			query: store.query.get(),
+			activeIndex: rClampedIndex.current,
+			scrollTop: rList.current?.scrollTop ?? 0,
+		})
 	}, [store])
 
 	const openSubmenu = useCallback(
@@ -243,6 +274,10 @@ export function CommandPaletteShell({
 		const previous = rBackTo.current.pop()
 		setQuery(previous?.query ?? '')
 		setActiveIndex(previous?.activeIndex ?? 0)
+		if (previous) {
+			rScrollToActive.current = false
+			rRestoreScrollTop.current = previous.scrollTop
+		}
 	}, [prompt, store, setQuery])
 
 	const dismiss = useCallback(() => {
@@ -275,7 +310,7 @@ export function CommandPaletteShell({
 			try {
 				if (entry.prompt) entry.prompt.onSubmit(store.query.get().trim())
 				else entry.onSelect('command-palette')
-				if (!entry.submenu?.collapsed) addCommandPaletteRecent(entry.id)
+				if (!entry.submenu?.onDemand) addCommandPaletteRecent(entry.id)
 			} finally {
 				restoreFocus()
 			}
@@ -283,10 +318,15 @@ export function CommandPaletteShell({
 		[onClose, restoreFocus, openSubmenu, openPrompt, prompt, store, back]
 	)
 
+	const dropScrollRestore = () => {
+		rRestoreScrollTop.current = null
+	}
+
 	const move = (delta: number) => {
 		const count = selectableRows.length
 		if (!count) return
 		rScrollToActive.current = true
+		rRestoreScrollTop.current = null
 		setActiveIndex((Math.max(clampedIndex, 0) + delta + count) % count)
 	}
 
@@ -383,6 +423,11 @@ export function CommandPaletteShell({
 						className="tlui-command-palette__list"
 						data-more={canScrollDown ? '' : undefined}
 						onScroll={onListScroll}
+						// Not onScroll, which also fires when the list shrinks and clamps scrollTop.
+						onWheel={dropScrollRestore}
+						onTouchMove={dropScrollRestore}
+						onPointerDown={dropScrollRestore}
+						onPointerMove={dropScrollRestore}
 					>
 						<CommandPaletteList
 							listboxId={listboxId}

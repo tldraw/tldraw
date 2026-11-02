@@ -64,8 +64,8 @@ describe('getCommandPaletteBrowseRows', () => {
 		expect(describeRows(rows)).toEqual(['# Recent', 'recent undo', '---', 'grid'])
 	})
 
-	it('fills the recents from further down when earlier ids are gone or collapsed', () => {
-		const notifications = { key: 'notifications', label: 'Notifications', collapsed: true }
+	it('fills the recents from further down when earlier ids are gone or on demand', () => {
+		const notifications = { key: 'notifications', label: 'Notifications', onDemand: true }
 		const kept = ['a', 'b', 'c', 'd', 'e', 'f']
 		const rows = getCommandPaletteBrowseRows(
 			[entry('note', { submenu: notifications }), ...kept.map((id) => entry(id))],
@@ -165,8 +165,8 @@ describe('getCommandPaletteBrowseRows', () => {
 		expect(describeRows(rows)).toEqual(['> Move to page', 'Theme: Dark', 'Show grid'])
 	})
 
-	it('keeps a collapsed submenu as one row, even with one item', () => {
-		const news = { key: 'news', label: 'Notifications', collapsed: true }
+	it('keeps an on-demand submenu as one row, even with one item', () => {
+		const news = { key: 'news', label: 'Notifications', onDemand: true }
 		const rows = getCommandPaletteBrowseRows(
 			[entry('n1', { label: 'Notifications: Alice: hi', name: 'Alice: hi', submenu: news })],
 			[],
@@ -181,8 +181,8 @@ describe('getCommandPaletteBrowseRows', () => {
 		expect(describeRows(search)).toEqual(['> Notifications'])
 	})
 
-	it('keeps collapsed submenu items out of recents', () => {
-		const news = { key: 'news', label: 'Notifications', collapsed: true }
+	it('keeps on-demand submenu items out of recents', () => {
+		const news = { key: 'news', label: 'Notifications', onDemand: true }
 		const rows = getCommandPaletteBrowseRows(
 			[
 				entry('n1', { label: 'Notifications: Alice: hi', name: 'Alice: hi', submenu: news }),
