@@ -132,11 +132,11 @@ export async function flattenShapesToImages(
 		}
 
 		// get an image for the shapes
-		const svgResult = await editor.getSvgString(group.shapes, {
+		const svgResult = await editor.getSvgElement(group.shapes, {
 			padding,
 			background: false,
 		})
-		if (!svgResult?.svg) continue
+		if (!svgResult) continue
 
 		const content = editor.getContentFromCurrentPage(group.shapes)
 		if (!content) continue
@@ -250,14 +250,13 @@ interface TLFlattenSource {
 	content: TLContent
 }
 
-function embedFlattenSource(svg: string, source: TLFlattenSource) {
-	const doc = new DOMParser().parseFromString(svg, 'image/svg+xml')
-	const metadata = doc.createElementNS('http://www.w3.org/2000/svg', 'metadata')
+function embedFlattenSource(svg: SVGSVGElement, source: TLFlattenSource) {
+	const metadata = svg.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'metadata')
 	metadata.setAttribute('id', FLATTEN_SOURCE_ELEMENT_ID)
 	// A text node, not CDATA: the serializer escapes it, and CDATA can't hold "]]>"
 	metadata.textContent = JSON.stringify(source)
-	doc.documentElement.prepend(metadata)
-	return new XMLSerializer().serializeToString(doc)
+	svg.prepend(metadata)
+	return new XMLSerializer().serializeToString(svg)
 }
 
 async function readFlattenSource(editor: Editor, image: TLImageShape) {
@@ -337,6 +336,35 @@ function scaleShapeTrees(editor: Editor, rootIds: TLShapeId[], scale: number, or
 	}
 }
 
+function restoreFlattenSource(editor: Editor, image: TLImageShape, source: TLFlattenSource) {
+	editor.selectNone()
+	editor.putContentOntoCurrentPage(source.content, { preservePosition: true, select: true })
+	// in stacking order: put selects the roots in the order it indexed them
+	const ids = editor.getSelectedShapeIds()
+	// put returns without putting anything when, for example, the page is read-only
+	if (ids.length === 0) throw Error('Nothing was put')
+
+	// The shapes are back where they were flattened from; move them onto the image
+	const sourceOrigin = { x: source.bounds.x, y: source.bounds.y }
+	const imageTransform = editor.getShapePageTransform(image)
+	const scale = image.props.w / source.bounds.w
+	if (scale !== 1) scaleShapeTrees(editor, ids, scale, sourceOrigin)
+	const rotation = imageTransform.rotation()
+	if (rotation !== 0) {
+		editor.rotateShapesBy(ids, rotation, { center: sourceOrigin })
+	}
+	editor.nudgeShapes(ids, Vec.Sub(imageTransform.point(), sourceOrigin))
+	editor.reparentShapes(ids, image.parentId, image.index)
+	// Put may have moved some roots into a frame that covers the original area, and
+	// reparenting orders them by those mixed indices, so restore the stacking order
+	const indices = ids.map((id) => editor.getShape(id)!.index).sort()
+	editor.updateShapes(
+		ids.map((id, i) => ({ id, type: editor.getShape(id)!.type, index: indices[i] }))
+	)
+	editor.deleteShapes([image.id])
+	return ids
+}
+
 /** @internal */
 export type TLUnflattenResult =
 	| { type: 'success'; shapeIds: TLShapeId[] }
@@ -358,8 +386,12 @@ export async function unflattenImages(
 
 	let error: Extract<TLUnflattenResult, { type: 'error' }>['reason'] | null = null
 	const restorable: { image: TLImageShape; source: TLFlattenSource }[] = []
-	for (const image of images) {
-		const source = await readFlattenSource(editor, image).catch(() => null)
+	const sources = await Promise.all(
+		images.map((image) => readFlattenSource(editor, image).catch(() => null))
+	)
+	for (let i = 0; i < images.length; i++) {
+		const image = images[i]
+		const source = sources[i]
 		if (!source) {
 			error ??= 'unreadable'
 		} else if (!canRestoreFlattenSource(image, source)) {
@@ -384,56 +416,26 @@ export async function unflattenImages(
 	const restoredShapeIds: TLShapeId[] = []
 	const selectionAtStart = editor.getSelectedShapeIds()
 
-	editor.run(() => {
-		for (const { source, image: imageAtStart } of restorable) {
-			// The image may have been deleted or changed by a collaborator while we fetched
-			const image = editor.getShape<TLImageShape>(imageAtStart.id)
-			if (!image || !canRestoreFlattenSource(image, source)) {
-				error ??= 'transformed'
-				continue
-			}
-
-			editor.selectNone()
-			try {
-				editor.putContentOntoCurrentPage(source.content, { preservePosition: true, select: true })
-			} catch {
-				// content from a newer schema can't be migrated down
-				error ??= 'unreadable'
-				continue
-			}
-			// in stacking order: put selects the roots in the order it indexed them
-			const ids = editor.getSelectedShapeIds()
-			if (ids.length === 0) {
-				error ??= 'unreadable'
-				continue
-			}
-
-			// The shapes are back where they were flattened from; move them onto the image
-			const sourceOrigin = { x: source.bounds.x, y: source.bounds.y }
-			const imageTransform = editor.getShapePageTransform(image)
-			const scale = image.props.w / source.bounds.w
-			if (scale !== 1) scaleShapeTrees(editor, ids, scale, sourceOrigin)
-			const rotation = imageTransform.rotation()
-			if (rotation !== 0) {
-				editor.rotateShapesBy(ids, rotation, { center: sourceOrigin })
-			}
-			editor.nudgeShapes(ids, Vec.Sub(imageTransform.point(), sourceOrigin))
-			editor.reparentShapes(ids, image.parentId, image.index)
-			// Put may have moved some roots into a frame that covers the original area, and
-			// reparenting orders them by those mixed indices, so restore the stacking order
-			const indices = ids.map((id) => editor.getShape(id)!.index).sort()
-			editor.updateShapes(
-				ids.map((id, i) => ({ id, type: editor.getShape(id)!.type, index: indices[i] }))
-			)
-			editor.deleteShapes([image.id])
-
-			restoredShapeIds.push(...ids)
+	for (const { source, image: imageAtStart } of restorable) {
+		// The image may have been deleted or changed by a collaborator while we fetched
+		const image = editor.getShape<TLImageShape>(imageAtStart.id)
+		if (!image || !canRestoreFlattenSource(image, source)) {
+			error ??= 'transformed'
+			continue
 		}
-		editor.setSelectedShapes([
-			...selectionAtStart.filter((id) => editor.getShape(id)),
-			...restoredShapeIds,
-		])
-	})
+		// A run of its own, so a throw part way (e.g. a binding type this editor doesn't have)
+		// rolls back the shapes already put, and the image stays as it was
+		try {
+			editor.run(() => restoredShapeIds.push(...restoreFlattenSource(editor, image, source)))
+		} catch {
+			error ??= 'unreadable'
+		}
+	}
+
+	editor.setSelectedShapes([
+		...selectionAtStart.filter((id) => editor.getShape(id)),
+		...restoredShapeIds,
+	])
 
 	if (error) return { type: 'error', reason: error }
 	return { type: 'success', shapeIds: restoredShapeIds }

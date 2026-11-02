@@ -19,12 +19,12 @@ let assetCount = 0
 function installFlattenMocks(target: TestEditor) {
 	// Mock the export pipeline (jsdom can't render SVGs). Keep the uploaded SVG text so unflatten
 	// can fetch it back.
-	vi.spyOn(target, 'getSvgString').mockResolvedValue({
-		svg: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"></svg>',
+	vi.spyOn(target, 'getSvgElement').mockImplementation(async () => ({
+		svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
 		width: 10,
 		height: 10,
 		trimPadding: 0,
-	})
+	}))
 	const uploads = new Map<string, string>()
 	vi.spyOn(window, 'fetch').mockImplementation(async (input) => {
 		const svg = uploads.get(String(input))
@@ -314,6 +314,43 @@ describe('unflattenImages', () => {
 
 		expect(editor.getSelectedShapeIds()).toContain(c)
 		expect(editor.getSelectedShapeIds()).toHaveLength(3)
+	})
+
+	it('leaves nothing behind when putting the saved shapes fails part way', async () => {
+		editor.createShapes([box(a, 100, 100)])
+		const content = editor.getContentFromCurrentPage([a])!
+		const [imageId] = (await flattenShapesToImages(editor, [a]))!
+		// a binding type this editor has no util for makes the put throw after it created shapes
+		const source = {
+			type: 'tldraw-flatten-source',
+			version: 1,
+			bounds: editor.getShapePageBounds(imageId)!.toJson(),
+			content: {
+				...content,
+				bindings: [
+					{
+						id: 'binding:x',
+						typeName: 'binding',
+						type: 'unknown',
+						fromId: a,
+						toId: a,
+						props: {},
+						meta: {},
+					},
+				],
+			},
+		}
+		vi.spyOn(window, 'fetch').mockResolvedValue(
+			new Response(
+				`<svg xmlns="http://www.w3.org/2000/svg"><metadata id="tldraw-flatten-source">${JSON.stringify(source)}</metadata></svg>`
+			)
+		)
+
+		const result = await unflattenImages(editor, [imageId])
+
+		expect(result).toEqual({ type: 'error', reason: 'unreadable' })
+		expect(editor.getShape(imageId)).toBeDefined()
+		expect(getRestoredBoxes()).toEqual([])
 	})
 
 	it('reports malformed saved shapes as unreadable', async () => {
