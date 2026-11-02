@@ -1,4 +1,5 @@
 import { useComputed, useMaybeEditor, useValue } from '@tldraw/editor'
+import { getActionDisabledReason } from '../context/action-disabled-reasons'
 import { getActionState, TLUiActionState } from '../context/action-state'
 import { TLUiActionItem, useActions } from '../context/actions'
 
@@ -20,6 +21,34 @@ export function useActionState(action: TLUiActionItem | undefined): TLUiActionSt
 		[editor, action]
 	)
 	return useValue($state)
+}
+
+/**
+ * Why a built-in action is disabled, as a translation key, read only while `active` (the item is
+ * disabled and shown in the command palette). A throwing reason counts as none.
+ *
+ * @internal
+ */
+export function useActionDisabledReason(
+	action: TLUiActionItem | undefined,
+	active: boolean
+): string | undefined {
+	const editor = useMaybeEditor()
+	return useValue(
+		'action disabled reason',
+		() => {
+			const reason = action && getActionDisabledReason(action.id)
+			if (!active || !editor || !reason) return undefined
+			if (typeof reason !== 'function') return reason
+			try {
+				return reason(editor)
+			} catch (error) {
+				console.error(`The "${action!.id}" action's command palette reason threw`, error)
+				return undefined
+			}
+		},
+		[editor, action, active]
+	)
 }
 
 function useSomeActions(

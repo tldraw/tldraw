@@ -31,6 +31,7 @@ export interface TLUiMenuCheckboxItemProps<
 	toggle?: boolean
 	checked?: boolean
 	disabled?: boolean
+	disabledReason?: TranslationKey
 }
 
 /** @public @react */
@@ -46,6 +47,7 @@ export function TldrawUiMenuCheckboxItem<
 	onSelect,
 	toggle = false,
 	disabled = false,
+	disabledReason,
 	checked = false,
 }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
@@ -111,13 +113,15 @@ export function TldrawUiMenuCheckboxItem<
 			)
 		}
 		case 'command-palette': {
-			if (!labelStr || disabled) return null
+			if (!labelStr) return null
 			return (
 				<CommandPaletteItemRegistration
 					id={id}
 					label={labelStr}
 					kbd={kbd}
 					checked={checked}
+					disabled={disabled}
+					disabledReason={disabledReason ? msg(disabledReason as TLUiTranslationKey) : undefined}
 					onSelect={onSelect}
 				/>
 			)

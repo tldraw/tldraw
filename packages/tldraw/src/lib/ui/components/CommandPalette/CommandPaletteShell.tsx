@@ -299,6 +299,7 @@ export function CommandPaletteShell({
 				return
 			}
 			const { entry } = row
+			if (entry.disabled) return
 			if (entry.prompt && !prompt) {
 				openPrompt(entry)
 				rInput.current?.focus()

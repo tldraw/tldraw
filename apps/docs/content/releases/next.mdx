@@ -14,7 +14,7 @@ So far this release adds a command palette (Cmd/Ctrl+K), lets shapes decide whet
 
 ### Command palette
 
-Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, pages, preferences and more. Recently used commands come first. Actions, including your custom ones, are listed automatically; set `commandPalette: false` on internal or shortcut-only actions to leave them out. The palette is a `CommandPalette` component slot built from the same menu items as the other menus, so you place commands by wrapping `DefaultCommandPalette`, the same way you customize the main menu. Cmd/Ctrl+K is now bound by default; pass `components={{ CommandPalette: null }}` to turn the palette and its shortcut off.
+Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, pages, preferences and more. Recently used commands come first, and commands that can't run right now explain why in search. Actions, including your custom ones, are listed automatically; set `commandPalette: false` on internal or shortcut-only actions to leave them out. The palette is a `CommandPalette` component slot built from the same menu items as the other menus, so you place commands by wrapping `DefaultCommandPalette`, the same way you customize the main menu. Cmd/Ctrl+K is now bound by default; pass `components={{ CommandPalette: null }}` to turn the palette and its shortcut off.
 
 ## API changes
 
@@ -24,6 +24,7 @@ Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, p
 - Add the `toggle-minimap` and `crop-image` actions. The minimap's open state is now shared between the navigation panel and the action. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
 - 💥 Add `'command-palette'` to `TLUiMenuContextType` and `TLUiEventSource`. Exhaustive switches over either type need a case for it. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
 - 💥 Cmd/Ctrl+K now opens the command palette, so an app action bound to `cmd+k` no longer fires. To keep your own binding, remove the palette with `components={{ CommandPalette: null }}`, remove its action with `delete actions['open-command-palette']`, or set `actions['open-command-palette'].kbd` to another chord. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
+- Add `disabledReason` to `TldrawUiMenuItem`, `TldrawUiMenuCheckboxItem` and their action variants, shown in the command palette in place of the shortcut. ([#11161](https://github.com/tldraw/tldraw/pull/11161))
 - `CommandPaletteShell` also works without an editor, inside `TldrawUiContextProvider`, with the app owning its open state and shortcut. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
 - Add a `position` prop to `DefaultCommandPalette` and `CommandPaletteShell`: `'center'` (the default), `'top'` or `'bottom'` (just above a horizontal toolbar). ([#11158](https://github.com/tldraw/tldraw/pull/11158))
 - Add a `suggestions` prop to `DefaultCommandPalette` and `CommandPaletteShell`: `'recent'` (the default) lists recent commands while the query is empty, `'none'` leaves them out. ([#11158](https://github.com/tldraw/tldraw/pull/11158))

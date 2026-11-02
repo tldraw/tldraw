@@ -214,7 +214,11 @@ actions['make-red'] = {
 }
 ```
 
-The palette only lists commands that can run right now, so a disabled action is left out until it's enabled.
+The palette lists an enabled action while browsing and searching. A disabled one appears only in search results, greyed out with a reason that says why; without a reason it isn't listed, so the palette never shows a row it can't explain. Built-in actions come with reasons. For your own, place the item yourself and pass `disabledReason`, which other items take too:
+
+```tsx
+<TldrawUiMenuActionItem actionId="make-red" disabledReason="command-palette.reason.select-shape" />
+```
 
 To place commands, wrap the default:
 

@@ -15,6 +15,10 @@ export interface CommandPaletteItemRegistrationProps {
 	checked?: boolean
 	/** Like `checked`, for menu items; `checked` wins when both are set. */
 	isSelected?: boolean
+	/** Can't run. Hidden while browsing; in search, shown greyed only with a `disabledReason`. */
+	disabled: boolean
+	/** Translated reason shown in the shortcut's place while the disabled row is highlighted. */
+	disabledReason?: string
 	/** Muted text after the label. Searched too. */
 	detail?: string
 	/** Asks for text in the palette before running, instead of running on select. */
@@ -41,10 +45,10 @@ export function CommandPaletteItemRegistration(props: CommandPaletteItemRegistra
 	const onSelect = useCallback((source: TLUiEventSource) => rProps.current.onSelect(source), [])
 	const onSubmit = useCallback((value: string) => rProps.current.prompt?.onSubmit(value), [])
 
-	// No deps: re-register every render so label and checked state stay current.
+	// No deps: re-register every render so label, checked and disabled state stay current.
 	useLayoutEffect(() => {
 		rProps.current = props
-		const { id, kbd, checked, isSelected, detail, prompt } = props
+		const { id, kbd, checked, isSelected, disabled, disabledReason, detail, prompt } = props
 		// Prefixed here so rows, recents and search matching all see the same label.
 		const label = submenu ? `${submenu.label}: ${props.label}` : props.label
 		store.set(token, {
@@ -52,6 +56,8 @@ export function CommandPaletteItemRegistration(props: CommandPaletteItemRegistra
 			kbd,
 			checked,
 			isSelected,
+			disabled,
+			disabledReason,
 			detail,
 			prompt: prompt && {
 				placeholder: prompt.placeholder,
