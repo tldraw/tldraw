@@ -825,6 +825,9 @@ export function CommandPalettePreferencesGroup(): JSX.Element;
 // @public
 export function CommandPalettePromptItem<TranslationKey extends string = string>({ id, label, placeholder, initialValue, readonlyOk, onSubmit, }: TLUiCommandPalettePromptItemProps<TranslationKey>): JSX.Element | null;
 
+// @internal
+export function CommandPaletteSearchItem({ id, label, placeholder, getResults, }: TLUiCommandPaletteSearchItemProps): JSX.Element | null;
+
 // @public
 export function CommandPaletteSelectionGroup(): JSX.Element;
 
@@ -4825,6 +4828,28 @@ export interface TLUiCommandPalettePromptItemProps<TranslationKey extends string
 export interface TLUiCommandPaletteProps extends Pick<TLUiCommandPaletteShellProps, 'position' | 'suggestions'> {
     children?: ReactNode;
     onClose?(): void;
+}
+
+// @internal (undocumented)
+export interface TLUiCommandPaletteSearchItemProps {
+    getResults(query: string): TLUiCommandPaletteSearchResult[];
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    label: string;
+    // (undocumented)
+    placeholder: string;
+}
+
+// @internal (undocumented)
+export interface TLUiCommandPaletteSearchResult {
+    detail?: string;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    label: string;
+    // (undocumented)
+    onSelect(): void;
 }
 
 // @public (undocumented)

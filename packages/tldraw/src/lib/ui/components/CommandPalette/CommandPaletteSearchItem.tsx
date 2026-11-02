@@ -1,0 +1,39 @@
+import { useTldrawUiMenuContext } from '../primitives/menus/TldrawUiMenuContext'
+import { CommandPaletteItemRegistration } from './CommandPaletteItemRegistration'
+import { TLUiCommandPaletteSearchResult } from './CommandPaletteStore'
+
+/** @internal */
+export interface TLUiCommandPaletteSearchItemProps {
+	id: string
+	label: string
+	placeholder: string
+	/**
+	 * The hits for the trimmed, non-empty query, shown in this order without ranking or a cap. Runs
+	 * again only when the query changes.
+	 */
+	getResults(query: string): TLUiCommandPaletteSearchResult[]
+}
+
+/**
+ * A command palette item that opens its own search in the palette, listing the hits for what's
+ * typed. Renders nothing outside the palette.
+ *
+ * @internal
+ */
+export function CommandPaletteSearchItem({
+	id,
+	label,
+	placeholder,
+	getResults,
+}: TLUiCommandPaletteSearchItemProps) {
+	const { type } = useTldrawUiMenuContext()
+	if (type !== 'command-palette') return null
+	return (
+		<CommandPaletteItemRegistration
+			id={id}
+			label={label}
+			search={{ placeholder, getResults }}
+			onSelect={() => {}}
+		/>
+	)
+}
