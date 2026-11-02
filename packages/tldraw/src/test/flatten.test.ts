@@ -11,6 +11,7 @@ import {
 } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { flattenShapesToImages, unflattenImages } from '../lib/ui/hooks/useFlatten'
+import { parseTldrawJsonFile, serializeTldrawJson } from '../lib/utils/tldr/file'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -27,7 +28,11 @@ function installFlattenMocks(target: TestEditor) {
 	}))
 	const uploads = new Map<string, string>()
 	vi.spyOn(window, 'fetch').mockImplementation(async (input) => {
-		const svg = uploads.get(String(input))
+		const url = String(input)
+		if (url.startsWith('data:')) {
+			return new Response(Buffer.from(url.slice(url.indexOf(',') + 1), 'base64'))
+		}
+		const svg = uploads.get(url)
 		return svg ? new Response(svg) : new Response(null, { status: 404 })
 	})
 	vi.spyOn(target, 'getAssetForExternalContent').mockImplementation(async (info) => {
@@ -365,6 +370,28 @@ describe('unflattenImages', () => {
 
 		expect(result).toEqual({ type: 'error', reason: 'unreadable' })
 		expect(editor.getShape(imageId)).toBeDefined()
+	})
+
+	it('still unflattens after a round trip through a .tldr file', async () => {
+		editor.createShapes([box(a, 100, 100), box(b, 200, 150, 50, 80)])
+		const before = getRestoredBoxes()
+		const [imageId] = (await flattenShapesToImages(editor, [a, b]))!
+		const json = await serializeTldrawJson(editor)
+
+		editor.dispose()
+		editor = new TestEditor()
+		installFlattenMocks(editor)
+		const parsed = parseTldrawJsonFile({ json, schema: editor.store.schema })
+		if (!parsed.ok) throw Error('could not parse the .tldr file')
+		editor.loadSnapshot(parsed.value.getStoreSnapshot())
+		expect(
+			editor.getAsset(editor.getShape<TLImageShape>(imageId)!.props.assetId!)!.props.src
+		).toMatch(/^data:/)
+
+		const result = await unflattenImages(editor, [imageId])
+
+		expect(result.type).toBe('success')
+		expect(getRestoredBoxes()).toEqual(before)
 	})
 
 	it('can be undone in one step', async () => {
