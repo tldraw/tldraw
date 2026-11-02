@@ -1,6 +1,5 @@
 import { CountShapesAction } from '../../shared/schema/AgentActionSchemas'
 import { Streaming } from '../../shared/types/Streaming'
-import { AgentHelpers } from '../AgentHelpers'
 import { AgentActionUtil, registerActionUtil } from './AgentActionUtil'
 
 export const CountShapesActionUtil = registerActionUtil(
@@ -15,14 +14,9 @@ export const CountShapesActionUtil = registerActionUtil(
 			}
 		}
 
-		override async applyAction(action: Streaming<CountShapesAction>, helpers: AgentHelpers) {
-			if (!action.complete) return
-			const { agent, editor } = helpers
-
-			// Add the shape count to the next request
-			agent.schedule({
-				data: [`Number of shapes on the canvas: ${editor.getCurrentPageShapes().length}`],
-			})
+		// The count is the result of the tool call.
+		override getResult() {
+			return `Number of shapes on the canvas: ${this.editor.getCurrentPageShapes().length}`
 		}
 	}
 )
