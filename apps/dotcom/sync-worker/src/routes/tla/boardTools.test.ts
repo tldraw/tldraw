@@ -1,18 +1,29 @@
 import { describe, expect, it } from 'vitest'
 import {
+	AGENT_COMMENT_HEADER,
 	BOARD_SEARCH_MAX_TERMS,
+	COMMENT_TEXT_MAX_LENGTH,
+	CommentRow,
+	CommentThreadRow,
 	BOARD_NAME_MAX_LENGTH,
 	CreatableWorkspace,
 	BOARD_SEARCH_PAGE_SIZE,
 	BoardSearchRow,
+	buildAgentCommentBody,
+	commentBodyToPlainText,
 	compareBoardSearchOrder,
+	getCommentRefusalMessage,
+	getPageCommentsResult,
 	getBoardSearchResults,
 	isAfterBoardSearchCursor,
 	parseCreateBoardInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
+	parseWriteCommentInput,
 	resolveCreateBoardWorkspace,
+	resolvePage,
 } from './boardTools'
+import { makeSnapshot } from './screenshotTestHelpers'
 
 function parsedJson(result: ReturnType<typeof getBoardSearchResults>) {
 	const block = result.content[0]
@@ -430,5 +441,258 @@ describe('resolveCreateBoardWorkspace', () => {
 		expect(result).toMatchObject({ ok: false, reason: 'workspace_not_found' })
 		expect(errorText(result)).toContain('"Design" (id: group-design)')
 		expect(errorText(result)).toContain('"My workspace" (id: user-1, personal)')
+	})
+})
+
+describe('parseWriteCommentInput', () => {
+	it('takes a reply, a shape or a point, adding the record prefix an id was given without', () => {
+		expect(parseWriteCommentInput({ boardId: 'b', text: ' Done ', threadId: 'abc' })).toEqual({
+			boardId: 'b',
+			text: 'Done',
+			target: { kind: 'reply', threadId: 'comment-thread:abc' },
+		})
+		expect(
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', shapeId: 'shape:box', page: 0 })
+		).toEqual({ boardId: 'b', text: 'Hi', target: { kind: 'shape', shapeId: 'shape:box' } })
+		expect(
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', x: 10.5, y: -4, page: 'page:two' })
+		).toEqual({
+			boardId: 'b',
+			text: 'Hi',
+			target: { kind: 'point', page: { kind: 'id', id: 'page:two' }, x: 10.5, y: -4 },
+		})
+	})
+
+	// A blank string is what a model sends for a field it meant to leave out.
+	it('reads a blank target field as absent', () => {
+		expect(
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', threadId: 'abc', shapeId: '' }).target
+		).toEqual({ kind: 'reply', threadId: 'comment-thread:abc' })
+	})
+
+	it('refuses no target, more than one, half a point, and missing or overlong text', () => {
+		expect(() => parseWriteCommentInput({ boardId: 'b', text: 'Hi' })).toThrow('Say where')
+		expect(() =>
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', threadId: 't', shapeId: 's' })
+		).toThrow('only one of')
+		expect(() => parseWriteCommentInput({ boardId: 'b', text: 'Hi', shapeId: 's', x: 1 })).toThrow(
+			'only one of'
+		)
+		expect(() => parseWriteCommentInput({ boardId: 'b', text: 'Hi', x: 1 })).toThrow(
+			'x and y must both be numbers'
+		)
+		expect(() => parseWriteCommentInput({ boardId: 'b', text: ' ', threadId: 't' })).toThrow(
+			'text is required'
+		)
+		expect(() =>
+			parseWriteCommentInput({
+				boardId: 'b',
+				text: 'x'.repeat(COMMENT_TEXT_MAX_LENGTH + 1),
+				threadId: 't',
+			})
+		).toThrow(`at most ${COMMENT_TEXT_MAX_LENGTH}`)
+		expect(() => parseWriteCommentInput({ text: 'Hi', threadId: 't' })).toThrow(
+			'boardId is required'
+		)
+	})
+})
+
+describe('buildAgentCommentBody', () => {
+	// Real italics in the rich text, not asterisks a reader would see literally.
+	it('opens with the header as an italic paragraph of its own, then one paragraph per line', () => {
+		expect(buildAgentCommentBody('First line\n\nThird *line*')).toEqual({
+			type: 'doc',
+			content: [
+				{
+					type: 'paragraph',
+					content: [{ type: 'text', text: AGENT_COMMENT_HEADER, marks: [{ type: 'italic' }] }],
+				},
+				{ type: 'paragraph', content: [{ type: 'text', text: 'First line' }] },
+				{ type: 'paragraph' },
+				{ type: 'paragraph', content: [{ type: 'text', text: 'Third *line*' }] },
+			],
+		})
+		expect(AGENT_COMMENT_HEADER).toBe('Comment sent by my agent')
+	})
+})
+
+describe('commentBodyToPlainText', () => {
+	it('puts blocks on their own lines and spells mentions out', () => {
+		expect(
+			commentBodyToPlainText({
+				type: 'doc',
+				content: [
+					{
+						type: 'paragraph',
+						content: [
+							{ type: 'text', text: 'Hey ' },
+							{ type: 'mention', attrs: { id: 'user_1', label: 'Ada' } },
+							{ type: 'text', text: ', look', marks: [{ type: 'bold' }] },
+						],
+					},
+					{
+						type: 'bulletList',
+						content: [
+							{
+								type: 'listItem',
+								content: [{ type: 'paragraph', content: [{ type: 'text', text: 'one' }] }],
+							},
+							{
+								type: 'listItem',
+								content: [{ type: 'paragraph', content: [{ type: 'text', text: 'two' }] }],
+							},
+						],
+					},
+				],
+			})
+		).toBe('Hey @Ada, look\none\ntwo')
+		expect(commentBodyToPlainText(buildAgentCommentBody('Done'))).toBe(
+			`${AGENT_COMMENT_HEADER}\nDone`
+		)
+	})
+})
+
+describe('getPageCommentsResult', () => {
+	const snapshot = makeSnapshot([{ id: 'page:a', index: 'a1', name: 'Cover', shapes: 1 }])
+	// A shape with a label, so the anchor can say what it is.
+	snapshot.documents[2].state.props.richText = {
+		type: 'doc',
+		content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Login' }] }],
+	}
+	const page = resolvePage(snapshot, { kind: 'ordinal', ordinal: 0 })
+	if (!page.ok) throw new Error('Expected the page to resolve')
+
+	function thread(overrides: Partial<CommentThreadRow>): CommentThreadRow {
+		return {
+			id: 'comment-thread:t',
+			anchor: { type: 'page' },
+			resolvedAt: null,
+			createdAt: 1,
+			...overrides,
+		}
+	}
+	function comment(overrides: Partial<CommentRow>): CommentRow {
+		return {
+			id: 'comment:c',
+			threadId: 'comment-thread:t',
+			authorId: 'user_other',
+			authorName: 'Ada',
+			body: buildAgentCommentBody('x'),
+			createdAt: Date.UTC(2026, 0, 1),
+			...overrides,
+		}
+	}
+
+	it('names the shape a thread is on, rounds page points, and marks the caller’s own comments', () => {
+		const result = getPageCommentsResult(
+			page,
+			[
+				thread({
+					id: 'comment-thread:point',
+					anchor: { type: 'point', x: 10.4, y: 19.6 },
+					resolvedAt: 5,
+					createdAt: 2,
+				}),
+				thread({
+					id: 'comment-thread:shape',
+					anchor: { type: 'shape', shapeId: 'shape:page:a-0', x: 0.25, y: 0.5, isPrecise: true },
+					createdAt: 1,
+				}),
+				thread({
+					id: 'comment-thread:gone',
+					anchor: { type: 'shape', shapeId: 'shape:deleted', x: 1, y: 0, isPrecise: false },
+					createdAt: 3,
+				}),
+				// No live comment, so tldraw.com shows nothing: left out.
+				thread({ id: 'comment-thread:empty', createdAt: 4 }),
+			],
+			[
+				comment({
+					id: 'comment:reply',
+					threadId: 'comment-thread:shape',
+					authorId: 'user_me',
+					authorName: 'Me',
+					body: buildAgentCommentBody('On it'),
+					createdAt: Date.UTC(2026, 0, 2),
+				}),
+				comment({
+					id: 'comment:first',
+					threadId: 'comment-thread:shape',
+					body: {
+						type: 'doc',
+						content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Wider?' }] }],
+					},
+				}),
+				comment({ id: 'comment:p', threadId: 'comment-thread:point', authorName: ' ' }),
+				comment({ id: 'comment:g', threadId: 'comment-thread:gone' }),
+			],
+			'user_me'
+		)
+		const block = result.content[0]
+		if (block.type !== 'text') throw new Error('Expected a text block')
+		expect(JSON.parse(block.text)).toEqual({
+			pageId: 'page:a',
+			pageName: 'Cover',
+			threadCount: 3,
+			threads: [
+				{
+					threadId: 'comment-thread:shape',
+					resolved: false,
+					anchor: {
+						type: 'shape',
+						shapeId: 'shape:page:a-0',
+						shapeType: 'geo',
+						shapeText: 'Login',
+					},
+					comments: [
+						{
+							commentId: 'comment:first',
+							authorName: 'Ada',
+							isCurrentUser: false,
+							createdAt: '2026-01-01T00:00:00.000Z',
+							text: 'Wider?',
+						},
+						{
+							commentId: 'comment:reply',
+							authorName: 'Me',
+							isCurrentUser: true,
+							createdAt: '2026-01-02T00:00:00.000Z',
+							text: `${AGENT_COMMENT_HEADER}\nOn it`,
+						},
+					],
+				},
+				{
+					threadId: 'comment-thread:point',
+					resolved: true,
+					anchor: { type: 'point', x: 10, y: 20 },
+					comments: [expect.objectContaining({ commentId: 'comment:p', authorName: 'Someone' })],
+				},
+				{
+					threadId: 'comment-thread:gone',
+					resolved: false,
+					anchor: { type: 'shape', shapeId: 'shape:deleted', shapeMissing: true },
+					comments: [expect.objectContaining({ commentId: 'comment:g' })],
+				},
+			],
+		})
+	})
+})
+
+describe('getCommentRefusalMessage', () => {
+	it('words each refusal so a model knows what to do next', () => {
+		expect(getCommentRefusalMessage({ reason: 'comment_forbidden' })).toContain('view-only link')
+		expect(
+			getCommentRefusalMessage({ reason: 'thread_resolved', threadId: 'comment-thread:t' })
+		).toContain('Start a new thread instead')
+		expect(
+			getCommentRefusalMessage({ reason: 'thread_not_found', threadId: 'comment-thread:t' })
+		).toContain('read_page_comments')
+		expect(
+			getCommentRefusalMessage({
+				reason: 'page_not_found',
+				page: { kind: 'ordinal', ordinal: 4 },
+				pageCount: 2,
+			})
+		).toContain('Page 4 is out of range')
 	})
 })

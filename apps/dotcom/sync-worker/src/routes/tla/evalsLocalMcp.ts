@@ -1,4 +1,5 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { TLComment, TLCommentThread } from '@tldraw/tlschema'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
@@ -10,15 +11,18 @@ import {
 	CREATE_BOARD_TOOL_NAME,
 	LIST_WORKSPACES_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
+	READ_PAGE_COMMENTS_TOOL_NAME,
 	RENAME_BOARD_TOOL_NAME,
 	SEARCH_BOARDS_TOOL_NAME,
 	ShapeMeasurement,
+	WRITE_COMMENT_TOOL_NAME,
 	ToolResult,
 	compareBoardSearchOrder,
 	getBoardInfo,
 	getBoardSearchResults,
 	clusterPage,
 	getClusterInfo,
+	getPageCommentsResult,
 	getPageInfo,
 	handleMcpJsonRpc,
 	isAfterBoardSearchCursor,
@@ -28,8 +32,10 @@ import {
 	parseCreateBoardInput,
 	parseListWorkspacesInput,
 	parsePageInfoInput,
+	parseReadPageCommentsInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
+	parseWriteCommentInput,
 	pickClusterShapes,
 	resolvePage,
 	toolError,
@@ -236,6 +242,47 @@ async function callFixtureTool(
 				parseRenameBoardInput(args)
 				return toolError(
 					`${HARNESS_GAP_MARKER} Boards cannot be renamed against fixtures. Run against staging or production to rename one.`
+				)
+			}
+			case READ_PAGE_COMMENTS_TOOL_NAME: {
+				const { boardId, page } = parseReadPageCommentsInput(args)
+				const board = boards.get(boardId)
+				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
+				const resolved = resolvePage(board.snapshot, page)
+				if (!resolved.ok) return resolved.result
+				// Production reads these from Postgres; a fixture carries them as records in its
+				// snapshot, if at all. With no user table, an author is named by their id, and no
+				// comment is the caller's.
+				const records = board.snapshot.documents.map((doc) => doc.state)
+				const threads = (records as TLCommentThread[]).filter(
+					(r) => r.typeName === 'comment-thread' && r.pageId === resolved.pageId && !r.isDeleted
+				)
+				const comments = (records as TLComment[]).filter(
+					(r) => r.typeName === 'comment' && !r.isDeleted
+				)
+				return getPageCommentsResult(
+					resolved,
+					threads.map((t) => ({
+						id: t.id,
+						anchor: t.anchor,
+						resolvedAt: t.resolved?.at ?? null,
+						createdAt: t.createdAt,
+					})),
+					comments.map((c) => ({
+						id: c.id,
+						threadId: c.threadId,
+						authorId: c.authorId,
+						authorName: c.authorId,
+						body: c.body,
+						createdAt: c.createdAt,
+					})),
+					''
+				)
+			}
+			case WRITE_COMMENT_TOOL_NAME: {
+				parseWriteCommentInput(args)
+				return toolError(
+					`${HARNESS_GAP_MARKER} Comments cannot be posted against fixtures. Run against staging or production to post one.`
 				)
 			}
 			default:

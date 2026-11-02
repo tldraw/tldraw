@@ -1,3 +1,4 @@
+import { Role, TlaFile, can } from '@tldraw/dotcom-shared'
 import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
 import { TLRecordAuthorizer, TLRecordAuthorizers } from '@tldraw/sync-core'
 import {
@@ -60,3 +61,21 @@ export const authorizeFileRecord = {
 	...createCommentAuthorizers<SessionMeta>({ getUserId: (session) => session.meta.userId }),
 	shape: authorizeShape,
 } satisfies TLRecordAuthorizers<FileRecord, SessionMeta>
+
+/**
+ * What a signed-in user may do in an app file's room: nothing, read (canvas and comments), or edit
+ * (canvas and comments). The one statement of the rule, read by the socket connect and by the MCP
+ * server's comment write, so an agent can comment exactly where its user could.
+ *
+ * Guests get canvas write, and with it comments (see `canComment` in `createCommentAuthorizers`),
+ * only on an `edit` link. `sharedLinkType` is a plain string column with legacy values in it, so
+ * anything else fails closed.
+ */
+export function getFileRoomAccess(
+	file: Pick<TlaFile, 'shared' | 'sharedLinkType'>,
+	role: Role | null
+): 'none' | 'read' | 'write' {
+	if (can(role, 'accessFiles')) return 'write'
+	if (!file.shared) return 'none'
+	return file.sharedLinkType === 'edit' ? 'write' : 'read'
+}
