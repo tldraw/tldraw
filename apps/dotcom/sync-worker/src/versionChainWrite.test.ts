@@ -142,7 +142,6 @@ describe('writeVersionChainEntry', () => {
 
 	it('packs deltas into one segment object that reconstructs exactly', async () => {
 		const bucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		const versions = [
 			snapshot(1, ['shape:a']),
 			snapshot(2, ['shape:a', 'shape:b']),
@@ -158,7 +157,6 @@ describe('writeVersionChainEntry', () => {
 		for (let i = 0; i < versions.length; i++) {
 			const result = await reconstructVersion({
 				chainBucket: bucket,
-				legacyBucket,
 				roomKey,
 				timestamp: isoAt(i),
 			})
@@ -265,7 +263,6 @@ describe('writeVersionChainEntry', () => {
 
 	it('continues the open segment across a cold start', async () => {
 		const bucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		const versions = [
 			snapshot(1, ['shape:a']),
 			snapshot(2, ['shape:a', 'shape:b']),
@@ -311,7 +308,6 @@ describe('writeVersionChainEntry', () => {
 			(
 				await reconstructVersion({
 					chainBucket: bucket,
-					legacyBucket,
 					roomKey,
 					timestamp: isoAt(2),
 				})
@@ -321,7 +317,6 @@ describe('writeVersionChainEntry', () => {
 
 	it('appends when only the shared clock moved between the head and the wake seed', async () => {
 		const bucket = createFakeR2()
-		const legacyBucket = createFakeR2()
 		const head = snapshot(1, ['shape:a'])
 		const first = await writeVersionChainEntry({
 			bucket,
@@ -354,7 +349,6 @@ describe('writeVersionChainEntry', () => {
 			(
 				await reconstructVersion({
 					chainBucket: bucket,
-					legacyBucket,
 					roomKey,
 					timestamp: isoAt(1),
 				})

@@ -1,6 +1,7 @@
-import { atom, promiseWithResolve } from 'tldraw'
+import { atom, computed, promiseWithResolve } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { markFirstLoad } from '../../utils/firstLoad'
+import { getDateFormat } from '../utils/dates'
 import { TldrawApp } from './TldrawApp'
 import { ZeroLogBuffer } from './ZeroLogBuffer'
 
@@ -382,5 +383,36 @@ describe('ZeroLogBuffer', () => {
 		expect(auth).not.toContain('eyJhbGci')
 		expect(long).toHaveLength(251)
 		expect(long.endsWith('…')).toBe(true)
+	})
+})
+
+describe('TldrawApp.msg', () => {
+	// Before `PutI18nInApp` hands over the editor's i18n there is none to translate through. The
+	// fallback used to return the default message as written, so an upload toast showed its own
+	// ICU source rather than "Added 3 .tldr files."
+	it('formats the English, values and all, before an i18n arrives', () => {
+		const app = createAppStub()
+		const added = {
+			id: 'test.added',
+			defaultMessage: '{total, plural, one {Added # .tldr file.} other {Added # .tldr files.}}',
+		}
+		expect(app.msg(added, { total: 1 })).toBe('Added 1 .tldr file.')
+		expect(app.msg(added, { total: 3 })).toBe('Added 3 .tldr files.')
+	})
+})
+
+describe('TldrawApp.getFallbackFileName', () => {
+	// The sidebar reads this through `useValue`. The i18n adapter keeps its identity across a
+	// language switch, so a name formatted from it stayed English, and stayed after a switch.
+	it('follows the locale signal', () => {
+		const app = Object.assign(createAppStub(), { locale$: atom('app locale', 'en') })
+		const time = new Date(2026, 0, 15).getTime()
+		const name = computed('file name', () => app.getFallbackFileName(time))
+		const english = name.get()
+		app.locale$.set('fr')
+		expect(name.get()).not.toBe(english)
+		expect(name.get()).toBe(
+			new Intl.DateTimeFormat('fr', getDateFormat(new Date(time))).format(new Date(time))
+		)
 	})
 })

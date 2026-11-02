@@ -167,9 +167,15 @@ export type SignedInAuth = Extract<SessionAuthObject, { isAuthenticated: true }>
  * from "presented something bad" from "signed in and still not allowed" — three refusals that call
  * for entirely different answers, and that the MCP endpoint reports separately during the rollout.
  */
-export type McpTokenRefusal = 'no_token' | 'invalid_token' | 'unconfigured' | 'not_allowlisted'
+export type McpTokenRefusal = OAuthAccessTokenRefusal | 'not_allowlisted'
 
 export type McpTokenAuth = { ok: true; userId: string } | { ok: false; reason: McpTokenRefusal }
+
+export type OAuthAccessTokenRefusal = 'no_token' | 'invalid_token' | 'unconfigured'
+
+export type OAuthAccessTokenAuth =
+	| { ok: true; userId: string }
+	| { ok: false; reason: OAuthAccessTokenRefusal }
 
 export interface McpTokenOptions {
 	/**
@@ -203,8 +209,8 @@ export interface McpTokenOptions {
 }
 
 /**
- * The user behind an OAuth access token this Clerk instance issued, for a user `canUseMcpServer`
- * admits: one the `mcp_server_access` flag names, or a `@tldraw.com` account.
+ * The user behind an OAuth access token this Clerk instance issued, with no access check: see
+ * {@link getMcpTokenAuth} for that.
  *
  * Separate from {@link getAuth} rather than folded into it, and opted into one route at a time: a
  * session token is a credential the user's browser holds for tldraw.com itself, while this is one
@@ -247,11 +253,11 @@ export interface McpTokenOptions {
  * allowlist here would be the belt to that setting's braces if we ever want one — the claim is on
  * every token.
  */
-export async function getMcpTokenAuth(
+export async function verifyOAuthAccessToken(
 	request: IRequest,
 	env: Environment,
 	{ allowSubprotocolToken = false, allowQueryToken = false }: McpTokenOptions = {}
-): Promise<McpTokenAuth> {
+): Promise<OAuthAccessTokenAuth> {
 	const token =
 		getBearerToken(request) ??
 		(allowSubprotocolToken ? getSubprotocolToken(request) : null) ??
@@ -281,12 +287,25 @@ export async function getMcpTokenAuth(
 		return { ok: false, reason: 'invalid_token' }
 	}
 
-	const userId = state.toAuth().userId
-	if (!(await canUseMcpServer(env, userId))) {
+	return { ok: true, userId: state.toAuth().userId }
+}
+
+/**
+ * {@link verifyOAuthAccessToken}, for a user `canUseMcpServer` admits: one the `mcp_server_access`
+ * flag names, or a `@tldraw.com` account. That check also creates the user's rows when they have
+ * none, so an account that signed up on the consent screen has a workspace by the time it is let in.
+ */
+export async function getMcpTokenAuth(
+	request: IRequest,
+	env: Environment,
+	options: McpTokenOptions = {}
+): Promise<McpTokenAuth> {
+	const result = await verifyOAuthAccessToken(request, env, options)
+	if (!result.ok) return result
+	if (!(await canUseMcpServer(env, result.userId))) {
 		return { ok: false, reason: 'not_allowlisted' }
 	}
-
-	return { ok: true, userId }
+	return result
 }
 
 /** The bearer token on a request, if it carries one. */

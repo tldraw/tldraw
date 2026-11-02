@@ -66,9 +66,10 @@ export function getTipTapDefaultExtensions(
 				openOnClick: false,
 				autolink: true,
 			},
-			// Prevent trailing paragraph insertion after lists (fixes #7641)
+			// List every enabled block type: a missing one gets an empty paragraph appended after it
+			// that the user can't delete (#7641 for lists, #11113 for headings).
 			trailingNode: {
-				notAfter: ['paragraph', 'bulletList', 'orderedList', 'listItem'],
+				notAfter: ['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem'],
 			},
 			...starterKitOptions,
 		}),
@@ -110,10 +111,11 @@ export function renderHtmlFromRichTextWithExtensions(
 	extensions: Extensions
 ): string {
 	const html = generateHTML(richText as JSONContent, extensions)
-	// We replace empty paragraphs with a single line break to prevent the browser from collapsing
-	// them. The paragraph's attributes are kept: paragraphs render with a `dir` attribute, usually
-	// `auto` but `ltr` or `rtl` when the direction was set explicitly or parsed from pasted HTML.
-	return html.replace(/<p([^>]*)><\/p>/g, '<p$1><br /></p>')
+	// We replace empty paragraphs and headings with a single line break to prevent the browser from
+	// collapsing them, which would make the shape's bounds shorter than the editor draws its text.
+	// The block's attributes are kept: blocks render with a `dir` attribute, usually `auto` but `ltr`
+	// or `rtl` when the direction was set explicitly or parsed from pasted HTML.
+	return html.replace(/<(p|h[1-6])([^>]*)><\/\1>/g, '<$1$2><br /></$1>')
 }
 
 /**

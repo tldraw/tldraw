@@ -15,3 +15,5 @@ export function setRedirectOnSignIn() {
 export function clearRedirectOnSignIn() {
 	deleteFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
 }
+
+export const OPEN_SIGN_IN = 'openSignIn'

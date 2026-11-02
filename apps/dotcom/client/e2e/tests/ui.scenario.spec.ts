@@ -27,6 +27,13 @@ test.describe('UI scenarios', () => {
 		await owner.sidebar.expectFileActive(originalName)
 		expect(await owner.editor.getCurrentFileName()).toBe(originalName)
 
+		await owner.sidebar.getFileByName(originalName).getByRole('link').focus()
+		await owner.page.keyboard.press('Enter')
+		const enterInput = owner.page.getByTestId('tla-sidebar-rename-input')
+		await expect(enterInput).toBeFocused()
+		await owner.page.keyboard.press('Escape')
+		await expect(enterInput).not.toBeVisible()
+
 		await owner.sidebar.getFileByName(originalName).dblclick()
 		const cancelInput = owner.page.getByTestId('tla-sidebar-rename-input')
 		await expect(cancelInput).toBeFocused()
@@ -88,6 +95,29 @@ test.describe('UI scenarios', () => {
 		await owner.sidebar.expectFileNotVisible(duplicateName)
 		await owner.sidebar.expectFileVisible(renamedName)
 		await expect(owner.page.getByTestId('tla-editor')).toBeVisible()
+	})
+
+	test('sidebar copy link is plain; file header copy link carries the camera', async ({
+		owner,
+		scenario,
+	}) => {
+		const otherName = scenario.name('copy link other')
+		const openName = scenario.name('copy link open')
+
+		const other = await scenario.createPersonalFile(owner, otherName)
+		const open = await scenario.createPersonalFile(owner, openName)
+
+		const otherLink = new URL(await owner.sidebar.copyFileLinkByName(otherName))
+		expect(otherLink.pathname).toBe(new URL(other.url).pathname)
+		expect(otherLink.searchParams.has('d')).toBe(false)
+
+		const openLink = new URL(await owner.sidebar.copyFileLinkByName(openName))
+		expect(openLink.pathname).toBe(new URL(open.url).pathname)
+		expect(openLink.searchParams.has('d')).toBe(false)
+
+		const headerLink = new URL(await owner.editor.copyFileLinkFromFileHeader())
+		expect(headerLink.pathname).toBe(new URL(open.url).pathname)
+		expect(headerLink.searchParams.has('d')).toBe(true)
 	})
 
 	test('pinning and sidebar toggling keep the active file', async ({ owner, scenario }) => {

@@ -1,5 +1,4 @@
-import { captureException } from '@sentry/react'
-import type { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
+import type { TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Outlet, Route, createRoutesFromElements, redirect, useRouteError } from 'react-router-dom'
@@ -7,14 +6,9 @@ import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
 import { ROUTES, routes, TlaRouteHandle } from './routeDefs'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
+import { captureRouteError, isRemoteSyncError } from './utils/routeErrors'
 
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
-
-// Structural, not instanceof: a runtime import of @tldraw/sync-core pulls the store and schema into
-// the entry chunk, ahead of first paint.
-function isRemoteSyncError(error: unknown): error is TLRemoteSyncError {
-	return error instanceof Error && error.name === 'RemoteSyncError'
-}
 
 interface CreateAppRouterOptions {
 	includeDevRoutes?: boolean
@@ -33,7 +27,7 @@ export function createAppRouter({
 			ErrorBoundary={() => {
 				const error = useRouteError()
 				useEffect(() => {
-					captureException(error)
+					captureRouteError(error)
 				}, [error])
 
 				let header = 'Something went wrong'
@@ -111,12 +105,12 @@ export function createAppRouter({
 						lazy={() => import('./tla/pages/file')}
 						handle={{ rendersWhileAppLoads: true } satisfies TlaRouteHandle}
 					/>
+					<Route path={ROUTES.tlaFileHistory} lazy={() => import('./tla/pages/file-history')} />
+					<Route
+						path={ROUTES.tlaFileHistorySnapshot}
+						lazy={() => import('./tla/pages/file-history-snapshot')}
+					/>
 					<Route lazy={() => import('./tla/providers/RequireTldrawStaff')}>
-						<Route path={ROUTES.tlaFileHistory} lazy={() => import('./tla/pages/file-history')} />
-						<Route
-							path={ROUTES.tlaFileHistorySnapshot}
-							lazy={() => import('./tla/pages/file-history-snapshot')}
-						/>
 						<Route
 							path={ROUTES.tlaLegacyRoomHistory}
 							lazy={() => import('./tla/pages/legacy-history')}
@@ -152,8 +146,11 @@ export function createAppRouter({
 					    a trailing optional param drops the optionality and 404s bare /admin */}
 					<Route path="/admin" lazy={() => import('./pages/admin')} />
 					<Route path="/admin/:section" lazy={() => import('./pages/admin')} />
+					<Route path="/admin/:section/:fileId" lazy={() => import('./pages/admin')} />
 				</Route>
 			</Route>
+			<Route path={ROUTES.tlaSsoCallback} lazy={() => import('./tla/pages/sso-callback')} />
+			<Route path={ROUTES.tlaOAuthConsent} lazy={() => import('./tla/pages/oauth-consent')} />
 			<Route path="/__debug-tail" lazy={() => import('./tla/pages/worker-debug-tail')} />
 			<Route path="*" lazy={() => import('./pages/not-found')} />
 		</Route>

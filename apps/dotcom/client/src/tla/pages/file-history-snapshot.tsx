@@ -1,9 +1,9 @@
-import { captureException } from '@sentry/react'
 import { FILE_PREFIX } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { useEffect, useMemo } from 'react'
 import { useParams, useRouteError } from 'react-router-dom'
 import { TLStoreSnapshot, fetch } from 'tldraw'
+import { captureRouteError } from '../../utils/routeErrors'
 import { TlaHistorySnapshotEditor } from '../components/TlaEditor/TlaHistorySnapshotEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
@@ -14,7 +14,7 @@ import { toggleSidebar } from '../utils/local-session-state'
 export function ErrorBoundary() {
 	const error = useRouteError()
 	useEffect(() => {
-		captureException(error)
+		captureRouteError(error)
 	}, [error])
 	return <Component error={error} />
 }

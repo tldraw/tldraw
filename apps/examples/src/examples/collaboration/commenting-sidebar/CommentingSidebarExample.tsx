@@ -10,7 +10,6 @@ import {
 	putCommentRecords,
 	toggleCommentsSidebar,
 } from '@tldraw/commenting'
-import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import {
 	commentSchemaRecords,
@@ -163,7 +162,6 @@ export default function CommentingSidebarExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				licenseKey={getLicenseKey()}
 				store={store}
 				tools={commentTools}
 				overrides={[commentToolOverrides]}

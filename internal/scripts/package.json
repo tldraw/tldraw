@@ -52,11 +52,14 @@
 		"semver": "^7.6.3",
 		"svgo": "^3.3.3",
 		"typescript": "^7.0.2",
+		"vitest": "^5.0.0",
 		"wrangler": "^4.75.0"
 	},
 	"scripts": {
 		"lint": "pnpm exec tsx lint.ts",
-		"build-types": "tsc --build"
+		"build-types": "tsc --build",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-ci": "pnpm exec vitest run --passWithNoTests"
 	},
 	"dependencies": {
 		"@lokalise/node-api": "^12.8.0",

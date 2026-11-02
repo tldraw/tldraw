@@ -7,9 +7,10 @@ import {
 	defaultShapeUtils,
 	defaultTldrawOptions,
 } from 'tldraw'
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	SHAPES_NOT_ON_PAGE,
+	acquireThumbnailRenderData,
 	exportThumbnailImage,
 	prepareLiveCapture,
 	setThumbnailError,
@@ -134,5 +135,104 @@ describe('signalThumbnailReady', () => {
 		expect(document.body.dataset.thumbnailReady).toBeUndefined()
 		expect(document.documentElement.dataset.thumbnailReady).toBeUndefined()
 		expect(document.body.dataset.thumbnailError).toBe(SHAPES_NOT_ON_PAGE)
+	})
+})
+
+describe('acquireThumbnailRenderData', () => {
+	const pushed = {
+		error: false as const,
+		records: [],
+		schema: { schemaVersion: 2, sequences: {} },
+		renderParams: { x: 0, y: 0, z: 1, width: 1200, height: 630, theme: 'light' as const },
+	}
+	const renderUrl = (params: string) =>
+		new URL(`https://www.tldraw.com/__thumbnail-render?token=t${params}`)
+
+	let fetchMock: ReturnType<typeof vi.fn>
+	beforeEach(() => {
+		fetchMock = vi.fn(async () => Response.json({ ...pushed, records: [{ id: 'fetched' }] }))
+		vi.stubGlobal('fetch', fetchMock)
+	})
+	afterEach(() => {
+		vi.useRealTimers()
+		vi.unstubAllGlobals()
+		delete (window as any).__TLDRAW_RENDER__
+	})
+
+	it('takes records pushed after the page started waiting, without fetching', async () => {
+		const acquiring = acquireThumbnailRenderData(renderUrl('&push=1'))
+		;(window as any).__TLDRAW_RENDER__ = pushed
+
+		expect(await acquiring).toEqual({
+			ok: true,
+			token: 't',
+			records: [],
+			schema: pushed.schema,
+			renderParams: pushed.renderParams,
+		})
+		expect(fetchMock).not.toHaveBeenCalled()
+	})
+
+	it('waits for an announced push rather than fetching', async () => {
+		vi.useFakeTimers()
+		let settled = false
+		const acquiring = acquireThumbnailRenderData(renderUrl('&push=1')).then((data) => {
+			settled = true
+			return data
+		})
+		await vi.advanceTimersByTimeAsync(30_000)
+		expect(settled).toBe(false)
+		expect(fetchMock).not.toHaveBeenCalled()
+
+		;(window as any).__TLDRAW_RENDER__ = pushed
+		expect(await acquiring).toMatchObject({ ok: true, records: [] })
+	})
+
+	it('fetches straight away when no push was announced', async () => {
+		expect(await acquireThumbnailRenderData(renderUrl(''))).toMatchObject({
+			ok: true,
+			records: [{ id: 'fetched' }],
+		})
+		expect(fetchMock).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('the failure beacon', () => {
+	// The page's state is module-scoped because it renders once; a fresh module per test is a fresh page.
+	beforeEach(() => {
+		vi.resetModules()
+	})
+
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
+	// Browser Run reports only that the capture element was missing, so the page's own reason and how
+	// far it got are the only way a failure can be told apart from any other.
+	it('reports the first error once, with the last phase the page completed', async () => {
+		// What the page had marked when each request went out: the beacon has to leave before the
+		// error marker, which is what ends the Browser Run session.
+		const markedAtSend: (string | undefined)[] = []
+		const fetchMock = vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => {
+			markedAtSend.push(document.body.dataset.thumbnailError)
+			return new Response(null, { status: 404 })
+		})
+		vi.stubGlobal('fetch', fetchMock)
+		const { acquireThumbnailRenderData, setThumbnailError } = await import('./thumbnail-render')
+
+		const data = await acquireThumbnailRenderData(
+			new URL('https://x.test/__thumbnail-render?token=t')
+		)
+		expect(data).toEqual({ ok: false, message: 'Could not load render job (404)' })
+		setThumbnailError('Could not load render job (404)')
+		setThumbnailError('a later failure')
+
+		const beacons = fetchMock.mock.calls.filter(([url]) =>
+			String(url).endsWith('/api/app/thumbnail-render/result')
+		)
+		expect(beacons.map(([, init]) => JSON.parse(init!.body as string))).toEqual([
+			{ token: 't', error: { message: 'Could not load render job (404)', phase: 'boot' } },
+		])
+		expect(markedAtSend).toEqual([undefined, undefined])
 	})
 })

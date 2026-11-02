@@ -1,10 +1,15 @@
-import { openWindow, preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
+import { defineMessages, openWindow, preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiInput } from '../primitives/TldrawUiInput'
+
+const messages = defineMessages({
+	toolRichTextLinkRemove: { id: 'tool.rich-text-link-remove', defaultMessage: 'Remove link' },
+	toolRichTextLinkVisit: { id: 'tool.rich-text-link-visit', defaultMessage: 'Visit link' },
+})
 
 /** @public */
 export interface LinkEditorProps {
@@ -96,7 +101,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 			/>
 			<TldrawUiButton
 				className="tlui-rich-text__toolbar-link-visit"
-				title={msg('tool.rich-text-link-visit')}
+				title={msg(messages.toolRichTextLinkVisit)}
 				type="icon"
 				onPointerDown={preventDefault}
 				onClick={handleVisitLink}
@@ -106,7 +111,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 			</TldrawUiButton>
 			<TldrawUiButton
 				className="tlui-rich-text__toolbar-link-remove"
-				title={msg('tool.rich-text-link-remove')}
+				title={msg(messages.toolRichTextLinkRemove)}
 				data-testid="rich-text.link-remove"
 				type="icon"
 				onPointerDown={preventDefault}

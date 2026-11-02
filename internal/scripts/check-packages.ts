@@ -488,6 +488,10 @@ const ALLOWED_VERSION_DIVERGENCE: Record<string, { workspaces: string[]; reason:
 		workspaces: ['templates/'],
 		reason: 'templates are independently published starters',
 	},
+	'@rocicorp/zero': {
+		workspaces: ['apps/dotcom/zero-cache'],
+		reason: 'zero-cache must reach a new Zero version before the clients; it sets the server image',
+	},
 }
 
 // Node 22.12 is the first version where `require()` of an ES module works unflagged, so

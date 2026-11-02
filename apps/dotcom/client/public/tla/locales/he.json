@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "אנחנו עובדים על תמיכה בקבצים מ-<a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "גררו את הקובץ לסרגל הצד בעמוד זה. או בחרו באפשרות 'ייבוא ​קובץ' מתפריט המשתמש."
-  },
   "043973ec1f": {
     "translation": "עדיין נתקלים בבעיות? {GetHelpLink}"
   },
@@ -33,7 +30,7 @@
     "translation": "חרגת ממגבלת התעריף, יש לנסות שוב מאוחר יותר."
   },
   "08bd40c754": {
-    "translation": "חֶשְׁבּוֹן"
+    "translation": "חשבון"
   },
   "093ac7483a": {
     "translation": "לא ניתן לפתוח קבצי {extension} עדיין"
@@ -54,7 +51,7 @@
     "translation": "שלח משוב"
   },
   "1063e38cb5": {
-    "translation": "לְהַסִיר"
+    "translation": "להסיר"
   },
   "10fb1df194": {
     "translation": "העתק לסביבת עבודה אישית"
@@ -105,7 +102,7 @@
     "translation": "ברוכים הבאים לסביבת העבודה שלכם"
   },
   "2a37324bb4": {
-    "translation": "לְחַפֵּשׂ..."
+    "translation": "לחפש..."
   },
   "2d3cdcfdd4": {
     "translation": "אנא נסה שוב."
@@ -132,10 +129,10 @@
     "translation": "אנא נסו לרענן את הדף."
   },
   "344a7f427f": {
-    "translation": "עוֹרֵך"
+    "translation": "עורך"
   },
   "34e34c43ec": {
-    "translation": "לְנַהֵל"
+    "translation": "לנהל"
   },
   "375396d6e5": {
     "translation": "הסר חבר"
@@ -180,7 +177,7 @@
     "translation": "קובץ הצמדה"
   },
   "49ee308734": {
-    "translation": "שֵׁם"
+    "translation": "שם"
   },
   "4d0d3ddec9": {
     "translation": "אתר זה משתמש בקובצי Cookie כדי שהאפליקציה תפעל ולאסוף נתונים אנליטיים."
@@ -208,9 +205,6 @@
   },
   "54286b1d01": {
     "translation": "הגעת למגבלה של שותפי עריכה"
-  },
-  "545241e7dd": {
-    "translation": "{count} לא נקרא"
   },
   "550b25cc0c": {
     "translation": "לא ניתן היה לשחזר את הציור המקומי שלך. נסה לטעון מחדש את הדף."
@@ -270,10 +264,10 @@
     "translation": "ישן יותר"
   },
   "639bae9ac6": {
-    "translation": "אַתָה"
+    "translation": "אתה"
   },
   "63a6a88c06": {
-    "translation": "לְרַעֲנֵן"
+    "translation": "לרענן"
   },
   "6609dd239e": {
     "translation": "משהו השתבש"
@@ -345,7 +339,7 @@
     "translation": "שלח בעיה ב-GitHub"
   },
   "7a1920d611": {
-    "translation": "בְּרִירַת מֶחדָל"
+    "translation": "ברירת מחדל"
   },
   "7b1329f5ca": {
     "translation": "מדריך למשתמש"
@@ -381,13 +375,10 @@
     "translation": "הערות"
   },
   "858ba4765e": {
-    "translation": "חָבֵר"
+    "translation": "חבר"
   },
   "85a082de1b": {
     "translation": "אנא רעננו את הדף כדי לקבל את הגרסה העדכנית ביותר של tldraw."
-  },
-  "86353d2c41": {
-    "translation": "נוספו קבצי {total} .tldr."
   },
   "86c66437fd": {
     "translation": "שנה את שם הקובץ"
@@ -458,6 +449,9 @@
   "a078644c42": {
     "translation": "הוזמנת להצטרף ל-<strong>{workspaceName}</strong>."
   },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# לא נקרא} two {# לא נקראו} many {# לא נקראו} other {# לא נקראו}}"
+  },
   "a0da245992": {
     "translation": "ייצוא התוכן כקובץ .tldr: בחר 'הורדה' בתפריט השמאלי העליון."
   },
@@ -480,10 +474,10 @@
     "translation": "מדיניות קובצי Cookie"
   },
   "a4d3b161ce": {
-    "translation": "לְהַגִישׁ"
+    "translation": "להגיש"
   },
   "a52945dbe2": {
-    "translation": "לַעֲזוֹב"
+    "translation": "לעזוב"
   },
   "a6cc403d56": {
     "translation": "כל מי שיש לו את הקישור"
@@ -501,7 +495,7 @@
     "translation": "צור סביבת עבודה"
   },
   "aaec8f7cde": {
-    "translation": "מִישֶׁהוּ"
+    "translation": "מישהו"
   },
   "ab0df9ba36": {
     "translation": "הגעת למגבלת הקבצים"
@@ -520,7 +514,7 @@
     "translation": "הכול"
   },
   "b2326c3a34": {
-    "translation": "לְהִתְחַדֵשׁ"
+    "translation": "להתחדש"
   },
   "b2c3c2e30c": {
     "translation": "הקובץ מלא"
@@ -535,7 +529,10 @@
     "translation": "כניסה"
   },
   "b6f4a2ec63": {
-    "translation": "בַּעַל"
+    "translation": "בעל"
+  },
+  "b74dbb40c5": {
+    "translation": "גררו את הקובץ לסרגל הצד בדף זה. או בחרו באפשרות 'ייבא קובץ' מתפריט קובץ בצד שמאל למעלה."
   },
   "b758336699": {
     "translation": "העתקת קישור"
@@ -547,7 +544,7 @@
     "translation": "ההזמנות מושבתות"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {מעלה קובץ tldr...} two {} many {} other {מעלה {uploaded} של {total} קבצי tldr...}}"
+    "translation": "{total, plural, one {מעלה קובץ .tldr…} two {מעלה {uploaded} מתוך {total} קובצי .tldr…} many {מעלה {uploaded} מתוך {total} קובצי .tldr…} other {מעלה {uploaded} מתוך {total} קובצי .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "משותף על ידי {ownerName}"
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "למידע נוסף על שיתוף."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {נוסף # קובץ .tldr.} two {נוספו # קובצי .tldr.} many {נוספו # קובצי .tldr.} other {נוספו # קובצי .tldr.}}"
+  },
   "c303bd1095": {
     "translation": "לא ניתן לפרסם את הקובץ."
   },
   "c4b39a1cc3": {
     "translation": "עוגיות חיוניות"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: מחרוזת ארוכה"
   },
   "c6a00f137b": {
     "translation": "הזמנה"
@@ -592,7 +589,7 @@
     "translation": "למידע נוסף על פרסום."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> ו-{count, plural, one {# other} other {# others}} הגיבו לתגובה שלך"
+    "translation": "<name>{author}</name> ו-{count, plural, one {# נוסף} two {# נוספים} other {# נוספים}} הגיבו לתגובה שלך"
   },
   "d3d2e61733": {
     "translation": "סגירה"
@@ -628,7 +625,7 @@
     "translation": "דגלי ניפוי באגים באפליקציה"
   },
   "e0aa021e21": {
-    "translation": "בְּסֵדֶר"
+    "translation": "בסדר"
   },
   "e2198d6228": {
     "translation": "העתקת קישור ההזמנה"
@@ -643,7 +640,7 @@
     "translation": "<name>{a}</name> ו-<name>{b}</name> הגיבו לתגובה שלך"
   },
   "e81c4e4f2b": {
-    "translation": "אוֹ"
+    "translation": "או"
   },
   "ea4788705e": {
     "translation": "ביטול"
@@ -660,9 +657,6 @@
   "ec611e9a08": {
     "translation": "תפריט חשבון"
   },
-  "ed53713239": {
-    "translation": "i18n: מבטא"
-  },
   "ed75712b0e": {
     "translation": "שכפול"
   },
@@ -676,7 +670,7 @@
     "translation": "חברים"
   },
   "ef7de3f485": {
-    "translation": "נִבחָר"
+    "translation": "נבחר"
   },
   "f09b16bc5f": {
     "translation": "אנו משתמשים בקובצי Cookie כדי לשמור אותך מחובר, לסנכרן את הקבצים שלך ולאסוף ניתוחים שיעזרו לנו לשפר את tldraw."
@@ -691,7 +685,7 @@
     "translation": "מחיקה"
   },
   "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> ו-{count, plural, one {# other} other {# others}} הגיבו לתגובה שלך"
+    "translation": "<name>{a}</name>, <name>{b}</name> ו-{count, plural, one {# נוסף} two {# נוספים} other {# נוספים}} הגיבו לתגובה שלך"
   },
   "f4f70727dc": {
     "translation": "הגדרות"
@@ -718,6 +712,6 @@
     "translation": "צור חשבון חינמי כדי לשמור את הקבצים שלך ולצייר עם חבריך לקבוצה."
   },
   "ffcd73e997": {
-    "translation": "ייבוא ​​קובץ…"
+    "translation": "ייבוא קובץ…"
   }
 }

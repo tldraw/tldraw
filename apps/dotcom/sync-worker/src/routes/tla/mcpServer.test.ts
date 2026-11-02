@@ -18,6 +18,7 @@ import {
 import { createBoardForUser } from './createBoard'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
+import { listWorkspacesForUser } from './listWorkspaces'
 import { authenticateMcpRequest } from './mcpAuth'
 import { normalizeMcpClient, resetRateLimitFallbackForTests, mcpServer } from './mcpServer'
 import { renameBoardForUser } from './renameBoard'
@@ -27,6 +28,7 @@ import {
 	callerBlobsOf,
 	clusterIndexKeysOf,
 	clusterIndexStoreOf,
+	contentResponse,
 	datapointsNamed,
 	failureBlobsOf,
 	makeBrowserBinding,
@@ -80,6 +82,7 @@ vi.mock('./searchBoards', () => ({ searchAccessibleBoards: vi.fn() }))
 
 // The database half is covered in createBoard.test.ts; these tests are about the dispatch around it.
 vi.mock('./createBoard', () => ({ createBoardForUser: vi.fn() }))
+vi.mock('./listWorkspaces', () => ({ listWorkspacesForUser: vi.fn() }))
 vi.mock('./renameBoard', () => ({ renameBoardForUser: vi.fn() }))
 
 beforeEach(() => {
@@ -125,7 +128,7 @@ function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 		...overrides,
 	})
 	if (!('BROWSER' in overrides)) {
-		;(env as any).BROWSER = makeMeasuringBrowserBinding(() => env)
+		;(env as any).BROWSER = makeMeasuringBrowserBinding()
 	}
 	return env
 }
@@ -236,19 +239,14 @@ async function firstClusterId(env: Environment, userId: string, boardId: string,
 	return JSON.parse(pageResult.content[0].text).clusters[0].id as string
 }
 
-// Measures are exempt from the worker-side capture deadline (abandonAtRenderTimeout): the render
-// page POSTs its result before signalling ready and the result route accepts any unexpired signed
-// token, so a measure abandoned mid-flight would let that POST land after the cleanup that deletes
-// the result key — stranding an object in a bucket with no lifecycle rule. The deadline exists for
-// the OG pipeline's invariants, which never price a measure; a measure stays bounded by the quick
-// action's own per-phase timers.
-describe('measure deadline exemption', () => {
-	it('does not abandon a measure at the render timeout', async () => {
+// Measures get the same worker-side deadline as screenshots now that their result comes back in the
+// response: there is no late POST left for an abandoned measure to strand.
+describe('measure deadline', () => {
+	it('abandons a measure at the render timeout', async () => {
 		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
 		mockPublishedBoard()
 		const env = makeEnv()
-		const measuring = makeMeasuringBrowserBinding(() => env)
-		// The quick action outlives the worker deadline — only its own per-phase timers bound it.
+		const measuring = makeMeasuringBrowserBinding()
 		;(env as any).BROWSER = {
 			quickAction: vi.fn(async (action: string, body: any) => {
 				await new Promise((resolve) => setTimeout(resolve, THUMBNAIL_RENDER_TIMEOUT_MS + 5000))
@@ -263,8 +261,82 @@ describe('measure deadline exemption', () => {
 		await vi.advanceTimersByTimeAsync(THUMBNAIL_RENDER_TIMEOUT_MS + 5001)
 		const result = await call
 
+		expect(result.isError).toBe(true)
+		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['browser_timeout'])
+	})
+})
+
+describe('measure through /content', () => {
+	it('reads the result out of the page and sends no screenshot', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_content')
+
 		expect(result.isError).not.toBe(true)
-		expect(JSON.parse(result.content[0].text).clusters.length).toBeGreaterThan(0)
+		expect(screenshotOf(env).mock.calls.map((call) => call[0])).toEqual(['content'])
+		const body = screenshotOf(env).mock.calls[0][1]
+		expect(body).toMatchObject({ cacheTTL: 0 })
+		expect(body).not.toHaveProperty('selector')
+		expect(body).not.toHaveProperty('screenshotOptions')
+	})
+
+	it('fails with the page’s own error, kept out of the message', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () =>
+				contentResponse(
+					'<html data-thumbnail-error="Snapshot &quot;x&quot; failed"><body data-thumbnail-error="Snapshot &quot;x&quot; failed"></body></html>'
+				)
+			),
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_page_error')
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).not.toContain('Snapshot')
+		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['page_error'])
+	})
+
+	it('fails a content response that carries no page as a browser failure', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () =>
+				Response.json({ success: false, errors: [{ code: 1, message: 'nope' }] })
+			),
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_no_page')
+
+		expect(result.isError).toBe(true)
+		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['browser_failed'])
+	})
+
+	it('keeps a session that answered JSON null on the ledger', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({ BROWSER: makeBrowserBinding(async () => Response.json(null)) })
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_null_content')
+
+		expect(result.isError).toBe(true)
+		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['browser_failed'])
+	})
+
+	it('drops malformed boxes rather than clustering NaN', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () =>
+				contentResponse(
+					`<html data-thumbnail-ready="true"><body><script type="application/json" id="tldraw-measure-result">${JSON.stringify(
+						{ 'shape:bad': { x: 'nope', y: 0, w: 1, h: 1 } }
+					)}</script></body></html>`
+				)
+			),
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_malformed')
+
+		expect(result.isError).not.toBe(true)
 	})
 })
 
@@ -325,6 +397,7 @@ describe('MCP server', () => {
 		)
 		expect(result.tools.map((tool: any) => tool.name)).toEqual([
 			'search_boards',
+			'list_workspaces',
 			'create_board',
 			'rename_board',
 			'get_board_info',
@@ -473,7 +546,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.3.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.4.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -681,7 +754,7 @@ describe('search_boards', () => {
 	})
 
 	// The wire-legal call a model makes by following the tool's own description literally: MCP's
-	// `arguments` is optional, and this is the only tool with `required: []`, so a real client can
+	// `arguments` is optional, and this tool has `required: []`, so a real client can
 	// send `params: {name: "search_boards"}` with no `arguments` key at all. Built with
 	// makeRpcRequest, not makeToolCall/callTool, because those always supply an `arguments` key —
 	// which is exactly why this case was missed before.
@@ -705,6 +778,53 @@ describe('search_boards', () => {
 		expect(result.content[0].text).toBe(
 			'Could not search boards: the board database could not be reached.'
 		)
+	})
+})
+
+describe('list_workspaces', () => {
+	it('lists every workspace, personal first, with its role', async () => {
+		vi.mocked(listWorkspacesForUser).mockResolvedValue([
+			{ id: 'group_b', name: 'Beta', role: 'member' },
+			{ id: 'user_abc', name: 'My workspace', role: 'owner' },
+			{ id: 'group_a', name: 'Alpha', role: 'viewer' },
+		])
+		const env = makeEnv()
+		const result = await callTool('list_workspaces', {}, env, 'user_abc')
+
+		expect(listWorkspacesForUser).toHaveBeenCalledWith(env, 'user_abc')
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			// A role the roles table does not know grants nothing, so its workspace is left out.
+			workspaceCount: 2,
+			workspaces: [
+				{
+					id: 'user_abc',
+					name: 'My workspace',
+					personal: true,
+					role: 'owner',
+				},
+				{ id: 'group_b', name: 'Beta', personal: false, role: 'member' },
+			],
+		})
+	})
+
+	// Clients call a no-argument tool without an `arguments` key at all.
+	it('accepts a call with no arguments key', async () => {
+		vi.mocked(listWorkspacesForUser).mockResolvedValue([])
+		const request = makeRpcRequest(
+			'tools/call',
+			{ name: 'list_workspaces' },
+			{ userId: 'user_abc' }
+		)
+		const result = await rpcResult(await mcpServer(request, makeEnv()))
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text)).toEqual({ workspaceCount: 0, workspaces: [] })
+	})
+
+	it('answers a database failure as a tool error', async () => {
+		vi.mocked(listWorkspacesForUser).mockRejectedValue(new Error('pool timeout'))
+		const result = await callTool('list_workspaces', {})
+		expect(result.isError).toBe(true)
 	})
 })
 
@@ -1042,7 +1162,7 @@ describe('page and cluster info', () => {
 	it('replaces rich text with the plain text the editor reported', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
-		;(env as any).BROWSER = makeMeasuringBrowserBinding(() => env, {
+		;(env as any).BROWSER = makeMeasuringBrowserBinding({
 			'shape:page:a-0': { minX: 0, minY: 0, maxX: 10, maxY: 10, text: 'Checkout total' },
 			'shape:page:a-1': { minX: 5000, minY: 0, maxX: 5010, maxY: 10 },
 		})
@@ -1090,7 +1210,7 @@ describe('cluster index cache', () => {
 	it('keeps the plain text only an editor can report', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
-		;(env as any).BROWSER = makeMeasuringBrowserBinding(() => env, {
+		;(env as any).BROWSER = makeMeasuringBrowserBinding({
 			'shape:page:a-0': { minX: 0, minY: 0, maxX: 10, maxY: 10, text: 'Checkout total' },
 			'shape:page:a-1': { minX: 5000, minY: 0, maxX: 5010, maxY: 10 },
 		})

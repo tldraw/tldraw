@@ -185,4 +185,19 @@ describe('HighlightShapeUtil getInterpolatedProps', () => {
 			scale: 2.5,
 		})
 	})
+
+	it('interpolates from a shape created with default props, which has no segments', () => {
+		// https://github.com/tldraw/tldraw/issues/10737
+		const emptyId = createShapeId('empty')
+		editor.createShapes([{ id: emptyId, type: 'highlight' }])
+		const empty = editor.getShape<TLHighlightShape>(emptyId)!
+		const end = createHighlightShape('end', {})
+		expect(empty.props.segments).toEqual([])
+		const util = editor.getShapeUtil('highlight')
+
+		expect(() => util.getInterpolatedProps!(empty, end, 0.5)).not.toThrow()
+		expect(util.getInterpolatedProps!(empty, end, 1).segments).toEqual(end.props.segments)
+		expect(() => util.getInterpolatedProps!(end, empty, 0.5)).not.toThrow()
+		expect(util.getInterpolatedProps!(end, empty, 0).segments).toEqual(end.props.segments)
+	})
 })

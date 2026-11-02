@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
 	createComment,
 	createCommentThread,
+	defineMessages,
 	Editor,
 	EditorPortal,
 	TLRichText,
@@ -26,6 +27,11 @@ import { type CommentingContext } from './context'
 import { useIsMobileCommenting, useMobilePlacement } from './mobile-placement'
 import { useCanComment, useCommentingOptions } from './options'
 import { pendingComment } from './state'
+
+const messages = defineMessages({
+	commentsSend: { id: 'comments.send', defaultMessage: 'Send' },
+	commentsAddPlaceholder: { id: 'comments.add-placeholder', defaultMessage: 'Add a comment…' },
+})
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
@@ -80,6 +86,9 @@ export function PendingComposer({
 			// A click in the composer, or in the mention picker it spawns (portaled elsewhere), is
 			// not "outside" — keep the draft open so the pick can insert.
 			if (el.contains(target) || target.closest('.tlui-cmt-mention-popup')) return
+			// A press on the canvas is the comment tool's to handle: it ends the placement and returns
+			// to select. Clearing here first would let that press re-place the composer instead.
+			if (editor.getContainer().querySelector('.tl-canvas')?.contains(target)) return
 			pendingComment.set(editor, null)
 		}
 		document.addEventListener('pointerdown', onPointerDown, true)
@@ -137,8 +146,8 @@ export function PendingComposer({
 				{canComment ? (
 					<CommentComposer
 						author={me ?? UNKNOWN_COMMENT_AUTHOR}
-						placeholder={msg('comments.add-placeholder')}
-						sendLabel={msg('comments.send')}
+						placeholder={msg(messages.commentsAddPlaceholder)}
+						sendLabel={msg(messages.commentsSend)}
 						value={text}
 						onChange={(value) => {
 							setText(value)
