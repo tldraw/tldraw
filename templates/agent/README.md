@@ -16,7 +16,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 We recommend using Anthropic for best results. Get your API key from the [Anthropic dashboard](https://console.anthropic.com/settings/keys).
 
-To send OpenAI or Anthropic requests through a compatible gateway such as [OpenRouter](https://openrouter.ai), also set `OPENAI_BASE_URL` or `ANTHROPIC_BASE_URL` (for OpenRouter, `https://openrouter.ai/api/v1`) and use the gateway's key as the API key.
+To use one [OpenRouter](https://openrouter.ai) key for every model instead, set `OPENROUTER_API_KEY`. The provider keys are then not used.
 
 ## Local development
 

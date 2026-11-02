@@ -15,7 +15,10 @@ export type GeminiThinkingLevel = 'low' | 'medium' | 'high'
 
 interface BaseAgentModelDefinition {
 	name: AgentModelName
+	/** The provider's own model id. */
 	id: string
+	/** The model's id on OpenRouter, used when the worker has an `OPENROUTER_API_KEY`. */
+	openRouterId: string
 
 	/**
 	 * Whether the model accepts a `temperature` sampling parameter.
@@ -52,6 +55,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 	'claude-opus-5': {
 		name: 'claude-opus-5',
 		id: 'claude-opus-5',
+		openRouterId: 'anthropic/claude-opus-5',
 		provider: 'anthropic',
 		supportsTemperature: false,
 		thinking: 'adaptive',
@@ -61,6 +65,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 	'claude-sonnet-5': {
 		name: 'claude-sonnet-5',
 		id: 'claude-sonnet-5',
+		openRouterId: 'anthropic/claude-sonnet-5',
 		provider: 'anthropic',
 		supportsTemperature: false,
 		thinking: 'adaptive',
@@ -70,6 +75,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 	'claude-haiku-4-5': {
 		name: 'claude-haiku-4-5',
 		id: 'claude-haiku-4-5',
+		openRouterId: 'anthropic/claude-haiku-4.5',
 		provider: 'anthropic',
 		supportsTemperature: true,
 		thinking: 'disabled',
@@ -79,6 +85,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 	'gemini-3.8-flash': {
 		name: 'gemini-3.8-flash',
 		id: 'gemini-3.8-flash',
+		openRouterId: 'google/gemini-3.8-flash',
 		provider: 'google',
 		supportsTemperature: false,
 		thinkingLevel: 'low',
@@ -88,6 +95,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 	'gpt-5.6-sol': {
 		name: 'gpt-5.6-sol',
 		id: 'gpt-5.6-sol',
+		openRouterId: 'openai/gpt-5.6-sol',
 		provider: 'openai',
 		supportsTemperature: false,
 		reasoningEffort: 'medium',
@@ -96,6 +104,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 	'gpt-5.6-terra': {
 		name: 'gpt-5.6-terra',
 		id: 'gpt-5.6-terra',
+		openRouterId: 'openai/gpt-5.6-terra',
 		provider: 'openai',
 		supportsTemperature: false,
 		reasoningEffort: 'high',
@@ -104,6 +113,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 	'gpt-5.6-luna': {
 		name: 'gpt-5.6-luna',
 		id: 'gpt-5.6-luna',
+		openRouterId: 'openai/gpt-5.6-luna',
 		provider: 'openai',
 		supportsTemperature: false,
 	},

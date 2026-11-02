@@ -37,7 +37,7 @@ Create a `.env` file in the root directory and add your Google Generative API ke
 GOOGLE_API_KEY=your_gemini_api_key_here
 ```
 
-Get your API key from [Google AI Studio](https://aistudio.google.com/apikey).
+Get your API key from [Google AI Studio](https://aistudio.google.com/apikey). To send requests through [OpenRouter](https://openrouter.ai) instead, set `OPENROUTER_API_KEY`.
 You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
 
 ### 3. Start Development

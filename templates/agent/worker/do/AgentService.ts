@@ -16,12 +16,7 @@ import {
 	TypeValidationError,
 } from 'ai'
 import z from 'zod'
-import {
-	AgentModelDefinition,
-	AgentModelName,
-	getAgentModelDefinition,
-	isValidModelName,
-} from '../../shared/models'
+import { AgentModelDefinition, getAgentModelDefinition } from '../../shared/models'
 import { DebugPart } from '../../shared/schema/PromptPartDefinitions'
 import { ActionMeta, AgentAction, getActionSchemaForMode } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
@@ -32,24 +27,32 @@ import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
 import { getModelName } from '../prompt/getModelName'
 import { closeAndParseJson } from './closeAndParseJson'
 
+const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1'
+
 export class AgentService {
 	openai: OpenAIProvider
 	anthropic: AnthropicProvider
 	google: GoogleGenerativeAIProvider
+	viaOpenRouter: boolean
 
 	constructor(env: Environment) {
-		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY, baseURL: env.OPENAI_BASE_URL })
-		this.anthropic = createAnthropic({
-			apiKey: env.ANTHROPIC_API_KEY,
-			baseURL: env.ANTHROPIC_BASE_URL,
-		})
+		// With an OpenRouter key, every model goes through OpenRouter, which serves Anthropic's Messages
+		// API and OpenAI's Responses API. It doesn't serve Google's API, so Gemini uses the OpenAI one.
+		this.viaOpenRouter = !!env.OPENROUTER_API_KEY
+		this.openai = this.viaOpenRouter
+			? createOpenAI({ apiKey: env.OPENROUTER_API_KEY, baseURL: OPENROUTER_BASE_URL })
+			: createOpenAI({ apiKey: env.OPENAI_API_KEY })
+		this.anthropic = this.viaOpenRouter
+			? createAnthropic({ apiKey: env.OPENROUTER_API_KEY, baseURL: OPENROUTER_BASE_URL })
+			: createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
 		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
 	}
 
-	getModel(modelName: AgentModelName): LanguageModel {
-		const modelDefinition = getAgentModelDefinition(modelName)
-		const provider = modelDefinition.provider
-		return this[provider](modelDefinition.id)
+	getModel(definition: AgentModelDefinition): LanguageModel {
+		if (!this.viaOpenRouter) return this[definition.provider](definition.id)
+		return definition.provider === 'anthropic'
+			? this.anthropic(definition.openRouterId)
+			: this.openai(definition.openRouterId)
 	}
 
 	/**
@@ -75,25 +78,15 @@ export class AgentService {
 		finish: { toolCalls: number }
 	): AsyncGenerator<Streaming<AgentAction>> {
 		const modelName = getModelName(prompt)
-		const model = this.getModel(modelName)
-
-		if (typeof model === 'string') {
-			throw new Error('Model is a string, not a LanguageModel')
-		}
-
-		const { modelId, provider } = model
-		if (!isValidModelName(modelId)) {
-			throw new Error(`Model ${modelId} is not in AGENT_MODEL_DEFINITIONS`)
-		}
-
-		const modelDefinition = getAgentModelDefinition(modelId)
+		const modelDefinition = getAgentModelDefinition(modelName)
+		const model = this.getModel(modelDefinition)
 		const systemPrompt = buildSystemPrompt(prompt)
 
 		// Build messages with provider-specific options
 		const messages: ModelMessage[] = []
 
 		// Add system prompt with Anthropic caching if applicable
-		if (provider === 'anthropic.messages') {
+		if (modelDefinition.provider === 'anthropic') {
 			// Anthropic requires explicit cache breakpoints. We set one at the end of the
 			// system prompt to cache all system content (which generally changes together).
 			messages.push({
@@ -134,7 +127,7 @@ export class AgentService {
 			maxOutputTokens: 8192,
 			// Opus 4.7+ removed `temperature` (and top_p/top_k); sending it returns a 400.
 			...(modelDefinition.supportsTemperature ? { temperature: 0 } : {}),
-			providerOptions: getProviderOptions(modelDefinition),
+			providerOptions: getProviderOptions(modelDefinition, this.viaOpenRouter),
 			onAbort() {
 				console.warn('Stream actions aborted')
 			},
@@ -241,7 +234,7 @@ export class AgentService {
 				case 'tool-call': {
 					finish.toolCalls++
 					if (part.invalid) {
-						console.warn(`Invalid ${part.toolName} call from ${modelId}: ${String(part.error)}`)
+						console.warn(`Invalid ${part.toolName} call from ${modelName}: ${String(part.error)}`)
 					}
 					if (part.invalid && NoSuchToolError.isInstance(part.error)) {
 						// The mode has no such action, so the client could not act on it. Drop the call; the
@@ -335,7 +328,10 @@ type StreamTextProviderOptions = NonNullable<Parameters<typeof streamText>[0]['p
  * Map a model definition's reasoning preferences to AI SDK provider options.
  * Only the matching provider's options are set; the SDK ignores the rest.
  */
-function getProviderOptions(definition: AgentModelDefinition): StreamTextProviderOptions {
+function getProviderOptions(
+	definition: AgentModelDefinition,
+	viaOpenRouter: boolean
+): StreamTextProviderOptions {
 	switch (definition.provider) {
 		case 'anthropic':
 			return {
@@ -346,6 +342,9 @@ function getProviderOptions(definition: AgentModelDefinition): StreamTextProvide
 				} satisfies AnthropicProviderOptions,
 			}
 		case 'google':
+			// Through OpenRouter, Gemini uses OpenAI's Responses API, where the thinking level is the
+			// reasoning effort.
+			if (viaOpenRouter) return getOpenAIProviderOptions(definition.thinkingLevel)
 			return {
 				google: {
 					// Stream thought summaries, which reach the client as think actions.
@@ -353,15 +352,21 @@ function getProviderOptions(definition: AgentModelDefinition): StreamTextProvide
 				} satisfies GoogleGenerativeAIProviderOptions,
 			}
 		case 'openai':
-			return {
-				openai: {
-					...(definition.reasoningEffort ? { reasoningEffort: definition.reasoningEffort } : {}),
-					// Stream reasoning summaries, which reach the client as think actions.
-					reasoningSummary: 'auto',
-					// Resend earlier response items in full instead of by id, so later steps of a turn also
-					// work through gateways that keep no responses, such as OpenRouter.
-					store: false,
-				} satisfies OpenAIResponsesProviderOptions,
-			}
+			return getOpenAIProviderOptions(definition.reasoningEffort)
+	}
+}
+
+function getOpenAIProviderOptions(
+	reasoningEffort: OpenAIResponsesProviderOptions['reasoningEffort']
+): StreamTextProviderOptions {
+	return {
+		openai: {
+			...(reasoningEffort ? { reasoningEffort } : {}),
+			// Stream reasoning summaries, which reach the client as think actions.
+			reasoningSummary: 'auto',
+			// Resend earlier response items in full instead of by id, so later steps of a turn also
+			// work through OpenRouter, which keeps no responses.
+			store: false,
+		} satisfies OpenAIResponsesProviderOptions,
 	}
 }

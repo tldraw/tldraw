@@ -1,4 +1,5 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
+import { createOpenAI } from '@ai-sdk/openai'
 import { ExecutionContext } from '@cloudflare/workers-types'
 import { generateText, ModelMessage, smoothStream, streamText } from 'ai'
 import { WorkerEntrypoint } from 'cloudflare:workers'
@@ -23,6 +24,14 @@ export default class extends WorkerEntrypoint<Environment> {
 	}
 
 	private getModel(env: Environment) {
+		// OpenRouter doesn't serve Google's API, so with an OpenRouter key Gemini goes through its
+		// OpenAI-compatible one.
+		if (env.OPENROUTER_API_KEY) {
+			return createOpenAI({
+				apiKey: env.OPENROUTER_API_KEY,
+				baseURL: 'https://openrouter.ai/api/v1',
+			}).chat(`google/${MODEL_ID}`)
+		}
 		return createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })(MODEL_ID)
 	}
 
