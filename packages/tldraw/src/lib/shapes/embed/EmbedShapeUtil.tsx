@@ -13,6 +13,7 @@ import {
 	toDomPrecision,
 	useColorMode,
 	useIsEditing,
+	SvgExportContext,
 	useSvgExportContext,
 	useValue,
 } from '@tldraw/editor'
@@ -25,8 +26,10 @@ import {
 	unknownEmbedShapePermissionOverrides,
 } from '../../defaultEmbedDefinitions'
 import { TLEmbedResult, getCorrectedEmbedSize, getEmbedInfo } from '../../utils/embeds/embeds'
+import { getHumanReadableAddress } from '../bookmark/bookmarks'
 import { BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
+import { PreviewCard } from '../shared/PreviewCard'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 /** @public */
@@ -215,6 +218,14 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 	override getGeometry(shape: TLEmbedShape) {
 		return super.getGeometry(shape)
+	}
+
+	// The live export draws the iframe, which a stored preview can't hold.
+	override toPreviewSvg(shape: TLEmbedShape, ctx: SvgExportContext) {
+		const label =
+			this.getEmbedDefinition(shape.props.url)?.definition.title ??
+			getHumanReadableAddress(shape.props.url)
+		return <PreviewCard w={shape.props.w} h={shape.props.h} label={label} ctx={ctx} />
 	}
 
 	override isAspectRatioLocked(shape: TLEmbedShape) {

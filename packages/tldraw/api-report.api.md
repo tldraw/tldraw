@@ -598,6 +598,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     static props: RecordProps<TLBookmarkShape>;
     // (undocumented)
+    toPreviewSvg(shape: TLBookmarkShape, ctx: SvgExportContext): JSX.Element;
+    // (undocumented)
     static type: 'bookmark';
 }
 
@@ -1885,6 +1887,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // @deprecated (undocumented)
     static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]): void;
     // (undocumented)
+    toPreviewSvg(shape: TLEmbedShape, ctx: SvgExportContext): JSX.Element;
+    // (undocumented)
     static type: 'embed';
 }
 
@@ -2390,7 +2394,7 @@ export function getDefaultCrop(): TLShapeCrop;
 export function getDisplayValues<Shape extends TLShape, DisplayValues extends object>(util: {
     editor: Editor;
     options: ShapeOptionsWithDisplayValues<Shape, DisplayValues>;
-}, shape: Shape, colorMode?: 'dark' | 'light'): DisplayValues;
+}, shape: Shape, colorModeOrContext?: 'dark' | 'light' | SvgExportContext): DisplayValues;
 
 // @public
 export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string, embedConfig?: Record<string, unknown>): TLEmbedResult;
@@ -2636,6 +2640,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     options: ImageShapeOptions;
     // (undocumented)
     static props: RecordProps<TLImageShape>;
+    // (undocumented)
+    toPreviewSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
     // (undocumented)
     toSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
     // (undocumented)

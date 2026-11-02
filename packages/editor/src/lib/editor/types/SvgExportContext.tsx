@@ -1,4 +1,4 @@
-import { TLAssetId } from '@tldraw/tlschema'
+import { TLAssetId, TLTheme } from '@tldraw/tlschema'
 import { promiseWithResolve } from '@tldraw/utils'
 import { ReactElement, ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { ContainerProvider } from '../../hooks/useContainer'
@@ -41,6 +41,15 @@ export interface SvgExportContext {
 	 * Whether the export should be in dark mode.
 	 */
 	readonly isDarkMode: boolean
+
+	/**
+	 * The theme to draw the export with. Read colours from it rather than from
+	 * `editor.getCurrentTheme()`: a preview export swaps them for CSS variables.
+	 */
+	readonly theme: TLTheme
+
+	/** Whether this is a preview export. See `preview` in {@link TLSvgExportOptions}. */
+	readonly isPreview: boolean
 
 	/**
 	 * The color mode to use for this export.

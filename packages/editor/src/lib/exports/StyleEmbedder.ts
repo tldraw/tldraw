@@ -20,7 +20,10 @@ interface ElementStyleInfo {
 }
 
 export class StyleEmbedder {
-	constructor(private readonly root: Element) {}
+	constructor(
+		private readonly root: Element,
+		private readonly opts: { embedFonts: boolean } = { embedFonts: true }
+	) {}
 	private readonly styles = new Map<Element, ElementStyleInfo>()
 	readonly fonts = new FontEmbedder()
 
@@ -84,7 +87,7 @@ export class StyleEmbedder {
 				if (!styles) continue
 				for (const [property, value] of Object.entries(styles)) {
 					if (!value) continue
-					if (property === 'font-family') {
+					if (property === 'font-family' && this.opts.embedFonts) {
 						this.fonts.onFontFamilyValue(value)
 					}
 

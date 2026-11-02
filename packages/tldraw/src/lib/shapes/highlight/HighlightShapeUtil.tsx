@@ -188,7 +188,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override toSvg(shape: TLHighlightShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.colorMode)
+		const dv = getDisplayValues(this, shape, ctx)
 		const strokeWidth = dv.strokeWidth * shape.props.scale
 		const forceSolid = strokeWidth < 1.5
 		const scaleFactor = 1 / shape.props.scale
@@ -206,7 +206,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override toBackgroundSvg(shape: TLHighlightShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.colorMode)
+		const dv = getDisplayValues(this, shape, ctx)
 		const strokeWidth = dv.strokeWidth * shape.props.scale
 		const forceSolid = strokeWidth < 1.5
 		const scaleFactor = 1 / shape.props.scale

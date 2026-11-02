@@ -279,6 +279,18 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		return <SvgImage shape={shape} src={src} />
 	}
 
+	// A preview is stored, so a remote image is linked rather than embedded.
+	override async toPreviewSvg(shape: TLImageShape, ctx: SvgExportContext) {
+		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
+		if (!asset) return null
+		const { w } = getUncroppedSize(shape.props, shape.props.crop)
+		const src = await ctx.resolveAssetUrl(asset.id, w)
+		if (!src?.startsWith('http') || getIsAnimated(this.editor, asset.id)) {
+			return this.toSvg(shape, ctx)
+		}
+		return <SvgImage shape={shape} src={src} />
+	}
+
 	override onDoubleClickEdge(shape: TLImageShape) {
 		const props = shape.props
 		if (!props) return

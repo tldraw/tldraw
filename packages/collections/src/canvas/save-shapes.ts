@@ -5,7 +5,6 @@ import {
 	type TLCollectionId,
 	type TLCollectionItem,
 } from '../lib/schema'
-import { exportThemedThumbnail } from './thumbnail'
 
 /**
  * Saves shapes from the current page to a collection as they are, with a rendered thumbnail.
@@ -22,10 +21,11 @@ export async function saveShapesToCollection(
 ): Promise<TLCollectionItem> {
 	const content = editor.getContentFromCurrentPage(shapeIds)
 	if (!content) throw new Error('No shapes to save')
-	const thumbnail = await exportThemedThumbnail(editor, content)
+	// A preview follows the viewer's theme once the panel sets its colour variables.
+	const preview = await editor.getSvgString(shapeIds, { preview: true, background: false })
 	return source.addItem(collectionId, {
 		name,
 		content: { formatVersion: CURRENT_ITEM_CONTENT_FORMAT_VERSION, content },
-		thumbnail,
+		thumbnail: preview && new Blob([preview.svg], { type: 'image/svg+xml' }),
 	})
 }

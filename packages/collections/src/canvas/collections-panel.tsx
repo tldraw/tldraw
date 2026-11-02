@@ -2,6 +2,7 @@ import { CSSProperties, useCallback, useState } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
+	getPreviewColorVariables,
 	useDialogs,
 	useEditor,
 	useToasts,
@@ -16,7 +17,6 @@ import { CollectionsPanelHeader } from './collections-panel-header'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { placeCollectionItem } from './place-item'
 import { activeCollectionId, collectionsPanelOpen } from './state'
-import { getThumbnailColorVariables } from './thumbnail'
 import { useItemDrag } from './use-item-drag'
 
 const messages = defineMessages({
@@ -76,7 +76,7 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 	const open = useValue('collections panel open', () => collectionsPanelOpen.get(editor), [editor])
 	const thumbnailColors = useValue(
 		'thumbnail colors',
-		() => getThumbnailColorVariables(editor.getCurrentTheme(), editor.getColorMode()),
+		() => getPreviewColorVariables(editor.getCurrentTheme(), editor.getColorMode()),
 		[editor]
 	)
 	const collections = useValue('collections', () => source.getCollections(), [source])

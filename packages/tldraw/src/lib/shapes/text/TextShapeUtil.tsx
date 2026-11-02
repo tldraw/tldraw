@@ -208,7 +208,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const width = bounds.width / (shape.props.scale ?? 1)
 		const height = bounds.height / (shape.props.scale ?? 1)
 
-		const dv = getDisplayValues(this, shape, ctx.colorMode)
+		const dv = getDisplayValues(this, shape, ctx)
 
 		// Pad the exported foreignObject by a margin so glyph ink can spill past the advance box
 		// without being clipped at its edge; the text is inset by the same margin so it renders in the

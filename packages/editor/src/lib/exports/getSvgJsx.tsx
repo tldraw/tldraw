@@ -1,5 +1,5 @@
 import { useAtom, useValue } from '@tldraw/state-react'
-import { DefaultColorStyle, TLShape, TLShapeId } from '@tldraw/tlschema'
+import { DefaultColorStyle, TLShape, TLShapeId, TLTheme } from '@tldraw/tlschema'
 import { TLFontFace } from '@tldraw/tlschema'
 import { hasOwnProperty, promiseWithResolve, uniqueId } from '@tldraw/utils'
 import {
@@ -30,8 +30,14 @@ import { suffixSafeId, useUniqueSafeId } from '../hooks/useSafeId'
 import { Box } from '../primitives/Box'
 import { Mat } from '../primitives/Mat'
 import { ExportDelay } from './ExportDelay'
+import type { PreviewColors } from './previewColors'
 
-export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions = {}) {
+export function getSvgJsx(
+	editor: Editor,
+	ids: TLShapeId[],
+	opts: TLImageExportOptions = {},
+	previewColors?: PreviewColors
+) {
 	const editorDocument = editor.getContainerDocument()
 	if (!editorDocument) throw Error('No document')
 
@@ -115,6 +121,8 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 			singleFrameShapeId={singleFrameShapeId}
 			isDarkMode={isDarkMode}
 			colorMode={colorMode}
+			theme={previewColors?.theme ?? editor.getCurrentTheme()}
+			previewColors={previewColors}
 			renderingShapes={renderingShapes}
 			onMount={initialEffectPromise.resolve}
 			onError={exportDelay.fail}
@@ -207,6 +215,8 @@ function SvgExport({
 	singleFrameShapeId,
 	isDarkMode,
 	colorMode,
+	theme,
+	previewColors,
 	renderingShapes,
 	onMount,
 	onError,
@@ -221,13 +231,15 @@ function SvgExport({
 	singleFrameShapeId: TLShapeId | null
 	isDarkMode: boolean
 	colorMode: 'light' | 'dark'
+	theme: TLTheme
+	previewColors: PreviewColors | undefined
 	renderingShapes: TLRenderingShape[]
 	onMount(): void
 	onError(error: unknown): void
 	waitUntil(promise: Promise<void>): void
 }) {
 	const masksId = useUniqueSafeId()
-	const theme = editor.getCurrentTheme()
+	const isPreview = !!previewColors
 
 	const stateAtom = useAtom<{
 		defsById: Record<
@@ -262,6 +274,8 @@ function SvgExport({
 		(): SvgExportContext => ({
 			isDarkMode,
 			colorMode,
+			theme,
+			isPreview,
 			waitUntil,
 			addExportDef,
 			scale,
@@ -272,12 +286,13 @@ function SvgExport({
 
 				return await editor.resolveAssetUrl(assetId, {
 					screenScale: scale * (width / asset.props.w),
-					shouldResolveToOriginal: pixelRatio === null,
+					// A preview is shown small, so it gets a resized asset even as an SVG.
+					shouldResolveToOriginal: pixelRatio === null && !isPreview,
 					dpr: pixelRatio ?? undefined,
 				})
 			},
 		}),
-		[isDarkMode, colorMode, waitUntil, addExportDef, scale, pixelRatio, editor]
+		[isDarkMode, colorMode, theme, isPreview, waitUntil, addExportDef, scale, pixelRatio, editor]
 	)
 
 	const didRenderRef = useRef(false)
@@ -304,10 +319,11 @@ function SvgExport({
 					const elements = []
 					const util = editor.getShapeUtil(shape)
 
-					if (util.toSvg || util.toBackgroundSvg) {
+					const toSvg = (isPreview && util.toPreviewSvg) || util.toSvg
+					if (toSvg || util.toBackgroundSvg) {
 						// If the shape has any sort of custom svg export, let's use that.
 						const [toSvgResult, toBackgroundSvgResult] = await Promise.all([
-							util.toSvg?.(shape, exportContext),
+							toSvg?.call(util, shape, exportContext),
 							util.toBackgroundSvg?.(shape, exportContext),
 						])
 
@@ -428,6 +444,7 @@ function SvgExport({
 		bbox,
 		editor,
 		exportContext,
+		isPreview,
 		masksId,
 		onError,
 		renderingShapes,
@@ -436,6 +453,8 @@ function SvgExport({
 	])
 
 	useEffect(() => {
+		// Previews are shown inline, in a page that has the fonts already.
+		if (isPreview) return
 		const fontsInUse = new Set<TLFontFace>()
 		for (const { id } of renderingShapes) {
 			for (const font of editor.fonts.getShapeFontFaces(id)) {
@@ -452,7 +471,7 @@ function SvgExport({
 				},
 			})
 		}
-	}, [editor, renderingShapes, addExportDef])
+	}, [editor, renderingShapes, addExportDef, isPreview])
 
 	useEffect(() => {
 		if (shapeElements === null) return
@@ -486,10 +505,16 @@ function SvgExport({
 				viewBox={`${bbox.minX} ${bbox.minY} ${bbox.width} ${bbox.height}`}
 				strokeLinecap="round"
 				strokeLinejoin="round"
-				style={{ backgroundColor }}
+				style={{ backgroundColor, ...previewColors?.rootStyle }}
 				data-color-mode={isDarkMode ? 'dark' : 'light'}
-				className={`tl-container tl-theme__force-sRGB ${isDarkMode ? 'tl-theme__dark' : 'tl-theme__light'}`}
+				className={`tl-container tl-theme__force-sRGB ${isDarkMode ? 'tl-theme__dark' : 'tl-theme__light'}${previewColors ? ` ${previewColors.className}` : ''}`}
 			>
+				{previewColors && (
+					// Removed once label styles are inlined.
+					<style data-tl-preview-only nonce={editor.options.nonce}>
+						{previewColors.css}
+					</style>
+				)}
 				<defs>
 					{Object.entries(defsById).map(([key, def]) =>
 						def.pending ? null : <Fragment key={key}>{def.element}</Fragment>

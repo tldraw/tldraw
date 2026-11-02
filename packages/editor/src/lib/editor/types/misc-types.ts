@@ -62,6 +62,19 @@ export interface TLSvgExportOptions {
 	 * attribute of the SVG element.
 	 */
 	preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
+
+	/**
+	 * Export a preview that follows the viewer's theme, e.g. for a thumbnail shown in a panel.
+	 *
+	 * - Colours become CSS variables, with the exported colour as fallback. Set them with
+	 *   {@link getPreviewColorVariables} on an element containing the preview.
+	 * - Fonts aren't embedded: show the result inline, in a page that has them loaded.
+	 * - Shapes draw with {@link ShapeUtil.toPreviewSvg} when they have it, and `toSvg` otherwise.
+	 *
+	 * Previews are meant to be inlined, so sanitize one before inlining it if it comes from
+	 * someone else.
+	 */
+	preview?: boolean
 }
 
 /** @public */

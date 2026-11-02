@@ -9,6 +9,7 @@ import {
 	TLDefaultColorStyle,
 	createShapeId,
 	getColorValue,
+	getPreviewColorVariables,
 	toRichText,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
@@ -305,4 +306,57 @@ it('reads a single frame-like export background from the color style under any p
 
 	const svg = parseSvg(await editor.getSvgString([id], { background: true }))
 	expect(svg.style.backgroundColor).toBe(toCssColor(getColorValue(colors, 'red', 'frameFill')))
+})
+
+describe('preview exports', () => {
+	it('swaps theme colours for CSS variables that fall back to the exported colour', async () => {
+		editor.updateShape({ id: ids.boxB, type: 'geo', props: { color: 'blue' } })
+		const colors = editor.getCurrentTheme().colors[editor.getColorMode()]
+
+		const { svg } = (await editor.getSvgString([ids.boxB], { preview: true }))!
+
+		expect(svg).toContain(`var(--tl-preview-blue-solid, ${colors.blue.solid})`)
+		expect(svg).not.toMatch(/#01[0-9a-f]{4}\b/i)
+		expect(svg).not.toContain('data-tl-preview-only')
+	})
+
+	it('leaves a normal export with real colours', async () => {
+		const { svg } = (await editor.getSvgString([ids.boxB]))!
+		expect(svg).not.toContain('--tl-preview-')
+	})
+
+	it('gives every theme colour a variable for the viewer to set', () => {
+		const theme = editor.getCurrentTheme()
+		const variables = getPreviewColorVariables(theme, 'dark')
+		expect(variables['--tl-preview-blue-solid']).toBe(theme.colors.dark.blue.solid)
+		expect(variables['--tl-preview-text']).toBe(theme.colors.dark.text)
+		expect(variables['--tl-preview-primary']).toBe('var(--tl-color-primary)')
+	})
+
+	it('draws bookmarks and embeds as cards rather than their live content', async () => {
+		const bookmarkId = createShapeId('bookmark')
+		const embedId = createShapeId('embed')
+		editor.createShapes([
+			{ id: bookmarkId, type: 'bookmark', x: 0, y: 300, props: { url: 'https://tldraw.dev/docs' } },
+			{
+				id: embedId,
+				type: 'embed',
+				x: 400,
+				y: 300,
+				props: { url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', w: 320, h: 180 },
+			},
+		])
+
+		const { svg } = (await editor.getSvgString([bookmarkId, embedId], { preview: true }))!
+
+		expect(svg).toContain('>tldraw.dev</text>')
+		expect(svg).toContain('>YouTube</text>')
+		expect(svg).not.toContain('<foreignObject')
+	})
+
+	it('uses toSvg for shapes without toPreviewSvg', async () => {
+		const preview = parseSvg(await editor.getSvgString([ids.boxB], { preview: true }))
+		const normal = parseSvg(await editor.getSvgString([ids.boxB]))
+		expect(preview.querySelectorAll('path').length).toBe(normal.querySelectorAll('path').length)
+	})
 })

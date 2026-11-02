@@ -2061,6 +2061,9 @@ export function getPointsOnArc(startPoint: VecLike, endPoint: VecLike, center: n
 // @public (undocumented)
 export function getPolygonVertices(width: number, height: number, sides: number): Vec[];
 
+// @public
+export function getPreviewColorVariables(theme: TLTheme, colorMode: 'dark' | 'light'): Record<string, string>;
+
 // @internal (undocumented)
 export function getRotationSnapshot({ editor, ids, }: {
     editor: Editor;
@@ -3173,6 +3176,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     providesBackgroundForChildren(shape: Shape): boolean;
     shouldClipChild?(child: TLShape): boolean;
     toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
+    toPreviewSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     toSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     static type: string;
 }
@@ -3391,9 +3395,11 @@ export interface SvgExportContext {
     addExportDef(def: SvgExportDef): void;
     readonly colorMode: 'dark' | 'light';
     readonly isDarkMode: boolean;
+    readonly isPreview: boolean;
     readonly pixelRatio: null | number;
     resolveAssetUrl(assetId: TLAssetId, width: number): Promise<null | string>;
     readonly scale: number;
+    readonly theme: TLTheme;
     waitUntil(promise: Promise<void>): void;
 }
 
@@ -4906,6 +4912,7 @@ export interface TLSvgExportOptions {
     padding?: 'auto' | number;
     pixelRatio?: number;
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+    preview?: boolean;
     scale?: number;
 }
 

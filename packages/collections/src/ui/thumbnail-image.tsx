@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 
 // SPIKE: an SVG thumbnail is drawn inline so its colour variables follow the page's theme. An
-// <img> would draw it as a separate document that can't see them.
+// <img> would draw it as a separate document that can't see them (it still shows the colours it was
+// saved with: each variable falls back to them).
 
 const svgCache = new Map<string, Promise<string | null>>()
 
@@ -34,7 +35,9 @@ function sanitizeSvg(markup: string): string | null {
 			else if (
 				(name === 'href' || name === 'xlink:href' || name === 'src') &&
 				!value.startsWith('#') &&
-				!value.startsWith('data:image/')
+				!value.startsWith('data:image/') &&
+				// Previews link remote images rather than embedding them.
+				!(el.localName === 'image' && value.startsWith('https://'))
 			) {
 				el.removeAttribute(attr.name)
 			}

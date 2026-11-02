@@ -1,5 +1,5 @@
 import { TLShapeId } from '@tldraw/tlschema'
-import { assert } from '@tldraw/utils'
+import { assert, uniqueId } from '@tldraw/utils'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import type { Editor } from '../editor/Editor'
@@ -8,6 +8,7 @@ import { getOwnerWindow } from './domUtils'
 import { embedMedia } from './embedMedia'
 import { SVG_EXPORT_CLASSNAME } from './FontEmbedder'
 import { getSvgJsx } from './getSvgJsx'
+import { createPreviewColors } from './previewColors'
 import { StyleEmbedder } from './StyleEmbedder'
 
 let idCounter = 1
@@ -20,7 +21,13 @@ export async function exportToSvg(
 	// when rendering to SVG, we start by creating a JSX representation of the SVG that we can
 	// render with react. Hopefully elements will have a `toSvg` method that renders them to SVG,
 	// but if they don't we'll render their normal HTML content into an svg <foreignObject> element.
-	const result = getSvgJsx(editor, shapeIds, opts)
+	const previewColors = opts.preview
+		? createPreviewColors(
+				editor,
+				opts.darkMode !== undefined ? (opts.darkMode ? 'dark' : 'light') : editor.getColorMode()
+			)
+		: undefined
+	const result = getSvgJsx(editor, shapeIds, opts, previewColors)
 	if (!result) return undefined
 
 	// we need to render that SVG into a real DOM element that's actually laid out in the document.
@@ -45,7 +52,10 @@ export async function exportToSvg(
 	container.appendChild(renderTarget)
 
 	// create a react root...
-	const root = createRoot(renderTarget, { identifierPrefix: `export_${idCounter++}_` })
+	// Previews from different sessions end up inlined side by side, so their ids can't come from a
+	// counter that restarts with the page.
+	const identifierPrefix = previewColors ? `preview_${uniqueId()}_` : `export_${idCounter++}_`
+	const root = createRoot(renderTarget, { identifierPrefix })
 	try {
 		// ...wait for a tick so we know we're not in e.g. a react lifecycle method...
 		await Promise.resolve()
@@ -69,7 +79,12 @@ export async function exportToSvg(
 		// would expect them to. But when we pull the SVG into its own file or draw it to a canvas
 		// though, it has to be completely self-contained. We embed any external resources, and
 		// apply any styles directly to the elements themselves.
-		await applyChangesToForeignObjects(svg)
+		await applyChangesToForeignObjects(svg, { embedFonts: !previewColors })
+
+		if (previewColors) {
+			for (const el of svg.querySelectorAll('style[data-tl-preview-only]')) el.remove()
+			previewColors.replacePlaceholders(svg)
+		}
 
 		return { svg, width: result.width, height: result.height, trimPadding: result.trimPadding }
 	} finally {
@@ -83,7 +98,10 @@ export async function exportToSvg(
 	}
 }
 
-async function applyChangesToForeignObjects(svg: SVGSVGElement) {
+async function applyChangesToForeignObjects(
+	svg: SVGSVGElement,
+	{ embedFonts }: { embedFonts: boolean }
+) {
 	// If any shapes have their own <foreignObject> elements, we don't want to mess with them. Our
 	// ones that we need to embed will have a class of `tl-export-embed-styles`.
 	const foreignObjectChildren = [
@@ -92,11 +110,11 @@ async function applyChangesToForeignObjects(svg: SVGSVGElement) {
 	if (!foreignObjectChildren.length) return
 
 	// StyleEmbedder embeds any CSS - including resources like fonts and images.
-	const styleEmbedder = new StyleEmbedder(svg)
+	const styleEmbedder = new StyleEmbedder(svg, { embedFonts })
 
 	try {
 		// begin traversing stylesheets to find @font-face declarations we might need to embed
-		styleEmbedder.fonts.startFindingDocumentFontFaces(svg.ownerDocument)
+		if (embedFonts) styleEmbedder.fonts.startFindingDocumentFontFaces(svg.ownerDocument)
 
 		// embed any media elements in the foreignObject children. images will get converted to data
 		// urls, and things like videos will be converted to images.

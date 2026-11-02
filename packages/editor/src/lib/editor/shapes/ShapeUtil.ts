@@ -627,6 +627,24 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 		ctx: SvgExportContext
 	): ReactElement | null | Promise<ReactElement | null>
 
+	/**
+	 * Get the shape as an SVG object for a preview export (see `preview` in
+	 * {@link TLSvgExportOptions}). Leave it out and previews use {@link ShapeUtil.toSvg}.
+	 *
+	 * Implement it when `toSvg` doesn't suit a small preview that is stored and shown later:
+	 * shapes that draw live content such as an iframe, or that embed large data. Read colours
+	 * from `ctx.theme` so the preview follows the viewer's theme.
+	 *
+	 * @param shape - The shape.
+	 * @param ctx - The export context for the SVG.
+	 * @returns An SVG element.
+	 * @public
+	 */
+	toPreviewSvg?(
+		shape: Shape,
+		ctx: SvgExportContext
+	): ReactElement | null | Promise<ReactElement | null>
+
 	/** @internal */
 	expandSelectionOutlinePx(shape: Shape): number | Box {
 		return 0

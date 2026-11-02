@@ -15,6 +15,7 @@ import {
 	tlenv,
 	translateMessage,
 	useEditor,
+	SvgExportContext,
 	useSvgExportContext,
 } from '@tldraw/editor'
 import classNames from 'classnames'
@@ -23,6 +24,7 @@ import { convertCommonTitleHTMLEntities } from '../../utils/text/text'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { LINK_ICON } from '../shared/icons-editor'
+import { PreviewCard } from '../shared/PreviewCard'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 import {
 	BOOKMARK_HEIGHT,
@@ -106,6 +108,21 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 			height: getBookmarkShapeHeight(this.editor, shape),
 			isFilled: true,
 		})
+	}
+
+	override toPreviewSvg(shape: TLBookmarkShape, ctx: SvgExportContext) {
+		const asset = (
+			shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
+		) as TLBookmarkAsset | null
+		const title = asset?.props.title ? convertCommonTitleHTMLEntities(asset.props.title) : null
+		return (
+			<PreviewCard
+				w={shape.props.w}
+				h={getBookmarkShapeHeight(this.editor, shape)}
+				label={title || getHumanReadableAddress(shape.props.url)}
+				ctx={ctx}
+			/>
+		)
 	}
 
 	override component(shape: TLBookmarkShape) {
