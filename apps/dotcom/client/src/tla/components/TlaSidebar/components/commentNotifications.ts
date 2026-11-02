@@ -1,4 +1,6 @@
 import { extractMentionIds } from '@tldraw/dotcom-shared'
+import type { IntlShape } from 'react-intl'
+import { defineMessages } from 'tldraw'
 
 /**
  * Why a comment shows up in a user's notifications feed:
@@ -130,6 +132,12 @@ function joinedThreadAt(thread: CommentNotificationInput['thread'], userId: stri
 	return joinedAt
 }
 
+export interface ForeignReactors {
+	names: string[]
+	others: number
+	total: number
+}
+
 /**
  * The reactor summary a "reacted to your comment" byline is phrased from: up to two distinct
  * reactor names (newest reaction first, blank or missing names skipped but still counted), how
@@ -139,7 +147,7 @@ function joinedThreadAt(thread: CommentNotificationInput['thread'], userId: stri
 export function summarizeForeignReactors(
 	reactions: CommentNotificationInput['reactions'],
 	userId: string | undefined | null
-): { names: string[]; others: number; total: number } {
+): ForeignReactors {
 	// distinct foreign reactors, newest reaction first
 	const byId = new Map<string, { name?: string; newest: number }>()
 	for (const r of reactions ?? []) {
@@ -155,6 +163,44 @@ export function summarizeForeignReactors(
 		.filter((n): n is string => typeof n === 'string' && n !== '')
 		.slice(0, 2)
 	return { names, others: ordered.length - names.length, total: ordered.length }
+}
+
+// `<name>` wraps each reactor name: the panel styles it, plain-string callers unwrap it.
+const reactionBylineMessages = defineMessages({
+	anonymous: {
+		defaultMessage:
+			'{count, plural, one {Someone reacted to your comment} other {# people reacted to your comment}}',
+	},
+	one: { defaultMessage: '<name>{author}</name> reacted to your comment' },
+	two: { defaultMessage: '<name>{a}</name> and <name>{b}</name> reacted to your comment' },
+	oneAndOthers: {
+		defaultMessage:
+			'<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted to your comment',
+	},
+	twoAndOthers: {
+		defaultMessage:
+			'<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment',
+	},
+})
+
+/** The "reacted to your comment" message for a reactor summary, with its values minus `name`. */
+export function reactionBylineMessage({ names, others, total }: ForeignReactors) {
+	const [a, b] = names
+	const m = reactionBylineMessages
+	if (names.length === 0) return { message: m.anonymous, values: { count: total } }
+	if (names.length === 1 && others === 0) return { message: m.one, values: { author: a } }
+	if (names.length === 2 && others === 0) return { message: m.two, values: { a, b } }
+	if (names.length === 1) return { message: m.oneAndOthers, values: { author: a, count: others } }
+	return { message: m.twoAndOthers, values: { a, b, count: others } }
+}
+
+/** {@link reactionBylineMessage} as a plain string, for labels that can't hold markup. */
+export function formatReactionByline(
+	intl: Pick<IntlShape, 'formatMessage'>,
+	reactors: ForeignReactors
+): string {
+	const { message, values } = reactionBylineMessage(reactors)
+	return intl.formatMessage(message, { ...values, name: (chunks: string[]) => chunks.join('') })
 }
 
 /** Newest `createdAt` among `reactions` from someone other than `userId`; `undefined` if none. */

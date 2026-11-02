@@ -1,5 +1,7 @@
+import { commentsSidebarOpen } from '@tldraw/commenting'
 import { ReactNode, useCallback } from 'react'
 import {
+	Editor,
 	F,
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
@@ -22,6 +24,22 @@ import { TlaExportTab } from './Tabs/TlaExportTab'
 import { TlaInviteTab } from './Tabs/TlaInviteTab'
 import { TlaPublishTab } from './Tabs/TlaPublishTab'
 import styles from './file-share-menu.module.css'
+
+// openShareMenu targets the header popover by id, so the header must render with this source.
+export const FILE_HEADER_SHARE_SOURCE = 'file-header'
+
+export function getShareMenuId(fileId: string | undefined, source: string) {
+	return `share-${fileId}-${source}`
+}
+
+export function openShareMenu(editor: Editor, fileId: string) {
+	// Opening here skips the popover's onOpenChange, so mirror what the header does on open.
+	editor.complete()
+	commentsSidebarOpen.set(editor, false)
+	// No header in focus mode. Its popover reads the menus atom on mount, so it opens once shown.
+	if (editor.getInstanceState().isFocusMode) editor.updateInstanceState({ isFocusMode: false })
+	editor.menus.addOpenMenu(getShareMenuId(fileId, FILE_HEADER_SHARE_SOURCE))
+}
 
 export function TlaFileShareMenu({
 	fileId,
@@ -85,7 +103,7 @@ export function TlaFileShareMenu({
 	// todo: replace disabled tabs for signed out users with "sign in to do X" content
 
 	return (
-		<TldrawUiPopover id={`share-${fileId}-${source}`} onOpenChange={onOpenChange}>
+		<TldrawUiPopover id={getShareMenuId(fileId, source)} onOpenChange={onOpenChange}>
 			<TldrawUiPopoverTrigger>{children}</TldrawUiPopoverTrigger>
 
 			<TldrawUiPopoverContent

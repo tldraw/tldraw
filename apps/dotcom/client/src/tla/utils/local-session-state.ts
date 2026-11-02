@@ -146,6 +146,11 @@ export function setColorThemePreview(themeId: string | null) {
 	colorThemePreview.set(themeId)
 }
 
+/** Matches the 768px breakpoint in the sidebar CSS. */
+export function isDesktopSidebarLayout() {
+	return window.matchMedia('(min-width: 768px)').matches
+}
+
 export function toggleSidebar(open: boolean = !getIsSidebarOpen()) {
 	transact(() => {
 		if (open) {

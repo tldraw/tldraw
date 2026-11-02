@@ -1,9 +1,8 @@
-/* ---------------------- Menu ---------------------- */
-
 import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	CommandPalettePromptItem,
 	defineMessages,
 	getIncrementedName,
 	TldrawUiDropdownMenuContent,
@@ -14,6 +13,7 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
+	TLUiMenuContextType,
 	uniqueId,
 	useDialogs,
 	useMaybeEditor,
@@ -46,6 +46,16 @@ const messages = defineMessages({
 	pin: { defaultMessage: 'Pin file' },
 	unpin: { defaultMessage: 'Unpin file' },
 	myWorkspace: { defaultMessage: 'My workspace' },
+	moveTo: { defaultMessage: 'Move to' },
+	newWorkspace: { defaultMessage: 'New workspace' },
+	// The palette mixes file and shape commands, so file items name their target there.
+	copyFileLink: { defaultMessage: 'Copy file link' },
+	renameFile: { defaultMessage: 'Rename file' },
+	fileName: { defaultMessage: 'File name' },
+	duplicateFile: { defaultMessage: 'Duplicate file' },
+	deleteFile: { defaultMessage: 'Delete file' },
+	forgetFile: { defaultMessage: 'Forget file' },
+	moveFileTo: { defaultMessage: 'Move file to' },
 })
 
 function getDuplicateName(file: TlaFile, app: TldrawApp) {
@@ -106,12 +116,19 @@ export function FileItems({
 	fileId,
 	onRenameAction,
 	workspaceId,
+	menuType = 'menu',
 }: {
 	source: TLAppUiEventSource
 	fileId: string
-	onRenameAction(): void
+	// Not needed in the command palette, which asks for the new name itself.
+	onRenameAction?(): void
 	workspaceId: string | null
+	menuType?: TLUiMenuContextType
 }) {
+	const inPalette = menuType === 'command-palette'
+	// The palette keeps one entry per id: unprefixed, duplicate/delete clash with the SDK actions
+	// and one of each pair silently vanishes.
+	const idPrefix = inPalette ? 'file-' : ''
 	const msg = useTranslation()
 	const app = useApp()
 	const editor = useMaybeEditor()
@@ -121,37 +138,58 @@ export function FileItems({
 	const trackEvent = useTldrawAppUiEvents()
 	const copiedMsg = msg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
-	const isPinned = useIsFilePinned(fileId, workspaceId ?? '')
+	const isPinned = useIsFilePinned(fileId, workspaceId)
 	const activeWorkspaceId = useActiveWorkspaceId()
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 	const homeWorkspaceId = app.getHomeWorkspaceId()
-
-	// Get all workspace memberships (including the home workspace, filtered out below)
 	const workspaceMemberships = useValue(
 		'workspaceMemberships',
 		() => app.getWorkspaceMemberships(),
 		[app]
 	)
 
-	// A file lives in exactly one workspace. The "Move to" menu is a checklist of every
-	// destination — the home workspace plus each non-home workspace — with the file's own
-	// workspace checked. The home workspace is rendered separately (it's always the first item),
-	// labelled with its own name like any other workspace.
-	// (This is the workspace the file belongs to, which is not necessarily one the current user
-	// can write to — for that, see activeWorkspaceId above.)
+	// The workspace that owns the file, which the user can't necessarily write to (see
+	// activeWorkspaceId).
 	const fileWorkspaceId = file?.owningGroupId ?? homeWorkspaceId
 	const homeWorkspaceName = workspaceMemberships.find((g) => g.groupId === homeWorkspaceId)?.group
 		?.name
-	const moveToWorkspaces = workspaceMemberships.filter(
-		(g): g is typeof g & { group: NonNullable<(typeof g)['group']> } =>
-			g.groupId !== homeWorkspaceId && !!g.group
-	)
+	const moveTargets = [
+		{
+			workspaceId: homeWorkspaceId,
+			itemId: 'my-files',
+			label: homeWorkspaceName ?? msg(messages.myWorkspace),
+		},
+		...workspaceMemberships.flatMap((g) =>
+			g.groupId !== homeWorkspaceId && g.group
+				? [{ workspaceId: g.groupId, itemId: `workspace-${g.groupId}`, label: g.group.name }]
+				: []
+		),
+		// In the palette every row must do something, so the file's current workspace is hidden.
+	].filter((target) => !(inPalette && target.workspaceId === fileWorkspaceId))
+
+	const labels = inPalette
+		? {
+				copyLink: messages.copyFileLink,
+				duplicate: messages.duplicateFile,
+				deleteOrForget: hasAdminRights ? messages.deleteFile : messages.forgetFile,
+				moveTo: messages.moveFileTo,
+			}
+		: {
+				copyLink: messages.copyLink,
+				duplicate: messages.duplicate,
+				deleteOrForget: hasAdminRights ? messages.delete : messages.forget,
+				moveTo: messages.moveTo,
+			}
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
-		// The mounted editor is the open file's, which a sidebar row may not be.
-		const deepLink = source === 'file-header' ? editor?.createDeepLink({ url }).toString() : null
+		// The mounted editor is the open file's, which a sidebar row may not be. The header and the
+		// palette only show the open file.
+		const deepLink =
+			source === 'file-header' || source === 'command-palette'
+				? editor?.createDeepLink({ url }).toString()
+				: null
 		copyTextToClipboard(deepLink ?? url)
 		addToast({
 			id: 'copied-link',
@@ -214,122 +252,160 @@ export function FileItems({
 		downloadAppFile(fileId)
 	}, [fileId, source, trackEvent])
 
-	const unpinMsg = msg(messages.unpin)
+	const handleMoveToWorkspace = useCallback(
+		(targetWorkspaceId: string) => {
+			if (targetWorkspaceId === fileWorkspaceId) return
+			app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: targetWorkspaceId })
+		},
+		[app, fileId, fileWorkspaceId]
+	)
+
+	const handleMoveToNewWorkspace = useCallback(() => {
+		addDialog({
+			component: ({ onClose }) => (
+				<CreateWorkspaceDialog
+					onClose={onClose}
+					onCreate={async (name) => {
+						const id = uniqueId()
+						const createRes = await app.z.mutate.createWorkspace({ id, name }).client
+						if (createRes.type === 'error') {
+							app.showMutationRejectionToast(createRes.error)
+							return
+						}
+						trackEvent('create-workspace', { source })
+						const moveRes = await app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: id })
+							.client
+						if (moveRes.type === 'error') {
+							// the workspace was created; only the move failed
+							app.showMutationRejectionToast(moveRes.error)
+						}
+					}}
+				/>
+			),
+		})
+	}, [addDialog, app, fileId, source, trackEvent])
 
 	return (
 		<Fragment>
-			<TldrawUiMenuGroup id="file-actions">
-				{/* todo: in published rooms, support copying link */}
+			<TldrawUiMenuGroup id={`${idPrefix}file-actions`}>
 				<TldrawUiMenuItem
-					label={msg(messages.copyLink)}
-					id="copy-link"
+					label={msg(labels.copyLink)}
+					id={`${idPrefix}copy-link`}
 					readonlyOk
 					onSelect={handleCopyLinkClick}
 				/>
 				{hasAdminRights && (
-					<TldrawUiMenuItem
-						label={msg(messages.rename)}
-						id="rename"
-						readonlyOk
-						onSelect={onRenameAction}
+					<FileRenameItem
+						fileId={fileId}
+						source={source}
+						idPrefix={idPrefix}
+						inPalette={inPalette}
+						onRenameAction={onRenameAction}
 					/>
 				)}
-				{/* todo: in published rooms, support duplication / forking */}
 				<TldrawUiMenuItem
-					label={msg(messages.duplicate)}
-					id="duplicate"
+					label={msg(labels.duplicate)}
+					id={`${idPrefix}duplicate`}
 					readonlyOk
 					onSelect={handleDuplicateClick}
 				/>
 				<TldrawUiMenuItem
 					label={msg(editorMessages.downloadFile)}
-					id="download-file"
+					id={`${idPrefix}download-file`}
 					readonlyOk
 					onSelect={handleDownloadClick}
 				/>
 				{workspaceId && (
 					<TldrawUiMenuItem
-						label={isPinned ? unpinMsg : msg(messages.pin)}
-						id="pin-unpin"
+						label={msg(isPinned ? messages.unpin : messages.pin)}
+						id={`${idPrefix}pin-unpin`}
 						readonlyOk
 						onSelect={handlePinUnpinClick}
 					/>
 				)}
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="file-delete">
+			<TldrawUiMenuGroup id={`${idPrefix}file-delete`}>
 				{hasAdminRights && (
-					<TldrawUiMenuSubmenu id="move-to-workspace" label={'Move to'} size="small">
-						<TldrawUiMenuGroup id="workspaces">
-							<TldrawUiMenuCheckboxItem
-								key="my-files"
-								label={homeWorkspaceName ?? msg(messages.myWorkspace)}
-								id="my-files"
-								readonlyOk
-								checked={fileWorkspaceId === homeWorkspaceId}
-								onSelect={() => {
-									if (fileWorkspaceId === homeWorkspaceId) return
-									app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: homeWorkspaceId })
-								}}
-							/>
-							{moveToWorkspaces.map((membership) => (
+					<TldrawUiMenuSubmenu
+						id={`${idPrefix}move-to-workspace`}
+						label={msg(labels.moveTo)}
+						size="small"
+					>
+						<TldrawUiMenuGroup id={`${idPrefix}workspaces`}>
+							{moveTargets.map((target) => (
 								<TldrawUiMenuCheckboxItem
-									key={membership.groupId}
-									label={membership.group.name}
-									id={`workspace-${membership.groupId}`}
+									key={target.itemId}
+									label={target.label}
+									id={`${idPrefix}${target.itemId}`}
 									readonlyOk
-									checked={membership.groupId === fileWorkspaceId}
-									onSelect={() => {
-										if (membership.groupId === fileWorkspaceId) return
-										app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: membership.groupId })
-									}}
+									checked={target.workspaceId === fileWorkspaceId}
+									onSelect={() => handleMoveToWorkspace(target.workspaceId)}
 								/>
 							))}
 						</TldrawUiMenuGroup>
-						<TldrawUiMenuGroup id="create-new-workspace">
+						<TldrawUiMenuGroup id={`${idPrefix}create-new-workspace`}>
 							<TldrawUiMenuItem
-								label="New workspace"
-								id="create-new-workspace"
+								label={msg(messages.newWorkspace)}
+								id={`${idPrefix}create-new-workspace`}
 								iconLeft={'plus'}
 								readonlyOk
-								onSelect={() => {
-									addDialog({
-										component: ({ onClose }) => (
-											<CreateWorkspaceDialog
-												onClose={onClose}
-												onCreate={async (name) => {
-													const id = uniqueId()
-													const createRes = await app.z.mutate.createWorkspace({ id, name }).client
-													if (createRes.type === 'error') {
-														app.showMutationRejectionToast(createRes.error)
-														return
-													}
-													trackEvent('create-workspace', { source })
-													const moveRes = await app.z.mutate.moveFileToWorkspace({
-														fileId,
-														workspaceId: id,
-													}).client
-													if (moveRes.type === 'error') {
-														// the workspace was created; only the move failed
-														app.showMutationRejectionToast(moveRes.error)
-													}
-												}}
-											/>
-										),
-									})
-								}}
+								onSelect={handleMoveToNewWorkspace}
 							/>
 						</TldrawUiMenuGroup>
 					</TldrawUiMenuSubmenu>
 				)}
 				{workspaceId && (
 					<TldrawUiMenuItem
-						label={msg(hasAdminRights ? messages.delete : messages.forget)}
-						id="delete"
+						label={msg(labels.deleteOrForget)}
+						id={`${idPrefix}delete`}
 						readonlyOk
 						onSelect={handleDeleteClick}
 					/>
 				)}
 			</TldrawUiMenuGroup>
 		</Fragment>
+	)
+}
+
+function FileRenameItem({
+	fileId,
+	source,
+	idPrefix,
+	inPalette,
+	onRenameAction,
+}: {
+	fileId: string
+	source: TLAppUiEventSource
+	idPrefix: string
+	inPalette: boolean
+	onRenameAction?(): void
+}) {
+	const msg = useTranslation()
+	const app = useApp()
+	const trackEvent = useTldrawAppUiEvents()
+
+	if (inPalette) {
+		return (
+			<CommandPalettePromptItem
+				id={`${idPrefix}rename`}
+				label={messages.renameFile.id}
+				placeholder={messages.fileName.id}
+				initialValue={app.getFileName(fileId, false)}
+				onSubmit={(name) => {
+					if (!name) return
+					app.updateFile(fileId, { name })
+					trackEvent('rename-file', { name, source })
+				}}
+			/>
+		)
+	}
+	if (!onRenameAction) return null
+	return (
+		<TldrawUiMenuItem
+			label={msg(messages.rename)}
+			id={`${idPrefix}rename`}
+			readonlyOk
+			onSelect={onRenameAction}
+		/>
 	)
 }

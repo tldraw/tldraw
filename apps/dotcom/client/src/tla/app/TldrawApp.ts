@@ -1101,13 +1101,35 @@ export class TldrawApp {
 		})
 	}
 
+	@computed
+	getFilesById(): Map<string, TlaFile | null> {
+		const files = new Map<string, TlaFile | null>()
+		for (const membership of this.getWorkspaceMemberships()) {
+			for (const groupFile of membership.groupFiles) {
+				if (!files.has(groupFile.fileId)) files.set(groupFile.fileId, groupFile.file ?? null)
+			}
+		}
+		return files
+	}
+
+	@computed({ isEqual })
+	getSearchableFiles(): Array<{ fileId: string; workspaceId: string }> {
+		const seen = new Set<string>()
+		const files: Array<{ fileId: string; workspaceId: string }> = []
+		for (const membership of this.getWorkspaceMemberships()) {
+			for (const groupFile of membership.groupFiles) {
+				if (!groupFile.file || seen.has(groupFile.fileId)) continue
+				if (!this.isFileListedInWorkspace(membership.groupId, groupFile.file)) continue
+				seen.add(groupFile.fileId)
+				files.push({ fileId: groupFile.fileId, workspaceId: membership.groupId })
+			}
+		}
+		return files
+	}
+
 	getFile(fileId?: string): TlaFile | null {
 		if (!fileId) return null
-		for (const membership of this.getWorkspaceMemberships()) {
-			const groupFile = membership.groupFiles.find((gf) => gf.fileId === fileId)
-			if (groupFile) return groupFile.file ?? null
-		}
-		return null
+		return this.getFilesById().get(fileId) ?? null
 	}
 
 	canUpdateFile(fileId: string): boolean {
@@ -1504,14 +1526,33 @@ export class TldrawApp {
 		searchQuery: '',
 	})
 
-	/** Returns false when there is no invite link to copy yet (e.g. right after creation). */
-	copyWorkspaceInvite(workspaceId: string, showToast = true): boolean {
+	private getCopyableInviteSecret(workspaceId: string) {
 		// The home workspace can't be invited to.
-		if (workspaceId === this.getHomeWorkspaceId()) return false
+		if (workspaceId === this.getHomeWorkspaceId()) return undefined
 		const group = this.getWorkspaceMembership(workspaceId)?.group
-		if (!group?.inviteSecret) return false
+		// A new workspace has no invite secret until the server confirms it.
+		if (!group?.inviteSecret) return undefined
+		// Missing column on older cached rows means enabled.
+		if (!(group.inviteLinkEnabled ?? true)) return undefined
+		return group.inviteSecret
+	}
 
-		copyTextToClipboard(routes.tlaInvite(group.inviteSecret, { asUrl: true }))
+	canCopyWorkspaceInvite(workspaceId: string) {
+		return !!this.getCopyableInviteSecret(workspaceId)
+	}
+
+	/** Returns false when there is no invite link to copy (none yet, or disabled). */
+	copyWorkspaceInvite(
+		workspaceId: string,
+		{
+			showToast = true,
+			source = 'sidebar',
+		}: { showToast?: boolean; source?: TLAppUiEventSource } = {}
+	): boolean {
+		const inviteSecret = this.getCopyableInviteSecret(workspaceId)
+		if (!inviteSecret) return false
+
+		copyTextToClipboard(routes.tlaInvite(inviteSecret, { asUrl: true }))
 
 		if (showToast) {
 			this.toasts?.addToast({
@@ -1520,7 +1561,7 @@ export class TldrawApp {
 			})
 		}
 
-		this.trackEvent('copy-share-link', { source: 'sidebar' })
+		this.trackEvent('copy-share-link', { source })
 		return true
 	}
 
