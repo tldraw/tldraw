@@ -775,6 +775,11 @@ export async function createShapesForAssets(
 	assets: TLAsset[],
 	position: VecLike
 ): Promise<TLShapeId[]> {
+	assets = assets.filter((asset) => {
+		if (hasValidSize(asset)) return true
+		console.error(`Skipped asset ${asset.id}: it has no size`)
+		return false
+	})
 	if (!assets.length) return []
 
 	const currentPoint = Vec.From(position)
@@ -1001,5 +1006,17 @@ export async function getAssetInfo(editor: Editor, file: File, assetId?: TLAsset
 	const assetUtil = editor.getAssetUtilForMimeType(file.type)
 	if (!assetUtil) return null
 
-	return await assetUtil.getAssetFromFile(file, assetId)
+	const asset = await assetUtil.getAssetFromFile(file, assetId)
+	if (asset && !hasValidSize(asset)) {
+		throw new Error(`Asset from "${file.name}" has no size`)
+	}
+	return asset
+}
+
+// Shapes made from a sized asset take its size, and a zero size fails shape validation and
+// crashes the editor (#11218): e.g. an audio-only video or an SVG with no intrinsic size.
+function hasValidSize(asset: TLAsset) {
+	if (!('w' in asset.props) || !('h' in asset.props)) return true
+	const { w, h } = asset.props
+	return Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0
 }
