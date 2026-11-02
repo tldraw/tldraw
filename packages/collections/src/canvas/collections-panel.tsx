@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { CSSProperties, useCallback, useState } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
@@ -16,6 +16,7 @@ import { CollectionsPanelHeader } from './collections-panel-header'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { placeCollectionItem } from './place-item'
 import { activeCollectionId, collectionsPanelOpen } from './state'
+import { getThumbnailColorVariables } from './thumbnail'
 import { useItemDrag } from './use-item-drag'
 
 const messages = defineMessages({
@@ -73,6 +74,11 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
 	const open = useValue('collections panel open', () => collectionsPanelOpen.get(editor), [editor])
+	const thumbnailColors = useValue(
+		'thumbnail colors',
+		() => getThumbnailColorVariables(editor.getCurrentTheme(), editor.getColorMode()),
+		[editor]
+	)
 	const collections = useValue('collections', () => source.getCollections(), [source])
 	const activeId = useValue('active collection', () => activeCollectionId.get(editor), [editor])
 	// A stale id (the collection was deleted) falls back to the first collection rather than an empty panel.
@@ -133,6 +139,7 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 			<section
 				className="tlui-collections-panel"
 				aria-label={msg(messages.title)}
+				style={thumbnailColors as CSSProperties}
 				onContextMenu={(e) => e.stopPropagation()}
 			>
 				<CollectionsPanelHeader

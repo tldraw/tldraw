@@ -1,5 +1,6 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react'
 import { RenameInput } from './rename-input'
+import { ThumbnailImage } from './thumbnail-image'
 
 /** @public */
 export interface ItemTileRenaming {
@@ -34,7 +35,7 @@ export function ItemTile({
 }: ItemTileProps) {
 	const thumbnail = (
 		<span className="tlui-collections-tile__thumbnail">
-			{thumbnailUrl && <img src={thumbnailUrl} alt="" draggable={false} />}
+			{thumbnailUrl && <ThumbnailImage url={thumbnailUrl} />}
 		</span>
 	)
 

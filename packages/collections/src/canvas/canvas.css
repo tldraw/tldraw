@@ -134,6 +134,17 @@
 	overflow: hidden;
 }
 
+.tlui-collections-tile__svg {
+	display: flex;
+	width: 80%;
+	height: 80%;
+}
+
+.tlui-collections-tile__svg > svg {
+	width: 100%;
+	height: 100%;
+}
+
 .tlui-collections-tile__thumbnail > img {
 	max-width: 80%;
 	max-height: 80%;
