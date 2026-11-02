@@ -1,7 +1,8 @@
-import { MediaHelpers, TLImageShape, createShapeId } from '@tldraw/editor'
+import { MediaHelpers, TLImageShape, TLVideoAsset, createShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { defaultAssetUtils } from '../lib/defaultAssetUtils'
 import {
+	createShapesForAssets,
 	defaultHandleExternalFileContent,
 	defaultHandleExternalFileReplaceContent,
 	getAssetInfo,
@@ -113,6 +114,57 @@ describe('defaultHandleExternalFileContent', () => {
 		expect(editor.getCurrentPageShapes()).toHaveLength(0)
 		expect(editor.getAssets()).toHaveLength(0)
 	})
+
+	it('shows a toast and creates nothing for an image with no size', async () => {
+		const file = new File(['png'], 'no-size.png', { type: 'image/png' })
+		vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 0, h: 0, pixelRatio: 1 })
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		await defaultHandleExternalFileContent(
+			editor,
+			{ point: { x: 0, y: 0 }, files: [file] },
+			makeOptions()
+		)
+
+		expect(addToast).toHaveBeenCalledTimes(1)
+		expect(addToast).toHaveBeenCalledWith({
+			title: 'assets.files.upload-failed',
+			severity: 'error',
+		})
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
+		expect(editor.getAssets()).toHaveLength(0)
+	})
+})
+
+describe('createShapesForAssets', () => {
+	it('skips assets with no size and still places the others', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		const videoAsset = (id: string, w: number, h: number): TLVideoAsset => ({
+			id: `asset:${id}` as TLVideoAsset['id'],
+			typeName: 'asset',
+			type: 'video',
+			props: {
+				name: id,
+				src: 'data:ok',
+				w,
+				h,
+				fileSize: 1,
+				mimeType: 'video/mp4',
+				isAnimated: true,
+			},
+			meta: {},
+		})
+
+		await createShapesForAssets(editor, [videoAsset('empty', 0, 0), videoAsset('good', 160, 90)], {
+			x: 0,
+			y: 0,
+		})
+
+		expect(editor.getCurrentPageShapes().map((s) => s.props)).toMatchObject([
+			{ assetId: 'asset:good', w: 160, h: 90 },
+		])
+		expect(editor.getAssets().map((a) => a.id)).toEqual(['asset:good'])
+	})
 })
 
 describe('defaultHandleExternalFileReplaceContent', () => {
@@ -133,6 +185,35 @@ describe('defaultHandleExternalFileReplaceContent', () => {
 			{
 				type: 'file-replace',
 				file: new File(['audio'], 'audio-only.webm', { type: 'video/webm' }),
+				shapeId,
+				isImage: false,
+			},
+			makeOptions()
+		)
+
+		expect(addToast).toHaveBeenCalledTimes(1)
+		expect(addToast).toHaveBeenCalledWith({
+			title: 'assets.files.upload-failed',
+			severity: 'error',
+		})
+		expect(editor.getShape(shapeId)).toEqual(before)
+		expect(editor.getAssets()).toHaveLength(0)
+	})
+
+	it('shows a toast and restores the video when the upload fails', async () => {
+		const shapeId = createShapeId()
+		editor.createShape({ id: shapeId, type: 'video', props: { w: 160, h: 90 } })
+		const before = editor.getShape(shapeId)
+
+		vi.spyOn(MediaHelpers, 'getVideoSize').mockResolvedValue({ w: 320, h: 180 })
+		vi.spyOn(editor, 'getAssetForExternalContent').mockRejectedValue(new Error('Upload failed'))
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		await defaultHandleExternalFileReplaceContent(
+			editor,
+			{
+				type: 'file-replace',
+				file: new File(['video'], 'video.mp4', { type: 'video/mp4' }),
 				shapeId,
 				isImage: false,
 			},
