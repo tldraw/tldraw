@@ -220,6 +220,7 @@ export async function defaultHandleExternalFileReplaceContent(
 		return
 	}
 	if (!assetInfoPartial) return
+	const assetExisted = !!editor.getAsset(assetId)
 	editor.createTemporaryAssetPreview(assetId, sanitizedFile)
 	editor.createAssets([assetInfoPartial])
 
@@ -278,11 +279,25 @@ export async function defaultHandleExternalFileReplaceContent(
 		])
 	}
 
-	const asset = (await editor.getAssetForExternalContent({
-		type: 'file',
-		file: sanitizedFile,
-		assetId,
-	})) as TLAsset
+	let asset: TLAsset | undefined
+	try {
+		asset = await editor.getAssetForExternalContent({
+			type: 'file',
+			file: sanitizedFile,
+			assetId,
+		})
+		if (!asset) throw Error('Could not create an asset')
+	} catch (error) {
+		// The shape already shows the new asset's local preview, which has no src to persist.
+		options.toasts.addToast({
+			title: options.msg(messages.assetsFilesUploadFailed.id),
+			severity: 'error',
+		})
+		console.error(error)
+		editor.updateShapes([shape])
+		if (!assetExisted) editor.deleteAssets([assetId])
+		return
+	}
 
 	editor.updateAssets([{ ...asset, id: assetId }])
 
