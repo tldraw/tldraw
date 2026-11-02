@@ -228,4 +228,44 @@ describe('defaultHandleExternalFileReplaceContent', () => {
 		expect(editor.getShape(shapeId)).toEqual(before)
 		expect(editor.getAssets()).toHaveLength(0)
 	})
+
+	// Replacing a cropped image also moves the shape and rewrites its crop.
+	it('shows a toast and restores the cropped image when the upload fails', async () => {
+		const shapeId = createShapeId()
+		editor.createShape({
+			id: shapeId,
+			type: 'image',
+			x: 40,
+			y: 30,
+			props: {
+				w: 160,
+				h: 90,
+				crop: { topLeft: { x: 0.1, y: 0.2 }, bottomRight: { x: 0.8, y: 0.9 } },
+			},
+		})
+		const before = editor.getShape(shapeId)
+
+		vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 400, h: 400, pixelRatio: 1 })
+		vi.spyOn(editor, 'getAssetForExternalContent').mockRejectedValue(new Error('Upload failed'))
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		await defaultHandleExternalFileReplaceContent(
+			editor,
+			{
+				type: 'file-replace',
+				file: new File(['image'], 'image.png', { type: 'image/png' }),
+				shapeId,
+				isImage: true,
+			},
+			makeOptions()
+		)
+
+		expect(addToast).toHaveBeenCalledTimes(1)
+		expect(addToast).toHaveBeenCalledWith({
+			title: 'assets.files.upload-failed',
+			severity: 'error',
+		})
+		expect(editor.getShape(shapeId)).toEqual(before)
+		expect(editor.getAssets()).toHaveLength(0)
+	})
 })
