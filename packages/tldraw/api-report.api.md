@@ -796,9 +796,6 @@ export function CommandPaletteActionGroup({ group, label }: TLUiCommandPaletteAc
 export function CommandPaletteArrangeGroup(): JSX.Element;
 
 // @public
-export function CommandPaletteCollapsed({ children }: TLUiCommandPaletteCollapsedProps): JSX.Element;
-
-// @public
 export function CommandPaletteEditGroup(): JSX.Element;
 
 // @public
@@ -812,6 +809,9 @@ export function CommandPaletteImageGroup(): JSX.Element | null;
 
 // @public
 export function CommandPaletteMenuItem(): JSX.Element | null;
+
+// @public
+export function CommandPaletteOnDemand({ children }: TLUiCommandPaletteOnDemandProps): JSX.Element;
 
 // @public
 export function CommandPalettePagesGroup(): JSX.Element | null;
@@ -4795,7 +4795,7 @@ export interface TLUiCommandPaletteActionGroupProps {
 }
 
 // @public (undocumented)
-export interface TLUiCommandPaletteCollapsedProps {
+export interface TLUiCommandPaletteOnDemandProps {
     children: ReactNode;
 }
 
