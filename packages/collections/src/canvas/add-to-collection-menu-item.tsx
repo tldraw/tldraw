@@ -8,7 +8,6 @@ import {
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import { useSaveSelection } from './use-save-selection'
-import { useSaveToNewCollection } from './use-save-to-new-collection'
 
 const messages = defineMessages({
 	addToCollection: { id: 'collections.add-to-collection', defaultMessage: 'Add to collection' },
@@ -42,8 +41,7 @@ export function AddToCollectionMenuItem({ source }: AddToCollectionMenuItemProps
 	const canCreate = useValue('can create collection', () => source.can('createCollection'), [
 		source,
 	])
-	const saveSelection = useSaveSelection(source)
-	const saveToNewCollection = useSaveToNewCollection(source)
+	const { saveSelection, saveToNewCollection } = useSaveSelection(source)
 
 	if (!hasSelection || (collections.length === 0 && !canCreate)) return null
 

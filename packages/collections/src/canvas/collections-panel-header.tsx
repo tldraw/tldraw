@@ -61,7 +61,7 @@ export function CollectionsPanelHeader({
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
-	const saveSelection = useSaveSelection(source)
+	const { saveSelection } = useSaveSelection(source)
 	const currentId = current?.id
 	const renaming = useValue(
 		'renaming collection',
