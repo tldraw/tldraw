@@ -578,10 +578,11 @@ export function getReportedBoardName(name: string | null | undefined): string {
 	return name?.trim() ?? ''
 }
 
-// `fileName` is the board's `file` row name, the one search_boards reports; null only for a board
-// with no row of its own (published, eval fixture). The snapshot's `document` record is no substitute
-// for a file board: the room copies the row's name onto it only when the row is updated, so it stays
-// empty until the board's first rename.
+// `fileName` is the board's `file` row name, the one search_boards reports. It is null for a board
+// served as its published copy, whose snapshot holds the name it was published under (what its
+// viewers see), and for an eval fixture, which has no row. The snapshot's `document` record is no
+// substitute for a file board: the room copies the row's name onto it only when the row is
+// updated, so it stays empty until the board's first rename.
 export function getBoardInfo(snapshot: RoomSnapshot, fileName: string | null): ToolResult {
 	const pages = enumerateBoardPages(snapshot)
 	return toolJsonResult({

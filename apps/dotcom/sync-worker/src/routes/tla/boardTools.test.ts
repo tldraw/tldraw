@@ -356,8 +356,8 @@ describe('getBoardInfo', () => {
 		expect(nameOf(getBoardInfo(makeSnapshot(PAGES, 'Stale'), '  '))).toBe('')
 	})
 
-	// Published boards and eval fixtures have no row of their own.
-	it('falls back to the snapshot when there is no file row', () => {
+	// A published copy carries the name it was published under; eval fixtures have no row.
+	it('falls back to the snapshot when no file row name is given', () => {
 		expect(nameOf(getBoardInfo(makeSnapshot(PAGES, 'Published'), null))).toBe('Published')
 		expect(nameOf(getBoardInfo(makeSnapshot(PAGES, null), null))).toBe('')
 	})

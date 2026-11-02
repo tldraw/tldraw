@@ -646,7 +646,8 @@ export type ResolvedBoardForUser =
 	| {
 			ok: true
 			board: ResolvedThumbnailBoard
-			// The `file` row's name; null for a published board. See getBoardInfo for why not the snapshot.
+			// The `file` row's name; null when served as the published copy, which carries its own.
+			// See getBoardInfo.
 			fileName: string | null
 	  }
 	| Extract<ResolveThumbnailBoardResult, { ok: false }>

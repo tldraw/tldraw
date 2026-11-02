@@ -997,7 +997,8 @@ describe('get_board_info', () => {
 			expect(await boardInfoName('  ', 'Stale mirror')).toBe('')
 		})
 
-		// No row of its own: viewers and the link preview see the name frozen into the published copy.
+		// Served as the published copy: viewers and the link preview see the name it was published
+		// under.
 		it('reads a published board’s name from its published snapshot', async () => {
 			mockPublishedBoard(makeSnapshot(PAGES, 'Published title'))
 			const result = await callTool('get_board_info', { boardId: 'abc' })
