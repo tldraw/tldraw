@@ -6,7 +6,7 @@ export interface CommandPaletteSubmenu {
 	key: string
 	label: string
 	/** Always one row you open, even with one item, and its items never show outside it. */
-	collapsed?: boolean
+	onDemand?: boolean
 }
 
 /** @internal */
@@ -64,8 +64,7 @@ const entryFieldEquals: {
 	name: same,
 	path: (a, b) => a.length === b.length && a.every((part, i) => part === b[i]),
 	submenu: (a, b) =>
-		a === b ||
-		(!!a && !!b && a.key === b.key && a.label === b.label && a.collapsed === b.collapsed),
+		a === b || (!!a && !!b && a.key === b.key && a.label === b.label && a.onDemand === b.onDemand),
 	section: same,
 	heading: same,
 	kbd: same,

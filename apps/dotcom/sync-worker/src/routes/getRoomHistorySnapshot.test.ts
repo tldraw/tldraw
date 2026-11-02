@@ -9,7 +9,7 @@ import { encodeVersionBody } from '../versionChainCodec'
 import { buildSnapshotDelta } from '../versionDelta'
 import { getRoomHistorySnapshot } from './getRoomHistorySnapshot'
 
-vi.mock('../utils/tla/getAuth', () => ({ requireAdminAccessToRequest: vi.fn() }))
+vi.mock('../utils/tla/requireHistoryAccess', () => ({ requireHistoryAccess: vi.fn() }))
 
 const roomKey = 'app_rooms/board'
 
