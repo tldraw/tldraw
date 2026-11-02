@@ -97,7 +97,6 @@
 		"@types/node": "^22.15.31",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
-		"@types/sqlite3": "^3.1.11",
 		"@types/ws": "^8.18.1",
 		"autoprefixer": "^10.4.20",
 		"concurrently": "^9.1.2",

@@ -529,9 +529,6 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.7)
-      '@types/sqlite3':
-        specifier: ^3.1.11
-        version: 3.1.11
       '@types/ws':
         specifier: ^8.18.1
         version: 8.18.1
@@ -1016,9 +1013,6 @@ importers:
       '@types/d3-geo':
         specifier: ^3.1.0
         version: 3.1.0
-      '@types/katex':
-        specifier: ^0.16.8
-        version: 0.16.8
       '@types/lodash':
         specifier: ^4.17.14
         version: 4.17.25
@@ -9006,9 +9000,6 @@ packages:
   '@types/jsonwebtoken@9.0.5':
     resolution: {integrity: sha512-VRLSGzik+Unrup6BsouBeHsf4d1hOEgYWTm/7Nmw1sXoN1+tRly/Gy/po3yeahnP4jfnQWWAhQAqcNfH7ngOkA==}
 
-  '@types/katex@0.16.8':
-    resolution: {integrity: sha512-trgaNyfU+Xh2Tc+ABIb44a5AYUpicB3uwirOioeOkNPPbmgRNtcWyDeeFRzjPZENO9Vq8gvVqfhaaXWLlevVwg==}
-
   '@types/linkify-it@5.0.0':
     resolution: {integrity: sha512-sVDA58zAw4eWAffKOaQH5/5j3XeayukzDk+ewSsnv3p4yJEZHCCzMDiZM8e0OUrRvmpGZ85jf4yDHkHsgBNr9Q==}
 
@@ -9140,9 +9131,6 @@ packages:
 
   '@types/sinonjs__fake-timers@8.1.5':
     resolution: {integrity: sha512-mQkU2jY8jJEF7YHjHvsQO8+3ughTL1mcnn96igfhONmR+fUPSKIkefQYpSe8bsly2Ep7oQbn/6VG5/9/0qcArQ==}
-
-  '@types/sqlite3@3.1.11':
-    resolution: {integrity: sha512-KYF+QgxAnnAh7DWPdNDroxkDI3/MspH1NMx6m/N/6fT1G6+jvsw4/ZePt8R8cr7ta58aboeTfYFBDxTJ5yv15w==}
 
   '@types/stack-utils@2.0.3':
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
@@ -23027,8 +23015,6 @@ snapshots:
     dependencies:
       '@types/node': 22.16.0
 
-  '@types/katex@0.16.8': {}
-
   '@types/linkify-it@5.0.0': {}
 
   '@types/lodash.isequal@4.5.8':
@@ -23170,10 +23156,6 @@ snapshots:
       '@types/send': 0.17.5
 
   '@types/sinonjs__fake-timers@8.1.5': {}
-
-  '@types/sqlite3@3.1.11':
-    dependencies:
-      '@types/node': 22.16.0
 
   '@types/stack-utils@2.0.3': {}
 
