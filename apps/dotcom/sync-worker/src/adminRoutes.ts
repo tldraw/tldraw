@@ -20,6 +20,7 @@ import { StatusError, json } from 'itty-router'
 import { sql } from 'kysely'
 import PQueue from 'p-queue'
 import { getUploadObjectName } from './assetAssociation'
+import { changeUserEmail } from './changeUserEmail'
 import { summarizeSnapshotDocuments } from './fileStats'
 import { MAX_ATTEMPTS } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
@@ -672,6 +673,18 @@ export const adminRoutes = createRouter<Environment>()
 			.orderBy('file.updatedAt', 'desc')
 			.execute()
 		return json(files)
+	})
+	.post('/app/admin/user/change_email', async (req, env) => {
+		const q = req.query['q']
+		if (typeof q !== 'string') {
+			return new Response('Missing query param', { status: 400 })
+		}
+		const body: any = await req.json()
+		if (typeof body?.email !== 'string') {
+			throw new StatusError(400, 'email (string) is required')
+		}
+		const userRow = await requireUser(env, q)
+		return json(await changeUserEmail(env, userRow.id, body.email))
 	})
 	.post('/app/admin/delete_user', async (res, env) => {
 		const q = res.query['q']
