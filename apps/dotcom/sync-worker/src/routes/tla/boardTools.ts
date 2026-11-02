@@ -582,7 +582,7 @@ export function getReportedBoardName(name: string | null | undefined): string {
 // served as its published copy, whose snapshot holds the name it was published under (what its
 // viewers see), and for an eval fixture, which has no row. The snapshot's `document` record is no
 // substitute for a file board: the room copies the row's name onto it only when the row is
-// updated, so it stays empty until the board's first rename.
+// updated (renamed, shared, published, moved), so it stays empty until then.
 export function getBoardInfo(snapshot: RoomSnapshot, fileName: string | null): ToolResult {
 	const pages = enumerateBoardPages(snapshot)
 	return toolJsonResult({

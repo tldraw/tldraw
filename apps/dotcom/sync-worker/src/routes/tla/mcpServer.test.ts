@@ -967,7 +967,8 @@ describe('get_board_info', () => {
 	})
 
 	// The snapshot's `document` name is a mirror the room writes only when the file row is updated, so
-	// reading it reported every board that had not been renamed since creation as unnamed.
+	// reading it reported a board as unnamed until its row was first renamed, shared, published or
+	// moved.
 	describe('board name', () => {
 		async function boardInfoName(fileName: string, documentName: string) {
 			grantReadAccess(fileName)
