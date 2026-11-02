@@ -49,7 +49,7 @@ function submenuRow(submenu: CommandPaletteSubmenu): CommandPaletteRow {
 	return { type: 'submenu', key: `submenu:${submenu.key}`, submenu }
 }
 
-// A one-item submenu stays a plain row, since opening it would only add a step. Collapsed
+// A one-item submenu stays a plain row, since opening it would only add a step. On-demand
 // submenus always group, whatever their size.
 function getGroupedSubmenuKeys(entries: readonly CommandPaletteEntry[]) {
 	const sizes = new Map<string, number>()
@@ -57,7 +57,7 @@ function getGroupedSubmenuKeys(entries: readonly CommandPaletteEntry[]) {
 	for (const { submenu } of entries) {
 		if (!submenu) continue
 		sizes.set(submenu.key, (sizes.get(submenu.key) ?? 0) + 1)
-		if (submenu.collapsed) keys.add(submenu.key)
+		if (submenu.onDemand) keys.add(submenu.key)
 	}
 	for (const [key, size] of sizes) if (size > 1) keys.add(key)
 	return keys
@@ -121,7 +121,7 @@ export function getCommandPaletteBrowseRows(
 
 	const recent = recentIds
 		.map((id) => unpinned.find((entry) => entry.id === id))
-		.filter((entry): entry is CommandPaletteEntry => !!entry && !entry.submenu?.collapsed)
+		.filter((entry): entry is CommandPaletteEntry => !!entry && !entry.submenu?.onDemand)
 		.slice(0, MAX_COMMAND_PALETTE_RECENTS)
 	if (recent.length) {
 		rows.push({ type: 'heading', key: 'heading:recent', label: recentHeading })
@@ -173,7 +173,7 @@ export function getCommandPaletteSearchRows(
 		if (
 			submenu &&
 			grouped.has(submenu.key) &&
-			(submenu.collapsed || !isFoundByOwnName(entry, submenu))
+			(submenu.onDemand || !isFoundByOwnName(entry, submenu))
 		) {
 			if (!added.has(submenu.key)) {
 				added.add(submenu.key)

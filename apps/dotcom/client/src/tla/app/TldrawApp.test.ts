@@ -418,11 +418,11 @@ describe('TldrawApp.getFallbackFileName', () => {
 })
 
 describe('TldrawApp.copyWorkspaceInvite', () => {
-	function createInviteAppStub() {
+	function createInviteAppStub({ inviteLinkEnabled = true as boolean | undefined } = {}) {
 		return Object.assign(createAppStub(), {
 			trackEvent: vi.fn(),
 			getHomeWorkspaceId: () => 'home',
-			getWorkspaceMembership: () => ({ group: { inviteSecret: 'secret' } }),
+			getWorkspaceMembership: () => ({ group: { inviteSecret: 'secret', inviteLinkEnabled } }),
 		})
 	}
 
@@ -444,5 +444,23 @@ describe('TldrawApp.copyWorkspaceInvite', () => {
 		const app = createInviteAppStub()
 		expect(app.copyWorkspaceInvite('workspace')).toBe(true)
 		expect(app.trackEvent).toHaveBeenCalledWith('copy-share-link', { source: 'sidebar' })
+	})
+
+	it('copies nothing when the invite link is disabled', () => {
+		const app = createInviteAppStub({ inviteLinkEnabled: false })
+		expect(app.canCopyWorkspaceInvite('workspace')).toBe(false)
+		expect(app.copyWorkspaceInvite('workspace')).toBe(false)
+		expect(navigator.clipboard.writeText).not.toHaveBeenCalled()
+		expect(app.trackEvent).not.toHaveBeenCalled()
+	})
+
+	it('treats a missing enabled flag as enabled', () => {
+		const app = createInviteAppStub({ inviteLinkEnabled: undefined })
+		expect(app.canCopyWorkspaceInvite('workspace')).toBe(true)
+	})
+
+	it("can't copy the home workspace's invite", () => {
+		const app = createInviteAppStub()
+		expect(app.canCopyWorkspaceInvite('home')).toBe(false)
 	})
 })

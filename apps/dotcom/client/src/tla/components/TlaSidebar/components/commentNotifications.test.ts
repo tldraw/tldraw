@@ -1,9 +1,11 @@
+import { createIntl } from 'react-intl'
 import { TLRichText } from 'tldraw'
 import { describe, expect, it } from 'vitest'
 import {
 	buildReactionNotifications,
 	categorizeCommentNotifications,
 	CommentNotificationInput,
+	formatReactionByline,
 	mergeCommentFeeds,
 	mergeNotifications,
 	summarizeForeignReactors,
@@ -491,5 +493,30 @@ describe('summarizeForeignReactors', () => {
 
 	it('handles undefined reactions', () => {
 		expect(summarizeForeignReactors(undefined, 'me')).toEqual({ names: [], others: 0, total: 0 })
+	})
+})
+
+describe('formatReactionByline', () => {
+	const intl = createIntl({ locale: 'en', onError: () => {} })
+	const fmt = (names: string[], others: number, total = names.length + others) =>
+		formatReactionByline(intl, { names, others, total })
+
+	// the palette label for the user's own reacted-to comment names the reactors, not its author
+	it('names the reactors as a plain string', () => {
+		expect([
+			fmt([], 1),
+			fmt([], 3),
+			fmt(['Ada'], 0),
+			fmt(['Ada', 'Bo'], 0),
+			fmt(['Ada'], 1),
+			fmt(['Ada', 'Bo'], 2),
+		]).toEqual([
+			'Someone reacted to your comment',
+			'3 people reacted to your comment',
+			'Ada reacted to your comment',
+			'Ada and Bo reacted to your comment',
+			'Ada and 1 other reacted to your comment',
+			'Ada, Bo and 2 others reacted to your comment',
+		])
 	})
 })

@@ -4,9 +4,10 @@ import { ReactNode, StrictMode, useEffect, useState } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import {
-	CommandPaletteCollapsed,
+	CommandPaletteOnDemand,
 	CommandPalettePinned,
 	useCommandPaletteActiveItemId,
+	useCommandPaletteQuery,
 	useCommandPaletteStore,
 } from '../../lib/ui/components/CommandPalette/CommandPaletteContext'
 import { CommandPalettePromptItem } from '../../lib/ui/components/CommandPalette/CommandPalettePromptItem'
@@ -308,6 +309,285 @@ describe('CommandPaletteShell', () => {
 		setMetrics(250)
 		expect(list.hasAttribute('data-more')).toBe(false)
 	})
+
+	it('keeps the scroll position when backing out of a submenu or a prompt', async () => {
+		const original = Element.prototype.scrollIntoView
+		const originalRect = Element.prototype.getBoundingClientRect
+		// Like block: 'nearest' on a list scrolled past its first row.
+		Element.prototype.scrollIntoView = function () {
+			const list = this.closest('[role="listbox"]') as HTMLElement
+			list.scrollTop = 0
+		}
+		try {
+			const { rendered, input } = await renderShell(
+				<>
+					{['a', 'b', 'c'].map((id) => item(id, `Item ${id}`))}
+					<TldrawUiMenuSubmenu id="many" label="Many">
+						{['x', 'y'].map((id) => item(id, `Option ${id}`))}
+						<CommandPalettePromptItem id="new" label="New" placeholder="Name" onSubmit={vi.fn()} />
+					</TldrawUiMenuSubmenu>
+				</>
+			)
+			const list = await rendered.findByRole('listbox')
+			for (const [key, value] of Object.entries({ scrollHeight: 500, clientHeight: 250 })) {
+				Object.defineProperty(list, key, { configurable: true, value })
+			}
+			Object.defineProperty(list, 'scrollTop', { configurable: true, writable: true, value: 0 })
+			// Every row reads as in view, so only the restore moves the list.
+			Element.prototype.getBoundingClientRect = function () {
+				const height = this.getAttribute('role') === 'listbox' ? 250 : 50
+				return { top: 0, bottom: height } as DOMRect
+			}
+			const scrollTo = (scrollTop: number) => {
+				list.scrollTop = scrollTop
+				fireEvent.scroll(list)
+			}
+
+			scrollTo(250)
+			fireEvent.click(await rendered.findByTestId('command-palette.submenu.Many'))
+			expect(list.scrollTop).toBe(0)
+			expect(list.hasAttribute('data-more')).toBe(true)
+			scrollTo(100)
+			fireEvent.click(rendered.getByTestId('command-palette.item.new'))
+			expect(list.scrollTop).toBe(0)
+
+			press(input, 'Escape')
+			expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
+			expect(list.scrollTop).toBe(100)
+			press(input, 'Escape')
+			expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+			expect(list.scrollTop).toBe(250)
+			expect(list.hasAttribute('data-more')).toBe(false)
+		} finally {
+			Element.prototype.scrollIntoView = original
+			Element.prototype.getBoundingClientRect = originalRect
+		}
+	})
+
+	it('keeps the scroll position when backing out to rows that register a commit late', async () => {
+		// Rows from useCommandPaletteQuery register in their own layout effects, so the shell only
+		// lists them on the render after the query comes back.
+		function Results() {
+			const query = useCommandPaletteQuery()
+			if (!query) return null
+			return <>{['0', '1', '2', '3', '4', '5', '6', '7'].map((n) => item(`row${n}`, `Row ${n}`))}</>
+		}
+		const { rendered, input } = await renderShell(
+			<>
+				<Results />
+				<TldrawUiMenuSubmenu id="rows" label="Rows">
+					{['x', 'y'].map((id) => item(id, `Option ${id}`))}
+				</TldrawUiMenuSubmenu>
+			</>
+		)
+		const list = await rendered.findByRole('listbox')
+		// 50px a row, and a browser clamps scrollTop to what the rows can hold, keeping the clamp.
+		const maxScroll = () => Math.max(0, within(list).queryAllByRole('option').length * 50 - 250)
+		let scrollTop = 0
+		Object.defineProperties(list, {
+			scrollHeight: { configurable: true, get: () => maxScroll() + 250 },
+			clientHeight: { configurable: true, value: 250 },
+			scrollTop: {
+				configurable: true,
+				get: () => (scrollTop = Math.min(scrollTop, maxScroll())),
+				set: (value: number) => (scrollTop = Math.min(value, maxScroll())),
+			},
+		})
+
+		type(input, 'row')
+		await rendered.findByTestId('command-palette.item.row7')
+		list.scrollTop = 150
+		fireEvent.scroll(list)
+		fireEvent.click(rendered.getByTestId('command-palette.submenu.Rows'))
+		expect(list.scrollTop).toBe(0)
+
+		press(input, 'Escape')
+		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+		expect(list.scrollTop).toBe(150)
+	})
+
+	// Without a trailing group, the list gets too short for the saved scroll and it never applies.
+	it.each([true, false])(
+		'scrolls the active row into view when the restored scroll would hide it (trailing group: %s)',
+		async (hasTrailingGroup) => {
+			let removeEdit = () => {}
+			function Rows() {
+				const [hasEdit, setHasEdit] = useState(true)
+				removeEdit = () => setHasEdit(false)
+				return (
+					<>
+						{hasEdit && (
+							<TldrawUiMenuGroup id="edit" label="menu.edit">
+								{item('a1', 'A1')}
+								{item('a2', 'A2')}
+							</TldrawUiMenuGroup>
+						)}
+						<TldrawUiMenuGroup id="view" label="menu.view">
+							{['1', '2', '3', '4', '5', '6', '7', '8'].map((n) => item(`b${n}`, `B${n}`))}
+						</TldrawUiMenuGroup>
+						{hasTrailingGroup && (
+							<TldrawUiMenuGroup id="extras" label="menu.extras">
+								{item('c1', 'C1')}
+								{item('c2', 'C2')}
+							</TldrawUiMenuGroup>
+						)}
+						<TldrawUiMenuSubmenu id="many" label="Many">
+							{['x', 'y'].map((id) => item(id, `Option ${id}`))}
+						</TldrawUiMenuSubmenu>
+					</>
+				)
+			}
+			const { rendered, input } = await renderShell(<Rows />)
+			const list = await rendered.findByRole('listbox')
+			await rendered.findByTestId('command-palette.item.b8')
+			// Headings and options are 50px each, in a 250px list.
+			const slots = () =>
+				Array.from(list.querySelectorAll('[role="option"], .tlui-command-palette__heading'))
+			const top = (el: Element) => slots().indexOf(el) * 50
+			let scrollTop = 0
+			const maxScroll = () => Math.max(0, slots().length * 50 - 250)
+			Object.defineProperties(list, {
+				scrollHeight: { configurable: true, get: () => maxScroll() + 250 },
+				clientHeight: { configurable: true, value: 250 },
+				scrollTop: {
+					configurable: true,
+					get: () => (scrollTop = Math.min(scrollTop, maxScroll())),
+					set: (value: number) => (scrollTop = Math.max(0, Math.min(value, maxScroll()))),
+				},
+			})
+			const rect = (y: number, height: number) => ({ top: y, bottom: y + height }) as DOMRect
+			const originalRect = Element.prototype.getBoundingClientRect
+			const originalScroll = Element.prototype.scrollIntoView
+			Element.prototype.getBoundingClientRect = function () {
+				if (this === list) return rect(0, 250)
+				return rect(top(this) - list.scrollTop, 50)
+			}
+			Element.prototype.scrollIntoView = function () {
+				const y = top(this) - list.scrollTop
+				if (y < 0) list.scrollTop += y
+				else if (y + 50 > 250) list.scrollTop += y + 50 - 250
+			}
+			try {
+				for (let i = 0; i < 5; i++) press(input, 'ArrowDown')
+				const active = () => list.querySelector('[data-highlighted]')!
+				list.scrollTop = top(active())
+				fireEvent.scroll(list)
+				const saved = list.scrollTop
+				expect(saved).toBeGreaterThan(0)
+
+				fireEvent.click(rendered.getByTestId('command-palette.submenu.Many'))
+				act(() => removeEdit())
+				press(input, 'Escape')
+				expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+				const y = top(active()) - list.scrollTop
+				expect(y).toBeGreaterThanOrEqual(0)
+				expect(y + 50).toBeLessThanOrEqual(250)
+			} finally {
+				Element.prototype.getBoundingClientRect = originalRect
+				Element.prototype.scrollIntoView = originalScroll
+			}
+		}
+	)
+
+	it('keeps the exact scroll when backing out to a partly clipped active row', async () => {
+		const { rendered, input } = await renderShell(
+			<>
+				{['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].map((n) => item(`i${n}`, `I${n}`))}
+				<TldrawUiMenuSubmenu id="many" label="Many">
+					{['x', 'y'].map((id) => item(id, `Option ${id}`))}
+				</TldrawUiMenuSubmenu>
+			</>
+		)
+		const list = await rendered.findByRole('listbox')
+		// Options are 50px each, in a 250px list.
+		const top = (el: Element) =>
+			within(list)
+				.queryAllByRole('option')
+				.indexOf(el as HTMLElement) * 50
+		const maxScroll = () => Math.max(0, within(list).queryAllByRole('option').length * 50 - 250)
+		let scrollTop = 0
+		Object.defineProperties(list, {
+			scrollHeight: { configurable: true, get: () => maxScroll() + 250 },
+			clientHeight: { configurable: true, value: 250 },
+			scrollTop: {
+				configurable: true,
+				get: () => (scrollTop = Math.min(scrollTop, maxScroll())),
+				set: (value: number) => (scrollTop = Math.max(0, Math.min(value, maxScroll()))),
+			},
+		})
+		const originalRect = Element.prototype.getBoundingClientRect
+		const originalScroll = Element.prototype.scrollIntoView
+		Element.prototype.getBoundingClientRect = function () {
+			const y = this === list ? 0 : top(this) - list.scrollTop
+			return { top: y, bottom: y + (this === list ? 250 : 50) } as DOMRect
+		}
+		// Like block: 'nearest', which reveals the whole row.
+		Element.prototype.scrollIntoView = function () {
+			const y = top(this) - list.scrollTop
+			if (y < 0) list.scrollTop += y
+			else if (y + 50 > 250) list.scrollTop += y + 50 - 250
+		}
+		try {
+			for (let i = 0; i < 3; i++) press(input, 'ArrowDown')
+			const active = () => list.querySelector('[data-highlighted]')!
+			list.scrollTop = top(active()) + 20
+			fireEvent.scroll(list)
+			const saved = list.scrollTop
+
+			fireEvent.click(rendered.getByTestId('command-palette.submenu.Many'))
+			press(input, 'Escape')
+			expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+			expect(list.scrollTop).toBe(saved)
+		} finally {
+			Element.prototype.getBoundingClientRect = originalRect
+			Element.prototype.scrollIntoView = originalScroll
+		}
+	})
+
+	it.each([false, true])(
+		'drops a restore still waiting for rows on pointer move (moved: %s)',
+		async (moved) => {
+			let setCount = (_count: number) => {}
+			function Rows() {
+				const [count, set] = useState(10)
+				setCount = set
+				return <>{Array.from({ length: count }, (_, n) => item(`r${n}`, `R${n}`))}</>
+			}
+			const { rendered, input } = await renderShell(
+				<>
+					<Rows />
+					<TldrawUiMenuSubmenu id="many" label="Many">
+						{['x', 'y'].map((id) => item(id, `Option ${id}`))}
+					</TldrawUiMenuSubmenu>
+				</>
+			)
+			const list = await rendered.findByRole('listbox')
+			await rendered.findByTestId('command-palette.item.r9')
+			const maxScroll = () => Math.max(0, within(list).queryAllByRole('option').length * 50 - 250)
+			let scrollTop = 0
+			Object.defineProperties(list, {
+				scrollHeight: { configurable: true, get: () => maxScroll() + 250 },
+				clientHeight: { configurable: true, value: 250 },
+				scrollTop: {
+					configurable: true,
+					get: () => (scrollTop = Math.min(scrollTop, maxScroll())),
+					set: (value: number) => (scrollTop = Math.min(value, maxScroll())),
+				},
+			})
+
+			list.scrollTop = 150
+			fireEvent.scroll(list)
+			fireEvent.click(rendered.getByTestId('command-palette.submenu.Many'))
+			act(() => setCount(2))
+			press(input, 'Escape')
+			expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+			expect(list.scrollTop).toBe(0)
+
+			if (moved) fireEvent.pointerMove(list)
+			act(() => setCount(10))
+			expect(list.scrollTop).toBe(moved ? 0 : 150)
+		}
+	)
 
 	it("keeps Enter's keyup from reaching the editor after running an item", async () => {
 		const { editor, input } = await renderShell(item('alpha', 'Alpha'))
@@ -797,14 +1077,14 @@ describe('CommandPaletteShell', () => {
 		expect(document.activeElement).toBe(editor.getContainer())
 	})
 
-	it('does not record items run from a collapsed submenu', async () => {
+	it('does not record items run from an on-demand submenu', async () => {
 		const onSelect = vi.fn()
 		const { rendered } = await renderShell(
-			<CommandPaletteCollapsed>
+			<CommandPaletteOnDemand>
 				<TldrawUiMenuSubmenu id="news" label="News">
 					{item('note', 'Note', onSelect)}
 				</TldrawUiMenuSubmenu>
-			</CommandPaletteCollapsed>
+			</CommandPaletteOnDemand>
 		)
 		fireEvent.click(await rendered.findByTestId('command-palette.submenu.News'))
 		fireEvent.click(rendered.getByTestId('command-palette.item.note'))
@@ -816,11 +1096,11 @@ describe('CommandPaletteShell', () => {
 		const { rendered, input } = await renderShell(
 			<>
 				{item('alpha', 'Alpha')}
-				<CommandPaletteCollapsed>
+				<CommandPaletteOnDemand>
 					<TldrawUiMenuSubmenu id="news" label="">
 						{item('note', 'Note')}
 					</TldrawUiMenuSubmenu>
-				</CommandPaletteCollapsed>
+				</CommandPaletteOnDemand>
 			</>
 		)
 		await rendered.findByTestId('command-palette.item.alpha')
