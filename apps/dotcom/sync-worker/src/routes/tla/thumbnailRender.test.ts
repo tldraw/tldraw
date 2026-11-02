@@ -1,8 +1,13 @@
 import { getShapeClusters } from '@tldraw/dotcom-shared'
 import { describe, expect, it } from 'vitest'
+import { Environment } from '../../types'
 import { enumerateBoardPages } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
-import { buildThumbnailRenderUrl, summarizeSnapshotContent } from './thumbnailRender'
+import {
+	browserRunEngine,
+	buildThumbnailRenderUrl,
+	summarizeSnapshotContent,
+} from './thumbnailRender'
 
 describe('enumerateBoardPages', () => {
 	it('lists pages in fractional-index order with names and content flags', () => {
@@ -150,5 +155,23 @@ describe('summarizeSnapshotContent', () => {
 			bboxWidth: 0,
 			bboxHeight: 0,
 		})
+	})
+})
+
+describe('browserRunEngine', () => {
+	const engine = (BROWSER_RUN_KITESURF: string | undefined) =>
+		browserRunEngine({ BROWSER_RUN_KITESURF } as Environment)
+
+	it('runs on kitesurf when the flag is set', () => {
+		expect(engine('true')).toBe('kitesurf')
+		// envFlagWord trims and lowercases, so these are the same flag.
+		expect(engine(' TRUE ')).toBe('kitesurf')
+	})
+
+	it('defaults to chromium when the flag is unset or not "true"', () => {
+		expect(engine(undefined)).toBe('chromium')
+		expect(engine('')).toBe('chromium')
+		expect(engine('false')).toBe('chromium')
+		expect(engine('1')).toBe('chromium')
 	})
 })

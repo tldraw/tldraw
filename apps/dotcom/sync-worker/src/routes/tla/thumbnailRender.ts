@@ -519,6 +519,10 @@ function writeBrowserRunSessionTelemetry(
 			// Appended after `capture:`. What the worker sent; what the page used is `acquired:` on
 			// render_page_timings.
 			`transport:${transport.kind}`,
+			// Appended. Spike: which Browser Run engine ran the session (`kitesurf` vs the default
+			// `chromium`), so the preview's sessions can be sliced by engine. `chromium` everywhere the
+			// flag is unset, which keeps historical rows reading as chromium.
+			`engine:${browserRunEngine(env)}`,
 		],
 		doubles: [
 			width,
@@ -715,6 +719,15 @@ function browserMsUsedOf(response: Response) {
 	return Number(response.headers.get('X-Browser-Ms-Used')) || 0
 }
 
+// Which Browser Run engine the Quick Actions run on. Spike (preview only): BROWSER_RUN_KITESURF opts
+// into Cloudflare's lighter stateless `kitesurf` engine; everything else is the default Chromium.
+// A pure function of the env so both the call site (callBrowserRun) and the spend ledger
+// (writeBrowserRunSessionTelemetry) agree without threading a value through. The flag is injected
+// for previews only, and the local dev stand-in never calls Browser Run, so the label never lies.
+export function browserRunEngine(env: Environment): 'kitesurf' | 'chromium' {
+	return envFlagWord(env.BROWSER_RUN_KITESURF) === 'true' ? 'kitesurf' : 'chromium'
+}
+
 async function callBrowserRun(
 	env: Environment,
 	action: BrowserRunAction,
@@ -728,8 +741,11 @@ async function callBrowserRun(
 
 	const startedAt = Date.now()
 	// A Browser Rendering Quick Action, invoked straight through the binding (no puppeteer, no API
-	// token). Requires compatibility_date >= 2026-03-24 for `quickAction`.
-	const response = await env.BROWSER.quickAction(action, requestBody)
+	// token). Requires compatibility_date >= 2026-03-24 for `quickAction`. The spike adds
+	// `browser: 'kitesurf'` to switch engines; `quickAction` validates it and rejects any other value.
+	const options =
+		browserRunEngine(env) === 'kitesurf' ? { ...requestBody, browser: 'kitesurf' } : requestBody
+	const response = await env.BROWSER.quickAction(action, options)
 	const durationMs = Date.now() - startedAt
 
 	if (!response.ok) {

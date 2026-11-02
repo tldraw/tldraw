@@ -157,6 +157,10 @@ export interface Environment {
 	// 'true' pushes the board's records into the render page with the screenshot request, instead of
 	// the page fetching them back from the snapshot route. Off everywhere it is unset.
 	THUMBNAIL_RENDER_PUSH: string | undefined
+	// Spike (preview only): 'true' runs Browser Run's Quick Actions on Cloudflare's lighter stateless
+	// `kitesurf` engine instead of the default Chromium, by adding `browser: 'kitesurf'` to the call.
+	// Only the live Browser Run path reads it; off everywhere it is unset. See browserRunEngine.
+	BROWSER_RUN_KITESURF: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected
