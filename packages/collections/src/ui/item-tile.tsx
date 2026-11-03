@@ -1,4 +1,5 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react'
+import { ThumbnailImage } from './thumbnail-image'
 
 /** @public */
 export interface ItemTileProps {
@@ -7,6 +8,8 @@ export interface ItemTileProps {
 	/** The button's accessible name: the item's name, or a description for an unnamed item. */
 	accessibleLabel: string
 	thumbnailUrl?: string
+	/** Cleans a stored SVG thumbnail before it's drawn. See {@link CollectionsPanelProps.sanitizeThumbnail}. */
+	sanitizeThumbnail?(svg: string): string
 	/** Props for the tile's button: its click, pointer and drag handlers. */
 	buttonProps?: ButtonHTMLAttributes<HTMLButtonElement>
 	/** Shown over the tile's corner on hover, e.g. an {@link ItemMenu}. */
@@ -18,6 +21,7 @@ export function ItemTile({
 	name,
 	accessibleLabel,
 	thumbnailUrl,
+	sanitizeThumbnail,
 	buttonProps,
 	menu,
 }: ItemTileProps) {
@@ -31,7 +35,7 @@ export function ItemTile({
 				{...buttonProps}
 			>
 				<span className="tlui-collections-tile__thumbnail">
-					{thumbnailUrl && <img src={thumbnailUrl} alt="" draggable={false} />}
+					{thumbnailUrl && <ThumbnailImage url={thumbnailUrl} sanitize={sanitizeThumbnail} />}
 				</span>
 			</button>
 			{menu && <div className="tlui-collections-tile__menu">{menu}</div>}

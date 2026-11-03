@@ -16,6 +16,8 @@ export interface ItemGridProps<Id extends string = string> {
 	items: ItemGridItem<Id>[]
 	/** Props for an item's tile button: its click, pointer and drag handlers. */
 	getItemProps(id: Id): ButtonHTMLAttributes<HTMLButtonElement>
+	/** Cleans a stored SVG thumbnail before it's drawn. See {@link CollectionsPanelProps.sanitizeThumbnail}. */
+	sanitizeThumbnail?(svg: string): string
 	/** An item's menu, shown over its tile. Leave it out for tiles without one. */
 	renderItemMenu?(item: ItemGridItem<Id>): ReactNode
 	/** Shown when there are no items. */
@@ -26,6 +28,7 @@ export interface ItemGridProps<Id extends string = string> {
 export function ItemGrid<Id extends string>({
 	items,
 	getItemProps,
+	sanitizeThumbnail,
 	renderItemMenu,
 	empty,
 }: ItemGridProps<Id>) {
@@ -39,6 +42,7 @@ export function ItemGrid<Id extends string>({
 						name={item.name}
 						accessibleLabel={item.accessibleLabel}
 						thumbnailUrl={item.thumbnailUrl}
+						sanitizeThumbnail={sanitizeThumbnail}
 						buttonProps={getItemProps(item.id)}
 						menu={renderItemMenu?.(item)}
 					/>

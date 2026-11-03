@@ -130,10 +130,11 @@
 	overflow: hidden;
 }
 
-.tlui-collections-tile__thumbnail > img {
-	max-width: 80%;
-	max-height: 80%;
-	object-fit: contain;
+/* The thumbnail is drawn in this element's shadow root, which sizes it to fill. */
+.tlui-collections-tile__image {
+	display: block;
+	width: 80%;
+	height: 80%;
 }
 
 .tlui-collections-menu,

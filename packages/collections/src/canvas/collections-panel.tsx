@@ -1,7 +1,8 @@
-import { type MouseEvent, useCallback } from 'react'
+import { CSSProperties, type MouseEvent, useCallback } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
+	getPreviewColorVariables,
 	useDialogs,
 	useEditor,
 	useToasts,
@@ -66,6 +67,26 @@ export interface CollectionsPanelProps {
 	source: CollectionSource
 	/** Which side of the canvas the panel floats on. Defaults to `'left'`. */
 	side?: 'left' | 'right'
+	/**
+	 * Cleans a stored SVG thumbnail before it's drawn inline. Thumbnails are content other people
+	 * can store by calling the source's API directly, so treat them as hostile. Defaults to
+	 * tldraw's `sanitizeSvg`.
+	 *
+	 * A replacement must keep `foreignObject` with inline styles (labels), `var()` in attributes
+	 * (theme colours) and `data:` images, or previews lose them. Return an empty string to refuse
+	 * a thumbnail. Whatever it returns, a thumbnail that could still run script is shown as an
+	 * `<img>` instead, and every thumbnail is drawn in a shadow root. Pass a stable function: a new
+	 * one each render sanitises every tile again.
+	 *
+	 * @example
+	 * ```tsx
+	 * // Defined once, outside the component.
+	 * const sanitizeThumbnail = (svg: string) => mySanitizer(svg)
+	 *
+	 * <CollectionsPanel source={source} sanitizeThumbnail={sanitizeThumbnail} />
+	 * ```
+	 */
+	sanitizeThumbnail?(svg: string): string
 }
 
 /**
@@ -74,12 +95,21 @@ export interface CollectionsPanelProps {
  * viewport; dragging one out drops it under the pointer.
  * @public @react
  */
-export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProps) {
+export function CollectionsPanel({
+	source,
+	side = 'left',
+	sanitizeThumbnail,
+}: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
 	const open = useValue('collections panel open', () => collectionsPanelOpen.get(editor), [editor])
+	const thumbnailColors = useValue(
+		'thumbnail colors',
+		() => getPreviewColorVariables(editor.getCurrentTheme(), editor.getColorMode()),
+		[editor]
+	)
 	const collections = useValue('collections', () => source.getCollections(), [source])
 	const activeId = useValue('active collection', () => activeCollectionId.get(editor), [editor])
 	// A stale id (the collection was deleted) falls back to the first collection rather than an empty panel.
@@ -208,6 +238,7 @@ export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProp
 				className="tlui-collections-panel"
 				data-side={side}
 				aria-label={msg(messages.title)}
+				style={thumbnailColors as CSSProperties}
 				onContextMenu={(e) => e.stopPropagation()}
 			>
 				<CollectionsPanelHeader
@@ -226,6 +257,7 @@ export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProp
 							thumbnailUrl: item.thumbnailUrl,
 						}))}
 						getItemProps={getTileProps}
+						sanitizeThumbnail={sanitizeThumbnail}
 						renderItemMenu={(item) => (
 							<ItemMenu
 								id={item.id}

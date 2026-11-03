@@ -21,10 +21,11 @@ export async function saveShapesToCollection(
 ): Promise<TLCollectionItem> {
 	const content = editor.getContentFromCurrentPage(shapeIds)
 	if (!content) throw new Error('No shapes to save')
-	const { blob } = await editor.toImage(shapeIds, { format: 'png', background: false })
+	// A preview follows the viewer's theme once the panel sets its colour variables.
+	const preview = await editor.getSvgString(shapeIds, { preview: true, background: false })
 	return source.addItem(collectionId, {
 		name,
 		content: { formatVersion: CURRENT_ITEM_CONTENT_FORMAT_VERSION, content },
-		thumbnail: blob,
+		thumbnail: preview && new Blob([preview.svg], { type: 'image/svg+xml' }),
 	})
 }
