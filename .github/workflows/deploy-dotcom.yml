@@ -101,7 +101,7 @@ jobs:
             echo "Branch $BRANCH_NAME created."
           fi
 
-          # Wait for connection strings to appear, then extract them.
+          # Wait for branch to be ready, then extract connection strings.
           # Write to a temp file to avoid secrets leaking into CI step output.
           BRANCH_JSON=$(mktemp)
           for i in $(seq 1 24); do
@@ -115,7 +115,7 @@ jobs:
               -o json > "$BRANCH_JSON" 2>/dev/null || true
             POSTGRES_URL_TRANSACTION=$(jq -r '.POSTGRES_URL // empty' "$BRANCH_JSON" 2>/dev/null || true)
             if [ -n "$POSTGRES_URL_TRANSACTION" ]; then
-              echo "Branch $BRANCH_NAME has connection strings."
+              echo "Branch $BRANCH_NAME is ready."
               break
             fi
             echo "Waiting for branch to be ready ($i/24)..."
@@ -131,52 +131,6 @@ jobs:
 
           if [ -z "$POSTGRES_URL_NON_POOLING" ] || [ "$POSTGRES_URL_NON_POOLING" = "null" ]; then
             echo "::error::Failed to get POSTGRES_URL_NON_POOLING from branch"
-            exit 1
-          fi
-
-          # Connection strings appear seconds after `branches create`, well before
-          # the instance has finished provisioning. A fresh branch restarts during
-          # that window, killing any open connection with 57P01 ("terminating
-          # connection due to administrator command") mid-migration. Wait until
-          # the branch has finished setup and its db + pooler stay healthy.
-          SUPABASE_API="https://api.supabase.com/v1"
-          REQUIRED_STREAK=3
-          HEALTHY_STREAK=0
-          for i in $(seq 1 60); do
-            BRANCH_INFO=$(curl -fsS --max-time 15 -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
-              "$SUPABASE_API/projects/$PROJECT_REF/branches/$BRANCH_NAME" \
-              | jq -c '{project_ref, status, preview_project_status}' 2>/dev/null || true)
-            BRANCH_REF=$(jq -r '.project_ref // empty' <<< "$BRANCH_INFO" 2>/dev/null || true)
-            SETUP_STATUS=$(jq -r '.status // empty' <<< "$BRANCH_INFO" 2>/dev/null || true)
-            PROJECT_STATUS=$(jq -r '.preview_project_status // empty' <<< "$BRANCH_INFO" 2>/dev/null || true)
-            case "$PROJECT_STATUS" in
-              INIT_FAILED|REMOVED)
-                echo "::error::Branch $BRANCH_NAME is $PROJECT_STATUS"
-                exit 1
-                ;;
-            esac
-            SERVICES_HEALTHY=false
-            if [ "$PROJECT_STATUS" = "ACTIVE_HEALTHY" ] && [ -n "$BRANCH_REF" ] \
-              && [ "$SETUP_STATUS" != "CREATING_PROJECT" ] && [ "$SETUP_STATUS" != "RUNNING_MIGRATIONS" ]; then
-              SERVICES_HEALTHY=$(curl -fsS --max-time 15 -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
-                "$SUPABASE_API/projects/$BRANCH_REF/health?services=db,pooler&timeout_ms=5000" \
-                | jq -r '[.[] | select(.name == "db" or .name == "pooler") | .status] | length == 2 and all(. == "ACTIVE_HEALTHY")' 2>/dev/null || echo false)
-            fi
-            if [ "$SERVICES_HEALTHY" = "true" ]; then
-              HEALTHY_STREAK=$((HEALTHY_STREAK + 1))
-              if [ "$HEALTHY_STREAK" -ge "$REQUIRED_STREAK" ]; then
-                echo "Branch $BRANCH_NAME is healthy."
-                break
-              fi
-              echo "Branch $BRANCH_NAME healthy ($HEALTHY_STREAK/$REQUIRED_STREAK)"
-            else
-              HEALTHY_STREAK=0
-              echo "Waiting for branch to be healthy ($i/60): ${BRANCH_INFO:-no response}"
-            fi
-            sleep 5
-          done
-          if [ "$HEALTHY_STREAK" -lt "$REQUIRED_STREAK" ]; then
-            echo "::error::Branch $BRANCH_NAME not healthy after 5 minutes: ${BRANCH_INFO:-no response}"
             exit 1
           fi
 

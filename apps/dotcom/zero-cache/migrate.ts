@@ -57,17 +57,35 @@ const dryRun = process.argv.includes('--dry-run')
 
 const DRY_RUN_ROLLBACK = new Error('dry-run-rollback')
 
-const db = new Kysely({
-	dialect: new PostgresDialect({
-		pool: new pg.Pool({
-			connectionString: postgresConnectionString,
-			application_name: 'migrate',
-			idleTimeoutMillis: 10_000,
-			max: 1,
-		}),
-	}),
-	log: ['error'],
-})
+function createDb() {
+	const pool = new pg.Pool({
+		connectionString: postgresConnectionString,
+		application_name: 'migrate',
+		idleTimeoutMillis: 10_000,
+		max: 1,
+	})
+	// Without a listener, a server-side disconnect is an uncaught 'error' event that kills
+	// the process before the retry in run() can catch it.
+	pool.on('error', () => {})
+	pool.on('connect', (client) => client.on('error', () => {}))
+	return new Kysely({ dialect: new PostgresDialect({ pool }), log: ['error'] })
+}
+let db = createDb()
+
+// A new Supabase preview branch restarts shortly after it reports ready, terminating open
+// connections ~35-50s after creation (57P01). The migration is a single transaction, so a
+// dropped connection rolls it back and retrying from scratch is safe.
+const MAX_CONNECTION_LOSS_RETRIES = 5
+function isConnectionLoss(e: unknown) {
+	const err = e as { code?: string; message?: string }
+	return (
+		err?.code === '57P01' || // admin_shutdown
+		err?.code === '57P02' || // crash_shutdown
+		err?.code === '57P03' || // cannot_connect_now
+		err?.code === 'ECONNRESET' ||
+		/Connection terminated/i.test(err?.message ?? '')
+	)
+}
 
 async function waitForPostgres() {
 	let attempts = 0
@@ -172,9 +190,22 @@ async function run() {
 		process.exit(1)
 	}
 
-	const summary: string[] = []
+	let summary: string[] = []
 	try {
-		await migrate(summary)
+		for (let attempt = 1; ; attempt++) {
+			summary = []
+			try {
+				await migrate(summary)
+				break
+			} catch (e) {
+				if (!isConnectionLoss(e) || attempt > MAX_CONNECTION_LOSS_RETRIES) throw e
+				console.log(`Lost the postgres connection (${(e as Error).message}), retrying...`)
+				await db.destroy().catch(() => {})
+				await new Promise((resolve) => setTimeout(resolve, 2000))
+				db = createDb()
+				await waitForPostgres()
+			}
+		}
 		console.log(summary.join('\n'))
 		// need to do this to close the db connection
 		if (shouldSignalSuccess) {
