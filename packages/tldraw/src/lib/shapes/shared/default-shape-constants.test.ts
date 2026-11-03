@@ -1,5 +1,9 @@
 import { DEFAULT_THEME, TLTheme } from '@tldraw/editor'
-import { getFontCheckboxStyle } from './default-shape-constants'
+import {
+	getFontCheckboxStyle,
+	getFontCheckboxStyleForFamily,
+	getFontFamily,
+} from './default-shape-constants'
 
 function themeWithSansCheckbox(checkbox: TLTheme['fonts']['sans']['checkbox']): TLTheme {
 	return {
@@ -43,5 +47,20 @@ describe('getFontCheckboxStyle', () => {
 		expect(getFontCheckboxStyle(theme, 'sans')).toEqual({
 			'--tl-checkbox-tick': 'url("a\\22 b\\5c c\\a d")',
 		})
+	})
+})
+
+describe('getFontCheckboxStyleForFamily', () => {
+	it('finds the checkboxes of the theme font with that family', () => {
+		expect(getFontCheckboxStyleForFamily(DEFAULT_THEME, getFontFamily(DEFAULT_THEME, 'draw'))).toBe(
+			getFontCheckboxStyle(DEFAULT_THEME, 'draw')
+		)
+	})
+
+	it('returns nothing for a family no theme font uses, or one without its own checkboxes', () => {
+		expect(getFontCheckboxStyleForFamily(DEFAULT_THEME, 'Comic Sans MS')).toBeUndefined()
+		expect(
+			getFontCheckboxStyleForFamily(DEFAULT_THEME, getFontFamily(DEFAULT_THEME, 'sans'))
+		).toBeUndefined()
 	})
 })

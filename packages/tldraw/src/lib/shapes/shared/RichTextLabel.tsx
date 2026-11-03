@@ -20,6 +20,7 @@ import {
 	toggleTaskItemInRichText,
 } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
+import { getFontCheckboxStyleForFamily } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
 import { useEditableRichText } from './useEditableRichText'
 
@@ -28,7 +29,11 @@ export interface RichTextLabelProps {
 	shapeId: TLShapeId
 	type: ExtractShapeByProps<{ richText: TLRichText }>['type']
 	fontFamily: string
-	/** Custom properties that draw task list checkboxes in the font's style; see `getFontCheckboxStyle`. */
+	/**
+	 * Custom properties that draw task list checkboxes in the font's style; see `getFontCheckboxStyle`.
+	 * Defaults to those of the theme font whose family is `fontFamily`. Pass `{}` for the standard
+	 * checkboxes.
+	 */
 	checkboxStyle?: Record<string, string>
 	fontSize: number
 	lineHeight: number
@@ -79,6 +84,11 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	showTextOutline = true,
 }: RichTextLabelProps) {
 	const editor = useEditor()
+	const fontCheckboxStyle = useValue(
+		'font checkbox style',
+		() => checkboxStyle ?? getFontCheckboxStyleForFamily(editor.getCurrentTheme(), fontFamily),
+		[editor, checkboxStyle, fontFamily]
+	)
 	const isDragging = React.useRef(false)
 	const legacyAlign = isLegacyAlign(textAlign)
 	const { rInput, isEmpty, isEditing, isReadyForEditing, ...editableTextRest } =
@@ -224,7 +234,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 						// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css).
 						'--tl-rich-text-heading-line-height': lineHeight,
 						// Several KB of mask art; only text with checkboxes needs it.
-						...(richText && richTextHasTaskList(richText) && checkboxStyle),
+						...(richText && richTextHasTaskList(richText) && fontCheckboxStyle),
 						minWidth: Math.ceil(textWidth || 0),
 						color: labelColor,
 						width: textWidth ? Math.ceil(textWidth) : undefined,
@@ -267,7 +277,11 @@ export interface RichTextSVGProps {
 	richText: TLRichText
 	fontSize: number
 	fontFamily: string
-	/** Custom properties that draw task list checkboxes in the font's style; see `getFontCheckboxStyle`. */
+	/**
+	 * Custom properties that draw task list checkboxes in the font's style; see `getFontCheckboxStyle`.
+	 * Defaults to those of the theme font whose family is `fontFamily`. Pass `{}` for the standard
+	 * checkboxes.
+	 */
 	checkboxStyle?: Record<string, string>
 	lineHeight: number
 	textAlign: 'start' | 'center' | 'end'
@@ -323,7 +337,8 @@ export function RichTextSVG({
 		lineHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
 		// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css).
 		'--tl-rich-text-heading-line-height': lineHeight,
-		...(richTextHasTaskList(richText) && checkboxStyle),
+		...(richTextHasTaskList(richText) &&
+			(checkboxStyle ?? getFontCheckboxStyleForFamily(editor.getCurrentTheme(), fontFamily))),
 		textAlign,
 		width: '100%',
 		wordWrap: 'break-word' as const,

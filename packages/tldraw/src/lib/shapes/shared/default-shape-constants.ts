@@ -89,6 +89,23 @@ export function getFontCheckboxStyle(
 	return style
 }
 
+/**
+ * {@link getFontCheckboxStyle} for the theme font whose family is `fontFamily`, for a label that's
+ * given a resolved family rather than a font key. A family no theme font uses gets nothing, and with
+ * it the standard checkboxes.
+ *
+ * @internal
+ */
+export function getFontCheckboxStyleForFamily(
+	theme: TLTheme,
+	fontFamily: string
+): Record<string, string> | undefined {
+	for (const [font, themeFont] of Object.entries(theme.fonts)) {
+		if (themeFont.fontFamily === fontFamily) return getFontCheckboxStyle(theme, font)
+	}
+	return undefined
+}
+
 function cssUrl(url: string) {
 	const escaped = url.replace(/[\\"\n\r\f]/g, (c) => `\\${c.charCodeAt(0).toString(16)} `)
 	return `url("${escaped}")`
