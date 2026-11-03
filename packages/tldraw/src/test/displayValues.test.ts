@@ -1,10 +1,15 @@
-import { TLNoteShape, TLTheme, createShapeId } from '@tldraw/editor'
+import { TLGeoShape, TLNoteShape, TLTheme, createShapeId } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../lib/shapes/arrow/ArrowShapeUtil'
 import { DrawShapeUtil } from '../lib/shapes/draw/DrawShapeUtil'
 import { FrameShapeUtil } from '../lib/shapes/frame/FrameShapeUtil'
 import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
 import { HighlightShapeUtil } from '../lib/shapes/highlight/HighlightShapeUtil'
 import { NoteShapeUtil } from '../lib/shapes/note/NoteShapeUtil'
+import {
+	STANDARD_CHECKBOX_STYLE,
+	getFontCheckboxStyle,
+	getFontCheckboxStyleForFamily,
+} from '../lib/shapes/shared/default-shape-constants'
 import { getDisplayValues } from '../lib/shapes/shared/getDisplayValues'
 import { TestEditor } from './TestEditor'
 
@@ -89,6 +94,34 @@ describe('note shape colors', () => {
 		const util = editor.getShapeUtil('note') as NoteShapeUtil
 		const dv = getDisplayValues(util, shape)
 		expect(dv.borderColor).toBe('#MYBORDER')
+	})
+})
+
+describe('label checkbox style', () => {
+	const labelCheckboxStyle = () => {
+		const util = editor.getShapeUtil('geo') as GeoShapeUtil
+		return getDisplayValues(util, editor.getShape<TLGeoShape>(geoId)!).labelCheckboxStyle
+	}
+
+	it("uses the font's own checkboxes", () => {
+		editor.createShapes([{ id: geoId, type: 'geo', x: 0, y: 0, props: { font: 'draw' } }])
+		expect(labelCheckboxStyle()).toBe(getFontCheckboxStyle(editor.getCurrentTheme(), 'draw'))
+	})
+
+	it('uses the standard checkboxes for a font without its own, even one sharing a family', () => {
+		const theme = editor.getTheme('default')!
+		editor.updateTheme({
+			...theme,
+			fonts: {
+				...theme.fonts,
+				sans: { ...theme.fonts.sans, fontFamily: theme.fonts.draw.fontFamily },
+			},
+		})
+		editor.createShapes([{ id: geoId, type: 'geo', x: 0, y: 0, props: { font: 'sans' } }])
+		const current = editor.getCurrentTheme()
+		// A lookup by family would find the draw font's art.
+		expect(getFontCheckboxStyleForFamily(current, current.fonts.sans.fontFamily)).toBeDefined()
+		expect(labelCheckboxStyle()).toBe(STANDARD_CHECKBOX_STYLE)
 	})
 })
 
