@@ -1,4 +1,4 @@
-import { CreateFilesRequestBody } from '@tldraw/dotcom-shared'
+import { CreateFilesRequestBody, CreateFilesResponseBody } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { createTLSchema } from '@tldraw/tlschema'
 import { uniqueId } from '@tldraw/utils'
@@ -14,7 +14,9 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 
 	const userId = await getUserIdFromRequest(request, env)
 	if (!userId) {
-		return Response.json({ error: true, message: 'No user' }, { status: 401 })
+		return Response.json({ error: true, code: 'unauthorized' } satisfies CreateFilesResponseBody, {
+			status: 401,
+		})
 	}
 
 	const slugs: string[] = []
@@ -25,7 +27,10 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 		// need to maybe migrate the snapshot
 		const snapshotResult = validateSnapshot(_snapshot)
 		if (!snapshotResult.ok) {
-			return Response.json({ error: true, message: snapshotResult.error }, { status: 400 })
+			console.error('Invalid .tldr snapshot:', snapshotResult.error)
+			return Response.json({ error: true, code: 'bad_request' } satisfies CreateFilesResponseBody, {
+				status: 400,
+			})
 		}
 
 		// Create the new snapshot
@@ -47,5 +52,5 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 
 		slugs.push(newSlug)
 	}
-	return new Response(JSON.stringify({ error: false, slugs }))
+	return Response.json({ error: false, slugs } satisfies CreateFilesResponseBody)
 }
