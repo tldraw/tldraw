@@ -44,6 +44,6 @@
 		"esbuild": "^0.28.0",
 		"typescript": "^7.0.2",
 		"vitest": "^5.0.0",
-		"wrangler": "^4.75.0"
+		"wrangler": "^4.141.0"
 	}
 }
