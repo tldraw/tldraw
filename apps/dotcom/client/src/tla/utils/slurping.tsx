@@ -110,13 +110,10 @@ export class Slurper {
 			if (abortSignal.aborted) return false
 			// Another restore may have completed while this one was reading IndexedDB.
 			if (editor.getDocumentSettings().meta.slurpPersistenceKey === slurpPersistenceKey) return true
-			// Missing local data must stay retryable on the original device. Recover existing cloud
-			// edits alongside local content manually so neither copy is overwritten.
-			if (
-				!data.schema ||
-				data.records.length === 0 ||
-				editor.store.query.records('shape').get().length > 0
-			) {
+			// Other devices and workspace members won't have this browser's local data.
+			if (!data.schema || data.records.length === 0) return false
+			// Recover existing cloud edits alongside local content manually so neither is overwritten.
+			if (editor.store.query.records('shape').get().length > 0) {
 				this.showFailureDialog()
 				return false
 			}

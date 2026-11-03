@@ -62,21 +62,25 @@ describe('maybeSlurp', () => {
 	})
 
 	it.each(['missing schema', 'empty records'])('keeps %s retryable', async (scenario) => {
+		const missingData = {
+			schema: scenario === 'missing schema' ? undefined : localData.schema,
+			records: [],
+			sessionStateSnapshot: undefined,
+		}
 		const load = vi
 			.spyOn(LocalIndexedDb.prototype, 'load')
-			.mockResolvedValueOnce({
-				schema: scenario === 'missing schema' ? undefined : localData.schema,
-				records: [],
-				sessionStateSnapshot: undefined,
-			})
+			.mockResolvedValueOnce(missingData)
+			.mockResolvedValueOnce(missingData)
 			.mockResolvedValueOnce(localData)
 
-		const firstOpen = maybeSlurp(opts)
-		await vi.advanceTimersByTimeAsync(50)
-		await firstOpen
-		expect(editor.getDocumentSettings().meta).toEqual({})
-		expect(editor.getShape(shapeId)).toBeUndefined()
-		expect(opts.addDialog).toHaveBeenCalledOnce()
+		for (let i = 0; i < 2; i++) {
+			const open = maybeSlurp(opts)
+			await vi.advanceTimersByTimeAsync(50)
+			await open
+			expect(editor.getDocumentSettings().meta).toEqual({})
+			expect(editor.getShape(shapeId)).toBeUndefined()
+			expect(opts.addDialog).not.toHaveBeenCalled()
+		}
 
 		const nextOpen = maybeSlurp(opts)
 		await vi.advanceTimersByTimeAsync(50)
@@ -86,7 +90,20 @@ describe('maybeSlurp', () => {
 			slurpPersistenceKey: 'local-drawing',
 			slurpFinished: true,
 		})
-		expect(load).toHaveBeenCalledTimes(2)
+		expect(load).toHaveBeenCalledTimes(3)
+	})
+
+	it('stays silent without local data even when the cloud board has edits', async () => {
+		const cloudShapeId = createShapeId('cloud-edit')
+		editor.createShape({ id: cloudShapeId, type: 'group' })
+
+		const open = maybeSlurp(opts)
+		await vi.advanceTimersByTimeAsync(50)
+		await open
+
+		expect(editor.getShape(cloudShapeId)).toMatchObject({ id: cloudShapeId })
+		expect(editor.getDocumentSettings().meta).toEqual({})
+		expect(opts.addDialog).not.toHaveBeenCalled()
 	})
 
 	it('does not mark an unrestored document finished when the cloud board has edits', async () => {
