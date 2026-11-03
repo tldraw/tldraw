@@ -132,10 +132,13 @@ async function fetchAppMessages(locale: string): Promise<AppMessages> {
 	return { ...translationsEnJson, ...(await res.json()) }
 }
 
+function getSignedOutLocale() {
+	return getUserPreferences().locale ?? defaultUserPreferences.locale
+}
+
 // A signed-in user's locale is in Zero, which isn't loaded until well after the first render.
 // Until then, use what this browser showed last, then a signed-out user's preference.
-const initialLocale =
-	getLocalSessionState().locale ?? getUserPreferences().locale ?? defaultUserPreferences.locale
+const initialLocale = getLocalSessionState().locale ?? getSignedOutLocale()
 
 // Started here rather than on mount, so the catalogs download alongside Clerk and Zero instead of
 // after them. `IntlWrapper` reports a failure.
@@ -411,10 +414,9 @@ function SignedInProvider({
 	)
 }
 
-// Reads the same user the editor does (`TlaEditor` passes `app?.tlUser`), but without waiting for
-// an editor to mount, so pages without one follow the user's language too. While a signed-in
-// user's app is still loading, that's the SDK's local user, not theirs, so it reports nothing and
-// the saved locale stays up.
+// Read from the user rather than the editor, so pages without an editor follow it too. Reports
+// nothing while a signed-in user's app loads: the only preferences then are this browser's
+// signed-out ones, which would replace their saved locale with the wrong one.
 function UserLocale({ onLocaleChange }: { onLocaleChange(locale: string): void }) {
 	const app = useMaybeApp()
 	const isAppLoading = useIsAppLoading()
@@ -423,7 +425,7 @@ function UserLocale({ onLocaleChange }: { onLocaleChange(locale: string): void }
 		() => {
 			if (app) return app.tlUser.userPreferences.get().locale ?? defaultUserPreferences.locale
 			if (isAppLoading) return null
-			return getUserPreferences().locale ?? defaultUserPreferences.locale
+			return getSignedOutLocale()
 		},
 		[app, isAppLoading]
 	)

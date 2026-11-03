@@ -325,6 +325,23 @@ Translations load asynchronously when the locale changes. The system:
 
 During loading, the UI uses the previous translations to avoid flicker. If loading fails, English remains as the fallback.
 
+Each locale's file is fetched once per page. Any UI that mounts after it has loaded, such as a second editor or a remounted one, renders in that language from its first frame.
+
+On first load, the UI shows English until the file arrives. To avoid that, call [preloadTranslation](?) as soon as you know the user's locale. Await it if you'd rather render nothing than briefly show English:
+
+```tsx
+import { preloadTranslation, Tldraw } from 'tldraw'
+
+await preloadTranslation('fr')
+
+// Later: the UI renders in French from its first frame
+<Tldraw />
+```
+
+If you pass `assetUrls` to `Tldraw`, pass the same object to `preloadTranslation`, so both request the same file.
+
+When you render [TldrawUiContextProvider](?) without an editor, for example around an app's sidebar, it can't read the user's locale from the editor. Pass its `locale` prop so it follows your user's language rather than the browser's.
+
 To use translations outside the full tldraw UI, wrap your components in [TldrawUiTranslationProvider](?) (inside an `AssetUrlsProvider`).
 
 ## Related examples

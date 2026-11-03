@@ -49,11 +49,19 @@ export function getLoadedTranslation(
 	locale: TLUiTranslation['locale'],
 	translationUrls: Partial<TLUiAssetUrls['translations']>
 ): TLUiTranslation | undefined {
-	if (locale === 'en') return EN_TRANSLATION
+	const catalog = findCatalog(locale, translationUrls)
+	return catalog ? loadedTranslations.get(catalog.url) : EN_TRANSLATION
+}
+
+// Null means English: either it was asked for, or there's no catalog to fetch for the locale.
+function findCatalog(
+	locale: TLUiTranslation['locale'],
+	translationUrls: Partial<TLUiAssetUrls['translations']>
+) {
+	if (locale === 'en') return null
 	const language = LANGUAGES.find((t) => t.locale === locale)
-	if (!language) return EN_TRANSLATION
-	const url = translationUrls[language.locale]
-	return url ? loadedTranslations.get(url) : undefined
+	const url = language && translationUrls[language.locale]
+	return language && url ? { language, url } : null
 }
 
 /**
@@ -91,23 +99,13 @@ export function fetchTranslation(
 	locale: TLUiTranslation['locale'],
 	translationUrls: Partial<TLUiAssetUrls['translations']>
 ): Promise<TLUiTranslation> {
-	if (locale === 'en') {
+	const catalog = findCatalog(locale, translationUrls)
+	if (!catalog) {
+		if (locale !== 'en') console.warn(`No translation found for locale ${locale}`)
 		return Promise.resolve(EN_TRANSLATION)
 	}
 
-	const language = LANGUAGES.find((t) => t.locale === locale)
-
-	if (!language) {
-		console.warn(`No translation found for locale ${locale}`)
-		return Promise.resolve(EN_TRANSLATION)
-	}
-
-	const url = translationUrls[language.locale]
-	if (!url) {
-		console.warn(`No translation URL for locale ${locale}`)
-		return Promise.resolve(EN_TRANSLATION)
-	}
-
+	const { language, url } = catalog
 	let pending = pendingTranslations.get(url)
 	if (!pending) {
 		pending = loadTranslation(language, url)

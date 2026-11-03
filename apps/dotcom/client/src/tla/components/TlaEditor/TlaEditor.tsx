@@ -2,8 +2,10 @@ import { captureException } from '@sentry/react'
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
+	computed,
 	createDebugValue,
 	createSessionStateSnapshotSignal,
+	createTLCurrentUser,
 	debugFlags,
 	DefaultContextMenu,
 	DefaultContextMenuContent,
@@ -11,6 +13,7 @@ import {
 	DefaultDebugMenuContent,
 	defineMessages,
 	Editor,
+	getUserPreferences,
 	react,
 	throttle,
 	TLComponents,
@@ -45,11 +48,12 @@ import { markFirstLoad, reportFirstLoad } from '../../../utils/firstLoad'
 import { globalEditor } from '../../../utils/globalEditor'
 import { LOADS_DEBUG_FLAG } from '../../../utils/loadTracker'
 import { TldrawApp } from '../../app/TldrawApp'
-import { useMaybeApp } from '../../hooks/useAppState'
+import { useIsAppLoading, useMaybeApp } from '../../hooks/useAppState'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
+import { getLocalSessionState } from '../../utils/local-session-state'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import {
@@ -79,6 +83,16 @@ const messages = defineMessages({
 		defaultMessage: 'Could not restore your local drawing. Try reloading this page.',
 	},
 	fileHistory: { defaultMessage: 'File history' },
+})
+
+// A signed-in user's board mounts before Zero has their preferences. With no `user`, the editor
+// falls back to this browser's signed-out preferences, whose language can differ from theirs, so
+// the toolbar flashed that language. Their last-shown locale stands in until the app loads.
+const appLoadingUser = createTLCurrentUser({
+	userPreferences: computed('app loading user preferences', () => {
+		const prefs = getUserPreferences()
+		return { ...prefs, locale: getLocalSessionState().locale ?? prefs.locale }
+	}),
 })
 
 // Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
@@ -129,6 +143,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	markFirstLoad('editor-rendered')
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
+	const isAppLoading = useIsAppLoading()
 
 	const fileId = fileSlug
 
@@ -376,7 +391,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
 				tools={commentingEnabled ? tlaCommentTools : undefined}
-				user={app?.tlUser}
+				user={app?.tlUser ?? (isAppLoading ? appLoadingUser : undefined)}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={instanceComponents}

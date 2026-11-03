@@ -93,6 +93,8 @@ export function TldrawUiTranslationProvider({
 	const [fetched, setFetched] = React.useState<TLUiTranslation>(() => ready ?? EN_TRANSLATION)
 	const loaded = ready ?? fetched
 
+	// Runs even when `ready`, so that `fetched` follows the language on screen: a later switch to a
+	// locale that isn't loaded yet would otherwise drop back to English, not this one.
 	React.useEffect(() => {
 		let isCancelled = false
 
