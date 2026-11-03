@@ -8,6 +8,7 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	TldrawUiMenuSubmenu,
 	useTranslation,
 } from 'tldraw'
 
@@ -15,6 +16,7 @@ const messages = defineMessages({
 	moreOptions: { id: 'collections.item-menu.title', defaultMessage: 'Item options' },
 	rename: { id: 'collections.item-menu.rename', defaultMessage: 'Rename' },
 	delete: { id: 'collections.item-menu.delete', defaultMessage: 'Delete' },
+	moveTo: { id: 'collections.item-menu.move-to', defaultMessage: 'Move to' },
 })
 
 /** @public */
@@ -25,6 +27,9 @@ export interface ItemMenuProps {
 	onRename?(): void
 	/** Leave out to hide Delete. */
 	onDelete?(): void
+	/** The collections the item can move to. Leave out, or leave empty, to hide "Move to". */
+	moveTargets?: { id: string; name: string }[]
+	onMove?(collectionId: string): void
 }
 
 /**
@@ -40,9 +45,10 @@ export function getItemMenuId(id: string) {
  * A ⋯ menu for one item, laid out like the page menu's. Renders nothing when it has no actions.
  * @public @react
  */
-export function ItemMenu({ id, onRename, onDelete }: ItemMenuProps) {
+export function ItemMenu({ id, onRename, onDelete, moveTargets, onMove }: ItemMenuProps) {
 	const msg = useTranslation()
-	if (!onRename && !onDelete) return null
+	const canMove = onMove !== undefined && moveTargets !== undefined && moveTargets.length > 0
+	if (!onRename && !onDelete && !canMove) return null
 
 	return (
 		<TldrawUiDropdownMenuRoot id={getItemMenuId(id)}>
@@ -61,6 +67,22 @@ export function ItemMenu({ id, onRename, onDelete }: ItemMenuProps) {
 					{onRename && (
 						<TldrawUiMenuGroup id="modify">
 							<TldrawUiMenuItem id="rename" label={messages.rename.id} onSelect={onRename} />
+						</TldrawUiMenuGroup>
+					)}
+					{canMove && (
+						<TldrawUiMenuGroup id="move">
+							<TldrawUiMenuSubmenu id="move-to" label={messages.moveTo.id}>
+								<TldrawUiMenuGroup id="move-targets">
+									{moveTargets.map((target) => (
+										<TldrawUiMenuItem
+											key={target.id}
+											id={`move-to-${target.id}`}
+											label={target.name}
+											onSelect={() => onMove(target.id)}
+										/>
+									))}
+								</TldrawUiMenuGroup>
+							</TldrawUiMenuSubmenu>
 						</TldrawUiMenuGroup>
 					)}
 					{onDelete && (
