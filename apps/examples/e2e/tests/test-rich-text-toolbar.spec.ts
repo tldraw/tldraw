@@ -279,6 +279,64 @@ test.describe('Rich text behaviour', () => {
 		expect(await checked()).toBe(false)
 	})
 
+	test('clicking a checkbox while another shape is being edited ends that edit', async ({
+		page,
+		isMobile,
+	}) => {
+		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
+		if (isMobile) return
+
+		// The rectangle from beforeEach is still being edited.
+		const editingId = await page.evaluate(() => editor.getEditingShapeId())
+		expect(editingId).not.toBe(null)
+		const taskShapeId = await page.evaluate(() => {
+			editor.createShape({
+				type: 'geo',
+				x: 500,
+				y: 100,
+				props: {
+					w: 200,
+					h: 120,
+					richText: {
+						type: 'doc',
+						content: [
+							{
+								type: 'taskList',
+								content: [
+									{
+										type: 'taskItem',
+										attrs: { checked: false },
+										content: [{ type: 'paragraph', content: [{ type: 'text', text: 'a task' }] }],
+									},
+								],
+							},
+						],
+					},
+				},
+			})
+			return editor.getCurrentPageShapesSorted().at(-1)!.id
+		})
+		await sleep(150)
+
+		const label = page
+			.locator(
+				`[data-shape-id="${taskShapeId}"] .tl-rich-text ul[data-type="taskList"] > li > label`
+			)
+			.first()
+		const box = (await label.boundingBox())!
+		await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+		await sleep(150)
+
+		expect(
+			await page.evaluate(
+				() =>
+					(editor.getCurrentPageShapesSorted().at(-1)!.props as any).richText.content[0].content[0]
+						.attrs.checked
+			)
+		).toBe(true)
+		expect(await page.evaluate(() => editor.getEditingShapeId())).toBe(null)
+	})
+
 	test('keeps text visible when ProseMirror hides the selection', async ({ page, isMobile }) => {
 		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
 		if (isMobile) return
