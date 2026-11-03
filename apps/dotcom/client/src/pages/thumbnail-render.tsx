@@ -15,7 +15,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	Box,
 	Editor,
-	Group2d,
 	Image,
 	SerializedSchema,
 	TLPageId,
@@ -668,14 +667,7 @@ export function measureArrow(
 		const { x, y } = transform.applyToPoint(point)
 		return { x, y }
 	}
-	const geometry = editor.getShapeGeometry(shape)
-	const labelGeometry =
-		geometry instanceof Group2d ? geometry.children.find((child) => child.isLabel) : undefined
-	return {
-		start: toPage(info.start.point),
-		end: toPage(info.end.point),
-		...(labelGeometry ? { label: toPage(labelGeometry.center) } : null),
-	}
+	return { start: toPage(info.start.point), end: toPage(info.end.point) }
 }
 
 // The shapes whose size the record does not hold: a text's height comes from laying out its text,

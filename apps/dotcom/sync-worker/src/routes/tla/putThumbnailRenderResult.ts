@@ -166,28 +166,24 @@ export async function putThumbnailRenderResult(
 // Malformed arrow geometry is dropped and the shape's bounds kept: get_cluster_info then reports the
 // arrow from its record, as it would for a render page that predates arrow measurement.
 function readArrow(value: ThumbnailShapeMeasurement['arrow']): MeasuredArrow | undefined {
-	if (!value || typeof value !== 'object') return undefined
-	const isPoint = (point: unknown): point is { x: number; y: number } =>
-		!!point &&
-		typeof point === 'object' &&
-		Number.isFinite((point as { x?: unknown }).x) &&
-		Number.isFinite((point as { y?: unknown }).y)
-	if (!isPoint(value.start) || !isPoint(value.end)) return undefined
-	const point = (p: { x: number; y: number }) => ({ x: p.x, y: p.y })
-	return {
-		start: point(value.start),
-		end: point(value.end),
-		...(isPoint(value.label) ? { label: point(value.label) } : null),
-	}
+	const start = readPoint(value?.start)
+	const end = readPoint(value?.end)
+	return start && end ? { start, end } : undefined
+}
+
+function readPoint(value: unknown) {
+	const { x, y } = (value ?? {}) as { x?: unknown; y?: unknown }
+	return isFiniteNumber(x) && isFiniteNumber(y) ? { x, y } : undefined
 }
 
 // Malformed dimensions are dropped the same way: the shape reports the w and h on its record.
 function readDimensions(
 	value: ThumbnailShapeMeasurement['dimensions']
 ): MeasuredDimensions | undefined {
-	if (!value || typeof value !== 'object') return undefined
-	const { w, h } = value as { w?: unknown; h?: unknown }
-	if (typeof w !== 'number' || typeof h !== 'number') return undefined
-	if (!Number.isFinite(w) || !Number.isFinite(h) || w < 0 || h < 0) return undefined
-	return { w, h }
+	const { w, h } = (value ?? {}) as { w?: unknown; h?: unknown }
+	return isFiniteNumber(w) && isFiniteNumber(h) && w >= 0 && h >= 0 ? { w, h } : undefined
+}
+
+function isFiniteNumber(value: unknown): value is number {
+	return Number.isFinite(value)
 }

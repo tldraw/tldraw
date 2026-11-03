@@ -180,11 +180,7 @@ describe('the measure result', () => {
 						y: 0,
 						w: 10,
 						h: 10,
-						arrow: {
-							start: { x: 0, y: 0, z: 0.5 },
-							end: { x: 10, y: 10 },
-							label: { x: 5, y: 5 },
-						},
+						arrow: { start: { x: 0, y: 0, z: 0.5 }, end: { x: 10, y: 10 } },
 					},
 					'shape:bad': {
 						x: 0,
@@ -206,7 +202,7 @@ describe('the measure result', () => {
 				minY: 0,
 				maxX: 10,
 				maxY: 10,
-				arrow: { start: { x: 0, y: 0 }, end: { x: 10, y: 10 }, label: { x: 5, y: 5 } },
+				arrow: { start: { x: 0, y: 0 }, end: { x: 10, y: 10 } },
 			},
 			'shape:bad': { minX: 0, minY: 0, maxX: 10, maxY: 10 },
 		})

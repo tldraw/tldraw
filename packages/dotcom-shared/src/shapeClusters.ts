@@ -197,22 +197,39 @@ const SHAPE_NOUNS: Record<string, [one: string, many: string]> = {
 	frame: ['frame', 'frames'],
 }
 
+// A geo reads as its own name, except where that is not a noun ("3 arrow rights") or not one a reader
+// would know ("rhombus 2").
+const GEO_NOUNS: Record<string, string> = {
+	'rhombus-2': 'rhombus',
+	'arrow-right': 'right arrow shape',
+	'arrow-left': 'left arrow shape',
+	'arrow-up': 'up arrow shape',
+	'arrow-down': 'down arrow shape',
+}
+
+function getShapeNouns(kind: string): [one: string, many: string] {
+	if (!kind.startsWith('geo:')) return SHAPE_NOUNS[kind] ?? [`${kind} shape`, `${kind} shapes`]
+	const one = kind.slice(4)
+	// "rhombuses" and "check boxes", not "rhombuss" and "check boxs".
+	return [one, /[sx]$/.test(one) ? `${one}es` : `${one}s`]
+}
+
 function describeShapes(shapes: TLShapeWithPlainText[]) {
 	const counts = new Map<string, number>()
 	for (const shape of shapes) {
 		// A group is only the container of the shapes it holds, which are counted themselves.
 		if (typeof shape.type !== 'string' || shape.type === 'group') continue
 		const geo = shape.type === 'geo' ? (shape.props as { geo?: unknown }).geo : undefined
-		const kind = typeof geo === 'string' ? `geo:${geo}` : shape.type
+		// Keyed by noun, so both rhombus styles count as one kind.
+		const kind =
+			typeof geo === 'string' ? `geo:${GEO_NOUNS[geo] ?? geo.replace(/-/g, ' ')}` : shape.type
 		counts.set(kind, (counts.get(kind) ?? 0) + 1)
 	}
 	return [...counts.entries()]
 		.sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))
 		.slice(0, 2)
 		.map(([kind, count]) => {
-			const [one, many] = kind.startsWith('geo:')
-				? [kind.slice(4).replace(/-/g, ' '), `${kind.slice(4).replace(/-/g, ' ')}s`]
-				: (SHAPE_NOUNS[kind] ?? [`${kind} shape`, `${kind} shapes`])
+			const [one, many] = getShapeNouns(kind)
 			return `${count} ${count === 1 ? one : many}`
 		})
 		.join(' + ')

@@ -68,11 +68,7 @@ const MEASUREMENTS: Record<string, ShapeMeasurement> = {
 		minY: 0,
 		maxX: 5080.5,
 		maxY: 80,
-		arrow: {
-			start: { x: 5000.3004, y: 0.2 },
-			end: { x: 5080.5, y: 79.6464 },
-			label: { x: 5040, y: 40 },
-		},
+		arrow: { start: { x: 5000.3004, y: 0.2 }, end: { x: 5080.5, y: 79.6464 } },
 	},
 }
 
@@ -127,11 +123,7 @@ describe('the stored index', () => {
 		expect(index.text).toEqual({ 'shape:one': 'Checkout total' })
 		expect(index.clusters.map((c) => c.shapeIds)).toEqual([['shape:one', 'shape:two']])
 		expect(index.arrows).toEqual({
-			'shape:two': {
-				start: { x: 5000.3, y: 0.2 },
-				end: { x: 5080.5, y: 79.646 },
-				label: { x: 5040, y: 40 },
-			},
+			'shape:two': { start: { x: 5000.3, y: 0.2 }, end: { x: 5080.5, y: 79.646 } },
 		})
 		expect(index.dimensions).toEqual({ 'shape:one': { w: 79.8, h: 80.5 } })
 	})

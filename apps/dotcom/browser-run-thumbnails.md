@@ -465,8 +465,9 @@ get_cluster_info({
  clusterId: string,
 })
 // → the cluster's label, keywords, and its shapes: page-space pageX/pageY/pageRotation (an arrow's
-//   origin is its drawn start, and it has no rotation), arrows' props.start/end as drawn plus props.bindingFromId/bindingToId,
-//   and props with rich text flattened to props.text. Draw and highlight shapes give their size and
+//   origin is its drawn start, and it has no rotation), arrows' props.start/end as drawn plus
+//   props.bindingFromId/bindingToId, props.w/h as drawn (a geo's h includes growY), and props with
+//   rich text flattened to props.text. Draw and highlight shapes give their size and
 //   props.pointCount instead of their segments. Every number rounded to thousandths, with angles in
 //   radians
 
@@ -527,7 +528,7 @@ Three of the four tools have to cluster a page before they can answer anything, 
 
 The answer, though, only moves when the board's content moves. So the first tool to measure a page reduces the render's output to a **cluster index** and stores it; every later call for the same content is served from that.
 
-What is stored, per page (`PageClusterIndex` in `boardTools.ts`): each cluster's id, label, keywords and the ids of its shapes, the plain text the editor reported for the shapes that have any, each arrow's drawn ends and label centre, and each text, group, draw and highlight shape's drawn width and height. Bounds are deliberately **not** kept — they exist to decide which atoms merge, and that decision is already baked into the cluster membership. Arrow ends and dimensions are stored rounded to thousandths, which is how `get_cluster_info` reports them; rounding is idempotent, so a call served from the index and one served from a fresh render answer identically. None of it can be re-derived: `getShapeText` can only approximate the text from the stored record, a bound arrow's ends need an editor, and so does a text's laid-out height or a group's or freehand stroke's size. A geo's size is not stored: it is w by h + growY, straight from its record. Shape _records_ and arrow bindings are not stored; they come from the room snapshot, which every tool call loads anyway, and so does each shape's page position, which is composed from the records' own transforms.
+What is stored, per page (`PageClusterIndex` in `boardTools.ts`): each cluster's id, label, keywords and the ids of its shapes, the plain text the editor reported for the shapes that have any, each arrow's drawn ends, and each text, group, draw and highlight shape's drawn width and height. Bounds are deliberately **not** kept — they exist to decide which atoms merge, and that decision is already baked into the cluster membership. Arrow ends and dimensions are stored rounded to thousandths, which is how `get_cluster_info` reports them; rounding is idempotent, so a call served from the index and one served from a fresh render answer identically. None of it can be re-derived: `getShapeText` can only approximate the text from the stored record, a bound arrow's ends need an editor, and so does a text's laid-out height or a group's or freehand stroke's size. A geo's size is not stored: it is w by h + growY, straight from its record. Shape _records_ and arrow bindings are not stored; they come from the room snapshot, which every tool call loads anyway, and so does each shape's page position, which is composed from the records' own transforms.
 
 **Where it lives: the file's own durable object** (`TLFileDurableObject`, table `mcp_cluster_index`, statements in `mcpClusterIndexStorage.ts`), addressed by `ResolvedThumbnailBoard.fileId` — the slug for a shared file, the parent file for a published board. This is the only durable object hop in the MCP request path; the tools otherwise read the persisted snapshot straight out of R2 and never talk to the object that wrote it. It sits there rather than in R2 beside the PNGs because it is content derived from the room, and the room is what that object owns: the row is strongly consistent, it dies with the file, and it needs no expiry policy.
 

@@ -156,9 +156,10 @@ export interface ThumbnailRenderParams {
 
 /**
  * What the editor reports for one shape: its page-space box, the plain text its ShapeUtil says it
- * holds, and for an arrow, where it is drawn. All are things only an editor can answer — sizing needs
- * font metrics, getText is shape behaviour rather than something readable off the record, and a bound
- * arrow's ends depend on the geometry of the shapes it is bound to.
+ * holds, for an arrow where it is drawn, and for some shapes their own size. All are things only an
+ * editor can answer — sizing needs font metrics, getText is shape behaviour rather than something
+ * readable off the record, and a bound arrow's ends depend on the geometry of the shapes it is bound
+ * to.
  */
 export interface ThumbnailShapeMeasurement {
 	x: number
@@ -167,11 +168,10 @@ export interface ThumbnailShapeMeasurement {
 	h: number
 	/** `ShapeUtil.getText(shape)`, absent when the shape has no text. */
 	text?: string
-	/** An arrow's drawn ends, and its label's centre when it has text, all in page space. */
+	/** An arrow's drawn ends, in page space. */
 	arrow?: {
 		start: { x: number; y: number }
 		end: { x: number; y: number }
-		label?: { x: number; y: number }
 	}
 	/** A text, group, draw or highlight shape's own unrotated size as drawn, unlike the page box. */
 	dimensions?: { w: number; h: number }

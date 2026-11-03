@@ -295,8 +295,22 @@ describe('labelClusters', () => {
 			frameNames: [],
 		})
 		// The group is only a container, and the two kinds shown are the first two alphabetically.
-		expect(mixed.label).toBe('1 arrow + 1 arrow right')
+		expect(mixed.label).toBe('1 arrow + 1 rectangle')
 		expect(labelClusters([[of('custom-widget')]])[0].label).toBe('1 custom-widget shape')
+	})
+
+	it('names geo shapes as nouns, plural included', () => {
+		const geo = (name: string) => ({ type: 'geo', props: { geo: name } }) as unknown as TLShape
+		const labels = labelClusters([
+			[geo('check-box'), geo('check-box'), geo('rhombus'), geo('rhombus')],
+			[geo('x-box'), geo('x-box'), geo('x-box'), geo('rhombus-2'), geo('rhombus')],
+			[geo('arrow-left'), geo('arrow-left'), geo('ellipse'), geo('ellipse'), geo('ellipse')],
+		]).map((cluster) => cluster.label)
+		expect(labels).toEqual([
+			'2 check boxes + 2 rhombuses',
+			'3 x boxes + 2 rhombuses',
+			'3 ellipses + 2 left arrow shapes',
+		])
 	})
 
 	it('drops stopwords, short tokens and bare numbers', () => {

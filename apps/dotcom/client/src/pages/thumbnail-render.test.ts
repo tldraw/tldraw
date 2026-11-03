@@ -7,12 +7,9 @@ import {
 	createBindingId,
 	createShapeId,
 	createTLStore,
-	defaultAddFontsFromNode,
 	defaultBindingUtils,
 	defaultShapeUtils,
 	defaultTldrawOptions,
-	tipTapDefaultExtensions,
-	toRichText,
 } from 'tldraw'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -53,20 +50,24 @@ beforeEach(() => {
 	delete document.documentElement.dataset.thumbnailReady
 })
 
-// Two pages with one shape each, left on the first — which stands in for the page a job named. The
-// shape on the second page is the one a live snapshot moved away after the token was minted.
-function setupTwoPageEditor() {
+function setupEditor() {
 	const store = createTLStore({
 		shapeUtils: defaultShapeUtils,
 		bindingUtils: defaultBindingUtils,
 	})
-	const editor = new Editor({
+	return new Editor({
 		store,
 		shapeUtils: defaultShapeUtils,
 		bindingUtils: defaultBindingUtils,
 		tools: [],
 		getContainer: () => document.createElement('div'),
 	})
+}
+
+// Two pages with one shape each, left on the first — which stands in for the page a job named. The
+// shape on the second page is the one a live snapshot moved away after the token was minted.
+function setupTwoPageEditor() {
+	const editor = setupEditor()
 	const renderedPageId = editor.getCurrentPageId()
 	const renderedId = createShapeId('rendered')
 	editor.createShape({ id: renderedId, type: 'geo', x: 0, y: 0 })
@@ -110,27 +111,6 @@ describe('prepareLiveCapture', () => {
 	})
 })
 
-function setupEditor() {
-	const store = createTLStore({
-		shapeUtils: defaultShapeUtils,
-		bindingUtils: defaultBindingUtils,
-	})
-	return new Editor({
-		store,
-		shapeUtils: defaultShapeUtils,
-		bindingUtils: defaultBindingUtils,
-		tools: [],
-		getContainer: () => document.createElement('div'),
-		// An arrow label is rich text, which the editor refuses to lay out without these.
-		options: {
-			text: {
-				addFontsFromNode: defaultAddFontsFromNode,
-				tipTapConfig: { extensions: tipTapDefaultExtensions },
-			},
-		},
-	})
-}
-
 describe('measureArrow', () => {
 	// The record of a bound arrow is a stub at its origin; only the editor knows where it runs.
 	it('reports a bound arrow where it is drawn, between the shapes it is bound to', () => {
@@ -146,7 +126,7 @@ describe('measureArrow', () => {
 				type: 'arrow',
 				x: 0,
 				y: 0,
-				props: { start: { x: 0, y: 0 }, end: { x: 2, y: 0 }, richText: toRichText('next') },
+				props: { start: { x: 0, y: 0 }, end: { x: 2, y: 0 } },
 			},
 		])
 		const bind = (toId: typeof a, terminal: 'start' | 'end') => ({
@@ -166,10 +146,6 @@ describe('measureArrow', () => {
 		expect(measured.end.x).toBeLessThanOrEqual(400)
 		expect(measured.start.y).toBeCloseTo(50)
 		expect(measured.end.y).toBeCloseTo(50)
-		// jsdom measures no text, so the label's box is only roughly where a browser would put it.
-		expect(measured.label!.x).toBeGreaterThan(measured.start.x)
-		expect(measured.label!.x).toBeLessThan(measured.end.x)
-		expect(measured.label!.y).toBeCloseTo(50, -1)
 		editor.dispose()
 	})
 
@@ -212,6 +188,7 @@ describe('measureDimensions', () => {
 		editor.updateShape({ id: groupId, type: 'group', rotation: Math.PI / 4 })
 		expect(editor.getShapePageBounds(groupId)!.h).toBeGreaterThan(150)
 		expect(measureDimensions(editor, editor.getShape(groupId)!)).toEqual({ w: 400, h: 150 })
+		editor.dispose()
 	})
 
 	it('reports a freehand stroke at the size it is drawn', () => {
@@ -239,6 +216,7 @@ describe('measureDimensions', () => {
 		const dimensions = measureDimensions(editor, editor.getShape(id)!)!
 		expect(dimensions.w).toBeGreaterThanOrEqual(150)
 		expect(dimensions.h).toBeGreaterThanOrEqual(40)
+		editor.dispose()
 	})
 
 	it('leaves out shapes whose size is on the record or is not a w and h', () => {
@@ -254,6 +232,7 @@ describe('measureDimensions', () => {
 		expect(measureDimensions(editor, editor.getShape(geo)!)).toBeUndefined()
 		expect(measureDimensions(editor, editor.getShape(note)!)).toBeUndefined()
 		expect(measureDimensions(editor, editor.getShape(arrow)!)).toBeUndefined()
+		editor.dispose()
 	})
 })
 

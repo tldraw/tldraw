@@ -555,7 +555,6 @@ describe('getClusterInfo', () => {
 		arrowBinding('binding:start', 'shape:bound', 'shape:a', 'start'),
 		arrowBinding('binding:end', 'shape:bound', 'shape:b', 'end'),
 	]
-	const snapshot = { documents: records.map((state) => ({ state })), schema: {} } as any
 
 	const MEASUREMENTS: Record<string, ShapeMeasurement> = {
 		'shape:frame': { minX: 700.4, minY: 500.6, maxX: 1000.4, maxY: 900.6 },
@@ -583,16 +582,17 @@ describe('getClusterInfo', () => {
 			minY: 49.5,
 			maxX: 399.7,
 			maxY: 50.5,
-			arrow: {
-				start: { x: 100.2, y: 50.1 },
-				end: { x: 399.7, y: 49.9 },
-				label: { x: 250.4, y: 50 },
-			},
+			arrow: { start: { x: 100.2, y: 50.1 }, end: { x: 399.7, y: 49.9 } },
 		},
 	}
 
-	function shapesOfCluster(measurements: Record<string, ShapeMeasurement>, shapeId: string) {
-		const page = resolvePage(snapshot, { kind: 'ordinal', ordinal: 0 })
+	function shapesOfCluster(
+		measurements: Record<string, ShapeMeasurement>,
+		shapeId: string,
+		extraRecords: object[] = []
+	) {
+		const documents = [...records, ...extraRecords].map((state) => ({ state }))
+		const page = resolvePage({ documents, schema: {} } as any, { kind: 'ordinal', ordinal: 0 })
 		if (!page.ok) throw new Error('Expected the page to resolve')
 		const clusters = clusterPage(page, measurements)
 		const cluster = clusters.find((c) => c.shapes.some((s) => s.id === shapeId))!
@@ -626,7 +626,6 @@ describe('getClusterInfo', () => {
 			bindingFromId: 'shape:a',
 			bindingToId: 'shape:b',
 		})
-		expect(bound.arrowBindingInfo).toBeUndefined()
 	})
 
 	it('places every shape in page space, whatever its parent, and keeps the parent', () => {
@@ -640,7 +639,6 @@ describe('getClusterInfo', () => {
 			pageY: 510.6,
 			pageRotation: 1.571,
 		})
-		expect(of('shape:inner').pageBounds).toBeUndefined()
 		expect(of('shape:inner').x).toBeUndefined()
 		expect(of('shape:inner').rotation).toBeUndefined()
 	})
@@ -676,6 +674,48 @@ describe('getClusterInfo', () => {
 			'shape:bound'
 		)('shape:bound')
 		expect(bound.props).toMatchObject({ start: null, end: null, bindingFromId: 'shape:a' })
+	})
+
+	// The record's origin is the stub's, here the page origin: reporting it would place the arrow
+	// somewhere it is not drawn.
+	it('leaves an unmeasured bound arrow unplaced rather than at its stub', () => {
+		const { arrow: _arrow, ...unmeasured } = MEASUREMENTS['shape:bound']
+		const bound = shapesOfCluster(
+			{ ...MEASUREMENTS, 'shape:bound': unmeasured },
+			'shape:bound'
+		)('shape:bound')
+		expect(bound).toMatchObject({ pageX: null, pageY: null })
+		expect(bound).not.toHaveProperty('pageRotation')
+	})
+
+	// Snapshots are read as stored, so a board untouched since before arrow bindings still holds its
+	// binding inside the terminal, with no x/y to place it by.
+	it('leaves an unmeasured end stored in the pre-bindings format unplaced', () => {
+		const legacy = shape('shape:legacy', {
+			type: 'arrow',
+			x: 600,
+			y: 600,
+			props: {
+				start: {
+					type: 'binding',
+					boundShapeId: 'shape:b',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+				},
+				end: { type: 'point', x: 100, y: 0 },
+				bend: 0,
+			},
+		})
+		const of = shapesOfCluster(
+			{ ...MEASUREMENTS, 'shape:legacy': { minX: 600, minY: 600, maxX: 700, maxY: 601 } },
+			'shape:legacy',
+			[legacy]
+		)
+		expect(of('shape:legacy')).toMatchObject({
+			pageX: null,
+			pageY: null,
+			props: { start: null, end: { pageX: 700, pageY: 600 }, bindingFromId: null },
+		})
 	})
 
 	it('carries the text the editor reported and drops the rich text', () => {
