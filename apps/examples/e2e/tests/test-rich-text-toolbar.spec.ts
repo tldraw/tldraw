@@ -819,3 +819,64 @@ test.describe('Rich text behaviour', () => {
 		if (isMobile) return // can't test this on mobile
 	})
 })
+
+test.describe('Task list checkboxes', () => {
+	test.beforeEach(setupOrReset)
+
+	test('a press does not tick when the text changes before release', async ({ page, isMobile }) => {
+		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
+		if (isMobile) return
+
+		const taskItem = (text: string) => ({
+			type: 'taskItem',
+			attrs: { checked: false },
+			content: [{ type: 'paragraph', content: [{ type: 'text', text }] }],
+		})
+		await page.evaluate(
+			(items) => {
+				editor.createShape({
+					type: 'geo',
+					x: 100,
+					y: 100,
+					props: {
+						w: 240,
+						h: 200,
+						// Text at the top left, so an item added above moves each row down by exactly one,
+						// however wide the new item is.
+						align: 'start',
+						verticalAlign: 'start',
+						richText: { type: 'doc', content: [{ type: 'taskList', content: items }] },
+					},
+				})
+				editor.selectNone()
+			},
+			[taskItem('a'), taskItem('b')]
+		)
+		await sleep(200)
+
+		const label = page.locator('.tl-rich-text ul[data-type="taskList"] > li > label').nth(1)
+		const box = (await label.boundingBox())!
+		await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+		await page.mouse.down()
+		await sleep(50)
+
+		// An item added during the press, as a collaborator might, moves "a" under the pointer.
+		await page.evaluate((item) => {
+			const shape = editor.getCurrentPageShapes()[0]
+			const richText = structuredClone((shape.props as any).richText)
+			richText.content[0].content.unshift(item)
+			editor.updateShape({ id: shape.id, type: 'geo', props: { richText } })
+		}, taskItem('new'))
+		await sleep(150)
+		await page.mouse.up()
+		await sleep(150)
+
+		expect(
+			await page.evaluate(() =>
+				(editor.getCurrentPageShapes()[0].props as any).richText.content[0].content.map(
+					(item: any) => item.attrs.checked
+				)
+			)
+		).toEqual([false, false, false])
+	})
+})
