@@ -637,6 +637,7 @@ Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts`.
 'claude-sonnet-5': {
 	name: 'claude-sonnet-5',
 	id: 'claude-sonnet-5',
+	openRouterId: 'anthropic/claude-sonnet-5',
 	provider: 'anthropic',
 	supportsTemperature: false,
 	thinking: 'adaptive',
