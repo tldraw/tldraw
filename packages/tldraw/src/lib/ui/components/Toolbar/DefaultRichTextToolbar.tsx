@@ -130,7 +130,8 @@ export function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 			// The link mark is inclusive, so a caret placed just after a link reports it as active.
 			// Clicking past the end of a line that ends in a link would otherwise open the link
 			// editor and steal focus from the text, so require the click to land on the link itself.
-			const isOnLink = e.target instanceof Element && !!e.target.closest('a')
+			const ElementCtor = textEditor.view.dom.ownerDocument.defaultView?.Element ?? Element
+			const isOnLink = e.target instanceof ElementCtor && !!e.target.closest('a')
 			setIsEditingLink(isOnLink && textEditor.isActive('link'))
 		}
 
@@ -150,12 +151,10 @@ export function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 			return
 		}
 
-		// N.B. This specifically isn't checking the isEditingLink state but
-		// the current active state of the text editor. This is because there's
-		// a subtelty where when going edit-to-edit, that is text editor-to-text editor
-		// in different shapes, the isEditingLink state doesn't get reset quickly enough.
-		// Also gated on isEditingLink: closing the link editor flips it back to false, and without
-		// this the caret left at the link's edge would re-select the whole link.
+		// N.B. Both checks are needed. isEditingLink alone isn't enough: going edit-to-edit (text
+		// editor to text editor in different shapes) doesn't reset it quickly enough. isActive alone
+		// isn't either: closing the link editor would re-select the whole link from the caret it
+		// leaves at the link's edge.
 		if (isEditingLink && textEditor.isActive('link')) {
 			try {
 				const { from, to } = getMarkRange(
