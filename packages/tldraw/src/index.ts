@@ -846,6 +846,13 @@ export {
 } from './lib/utils/static-assets/assetUrls'
 export { sanitizeSvg } from './lib/utils/svg/sanitizeSvg'
 export {
+	PreviewCard,
+	PreviewImage,
+	type PreviewCardProps,
+	type PreviewImageProps,
+	type PreviewImageRef,
+} from './lib/shapes/shared/PreviewCard'
+export {
 	defaultAddFontsFromNode,
 	getTipTapDefaultExtensions,
 	KeyboardShiftEnterTweakExtension,

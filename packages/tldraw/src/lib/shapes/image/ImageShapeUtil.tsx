@@ -36,12 +36,13 @@ import {
 	WeakCache,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { memo, useEffect, useState } from 'react'
+import { SVGProps, memo, useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { getUncroppedSize } from '../shared/crop'
 import { getFlipForResize } from '../shared/flip'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { PreviewImage } from '../shared/PreviewCard'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 import { TRANSPARENT_IMAGE_MIMETYPES, getAlphaData, preloadAlphaData } from './ImageAlphaCache'
@@ -282,9 +283,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	// A preview is stored, so a remote image is linked rather than embedded.
 	override async toPreviewSvg(shape: TLImageShape) {
 		if (!shape.props.assetId || !this.editor.getAsset(shape.props.assetId)) return null
-		// SPIKE: a preview points at the asset instead of carrying the image. Whoever shows it
-		// resolves the id through their asset store, the way the canvas does, so the stored SVG
-		// never holds a URL.
 		return <SvgImage shape={shape} assetId={shape.props.assetId} />
 	}
 
@@ -595,6 +593,9 @@ function SvgImage({
 }) {
 	const cropClipId = useUniqueSafeId()
 	const containerStyle = getCroppedContainerStyle(shape)
+	// A preview points at the asset rather than carrying it.
+	const Image = (props: SVGProps<SVGImageElement>) =>
+		assetId ? <PreviewImage {...props} assetId={assetId} /> : <image {...props} href={src} />
 	const crop = shape.props.crop
 
 	if (containerStyle.transform && crop) {
@@ -628,9 +629,7 @@ function SvgImage({
 					</clipPath>
 				</defs>
 				<g clipPath={`url(#${cropClipId})`}>
-					<image
-						href={src}
-						data-tl-asset-id={assetId}
+					<Image
 						width={width}
 						height={height}
 						aria-label={shape.props.altText}
@@ -641,9 +640,7 @@ function SvgImage({
 		)
 	} else {
 		return (
-			<image
-				href={src}
-				data-tl-asset-id={assetId}
+			<Image
 				width={shape.props.w}
 				height={shape.props.h}
 				aria-label={shape.props.altText}

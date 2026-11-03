@@ -629,11 +629,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 
 	/**
 	 * Get the shape as an SVG object for a preview export (see `preview` in
-	 * {@link TLSvgExportOptions}). Leave it out and previews use {@link ShapeUtil.toSvg}.
+	 * {@link TLSvgExportOptions}): a small picture that is stored and shown later, e.g. as a
+	 * thumbnail. Leave it out and previews draw the shape the way a normal export does.
 	 *
-	 * Implement it when `toSvg` doesn't suit a small preview that is stored and shown later:
-	 * shapes that draw live content such as an iframe, or that embed large data. Read colours
-	 * from `ctx.theme` so the preview follows the viewer's theme.
+	 * Implement it when that doesn't suit a stored preview:
+	 *
+	 * - The shape shows live content, such as an iframe or data fetched while it's on the canvas.
+	 *   Return a `PreviewCard` from `tldraw` that says what it is.
+	 * - The shape embeds a picture. Draw it with `PreviewImage` from `tldraw`, which points at the
+	 *   asset instead of carrying it.
+	 *
+	 * Read colours from `ctx.theme` so the preview follows the viewer's theme.
 	 *
 	 * @param shape - The shape.
 	 * @param ctx - The export context for the SVG.

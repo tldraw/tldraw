@@ -48,7 +48,7 @@ export interface SvgExportContext {
 	 */
 	readonly theme: TLTheme
 
-	/** Whether this is a preview export. See `preview` in {@link TLSvgExportOptions}. */
+	/** @internal */
 	readonly isPreview: boolean
 
 	/**

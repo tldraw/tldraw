@@ -1,15 +1,18 @@
 import { SvgExportContext, TLAssetId, clamp, useUniqueSafeId } from '@tldraw/editor'
+import { SVGProps } from 'react'
 import { getFontFamily } from './default-shape-constants'
 
 const PADDING = 16
 
 /**
- * An image in a preview, by reference: the stored SVG never holds its URL or data. Whoever shows
- * the preview resolves it.
+ * An image in a preview export, by reference: the stored SVG never holds its URL or data, and
+ * whoever shows the preview resolves it.
  *
- * - `assetId`: an asset in the saved content, resolved through the asset store, or read from
+ * - `assetId`: an asset in the exported content, resolved through the asset store, or read from
  *   `field` (e.g. a bookmark's `image` or `favicon`) when given.
  * - `embedIcon`: an embed definition's type, resolved to the host's icon for it.
+ *
+ * @public
  */
 export interface PreviewImageRef {
 	assetId?: TLAssetId
@@ -17,12 +20,31 @@ export interface PreviewImageRef {
 	embedIcon?: string
 }
 
-function refAttributes(ref: PreviewImageRef) {
-	return {
-		'data-tl-asset-id': ref.assetId,
-		'data-tl-asset-field': ref.field,
-		'data-tl-embed-icon': ref.embedIcon,
-	}
+/** @public */
+export type PreviewImageProps = PreviewImageRef & Omit<SVGProps<SVGImageElement>, 'href'>
+
+/**
+ * An `<image>` for `ShapeUtil.toPreviewSvg` that points at an asset instead of carrying it.
+ * Use it wherever `toSvg` would embed a picture.
+ *
+ * @example
+ * ```tsx
+ * override toPreviewSvg(shape: MyShape) {
+ * 	return <PreviewImage assetId={shape.props.assetId} width={shape.props.w} height={shape.props.h} />
+ * }
+ * ```
+ *
+ * @public @react
+ */
+export function PreviewImage({ assetId, field, embedIcon, ...props }: PreviewImageProps) {
+	return (
+		<image
+			{...props}
+			data-tl-asset-id={assetId}
+			data-tl-asset-field={field}
+			data-tl-embed-icon={embedIcon}
+		/>
+	)
 }
 
 // SVG text doesn't wrap or clip, so text is cut to roughly what fits on one line.
@@ -31,27 +53,34 @@ function truncate(text: string, width: number, fontSize: number) {
 	return text.length > maxChars ? text.slice(0, maxChars - 1) + '…' : text
 }
 
-/**
- * A card for previews of shapes that show live content, such as a page or an iframe, which a
- * stored preview can't hold: an optional picture on top, then an icon, a title and a caption.
- */
-export function PreviewCard({
-	w,
-	h,
-	title,
-	caption,
-	image,
-	icon,
-	ctx,
-}: {
+/** @public */
+export interface PreviewCardProps {
 	w: number
 	h: number
 	title: string
 	caption?: string
+	/** Shown on top, filling the card's width. */
 	image?: PreviewImageRef
+	/** Shown beside the title, or above it when the card has no image. */
 	icon?: PreviewImageRef
 	ctx: SvgExportContext
-}) {
+}
+
+/**
+ * A card for `ShapeUtil.toPreviewSvg`, for shapes that show live content a stored preview
+ * can't hold, such as a page or an iframe: an optional picture, then an icon, a title and a
+ * caption. Bookmarks and embeds use it.
+ *
+ * @example
+ * ```tsx
+ * override toPreviewSvg(shape: MapShape, ctx: SvgExportContext) {
+ * 	return <PreviewCard w={shape.props.w} h={shape.props.h} title={shape.props.place} ctx={ctx} />
+ * }
+ * ```
+ *
+ * @public @react
+ */
+export function PreviewCard({ w, h, title, caption, image, icon, ctx }: PreviewCardProps) {
 	const clipId = useUniqueSafeId()
 	const colors = ctx.theme.colors[ctx.colorMode]
 	const fontFamily = getFontFamily(ctx.theme, 'sans')
@@ -102,16 +131,16 @@ export function PreviewCard({
 		const textX = PADDING + (icon ? iconSize + PADDING / 2 : 0)
 		content = (
 			<>
-				<image
-					{...refAttributes(image)}
+				<PreviewImage
+					{...image}
 					width={w}
 					height={imageHeight}
 					preserveAspectRatio="xMidYMid slice"
 					clipPath={`url(#${clipId})`}
 				/>
 				{icon && (
-					<image
-						{...refAttributes(icon)}
+					<PreviewImage
+						{...icon}
 						x={PADDING}
 						y={imageHeight + PADDING}
 						width={iconSize}
@@ -127,13 +156,7 @@ export function PreviewCard({
 		const top = (h - iconSize - PADDING / 2 - textHeight) / 2
 		content = (
 			<>
-				<image
-					{...refAttributes(icon)}
-					x={(w - iconSize) / 2}
-					y={top}
-					width={iconSize}
-					height={iconSize}
-				/>
+				<PreviewImage {...icon} x={(w - iconSize) / 2} y={top} width={iconSize} height={iconSize} />
 				{text(w / 2, top + iconSize + PADDING / 2, w - PADDING * 2, 'middle')}
 			</>
 		)
@@ -143,8 +166,8 @@ export function PreviewCard({
 		content = (
 			<>
 				{icon && (
-					<image
-						{...refAttributes(icon)}
+					<PreviewImage
+						{...icon}
 						x={PADDING}
 						y={(h - iconSize) / 2}
 						width={iconSize}

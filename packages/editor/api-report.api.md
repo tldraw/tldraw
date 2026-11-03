@@ -3395,6 +3395,7 @@ export interface SvgExportContext {
     addExportDef(def: SvgExportDef): void;
     readonly colorMode: 'dark' | 'light';
     readonly isDarkMode: boolean;
+    // @internal (undocumented)
     readonly isPreview: boolean;
     readonly pixelRatio: null | number;
     resolveAssetUrl(assetId: TLAssetId, width: number): Promise<null | string>;
