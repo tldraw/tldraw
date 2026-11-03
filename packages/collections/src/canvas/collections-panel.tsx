@@ -23,7 +23,7 @@ import {
 	setItemOrderChoice,
 	type TLCollectionItemOrdering,
 } from './item-order'
-import { placeCollectionItem } from './place-item'
+import { placeCollectionItem, type PlaceItemOptions } from './place-item'
 import { activeCollectionId, collapsedCollectionIds, collectionsPanelOpen } from './state'
 import { useItemDrag } from './use-item-drag'
 import type { SaveSelectionOptions } from './use-save-selection'
@@ -82,6 +82,8 @@ export interface CollectionsPanelProps {
 	smallScreen?: 'panel' | 'sheet'
 	/** What happens around a save from the panel's "+": naming, confirmation and undo. */
 	saving?: SaveSelectionOptions
+	/** Where clicking an item places it. Dragging places it where it's dropped. */
+	placement?: PlaceItemOptions
 }
 
 /**
@@ -100,6 +102,7 @@ export function CollectionsPanel({
 	width = 240,
 	smallScreen = 'panel',
 	saving,
+	placement,
 }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -126,7 +129,7 @@ export function CollectionsPanel({
 		(itemId: TLCollectionItemId) => {
 			// A sheet covers the canvas, so it gets out of the way of what was just placed.
 			if (isSheet) collectionsPanelOpen.set(editor, false)
-			placeCollectionItem(editor, source, itemId).catch(() => {
+			placeCollectionItem(editor, source, itemId, placement).catch(() => {
 				addToast({
 					title: msg(messages.placeErrorTitle),
 					description: msg(messages.placeErrorDescription),
@@ -134,7 +137,7 @@ export function CollectionsPanel({
 				})
 			})
 		},
-		[editor, source, addToast, msg, isSheet]
+		[editor, source, addToast, msg, isSheet, placement]
 	)
 	const getItemProps = useItemDrag(source, placeItem)
 	const orderChoice = useValue('item order', () => getItemOrderChoice(source.id), [source])

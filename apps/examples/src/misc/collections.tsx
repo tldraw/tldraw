@@ -221,6 +221,9 @@ interface PlaygroundSettings {
 	savingNaming: 'none' | 'auto' | 'dialog' | 'inline'
 	savingConfirmation: 'toast' | 'panel' | 'highlight'
 	savingUndo: 'none' | 'toast'
+	placeAt: 'center' | 'pointer'
+	placeRepeat: 'stack' | 'cascade'
+	placeIntoFrame: 'yes' | 'no'
 	data: keyof typeof SOURCES
 }
 
@@ -239,6 +242,9 @@ const settings = atom<PlaygroundSettings>('collections playground', {
 	savingNaming: 'none',
 	savingConfirmation: 'toast',
 	savingUndo: 'none',
+	placeAt: 'center',
+	placeRepeat: 'stack',
+	placeIntoFrame: 'no',
 	data: 'samples',
 })
 
@@ -270,6 +276,8 @@ interface Surface {
 	toggles?: { action: TLCollectionAction; label: string }[]
 	/** Whether the page gets shapes to select and save. */
 	shapes?: boolean
+	/** Whether the page gets a frame to place into. */
+	frame?: boolean
 }
 
 const SURFACES: Surface[] = [
@@ -300,6 +308,37 @@ const SURFACES: Surface[] = [
 				options: [
 					{ value: 'source', label: "The source's order" },
 					{ value: 'recent', label: 'Recently saved to first' },
+				],
+			},
+		],
+	},
+	{
+		page: 'Placing',
+		hint: 'Click an item in the panel to place it. Select the frame first to try placing into it.',
+		frame: true,
+		choices: [
+			{
+				key: 'placeAt',
+				label: 'A click places it',
+				options: [
+					{ value: 'center', label: 'At the centre of the view' },
+					{ value: 'pointer', label: 'Where the pointer last was' },
+				],
+			},
+			{
+				key: 'placeRepeat',
+				label: 'Repeated clicks',
+				options: [
+					{ value: 'stack', label: 'Stack on the same spot' },
+					{ value: 'cascade', label: 'Cascade' },
+				],
+			},
+			{
+				key: 'placeIntoFrame',
+				label: 'With a frame selected',
+				options: [
+					{ value: 'no', label: 'Place as usual' },
+					{ value: 'yes', label: 'Place inside it' },
 				],
 			},
 		],
@@ -613,6 +652,14 @@ function PlaygroundPanel() {
 		},
 		[]
 	)
+	const placement = useValue(
+		'placement',
+		() => {
+			const { placeAt, placeRepeat, placeIntoFrame } = settings.get()
+			return { at: placeAt, repeat: placeRepeat, intoFrame: placeIntoFrame === 'yes' }
+		},
+		[]
+	)
 	const tileAppearance = useValue(
 		'tile appearance',
 		() => {
@@ -637,6 +684,7 @@ function PlaygroundPanel() {
 			width={Number(panelWidth)}
 			smallScreen={smallScreen}
 			saving={saving}
+			placement={placement}
 		/>
 	)
 }
@@ -677,6 +725,17 @@ function setUpSurfaces(editor: Editor) {
 			editor.createPage({ id: PageRecordType.createId(), name: surface.page })
 		}
 		const page = pages().find((p) => p.name === surface.page)
+		if (surface.frame && page && editor.getPageShapeIds(page.id).size === 0) {
+			editor.createShapes([
+				{
+					type: 'frame',
+					parentId: page.id,
+					x: 520,
+					y: 140,
+					props: { w: 420, h: 300, name: 'Drop zone' },
+				},
+			])
+		}
 		if (surface.shapes && page && editor.getPageShapeIds(page.id).size === 0) {
 			editor.createShapes([
 				{ type: 'geo', parentId: page.id, x: 200, y: 200, props: { w: 160, h: 100 } },

@@ -9,7 +9,7 @@ export {
 	type CollectionsPanelProps,
 } from './canvas/collections-panel'
 export { CollectionsPanelButton } from './canvas/collections-panel-button'
-export { placeCollectionItem } from './canvas/place-item'
+export { placeCollectionItem, type PlaceItemOptions } from './canvas/place-item'
 export { saveShapesToCollection } from './canvas/save-shapes'
 export { activeCollectionId, collectionsPanelOpen, toggleCollectionsPanel } from './canvas/state'
 export {
