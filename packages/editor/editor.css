@@ -886,6 +886,16 @@ input,
 	 * selects the whole item and pops the rich text toolbar up over a checkbox.
 	 */
 	z-index: 1;
+	/**
+	 * In the static copy the input is otherwise still focusable: Tab reaches it inside an
+	 * aria-hidden label, and Space ticks it on screen without writing to the shape. The box and tick
+	 * are drawn on the span, so hiding the input doesn't change how it looks.
+	 */
+	visibility: hidden;
+}
+
+.tl-rich-text .ProseMirror ul[data-type='taskList'] > li > label > input[type='checkbox'] {
+	visibility: visible;
 }
 
 .tl-rich-text ul[data-type='taskList'] > li > label > span {
