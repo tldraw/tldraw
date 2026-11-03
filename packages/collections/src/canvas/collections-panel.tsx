@@ -106,8 +106,6 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 		() => currentId !== undefined && source.can('deleteItem', currentId),
 		[source, currentId]
 	)
-	// A right-click opens the tile's ⋯ menu, as it does for a page in the page menu. Tiles without a
-	// menu keep the browser's own.
 	const getTileProps = useCallback(
 		(itemId: TLCollectionItemId) => {
 			const props = getItemProps(itemId)
