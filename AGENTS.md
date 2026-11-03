@@ -141,10 +141,6 @@ Store and schema:
 - Use `apps/dotcom/*-worker` for Cloudflare worker behavior.
 - Use `templates` for starter project changes.
 
-## Template deploys
-
-See `templates/README.md` for how templates deploy and how to add a worker secret.
-
 ## Testing guidance
 
 - Unit tests live alongside source files as `*.test.ts`.
