@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { type MouseEvent, useCallback, useState } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
@@ -11,7 +11,7 @@ import {
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionItemId } from '../lib/schema'
 import { ItemGrid } from '../ui/item-grid'
-import { ItemMenu } from '../ui/item-menu'
+import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { CollectionsPanelHeader } from './collections-panel-header'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { placeCollectionItem } from './place-item'
@@ -106,6 +106,26 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 		() => currentId !== undefined && source.can('deleteItem', currentId),
 		[source, currentId]
 	)
+	// A right-click opens the tile's ⋯ menu, as it does for a page in the page menu. Tiles without a
+	// menu keep the browser's own.
+	const getTileProps = useCallback(
+		(itemId: TLCollectionItemId) => {
+			const props = getItemProps(itemId)
+			if (!canRename && !canDelete) return props
+			return {
+				...props,
+				onContextMenu(e: MouseEvent<HTMLButtonElement>) {
+					e.preventDefault()
+					const openMenu = () => editor.menus.addOpenMenu(getItemMenuId(itemId))
+					// macOS fires contextmenu on press. Opening then puts the menu under the pointer, and
+					// releasing the button selects whichever item it lands on.
+					if (e.buttons === 0) openMenu()
+					else window.addEventListener('pointerup', openMenu, { once: true })
+				},
+			}
+		},
+		[getItemProps, canRename, canDelete, editor]
+	)
 	const showChangeError = useCallback(
 		(title: string) => {
 			addToast({ title, description: msg(messages.changeErrorDescription), severity: 'error' })
@@ -149,7 +169,7 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 							accessibleLabel: item.name ?? msg(messages.unnamedItem),
 							thumbnailUrl: item.thumbnailUrl,
 						}))}
-						getItemProps={getItemProps}
+						getItemProps={getTileProps}
 						renderItemMenu={(item) => (
 							<ItemMenu
 								id={item.id}

@@ -28,6 +28,15 @@ export interface ItemMenuProps {
 }
 
 /**
+ * The id of an item's {@link ItemMenu}, for opening it from elsewhere, e.g. a right-click on the
+ * tile: `editor.menus.addOpenMenu(getItemMenuId(id))`.
+ * @public
+ */
+export function getItemMenuId(id: string) {
+	return `collections-item-menu-${id}`
+}
+
+/**
  * A ⋯ menu for one item, laid out like the page menu's. Renders nothing when it has no actions.
  * @public @react
  */
@@ -36,7 +45,7 @@ export function ItemMenu({ id, onRename, onDelete }: ItemMenuProps) {
 	if (!onRename && !onDelete) return null
 
 	return (
-		<TldrawUiDropdownMenuRoot id={`collections-item-menu-${id}`}>
+		<TldrawUiDropdownMenuRoot id={getItemMenuId(id)}>
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton
 					type="icon"
