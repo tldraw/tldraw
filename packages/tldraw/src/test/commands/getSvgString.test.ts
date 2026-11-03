@@ -9,6 +9,7 @@ import {
 	TLDefaultColorStyle,
 	createShapeId,
 	getColorValue,
+	getPreviewColorVariables,
 	toRichText,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
@@ -305,4 +306,30 @@ it('reads a single frame-like export background from the color style under any p
 
 	const svg = parseSvg(await editor.getSvgString([id], { background: true }))
 	expect(svg.style.backgroundColor).toBe(toCssColor(getColorValue(colors, 'red', 'frameFill')))
+})
+
+describe('preview exports', () => {
+	it('swaps theme colours for CSS variables that fall back to the exported colour', async () => {
+		editor.updateShape({ id: ids.boxB, type: 'geo', props: { color: 'blue' } })
+		const colors = editor.getCurrentTheme().colors[editor.getColorMode()]
+
+		const { svg } = (await editor.getSvgString([ids.boxB], { preview: true }))!
+
+		expect(svg).toContain(`var(--tl-preview-blue-solid, ${colors.blue.solid})`)
+		expect(svg).not.toMatch(/#01[0-9a-f]{4}\b/i)
+		expect(svg).not.toContain('data-tl-preview-only')
+	})
+
+	it('leaves a normal export with real colours', async () => {
+		const { svg } = (await editor.getSvgString([ids.boxB]))!
+		expect(svg).not.toContain('--tl-preview-')
+	})
+
+	it('gives every theme colour a variable for the viewer to set', () => {
+		const theme = editor.getCurrentTheme()
+		const variables = getPreviewColorVariables(theme, 'dark')
+		expect(variables['--tl-preview-blue-solid']).toBe(theme.colors.dark.blue.solid)
+		expect(variables['--tl-preview-text']).toBe(theme.colors.dark.text)
+		expect(variables['--tl-preview-primary']).toBe('var(--tl-color-primary)')
+	})
 })

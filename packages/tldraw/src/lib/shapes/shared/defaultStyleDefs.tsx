@@ -11,6 +11,7 @@ import {
 	useColorMode,
 	useEditor,
 	useSharedSafeId,
+	useSvgExportContext,
 	useUniqueSafeId,
 	useValue,
 } from '@tldraw/editor'
@@ -33,7 +34,8 @@ function HashPatternForExport() {
 	const maskId = useUniqueSafeId()
 	const editor = useEditor()
 	const colorMode = useColorMode()
-	const colors = editor.getCurrentTheme().colors[colorMode]
+	const theme = useSvgExportContext()?.theme ?? editor.getCurrentTheme()
+	const colors = theme.colors[colorMode]
 	const t = 8 / 12
 	return (
 		<>

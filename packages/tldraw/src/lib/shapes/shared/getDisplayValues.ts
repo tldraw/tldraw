@@ -1,4 +1,4 @@
-import { Editor, TLShape, TLTheme } from '@tldraw/editor'
+import { Editor, SvgExportContext, TLShape, TLTheme } from '@tldraw/editor'
 
 /** @public */
 export interface ShapeOptionsWithDisplayValues<
@@ -32,10 +32,15 @@ const dvCache = new WeakMap<
 export function getDisplayValues<Shape extends TLShape, DisplayValues extends object>(
 	util: { editor: Editor; options: ShapeOptionsWithDisplayValues<Shape, DisplayValues> },
 	shape: Shape,
-	colorMode?: 'light' | 'dark' // An override, used when exporting images from the non-current color mode
+	// When exporting, pass the export context: it can use the non-current colour mode, and a
+	// preview export swaps the theme's colours.
+	colorModeOrContext?: 'light' | 'dark' | SvgExportContext
 ): DisplayValues {
-	const theme = util.editor.getCurrentTheme()
-	const resolvedColorMode = colorMode ?? util.editor.getColorMode()
+	const ctx = typeof colorModeOrContext === 'object' ? colorModeOrContext : undefined
+	const theme = ctx?.theme ?? util.editor.getCurrentTheme()
+	const resolvedColorMode =
+		ctx?.colorMode ??
+		(typeof colorModeOrContext === 'string' ? colorModeOrContext : util.editor.getColorMode())
 	const cached = dvCache.get(shape)
 	if (cached && cached.theme === theme && cached.colorMode === resolvedColorMode) {
 		return cached.values as DisplayValues

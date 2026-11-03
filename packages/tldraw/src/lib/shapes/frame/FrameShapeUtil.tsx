@@ -295,7 +295,7 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 	}
 
 	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.colorMode)
+		const dv = getDisplayValues(this, shape, ctx)
 
 		// rotate right 45 deg
 		const labelSide = getFrameHeadingSide(this.editor, shape)

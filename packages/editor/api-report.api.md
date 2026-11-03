@@ -2061,6 +2061,9 @@ export function getPointsOnArc(startPoint: VecLike, endPoint: VecLike, center: n
 // @public (undocumented)
 export function getPolygonVertices(width: number, height: number, sides: number): Vec[];
 
+// @public
+export function getPreviewColorVariables(theme: TLTheme, colorMode: 'dark' | 'light'): Record<string, string>;
+
 // @internal (undocumented)
 export function getRotationSnapshot({ editor, ids, }: {
     editor: Editor;
@@ -3391,9 +3394,12 @@ export interface SvgExportContext {
     addExportDef(def: SvgExportDef): void;
     readonly colorMode: 'dark' | 'light';
     readonly isDarkMode: boolean;
+    // @internal (undocumented)
+    readonly isPreview: boolean;
     readonly pixelRatio: null | number;
     resolveAssetUrl(assetId: TLAssetId, width: number): Promise<null | string>;
     readonly scale: number;
+    readonly theme: TLTheme;
     waitUntil(promise: Promise<void>): void;
 }
 
@@ -4906,6 +4912,7 @@ export interface TLSvgExportOptions {
     padding?: 'auto' | number;
     pixelRatio?: number;
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+    preview?: boolean;
     scale?: number;
 }
 

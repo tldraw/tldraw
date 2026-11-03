@@ -450,7 +450,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.colorMode)
+		const dv = getDisplayValues(this, shape, ctx)
 		const bounds = new Box(0, 0, dv.noteWidth, dv.noteHeight + shape.props.growY)
 
 		const filterId = `note-shadow-${shape.id.replace(/:/g, '_')}` as SafeId
