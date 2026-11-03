@@ -1,5 +1,6 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react'
 import { ItemTile } from './item-tile'
+import type { ThumbnailImageRef } from './thumbnail-image'
 
 /** @public */
 export interface ItemGridItem<Id extends string = string> {
@@ -18,6 +19,8 @@ export interface ItemGridProps<Id extends string = string> {
 	getItemProps(id: Id): ButtonHTMLAttributes<HTMLButtonElement>
 	/** Cleans a stored SVG thumbnail before it's drawn. See {@link CollectionsPanelProps.sanitizeThumbnail}. */
 	sanitizeThumbnail?(svg: string): string
+	/** Gives the URL for an image an item's thumbnail points at. */
+	resolveThumbnailImage?(id: Id, ref: ThumbnailImageRef): Promise<string | null>
 	/** An item's menu, shown over its tile. Leave it out for tiles without one. */
 	renderItemMenu?(item: ItemGridItem<Id>): ReactNode
 	/** Shown when there are no items. */
@@ -29,6 +32,7 @@ export function ItemGrid<Id extends string>({
 	items,
 	getItemProps,
 	sanitizeThumbnail,
+	resolveThumbnailImage,
 	renderItemMenu,
 	empty,
 }: ItemGridProps<Id>) {
@@ -43,6 +47,9 @@ export function ItemGrid<Id extends string>({
 						accessibleLabel={item.accessibleLabel}
 						thumbnailUrl={item.thumbnailUrl}
 						sanitizeThumbnail={sanitizeThumbnail}
+						resolveThumbnailImage={
+							resolveThumbnailImage && ((ref) => resolveThumbnailImage(item.id, ref))
+						}
 						buttonProps={getItemProps(item.id)}
 						menu={renderItemMenu?.(item)}
 					/>

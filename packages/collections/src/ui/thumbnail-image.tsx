@@ -40,6 +40,11 @@ const FORBIDDEN_ELEMENTS = new Set([
 const IGNORED_IN_SCHEME = /[\s\p{Cc}\p{Cf}]/gu
 const SCRIPT_SCHEME = /(?:java|vb)script:|data:text\/html/i
 
+// What an image in a thumbnail may load once its asset is resolved. An <image> never runs script,
+// but a resolved URL comes from item content, which is as untrusted as the thumbnail.
+const SAFE_IMAGE_URL =
+	/^(?:https?:|blob:|data:image\/(?:png|jpe?g|gif|webp|avif|svg\+xml)[;,]|\/(?!\/))/i
+
 const textCache = new Map<string, Promise<string | null>>()
 
 function loadSvgText(url: string): Promise<string | null> {
@@ -99,14 +104,50 @@ function isInert(root: Element) {
 	return true
 }
 
+/**
+ * An image a thumbnail points at rather than carries: an asset in the item's content (or one of its
+ * fields, such as a bookmark's `image`), or the icon for an embed type.
+ * @public
+ */
+export interface ThumbnailImageRef {
+	assetId?: string
+	field?: string
+	embedIcon?: string
+}
+
+function resolveImages(
+	svg: Element,
+	resolveImage: ((ref: ThumbnailImageRef) => Promise<string | null>) | undefined,
+	isCancelled: () => boolean
+) {
+	if (!resolveImage) return
+	for (const image of svg.querySelectorAll('image[data-tl-asset-id], image[data-tl-embed-icon]')) {
+		resolveImage({
+			assetId: image.getAttribute('data-tl-asset-id') ?? undefined,
+			field: image.getAttribute('data-tl-asset-field') ?? undefined,
+			embedIcon: image.getAttribute('data-tl-embed-icon') ?? undefined,
+		})
+			.then((src) => {
+				if (!isCancelled() && src && SAFE_IMAGE_URL.test(src)) image.setAttribute('href', src)
+			})
+			.catch(() => {})
+	}
+}
+
 export function ThumbnailImage({
 	url,
 	sanitize = sanitizeSvg,
+	resolveImage,
 }: {
 	url: string
 	sanitize?(svg: string): string
+	/** Gives the URL for an image the thumbnail points at. */
+	resolveImage?(ref: ThumbnailImageRef): Promise<string | null>
 }) {
 	const hostRef = useRef<HTMLSpanElement>(null)
+	// Read at load time rather than as an effect dependency: callers pass a new function each render.
+	const resolveImageRef = useRef(resolveImage)
+	resolveImageRef.current = resolveImage
 
 	useEffect(() => {
 		const host = hostRef.current
@@ -121,7 +162,9 @@ export function ThumbnailImage({
 			if (cancelled) return
 			const svg = markup && prepareThumbnailSvg(markup, sanitize)
 			if (svg) {
-				root.append(document.importNode(svg, true))
+				const node = document.importNode(svg, true)
+				root.append(node)
+				resolveImages(node, resolveImageRef.current, () => cancelled)
 			} else {
 				// Not an SVG, or one we won't draw inline. An <img> never runs script or loads
 				// anything else, so it's safe for any stored bytes; it just can't follow the theme.

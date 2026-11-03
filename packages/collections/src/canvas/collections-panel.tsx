@@ -6,13 +6,15 @@ import {
 	useDialogs,
 	useEditor,
 	useToasts,
+	useAssetUrls,
 	useTranslation,
 	useValue,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
-import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
+import type { TLCollectionId, TLCollectionItemContent, TLCollectionItemId } from '../lib/schema'
 import { ItemGrid } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
+import type { ThumbnailImageRef } from '../ui/thumbnail-image'
 import { CollectionsPanelHeader } from './collections-panel-header'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { getItemOrderChoice, itemOrderings, setItemOrderChoice, sortItems } from './item-order'
@@ -61,6 +63,27 @@ const messages = defineMessages({
 			'You may not be allowed to change this collection, or the item no longer exists.',
 	},
 })
+
+// Tiles show a whole item in a few dozen pixels, so an image in one is drawn far below its size.
+const THUMBNAIL_SCREEN_SCALE = 0.25
+
+// Item content never changes once saved, so tiles share one load per item.
+const contentCache = new WeakMap<
+	CollectionSource,
+	Map<TLCollectionItemId, Promise<TLCollectionItemContent>>
+>()
+
+function getCachedItemContent(source: CollectionSource, itemId: TLCollectionItemId) {
+	let items = contentCache.get(source)
+	if (!items) contentCache.set(source, (items = new Map()))
+	let content = items.get(itemId)
+	if (!content) {
+		content = source.getItemContent(itemId)
+		content.catch(() => items.delete(itemId))
+		items.set(itemId, content)
+	}
+	return content
+}
 
 /** @public */
 export interface CollectionsPanelProps {
@@ -145,6 +168,37 @@ export function CollectionsPanel({
 		[editor, source, addToast, msg]
 	)
 	const getItemProps = useItemDrag(source, placeItem)
+
+	// SPIKE: an image in a thumbnail points at an asset in the item's content, or at an embed's icon.
+	// Tiles resolve assets through the editor's asset store, as the canvas would once the item is
+	// placed, and embed icons through the host's asset URLs, as the embed dialog does.
+	const assetUrls = useAssetUrls()
+	const resolveThumbnailImage = useCallback(
+		async (itemId: TLCollectionItemId, ref: ThumbnailImageRef) => {
+			if (ref.embedIcon) {
+				return (assetUrls.embedIcons as Record<string, string | undefined>)[ref.embedIcon] ?? null
+			}
+			const asset = (await getCachedItemContent(source, itemId)).content.assets.find(
+				(a) => a.id === ref.assetId
+			)
+			if (!asset) return null
+			if (ref.field) {
+				const value = (asset.props as Record<string, unknown>)[ref.field]
+				return typeof value === 'string' && value ? value : null
+			}
+			const src = 'src' in asset.props ? asset.props.src : null
+			const resolve = editor.store.props.assets.resolve
+			if (!resolve) return src
+			return resolve(asset, {
+				screenScale: THUMBNAIL_SCREEN_SCALE,
+				steppedScreenScale: THUMBNAIL_SCREEN_SCALE,
+				dpr: editor.getInstanceState().devicePixelRatio,
+				networkEffectiveType: null,
+				shouldResolveToOriginal: false,
+			})
+		},
+		[editor, source, assetUrls]
+	)
 	const canRename = useValue(
 		'can rename items',
 		() => currentId !== undefined && source.can('renameItem', currentId),
@@ -258,6 +312,7 @@ export function CollectionsPanel({
 						}))}
 						getItemProps={getTileProps}
 						sanitizeThumbnail={sanitizeThumbnail}
+						resolveThumbnailImage={resolveThumbnailImage}
 						renderItemMenu={(item) => (
 							<ItemMenu
 								id={item.id}

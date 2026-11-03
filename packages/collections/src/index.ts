@@ -17,6 +17,7 @@ export { ItemGrid, type ItemGridItem, type ItemGridProps } from './ui/item-grid'
 export { getItemMenuId, ItemMenu, type ItemMenuProps } from './ui/item-menu'
 export { ItemTile, type ItemTileProps } from './ui/item-tile'
 export { RenameInput, type RenameInputProps } from './ui/rename-input'
+export { type ThumbnailImageRef } from './ui/thumbnail-image'
 export {
 	CollectionNotFoundError,
 	CollectionPermissionError,
