@@ -1,4 +1,10 @@
-import { createTLSchema, fetch, parseTldrawJsonFile, TLDocument } from 'tldraw'
+import {
+	createTLSchema,
+	fetch,
+	parseTldrawJsonFile,
+	TLDocument,
+	TLDRAW_FILE_EXTENSION,
+} from 'tldraw'
 import type { TldrawApp } from '../app/TldrawApp'
 
 type ImportResult =
@@ -25,7 +31,9 @@ export async function importFromUrl(app: TldrawApp, url: string): Promise<Import
 		)
 		const rawName = documentRecord?.name?.trim()
 		const sanitized = rawName?.replace(/[/\\:*?"<>|]/g, '_').slice(0, 200) || 'import'
-		const fileName = sanitized.endsWith('.tldr') ? sanitized : `${sanitized}.tldr`
+		const fileName = sanitized.toLowerCase().endsWith(TLDRAW_FILE_EXTENSION)
+			? sanitized
+			: `${sanitized}${TLDRAW_FILE_EXTENSION}`
 		const file = new File([json], fileName, { type: 'application/json' })
 		return new Promise<ImportResult>((resolve) => {
 			app.uploadTldrFiles([file], {

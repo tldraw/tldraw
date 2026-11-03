@@ -16,10 +16,9 @@ spec:
       the durable object persisted, in the last hour. Check the "Verify results"
       panel on the Dotcom events dashboard for the reason. head-mismatch is the
       serious one — the delta encoding is producing a different board — while
-      missing and legacy-fallback mean the chain did not answer at all. Until the
-      legacy full copies are turned off these versions still read; after that they
-      are unreadable and there is no rebuild path, so this should block the
-      rollout advancing.
+      missing means the chain did not answer at all. There are no full copies to
+      fall back on, so these versions cannot be previewed or restored and there is
+      no rebuild path.
     summary: Version chain reconstructions are not reproducing persisted state
   execErrState: Error
   expressions:

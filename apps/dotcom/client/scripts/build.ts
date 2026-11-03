@@ -15,7 +15,7 @@ import json5 from 'json5'
 import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
-import { csp } from '../src/utils/csp'
+import { csp, thumbnailRenderCsp } from '../src/utils/csp'
 import { reportBundleSize } from './measure-bundle-size'
 import { getMultiplayerServerURL } from './multiplayer-server-url'
 import { Config } from './vercel-output-config'
@@ -104,6 +104,10 @@ function socialPreviewRoute(multiplayerServerUrl: string) {
 // It uses a vitest snapshot file because deriving the set of routes from our
 // react-router config works fine in our test environment, but is tricky to get running in this
 // build script environment for various reasons (no global React, tsx being weird about decorators, etc).
+function caseInsensitive(literal: string) {
+	return literal.replace(/[a-z]/g, (c) => `[${c}${c.toUpperCase()}]`)
+}
+
 function loadSpaRoutes() {
 	const routesJson = require('../src/__snapshots__/routes.test.tsx.snap')['the_routes 1']
 	const routes = T.arrayOf(
@@ -267,6 +271,14 @@ async function build() {
 							'Access-Control-Allow-Origin': '*',
 						},
 					},
+					// The OAuth consent page is a clickjacking target: framed invisibly, an Allow click
+					// grants a third-party app access to the account. Clerk requires it unframeable.
+					// Any casing and trailing slashes, as React Router renders the page on all of them.
+					{
+						src: `^/${caseInsensitive('oauth-consent')}/*$`,
+						continue: true,
+						headers: { 'X-Frame-Options': 'DENY' },
+					},
 					{
 						src: '^/\\.well-known/ai-catalog\\.json$',
 						continue: true,
@@ -296,7 +308,7 @@ async function build() {
 						check: true,
 						src: `^${THUMBNAIL_RENDER_PATH}$`,
 						dest: '/thumbnail-render.html',
-						headers: commonSecurityHeaders,
+						headers: { ...commonSecurityHeaders, 'Content-Security-Policy': thumbnailRenderCsp },
 					},
 					// serve static files
 					{

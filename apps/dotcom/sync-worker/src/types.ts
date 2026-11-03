@@ -11,9 +11,10 @@ import type { KeyframeReason } from './versionChain'
 // so a Worker can call the Quick Actions endpoints (`screenshot`, `pdf`, …) straight through the
 // binding — no API token, no @cloudflare/puppeteer. Requires compatibility_date >= 2026-03-24. Not
 // in @cloudflare/workers-types yet, so the small surface we use is declared here; it resolves to a
-// standard `Response` (PNG bytes for `screenshot`, with an `X-Browser-Ms-Used` header).
+// standard `Response` (PNG bytes for `screenshot`, `{ success, result: "<html>…" }` JSON for
+// `content`, with an `X-Browser-Ms-Used` header).
 export interface BrowserBinding {
-	quickAction(action: 'screenshot', options: unknown): Promise<Response>
+	quickAction(action: 'screenshot' | 'content', options: unknown): Promise<Response>
 }
 
 // This type isn't available in @cloudflare/workers-types yet
@@ -49,10 +50,14 @@ export interface Environment {
 	ASSETS: Fetcher
 
 	ROOMS: R2Bucket
+	// Full copies of every version written before cut-over. Nothing reads it any more; room deletes
+	// still sweep it so a deleted board's content does not outlive the board.
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket
-	// Delta chains. ROOMS_HISTORY_EPHEMERAL keeps every version written before cut-over, so both
-	// buckets stay on the read path until the standing history is compacted.
+	// Delta chains: every version of every room.
 	ROOMS_HISTORY: R2Bucket
+	// The room-history migration's cold archive of every board's pre-migration history. Only
+	// hard deletes touch it.
+	ROOMS_HISTORY_COLD: R2Bucket
 
 	ROOM_SNAPSHOTS: R2Bucket
 	SNAPSHOT_SLUG_TO_PARENT_SLUG: KVNamespace
@@ -149,6 +154,9 @@ export interface Environment {
 	// the page exporting itself. Skips the export phase, the expensive part on heavy boards, at the
 	// cost of the export path's pixel-exact sizing. Off everywhere it is unset.
 	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
+	// 'true' pushes the board's records into the render page with the screenshot request, instead of
+	// the page fetching them back from the snapshot route. Off everywhere it is unset.
+	THUMBNAIL_RENDER_PUSH: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected
@@ -159,6 +167,11 @@ export interface Environment {
 	// it is derived from the request's own origin, which is fine locally and wrong anywhere a Host
 	// header can be forged — see getMcpResourceUrl.
 	MCP_SERVER_URL: string | undefined
+	// The MCP host's origin (`https://staging-mcp.tldraw.com` on staging; production's mcp.tldraw.com
+	// comes later), where the same server answers at ROOT_MCP_SERVER_PATH. Requests on this host get their
+	// own router and advertise its URLs instead of MCP_SERVER_URL; see isMcpHostRequest. Unset where
+	// the host has no route (production for now, dev, previews).
+	MCP_HOST_ORIGIN: string | undefined
 	// Overrides the OAuth authorization server advertised to MCP clients. Normally unset: the value is
 	// derived from CLERK_PUBLISHABLE_KEY so it cannot drift from the instance whose tokens we verify.
 	MCP_OAUTH_AUTHORIZATION_SERVER: string | undefined
@@ -243,7 +256,7 @@ export type TLServerEvent =
 			type: 'version_chain_verify'
 	  } & (
 			| { outcome: 'ok' }
-			| { outcome: 'fail'; reason: 'missing' | 'legacy-fallback' | 'head-mismatch' | 'error' }
+			| { outcome: 'fail'; reason: 'missing' | 'head-mismatch' | 'error' }
 			// Not a failure: the chain was left unchecked because reconstructing it here would risk
 			// the isolate's memory. Carries the keyframe size so the threshold can be tuned.
 			| { outcome: 'skipped'; reason: 'keyframe-size'; keyframeBytes: number }

@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "I-drag ang file sa sidebar sa page na ito. O piliin ang opsyong 'Mag-import ng file' mula sa menu ng user."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -499,16 +493,6 @@
       "value": "Naabot na ang limitasyon ng collaborator"
     }
   ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " hindi pa nababasa"
-    }
-  ],
   "550b25cc0c": [
     {
       "type": 0,
@@ -641,10 +625,24 @@
       "options": {
         "few": {
           "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " tao ang nag-react sa komento mo"
+            }
           ]
         },
         "many": {
           "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " tao ang nag-react sa komento mo"
+            }
           ]
         },
         "one": {
@@ -668,10 +666,24 @@
         },
         "two": {
           "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " tao ang nag-react sa komento mo"
+            }
           ]
         },
         "zero": {
           "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " tao ang nag-react sa komento mo"
+            }
           ]
         }
       },
@@ -962,20 +974,6 @@
       "value": "Paki-refresh ang page para makuha ang pinakabagong bersyon ng tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Nagdagdag ng "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " .tldr file."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1156,6 +1154,82 @@
       "value": "."
     }
   ],
+  "a0a19d5145": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hindi pa nababasa"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hindi pa nababasa"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hindi pa nababasa"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hindi pa nababasa"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hindi pa nababasa"
+            }
+          ]
+        },
+        "zero": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hindi pa nababasa"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -1328,6 +1402,12 @@
       "value": "May-ari"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "I-drag ang file papunta sa sidebar sa pahinang ito. O piliin ang opsyong 'I-import ang file' mula sa menu na File sa kaliwang itaas."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1352,10 +1432,50 @@
       "options": {
         "few": {
           "value": [
+            {
+              "type": 0,
+              "value": "Ina-upload ang "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " sa "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " na .tldr file…"
+            }
           ]
         },
         "many": {
           "value": [
+            {
+              "type": 0,
+              "value": "Ina-upload ang "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " sa "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " na .tldr file…"
+            }
           ]
         },
         "one": {
@@ -1378,7 +1498,7 @@
             },
             {
               "type": 0,
-              "value": " ng "
+              "value": " sa "
             },
             {
               "type": 1,
@@ -1386,16 +1506,56 @@
             },
             {
               "type": 0,
-              "value": " .tldr file…"
+              "value": " na .tldr file…"
             }
           ]
         },
         "two": {
           "value": [
+            {
+              "type": 0,
+              "value": "Ina-upload ang "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " sa "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " na .tldr file…"
+            }
           ]
         },
         "zero": {
           "value": [
+            {
+              "type": 0,
+              "value": "Ina-upload ang "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " sa "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " na .tldr file…"
+            }
           ]
         }
       },
@@ -1426,6 +1586,106 @@
       "value": "Matuto pa tungkol sa pagbabahagi."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Naidagdag ang "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " na .tldr file."
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Naidagdag ang "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " na .tldr file."
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Naidagdag ang "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr file."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Naidagdag ang "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " na .tldr file."
+            }
+          ]
+        },
+        "two": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Naidagdag ang "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " na .tldr file."
+            }
+          ]
+        },
+        "zero": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Naidagdag ang "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " na .tldr file."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1436,12 +1696,6 @@
     {
       "type": 0,
       "value": "Mahahalagang cookies"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Mahabang String"
     }
   ],
   "c6a00f137b": [
@@ -1517,7 +1771,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " iba pa"
             }
           ]
         },
@@ -1528,7 +1782,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " iba pa"
             }
           ]
         }
@@ -1730,12 +1984,6 @@
       "value": "Menu ng account"
     }
   ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Accented"
-    }
-  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1847,7 +2095,7 @@
             },
             {
               "type": 0,
-              "value": " pa"
+              "value": " iba pa"
             }
           ]
         },
@@ -1858,7 +2106,7 @@
             },
             {
               "type": 0,
-              "value": " pa"
+              "value": " iba pa"
             }
           ]
         }

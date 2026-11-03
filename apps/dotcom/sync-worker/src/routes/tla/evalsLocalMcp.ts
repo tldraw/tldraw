@@ -8,6 +8,7 @@ import {
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
+	LIST_WORKSPACES_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
 	RENAME_BOARD_TOOL_NAME,
 	SEARCH_BOARDS_TOOL_NAME,
@@ -25,6 +26,7 @@ import {
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	parseCreateBoardInput,
+	parseListWorkspacesInput,
 	parsePageInfoInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
@@ -83,7 +85,7 @@ export function getEvalsFixtureScreenshotPlan(
 	snapshot: RoomSnapshot,
 	measurements: Record<string, ShapeMeasurement>
 ): ScreenshotPlanEntry[] {
-	const pages = JSON.parse(textOf(getBoardInfo(snapshot))) as {
+	const pages = JSON.parse(textOf(getBoardInfo(snapshot, null))) as {
 		pages: Array<{ id: string }>
 	}
 	const plan: ScreenshotPlanEntry[] = []
@@ -175,7 +177,8 @@ async function callFixtureTool(
 			case BOARD_INFO_TOOL_NAME: {
 				const { boardId } = parseBoardInfoInput(args)
 				const board = boards.get(boardId)
-				return board ? getBoardInfo(board.snapshot) : toolError(BOARD_NOT_FOUND_MESSAGE)
+				// No file row, so the name comes from the snapshot, as it does for search above.
+				return board ? getBoardInfo(board.snapshot, null) : toolError(BOARD_NOT_FOUND_MESSAGE)
 			}
 			case PAGE_INFO_TOOL_NAME: {
 				const { boardId, page } = parsePageInfoInput(args)
@@ -213,6 +216,14 @@ async function callFixtureTool(
 					: toolError(
 							`${HARNESS_GAP_MARKER} No screenshot was built for this cluster set. Run against staging or production to see the real render.`
 						)
+			}
+			case LIST_WORKSPACES_TOOL_NAME: {
+				// Parsed so argument errors read as they do in production; a fixture session has no
+				// workspaces to list.
+				parseListWorkspacesInput(args)
+				return toolError(
+					`${HARNESS_GAP_MARKER} Workspaces cannot be listed against fixtures. Run against staging or production to list them.`
+				)
 			}
 			case CREATE_BOARD_TOOL_NAME: {
 				// Parsed so argument errors read as they do in production; a fixture session has no

@@ -29,6 +29,7 @@ export const FLAGS = {
 	FEAT_COLLABORATION: 1 << 6,
 	// Commenting is the first sub-feature of collaboration.
 	FEAT_COMMENTING: 1 << 7,
+	TRACKED: 1 << 8,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -41,6 +42,31 @@ export const PROPERTIES = {
 const NUMBER_OF_KNOWN_PROPERTIES = Object.keys(PROPERTIES).length
 
 const LICENSE_EMAIL = 'sales@tldraw.com'
+
+/**
+ * tldraw's own public domains. A page served from one of these hosts — or any subdomain of one — is
+ * licensed without a key, because we own them: minting and rotating keys for our own properties was
+ * a recurring source of expired and wrong-domain deployments.
+ *
+ * This list ships in the bundle, so it holds only domains we already serve from publicly. tldraw's
+ * private domains are deliberately absent and keep using a real license key.
+ */
+const CANONICAL_TLDRAW_HOSTS = [
+	'tldraw.com',
+	'tldraw.dev',
+	'tldraw.club',
+	'tldraw.workers.dev',
+	'tldraw.xyz',
+]
+
+/** Our VS Code extension, whose webviews are served from `vscode-webview:` with a random hostname. */
+const CANONICAL_VSCODE_EXTENSION_ID = 'tldraw-org.tldraw-vscode'
+
+/** Marks a license as the keyless canonical-host grant, which is never tracked. */
+const CANONICAL_HOST_LICENSE_ID = 'tldraw-canonical-host'
+
+/** The canonical-host grant has no key behind it, and so no expiry date to fall due. */
+const CANONICAL_HOST_NEVER_EXPIRES = new Date(8640000000000000)
 
 const WATERMARK_TRACK_SRC = `${getDefaultCdnBaseUrl()}/watermarks/watermark-track.svg`
 
@@ -114,7 +140,7 @@ export interface ValidLicenseKeyResult {
 }
 
 /** @internal */
-export type TrackType = 'unlicensed' | 'with_watermark' | 'evaluation' | null
+export type TrackType = 'unlicensed' | 'with_watermark' | 'evaluation' | 'tracked' | null
 
 /** @internal */
 export class LicenseManager {
@@ -185,11 +211,10 @@ export class LicenseManager {
 	}
 
 	private getIsDevelopment() {
-		const protocol = window.location.protocol
-		const hostname = window.location.hostname
+		const { protocol, hostname } = this.getOriginLocation()
 
 		// Tauri uses `tauri://localhost` on macOS and Linux and `http://tauri.localhost` on Windows.
-		if (hostname.toLowerCase().endsWith('.localhost')) {
+		if (hostname.endsWith('.localhost')) {
 			return process.env.NODE_ENV !== 'production'
 		}
 
@@ -200,13 +225,74 @@ export class LicenseManager {
 		)
 	}
 
+	private getOriginLocation() {
+		// A document loaded from `blob:https://example.com/<uuid>` has protocol `blob:` and an empty
+		// hostname, but its origin is the page that created the blob. Opaque origins ('null': custom
+		// schemes, file:, about:) keep using the location.
+		const { origin, protocol, hostname } = window.location
+		const source = origin && origin !== 'null' ? new URL(origin) : { protocol, hostname }
+		return { protocol: source.protocol, hostname: source.hostname.toLowerCase() }
+	}
+
 	private isLoopbackHost(hostname: string) {
 		// localhost, IPv4 loopback (127.0.0.0/8) and IPv6 loopback (::1) are all local development hosts
 		const host = hostname.toLowerCase().replace(/^\[|\]$/g, '')
 		return host === 'localhost' || host === '::1' || /^127(?:\.\d{1,3}){3}$/.test(host)
 	}
 
+	/** Whether the page is served from one of tldraw's own domains, a subdomain of one, or our VS Code extension. */
+	private isCanonicalTldrawHost() {
+		if (window.location.protocol === 'vscode-webview:') {
+			const extensionId = new URL(window.location.href).searchParams.get('extensionId')
+			return extensionId === CANONICAL_VSCODE_EXTENSION_ID
+		}
+		const hostname = window.location.hostname.toLowerCase()
+		return CANONICAL_TLDRAW_HOSTS.some((host) => hostname === host || hostname.endsWith(`.${host}`))
+	}
+
+	/**
+	 * The license tldraw's own domains get without a key. It keeps the watermark — our properties
+	 * advertise the SDK the same way any other watermarked deployment does — and grants the
+	 * collaboration features our apps are built on.
+	 *
+	 * Every expiry-derived field is a literal rather than something computed from a date, because
+	 * there is no key here to expire: the grant lasts as long as the host is ours.
+	 */
+	private getCanonicalHostLicense(): ValidLicenseKeyResult {
+		return {
+			isLicenseParseable: true,
+			license: {
+				id: CANONICAL_HOST_LICENSE_ID,
+				hosts: [window.location.hostname.toLowerCase()],
+				flags: FLAGS.WITH_WATERMARK | FLAGS.FEAT_COLLABORATION | FLAGS.FEAT_COMMENTING,
+				expiryDate: CANONICAL_HOST_NEVER_EXPIRES.toISOString(),
+			},
+			isDevelopment: this.isDevelopment,
+			isDomainValid: true,
+			expiryDate: CANONICAL_HOST_NEVER_EXPIRES,
+			isAnnualLicense: false,
+			isAnnualLicenseExpired: false,
+			isPerpetualLicense: false,
+			isPerpetualLicenseExpired: false,
+			isInternalLicense: false,
+			isNativeLicense: false,
+			isLicensedWithWatermark: true,
+			isEvaluationLicense: false,
+			isEvaluationLicenseExpired: false,
+			isCollaborationEnabled: true,
+			isCommentingEnabled: true,
+			daysSinceExpiry: 0,
+		}
+	}
+
 	private getTrackType(result: LicenseFromKeyResult, licenseState: LicenseState): TrackType {
+		// Our own domains are licensed without a key, and the watermark ping exists to tell us about
+		// deployments we don't already know about. Reporting our own apps back to ourselves would only
+		// add noise to the numbers we read, so the canonical-host grant is never tracked.
+		if ('license' in result && result.license.id === CANONICAL_HOST_LICENSE_ID) {
+			return null
+		}
+
 		// Track watermark for unlicensed production deployments
 		if (licenseState === 'unlicensed-production') {
 			return 'unlicensed'
@@ -223,6 +309,10 @@ export class LicenseManager {
 		// Track evaluation licenses (for analytics, even though no watermark is shown)
 		if (result.isEvaluationLicense) {
 			return 'evaluation'
+		}
+
+		if (this.isFlagEnabled(result.license.flags, FLAGS.TRACKED)) {
+			return 'tracked'
 		}
 
 		// Track licenses that show watermarks
@@ -315,6 +405,12 @@ export class LicenseManager {
 	}
 
 	async getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult> {
+		// A key that is provided still wins, so an app on one of our hosts can opt into a different
+		// license — a native or feature-specific key — just by passing it.
+		if (!licenseKey && this.isCanonicalTldrawHost()) {
+			return this.getCanonicalHostLicense()
+		}
+
 		if (!licenseKey) {
 			if (!this.isDevelopment) {
 				this.outputNoLicenseKeyProvided()
@@ -398,7 +494,7 @@ export class LicenseManager {
 	}
 
 	private isDomainValid(licenseInfo: LicenseInfo) {
-		const currentHostname = window.location.hostname.toLowerCase()
+		const currentHostname = this.getOriginLocation().hostname
 
 		return licenseInfo.hosts.some((host) => {
 			const normalizedHostOrUrlRegex = host.toLowerCase().trim()

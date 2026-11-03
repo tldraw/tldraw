@@ -1,7 +1,7 @@
 import { StateNode, TLClickEventInfo, TLPointerEventInfo, TLShape } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getTextLabels } from '../../../utils/shapes/shapes'
-import { isPointInRotatedSelectionBounds } from '../selectHelpers'
+import { isPlainDoubleClickDown, isPointInRotatedSelectionBounds } from '../selectHelpers'
 
 export class PointingShape extends StateNode {
 	static override id = 'pointing_shape'
@@ -203,14 +203,7 @@ export class PointingShape extends StateNode {
 	override onDoubleClick(info: TLClickEventInfo) {
 		this.isDoubleClick = true
 
-		if (
-			this.editor.inputs.getShiftKey() ||
-			info.phase !== 'down' ||
-			info.ctrlKey ||
-			info.shiftKey
-		) {
-			return
-		}
+		if (!isPlainDoubleClickDown(this.editor, info)) return
 
 		const { shape: _shape, ...canvasInfo } = info as TLClickEventInfo & { target: 'shape' }
 		this.parent.transition('idle')

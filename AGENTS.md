@@ -73,7 +73,7 @@ Testing:
 
 - `pnpm test` in a workspace - run tests in watch mode
 - `pnpm test run` in a workspace - run tests once
-- `pnpm test run --grep "pattern"` in a workspace - run matching tests
+- `pnpm test run -t "pattern"` in a workspace - run tests whose names match
 - `pnpm exec vitest` - run all tests across the repo; slow, avoid unless necessary
 - `pnpm e2e` - run examples e2e tests
 - `pnpm e2e-dotcom` - run tldraw.com e2e tests
@@ -89,7 +89,7 @@ Code quality:
 
 ## Validation workflow
 
-- For narrow package changes, run the relevant workspace test first, for example `cd packages/tldraw && pnpm test run --grep "SelectTool"`.
+- For narrow package changes, run the relevant workspace test first, for example `cd packages/tldraw && pnpm test run -t "SelectTool"`.
 - For changes that affect shared types, migrations, editor behavior, or cross-package contracts, run `pnpm typecheck` from the repo root.
 - For public API changes, run `pnpm api-check` and include intentional API report updates.
 - For asset changes, run `pnpm refresh-assets` or `pnpm typecheck` so generated assets stay current.
@@ -196,7 +196,7 @@ Dependencies:
 
 - Keep dependencies workspace-appropriate.
 - If changing dependency manifests or lockfiles, make sure the lockfile update is intentional and included.
-- Every package a file imports must be declared in the owning workspace's own `package.json`. pnpm's `hoisted` linker puts everything in the root `node_modules`, so an undeclared import still resolves here but breaks consumers with strict isolation. The `tldraw/no-undeclared-dependencies` lint rule enforces this across `packages/*`, `apps/*`, `internal/*`, and `templates/*`. Shared dev tooling that every workspace runs (`vitest`, `tsx`, `typescript`, `lazyrepo`) may live only in the root `package.json`: the root `node_modules` is reachable from every workspace under any linker. Anything a published package's source imports must be declared by that package. Adding a workspace dependency also needs a matching `references` entry in that package's `tsconfig.json` (`pnpm check-packages --fix`).
+- Every package a file imports must be declared in the owning workspace's own `package.json`. pnpm uses its default isolated linker: each workspace's `node_modules` links only what that workspace declares, and the root `node_modules` links only the root `package.json`'s dependencies. An undeclared import can still resolve through the root `node_modules` or a stale install, so it works here but breaks once the package is installed, or the template copied, outside this repo. The `tldraw/no-undeclared-dependencies` lint rule enforces this across `packages/*`, `apps/*`, `internal/*`, and `templates/*`. Shared dev tooling that every workspace runs (`vitest`, `tsx`, `typescript`, `turbo`) may live only in the root `package.json`, because module resolution walks up from every workspace to the root `node_modules`. Resolution never descends into a workspace's `node_modules`, so a package declared only by workspaces, such as `@playwright/test`, does not resolve from the repo root or from non-workspace directories like `skills/`. Anything a published package's source imports must be declared by that package. Adding a workspace dependency also needs a matching `references` entry in that package's `tsconfig.json` (`pnpm check-packages --fix`).
 - Dependency install/build scripts are off by default, which closes the main supply-chain `postinstall` code-execution path. Every package that ships a build script must be listed under `allowBuilds` in `pnpm-workspace.yaml`: `true` for packages that genuinely need to build (native/napi modules, binary downloaders), `false` for everything else. pnpm fails the install when a package with a build script isn't listed, so a new one shows up at install time; decide whether it needs to run before adding it.
 
 ## Comments

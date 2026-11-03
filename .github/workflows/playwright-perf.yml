@@ -3,8 +3,14 @@ name: End to end tests (perf)
 on:
   pull_request:
   merge_group:
+  # Main runs keep a per-commit perf history on main in PostHog.
   push:
     branches: [main]
+
+# Cancel superseded PR runs. Other events get a per-run group: a shared one drops queued merge_group/push runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   CI: 1
@@ -68,7 +74,7 @@ jobs:
         uses: ./.github/actions/setup-playwright
 
       - name: Build examples
-        run: pnpm exec lazy refresh-assets && cd apps/examples && pnpm build
+        run: pnpm exec turbo run refresh-assets && cd apps/examples && pnpm build
 
       - name: Run Playwright tests (perf)
         run: 'pnpm e2e-perf'

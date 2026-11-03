@@ -13,7 +13,8 @@
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
 		"test": "pnpm exec vitest --passWithNoTests",
 		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
-		"lint": "pnpm exec tsx ../../../internal/scripts/lint.ts"
+		"lint": "pnpm exec tsx ../../../internal/scripts/lint.ts",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"@tldraw/dotcom-shared": "workspace:*",
@@ -25,7 +26,6 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20260302.0",
-		"lazyrepo": "0.0.0-alpha.27",
 		"wrangler": "^4.75.0"
 	}
 }

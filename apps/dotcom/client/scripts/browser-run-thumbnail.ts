@@ -199,9 +199,9 @@ async function captureWithLocalPlaywright(renderUrl: string, options: Options) {
 			deviceScaleFactor: 1,
 		})
 		// The terminal selectors are the real completion signal; waiting for network idle is both
-		// unnecessary and fragile (background app requests like feature-flag polling can keep the
-		// network busy indefinitely). Waiting on the error marker too makes a failed render fail
-		// immediately with the page's own message instead of timing out.
+		// unnecessary and fragile (background app requests can keep the network busy indefinitely).
+		// Waiting on the error marker too makes a failed render fail immediately with the page's own
+		// message instead of timing out.
 		await page.goto(renderUrl, {
 			waitUntil: 'domcontentloaded',
 			timeout: THUMBNAIL_RENDER_TIMEOUT_MS,

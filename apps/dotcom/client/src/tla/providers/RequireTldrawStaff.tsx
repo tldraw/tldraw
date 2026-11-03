@@ -1,4 +1,4 @@
-import { useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { routes } from '../../routeDefs'
 import { getIsTldrawStaff } from '../hooks/useUser'

@@ -4,6 +4,7 @@ import {
 	buildReactionNotifications,
 	categorizeCommentNotifications,
 	CommentNotificationInput,
+	mergeCommentFeeds,
 	mergeNotifications,
 	summarizeForeignReactors,
 } from './commentNotifications'
@@ -380,6 +381,26 @@ describe('buildReactionNotifications', () => {
 		)
 		const result = mergeNotifications(replied, reacted)
 		expect(result.map((n) => n.comment.id)).toEqual(['comment:reacted', 'comment:replied'])
+	})
+})
+
+describe('mergeCommentFeeds', () => {
+	it('keeps a comment that arrives in several feeds once', () => {
+		const mention = comment({
+			id: 'comment:both',
+			body: body('hi', [ME]),
+			file: { owningGroupId: ME },
+		})
+		const homeBoard = [mention, comment({ id: 'comment:home', file: { owningGroupId: ME } })]
+		const merged = mergeCommentFeeds(homeBoard, [], [], [mention])
+		expect(merged.map((c) => c.id)).toEqual(['comment:both', 'comment:home'])
+
+		const notifications = categorizeCommentNotifications(merged, ME)
+		expect(notifications).toHaveLength(2)
+		expect(notifications.find((n) => n.comment.id === 'comment:both')?.reasons).toEqual([
+			'mention',
+			'owned-board',
+		])
 	})
 })
 

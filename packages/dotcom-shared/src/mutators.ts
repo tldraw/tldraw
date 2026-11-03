@@ -179,6 +179,11 @@ const USER_PREFERENCE_VALIDATORS = {
 
 export type TlaUserPreferenceKey = keyof typeof USER_PREFERENCE_VALIDATORS
 
+/** The keys `updateUserPreferences` accepts, for callers that narrow it further. */
+export const USER_PREFERENCE_KEYS = Object.keys(
+	USER_PREFERENCE_VALIDATORS
+) as readonly TlaUserPreferenceKey[]
+
 export function createMutators(userId: string) {
 	const mutators = {
 		user: {
@@ -484,6 +489,13 @@ export function createMutators(userId: string) {
 		},
 		createWorkspace: async (tx: Tx, { id, name }: { id: string; name: string }) => {
 			assertValidId(id)
+			// Server inserts are ON CONFLICT DO NOTHING, so reusing an existing id would skip the
+			// group insert yet still make the caller its owner below. Home workspace ids are user
+			// ids, refused by prefix too so a home can't be squatted before its user row exists.
+			assert(!id.startsWith('user_'), ZErrorCode.forbidden)
+			await assertNotHomeWorkspace(tx, id)
+			const existingGroup = await tx.run(zql.group.where('id', '=', id).one())
+			assert(!existingGroup, ZErrorCode.forbidden)
 
 			const clampedName = name.trim().slice(0, MAX_WORKSPACE_NAME_LENGTH)
 			assert(clampedName, ZErrorCode.bad_request)
@@ -606,6 +618,7 @@ export function createMutators(userId: string) {
 		) => {
 			assert(workspaceId, ZErrorCode.bad_request)
 			assert(targetUserId, ZErrorCode.bad_request)
+			await assertNotHomeWorkspace(tx, workspaceId)
 
 			const role = await getRole(tx, userId, workspaceId)
 			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)

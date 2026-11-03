@@ -202,6 +202,22 @@ export function buildReactionNotifications(
 	return notifications
 }
 
+/** Unions the per-reason comment feeds: a comment matching several reasons arrives in each of them. */
+export function mergeCommentFeeds<T extends { id: string }>(
+	...feeds: readonly (readonly T[])[]
+): T[] {
+	const seen = new Set<string>()
+	const merged: T[] = []
+	for (const feed of feeds) {
+		for (const comment of feed) {
+			if (seen.has(comment.id)) continue
+			seen.add(comment.id)
+			merged.push(comment)
+		}
+	}
+	return merged
+}
+
 /** Merges both feeds' entries newest-first; the panel and its tests share this. */
 export function mergeNotifications<T extends CommentNotificationInput>(
 	...feeds: readonly CommentNotification<T>[][]

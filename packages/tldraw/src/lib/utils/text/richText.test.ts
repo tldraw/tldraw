@@ -53,6 +53,21 @@ describe('renderHtmlFromRichTextWithExtensions', () => {
 				'<ul dir="auto"><li dir="auto"><p dir="auto"><br /></p></li></ul>'
 		)
 	})
+
+	it('fills an empty heading at every level', () => {
+		// Typing `# ` on an empty line creates one.
+		for (const level of [1, 2, 3, 4, 5, 6]) {
+			expect(render([{ type: 'heading', attrs: { level } }])).toBe(
+				`<h${level} dir="auto"><br /></h${level}>`
+			)
+		}
+	})
+
+	it('leaves headings with content alone', () => {
+		expect(
+			render([{ type: 'heading', attrs: { level: 1 }, content: [{ type: 'text', text: 'hi' }] }])
+		).toBe('<h1 dir="auto">hi</h1>')
+	})
 })
 
 describe('isEmptyRichText', () => {
@@ -128,5 +143,42 @@ describe('isEditingRichTextList', () => {
 			content: [listItem('taskList', 'taskItem')],
 		})
 		expect(isEditingRichTextList(editor)).toBe(true)
+	})
+})
+
+describe('trailing node', () => {
+	const blockTypesOf = (textEditor: TextEditor) => textEditor.getJSON().content?.map((n) => n.type)
+
+	it('does not append an empty paragraph after any enabled block type', () => {
+		const textEditor = new TextEditor({ extensions: tipTapDefaultExtensions, content: '<p></p>' })
+		try {
+			const blockTypes = Object.values(textEditor.schema.nodes).filter((type) =>
+				type.isInGroup('block')
+			)
+			expect(blockTypes.map((type) => type.name)).toContain('heading')
+			for (const type of blockTypes) {
+				const { state } = textEditor
+				textEditor.view.dispatch(
+					state.tr.replaceWith(0, state.doc.content.size, type.createAndFill()!)
+				)
+				expect(blockTypesOf(textEditor)).toEqual([type.name])
+			}
+		} finally {
+			textEditor.destroy()
+		}
+	})
+
+	it('lets the user delete the empty line under a heading', () => {
+		const textEditor = new TextEditor({
+			extensions: tipTapDefaultExtensions,
+			content: '<h1>Heading</h1><p></p>',
+		})
+		try {
+			textEditor.commands.setTextSelection(textEditor.state.doc.content.size - 1)
+			textEditor.commands.keyboardShortcut('Backspace')
+			expect(blockTypesOf(textEditor)).toEqual(['heading'])
+		} finally {
+			textEditor.destroy()
+		}
 	})
 })

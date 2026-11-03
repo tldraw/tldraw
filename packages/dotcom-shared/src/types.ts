@@ -12,16 +12,6 @@ export interface CreateRoomRequestBody {
 	snapshot: Snapshot
 }
 
-export type CreateSnapshotResponseBody =
-	| {
-			error: false
-			roomId: string
-	  }
-	| {
-			error: true
-			message: string
-	  }
-
 export interface GetReadonlySlugResponseBody {
 	slug: string
 	isLegacy: boolean
@@ -44,28 +34,25 @@ export type CreateFilesResponseBody =
 			error: false
 			slugs: string[]
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
-export type PublishFileResponseBody =
-	| {
-			error: false
-	  }
-	| {
-			error: true
-			message: string
-	  }
+/**
+ * Error codes the app's HTTP routes return instead of prose, so the client can show the failure in
+ * the user's language. Same idea as {@link ZErrorCode} for Zero mutation rejections.
+ */
+export const TlaApiErrorCode = stringEnum(
+	'bad_request',
+	'unauthorized',
+	'invite_not_found',
+	'user_not_found',
+	'internal_error'
+)
+export type TlaApiErrorCode = keyof typeof TlaApiErrorCode
 
-export type UnpublishFileResponseBody =
-	| {
-			error: false
-	  }
-	| {
-			error: true
-			message: string
-	  }
+export interface TlaApiErrorResponseBody {
+	error: true
+	code: TlaApiErrorCode
+}
 
 export type GetInviteInfoResponseBody =
 	| {
@@ -75,30 +62,22 @@ export type GetInviteInfoResponseBody =
 			isValid: true
 			inviteSecret: string
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
 export type AcceptInviteResponseBody =
 	| {
 			error: false
-			message: string
 			workspaceId: string
 			workspaceName: string
 			success: true
 	  }
 	| {
 			error: false
-			message: string
 			workspaceId: string
 			workspaceName: string
 			alreadyMember: true
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
 /**
  * The most pages the board-info tool will enumerate for a board. Bounds the page list the MCP
@@ -177,6 +156,12 @@ export interface ThumbnailShapeMeasurement {
  */
 export interface ThumbnailRenderTimingsRequestBody {
 	token: string
+	/**
+	 * How the page got its records: `push` read them off the injected global, `fetch` asked the
+	 * snapshot route. The worker can only say what it sent; this is what the page actually used.
+	 * Optional because a page from before this field existed sends none.
+	 */
+	acquiredBy?: 'push' | 'fetch'
 	timings: {
 		bootAt: number
 		dataAt: number
@@ -186,10 +171,25 @@ export interface ThumbnailRenderTimingsRequestBody {
 	}
 }
 
-/** Body of POST /app/thumbnail-render/result — `shapeId -> measurement`, as the editor measured it. */
-export interface ThumbnailRenderResultRequestBody {
+/** The last render page phase that completed before a failure, in the order the page runs them. */
+export const THUMBNAIL_RENDER_PHASES = ['boot', 'data', 'mount', 'settle'] as const
+export type ThumbnailRenderPhase = (typeof THUMBNAIL_RENDER_PHASES)[number]
+
+// Both ends cap the message: the page so a huge one never leaves the browser, the worker because
+// the beacon is signed but its body is still caller-shaped.
+export const THUMBNAIL_RENDER_ERROR_MAX_LENGTH = 500
+
+/**
+ * The render page's failure beacon, POSTed to the result route when the page marks
+ * `data-thumbnail-error`. Browser Run only tells the worker that the capture element was missing;
+ * this is the page's own reason, and how far it got.
+ */
+export interface ThumbnailRenderErrorRequestBody {
 	token: string
-	bounds: Record<string, ThumbnailShapeMeasurement>
+	error: {
+		message: string
+		phase: ThumbnailRenderPhase
+	}
 }
 
 export type ThumbnailSnapshotResponseBody =
@@ -244,31 +244,44 @@ export interface SubmitFeedbackRequestBody {
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 
+export const CONNECT_STEPS = [
+	'route',
+	'do_init',
+	'auth',
+	'file_record',
+	'rate_limit',
+	'boot',
+	'get_room',
+	'client_connect',
+	'handshake',
+] as const
+export type ConnectStep = (typeof CONNECT_STEPS)[number]
+
 export type TLCustomServerEvent =
 	| { type: 'persistence_good' }
 	| { type: 'persistence_bad' }
-	// Sent once to a session that connected with a `loadId`, so the client's first_load report
-	// can show the server side of that same load. All durations in ms; boot fields only on a cold boot.
-	| {
+	// Sent once to a session that connected with a `loadId`, feeding the client's first_load and
+	// file_load reports. `d_*`/`t_*` are ms; boot fields only when this connect booted the room.
+	| ({
 			type: 'first_load_server'
 			loadId: string
 			cold: boolean
-			auth_ms?: number
-			file_record_ms?: number
-			get_room_ms: number
-			total_ms: number
+			edge_colo?: string
+			do_colo?: string
+			pg_via?: string
+			connect_bytes?: number
 			boot_r2_ms?: number
 			boot_comments_ms?: number
-			boot_total_ms?: number
-	  }
+	  } & { [K in `d_${ConnectStep}` | `t_${ConnectStep}`]?: number })
 
 /* ----------------------- Feature Flags ---------------------- */
 
 export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
-	'first_load_rum',
+	'load_rum',
 	'mcp_server_access',
 	'version_chain',
+	'collections',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
@@ -413,6 +426,30 @@ export interface AdminFileAssetsResponseBody {
 	}
 	dbRows: { forThisFile: number; orphaned: number }
 	warnings: string[]
+}
+
+/**
+ * Response of the admin file endpoint: the file row's metadata and who owns it, so an admin can
+ * confirm they have the right file without opening it. Unlike the board-stats report, this names
+ * people, so keep it out of issues and support replies.
+ */
+export interface AdminFileResponseBody {
+	id: string
+	name: string
+	createdAt: number
+	updatedAt: number
+	isDeleted: boolean
+	isEmpty: boolean
+	shared: boolean
+	sharedLinkType: string
+	published: boolean
+	publishedSlug: string
+	lastPublished: number
+	createSource: string | null
+	/** null for a file with no owning workspace */
+	workspace: { id: string; name: string; isDeleted: boolean } | null
+	/** the owning workspace's owners */
+	owners: { id: string; name: string; email: string }[]
 }
 
 /**

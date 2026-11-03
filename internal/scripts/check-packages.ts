@@ -18,6 +18,10 @@ const packagesWithoutTSConfigs: ReadonlySet<string> = new Set(['config'])
 // all packages should have these scripts
 const expectedPackageJsonScriptsForAll = {
 	lint: tsScript('lint.ts'),
+	// Templates type-check with their own pinned TypeScript, as a user's copy would. `--build` would
+	// follow their references and rebuild the workspace packages with that older compiler.
+	'build-types': (packageDir: string) =>
+		relative(REPO_ROOT, packageDir).startsWith('templates/') ? 'tsc' : 'tsc --build',
 }
 
 const expectedTestScripts = {
@@ -483,6 +487,10 @@ const ALLOWED_VERSION_DIVERGENCE: Record<string, { workspaces: string[]; reason:
 	typescript: {
 		workspaces: ['templates/'],
 		reason: 'templates are independently published starters',
+	},
+	'@rocicorp/zero': {
+		workspaces: ['apps/dotcom/zero-cache'],
+		reason: 'zero-cache must reach a new Zero version before the clients; it sets the server image',
 	},
 }
 

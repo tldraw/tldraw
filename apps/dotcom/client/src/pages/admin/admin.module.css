@@ -24,6 +24,9 @@
 	font-weight: 500;
 	line-height: 1.7;
 	-webkit-font-smoothing: antialiased;
+	/* The app's tl-container root turns selection off; admin is all IDs and emails to copy */
+	user-select: text;
+	-webkit-user-select: text;
 }
 
 /* Paper-grain noise overlay (same tile as the internal intel app) */
@@ -250,7 +253,6 @@
 	overflow-x: auto;
 	max-width: 100%;
 	max-height: 400px;
-	user-select: text;
 }
 
 .fileOperations {
@@ -286,6 +288,10 @@
 	gap: 8px;
 	padding: 8px 0 8px 8px;
 	border-left: 2px solid var(--admin-red);
+}
+
+.dangerZone > button {
+	align-self: flex-start;
 }
 
 .deleteContainer {

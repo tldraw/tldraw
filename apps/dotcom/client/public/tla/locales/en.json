@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "We’re working on support for files from <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
-  },
   "043973ec1f": {
     "translation": "Still having trouble? {GetHelpLink}"
   },
@@ -73,6 +70,9 @@
   },
   "181b90f889": {
     "translation": "Create file"
+  },
+  "1a7222b4e5": {
+    "translation": "Move to"
   },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
@@ -139,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "Remove member"
+  },
+  "398f51738e": {
+    "translation": "Sign in to accept this invite."
   },
   "3bc7d6ea2f": {
     "translation": "Continue with email"
@@ -208,9 +211,6 @@
   },
   "54286b1d01": {
     "translation": "Collaborator limit reached"
-  },
-  "545241e7dd": {
-    "translation": "{count} unread"
   },
   "550b25cc0c": {
     "translation": "Could not restore your local drawing. Try reloading this page."
@@ -386,9 +386,6 @@
   "85a082de1b": {
     "translation": "Please refresh the page to get the latest version of tldraw."
   },
-  "86353d2c41": {
-    "translation": "Added {total} .tldr files."
-  },
   "86c66437fd": {
     "translation": "Rename file"
   },
@@ -415,6 +412,9 @@
   },
   "90646db02d": {
     "translation": "Are you sure you want to delete <strong>{workspaceName}</strong>? This action cannot be undone."
+  },
+  "930390d222": {
+    "translation": "Copied invite link"
   },
   "95aacd4d4a": {
     "translation": "Sign in with Google"
@@ -457,6 +457,9 @@
   },
   "a078644c42": {
     "translation": "You have been invited to join <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# unread} other {# unread}}"
   },
   "a0da245992": {
     "translation": "Export the content as a .tldr file: Select 'Download' in the top left menu."
@@ -537,6 +540,9 @@
   "b6f4a2ec63": {
     "translation": "Owner"
   },
+  "b74dbb40c5": {
+    "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the File menu in the top left."
+  },
   "b758336699": {
     "translation": "Copy link"
   },
@@ -558,14 +564,14 @@
   "c2276c9127": {
     "translation": "Learn more about sharing."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {Added # .tldr file.} other {Added # .tldr files.}}"
+  },
   "c303bd1095": {
     "translation": "Unable to publish the file."
   },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Long String"
   },
   "c6a00f137b": {
     "translation": "Invite"
@@ -645,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "or"
   },
+  "ea13ecec38": {
+    "translation": "File history"
+  },
   "ea4788705e": {
     "translation": "Cancel"
   },
@@ -659,9 +668,6 @@
   },
   "ec611e9a08": {
     "translation": "Account menu"
-  },
-  "ed53713239": {
-    "translation": "i18n: Accented"
   },
   "ed75712b0e": {
     "translation": "Duplicate"
@@ -690,6 +696,9 @@
   "f2a6c498fb": {
     "translation": "Delete"
   },
+  "f408fa5fbd": {
+    "translation": "This invite link is invalid or has expired."
+  },
   "f476ba8646": {
     "translation": "<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
   },
@@ -716,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "Create a free account to save your files and tldraw with your teammates."
+  },
+  "ffad261a48": {
+    "translation": "Error accepting invite"
   },
   "ffcd73e997": {
     "translation": "Import file…"
