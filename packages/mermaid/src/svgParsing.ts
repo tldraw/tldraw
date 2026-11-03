@@ -11,6 +11,8 @@ export interface ParsedNode {
 	center: Vec2
 	width: number
 	height: number
+	/** The label's lines, broken where the layout wrapped them. */
+	lines?: string[]
 }
 
 export interface ParsedCluster {
@@ -21,7 +23,7 @@ export interface ParsedCluster {
 }
 
 export interface ParsedEdge {
-	/** Mermaid's `data-id` for the path, shared with the edge's label in the SVG. */
+	/** The path's `data-id`, shared with the edge's label in the SVG. */
 	id: string
 	start: string
 	end: string
@@ -33,6 +35,8 @@ export interface ParsedEdgeLabel {
 	y: number
 	w: number
 	h: number
+	/** The label's lines, broken where the layout wrapped them. */
+	lines?: string[]
 }
 
 /**
@@ -47,24 +51,7 @@ export interface ParsedDiagramLayout {
 	edgeLabels: Map<string, ParsedEdgeLabel>
 }
 
-type NodeIdParser = (domId: string) => string
-type EdgeIdParser = (dataId: string, points: Vec2[]) => { start: string; end: string } | null
-
-// Mermaid >= 11.15 prefixes every rendered element id with the diagram id
-// (`mermaid-0-flowchart-A-0` instead of `flowchart-A-0`); older versions do not.
-const DIAGRAM_ID_PREFIX = /^mermaid-\d+-/
-
-export function stripDiagramIdPrefix(domId: string): string {
-	return domId.replace(DIAGRAM_ID_PREFIX, '')
-}
-
-/** Extract the first capture group of `pattern` from a dom id, tolerating the diagram-id prefix. */
-export function parseDomId(domId: string, pattern: RegExp): string {
-	const bareId = stripDiagramIdPrefix(domId)
-	return bareId.match(pattern)?.[1] ?? bareId
-}
-
-function parseTranslate(attr: string | null): Vec2 {
+export function parseTranslate(attr: string | null): Vec2 {
 	// Matches SVG translate transforms, e.g. transform="translate(123.45, 67.8)".
 	// Handles scientific notation (1.2e+3). Group 1 = x offset, group 2 = y offset.
 	const match = attr?.match(/translate\(\s*([\d.e+-]+)[,\s]+([\d.e+-]+)\s*\)/)
@@ -83,200 +70,51 @@ export function getAccumulatedTranslate(el: Element): Vec2 {
 	return { x, y }
 }
 
-function getBBoxSize(el: Element | null): { w: number; h: number } | undefined {
-	if (!el) return undefined
-	try {
-		const bbox = (el as SVGGraphicsElement).getBBox()
-		if (bbox.width > 0 && bbox.height > 0) return { w: bbox.width, h: bbox.height }
-	} catch {
-		// not a live SVG element (e.g. jsdom)
-	}
-	return undefined
+export interface LayoutBox {
+	x: number
+	y: number
+	w: number
+	h: number
 }
 
-/**
- * Extract element dimensions from a live SVG element using getBBox(),
- * falling back to attribute parsing for non-browser environments (jsdom).
- */
-function getNodeDimensions(groupEl: Element): { w: number; h: number } {
-	const bbox = getBBoxSize(groupEl.querySelector('.label-container')) ?? getBBoxSize(groupEl)
-	if (bbox) return bbox
-
-	const rect = groupEl.querySelector('rect')
-	if (rect) {
-		const w = parseFloat(rect.getAttribute('width') || '0')
-		const h = parseFloat(rect.getAttribute('height') || '0')
-		if (w > 0 && h > 0) return { w, h }
-	}
-	const poly = groupEl.querySelector('polygon')
-	if (poly) {
-		const pts = (poly.getAttribute('points') || '')
-			.trim()
-			.split(/\s+/)
-			.map((pointStr) => pointStr.split(',').map(Number))
-		let minX = Infinity
-		let maxX = -Infinity
-		let minY = Infinity
-		let maxY = -Infinity
-		for (const [px, py] of pts) {
-			minX = Math.min(minX, px)
-			maxX = Math.max(maxX, px)
-			minY = Math.min(minY, py)
-			maxY = Math.max(maxY, py)
-		}
-		if (maxX > minX && maxY > minY) return { w: maxX - minX, h: maxY - minY }
-	}
-	const circle = groupEl.querySelector('circle')
-	if (circle) {
-		const r = parseFloat(circle.getAttribute('r') || '0')
-		if (r > 0) return { w: r * 2, h: r * 2 }
-	}
-	const ellipse = groupEl.querySelector('ellipse')
-	if (ellipse) {
-		const w = parseFloat(ellipse.getAttribute('rx') || '0') * 2
-		const h = parseFloat(ellipse.getAttribute('ry') || '0') * 2
-		if (w > 0 && h > 0) return { w, h }
-	}
-	return { w: 0, h: 0 }
-}
-
-export function parseNodesFromSvg(
-	root: Element,
-	selector: string,
-	idParser: NodeIdParser
-): Map<string, ParsedNode> {
-	const out = new Map<string, ParsedNode>()
-	for (const groupEl of root.querySelectorAll(selector)) {
-		const id = idParser(groupEl.getAttribute('id') || '')
-		const self = parseTranslate(groupEl.getAttribute('transform'))
-		const ancestor = getAccumulatedTranslate(groupEl)
-		const { w, h } = getNodeDimensions(groupEl)
-		out.set(id, {
-			id,
-			center: { x: ancestor.x + self.x, y: ancestor.y + self.y },
-			width: w,
-			height: h,
-		})
-	}
-	return out
-}
-
-export function parseClustersFromSvg(
-	root: Element,
-	selector: string,
-	idParser: NodeIdParser
-): Map<string, ParsedCluster> {
-	const out = new Map<string, ParsedCluster>()
-	for (const groupEl of root.querySelectorAll(selector)) {
-		const id = idParser(groupEl.getAttribute('id') || '')
-		const rect = groupEl.querySelector('rect')
-		if (!rect) continue
-		const rx = parseFloat(rect.getAttribute('x') || '0')
-		const ry = parseFloat(rect.getAttribute('y') || '0')
-		const w = parseFloat(rect.getAttribute('width') || '0')
-		const h = parseFloat(rect.getAttribute('height') || '0')
-		const self = parseTranslate(groupEl.getAttribute('transform'))
-		const ancestor = getAccumulatedTranslate(groupEl)
-		out.set(id, {
-			id,
-			topLeft: { x: ancestor.x + self.x + rx, y: ancestor.y + self.y + ry },
-			width: w,
-			height: h,
-		})
-	}
-	return out
-}
-
-/**
- * Parse every SVG edge path in DOM order (matching mermaid's edge list order).
- * Unlike the old per-pair map, this preserves all parallel edges individually.
- */
-export function parseAllEdgePointsFromSvg(root: Element, parser: EdgeIdParser): ParsedEdge[] {
-	const out: ParsedEdge[] = []
-	for (const path of root.querySelectorAll('path[data-points]')) {
-		const dataId = path.getAttribute('data-id') || path.getAttribute('id') || ''
-		const dataPoints = path.getAttribute('data-points')
-		if (!dataPoints) continue
-		try {
-			const points = JSON.parse(atob(dataPoints))
-			const ancestor = getAccumulatedTranslate(path as Element)
-			for (const point of points) {
-				point.x += ancestor.x
-				point.y += ancestor.y
-			}
-			// Parsed after the points, which an id parser may need to place an ambiguous id.
-			const parsed = parser(dataId, points)
-			if (!parsed) continue
-			out.push({ id: dataId, start: parsed.start, end: parsed.end, points })
-		} catch {
-			/* ignore malformed data */
+/** A node or cluster's box in the layout. */
+export function getLayoutBox(layout: ParsedDiagramLayout, id: string): LayoutBox | undefined {
+	const node = layout.nodes.get(id)
+	if (node) {
+		return {
+			x: node.center.x - node.width / 2,
+			y: node.center.y - node.height / 2,
+			w: node.width,
+			h: node.height,
 		}
 	}
-	return out
+	const cluster = layout.clusters.get(id)
+	return (
+		cluster && { x: cluster.topLeft.x, y: cluster.topLeft.y, w: cluster.width, h: cluster.height }
+	)
+}
+
+function getDistanceToBox(point: Vec2, box: LayoutBox) {
+	const dx = Math.max(box.x - point.x, 0, point.x - (box.x + box.w))
+	const dy = Math.max(box.y - point.y, 0, point.y - (box.y + box.h))
+	return Math.hypot(dx, dy)
 }
 
 /**
- * Parse the box mermaid laid each edge label out in, keyed by the `data-id` it shares with its
- * path. Edges without text still get an empty label group, which is skipped.
- */
-export function parseEdgeLabelsFromSvg(root: Element): Map<string, ParsedEdgeLabel> {
-	const out = new Map<string, ParsedEdgeLabel>()
-	for (const label of root.querySelectorAll('.edgeLabel .label[data-id]')) {
-		const size = getBBoxSize(label) ?? getForeignObjectSize(label)
-		if (!size) continue
-		const ancestor = getAccumulatedTranslate(label)
-		const self = parseTranslate(label.getAttribute('transform'))
-		out.set(label.getAttribute('data-id')!, {
-			x: ancestor.x + self.x,
-			y: ancestor.y + self.y,
-			w: size.w,
-			h: size.h,
-		})
-	}
-	return out
-}
-
-function getForeignObjectSize(el: Element): { w: number; h: number } | undefined {
-	const foreignObject = el.querySelector('foreignObject')
-	const w = parseFloat(foreignObject?.getAttribute('width') || '0')
-	const h = parseFloat(foreignObject?.getAttribute('height') || '0')
-	return w > 0 && h > 0 ? { w, h } : undefined
-}
-
-/**
- * Build a map of node/cluster id → center (for flowchart and state diagram edge matching).
- */
-export function buildNodeCentersFromSvg(
-	nodes: Map<string, ParsedNode>,
-	clusters: Map<string, ParsedCluster>
-): Map<string, Vec2> {
-	const out = new Map<string, Vec2>()
-	for (const [id, node] of nodes) {
-		out.set(id, { x: node.center.x, y: node.center.y })
-	}
-	for (const [id, cluster] of clusters) {
-		out.set(id, {
-			x: cluster.topLeft.x + cluster.width / 2,
-			y: cluster.topLeft.y + cluster.height / 2,
-		})
-	}
-	return out
-}
-
-/**
- * Claim the path mermaid drew for an edge between two nodes, or undefined when nothing matches.
- * Each path is claimed at most once.
+ * Claim the path the layout drew for an edge between two nodes, or undefined when nothing
+ * matches. Each path is claimed at most once.
  *
- * Mermaid names a flowchart's paths after the two nodes they join and emits them in the order it
- * drew them, so the nth edge between a pair of nodes is the nth unclaimed path carrying their ids.
- * Paths with no ids to go on, such as a state diagram's `edge<N>`, fall back to whichever ends lie
- * nearest the two node centers. That fallback picks the wrong path when several ends sit equally
- * close, which is what parallel edges do (#10794).
+ * A flowchart's paths carry the two node ids they join, in source order, so the nth edge between a
+ * pair of nodes is the nth unclaimed path carrying their ids. Paths with no ids to go on, such as a
+ * state diagram's `edge<N>`, fall back to whichever ends lie nearest the two nodes' boxes. Nearest
+ * the boxes rather than their centres, or a tall node's self-loop claims a path leaving the node,
+ * whose start is nearer the centre than the loop's ends at the node's side. That fallback picks
+ * the wrong path when several ends sit equally close, which is what parallel edges do (#10794).
  */
 export function claimEdge(
 	svgEdges: ParsedEdge[],
 	claimed: Set<number>,
-	edge: { startId: string; endId: string; startCenter?: Vec2; endCenter?: Vec2 }
+	edge: { startId: string; endId: string; startBox?: LayoutBox; endBox?: LayoutBox }
 ): ParsedEdge | undefined {
 	const usable = (svgEdge: ParsedEdge, index: number) =>
 		!claimed.has(index) && svgEdge.points.length >= 2
@@ -292,8 +130,8 @@ export function claimEdge(
 		}
 	}
 
-	const { startCenter, endCenter } = edge
-	if (!startCenter || !endCenter) return undefined
+	const { startBox, endBox } = edge
+	if (!startBox || !endBox) return undefined
 
 	let bestIndex = -1
 	let bestDistance = Infinity
@@ -302,9 +140,7 @@ export function claimEdge(
 
 		const points = svgEdges[i].points
 		const last = points[points.length - 1]
-		const distance =
-			Math.hypot(points[0].x - startCenter.x, points[0].y - startCenter.y) +
-			Math.hypot(last.x - endCenter.x, last.y - endCenter.y)
+		const distance = getDistanceToBox(points[0], startBox) + getDistanceToBox(last, endBox)
 		if (distance < bestDistance) {
 			bestDistance = distance
 			bestIndex = i
@@ -320,9 +156,8 @@ export function claimEdge(
 const SELF_LOOP_EDGE_SPREAD = 0.4
 
 /**
- * Where a self-loop leaves and re-enters its node, and how far out it reaches. Mermaid loops out of
- * the side facing the next rank (the bottom of a top-down chart, the right of a left-to-right one)
- * with the label just beyond; anywhere else, loop and label land on the node.
+ * Where a self-loop leaves and re-enters its node, and how far out it reaches, following the side
+ * the layout looped out of, with the label just beyond.
  */
 export function getSelfLoopEdgeLayout(
 	svgEdge: ParsedEdge,
@@ -357,6 +192,56 @@ export function getSelfLoopEdgeLayout(
 		anchorEndX: end.x,
 		anchorEndY: end.y,
 	}
+}
+
+/** How far from a route's end toward its node's centre an arrow aims, as a share of the way. */
+const ANCHOR_INSET = 0.25
+
+/**
+ * Where an arrow should leave and enter its shapes: where the layout's route does, as a fraction of
+ * each end's box in the layout. Bound to shape centres instead, the edges of a split or merge all
+ * aim for the same point and pinch together; the layout gives each its own place on the side.
+ * Fractions of the layout's box carry over to a shape drawn wider than it, such as a join bar.
+ */
+export function getRouteEndAnchors(svgEdge: ParsedEdge, startBox: LayoutBox, endBox: LayoutBox) {
+	const { points } = svgEdge
+	if (points.length < 2) return undefined
+	// The route stops just outside a node's outline. Aim a quarter of the way in from there, so
+	// tldraw clips the arrow at the drawn outline whatever the shape: a point on the box's side
+	// would sit outside a diamond or circle.
+	const toAnchor = (point: Vec2, box: LayoutBox) => {
+		const x = box.w > 0 ? clamp((point.x - box.x) / box.w, 0, 1) : 0.5
+		const y = box.h > 0 ? clamp((point.y - box.y) / box.h, 0, 1) : 0.5
+		return { x: x + (0.5 - x) * ANCHOR_INSET, y: y + (0.5 - y) * ANCHOR_INSET }
+	}
+	const start = toAnchor(points[0], startBox)
+	const end = toAnchor(points[points.length - 1], endBox)
+	return {
+		anchorStartX: start.x,
+		anchorStartY: start.y,
+		anchorEndX: end.x,
+		anchorEndY: end.y,
+		isExact: false,
+		isPrecise: true,
+	}
+}
+
+/** How far along a route the point nearest `target` lies, as a fraction of the route's length. */
+export function getPositionAlongRoute(points: Vec2[], target: Vec2): number | undefined {
+	let total = 0
+	let best = { distance: Infinity, at: 0 }
+	for (let i = 1; i < points.length; i++) {
+		const a = points[i - 1]
+		const b = points[i]
+		const length = Math.hypot(b.x - a.x, b.y - a.y)
+		const t = length
+			? clamp(((target.x - a.x) * (b.x - a.x) + (target.y - a.y) * (b.y - a.y)) / length ** 2, 0, 1)
+			: 0
+		const distance = Math.hypot(a.x + (b.x - a.x) * t - target.x, a.y + (b.y - a.y) * t - target.y)
+		if (distance < best.distance) best = { distance, at: total + length * t }
+		total += length
+	}
+	return total > 0 ? best.at / total : undefined
 }
 
 // ---------------------------------------------------------------------------

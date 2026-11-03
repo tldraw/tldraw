@@ -198,6 +198,7 @@ function createArrowFromEdge(
 		arrowheadEnd: edge.arrowheadEnd ?? ('arrow' as const),
 		...(edge.arrowheadStart && { arrowheadStart: edge.arrowheadStart }),
 		color: edge.color ?? ('black' as const),
+		...(edge.labelPosition !== undefined && { labelPosition: edge.labelPosition }),
 		...(labelText && { richText: toRichText(sanitizeDiagramText(labelText)) }),
 	}
 
