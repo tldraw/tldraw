@@ -4,14 +4,19 @@ import { act, render, renderHook, screen, waitFor } from '@testing-library/react
 import { defineMessages, getDeclaredMessages } from '@tldraw/editor'
 import * as React from 'react'
 import { IntlProvider } from 'react-intl'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defaultUiAssetUrls } from '../assetUrls'
+import { clearTranslationCache, preloadTranslation } from '../hooks/useTranslation/translations'
 import { TldrawUiTranslationProvider, useTranslation } from '../hooks/useTranslation/useTranslation'
 import { AssetUrlsProvider } from './asset-urls'
 import { F, useTldrawI18n } from './i18n'
 
 vi.unmock('./useTranslation')
 vi.unmock('../hooks/useTranslation/useTranslation')
+
+beforeEach(() => {
+	clearTranslationCache()
+})
 
 const messages = defineMessages({
 	copy: { id: 'action.copy', defaultMessage: 'Copy' },
@@ -158,6 +163,66 @@ describe('TldrawUiTranslationProvider', () => {
 			expect(result.current('action.copy')).toBe('Copy')
 			// The app's own catalog still comes through both.
 			expect(result.current('app.hello')).toBe('Bonjour')
+		} finally {
+			fetchSpy.mockRestore()
+		}
+	})
+
+	function mockFrenchCatalog() {
+		return vi
+			.spyOn(window, 'fetch')
+			.mockImplementation(
+				async () => ({ ok: true, json: async () => ({ 'action.copy': 'Copier' }) }) as Response
+			)
+	}
+
+	// Each `<Tldraw>` mounts its own provider. Each used to start in English and refetch a catalog
+	// that was already loaded, so opening a board flashed English for a frame.
+	it('renders an already-loaded catalog on its first render', async () => {
+		const fetchSpy = mockFrenchCatalog()
+		try {
+			const first = renderHook(() => useTranslation(), { wrapper: withLocale('fr') })
+			await waitFor(() => expect(first.result.current('action.copy')).toBe('Copier'))
+			first.unmount()
+
+			const firstRenders: string[] = []
+			renderHook(
+				() => {
+					const msg = useTranslation()
+					if (!firstRenders.length) firstRenders.push(msg('action.copy'))
+				},
+				{ wrapper: withLocale('fr') }
+			)
+			expect(firstRenders).toEqual(['Copier'])
+			expect(fetchSpy).toHaveBeenCalledTimes(1)
+		} finally {
+			fetchSpy.mockRestore()
+		}
+	})
+
+	it('renders a preloaded catalog on its first render', async () => {
+		const fetchSpy = mockFrenchCatalog()
+		try {
+			await preloadTranslation('fr')
+			const { result } = renderHook(() => useTranslation(), { wrapper: withLocale('fr') })
+			expect(result.current('action.copy')).toBe('Copier')
+			expect(fetchSpy).toHaveBeenCalledTimes(1)
+		} finally {
+			fetchSpy.mockRestore()
+		}
+	})
+
+	// A failure cached for good would leave the UI English until a reload.
+	it('retries a catalog that failed to load', async () => {
+		const fetchSpy = vi.spyOn(window, 'fetch').mockRejectedValueOnce(new Error('offline'))
+		try {
+			await expect(preloadTranslation('fr')).resolves.toBeUndefined()
+			fetchSpy.mockImplementation(
+				async () => ({ ok: true, json: async () => ({ 'action.copy': 'Copier' }) }) as Response
+			)
+			const { result } = renderHook(() => useTranslation(), { wrapper: withLocale('fr') })
+			await waitFor(() => expect(result.current('action.copy')).toBe('Copier'))
+			expect(fetchSpy).toHaveBeenCalledTimes(2)
 		} finally {
 			fetchSpy.mockRestore()
 		}

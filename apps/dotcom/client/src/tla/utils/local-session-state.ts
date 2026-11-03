@@ -44,6 +44,9 @@ export interface TldrawAppSessionState {
 	// The file this browser last synced to, keyed by account so a different sign-in on the same
 	// browser never lands on someone else's board. Only a hint: Zero's file_state is authoritative.
 	lastVisitedFile?: { userId: string; fileId: string }
+	// The locale last shown on this browser. The signed-in user's real one is in Zero, which loads
+	// well after the first render; starting from this instead of English avoids a language flash.
+	locale?: string
 }
 
 const defaultSessionState: TldrawAppSessionState = {
@@ -118,13 +121,19 @@ export function clearLocalSessionState() {
 
 // we use this to help remove flashbangs on signout/signin
 export function resetLocalSessionStateButKeepTheme() {
-	const { theme: currentTheme, colorTheme, colorThemeBackground } = getLocalSessionStateUnsafe()
+	const {
+		theme: currentTheme,
+		colorTheme,
+		colorThemeBackground,
+		locale,
+	} = getLocalSessionStateUnsafe()
 	clearLocalSessionState()
 	const newState: TldrawAppSessionState = {
 		...getDefaultSessionState(),
 		theme: currentTheme,
 		colorTheme: colorTheme ?? 'default',
 		colorThemeBackground,
+		locale,
 	}
 	localSessionState.set(newState)
 	setInLocalStorage(STORAGE_KEY, JSON.stringify(newState))

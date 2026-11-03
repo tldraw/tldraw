@@ -13,7 +13,12 @@ import {
 import '../../consumerMessages'
 import { useAssetUrls } from '../../context/asset-urls'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
-import { EN_TRANSLATION, TLUiTranslation, fetchTranslation } from './translations'
+import {
+	EN_TRANSLATION,
+	TLUiTranslation,
+	fetchTranslation,
+	getLoadedTranslation,
+} from './translations'
 
 /** @public */
 export interface TLUiTranslationProviderProps {
@@ -80,15 +85,21 @@ export function TldrawUiTranslationProvider({
 	// Only the fetch belongs in an effect; merging overrides is derived from data already in hand.
 	// Inside one, a changed override took another round trip to apply, and an app assembling its
 	// overrides as it loads its own strings refetched this catalog on every identity change.
-	const [loaded, setLoaded] = React.useState<TLUiTranslation>(EN_TRANSLATION)
+	//
+	// An already-loaded catalog is used straight away, so the first frame isn't English. One that
+	// isn't keeps the previous language on screen until it arrives.
+	const translationUrls = getAssetUrl.translations
+	const ready = getLoadedTranslation(locale, translationUrls)
+	const [fetched, setFetched] = React.useState<TLUiTranslation>(() => ready ?? EN_TRANSLATION)
+	const loaded = ready ?? fetched
 
 	React.useEffect(() => {
 		let isCancelled = false
 
 		async function loadTranslation() {
-			const translation = await fetchTranslation(locale, getAssetUrl)
+			const translation = await fetchTranslation(locale, translationUrls)
 			if (isCancelled) return
-			setLoaded(translation)
+			setFetched(translation)
 		}
 
 		loadTranslation()
@@ -96,7 +107,7 @@ export function TldrawUiTranslationProvider({
 		return () => {
 			isCancelled = true
 		}
-	}, [getAssetUrl, locale])
+	}, [translationUrls, locale])
 
 	// Keyed on the requested locale, not the loaded one. They differ when the SDK ships no catalogue
 	// for it and `fetchTranslation` falls back to English — which is the case for a locale that
