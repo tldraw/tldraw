@@ -337,14 +337,20 @@ export function parsePageInfoInput(input: unknown): { boardId: string; page: Pag
 	return { boardId: parseBoardId(value.boardId), page: parsePageSelector(value.page) }
 }
 
-// Every cluster holds at least one shape, so more ids than this could never fit under
-// CLUSTER_INFO_MAX_SHAPES. Refusing them here saves the measure render the shape count would need.
+// Bounds the request itself, before the measure render it would cost. Paging bounds the answer.
 export const CLUSTER_INFO_MAX_IDS = 100
+
+/** Where a paged get_cluster_info answer picks up: a shape within one of the clusters asked for. */
+export interface ClusterInfoCursor {
+	cluster: number
+	shape: number
+}
 
 export function parseClusterInfoInput(input: unknown): {
 	boardId: string
 	page: PageSelector
 	clusterIds: string[]
+	cursor: ClusterInfoCursor | null
 } {
 	const value = requireArgumentsObject(input)
 	// `clusterId` is the argument this tool took before it took several. A client holding the old tool
@@ -359,7 +365,45 @@ export function parseClusterInfoInput(input: unknown): {
 		boardId: parseBoardId(value.boardId),
 		page: parsePageSelector(value.page),
 		clusterIds,
+		cursor: parseClusterInfoCursor(value.cursor, clusterIds),
 	}
+}
+
+// Refused rather than read as the first page, for the reason search_boards gives: a model whose
+// cursor silently restarts sees its own answers repeat, with no sign the cursor was the problem.
+function parseClusterInfoCursor(value: unknown, clusterIds: string[]): ClusterInfoCursor | null {
+	if (value === undefined || value === null) return null
+	const invalid = new Error(
+		'cursor is not valid. Omit it to start from the first shape, or pass the nextCursor from a previous get_cluster_info result.'
+	)
+	if (typeof value !== 'string') throw invalid
+	let parts: string[]
+	try {
+		parts = atob(value).split(':')
+	} catch {
+		throw invalid
+	}
+	if (parts.length !== 3 || !/^\d+$/.test(parts[0]) || !/^\d+$/.test(parts[1])) throw invalid
+	// A cursor is a position in one list of clusters. Passed on with a different list it would point
+	// into clusters the caller never saw the start of.
+	let ids: string
+	try {
+		ids = decodeURIComponent(parts[2])
+	} catch {
+		throw invalid
+	}
+	if (ids !== clusterIds.join(',')) {
+		throw new Error(
+			'cursor is from a different set of clusterIds. Repeat the clusterIds it came from, or omit the cursor to start from the first shape.'
+		)
+	}
+	return { cluster: Number(parts[0]), shape: Number(parts[1]) }
+}
+
+// Opaque, so the encoding can change without clients having to. The ids are percent-escaped because
+// `btoa` throws outside Latin-1.
+function encodeClusterInfoCursor(cursor: ClusterInfoCursor, clusterIds: string[]): string {
+	return btoa(`${cursor.cluster}:${cursor.shape}:${encodeURIComponent(clusterIds.join(','))}`)
 }
 
 export function parseClusterScreenshotInput(input: unknown): {
@@ -1031,33 +1075,37 @@ export function getPageInfo(page: ResolvedPageOk, clusters: ShapeCluster[]): Too
 }
 
 /**
- * The most shapes one get_cluster_info call returns across several clusters. A shape is about 500
- * characters of JSON, so this keeps a batched answer near 50K characters, under the 25K-token tool
- * result that some clients cut off at. A single cluster is never refused for its size: there is
- * nothing smaller to ask for.
+ * The most JSON one get_cluster_info answer carries in its shapes before it stops and hands back a
+ * nextCursor. Some clients cut a tool result off at 25K tokens, and this JSON runs about 2.5 to 3
+ * characters a token, so 60K characters keeps an answer under that. Measured rather than counted in
+ * shapes, because a shape's size is mostly its text: a box is ~400 characters, a note holding a
+ * paragraph several times that.
  */
-export const CLUSTER_INFO_MAX_SHAPES = 100
+export const CLUSTER_INFO_MAX_CHARS = 60_000
 
 export type ClusterInfoResult =
 	| { ok: true; result: ToolResult }
-	| { ok: false; reason: 'cluster_not_found' | 'too_many_shapes'; result: ToolResult }
+	| { ok: false; reason: 'cluster_not_found' | 'invalid_cursor'; result: ToolResult }
 
 export function getClusterInfo(
 	page: ResolvedPageOk,
 	{ clusters, arrows, dimensions }: PageClustering,
 	clusterIds: string[],
-	selector: PageSelector
+	selector: PageSelector,
+	cursor: ClusterInfoCursor | null = null
 ): ClusterInfoResult {
 	const found = findClusters(clusters, clusterIds, selector)
 	if (!found.ok) return { ok: false, reason: 'cluster_not_found', result: found.result }
 
-	const shapeCount = found.clusters.reduce((sum, cluster) => sum + cluster.numberOfShapes, 0)
-	if (found.clusters.length > 1 && shapeCount > CLUSTER_INFO_MAX_SHAPES) {
+	const start = cursor ?? { cluster: 0, shape: 0 }
+	// The ids are checked against the cursor when it is read, so this only fails if the clusters
+	// themselves changed under it, which a content edit does by giving them new ids.
+	if (start.shape >= (found.clusters[start.cluster]?.shapes.length ?? 0)) {
 		return {
 			ok: false,
-			reason: 'too_many_shapes',
+			reason: 'invalid_cursor',
 			result: toolError(
-				`Those ${found.clusters.length} clusters hold ${shapeCount} shapes, more than the ${CLUSTER_INFO_MAX_SHAPES} one call returns across several clusters. Ask for fewer clusters at a time: get_page_info gives each cluster's numberOfShapes. A cluster larger than that can still be asked for on its own.`
+				'cursor does not point into these clusters any more. Omit it to start from the first shape.'
 			),
 		}
 	}
@@ -1070,25 +1118,56 @@ export function getClusterInfo(
 		else bindingsByArrow.set(binding.fromId, [binding])
 	}
 
+	// Fills the answer shape by shape until the next would take it over budget. At least one shape
+	// always goes in, so a single shape larger than the budget still gets read and paging moves on.
+	const answered: Record<string, unknown>[] = []
+	let size = 0
+	let next: ClusterInfoCursor | null = null
+	fill: for (let c = start.cluster; c < found.clusters.length; c++) {
+		const cluster = found.clusters[c]
+		const firstShape = c === start.cluster ? start.shape : 0
+		const shapes: unknown[] = []
+		for (let s = firstShape; s < cluster.shapes.length; s++) {
+			const shape = cluster.shapes[s]
+			const readable = toReadableShape(shape, {
+				transform: pageTransformOf(shape),
+				measuredArrow: arrows[shape.id],
+				measuredDimensions: dimensions[shape.id],
+				bindings: bindingsByArrow.get(shape.id) ?? [],
+			})
+			const shapeSize = JSON.stringify(readable).length + 1
+			if (size > 0 && size + shapeSize > CLUSTER_INFO_MAX_CHARS) {
+				next = { cluster: c, shape: s }
+				if (shapes.length) answered.push(describeClusterSlice(cluster, firstShape, shapes))
+				break fill
+			}
+			size += shapeSize
+			shapes.push(readable)
+		}
+		answered.push(describeClusterSlice(cluster, firstShape, shapes))
+	}
+
 	return {
 		ok: true,
 		result: toolJsonResult({
 			pageName: page.pageName,
-			clusters: found.clusters.map((cluster) => ({
-				clusterId: cluster.id,
-				label: cluster.label,
-				keywords: cluster.keywords,
-				numberOfShapes: cluster.numberOfShapes,
-				shapes: cluster.shapes.map((shape) =>
-					toReadableShape(shape, {
-						transform: pageTransformOf(shape),
-						measuredArrow: arrows[shape.id],
-						measuredDimensions: dimensions[shape.id],
-						bindings: bindingsByArrow.get(shape.id) ?? [],
-					})
-				),
-			})),
+			clusters: answered,
+			...(next ? { nextCursor: encodeClusterInfoCursor(next, clusterIds) } : null),
 		}),
+	}
+}
+
+// A cluster split across answers carries firstShapeIndex, so a model can tell a slice from a whole
+// cluster without counting against numberOfShapes, which is always the cluster's total.
+function describeClusterSlice(cluster: ShapeCluster, firstShape: number, shapes: unknown[]) {
+	const whole = firstShape === 0 && shapes.length === cluster.shapes.length
+	return {
+		clusterId: cluster.id,
+		label: cluster.label,
+		keywords: cluster.keywords,
+		numberOfShapes: cluster.numberOfShapes,
+		...(whole ? null : { firstShapeIndex: firstShape }),
+		shapes,
 	}
 }
 
@@ -1550,7 +1629,7 @@ function getClusterInfoToolDefinition() {
 	return {
 		name: CLUSTER_INFO_TOOL_NAME,
 		title: 'Get tldraw cluster info',
-		description: `Describe one or more clusters from get_page_info: for each, in the order asked, its label, keywords, and every shape it contains. Ask for several clusters in one call rather than one call each, up to ${CLUSTER_INFO_MAX_SHAPES} shapes in all (get_page_info gives each cluster's numberOfShapes); one cluster on its own is never refused for its size. All positions are in page space, whatever the shape's parent: pageX and pageY are the shape's origin on the page (an arrow's is its drawn start, and null when props.start is), and pageRotation its rotation on the page (arrows have none; their ends say which way they point). parentId still names the frame or group a shape sits in. On an arrow, props.start and props.end are its ends as drawn, each { pageX, pageY } (null for a bound end the editor could not measure), and props.bindingFromId and props.bindingToId are the shapes its start and end are bound to, or null when free. \`props\` holds the rest of the record — size and style in the shape's own unrotated space; w and h are a shape's size as drawn, so a geo's h already includes its label's growth (growY, not reported separately), and a text's, group's or freehand stroke's are measured — with the rich text document replaced by \`props.text\`, the plain string the editor reports, which also surfaces text not stored on the record (a geo shape's label, for instance). Every number is rounded to thousandths, in the record's own units: angles in radians, and values that run 0–1 on the record (opacity, labelPosition and so on) as fractions. \`meta\` is passed through as stored. Draw and highlight shapes give their size and props.pointCount but not their strokes, which can't be read from coordinates: to see what was drawn or written, call get_cluster_screenshot.`,
+		description: `Describe one or more clusters from get_page_info: for each, in the order asked, its label, keywords, and every shape it contains. Ask for several clusters in one call rather than one call each. An answer too large for one response stops part-way and carries nextCursor: call again with the same clusterIds and that cursor for the rest. A cluster cut across two answers appears in both with firstShapeIndex, the position of its first shape in that answer; numberOfShapes is always the cluster's total. All positions are in page space, whatever the shape's parent: pageX and pageY are the shape's origin on the page (an arrow's is its drawn start, and null when props.start is), and pageRotation its rotation on the page (arrows have none; their ends say which way they point). parentId still names the frame or group a shape sits in. On an arrow, props.start and props.end are its ends as drawn, each { pageX, pageY } (null for a bound end the editor could not measure), and props.bindingFromId and props.bindingToId are the shapes its start and end are bound to, or null when free. \`props\` holds the rest of the record — size and style in the shape's own unrotated space; w and h are a shape's size as drawn, so a geo's h already includes its label's growth (growY, not reported separately), and a text's, group's or freehand stroke's are measured — with the rich text document replaced by \`props.text\`, the plain string the editor reports, which also surfaces text not stored on the record (a geo shape's label, for instance). Every number is rounded to thousandths, in the record's own units: angles in radians, and values that run 0–1 on the record (opacity, labelPosition and so on) as fractions. \`meta\` is passed through as stored. Draw and highlight shapes give their size and props.pointCount but not their strokes, which can't be read from coordinates: to see what was drawn or written, call get_cluster_screenshot.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -1563,6 +1642,11 @@ function getClusterInfoToolDefinition() {
 					maxItems: CLUSTER_INFO_MAX_IDS,
 					description:
 						'One or more cluster ids from get_page_info. All of them must be on the given page. A bare string is also accepted for a single cluster.',
+				},
+				cursor: {
+					type: 'string',
+					description:
+						'The nextCursor from a previous get_cluster_info result, to get the rest of its answer. Omit for the first. Pass the same clusterIds with it.',
 				},
 			},
 			required: ['boardId', 'clusterIds'],

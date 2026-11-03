@@ -401,6 +401,24 @@ describe('tool inputs', () => {
 		).toThrow(`at most ${CLUSTER_INFO_MAX_IDS} ids in one call. Split them across several calls.`)
 	})
 
+	// A cursor passed on with other clusterIds would point into clusters the caller never saw the start
+	// of, and one that can't be read would otherwise restart silently.
+	it('reads back a get_cluster_info cursor only for the clusterIds it came from', () => {
+		const cursor = btoa(`1:7:${encodeURIComponent('cluster:a,cluster:b')}`)
+		expect(
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ['cluster:a', 'cluster:b'], cursor })
+				.cursor
+		).toEqual({ cluster: 1, shape: 7 })
+		expect(() =>
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ['cluster:a'], cursor })
+		).toThrow('cursor is from a different set of clusterIds')
+		for (const bad of ['not base64!', btoa('1:x:cluster:a'), btoa('1:2'), 42]) {
+			expect(() =>
+				parseClusterInfoInput({ boardId: 'abc', clusterIds: ['cluster:a'], cursor: bad })
+			).toThrow('cursor is not valid')
+		}
+	})
+
 	// An unrecognized theme is rejected rather than silently rendered as light, so a caller that
 	// asks for something the tool doesn't support hears about it instead of getting a plausible
 	// image back with its argument quietly dropped.

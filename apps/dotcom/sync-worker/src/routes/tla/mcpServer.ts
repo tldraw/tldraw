@@ -1268,7 +1268,13 @@ async function callClusterInfoTool(
 
 		const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
 		if (!clustered.ok) return clustered.result
-		const info = getClusterInfo(resolved.page, clustered.clustering, input.clusterIds, input.page)
+		const info = getClusterInfo(
+			resolved.page,
+			clustered.clustering,
+			input.clusterIds,
+			input.page,
+			input.cursor
+		)
 		if (!info.ok) {
 			telemetry({
 				cacheStatus: 'none',

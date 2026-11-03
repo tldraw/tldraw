@@ -6,7 +6,7 @@ import {
 	CreatableWorkspace,
 	BOARD_SEARCH_PAGE_SIZE,
 	BoardSearchRow,
-	CLUSTER_INFO_MAX_SHAPES,
+	CLUSTER_INFO_MAX_CHARS,
 	ShapeMeasurement,
 	clusterPage,
 	compareBoardSearchOrder,
@@ -20,6 +20,7 @@ import {
 	parseSearchBoardsInput,
 	resolveCreateBoardWorkspace,
 	resolvePage,
+	parseClusterInfoInput,
 } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
 
@@ -728,47 +729,101 @@ describe('getClusterInfo', () => {
 		)
 	})
 
-	describe('the shape cap', () => {
-		// A frame holding CLUSTER_INFO_MAX_SHAPES boxes, so its cluster is one over the cap on its own,
-		// and a lone box beside it.
+	describe('paging', () => {
+		// A frame holding enough boxes that its cluster runs past one answer on its own, and a lone box
+		// beside it, asked for after it.
+		const BOXES = 400
 		const { snapshot: bigSnapshot, measurements: bigMeasurements } = farApart([
 			shape('shape:big', { type: 'frame', props: { w: 2000, h: 100, name: 'Big' } }),
-			...Array.from({ length: CLUSTER_INFO_MAX_SHAPES }, (_, i) =>
+			...Array.from({ length: BOXES }, (_, i) =>
 				shape(`shape:box-${i}`, { parentId: 'shape:big', props: { w: 10, h: 10 } })
 			),
 			shape('shape:lone', { x: 100_000 }),
 		])
 
-		it('refuses several clusters that hold more shapes than one call returns', () => {
-			const { page, clustering } = clusteredPage(bigSnapshot, bigMeasurements)
-			const ids = [clusterIdOf(clustering, 'shape:lone'), clusterIdOf(clustering, 'shape:big')]
+		function readAll(source: any, measurements: Record<string, ShapeMeasurement>, ids: string[]) {
+			const { page, clustering } = clusteredPage(source, measurements)
+			const clusterIds = ids.map((id) => clusterIdOf(clustering, id))
+			const answers: any[] = []
+			let cursor = null
+			do {
+				const info = getClusterInfo(page, clustering, clusterIds, FIRST_PAGE, cursor)
+				if (!info.ok) throw new Error(textOf(info.result))
+				const answer = JSON.parse(textOf(info.result))
+				answers.push(answer)
+				cursor = answer.nextCursor
+					? parseClusterInfoInput({ boardId: 'b', clusterIds, cursor: answer.nextCursor }).cursor
+					: null
+			} while (cursor)
+			return { answers, clusterIds }
+		}
 
-			const info = getClusterInfo(page, clustering, ids, FIRST_PAGE)
+		it('splits an answer too large for one response, and every shape arrives once, in order', () => {
+			const { answers, clusterIds } = readAll(bigSnapshot, bigMeasurements, [
+				'shape:big',
+				'shape:lone',
+			])
+
+			expect(answers.length).toBeGreaterThan(1)
+			for (const answer of answers) {
+				const shapes = answer.clusters.flatMap((c: any) => c.shapes)
+				expect(JSON.stringify(shapes).length).toBeLessThanOrEqual(CLUSTER_INFO_MAX_CHARS)
+			}
+			const received = answers.flatMap((a) =>
+				a.clusters.flatMap((c: any) => c.shapes.map((s: any) => s.id))
+			)
+			expect(received).toEqual([
+				'shape:big',
+				...Array.from({ length: BOXES }, (_, i) => `shape:box-${i}`),
+				'shape:lone',
+			])
+			expect(answers.at(-1).nextCursor).toBeUndefined()
+
+			// The big cluster is cut across answers, so each slice says where it starts; the lone one
+			// arrives whole and says nothing.
+			const slices = answers.flatMap((a) => a.clusters).filter((c) => c.clusterId === clusterIds[0])
+			expect(slices.map((c) => c.firstShapeIndex)).toEqual(
+				slices.map((_, i) =>
+					slices.slice(0, i).reduce((sum: number, c: any) => sum + c.shapes.length, 0)
+				)
+			)
+			expect(slices.every((c) => c.numberOfShapes === BOXES + 1)).toBe(true)
+			const lone = answers.at(-1).clusters.at(-1)
+			expect(lone.clusterId).toBe(clusterIds[1])
+			expect(lone).not.toHaveProperty('firstShapeIndex')
+		})
+
+		// Refusing it would leave that shape unreadable, and paging could never get past it.
+		it('still answers a single shape larger than one answer, then moves on', () => {
+			const huge = {
+				...MEASUREMENTS,
+				'shape:a': { ...MEASUREMENTS['shape:a'], text: 'x'.repeat(70_000) },
+			}
+			const { page, clustering } = clusteredPage(snapshot, huge)
+			const clusterIds = [clusterIdOf(clustering, 'shape:a'), clusterIdOf(clustering, 'shape:b')]
+			expect(clusterIds[0]).not.toBe(clusterIds[1])
+
+			const info = getClusterInfo(page, clustering, clusterIds, FIRST_PAGE)
+			if (!info.ok) throw new Error('Expected the clusters to resolve')
+			const answer = JSON.parse(textOf(info.result))
+			expect(answer.clusters.flatMap((c: any) => c.shapes.map((s: any) => s.id))).toContain(
+				'shape:a'
+			)
+			expect(answer.nextCursor).toEqual(expect.any(String))
+		})
+
+		it('refuses a cursor that no longer points into the clusters', () => {
+			const { page, clustering } = clusteredPage(snapshot, MEASUREMENTS)
+			const clusterIds = [clusterIdOf(clustering, 'shape:a')]
+
+			const info = getClusterInfo(page, clustering, clusterIds, FIRST_PAGE, {
+				cluster: 0,
+				shape: 10_000,
+			})
 
 			expect(info.ok).toBe(false)
 			if (info.ok) return
-			expect(info.reason).toBe('too_many_shapes')
-			expect(textOf(info.result)).toBe(
-				`Those 2 clusters hold ${CLUSTER_INFO_MAX_SHAPES + 2} shapes, more than the ${CLUSTER_INFO_MAX_SHAPES} one call returns across several clusters. Ask for fewer clusters at a time: get_page_info gives each cluster's numberOfShapes. A cluster larger than that can still be asked for on its own.`
-			)
-		})
-
-		// Nothing smaller could be asked for, so refusing it would leave the cluster unreadable.
-		it('still answers a single cluster that is over the cap on its own', () => {
-			const { page, clustering } = clusteredPage(bigSnapshot, bigMeasurements)
-
-			const info = getClusterInfo(
-				page,
-				clustering,
-				[clusterIdOf(clustering, 'shape:big')],
-				FIRST_PAGE
-			)
-
-			expect(info.ok).toBe(true)
-			if (!info.ok) return
-			expect(JSON.parse(textOf(info.result)).clusters[0].numberOfShapes).toBe(
-				CLUSTER_INFO_MAX_SHAPES + 1
-			)
+			expect(info.reason).toBe('invalid_cursor')
 		})
 	})
 

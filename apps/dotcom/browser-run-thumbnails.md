@@ -463,14 +463,16 @@ get_cluster_info({
  boardId: string,
  page?: number | string,
  clusterIds: string | string[], // up to 100; `clusterId: string` is still accepted
+ cursor?: string, // the nextCursor of a previous answer, with the same clusterIds
 })
-// → { pageName, clusters: [...] }, one entry per id in the order asked: the cluster's label,
+// → { pageName, clusters: [...], nextCursor? }, one entry per id in the order asked: the cluster's label,
 //   keywords, and its shapes: page-space pageX/pageY/pageRotation (an arrow's origin is its drawn
 //   start, and it has no rotation), arrows' props.start/end as drawn plus
 //   props.bindingFromId/bindingToId, props.w/h as drawn (a geo's h includes growY), and props with
 //   rich text flattened to props.text. Draw and highlight shapes give their size and
 //   props.pointCount instead of their segments. Every number rounded to thousandths, with angles in
-//   radians. Refused if any id is unknown, or if several clusters hold more than 100 shapes in all
+//   radians. Refused if any id is unknown. An answer that would pass ~60K characters of shapes stops
+//   part-way with a nextCursor; a cluster split across answers carries firstShapeIndex
 
 get_cluster_screenshot({
  boardId: string,
