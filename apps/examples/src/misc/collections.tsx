@@ -141,6 +141,7 @@ const SURFACES: { page: string; hint: string; choices: Choice[] }[] = [
 				options: [
 					{ value: 'picker', label: 'Picker' },
 					{ value: 'list', label: 'List with counts' },
+					{ value: 'sections', label: 'Sections' },
 				],
 			},
 		],

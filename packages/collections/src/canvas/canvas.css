@@ -31,9 +31,23 @@
 }
 
 .tlui-collections-panel__title {
+	display: flex;
+	flex: 1;
+	min-width: 0;
 	padding: 0 12px;
 	line-height: 40px;
 	font-weight: 500;
+	white-space: nowrap;
+}
+
+.tlui-collections-panel__back + .tlui-collections-panel__title {
+	padding-left: 4px;
+}
+
+.tlui-collections-panel__name {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .tlui-collections-picker .tlui-select__value {
@@ -100,6 +114,25 @@
 
 .tlui-collections-list__detail {
 	color: var(--tl-color-text-3);
+}
+
+.tlui-collections-sections {
+	overflow-y: auto;
+}
+
+.tlui-collections-sections .tlui-collections-grid {
+	overflow: visible;
+}
+
+.tlui-collections-section + .tlui-collections-section {
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+.tlui-collections-panel__detail {
+	flex-shrink: 0;
+	margin-left: 8px;
+	color: var(--tl-color-text-3);
+	font-weight: normal;
 }
 
 .tlui-collections-panel__back {
