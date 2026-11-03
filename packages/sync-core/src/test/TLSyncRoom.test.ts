@@ -188,7 +188,12 @@ function makeRoom(
 		clientTimeout?: number
 		log?: { warn?: Mock; error?: Mock }
 		onPresenceChange?(): void
-		onCommittedChanges?(args: { diff: any; documentClock: number }): void
+		onCommittedChanges?(args: {
+			diff: any
+			documentClock: number
+			sessionId?: string
+			meta?: any
+		}): void
 	} = {}
 ) {
 	const storage = new InMemorySyncStorage<TLRecord>({
@@ -215,13 +220,14 @@ function connectSession(
 		lastServerClock?: number
 		schema?: SerializedSchema
 		clear?: boolean
+		meta?: any
 	} = {}
 ): MockSocket {
 	const socket = makeSocket()
 	room.handleNewSession({
 		sessionId,
 		socket,
-		meta: undefined,
+		meta: opts.meta,
 		isReadonly: opts.isReadonly ?? false,
 	})
 	room.handleMessage(sessionId, {
@@ -657,6 +663,24 @@ describe('22. Room construction (RC)', () => {
 		const arg = onCommittedChanges.mock.calls[0][0]
 		expect(arg.diff.puts[newPage.id]).toBeTruthy()
 		expect(typeof arg.documentClock).toBe('number')
+	})
+
+	it('passes the pushing session id and meta to onCommittedChanges', async () => {
+		const onCommittedChanges = vi.fn()
+		const { room } = makeRoom({ onCommittedChanges })
+		connectSession(room, 'session-a', { meta: { userId: 'u1' } })
+
+		const newPage = makePage('attributed_page', 'Attributed Page')
+		room.handleMessage('session-a', {
+			type: 'push',
+			clientClock: 1,
+			diff: { [newPage.id]: ['put', newPage] },
+		} as TLPushRequest<TLRecord>)
+		await Promise.resolve()
+
+		const arg = onCommittedChanges.mock.calls[0][0]
+		expect(arg.sessionId).toBe('session-a')
+		expect(arg.meta).toEqual({ userId: 'u1' })
 	})
 
 	it('[RC4] handles multiple rapid external changes', async () => {

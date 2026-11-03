@@ -351,7 +351,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private log?: TLSyncLog
 	public readonly schema: StoreSchema<R, any>
 	private onPresenceChange?(): void
-	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
+	private onCommittedChanges?(args: {
+		diff: TLSyncForwardDiff<R>
+		documentClock: number
+		sessionId?: string
+		meta?: SessionMeta
+	}): void
 	private readonly authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	private readonly sessionIdleTimeout: number
 
@@ -389,7 +394,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		 * record types to a separate lane, or project them to an external store) as soon as they
 		 * commit. Best-effort — do not throw; do not block.
 		 */
-		onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
+		onCommittedChanges?(args: {
+			diff: TLSyncForwardDiff<R>
+			documentClock: number
+			sessionId?: string
+			meta?: SessionMeta
+		}): void
 		/**
 		 * Record type names to serve through the object-store lane instead of the document lane.
 		 * Each must be a document-scoped type registered in the schema. Object-lane writes are
@@ -1647,9 +1657,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		if (result.docChanges.diffs && this.onCommittedChanges) {
 			const diff = result.docChanges.diffs.diff
+			const sessionId = session?.sessionId
+			const meta = session?.meta
 			queueMicrotask(() => {
 				try {
-					this.onCommittedChanges?.({ diff, documentClock })
+					this.onCommittedChanges?.({ diff, documentClock, sessionId, meta })
 				} catch (e) {
 					this.log?.error?.('onCommittedChanges threw', e)
 				}

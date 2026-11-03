@@ -33,6 +33,7 @@ export type BootStage =
 	| 'source-r2-fetch'
 	| 'source-welcome'
 	| 'source-legacy'
+	| 'source-version'
 	| 'source-published'
 	| 'source-r2-put'
 	| 'room-create'

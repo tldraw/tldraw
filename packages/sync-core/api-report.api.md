@@ -570,8 +570,10 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
         stringified: string;
     }) => void;
     onCommittedChanges?: (args: {
+        sessionId?: string;
         diff: TLSyncForwardDiff<R>;
         documentClock: number;
+        meta?: SessionMeta;
     }) => void;
     // @deprecated (undocumented)
     onDataChange?(): void;
@@ -719,6 +721,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         onCommittedChanges?(args: {
             diff: TLSyncForwardDiff<R>;
             documentClock: number;
+            meta?: SessionMeta;
+            sessionId?: string;
         }): void;
         authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
         objectTypes?: readonly string[];

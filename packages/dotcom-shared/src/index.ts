@@ -2,6 +2,7 @@
 export * from './capabilities'
 export * from './commentMentions'
 export * from './constants'
+export * from './createSource'
 export * from './roles'
 export * from './shapeClusters'
 export * from './mutators'

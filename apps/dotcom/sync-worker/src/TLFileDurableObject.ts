@@ -16,8 +16,14 @@ import {
 	TLCustomServerEvent,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
+	parseCreateSource,
 	can,
 	type FeatureFlagValue,
+	type HistoryAuthor,
+	type HistoryListResponse,
+	type HistoryPointsResponse,
+	type HistoryRawResponse,
+	type HistoryUser,
 	type Role,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
@@ -50,14 +56,21 @@ import {
 	isCommentReactionId,
 	isCommentThreadId,
 } from '@tldraw/tlschema'
-import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	assert,
+	assertExists,
+	exhaustiveSwitchError,
+	retry,
+	uniqueId,
+} from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router, StatusError } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
 import { collectAssetAssociationChanges } from './assetAssociation'
-import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
+import { SessionMeta, authorizeFileRecord, buildSessionMeta } from './authorizeFileRecord'
 import {
 	CommentLoadResult,
 	findEmptiedCommentThreads,
@@ -78,6 +91,7 @@ import {
 	upsertCommentThreadRows,
 } from './commentRows'
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
+import { loadFileVersionSnapshot } from './loadVersionSource'
 import { Logger } from './Logger'
 import {
 	ensureMcpClusterIndexTable,
@@ -92,6 +106,8 @@ import {
 	isTransientConnectionError,
 	R2ReadScheduler,
 } from './r2'
+import { planRestoreComments } from './restorePlan'
+import { saveTombstones, takeTombstones } from './restoreTombstones'
 import {
 	BootStage,
 	clearSupersededSessionSnapshots,
@@ -134,13 +150,14 @@ import {
 	getMcpTokenAuth,
 	MCP_SOCKET_SUBPROTOCOL,
 	requireAdminAccess,
+	requireAuth,
 	type McpTokenOptions,
 } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getFileRecordWithRole, getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
 import { requireHistoryAccess } from './utils/tla/requireHistoryAccess'
-import { ChainState, isChainHead, PendingDelta } from './versionChain'
+import { ChainState, isChainHead, parseVersionKey, PendingDelta } from './versionChain'
 import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
 import {
 	deleteAllVersions,
@@ -153,7 +170,22 @@ import {
 	VERSION_CHAIN_R2_RETRY,
 	writeVersionChainEntry,
 } from './versionChainWrite'
-import { chainHeadHash } from './versionDelta'
+import { chainHeadHash, SnapshotDelta } from './versionDelta'
+import { readRawPage, readSessionsPage } from './versionHistoryQuery'
+import { backfillVersionIndex, reconcileVersionIndex } from './versionIndexBackfill'
+import {
+	ensureVersionIndexTables,
+	insertVersionIndexRow,
+	readNewestVersionTs,
+	readVersionIndexRange,
+	readVersionName,
+	setVersionName,
+	tagLatestAsPreRestore,
+	VersionIndexRow,
+} from './versionIndexStorage'
+import { buildVersionIndexRow, VersionWindowSnapshot } from './versionIndexWrite'
+import { samplePoints } from './versionSessions'
+import { VersionWindow } from './versionWindow'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
 const MAX_CONNECTIONS = 50
@@ -275,6 +307,11 @@ const OBJECT_TYPES = [
 
 // The comment outbox (see drainCommentOutbox) only understands comment record ids; keep this
 // separate from OBJECT_TYPES so a future object-lane type doesn't get enqueued there.
+interface VersionIndexInput {
+	window: VersionWindowSnapshot
+	override?: Partial<VersionIndexRow>
+}
+
 function isCommentRecordId(id: string) {
 	return isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)
 }
@@ -475,8 +512,13 @@ export class TLFileDurableObject extends DurableObject {
 						// Record object-lane (comment) changes in the durable outbox as soon as they
 						// commit and push them to Postgres (not on the throttled R2 persist) so Zero
 						// replicates them to the app-level view quickly.
-						onCommittedChanges: ({ diff }) => {
+						onCommittedChanges: ({ diff, meta }) => {
 							this.enqueueCommentChanges(diff)
+							if (meta && this.diffTouchesDocument(diff)) {
+								this.getVersionWindow().noteCommit(
+									meta.agent ? { userId: meta.userId, agent: meta.agent } : { userId: meta.userId }
+								)
+							}
 						},
 						// Guard attribution with the session's authenticated identity so a client can't
 						// post or edit in someone else's name.
@@ -846,16 +888,25 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	_isRestoring = false
+	private _restoreInFlight = false
 	async onRestore(req: IRequest) {
-		this._isRestoring = true
+		const roomId = this.documentInfo.slug
+		await requireHistoryAccess(req, this.env, roomId, this.documentInfo.isApp)
+		const { userId } = await requireAuth(req, this.env)
+		const { timestamp, undoes } = (await req.json()) as { timestamp?: string; undoes?: string }
+		if (!timestamp) {
+			return new Response('Missing timestamp', { status: 400 })
+		}
+		// Two collaborators can click the same undo toast; a second restore mid-flight would clear
+		// the first's persist block and retag its rows.
+		if (this._restoreInFlight) {
+			return new Response('A restore is already running', { status: 409 })
+		}
+		this._restoreInFlight = true
 		try {
-			const roomId = this.documentInfo.slug
-			await requireHistoryAccess(req, this.env, roomId, this.documentInfo.isApp)
+			// A hibernated room has no _room: the pre-restore persist and the broadcast need one.
+			await this.getRoom()
 			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
-			const timestamp = ((await req.json()) as any).timestamp
-			if (!timestamp) {
-				return new Response('Missing timestamp', { status: 400 })
-			}
 			// Keyframes are read as text once — the same cost as the handler this replaces — and
 			// only a delta replay materializes a snapshot, which is then reused below rather than
 			// re-parsed. Parsing, re-serializing and parsing again a large board is what pushes a
@@ -897,82 +948,106 @@ export class TLFileDurableObject extends DurableObject {
 				dataText = JSON.stringify(restored)
 			}
 
-			// The put deliberately carries no version metadata, so null ("looked up, no usable
-			// stamp") is the truth about R2 and the next persist re-uploads and re-stamps.
-			// Queued on executionQueue because a persist runs as one task there: an in-flight one,
-			// suspended mid-upload or at its version lookup, would otherwise resume after these
-			// lines and clobber both the null and the restored object.
-			await this.executionQueue.push(async () => {
-				await this.r2.rooms.put(roomKey, dataText)
-				this._lastPersistedFingerprint = null
-				// The chain head no longer matches the rooms object. The fingerprint check would
-				// catch the stale chain on the next persist anyway; clearing here makes the next
-				// version an intentional keyframe rather than a recovered mistake.
-				this._lastPersistedSnapshot = null
-				this._lastPersistedHeadHash = null
-				this._versionChain = null
-				this._versionChainLoaded = true
-				this._pendingDeltas = null
-				await this.storage.delete(VERSION_CHAIN_STORAGE_KEY)
-			})
+			const restoreId = uniqueId()
+			// After the slow R2 reads and before _isRestoring blocks persists, so the state being
+			// replaced (edits made during the reads included) becomes the version an undo restores.
+			await this.persistToDatabase({ throwOnFailure: true })
+			this.ensureVersionIndex()
+			const preRestoreTs = tagLatestAsPreRestore(this.ctx.storage.sql, restoreId)
+			const restoredFromName = readVersionName(this.ctx.storage.sql, timestamp)
+			this._isRestoring = true
+			try {
+				// The put deliberately carries no version metadata, so null ("looked up, no usable
+				// stamp") is the truth about R2 and the next persist re-uploads and re-stamps.
+				// Queued on executionQueue because a persist runs as one task there: an in-flight one,
+				// suspended mid-upload or at its version lookup, would otherwise resume after these
+				// lines and clobber both the null and the restored object.
+				await this.executionQueue.push(async () => {
+					await this.r2.rooms.put(roomKey, dataText)
+					this._lastPersistedFingerprint = null
+					// The chain head no longer matches the rooms object. The fingerprint check would
+					// catch the stale chain on the next persist anyway; clearing here makes the next
+					// version an intentional keyframe rather than a recovered mistake.
+					this._lastPersistedSnapshot = null
+					this._lastPersistedHeadHash = null
+					this._versionChain = null
+					this._versionChainLoaded = true
+					this._pendingDeltas = null
+					await this.storage.delete(VERSION_CHAIN_STORAGE_KEY)
+				})
 
-			// Version snapshots only contain the drawing data. Restoring drops the file's comments
-			// (product decision): loading the bare snapshot wipes the object lane, and the Postgres
-			// rows are deleted explicitly since storage transactions don't fire onCommittedChanges.
-			// The cleanup runs through _objectPushQueue so it serializes after any in-flight outbox
-			// drain, and pre-restore outbox entries are cleared so a pending drain can't resurrect
-			// deleted rows.
-			//
-			// Two invariants make this safe against comments committed concurrently with the
-			// restore:
-			// (a) The lane wipe, the outbox high-water-mark capture, and the queue push below run
-			//     in one synchronous block with NO awaits in between. Storage change notifications
-			//     fire on a microtask, so a comment committed after the wipe enqueues its outbox
-			//     entry (seq > maxSeq) and its drain task strictly after ours (queue is FIFO).
-			//     Drains are bounded to the outbox high-water mark captured when they are
-			//     scheduled (see drainCommentOutbox), so no drain queued before ours can touch
-			//     that entry: it survives our scoped clear and its own later drain pushes it to
-			//     Postgres.
-			// (b) The queue's FIFO order means the cleanup task below runs BEFORE any post-wipe
-			//     comment's drain task, so the fileId-wide Postgres deletes can only remove
-			//     pre-restore rows — never rows a post-wipe drain already wrote. The post-wipe
-			//     entry (seq > maxSeq) survives the scoped outbox clear, and its own drain
-			//     re-upserts the row to Postgres AFTER the cleanup.
-			//
-			// Inside the task, the Postgres deletes run BEFORE the outbox clear: if a delete
-			// throws, any pre-restore outbox entries survive, so subsequent drains retry the
-			// per-id deletes (the records are lane-absent after the wipe, taking the delete
-			// path). But a quiescent room has an empty outbox — no per-id retries at all — so
-			// the only guaranteed retry vehicle is this handler's 500 telling the caller to
-			// retry the whole restore. Clearing the outbox first would destroy even the per-id
-			// retries and let the dropped comments resurrect on the next fresh-SQLite load.
-			// follow-up: a durable wipe-marker recorded alongside the outbox would let the DO
-			// itself retry the fileId-wide delete, closing the dependence on caller retries.
-			const snapshot = restored ?? (JSON.parse(dataText) as RoomSnapshot)
+				// Version snapshots hold only drawing data, and loading one wipes the comment lane. The
+				// wiped records are kept as tombstones so undoing this restore can put them back; an undo
+				// also re-adds comments written since. Ids go to the outbox explicitly (storage
+				// transactions don't fire onCommittedChanges) and the drain soft-deletes what's missing
+				// from the lane and upserts what's back.
+				//
+				// Reading the lane, the transaction, the outbox inserts and scheduling the drain run in
+				// one synchronous block with NO awaits: a comment committed after the wipe enqueues its
+				// own outbox entry and drain afterwards, so it is neither tombstoned nor lost.
+				const snapshot = restored ?? (JSON.parse(dataText) as RoomSnapshot)
+				const storage = await this.getStorage()
+				assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+				const sql = this.ctx.storage.sql
+				const liveCommentRecords = storage
+					.getObjectsSnapshot()
+					.map((doc) => doc.state)
+					.filter((record) => isCommentRecordId(record.id))
+				const plan = planRestoreComments({
+					liveCommentRecords,
+					undoTombstones: undoes ? takeTombstones(sql, undoes) : null,
+				})
+				if (plan.toTombstone.length) saveTombstones(sql, restoreId, plan.toTombstone)
+				storage.transaction((txn) => {
+					loadSnapshotIntoStorage(txn, fileSyncSchema, snapshot)
+					for (const record of plan.toReinsert) txn.set(record.id, record as TLRecord)
+				})
+				this.ensureCommentOutbox()
+				for (const id of plan.outboxIds) {
+					sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)
+				}
+				void this.drainCommentOutbox()
 
-			const storage = await this.getStorage()
-			storage.transaction((txn) => {
-				loadSnapshotIntoStorage(txn, fileSyncSchema, snapshot)
-			})
-			this.ensureCommentOutbox()
-			const maxSeq = Number(
-				this.ctx.storage.sql
-					.exec('SELECT COALESCE(MAX(seq), 0) AS maxSeq FROM comment_outbox')
-					.toArray()[0].maxSeq
-			)
-			const cleanup = this._objectPushQueue.push(async () => {
-				// comment.threadId is NOT NULL with an ON DELETE CASCADE FK, so deleting the
-				// file's threads provably deletes all its comments too
-				await this.db.deleteFrom('comment_thread').where('fileId', '=', roomId).execute()
-				this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq <= ?', maxSeq)
-			})
-			await cleanup
+				this.maybeAssociateFileAssets()
 
-			this.maybeAssociateFileAssets()
+				// Recorded now rather than on the next persist: the list and the undo toast need it.
+				const restoredTs = new Date().toISOString()
+				const restoredSnapshot = storage.getSnapshot()
+				// The document is already replaced, so a failed version write is logged, not a failed
+				// restore: a 500 here would invite a second restore on top of this one.
+				await this.executionQueue
+					.push(() =>
+						this._writeVersionChainEntry(restoredSnapshot, roomKey, restoredTs, false, {
+							window: { authors: [{ userId }], hasUserChanges: true },
+							override: { kind: 'restore', restoreId, restoredFrom: timestamp, restoredFromName },
+						})
+					)
+					.catch((error) => {
+						this.logEvent({ type: 'version_chain_error' })
+						this.reportError(error)
+					})
 
-			return new Response()
+				const user = await this.db
+					.selectFrom('user')
+					.select('name')
+					.where('id', '=', userId)
+					.executeTakeFirst()
+				this.broadcastPersistenceEvent({
+					type: 'file_restored',
+					restoreId,
+					restoredFrom: timestamp,
+					restoredFromName,
+					preRestoreTs,
+					byUserId: userId,
+					byName: user?.name ?? '',
+				})
+
+				return Response.json({ restoreId, preRestoreTs, restoredTs })
+			} finally {
+				this._isRestoring = false
+			}
 		} finally {
-			this._isRestoring = false
+			this._restoreInFlight = false
 		}
 	}
 
@@ -1084,6 +1159,7 @@ export class TLFileDurableObject extends DurableObject {
 		// 500 with the accepted server socket leaked in the hibernation set, so catch broadly and
 		// close it instead.
 		let auth: { userId: string } | null
+		let viaMcp = false
 		try {
 			if (this.documentInfo.deleted) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
@@ -1098,12 +1174,14 @@ export class TLFileDurableObject extends DurableObject {
 			// the website. It rides in the handshake's `Sec-WebSocket-Protocol` header, the one field
 			// a browser lets a client set there, which keeps it out of the URL that session tokens
 			// still use.
-			auth =
-				(await getAuth(req, this.env)) ??
-				(await getMcpTokenUser(req, this.env, {
+			auth = await getAuth(req, this.env)
+			if (!auth) {
+				auth = await getMcpTokenUser(req, this.env, {
 					allowSubprotocolToken: true,
 					allowQueryToken: true,
-				}))
+				})
+				viaMcp = !!auth
+			}
 			authTimer.report('on_request_auth', loadIdBlobs)
 			marks.mark('auth')
 
@@ -1179,10 +1257,12 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		try {
-			const meta: SessionMeta = {
-				storeId: storeId ?? sessionId,
+			const meta = buildSessionMeta({
+				storeId,
+				sessionId,
 				userId: auth?.userId ? auth.userId : null,
-			}
+				viaMcp,
+			})
 			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
 			// Only authenticated users can write comments — authors are stored in Postgres with a
 			// foreign key to the user table, so an anonymous author can't be represented. Tier
@@ -1532,7 +1612,8 @@ export class TLFileDurableObject extends DurableObject {
 				})
 				break
 			}
-			case 'version_chain_error': {
+			case 'version_chain_error':
+			case 'version_index_error': {
 				this.writeEvent(event.type, {})
 				break
 			}
@@ -1614,13 +1695,19 @@ export class TLFileDurableObject extends DurableObject {
 			return await resolveWelcomeSnapshot(this.env, (e) => this.reportError(e))
 		}
 
-		const split = createSource?.split('/')
-		if (!split || split.length !== 2) {
+		const source = createSource ? parseCreateSource(createSource) : null
+		if (!source) {
 			throw new RoomNotFoundError(String(createSource))
 		}
-		const [prefix, id] = split
+		const { prefix, id } = source
 		switch (prefix) {
 			case FILE_PREFIX: {
+				if (source.versionTs) {
+					this.setBootStage('source-version')
+					const version = await loadFileVersionSnapshot(this.r2.versionChain, id, source.versionTs)
+					if (!version) throw new RoomNotFoundError(createSource!)
+					return version
+				}
 				// The source file's content is copied verbatim into this (user-owned) room. Read
 				// access to the source `id` is authorized upstream when the file record is created
 				// (see the `createFile` mutator), since that is where the user's identity is known.
@@ -2132,30 +2219,39 @@ export class TLFileDurableObject extends DurableObject {
 						// The storage partitions object-lane records (comments) into their own store, so
 						// the document snapshot is pure-document by construction — no splitting needed.
 						const snapshot = storage.getSnapshot()
-						assert(snapshot.documentClock !== undefined, 'documentClock must be present')
-						this.maybeAssociateFileAssets()
+						// Taken with the snapshot: a commit landing during the awaits below belongs to
+						// the next version, whose snapshot will contain it.
+						const authorWindow = this.getVersionWindow().take()
+						let indexed = false
+						try {
+							assert(snapshot.documentClock !== undefined, 'documentClock must be present')
+							this.maybeAssociateFileAssets()
 
-						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-						const snapshotFingerprint = getSnapshotFingerprint(snapshot)
-						const persistedFingerprint = await resolvePersistedFingerprint(
-							this._lastPersistedFingerprint,
-							this.r2.rooms,
-							key
-						)
-						this._lastPersistedFingerprint = persistedFingerprint
-						if (isSameFingerprint(persistedFingerprint, snapshotFingerprint)) {
-							// The clock moved but neither the document nor the schema did — a comment
-							// write, or a cold start re-checking work a previous incarnation already
-							// persisted. Uploading would store byte-identical content under a new
-							// history timestamp and re-render an unchanged thumbnail; skip both, but
-							// keep the rest of a persist's observable behavior.
-							this._lastPersistedClock = snapshot.documentClock
-							this.markPersistenceGood()
-							this.bumpFileUpdatedAt()
-							return
+							const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
+							const snapshotFingerprint = getSnapshotFingerprint(snapshot)
+							const persistedFingerprint = await resolvePersistedFingerprint(
+								this._lastPersistedFingerprint,
+								this.r2.rooms,
+								key
+							)
+							this._lastPersistedFingerprint = persistedFingerprint
+							if (isSameFingerprint(persistedFingerprint, snapshotFingerprint)) {
+								// The clock moved but neither the document nor the schema did — a comment
+								// write, or a cold start re-checking work a previous incarnation already
+								// persisted. Uploading would store byte-identical content under a new
+								// history timestamp and re-render an unchanged thumbnail; skip both, but
+								// keep the rest of a persist's observable behavior.
+								this._lastPersistedClock = snapshot.documentClock
+								this.markPersistenceGood()
+								this.bumpFileUpdatedAt()
+								return
+							}
+							indexed = await this._uploadSnapshotToR2(snapshot, key, { window: authorWindow })
+							this._lastPersistedFingerprint = snapshotFingerprint
+						} finally {
+							// No version row means these authors belong to whatever version comes next.
+							if (!indexed) this.getVersionWindow().restore(authorWindow)
 						}
-						await this._uploadSnapshotToR2(snapshot, key)
-						this._lastPersistedFingerprint = snapshotFingerprint
 
 						this.logEvent({
 							type: 'persist_success',
@@ -2257,7 +2353,12 @@ export class TLFileDurableObject extends DurableObject {
 			})
 	}
 
-	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
+	/** Resolves true when a version and its index row were written. */
+	private async _uploadSnapshotToR2(
+		snapshot: RoomSnapshot,
+		key: string,
+		index?: VersionIndexInput
+	): Promise<boolean> {
 		const customMetadata = getSnapshotMetadata(snapshot)
 		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(
@@ -2280,10 +2381,17 @@ export class TLFileDurableObject extends DurableObject {
 		try {
 			// Per attempt, not per persist: the retry loop re-reads the snapshot, so a retry may carry
 			// newer content that deserves its own version.
-			await this._writeVersionChainEntry(snapshot, key, new Date().toISOString(), mode === 'off')
+			return await this._writeVersionChainEntry(
+				snapshot,
+				key,
+				new Date().toISOString(),
+				mode === 'off',
+				index
+			)
 		} catch (error) {
 			this.logEvent({ type: 'version_chain_error' })
 			this.reportError(error)
+			return false
 		}
 	}
 
@@ -2295,13 +2403,14 @@ export class TLFileDurableObject extends DurableObject {
 		snapshot: RoomSnapshot,
 		key: string,
 		iso: string,
-		keyframesOnly: boolean
-	): Promise<void> {
+		keyframesOnly: boolean,
+		index?: VersionIndexInput
+	): Promise<boolean> {
 		let chain = await this.getVersionChain()
 		// A persist retried after the chain already took this exact version must not write it again
 		// at a fresh timestamp — the duplicate class #10571 exists to kill. Head identity, not just
 		// the fingerprint: a tombstone prune between attempts keeps the fingerprint but changes content.
-		if (chain && isChainHead(chain, snapshot)) return
+		if (chain && isChainHead(chain, snapshot)) return false
 		let pending: PendingDelta[] = []
 		let noChainReason: 'segment-lost' | undefined
 		// A keyframe discards the open segment, so there is nothing to rehydrate.
@@ -2344,6 +2453,7 @@ export class TLFileDurableObject extends DurableObject {
 		this._versionChain = result.chain
 		this._pendingDeltas = result.pending
 		await this.storage.put(VERSION_CHAIN_STORAGE_KEY, result.chain)
+		const indexed = index ? this.writeVersionIndexRow(iso, snapshot, result.delta, index) : false
 		const previous = this._lastPersistedSnapshot
 		// Only a delta needs the diff base; in `off` mode it would pin a decoded copy of the board
 		// for nothing, as the wake seed gate says.
@@ -2381,6 +2491,53 @@ export class TLFileDurableObject extends DurableObject {
 			} else {
 				this.ctx.waitUntil(this._verifyRetiredChain(pending[pending.length - 1].t, previous))
 			}
+		}
+		return indexed
+	}
+
+	private versionIndexReady = false
+	private ensureVersionIndex() {
+		if (this.versionIndexReady) return
+		ensureVersionIndexTables(this.ctx.storage.sql)
+		this.versionIndexReady = true
+	}
+
+	private _versionWindow: VersionWindow | null = null
+	private getVersionWindow() {
+		this._versionWindow ??= new VersionWindow(this.ctx.storage.sql)
+		return this._versionWindow
+	}
+
+	private diffTouchesDocument(diff: TLSyncForwardDiff<any>) {
+		for (const id of Object.keys(diff.puts)) if (!isCommentRecordId(id)) return true
+		for (const id of diff.deletes) if (!isCommentRecordId(id)) return true
+		return false
+	}
+
+	/** Never throws: a missing index row hides a version from the list but must not fail a persist. */
+	private writeVersionIndexRow(
+		iso: string,
+		snapshot: RoomSnapshot,
+		delta: SnapshotDelta | null,
+		index: VersionIndexInput
+	): boolean {
+		try {
+			this.ensureVersionIndex()
+			insertVersionIndexRow(
+				this.ctx.storage.sql,
+				buildVersionIndexRow({
+					iso,
+					documentClock: snapshot.documentClock ?? 0,
+					window: index.window,
+					delta,
+					override: index.override,
+				})
+			)
+			return true
+		} catch (error) {
+			this.logEvent({ type: 'version_index_error' })
+			this.reportError(error)
+			return false
 		}
 	}
 
@@ -3416,6 +3573,80 @@ export class TLFileDurableObject extends DurableObject {
 	 * empties this object's storage, so a deleted object comes back from hibernation with null here.
 	 * Allowing that state to initialize the table would resurrect storage nothing ever collects.
 	 */
+	private _versionIndexBackfill: Promise<unknown> | null = null
+	/** Indexes pre-existing versions once, then repairs rows lost to a crash mid-persist. */
+	private async prepareVersionIndex(fileId: string) {
+		if (this._documentInfo?.deleted) throw new StatusError(404, 'Not found')
+		this.ensureVersionIndex()
+		const sql = this.ctx.storage.sql
+		const roomKey = getR2KeyForRoom({ slug: fileId, isApp: true })
+		this._versionIndexBackfill ??= backfillVersionIndex({
+			sql,
+			chainBucket: this.r2.versionChain,
+			roomKey,
+		}).finally(() => {
+			this._versionIndexBackfill = null
+		})
+		await this._versionIndexBackfill
+		const chain = await this.getVersionChain()
+		// The open segment's key names its first delta; the in-memory buffer knows the newest.
+		const chainHeadTs = chain
+			? (this._pendingDeltas?.at(-1)?.t ??
+				parseVersionKey(chain.openSegment?.key ?? chain.keyframeKey)?.timestamp ??
+				null)
+			: null
+		await reconcileVersionIndex({ sql, chainBucket: this.r2.versionChain, roomKey, chainHeadTs })
+	}
+
+	private async resolveHistoryUsers(
+		authorLists: HistoryAuthor[][]
+	): Promise<Record<string, HistoryUser>> {
+		const ids = new Set<string>()
+		for (const list of authorLists) for (const a of list) if (a.userId) ids.add(a.userId)
+		if (!ids.size) return {}
+		const rows = await this.db
+			.selectFrom('user')
+			.select(['id', 'name', 'color'])
+			.where('id', 'in', [...ids])
+			.execute()
+		return Object.fromEntries(rows.map((r) => [r.id, { name: r.name, color: r.color }]))
+	}
+
+	async getVersionHistory(opts: {
+		fileId: string
+		before?: string
+		limit?: number
+		raw?: boolean
+	}): Promise<HistoryListResponse | HistoryRawResponse> {
+		await this.prepareVersionIndex(opts.fileId)
+		const sql = this.ctx.storage.sql
+		if (opts.raw) return readRawPage(sql, { before: opts.before, limit: opts.limit ?? 500 })
+		const page = readSessionsPage(sql, { before: opts.before, limit: opts.limit ?? 50 })
+		return { ...page, users: await this.resolveHistoryUsers(page.sessions.map((s) => s.authors)) }
+	}
+
+	/** Saves the current state as a version (if it changed) and names it. */
+	async saveNamedVersion(opts: { fileId: string; name: string }): Promise<{ ts: string }> {
+		await this.prepareVersionIndex(opts.fileId)
+		await this.getRoom()
+		await this.persistToDatabase({ throwOnFailure: true })
+		const sql = this.ctx.storage.sql
+		const ts = readNewestVersionTs(sql)
+		if (!ts) throw new StatusError(409, 'Nothing to save yet')
+		setVersionName(sql, ts, opts.name)
+		return { ts }
+	}
+
+	async getVersionPoints(opts: {
+		fileId: string
+		from: string
+		to: string
+	}): Promise<HistoryPointsResponse> {
+		await this.prepareVersionIndex(opts.fileId)
+		const points = samplePoints(readVersionIndexRange(this.ctx.storage.sql, opts.from, opts.to))
+		return { points, users: await this.resolveHistoryUsers(points.map((p) => p.authors)) }
+	}
+
 	async getMcpClusterIndex(key: McpClusterIndexKey): Promise<string | null> {
 		if (!this._documentInfo || this._documentInfo.deleted) return null
 		this.ensureMcpClusterIndex()

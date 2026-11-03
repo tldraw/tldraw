@@ -13,11 +13,13 @@ export async function requireHistoryAccess(
 	request: IRequest,
 	env: Environment,
 	roomId: string,
-	isApp: boolean
+	isApp: boolean,
+	opts: { raw?: boolean } = {}
 ): Promise<void> {
 	const auth = await requireAuth(request, env)
 
-	if (isApp) {
+	// Raw versions (every persist, system writes included) are a support tool.
+	if (isApp && !opts.raw) {
 		const db = createPostgresConnectionPool(env, 'sync-worker/requireHistoryAccess')
 		try {
 			if (await hasWriteAccessToFile(db, roomId, auth.userId)) return
