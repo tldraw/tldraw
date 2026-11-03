@@ -17,6 +17,7 @@ import { TLUiToolItem } from '../../../hooks/useTools'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { kbdStr } from '../../../kbd-utils'
+import { CommandPaletteItemRegistration } from '../../CommandPalette/CommandPaletteItemRegistration'
 import { Spinner } from '../../Spinner'
 import { TldrawUiButton } from '../Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../Button/TldrawUiButtonIcon'
@@ -33,6 +34,7 @@ export interface TLUiMenuItemProps<
 	TranslationKey extends string = string,
 	IconType extends string = string,
 > {
+	/** In the command palette, unique across the whole palette: the first item with an id wins. */
 	id: string
 	/**
 	 * The icon to display on the item. Icons are only shown in certain menu types.
@@ -75,6 +77,11 @@ export interface TLUiMenuItemProps<
 	 */
 	isSelected?: boolean
 	/**
+	 * Muted text after the label in the command palette, such as where the item lives. Search
+	 * matches it too. Other menus don't show it.
+	 */
+	detail?: string
+	/**
 	 * The function to call when the item is dragged. If this is provided, the item will be draggable.
 	 */
 	onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void
@@ -96,6 +103,7 @@ export function TldrawUiMenuItem<
 	onSelect,
 	noClose,
 	isSelected,
+	detail,
 	onDragStart,
 }: TLUiMenuItemProps<TranslationKey, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
@@ -276,6 +284,20 @@ export function TldrawUiMenuItem<
 				>
 					<TldrawUiButtonIcon icon={icon!} />
 				</TldrawUiToolbarButton>
+			)
+		}
+		case 'command-palette': {
+			// The palette only lists what can run now.
+			if (!labelStr || disabled) return null
+			return (
+				<CommandPaletteItemRegistration
+					id={id}
+					label={labelStr}
+					kbd={kbd}
+					isSelected={isSelected}
+					detail={detail}
+					onSelect={onSelect}
+				/>
 			)
 		}
 		default: {

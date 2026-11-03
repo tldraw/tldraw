@@ -1,13 +1,16 @@
 import {
 	Box,
+	Editor,
 	ShapeWithCrop,
 	TLCropInfo,
 	TLImageShape,
 	TLShapeCrop,
 	TLShapeId,
 	Vec,
+	approximately,
 	clamp,
 	isEqual,
+	kickoutOccludedShapes,
 } from '@tldraw/editor'
 
 /** @internal */
@@ -759,4 +762,38 @@ export function getCroppedImageDataForAspectRatio(
 		h: newH,
 		...getPositionKeepingCenter(imageShape, newW, newH),
 	}
+}
+
+export function isImageAspectRatioChecked(
+	image: TLImageShape,
+	aspectRatio: ASPECT_RATIO_OPTION
+): boolean {
+	const { crop, w, h } = image.props
+	if (!crop || isEqual(crop, getDefaultCrop())) return aspectRatio === 'original'
+	if (aspectRatio === 'original') return false
+	if (aspectRatio === 'circle') return !!crop.isCircle
+	const tolerance = aspectRatio === 'square' ? 0.1 : 0.01
+	return (
+		(aspectRatio !== 'square' || !crop.isCircle) &&
+		approximately(w / h, ASPECT_RATIO_TO_VALUE[aspectRatio], tolerance)
+	)
+}
+
+export function applyImageAspectRatio(
+	editor: Editor,
+	image: TLImageShape,
+	aspectRatio: ASPECT_RATIO_OPTION
+) {
+	editor.run(() => {
+		editor.markHistoryStoppingPoint('aspect ratio')
+		const change = getCroppedImageDataForAspectRatio(aspectRatio, image)
+		editor.updateShape<TLImageShape>({
+			id: image.id,
+			type: 'image',
+			x: change.x,
+			y: change.y,
+			props: { crop: change.crop, w: change.w, h: change.h },
+		})
+		kickoutOccludedShapes(editor, [image.id])
+	})
 }

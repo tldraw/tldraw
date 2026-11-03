@@ -10,6 +10,7 @@ import classNames from 'classnames'
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
 import { SkipToMainContent } from './components/A11y'
+import { CommandPaletteSlot } from './components/CommandPalette/DefaultCommandPalette'
 import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
 import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from './constants'
@@ -70,8 +71,14 @@ export const TldrawUi = React.memo(function TldrawUi({
 	components,
 	...rest
 }: TldrawUiProps) {
+	// Shortcuts stay mounted with the UI hidden, so the palette slot must read as empty or Cmd+K
+	// would mark a menu open that nothing renders or closes.
+	const uiComponents = useMemo(
+		() => (hideUi ? { ...components, CommandPalette: null } : components),
+		[hideUi, components]
+	)
 	return (
-		<TldrawUiContextProvider {...rest} components={components}>
+		<TldrawUiContextProvider {...rest} components={uiComponents}>
 			<TldrawUiInner hideUi={hideUi} renderDebugMenuItems={renderDebugMenuItems}>
 				{children}
 			</TldrawUiInner>
@@ -131,6 +138,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		NavigationPanel,
 		HelperButtons,
 		DebugPanel,
+		CommandPalette,
 		Toasts,
 		Dialogs,
 		A11y,
@@ -243,6 +251,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 				</>
 			)}
 			{FollowingIndicator && <FollowingIndicator />}
+			{CommandPalette && <CommandPaletteSlot component={CommandPalette} />}
 			{Toasts && <Toasts />}
 			{Dialogs && <Dialogs />}
 		</div>

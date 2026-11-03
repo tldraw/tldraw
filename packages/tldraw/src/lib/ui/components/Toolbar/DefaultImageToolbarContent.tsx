@@ -1,8 +1,5 @@
 import {
-	approximately,
 	defineMessages,
-	isEqual,
-	kickoutOccludedShapes,
 	modulate,
 	TLI18nMessage,
 	TLImageShape,
@@ -13,12 +10,11 @@ import {
 } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
 import {
+	applyImageAspectRatio,
 	ASPECT_RATIO_OPTION,
 	ASPECT_RATIO_OPTIONS,
-	ASPECT_RATIO_TO_VALUE,
-	getCroppedImageDataForAspectRatio,
 	getCroppedImageDataWhenZooming,
-	getDefaultCrop,
+	isImageAspectRatioChecked,
 	MAX_ZOOM,
 } from '../../../shapes/shared/crop'
 import { useActions } from '../../context/actions'
@@ -57,7 +53,7 @@ export interface DefaultImageToolbarContentProps {
 // Keyed on the option rather than written at the call site, which used to compose the id from
 // `aspectRatio` and so hid every one of these from the extractor. The `Record` keeps it complete:
 // a new option won't compile until it has a label.
-const aspectRatioMessages: Record<ASPECT_RATIO_OPTION, TLI18nMessage> = defineMessages({
+export const aspectRatioMessages: Record<ASPECT_RATIO_OPTION, TLI18nMessage> = defineMessages({
 	original: { id: 'tool.aspect-ratio.original', defaultMessage: 'Original' },
 	square: { id: 'tool.aspect-ratio.square', defaultMessage: 'Square (1:1)' },
 	circle: { id: 'tool.aspect-ratio.circle', defaultMessage: 'Circle (1:1)' },
@@ -166,20 +162,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 		if (!imageShape) return
 		editor.run(() => {
 			editor.setCurrentTool('select.crop.idle')
-			const change = getCroppedImageDataForAspectRatio(aspectRatio, imageShape)
-			editor.markHistoryStoppingPoint('aspect ratio')
-			editor.updateShape({
-				id: imageShapeId,
-				type: 'image',
-				x: change.x,
-				y: change.y,
-				props: {
-					crop: change.crop,
-					w: change.w,
-					h: change.h,
-				},
-			} as TLShapePartial)
-			kickoutOccludedShapes(editor, [imageShapeId])
+			applyImageAspectRatio(editor, imageShape, aspectRatio)
 		})
 	}
 
@@ -188,15 +171,6 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 		() => editor.getShape<TLImageShape>(imageShapeId)!.props.altText,
 		[editor, imageShapeId]
 	)
-	const shapeAspectRatio = useValue(
-		'shapeAspectRatio',
-		() => {
-			const imageShape = editor.getShape<TLImageShape>(imageShapeId)!
-			return imageShape.props.w / imageShape.props.h
-		},
-		[editor, imageShapeId]
-	)
-	const isOriginalCrop = !crop || isEqual(crop, getDefaultCrop())
 
 	useEffect(() => {
 		if (isManipulating) {
@@ -228,6 +202,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	}, [editor, isManipulating, onManipulatingEnd])
 
 	if (isManipulating) {
+		const image = editor.getShape<TLImageShape>(imageShapeId)!
 		return (
 			<>
 				<TldrawUiSlider
@@ -252,33 +227,18 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 						</TldrawUiToolbarButton>
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent side="top" align="center">
-						{ASPECT_RATIO_OPTIONS.map((aspectRatio) => {
-							let checked = false
-							if (isOriginalCrop) {
-								checked = aspectRatio === 'original'
-							} else if (aspectRatio === 'circle') {
-								checked = !!crop.isCircle
-							} else if (aspectRatio === 'square') {
-								checked =
-									!crop.isCircle &&
-									approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.1)
-							} else if (aspectRatio !== 'original') {
-								checked = approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.01)
-							}
-
-							return (
-								<TldrawUiDropdownMenuCheckboxItem
-									key={aspectRatio}
-									onSelect={() => handleAspectRatioChange(aspectRatio as ASPECT_RATIO_OPTION)}
-									checked={checked}
-									title={msg(aspectRatioMessages[aspectRatio as ASPECT_RATIO_OPTION])}
-								>
-									<TldrawUiButtonLabel>
-										{msg(aspectRatioMessages[aspectRatio as ASPECT_RATIO_OPTION])}
-									</TldrawUiButtonLabel>
-								</TldrawUiDropdownMenuCheckboxItem>
-							)
-						})}
+						{ASPECT_RATIO_OPTIONS.map((aspectRatio) => (
+							<TldrawUiDropdownMenuCheckboxItem
+								key={aspectRatio}
+								onSelect={() => handleAspectRatioChange(aspectRatio as ASPECT_RATIO_OPTION)}
+								checked={isImageAspectRatioChecked(image, aspectRatio)}
+								title={msg(aspectRatioMessages[aspectRatio as ASPECT_RATIO_OPTION])}
+							>
+								<TldrawUiButtonLabel>
+									{msg(aspectRatioMessages[aspectRatio as ASPECT_RATIO_OPTION])}
+								</TldrawUiButtonLabel>
+							</TldrawUiDropdownMenuCheckboxItem>
+						))}
 					</TldrawUiDropdownMenuContent>
 				</TldrawUiDropdownMenuRoot>
 				<TldrawUiToolbarButton

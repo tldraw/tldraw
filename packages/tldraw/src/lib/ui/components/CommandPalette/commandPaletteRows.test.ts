@@ -1,0 +1,374 @@
+import { describe, expect, it, vi } from 'vitest'
+import {
+	CommandPaletteRow,
+	getCommandPaletteBrowseRows,
+	getCommandPalettePromptRows,
+	getCommandPaletteSearchRows,
+	getCommandPaletteSections,
+	getCommandPaletteSubmenuRows,
+} from './commandPaletteRows'
+import { CommandPaletteEntry } from './CommandPaletteStore'
+
+function entry(id: string, overrides: Partial<CommandPaletteEntry> = {}): CommandPaletteEntry {
+	return {
+		id,
+		label: id,
+		name: id,
+		path: [],
+		submenu: null,
+		section: null,
+		heading: null,
+		onSelect: vi.fn(),
+		marker: null,
+		...overrides,
+	}
+}
+
+const describeRows = (rows: CommandPaletteRow[]) =>
+	rows.map((row) =>
+		row.type === 'heading'
+			? `# ${row.label}`
+			: row.type === 'separator'
+				? '---'
+				: row.type === 'submenu'
+					? `> ${row.submenu.label}`
+					: `${row.recent ? 'recent ' : ''}${row.label}`
+	)
+
+const moveTo = { key: 'Pages/move-to-page', label: 'Move to page' }
+const theme = { key: 'View/theme', label: 'Theme' }
+const submenuEntries = [
+	...['Page 1', 'Page 2'].map((name) =>
+		entry(`move-${name}`, { label: `Move to page: ${name}`, name, submenu: moveTo })
+	),
+	entry('dark', { label: 'Theme: Dark', name: 'Dark', submenu: theme }),
+	entry('grid', { label: 'Show grid' }),
+]
+
+describe('getCommandPaletteBrowseRows', () => {
+	it('lists entries in order', () => {
+		const rows = getCommandPaletteBrowseRows(
+			[entry('undo', { path: ['Edit'] }), entry('grid', { path: ['View'] }), entry('loose')],
+			[],
+			'Recent'
+		)
+		expect(describeRows(rows)).toEqual(['undo', 'grid', 'loose'])
+	})
+
+	it('shows recents first and only there, skipping ids that are gone', () => {
+		const rows = getCommandPaletteBrowseRows(
+			[entry('undo'), entry('grid')],
+			['gone', 'undo'],
+			'Recent'
+		)
+		expect(describeRows(rows)).toEqual(['# Recent', 'recent undo', '---', 'grid'])
+	})
+
+	it('fills the recents from further down when earlier ids are gone or on demand', () => {
+		const notifications = { key: 'notifications', label: 'Notifications', onDemand: true }
+		const kept = ['a', 'b', 'c', 'd', 'e', 'f']
+		const rows = getCommandPaletteBrowseRows(
+			[entry('note', { submenu: notifications }), ...kept.map((id) => entry(id))],
+			['gone-1', 'gone-2', 'note', 'gone-3', ...kept],
+			'Recent'
+		)
+		expect(describeRows(rows)).toEqual([
+			'# Recent',
+			...kept.slice(0, 5).map((id) => `recent ${id}`),
+			'---',
+			'> Notifications',
+			'f',
+		])
+	})
+
+	it('drops the separator when every entry is recent', () => {
+		const rows = getCommandPaletteBrowseRows([entry('undo')], ['undo'], 'Recent')
+		expect(describeRows(rows)).toEqual(['# Recent', 'recent undo'])
+	})
+
+	it('lists pinned entries first, above recents and never among them', () => {
+		const rows = getCommandPaletteBrowseRows(
+			[entry('undo'), entry('flag', { pinned: true }), entry('grid')],
+			['flag', 'grid'],
+			'Recent'
+		)
+		expect(describeRows(rows)).toEqual(['flag', '---', '# Recent', 'recent grid', '---', 'undo'])
+	})
+
+	it('keys pinned and unpinned headings and separators apart', () => {
+		const rows = getCommandPaletteBrowseRows(
+			[
+				entry('flag', { pinned: true, heading: 'Pinned' }),
+				entry('star', { pinned: true }),
+				entry('undo', { heading: 'Edit' }),
+				entry('grid'),
+				entry('theme', { heading: 'View' }),
+			],
+			['grid'],
+			'Recent'
+		)
+		const keys = rows.map((row) => row.key)
+		expect(new Set(keys).size).toBe(keys.length)
+	})
+
+	it('heads each labelled group, separating unlabelled ones', () => {
+		const rows = getCommandPaletteBrowseRows(
+			[
+				entry('undo', { heading: 'Edit' }),
+				entry('redo', { heading: 'Edit' }),
+				entry('grid', { heading: 'View' }),
+				entry('custom'),
+			],
+			[],
+			'Recent'
+		)
+		expect(describeRows(rows)).toEqual([
+			'# Edit',
+			'undo',
+			'redo',
+			'# View',
+			'grid',
+			'---',
+			'custom',
+		])
+	})
+
+	it('lists at most 5 recent commands', () => {
+		const ids = ['a', 'b', 'c', 'd', 'e', 'f']
+		const rows = getCommandPaletteBrowseRows(
+			ids.map((id) => entry(id)),
+			ids,
+			'Recent'
+		)
+		expect(describeRows(rows).slice(0, 7)).toEqual([
+			'# Recent',
+			'recent a',
+			'recent b',
+			'recent c',
+			'recent d',
+			'recent e',
+			'---',
+		])
+	})
+
+	it('leaves out the heading when only one group is listed', () => {
+		const rows = getCommandPaletteBrowseRows(
+			[entry('undo', { heading: 'Edit' }), entry('redo', { heading: 'Edit' })],
+			[],
+			'Recent'
+		)
+		expect(describeRows(rows)).toEqual(['undo', 'redo'])
+	})
+
+	it('collapses submenus with more than one item into a row', () => {
+		const rows = getCommandPaletteBrowseRows(submenuEntries, [], 'Recent')
+		expect(describeRows(rows)).toEqual(['> Move to page', 'Theme: Dark', 'Show grid'])
+	})
+
+	it('keeps an on-demand submenu as one row, even with one item', () => {
+		const news = { key: 'news', label: 'Notifications', onDemand: true }
+		const rows = getCommandPaletteBrowseRows(
+			[entry('n1', { label: 'Notifications: Alice: hi', name: 'Alice: hi', submenu: news })],
+			[],
+			'Recent'
+		)
+		expect(describeRows(rows)).toEqual(['> Notifications'])
+		const search = getCommandPaletteSearchRows(
+			[entry('n1', { label: 'Notifications: Alice: hi', name: 'Alice: hi', submenu: news })],
+			'alice',
+			[]
+		)
+		expect(describeRows(search)).toEqual(['> Notifications'])
+	})
+
+	it('keeps on-demand submenu items out of recents', () => {
+		const news = { key: 'news', label: 'Notifications', onDemand: true }
+		const rows = getCommandPaletteBrowseRows(
+			[
+				entry('n1', { label: 'Notifications: Alice: hi', name: 'Alice: hi', submenu: news }),
+				entry('undo'),
+				entry('grid'),
+			],
+			['n1', 'grid'],
+			'Recent'
+		)
+		expect(describeRows(rows)).toEqual([
+			'# Recent',
+			'recent grid',
+			'---',
+			'> Notifications',
+			'undo',
+		])
+	})
+})
+
+describe('getCommandPaletteSearchRows', () => {
+	it('ranks matches', () => {
+		const rows = getCommandPaletteSearchRows(
+			[
+				entry('realign', { label: 'Realign', path: ['Arrange'] }),
+				entry('align', { label: 'Align', path: ['Arrange'] }),
+				entry('zoom', { label: 'Zoom in' }),
+			],
+			'align',
+			[]
+		)
+		expect(rows.map((row) => row.type === 'item' && row.entry.id)).toEqual(['align', 'realign'])
+	})
+
+	it('folds items matched only by their submenu name into the submenu row', () => {
+		const rows = getCommandPaletteSearchRows(submenuEntries, 'move', [])
+		expect(describeRows(rows)).toEqual(['> Move to page'])
+	})
+
+	it('keeps items matched by their own name', () => {
+		const rows = getCommandPaletteSearchRows(submenuEntries, 'page 2', [])
+		expect(describeRows(rows)).toEqual(['Move to page: Page 2'])
+	})
+
+	it('folds items named by the query too when it also matches the submenu name', () => {
+		const rows = getCommandPaletteSearchRows(submenuEntries, 'page', [])
+		expect(describeRows(rows)).toEqual(['> Move to page'])
+	})
+
+	it('keeps items when the query spans the submenu and the item name', () => {
+		const rows = getCommandPaletteSearchRows(submenuEntries, 'move to page 1', [])
+		expect(describeRows(rows)).toEqual(['Move to page: Page 1'])
+	})
+
+	it('folds items matched only through their path', () => {
+		const rows = getCommandPaletteSearchRows(
+			[...submenuEntries, entry('flip', { path: ['Pages'], label: 'Flip' })].map((e) =>
+				e.submenu === moveTo ? { ...e, path: ['Pages', 'Move to page'] } : e
+			),
+			'pages',
+			[]
+		)
+		expect(describeRows(rows)).toEqual(['> Move to page', 'Flip'])
+	})
+})
+
+describe('getCommandPaletteSubmenuRows', () => {
+	it("lists the submenu's items by their own names", () => {
+		const rows = getCommandPaletteSubmenuRows(submenuEntries, moveTo.key, '', [])
+		expect(describeRows(rows)).toEqual(['Page 1', 'Page 2'])
+	})
+
+	it('separates the menu groups inside the submenu', () => {
+		const rows = getCommandPaletteSubmenuRows(
+			[
+				...submenuEntries.map((e) => (e.submenu === moveTo ? { ...e, section: '/pages' } : e)),
+				entry('move-new', { name: 'New page', submenu: moveTo, section: '/new-page' }),
+			],
+			moveTo.key,
+			'',
+			[]
+		)
+		expect(describeRows(rows)).toEqual(['Page 1', 'Page 2', '---', 'New page'])
+	})
+
+	it('matches by name, not the submenu prefix', () => {
+		expect(describeRows(getCommandPaletteSubmenuRows(submenuEntries, moveTo.key, '2', []))).toEqual(
+			['Page 2']
+		)
+		expect(getCommandPaletteSubmenuRows(submenuEntries, moveTo.key, 'move', [])).toEqual([])
+	})
+
+	it('shows and matches the detail', () => {
+		const files = { key: 'go-to-file', label: 'Go to file' }
+		const entries = [
+			entry('a', { name: 'Roadmap', submenu: files, detail: 'Acme' }),
+			entry('b', { name: 'Roadmap', submenu: files, detail: 'Globex' }),
+		]
+		const details = (rows: CommandPaletteRow[]) =>
+			rows.map((row) => (row.type === 'item' ? [row.label, row.detail] : row.type))
+		expect(details(getCommandPaletteSubmenuRows(entries, files.key, '', []))).toEqual([
+			['Roadmap', 'Acme'],
+			['Roadmap', 'Globex'],
+		])
+		expect(details(getCommandPaletteSubmenuRows(entries, files.key, 'roadmap glo', []))).toEqual([
+			['Roadmap', 'Globex'],
+		])
+	})
+})
+
+describe('getCommandPalettePromptRows', () => {
+	const rename = entry('rename', {
+		name: 'Rename',
+		kbd: '[[F2]]',
+		prompt: { placeholder: 'Name', onSubmit: vi.fn() },
+	})
+
+	it('shows the trimmed value it will submit, then a cancel row', () => {
+		const rows = getCommandPalettePromptRows(rename, '  Roadmap ', 'Cancel', 'ltr')
+		expect(
+			rows.map((row) => row.type === 'item' && [row.key, row.label, row.detail, row.icon])
+		).toEqual([
+			['prompt', 'Rename', '“Roadmap”', 'arrow-right'],
+			['prompt:cancel', 'Cancel', undefined, 'arrow-right'],
+		])
+	})
+
+	it('leaves out the value while the query is blank', () => {
+		const [row] = getCommandPalettePromptRows(rename, '  ', 'Cancel', 'ltr')
+		expect(row.type === 'item' && row.detail).toBeUndefined()
+	})
+
+	it('gives the cancel row its own entry that runs nothing and shows Esc', () => {
+		const [, cancel] = getCommandPalettePromptRows(rename, '', 'Cancel', 'ltr')
+		expect(cancel.type === 'item' && cancel.entry).toMatchObject({
+			id: 'command-palette-cancel',
+			prompt: undefined,
+			kbd: '[[Esc]]',
+		})
+	})
+
+	it('points the arrows left in RTL', () => {
+		const rows = getCommandPalettePromptRows(rename, '', 'Cancel', 'rtl')
+		expect(rows.map((row) => row.type === 'item' && row.icon)).toEqual(['arrow-left', 'arrow-left'])
+	})
+})
+
+describe('getCommandPaletteSections', () => {
+	const describeSections = (rows: CommandPaletteRow[]) =>
+		getCommandPaletteSections(rows).map((section) => ({
+			key: section.key,
+			heading: section.heading?.label,
+			separated: section.separated,
+			rows: describeRows(section.rows),
+		}))
+
+	it('groups rows under the heading or separator before them', () => {
+		const rows = getCommandPaletteBrowseRows(
+			[
+				entry('undo', { heading: 'Edit' }),
+				entry('redo', { heading: 'Edit' }),
+				entry('grid', { heading: 'View' }),
+				entry('custom'),
+			],
+			[],
+			'Recent'
+		)
+		expect(describeSections(rows)).toEqual([
+			{ key: 'heading:0', heading: 'Edit', separated: undefined, rows: ['undo', 'redo'] },
+			{ key: 'heading:3', heading: 'View', separated: undefined, rows: ['grid'] },
+			{ key: 'separator:5', heading: undefined, separated: true, rows: ['custom'] },
+		])
+	})
+
+	it('starts an unheaded section for rows before any heading', () => {
+		const rows = getCommandPaletteBrowseRows(submenuEntries, [], 'Recent')
+		expect(describeSections(rows)).toEqual([
+			{
+				key: 'start',
+				heading: undefined,
+				separated: undefined,
+				rows: ['> Move to page', 'Theme: Dark', 'Show grid'],
+			},
+		])
+	})
+
+	it('returns no sections for no rows', () => {
+		expect(getCommandPaletteSections([])).toEqual([])
+	})
+})
