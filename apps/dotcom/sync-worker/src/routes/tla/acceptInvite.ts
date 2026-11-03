@@ -15,8 +15,8 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 		})
 	}
 
-	// Return our own 401 body: the router's generic one has no `code`, so the client couldn't tell
-	// a signed-out accept from any other failure.
+	// Return our own 401 body: the router's generic one isn't an AcceptInviteResponseBody, so it
+	// carries no `code` for the client to translate.
 	const auth = await getAuth(request, env)
 	if (!auth) {
 		return Response.json({ error: true, code: 'unauthorized' } satisfies AcceptInviteResponseBody, {

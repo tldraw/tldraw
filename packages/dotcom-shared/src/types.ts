@@ -12,16 +12,6 @@ export interface CreateRoomRequestBody {
 	snapshot: Snapshot
 }
 
-export type CreateSnapshotResponseBody =
-	| {
-			error: false
-			roomId: string
-	  }
-	| {
-			error: true
-			message: string
-	  }
-
 export interface GetReadonlySlugResponseBody {
 	slug: string
 	isLegacy: boolean
@@ -45,24 +35,6 @@ export type CreateFilesResponseBody =
 			slugs: string[]
 	  }
 	| TlaApiErrorResponseBody
-
-export type PublishFileResponseBody =
-	| {
-			error: false
-	  }
-	| {
-			error: true
-			message: string
-	  }
-
-export type UnpublishFileResponseBody =
-	| {
-			error: false
-	  }
-	| {
-			error: true
-			message: string
-	  }
 
 /**
  * Error codes the app's HTTP routes return instead of prose, so the client can show the failure in

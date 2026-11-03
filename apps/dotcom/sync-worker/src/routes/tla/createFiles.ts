@@ -52,5 +52,5 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 
 		slugs.push(newSlug)
 	}
-	return new Response(JSON.stringify({ error: false, slugs }))
+	return Response.json({ error: false, slugs } satisfies CreateFilesResponseBody)
 }

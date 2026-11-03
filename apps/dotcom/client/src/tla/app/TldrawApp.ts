@@ -9,6 +9,7 @@ import {
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
 	Snapshot,
+	TlaApiErrorCode,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	TlaFileState,
@@ -1542,15 +1543,15 @@ export class TldrawApp {
 
 		if (!payload || payload.error || !response.ok) {
 			const code = payload?.error ? payload.code : undefined
+			const errorMessages: Partial<Record<TlaApiErrorCode, TLI18nMessage>> = {
+				unauthorized: this.messages.accept_invite_unauthorized,
+				invite_not_found: this.messages.accept_invite_not_found,
+			}
 			this.toasts?.addToast({
 				severity: 'error',
 				title: this.msg(this.messages.accept_invite_error_title),
 				description: this.msg(
-					code === 'unauthorized'
-						? this.messages.accept_invite_unauthorized
-						: code === 'invite_not_found'
-							? this.messages.accept_invite_not_found
-							: this.messages.accept_invite_try_again
+					(code && errorMessages[code]) ?? this.messages.accept_invite_try_again
 				),
 			})
 			this.navigate(routes.tlaRoot())
