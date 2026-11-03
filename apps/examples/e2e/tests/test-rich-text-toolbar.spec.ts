@@ -823,6 +823,45 @@ test.describe('Rich text behaviour', () => {
 test.describe('Task list checkboxes', () => {
 	test.beforeEach(setupOrReset)
 
+	test('checkboxes outside edit mode cannot take keyboard focus', async ({ page }) => {
+		await page.evaluate(() => {
+			editor.createShape({
+				type: 'geo',
+				x: 100,
+				y: 100,
+				props: {
+					richText: {
+						type: 'doc',
+						content: [
+							{
+								type: 'taskList',
+								content: [
+									{
+										type: 'taskItem',
+										attrs: { checked: false },
+										content: [{ type: 'paragraph', content: [{ type: 'text', text: 'a task' }] }],
+									},
+								],
+							},
+						],
+					},
+				},
+			})
+			editor.selectNone()
+		})
+		await sleep(150)
+
+		// Space on a focused static checkbox would tick it on screen without writing to the shape.
+		const focused = await page.evaluate(() => {
+			const input = document.querySelector<HTMLInputElement>(
+				'.tl-rich-text ul[data-type="taskList"] input[type="checkbox"]'
+			)!
+			input.focus()
+			return document.activeElement === input
+		})
+		expect(focused).toBe(false)
+	})
+
 	test('a press does not tick when the text changes before release', async ({ page, isMobile }) => {
 		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
 		if (isMobile) return
