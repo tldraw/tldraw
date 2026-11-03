@@ -10,7 +10,7 @@ import {
 	useValue,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
-import type { TLCollectionItemId } from '../lib/schema'
+import type { TLCollectionItemContent, TLCollectionItemId } from '../lib/schema'
 import { ItemGrid } from '../ui/item-grid'
 import { ItemMenu } from '../ui/item-menu'
 import { CollectionsPanelHeader } from './collections-panel-header'
@@ -56,6 +56,27 @@ const messages = defineMessages({
 			'You may not be allowed to change this collection, or the item no longer exists.',
 	},
 })
+
+// Tiles show a whole item in a few dozen pixels, so an image in one is drawn far below its size.
+const THUMBNAIL_SCREEN_SCALE = 0.25
+
+// Item content never changes once saved, so tiles share one load per item.
+const contentCache = new WeakMap<
+	CollectionSource,
+	Map<TLCollectionItemId, Promise<TLCollectionItemContent>>
+>()
+
+function getCachedItemContent(source: CollectionSource, itemId: TLCollectionItemId) {
+	let items = contentCache.get(source)
+	if (!items) contentCache.set(source, (items = new Map()))
+	let content = items.get(itemId)
+	if (!content) {
+		content = source.getItemContent(itemId)
+		content.catch(() => items.delete(itemId))
+		items.set(itemId, content)
+	}
+	return content
+}
 
 /** @public */
 export interface CollectionsPanelProps {
@@ -121,6 +142,28 @@ export function CollectionsPanel({ source, sanitizeThumbnail }: CollectionsPanel
 		[editor, source, addToast, msg]
 	)
 	const getItemProps = useItemDrag(source, placeItem)
+
+	// SPIKE: an image in a thumbnail points at its asset, which lives in the item's content. Tiles
+	// resolve it through the editor's asset store, as the canvas would once the item is placed.
+	const resolveThumbnailAsset = useCallback(
+		async (itemId: TLCollectionItemId, assetId: string) => {
+			const asset = (await getCachedItemContent(source, itemId)).content.assets.find(
+				(a) => a.id === assetId
+			)
+			if (!asset) return null
+			const src = 'src' in asset.props ? asset.props.src : null
+			const resolve = editor.store.props.assets.resolve
+			if (!resolve) return src
+			return resolve(asset, {
+				screenScale: THUMBNAIL_SCREEN_SCALE,
+				steppedScreenScale: THUMBNAIL_SCREEN_SCALE,
+				dpr: editor.getInstanceState().devicePixelRatio,
+				networkEffectiveType: null,
+				shouldResolveToOriginal: false,
+			})
+		},
+		[editor, source]
+	)
 	const [renamingId, setRenamingId] = useState<TLCollectionItemId>()
 	const canRename = useValue(
 		'can rename items',
@@ -178,6 +221,7 @@ export function CollectionsPanel({ source, sanitizeThumbnail }: CollectionsPanel
 						}))}
 						getItemProps={getItemProps}
 						sanitizeThumbnail={sanitizeThumbnail}
+						resolveThumbnailAsset={resolveThumbnailAsset}
 						renderItemMenu={(item) => (
 							<ItemMenu
 								id={item.id}

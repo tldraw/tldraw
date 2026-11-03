@@ -1,4 +1,5 @@
 import {
+	AssetRecordType,
 	BaseBoxShapeUtil,
 	BaseFrameLikeShapeUtil,
 	DefaultColorStyle,
@@ -352,6 +353,33 @@ describe('preview exports', () => {
 		expect(svg).toContain('>tldraw.dev</text>')
 		expect(svg).toContain('>YouTube</text>')
 		expect(svg).not.toContain('<foreignObject')
+	})
+
+	it('points images at their asset rather than carrying a URL or the image', async () => {
+		const assetId = AssetRecordType.createId('logo')
+		const imageId = createShapeId('image')
+		editor.createAssets([
+			AssetRecordType.create({
+				id: assetId,
+				type: 'image',
+				props: {
+					name: 'logo.png',
+					src: 'https://example.com/logo.png',
+					w: 100,
+					h: 100,
+					mimeType: 'image/png',
+					isAnimated: false,
+				},
+			}),
+		])
+		editor.createShapes([{ id: imageId, type: 'image', props: { w: 100, h: 100, assetId } }])
+
+		const image = parseSvg(await editor.getSvgString([imageId], { preview: true })).querySelector(
+			'image'
+		)
+
+		expect(image?.getAttribute('data-tl-asset-id')).toBe(assetId)
+		expect(image?.hasAttribute('href')).toBe(false)
 	})
 
 	it('uses toSvg for shapes without toPreviewSvg', async () => {

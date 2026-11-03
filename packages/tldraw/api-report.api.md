@@ -2641,7 +2641,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     static props: RecordProps<TLImageShape>;
     // (undocumented)
-    toPreviewSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
+    toPreviewSvg(shape: TLImageShape): Promise<JSX.Element | null>;
     // (undocumented)
     toSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
     // (undocumented)

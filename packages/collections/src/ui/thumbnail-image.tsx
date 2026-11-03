@@ -40,6 +40,10 @@ const FORBIDDEN_ELEMENTS = new Set([
 const IGNORED_IN_SCHEME = /[\s\p{Cc}\p{Cf}]/gu
 const SCRIPT_SCHEME = /(?:java|vb)script:|data:text\/html/i
 
+// What an image in a thumbnail may load once its asset is resolved. An <image> never runs script,
+// but a resolved URL comes from item content, which is as untrusted as the thumbnail.
+const SAFE_IMAGE_URL = /^(?:https?:|blob:|data:image\/(?:png|jpe?g|gif|webp|avif|svg\+xml)[;,])/i
+
 const textCache = new Map<string, Promise<string | null>>()
 
 function loadSvgText(url: string): Promise<string | null> {
@@ -99,14 +103,35 @@ function isInert(root: Element) {
 	return true
 }
 
+function resolveImages(
+	svg: Element,
+	resolveAsset: ((assetId: string) => Promise<string | null>) | undefined,
+	isCancelled: () => boolean
+) {
+	if (!resolveAsset) return
+	for (const image of svg.querySelectorAll('image[data-tl-asset-id]')) {
+		resolveAsset(image.getAttribute('data-tl-asset-id')!)
+			.then((src) => {
+				if (!isCancelled() && src && SAFE_IMAGE_URL.test(src)) image.setAttribute('href', src)
+			})
+			.catch(() => {})
+	}
+}
+
 export function ThumbnailImage({
 	url,
 	sanitize = sanitizeSvg,
+	resolveAsset,
 }: {
 	url: string
 	sanitize?(svg: string): string
+	/** Gives the URL for an image the thumbnail points at by asset id. */
+	resolveAsset?(assetId: string): Promise<string | null>
 }) {
 	const hostRef = useRef<HTMLSpanElement>(null)
+	// Read at load time rather than as an effect dependency: callers pass a new function each render.
+	const resolveAssetRef = useRef(resolveAsset)
+	resolveAssetRef.current = resolveAsset
 
 	useEffect(() => {
 		const host = hostRef.current
@@ -121,7 +146,9 @@ export function ThumbnailImage({
 			if (cancelled) return
 			const svg = markup && prepareThumbnailSvg(markup, sanitize)
 			if (svg) {
-				root.append(document.importNode(svg, true))
+				const node = document.importNode(svg, true)
+				root.append(node)
+				resolveImages(node, resolveAssetRef.current, () => cancelled)
 			} else {
 				// Not an SVG, or one we won't draw inline. An <img> never runs script or loads
 				// anything else, so it's safe for any stored bytes; it just can't follow the theme.

@@ -37,7 +37,6 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { memo, useEffect, useState } from 'react'
-import { containBoxSize, downsizeImage } from '../../utils/assets/assets'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { getUncroppedSize } from '../shared/crop'
 import { getFlipForResize } from '../shared/flip'
@@ -55,8 +54,6 @@ async function getDataURIFromURL(url: string): Promise<string> {
 }
 
 const imageSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
-// downsizeImage doubles this for high-density screens.
-const PREVIEW_IMAGE_SIZE = { w: 256, h: 256 }
 
 /** @public */
 export interface ImageShapeUtilDisplayValues {}
@@ -283,23 +280,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	// A preview is stored, so a remote image is linked rather than embedded.
-	override async toPreviewSvg(shape: TLImageShape, ctx: SvgExportContext) {
-		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
-		if (!asset) return null
-		const { w, h } = getUncroppedSize(shape.props, shape.props.crop)
-		const src = await ctx.resolveAssetUrl(asset.id, w)
-		if (!src || getIsAnimated(this.editor, asset.id)) return this.toSvg(shape, ctx)
-		// A preview is shown small and as stored content other people open, so it carries its own
-		// small copy rather than a link a viewer's browser would fetch (and which sanitisers strip).
-		try {
-			const size = containBoxSize({ w, h }, PREVIEW_IMAGE_SIZE)
-			const blob = await downsizeImage(await (await fetch(src)).blob(), size.w, size.h, {
-				type: 'image/webp',
-			})
-			return <SvgImage shape={shape} src={await FileHelpers.blobToDataUrl(blob)} />
-		} catch {
-			return this.toSvg(shape, ctx)
-		}
+	override async toPreviewSvg(shape: TLImageShape) {
+		if (!shape.props.assetId || !this.editor.getAsset(shape.props.assetId)) return null
+		// SPIKE: a preview points at the asset instead of carrying the image. Whoever shows it
+		// resolves the id through their asset store, the way the canvas does, so the stored SVG
+		// never holds a URL.
+		return <SvgImage shape={shape} assetId={shape.props.assetId} />
 	}
 
 	override onDoubleClickEdge(shape: TLImageShape) {
@@ -598,7 +584,15 @@ function getFlipStyle(shape: TLImageShape, size?: { width: number; height: numbe
 	}
 }
 
-function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
+function SvgImage({
+	shape,
+	src,
+	assetId,
+}: {
+	shape: TLImageShape
+	src?: string
+	assetId?: TLAssetId
+}) {
 	const cropClipId = useUniqueSafeId()
 	const containerStyle = getCroppedContainerStyle(shape)
 	const crop = shape.props.crop
@@ -636,6 +630,7 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 				<g clipPath={`url(#${cropClipId})`}>
 					<image
 						href={src}
+						data-tl-asset-id={assetId}
 						width={width}
 						height={height}
 						aria-label={shape.props.altText}
@@ -648,6 +643,7 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 		return (
 			<image
 				href={src}
+				data-tl-asset-id={assetId}
 				width={shape.props.w}
 				height={shape.props.h}
 				aria-label={shape.props.altText}
