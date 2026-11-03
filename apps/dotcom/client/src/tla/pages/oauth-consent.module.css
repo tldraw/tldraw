@@ -1,5 +1,5 @@
 /* Colours are literals: this route renders outside the app's providers, so the tla and tl colour
-   variables are never defined here. */
+   variables are never defined here. The dark values mirror the app's dark theme. */
 .page {
 	min-height: 100dvh;
 	display: flex;
@@ -17,4 +17,22 @@
 	width: 108px;
 	height: 36px;
 	background-color: #1d1d1d;
+}
+
+/* Dark mode. `system` (or no explicit choice) follows the OS via the media query; an explicit
+   light/dark choice pins data-theme on the page and wins over it. */
+@media (prefers-color-scheme: dark) {
+	.page:not([data-theme='light']) {
+		background: #101011;
+	}
+	.page:not([data-theme='light']) .logo {
+		background-color: #f5f5f5;
+	}
+}
+
+.page[data-theme='dark'] {
+	background: #101011;
+}
+.page[data-theme='dark'] .logo {
+	background-color: #f5f5f5;
 }
