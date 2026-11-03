@@ -7,6 +7,7 @@ import {
 	useValue,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
+import { groupCollectionList, type GroupCollections } from './collection-groups'
 import { sortByRecentlySavedTo } from './recent-collections'
 import { useSaveSelection } from './use-save-selection'
 
@@ -30,6 +31,8 @@ export interface AddToCollectionMenuItemProps {
 	source: CollectionSource
 	/** Defaults to `'source'`. */
 	order?: AddToCollectionOrder
+	/** Groups the collections, each group headed by its name, e.g. by scope. */
+	groupCollections?: GroupCollections
 }
 
 /**
@@ -41,6 +44,7 @@ export interface AddToCollectionMenuItemProps {
 export function AddToCollectionMenuItem({
 	source,
 	order = 'source',
+	groupCollections,
 }: AddToCollectionMenuItemProps) {
 	const editor = useEditor()
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
@@ -66,9 +70,16 @@ export function AddToCollectionMenuItem({
 	return (
 		<TldrawUiMenuGroup id="collections">
 			<TldrawUiMenuSubmenu id="add-to-collection" label={messages.addToCollection.id}>
-				{collections.length > 0 && (
-					<TldrawUiMenuGroup id="add-to-collection-targets">
-						{collections.map((collection) => (
+				{groupCollectionList(collections, groupCollections).map((group, index) => (
+					<TldrawUiMenuGroup key={group.label ?? index} id={`add-to-collection-targets-${index}`}>
+						{/* Menu groups can't show a heading, and context menus hide disabled items, so a plain
+						    element is the heading; keyboard navigation passes over it. */}
+						{group.label && (
+							<div className="tlui-collections-menu-heading" role="presentation">
+								{group.label}
+							</div>
+						)}
+						{group.collections.map((collection) => (
 							<TldrawUiMenuItem
 								key={collection.id}
 								id={`add-to-collection-${collection.id}`}
@@ -77,7 +88,7 @@ export function AddToCollectionMenuItem({
 							/>
 						))}
 					</TldrawUiMenuGroup>
-				)}
+				))}
 				{canCreate && (
 					<TldrawUiMenuGroup id="add-to-new-collection">
 						<TldrawUiMenuItem
