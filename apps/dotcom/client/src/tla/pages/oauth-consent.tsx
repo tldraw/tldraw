@@ -65,7 +65,14 @@ function ConsentOnceLegalAccepted() {
 	return (
 		<>
 			<TlaLogo className={styles.logo} />
-			<OAuthConsent appearance={{ variables: isDark ? darkVariables : lightVariables }} />
+			<OAuthConsent
+				appearance={{
+					variables: isDark ? darkVariables : lightVariables,
+					// The card logo is Clerk's dark app tile, which sinks into the dark card. The mark is
+					// monochrome, so inverting it reads as a white tile with a black mark.
+					elements: isDark ? { logoImage: { filter: 'invert(1)' } } : undefined,
+				}}
+			/>
 		</>
 	)
 }
