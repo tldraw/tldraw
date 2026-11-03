@@ -1,6 +1,7 @@
 import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
+	RENDER_PUSH_BUDGET_BYTES,
 	THUMBNAIL_MEASURE_RESULT_ID,
 	THUMBNAIL_RENDER_GLOBAL,
 	THUMBNAIL_RENDER_PATH,
@@ -8,6 +9,8 @@ import {
 	ThumbnailShapeMeasurement,
 	getThumbnailContentRequestBody,
 	getThumbnailScreenshotRequestBody,
+	renderPushByteLength,
+	renderPushScript,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { RENDER_PUSH_FALLBACK_TTL_MS, THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../../config'
@@ -44,6 +47,7 @@ import {
 	BoardSnapshotReadError,
 	BrowserRenderError,
 	RenderPageError,
+	RenderWorkerError,
 	classifyScreenshotFailure,
 } from './thumbnailShared'
 
@@ -363,6 +367,36 @@ export async function captureThumbnailScreenshot(
 		theme,
 		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	}
+
+	// Flag-gated hand-off to the private render worker (apps/dotcom/render-worker). Off by default;
+	// when on and bound it renders instead of the local path below. Push-only, so it needs the
+	// snapshot the caller read — without one there is nothing to push, so fall through to the local
+	// path. The worker writes browser_run_session and reports detail to its own Sentry; a failure
+	// returns as a bounded reason, re-thrown as RenderWorkerError so this function's callers keep the
+	// same throw/catch and request-level telemetry. See the render worker's api.ts.
+	if (envFlagWord(env.THUMBNAIL_RENDER_VIA_WORKER) === 'true' && env.RENDER_WORKER && snapshot) {
+		const body = thumbnailSnapshotBodyFor(snapshot, job)
+		// The same page/shape re-check the snapshot route does; with no pull path, a vanished page or
+		// shape fails the render rather than falling back to a fetch.
+		if (body.error) throw new Error(body.message)
+		// Refuse a board too large to push before spending any RPC (decision #1: no pull fallback). The
+		// injected script is the larger of the two 32 MiB hops, so measuring it covers both.
+		if (renderPushByteLength(renderPushScript(body)) > RENDER_PUSH_BUDGET_BYTES) {
+			throw new RenderWorkerError('board_too_large')
+		}
+		const result = await env.RENDER_WORKER.screenshot({
+			payload: body,
+			telemetry: {
+				source: telemetry.source,
+				reason: telemetry.reason,
+				content: content ?? EMPTY_CONTENT_SUMMARY,
+			},
+		})
+		if (!result.ok) throw new RenderWorkerError(result.reason)
+		// Callers read only `base64`; render time now lives on the worker's ledger, not here.
+		return { base64: arrayBufferToBase64(result.png.buffer as ArrayBuffer), durationMs: 0 }
+	}
+
 	// Minted even for a push: the page still beacons with it.
 	const token = await mintRecordedRenderToken(env, job)
 	try {
@@ -949,6 +983,36 @@ export async function measurePageShapes(
 		theme: 'light',
 		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	}
+
+	// Flag-gated hand-off to the private render worker, as in captureThumbnailScreenshot. Push-only,
+	// so it needs the caller's snapshot; without one, fall through to the local path.
+	if (envFlagWord(env.THUMBNAIL_RENDER_VIA_WORKER) === 'true' && env.RENDER_WORKER && snapshot) {
+		const body = thumbnailSnapshotBodyFor(snapshot, job)
+		if (body.error) throw new Error(body.message)
+		// Refuse upstream, as in captureThumbnailScreenshot.
+		if (renderPushByteLength(renderPushScript(body)) > RENDER_PUSH_BUDGET_BYTES) {
+			throw new RenderWorkerError('board_too_large')
+		}
+		const result = await env.RENDER_WORKER.measure({
+			payload: body,
+			telemetry: { source: 'mcp', content: summarizeSnapshotContent(snapshot, pageId) },
+		})
+		if (!result.ok) throw new RenderWorkerError(result.reason)
+		// The worker returns the page's own { x, y, w, h } form; clustering wants min/max, so convert
+		// here, next to the clustering code — which keeps that coordinate type out of the worker's API.
+		const bounds: Record<string, ShapeMeasurement> = {}
+		for (const [shapeId, box] of Object.entries(result.measurements)) {
+			bounds[shapeId] = {
+				minX: box.x,
+				minY: box.y,
+				maxX: box.x + box.w,
+				maxY: box.y + box.h,
+				...(box.text ? { text: box.text } : null),
+			}
+		}
+		return bounds
+	}
+
 	// Minted even for a push: a board too big to push falls back to fetching with it.
 	const token = await mintRecordedRenderToken(env, job)
 

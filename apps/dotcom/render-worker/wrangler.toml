@@ -1,0 +1,92 @@
+main = "src/worker.ts"
+# 2026-03-24 is the minimum for the Browser Rendering `env.BROWSER.quickAction` binding method,
+# which is how this worker renders (no @cloudflare/puppeteer, no API token). Matches sync-worker.
+compatibility_date = "2026-03-24"
+compatibility_flags = ["nodejs_compat"]
+
+[dev]
+port = 8790
+
+# This worker has NO routes and no custom domain, deliberately: it is reached only through
+# sync-worker's RENDER_WORKER service binding (the RenderWorker entrypoint). A direct HTTP request
+# gets a 404 (see the worker's fetch handler). That is the "no public routes" property — the render
+# page, the Browser Run calls, and the token-free push all live behind the binding.
+
+#################### Environment names ####################
+
+[env.dev]
+name = "dev-tldraw-render-worker"
+
+[env.dev.vars]
+# Browser Run is unreachable from local dev, so captures go to the client dev server's Playwright
+# endpoint instead of the BROWSER binding — exactly as sync-worker does. Deployed environments leave
+# this unset and use the BROWSER binding.
+LOCAL_SCREENSHOT_SERVICE_URL = "http://localhost:3000/__screenshot"
+# The origin serving the render page. Mirrors sync-worker's MCP_SCREENSHOT_RENDER_ORIGIN; the
+# worker-owned render page is a later step, so for now this points at the client.
+RENDER_PAGE_ORIGIN = "http://localhost:3000"
+
+# preview has no hard-coded name; the deploy script generates it at build time (as for sync-worker).
+
+[env.staging]
+name = "staging-tldraw-render-worker"
+
+[env.staging.vars]
+RENDER_PAGE_ORIGIN = "https://staging.tldraw.com"
+
+[env.production]
+name = "tldraw-render-worker"
+
+[env.production.vars]
+RENDER_PAGE_ORIGIN = "https://www.tldraw.com"
+
+#################### Browser Rendering (Quick Actions) ####################
+# Named environments do not inherit the top-level binding, so it is repeated per environment.
+
+[env.dev.browser]
+binding = "BROWSER"
+
+[env.preview.browser]
+binding = "BROWSER"
+
+[env.staging.browser]
+binding = "BROWSER"
+
+[env.production.browser]
+binding = "BROWSER"
+
+#################### browser_run_session spend ledger ####################
+# The SAME MEASURE dataset sync-worker writes to, so a session row lands alongside the request-level
+# events (the dataset defaults to the binding name, as in sync-worker). This worker writes ONLY
+# `browser_run_session`, and it carries no board identity — so this binding does not widen the
+# identity surface. Note: the event's worker-name blob becomes this worker's name, not sync-worker's.
+
+[[env.dev.analytics_engine_datasets]]
+binding = "MEASURE"
+
+[[env.preview.analytics_engine_datasets]]
+binding = "MEASURE"
+
+[[env.staging.analytics_engine_datasets]]
+binding = "MEASURE"
+
+[[env.production.analytics_engine_datasets]]
+binding = "MEASURE"
+
+#################### Sentry release tagging ####################
+# createSentry needs this to tag releases. Repeated per environment, as elsewhere in dotcom.
+
+[version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.dev.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.preview.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.staging.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.production.version_metadata]
+binding = "CF_VERSION_METADATA"

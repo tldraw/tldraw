@@ -43,6 +43,10 @@ const tldrawusercontent = path.relative(
 	process.cwd(),
 	path.resolve(REPO_ROOT, './apps/dotcom/tldrawusercontent-worker')
 )
+const renderWorker = path.relative(
+	process.cwd(),
+	path.resolve(REPO_ROOT, './apps/dotcom/render-worker')
+)
 const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
 const zeroCacheFolder = path.relative(
 	process.cwd(),
@@ -146,7 +150,13 @@ interface TimingEntry {
 	durationMs: number
 }
 
-type WorkerId = 'asset-upload' | 'health' | 'multiplayer' | 'tldrawusercontent' | 'image-resize'
+type WorkerId =
+	| 'asset-upload'
+	| 'health'
+	| 'multiplayer'
+	| 'tldrawusercontent'
+	| 'image-resize'
+	| 'render'
 
 interface WorkerDeployment {
 	id: WorkerId
@@ -195,7 +205,9 @@ const workerDeployments: WorkerDeployment[] = [
 		id: 'multiplayer',
 		stepLabel: 'deploying multiplayer worker to cloudflare',
 		timingLabel: 'worker deploy: multiplayer',
-		dependsOn: [],
+		// The render worker must exist first, since the sync worker binds it (RENDER_WORKER) on staging
+		// and previews. In production deployRenderWorker is a no-op, so this dependency still resolves.
+		dependsOn: ['render'],
 		run: deployTlsyncWorker,
 	},
 	{
@@ -218,6 +230,14 @@ const workerDeployments: WorkerDeployment[] = [
 		timingLabel: 'worker deploy: image-resize',
 		dependsOn: ['multiplayer'],
 		run: deployImageResizeWorker,
+	},
+	{
+		id: 'render',
+		stepLabel: 'deploying render worker to cloudflare',
+		timingLabel: 'worker deploy: render',
+		// Binds nothing outbound, so it has no dependencies; the sync worker depends on it instead.
+		dependsOn: [],
+		run: deployRenderWorker,
 	},
 	{
 		id: 'health',
@@ -564,7 +584,20 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId) {
 		const queueName = `tldraw-multiplayer-queue-${previewId}`
 		if (!didUpdateTlsyncWorker) {
-			await setWranglerPreviewConfig(worker, { name: workerId }, queueName)
+			await setWranglerPreviewConfig(
+				worker,
+				{
+					name: workerId,
+					// The sync worker binds the render worker (off by default behind
+					// THUMBNAIL_RENDER_VIA_WORKER; see thumbnailRender.ts). Preview render-worker names are
+					// per-id, so the binding target is injected here rather than fixed in wrangler.toml.
+					serviceBinding: {
+						binding: 'RENDER_WORKER',
+						service: `${previewId}-tldraw-render-worker`,
+					},
+				},
+				queueName
+			)
 			didUpdateTlsyncWorker = true
 		}
 		if (!dryRun) {
@@ -663,6 +696,35 @@ async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
 			TLDRAW_ENV: env.TLDRAW_ENV,
 			WORKER_NAME: workerId,
 			MULTIPLAYER_SERVER: multiplayerServer,
+		},
+	})
+}
+
+let didUpdateRenderWorker = false
+async function deployRenderWorker({ dryRun }: { dryRun: boolean }) {
+	// Staging and previews only for now: nothing in production binds or calls the render worker yet,
+	// so skip it there. The sync worker's dependsOn ['render'] still resolves — this just returns.
+	if (env.TLDRAW_ENV === 'production') {
+		nicelog('skipping render-worker deploy: not enabled in production yet')
+		return
+	}
+	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-render-worker`
+	if (previewId && !didUpdateRenderWorker) {
+		await setWranglerPreviewConfig(renderWorker, { name: workerId })
+		didUpdateRenderWorker = true
+	}
+	await wranglerDeploy({
+		location: renderWorker,
+		dryRun,
+		env: env.TLDRAW_ENV,
+		vars: {
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			WORKER_NAME: workerId,
+			// Previews render from their own client origin; staging sets RENDER_PAGE_ORIGIN in
+			// wrangler.toml. Mirrors the sync worker's MCP_SCREENSHOT_RENDER_ORIGIN.
+			...(previewId
+				? { RENDER_PAGE_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com` }
+				: {}),
 		},
 	})
 }

@@ -1,0 +1,27 @@
+{
+	"name": "@tldraw/dotcom-render-worker",
+	"description": "A private Cloudflare Worker that renders tldraw board thumbnails and measures through Browser Rendering, reached only over a service binding",
+	"version": "0.0.0",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"main": "src/api.ts",
+	"scripts": {
+		"dev": "pnpm exec tsx ../../../internal/scripts/workers/dev.ts --inspector-port 9340",
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"lint": "pnpm exec tsx ../../../internal/scripts/lint.ts",
+		"build-types": "tsc --build"
+	},
+	"dependencies": {
+		"@tldraw/dotcom-shared": "workspace:*",
+		"@tldraw/worker-shared": "workspace:*"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20260302.0",
+		"wrangler": "^4.75.0"
+	}
+}
