@@ -1,7 +1,7 @@
 import { spawn, type ChildProcess } from 'node:child_process'
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 
 const require = createRequire(import.meta.url)
 const appDir = join(__dirname, '..')
@@ -32,9 +32,8 @@ export async function startWranglerDev(opts: {
 		writtenFixtures.push(path)
 	}
 
-	// wrangler is hoisted to the repo root; resolve its entry through node instead
-	// of assuming a local .bin symlink
-	const wranglerBin = require.resolve('wrangler/bin/wrangler.js')
+	// Wrangler's exports map hides the CLI subpath, but exposes its package manifest.
+	const wranglerBin = join(dirname(require.resolve('wrangler/package.json')), 'bin/wrangler.js')
 	const varArgs = Object.entries({ MCP_IS_DEV: 'true', ...opts.vars }).flatMap(([k, v]) => [
 		'--var',
 		`${k}:${v}`,

@@ -272,3 +272,10 @@ export const WORKER_MAX_SIMULTANEOUS_CONNECTIONS = 6
  * The URL of the PostHog instance to use.
  */
 export const POSTHOG_URL = 'https://eu.i.posthog.com'
+
+/**
+ * How long a board renders by fetch after a pushed capture of it timed out. Long enough to cover the
+ * OG queue's whole retry chain (OG_PENDING_MARKER_TTL_MS) and an agent's next few MCP calls, so the
+ * next attempt at the same board is the one that falls back.
+ */
+export const RENDER_PUSH_FALLBACK_TTL_MS = 10 * 60_000
