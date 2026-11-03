@@ -125,10 +125,40 @@
 	background-color: var(--tl-color-selection-stroke);
 }
 
-.comment-notifications__actions {
+.comment-notifications__section {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	border-top: 1px solid var(--tl-color-divider);
+	padding: 8px 4px 2px;
+	font-size: 12px;
+	color: var(--tl-color-text-1);
+}
+
+.comment-notifications__section-title {
+	font-weight: 600;
+}
+
+.comment-notifications__row-controls {
 	display: flex;
 	flex-wrap: wrap;
+	align-items: center;
 	gap: 4px;
-	border-top: 1px solid var(--tl-color-divider);
-	padding-top: 6px;
+}
+
+.comment-notifications__check {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.comment-notifications__hint,
+.comment-notifications__status {
+	margin: 0;
+	line-height: 1.4;
+	color: var(--tl-color-text-3);
+}
+
+.comment-notifications__status {
+	color: var(--tl-color-text-1);
 }

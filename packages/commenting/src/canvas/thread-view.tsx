@@ -64,6 +64,8 @@ const messages = defineMessages({
 	},
 	commentsLinkCopied: { id: 'comments.link-copied', defaultMessage: 'Link copied' },
 	commentsMoreOptions: { id: 'comments.more-options', defaultMessage: 'More options' },
+	commentsMuteThread: { id: 'comments.mute-thread', defaultMessage: 'Mute thread' },
+	commentsUnmuteThread: { id: 'comments.unmute-thread', defaultMessage: 'Unmute thread' },
 	commentsReopen: { id: 'comments.reopen', defaultMessage: 'Reopen' },
 	commentsReplyPlaceholder: { id: 'comments.reply-placeholder', defaultMessage: 'Reply…' },
 	commentsResolve: { id: 'comments.resolve', defaultMessage: 'Resolve' },
@@ -290,6 +292,8 @@ export const ThreadView = memo(function ThreadView({
 		getMentionSuggestions,
 		renderMentionSuggestion,
 		getThreadHref,
+		isThreadMuted,
+		onThreadMutedChange,
 	} = props
 	const options = useCommentingOptions()
 	const comments = useThreadComments(editor, thread.id)
@@ -332,6 +336,12 @@ export const ThreadView = memo(function ThreadView({
 	// widens that. Still a commenting write, so `canComment` stays the outer gate.
 	const canModifyThread = useCanModifyComment(currentUserId, { action: 'delete-thread', thread })
 	const canDeleteThread = canComment && canModifyThread
+	// a host keeping mutes in signals gets a menu that follows them
+	const muted = useValue('thread muted', () => isThreadMuted?.(thread.id) ?? false, [
+		isThreadMuted,
+		thread.id,
+	])
+	const canMute = onThreadMutedChange !== undefined && currentUserId !== null
 	const ComposerFallback = options.components.ComposerFallback
 	// An unsent reply survives closing the thread (saved on every change, keyed by thread id) —
 	// the flip side of dismissing without a discard warning.
@@ -543,7 +553,7 @@ export const ThreadView = memo(function ThreadView({
 		<>
 			{/* Host verbs — assign, link a ticket — sit ahead of the built-in actions. */}
 			{ThreadActions && <ThreadActions thread={thread} comments={comments} />}
-			{(threadHref !== undefined || canDeleteThread) && (
+			{(threadHref !== undefined || canMute || canDeleteThread) && (
 				<MoreOptionsMenu id={`comment-thread-actions-${thread.id}`}>
 					{/* A link is a read affordance: offered to anyone who can see the thread,
 					    including a viewer who can't comment. `noClose` keeps the menu up so the
@@ -553,6 +563,12 @@ export const ThreadView = memo(function ThreadView({
 							label={msg(linkCopied ? messages.commentsLinkCopied : messages.commentsCopyLink)}
 							noClose
 							onClick={copyThreadLink}
+						/>
+					)}
+					{canMute && (
+						<MenuItem
+							label={msg(muted ? messages.commentsUnmuteThread : messages.commentsMuteThread)}
+							onClick={() => onThreadMutedChange?.(thread.id, !muted)}
 						/>
 					)}
 					{canDeleteThread && (
