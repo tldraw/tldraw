@@ -43,7 +43,7 @@
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*",
-		"wrangler": "^4.141.0",
+		"wrangler": "^4.148.0",
 		"zod": "^4.1.8"
 	},
 	"devDependencies": {

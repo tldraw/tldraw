@@ -37,6 +37,6 @@
 		"@types/react-dom": "^19.2.3",
 		"esbuild": "^0.28.0",
 		"typescript": "^7.0.2",
-		"wrangler": "^4.141.0"
+		"wrangler": "^4.148.0"
 	}
 }
