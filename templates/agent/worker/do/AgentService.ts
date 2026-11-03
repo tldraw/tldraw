@@ -123,7 +123,8 @@ export class AgentService {
 			tools: buildActionTools(prompt),
 			toolChoice: 'auto',
 			maxOutputTokens: 8192,
-			// Opus 4.7+ removed `temperature` (and top_p/top_k); sending it returns a 400.
+			// Opus 4.7+ removed `temperature` (and top_p/top_k), and Anthropic takes none while a model
+			// thinks; sending it returns a 400.
 			...(modelDefinition.supportsTemperature ? { temperature: 0 } : {}),
 			providerOptions: this.openrouter
 				? getOpenRouterProviderOptions(modelDefinition)
@@ -374,14 +375,15 @@ function getOpenRouterProviderOptions(definition: AgentModelDefinition): StreamT
 			: definition.provider === 'google'
 				? definition.thinkingLevel
 				: definition.reasoningEffort
-	const budgetTokens =
+	const reasoning =
 		definition.provider === 'anthropic' && typeof definition.thinking === 'object'
-			? definition.thinking.budgetTokens
-			: undefined
+			? { max_tokens: definition.thinking.budgetTokens }
+			: effort
+				? { effort }
+				: undefined
 	return {
 		openrouter: {
-			...(effort ? { reasoning: { effort } } : {}),
-			...(budgetTokens ? { reasoning: { max_tokens: budgetTokens } } : {}),
+			...(reasoning ? { reasoning } : {}),
 		} as OpenRouterProviderOptions,
 	}
 }
