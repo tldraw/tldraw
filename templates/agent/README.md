@@ -645,6 +645,8 @@ Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts`.
 }
 ```
 
+`openRouterId` is the model's id on [OpenRouter](https://openrouter.ai/models), which the kit uses when `OPENROUTER_API_KEY` is set.
+
 Add extra setup or configuration for your provider in `worker/do/AgentService.ts`.
 
 ## Support custom shapes

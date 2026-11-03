@@ -365,7 +365,7 @@ function getProviderOptions(definition: AgentModelDefinition): StreamTextProvide
 /**
  * OpenRouter takes one reasoning effort for every model, or a token budget for a model that thinks
  * with one. Its effort has three levels, so `minimal` sends `low`, and `xhigh` and `max` send `high`.
- * A model with neither, or with reasoning turned off, uses OpenRouter's default.
+ * A model with no effort uses OpenRouter's default.
  */
 function getOpenRouterProviderOptions(definition: AgentModelDefinition): StreamTextProviderOptions {
 	const effort =
@@ -376,8 +376,12 @@ function getOpenRouterProviderOptions(definition: AgentModelDefinition): StreamT
 			: definition.provider === 'google'
 				? definition.thinkingLevel
 				: definition.reasoningEffort
-	const reasoning: OpenRouterProviderOptions['reasoning'] =
-		definition.provider === 'anthropic' && typeof definition.thinking === 'object'
+	const reasoningOff =
+		definition.provider === 'anthropic' ? definition.thinking === 'disabled' : effort === 'none'
+	const reasoning: OpenRouterProviderOptions['reasoning'] = reasoningOff
+		? // OpenRouter's type needs an effort even when reasoning is off.
+			{ enabled: false, effort: 'low' }
+		: definition.provider === 'anthropic' && typeof definition.thinking === 'object'
 			? { max_tokens: definition.thinking.budgetTokens }
 			: effort && effort !== 'none'
 				? { effort: OPENROUTER_EFFORT[effort] }
