@@ -12,6 +12,12 @@ import type { TLCollection, TLCollectionItemId } from '../lib/schema'
 import { CollectionList } from '../ui/collection-list'
 import { CollectionItems } from './collection-items'
 import { CollectionsPanelHeader } from './collections-panel-header'
+import {
+	defaultItemOrderings,
+	getItemOrderChoice,
+	setItemOrderChoice,
+	type TLCollectionItemOrdering,
+} from './item-order'
 import { placeCollectionItem } from './place-item'
 import { activeCollectionId, collapsedCollectionIds, collectionsPanelOpen } from './state'
 import { useItemDrag } from './use-item-drag'
@@ -44,6 +50,12 @@ export interface CollectionsPanelProps {
 	source: CollectionSource
 	/** Defaults to `'picker'`. */
 	navigation?: CollectionsPanelNavigation
+	/**
+	 * The ways users can order a collection's items, offered in the panel's ⋯ menu; the first is
+	 * the default. Defaults to the source's order, newest first, and by name. Each user's choice is
+	 * kept in their browser.
+	 */
+	itemOrderings?: TLCollectionItemOrdering[]
 }
 
 /**
@@ -52,7 +64,11 @@ export interface CollectionsPanelProps {
  * viewport; dragging one out drops it under the pointer.
  * @public @react
  */
-export function CollectionsPanel({ source, navigation = 'picker' }: CollectionsPanelProps) {
+export function CollectionsPanel({
+	source,
+	navigation = 'picker',
+	itemOrderings = defaultItemOrderings,
+}: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
@@ -85,6 +101,21 @@ export function CollectionsPanel({ source, navigation = 'picker' }: CollectionsP
 		[editor, source, addToast, msg]
 	)
 	const getItemProps = useItemDrag(source, placeItem)
+	const orderChoice = useValue('item order', () => getItemOrderChoice(source.id), [source])
+	// A stored choice the host no longer offers falls back to its first ordering.
+	const ordering = itemOrderings.find((o) => o.id === orderChoice.orderingId) ?? itemOrderings[0]
+	const sort =
+		itemOrderings.length > 1
+			? {
+					options: itemOrderings.map(({ id, label }) => ({ id, label })),
+					value: ordering.id,
+					onValueChange: (orderingId: string) =>
+						setItemOrderChoice(source.id, { ...orderChoice, orderingId }),
+					reversed: orderChoice.reversed,
+					onReversedChange: (reversed: boolean) =>
+						setItemOrderChoice(source.id, { ...orderChoice, reversed }),
+				}
+			: undefined
 	const countOf = (collection: TLCollection) => itemCounts.get(collection.id) ?? 0
 
 	if (!open) return null
@@ -120,6 +151,8 @@ export function CollectionsPanel({ source, navigation = 'picker' }: CollectionsP
 										source={source}
 										collectionId={collection.id}
 										getItemProps={getItemProps}
+										ordering={ordering}
+										reversed={orderChoice.reversed}
 									/>
 								)}
 							</section>
@@ -130,7 +163,13 @@ export function CollectionsPanel({ source, navigation = 'picker' }: CollectionsP
 		}
 		if (current) {
 			return (
-				<CollectionItems source={source} collectionId={current.id} getItemProps={getItemProps} />
+				<CollectionItems
+					source={source}
+					collectionId={current.id}
+					getItemProps={getItemProps}
+					ordering={ordering}
+					reversed={orderChoice.reversed}
+				/>
 			)
 		}
 		if (navigation === 'list') {
@@ -162,6 +201,7 @@ export function CollectionsPanel({ source, navigation = 'picker' }: CollectionsP
 					current={navigation === 'sections' ? undefined : current}
 					itemCount={current ? countOf(current) : 0}
 					onBack={navigation === 'list' ? () => activeCollectionId.set(editor, null) : undefined}
+					sort={sort}
 				/>
 				{body()}
 			</section>
