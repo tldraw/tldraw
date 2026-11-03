@@ -173,6 +173,8 @@ export interface ThumbnailShapeMeasurement {
 		end: { x: number; y: number }
 		label?: { x: number; y: number }
 	}
+	/** A text, group, draw or highlight shape's own unrotated size as drawn, unlike the page box. */
+	dimensions?: { w: number; h: number }
 }
 
 /**

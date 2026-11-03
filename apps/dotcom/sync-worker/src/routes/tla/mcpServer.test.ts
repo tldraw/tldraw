@@ -1064,11 +1064,21 @@ describe('page and cluster info', () => {
 
 		expect(info.name).toBe('Cover')
 		expect(info.clusters).toHaveLength(2)
-		// The fixture's shapes carry no text, so there is nothing to derive a keyword label from —
-		// an empty label is the honest answer rather than a made-up one.
+		// The fixture's shapes carry no text, so there are no keywords, and each is labelled by what it
+		// holds. Its geo records name no geo, so they read as plain geo shapes.
 		expect(info.clusters).toEqual([
-			{ id: expect.stringMatching(/^cluster:/), numberOfShapes: 1, label: '', keywords: [] },
-			{ id: expect.stringMatching(/^cluster:/), numberOfShapes: 1, label: '', keywords: [] },
+			{
+				id: expect.stringMatching(/^cluster:/),
+				numberOfShapes: 1,
+				label: '1 geo shape',
+				keywords: [],
+			},
+			{
+				id: expect.stringMatching(/^cluster:/),
+				numberOfShapes: 1,
+				label: '1 geo shape',
+				keywords: [],
+			},
 		])
 	})
 
@@ -1103,8 +1113,8 @@ describe('page and cluster info', () => {
 
 		expect(shape.props.text).toBe('Checkout total')
 		expect(shape.props.richText).toBeUndefined()
-		// Everything else about the record is passed through untouched.
-		expect(shape).toMatchObject({ id: 'shape:page:a-0', typeName: 'shape' })
+		expect(shape.id).toBe('shape:page:a-0')
+		expect(shape.typeName).toBeUndefined()
 		expect(shape.plainText).toBeUndefined()
 	})
 })
@@ -1159,9 +1169,9 @@ describe('cluster index cache', () => {
 		expect(JSON.parse(result.content[0].text).shapes[0].props.text).toBe('Checkout total')
 	})
 
-	// Geometry only an editor can resolve — a bound arrow's ends, every shape's page bounds — has to
-	// survive the index too, or the second call of a drill-down would describe a different board.
-	it('keeps the measured page bounds and arrow geometry', async () => {
+	// Geometry only an editor can resolve — a bound arrow's ends, a text's drawn size — has to survive
+	// the index too, or the second call of a drill-down would describe a different board.
+	it('keeps the measured arrow ends and shape dimensions', async () => {
 		const snapshot = makeSnapshot(PAGES)
 		snapshot.documents.push(
 			{
@@ -1175,6 +1185,19 @@ describe('cluster index cache', () => {
 					rotation: 0,
 					opacity: 1,
 					props: { start: { x: 0, y: 0 }, end: { x: 2, y: 0 }, bend: 0, labelPosition: 0.5 },
+				},
+			},
+			{
+				state: {
+					typeName: 'shape',
+					id: 'shape:caption',
+					parentId: 'page:a',
+					type: 'text',
+					x: 0,
+					y: 100,
+					rotation: 0,
+					opacity: 1,
+					props: { w: 80, autoSize: true, scale: 1 },
 				},
 			},
 			{
@@ -1198,6 +1221,13 @@ describe('cluster index cache', () => {
 		const measurements = {
 			'shape:page:a-0': { minX: 0, minY: 0, maxX: 80, maxY: 80 },
 			'shape:page:a-1': { minX: 100, minY: 0, maxX: 180, maxY: 80 },
+			'shape:caption': {
+				minX: 0,
+				minY: 100,
+				maxX: 80,
+				maxY: 126.4,
+				dimensions: { w: 80.0001, h: 26.4 },
+			},
 			'shape:arrow': {
 				minX: 79.6,
 				minY: 39.5,
@@ -1236,21 +1266,18 @@ describe('cluster index cache', () => {
 
 		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
 		expect(shapes.find((shape) => shape.id === 'shape:arrow')).toMatchObject({
-			pageX: 0,
-			pageY: 0,
-			pageBounds: { x: 80, y: 40, w: 21, h: 1 },
-			arrow: {
-				fromId: null,
-				toId: 'shape:page:a-1',
-				start: { x: 80, y: 40, binding: null },
-				end: { x: 100, y: 40, binding: { normalizedAnchor: { x: 50, y: 50 } } },
+			pageX: 79.6,
+			pageY: 40.2,
+			props: {
+				start: { pageX: 79.6, pageY: 40.2 },
+				end: { pageX: 100.4, pageY: 39.8 },
+				bindingFromId: null,
+				bindingToId: 'shape:page:a-1',
 			},
 		})
-		expect(shapes.find((shape) => shape.id === 'shape:page:a-1').pageBounds).toEqual({
-			x: 100,
-			y: 0,
+		expect(shapes.find((shape) => shape.id === 'shape:caption').props).toMatchObject({
 			w: 80,
-			h: 80,
+			h: 26.4,
 		})
 	})
 

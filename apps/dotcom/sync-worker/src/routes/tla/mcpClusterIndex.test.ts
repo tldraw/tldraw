@@ -9,6 +9,7 @@ import {
 	clusterPage,
 	clusteringFromIndex,
 	getClusterInfo,
+	getMeasuredGeometry,
 	parseClusterIndex,
 } from './boardTools'
 import {
@@ -54,13 +55,24 @@ function makePage(
 }
 
 const MEASUREMENTS: Record<string, ShapeMeasurement> = {
-	'shape:one': { minX: 0.4, minY: -0.6, maxX: 80.2, maxY: 79.9, text: 'Checkout total' },
+	'shape:one': {
+		minX: 0.4,
+		minY: -0.6,
+		maxX: 80.2,
+		maxY: 79.9,
+		text: 'Checkout total',
+		dimensions: { w: 79.8, h: 80.4996 },
+	},
 	'shape:two': {
 		minX: 5000,
 		minY: 0,
 		maxX: 5080.5,
 		maxY: 80,
-		arrow: { start: { x: 5000.3, y: 0.2 }, end: { x: 5080.5, y: 79.6 }, label: { x: 5040, y: 40 } },
+		arrow: {
+			start: { x: 5000.3004, y: 0.2 },
+			end: { x: 5080.5, y: 79.6464 },
+			label: { x: 5040, y: 40 },
+		},
 	},
 }
 
@@ -85,8 +97,8 @@ function makeEnv() {
 }
 
 describe('the stored index', () => {
-	// Geometry is stored rounded, the way every tool reports it, so a fresh render's floats and a
-	// stored index's integers have to describe every shape identically.
+	// Arrow ends are stored rounded, the way get_cluster_info reports them, so a fresh render's floats
+	// and a stored index's thousandths have to describe every shape identically.
 	it('answers exactly what the clusters it was built from would', () => {
 		const page = makePage()
 		const clusters = clusterPage(page, MEASUREMENTS)
@@ -98,37 +110,37 @@ describe('the stored index', () => {
 		for (const shapeId of ['shape:one', 'shape:two']) {
 			const clusterId = clusterIdOf(clusters, shapeId)
 			expect(getClusterInfo(page, rehydrated, clusterId, selector)).toEqual(
-				getClusterInfo(page, { clusters, measurements: MEASUREMENTS }, clusterId, selector)
+				getClusterInfo(
+					page,
+					{ clusters, ...getMeasuredGeometry(MEASUREMENTS) },
+					clusterId,
+					selector
+				)
 			)
 		}
 	})
 
-	it('keeps the text, rounded bounds and arrow geometry', () => {
+	it('keeps the text and the measured geometry, rounded to thousandths', () => {
 		const clusters = clusterPage(makePage(), MEASUREMENTS)
 		const index = buildClusterIndex(clusters, MEASUREMENTS)
 
 		expect(index.text).toEqual({ 'shape:one': 'Checkout total' })
-		// Bounds sit beside the ids they belong to rather than keyed by them again.
-		expect(index.clusters.map((c) => [c.shapeIds, c.bounds])).toEqual([
-			[
-				['shape:one', 'shape:two'],
-				[
-					[0, -1, 80, 81],
-					[5000, 0, 81, 80],
-				],
-			],
-		])
+		expect(index.clusters.map((c) => c.shapeIds)).toEqual([['shape:one', 'shape:two']])
 		expect(index.arrows).toEqual({
-			'shape:two': { start: [5000, 0], end: [5081, 80], label: [5040, 40] },
+			'shape:two': {
+				start: { x: 5000.3, y: 0.2 },
+				end: { x: 5080.5, y: 79.646 },
+				label: { x: 5040, y: 40 },
+			},
 		})
+		expect(index.dimensions).toEqual({ 'shape:one': { w: 79.8, h: 80.5 } })
 	})
 
-	it('stores a shape the render could not measure without bounds', () => {
+	it('stores no geometry for a render that measured none', () => {
 		const index = buildClusterIndex(clusterPage(makePage(), {}), {})
-		expect(index.clusters.flatMap((c) => c.bounds)).toEqual([null, null])
-
-		const rehydrated = clusteringFromIndex(makePage(), index)!
-		expect(rehydrated.measurements).toEqual({})
+		expect(index.arrows).toEqual({})
+		expect(index.dimensions).toEqual({})
+		expect(clusteringFromIndex(makePage(), index)).toMatchObject({ arrows: {}, dimensions: {} })
 	})
 
 	it('refuses a row this build did not write', () => {
@@ -141,6 +153,7 @@ describe('the stored index', () => {
 		expect(parseClusterIndex(JSON.stringify({ ...index, v: index.v + 1 }))).toBeNull()
 		expect(parseClusterIndex(JSON.stringify({ ...index, clusters: undefined }))).toBeNull()
 		expect(parseClusterIndex(JSON.stringify({ ...index, arrows: undefined }))).toBeNull()
+		expect(parseClusterIndex(JSON.stringify({ ...index, dimensions: undefined }))).toBeNull()
 	})
 
 	it('refuses to rebuild for a page that has gained shapes', () => {
@@ -258,6 +271,7 @@ describe('reading and writing', () => {
 						clusters: [{}],
 						text: {},
 						arrows: {},
+						dimensions: {},
 					}),
 				})
 			}

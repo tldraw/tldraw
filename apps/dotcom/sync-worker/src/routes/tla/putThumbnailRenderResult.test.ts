@@ -211,6 +211,34 @@ describe('the measure result', () => {
 			'shape:bad': { minX: 0, minY: 0, maxX: 10, maxY: 10 },
 		})
 	})
+
+	it('keeps well-formed dimensions and drops malformed ones without the shape', async () => {
+		const thumbnails = makeFakeThumbnailsBucket()
+		const env = makeScreenshotTestEnv({ THUMBNAILS: thumbnails }) as unknown as Environment
+		const token = await mintThumbnailRenderToken(env, { ...JOB, mode: 'measure' })
+		const box = { x: 0, y: 0, w: 10, h: 10 }
+
+		const response = await putThumbnailRenderResult(
+			makeRequest({
+				token,
+				bounds: {
+					'shape:good': { ...box, dimensions: { w: 8, h: 12, d: 1 } },
+					'shape:infinite': { ...box, dimensions: { w: 8, h: Infinity } },
+					'shape:negative': { ...box, dimensions: { w: -1, h: 12 } },
+				},
+			}),
+			env
+		)
+
+		expect(await response.json()).toEqual({ error: false, stored: 3 })
+		const [stored] = [...thumbnails.store.values()]
+		const bounds = { minX: 0, minY: 0, maxX: 10, maxY: 10 }
+		expect(JSON.parse(new TextDecoder().decode(stored.body))).toEqual({
+			'shape:good': { ...bounds, dimensions: { w: 8, h: 12 } },
+			'shape:infinite': bounds,
+			'shape:negative': bounds,
+		})
+	})
 })
 
 describe('the failure beacon', () => {

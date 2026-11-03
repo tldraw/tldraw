@@ -19,6 +19,7 @@ import {
 	getBoardSearchResults,
 	clusterPage,
 	getClusterInfo,
+	getMeasuredGeometry,
 	getPageInfo,
 	handleMcpJsonRpc,
 	isAfterBoardSearchCursor,
@@ -198,7 +199,7 @@ async function callFixtureTool(
 							resolved,
 							{
 								clusters: clusterPage(resolved, board.measurements),
-								measurements: board.measurements,
+								...getMeasuredGeometry(board.measurements),
 							},
 							clusterId,
 							page

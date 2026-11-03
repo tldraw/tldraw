@@ -181,6 +181,43 @@ function getFrameName(shape: TLShapeWithPlainText): string | null {
 	return typeof name === 'string' && name.trim() ? name.trim() : null
 }
 
+// A cluster with no text at all, such as handwriting, would otherwise list as a blank. Naming what it
+// holds at least says what kind of thing is there, and how much of it.
+const SHAPE_NOUNS: Record<string, [one: string, many: string]> = {
+	draw: ['freehand stroke', 'freehand strokes'],
+	highlight: ['highlighter stroke', 'highlighter strokes'],
+	arrow: ['arrow', 'arrows'],
+	line: ['line', 'lines'],
+	note: ['note', 'notes'],
+	text: ['text', 'texts'],
+	image: ['image', 'images'],
+	video: ['video', 'videos'],
+	embed: ['embed', 'embeds'],
+	bookmark: ['bookmark', 'bookmarks'],
+	frame: ['frame', 'frames'],
+}
+
+function describeShapes(shapes: TLShapeWithPlainText[]) {
+	const counts = new Map<string, number>()
+	for (const shape of shapes) {
+		// A group is only the container of the shapes it holds, which are counted themselves.
+		if (typeof shape.type !== 'string' || shape.type === 'group') continue
+		const geo = shape.type === 'geo' ? (shape.props as { geo?: unknown }).geo : undefined
+		const kind = typeof geo === 'string' ? `geo:${geo}` : shape.type
+		counts.set(kind, (counts.get(kind) ?? 0) + 1)
+	}
+	return [...counts.entries()]
+		.sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))
+		.slice(0, 2)
+		.map(([kind, count]) => {
+			const [one, many] = kind.startsWith('geo:')
+				? [kind.slice(4).replace(/-/g, ' '), `${kind.slice(4).replace(/-/g, ' ')}s`]
+				: (SHAPE_NOUNS[kind] ?? [`${kind} shape`, `${kind} shapes`])
+			return `${count} ${count === 1 ? one : many}`
+		})
+		.join(' + ')
+}
+
 export interface ClusterLabel {
 	label: string
 	keywords: string[]
@@ -218,7 +255,7 @@ export function labelClusters(clusters: TLShapeWithPlainText[][]): ClusterLabel[
 	}
 	const clusterCount = Math.max(1, bags.length)
 
-	return bags.map((bag) => {
+	return bags.map((bag, index) => {
 		const scored = [...bag.tokens.entries()]
 			.map(([term, frequency]) => ({
 				term,
@@ -244,7 +281,7 @@ export function labelClusters(clusters: TLShapeWithPlainText[][]): ClusterLabel[
 			? uniqueFrames.slice(0, 2).join(' + ')
 			: keywords.length
 				? keywords.slice(0, 2).join(' · ')
-				: ''
+				: describeShapes(clusters[index])
 
 		return { label, keywords, frameNames: uniqueFrames }
 	})

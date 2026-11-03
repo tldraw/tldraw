@@ -38,6 +38,7 @@ import {
 	getBoardInfo,
 	getBoardSearchResults,
 	getClusterInfo,
+	getMeasuredGeometry,
 	getCreatedBoardResult,
 	getPageInfo,
 	getToolDefinitions,
@@ -1216,7 +1217,11 @@ async function clustersFor(
 		buildClusterIndex(clusters, measurements),
 		resolved.snapshotVersion
 	)
-	return { ok: true, clustering: { clusters, measurements }, clusterCacheStatus: 'miss' }
+	return {
+		ok: true,
+		clustering: { clusters, ...getMeasuredGeometry(measurements) },
+		clusterCacheStatus: 'miss',
+	}
 }
 
 async function callClusterInfoTool(

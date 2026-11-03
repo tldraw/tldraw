@@ -20,6 +20,7 @@ import {
 	SerializedSchema,
 	TLPageId,
 	TLRecord,
+	TLShape,
 	TLShapeId,
 	Tldraw,
 	VecLike,
@@ -624,6 +625,7 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 				const arrow = editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
 					? measureArrow(editor, shape)
 					: undefined
+				const dimensions = measureDimensions(editor, shape)
 				bounds[id] = {
 					x: box.x,
 					y: box.y,
@@ -631,6 +633,7 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 					h: box.h,
 					...(text ? { text } : null),
 					...(arrow ? { arrow } : null),
+					...(dimensions ? { dimensions } : null),
 				}
 			}
 			await fetch(THUMBNAIL_RESULT_ENDPOINT, {
@@ -673,6 +676,23 @@ export function measureArrow(
 		end: toPage(info.end.point),
 		...(labelGeometry ? { label: toPage(labelGeometry.center) } : null),
 	}
+}
+
+// The shapes whose size the record does not hold: a text's height comes from laying out its text,
+// and a group or a freehand stroke has no size of its own — a stroke's is the one thing left to say
+// about it once its points are dropped. Everything else is left out: a geo's size follows from its
+// record (w by h + growY), and a line's or arrow's isn't a meaningful w and h.
+const MEASURED_DIMENSION_TYPES = new Set(['text', 'group', 'draw', 'highlight'])
+
+// A shape's own unrotated size as drawn. Geometry bounds rather than page bounds, which for a rotated
+// shape are the larger axis-aligned box around it.
+export function measureDimensions(
+	editor: Editor,
+	shape: TLShape
+): ThumbnailShapeMeasurement['dimensions'] | undefined {
+	if (!MEASURED_DIMENSION_TYPES.has(shape.type)) return undefined
+	const { w, h } = editor.getShapeGeometry(shape).bounds
+	return { w, h }
 }
 
 // Exports the exact viewport rectangle through editor.toImage: bounds are the viewport in page

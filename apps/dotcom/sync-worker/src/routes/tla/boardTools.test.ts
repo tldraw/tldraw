@@ -1,3 +1,4 @@
+import { b64Vecs } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import {
 	BOARD_SEARCH_MAX_TERMS,
@@ -9,6 +10,7 @@ import {
 	clusterPage,
 	compareBoardSearchOrder,
 	getClusterInfo,
+	getMeasuredGeometry,
 	getBoardSearchResults,
 	isAfterBoardSearchCursor,
 	parseCreateBoardInput,
@@ -504,7 +506,39 @@ describe('getClusterInfo', () => {
 				scale: 1.5,
 			},
 		}),
-		shape('shape:a', { x: 0, y: 0 }),
+		shape('shape:a', { x: 0, y: 0, props: { w: 100, h: 100, growY: 40, size: 'xl', scale: 1 } }),
+		shape('shape:caption', {
+			type: 'text',
+			x: 0,
+			y: 150,
+			props: { w: 80, autoSize: true, scale: 1 },
+		}),
+		shape('shape:scribble', {
+			type: 'draw',
+			x: 0,
+			y: 300,
+			props: {
+				segments: [
+					{
+						type: 'free',
+						path: b64Vecs.encodePoints(
+							[0, 30, 60, 90, 120, 150].map((x) => ({ x, y: x % 60 ? 60 : 0, z: 0.5 })),
+							2
+						),
+						dim: 2,
+					},
+					{
+						type: 'straight',
+						points: [
+							{ x: 0, y: 0, z: 0.5 },
+							{ x: 10, y: 0, z: 0.5 },
+						],
+					},
+				],
+				size: 'l',
+				scale: 1,
+			},
+		}),
 		shape('shape:b', { x: 400, y: 0 }),
 		shape('shape:bound', {
 			type: 'arrow',
@@ -527,8 +561,23 @@ describe('getClusterInfo', () => {
 		'shape:frame': { minX: 700.4, minY: 500.6, maxX: 1000.4, maxY: 900.6 },
 		'shape:inner': { minX: 880.4, minY: 510.6, maxX: 980.4, maxY: 610.6 },
 		'shape:free': { minX: 999.6, minY: 550.6, maxX: 1001.2, maxY: 650.6 },
-		'shape:a': { minX: 0, minY: 0, maxX: 100, maxY: 100, text: 'Start' },
+		'shape:a': { minX: 0, minY: 0, maxX: 100, maxY: 140, text: 'Start' },
+		'shape:caption': {
+			minX: 0,
+			minY: 150,
+			maxX: 80,
+			maxY: 176.4,
+			text: 'Caption',
+			dimensions: { w: 80.0004, h: 26.4 },
+		},
 		'shape:b': { minX: 400, minY: 0, maxX: 500, maxY: 100 },
+		'shape:scribble': {
+			minX: 0,
+			minY: 300,
+			maxX: 150,
+			maxY: 360,
+			dimensions: { w: 150.0002, h: 60 },
+		},
 		'shape:bound': {
 			minX: 100.2,
 			minY: 49.5,
@@ -547,7 +596,8 @@ describe('getClusterInfo', () => {
 		if (!page.ok) throw new Error('Expected the page to resolve')
 		const clusters = clusterPage(page, measurements)
 		const cluster = clusters.find((c) => c.shapes.some((s) => s.id === shapeId))!
-		const result = getClusterInfo(page, { clusters, measurements }, cluster.id, {
+		const geometry = getMeasuredGeometry(measurements)
+		const result = getClusterInfo(page, { clusters, ...geometry }, cluster.id, {
 			kind: 'ordinal',
 			ordinal: 0,
 		})
@@ -562,80 +612,62 @@ describe('getClusterInfo', () => {
 	it('reports a bound arrow as drawn, with what each end is bound to', () => {
 		const bound = shapesOfCluster(MEASUREMENTS, 'shape:bound')('shape:bound')
 
-		expect(bound.arrow).toEqual({
-			fromId: 'shape:a',
-			toId: 'shape:b',
-			start: {
-				x: 100,
-				y: 50,
-				binding: {
-					normalizedAnchor: { x: 25, y: 33 },
-					isPrecise: true,
-					isExact: false,
-					snap: 'none',
-				},
-			},
-			end: {
-				x: 400,
-				y: 50,
-				binding: {
-					normalizedAnchor: { x: 25, y: 33 },
-					isPrecise: true,
-					isExact: false,
-					snap: 'none',
-				},
-			},
-			label: { x: 250, y: 50 },
+		// The stub is replaced, origin included, rather than left to contradict the resolved ends.
+		expect(bound).toMatchObject({ pageX: 100.2, pageY: 50.1 })
+		expect(bound).not.toHaveProperty('pageRotation')
+		expect(bound.props).toEqual({
+			kind: 'arc',
+			start: { pageX: 100.2, pageY: 50.1 },
+			end: { pageX: 399.7, pageY: 49.9 },
+			bend: 0,
+			labelPosition: 0.5,
+			elbowMidPoint: 0.5,
+			scale: 1,
+			bindingFromId: 'shape:a',
+			bindingToId: 'shape:b',
 		})
-		// The stub is gone rather than left to contradict the resolved ends.
-		expect(bound.props.start).toBeUndefined()
-		expect(bound.props.end).toBeUndefined()
+		expect(bound.arrowBindingInfo).toBeUndefined()
 	})
 
 	it('places every shape in page space, whatever its parent, and keeps the parent', () => {
 		const of = shapesOfCluster(MEASUREMENTS, 'shape:inner')
 
-		expect(of('shape:frame')).toMatchObject({
-			pageX: 1000,
-			pageY: 501,
-			pageRotation: 90,
-			pageBounds: { x: 700, y: 501, w: 300, h: 400 },
-		})
+		expect(of('shape:frame')).toMatchObject({ pageX: 1000.4, pageY: 500.6, pageRotation: 1.571 })
 		// (10, 20) inside a frame at (1000.4, 500.6) turned 90°: x runs down the page, y runs left.
 		expect(of('shape:inner')).toMatchObject({
 			parentId: 'shape:frame',
-			pageX: 980,
-			pageY: 511,
-			pageRotation: 90,
-			pageBounds: { x: 880, y: 511, w: 100, h: 100 },
+			pageX: 980.4,
+			pageY: 510.6,
+			pageRotation: 1.571,
 		})
+		expect(of('shape:inner').pageBounds).toBeUndefined()
 		expect(of('shape:inner').x).toBeUndefined()
 		expect(of('shape:inner').rotation).toBeUndefined()
 	})
 
-	it('rounds every number, and reports fractions as percentages', () => {
+	it('rounds every number to thousandths, in the units the record uses', () => {
 		const of = shapesOfCluster(MEASUREMENTS, 'shape:free')
 
-		expect(of('shape:inner').opacity).toBe(55)
+		expect(of('shape:inner').opacity).toBe(0.55)
 		expect(of('shape:free').props).toMatchObject({
-			bend: 12,
-			labelPosition: 50,
-			elbowMidPoint: 50,
-			scale: 150,
+			bend: 12.346,
+			labelPosition: 0.5,
+			elbowMidPoint: 0.5,
+			scale: 1.5,
 		})
-		expect(of('shape:frame').props).toEqual({ w: 400, h: 300, name: 'Flow' })
+		expect(of('shape:frame').props).toEqual({ w: 400.4, h: 299.7, name: 'Flow' })
 	})
 
 	// A fixture, or a render page older than the worker, has no arrow geometry. A free end can still
-	// be placed from the record; a bound one is reported by its binding alone.
+	// be placed from the record; a bound one is reported by what it is bound to alone.
 	it('places a free arrow from its record when the render did not measure it', () => {
 		const of = shapesOfCluster(MEASUREMENTS, 'shape:free')
 		// The free arrow sits at (50, 0) in the frame, so its ends run down the page from there.
-		expect(of('shape:free').arrow).toEqual({
-			fromId: null,
-			toId: null,
-			start: { x: 1000, y: 551, binding: null },
-			end: { x: 1000, y: 651, binding: null },
+		expect(of('shape:free').props).toMatchObject({
+			start: { pageX: 1000.4, pageY: 550.6 },
+			end: { pageX: 1000.4, pageY: 650.6 },
+			bindingFromId: null,
+			bindingToId: null,
 		})
 
 		const { arrow: _arrow, ...unmeasured } = MEASUREMENTS['shape:bound']
@@ -643,14 +675,43 @@ describe('getClusterInfo', () => {
 			{ ...MEASUREMENTS, 'shape:bound': unmeasured },
 			'shape:bound'
 		)('shape:bound')
-		expect(bound.arrow.fromId).toBe('shape:a')
-		expect(bound.arrow.start).not.toHaveProperty('x')
-		expect(bound.arrow.label).toBeUndefined()
+		expect(bound.props).toMatchObject({ start: null, end: null, bindingFromId: 'shape:a' })
 	})
 
 	it('carries the text the editor reported and drops the rich text', () => {
 		const of = shapesOfCluster(MEASUREMENTS, 'shape:a')
 		expect(of('shape:a').props.text).toBe('Start')
 		expect(of('shape:a').props.richText).toBeUndefined()
+	})
+
+	// A geo draws at w by h + growY. Left as two numbers, a model reading h would add growY again.
+	it("folds a geo shape's growY into its height, and keeps its size style", () => {
+		const props = shapesOfCluster(MEASUREMENTS, 'shape:a')('shape:a').props
+		expect(props).toMatchObject({ w: 100, h: 140, size: 'xl' })
+		expect(props).not.toHaveProperty('growY')
+	})
+
+	// A stroke's points don't say what was drawn and run to thousands on a page of handwriting, so
+	// they are counted and dropped; its size is what is left to report.
+	it('reports a draw shape by its measured size and point count, without its segments', () => {
+		const props = shapesOfCluster(MEASUREMENTS, 'shape:scribble')('shape:scribble').props
+		expect(props).toMatchObject({ w: 150, h: 60, size: 'l', pointCount: 8 })
+		expect(props).not.toHaveProperty('segments')
+	})
+
+	// A text's height only exists once its text is laid out, so it comes from the editor.
+	it('reports a text shape at its measured size, or its record without a measure', () => {
+		expect(shapesOfCluster(MEASUREMENTS, 'shape:caption')('shape:caption').props).toMatchObject({
+			w: 80,
+			h: 26.4,
+		})
+
+		const { dimensions: _dimensions, ...unmeasured } = MEASUREMENTS['shape:caption']
+		const fallback = shapesOfCluster(
+			{ ...MEASUREMENTS, 'shape:caption': unmeasured },
+			'shape:caption'
+		)('shape:caption')
+		expect(fallback.props.w).toBe(80)
+		expect(fallback.props).not.toHaveProperty('h')
 	})
 })

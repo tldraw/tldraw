@@ -10,7 +10,7 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
-import { MeasuredArrow, ShapeMeasurement } from './boardTools'
+import { MeasuredArrow, MeasuredDimensions, ShapeMeasurement } from './boardTools'
 import { putRenderResult } from './thumbnailRender'
 import { RenderPageError, reportThumbnailError } from './thumbnailShared'
 
@@ -146,6 +146,7 @@ export async function putThumbnailRenderResult(
 			continue
 		}
 		const arrow = readArrow(box.arrow)
+		const dimensions = readDimensions(box.dimensions)
 		bounds[shapeId] = {
 			minX: box.x,
 			minY: box.y,
@@ -154,6 +155,7 @@ export async function putThumbnailRenderResult(
 			// Only an editor can answer getText, so whatever it said is kept verbatim.
 			...(typeof box.text === 'string' && box.text ? { text: box.text } : null),
 			...(arrow ? { arrow } : null),
+			...(dimensions ? { dimensions } : null),
 		}
 	}
 
@@ -177,4 +179,15 @@ function readArrow(value: ThumbnailShapeMeasurement['arrow']): MeasuredArrow | u
 		end: point(value.end),
 		...(isPoint(value.label) ? { label: point(value.label) } : null),
 	}
+}
+
+// Malformed dimensions are dropped the same way: the shape reports the w and h on its record.
+function readDimensions(
+	value: ThumbnailShapeMeasurement['dimensions']
+): MeasuredDimensions | undefined {
+	if (!value || typeof value !== 'object') return undefined
+	const { w, h } = value as { w?: unknown; h?: unknown }
+	if (typeof w !== 'number' || typeof h !== 'number') return undefined
+	if (!Number.isFinite(w) || !Number.isFinite(h) || w < 0 || h < 0) return undefined
+	return { w, h }
 }
