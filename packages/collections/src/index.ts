@@ -1,6 +1,7 @@
 export {
 	AddToCollectionMenuItem,
 	type AddToCollectionMenuItemProps,
+	type AddToCollectionOrder,
 } from './canvas/add-to-collection-menu-item'
 export { CollectionsPanel, type CollectionsPanelProps } from './canvas/collections-panel'
 export { CollectionsPanelButton } from './canvas/collections-panel-button'

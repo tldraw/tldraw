@@ -9,6 +9,7 @@ import {
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId } from '../lib/schema'
+import { recordRecentCollection } from './recent-collections'
 import { saveShapesToCollection } from './save-shapes'
 import { activeCollectionId, collectionsPanelOpen, renamingCollectionId } from './state'
 
@@ -58,6 +59,7 @@ export function useSaveSelection(source: CollectionSource) {
 			if (shapeIds.length === 0) return
 			saveShapesToCollection(editor, source, collectionId, shapeIds).then(
 				() => {
+					recordRecentCollection(source.id, collectionId)
 					if (collectionsPanelOpen.get(editor)) {
 						activeCollectionId.set(editor, collectionId)
 						return
@@ -100,6 +102,7 @@ export function useSaveSelection(source: CollectionSource) {
 			.createCollection(name)
 			.then(async (collection) => {
 				await saveShapesToCollection(editor, source, collection.id, shapeIds)
+				recordRecentCollection(source.id, collection.id)
 				showCollection(editor, collection.id)
 				renamingCollectionId.set(editor, collection.id)
 			})
