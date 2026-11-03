@@ -12,7 +12,7 @@ export interface ParsedNodeColors {
 /**
  * Build a map of node id → parsed fill/stroke colors from Mermaid's classDef definitions.
  *
- * Uses the structured data from `db.getClasses()` and each node's `classes`
+ * Uses the model's `classes` map and each node's `classes`
  * array. For each node, looks up its applied classDef styles and maps fill and
  * stroke independently to the nearest tldraw palette color.
  */

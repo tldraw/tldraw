@@ -97,6 +97,8 @@ export interface MermaidBlueprintEdge {
     isPreciseEnd?: boolean;
     // (undocumented)
     label?: string;
+    // @internal
+    labelPosition?: number;
     // (undocumented)
     size?: TLDefaultSizeStyle;
     // (undocumented)
@@ -163,6 +165,8 @@ export type MermaidBlueprintNodeRenderSpec = {
 } | {
     variant: 'geo';
     geo: TLGeoShapeGeoStyle;
+} | {
+    variant: 'text';
 };
 
 // @public (undocumented)
@@ -181,7 +185,6 @@ export type MermaidDiagramKind = 'flowchart' | 'mindmap' | 'sequence' | 'state';
 export interface MermaidDiagramOptions {
     // (undocumented)
     blueprintRender?: BlueprintRenderingOptions;
-    // (undocumented)
     mermaidConfig?: Record<string, any>;
     // (undocumented)
     onUnsupportedDiagram?(svg: string): Promise<void>;

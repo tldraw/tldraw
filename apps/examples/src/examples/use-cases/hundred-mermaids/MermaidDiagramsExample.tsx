@@ -17,14 +17,6 @@ import mermaidDefinitions from './mermaids'
 const GAP = 100
 const PAIR_GAP = 40
 
-// [1]
-const MERMAID_CONFIG = {
-	flowchart: { useMaxWidth: false },
-	state: { useMaxWidth: false },
-	mindmap: { useMaxWidth: false },
-	sequence: { useMaxWidth: false },
-}
-
 const components: TLComponents = {
 	TopPanel: TopPanel,
 }
@@ -76,14 +68,10 @@ function TopPanel() {
 		isGeneratingAtom.set(true)
 
 		// [2]
-		const [{ createMermaidDiagram }, { default: mermaid }] = await Promise.all([
+		const [{ createMermaidDiagram }, { renderAsync }] = await Promise.all([
 			import('@tldraw/mermaid'),
-			import('mermaid'),
+			import('pele/lazy'),
 		])
-
-		const offscreen = document.createElement('div')
-		offscreen.style.cssText = 'position:absolute;left:-9999px;top:-9999px;overflow:hidden'
-		document.body.appendChild(offscreen)
 
 		editor.deleteShapes([...editor.getCurrentPageShapeIds()])
 
@@ -102,7 +90,6 @@ function TopPanel() {
 					// [3]
 					try {
 						await createMermaidDiagram(editor, def, {
-							mermaidConfig: MERMAID_CONFIG,
 							blueprintRender: {
 								position: { x: currentX, y: currentY },
 								centerOnPosition: false,
@@ -121,11 +108,7 @@ function TopPanel() {
 
 					// [4]
 					try {
-						const { svg } = await mermaid.render(
-							`mmd-svg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-							def,
-							offscreen
-						)
+						const { svg } = await renderAsync(def)
 
 						const { w: svgW, h: svgH } = parseSvgSize(svg)
 						const scale = nativeSize.h > 0 && svgH > 0 ? nativeSize.h / svgH : 1
@@ -163,7 +146,6 @@ function TopPanel() {
 				currentY += maxRowHeight + GAP
 			}
 		} finally {
-			offscreen.remove()
 			isGeneratingAtom.set(false)
 		}
 
@@ -181,13 +163,8 @@ function TopPanel() {
 }
 
 /*
-[1]
-Mermaid's `useMaxWidth` makes rendered SVGs stretch to their container. We turn it off so
-the SVG we render for comparison has an intrinsic size we can read back. `createMermaidDiagram`
-merges `mermaidConfig` over its own defaults and calls `mermaid.initialize` for us.
-
 [2]
-Both `@tldraw/mermaid` and mermaid itself are large, so they are loaded on first click rather
+`@tldraw/mermaid` and pele, which renders the comparison SVGs, are loaded on first click rather
 than on page load.
 
 [3]
@@ -196,6 +173,7 @@ arrows, text) at the given position. We diff the page's shape ids before and aft
 it created so we can measure it and lay out the next diagram.
 
 [4]
-For comparison, the same source is also rendered by Mermaid to an SVG, which is turned into an
-image asset and placed next to the native version at the same height.
+For comparison, the same source is also rendered to an SVG by pele, the layout engine
+`createMermaidDiagram` uses, which is turned into an image asset and placed next to the native
+version at the same height.
 */

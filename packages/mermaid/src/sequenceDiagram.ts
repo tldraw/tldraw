@@ -1,6 +1,5 @@
 import { invLerp } from '@tldraw/utils'
-import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
-import type { Actor, Box, Message } from 'mermaid/dist/diagrams/sequence/types.js'
+import type { SequenceModel } from 'pele'
 import { clamp, TLArrowShapeArrowheadStyle, TLDefaultDashStyle } from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
@@ -10,7 +9,21 @@ import type {
 } from './blueprint'
 import { parseRgbToTldrawColor } from './colors'
 import type { MeasureLabelWidth } from './mermaidNodeCreateShape'
-import { getAccumulatedTranslate } from './svgParsing'
+import { getOrigin, parsePathPoints } from './peleDiagram'
+import type { Vec2 } from './svgParsing'
+
+type SeqActor = SequenceModel['actors'] extends Map<string, infer A> ? A : never
+type SeqBox = NonNullable<SeqActor['box']>
+type SeqMessage = SequenceModel['messages'][number]
+
+/** The parts of pele's actor that the blueprint reads. */
+export type SequenceActor = Pick<SeqActor, 'name' | 'description' | 'type'> & {
+	box?: Pick<SeqBox, 'name' | 'fill'>
+}
+
+/** The parts of pele's message that the blueprint reads. */
+export type SequenceMessage = Pick<SeqMessage, 'message'> &
+	Partial<Pick<SeqMessage, 'from' | 'to' | 'type' | 'placement'>>
 
 export interface SvgRect {
 	x: number
@@ -33,7 +46,7 @@ export interface ParsedSequenceLayout {
 	actorLayouts: ActorLayout[]
 	noteRects: SvgRect[]
 	/**
-	 * Mermaid gives each row as much room as its content needs, so rows are read from its rendering
+	 * The layout gives each row as much room as its content needs, so rows are read from its rendering
 	 * rather than spaced evenly. Keyed by index into the diagram's messages, in the same space as
 	 * `actorLayouts`.
 	 */
@@ -94,13 +107,13 @@ export const LINETYPE = {
 	CENTRAL_CONNECTION: 59,
 	CENTRAL_CONNECTION_REVERSE: 60,
 	CENTRAL_CONNECTION_DUAL: 61,
-} as const satisfies SequenceDB['LINETYPE']
+} as const
 
 export const PLACEMENT = {
 	LEFTOF: 0,
 	RIGHTOF: 1,
 	OVER: 2,
-} as const satisfies SequenceDB['PLACEMENT']
+} as const
 
 const SIGNAL_TYPES = new Set<number>([
 	LINETYPE.SOLID,
@@ -162,7 +175,7 @@ function isSignalMessage(type: number | undefined): boolean {
 }
 
 /** Signals and notes are the only messages that occupy a row on the lifelines. */
-function isRenderableEvent(msg: Message): boolean {
+function isRenderableEvent(msg: SequenceMessage): boolean {
 	return Boolean(
 		(isSignalMessage(msg.type) && msg.from && msg.to) || (msg.type === LINETYPE.NOTE && msg.from)
 	)
@@ -199,10 +212,8 @@ const ACTOR_PADDING_WIDTH = 30
 const ACTOR_PADDING_HEIGHT = 10
 const SELF_MSG_Y_OFFSET = 0.04
 const SELF_MSG_BEND = -80
-// Mermaid draws a self-message as a loop 20px tall, starting at the top of its path.
-const SELF_MSG_SVG_LOOP_HEIGHT = 20
-// How far up into the label mermaid drew above a message's line our arrow sits. Our labels are
-// centred on the arrow and taller than mermaid's, so halfway pushed them into a fragment's section
+// How far up into the label drawn above a message's line our arrow sits. Our labels are
+// centred on the arrow and taller than the layout's, so halfway pushed them into a fragment's section
 // title above, while the line itself pushed them across the frame's bottom edge.
 const MESSAGE_ROW_LABEL_SHARE = 0.25
 const MIN_LIFELINE_HEIGHT = 1
@@ -235,189 +246,61 @@ interface ActivationSpan {
 	endEventIndex: number
 }
 
-function parseSvgRects(root: Element, selector: string): SvgRect[] {
-	const results: SvgRect[] = []
-	for (const rect of root.querySelectorAll(selector)) {
-		const ancestor = getAccumulatedTranslate(rect)
-		const x = parseFloat(rect.getAttribute('x') || '0')
-		const y = parseFloat(rect.getAttribute('y') || '0')
-		const w = parseFloat(rect.getAttribute('width') || '0')
-		const h = parseFloat(rect.getAttribute('height') || '0')
-		if (w > 0 && h > 0) {
-			results.push({
-				x: Number.isFinite(ancestor.x + x) ? ancestor.x + x : 0,
-				y: Number.isFinite(ancestor.y + y) ? ancestor.y + y : 0,
-				w,
-				h,
-			})
-		}
-	}
-	return results
-}
-
-/**
- * Stick-figure (actor) participants use SVG <line> elements instead of <rect>.
- * We derive bounding rectangles from the min/max coordinates of each actor-man group.
- */
-function parseActorManRects(root: Element): SvgRect[] {
-	const results: SvgRect[] = []
-	for (const group of root.querySelectorAll('g.actor-man')) {
-		const ancestor = getAccumulatedTranslate(group)
-		let minX = Infinity
-		let minY = Infinity
-		let maxX = -Infinity
-		let maxY = -Infinity
-		for (const line of group.querySelectorAll('line')) {
-			for (const attr of ['x1', 'x2']) {
-				const coord = parseFloat(line.getAttribute(attr) || '0')
-				if (coord < minX) minX = coord
-				if (coord > maxX) maxX = coord
-			}
-			for (const attr of ['y1', 'y2']) {
-				const coord = parseFloat(line.getAttribute(attr) || '0')
-				if (coord < minY) minY = coord
-				if (coord > maxY) maxY = coord
-			}
-		}
-		if (Number.isFinite(minX) && Number.isFinite(minY)) {
-			results.push({
-				x: ancestor.x + minX,
-				y: ancestor.y + minY,
-				w: maxX - minX || FALLBACK_ACTOR_WIDTH,
-				h: maxY - minY || FALLBACK_ACTOR_HEIGHT,
-			})
-		}
-	}
-	return results
-}
-
 interface ComputedActorLayouts {
 	actorLayouts: ActorLayout[]
-	/** Maps a y in mermaid's SVG into the space of `actorLayouts`, when they were read from it. */
+	/** Maps a y in the rendered SVG into the space of `actorLayouts`, when they were read from it. */
 	toLayoutY?(svgY: number): number
 }
 
-function computeActorLayouts(
-	root: Element,
-	actorCount: number,
-	eventCount: number
-): ComputedActorLayouts {
-	const byX = (a: SvgRect, b: SvgRect) => a.x - b.x
-	let top = parseSvgRects(root, 'rect.actor-top').sort(byX)
-	let bottom = parseSvgRects(root, 'rect.actor-bottom').sort(byX)
-
-	const actorManRects = parseActorManRects(root).sort(byX)
-	if (actorManRects.length > 0 && (top.length < actorCount || bottom.length < actorCount)) {
-		const midY =
-			top.length > 0 && bottom.length > 0
-				? (Math.max(...top.map((r) => r.y + r.h)) + Math.min(...bottom.map((r) => r.y))) / 2
-				: actorManRects.length >= 2
-					? (actorManRects[0].y + actorManRects[actorManRects.length - 1].y) / 2
-					: 0
-		for (const rect of actorManRects) {
-			if (rect.y < midY) top.push(rect)
-			else bottom.push(rect)
-		}
-		top.sort(byX)
-		bottom.sort(byX)
+/**
+ * Space the actors read from the SVG out to {@link TARGET_ACTOR_SPACING} and stretch short diagrams
+ * to {@link MIN_VERTICAL_GAP}. `top` and `bottom` hold each actor's header and footer box, in actor
+ * order.
+ */
+function layoutActorsFromSvg(top: SvgRect[], bottom: SvgRect[]): Required<ComputedActorLayouts> {
+	const svgCenters = top.map((r) => r.x + r.w / 2)
+	const spacings: number[] = []
+	for (let i = 1; i < svgCenters.length; i++) {
+		spacings.push(svgCenters[i] - svgCenters[i - 1])
 	}
+	const minSpacing = spacings.length > 0 ? Math.min(...spacings) : 1
+	const scale = Math.max(1, TARGET_ACTOR_SPACING / minSpacing)
 
-	if (top.length < actorCount || bottom.length < actorCount) {
-		const all = parseSvgRects(root, 'rect[class*="actor"]').sort((a, b) => a.y - b.y)
-		if (all.length >= 2 * actorCount) {
-			let maxGap = 0
-			let splitAt = actorCount
-			for (let i = 1; i < all.length; i++) {
-				const gap = all[i].y - all[i - 1].y
-				if (gap > maxGap) {
-					maxGap = gap
-					splitAt = i
-				}
-			}
-			top = all.slice(0, splitAt).sort(byX).slice(0, actorCount)
-			bottom = all.slice(splitAt).sort(byX).slice(0, actorCount)
-		} else {
-			top = []
-			bottom = []
+	const xCenters = svgCenters.map((c) => (c - svgCenters[0]) * scale)
+	const totalSpan = xCenters.length > 1 ? xCenters[xCenters.length - 1] : 0
+
+	// A created participant's top box and a destroyed one's bottom box sit mid-diagram, so
+	// neither marks a row edge. Measuring the gap from one reports the diagram as far shorter
+	// than it is, inflating the stretch below and leaving the whole diagram too tall.
+	const headerBottom = Math.min(...top.map((r) => r.y + r.h))
+	const footerTop = Math.max(...bottom.map((r) => r.y))
+	const yStretch = Math.max(0, MIN_VERTICAL_GAP - (footerTop - headerBottom))
+	const topMinY = Math.min(...top.map((r) => r.y))
+	const bottomMaxY = Math.max(...bottom.map((r) => r.y + r.h))
+	const originY = -(bottomMaxY + yStretch + topMinY) / 2
+	// The stretch pushes the footer down, so spread it over the rows between header and footer.
+	const toLayoutY = (svgY: number) =>
+		originY +
+		svgY +
+		(footerTop > headerBottom ? yStretch * clamp(invLerp(headerBottom, footerTop, svgY), 0, 1) : 0)
+
+	const actorLayouts = top.map((topRect, i) => {
+		const w = topRect.w + ACTOR_PADDING_WIDTH
+		const h = topRect.h + ACTOR_PADDING_HEIGHT
+		return {
+			x: xCenters[i] - totalSpan / 2 - w / 2,
+			// Through `toLayoutY` so a created or destroyed participant's mid-diagram box takes
+			// the same share of the stretch as the row it sits on, rather than all of it or none.
+			y: toLayoutY(topRect.y),
+			w,
+			h,
+			bottomY: toLayoutY(bottom[i].y),
 		}
-	} else {
-		top = top.slice(0, actorCount)
-		bottom = bottom.slice(0, actorCount)
-	}
+	})
+	return { actorLayouts, toLayoutY }
+}
 
-	if (actorManRects.length > 0) {
-		const actorManSet = new Set<SvgRect>(actorManRects)
-		const regularTops = top.filter((r) => !actorManSet.has(r))
-		const regularBottoms = bottom.filter((r) => !actorManSet.has(r))
-		const refHeight =
-			regularTops.length > 0 ? Math.max(...regularTops.map((r) => r.h)) : FALLBACK_ACTOR_HEIGHT
-		const refWidth =
-			regularTops.length > 0 ? Math.max(...regularTops.map((r) => r.w)) : FALLBACK_ACTOR_WIDTH
-		const refTopY = regularTops.length > 0 ? Math.min(...regularTops.map((r) => r.y)) : undefined
-		const refBottomEndY =
-			regularBottoms.length > 0 ? Math.max(...regularBottoms.map((r) => r.y + r.h)) : undefined
-
-		for (const rect of top) {
-			if (!actorManSet.has(rect)) continue
-			const centerY = rect.y + rect.h / 2
-			rect.h = refHeight
-			rect.w = Math.max(rect.w, refWidth)
-			rect.y = refTopY ?? centerY - refHeight / 2
-		}
-		for (const rect of bottom) {
-			if (!actorManSet.has(rect)) continue
-			const centerY = rect.y + rect.h / 2
-			rect.h = refHeight
-			rect.w = Math.max(rect.w, refWidth)
-			rect.y = refBottomEndY !== undefined ? refBottomEndY - refHeight : centerY - refHeight / 2
-		}
-	}
-
-	if (top.length >= actorCount && bottom.length >= actorCount) {
-		const svgCenters = top.map((r) => r.x + r.w / 2)
-		const spacings: number[] = []
-		for (let i = 1; i < svgCenters.length; i++) {
-			spacings.push(svgCenters[i] - svgCenters[i - 1])
-		}
-		const minSpacing = spacings.length > 0 ? Math.min(...spacings) : 1
-		const scale = Math.max(1, TARGET_ACTOR_SPACING / minSpacing)
-
-		const xCenters = svgCenters.map((c) => (c - svgCenters[0]) * scale)
-		const totalSpan = xCenters.length > 1 ? xCenters[xCenters.length - 1] : 0
-
-		// A created participant's top box and a destroyed one's bottom box sit mid-diagram, so
-		// neither marks a row edge. Measuring the gap from one reports the diagram as far shorter
-		// than it is, inflating the stretch below and leaving the whole diagram too tall.
-		const headerBottom = Math.min(...top.map((r) => r.y + r.h))
-		const footerTop = Math.max(...bottom.map((r) => r.y))
-		const yStretch = Math.max(0, MIN_VERTICAL_GAP - (footerTop - headerBottom))
-		const topMinY = Math.min(...top.map((r) => r.y))
-		const bottomMaxY = Math.max(...bottom.map((r) => r.y + r.h))
-		const originY = -(bottomMaxY + yStretch + topMinY) / 2
-		// The stretch pushes the footer down, so spread it over the rows between header and footer.
-		const toLayoutY = (svgY: number) =>
-			originY +
-			svgY +
-			(footerTop > headerBottom
-				? yStretch * clamp(invLerp(headerBottom, footerTop, svgY), 0, 1)
-				: 0)
-
-		const actorLayouts = top.map((topRect, i) => {
-			const w = topRect.w + ACTOR_PADDING_WIDTH
-			const h = topRect.h + ACTOR_PADDING_HEIGHT
-			return {
-				x: xCenters[i] - totalSpan / 2 - w / 2,
-				// Through `toLayoutY` so a created or destroyed participant's mid-diagram box takes
-				// the same share of the stretch as the row it sits on, rather than all of it or none.
-				y: toLayoutY(topRect.y),
-				w,
-				h,
-				bottomY: toLayoutY(bottom[i].y),
-			}
-		})
-		return { actorLayouts, toLayoutY }
-	}
-
+function getFallbackActorLayouts(actorCount: number, eventCount: number): ComputedActorLayouts {
 	const fallbackLifelineHeight = Math.max(300, eventCount * FALLBACK_EVENT_SPACING)
 	const totalWidth = actorCount * FALLBACK_ACTOR_WIDTH + (actorCount - 1) * FALLBACK_ACTOR_SPACING
 	const totalHeight = FALLBACK_ACTOR_HEIGHT * 2 + fallbackLifelineHeight
@@ -434,93 +317,20 @@ function computeActorLayouts(
 	}
 }
 
-/** Mermaid tags each message, note and fragment it draws with `i<index into its messages>`. */
+/** Pele tags each message and note it draws with `i<index into the model's messages>`. */
 function getMessageIndex(el: Element): number | undefined {
 	const match = el.getAttribute('data-id')?.match(/^i(\d+)$/)
 	return match ? Number(match[1]) : undefined
 }
 
-function parseRowYs(root: Element, toLayoutY: (svgY: number) => number): Map<number, number> {
-	const rowYs = new Map<number, number>()
-	for (const el of root.querySelectorAll('[data-et="message"]')) {
-		const index = getMessageIndex(el)
-		if (index === undefined) continue
-		let y: number
-		if (el.tagName.toLowerCase() === 'path') {
-			// Our self-message loop is far taller than mermaid's and holds its own label, so it
-			// centres on mermaid's loop: spreading it over the label above would push the first loop
-			// into the participant box.
-			const start = el.getAttribute('d')?.match(/^\s*M\s*[\d.e+-]+[,\s]+([\d.e+-]+)/)
-			if (!start) continue
-			y = parseFloat(start[1]) + SELF_MSG_SVG_LOOP_HEIGHT / 2
-		} else {
-			// Mermaid draws a message's label above its line, one text element per line of label, just
-			// before the line itself.
-			const lineY = parseFloat(el.getAttribute('y1') ?? '')
-			let labelTopY = lineY
-			for (
-				let sibling = el.previousElementSibling;
-				sibling?.matches('text.messageText');
-				sibling = sibling.previousElementSibling
-			) {
-				labelTopY = Math.min(labelTopY, parseFloat(sibling.getAttribute('y') ?? ''))
-			}
-			y = lineY - (lineY - labelTopY) * MESSAGE_ROW_LABEL_SHARE
-		}
-		y += getAccumulatedTranslate(el).y
-		if (Number.isFinite(y)) rowYs.set(index, toLayoutY(y))
-	}
-	for (const group of root.querySelectorAll('[data-et="note"]')) {
-		const index = getMessageIndex(group)
-		const rect = group.querySelector('rect.note')
-		if (index === undefined || !rect) continue
-		const y =
-			getAccumulatedTranslate(rect).y +
-			parseFloat(rect.getAttribute('y') ?? '') +
-			parseFloat(rect.getAttribute('height') ?? '') / 2
-		if (Number.isFinite(y)) rowYs.set(index, toLayoutY(y))
-	}
-	return rowYs
-}
-
-function parseFragmentFrames(
-	root: Element,
-	toLayoutY: (svgY: number) => number
-): Map<number, FragmentFrameLayout> {
-	const frames = new Map<number, FragmentFrameLayout>()
-	for (const group of root.querySelectorAll('[data-et="control-structure"]')) {
-		const index = getMessageIndex(group)
-		if (index === undefined) continue
-		const offsetY = getAccumulatedTranslate(group).y
-		const horizontalYs: number[] = []
-		for (const line of group.querySelectorAll('line.loopLine')) {
-			const y1 = parseFloat(line.getAttribute('y1') ?? '')
-			const y2 = parseFloat(line.getAttribute('y2') ?? '')
-			if (Number.isFinite(y1) && y1 === y2) horizontalYs.push(offsetY + y1)
-		}
-		if (horizontalYs.length < 2) continue
-		const top = Math.min(...horizontalYs)
-		const bottom = Math.max(...horizontalYs)
-		frames.set(index, {
-			top: toLayoutY(top),
-			bottom: toLayoutY(bottom),
-			sectionYs: horizontalYs
-				.filter((y) => y > top && y < bottom)
-				.sort((a, b) => a - b)
-				.map(toLayoutY),
-		})
-	}
-	return frames
-}
-
-function getActorLabel(actors: Map<string, Actor>, key: string): string {
+function getActorLabel(actors: Map<string, SequenceActor>, key: string): string {
 	const actor = actors.get(key)
 	return actor?.description || actor?.name || key
 }
 
 /**
  * Widen each actor box to fit its label, moving the actors to its right along by as much: widening in
- * place would eat the gap mermaid left between neighbors, and long names would overlap.
+ * place would eat the gap the layout left between neighbors, and long names would overlap.
  */
 function fitActorsToLabels(
 	layouts: ActorLayout[],
@@ -538,27 +348,208 @@ function fitActorsToLabels(
 	})
 }
 
-function getMessageLabel(msg: Message): string | undefined {
+function getMessageLabel(msg: SequenceMessage): string | undefined {
 	return typeof msg.message === 'string' ? msg.message : undefined
 }
 
 /** Count how many renderable events (signals + notes) a message list contains. */
-export function countSequenceEvents(messages: Message[]): number {
+export function countSequenceEvents(messages: SequenceMessage[]): number {
 	return messages.filter(isRenderableEvent).length
 }
 
-/** Parse sequence-diagram SVG layout data for use by {@link sequenceToBlueprint}. */
-export function parseSequenceLayout(
-	root: Element,
-	actorCount: number,
-	eventCount: number
-): ParsedSequenceLayout {
-	const { actorLayouts, toLayoutY } = computeActorLayouts(root, actorCount, eventCount)
+/**
+ * Read actor, row, note and fragment positions from pele's sequence SVG. Messages and notes carry
+ * `i<index into messages>` in `data-id` and actors their key, but fragment frames carry
+ * no id, so those are matched to the messages that close them by order.
+ */
+export function parseSequenceLayout(root: Element, model: SequenceModel): ParsedSequenceLayout {
+	const actorKeys = [...model.actors.keys()]
+	const actorBoxes = parsePeleActorBoxes(root, actorKeys)
+	if (!actorBoxes) {
+		const { actorLayouts } = getFallbackActorLayouts(
+			actorKeys.length,
+			countSequenceEvents(model.messages)
+		)
+		return { actorLayouts, noteRects: [], rowYs: new Map(), fragmentFrames: new Map() }
+	}
+	const { actorLayouts, toLayoutY } = layoutActorsFromSvg(actorBoxes.top, actorBoxes.bottom)
+
+	const rowYs = new Map<number, number>()
+	const labelTops = new Map<number, number>()
+	for (const el of root.querySelectorAll('.pele-edge-label[data-id]')) {
+		const index = getMessageIndex(el)
+		const baselines = [...el.querySelectorAll('text, tspan')]
+			.map((text) => parseFloat(text.getAttribute('y') ?? ''))
+			.filter(Number.isFinite)
+		if (index === undefined || !baselines.length) continue
+		// Pele's text `y` is a baseline, so the label's top sits about a font size above it.
+		const fontSize = parseFloat(el.closest('[font-size]')?.getAttribute('font-size') ?? '') || 0
+		labelTops.set(index, getOrigin(el).y + Math.min(...baselines) - fontSize)
+	}
+	for (const el of root.querySelectorAll('.pele-message[data-id]')) {
+		const index = getMessageIndex(el)
+		const path = el.querySelector('path:not(.pele-marker)')
+		if (index === undefined || !path) continue
+		const ys = parsePathPoints(path.getAttribute('d') ?? '').map((point) => point.y)
+		if (!ys.length) continue
+		const originY = getOrigin(el).y
+		let y: number
+		if (Math.max(...ys) > ys[0]) {
+			// Our self-message loop is far taller than pele's and holds its own label, so it centres
+			// on pele's loop.
+			y = originY + (Math.min(...ys) + Math.max(...ys)) / 2
+		} else {
+			const lineY = originY + ys[0]
+			const labelTopY = Math.min(lineY, labelTops.get(index) ?? lineY)
+			y = lineY - (lineY - labelTopY) * MESSAGE_ROW_LABEL_SHARE
+		}
+		rowYs.set(index, toLayoutY(y))
+	}
+
+	const notes: { index: number; rect: SvgRect }[] = []
+	for (const el of root.querySelectorAll('.pele-note[data-id]')) {
+		const index = getMessageIndex(el)
+		const rect = el.querySelector('rect')
+		if (index === undefined || !rect) continue
+		const noteRect = getRect(rect)
+		notes.push({ index, rect: noteRect })
+		rowYs.set(index, toLayoutY(noteRect.y + noteRect.h / 2))
+	}
+	notes.sort((a, b) => a.index - b.index)
+
 	return {
 		actorLayouts,
-		noteRects: parseSvgRects(root, 'rect.note'),
-		rowYs: toLayoutY ? parseRowYs(root, toLayoutY) : new Map(),
-		fragmentFrames: toLayoutY ? parseFragmentFrames(root, toLayoutY) : new Map(),
+		noteRects: notes.map((note) => note.rect),
+		rowYs,
+		fragmentFrames: parsePeleFragmentFrames(root, model.messages, toLayoutY),
+	}
+}
+
+/**
+ * Each actor's header and footer box. A participant's box is its rect; the other kinds draw a figure
+ * whose label hangs below it, so they get a participant-sized box ending where the lifeline meets
+ * it. A destroyed actor, or every actor once
+ * `mirrorActors` is off, has no footer, so its lifeline's end stands in for one.
+ */
+function parsePeleActorBoxes(
+	root: Element,
+	actorKeys: string[]
+): { top: SvgRect[]; bottom: SvgRect[] } | undefined {
+	const lifelines = new Map<string, Vec2[]>()
+	for (const el of root.querySelectorAll('.pele-lifeline[data-id]')) {
+		const origin = getOrigin(el)
+		const points = parsePathPoints(el.getAttribute('d') ?? '').map((point) => ({
+			x: origin.x + point.x,
+			y: origin.y + point.y,
+		}))
+		if (points.length) lifelines.set(el.getAttribute('data-id')!, points)
+	}
+	const headerRects = new Map<string, SvgRect>()
+	const footerRects = new Map<string, SvgRect>()
+	for (const el of root.querySelectorAll('.pele-actor[data-id]')) {
+		const rect = [...el.children].find((child) => child.tagName.toLowerCase() === 'rect')
+		if (!rect) continue
+		const rects = el.classList.contains('pele-actor-footer') ? footerRects : headerRects
+		rects.set(el.getAttribute('data-id')!, getRect(rect))
+	}
+	const footerKeys = new Set(
+		[...root.querySelectorAll('.pele-actor-footer[data-id]')].map((el) =>
+			el.getAttribute('data-id')
+		)
+	)
+
+	const participantRects = [...headerRects.values()]
+	const refW = participantRects.length
+		? Math.max(...participantRects.map((r) => r.w))
+		: FALLBACK_ACTOR_WIDTH
+	const refH = participantRects.length
+		? Math.max(...participantRects.map((r) => r.h))
+		: FALLBACK_ACTOR_HEIGHT
+
+	const top: SvgRect[] = []
+	const bottom: SvgRect[] = []
+	for (const key of actorKeys) {
+		const lifeline = lifelines.get(key)
+		if (!lifeline) return undefined
+		const x = lifeline[0].x
+		const lifelineTop = Math.min(...lifeline.map((point) => point.y))
+		const lifelineEnd = Math.max(...lifeline.map((point) => point.y))
+		top.push(headerRects.get(key) ?? { x: x - refW / 2, y: lifelineTop - refH, w: refW, h: refH })
+		bottom.push(
+			footerRects.get(key) ?? {
+				x: x - refW / 2,
+				y: lifelineEnd,
+				w: refW,
+				h: footerKeys.has(key) ? refH : 0,
+			}
+		)
+	}
+	return { top, bottom }
+}
+
+/**
+ * Pele draws `rect` fragments as plain rects in the order they open, and every other fragment as a
+ * frame in the order it closes, so inner frames come before the frame around them. Each kind is
+ * matched separately, and a kind whose count disagrees with the model is skipped rather than
+ * risk a frame landing on the wrong fragment.
+ */
+function parsePeleFragmentFrames(
+	root: Element,
+	messages: SequenceMessage[],
+	toLayoutY: (svgY: number) => number
+): Map<number, FragmentFrameLayout> {
+	const closedByKeyword = new Map<string, { startIndex: number; endIndex: number }[]>()
+	const open: { keyword: string; startIndex: number }[] = []
+	for (let i = 0; i < messages.length; i++) {
+		const type = messages[i].type ?? -1
+		const keyword = FRAGMENT_START_KEYWORDS.get(type)
+		if (keyword) open.push({ keyword, startIndex: i })
+		else if (FRAGMENT_END_TYPES.has(type)) {
+			const fragment = open.pop()
+			if (!fragment) continue
+			const closed = closedByKeyword.get(fragment.keyword) ?? []
+			closed.push({ startIndex: fragment.startIndex, endIndex: i })
+			closedByKeyword.set(fragment.keyword, closed)
+		}
+	}
+
+	const frames = new Map<number, FragmentFrameLayout>()
+	for (const [keyword, closed] of closedByKeyword) {
+		const isRect = keyword === 'rect'
+		const elements = [
+			...root.querySelectorAll(isRect ? 'rect.pele-rect' : `.pele-frame.pele-frame-${keyword}`),
+		]
+		if (elements.length !== closed.length) continue
+		if (isRect) closed.sort((a, b) => a.startIndex - b.startIndex)
+		for (let i = 0; i < closed.length; i++) {
+			const el = elements[i]
+			const outline = isRect ? el : el.querySelector('rect')
+			if (!outline) continue
+			const { y, h } = getRect(outline)
+			const originY = getOrigin(el).y
+			const sectionYs = isRect
+				? []
+				: [...el.querySelectorAll('path[stroke-dasharray]')].flatMap((path) => {
+						const start = parsePathPoints(path.getAttribute('d') ?? '')[0]
+						return start ? [originY + start.y] : []
+					})
+			frames.set(closed[i].endIndex, {
+				top: toLayoutY(y),
+				bottom: toLayoutY(y + h),
+				sectionYs: sectionYs.sort((a, b) => a - b).map(toLayoutY),
+			})
+		}
+	}
+	return frames
+}
+
+function getRect(rect: Element): SvgRect {
+	const origin = getOrigin(rect)
+	return {
+		x: origin.x + parseFloat(rect.getAttribute('x') || '0'),
+		y: origin.y + parseFloat(rect.getAttribute('y') || '0'),
+		w: parseFloat(rect.getAttribute('width') || '0'),
+		h: parseFloat(rect.getAttribute('height') || '0'),
 	}
 }
 
@@ -568,9 +559,9 @@ export function parseSequenceLayout(
  */
 export function sequenceToBlueprint(
 	layout: ParsedSequenceLayout,
-	actors: Map<string, Actor>,
+	actors: Map<string, SequenceActor>,
 	actorKeys: string[],
-	messages: Message[],
+	messages: SequenceMessage[],
 	createdActors: Map<string, number> = new Map(),
 	destroyedActors: Map<string, number> = new Map(),
 	measureLabelWidth: MeasureLabelWidth = () => 0
@@ -582,7 +573,7 @@ export function sequenceToBlueprint(
 
 	const fragments: FragmentSpan[] = []
 	const fragmentStack: OpenFragment[] = []
-	const events: Message[] = []
+	const events: SequenceMessage[] = []
 	const eventMessageIndices: number[] = []
 	const activationStack = new Map<string, number[]>()
 	const activationSpans: ActivationSpan[] = []
@@ -728,7 +719,7 @@ export function sequenceToBlueprint(
 	const eventStep = (diagramBottomY - lifelineTop) / (events.length + 1)
 	const measuredRowYs = eventMessageIndices.map((messageIndex) => layout.rowYs.get(messageIndex))
 	// Mixing measured rows with evenly spaced ones could put a row above the one before it, so a
-	// single row mermaid didn't draw sends every row back to the even grid.
+	// single row the layout didn't draw sends every row back to the even grid.
 	const hasMeasuredRows = measuredRowYs.every((y) => y !== undefined)
 	// Row -1 is the top of the lifelines and row `events.length` the bottom, so a fragment section
 	// that opens before the first row or after the last still has a neighbour to sit between.
@@ -747,7 +738,7 @@ export function sequenceToBlueprint(
 		const topBoxY = createdAt !== undefined ? eventY(createdAt) - h / 2 : y
 		const lifelineTopY = topBoxY + h
 		// Boxes a row apart can meet: evenly spaced rows leave them no room, and our boxes are taller
-		// than mermaid's. Push the bottom box down rather than let the lifeline vanish: with no
+		// than the layout's. Push the bottom box down rather than let the lifeline vanish: with no
 		// lifeline shape to bind to, every arrow that reaches this participant is dropped without a
 		// trace.
 		const bottomBoxY = Math.max(
@@ -832,7 +823,7 @@ export function sequenceToBlueprint(
 		const fragment = fragments[fragmentIndex]
 		if (fragment.lastEventIndex < fragment.firstEventIndex) continue
 
-		// Mermaid's frame already leaves room for a title that wraps onto several lines.
+		// The layout's frame already leaves room for a title that wraps onto several lines.
 		const frame = hasMeasuredRows ? layout.fragmentFrames.get(fragment.endMessageIndex) : undefined
 		const fragTop = frame?.top ?? eventY(fragment.firstEventIndex) - FRAGMENT_PADDING_TOP
 		const fragBottom = frame?.bottom ?? eventY(fragment.lastEventIndex) + FRAGMENT_PADDING_BOTTOM
@@ -932,8 +923,8 @@ export function sequenceToBlueprint(
 		}
 
 		nodes.push({ id: `actor-top-${key}`, y: topBoxY, ...shared })
-		// A destroyed participant still gets a bottom box; mermaid draws it as a tombstone on
-		// the destroying row instead of at the foot of the diagram.
+		// A destroyed participant still gets a bottom box, on the destroying row instead of at the
+		// foot of the diagram.
 		nodes.push({ id: `actor-bottom-${key}`, y: bottomBoxY, ...shared })
 	}
 
@@ -941,7 +932,7 @@ export function sequenceToBlueprint(
 
 	// Created and destroyed participants have shorter lifelines than the rest, so the same row
 	// is a different fraction along each one; one shared fraction would tilt their arrows.
-	// A row can also fall past a truncated lifeline, which mermaid draws into empty space.
+	// A row can also fall past a truncated lifeline, which the layout draws into empty space.
 	const anchorOnLifeline = (actorIndex: number, y: number) => {
 		const { lifelineTopY, bottomBoxY } = lifecycles[actorIndex]
 		return clamp(invLerp(lifelineTopY, bottomBoxY, y), 0, 1)
@@ -963,7 +954,7 @@ export function sequenceToBlueprint(
 			const bidir = !isSelf && isBidirectional(msgType)
 
 			// A lifeline stops half a box short of its lifecycle row, so a message on that row
-			// terminates on the box that opens or closes there, the way mermaid draws it.
+			// terminates on the box that opens or closes there.
 			const startBoxId =
 				!isSelf && destructionEventIndex.get(fromKey) === eventIndex
 					? `actor-bottom-${fromKey}`
@@ -1016,8 +1007,7 @@ export function sequenceToBlueprint(
 			if (fromIdx === undefined) continue
 
 			const label = getMessageLabel(msg)
-			// Mermaid types `placement` as a string enum but the runtime value is numeric
-			const msgPlacement = msg.placement as unknown as number | undefined
+			const msgPlacement = msg.placement
 			const fromCenterX = layouts[fromIdx].x + layouts[fromIdx].w / 2
 			const toCenterX = toIdx !== undefined ? layouts[toIdx].x + layouts[toIdx].w / 2 : fromCenterX
 			const isSpanning =
@@ -1080,13 +1070,13 @@ const BOX_LABEL_HEIGHT = 40
  * boxes stay level and no label sits on an actor.
  */
 function getParticipantBoxNodes(
-	actors: Map<string, Actor>,
+	actors: Map<string, SequenceActor>,
 	actorKeys: string[],
 	layouts: ActorLayout[],
 	top: number,
 	bottom: number
 ): MermaidBlueprintNode[] {
-	const participantIndicesByBox = new Map<Box, number[]>()
+	const participantIndicesByBox = new Map<NonNullable<SequenceActor['box']>, number[]>()
 	for (let i = 0; i < actorKeys.length; i++) {
 		const box = actors.get(actorKeys[i])?.box
 		if (!box) continue
