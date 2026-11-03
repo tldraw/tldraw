@@ -190,6 +190,11 @@ test.describe('Rich text behaviour', () => {
 		await sleep(200)
 		expect(await checked()).toBe(true)
 		expect(await page.evaluate(() => editor.getCurrentPageShapes().length)).toBe(1)
+
+		// Only the chord the toggle binds is kept from the note: Shift still adds a note.
+		await page.keyboard.press('Meta+Shift+Enter')
+		await sleep(200)
+		expect(await page.evaluate(() => editor.getCurrentPageShapes().length)).toBe(2)
 	})
 
 	test('clicking a checkbox outside edit mode ticks it in one click', async ({
