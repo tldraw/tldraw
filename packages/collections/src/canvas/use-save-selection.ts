@@ -1,9 +1,16 @@
 import { useCallback } from 'react'
-import { defineMessages, useEditor, useToasts, useTranslation } from 'tldraw'
+import {
+	defineMessages,
+	getIncrementedName,
+	useEditor,
+	useToasts,
+	useTranslation,
+	type Editor,
+} from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId } from '../lib/schema'
 import { saveShapesToCollection } from './save-shapes'
-import { activeCollectionId, collectionsPanelOpen } from './state'
+import { activeCollectionId, collectionsPanelOpen, renamingCollectionId } from './state'
 
 const messages = defineMessages({
 	savedTitle: { id: 'collections.saved.title', defaultMessage: 'Added to collection' },
@@ -17,19 +24,35 @@ const messages = defineMessages({
 		id: 'collections.save-error.description',
 		defaultMessage: 'You may not be allowed to add to this collection, or it no longer exists.',
 	},
+	newCollectionName: { id: 'collections.new-collection-name', defaultMessage: 'New collection' },
+	newCollectionErrorTitle: {
+		id: 'collections.save-to-new-collection-error.title',
+		defaultMessage: "Couldn't add to a new collection",
+	},
+	newCollectionErrorDescription: {
+		id: 'collections.save-to-new-collection-error.description',
+		defaultMessage: 'You may not be allowed to create collections, or saving failed.',
+	},
 })
 
+function showCollection(editor: Editor, collectionId: TLCollectionId) {
+	activeCollectionId.set(editor, collectionId)
+	collectionsPanelOpen.set(editor, true)
+}
+
 /**
- * Returns a function that saves the current selection to a collection. With the panel open, the
- * panel shows that collection; otherwise a toast confirms the save and can open it. Failures show
- * a toast.
+ * Returns functions that save the current selection. `saveSelection` saves to an existing
+ * collection: with the panel open, the panel shows that collection; otherwise a toast confirms the
+ * save and can open it. `saveToNewCollection` creates a collection named "New collection" (or the
+ * next free variant), saves into it, and opens the panel with the new name ready to edit. Failures
+ * show a toast.
  */
 export function useSaveSelection(source: CollectionSource) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 
-	return useCallback(
+	const saveSelection = useCallback(
 		(collectionId: TLCollectionId) => {
 			const shapeIds = editor.getSelectedShapeIds()
 			if (shapeIds.length === 0) return
@@ -49,10 +72,7 @@ export function useSaveSelection(source: CollectionSource) {
 							{
 								label: msg(messages.savedOpen),
 								type: 'primary',
-								onClick: () => {
-									activeCollectionId.set(editor, collectionId)
-									collectionsPanelOpen.set(editor, true)
-								},
+								onClick: () => showCollection(editor, collectionId),
 							},
 						],
 					})
@@ -68,4 +88,29 @@ export function useSaveSelection(source: CollectionSource) {
 		},
 		[editor, source, msg, addToast]
 	)
+
+	const saveToNewCollection = useCallback(() => {
+		const shapeIds = editor.getSelectedShapeIds()
+		if (shapeIds.length === 0) return
+		const name = getIncrementedName(
+			msg(messages.newCollectionName),
+			source.getCollections().map((collection) => collection.name)
+		)
+		source
+			.createCollection(name)
+			.then(async (collection) => {
+				await saveShapesToCollection(editor, source, collection.id, shapeIds)
+				showCollection(editor, collection.id)
+				renamingCollectionId.set(editor, collection.id)
+			})
+			.catch(() => {
+				addToast({
+					title: msg(messages.newCollectionErrorTitle),
+					description: msg(messages.newCollectionErrorDescription),
+					severity: 'error',
+				})
+			})
+	}, [editor, source, msg, addToast])
+
+	return { saveSelection, saveToNewCollection }
 }
