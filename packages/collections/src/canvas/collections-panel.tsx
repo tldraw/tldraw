@@ -60,6 +60,26 @@ const messages = defineMessages({
 /** @public */
 export interface CollectionsPanelProps {
 	source: CollectionSource
+	/**
+	 * Cleans a stored SVG thumbnail before it's drawn inline. Thumbnails are content other people
+	 * can store by calling the source's API directly, so treat them as hostile. Defaults to
+	 * tldraw's `sanitizeSvg`.
+	 *
+	 * A replacement must keep `foreignObject` with inline styles (labels), `var()` in attributes
+	 * (theme colours) and `data:` images, or previews lose them. Return an empty string to refuse
+	 * a thumbnail. Whatever it returns, a thumbnail that could still run script is shown as an
+	 * `<img>` instead, and every thumbnail is drawn in a shadow root. Pass a stable function: a new
+	 * one each render sanitises every tile again.
+	 *
+	 * @example
+	 * ```tsx
+	 * // Defined once, outside the component.
+	 * const sanitizeThumbnail = (svg: string) => mySanitizer(svg)
+	 *
+	 * <CollectionsPanel source={source} sanitizeThumbnail={sanitizeThumbnail} />
+	 * ```
+	 */
+	sanitizeThumbnail?(svg: string): string
 }
 
 /**
@@ -68,7 +88,7 @@ export interface CollectionsPanelProps {
  * viewport; dragging one out drops it under the pointer.
  * @public @react
  */
-export function CollectionsPanel({ source }: CollectionsPanelProps) {
+export function CollectionsPanel({ source, sanitizeThumbnail }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
@@ -157,6 +177,7 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 							thumbnailUrl: item.thumbnailUrl,
 						}))}
 						getItemProps={getItemProps}
+						sanitizeThumbnail={sanitizeThumbnail}
 						renderItemMenu={(item) => (
 							<ItemMenu
 								id={item.id}
