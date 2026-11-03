@@ -53,8 +53,24 @@ describe('the timing beacon', () => {
 		const point = calls[0][0]
 		// writeDataPoint prefixes [eventName, workerName]; the beacon's own blobs follow.
 		expect(point.blobs[0]).toBe('render_page_timings')
-		expect(point.blobs.slice(2)).toEqual(['surface:mcp'])
+		expect(point.blobs.slice(2)).toEqual(['surface:mcp', 'acquired:unknown'])
 		expect(point.doubles).toEqual([100, 150, 900, 1400, 2100])
+	})
+
+	it('records how the page got its records, and buckets anything else as unknown', async () => {
+		const env = makeScreenshotTestEnv() as unknown as Environment
+		const token = await mintThumbnailRenderToken(env, JOB)
+
+		for (const acquiredBy of ['push', 'fetch', 'something-else']) {
+			await putThumbnailRenderResult(makeRequest({ token, acquiredBy, timings: TIMINGS }), env)
+		}
+
+		const calls = (env.MEASURE as any).writeDataPoint.mock.calls
+		expect(calls.map((call: any[]) => call[0].blobs[3])).toEqual([
+			'acquired:push',
+			'acquired:fetch',
+			'acquired:unknown',
+		])
 	})
 
 	it('refuses a beacon whose token was not signed by us', async () => {
@@ -150,7 +166,7 @@ describe('the timing beacon', () => {
 		expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
 	})
 
-	it('leaves the measure-result branch alone', async () => {
+	it('refuses a measure result, which now comes back in the page instead', async () => {
 		const env = makeScreenshotTestEnv() as unknown as Environment
 		const token = await mintThumbnailRenderToken(env, { ...JOB, mode: 'measure' })
 
@@ -159,81 +175,7 @@ describe('the timing beacon', () => {
 			env
 		)
 
-		expect(response.status).toBe(200)
-		expect(await response.json()).toEqual({ error: false, stored: 1 })
-	})
-})
-
-describe('the measure result', () => {
-	// The shape keeps the bounds it is clustered on; only the arrow geometry is dropped.
-	it('keeps well-formed arrow geometry and drops malformed geometry without the shape', async () => {
-		const thumbnails = makeFakeThumbnailsBucket()
-		const env = makeScreenshotTestEnv({ THUMBNAILS: thumbnails }) as unknown as Environment
-		const token = await mintThumbnailRenderToken(env, { ...JOB, mode: 'measure' })
-
-		const response = await putThumbnailRenderResult(
-			makeRequest({
-				token,
-				bounds: {
-					'shape:good': {
-						x: 0,
-						y: 0,
-						w: 10,
-						h: 10,
-						arrow: { start: { x: 0, y: 0, z: 0.5 }, end: { x: 10, y: 10 } },
-					},
-					'shape:bad': {
-						x: 0,
-						y: 0,
-						w: 10,
-						h: 10,
-						arrow: { start: { x: 0, y: null }, end: { x: 10, y: 10 } },
-					},
-				},
-			}),
-			env
-		)
-
-		expect(await response.json()).toEqual({ error: false, stored: 2 })
-		const [stored] = [...thumbnails.store.values()]
-		expect(JSON.parse(new TextDecoder().decode(stored.body))).toEqual({
-			'shape:good': {
-				minX: 0,
-				minY: 0,
-				maxX: 10,
-				maxY: 10,
-				arrow: { start: { x: 0, y: 0 }, end: { x: 10, y: 10 } },
-			},
-			'shape:bad': { minX: 0, minY: 0, maxX: 10, maxY: 10 },
-		})
-	})
-
-	it('keeps well-formed dimensions and drops malformed ones without the shape', async () => {
-		const thumbnails = makeFakeThumbnailsBucket()
-		const env = makeScreenshotTestEnv({ THUMBNAILS: thumbnails }) as unknown as Environment
-		const token = await mintThumbnailRenderToken(env, { ...JOB, mode: 'measure' })
-		const box = { x: 0, y: 0, w: 10, h: 10 }
-
-		const response = await putThumbnailRenderResult(
-			makeRequest({
-				token,
-				bounds: {
-					'shape:good': { ...box, dimensions: { w: 8, h: 12, d: 1 } },
-					'shape:infinite': { ...box, dimensions: { w: 8, h: Infinity } },
-					'shape:negative': { ...box, dimensions: { w: -1, h: 12 } },
-				},
-			}),
-			env
-		)
-
-		expect(await response.json()).toEqual({ error: false, stored: 3 })
-		const [stored] = [...thumbnails.store.values()]
-		const bounds = { minX: 0, minY: 0, maxX: 10, maxY: 10 }
-		expect(JSON.parse(new TextDecoder().decode(stored.body))).toEqual({
-			'shape:good': { ...bounds, dimensions: { w: 8, h: 12 } },
-			'shape:infinite': bounds,
-			'shape:negative': bounds,
-		})
+		expect(response.status).toBe(400)
 	})
 })
 

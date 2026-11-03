@@ -28,6 +28,7 @@ import {
 	callerBlobsOf,
 	clusterIndexKeysOf,
 	clusterIndexStoreOf,
+	contentResponse,
 	datapointsNamed,
 	failureBlobsOf,
 	makeBrowserBinding,
@@ -61,10 +62,10 @@ vi.mock('../../utils/tla/getAuth', () => ({ hasReadAccessToFile: vi.fn() }))
 // The check hands back the row it read, so the resolution re-applies the gate to it rather than
 // dialling Postgres for the same row again. The granted row is derived from the id asked about, so it
 // stays consistent with the board under test the way the real one would.
-function grantReadAccess() {
+function grantReadAccess(name = 'My Board') {
 	vi.mocked(hasReadAccessToFile).mockImplementation(async (_env, _userId, fileId) => ({
 		ok: true,
-		file: { id: fileId, shared: true, isDeleted: false },
+		file: { id: fileId, name, shared: true, isDeleted: false },
 	}))
 }
 
@@ -127,7 +128,7 @@ function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 		...overrides,
 	})
 	if (!('BROWSER' in overrides)) {
-		;(env as any).BROWSER = makeMeasuringBrowserBinding(() => env)
+		;(env as any).BROWSER = makeMeasuringBrowserBinding()
 	}
 	return env
 }
@@ -238,19 +239,14 @@ async function firstClusterId(env: Environment, userId: string, boardId: string,
 	return JSON.parse(pageResult.content[0].text).clusters[0].id as string
 }
 
-// Measures are exempt from the worker-side capture deadline (abandonAtRenderTimeout): the render
-// page POSTs its result before signalling ready and the result route accepts any unexpired signed
-// token, so a measure abandoned mid-flight would let that POST land after the cleanup that deletes
-// the result key — stranding an object in a bucket with no lifecycle rule. The deadline exists for
-// the OG pipeline's invariants, which never price a measure; a measure stays bounded by the quick
-// action's own per-phase timers.
-describe('measure deadline exemption', () => {
-	it('does not abandon a measure at the render timeout', async () => {
+// Measures get the same worker-side deadline as screenshots now that their result comes back in the
+// response: there is no late POST left for an abandoned measure to strand.
+describe('measure deadline', () => {
+	it('abandons a measure at the render timeout', async () => {
 		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
 		mockPublishedBoard()
 		const env = makeEnv()
-		const measuring = makeMeasuringBrowserBinding(() => env)
-		// The quick action outlives the worker deadline — only its own per-phase timers bound it.
+		const measuring = makeMeasuringBrowserBinding()
 		;(env as any).BROWSER = {
 			quickAction: vi.fn(async (action: string, body: any) => {
 				await new Promise((resolve) => setTimeout(resolve, THUMBNAIL_RENDER_TIMEOUT_MS + 5000))
@@ -265,8 +261,82 @@ describe('measure deadline exemption', () => {
 		await vi.advanceTimersByTimeAsync(THUMBNAIL_RENDER_TIMEOUT_MS + 5001)
 		const result = await call
 
+		expect(result.isError).toBe(true)
+		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['browser_timeout'])
+	})
+})
+
+describe('measure through /content', () => {
+	it('reads the result out of the page and sends no screenshot', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_content')
+
 		expect(result.isError).not.toBe(true)
-		expect(JSON.parse(result.content[0].text).clusters.length).toBeGreaterThan(0)
+		expect(screenshotOf(env).mock.calls.map((call) => call[0])).toEqual(['content'])
+		const body = screenshotOf(env).mock.calls[0][1]
+		expect(body).toMatchObject({ cacheTTL: 0 })
+		expect(body).not.toHaveProperty('selector')
+		expect(body).not.toHaveProperty('screenshotOptions')
+	})
+
+	it('fails with the page’s own error, kept out of the message', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () =>
+				contentResponse(
+					'<html data-thumbnail-error="Snapshot &quot;x&quot; failed"><body data-thumbnail-error="Snapshot &quot;x&quot; failed"></body></html>'
+				)
+			),
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_page_error')
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).not.toContain('Snapshot')
+		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['page_error'])
+	})
+
+	it('fails a content response that carries no page as a browser failure', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () =>
+				Response.json({ success: false, errors: [{ code: 1, message: 'nope' }] })
+			),
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_no_page')
+
+		expect(result.isError).toBe(true)
+		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['browser_failed'])
+	})
+
+	it('keeps a session that answered JSON null on the ledger', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({ BROWSER: makeBrowserBinding(async () => Response.json(null)) })
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_null_content')
+
+		expect(result.isError).toBe(true)
+		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['browser_failed'])
+	})
+
+	it('drops malformed boxes rather than clustering NaN', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () =>
+				contentResponse(
+					`<html data-thumbnail-ready="true"><body><script type="application/json" id="tldraw-measure-result">${JSON.stringify(
+						{ 'shape:bad': { x: 'nope', y: 0, w: 1, h: 1 } }
+					)}</script></body></html>`
+				)
+			),
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_malformed')
+
+		expect(result.isError).not.toBe(true)
 	})
 })
 
@@ -952,7 +1022,7 @@ describe('get_board_info', () => {
 	// Asserted on the argument rather than a call count, because these tests mock the room-snapshot
 	// reader outright and its internal fallback never runs here.
 	it('hands the resolved file row to the snapshot read instead of re-fetching it', async () => {
-		const file = { id: 'f1', shared: true, isDeleted: false }
+		const file = { id: 'f1', name: 'My Board', shared: true, isDeleted: false }
 		grantReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue(file)
 		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
@@ -964,6 +1034,47 @@ describe('get_board_info', () => {
 			'f1',
 			expect.objectContaining({ file })
 		)
+	})
+
+	// The snapshot's `document` name is a mirror the room writes only when the file row is updated, so
+	// reading it reported a board as unnamed until its row was first renamed, shared, published or
+	// moved.
+	describe('board name', () => {
+		async function boardInfoName(fileName: string, documentName: string) {
+			grantReadAccess(fileName)
+			vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f1', shared: true, isDeleted: false })
+			vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES, documentName))
+			const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
+			const result = await callTool('get_board_info', { boardId: 'f1' }, env)
+			return JSON.parse(result.content[0].text).name
+		}
+
+		it('reports the name a board was created with, before any rename', async () => {
+			expect(await boardInfoName('Q4 planning scratch', '')).toBe('Q4 planning scratch')
+		})
+
+		// tldraw.com stores this on the row for a board nobody named, so it is the board's real name.
+		it('reports the default name tldraw.com stored for an unnamed board', async () => {
+			expect(await boardInfoName('Wed 5:38 PM', '')).toBe('Wed 5:38 PM')
+		})
+
+		// The mirror catches up only once the room persists; the row is right as soon as it commits.
+		it('reports a rename from the file row, not the mirror', async () => {
+			expect(await boardInfoName('Renamed', 'Old name')).toBe('Renamed')
+		})
+
+		// The same value search_boards reports for the same row, so the two tools cannot disagree.
+		it('reports a blank name the way search_boards does', async () => {
+			expect(await boardInfoName('  ', 'Stale mirror')).toBe('')
+		})
+
+		// Served as the published copy: viewers and the link preview see the name it was published
+		// under.
+		it('reads a published board’s name from its published snapshot', async () => {
+			mockPublishedBoard(makeSnapshot(PAGES, 'Published title'))
+			const result = await callTool('get_board_info', { boardId: 'abc' })
+			expect(JSON.parse(result.content[0].text).name).toBe('Published title')
+		})
 	})
 
 	it('errors when no board resolves for this caller', async () => {
@@ -1102,7 +1213,7 @@ describe('page and cluster info', () => {
 	it('replaces rich text with the plain text the editor reported', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
-		;(env as any).BROWSER = makeMeasuringBrowserBinding(() => env, {
+		;(env as any).BROWSER = makeMeasuringBrowserBinding({
 			'shape:page:a-0': { minX: 0, minY: 0, maxX: 10, maxY: 10, text: 'Checkout total' },
 			'shape:page:a-1': { minX: 5000, minY: 0, maxX: 5010, maxY: 10 },
 		})
@@ -1150,7 +1261,7 @@ describe('cluster index cache', () => {
 	it('keeps the plain text only an editor can report', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
-		;(env as any).BROWSER = makeMeasuringBrowserBinding(() => env, {
+		;(env as any).BROWSER = makeMeasuringBrowserBinding({
 			'shape:page:a-0': { minX: 0, minY: 0, maxX: 10, maxY: 10, text: 'Checkout total' },
 			'shape:page:a-1': { minX: 5000, minY: 0, maxX: 5010, maxY: 10 },
 		})
@@ -1238,7 +1349,7 @@ describe('cluster index cache', () => {
 		}
 		const measuringEnv = () => {
 			const env = makeEnv()
-			;(env as any).BROWSER = makeMeasuringBrowserBinding(() => env, measurements)
+			;(env as any).BROWSER = makeMeasuringBrowserBinding(measurements)
 			return env
 		}
 		const env = measuringEnv()

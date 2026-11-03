@@ -2,38 +2,35 @@ import {
 	THUMBNAIL_RENDER_ERROR_MAX_LENGTH,
 	THUMBNAIL_RENDER_PHASES,
 	ThumbnailRenderErrorRequestBody,
-	ThumbnailRenderResultRequestBody,
 	ThumbnailRenderTimingsRequestBody,
-	ThumbnailShapeMeasurement,
 } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
-import { MeasuredArrow, MeasuredDimensions, ShapeMeasurement } from './boardTools'
-import { putRenderResult } from './thumbnailRender'
 import { RenderPageError, reportThumbnailError } from './thumbnailShared'
 
-// How measurements get out of the browser.
+// The render page's beacons: phase timings on success, its own error on failure. A signed token
+// proves the POST comes from a render we asked for. Telemetry only — nothing downstream waits on
+// either, so both are accepted for any valid token, screenshot or measure. Measure results come back
+// in the page's HTML instead (see measurePageShapes).
 //
-// Browser Rendering hands the Worker pixels, not JSON, so a render page asked to measure a page has
-// to push its answer back. It POSTs here before signalling ready, and the Worker — still blocked on
-// its own screenshot call — picks the result up as soon as that returns.
-//
-// Scoped to the signed job: the storage key is the token, so a result can only ever reach the render
-// that asked for it.
+// Signed and unexpired, but deliberately *not* minted-checked, unlike the snapshot route. An MCP
+// record is keyed per capture and deleted the moment the session returns (see
+// deleteMintedRenderToken), while the page sends a beacon and ends the session in the next
+// statement — so requiring the record would race the worker's own cleanup and lose the beacon for
+// precisely the fastest renders, which is the wrong end to go blind at. The signature is enough
+// because this route hands back no board data and nothing waits on it: a forged token could only add
+// noise to telemetry, which is already true of every `public` job, where the minted check passes
+// vacuously anyway.
 export async function putThumbnailRenderResult(
 	request: IRequest,
 	env: Environment,
 	ctx?: ExecutionContext
 ): Promise<Response> {
-	let body:
-		| ThumbnailRenderResultRequestBody
-		| ThumbnailRenderTimingsRequestBody
-		| ThumbnailRenderErrorRequestBody
+	let body: ThumbnailRenderTimingsRequestBody | ThumbnailRenderErrorRequestBody
 	try {
 		body = (await request.json()) as
-			| ThumbnailRenderResultRequestBody
 			| ThumbnailRenderTimingsRequestBody
 			| ThumbnailRenderErrorRequestBody
 	} catch {
@@ -46,47 +43,6 @@ export async function putThumbnailRenderResult(
 		return Response.json({ error: true, message: 'Invalid JSON body' }, { status: 400 })
 	}
 
-	// The render page's phase-timing beacon, sharing this route because it shares the route's
-	// auth story: a signed token proves the POST comes from a render we asked for. Telemetry only —
-	// nothing downstream waits on it, so it is accepted for any valid token, screenshot or measure.
-	if ('timings' in body) {
-		// `typeof null` is 'object', and these timings get destructured below.
-		if (!body.token || !body.timings || typeof body.timings !== 'object') {
-			return Response.json(
-				{ error: true, message: 'token and timings are required' },
-				{ status: 400 }
-			)
-		}
-		// Signed and unexpired, but deliberately *not* minted-checked, unlike the snapshot route. An
-		// MCP record is keyed per capture and deleted the moment the session returns (see
-		// deleteMintedRenderToken), while the page sends this beacon and signals ready in the next
-		// statement — so requiring the record would race the worker's own cleanup and lose the
-		// timings for precisely the fastest renders, which is the wrong end to go blind at. The
-		// signature is enough here because this branch hands back no board data and nothing waits on
-		// it: a forged token could only add noise to `render_page_timings`, which is already true of
-		// every `public` job, where the minted check passes vacuously anyway.
-		const job = await verifyThumbnailRenderToken(env, body.token)
-		if (!job) {
-			return Response.json({ error: true, message: 'Invalid render token' }, { status: 403 })
-		}
-		const { bootAt, dataAt, mountAt, settledAt, exportedAt } = body.timings
-		const stamps = [bootAt, dataAt, mountAt, settledAt, exportedAt]
-		if (!stamps.every(Number.isFinite)) {
-			return Response.json({ error: true, message: 'timings must be finite' }, { status: 400 })
-		}
-		// One datapoint per completed export: where the in-browser time went. browser_run_session
-		// prices the whole session; this decomposes it into boot / acquire / mount / settle / export,
-		// which is what ranks the render page's optimisations against each other.
-		writeDataPoint(undefined, env.MEASURE, env, 'render_page_timings', {
-			blobs: [`surface:${job.surface ?? 'og'}`],
-			doubles: stamps,
-		})
-		return Response.json({ error: false })
-	}
-
-	// The render page's failure beacon. Same auth as the timings beacon above, for the same reasons:
-	// the page sends it as it marks the error, which ends the session the worker is about to clean up
-	// after.
 	if ('error' in body) {
 		const { message, phase } = body.error ?? {}
 		if (!body.token || typeof message !== 'string' || !THUMBNAIL_RENDER_PHASES.includes(phase)) {
@@ -123,67 +79,32 @@ export async function putThumbnailRenderResult(
 		return Response.json({ error: false })
 	}
 
-	if (!body?.token || !body.bounds || typeof body.bounds !== 'object') {
-		return Response.json({ error: true, message: 'token and bounds are required' }, { status: 400 })
+	// `typeof null` is 'object', and these timings get destructured below.
+	if (!body.token || !body.timings || typeof body.timings !== 'object') {
+		return Response.json(
+			{ error: true, message: 'token and timings are required' },
+			{ status: 400 }
+		)
 	}
-
 	const job = await verifyThumbnailRenderToken(env, body.token)
-	// The mode is inside the signed payload, so a screenshot token can't be replayed to post a result.
-	if (!job || job.mode !== 'measure') {
+	if (!job) {
 		return Response.json({ error: true, message: 'Invalid render token' }, { status: 403 })
 	}
-
-	const bounds: Record<string, ShapeMeasurement> = {}
-	for (const [shapeId, box] of Object.entries(body.bounds)) {
-		// A non-finite value would produce NaN distances and silently detach that shape from the
-		// minimum spanning tree, so anything malformed is dropped rather than stored.
-		if (
-			!Number.isFinite(box?.x) ||
-			!Number.isFinite(box?.y) ||
-			!Number.isFinite(box?.w) ||
-			!Number.isFinite(box?.h)
-		) {
-			continue
-		}
-		const arrow = readArrow(box.arrow)
-		const dimensions = readDimensions(box.dimensions)
-		bounds[shapeId] = {
-			minX: box.x,
-			minY: box.y,
-			maxX: box.x + box.w,
-			maxY: box.y + box.h,
-			// Only an editor can answer getText, so whatever it said is kept verbatim.
-			...(typeof box.text === 'string' && box.text ? { text: box.text } : null),
-			...(arrow ? { arrow } : null),
-			...(dimensions ? { dimensions } : null),
-		}
+	const { bootAt, dataAt, mountAt, settledAt, exportedAt } = body.timings
+	const stamps = [bootAt, dataAt, mountAt, settledAt, exportedAt]
+	if (!stamps.every(Number.isFinite)) {
+		return Response.json({ error: true, message: 'timings must be finite' }, { status: 400 })
 	}
-
-	await putRenderResult(env, body.token, bounds)
-	return Response.json({ error: false, stored: Object.keys(bounds).length })
-}
-
-// Malformed arrow geometry is dropped and the shape's bounds kept: get_cluster_info then reports the
-// arrow from its record, as it would for a render page that predates arrow measurement.
-function readArrow(value: ThumbnailShapeMeasurement['arrow']): MeasuredArrow | undefined {
-	const start = readPoint(value?.start)
-	const end = readPoint(value?.end)
-	return start && end ? { start, end } : undefined
-}
-
-function readPoint(value: unknown) {
-	const { x, y } = (value ?? {}) as { x?: unknown; y?: unknown }
-	return isFiniteNumber(x) && isFiniteNumber(y) ? { x, y } : undefined
-}
-
-// Malformed dimensions are dropped the same way: the shape reports the w and h on its record.
-function readDimensions(
-	value: ThumbnailShapeMeasurement['dimensions']
-): MeasuredDimensions | undefined {
-	const { w, h } = (value ?? {}) as { w?: unknown; h?: unknown }
-	return isFiniteNumber(w) && isFiniteNumber(h) && w >= 0 && h >= 0 ? { w, h } : undefined
-}
-
-function isFiniteNumber(value: unknown): value is number {
-	return Number.isFinite(value)
+	// One datapoint per completed export: where the in-browser time went. browser_run_session
+	// prices the whole session; this decomposes it into boot / acquire / mount / settle / export,
+	// which is what ranks the render page's optimisations against each other.
+	// `acquired:` is appended, and bounded here rather than trusted: the beacon is signed but not
+	// minted-checked, so its body is caller-shaped.
+	const acquiredBy =
+		body.acquiredBy === 'push' || body.acquiredBy === 'fetch' ? body.acquiredBy : 'unknown'
+	writeDataPoint(undefined, env.MEASURE, env, 'render_page_timings', {
+		blobs: [`surface:${job.surface ?? 'og'}`, `acquired:${acquiredBy}`],
+		doubles: stamps,
+	})
+	return Response.json({ error: false })
 }

@@ -1,6 +1,5 @@
 import { vi } from 'vitest'
 import { Environment } from '../../types'
-import { base64UrlDecode } from '../../utils/base64'
 import { ShapeMeasurement } from './boardTools'
 
 // Shared fakes for the Browser Run thumbnail / OG image tests (thumbnailRender,
@@ -127,27 +126,34 @@ export function makeFakeQueue() {
 	return { send: vi.fn(async (_message: unknown) => undefined) }
 }
 
-// Stands in for the render page on a `measure` job: a real one POSTs its measurements to
-// /app/thumbnail-render/result before signalling ready, so the fake writes them to the same place
-// the worker reads from. Without this every clustering tool would fail on a missing result, since
-// they all measure the page before clustering it.
-export function makeMeasuringBrowserBinding(
-	env: () => Environment,
-	bounds: Record<string, ShapeMeasurement> = {}
-) {
-	return makeBrowserBinding(async (body: any) => {
-		const token = new URL(body.url).searchParams.get('token')
-		const job = token
-			? JSON.parse(new TextDecoder().decode(base64UrlDecode(token.split('.')[0])))
-			: null
-		if (job?.mode === 'measure') {
-			await (env().THUMBNAILS as R2Bucket).put(
-				`render-result/${encodeURIComponent(token!)}.json`,
-				JSON.stringify(bounds)
-			)
-		}
-		return new Response(new Uint8Array([1, 2, 3]), { status: 200 })
-	})
+// Stands in for the render page on a `measure` job: a real one leaves its measurements in its own
+// HTML for the worker's `/content` read, so the fake answers `content` with that page. Without this
+// every clustering tool would fail on a missing result, since they all measure the page before
+// clustering it. Bounds are given as boxes, the shape the worker stores, and converted to what the
+// page reports.
+export function makeMeasuringBrowserBinding(bounds: Record<string, ShapeMeasurement> = {}) {
+	const binding = makeBrowserBinding()
+	binding.quickAction.mockImplementation(async (action: string) =>
+		action === 'content'
+			? contentResponse(measurePageHtml(bounds))
+			: new Response(new Uint8Array([1, 2, 3]), { status: 200 })
+	)
+	return binding
+}
+
+// What Browser Run's `/content` answers with: the page's HTML wrapped in its JSON envelope.
+export function contentResponse(html: string) {
+	return Response.json({ success: true, result: html })
+}
+
+export function measurePageHtml(bounds: Record<string, ShapeMeasurement>) {
+	const reported = Object.fromEntries(
+		Object.entries(bounds).map(([id, { minX, minY, maxX, maxY, ...rest }]) => [
+			id,
+			{ x: minX, y: minY, w: maxX - minX, h: maxY - minY, ...rest },
+		])
+	)
+	return `<html data-thumbnail-ready="true"><head></head><body data-thumbnail-ready="true"><script type="application/json" id="tldraw-measure-result">${JSON.stringify(reported).replace(/</g, '\\u003c')}</script></body></html>`
 }
 
 // In-memory stand-in for the TLDR_DOC namespace, with the file object's MCP cluster index storage.

@@ -623,7 +623,7 @@ export async function resolveSharedBoardForUser(
 	env: Environment,
 	boardId: string,
 	userId: string
-): Promise<ResolveThumbnailBoardResult> {
+): Promise<ResolvedBoardForUser> {
 	const readAccess = await hasReadAccessToFile(env, userId, boardId)
 	if (readAccess.ok) {
 		// The row the access check just read, handed on so the resolution re-applies the gate without
@@ -633,10 +633,22 @@ export async function resolveSharedBoardForUser(
 			access: 'render',
 			file: readAccess.file,
 		})
-		if (file.ok || file.reason === 'board_empty') return file
+		if (file.ok) return { ...file, fileName: readAccess.file.name }
+		if (file.reason === 'board_empty') return file
 	}
-	return resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
+	const published = await resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
+	return published.ok ? { ...published, fileName: null } : published
 }
+
+export type ResolvedBoardForUser =
+	| {
+			ok: true
+			board: ResolvedThumbnailBoard
+			// The `file` row's name; null when served as the published copy, which carries its own.
+			// See getBoardInfo.
+			fileName: string | null
+	  }
+	| Extract<ResolveThumbnailBoardResult, { ok: false }>
 
 // A shape set has no bounded key the way a page ordinal does, so it is hashed. Sorted first, so the
 // same shapes requested in a different order hit the same cached PNG — the render is identical.
@@ -818,7 +830,7 @@ async function callBoardInfoTool(
 	try {
 		const loaded = await loadBoardForTool(env, input.boardId, userId)
 		if (!loaded.ok) return loaded.result
-		return getBoardInfo(loaded.snapshot)
+		return getBoardInfo(loaded.snapshot, loaded.fileName)
 	} catch (error) {
 		// No `telemetry`: this tool spends no Browser Run and so writes nothing to the screenshot
 		// ledger, which is the one that answers cache and refusal questions about renders.
@@ -899,6 +911,7 @@ type LoadedBoard =
 	| {
 			ok: true
 			board: ResolvedThumbnailBoard
+			fileName: string | null
 			snapshot: import('@tldraw/sync-core').RoomSnapshot
 			snapshotVersion: string
 	  }
@@ -947,7 +960,13 @@ async function loadBoardForTool(
 	// between HEAD and GET. Key the cluster index to the bytes we actually read so neither gap can
 	// store an old measurement under new content.
 	const snapshotVersion = await sha256(JSON.stringify(snapshot))
-	return { ok: true, board: resolved.board, snapshot, snapshotVersion }
+	return {
+		ok: true,
+		board: resolved.board,
+		fileName: resolved.fileName,
+		snapshot,
+		snapshotVersion,
+	}
 }
 
 type ResolvedBoardPage =
@@ -1208,6 +1227,7 @@ async function clustersFor(
 
 	const measurements = await measurePageShapes(env, resolved.board, resolved.page.pageId, {
 		surface: 'mcp',
+		snapshot: resolved.snapshot,
 	})
 	const clusters = clusterPage(resolved.page, measurements)
 	await writePageClusterIndex(
@@ -1406,6 +1426,7 @@ async function renderShapeSetScreenshot(
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			telemetry: { source: 'mcp' },
 			content: summarizeSnapshotContent(resolved.snapshot, resolved.page.pageId),
+			snapshot: resolved.snapshot,
 			// Preview trial (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts): let the screenshot
 			// rasterize the live canvas instead of running editor.toImage in the page. Agent-facing
 			// only — the OG surface keeps the export path's pixel-exact sizing.
