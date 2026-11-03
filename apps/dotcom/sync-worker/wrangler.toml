@@ -255,6 +255,7 @@ pattern = "sync.tldraw.xyz"
 #################### Durable objects ####################
 # durable objects have the same configuration in all environments:
 [env.dev.durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
@@ -262,6 +263,7 @@ bindings = [
 ]
 
 [durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
@@ -269,6 +271,7 @@ bindings = [
 ]
 
 [env.preview.durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
@@ -276,6 +279,7 @@ bindings = [
 ]
 
 [env.staging.durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
@@ -283,6 +287,7 @@ bindings = [
 ]
 
 [env.production.durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
