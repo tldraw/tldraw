@@ -78,6 +78,7 @@ const messages = defineMessages({
 	slurpFailed: {
 		defaultMessage: 'Could not restore your local drawing. Try reloading this page.',
 	},
+	fileHistory: { defaultMessage: 'File history' },
 })
 
 // Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
@@ -410,13 +411,14 @@ function CustomDebugMenu() {
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
 	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
+	const msg = useTranslation()
 	return (
 		<DefaultDebugMenu>
 			<A11yAudit />
 			{!isReadOnly && app && (
 				<TldrawUiMenuItem
 					id="file-history"
-					label="File history"
+					label={msg(messages.fileHistory)}
 					readonlyOk
 					onSelect={() => {
 						const url = new URL(window.location.href)
