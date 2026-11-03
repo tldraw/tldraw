@@ -793,6 +793,37 @@ describe('getClusterInfo', () => {
 			expect(lone).not.toHaveProperty('firstShapeIndex')
 		})
 
+		// Each cluster's label and keywords ride along with its shapes. Across many small clusters they
+		// come to nearly as much again, which an answer measured by its shapes alone never saw.
+		it('keeps the whole answer within budget, not just its shapes', () => {
+			const COUNT = 100
+			const board = farApart(
+				Array.from({ length: COUNT }, (_, i) => shape(`shape:note-${i}`, { x: i * 100_000 }))
+			)
+			for (let i = 0; i < COUNT; i++) {
+				board.measurements[`shape:note-${i}`].text =
+					`Quarterly planning review ${i} customer onboarding retention analysis roadmap ` +
+					'milestone '.repeat(25)
+			}
+			const { clustering } = clusteredPage(board.snapshot, board.measurements)
+			const clusterIds = clustering.clusters.map((c) => c.id)
+			expect(clusterIds).toHaveLength(COUNT)
+
+			const { answers } = readAll(
+				board.snapshot,
+				board.measurements,
+				clustering.clusters.map((c) => c.shapes[0].id)
+			)
+			// The shapes alone would all fit in one answer.
+			const shapes = answers.flatMap((a) => a.clusters.flatMap((c: any) => c.shapes))
+			expect(JSON.stringify(shapes).length).toBeLessThan(CLUSTER_INFO_MAX_CHARS)
+			expect(answers.length).toBeGreaterThan(1)
+			for (const answer of answers) {
+				expect(JSON.stringify(answer).length).toBeLessThanOrEqual(CLUSTER_INFO_MAX_CHARS)
+			}
+			expect(answers.flatMap((a) => a.clusters.map((c: any) => c.clusterId))).toEqual(clusterIds)
+		})
+
 		// Refusing it would leave that shape unreadable, and paging could never get past it.
 		it('still answers a single shape larger than one answer, then moves on', () => {
 			const huge = {
@@ -823,7 +854,7 @@ describe('getClusterInfo', () => {
 
 			expect(info.ok).toBe(false)
 			if (info.ok) return
-			expect(info.reason).toBe('invalid_cursor')
+			expect(info.reason).toBe('invalid_input')
 		})
 	})
 

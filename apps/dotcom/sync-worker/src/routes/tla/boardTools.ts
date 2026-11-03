@@ -466,18 +466,14 @@ function parseBoardName(value: unknown, purpose: string): string {
 // Accepts one id or several. A single string is allowed because asking for one cluster is the common
 // case and making callers wrap it in an array is friction for nothing.
 export function parseClusterIds(value: unknown): string[] {
-	if (typeof value === 'string') return [parseClusterId(value)]
-	if (!Array.isArray(value) || value.length === 0) {
+	const ids = typeof value === 'string' ? [value] : value
+	if (!Array.isArray(ids) || ids.length === 0) {
 		throw new Error('clusterIds is required: a cluster id, or an array of them')
 	}
-	return value.map((id) => parseClusterId(id))
-}
-
-export function parseClusterId(value: unknown): string {
-	if (typeof value !== 'string' || value.length === 0) {
-		throw new Error('clusterId is required')
+	if (!ids.every((id): id is string => typeof id === 'string' && id.length > 0)) {
+		throw new Error('clusterIds must each be a cluster id from get_page_info')
 	}
-	return value
+	return ids
 }
 
 function requireArgumentsObject(input: unknown): Record<string, unknown> {
@@ -1075,9 +1071,9 @@ export function getPageInfo(page: ResolvedPageOk, clusters: ShapeCluster[]): Too
 }
 
 /**
- * The most JSON one get_cluster_info answer carries in its shapes before it stops and hands back a
- * nextCursor. Some clients cut a tool result off at 25K tokens, and this JSON runs about 2.5 to 3
- * characters a token, so 60K characters keeps an answer under that. Measured rather than counted in
+ * The most JSON one get_cluster_info answer carries before it stops and hands back a nextCursor.
+ * Some clients cut a tool result off at 25K tokens, and this JSON runs about 2.5 to 3 characters a
+ * token, so 60K characters keeps an answer under that. Measured rather than counted in
  * shapes, because a shape's size is mostly its text: a box is ~400 characters, a note holding a
  * paragraph several times that.
  */
@@ -1085,7 +1081,7 @@ export const CLUSTER_INFO_MAX_CHARS = 60_000
 
 export type ClusterInfoResult =
 	| { ok: true; result: ToolResult }
-	| { ok: false; reason: 'cluster_not_found' | 'invalid_cursor'; result: ToolResult }
+	| { ok: false; reason: 'cluster_not_found' | 'invalid_input'; result: ToolResult }
 
 export function getClusterInfo(
 	page: ResolvedPageOk,
@@ -1098,12 +1094,12 @@ export function getClusterInfo(
 	if (!found.ok) return { ok: false, reason: 'cluster_not_found', result: found.result }
 
 	const start = cursor ?? { cluster: 0, shape: 0 }
-	// The ids are checked against the cursor when it is read, so this only fails if the clusters
-	// themselves changed under it, which a content edit does by giving them new ids.
+	// The ids are checked against the cursor when it is read, and a cluster whose shapes changed has a
+	// new id and is refused above, so this catches a cursor that was altered or made up.
 	if (start.shape >= (found.clusters[start.cluster]?.shapes.length ?? 0)) {
 		return {
 			ok: false,
-			reason: 'invalid_cursor',
+			reason: 'invalid_input',
 			result: toolError(
 				'cursor does not point into these clusters any more. Omit it to start from the first shape.'
 			),
@@ -1120,8 +1116,22 @@ export function getClusterInfo(
 
 	// Fills the answer shape by shape until the next would take it over budget. At least one shape
 	// always goes in, so a single shape larger than the budget still gets read and paging moves on.
+	// The budget covers the whole answer: across many small clusters, the label and keywords each
+	// one carries come to nearly as much again as its shapes. Room is kept for the longest cursor.
 	const answered: Record<string, unknown>[] = []
-	let size = 0
+	const longestCursor = encodeClusterInfoCursor(
+		{
+			cluster: found.clusters.length,
+			shape: Math.max(...found.clusters.map((cluster) => cluster.shapes.length)),
+		},
+		clusterIds
+	)
+	let size = JSON.stringify({
+		pageName: page.pageName,
+		clusters: [],
+		nextCursor: longestCursor,
+	}).length
+	let shapeCount = 0
 	let next: ClusterInfoCursor | null = null
 	fill: for (let c = start.cluster; c < found.clusters.length; c++) {
 		const cluster = found.clusters[c]
@@ -1135,13 +1145,19 @@ export function getClusterInfo(
 				measuredDimensions: dimensions[shape.id],
 				bindings: bindingsByArrow.get(shape.id) ?? [],
 			})
-			const shapeSize = JSON.stringify(readable).length + 1
-			if (size > 0 && size + shapeSize > CLUSTER_INFO_MAX_CHARS) {
+			// A slice's own fields are paid for with its first shape, so a cluster left for the next
+			// answer costs this one nothing.
+			const envelope = shapes.length
+				? 0
+				: JSON.stringify(describeClusterSlice(cluster, firstShape, [])).length + 1
+			const shapeSize = envelope + JSON.stringify(readable).length + 1
+			if (shapeCount > 0 && size + shapeSize > CLUSTER_INFO_MAX_CHARS) {
 				next = { cluster: c, shape: s }
 				if (shapes.length) answered.push(describeClusterSlice(cluster, firstShape, shapes))
 				break fill
 			}
 			size += shapeSize
+			shapeCount++
 			shapes.push(readable)
 		}
 		answered.push(describeClusterSlice(cluster, firstShape, shapes))
@@ -1629,7 +1645,7 @@ function getClusterInfoToolDefinition() {
 	return {
 		name: CLUSTER_INFO_TOOL_NAME,
 		title: 'Get tldraw cluster info',
-		description: `Describe one or more clusters from get_page_info: for each, in the order asked, its label, keywords, and every shape it contains. Ask for several clusters in one call rather than one call each. An answer too large for one response stops part-way and carries nextCursor: call again with the same clusterIds and that cursor for the rest. A cluster cut across two answers appears in both with firstShapeIndex, the position of its first shape in that answer; numberOfShapes is always the cluster's total. All positions are in page space, whatever the shape's parent: pageX and pageY are the shape's origin on the page (an arrow's is its drawn start, and null when props.start is), and pageRotation its rotation on the page (arrows have none; their ends say which way they point). parentId still names the frame or group a shape sits in. On an arrow, props.start and props.end are its ends as drawn, each { pageX, pageY } (null for a bound end the editor could not measure), and props.bindingFromId and props.bindingToId are the shapes its start and end are bound to, or null when free. \`props\` holds the rest of the record — size and style in the shape's own unrotated space; w and h are a shape's size as drawn, so a geo's h already includes its label's growth (growY, not reported separately), and a text's, group's or freehand stroke's are measured — with the rich text document replaced by \`props.text\`, the plain string the editor reports, which also surfaces text not stored on the record (a geo shape's label, for instance). Every number is rounded to thousandths, in the record's own units: angles in radians, and values that run 0–1 on the record (opacity, labelPosition and so on) as fractions. \`meta\` is passed through as stored. Draw and highlight shapes give their size and props.pointCount but not their strokes, which can't be read from coordinates: to see what was drawn or written, call get_cluster_screenshot.`,
+		description: `Describe one or more clusters from get_page_info: for each, in the order asked, its label, keywords, and every shape it contains. Ask for several clusters in one call rather than one call each. An answer too large for one response stops part-way and carries nextCursor: call again with the same clusterIds and that cursor for the rest. A cluster too large for one answer is split across as many answers as it needs, and each slice carries firstShapeIndex: where the slice starts within the whole cluster. numberOfShapes is always the cluster's total. All positions are in page space, whatever the shape's parent: pageX and pageY are the shape's origin on the page (an arrow's is its drawn start, and null when props.start is), and pageRotation its rotation on the page (arrows have none; their ends say which way they point). parentId still names the frame or group a shape sits in. On an arrow, props.start and props.end are its ends as drawn, each { pageX, pageY } (null for a bound end the editor could not measure), and props.bindingFromId and props.bindingToId are the shapes its start and end are bound to, or null when free. \`props\` holds the rest of the record — size and style in the shape's own unrotated space; w and h are a shape's size as drawn, so a geo's h already includes its label's growth (growY, not reported separately), and a text's, group's or freehand stroke's are measured — with the rich text document replaced by \`props.text\`, the plain string the editor reports, which also surfaces text not stored on the record (a geo shape's label, for instance). Every number is rounded to thousandths, in the record's own units: angles in radians, and values that run 0–1 on the record (opacity, labelPosition and so on) as fractions. \`meta\` is passed through as stored. Draw and highlight shapes give their size and props.pointCount but not their strokes, which can't be read from coordinates: to see what was drawn or written, call get_cluster_screenshot.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,

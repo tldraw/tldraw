@@ -471,8 +471,9 @@ get_cluster_info({
 //   props.bindingFromId/bindingToId, props.w/h as drawn (a geo's h includes growY), and props with
 //   rich text flattened to props.text. Draw and highlight shapes give their size and
 //   props.pointCount instead of their segments. Every number rounded to thousandths, with angles in
-//   radians. Refused if any id is unknown. An answer that would pass ~60K characters of shapes stops
-//   part-way with a nextCursor; a cluster split across answers carries firstShapeIndex
+//   radians. Refused if any id is unknown. An answer that would pass ~60K characters stops
+//   part-way with a nextCursor; a cluster split across answers carries firstShapeIndex, where that
+//   slice starts within the whole cluster
 
 get_cluster_screenshot({
  boardId: string,

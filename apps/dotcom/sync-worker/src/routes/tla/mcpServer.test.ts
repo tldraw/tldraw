@@ -391,6 +391,19 @@ describe('tool inputs', () => {
 		)
 	})
 
+	// Naming the argument the caller sent: "clusterId is required" sent models looking for an argument
+	// they had never passed.
+	it('refuses a cluster id list with a bad entry, naming clusterIds', () => {
+		for (const clusterIds of [[42], [''], ['cluster:a', null]]) {
+			expect(() => parseClusterInfoInput({ boardId: 'abc', clusterIds })).toThrow(
+				'clusterIds must each be a cluster id from get_page_info'
+			)
+			expect(() => parseClusterScreenshotInput({ boardId: 'abc', clusterIds })).toThrow(
+				'clusterIds must each be a cluster id from get_page_info'
+			)
+		}
+	})
+
 	it('refuses more cluster ids than could fit in one get_cluster_info call', () => {
 		const ids = (count: number) => Array.from({ length: count }, (_, i) => `cluster:${i}`)
 		expect(
