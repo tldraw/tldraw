@@ -16,7 +16,7 @@ import {
 	useUniqueSafeId,
 } from '@tldraw/editor'
 import React, { useLayoutEffect, useRef } from 'react'
-import { isEditingRichTextList } from '../../utils/text/richText'
+import { isEditingRichTextList, isEditingRichTextTaskItem } from '../../utils/text/richText'
 
 /** @public */
 export interface TextAreaProps {
@@ -171,7 +171,19 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 						handleTab(editor, view, event)
 					}
 
+					// Cmd+Enter in a task item ticks it (TaskItemToggleExtension). A shape that binds the
+					// chord itself, to finish the edit or add the next note, would otherwise run first and
+					// tear the text editor down before the tick.
+					if (
+						event.key === 'Enter' &&
+						(event.metaKey || event.ctrlKey) &&
+						isEditingRichTextTaskItem(editor)
+					) {
+						return false
+					}
+
 					onKeyDown(event)
+					return false
 				},
 				handlePaste: (view: EditorView, event: ClipboardEvent) => {
 					onPaste(event)
