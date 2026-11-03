@@ -160,6 +160,8 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		if (index === -1) return false
 
 		editor.markEventAsHandled(e)
+		// The canvas never sees this press, so end another shape's edit as a press anywhere else would.
+		if (editor.getEditingShapeId()) editor.complete()
 		const win = editor.getContainerWindow()
 		// A press can end in pointercancel instead of pointerup; a listener left behind then fires on
 		// the next mouse press (mice reuse one pointerId) and toggles the item a second time.
