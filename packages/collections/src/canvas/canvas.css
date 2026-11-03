@@ -62,6 +62,50 @@
 	overflow-y: auto;
 }
 
+.tlui-collections-list {
+	margin: 0;
+	padding: 4px;
+	list-style: none;
+	overflow-y: auto;
+}
+
+.tlui-collections-list__row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	height: 36px;
+	padding: 0 8px;
+	border: none;
+	border-radius: var(--tl-radius-2);
+	background: none;
+	color: var(--tl-color-text-1);
+	font: inherit;
+	font-size: 12px;
+	text-align: left;
+	cursor: pointer;
+}
+
+.tlui-collections-list__row:hover,
+.tlui-collections-list__row:focus-visible {
+	background: var(--tl-color-hint);
+}
+
+.tlui-collections-list__name {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tlui-collections-list__detail {
+	color: var(--tl-color-text-3);
+}
+
+.tlui-collections-panel__back {
+	flex: 0 0 auto;
+}
+
 .tlui-collections-tile {
 	position: relative;
 	display: flex;

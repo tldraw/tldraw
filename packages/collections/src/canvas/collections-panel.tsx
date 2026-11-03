@@ -10,6 +10,7 @@ import {
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionItemId } from '../lib/schema'
+import { CollectionList } from '../ui/collection-list'
 import { ItemGrid } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { CollectionsPanelHeader } from './collections-panel-header'
@@ -26,6 +27,10 @@ const messages = defineMessages({
 		defaultMessage: 'Nothing saved here yet.',
 	},
 	unnamedItem: { id: 'collections.unnamed-item', defaultMessage: 'Unnamed item' },
+	itemCount: {
+		id: 'collections.item-count',
+		defaultMessage: '{count, plural, one {# item} other {# items}}',
+	},
 	deleteItemTitle: { id: 'collections.delete-item-dialog.title', defaultMessage: 'Delete item' },
 	deleteItemBody: {
 		id: 'collections.delete-item-dialog.body',
@@ -57,8 +62,18 @@ const messages = defineMessages({
 })
 
 /** @public */
+/**
+ * How the panel moves between collections: a picker in the header over the open collection's
+ * items, or a list of collections with their item counts that each open into their items.
+ * @public
+ */
+export type CollectionsPanelNavigation = 'picker' | 'list'
+
+/** @public */
 export interface CollectionsPanelProps {
 	source: CollectionSource
+	/** Defaults to `'picker'`. */
+	navigation?: CollectionsPanelNavigation
 }
 
 /**
@@ -67,7 +82,7 @@ export interface CollectionsPanelProps {
  * viewport; dragging one out drops it under the pointer.
  * @public @react
  */
-export function CollectionsPanel({ source }: CollectionsPanelProps) {
+export function CollectionsPanel({ source, navigation = 'picker' }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
@@ -75,8 +90,19 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 	const open = useValue('collections panel open', () => collectionsPanelOpen.get(editor), [editor])
 	const collections = useValue('collections', () => source.getCollections(), [source])
 	const activeId = useValue('active collection', () => activeCollectionId.get(editor), [editor])
-	// A stale id (the collection was deleted) falls back to the first collection rather than an empty panel.
-	const current = collections.find((collection) => collection.id === activeId) ?? collections[0]
+	// With a picker, a stale id (the collection was deleted) falls back to the first collection
+	// rather than an empty panel. With the list, no open collection shows the list.
+	const current =
+		collections.find((collection) => collection.id === activeId) ??
+		(navigation === 'picker' ? collections[0] : undefined)
+	const itemCounts = useValue(
+		'collection item counts',
+		() =>
+			navigation === 'list'
+				? new Map(collections.map((c) => [c.id, source.getItems(c.id).length]))
+				: undefined,
+		[source, collections, navigation]
+	)
 	const currentId = current?.id
 	const items = useValue('collection items', () => (currentId ? source.getItems(currentId) : []), [
 		source,
@@ -158,6 +184,7 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 					collections={collections}
 					current={current}
 					itemCount={items.length}
+					onBack={navigation === 'list' ? () => activeCollectionId.set(editor, null) : undefined}
 				/>
 				{current ? (
 					<ItemGrid
@@ -201,6 +228,16 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 						onRename={renameItem}
 						onCancelRename={() => setRenamingId(undefined)}
 						empty={msg(messages.emptyCollection)}
+					/>
+				) : navigation === 'list' ? (
+					<CollectionList
+						collections={collections.map((collection) => ({
+							id: collection.id,
+							name: collection.name,
+							detail: msg(messages.itemCount, { count: itemCounts?.get(collection.id) ?? 0 }),
+						}))}
+						onOpen={(id) => activeCollectionId.set(editor, id)}
+						empty={msg(messages.empty)}
 					/>
 				) : (
 					<p className="tlui-collections-panel__empty">{msg(messages.empty)}</p>
