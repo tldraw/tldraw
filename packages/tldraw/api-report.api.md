@@ -598,6 +598,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     static props: RecordProps<TLBookmarkShape>;
     // (undocumented)
+    toPreviewSvg(shape: TLBookmarkShape, ctx: SvgExportContext): JSX.Element;
+    // (undocumented)
     static type: 'bookmark';
 }
 
@@ -1885,6 +1887,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // @deprecated (undocumented)
     static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]): void;
     // (undocumented)
+    toPreviewSvg(shape: TLEmbedShape, ctx: SvgExportContext): JSX.Element;
+    // (undocumented)
     static type: 'embed';
 }
 
@@ -2637,6 +2641,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     static props: RecordProps<TLImageShape>;
     // (undocumented)
+    toPreviewSvg(shape: TLImageShape): Promise<JSX.Element | null>;
+    // (undocumented)
     toSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
     // (undocumented)
     static type: 'image';
@@ -3292,6 +3298,41 @@ export function PreferencesGroup(): JSX.Element;
 
 // @public (undocumented)
 export function preloadFont(id: string, font: TLTypeFace, targetDocument?: Document): Promise<FontFace>;
+
+// @public
+export function PreviewCard({ w, h, title, caption, image, icon, ctx }: PreviewCardProps): JSX.Element;
+
+// @public (undocumented)
+export interface PreviewCardProps {
+    // (undocumented)
+    caption?: string;
+    // (undocumented)
+    ctx: SvgExportContext;
+    // (undocumented)
+    h: number;
+    icon?: PreviewImageRef;
+    image?: PreviewImageRef;
+    // (undocumented)
+    title: string;
+    // (undocumented)
+    w: number;
+}
+
+// @public
+export function PreviewImage({ assetId, field, embedIcon, ...props }: PreviewImageProps): JSX.Element;
+
+// @public (undocumented)
+export type PreviewImageProps = PreviewImageRef & Omit<SVGProps<SVGImageElement>, 'href'>;
+
+// @public
+export interface PreviewImageRef {
+    // (undocumented)
+    assetId?: TLAssetId;
+    // (undocumented)
+    embedIcon?: string;
+    // (undocumented)
+    field?: string;
+}
 
 // @public (undocumented)
 export function PrintItem(): JSX.Element;

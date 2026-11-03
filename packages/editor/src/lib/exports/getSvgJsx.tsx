@@ -319,10 +319,11 @@ function SvgExport({
 					const elements = []
 					const util = editor.getShapeUtil(shape)
 
-					if (util.toSvg || util.toBackgroundSvg) {
+					const toSvg = (isPreview && util.toPreviewSvg) || util.toSvg
+					if (toSvg || util.toBackgroundSvg) {
 						// If the shape has any sort of custom svg export, let's use that.
 						const [toSvgResult, toBackgroundSvgResult] = await Promise.all([
-							util.toSvg?.(shape, exportContext),
+							toSvg?.call(util, shape, exportContext),
 							util.toBackgroundSvg?.(shape, exportContext),
 						])
 

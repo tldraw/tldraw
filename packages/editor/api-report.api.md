@@ -3176,6 +3176,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     providesBackgroundForChildren(shape: Shape): boolean;
     shouldClipChild?(child: TLShape): boolean;
     toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
+    toPreviewSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     toSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     static type: string;
 }

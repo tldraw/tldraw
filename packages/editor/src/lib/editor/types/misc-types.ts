@@ -69,6 +69,11 @@ export interface TLSvgExportOptions {
 	 * - Colours become CSS variables, with the exported colour as fallback. Set them with
 	 *   {@link getPreviewColorVariables} on an element containing the preview.
 	 * - Fonts aren't embedded: show the result inline, in a page that has them loaded.
+	 * - Shapes draw with {@link ShapeUtil.toPreviewSvg} when they have it, and `toSvg` otherwise.
+	 * - Images are references, not URLs or data (`PreviewImage` in `tldraw` draws them): an
+	 *   `<image>` with `data-tl-asset-id` (and `data-tl-asset-field` to read a field of that
+	 *   asset, e.g. a bookmark's `image`), or with `data-tl-embed-icon` naming an embed type.
+	 *   Whoever shows the preview resolves them.
 	 *
 	 * Previews are meant to be inlined, so sanitize one before inlining it if it comes from
 	 * someone else.

@@ -1,4 +1,5 @@
 import {
+	AssetRecordType,
 	BaseBoxShapeUtil,
 	BaseFrameLikeShapeUtil,
 	DefaultColorStyle,
@@ -331,5 +332,60 @@ describe('preview exports', () => {
 		expect(variables['--tl-preview-blue-solid']).toBe(theme.colors.dark.blue.solid)
 		expect(variables['--tl-preview-text']).toBe(theme.colors.dark.text)
 		expect(variables['--tl-preview-primary']).toBe('var(--tl-color-primary)')
+	})
+
+	it('draws bookmarks and embeds as cards rather than their live content', async () => {
+		const bookmarkId = createShapeId('bookmark')
+		const embedId = createShapeId('embed')
+		editor.createShapes([
+			{ id: bookmarkId, type: 'bookmark', x: 0, y: 300, props: { url: 'https://tldraw.dev/docs' } },
+			{
+				id: embedId,
+				type: 'embed',
+				x: 400,
+				y: 300,
+				props: { url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', w: 320, h: 180 },
+			},
+		])
+
+		const { svg } = (await editor.getSvgString([bookmarkId, embedId], { preview: true }))!
+
+		expect(svg).toContain('>tldraw.dev</text>')
+		expect(svg).toContain('>YouTube</text>')
+		expect(svg).toContain('data-tl-embed-icon="youtube"')
+		expect(svg).not.toContain('<foreignObject')
+	})
+
+	it('points images at their asset rather than carrying a URL or the image', async () => {
+		const assetId = AssetRecordType.createId('logo')
+		const imageId = createShapeId('image')
+		editor.createAssets([
+			AssetRecordType.create({
+				id: assetId,
+				type: 'image',
+				props: {
+					name: 'logo.png',
+					src: 'https://example.com/logo.png',
+					w: 100,
+					h: 100,
+					mimeType: 'image/png',
+					isAnimated: false,
+				},
+			}),
+		])
+		editor.createShapes([{ id: imageId, type: 'image', props: { w: 100, h: 100, assetId } }])
+
+		const image = parseSvg(await editor.getSvgString([imageId], { preview: true })).querySelector(
+			'image'
+		)
+
+		expect(image?.getAttribute('data-tl-asset-id')).toBe(assetId)
+		expect(image?.hasAttribute('href')).toBe(false)
+	})
+
+	it('uses toSvg for shapes without toPreviewSvg', async () => {
+		const preview = parseSvg(await editor.getSvgString([ids.boxB], { preview: true }))
+		const normal = parseSvg(await editor.getSvgString([ids.boxB]))
+		expect(preview.querySelectorAll('path').length).toBe(normal.querySelectorAll('path').length)
 	})
 })

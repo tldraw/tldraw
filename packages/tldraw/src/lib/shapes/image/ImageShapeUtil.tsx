@@ -36,12 +36,13 @@ import {
 	WeakCache,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { memo, useEffect, useState } from 'react'
+import { SVGProps, memo, useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { getUncroppedSize } from '../shared/crop'
 import { getFlipForResize } from '../shared/flip'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { PreviewImage } from '../shared/PreviewCard'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 import { TRANSPARENT_IMAGE_MIMETYPES, getAlphaData, preloadAlphaData } from './ImageAlphaCache'
@@ -277,6 +278,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		if (!src) return null
 
 		return <SvgImage shape={shape} src={src} />
+	}
+
+	// A preview is stored, so a remote image is linked rather than embedded.
+	override async toPreviewSvg(shape: TLImageShape) {
+		if (!shape.props.assetId || !this.editor.getAsset(shape.props.assetId)) return null
+		return <SvgImage shape={shape} assetId={shape.props.assetId} />
 	}
 
 	override onDoubleClickEdge(shape: TLImageShape) {
@@ -575,9 +582,20 @@ function getFlipStyle(shape: TLImageShape, size?: { width: number; height: numbe
 	}
 }
 
-function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
+function SvgImage({
+	shape,
+	src,
+	assetId,
+}: {
+	shape: TLImageShape
+	src?: string
+	assetId?: TLAssetId
+}) {
 	const cropClipId = useUniqueSafeId()
 	const containerStyle = getCroppedContainerStyle(shape)
+	// A preview points at the asset rather than carrying it.
+	const Image = (props: SVGProps<SVGImageElement>) =>
+		assetId ? <PreviewImage {...props} assetId={assetId} /> : <image {...props} href={src} />
 	const crop = shape.props.crop
 
 	if (containerStyle.transform && crop) {
@@ -611,8 +629,7 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 					</clipPath>
 				</defs>
 				<g clipPath={`url(#${cropClipId})`}>
-					<image
-						href={src}
+					<Image
 						width={width}
 						height={height}
 						aria-label={shape.props.altText}
@@ -623,8 +640,7 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 		)
 	} else {
 		return (
-			<image
-				href={src}
+			<Image
 				width={shape.props.w}
 				height={shape.props.h}
 				aria-label={shape.props.altText}
