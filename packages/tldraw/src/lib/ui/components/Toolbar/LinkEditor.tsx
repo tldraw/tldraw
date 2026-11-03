@@ -29,7 +29,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 	const linkifiedValue = value.startsWith('http') ? value : `https://${value}`
 
 	const handleLinkComplete = useCallback(
-		(link: string) => {
+		(link: string, { refocus = true }: { refocus?: boolean } = {}) => {
 			trackEvent('rich-text', { operation: 'link-edit', source })
 			if (!link.startsWith('http://') && !link.startsWith('https://')) {
 				link = `https://${link}`
@@ -40,7 +40,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 			// Return key to replace the link with a newline :facepalm:
 			if (editor.getInstanceState().isCoarsePointer) {
 				textEditor.commands.blur()
-			} else {
+			} else if (refocus) {
 				textEditor.commands.focus()
 			}
 			onClose()
@@ -54,29 +54,42 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 		onClose()
 	}
 
-	const handleRemoveLink = useCallback(() => {
-		trackEvent('rich-text', { operation: 'link-remove', source })
-		textEditor.chain().unsetLink().focus().run()
-		onClose()
-	}, [trackEvent, source, textEditor, onClose])
+	const handleRemoveLink = useCallback(
+		({ refocus = true }: { refocus?: boolean } = {}) => {
+			trackEvent('rich-text', { operation: 'link-remove', source })
+			const chain = textEditor.chain().unsetLink()
+			if (refocus) chain.focus()
+			chain.run()
+			onClose()
+		},
+		[trackEvent, source, textEditor, onClose]
+	)
 
 	useEffect(() => {
 		const doc = editor.getContainerDocument()
 		const handlePointerDown = (e: PointerEvent) => {
 			const toolbar = doc.querySelector('.tlui-rich-text__toolbar')
 			if (toolbar?.contains(e.target as Node)) return
-			// If the pointer down is not in the toolbar, complete the link
+			// For a press inside the text, put the caret where it landed. Closing leaves the caret at
+			// the link's start, and ProseMirror keeps that selection when the press refocuses the
+			// text rather than reading where the browser put the caret; a refocus here would also
+			// restore it a frame later.
+			const caret = textEditor.view.dom.contains(e.target as Node)
+				? textEditor.view.posAtCoords({ left: e.clientX, top: e.clientY })?.pos
+				: undefined
+			const refocus = caret === undefined
 			if (value) {
-				handleLinkComplete(value)
+				handleLinkComplete(value, { refocus })
 			} else {
-				handleRemoveLink()
+				handleRemoveLink({ refocus })
 			}
+			if (caret !== undefined) textEditor.commands.setTextSelection(caret)
 		}
 		doc.addEventListener('pointerdown', handlePointerDown, { capture: true })
 		return () => {
 			doc.removeEventListener('pointerdown', handlePointerDown, { capture: true })
 		}
-	}, [editor, handleLinkComplete, handleRemoveLink, value])
+	}, [editor, textEditor, handleLinkComplete, handleRemoveLink, value])
 
 	useEffect(() => {
 		ref.current?.focus()
@@ -115,7 +128,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 				data-testid="rich-text.link-remove"
 				type="icon"
 				onPointerDown={preventDefault}
-				onClick={handleRemoveLink}
+				onClick={() => handleRemoveLink()}
 			>
 				<TldrawUiButtonIcon small icon="trash" />
 			</TldrawUiButton>

@@ -93,3 +93,26 @@ it('opens the link editor and selects the link when clicking on the link itself'
 
 	textEditor.destroy()
 })
+
+it('opens the link editor on the first click even while an earlier range selection is still in place', () => {
+	const textEditor = createListWithTrailingLink()
+	const { result } = renderHook(() => useEditingLinkBehavior(textEditor))
+
+	// Entering edit mode selects all the text. Clicking inside that selection only moves
+	// ProseMirror's selection on a later selectionchange, so the click still sees select-all.
+	const end = linkEnd(textEditor)
+	act(() => {
+		textEditor.commands.selectAll()
+		textEditor.view.dom
+			.querySelector('a')!
+			.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+	})
+
+	expect(result.current.isEditingLink).toBe(true)
+	expect([textEditor.state.selection.from, textEditor.state.selection.to]).toEqual([
+		end - 'some link'.length,
+		end,
+	])
+
+	textEditor.destroy()
+})

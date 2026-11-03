@@ -60,8 +60,22 @@ function ContextualToolbarInner({
 
 	const getSelectionBounds = useCallback(() => {
 		if (isEditingLink) {
-			// If we're editing a link we don't have selection bounds temporarily.
-			return previousSelectionBounds.current
+			// Focus is in the link input, so there's no DOM selection to measure. Measure the link
+			// from the document instead: a link opened by a click never had its range measured, and
+			// falling back to previousSelectionBounds left the editor off screen while its input
+			// still took the keyboard.
+			const { from, to } = textEditor.state.selection
+			if (from === to) return previousSelectionBounds.current
+			const start = textEditor.view.coordsAtPos(from, 1)
+			const end = textEditor.view.coordsAtPos(to, -1)
+			const minX = Math.min(start.left, end.left)
+			const minY = Math.min(start.top, end.top)
+			return new Box(
+				minX,
+				minY,
+				Math.max(start.right, end.right) - minX,
+				Math.max(start.bottom, end.bottom) - minY
+			)
 		}
 		// Get the text selection rects as a box. This will be undefined if there are no selections.
 		const selection = editor.getContainerWindow().getSelection()
@@ -80,7 +94,7 @@ function ContextualToolbarInner({
 		const bounds = Box.Common(rangeBoxes)
 		previousSelectionBounds.current = bounds
 		return bounds
-	}, [editor, currentSelection, isEditingLink])
+	}, [editor, textEditor, currentSelection, isEditingLink])
 
 	useEffect(() => {
 		const handleSelectionUpdate = ({ editor: textEditor }: TextEditorEvents['selectionUpdate']) =>
@@ -127,12 +141,31 @@ export function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 		}
 
 		const handleClick = (e: MouseEvent) => {
-			// The link mark is inclusive, so a caret placed just after a link reports it as active.
-			// Clicking past the end of a line that ends in a link would otherwise open the link
-			// editor and steal focus from the text, so require the click to land on the link itself.
+			// Decide from the clicked element, not the selection. The link mark is inclusive, so a
+			// caret just after a link (from clicking past the end of its line) reports it as active.
+			// And clicking inside an existing range selection (e.g. the select-all on entering edit
+			// mode) only moves ProseMirror's selection on a later selectionchange, so at this point
+			// the selection can still be the old range.
 			const ElementCtor = textEditor.view.dom.ownerDocument.defaultView?.Element ?? Element
-			const isOnLink = e.target instanceof ElementCtor && !!e.target.closest('a')
-			setIsEditingLink(isOnLink && textEditor.isActive('link'))
+			const linkEl = e.target instanceof ElementCtor ? e.target.closest('a') : null
+			const range =
+				linkEl && textEditor.view.dom.contains(linkEl)
+					? getMarkRange(
+							textEditor.state.doc.resolve(textEditor.view.posAtDOM(linkEl, 0)),
+							textEditor.schema.marks.link as MarkType
+						)
+					: undefined
+			if (!range) {
+				setIsEditingLink(false)
+				return
+			}
+			// Keep a caret or partial selection inside the link (the effect below expands a caret),
+			// but replace a stale selection that reaches outside it.
+			const { from, to } = textEditor.state.selection
+			if (from < range.from || to > range.to) {
+				textEditor.commands.setTextSelection(range)
+			}
+			setIsEditingLink(true)
 		}
 
 		textEditor.view.dom.addEventListener('click', handleClick)
