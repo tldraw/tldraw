@@ -123,7 +123,8 @@ export class AgentService {
 			tools: buildActionTools(prompt),
 			toolChoice: 'auto',
 			maxOutputTokens: 8192,
-			// Opus 4.7+ removed `temperature` (and top_p/top_k); sending it returns a 400.
+			// Opus 4.7+ removed `temperature` (and top_p/top_k), and Anthropic takes none while a model
+			// thinks; sending it returns a 400.
 			...(modelDefinition.supportsTemperature ? { temperature: 0 } : {}),
 			providerOptions: this.openrouter
 				? getOpenRouterProviderOptions(modelDefinition)
@@ -301,15 +302,16 @@ function describeInvalidInput(error: unknown): string {
 }
 
 /**
- * One tool per action the mode allows, named by the action's `_type`. Messages are plain text, so
- * they have no tool. The tools have no `execute`: the client carries them out.
+ * One tool per action the mode allows, named by the action's `_type`. Messages are plain text and
+ * think actions are the model's own reasoning, so they have no tool. The tools have no `execute`:
+ * the client carries them out.
  */
 function buildActionTools(prompt: AgentPrompt): ToolSet {
 	const modePart = prompt.mode
 	if (!modePart) throw new Error('A mode part is always required.')
 	const tools: ToolSet = {}
 	for (const type of modePart.actionTypes) {
-		if (type === 'message') continue
+		if (type === 'message' || type === 'think') continue
 		const schema = getActionSchemaForMode(type, modePart.modeType) as
 			| z.ZodObject<{ _type: z.ZodLiteral<string> }>
 			| undefined
@@ -334,7 +336,11 @@ function getProviderOptions(definition: AgentModelDefinition): StreamTextProvide
 			return {
 				anthropic: {
 					thinking:
-						definition.thinking === 'adaptive' ? { type: 'adaptive' } : { type: 'disabled' },
+						definition.thinking === 'adaptive'
+							? { type: 'adaptive' }
+							: definition.thinking === 'disabled'
+								? { type: 'disabled' }
+								: { type: 'enabled', budgetTokens: definition.thinking.budgetTokens },
 					...(definition.effort ? { effort: definition.effort } : {}),
 				} satisfies AnthropicProviderOptions,
 			}
@@ -357,8 +363,8 @@ function getProviderOptions(definition: AgentModelDefinition): StreamTextProvide
 }
 
 /**
- * OpenRouter takes one reasoning effort for every model. A model with no effort, or with thinking
- * turned off, uses OpenRouter's default.
+ * OpenRouter takes one reasoning effort for every model, or a token budget for a model that thinks
+ * with one. A model with neither, or with thinking turned off, uses OpenRouter's default.
  */
 function getOpenRouterProviderOptions(definition: AgentModelDefinition): StreamTextProviderOptions {
 	const effort =
@@ -369,9 +375,15 @@ function getOpenRouterProviderOptions(definition: AgentModelDefinition): StreamT
 			: definition.provider === 'google'
 				? definition.thinkingLevel
 				: definition.reasoningEffort
+	const reasoning =
+		definition.provider === 'anthropic' && typeof definition.thinking === 'object'
+			? { max_tokens: definition.thinking.budgetTokens }
+			: effort
+				? { effort }
+				: undefined
 	return {
 		openrouter: {
-			...(effort ? { reasoning: { effort } } : {}),
+			...(reasoning ? { reasoning } : {}),
 		} as OpenRouterProviderOptions,
 	}
 }
