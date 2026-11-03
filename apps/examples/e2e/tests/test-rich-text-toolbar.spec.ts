@@ -153,13 +153,43 @@ test.describe('Rich text behaviour', () => {
 
 		await page.keyboard.press('Meta+Enter')
 		await sleep(200)
-		// The same chord normally finishes the edit, so the shape handler has to stand down here.
+		// The same chord normally finishes the edit, so it mustn't reach the shape's handler here.
 		expect(await isEditing()).toBe(true)
 		expect(await checked()).toBe(true)
 
 		await page.keyboard.press('Meta+Enter')
 		await sleep(200)
 		expect(await checked()).toBe(false)
+	})
+
+	test('cmd+enter ticks the task item in a note instead of adding the next note', async ({
+		page,
+		isMobile,
+	}) => {
+		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
+		if (isMobile) return
+
+		await page.evaluate(() => {
+			editor.complete()
+			editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+			editor.createShape({ type: 'note', x: 100, y: 100 })
+			const note = editor.getCurrentPageShapes()[0]
+			editor.select(note.id)
+			editor.setEditingShape(note.id)
+		})
+		await sleep(300)
+		await page.keyboard.type('[ ] a task')
+		await sleep(150)
+
+		const checked = () =>
+			page.evaluate(
+				() => (editor.getEditingShape()!.props as any).richText.content[0].content[0].attrs.checked
+			)
+
+		await page.keyboard.press('Meta+Enter')
+		await sleep(200)
+		expect(await checked()).toBe(true)
+		expect(await page.evaluate(() => editor.getCurrentPageShapes().length)).toBe(1)
 	})
 
 	test('clicking a checkbox outside edit mode ticks it in one click', async ({

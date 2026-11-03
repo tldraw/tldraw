@@ -43,8 +43,9 @@ export const KeyboardShiftEnterTweakExtension = Extension.create({
  * all take the first item's new state, so one press reads as a single toggle rather than inverting
  * each item separately.
  *
- * The shape-level handlers bind Cmd+Enter too (finishing the edit, adding the next note) and run
- * ahead of this, so they stand down when the selection is in a task item.
+ * Shapes bind Cmd+Enter too (finishing the edit, adding the next note), and their key handlers run
+ * ahead of this keymap. RichTextArea doesn't pass the chord to them while the selection is in a task
+ * item, so this works in any shape that edits rich text, custom shapes included.
  *
  * @public
  */
@@ -80,8 +81,8 @@ export const TaskItemToggleExtension = Extension.create({
 			})
 		return {
 			'Mod-Enter': toggle,
-			// Off Apple platforms `Mod` is only Ctrl, but the shape handlers treat Meta as the accel key
-			// there too (isAccelKey) and stand down for it, so Meta+Enter would otherwise do nothing.
+			// Off Apple platforms `Mod` is only Ctrl, but RichTextArea keeps Meta+Enter in a task item
+			// from the shape too, so Meta+Enter would otherwise do nothing.
 			'Meta-Enter': toggle,
 		}
 	},
@@ -277,13 +278,13 @@ export function isEditingRichTextList(editor: Editor) {
 }
 
 /**
- * Whether the editor's active rich text selection is inside a task item. Shape-level Cmd+Enter
- * handlers run ahead of TipTap's keymap, so they check this and stand down to let
- * {@link TaskItemToggleExtension} tick the item instead.
+ * Whether the editor's active rich text selection is inside a task item. RichTextArea checks this
+ * to keep Cmd+Enter from the shape's key handler, so {@link TaskItemToggleExtension} can tick the
+ * item instead.
  *
  * The extension has to actually be installed for that to be true. Filtering it out of the set while
  * keeping task lists is a reasonable thing to want — it's how you get Cmd+Enter back to finishing
- * the edit — and standing down for a keymap that isn't there would leave the chord doing nothing.
+ * the edit — and withholding the chord for a keymap that isn't there would leave it doing nothing.
  *
  * @internal
  */
