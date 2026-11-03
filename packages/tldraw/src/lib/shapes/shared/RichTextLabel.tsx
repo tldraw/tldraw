@@ -150,6 +150,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	 * the shape or start a drag, and the item flips on pointer up over the same box, like a click.
 	 */
 	const handleTaskItemPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+		if (!richText || !richTextHasTaskList(richText)) return false
 		if (!selectToolActive || isEditing || !editor.canEditShape(shapeId)) return false
 		// Modifiers mean selection: shift-click to add the shape, and so on.
 		if (e.button !== 0 || e.shiftKey || e.altKey || isAccelKey(e)) return false
