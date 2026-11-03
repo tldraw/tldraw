@@ -199,6 +199,51 @@ test.describe('Rich text behaviour', () => {
 		expect(await checked()).toBe(false)
 	})
 
+	test('clicking a checkbox on a shape that cannot be edited leaves it as it is', async ({
+		page,
+		isMobile,
+	}) => {
+		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
+		if (isMobile) return
+
+		await page.keyboard.type('- [ ] a task')
+		await page.keyboard.press('Escape')
+		await page.evaluate(() => editor.selectNone())
+		await sleep(150)
+
+		const checked = () =>
+			page.evaluate(
+				() =>
+					(editor.getCurrentPageShapes()[0].props as any).richText.content[0].content[0].attrs
+						.checked
+			)
+		const label = page.locator('.tl-rich-text ul[data-type="taskList"] > li > label').first()
+		const clickCheckbox = async () => {
+			const box = (await label.boundingBox())!
+			await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+			await sleep(150)
+		}
+
+		await page.evaluate(() => editor.toggleLock([editor.getCurrentPageShapes()[0].id]))
+		await clickCheckbox()
+		expect(await checked()).toBe(false)
+
+		await page.evaluate(() => {
+			editor.toggleLock([editor.getCurrentPageShapes()[0].id])
+			editor.updateInstanceState({ isReadonly: true })
+		})
+		await clickCheckbox()
+		expect(await checked()).toBe(false)
+
+		// A shape util that declines editing, as a custom shape might.
+		await page.evaluate(() => {
+			editor.updateInstanceState({ isReadonly: false })
+			editor.getShapeUtil('geo').canEdit = () => false
+		})
+		await clickCheckbox()
+		expect(await checked()).toBe(false)
+	})
+
 	test('keeps text visible when ProseMirror hides the selection', async ({ page, isMobile }) => {
 		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
 		if (isMobile) return
