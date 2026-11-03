@@ -5,7 +5,7 @@ import test from '../fixtures/fixtures'
 import { setupPage } from '../shared-e2e'
 
 // Converts every diagram in the "Hundreds of Mermaid diagrams" example and compares the result with
-// mermaid's own rendering (see `src/misc/mermaidReadability.ts`). Not part of `pnpm e2e`: CI runs it
+// the layout engine's own rendering (see `src/misc/mermaidReadability.ts`). Not part of `pnpm e2e`: CI runs it
 // only when mermaid conversion changes (`.github/workflows/playwright-mermaid.yml`), and locally it
 // is `pnpm e2e-mermaid-readability` from `apps/examples`.
 
@@ -73,16 +73,56 @@ const KNOWN_PROBLEMS: KnownProblem[] = [
 		],
 	},
 	{
-		// Listed as a known limitation in #10773.
-		reason: 'A self-loop on the top or bottom of a narrow state node gets too little label width',
-		findings: [midWordBreak('state', 21, 'type character', 'chara/cter')],
+		// tldraw squeezes an arrow's label to the arrow's width less a margin whenever the arrow is
+		// wider than it is tall.
+		reason: 'A label on a short, wide arrow wraps mid-word',
+		findings: [
+			midWordBreak('state', 15, 'reply received', 'receiv/ed'),
+			midWordBreak('state', 24, 'request\nmore\nchanges', 'reque/st'),
+			midWordBreak('state', 24, 'request\nmore\nchanges', 'chang/es'),
+		],
 	},
 	{
-		// Mermaid lays edge labels out for a smaller font than the node size they are drawn at, so a
-		// label near a composite state's edge can reach past it. Accepted in #10804, which drew them at
-		// the node size so they read at the same size as the nodes.
-		reason: 'An edge label near a composite state reaches past its edge',
-		findings: [overlap('state', 19, 'manager rejects', 'Review')],
+		// Rows are as tall as the layout's own text needs, and tldraw's labels are taller.
+		reason: 'A message or note label reaches into the frame or section title above or below it',
+		findings: [
+			overlap('sequence', 12, 'Get subscription', '[Load billing]'),
+			overlap('sequence', 21, 'Empty', '[No job yet]'),
+			overlap('sequence', 22, '7  Write failed login event', '[Login failed]'),
+			overlap('sequence', 23, 'Checkout failed', '[Failure occurred]'),
+			overlap('sequence', 23, 'Void authorization', '[Shipment creation failed]'),
+			overlap('sequence', 24, 'opt [Customer included coupon]', '9  Apply discount rules'),
+			overlap('sequence', 24, '22  409 Out of stock', '[Out of stock]'),
+			overlap('sequence', 24, '20  409 Purchase failed', '[Commit failed]'),
+			overlap('sequence', 24, '7  Check availability', '[Check stock]'),
+			overlap('sequence', 24, '16  Record purchase event', '[Track analytics]'),
+		],
+	},
+	{
+		reason: 'Frames nested back to back put one title on top of the next',
+		findings: [
+			overlap('sequence', 24, 'opt [Customer included coupon]', 'critical [Commit purchase]'),
+			overlap('sequence', 24, 'critical [Commit purchase]', 'opt [Customer included coupon]'),
+		],
+	},
+	{
+		// Bare-text nodes are drawn on one line, at a size a little larger than the layout measured.
+		reason: 'A long bare-text mindmap label runs into its neighbour',
+		findings: [
+			overlap('mindmap', 19, 'Dimensionality Reduction', 'Unsupervised'),
+			overlap(
+				'mindmap',
+				23,
+				'Another extremely verbose and descriptive child node that could break layouts',
+				'Even deeper explanation with excessive verbosity and complexity'
+			),
+			overlap(
+				'mindmap',
+				23,
+				'Even deeper explanation with excessive verbosity and complexity',
+				'Another extremely verbose and descriptive child node that could break layouts'
+			),
+		],
 	},
 	{
 		reason:
@@ -99,18 +139,24 @@ const KNOWN_PROBLEMS: KnownProblem[] = [
 	},
 	{
 		reason: 'A note in an `option` section is drawn over the section title',
-		findings: [overlap('sequence', 24, 'Stop flow before inventory mutation', '[Payment failed]')],
+		findings: [
+			overlap('sequence', 24, 'Stop flow before inventory mutation', '[Payment failed]'),
+			overlap('sequence', 24, '[Payment failed]', 'Stop flow before inventory mutation'),
+		],
 	},
 	{
 		reason:
 			"A section title's box is taller than its text, so a frame nested right under it starts inside the box",
-		findings: [overlap('sequence', 22, 'opt [New device detected]', '[Optional alert]')],
+		findings: [
+			overlap('sequence', 22, 'opt [New device detected]', '[Optional alert]'),
+			overlap('sequence', 22, '[Optional alert]', 'opt [New device detected]'),
+		],
 	},
 	{
-		// Not a conversion bug: inside a composite state, mermaid ignores a `<<fork>>` or `<<join>>`
-		// declared after the state is first used and draws a plain named state. The conversion draws
-		// the bar the source asks for.
-		reason: 'Mermaid draws these forks and joins as named states',
+		// Not a conversion bug: inside a composite state, pele (like Mermaid) ignores a `<<fork>>` or
+		// `<<join>>` declared after the state is first used and draws a plain named state. The
+		// conversion draws the bar the source asks for.
+		reason: 'The layout draws these forks and joins as named states',
 		findings: [
 			missingText('state', 11, 'Fork'),
 			missingText('state', 11, 'Join'),
