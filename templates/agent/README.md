@@ -6,7 +6,7 @@ A chat panel on the right side of the screen lets users communicate with the age
 
 ## Environment setup
 
-Create a `.dev.vars` file in the root directory and add API keys for any model providers you want to use.
+Create a `.dev.vars` file in the root directory and add a key for each model provider you want to use. You need at least one. Each model in the model picker works only if its provider has a key.
 
 ```
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
@@ -14,7 +14,15 @@ GOOGLE_API_KEY=your_google_api_key_here
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-We recommend using Anthropic for best results. Get your API key from the [Anthropic dashboard](https://console.anthropic.com/settings/keys).
+Get the keys from the [Anthropic console](https://console.anthropic.com/settings/keys), [Google AI Studio](https://aistudio.google.com/apikey) and the [OpenAI dashboard](https://platform.openai.com/api-keys). We recommend Anthropic for best results.
+
+To use every model with one key, use an [OpenRouter](https://openrouter.ai/settings/keys) key instead:
+
+```
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+```
+
+When `OPENROUTER_API_KEY` is set, every request goes through OpenRouter and the provider keys are not used.
 
 ## Local development
 
@@ -584,6 +592,21 @@ override getPart(request: AgentRequest, helpers: AgentHelpers): RandomShapePart 
 }
 ```
 
+## Deploy
+
+Build the app and deploy it to Cloudflare Workers:
+
+```bash
+npm run build
+npx wrangler deploy
+```
+
+The deployed worker does not read `.dev.vars`. Add the same keys to it as secrets, one command per key:
+
+```bash
+npx wrangler secret put ANTHROPIC_API_KEY
+```
+
 ## Limit usage before you deploy
 
 The starter kit has no usage limits. A public deployment pays for every request with your API keys, so add a limit per user, such as a budget of requests or spend, enforced on your server, before you deploy it publicly.
@@ -614,12 +637,15 @@ Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts`.
 'claude-sonnet-5': {
 	name: 'claude-sonnet-5',
 	id: 'claude-sonnet-5',
+	openRouterId: 'anthropic/claude-sonnet-5',
 	provider: 'anthropic',
 	supportsTemperature: false,
 	thinking: 'adaptive',
 	effort: 'low',
 }
 ```
+
+`openRouterId` is the model's id on [OpenRouter](https://openrouter.ai/models), which the kit uses when `OPENROUTER_API_KEY` is set.
 
 Add extra setup or configuration for your provider in `worker/do/AgentService.ts`.
 

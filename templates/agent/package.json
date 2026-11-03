@@ -19,7 +19,10 @@
 		},
 		"deploy": {
 			"target": "cloudflare",
-			"host": "agent.templates.tldraw.dev"
+			"host": "agent.templates.tldraw.dev",
+			"secrets": [
+				"OPENROUTER_API_KEY"
+			]
 		},
 		"scripts": {
 			"lint": null,
@@ -39,6 +42,7 @@
 		"@ai-sdk/openai": "^2.0.106",
 		"@cloudflare/vite-plugin": "^1.29.1",
 		"@google/generative-ai": "^0.24.1",
+		"@openrouter/ai-sdk-provider": "^1.5.4",
 		"@tldraw/tlschema": "workspace:*",
 		"@worker-tools/json-stream": "^0.1.0-pre.12",
 		"ai": "^5.0.194",

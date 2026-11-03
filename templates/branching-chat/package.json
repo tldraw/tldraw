@@ -19,7 +19,10 @@
 		},
 		"deploy": {
 			"target": "cloudflare",
-			"host": "branching-chat.templates.tldraw.dev"
+			"host": "branching-chat.templates.tldraw.dev",
+			"secrets": [
+				"OPENROUTER_API_KEY"
+			]
 		},
 		"scripts": {
 			"lint": null,
@@ -36,6 +39,7 @@
 	"dependencies": {
 		"@ai-sdk/google": "^2.0.74",
 		"@cloudflare/vite-plugin": "^1.29.1",
+		"@openrouter/ai-sdk-provider": "^1.5.4",
 		"ai": "^5.0.194",
 		"classnames": "^2.5.1",
 		"itty-router": "^5.0.18",
