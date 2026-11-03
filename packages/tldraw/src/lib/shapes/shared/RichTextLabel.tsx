@@ -143,6 +143,9 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		}
 	}
 
+	const getShapeRichText = () =>
+		(editor.getShape(shapeId)?.props as { richText?: TLRichText } | undefined)?.richText
+
 	/**
 	 * Ticks a checkbox in one click, without entering edit mode first. The static HTML has no
 	 * ProseMirror behind it and its checkboxes don't take pointer events (see editor.css), so the hit
@@ -162,6 +165,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		editor.markEventAsHandled(e)
 		// The canvas never sees this press, so end another shape's edit as a press anywhere else would.
 		if (editor.getEditingShapeId()) editor.complete()
+		const pressedRichText = getShapeRichText()
 		const win = editor.getContainerWindow()
 		// A press can end in pointercancel instead of pointerup; a listener left behind then fires on
 		// the next mouse press (mice reuse one pointerId) and toggles the item a second time.
@@ -177,9 +181,10 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 			removeListeners()
 			if (getTaskItemIndexAtPoint(root, up.clientX, up.clientY) !== index) return
 
-			const current = editor.getShape(shapeId)
-			const currentRichText = (current?.props as { richText?: TLRichText } | undefined)?.richText
-			if (!currentRichText) return
+			// The index is only good for the text it was read from: an item added or removed during
+			// the press (a collaborator, an undo) would put a different item at that index.
+			const currentRichText = getShapeRichText()
+			if (!currentRichText || currentRichText !== pressedRichText) return
 			editor.markHistoryStoppingPoint('toggle task item')
 			editor.updateShape({
 				id: shapeId,
